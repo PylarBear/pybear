@@ -1,3 +1,14 @@
+# Authors:
+#
+#       Bill Sousa
+#
+# License: BSD 3 clause
+
+
+
+
+from pybear.base import is_classifier
+
 import time
 import pandas as pd
 import numpy as np
@@ -60,10 +71,9 @@ from dask_ml.wrappers import Incremental, ParallelPostFit
 
 
 
-from is_classifier import is_classifier
 
 
-print(f'\033[92mrunning is_classifier() tests\033[0m\n'); t0 = time.perf_counter()
+print(f'\033[92mrunning is_classifier() tests___BEAR_FIX_THESE\033[0m\n'); t0 = time.perf_counter()
 
 
 ### TEST ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -456,7 +466,7 @@ ESTIMATORS.resize((_row,))
 RESULTS_ARRAY.resize((_row, 2))
 ESTIMATORS[-1] = 'string'
 RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier('test string')
+RESULTS_ARRAY[-1, 1] = is_classifier('tests___BEAR_FIX_THESE string')
 
 
 
@@ -639,7 +649,7 @@ for idx, est_name in enumerate(ESTIMATORS):
         print(f'\033[91m{est_name}:'[:110].ljust(115), 'EPIC FAIL\033[0m')
 
 if fail_ctr == 0:
-    print(f'\033[92mAll {len(RESULTS_ARRAY)} tests passed in {time.perf_counter()-t0:,.0f} seconds \033[0m')
+    print(f'\033[92mAll {len(RESULTS_ARRAY)} tests___BEAR_FIX_THESE passed in {time.perf_counter()-t0:,.0f} seconds \033[0m')
 
 
 

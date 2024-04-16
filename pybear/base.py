@@ -1,3 +1,11 @@
+# Authors:
+#
+#       Bill Sousa
+#
+# License: BSD 3 clause
+
+
+
 import importlib
 import numpy as np
 from sklearn.pipeline import Pipeline

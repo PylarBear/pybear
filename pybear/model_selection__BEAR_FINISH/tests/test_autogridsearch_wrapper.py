@@ -1,8 +1,9 @@
+import pytest
+
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
 
-from autogridsearch_wrapper import autogridsearch_wrapper
-
+from pybear.model_selection__BEAR_FINISH import autogridsearch_wrapper
 
 
 

@@ -1,0 +1,151 @@
+
+
+def _exception(self, text):
+    '''Exception verbage for this module.'''
+    raise Exception(f'\n***{self.this_module}() THRU {self.calling_module}.{self.calling_fxn}() >>> {text} ***\n')
+
+
+def calculate_estimated_memory(self):
+    '''Only used once. Separate from code body for clarity.'''
+    ######################################################################################################################
+    ######################################################################################################################
+    # MEM USAGE ESTIMATES FOR EXPANSION AS ARRAY OR SPARSEDICT ###########################################################
+
+    print(f'\n' + '*'*90)
+    print(f'GENERATING ESTIMATES OF DATA SIZE IN RAM AFTER EXPANSION...')
+
+    # INSTEAD OF MAKING THESE idxs A self. IN init AND CARRYING AROUND THE self. A HUNDRED TIMES, JUST REDECLARE HERE
+    hdr_idx = msod.master_support_object_dict()["HEADER"]["position"]
+    mdtypes_idx = msod.master_support_object_dict()["MODIFIEDDATATYPES"]["position"]
+
+    np_float = ms.MemSizes('np_float').mb()
+    np_int = ms.MemSizes('np_int').mb()
+    sd_float = ms.MemSizes('sd_float').mb()
+    sd_int = ms.MemSizes('sd_int').mb()
+
+    l_rows, sd_rows = len(self.DATA_OBJECT[0]), len(self.DATA_OBJECT[0])
+    l_end_cols, sd_end_cols, l_elems, sd_elems = 0, 0, 0, 0     # self.l_mem, self.sd_mem ALREADY __init__ed
+    adjusted_columns = 0
+    float_in_final_expanded = 'FLOAT' in self.SUPPORT_OBJECTS[mdtypes_idx] or 'NNLM50' in self.SUPPORT_OBJECTS[mdtypes_idx]  # IF A FLOAT COLUMN IN FINAL, ALL COLUMNS WILL BE float64
+    for col_idx in range(len(self.DATA_OBJECT)):
+        col_type = self.SUPPORT_OBJECTS[mdtypes_idx][col_idx]
+        if col_type in ['FLOAT', 'INT', 'BIN']:
+            # IF NUMBER PRE-EXPANSION, IS (NOT NECESSARILY, BUT PROBABLY) A FULLY DENSE COLUMN IN ARRAY OR SPARSEDICT.
+            # INCREMENT cols, elems, mem
+            l_end_cols += 1
+            sd_end_cols += 1
+            l_elems += l_rows
+            sd_elems += sd_rows
+            self.l_mem += l_rows * (np_float if float_in_final_expanded else np_int)   # IF A FLOAT COLUMN IN FINAL, ALL COLUMNS WILL BE float64
+            if col_type in ['FLOAT']: self.sd_mem += sd_rows * sd_float
+            elif col_type in ['INT', 'BIN']: self.sd_mem += sd_rows * sd_int
+
+        elif col_type == 'STR':  # THIS WILL BE EXPANDED TO BIN, BEST CASE IS np.int8 OR py_int
+            # end_cols FORMULA IS ( NUMBER AFTER EXPANDED - int(IF MULTICOLIN ADDRESSED VIA AUTODROP OR USER SELECT AFTER CYCLE) )
+            adjusted_columns = len(self.UNIQUES_HOLDER[col_idx]) - int(self.address_multicolinearity)
+            l_end_cols += adjusted_columns
+            sd_end_cols += adjusted_columns
+            l_elems += l_rows * adjusted_columns
+            sd_elems += sd_rows  # BECAUSE NO MATTER HOW MANY UNIQUES (THUS COLUMNS), TOTAL ENTRIES ALWAYS ADD TO # ROWS
+            # NOT ADJUSTING sd_elems FOR MULTICOLIN DROP NOR FOR PLACEHOLDER, TOO COMPLICATED FOR ESTIMATING PURPOSES
+            self.l_mem += l_rows * adjusted_columns * (np_float if float_in_final_expanded else np_int)    # IF A FLOAT COLUMN IN FINAL, ALL COLUMNS WILL BE float64
+            self.sd_mem += sd_rows * sd_int
+
+        elif col_type == 'SPLIT_STR':
+            l_end_cols += len(self.UNIQUES_HOLDER[col_idx])
+            sd_end_cols += len(self.UNIQUES_HOLDER[col_idx])
+            l_elems += l_rows * len(self.UNIQUES_HOLDER[col_idx])
+            sd_elems += self.WORD_COUNT_HOLDER[col_idx]
+            self.l_mem += l_rows * len(self.UNIQUES_HOLDER[col_idx]) * (np_float if float_in_final_expanded else np_int)    # IF A FLOAT COLUMN IN FINAL, ALL COLUMNS WILL BE float64
+            self.sd_mem += self.WORD_COUNT_HOLDER[col_idx] * sd_int
+
+        elif col_type in ['NNLM50']:
+            l_end_cols += 50
+            sd_end_cols += 50
+            l_elems += l_rows * 50
+            sd_elems += sd_rows * 50
+            self.l_mem += l_rows * 50 * np_float    # IF HAS AN NNLM50 COLUMN, FINAL DATA MUST BE ALL FLOATS
+            self.sd_mem += sd_rows * 50 * sd_float
+
+        # PLACEHOLDER FOR POTENTIAL FUTURE TEXT ANALYTICS METHODS
+        # elif col_type == 'TXT4': pass
+        # elif col_type == 'TXT5': pass
+
+    del adjusted_columns, col_type, np_float, np_int, sd_float, sd_int, float_in_final_expanded
+
+    print_template = lambda _desc_, _rows_, _end_cols_, _elems_, _mem_: print \
+        (f'{_desc_}'.ljust(50) + f' rows={_rows_:,}'.rjust(13) + \
+         f' cols={_end_cols_:,}'.rjust(13) + f' elems={_elems_:,}'.rjust(20) + f' mem={int(_mem_):,} MB'.rjust(15))
+    print_template(f'\nAPPROXIMATE SIZE EXPANDED AS LISTS:', int(l_rows), int(l_end_cols), int(l_elems), self.l_mem)
+    print_template(f'APPROXIMATE SIZE EXPANDED AS SPARSE DICTS:', int(sd_rows), int(sd_end_cols), int(sd_elems), self.sd_mem)
+
+    del l_rows, sd_rows, l_end_cols, sd_end_cols, l_elems, sd_elems, print_template  # DONT DELETE l_mem & sd_mem, NEED FOR MEM COMPARISON
+
+    print(f'\nNUMBER OF DUMMY COLUMNS CONTRIBUTED BY CATEGORICAL COLUMNS:')
+    if 'STR' in self.SUPPORT_OBJECTS[mdtypes_idx]:
+        for modtype_idx in range(len(self.SUPPORT_OBJECTS[mdtypes_idx])):
+            if self.SUPPORT_OBJECTS[mdtypes_idx][modtype_idx] == 'STR':
+                print(f'{self.SUPPORT_OBJECTS[msod.master_support_object_dict()["HEADER"]["position"]][modtype_idx][:48]}): '.ljust(50) +
+                      f'{len(self.UNIQUES_HOLDER[modtype_idx]) - int(self.address_multicolinearity)}')
+    else: print(f'NONE, NO CATEGORICAL COLUMNS.')
+
+    print(f'\nNUMBER OF DUMMY COLUMNS CONTRIBUTED BY SPLIT STRING COLUMNS:')
+    if 'SPLIT_STR' in self.SUPPORT_OBJECTS[mdtypes_idx]:
+        for modtype_idx in range(len(self.SUPPORT_OBJECTS[mdtypes_idx])):
+            if self.SUPPORT_OBJECTS[modtype_idx][modtype_idx] == 'SPLIT_STR':
+                print(f'{self.SUPPORT_OBJECTS[hdr_idx][modtype_idx][:48]}): '.ljust(50) +
+                      f'{len(self.UNIQUES_HOLDER[modtype_idx])}')
+    else: print(f'NONE, NO SPLIT STRING COLUMNS.')
+
+    print(f'\nNUMBER OF COLUMNS CONTRIBUTED BY NNLM50 COLUMNS:')
+    if 'NNLM50' in self.SUPPORT_OBJECTS[mdtypes_idx]:
+        for modtype_idx in range(len(self.SUPPORT_OBJECTS[mdtypes_idx])):
+            if self.SUPPORT_OBJECTS[mdtypes_idx][modtype_idx] == 'NNLM50':
+                print(f'{self.SUPPORT_OBJECTS[hdr_idx][modtype_idx][:48]}): 50')
+        print(f'\nTOTAL NUMBER OF COLUMNS CONTRIBUTED BY NNLM50: {50 * np.sum(np.int8(self.SUPPORT_OBJECTS[mdtypes_idx]=="NNLM50"))}')
+    else: print(f'NONE, NO NNLM50 COLUMNS.')
+
+    print('*'*90 + f'\n')
+
+    del hdr_idx, mdtypes_idx
+
+    # END MEM USAGE ESTIMATES FOR EXPANSION AS ARRAY OR SPARSEDICT #######################################################
+    ######################################################################################################################
+    ######################################################################################################################
+
+
+
+def column_drop_iterator(self):
+    '''Iteratively drop each column from passed object.'''
+    # BEAR THIS FUNCTION WILL HAVE TO ACCOMMODATE DOES/DOESNT HAVE TARGET, WHAT STATS CAN BE GOT WILL CHANGE
+
+    print(f'\n************************* '
+          f'\nBEAR \nBYPASS \nwhole_data_object_stats \nUNTIL \nMLRegression \ncolumn_drop_iterator \nMODULE \nFINISHED'
+          f'*************************\n')
+    # self.column_drop_iterator(self.LEVELS, EXPANDED_COLUMN_NAMES, self.UNIQUES_HOLDER[col_idx], append_ones='Y')
+    print()
+    pass
+
+
+def whole_data_object_stats(self):
+    '''Display statistics derived from MLRegression for passed object.'''
+    print(f'\n************************* '
+          f'\nBEAR \nBYPASS \nwhole_data_object_stats \n UNTIL MLRegression \ncolumn_drop_iterator \nMODULE \nFINISHED'
+          f'*************************\n')
+
+    # BEAR THIS FUNCTION WILL HAVE TO ACCOMMODATE DOES/DOESNT HAVE TARGET, WHAT STATS CAN BE GOT WILL CHANGE
+
+        # if self.TARGET is None:.....
+        # self.whole_data_object_stats(self.LEVELS, EXPANDED_COLUMN_NAMES, self.UNIQUES_HOLDER[col_idx], append_ones='Y')
+        print()
+        pass
+
+
+    def context_update_for_column_drop(self, words):
+        '''Context update for column drop during expansion of a STR column.'''
+        # OVERWROTE IN CHILD
+        self.CONTEXT_HOLDER.append(words)
+        pass
+
+
+

@@ -338,8 +338,7 @@ class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, Bas
 
     Examples
     --------
-    # >>> from pybear.preprocessing import MinCountTransformer
-    >>> from MinCountTransformer import MinCountTransformer
+    >>> from pybear.preprocessing import MinCountTransformer
     >>> data = [['a', 0], ['a', 1], ['b', 0], ['c', 1], ['b', 2], ['d', 0]]
     >>> mincount = MinCountTransformer(2, ignore_non_binary_integer_columns=False)
     >>> print(mincount.fit(data))
