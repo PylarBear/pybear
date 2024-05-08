@@ -5,11 +5,10 @@
 # License: BSD 3 clause
 
 
-
+import pytest
 
 from pybear.base import is_classifier
 
-import time
 import pandas as pd
 import numpy as np
 from dask import delayed
@@ -29,7 +28,9 @@ from sklearn.svm import SVC as sklearn_SVC
 from sklearn.neural_network import MLPClassifier as sklearn_MLPClassifier
 from sklearn.neural_network import MLPRegressor as sklearn_MLPRegressor
 from sklearn.naive_bayes import GaussianNB as sklearn_GaussianNB
-from sklearn.calibration import CalibratedClassifierCV as sklearn_CalibratedClassifierCV
+from sklearn.calibration import (
+    CalibratedClassifierCV as sklearn_CalibratedClassifierCV
+)
 
 
 from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
@@ -51,32 +52,34 @@ from sklearn.feature_extraction.text import CountVectorizer as sklearn_CountVect
 from dask_ml.feature_extraction.text import CountVectorizer as dask_CountVectorizer
 
 
-
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
-from sklearn.model_selection import RandomizedSearchCV as sklearn_RandomizedSearchCV
+from sklearn.model_selection import (
+    RandomizedSearchCV as sklearn_RandomizedSearchCV
+)
 from sklearn.experimental import enable_halving_search_cv
-from sklearn.model_selection import HalvingGridSearchCV as sklearn_HalvingGridSearchCV
-from sklearn.model_selection import HalvingRandomSearchCV as sklearn_HalvingRandomSearchCV
+from sklearn.model_selection import (
+    HalvingGridSearchCV as sklearn_HalvingGridSearchCV
+)
+from sklearn.model_selection import (
+    HalvingRandomSearchCV as sklearn_HalvingRandomSearchCV
+)
 
 
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 from dask_ml.model_selection import RandomizedSearchCV as dask_RandomizedSearchCV
 from dask_ml.model_selection import IncrementalSearchCV as dask_IncrementalSearchCV
 from dask_ml.model_selection import HyperbandSearchCV as dask_HyperbandSearchCV
-from dask_ml.model_selection import SuccessiveHalvingSearchCV as dask_SuccessiveHalvingSearchCV
-from dask_ml.model_selection import InverseDecaySearchCV as dask_InverseDecaySearchCV
+from dask_ml.model_selection import (
+    SuccessiveHalvingSearchCV as dask_SuccessiveHalvingSearchCV
+)
+from dask_ml.model_selection import (
+    InverseDecaySearchCV as dask_InverseDecaySearchCV
+)
 
 from sklearn.pipeline import Pipeline
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
 
-
-
-
-print(f'\033[92mrunning is_classifier() tests___BEAR_FIX_THESE\033[0m\n'); t0 = time.perf_counter()
-
-
-### TEST ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 a = XGBClassifier
 b = XGBRegressor
@@ -104,7 +107,13 @@ x = DaskLGBMRanker
 y = sklearn_CalibratedClassifierCV
 
 
-# BUILD TRUTH TABLE FOR ALL ESTIMATORS IS/ISNT A CLASSIFIER ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+# BUILD TRUTH TABLE FOR ALL ESTIMATORS IS/ISNT A CLASSIFIER ** ** ** ** ** ** **
+
+
+ALL_ESTIMATORS = \
+    [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, x, y]
+
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 def get_fxn_name(_module):
     try:
@@ -113,19 +122,28 @@ def get_fxn_name(_module):
         try:
             fxn_name = type(_module(sklearn_LogisticRegression())).__name__
         except:
-            raise Exception(f'get_fxn_name(): estimator "{_module}" wont initialize')
+            raise ValueError(f'get_fxn_name(): '
+                             f'estimator "{_module}" wont initialize')
     return fxn_name
-
-
-ALL_ESTIMATORS = [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, x, y]
-
-STR_ESTIMATOR_PATHS = np.fromiter((str(__).lower() for __ in ALL_ESTIMATORS), dtype='<U200')
 
 ESTIMATOR_NAMES = delayed([get_fxn_name(_) for _ in ALL_ESTIMATORS]).compute()
 
+del get_fxn_name
+
+
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+STR_ESTIMATOR_PATHS = \
+    np.fromiter((str(__).lower() for __ in ALL_ESTIMATORS), dtype='<U200')
+
+
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
 NAMES = np.empty(len(ESTIMATOR_NAMES), dtype='<U200')
 
-for idx, (str_estimator_path, estimator_name) in enumerate(zip(STR_ESTIMATOR_PATHS, ESTIMATOR_NAMES)):
+for idx, (str_estimator_path, estimator_name) in (
+        enumerate(zip(STR_ESTIMATOR_PATHS, ESTIMATOR_NAMES))):
     if 'dask' in str_estimator_path:
         if 'lightgbm' in str_estimator_path:
             continue
@@ -136,8 +154,12 @@ for idx, (str_estimator_path, estimator_name) in enumerate(zip(STR_ESTIMATOR_PAT
         else:
             NAMES[idx] = f'dask_{estimator_name}'
 
+
+
 KEYS = np.empty(len(ESTIMATOR_NAMES))
-for idx, (str_estimator_path, estimator_name) in enumerate(zip(STR_ESTIMATOR_PATHS, ESTIMATOR_NAMES)):
+for idx, (str_estimator_path, estimator_name) in \
+        enumerate(zip(STR_ESTIMATOR_PATHS, ESTIMATOR_NAMES)):
+
     if 'lightgbm' in str_estimator_path or \
         'xgb' in str_estimator_path or \
         'blockwisevotingclassifier' in str_estimator_path or \
@@ -153,7 +175,7 @@ for idx, (str_estimator_path, estimator_name) in enumerate(zip(STR_ESTIMATOR_PAT
     elif 'dask' in str_estimator_path:
         pass
     else:
-        raise Exception(f"Logic getting package name out of str(estimator) has failed")
+        raise ValueError(f"Logic getting package name from str(estimator) failed")
 
     if NAMES[idx][:5] == 'dask_':
         pass
@@ -171,32 +193,39 @@ for idx, (str_estimator_path, estimator_name) in enumerate(zip(STR_ESTIMATOR_PAT
     else:
         KEYS[idx] = False
 
-# KEEP
-# ALL_ESTIMATORS, NAMES
 
-
-del get_fxn_name, STR_ESTIMATOR_PATHS, ESTIMATOR_NAMES
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 IS_CLF_LOOKUP = pd.DataFrame({'TRUTH': KEYS}, index=NAMES).astype({'TRUTH': bool})
 
-# END BUILD TRUTH TABLE FOR ALL ESTIMATORS IS/ISNT A CLASSIFIER ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+# KEEP
+# ALL_ESTIMATORS, NAMES, IS_CLF_LOOKUP
 
 
-ESTIMATORS = np.empty(0, dtype='<U200')
-RESULTS_ARRAY = np.empty((0, 3), dtype=object)
+del ESTIMATOR_NAMES, STR_ESTIMATOR_PATHS, KEYS
+
+# END BUILD TRUTH TABLE FOR ALL ESTIMATORS IS/ISNT A CLASSIFIER ** ** ** ** **
 
 
-def pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP):
-    # WHEN USING is_classifier, THE ESTIMATOR CAN BE PASSED AS A CLASS OR AS AN INSTANCE, SO DONT NEED TO PASS AS AN INSTANCE
-    # BUT WHEN PASSING ESTIMATOR TO WRAPPERS (Pipeline, Incremental, ParallelPostFit), IT MUST BE AN INSTANCE AND NOT THE
-    # CLASS ITSELF. SOME ESTIMATORS HAVE ARGS THAT IT MUST TAKE, CAUSING EMPTY () TO EXCEPT, PARTICULARLY THE dask Blockwise
-    # USE THIS FUNCTION TO PASS KOSHER ARGS TO THE WRAPPER
+
+
+def pass_estimator_to_wrapper(_est_name, _estimator, TRUTH_TABLE):
+
+    # WHEN USING is_classifier, THE ESTIMATOR CAN BE PASSED AS A CLASS OR AS AN
+    # INSTANCE, SO DONT NEED TO PASS AS AN INSTANCE BUT WHEN PASSING ESTIMATOR
+    # TO WRAPPERS (Pipeline, Incremental, ParallelPostFit), IT MUST BE AN
+    # INSTANCE AND NOT THE CLASS ITSELF. SOME ESTIMATORS HAVE ARGS THAT IT MUST
+    # TAKE, CAUSING EMPTY () TO EXCEPT, PARTICULARLY THE dask Blockwise. USE
+    # THIS FUNCTION TO PASS KOSHER ARGS TO THE WRAPPER
 
     """
     :param: _est_name: str
     :param: _estimator: sklearn / dask / xgboost / lightgbm estimator
-    :param:  IS_CLF_LOOKUP: pd.DataFrame
-    :return: new_est_name:str, new_est_fit_to_be_passed_to_wrapper: sklearn or dask estimator
+    :param:  TRUTH_TABLE: pd.DataFrame
+    :return:
+        new_est_name:str,
+        new_est_fit_to_be_passed_to_wrapper: sklearn or dask estimator
     """
 
     try:
@@ -206,44 +235,56 @@ def pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP):
     except:
 
         is_dask = 'dask' in _est_name
-        is_clf = IS_CLF_LOOKUP.loc[_est_name, 'TRUTH']
+        is_clf = TRUTH_TABLE.loc[_est_name, 'TRUTH']
 
-        dummy_classifier = dask_LogisticRegression if is_dask else sklearn_LogisticRegression
-        dc_name = 'dask_LogisticRegression' if is_dask else 'sklearn_LogisticRegression'
-        dummy_non_classifier = dask_LinearRegression if is_dask else sklearn_LinearRegression
-        dnc_name = 'dask_LinearRegression' if is_dask else 'sklearn_LinearRegression'
+        if is_dask:
+            dummy_classifier = dask_LogisticRegression
+            dc_name = 'dask_LogisticRegression'
+            dummy_non_classifier = dask_LinearRegression
+            dnc_name = 'dask_LinearRegression'
+        else:
+            dummy_classifier = sklearn_LogisticRegression
+            dc_name = 'sklearn_LogisticRegression'
+            dummy_non_classifier = sklearn_LinearRegression
+            dnc_name = 'sklearn_LinearRegression'
 
         try:
-            inited_estimator = _estimator(dummy_classifier() if is_clf else dummy_non_classifier())
+            if is_clf:
+                inited_estimator = _estimator(dummy_classifier())
+            else:
+                inited_estimator = _estimator(dummy_non_classifier())
+
             new_est_name = f'{_est_name}({dc_name if is_clf else dnc_name}())'
+
             return new_est_name, inited_estimator
 
         except:
-            raise Exception(f'get_fxn_name(): estimator "{_est_name}" wont initialize')
+            raise Exception(
+                f'get_fxn_name(): estimator "{_est_name}" wont initialize')
 
 
 def build_pipeline(_est_name, inited_estimator):
     """
     :param: est_name: str
-    :param: inited_estimator: sklearn / dask / xgboos / lightgbm estimator
+    :param: inited_estimator: sklearn / dask / xgboost / lightgbm estimator
     :return: pipline_name: str, pipeline: sklearn.pipeline.Pipeline
     """
 
     is_dask = 'dask' in _est_name
 
-    _count_vectorizer = dask_CountVectorizer if is_dask else sklearn_CountVectorizer
-    _ct_vec_name = 'dask_CountVectorizer' if is_dask else 'sklearn_CountVectorizer'
+    if is_dask:
+        _count_vectorizer = dask_CountVectorizer
+        _ct_vec_name = 'dask_CountVectorizer'
+    else:
+        _count_vectorizer = sklearn_CountVectorizer
+        _ct_vec_name = 'sklearn_CountVectorizer'
 
     try:
         _pipeline = Pipeline(
-            steps=[
-                (
-                    f'{_ct_vec_name}', _count_vectorizer()
-                ),
-                (
-                    f'{_est_name}', inited_estimator
-                )
-            ]
+                                steps=[
+                                    (f'{_ct_vec_name}', _count_vectorizer()),
+                                    (f'{_est_name}', inited_estimator)
+                                ]
         )
 
         return f'Pipeline({_ct_vec_name}(), {_est_name})', _pipeline
@@ -252,7 +293,7 @@ def build_pipeline(_est_name, inited_estimator):
         raise Exception(f'Exception trying to build pipeline around {_est_name}')
 
 
-def wrap_with_gscv(est_name, est, gscv_name, gscv_est):
+def wrap_with_gscv(_est_name, _estimator, gscv_name, gscv):
     """
     :param: est_name: str
     :param: est: sklearn / dask / xgboost / lightgbm estimator
@@ -262,7 +303,7 @@ def wrap_with_gscv(est_name, est, gscv_name, gscv_est):
     """
 
     if gscv_name is None:
-        new_est_name, est_wrapped_in_gscv = est_name, est
+        new_est_name, est_wrapped_in_gscv = _est_name, _estimator
     else:
         base_gscv_params = {'param_grid': {'C': np.logspace(-1, 1, 3)}}
 
@@ -287,374 +328,346 @@ def wrap_with_gscv(est_name, est, gscv_name, gscv_est):
         elif gscv_name == 'dask_InverseDecaySearchCV':
             gscv_params = {'parameters': {'C': np.logspace(-1, 1, 3)}}
 
-        new_est_name = f"{gscv_name}({est_name})"
-        est_wrapped_in_gscv = gscv_est(est, **gscv_params)
+        new_est_name = f"{gscv_name}({_est_name})"
+        est_wrapped_in_gscv = gscv(_estimator, **gscv_params)
 
     return new_est_name, est_wrapped_in_gscv
 
 
-_row = 0
-
-GSCV_NAMES = [None, 'sklearn_GridSearchCV', 'sklearn_RandomizedSearchCV', 'sklearn_HalvingGridSearchCV',
-              'sklearn_HalvingRandomSearchCV',
-              'dask_GridSearchCV', 'dask_RandomizedSearchCV', 'dask_IncrementalSearchCV', 'dask_HyperbandSearchCV',
-              'dask_SuccessiveHalvingSearchCV', 'dask_InverseDecaySearchCV']
-
-GSCVS = [None, sklearn_GridSearchCV, sklearn_RandomizedSearchCV, sklearn_HalvingGridSearchCV,
-         sklearn_HalvingRandomSearchCV,
-         dask_GridSearchCV, dask_RandomizedSearchCV, dask_IncrementalSearchCV, dask_HyperbandSearchCV,
-         dask_SuccessiveHalvingSearchCV, dask_InverseDecaySearchCV]
-
-
-for gscv_name, gscv in zip(GSCV_NAMES, GSCVS):
-
-    for idx, _estimator in enumerate(ALL_ESTIMATORS):
-
-        for _type_ in ['uninstantiated', 'instantiated', 'pipeline', 'incremental', 'parallelpostfit',
-                       'pipeline+incremental', 'pipeline+parallelpostfit', 'incremental+pipeline',
-                       'parallelpostfit+pipeline']:
-
-            _row += 1
-            ESTIMATORS.resize((_row,))
-            RESULTS_ARRAY.resize((_row, 2))
-
-            _est_name = NAMES[idx]
-
-            if _type_ == 'uninstantiated':
-                new_est_name, feed_fxn = wrap_with_gscv(_est_name, _estimator, gscv_name, gscv)
-
-            elif _type_ == 'instantiated':
-                new_est_name, inited_estimator = pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
-                new_est_name, feed_fxn = wrap_with_gscv(new_est_name, inited_estimator, gscv_name, gscv)
-
-            elif _type_ == 'pipeline':
-                new_est_name, inited_estimator = pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
-                new_est_name, inited_pipeline = build_pipeline(new_est_name, inited_estimator)
-                new_est_name, feed_fxn = wrap_with_gscv(new_est_name, inited_pipeline, gscv_name, gscv)
-
-            elif _type_ == 'incremental':
-                new_est_name, inited_estimator = pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
-                new_est_name, feed_fxn = wrap_with_gscv(f'Incremental({new_est_name})', Incremental(inited_estimator),
-                                                        gscv_name, gscv)
-
-            elif _type_ == 'parallelpostfit':
-                new_est_name, inited_estimator = pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
-                new_est_name, feed_fxn = wrap_with_gscv(f'ParallelPostFit({new_est_name})',
-                                                        ParallelPostFit(inited_estimator), gscv_name, gscv)
-
-            elif _type_ == 'pipeline+incremental':
-                new_est_name, inited_estimator = pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
-                new_est_name, inited_pipeline = build_pipeline(f'Incremental({new_est_name})',
-                                                               Incremental(inited_estimator))
-                new_est_name, feed_fxn = wrap_with_gscv(new_est_name, inited_pipeline, gscv_name, gscv)
-
-            elif _type_ == 'pipeline+parallelpostfit':
-                new_est_name, inited_estimator = pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
-                new_est_name, inited_pipeline = build_pipeline(f'ParallelPostFit({new_est_name})',
-                                                               ParallelPostFit(inited_estimator))
-                new_est_name, feed_fxn = wrap_with_gscv(new_est_name, inited_pipeline, gscv_name, gscv)
-
-            elif _type_ == 'incremental+pipeline':
-                new_est_name, inited_estimator = pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
-                new_est_name, inited_pipeline = build_pipeline(new_est_name, inited_estimator)
-                new_est_name, feed_fxn = wrap_with_gscv(f'Incremental({new_est_name})', Incremental(inited_pipeline),
-                                                        gscv_name, gscv)
-
-            elif _type_ == 'parallelpostfit+pipeline':
-                new_est_name, inited_estimator = pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
-                new_est_name, inited_pipeline = build_pipeline(new_est_name, inited_estimator)
-                new_est_name, feed_fxn = wrap_with_gscv(f'ParallelPostFit({new_est_name})',
-                                                        ParallelPostFit(inited_pipeline), gscv_name, gscv)
-            else:
-                raise Exception(f'picking estimator build sequence via _type_ is failing (_type_={_type_})')
-
-            ESTIMATORS[-1] = new_est_name
-            RESULTS_ARRAY[-1, 0] = IS_CLF_LOOKUP.loc[_est_name, 'TRUTH']
-            RESULTS_ARRAY[-1, 1] = is_classifier(feed_fxn)
-
-    # ADD NON-CONFORMING ESTIMATORS PASSED TO BlockwiseVotingClassifier, BlockwiseVotingRegressor, CalibratedClassifierCV
-    _row += 1
-    ESTIMATORS.resize((_row,))
-    RESULTS_ARRAY.resize((_row, 2))
-    new_est_name, feed_fxn = wrap_with_gscv('BlockwiseVotingClassifier(sklearn_LinearRegression)',
-                                            BlockwiseVotingClassifier(sklearn_LinearRegression),
-                                            gscv_name,
-                                            gscv
-                                            )
-    ESTIMATORS[-1] = new_est_name
-    RESULTS_ARRAY[-1, 0] = True
-    RESULTS_ARRAY[-1, 1] = is_classifier(feed_fxn)
-
-    _row += 1
-    ESTIMATORS.resize((_row,))
-    RESULTS_ARRAY.resize((_row, 2))
-    new_est_name, feed_fxn = wrap_with_gscv('BlockwiseVotingClassifier(sklearn_LinearRegression())',
-                                            BlockwiseVotingClassifier(sklearn_LinearRegression()),
-                                            gscv_name,
-                                            gscv
-                                            )
-    ESTIMATORS[-1] = new_est_name
-    RESULTS_ARRAY[-1, 0] = True
-    RESULTS_ARRAY[-1, 1] = is_classifier(feed_fxn)
-
-    _row += 1
-    ESTIMATORS.resize((_row,))
-    RESULTS_ARRAY.resize((_row, 2))
-    new_est_name, feed_fxn = wrap_with_gscv('BlockwiseVotingRegressor(sklearn_LogisticRegression)',
-                                            BlockwiseVotingRegressor(sklearn_LogisticRegression),
-                                            gscv_name,
-                                            gscv
-                                            )
-    ESTIMATORS[-1] = new_est_name
-    RESULTS_ARRAY[-1, 0] = False
-    RESULTS_ARRAY[-1, 1] = is_classifier(feed_fxn)
-
-    _row += 1
-    ESTIMATORS.resize((_row,))
-    RESULTS_ARRAY.resize((_row, 2))
-    new_est_name, feed_fxn = wrap_with_gscv('BlockwiseVotingRegressor(sklearn_LogisticRegression())',
-                                            BlockwiseVotingRegressor(sklearn_LogisticRegression()),
-                                            gscv_name,
-                                            gscv
-                                            )
-    ESTIMATORS[-1] = new_est_name
-    RESULTS_ARRAY[-1, 0] = False
-    RESULTS_ARRAY[-1, 1] = is_classifier(feed_fxn)
-
-    _row += 1
-    ESTIMATORS.resize((_row,))
-    RESULTS_ARRAY.resize((_row, 2))
-    new_est_name, feed_fxn = wrap_with_gscv('CalibratedClassifierCV(sklearn_LinearRegression)',
-                                            sklearn_CalibratedClassifierCV(sklearn_LinearRegression),
-                                            gscv_name,
-                                            gscv
-                                            )
-    ESTIMATORS[-1] = new_est_name
-    RESULTS_ARRAY[-1, 0] = True
-    RESULTS_ARRAY[-1, 1] = is_classifier(feed_fxn)
-
-    _row += 1
-    ESTIMATORS.resize((_row,))
-    RESULTS_ARRAY.resize((_row, 2))
-    new_est_name, feed_fxn = wrap_with_gscv('CalibratedClassifierCV(sklearn_LinearRegression())',
-                                            sklearn_CalibratedClassifierCV(sklearn_LinearRegression()),
-                                            gscv_name,
-                                            gscv
-                                            )
-    ESTIMATORS[-1] = new_est_name
-    RESULTS_ARRAY[-1, 0] = True
-    RESULTS_ARRAY[-1, 1] = is_classifier(feed_fxn)
-
-
-
-    _row += 1
-    ESTIMATORS.resize((_row,))
-    RESULTS_ARRAY.resize((_row, 2))
-    new_est_name, feed_fxn = wrap_with_gscv('CalibratedClassifierCV(sklearn_LinearRegression())',
-                                            sklearn_CalibratedClassifierCV(sklearn_LinearRegression()),
-                                            gscv_name,
-                                            gscv
-                                            )
-    ESTIMATORS[-1] = new_est_name
-    RESULTS_ARRAY[-1, 0] = True
-    RESULTS_ARRAY[-1, 1] = is_classifier(feed_fxn)
-
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'string'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier('tests___BEAR_FIX_THESE string')
-
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'integer'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(3)
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'float'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(np.pi)
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'list'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier([_ for _ in range(5)])
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'set'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier({_ for _ in range(5)})
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'dictionary'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier({'A': np.arange(5)})
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'numpy array'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(np.random.randint(0,10,(20,10)))
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'pandas dataframe'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(pd.DataFrame(data=np.random.randint(0,10,(20,5)), columns=list('abcde')))
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'coo array'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(ss.coo_array(np.random.randint(0,2,(100,50))))
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'lazy dask array'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(da.random.randint(0,10,(20,5), chunks=(5,5)))
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'computed dask array'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(da.random.randint(0,10,(20,5), chunks=(5,5)).compute())
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'lazy dask dataframe'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(
-                                            ddf.from_pandas(
-                                                            pd.DataFrame(
-                                                                         data=da.random.randint(0,10,(20,5)),
-                                                                         columns=list('abcde')
-                                                            ),
-                                                            npartitions=5,
-                                            )
-                        )
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'computed dask dataframe'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(
-                                            ddf.from_pandas(
-                                                            pd.DataFrame(
-                                                                         data=da.random.randint(0,10,(20,5)),
-                                                                         columns=list('abcde')
-                                                            ),
-                                                            npartitions=5,
-                                            ).compute()
-                        )
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'lazy dask delayed'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(delayed([_ for _ in range(10)]))
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'computed dask delayed'
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(delayed([_ for _ in range(10)]).compute())
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'function'
-def test_function(a,b):
-    return a + b
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(test_function)
-del test_function
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'lambda function'
-test_lambda = lambda x: x + 1
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(test_lambda)
-del test_lambda
-
-
-_row += 1
-ESTIMATORS.resize((_row,))
-RESULTS_ARRAY.resize((_row, 2))
-ESTIMATORS[-1] = 'class'
-class test_class:
-    def __init__(self, a, b):
-        self.a, self.b = a, b
-    def fit(self, X, y):
-        return X + y
-RESULTS_ARRAY[-1, 0] = False
-RESULTS_ARRAY[-1, 1] = is_classifier(test_class)
-del test_class
-
-
-
-
-
-
-
-# COLUMN_NAMES = ['TRUTH','OUTPUT']
-fail_ctr = 0
-for idx, est_name in enumerate(ESTIMATORS):
-    _truth = RESULTS_ARRAY[idx, 0]
-    _result = RESULTS_ARRAY[idx, 1]
-    try: assert _result == _truth  # print(f'\033[92m{est_name}:'[:110].ljust(115), 'PASS\033[0m')
-    except:
-        fail_ctr +=1
-        print(f'\033[91m{est_name}:'[:110].ljust(115), 'EPIC FAIL\033[0m')
-
-if fail_ctr == 0:
-    print(f'\033[92mAll {len(RESULTS_ARRAY)} tests___BEAR_FIX_THESE passed in {time.perf_counter()-t0:,.0f} seconds \033[0m')
-
-
-
-
-### END TEST ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+
+GSCV_NAMES = [None, 'sklearn_GridSearchCV', 'sklearn_RandomizedSearchCV',
+              'sklearn_HalvingGridSearchCV', 'sklearn_HalvingRandomSearchCV',
+              'dask_GridSearchCV', 'dask_RandomizedSearchCV',
+              'dask_IncrementalSearchCV', 'dask_HyperbandSearchCV',
+              'dask_SuccessiveHalvingSearchCV', 'dask_InverseDecaySearchCV'
+]
+
+GSCVS = [None, sklearn_GridSearchCV, sklearn_RandomizedSearchCV,
+         sklearn_HalvingGridSearchCV, sklearn_HalvingRandomSearchCV,
+         dask_GridSearchCV, dask_RandomizedSearchCV,
+         dask_IncrementalSearchCV, dask_HyperbandSearchCV,
+         dask_SuccessiveHalvingSearchCV, dask_InverseDecaySearchCV
+]
+
+
+
+
+
+
+class TestGSCVSConformingEstimators:   # _estimator ACCEPTS EMPTY ()
+
+    # TYPES = ['uninstantiated', 'instantiated', 'pipeline', 'incremental',
+    #          'parallelpostfit', 'pipeline+incremental', 'pipeline+parallelpostfit',
+    #          'incremental+pipeline', 'parallelpostfit+pipeline'
+    #          ]
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_uninstantiated(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, feed_fxn = wrap_with_gscv(_est_name, _estimator, gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_instantiated(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, inited_estimator = \
+            pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
+        new_est_name, feed_fxn = \
+            wrap_with_gscv(new_est_name, inited_estimator, gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_pipeline(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, inited_estimator = \
+            pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
+        new_est_name, inited_pipeline = \
+            build_pipeline(new_est_name, inited_estimator)
+        new_est_name, feed_fxn = \
+            wrap_with_gscv(new_est_name, inited_pipeline, gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_incremental(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, inited_estimator = \
+            pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
+        new_est_name, feed_fxn = \
+            wrap_with_gscv(f'Incremental({new_est_name})',
+                Incremental(inited_estimator), gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_parallelpostfit(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, inited_estimator = \
+            pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
+        new_est_name, feed_fxn = \
+            wrap_with_gscv(f'ParallelPostFit({new_est_name})',
+                        ParallelPostFit(inited_estimator), gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_pipeline_incremental(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, inited_estimator = \
+            pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
+        new_est_name, inited_pipeline = \
+            build_pipeline(f'Incremental({new_est_name})', Incremental(inited_estimator))
+        new_est_name, feed_fxn = \
+            wrap_with_gscv(new_est_name, inited_pipeline, gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_pipeline_parallelpostfit(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, inited_estimator = \
+            pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
+        new_est_name, inited_pipeline = \
+            build_pipeline(f'ParallelPostFit({new_est_name})',
+                           ParallelPostFit(inited_estimator))
+        new_est_name, feed_fxn = \
+            wrap_with_gscv(new_est_name, inited_pipeline, gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_incremental_pipeline(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, inited_estimator = \
+            pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
+        new_est_name, inited_pipeline = \
+            build_pipeline(new_est_name, inited_estimator)
+        new_est_name, feed_fxn = \
+            wrap_with_gscv(f'Incremental({new_est_name})',
+                            Incremental(inited_pipeline), gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
+    def test_parallelpostfit_pipeline(self, _est_name, _estimator, gscv_name, gscv):
+        new_est_name, inited_estimator = \
+            pass_estimator_to_wrapper(_est_name, _estimator, IS_CLF_LOOKUP)
+        new_est_name, inited_pipeline = \
+            build_pipeline(new_est_name, inited_estimator)
+        new_est_name, feed_fxn = \
+            wrap_with_gscv(f'ParallelPostFit({new_est_name})',
+                            ParallelPostFit(inited_pipeline), gscv_name, gscv)
+        assert IS_CLF_LOOKUP.loc[_est_name, 'TRUTH'] == is_classifier(feed_fxn)
+
+
+
+
+class TestGSCVSNonConformingEstimators:  # _estimator DOES NOT ACCEPT EMPTY ()
+
+    # NON-CONFORMING ESTIMATORS PASSED TO BlockwiseVotingClassifier,
+    # BlockwiseVotingRegressor, CalibratedClassifierCV
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    def test_bvc_class(self, gscv_name, gscv):
+        new_est_name, feed_fxn = wrap_with_gscv(
+            'BlockwiseVotingClassifier(sklearn_LinearRegression)',
+            BlockwiseVotingClassifier(sklearn_LinearRegression),
+            gscv_name,
+            gscv
+        )
+
+        assert is_classifier(feed_fxn) is True
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    def test_bvc_instance(self, gscv_name, gscv):
+        new_est_name, feed_fxn = wrap_with_gscv(
+            'BlockwiseVotingClassifier(sklearn_LinearRegression())',
+            BlockwiseVotingClassifier(sklearn_LinearRegression()),
+            gscv_name,
+            gscv
+        )
+
+        assert is_classifier(feed_fxn) is True
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    def test_bvr_class(self, gscv_name, gscv):
+        new_est_name, feed_fxn = wrap_with_gscv(
+            'BlockwiseVotingRegressor(sklearn_LogisticRegression)',
+            BlockwiseVotingRegressor(sklearn_LogisticRegression),
+            gscv_name,
+            gscv
+        )
+
+        assert is_classifier(feed_fxn) is False
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    def test_bvr_instance(self, gscv_name, gscv):
+        new_est_name, feed_fxn = wrap_with_gscv(
+            'BlockwiseVotingRegressor(sklearn_LogisticRegression())',
+            BlockwiseVotingRegressor(sklearn_LogisticRegression()),
+            gscv_name,
+            gscv
+        )
+
+        assert is_classifier(feed_fxn) is False
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    def test_cccv_class(self, gscv_name, gscv):
+        new_est_name, feed_fxn = wrap_with_gscv(
+            'CalibratedClassifierCV(sklearn_LinearRegression)',
+            sklearn_CalibratedClassifierCV(sklearn_LinearRegression),
+            gscv_name,
+            gscv
+        )
+
+        assert is_classifier(feed_fxn) is True
+
+
+    @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
+    def test_cccv_instance(self, gscv_name, gscv):
+        new_est_name, feed_fxn = wrap_with_gscv(
+            'CalibratedClassifierCV(sklearn_LinearRegression())',
+            sklearn_CalibratedClassifierCV(sklearn_LinearRegression()),
+            gscv_name,
+            gscv
+        )
+
+        assert is_classifier(feed_fxn) is True
+
+
+
+
+class TestNonEstimators:
+
+    def test_fails_string(self):
+        assert is_classifier('some string') is False
+
+
+    def test_fails_integer(self):
+        assert is_classifier(3) is False
+
+
+    def test_fails_float(self):
+        assert is_classifier(np.pi) is False
+
+
+    def test_fails_list(self):
+        assert is_classifier(list(range(5))) is False
+
+
+    def test_fails_set(self):
+        assert is_classifier(set(range(5))) is False
+
+
+    def test_fails_dictionary(self):
+        assert is_classifier({'A': np.arange(5)}) is False
+
+
+    def test_fails_numpy_array(self):
+        assert is_classifier(np.random.randint(0,10,(20,10))) is False
+
+
+    def test_fails_pandas_dataframe(self):
+
+        DF = pd.DataFrame(data=np.random.randint(0,10,(20,5)), columns=list('abcde'))
+
+        assert is_classifier(DF) is False
+
+
+    def test_fails_coo_array(self):
+
+        COO_ARRAY = ss.coo_array(np.random.randint(0,2,(100,50)))
+
+        assert is_classifier(COO_ARRAY) is False
+
+
+    def test_fails_lazy_dask_array(self):
+
+        DA = da.random.randint(0,10,(20,5), chunks=(5,5))
+
+        assert is_classifier(DA) is False
+
+
+    def test_fails_computed_dask_array(self):
+
+        DA = da.random.randint(0,10,(20,5), chunks=(5,5))
+
+        assert is_classifier(DA.compute()) is False
+
+
+    def test_fails_lazy_dask_dataframe(self):
+
+        DDF = ddf.from_pandas(
+                                pd.DataFrame(
+                                             data=da.random.randint(0,10,(20,5)),
+                                             columns=list('abcde')
+                                ),
+                                npartitions=5,
+        )
+
+        assert is_classifier(DDF) is False
+
+
+    def test_fails_computed_dask_dataframe(self):
+
+        DDF = ddf.from_pandas(
+                                pd.DataFrame(
+                                             data=da.random.randint(0,10,(20,5)),
+                                             columns=list('abcde')
+                                ),
+                                npartitions=5,
+        )
+
+        assert is_classifier(DDF.compute()) is False
+
+
+    def test_fails_lazy_dask_delayed(self):
+        assert is_classifier(delayed([_ for _ in range(10)])) is False
+
+
+    def test_fails_computed_dask_delayed(self):
+        assert is_classifier(delayed([_ for _ in range(10)]).compute()) is False
+
+
+    def test_fails_function(self):
+
+        def test_function(a,b):
+            return a + b
+
+        assert is_classifier(test_function) is False
+
+
+    def test_fails_lambda_function(self):
+        assert is_classifier(lambda x: x + 1) is False
+
+
+    def test_fails_class(self):
+
+        class test_class:
+            def __init__(self, a, b):
+                self.a, self.b = a, b
+            def fit(self, X, y):
+                return X + y
+
+        assert is_classifier(test_class) is False
+
+
+
+
+
+
+
+
+
 
 
 

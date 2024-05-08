@@ -7,18 +7,66 @@
 
 
 import importlib
-import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.base import is_classifier as sk_is_classifier
 
 
-### CORE dask is_classifier FUNCTION ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+def is_classifier(estimator_) -> bool:
 
-def is_classifier(estimator_):
+    """
+    Return True if the given estimator is a classifier, False otherwise. Works
+    with scikit-learn, dask_ml, xgboost, and lightgbm estimators. Also works
+    for wrapped estimators.
+
+    Support for scikit-learn wrappers includes, but may not be limited to:
+        CalibratedClassifierCV\\\n
+        GridSearchCV\\\n
+        Pipeline\\\n
+    Support for dask_ml wrappers includes, but may not be limited to:
+        GridSearchCV\\\n
+        Incremental\\\n
+        ParallelPostFit\\\n
+        BlockwiseVotingClassifier\\\n
+        BlockwiseVotingRegressor\\\n
+
+    Parameters
+    ----------
+    estimator_:
+        scikit-learn, dask_ml, xgboost, or lightgbm estimator to test.
+
+    Return
+    ------
+    -
+        bool: True if the estimator is a classifier, False otherwise.
+
+    See Also
+    --------
+    sklearn.base.is_classifier
+
+    Notes
+    -----
+    Also supports proper handling of non-estimator objects, returning False
+    without raising exception.
+
+    Examples
+    --------
+    >>> from pybear.base import is_classifier as pybear_is_classifier
+    >>> from dask_ml.linear_model import LogisticRegression, LinearRegression
+    >>> dask_clf = LogisticRegression()
+    >>> is_classifier(dask_clf)
+    True
+    >>> dask_reg = LinearRegression()
+    >>> pybear_is_classifier(dask_reg)
+    False
+
+    """
+
+
+
     if sk_is_classifier(estimator_):
         return True
 
-    # USE RECURSION TO GET INNERMOST ESTIMATOR ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    # USE RECURSION TO GET INNERMOST ESTIMATOR ** ** ** ** ** ** ** ** ** ** **
     recursion_ct = 0
 
     def retrieve_core_estimator_recursive(_estimator_, recursion_ct):
@@ -26,13 +74,19 @@ def is_classifier(estimator_):
         recursion_ct += 1
         if recursion_ct == 10: raise Exception(f"too many recursions, abort")
 
-        if 'delayed.delayed' in str(type(_estimator_)).lower(): return _estimator_
+        if 'delayed.delayed' in str(type(_estimator_)).lower():
+            return _estimator_
 
-        for _module in ['blockwisevoting', 'calibratedclassifier', 'gradientboosting']:
+        for _module in [
+                        'blockwisevoting',
+                        'calibratedclassifier',
+                        'gradientboosting'
+            ]:
 
             if str(_estimator_).lower()[:len(_module)] == _module:
-                # escape when have dug deep enough that _module is the outermost wrapper
-                # use hard strings, dont import any dask modules to avoid circular imports
+                # escape when have dug deep enough that _module is the
+                # outermost wrapper. use hard strings, dont import any dask
+                # modules to avoid circular imports
                 return _estimator_
 
         try:
@@ -46,7 +100,8 @@ def is_classifier(estimator_):
         return retrieve_core_estimator_recursive(_estimator_, recursion_ct)
 
     estimator_ = retrieve_core_estimator_recursive(estimator_, recursion_ct)
-    # END USE RECURSION TO GET INNERMOST ESTIMATOR ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+    # END USE RECURSION TO GET INNERMOST ESTIMATOR ** ** ** ** ** ** ** ** ** *
 
 
     if sk_is_classifier(estimator_):
@@ -61,10 +116,10 @@ def is_classifier(estimator_):
     except:
         _path = str(estimator_.__class__)
 
+    dask_supported = ['lightgbm', 'xgboost', 'dask.delayed', 'dask.array',
+                      'dask.dataframe', 'dask_expr._collection.DataFrame']
 
-    if 'dask' in _path and \
-        np.array([x not in _path for x in
-            ['lightgbm', 'xgboost', 'dask.delayed', 'dask.array', 'dask.dataframe', 'dask_expr._collection.DataFrame']]).all():
+    if 'dask' in _path and all([x not in _path for x in dask_supported]):
         # use hard strings, dont import any dask modules to avoid circular imports
         _path = _path[_path.find("'", 0, -1) + 1:_path.find("'", -1, 0) - 1]
 
@@ -75,16 +130,20 @@ def is_classifier(estimator_):
 
         _package = ".".join(_split[:2])
 
-        _function = 'PoissonRegressor' if _split[-1] == 'PoissonRegression' else _split[-1]
+        if _split[-1] == 'PoissonRegression':
+            _function = 'PoissonRegressor'
+        else:
+            _function = _split[-1]
 
+        _base_err_msg = f"is_classifier() excepted trying to import "
         try:
             sklearn_module = importlib.import_module(_package)
         except:
-            raise Exception(f"is_classifier() excepted trying to import {_package}")
+            raise ImportError(_base_err_msg + f"{_package}")
         try:
             sklearn_dummy_function = getattr(sklearn_module, _function)
         except:
-            raise Exception(f"is_classifier() excepted trying to import {_function} from {_package}")
+            raise ImportError(_base_err_msg + f"{_function} from {_package}")
 
         return sk_is_classifier(sklearn_dummy_function)
 
@@ -93,6 +152,8 @@ def is_classifier(estimator_):
 
 
 
-### END CORE dask is_classifier FUNCTION ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+
+
 
 

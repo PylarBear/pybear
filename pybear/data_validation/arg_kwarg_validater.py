@@ -11,13 +11,11 @@ import numpy as np
 
 def arg_kwarg_validater(arg: any,
                         name: str,
-                        allowed: [list, tuple],
+                        allowed: tuple,
                         module: str,
                         function: str,
                         return_if_none=None
     ):
-
-
 
     """ Validate a parameter, param: arg, against allowable entries as listed
     in param: allowed. An exception is raised if there is no match. Integers
@@ -31,28 +29,29 @@ def arg_kwarg_validater(arg: any,
     is raised; all terms in the array-like must be in param: allowed.
 
     Parameters
-    ---------
-    arg: any - the parameter to be validated against allowed entries
-    name: str - deprecated - the name of the parameter
-    allowed: array-like - the list of allowed entries
-    module: str - deprecated - the name of the calling module
-    function: str - deprecated - the name of the calling function
-    return_if_none: any, default = None - value to return if param: arg passed
+    ----------
+    arg:
+        any - the parameter to be validated against allowed entries
+    name:
+        str - deprecated - the name of the parameter
+    allowed:
+        array-like - the list of allowed entries
+    module:
+        str - deprecated - the name of the calling module
+    function:
+        str - deprecated - the name of the calling function
+    return_if_none:
+        any, default = None - value to return if param: arg passed
         validation and is a None-type.
 
-
-    Returns
+    Return
     ------
-    arg
-
-
-    See Also
-    -------
-    None
-
+    arg -
+        arg: validated arg
 
     Notes
     ----
+    # PIZZA
     # pybear Note 24_04_13_18_03_00 - 'name', 'module' and 'function' are
     # relics and are not currently used inside this function. The arguments
     # remain in place because of the numerous dependents on this funciton.
@@ -61,19 +60,13 @@ def arg_kwarg_validater(arg: any,
 
     Examples
     -------
-    >>> out = arg_kwarg_validater(3, 'my_param', [1, 2, 3, None], 'some_module',
-    >>>                           'calling_function', return_if_none=None)
-    >>> print(out)
+    >>> ARGS = ('my_param', [1, 2, 3, None], 'some_module', 'calling_function')
+    >>> out1 = arg_kwarg_validater(3, *ARGS)
+    >>> out1
     3
 
-    >>> out = arg_kwarg_validater(5, 'my_param', [1, 2, 3, None], 'some_module',
-    >>>                           'calling_function', return_if_none=None)
-    >>> print(out)
-    ValueError: '5' is not in allowed
-
-    >>> out = arg_kwarg_validater(None, 'my_param', [1, 2, 3, None], 'some_module',
-    >>>                           'calling_function', return_if_none=72)
-    >>> print(out)
+    >>> out3 = arg_kwarg_validater(None, *ARGS, return_if_none=72)
+    >>> out3
     72
 
     """

@@ -1,0 +1,57 @@
+
+24_04_27_17_10_00
+REVISIT Sparse, SEE IF THIS WOULD BE USEFUL
+
+
+''' 11/23/22 A RELIC OF THE PAST.  PROVED TO BE SLOWER IN BOTH CONSTRUCTING DENSE AND MAPPING TO SPARSE DICT THAN ARRAYS.
+##########################################################################################################################
+# DENSE SERIALIZED LOCATIONS #############################################################################################
+elif use_serialized_dense_locations:
+
+    # FOR DICTS WHERE inner_len >> outer_len, for/dict(()) IS 0.25*TIME OF for/for LOOP
+    # BUT WHEN inner_len << outer_len, for/dict(()) IS IMPOSSIBLY SLOW.  USING BOTH CONDITIONALLY
+
+    # METHOD 1 --- IF INNER DICTS ARE SHORTER THAN OUTER LEN, FILL BY FOR LOOPS (dict(()) METHOD IS MUCH SLOWER HERE)
+    if _len_inner < _len_outer:
+        SPARSE_DICT = {int(_): {} for _ in range(_len_outer)}
+        for ser_loc_idx in range(len(RAND_SERIALIZED_DENSE_POSNS)):
+            SPARSE_DICT[int(RAND_SERIALIZED_DENSE_POSNS[ser_loc_idx] // _len_inner)][
+                        int(RAND_SERIALIZED_DENSE_POSNS[ser_loc_idx] % _len_inner)] = \
+                            _dtype(RAND_SERIALIZED_VALUES[ser_loc_idx])  # APPLY USER DEFINED VALUE DTYPE
+
+        del RAND_SERIALIZED_DENSE_POSNS, RAND_SERIALIZED_VALUES
+
+        t0 = timer(t0, t1, 'build sparse dict by for loop')
+
+    # METHOD 2 --- IF INNER DICTS ARE LONGER THAN OVERALL LEN, FILL BY dict(()) METHOD (MUCH FASTER THAN for LOOPS)
+    elif _len_inner >= _len_outer:
+        OUTER_KEYS = RAND_SERIALIZED_DENSE_POSNS // _len_inner
+        INNER_KEYS = RAND_SERIALIZED_DENSE_POSNS % _len_inner
+        del RAND_SERIALIZED_DENSE_POSNS
+
+        SPARSE_DICT = {}
+        for outer_key in range(_len_outer):
+            ACTIVE_OUTER_KEYS = np.argwhere(OUTER_KEYS==outer_key).transpose()[0]
+            ACTIVE_VALUES = RAND_SERIALIZED_VALUES[ACTIVE_OUTER_KEYS]
+
+            # IF OUTPUT IS TO BE NP, KEEP AS NDARRAY, VALUES ARE PUT IN DICT AS NP VALUES. OTHERWISE tolist FORCES
+            # np ints AND np floats TO py ints AND py floats.  ALWAYS FORCE KEYS TO py int!!!
+            if 'NP_' not in __: ACTIVE_VALUES = ACTIVE_VALUES.tolist()
+
+            SPARSE_DICT[int(outer_key)] = dict((
+                                                zip(INNER_KEYS[ACTIVE_OUTER_KEYS].tolist(),
+                                                ACTIVE_VALUES)
+            ))
+
+        del RAND_SERIALIZED_VALUES, OUTER_KEYS, INNER_KEYS, ACTIVE_OUTER_KEYS, ACTIVE_VALUES
+
+        t0 = timer(t0, t1, 'build sparse dict by dict(())')
+
+    # ADD PLACEHOLDERS  --- CORRECT ORDERING IS GUARANTEED BY SORTED SERIAL LOCATION
+    for outer_key in SPARSE_DICT:
+        if _len_inner - 1 not in SPARSE_DICT[outer_key]:
+            SPARSE_DICT[int(outer_key)][int(_len_inner - 1)] = orig_func(0)
+    t0 = timer(t0, t1, 'placeholders')
+# END DENSE SERIALIZED LOCATIONS #############################################################################################
+##########################################################################################################################
+'''

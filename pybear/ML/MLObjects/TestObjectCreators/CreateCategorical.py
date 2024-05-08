@@ -518,7 +518,7 @@ if __name__ == '__main__':
     RETURN_FORMAT = ['ARRAY', 'SPARSE_DICT']
     RETURN_ORIENTATION = ['ROW', 'COLUMN']
     COLUMNS = [1,50,100]
-    ROWS = [1000,500,100]   # ROWS MUST BE LARGE ENOUGH TO ALLOW random TO GET THE FULL NUMBER OF CATEGORIES INTO A COLUMN
+    ROWS = [1000,500,100]   # ROWS MUST BE LARGE ENOUGH TO ALLOW _random_ TO GET THE FULL NUMBER OF CATEGORIES INTO A COLUMN
                             # ELSE EXPLODY FOR NOT ENOUGH COLUMNS AFTER EXPANSION
 
     DATA_OBJECTS = [
@@ -554,7 +554,7 @@ if __name__ == '__main__':
                         if not expand: return_format = 'ARRAY'
 
                         # PIZZA, CHANGE THIS TO CHANGE NUM OF CATEGORIES PER COLUMN
-                        # NUMBER_OF_CATEGORIES_AS_LIST = np.random.randint(min(_rows, 2), min(_rows, 10)+1, (1, _columns), dtype=np.int16)[0]
+                        # NUMBER_OF_CATEGORIES_AS_LIST = np._random_.randint(min(_rows, 2), min(_rows, 10)+1, (1, _columns), dtype=np.int16)[0]
                         NUMBER_OF_CATEGORIES_AS_LIST = np.full((1, _columns), 5, dtype=np.int16)[0]
 
                         if not data_object_desc is None:

@@ -25,7 +25,7 @@ from MLObjects.PrintMLObject import SmallObjectPreview as sop
 # 2 WAY SPLIT OF 2 OBJECTS RETURNS, EG:  (DATA_TRAIN, TARGET_TRAIN), (DATA_TEST, TARGET_TEST)
 # 3 WAY SPLIT OF 3 OBJECTS RETURNS, EG:  (DATA_TRAIN, TARGET_TRAIN, REFVECS_TRAIN), (DATA_DEV, TARGET_DEV, REFVECS_DEV), (DATA_TEST, TARGET_TEST, REFVECS_TEST)
 
-# EACH OF mask(), random(), partition(), or category() GENERATE MASKS (SILENTLY IF PASSED THE INFORMATION NEEDED OR VERBOSELY VIA
+# EACH OF mask(), _random_(), partition(), or category() GENERATE MASKS (SILENTLY IF PASSED THE INFORMATION NEEDED OR VERBOSELY VIA
 # PROMPTS FOR INFORMATION IF IT IS NOT GIVEN) WHICH ARE THEN APPLIED OVER THE FULL DATA SET VIA core_run_fxn (WHICH CALLS
 # train_dev_test_split_core()) TO return TRAIN & TEST SETS OR TRAIN & DEV & TEST SETS
 
@@ -36,7 +36,7 @@ from MLObjects.PrintMLObject import SmallObjectPreview as sop
 #       1) TO CREATE A PRETTY PRINT OUT FOR USER TO PICK OBJ/COL/VALUE TO MOVE OUT OF TRAIN & INTO DEV/TEST
 #       2) TO PICK DEV OR TEST FILTERING CATEGORY BY COLUMN NAME
 class TrainDevTestSplit:
-    '''Dont call this directly, call with mask(), random(), partition(), or cateyory() methods only.'''
+    '''Dont call this directly, call with mask(), _random_(), partition(), or cateyory() methods only.'''
     def __init__(self, DATA=None, TARGET=None, REFVECS=None, data_given_orientation=None, target_given_orientation=None,
                  refvecs_given_orientation=None, bypass_validation=None):
 
@@ -113,7 +113,7 @@ class TrainDevTestSplit:
 
 
     def random(self, dev_count=None, dev_percent=None, test_count=None, test_percent=None):
-        '''Generate Train-Test or Train-Dev-Test split by random draw.'''
+        '''Generate Train-Test or Train-Dev-Test split by _random_ draw.'''
         # SILENT (ONE OR TWO KWARG PASSED) OR VERBOSE (NO KWARGS PASSED)
         # IF ONE DEV PASSED: TWO-WAY PULL, IF ONE TEST PASSED: A TWO-WAY PULL, IF ONE DEV & ONE TEST PASSED: 3-WAY PULL
         # THE GOAL OF THIS MODULE IS TO GET THE INFORMATION TO BUILD A 1-COLUMN OR 2-COLUMN MASK, THEN THE MASK IS PASSED
@@ -151,7 +151,7 @@ class TrainDevTestSplit:
                 raise self._exception(f'If silently generating test split, enter count or percent, not both', fxn=fxn)
 
         #####################################################################################################################################
-        # IF ALL random() KWARGS ARE NONE: VERBOSE SPLIT SETUP ##############################################################################
+        # IF ALL _random_() KWARGS ARE NONE: VERBOSE SPLIT SETUP ##############################################################################
         if False not in map(lambda x: x is None, (dev_count, dev_percent, test_count, test_percent)):
             row_text = f'({self.rows} rows)'
             get_method = lambda name: vui.validate_user_str(f'\nSelect percent(p) or count(c) to determine {name} split size {row_text} > ', 'CP')
@@ -218,11 +218,11 @@ class TrainDevTestSplit:
                 # NOW JUST vstack DEV_MASK AND TEST_MASK TO GET A 2-COLUMN self.MASK
                 self.MASK = np.vstack((DEV_MASK, TEST_MASK)).astype(bool)
 
-        # END IF ALL random () KWARGS ARE NONE: VERBOSE SPLIT SETUP #########################################################################
+        # END IF ALL _random_ () KWARGS ARE NONE: VERBOSE SPLIT SETUP #########################################################################
         #####################################################################################################################################
 
         ###########################################################################################################################
-        # SILENT SPLIT (NOT ALL random() KWARGS ARE NONE) #########################################################################
+        # SILENT SPLIT (NOT ALL _random_() KWARGS ARE NONE) #########################################################################
         elif int(np.sum(np.fromiter(map(lambda x: not x is None, (dev_count, dev_percent, test_count, test_percent)), dtype=np.int8))) == 1:
             # ONLY 1 KWARG IS NOT None
 
@@ -291,7 +291,7 @@ class TrainDevTestSplit:
             # NOW JUST vstack DEV_MASK AND TEST_MASK TO GET A 2-COLUMN self.MASK
             self.MASK = np.vstack((DEV_MASK, TEST_MASK)).astype(bool)
 
-        # END SILENT SPLIT (NOT ALL random() KWARGS ARE NONE) #####################################################################
+        # END SILENT SPLIT (NOT ALL _random_() KWARGS ARE NONE) #####################################################################
         ###########################################################################################################################
 
         del approver, count_validator, percent_validator
@@ -1006,11 +1006,11 @@ if __name__ == '__main__':
 
 
     ########################################################################################################################
-    # TEST random() ##########################################################################################################
-    print(f'\033[92m\nSTARTING random() TESTS...\033[0m')
+    # TEST _random_() ##########################################################################################################
+    print(f'\033[92m\nSTARTING _random_() TESTS...\033[0m')
 
     # ESTABLISH THAT counts/percents WORK CORRECTLY AND MANUAL ENTRY WORKS
-    # random(dev_count=None, dev_percent=None, test_count=None, test_percent=None)
+    # _random_(dev_count=None, dev_percent=None, test_count=None, test_percent=None)
 
     DATA = np.random.randint(0, 10, (3, 100))
     TARGET = np.random.randint(0, 10, (3, 100))
@@ -1071,7 +1071,7 @@ if __name__ == '__main__':
     print(f'\033[92mrandom() MANUAL ENTRY TEST PASSES\033[0m')
 
     print(f'\033[92mrandom() TESTS COMPLETED. ALL PASSED.\033[0m')
-    # END TEST random() ######################################################################################################
+    # END TEST _random_() ######################################################################################################
     ########################################################################################################################
 
     ########################################################################################################################

@@ -86,7 +86,7 @@ class EigenvalueDecomposition:
 
 if __name__ == '__main__':
     # GENERATE & PRINT DUMMY MATRIX ########################################################################################################
-    # A = n.random.randint(0,10,[5,5])
+    # A = n._random_.randint(0,10,[5,5])
     # A = n.array([[9,-2,-4],[4,3,-4],[2,-2,3]], dtype=object)
     A = n.array([[9,0,2],[0,3,0],[2,0,9]], dtype=object)
     ioap.IdentifyObjectAndPrint(A, 'A', __name__, 20,20).run_print_as_df(df_columns=[str(_) for _ in range(len(A[0]))], orientation='row')

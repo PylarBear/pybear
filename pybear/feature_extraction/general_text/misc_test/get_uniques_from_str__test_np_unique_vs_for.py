@@ -96,7 +96,7 @@ if __name__ == '__main__':
     if 1==1:
 
         DUM_TXT = [
-                    '''Contrary to popular belief, Lorem Ipsum is not simply random text.''',
+                    '''Contrary to popular belief, Lorem Ipsum is not simply _random_ text.''',
                     '''It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old.''',
                     '''Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the 
                         more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of

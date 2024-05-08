@@ -2,7 +2,7 @@ from general_text import TextCleaner as tc
 import numpy as np
 
 
-# BEAR 1/27/2023   TEST CODE WORKS AND TextCleaner() VERIFIED
+# PIZZA 1/27/2023   TEST CODE WORKS AND TextCleaner() VERIFIED
 
 
 WORDS = [

@@ -195,8 +195,10 @@ def test_function(shape, sparsity, dtype):
 # WHEN PASSED NULL SHAPES, RETURNS SAME OBJECT AS NUMPY
 @pytest.mark.parametrize('shape', (
                                    pytest.param(None,
-                                                marks=pytest.mark.xfail(reason =
-                                                'known incongruency w numpy')
+                                                marks=pytest.mark.xfail(
+                                                    reason = 'known divergence '
+                                                             'from numpy'
+                                                )
                                    ),
                                    0,
                                    (1,0),

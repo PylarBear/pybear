@@ -11,18 +11,22 @@ import datetime as dt
 
 
 
-def validate_user_str(user_prompt:str, options:str):
+def validate_user_str(user_prompt:str, options:str) -> str:
+
     """Validation of a single user-entered alpha character against a list of
     allowed characters.
 
     Parameters
-    --------
-    user_prompt: str -  text string displayed to the user at prompt
-    options: str - a single text string containing the allowed characters
+    ----------
+    user_prompt:
+        str -  text string displayed to the user at prompt
+    options:
+        str - a single text string containing the allowed characters
 
     Returns
-    ------
-    user_input: str - validated user selection
+    -------
+    user_input:
+        str - validated user selection
 
     """
 
@@ -38,22 +42,28 @@ def validate_user_str(user_prompt:str, options:str):
         if len(user_input) == 1 and user_input in options.upper() and \
                 user_input != '' and user_input != options:
             break
+
     return user_input
 
 
-def validate_user_mstr(user_prompt:str, options:str, max_len:int=2):
+def validate_user_mstr(user_prompt:str, options:str, max_len:int=2) -> str:
+
     """String validation for multiple alpha character user entry that screens
     by len of entry and allowed options.
 
     Parameters
-    --------
-    user_prompt: str -  text string displayed to the user at prompt
-    options: str - a single text string containing the allowed characters
-    max_len: int, default = 2 - maximum number of allowed selections
+    ----------
+    user_prompt:
+        str -  text string displayed to the user at prompt
+    options:
+        str - a single text string containing the allowed characters
+    max_len:
+        int, default = 2 - maximum number of allowed selections
 
     Returns
-    ------
-    user_input: str - validated user selection(s)
+    -------
+    user_input:
+        str - validated user selection(s)
 
     """
 
@@ -82,21 +92,26 @@ def validate_user_mstr(user_prompt:str, options:str, max_len:int=2):
 
 
 def validate_user_int(
-                      user_prompt,
-                      min:[int,float]=float('-inf'),
-                      max:[int,float]=float('inf')
-    ):
+                      user_prompt:str,
+                      min:int=float('-inf'),
+                      max:int=float('inf')
+    ) -> int:
+
     """Integer validation for user entry within allowed range.
 
     Parameters
-    --------
-    user_prompt: str -  text string displayed to the user at prompt
-    min: [int,float], default = float('-inf') - minimum allowed entry
-    max: [int,float], default = float('inf') - maximum allowed entry
+    ----------
+    user_prompt:
+        str -  text string displayed to the user at prompt
+    min:
+        [int,float], default = float('-inf') - minimum allowed entry
+    max:
+        [int,float], default = float('inf') - maximum allowed entry
 
     Returns
-    ------
-    user_input: str - validated user entry
+    -------
+    user_input -
+        user_input: int - validated user entry
 
     """
 
@@ -132,20 +147,25 @@ def validate_user_int(
 
 def validate_user_float(
                         user_prompt:str,
-                        min:[int, float]=float('-inf'),
-                        max:[int, float]=float('inf')
-    ):
+                        min:float=float('-inf'),
+                        max:float=float('inf')
+    ) -> float:
+
     """Number validation for user float entry within allowed range.
 
     Parameters
-    --------
-    user_prompt: str -  text string displayed to the user at prompt
-    min: [int,float], default = float('-inf') - minimum allowed entry
-    max: [int,float], default = float('inf') - maximum allowed entry
+    ----------
+    user_prompt:
+        str -  text string displayed to the user at prompt
+    min:
+        float, default = float('-inf') - minimum allowed entry
+    max:
+        float, default = float('inf') - maximum allowed entry
 
     Returns
-    ------
-    user_input: str - validated user entry
+    -------
+    user_input -
+        user_input: str - validated user entry
 
     """
 
@@ -174,17 +194,19 @@ def validate_user_float(
     return user_input
 
 
-def user_entry(prompt):
+def user_entry(prompt: str):
+
     """String validation for user-entered string.
 
     Parameters
-    --------
-    user_prompt: str -  text string displayed to the user at prompt
+    ----------
+    user_prompt:
+        str -  text string displayed to the user at prompt
 
-    Returns
+    Return
     ------
-    user_entry: str - validated user entry
-
+    user_entry -
+        user_entry: str - validated user entry
 
     """
 
@@ -202,41 +224,50 @@ class ValidateUserDate:
     """ Prompt the user for a date entry and optionally validate the input.
 
     Parameters
-    ---------
-    user_prompt: str - text string displayed to the user at prompt
-    user_verify: bool - default = False, perform validation on the entry
-    format: str - default = 'MM/DD/YYYY', the date format
-    min: str - default = '01/01/1900', the earliest allowed date
-    max: str - default = '12/31/2099', the latest allowed date
+    ----------
+    user_prompt:
+        str - text string displayed to the user at prompt
+    user_verify:
+        bool - default = False, perform validation on the entry
+    format:
+        str - default = 'MM/DD/YYYY', the date format
+    min:
+        str - default = '01/01/1900', the earliest allowed date
+    max:
+        str - default = '12/31/2099', the latest allowed date
 
     Attributes
     --------
-    user_prompt: str - text string displayed to the user at prompt
-    user_verify: bool - default = False, perform validation on the entry
-    format: str - the date format
-    min: str - the earliest allowed date
-    max: str - the latest allowed date
-    user_input: str - raw date entered by user
-    datetime_input_date: date - formatted date
-    datetime_min_date: str - the earliest allowed date
-    datetime_max_date: str - the latest allowed date
-    startYYYY: int - deprecated.
-    startMM: int - deprecated.
-    startDD: int - deprecated.
-    endYYYY: int - deprecated.
-    endMM: int - deprecated.
-    endDD: int - deprecated.
-
-
-    See Also
-    -------
-    None
-
-
-    Notes
-    ----
-    None
-
+    user_prompt:
+        str - text string displayed to the user at prompt
+    user_verify:
+        bool - default = False, perform validation on the entry
+    format:
+        str - the date format
+    min:
+        str - the earliest allowed date
+    max:
+        str - the latest allowed date
+    user_input:
+        str - raw date entered by user
+    datetime_input_date:
+        date - formatted date
+    datetime_min_date:
+        str - the earliest allowed date
+    datetime_max_date:
+        str - the latest allowed date
+    startYYYY:
+        int - deprecated.
+    startMM:
+        int - deprecated.
+    startDD:
+        int - deprecated.
+    endYYYY:
+        int - deprecated.
+    endMM:
+        int - deprecated.
+    endDD:
+        int - deprecated.
 
     Examples
     -------

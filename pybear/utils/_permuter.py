@@ -8,38 +8,32 @@
 import numpy as np
 
 
-def permuter(vector_of_vectors):
+def permuter(vector_of_vectors) -> list:
+
     """Given a vector of length n that contains n vectors of unique values with
     lengths (l1, l2,...ln), and whose total possible number of unique combinations
     is pn, generate an array of shape (pn, n) that contains in its rows the index
     positions given by permuting through all possible unique combinations
     of values within those vectors.
-    
-    
+
     Parameters
-    ---------
-    vector_of_vectors : array-like - vector of vectors of non-zero length
+    ----------
+    vector_of_vectors:
+        array-like - vector of vectors of non-zero length
 
-
-    Returns
+    Return
     ------
-    permutations : ndarray of shape (number of possible combinations,
+    -
+        permutations : list of shape (number of possible combinations,
                         number of vectors)
 
-
     See Also
-    _______
-    itertools.product for another implementation that returns values instead of
-    indices.
-
-
-    Notes
-    ----
-    None
-
+    --------
+    itertools.product
+        for another implementation that returns values instead of indices.
 
     Example
-    ------
+    -------
     >>> from pybear.utils import permuter
     >>> vector1 = ['a', 'b', 'c']
     >>> vector2 = ['w', 'x']

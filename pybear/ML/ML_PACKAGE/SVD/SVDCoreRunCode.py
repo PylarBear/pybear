@@ -246,7 +246,7 @@ if __name__ == '__main__':
     DATA = [[n.random.randint(0,10) for _ in range(rows)] for __ in range(columns)]
     DATA_HEADER = [[header_dum[_] for _ in range(columns)]]
     # BIN
-    # DATA = [[n.random.randint(0,2) for _ in range(rows)] for __ in range(columns)]
+    # DATA = [[n._random_.randint(0,2) for _ in range(rows)] for __ in range(columns)]
     # DATA_HEADER = [[header_dum[_] for _ in range(columns)]]
     TARGET = [[n.random.randint(0,2) for _ in range(rows)]]
     TARGET_HEADER = [['TARGET']]

@@ -628,8 +628,8 @@ if __name__ == '__main__':
 
     # num_rows = 10
     # num_cols = 3
-    # DATA = np.random.randn(num_cols,num_rows)
-    # TARGET_VECTOR = np.random.randint(0,2,(1,num_rows))
+    # DATA = np._random_.randn(num_cols,num_rows)
+    # TARGET_VECTOR = np._random_.randint(0,2,(1,num_rows))
 
     basepath = bps.base_path_select()
     DF = pd.DataFrame(pd.read_csv(basepath + r'rGDP.csv', nrows=200))
@@ -684,7 +684,7 @@ if __name__ == '__main__':
     elif isinstance(DATA, dict): num_cols, num_rows = sd.outer_len(DATA), sd.inner_len(DATA)
     activation_constant = 1
     ARRAY_OF_NODES = np.array([np.random.randn(3,num_cols), np.random.randn(1,3+activation_constant)], dtype=object)
-    # ARRAY_OF_NODES = np.array([np.random.randn(1, 3)], dtype=object)
+    # ARRAY_OF_NODES = np.array([np._random_.randn(1, 3)], dtype=object)
     OUTPUT_VECTOR = [0 for _ in range(num_rows)]
 
 
