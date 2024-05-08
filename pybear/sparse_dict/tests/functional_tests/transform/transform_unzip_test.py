@@ -4,16 +4,9 @@
 # License: BSD 3 clause
 #
 
-bypass = True
-
 
 import pytest
 from sparse_dict._transform import (
-                                    zip_ndarray,
-                                    zip_dask_array,
-                                    zip_datadict,
-                                    zip_dataframe,
-                                    zip_dask_dataframe,
 
                                     unzip_to_ndarray,
                                     unzip_to_list,
@@ -31,431 +24,6 @@ import pandas as pd
 from dask import dataframe as ddf
 from dask import array as da
 
-
-@pytest.mark.skipif(bypass is True, reason=f'')
-class TestZipArray:
-
-    @pytest.mark.parametrize('junk',
-        ('abc', 0, False, None, np.nan, min, lambda x: x, {'a':1})
-    )
-    def test_rejects_non_list(self, junk):
-        with pytest.raises(TypeError):
-            zip_ndarray(junk, dtype=float)
-
-
-    def test_rejects_dask_array(self):
-        with pytest.raises(TypeError):
-            zip_ndarray(da.array([1,2,3]), dtype=float)
-
-
-    def test_rejects_dataframes(self):
-        with pytest.raises(TypeError):
-            zip_ndarray(pd.DataFrame({'a':[1,2], 'b':[3,4]}), dtype=float)
-
-        with pytest.raises(TypeError):
-            zip_ndarray(ddf.from_array(np.random.randint(0,10,(3,3))), dtype=float)
-
-
-    def test_rejects_series(self):
-        with pytest.raises(TypeError):
-            zip_ndarray(pd.Series([1,2]), dtype=float)
-
-        with pytest.raises(TypeError):
-            zip_ndarray(ddf.from_array(np.array([1,2,3])), dtype=float)
-
-
-    def test_rejects_sparse_dicts(self):
-        with pytest.raises(TypeError):
-            zip_ndarray({0:{0:1,1:2}, 1:{0:2,1:3}}, dtype=float)
-
-
-    @pytest.mark.parametrize('array_like',
-        ([1,2,3], (1,2,3), {1,2,3}, np.random.randint(1,10,(3,)))
-    )
-    def test_accepts_1D_array_like(self, array_like):
-        zip_ndarray(array_like, dtype=float)
-
-
-    @pytest.mark.parametrize('array_like',
-        ([[1,2],[3,4]], np.random.randint(1,10,(3,3)))
-    )
-    def test_accepts_2D_array_like(self, array_like):
-        zip_ndarray(array_like, dtype=float)
-
-
-    def test_rejects_3D_np(self):
-        with pytest.raises(ValueError):
-            zip_ndarray(np.random.randint(1,10,(3,3,3)), dtype=float)
-
-
-    def test_rejects_3D_list(self):
-        with pytest.raises(ValueError):
-            ARRAY = [
-                [
-                    [0, 1],
-                    [2, 3]
-                ],
-                [
-                    [4, 5],
-                    [6, 7]
-                ]
-            ]
-
-            zip_ndarray(ARRAY, dtype=float)
-
-
-    @pytest.mark.parametrize('_dtype',
-        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
-         np.uint64, np.float16, np.float32, np.float64, int, float)
-    )
-    def test_correct_dtypes(self, _dtype):
-        OUTPUT = zip_ndarray(np.random.randint(1,10,(2,2)), dtype=_dtype)
-
-        if _dtype == int:
-            assert type(OUTPUT[0][0]) is int
-        elif _dtype == float:
-            assert type(OUTPUT[0][0]) is float
-        else:
-            assert OUTPUT[0][0].dtype == _dtype
-
-
-    def test_accepts_ragged_array(self):
-        OUTPUT = zip_ndarray([[1,2],[4],[6,7,8]], dtype=float)
-        assert OUTPUT == {0:{0:1,1:2}, 1:{0:4}, 2:{0:6,1:7,2:8}}
-
-
-    def test_accuracy_zeros(self):
-        OUTPUT = zip_ndarray([0,0,0], dtype=int)
-        assert OUTPUT == {2:0}
-
-
-    def test_accuracy_non_zeros(self):
-        OUTPUT = zip_ndarray([1,1,1], dtype=int)
-        assert OUTPUT == {0:1, 1:1, 2:1}
-
-
-    def test_accuracy_inner(self):
-        assert zip_ndarray([1,0,8], dtype=int) == {0:1, 2:8}
-
-
-    def test_accuracy_outer(self):
-        assert zip_ndarray([[1,2], [0,4]], dtype=int) == {0:{0:1,1:2}, 1:{1:4}}
-
-
-@pytest.mark.skipif(bypass is True, reason=f'')
-class TestZipDaskArray:
-
-    @pytest.mark.parametrize('junk',
-        ('abc', 0, False, None, np.nan, min, lambda x: x, {'a':1},
-         pd.DataFrame({'a': [1, 2], 'b': [3, 4]}),
-         ddf.from_array(np.random.randint(0, 10, (3, 3))),
-         pd.Series([1, 2]),
-         ddf.from_array(np.array([1, 2, 3])),
-         {0:{0:1, 1:2}, 1:{0:2, 1:3}}
-         )
-    )
-    def test_rejects_anything_not_dask_array(self, junk):
-        with pytest.raises(TypeError):
-            zip_dask_array(junk, dtype=float)
-
-
-    def test_accepts_1D_dask_array(self):
-        zip_dask_array(
-                        da.random.randint(0,1,(10,), chunks=(5,)),
-                        dtype=float
-        )
-
-
-    def test_accepts_2D_dask_array(self):
-        zip_dask_array(
-                        da.random.randint(0,1,(10,10), chunks=(5,5)),
-                        dtype=float
-        )
-
-
-    def test_rejects_3D_dask_array(self):
-        with pytest.raises(ValueError):
-            zip_dask_array(
-                            da.random.randint(0,1,(4,4,4), chunks=(2,2,2)),
-                            dtype=float
-            )
-
-    @pytest.mark.parametrize('_dtype',
-        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
-         np.uint64, np.float16, np.float32, np.float64, int, float)
-    )
-    def test_correct_dtypes(self, _dtype):
-        OUTPUT = zip_dask_array(
-                                da.random.randint(1,10,(4,4), chunks=(2,2)),
-                                dtype=_dtype
-        )
-
-        if _dtype == int:
-            assert type(OUTPUT[0][0]) is int
-        elif _dtype == float:
-            assert type(OUTPUT[0][0]) is float
-        else:
-            assert OUTPUT[0][0].dtype == _dtype
-
-
-    def test_accuracy_zeros(self):
-        OUTPUT = zip_dask_array(da.array([0,0,0]), dtype=int)
-        assert OUTPUT == {2:0}
-
-
-    def test_accuracy_non_zeros(self):
-        OUTPUT = zip_dask_array(da.array([1,1,1]), dtype=int)
-        assert OUTPUT == {0:1, 1:1, 2:1}
-
-
-    def test_accuracy_inner(self):
-        OUTPUT = zip_dask_array(da.array([1,0,8], dtype=int))
-        assert OUTPUT == {0:1, 2:8}
-
-
-    def test_accuracy_outer(self):
-        OUTPUT = zip_dask_array(da.array([[1,2], [0,4]]),dtype=int)
-        assert OUTPUT == {0:{0:1,1:2}, 1:{1:4}}
-
-
-    @pytest.mark.parametrize('chunk_size',
-                             ((4,8), (4,4), (4,2), (4,1), (8,8)),
-    )
-    def test_accepts_any_valid_chunking(self, chunk_size):
-
-        DA = da.random.randint(0,1,(8,8), chunks=chunk_size)
-        NP = DA.compute()
-        NP_RESULT = zip_ndarray(NP)
-        DA_RESULT = zip_dask_array(DA)
-        assert DA_RESULT == NP_RESULT
-
-
-    def test_handles_a_really_big_dask_array(self):
-
-        DA = da.random.randint(0,1,(10_000,10_000), chunks=(1_000,10_000))
-        SD = zip_dask_array(DA)
-
-        assert DA.shape == shape_(SD)
-
-
-
-@pytest.mark.skipif(bypass is True, reason=f'')
-class TestZipDatadict:
-
-    @staticmethod
-    @pytest.fixture
-    def good_datadict():
-        raw_data = np.random.randint(1,10,(5,3)).transpose()
-        columns = list('ABC')
-        return dict((zip(columns, raw_data)))
-
-
-    @pytest.mark.parametrize('junk',
-        ('abc', 0, False, None, np.nan, min, lambda x: x, {'a':1}, [1,2,3],
-         {1,2,3}, (1,2,3))
-    )
-    def test_rejects_junk(self, junk):
-        with pytest.raises(TypeError):
-            zip_datadict(junk, dtype=float)
-
-    def test_rejects_dask_array(self):
-        with pytest.raises(TypeError):
-            zip_datadict(da.array([1, 2, 3]), dtype=float)
-
-    def test_rejects_dataframes(self):
-        with pytest.raises(TypeError):
-            zip_datadict(pd.DataFrame({'a': [1, 2], 'b': [3, 4]}), dtype=float)
-
-        with pytest.raises(TypeError):
-            zip_datadict(ddf.from_array(np.random.randint(0, 10, (3, 3))),
-                         dtype=float
-            )
-
-    def test_rejects_series(self):
-        with pytest.raises(TypeError):
-            zip_datadict(pd.Series([1, 2]), dtype=float)
-
-        with pytest.raises(TypeError):
-            zip_datadict(ddf.from_array(np.array([1, 2, 3])), dtype=float)
-
-    def test_rejects_sparse_dicts(self):
-        with pytest.raises(TypeError):
-            zip_datadict({0: {0: 1, 1: 2}, 1: {0: 2, 1: 3}}, dtype=float)
-
-
-    def test_accepts_datadict(self):
-        zip_datadict({'A': [1,2,3], 'B':[7,8,9]}, dtype=float)
-
-
-    @pytest.mark.parametrize('_dtype',
-        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
-         np.uint64, np.float16, np.float32, np.float64, int, float)
-    )
-    def test_correct_dtypes(self, _dtype, good_datadict):
-        SD, HEADER = zip_datadict(good_datadict, dtype=_dtype)
-
-        if _dtype == int:
-            assert type(SD[0][0]) is int
-        elif _dtype == float:
-            assert type(SD[0][0]) is float
-        else:
-            assert SD[0][0].dtype == _dtype
-
-        assert np.array_equiv(HEADER, ['A', 'B', 'C'])
-        assert shape_(SD) == (5, 3)
-
-
-    def test_accuracy_zeros(self):
-        SD, HEADER = zip_datadict({'a':[0,0,0], 'b':[0,0,0]}, dtype=int)
-        assert SD == {0:{1:0}, 1:{1:0}, 2:{1:0}}
-        assert np.array_equiv(HEADER, ['a', 'b'])
-
-
-    def test_accuracy_non_zeros(self):
-        SD, HEADER = zip_datadict({'a':[1, 1], 'b':[2, 2]}, dtype=int)
-        assert SD == {0: {0: 1, 1: 2}, 1:{0:1, 1: 2}}
-        assert np.array_equiv(HEADER, ['a', 'b'])
-
-
-@pytest.mark.skipif(bypass is True, reason=f'')
-class TestZipPandasDataFrame:
-
-    @pytest.mark.parametrize('junk',
-        ('abc', 0, False, None, np.nan, min, lambda x: x, {'a':1}, [1,2,3],
-         {1,2,3}, (1,2,3), ddf.from_array(np.random.randint(0,10,(3,3))),
-         ddf.from_array(np.array([1, 2, 3])))
-    )
-    def test_rejects_non_pandas_df(self, junk):
-        with pytest.raises(TypeError):
-            zip_dataframe(junk, dtype=float)
-
-
-    def test_accepts_pandas_dataframe(self):
-        zip_dataframe(pd.DataFrame({'a':[1,2], 'b':[3,4]}), dtype=float)
-
-
-    def test_accepts_series(self):
-        with pytest.raises(TypeError):
-            zip_dataframe(pd.Series([1,2]), dtype=float)
-
-
-    def test_rejects_sparse_dicts(self):
-        with pytest.raises(TypeError):
-            zip_dataframe({0:{0:1,1:2}, 1:{0:2,1:3}}, dtype=float)
-
-
-    @pytest.mark.parametrize('_dtype',
-        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
-         np.uint64, np.float16, np.float32, np.float64, int, float)
-    )
-    def test_correct_dtypes(self, _dtype):
-        SD, HEADER = zip_dataframe(
-            pd.DataFrame(data=np.random.randint(1,10,(2,2)), columns=list('AB')),
-            dtype=_dtype
-        )
-
-        if _dtype == int:
-            assert type(SD[0][0]) is int
-        elif _dtype == float:
-            assert type(SD[0][0]) is float
-        else:
-            assert SD[0][0].dtype == _dtype
-
-        assert np.array_equiv(HEADER, ['A', 'B'])
-
-
-    def test_accuracy_zeros(self):
-        SD, HEADER = zip_dataframe(pd.DataFrame({'A': [0,0,0]}), dtype=int)
-        assert SD == {0: {2:0}}
-        assert np.array_equiv(HEADER, ['A'])
-
-
-    def test_accuracy_non_zeros(self):
-        SD, HEADER = zip_dataframe(pd.DataFrame({'A':[1,1,1]}), dtype=int)
-        assert SD == {0: {0:1, 1:1, 2:1}}
-        assert np.array_equiv(HEADER, ['A'])
-
-
-@pytest.mark.skipif(bypass is True, reason=f'')
-class TestZipDaskDataFrame:
-
-    @pytest.mark.parametrize('junk',
-        ('abc', 0, False, None, np.nan, min, lambda x: x, {'a':1}, [1,2,3],
-         {1,2,3}, (1,2,3), pd.DataFrame({'a':[1,2], 'b':[3,4]}), pd.Series([1,2])
-         )
-    )
-    def test_rejects_non_dask_df(self, junk):
-        with pytest.raises(TypeError):
-            zip_dask_dataframe(junk, dtype=float)
-
-
-    def test_accepts_dask_dataframes(self):
-        zip_dask_dataframe(
-                            ddf.from_array(np.random.randint(0,10,(3,3))),
-                            dtype=float
-        )
-
-
-    def test_accepts_dask_series(self):
-
-        with pytest.raises(TypeError):
-            zip_dask_dataframe(ddf.from_array(np.array([1,2,3])), dtype=float)
-
-
-    def test_rejects_sparse_dicts(self):
-        with pytest.raises(TypeError):
-            zip_dask_dataframe({0:{0:1,1:2}, 1:{0:2,1:3}}, dtype=float)
-
-
-    @pytest.mark.parametrize('_dtype',
-        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
-         np.uint64, np.float16, np.float32, np.float64, int, float)
-    )
-    def test_correct_dtypes(self, _dtype):
-        SD, HEADER = zip_dask_dataframe(
-            ddf.from_pandas(
-                pd.DataFrame(data=np.random.randint(1,10,(2,2)),
-                             columns=['A', 'B'])
-            ),
-            dtype=_dtype
-        )
-
-        if _dtype == int:
-            assert type(SD[0][0]) is int
-        elif _dtype == float:
-            assert type(SD[0][0]) is float
-        else:
-            assert SD[0][0].dtype == _dtype
-
-        assert np.array_equiv(HEADER, ['A', 'B'])
-
-
-    def test_accuracy_zeros(self):
-        SD, HEADER = zip_dask_dataframe(
-            ddf.from_pandas(
-                pd.DataFrame({'A': [0,0,0]})
-            ),
-                dtype=int
-        )
-        assert SD == {0: {2:0}}
-        assert np.array_equiv(HEADER, ['A'])
-
-
-    def test_accuracy_non_zeros(self):
-        SD, HEADER = zip_dask_dataframe(
-            ddf.from_pandas(
-                pd.DataFrame({'A': [1,1,1]})
-            ),
-            dtype=int
-        )
-        assert SD == {0: {0:1, 1:1, 2:1}}
-        assert np.array_equiv(HEADER, ['A'])
-
-
-
-
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 @pytest.fixture
@@ -486,7 +54,9 @@ def unzipped_good_inner_dict():
     return np.array([0,2,0])
 
 
-@pytest.mark.skipif(bypass is True, reason=f'')
+
+
+
 class TestUnzipNdarray:
 
     @pytest.mark.parametrize('non_sd',
@@ -512,28 +82,6 @@ class TestUnzipNdarray:
         unzip_to_ndarray(good_inner_dict)
 
 
-    @pytest.mark.parametrize('bad_header',
-        (0, True, np.nan, np.pi, lambda x: x, {'a': 1}, 'junk', min, np.float64)
-    )
-    def test_rejects_bad_header_type(self, bad_header, good_sd_1):
-        with pytest.raises(TypeError):
-            unzip_to_ndarray(good_sd_1, HEADER=bad_header, dtype=float)
-
-
-    @pytest.mark.parametrize('bad_header', (list(), list('A'), list('ABCDEFGHI')))
-    def test_rejects_bad_header_len(self, bad_header, good_sd_1):
-        with pytest.raises(ValueError):
-            unzip_to_ndarray(good_sd_1, HEADER=bad_header, dtype=float)
-
-
-    @pytest.mark.parametrize('good_header',
-        (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
-         {'a', 'b', 'c'}, ('a', 'b', 'c'), ['a', 'b'], [['a', 'b']])
-    )
-    def accepts_good_header(self, good_header, good_sd_1):
-        unzip_to_ndarray(good_sd_1, HEADER=good_header, dtype=float)
-
-
     @pytest.mark.parametrize('bad_dtype',
         (0, True, np.nan, np.pi, lambda x: x, {'a': 1}, 'junk', min)
     )
@@ -550,36 +98,31 @@ class TestUnzipNdarray:
         unzip_to_ndarray(good_sd_1, dtype=good_dtype)
 
 
-    @pytest.mark.parametrize('empty_sd', ({}, {0:{}}))
-    def test_empty_handling(self, empty_sd):
-        with pytest.raises(ValueError):
-            unzip_to_ndarray(empty_sd)
-
-
-    @pytest.mark.parametrize('good_header',
-        (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
-         {'a', 'b', 'c'}, ('a', 'b', 'c'))
-    )
     @pytest.mark.parametrize('good_dtype',
         (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
          np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_accuracy(self, good_header, good_dtype, good_sd_1, good_inner_dict,
+    def test_accuracy(self, good_dtype, good_sd_1, good_inner_dict,
                       unzipped_good_sd_1, unzipped_good_inner_dict):
-        NDARRAY1, HEADER = unzip_to_ndarray(good_sd_1, good_header, good_dtype)
+        NDARRAY1 = unzip_to_ndarray(good_sd_1, good_dtype)
         assert NDARRAY1.shape == shape_(good_sd_1)
         assert np.array_equiv(NDARRAY1, unzipped_good_sd_1.astype(good_dtype))
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
         assert NDARRAY1.dtype == good_dtype
 
-        NDARRAY2, HEADER = unzip_to_ndarray(good_inner_dict, good_header, good_dtype)
+        NDARRAY2 = unzip_to_ndarray(good_inner_dict, good_dtype)
         assert NDARRAY2.shape == shape_(good_inner_dict)
         assert np.array_equiv(NDARRAY2, unzipped_good_inner_dict.astype(good_dtype))
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
         assert NDARRAY2.dtype == good_dtype
 
 
-@pytest.mark.skipif(bypass is True, reason=f'')
+    def test_accuracy_empty(self):
+        assert np.array_equiv(unzip_to_ndarray({}, dtype=np.uint8),
+                              np.array([], dtype=np.uint8))
+        assert np.array_equiv(unzip_to_ndarray({0:{}}, dtype=np.uint8),
+                              np.array([[]], dtype=np.uint8))
+        assert unzip_to_ndarray({0:{}}, dtype=np.uint8).dtype == np.uint8
+
+
 class TestUnzipList:
 
     @pytest.mark.parametrize('non_sd',
@@ -605,28 +148,6 @@ class TestUnzipList:
         unzip_to_list(good_inner_dict)
 
 
-    @pytest.mark.parametrize('bad_header',
-        (0, True, np.nan, np.pi, lambda x: x, {'a': 1}, 'junk', min, np.float64)
-    )
-    def test_rejects_bad_header_type(self, bad_header, good_sd_1):
-        with pytest.raises(TypeError):
-            unzip_to_list(good_sd_1, HEADER=bad_header, dtype=float)
-
-
-    @pytest.mark.parametrize('bad_header', (list(), list('A'), list('ABCDEFGHI')))
-    def test_rejects_bad_header_len(self, bad_header, good_sd_1):
-        with pytest.raises(ValueError):
-            unzip_to_list(good_sd_1, HEADER=bad_header, dtype=float)
-
-
-    @pytest.mark.parametrize('good_header',
-        (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
-         {'a', 'b', 'c'}, ('a', 'b', 'c'), ['a', 'b'], [['a', 'b']])
-    )
-    def accepts_good_header(self, good_header, good_sd_1):
-        unzip_to_list(good_sd_1, HEADER=good_header, dtype=float)
-
-
     @pytest.mark.parametrize('bad_dtype',
         (0, True, np.nan, np.pi, lambda x: x, {'a': 1}, 'junk', min)
     )
@@ -643,37 +164,29 @@ class TestUnzipList:
         unzip_to_list(good_sd_1, dtype=good_dtype)
 
 
-    @pytest.mark.parametrize('empty_sd', ({}, {0:{}}))
-    def test_empty_handling(self, empty_sd):
-        with pytest.raises(ValueError):
-            unzip_to_list(empty_sd)
-
-
-    @pytest.mark.parametrize('good_header',
-        (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
-         {'a', 'b', 'c'}, ('a', 'b', 'c'))
-    )
     @pytest.mark.parametrize('good_dtype',
         (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
          np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_accuracy(self, good_header, good_dtype, good_sd_1, good_inner_dict,
+    def test_accuracy(self, good_dtype, good_sd_1, good_inner_dict,
                       unzipped_good_sd_1, unzipped_good_inner_dict):
-        NDARRAY1, HEADER = unzip_to_list(good_sd_1, good_header, good_dtype)
+        NDARRAY1 = unzip_to_list(good_sd_1, good_dtype)
         assert len(NDARRAY1) == outer_len(good_sd_1)
         assert len(NDARRAY1[0]) == inner_len(good_sd_1)
         assert np.array_equiv(NDARRAY1, unzipped_good_sd_1.astype(good_dtype))
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
         assert str(good_dtype).upper() in str(type(NDARRAY1[0][0])).upper()
 
-        NDARRAY2, HEADER = unzip_to_list(good_inner_dict, good_header, good_dtype)
+        NDARRAY2 = unzip_to_list(good_inner_dict, good_dtype)
         assert len(NDARRAY2) == inner_len(good_inner_dict)
         assert np.array_equiv(NDARRAY2, unzipped_good_inner_dict.astype(good_dtype))
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
         assert str(good_dtype).upper() in str(type(NDARRAY2[0])).upper()
 
 
-@pytest.mark.skipif(bypass is True, reason=f'')
+    def test_accuracy_empty(self):
+        assert unzip_to_list({}) == []
+        assert unzip_to_list({0:{}}) == [[]]
+
+
 class TestUnzipDaskArray:
 
     @pytest.mark.parametrize('non_sd',
@@ -697,28 +210,6 @@ class TestUnzipDaskArray:
 
     def test_accepts_inner_sparse_dict(self, good_inner_dict):
         unzip_to_dask_array(good_inner_dict)
-
-
-    @pytest.mark.parametrize('bad_header',
-        (0, True, np.nan, np.pi, lambda x: x, {'a': 1}, 'junk', min, np.float64)
-    )
-    def test_rejects_bad_header_type(self, bad_header, good_sd_1):
-        with pytest.raises(TypeError):
-            unzip_to_dask_array(good_sd_1, HEADER=bad_header, dtype=float)
-
-
-    @pytest.mark.parametrize('bad_header', (list(), list('A'), list('ABCDEFGHI')))
-    def test_rejects_bad_header_len(self, bad_header, good_sd_1):
-        with pytest.raises(ValueError):
-            unzip_to_dask_array(good_sd_1, HEADER=bad_header, dtype=float)
-
-
-    @pytest.mark.parametrize('good_header',
-        (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
-         {'a', 'b', 'c'}, ('a', 'b', 'c'), ['a', 'b'], [['a', 'b']])
-    )
-    def accepts_good_header(self, good_header, good_sd_1):
-        unzip_to_dask_array(good_sd_1, HEADER=good_header, dtype=float)
 
 
     @pytest.mark.parametrize('bad_dtype',
@@ -751,40 +242,32 @@ class TestUnzipDaskArray:
         with pytest.raises(ValueError):
             unzip_to_dask_array(good_sd_1, chunks=bad_chunk)
 
-    @pytest.mark.parametrize('empty_sd', ({}, {0:{}}))
-    def test_empty_handling(self, empty_sd):
-        with pytest.raises(ValueError):
-            unzip_to_dask_array(empty_sd)
 
-
-    @pytest.mark.parametrize('good_header',
-        (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
-         {'a', 'b', 'c'}, ('a', 'b', 'c'))
-    )
     @pytest.mark.parametrize('good_dtype',
         (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
          np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_accuracy(self, good_header, good_dtype, good_sd_1, good_inner_dict,
+    def test_accuracy(self, good_dtype, good_sd_1, good_inner_dict,
                       unzipped_good_sd_1, unzipped_good_inner_dict):
-        DASK_ARRAY1, HEADER = \
-            unzip_to_dask_array(good_sd_1, good_header, good_dtype, chunks=(1,3))
+        DASK_ARRAY1 = unzip_to_dask_array(good_sd_1, good_dtype, chunks=(1,3))
         assert DASK_ARRAY1.shape == shape_(good_sd_1)
         assert np.array_equiv(DASK_ARRAY1.compute(), unzipped_good_sd_1)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
         assert DASK_ARRAY1.dtype == good_dtype
         assert DASK_ARRAY1.chunks == ((1, 1), (3,))
 
-        DASK_ARRAY2, HEADER = \
-            unzip_to_dask_array(good_inner_dict, good_header, good_dtype, chunks=(2,))
+        DASK_ARRAY2 = unzip_to_dask_array(good_inner_dict, good_dtype, chunks=(2,))
         assert DASK_ARRAY2.shape == shape_(good_inner_dict)
         assert np.array_equiv(DASK_ARRAY2.compute(), unzipped_good_inner_dict)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
         assert DASK_ARRAY2.dtype == good_dtype
         assert DASK_ARRAY2.chunks == ((2,1),)
 
 
-
+    def test_accuracy_empty(self):
+        assert np.array_equiv(unzip_to_dask_array({}, dtype=np.float64).compute(),
+                              da.array([], dtype=np.float64).compute())
+        assert np.array_equiv(unzip_to_dask_array({0:{}}, dtype=np.float64).compute(),
+                        da.array([[]], dtype=np.float64).compute())
+        assert unzip_to_dask_array({0: {}}, dtype=np.float64).dtype == np.float64
 
 
 class TestUnzipDatadict:
@@ -850,25 +333,37 @@ class TestUnzipDatadict:
         unzip_to_datadict(good_sd_1, dtype=good_dtype)
 
 
-    @pytest.mark.parametrize('junk_chunk',
-        ([1,2], {1,2}, [1,], 1, 'junk', {'a':1}, lambda x: x, 0, True, np.pi)
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_rejects_junk_chunks(self, good_sd_1, junk_chunk):
-        with pytest.raises(TypeError):
-            unzip_to_datadict(good_sd_1, chunks=junk_chunk)
+    def test_accuracy_no_header(self, good_dtype, good_sd_1, good_inner_dict,
+                      unzipped_good_sd_1, unzipped_good_inner_dict):
 
-    @pytest.mark.parametrize('bad_chunk',
-                             ((), (1,2,3), (1,2,3,4), (0, ), (0, 0))
-    )
-    def test_rejects_bad_chunks(self, good_sd_1, bad_chunk):
-        with pytest.raises(ValueError):
-            unzip_to_datadict(good_sd_1, chunks=bad_chunk)
+        REF_DATA1 = unzipped_good_sd_1
+        sd1_cols = REF_DATA1.shape[1]
 
+        REF_DATA2 = unzipped_good_inner_dict.reshape((1,-1))
+        sd2_cols = 1
 
-    @pytest.mark.parametrize('empty_sd', ({}, {0:{}}))
-    def test_empty_handling(self, empty_sd):
-        with pytest.raises(ValueError):
-            unzip_to_datadict(empty_sd)
+        DATADICT1 = unzip_to_datadict(good_sd_1, dtype=good_dtype)
+
+        assert len(DATADICT1) == sd1_cols
+        assert np.array_equiv(list(DATADICT1.keys()),
+                              list(map(str, range(sd1_cols)))
+                              )
+        for idx, key in enumerate(DATADICT1):
+            assert np.array_equiv(DATADICT1[key], REF_DATA1[:, idx])
+            assert DATADICT1[key][0].dtype == good_dtype
+
+        DATADICT2 = unzip_to_datadict(good_inner_dict, dtype=good_dtype)
+        assert len(DATADICT2) == sd2_cols
+        assert np.array_equiv(list(DATADICT2.keys()),
+                              list(map(str, range(sd2_cols)))
+                              )
+        for idx, key in enumerate(DATADICT2):
+            assert np.array_equiv(DATADICT2[key], REF_DATA2[idx])
+            assert DATADICT2[key][0].dtype == good_dtype
 
 
     @pytest.mark.parametrize('good_header',
@@ -879,27 +374,82 @@ class TestUnzipDatadict:
         (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
          np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_accuracy(self, good_header, good_dtype, good_sd_1, good_inner_dict,
-                      unzipped_good_sd_1, unzipped_good_inner_dict):
-        DASK_ARRAY1, HEADER = \
-            unzip_to_datadict(good_sd_1, good_header, good_dtype, chunks=(1,3))
-        assert DASK_ARRAY1.shape == shape_(good_sd_1)
-        assert np.array_equiv(DASK_ARRAY1.compute(), unzipped_good_sd_1)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
-        assert DASK_ARRAY1.dtype == good_dtype
-        assert DASK_ARRAY1.chunks == ((1, 1), (3,))
+    def test_accuracy_header1(self, good_header, good_dtype, good_sd_1,
+              good_inner_dict, unzipped_good_sd_1, unzipped_good_inner_dict):
 
-        DASK_ARRAY2, HEADER = \
-            unzip_to_dask_array(good_inner_dict, good_header, good_dtype, chunks=(2,))
-        assert DASK_ARRAY2.shape == shape_(good_inner_dict)
-        assert np.array_equiv(DASK_ARRAY2.compute(), unzipped_good_inner_dict)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
-        assert DASK_ARRAY2.dtype == good_dtype
-        assert DASK_ARRAY2.chunks == ((2,1),)
+        REF_DATA1 = unzipped_good_sd_1
+        sd1_cols = REF_DATA1.shape[1]
+
+        REF_DATA2 = unzipped_good_inner_dict.reshape((1,-1))
+        sd2_cols = REF_DATA2.shape[1]
+
+        DATADICT1 = unzip_to_datadict(good_sd_1, good_header, good_dtype)
+        assert len(DATADICT1) == sd1_cols
+        assert np.array_equiv(list(DATADICT1.keys()), list(good_header))
+
+        for idx, key in enumerate(DATADICT1):
+            assert np.array_equiv(DATADICT1[key], REF_DATA1[:, idx])
+            assert DATADICT1[key][0].dtype == good_dtype
+
+        DATADICT2 = unzip_to_datadict(good_inner_dict, good_header, good_dtype)
+        assert len(DATADICT2) == sd2_cols
+        assert np.array_equiv(list(DATADICT2.keys()), list(good_header))
+        for idx, key in enumerate(DATADICT2):
+            assert np.array_equiv(DATADICT2[key], REF_DATA2[:, idx])
+            assert DATADICT2[key][0].dtype == good_dtype
 
 
+    @pytest.mark.parametrize('good_header',
+        (['a', 'b'], [['a', 'b']], np.array(['a', 'b']), {'a', 'b'}, ('a', 'b'))
+    )
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
+    )
+    def test_accuracy_sd1_header2(self, good_header, good_dtype, good_sd_1,
+                                unzipped_good_sd_1):
 
-@pytest.mark.skip
+        REF_DATA1 = unzipped_good_sd_1
+        sd1_cols = REF_DATA1.shape[0]
+
+        DATADICT1 = unzip_to_datadict(good_sd_1, good_header, good_dtype)
+        assert len(DATADICT1) == sd1_cols
+        assert np.array_equiv(list(DATADICT1.keys()), list(good_header))
+
+        for idx, key in enumerate(DATADICT1):
+            assert np.array_equiv(DATADICT1[key], REF_DATA1[idx])
+            assert DATADICT1[key][0].dtype == good_dtype
+
+
+    @pytest.mark.parametrize('good_header',
+        (['a'], [['a']], np.array(['a']), {'a'}, ('a',))
+    )
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
+    )
+    def test_accuracy_sd2_header2(self, good_header, good_dtype, good_sd_1,
+              good_inner_dict, unzipped_good_sd_1, unzipped_good_inner_dict):
+
+        REF_DATA2 = unzipped_good_inner_dict.reshape((1,-1))
+        sd2_cols = REF_DATA2.shape[0]
+
+        DATADICT2 = unzip_to_datadict(good_inner_dict, good_header, good_dtype)
+
+        assert len(DATADICT2) == sd2_cols
+        assert np.array_equiv(list(DATADICT2.keys()), list(good_header))
+
+        for idx, key in enumerate(DATADICT2):
+            assert np.array_equiv(DATADICT2[key], REF_DATA2[idx])
+            assert DATADICT2[key][0].dtype == good_dtype
+
+
+    def test_accuracy_empty(self):
+        assert unzip_to_datadict({}, dtype=int) == {}
+        assert unzip_to_datadict({}, HEADER=[['a']], dtype=int) == {}
+        assert unzip_to_datadict({0:{}}, HEADER=[['a']], dtype=int) == {'a':[]}
+
+
 class TestUnzipDenseDict:
 
     @pytest.mark.parametrize('non_sd',
@@ -925,28 +475,6 @@ class TestUnzipDenseDict:
         unzip_to_dense_dict(good_inner_dict)
 
 
-    @pytest.mark.parametrize('bad_header',
-        (0, True, np.nan, np.pi, lambda x: x, {'a': 1}, 'junk', min, np.float64)
-    )
-    def test_rejects_bad_header_type(self, bad_header, good_sd_1):
-        with pytest.raises(TypeError):
-            unzip_to_dense_dict(good_sd_1, HEADER=bad_header, dtype=float)
-
-
-    @pytest.mark.parametrize('bad_header', (list(), list('A'), list('ABCDEFGHI')))
-    def test_rejects_bad_header_len(self, bad_header, good_sd_1):
-        with pytest.raises(ValueError):
-            unzip_to_dense_dict(good_sd_1, HEADER=bad_header, dtype=float)
-
-
-    @pytest.mark.parametrize('good_header',
-        (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
-         {'a', 'b', 'c'}, ('a', 'b', 'c'), ['a', 'b'], [['a', 'b']])
-    )
-    def accepts_good_header(self, good_header, good_sd_1):
-        unzip_to_dense_dict(good_sd_1, HEADER=good_header, dtype=float)
-
-
     @pytest.mark.parametrize('bad_dtype',
         (0, True, np.nan, np.pi, lambda x: x, {'a': 1}, 'junk', min)
     )
@@ -963,54 +491,40 @@ class TestUnzipDenseDict:
         unzip_to_dense_dict(good_sd_1, dtype=good_dtype)
 
 
-    @pytest.mark.parametrize('junk_chunk',
-        ([1,2], {1,2}, [1,], 1, 'junk', {'a':1}, lambda x: x, 0, True, np.pi)
-    )
-    def test_rejects_junk_chunks(self, good_sd_1, junk_chunk):
-        with pytest.raises(TypeError):
-            unzip_to_dense_dict(good_sd_1, chunks=junk_chunk)
-
-    @pytest.mark.parametrize('bad_chunk',
-                             ((), (1,2,3), (1,2,3,4), (0, ), (0, 0))
-    )
-    def test_rejects_bad_chunks(self, good_sd_1, bad_chunk):
-        with pytest.raises(ValueError):
-            unzip_to_dense_dict(good_sd_1, chunks=bad_chunk)
-
-    @pytest.mark.parametrize('empty_sd', ({}, {0:{}}))
-    def test_empty_handling(self, empty_sd):
-        with pytest.raises(ValueError):
-            unzip_to_dense_dict(empty_sd)
-
-
-    @pytest.mark.parametrize('good_header',
-        (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
-         {'a', 'b', 'c'}, ('a', 'b', 'c'))
-    )
     @pytest.mark.parametrize('good_dtype',
         (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
          np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_accuracy(self, good_header, good_dtype, good_sd_1, good_inner_dict,
-                      unzipped_good_sd_1, unzipped_good_inner_dict):
-        DASK_ARRAY1, HEADER = \
-            unzip_to_dense_dict(good_sd_1, good_header, good_dtype, chunks=(1,3))
-        assert DASK_ARRAY1.shape == shape_(good_sd_1)
-        assert np.array_equiv(DASK_ARRAY1.compute(), unzipped_good_sd_1)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
-        assert DASK_ARRAY1.dtype == good_dtype
-        assert DASK_ARRAY1.chunks == ((1, 1), (3,))
+    def test_accuracy(self, good_dtype, good_sd_1, good_inner_dict):
 
-        DASK_ARRAY2, HEADER = \
-            unzip_to_dense_dict(good_inner_dict, good_header, good_dtype, chunks=(2,))
-        assert DASK_ARRAY2.shape == shape_(good_inner_dict)
-        assert np.array_equiv(DASK_ARRAY2.compute(), unzipped_good_inner_dict)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
-        assert DASK_ARRAY2.dtype == good_dtype
-        assert DASK_ARRAY2.chunks == ((2,1),)
+        SD1_DENSE_DICT = {0:{0:1,1:2,2:0}, 1:{0:0,1:1,2:1}}
+        INNER_DICT_DENSE_DICT = {0:0, 1:2, 2:0}
+
+        DENSE_DICT1 = unzip_to_dense_dict(good_sd_1, good_dtype)
+        assert shape_(DENSE_DICT1) == shape_(good_sd_1)
+        assert DENSE_DICT1 == SD1_DENSE_DICT
+
+        if good_dtype in (int, float):
+            assert type(DENSE_DICT1[0][0]) == good_dtype
+        else:
+            assert DENSE_DICT1[0][0].dtype == good_dtype
 
 
-@pytest.mark.skip
+        DENSE_DICT2 = unzip_to_dense_dict(good_inner_dict, good_dtype)
+        assert shape_(DENSE_DICT2) == shape_(good_inner_dict)
+        assert DENSE_DICT2 == INNER_DICT_DENSE_DICT
+
+        if good_dtype in (int, float):
+            assert type(DENSE_DICT2[0]) == good_dtype
+        else:
+            assert DENSE_DICT2[0].dtype == good_dtype
+
+
+    def test_accuracy_empty(self):
+        assert unzip_to_dense_dict({}, dtype=int) == {}
+        assert unzip_to_dense_dict({0:{}}, dtype=int) == {0:{}}
+
+
 class TestUnzipPandasDataframe:
 
     @pytest.mark.parametrize('non_sd',
@@ -1074,24 +588,37 @@ class TestUnzipPandasDataframe:
         unzip_to_dataframe(good_sd_1, dtype=good_dtype)
 
 
-    @pytest.mark.parametrize('junk_chunk',
-        ([1,2], {1,2}, [1,], 1, 'junk', {'a':1}, lambda x: x, 0, True, np.pi)
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_rejects_junk_chunks(self, good_sd_1, junk_chunk):
-        with pytest.raises(TypeError):
-            unzip_to_dataframe(good_sd_1, chunks=junk_chunk)
+    def test_accuracy_no_header(self, good_dtype, good_sd_1, good_inner_dict,
+                      unzipped_good_sd_1, unzipped_good_inner_dict):
 
-    @pytest.mark.parametrize('bad_chunk',
-                             ((), (1,2,3), (1,2,3,4), (0, ), (0, 0))
-    )
-    def test_rejects_bad_chunks(self, good_sd_1, bad_chunk):
-        with pytest.raises(ValueError):
-            unzip_to_dataframe(good_sd_1, chunks=bad_chunk)
+        sd1_cols = unzipped_good_sd_1.shape[1]
+        REF_DATA1 = pd.DataFrame(
+                                 data=unzipped_good_sd_1,
+                                 columns=list(map(str, range(sd1_cols))),
+                                 dtype=good_dtype
+                    )
 
-    @pytest.mark.parametrize('empty_sd', ({}, {0:{}}))
-    def test_empty_handling(self, empty_sd):
-        with pytest.raises(ValueError):
-            unzip_to_dataframe(empty_sd)
+        DATAFRAME1 = unzip_to_dataframe(good_sd_1, dtype=good_dtype)
+        assert DATAFRAME1.equals(REF_DATA1)
+        for idx, key in enumerate(DATAFRAME1):
+            assert DATAFRAME1[key].dtype == good_dtype
+
+
+        sd2_cols = 1
+        REF_DATA2 = pd.DataFrame(
+                                    data=unzipped_good_inner_dict,
+                                    columns=list(map(str, range(sd2_cols))),
+                                    dtype=good_dtype
+                    )
+
+        DATAFRAME2 = unzip_to_dataframe(good_inner_dict, dtype=good_dtype)
+        assert DATAFRAME2.equals(REF_DATA2)
+        for idx, key in enumerate(DATAFRAME2):
+            assert DATAFRAME2[key].dtype == good_dtype
 
 
     @pytest.mark.parametrize('good_header',
@@ -1102,26 +629,87 @@ class TestUnzipPandasDataframe:
         (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
          np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_accuracy(self, good_header, good_dtype, good_sd_1, good_inner_dict,
-                      unzipped_good_sd_1, unzipped_good_inner_dict):
-        DASK_ARRAY1, HEADER = \
-            unzip_to_dataframe(good_sd_1, good_header, good_dtype, chunks=(1,3))
-        assert DASK_ARRAY1.shape == shape_(good_sd_1)
-        assert np.array_equiv(DASK_ARRAY1.compute(), unzipped_good_sd_1)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
-        assert DASK_ARRAY1.dtype == good_dtype
-        assert DASK_ARRAY1.chunks == ((1, 1), (3,))
+    def test_accuracy_header1(self, good_header, good_dtype, good_sd_1,
+              good_inner_dict, unzipped_good_sd_1, unzipped_good_inner_dict):
 
-        DASK_ARRAY2, HEADER = \
-            unzip_to_dataframe(good_inner_dict, good_header, good_dtype, chunks=(2,))
-        assert DASK_ARRAY2.shape == shape_(good_inner_dict)
-        assert np.array_equiv(DASK_ARRAY2.compute(), unzipped_good_inner_dict)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
-        assert DASK_ARRAY2.dtype == good_dtype
-        assert DASK_ARRAY2.chunks == ((2,1),)
+        REF_DATA1 = pd.DataFrame(
+                                data=unzipped_good_sd_1,
+                                columns=np.array(list(good_header)).ravel(),
+                                dtype=good_dtype
+        )
+
+        DATAFRAME1 = unzip_to_dataframe(good_sd_1, good_header, good_dtype)
+        assert DATAFRAME1.equals(REF_DATA1)
+        for idx, key in enumerate(DATAFRAME1):
+            assert DATAFRAME1[key].dtype == good_dtype
 
 
-@pytest.mark.skip
+        REF_DATA2 = pd.DataFrame(
+                                    data=unzipped_good_inner_dict.reshape((1,-1)),
+                                    columns=np.array(list(good_header)).ravel(),
+                                    dtype=good_dtype
+        )
+
+        DATAFRAME2 = unzip_to_dataframe(good_inner_dict, good_header, good_dtype)
+        assert DATAFRAME2.equals(REF_DATA2)
+        for idx, key in enumerate(DATAFRAME2):
+            assert DATAFRAME2[key].dtype == good_dtype
+
+
+    @pytest.mark.parametrize('good_header',
+        (['a', 'b'], [['a', 'b']], np.array(['a', 'b']), {'a', 'b'}, ('a', 'b'))
+    )
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
+    )
+    def test_accuracy_sd1_header2(self, good_header, good_dtype, good_sd_1,
+                                unzipped_good_sd_1):
+
+        REF_DATA1 = pd.DataFrame(
+                                data=unzipped_good_sd_1.transpose(),
+                                columns=np.array(list(good_header)).ravel(),
+                                dtype=good_dtype
+        )
+
+        DATAFRAME1 = unzip_to_dataframe(good_sd_1, good_header, good_dtype)
+        assert DATAFRAME1.equals(REF_DATA1)
+
+        for idx, key in enumerate(DATAFRAME1):
+            assert DATAFRAME1[key].dtype == good_dtype
+
+
+    @pytest.mark.parametrize('good_header',
+        (['a'], [['a']], np.array(['a']), {'a'}, ('a',))
+    )
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
+    )
+    def test_accuracy_sd2_header2(self, good_header, good_dtype, good_inner_dict,
+                                  unzipped_good_inner_dict):
+
+        REF_DATA2 = pd.DataFrame(
+                                data=unzipped_good_inner_dict,
+                                columns=np.array(list(good_header)).ravel(),
+                                dtype=good_dtype
+        )
+
+        DATAFRAME2 = unzip_to_dataframe(good_inner_dict, good_header, good_dtype)
+        assert DATAFRAME2.equals(REF_DATA2)
+
+        for idx, key in enumerate(DATAFRAME2):
+            assert DATAFRAME2[key].dtype == good_dtype
+
+
+    def test_accuracy_empty(self):
+        assert unzip_to_dataframe({}, dtype=int).equals(pd.DataFrame({}, dtype=int))
+        assert unzip_to_dataframe({0:{}}, HEADER=[['a']], dtype=int).equals(
+            pd.DataFrame({'a':[]}, dtype=int))
+        assert unzip_to_dataframe({0:{}}, HEADER=[['a']], dtype=np.uint8).equals(
+            pd.DataFrame({'a':[]}, dtype=np.uint8))
+
+
 class TestUnzipDaskDataframe:
 
     @pytest.mark.parametrize('non_sd',
@@ -1185,25 +773,87 @@ class TestUnzipDaskDataframe:
         unzip_to_dask_dataframe(good_sd_1, dtype=good_dtype)
 
 
-    @pytest.mark.parametrize('junk_chunk',
-        ([1,2], {1,2}, [1,], 1, 'junk', {'a':1}, lambda x: x, 0, True, np.pi)
+    @pytest.mark.parametrize('junk_chunksize_type',
+        (None, 'junk', {'a':1}, lambda x: x, True, [[1,2]], {1,2})
     )
-    def test_rejects_junk_chunks(self, good_sd_1, junk_chunk):
+    def test_rejects_junk_chunksize(self, good_sd_1, junk_chunksize_type):
         with pytest.raises(TypeError):
-            unzip_to_dask_dataframe(good_sd_1, chunks=junk_chunk)
+            unzip_to_dask_dataframe(good_sd_1, chunksize=junk_chunksize_type)
 
-    @pytest.mark.parametrize('bad_chunk',
-                             ((), (1,2,3), (1,2,3,4), (0, ), (0, 0))
+    @pytest.mark.parametrize('bad_chunksize',
+                             ((), (0, ), (0, 0), 0, -10, np.pi, np.nan)
     )
-    def test_rejects_bad_chunks(self, good_sd_1, bad_chunk):
+    def test_rejects_bad_chunksize(self, good_sd_1, bad_chunksize):
         with pytest.raises(ValueError):
-            unzip_to_dask_dataframe(good_sd_1, chunks=bad_chunk)
+            unzip_to_dask_dataframe(good_sd_1, chunksize=bad_chunksize)
 
-    @pytest.mark.parametrize('empty_sd', ({}, {0:{}}))
-    def test_empty_handling(self, empty_sd):
-        with pytest.raises(ValueError):
-            unzip_to_dask_dataframe(empty_sd)
 
+    @pytest.mark.parametrize('good_chunksize',
+                 ([1,2], [1,], (1,2,3), (3, ), 1, 40_000)
+    )
+    def test_accepts_good_chunksize(self, good_sd_1, good_chunksize):
+        unzip_to_dask_dataframe(good_sd_1, chunksize=good_chunksize)
+
+
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
+    )
+    @pytest.mark.parametrize('good_chunksize_sd, good_chunksize_ddf',
+        ([2,2], [(2,3), 2], [(1,3), 1])
+    )
+    def test_accuracy_no_header(self, good_dtype, good_sd_1, good_inner_dict,
+              unzipped_good_sd_1, unzipped_good_inner_dict, good_chunksize_sd,
+              good_chunksize_ddf):
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        sd1_cols = unzipped_good_sd_1.shape[1]
+        REF_DATA1 = ddf.from_pandas(
+                                    pd.DataFrame(
+                                        data=unzipped_good_sd_1,
+                                        columns=list(map(str, range(sd1_cols))),
+                                        dtype=good_dtype
+                                    ),
+                                    chunksize=good_chunksize_ddf
+        )
+
+        DDF1 = unzip_to_dask_dataframe(good_sd_1, chunksize=good_chunksize_sd,
+                                       dtype=good_dtype)
+
+        assert DDF1.compute().equals(REF_DATA1.compute())
+
+        for idx, key in enumerate(DDF1):
+            assert DDF1[key].dtype == good_dtype
+
+        assert DDF1.get_partition(0).compute().shape == \
+                    REF_DATA1.get_partition(0).compute().shape
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        sd2_cols = 1
+        REF_DATA2 = ddf.from_pandas(
+                            pd.DataFrame(
+                                        data=unzipped_good_inner_dict,
+                                        columns=list(map(str, range(sd2_cols))),
+                                        dtype=good_dtype
+                            ),
+                            chunksize=good_chunksize_ddf
+        )
+        DDF2 = unzip_to_dask_dataframe(
+                                        good_inner_dict,
+                                        chunksize=good_chunksize_sd,
+                                        dtype=good_dtype
+        )
+
+        assert DDF2.compute().equals(REF_DATA2.compute())
+
+        for idx, key in enumerate(DDF2):
+            assert DDF2[key].dtype == good_dtype
+
+        assert DDF2.get_partition(0).compute().shape == \
+                    REF_DATA2.get_partition(0).compute().shape
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @pytest.mark.parametrize('good_header',
         (['a', 'b', 'c'], [['a', 'b', 'c']], np.array(['a', 'b', 'c']),
@@ -1213,21 +863,168 @@ class TestUnzipDaskDataframe:
         (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
          np.uint64, np.float16, np.float32, np.float64, int, float)
     )
-    def test_accuracy(self, good_header, good_dtype, good_sd_1, good_inner_dict,
-                      unzipped_good_sd_1, unzipped_good_inner_dict):
-        DASK_ARRAY1, HEADER = \
-            unzip_to_dask_dataframe(good_sd_1, good_header, good_dtype, chunks=(1,3))
-        assert DASK_ARRAY1.shape == shape_(good_sd_1)
-        assert np.array_equiv(DASK_ARRAY1.compute(), unzipped_good_sd_1)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
-        assert DASK_ARRAY1.dtype == good_dtype
-        assert DASK_ARRAY1.chunks == ((1, 1), (3,))
+    @pytest.mark.parametrize('good_chunksize_sd, good_chunksize_ddf',
+        ([2,2], [(2,2), 2], [(1,3), 1])
+    )
+    def test_accuracy_header1(self, good_header, good_dtype, good_sd_1,
+          good_inner_dict, unzipped_good_sd_1, unzipped_good_inner_dict,
+          good_chunksize_sd, good_chunksize_ddf):
 
-        DASK_ARRAY2, HEADER = \
-            unzip_to_dask_dataframe(good_inner_dict, good_header, good_dtype, chunks=(2,))
-        assert DASK_ARRAY2.shape == shape_(good_inner_dict)
-        assert np.array_equiv(DASK_ARRAY2.compute(), unzipped_good_inner_dict)
-        assert np.array_equiv(HEADER, np.array(list(good_header)).ravel())
-        assert DASK_ARRAY2.dtype == good_dtype
-        assert DASK_ARRAY2.chunks == ((2,1),)
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        REF_DATA1 = ddf.from_pandas(
+                    pd.DataFrame(
+                                 data=unzipped_good_sd_1,
+                                 columns=np.array(list(good_header)).ravel(),
+                                 dtype=good_dtype
+                    ),
+                    chunksize=good_chunksize_ddf
+        )
+
+        DDF1 = unzip_to_dask_dataframe(good_sd_1, chunksize=good_chunksize_sd,
+                                    HEADER=good_header, dtype=good_dtype)
+
+        assert DDF1.compute().equals(REF_DATA1.compute())
+
+        for idx, key in enumerate(DDF1):
+            assert DDF1[key].dtype == good_dtype
+
+        assert DDF1.get_partition(0).compute().shape == \
+                    REF_DATA1.get_partition(0).compute().shape
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        REF_DATA2 = ddf.from_pandas(
+                pd.DataFrame(
+                                data=unzipped_good_inner_dict.reshape((1,-1)),
+                                columns=np.array(list(good_header)).ravel(),
+                                dtype=good_dtype
+                ),
+                chunksize=good_chunksize_ddf
+        )
+
+        DDF2 = unzip_to_dask_dataframe(
+                                       good_inner_dict,
+                                       chunksize=good_chunksize_sd,
+                                       HEADER=good_header,
+                                       dtype=good_dtype
+        )
+        assert DDF2.compute().equals(REF_DATA2.compute())
+        for idx, key in enumerate(DDF2):
+            assert DDF2[key].dtype == good_dtype
+
+        assert DDF2.get_partition(0).compute().shape == \
+                    REF_DATA2.get_partition(0).compute().shape
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    @pytest.mark.parametrize('good_header',
+        (['a', 'b'], [['a', 'b']], np.array(['a', 'b']), {'a', 'b'}, ('a', 'b'))
+    )
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
+    )
+    @pytest.mark.parametrize('good_chunksize_sd, good_chunksize_ddf',
+        ([2,2], [(2,2), 2], [(1,3), 1])
+    )
+    def test_accuracy_sd1_header2(self, good_header, good_dtype, good_sd_1,
+                unzipped_good_sd_1, good_chunksize_sd, good_chunksize_ddf):
+
+        REF_DATA1 = ddf.from_pandas(
+                    pd.DataFrame(
+                                data=unzipped_good_sd_1.transpose(),
+                                columns=np.array(list(good_header)).ravel(),
+                                dtype=good_dtype
+                    ),
+                    chunksize=good_chunksize_ddf
+        )
+        DDF1 = unzip_to_dask_dataframe(
+                                        good_sd_1,
+                                        chunksize=good_chunksize_sd,
+                                        HEADER=good_header,
+                                        dtype=good_dtype
+        )
+
+        assert DDF1.compute().equals(REF_DATA1.compute())
+
+        for idx, key in enumerate(DDF1):
+            assert DDF1[key].dtype == good_dtype
+
+        assert DDF1.get_partition(0).compute().shape == \
+                    REF_DATA1.get_partition(0).compute().shape
+
+
+    @pytest.mark.parametrize('good_header',
+        (['a'], [['a']], np.array(['a']), {'a'}, ('a',))
+    )
+    @pytest.mark.parametrize('good_dtype',
+        (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+         np.uint64, np.float16, np.float32, np.float64, int, float)
+    )
+    @pytest.mark.parametrize('good_chunksize_sd, good_chunksize_ddf',
+        ([2,2], [(2,2), 2], [(1,3), 1], (100, 100))
+    )
+    def test_accuracy_sd2_header2(self, good_header, good_dtype, good_inner_dict,
+          unzipped_good_inner_dict, good_chunksize_sd, good_chunksize_ddf):
+
+        REF_DATA2 = ddf.from_pandas(
+                    pd.DataFrame(
+                                data=unzipped_good_inner_dict,
+                                columns=np.array(list(good_header)).ravel(),
+                                dtype=good_dtype
+                    ),
+                    chunksize=good_chunksize_ddf
+        )
+
+        DDF2 = unzip_to_dask_dataframe(
+                                       good_inner_dict,
+                                       chunksize=good_chunksize_sd,
+                                       HEADER=good_header,
+                                       dtype=good_dtype
+        )
+        assert DDF2.compute().equals(REF_DATA2.compute())
+
+        for idx, key in enumerate(DDF2):
+            assert DDF2[key].dtype == good_dtype
+
+        assert DDF2.get_partition(0).compute().shape == \
+                    REF_DATA2.get_partition(0).compute().shape
+
+
+    def test_accuracy_empty(self):
+
+        empty_dask_df1 = ddf.from_pandas(
+                                         pd.DataFrame({'a':[]}, dtype=int),
+                                         npartitions=1
+        )
+
+        DASK_TEST_1 = unzip_to_dask_dataframe({}, dtype=int)
+        DASK_TEST_2 = unzip_to_dask_dataframe({0:{}}, HEADER=[['a']], dtype=int)
+
+        assert DASK_TEST_1.compute().equals(pd.DataFrame({}, dtype=int))
+        assert DASK_TEST_2.compute().equals(empty_dask_df1.compute().astype(int))
+        assert unzip_to_dask_dataframe({0:{}}, HEADER=[['a']], dtype=np.uint8
+                ).compute().equals(empty_dask_df1.astype(np.uint8).compute())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -8,38 +8,29 @@
 import sys, os
 
 
-def get_module_name(sys_modules_string):
+def get_module_name(sys_modules_string:str) -> str:
 
     """Retrieve the name of the calling module.
 
     Parameters
-    ---------
-    sys_modules_string: str - Must be passes as 'str(sys.modules[__name__])'.
+    ----------
+    sys_modules_string:
+        str - Must be passed as 'str(sys.modules[__name__])'.
 
-
-    Returns
-    ------
-    module_name: str - name of the calling module.
-
-
-    See Also
+    Return
     -------
-    None
+    -
+        module_name: str - name of the calling module.
 
-
-    Notes
-    ----
-    None
-
-
-    Example
-    ------
+    Examples
+    --------
     >>> from pybear.utils import get_module_name
     >>> import sys
-    >>> print(sys.modules[__name__])
+    >>> print(sys.modules[__name__]) #doctest:+SKIP
     <module '__main__' from '...\\pybear\\utils\\scratch.py'>
+
     >>> out = get_module_name(str(sys.modules[__name__]))
-    >>> print(out)
+    >>> print(out) #doctest:+SKIP
     scratch
 
     """

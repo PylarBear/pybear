@@ -17,7 +17,7 @@ pd.options.display.float_format = '{:,.3f}'.format
 # IDXS. WILL NEED A LOT OF WORK.  ALSO, ITERATING BY for/for IS ALWAYS WAAYYY SLOWER THAN EXTRACTING FULLY SIZED NP
 # ROW BY ROW TO SPARSE_DICT, THAT FUNCTIONALITY IS DEFUNCT AND THIS WILL NEED MORE WORK. ESSENTIALLY NOW ALL FORMS OF
 # create_random_sparse_dict USE A FULLY SIZED NUMPY ARRAY WITH MASK APPLIED, AND MASK IS CREATED BY NUMBER FILTER,
-# random.choice ON [0,1] W p GIVEN BY SPARSITY, OR BY SERIALIZED IDXS MAPPED TO A NDARRAY
+# _random_.choice ON [0,1] W p GIVEN BY SPARSITY, OR BY SERIALIZED IDXS MAPPED TO A NDARRAY
 
 
 def serialized_idxs_by_for_for(RAND_SERIALIZED_DENSE_POSNS, RAND_SERIALIZED_VALUES,
@@ -311,13 +311,13 @@ for x in (1,100): #(1,10,100):
         if _dtype == np.int8: header_level_1 = 'np_int8'
         elif _dtype == np.int32: header_level_1 = 'np_int32'
         elif _dtype == np.float64: header_level_1 = 'np_float64'
-        else: exception_handling('main tests___BEAR_FIX_THESE module', 'LOGIC TO GET header_level_1 FROM _dtype IS FAILING')
+        else: exception_handling('main tests___PIZZA_FIX_THESE module', 'LOGIC TO GET header_level_1 FROM _dtype IS FAILING')
 
         total_size = 1000000 * x
 
         if total_size == 1000000: index_level_1 = '1,000,000'
         elif total_size == 100000000: index_level_1 = '100,000,000'
-        else: exception_handling('main tests___BEAR_FIX_THESE module', 'LOGIC TO GET index_level_1 FROM total_size IS FAILING')
+        else: exception_handling('main tests___PIZZA_FIX_THESE module', 'LOGIC TO GET index_level_1 FROM total_size IS FAILING')
 
         # JUST MAKE THESE 1 x total_size.... JUST RESHAPE THE np array, WONT HAVE T0 CHANGE SERIALIZED
         print(f'\nBUILDING VALUES FOR full_numpy_w_mask...')
@@ -338,7 +338,7 @@ for x in (1,100): #(1,10,100):
             elif total_size == 100000000 and outer_size == 1000: index_level_2 = '1000x100000'
             elif total_size == 100000000 and outer_size == 10000: index_level_2 = '10000x10000'
             elif total_size == 100000000 and outer_size == 100000: index_level_2 = '100000x1000'
-            else: exception_handling('main tests___BEAR_FIX_THESE module', 'LOGIC TO GET index_level_2 FROM outer_size IS FAILING')
+            else: exception_handling('main tests___PIZZA_FIX_THESE module', 'LOGIC TO GET index_level_2 FROM outer_size IS FAILING')
 
 
             for as_py_or_np in ('py', 'np'):

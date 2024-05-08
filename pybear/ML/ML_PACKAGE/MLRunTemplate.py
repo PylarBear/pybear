@@ -223,7 +223,7 @@ class MLRunTemplate:
 
         # "DEV BUILD" BASE MENU DECLARATIONS #########################################################################################################
         self.BASE_DEV_BUILD_CMDS = {
-                                    'r': 'random draw from training DATA',
+                                    'r': '_random_ draw from training DATA',
                                     's': 'sub-partition from training DATA',
                                     'd': 'use original data',
                                     'f': 'load from file',
@@ -245,7 +245,7 @@ class MLRunTemplate:
         # "TEST BUILD" BASE MENU DECLARATIONS #########################################################################################################
         self.BASE_TEST_BUILD_CMDS = {
                                     'd': 'use original DATA',
-                                    'r': 'random draw from training data',
+                                    'r': '_random_ draw from training data',
                                     's': 'sub-partition from training DATA',
                                     'p': 'generate all permutations',
                                     'f': 'load from file',
@@ -907,7 +907,7 @@ class MLRunTemplate:
             print(f'\nORIGINAL DATA SUCCESSFULLY LOADED AS TEST MATRICES.\n')
             print(f'TEST DATA has {gs.get_shape("TEST_DATA", self.TEST_SWNL[0], self.data_run_orientation)[0]} examples.')
 
-        elif self.test_build_select == 'R':    # 'random draw from training DATA(r)'
+        elif self.test_build_select == 'R':    # '_random_ draw from training DATA(r)'
             # IF USER SENT TimeoutError BACK TO HERE, IT WAS BECAUSE INVERT OF XTX FOR MLR & GMLR FAILED AND CHOSE ABORT
             # MODIFICATIONS TO self.TRAIN_SWNL ARE IMPLICIT
             try:

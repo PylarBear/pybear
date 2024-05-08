@@ -526,7 +526,7 @@ if __name__ == '__main__':
     sparsity = 90
 
     # AS ARRAY #####################################################
-    # DATA = n.random.randint(0,10000,(rows,cols))
+    # DATA = n._random_.randint(0,10000,(rows,cols))
     #
     # cutoff = (1 - sparsity / 100) * 10000
     #

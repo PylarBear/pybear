@@ -16,7 +16,11 @@ from pybear.sparse_dict._utils import (
                                         clean,
                                         sparsity,
                                         core_sparse_equiv,
-                                        safe_sparse_equiv
+                                        safe_sparse_equiv,
+                                        return_uniques,
+                                        drop_placeholders,
+                                        dtype_,
+                                        astype
 )
 
 
@@ -45,13 +49,9 @@ def bad_sd_1():
 
 
 @pytest.fixture
-def bad_sd_2():
+def good_inner_dict():
     return {0:1, 1:2, 2:3}
 
-
-@pytest.fixture
-def errant_list():
-    return np.random.randint(5)
 
 
 
@@ -66,10 +66,14 @@ class TestOuterLen:
             outer_len(junk_sd)
 
 
-    def test_rejects_bad_sd(self, bad_sd_1, bad_sd_2):
+    def test_rejects_bad_sd(self, bad_sd_1):
         with pytest.raises(ValueError):
             outer_len(bad_sd_1)
-            outer_len(bad_sd_2)
+
+
+    def test_rejects_inner_dict(self, good_inner_dict):
+        with pytest.raises(ValueError):
+            outer_len(good_inner_dict)
 
 
     def test_accuracy(self, good_sd_1, good_sd_2):
@@ -91,15 +95,15 @@ class TestInnerLenQuick:
         with pytest.raises(ValueError):
             inner_len_quick(bad_sd_1)
 
-    @pytest.mark.xfail(reason='does not have validation to handle inner dict')
-    def test_rejects_bad_sd2(self, bad_sd_2):
-        with pytest.raises(ValueError):
-            inner_len_quick(bad_sd_2)
+
+    def test_accepts_inner_dict(self, good_inner_dict):
+        inner_len_quick(good_inner_dict)
 
 
-    def test_accuracy(self, good_sd_1, good_sd_2):
+    def test_accuracy(self, good_sd_1, good_sd_2, good_inner_dict):
         assert inner_len_quick(good_sd_1) == 3
         assert inner_len_quick(good_sd_2) == 4
+        assert inner_len_quick(good_inner_dict) == 3
 
 
 class TestInnerLen:
@@ -111,15 +115,19 @@ class TestInnerLen:
             inner_len(junk_sd)
 
 
-    def test_rejects_bad_sd(self, bad_sd_1, bad_sd_2):
+    def test_rejects_bad_sd(self, bad_sd_1):
         with pytest.raises(ValueError):
             inner_len(bad_sd_1)
-            inner_len(bad_sd_2)
 
 
-    def test_accuracy(self, good_sd_1, good_sd_2):
+    def test_accepts_inner_dict(self, good_inner_dict):
+        inner_len(good_inner_dict)
+
+
+    def test_accuracy(self, good_sd_1, good_sd_2, good_inner_dict):
         assert inner_len(good_sd_1) == 3
         assert inner_len(good_sd_2) == 4
+        assert inner_len(good_inner_dict) == 3
 
 
 class TestSize:
@@ -132,15 +140,19 @@ class TestSize:
             size_(junk_sd)
 
 
-    def test_rejects_bad_sd(self, bad_sd_1, bad_sd_2):
+    def test_rejects_bad_sd(self, bad_sd_1):
         with pytest.raises(ValueError):
             size_(bad_sd_1)
-            size_(bad_sd_2)
 
 
-    def test_accuracy(self, good_sd_1, good_sd_2):
+    def test_accepts_inner_dict(self, good_inner_dict):
+        size_(good_inner_dict)
+
+
+    def test_accuracy(self, good_sd_1, good_sd_2, good_inner_dict):
         assert size_(good_sd_1) == 12
         assert size_(good_sd_2) == 4
+        assert size_(good_inner_dict) == 3
 
 
 class TestShape:
@@ -156,15 +168,30 @@ class TestShape:
             shape_(junk_sd)
 
 
-    def test_rejects_bad_sd(self, bad_sd_1, bad_sd_2):
+    def test_rejects_bad_sd(self, bad_sd_1):
         with pytest.raises(ValueError):
             shape_(bad_sd_1)
-            shape_(bad_sd_2)
+
+
+    def test_accepts_inner_dict(self, good_inner_dict):
+        assert shape_(good_inner_dict) == (3, )
 
 
     def test_accuracy(self, good_sd_1, good_sd_2):
         assert shape_(good_sd_1) == (4, 3)
         assert shape_(good_sd_2) == (1, 4)
+
+
+    def test_accuracy2(self):
+        assert shape_({0:{}, 1:{}}) == (2, 0)
+
+
+    def test_accuracy3(self):
+        assert shape_({0: {}}) == (1, 0)
+
+
+    def test_accuracy4(self):
+        assert shape_({0: 1, 1: 2}) == (2, )
 
 
 class TestClean:
@@ -192,6 +219,10 @@ class TestClean:
         assert clean(bad_sd_1) == cleaned_sd
 
 
+    def test_cleans_a_bad_inner_dict(self):
+        assert clean({0:0,1:0,2:1}) == {2:1}
+
+
 class TestSparsity:
 
     @pytest.mark.parametrize('junk_sd',
@@ -202,99 +233,257 @@ class TestSparsity:
                 sparsity(junk_sd)
 
 
-    def test_rejects_bad_sd(self, bad_sd_1, bad_sd_2):
+    def test_rejects_bad_sd(self, bad_sd_1):
         with pytest.raises(ValueError):
             sparsity(bad_sd_1)
-            sparsity(bad_sd_2)
+
+    def test_accepts_inner_dict(self, good_inner_dict):
+            sparsity(good_inner_dict)
 
 
-    def test_accuracy(self, good_sd_1, good_sd_2):
+    def test_accuracy(self, good_sd_1, good_sd_2, good_inner_dict):
         assert round(sparsity(good_sd_1), 1) == 41.7
         assert sparsity(good_sd_2) == 0
         assert sparsity({0:{10:0}}) == 100
+        assert sparsity(good_inner_dict) == 0
+        assert sparsity({0:1, 2:1, 3:0}) == 50
 
 
-def core_sparse_equiv(DICT1, DICT2):
-    '''Check for equivalence of two sparse dictionaries without safeguards for speed.'''
+class TestCoreSparseEquiv:
+
+    # ONLY DO VALIDATION ON safe_sparse_equiv
+
+    def test_accepts_inner_dict(self, good_sd_1, good_inner_dict):
+        core_sparse_equiv(good_inner_dict, good_sd_1)
+        core_sparse_equiv(good_sd_1, good_inner_dict)
+        core_sparse_equiv(good_inner_dict, good_inner_dict)
+
+
+    def test_accuracy(self, good_sd_1, good_sd_2, good_inner_dict):
+
+        assert core_sparse_equiv(good_sd_1, good_sd_1)
+        assert core_sparse_equiv(good_sd_2, good_sd_2)
+        assert core_sparse_equiv(good_inner_dict, good_inner_dict)
+
+        assert not core_sparse_equiv(good_sd_1, good_sd_2)
+        assert not core_sparse_equiv(good_sd_1, good_inner_dict)
+        assert not core_sparse_equiv(good_sd_2, good_inner_dict)
+
+
+class TestSafeSparseEquiv:
+
+    @pytest.mark.parametrize('non_sd',
+        (0, np.pi, False, min, lambda x: x, {1,2}, [1,2], (1,2))
+    )
+    def test_rejects_non_sd(self, non_sd, good_sd_1):
+        with pytest.raises(TypeError):
+            safe_sparse_equiv(non_sd, good_sd_1)
+
+        with pytest.raises(TypeError):
+            safe_sparse_equiv(good_sd_1, non_sd)
+
 
     @pytest.mark.parametrize('junk_sd',
-                             ('junk', 1, [1, 2, 3], {0, 1, 2}, np.pi, None,
-                              True, min, np.ndarray)
-                             )
+                 ({'a':1}, {np.pi: 'a'}, {np.nan: None})
+    )
+    def test_rejects_junk_sd(self, junk_sd, good_sd_1):
+        with pytest.raises(ValueError):
+            safe_sparse_equiv(junk_sd, good_sd_1)
 
-    # 1) TEST OUTER SIZE
-    if len(DICT1) != len(DICT2): return False
-
-    # 2) TEST INNER SIZES
-    for outer_key in DICT1:  # ALREADY ESTABLISHED OUTER KEYS ARE EQUAL
-        if len(DICT1[outer_key]) != len(DICT2[outer_key]): return False
-
-    # for outer_key in DICT1:
-    #     if not np.array_equiv(unzip_to_ndarray_float64({0: DICT1[outer_key]}),
-    #                          unzip_to_ndarray_float64({0: DICT2[outer_key]})): return False
-
-    # 3) TEST INNER KEYS ARE EQUAL
-    for outer_key in DICT1:   # ALREADY ESTABLISHED OUTER KEYS ARE EQUAL
-        if not np.allclose(np.fromiter(DICT1[outer_key], dtype=np.int32),
-                             np.fromiter(DICT2[outer_key], dtype=np.int32), rtol=1e-8, atol=1e-8): return False
-
-    # 4) TEST INNER VALUES ARE EQUAL
-    for outer_key in DICT1:  # ALREADY ESTABLISHED OUTER KEYS ARE EQUAL
-        if not np.allclose(np.fromiter(DICT1[outer_key].values(), dtype=np.float64),
-                          np.fromiter(DICT2[outer_key].values(), dtype=np.float64), rtol=1e-8, atol=1e-8): return False
-
-    # IF GET THIS FAR, MUST BE True
-    return True
+        with pytest.raises(ValueError):
+            safe_sparse_equiv(good_sd_1, junk_sd)
 
 
-def safe_sparse_equiv(DICT1, DICT2):
-    '''Safely check for equivalence of two sparse dictionaries with safeguards.'''
+    def test_rejects_bad_sd(self, good_sd_1, bad_sd_1):
+        with pytest.raises(ValueError):
+            safe_sparse_equiv(good_sd_1, bad_sd_1)
 
-    @pytest.mark.parametrize('junk_sd',
-                             ('junk', 1, [1, 2, 3], {0, 1, 2}, np.pi, None,
-                              True, min, np.ndarray)
-                             )
-
-    DICT1 = val._dict_init(DICT1)
-    DICT2 = val._dict_init(DICT2)
-    val._insufficient_dict_args_2(DICT1, DICT2)
-
-    # 1) TEST OUTER KEYS ARE EQUAL
-    if not np.allclose(np.fromiter(DICT1, dtype=np.int32),
-                      np.fromiter(DICT2, dtype=np.int32), rtol=1e-8, atol=1e-8): return False
-
-    # 2) RUN core_sparse_equiv
-    if core_sparse_equiv(DICT1, DICT2) is False: return False
-
-    return True  # IF GET TO THIS POINT, MUST BE TRUE
+        with pytest.raises(ValueError):
+            safe_sparse_equiv(bad_sd_1, good_sd_1)
 
 
-def return_uniques(DICT1):
-    '''Return unique values of a sparse dictionary as list.'''
+    def test_accepts_inner_dict(self, good_inner_dict, good_sd_1):
+        safe_sparse_equiv(good_inner_dict, good_sd_1)
+        safe_sparse_equiv(good_sd_1, good_inner_dict)
+        safe_sparse_equiv(good_inner_dict, good_inner_dict)
+
+
+    def test_accuracy(self, good_sd_1, good_sd_2, good_inner_dict):
+
+        assert safe_sparse_equiv(good_sd_1, good_sd_1)
+        assert safe_sparse_equiv(good_sd_2, good_sd_2)
+        assert safe_sparse_equiv(good_inner_dict, good_inner_dict)
+
+        assert not safe_sparse_equiv(good_sd_1, good_sd_2)
+        assert not safe_sparse_equiv(good_sd_1, good_inner_dict)
+        assert not safe_sparse_equiv(good_sd_2, good_inner_dict)
+
+
+
+
+class TestReturnUniques:
 
     @pytest.mark.parametrize('junk_sd',
-                             ('junk', 1, [1, 2, 3], {0, 1, 2}, np.pi, None,
-                              True, min, np.ndarray)
-                             )
+        ('junk', 1, [1, 2, 3], {0, 1, 2}, np.pi, None, True, min, np.ndarray)
+    )
+    def test_rejects_non_sd(self, junk_sd):
+        with pytest.raises(TypeError):
+            return_uniques(junk_sd)
 
-    DICT1 = val._dict_init(DICT1)
-    val._insufficient_dict_args_1(DICT1)
-    NUM_HOLDER, STR_HOLDER = [], []
 
-    for outer_key in DICT1:   # 10/16/22 DONT CHANGE THIS, HAS TO DEAL W DIFF DTYPES, DONT USE np.unique, BLOWS UP FOR '<' not supported between instances of 'str' and 'int'
-        for value in DICT1[outer_key].values():
-            if True in map(lambda x: x in str(type(value)).upper(), ['INT', 'FLOAT']):
-                if value not in NUM_HOLDER: NUM_HOLDER.append(value)
-            else:
-                if value not in STR_HOLDER: STR_HOLDER.append(str(value))
+    def test_rejects_bad_sd(self, bad_sd_1):
+        with pytest.raises(ValueError):
+            return_uniques(bad_sd_1)
 
-    if sparsity(DICT1) < 100 and 0 not in NUM_HOLDER: NUM_HOLDER.append(0)
 
-    UNIQUES = np.array(sorted(NUM_HOLDER) + sorted(STR_HOLDER), dtype=object)
+    def test_rejects_bad_sd_2(self):
+        with pytest.raises(TypeError):
+            return_uniques({0: {0:'a', 1:'b', 2:'c', 3:'d'}})
 
-    del NUM_HOLDER, STR_HOLDER
 
-    return UNIQUES
+    def test_accepts_inner_dict(self, good_inner_dict):
+        return_uniques(good_inner_dict)
+
+
+    def test_accuracy(self, good_sd_1, good_sd_2, good_inner_dict):
+        assert np.array_equiv(return_uniques(good_sd_1), np.array([0, 1, 2, 3]))
+        assert np.array_equiv(return_uniques(good_sd_2), np.array([1, 2, 3, 4]))
+        assert np.array_equiv(return_uniques(good_inner_dict), np.array([1, 2, 3]))
+
+
+
+
+class TestDropPlaceholders:
+
+    @pytest.mark.parametrize('non_dict',
+        (0, np.pi, False, min, lambda x: x, {1, 2}, [1, 2], (1, 2))
+    )
+    def test_rejects_non_dict(self, non_dict):
+        with pytest.raises(TypeError):
+            drop_placeholders(non_dict)
+
+
+    def test_rejects_bad_sd(self, bad_sd_1):
+        with pytest.raises(ValueError):
+            drop_placeholders(bad_sd_1)
+
+
+    def test_accepts_outer_dict(self):
+        assert drop_placeholders({0:{0:1,1:2,2:3}}) == {0:{0:1,1:2,2:3}}
+
+    def test_accepts_inner_dict(self):
+        assert drop_placeholders({0:1,1:2,2:3}) == {0:1,1:2,2:3}
+
+    def test_accuracy(self):
+
+        assert drop_placeholders({0:{0:1,1:0},1:{1:0}}) == {0:{0:1}, 1:{}}
+
+        assert drop_placeholders({0:1,1:2,2:0}) == {0:1,1:2}
+
+
+class TestDtype_:
+
+    @pytest.mark.parametrize('non_dict',
+        (0, np.pi, False, min, lambda x: x, {1, 2}, [1, 2], (1, 2))
+    )
+    def test_rejects_non_dict(self, non_dict):
+        with pytest.raises(TypeError):
+            dtype_(non_dict)
+
+
+    def test_rejects_bad_sd(self, bad_sd_1):
+        with pytest.raises(ValueError):
+            dtype_(bad_sd_1)
+
+
+    def test_accepts_outer_dict(self):
+        dtype_({0:{0:1,1:2,2:3}})
+
+
+    def test_accepts_inner_dict(self):
+        dtype_({0:1,1:2,2:3})
+
+
+    def test_rejects_multiple_dtypes(self):
+        with pytest.raises(ValueError):
+            dtype_({0:1, 1:np.pi})
+
+        with pytest.raises(ValueError):
+            dtype_({0:{0:0, 1:np.pi}})
+
+
+    def rejects_empty_sparse_dict(self):
+
+        with pytest.raises(ValueError):
+            dtype_({0: {}})
+
+        with pytest.raises(ValueError):
+            dtype_({})
+
+
+    def test_accuracy(self):
+
+        assert dtype_({0:1,1:2,2:3}) is int
+
+        assert dtype_({0:{i:np.float64(np.pi) for i in range(5)}}) is np.float64
+
+        assert dtype_({i:np.float64(np.pi) for i in range(5)}) is np.float64
+
+        assert dtype_({0:{0:np.float64(np.pi)}}) is np.float64
+
+        assert dtype_({0: {0:3.14,1:2.718,2:2.0000}}) is float
+
+        assert dtype_({0:{0:0}, 1:{0:0}, 2:{0:0}, 3:{0:0}})
+
+
+class TestAstype:
+
+    @pytest.mark.parametrize('non_dict',
+        (0, np.pi, False, min, lambda x: x, {1, 2}, [1, 2], (1, 2))
+    )
+    def test_rejects_non_dict(self, non_dict):
+        with pytest.raises(TypeError):
+            astype(non_dict, dtype=np.float64)
+
+
+    def test_rejects_bad_sd(self, bad_sd_1):
+        with pytest.raises(ValueError):
+            astype(bad_sd_1)
+
+
+    def test_accepts_outer_dict(self):
+        astype({0:{0:1,1:2,2:3}})
+
+
+    def test_accepts_inner_dict(self):
+        astype({0:1,1:2,2:3})
+
+
+    def rejects_empty_sparse_dict(self):
+
+        with pytest.raises(ValueError):
+            dtype_({0: {}})
+
+        with pytest.raises(ValueError):
+            dtype_({})
+
+
+    def test_accuracy(self):
+
+        assert dtype_(astype({0: 1, 1: 2, 2: 3}, dtype=np.float64)) is np.float64
+
+        assert dtype_(astype({0: 1, 1: 2, 2: 3}, dtype=int)) is int
+
+        assert dtype_(astype({0: 1, 1: 2, 2: 3}, dtype=float)) is float
+
+        assert dtype_(astype({0: {0: 1, 1: 2, 2: 3}}, dtype=np.float64)) is np.float64
+
+        assert dtype_(astype({0: {0: 1, 1: 2, 2: 3}}, dtype=int)) is int
+
+        assert dtype_(astype({0: {0: 1, 1: 2, 2: 3}}, dtype=float)) is float
+
+
+
 
 
 

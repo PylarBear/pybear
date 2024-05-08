@@ -7,7 +7,7 @@
 
 import pytest
 from pybear.sparse_dict._validation import _sparse_dict_check as sdc
-
+from pybear.sparse_dict._random_ import randint
 
 
 @pytest.fixture
@@ -17,19 +17,10 @@ def good_sd():
 
 
 
-def test_accepts_good_sd(good_sd):
-    sdc(good_sd)
-
-
 @pytest.mark.parametrize('x', ('junk', [], int, {1,2}, None, True, (), lambda: 0))
 def test_rejects_non_dictionary(x):
     with pytest.raises(TypeError):
         sdc(x)
-
-
-def test_rejects_empty_dictionary():
-    with pytest.raises(ValueError):
-        sdc({})
 
 
 @pytest.mark.parametrize('x', ('junk', [], int, {1,2}, None, True, (), lambda: 0))
@@ -38,8 +29,18 @@ def test_rejects_non_dict_inner(x):
         sdc({0:x, 1:{0:1,1:1}})
 
 
+def test_accepts_good_sd(good_sd):
+    sdc(good_sd)
+    sdc({0:1, 1:2, 2:3})
+
+
+def test_rejects_ragged():
+    with pytest.raises(ValueError):
+        sdc({0:{1:1,2:2},1:{2:3},2:{0:1,1:2}})
+
+
 @pytest.mark.parametrize('x', (0.2432, True, False))
-class RejectsNonIntegerAndBoolKeys:
+class TestRejectsNonIntegerAndBoolKeys:
 
     def test_outer_key(self, x):
         with pytest.raises(TypeError):
@@ -48,6 +49,17 @@ class RejectsNonIntegerAndBoolKeys:
     def test_inner_key(self, x):
         with pytest.raises(TypeError):
             sdc({0: {x:1, 1:0}, 1: {1:0}})
+
+
+class TestRejectsNegativeKeys:
+
+    def test_outer_key(self):
+        with pytest.raises(ValueError):
+            sdc({-1: {0:1, 1:0}, 1: {1:0}})
+
+    def test_inner_key(self):
+        with pytest.raises(ValueError):
+            sdc({0: {-1:1, 1:0}, 1: {1:0}})
 
 
 @pytest.mark.parametrize('x', ('junk', [], int, {}, (), lambda: 0))
@@ -83,7 +95,7 @@ class TestValues:
             sdc({0: {0: None, 1: None}, 1: {0: None, 1: None}})
 
 
-class RejectsNoPlaceholders:
+class TestRejectsNoPlaceholders:
 
     def test_1(self):
         with pytest.raises(ValueError):
@@ -94,8 +106,40 @@ class RejectsNoPlaceholders:
             sdc({0:{0:1}, 1:{0:1, 1:0}})
 
 
+class TestAcceptsEmpty:
+
+    def test_1(self):
+        sdc({0:{}})
+
+    def test_2(self):
+        sdc({})
+
+    def test_3(self):
+        # rejects an extraneous empty
+        with pytest.raises(ValueError):
+            sdc({0:{0:1}, 1:{}, 2:{0:1}})
 
 
+class TestAcceptsRandint:
+
+    @staticmethod
+    @pytest.fixture
+    def randint_sd_dense():
+        return randint(0, 10, (5, 5), 0, int)
+
+    @staticmethod
+    @pytest.fixture
+    def randint_sd_sparse():
+        return randint(0, 10, (5, 5), 80, int)
+
+    def test_accepts_dense(self, randint_sd_dense):
+
+        sdc(randint_sd_dense)
+
+
+    def test_accepts_sparse(self, randint_sd_sparse):
+
+        sdc(randint_sd_sparse)
 
 
 

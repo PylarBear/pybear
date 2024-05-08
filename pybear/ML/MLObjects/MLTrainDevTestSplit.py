@@ -3,7 +3,7 @@ from MLObjects.SupportObjects import SupObjConverter as soc
 
 
 class MLTrainDevTestSplitNEWSUPOBJS(tdts.TrainDevTestSplit):
-    '''Dont call this directly, call with mask(), random(), partition(), or cateyory() methods only.'''
+    '''Dont call this directly, call with mask(), _random_(), partition(), or cateyory() methods only.'''
     def __init__(self, DATA=None, TARGET=None, REFVECS=None, data_given_orientation=None,
                  target_given_orientation=None, refvecs_given_orientation=None, bypass_validation=None):
 
@@ -13,7 +13,7 @@ class MLTrainDevTestSplitNEWSUPOBJS(tdts.TrainDevTestSplit):
 
     # INHERITS
     # mask()
-    # random()
+    # _random_()
     # partition()
     # category()
     # core_run_fxn()
@@ -21,7 +21,7 @@ class MLTrainDevTestSplitNEWSUPOBJS(tdts.TrainDevTestSplit):
 
 # BEAR DELETE THIS IF DONT NEEDED ANYMORE, 6/8/23 HAS NO USAGES
 class MLTrainDevTestSplitOLDSUPOBJS(tdts.TrainDevTestSplit):
-    '''Dont call this directly, call with mask(), random(), partition(), or cateyory() methods only.'''
+    '''Dont call this directly, call with mask(), _random_(), partition(), or cateyory() methods only.'''
     def __init__(self, DATA=None, TARGET=None, REFVECS=None, data_given_orientation=None,
                  target_given_orientation=None, refvecs_given_orientation=None, bypass_validation=None):
 
@@ -31,7 +31,7 @@ class MLTrainDevTestSplitOLDSUPOBJS(tdts.TrainDevTestSplit):
 
     # INHERITS
     # mask()
-    # random()
+    # _random_()
     # partition()
     # core_run_fxn()
 

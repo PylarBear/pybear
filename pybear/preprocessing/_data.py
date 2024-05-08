@@ -6,17 +6,17 @@ from sklearn.exceptions import NotFittedError
 from sklearn.base import check_array
 
 
-# BEAR - ONCE DOCSTRINGS & FORMATTING IS DONE, MAKE A COPY FOR SKLEARN THAT KEEPS
+# PIZZA - ONCE DOCSTRINGS & FORMATTING IS DONE, MAKE A COPY FOR SKLEARN THAT KEEPS
 # THE PARENT CLASSES & IMPORTS
 
 """
-BEAR
+PIZZA
 sklearn.feature_selection.MinCountTransformer
 
 class sklearn.feature_selection.MinCountTransformer(...)]
 """
 
-# bear
+# PIZZA
 from numbers import Integral, Real
 
 from sklearn.base import (
@@ -53,7 +53,7 @@ from sklearn.base import (
 
 
 
-class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, BaseEstimator)
+class MinCountTransformer:   # PIZZA (OneToOneFeatureMixin, TransformerMixin, BaseEstimator)
     """ Remove examples (and/or features) that contain values whose
     feature-wise frequencies fall below the specified count threshold.
 
@@ -211,7 +211,7 @@ class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, Bas
     See the "Notes" section for additional discussion of less frequent use
     cases.
 
-    # BEAR WORK ON CSR AND CSC FOR MinCountTransformer
+    # PIZZA WORK ON CSR AND CSC FOR MinCountTransformer
     ***This transformer can also be applied to sparse CSR or CSC matrices.***
 
 
@@ -316,7 +316,7 @@ class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, Bas
 
     For pipeline applications, there are some options available beyond the
     scikit-learn pipeline implementation.
-    # BEAR CHECK INTO THIS
+    # PIZZA CHECK INTO THIS
     https://stackoverflow.com/questions/25539311/
             custom-transformer-for-sklearn-pipeline-that-alters-both-x-and-y
     The package imblearn, which is built on top of sklearn, contains an
@@ -358,7 +358,7 @@ class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, Bas
 
 
 
-    # BEAR CONTINUE TO READ UP ON THIS
+    # PIZZA CONTINUE TO READ UP ON THIS
     # _parameter_constraints: dict = {
     #     "copy": ["boolean"],
     #     "with_mean": ["boolean"],
@@ -581,7 +581,7 @@ class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, Bas
 
         Parameters
         ----------
-        X : {array-like, # BEAR sparse matrix} of shape (n_samples, n_features)
+        X : {array-like, # PIZZA sparse matrix} of shape (n_samples, n_features)
             The data used to determine the uniques and their frequencies,
             used for later thresholding along the feature axis.
 
@@ -644,7 +644,7 @@ class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, Bas
 
         Parameters
         ----------
-        X : {ndarray, pandas.DataFrame, pandas.Series # BEAR sparse matrix} of
+        X : {ndarray, pandas.DataFrame, pandas.Series # PIZZA sparse matrix} of
             shape (n_samples, n_features)}
             The data that is to be reduced according to the thresholding rules
             found during :term: fit.
@@ -655,7 +655,7 @@ class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, Bas
 
         Returns
         -------
-        X_tr : {ndarray, pandas.DataFrame, pandas.Series BEAR sparse matrix} of
+        X_tr : {ndarray, pandas.DataFrame, pandas.Series PIZZA sparse matrix} of
                 shape (n_samples_new, n_features_new)
             Transformed array.
         y_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
@@ -960,7 +960,7 @@ class MinCountTransformer:   # BEAR (OneToOneFeatureMixin, TransformerMixin, Bas
 
         Parameters
         ----------
-        X : {ndarray, pandas.DataFrame, pandas.Series # BEAR sparse matrix} of
+        X : {ndarray, pandas.DataFrame, pandas.Series # PIZZA sparse matrix} of
             shape (n_samples, n_features)}
             The data used to determine the uniques and their frequencies and to
             be transformed by rules created from those frequencies.

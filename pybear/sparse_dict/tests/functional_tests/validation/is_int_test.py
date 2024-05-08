@@ -19,7 +19,7 @@ class TestIsInt:
         'x',
         (np.pi, float('inf'), [], int, 'junk', {}, True, (1,), None)
     )
-    def rejects_non_integers(self, x):
+    def test_rejects_non_integers(self, x):
         with pytest.raises(TypeError):
             val._is_int((x))
 

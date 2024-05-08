@@ -9,41 +9,24 @@ from functools import wraps
 import datetime
 
 
-def logger(orig_func):
+def logger(orig_func: callable) -> callable:
+
     """Generates a log file with the name {orig_func}.log that is saved in the
     same directory that contains this logger wrapper. The log file contains
     timestamps indicating when the wrapped function was called and what
     parameters were passed.
 
     Parameters
-    ---------
-    None
+    ----------
+    orig_func:
+        callable - the function to be wrapped for logging
 
 
-    Returns
+    Return
     ------
-    wrapper: wrapped original function
+    wrapper -
+        wrapper: callable - wrapped original function
 
-
-    See Also
-    ------
-    None
-
-
-    Notes
-    ----
-    None
-
-
-    Example
-    ------
-    >>> from pybear.debug import _logger
-
-    >>> @logger
-    >>> def some_function(a, offset=1):
-    >>>     return a + 2 + offset
-    >>> print(some_function(4, offset=5))
-    >>> 11
     """
 
 

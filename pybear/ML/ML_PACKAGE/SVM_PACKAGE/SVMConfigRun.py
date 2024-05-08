@@ -235,14 +235,14 @@ if __name__ == '__main__':
 
 
     DATA = np.array(DATA, dtype=object)  # [ [] = COLUMNS ]
-    # DATA = np.random.randint(-9, 10, [rows, cols]).transpose()
+    # DATA = np._random_.randint(-9, 10, [rows, cols]).transpose()
     DATA_HEADER = th.test_header(cols)
     DATA_HEADER.reshape((1,-1))
     data_given_orientation = 'COLUMN'
     data_return_orientation = 'COLUMN'
     data_return_format = 'ARRAY'
 
-    # TARGET = np.fromiter((-1 if _ < 0 else 1 for _ in np.random.randn(rows)), dtype=int)
+    # TARGET = np.fromiter((-1 if _ < 0 else 1 for _ in np._random_.randn(rows)), dtype=int)
     # TARGET.resize(1,TARGET.size)
     TARGET = np.array(TARGET, dtype=object)
     TARGET_HEADER = np.array(['TARGET'], dtype='<U6').reshape((1, 1))

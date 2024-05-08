@@ -3,6 +3,7 @@
 #       Bill Sousa
 #
 # License: BSD 3 clause
+#
 
 
 import joblib
@@ -14,48 +15,46 @@ from pybear.data_validation import arg_kwarg_validater as akv
 
 
 
-def choice(a, shape:[tuple, int], replace=True, n_jobs=None):
+def choice(a:list, shape:[tuple, int], replace:bool=True, n_jobs:int=None):
+
     """Select math.prod(shape) quantity of elements from the given pool "a",
     with or without replacement. This module improves on the impossible
-    slowness of numpy.random.choice on large "a" when replace=False. Enter "a"
+    slowness of numpy._random_.choice on large "a" when replace=False. Enter "a"
     as a 1-dimensional vector. A "p" argument is not available as this algorithm
     relies on the assumption of equal likelihood for all values in "a".
 
     Parameters
-    ________
-    a: array-like - 1-dimensional array-like of elements to randomly choose from.
-    shape: int,tuple - Shape of returned numpy array containing selected values.
-    replace: bool - Select values from 'a' with (True) or without (False)
+    ----------
+    a:
+        array-like - 1-dimensional array-like of elements to randomly choose
+        from.
+    shape:
+        int,tuple - Shape of returned numpy array containing selected values.
+    replace:
+        bool - Select values from 'a' with (True) or without (False)
         replacement of previous pick.
-    n_jobs: int, default=None - Number of CPU cores used when parallelizing
-        over subpartitions of 'a' during selection. None means 1 unless in a
+    n_jobs:
+        int, default=None - Number of CPU cores used when parallelizing over
+        subpartitions of 'a' during selection. None means 1 unless in a
         joblib.parallel_backend context. -1 means using all processors.
 
 
     Returns
-    _____
-    PICKED - ndarray of elements selected from 'a' of shape 'shape'
+    -------
+    PICKED:
+        ndarray - elements selected from 'a' of shape 'shape'
 
 
     See Also
-    -------
-    None
+    --------
+    numpy._random_.choice
 
 
-    Notes
-    ----
-    None
-
-
-    Example
-    ------
-    >>> from pybear.new_numpy.random import choice
+    Examples
+    --------
+    >>> from pybear.new_numpy._random_ import choice
     >>> result = choice(list(range(20)), (3,2), replace=True, n_jobs=1)
     >>> print(result)
-
-    [[19 10]
-     [ 9  2]
-     [ 6  9]]
 
     """
 
@@ -169,7 +168,7 @@ def choice(a, shape:[tuple, int], replace=True, n_jobs=None):
 
 class Sparse:
 
-    """Return random values from a “discrete uniform” (integer) or "uniform"
+    """Return _random_ values from a “discrete uniform” (integer) or "uniform"
     (float) distribution of the specified dtype in the “half-open” interval
     [low, high), with desired sparsity.
 
@@ -177,24 +176,29 @@ class Sparse:
     (includes low, but excludes high). In other words, any value within the
     given interval is equally likely to be drawn.
 
-
     Parameters
-    --------
-    minimum: int[,float] - Lowest (signed) value to be drawn from the
-        distribution.
-    maximum: int[,float] - Upper boundary of the output interval. All values
+    ----------
+    minimum:
+        int[,float] - Lowest (signed) value to be drawn from the distribution.
+    maximum:
+        int[,float] - Upper boundary of the output interval. All values
         generated will be less than high.
-    shape: tuple, list - Dimensions of the returned array.
-    sparsity: int, float, default = 0 - Desired percentage of zeros in the
-        the returned array.
-    engine: str, default = "default" - ["choice", "filter", "serialized",
+    shape:
+        tuple, list - Dimensions of the returned array.
+    sparsity:
+        int, float, default = 0 - Desired percentage of zeros in the
+        returned array.
+    dtype:
+        default = float - Desired dtype of the result.
+    engine:
+        str, default = "default" - ["choice", "filter", "serialized",
         "iterative", "default"] Selects the desired engine for generating
         the returned array. Some engines offer higher speed with lower accuracy,
         while others have higher accuracy at the expense of speed. "default"
         behavior is a hybrid of "filter" and "iterative".
 
         "choice" - Build a full-size mask with sparse locations determined by
-        numpy.random.choice on [0,1], with p achieving amount of sparsity.
+        numpy._random_.choice on [0,1], with p achieving amount of sparsity.
         Apply the mask to a full-sized 100% dense numpy.ndarray filled as
         dictated by parameters to populate it with zeros.
 
@@ -204,24 +208,24 @@ class Sparse:
         dense array of ints or floats then apply the mask to it to achieve
         sparsity.
 
-        "serialized" - Generate a serialized list of unique indices and random
+        "serialized" - Generate a serialized list of unique indices and _random_
         values (or zeros) then map the values (or zeros) into a fully sparse
         (or dense) array.
             i) Deterimine the number of dense (or sparse) positions in the array.
-            ii) Generate that number of random dense (or sparse) indices serially
-            using pybear.random.choice *without replacement*. This guarantees no
+            ii) Generate that number of _random_ dense (or sparse) indices serially
+            using pybear._random_.choice *without replacement*. This guarantees no
             duplicate indices.
             iii) Generate an equally-sized vector of dense values (or zeros).
             iv) Map the vector of values (or zeros) to the index positions in a
             100% sparse (or dense) full-sized array.
 
         "iterative" - Generate a serialized list of not-necessarily-unique
-        indices and random values (or zeros), then map the values (or zeros)
+        indices and _random_ values (or zeros), then map the values (or zeros)
         into a fully sparse (or dense) array. Repeat iteratively until the
         desired sparsity is achieved. Same as _serialized except the serialized
         list of indices are not necessarily unique and the process is iterative.
             i) Determine the number of dense (or sparse) positions in the array.
-            ii) Generate that number of random dense (or sparse) indices serially
+            ii) Generate that number of _random_ dense (or sparse) indices serially
             *with replacement*. This does not guarantee non-duplicate indices.
             iii) Generate an equally-sized vector of values (or zeros).
             iv) Map the vector of values (or zeros) to the index positions in a
@@ -238,28 +242,18 @@ class Sparse:
             able to achieve sufficiently close sparsities at speeds much faster
             than "iterative".
 
-    dtype: default = float - Desired dtype of the result.
-
-
     Attributes
-    --------
+    ----------
     SPARSE_ARRAY: ndarray of shape 'shape'.
 
-
     See Also
-    ------
-    numpy.random.randint
-    numpy.random.uniform
-
-
-    Notes
-    ----
-    None
-
+    --------
+    numpy._random_.randint
+    numpy._random_.uniform
 
     Examples
-    -------
-    >>> from pybear.new_numpy.random import Sparse
+    --------
+    >>> from pybear.new_numpy._random_ import Sparse
     >>> instance = Sparse(0, 10, (3,3), 50, engine='default', dtype=np.int8)
     >>> sparse_array = instance.fit_transform()
     >>> print(sparse_array)
@@ -289,16 +283,20 @@ class Sparse:
 
 
     def get_params(self, deep=True):
+
         """Get parameters for this instance.
 
         Parameters
-        --------
-        deep: bool, default=True - ignored.
+        ----------
+        deep:
+            bool, default=True - ignored.
 
 
         Returns
-        ------
-        params: dict - Parameter names mapped to their values.
+        -------
+        params:
+            dict - Parameter names mapped to their values.
+
         """
 
         return {
@@ -313,16 +311,18 @@ class Sparse:
 
 
     def set_params(self, **params):
+
         """Set the parameters of this instance.
 
         Parameters
-        --------
-        params: dict - Instance parameters.
+        ----------
+        params:
+            dict - Instance parameters.
 
 
-        Returns
-        -----
-        self: Sparse instance - This instance.
+        Return
+        ------
+            self: Sparse instance - This instance.
 
         """
 
@@ -345,7 +345,6 @@ class Sparse:
         Parameters
         --------
         None
-
 
         Returns
         ------
@@ -446,7 +445,7 @@ class Sparse:
 
 
     def _validation(self):
-        """Validate arguments to numpy.random.{randint, uniform}, and
+        """Validate arguments to numpy._random_.{randint, uniform}, and
         other arguments."""
 
         # VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -594,7 +593,7 @@ class Sparse:
                     self._engine,
                     'engine',
                     allowed,
-                    'random',
+                    '_random_',
                     'Sparse'
         )
 
@@ -625,8 +624,8 @@ class Sparse:
             array_generator = np.random.randint
 
         elif 'FLOAT' in str(self._dtype).upper():
-            # CREATE A WRAPPER FOR np.random.uniform SO THAT IT'S SIGNATURE IS
-            # THE SAME AS np.random.randint. dtype WILL JUST PASS THROUGH.
+            # CREATE A WRAPPER FOR np._random_.uniform SO THAT IT'S SIGNATURE IS
+            # THE SAME AS np._random_.randint. dtype WILL JUST PASS THROUGH.
 
             def new_rand_uniform(_min, _max, _shape, _dtype):
                 return np.random.uniform(_min, _max, _shape)
@@ -690,12 +689,12 @@ class Sparse:
 
 
     def _choice(self):
-        """Apply a mask of bools generated by random.choice to a 100% dense
+        """Apply a mask of bools generated by _random_.choice to a 100% dense
         array to achieve sparsity."""
 
         #######################################################################
         # METHOD 1 "choice" - BUILD A FULL-SIZED MASK WITH SPARSE LOCATIONS
-        # DETERMINED BY random.choice ON [0,1], WITH p ACHIEVING AMOUNT OF
+        # DETERMINED BY _random_.choice ON [0,1], WITH p ACHIEVING AMOUNT OF
         # SPARSITY. APPLY MASK TO A FULL SIZED 100% DENSE NP ARRAY
         # FILLED AS DICTATED BY PARAMETERS.
         #######################################################################
@@ -764,7 +763,7 @@ class Sparse:
 
 
     def _serialized(self):
-        """Generate a serialized list of unique indices and random values (or
+        """Generate a serialized list of unique indices and _random_ values (or
         zeros) then map the values (or zeros) into a fully sparse (or dense)
         array."""
 
@@ -772,7 +771,7 @@ class Sparse:
         # METHOD 3 "serialized" -
         # i) DETERMINE THE NUMBER OF DENSE (OR SPARSE) POSITIONS IN THE ARRAY.
         # ii) GENERATE THAT NUMBER OF RANDOM DENSE (OR SPARSE) INDICES SERIALLY
-        # USING random.choice *WITHOUT REPLACEMENT*. THIS GUARANTEES NO
+        # USING _random_.choice *WITHOUT REPLACEMENT*. THIS GUARANTEES NO
         # DUPLICATE INDICES.
         # iii) GENERATE AN EQUALLY-SIZED VECTOR OF DENSE VALUES (OR ZEROS).
         # iv) MAP THE VECTOR OF VALUES (OR ZEROS) TO THE INDEX POSITIONS IN A
@@ -781,7 +780,7 @@ class Sparse:
 
         self._calc_support_info()
 
-        # ALLOW pybear.new_numpy.random.choice TO SELECT FROM THE SMALLER OF
+        # ALLOW pybear.new_numpy._random_.choice TO SELECT FROM THE SMALLER OF
         # dense_size OR sparse_size, SAVES MEMORY & TIME
 
         # WHEN DENSE IS SMALLER OR _sparse_size == 0
@@ -855,7 +854,7 @@ class Sparse:
 
     def _iterative(self):
         """Generate a serialized list of not-necessarily-unique indices and
-        random values (or zeros) then map the values (or zeros) into a fully
+        _random_ values (or zeros) then map the values (or zeros) into a fully
         sparse (or dense) array, and repeat iteratively until the desired
         sparsity is achieved. Same as _serialized except the serialized list of
         indices are not necessarily unique and the process is iterative."""
@@ -874,7 +873,7 @@ class Sparse:
 
         self._calc_support_info()
 
-        # ALLOW pybear.new_numpy.random.choice TO SELECT FROM THE SMALLER OF
+        # ALLOW pybear.new_numpy._random_.choice TO SELECT FROM THE SMALLER OF
         # dense_size OR sparse_size, SAVES MEMORY & TIME
 
         if self._dense_size == 0 and self._sparse_size == 0:
@@ -970,7 +969,7 @@ def sparse(
             dtype = float
     ):
 
-    """Return random values from a “discrete uniform” (integer) or "uniform"
+    """Return _random_ values from a “discrete uniform” (integer) or "uniform"
     (float) distribution of the specified dtype in the “half-open” interval
     [low, high), with desired sparsity.
 
@@ -992,14 +991,14 @@ def sparse(
 
     Returns
     ------
-    SPARSE_ARRAY: ndarray - array of dimensions 'shape' with random values from
+    SPARSE_ARRAY: ndarray - array of dimensions 'shape' with _random_ values from
         the appropriate distribution and with the specified sparsity.
 
     See Also
     -------
-    numpy.random.randint
-    numpy.random.uniform
-    pybear.random.Sparse
+    numpy._random_.randint
+    numpy._random_.uniform
+    pybear._random_.Sparse
 
     Notes
     ----

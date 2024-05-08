@@ -88,7 +88,7 @@ class TextCleaner:
             # HANDLING OF UNKNOWN WORDS
             # self._exception(f'update_lexicon AND auto_delete CANNOT BOTH BE True SIMULTANEOUSLY', fxn=fxn)
 
-        # 3/2/23 BEAR MAY HAVE TO REVISIT THIS LOGIC
+        # 3/2/23 PIZZA MAY HAVE TO REVISIT THIS LOGIC
         if self.update_lexicon is False: self.auto_add = False   # USER MUST HAVE OVERRODE KWARG DEFAULT
         if self.auto_delete is True: self.update_lexicon = False; self.auto_add = False
         if self.auto_add is True: self.update_lexicon = True
@@ -836,7 +836,7 @@ class TextCleaner:
         self.KNOWN_WORDS = lx().LEXICON.copy()
         WORDS_TO_DELETE = np.empty(0, dtype='<U30')
         SKIP_ALWAYS = np.empty(0, dtype='<U30')
-        # BEAR 2/12/23 FOR NOW, CONVERT COMMON (LOW) NUMBERS TO STRS
+        # PIZZA 2/12/23 FOR NOW, CONVERT COMMON (LOW) NUMBERS TO STRS
         EDIT_ALL_DICT = dict((zip(tuple(map(str, range(0,21))),
                                   ('ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE','TEN',
                                     'ELEVEN','TWELVE','THIRTEEN','FOURTEEN','FIFTEEN','SIXTEEN','SEVENTEEN',

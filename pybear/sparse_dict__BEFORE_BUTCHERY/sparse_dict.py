@@ -41,7 +41,7 @@ RUNTIME CHECKS & EXCEPTIONS ####################################################
 non_int                         Verify integer.
 insufficient_list_args_1        Verify LIST arg is filled when processing a function that requires a list.
 insufficient_dict_args_1        Verify DICT1 arg is filled when processing a function that requires one dictionary.
-insufficient_dict_args_2        Verify DICT1 and DICT2 args are filled when processing a function that requres two dictionaries.
+insufficient_dict_args_2        Verify DICT1 and DICT2 args are filled when processing a function that requires two dictionaries.
 insufficient_datadict_args_1    Verify DATADICT1 arg is filled when processing a function that requires one data dictionary.
 insufficient_dataframe_args_1   Verify DATAFRAME arg is filled when processing a function that requires one dataframe.
 dot_size_check                  Verify two vectors are sparse dicts that both have unitary outer length and equal inner length.
@@ -52,14 +52,14 @@ inner_len_check                 Verify two sparse dicts have equal inner length.
 symmetric_matmul_check          Verify two sparse dicts will matrix multiply to a symmetric matrix.
 END RUNTIME CHECKS & EXCEPTIONS #######################################################################################################
 CREATION, HANDLING & MAINTENANCE ######################################################################################################
-decorator_for_create_random     Create a positive-valued random sparse matrix of with user-given type, min, max, dimensions and sparsity.
-create_random                   Legacy. Create a random sparse matrix of python integers from 0 to 9 with user-given dimensions and sparsity.
-create_random_py_bin            Create a random sparse matrix of python integers from 0 to 1 with user-given dimensions and sparsity.
-create_random_py_int            Create a positive-valued random sparse matrix of python integers with user-given min, max, dimensions and sparsity.
-create_random_py_float          Create a positive-valued random sparse matrix of python floats with user-given min, max, dimensions and sparsity.
-create_random_np_bin            Create a random sparse matrix of np.int8s from 0 to 1 with user-given dimensions and sparsity.
-create_random_np_int32          Create a positive-valued random sparse matrix of np.int32s from with user-given min, max, dimensions and sparsity.
-create_random_np_float64        Create a positive-valued random sparse matrix of np.float64s with user-given min, max, dimensions and sparsity.
+decorator_for_create_random     Create a positive-valued _random_ sparse matrix of with user-given type, min, max, dimensions and sparsity.
+create_random                   Legacy. Create a _random_ sparse matrix of python integers from 0 to 9 with user-given dimensions and sparsity.
+create_random_py_bin            Create a _random_ sparse matrix of python integers from 0 to 1 with user-given dimensions and sparsity.
+create_random_py_int            Create a positive-valued _random_ sparse matrix of python integers with user-given min, max, dimensions and sparsity.
+create_random_py_float          Create a positive-valued _random_ sparse matrix of python floats with user-given min, max, dimensions and sparsity.
+create_random_np_bin            Create a _random_ sparse matrix of np.int8s from 0 to 1 with user-given dimensions and sparsity.
+create_random_np_int32          Create a positive-valued _random_ sparse matrix of np.int32s from with user-given min, max, dimensions and sparsity.
+create_random_np_float64        Create a positive-valued _random_ sparse matrix of np.float64s with user-given min, max, dimensions and sparsity.
 decorator_for_zip_list          Base function for zip_list decorator functions.
 zip_list                        Legacy. Convert list-type (list, tuple, array) of list-types as [[]] to sparse dict of py floats.
 zip_list_as_py_int              Convert list-type (list, tuple, array) of list-types as [[]] to sparse dict of py ints.
@@ -389,7 +389,7 @@ def non_int(value, fxn, param_name):
 
 
 def insufficient_list_args_1(LIST1, fxn):
-    '''Verify LIST arg is filled when processing a function that requres a list.'''
+    '''Verify LIST arg is filled when processing a function that requires a list.'''
     with np.errstate(all='ignore'):
         if not isinstance(LIST1, (np.ndarray, list, tuple)):
             raise Exception(f'{module_name()}.{fxn}() requires one list-type arg, LIST1.')
@@ -398,7 +398,7 @@ def insufficient_list_args_1(LIST1, fxn):
 
 
 def insufficient_dict_args_1(DICT1, fxn):
-    '''Verify DICT1 arg is filled when processing a function that requres one dictionary.'''
+    '''Verify DICT1 arg is filled when processing a function that requires one dictionary.'''
     if not isinstance(DICT1, dict):
         raise Exception(f'{module_name()}.{fxn}() requires one dictionary arg, DICT1.')
     if DICT1 == {}:
@@ -406,7 +406,7 @@ def insufficient_dict_args_1(DICT1, fxn):
 
 
 def insufficient_dict_args_2(DICT1, DICT2, fxn):
-    '''Verify DICT1 and DICT2 args are filled when processing a function that requres two dictionaries.'''
+    '''Verify DICT1 and DICT2 args are filled when processing a function that requires two dictionaries.'''
     if not isinstance(DICT1, dict) or not isinstance(DICT2, dict):
         raise Exception(f'{module_name()}.{fxn}() requires two dictionary args, DICT1 and DICT2.')
     if DICT1 == {} or DICT2 == {}:
@@ -414,7 +414,7 @@ def insufficient_dict_args_2(DICT1, DICT2, fxn):
 
 
 def insufficient_datadict_args_1(DATADICT1, fxn):
-    '''Verify DATADICT1 arg is filled when processing a function that requres one data dictionary.'''
+    '''Verify DATADICT1 arg is filled when processing a function that requires one data dictionary.'''
     if not isinstance(DATADICT1, dict):
         raise Exception(f'{module_name()}.{fxn}() requires one dictionary arg, DATADICT1.')
     if DATADICT1 == {}:
@@ -422,7 +422,7 @@ def insufficient_datadict_args_1(DATADICT1, fxn):
 
 
 def insufficient_dataframe_args_1(DATAFRAME1, fxn):
-    '''Verify DATAFRAME arg is filled when processing a function that requres one dataframe.'''
+    '''Verify DATAFRAME arg is filled when processing a function that requires one dataframe.'''
     if "DataFrame" not in str(type(DATAFRAME1)):
         raise Exception(f'{module_name()}.{fxn}() requires one DataFrame arg, DATAFRAME1.')
     if DATAFRAME1.equals(p.DataFrame({})):
@@ -516,19 +516,19 @@ def decorator_for_create_random(orig_func):
 
     @wraps(orig_func)
     def create_random_x(_min, _max, shape_as_tuple, _sparsity):
-        '''Create a positive-valued random sparse matrix with user-given type, min, max, dimensions and sparsity.'''
+        '''Create a positive-valued _random_ sparse matrix with user-given type, min, max, dimensions and sparsity.'''
 
         # 11/23/22 AFTER EXTENSIVE TIME TESTS ON VARIOUS BUILD METHODS.  UNDER ALL CIRCUMSTANCES, BUILDING A FULL-SIZED
-        # np ARRAY AND MASKING (WHETHER THE MASKING BE BY np.random.choice ON [0,1] OR BY NUMERICAL FILTER ON ANOTHER
-        # RANDOM ARRAY OF NUMBERS) IS FASTER THAN CONSTRUCTING A SERIALIZED LIST OF IDXS AND VALUES (USING np.random.choice
-        # AND np.random.randint, RESPECTIVELY.)  ADDITIONALLY, MAPPING THE DENSE VALUES OF A MASKED SPARSE ARRAY TO A SPARSE
+        # np ARRAY AND MASKING (WHETHER THE MASKING BE BY np._random_.choice ON [0,1] OR BY NUMERICAL FILTER ON ANOTHER
+        # RANDOM ARRAY OF NUMBERS) IS FASTER THAN CONSTRUCTING A SERIALIZED LIST OF IDXS AND VALUES (USING np._random_.choice
+        # AND np._random_.randint, RESPECTIVELY.)  ADDITIONALLY, MAPPING THE DENSE VALUES OF A MASKED SPARSE ARRAY TO A SPARSE
         # DICT IS UNDER ALL CIRCUMSTANCES FASTEST WHEN USING np.nonzero TO GET POSNS AND VALUES, THEN USING dict(()) TO MAP.
         # 11/24/22 DECIDED THAT FOR SIZE ABOVE A CERTAIN THRESHOLD, USE "CHOICE" TO BUILD, IS FASTER, AND LAW OF AVERAGES
         # AT LARGER SIZES GETS SPARSITY CLOSE, BUT FOR SMALLER SIZE, USE "SERIALIZED" TO GET MORE ACCURATE SPARSITY
 
         # SUMMARY OF OPERATIONS
         # 1) VALIDATE PARAMS
-        # 2) BUILD OBJECT BY "FULLY SIZED RANDOM ND ARRAY USING np.random.choice ON [0,1] W p GIVEN BY SPARSITY TO BUILD MASK" METHOD
+        # 2) BUILD OBJECT BY "FULLY SIZED RANDOM ND ARRAY USING np._random_.choice ON [0,1] W p GIVEN BY SPARSITY TO BUILD MASK" METHOD
         #    i) BUILD A FULLY SIZED OUTPUT OBJECT AND FILL W VALUES AND DTYPES AS DETERMINED BY THE CALLING FUNCTION
         #   ii) BUILD A FULLY SIZED MASK RANDOMLY FROM [O,1], WITH PROBABLITIES GIVEN BY 1-_sparsity, _sparsity
         #  iii) APPLY MASK TO ORIGINAL FULLY SIZED OUTPUT OBJECT
@@ -604,8 +604,8 @@ def decorator_for_create_random(orig_func):
         ##########################################################################################################################
 
         # CREATING LIST OF DENSE IDXS AND VALUES USING serialized_dense_locations HAS TWO LIMITATIONS:
-        # 1) THE np.random.choice FUNCTION WITHIN CANT HANDLE LOOKING IN SIZE > 100M
-        # 2) FOR ALL SIZES AND SPARSITIES, PULLING THE LIST OF DENSE IDXS AND VALUES USING np.random.choice TAKES AT BEST 1.6X
+        # 1) THE np._random_.choice FUNCTION WITHIN CANT HANDLE LOOKING IN SIZE > 100M
+        # 2) FOR ALL SIZES AND SPARSITIES, PULLING THE LIST OF DENSE IDXS AND VALUES USING np._random_.choice TAKES AT BEST 1.6X
         #   LONGER THAN use_fully_sized_ndarray_w_mask DOES TO GENERATE A FULLY SIZED DENSE np array, GENERATE A FULLY SIZED
         #   RANDOM MASK OF 1s AND 0s, AND APPLY THE MASK.
         # THE ONLY THING THAT COULD REDEEM serialized IS IF MAPPING THE DENSE IDXS AND VALUES (THAT TAKE LONGER TO
@@ -615,7 +615,7 @@ def decorator_for_create_random(orig_func):
         ##########################################################################################################################
         # DENSE SERIALIZED LOCATIONS #############################################################################################
         elif use_serialized_dense_locations:  # THE NEW WAY, CREATE AN EXACTLY SIZED RANDOMLY SELECTED SERIALIZED LIST
-            # OF DENSE LOCATIONS & RESPECTIVE VALUES  ( :( np.random.choice IS SLOWER THAN full_np_array_w_mask METHOD
+            # OF DENSE LOCATIONS & RESPECTIVE VALUES  ( :( np._random_.choice IS SLOWER THAN full_np_array_w_mask METHOD
 
             # CREATE A SINGLE SERIALIZED VECTOR CONTAINING THE DENSE POSITIONS IN FINAL SPARSE DICT #############################
             # CREATE RANDOM VALUES BASED ON USER WANT int/float, MATCHING THE DENSE SIZE ########################################
@@ -628,7 +628,7 @@ def decorator_for_create_random(orig_func):
                                                     _sparsity,
                                                     np.int8 if 'BIN' in __ else np.int32 if 'INT' in __ else np.float64)
 
-            t0 = timer(t0, t1, 'select and sort random dense locations, generate rand values for each dense location')
+            t0 = timer(t0, t1, 'select and sort _random_ dense locations, generate rand values for each dense location')
             # END CREATE A SINGLE SERIALIZED VECTOR CONTAINING THE DENSE POSITIONS IN FINAL SPARSE DICT #########################
             # END CREATE RANDOM VALUES BASED ON USER WANT int/float, MATCHING THE DENSE SIZE ########################################
 
@@ -684,7 +684,7 @@ def decorator_for_create_random(orig_func):
         ##########################################################################################################################
         # FULLY SIZED NDARRAY W MASK #############################################################################################
         # THE OLD WAY, FILL A FULLY-SIZED NDARRAY WITH RANDOM NUMBERS ON [_min, _max] BASED
-        # ON USER WANT bin/int OR float. CREATE A RANDOMLY FILLED MASK OF ONES AND ZEROS USING np.random.choice ON [0,1] WITH
+        # ON USER WANT bin/int OR float. CREATE A RANDOMLY FILLED MASK OF ONES AND ZEROS USING np._random_.choice ON [0,1] WITH
         # LIKELIHOODS GIVEN BY _sparsity AND 1-_sparsity TO INDICATE A DENSE (STAYING) POSN IN THE FIRST ARRAY.
         # 11/21/22 FINALIZED A FUNCTION TO HANDLE THIS, general_data_ops.create_random_sparse_numpy.create_random_sparse_numpy.
         # CREATE AS NUMPY ints AND floats, THEN COVERT TO py LATER IF NEEDED.
@@ -727,37 +727,37 @@ def decorator_for_create_random(orig_func):
 
 
 def create_random(shape_as_tuple, sparsity):
-    '''Legacy. Create a random sparse matrix of python integers from 0 to 9 with user-given dimensions and sparsity.'''
+    '''Legacy. Create a _random_ sparse matrix of python integers from 0 to 9 with user-given dimensions and sparsity.'''
     return create_random_py_int(0, 10, shape_as_tuple, sparsity)
 
 @decorator_for_create_random
 def create_random_py_bin(value):
-    '''Create a random sparse matrix of python integers from 0 to 1 with user-given dimensions and sparsity.'''
+    '''Create a _random_ sparse matrix of python integers from 0 to 1 with user-given dimensions and sparsity.'''
     return int(value)
 
 @decorator_for_create_random
 def create_random_py_int(value):
-    '''Create a positive-valued random sparse matrix of python integers with user-given min, max, dimensions and sparsity.'''
+    '''Create a positive-valued _random_ sparse matrix of python integers with user-given min, max, dimensions and sparsity.'''
     return int(value)
 
 @decorator_for_create_random
 def create_random_py_float(value):
-    '''Create a positive-valued random sparse matrix of python floats with user-given min, max, dimensions and sparsity.'''
+    '''Create a positive-valued _random_ sparse matrix of python floats with user-given min, max, dimensions and sparsity.'''
     return float(value)
 
 @decorator_for_create_random
 def create_random_np_bin(value):
-    '''Create a random sparse matrix of np.int8s from 0 to 1 with user-given dimensions and sparsity.'''
+    '''Create a _random_ sparse matrix of np.int8s from 0 to 1 with user-given dimensions and sparsity.'''
     return np.int8(value)
 
 @decorator_for_create_random
 def create_random_np_int32(value):
-    '''Create a positive-valued random sparse matrix of np.int32s from with user-given min, max, dimensions and sparsity.'''
+    '''Create a positive-valued _random_ sparse matrix of np.int32s from with user-given min, max, dimensions and sparsity.'''
     return np.int32(value)
 
 @decorator_for_create_random
 def create_random_np_float64(value):
-    '''Create a positive-valued random sparse matrix of np.float64s with user-given min, max, dimensions and sparsity.'''
+    '''Create a positive-valued _random_ sparse matrix of np.float64s with user-given min, max, dimensions and sparsity.'''
     return np.float64(value)
 
 '''    ***** TEST MODULE FOR ALL create_random FUNCTIONS *****

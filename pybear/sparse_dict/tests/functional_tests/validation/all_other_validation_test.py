@@ -6,12 +6,13 @@
 
 
 import pytest
-import random
 from copy import deepcopy
 import numpy as np
 import pandas as pd
 from pybear.sparse_dict import _validation as val
 import dask.dataframe as ddf
+
+
 
 
 
@@ -28,6 +29,11 @@ def bad_sd():
                 0: {0:1},
                 1: {0:0, 1:0}
     }
+
+
+@pytest.fixture
+def good_inner_dict():
+    return {0:1, 1:2, 4:0}
 
 
 @pytest.fixture
@@ -49,6 +55,37 @@ def good_datadict():
 def module_name(sys_modules_str):
     """Return module name."""
     return get_module_name(sys_modules_str)
+
+
+class TestGTZero:
+
+    @pytest.mark.parametrize('non_num', ('junk', [1,2], {1,2}, lambda x: x, None))
+    def test_rejects_non_number(self, non_num):
+        with pytest.raises(TypeError):
+            val._gt_zero(non_num)
+
+
+    def test_passes_int(self):
+        assert val._gt_zero(1) is None
+        assert val._gt_zero(100_000) is None
+
+    def test_passes_float(self):
+        assert val._gt_zero(np.pi) is None
+        assert val._gt_zero(float('inf')) is None
+
+    def test_fails_int(self):
+        with pytest.raises(ValueError):
+            val._gt_zero(-1)
+
+        with pytest.raises(ValueError):
+            val._gt_zero(0)
+
+    def test_fails_float(self):
+        with pytest.raises(ValueError):
+            val._gt_zero(-np.pi)
+
+        with pytest.raises(ValueError):
+            val._gt_zero(float('-inf'))
 
 
 
@@ -99,6 +136,10 @@ class TestDictInit:
     def test_rejects_bad_sd(self, bad_sd):
         with pytest.raises(ValueError):
             val._dict_init(bad_sd)
+
+
+    def test_accepts_inner_dict(self, good_inner_dict):
+        val._dict_init(good_inner_dict)
 
 
     def test_accepts_none(self):
@@ -187,9 +228,8 @@ class TestListCheck:
         with pytest.raises(TypeError):
             val._list_check(non_list_like)
 
-    def test_rejects_empty_list(self):
-        with pytest.raises(ValueError):
-            val._list_check([])
+    def test_accepts_empty_list(self):
+        val._list_check([])
 
 
     def test_rejects_ragged(self):
@@ -229,6 +269,15 @@ class TestIsSparseOuter:
     def test_returns_false(self, non_o_d):
         assert not val._is_sparse_outer(non_o_d)
 
+    # PIZZA ADDED 24_05_02_08_44
+    def test_negative_idx_returns_False(self):
+        assert not val._is_sparse_outer({-1: {0: 0, 1: 1}})
+        # assert not val._is_sparse_outer({0: {-1: 0, 1: 1}})
+        assert not val._is_sparse_outer({-1: 0, 1: 1})
+
+    def test_other_dict_returns_false(self):
+        assert not val._is_sparse_inner({'a': 'apple', 'b':'boat'})
+        assert not val._is_sparse_inner({0: 'cat', 1: 'hat'})
 
 
 class TestIsSparseInner:
@@ -244,9 +293,17 @@ class TestIsSparseInner:
         assert not val._is_sparse_inner(good_sd)
 
 
-    def test_inner_dict_returns_true(self):
+    def test_inner_dict_returns_true(self, good_inner_dict):
+        assert val._is_sparse_inner(good_inner_dict)
         assert val._is_sparse_inner({0:1, 1:2, 2:3})
         assert val._is_sparse_inner({0:1, 5:0})
+
+
+    # PIZZA ADDED 24_05_02_08_44
+    def test_negative_idx_returns_false(self):
+        assert not val._is_sparse_inner({-1: {0: 0, 1: 1}})
+        assert not val._is_sparse_inner({0: {-1: 0, 1: 1}})
+        assert not val._is_sparse_inner({-1: 0, 1: 1})
 
 
     def test_other_dict_returns_false(self):
@@ -264,9 +321,8 @@ class TestDataDictCheck:
             val._datadict_check(non_dict)
 
 
-    def test_rejects_empty_dict(self):
-        with pytest.raises(ValueError):
-            val._datadict_check({})
+    def test_accepts_empty_dict(self):
+        val._datadict_check({})
 
 
     @pytest.mark.parametrize('values',
@@ -341,9 +397,8 @@ class TestInsufficientDictArgs1:
             val._insufficient_dict_args_1(non_dict)
 
 
-    def test_rejects_empty_dict(self):
-        with pytest.raises(ValueError):
-            val._insufficient_dict_args_1({})
+    def test_accepts_empty_dict(self):
+        val._insufficient_dict_args_1({})
 
 
     @pytest.mark.parametrize('good_dict',
@@ -361,14 +416,17 @@ class TestInsufficientDictArgs2:
     def test_rejects_non_dict(self, non_dict, good_sd):
         with pytest.raises(TypeError):
             val._insufficient_dict_args_2(non_dict, good_sd)
+
+        with pytest.raises(TypeError):
             val._insufficient_dict_args_2(good_sd, non_dict)
 
 
-    def test_rejects_empty_dict(self, good_sd):
-        with pytest.raises(ValueError):
-            val._insufficient_dict_args_2({}, good_sd)
-            val._insufficient_dict_args_2(good_sd, {})
-            val._insufficient_dict_args_2({}, {})
+    def test_accepts_empty_dict(self, good_sd):
+        val._insufficient_dict_args_2({}, good_sd)
+
+        val._insufficient_dict_args_2(good_sd, {})
+
+        val._insufficient_dict_args_2({}, {})
 
 
     @pytest.mark.parametrize('good_dict1',
@@ -390,9 +448,8 @@ class TestInsufficientDatadictArgs:
             val._insufficient_datadict_args_1(non_dict)
 
 
-    def test_rejects_empty_dict(self):
-        with pytest.raises(ValueError):
-            val._insufficient_datadict_args_1({})
+    def test_rejects_accept_dict(self):
+        val._insufficient_datadict_args_1({})
 
 
     @pytest.mark.parametrize('bad_dict',
@@ -416,9 +473,8 @@ class TestInsufficientDataFrameArgs:
             val._insufficient_dataframe_args_1(non_df)
 
 
-    def test_rejects_empty_df(self):
-        with pytest.raises(ValueError):
-            val._insufficient_dataframe_args_1(pd.DataFrame({}))
+    def test_accepts_empty_df(self):
+        val._insufficient_dataframe_args_1(pd.DataFrame({}))
 
 
     def test_accepts_good_pd_df(self):
@@ -433,200 +489,6 @@ class TestInsufficientDataFrameArgs:
 
 
 
-
-###############################################################################
-# LINALG CHECKS & EXCEPTIONS ##################################################
-
-class TestDotSizeCheck:
-
-    @pytest.mark.parametrize('non_dict',
-         (None, np.pi, [1], {1}, min, 'junk', lambda x: x, True, 1)
-    )
-    def test_rejects_non_dict(self, non_dict):
-        with pytest.raises(TypeError):
-            val._dot_size_check(non_dict)
-
-    def test_accepts_vector_same_len(self):
-        dict1 = {0: {0:1, 1:2, 2:0}}
-        dict2 = {1: {1:2, 2:2}}
-        val._dot_size_check(dict1, dict2)
-
-
-    def test_rejects_array(self):
-        dict1 = {0: {0:1, 1:2, 2:0}, 1:{1:1,2:1}}
-        dict2 = {1: {1:2, 2:2}, 2:{0:2,2:0}}
-        with pytest.raises(ValueError):
-            val._dot_size_check(dict1, dict2)
-
-
-    def rejects_diff_len(self):
-        dict1 = {0: {0:1, 1:2}}
-        dict2 = {0: {1:2, 2:2}}
-        with pytest.raises(ValueError):
-            val._dot_size_check(dict1, dict2)
-
-
-class TestBroadcastCheck:
-
-    @pytest.mark.parametrize('non_dict',
-         (None, np.pi, [1], {1}, min, 'junk', lambda x: x, True, 1)
-    )
-    def test_rejects_non_dict(self, non_dict):
-        with pytest.raises(TypeError):
-            val._broadcast_check(non_dict)
-
-    @pytest.mark.parametrize('i', (1, 3))
-    @pytest.mark.parametrize('j', (1, 3))
-    @pytest.mark.parametrize('k', (2, 4))
-    def test_accepts_good(self, i, j, k):
-        dict1 = {_: {__: random.randint(1, 4) for __ in range(j)} for _ in range(i)}
-        dict2 = {_: {__: random.randint(1, 4) for __ in range(k)} for _ in range(j)}
-        val._broadcast_check(dict1, dict2)
-
-    @pytest.mark.parametrize('i', (1, 3))
-    @pytest.mark.parametrize('j', (1, 3))
-    @pytest.mark.parametrize('k', (2, 4))
-    def test_rejects_bad(self, i, j, k):
-        dict1 = {_: {__: random.randint(1, 4) for __ in range(i)} for _ in range(j)}
-        dict2 = {_: {__: random.randint(1, 4) for __ in range(j)} for _ in range(k)}
-        with pytest.raises(ValueError):
-            val._broadcast_check(dict1, dict2)
-
-
-class TestMatrixShapeCheck:
-
-    @pytest.mark.parametrize('non_dict',
-         (None, np.pi, [1], {1}, min, 'junk', lambda x: x, True, 1)
-    )
-    def test_rejects_non_dict(self, non_dict):
-        with pytest.raises(TypeError):
-            val._matrix_shape_check(non_dict)
-
-    @pytest.mark.parametrize('i', (1, 2, 3))
-    @pytest.mark.parametrize('j', (1, 2, 3))
-    def test_accepts_good(self, i, j):
-        dict1 = {_: {__: random.randint(1, 4) for __ in range(i)} for _ in range(j)}
-        dict2 = {_: {__: random.randint(1, 4) for __ in range(i)} for _ in range(j)}
-        val._matrix_shape_check(dict1, dict2)
-
-    @pytest.mark.parametrize('i', (1, 3, 5))
-    @pytest.mark.parametrize('j', (2, 4, 6))
-    def test_rejects_bad(self, i, j):
-        dict1 = {_: {__: random.randint(1, 4) for __ in range(i)} for _ in range(i)}
-        dict2 = {_: {__: random.randint(1, 4) for __ in range(j)} for _ in range(j)}
-        with pytest.raises(ValueError):
-            val._matrix_shape_check(dict1, dict2)
-
-
-class TestOuterLenCheck:
-
-    @pytest.mark.parametrize('non_dict',
-         (None, np.pi, [1], {1}, min, 'junk', lambda x: x, True, 1)
-    )
-    def test_rejects_non_dict(self, non_dict):
-        with pytest.raises(TypeError):
-            val._outer_len_check(non_dict)
-
-    @pytest.mark.parametrize('i', (1, 2, 3))
-    def test_accepts_good(self, i):
-        dict1 = {_: {__: random.randint(1, 4) for __ in range(3)} for _ in range(i)}
-        dict2 = {_: {__: random.randint(1, 4) for __ in range(4)} for _ in range(i)}
-        val._outer_len_check(dict1, dict2)
-
-    @pytest.mark.parametrize('i', (1, 3, 5))
-    @pytest.mark.parametrize('j', (2, 4, 6))
-    def test_rejects_bad(self, i, j):
-        dict1 = {_: {__: random.randint(1, 4) for __ in range(3)} for _ in range(i)}
-        dict2 = {_: {__: random.randint(1, 4) for __ in range(4)} for _ in range(j)}
-        with pytest.raises(ValueError):
-            val._outer_len_check(dict1, dict2)
-
-
-class TestInnerLenCheck:
-    @pytest.mark.parametrize('non_dict',
-        (None, np.pi, [1], {1}, min, 'junk', lambda x: x, True, 1)
-    )
-    def test_rejects_non_dict(self, non_dict):
-        with pytest.raises(TypeError):
-            val._inner_len_check(non_dict)
-
-
-    @pytest.mark.parametrize('i', (1, 2, 3))
-    def test_accepts_good(self, i):
-        dict1 = {_: {__: random.randint(1, 4) for __ in range(i)} for _ in range(3)}
-        dict2 = {_: {__: random.randint(1, 4) for __ in range(i)} for _ in range(4)}
-        val._inner_len_check(dict1, dict2)
-
-
-    @pytest.mark.parametrize('i', (1, 3, 5))
-    @pytest.mark.parametrize('j', (2, 4, 6))
-    def test_rejects_bad(self, i, j):
-        dict1 = {_: {__: random.randint(1, 4) for __ in range(i)} for _ in range(3)}
-        dict2 = {_: {__: random.randint(1, 4) for __ in range(j)} for _ in range(4)}
-        with pytest.raises(ValueError):
-            val._inner_len_check(dict1, dict2)
-
-
-
-class TestSymmetricMatmulCheck:
-
-    @pytest.fixture
-    def valid_dict1(self):
-        return 1
-
-    @pytest.fixture
-    def valid_dict1_t(self):
-        return 1
-
-    @pytest.fixture
-    def valid_dict1_t(self):
-        return 1
-
-    @pytest.fixture
-    def valid_dict2(self):
-        return 1
-
-    @pytest.fixture
-    def valid_dict1(self):
-        return 1
-
-
-    @pytest.mark.parametrize('non_dict',
-         (None, np.pi, [1], {1}, min, 'junk', lambda x: x, True, 1)
-    )
-    def test_rejects_non_dict(self, non_dict):
-        with pytest.raises(TypeError):
-            val._inner_len_check(non_dict)
-
-
-    def test_correctly_returns_true(self):
-        dict1 = {0:{0:1, 1:0}, 1:{1:1}}
-        assert val._symmetric_matmul_check(dict1, dict1)
-
-
-    def test_correctly_returns_false(self):
-        dict1 = {0:{0:1, 1:2}, 1:{0:3, 1:1}}
-        dict2 = {0:{0:3, 1:1}, 1:{0:2, 1:0}}
-        with pytest.raises(ValueError):
-            assert not val._symmetric_matmul_check(dict1, dict2)
-
-
-    def test_accepts_valid_dict1_transpose(self):
-
-
-    def test_rejects_bad_dict1_transpose(self):
-
-
-    def test_accepts_valid_dict2_transpose(self):
-
-
-    def test_rejects_bad_dict2_transpose(self):
-
-
-# END LINALG CHECKS & EXCEPTIONS #############################################
-###############################################################################
-
-"""
 
 
 

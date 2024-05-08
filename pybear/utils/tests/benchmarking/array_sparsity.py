@@ -25,7 +25,7 @@ a = np.random.randint(_min, _max, (_rows, _cols), dtype=np.uint8)
 
 
 tmb(
-    ('np.random.randint',
+    ('np._random_.randint',
      np.random.randint,
      [_min, _max, (_rows, _cols)],
      {'dtype': np.uint8}

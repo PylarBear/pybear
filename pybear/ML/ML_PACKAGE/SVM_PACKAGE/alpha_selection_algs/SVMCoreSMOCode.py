@@ -390,7 +390,7 @@ class SVMCoreSMOCode:
                 elif self.SMO_a2_selection_method == 'PLATT':
                     '''
                     Selection of 2nd alpha appears to be the same, whether first-alpha-selection is in full_epoch_mode or 
-                    non_bound_mode. Ng has random selection here in place of the Platt algorithm.  
+                    non_bound_mode. Ng has _random_ selection here in place of the Platt algorithm.  
 
                     Platt 2nd alpha algorithm:
                     (A) SMO chooses the second alpha to maximize the size of the step taken during joint optimization.
@@ -410,7 +410,7 @@ class SVMCoreSMOCode:
                     (B) iterate through the non-bound examples, searching for a second example that can make positive progress
                     (C) iterate through the entire training set until an example is found that makes positive progress. 
 
-                    Both (B) and (C) are started at random locations in order not to bias SMO towards the examples at
+                    Both (B) and (C) are started at _random_ locations in order not to bias SMO towards the examples at
                     the beginning of the training set. 
 
                     In extremely degenerate circumstances, none of the examples will make an adequate second example. 
@@ -478,13 +478,13 @@ class SVMCoreSMOCode:
                                 # IF FAILS H-L CHECK, SKIP TO NEXT RANDOM NON-BOUND EXAMPLE, IF PASSES, RUN OPTIMIZER
                                 if self.L_H_bound_check(a1_idx, a2_idx) is False:
                                     # CONSTRUCTION COMMENTARY
-                                    # print(f'a2={a2_idx} failed Platt Rule B on L-H gap test.  Proceeding to next random non-bound a2 idx.')
+                                    # print(f'a2={a2_idx} failed Platt Rule B on L-H gap test.  Proceeding to next _random_ non-bound a2 idx.')
                                     continue
                                 else:
                                     # IF FAILS eta CHECK, OR CHANGE TO a2 IS TOO SMALL, RETURNS False, SKIP TO NEXT RANDOM NON-BOUND EXAMPLE
                                     if self.joint_alpha_optimizer(a1_idx, a2_idx) is False:
                                         # CONSTRUCTION COMMENTARY
-                                        # print(f'a2={a2_idx} failed Platt Rule B for eta >= 0 or change to a2 too small.  Proceeding to next random non-bound a2 idx.')
+                                        # print(f'a2={a2_idx} failed Platt Rule B for eta >= 0 or change to a2 too small.  Proceeding to next _random_ non-bound a2 idx.')
                                         continue
                                     # IF RETURNS True, optimizer RAN W/O SHORT-CIRCUIT AND a2, a1, & b WERE UPDATED.  BREAK & GO TO NEXT a1
                                     else:
@@ -507,12 +507,12 @@ class SVMCoreSMOCode:
                             # IF FAILS H-L CHECK, SKIP TO NEXT RANDOM BOUND EXAMPLE, IF PASSES, RUN OPTIMIZER
                             if self.L_H_bound_check(a1_idx, a2_idx) is False:
                                 pass
-                                # CONSTRUCTION COMMENTARY print(f'a2={a2_idx} failed Platt Rule C on L-H gap test.  Proceeding to next random bound a2 idx.')
+                                # CONSTRUCTION COMMENTARY print(f'a2={a2_idx} failed Platt Rule C on L-H gap test.  Proceeding to next _random_ bound a2 idx.')
                                 continue
                             else:
                                 # IF FAILS eta CHECK, OR CHANGE TO a2 IS TOO SMALL, RETURNS False, SKIP TO NEXT RANDOM NON-BOUND EXAMPLE
                                 if self.joint_alpha_optimizer(a1_idx, a2_idx) is False:
-                                    # CONSTRUCTION COMMENTARY print(f'a2={a2_idx} failed Platt Rule C for eta >= 0 or change to a2 too small.  Proceeding to next random bound a2 idx.')
+                                    # CONSTRUCTION COMMENTARY print(f'a2={a2_idx} failed Platt Rule C for eta >= 0 or change to a2 too small.  Proceeding to next _random_ bound a2 idx.')
                                     continue
                                 # IF RETURNS True, optimizer RAN W/O SHORT-CIRCUIT AND a2, a1, & b WERE UPDATED.  BREAK & GO TO NEXT a1
                                 else:

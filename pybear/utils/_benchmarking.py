@@ -14,40 +14,31 @@ import psutil, time, os
 
 def timer(orig_func):
 
-    """ Wraps a function with a timer.
-
+    """ Wraps a function with a timer that displays the elapsed time of running
+    the function.
 
     Parameters
-    ---------
-    None
+    ----------
+    orig_func:
+        callable - function to be timed when called
 
-
-    Returns
+    Return
     ------
-    wrapper: wrapped original function
+    wrapper:
+        wrapped original function
 
-
-    See Also
-    ------
-    None
-
-
-    Notes
-    ----
-    None
-
-
-    Example
-    ------
+    Examples
+    --------
     >>> from pybear.utils import timer
 
     >>> @timer
-    >>> def my_function(x):
-    >>>     time.sleep(x)
-    >>>     return x
-    >>> ...
-    >>> my_function(3)
-    my_function ran in 3.01 sec
+    ... def my_function(x):
+    ...     time.sleep(x)
+    ...     return x
+    ...
+    >>> my_function(1.28)
+    my_function ran in 1.28 sec
+    1.28
 
     """
 
@@ -56,7 +47,7 @@ def timer(orig_func):
         t1 = time.time()
         result = orig_func(*args, **kwargs)
         t2 = time.time() - t1
-        print(f'\n{orig_func.__name__} ran in {t2:,.3g} sec\n')
+        print(f'{orig_func.__name__} ran in {t2:,.3g} sec')
         return result
 
     return wrapper
@@ -66,65 +57,57 @@ def timer(orig_func):
 
 def time_memory_benchmark(
                           *args,
-                          number_of_trials=7,
-                          rest_time=1,
-                          verbose=1
-    ):
-    """
-    Measure avg time (sec) and avg change in RAM (MB) when computing functions.
+                          number_of_trials:int=7,
+                          rest_time:int=1,
+                          verbose:[int, float, bool]=1
+    ) -> np.ndarray:
 
+    """Measure the average time (seconds) and the average change in system
+    RAM (MB) when computing functions. Displays statistics to the screen and
+    returns an np.ndarray containing the raw measurements.
 
     Parameters
-    ---------
-    args: tuples of ('function_name', function, ARGS_AS_LIST, KWARGS_AS_DICT)
-    number_of_trials: int - number of times to run each given function. Given,
-                        for example, two trials with functions f1, f2, and f3,
-                        runs are ordered as f1, f2, f3, f1, f2, f3, not f1, f1,
-                        f2, f2, f3, f3.
-    rest_time: int, float - time to rest in seconds before and after running a
-                        function to allow for RAM equilibration. The rest time
-                        is not included in the reported computation time.
-    verbose: bool, int, float - print (verbose > 0) or do not print (verbose=0)
-                        info during run time.
+    ----------
+    args:
+        tuples of ('function_name', function, ARGS_AS_LIST, KWARGS_AS_DICT)
+    number_of_trials:
+        int - number of times to run each given function. Given, for example,
+        two trials with functions f1, f2, and f3, runs are ordered as f1, f2,
+        f3, f1, f2, f3, not f1, f1, f2, f2, f3, f3.
+    rest_time:
+        int, float - time to rest in seconds before and after running a
+        function to allow for RAM equilibration. The rest time is not included
+        in the reported computation time.
+    verbose:
+        bool, int, float - print (verbose > 0) or do not print (verbose=0)
+        information to the screen during run time.
 
-
-    Returns
+    Return
     ------
-    TIME_MEM_HOLDER: ndarray of shape (2, number of functions,
-                        number_of_trials) - Raw measurements of time (sec) and
-                        memory change (MB). Index 0 of the first axis contains
-                        time results, index 1 contains memory results.
+    return
+        TIME_MEM_HOLDER: ndarray of shape (2, number of functions,
+        number_of_trials) - Raw measurements of time (sec) and memory
+        change (MB). Index 0 of the first axis contains time results, index 1
+        contains memory results.
 
-
-    See Also
-    -------
-    None
-
-
-    Notes
-    ----
-    None
-
-
-    Example
-    ------
+    Examples
+    --------
     >>> from pybear.utils import time_memory_benchmark
-
     >>> def function_a(a, b, c=1):
-    >>>     time.sleep(a + b + c)
-    >>>     return a + b + c
-
+    ...     time.sleep(a + b + c)
+    ...     return a + b + c
+    ...
     >>> def function_b(d, e, f=2):
-    >>>     time.sleep(d + e + f)
-    >>>     return d + e + f
-
+    ...     time.sleep(d + e + f)
+    ...     return d + e + f
+    ...
     >>> results = time_memory_benchmark(
-    >>>                 ('function_a', function_a, [1, 2], {'c': 3}),
-    >>>                 ('function_b', function_b, [0, 3], {'f': 1}),
-    >>>                 number_of_trials=2,
-    >>>                 rest_time=1,
-    >>>                 verbose=1
-    >>> )
+    ...                 ('function_a', function_a, [1, 2], {'c': 3}),
+    ...                 ('function_b', function_b, [0, 3], {'f': 1}),
+    ...                 number_of_trials=2,
+    ...                 rest_time=1,
+    ...                 verbose=1
+    ... ) #doctest:+SKIP
 
 
     ********************************************************************************
@@ -142,7 +125,7 @@ def time_memory_benchmark(
     function_a     time = 6.005 +/- 0.000 sec; mem = 0.000 +/- 0.000 MB
     function_b     time = 4.004 +/- 0.002 sec; mem = 0.000 +/- 0.000 MB
 
-    >>> print(results)
+    >>> print(results) #doctest:+SKIP
 
     [[[6.0045845 6.005382300000001]
       [4.0055356 4.0022901]]

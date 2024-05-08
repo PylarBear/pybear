@@ -25,11 +25,11 @@ from pybear.data_validation import validate_user_input as vui
     END __init__ CHECKS & EXCEPTIONS ######################################################################################################
     RUNTIME CHECKS & EXCEPTIONS ###########################################################################################################
     non_int                         Verify integer.
-    insufficient_list_kwargs_1      Verify LIST kwarg is filled when processing a function that requres a list.
-    insufficient_dict_kwargs_1      Verify DICT1 kwarg is filled when processing a function that requres one dictionary.
-    insufficient_dict_kwargs_2      Verify DICT1 and DICT2 kwargs are filled when processing a function that requres two dictionaries.
-    insufficient_datadict_kwargs_1  Verify DATADICT1 kwarg is filled when processing a function that requres one data dictionary.
-    insufficient_dataframe_kwargs_1 Verify DATAFRAME kwarg is filled when processing a function that requres one dataframe.
+    insufficient_list_kwargs_1      Verify LIST kwarg is filled when processing a function that requires a list.
+    insufficient_dict_kwargs_1      Verify DICT1 kwarg is filled when processing a function that requires one dictionary.
+    insufficient_dict_kwargs_2      Verify DICT1 and DICT2 kwargs are filled when processing a function that requires two dictionaries.
+    insufficient_datadict_kwargs_1  Verify DATADICT1 kwarg is filled when processing a function that requires one data dictionary.
+    insufficient_dataframe_kwargs_1 Verify DATAFRAME kwarg is filled when processing a function that requires one dataframe.
     dot_size_check                  Verify two vectors are sparse dicts that both have unitary outer length and equal inner length.
     broadcast_check                 Verify two sparse dicts follow standard matrix multiplication rules (m, n) x (j, k) ---> n == j.
     matrix_size_check               Verify two sparse dicts have equal outer and inner length.
@@ -38,7 +38,7 @@ from pybear.data_validation import validate_user_input as vui
     symmetric_matmul_check          Verify two sparse dicts will matrix multiply to a symmetric matrix.
     END RUNTIME CHECKS & EXCEPTIONS #######################################################################################################
     CREATION, HANDLING & MAINTENANCE ######################################################################################################
-    create_random                   Create a sparse matrix with user-given dimensions filled with random numbers of user-given sparsity.
+    create_random                   Create a sparse matrix with user-given dimensions filled with _random_ numbers of user-given sparsity.
     zip_list                        Convert list-type (list, tuple, array) of list-types as [[]] to sparse dict.
     zip_datadict                    Convert data dict as {_:[], __:[], ...} to a sparse dictionary.
     zip_dataframe                   Convert dataframe to sparse dict.
@@ -291,32 +291,32 @@ class SparseDict:
 
 
     def insufficient_list_kwargs_1(self, fxn):
-        '''Verify LIST kwarg is filled when processing a function that requres a list.'''
+        '''Verify LIST kwarg is filled when processing a function that requires a list.'''
         with n.errstate(all='ignore'):
             if n.array_equiv(self.LIST1, []):
                 raise Exception(f'{self.module}.{fxn}() requires one list-type kwarg, LIST1.')
 
 
     def insufficient_dict_kwargs_1(self, fxn):
-        '''Verify DICT1 kwarg is filled when processing a function that requres one dictionary.'''
+        '''Verify DICT1 kwarg is filled when processing a function that requires one dictionary.'''
         if self.DICT1 == {}:
             raise Exception(f'{self.module}.{fxn}() requires {self.module} take one dictionary kwarg, DICT1.')
 
 
     def insufficient_dict_kwargs_2(self, fxn):
-        '''Verify DICT1 and DICT2 kwargs are filled when processing a function that requres two dictionaries.'''
+        '''Verify DICT1 and DICT2 kwargs are filled when processing a function that requires two dictionaries.'''
         if self.DICT1 == {} or self.DICT2 == {}:
             raise Exception(f'{self.module}.{fxn}() requires two dictionary kwargs, DICT1 and DICT2.')
 
 
     def insufficient_datadict_kwargs_1(self, fxn):
-        '''Verify DATADICT1 kwarg is filled when processing a function that requres one data dictionary.'''
+        '''Verify DATADICT1 kwarg is filled when processing a function that requires one data dictionary.'''
         if self.DATADICT1 == {}:
             raise Exception(f'{self.module}.{fxn}() requires one dictionary of list-types as kwarg, DATADICT1.')
 
 
     def insufficient_dataframe_kwargs_1(self, fxn):
-        '''Verify DATAFRAME kwarg is filled when processing a function that requres one dataframe.'''
+        '''Verify DATAFRAME kwarg is filled when processing a function that requires one dataframe.'''
         if self.DATAFRAME1.equals(p.DataFrame({})):
             raise Exception(f'{self.module}.{fxn}() requires a Pandas DataFrame as kwarg, DATAFRAME1.')
 
@@ -407,7 +407,7 @@ class SparseDict:
     # CREATION, HANDLING & MAINTENANCE ######################################################################################################
 
     def create_random(self, len_outer, len_inner, sparsity):
-        '''Create a sparse matrix with user-given dimensions filled with random integers from 0 to 9 of user-given percent sparsity.'''
+        '''Create a sparse matrix with user-given dimensions filled with _random_ integers from 0 to 9 of user-given percent sparsity.'''
         fxn = inspect.stack()[0][3]
 
         self.non_int(len_outer, fxn, "len_outer")

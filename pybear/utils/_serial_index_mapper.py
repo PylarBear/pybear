@@ -9,35 +9,31 @@ import numpy as np
 import joblib
 
 
-def serial_index_mapper(shape, positions, n_jobs=None):
+def serial_index_mapper(
+                        shape:tuple,
+                        positions:[list,tuple],
+                        n_jobs:int=None
+    ) -> list:
+
     """Map serial index positions to their zero-based Cartesian coordinates in
     an object of the given shape.
 
-
     Parameters
-    ---------
-    shape: tuple of integers - the dimensions of the object to map into.
-    positions: array-like of integers - vector of serialized index positions.
-    n_jobs: int, default=None - Number of CPU cores used when parallelizing
-        over positions during mapping. None means 1 unless in a joblib.
-        parallel_backend context. -1 means using all processors.
+    ----------
+    shape:
+        tuple of integers - the dimensions of the object to map into.
+    positions:
+        array-like of integers - vector of serialized index positions.
+    n_jobs:
+        int, default=None - Number of CPU cores used when parallelizing
+        over positions during mapping. None means 1 unless in a
+        joblib.parallel_backend context. -1 means using all processors.
 
-    Returns
+    Return
     ------
-    coordinates: list of tuples containing zero-based Cartesian coordinates
+    -
+        coordinates: list of tuples containing zero-based Cartesian coordinates
                     for each given serialized index position.
-
-
-    See Also
-    -------
-    None
-
-
-    Notes
-    ----
-    None
-
-
 
     Example
     ------
@@ -46,9 +42,7 @@ def serial_index_mapper(shape, positions, n_jobs=None):
     >>> positions = [4, 15, 25]
     >>> coordinates = serial_index_mapper(shape, positions, n_jobs=1)
     >>> print(coordinates)
-
-        [(0, 1, 1), (1, 2, 0), (2, 2, 1)]
-
+    [(0, 1, 1), (1, 2, 0), (2, 2, 1)]
 
     """
 
@@ -98,7 +92,10 @@ def serial_index_mapper(shape, positions, n_jobs=None):
     if not np.array_equiv(positions, positions.ravel()):
         raise ValueError(err_msg)
 
-    if not all(['INT' in _ for _ in np.char.upper(list(map(str, (map(type, positions)))))]):
+    if not all(['INT' in _ for _ in np.char.upper(
+                                    list(map(str, (map(type, positions))))
+                                    )]
+               ):
         raise ValueError(err_msg)
 
     _size = np.prod(shape)
