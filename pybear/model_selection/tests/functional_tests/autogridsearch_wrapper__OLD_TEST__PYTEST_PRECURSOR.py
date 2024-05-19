@@ -1,14 +1,14 @@
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
 
-from model_selection__PIZZA_FINISH.autogridsearch import autogridsearch_wrapper
+from model_selection.autogridsearch import _autogridsearch_wrapper
 
 # PIZZA FINISH TEST
 
 
 
-DaskAutoGridSearch = autogridsearch_wrapper(dask_GridSearchCV)
-SKLearnAutoGridSearch = autogridsearch_wrapper(sklearn_GridSearchCV)
+DaskAutoGridSearch = _autogridsearch_wrapper(dask_GridSearchCV)
+SKLearnAutoGridSearch = _autogridsearch_wrapper(sklearn_GridSearchCV)
 
 # TEST demo() ########################################################################################################
 estimator = 'dummy_estimator'

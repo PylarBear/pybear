@@ -1,0 +1,89 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+from typing import Union
+
+
+def _int_linspace_gap_gt_1_soft(
+        _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
+        _posn: int,
+    ) -> tuple[int, int]:
+
+
+    """
+    Determine the left and right bounds for a soft linspace integer with
+    non-unit interval based on whether the best result from GridSearchCV
+    landed on a left or right edge or in the middle of last round's search
+    grid. Apply the universal integer lower bound of 1 to the left bound.
+    Interstitial values are determined by another module.
+
+    Parameters
+    ----------
+    _SINGLE_GRID:
+        Union[list[int], tuple[int], set[int]] - The last round's search
+        grid for a single soft integer parameter. _SINGLE_GRID must be
+        sorted ascending, and is presumed to be by
+        _validation._numerical_params (at least initially).
+    _posn:
+        int - the index position in the previous round's grid where the
+        best value fell
+
+    Return
+    ------
+    -
+        _left: int - the minimum value for the next search grid (may be
+        changed by another algorithm later)
+
+        _right: int - the maximum value for the next search grid (may be
+        changed by another algorithm later)
+
+
+    """
+
+
+    match _posn:
+
+        case 0:
+            _left1 = _SINGLE_GRID[0]
+            _right = _SINGLE_GRID[1]
+            _left = _left1 - (_right - _left1)
+            _right = max(_right - 1, _left1 + 1)
+            del _left1
+
+        case _posn if _posn == len(_SINGLE_GRID) - 1:
+            _left = _SINGLE_GRID[-2]
+            _right1 = _SINGLE_GRID[-1]
+            _right = _right1 + (_right1 - _left)
+            _left = min(_left + 1, _right1 - 1)
+            del _right1
+
+        case other:
+            _best = _SINGLE_GRID[_posn]
+            _left = min(_SINGLE_GRID[_posn - 1] + 1, _best - 1)
+            _right = max(_SINGLE_GRID[_posn + 1] - 1, _best + 1)
+
+
+    # apply universal lower bound
+    _left = max(1, _left)
+
+
+    return _left, _right
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

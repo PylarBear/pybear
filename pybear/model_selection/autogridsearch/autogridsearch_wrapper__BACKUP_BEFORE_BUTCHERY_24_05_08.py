@@ -30,16 +30,16 @@ def autogridsearch_wrapper(GridSearchParent):
     class AutoGridSearch(GridSearchParent):
 
         """
-        On first pass, get_next_param_grid returns the grids as instructed in
-        the 'numerical_params' and 'string_params' parameters. On subsequent
-        passes, get_next_param_grid returns new calculated grids based on
-        results within 'best_params_'
+        On first pass, get_next_param_grid returns the grids as instructed
+        in the 'numerical_params' and 'string_params' parameters. On
+        subsequent passes, get_next_param_grid returns new calculated
+        grids based on results within 'best_params_'
 
-        dask/sklearn.GridSearchCV.best_params_ RETURNS A DICT OF params AND
-        THEIR RESPECTIVE OPTIMAL SETTINGS. THE WORKING METHOD OF THIS CLASS
-        MUST TAKE IN THE best_params_ DICT AND RETURN ANOTHER DICT WITH RANGES
-        OF NEW GRID VALUES THAT LOOKS LIKE param_grid from dask/sklearn
-        GridSearchCV, e.g.:
+        dask/sklearn.GridSearchCV.best_params_ RETURNS A DICT OF params
+        AND THEIR RESPECTIVE OPTIMAL SETTINGS. THE WORKING METHOD OF THIS
+        CLASS MUST TAKE IN THE best_params_ DICT AND RETURN ANOTHER DICT
+        WITH RANGES OF NEW GRID VALUES THAT LOOKS LIKE param_grid from
+        dask/sklearn GridSearchCV, e.g.:
             {
             'C': [0,5,10],
             'l1_ratio': [0, 0.5, 1],
@@ -353,12 +353,12 @@ def autogridsearch_wrapper(GridSearchParent):
             # THIS MUST STAY HERE FOR demo TO WORK
             self.reset()
 
-        # END __init__() ##################################################################################################################
-        ###################################################################################################################################
-        ###################################################################################################################################
+        # END __init__() ######################################################
+        #######################################################################
+        #######################################################################
 
 
-        # reset() #######################################################################################################################
+        # reset() #############################################################
         def reset(self):
 
             """
