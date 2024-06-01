@@ -23,7 +23,7 @@ class TestIntLogspaceGapGT1Soft:
 
 
     @pytest.mark.parametrize('non_ndarray, gap',
-        (([2,3,4], 1), ((1,3,5), 2), ({2,4,6}, 2))
+        (([2,3,4], 1.0), ((1,3,5), 2.0), ({2,4,6}, 2.0))
     )
     def test_rejects_non_nd_array(self, non_ndarray, gap):
         with pytest.raises(TypeError):
@@ -33,7 +33,7 @@ class TestIntLogspaceGapGT1Soft:
     def test_rejects_negative_log_search_values(self):
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1_soft(np.array([-4,-3,-2]).astype(int),
-                                        1,
+                                        1.0,
                                         1
             )
 

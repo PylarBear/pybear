@@ -7,24 +7,27 @@
 
 
 import sys
-from typing import Union
+from typing import Union, TypeAlias
 from pybear.utils._get_module_name import get_module_name
-from .._validate_int_float_linlogspace import _validate_int_float_linlogspace
+from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid._validation._validate_int_float_linlogspace import _validate_int_float_linlogspace
 from .._int._int_logspace_core import _int_logspace_core
 
 
-
+# subtypes for int only, see _type_aliases
+IntDataType: TypeAlias = int  # sub of DataType
+IntGridType: TypeAlias = \
+    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]] # sub of GridType
 
 
 def _int_logspace_unit_gap(
-                            _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
-                            _posn: int,
+                            _SINGLE_GRID: IntGridType,
                             _is_logspace: Union[bool, float],
+                            _posn: int,
                             _is_hard: bool,
-                            _hard_min: int,
-                            _hard_max: int,
+                            _hard_min: IntDataType,
+                            _hard_max: IntDataType,
                             _points: int
-    ) -> list[int]:
+    ) -> list[IntDataType]:
 
 
     """
@@ -44,6 +47,13 @@ def _int_logspace_unit_gap(
         search grid for a single parameter. _SINGLE_GRID must be sorted
         ascending, and is presumed to be by _validation._numerical_params
         (at least initially).
+    _is_logspace:
+        Union[bool, float] - For numerical params, if the space is linear,
+        or some other non-standard interval, it is False. If it is
+        logspace, the 'truth' of being a logspace is represented by a
+        number indicating the interval of the logspace. E.g.,
+        np.logspace(-5, 5, 11) would be represented by 1.0, and
+        np.logspace(-20, 20, 9) would be represented by 5.0.
     _posn:
         int - the index position in the previous round's grid where
         the best value fell
@@ -82,8 +92,8 @@ def _int_logspace_unit_gap(
     # cannot put in _int
     _SINGLE_GRID =  _validate_int_float_linlogspace(
         _SINGLE_GRID,
-        _posn,
         _is_logspace,
+        _posn,
         _is_hard,
         _hard_min,
         _hard_max,
@@ -94,8 +104,8 @@ def _int_logspace_unit_gap(
 
     return _int_logspace_core(
         _SINGLE_GRID,
-        _posn,
         _is_logspace,
+        _posn,
         _is_hard,
         _hard_min,
         _hard_max,

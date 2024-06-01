@@ -41,14 +41,14 @@ class TestIntLinspaceGap_GT_1:
 
     def test_rejects_bad_hard_min(self):
         with pytest.raises(ValueError):
-            _int_linspace_gap_gt_1([3,15,27,39], 3, False, 10, 39, 4)
+            _int_linspace_gap_gt_1([3,15,27,39], 3, True, 10, 39, 4)
 
         with pytest.raises(TypeError):
             _int_linspace_gap_gt_1([3, 15, 27, 39], 3, False, 3.14, 39, 4)
 
     def test_rejects_bad_hard_max(self):
         with pytest.raises(ValueError):
-            _int_linspace_gap_gt_1([3,15,27,39], 3, False, 3, 31, 4)
+            _int_linspace_gap_gt_1([3,15,27,39], 3, True, 3, 31, 4)
 
         with pytest.raises(TypeError):
             _int_linspace_gap_gt_1([3,15,27,39], 3, False, 3, 39.77, 4)

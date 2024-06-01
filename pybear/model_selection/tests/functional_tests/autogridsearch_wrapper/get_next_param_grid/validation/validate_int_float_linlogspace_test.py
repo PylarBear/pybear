@@ -8,7 +8,8 @@ import pytest
 import numpy as np
 
 from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _validate_int_float_linlogspace import _validate_int_float_linlogspace as vifl
+    _validation._validate_int_float_linlogspace import \
+    _validate_int_float_linlogspace as vifl
 
 
 @pytest.fixture
@@ -36,14 +37,14 @@ class TestValidateIntFloatLinLogspace:
     )
     def test_rejects_junk_module_name(self, junk_name):
         with pytest.raises(TypeError):
-            vifl([1,2,3], 2, False, False, 1, 3, 3, junk_name)
+            vifl([1,2,3], False, 2, False, 1, 3, 3, junk_name)
 
     @pytest.mark.parametrize('bad_name',
         ('garbage', 'more garbage', 'junk', 'and more junk')
     )
     def test_rejects_bad_module_name(self, bad_name):
         with pytest.raises(ValueError):
-            vifl([1,2,3], 2, False, False, 1, 3, 3, bad_name)
+            vifl([1,2,3], False, 2, False, 1, 3, 3, bad_name)
 
 
     @pytest.mark.parametrize('grid, is_logspace, module',
@@ -57,25 +58,25 @@ class TestValidateIntFloatLinLogspace:
          )
     )
     def test_accepts_good_module_name(self, grid, is_logspace, module):
-        vifl(grid, 2, is_logspace, False, min(grid), max(grid), 3, module)
+        vifl(grid, is_logspace, 2, False, min(grid), max(grid), 3, module)
 
     # END module_name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    # search points ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # _grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     @pytest.mark.parametrize('bad_points',
         (1, True, np.pi, {'a': 1}, lambda x: x, min, 'junk', None)
     )
     def test_rejects_non_list_like_grid(self, bad_points, float_module_names):
         with pytest.raises(TypeError):
-            vifl(bad_points, 1, False, False, 1, 10, 3, float_module_names[0])
+            vifl(bad_points, False, 1, False, 1, 10, 3, float_module_names[0])
 
 
     @pytest.mark.parametrize('good_points',
         ([2, 3, 4], (2, 3, 4), {2, 3, 4}, np.array([2,3,4]))
     )
     def test_accepts_list_like_grid(self, good_points, int_module_names):
-        vifl(good_points, 1, False, False, 1, 10, 3, int_module_names[0])
+        vifl(good_points, False, 1, False, 1, 10, 3, int_module_names[0])
 
 
     @pytest.mark.parametrize('bad_values',
@@ -83,45 +84,45 @@ class TestValidateIntFloatLinLogspace:
     )
     def test_rejects_non_num_in_grid(self, bad_values, int_module_names):
         with pytest.raises(TypeError):
-            vifl(bad_values, 1, False, False, 1, 10, 3, int_module_names[1])
+            vifl(bad_values, False, 1, False, 1, 10, 3, int_module_names[1])
 
 
     def test_int_rejects_floats_in_grid(self, int_module_names):
         with pytest.raises(TypeError):
-            vifl([1.1, 1.2, 1.3], 1, False, False, 1, 10, 3, int_module_names[2])
+            vifl([1.1, 1.2, 1.3], False, 1, False, 1, 10, 3, int_module_names[2])
 
 
     def test_int_accepts_int_in_grid(self, int_module_names):
-        vifl([1, 2, 3], 1, False, False, 1, 10, 3, int_module_names[0])
+        vifl([1, 2, 3], False, 1, False, 1, 10, 3, int_module_names[0])
 
 
     def test_float_accepts_floats_in_grid(self, float_module_names):
-        vifl([1.1, 1.2, 1.3], 1, False, False, 1, 10, 3, float_module_names[0])
+        vifl([1.1, 1.2, 1.3], False, 1, False, 1, 10, 3, float_module_names[0])
 
 
     def test_float_accepts_int_in_grid(self, float_module_names):
-        vifl([1, 2, 3], 1, False, False, 1, 10, 3, float_module_names[0])
+        vifl([1, 2, 3], False, 1, False, 1, 10, 3, float_module_names[0])
 
 
     def test_rejects_lt_universal_bound_in_grid(self, float_module_names,
                                                 int_module_names):
         with pytest.raises(ValueError):
-            vifl([-1, 2, 3], 1, False, False, 1, 3, 0, float_module_names[1])
+            vifl([-1, 2, 3], False, 1, False, 1, 3, 0, float_module_names[1])
 
         with pytest.raises(ValueError):
-            vifl([0, 2, 3], 1, False, False, 1, 3, 0, int_module_names[3])
+            vifl([0, 2, 3], False, 1, False, 1, 3, 0, int_module_names[3])
 
 
     def test_rejects_duplicates_in_grid(self):
         with pytest.raises(ValueError):
-            vifl([10, 20, 30, 30], 0, False, False, 10, 40, 0, '_float_linspace')
+            vifl([10, 20, 30, 30], False, 0, False, 10, 40, 0, '_float_linspace')
 
 
     def test_rejects_len_grid_lt_3(self):
         with pytest.raises(ValueError):
-            vifl([10, 20], 0, False, False, 10, 40, 0, '_float_linspace')
+            vifl([10, 20], False, 0, False, 10, 40, 0, '_float_linspace')
 
-    # END search points ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END _grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # _posn ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -130,19 +131,19 @@ class TestValidateIntFloatLinLogspace:
     )
     def test_rejects_junk_posn(self, bad_posn):
         with pytest.raises(TypeError):
-            vifl([1, 2, 3], bad_posn, False, False, 1, 3, 3, '_int_linspace_unit_gap')
+            vifl([1, 2, 3], False, bad_posn, False, 1, 3, 3, '_int_linspace_unit_gap')
 
     def test_rejects_float_posn(self):
         with pytest.raises(TypeError):
-            vifl([1, 2, 3], 3.14, False, False, 1, 3, 3, '_int_linspace_unit_gap')
+            vifl([1, 2, 3], False, 3.14, False, 1, 3, 3, '_int_linspace_unit_gap')
 
     def test_rejects_negative_posn(self):
         with pytest.raises(ValueError):
-            vifl([1, 2, 3], -1, False, False, 1, 3, 3, '_int_linspace_unit_gap')
+            vifl([1, 2, 3], False, -1, False, 1, 3, 3, '_int_linspace_unit_gap')
 
     def test_rejects_out_of_bounds(self):
         with pytest.raises(ValueError):
-            vifl([1, 2, 3], 9, False, False, 1, 3, 3, '_int_linspace_unit_gap')
+            vifl([1, 2, 3], False, 9, False, 1, 3, 3, '_int_linspace_unit_gap')
 
     # END _posn ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -153,13 +154,13 @@ class TestValidateIntFloatLinLogspace:
     )
     def test_is_logspace_rejects_non_num_non_bool(self, bad_is_logspace):
         with pytest.raises(TypeError):
-            vifl([1, 10, 100], 0, bad_is_logspace, False, 1, 100, 3,
+            vifl([1, 10, 100], bad_is_logspace, 0, False, 1, 100, 3,
                  '_float_logspace')
 
     @pytest.mark.parametrize('bad', (0, -1))
     def test_is_logspace_rejects_lt_1(self, bad):
         with pytest.raises(TypeError):
-            vifl([1, 10, 100], 0, bad, False, 1, 100, 3, '_float_logspace')
+            vifl([1, 10, 100], bad, 0, False, 1, 100, 3, '_float_logspace')
 
 
     @pytest.mark.parametrize('is_logspace, grid, module',
@@ -170,7 +171,7 @@ class TestValidateIntFloatLinLogspace:
         )
     )
     def test_accepts_false_and_positive_numbers_1(self, is_logspace, grid, module):
-        vifl(grid, 1, is_logspace, False, grid[0], grid[-1], 3, module)
+        vifl(grid, is_logspace, 1, False, grid[0], grid[-1], 3, module)
 
 
     @pytest.mark.parametrize('is_logspace, grid, module',
@@ -181,18 +182,18 @@ class TestValidateIntFloatLinLogspace:
         )
     )
     def test_accepts_false_and_positive_numbers_2(self, is_logspace, grid, module):
-        vifl(grid, 1, is_logspace, False, grid[0], grid[-1], 11, module)
+        vifl(grid, is_logspace, 1, False, grid[0], grid[-1], 11, module)
 
 
     def test_rejects_logspace_misdiagnosis_1(self):
         with pytest.raises(ValueError):
-            vifl([1, 2, 3, 4], 1, 1.0, False, 1, 4, 3,
+            vifl([1, 2, 3, 4], 1.0, 1, False, 1, 4, 3,
                  '_int_linspace_unit_gap')
 
 
     def test_rejects_logspace_misdiagnosis_2(self):
         with pytest.raises(ValueError):
-            vifl([1, 10, 100], 1, False, False, 1, 100, 3, '_int_linspace_unit_gap')
+            vifl([1, 10, 100], False, 1, False, 1, 100, 3, '_int_linspace_unit_gap')
 
     # END _is_logspace ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -204,12 +205,12 @@ class TestValidateIntFloatLinLogspace:
     )
     def test_rejects_non_bool_is_hard(self, bad_is_hard):
         with pytest.raises(TypeError):
-            vifl([2, 3, 4, 5], 1, False, bad_is_hard, 2, 5, 3,
+            vifl([2, 3, 4, 5], False, 1, bad_is_hard, 2, 5, 3,
                 '_int_linspace_unit_gap')
 
     @pytest.mark.parametrize('good', (True, False))
     def test_accepts_bool_is_hard(self, good):
-        vifl([2, 3, 4, 5], 1, False, good, 2, 5, 3, '_int_linspace_unit_gap')
+        vifl([2, 3, 4, 5], False, 1, good, 2, 5, 3, '_int_linspace_unit_gap')
 
     # END _is_hard ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -226,20 +227,20 @@ class TestValidateIntFloatLinLogspace:
         _module = '_int_linspace_unit_gap'
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, False, False, bad_value, 4, 3, _module)
+            _grid_out = vifl(_grid, False, 2, False, bad_value, 4, 3, _module)
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, False, False, 2, bad_value, 3, _module)
+            _grid_out = vifl(_grid, False, 2, False, 2, bad_value, 3, _module)
 
 
         _grid = np.power(10, [1, 3, 5])
         _module = '_int_logspace_gap_gt_1'
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, 2.0, False, bad_value, 4, 3, _module)
+            _grid_out = vifl(_grid, 2.0, 2, False, bad_value, 4, 3, _module)
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, 2.0, False, 2, bad_value, 3, _module)
+            _grid_out = vifl(_grid, 2.0, 2, False, 2, bad_value, 3, _module)
 
 
     @pytest.mark.parametrize('bad_value',
@@ -250,20 +251,20 @@ class TestValidateIntFloatLinLogspace:
         _module = '_int_linspace_unit_gap'
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, False, False, bad_value, 4, 3, _module)
+            _grid_out = vifl(_grid, False, 2, False, bad_value, 4, 3, _module)
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, False, False, 2, bad_value, 3, _module)
+            _grid_out = vifl(_grid, False, 2, False, 2, bad_value, 3, _module)
 
 
         _grid = np.power(10, [1, 3, 5])
         _module = '_int_logspace_gap_gt_1'
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, 1.0, False, bad_value, 4, 3, _module)
+            _grid_out = vifl(_grid, 1.0, 2, False, bad_value, 4, 3, _module)
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, 1.0, False, 2, bad_value, 3, _module)
+            _grid_out = vifl(_grid, 1.0, 2, False, 2, bad_value, 3, _module)
 
 
     @pytest.mark.parametrize('bad', (0, -1))
@@ -272,46 +273,67 @@ class TestValidateIntFloatLinLogspace:
 
         _module = '_int_linspace_unit_gap'
         with pytest.raises(ValueError):
-            _grid_out = vifl(_grid, 2, False, False, bad ,4, 3, _module)
+            _grid_out = vifl(_grid, False, 2, False, bad ,4, 3, _module)
 
         with pytest.raises(ValueError):
-            _grid_out = vifl(_grid, 2, False, False, 2, bad, 3, _module)
+            _grid_out = vifl(_grid, False, 2, False, 2, bad, 3, _module)
 
         _module = '_float_linspace'
-        if bad != 0:
+        if bad < 0:
             with pytest.raises(ValueError):
-                _grid_out = vifl(_grid, 2, False, False, bad ,4, 3, _module)
+                _grid_out = vifl(_grid, False, 2, False, bad ,4, 3, _module)
 
             with pytest.raises(ValueError):
-                _grid_out = vifl(_grid, 2, False, False, 2, bad, 3, _module)
+                _grid_out = vifl(_grid, False, 2, False, 2, bad, 3, _module)
 
 
+    @pytest.mark.parametrize('_is_hard', (True, False))
     @pytest.mark.parametrize('bad', (3, 5))
-    def test_rejects_grid_lt_hard_min(self, bad):
+    def test_grid_vs_hard_min(self, _is_hard, bad):
+
+        # _is_hard == True rejects any(_grid < _hard_min)
+        # _is_hard == False accepts any _grid vs _hard_min
+
+        _grid = [2, 3, 4, 5, 6]
+        _module = '_int_linspace_unit_gap'
+        if _is_hard:
+            with pytest.raises(ValueError):
+                _grid_out = vifl(_grid, False, 2, _is_hard, bad ,4, 3, _module)
+        elif not _is_hard:
+            _grid_out = vifl(_grid, False, 2, _is_hard, bad, 4, 3, _module)
+
         _grid = [2, 4, 6]
+        _module = '_float_linspace'
+        if _is_hard:
+            with pytest.raises(ValueError):
+                _grid_out = vifl(_grid, False, 2, _is_hard, bad ,4, 3, _module)
+        elif not _is_hard:
+            _grid_out = vifl(_grid, False, 2, _is_hard, bad, 4, 3, _module)
+
+
+    @pytest.mark.parametrize('_is_hard', (True, False))
+    @pytest.mark.parametrize('bad', (3, 5))
+    def test_grid_vs_hard_max(self, _is_hard, bad):
+
+        # _is_hard == True rejects any(_grid < _hard_min)
+        # _is_hard == False accepts any _grid vs _hard_min
+
+        _grid = [2, 3, 4, 5, 6]
 
         _module = '_int_linspace_unit_gap'
-        with pytest.raises(ValueError):
-            _grid_out = vifl(_grid, 2, False, False, bad ,4, 3, _module)
-
-        _module = '_float_linspace'
-        if bad != 0:
+        if _is_hard:
             with pytest.raises(ValueError):
-                _grid_out = vifl(_grid, 2, False, False, bad ,4, 3, _module)
+                _grid_out = vifl(_grid, False, 2, _is_hard, 2, bad, 3, _module)
+        elif not _is_hard:
+            _grid_out = vifl(_grid, False, 2, _is_hard, 2, bad, 3, _module)
 
-
-    @pytest.mark.parametrize('bad', (3, 5))
-    def test_rejects_grid_gt_hard_max(self, bad):
         _grid = [2, 4, 6]
-
-        _module = '_int_linspace_unit_gap'
-        with pytest.raises(ValueError):
-            _grid_out = vifl(_grid, 2, False, False, 2, bad, 3, _module)
-
         _module = '_float_linspace'
-        if bad != 0:
+        if _is_hard:
             with pytest.raises(ValueError):
-                _grid_out = vifl(_grid, 2, False, False, 2, bad, 3, _module)
+                _grid_out = vifl(_grid, False, 2, _is_hard, 2, bad, 3, _module)
+        elif not _is_hard:
+            _grid_out = vifl(_grid, False, 2, _is_hard, 2, bad, 3, _module)
     # END _hard_min, _hard_max ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
@@ -325,7 +347,7 @@ class TestValidateIntFloatLinLogspace:
         _module = '_int_linspace_unit_gap'
 
         with pytest.raises(TypeError):
-            _grid_out = vifl(_grid, 2, False, False, 2, 4, bad_value, _module)
+            _grid_out = vifl(_grid, False, 2, False, 2, 4, bad_value, _module)
 
 
     @pytest.mark.parametrize('bad', (-1, 0, 1, 2))
@@ -334,7 +356,7 @@ class TestValidateIntFloatLinLogspace:
         _module = '_int_linspace_unit_gap'
 
         with pytest.raises(ValueError):
-            _grid_out = vifl(_grid, 2, False, False, 2, 4, bad, _module)
+            _grid_out = vifl(_grid, False, 2, False, 2, 4, bad, _module)
 
 
     # END _hard_min, _hard_max, _points ** * ** * ** * ** * ** * ** * ** * ** *

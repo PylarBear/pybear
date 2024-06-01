@@ -5,21 +5,26 @@
 #
 
 import sys
-from typing import Union
+from typing import Union, TypeAlias
 import numpy as np
 from pybear.utils._get_module_name import get_module_name
-from .._validate_int_float_linlogspace import _validate_int_float_linlogspace
+from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid._validation._validate_int_float_linlogspace import _validate_int_float_linlogspace
 
+
+# see _type_aliases, subtypes of DataType, GridType
+IntDataType: TypeAlias = int
+IntGridType: TypeAlias = \
+    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
 
 
 def _int_linspace_unit_gap(
-        _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
+        _SINGLE_GRID: IntGridType,
         _posn: int,
         _is_hard: bool,
-        _hard_min: int,
-        _hard_max: int,
+        _hard_min: IntDataType,
+        _hard_max: IntDataType,
         _points: int
-    ) -> list[int]:
+    ) -> list[IntDataType]:
 
 
     """
@@ -65,8 +70,8 @@ def _int_linspace_unit_gap(
     # cannot put in _int
     _SINGLE_GRID =  _validate_int_float_linlogspace(
             _SINGLE_GRID,
-            _posn,
             False,
+            _posn,
             _is_hard,
             _hard_min,
             _hard_max,
@@ -75,52 +80,48 @@ def _int_linspace_unit_gap(
     )
 
 
+    if _posn == 0:
+        _left = _SINGLE_GRID[0]
+        _right = _SINGLE_GRID[1]
+        if _is_hard:
+            if _left == _hard_min:
+                # _left is unchanged
+                _right = min(_hard_max, _left + (_points - 1))
+            else:  # elif left != hard min
+                _left = max(1, _hard_min, _left - 1)
+                _right = min(_hard_max, _left + (_points - 1))
+        else:  # elif not _is_hard
+            _left = max(1, _left - 1)
+            _right = _left + (_points - 1)
 
-
-    match _posn:
-
-        case 0:
-            _left = _SINGLE_GRID[0]
-            _right = _SINGLE_GRID[1]
-            if _is_hard:
-                if _left == _hard_min:
-                    # _left is unchanged
-                    _right = min(_hard_max, _left + (_points - 1))
-                else:  # elif left != hard min
-                    _left = max(1, _hard_min, _left - 1)
-                    _right = min(_hard_max, _left + (_points - 1))
-            else:  # elif not _is_hard
-                _left = max(1, _left - 1)
-                _right = _left + (_points - 1)
-
-        case _posn if _posn == len(_SINGLE_GRID) - 1:
-            _left = _SINGLE_GRID[-2]
-            _right = _SINGLE_GRID[-1]
-            if _is_hard:
-                if _right == _hard_max:
-                    # _right is unchanged
-                    _left = max(1, _right - _points + 1, _hard_min)
-                else:
-                    _right = _right + 1
-                    _left = max(1, _right - _points + 1, _hard_min)
-                    _right = min(_hard_max, _left + _points - 1)
-            elif not _is_hard:
+    elif _posn == len(_SINGLE_GRID) - 1:
+        _left = _SINGLE_GRID[-2]
+        _right = _SINGLE_GRID[-1]
+        if _is_hard:
+            if _right == _hard_max:
+                # _right is unchanged
+                _left = max(1, _right - _points + 1, _hard_min)
+            else:
                 _right = _right + 1
-                _left = max(1, _right - _points + 1)
-                _right = _left + _points - 1
+                _left = max(1, _right - _points + 1, _hard_min)
+                _right = min(_hard_max, _left + _points - 1)
+        elif not _is_hard:
+            _right = _right + 1
+            _left = max(1, _right - _points + 1)
+            _right = _left + _points - 1
 
+    else:
+        _num_left_of_cen = np.floor((_points - 1) // 2)
+        if _is_hard:
+            _left = max(1, _hard_min, _SINGLE_GRID[_posn] - _num_left_of_cen)
+            _right = min(_hard_max,
+                        _SINGLE_GRID[_posn] - _num_left_of_cen + _points - 1
+            )
+        else:  # elif not hard
+            _left = max(1, _SINGLE_GRID[_posn] - _num_left_of_cen)
+            _right = _left + _points - 1
+        del _num_left_of_cen
 
-        case other:
-            _num_left_of_cen = np.floor((_points - 1) // 2)
-            if _is_hard:
-                _left = max(1, _hard_min, _SINGLE_GRID[_posn] - _num_left_of_cen)
-                _right = min(_hard_max,
-                            _SINGLE_GRID[_posn] - _num_left_of_cen + _points - 1
-                )
-            else:  # elif not hard
-                _left = max(1, _SINGLE_GRID[_posn] - _num_left_of_cen)
-                _right = _left + _points - 1
-            del _num_left_of_cen
 
     if int(_left) != _left:
         raise ValueError(f"'_left' is not an integer ({_left})")

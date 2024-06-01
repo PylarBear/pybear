@@ -75,24 +75,40 @@ class TestFloatLogspace:
         # min is always >= zero
         assert min(out_grid) >= 0
 
-        # if is_hard, min is always >= hard_min, max is always <= hard max
+
         if _is_hard:
-            assert min(out_grid) >= _hard_min
-            assert max(out_grid) <= _hard_max
+            # if is_hard, min is always >= hard_min, max is always <= hard max
 
-        # for middle posn, min is always > left number,
-        #   max is always < right number
-        if _posn == 'middle':
-            assert min(out_grid) > _GRID[_posn-1]
-            assert max(out_grid) < _GRID[_posn+1]
+            if _posn == 'left':
+                assert min(out_grid) == max(0, _hard_min)
+                assert max(out_grid) == _GRID[1]
 
-        # if soft & left, new min < original min
-        if not _is_hard and _posn == 'left':
-            assert min(out_grid) < min(_GRID)
+            elif _posn == 'right':
+                assert min(out_grid) == max(0, _hard_min)
+                assert max(out_grid) == _hard_max
 
-        # if soft & right, new max > original max
-        if not _is_hard and _posn == 'right':
-            assert max(out_grid) > max(_GRID)
+            # for middle posn, min is always > left number,
+            #   max is always < right number
+            elif _posn == 'middle':
+                assert min(out_grid) > _GRID[_posn-1]
+                assert max(out_grid) < _GRID[_posn+1]
+
+        elif not _is_hard:
+            # if soft & left, new min < original min
+            if _posn == 'left':
+                assert min(out_grid) < min(_GRID)
+
+            # if soft & right, new max > original max
+            elif _posn == 'right':
+                assert max(out_grid) > max(_GRID)
+
+            # for middle posn, min is always > left number,
+            #   max is always < right number
+            elif _posn == 'middle':
+                assert min(out_grid) > _GRID[_posn-1]
+                assert max(out_grid) < _GRID[_posn+1]
+
+
 
 
 

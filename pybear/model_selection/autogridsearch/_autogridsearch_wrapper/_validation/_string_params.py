@@ -4,10 +4,24 @@
 # License: BSD 3 clause
 #
 
+from typing import Union, TypeAlias
+
+# see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
+StrDataType: TypeAlias = Union[None, str]
+InStrGridType: TypeAlias = \
+    Union[list[StrDataType], tuple[StrDataType], set[StrDataType]]
+InStrPointsType: TypeAlias = Union[None, int]
+InStrParamType: TypeAlias = Union[list[InStrGridType, InStrPointsType, str],
+                                tuple[InStrGridType, InStrPointsType, str]]
+OutStrGridType: TypeAlias = list[StrDataType]
+OutStrPointsType: TypeAlias = int
+OutStrParamType: TypeAlias = list[OutStrGridType, OutStrPointsType, str]
 
 
-
-def _string_param_value(_string_param_key:str, _string_param_value) -> list:
+def _string_param_value(
+        _string_param_key: str,
+        _string_param_value: InStrParamType
+    ) -> OutStrParamType:
 
     """
     Validate _string_param_value --- standardize format
@@ -38,16 +52,9 @@ def _string_param_value(_string_param_key:str, _string_param_value) -> list:
         raise TypeError(f"_string_param_key must be a string")
 
 
-    err_msg = (f"string_param {_string_param_key} -- values must be list-like "
-               f"and contain these 3 items: "
-               f"\n1) a list-like holding the grid-search values; "
-               f"\ncannot be empty and must contain the values (either strings "
-               f"or None-type) for its respective arg/kwarg of the estimator "
-               f"\n2) None or an integer > 0 indicating the autogridsearch pass "
-               f"on which to reduce this param's grid to only a single value "
-               f"\n3) a string-like that says the word 'string'")
-
     # validate container object ** * ** * ** * ** * ** * ** * ** * ** *
+    err_msg = (f"string_param '{_string_param_key}' -- _params values must "
+        f"be list-like")
     try:
         iter(_string_param_value)
     except:
@@ -56,21 +63,30 @@ def _string_param_value(_string_param_key:str, _string_param_value) -> list:
     if isinstance(_string_param_value, (set, dict, str)):
         raise TypeError(err_msg)
 
+    del err_msg
+
     _string_param_value = list(_string_param_value)
 
     if len(_string_param_value) != 3:
-        raise ValueError(err_msg)
+        raise ValueError(f"string_param '{_string_param_key}' -- _params values "
+            f"\n must contain 3 things --- first grid, shrink pass, the string "
+            f"'string'")
     # END validate container object ** * ** * ** * ** * ** * ** * ** *
 
     # validate first position ** * ** * ** * ** * ** * ** * ** * ** * **
     # (i) a list of str values
+
+    err_msg = (f"string_param '{_string_param_key}' -- first grid must be a "
+        f"\nlist-like holding the grid-search values; cannot be empty and must "
+        f"\ncontain the values (either strings or None-type) for its respective "
+        f"\narg/kwarg of the estimator")
 
     try:
         iter(_string_param_value[0])
     except:
         raise TypeError(err_msg)
 
-    if isinstance(_string_param_value[0], (set, dict, str)):
+    if isinstance(_string_param_value[0], (dict, str)):
         raise TypeError(err_msg)
 
     _string_param_value[0] = list(_string_param_value[0])
@@ -82,23 +98,43 @@ def _string_param_value(_string_param_key:str, _string_param_value) -> list:
         if not isinstance(item, (str, type(None))):
             raise TypeError(err_msg)
 
+    del err_msg
+
     # END validate first position ** * ** * ** * ** * ** * ** * ** * **
 
     # validate second position ** * ** * ** * ** * ** * ** * ** * ** * *
+
+    err_msg = (f"string_param '{_string_param_key}' -- 'shrink pass' must be "
+        f"\nNone or an integer > 1 indicating the pass on which to reduce a "
+        f"\nparam's grid to only a single value")
 
     if _string_param_value[1] is None:
         # A LARGE NUMBER OF PASSES THAT WILL NEVER BE REACHED
         _string_param_value[1] = 1_000_000
 
-    if 'INT' not in str(type(_string_param_value[1])).upper():
+    try:
+        float(_string_param_value[1])
+        if isinstance(_string_param_value[1], bool):
+            raise Exception
+    except:
         raise TypeError(err_msg)
 
-    if _string_param_value[1] < 1:
+    if int(_string_param_value[1]) != _string_param_value[1]:
+        raise TypeError(err_msg)
+
+    _string_param_value[1] = int(_string_param_value[1])
+
+    if _string_param_value[1] < 2:
         raise ValueError(err_msg)
+
+    del err_msg
 
     # END validate second position ** * ** * ** * ** * ** * ** * ** * **
 
     # validate third position ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    err_msg = (f"string_param '{_string_param_key}' -- final position in _params "
+           f"\nmust be a string-like that says the word 'string'")
 
     if not isinstance(_string_param_value[2], str):
         raise TypeError(err_msg)

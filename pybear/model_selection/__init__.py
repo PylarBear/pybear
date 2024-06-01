@@ -4,14 +4,15 @@
 # License: BSD 3 clause
 #
 
-from model_selection.autogridsearch.autogridsearch_wrapper import \
-    autogridsearch_wrapper
+from .autogridsearch.autogridsearch_wrapper import autogridsearch_wrapper
 
+from model_selection.GSTCV.GSTCV import GridSearchThresholdCV
 
 
 
 __all__ = [
-            'autogridsearch_wrapper'
+            'autogridsearch_wrapper',
+            'GridSearchThresholdCV'
 ]
 
 

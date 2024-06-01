@@ -5,17 +5,22 @@
 #
 
 
-from typing import Union
+from typing import Union, TypeAlias
 import numpy as np
 from ._int_linspace_gap_gt_1_soft import _int_linspace_gap_gt_1_soft
 
+# see _type_aliases; subtypes for DataType and GridType
+IntDataType: TypeAlias = int
+IntGridType: TypeAlias = \
+    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
+
 
 def _int_linspace_gap_gt_1_hard(
-        _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
+        _SINGLE_GRID: IntGridType,
         _posn: int,
-        _hard_min: int,
-        _hard_max: int
-    ) -> tuple[int, int]:
+        _hard_min: IntDataType,
+        _hard_max: IntDataType
+    ) -> tuple[IntDataType, IntDataType]:
 
 
     """

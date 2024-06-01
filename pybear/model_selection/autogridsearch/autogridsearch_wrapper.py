@@ -1,457 +1,850 @@
-import time
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
+from copy import deepcopy
+from typing import Union, TypeAlias, Iterable
 import numpy as np
-from dask import compute
 
 
-from ._autogridsearch_wrapper._validation._agscv_verbose import _agscv_verbose as val_agscv_verbose
-from ._autogridsearch_wrapper._validation._estimator import _estimator as val_estimator
-from ._autogridsearch_wrapper._validation._max_shifts import _max_shifts as val_max_shifts
-from ._autogridsearch_wrapper._validation._params import _params_validation as val_params
-from ._autogridsearch_wrapper._validation._total_passes import _total_passes as val_total_passes
-from ._autogridsearch_wrapper._validation._total_passes_is_hard import _total_passes_is_hard as val_total_passes_is_hard
+from ._autogridsearch_wrapper._type_aliases import ParamsType, BestParamsType
+
+from ._autogridsearch_wrapper._print_results import _print_results
+
+from ._autogridsearch_wrapper._validation._agscv_verbose import \
+    _agscv_verbose as val_agscv_verbose
+from ._autogridsearch_wrapper._validation._estimator import _estimator \
+    as val_estimator
+from ._autogridsearch_wrapper._validation._parent_gscv_kwargs import \
+    _val_parent_gscv_kwargs
+from ._autogridsearch_wrapper._validation._max_shifts import _max_shifts \
+    as val_max_shifts
+from ._autogridsearch_wrapper._validation._params__total_passes import \
+    _params__total_passes as val_params_total_passes
+from ._autogridsearch_wrapper._validation._total_passes_is_hard import \
+    _total_passes_is_hard as val_total_passes_is_hard
 from ._autogridsearch_wrapper._build_first_grid_from_params import _build
 from ._autogridsearch_wrapper._build_is_logspace import _build_is_logspace
 
+from ._autogridsearch_wrapper._get_next_param_grid._get_next_param_grid \
+    import _get_next_param_grid
+from ._autogridsearch_wrapper._demo._demo import _demo
+
+from sklearn.experimental import enable_halving_search_cv
+from sklearn.model_selection import (
+    GridSearchCV as SklearnGridSearchCV,
+    RandomizedSearchCV as SklearnRandomizedSearchCV,
+    HalvingGridSearchCV,
+    HalvingRandomSearchCV
+)
+
+from dask_ml.model_selection import (
+    GridSearchCV as DaskGridSearchCV,
+    RandomizedSearchCV as DaskRandomizedSearchCV,
+    IncrementalSearchCV,
+    HyperbandSearchCV,
+    SuccessiveHalvingSearchCV,
+    InverseDecaySearchCV
+)
+
+from ..GSTCV.GSTCV import GridSearchThresholdCV
 
 
 
 
-# POTENTIAL PARENTS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-#                                       # ARGS                          # KWARGS
-# sklearn.model_selection
-# --- GridSearchCV                estimator, param_grid              scoring, n_jobs, cv, refit, verbose, +others
-# --- RandomizedSearchCV          estimator, param_distributions     scoring, n_jobs, cv, refit, verbose, +others
-# --- HalvingGridSearchCV         estimator, param_grid              scoring, n_jobs, cv, refit, verbose, +others
-# --- HalvingRandomSearchCV       estimator, param_distributions     scoring, n_jobs, cv, refit, verbose, +others
 
-# dask_ml.model_selection
-# --- GridSearchCV                estimator, param_grid              scoring, n_jobs, cv, refit, +others
-# --- RandomizedSearchCV          estimator, param_distributions     scoring, n_jobs, cv, refit, +others
-# --- IncrementalSearchCV         estimator, parameters              scoring, +others
-# --- HyperbandSearchCV           estimator, parameters              scoring, +others
-# --- SuccessiveHalvingSearchCV   estimator, parameters              scoring, +others
-# --- InverseDecaySearchCV        estimator, parameters              scoring, +others
-
-# other
-# --- GridSearchCVThreshold       estimator, param_grid              scoring, n_jobs, cv, refit, verbose, +others
-# END POTENTIAL PARENTS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+GridSearchType: TypeAlias = Union[
+    type(SklearnGridSearchCV),
+    type(SklearnRandomizedSearchCV),
+    type(HalvingGridSearchCV),
+    type(HalvingRandomSearchCV),
+    type(DaskGridSearchCV),
+    type(DaskRandomizedSearchCV),
+    type(IncrementalSearchCV),
+    type(HyperbandSearchCV),
+    type(SuccessiveHalvingSearchCV),
+    type(InverseDecaySearchCV),
+    type(GridSearchThresholdCV)
+]
 
 
 
-def autogridsearch_wrapper(GridSearchParent):
+
+
+def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
+
+    """
+    Wrap a sci-kit learn or dask GridSearchCV class with a class that
+    overwrites the fit method of GridSearchCV. The supersedent fit
+    method automates multiple calls to the super fit() method using
+    progressively narrower search grids based on previous search results.
+    All sci-kit and dask GridSearch modules are supported. See the
+    sci-kit learn and dask documentation for more information about the
+    available GridSearchCV modules.
+
+    Parameters
+    ----------
+    GridSearchParent:
+        Sci-kit or Dask GridSearchCV class, not instance.
+
+    Return
+    ------
+    -
+        AutoGridSearch:
+            Wrapped GridSearchCV class. The original fit method is
+            replaced with a new fit method that can make multiple calls
+            to the original fit method with increasingly convergent
+            search grids.
+
+    See Also
+    --------
+    sklearn.model_selection.GridSearchCV
+    sklearn.model_selection.RandomizedSearchCV
+    dask_ml.model_selection.HalvingGridSearchCV
+    dask_ml.model_selection.HalvingRandomSearchCV
+    dask_ml.model_selection.GridSearchCV
+    dask_ml.model_selection.RandomizedSearchCV
+    dask_ml.model_selection.IncrementalSearchCV
+    dask_ml.model_selection.HyperbandSearchCV
+    dask_ml.model_selection.SuccessiveHalvingSearchCV
+    dask_ml.model_selection.InverseDecaySearchCV
+    pybear.model_selection.GridSearchThresholdCV
+
+
+    """
+
 
     class AutoGridSearch(GridSearchParent):
 
-        """
-        On first pass, get_next_param_grid returns the grids as instructed
-        in the 'numerical_params' and 'string_params' parameters. On
-        subsequent passes, get_next_param_grid returns new calculated
-        grids based on results within 'best_params_'
-
-        dask/sklearn.GridSearchCV.best_params_ RETURNS A DICT OF params
-        AND THEIR RESPECTIVE OPTIMAL SETTINGS. THE WORKING METHOD OF THIS
-        CLASS MUST TAKE IN THE best_params_ DICT AND RETURN ANOTHER DICT
-        WITH RANGES OF NEW GRID VALUES THAT LOOKS LIKE param_grid from
-        dask/sklearn GridSearchCV, e.g.:
-            {
-            'C': [0,5,10],
-            'l1_ratio': [0, 0.5, 1],
-            'solver': ['lbfgs', 'saga']
-            }
-
-        numerical_params (IF PASSED) MUST BE A DICT THAT LOOKS LIKE
-        {
-            'param1': [
-                        'logspace/linspace',
-                        start_value,  (must be an integer if logspace)
-                        end_value,  (must be an integer if logspace)
-                        number_of_points as (i) int >= 1 or (ii) list of
-                        ints >=1 with len==total_passes,
-                        'soft/hard/fixed_int/float' (start/end values can
-                         slide or are static for float/int, or grid does
-                         not change)
-                       ]
-            - or -
-            'param1': [
-                        first_grid as list of grid values for first search,
-                        number_of_points as (i) int >= 1 or (ii) list of
-                        ints >=1 with len==total_passes,
-                        'soft/hard/fixed_int/float' (start/end values
-                        can slide or are static for float/int, or grid
-                        does not change)
-                        ]
-        }
-
-        string_params (IF PASSED) MUST BE A DICT THAT LOOKS LIKE
-        {
-            'param1': [*list of estimator (kw)args]
-            or
-            'param1': [[*list of estimator (kw)args]]
-            or
-            'param1': [
-                       [*list of estimator (kw)args],
-                       pass_after_which_to_only_run_the_single_best_value
-                       ],
-        }
-        """
 
         def __init__(
-                        self,
-                        estimator,
-                        # PIZZA GridSearchCV CAN TAKE param_grid as {} or [{},{},..]... WHAT TO DO :(
-                        numerical_params:dict=None,
-                        string_params:dict=None,
+            self,
+            estimator,
+            params: ParamsType,
+            *,
+            total_passes: int=5,
+            total_passes_is_hard: bool=False,
+            max_shifts: Union[None, int]=None,
+            agscv_verbose: bool=False,
+            **parent_gscv_kwargs
+        ) -> None:
 
-                        # PIZZA THINK ABOUT IF HARD OR FIXED INTEGERS CAN EVER BE NEGATIVE (THEY BYPASS SHIFT AND GO STR8 TO DIGGER)
-                        # AKA CAN DIGGER HANDLE NEGATIVE INTEGERS
-                        # PIZZA THINK ABOUT IF HARD OR FIXED FLOATS CAN EVER BE NEGATIVE (THEY BYPASS SHIFT AND GO STR8 TO DIGGER)
-                        # AKA CAN DIGGER HANDLE NEGATIVE FLOATS
+            """
+            Run multiple passes of GridSearchCV with progressively narrower
+            search spaces to find the most precise estimate of the best
+            value for each hyperparameter. 'Best' values are those values
+            within the given search grid that minimize loss or maximize
+            score for the particular estimator and data set.
 
-                        total_passes:int=5,
-                        total_passes_is_hard:bool=False,
-                        max_shifts:int=10,
-                        agscv_verbose:bool=0,
+            Sklearn / dask GridSearchCV.best_params_ is a dictionary
+            with parameter names as keys and respective best values
+            as values. The fit() method of this wrapper class uses the
+            best_params_ dictionary to calculate refined grids for the
+            next search round and passes the grids to another dictionary
+            that satisfies the 'param_grid' argument of GridSearchCV (or
+            a different argument such as 'parameters' for other GridSearch
+            modules.)
 
-                        **parent_gscv_kwargs
-            ):
+            On the first pass, search grids are constructed as instructed
+            in the 'params' argument. On subsequent passes, calculated
+            grids are constructed based on:
+                • the preceding search grid,
+                • the results within 'best_params_',
+                • the parameters' datatypes as specified in 'params', and
+                • the number of points as specified in 'params'.
 
-            # init VALIDATION #################################################
+            The new refined param_grid is passed to another round of
+            GridSearchCV, best_params_ is retrieved, and another
+            param_grid is created. This process is repeated at least
+            total_passes number of times, with each successive pass
+            returning increasingly precise estimates of the true best
+            hyperparameter values for the given estimator, data set, and
+            restrictions imposed in the params parameter.
 
-            _estimator = val_estimator(_estimator)
+            Example param_grid:
+                {
+                'C': [0,5,10],
+                'l1_ratio': [0, 0.5, 1],
+                'solver': ['lbfgs', 'saga']
+                }
 
-            _params = val_params(_params)
+            Example best_params:
+                {
+                'C': 10,
+                'l1_ratio': 0.5,
+                'solver': 'lbfgs']
+                }
 
-            _total_passes = val_total_passes(_total_passes)
+            AutoGridSearch leaves the API of the parent GridSearchCV
+            module intact, and all of the parent module's methods and
+            attributes are accessible via the AutoGridSearch instance.
+            This, however, precludes AutoGridSearch from using the same
+            API itself (doing so would overwrite the underlying's) so
+            methods like set_params, get_params, etc., access the parent
+            GridSearchCV and not the child AutoGridSearch wrapper. The
+            attributes of an AutoGridSearch instance (max_shifts,
+            total_passes, etc.) can be accessed and set directly:
 
-            _total_passes_is_hard = val_total_passes_is_hard(
-                _total_passes_is_hard)
+            >>> from pybear.model_selection import autogridsearch_wrapper
+            >>> from sklearn.model_selection import GridSearchCV
+            >>> from sklearn.linear_model import LogisticRegressions
+            >>> AutoGSCV = autogridsearch_wrapper(GridSearchCV)
+            >>> estimator = LogisticRegression()
+            >>> params = {'C': [[1e3, 1e4, 1e5], [3, 11, 11], 'soft_float']}
+            >>> agscv = AutoGSCV(estimator, params, total_passes=3,
+            ...     total_passes_is_hard=True)
+            >>> agscv.total_passes_is_hard
+            True
+            >>> agscv.total_passes_is_hard = False
+            >>> agscv.total_passes_is_hard
+            False
 
-            _max_shifts = val_max_shifts(_max_shifts)
+            When possible, if the parent GridSearch accepts a 'refit'
+            kwarg and that value is not False, refit is deferred until
+            the final pass to save time. For example, when the parent is
+            a sci-kit GridSearch and refit is not False, AutoGridSearch
+            disables refit until completion of the last pass. In this way,
+            AutoGridSearch avoids unnecessary refits during intermediate
+            passes and only performs the refit on the final best values.
+            The dask GridSearch modules that accept a refit argument
+            require that refit be set to True, so in that case every
+            pass of AutoGridSearch must perform the refit.
 
-            _agscv_verbose = val_agscv_verbose(_agscv_verbose)
 
-            # END init VALIDATION #############################################
+            Terminology
+            -----------
+            Definitions for terms found in the autogridsearch docs.
 
-            # super() instantiated in init() for access to XGridSearchCV's pre-run attrs and methods
-            super().__init__(estimator, {}, **parent_gscv_kwargs)
+            'Universal bound' - A logical bound for search spaces that is
+            enforced thoughout the AutoGridSearch module. For soft and
+            hard integers, the universal lower bound is 1; zero and
+            negative numbers can never be included in a soft/hard integer
+            search space. For soft and hard floats, the universal lower
+            bound is zero; negative numbers can never be included in a
+            soft/hard float search space. This bound has implications on
+            how to perform a search over a boolean space; more on that
+            elsewhere in the docs. AutoGridSearch will terminate if
+            instructions are passed to the params argument that violate
+            the universal bounds. There is no lower or upper universal
+            bound for strings. There is no upper universal bound for
+            integers or floats. There is no lower or upper universal
+            bound for fixed search spaces. --- PIZZA verify this
+
+            'fixed' parameter - A parameter whose search space is static.
+            A 'string' parameter is a form of fixed parameter. The search
+            space will not be shifted or drilled. The search grid
+            provided at the start is the only search grid for every pass
+            with one exception. The search space can only be changed by
+            specifying a pass number on which to shrink the space to a
+            single value thereafter (the best value from the preceding
+            round.) Consider a search space over depth of a decision tree.
+            A search space might be [3, 4, 5], where no other values are
+            allowed to be searched. This would be a 'fixed_integer'
+            search space.
+
+            'hard' parameter - A parameter whose search is bounded to a
+            contiguous subset of real numbers, observant of the universal
+            hard bounds. The space will be drilled but cannot be shifted.
+            The search space can be shrunk to a single value (i.e., the
+            best value from the preceding round is the only value searched
+            for all remaining rounds) by setting the 'points' for the
+            appropriate round(s) to 1. Consider searching over l1_ratio
+            for a sci-kit learn LogisticRegression classifier. Any real
+            number in the interval [0, 1] is allowed. This is a
+            'hard_float' search space.
+
+            'soft' parameter - A parameter whose search space can be
+            shifted and drilled, and is only bounded by the universal
+            bounds. The search space can be shrunk to a single value
+            (i.e., the best value from the preceding round is the only
+            value searched for all remaining rounds) by setting the
+            'points' for the appropriate round(s) to 1. Consider
+            searching over regularization constant 'alphas' in a sci-kit
+            learn RidgeCV estimator. Alpha can be any non-negative real
+            number. A starting search space might be [1000, 2000, 3000].
+            This a 'soft_float' search space.
+
+            'shrink pass' -- pizza finish
+
+            shift - The act of incrementing or decrementing all the values
+            in a search grid by a fixed amount if GridSearchCV returns a
+            best value that is on one of the edges of a given grid. This
+            is best explained with an example. Consider a soft integer
+            search space: grid = [20, 21, 22, 23, 24]. If the best value
+            returned by GridsearchCV is 20, then a 'left-shift' is
+            affected by decrementing every value in the grid by
+            max(grid) - grid[1] -> 3. The search grid for the next round
+            is [17, 18, 19, 20, 21]. Similarly, if the best value
+            returned by GridsearchCV is 24, then a 'right-shift' is
+            affected by incrementing every value in the grid by
+            grid[-2] - min(grid) -> 3. The search grid for the next round
+            is [23, 24, 25, 26, 27]. String, fixed, and hard spaces are
+            not shifted. If passed any 'soft' spaces, autogridsearch
+            will perform shifting passes until 1) it reaches a pass in
+            which all soft parameters' best values simultaneously fall
+            off the edges of their search grids, 2) 'max_shifts' is
+            reached, or 3) total_passes_is_hard is True and total_passes
+            is reached.
+
+            drill - The act of narrowing a search space based on the best
+            value returned from the last round of GridSearchCV and the
+            grid used for that search. Not applicable to 'fixed' or
+            'string' parameters. Briefly and simplistically, the next
+            search grid is a 'zoom-in' on the last round's (sorted) grid
+            in the region created by the search values that are
+            adjacent to the best value. For float search spaces, all
+            intervals are infinitely divisible and will be divided
+            according to the number of points provided in 'params'. For
+            integer search spaces, when the limit of unit intervals is
+            approached, the search space is divided with unit intervals
+            and the number of points to search is adjusted accordingly,
+            regardless of the number of search points stated in params,
+            and params is overwritten with the new number of points.
+
+            linspace - a search space with intervals that are equal in
+            linear space, e.g. [1,2,3]. See numpy.linspace.
+
+            logspace - a search space whose log10 intervals are equal,
+            e.g. [1, 10, 100]. See numpy.logspace.
+
+            Restrictions
+            ------------
+            Integer search spaces must be greater than or equal to 1.
+            Float search spaces must be greater than or equal to 0.
+            'Soft' search grids must have at least 3 points.
+            Logarithmic search intervals must be base 10 and searched
+            values must be integers.
+
+            Boolean Use Case
+            ----------------
+            To accomplish a search over boolean values, use 'fixed_float'
+            and provide the search grid as [False, True] or [0, 1].
+            This cannot be done with 'fixed_integer', as zero is not allowed
+            in AutoGridSearch integer space.
+
+            Params Argument
+            ---------------
+            'params' must be a single dictionary. AutoGridSearch cannot
+            accomodate multiple params entries in the same way that
+            sci-kit learn and dask GridSearchCV can accomodate multiple
+            param_grids.
+
+            The required argument 'params' must be of the following form:
+            dict(
+                'arg or kwarg name as string': list-type(...),
+                'another arg or kwarg name as string': list-type(...),
+                ...
+            )
+
+            The list-type field differs in construction for string and
+            numerical parameters, and numerical parameters have two
+            different variants that are both acceptable.
+
+            ** * ** * **
+
+            For string parameters, the list field is constructed as:
+                [
+                first search grid: list-like,
+                shrink pass: int | None,
+                'string': str
+                ]
+            E.g.:
+                [['a', 'b', 'c'], 3, 'string']
+
+            The list-like in the first position is the grid that will be
+            used for all grid searches for this parameter, with the
+            exception described below.
+
+            The middle position ('shrink pass') must be an integer
+            greater than one or None; if None, autogridsearch sets it
+            to an arbitrary large integer. This value indicates the
+            pass number on which to only select the single best value
+            for that parameter out of best_params_ and proceed with grid
+            searches using only that single value. Consider the following
+            instructions [['a', 'b', 'c'], 4, 'string'], with
+            total_passes = 5 and a true best value of 'c' that is
+            correctly discovered by GridSearchCV.
+            This will generate the following search grids:
+            pass 1: ['a', 'b', 'c']; best value = 'c'
+            pass 2: ['a', 'b', 'c']; best value = 'c'
+            pass 3: ['a', 'b', 'c']; best value = 'c'
+            pass 4: ['c']
+            pass 5: ['c']
+            This reduces the total searching time by minimizing the
+            number of redundant searches.
+
+            The text field 'string' is required for all string types,
+            as it informs AutoGridSearch to handle the instructions
+            and grids as string parameters.
+
+            ** * ** * **
+
+            ** * ** * **
+
+            For numerical parameters, the list field can be constructed
+            in two ways:
+
+            1)
+                [
+                first search grid: list-like,
+                number of points for each pass: int or list-like of ints,
+                search type: str
+                ]
+
+                E.g. for 4 passes:
+                    [[1, 2, 3], 3, 'fixed_integer']
+                    or
+                    [[1, 2, 3], [3, 3, 3, 3], 'fixed_integer']
+
+                The list-like in the first position is the grid that will
+                be used as the first search grid for this parameter.
+                Because this is a fixed integer, this grid will be used
+                for all searches, with one exception, explained below.
+
+            2)
+                [
+                'logspace' or 'linspace': str,
+                start_value: must be an integer if integer type or logspace,
+                end_value: must be an integer if integer type or logspace,
+                number of points for each pass: int or list-like of ints,
+                search type: str
+                ]
+
+                E.g. for 4 passes:
+                    ['linspace', 1, 5, 5, 'fixed_integer']
+                    or
+                    ['logspace', 0, 3, [4, 6, 6, 6], 'soft_float']
+
+                    Effectively, this is the same as constructing the
+                    param instructions in this way:
+                    [numpy.linspace(1, 5, 5), 5, 'fixed_integer']
+                    or
+                    [numpy.logspace(0, 3, 4), [4, 6, 6, 6], 'soft_float']
+
+                'logspace' or 'linspace' indicates the type of interval
+                in the first grid
+                start_value is the lowest value in the first grid
+                end_value is the largest value in the first grid
+
+            The second-to-last position of both constructs, 'number of
+            points for each pass' must be an integer greater than zero
+            or a list-type of such integers. If a single integer, this
+            number will be the number of points in each grid for all
+            searches after the first pass. If a list-type of integers,
+            the length of the list-type must equal total_passes. The
+            number of points for the first pass, although required to
+            fulfill the length requirement, is effectively ignored and
+            overwritten by the actual length of the first grid. Each
+            subsequent value in the list-like dictates the number of
+            points to put in the new grid for its respective pass. If any
+            value in the list-like is entered as 1, all subsequent values
+            must also be 1. For fixed spaces, the only acceptable entries
+            are 1 or the length of the first (and only) grid. For integer
+            spaces, the entered points are overwritten as necessary to
+            maintain an integer space.
+
+            If number of points is ever set to 1, the best value from the
+            previous pass is used as the single search value in all
+            subsequent search grids. This reduces the total searching
+            time by minimizing the number of redundant searches.
+
+            The last field for both constructs, 'search type', is required
+            for all types, as it informs AutoGridSearch how to handle the
+            instructions and grids. There are six allowed entries:
+                'fixed_integer' - static grid of integers
+                'fixed_float' - static grid of floats
+                'hard_integer' - integer search space where the minimum
+                    and maximum values of the first grid serve as bounds
+                    for all searches
+                'hard_float' - continuous search space where the minimum
+                    and maximum values of the first grid serve as bounds
+                    for all searches
+                'soft_integer' - integer search space only bounded by the
+                    universal minimum for integers
+                'soft_float' - continous search space only bounded by the
+                    universal minimum for floats
+
+            ** * ** * **
+
+            All together, a valid params argument for total_passes == 3
+            might look like:
+            {
+                'solver': [['lbfgs', 'saga'], 2, 'string'],
+                'max_depth': [[1, 2, 3, 4], [4, 4, 1], 'fixed_integer'],
+                'C': [[1e1, 1e2, 1e3], [3, 11, 11], 'soft_float],
+                'n_estimators': [[8, 16, 32, 64], [4, 8, 4], 'soft_integer'],
+                'tol': ['logspace', 1e-6, 1e-1, [6, 6, 6], 'hard_float']
+            }
+
+
+            24_05_27 pizza does this say anything about logspace regap or
+            logspace transition to linspace?
+
+
+            Parameters
+            ----------
+            estimator:
+                any estimator that follows the scikit-learn / dask
+                fit / predict API. Includes scikit-learn, dask, lightGBM,
+                and xgboost estimators.
+            params:
+                pizza put something here so hover-over has something
+                see Params Argument
+            total_passes:
+                int, default 5 - the number of grid searches to perform.
+                The actual number of passes run can be different from
+                this number based on the setting for thetotal_passes_is_hard
+                argument. If total_passes_is_hard is True, then the
+                maximum number of total passes will always be the value
+                assigned to total_passes. If total_passes_is_hard is
+                False, a round that performs a 'shift' operation will
+                increment the total number of passes, essentially causing
+                shift passes to not count toward the total number of
+                passes. Read elsewhere in the docs for more information
+                about 'shifting' and 'drilling'.
+            total_passes_is_hard:
+                bool, default False - If True, total_passes is the exact
+                number of grid searches that will be performed. If False,
+                rounds in which a 'shift' takes place will increment
+                the total passes, essentially causing 'shift' passes to
+                be ignored against the total count of grid searches.
+            max_shifts:
+                [None, int], default None - The maximum number of
+                'shifting' searches allowed. If None, there is no limit
+                to the number of shifts that AutoGridSearch will perform.
+            agscv_verbose:
+                bool, default False - display status of AutoGridSearch
+                and other helpful information during the grid searches,
+                in addition to any verbosity displayed by the underlying
+                GridsearchCV module.
+
+            Attributes
+            ----------
+            estimator:
+                estimator whose hyperparameters are to be optimized
+            params:
+                instructions for building param_grids
+            total_passes:
+                Minimum number of grid search passes to perform
+            total_passes_is_hard:
+                If True, total_passes is the actual number of grid
+                searches performed. If False, total_passes is the minimum
+                number of grid searches performed.
+            max_shifts:
+                The maximum allowed shifting passes to perform.
+            agscv_verbose:
+                =False,
+            GRIDS_:
+                Dictionary of param_grids run on each pass. As
+                AutoGridSearch builds param_grids for each pass, they are
+                stored in this attribute for later analysis. The keys of
+                the dictionary are the zero-indexed pass number, i.e.,
+                external pass number 2 is key 1 in this dictionary.
+            RESULTS_:
+                Dictionary of best_params_ for each pass. The keys of the
+                dictionary are the zero-indexed pass number, i.e.,
+                external pass number 2 is key 1 in this dictionary. The
+                final key holds the most precise estimates of the best
+                hyperparameters for the estimator.
+
+            Examples
+            --------
+            >>> from pybear.model_selection import autogridsearch_wrapper
+            >>> from sklearn.model_selection import GridSearchCV
+            >>> from sklearn.linear_model import LogisticRegression
+            >>> from sklearn.datasets import make_classification
+            >>> AutoGridSearchCV = autogridsearch_wrapper(GridSearchCV)
+            >>> estimator = LogisticRegression(
+            ...     penalty="l2",
+            ...     dual=False,
+            ...     tol=1e-4,
+            ...     C=1.0,
+            ...     fit_intercept=True,
+            ...     intercept_scaling=1,
+            ...     class_weight=None,
+            ...     random_state=None,
+            ...     solver="lbfgs",
+            ...     max_iter=100,
+            ...     multi_class="auto",
+            ...     verbose=0,
+            ...     warm_start=False,
+            ...     n_jobs=None,
+            ...     l1_ratio=None,
+            ... )
+            >>> params = {
+            ...     'C': [5_000, 10_000, 15_000],
+            ...     'fit_intercept': [True, False],
+            ...     'solver': ['lbfgs', 'saga'],
+            ... }
+            >>> gscv = AutoGridSearchCV(
+            ...     estimator,
+            ...     params,
+            ...     total_passes=4,
+            ...     total_passes_is_hard=True,
+            ...     max_shifts=3,
+            ...     agscv_verbose=False,
+            ... )
+            >>> X, y = make_classification(n_samples=10_000, n_features=100)
+            >>> gscv.fit(X, y)
+
+
+            """
+
+            self.estimator = estimator
+            self.params = params
+            self.total_passes = total_passes
+            self.total_passes_is_hard = total_passes_is_hard
+            self.max_shifts = max_shifts
+            self.agscv_verbose = agscv_verbose
+
+            self._validation()
+
+            _val_parent_gscv_kwargs(
+                self.estimator, GridSearchParent, parent_gscv_kwargs
+            )
+
+            # super() instantiated in init() for access to GridSearchCV's
+            # pre-run attrs and methods
+            super().__init__(self.estimator, {}, **parent_gscv_kwargs)
 
             # THIS MUST STAY HERE FOR demo TO WORK
             self.reset()
 
-        # END __init__() ######################################################
-        #######################################################################
-        #######################################################################
+        # END __init__() ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-        # reset() #############################################################
-        def reset(self):
+        # _validation() ################################################
+
+        def _validation(self):
 
             """
-            :return: <nothing>
+            Validate the args and kwargs of the AutoGridSearch wrapper.
+            Validation of the args and kwargs for the underlying GridSearch
+            is handled by itself.
 
-            Restore AutoGridSearch to pre-run state. Runs at the end of init and can be called as a method. Objects populated
+            """
+
+            self.params, self.total_passes = \
+                val_params_total_passes(self.params, self.total_passes)
+
+            val_estimator(self.params, self.estimator)
+
+            self.total_passes_is_hard = \
+                val_total_passes_is_hard(self.total_passes_is_hard)
+
+            self.max_shifts = val_max_shifts(self.max_shifts)
+
+            self.agscv_verbose = val_agscv_verbose(self.agscv_verbose)
+
+        # END _validation() ############################################
+
+
+        # reset() ######################################################
+        def reset(self) -> None:
+
+            """
+            Restore AutoGridSearch to pre-run state. Runs at the end of
+            init and can be called as a method. Objects populated
             while AutoGridSearch runs are reset to pre-run condition.
-            """
 
-            self.shift_ctr = 0
-
-            # CREATE TWO DICTIONARIES THAT HOLD INFORMATION ABOUT STARTING/CALCULATED GRIDS AND best_params_
-            # ASSIGNMENTS TO self.GRIDS WILL BE MADE IN get_next_param_grid()
-            self.GRIDS = dict()
-            self.RESULTS = dict()
-            # best_params_ WILL BE ASSIGNED TO THE pass/idx IN self.RESULTS WITHOUT MODIFICATION
-
-
-            # IS_LOGSPACE IS DYNAMIC, WILL CHANGE WHEN A PARAM'S SEARCH GRID INTERVAL IS
-            # UNITIZED OR TRANSITIONS FROM LOGSPACE TO LINSPACE
-            self.IS_LOGSPACE = _build_is_logspace(self._params)
-
-
-
-            # ONLY POPULATE WITH numerical_params WITH "soft" BOUNDARY AND START AS FALSE
-            self.PARAM_HAS_LANDED_INSIDE_THE_EDGES = \
-                {hprmtr: False for hprmtr in self._params if 'soft' in self._params[hprmtr][-1]}
-
-        # END reset() #########################################################
-
-
-        #######################################################################
-        # FUNCTIONAL METHOD ###################################################
-        def get_next_param_grid(self, _pass, best_params_from_previous_pass):
+            Return
+            ------
+            None
 
 
             """
-            Core functional method. On first pass (pass zero), populate
-            GRIDS with the search grids as specified in :param: params.
-            For subsequent passes, generate new grids based on the
-            previous grid (as held in GRIDS) and its associated
-            best_params_ returned from GridSearchCV.
+
+            self._shift_ctr = 0
+
+            # Create 2 dictionaries that hold information about starting /
+            # calculated grids and best_params_
+            # Assignments to self.GRIDS_ will be made in _get_next_param_grid()
+            self.GRIDS_ = dict()
+            self.RESULTS_ = dict()
+            # best_params_ WILL BE ASSIGNED TO THE pass/idx IN
+            # self.RESULTS_ WITHOUT MODIFICATION
+
+
+            # IS_LOGSPACE IS DYNAMIC, WILL CHANGE WHEN A PARAM'S SEARCH
+            # GRID INTERVAL IS UNITIZED OR TRANSITIONS FROM LOGSPACE TO
+            # LINSPACE
+            self._IS_LOGSPACE = _build_is_logspace(self.params)
+
+
+
+            # ONLY POPULATE WITH numerical_params WITH "soft" BOUNDARY
+            # AND START AS FALSE
+            self._PHLITE = {}
+            for hprmtr in self.params:
+                if 'soft' in self.params[hprmtr][-1]:
+                    self._PHLITE[hprmtr] = False
+
+        # END reset() ##################################################
+
+
+        def _get_next_param_grid(
+            self,
+            _pass: int,
+            _best_params_from_previous_pass: BestParamsType
+            ) -> None:
+
+            """
+            Core functional method. Bypassed on first pass (pass zero
+            internally, pass 1 externally). Otherwise, populate GRIDS_
+            with search grids for each parameter based on the previous
+            round's best values returned from GridSearchCV and the
+            instructions specified in :param: params.
 
             Parameters
             ----------
             _pass:
-                int - iteration counter
-            :param
-                _best_params_from_previous_pass: dict - best_params_
-                returned by Gridsearch for the previous pass
+                int - internal iteration counter
+            _best_params_from_previous_pass:
+                dict[str, [int, float, str]] - best_params_ returned by
+                Gridsearch for the previous pass
 
             Return
             ------
-            pizza_grid:
-                dict of grids to be passed to GridSearchCV for the next
-                pass, must be in param_grid format
+            None
 
             """
 
-            # PIZZA --- RETURN FROM FUNCTION _get_next_param_grid
-            _GRIDS, _params = _get_next_param_grid(
-
-            )
-
-
-        # END FUNCTIONAL METHOD ########################################################################################################
-        ################################################################################################################################
-
-
-        def demo(self, true_best_params=None):
-
-            """
-            :param true_best_params: dict - dict of user-generated true best parameters for the given numerical / string params.
-                                     If not passed, _random_ best params are generated.
-            :return: <nothing>
-
-            Visually inspect the generated grids and performance of AutoGridSearch with the user-given numerical_params,
-            string_params, and total_passes in converging to the targets in true_best_params.
-            """
-
-            demo_cls = AutoGridSearch(
-                                        'dummy_estimator',
-                                        numerical_params=self.numerical_params,
-                                        string_params=self.string_params,
-                                        total_passes= self.total_passes,
-                                        total_passes_is_hard=self.total_passes_is_hard,
-                                        max_shifts=self.max_shifts,
-            )
-
-            # ##############################################################################################################
-            # STUFF FOR MIMICKING GridSearchCV OUTPUT ######################################################################
-            if true_best_params is None:
-                true_best_params = dict()
-                for _param in demo_cls.numerical_params | demo_cls.string_params:
-                    if _param in demo_cls.numerical_params:
-                        __ = demo_cls.numerical_params[_param]
-                        _min, _max = min(__[0]), max(__[0])
-                        _gap = _max - _min
-                        if __[-1]=='hard_float':
-                            true_best_params[_param] = np.random.uniform(_min, _max, size=(1,))[0]
-                        elif __[-1]=='hard_integer':
-                            true_best_params[_param] = np.random.choice(
-                                                                        np.arange(_min, _max+1, 1, dtype=np.int32),
-                                                                        1,
-                                                                        replace=False
-                            )[0]
-                        elif __[-1]=='fixed_float':
-                            true_best_params[_param] = np.random.choice(__[0], 1, replace=False)[0]
-                        elif __[-1]=='fixed_integer':
-                            true_best_params[_param] = np.random.choice(__[0], 1, replace=False)[0]
-                        elif __[-1]=='soft_float':
-                            true_best_params[_param] = np.random.uniform(max(_min-_gap, 0), _max+_gap, size=(1,))[0]
-                        elif __[-1].lower()=='soft_integer':
-                            true_best_params[_param] = \
-                                np.random.choice(
-                                                 np.linspace(max(_min-_gap, 1),
-                                                             _max+_gap,
-                                                             int(_max+_gap-max(_min-_gap, 1)+1)
-                                                             ).astype(int),
-                                                 1,
-                                                 replace=False
-                            )[0]
-
-                        del __, _min, _max, _gap
-
-                    elif _param in demo_cls.string_params:
-                        true_best_params[_param] = np.random.choice(demo_cls.string_params[_param][0], 1, replace=False)[0]
-
-
-            # VALIDATE true_best_params ################################################################################
-            str_exc = Exception(f"{_param}: true_best_params string params must be a single string that is in allowed values")
-            for _param in demo_cls.numerical_params | demo_cls.string_params:
-                _best = true_best_params[_param]
-                if _param not in true_best_params:
-                    raise Exception(f"{_param}: true_best_params must contain all the params that are in numerical & string params")
-
-                if _param in demo_cls.numerical_params:
-                    _npr = demo_cls.numerical_params[_param]
-                    if True not in [x in str(type(_best)).lower() for x in ['int','float']]:
-                        raise Exception(f"{_param}: true_best_params num params must be a single number")
-                    if demo_cls.IS_LOGSPACE[_param] and _best < 0:
-                        raise Exception(f"{_param}: true_best_param must be > 0 for logspace search")
-                    if True in [x in _npr[-1] for x in ['hard', 'fixed']]:
-                        if not _best >= min(_npr[0]) and not _best <= max(_npr[0]):
-                            raise Exception(f"{_param}: 'hard' and 'fixed' numerical true_best_param must be in range of given allowed values")
-                    else:  # IS SOFT NUMERIC
-                        if 'integer' in _npr[-1] and _best < 1: raise Exception(f"{_param}: soft integer best value must be >= 1")
-                        elif 'float' in _npr[-1] and _best < 0: raise Exception(f"{_param}: soft float best value must be >= 0")
-
-                    del _npr
-                elif _param in demo_cls.string_params:
-                    if not 'str' in str(type(_best)).lower(): raise str_exc
-                    if not _best in demo_cls.string_params[_param][0]: raise str_exc
-
-            del str_exc, _best
-            # END VALIDATE true_best_params ############################################################################
-
-            # FXN TO DISPLAY THE GENERATED true_best_params ####################################################################
-            print(f'\nGenerated true best params are:')
-            def display_true_best_params(true_best_params):
-                NUM_TYPES, STRING_TYPES = [], []
-                for _ in true_best_params:
-                    if _ in demo_cls.numerical_params: NUM_TYPES.append(_)
-                    elif _ in demo_cls.string_params: STRING_TYPES.append(_)
-                print(f'\nNumerical hyperparameters:')
-                for _ in NUM_TYPES:
-                    print(f'{_}:'.ljust(20) + f'{true_best_params[_]}')
-                print(f'\nString hyperparameters:')
-                for _ in STRING_TYPES:
-                    print(f'{_}:'.ljust(20) + f'{true_best_params[_]}')
-                print()
-                del NUM_TYPES, STRING_TYPES
-
-            display_true_best_params(true_best_params)
-            # END FXN TO DISPLAY THE GENERATED true_best_params ###################################################################
-            # END STUFF FOR MIMICKING GridSearchCV OUTPUT ##################################################################
-            # ##############################################################################################################
-
-            # MIMIC fit() FLOW AND OUTPUT
-            # fit():
-            #             1) run passes of GridSearchCV
-            #               - 1a) get_next_param_grid()
-            #               - 1b) fit GridSearchCV with next_param_grid
-            #               - 1c) update self.RESULTS
-            #             2) return best_estimator_
-
-            # 1) run passes of GridSearchCV
-            best_params = None
-            _pass = 0
-            while _pass < demo_cls.total_passes:
-                print(f"\nStart pass {_pass+1} ###############################################################################")
-                # 1a) get_next_param_grid()
-                print(f'Building param grid... ', end='')
-                demo_cls.get_next_param_grid(_pass, best_params_from_previous_pass=best_params)
-                print(f'Done.')
-
-                # print(f"\nPass {_pass+1}: grid coming out of get_next_param_grid going into fake GridSearchCV")
-
-                def padder(words):
-                    try: return str(words)[:13].ljust(15)
-                    except: return 'NA'
-
-                print(padder('param'), padder('type'), padder('true_best'), padder('previous_best'), padder('new_points'), padder('next_grid'))
-                for _ in demo_cls.GRIDS[_pass]:
-                    if _pass != 0: _best_params_ = demo_cls.RESULTS[_pass-1][_]
-                    else: _best_params_ = 'NA'
-                    if _ in self.numerical_params: _type_ = demo_cls.numerical_params[_][-1]
-                    else: _type_ = 'string'
-                    print(
-                            padder(_),
-                            padder(_type_),
-                            padder(true_best_params[_]),
-                            padder(_best_params_),
-                            padder(len(demo_cls.GRIDS[_pass][_])),
-                            f'{demo_cls.GRIDS[_pass][_]}'
-                    )
-                del padder, _best_params_, _type_
-
-                # 1b) fit GridSearchCV with next_param_grid
-                # SIMULATE WORK BY dask/sklearnGridSearchCV ON AN ESTIMATOR ##################################################
-                combinations = np.prod(list(map(len, demo_cls.GRIDS[_pass].values())))
-                print(f'\nThere are {combinations:,.0f} combinations to run')
-                print(f"Simulating dask/sklearn GridSearchCV running on pass {_pass+1}...")
-                time.sleep(5)  #(combinations)
-                del combinations
-
-                # CALCULATE WHAT THE best_params_ SHOULD BE BASED ON THE true_best_params. USE MIN LSQ FOR NUMERICAL,
-                # FOR A STR PARAM, MAKE IT 10% CHANCE THAT THE RETURNED "best" IS A NON-BEST OPTION
-                best_params = dict()
-                for _param in demo_cls.GRIDS[_pass]:
-                    __ = np.array(demo_cls.GRIDS[_pass][_param])
-                    if _param in demo_cls.numerical_params:
-                        if len(__)==1: best_params[_param] = __[0]
-                        else:
-                            LSQ = np.power(__ - true_best_params[_param], 2, dtype=np.float64)
-                            best_params[_param] = __[LSQ==np.min(LSQ)][0]
-                            del LSQ
-                    elif _param in demo_cls.string_params:
-                        if len(__)==1: best_params[_param] = __[0]
-                        else:
-                            best_params[_param] = np.random.choice(
-                                    __,
-                                    1,
-                                    False,
-                                    p=[0.9 if i == true_best_params[_param] else (1 - 0.9) / (len(__) - 1) for i in __]
-                            )[0]
-
-                    del __
-                # END SIMULATE WORK BY dask/sklearnGridSearchCV ON AN ESTIMATOR ##############################################
-
-                # 1c) update self.RESULTS
-                demo_cls.RESULTS[_pass] = best_params
-                print(f"\nEnd pass {_pass + 1} ###############################################################################")
-
-                _pass += 1
-
-
-            print(f'\nRESULTS:')
-            for _pass in demo_cls.RESULTS:
-                print(f'\nPass {_pass + 1} results:')
-                for _param in demo_cls.RESULTS[_pass]:
-                    print(
-                            f' ' * 5 + f'{_param}:'.ljust(15) +
-                            f'{demo_cls.GRIDS[_pass][_param]}'.ljust(90) +
-                            f'Result = {demo_cls.RESULTS[_pass][_param]}'
+            self.GRIDS_, self.params, self._PHLITE, self._IS_LOGSPACE, \
+                self._shift_ctr, self.total_passes = \
+                    _get_next_param_grid(
+                        self.GRIDS_,
+                        self.params,
+                        self._PHLITE,
+                        self._IS_LOGSPACE,
+                        _best_params_from_previous_pass,
+                        _pass,
+                        self.total_passes,
+                        self.total_passes_is_hard,
+                        self._shift_ctr,
+                        self.max_shifts
                     )
 
 
-            # DISPLAY THE GENERATED true_best_params AGAIN ####################################################################
-            display_true_best_params(true_best_params)
-            # END DISPLAY THE GENERATED true_best_params AGAIN #################################################################
-
-            # 2) return best_estimator_ --- DONT HAVE AN ESTIMATOR TO RETURN
-
-            print(f"demo fit successfully completed {demo_cls.total_passes} pass(es) with {demo_cls.shift_ctr} shift pass(es).")
-
-            del demo_cls, best_params, true_best_params, display_true_best_params
-
-
-        def print_results(self):
+        def demo(
+                self,
+                *,
+                true_best_params: BestParamsType=None,
+                mock_gscv_pause_time: Union[int, float]=5
+            ):
 
             """
-            Print all results to the screen. Called by demo() and can be run as a method.
-            :return: <nothing>
+            Simulated trials of the AutoGridSearch instance. Visually
+            inspect the generated grids and performance of the AutoGridSearch
+            instance with its respective inputs in converging to the mock
+            targets provided in true_best_params.
+
+            Pizza add stuff, especially stuff about how to use.
+
+            Parameters
+            ----------
+            true_best_params:
+                dict[str, [int, float, str]] - dict of user-generated
+                true best values for the parameters given in params.
+                If not passed, random true best values are generated
+                based on the first round grids made from the instructions
+                in params.
+
+            mock_gscv_pause_time:
+                int, float - time in seconds to pause, simulating a trial
+                of GridSearch
+
+            Return
+            ------
+            -
+                _DemoCls:
+                    AutoGridSearchCV instance - The AutoGridSearch instance
+                    used to run simulations, not the active instance of
+                    AutoGridSearch.
+
             """
 
-            # CHECK IF fit() WAS RUN YET, IF NOT, THROW GridSearch's "not fitted yet" ERROR
+            _DemoCls = AutoGridSearch(
+                self.estimator,  # must pass est to satisfy val even tho not used
+                params=self.params,
+                total_passes= self.total_passes,
+                total_passes_is_hard=self.total_passes_is_hard,
+                max_shifts=self.max_shifts,
+                agscv_verbose=False
+            )
+
+            _demo(
+                _DemoCls,
+                _true_best=true_best_params,
+                _mock_gscv_pause_time=mock_gscv_pause_time
+            )
+
+            return _DemoCls   # for test purposes only
+
+
+
+        def print_results(self) -> None:
+
+            """
+            Print search grid and best value to the screen for all
+            parameters in all passes.
+
+            Return
+            ------
+            None
+
+            """
+
+            # CHECK IF fit() WAS RUN YET, IF NOT,
+            # THROW GridSearch's "not fitted yet" ERROR
             self.best_score_
-
-            for _pass in self.RESULTS:
-                print(f'\nPass {_pass + 1} results:')
-                for _param in self.RESULTS[_pass]:
-                    print(
-                            f' ' * 5 + f'{_param}:'.ljust(15) +
-                            f'{self.GRIDS[_pass][_param]}'.ljust(90) +
-                            f'Result = {self.RESULTS[_pass][_param]}'
-                    )
+            _print_results(self.GRIDS_, self.RESULTS_)
 
 
-        def fit(self, X, y=None, groups=None, **params):
+        def fit(
+            self,
+            X: Iterable[Union[int, float]],
+            y: Iterable[Union[int, float]]=None,
+            groups=None,
+            **params
+            ):
+
             """
-            :param X: training data
-            :param y: target for training data
-            :param groups: Group labels for the samples used while splitting the dataset into train/test set
-            :return: Instance of fitted estimator.
+            Supercedes sklearn / dask GridSearchCV fit() method. Run
+            underlying fit() method with all sets of parameters at least
+            'total_passes' number of times.
 
-            Analog to dask/sklearn GridSearchCV fit() method. Run fit with all sets of parameters.
+            Parameters
+            ----------
+            X:
+                array-like Iterable[int | float] - training data
+            y:
+                array-like Iterable[int | float], default None - target
+                for training data
+            groups:
+                default None - Group labels for the samples used while
+                splitting the dataset into train/test set
+
+            Return
+            ------
+            -
+                self: Instance of fitted estimator.
+
+            See Also
+            --------
+            sklearn.model_selection.GridSearchCV.fit()
+            dask_ml.model_selection.GridSearchCV.fit()
+
+
             """
+
+            # this must be here because allowing attrs of AutoGridSearch
+            # instance to be set directly
+            self._validation()
 
             self.reset()
 
@@ -459,47 +852,69 @@ def autogridsearch_wrapper(GridSearchParent):
             while _pass < self.total_passes:
 
                 if _pass == 0:
-                    _param_grid = _build(_params)
+                    self.GRIDS_ = _build(self.params)
                 else:
-                    _param_grid = self.get_next_param_grid(_GRIDS, _pass, _best_params_from_previous_pass)
+                    self._get_next_param_grid(
+                        _pass,
+                        _best_params_from_previous_pass
+                    )
 
                 if self.agscv_verbose:
                     print(f"\nPass {_pass+1} starting grids:")
-                    for k, v in _param_grid[_pass].items():
+                    for k, v in self.GRIDS_[_pass].items():
                         try: print(f'{k}'.ljust(15), np.round(v, 4))
                         except: print(f'{k}'.ljust(15), v)
 
-                # SHOULD GridSearchCV param_grid FORMAT EVER CHANGE, CODE WOULD GO HERE TO ADAPT THE get_next_param_grid
-                # OUTPUT TO THE REQUIRED XGridSearchCV.param_grid FORMAT
-                adapted_param_grid = _param_grid
+                # Should GridSearchCV param_grid format ever change, code
+                # would go here to adapt the _get_next_param_grid() output
+                # to the required GridSearchCV.param_grid format
+                _ADAPTED_GRIDS = deepcopy(self.GRIDS_)
 
-                # (param_grid/param_distributions/parameters is overwritten and X_GSCV is fit()) total_passes times.
-                # After a run of AutoGSCV, the final results held in the final pass attrs and methods of X_GSCV are
-                # exposed by the AutoGridSearch instance.
-                try: self.param_grid = adapted_param_grid[_pass]
-                except: pass
-                try: self.param_distributions = adapted_param_grid[_pass]
-                except: pass
-                try: self.parameters = adapted_param_grid[_pass]
-                except: pass
+                # (param_grid/param_distributions/parameters is over-
+                # written and GSCV is fit()) total_passes times. After
+                # a run of AutoGSCV, the final results held in the final
+                # pass attrs and methods of GSCV are exposed by the
+                # AutoGridSearch instance.
+                # pizza these trys can probably come out
+                try:
+                    self.param_grid = _ADAPTED_GRIDS[_pass]
+                except:
+                    pass
+                try:
+                    self.param_distributions = _ADAPTED_GRIDS[_pass]
+                except:
+                    pass
+                try:
+                    self.parameters = _ADAPTED_GRIDS[_pass]
+                except:
+                    pass
 
-                del adapted_param_grid
+                del _ADAPTED_GRIDS
 
-                # 24_02_28_07_25_00 IF PARENT GridSearchCV HAS REFIT AND REFIT IS NOT False, ONLY REFIT ON THE LAST PASS
-                if hasattr(self, 'refit'):
+                # 24_02_28_07_25_00 if sklearn parent GridSearchCV has refit
+                # and refit is not False, only refit on the last pass --
+                # 24_06_01_11_48_00 dask GridSearchCV and RandomizedSearchCV
+                # require refit always be True, IncrementalSearchCV,
+                # HyperbandSearchCV, SuccessiveHalvingSearchCV and
+                # InverseDecaySearchCV do not take a refit kwarg
+
+                _is_dask = 'DASK' in str(type(self.estimator)).upper()
+                if not _is_dask and hasattr(self, 'refit'):
                     if _pass == 0:
                         original_refit = self.refit
                         self.refit = False
                     elif _pass == self.total_passes - 1:
                         self.refit = original_refit
                         del original_refit
+                del _is_dask
 
-
-                if self.agscv_verbose: print(f'Running GridSearch... ', end='')
+                if self.agscv_verbose:
+                    print(f'Running GridSearch... ', end='')
 
                 super().fit(X, y=y, groups=groups, **params)
 
-                if self.agscv_verbose: print(f'Done.')
+                if self.agscv_verbose:
+                    print(f'Done.')
 
                 _best_params = self.best_params_
 
@@ -512,12 +927,15 @@ def autogridsearch_wrapper(GridSearchParent):
                     print(", ".join(_output))
                     del _output
 
-                # SHOULD GridSearchCV best_params_ FORMAT EVER CHANGE, CODE WOULD GO HERE TO ADAPT THE GridSearchCV.best_params_
-                # OUTPUT TO THE REQUIRED self.RESULTS FORMAT
-                adapted_best_params = _best_params
+                # Should GridSearchCV best_params_ format ever change,
+                # code would go here to adapt the GridSearchCV.best_params_
+                # output to the required self.RESULTS_ format
+                adapted_best_params = deepcopy(_best_params)
 
-                self.RESULTS[_pass] = adapted_best_params
-                _best_params_from_previous_pass = adapted_best_params  # GOES BACK INTO self.get_next_param_grid
+                self.RESULTS_[_pass] = adapted_best_params
+                _best_params_from_previous_pass = adapted_best_params
+                # _bpfpp GOES BACK INTO self.get_next_param_grid
+
                 del adapted_best_params
 
                 _pass += 1
@@ -525,14 +943,16 @@ def autogridsearch_wrapper(GridSearchParent):
             del _best_params_from_previous_pass
 
             if self.agscv_verbose:
-                print(f"\nfit successfully completed {self.total_passes} pass(es) with {self.shift_ctr} shift pass(es).")
+                print(f"\nfit successfully completed {self.total_passes} "
+                      f"pass(es) with {self._shift_ctr} shift pass(es).")
 
 
             return self
 
+    # pizza this isnt working
+    AutoGridSearch.__doc__ = AutoGridSearch.__init__.__doc__
 
     return AutoGridSearch
-
 
 
 

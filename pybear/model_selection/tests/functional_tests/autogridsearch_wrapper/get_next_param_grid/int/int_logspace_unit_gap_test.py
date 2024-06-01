@@ -12,7 +12,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 
 
 
-class TestIntLogspaceGap_GT_1:
+class TestIntLogspaceUnitGap:
 
     # _int_logspace_unit_gap(
     #                    _SINGLE_GRID: list[int] | tuple[int] | set[int],
@@ -32,7 +32,7 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
                                     [10**1.1,10**1.2,10**1.3],
-                                    1, 1.0, False, 1, 10, 3
+                                    1.0, 1, False, 1, 10, 3
             )
 
 
@@ -40,7 +40,7 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
                                     [1e-1,1e0,1e1],
-                                    1, 1.0, False, -1, 3, 3
+                                    1.0, 1, False, -1, 3, 3
             )
 
 
@@ -48,14 +48,14 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
                                     [1e8,1e7,1e6],
-                                    1, 1.0, False, -1, 3, 3
+                                    1.0, 1, False, -1, 3, 3
             )
 
     def test_rejects_duplicate_search_points(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
                                     [1e9,1e10,1e11,1e11],
-                                    0, 1.0, True, 1e8, 1e18, 3
+                                    1.0, 0, True, 1e8, 1e18, 3
             )
 
 
@@ -63,39 +63,39 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
                                     [1e1,1e2,1e3,1e4],
-                                    4, 1.0, False, 1e1, 1e4, 4
+                                    1.0, 4, False, 1e1, 1e4, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_unit_gap(
                                     [1e1,1e2,1e3,1e4],
-                                    1.98, 1.0, False, 1e1, 1e4, 4
+                                    1.0, 1.98, False, 1e1, 1e4, 4
             )
 
     def test_rejects_bad_hard_min(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
                                     [1e3,1e4,1e5,1e6],
-                                    3, 1.0, True, 1e4, 1e18, 4
+                                    1.0, 3, True, 1e4, 1e18, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_unit_gap(
                                     [1e9,1e10,1e11,1e12],
-                                    3, 1.0, True, 10**2.14, 1e18, 4
+                                    1.0, 3, True, 10**2.14, 1e18, 4
             )
 
     def test_rejects_bad_hard_max(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
                                     [1e3,1e4,1e5,1e6],
-                                    3, 1.0, True, 1e3, 1e5, 4
+                                    1.0, 3, True, 1e3, 1e5, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_unit_gap(
                                     [1e2,1e3,1e4,1e5],
-                                    3, 1.0, True, 1e1, 10**13.77, 4
+                                    1.0, 3, True, 1e1, 10**13.77, 4
             )
 
 
@@ -104,7 +104,7 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
                                     [1e2,1e3,1e4,1e5],
-                                     0, 1.0, False, 1e2, 1e10, points
+                                     1.0, 0, False, 1e2, 1e10, points
             )
 
 
@@ -140,8 +140,8 @@ class TestIntLogspaceGap_GT_1:
 
         _grid_out = _int_logspace_unit_gap(
             _SINGLE_GRID,
-            _posn_,
             _is_logspace,
+            _posn_,
             _is_hard,
             _hard_min,
             _hard_max,

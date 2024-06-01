@@ -6,10 +6,10 @@
 
 
 
+from ._type_aliases import ParamsType, GridsType
 
 
-
-def _build(_params:dict) -> dict:
+def _build(_params: ParamsType) -> GridsType:
 
 
     """

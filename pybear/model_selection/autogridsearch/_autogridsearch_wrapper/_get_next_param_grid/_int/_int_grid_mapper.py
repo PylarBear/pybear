@@ -6,16 +6,16 @@
 
 
 import numpy as np
+from typing import TypeAlias
 
-
-
+# see _type_aliases; subtype for DataType
+IntDataType: TypeAlias = int
 
 def _int_grid_mapper(
-                                _left: int,
-                                _right: int,
-                                _points: int
-
-    ) -> list[int]:
+        _left: IntDataType,
+        _right: IntDataType,
+        _points: int
+    ) -> list[IntDataType]:
 
     """
     Given a left and right (minimum and maximum) value for a range,
@@ -56,45 +56,43 @@ def _int_grid_mapper(
     else:
         _span = int(_right - _left)
 
-        match _span:
+        if _span == 0:
+            raise ValueError(f"_right - _left == 0, meaning 1 point")
 
-            case 0:
-                raise ValueError(f"_right - _left == 0, meaning 1 point")
+        elif _span == 1:
+            _OUT_GRID = np.linspace(_left, _right, 2)
 
-            case 1:
-                _OUT_GRID = np.linspace(_left, _right, 2)
+        elif _span == 2:
+            _OUT_GRID = np.linspace(_left, _right, 3)
 
-            case 2:
-                _OUT_GRID = np.linspace(_left, _right, 3)
+        elif _span == 3:
+            _OUT_GRID = np.linspace(_left, _right, 4)
 
-            case 3:
-                _OUT_GRID = np.linspace(_left, _right, 4)
+        else:
 
-            case other:
+            # _points CANNOT BE 0, 1
 
-                # _points CANNOT BE 0, 1
+            _OUT_GRID = np.arange(
+                _left,
+                _right + 1,
+                int((_right - _left) / (_points - 1))
+            )
 
-                _OUT_GRID = np.arange(
-                    _left,
-                    _right + 1,
-                    int((_right - _left) / (_points - 1))
-                )
-
-                if _right not in _OUT_GRID:
-                    if _right - 1 in _OUT_GRID:
-                        _OUT_GRID = np.insert(
-                                                _OUT_GRID[:-1],
-                                                len(_OUT_GRID[:-1]),
-                                                _right,
-                                                axis=0
-                        )
-                    else:
-                        _OUT_GRID = np.insert(
-                                                _OUT_GRID,
-                                                len(_OUT_GRID),
-                                                _right,
-                                                axis=0
-                        )
+            if _right not in _OUT_GRID:
+                if _right - 1 in _OUT_GRID:
+                    _OUT_GRID = np.insert(
+                                            _OUT_GRID[:-1],
+                                            len(_OUT_GRID[:-1]),
+                                            _right,
+                                            axis=0
+                    )
+                else:
+                    _OUT_GRID = np.insert(
+                                            _OUT_GRID,
+                                            len(_OUT_GRID),
+                                            _right,
+                                            axis=0
+                    )
 
     _OUT_GRID = list(map(int, _OUT_GRID.tolist()))
 

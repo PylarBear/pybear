@@ -6,6 +6,10 @@
       <sourceFolder url="file://$MODULE_DIR$/tests/functional_tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/sparse_dict/tests/functional_tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/model_selection/tests/functional_tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/data_validation/tests/functional_tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/debug/tests/functional_tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/utils/tests/functional_tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/feature_extraction/general_text/test/functional_tests" isTestSource="true" />
     </content>
     <orderEntry type="jdk" jdkName="Poetry (pybear)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

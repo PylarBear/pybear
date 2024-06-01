@@ -5,59 +5,198 @@
 #
 
 
+from typing import Union
+from copy import deepcopy
 import numpy as np
 
+from ._update_phlite import _update_phlite
+from ._shift._shift import _shift
+from ._regap_logspace import _regap_logspace
+from ._drill._drill import _drill
 
-from _validate_best_params import _validate_best_params
-from _update_phlite import _update_phlite
-from _shift._shift import _shift
-from _regap_logspace import _regap_logspace
-from _float._float import _float
-from _int._int import _int
-from _string._string import _string
+from ._validation._validate_best_params import _validate_best_params
+from ._validation._validate_grids import _validate_grids
+from ._validation._validate_phlite import _validate_phlite
+from ._validation._validate_is_logspace import _validate_is_logspace
+from .._validation._params__total_passes import _params__total_passes
+from .._validation._total_passes_is_hard import _total_passes_is_hard as _val_tpih
+from .._validation._max_shifts import _max_shifts as _val_max_shifts
+
+from .._type_aliases import GridsType, ParamsType, BestParamsType
+
+
 
 def _get_next_param_grid(
-                         _GRIDS: dict,
-                         _params: dict,
-                         _PHLITE: dict,
-                         _IS_LOGSPACE: dict,
-                         _best_params_from_previous_pass: dict,
+                         _GRIDS: GridsType,
+                         _params: ParamsType,
+                         _PHLITE: dict[str, bool],
+                         _IS_LOGSPACE: dict[str, Union[bool, float]],
+                         _best_params_from_previous_pass: BestParamsType,
                          _pass: int,
                          _total_passes: int,
                          _total_passes_is_hard: bool,
                          _shift_ctr: int,
-                         _max_shifts: int
-    ) -> dict:
+                         _max_shifts: Union[None, int]
+    ) -> tuple[
+            GridsType,
+            ParamsType,
+            dict[str, bool],
+            dict[str, Union[bool, float]],
+            int,
+            int
+    ]:
 
     """
-    # USE best_params_from_previous_pass AND THE LAST GRID USED TO BUILD
-    A NEW GRID ####################
-
     Core functional method. This should not be reached on the first pass
     (pass zero). For subsequent passes, generate new grids based on the
-    previous grid (as held in GRIDS) and its associated best_params_
-    returned from GridSearchCV.
+    previous grid (as held in GRIDS[_pass-1]) and its associated
+    best_params_ (as held in best_params_from_previous_pass) returned
+    from GridSearchCV.
 
     Parameters
     ----------
+    _GRIDS:
+        dict[int, dict[str, list[Union[str, int, float]]]] - search
+        grids for completed GridSearchCV passes and an incomplete search
+        grid for the upcoming pass
+    _params:
+        dict[str, list[list[...], Union[int, list[int]], str]] - full
+        list of all params to be searched with grid construction
+        instructions
+    _PHLITE:
+        dict[str, bool] - param has landed inside the edges. Boolean
+        indicating if a parameter has or has not landed off the extremes
+        of its search grid. Comes in with the results from pass n-2 and
+        is updated with the results from the last pass, n-1, to inform
+        on building the grids for the current pass, n. String params are
+        not in a continuous space and cannot be on the edges. Hard
+        integers, hard floats, fixed integers, and fixed floats cannot
+        "land on the edges". The only parameters that can land inside or
+        on the edges are soft floats and soft integers. If on the edges,
+        that parameter's grid is shifted, otherwise the search window is
+        narrowed.
+    _IS_LOGSPACE:
+        dict[str, Union[bool, float]] - for all numerical parameters, if
+        the space is linear, or some other non-standard interval, it is
+        False. If it is logspace, the 'truth' of being a logspace is
+        represented by a number indicating the interval of the logspace.
+        E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
+        np.logspace(-20, 20, 9) would be represented by 5.0.
+    _best_params_from_previous_pass:
+        dict[str, [str, int, float]] - best_params_ returned by
+        sklearn / dask GridsearchCV for the previous pass
     _pass:
-        int - iteration counter
-    :param
-        _best_params_from_previous_pass: dict - best_params_ returned
-        by Gridsearch for the previous pass
+        int - zero-indexed counter indicating the number of the current
+        pass
+    _total_passes:
+        int - the number of GridSearchCV passes to perform
+    _total_passes_is_hard:
+        bool - If True, "shift" rounds do not add another pass to total
+        passes; if False, shift rounds add another round to total passes,
+        preserving the number of rounds where soft search grids are
+        narrowed
+    _shift_ctr:
+        int - number of GridSearchCV passes where search grids have
+        shifted
+    _max_shifts:
+        Union[None, int] - maximum number of GridSearchCV passes allowed
+        that only shift grids
 
     Return
     ------
-    pizza_grid:
-        dict of grids to be passed to GridSearchCV for the next pass,
-        must be in param_grid format
+    -
+        _GRIDS: dict[int, dict[str, list[Union[str, int, float]]]] -
+        search grids for completed GridSearchCV passes and the completed
+        grid for the upcoming pass
+
+        _params: dict[str, list[...]] - full list of grid construction
+        instructions for all params to be searched updated with any
+        modifications made during build of the next pass's grids.
+
+        _PHLITE: dict[str, bool] - Updated with the results from the
+        previous round.
+
+        _IS_LOGSPACE: dict[str, Union[bool, float]] - updated _IS_LOGSPACE
+
+        _shift_ctr: int - incremented _shift_ctr if shifts are needed
+
+        _total_passes: int - the number of GridSearchCV passes to perform.
+        Was incremented by one if a shift is going to be performed and
+        total_passes_is_hard is False.
 
     """
 
+    # 0) validate!
+    # 1) update PHLITE with results from last round
+    # 2) if any Falses in PHLITE, shift those grids (dont return yet)
+    # 3) look for params with True in PHLITE and value > 1.0 in
+    #       _IS_LOGSPACE, if so, regap to 1.0 (return if regapped)
+    # 4) if still shifting (False in PHLITE) and _shift_ctr < _max_shifts,
+    #       return
+    # 5) if all in PHLITE True, drill and return
+
+
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    if _pass == 0:
+        ValueError(f"accessing _get_next_param_grid on pass 0")
+
+    # GRIDS
+    # core GRIDS validation
+    _validate_grids(_GRIDS)
+
+    # there must be at least one grid (_pass zero's) in _GRIDS; the last
+    # round in _GRIDS must be full
     if len(_GRIDS) == 0 or len(_GRIDS[max(_GRIDS.keys())]) == 0:
         raise ValueError(f"an empty GRIDS has been passed to get_next_param_grid()")
 
+    if _pass - 1 not in _GRIDS:
+        raise ValueError(f"attempting to operate on pass {_pass} when pass "
+                         f"{_pass-1} is not in GRIDS")
+
+
+    #     _params & _total_passes
+    _params, _total_passes = _params__total_passes(_params, _total_passes)
+
+
+    #     _PHLITE
+    # core _PHLITE
+    _validate_phlite(_PHLITE)
+    # extra _PHLITE
+    for _param in _params:
+        if 'soft' in _params[_param][-1] and _param not in _PHLITE:
+            raise ValueError(f"soft param '{_param}' not in PHLITE")
+
+    #     _IS_LOGSPACE
+    # core _IS_LOGSPACE validation
+    _validate_is_logspace(_IS_LOGSPACE, _params)
+
+    # _best_params
     _validate_best_params( _GRIDS, _pass, _best_params_from_previous_pass)
+
+    # _pass, _shift_ctr
+    err_msg = lambda name: f"'{name}' must be an integer >= 0"
+    for name, x in zip(['_pass', '_shift_ctr'], [_pass, _shift_ctr]):
+
+        try:
+            float(x)
+        except:
+            raise TypeError(err_msg(name))
+
+        if int(x) != x:
+            raise ValueError(err_msg(name))
+
+    del err_msg
+
+    # the rest
+    _max_shifts = _val_max_shifts(_max_shifts)
+
+    _total_passes_is_hard = _val_tpih(_total_passes_is_hard)
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
 
     _GRIDS[_pass] = dict()
 
@@ -66,13 +205,13 @@ def _get_next_param_grid(
     # autogridsearch_wrapper.reset()
 
     # must establish if a soft num param has fallen inside the edges of
-    # its grid. string_parameter AND hard/fixed numerical_parameters
-    # CANNOT BE ON AN EDGE (ALGORITHMICALLY SPEAKING)!
+    # its grid. string_parameters AND hard/fixed numerical_parameters
+    # CANNOT BE "ON AN EDGE"!
     # this is not needed after the pass where all soft num fall inside
-    # the edges (all values in PHLITE will be False and cannot gain
-    # re-entry to the place where they could be set back to True.)
+    # the edges (all values in PHLITE will be True and cannot gain
+    # re-entry to the place where they could be set back to False.)
     # Update PHLITE with the results from the last pass to assess the
-    # current need for shifting.
+    # need for shifting. ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     if False in _PHLITE.values() and _shift_ctr <= _max_shifts:
 
         if _shift_ctr < _max_shifts:
@@ -89,10 +228,11 @@ def _get_next_param_grid(
 
     # END UPDATE PHLITE ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # After update to PHLITE, if any params are still landing on the edges,
-    # must slide their grids and rerun all the other params with their
-    # same grids.
-    if False in _PHLITE.values() and _shift_ctr < _max_shifts:
+    # After update to PHLITE, if any params are still landing on the edges
+    # (False), must slide their grids and rerun all the other params with
+    # their same grids.
+    # not elif!
+    if False in _PHLITE.values(): # _shift_ctr < _max_shifts
 
         _shift_ctr += 1
 
@@ -111,174 +251,127 @@ def _get_next_param_grid(
 
     # END SHIFT ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # REGAP ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # not elif!
+    if any([(v > 1 and _PHLITE.get(k, True)) for k, v in _IS_LOGSPACE.items()]):
+        # must let 'fixed' in here also if it gets a shrink
 
-    # 24_05_11_15_27_00 does _total_passes_is_hard matter here?
+        # REGAP LOG > 1 ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    if any([(v > 1 and _PHLITE.get(k, True)) for k, v in _IS_LOGSPACE.items()]) or \
-            _shift_ctr == _max_shifts:
+        # 24_05_20 _total_passes_is_hard should not matter here,
+        # this is a "drill" that can happen concurrently with a "shift",
+        # or could happen without a shift.
 
-        # PIZZA 24_05_14_08_38_00, THIS IS CURRENTLY TAKING IN ALL PARAMS AND
-        # REGAPPING EVERYTHING UNCONDITIONALLY. THIS WILL HAVE TO CHANGE TO
-        # ONE AT A TIME CONDITIONALY ON IF _PHLITE[_param] == True
+        # 24_05_27 _regap only overwrites impacted _params, does not touch
+        # _params otherwise -- if _GRIDS is empty (because all values in
+        # PHLITE are True and _shift() was not accessed) then those other
+        # params wont be put in by _regap. must add those separately.
+        if _GRIDS[_pass] == {}:
 
-        # SOMETHING LIKE:
-        # for _param in _GRIDS[_pass]:
-        #     if _PHLITE.get(_param, True) is True:
-        #         _GRIDS[_pass][_param], _params[_param], _IS_LOGSPACE[_param] = \
-        #             _regap_logspace(PIZZA, PIZZA)
+            _GRIDS[_pass] = deepcopy(_GRIDS[_pass - 1])
 
+            # 24_05_27 this was not allowing access to shrink code if doing
+            # a regap and a shrink is supposed to happen on the same pass.
+            # doing shrink here is easier than making a regap pass bump
+            # points like a shift.
+            for _param in _GRIDS[_pass]:
+                if _params[_param][-1] == 'string':
+                    if _params[_param][1] == _pass + 1:
+                        _GRIDS[_pass][_param] = \
+                            [_best_params_from_previous_pass[_param]]
+                else:
+                    if _params[_param][1][_pass] == 1:
+                        _GRIDS[_pass][_param] = \
+                            [_best_params_from_previous_pass[_param]]
+                        _IS_LOGSPACE[_param] = False # may have already been False
 
-        _GRIDS, _params, _IS_LOGSPACE = \
-            _regap_logspace(
-                            _GRIDS,
-                            _IS_LOGSPACE,
-                            _params,
-                            _pass,
-                            _best_params_from_previous_pass
-        )
+        for _param in _params:
 
-        return _GRIDS, _params
+            # 24_05_28 params with logspace already == 1 are not converted
+            # to linspace, the log gap == 1 params (and all the other
+            # non-logspace params) run the same thing again with the
+            # log gap > 1 params regapped to 1
 
-    # END REGAP ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+            # dont let fixed in here, not allowed to regap
+            if _PHLITE.get(_param, True) and _IS_LOGSPACE[_param] > 1 and \
+                'fixed' not in _params[_param][-1]:
 
-    if False in _PHLITE.values() and _shift_ctr < _max_shifts:
-        return _GRIDS, _params, _shift_ctr
+                _grid, _param_value, _is_logspace = \
+                    _regap_logspace(
+                                    _param,
+                                    _GRIDS[_pass - 1][_param],
+                                    _IS_LOGSPACE[_param],
+                                    _params[_param],
+                                    _pass,
+                                    _best_params_from_previous_pass[_param],
+                                    _GRIDS[0][_param][0],  # hard min
+                                    _GRIDS[0][_param][-1]  # hard max
+                    )
 
+                # update GRIDS for the current param & pass
+                _GRIDS[_pass][_param] = _grid
+                # OVERWRITE _IS_LOGSPACE WITH NEW GAP
+                _IS_LOGSPACE[_param] = _is_logspace
+                _params[_param] = _param_value
+
+        try:
+            del _grid, _param_value, _is_logspace
+        except:
+            pass
+
+        # END REGAP LOG ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        return _GRIDS, _params, _PHLITE, _IS_LOGSPACE, _shift_ctr, _total_passes
+
+    elif False in _PHLITE.values(): # _shift_ctr < _max_shifts
+        return _GRIDS, _params, _PHLITE, _IS_LOGSPACE, _shift_ctr, _total_passes
+
+    else:
+        # all values in _PHLITE are True and no log gaps > 1.0
+        pass
 
     # IF REACHED THIS POINT:
     # (i) EVERYTHING IN PARAM_HAS_LANDED_INSIDE_THE_EDGES IS True,
-    # (ii) ANY LOGSPACES HAVE AN INTERVAL OF <= 1 AND WILL CONVERT TO LINSPACES
+    # (ii) ANY LOGSPACES HAVE AN INTERVAL OF <= 1 AND WILL CONVERT TO
+    #       LINSPACES
 
 
-    if any([v > 1 for k,v in _IS_LOGSPACE.items()]):
-        ValueError(f"{_single_param}: an integer logspace with log10 gap > "
-                   f"1 has made it into digging section")
+    if (np.fromiter(_IS_LOGSPACE.values(), dtype=float) > 1).any():
+        ValueError(f"an integer logspace with log10 gap > 1 has made it "
+                   f"into digging section")
 
+    for _param in _params:
 
+        if _param not in _GRIDS[max(_GRIDS.keys()) - 1]:
+            raise ValueError(f"attempting to insert a param key that is "
+                             f"not in GRIDS")
 
-    for hprmtr in _params:
+        _grid, _param_value, _is_logspace = _drill(
+             _param,
+             _GRIDS[_pass - 1][_param],
+             _params[_param],
+             _IS_LOGSPACE[_param],
+             _pass,
+             _best_params_from_previous_pass[_param]
+        )
 
+        _GRIDS[_pass][_param] = _grid
+        _params[_param] = _param_value
+        _IS_LOGSPACE[_param] = _is_logspace
 
-        _best = _best_params_from_previous_pass[hprmtr]
+        if 'string' not in _param_value[-1]:
+            _params[_param][-2][_pass] = len(_grid)
 
-        if _params[hprmtr][-1] == 'string':
-            # 24_05_12_18_32_00 PIZZA REVISIT _string ABOUT ARGS
-            # VERIFY THE ORDER IN THIS FOR LOOP IS CORRECT
-            _GRIDS = _string(
-                            [1e0, 1e5, 1e10, 1e15, 1e20],
-                            hprmtr,
-                            _params[hprmtr],
-                            _GRIDS,
-                            _pass,
-                            _best_params_from_previous_pass
-            )
+        del _grid, _param_value, _is_logspace
 
-            continue
+    del _param
 
-        _type = _params[hprmtr][-1]
-        _points = _params[hprmtr][1][_pass]
-        _grid = _GRIDS[_pass - 1][hprmtr]
-
-        _best_param_posn = np.isclose(_grid, _best, rtol=1e-6)
-
-        if _best_param_posn.sum() != 1:
-            ValueError(f"uniquely locating best_param position in search grid is "
-               f"failing, should locate to 1 position, but locating to "
-               f"{_best_param_posn.sum()} positions")
-
-        _best_param_posn = np.arange(len(_grid))[_best_param_posn][0]
-
-        # PIZZA from _int_logspace 24_05_13_09_23_00
-        elif _posn not in range(len(_grid)):
-            raise Exception(
-                f"{hprmtr}: _posn ({_posn}) is not in range of _grid")
-
-        if _points == 1:
-            _GRIDS[_pass][hprmtr] = [_best]
-            _IS_LOGSPACE[hprmtr] = False  # MAY HAVE ALREADY BEEN FALSE
-            continue
-
-        elif 'fixed' in _params[hprmtr][-1]:
-            # THIS MUST BE AFTER _points == 1
-            _GRIDS[_pass][hprmtr] = _params[hprmtr][0]
-            continue
-
-        if 'HARD' in _type.upper():
-            _is_hard = True
-        elif 'SOFT' in _type.upper():
-            _is_hard = False
-        else:
-            raise ValueError(f"{hprmtr}: bound_type must contain 'hard' or 'soft' ({_type})")
-
-        # ONLY NEEDED FOR 'hard' NUMERICAL
-        _hard_min = _GRIDS[0][hprmtr][0]
-        _hard_max = _GRIDS[0][hprmtr][-1]
-
-        if 'integer' in _type:
-
-            # PIZZA FIX 24_05_13_08_41_00
-            # FROM INT LINSPACE
-            if _pass == self.shift_ctr and not _SINGLE_GRID[0] == 1:
-                raise Exception(f"{hprmtr}: a soft integer is on a left edge "
-                                f"after shifter and value != 1")
-            if _pass == self.shift_ctr:
-                raise Exception(f"{hprmtr}: a soft integer is on a right "
-                                f"edge... should have shifted")
-            # FROM INT LOGSPACE
-            if not is_hard and _grid[0] != 1:
-                raise Exception(
-                    f"{hprmtr}: a soft logspace integer is on a left edge and value != 1")
-            if not is_hard:
-                raise Exception(
-                    f"{hprmtr}: a soft logspace integer is on a right edge... should have shifted")
-            # END PIZZA FIX 24_05_13_08_41_00
-
-            _grid, _is_logspace = \
-                _int(
-                    _GRIDS[_pass-1][hprmtr],
-                    _IS_LOGSPACE[hprmtr],
-                    _best_param_posn,
-                    _is_hard,
-                    _hard_min,
-                    _hard_max,
-                    _points
-                )
-
-            _GRIDS[_pass][hprmtr] = _grid
-            _params[hprmtr][-2][_pass] = len(_grid)
-            del _grid
-
-
-        elif 'float' in _type:
-
-            _grid, _is_logspace = _float(
-                _GRIDS[_pass-1][hprmtr],
-                _IS_LOGSPACE[hprmtr],
-                _best_param_posn,
-                _is_hard,
-                _hard_min,
-                _hard_max,
-                _points
-            )
-
-            _GRIDS[_pass][hprmtr] = _grid
-            _IS_LOGSPACE[hprmtr] = _is_logspace
-
-            del _grid, _is_logspace
-
-        # IF ANY ADJUSTMENTS WERE MADE TO _points, CAPTURE IN numerical_params
-        _params[hprmtr][1][_pass] = _points
-
-    try:
-        del _best, _grid, _points, _type, is_hard, best_param_posn, hard_min, hard_max
-    except:
-        pass
+    return _GRIDS, _params, _PHLITE, _IS_LOGSPACE, _shift_ctr, _total_passes
 
 
 
 
-    return _GRIDS
+
+
+
 
 
 

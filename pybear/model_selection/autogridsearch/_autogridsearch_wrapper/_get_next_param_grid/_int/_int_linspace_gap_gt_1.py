@@ -5,23 +5,29 @@
 #
 
 import sys
-from typing import Union
+from typing import Union, TypeAlias
 from pybear.utils._get_module_name import get_module_name
-from .._validate_int_float_linlogspace import _validate_int_float_linlogspace
+from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid._validation._validate_int_float_linlogspace import _validate_int_float_linlogspace
 from .._int._int_linspace_gap_gt_1_soft import _int_linspace_gap_gt_1_soft
 from .._int._int_linspace_gap_gt_1_hard import _int_linspace_gap_gt_1_hard
 from ._int_grid_mapper import _int_grid_mapper
 
 
+# see _type_aliases; subtypes fo DataType, GridType
+IntDataType: TypeAlias = int
+IntGridType: TypeAlias = \
+    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
+
+
 
 def _int_linspace_gap_gt_1(
-                            _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
+                            _SINGLE_GRID: IntGridType,
                             _posn: int,
                             _is_hard: bool,
-                            _hard_min: int,
-                            _hard_max: int,
+                            _hard_min: IntDataType,
+                            _hard_max: IntDataType,
                             _points: int
-    ) -> list[int]:
+    ) -> list[IntDataType]:
 
 
     """
@@ -70,8 +76,8 @@ def _int_linspace_gap_gt_1(
     # cannot put in _int
     _SINGLE_GRID =  _validate_int_float_linlogspace(
             _SINGLE_GRID,
-            _posn,
             False,
+            _posn,
             _is_hard,
             _hard_min,
             _hard_max,
@@ -79,18 +85,17 @@ def _int_linspace_gap_gt_1(
             get_module_name(str(sys.modules[__name__]))
     )
 
-    if not _is_hard:
-        _left, _right = _int_linspace_gap_gt_1_soft(
-            _SINGLE_GRID,
-            _posn
-        )
-    else:
-
+    if _is_hard:
         _left, _right = _int_linspace_gap_gt_1_hard(
             _SINGLE_GRID,
             _posn,
             _hard_min,
             _hard_max
+        )
+    else:
+        _left, _right = _int_linspace_gap_gt_1_soft(
+            _SINGLE_GRID,
+            _posn
         )
 
 
@@ -110,10 +115,19 @@ def _int_linspace_gap_gt_1(
     if _left > _right:
         raise ValueError(f"_left ({_left}) > _right ({_right})")
 
-    if (_right - _left) < 2:
-        raise ValueError(f"_right ({_right}) and _left ({_left}) yield "
-                         f"less than three points")
 
+    if _right - _left == 0:
+        raise ValueError(f"_right ({_right}) == _left ({_left})")
+    elif _right - _left == 1:
+        if _posn == 0:
+            _right += 1
+        elif _posn == len(_SINGLE_GRID) - 1:
+            _left -= 1
+        else:
+            raise ValueError(f"_right ({_right}) - _left ({_left}) "
+                                     f"== 1 and not on an edge")
+    else:
+        pass
 
     _OUT_GRID = _int_grid_mapper(
         _left,
