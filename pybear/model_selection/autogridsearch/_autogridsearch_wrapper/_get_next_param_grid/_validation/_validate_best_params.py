@@ -5,12 +5,17 @@
 #
 
 
-def _validate_best_params(
-                            _GRIDS: dict,
-                            _pass: int,
-                            _best_params_from_previous_pass: dict,
+from model_selection.autogridsearch._autogridsearch_wrapper._type_aliases \
+    import GridsType, BestParamsType
 
-    ):
+
+
+
+def _validate_best_params(
+        _GRIDS: GridsType,
+        _pass: int,
+        _best_params_from_previous_pass: BestParamsType,
+    ) -> None:
 
 
     """
@@ -19,6 +24,21 @@ def _validate_best_params(
     --- params (keys) returned in _best_params_from_previous_pass match
         those passed by GRIDS in quantity and values
     --- values returned in best_params were in the allowed search space
+
+    Parameters
+    ----------
+    _GRIDS:
+        dict[int, dict[str, list[...]]] - param_grid for each round
+    _pass:
+        int - zero-indexed pass of GridSearchCV
+    _best_params_from_previous_pass:
+        dict[str, [int, float, str]] - best_params_ as returned from
+        sklearn / dask GridSearchCV
+
+    Return
+    ------
+    None
+
 
     """
 
@@ -45,9 +65,11 @@ def _validate_best_params(
 
         # VALIDATE THAT RETURNED best_params_ HAS VALUES THAT ARE WITHIN
         # THE PREVIOUS SEARCH SPACE
-        if _best_params_from_previous_pass[param_] not in _GRIDS[_pass - 1][param_]:
-            raise ValueError(f"best_params_ contains a value that was not in its "
-                             f"given search space")
+        _value = _best_params_from_previous_pass[param_]
+        if _value not in _GRIDS[_pass - 1][param_]:
+            raise ValueError(f"{param_}: best_params_ contains a value ({_value}) "
+                f"that was not in its given search space "
+                f"({_GRIDS[_pass - 1][param_]})")
 
 
     for param_ in _GRIDS[_pass - 1]:

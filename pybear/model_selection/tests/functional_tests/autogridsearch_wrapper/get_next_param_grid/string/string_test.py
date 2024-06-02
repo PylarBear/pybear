@@ -5,6 +5,7 @@
 #
 
 import pytest
+from copy import deepcopy
 
 from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
     _string._string import _string
@@ -12,7 +13,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 
 
 @pytest.fixture
-def _instructions():
+def _param_value():
     return [['saga', 'lbfgs'], 2, 'string']
 
 @pytest.fixture
@@ -26,38 +27,37 @@ def _best_params():
 
 class TestString:
 
-    def test_rejects_a_param_not_already_in_GRIDS(self, _instructions,
-                                                  _grids, _best_params):
 
-        with pytest.raises(ValueError):
-            _string('c', _instructions, _grids, 1, _best_params)
+    def test_accuracy_1(self, _param_value, _grids, _best_params):
+        # _pass (zero-indexed) is less than shrink pass - 1 (1-indexed)
 
+        out = _string(_param_value, _grids[0]['a'], 0, _best_params['a'])
 
-    def test_rejects_key_not_in_GRIDS(self, _instructions, _grids, _best_params):
-
-        _grids[1] = _grids[0]
-
-        with pytest.raises(ValueError):
-            _string('a', _instructions, _grids, 2, _best_params)
+        assert out == ['saga', 'lbfgs']
 
 
-    def test_accuracy_1(self, _instructions, _grids, _best_params):
-        # _pass is less than transition point
+    @pytest.mark.parametrize('_shrink_pass', (1, 2))
+    def test_accuracy_2(self, _param_value, _grids, _best_params, _shrink_pass):
+        # _pass (zero-indexed) is gte shrink pass - 1 (1 indexed)
 
-        assert _string('a', _instructions, _grids, 1, _best_params) == \
-               {0: {'a': ['saga', 'lbfgs'], 'b': [1,2,3]},
-                1: {'a': ['saga', 'lbfgs']}} # <-- not getting num update here
-
-    def test_accuracy_2(self, _instructions, _grids, _best_params):
-        # _pass is gte transition point
-
-        _grids[1] = {'a': ['saga', 'lbfgs'], 'b': [1,2,3]}
+        _grids[1] = deepcopy(_grids[0])
         _grids[2] = {}
 
-        assert _string('a', _instructions, _grids, 2, _best_params) == \
-               {0: {'a': ['saga', 'lbfgs'], 'b': [1, 2, 3]},
-                1: {'a': ['saga', 'lbfgs'], 'b': [1, 2, 3]},
-                2: {'a': ['saga']}}   # <-- not getting num update here
+        out = _string(_param_value, _grids[0]['a'], _shrink_pass, _best_params['a'])
+
+        assert out == ['saga']
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

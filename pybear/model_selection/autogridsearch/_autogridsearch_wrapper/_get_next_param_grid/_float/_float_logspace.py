@@ -5,21 +5,29 @@
 #
 
 import sys
-from typing import Union
+from typing import Union, TypeAlias
 import numpy as np
 from pybear.utils._get_module_name import get_module_name
-from .._validate_int_float_linlogspace import _validate_int_float_linlogspace
+from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
+    _validation._validate_int_float_linlogspace import _validate_int_float_linlogspace
+
+
+# see _type_aliases; subtypes for DataType & GridType
+FloatDataType: TypeAlias = float
+FloatGridType: TypeAlias = \
+    Union[list[FloatDataType], tuple[FloatDataType], set[FloatDataType]]
+
 
 
 def _float_logspace(
-                    _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
+                    _SINGLE_GRID: FloatGridType,
                     _posn: int,
                     _is_logspace: Union[bool, float],
                     _is_hard: bool,
-                    _hard_min: float,
-                    _hard_max: float,
+                    _hard_min: FloatDataType,
+                    _hard_max: FloatDataType,
                     _points: int
-    ) -> list[int]:
+    ) -> list[FloatDataType]:
 
 
     """
@@ -76,8 +84,8 @@ def _float_logspace(
     # cannot be put in _float
     _SINGLE_GRID = _validate_int_float_linlogspace(
         _SINGLE_GRID,
-        _posn,
         _is_logspace,
+        _posn,
         _is_hard,
         _hard_min,
         _hard_max,
@@ -89,6 +97,7 @@ def _float_logspace(
     _is_logspace = float(_is_logspace)
     _log_hard_min = np.log10(_hard_min)
     _log_hard_max = np.log10(_hard_max)
+    del _hard_min, _hard_max
     _LOG_SINGLE_GRID = np.log10(_SINGLE_GRID)
 
     _ = np.subtract(*_LOG_SINGLE_GRID[[1,0]])
@@ -99,58 +108,51 @@ def _float_logspace(
     # CONVERT THE LOGSPACE GRID BACK TO LOGS, THIS SHOULD
     # CREATE EQUAL GAPS BETWEEN ALL THE POINTS
 
-    match _posn:
-
-        # IF ON THE LEFT EDGE OF GRID
-        case 0:
-            _left = _LOG_SINGLE_GRID[0]
-            _right = _LOG_SINGLE_GRID[1]
-            if _is_hard:
-                if _left == _log_hard_min:
-                    # THIS GIVES CORRECT RANGE BUT DOESNT GUARANTEE NICE
-                    # DIVISIONS BECAUSE _left CANT BE JUST SET TO ZERO
-                    # BECAUSE OF HARD BOUND
-                    _left = 10 ** _left
-                    _right = 10 ** _right
-                    _OUT_GRID = np.linspace(_left, _right, _points + 1)[:-1]
-                else:
-                    _left = max(_log_hard_min, _left - _is_logspace)
-                    _left = 10 ** _left
-                    _right = 10 ** _right
-                    _OUT_GRID = np.linspace(_left, _right, _points + 2)[1:-1]
+    if _posn == 0:      # IF ON THE LEFT EDGE OF GRID
+        _left = _LOG_SINGLE_GRID[0]
+        _right = _LOG_SINGLE_GRID[1]
+        if _is_hard:
+            if _left == _log_hard_min:
+                # THIS GIVES CORRECT RANGE BUT DOESNT GUARANTEE NICE
+                # DIVISIONS BECAUSE _left CANT BE JUST SET TO ZERO
+                # BECAUSE OF HARD BOUND
+                _left = 10 ** _left
+                _right = 10 ** _right
+                _OUT_GRID = np.linspace(_left, _right, _points + 1)[:-1]
             else:
-                _left = 0
+                _left = max(_log_hard_min, _left - _is_logspace)
+                _left = 10 ** _left
                 _right = 10 ** _right
                 _OUT_GRID = np.linspace(_left, _right, _points + 2)[1:-1]
-
-
-        # RIGHT EDGE OF GRID
-        case _posn if _posn == (len(_SINGLE_GRID) - 1):
-            _left = _LOG_SINGLE_GRID[-2]
-            _right = _LOG_SINGLE_GRID[-1]
-            if _is_hard:
-                if _right == _hard_max:
-                    # THIS GIVES CORRECT RANGE BUT DOESNT GUARANTEE NICE
-                    # DIVISIONS BECAUSE _left CANT BE JUST SET TO ZERO
-                    # BECAUSE OF HARD BOUND
-                    _left = 10 ** _left
-                    _right = 10 ** _right
-                    _OUT_GRID = np.linspace(_left, _right, _points + 1)[1:]
-                else:
-                    _left = 10 ** _left
-                    _right = 10 ** min(_log_hard_max, _right + _is_logspace)
-                    _OUT_GRID = np.linspace(_left, _right, _points + 2)[1:-1]
-            else:
-                _left = 0
-                _right = 10 ** (_right + _is_logspace)
-                _OUT_GRID = np.linspace(_left, _right, _points + 2)[1:-1]
-
-
-        # SOMEWHERE IN THE MIDDLE OF THE GRID
-        case other:
+        else:
             _left = 0
-            _right = 10 ** (_LOG_SINGLE_GRID[_posn + 1])
+            _right = 10 ** _right
             _OUT_GRID = np.linspace(_left, _right, _points + 2)[1:-1]
+
+    elif _posn == (len(_SINGLE_GRID) - 1):     # RIGHT EDGE OF GRID
+        _left = _LOG_SINGLE_GRID[-2]
+        _right = _LOG_SINGLE_GRID[-1]
+        if _is_hard:
+            if _right == _log_hard_max:
+                # THIS GIVES CORRECT RANGE BUT DOESNT GUARANTEE NICE
+                # DIVISIONS BECAUSE _left CANT BE JUST SET TO ZERO
+                # BECAUSE OF HARD BOUND
+                _left = 10 ** _left
+                _right = 10 ** _right
+                _OUT_GRID = np.linspace(_left, _right, _points + 1)[1:]
+            else:
+                _left = 10 ** _left
+                _right = 10 ** min(_log_hard_max, _right + _is_logspace)
+                _OUT_GRID = np.linspace(_left, _right, _points + 2)[1:-1]
+        else:
+            _left = 0
+            _right = 10 ** (_right + _is_logspace)
+            _OUT_GRID = np.linspace(_left, _right, _points + 2)[1:-1]
+
+    else:       # SOMEWHERE IN THE MIDDLE OF THE GRID
+        _left = 0
+        _right = 10 ** (_LOG_SINGLE_GRID[_posn + 1])
+        _OUT_GRID = np.linspace(_left, _right, _points + 2)[1:-1]
 
 
     del _is_logspace, _log_hard_min, _log_hard_max, _LOG_SINGLE_GRID

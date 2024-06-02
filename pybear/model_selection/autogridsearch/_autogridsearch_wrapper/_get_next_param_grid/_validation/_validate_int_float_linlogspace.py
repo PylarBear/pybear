@@ -7,20 +7,25 @@
 
 from typing import Union
 from copy import deepcopy
+import warnings
 import numpy as np
+from model_selection.autogridsearch._autogridsearch_wrapper._type_aliases import \
+    DataType, GridType
+
+
 
 
 
 def _validate_int_float_linlogspace(
-        _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
-        _posn: int,
+        _SINGLE_GRID: GridType,
         _is_logspace: Union[bool, float],
+        _posn: int,
         _is_hard: bool,
-        _hard_min: Union[int, float],
-        _hard_max: Union[int, float],
+        _hard_min: DataType,
+        _hard_max: DataType,
         _points: int,
         _module_name: str
-    ) -> list[int]:
+    ) -> list[DataType]:
 
     """
     Validate params for _float_linspace, _float_logspace, _int_linspace_unit_gap,
@@ -125,7 +130,9 @@ def _validate_int_float_linlogspace(
             raise TypeError(f"GRID contains floats")
 
     _gaps = np.array(_SINGLE_GRID)
-    _log_gaps = np.log10(_SINGLE_GRID)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        _log_gaps = np.log10(_SINGLE_GRID)
     if 'LINSPACE' in _module_name:
         pass # _gaps = _gaps
     elif 'LOGSPACE' in _module_name:
@@ -209,13 +216,17 @@ def _validate_int_float_linlogspace(
 
     del __, err_msg
 
-    if _hard_min > min(_SINGLE_GRID):
-        raise ValueError(f"hard_min > min(GRID)")
 
     if _hard_min < _univeral_lower_bound:
         raise ValueError(f"hard_min < {_univeral_lower_bound}")
 
-    if _hard_max < max(_SINGLE_GRID):
+    if _hard_max < _univeral_lower_bound:
+        raise ValueError(f"hard_max < {_univeral_lower_bound}")
+
+    if _is_hard and _hard_min > min(_SINGLE_GRID):
+        raise ValueError(f"hard_min > min(GRID)")
+
+    if _is_hard and _hard_max < max(_SINGLE_GRID):
         raise ValueError(f"hard_max < max(GRID)")
 
     # END _hard_min, _hard_max ** * ** * ** * ** * ** * ** * ** * ** * ** * **

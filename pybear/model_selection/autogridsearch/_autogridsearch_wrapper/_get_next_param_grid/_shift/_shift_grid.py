@@ -6,16 +6,18 @@
 
 
 from copy import deepcopy
+from typing import Union
 import numpy as np
+from ..._type_aliases import DataType, GridType, ParamType
 
 
 
 def _shift_grid(
-                _single_param:list,
-                _single_old_grid:list,
-                _single_is_logspace:[bool, int, float],
-                _single_best:[int,float,str]
-    ) -> list:
+                _single_param: ParamType,
+                _single_old_grid: GridType,
+                _single_is_logspace: Union[bool, float],
+                _single_best: DataType
+    ) -> list[DataType]:
 
     """
     Left-shift or right-shift a single linear-space or log-space search
@@ -34,16 +36,16 @@ def _shift_grid(
     _single_old_grid:
         list - most recent search grid for a single parameter
     _single_is_logspace:
-        [bool, int, float] - IS_LOGSPACE value for a single parameter
+        [bool, float] - IS_LOGSPACE value for a single parameter
     _single_best:
-        [int,float,str] - best value returned in best_params_ for a single
+        [int, float] - best value returned in best_params_ for a single
             parameter
 
 
     Return
     ------
     -
-        NEW_GRID: list - left-shifted or right-shifted grid
+        NEW_GRID: list[int, float] - left-shifted or right-shifted grid
 
 
     """

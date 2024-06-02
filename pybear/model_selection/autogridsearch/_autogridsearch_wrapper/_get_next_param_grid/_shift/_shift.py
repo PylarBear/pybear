@@ -4,8 +4,12 @@
 # License: BSD 3 clause
 #
 
+
 from copy import deepcopy
+from typing import Union
 import numpy as np
+
+from ..._type_aliases import GridsType, ParamsType, BestParamsType
 
 from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
     _shift._shift_points_and_passes import _shift_points_and_passes
@@ -14,16 +18,15 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
     _shift._shift_grid import _shift_grid
 
 
-
 def _shift(
-            _GRIDS: dict,
-            _PHLITE :dict,
-            _IS_LOGSPACE: dict,
-            _params: dict,
+            _GRIDS: GridsType,
+            _PHLITE : dict[str, bool],
+            _IS_LOGSPACE: dict[str, Union[bool, float]],
+            _params: ParamsType,
             _pass: int,
-            _best_params_from_previous_pass: dict,
+            _best_params_from_previous_pass: BestParamsType,
             _total_passes_is_hard: bool
-    ) -> [dict, dict]:
+    ) -> tuple[GridsType, ParamsType]:
 
     """
 
@@ -47,18 +50,21 @@ def _shift(
     Parameters
     ----------
     _GRIDS:
-        dict - holds all of the param_grids run so far, and an empty
-            dict for the current pass, to be filled here.
+        dict[int, dict[str, [int, float, str]] - holds all of the
+        param_grids run so far, and an empty dict for the current pass,
+        to be filled here.
     _PHLITE:
-        dict - holds bools for soft params indicating if it is to be shifted
+        dict - holds bools for soft params indicating if it is to be
+        shifted
     _IS_LOGSPACE:
-        dict - _IS_LOGSPACE is a dictionary keyed by all param names, including
-        string params. String params are always False. For numerical params, if
-        the space is linear, or some other non-standard interval, it is False.
-        If it is logspace, The 'truth' of being a logspace is represented by a
-        number indicating the interval of the logspace. E.g.,
-        np.logspace(-5, 5, 11) would be represented by 1.0, and
-        np.logspace(-20, 20, 9) would be represented by 5.0.
+        dict - _IS_LOGSPACE is a dictionary keyed by all param names,
+        including string params. String params are always False. For
+        numerical params, if the space is linear, or some other non-
+        standard interval, it is False. If it is logspace, The 'truth'
+        of being a logspace is represented by a number indicating the
+        interval of the logspace. E.g., np.logspace(-5, 5, 11) would be
+        represented by 1.0, and np.logspace(-20, 20, 9) would be
+        represented by 5.0.
     _params:
         dict - search instructions and dtypes for each param
     _pass:

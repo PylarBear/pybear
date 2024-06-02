@@ -14,7 +14,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._validation. \
 class TestMaxShifts:
 
     @pytest.mark.parametrize('non_numeric',
-    (True, False, None, 'string', [1,2], (1,2), {1,2}, lambda x: x, {'a':1})
+    (True, False, 'string', [1,2], (1,2), {1,2}, lambda x: x, {'a':1})
     )
     def test_rejects_non_numeric(self, non_numeric):
         with pytest.raises(TypeError):
@@ -44,5 +44,7 @@ class TestMaxShifts:
         assert _max_shifts(10) == 10
 
 
+    def test_accepts_None(self):
+        assert _max_shifts(None) == 100
 
 

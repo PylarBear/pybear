@@ -7,15 +7,16 @@
 
 
 import numpy as np
-from typing import Union
+from typing import Union, TypeAlias
 
-
+# see _type_aliases, subtype of DataType
+IntDataType: TypeAlias = int
 
 def _int_logspace_gap_gt_1_soft(
-        _LOG_SINGLE_GRID: np.ndarray[int],
+        _LOG_SINGLE_GRID: np.ndarray[IntDataType],
         _is_logspace: Union[bool, float],
         _posn: int
-    ) -> tuple[int, int]:
+    ) -> tuple[IntDataType, IntDataType]:
 
 
     """
@@ -76,19 +77,17 @@ def _int_logspace_gap_gt_1_soft(
 
     # remember this is being done in logspace!
 
-    match _posn:
+    if _posn == 0:
+        _left = 0
+        _right = _LOG_SINGLE_GRID[1]
 
-        case 0:
-            _left = 0
-            _right = _LOG_SINGLE_GRID[1]
+    elif _posn == len(_LOG_SINGLE_GRID) - 1:
+        _left = 0
+        _right = _LOG_SINGLE_GRID[-1] + _is_logspace
 
-        case _posn if _posn == len(_LOG_SINGLE_GRID) - 1:
-            _left = 0
-            _right = _LOG_SINGLE_GRID[-1] + _is_logspace
-
-        case other:
-            _left = 0
-            _right = _LOG_SINGLE_GRID[_posn + 1]
+    else:
+        _left = 0
+        _right = _LOG_SINGLE_GRID[_posn + 1]
 
 
 

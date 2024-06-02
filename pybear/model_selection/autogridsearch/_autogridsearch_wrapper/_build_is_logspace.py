@@ -6,20 +6,22 @@
 
 import numpy as np
 
+from ._type_aliases import ParamsType
 
 
 
-
-def _build_is_logspace(_params:dict) -> dict:
+def _build_is_logspace(
+        _params: ParamsType
+    ) -> dict[str: bool]:
 
     """
-    _IS_LOGSPACE is a dictionary keyed by all param names, including string
-    params. String params are always False. For numerical params, if the space
-    is linear, or some other non-standard interval, it is False. If it is
-    logspace, the 'truth' of being a logspace is represented by a number
-    indicating the interval of the logspace. E.g., np.logspace(-5, 5, 11) would
-    be represented by 1.0, and np.logspace(-20, 20, 9) would be represented by
-    5.0.
+    _IS_LOGSPACE is a dictionary keyed by all param names, including
+    string params. String params are always False. For numerical params,
+    if the space is linear, or some other non-standard interval, it is
+    False. If it is logspace, the 'truth' of being a logspace is
+    represented by a number indicating the interval of the logspace.
+    E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
+    np.logspace(-20, 20, 9) would be represented by 5.0.
 
 
 

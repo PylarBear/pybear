@@ -5,16 +5,19 @@
 #
 
 
+
+
+from .._type_aliases import GridType, ParamsType, BestParamsType
 import numpy as np
 
 
 
 def _update_phlite(
-                    _PHLITE:dict,
-                    _last_param_grid:dict,  # _GRIDS[_pass-1]
-                    _params:dict,
-                    _best_params_from_previous_pass:dict
-    ) -> dict:
+                    _PHLITE: dict[str, bool],
+                    _last_param_grid: dict[str, GridType],  # _GRIDS[_pass-1]
+                    _params: ParamsType,
+                    _best_params_from_previous_pass: BestParamsType
+    ) -> dict[str, bool]:
 
     """
     Update PHLITE (PARAM_HAS_LANDED_INSIDE_THE_EDGES) based on most recent
@@ -54,19 +57,21 @@ def _update_phlite(
         _grid = _last_param_grid[_param]
 
         _edge_finder = np.abs(np.array(_grid) - _best)
-        if min(_edge_finder) == _edge_finder[0] or \
-                min(_edge_finder) == _edge_finder[-1]:
+        if _edge_finder[0] == 0 or _edge_finder[-1] == 0:
+            _PHLITE[_param] = False
+        else:
+            _PHLITE[_param] = True
+        del _edge_finder
+
+        if len(_grid) == 1:
             _PHLITE[_param] = True
 
-        else:  # MUST BE ON AN EDGE
-            if len(_grid) == 1:
-                _PHLITE[_param] = True
-            elif _params[_param][-1] == 'soft_integer' and _best == 1:
-                _PHLITE[_param] = True
-            elif _params[_param][-1] == 'soft_float' and _best == 0:
-                _PHLITE[_param] = True
-            else:
-                _PHLITE[_param] = False
+        if 'integer' in _params[_param][-1] and _best == 1:
+            _PHLITE[_param] = True
+
+        if 'float' in _params[_param][-1] and _best == 0:
+            _PHLITE[_param] = True
+
 
     try:
         del _best, _grid, _edge_finder

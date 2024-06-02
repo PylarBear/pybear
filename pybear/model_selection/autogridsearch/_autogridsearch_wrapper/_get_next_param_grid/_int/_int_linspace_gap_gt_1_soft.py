@@ -5,13 +5,17 @@
 #
 
 
-from typing import Union
+from typing import Union, TypeAlias
+
+# see _type_aliases; subtypes for DataType and GridType
+IntDataType: TypeAlias = int
+IntGridType: TypeAlias = Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
 
 
 def _int_linspace_gap_gt_1_soft(
-        _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
+        _SINGLE_GRID: IntGridType,
         _posn: int,
-    ) -> tuple[int, int]:
+    ) -> tuple[IntDataType, IntDataType]:
 
 
     """
@@ -44,27 +48,24 @@ def _int_linspace_gap_gt_1_soft(
 
     """
 
+    if _posn == 0:
+        _left1 = _SINGLE_GRID[0]
+        _right = _SINGLE_GRID[1]
+        _left = _left1 - (_right - _left1)
+        _right = max(_right - 1, _left1 + 1)
+        del _left1
 
-    match _posn:
+    elif _posn == len(_SINGLE_GRID) - 1:
+        _left = _SINGLE_GRID[-2]
+        _right1 = _SINGLE_GRID[-1]
+        _right = _right1 + (_right1 - _left)
+        _left = min(_left + 1, _right1 - 1)
+        del _right1
 
-        case 0:
-            _left1 = _SINGLE_GRID[0]
-            _right = _SINGLE_GRID[1]
-            _left = _left1 - (_right - _left1)
-            _right = max(_right - 1, _left1 + 1)
-            del _left1
-
-        case _posn if _posn == len(_SINGLE_GRID) - 1:
-            _left = _SINGLE_GRID[-2]
-            _right1 = _SINGLE_GRID[-1]
-            _right = _right1 + (_right1 - _left)
-            _left = min(_left + 1, _right1 - 1)
-            del _right1
-
-        case other:
-            _best = _SINGLE_GRID[_posn]
-            _left = min(_SINGLE_GRID[_posn - 1] + 1, _best - 1)
-            _right = max(_SINGLE_GRID[_posn + 1] - 1, _best + 1)
+    else:
+        _best = _SINGLE_GRID[_posn]
+        _left = min(_SINGLE_GRID[_posn - 1] + 1, _best - 1)
+        _right = max(_SINGLE_GRID[_posn + 1] - 1, _best + 1)
 
 
     # apply universal lower bound

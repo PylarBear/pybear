@@ -30,7 +30,7 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1(
                                     [10**1.1,10**1.2,10**1.3],
-                                    1, 1.0, False, 1, 10, 3
+                                    1.0, 1, False, 1, 10, 3
             )
 
 
@@ -38,7 +38,7 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1(
                                     [1e-1,1e0,1e1],
-                                    1, 1.0, False, -1, 3, 3
+                                    1.0, 1, False, -1, 3, 3
             )
 
 
@@ -46,14 +46,14 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1(
                                     [1e8,1e7,1e6],
-                                    1, 1.0, False, -1, 3, 3
+                                    1.0, 1, False, -1, 3, 3
             )
 
     def test_rejects_duplicate_search_points(self):
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1(
                                     [1e9,1e12,1e15,1e15],
-                                    0, 3.0, True, 1e8, 1e18, 3
+                                    3.0, 0, True, 1e8, 1e18, 3
             )
 
 
@@ -61,39 +61,39 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1(
                                     [1e4,1e8,1e12],
-                                    3, 4.0, False, 1e4, 1e12, 4
+                                    4.0, 3, False, 1e4, 1e12, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_gap_gt_1(
                                     [1e4,1e8,1e12],
-                                    1.98, 4.0, False, 1e4, 1e12, 4
+                                    4.0, 1.98, False, 1e4, 1e12, 4
             )
 
     def test_rejects_bad_hard_min(self):
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1(
                                     [1e3,1e8,1e13,1e18],
-                                    3, 5.0, True, 1e4, 1e18, 4
+                                    5.0, 3, True, 1e4, 1e18, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_gap_gt_1(
                                     [1e3,1e6,1e9,1e12],
-                                    3, 3.0, True, 10**2.14, 1e18, 4
+                                    3.0, 3, True, 10**2.14, 1e18, 4
             )
 
     def test_rejects_bad_hard_max(self):
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1(
                                     [1e3,1e7,1e11,1e15],
-                                    3, 4.0, True, 1e3, 1e12, 4
+                                    4.0, 3, True, 1e3, 1e12, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_gap_gt_1(
                                     [1e2,1e5,1e8,1e11],
-                                    3, 3.0, True, 1e1, 10**13.77, 4
+                                    3.0, 3, True, 1e1, 10**13.77, 4
             )
 
 
@@ -102,7 +102,7 @@ class TestIntLogspaceGap_GT_1:
         with pytest.raises(ValueError):
             _int_logspace_gap_gt_1(
                                     [1e2,1e4,1e6,1e8],
-                                     0, 2.0, False, 1e2, 1e10, points
+                                     2.0, 0, False, 1e2, 1e10, points
             )
 
 
@@ -138,8 +138,8 @@ class TestIntLogspaceGap_GT_1:
 
         _grid_out = _int_logspace_gap_gt_1(
             _SINGLE_GRID,
-            _posn_,
             _is_logspace,
+            _posn_,
             _is_hard,
             _hard_min,
             _hard_max,

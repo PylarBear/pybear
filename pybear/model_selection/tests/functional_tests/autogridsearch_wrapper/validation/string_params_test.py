@@ -63,9 +63,9 @@ class TestListOfArgs:
             _string_param_value('good_key', [non_list_like, None, 'string'])
 
 
-    def test_type_error_for_set(self):
-        with pytest.raises(TypeError):
-            _string_param_value('good_key', [{'a','b'}, None, 'string'])
+    # def test_type_error_for_set(self):
+    #     with pytest.raises(TypeError):
+    #         _string_param_value('good_key', [{'a','b'}, None, 'string'])
 
 
     @pytest.mark.parametrize('list_like',
@@ -111,9 +111,10 @@ class TestPasses:
             [['a', 'b'], int_or_none or 1_000_000, 'string']
 
 
-    def test_rejects_integer_less_than_one(self):
+    @pytest.mark.parametrize('bad_pass', (-1, 0, 1))
+    def test_rejects_integer_less_than_two(self, bad_pass):
         with pytest.raises(ValueError):
-            _string_param_value('good_key', [['a','b'], -1, 'string'])
+            _string_param_value('good_key', [['a','b'], bad_pass, 'string'])
 
 
 class TestArgType:

@@ -29,7 +29,7 @@ def _params():
 @pytest.fixture
 def param_grid():
     return {
-            'a': [1,2,3,4],   # 1 is int hard bound
+            'a': [1, 2, 3, 4],   # 1 is int hard bound
             'b': [1e-2, 1e-1, 1e0, 1e1],
             'c': [1, 10, 100, 1000],
             'd': [2, 3, 4, 5],
@@ -45,21 +45,22 @@ def param_grid():
 @pytest.fixture
 def _best_params():
     return {
-            'a': [1],  # 1 is int hard bound  TRUE
-            'b': [1e1],  # FALSE
-            'c': [1000],  # FALSE
-            'd': [5],  # TRUE
-            'e': [1.1],  # TRUE
-            'f': [0],   # 0 is float hard bound   # TRUE
-            'g': [100], # TRUE
-            'h': [2],  # TRUE
-            'i': [4],  # FALSE
-            'j': [0.5],  # TRUE
-            'k': [1],  # FALSE
+            'a': 1,  # [0], soft, 1 is int hard bound  TRUE
+            'b': 1e1,  # [-1] soft, FALSE
+            'c': 1000,  # [-1] soft, FALSE
+            'd': 5,  # [-1] fixed, TRUE
+            'e': 1.1,  # [0] fixed, TRUE
+            'f': 0,   # [0] hard, 0 is float hard bound   # TRUE
+            'g': 100, # [-2] soft, TRUE
+            'h': 2,  # [1] soft, TRUE
+            'i': 4,  # [-1] soft, FALSE
+            'j': 0.5,  # [2] hard, TRUE
+            'k': 1,  # [0] soft, FALSE
     }
 
 @pytest.fixture
 def start_phlite_1():
+    # arbitrary
     return {
             'a': False,
             'b': False,
@@ -72,6 +73,7 @@ def start_phlite_1():
 
 @pytest.fixture
 def start_phlite_2():
+    # arbitrary
     return {
             'a': True,
             'b': True,
@@ -84,6 +86,7 @@ def start_phlite_2():
 
 @pytest.fixture
 def start_phlite_3():
+    # arbitrary
     return {
             'a': True,
             'b': False,
@@ -96,6 +99,7 @@ def start_phlite_3():
 
 @pytest.fixture
 def start_phlite_4():
+    # arbitrary
     return {
             'a': False,
             'b': True,
@@ -108,6 +112,7 @@ def start_phlite_4():
 
 @pytest.fixture
 def start_phlite_5():
+    # arbitrary
     return {
             'a': True,
             'b': False,
@@ -122,6 +127,7 @@ def start_phlite_5():
 
 @pytest.fixture
 def final_phlite():
+    # not arbitrary! based on best params
     return {
             'a': True,
             'b': False,
@@ -140,8 +146,7 @@ class TestUpdatePhlite:
 
         with pytest.raises(ValueError):
 
-            bad_phlite = start_phlite_1 | {'d':True, 'e':False, 'f':True,
-                                           'j':False}
+            bad_phlite = start_phlite_1 | {'d':True, 'e':False, 'f':True, 'j':False}
 
             _update_phlite(bad_phlite, param_grid, _params, _best_params)
 
@@ -149,31 +154,41 @@ class TestUpdatePhlite:
     def test_accuracy_1(self, _params, param_grid, _best_params,
                         start_phlite_1, final_phlite):
 
-        assert _update_phlite(start_phlite_1, param_grid, _params, _best_params)
+        out = _update_phlite(start_phlite_1, param_grid, _params, _best_params)
+
+        assert out == final_phlite
 
 
     def test_accuracy_2(self, _params, param_grid, _best_params,
                         start_phlite_2, final_phlite):
 
-        assert _update_phlite(start_phlite_2, param_grid, _params, _best_params)
+        out = _update_phlite(start_phlite_2, param_grid, _params, _best_params)
+
+        assert out == final_phlite
 
 
     def test_accuracy_3(self, _params, param_grid, _best_params,
                         start_phlite_3, final_phlite):
 
-        assert _update_phlite(start_phlite_3, param_grid, _params, _best_params)
+        out = _update_phlite(start_phlite_3, param_grid, _params, _best_params)
+
+        assert out == final_phlite
 
 
     def test_accuracy_4(self, _params, param_grid, _best_params,
                         start_phlite_4, final_phlite):
 
-        assert _update_phlite(start_phlite_4, param_grid, _params, _best_params)
+        out = _update_phlite(start_phlite_4, param_grid, _params, _best_params)
+
+        assert out == final_phlite
 
 
     def test_accuracy_5(self, _params, param_grid, _best_params,
                         start_phlite_5, final_phlite):
 
-        assert _update_phlite(start_phlite_5, param_grid, _params, _best_params)
+        out = _update_phlite(start_phlite_5, param_grid, _params, _best_params)
+
+        assert out == final_phlite
 
 
 
