@@ -6,11 +6,11 @@
 
 
 # pizza, all of the fixtures and code below is a direct, unchanged,
-# copy from sklearn agscv test. modify as needed for gstcv
+# copy from sklearn agscv tests. modify as needed for gstcv
 
 
 # demo_test incidentally handles testing of all autogridsearch_wrapper
-# functionality except fit() (because demo bypasses fit().) This test
+# functionality except fit() (because demo bypasses fit().) This tests
 # module handles fit() for the GridSearchThresholdCV module.
 
 
@@ -62,12 +62,11 @@ def _X_y():
     return sk_make(n_features=5, n_samples=100)
 
 
-@pytest.xfail(reason=f"pizza not started, not done.")
+
+
 class TestGSThresholdCV:
 
     # pizza come back and finish this when GSTCV is done
-
-    assert 1 == 0   # make fail so xfail works
 
     #         estimator,
     #         params: ParamsType,
@@ -77,7 +76,7 @@ class TestGSThresholdCV:
     #         agscv_verbose: bool = False,
     #         **parent_gscv_kwargs
 
-
+    @pytest.mark.xfail(reason=f"pizza not started, not done.")
     @pytest.mark.parametrize('SKLEARN_GSCV',
         (
             SklearnGridSearchCV,
@@ -92,6 +91,8 @@ class TestGSThresholdCV:
     @pytest.mark.parametrize('_refit', (True, False))
     def test_sklearn_gscvs(self, SKLEARN_GSCV, _sklearn_estimator,
        _sklearn_params, _total_passes, _tpih, _max_shifts, _refit, _X_y):
+
+        assert 1 == 0  # make fail so xfail works
 
         AutoGridSearch = autogridsearch_wrapper(SKLEARN_GSCV)
 
@@ -115,7 +116,7 @@ class TestGSThresholdCV:
         assert _test_cls.max_shifts == _max_shifts
         assert _test_cls.agscv_verbose is False
 
-        # cannot test MockEstimator for scoring or scorer_
+        # cannot tests MockEstimator for scoring or scorer_
 
         if _refit:
             assert isinstance(_test_cls.best_estimator_, type(_sklearn_estimator))

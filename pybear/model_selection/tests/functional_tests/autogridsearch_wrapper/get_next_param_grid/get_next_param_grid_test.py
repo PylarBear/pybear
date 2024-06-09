@@ -18,33 +18,35 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 
 
 # def _get_next_param_grid(
-#                          _GRIDS: dict[int, dict[str, list[Union[str, int, float]]]],
-#                          _params: dict[str, list[list[Union[str, int, float]],
-#                             Union[int, list[int]], str]],
-#                          _PHLITE: dict[str, bool],
-#                          _IS_LOGSPACE: dict[str, Union[bool, float]],
-#                          _best_params_from_previous_pass: dict[str,
-#                             Union[str, int, float]],
-#                          _pass: int,
-#                          _total_passes: int,
-#                          _total_passes_is_hard: bool,
-#                          _shift_ctr: int,
-#                          _max_shifts: int
+#      _GRIDS: dict[int, dict[str, list[Union[str, int, bool, float]]]],
+#      _params: dict[str, list[Iterable[Union[str, int, bool, float]],
+#         Union[int, Iterable[int]], str]],
+#      _PHLITE: dict[str, bool],
+#      _IS_LOGSPACE: dict[str, Union[bool, float]],
+#      _best_params_from_previous_pass: dict[str,
+#         Union[str, int, bool, float]],
+#      _pass: int,
+#      _total_passes: int,
+#      _total_passes_is_hard: bool,
+#      _shift_ctr: int,
+#      _max_shifts: int
 #     ) -> tuple[
-#             dict[int, dict[str, list[Union[str, int, float]]]],
-#             dict[str, list[list[Union[str, int, float]], Union[int, list[int]], str]],
-#             dict[str, Union[bool, float]],
-#             int
+#         dict[int, dict[str, list[Union[str, int, bool, float]]]],   # GRIDS
+#         dict[str, list[list[Union[str, int, bool, float]], Union[int, list[int]], str]],   # params
+#         dict[str, Union[bool, float]],  # IS_LOGSPACE
+#         int
 #     ]:
 
 
 @pytest.fixture
 def good_grids():
+    # not used
     return {
             0: {
                 'a': ['x', 'y', 'z'],
                 'b': [1, 2, 3],
-                'c': [1e1, 1e2, 1e3]
+                'c': [1e1, 1e2, 1e3],
+                'd': [True, False]
             }
     }
 
@@ -55,6 +57,7 @@ def good_params():
         'a': [['x', 'y', 'z'], 3, 'string'],
         'b': [[1, 2, 3], [3, 3, 3], 'fixed_integer'],
         'c': [[1e1, 1e2, 1e3], [3, 11, 11], 'soft_float'],
+        'd': [[True, False], 3, 'bool']
     }
 
 @pytest.fixture
@@ -63,6 +66,7 @@ def good_phlite():
         # 'a': True,
         # 'b': True,
         'c': False
+        # not bool!
     }
 
 
@@ -71,7 +75,8 @@ def good_is_logspace():
     return {
         'a': False,
         'b': False,
-        'c': 1.0
+        'c': 1.0,
+        'd': False
     }
 
 @pytest.fixture
@@ -79,7 +84,8 @@ def good_best_params():
     return {
         'a': 'y',
         'b': 3,
-        'c': 1e3
+        'c': 1e3,
+        'd': False
     }
 
 @pytest.fixture
@@ -166,13 +172,17 @@ class TestOutputFormats:
         # this is not exhaustive for logspace, gaps, shrink passes, shrinks, etc.
 
         _keys = 'abcdefghijklmnpqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        _types = ('soft_integer', 'soft_float', 'hard_integer', 'hard_float', 'string')
+        _types = ('soft_integer', 'soft_float', 'hard_integer',
+                  'hard_float', 'string', 'bool')
 
         _params = {}
         ctr = 0
         for _type in _types:
             if 'string' in _type:
                 _grid = ['mmm', 'nnn', 'ooo', 'ppp']
+                _params[_keys[ctr]] = [_grid, 10, _type]
+            elif 'bool' in _type:
+                _grid = [True, False]
                 _params[_keys[ctr]] = [_grid, 10, _type]
             else:
                 _grid = [2,3,4,5]
@@ -206,7 +216,7 @@ class TestOutputFormats:
         # this is a snapshot of the state after the last pass
         _IS_LOGSPACE = {}
         for _param in _params:
-            if _params[_param][-1] == 'string':
+            if _params[_param][-1] in ['string', 'bool']:
                 _IS_LOGSPACE[_param] = False
             else:
                 _log_grid = np.log10(_GRIDS[_pass-1][_param])
@@ -269,6 +279,8 @@ class TestOutputFormats:
                     assert all(map(isinstance, _out_grid, (float for _ in _out_grid)))
                 elif _type == 'string':
                     assert all(map(isinstance, _out_grid, (str for _ in _out_grid)))
+                elif _type == 'bool':
+                    assert all(map(isinstance, _out_grid, (bool for _ in _out_grid)))
 
 
         assert isinstance(_OUT_PHLITE, dict)
@@ -286,19 +298,21 @@ class TestOutputFormats:
         assert isinstance(_out_total_passes_end, int)
 
 
-class TestFixedAndStringGrids:
+class TestFixedBoolAndStringGrids:
 
-    # fixed & string just pass thru unless shrink pass
+    # fixed bool & string just pass thru unless shrink pass
     # never increments total_passes (no shift)
 
-    @pytest.mark.parametrize('_type', ('fixed_integer', 'fixed_float', 'string'))
+    @pytest.mark.parametrize('_type',
+        ('fixed_integer', 'fixed_float', 'string', 'bool')
+    )
     @pytest.mark.parametrize('_best', (1,2,3,4))
     @pytest.mark.parametrize('_pass, _total_passes', ((1, 3), (2, 3), (1, 2)))
     @pytest.mark.parametrize('_tpih', (True, False))
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
     @pytest.mark.parametrize('_max_shifts', (None, 1, 3))
-    def test_fixed_grid_unchanged(self, _type, _best, _pass, _total_passes,
-                  _tpih, _shift_ctr, _max_shifts,
+    def test_fixed_str_bool_grids_unchanged(
+            self, _type, _best, _pass, _total_passes, _tpih, _shift_ctr, _max_shifts,
         ):
 
         # total_passes unchanged
@@ -308,7 +322,11 @@ class TestFixedAndStringGrids:
         if _type == 'string':
             _grid = list(map(str, _grid))
             _best = str(_best)
-            _points_or_shrink_pass = 10
+            _points_or_shrink_pass = _total_passes + 10
+        elif _type == 'bool':
+            _grid = [True, False]
+            _best = True if _best in [1, 2] else False
+            _points_or_shrink_pass = _total_passes + 10
         else:
             _points_or_shrink_pass = [4 for _ in range(_total_passes)]
 
@@ -337,15 +355,20 @@ class TestFixedAndStringGrids:
 
 
 
-    @pytest.mark.parametrize('_best', ('a','b','c','d'))
+    @pytest.mark.parametrize('_type', ('string', 'bool'))
+    @pytest.mark.parametrize('_best_posn', (0, 1))
     @pytest.mark.parametrize('_pass, _total_passes', ((1, 2), (1, 3), (2, 3)))
     @pytest.mark.parametrize('_shrink_pass', (True, False))
-    def test_string_shrink_pass(self, _best, _pass, _total_passes, _shrink_pass):
+    def test_string_bool_shrink_pass(
+            self, _type, _best_posn, _pass, _total_passes, _shrink_pass
+    ):
 
         # total_passes unchanged
         # shift_ctr never incremented
-
-        _grid = ['a','b','c','d']
+        if _type == 'string':
+            _grid = ['a', 'b']
+        elif _type == 'bool':
+            _grid = [True, False]
 
         if _shrink_pass:
             # logic is if internal _pass >= _param_value[1] - 1 then shrink
@@ -353,10 +376,12 @@ class TestFixedAndStringGrids:
         else:
             _shrink_pass = 10
 
+        _best = _grid[_best_posn]
+
         _GRIDS, _params, _PHLITE, _IS_LOGSPACE, _shift_ctr, _total_passes_end = \
             _get_next_param_grid(
                 _GRIDS={i: {'a': _grid} for i in range(_pass)},
-                _params={'a': [_grid, _shrink_pass, 'string']},
+                _params={'a': [_grid, _shrink_pass, _type]},
                 _PHLITE={'a': True},
                 _IS_LOGSPACE={'a': False},
                 _best_params_from_previous_pass={'a': _best},
@@ -374,7 +399,7 @@ class TestFixedAndStringGrids:
             EXP_GRIDS = {i: {'a': _grid} for i in range(_pass + 1)}
 
         assert _GRIDS == EXP_GRIDS
-        assert _params == {'a': [_grid, _shrink_pass, 'string']}
+        assert _params == {'a': [_grid, _shrink_pass, _type]}
         assert _PHLITE == {'a': True}
         assert _IS_LOGSPACE == {'a': False}
         assert _shift_ctr == 0
@@ -492,7 +517,7 @@ class TestHardShiftsLinspace:
 
         # set hard_min & hard_max in grid 0
         # (grid zero is always already run when _gnpg is accessed)
-        # so essentially fudging grid 0 retroactively for test purposes
+        # so essentially fudging grid 0 retroactively for tests purposes
 
         grid_0 = deepcopy(_grid)
 
@@ -584,7 +609,7 @@ class TestHardShiftsLogspace:
 
         # set hard_min & hard_max in grid 0
         # (grid zero is always already run when _gnpg is accessed)
-        # so essentially fudging grid 0 retroactively for test purposes
+        # so essentially fudging grid 0 retroactively for tests purposes
 
         grid_0 = np.log10(deepcopy(_grid)).tolist()
 
@@ -1173,12 +1198,15 @@ class TestMultiPass:
                     'fixed_float_lin': [[],[], 'fixed_float'],
                     'fixed_float_log1': [[], [], 'fixed_float'],
                     'fixed_float_log2': [[], [], 'fixed_float'],
-                    'string': [[], None, 'string']
+                    'string': [[], None, 'string'],
+                    'bool': [[], None, 'bool']
         }
 
         for _param in _params:
             if 'string' in _param:
                 _grid = ['w', 'x', 'y', 'z']
+            elif 'bool' in _param:
+                _grid = [True, False]
             elif 'lin' in _param:
                 _grid = [40, 50, 60, 70]
             elif 'log1' in _param:
@@ -1193,7 +1221,7 @@ class TestMultiPass:
 
             _params[_param][0] = _grid
 
-            if _param == 'string':
+            if _param in ['string', 'bool']:
                 _params[_param][1] = _shrink_pass
             else:
                 _shrink_pass = _shrink_pass or 1_000_000
@@ -1207,12 +1235,8 @@ class TestMultiPass:
 
         _PHLITE = {}
 
-        _IS_LOGSPACE = {}
-        for _param in _params:
-            if 'log' in _param:
-                _IS_LOGSPACE[_param] = False # see _build_is_logspace
-            elif 'string' in _param or 'fixed' in _param:
-                _IS_LOGSPACE[_param] = False
+        # see _build_is_logspace, fixed logspace is not "logspace"
+        _IS_LOGSPACE = {_param: False for _param in _params}
 
         _start_GRIDS = deepcopy(_GRIDS)
         _start_params = deepcopy(_params)
@@ -1253,7 +1277,7 @@ class TestMultiPass:
 
             for _param in _params:
                 _param_value = _params[_param]
-                if _params[_param][-1] != 'string':
+                if _params[_param][-1] not in ['string', 'bool']:
                     assert _param_value == _start_params[_param]
                 else:
                     assert _param_value[0] == _start_params[_param][0]

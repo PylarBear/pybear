@@ -34,7 +34,8 @@ def _validate_int_float_linlogspace(
     Parameters
     ----------
     _SINGLE_GRID:
-        [list, tuple, set] - search grid from the previous round
+        list, tuple, set, or other list-like of integers  - search grid
+        from the previous round
     _posn:
         int - index in _SINGLE_GRID where best value found by GridSearch
         fell

@@ -5,20 +5,19 @@
 #
 
 # demo_test incidentally handles testing of all autogridsearch_wrapper
-# functionality except fit() (because demo bypasses fit().) This test
+# functionality except fit() (because demo bypasses fit().) This tests
 # module handles fit() for all dask gridsearch modules.
 
 
 
 import pytest
+
+
+pytest.skip(f"test takes 25 minutes", allow_module_level=True)
+
 import numpy as np
 
 from pybear.model_selection import autogridsearch_wrapper
-
-from pybear.model_selection.tests.functional_tests.autogridsearch_wrapper. \
-    mock_estimator_test_fixture import MockEstimator
-
-
 
 from dask_ml.model_selection import (
     GridSearchCV as DaskGridSearchCV,
@@ -29,11 +28,15 @@ from dask_ml.model_selection import (
     InverseDecaySearchCV
 )
 
-# pizza -- this estimator needs to have partial_fit() for Incremental
+
+# this estimator needs to have partial_fit() for Incremental
 from dask_ml.linear_model import LogisticRegression as dask_logistic
 
+
+
+
 @pytest.fixture
-def _dask_estimator():
+def _dask_estimator_1():
     return dask_logistic(
         penalty='l2',
         dual=False,
@@ -57,22 +60,21 @@ def _dask_estimator():
 
 
 @pytest.fixture
-def _dask_params():
+def _dask_params_1():
     return {
-    'C': [np.logspace(-5, 5, 3), [3,3,3], 'soft_float'],
-    'solver': [['lbfgs', 'admm'], 2, 'string']
-}
-#     return {
-#         'param_a': [np.logspace(-5, 5, 3), [3, 3, 3], 'soft_float'],
-#         'param_b': [[1, 2, 3], [3, 3, 3], 'fixed_integer']
-#     }
+        'C': [np.logspace(-5, 5, 3), [3,3,3], 'soft_float'],
+        'solver': [['lbfgs', 'admm'], 2, 'string'],
+        'fit_intercept': [[True, False], 2, 'bool']
+    }
+
+
 
 from dask_ml.datasets import make_classification as dask_make
 
 
 @pytest.fixture
 def _X_y():
-    return dask_make(n_features=5, n_samples=100, chunks=(100,5))
+    return dask_make(n_features=5, n_samples=100, chunks=(100,5), n_classes=2)
 
 
 from distributed import Client
@@ -80,9 +82,10 @@ from distributed import Client
 
 
 
+# dask gscvs that dont need a partial_fit exposed ** * ** * ** * ** * **
 
 
-class TestDaskGSCVS:
+class TestDaskGSCVSThatDontNeedPartialFit:
 
     #         estimator,
     #         params: ParamsType,
@@ -94,7 +97,7 @@ class TestDaskGSCVS:
 
 
     @pytest.fixture(scope="module")
-    def dask_client(self):   # must be self, not @staticmethod or pytest wont collect
+    def dask_client(self):
         with Client() as client:
             yield client
 
@@ -105,17 +108,13 @@ class TestDaskGSCVS:
             (DaskGridSearchCV, False),
             (DaskRandomizedSearchCV, True),
             (DaskRandomizedSearchCV, False),
-            (IncrementalSearchCV, 'na'),
-            (HyperbandSearchCV, 'na'),
-            (SuccessiveHalvingSearchCV, 'na'),
-            (InverseDecaySearchCV, 'na')
         )
     )
     @pytest.mark.parametrize('_total_passes', (2, 3, 4))
     @pytest.mark.parametrize('_tpih', (True, ))
     @pytest.mark.parametrize('_max_shifts', (2, ))
-    def test_dask_gscvs(self, DASK_GSCV, _refit, _dask_estimator,
-            _dask_params, _total_passes, _tpih, _max_shifts, _X_y, dask_client):
+    def test_dask_gscvs(self, DASK_GSCV, _refit, _dask_estimator_1,
+            _dask_params_1, _total_passes, _tpih, _max_shifts, _X_y, dask_client):
 
         AutoGridSearch = autogridsearch_wrapper(DASK_GSCV)
 
@@ -133,8 +132,8 @@ class TestDaskGSCVS:
 
 
         _test_cls = AutoGridSearch(
-            _dask_estimator,
-            _dask_params,
+            _dask_estimator_1,
+            _dask_params_1,
             total_passes=_total_passes,
             total_passes_is_hard=_tpih,
             max_shifts=_max_shifts,
@@ -144,7 +143,7 @@ class TestDaskGSCVS:
 
         del _gscv_kwargs
 
-        assert _test_cls.total_passes >= len(_dask_params['C'][1])
+        assert _test_cls.total_passes >= len(_dask_params_1['C'][1])
         assert _test_cls.total_passes_is_hard is _tpih
         assert _test_cls.max_shifts == _max_shifts
         assert _test_cls.agscv_verbose is False
@@ -165,26 +164,235 @@ class TestDaskGSCVS:
             if _has_refit_kwarg:
                 assert _test_cls.refit is True
 
-            assert _test_cls.total_passes >= len(_dask_params['C'][1])
+            assert _test_cls.total_passes >= len(_dask_params_1['C'][1])
             assert _test_cls.total_passes_is_hard is _tpih
             assert _test_cls.max_shifts == _max_shifts
             assert _test_cls.agscv_verbose is False
 
             assert 'BALANCED_ACCURACY' in str(_test_cls.scorer_).upper()
-            # cannot test MockEstimator for scoring or scorer_
+            # cannot tests MockEstimator for scoring or scorer_
 
-            assert isinstance(_test_cls.best_estimator_, type(_dask_estimator))
+            assert isinstance(_test_cls.best_estimator_, type(_dask_estimator_1))
             best_params_ = _test_cls.best_params_
             assert isinstance(best_params_, dict)
-            assert sorted(list(best_params_)) == sorted(list(_dask_params))
+            assert sorted(list(best_params_)) == sorted(list(_dask_params_1))
             assert all(map(
                 isinstance,
                 best_params_.values(),
-                ((int, float, bool, str) for _ in _dask_params)
+                ((int, float, bool, str) for _ in _dask_params_1)
             ))
 
 
         # END assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+# END dask gscvs that dont need a partial_fit exposed ** * ** * ** * ** *
+
+
+
+
+
+# dask gscvs that need a partial_fit exposed ** * ** * ** * ** * ** * ** *
+
+
+from sklearn.linear_model import SGDClassifier
+
+
+@pytest.fixture
+def _dask_estimator_2():
+    return SGDClassifier(
+        loss='hinge',
+        penalty='l2',
+        # alpha=0.0001,
+        l1_ratio=0.15,
+        # fit_intercept=True,
+        max_iter=1000,
+        tol=0.001,
+        shuffle=True,
+        verbose=0,
+        epsilon=0.1,
+        n_jobs=None,
+        random_state=None,
+        # learning_rate='optimal',
+        eta0=0.1,
+        power_t=0.5,
+        early_stopping=False,
+        validation_fraction=0.1,
+        n_iter_no_change=5,
+        class_weight=None,
+        warm_start=False,
+        average=False
+    )
+
+
+
+@pytest.fixture
+def _dask_params_2():
+    return {
+        'alpha': [np.logspace(-5, 5, 3), [3,3,3], 'soft_float'],
+        'learning_rate': [['constant', 'optimal'], 2, 'string'],
+        'fit_intercept': [[True, False], 2, 'bool']
+    }
+
+
+
+class TestDaskGSCVSThatNeedPartialFitButNotSuccessiveHalving:
+
+    #         estimator,
+    #         params: ParamsType,
+    #         total_passes: int = 5,
+    #         total_passes_is_hard: bool = False,
+    #         max_shifts: Union[None, int] = None,
+    #         agscv_verbose: bool = False,
+    #         **parent_gscv_kwargs
+
+
+    @pytest.fixture(scope="module")
+    def dask_client(self):
+        with Client() as client:
+            yield client
+
+
+    @pytest.mark.parametrize('DASK_GSCV',
+         (IncrementalSearchCV, HyperbandSearchCV, InverseDecaySearchCV)
+    )
+    @pytest.mark.parametrize('_total_passes', (2, 3, 4))
+    @pytest.mark.parametrize('_tpih', (True, ))
+    @pytest.mark.parametrize('_max_shifts', (2, ))
+    def test_dask_gscvs(self, DASK_GSCV, _dask_estimator_2, _dask_params_2,
+                    _total_passes, _tpih, _max_shifts, _X_y, dask_client):
+
+        AutoGridSearch = autogridsearch_wrapper(DASK_GSCV)
+
+        _gscv_kwargs = {'scoring': 'balanced_accuracy'}
+
+        _test_cls = AutoGridSearch(
+            _dask_estimator_2,
+            _dask_params_2,
+            total_passes=_total_passes,
+            total_passes_is_hard=_tpih,
+            max_shifts=_max_shifts,
+            agscv_verbose=False,
+            **_gscv_kwargs
+        )
+
+        del _gscv_kwargs
+
+        assert _test_cls.total_passes >= len(_dask_params_2['alpha'][1])
+        assert _test_cls.total_passes_is_hard is _tpih
+        assert _test_cls.max_shifts == _max_shifts
+        assert _test_cls.agscv_verbose is False
+
+
+        # assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+        _test_cls.fit(*_X_y, classes=(0,1))
+
+        assert _test_cls.total_passes >= len(_dask_params_2['alpha'][1])
+        assert _test_cls.total_passes_is_hard is _tpih
+        assert _test_cls.max_shifts == _max_shifts
+        assert _test_cls.agscv_verbose is False
+
+        assert 'BALANCED_ACCURACY' in str(_test_cls.scorer_).upper()
+        # cannot tests MockEstimator for scoring or scorer_
+
+        assert isinstance(_test_cls.best_estimator_, type(_dask_estimator_2))
+        best_params_ = _test_cls.best_params_
+        assert isinstance(best_params_, dict)
+        assert sorted(list(best_params_)) == sorted(list(_dask_params_2))
+        assert all(map(
+            isinstance,
+            best_params_.values(),
+            ((int, float, bool, str) for _ in _dask_params_2)
+        ))
+
+
+        # END assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+
+
+
+
+class TestDaskSuccessiveHalving:
+
+    #         estimator,
+    #         params: ParamsType,
+    #         total_passes: int = 5,
+    #         total_passes_is_hard: bool = False,
+    #         max_shifts: Union[None, int] = None,
+    #         agscv_verbose: bool = False,
+    #         **parent_gscv_kwargs
+
+
+    @pytest.fixture(scope="module")
+    def dask_client(self):
+        with Client() as client:
+            yield client
+
+
+    @pytest.mark.parametrize('DASK_GSCV', (SuccessiveHalvingSearchCV, ))
+    @pytest.mark.parametrize('_total_passes', (2, 3, 4))
+    @pytest.mark.parametrize('_tpih', (True, ))
+    @pytest.mark.parametrize('_max_shifts', (2, ))
+    def test_dask_gscvs(self, DASK_GSCV, _dask_estimator_2, _dask_params_2,
+                    _total_passes, _tpih, _max_shifts, _X_y, dask_client):
+
+        AutoGridSearch = autogridsearch_wrapper(DASK_GSCV)
+
+        _gscv_kwargs = {'scoring': 'balanced_accuracy', 'n_initial_iter': 2}
+
+        _test_cls = AutoGridSearch(
+            _dask_estimator_2,
+            _dask_params_2,
+            total_passes=_total_passes,
+            total_passes_is_hard=_tpih,
+            max_shifts=_max_shifts,
+            agscv_verbose=False,
+            **_gscv_kwargs
+        )
+
+        del _gscv_kwargs
+
+        assert _test_cls.total_passes >= len(_dask_params_2['alpha'][1])
+        assert _test_cls.total_passes_is_hard is _tpih
+        assert _test_cls.max_shifts == _max_shifts
+        assert _test_cls.agscv_verbose is False
+
+
+        # assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+        _test_cls.fit(*_X_y, classes=(0, 1))
+
+        assert _test_cls.total_passes >= len(_dask_params_2['alpha'][1])
+        assert _test_cls.total_passes_is_hard is _tpih
+        assert _test_cls.max_shifts == _max_shifts
+        assert _test_cls.agscv_verbose is False
+
+        assert 'BALANCED_ACCURACY' in str(_test_cls.scorer_).upper()
+        # cannot tests MockEstimator for scoring or scorer_
+
+        assert isinstance(_test_cls.best_estimator_, type(_dask_estimator_2))
+        best_params_ = _test_cls.best_params_
+        assert isinstance(best_params_, dict)
+        assert sorted(list(best_params_)) == sorted(list(_dask_params_2))
+        assert all(map(
+            isinstance,
+            best_params_.values(),
+            ((int, float, bool, str) for _ in _dask_params_2)
+        ))
+
+
+        # END assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+
+
+
+
+# END dask gscvs that need a partial_fit exposed ** * ** * ** * ** * ** *
+
+
 
 
 

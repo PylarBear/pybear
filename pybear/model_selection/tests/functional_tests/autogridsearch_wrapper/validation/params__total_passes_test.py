@@ -17,14 +17,16 @@ from model_selection.autogridsearch._autogridsearch_wrapper._validation. \
 def good_dict_params():
     return {
             'param_a': [['a', 'b', 'c'], None, 'string'],
-            'param_b': ['logspace', 1, 3, [3,11,6], 'soft_float']
+            'param_b': ['logspace', 1, 3, [3,11,6], 'soft_float'],
+            'param_c': [[True, False], 2, 'bool']
     }
 
 @pytest.fixture
 def answer_good_dict_params():
     return {
             'param_a': [['a', 'b', 'c'], 1_000_000, 'string'],
-            'param_b': [[10.0, 100.0, 1000.0], [3,11,6], 'soft_float']
+            'param_b': [[10.0, 100.0, 1000.0], [3,11,6], 'soft_float'],
+            'param_c': [[True, False], 2, 'bool']
     }
 
 
@@ -35,7 +37,7 @@ class TestParamsTotalPasses_Validation:
     # total_passes ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     #   when no param in params has points that are list-type, total_passes
-    #   must be determined externally. 'string' never allows a list-type
+    #   must be determined externally. 'string' and 'bool' never allows a list-type
     #   for points, all other numerics' points could be passed as single
     #   int > or a list-type of them.
 
@@ -173,12 +175,13 @@ class TestParamsTotalPasses_Accuracy:
 
     # when str param only, kwarg total_passes is always returned
     @pytest.mark.parametrize('kwarg_passes', (1,2,3,4,5))
-    def test_str_param_only(self, kwarg_passes):
+    def test_str_bool_params_only(self, kwarg_passes):
 
         _params = {
             'a': [['aa', 'bb', 'cc'], 2, 'string'],
             'b': [['dd', 'ee', 'ff'], 3, 'string'],
-            'c': [['gg', 'hh', 'ii'], 4, 'string']
+            'c': [['gg', 'hh', 'ii'], 4, 'string'],
+            'd': [[True, False], 4, 'bool']
         }
 
         _params_out, _passes_out = _params__total_passes(_params, kwarg_passes)
@@ -194,13 +197,15 @@ class TestParamsTotalPasses_Accuracy:
         _params = {
             'a': [np.logspace(-4, 4, 5), 5, 'soft_float'],
             'b': [np.linspace(100, 500, 5), 4, 'soft_integer'],
-            'c': [[2, 3, 4, 5], [4,4,4,4], 'fixed_integer']
+            'c': [[2, 3, 4, 5], [4,4,4,4], 'fixed_integer'],
+            'd': [[True, False], 5, 'bool']
         }
 
         answer_params = {
             'a': [[1e-4, 1e-2, 1, 1e2, 1e4], [5,5,5,5], 'soft_float'],
             'b': [[100, 200, 300, 400, 500], [5,4,4,4], 'soft_integer'],
-            'c': [[2, 3, 4, 5], [4,4,4,4], 'fixed_integer']
+            'c': [[2, 3, 4, 5], [4,4,4,4], 'fixed_integer'],
+            'd': [[True, False], 5, 'bool']
         }
 
         _params_out, _passes_out = _params__total_passes(_params, kwarg_passes)

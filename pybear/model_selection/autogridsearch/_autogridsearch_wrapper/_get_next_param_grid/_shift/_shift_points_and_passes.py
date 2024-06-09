@@ -42,9 +42,9 @@ def _shift_points_and_passes(
 
     for _param in __params:
 
-        # for string params, increment
+        # for string & bool params, increment
         # pass_on_which_to_use_only_the_single_best_value
-        if __params[_param][-1] == 'string':
+        if __params[_param][-1] in ['string', 'bool']:
             __params[_param][1] += 1
 
         # for numerical params:

@@ -56,7 +56,7 @@ dask_estimator = LogisticRegression(
 class TestDemo:
 
     # prove out it does correct passes wrt total_passes/shifts/tpih
-    # test RESULTS_ & GRIDS_
+    # tests RESULTS_ & GRIDS_
     # shift_ctr
 
     @pytest.mark.parametrize('_package', ('sklearn', 'dask'))
@@ -85,17 +85,15 @@ class TestDemo:
 
         _POINTS = [_points for _ in range(_total_passes)]
         _POINTS[_shrink_pass-1:] = [1 for _ in _POINTS[_shrink_pass-1:]]
-        _BOOL_POINTS = [2 for _ in range(_total_passes)]
-        _BOOL_POINTS[_shrink_pass-1:] = [2 for _ in _BOOL_POINTS[_shrink_pass-1:]]
 
         _params = {
             'alpha': [[], _POINTS, _type + '_float'],
-            'fit_intercept': [[True, False], _BOOL_POINTS, 'fixed_float'],
+            'fit_intercept': [[True, False], _shrink_pass, 'bool'],
             'max_iter': [[], _POINTS, _type + '_integer'],
             'solver': [['lbfgs', 'saga'], _shrink_pass, 'string']
         }
 
-        del _POINTS, _BOOL_POINTS
+        del _POINTS
 
         # build first grids ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # make lin univ min bound and log gap 1, then adjust as needed
@@ -144,7 +142,7 @@ class TestDemo:
             )
         elif _package == 'dask':
             # 24_05_32 params was originally built for sklearn Ridge, but
-            # in trying to expand test to dask, dask doesnt have Ridge and
+            # in trying to expand tests to dask, dask doesnt have Ridge and
             # dask logistic takes 'C' instead of 'alpha'. Swap 'C' into
             # params in place of 'alpha' for dask tests.
             _params['C'] = _params['alpha']
@@ -235,7 +233,7 @@ class TestDemo:
         assert _test_cls.params.keys() == _params.keys()
         for _param in _params:
             assert _test_cls.params[_param][0] == _params[_param][0]
-            if _params[_param][-1] == 'string':
+            if _params[_param][-1] in ['string', 'bool']:
                 assert _test_cls.params[_param][2] == _params[_param][2]
             else:
                 assert len(_test_cls.params[_param][0]) == \
@@ -263,7 +261,7 @@ class TestDemo:
                        )
             for _param_ in _params:
                 __ = _test_cls.GRIDS_[_pass_][_param_]
-                if _params[_param_][-1] == 'string':
+                if _params[_param_][-1] in ['string', 'bool']:
                     # 'shrink pass' may have been incremented by shifts,
                     # which would show in _test_cls.params, but not the
                     # _params in this scope

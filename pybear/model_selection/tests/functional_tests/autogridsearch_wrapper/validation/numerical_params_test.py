@@ -98,14 +98,6 @@ class TestGridAsListOfValues:
             )
 
 
-    # hashed 24_05_23 -- grid now accepts sets
-    # def test_type_error_for_set(self):
-    #     with pytest.raises(TypeError):
-    #         _numerical_param_value(
-    #           'good_key', [{1,2,3}, [3], 'hard_integer'], total_passes
-    #         )
-
-
     @pytest.mark.parametrize('total_passes', (1, 3))
     @pytest.mark.parametrize('list_like',
          ([1,2,3], (1,2,3), {1,2,3}, np.array([1,2,3], dtype=object))
@@ -164,21 +156,16 @@ class TestGridAsListOfValues:
 
 
     @pytest.mark.parametrize('total_passes', (1, 3))
-    def test_int_dtype_accepts_bool(self, total_passes):
-
-        # pizza circle back around -- if fixed_integer cannot take
-        # bool in _drill, then change this test to reject bool here
+    def test_int_dtype_rejects_bool(self, total_passes):
 
         points = [2 for _ in range(total_passes)]
 
-        out = _numerical_param_value(
-            'good_key',
-            [[True, False], points, 'fixed_integer'],
-            total_passes
+        with pytest.raises(TypeError):
+            _numerical_param_value(
+                'good_key',
+                [[True, False], points, 'fixed_integer'],
+                total_passes
             )
-
-        assert isinstance(out, list)
-        assert out == [[0.0, 1.0], points, 'fixed_integer']
 
 
     @pytest.mark.parametrize('total_passes', (1, 3))
@@ -210,16 +197,15 @@ class TestGridAsListOfValues:
 
 
     @pytest.mark.parametrize('total_passes', (1, 3))
-    def test_float_dtype_accepts_bool(self, total_passes):
+    def test_float_dtype_rejects_bool(self, total_passes):
 
         points = [2 for _ in range(total_passes)]
 
-        out = _numerical_param_value('good_key',
-            [[True, False], points, 'fixed_float'], total_passes
-        )
+        with pytest.raises(TypeError):
+            _numerical_param_value('good_key',
+                [[True, False], points, 'fixed_float'], total_passes
+            )
 
-        assert isinstance(out, list)
-        assert out == [sorted([0.0, 1.0]), points, 'fixed_float']
 
 
 class TestGridAsNpSpace:

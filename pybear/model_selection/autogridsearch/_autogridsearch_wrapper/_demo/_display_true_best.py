@@ -38,14 +38,19 @@ def _display_true_best(
 
 
 
-    NUM_TYPES, STRING_TYPES = [], []
+    NUM_TYPES, STRING_TYPES, BOOL_TYPES = [], [], []
     for _ in _true_best:
-        if 'string' in _demo_cls_params[_][-1]:
+        _type = _demo_cls_params[_][-1]
+        if 'string' in _type:
             STRING_TYPES.append(_)
+        elif 'bool' in _type:
+            BOOL_TYPES.append(_)
         else:
             NUM_TYPES.append(_)
 
-    _max_len = max(list(map(len, STRING_TYPES)) + list(map(len, NUM_TYPES)))
+    _len = lambda LIST: list(map(len, LIST))
+    _max_len = max(_len(STRING_TYPES) + _len(NUM_TYPES) + _len(BOOL_TYPES))
+    del _len
     _pad = min(_max_len, 65)
     _print = lambda x: print(f'{x[:_pad]}:'.ljust(_pad + 5) + f'{_true_best[x]}')
     print(f'Numerical hyperparameters:')
@@ -53,6 +58,9 @@ def _display_true_best(
         _print(x)
     print(f'\nString hyperparameters:')
     for y in STRING_TYPES:
+        _print(y)
+    print(f'\nBoolean hyperparameters:')
+    for y in BOOL_TYPES:
         _print(y)
     print()
 

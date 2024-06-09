@@ -13,7 +13,7 @@ from ._mock_gscv import _mock_gscv
 from .._build_first_grid_from_params import _build
 from .._type_aliases import ParamType, ParamsType, BestParamsType, ResultsType
 from .._print_results import _print_results
-from .._get_next_param_grid._validation._validate_grids import _validate_grids
+
 
 
 _params: ParamsType
@@ -31,29 +31,47 @@ def _demo(
     ):
 
     """
-    pizza update this with whatever ends up in autogridsearch_wrapper
-    Demonstrate and assess AutoGridSearch's ability to generate appropriate
-    grids given first round grid instructions and mocked true best values
-    for an estimator's hyperparameters.
+    Simulated trials of this AutoGridSearch instance.
+
+    Demonstrate and assess AutoGridSearch's ability to generate
+    appropriate grids with the given parameters in this
+    AutoGridSearch instance (params, etc.) against mocked true
+    best values. Visually inspect the generated grids and
+    performance of the AutoGridSearch instance in converging to
+    the mock targets provided in true_best_params. If no true
+    best values are provided to true_best_params, random true
+    best values are generated from the set of first search grids
+    provided in params.
 
     Parameters
     ----------
+
     _DemoCls:
-        Instance of AutoGridSearch
+        Instance of AutoGridSearch created for demo purposes,
+        not "self".
+
     _true_best:
-        dict[str, [int, float, str]] - Mocked true best values for an
-        estimator's hyperparameters, as provided by the user or generated
-        randomly.
+        dict[str, Union[int, float, bool, str]] - dict of mocked
+        true best values for an estimator's hyperparameters, as
+        provided by the user or generated randomly. If not passed,
+        random true best values are generated based on the first
+        round grids made from the instructions in params.
+
+    _mock_gscv_pause_time:
+        int, float - time in seconds to pause, simulating a trial
+        of GridSearch
 
     Return
     ------
     -
         _DemoCls:
             AutoGridSearchCV instance - The AutoGridSearch instance
-            used to run simulations, not the active instance of
-            AutoGridSearch.
+            created to run simulations, not the active instance of
+            AutoGridSearch. This return is integral for test of
+            the demo functionality, but has no other internal use.
 
     """
+
 
     try:
         float(_mock_gscv_pause_time)
@@ -108,7 +126,7 @@ def _demo(
             )
             # update points in params with possibly different points from gnpg
             for _param in _DemoCls.GRIDS_[_pass]:
-                if _DemoCls.params[_param][-1] != 'string':
+                if _DemoCls.params[_param][-1] not in ['string', 'bool']:
                     _DemoCls.params[_param][1][_pass] = \
                                     len(_DemoCls.GRIDS_[_pass][_param])
 

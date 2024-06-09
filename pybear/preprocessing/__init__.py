@@ -1,5 +1,5 @@
 
-from ._data import MinCountTransformer
+from preprocessing.MinCountTransformer.MinCountTransformer import MinCountTransformer
 
 
 __all__ = [

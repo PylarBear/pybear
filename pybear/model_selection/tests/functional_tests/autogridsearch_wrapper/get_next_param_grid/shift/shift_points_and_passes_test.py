@@ -25,7 +25,7 @@ class TestShiftPoints:
     # since handling is different for 'string' and ('soft_float',
     # 'hard_float', 'fixed_float', 'soft_integer', 'hard_integer',
     # 'fixed_integer'), and the ones in parentheses are all handled the
-    # same, just test 'string' and one of the others.
+    # same, just tests 'string' and one of the others.
 
     @pytest.mark.parametrize('total_passes', (2, 3, 4))
     @pytest.mark.parametrize('number_of_params', (1, 3, 10))
@@ -41,13 +41,17 @@ class TestShiftPoints:
         for _key in _keys:
 
             _random_dtype = np.random.choice(
-                            ['string', 'fixed_integer', 'soft_float'],
-                            size=1
+                ['string', 'fixed_integer', 'soft_float', 'bool'],
+                size=1
             )[0]
             _random_grid_size = np.random.randint(1,10)
 
             if _random_dtype == 'string':
                 _grid = list('abcdefghijklmn'[:_random_grid_size])
+                _shrink_pass = np.random.randint(1,10)
+                _params[_key] = [_grid, _shrink_pass, _random_dtype]
+            elif _random_dtype == 'bool':
+                _grid = [True, False]
                 _shrink_pass = np.random.randint(1,10)
                 _params[_key] = [_grid, _shrink_pass, _random_dtype]
             else:
@@ -79,7 +83,7 @@ class TestShiftPoints:
         expected_params = _params
 
         for _param in expected_params:
-            if expected_params[_param][-1] == 'string':
+            if expected_params[_param][-1] in ['string', 'bool']:
                 expected_params[_param][-2] += 1
             else:
                 expected_params[_param][-2].insert(

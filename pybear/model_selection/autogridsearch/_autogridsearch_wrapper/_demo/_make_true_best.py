@@ -44,9 +44,8 @@ def _make_true_best(
         _max = None
         _gap = None
 
-        if 'string' in _type:
-            _best = str(np.random.choice(_param_grid, 1, replace=False)[0])
-
+        if 'bool' in _type or 'string' in _type:
+            _best = _param_grid[np.random.randint(0,len(_param_grid))]
         else:
             _min = min(_param_grid)
             _max = max(_param_grid)

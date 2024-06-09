@@ -5,14 +5,14 @@
 #
 
 
-from typing import Union, TypeAlias
+from typing import Iterable, TypeAlias
 
 
 # see _type_aliases
 
 # subtypes for str only
 StrDataType: TypeAlias = str  # DataType sub
-StrGridType: TypeAlias = Union[list[str], tuple[str], set[str]] # GridType sub
+StrGridType: TypeAlias = Iterable[StrDataType] # GridType sub
 StrPointsType: TypeAlias = int # PointsType sub
 StrParamType: TypeAlias = list[StrGridType, StrPointsType, str] # ParamType sub
 
@@ -23,8 +23,8 @@ def _string(
             _param_value: StrParamType,
             _grid: StrGridType,
             _pass: int,
-            _best_param_from_previous_pass: str
-    ) -> list[str]:
+            _best_param_from_previous_pass: StrDataType
+    ) -> list[StrDataType]:
 
     """
     Create the current round's search grid for a string parameter based
@@ -32,17 +32,16 @@ def _string(
 
     Parameters
     ----------
-    _param_key:
-        str - parameter's key in _params
     _param_value:
-        list[list[str], int, str] - string parameter grid instructions
+        list[Iterable[str], int, str] - string parameter grid instructions
     _grid:
-        list[str] - previous round's gridsearch values for string parameter
+        Iterable[str] - previous round's gridsearch values for string
+        parameter
     _pass:
         int - zero-indexed count of passes to this point, inclusive; the
         current pass
-    _best_params_from_previous_pass:
-        str - best value return from sklearn / dask best_params_
+    _best_param_from_previous_pass:
+        str - best value returned from sklearn / dask best_params_
 
     Return
     ------

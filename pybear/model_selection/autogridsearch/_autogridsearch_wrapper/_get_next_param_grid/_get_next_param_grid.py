@@ -68,13 +68,13 @@ def _get_next_param_grid(
         indicating if a parameter has or has not landed off the extremes
         of its search grid. Comes in with the results from pass n-2 and
         is updated with the results from the last pass, n-1, to inform
-        on building the grids for the current pass, n. String params are
-        not in a continuous space and cannot be on the edges. Hard
-        integers, hard floats, fixed integers, and fixed floats cannot
-        "land on the edges". The only parameters that can land inside or
-        on the edges are soft floats and soft integers. If on the edges,
-        that parameter's grid is shifted, otherwise the search window is
-        narrowed.
+        on building the grids for the current pass, n. String params and
+        bools are not in a continuous space and cannot be on the edges.
+        Hard integers, hard floats, fixed integers, and fixed floats
+        cannot "land on the edges". The only parameters that can land
+        inside or on the edges are soft floats and soft integers. If on
+        the edges, that parameter's grid is shifted, otherwise the search
+        window is narrowed.
     _IS_LOGSPACE:
         dict[str, Union[bool, float]] - for all numerical parameters, if
         the space is linear, or some other non-standard interval, it is
@@ -205,8 +205,8 @@ def _get_next_param_grid(
     # autogridsearch_wrapper.reset()
 
     # must establish if a soft num param has fallen inside the edges of
-    # its grid. string_parameters AND hard/fixed numerical_parameters
-    # CANNOT BE "ON AN EDGE"!
+    # its grid. string_parameters, bool_parameters, AND hard/fixed
+    # numerical_parameters CANNOT BE "ON AN EDGE"!
     # this is not needed after the pass where all soft num fall inside
     # the edges (all values in PHLITE will be True and cannot gain
     # re-entry to the place where they could be set back to False.)
@@ -253,7 +253,7 @@ def _get_next_param_grid(
 
     # not elif!
     if any([(v > 1 and _PHLITE.get(k, True)) for k, v in _IS_LOGSPACE.items()]):
-        # must let 'fixed' in here also if it gets a shrink
+        # must let 'fixed' and 'bool' in here also if they get a shrink
 
         # REGAP LOG > 1 ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -274,7 +274,7 @@ def _get_next_param_grid(
             # doing shrink here is easier than making a regap pass bump
             # points like a shift.
             for _param in _GRIDS[_pass]:
-                if _params[_param][-1] == 'string':
+                if _params[_param][-1] in ['string', 'bool']:
                     if _params[_param][1] == _pass + 1:
                         _GRIDS[_pass][_param] = \
                             [_best_params_from_previous_pass[_param]]
@@ -291,7 +291,8 @@ def _get_next_param_grid(
             # non-logspace params) run the same thing again with the
             # log gap > 1 params regapped to 1
 
-            # dont let fixed in here, not allowed to regap
+            # dont let fixed in here, not allowed to regap (thinking that
+            # all fixed are always set to False in IS_LOGSPACE anyway)
             if _PHLITE.get(_param, True) and _IS_LOGSPACE[_param] > 1 and \
                 'fixed' not in _params[_param][-1]:
 
@@ -357,7 +358,7 @@ def _get_next_param_grid(
         _params[_param] = _param_value
         _IS_LOGSPACE[_param] = _is_logspace
 
-        if 'string' not in _param_value[-1]:
+        if 'string' not in _param_value[-1] and 'bool' not in _param_value[-1]:
             _params[_param][-2][_pass] = len(_grid)
 
         del _grid, _param_value, _is_logspace

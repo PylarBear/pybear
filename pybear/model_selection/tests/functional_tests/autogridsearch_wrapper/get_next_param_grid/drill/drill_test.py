@@ -15,21 +15,21 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 
 
 # every logspace in here should be unit gap because _regap_logspace would
-# have run before this, but some places like 'fixed' can handle it
+# have run before _drill, but some places like 'fixed' can handle it
 
 
 # def _drill(
 #         _param_name: str,
-#         _grid: list[Union[int, float, str]],
-#         _param_value: list[list[Union[str, int, float]],
+#         _grid: Iterable[Union[int, float, bool, str]],
+#         _param_value: list[Iterable[Union[str, int, bool, float]]],
 #                                       Union[int, list[int]], str],
 #         _is_logspace: Union[bool, float],
 #         _pass: int,
-#         _best: Union[int, float, str]
+#         _best: Union[int, float, bool, str]
 # ) -> tuple[
-#     list[Union[str, int, float]],
-#     list[list[Union[str, int, float]], Union[int, list[int]], str],
-#     Union[bool, float]
+#     list[Union[str, int, bool, float]],
+#     list[list[Union[str, int, bool, float]], Union[int, list[int]], str],
+#     bool
 # ]
 
 
@@ -45,7 +45,7 @@ def test_catches_best_not_in_grid():
         )
 
 
-class TestStrFixedIntFixedFloatReturnsEverythingUnchanged:
+class TestStrBoolFixedIntFixedFloatReturnsEverythingUnchanged:
 
     @pytest.fixture
     def good_params(self):
@@ -57,6 +57,8 @@ class TestStrFixedIntFixedFloatReturnsEverythingUnchanged:
             'e': [[10.1, 10.2, 10.3, 10.4], [4, 4, 4], 'fixed_float'],
             'f': [[1e3, 1e4, 1e5, 1e6], [4, 4, 4], 'fixed_float'],
             'g': [[1e3, 1e5, 1e7, 1e9], [4, 4, 4], 'fixed_float'],
+            'h': [[True, False], 2, 'bool'],
+            'i': [[True], 2, 'bool']
         }
 
     @pytest.fixture
@@ -68,7 +70,9 @@ class TestStrFixedIntFixedFloatReturnsEverythingUnchanged:
             'd': 2.0,
             'e': False,
             'f': 1.0,
-            'g': 2.0
+            'g': 2.0,
+            'h': False,
+            'i': False
         }
 
     @pytest.fixture
@@ -81,7 +85,9 @@ class TestStrFixedIntFixedFloatReturnsEverythingUnchanged:
                 'd': [1e1, 1e3, 1e5, 1e7],
                 'e': [10.1, 10.2, 10.3, 10.4],
                 'f': [1e3, 1e4, 1e5, 1e6],
-                'g': [1e3, 1e5, 1e7, 1e9]
+                'g': [1e3, 1e5, 1e7, 1e9],
+                'h': [True, False],
+                'i': [True]
             },
             1: {}
         }
