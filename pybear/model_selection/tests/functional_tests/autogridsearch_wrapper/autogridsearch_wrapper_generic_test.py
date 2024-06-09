@@ -5,7 +5,7 @@
 #
 
 # demo_test incidentally handles testing of all autogridsearch_wrapper
-# functionality except fit() (because demo bypasses fit().) This test
+# functionality except fit() (because demo bypasses fit().) This tests
 # module handles arg/kwarg validation at the highest level.
 
 
@@ -34,7 +34,8 @@ class TestAGSCV_Generic:
         return {
             'C': [np.logspace(-5,5,6), [6,6,6], 'soft_float'],
             'l1_ratio': [np.linspace(0,1,6), [6,6,6], 'hard_float'],
-            'solver': [['saga', 'lbfgs'], 2, 'string']
+            'solver': [['saga', 'lbfgs'], 2, 'string'],
+            'fit_intercept': [[True, False], 2, 'bool']
         }
 
     @pytest.fixture

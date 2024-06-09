@@ -11,6 +11,7 @@ import numpy as np
 from .._float._float import _float
 from .._int._int import _int
 from .._string._string import _string
+from .._bool._bool import _bool
 
 from ..._type_aliases import DataType, ParamType, GridType
 
@@ -94,6 +95,21 @@ def _drill(
         return _grid, _param_value, _is_logspace
 
     # END string ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    # bool ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    if 'BOOL' in _type:
+        _grid = _bool(
+            _param_value,
+            _grid,
+            _pass,
+            _best
+        )
+        # no change to len(_grid), must match what was already in _param_value
+        # no change to _is_logspace
+        return _grid, _param_value, _is_logspace
+
+    # END bool ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     _is_close = np.isclose(_grid, _best, atol=1e-50)

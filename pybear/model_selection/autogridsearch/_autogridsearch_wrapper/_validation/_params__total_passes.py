@@ -9,6 +9,7 @@ import numpy as np
 
 from ._numerical_params import _numerical_param_value
 from ._string_params import _string_param_value
+from ._bool_params import _bool_param_value
 
 from .._type_aliases import ParamsType
 
@@ -19,15 +20,15 @@ def _params__total_passes(
         _total_passes: int
     ) -> tuple[ParamsType, int]:
 
-    """Validate numerical and string params within _params, and standardize
-    the format of _params, vis-à-vis total_passes.
+    """Validate numerical, string, and bool params within _params, and
+    standardize the format of _params, vis-à-vis total_passes.
 
     Parameters
     ----------
     _params:
         dict[str, Iterable[Iterable, Iterable|int, str] - A single
         dictionary that contains parameter names as keys and lists that
-        follow the format rules for string parameters and numerical
+        follow the format rules for string, bool, and numerical
         parameters. AutoGridSearch does not accept lists of multiple
         params dictionaries in the same way that Scikit-Learn and Dask
         accept multiple param_grids.
@@ -74,11 +75,12 @@ def _params__total_passes(
     # this number may not be needed if _params contains 'points' that are
     # list-type (where the length of the list of points is the number of
     # passes.) If points are passed as lists to multiple parameters, the
-    # lengths must all be equal. String params do not take points internally;
-    # this must be set with the total_passes arg or inferred from other
-    # params. Numerical params can take a list-type or a single integer for
-    # 'points'. If no params are passed with a list-type for points, or all
-    # string parameters are passed, the total_passes arg is used.
+    # lengths must all be equal. String and bool params do not take points
+    # internally; this must be set with the total_passes arg or inferred
+    # from other params that have list-like 'points'. Numerical params
+    # can take a list-type or a single integer for 'points'. If no params
+    # are passed with a list-type for points, or all string / bool
+    # parameters are passed, the total_passes arg is used.
 
 
     # validate this even though it may not be needed
@@ -109,14 +111,14 @@ def _params__total_passes(
 
 
     # must get a finalized number for total_passes before looping over
-    # _params because _string_param_value and _numerical_param_value
-    # standardize the 'points' slot into a list with len == total_passes.
-    # Validation of the 'points' slot is handled in those 2 modules and
-    # that's where it will stay to avoid another huge surgery to the
-    # _numerical_param_value module. So without having validated the
-    # 'points' slot here, look for list-types in the [-2] slot and if
-    # there are list-types, use that to infer total_passes and override
-    # the value for the total_passes kwarg.
+    # _params because _{string/numerical/bool}_param_value standardize
+    # the 'points' slot into a list with len == total_passes. Validation
+    # of the 'points' slot is handled in those 3 modules and that's where
+    # it will stay to avoid another huge surgery to the _numerical_param_value
+    # module. So without having validated the 'points' slot here, look
+    # for list-types in the [-2] slot and if there are list-types, use
+    # that to infer total_passes and override the value for the
+    # total_passes kwarg.
 
     _POINTS_LENS = []
     for _param in _params:
@@ -125,7 +127,7 @@ def _params__total_passes(
         try:
             iter(_points)
             if isinstance(_points, (str, dict, set)):
-                continue  # except on this later in _string or _numerical
+                continue  # except on this later in _string _bool or _numerical
             _POINTS_LENS.append(len(_points))
         except:
             continue
@@ -170,7 +172,7 @@ def _params__total_passes(
         # last posn of value must be a string of dtype / search type
 
         allowed = ['string', 'hard_float', 'hard_integer', 'soft_float',
-                   'soft_integer', 'fixed_float', 'fixed_integer']
+                   'soft_integer', 'fixed_float', 'fixed_integer', 'bool']
 
         err_msg = (f"{_key} -- last position must be a string in \n"
                    f"[{', '.join(allowed)}]")
@@ -189,6 +191,8 @@ def _params__total_passes(
 
         if _params[_key][-1] == 'string':
             _params[_key] = _string_param_value(_key, _params[_key])
+        elif _params[_key][-1] == 'bool':
+            _params[_key] = _bool_param_value(_key, _params[_key])
         else:
             _params[_key] = \
                 _numerical_param_value(_key, _params[_key], _total_passes)

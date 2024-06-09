@@ -237,9 +237,8 @@ def _numerical_param_value(
         raise TypeError(err_msg)
 
     try:
-        # removed bool exception 24_05_21 to allow bools in float
-        # if any(map(isinstance, __[0], (bool for _ in __[0]))):
-        #     raise Exception
+        if any(map(isinstance, __[0], (bool for _ in __[0]))):
+            raise Exception
         list(map(float, __[0]))
     except:
         raise TypeError(f"{_} -- search values must be numeric")
@@ -250,7 +249,7 @@ def _numerical_param_value(
 
     # validate points part 2 ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # in part 1, first grid was not build yet, but validated that points
+    # in part 1, first grid was not built yet, but validated that points
     #  - is a list
     #  - len==(total_passes)
     #  - has integers > 0

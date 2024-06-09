@@ -17,7 +17,7 @@ class TestIntLinspaceGapGT1Soft:
     # no validation
 
 
-    # unit gap only to test for robustness against span falling below 2
+    # unit gap only to tests for robustness against span falling below 2
     @pytest.mark.parametrize('grid',
                  ([1,3,5], [10,20,30], [10, 15, 25], [3,4,5])
     )

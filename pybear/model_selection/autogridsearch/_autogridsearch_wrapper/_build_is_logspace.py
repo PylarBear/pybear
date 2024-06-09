@@ -35,6 +35,9 @@ def _build_is_logspace(
         if __[-1] == 'string':
             _IS_LOGSPACE[_param] = False
 
+        elif __[-1] == 'bool':
+            _IS_LOGSPACE[_param] = False
+
         else:
             # "soft" & "hard" CAN BE LOGSPACES, BUT "fixed" CANNOT
             if "fixed" in __[-1]:

@@ -127,13 +127,15 @@ def _mock_gscv(
         _grid = _GRIDS[_pass][_param]
         if len(_grid) == 1:
             _best_params_[_param] = _grid[0]
-        elif 'string' in _params[_param][-1]:
-            # for a str param, make it 10% chance that the returned "best"
-            # is non-best option
+        elif _params[_param][-1] in ['string', 'bool']:
+            # for a str or bool param, make it 10% chance that the returned
+            # "best" is non-best option
             _p_best = 0.9
             _p_not_best = (1 - _p_best) / (len(_grid) - 1)
             _p = [0.9 if i == _true_best[_param] else _p_not_best for i in _grid]
-            _best_params_[_param] = str(np.random.choice(_grid, 1, False, p=_p)[0])
+
+            _best_params_[_param] = \
+                type(_grid[0])(np.random.choice(_grid, 1, False, p=_p)[0])
             del _p_best, _p_not_best, _p
         else:
             # use min lsq to find best for numerical

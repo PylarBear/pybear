@@ -30,7 +30,7 @@ class TestIntLinspaceGapGT1Hard:
             _int_linspace_gap_gt_1_hard([10,20,30], 1, 1, 25)
 
 
-    # unit gap only to test for robustness against span falling below 2
+    # unit gap only to tests for robustness against span falling below 2
     @pytest.mark.parametrize('grid',
         ([11,13,15], [10,20,30], [10, 15, 25], [10,11,12])
     )

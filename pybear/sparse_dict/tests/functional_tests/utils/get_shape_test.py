@@ -52,7 +52,7 @@ def good_np_2():
 
 class TestGetShape:
 
-    @pytest.mark.parametrize('name', ('test', 'name', '123', ']0#)48#'))
+    @pytest.mark.parametrize('name', ('tests', 'name', '123', ']0#)48#'))
     def test_accepts_str_name(self, name, good_sd_1):
         get_shape(name, good_sd_1, 'row')
 
@@ -69,7 +69,7 @@ class TestGetShape:
             get_shape('name', good_sd_1, orient)
 
 
-    @pytest.mark.parametrize('orient', ('test', 'name', '123', ']0#)48#'))
+    @pytest.mark.parametrize('orient', ('tests', 'name', '123', ']0#)48#'))
     def test_rejects_bad_str_orient(self, orient, good_sd_1):
         with pytest.raises(ValueError):
             get_shape('name', good_sd_1, orient)

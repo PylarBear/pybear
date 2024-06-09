@@ -92,6 +92,16 @@ class TestValidateIntFloatLinLogspace:
             vifl([1.1, 1.2, 1.3], False, 1, False, 1, 10, 3, int_module_names[2])
 
 
+    def test_int_rejects_bools_in_grid(self, int_module_names):
+        with pytest.raises(TypeError):
+            vifl([True, False], False, 1, False, 0, 1, 2, int_module_names[2])
+
+
+    def test_float_rejects_bools_in_grid(self, float_module_names):
+        with pytest.raises(TypeError):
+            vifl([True, False], False, 1, False, 0, 1, 2, float_module_names[0])
+
+
     def test_int_accepts_int_in_grid(self, int_module_names):
         vifl([1, 2, 3], False, 1, False, 1, 10, 3, int_module_names[0])
 

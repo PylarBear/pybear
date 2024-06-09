@@ -20,7 +20,7 @@ from xgboost import XGBClassifier
 
 
 
-# 24_06_01 currently does not test for presence of fit(), get_params(),
+# 24_06_01 currently does not tests for presence of fit(), get_params(),
 # and set_params()
 
 

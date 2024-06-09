@@ -19,11 +19,12 @@ def _validate_best_params(
 
 
     """
-    --- _best_params_from_previous_pass is (still) dict (this is a
-        sklearn/dask output and is beyond the control of pybear.)
-    --- params (keys) returned in _best_params_from_previous_pass match
+    Check that:
+    - _best_params_from_previous_pass is (still) dict (this is a sklearn
+        / dask output and is beyond the control of pybear.)
+    - params (keys) returned in _best_params_from_previous_pass match
         those passed by GRIDS in quantity and values
-    --- values returned in best_params were in the allowed search space
+    - values returned in best_params were in the allowed search space
 
     Parameters
     ----------
@@ -32,12 +33,13 @@ def _validate_best_params(
     _pass:
         int - zero-indexed pass of GridSearchCV
     _best_params_from_previous_pass:
-        dict[str, [int, float, str]] - best_params_ as returned from
-        sklearn / dask GridSearchCV
+        dict[str, Union[int, float, bool, str]] - best_params_ as returned
+        from sklearn / dask GridSearchCV
 
     Return
     ------
-    None
+    -
+        None
 
 
     """
@@ -58,7 +60,7 @@ def _validate_best_params(
     del _, __
 
     for param_ in _best_params_from_previous_pass:
-        # VALIDATE best_param_ KEYS WERE IN ITS GRID
+        # VALIDATE best_param_ KEYS WERE IN GRIDS
         if param_ not in _GRIDS[_pass - 1]:
             raise ValueError(f'{param_} in best_params_from_previous_pass is not '
                              f'in params given by GRIDS on the previous pass')
@@ -66,10 +68,12 @@ def _validate_best_params(
         # VALIDATE THAT RETURNED best_params_ HAS VALUES THAT ARE WITHIN
         # THE PREVIOUS SEARCH SPACE
         _value = _best_params_from_previous_pass[param_]
-        if _value not in _GRIDS[_pass - 1][param_]:
-            raise ValueError(f"{param_}: best_params_ contains a value ({_value}) "
-                f"that was not in its given search space "
-                f"({_GRIDS[_pass - 1][param_]})")
+        _OLD_GRID = _GRIDS[_pass - 1][param_]
+        if _value not in _OLD_GRID:
+            raise ValueError(f"{param_}: best_params_ contains a value ({_value}, "
+                f"type={type(_value)}) that was not in its given search space "
+                f"({_OLD_GRID}, types={list(map(type, _OLD_GRID))})")
+        del _OLD_GRID
 
 
     for param_ in _GRIDS[_pass - 1]:

@@ -5,7 +5,7 @@
 #
 
 # demo_test incidentally handles testing of all autogridsearch_wrapper
-# functionality except fit() (because demo bypasses fit().) This test
+# functionality except fit() (because demo bypasses fit().) This tests
 # module handles fit() for all sklearn gridsearch modules.
 
 
@@ -46,7 +46,7 @@ def _sklearn_params():
 
     return {
         'param_a': [np.logspace(-5, 5, 3), [3, 3, 3], 'soft_float'],
-        'param_b': [[1, 2, 3], [3, 3, 3], 'fixed_integer']
+        'param_b': [[True, False], 2, 'bool']
     }
 
 
@@ -106,7 +106,7 @@ class TestSklearnGSCVS:
         assert _test_cls.max_shifts == _max_shifts
         assert _test_cls.agscv_verbose is False
 
-        # cannot test MockEstimator for scoring or scorer_
+        # cannot tests MockEstimator for scoring or scorer_
 
         if _refit:
             assert isinstance(_test_cls.best_estimator_, type(_sklearn_estimator))
