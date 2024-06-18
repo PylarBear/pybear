@@ -13,7 +13,6 @@ from preprocessing.MinCountTransformer.MinCountTransformer import MinCountTransf
 from pytest_fixtures.mock_min_count_trfm import mmct
 
 
-
 bypass = False
 
 test_start_time = time.perf_counter()
@@ -2964,7 +2963,7 @@ if True:
 
     # DEMONSTRATE EXCEPTS FOR UNKNOWN PARAM
     try:
-        TestCls.set_params(pizza=1)
+        TestCls.set_params(garbage=1)
         raise AssertionError
     except ValueError:
         pass
