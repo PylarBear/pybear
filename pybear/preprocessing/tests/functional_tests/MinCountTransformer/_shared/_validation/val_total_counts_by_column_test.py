@@ -89,8 +89,8 @@ class TestValTotalCountsByColumns:
 
 
 
-    @pytest.mark.skip(reason=f"this is not working here, might have something to "
-         f"do with fixtures... independently verified except is raised")
+    @pytest.mark.skip(reason=f"this iterable is not working here, might have "
+         f"something to do with fixtures... independently verified except is raised")
     @pytest.mark.parametrize('_junk_inner_dict_key', ((1,2,3,4),))
     def test_type_error_inner_key_iterable(self, good_tcbc, _junk_inner_dict_key):
 
@@ -140,8 +140,9 @@ class TestValTotalCountsByColumns:
         assert _val_total_counts_by_column(good_tcbc) == good_tcbc
 
 
-
-
+    def test_accepts_empty_inner_dicts(self):
+        good_tcbc = {0: {'a':25, 'b':10}, 1: {}, 2:{}, 3: {0: 17, 1:28}}
+        assert _val_total_counts_by_column(good_tcbc) == good_tcbc
 
 
 

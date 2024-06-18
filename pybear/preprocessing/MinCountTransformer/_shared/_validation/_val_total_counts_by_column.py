@@ -5,8 +5,7 @@
 #
 
 
-from pybear.preprocessing.MinCountTransformer._type_aliases import \
-    TotalCountsByColumnType
+from ..._type_aliases import TotalCountsByColumnType
 import numpy as np
 
 
@@ -70,14 +69,18 @@ def _val_total_counts_by_column(
             except:
                 pass
 
-    del err_msg, _outer_key, _inner_key
+    del err_msg
+    try:
+        del _outer_key, _inner_key
+    except:
+        pass
 
 
     # inner values must be int
     _inner_values = list(map(dict.values, __.values()))
 
     err_msg = (f"_total_counts_by_column inner dictionaries' counts "
-               f"must be an integer")
+               f"must be integers")
 
     if any(map(lambda x: any(map(isinstance, x, (bool for _ in x))), _inner_values)):
         raise TypeError(err_msg)
