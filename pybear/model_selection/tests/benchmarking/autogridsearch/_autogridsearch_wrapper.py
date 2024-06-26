@@ -6,7 +6,7 @@
 
 
 
-# test if fixed integer and fixed float can take negative numbers
+# tests if fixed integer and fixed float can take negative numbers
 
 # 24_06_01 AutoGridSearch conclusively cannot take negative numbers for
 # any data/search type. Already knew that soft and hard cant because of
@@ -14,7 +14,7 @@
 # hard_int. But fixed cannot take negative numbers either because of all
 # the validation that uses np.log10... cant do log on negative numbers.
 
-# test if fixed integer can take zeros
+# tests if fixed integer can take zeros
 # the code does accept fixed integer of zero, without error. accuracy of
 # result was not tested.
 

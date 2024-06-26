@@ -40,7 +40,7 @@ orig_args = [_rows // 20]
 
 # build X, NO_NAN_X, DTYPE_KEY, x_rows, x_cols ** * ** * ** * ** * ** *
 
-# this constructs a test array "X" of randomly filled vectors that have
+# this constructs a tests array "X" of randomly filled vectors that have
 # certain criteria like certain number of certain types of columns,
 # certain amounts of uniques, certain proportions of uniques, to make
 # X manipulable with certain outcomes across all tests. the vectors
@@ -566,7 +566,7 @@ class TestIgnoreColumnsHandleAsBool:
             input_format, kwarg_input, _kwarg, X, COLUMNS, _y, args, kwargs
         ):
 
-        # this pulled out of the old big test
+        # this pulled out of the old big tests
         # this actually tests X & y inputs (coincidentally with various
         # ignore_columns & handle as bool inputs.)
 

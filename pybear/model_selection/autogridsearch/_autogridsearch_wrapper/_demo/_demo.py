@@ -67,7 +67,7 @@ def _demo(
         _DemoCls:
             AutoGridSearchCV instance - The AutoGridSearch instance
             created to run simulations, not the active instance of
-            AutoGridSearch. This return is integral for test of
+            AutoGridSearch. This return is integral for tests of
             the demo functionality, but has no other internal use.
 
     """
@@ -173,7 +173,7 @@ def _demo(
           f"with {_DemoCls._shift_ctr} shift pass(es).")
 
 
-    return _DemoCls   # for test purposes only
+    return _DemoCls   # for tests purposes only
 
 
 

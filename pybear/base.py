@@ -32,7 +32,7 @@ def is_classifier(estimator_) -> bool:
     Parameters
     ----------
     estimator_:
-        scikit-learn, dask_ml, xgboost, or lightgbm estimator to test.
+        scikit-learn, dask_ml, xgboost, or lightgbm estimator to tests.
 
     Return
     ------

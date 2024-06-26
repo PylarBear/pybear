@@ -180,7 +180,7 @@ class PreRunDataAugment:
                 'p': 'print preview data object',
                 'q': 'print column names & setup info',
                 'r': 'reset and start over',
-                't': 'check colinearity / test inverse on DATA',
+                't': 'check colinearity / tests inverse on DATA',
                 'u': 'undo last operation',
                 'y': f'convert DATA to {"sparse dicts" if self.is_list() else "lists"}]'
         }
@@ -751,12 +751,12 @@ class PreRunDataAugment:
                     self.print_cols_and_setup_parameters()
 
 
-                elif self.user_manual_or_std == 'T':  # '(t)test inverse of XTX'
+                elif self.user_manual_or_std == 'T':  # '(t)tests inverse of XTX'
                     # 11/27/22 BELIEVE DATA IS [ [] = COLUMN ] HERE, SO INSTEAD OF TRANSPOSE, JUST MAKE XTX HERE
                     if self.is_list: DUM_XTX = np.matmul(self.DATA_OBJECT_WIP, self.DATA_OBJECT_WIP.transpose())
                     elif self.is_dict: DUM_XTX = sd.sparse_AAT(self.DATA_OBJECT_WIP, return_as='ARRAY')
                     xtxd.XTX_determinant(XTX_AS_ARRAY_OR_SPARSEDICT=DUM_XTX, name='DATA_OBJECT_WIP',
-                         module=self.this_module, fxn='(t)test inverse of XTX', print_to_screen=True)
+                         module=self.this_module, fxn='(t)tests inverse of XTX', print_to_screen=True)
                     del DUM_XTX
 
                 elif self.user_manual_or_std == 'Y':   # '(y)convert DATA to sparse dict / lists'

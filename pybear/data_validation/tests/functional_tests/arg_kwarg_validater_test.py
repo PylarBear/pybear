@@ -24,7 +24,7 @@ def float_allowables():
 
 @pytest.fixture
 def mixed_allowables():
-    return ['a', 'b', 'c', 1, 2, 3]
+    return ['a', 'b', 'c', 1, 2, 3, False, None]
 
 @pytest.fixture
 def bool_allowables():
@@ -44,7 +44,7 @@ def gfn():
 
 
 # VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-class TestStringArgs:
+class TestStringInputs:
 
     def test_accepts_good_names(self, gn, int_allowables, gmn, gfn):
         arg = 1
@@ -69,20 +69,50 @@ class TestStringArgs:
             akv(1, gn, int_allowables, gmn, function_name, None)
 
 
+class TestArg:
+
+    def test_rejects_dicts(self, gn, int_allowables, gmn, gfn):
+        with pytest.raises(TypeError):
+            akv({'a': 1}, gn, int_allowables, gmn, gfn)
+
+
+    @pytest.mark.parametrize('non_iterable',
+        (1, 2, 3, None, False, 'a', 'b', 'c')
+    )
+    def test_accepts_non_iter(self, gn, mixed_allowables, gmn,
+        gfn, non_iterable):
+        out = akv(non_iterable, gn, mixed_allowables, gmn, gfn)
+        assert out == non_iterable
+
+
+    @pytest.mark.parametrize('iterables',
+        (['a','b',1,2], ('a','b',1,2), {'a','b',1,2})
+    )
+    def test_accepts_iter_of_non_iter(self,
+            iterables, gn, mixed_allowables, gmn, gfn
+        ):
+        out = akv(iterables, gn, mixed_allowables, gmn, gfn)
+        assert np.array_equiv(out, np.array(list(iterables), dtype=object))
+
+
+
 class TestAllowed:
-    @pytest.mark.parametrize('allowed', (1, None, np.pi, {'a':1}, {}, 'junk'))
+
+    @pytest.mark.parametrize('allowed', (1, None, False, np.pi, {'a':1}, 'junk'))
     def test_allowed_rejects_non_array_like(self, gn, allowed, gmn, gfn):
         with pytest.raises(TypeError):
             akv(1, gn, allowed, gmn, gfn, None)
 
 
-    @pytest.mark.parametrize('allowed', ([1,2,3], (1,2,3), {1,2,3}, {'a', 1}))
+    @pytest.mark.parametrize('allowed',
+        ([1,2,3], (1,2,3), {1,2,3}, np.array([1,2,3]))
+    )
     def test_allowed_accepts_array_like(self, gn, allowed, gmn, gfn):
         arg = 1
         out = akv(arg, gn, allowed, gmn, gfn, None)
         assert out == arg
 
-    @pytest.mark.parametrize('allowed', ([], ()))
+    @pytest.mark.parametrize('allowed', ([], (), np.array([])))
     def test_allowed_rejects_empty_array(self, gn, allowed, gmn, gfn):
         with pytest.raises(ValueError):
             akv(1, gn, allowed, gmn, gfn, None)
@@ -100,45 +130,45 @@ def test_return_if_none_accepts_anything(return_if_none, gn, int_allowables, gmn
 # ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-class Ints:
+class TestInts:
 
     @pytest.mark.parametrize('arg', (1,2,3))
     def test_accepts_allowed_ints(self, arg, gn, int_allowables, gmn, gfn):
-        out = akv(arg,gn,int_allowables, gmn, gfn, None)
+        out = akv(arg, gn, int_allowables, gmn, gfn, None)
         assert out == arg
 
-    @pytest.mark.parametrize('arg', (4,None,'junk', np.pi, []))
+    @pytest.mark.parametrize('arg', (4, None, 'junk', np.pi))
     def test_rejects_not_allowed_ints(self, arg, gn, int_allowables, gmn, gfn):
         with pytest.raises(ValueError):
-            akv(arg,gn,int_allowables, gmn, gfn, None)
+            akv(arg, gn, int_allowables, gmn, gfn, None)
 
 
-class Floats:
+class TestFloats:
 
     @pytest.mark.parametrize('arg', (1.1,2.2,3.3))
     def test_accepts_allowed_floats(self, arg, gn, float_allowables, gmn, gfn):
-        out = akv(arg,gn,float_allowables, gmn, gfn, None)
+        out = akv(arg, gn, float_allowables, gmn, gfn, None)
         assert out == arg
 
-    @pytest.mark.parametrize('arg', (1,None,'junk', np.pi, []))
+    @pytest.mark.parametrize('arg', (1,None,'junk', np.pi))
     def test_rejects_not_allowed_floats(self, arg, gn, float_allowables, gmn, gfn):
         with pytest.raises(ValueError):
-            akv(arg,gn,float_allowables, gmn, gfn, None)
+            akv(arg, gn, float_allowables, gmn, gfn, None)
 
 
-class Strings:
+class TestStrings:
 
     @pytest.mark.parametrize('arg', ('a','b','c'))
-    def test_accepts_allowed_strings(self, arg, gn, str_allowables, gmn, gfn):
+    def test_accepts_allowed_strings_1(self, arg, gn, str_allowables, gmn, gfn):
         out = akv(arg,gn,str_allowables, gmn, gfn, None)
         assert out == arg
 
     # not case sensitive
     @pytest.mark.parametrize('arg', ('A','B','C'))
-    def test_accepts_allowed_strings(self, arg, gn, str_allowables, gmn, gfn):
-        result = akv(arg,gn,str_allowables, gmn, gfn, None)
+    def test_accepts_allowed_strings_2(self, arg, gn, str_allowables, gmn, gfn):
+        out = akv(arg,gn,str_allowables, gmn, gfn, None)
         # returns in the case of what is in allowables
-        assert result == arg.lower()  # because the allowables are lowercase
+        assert out == arg.lower()  # because the allowables are lowercase
 
 
     @pytest.mark.parametrize('arg', (1, 'q', 'r', 's'))
@@ -147,14 +177,14 @@ class Strings:
             akv(arg,gn,float_allowables, gmn, gfn, None)
 
 
-    @pytest.mark.parametrize('arg', (1, None, np.pi, []))
+    @pytest.mark.parametrize('arg', (1, None, np.pi))
     def test_rejects_not_allowed_junk(self, arg, gn, float_allowables, gmn, gfn):
         with pytest.raises(ValueError):
             akv(arg,gn,float_allowables, gmn, gfn, None)
 
 
 
-class Mixed:
+class TestMixed:
 
     @pytest.mark.parametrize('arg', (1,2,3,'a','b','c'))
     def test_accepts_allowed_mixed(self, arg, gn, int_allowables,
@@ -181,82 +211,67 @@ class Mixed:
             akv(arg,gn,int_allowables+float_allowables, gmn, gfn, None)
 
 
-    @pytest.mark.parametrize('arg', (None, np.pi, [], {'a':1}))
-    def test_rejects_not_allowed_junk(self, arg, gn, int_allowables,
-                                      float_allowables, gmn, gfn):
+class TestBool:
+
+    @pytest.mark.parametrize('arg', ((0, 1), [0, 1]))
+    def test_bool_in_allowed_1(self, arg, gn, bool_allowables, gmn, gfn):
+        # should not confuse 0 & 1 with bool
         with pytest.raises(ValueError):
-            akv(arg,gn,int_allowables+float_allowables, gmn, gfn, None)
+            akv(arg, gn, bool_allowables, gmn, gfn, None)
 
 
+    @pytest.mark.parametrize('arg', ((True, False), [False, True]))
+    def test_bool_in_allowed_2(self, arg, gn, bool_allowables, gmn, gfn):
+        # should accept bool & bool
+        out = akv(arg, gn, bool_allowables, gmn, gfn, None)
+        assert out is arg
 
 
+    @pytest.mark.parametrize('arg', ((True, False), [False, True]))
+    def test_bool_in_allowed_2(self, arg, gn, bool_allowables, gmn, gfn):
+        # should not confuse 0 & 1 with bool
+        with pytest.raises(ValueError):
+            akv(arg, gn, [0, 1], gmn, gfn, None)
 
-class SearchesIterables:
 
-    @pytest.mark.parametrize('arg', ([1], [1,2], [1,2,3,1,2,3]))
+class TestSearchesIterables:
+
+    @pytest.mark.parametrize('arg', ([1], [1,2], {1,2,3}))
     def test_accepts_allowed_ints(self, arg, gn, int_allowables, gmn, gfn):
         out = akv(arg,gn,int_allowables, gmn, gfn, None)
-        assert out == arg
+        assert np.array_equiv(out, np.array(list(arg), dtype=object))
 
 
-    @pytest.mark.parametrize('arg', (
-                                     [1],
-                                     [1,2],
-                                     pytest.mark.xfail([1,4], reason="junk"),
-                                     pytest.mark.xfail([1,2,4], reason="junk")
-                                     )
-    )
+    @pytest.mark.parametrize('arg', ([1,4], {1,2,4}))
     def test_rejects_not_allowed_ints(self, arg, gn, int_allowables, gmn, gfn):
-        akv(arg,gn,int_allowables, gmn, gfn, None)
+        with pytest.raises(ValueError):
+            akv(arg,gn,int_allowables, gmn, gfn, None)
 
-    @pytest.mark.parametrize('arg', ([1.1], [1.1, 2.2], [1.1, 3.3, 2.2]))
+    @pytest.mark.parametrize('arg', ([1.1], [1.1, 2.2], {1.1, 3.3, 2.2}))
     def test_accepts_allowed_floats(self, arg, gn, float_allowables, gmn, gfn):
         out = akv(arg,gn,float_allowables, gmn, gfn, None)
-        assert out == arg
+        assert np.array_equiv(out, np.array(list(arg)))
 
-    @pytest.mark.parametrize('arg', (
-                                     [1.1],
-                                     [1.1, 2.2],
-                                     pytest.mark.xfail([1.9, 2.2], reason="junk"),
-                                     pytest.mark.xfail([1.1, 2,2, 4.4], reason="junk")
-                                    )
-    )
+    @pytest.mark.parametrize('arg', ([1.9, 2.2], {1.1, 2,2, 4.4}))
     def test_rejects_not_allowed_floats(self, arg, gn, float_allowables, gmn, gfn):
-        akv(arg,gn,float_allowables, gmn, gfn, None)
+        with pytest.raises(ValueError):
+            akv(arg,gn,float_allowables, gmn, gfn, None)
 
     @pytest.mark.parametrize('arg', (['a'],['a', 'b'],['a','b','c']))
-    def test_accepts_allowed_strings(self, arg, gn, str_allowables, gmn, gfn):
+    def test_accepts_allowed_strings_1(self, arg, gn, str_allowables, gmn, gfn):
         out = akv(arg,gn,str_allowables, gmn, gfn, None)
-        assert out == arg
+        assert np.array_equiv(out, np.array(arg, dtype=object))
 
     # not case sensitive
     @pytest.mark.parametrize('arg', (['A'],['A', 'B'],['A','B','C']))
-    def test_accepts_allowed_strings(self, arg, gn, str_allowables, gmn, gfn):
+    def test_accepts_allowed_strings_2(self, arg, gn, str_allowables, gmn, gfn):
         out = akv(arg,gn,str_allowables, gmn, gfn, None)
-        assert out == arg.lower()  # allowables are lowercase
+        assert np.array_equiv(out, np.char.lower(list(arg)))  # allowables are lowercase
 
-    @pytest.mark.parametrize('arg', (
-                                     ['a'],
-                                     ['A','B'],
-                                     pytest.mark.xfail(['a','b','q'], reason="junk")
-                                     )
-    )
+    @pytest.mark.parametrize('arg', (['a','b','q'], ['A', 'B', 'Q']))
     def test_rejects_not_allowed_strings(self, arg, gn, float_allowables, gmn, gfn):
-        akv(arg,gn,float_allowables, gmn, gfn, None)
-
-
-
-class OtherJunk:
-
-    @pytest.mark.parametrize('arg', ({'a':1}, {1,2,3}))
-    def test_accepts_allowed(self, arg, gn, gmn, gfn):
-        akv(arg,gn, [{'a':1}, {1,2,3}, 'qqq'], gmn, gfn, None)
-
-    @pytest.mark.parametrize('arg', (1, None, 'junk', np.pi, []))
-    def test_rejects_not_allowed(self, arg, gn, float_allowables, gmn, gfn):
         with pytest.raises(ValueError):
-            akv(arg,gn,[{'a':1}, {1,2,3}, 'qqq'], gmn, gfn, None)
-
+            akv(arg,gn,float_allowables, gmn, gfn, None)
 
 
 @pytest.mark.parametrize('return_if_none', (4,'junk', np.pi, ['a'], {'a':1}))

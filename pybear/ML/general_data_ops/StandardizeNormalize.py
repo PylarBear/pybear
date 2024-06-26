@@ -243,7 +243,7 @@ if __name__ == '__main__':
                                              prompt_to_override=False,
                                              bypass_validation=True,
                                              calling_module=gmn.get_module_name(str(sys.modules[__name__])),
-                                             calling_fxn='test'
+                                             calling_fxn='tests'
     )
 
     SUPOBJ = SupObjClass.SUPPORT_OBJECT

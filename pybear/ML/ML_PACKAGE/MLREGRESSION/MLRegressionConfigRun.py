@@ -642,7 +642,7 @@ if __name__ == '__main__':
         DumClass = mlo.MLObject(
             np.insert(SWNL[0], len(SWNL[0]) if data_given_orientation=="COLUMN" else len(SWNL[0][0]), 1, axis=0 if data_given_orientation=="COLUMN" else 1),
                       data_given_orientation, name="SWNL[0]", return_orientation='AS_GIVEN', return_format='AS_GIVEN',
-            bypass_validation=True, calling_module="MLRegressionRun", calling_fxn='test')
+            bypass_validation=True, calling_module="MLRegressionRun", calling_fxn='tests')
         XTX_INV = DumClass.return_XTX_INV(return_format="ARRAY")
         del DumClass, XTX_INV
         print(f'\n*** SWNL[0] INVERTED ***\n')

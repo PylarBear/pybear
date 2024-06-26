@@ -188,7 +188,7 @@ def _make_instructions(
         from the data (frequency is below threshold) or retained (frequency
         is greater than or equal to threshold.) If not proved,
         _count_threshold is used; if provided, overwrites _count_threshold
-        to allow for test of thresholds different than that defined by
+        to allow for tests of thresholds different than that defined by
         _count_threshold in the instance.
 
 

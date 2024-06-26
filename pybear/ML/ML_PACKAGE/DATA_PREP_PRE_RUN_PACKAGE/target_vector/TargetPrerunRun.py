@@ -217,7 +217,7 @@ if __name__ == '__main__':
             prompt_to_override=False,
             bypass_validation=False,
             calling_module='TargetPrerunRun',
-            calling_fxn='test'
+            calling_fxn='tests'
         )
 
         return SupObjClass.SUPPORT_OBJECT

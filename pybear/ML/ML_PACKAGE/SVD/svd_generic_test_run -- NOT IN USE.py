@@ -121,7 +121,7 @@ def svd_generic_test_run(standard_config, tc_method, TEST_OBJECT, TEST_OBJECT_HE
     # BUILDING OF RESULTS OBJECTS AND DISPLAY OBJECTS COMPLETE##########################################################
 
     print('\nTEST MATRIX results complete.')
-    print(f'TEST MATRIX has {len(CSUTM)} test cases.')
+    print(f'TEST MATRIX has {len(CSUTM)} tests cases.')
     st.show_end_time('Calculate TEST CASES\n')
 
     print(f'CSUTM_DF[0,1,2][:20] AND ')

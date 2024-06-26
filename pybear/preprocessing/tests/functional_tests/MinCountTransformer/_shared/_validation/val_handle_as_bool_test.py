@@ -22,7 +22,7 @@ class TestValHandleAsBool:
     # ) -> Union[callable, np.ndarray[int], np.ndarray[str]]:
 
 
-    # core test done in core_ign_columns_handle_as_bool_test
+    # core tests done in core_ign_columns_handle_as_bool_test
 
     @pytest.mark.parametrize('og_dtype', ('int', 'obj', 'float'))
     def test_rejects_h_a_b_on_obj_columns(self, og_dtype):

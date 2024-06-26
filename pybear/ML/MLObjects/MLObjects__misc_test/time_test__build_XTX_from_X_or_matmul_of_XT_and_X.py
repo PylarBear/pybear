@@ -40,7 +40,7 @@ fxn = crsn.create_random_sparse_numpy
 ctr = 0
 for OBJ in (fxn(0,10,(3,10),50,np.int32), fxn(-10,10,(10,3),50,np.float64), fxn(-5,6,(100,100),50,np.int32)):
     ctr+=1
-    print(f'Running test {ctr}...')
+    print(f'Running tests {ctr}...')
     OBJ = sd.zip_list_as_py_float(OBJ)
 
     XTX_1 = sd_make_XTX_from_X_as_column(sd.sparse_transpose(OBJ))
@@ -147,7 +147,7 @@ fxn = crsn.create_random_sparse_numpy
 ctr = 0
 for OBJ in (fxn(0,10,(3,10),50,np.int32), fxn(-10,10,(10,3),50,np.float64), fxn(-5,6,(100,100),50,np.int32)):
     ctr+=1
-    print(f'Running test {ctr}...')
+    print(f'Running tests {ctr}...')
     OBJ = sd.zip_list_as_py_float(OBJ)
 
     XTX_1 = sd_make_XTX_from_X_as_column(OBJ)

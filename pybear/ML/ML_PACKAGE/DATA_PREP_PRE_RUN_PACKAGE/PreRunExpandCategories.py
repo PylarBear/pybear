@@ -159,7 +159,7 @@ class PrerunExpandCategories:
                 'q': 'print column names & setup parameters',
                 'r': 'reset and start over',
                 's': 'calculate and print statistics for DATA',
-                't': 'test inverse for DATA',
+                't': 'tests inverse for DATA',
                 'u': 'undo last operation',
                 'z': 'toggle statistics print allow'
         }
@@ -588,14 +588,14 @@ class PrerunExpandCategories:
                     self.whole_data_object_stats(self.DATA_OBJECT_WIP, 'DATA', self.DATA_OBJECT_HEADER_WIP, append_ones='N')
 
 
-                elif self.user_manual_or_std == 'T':  # '(t)test inverse of XTX'
+                elif self.user_manual_or_std == 'T':  # '(t)tests inverse of XTX'
                     # 11/27/22 PUT DATA INTO A ROW/COLUMN INDIFFERENT STATE FOR XTX_determ (BELIEVE DATA IS [[]=COLUMN HERE)
                     if isinstance(self.DATA_OBJECT_WIP, dict):
                         DUM_XTX = sd.sparse_AAT(self.DATA_OBJECT_WIP, return_as='ARRAY')
                     elif isinstance(self.DATA_OBJECT_WIP, (np.ndarray, list, tuple)):
                         DUM_XTX = np.matmul(self.DATA_OBJECT_WIP, self.DATA_OBJECT_WIP.transpose())
                     xtxd.XTX_determinant(XTX_AS_ARRAY_OR_SPARSEDICT=DUM_XTX, name='DATA', module=self.this_module,
-                                         fxn='(t)test inverse of XTX', print_to_screen=True, return_on_exception='nan')
+                                         fxn='(t)tests inverse of XTX', print_to_screen=True, return_on_exception='nan')
                     del DUM_XTX
 
                 elif self.user_manual_or_std == 'Z':  # '(z)toggle statistics print allow'

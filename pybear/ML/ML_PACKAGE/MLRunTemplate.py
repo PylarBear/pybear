@@ -31,21 +31,21 @@ from ML_PACKAGE import TestPerturber as tp
 #Xhyperparameter_display_module()        # print hyperparameter settings to screen
 # row_column_display_select()            # user selects rows and columns for display on screen and filedump
 # filedump_path()                        # hard-coded directory, user-entered filename
-# filedump_general_ml_setup_module()     # module for filedump of general setup for all ML packages, used for train, dev, & test filedump
-#Xfiledump_package_specific_setup_module()  # module for filedump of setup for specific package, used for train, dev, & test filedump, overwritten in child
-# dev_or_test_draw_params()              # module that returns the sample size to pull from train data for dev or test data sets
-# random_dev_or_test_draw()              # randomly select user-specified quantity of examples for dev & test sets from (remaining) examples in TRAIN_SWNL
-# partition_dev_or_test_draw()           # partition (remaining) examples in TRAIN_SWNL for selection into dev or test
-# category_dev_or_test_draw()            # select examples for dev & test sets using categories in TRAIN_SWNL
+# filedump_general_ml_setup_module()     # module for filedump of general setup for all ML packages, used for train, dev, & tests filedump
+#Xfiledump_package_specific_setup_module()  # module for filedump of setup for specific package, used for train, dev, & tests filedump, overwritten in child
+# dev_or_test_draw_params()              # module that returns the sample size to pull from train data for dev or tests data sets
+# random_dev_or_test_draw()              # randomly select user-specified quantity of examples for dev & tests sets from (remaining) examples in TRAIN_SWNL
+# partition_dev_or_test_draw()           # partition (remaining) examples in TRAIN_SWNL for selection into dev or tests
+# category_dev_or_test_draw()            # select examples for dev & tests sets using categories in TRAIN_SWNL
 #Xgeneric_ml_core_calc_algorithm()       # return module for package-specific core output algorithm, returns final output vector, overwritten in child
 #Xtrain_data_calc_algorithm()            # module for passing train data thru package-specific core algorithm, returns final output vector
 #Xdev_data_calc_algorithm()              # module for passing dev data thru package-specific core algorithm, returns final output vector
-#Xtest_data_calc_algorithm()             # module for passing test data thru package-specific core algorithm, returns final output vector
+#Xtest_data_calc_algorithm()             # module for passing tests data thru package-specific core algorithm, returns final output vector
 #Xgeneric_ml_core_error_algorithm()      # return module for package-specific core error algorithm, returns total error, overwritten in child
 #Xtrain_data_error_algorithm()           # module for passing train data thru package-specific error algorithm, returns total error
 #Xdev_data_error_algorithm()             # module for passing dev data thru package-specific error algorithm, returns total error
-#Xtest_data_error_algorithm()            # module for passing test data thru package-specific error algorithm, returns total error
-# output_calc()                          # module for running user-selected test data into trained ML algorithm and calculating and sorting results for all ML packages
+#Xtest_data_error_algorithm()            # module for passing tests data thru package-specific error algorithm, returns total error
+# output_calc()                          # module for running user-selected tests data into trained ML algorithm and calculating and sorting results for all ML packages
 # _len()                                 # return len of list-type or dict object
 # END GENERIC FUNCTIONS ####################################################################################################################
 
@@ -61,10 +61,10 @@ from ML_PACKAGE import TestPerturber as tp
 # END DEV BUILD DEFINITIONS ##################################################################################################
 
 # TEST BUILD DEFINITIONS ##################################################################################################
-# base_test_build_module()               # module with code for building test objects for all ML packages
-#Xsub_test_build_module()                # return module with package-specific test objects build code, overwritten in child
-#Xsub_test_build_cmds()                  # return list with package-specific test objects build prompts, overwritten in child
-# test_build()                           # module for building test objects, train objects starts as original objects, then test objects are extracted from train objects
+# base_test_build_module()               # module with code for building tests objects for all ML packages
+#Xsub_test_build_module()                # return module with package-specific tests objects build code, overwritten in child
+#Xsub_test_build_cmds()                  # return list with package-specific tests objects build prompts, overwritten in child
+# test_build()                           # module for building tests objects, train objects starts as original objects, then tests objects are extracted from train objects
 # END TEST BUILD DEFINITIONS ##################################################################################################
 
 # TRAIN CALC DEFINITIONS ###################################################################################################
@@ -81,9 +81,9 @@ from ML_PACKAGE import TestPerturber as tp
 # END DEV CALC DEFINITIONS ##################################################################################################
 
 # TEST CALC DEFINITIONS ##################################################################################################
-# base_test_calc_module()                # module for performing test calculations for all ML packages
-#Xsub_test_calc_module()                 # return module with package-specific commands for performing test calculations
-#Xsub_test_calc_cmds()                   # return list with package-specific test calc prompts
+# base_test_calc_module()                # module for performing tests calculations for all ML packages
+#Xsub_test_calc_module()                 # return module with package-specific commands for performing tests calculations
+#Xsub_test_calc_cmds()                   # return list with package-specific tests calc prompts
 # END TEST CALC DEFINITIONS ##################################################################################################
 
 # TRAIN DATA DISPLAY ##############################################################################################################
@@ -99,9 +99,9 @@ from ML_PACKAGE import TestPerturber as tp
 # END DEV DATA DISPLAY ############################################################################################A##############
 
 # CALC DATA DISPLAY ###########################################################################################################
-#Xtest_summary_statistics_module()       # returns module for printing summary statistics of test data for particular ML package
-#Xprint_test_results_module()            # returns module for printing test results to screen for particular ML package
-#Xtest_filedump_module()                 # returns module for filedump of test results for particular ML package
+#Xtest_summary_statistics_module()       # returns module for printing summary statistics of tests data for particular ML package
+#Xprint_test_results_module()            # returns module for printing tests results to screen for particular ML package
+#Xtest_filedump_module()                 # returns module for filedump of tests results for particular ML package
 # END CALC DATA DISPLAY ###########################################################################################################
 
 # base_return_fxn()                      # specify what to return for all ML packages
@@ -197,12 +197,12 @@ class MLRunTemplate:
                                     'w': 'run k-fold cross validation',
                                     'j': 'print dev results to screen',
                                     'k': 'dump dev results to file',
-                                    't': '\n\ngenerate \ reset test objects',
-                                    'r': 'calc test data',
-                                    'e': 'print test target & output vectors',
-                                    'u': 'print test summary stats',
-                                    'c': 'print test results to screen',
-                                    'd': 'dump test results to file',
+                                    't': '\n\ngenerate \ reset tests objects',
+                                    'r': 'calc tests data',
+                                    'e': 'print tests target & output vectors',
+                                    'u': 'print tests summary stats',
+                                    'c': 'print tests results to screen',
+                                    'd': 'dump tests results to file',
                                     'z': 'dump all results to file',
                                     'a': '\n\naccept, return to config-run menu',
                                     'q': 'quit'
@@ -249,13 +249,13 @@ class MLRunTemplate:
                                     's': 'sub-partition from training DATA',
                                     'p': 'generate all permutations',
                                     'f': 'load from file',
-                                    't': 'use test matrices currently loaded',
+                                    't': 'use tests matrices currently loaded',
                                     'u': 'User select block from train data',
                                     'v': 'draw based on categories in a column',
                                     'b': 'load standard config or manual build',
                                     'o': 'overwrite TEST_SWNL',
                                     'n': 'none',
-                                    'a': 'accept & exit test objects build'
+                                    'a': 'accept & exit tests objects build'
         }
 
         if len(self.BASE_TEST_BUILD_CMDS | self.sub_test_build_cmds()) != \
@@ -287,9 +287,9 @@ class MLRunTemplate:
 
         # "TEST CALC" BASE MENU DECLARATIONS ######################################################################################
         self.BASE_TEST_CALC_CMDS = {
-                                    'n': 'run one-off pass of test data',
-                                    'p': 'run test data perturber',
-                                    'a': 'accept & exit test calc'
+                                    'n': 'run one-off pass of tests data',
+                                    'p': 'run tests data perturber',
+                                    'a': 'accept & exit tests calc'
         }
 
         if len(self.BASE_TEST_CALC_CMDS | self.sub_test_calc_cmds()) != len(self.BASE_TEST_CALC_CMDS) + len(self.sub_test_calc_cmds()):
@@ -380,13 +380,13 @@ class MLRunTemplate:
 
 
     def filedump_general_ml_setup_module(self):
-        # returns module for filedump of general setup for all ML packages, used for run & test filedump
+        # returns module for filedump of general setup for all ML packages, used for run & tests filedump
         self.wb = gmsd.general_ml_setup_dump(self.wb, self.standard_config, *self.WORKING_SUPOBJS, self.WORKING_CONTEXT,
             self.WORKING_KEEP, self.split_method, self.LABEL_RULES, self.number_of_labels, self.event_value, self.negative_value)
 
 
     def filedump_package_specific_setup_module(self):
-        # returns module for filedump of setup for specific package, used for run & test filedump
+        # returns module for filedump of setup for specific package, used for run & tests filedump
         # overwritten in child
         pass
 
@@ -438,7 +438,7 @@ class MLRunTemplate:
 
 
     def partition_dev_or_test_draw(self, number_of_partitions, partition_number):
-        '''partition (remaining) examples in TRAIN_SWNL for selection into dev or test'''
+        '''partition (remaining) examples in TRAIN_SWNL for selection into dev or tests'''
 
         # DEV_OR_TEST_SWNL COULD BE DEV_SWNL OR TEST_SWNL, BASED ON WHAT THIS FXN'S RETURN IS ASSIGNED TO
 
@@ -461,7 +461,7 @@ class MLRunTemplate:
 
 
     def category_dev_or_test_draw(self):
-        '''select examples for dev & test sets using categories in TRAIN_SWNL'''
+        '''select examples for dev & tests sets using categories in TRAIN_SWNL'''
         # DEV_OR_TEST_SWNL COULD BE DEV_SWNL OR TEST_SWNL, BASED ON WHAT THIS FXN'S RETURN IS ASSIGNED TO
 
         PartitionClass = mltdts.MLTrainDevTestSplitNEWSUPOBJS(DATA=self.TRAIN_SWNL[0],
@@ -507,7 +507,7 @@ class MLRunTemplate:
 
 
     def test_data_calc_algorithm(self):
-        # module for passing test data thru package-specific core algorithm, returns final output vector
+        # module for passing tests data thru package-specific core algorithm, returns final output vector
         pass
 
 
@@ -528,12 +528,12 @@ class MLRunTemplate:
 
 
     def test_data_error_algorithm(self):
-        # module for passing test data thru package-specific error algorithm, returns total error
+        # module for passing tests data thru package-specific error algorithm, returns total error
         pass
 
 
     def output_calc(self, calc_algorithm, CALC_OBJECT, object_name):
-        # module for running user-selected test data into trained ML algorithm and calculating and sorting results for all ML packages
+        # module for running user-selected tests data into trained ML algorithm and calculating and sorting results for all ML packages
         st.show_start_time(f'Calculate {object_name} CASES')
         print(f'\nCalculating {object_name} CASES...')
 
@@ -866,13 +866,13 @@ class MLRunTemplate:
 
 
     def sub_dev_build_module(self):
-        # return module with package-specific test matrix build commands, overwritten in child
+        # return module with package-specific tests matrix build commands, overwritten in child
         # overwritten in child
         pass
 
 
     def sub_dev_build_cmds(self):
-        # return list with package-specific test matrix build commands
+        # return list with package-specific tests matrix build commands
         return {}  # SPECIFIED IN CHILDREN   CANT USE 'RSDFTUVBNA'
 
 
@@ -897,7 +897,7 @@ class MLRunTemplate:
 
     # TEST BUILD DEFINITIONS ##################################################################################################
     def base_test_build_module(self):
-        # return module with commands for building test matrices for all ML packages
+        # return module with commands for building tests matrices for all ML packages
 
         fxn = inspect.stack()[0][3]
 
@@ -993,7 +993,7 @@ class MLRunTemplate:
             # print(f'\nTEST MATRICES SUCCESSFULLY LOADED FROM FILE.\n')
             # print(f'TEST DATA has {gs.get_shape("TEST_DATA", self.TEST_SWNL[0], self.data_run_orientation)[0]} examples.')
 
-        elif self.test_build_select == 'T':    # 'use test matrices currently loaded(t)'
+        elif self.test_build_select == 'T':    # 'use tests matrices currently loaded(t)'
             pass
             print(f'\nCURRENT TEST MATRICES BEING RETAINED.\n')
             print(f'TEST DATA has {gs.get_shape("TEST_DATA", self.TEST_SWNL[0], self.data_run_orientation)[0]} examples.')
@@ -1020,17 +1020,17 @@ class MLRunTemplate:
             self.CSUTM_DF = pd.DataFrame({})
             print(f'\n*** TEST OBJECTS AND PREVIOUS TEST RESULTS SUCCESSFULLY ERASED. ***\n')
 
-        #    'accept & exit test objects build(a)'  IS EXTERNAL TO THIS BLOCK
+        #    'accept & exit tests objects build(a)'  IS EXTERNAL TO THIS BLOCK
 
 
     def sub_test_build_module(self):
-        # return module with package-specific test matrix build commands, overwritten in child
+        # return module with package-specific tests matrix build commands, overwritten in child
         # overwritten in child
         pass
 
 
     def sub_test_build_cmds(self):
-        # return list with package-specific test matrix build commands
+        # return list with package-specific tests matrix build commands
         return {}    # SPECIFIED IN CHILDREN   CANT USE 'DRSPFTBONA'
 
 
@@ -1303,12 +1303,12 @@ class MLRunTemplate:
     # TEST CALC DEFINITIONS ##################################################################################################
     def base_test_calc_module(self):
 
-        if self.test_calc_select == 'N':    #'run one-off pass of test data(n)'
+        if self.test_calc_select == 'N':    #'run one-off pass of tests data(n)'
             self.CSUTM_DF, self.TEST_OUTPUT_VECTOR = self.output_calc(self.test_data_calc_algorithm(), self.TEST_SWNL,
                                                                       'TEST DATA')
             print(f'\n*** ONE-OFF PASS OF TEST DATA SUCCESSFULLY CALCULATED ***\n')
 
-        elif self.test_calc_select == 'P':  # 'run test data perturber(p)'
+        elif self.test_calc_select == 'P':  # 'run tests data perturber(p)'
 
             #####################################################################################################################
             #####################################################################################################################
@@ -1375,17 +1375,17 @@ class MLRunTemplate:
             #####################################################################################################################
 
 
-        # 'accept & exit test calc(a)' IS EXTERNAL TO THIS LOOP
+        # 'accept & exit tests calc(a)' IS EXTERNAL TO THIS LOOP
 
 
     def sub_test_calc_module(self):
-        # return module with package-specific commands to run current test matrix
+        # return module with package-specific commands to run current tests matrix
         # overwritten in child
         pass
 
 
     def sub_test_calc_cmds(self):
-        # return list with package - specific test calc commands
+        # return list with package - specific tests calc commands
         return {}    # SPECIFIED IN CHILDREN   CANT USE 'NA'
 
     # END TEST CALC DEFINITIONS ##################################################################################################
@@ -1440,13 +1440,13 @@ class MLRunTemplate:
 
     # CALC DATA DISPLAY ##############################A##############################A##############################A##############
     def test_summary_statistics_module(self):
-        # returns module for printing summary statistics of test data
+        # returns module for printing summary statistics of tests data
         # OVERWRITTEN IN CHILD
         pass
 
 
     def print_test_results_module(self):
-        # returns module for printing test results for particular ML package
+        # returns module for printing tests results for particular ML package
         # THINKING THIS SHOULD WORK FOR BOTH DEV & CALC, SINCE BOTH PRODUCE CSUTM_DF
         # REMEMBER!!! THAT TRAIN RESULTS ARE THE OUTPUT OF TRAINING, EG PARAMETERS IN NN MATRICES.  TEST RESULTS ARE THE
         # PREDICTIONS RETURNED WHEN RUNNING TEST DATA INTO THE TRAINED ALGORITHM!
@@ -1504,8 +1504,8 @@ class MLRunTemplate:
 
 
     def test_filedump_module(self):
-        # package-specific module for saving test results
-        # In child, put package-specific summary dump module here, then put general test dump module
+        # package-specific module for saving tests results
+        # In child, put package-specific summary dump module here, then put general tests dump module
         # self.wb = gtrd.general_test_results_dump(self.wb, self.CSUTM_DF, self.DISPLAY_COLUMNS, self.display_select,
         #                                          self.display_rows)
         pass
@@ -1728,7 +1728,7 @@ class MLRunTemplate:
                 # self.DEV_ERROR = [[]]
                 self.RGLZTN_FACTORS = []
 
-            elif self.post_run_select == 'R':   # 'calc test data(r)'
+            elif self.post_run_select == 'R':   # 'calc tests data(r)'
 
                 while True:
 
@@ -1738,7 +1738,7 @@ class MLRunTemplate:
 
                     print()
                     self.test_calc_select = dmp.DictMenuPrint(self.BASE_TEST_CALC_CMDS,
-                                                              disp_len=140).select(f'Select test calc option')
+                                                              disp_len=140).select(f'Select tests calc option')
 
                     if self.test_calc_select == 'A':
                         break
@@ -1746,7 +1746,7 @@ class MLRunTemplate:
                     self.base_test_calc_module()
                     self.sub_test_calc_module()
 
-            elif self.post_run_select == 'E':    # 'print test target & output vectors(e)'
+            elif self.post_run_select == 'E':    # 'print tests target & output vectors(e)'
                 # TEST_TARGET_VECTOR, TEST_TARGET_VECTOR_HEADER, TEST_ROWID_VECTOR, TEST_OUTPUT_VECTOR
 
                 ROW_ID_VECTOR = mlo.MLObject(self.TEST_SWNL[2], self.refvecs_run_orientation, 'REFVECS',
@@ -1764,17 +1764,17 @@ class MLRunTemplate:
                 del ROW_ID_VECTOR, output_orientation
 
 
-            elif self.post_run_select == 'U':     # 'print test summary stats(u)'
+            elif self.post_run_select == 'U':     # 'print tests summary stats(u)'
                 self.test_summary_statistics_module()
 
-            elif self.post_run_select == 'C':     # 'print test results to screen(c)'
+            elif self.post_run_select == 'C':     # 'print tests results to screen(c)'
                 while True:
                     self.row_column_display_select()
                     self.print_test_results_module()
                     if vui.validate_user_str(f'\nTry again(t) or return to run menu(r) > ', 'TR') == 'R':
                         break
 
-            elif self.post_run_select == 'D':     # 'dump test results to file(d)'
+            elif self.post_run_select == 'D':     # 'dump tests results to file(d)'
                 while True:
                     self.wb = Workbook()
                     self.filedump_general_ml_setup_module()
@@ -1792,7 +1792,7 @@ class MLRunTemplate:
                     print(f'\nTest results successfully dumped to {self.full_path}.\n')
                     break
 
-            elif self.post_run_select == 'T':   # 'generate / reset test objects(t)'
+            elif self.post_run_select == 'T':   # 'generate / reset tests objects(t)'
                 self.test_build()
 
             elif self.post_run_select == 'W':  # 'run k-fold cross validation(w)'

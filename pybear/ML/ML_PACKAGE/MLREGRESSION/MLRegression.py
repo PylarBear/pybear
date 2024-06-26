@@ -452,7 +452,7 @@ if __name__ == '__main__':
     ####################################################################################################################
     # TEST VIA REFEREE FROM SCRATCH FOR ACCURACY OF COEFFS & RSQ FOR NP AND SD #########################################
     if True: #vui.validate_user_str(f'Run ACCURACY TEST (y/n) > ', 'YN') == 'Y':
-        fxn = 'accuracy test'
+        fxn = 'accuracy tests'
 
         GIVEN_TARGET = np.array([1.5 ,3 ,3 ,3 ,4 ,3 ,3.5 ,3 ,4], dtype=np.float64).reshape((-1,1))
 
@@ -563,7 +563,7 @@ if __name__ == '__main__':
         # ALSO PERMUATE TARGET THRU NP/SD & ROW/COL
 
 
-        fxn = 'np/sd equality test'
+        fxn = 'np/sd equality tests'
 
         cols = 5
         rows = 50

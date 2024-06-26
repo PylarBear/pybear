@@ -9,7 +9,7 @@
 from .._type_aliases import ParamsType, BestParamsType
 
 
-# benchmark test only
+# benchmark tests only
 
 def _display_true_best(
         _demo_cls_params: ParamsType,

@@ -20,8 +20,8 @@ from MLObjects.SupportObjects import master_support_object_dict as msod
 # GENERIC FUNCTIONS ####################################################################################################################
 # row_column_display_select()            # user selects rows and columns for display on screen and filedump
 # filedump_path()                        # hard-coded directory, user-entered filename
-# filedump_general_ml_setup_module()     # module for filedump of general setup for all ML packages, used for train, dev, & test filedump
-# dev_or_test_draw_params()              # module that returns the sample size to pull from train data for dev or test data sets
+# filedump_general_ml_setup_module()     # module for filedump of general setup for all ML packages, used for train, dev, & tests filedump
+# dev_or_test_draw_params()              # module that returns the sample size to pull from train data for dev or tests data sets
 # output_calc()                          # return module for running user-selected data into trained ML algorithm and calculating and sorting results for all ML packages, overwritten in child
 # END GENERIC FUNCTIONS ####################################################################################################################
 
@@ -33,8 +33,8 @@ from MLObjects.SupportObjects import master_support_object_dict as msod
 # END DEV BUILD DEFINITIONS ##################################################################################################
 
 # TEST BUILD DEFINITIONS ##################################################################################################
-# base_test_build_module()               # module with code for building test objects for all ML packages
-# test_build()                           # module for building test objects, train objects starts as original objects, then test objects are extracted from train objects
+# base_test_build_module()               # module with code for building tests objects for all ML packages
+# test_build()                           # module for building tests objects, train objects starts as original objects, then tests objects are extracted from train objects
 # END TEST BUILD DEFINITIONS ##################################################################################################
 
 # TRAIN CALC DEFINITIONS ###################################################################################################
@@ -45,7 +45,7 @@ from MLObjects.SupportObjects import master_support_object_dict as msod
 # END DEV CALC DEFINITIONS ##################################################################################################
 
 # TEST CALC DEFINITIONS ##################################################################################################
-# base_test_calc_module()                # module for performing test calculations for all ML packages
+# base_test_calc_module()                # module for performing tests calculations for all ML packages
 # END TEST CALC DEFINITIONS ##################################################################################################
 
 # TRAIN DATA DISPLAY ##############################################################################################################
@@ -70,10 +70,10 @@ from MLObjects.SupportObjects import master_support_object_dict as msod
 
 # GENERIC FUNCTIONS ####################################################################################################################
 #Xhyperparameter_display_module()        # print hyperparameter settings to screen
-#Xfiledump_package_specific_setup_module()  # module for filedump of setup for specific package, used for train, dev, & test filedump, overwritten in child
-# random_dev_or_test_draw()              # randomly select user-specified quantity of examples for dev & test sets from (remaining) examples in TRAIN_SWNL
-# partition_dev_or_test_draw()           # partition (remaining) examples in TRAIN_SWNL for selection into dev or test
-# category_dev_or_test_draw()            # select examples for dev & test sets using categories in TRAIN_SWNL
+#Xfiledump_package_specific_setup_module()  # module for filedump of setup for specific package, used for train, dev, & tests filedump, overwritten in child
+# random_dev_or_test_draw()              # randomly select user-specified quantity of examples for dev & tests sets from (remaining) examples in TRAIN_SWNL
+# partition_dev_or_test_draw()           # partition (remaining) examples in TRAIN_SWNL for selection into dev or tests
+# category_dev_or_test_draw()            # select examples for dev & tests sets using categories in TRAIN_SWNL
 #Xgeneric_ml_core_calc_algorithm()       # return module for package-specific core output algorithm, returns final output vector, overwritten in child
 #Xtrain_data_calc_algorithm()            # module for passing train data thru package-specific core algorithm, returns final output vector
 #Xdev_data_calc_algorithm()              # module for passing dev data thru package-specific core algorithm, returns final output vector
@@ -81,7 +81,7 @@ from MLObjects.SupportObjects import master_support_object_dict as msod
 #Xgeneric_ml_core_error_algorithm()      # return module for package-specific core error algorithm, returns total error, overwritten in child
 #Xtrain_data_error_algorithm()           # module for passing train data thru package-specific error algorithm, returns total error
 #Xdev_data_error_algorithm()             # module for passing dev data thru package-specific error algorithm, returns total error
-#Xtest_data_error_algorithm()            # module for passing test data th
+#Xtest_data_error_algorithm()            # module for passing tests data th
 # END GENERIC FUNCTIONS ####################################################################################################################
 
 # TRAIN BUILD DEFINITIONS #####################################################################################################
@@ -95,8 +95,8 @@ from MLObjects.SupportObjects import master_support_object_dict as msod
 # END DEV BUILD DEFINITIONS ##################################################################################################
 
 # TEST BUILD DEFINITIONS ##################################################################################################
-#Xsub_test_build_module()                # return module with package-specific test objects build code, overwritten in child
-#Xsub_test_build_cmds()                  # return list with package-specific test objects build prompts, overwritten in child
+#Xsub_test_build_module()                # return module with package-specific tests objects build code, overwritten in child
+#Xsub_test_build_cmds()                  # return list with package-specific tests objects build prompts, overwritten in child
 # END TEST BUILD DEFINITIONS ##################################################################################################
 
 # TRAIN CALC DEFINITIONS ###################################################################################################
@@ -110,8 +110,8 @@ from MLObjects.SupportObjects import master_support_object_dict as msod
 # END DEV CALC DEFINITIONS ##################################################################################################
 
 # TEST CALC DEFINITIONS ##################################################################################################
-#Xsub_test_calc_module()                 # return module with package-specific commands for performing test calculations
-#Xsub_test_calc_cmds()                   # return list with package-specific test calc prompts
+#Xsub_test_calc_module()                 # return module with package-specific commands for performing tests calculations
+#Xsub_test_calc_cmds()                   # return list with package-specific tests calc prompts
 # END TEST CALC DEFINITIONS ##################################################################################################
 
 # TRAIN DATA DISPLAY ##############################################################################################################
@@ -127,9 +127,9 @@ from MLObjects.SupportObjects import master_support_object_dict as msod
 # END DEV DATA DISPLAY ###########################################################################################################
 
 # CALC DATA DISPLAY ###########################################################################################################
-#Xtest_summary_statistics_module()       # returns module for printing summary statistics of test data for particular ML package
-#Xprint_test_results_module()            # returns module for printing test results to screen for particular ML package
-#Xtest_filedump_module()                 # returns module for filedump of test results for particular ML package
+#Xtest_summary_statistics_module()       # returns module for printing summary statistics of tests data for particular ML package
+#Xprint_test_results_module()            # returns module for printing tests results to screen for particular ML package
+#Xtest_filedump_module()                 # returns module for filedump of tests results for particular ML package
 # END CALC DATA DISPLAY ###########################################################################################################
 
 #Xreturn_fxn()                           # return self.base_return_fxn()
@@ -221,7 +221,7 @@ class GMLRRun(mlrt.MLRunTemplate):
 
 
     def filedump_package_specific_setup_module(self):
-        # module for filedump of setup for specific package, used for train, dev, & test filedump,
+        # module for filedump of setup for specific package, used for train, dev, & tests filedump,
         self.wb = gsd.gmlr_setup_dump(self.wb, self.conv_kill, self.pct_change, self.conv_end_method, self.rglztn_type,
               self.rglztn_fctr, self.batch_method, self.batch_size, {'L': 'Lazy', 'F': 'Forward', 'B': 'Backward'}[self.gmlr_type],
               {'F': 'F-score', 'Q': 'RSQ', 'A': 'Adj RSQ', 'R':'r'}[self.score_method], self.float_only, self.max_columns,
@@ -449,7 +449,7 @@ class GMLRRun(mlrt.MLRunTemplate):
 
 
     def test_data_calc_algorithm(self):
-        # module for passing test data thru package-specific core algorithm, returns final output vector
+        # module for passing tests data thru package-specific core algorithm, returns final output vector
 
         # MUST SIZE TEST DATA TO CORRECT COLUMNS VIA self.WINNING_COLUMNS
         TestDataClass = mlo.MLObject(
@@ -523,7 +523,7 @@ class GMLRRun(mlrt.MLRunTemplate):
 
 
     def test_data_error_algorithm(self):
-        # module for passing test data thru package-specific error algorithm, returns total error
+        # module for passing tests data thru package-specific error algorithm, returns total error
 
         # MUST SIZE DEV DATA TO CORRECT COLUMNS VIA self.WINNING_COLUMNS
 
@@ -564,13 +564,13 @@ class GMLRRun(mlrt.MLRunTemplate):
 
 
     def sub_dev_build_module(self):
-        # return module with package-specific test matrix build commands, overwritten in child
+        # return module with package-specific tests matrix build commands, overwritten in child
         # overwritten in child
         pass
 
 
     def sub_dev_build_cmds(self):
-        # return list with package-specific test matrix build commands
+        # return list with package-specific tests matrix build commands
         return {}  # SPECIFIED IN CHILDREN   CANT USE 'RSDFTUVBNA'
 
 
@@ -586,13 +586,13 @@ class GMLRRun(mlrt.MLRunTemplate):
 
 
     def sub_test_build_module(self):
-        # return module with package-specific test matrix build commands, overwritten in child
+        # return module with package-specific tests matrix build commands, overwritten in child
         # overwritten in child
         pass
 
 
     def sub_test_build_cmds(self):
-        # return list with package-specific test matrix build commands
+        # return list with package-specific tests matrix build commands
         return {}  # SPECIFIED IN CHILDREN   CANT USE 'DRSPFTUBONA'
 
 
@@ -685,7 +685,7 @@ class GMLRRun(mlrt.MLRunTemplate):
 
 
     def sub_test_calc_module(self):
-        # return module with package-specific commands to run current test matrix
+        # return module with package-specific commands to run current tests matrix
         if self.test_calc_select == 'S':
             # 3-22-22 BEAR FIX
             self.CSUTM_DF = sc.test_cases_calc_standard_configs(self.standard_config, self.TEST_SWNL[0], self.TRAIN_SWNL[0],
@@ -693,9 +693,9 @@ class GMLRRun(mlrt.MLRunTemplate):
 
 
     def sub_test_calc_cmds(self):
-        # return list with package - specific test calc commands
+        # return list with package - specific tests calc commands
         return {
-            's': 'run special GMLR test from standard configs'
+            's': 'run special GMLR tests from standard configs'
         }                       # SPECIFIED IN CHILDREN   CANT USE 'NA'
 
     # END TEST CALC DEFINITIONS ##################################################################################################
@@ -776,7 +776,7 @@ class GMLRRun(mlrt.MLRunTemplate):
 
     # END DEV DATA DISPLAY ##############################A##############################A##############################A##############
     def test_summary_statistics_module(self):
-        # returns module for printing summary statistics of test data
+        # returns module for printing summary statistics of tests data
         error = self.test_data_error_algorithm()  # DO THIS OUT HERE TO ENSURE self.TEST_OUTPUT_VECTOR IS UPDATED B4 gss
         gss.GMLRSummaryStatisticsPrint(self.TEST_OUTPUT_VECTOR, self.TEST_SWNL[1], 'None', error).print()
 
@@ -789,7 +789,7 @@ class GMLRRun(mlrt.MLRunTemplate):
 
 
     def test_filedump_module(self):
-        # package-specific module for saving test results
+        # package-specific module for saving tests results
         # self.wb = ggtrd.gmlr_generic_test_results_dump(self.wb, self.CSUTM_DF, self.DISPLAY_COLUMNS, self.display_criteria, self.display_rows)
         self.wb = gterd.general_test_results_dump(self.wb, self.CSUTM_DF, self.DISPLAY_COLUMNS, self.display_select, self.display_rows)
 
