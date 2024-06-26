@@ -216,7 +216,7 @@ if __name__ == '__main__':
         elif return_as=='SPARSE_DICT': return sd.core_sparse_equiv(OBJ1, OBJ2)
 
     calling_module = gmn.get_module_name(str(sys.modules[__name__]))
-    calling_fxn = 'test'
+    calling_fxn = 'tests'
 
     rows = 10
     UNIQUES_DATA_1 = [1,2,3,4]  # CAN NEVER BE DONE ON STR COLUMNS DUH!!

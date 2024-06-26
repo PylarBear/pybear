@@ -133,7 +133,7 @@ class TestMakeRowAndColumnMasks:
 
         for _trial in range(5):
 
-            # build test fixtures ** * ** * ** * ** * ** * ** * ** * **
+            # build tests fixtures ** * ** * ** * ** * ** * ** * ** * **
             X = AVAIL[np.random.randint(len(AVAIL))]
             for _column in range(5):
                 X = np.hstack((X, AVAIL[np.random.randint(len(AVAIL))]))
@@ -142,14 +142,14 @@ class TestMakeRowAndColumnMasks:
             _good_instr = good_instr(TCBC, _thresh)
             for col_idx in _good_instr:
                 assert len(_good_instr[col_idx]) > 0
-            # END build test fixtures ** * ** * ** * ** * ** * ** * ** * **
+            # END build tests fixtures ** * ** * ** * ** * ** * ** * ** * **
 
             # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
             # derive expected COLUMN_KEEP_MASK from fixtures. do this
             # before running _make_row_and_column_masks. if all rows or
             # columns were to be deleted, _make_row_and_column_masks will
-            # except, wrecking the test. if these conditions are found in
-            # expected, test _make_row_and_column_masks raises ValueError.
+            # except, wrecking the tests. if these conditions are found in
+            # expected, tests _make_row_and_column_masks raises ValueError.
 
             exp = np.zeros(X.shape[1], dtype=np.uint8)
 

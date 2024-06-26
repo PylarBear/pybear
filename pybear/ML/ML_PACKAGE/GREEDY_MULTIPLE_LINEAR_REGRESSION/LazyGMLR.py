@@ -281,7 +281,7 @@ if __name__ == '__main__':
 
 
 
-    # GIVEN TO LazyGMLR test, NOT CreateSXNL!
+    # GIVEN TO LazyGMLR tests, NOT CreateSXNL!
     data_given_format = 'ARRAY'
     data_given_orient = 'COLUMN'
     target_given_format = 'ARRAY'

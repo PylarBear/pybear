@@ -348,7 +348,7 @@ if __name__ == '__main__':
 
 
 
-    # GIVEN TO ForwardGMLR test, NOT CreateSXNL!
+    # GIVEN TO ForwardGMLR tests, NOT CreateSXNL!
     data_given_format = 'ARRAY'
     data_given_orient = 'COLUMN'
     target_given_format = 'ARRAY'

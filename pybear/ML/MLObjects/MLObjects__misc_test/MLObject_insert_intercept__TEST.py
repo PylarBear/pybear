@@ -550,7 +550,7 @@ for bypass_validation in MASTER_BYPASS_VALIDATION:
                                                               return_format=data_return_format,
                                                               bypass_validation=bypass_validation,
                                                               calling_module=calling_module,
-                                                              calling_fxn='accuracy test'
+                                                              calling_fxn='accuracy tests'
                                     )
 
                                     # ANSWER KEY #######################################################################################################

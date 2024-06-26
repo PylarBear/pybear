@@ -21,7 +21,7 @@ class TestValIgnoreColumns:
     # ) -> Union[callable, np.ndarray[int], np.ndarray[str]]:
 
 
-    # core test done in core_ign_columns_handle_as_bool_test
+    # core tests done in core_ign_columns_handle_as_bool_test
 
     pass
 

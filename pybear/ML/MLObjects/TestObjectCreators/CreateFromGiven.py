@@ -486,7 +486,7 @@ if __name__ == '__main__':
                                         ctr += 1
 
                                         if ctr % 1 == 0:
-                                            print(f'\n\nRunning test {ctr} of {total_itrs}...')
+                                            print(f'\n\nRunning tests {ctr} of {total_itrs}...')
 
                                         #############################################################################################
                                         # BUILD CONDITIONAL HEADER OBJECT ###########################################################

@@ -647,7 +647,7 @@ if __name__ == '__main__':
                              return_format='AS_GIVEN',
                              bypass_validation=True,
                              calling_module='TestPertuber',
-                             calling_fxn='test'
+                             calling_fxn='tests'
     )
 
     print(f'\nDELETING COLUMNS WITH LESS THAN 10 ENTRIES...')
@@ -705,7 +705,7 @@ if __name__ == '__main__':
                                      return_format='AS_GIVEN',
                                      bypass_validation=True,
                                      calling_module='TestPertuber',
-                                     calling_fxn='test'
+                                     calling_fxn='tests'
         )
 
         try: ObjectClass.return_XTX_INV(return_format='ARRAY'); print(f'Success.'); break

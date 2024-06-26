@@ -102,11 +102,11 @@ def _int(
     # _int_logspace_unit_gap. Both point to the same core algorithm, but
     # are maintained here as separate modules with different validation
     # wrapped around the core. The original prediction was that unit and
-    # >1 log gaps would need separate modules, and test and validation
+    # >1 log gaps would need separate modules, and tests and validation
     # modules were built in anticipation of that. But now that both could
     # be passed to the same module, consolidating both operations for
     # unit and >1 gaps to that module would require appreciable overhaul
-    # of existing test and validation modules to make the tests and
+    # of existing tests and validation modules to make the tests and
     # validation handle the passing of both to the same place. So,
     # creating a 'core' module with functional code extracted from
     # _int_logspace_gap_gt_1 that feeds both unit and >1 log gap modules,

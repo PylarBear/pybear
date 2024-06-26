@@ -882,7 +882,7 @@ if __name__ == '__main__':
                                 ctr += 1
 
                                 if ctr % 1 == 0:
-                                    print(f'\n\nRunning test {ctr} of {total_itrs}...')
+                                    print(f'\n\nRunning tests {ctr} of {total_itrs}...')
 
                                 # SUPPORT OBJECT CAN BE None, FULL_SUPOBJ W JUST MOD_DTYPES FILLED, OR SINGLE MOD_DTYPES
                                 if support_object_desc is None:

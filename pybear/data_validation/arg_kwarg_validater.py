@@ -5,28 +5,30 @@
 # License: BSD 3 clause
 
 
+from typing import Iterable
 
 import numpy as np
 
 
 def arg_kwarg_validater(arg: any,
                         name: str,
-                        allowed: tuple,
+                        allowed: Iterable[any],
                         module: str,
                         function: str,
-                        return_if_none=None
-    ):
+                        return_if_none: any=None
+    ) -> any:
 
-    """ Validate a parameter, param: arg, against allowable entries as listed
-    in param: allowed. An exception is raised if there is no match. Integers
-    and floats require exact matching. Strings, however, are not case sensitive.
-    Strings are searched against param: allowed in a non-case-sensitive manner
-    and if there is a match, the entry as it is in param: allowed is returned,
-    not the original param: arg (unless they were already equivalent.)  If an
-    array-like is passed to param: arg, each term in the array-like is compared
-    against param: allowed, subject to the same rules stated previously. If a
-    single term in the array-like is not in the allowable terms, an exception
-    is raised; all terms in the array-like must be in param: allowed.
+    """ Validate a parameter, param: arg, against allowable entries as
+    listed in param: allowed. An exception is raised if there is no match.
+    Integers and floats require exact matching. Strings, however, are not
+    case sensitive. Strings are searched against param: allowed in a non-
+    case-sensitive manner and if there is a match, the entry as it is in
+    param: allowed is returned, not the original param: arg (unless they
+    were already equivalent.) If an array-like is passed to param: arg,
+    each term in the array-like is compared against param: allowed,
+    subject to the same rules stated previously. If a single term in the
+    array-like is not in the allowable terms, an exception is raised; all
+    terms in the array-like must be in param: allowed.
 
     Parameters
     ----------
@@ -53,9 +55,10 @@ def arg_kwarg_validater(arg: any,
     ----
     # PIZZA
     # pybear Note 24_04_13_18_03_00 - 'name', 'module' and 'function' are
-    # relics and are not currently used inside this function. The arguments
-    # remain in place because of the numerous dependents on this funciton.
-    # Reinstitute them if more clarity in tracebacks is needed again.
+    # relics and are not currently used inside this function. The
+    # arguments remain in place because of the numerous dependents on
+    # this funciton. Reinstitute them if more clarity in tracebacks is
+    # needed again.
 
 
     Examples
@@ -81,11 +84,10 @@ def arg_kwarg_validater(arg: any,
     if not isinstance(function, str):
      raise TypeError(f"'function_name_as_str' must be a str")
 
-    if isinstance(allowed, (dict, str)):
-        raise TypeError(f"'allowed' must be an array-like")
-
     try:
         iter(allowed)
+        if isinstance(allowed, (dict, str)):
+            raise Exception
     except:
         raise TypeError(f"'allowed' must be an array-like")
 
@@ -104,40 +106,64 @@ def arg_kwarg_validater(arg: any,
 
     if isinstance(arg, str):
         for item in allowed:
-            if arg.upper() == item.upper():
-                arg = item
+            try:
+                if arg.upper() == item.upper():
+                    arg = item
+                    break
+            except:
+                pass
+        else:
+            raise ValueError(err_msg)
+
+    elif isinstance(arg, dict):
+        raise TypeError("arg_kwarg_validater cannot validate dictionaries")
+
+    elif callable(arg):
+        raise TypeError("arg_kwarg_validater cannot validate callables")
+
+    elif isinstance(arg, type(None)):
+        if arg not in allowed:
+            raise ValueError(err_msg)
+
+    elif isinstance(arg, bool):
+        # if True in [0, 1] returns True, so does False, must do it out
+        for __ in allowed:
+            if arg is __:
                 break
         else:
             raise ValueError(err_msg)
 
-    elif isinstance(arg, (bool, type(None))):
-        if arg not in allowed:
-            raise ValueError(err_msg)
-
     elif any([_ in str(type(arg)).upper() for _ in ('INT','FLOAT')]):
-        if arg not in allowed:
+        # if 0 in [True, False] returns True, so does 1, must do it out
+        for __ in allowed:
+            if isinstance(__, bool) and arg is __:
+                break
+
+            if not isinstance(__, bool) and arg == __:
+                break
+        else:
             raise ValueError(err_msg)
 
-    elif isinstance(arg, np.ndarray):
-        arg = np.array(arg).ravel()
+    elif isinstance(arg, (np.ndarray, list, set, tuple)):
+        arg = np.array(list(arg), dtype=object).ravel()
         for idx, item in enumerate(arg):
-            if isinstance(item, str):
-                for allowable in allowed:
-                    try:
-                        allowable.upper()
-                        if item.upper() == allowable.upper():
-                            arg[idx] = allowable
-                            break
-                    except:
-                        continue
-                else:
-                    raise ValueError(err_msg)
-            else:
-                if item in allowed:
-                    continue
-                else:
-                    raise ValueError(err_msg)
 
+            try:
+                iter(item)
+                raise TypeError(f"arg_kwarg_validater cannot validate iterables "
+                    f"directly, only the contents of iterables can be validated "
+                    f"(iterable 'arg' and 'allowed' must be one iterable deep)")
+            except:
+                pass
+
+            arg[idx] = arg_kwarg_validater(
+                    item,
+                    name,
+                    allowed,
+                    module,
+                    function,
+                    return_if_none=return_if_none
+            )
     else:
         raise TypeError(f"arg_kwarg_validater CANNOT VALIDATE (kw)arg '{arg}'")
 

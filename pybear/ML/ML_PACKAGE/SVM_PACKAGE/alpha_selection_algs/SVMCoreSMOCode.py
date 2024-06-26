@@ -455,7 +455,7 @@ class SVMCoreSMOCode:
                         if self.L_H_bound_check(a1_idx, a2_idx) is False:
                             pass
                             # CONSTRUCTION COMMENTARY
-                            # print(f'a2={a2_idx} failed Platt Rule A on L-H gap test.  Proceeding to Platt rule B.')
+                            # print(f'a2={a2_idx} failed Platt Rule A on L-H gap tests.  Proceeding to Platt rule B.')
                         else:
                             # IF FAILS eta CHECK, OR CHANGE TO a2 IS TOO SMALL, RETURNS False, SKIP TO RULE B
                             if self.joint_alpha_optimizer(a1_idx, a2_idx) is False:
@@ -478,7 +478,7 @@ class SVMCoreSMOCode:
                                 # IF FAILS H-L CHECK, SKIP TO NEXT RANDOM NON-BOUND EXAMPLE, IF PASSES, RUN OPTIMIZER
                                 if self.L_H_bound_check(a1_idx, a2_idx) is False:
                                     # CONSTRUCTION COMMENTARY
-                                    # print(f'a2={a2_idx} failed Platt Rule B on L-H gap test.  Proceeding to next _random_ non-bound a2 idx.')
+                                    # print(f'a2={a2_idx} failed Platt Rule B on L-H gap tests.  Proceeding to next _random_ non-bound a2 idx.')
                                     continue
                                 else:
                                     # IF FAILS eta CHECK, OR CHANGE TO a2 IS TOO SMALL, RETURNS False, SKIP TO NEXT RANDOM NON-BOUND EXAMPLE
@@ -507,7 +507,7 @@ class SVMCoreSMOCode:
                             # IF FAILS H-L CHECK, SKIP TO NEXT RANDOM BOUND EXAMPLE, IF PASSES, RUN OPTIMIZER
                             if self.L_H_bound_check(a1_idx, a2_idx) is False:
                                 pass
-                                # CONSTRUCTION COMMENTARY print(f'a2={a2_idx} failed Platt Rule C on L-H gap test.  Proceeding to next _random_ bound a2 idx.')
+                                # CONSTRUCTION COMMENTARY print(f'a2={a2_idx} failed Platt Rule C on L-H gap tests.  Proceeding to next _random_ bound a2 idx.')
                                 continue
                             else:
                                 # IF FAILS eta CHECK, OR CHANGE TO a2 IS TOO SMALL, RETURNS False, SKIP TO NEXT RANDOM NON-BOUND EXAMPLE

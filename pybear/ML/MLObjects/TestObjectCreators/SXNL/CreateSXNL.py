@@ -160,7 +160,7 @@ class CreateSXNL:
 
         self.DATA, self.DATA_SUPPORT_OBJECTS = self.DataClass.OBJECT, self.DataClass.SUPPORT_OBJECTS
         del DATA_FULL_SUPOBJ_OR_SINGLE_MDTYPES
-        # DONT DELETE DataClass YET, MIGHT NEED IT FOR train-dev-test SPLIT OR EXPAND
+        # DONT DELETE DataClass YET, MIGHT NEED IT FOR train-dev-tests SPLIT OR EXPAND
 
         # CORE TARGET_ARGS ########################################################
         ARGS = target_return_format, target_return_orientation
@@ -188,7 +188,7 @@ class CreateSXNL:
 
         self.TARGET, self.TARGET_SUPPORT_OBJECTS =  self.TargetClass.OBJECT, self.TargetClass.SUPPORT_OBJECTS
         del TARGET_FULL_SUPOBJ_OR_SINGLE_MDTYPES, ARGS, KWARGS
-        # DONT DELETE self.TargetClass YET, MIGHT NEED IT FOR train-dev-test SPLIT
+        # DONT DELETE self.TargetClass YET, MIGHT NEED IT FOR train-dev-tests SPLIT
 
 
         self.RefVecsClass = atoc.CreateRefVecs(
@@ -213,7 +213,7 @@ class CreateSXNL:
 
         self.REFVECS, self.REFVECS_SUPPORT_OBJECTS = self.RefVecsClass.OBJECT, self.RefVecsClass.SUPPORT_OBJECTS
         del REFVECS_FULL_SUPOBJ_OR_SINGLE_MDTYPES
-        # DONT DELETE RefVecClass YET, MIGHT NEED IT FOR train-dev-test SPLIT OR WANT TO EXPAND IT
+        # DONT DELETE RefVecClass YET, MIGHT NEED IT FOR train-dev-tests SPLIT OR WANT TO EXPAND IT
 
         self.SXNL = list((self.DATA, self.TARGET, self.REFVECS))
         self.SXNL_SUPPORT_OBJECTS = list((self.DATA_SUPPORT_OBJECTS, self.TARGET_SUPPORT_OBJECTS, self.REFVECS_SUPPORT_OBJECTS))
@@ -265,7 +265,7 @@ class CreateSXNL:
             self.DATA, self.DATA_SUPPORT_OBJECTS = self.DataClass.OBJECT, self.DataClass.SUPPORT_OBJECTS
             self.SXNL[0], self.SXNL_SUPPORT_OBJECTS[0] = self.DataClass.OBJECT, self.DataClass.SUPPORT_OBJECTS
             self.data_is_expanded = True
-            # DONT DELETE DataClass YET, MIGHT NEED IT FOR train-dev-test SPLIT
+            # DONT DELETE DataClass YET, MIGHT NEED IT FOR train-dev-tests SPLIT
 
 
     def expand_refvecs(self, expand_as_sparse_dict=None, auto_drop_rightmost_column=None):
@@ -279,7 +279,7 @@ class CreateSXNL:
             self.REFVECS_OBJECT, self.REFVECS_SUPPORT_OBJECTS = self.RefVecsClass.OBJECT, self.RefVecsClass.SUPPORT_OBJECTS
             self.SXNL[2], self.SXNL_SUPPORT_OBJECTS[2] = self.RefVecsClass.OBJECT, self.RefVecsClass.SUPPORT_OBJECTS
             self.refvecs_is_expanded = True
-            # DONT DELETE RefVecsClass YET, MIGHT NEED IT FOR train-dev-test SPLIT
+            # DONT DELETE RefVecsClass YET, MIGHT NEED IT FOR train-dev-tests SPLIT
 
 
     def train_dev_test_split(self, MASK=None):

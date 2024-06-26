@@ -46,7 +46,7 @@ def custom_assert(condition, msg=None):
 
 
 
-# in a separate module, build the test vectors for mock_mct_test to have certain
+# in a separate module, build the tests vectors for mock_mct_test to have certain
 # controlled attributes, such as number of uniques, counts, etc., that are
 # guaranteed to be altered by mock_mct in a predictable way
 _MOCK_X_BIN, _MOCK_X_NBI, _MOCK_X_FLT, _MOCK_X_STR, _MOCK_X_BOOL, _thresh, \

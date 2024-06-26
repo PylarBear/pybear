@@ -35,7 +35,7 @@ def _test_threshold(
     _MCTInstance:
         the instance of MinCountTransformer
     _threshold:
-        int - count_threshold value to test.
+        int - count_threshold value to tests.
     _clean_printout:
         bool - Truncate printout to fit on screen.
 
@@ -72,7 +72,7 @@ def _test_threshold(
                 raise ValueError(f"threshold must be an integer >= 2")
         elif __max_recursions > 1:
             if _threshold != __count_threshold:
-                raise ValueError(f"can only test the original threshold "
+                raise ValueError(f"can only tests the original threshold "
                                  f"when max_recursions > 1")
 
     _delete_instr = __make_instructions(_threshold=_threshold)

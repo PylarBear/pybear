@@ -143,12 +143,12 @@ class TrainDevTestSplit:
         del zero_setter
 
         if not self.bypass_validation:
-            # CANT ENTER count AND percent FOR dev AND test
+            # CANT ENTER count AND percent FOR dev AND tests
             if not dev_count is None and not dev_percent is None:
                 raise self._exception(f'If silently generating dev split, enter count or percent, not both', fxn=fxn)
 
             if not test_count is None and not test_percent is None:
-                raise self._exception(f'If silently generating test split, enter count or percent, not both', fxn=fxn)
+                raise self._exception(f'If silently generating tests split, enter count or percent, not both', fxn=fxn)
 
         #####################################################################################################################################
         # IF ALL _random_() KWARGS ARE NONE: VERBOSE SPLIT SETUP ##############################################################################
@@ -184,7 +184,7 @@ class TrainDevTestSplit:
 
                 print(f'\nUser chose {train_rows} train examples ({100*train_rows/self.rows:.1f}%), '
                        + [f'{dev_rows} dev examples ({100*dev_rows/self.rows:.1f}%), ' if not dev_rows is None else 'no dev examples, '][0]
-                       + f' and {test_rows} test examples ({100*test_rows/self.rows:.1f}%)')
+                       + f' and {test_rows} tests examples ({100*test_rows/self.rows:.1f}%)')
 
                 if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
                     del get_method, get_percent, get_count
@@ -254,7 +254,7 @@ class TrainDevTestSplit:
             del _count, TRUES
             self.MASK = self.MASK.reshape((1,-1)).astype(bool)
 
-        else:   # 2 KWARGS ENTERED, 1 FROM dev, 1 FROM test, (CANT BE 2 FROM dev OR 2 FROM test)
+        else:   # 2 KWARGS ENTERED, 1 FROM dev, 1 FROM tests, (CANT BE 2 FROM dev OR 2 FROM tests)
             if not dev_count is None:    #  SOMEWHAT ARBITRARY THAT TRAIN MUST HAVE AT LEAST 2, BUT TEST MUST HAVE AT LEAST 1
                 if not self.bypass_validation: count_validator(dev_count, 'dev', 1, self.rows-3)
                 _count1 = int(dev_count)
@@ -263,10 +263,10 @@ class TrainDevTestSplit:
                 _count1 = int(np.floor(dev_percent/100 * self.rows))
 
             if not test_count is None:    #  SOMEWHAT ARBITRARY THAT TRAIN MUST HAVE AT LEAST 2
-                if not self.bypass_validation: count_validator(test_count, 'test', 1, self.rows-2-_count1)
+                if not self.bypass_validation: count_validator(test_count, 'tests', 1, self.rows-2-_count1)
                 _count2 = int(test_count)
             elif not test_percent is None:    #  SOMEWHAT ARBITRARY THAT TRAIN MUST HAVE AT LEAST 2
-                if not self.bypass_validation: percent_validator(test_percent, 'test', 1, self.rows-2-_count1)
+                if not self.bypass_validation: percent_validator(test_percent, 'tests', 1, self.rows-2-_count1)
                 _count2 = int(np.floor(test_percent/100 * self.rows))
 
             # EVEN THO VALIDATION SHOULD NOT ALLOW IT, JUST CHECK TO MAKE SURE THAT _count1 & _count2 TOTAL
@@ -343,7 +343,7 @@ class TrainDevTestSplit:
 
                 print(f'\nUser chose {number_of_partitions} partitions, '
                        + [f'partition {dev_partition_number} for dev, ' if not dev_partition_number is None else 'no dev partition, '][0]
-                       + f'and partition {test_partition_number} for test')
+                       + f'and partition {test_partition_number} for tests')
 
                 if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
                     del get_partitions, get_partition_number
@@ -412,7 +412,7 @@ class TrainDevTestSplit:
                     part_start = dev_partition_number * partition_size
                     part_end = self.rows if dev_partition_number == number_of_partitions - 1 else (dev_partition_number + 1) * partition_size
 
-                # VIA test
+                # VIA tests
                 elif dev_partition_number is None and not test_partition_number is None:
                     part_start = test_partition_number * partition_size
                     part_end = self.rows if test_partition_number == number_of_partitions - 1 else (test_partition_number + 1) * partition_size
@@ -421,7 +421,7 @@ class TrainDevTestSplit:
                 self.MASK[np.fromiter(range(part_start, part_end), dtype=np.int32)] = True
                 self.MASK = self.MASK.reshape((1,-1))
 
-            # IF MAKING 3-WAY SPLIT, VIA dev AND test
+            # IF MAKING 3-WAY SPLIT, VIA dev AND tests
             elif not dev_partition_number is None and not test_partition_number is None:
 
                 # dev_part AND test_part CANNOT BE THE SAME PARTITION
@@ -454,7 +454,7 @@ class TrainDevTestSplit:
                      object_name_for_test=None, test_column_name_or_idx=None, TEST_SPLIT_ON_VALUES_AS_LIST=None,
                      DATA_FULL_SUPOBJ=None, TARGET_FULL_SUPOBJ=None, REFVECS_FULL_SUPOBJ=None):
 
-        '''select examples for dev & test sets using categories in the objects.'''
+        '''select examples for dev & tests sets using categories in the objects.'''
 
         # MLRunTemplate CALLS ON self.SWNL TO GET OBJS & HEADERS, CALLS ON self.VAL_DTYPES & self.MOD_DTYPES
         # BUT TRAIN_SWNL MUST BE PASSED FOR SPLIT, BECAUSE TEST IS GOT AFTER DEV, AND DEV CHANGED SWNL INTO TRAIN
@@ -577,12 +577,12 @@ class TrainDevTestSplit:
 
         del DEV_KWARG_SET, TEST_KWARG_SET, silent_kwarg_validator_for_dev_or_test
 
-        # IF ONLY ONE OF dev OR silent IS BEING DONE, JUST CALL IT test; IF BOTH, KEEP dev & test; IF ZERO IS VERBOSE
+        # IF ONLY ONE OF dev OR silent IS BEING DONE, JUST CALL IT tests; IF BOTH, KEEP dev & tests; IF ZERO IS VERBOSE
         silent = int(silent_dev) + int(silent_test)
 
         if silent == 1:
             silent_dev, silent_test = False, True
-            # IF INFO IS UNDER dev KWARGS (test ARE None), MOVE THOSE KWARGS TO test & SET dev TO None
+            # IF INFO IS UNDER dev KWARGS (tests ARE None), MOVE THOSE KWARGS TO tests & SET dev TO None
             if object_name_for_test is None:   # IMPLIES test_column_name_or_idx, TEST_SPLIT_ON_VALUES_AS_LIST ARE ALSO None
                 object_name_for_test = object_name_for_dev; object_name_for_dev = None
                 test_column_name_or_idx = dev_column_name_or_idx; dev_column_name_or_idx = None

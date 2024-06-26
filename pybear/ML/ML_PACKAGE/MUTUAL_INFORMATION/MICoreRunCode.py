@@ -621,7 +621,7 @@ if __name__ == '__main__':
     from scipy.special import logsumexp
 
     this_module = gmn.get_module_name(str(sys.modules[__name__]))
-    fxn = 'test'
+    fxn = 'tests'
 
     header_dum = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     rows = 100

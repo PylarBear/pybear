@@ -13,7 +13,7 @@ from typing import Union, Iterable
 
 
 # this is fixture for MinCountTransformer_test
-# test for this is in pytest_fixtures.tests.mock_mct_test
+# tests for this is in pytest_fixtures.tests.mock_mct_test
 
 
 class mmct:

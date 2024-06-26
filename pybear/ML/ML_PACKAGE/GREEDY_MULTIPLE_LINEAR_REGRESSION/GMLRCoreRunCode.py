@@ -450,7 +450,7 @@ if __name__ == '__main__':
     run_as = ls.list_single_select(['random_integer', 'binary', 'random_sparse_dict', 'mi_scratch', 'beer_reviews'],
                                    'Select dataset', 'value')[0]
 
-    test_type = ls.list_single_select(['loop', 'one-off'], 'Select test type', 'value')[0]
+    test_type = ls.list_single_select(['loop', 'one-off'], 'Select tests type', 'value')[0]
 
     bypass_validation = ls.list_single_select([True, False], 'Select bypass_validation', 'value')[0]
 
@@ -587,7 +587,7 @@ if __name__ == '__main__':
 
                                              bypass_validation=False,
                                              calling_module='GMLRCoreRunCode',
-                                             calling_fxn='test'
+                                             calling_fxn='tests'
     )
 
     DATA = OrienterClass.DATA

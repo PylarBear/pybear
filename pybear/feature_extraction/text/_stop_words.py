@@ -1,0 +1,186 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
+import numpy as np
+
+
+
+def _stop_words() -> np.ndarray:
+
+     """
+     Return a numpy vector of subjectively determined stop words.
+
+     Parameters
+     ----------
+     None
+
+     Return
+     ------
+     -
+          STOP_WORDS: np.ndarray[str] - numpy array of subjectively
+          determined stop words.
+
+     """
+
+
+     return np.array(
+          [
+           "A",
+           "ABOUT",
+           "ACROSS",
+           "AFTER",
+           "AGAIN",
+           "AGAINST",
+           "ALL",
+           "ALONG",
+           "ALSO",
+           "AM",
+           "AN",
+           "AND",
+           "ANY",
+           "ARE",
+           "AS",
+           "AT",
+           "AWAY",
+           "BACK",
+           "BE",
+           "BEEN",
+           "BEFORE",
+           "BEHIND",
+           "BETWEEN",
+           "BUT",
+           "BY",
+           "CAME",
+           "CAN",
+           "COME",
+           "COULD",
+           "DID",
+           "DO",
+           "DONT",
+           "DOWN",
+           "DURING",
+           "EACH",
+           "EVEN",
+           "EVER",
+           "FAR",
+           "FIRST",
+           "FOR",
+           "FROM",
+           "GREAT",
+           "HAD",
+           "HAS",
+           "HAVE",
+           "HE",
+           "HER",
+           "HERE",
+           "HIGH",
+           "HIM",
+           "HIS",
+           "HOW",
+           "I",
+           "IF",
+           "IN",
+           "INTO",
+           "IS",
+           "IT",
+           "ITS",
+           "JUST",
+           "KNOW",
+           "LAST",
+           "LEFT",
+           "LIKE",
+           "LITTLE",
+           "LONG",
+           "MADE",
+           "MANY",
+           "MAY",
+           "ME",
+           "MORE",
+           "MOST",
+           "MUCH",
+           "MUST",
+           "MY",
+           "NEVER",
+           "NO",
+           "NOT",
+           "NOW",
+           "OF",
+           "OFF",
+           "ON",
+           "ONE",
+           "ONLY",
+           "OR",
+           "OTHER",
+           "OUR",
+           "OUT",
+           "OVER",
+           "RIGHT",
+           "SAID",
+           "SAY",
+           "SAYS",
+           "SEE",
+           "SHALL",
+           "SHE",
+           "SHOULD",
+           "SIDE",
+           "SINCE",
+           "SO",
+           "SOME",
+           "STILL",
+           "SUCH",
+           "THAN",
+           "THAT",
+           "THE",
+           "THEIR",
+           "THEM",
+           "THEN",
+           "THERE",
+           "THESE",
+           "THEY",
+           "THIS",
+           "THOUGH",
+           "THREE",
+           "THROUGH",
+           "TIME",
+           "TO",
+           "TOO",
+           "TWO",
+           "UNDER",
+           "UNTIL",
+           "UP",
+           "UPON",
+           "US",
+           "VERY",
+           "WAS",
+           "WE",
+           "WELL",
+           "WENT",
+           "WERE",
+           "WHAT",
+           "WHEN",
+           "WHERE",
+           "WHICH",
+           "WHILE",
+           "WHO",
+           "WHY",
+           "WILL",
+           "WITH",
+           "WITHOUT",
+           "WOULD",
+           "YET",
+           "YOU",
+           "YOUR"
+          ], dtype='<U40')
+
+
+
+
+
+
+
+

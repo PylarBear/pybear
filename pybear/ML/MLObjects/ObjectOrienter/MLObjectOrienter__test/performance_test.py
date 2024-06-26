@@ -159,7 +159,7 @@ for WITH_XTX in [[], ['XTX']]:
 
                                                 bypass_validation=bypass_validation,
                                                 calling_module='MLOOPerformanceTest',
-                                                calling_fxn='test'
+                                                calling_fxn='tests'
         )
 
         data_return_format = OrienterClass.data_return_format

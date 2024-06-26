@@ -10,7 +10,7 @@ from copy import deepcopy
 from typing import Union, TypeAlias, Iterable
 import numpy as np
 
-import autogridsearch_docs
+from . import autogridsearch_docs
 
 from ._autogridsearch_wrapper._type_aliases import ParamsType, BestParamsType
 
@@ -312,7 +312,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
                 _DemoCls:
                     AutoGridSearchCV instance - The AutoGridSearch instance
                     created to run simulations, not the active instance of
-                    AutoGridSearch. This return is integral for test of
+                    AutoGridSearch. This return is integral for tests of
                     the demo functionality, but has no other internal use.
 
             """
@@ -333,7 +333,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
                 _mock_gscv_pause_time=mock_gscv_pause_time
             )
 
-            return _DemoCls   # for test purposes only
+            return _DemoCls   # for tests purposes only
 
 
 
@@ -377,7 +377,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
                 for training data
             groups:
                 default None - Group labels for the samples used while
-                splitting the dataset into train/test set
+                splitting the dataset into train/tests set
 
             Return
             ------
