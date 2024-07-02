@@ -48,7 +48,7 @@ def validate_user_str(user_prompt:str, options:str) -> str:
 
 def validate_user_mstr(user_prompt:str, options:str, max_len:int=2) -> str:
 
-    """String validation for multiple alpha character user entry that screens
+    """String _validation for multiple alpha character user entry that screens
     by len of entry and allowed options.
 
     Parameters
@@ -97,7 +97,7 @@ def validate_user_int(
                       max:int=float('inf')
     ) -> int:
 
-    """Integer validation for user entry within allowed range.
+    """Integer _validation for user entry within allowed range.
 
     Parameters
     ----------
@@ -151,7 +151,7 @@ def validate_user_float(
                         max:float=float('inf')
     ) -> float:
 
-    """Number validation for user float entry within allowed range.
+    """Number _validation for user float entry within allowed range.
 
     Parameters
     ----------
@@ -196,7 +196,7 @@ def validate_user_float(
 
 def user_entry(prompt: str):
 
-    """String validation for user-entered string.
+    """String _validation for user-entered string.
 
     Parameters
     ----------
@@ -228,7 +228,7 @@ class ValidateUserDate:
     user_prompt:
         str - text string displayed to the user at prompt
     user_verify:
-        bool - default = False, perform validation on the entry
+        bool - default = False, perform _validation on the entry
     format:
         str - default = 'MM/DD/YYYY', the date format
     min:
@@ -241,7 +241,7 @@ class ValidateUserDate:
     user_prompt:
         str - text string displayed to the user at prompt
     user_verify:
-        bool - default = False, perform validation on the entry
+        bool - default = False, perform _validation on the entry
     format:
         str - the date format
     min:

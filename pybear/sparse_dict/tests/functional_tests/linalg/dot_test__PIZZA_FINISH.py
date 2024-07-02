@@ -25,7 +25,7 @@ from pybear.sparse_dict._linalg import (
 
 class TestCoreDot:
 
-    # no validation, only results
+    # no _validation, only results
 
     def test_accuracy_1(self):
         assert core_dot({0:{0:1,1:2,2:0}}, {0:2,1:1,2:0}) == 4
@@ -106,7 +106,7 @@ class TestDot:
 
 class TestCoreHybridDot:
 
-    # no validation, only results
+    # no _validation, only results
 
     def test_accuracy_1(self):
         assert core_hybrid_dot({0:{0:1,1:2,2:0}}, {0:2,1:1,2:0}) == 4

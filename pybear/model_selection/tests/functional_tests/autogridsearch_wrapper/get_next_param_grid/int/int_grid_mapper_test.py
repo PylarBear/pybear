@@ -15,7 +15,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 class TestIntGridMapper:
 
 
-    # validation handled by _int_linspace_gap_gt_1, which is handled by
+    # _validation handled by _int_linspace_gap_gt_1, which is handled by
     # _validate_int_float_linlogspace
 
 

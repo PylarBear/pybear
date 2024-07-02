@@ -660,7 +660,7 @@ class MLObjectOrienter:
             ###############################################################################################################################
             ###############################################################################################################################
             # BUILD OBJECTS FROM AVAILABLE OBJECTS ########################################################################################
-            # EXCEPTIONS FOR INSUFFICIENT OBJECTS TO BUILD FROM IS REDUNDANT IF validation IS ON, BUT IS SOME PROTECTION IF validation IS OFF
+            # EXCEPTIONS FOR INSUFFICIENT OBJECTS TO BUILD FROM IS REDUNDANT IF _validation IS ON, BUT IS SOME PROTECTION IF _validation IS OFF
 
             ###### DATA ##################################################################################################################
             self.DATA = None

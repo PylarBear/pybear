@@ -10,13 +10,15 @@ from .autogridsearch.SkLearnAutoGridSearch import SklearnAutoGridSearch
 
 from .autogridsearch.DaskAutoGridSearch import DaskAutoGridSearch
 
-from model_selection.GSTCV.GSTCV import GridSearchThresholdCV
+from model_selection.GSTCV._GSTCV import GSTCV
 
+from model_selection.GSTCV._GSTCVDask import GSTCVDask
 
 
 __all__ = [
             'autogridsearch_wrapper',
-            'GridSearchThresholdCV',
+            'GSTCV',
+            'GSTCVDask',
             'SklearnAutoGridSearch',
             'DaskAutoGridSearch'
 ]

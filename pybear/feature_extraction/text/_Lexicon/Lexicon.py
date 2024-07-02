@@ -223,7 +223,7 @@ class Lexicon:
         char_seq:
             str - alpha character string to be looked up
         bypass_validation:
-            bool - if True, bypass validation of char_seq
+            bool - if True, bypass _validation of char_seq
 
         Return
         ------
@@ -271,7 +271,7 @@ class Lexicon:
         char_seq:
             str - alpha character string to be looked up
         bypass_validation:
-            bool - if True, bypass validation of char_seq
+            bool - if True, bypass _validation of char_seq
 
         Return
         ------

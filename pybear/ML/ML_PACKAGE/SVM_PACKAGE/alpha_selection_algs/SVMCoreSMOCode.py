@@ -9,8 +9,8 @@ from ML_PACKAGE.SVM_PACKAGE import svm_output_calc as svmoc, svm_error_calc as s
 
 '''
 return_fxn               Return from run()
-use_early_stopping       Indicates whether early stopping for dev/validation error.
-early_stop_handling      Calculation of dev validation errar for early stop.
+use_early_stopping       Indicates whether early stopping for dev/_validation error.
+early_stop_handling      Calculation of dev _validation errar for early stop.
 alpha_handling           Allows (or disallows) user to choose to reset alphas or keep old values.
 objective_function       Obsoleted. Calculates the Lagrangian objective, that is maximized when optimal alphas are found. 
 non_bound_idxs           Indices of examples that are not "in the river" or "on the river bank."  alpha should be zero.
@@ -96,12 +96,12 @@ class SVMCoreSMOCode:
 
 
     def use_early_stopping(self):
-        '''Indicates whether early stopping for dev/validation error.'''
+        '''Indicates whether early stopping for dev/_validation error.'''
         return False
 
 
     def early_stop_handling(self):
-        '''Calculation of dev validation errar for early stop.'''
+        '''Calculation of dev _validation errar for early stop.'''
         return None
 
 
@@ -556,7 +556,7 @@ class SVMCoreSMOCode:
                         # EARLY STOP HANDLING #####################################################################################
                         if self.early_stop_handling() == 'BREAK':
                             print(f'\n*** Training cycle stopped early on pass {self.passes} of {self.max_passes} for '
-                                  f'divergence of validation error. ***\n')
+                                  f'divergence of _validation error. ***\n')
 
                             break
                         # END EARLY STOP HANDLING #####################################################################################
@@ -674,14 +674,14 @@ class SVMCoreSMOCode_MLPackage(SVMCoreSMOCode):
 
 
     def use_early_stopping(self):
-        '''Indicates whether early stopping for dev/validation error.'''
+        '''Indicates whether early stopping for dev/_validation error.'''
         if self.early_stop_interval == 1e12:    # 1e12 IS THE DUMMY NUMBER USED IN MLRunTemplate TO TURN OFF early_stopping()
             return False
         else: return True
 
 
     def early_stop_handling(self):
-        '''Calculation of dev validation errar for early stop.'''
+        '''Calculation of dev _validation errar for early stop.'''
 
         self.build_boundary_objects()  # CALCULATING THIS TO GET SUPPORT_VECTORS, SUPPORT_TARGETS, SUPPORT_ALPHAS
 

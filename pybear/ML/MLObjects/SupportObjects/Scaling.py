@@ -73,7 +73,7 @@ class Scaling(asoh.ApexSupportObjectHandle):
         return f''
 
     def allowed_values(self):
-        'Allowed values for validation.'''
+        'Allowed values for _validation.'''
         return str
 
     # INHERITED FROM Apex

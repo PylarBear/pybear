@@ -9,7 +9,7 @@
 def _core_bool_val(_attr: str, _value: bool) -> bool:
 
     """
-    Supports several validation modules
+    Supports several _validation modules
 
     """
 

@@ -75,7 +75,7 @@ class StartLag(mc.MinCutoffs):
     #     '''Default value to fill support object.'''
 
     def allowed_values(self):
-        'Allowed values for validation.'''
+        'Allowed values for _validation.'''
         self.ALLOWED_LIST = range(int(-1e7),int(1e7),1)
 
 

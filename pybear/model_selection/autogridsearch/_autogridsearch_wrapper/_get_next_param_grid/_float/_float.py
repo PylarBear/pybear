@@ -77,7 +77,7 @@ def _float(
 
     """
 
-    # 24_05_17_09_16_00 do not put validation here, keep it in the individual
+    # 24_05_17_09_16_00 do not put _validation here, keep it in the individual
     # modules to get the module names
 
     if not _is_logspace:

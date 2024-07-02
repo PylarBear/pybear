@@ -72,7 +72,7 @@ def _int_linspace_gap_gt_1(
 
     """
 
-    # 24_05_17_10_04_00 validation must stay here to get the module name,
+    # 24_05_17_10_04_00 _validation must stay here to get the module name,
     # cannot put in _int
     _SINGLE_GRID =  _validate_int_float_linlogspace(
             _SINGLE_GRID,

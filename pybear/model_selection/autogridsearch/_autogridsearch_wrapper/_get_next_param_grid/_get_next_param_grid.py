@@ -137,13 +137,13 @@ def _get_next_param_grid(
 
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     if _pass == 0:
         ValueError(f"accessing _get_next_param_grid on pass 0")
 
     # GRIDS
-    # core GRIDS validation
+    # core GRIDS _validation
     _validate_grids(_GRIDS)
 
     # there must be at least one grid (_pass zero's) in _GRIDS; the last
@@ -169,7 +169,7 @@ def _get_next_param_grid(
             raise ValueError(f"soft param '{_param}' not in PHLITE")
 
     #     _IS_LOGSPACE
-    # core _IS_LOGSPACE validation
+    # core _IS_LOGSPACE _validation
     _validate_is_logspace(_IS_LOGSPACE, _params)
 
     # _best_params
@@ -194,7 +194,7 @@ def _get_next_param_grid(
 
     _total_passes_is_hard = _val_tpih(_total_passes_is_hard)
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 

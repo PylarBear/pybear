@@ -27,7 +27,7 @@ class TestInt:
     #         _points: int
     # ) -> tuple[list[int], Union[bool, float]]
 
-    # all validation is handled in the individual modules. verify all the
+    # all _validation is handled in the individual modules. verify all the
     # calls work and are accurate.
 
 

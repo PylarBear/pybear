@@ -16,7 +16,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 class TestIntLinspaceGap_GT_1:
 
 
-    # validation handled by get_next_param_grid._validate_int_float_linlogspace
+    # _validation handled by get_next_param_grid._validate_int_float_linlogspace
 
     # relic val from before _validate_int_float_linlogspace ** * ** * **
     def test_rejects_floats(self):

@@ -14,7 +14,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 class TestIntLinspaceGapGT1Soft:
 
 
-    # no validation
+    # no _validation
 
 
     # unit gap only to tests for robustness against span falling below 2

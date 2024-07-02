@@ -489,7 +489,7 @@ class ApexSupportObjectHandle:
         return 'None'
 
     def allowed_values(self):
-        'Allowed values for validation.'''
+        'Allowed values for _validation.'''
         # OVERWRITE IN CHILD
         pass
 

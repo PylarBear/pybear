@@ -36,7 +36,7 @@ def train_dev_test_split_core(OBJECT, given_orientation, MASK, bypass_validation
     is_row = given_orientation=='ROW'
     is_col = given_orientation=='COLUMN'
 
-    # ldv FOR MASK IRREGARDLESS OF validation, MUST GET IT TO [[]] IF GIVEN AS SINGLE
+    # ldv FOR MASK IRREGARDLESS OF _validation, MUST GET IT TO [[]] IF GIVEN AS SINGLE
     mask_format, MASK = ldv.list_dict_validater(MASK, 'MASK')
     if not mask_format == 'ARRAY': _exception(f'MASK must be passed AS ARRAY')
     del mask_format

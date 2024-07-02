@@ -7,11 +7,11 @@
 import pytest
 
 import numpy as np
+import pandas as pd
 
-from model_selection.GSTCV._cv_results_builder. \
-    gstcv_cv_results_builder_2 import cv_results_builder
+from model_selection.GSTCV._cv_results_builder._cv_results_builder import cv_results_builder
 
-
+from model_selection.GSTCV._master_scorer_dict import master_scorer_list
 
 
 
@@ -118,14 +118,80 @@ class TestCVResultsBuilderTest:
 
 
 
+    @pytest.mark.parametrize(
+        '_cv_results_template',
+        [{
+            '_n_splits':3,
+            '_n_rows':200,
+            '_scorer_names':['accuracy', 'balanced_accuracy'],
+            '_grids': [{'param_1':[1,2,3], 'param_2':[True, False]}],
+            '_return_train_score': True,
+            '_fill_param_columns': False
+        }],
+        indirect=True
+    )
+    def test_builder_against_template_1(self, _cv_results_template):
+
+        template_pd = pd.DataFrame(_cv_results_template)
+
+        _scorer = {}
+        for k, v in master_scorer_list.items():
+            if k in ['accuracy', 'balanced_accuracy']:
+                _scorer[k] = v
+
+        cv_results_output, _ = cv_results_builder(
+            param_grid=[{'param_1':[1,2,3], 'param_2':[True, False]}],
+            cv=3,
+            scorer=_scorer,
+            return_train_score=True
+        )
+
+        del _
+
+        cv_results_pd = pd.DataFrame(cv_results_output)
+
+        assert len(cv_results_pd.columns)== len(template_pd.columns)
+
+        assert np.array_equiv(
+            sorted(cv_results_pd.columns), sorted(template_pd.columns)
+        )
 
 
 
 
+    @pytest.mark.parametrize(
+        '_cv_results_template',
+        [{
+            '_n_splits': 5,
+            '_n_rows': 271,
+            '_scorer_names': ['balanced_accuracy'],
+            '_grids': [{'abc': [1, 2]}, {'xyz': ['a', 'b']}],
+            '_return_train_score': False
+        }],
+        indirect = True
+    )
+    def test_builder_against_template_2(self, _cv_results_template):
 
+        template_pd = pd.DataFrame(_cv_results_template)
 
+        _scorer = {'balanced_accuracy': master_scorer_list['balanced_accuracy']}
 
+        cv_results_output, _ = cv_results_builder(
+            param_grid=[{'abc': [1, 2]}, {'xyz': ['a', 'b']}],
+            cv=5,
+            scorer=_scorer,
+            return_train_score=False
+        )
 
+        del _
+
+        cv_results_pd = pd.DataFrame(cv_results_output)
+
+        assert len(cv_results_pd.columns)== len(template_pd.columns)
+
+        assert np.array_equiv(
+            sorted(cv_results_pd.columns), sorted(template_pd.columns)
+        )
 
 
 

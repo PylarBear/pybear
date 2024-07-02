@@ -207,7 +207,7 @@ def _make_instructions(
 
 
 
-    # validation
+    # _validation
     _count_threshold, _ignore_float_columns, _ignore_non_binary_integer_columns, \
     _ignore_columns, _ignore_nan, _handle_as_bool, _delete_axis_0, \
     _original_dtypes, _n_features_in, _total_counts_by_column, _threshold = \
@@ -346,7 +346,7 @@ def _make_instructions(
         pass
 
 
-    # validation that was formerly in the main MCT module, now simply
+    # _validation that was formerly in the main MCT module, now simply
     # just run it here every time
 
     if not isinstance(_delete_instr, dict):

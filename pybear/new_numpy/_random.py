@@ -340,7 +340,7 @@ class Sparse:
 
 
     def fit(self):
-        """Performs validation on the given parameters.
+        """Performs _validation on the given parameters.
 
         Parameters
         --------

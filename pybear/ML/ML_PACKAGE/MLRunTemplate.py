@@ -194,7 +194,7 @@ class MLRunTemplate:
                                     'f': 'dump train results to file',
                                     'h': '\n\ngenerate \ reset dev objects',
                                     'g': 'run dev',
-                                    'w': 'run k-fold cross validation',
+                                    'w': 'run k-fold cross _validation',
                                     'j': 'print dev results to screen',
                                     'k': 'dump dev results to file',
                                     't': '\n\ngenerate \ reset tests objects',
@@ -1081,7 +1081,7 @@ class MLRunTemplate:
 
             while True:
                 if vui.validate_user_str(f'\nUse early-stopping? (y/n) > ', 'YN') == 'Y':
-                    early_stop_interval = vui.validate_user_int(f'Enter early-stop dev validation interval > ', min=1)
+                    early_stop_interval = vui.validate_user_int(f'Enter early-stop dev _validation interval > ', min=1)
                 else: early_stop_interval = 1e12
                 print(f'USER SELECTED{" NO" if early_stop_interval == 1e-12 else ""} EARLY STOPPING WITH INTERVAL OF {early_stop_interval: ,.0f}')
                 if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y': break
@@ -1642,7 +1642,7 @@ class MLRunTemplate:
             elif self.post_run_select == 'B':   #  'run train without reconfig(b)'
                 if not np.array_equiv(self.DEV_SWNL, []):
                     if vui.validate_user_str(f'\nUse early-stopping? (y/n) > ', 'YN') == 'Y':
-                        self.early_stop_interval = vui.validate_user_int( f'Enter early-stop dev validation interval > ', min=1)
+                        self.early_stop_interval = vui.validate_user_int( f'Enter early-stop dev _validation interval > ', min=1)
                 _ = datetime.datetime.now().ctime()
                 print(f'\nCURRENT TRAIN START DATE / TIME: {_[:11] + _[-4:] + _[10:-5]}')
 
@@ -1795,7 +1795,7 @@ class MLRunTemplate:
             elif self.post_run_select == 'T':   # 'generate / reset tests objects(t)'
                 self.test_build()
 
-            elif self.post_run_select == 'W':  # 'run k-fold cross validation(w)'
+            elif self.post_run_select == 'W':  # 'run k-fold cross _validation(w)'
 
                 while True:
                     if vui.validate_user_str(f'\n*** REALLY PROCEED WITH K-FOLD CROSS VALIDATION? (y/n) *** > ', 'YN') == 'N':

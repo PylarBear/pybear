@@ -90,7 +90,7 @@ class TestInnerLenQuick:
         with pytest.raises(TypeError):
             inner_len_quick(junk_sd)
 
-    @pytest.mark.xfail(reason='does not have validation to handle bad dict')
+    @pytest.mark.xfail(reason='does not have _validation to handle bad dict')
     def test_rejects_bad_sd1(self, bad_sd_1):
         with pytest.raises(ValueError):
             inner_len_quick(bad_sd_1)

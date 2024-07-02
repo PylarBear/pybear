@@ -54,10 +54,10 @@ def good_og_dtypes():
 class TestMakeInstructions:
 
 
-    # all the validation is handled in individual modules, and tested indiv
+    # all the _validation is handled in individual modules, and tested indiv
 
     """
-    # validation
+    # _validation
     _count_threshold, _ignore_float_columns, _ignore_non_binary_integer_columns, \
     _ignore_columns, _ignore_nan, _handle_as_bool, _delete_axis_0, \
     _original_dtypes, _n_features_in, _total_counts_by_column, _threshold = \
@@ -76,7 +76,7 @@ class TestMakeInstructions:
         )
     """
 
-    # random spot check validation
+    # random spot check _validation
     @pytest.mark.parametrize('junk_value', ('junk', np.nan, np.pi, {1: 2}, min))
     def test_random_validation(self, junk_value, good_og_dtypes, good_tcbc):
         with pytest.raises(TypeError):

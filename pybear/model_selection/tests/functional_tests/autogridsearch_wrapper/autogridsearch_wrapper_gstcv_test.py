@@ -66,7 +66,7 @@ def _X_y():
 
 class TestGSThresholdCV:
 
-    # pizza come back and finish this when GSTCV is done
+    # pizza come back and finish this when _GSTCV is done
 
     #         estimator,
     #         params: ParamsType,

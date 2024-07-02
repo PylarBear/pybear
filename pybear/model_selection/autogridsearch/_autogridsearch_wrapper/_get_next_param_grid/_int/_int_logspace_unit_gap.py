@@ -37,7 +37,7 @@ def _int_logspace_unit_gap(
     Build a new grid in linspace for a single integer parameter based on
     the previous search round's logspace grid and the best value
     discovered by GridSearch, subject to constraints imposed by 'hard',
-    universal lower bound on integers, etc. With additional validation
+    universal lower bound on integers, etc. With additional _validation
     for unitary log intervals.
 
     Parameters
@@ -88,7 +88,7 @@ def _int_logspace_unit_gap(
     """
 
 
-    # 24_05_18_19_27_00 validation must stay here to get the module name,
+    # 24_05_18_19_27_00 _validation must stay here to get the module name,
     # cannot put in _int
     _SINGLE_GRID =  _validate_int_float_linlogspace(
         _SINGLE_GRID,
