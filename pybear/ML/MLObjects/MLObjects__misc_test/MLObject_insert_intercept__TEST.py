@@ -18,7 +18,7 @@ calling_module = gmn.get_module_name(str(sys.modules[__name__]))
 ##########################################################################################################################
 # TEST DATA VALIDATION EXCEPTIONS ########################################################################################
 
-test_name = 'data validation exceptions'
+test_name = 'data _validation exceptions'
 print(f'Running {test_name}...')
 
 

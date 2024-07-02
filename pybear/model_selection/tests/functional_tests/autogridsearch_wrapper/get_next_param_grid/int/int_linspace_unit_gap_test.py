@@ -15,7 +15,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 class TestIntLinspaceUnitGap:
 
 
-    # validation handled by get_next_param_grid._validate_int_float_linlogspace
+    # _validation handled by get_next_param_grid._validate_int_float_linlogspace
 
 
     @pytest.mark.parametrize('_SINGLE_GRID',

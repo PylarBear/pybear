@@ -17,7 +17,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper.\
 
 class TestBuildIsLogspace:
 
-    # there is no validation on _build_is_logspace
+    # there is no _validation on _build_is_logspace
 
     # "string" cannot be logspace
     # "soft" & "hard" CAN BE LOGSPACES, BUT "fixed" CANNOT

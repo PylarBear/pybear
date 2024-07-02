@@ -19,7 +19,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 
 class TestShiftPoints:
 
-    # no validation
+    # no _validation
 
 
     # since handling is different for 'string' and ('soft_float',

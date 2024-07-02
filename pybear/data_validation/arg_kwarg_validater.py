@@ -44,7 +44,7 @@ def arg_kwarg_validater(arg: any,
         str - deprecated - the name of the calling function
     return_if_none:
         any, default = None - value to return if param: arg passed
-        validation and is a None-type.
+        _validation and is a None-type.
 
     Return
     ------

@@ -17,7 +17,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid
 class TestFloatLinspace:
 
 
-    # validation is handled by get_next_param_grid.validate_int_float_linlogspace_test
+    # _validation is handled by get_next_param_grid.validate_int_float_linlogspace_test
 
 
     @pytest.mark.parametrize('_GRID',

@@ -129,7 +129,7 @@ class ModifiedDatatypes(asoh.ApexSupportObjectHandle):
 
 
     def allowed_values(self):
-        'Allowed values for validation.'''
+        'Allowed values for _validation.'''
         # OVERWROTE IN CHILD
         self.TEXT_DTYPES = self.MOD_TEXT_DTYPES
         self.NUM_DTYPES = self.MOD_NUM_DTYPES

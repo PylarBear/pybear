@@ -6,7 +6,7 @@
 
 # demo_test incidentally handles testing of all autogridsearch_wrapper
 # functionality except fit() (because demo bypasses fit().) This tests
-# module handles arg/kwarg validation at the highest level.
+# module handles arg/kwarg _validation at the highest level.
 
 
 

@@ -12,7 +12,7 @@ from model_selection.autogridsearch._autogridsearch_wrapper. \
 
 class TestBuild:
 
-    # There is no validation on the _build module
+    # There is no _validation on the _build module
 
     def test_accuracy(self):
 

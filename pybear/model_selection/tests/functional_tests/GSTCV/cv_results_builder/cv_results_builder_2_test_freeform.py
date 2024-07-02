@@ -6,8 +6,7 @@
 
 import numpy as np
 
-from model_selection.GSTCV._cv_results_builder. \
-    gstcv_cv_results_builder_2 import cv_results_builder
+from model_selection.GSTCV._cv_results_builder._cv_results_builder import cv_results_builder
 
 
 

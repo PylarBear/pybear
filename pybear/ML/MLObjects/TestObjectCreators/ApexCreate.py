@@ -37,7 +37,7 @@ from ML_PACKAGE._data_validation import list_dict_validater as ldv
 
 # PARENT OF CreateFromGiven, CreateFromScratch
 class ApexCreate:
-    '''Parent class for CreateFromGiven & CreateFromScratch, providing some arg/kwarg validation & methods.'''
+    '''Parent class for CreateFromGiven & CreateFromScratch, providing some arg/kwarg _validation & methods.'''
 
     def __init__(self, OBJECT_HEADER, FULL_SUPOBJ_OR_SINGLE_MDTYPES, bypass_validation, name, return_format, allowed_return_format,
                  return_orientation, allowed_return_orientation, override_sup_obj, calling_module, calling_fxn):

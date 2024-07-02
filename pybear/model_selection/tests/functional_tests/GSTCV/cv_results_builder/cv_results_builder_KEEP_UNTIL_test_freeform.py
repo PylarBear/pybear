@@ -6,8 +6,7 @@
 
 import numpy as np
 
-from model_selection.GSTCV._cv_results_builder. \
-    gstcv_cv_results_builder__KEEP_UNTIL_GSTCV_IS_DONE import cv_results_builder
+from model_selection.GSTCV._cv_results_builder.gstcv_cv_results_builder__KEEP_UNTIL_GSTCV_IS_DONE import cv_results_builder
 
 
 
@@ -20,8 +19,7 @@ param_grid = [
     {'kernel': ['poly'], 'degree': [2, 3], 'test_param': [1, 2, 3]},
 ]
 
-# pizza
-import itertools
+
 correct_cv_results_len = \
     np.sum(list(map(
         np.prod,

@@ -78,7 +78,7 @@ class EndLag(sl.StartLag):
 
     # INHERITED FROM StartLag
     # def allowed_values(self):
-    #     'Allowed values for validation.'''
+    #     'Allowed values for _validation.'''
 
 
     # INHERITED FROM Apex VIA MinCutoffs VIA StartLag

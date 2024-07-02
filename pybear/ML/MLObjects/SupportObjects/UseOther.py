@@ -74,7 +74,7 @@ class UseOther(asoh.ApexSupportObjectHandle):
         return 'N'
 
     def allowed_values(self):
-        'Allowed values for validation.'''
+        'Allowed values for _validation.'''
         self.ALLOWED_LIST = ['Y', 'N']
 
     # INHERITED FROM Apex

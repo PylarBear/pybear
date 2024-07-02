@@ -163,7 +163,7 @@ def inner_len_quick(DICT1:dict) -> int:
 
     """Spatial length (not representational length) of inner dictionaries that
     are held by the outer dictionary. Assumes a clean sparse dict and bypasses
-    most validation for speed - use with caution.
+    most _validation for speed - use with caution.
 
     Parameters
     ----------

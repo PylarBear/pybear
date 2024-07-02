@@ -31,7 +31,7 @@ def good_params():
 
 class TestMakeTrueBestParams:
 
-    # no validation
+    # no _validation
 
 
     def test_accuracy(self, good_params):

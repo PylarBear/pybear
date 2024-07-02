@@ -23,7 +23,7 @@ class TestIntLogspaceGap_GT_1:
     # ) -> list[int]
 
 
-    # validation handled by get_next_param_grid._validate_int_float_linlogspace
+    # _validation handled by get_next_param_grid._validate_int_float_linlogspace
 
     # relic val from before _validate_int_float_linlogspace ** * ** * **
     def test_rejects_floats(self):

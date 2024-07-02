@@ -12,7 +12,7 @@
 # any data/search type. Already knew that soft and hard cant because of
 # the universal hard bounds for soft_float, soft_int, hard_float, and
 # hard_int. But fixed cannot take negative numbers either because of all
-# the validation that uses np.log10... cant do log on negative numbers.
+# the _validation that uses np.log10... cant do log on negative numbers.
 
 # tests if fixed integer can take zeros
 # the code does accept fixed integer of zero, without error. accuracy of

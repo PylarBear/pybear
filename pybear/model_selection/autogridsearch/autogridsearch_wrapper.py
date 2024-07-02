@@ -52,8 +52,8 @@ from dask_ml.model_selection import (
     InverseDecaySearchCV
 )
 
-from ..GSTCV.GSTCV import GridSearchThresholdCV
-
+from ..GSTCV._GSTCV import GSTCV
+from ..GSTCV._GSTCVDask import GSTCVDask
 
 
 
@@ -69,7 +69,8 @@ GridSearchType: TypeAlias = Union[
     type(HyperbandSearchCV),
     type(SuccessiveHalvingSearchCV),
     type(InverseDecaySearchCV),
-    type(GridSearchThresholdCV)
+    type(GSTCV),
+    type(GSTCVDask)
 ]
 
 
@@ -113,8 +114,8 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
     dask_ml.model_selection.HyperbandSearchCV
     dask_ml.model_selection.SuccessiveHalvingSearchCV
     dask_ml.model_selection.InverseDecaySearchCV
-    pybear.model_selection.GridSearchThresholdCV
-
+    pybear.model_selection.GSTCV
+    pybear.model_selection.GSTCVDask
 
     """
 

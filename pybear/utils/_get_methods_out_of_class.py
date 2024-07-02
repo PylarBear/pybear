@@ -32,7 +32,7 @@ def get_methods_out_of_class(MyClass) -> list:
     >>> out     #doctest:+SKIP
     ['__init__', '_calc_support_info', '_choice', '_filter',
      '_iterative', '_make_base_array_with_no_zeros', '_serialized',
-     'validation', 'fit', 'fit_transform', 'get_params',
+     '_validation', 'fit', 'fit_transform', 'get_params',
      'set_params', 'transform']
 
     """

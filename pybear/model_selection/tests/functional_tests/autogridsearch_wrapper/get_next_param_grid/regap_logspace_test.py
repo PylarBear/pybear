@@ -171,7 +171,7 @@ def new_grids():
 
 class TestRegapLogspace:
 
-    # no validation
+    # no _validation
 
     @pytest.mark.parametrize('key', list('abdcdefghijkl'))
     def test_accuracy(self, good_grids, good_is_logspace, good_params,

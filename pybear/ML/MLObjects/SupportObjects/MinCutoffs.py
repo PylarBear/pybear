@@ -72,7 +72,7 @@ class MinCutoffs(asoh.ApexSupportObjectHandle):
         return 0
 
     def allowed_values(self):
-        'Allowed values for validation.'''
+        'Allowed values for _validation.'''
         self.ALLOWED_LIST = range(0,int(1e7),1)
 
 

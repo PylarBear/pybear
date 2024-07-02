@@ -186,7 +186,7 @@ class Filtering(asoh.ApexSupportObjectHandle):
         return []
 
     def allowed_values(self):
-        'Allowed values for validation.'''
+        'Allowed values for _validation.'''
         return (np.ndarray, list, tuple)
 
     def autofill(self):

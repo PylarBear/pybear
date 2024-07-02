@@ -134,9 +134,9 @@ def good_max_shifts():
 class TestValidation:
 
     #   _GRIDS
-    # core _GRIDS validation handled by _validate_grid / validate_grids_test
+    # core _GRIDS _validation handled by _validate_grid / validate_grids_test
 
-    # special _GRIDS validation
+    # special _GRIDS _validation
     @pytest.mark.parametrize('bad_GRIDS',
         ({}, {0: {'a': [1, 2, 3], 'b': [3, 4, 5]}, 1: {}})
     )
@@ -157,7 +157,7 @@ class TestValidation:
                 good_max_shifts
             )
 
-    # remaining validation handed in dedicated modules
+    # remaining _validation handed in dedicated modules
 
 
 

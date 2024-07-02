@@ -19,13 +19,13 @@ from ._int_grid_mapper import _int_grid_mapper
 # entirety before this. It turns out that _int_logspace_gap_gt_1 is also
 # capable of handling unit log gaps. The original prediction was that
 # unit and >1 log gaps would need separate modules, and tests and
-# validation modules were built in anticipation of that. But now that
+# _validation modules were built in anticipation of that. But now that
 # both could be passed to the same module, consolidating both operations
 # for unit and >1 gaps to that module would require appreciable overhaul
-# of existing tests and validation modules to make the tests and
-# validation handle the passing of both to the same place. So, creating
+# of existing tests and _validation modules to make the tests and
+# _validation handle the passing of both to the same place. So, creating
 # a 'core' module with functional code extracted from _int_logspace_gap_gt_1
-# that feeds both unit and >1 log gap modules, with individual validation
+# that feeds both unit and >1 log gap modules, with individual _validation
 # for each of the modules.
 
 

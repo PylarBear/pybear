@@ -102,7 +102,7 @@ if __name__ == '__main__':
     ##########################################################################################################################
     # TEST DATA VALIDATION EXCEPTIONS ########################################################################################
 
-    test_name = 'data validation exceptions'
+    test_name = 'data _validation exceptions'
     print(f'Running {test_name}...')
 
     _rows, _cols = 100, 80
