@@ -109,7 +109,6 @@ class TestDaskLogisticWrappedWithDaskGSCV:
 
     # tests ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # pizza fix --- all of these fail except dask_array
 
     @pytest.mark.parametrize('y',
         (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)

@@ -1,0 +1,270 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+import time
+
+from typing import Union
+
+import numpy as np
+import numpy.typing as npt
+import dask
+
+from model_selection.GSTCV._type_aliases import (
+    ScorerWIPType,
+    ClassifierProtocol,
+    XDaskWIPType,
+    YDaskWIPType
+)
+
+
+def _parallelized_train_scorer(
+    _X_train: XDaskWIPType,
+    _y_train: YDaskWIPType,
+    _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
+    _f_idx: int,
+    _SCORER_DICT: ScorerWIPType,
+    _BEST_THRESHOLDS_BY_SCORER: npt.NDArray[np.float64],
+    _error_score: Union[int, float, None],
+    _verbose: int,
+    **scorer_params
+    ) -> np.ma.masked_array:
+
+    # dont adjust the spacing, is congruent with test scorer
+
+    """
+    Using the estimators fit for each train fold, use predict_proba and
+    _X_trains to generate _y_preds and score against the corresponding
+    _y_trains using all of the scorers.
+    Fill one layer of the TRAIN_FOLD_x_SCORER__SCORE_MATRIX.
+
+    Parameters
+    ----------
+    _X_train:
+        dask.array.core.Array[Union[int,float]] - A train partition of
+        the data that was fit. Must be 2D ndarray.
+    _y_train:
+        dask.array.core.Array[int] - The corresponding train partition of
+        the target for the X train partition. Must be 1D ndarray.
+    _FIT_OUTPUT_TUPLE:
+        tuple[ClassifierProtocol, float, bool] - A tuple holding the
+        fitted estimator, the fit time (not needed here), and the
+        fit_excepted boolean (needed here.)
+    _f_idx:
+        int - the zero-based split index of the train partition used here;
+        parallelism occurs over the different splits.
+    _SCORER_DICT:
+        dict[str: Callable[[Iterable[int], Iterable[int]], float] -
+        a dictionary with scorer name as keys and the scorer callables
+        as values. The scorer callables are sklearn metrics, not
+        make_scorer.
+    _BEST_THRESHOLDS_BY_SCORER:
+        npt.NDArray[np.float64]: after all of the fold / threshold / scorer
+        combinations are scored, the folds are averaged and the threshold
+        with the maximum score for each scorer is found. This vector has
+        length n_scorers and in each position holds an integer indicating
+        the index position within the THRESHOLDS vector whose value is
+        the best threshold for that scorer.
+    _error_score:
+        Union[int, float, Literal['raise']] - if this training fold
+        excepted during fitting and error_score was set to the 'raise'
+        literal, this module cannot be reached. Otherwise, a number or
+        number-like was passed to 'error_score'. If 'fit_excepted' is
+        True, this module puts the 'error_score' value in every position
+        of the TRAIN_SCORER__SCORE_LAYER vector. If 'error_score' is set
+        to np.nan, that layer is also masked.
+    _verbose:
+        int - a number from 0 to 10 that indicates the amount of
+        information to display to the screen during the grid search
+        process. 0 means no output, 10 means maximum output.
+    **scorer_params:
+        **dict[str: any] - dictionary of kwargs to be passed to the scorer
+        metrics. 24_07_13 not used by the calling _core_fit module.
+
+    Return
+    ------
+    -
+        TRAIN_SCORER__SCORE_LAYER:
+            np.ma.masked_array - masked array of shape (n_scorers, ).
+
+
+
+
+
+
+
+
+
+
+
+    """
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    assert isinstance(_X_train, dask.array.core.Array)
+    assert isinstance(_y_train, dask.array.core.Array)
+    assert isinstance(_FIT_OUTPUT_TUPLE, tuple)
+    assert isinstance(_f_idx, int)
+    assert isinstance(_SCORER_DICT, dict)
+    assert all(map(callable, _SCORER_DICT.values()))
+    assert isinstance(_BEST_THRESHOLDS_BY_SCORER, np.ndarray)
+    assert isinstance(_verbose, (int, float))
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
+
+    if _verbose >= 5:
+        print(f"Start scoring fold {_f_idx + 1} train with different scorers")
+
+
+    _estimator_, _fit_time, _fit_excepted = _FIT_OUTPUT_TUPLE
+
+    TRAIN_SCORER__SCORE_LAYER = \
+        np.ma.zeros(len(_SCORER_DICT), dtype=np.float64)
+    TRAIN_SCORER__SCORE_LAYER.mask = True
+
+
+
+
+
+    # IF A FOLD EXCEPTED DURING FIT, PUT IN error_score IF error_score!=np.nan,
+    # elif is np.nan ALSO MASK THIS FOLD IN TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+    # AND SKIP TO NEXT FOLD
+    if _fit_excepted:
+        TRAIN_SCORER__SCORE_LAYER[:] = _error_score
+        if _error_score is np.nan:
+            TRAIN_SCORER__SCORE_LAYER[:] = np.ma.masked
+
+
+
+
+        if _verbose >= 5:
+            print(f'fold {_f_idx + 1 } excepted during fit, unable to score')
+
+        return TRAIN_SCORER__SCORE_LAYER
+
+
+    # v v v only accessible if fit() did not except v v v
+
+    pp0_time = time.perf_counter()
+    _predict_proba = _estimator_.predict_proba(_X_train)[:, -1].ravel()
+    pp_time = time.perf_counter() - pp0_time
+    del pp0_time
+
+    if _verbose >= 5:
+        print(f'fold {_f_idx + 1} train predict_proba time = {pp_time: ,.3g} s')
+    del pp_time
+
+    # GET SCORES FOR ALL SCORERS #######################################
+
+    _train_fold_score_t0 = time.perf_counter()
+
+
+
+
+
+
+
+
+
+
+    for s_idx, scorer_key in enumerate(_SCORER_DICT):
+
+        _y_pred_t0 = time.perf_counter()
+        _y_train_pred = (_predict_proba >= _BEST_THRESHOLDS_BY_SCORER[s_idx])
+        _ypt = time.perf_counter() - _y_pred_t0
+        del _y_pred_t0
+        if _verbose == 10:
+            print(f"fold {_f_idx+1} train thresholding time = {_ypt: ,.3g} s")
+        del _ypt
+
+
+        train_scorer_t0 = time.perf_counter()
+        _score = _SCORER_DICT[scorer_key](_y_train, _y_train_pred, **scorer_params)
+        train_scorer_score_time = time.perf_counter() - train_scorer_t0
+        del train_scorer_t0
+
+
+        TRAIN_SCORER__SCORE_LAYER[s_idx] = _score
+
+        if _verbose >= 8:
+            print(f"fold {_f_idx+1} '{scorer_key}' train score time = "
+                  f"{train_scorer_score_time: ,.3g} s")
+
+        del _score, train_scorer_score_time
+
+
+    tfst = time.perf_counter() - _train_fold_score_t0
+    del _train_fold_score_t0
+
+    # END GET SCORE FOR ALL SCORERS ####################################
+
+    if _verbose >= 5:
+        print(f'End scoring fold {_f_idx + 1} train with different scorers')
+
+        _ = _f_idx + 1
+
+        print(f'fold {_} total train thresh & score wall time = {tfst: ,.3g} s')
+        _ast = tfst / len(_SCORER_DICT)
+        print(f'fold {_} avg train thresh & score wall time = {_ast: ,.3g} s')
+        del _ast
+
+
+
+
+
+
+    del _X_train, _y_train, _predict_proba, _y_train_pred, tfst
+
+
+    return TRAIN_SCORER__SCORE_LAYER
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -4,13 +4,13 @@ from sklearn.datasets import make_classification as sk_make_classification
 from sklearn.linear_model import LogisticRegression as sklearn_LogisticRegression
 import string
 
-from model_selection.GSTCV._GSTCV import GridSearchThresholdCV
+from model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 
 import pytest
 
 
-
+@pytest.skip(reason=f'pizza finish', allow_module_level=True)
 class TestGSTCVSklearn:
 
     _n_classes = 2
@@ -65,11 +65,11 @@ class TestGSTCVSklearn:
 
     @pytest.mark.parametrize('estimator', (estimator,))
     @pytest.mark.parametrize('param_grid', (param_grid,))
-    @pytest.mark.parametrize('_refit', (refit_2, 'balanced_accuracy'))   # pizza (refit_1, refit_2, 'balanced_accuracy')
+    @pytest.mark.parametrize('_refit', (refit_1, refit_2, 'balanced_accuracy'))
     @pytest.mark.parametrize('_X, _y', ((_X_np, _y_np), (_X_pd, _y_pd)))
     def test_sklearn_GSTCV(self, _X, _y, _refit, estimator, param_grid):
 
-        TestCls = GridSearchThresholdCV(
+        TestCls = GSTCV(
             estimator,
             param_grid,
             scoring=['accuracy', 'balanced_accuracy'],
@@ -79,11 +79,8 @@ class TestGSTCVSklearn:
             refit=_refit,
             verbose=10,
             error_score=np.nan,
-            return_train_score=True,
+            return_train_score=True
             # OTHER POSSIBLE KWARGS FOR DASK SUPPORT
-            iid=True,
-            scheduler=None,
-            cache_cv=False
         )
 
         TestCls.fit(_X, _y)

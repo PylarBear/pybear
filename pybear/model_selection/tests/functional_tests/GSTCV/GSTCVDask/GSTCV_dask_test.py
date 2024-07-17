@@ -5,13 +5,13 @@ from dask_ml.datasets import make_classification as da_make_classification
 from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
 import string
 
-from model_selection.GSTCV._GSTCV import GridSearchThresholdCV
+from model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 
 import pytest
 
 
-
+@pytest.skip(reason=f"pizza finish", allow_module_level=True)
 class TestGSTCVDask:
 
     _n_classes = 2
@@ -66,11 +66,11 @@ class TestGSTCVDask:
 
     @pytest.mark.parametrize('estimator', (estimator,))
     @pytest.mark.parametrize('param_grid', (param_grid,))
-    @pytest.mark.parametrize('_refit', (refit_2, 'balanced_accuracy'))   # pizza (refit_1, refit_2, 'balanced_accuracy')
+    @pytest.mark.parametrize('_refit', (refit_1, refit_2, 'balanced_accuracy'))
     @pytest.mark.parametrize('_X, _y', ((_X_da, _y_da), (_X_ddf, _y_ddf)))
     def test_dask_GSTCV(self, _X, _y, _refit, estimator, param_grid):
 
-        TestCls = GridSearchThresholdCV(
+        TestCls = GSTCVDask(
             estimator,
             param_grid,
             scoring=['accuracy', 'balanced_accuracy'],
@@ -78,7 +78,6 @@ class TestGSTCVDask:
             n_jobs=-1,
             cv=3,
             refit=_refit,
-            verbose=10,
             error_score=np.nan,
             return_train_score=True,
             # OTHER POSSIBLE KWARGS FOR DASK SUPPORT

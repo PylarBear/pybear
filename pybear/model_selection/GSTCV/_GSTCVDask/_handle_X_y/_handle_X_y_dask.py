@@ -29,6 +29,49 @@ def _handle_X_y_dask(
     y: YInputType = None,
     ) -> tuple[XSKWIPType, YSKWIPType, FeatureNamesInType, int]:
 
+    """
+
+
+
+    Process given X and y into dask.array.core.Arrays. All DASK GSTCV internals
+    require dask.array.core.Arrays. Accepts objects that can be converted to
+    dask arrays, including numpy arrays, pandas dataframes and series,
+    and dask dataframes and series. y, if 2 dimensional, is converted to
+    a 1 dimensional dask.array.core.Array vector. Pizza, circle around to this
+    once you finalize how and where binary-ness of y (cannot take
+    multiclass) is to be validated.
+
+    Parameters
+    ----------
+    X:
+        Iterable[Iterable[Union[int, float]]] - The data to be used for
+            hyperparameter search.
+    y:
+        Union[Iterable[int], None] - The target to be used for hyper-
+        parameter search.
+
+    Return
+    ------
+    -
+        _X:
+            dask.array.core.Array[Union[int, float]] - the given X array
+            converted to dask.array.core.Array.
+        _y:
+            dask.array.core.Array[Union[int, float]] - the given y vector /
+            array converted to a dask.array.core.Array vector.
+        _feature_names_in:
+            Union[NDArray[str], None] - if an object that has column names,
+            such as a dask/ pandas dataframe or series, is passed, the
+            column names are extracted and returned as a numpy vector.
+            Otherwise, None is returned.
+        _n_features_in:
+            int - the number of columns in X.
+
+
+    """
+
+
+
     err_msg = lambda _name, _object: (f"{_name} was passed with unknown "
         f"data type '{type(_object)}'. Use dask array, dask series, "
         f"dask dataFrame, numpy array, pandas series, pandas dataframe.")
@@ -126,40 +169,6 @@ def _handle_X_y_dask(
 
 
 
-
-
-if __name__ == '__main__':
-
-    import time
-    from uuid import uuid4
-    _rows, _cols = 100, 30
-
-    X_np_array = np.random.randint(0,10,(_rows, _cols))
-    X_COLUMNS = [str(uuid4())[:4] for _ in range(X_np_array.shape[1])]
-    X_pd_df = pd.DataFrame(data=X_np_array, columns=X_COLUMNS)
-    X_pd_series = pd.Series(X_pd_df.iloc[:, 0], name=X_COLUMNS[0])
-    X_dask_array =  da.from_array(X_np_array, chunks=(_rows//5, _cols))
-    X_dask_df = ddf.from_pandas(X_pd_df, npartitions=5)
-    X_dask_series = X_dask_df.iloc[:, 0]
-
-
-    y_np_array = np.random.randint(0,10,(_rows, 1))
-    y_pd_df = pd.DataFrame(data=y_np_array, columns=['y'])
-    y_pd_series = pd.Series(y_pd_df.iloc[:, 0], name='y')
-    y_dask_array = da.from_array(y_np_array, chunks=(_rows//5, _cols))
-    y_dask_df = ddf.from_pandas(y_pd_df, npartitions=5)
-    y_dask_series = y_dask_df.iloc[:, 0]
-
-
-
-    for x_idx, X in enumerate((X_np_array, X_pd_df, X_pd_series, X_dask_array, X_dask_df, X_dask_series)):
-        for y_idx, y in enumerate((y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series, None)):
-
-            t0 = time.perf_counter()
-            _handle_X_y_dask(X, y)
-            tf = time.perf_counter()
-
-            print(f"x_idx {x_idx}, y_idx {y_idx}    t = {tf-t0} sec")
 
 
 

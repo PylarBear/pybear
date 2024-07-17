@@ -110,7 +110,14 @@ def _cv_results_template(request):
     for _grid in _grids:
         for _param in _grid:
             # this will overwrite any identical, preventing duplicate
-            b[f'param_{_param}'] = col_template(str)
+            if isinstance(_grid[_param][0], bool):
+                b[f'param_{_param}'] = col_template(bool)
+            else:
+                try:
+                    float(_grid[_param][0])
+                    b[f'param_{_param}'] = col_template(float)
+                except:
+                    b[f'param_{_param}'] = col_template(str)
 
         b = b | {'params': col_template(object)}
 

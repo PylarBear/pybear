@@ -20,8 +20,6 @@ from model_selection.GSTCV._fit_shared._get_best_thresholds import \
 class TestGetBestThresholds:
 
     # def _get_best_thresholds(
-    #         _trial_idx: int,
-    #         _scorer_names: list[str],
     #         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX: IntermediateHolderType,
     #         _THRESHOLDS: npt.NDArray[Union[float, int]],
     # ) -> npt.NDArray[np.uint16]:
@@ -39,9 +37,21 @@ class TestGetBestThresholds:
 
     @staticmethod
     @pytest.fixture(scope='class')
-    def _scorer_names():
+    def _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_partially_masked():
+        data = np.ma.masked_array(np.random.uniform(0, 1, (5, 11, 4)))
+        for _fold in range(5):
+            data[[1,3], :, :] = np.ma.masked
+        return data
 
-        return ['accuracy', 'balanced_accuracy', 'precision', 'f1']
+
+    @staticmethod
+    @pytest.fixture(scope='class')
+    def _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_fully_masked():
+        data = np.ma.masked_array(np.random.uniform(0, 1, (5, 11, 4)))
+        for _fold in range(5):
+            data[:, :, :] = np.ma.masked
+        return data
+
 
 
     @staticmethod
@@ -55,66 +65,31 @@ class TestGetBestThresholds:
 
 
 
-    @pytest.mark.parametrize('junk_trial_idx',
-        (-1, 3.14, True, min, 'junk', [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
-    )
-    def test_rejects_junk_trial_idx(self, junk_trial_idx, _scorer_names,
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX, _THRESHOLDS):
-
-        with pytest.raises(TypeError):
-            _get_best_thresholds(
-                junk_trial_idx,
-                _scorer_names,
-                _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
-                _THRESHOLDS
-            )
-
-
-    @pytest.mark.parametrize('junk_scorer_names',
-        (-1, 3.14, True, min, 'junk', [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
-    )
-    def test_rejects_junk_scorer_names(self, junk_scorer_names,
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX, _THRESHOLDS):
-
-        with pytest.raises(ValueError):
-            _get_best_thresholds(
-                0,
-                junk_scorer_names,
-                _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
-                _THRESHOLDS
-            )
-
-
     @pytest.mark.parametrize('junk_holder',
         (-1, 3.14, True, min, 'junk', [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
     )
-    def test_rejects_junk_holder(self, junk_holder, _scorer_names,
+    def test_rejects_junk_holder(self, junk_holder,
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX, _THRESHOLDS):
 
         with pytest.raises(AssertionError):
             _get_best_thresholds(
-                0,
-                _scorer_names,
                 junk_holder,
                 _THRESHOLDS
             )
 
 
-    @pytest.mark.parametrize('_trial_idx', (0, 3, 9))
-    def test_accuracy(self, _trial_idx, _scorer_names,
+    def test_accuracy_not_masked(self,
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX, _THRESHOLDS):
 
         out = _get_best_thresholds(
-                0,
-                _scorer_names,
                 _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
                 _THRESHOLDS
             )
 
 
-        assert isinstance(out, np.ndarray)
+        assert isinstance(out, np.ma.masked_array)
         assert out.dtype == np.uint16
-        assert len(out) == len(_scorer_names)
+        assert len(out) == _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX.shape[2]
 
 
         _MEAN_THRESH_x_SCORER = \
@@ -133,14 +108,76 @@ class TestGetBestThresholds:
 
 
 
+    def test_accuracy_partially_masked(self,
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_partially_masked,
+        _THRESHOLDS):
+
+        out = _get_best_thresholds(
+            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_partially_masked,
+            _THRESHOLDS
+        )
+
+
+        assert isinstance(out, np.ma.masked_array)
+        assert out.dtype == np.uint16
+        assert len(out) == \
+           _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_partially_masked.shape[2]
+
+
+        _MEAN_THRESH_x_SCORER = \
+            np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_partially_masked,
+                    axis=0
+            )
+
+        _MEAN_THRESH_x_SCORER = _MEAN_THRESH_x_SCORER.transpose()
+
+        BEST_THRESH_IDXS = []
+        for scorer_idx, scores  in enumerate(_MEAN_THRESH_x_SCORER):
+
+            BEST_THRESH_IDXS.append(np.argmax(scores))
+
+
+        assert np.array_equiv(out, BEST_THRESH_IDXS)
 
 
 
 
 
 
+    def test_accuracy_fully_masked(self,
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_fully_masked,
+        _THRESHOLDS):
+
+        out = _get_best_thresholds(
+                _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_fully_masked,
+                _THRESHOLDS
+            )
 
 
+        assert isinstance(out, np.ma.masked_array)
+        assert out.dtype == np.uint16
+        assert len(out) == \
+            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_fully_masked.shape[2]
+
+
+        _MEAN_THRESH_x_SCORER = \
+            np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX_fully_masked,
+                    axis=0
+            )
+
+        _MEAN_THRESH_x_SCORER = _MEAN_THRESH_x_SCORER.transpose()
+
+        BEST_THRESH_IDXS = []
+        for scorer_idx, scores  in enumerate(_MEAN_THRESH_x_SCORER):
+
+            BEST_THRESH_IDXS.append(np.argmax(scores))
+
+        # this is bad, that masked array returns argmax as zero when
+        # a layer is completely masked. so must catch if all fits excepted
+        # immediately following fits.
+        assert np.array_equiv(out, [0,0,0,0])
+
+        assert np.array_equiv(out, BEST_THRESH_IDXS)
 
 
 

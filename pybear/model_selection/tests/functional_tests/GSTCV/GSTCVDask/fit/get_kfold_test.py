@@ -32,13 +32,19 @@ class TestGetDaskKFold:
     # dask_KFOLD (NOT np, pd.DF, dask.DF)
     # see dask_kfold_input_test in functional_tests folder
 
-    # important!!! this function can be called multiple times within a
-    # single param grid permutation, first to fit and get test score,
-    # then again if return_train_score. Therefore, it must return the
-    # same indices for each call. The only things that should cause
-    # indices to be different are n_splits and the number of rows in X.
-    # Shuffle is on if iid is False, therefore random_state state must
-    # be set to a constant.
+    # *** IMPORTANT!!!
+    # This function can be called multiple times within a single param grid
+    # permutation, first to fit, again to get test score, then again if
+    # return_train_score. Therefore, it must return the same indices for
+    # each call. The only things that should cause indices to be different
+    # are n_splits and the number of rows in _X. Since this is dask KFold,
+    # there is the wildcard of the 'iid' setting. If iid is False -- meaning
+    # the data is known to have some non-random grouping along axis 0 --
+    # via the 'shuffle' argument KFold will generate indices that sample
+    # across chunks to randomize the data in the splits. In that case, fix
+    # the random_state parameter to make selection repeatable. If iid is
+    # True, shuffle is False, random_state can be None, and the splits
+    # should be repeatable.
 
 
     _X_da = da.random.randint(0, 10, (100, 30))
