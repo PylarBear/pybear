@@ -1421,7 +1421,6 @@ class MinCountTransformer:
         or ParallelPostFit by checking the stack and looking for the
         '_partial' method used by those modules. Wrapping with these
         modules imposes limitations on passing a value to y.
-        Pizza finish.
 
         """
 
@@ -1442,7 +1441,6 @@ class MinCountTransformer:
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.
-        Pizza verify this!
         """
 
         pass

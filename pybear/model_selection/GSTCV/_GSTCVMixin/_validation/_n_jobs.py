@@ -8,10 +8,10 @@ from typing import Union
 
 
 
-def _val_n_jobs(_n_jobs: Union[int, None]) -> int:
+def _validate_n_jobs(_n_jobs: Union[int, None]) -> Union[int, None]:
 
     if _n_jobs is None:
-        return None
+        return
 
     try:
         float(_n_jobs)

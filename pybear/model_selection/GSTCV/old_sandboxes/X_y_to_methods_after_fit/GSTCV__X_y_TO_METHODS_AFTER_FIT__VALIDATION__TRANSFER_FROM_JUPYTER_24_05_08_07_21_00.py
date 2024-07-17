@@ -326,7 +326,7 @@ if os.name == 'posix':
 elif os.name == 'nt':
     method_path = rf'c:\users\bill\desktop\gscv_bad_X_comparison_dump__all_except_score.csv'
 
-# pizza Y THIS?
+# save to file
 SINGLE_DF.to_csv(method_path, index=True)
 
 ################################################################################

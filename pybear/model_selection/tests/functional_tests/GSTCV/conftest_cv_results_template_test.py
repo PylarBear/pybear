@@ -39,6 +39,8 @@ class TestCVResultsFixture:
     )
     def test_accuracy_1(self, _cv_results_template):
 
+        # accuracy with 2 scorers, 1 param grid
+
         # 1) turn to dataframe
         out = pd.DataFrame(_cv_results_template)
 
@@ -111,6 +113,8 @@ class TestCVResultsFixture:
     )
     def test_accuracy_2(self, _cv_results_template):
 
+        # accuracy with 1 scorer, 2 param grids
+
         # 1) turn to dataframe
         out = pd.DataFrame(_cv_results_template)
 
@@ -161,13 +165,19 @@ class TestCVResultsFixture:
 
 
 
+
+
+
     @pytest.mark.parametrize(
         '_cv_results_template',
         [{
             '_n_splits': 5,
-            '_n_rows': 4,
+            '_n_rows': 8,
             '_scorer_names': ['balanced_accuracy'],
-            '_grids': [{'abc': [1, 2]}, {'xyz': ['a', 'b']}],
+            '_grids': [
+                {'abc': [1, 2], 'xyz': ['a', 'b']},
+                {'abc': [3, 4], 'xyz': ['c', 'd']}
+            ],
             '_return_train_score': False,
             '_fill_param_columns': True
         }],
@@ -175,33 +185,36 @@ class TestCVResultsFixture:
     )
     def test_accuracy_filled_param_columns(self, _cv_results_template):
 
-        out = pd.DataFrame(_cv_results_template)
+        # accuracy filling 'params' and other 'param_{}' columns,
+        # 1 scorer, 2 param grids
+
+        out = _cv_results_template
 
         param_check = np.empty(0, dtype=object)
-        for _grid in reversed([{'abc': [1, 2]}, {'xyz': ['a', 'b']}]):
+
+        GRIDS = [
+            {'abc': [1, 2], 'xyz': ['a', 'b']},
+            {'abc': [3, 4], 'xyz': ['c', 'd']}
+        ]
+
+        for _grid in reversed(GRIDS):
 
             param_check = np.hstack((
                 np.fromiter(ParameterGrid(_grid), dtype=object),
                 param_check
             ))
 
-        param_1_check = np.ma.empty(len(param_check), dtype=object)
+
+        param_1_check = np.ma.empty(len(param_check), dtype=np.uint8)
         param_2_check = np.ma.empty(len(param_check), dtype=object)
         for idx, _grid in enumerate(param_check):
-            try:
-                param_1_check = param_check[idx]['abc']
-            except:
-                pass
 
-            try:
-                param_2_check = param_check[idx]['xyx']
-            except:
-                pass
-
+            param_1_check[idx] = np.uint8(param_check[idx]['abc'])
+            param_2_check[idx] = param_check[idx]['xyz']
 
         assert np.array_equiv(out['params'], param_check)
         assert np.array_equiv(out['param_abc'], param_1_check)
-        assert np.array_equiv(out['param_xyb'], param_2_check)
+        assert np.array_equiv(out['param_xyz'], param_2_check)
 
         # ** * ** *
 

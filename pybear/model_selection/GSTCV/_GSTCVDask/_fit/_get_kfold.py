@@ -21,19 +21,56 @@ def _get_kfold(
         _y: YDaskWIPType = None
     ) -> Generator[da.core.Array, None, None]:
 
+    """
+    Use dask_ml KFold to get train / test splits when cv is passed as an
+    integer. KFold uses the number of rows in _X and _n_splits to determine
+    the indices in each train / test split.
+    _X must be a 2D dask.array.core.Array. y is optional in dask_ml KFold. If
+    passed, it must be a 1D dask.array.core.Array vector and the number of rows
+    in _X and _y must be equal. As of 24_06_27_09_08_00 only dask arrays
+    can be passed to dask_ml.KFold (not np, pd.DF, nor dask.DF).
+    See dask_kfold_input_test in functional_tests folder for details.
 
-    # X, y must both be da.array
-    # AS OF 24_06_27_09_08_00 ONLY DASK ARRAYS CAN BE PASSED TO
-    # dask_KFOLD (NOT np, pd.DF, dask.DF)
-    # see dask_kfold_input_test in functional_tests folder
+    *** IMPORTANT!!!
+    This function can be called multiple times within a single param grid
+    permutation, first to fit, again to get test score, then again if
+    return_train_score. Therefore, it must return the same indices for
+    each call. The only things that should cause indices to be different
+    are n_splits and the number of rows in _X. Since this is dask KFold,
+    there is the wildcard of the 'iid' setting. If iid is False -- meaning
+    the data is known to have some non-random grouping along axis 0 --
+    via the 'shuffle' argument KFold will generate indices that sample
+    across chunks to randomize the data in the splits. In that case, fix
+    the random_state parameter to make selection repeatable. If iid is
+    True, shuffle is False, random_state can be None, and the splits
+    should be repeatable.
 
-    # important!!! this function can be called multiple times within a
-    # single param grid permutation, first to fit and get test score,
-    # then again if return_train_score. Therefore, it must return the
-    # same indices for each call. The only things that should cause
-    # indices to be different are n_splits and the number of rows in X.
-    # Shuffle is on if iid is False, therefore random_state state must
-    # be set to a constant.
+    Parameters
+    ----------
+    _X:
+        dask.array.core.Array[Union[int,float]] - The data to be split. Must be
+        2D dask.array.core.Array.
+    _y:
+        dask.array.core.Array[int] - optional - The target the data is being
+        fit against, to be split in the same way as the data. Must be 1D
+        dask.array.core.Array.
+    _n_splits:
+        int - the number of splits to produce; the number of split pairs
+        yielded by the returned generator object.
+    _verbose:
+        int - a number from 0 to 10 indicating the amount of information
+        to display to screen during the grid search trials. 0 means no
+        output, 10 means full output.
+
+    Return
+    ------
+    -
+        KFOLD:
+            Generator[tuple[NDArray[int], NDArray[int]] - A generator
+            object yielding pairs of train test indices as
+            dask.array.core.Array[int].
+
+    """
 
     err_msg = (f"_X ({type(_X)}) and _y ({type(_y)}) must both be dask "
                f"arrays.")
@@ -64,7 +101,6 @@ def _get_kfold(
         random_state=7 if not _iid else None,
         # shuffle is on if not iid. must use random_state so that later
         # calls for train score get same splits.
-        # AS TRAIN
     ).split(_X, _y)
 
     if _verbose >= 5:

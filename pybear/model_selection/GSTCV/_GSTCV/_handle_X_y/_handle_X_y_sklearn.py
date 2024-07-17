@@ -4,7 +4,6 @@
 # License: BSD 3 clause
 #
 
-
 import numpy as np
 import pandas as pd
 
@@ -25,6 +24,43 @@ def _handle_X_y_sklearn(
     X: XInputType,
     y: YInputType = None
     ) -> tuple[XSKWIPType, YSKWIPType, FeatureNamesInType, int]:
+
+    """
+    Process given X and y into numpy ndarrays. All SK GSTCV internals
+    require ndarrays. Accepts objects that can be converted to numpy
+    arrays, including pandas dataframes and series. y, if 2 dimensional,
+    is converted to a 1 dimensional vector.  Pizza, circle around to this
+    once you finalize how and where binary-ness of y (cannot take
+    multiclass) is to be validated.
+
+    Parameters
+    ----------
+    X:
+        Iterable[Iterable[Union[int, float]]] - The data to be used for
+            hyperparameter search.
+    y:
+        Union[Iterable[int], None] - The target to be used for hyper-
+        parameter search.
+
+    Return
+    ------
+    -
+        _X:
+            NDArray[Union[int, float]] - the given X array converted to
+            numpy array.
+        _y:
+            NDArray[Union[int, float]] - the given y vector / array
+            converted to a numpy ndarray vector.
+        _feature_names_in:
+            Union[NDArray[str], None] - if an object that has column names,
+            such as a pandas dataframe or series, is passed, the column
+            names are extracted and returned as a numpy vector. Otherwise,
+            None is returned.
+        _n_features_in:
+            int - the number of columns in X.
+
+
+    """
 
     err_msg = lambda _name, _object: (f"{_name} was passed with unknown "
         f"data type '{type(_object)}'. Use numpy array, pandas series, "

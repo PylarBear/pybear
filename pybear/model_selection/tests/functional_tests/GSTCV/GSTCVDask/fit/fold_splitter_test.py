@@ -63,7 +63,9 @@ class TestFoldSplitter:
             da.array([1,2,3,4,5])
         )
 
+        assert isinstance(out[0], da.core.Array)
         assert np.array_equiv(out[0], [1,3,5])
+        assert isinstance(out[1], da.core.Array)
         assert np.array_equiv(out[1], [2,4])
 
 
@@ -84,9 +86,13 @@ class TestFoldSplitter:
             in2
         )
 
+        assert isinstance(out[0], da.core.Array)
         assert np.array_equiv(out[0], in1[mask_train, :])
+        assert isinstance(out[1], da.core.Array)
         assert np.array_equiv(out[1], in1[mask_test, :])
+        assert isinstance(out[2], da.core.Array)
         assert np.array_equiv(out[2], in2[mask_train])
+        assert isinstance(out[3], da.core.Array)
         assert np.array_equiv(out[3], in2[mask_test])
 
 

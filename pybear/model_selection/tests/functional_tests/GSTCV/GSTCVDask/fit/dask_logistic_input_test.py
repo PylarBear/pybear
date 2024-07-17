@@ -6,8 +6,6 @@
 
 import pytest
 
-import inspect
-
 from uuid import uuid4
 import numpy as np
 import pandas as pd
@@ -15,7 +13,6 @@ import dask.array as da
 import dask.dataframe as ddf
 
 from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
-from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 
 
 
@@ -100,8 +97,6 @@ class TestDaskLogistic:
 
 
     # tests ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    # pizza fix --- all of these fail except dask_array
 
     @pytest.mark.parametrize('y',
         (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
