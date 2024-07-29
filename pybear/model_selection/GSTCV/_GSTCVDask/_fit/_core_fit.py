@@ -5,8 +5,9 @@
 #
 
 
-from typing import Union, Literal
+from typing import Union, Literal, Iterable
 import time
+from copy import deepcopy
 
 
 import numpy as np
@@ -44,7 +45,7 @@ def _core_fit(
     _y: YDaskWIPType,
     _estimator: ClassifierProtocol,
     _cv_results: CVResultsType,
-    _cv: Union[int, GenericKFoldType],
+    _cv: Union[int, Iterable[GenericKFoldType]],
     _error_score: Union[int, float, Literal['raise']],
     _verbose: int,
     _scorer: ScorerWIPType,
@@ -128,7 +129,6 @@ def _core_fit(
         to the test data. There is a (perhaps appreciable) time and
         compute cost to this, as train sets are typically much bigger
         than test sets.
-
     _PARAM_GRID_KEY:
         npt.NDArray[np.uint8] - a vector of integers whose length is equal
         to the number of search permutations (also the number of rows in
@@ -239,7 +239,7 @@ def _core_fit(
         # estimator was instantiated.)
         if trial_idx != 0:
             # at transition to the next param grid...
-            if _PARAM_GRID_KEY[trial_idx] != _PARAM_GRID_KEY[trial_idx -1]:
+            if _PARAM_GRID_KEY[trial_idx] != _PARAM_GRID_KEY[trial_idx - 1]:
                 # ...put in the first-seen params...
                 _estimator.set_params(**original_params)
 
@@ -248,34 +248,20 @@ def _core_fit(
 
         ###################################################################
         # CORE GRID SEARCH ################################################
-        # pizza 24_07_13 from old GSTCVDask.fit()
+
         # FIT ALL FOLDS ###################################################
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         # must use shallow params to construct estimator
-        shallow_params = _estimator.get_params(deep=False)
+        s_p = _estimator.get_params(deep=False)  # shallow_params
         # must use deep params for pipeline to set GSCV params (depth
         # doesnt matter for an estimator.)
-        deep_params = _estimator.get_params(deep=True)
+        d_p = _estimator.get_params(deep=True)  # deep_params
 
         FIT_OUTPUT = list()
         if _cache_cv:
-            # pizza! dont forget to put the fix for pipeline from SK in here!
+
             for f_idx, (_X_train, _, _y_train, _) in enumerate(CACHE_CV):
 
                 FIT_OUTPUT.append(
@@ -283,7 +269,7 @@ def _core_fit(
                         f_idx,
                         _X_train,
                         _y_train,
-                        type(_estimator)(**shallow_params).set_params(**deep_params),
+                        type(_estimator)(**s_p).set_params(**deepcopy(d_p)),
                         _grid,
                         _error_score,
                         **params
@@ -293,18 +279,18 @@ def _core_fit(
         elif not _cache_cv:
             for f_idx, (train_idxs, test_idxs) in enumerate(KFOLD):
 
-                # pizza! dont forget to put the fix for pipeline from SK in here!
-
                 FIT_OUTPUT.append(
                     _parallelized_fit(
                         f_idx,
                         *_fold_splitter(train_idxs, test_idxs, _X, _y)[0::2],
-                        type(_estimator)(**shallow_params).set_params(**deep_params),
+                        type(_estimator)(**s_p).set_params(**d_p),
                         _grid,
                         _error_score,
                         **params
                     )
                 )
+
+        del s_p, d_p
 
         # END FIT ALL FOLDS ###############################################
 
@@ -312,7 +298,6 @@ def _core_fit(
         FOLD_FIT_TIMES_VECTOR = np.ma.empty(_n_splits, dtype=np.float64)
         FOLD_FIT_TIMES_VECTOR.mask = True
         num_failed_fits = 0
-
 
         # FIT_OUTPUT _estimator_, _fit_time, fit_excepted
         for idx, (_, _fit_time, _fit_excepted) in enumerate(FIT_OUTPUT):
@@ -557,8 +542,10 @@ def _core_fit(
             print(f'End filling cv_results_ = {cv_tf - cv_t0: ,.3g} s')
             del cv_t0, cv_tf
 
-            del TEST_FOLD_x_SCORER__SCORE_MATRIX, TRAIN_FOLD_x_SCORER__SCORE_MATRIX
-            del FOLD_FIT_TIMES_VECTOR, TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
+            del TEST_FOLD_x_SCORER__SCORE_MATRIX
+            del TRAIN_FOLD_x_SCORER__SCORE_MATRIX
+            del FOLD_FIT_TIMES_VECTOR
+            del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
 
 
 
@@ -579,7 +566,6 @@ def _core_fit(
     _estimator.set_params(**original_params)
 
     del original_params
-
 
     return _cv_results
 

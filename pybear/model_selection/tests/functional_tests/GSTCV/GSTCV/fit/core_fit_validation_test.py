@@ -373,7 +373,7 @@ class TestCoreFitValidation:
 
 
     @pytest.mark.parametrize('junk_n_jobs',
-        (-2, 0, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+        (-2, 0, 3.14, True, False, 'trash', min, [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_n_jobs(self, good_X, good_y, good_estimator,
@@ -387,7 +387,7 @@ class TestCoreFitValidation:
                 good_cv_results,
                 good_cv_int,
                 good_error_score,
-                10,
+                0,
                 good_SCORER,
                 junk_n_jobs,
                 True,

@@ -12,7 +12,7 @@ from typing import (TypeAlias, Union, Iterable, Literal, Callable, TypedDict,
 import numpy as np
 import numpy.typing as npt
 
-import dask.array as da
+import dask
 import distributed
 
 
@@ -25,11 +25,11 @@ DataType: TypeAlias = Union[int, float, np.float64]
 
 XInputType: TypeAlias = Iterable[Iterable[DataType]]
 XSKWIPType: TypeAlias = npt.NDArray[DataType]
-XDaskWIPType: TypeAlias = da.core.Array
+XDaskWIPType: TypeAlias = dask.array.core.Array
 
 YInputType: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType], None]
 YSKWIPType: TypeAlias = Union[npt.NDArray[DataType], None]
-YDaskWIPType: TypeAlias = Union[da.core.Array, None]
+YDaskWIPType: TypeAlias = Union[dask.array.core.Array, None]
 
 CVResultsType: TypeAlias = \
     dict[str, np.ma.masked_array[Union[float, dict[str, any]]]]
@@ -41,9 +41,13 @@ IntermediateHolderType: TypeAlias = Union[
 
 ParamGridType: TypeAlias = dict[str, Union[list[any], npt.NDArray[any]]]
 
-SKKFoldType: TypeAlias = npt.NDArray[int]
-DaskKFoldType: TypeAlias = da.core.Array
-GenericKFoldType: TypeAlias = Iterable[tuple[Iterable[int], Iterable[int]]]
+SKSlicerType: TypeAlias = npt.NDArray[int]
+DaskSlicerType: TypeAlias = dask.array.core.Array
+GenericSlicerType: TypeAlias = Iterable[int]
+
+SKKFoldType: TypeAlias = tuple[SKSlicerType, SKSlicerType]
+DaskKFoldType: TypeAlias = tuple[DaskSlicerType, DaskSlicerType]
+GenericKFoldType: TypeAlias = tuple[GenericSlicerType, GenericSlicerType]
 
 FeatureNamesInType: TypeAlias = Union[npt.NDArray[str], None]
 

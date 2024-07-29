@@ -12,8 +12,8 @@ from model_selection.GSTCV._type_aliases import GenericKFoldType
 
 
 
-def _validate_cv(_cv: Union[None, int, GenericKFoldType]) -> \
-    Union[None, int, GenericKFoldType]:
+def _validate_cv(_cv: Union[None, int, Iterable[GenericKFoldType]]) -> \
+    Union[int, Iterable[GenericKFoldType]]:
 
     """
     
@@ -21,17 +21,20 @@ def _validate_cv(_cv: Union[None, int, GenericKFoldType]) -> \
 
     Determines the cross-validation splitting strategy.
 
-    For integer/None inputs, StratifiedKFold is used with sklearn, KFold
-    is used with dask.
+    For integer/None inputs:
+    If a number, validation is performed to ensure the number is an
+    integer greater than 1. If None, the default of 5 is used. This
+    number is used as 'n_splits' later in the spltting operation.
+    StratifiedKFold is used with sklearn, KFold is used with dask. These
+    splitters are instantiated with shuffle=False so the splits will be
+    the same across calls.
 
-    These splitters are instantiated with shuffle=False so the splits
-    will be the same across calls.
-
-    For passed numbers, validation is performed to ensure the number is
-    an integer greater than 1. For passed iterables, however, no validation
-    is done beyond verifying that it is an iterable that contains
-    iterables of iterables. GSTCV will catch out of range indices and
-    raise an IndexError. Any validation beyond that is up to the user.
+    For passed iterables:
+    This module will convert generators to lists and
+    No validation is done beyond verifying that it is an iterable that
+    contains iterables of iterables. GSTCV will catch out of range
+    indices and raise an IndexError but any validation beyond that is
+    up to the user.
 
 
     Parameters
@@ -86,7 +89,6 @@ def _validate_cv(_cv: Union[None, int, GenericKFoldType]) -> \
     assert _is_iter is not _is_int
 
 
-
     if _is_iter:
         ctr = 0
         for thing in _cv:
@@ -107,7 +109,6 @@ def _validate_cv(_cv: Union[None, int, GenericKFoldType]) -> \
     elif _is_int:
         if _cv < 2:
             raise ValueError(err_msg + f"\nGot {_cv} instead.")
-
 
 
     return _cv

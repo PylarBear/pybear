@@ -22,7 +22,7 @@ def _validate_n_jobs(_n_jobs: Union[int, None]) -> Union[int, None]:
         if _n_jobs < -1 or _n_jobs == 0:
             raise Exception
     except:
-        raise ValueError(f"n_jobs must be None, -1, or in integer greater than 0")
+        raise ValueError(f"n_jobs must be None, -1, or an integer greater than 0")
 
 
     return _n_jobs

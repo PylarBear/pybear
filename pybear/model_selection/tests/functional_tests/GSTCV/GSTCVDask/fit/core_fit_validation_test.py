@@ -417,6 +417,7 @@ class TestCoreFitValidation:
                 good_THRESHOLD_DICT
             )
 
+
     @pytest.mark.parametrize('junk_iid',
         (-2, 0, 3.14, None, 'trash', min, [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)

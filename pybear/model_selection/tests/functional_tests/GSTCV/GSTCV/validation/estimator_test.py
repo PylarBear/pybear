@@ -9,7 +9,11 @@ import pytest
 from model_selection.GSTCV._GSTCV._validation._estimator import \
     _validate_estimator
 
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
+
+from sklearn.pipeline import Pipeline
+
+from sklearn.calibration import CalibratedClassifierCV # wrap around RidgeClassifier
 
 from sklearn.linear_model import (
     LinearRegression as sk_LinearRegression,
@@ -20,7 +24,9 @@ from sklearn.linear_model import (
     SGDRegressor as sk_SGDRegressor
 )
 
-from sklearn.calibration import CalibratedClassifierCV # wrap around RidgeClassifier
+
+
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 from dask_ml.linear_model import (
     LinearRegression as dask_LinearRegression,
@@ -58,6 +64,11 @@ from lightgbm import (
 
 
 
+
+
+
+
+
 # must be an instance not the class! & be an estimator!
 
 
@@ -65,7 +76,7 @@ class TestValidateEstimator:
 
 
     @pytest.mark.parametrize('not_instantiated',
-        (OneHotEncoder, sk_LinearRegression, sk_Ridge, sk_RidgeClassifier,
+        (sk_OneHotEncoder, sk_LinearRegression, sk_Ridge, sk_RidgeClassifier,
         sk_LogisticRegression, sk_SGDClassifier, sk_SGDRegressor,
         CalibratedClassifierCV, dask_LinearRegression,
         dask_LogisticRegression, XGBRegressor, XGBClassifier,
@@ -81,7 +92,7 @@ class TestValidateEstimator:
 
 
     @pytest.mark.parametrize('non_estimator',
-        (int, str, list, object, OneHotEncoder)
+        (int, str, list, object, sk_OneHotEncoder)
     )
     def test_rejects_non_estimator(self, non_estimator):
 
@@ -128,8 +139,6 @@ class TestValidateEstimator:
             _validate_estimator(dask_non_classifiers())
 
 
-
-
     @pytest.mark.parametrize('dask_classifiers',
         (DaskXGBClassifier, DaskXGBRFClassifier, DaskLGBMClassifier,
         dask_LogisticRegression)
@@ -141,10 +150,29 @@ class TestValidateEstimator:
 
 
 
+    @pytest.mark.parametrize('junk_pipeline_steps',
+        (
+        [sk_OneHotEncoder(), sk_LogisticRegression()],
+        [(4, sk_OneHotEncoder()), (3.14, sk_LogisticRegression())],
+        [('onehot', 4), ('logistic', 3.14)]
+        )
+    )
+    def test_rejects_pipeline_with_bad_steps(self, junk_pipeline_steps):
+        # 24_07_27, unfortunately, sk pipeline does not do this, it will
+        # allow bad steps (not in (str, cls()) format) and proceed and
+        # return nonsensical results
+
+        with pytest.raises(ValueError):
+            _validate_estimator(Pipeline(steps=junk_pipeline_steps))
 
 
 
+    @pytest.mark.parametrize('good_pipeline_steps',
+        ([('onehot', sk_OneHotEncoder()), ('logistic', sk_LogisticRegression())],)
+    )
+    def test_accepts_good_pipeline(self, good_pipeline_steps):
 
+        _validate_estimator(Pipeline(steps=good_pipeline_steps))
 
 
 

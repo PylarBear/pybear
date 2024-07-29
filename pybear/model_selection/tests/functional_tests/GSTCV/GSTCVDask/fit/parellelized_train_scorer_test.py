@@ -12,9 +12,6 @@ import numpy as np
 import dask.array as da
 
 
-# pizza, when all is said and done, and the GSCV anomalies are explained away,
-# if no changes made to dask _parallelized_fit/_scorer/_train_score, delete the
-# dask ones, move the SK ones to 'shared_fit' and use them for SK & dask.
 
 from model_selection.GSTCV._GSTCVDask._fit._parallelized_train_scorer import \
     _parallelized_train_scorer

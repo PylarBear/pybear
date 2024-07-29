@@ -56,8 +56,11 @@ def _verify_refit_callable(
     param_permutations = len(DUMMY_CV_RESULTS['params'])
 
     for column in DUMMY_CV_RESULTS:
-        if column[:5] == 'param' or column[:4] == 'rank':
+        if column[:5] == 'param':
             continue
+        elif column[:4] == 'rank':
+            DUMMY_CV_RESULTS[column] = \
+                np.ma.masked_array(np.arange(1, param_permutations+1))
         else:
             DUMMY_CV_RESULTS[column] = \
                 np.ma.masked_array(np.random.uniform(0, 1, param_permutations))

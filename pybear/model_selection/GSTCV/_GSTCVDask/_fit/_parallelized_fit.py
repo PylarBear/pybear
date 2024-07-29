@@ -85,7 +85,9 @@ def _parallelized_fit(
 
 
     try:
+
         _estimator_.fit(X_train, y_train, **fit_params)
+
     except BrokenPipeError:
         raise BrokenPipeError  # FOR PYTEST ONLY
     except Exception as f:

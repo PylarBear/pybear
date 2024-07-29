@@ -37,7 +37,7 @@ from model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
 # 24_07_14 this module tests the equality of GSTCV's cv_results_ with
 # 0.5 threshold against sklearn GSCV cv_results_ when using sk Pipeline
 
-class TestCoreFitAccuracy:
+class TestCoreFitPipelineAccuracy:
 
     # def _core_fit(
     #     _X: XSKWIPType,
@@ -75,25 +75,19 @@ class TestCoreFitAccuracy:
     def good_estimator():
         return Pipeline(
             steps=[
-                ('OneHot', OneHotEncoder()),
+                ('OneHot', OneHotEncoder(drop='first')),
                 ('SKLogistic', LogisticRegression(
-                    max_iter=10_000,
-                    solver='lbfgs',
-                    random_state=69
-                )
+                    max_iter=10_000, solver='lbfgs', tol=1e-6)
                 )
             ]
         )
 
-    @staticmethod
-    @pytest.fixture
-    def good_scorer():
-        return {
-            'precision': precision_score,
-            'recall': recall_score,
-            'accuracy': accuracy_score,
-            'balanced_accuracy': balanced_accuracy_score
-        }
+
+
+
+
+
+
 
 
     @staticmethod
@@ -101,7 +95,7 @@ class TestCoreFitAccuracy:
     def good_param_grid():
         return [
             {'OneHot__min_frequency': [5,10], 'SKLogistic__C': np.logspace(-3,3,7)},
-            {'OneHot__min_frequency': [25,30], 'SKLogistic__C': np.logspace(-5,-1,6)}
+            {'OneHot__min_frequency': [25,30], 'SKLogistic__C': np.logspace(-5,-1,5)}
         ]
 
 
@@ -148,6 +142,17 @@ class TestCoreFitAccuracy:
     @pytest.fixture
     def good_error_score():
         return 'raise'
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_scorer():
+        return {
+            'precision': precision_score,
+            'recall': recall_score,
+            'accuracy': accuracy_score,
+            'balanced_accuracy': balanced_accuracy_score
+        }
 
 
     @staticmethod
@@ -250,35 +255,25 @@ class TestCoreFitAccuracy:
             {
                 'accuracy': accuracy_score,
                 'balanced_accuracy': balanced_accuracy_score
-            },
-            {
-                'precision': precision_score,
-                'recall': recall_score,
-                'balanced_accuracy': balanced_accuracy_score
-            },
+            }
         )
     )
     @pytest.mark.parametrize('_param_grid',
         (
-            # [
-                # {'OneHot__min_frequency': [5, 10], 'SKLogistic__C': [.001, .01]}
-            # ],
+            [
+                {'OneHot__min_frequency': [5, 10], 'SKLogistic__C': [.001, .01]}
+            ],
             [
                 {'OneHot__min_frequency': [5, 10], 'SKLogistic__C': [.001, .01]},
                 {'OneHot__min_frequency': [25, 30], 'SKLogistic__C': [.0001, .001]}
             ],
-            # [
-            #     {'OneHot__min_frequency': [5, 10], 'SKLogistic__C': [.001, .01]},
-            #     {'OneHot__min_frequency': [25, 30], 'SKLogistic__C': [.0001, .001]},
-            #     {'OneHot__min_frequency': [55, 60], 'SKLogistic__C': [.001, .01]}
-            # ],
-            # [
-            #     {'SKLogistic__C': [.0001, .001]},
-            #     {'OneHot__min_frequency': [25, 30], 'SKLogistic__C': [.001, .01]}
-            # ],
+            [
+                {'SKLogistic__C': [.0001, .001]},
+                {'OneHot__min_frequency': [25, 30], 'SKLogistic__C': [.001, .01]}
+            ],
         )
     )
-    @pytest.mark.parametrize('_n_jobs', (-1, 1))  # 1 is important
+    @pytest.mark.parametrize('_n_jobs', (-1, 1))  # <==== 1 is important
     @pytest.mark.parametrize('_return_train_score', (True, False))
     def test_accuracy_vs_sk_gscv(self, good_X, good_y, good_estimator,
         good_cv_int, good_error_score, _scorer,  _n_jobs, _return_train_score,
@@ -380,12 +375,9 @@ class TestCoreFitAccuracy:
 
 
             if _are_floats:
-                # pizza take these out if ok
-                assert (_gstcv_out > 0).any()
-                assert (_sk_out > 0).any()
 
                 assert np.allclose(_gstcv_out, _sk_out, atol=0.00001)
-                # pass # pizza
+
             elif not _are_floats:
                 # check param columns
                 assert np.array_equiv(_gstcv_out, _sk_out)

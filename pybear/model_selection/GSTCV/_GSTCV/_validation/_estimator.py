@@ -4,6 +4,7 @@
 # License: BSD 3 clause
 #
 
+
 import sys
 import inspect
 
@@ -49,11 +50,42 @@ def _validate_estimator(
 
     # must be an instance not the class!
     if inspect.isclass(_estimator):
-        raise TypeError(f"must be an instance, not the class")
-
+        raise TypeError(f"estimator must be an instance, not the class")
 
     # cannot be dask, could be a pipeline
 
+    # validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # because sklearn/dask dont do this, and could be hard to detect
+    if 'pipe' in str(type(_estimator)).lower():
+
+        err_msg = (f"pipeline steps must be in the format "
+                   f"[(str1, cls1()), (str2, cls2()), ...]")
+
+        _steps = _estimator.steps
+
+        try:
+            len(_steps)
+        except:
+            raise ValueError(err_msg)
+
+        if len(_steps) == 0:
+            raise ValueError(f"estimator pipeline has empty steps")
+
+        for step in _steps:
+            try:
+                len(step)
+            except:
+                raise ValueError(err_msg)
+
+            if len(step) != 2:
+                raise ValueError(err_msg)
+            if not isinstance(step[0], str):
+                raise ValueError(err_msg)
+            if not hasattr(step[1], 'fit'):
+                raise ValueError(err_msg)
+    # END validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     def get_inner_most_estimator(__estimator):
 
         try:
@@ -77,6 +109,8 @@ def _validate_estimator(
         raise TypeError(f"{__estimator.__class__.__name__}: GSTCV cannot "
             f"accept dask classifiers. To use dask classifiers, use GSTCVDask.")
 
+
+
     del get_inner_most_estimator, _module
 
     # must have the sklearn / dask API
@@ -92,7 +126,7 @@ def _validate_estimator(
         raise AttributeError(f"estimator must have a 'predict_proba' method")
 
     del _has_method
-
+    # END validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 

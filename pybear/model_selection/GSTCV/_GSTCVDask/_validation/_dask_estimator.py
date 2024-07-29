@@ -5,12 +5,14 @@
 #
 
 
-import inspect
 import sys
+import inspect
 
 from model_selection.GSTCV._type_aliases import ClassifierProtocol
 
 from sklearn.pipeline import Pipeline
+
+
 
 
 def _validate_dask_estimator(
@@ -48,9 +50,42 @@ def _validate_dask_estimator(
 
     # must be an instance not the class!
     if inspect.isclass(_estimator):
-        raise TypeError(f"must be an instance, not the class")
+        raise TypeError(f"estimator must be an instance, not the class")
 
+    # must be dask, could be a pipeline
 
+    # validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # because sklearn/dask dont do this, and could be hard to detect
+    if 'pipe' in str(type(_estimator)).lower():
+
+        err_msg = (f"pipeline steps must be in the format "
+                   f"[(str1, cls1()), (str2, cls2()), ...]")
+
+        _steps = _estimator.steps
+
+        try:
+            len(_steps)
+        except:
+            raise ValueError(err_msg)
+
+        if len(_steps) == 0:
+            raise ValueError(f"estimator pipeline has empty steps")
+
+        for step in _steps:
+            try:
+                len(step)
+            except:
+                raise ValueError(err_msg)
+
+            if len(step) != 2:
+                raise ValueError(err_msg)
+            if not isinstance(step[0], str):
+                raise ValueError(err_msg)
+            if not hasattr(step[1], 'fit'):
+                raise ValueError(err_msg)
+    # END validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     def get_inner_most_estimator(__estimator):
 
         try:
@@ -67,17 +102,16 @@ def _validate_dask_estimator(
     try:
         _module = sys.modules[__estimator.__class__.__module__].__file__
     except:
-        raise AttributeError(f"'{_estimator.__class__.__name__}' is not "
+        raise AttributeError(f"'{__estimator.__class__.__name__}' is not "
             f"a valid classifier")
 
-    if 'dask' not in str(_module).lower():
+    __ = str(_module).lower()
+    if 'dask' not in __ and 'conftest' not in __:  # allow pytest with mock clf
         raise TypeError(f"'{__estimator.__class__.__name__}' is not a dask "
             f"classifier. GSTCVDask can only accept dask classifiers. "
             f"\nTo use non-dask classifiers, use the GSTCV package.")
 
     del get_inner_most_estimator, _module
-
-
 
     # must have the sklearn / dask API
     _has_method = lambda _method: callable(getattr(_estimator, _method, None))
@@ -92,6 +126,7 @@ def _validate_dask_estimator(
         raise AttributeError(f"estimator must have a 'predict_proba' method")
 
     del _has_method
+    # END validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 
