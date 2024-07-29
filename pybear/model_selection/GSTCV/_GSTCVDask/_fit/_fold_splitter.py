@@ -12,19 +12,20 @@ import dask.array as da
 import dask.dataframe as ddf
 
 from model_selection.GSTCV._type_aliases import (
-    GenericKFoldType,
-    DaskKFoldType,
+    GenericSlicerType,
+    DaskSlicerType,
     XDaskWIPType,
     YDaskWIPType,
     SchedulerType
 )
 
+
 def _fold_splitter(
-        train_idxs: Union[GenericKFoldType, DaskKFoldType],
-        test_idxs: Union[GenericKFoldType, DaskKFoldType],
+        train_idxs: Union[GenericSlicerType, DaskSlicerType],
+        test_idxs: Union[GenericSlicerType, DaskSlicerType],
         *data_objects: Union[XDaskWIPType, YDaskWIPType],
         scheduler: SchedulerType=None
-    ) -> tuple[tuple[XDaskWIPType, YDaskWIPType]]:
+    ) -> tuple[tuple[XDaskWIPType, YDaskWIPType, ...]]:
 
     """
     Split given data objects into train / test pairs using the given
@@ -55,7 +56,7 @@ def _fold_splitter(
     ------
     -
         SPLITS:
-            tuple[tuple[da.core.Array[DataType], da.core.Array[DataType]]] -
+            tuple[tuple[da.core.Array[float], da.core.Array[float]]] -
             return the train / test splits for the given data objects in
             the order passed in a tuple of tuples, each inner tuple
             containing a train/test pair.

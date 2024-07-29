@@ -1437,7 +1437,7 @@ class MinCountTransformer:
         del _module
 
 
-    def score(self):
+    def score(self, X, y=None):
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.

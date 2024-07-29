@@ -5,13 +5,18 @@
 #
 
 
-from model_selection.GSTCV._type_aliases import XSKWIPType, YSKWIPType
-
 import time
 from typing import Generator
 import numpy as np
-import numpy.typing as npt
+
 from sklearn.model_selection import StratifiedKFold
+
+from model_selection.GSTCV._type_aliases import (
+    XSKWIPType,
+    YSKWIPType,
+    SKKFoldType
+)
+
 
 
 def _get_kfold(
@@ -19,7 +24,8 @@ def _get_kfold(
         _y: YSKWIPType,
         _n_splits: int,
         _verbose: int
-    ) -> Generator[tuple[npt.NDArray[int], npt.NDArray[int]], None, None]:
+    ) -> Generator[SKKFoldType, None, None]:
+
 
     """
     Use sklearn StratifiedKFold to get train / test splits when cv is
@@ -71,6 +77,7 @@ def _get_kfold(
 
 
 
+
     err_msg = (f"_X ({type(_X)}) and _y ({type(_y)}) must both be numpy "
                f"arrays.")
 
@@ -84,6 +91,7 @@ def _get_kfold(
 
     assert isinstance(_n_splits, int)
     assert _n_splits > 1
+
     try:
         float(_verbose)
     except:
@@ -98,7 +106,6 @@ def _get_kfold(
         shuffle=False,
         random_state=None
     ).split(_X, _y)
-
 
 
 

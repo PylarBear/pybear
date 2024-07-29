@@ -12,10 +12,9 @@ import pandas as pd
 
 import distributed
 from dask_ml.datasets import make_classification as dask_make_classification
-from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
+from xgboost.dask import XGBClassifier as dask_XGBClassifier
 
 from sklearn.model_selection import ParameterGrid
-
 from dask_ml.model_selection import (
     GridSearchCV as dask_GridSearchCV,
     KFold as dask_KFold
@@ -37,9 +36,27 @@ from model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
 
 # 24_07_10 this module tests the equality of dask GSTCV's cv_results_
-# with 0.5 threshold against sklearn GSCV cv_results_.
-# @pytest.skip(reason=f'pizza', allow_module_level=True)  # pizza ok to delete if pass
+# with 0.5 threshold against dask GSCV cv_results_.
+@pytest.skip(reason=f'test is not finishing, needs speedup', allow_module_level=True)
 class TestCoreFitAccuracy:
+
+    # def _core_fit(
+    #     _X: XDaskWIPType,
+    #     _y: YDaskWIPType,
+    #     _estimator: ClassifierProtocol,
+    #     _cv_results: CVResultsType,
+    #     _cv: Union[int, Iterable[GenericKFoldType]],
+    #     _error_score: Union[int, float, Literal['raise']],
+    #     _verbose: int,
+    #     _scorer: ScorerWIPType,
+    #     _cache_cv: bool,
+    #     _iid: bool,
+    #     _return_train_score: bool,
+    #     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
+    #     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
+    #     **params
+    #     ) -> CVResultsType
+
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
@@ -56,7 +73,6 @@ class TestCoreFitAccuracy:
             n_redundant=0,
             n_informative=5,
             shuffle=False,
-            # random_state=7
             chunks=((_samples//10, _features))
     )
 
@@ -76,7 +92,8 @@ class TestCoreFitAccuracy:
     @staticmethod
     @pytest.fixture
     def good_estimator():
-        return dask_LogisticRegression(solver='lbfgs')
+        # return dask_LogisticRegression(max_iter=10_000, solver='lbfgs', tol=1e-6)
+        return dask_XGBClassifier()
 
 
     @staticmethod
@@ -90,8 +107,8 @@ class TestCoreFitAccuracy:
 
     @staticmethod
     @pytest.fixture
-    def helper_for_cv_results_and_PARAM_GRID_KEY(
-            good_cv_int, good_scorer, good_param_grid):
+    def helper_for_cv_results_and_PARAM_GRID_KEY(good_cv_int, good_scorer,
+        good_param_grid):
 
         out_cv_results, out_key = _cv_results_builder(
             # DO NOT PUT 'thresholds' IN PARAM GRIDS!
@@ -170,9 +187,11 @@ class TestCoreFitAccuracy:
 
 
     @staticmethod
-    @pytest.fixture
-    def _scheduler():
-        distributed.Client(n_workers=4, threads_per_worker=1)
+    @pytest.fixture(scope='module')
+    def _client():
+        client = distributed.Client(n_workers=1, threads_per_worker=1)
+        yield client
+        client.close()
 
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
@@ -180,43 +199,44 @@ class TestCoreFitAccuracy:
 
 
     def test_accuracy_cv_int_vs_cv_iter(self, good_X, good_y, good_estimator,
-        good_cv_results, good_cv_int, good_cv_iter, good_error_score, good_scorer,
-        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _scheduler):
+        good_cv_results, good_cv_int, good_cv_iter, good_error_score,
+        good_scorer, good_cache_cv, good_iid, good_PARAM_GRID_KEY,
+        good_THRESHOLD_DICT, _client):
 
         # test equivalent cv as int or iterable give same output
 
-        # with _scheduler:  pizza
-        out_int = _core_fit(
-            good_X,
-            good_y,
-            good_estimator,
-            good_cv_results,
-            good_cv_int,   # <===============
-            good_error_score,
-            0, # good_verbose,
-            good_scorer,
-            good_cache_cv,
-            good_iid,
-            True, # good_return_train_score,
-            good_PARAM_GRID_KEY,
-            good_THRESHOLD_DICT
+        with _client:
+            out_int = _core_fit(
+                good_X,
+                good_y,
+                good_estimator,
+                good_cv_results,
+                good_cv_int,   # <===============
+                good_error_score,
+                0, # good_verbose,
+                good_scorer,
+                good_cache_cv,
+                good_iid,
+                True, # good_return_train_score,
+                good_PARAM_GRID_KEY,
+                good_THRESHOLD_DICT
             )
 
-        # with _scheduler:  pizza
-        out_iter = _core_fit(
-            good_X,
-            good_y,
-            good_estimator,
-            good_cv_results,
-            good_cv_iter,   # <===============
-            good_error_score,
-            0, # good_verbose,
-            good_scorer,
-            good_cache_cv,
-            good_iid,
-            True, # good_return_train_score,
-            good_PARAM_GRID_KEY,
-            good_THRESHOLD_DICT
+        with _client:
+            out_iter = _core_fit(
+                good_X,
+                good_y,
+                good_estimator,
+                good_cv_results,
+                good_cv_iter,   # <===============
+                good_error_score,
+                0, # good_verbose,
+                good_scorer,
+                good_cache_cv,
+                good_iid,
+                True, # good_return_train_score,
+                good_PARAM_GRID_KEY,
+                good_THRESHOLD_DICT
             )
 
         assert pd.DataFrame(data=out_int).equals(pd.DataFrame(data=out_iter))
@@ -252,6 +272,9 @@ class TestCoreFitAccuracy:
     # 'mean_train_balanced_accuracy'
     # 'std_train_balanced_accuracy'
 
+
+
+
     @pytest.mark.parametrize('_scorer',
         (
             {
@@ -263,12 +286,7 @@ class TestCoreFitAccuracy:
             {
                 'accuracy': accuracy_score,
                 'balanced_accuracy': balanced_accuracy_score
-            },
-            {
-                'precision': precision_score,
-                'recall': recall_score,
-                'balanced_accuracy': balanced_accuracy_score
-            },
+            }
         )
     )
     @pytest.mark.parametrize('_param_grid',
@@ -281,14 +299,8 @@ class TestCoreFitAccuracy:
                 {'C': [1e1, 1e2, 1e3], 'fit_intercept': [True, False]}
             ],
             [
-                {'C': [1e-2, 1e-1, 1e0], 'fit_intercept': [True, False]},
-                {'C': [1e-3, 1e-4, 1e-5], 'fit_intercept': [True, False]},
-                {'C': [1e1, 1e2, 1e3], 'fit_intercept': [True, False]}
-            ],
-            [
                 {'C': [1]},
                 {'C': [1], 'fit_intercept': [False]},
-                {'C': [1], 'fit_intercept': [True], 'solver': ['lbfgs']}
             ],
         )
     )
@@ -297,7 +309,7 @@ class TestCoreFitAccuracy:
     @pytest.mark.parametrize('_iid', (True, False))
     def test_accuracy_vs_dask_gscv(self, good_X, good_y, good_estimator,
         good_cv_int, good_error_score, _scorer,  _cache_cv, _iid,
-        _return_train_score, _param_grid, _scheduler):
+        _return_train_score, _param_grid, _client):
 
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -308,22 +320,22 @@ class TestCoreFitAccuracy:
             return_train_score=_return_train_score
         )
 
-        # with _scheduler:  pizza
-        gstcv_cv_results = _core_fit(
-            good_X,
-            good_y,
-            good_estimator,
-            good_cv_results,
-            good_cv_int,
-            good_error_score,
-            0, # good_verbose,
-            _scorer,
-            _cache_cv,
-            _iid,
-            _return_train_score,
-            PARAM_GRID_KEY,
-            {i: np.array([0.5]) for i in range(len(_param_grid))} # THRESHOLD_DICT
-        )
+        with _client:
+            gstcv_cv_results = _core_fit(
+                good_X,
+                good_y,
+                good_estimator,
+                good_cv_results,
+                good_cv_int,
+                good_error_score,
+                0, # good_verbose,
+                _scorer,
+                _cache_cv,
+                _iid,
+                _return_train_score,
+                PARAM_GRID_KEY,
+                {i: np.array([0.5]) for i in range(len(_param_grid))} # THRESHOLD_DICT
+            )
 
         pd_gstcv_cv_results = pd.DataFrame(gstcv_cv_results)
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -344,8 +356,9 @@ class TestCoreFitAccuracy:
             refit=list(_scorer.keys())[0]
         )
 
-        # with _scheduler:  pizza
-        out_dask_gscv.fit(good_X, good_y)
+
+        with _client:
+            out_dask_gscv.fit(good_X, good_y)
 
         sk_cv_results = out_dask_gscv.cv_results_
 

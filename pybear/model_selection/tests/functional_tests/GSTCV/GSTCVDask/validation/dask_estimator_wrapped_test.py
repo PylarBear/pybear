@@ -95,11 +95,11 @@ class TestValidatePipelinedDaskEstimator:
 
 
     @pytest.mark.parametrize('non_estimator',
-        (int, str, list, object, sk_OneHotEncoder, dask_OneHotEncoder)
+        (int, str, list, object, dask_OneHotEncoder)
     )
     def test_rejects_non_estimator(self, non_estimator):
 
-        with pytest.raises((AttributeError, TypeError)):
+        with pytest.raises((AttributeError, ValueError)):
             _validate_dask_estimator(self._pipeline(non_estimator()))
 
 

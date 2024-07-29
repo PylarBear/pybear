@@ -38,7 +38,7 @@ def _validate_scoring(
         is allowed.
 
         For evaluating multiple metrics, either give a list of (unique)
-        strings or a dict with names as keys and callables as values.2
+        strings or a dict with names as keys and callables as values.
         NOTE that when using custom scorers, each scorer should return a
         single value. Metric functions returning a list/array of values
         can be wrapped into multiple scorers that return one value each.

@@ -5,8 +5,9 @@
 #
 
 
-from typing import Union, Literal
+from typing import Union, Literal, Iterable
 import time
+from copy import deepcopy
 
 import joblib
 import numpy as np
@@ -44,7 +45,7 @@ def _core_fit(
     _y: YSKWIPType,
     _estimator: ClassifierProtocol,
     _cv_results: CVResultsType,
-    _cv: Union[int, GenericKFoldType],
+    _cv: Union[int, Iterable[GenericKFoldType]],
     _error_score: Union[int, float, Literal['raise']],
     _verbose: int,
     _scorer: ScorerWIPType,
@@ -71,10 +72,10 @@ def _core_fit(
     Parameters
     ----------
     _X:
-        Ndarray[Union[int, float]] - the data to be fit by GSTCV against
+        NDArray[Union[int, float]] - the data to be fit by GSTCV against
         the target.
     _y:
-        Ndarray[Union[int, float]] - the target to train the data against.
+        NDArray[Union[int, float]] - the target to train the data against.
     _estimator:
         Any classifier that fulfills the scikit-learn API for classifiers,
         having fit, predict_proba, get_params, and set_params methods
@@ -156,7 +157,6 @@ def _core_fit(
 
 
 
-
     """
 
 
@@ -188,10 +188,9 @@ def _core_fit(
     assert not isinstance(_verbose, bool) and 0 <= _verbose <= 10, \
         f"_verbose must be an int between 0 and 10 inclusive"
 
-    assert isinstance(_n_jobs, int) and not isinstance(_n_jobs, bool) and \
-           _n_jobs >= -1 and _n_jobs != 0, \
+    assert (isinstance(_n_jobs, int) and not isinstance(_n_jobs, bool) and \
+           _n_jobs >= -1 and _n_jobs != 0) or _n_jobs is None, \
         f"_n_jobs must be int >= -1 but not 0"
-
 
 
     assert isinstance(_return_train_score, bool)
@@ -218,6 +217,8 @@ def _core_fit(
 
 
 
+
+
     original_params = _estimator.get_params(deep=True)
 
     for trial_idx, _grid in enumerate(_cv_results['params']):
@@ -238,7 +239,7 @@ def _core_fit(
         # estimator was instantiated.)
         if trial_idx != 0:
             # at transition to the next param grid...
-            if _PARAM_GRID_KEY[trial_idx] != _PARAM_GRID_KEY[trial_idx -1]:
+            if _PARAM_GRID_KEY[trial_idx] != _PARAM_GRID_KEY[trial_idx - 1]:
                 # ...put in the first-seen params...
                 _estimator.set_params(**original_params)
 
@@ -271,11 +272,10 @@ def _core_fit(
         # type(_estimator)(**_estimator.get_params(deep=True)).
 
         # must use shallow params to construct estimator
-        shallow_params = _estimator.get_params(deep=False)
+        s_p = _estimator.get_params(deep=False) # shallow_params
         # must use deep params for pipeline to set GSCV params (depth
         # doesnt matter for an estimator when not pipeline.)
-        deep_params = _estimator.get_params(deep=True)
-
+        d_p = _estimator.get_params(deep=True) # deep_params
 
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             FIT_OUTPUT = joblib.Parallel(return_as='list')(
@@ -283,22 +283,22 @@ def _core_fit(
                     f_idx,
                     # train only!
                     *_fold_splitter(train_idxs, test_idxs, _X, _y)[::2],
-                    type(_estimator)(**shallow_params).set_params(**deep_params),
+                    type(_estimator)(**s_p).set_params(**deepcopy(d_p)),
                     _grid,
                     _error_score,
                     **params
                 ) for f_idx, (train_idxs, test_idxs) in enumerate(KFOLD)
             )
 
-        del shallow_params, deep_params
+        del s_p, d_p
 
         # END FIT ALL FOLDS ###############################################
-
 
         # terminate if all folds excepted, display & compile fit times ** * ** *
         FOLD_FIT_TIMES_VECTOR = np.ma.empty(_n_splits, dtype=np.float64)
         FOLD_FIT_TIMES_VECTOR.mask = True
         num_failed_fits = 0
+
         # FIT_OUTPUT _estimator_, _fit_time, fit_excepted
         for idx, (_, _fit_time, _fit_excepted) in enumerate(FIT_OUTPUT):
             num_failed_fits += _fit_excepted
@@ -321,8 +321,6 @@ def _core_fit(
 
         test_predict_and_score_t0 = time.perf_counter()
 
-
-
         # TEST_SCORER_OUT IS:
         # TEST_THRESHOLD_x_SCORER__SCORE_LAYER,
         # TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER
@@ -339,6 +337,28 @@ def _core_fit(
                     _verbose
                 ) for f_idx, (train_idxs, test_idxs) in enumerate(KFOLD)
             )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         test_predict_and_score_tf = time.perf_counter()
         tpast = test_predict_and_score_tf - test_predict_and_score_t0
@@ -443,6 +463,25 @@ def _core_fit(
                     ) for f_idx, (train_idxs, test_idxs) in enumerate(KFOLD)
                 )
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             train_predict_and_score_tf = time.perf_counter()
             tpast = train_predict_and_score_tf - train_predict_and_score_t0
             del train_predict_and_score_tf, train_predict_and_score_t0
@@ -471,7 +510,6 @@ def _core_fit(
             print(f'\nStart filling cv_results_')
             cv_t0 = time.perf_counter()
 
-
         # validate shape of holder objects before cv_results update ** * **
         assert FOLD_FIT_TIMES_VECTOR.shape == (_n_splits,), \
             "FOLD_FIT_TIMES_VECTOR is misshapen"
@@ -498,7 +536,6 @@ def _core_fit(
             _cv_results,
             _return_train_score
         )
-
 
         if _verbose >= 5:
             cv_tf = time.perf_counter()

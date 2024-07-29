@@ -5,12 +5,18 @@
 #
 
 
-from model_selection.GSTCV._type_aliases import XDaskWIPType, YDaskWIPType
-
 import time
 from typing import Generator
 import dask.array as da
+
 from dask_ml.model_selection import KFold as dask_KFold
+
+from model_selection.GSTCV._type_aliases import (
+    XDaskWIPType,
+    YDaskWIPType,
+    DaskKFoldType
+)
+
 
 
 def _get_kfold(
@@ -19,7 +25,7 @@ def _get_kfold(
         _iid: bool,
         _verbose: int,
         _y: YDaskWIPType = None
-    ) -> Generator[da.core.Array, None, None]:
+    ) -> Generator[DaskKFoldType, None, None]:
 
     """
     Use dask_ml KFold to get train / test splits when cv is passed as an
@@ -66,9 +72,9 @@ def _get_kfold(
     ------
     -
         KFOLD:
-            Generator[tuple[NDArray[int], NDArray[int]] - A generator
-            object yielding pairs of train test indices as
-            dask.array.core.Array[int].
+            Generator[tuple[dask.array.core.Array[int],
+            dask.array.core.Array[int]] - A generator object yielding
+            pairs of train test indices as dask.array.core.Array[int].
 
     """
 

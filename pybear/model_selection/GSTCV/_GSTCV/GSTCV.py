@@ -25,8 +25,6 @@ from model_selection.GSTCV._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
 from ._validation._estimator import _validate_estimator
 from ._validation._pre_dispatch import _validate_pre_dispatch
-from ._validation._verbose import _validate_verbose
-
 
 from ._handle_X_y._handle_X_y_sklearn import _handle_X_y_sklearn
 
@@ -46,8 +44,15 @@ class GSTCV(_GSTCVMixin):
 
     """
 
-    24_07_10..... pizza! remember that GSTCV takes metrics, not scorers!
-    (where sklearn GSCV needs metrics to be wrapped in make_scorer)
+    24_07_24..... pizza! remember that GSTCV takes metrics (not scorers!)
+    that have signature (y_true, y_pred) and return a single number (where
+    sklearn GSCV needs metrics to be wrapped in make_scorer). GSTCV cannot
+    directly accept scorer kwargs and pass them to scorers; to pass kwargs
+    to your scoring metric, create a wrapper with signature (y_true, y_pred)
+    around the metric and hard-code the kwargs into the metric, E.g.:
+    def your_metric_wrapper(y_true, y_pred):
+        return your_metric(y_true, y_pred, **hard_coded_kwargs)
+
 
     --- Classifer must have predict_proba method. If does not have predict_proba,
     try to wrap with CalibratedClassifierCV.
@@ -102,7 +107,7 @@ class GSTCV(_GSTCVMixin):
 
     def __init__(
         self,
-        estimator: ClassifierProtocol,
+        estimator,
         param_grid: ParamGridType,
         *,
         # thresholds can be a single number or list-type passed in
@@ -116,12 +121,12 @@ class GSTCV(_GSTCVMixin):
         pre_dispatch: Union[str, None] = '2*n_jobs',
         error_score: Union[Literal['raise'], int, float] = 'raise',
         return_train_score: bool=False
-        ):
+    ):
 
 
 
 
-        self._estimator = estimator
+        self.estimator = estimator
         self.param_grid = param_grid
         self.thresholds = thresholds
         self.scoring = scoring
@@ -177,6 +182,10 @@ class GSTCV(_GSTCVMixin):
 
         """
 
+        # pizza, validate() was moved from after self._classes = None
+        # on 24_07_26_19_32_00. any problems, move it back.
+        self._validate_and_reset()
+
         _X, _y, _feature_names_in, _n_features_in = self._handle_X_y(X, y)
 
 
@@ -188,8 +197,6 @@ class GSTCV(_GSTCVMixin):
         # IS DONE ON self._classes_
         self._classes = None
 
-
-        self.validate_and_reset()
 
         # BEFORE RUNNING cv_results_builder, THE THRESHOLDS MUST BE
         # REMOVED FROM EACH PARAM GRID IN wip_param_grids
@@ -238,143 +245,9 @@ class GSTCV(_GSTCVMixin):
 
         del THRESHOLD_DICT, PARAM_GRID_KEY
 
-        super().fit()
+        super().fit(_X, _y, **params)   # refit management
 
         return self
-
-
-    def get_params(self, deep:bool=True):
-
-        """
-        Get parameters for this estimator.
-
-        Parameters
-        ----------
-        deep: bool, default=True
-            If True, will return the parameters for this estimator and
-            contained subobjects that are estimators.
-
-        Return
-        ------
-        -
-            paramsdict: Parameter names mapped to their values.
-
-        Rules of get_params, for sklearn/dask GridSearchCV, pipelines, and single estimators:
-        get_params() always returns a dictionary
-        --- single dask/sklearn estimator, deep=True/False is irrelevant
-            shallow :return: all the est's args/kwargs
-            deep :return: all the est's args/kwargs
-        --- sklearn/dask pipeline
-            shallow :return: 3 params for the pipeline (steps, memory, verbose)
-            deep :return: 3 params for the pipeline + each n object(s) in steps + get_params() for each n object(s) with '{step_name}__' prefix
-        --- sklearn/dask GridSearchCV with single dask/sklearn estimator
-            shallow :return: 10 sklearn (11 dask) GridSearchCV args/kwargs (which includes estimator)
-            deep :return: 10 (11) GSCV args/kwargs (which includes estimator) + get_params() for estimator with 'estimator__' prefix
-        --- sklearn/dask GridSearchCV with pipeline
-            shallow :return: 10 sklearn (11 dask) GridSearchCV args/kwargs (which includes pipeline)
-            deep :return: 10 (11) GSCV args/kwargs (which includes pipeline) + get_params(deep=True) for pipeline (see above) with 'estimator__' prefix
-        """
-
-        # sklearn / dask -- this is always available, before & after fit
-
-        paramsdict = {}
-
-        self._is_dask_estimator()   # set self._dask_estimator
-
-        paramsdict['estimator'] = self._estimator
-        if self._dask_estimator: paramsdict['cache_cv'] = self.cache_cv
-        paramsdict['cv'] = self.cv
-        paramsdict['error_score'] = self.error_score
-        if self._dask_estimator: paramsdict['iid'] = self.iid
-        paramsdict['n_jobs'] = self.n_jobs
-        paramsdict['param_grid'] = self.param_grid
-        if not self._dask_estimator: paramsdict['pre_dispatch'] = self.pre_dispatch
-        paramsdict['refit'] = self.refit
-        paramsdict['return_train_score'] = self.return_train_score
-        if self._dask_estimator: paramsdict['scheduler'] = self.scheduler
-        paramsdict['scoring'] = self.scoring
-        # paramsdict['thresholds'] = self.thresholds
-        if not self._dask_estimator: paramsdict['verbose'] = self.verbose
-
-        # THIS IS CORRECT FOR BOTH SIMPLE ESTIMATOR OR PIPELINE
-        if deep:
-            paramsdict = paramsdict | {f'estimator__{k}': v for k, v in self._estimator.get_params(deep=True).items()}
-
-        # ALPHABETIZE paramsdict
-        paramsdict = {k: paramsdict.pop(k) for k in sorted(paramsdict)}
-
-        return paramsdict
-
-
-
-    def set_params(self, **params):
-        """
-        Set the parameters of this estimator.
-        (can set params of the gridsearch instance and/or the wrapped
-        estimator, verified 24_02_16_09_31_00)
-        The method works on simple estimators as well as on nested
-        objects (such as Pipeline). The latter have parameters of the
-        form <component>__<parameter> so that it’s possible to update
-        each component of a nested object.
-
-        Parameters
-        ----------
-        **params: dict[str: any] - Estimator parameters.
-
-        Return
-        ------
-        -
-            GridSearchThresholdCV instance.
-
-        """
-
-        # estimators, pipelines, and gscv all raise exception for invalid
-        # keys (parameters) passed
-
-        self._is_dask_estimator()
-
-        est_params = {k.replace('estimator__', ''): v for k,v in params.items() if 'estimator__' in k}
-        gstcv_params = {k.lower(): v for k,v in params.items() if 'estimator__' not in k.lower()}
-
-        if 'pipe' in str(type(self._estimator)).lower():
-            for _name, _est in self._estimator.steps:
-                if f'{_name}' in est_params:
-                    self.set_estimator_error()
-
-        if 'estimator' in gstcv_params:
-            self.set_estimator_error()
-
-        # IF self._estimator is dask/sklearn est/pipe, THIS SHOULD HANDLE
-        # EXCEPTIONS FOR INVALID PASSED PARAMS
-        self._estimator.set_params(**est_params)
-
-        for _param in gstcv_params:
-            if not hasattr(self, _param):
-                __ = 'GridSearchThresholdCV'  # type(self).__name__
-                raise Exception(f"Invalid parameter '{_param}' for {__} when in {'dask' if self._dask_estimator else 'sklearn'} mode")
-
-        # THESE WILL BE VALIDATED NEXT TIME validate_and_reset() IS CALLED, WHICH ONLY HAPPENS NEAR THE TOP OF fit()
-
-        # pizza 24_07_13, what about using set_attr instead?
-
-        if 'param_grid' in gstcv_params: self.param_grid = gstcv_params['param_grid']
-        if 'thresholds' in gstcv_params: self.thresholds = gstcv_params['thresholds']
-        if 'scoring' in gstcv_params: self.scoring = gstcv_params['scoring']
-        if 'n_jobs' in gstcv_params: self.n_jobs = gstcv_params['n_jobs']
-        if 'pre_dispatch' in gstcv_params: self.pre_dispatch = gstcv_params['pre_dispatch']
-        if 'cv' in gstcv_params: self.cv = gstcv_params['cv']
-        if 'refit' in gstcv_params: self.refit = gstcv_params['refit']
-        if 'verbose' in gstcv_params: self.verbose = gstcv_params['verbose']
-        if 'error_score' in gstcv_params: self.error_score = gstcv_params['error_score']
-        if 'return_train_score' in gstcv_params: self.return_train_score = gstcv_params['return_train_score']
-        if 'iid' in gstcv_params: self.iid = gstcv_params['iid']
-        if 'scheduler' in gstcv_params: self.scheduler = gstcv_params['scheduler']
-        if 'cache_cv' in gstcv_params: self.cache_cv = gstcv_params['cache_cv']
-
-        del est_params, gstcv_params
-
-        return self
-
 
     # END SKLEARN / DASK GridSearchCV Method ###########################
     ####################################################################
@@ -386,15 +259,15 @@ class GSTCV(_GSTCVMixin):
 
 
 
-    def validate_and_reset(self):
+    def _validate_and_reset(self):
 
-        super().validate_and_reset()
+        super()._validate_and_reset()
 
-        _validate_estimator(self._estimator)
+        _validate_estimator(self.estimator)
+        self._estimator = self.estimator
 
         self._pre_dispatch = _validate_pre_dispatch(self.pre_dispatch)
 
-        self._verbose = _validate_verbose(self.verbose)
 
     # END SUPPORT METHODS ##############################################
     ####################################################################

@@ -24,7 +24,7 @@ from dask_ml.datasets import make_classification as dask_make_classification
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 from dask_ml.linear_model import LogisticRegression as dask_Logistic
 
-from model_selection.GSTCV._GSTCV import GridSearchThresholdCV as GSTCV
+from model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 dump_to_file = True
 
@@ -477,7 +477,8 @@ def access_methods(
         dump_to_file: bool,
         METHOD_ARRAY_DICT: dict,
         **score_params
-):
+    ):
+
     _exc = lambda: sys.exc_info()[1]
 
     def print_or_dump_try_handling(method_output: any, method_name: str,

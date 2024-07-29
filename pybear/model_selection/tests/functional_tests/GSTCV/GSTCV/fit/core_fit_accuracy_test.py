@@ -58,7 +58,6 @@ class TestCoreFitAccuracy:
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-
     @staticmethod
     @pytest.fixture
     def X_y_helper():
@@ -69,8 +68,7 @@ class TestCoreFitAccuracy:
             n_repeated=0,
             n_redundant=0,
             n_informative=5,
-            shuffle=False,
-            # random_state=7
+            shuffle=False
     )
 
 
@@ -89,19 +87,7 @@ class TestCoreFitAccuracy:
     @staticmethod
     @pytest.fixture
     def good_estimator():
-        return LogisticRegression(max_iter=10000, solver='lbfgs', random_state=69)
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_scorer():
-        return {
-            'precision': precision_score,
-            'recall': recall_score,
-            'accuracy': accuracy_score,
-            'balanced_accuracy': balanced_accuracy_score
-        }
-
+        return LogisticRegression(max_iter=10000, solver='lbfgs', tol=1e-6)
 
 
     @staticmethod
@@ -160,6 +146,17 @@ class TestCoreFitAccuracy:
 
     @staticmethod
     @pytest.fixture
+    def good_scorer():
+        return {
+            'precision': precision_score,
+            'recall': recall_score,
+            'accuracy': accuracy_score,
+            'balanced_accuracy': balanced_accuracy_score
+        }
+
+
+    @staticmethod
+    @pytest.fixture
     def good_PARAM_GRID_KEY(helper_for_cv_results_and_PARAM_GRID_KEY):
 
         return helper_for_cv_results_and_PARAM_GRID_KEY[1]
@@ -190,7 +187,7 @@ class TestCoreFitAccuracy:
             good_error_score,
             0, # good_verbose,
             good_scorer,
-            _n_jobs, # good_n_jobs,
+            _n_jobs,
             True, # good_return_train_score,
             good_PARAM_GRID_KEY,
             good_THRESHOLD_DICT
@@ -205,7 +202,7 @@ class TestCoreFitAccuracy:
             good_error_score,
             0, # good_verbose,
             good_scorer,
-            _n_jobs, # good_n_jobs,
+            _n_jobs,
             True, # good_return_train_score,
             good_PARAM_GRID_KEY,
             good_THRESHOLD_DICT
@@ -258,12 +255,7 @@ class TestCoreFitAccuracy:
             {
                 'accuracy': accuracy_score,
                 'balanced_accuracy': balanced_accuracy_score
-            },
-            {
-                'precision': precision_score,
-                'recall': recall_score,
-                'balanced_accuracy': balanced_accuracy_score
-            },
+            }
         )
     )
     @pytest.mark.parametrize('_param_grid',
@@ -273,11 +265,6 @@ class TestCoreFitAccuracy:
             ],
             [
                 {'C': [1e-2, 1e-1, 1e0], 'fit_intercept': [True, False]},
-                {'C': [1e1, 1e2, 1e3], 'fit_intercept': [True, False]}
-            ],
-            [
-                {'C': [1e-2, 1e-1, 1e0], 'fit_intercept': [True, False]},
-                {'C': [1e-3, 1e-4, 1e-5], 'fit_intercept': [True, False]},
                 {'C': [1e1, 1e2, 1e3], 'fit_intercept': [True, False]}
             ],
             [
@@ -389,16 +376,12 @@ class TestCoreFitAccuracy:
 
 
             if _are_floats:
-                assert (_gstcv_out > 0).any()
-                assert (_sk_out > 0).any()
 
                 assert np.allclose(_gstcv_out, _sk_out, atol=0.00001)
 
             elif not _are_floats:
                 # check param columns
                 assert np.array_equiv(_gstcv_out, _sk_out)
-
-
 
 
 

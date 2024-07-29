@@ -89,7 +89,7 @@ class TestValidateWrappedEstimator:
     )
     def test_rejects_non_estimator(self, non_estimator):
 
-        with pytest.raises(AttributeError):
+        with pytest.raises((AttributeError, ValueError)):
             _validate_estimator(self._pipeline(non_estimator()))
 
 

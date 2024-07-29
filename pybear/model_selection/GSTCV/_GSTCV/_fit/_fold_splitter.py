@@ -4,26 +4,27 @@
 # License: BSD 3 clause
 #
 
+
 from typing import Union
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 
+
 from model_selection.GSTCV._type_aliases import (
-    DataType,
-    GenericKFoldType,
-    SKKFoldType,
+    GenericSlicerType,
+    SKSlicerType,
     XSKWIPType,
     YSKWIPType
+
 )
 
 
 def _fold_splitter(
-        train_idxs: Union[GenericKFoldType, SKKFoldType],
-        test_idxs: Union[GenericKFoldType, SKKFoldType],
+        train_idxs: Union[GenericSlicerType, SKSlicerType],
+        test_idxs: Union[GenericSlicerType, SKSlicerType],
         *data_objects: Union[XSKWIPType, YSKWIPType],
-    ) -> tuple[tuple[XSKWIPType, YSKWIPType]]:
+    ) -> tuple[tuple[XSKWIPType, YSKWIPType], ...]:
 
 
     """
