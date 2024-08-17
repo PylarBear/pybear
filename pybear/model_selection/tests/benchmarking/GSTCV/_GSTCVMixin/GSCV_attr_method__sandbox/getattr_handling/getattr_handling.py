@@ -142,15 +142,13 @@ def access_attrs(
     for attr in [
         f"best_estimator_", f"best_score_", f"best_params_",
         f"best_index_", f"scorer_", f"n_splits_", f"refit_time_",
-        f"multimetric_", f"classes_", f"n_features_in_", 'feature_names_in_'
+        f"multimetric_", f"classes_", f"n_features_in_",
+        f"feature_names_in_", f"best_threshold_"
         ]:
 
         try:
 
-            try:
-                value = getattr(xgscv_instance, attr).compute()
-            except:
-                value = getattr(xgscv_instance, attr)
+            value = getattr(xgscv_instance, attr)
 
             ATTR_OR_METHOD_ARRAY_DICT = getattr_try_handling(
                 value,

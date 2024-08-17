@@ -11,18 +11,17 @@ import string
 
 from sklearn.model_selection import \
     train_test_split as sklearn_train_test_split
-from sklearn.datasets import make_classification as sklearn_make_classification
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
-# pizza
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 from xgboost import XGBClassifier as sk_XGBClassifier
 
 from distributed import Client
 import dask.array as da
 import dask.dataframe as ddf
+import dask_expr._collection as ddf2
+from dask_ml.datasets import make_classification as dask_make_classification
 from dask_ml.model_selection import train_test_split as dask_train_test_split
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
-# pizza
 from xgboost.dask import DaskXGBClassifier as dask_XGBClassifier
 from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
 
@@ -38,7 +37,7 @@ from getattr_handling.getattr_handling import (
 # THIS MODULE CAPTURES THE OUTPUT (VALUE OR EXC INFO) FOR getattr CALLS
 # TO ATTRS AND METHODS FOR SK GSCV, DASK GSCV, GSTCV, GSTCVDask
 # BEFORE AND AFTER fit()
-
+# THIS TAKES ABOUT 19 MINUTES TO RUN
 
 
 
@@ -48,12 +47,14 @@ from getattr_handling.getattr_handling import (
 dump_to_file = True
 
 run_dtype = 'array'  # array / dataframe
+_scoring = ['accuracy', 'balanced_accuracy']   #'balanced_accuracy' #
+
 
 if not run_dtype in ['array', 'dataframe']:
     raise Exception(f'run_dtype must be "array" or "dataframe"')
 
-ROUND = ['post_init', 'post_fit']  # ['post_fit']
-REFIT = [False, 'balanced_accuracy', 'refit_fxn']  # ['balanced_accuracy']
+ROUND = ['post_init', 'post_fit']
+REFIT = [False, 'balanced_accuracy', 'refit_fxn']
 TYPES = ['sklearn', 'dask', 'gstcv_sklearn', 'gstcv_dask']
 
 COMBINATIONS = [f'{c}_refit_{b}_{a}' for a in ROUND for b in REFIT for c in TYPES]
@@ -62,7 +63,7 @@ COMBINATIONS = [f'{c}_refit_{b}_{a}' for a in ROUND for b in REFIT for c in TYPE
 ATTR_NAMES = [
     'cv_results_', 'best_estimator_', 'best_score_', 'best_params_',
     'best_index_', 'scorer_', 'n_splits_', 'refit_time_', 'multimetric_',
-    'classes_', 'n_features_in_', 'feature_names_in_'
+    'classes_', 'n_features_in_', 'feature_names_in_', 'best_threshold_'
 ]
 
 # THIS ORDER MUST MATCH THE FILL ORDER IN access_methods()
@@ -77,43 +78,41 @@ METHOD_ARRAY_DICT = {_mix: np.empty((0,), dtype=object) for _mix in COMBINATIONS
 
 _rows, _cols = 100, 10
 
-sk_X, sk_y = sklearn_make_classification(
+
+
+da_X, da_y = dask_make_classification(
     n_samples=_rows,
     n_features=_cols,
     n_informative=_cols,
-    n_redundant=0
+    n_redundant=0,
+    chunks=(_rows // 10)
 )
 
 if run_dtype == 'dataframe':
-    sk_X = pd.DataFrame(
-        data=sk_X,
+    # DONT DO from_array, USE from_pandas TO PRESERVE COLUMN NAMES
+    da_X = ddf.from_dask_array(
+        da_X,
         columns=list(string.ascii_lowercase.replace('y', '')[:_cols])
     )
-    sk_y = pd.DataFrame(
-        data=sk_y,
-        columns=['y']
-    )  # .squeeze()
+    da_y = ddf.from_dask_array(da_y, columns=['y'])  # .squeeze()
 
-sk_X1, sk_X_test, sk_y1, sk_y_test = \
-    sklearn_train_test_split(sk_X, sk_y, test_size=0.2)
-sk_X_train, sk_X_val, sk_y_train, sk_y_val = \
-    sklearn_train_test_split(sk_X1, sk_y1, test_size=0.25)
 
-if run_dtype == 'dataframe':
-    # DONT DO from_array, USE from_pandas TO PRESERVE COLUMN NAMES
-    da_X = ddf.from_pandas(sk_X, npartitions=_rows // 10)
-    da_y = ddf.from_pandas(sk_y, npartitions=_rows // 10)  # .squeeze()
-else:
-    da_X = da.array(sk_X).rechunk((_rows // 10, _cols))
-    da_y = da.array(sk_y).rechunk((_rows // 10, _cols))
-
-da_X1, da_X_test, da_y1, da_y_test = \
+da_X_train, da_X_test, da_y_train, da_y_test = \
     dask_train_test_split(da_X, da_y, test_size=0.2)
-da_X_train, da_X_val, da_y_train, da_y_val = \
-    dask_train_test_split(da_X1, da_y1, test_size=0.25)
 
-del sk_X1, sk_y1
-del da_X1, da_y1
+try:
+    da_y_train = da_y_train.to_dask_array(lengths=True).ravel()
+    da_y_test = da_y_test.to_dask_array(lengths=True).ravel()
+except:
+    pass
+
+
+
+sk_X_train = da_X_train.compute()
+sk_X_test = da_X_test.compute()
+sk_y_train = da_y_train.compute()
+sk_y_test = da_y_test.compute()
+
 
 
 # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -134,45 +133,87 @@ class OptimalParamsEst:
 
     def __init__(self, _gscv_type: str, _refit: str):
 
-        __scoring = ['accuracy', 'balanced_accuracy']
+        __scoring = _scoring
 
-        self.param_grid = {'max_depth': [3,4,5]}  # {'C': np.logspace(-5,-2,4)}
+        self.param_grid = {'C': np.logspace(-5,-2,4)} #{'max_depth': [3,4,5]}  #
 
         if _gscv_type == 'sklearn':
             self.optimal_params_est = sklearn_GridSearchCV(
-                estimator=sk_XGBClassifier(n_estimators=50, tree_method='hist'),
-                # estimator=sk_LogisticRegression(C=1e-3, solver='lbfgs', tol=1e-4),
+                # estimator=sk_XGBClassifier(
+                #     n_estimators=50,
+                #     max_depth=5,
+                #     tree_method='hist'
+                # ),
+                estimator=sk_LogisticRegression(
+                    C=1e-3,
+                    solver='lbfgs',
+                    tol=1e-6,
+                    fit_intercept=False
+                ),
                 param_grid=self.param_grid,
+                cv=5,
+                error_score='raise',
                 scoring=__scoring,
                 refit=_refit
             )
         elif _gscv_type == 'dask':
             self.optimal_params_est = dask_GridSearchCV(
-                estimator=sk_XGBClassifier(n_estimators=50, tree_method='hist'),
-                # estimator=dask_LogisticRegression(C=1e-3, solver='lbfgs', tol=1e-4),
+                # estimator=sk_XGBClassifier(
+                #     n_estimators=50,
+                #     max_depth=5,
+                #     tree_method='hist'
+                # ),
+                estimator=sk_LogisticRegression(
+                    C=1e-3,
+                    solver='lbfgs',
+                    tol=1e-6,
+                    fit_intercept=False
+                ),
                 param_grid=self.param_grid,
+                cv=5,
+                error_score='raise',
                 scoring=__scoring,
-                refit=_refit,
-                # scheduler=scheduler  # pizza
+                refit=_refit
             )
         elif _gscv_type == 'gstcv_sklearn':
             self.optimal_params_est = GSTCV(
-                estimator=sk_XGBClassifier(n_estimators=50, tree_method='hist'),
-                # estimator=sk_LogisticRegression(C=1e-3, solver='lbfgs', tol=1e-4),
+                # estimator=sk_XGBClassifier(
+                #     n_estimators=50,
+                #     max_depth=5,
+                #     tree_method='hist'
+                # ),
+                estimator=sk_LogisticRegression(
+                    C=1e-3,
+                    solver='lbfgs',
+                    tol=1e-6,
+                    fit_intercept=False
+                ),
                 param_grid=self.param_grid,
                 thresholds=[0.5],
+                cv=5,
+                error_score='raise',
                 scoring=__scoring,
                 refit=_refit
             )
         elif _gscv_type == 'gstcv_dask':
             self.optimal_params_est = GSTCVDask(
-                estimator=sk_XGBClassifier(n_estimators=50, tree_method='hist'),
-                # estimator=dask_LogisticRegression(C=1e-3, solver='lbfgs', tol=1e-4),
+                # estimator=sk_XGBClassifier(
+                #     n_estimators=50,
+                #     max_depth=5,
+                #     tree_method='hist'
+                # ),
+                estimator=sk_LogisticRegression(
+                    C=1e-3,
+                    solver='lbfgs',
+                    tol=1e-6,
+                    fit_intercept=False
+                ),
                 param_grid=self.param_grid,
                 thresholds=[0.5],
+                cv=5,
+                error_score='raise',
                 scoring=__scoring,
-                refit=_refit,
-                # scheduler=scheduler   # pizza
+                refit=_refit
             )
 
     @property
@@ -222,6 +263,10 @@ class OptimalParamsEst:
     @property
     def feature_names_in_(self):
         return self.optimal_params_est.feature_names_in_
+
+    @property
+    def best_threshold_(self):
+        return self.optimal_params_est.best_threshold_
 
     def decision_function(self, X):
         return self.optimal_params_est.decision_function(X)
@@ -275,12 +320,12 @@ class OptimalParamsEst:
 
 def refit_fxn(cv_results_):
     DF = pd.DataFrame(cv_results_)
-    # try: print(DF['rank_test_score'])
-    # except: pass
-    # try: print(DF['rank_test_balanced_accuracy'])
-    # except: pass
-    # return 0
-    return DF.index[DF['rank_test_balanced_accuracy']==1][0]
+    try:
+        __ = DF.index[DF['rank_test_balanced_accuracy'] == 1][0]
+    except:
+        __ = DF.index[DF['rank_test_score'] == 1][0]
+
+    return int(__)
 
 
 def handler_for_getattr(
@@ -317,20 +362,11 @@ def handler_for_getattr(
 
                 elif 'dask' in _gscv_type:
                     for _ in (da_X_train, da_y_train, da_X_test, da_y_test):
-                        assert isinstance(_, (da.core.Array, ddf.core.DataFrame))
+                        assert isinstance(
+                            _,
+                            (da.core.Array, ddf.core.DataFrame, ddf2.DataFrame)
+                        )
 
-                if 'dask' in _gscv_type:
-
-                    if _gscv_type == 'dask' and _round == 'post_fit' and refit_words == 'refit_fxn':
-                        _msg = 'dask cannot take callable for refit'
-
-                        if not dump_to_file:
-                            print(f'{itr}: {_msg}')
-                        else:
-                            ATTR_ARRAY_DICT[itr] = [f'{_msg}' for _ in ATTR_NAMES]
-                            METHOD_ARRAY_DICT[itr] = [f'{_msg}' for _ in METHOD_NAMES]
-
-                        continue
 
                 test_cls = OptimalParamsEst(_gscv_type, _refit)
 
@@ -367,7 +403,6 @@ def handler_for_getattr(
                             METHOD_ARRAY_DICT
                         )
                     elif 'dask' in _gscv_type:
-
                         METHOD_ARRAY_DICT = access_methods(
                             test_cls,
                             da_X_test,
@@ -387,12 +422,11 @@ def handler_for_getattr(
 
 if __name__ == '__main__':
 
-    # pizza
-    scheduler = Client(n_workers=4, threads_per_worker=1)
 
-    with scheduler:
-        # WHEN PRINTING TO SCREEN, KEEP access_attrs & access_methods SEPARATE SO THAT
-        # attr/method OUTPUT ISNT INTERMINGLED ** ** ** ** ** **
+    # WHEN PRINTING TO SCREEN, KEEP access_attrs & access_methods SEPARATE SO THAT
+    # attr/method OUTPUT ISNT INTERMINGLED ** ** ** ** ** **
+
+    with Client(n_workers=None, threads_per_worker=1):
 
         args = (ROUND, REFIT, TYPES, sk_X_train, sk_y_train, da_X_train,
                 da_y_train, sk_X_test, sk_y_test, da_X_test, da_y_test,
@@ -409,49 +443,49 @@ if __name__ == '__main__':
 
         del args
 
-        ###########################################################################
-        # WRITE ATTR RESULTS TO FILE ##############################################
-        SINGLE_DF = pd.DataFrame(
-            index=ATTR_NAMES,
-            columns=list(ATTR_ARRAY_DICT.keys()),
-            dtype='<U100'
-        ).fillna('-')
+    ###########################################################################
+    # WRITE ATTR RESULTS TO FILE ##############################################
+    SINGLE_DF = pd.DataFrame(
+        index=ATTR_NAMES,
+        columns=list(ATTR_ARRAY_DICT.keys()),
+        dtype='<U100'
+    ).fillna('-')
 
-        for _key, DATA_COLUMN in ATTR_ARRAY_DICT.items():
-            SINGLE_DF.loc[:, _key] = DATA_COLUMN
+    for _key, DATA_COLUMN in ATTR_ARRAY_DICT.items():
+        SINGLE_DF.loc[:, _key] = DATA_COLUMN
 
-        SINGLE_DF = SINGLE_DF.T
+    SINGLE_DF = SINGLE_DF.T
 
-        if os.name == 'posix':
-            attr_path = rf'/home/bear/Desktop/gscv_attr_comparison_dump.ods'
-        elif os.name == 'nt':
-            attr_path = rf'c:\users\bill\desktop\gscv_attr_comparison_dump.csv'
+    if os.name == 'posix':
+        attr_path = rf'/home/bear/Desktop/gscv_attr_comparison_dump.ods'
+    elif os.name == 'nt':
+        attr_path = rf'c:\users\bill\desktop\gscv_attr_comparison_dump.csv'
 
-        SINGLE_DF.to_csv(attr_path, index=True)
-        # END WRITE ATTR RESULTS TO FILE ##########################################
-        ###########################################################################
+    SINGLE_DF.to_csv(attr_path, index=True)
+    # END WRITE ATTR RESULTS TO FILE ##########################################
+    ###########################################################################
 
-        ###########################################################################
-        # WRITE METHOD RESULTS TO FILE ############################################
-        SINGLE_DF = pd.DataFrame(
-            index=METHOD_NAMES,
-            columns=list(METHOD_ARRAY_DICT.keys()),
-            dtype='<U100'
-        ).fillna('-')
+    ###########################################################################
+    # WRITE METHOD RESULTS TO FILE ############################################
+    SINGLE_DF = pd.DataFrame(
+        index=METHOD_NAMES,
+        columns=list(METHOD_ARRAY_DICT.keys()),
+        dtype='<U100'
+    ).fillna('-')
 
-        for _key, DATA_COLUMN in METHOD_ARRAY_DICT.items():
-            SINGLE_DF.loc[:, _key] = DATA_COLUMN
+    for _key, DATA_COLUMN in METHOD_ARRAY_DICT.items():
+        SINGLE_DF.loc[:, _key] = DATA_COLUMN
 
-        SINGLE_DF = SINGLE_DF.T
+    SINGLE_DF = SINGLE_DF.T
 
-        if os.name == 'posix':
-            method_path = rf'/home/bear/Desktop/gscv_method_comparison_dump.ods'
-        elif os.name == 'nt':
-            method_path = rf'c:\users\bill\desktop\gscv_method_comparison_dump.csv'
+    if os.name == 'posix':
+        method_path = rf'/home/bear/Desktop/gscv_method_comparison_dump.ods'
+    elif os.name == 'nt':
+        method_path = rf'c:\users\bill\desktop\gscv_method_comparison_dump.csv'
 
-        SINGLE_DF.to_csv(method_path, index=True)
-        # END WRITE METHOD RESULTS TO FILE ########################################
-        ###########################################################################
+    SINGLE_DF.to_csv(method_path, index=True)
+    # END WRITE METHOD RESULTS TO FILE ########################################
+    ###########################################################################
 
 # END DASK, SKLEARN, _GSTCV RESPONSES TO ATTR & METHOD CALLS ** ** ** ** ** **
 # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **

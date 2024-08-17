@@ -7,7 +7,7 @@
 
 
 from copy import deepcopy
-from typing import Union, Literal, Iterable
+from typing import Union, Literal, Iterable, Optional
 
 import dask, distributed
 
@@ -16,7 +16,6 @@ from model_selection.GSTCV._type_aliases import (
     YInputType,
     ScorerInputType,
     RefitType,
-    ClassifierProtocol,
     ParamGridType,
     SchedulerType
 )
@@ -30,20 +29,28 @@ from ._validation._dask_estimator import _validate_dask_estimator
 
 from ._handle_X_y._handle_X_y_dask import _handle_X_y_dask
 
-from model_selection.GSTCV._fit_shared._cv_results._cv_results_builder import \
-    _cv_results_builder
-
-from model_selection.GSTCV._fit_shared._verify_refit_callable import \
-    _verify_refit_callable
 
 from model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
-
+# pizza! 24_07_14..... prevent empty param_grid from getting into _core_fit....
+# this may be done already with a len(param_grid) but make sure.
 
 
 class GSTCVDask(_GSTCVMixin):
 
     """
+
+    24_08_11..... pizza remember that in pytest GSTCVDask was converting
+    Dask KFold generator to empty list. Check this again when testing
+    GSTCVDask.
+
+    24_08_11..... pizza, when scheduler is not passed, and there is no
+    global scheduler/client, multiprocesses Client is setup with n_jobs
+    number of workers and 1 thread per worker. If n_jobs is None,
+    the default behavior for distributed.Client when None is passed to
+    n_workers is used.
+
+    24_08_11...... pizza, iid is ignored when cv is an iterable.
 
     24_07_24..... pizza! remember that GSTCV takes metrics (not scorers!)
     that have signature (y_true, y_pred) and return a single number (where
@@ -89,6 +96,7 @@ class GSTCVDask(_GSTCVMixin):
 
 
 
+
     Examples
     --------
     >>> from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
@@ -126,17 +134,17 @@ class GSTCVDask(_GSTCVMixin):
         *,
         # thresholds can be a single number or list-type passed in
         # param_grid or applied universally via thresholds kwarg
-        thresholds: Union[Iterable[Union[int, float]], int, float, None]=None,
-        scoring: ScorerInputType='accuracy',
-        iid: bool = True,
-        refit: RefitType = True,
-        cv: Union[int, None] = None,
-        verbose: Union[int, float, bool] = 0,
-        error_score: Union[Literal['raise'], int, float] = 'raise',
-        return_train_score: bool = False,
-        scheduler: SchedulerType = None,
-        n_jobs: Union[int,None]=None,
-        cache_cv:bool=True
+        thresholds: Optional[Union[Iterable[Union[int, float]], int, float, None]]=None,
+        scoring: Optional[ScorerInputType]='accuracy',
+        iid: Optional[bool]=True,
+        refit: Optional[RefitType]=True,
+        cv: Optional[Union[int, None]]=None,
+        verbose: Optional[Union[int, float, bool]]=0,
+        error_score: Optional[Union[Literal['raise'], int, float]]='raise',
+        return_train_score: Optional[bool]=False,
+        scheduler: Optional[Union[SchedulerType, None]]=None,
+        n_jobs: Optional[Union[int,None]]=None,
+        cache_cv: Optional[bool]=True
         ):
 
 
@@ -159,96 +167,45 @@ class GSTCVDask(_GSTCVMixin):
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
+    ####################################################################
+    # SUPPORT METHODS ##################################################
+
     def _handle_X_y(self, X, y=None):
+
+        # PIZZA PIZZA! WHAT ABOUT BLOCKING NON-[0,1] y? THINK ON OVR 🤔
+
         return _handle_X_y_dask(X, y=y)
 
-    ####################################################################
-    # SKLEARN / DASK GridSearchCV Methods ##############################
 
-    def fit(
+    def _core_fit(
             self,
             X: XInputType,
             y: YInputType=None,
             **params
         ):
 
-        """
-        Analog to dask/sklearn GridSearchCV fit() method. Run fit with
-        all sets of parameters.
-        Pizza add words.
 
-        Parameters
-        ----------
-        # pizza can y be [] and [[]]
-        X: Iterable[Iterable[Union[int, float]]] - training data
-        y: Union[Iterable[Iterable[Union[int,float]]], Iterable[Union[int,float]]] -
-            target for training data
-        groups: Group labels for the samples used while splitting the dataset
-            into train/tests set
-        **params: ???
+        self.cv_results_ = _core_fit(
+            X,
+            y,
+            self._estimator,
+            self.cv_results_,
+            self._cv,
+            self._error_score,
+            self._verbose,
+            self.scorer_,
+            self._cache_cv,
+            self._iid,
+            self._return_train_score,
+            self._PARAM_GRID_KEY,
+            self._THRESHOLD_DICT,
+            **params
+        )
 
-        Return
-        ------
-        -
-            Instance of fitted estimator.
-
-
-        """
-
-        # pizza, validate() was moved from after self._classes = None
-        # on 24_07_26_19_32_00. any problems, move it back.
-        self._validate_and_reset()
-
-        _X, _y, _feature_names_in, _n_features_in = self._handle_X_y(X, y)
+        return
 
 
-        # DONT unique().compute() HERE, JUST RETAIN THE VECTOR & ONLY DO
-        # THE PROCESSING IF classes_ IS CALLED
-        self._classes_ = y
-
-        # THIS IS A HOLDER THAT IS FILLED ONE TIME WHEN THE unique().compute()
-        # IS DONE ON self._classes_
-        self._classes = None
-
-
-        # BEFORE RUNNING cv_results_builder, THE THRESHOLDS MUST BE REMOVED FROM EACH PARAM GRID IN wip_param_grids
-        # BUT THEY NEED TO BE RETAINED FOR CORE GRID SEARCH.
-        THRESHOLD_DICT = {i:self.wip_param_grid[i].pop('thresholds') for i in range(len(self.wip_param_grid))}
-
-        # pizza 24_07_10, for both sk and dask, n_splits_ is only
-        # available after fit(). n_splits_ is always returned as a number
-        self.cv_results_, PARAM_GRID_KEY = \
-            _cv_results_builder(self.wip_param_grid, self.n_splits_, self.scorer_, self.return_train_score)
-
-
-
-        if callable(self.wip_refit):
-            _verify_refit_callable(self.wip_refit, deepcopy(self.cv_results_))
-
-        with self._scheduler or distributed.Client(processes=False) as scheduler:
-            self.cv_results_ = _core_fit(
-                _X,
-                _y,
-                self._estimator,
-                self.cv_results_,
-                self._cv,
-                self._error_score,
-                self._verbose,
-                self.scorer_,
-                self._cache_cv,
-                self._iid,
-                self._return_train_score,
-                PARAM_GRID_KEY,
-                THRESHOLD_DICT,
-                **params
-            )
-
-        super().fit(_X, _y, **params)
-
-        return self
-
-
-    def visualize(self, filename=None, format=None):
+    def visualize(self, filename="mydask", format=None, **kwargs):
         """
         STRAIGHT FROM DASK SOURCE CODE:
         Render the task graph for this parameter search using ``graphviz``.
@@ -273,22 +230,24 @@ class GSTCVDask(_GSTCVMixin):
            See ``dask.dot.dot_graph`` for more information.
         """
 
-        if not self._dask_estimator:
-            raise NotImplementedError(f"Cannot visualize a sklearn estimator")
+        # if hasattr(self, '_dask_estimator') and not self._dask_estimator:
+        #     raise NotImplementedError(f"Cannot visualize a sklearn estimator")
+        #
+        # self.check_is_fitted()
+        #
+        # return dask.visualize(
+        #     self._estimator,
+        #     filename=filename,
+        #     format=format,
+        #     **kwargs
+        # )
 
         self.check_is_fitted()
-        # PIZZA FIGURE THIS OUT
-        return dask.visualize(self._estimator, filename=filename, format=format)
 
-
-    # END SKLEARN / DASK GridSearchCV Method ###########################
-    ####################################################################
-
-
-    ####################################################################
-    # SUPPORT METHODS ##################################################
-
-
+        __ = type(self).__name__
+        raise NotImplementedError(
+            f"visualize is not implemented in {__}."
+        )
 
 
     def _validate_and_reset(self):
@@ -300,7 +259,7 @@ class GSTCVDask(_GSTCVMixin):
 
         self._iid = _validate_iid(self.iid)
 
-        self._scheduler = _validate_scheduler(self.scheduler)
+        self._scheduler = _validate_scheduler(self.scheduler, self._n_jobs)
 
         self._cache_cv = _validate_cache_cv(self.cache_cv)
 

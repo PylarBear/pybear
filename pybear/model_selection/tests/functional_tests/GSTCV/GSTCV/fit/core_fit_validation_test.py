@@ -11,7 +11,7 @@ import numpy as np
 
 
 from sklearn.model_selection import KFold
-from sklearn.model_selection import ParameterGrid
+
 from sklearn.linear_model import (
     LogisticRegression,
     LinearRegression,
@@ -79,10 +79,6 @@ class TestCoreFitValidation:
             scorer=good_SCORER,
             return_train_score=True
         )
-
-        param_grid = ParameterGrid(param_grid)
-        out_cv_results['params'] = np.ma.masked_array(param_grid)
-        del param_grid
 
         return out_cv_results, out_key
 

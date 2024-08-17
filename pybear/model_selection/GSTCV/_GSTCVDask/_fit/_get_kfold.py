@@ -100,7 +100,7 @@ def _get_kfold(
 
 
     split_t0 = time.perf_counter()
-
+    # KFold keeps the same chunks ax X
     KFOLD = dask_KFold(
         n_splits=_n_splits,
         shuffle=not _iid,

@@ -12,8 +12,7 @@ import scipy.sparse as ss
 import functools
 import string
 
-from sklearn.model_selection import \
-    train_test_split as sklearn_train_test_split
+from sklearn.model_selection import train_test_split as sklearn_train_test_split
 from sklearn.datasets import make_classification as sklearn_make_classification
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
 from sklearn.linear_model import LogisticRegression as sklearn_Logistic

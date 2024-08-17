@@ -20,13 +20,13 @@ from model_selection.GSTCV._type_aliases import (
 @joblib.wrap_non_picklable_objects
 def _parallelized_fit(
         f_idx: int,
-        X_train: XSKWIPType,
-        y_train: YSKWIPType,
+        _X_train: XSKWIPType,
+        _y_train: YSKWIPType,
         _estimator_: ClassifierProtocol,
         _grid: dict[str, Union[str, int, float, bool]],
         _error_score,
         **fit_params
-    ):
+    ) -> tuple[ClassifierProtocol, float, bool]:
 
     """
     Wrapped estimator fit method designed for joblib parallelism. Special
@@ -38,10 +38,10 @@ def _parallelized_fit(
     f_idx:
         int - the zero-based split index of the train partition used in
         this fit; parallelism occurs over the different splits.
-    X_train:
+    _X_train:
         NDArray[Union[int,float]] - A train partition of the data being
         fit. Must be 2D ndarray.
-    y_train:
+    _y_train:
         NDArray[int] - The corresponding train partition of the target
         for the X train partition. Must be 1D ndarray.
     _estimator_:
@@ -85,7 +85,7 @@ def _parallelized_fit(
 
 
     try:
-        _estimator_.fit(X_train, y_train, **fit_params)
+        _estimator_.fit(_X_train, _y_train, **fit_params)
     except BrokenPipeError:
         raise BrokenPipeError  # FOR PYTEST ONLY
     except Exception as f:

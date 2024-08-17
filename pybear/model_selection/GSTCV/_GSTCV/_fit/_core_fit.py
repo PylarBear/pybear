@@ -110,7 +110,7 @@ def _core_fit(
     _n_jobs:
         Union[int, None] - number of processes (or threads) to use in
         joblib parallelism. Processes or threads can be managed by a
-        joblib context manager --- pizza verify this. Default is processes.
+        joblib context manager. Default is processes.
     _return_train_score:
         bool - If True, calculate scores for the train data in addition
         to the test data. There is a (perhaps appreciable) time and

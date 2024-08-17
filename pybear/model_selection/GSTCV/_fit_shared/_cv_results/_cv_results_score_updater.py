@@ -73,7 +73,7 @@ def _cv_results_score_updater(
     del _n_permutes
 
     for _scorer_name in _scorer:
-        if _scorer_name not in master_scorer_dict:
+        if _scorer_name != 'score' and _scorer_name not in master_scorer_dict:
             raise ValueError(f"scorer names in '_scorer' ({_scorer_name}) must "
                 f"match those in allowed: {', '.join(master_scorer_dict)}")
 

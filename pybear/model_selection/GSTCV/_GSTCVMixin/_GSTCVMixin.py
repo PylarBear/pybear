@@ -6,9 +6,7 @@
 
 from copy import deepcopy
 import time
-import warnings
-from typing import Union
-
+from sklearn.base import BaseEstimator
 import numpy as np
 import dask.array as da
 
@@ -21,9 +19,24 @@ from ._validation._return_train_score import _validate_return_train_score
 from ._validation._scoring import _validate_scoring
 from ._validation._thresholds__param_grid import _validate_thresholds__param_grid
 
-class _GSTCVMixin:
+
+from model_selection.GSTCV._fit_shared._cv_results._cv_results_builder import \
+    _cv_results_builder
+
+from model_selection.GSTCV._fit_shared._verify_refit_callable import \
+    _verify_refit_callable
+
+
+
+
+
+
+# pizza added BaseEstimator 24_08_15_16_43_00
+class _GSTCVMixin(BaseEstimator):
 
     """
+
+    # PIZZA! BaseEstimator is intended to only provide __repr__.
 
     --- Classifer must have predict_proba method. If does not have predict_proba,
     try to wrap with CalibratedClassifierCV.
@@ -55,82 +68,9 @@ class _GSTCVMixin:
      'std_fit_time', 'std_score_time', 'std_test_score', 'std_train_score'...]
     """
 
-
-
     # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    # pizza 24_07_26_08_43_00 what to do about this? it can probably go
-    # @property
-    # def estimator(self):
-    #     return self._estimator
-
-    # pizza 24_07_26_08_39_00 if the get/set_params stuff works out with
-    # self.estimator not being self._estimator, then this can come out
-    # @estimator.setter
-    # def estimator(self, value):
-    #     self.set_estimator_error()
-
-
-    # def __repr__(self, N_CHAR_MAX=700):
-    #
-    #     # PIZZA, ALL OF __repr__ IS COPIED AND PASTED DIRECTLY FROM sklearn
-    #     # BaseEstimator 24_07_28_14_21_00
-    #
-    #
-    #     # N_CHAR_MAX is the (approximate) maximum number of non-blank
-    #     # characters to render. We pass it as an optional parameter to ease
-    #     # the tests.
-    #     import re
-    #     from sklearn.utils._pprint import _EstimatorPrettyPrinter
-    #
-    #     N_MAX_ELEMENTS_TO_SHOW = 30  # number of elements to show in sequences
-    #
-    #     # use ellipsis for sequences with a lot of elements
-    #     pp = _EstimatorPrettyPrinter(
-    #         compact=True,
-    #         indent=1,
-    #         indent_at_name=True,
-    #         n_max_elements_to_show=N_MAX_ELEMENTS_TO_SHOW,
-    #     )
-    #
-    #     repr_ = pp.pformat(self)
-    #
-    #     # Use bruteforce ellipsis when there are a lot of non-blank characters
-    #     n_nonblank = len("".join(repr_.split()))
-    #     if n_nonblank > N_CHAR_MAX:
-    #         lim = N_CHAR_MAX // 2  # apprx number of chars to keep on both ends
-    #         regex = r"^(\s*\S){%d}" % lim
-    #         # The regex '^(\s*\S){%d}' % n
-    #         # matches from the start of the string until the nth non-blank
-    #         # character:
-    #         # - ^ matches the start of string
-    #         # - (pattern){n} matches n repetitions of pattern
-    #         # - \s*\S matches a non-blank char following zero or more blanks
-    #         left_lim = re.match(regex, repr_).end()
-    #         right_lim = re.match(regex, repr_[::-1]).end()
-    #
-    #         if "\n" in repr_[left_lim:-right_lim]:
-    #             # The left side and right side aren't on the same line.
-    #             # To avoid weird cuts, e.g.:
-    #             # categoric...ore',
-    #             # we need to start the right side with an appropriate newline
-    #             # character so that it renders properly as:
-    #             # categoric...
-    #             # handle_unknown='ignore',
-    #             # so we add [^\n]*\n which matches until the next \n
-    #             regex += r"[^\n]*\n"
-    #             right_lim = re.match(regex, repr_[::-1]).end()
-    #
-    #         ellipsis = "..."
-    #         if left_lim + len(ellipsis) < len(repr_) - right_lim:
-    #             # Only add ellipsis if it results in a shorter repr
-    #             repr_ = repr_[:left_lim] + "..." + repr_[-right_lim:]
-    #
-    #     return repr_
-
-
 
 
     @property
@@ -143,26 +83,23 @@ class _GSTCVMixin:
 
 
         """
+
         self.check_refit_is_false_no_attr_no_method('classes_')
 
-        # pizza put this here 24_07_28_17_00_00
-        # self.check_is_fitted()
-
-        if not hasattr(self, '_classes'):   # MEANS fit() HASNT BEEN RUN
-            self.estimator_hasattr('classes_')   # GET THE EXCEPTION
+        self.check_is_fitted()
 
         if self._classes is None:
             # self._classes IS A HOLDER THAT IS FILLED ONE TIME WHEN
             # THIS METHOD IS CALLED
-            # self._classes_ IS y AND CAN ONLY BE np OR da ARRAY
+            # self._y IS y AND CAN ONLY BE np OR da ARRAY
             if hasattr(self._estimator, 'classes_'):
                 self._classes = self.best_estimator_.classes_
             else:
-                # 24_02_25_16_13_00 --- GIVES USER ACCESS TO THIS ATTR FOR DASK
-                # da.unique WORKS ON np AND dask arrays
-                self._classes = da.unique(self._classes_).compute()
+                with self._scheduler:
+                    # da.unique WORKS ON np AND dask arrays
+                    self._classes = da.unique(self._y).compute()
+                    del self._y
 
-            del self._classes_
 
         return self._classes
 
@@ -170,48 +107,70 @@ class _GSTCVMixin:
     @property
     def n_features_in_(self):
         """
-            property n_features_in_: Number of features seen during fit.
-            Only available when refit is not False.
+        property n_features_in_: Number of features seen during fit.
+        Only available when refit is not False.
 
         """
+
+        __ = type(self).__name__
 
         try:
             self.check_is_fitted()
         except:
-            __ = type(self).__name__
-            raise Exception(f"{__} object has no n_features_in_ attribute.")
+            raise AttributeError(f"{__} object has no n_features_in_ attribute.")
 
-        if self._n_features_in is None:
-            # self._n_features_in IS A HOLDER THAT IS FILLED ONE TIME
-            # WHEN THIS METHOD IS CALLED
-            # self._n_features_in_ IS X.shape[0] AND CAN BE int OR delayed
-            if hasattr(self._estimator, 'n_features_in_'):
-                self._n_features_in = self.best_estimator_.n_features_in_
-            elif self.wip_refit is not False:
-                # 24_02_25_17_07_00 --- GIVES USER ACCESS TO THIS ATTR FOR DASK
-                try: self._n_features_in = self._n_features_in_.compute()
-                except: self._n_features_in = self._n_features_in_
-
-            del self._n_features_in_
-
-        return self._n_features_in
+        # self._n_features_in_ IS X.shape[1] AND MUST BE int (DASK WAS COMPUTED)
+        if self._refit is False:
+            raise AttributeError(f"'{__}' object has no attribute 'n_features_in_'")
+        else:
+            if hasattr(self.best_estimator_, 'n_features_in_'):
+                return self.best_estimator_.n_features_in_
+            else:
+                return self._n_features_in
 
 
     ####################################################################
-    # SKLEARN / DASK GridSearchCV Methods ##############################
+    # SKLEARN / DASK GSTCV Methods #####################################
 
-    def fit(self, _X, _y, **refit_params):
+    def fit(self, X, y, **params):
 
-        # post_fit_supplemental
+        """
+        Analog to dask/sklearn GridSearchCV fit() method. Run fit with
+        all sets of parameters.
+        Pizza add words.
+
+        Parameters
+        ----------
+        # pizza can y be [] and [[]]
+        X: Iterable[Iterable[Union[int, float]]] - training data
+        y: Union[Iterable[Iterable[Union[int,float]]], Iterable[Union[int,float]]] -
+            target for training data
+        groups: Group labels for the samples used while splitting the dataset
+            into train/tests set
+        **params: ???
+
+        Return
+        ------
+        -
+            Instance of fitted estimator.
+
+
+        """
+
 
         """
         refit:
             if False:
-            self.best_index_: Indeterminate, not explicitly stated. Most likely is available.
-            self.best_estimator_: estimator --- Not available if refit=False.
-            self.best_score_: is available as a float
-            self.best_params_: For multi-metric evaluation, not present if refit is not specified.
-            self.n_features_in_: Not available.
+                self.best_index_:
+                    Indeterminate, not explicitly stated. Most likely is available.
+                self.best_estimator_:
+                    estimator --- Not available if refit=False.
+                self.best_score_:
+                    is available as a float
+                self.best_params_:
+                    For multi-metric evaluation, not present if refit is not specified.
+                self.n_features_in_:
+                    Not available.
 
             if not False:
 
@@ -246,18 +205,26 @@ class _GSTCVMixin:
         """
 
         """
-        self.best_index_: int or dict of ints
-        The index of the cv_results_ array which corresponds to the best candidate parameter setting.
-        This locates the dict in search.cv_results_['params'][search.best_index_] holding the parameter settings
-        for the best model, i.e., the one that gives the highest mean score (search.best_score_) on the holdout data.
-        When using multiple metrics, best_index_ will be a dictionary where the keys are the names of the scorers,
-        and the values are the index with the best mean score for that scorer, as described above.
+        self.best_index_: int or dict of ints <--- pizza
+        The index of the cv_results_ dictionary which corresponds to the 
+        best candidate parameter setting. This locates the dict in 
+        GSTCV.cv_results_['params'] holding the parameter settings for 
+        the best model, i.e., best model being the model that gives the 
+        highest mean score (GSTCV.best_score_) on holdout data.
+        
+        # 24_07_30_13_20_00 pizza, this cannot be true, if this cannot be
+        # corroborated, remove it. 
+        When using multiple metrics, best_index_ will be a dictionary 
+        where the keys are the names of the scorers, and the values are 
+        the index with the best mean score for that scorer, as described 
+        above.
         """
 
         """
         self.best_estimator_: estimator
-        Estimator that was chosen by the search, i.e. estimator which gave highest score (or smallest loss
-        if specified) on the left out data. Not available if refit=False.
+        Estimator that was chosen by the search, i.e. estimator which 
+        gave highest score (or smallest loss if specified) on the left 
+        out data. Not available if refit=False.
         """
 
         """
@@ -268,15 +235,18 @@ class _GSTCVMixin:
 
         """
         self.best_params_: dict
-            The dict at search.cv_results_['params'][search.best_index_] that holds the parameter settings that yields
-            the best model (i.e, gives the highest mean score -- search.best_score_ -- on the hold out data.)
-            For multi-metric evaluation, this is present only if refit is specified.
+            The dict at search.cv_results_['params'][search.best_index_] 
+            that holds the parameter settings that yields the best model 
+            (i.e, gives the highest mean score -- search.best_score_ -- 
+            on the hold out data.) For multi-metric evaluation, this is 
+            present only if refit is specified.
         """
 
         """
         self.n_features_in_:
             sklearn only
-            Number of features seen during fit. Only available when refit = True.
+            Number of features seen during fit. Only available when 
+            refit = True.
         """
 
         """
@@ -285,87 +255,160 @@ class _GSTCVMixin:
             This is present only if refit is not False.
         """
 
-        refit_is_str = isinstance(self.wip_refit, str)
-        refit_is_false = self.wip_refit == False
-        refit_is_callable = callable(self.wip_refit)
 
-        if refit_is_callable:
-            refit_fxn_output = self.wip_refit(deepcopy(self.cv_results_))
-            _msg = (f"if a callable is passed to refit, it must yield or return "
-                    f"an integer, and it must be within range of cv_results_ rows.")
+        self._validate_and_reset()
+
+        # feature_names_in_: ndarray of shape (n_features_in_,)
+        # Names of features seen during fit. Only defined if
+        # best_estimator_ is defined and if best_estimator_ exposes
+        # feature_names_in_ when fit.
+        # try:
+        _X, _y, _feature_names_in, self._n_features_in = self._handle_X_y(X, y)
+
+        if _feature_names_in is not None and self._refit is not False:
+            self.feature_names_in_ = _feature_names_in
+
+        # DONT unique().compute() HERE, JUST RETAIN THE VECTOR & ONLY DO
+        # THE PROCESSING IF classes_ IS CALLED
+        self._y = y
+
+        # THIS IS A HOLDER THAT IS FILLED ONE TIME WHEN THE unique().compute()
+        # IS DONE ON self._y WHEN @property classes_ IS CALLED
+        self._classes = None
+
+
+        # BEFORE RUNNING cv_results_builder, THE THRESHOLDS MUST BE
+        # REMOVED FROM EACH PARAM GRID IN _param_grid BUT THEY NEED TO
+        # BE RETAINED FOR CORE GRID SEARCH.
+        # pop IS INTENTIONALLY USED HERE TO REMOVE 'thresholds' FROM
+        # PARAM GRIDS.
+        # 'thresholds' MUST BE REMOVED FROM PARAM GRIDS BEFORE GOING
+        # TO _cv_results_builder OR THRESHOLDS WILL BECOME PART OF THE
+        # GRID SEARCH, AND ALSO CANT BE PASSED TO estimator.
+        self._THRESHOLD_DICT = {}
+        for i in range(len(self._param_grid)):
+            self._THRESHOLD_DICT[i] = self._param_grid[i].pop('thresholds')
+
+
+        # this could have been at the top of _core_fit but is outside
+        # because cv_results is used to validate the refit callable
+        # before starting the fit.
+        self.cv_results_, self._PARAM_GRID_KEY = \
+            _cv_results_builder(
+                self._param_grid,
+                self.n_splits_,
+                self.scorer_,
+                self.return_train_score
+        )
+
+        # USE A DUMMIED-UP cv_results TO TEST IF THE refit CALLABLE RETURNS
+        # A GOOD INDEX NUMBER, BEFORE RUNNING THE WHOLE GRIDSEARCH
+        if callable(self._refit):
+            _verify_refit_callable(self._refit, deepcopy(self.cv_results_))
+
+
+        # CORE FIT v v v v v v v v v v v v v v v v v v v v v v v v v v v
+
+        with self._scheduler as scheduler:
+            self._core_fit(_X, _y, **params)
+
+        # END CORE FIT ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
+
+        _rows = self.cv_results_['params'].shape[0]
+        _get_best = lambda column: self.cv_results_[column][self.best_index_]
+        _get_best_index = \
+            lambda column: np.arange(_rows)[self.cv_results_[column] == 1][0]
+
+        # 'refit' can be a str, bool False, or callable
+
+        if callable(self._refit):
+
+            refit_fxn_output = self._refit(deepcopy(self.cv_results_))
+            _msg = (f"if a callable is passed to refit, it must yield or "
+                    f"return an integer, and it must be within range of "
+                    f"cv_results_ rows."
+            )
             if not int(refit_fxn_output) == refit_fxn_output:
                 raise ValueError(_msg)
-            if refit_fxn_output > self.cv_results_['params'].shape[0]:
+            if refit_fxn_output > _rows:
                 raise ValueError(_msg)
+
+
             self.best_index_ = refit_fxn_output
             del refit_fxn_output
-            self.best_params_ = self.cv_results_['params'][self.best_index_]
+
+            self.best_params_ = _get_best('params')
+
             if len(self.scorer_) == 1:
-                self.best_threshold_ = self.cv_results_['best_threshold'][self.best_index_]
-                self.best_score_ = self.cv_results_['mean_test_score'][self.best_index_]
+                self.best_threshold_ = _get_best('best_threshold')
+                self.best_score_ = _get_best('mean_test_score')
+
             elif len(self.scorer_) > 1:
                 # A WARNING IS RAISED DURING VALIDATION
                 # self.best_score_ NOT AVAILABLE
                 # self.best_threshold_ NOT AVAILABLE
                 pass
-        elif refit_is_false:
+
+        elif self._refit == False:
+
             if len(self.scorer_) == 1:
-                self.best_index_ = np.arange(self.cv_results_['params'].shape[0])[self.cv_results_['rank_test_score'] == 1][0]
-                self.best_params_ = self.cv_results_['params'][self.best_index_]
-                self.best_threshold_ = self.cv_results_['best_threshold'][self.best_index_]
-                self.best_score_ = self.cv_results_['mean_test_score'][self.best_index_]
-                # pizza verified best_score_ 24_07_16 in jupyter through various experiments
-                # really is mean_test_score for best_index.
+                self.best_index_ = _get_best_index('rank_test_score')
+                self.best_params_ = _get_best('params')
+                self.best_threshold_ = _get_best('best_threshold')
+                self.best_score_ = _get_best('mean_test_score')
+                # 24_07_16 through various experiments verified best_score_
+                # really is mean_test_score for best_index
             elif len(self.scorer_) > 1:
                 # A WARNING IS RAISED DURING VALIDATION
                 # self.best_score_ NOT AVAILABLE
                 # self.best_threshold_ NOT AVAILABLE
                 pass
-        elif refit_is_str:
+
+        elif isinstance(self._refit, str):
             # DOESNT MATTER WHAT len(self.scorer_) IS
-            self.best_index_ = np.arange(self.cv_results_['params'].shape[0])[self.cv_results_[f'rank_test_{self.wip_refit}'] == 1][0]
-            self.best_params_ = self.cv_results_['params'][self.best_index_]
-            threshold_column = f'best_threshold' if len(self.scorer_)==1 else f'best_threshold_{self.wip_refit}'
-            self.best_threshold_ = self.cv_results_[threshold_column][self.best_index_]
+            self.best_index_ = _get_best_index(f'rank_test_{self._refit}')
+            self.best_params_ = _get_best('params')
+
+            if len(self.scorer_) == 1:
+                threshold_column = f'best_threshold'
+            else:
+                threshold_column = f'best_threshold_{self._refit}'
+
+            self.best_threshold_ = _get_best(threshold_column)
             del threshold_column
-            self.best_score_ = self.cv_results_[f'mean_test_{self.wip_refit}'][self.best_index_]
+            self.best_score_ = _get_best(f'mean_test_{self._refit}')
+        else:
+            raise Exception(f"invalid 'refit' value '{self._refit}'")
 
-        del refit_is_str, refit_is_callable, refit_is_false
+        del _rows
+        del _get_best
 
-        if self.wip_refit:
-            if self.verbose >= 3: print(f'\nStarting refit...')
-            self.best_estimator_ = self._estimator
+        if self._refit:
+
+            if self.verbose >= 3:
+                print(f'\nStarting refit...')
+
+            self.best_estimator_ = \
+                type(self._estimator)(**self._estimator.get_params(deep=False))
+
             self.best_estimator_.set_params(**self.best_params_)
+
+
             t0 = time.perf_counter()
 
-            self.best_estimator_.fit(_X, _y, **refit_params)
+            with self._scheduler as scheduler:
+                self.best_estimator_.fit(_X, _y, **params)
+
             self.refit_time_ = time.perf_counter() - t0
             del t0
             if self.verbose >= 3:
                 print(f'Finished refit. time = {self.refit_time_}')
 
-            # feature_names_in_: ndarray of shape (n_features_in_,)
-            # Names of features seen during fit. Only defined if
-            # best_estimator_ is defined and if best_estimator_ exposes
-            # feature_names_in_ when fit.
-            try:
-                self.feature_names_in_ = self.best_estimator_.feature_names_in_
-            except:
-                try:
-                    self.feature_names_in_ = self._feature_names_in
-                except:
-                    pass
-
-        elif self.wip_refit is False:
+        elif self._refit is False:
             pass
 
+
         return self
-
-
-
-
-
-
 
 
     def decision_function(self, X):
@@ -389,15 +432,16 @@ class _GSTCVMixin:
 
         """
 
-        self.estimator_hasattr('predict_proba')
+        self.estimator_hasattr('decision_function')
 
-        self.check_refit_is_false_no_attr_no_method('predict_proba')
+        self.check_refit_is_false_no_attr_no_method('decision_function')
 
         self.check_is_fitted()
 
-        X = self._handle_X_y(X, y=None)[0]
+        _X = self._handle_X_y(X, y=None)[0]
 
-        return self.best_estimator_.decision_function(X)
+        with self._scheduler as scheduler:
+            return self.best_estimator_.decision_function(_X)
 
 
     def get_metadata_routing(self):
@@ -415,7 +459,9 @@ class _GSTCVMixin:
         # sklearn only --- always available, before and after fit()
 
         __ = type(self).__name__
-        raise NotImplementedError(f"get_metadata_routing is not implemented in {__}.")
+        raise NotImplementedError(
+            f"get_metadata_routing is not implemented in {__}."
+        )
 
 
     def get_params(self, deep:bool=True):
@@ -441,7 +487,14 @@ class _GSTCVMixin:
         if not isinstance(deep, bool):
             raise ValueError(f"'deep' must be boolean")
 
-        paramsdict = deepcopy(vars(self))
+        paramsdict = {}
+        for attr in vars(self):
+            # after fit, take out all the attrs with leading or trailing '_'
+            if attr[0] == '_' or attr[-1] == '_':
+                continue
+
+            paramsdict[attr] = deepcopy(vars(self)[attr])
+
 
         # gymnastics to get GSTCV param order the same as sk/dask GSCV
         paramsdict1 = {}
@@ -486,20 +539,21 @@ class _GSTCVMixin:
         Return
         ------
         -
-            X Union[ndarray, sparse matrix, pizza] of shape (n_samples,
+            X: Union[ndarray] of shape (n_samples,
                 n_features) - Result of the inverse_transform function
                 for Xt based on the estimator with the best found parameters.
 
 
         """
 
-        # PIZZA 24_07_01_08_44_00 FIGURE OUT IF THIS SHOULD STAY OR GO
-
         self.estimator_hasattr('inverse_transform')
 
         self.check_refit_is_false_no_attr_no_method('inverse_transform')
 
-        return self.best_estimator_.inverse_transform(Xt)
+        self.check_is_fitted()
+
+        with self._scheduler as scheduler:
+            return self.best_estimator_.inverse_transform(Xt)
 
 
     def predict(self, X):
@@ -524,11 +578,19 @@ class _GSTCVMixin:
 
         self.check_is_fitted()
 
-        X = self._handle_X_y(X, y=None)[0]
+        if len(self.scorer_) > 1 and callable(self._refit):
+            raise AttributeError(f"'predict' is not available when there "
+                f"are multiple scorers and refit is a callable because "
+                f"best_threshold_ cannot be determined.")
 
-        y_pred = self.best_estimator_.predict_proba(X)[:, -1] > self.best_threshold_
+        _X = self._handle_X_y(X, y=None)[0]
 
-        return y_pred.astype(np.uint8)
+        with self._scheduler as scheduler:
+
+            y_pred = self.best_estimator_.predict_proba(_X)[:, -1] >= \
+                        self.best_threshold_
+
+            return y_pred.astype(np.uint8)
 
 
     def predict_log_proba(self, X):
@@ -556,9 +618,10 @@ class _GSTCVMixin:
 
         self.check_is_fitted()
 
-        X = self._handle_X_y(X, y=None)[0]
+        _X = self._handle_X_y(X, y=None)[0]
 
-        return self.best_estimator_.predict_log_proba(X)
+        with self._scheduler as scheduler:
+            return self.best_estimator_.predict_log_proba(X)
 
 
     def predict_proba(self, X):
@@ -588,9 +651,10 @@ class _GSTCVMixin:
 
         self.check_is_fitted()
 
-        X = self._handle_X_y(X, y=None)[0]
+        _X = self._handle_X_y(X, y=None)[0]
 
-        return self.best_estimator_.predict_proba(X)
+        with self._scheduler as scheduler:
+            return self.best_estimator_.predict_proba(X)
 
 
     def score(self, X, y=None, **params):
@@ -623,11 +687,20 @@ class _GSTCVMixin:
 
         self.check_is_fitted()
 
-        X, y = self._handle_X_y(X, y=y)[[0,1]]
+        if callable(self._refit) and len(self.scorer_) > 1:
+            return self._refit
 
-        y_pred = (self.predict_proba(X)[:, -1] >= self.best_threshold_)
+        _X, _y = self._handle_X_y(X, y=y)[:2]
 
-        return self.scorer_[self.wip_refit](y, y_pred, **params)
+        with self._scheduler as scheduler:
+            y_pred = (self.predict_proba(_X)[:, -1] >= self.best_threshold_)
+
+        # if refit is False, score() is not would be accessible
+
+            if callable(self._refit) and len(self.scorer_) == 1:
+                return self.scorer_['score'](_y, y_pred, **params)
+            else:
+                return self.scorer_[self._refit](_y, y_pred, **params)
 
 
     def score_samples(self, X):
@@ -651,9 +724,12 @@ class _GSTCVMixin:
 
         self.check_refit_is_false_no_attr_no_method('score_samples')
 
-        X = self._handle_X_y(X, y=None)[0]
+        self.check_is_fitted()
 
-        return self.best_estimator_.score_samples(X)
+        _X = self._handle_X_y(X, y=None)[0]
+
+        with self._scheduler as scheduler:
+            return self.best_estimator_.score_samples(_X)
 
 
     def set_params(self, **params):
@@ -720,7 +796,8 @@ class _GSTCVMixin:
 
         # set estimator params ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # IF self.estimator is dask/sklearn est/pipe, THIS SHOULD HANDLE
-        # EXCEPTIONS FOR INVALID PASSED PARAMS
+        # EXCEPTIONS FOR INVALID PASSED PARAMS. Must set params on estimator,
+        # not _estimator, because _estimator may not exist (until fit())
         self.estimator.set_params(**est_params)
 
         # this is stop-gap validation in case an estimator (of a makeshift
@@ -762,12 +839,15 @@ class _GSTCVMixin:
 
         self.check_refit_is_false_no_attr_no_method('transform')
 
-        X = self._handle_X_y(X, y=None)[0]
+        self.check_is_fitted()
 
-        return self.best_estimator_.transform(X)
+        _X = self._handle_X_y(X, y=None)[0]
+
+        with self._scheduler as scheduler:
+            return self.best_estimator_.transform(_X)
 
 
-    # END SKLEARN / DASK GridSearchCV Method ###########################
+    # END SKLEARN / DASK GSTCV Method ##################################
     ####################################################################
 
 
@@ -779,7 +859,7 @@ class _GSTCVMixin:
 
     def _validate_and_reset(self):
 
-        self.wip_param_grid = _validate_thresholds__param_grid(
+        self._param_grid = _validate_thresholds__param_grid(
             self.thresholds, self.param_grid
         )
 
@@ -787,7 +867,7 @@ class _GSTCVMixin:
         self.multimetric_ = len(self.scorer_) > 1
 
         # VALIDATE refit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        self.wip_refit = _validate_refit(self.refit, self.scorer_)
+        self._refit = _validate_refit(self.refit, self.scorer_)
 
         # IF AN INSTANCE HAS ALREADY BEEN fit() WITH refit != False,
         # POST-REFIT ATTRS WILL BE AVAILABLE. BUT IF SUBSEQUENTLY refit
@@ -798,7 +878,7 @@ class _GSTCVMixin:
         # WILL LEAVE POST-REFIT ATTRS AVAILABLE ON AN INSTANCE THAT SHOWS
         # CHANGED PARAM SETTINGS (AS VIEWED VIA get_params()) UNTIL fit()
         # IS RUN.
-        if self.wip_refit is False:
+        if self._refit is False:
             try:
                 del self.best_estimator_
             except:
@@ -841,31 +921,32 @@ class _GSTCVMixin:
 
 
     def estimator_hasattr(self, attr_or_method_name):
-        if not hasattr(self._estimator, attr_or_method_name):
-            raise AttributeError(f"'{type(self.estimator).__name__}' "
-                     f"object has no attribute '{attr_or_method_name}'")
+
+        if not hasattr(self.estimator, attr_or_method_name):
+            raise AttributeError(f"This '{type(self).__name__}' has no attribute"
+                                 f" '{attr_or_method_name}'")
         else:
             return True
 
 
     def check_refit_is_false_no_attr_no_method(self, attr_or_method_name):
         if not self.refit:
-            raise AttributeError(f"This GridSearchCV instance was initialized "
-                f"with `refit=False`. {attr_or_method_name} is available only "
-                f"after refitting on the best parameters. You can refit an "
-                f"estimator manually using the `best_params_` attribute")
+            raise AttributeError(f"This {type(self).__name__} instance was "
+                f"initialized with `refit=False`. {attr_or_method_name} "
+                f"is available only after refitting on the best parameters. "
+                f"You can refit an estimator manually using the "
+                f"`best_params_` attribute")
         else:
             return True
 
 
     def check_is_fitted(self):
 
-        if not hasattr(self, 'wip_refit'):
-            class NotFittedError(Exception):
-                pass
-            raise NotFittedError(f"This GridSearchCV instance is not "
-                f"fitted yet. Call 'fit' with appropriate arguments "
-                f"before using this estimator.")
+        if not hasattr(self, '_refit'):
+            # changed this from NotFittedError to AttributeError 24_07_29_20_02_00
+            raise AttributeError(f"This {type(self).__name__} instance "
+                f"is not fitted yet. Call 'fit' with appropriate "
+                f"arguments before using this estimator.")
         else:
             return True
 

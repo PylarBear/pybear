@@ -21,6 +21,9 @@ from model_selection.GSTCV._type_aliases import (
 )
 
 
+# pizza congruize with sk version
+
+
 def _parallelized_scorer(
     _X_test: XDaskWIPType,
     _y_test: YDaskWIPType,
@@ -113,6 +116,7 @@ def _parallelized_scorer(
     assert isinstance(_verbose, (int, float))
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 
+
     if _verbose >= 5:
         print(f"Start scoring fold {_f_idx + 1} test with different thresholds "
               f"and scorers")
@@ -145,6 +149,9 @@ def _parallelized_scorer(
                     TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER)
 
     # v v v only accessible if fit() did not except v v v
+
+    _X_test = _X_test.persist()
+    _y_test = _y_test.persist()
 
     pp0_time = time.perf_counter()
     _predict_proba = _estimator_.predict_proba(_X_test)[:, -1].ravel()

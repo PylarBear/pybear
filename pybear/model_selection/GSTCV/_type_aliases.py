@@ -19,7 +19,7 @@ import distributed
 
 
 
-SchedulerType: TypeAlias = distributed.scheduler.Scheduler
+
 
 DataType: TypeAlias = Union[int, float, np.float64]
 
@@ -88,9 +88,10 @@ RefitCallableType: TypeAlias = Callable[[CVResultsType], int]
 RefitType: TypeAlias = Union[bool, None, ScorerNameTypes, RefitCallableType]
 
 
-
-
-
+SchedulerType: TypeAlias = Union[
+    distributed.scheduler.Scheduler,
+    distributed.client.Client
+]
 
 
 class ClassifierProtocol(Protocol):

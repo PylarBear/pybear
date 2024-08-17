@@ -22,7 +22,7 @@ def _validate_error_score(
     If set to ‘raise’, the error is raised. If a numeric value is given,
     a warning is raised and the error score value is inserted into the
     subsequent calculations in place of the missing value. This parameter
-    does not affect the refit step, which will always raise the error. --- pizza verify this
+    does not affect the refit step, which will always raise the error.
 
     Parameters
     ----------

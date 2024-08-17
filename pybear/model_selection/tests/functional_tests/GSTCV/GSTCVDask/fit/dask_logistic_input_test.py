@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
-
+import dask_expr._collection as ddf2
 from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
 
 
@@ -35,20 +35,38 @@ class TestDaskLogistic:
 
     @staticmethod
     @pytest.fixture
-    def X_np_array():
-        return np.random.randint(0,10,(100, 30))
+    def X_dask_array():
+        return da.random.randint(0,10,(100, 30)).rechunk((20, 30))
 
 
     @staticmethod
     @pytest.fixture
-    def X_COLUMNS(X_np_array):
-        return [str(uuid4())[:4] for _ in range(X_np_array.shape[1])]
+    def X_COLUMNS(X_dask_array):
+        return [str(uuid4())[:4] for _ in range(X_dask_array.shape[1])]
 
 
     @staticmethod
     @pytest.fixture
-    def X_pd_df(X_np_array, X_COLUMNS):
-        return pd.DataFrame(data=X_np_array, columns=X_COLUMNS)
+    def X_dask_df(X_dask_array, X_COLUMNS):
+        return ddf.from_dask_array(X_dask_array, columns=X_COLUMNS)
+
+
+    @staticmethod
+    @pytest.fixture
+    def X_dask_series(X_dask_df):
+        return X_dask_df.iloc[:, 0]
+
+
+    @staticmethod
+    @pytest.fixture
+    def X_np_array(X_dask_array):
+        return X_dask_array.compute()
+
+
+    @staticmethod
+    @pytest.fixture
+    def X_pd_df(X_dask_df):
+        return X_dask_df.compute()
 
 
     @staticmethod
@@ -57,41 +75,22 @@ class TestDaskLogistic:
         return X_pd_df.iloc[:, 0]
 
 
-    @staticmethod
-    @pytest.fixture
-    def X_dask_array(X_np_array):
-        _rows, _cols = X_np_array.shape
-        return da.from_array(X_np_array, chunks=(_rows//5, _cols))
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_df(X_pd_df):
-        return ddf.from_pandas(X_pd_df, npartitions=5)
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_series(X_dask_df):
-        return X_dask_df.iloc[:, 0]
-
     # END X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    y_np_array = np.random.randint(0,10,(100, 1))
+    y_dask_array = da.random.randint(0,10,(100, 1)).rechunk((20, 1))
 
-    y_pd_df = pd.DataFrame(data=y_np_array, columns=['y'])
-
-    y_pd_series = y_pd_df.iloc[:, 0]
-
-    _rows, _cols = y_np_array.shape
-    y_dask_array = da.from_array(y_np_array, chunks=(_rows//5, _cols))
-
-    y_dask_df = ddf.from_pandas(y_pd_df, npartitions=5)
+    y_dask_df = ddf.from_dask_array(y_dask_array, columns=['y'])
 
     y_dask_series = y_dask_df.iloc[:, 0]
+
+    y_np_array = y_dask_array.compute()
+
+    y_pd_df = y_dask_df.compute()
+
+    y_pd_series = y_pd_df.iloc[:, 0]
 
     # END y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -106,7 +105,8 @@ class TestDaskLogistic:
         # y cannot be pd.DF, dask.DF for no ravel() attribute
         # y cannot be da.Array because chunks dont match
 
-        if isinstance(y, (pd.core.frame.DataFrame, ddf.core.DataFrame)):
+        if isinstance(y,
+            (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
             with pytest.raises(AttributeError):
                 dask_LogisticRegression().fit(X_np_array, y)
         elif isinstance(y, da.core.Array):
@@ -142,11 +142,13 @@ class TestDaskLogistic:
     )
     def test_dask_array(self, X_dask_array, y):
 
-        if isinstance(y, (np.ndarray, pd.core.series.Series, ddf.core.Series)):
+        if isinstance(y,
+            (np.ndarray, pd.core.series.Series, ddf.core.Series, ddf2.Series)):
             # chunks dont match
             with pytest.raises(ValueError):
                 dask_LogisticRegression().fit(X_dask_array, y)
-        elif isinstance(y, (pd.core.frame.DataFrame, ddf.core.DataFrame)):
+        elif isinstance(y,
+            (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
             # no ravel() attribute
             with pytest.raises(AttributeError):
                 dask_LogisticRegression().fit(X_dask_array, y)

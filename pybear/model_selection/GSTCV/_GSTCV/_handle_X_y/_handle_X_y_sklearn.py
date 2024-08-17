@@ -4,8 +4,13 @@
 # License: BSD 3 clause
 #
 
+
+
 import numpy as np
 import pandas as pd
+
+
+
 
 from model_selection.GSTCV._type_aliases import (
     XInputType,
@@ -14,9 +19,6 @@ from model_selection.GSTCV._type_aliases import (
     YSKWIPType,
     FeatureNamesInType
 )
-
-
-
 
 
 
@@ -32,6 +34,7 @@ def _handle_X_y_sklearn(
     is converted to a 1 dimensional vector.  Pizza, circle around to this
     once you finalize how and where binary-ness of y (cannot take
     multiclass) is to be validated.
+
 
     Parameters
     ----------
@@ -61,6 +64,7 @@ def _handle_X_y_sklearn(
 
 
     """
+
 
     err_msg = lambda _name, _object: (f"{_name} was passed with unknown "
         f"data type '{type(_object)}'. Use numpy array, pandas series, "
@@ -120,7 +124,8 @@ def _handle_X_y_sklearn(
 
     if _y is not None and _X.shape[0] != _y.shape[0]:
         raise ValueError(
-            f"X rows ({_X.shape[0]}) and y rows ({_y.shape[0]}) are not equal")
+            f"X rows ({_X.shape[0]}) and y rows ({_y.shape[0]}) are not equal"
+        )
 
 
     return _X, _y, _feature_names_in, _n_features_in

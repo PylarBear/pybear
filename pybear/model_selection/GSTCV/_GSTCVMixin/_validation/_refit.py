@@ -26,11 +26,12 @@ def _validate_refit(
 
     refit - bool, str, or callable, default=True
 
+    # pizza revisit
     For single metric evaluation, must be bool.
-
+    # pizza revisit
     For multiple metric evaluation, this needs to be a str denoting the
     scorer that to be used to find the best parameters.
-
+    # pizza revisit
     refit can be set to a callable(cv_results_) ->  best_index_.
 
     """
@@ -51,7 +52,7 @@ def _validate_refit(
         f"\n4) a callable that takes cv_results_ as input and returns an integer."
     )
 
-
+    # _refit can be callable, bool, None, str
     if not callable(_refit) and not isinstance(_refit, (bool, type(None), str)):
         raise TypeError(err_msg)
 
@@ -84,7 +85,7 @@ def _validate_refit(
         # THIS WARNING CAN COME OUT.
         if len(_scorer) > 1:
             warnings.warn(
-                f"WHEN MULTIPLE SCORERS ARE USED:\n"
+                f"\nWHEN MULTIPLE SCORERS ARE USED:\n"
                 f"Cannot return a best threshold if refit is False or callable.\n"
                 f"If refit is False: best_index_, best_estimator_, best_score_, "
                 f"and best_threshold_ are not available.\n"
@@ -93,6 +94,7 @@ def _validate_refit(
                 f"In either case, access score and threshold info via the "
                 f"cv_results_ attribute."
             )
+
     else:  # refit CAN BE True OR (MATCHING A STRING IN scoring) ONLY
 
         refit_is_true = _refit is True
@@ -101,8 +103,8 @@ def _validate_refit(
         assert refit_is_str is not refit_is_true, \
             f"refit_is_str and refit_is_bool are both {refit_is_str}"
 
-        # _scorer KEYS CAN ONLY BE SINGLE STRINGS: user-defined via dict,
-        # 'score', or actual score method name
+        # _scorer KEYS CAN ONLY BE SINGLE STRINGS: 1) user-defined via dict,
+        # 2) 'score', or 3) actual score method name
         if refit_is_true:  # already proved len(_scorer) == 1 when True
             _refit = 'score'
         elif refit_is_str:
@@ -110,8 +112,9 @@ def _validate_refit(
             _scorer = {k.lower(): v for k, v in _scorer.items()}
             if _refit not in _scorer:
                 raise ValueError(
-                    f"if refit is a string, refit must exactly match the "
-                    f"(or one of the) scoring methods in scoring"
+                    f"if refit is a string ('{_refit}'), refit must "
+                    f"exactly match the (or one of the) scoring methods "
+                    f"in scoring"
                 )
             elif len(_scorer) == 1:
                 _refit = 'score'

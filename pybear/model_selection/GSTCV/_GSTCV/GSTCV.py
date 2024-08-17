@@ -6,9 +6,9 @@
 
 
 
-from copy import deepcopy
-from typing import Union, Literal, Iterable
 
+from typing import Union, Literal, Iterable, Optional
+from contextlib import nullcontext
 
 
 from model_selection.GSTCV._type_aliases import (
@@ -16,7 +16,6 @@ from model_selection.GSTCV._type_aliases import (
     YInputType,
     ScorerInputType,
     RefitType,
-    ClassifierProtocol,
     ParamGridType
 )
 
@@ -26,18 +25,15 @@ from model_selection.GSTCV._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 from ._validation._estimator import _validate_estimator
 from ._validation._pre_dispatch import _validate_pre_dispatch
 
+
+
 from ._handle_X_y._handle_X_y_sklearn import _handle_X_y_sklearn
 
-from model_selection.GSTCV._fit_shared._cv_results._cv_results_builder import \
-    _cv_results_builder
-
-from model_selection.GSTCV._fit_shared._verify_refit_callable import \
-    _verify_refit_callable
 
 from model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
 
-# pizza! 24_07_14..... prevent [] from getting into _core_fit.... this may
-# be done already with a len(param_grid) but make sure.
+# pizza! 24_07_14.... prevent empty param_grid from getting into _core_fit....
+# this may be done already with a len(param_grid) but make sure.
 
 
 class GSTCV(_GSTCVMixin):
@@ -56,6 +52,21 @@ class GSTCV(_GSTCVMixin):
 
     --- Classifer must have predict_proba method. If does not have predict_proba,
     try to wrap with CalibratedClassifierCV.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     --- 24_07_10 ... reset the estimator to the first-seen params at every transition
         # to a new param grid, and then set the new params as called out
@@ -112,17 +123,16 @@ class GSTCV(_GSTCVMixin):
         *,
         # thresholds can be a single number or list-type passed in
         # param_grid or applied universally via thresholds kwarg
-        thresholds: Union[Iterable[Union[int, float]], int, float, None]=None,
-        scoring: ScorerInputType='accuracy',
-        n_jobs: Union[int,None]=None,
-        refit: RefitType=True,
-        cv: Union[int,None]=None,
-        verbose: Union[int, float, bool]=0,
-        pre_dispatch: Union[str, None] = '2*n_jobs',
-        error_score: Union[Literal['raise'], int, float] = 'raise',
-        return_train_score: bool=False
+        thresholds: Optional[Union[Iterable[Union[int, float]], int, float, None]]=None,
+        scoring: Optional[ScorerInputType]='accuracy',
+        n_jobs: Optional[Union[int,None]]=None,
+        refit: Optional[RefitType]=True,
+        cv: Optional[Union[int,None]]=None,
+        verbose: Optional[Union[int, float, bool]]=0,
+        pre_dispatch: Optional[Union[str, None]]='2*n_jobs',
+        error_score: Optional[Union[Literal['raise'], int, float]]='raise',
+        return_train_score: Optional[bool]=False
     ):
-
 
 
 
@@ -138,10 +148,15 @@ class GSTCV(_GSTCVMixin):
         self.error_score = error_score
         self.return_train_score = return_train_score
 
+
+
     # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
+
+    ####################################################################
+    # SUPPORT METHODS ##################################################
 
     def _handle_X_y(self, X, y=None):
 
@@ -149,86 +164,18 @@ class GSTCV(_GSTCVMixin):
 
         return _handle_X_y_sklearn(X, y=y)
 
-    ####################################################################
-    # SKLEARN GridSearchCV Methods #####################################
 
-    def fit(
+    def _core_fit(
             self,
             X: XInputType,
             y: YInputType=None,
             **params
         ):
 
-        """
-        Analog to dask/sklearn GridSearchCV fit() method. Run fit with
-        all sets of parameters.
-        Pizza add words.
-
-        Parameters
-        ----------
-        # pizza can y be [] and [[]]
-        X: Iterable[Iterable[Union[int, float]]] - training data
-        y: Union[Iterable[Iterable[Union[int,float]]], Iterable[Union[int,float]]] -
-            target for training data
-        groups: Group labels for the samples used while splitting the dataset
-            into train/tests set
-        **params: ???
-
-        Return
-        ------
-        -
-            Instance of fitted estimator.
-
-
-        """
-
-        # pizza, validate() was moved from after self._classes = None
-        # on 24_07_26_19_32_00. any problems, move it back.
-        self._validate_and_reset()
-
-        _X, _y, _feature_names_in, _n_features_in = self._handle_X_y(X, y)
-
-
-        # DONT unique().compute() HERE, JUST RETAIN THE VECTOR & ONLY DO
-        # THE PROCESSING IF classes_ IS CALLED
-        self._classes_ = y
-
-        # THIS IS A HOLDER THAT IS FILLED ONE TIME WHEN THE unique().compute()
-        # IS DONE ON self._classes_
-        self._classes = None
-
-
-        # BEFORE RUNNING cv_results_builder, THE THRESHOLDS MUST BE
-        # REMOVED FROM EACH PARAM GRID IN wip_param_grids
-        # BUT THEY NEED TO BE RETAINED FOR CORE GRID SEARCH.
-        # pop IS INTENTIONALLY USED HERE TO REMOVE 'thresholds' FROM
-        # PARAM GRIDS.
-        # 'thresholds' MUST BE REMOVED FROM PARAM GRIDS BEFORE GOING
-        # TO _cv_results_builder OR THRESHOLDS WILL BECOME PART OF THE
-        # GRID SEARCH, AND ALSO CANT BE PASSED TO estimator.
-        THRESHOLD_DICT = {}
-        for i in range(len(self.wip_param_grid)):
-            THRESHOLD_DICT[i] = self.wip_param_grid[i].pop('thresholds')
-
-        # this could have been at the top of _core_fit but is outside
-        # because cv_results is used to validate the refit callable
-        # before starting the fit.
-
-        # pizza 24_07_10, for both sk and dask, n_splits_ is only
-        # available after fit(). n_splits_ is always returned as a number
-        self.cv_results_, PARAM_GRID_KEY = \
-            _cv_results_builder(self.wip_param_grid, self.n_splits_,
-                                self.scorer_, self.return_train_score
-        )
-
-        # USE A DUMMIED-UP cv_results TO TEST IF THE refit CALLABLE RETURNS
-        # A GOOD INDEX NUMBER, BEFORE RUNNING THE WHOLE GRIDSEARCH
-        if callable(self.wip_refit):
-            _verify_refit_callable(self.wip_refit, deepcopy(self.cv_results_))
 
         self.cv_results_ = _core_fit(
-            _X,
-            _y,
+            X,
+            y,
             self._estimator,
             self.cv_results_,
             self._cv,
@@ -237,24 +184,12 @@ class GSTCV(_GSTCVMixin):
             self.scorer_,
             self._n_jobs,
             self._return_train_score,
-            PARAM_GRID_KEY,
-            THRESHOLD_DICT,
+            self._PARAM_GRID_KEY,
+            self._THRESHOLD_DICT,
             **params
         )
 
-
-        del THRESHOLD_DICT, PARAM_GRID_KEY
-
-        super().fit(_X, _y, **params)   # refit management
-
-        return self
-
-    # END SKLEARN / DASK GridSearchCV Method ###########################
-    ####################################################################
-
-
-    ####################################################################
-    # SUPPORT METHODS ##################################################
+        return
 
 
 
@@ -267,6 +202,8 @@ class GSTCV(_GSTCVMixin):
         self._estimator = self.estimator
 
         self._pre_dispatch = _validate_pre_dispatch(self.pre_dispatch)
+
+        self._scheduler = nullcontext()
 
 
     # END SUPPORT METHODS ##############################################

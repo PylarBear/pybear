@@ -14,6 +14,7 @@ from sklearn.linear_model import LogisticRegression as sklearn_Logistic
 
 import dask.array as da
 import dask.dataframe as ddf
+import dask_expr._collection as ddf2
 from dask_ml.linear_model import LogisticRegression as dask_Logistic
 
 from pybear.utils import time_memory_benchmark as tmb
@@ -41,8 +42,8 @@ assert isinstance(da_da_y, da.core.Array)
 
 da_df_X = ddf.from_array(da_da_X, columns=COLUMNS, chunksize=(_rows//10,))
 da_df_y = ddf.from_array(da_da_y, columns=['Y'], chunksize=(_rows//10,))
-assert isinstance(da_df_X, ddf.core.DataFrame)
-assert isinstance(da_df_y, ddf.core.DataFrame)
+assert isinstance(da_df_X, (ddf.core.DataFrame, ddf2.DataFrame))
+assert isinstance(da_df_y, (ddf.core.DataFrame, ddf2.DataFrame))
 
 
 
