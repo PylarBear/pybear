@@ -9,9 +9,9 @@ import pytest
 
 import numpy as np
 import dask.array as da
-
+import distributed
 from dask_ml.model_selection import KFold as dask_KFold
-from sklearn.model_selection import ParameterGrid
+
 from dask_ml.linear_model import (
     LogisticRegression as dask_LogisticRegression,
     LinearRegression as dask_LinearRegression
@@ -80,10 +80,6 @@ class TestCoreFitValidation:
             return_train_score=True
         )
 
-        param_grid = ParameterGrid(param_grid)
-        out_cv_results['params'] = np.ma.masked_array(param_grid)
-        del param_grid
-
         return out_cv_results, out_key
 
 
@@ -97,7 +93,7 @@ class TestCoreFitValidation:
     @staticmethod
     @pytest.fixture
     def good_cv_int():
-        return 5
+        return 4
 
 
     @staticmethod
@@ -142,6 +138,14 @@ class TestCoreFitValidation:
     def good_THRESHOLD_DICT():
         return {0: np.linspace(0,1,21), 1: np.linspace(0,1,11)}
 
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _client():
+        client = distributed.Client(n_workers=1, threads_per_worker=1)
+        yield client
+        client.close()
+
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
@@ -154,7 +158,8 @@ class TestCoreFitValidation:
     )
     def test_rejects_junk_X(self, junk_X, good_y, good_estimator, good_cv_results,
         good_cv_int, good_error_score, good_SCORER, good_cache_cv, good_iid,
-        good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(TypeError):
             _core_fit(
                 junk_X,
@@ -179,7 +184,8 @@ class TestCoreFitValidation:
     )
     def test_rejects_junk_y(self, good_X, junk_y, good_estimator, good_cv_results,
         good_cv_int, good_error_score, good_SCORER, good_cache_cv, good_iid,
-        good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(TypeError):
             _core_fit(
                 good_X,
@@ -203,8 +209,9 @@ class TestCoreFitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_estimator(self, good_X, good_y, junk_estimator,
-        good_cv_results, good_cv_int, good_error_score, good_SCORER,
-        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_cv_results, good_cv_int, good_error_score, good_SCORER, good_cache_cv,
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(AttributeError):
             _core_fit(
                 good_X,
@@ -225,8 +232,9 @@ class TestCoreFitValidation:
 
     @pytest.mark.parametrize('bad_estimator', (dask_LinearRegression(),))
     def test_rejects_bad_estimator(self, good_X, good_y, bad_estimator,
-        good_cv_results, good_cv_int, good_error_score, good_SCORER,
-        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_cv_results, good_cv_int, good_error_score, good_SCORER, good_cache_cv,
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(AttributeError):
             _core_fit(
                 good_X,
@@ -250,8 +258,9 @@ class TestCoreFitValidation:
          lambda x: x)
     )
     def test_rejects_junk_cv_results(self, good_X, good_y, good_estimator,
-        junk_cv_results, good_cv_int, good_error_score, good_SCORER,
-        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        junk_cv_results, good_cv_int, good_error_score, good_SCORER, good_cache_cv,
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(TypeError):
             _core_fit(
                 good_X,
@@ -273,8 +282,9 @@ class TestCoreFitValidation:
 
     @pytest.mark.parametrize('bad_cv_results', ({'a': 1}, {'params': 1}))
     def test_rejects_bad_cv_results(self, good_X, good_y, good_estimator,
-        bad_cv_results, good_cv_int, good_error_score, good_SCORER,
-        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        bad_cv_results, good_cv_int, good_error_score, good_SCORER, good_cache_cv,
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises((KeyError, TypeError)):
             _core_fit(
                 good_X,
@@ -298,8 +308,9 @@ class TestCoreFitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_cv(self, good_X, good_y, good_estimator,
-        good_cv_results, junk_cv_int, good_error_score, good_SCORER,
-        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_cv_results, junk_cv_int, good_error_score, good_SCORER, good_cache_cv,
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises((ValueError, TypeError, AssertionError)):
             _core_fit(
                 good_X,
@@ -323,8 +334,8 @@ class TestCoreFitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_error_score(self, good_X, good_y, good_estimator,
-        good_cv_results, good_cv_int, junk_error_score, good_SCORER,
-        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_cv_results, good_cv_int, junk_error_score, good_SCORER, good_cache_cv,
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
         with pytest.raises((TypeError, AssertionError)):
             _core_fit(
                 good_X,
@@ -349,7 +360,8 @@ class TestCoreFitValidation:
     )
     def test_rejects_junk_verbose(self, good_X, good_y, good_estimator,
         good_cv_results, good_cv_int, good_error_score, junk_verbose, good_SCORER,
-        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises((TypeError, AssertionError)):
             _core_fit(
                 good_X,
@@ -374,7 +386,8 @@ class TestCoreFitValidation:
     )
     def test_rejects_junk_SCORER(self, good_X, good_y, good_estimator,
     good_cv_results, good_cv_int, good_error_score, junk_SCORER, good_cache_cv,
-    good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT,):
+    good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(AssertionError):
             _core_fit(
                 good_X,
@@ -398,8 +411,9 @@ class TestCoreFitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_cache_cv(self, good_X, good_y, good_estimator,
-        good_cv_results, good_cv_int, good_error_score, good_SCORER,
-        junk_cache_cv, good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_cv_results, good_cv_int, good_error_score, good_SCORER, junk_cache_cv,
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(AssertionError):
             _core_fit(
                 good_X,
@@ -423,8 +437,9 @@ class TestCoreFitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_iid(self, good_X, good_y, good_estimator,
-        good_cv_results, good_cv_int, good_error_score, good_SCORER,
-        good_cache_cv, junk_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_cv_results, good_cv_int, good_error_score, good_SCORER, good_cache_cv,
+        junk_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(AssertionError):
             _core_fit(
                 good_X,
@@ -449,7 +464,8 @@ class TestCoreFitValidation:
     def test_rejects_junk_return_train_score(self, good_X, good_y,
         good_estimator, good_cv_results, good_cv_int, good_error_score,
         good_SCORER, good_cache_cv, good_iid, junk_return_train_score,
-        good_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client):
+
         with pytest.raises(AssertionError):
             _core_fit(
                 good_X,
@@ -474,7 +490,9 @@ class TestCoreFitValidation:
     )
     def test_rejects_junk_PARAM_GRID_KEY(self, good_X, good_y, good_estimator,
         good_cv_results, good_cv_int, good_error_score, good_SCORER, good_cache_cv,
-        good_iid, good_PARAM_GRID_KEY, junk_PARAM_GRID_KEY, good_THRESHOLD_DICT):
+        good_iid, good_PARAM_GRID_KEY, junk_PARAM_GRID_KEY, good_THRESHOLD_DICT,
+        _client):
+
         with pytest.raises((AssertionError, TypeError, ValueError)):
             _core_fit(
                 good_X,
@@ -499,7 +517,9 @@ class TestCoreFitValidation:
     )
     def test_rejects_junk_THRESHOLD_DICT(self, good_X, good_y, good_estimator,
         good_cv_results, good_cv_int, good_error_score, good_SCORER, good_cache_cv,
-        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, junk_THRESHOLD_DICT):
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, junk_THRESHOLD_DICT,
+        _client):
+
         with pytest.raises((TypeError, AssertionError)):
             _core_fit(
                 good_X,
@@ -521,7 +541,8 @@ class TestCoreFitValidation:
     @pytest.mark.parametrize('bad_THRESHOLD_DICT', ({'a': 1}, {0: 1}, {0: 'b'}))
     def test_rejects_bad_THRESHOLD_DICT(self, good_X, good_y, good_estimator,
         good_cv_results, good_cv_int, good_error_score, good_SCORER, good_cache_cv,
-        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, bad_THRESHOLD_DICT):
+        good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, bad_THRESHOLD_DICT,
+        _client):
 
         with pytest.raises(AssertionError):
             _core_fit(

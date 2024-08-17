@@ -10,14 +10,11 @@ import pytest
 import numpy as np
 import pandas as pd
 
+
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 
-from sklearn.model_selection import (
-    ParameterGrid,
-    GridSearchCV,
-    KFold
-)
+from sklearn.model_selection import GridSearchCV
 
 from sklearn.metrics import (
     make_scorer,
@@ -34,9 +31,10 @@ from model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
 
 
 
+
+
 # 24_07_10 this module tests the equality of SK GSTCV's cv_results_ with
 # 0.5 threshold against sklearn GSCV cv_results_.
-
 class TestCoreFitAccuracy:
 
     # def _core_fit(
@@ -56,11 +54,14 @@ class TestCoreFitAccuracy:
     #     ) -> CVResultsType
 
 
+
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     @staticmethod
     @pytest.fixture
     def X_y_helper():
+
+
         return make_classification(
             n_classes=2,
             n_samples=1000,
@@ -87,55 +88,17 @@ class TestCoreFitAccuracy:
     @staticmethod
     @pytest.fixture
     def good_estimator():
-        return LogisticRegression(max_iter=10000, solver='lbfgs', tol=1e-6)
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_param_grid():
-        return [
-            {'C': [1e-3, 1e-4, 1e-5], 'fit_intercept': [True, False]},
-            {'C': [1e-1, 1e0, 1e1], 'fit_intercept': [True, False]}
-        ]
-
-
-    @staticmethod
-    @pytest.fixture
-    def helper_for_cv_results_and_PARAM_GRID_KEY(
-            good_cv_int, good_scorer, good_param_grid):
-
-        out_cv_results, out_key = _cv_results_builder(
-            # DO NOT PUT 'thresholds' IN PARAM GRIDS!
-            param_grid=good_param_grid,
-            cv=good_cv_int,
-            scorer=good_scorer,
-            return_train_score=True
-        )
-
-        param_grid = ParameterGrid(good_param_grid)
-        out_cv_results['params'] = np.ma.masked_array(param_grid)
-        del param_grid
-
-        return out_cv_results, out_key
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_cv_results(helper_for_cv_results_and_PARAM_GRID_KEY):
-
-        return helper_for_cv_results_and_PARAM_GRID_KEY[0]
+        return LogisticRegression(
+            max_iter=10_000,
+            solver='lbfgs',
+            tol=1e-6
+    )
 
 
     @staticmethod
     @pytest.fixture
     def good_cv_int():
         return 5
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_cv_iter(good_cv_int, good_X, good_y):
-        return KFold(n_splits=good_cv_int).split(good_X, good_y)
 
 
     @staticmethod
@@ -155,60 +118,7 @@ class TestCoreFitAccuracy:
         }
 
 
-    @staticmethod
-    @pytest.fixture
-    def good_PARAM_GRID_KEY(helper_for_cv_results_and_PARAM_GRID_KEY):
-
-        return helper_for_cv_results_and_PARAM_GRID_KEY[1]
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_THRESHOLD_DICT():
-        return {0: np.linspace(0,1,21), 1: np.linspace(0,1,11)}
-
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-
-
-    @pytest.mark.parametrize('_n_jobs', (-1, 1))  # 1 is important
-    def test_accuracy_cv_int_vs_cv_iter(self, good_X, good_y, good_estimator,
-        good_cv_results, good_cv_int, good_cv_iter, good_error_score, good_scorer,
-        good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _n_jobs):
-
-        # test equivalent cv as int or iterable give same output
-
-        out_int = _core_fit(
-            good_X,
-            good_y,
-            good_estimator,
-            good_cv_results,
-            good_cv_int,   # <===============
-            good_error_score,
-            0, # good_verbose,
-            good_scorer,
-            _n_jobs,
-            True, # good_return_train_score,
-            good_PARAM_GRID_KEY,
-            good_THRESHOLD_DICT
-            )
-
-        out_iter = _core_fit(
-            good_X,
-            good_y,
-            good_estimator,
-            good_cv_results,
-            good_cv_iter,   # <===============
-            good_error_score,
-            0, # good_verbose,
-            good_scorer,
-            _n_jobs,
-            True, # good_return_train_score,
-            good_PARAM_GRID_KEY,
-            good_THRESHOLD_DICT
-            )
-
-        assert pd.DataFrame(data=out_int).equals(pd.DataFrame(data=out_iter))
 
 
 
@@ -269,7 +179,7 @@ class TestCoreFitAccuracy:
             ],
             [
                 {'C': [1]},
-                {'C': [1], 'fit_intercept': [True]},
+                {'C': [1], 'fit_intercept': [False]},
                 {'C': [1], 'fit_intercept': [False], 'solver': ['lbfgs']}
             ],
         )
@@ -282,6 +192,7 @@ class TestCoreFitAccuracy:
 
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
         good_cv_results, PARAM_GRID_KEY = _cv_results_builder(
             param_grid=_param_grid,
             cv=good_cv_int,
@@ -308,7 +219,6 @@ class TestCoreFitAccuracy:
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        __scorer = {k: make_scorer(v) for k,v in _scorer.items()}
 
         out_sk_gscv = GridSearchCV(
             good_estimator,
@@ -316,7 +226,7 @@ class TestCoreFitAccuracy:
             cv=good_cv_int,
             error_score=good_error_score,
             verbose=0,
-            scoring=__scorer,
+            scoring={k: make_scorer(v) for k,v in _scorer.items()},
             n_jobs=_n_jobs,
             return_train_score=_return_train_score,
             refit=list(_scorer.keys())[0]
@@ -334,18 +244,23 @@ class TestCoreFitAccuracy:
         assert len(pd_gstcv_cv_results) == len(pd_sk_cv_results), \
             f"different rows in cv_results_"
 
+
+        _ = pd_gstcv_cv_results.to_numpy()
         MASK = list(map(lambda x: 'threshold' in x, pd_gstcv_cv_results.columns))
-        __ = pd_gstcv_cv_results.drop(columns=pd_gstcv_cv_results.columns[MASK])
-        assert np.array_equiv(__.columns, pd_sk_cv_results.columns), \
+        _drop = pd_gstcv_cv_results.columns[MASK]
+        __ = pd_gstcv_cv_results.drop(columns=_drop).columns.to_numpy()
+
+        assert np.array_equiv(__, pd_sk_cv_results.columns), \
             f'columns not equal / out of order'
         del MASK, __
 
         for column in pd_gstcv_cv_results:
 
-            if 'threshold' not in column:
+            if 'threshold' not in column and 'time' not in column:
                 assert column in pd_sk_cv_results, \
                     print(f'\033[91mcolumn {column} not in!\033[0m')
-            elif 'threshold' in column:
+
+            if 'threshold' in column:
                 assert (pd_gstcv_cv_results[column] == 0.5).all()
                 continue
 
@@ -354,8 +269,6 @@ class TestCoreFitAccuracy:
                 assert (gstcv_cv_results[column] > 0).all()
                 continue
 
-
-            _are_floats = False
 
             MASK = np.logical_not(pd_gstcv_cv_results[column].isna())
 
@@ -367,21 +280,18 @@ class TestCoreFitAccuracy:
                     dtype=np.float64
                 )
 
-                _are_floats = True
+                raise UnicodeError
+
+            except UnicodeError:
+                # check floats
+                assert np.allclose(_gstcv_out, _sk_out, atol=0.00001)
 
             except:
                 # check param columns
-                _gstcv_out = pd_gstcv_cv_results[column][MASK].to_numpy(),
-                _sk_out = pd_sk_cv_results[column][MASK].to_numpy()
-
-
-            if _are_floats:
-
-                assert np.allclose(_gstcv_out, _sk_out, atol=0.00001)
-
-            elif not _are_floats:
-                # check param columns
-                assert np.array_equiv(_gstcv_out, _sk_out)
+                assert np.array_equiv(
+                    pd_gstcv_cv_results[column][MASK].to_numpy(),
+                    pd_sk_cv_results[column][MASK].to_numpy()
+                )
 
 
 

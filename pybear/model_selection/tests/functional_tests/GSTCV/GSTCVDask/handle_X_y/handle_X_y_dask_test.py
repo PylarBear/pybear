@@ -7,12 +7,14 @@
 
 import pytest
 from copy import deepcopy
+import itertools
 
 from uuid import uuid4
 import numpy as np
 import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
+from dask import compute
 
 from model_selection.GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import \
     _handle_X_y_dask
@@ -62,21 +64,21 @@ class TestHandleXyDask:
 
     _rows, _cols = 100, 30
 
-    X_np_array = np.random.randint(0,10,(_rows, _cols))
-    X_COLUMNS = [str(uuid4())[:4] for _ in range(X_np_array.shape[1])]
-    X_pd_df = pd.DataFrame(data=X_np_array, columns=X_COLUMNS)
-    X_pd_series = pd.Series(X_pd_df.iloc[:, 0], name=X_COLUMNS[0])
-    X_dask_array =  da.from_array(X_np_array, chunks=(_rows//5, _cols))
-    X_dask_df = ddf.from_pandas(X_pd_df, npartitions=5)
+    X_dask_array = da.random.randint(0,10,(_rows, _cols)).rechunk((_rows//5, _cols))
+    X_COLUMNS = [str(uuid4())[:4] for _ in range(X_dask_array.shape[1])]
+    X_dask_df = ddf.from_dask_array(X_dask_array, columns=X_COLUMNS)
     X_dask_series = X_dask_df.iloc[:, 0]
+    X_np_array = X_dask_array.compute()
+    X_pd_df = X_dask_df.compute()
+    X_pd_series = pd.Series(X_pd_df.iloc[:, 0], name=X_COLUMNS[0])
 
-
-    y_np_array = np.random.randint(0,10,(_rows, 1))
-    y_pd_df = pd.DataFrame(data=y_np_array, columns=['y'])
-    y_pd_series = pd.Series(y_pd_df.iloc[:, 0], name='y')
-    y_dask_array = da.from_array(y_np_array, chunks=(_rows//5, _cols))
-    y_dask_df = ddf.from_pandas(y_pd_df, npartitions=5)
+    y_dask_array = da.random.randint(0,10,(_rows, 1)).rechunk((_rows//5, _cols))
+    y_dask_df = ddf.from_dask_array(y_dask_array, columns=['y'])
     y_dask_series = y_dask_df.iloc[:, 0]
+    y_np_array = y_dask_array.compute()
+    y_pd_df = y_dask_df.compute()
+    y_pd_series =y_pd_df.iloc[:, 0]
+
 
 
 
@@ -125,12 +127,49 @@ class TestHandleXyDask:
 
 
 
+    # rejects un-chunked Xs and ys
+    @pytest.mark.parametrize(f'X_dask_df, y_dask_df', ((X_dask_df, y_dask_df),))
+    def test_unchunked(self, X_dask_df, y_dask_df):
+
+        # array ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        unchunked_X_array = X_dask_df.to_dask_array()   # no 'lengths'!
+        unchunked_y_array = y_dask_df.to_dask_array()  # no 'lengths'!
+
+        X_row_chunks = compute(
+            *itertools.chain(*map(da.shape, unchunked_X_array.blocks))
+        )
+        y_row_chunks = compute(
+            *itertools.chain(*map(da.shape, unchunked_y_array.blocks))
+        )
+
+        # np.nans will return float. just need any of them to be nan.
+        assert any(map(isinstance, X_row_chunks, (float for _ in X_row_chunks)))
+        assert any(map(isinstance, y_row_chunks, (float for _ in y_row_chunks)))
+
+        with pytest.raises(ValueError):
+            _handle_X_y_dask(unchunked_X_array, unchunked_y_array)
+        # END array ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 
+        # df ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        unchunked_X_df = da.array(unchunked_X_array)
+        unchunked_y_df = da.array(unchunked_y_array)
 
+        X_row_chunks = compute(
+            *itertools.chain(*map(da.shape, unchunked_X_df.partitions))
+        )
+        y_row_chunks = compute(
+            *itertools.chain(*map(da.shape, unchunked_y_df.partitions))
+        )
 
+        # np.nans will return float. just need any of them to be nan.
+        assert any(map(isinstance, X_row_chunks, (float for _ in X_row_chunks)))
+        assert any(map(isinstance, y_row_chunks, (float for _ in y_row_chunks)))
 
+        with pytest.raises(ValueError):
+            _handle_X_y_dask(unchunked_X_array, unchunked_y_array)
+        # END df ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 

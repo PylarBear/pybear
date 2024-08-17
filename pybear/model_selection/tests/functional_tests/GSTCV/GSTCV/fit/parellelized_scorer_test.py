@@ -96,7 +96,7 @@ class TestParallelizedScorer:
         assert out_times.mask.all()
 
 
-        # error_score == 0.5 (any arbitrary number)
+        # error_score == 0.4 (any arbitrary number)
         out_scores, out_times = _parallelized_scorer(
             _X_test,
             _y_test,
@@ -107,11 +107,11 @@ class TestParallelizedScorer:
                 'balanced_accuracy': balanced_accuracy_score
             },
             _THRESHOLDS=np.linspace(0,1,21),
-            _error_score=0.5,
+            _error_score=0.4,
             _verbose=10
         )
 
-        assert out_scores.mean() == 0.5
+        assert round(out_scores.mean(), 8) == 0.4
         assert out_times.mask.all()
 
 

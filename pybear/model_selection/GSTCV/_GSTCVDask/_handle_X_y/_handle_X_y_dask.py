@@ -5,22 +5,20 @@
 #
 
 
+import itertools
 import numpy as np
 import pandas as pd
+from dask import compute
 import dask.array as da
 import dask.dataframe as ddf
-
+import dask_expr._collection as ddf2
 from model_selection.GSTCV._type_aliases import (
     XInputType,
     YInputType,
     XSKWIPType,
     YSKWIPType,
-    FeatureNamesInType,
-    SchedulerType
+    FeatureNamesInType
 )
-
-
-
 
 
 
@@ -30,9 +28,6 @@ def _handle_X_y_dask(
     ) -> tuple[XSKWIPType, YSKWIPType, FeatureNamesInType, int]:
 
     """
-
-
-
     Process given X and y into dask.array.core.Arrays. All DASK GSTCV internals
     require dask.array.core.Arrays. Accepts objects that can be converted to
     dask arrays, including numpy arrays, pandas dataframes and series,
@@ -71,7 +66,6 @@ def _handle_X_y_dask(
     """
 
 
-
     err_msg = lambda _name, _object: (f"{_name} was passed with unknown "
         f"data type '{type(_object)}'. Use dask array, dask series, "
         f"dask dataFrame, numpy array, pandas series, pandas dataframe.")
@@ -100,7 +94,8 @@ def _handle_X_y_dask(
 
         _X = da.from_array(_X, chunks=_X.shape)
 
-    elif isinstance(_X, (ddf.core.Series, ddf.core.DataFrame)):
+    elif isinstance(_X,
+        (ddf.core.Series, ddf.core.DataFrame, ddf2.Series, ddf2.DataFrame)):
 
         try:
             _X = _X.to_frame()
@@ -114,8 +109,22 @@ def _handle_X_y_dask(
     else:
         raise TypeError(err_msg('X', _X))
 
-    if len(_X.shape) == 1:
-        _X = _X.reshape((len(_X), 1))
+
+    X_block_dims = list(compute(*itertools.chain(*map(da.shape, _X.blocks))))
+    try:
+        list(map(int, X_block_dims))
+    except:
+        raise ValueError(f"X chunks are not defined. rechunk X.")
+    del X_block_dims
+
+
+    X_shape = compute(*X.shape)
+    if len(X_shape) == 1:
+        _X = _X.reshape((X_shape[0], 1))
+    elif len(X_shape) == 2:
+        pass
+    else:
+        raise ValueError(f"'X' must be a 1 or 2 dimensional object")
 
     _n_features_in = _X.shape[1]
 
@@ -138,7 +147,8 @@ def _handle_X_y_dask(
         _y = _y.to_numpy()
         _y = da.from_array(_y, chunks=_y.shape)
 
-    elif isinstance(_y, (ddf.core.Series, ddf.core.DataFrame)):
+    elif isinstance(_y,
+        (ddf.core.Series, ddf.core.DataFrame, ddf2.Series, ddf2.DataFrame)):
 
         try:
             _y = _y.to_frame()
@@ -151,15 +161,34 @@ def _handle_X_y_dask(
         raise TypeError(err_msg('y', _y))
 
 
-    if _y is not None and len(_y.shape) == 2:
-        if _y.shape[1] == 1:
-            _y = _y.ravel()
+    if _y is not None:
+
+        # under certain circumstances (e.g. using ddf.to_dask_array() without
+        # specifying 'lengths') array chunk sizes can become np.nan along the
+        # row dimension. This causes an error in ravel(). Ensure chunks are
+        # specified.
+        y_block_dims = list(compute(*itertools.chain(*map(da.shape, _y.blocks))))
+        try:
+            list(map(int, y_block_dims))
+        except:
+            raise ValueError(f"y chunks are not defined. rechunk y.")
+        del y_block_dims
+
+        y_shape = compute(*_y.shape)
+        if len(y_shape) == 1:
+            pass
+        elif len(y_shape) == 2:
+            if y_shape[1] == 1:
+                _y = _y.ravel()
+            else:
+                raise ValueError(f"A multi-column array was passed for y")
         else:
-            raise ValueError(f"A multi-column array was passed for y")
+            raise ValueError(f"'y' must be a 1 or 2 dimensional object")
 
-
-    if _y is not None and _X.shape[0] != _y.shape[0]:
-        raise ValueError(f"X rows ({_X.shape[0]}) and y rows ({_y.shape[0]}) are not equal")
+        _, __ = X_shape[0], y_shape[0]
+        if _ != __:
+            raise ValueError(f"X rows ({_}) and y rows ({__}) are not equal")
+        del _, __
 
 
     return _X, _y, _feature_names_in, _n_features_in

@@ -8,6 +8,7 @@
 from typing import Union
 import time
 import warnings
+import dask
 
 
 from model_selection.GSTCV._type_aliases import (
@@ -17,16 +18,18 @@ from model_selection.GSTCV._type_aliases import (
 )
 
 
+# pizza congruize with sk version
+
 
 def _parallelized_fit(
         f_idx: int,
-        X_train: XDaskWIPType,
-        y_train: YDaskWIPType,
+        _X_train: XDaskWIPType,
+        _y_train: YDaskWIPType,
         _estimator_: ClassifierProtocol,
         _grid: dict[str, Union[str, int, float, bool]],
         _error_score,
         **fit_params
-    ):
+    ) -> tuple[ClassifierProtocol, float, bool]:
 
     """
     Estimator fit method designed for dask parallelism. Special dask_ml
@@ -38,10 +41,10 @@ def _parallelized_fit(
     f_idx:
         int - the zero-based split index of the train partition used in
         this fit; parallelism occurs over the different splits.
-    X_train:
+    _X_train:
         dask.array.core.Array[Union[int,float]] - A train partition of
         the data being fit. Must be 2D ndarray.
-    y_train:
+    _y_train:
         dask.array.core.Array[int] - The corresponding train partition
         of the target for the X train partition. Must be 1D ndarray.
     _estimator_:
@@ -79,14 +82,28 @@ def _parallelized_fit(
 
     """
 
+
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    assert isinstance(f_idx, int)
+    assert isinstance(_X_train, dask.array.core.Array)
+    assert isinstance(_y_train, dask.array.core.Array)
+    assert isinstance(_grid, dict)
+    assert isinstance(_error_score, (str, float, int))
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
+
+
     t0_fit = time.perf_counter()
 
     fit_excepted = False
 
+    _X_train = _X_train.persist()
+    _y_train = _y_train.persist()
 
     try:
-
-        _estimator_.fit(X_train, y_train, **fit_params)
+        _estimator_.fit(_X_train, _y_train, **fit_params)
 
     except BrokenPipeError:
         raise BrokenPipeError  # FOR PYTEST ONLY

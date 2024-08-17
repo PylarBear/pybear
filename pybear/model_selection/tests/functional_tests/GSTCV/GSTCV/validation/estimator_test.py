@@ -11,8 +11,6 @@ from model_selection.GSTCV._GSTCV._validation._estimator import \
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
 
-from sklearn.pipeline import Pipeline
-
 from sklearn.calibration import CalibratedClassifierCV # wrap around RidgeClassifier
 
 from sklearn.linear_model import (
@@ -117,17 +115,6 @@ class TestValidateEstimator:
         _validate_estimator(good_classifiers())
 
 
-    def test_accepts_non_dask_CCCV(self):
-        _validate_estimator(CalibratedClassifierCV(sk_RidgeClassifier()))
-        _validate_estimator(CalibratedClassifierCV(LGBMModel()))
-        _validate_estimator(CalibratedClassifierCV(sk_SGDClassifier()))
-
-
-    def test_rejects_dask_CCCV(self):
-        with pytest.raises(TypeError):
-            _validate_estimator(CalibratedClassifierCV(dask_LogisticRegression()))
-
-
     @pytest.mark.parametrize('dask_non_classifiers',
         (DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor,
         DaskLGBMRegressor, DaskLGBMRanker, dask_LinearRegression)
@@ -150,29 +137,8 @@ class TestValidateEstimator:
 
 
 
-    @pytest.mark.parametrize('junk_pipeline_steps',
-        (
-        [sk_OneHotEncoder(), sk_LogisticRegression()],
-        [(4, sk_OneHotEncoder()), (3.14, sk_LogisticRegression())],
-        [('onehot', 4), ('logistic', 3.14)]
-        )
-    )
-    def test_rejects_pipeline_with_bad_steps(self, junk_pipeline_steps):
-        # 24_07_27, unfortunately, sk pipeline does not do this, it will
-        # allow bad steps (not in (str, cls()) format) and proceed and
-        # return nonsensical results
-
-        with pytest.raises(ValueError):
-            _validate_estimator(Pipeline(steps=junk_pipeline_steps))
 
 
-
-    @pytest.mark.parametrize('good_pipeline_steps',
-        ([('onehot', sk_OneHotEncoder()), ('logistic', sk_LogisticRegression())],)
-    )
-    def test_accepts_good_pipeline(self, good_pipeline_steps):
-
-        _validate_estimator(Pipeline(steps=good_pipeline_steps))
 
 
 

@@ -56,11 +56,11 @@ def timer(orig_func):
 
 
 def time_memory_benchmark(
-                          *args,
-                          number_of_trials:int=7,
-                          rest_time:int=1,
-                          verbose:[int, float, bool]=1
-    ) -> np.ndarray:
+    *args,
+    number_of_trials:int=7,
+    rest_time:int=1,
+    verbose:[int, float, bool]=1
+) -> np.ndarray:
 
     """Measure the average time (seconds) and the average change in system
     RAM (MB) when computing functions. Displays statistics to the screen and

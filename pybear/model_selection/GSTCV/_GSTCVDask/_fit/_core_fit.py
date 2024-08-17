@@ -3,12 +3,10 @@
 #
 # License: BSD 3 clause
 #
-
-
+import inspect
 from typing import Union, Literal, Iterable
 import time
 from copy import deepcopy
-
 
 import numpy as np
 import numpy.typing as npt
@@ -258,7 +256,7 @@ def _core_fit(
         # must use deep params for pipeline to set GSCV params (depth
         # doesnt matter for an estimator.)
         d_p = _estimator.get_params(deep=True)  # deep_params
-
+        print(f'pizza starts fits'); t0 = time.perf_counter()
         FIT_OUTPUT = list()
         if _cache_cv:
 
@@ -292,6 +290,8 @@ def _core_fit(
 
         del s_p, d_p
 
+        print(f'pizza ends fits, t={time.perf_counter()-t0}')
+
         # END FIT ALL FOLDS ###############################################
 
         # terminate if all folds excepted, display & compile fit times ** * ** *
@@ -320,7 +320,7 @@ def _core_fit(
             print(f'\nStart scoring test with different thresholds and scorers')
 
         test_predict_and_score_t0 = time.perf_counter()
-
+        print(f'pizza starts scoring'); t0 = time.perf_counter()
         # TEST_SCORER_OUT IS:
         # TEST_THRESHOLD_x_SCORER__SCORE_LAYER,
         # TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER
@@ -360,6 +360,7 @@ def _core_fit(
                     )
                 )
 
+        print(f'pizza ends scoring, t = {time.perf_counter() - t0}')
         test_predict_and_score_tf = time.perf_counter()
         tpast = test_predict_and_score_tf - test_predict_and_score_t0
         del test_predict_and_score_tf, test_predict_and_score_t0
@@ -448,7 +449,7 @@ def _core_fit(
             train_predict_and_score_t0 = time.perf_counter()
 
             # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
-
+            print(f'pizza start train score'); t0 = time.perf_counter()
             TRAIN_SCORER_OUT = []
             if _cache_cv:
                 for f_idx, (X_train, _, y_train, _) in enumerate(CACHE_CV):
@@ -482,6 +483,7 @@ def _core_fit(
                         )
                     )
 
+            print(f'pizza start train score, t = {time.perf_counter() - t0}')
             train_predict_and_score_tf = time.perf_counter()
             tpast = train_predict_and_score_tf - train_predict_and_score_t0
             del train_predict_and_score_tf, train_predict_and_score_t0

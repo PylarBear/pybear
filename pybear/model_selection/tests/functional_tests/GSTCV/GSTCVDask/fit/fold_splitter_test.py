@@ -69,12 +69,11 @@ class TestFoldSplitter:
         assert np.array_equiv(out[1], [2,4])
 
 
-        mask_train = np.random.choice(
+        mask_train = da.random.choice(
             range(1_000_000), (750_000,), replace=False
         )
         _ = np.ones(1_000_000).astype(bool)
         _[mask_train] = False
-        mask_train = da.array(mask_train)
         mask_test = da.arange(1_000_000)[_]
         in1 = da.random.randint(0, 10, (1_000_000, 2))
         in2 = da.random.randint(0, 2, (1_000_000, ))

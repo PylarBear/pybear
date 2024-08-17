@@ -7,6 +7,7 @@
 
 import sys
 import inspect
+import warnings
 
 from model_selection.GSTCV._type_aliases import ClassifierProtocol
 
@@ -82,7 +83,7 @@ def _validate_dask_estimator(
             if not isinstance(step[0], str):
                 raise ValueError(err_msg)
             if not hasattr(step[1], 'fit'):
-                raise ValueError(err_msg)
+                raise ValueError(f"all pipeline steps must define 'fit' method")
     # END validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -105,11 +106,16 @@ def _validate_dask_estimator(
         raise AttributeError(f"'{__estimator.__class__.__name__}' is not "
             f"a valid classifier")
 
+    # 24_08_04_07_28_00 change raise to warn
+    # to allow XGBClassifier, reference errors associated with
+    # dask XGBClassifier and dask GridSearch CV
     __ = str(_module).lower()
     if 'dask' not in __ and 'conftest' not in __:  # allow pytest with mock clf
-        raise TypeError(f"'{__estimator.__class__.__name__}' is not a dask "
-            f"classifier. GSTCVDask can only accept dask classifiers. "
-            f"\nTo use non-dask classifiers, use the GSTCV package.")
+        warnings.warn(f"'{__estimator.__class__.__name__}' does not "
+            f"appear to be a dask classifier.")
+        # raise TypeError(f"'{__estimator.__class__.__name__}' is not a dask "
+        #     f"classifier. GSTCVDask can only accept dask classifiers. "
+        #     f"\nTo use non-dask classifiers, use the GSTCV package.")
 
     del get_inner_most_estimator, _module
 

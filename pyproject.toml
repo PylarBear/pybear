@@ -21,10 +21,10 @@ keywords = ["analytics data science numpy sci-kit"]
 [tool.poetry.dependencies]
 # These packages are mandatory and form the core of this package’s distribution.
 python = "^3.9"
-dask = "<2024.3.0"
+dask = "*"
 dask-ml = "*"
 joblib = "*"
-numpy = "<2.0.0"
+numpy = "*"
 pandas = "*"
 scikit-learn = "*"
 scipy = "*"
@@ -34,6 +34,9 @@ scipy = "*"
 distributed = "*"
 jupyter = "*"
 notebook = "*"
+pyarrow = "^17.0.0"
+bokeh = "*"
+graphviz = "*"
 
 
 [tool.poetry.group.test.dependencies]

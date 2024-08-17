@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
-
+import distributed
 
 from dask_ml.model_selection import KFold as dask_KFold
 
@@ -30,22 +30,41 @@ class TestDaskKFold:
 
     # X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @staticmethod
-    @pytest.fixture
-    def X_np_array():
-        return np.random.randint(0,10,(100, 30))
-
 
     @staticmethod
     @pytest.fixture
-    def X_COLUMNS(X_np_array):
-        return [str(uuid4())[:4] for _ in range(X_np_array.shape[1])]
+    def X_dask_array():
+        return da.random.randint(0, 10, (100, 30)).rechunk((20, 30))
 
 
     @staticmethod
     @pytest.fixture
-    def X_pd_df(X_np_array, X_COLUMNS):
-        return pd.DataFrame(data=X_np_array, columns=X_COLUMNS)
+    def X_COLUMNS(X_dask_array):
+        return [str(uuid4())[:4] for _ in range(X_dask_array.shape[1])]
+
+
+    @staticmethod
+    @pytest.fixture
+    def X_dask_df(X_dask_array, X_COLUMNS):
+        return ddf.from_dask_array(X_dask_array, columns=X_COLUMNS)
+
+
+    @staticmethod
+    @pytest.fixture
+    def X_dask_series(X_dask_df):
+        return X_dask_df.iloc[:, 0]
+
+
+    @staticmethod
+    @pytest.fixture
+    def X_np_array(X_dask_array):
+        return X_dask_array.compute()
+
+
+    @staticmethod
+    @pytest.fixture
+    def X_pd_df(X_dask_df):
+        return X_dask_df.compute()
 
 
     @staticmethod
@@ -55,30 +74,18 @@ class TestDaskKFold:
 
 
     @staticmethod
-    @pytest.fixture
-    def X_dask_array(X_np_array):
-        _rows, _cols = X_np_array.shape
-        return da.from_array(X_np_array, chunks=(_rows//5, _cols))
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_df(X_pd_df):
-        return ddf.from_pandas(X_pd_df, npartitions=5)
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_series(X_dask_df):
-        return X_dask_df.iloc[:, 0]
-
+    @pytest.fixture(scope='module')
+    def _client():
+        client = distributed.Client(n_workers=1, threads_per_worker=1)
+        yield client
+        client.close()
 
     # tests ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # all of these fail except dask_array
 
 
-    def test_np_array(self, X_np_array):
+    def test_np_array(self, X_np_array, _client):
 
         with pytest.raises(AttributeError):
             _n_splits = 10
@@ -90,7 +97,7 @@ class TestDaskKFold:
                 pass
 
 
-    def test_pd_df(self, X_pd_df):
+    def test_pd_df(self, X_pd_df, _client):
 
         with pytest.raises(AttributeError):
             _n_splits = 10
@@ -102,7 +109,7 @@ class TestDaskKFold:
                 pass
 
 
-    def test_pd_series(self, X_pd_series):
+    def test_pd_series(self, X_pd_series, _client):
 
         # ValueError: Expected a 2-dimensional container but got <class
         # 'pandas.core.series.Series'> instead. Pass a DataFrame containing
@@ -119,7 +126,7 @@ class TestDaskKFold:
                 pass
 
 
-    def test_dask_array(self, X_dask_array):
+    def test_dask_array(self, X_dask_array, _client):
         _n_splits = 10
         out = dask_KFold(n_splits=_n_splits).split(X_dask_array, y=None)
 
@@ -137,7 +144,7 @@ class TestDaskKFold:
                         int(X_dask_array.shape[0] * 1 / _n_splits)
 
 
-    def test_dask_df(self, X_dask_df):
+    def test_dask_df(self, X_dask_df, _client):
 
         # TypeError: This estimator does not support dask dataframes.
 
@@ -151,7 +158,7 @@ class TestDaskKFold:
                 pass
 
 
-    def test_dask_series(self, X_dask_series):
+    def test_dask_series(self, X_dask_series, _client):
 
         # ValueError: Expected a 2-dimensional container but got <class
         # 'pandas.core.series.Series'> instead. Pass a DataFrame containing

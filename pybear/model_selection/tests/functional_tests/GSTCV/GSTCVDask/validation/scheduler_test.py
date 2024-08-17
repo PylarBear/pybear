@@ -16,24 +16,26 @@ from model_selection.GSTCV._GSTCVDask._validation._scheduler import \
 
 class TestValidateScheduler:
 
-
     @staticmethod
     @pytest.fixture
-    def mock_client():
-        yield Client()
+    def marked_client_class():
+        class PyBearClient(Client):
+            pass
+
+        return PyBearClient
 
 
-    _reason = (f"proven to work 24_07_07_13_51_00, making clients "
-        f"takes too much time and can be unstable")
 
-    @pytest.mark.skip(reason=_reason)
+
     def test_none_returns_a_scheduler_instance(self):
-        assert isinstance(_validate_scheduler(None), Client)
+        assert isinstance(_validate_scheduler(None, _n_jobs=1), Client)
 
 
-    @pytest.mark.skip(reason=_reason)
-    def test_original_scheduler_is_returned(self, mock_client):
-        assert isinstance(_validate_scheduler(mock_client), Client)
+    def test_original_scheduler_is_returned(self, marked_client_class):
+        assert isinstance(
+            _validate_scheduler(marked_client_class(), _n_jobs=1),
+            marked_client_class
+        )
 
 
 

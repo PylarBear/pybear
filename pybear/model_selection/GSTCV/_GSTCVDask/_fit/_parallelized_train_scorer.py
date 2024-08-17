@@ -139,12 +139,15 @@ def _parallelized_train_scorer(
 
 
         if _verbose >= 5:
-            print(f'fold {_f_idx + 1 } excepted during fit, unable to score')
+            print(f'fold {_f_idx + 1} excepted during fit, unable to score')
 
         return TRAIN_SCORER__SCORE_LAYER
 
 
     # v v v only accessible if fit() did not except v v v
+
+    _X_train = _X_train.persist()
+    _y_train = _y_train.persist()
 
     pp0_time = time.perf_counter()
     _predict_proba = _estimator_.predict_proba(_X_train)[:, -1].ravel()

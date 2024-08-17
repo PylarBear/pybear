@@ -8,9 +8,14 @@
 import pytest
 import time
 import numpy as np
+import pandas as pd
+from dask import compute, dataframe as ddf
+import dask_expr._collection as ddf2
 
 from model_selection.GSTCV._master_scorer_dict import master_scorer_dict
 from sklearn.model_selection import ParameterGrid
+
+from xgboost import XGBClassifier
 
 
 
@@ -130,72 +135,93 @@ def _cv_results_template(request):
 @pytest.fixture(scope='module')
 def _mock_classifier():
 
-    class MockCLF:
+    return XGBClassifier
+    #     (
+    #     tree_method='hist',
+    #     max_depth=3,
+    #     learning_rate=0.1,
+    #     n_estimators=100
+    # )
 
-        def __init__(self, ctr, sleep=0):
-            self.ctr = ctr
-            self._is_fitted = 0
-            self.sleep = sleep
-
-        @property
-        def ctr_(self):
-            return self.ctr
-
-        def get_params(self, deep=True):
-            return {'ctr': self.ctr}
-
-
-        def set_params(self, **params):
-            for param in params:
-                if param not in ['ctr', 'sleep']:
-                    raise ValueError(f"unknown param '{param}'")
-                setattr(self, param, params[param])
-            return self
-
-
-        def is_fitted(self):
-            return self._is_fitted > 0
-
-
-        def fit(self, X, y=None, **fit_kwargs):
-
-            time.sleep(self.sleep)
-            self._is_fitted = 1
-            self.ctr = 1
-            return self
-
-
-        def partial_fit(self, X, y=None, **fit_kwargs):
-
-            time.sleep(self.sleep)
-            self._is_fitted += 1
-            self.ctr += 1
-            return self
-
-
-        def score(self, *args, **kwargs):
-            return np.random.uniform(0,1)
-
-
-        def transform(self, X, y=None):
-            if not self.is_fitted():
-                raise Exception(f'Mock Classifier is not fitted')
-            else:
-                return np.array(X) * self.ctr
-
-        def predict_proba(self, X):
-            if not self._is_fitted:
-                raise ValueError(f'This instance of Mock CLF is not fitted yet.')
-            else:
-                p_0 = np.random.uniform(0, 1, X.shape[0])
-                p_1 = 1 - p_0
-                out = np.empty((X.shape[0], 2))
-                out[:, 0] = p_0
-                out[:, 1] = p_1
-                return out
-
-
-    return MockCLF(ctr=0, sleep=0)
+    # class MockCLF:
+    #
+    #     def __init__(self, ctr, sleep=0, C=1):
+    #         self.ctr = ctr
+    #         self._is_fitted = 0
+    #         self.sleep = sleep
+    #         self.C = C
+    #
+    #     @property
+    #     def ctr_(self):
+    #         return self.ctr
+    #
+    #     def get_params(self, deep=True):
+    #         return {'ctr': self.ctr, 'sleep': self.sleep, 'C': self.C}
+    #
+    #
+    #     def set_params(self, **params):
+    #         for param in params:
+    #             if param not in ['ctr', 'sleep', 'C']:
+    #                 raise ValueError(f"unknown param '{param}'")
+    #             setattr(self, param, params[param])
+    #         return self
+    #
+    #
+    #     def is_fitted(self):
+    #         return self._is_fitted > 0
+    #
+    #
+    #     def fit(self, X, y=None, **fit_kwargs):
+    #
+    #         self.n_features_in_ = compute(*X.shape)[0]
+    #
+    #         self.feature_names_in_ = None
+    #         if isinstance(X, (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
+    #             self.feature_names_in_ = np.array(X.columns)
+    #
+    #         self.classes_ = np.unique(y)
+    #
+    #         time.sleep(self.sleep)
+    #         self._is_fitted = 1
+    #         self.ctr = 1
+    #         return self
+    #
+    #
+    #     def partial_fit(self, X, y=None, **fit_kwargs):
+    #
+    #         time.sleep(self.sleep)
+    #         self._is_fitted += 1
+    #         self.ctr += 1
+    #         return self
+    #
+    #
+    #     def score(self, *args, **kwargs):
+    #         return np.exp(-10000*((self.C-0.001)**2))
+    #
+    #
+    #     def transform(self, X, y=None):
+    #         if not self.is_fitted():
+    #             raise Exception(f'Mock Classifier is not fitted')
+    #         else:
+    #             return np.array(X) * self.ctr
+    #
+    #     def predict(self, X):
+    #         return np.round(self.predict_proba(X), 0)
+    #
+    #
+    #     def predict_proba(self, X):
+    #         if not self._is_fitted:
+    #             raise ValueError(f'This instance of Mock CLF is not fitted yet.')
+    #         else:
+    #             p_0 = np.random.uniform(0, 1, X.shape[0])
+    #             p_1 = 1 - p_0
+    #             out = np.empty((X.shape[0], 2))
+    #             out[:, 0] = p_0
+    #             out[:, 1] = p_1
+    #             return out
+    #
+    #
+    # return MockCLF   # (ctr=0, sleep=0.2)
 
 
 

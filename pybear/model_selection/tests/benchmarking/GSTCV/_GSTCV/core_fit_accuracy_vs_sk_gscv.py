@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 
 
-from sklearn.datasets import make_classification
 
-from sklearn.model_selection import ParameterGrid
+
+from sklearn.datasets import make_classification
 
 from sklearn.model_selection import (
     GridSearchCV,
@@ -58,15 +58,9 @@ for trial in range(100):
     )
 
 
-
-
-
     good_param_grid = [
         {'C': [1]},
-        # {'C': [1], 'solver':['lbfgs'], 'fit_intercept': [False]},
-        # {'C': [1], 'fit_intercept': [True]},
         {'C': [1], 'fit_intercept': [False]}
-        # {'fit_intercept': [True, False]},
     ]
 
     good_cv_int = 4
@@ -81,8 +75,6 @@ for trial in range(100):
     }
 
 
-
-
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     good_cv_results, good_PARAM_GRID_KEY = _cv_results_builder(
@@ -92,10 +84,6 @@ for trial in range(100):
         scorer=good_scorer,
         return_train_score=True
     )
-
-    param_grid = ParameterGrid(good_param_grid)
-    good_cv_results['params'] = np.ma.masked_array(param_grid)
-    del param_grid
 
     gstcv_cv_results = _core_fit(
         good_X,
@@ -116,7 +104,6 @@ for trial in range(100):
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-    _scorer = {k: make_scorer(v) for k, v in good_scorer.items()}
 
     out_sk_gscv = GridSearchCV(
         good_estimator,
@@ -124,7 +111,7 @@ for trial in range(100):
         cv=good_cv_iter,
         error_score=good_error_score,
         verbose=0,
-        scoring=_scorer,
+        scoring={k: make_scorer(v) for k, v in good_scorer.items()},
         n_jobs=-1,
         return_train_score=True,
         refit=False
@@ -173,7 +160,6 @@ for trial in range(100):
             assert (gstcv_cv_results[column] > 0).all()
             continue
 
-        OK = False
 
         MASK = np.logical_not(pd_gstcv_cv_results[column].isna())
 
@@ -185,39 +171,40 @@ for trial in range(100):
                 dtype=np.float64
             )
 
-            assert (_gstcv_out > 0).any()
-            assert (_sk_out > 0).any()
+            raise UnicodeError
 
-            OK =  np.allclose(_gstcv_out, _sk_out, atol=0.00001)
+        except UnicodeError:
+            # check floats
+            assert np.allclose(_gstcv_out, _sk_out, atol=0.00001)
 
-        except:
-            OK = np.array_equiv(
-                pd_gstcv_cv_results[column][MASK].to_numpy(),
-                pd_sk_cv_results[column][MASK].to_numpy()
-            )
-
-        if OK:
             print(f'\033[92m')
             print(f'column {column} values OK!')
             print(f'gstcv[{column}] = {pd_gstcv_cv_results[column].to_numpy()}')
             print(f'sk_gscv[{column}] = {pd_sk_cv_results[column].to_numpy()}')
             print(f'\033[0m')
-        else:
-            print(f'\033[91m')
-            print(f'column {column} values wrong')
-            print(f'gstcv[{column}] = {pd_gstcv_cv_results[column].to_numpy()}')
-            print(f'sk_gscv[{column}] = {pd_sk_cv_results[column].to_numpy()}')
 
-            if 'rank' in column:
-                print()
-                _scoring = 'balanced_accuracy' if 'balanced' in column else 'accuracy'
-                print(f"gstcv[f'mean_test_{_scoring}'] = \
-                    {pd_gstcv_cv_results[f'mean_test_{_scoring}'].to_numpy()}")
-                print(f"sk_gscv[f'mean_test_{_scoring}'] = \
-                    {pd_sk_cv_results[f'mean_test_{_scoring}'].to_numpy()}")
-                print('\033[0m')
+        except:
+            # check param columns
+            if not np.array_equiv(
+                pd_gstcv_cv_results[column][MASK].to_numpy(),
+                pd_sk_cv_results[column][MASK].to_numpy()
+            ):
 
-            raise Exception(f'trial {trial} GSTCV != sk gscv')
+                print(f'\033[91m')
+                print(f'column {column} values wrong')
+                print(f'gstcv[{column}] = {pd_gstcv_cv_results[column].to_numpy()}')
+                print(f'sk_gscv[{column}] = {pd_sk_cv_results[column].to_numpy()}')
+
+                if 'rank' in column:
+                    print()
+                    _scoring = 'balanced_accuracy' if 'balanced' in column else 'accuracy'
+                    print(f"gstcv[f'mean_test_{_scoring}'] = \
+                        {pd_gstcv_cv_results[f'mean_test_{_scoring}'].to_numpy()}")
+                    print(f"sk_gscv[f'mean_test_{_scoring}'] = \
+                        {pd_sk_cv_results[f'mean_test_{_scoring}'].to_numpy()}")
+                    print('\033[0m')
+
+                raise Exception(f'trial {trial} GSTCV != sk gscv')
 
 
 
