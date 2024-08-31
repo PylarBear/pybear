@@ -21,9 +21,6 @@ from model_selection.GSTCV._type_aliases import (
 )
 
 
-# pizza congruize with sk version
-
-
 def _parallelized_scorer(
     _X_test: XDaskWIPType,
     _y_test: YDaskWIPType,
@@ -45,15 +42,16 @@ def _parallelized_scorer(
     Build one fold layer of the TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE and
     TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME cubes.
 
+
     Parameters
     ----------
     _X_test:
         dask.array.core.Array[Union[int,float]] - A test partition of the
         data, matched up with the estimator that was trained on the
-        complementary train set. Must be 2D ndarray.
+        complementary train set. Must be 2D da.core.Array.
     _y_test:
         dask.array.core.Array[int] - The corresponding test partition of
-        the target for the X test partition. Must be 1D ndarray.
+        the target for the X test partition. Must be 1D da.core.Array.
     _FIT_OUTPUT_TUPLE:
         tuple[ClassifierProtocol, float, bool] - A tuple holding the
         fitted estimator, the fit time (not needed here), and the
@@ -64,8 +62,8 @@ def _parallelized_scorer(
     _SCORER_DICT:
         dict[str: Callable[[Iterable[int], Iterable[int]], float] -
         a dictionary with scorer name as keys and the scorer callables
-        as values. The scorer callables are sklearn metrics, not
-        make_scorer.
+        as values. The scorer callables are sklearn metrics (or similar),
+        not make_scorer.
     _THRESHOLDS:
         npt.NDArray[np.float64] - for the current search permutation,
         there was a mother param grid that contained a 'thresholds'
@@ -92,6 +90,7 @@ def _parallelized_scorer(
         **dict[str: any] - dictionary of kwargs to be passed to the scorer
         metrics. 24_07_13 not used by the calling _core_fit module.
 
+
     Return
     ------
     -
@@ -115,7 +114,6 @@ def _parallelized_scorer(
     assert isinstance(_THRESHOLDS, np.ndarray)
     assert isinstance(_verbose, (int, float))
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
-
 
     if _verbose >= 5:
         print(f"Start scoring fold {_f_idx + 1} test with different thresholds "
@@ -182,10 +180,6 @@ def _parallelized_scorer(
 
 
 
-
-
-
-
             test_scorer_t0 = time.perf_counter()
             _score = _SCORER_DICT[scorer_key](_y_test, _y_test_pred, **scorer_params)
             test_scorer_score_time = time.perf_counter() - test_scorer_t0
@@ -226,49 +220,6 @@ def _parallelized_scorer(
 
     return (TEST_THRESHOLD_x_SCORER__SCORE_LAYER,
                 TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

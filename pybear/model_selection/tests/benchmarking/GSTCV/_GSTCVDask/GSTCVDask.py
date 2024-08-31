@@ -39,14 +39,14 @@ if __name__ == '__main__':
         class_weight=None,
         random_state=None,
         solver='lbfgs',
-        max_iter=10000,
+        max_iter=100,
         multi_class='auto',
         verbose=0,
         warm_start=False,
         n_jobs=-1
     )
 
-    param_grid = {'C': np.logspace(-5, -2, 4), 'solver': ['lbfgs', 'newton']}
+    param_grid = {'C': [1e-5, 1e-4], 'solver': ['lbfgs', 'newton']}
 
     with distributed.Client(n_workers=None, threads_per_worker=1):
 
@@ -54,9 +54,9 @@ if __name__ == '__main__':
         gstcv = GSTCVDask(
             clf,
             param_grid,
-            thresholds=np.linspace(0,1,6),
+            thresholds=[0.5],
             scoring='balanced_accuracy',
-            n_jobs=-1,
+            n_jobs=None,
             cv=3,
             refit=lambda x: 0,
             error_score='raise',
@@ -70,8 +70,10 @@ if __name__ == '__main__':
         gstcv.fit(X_da, y)
 
 
+        out = gstcv.predict(X_da)
 
-
+        print(out)
+        print(type(out))
 
 
 

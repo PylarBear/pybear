@@ -39,8 +39,10 @@ IntermediateHolderType: TypeAlias = Union[
     npt.NDArray[Union[int, float]]
 ]
 
-ParamGridType: TypeAlias = dict[str, Union[list[any], npt.NDArray[any]]]
-
+ParamGridType: TypeAlias = Union[
+    dict[str, Union[list[any], npt.NDArray[any]]],
+    list[dict[str, Union[list[any], npt.NDArray[any]]]]
+]
 SKSlicerType: TypeAlias = npt.NDArray[int]
 DaskSlicerType: TypeAlias = dask.array.core.Array
 GenericSlicerType: TypeAlias = Iterable[int]
@@ -85,7 +87,7 @@ class ScorerWIPType(TypedDict):
 
 
 RefitCallableType: TypeAlias = Callable[[CVResultsType], int]
-RefitType: TypeAlias = Union[bool, None, ScorerNameTypes, RefitCallableType]
+RefitType: TypeAlias = Union[bool, ScorerNameTypes, RefitCallableType, None]
 
 
 SchedulerType: TypeAlias = Union[

@@ -11,12 +11,10 @@ import numpy as np
 
 from sklearn.metrics import (
     accuracy_score,
-    balanced_accuracy_score,
     f1_score,
     precision_score,
     recall_score
 )
-
 
 from model_selection.GSTCV._GSTCVMixin._validation._scoring import \
     _validate_scoring
@@ -24,8 +22,6 @@ from model_selection.GSTCV._GSTCVMixin._validation._scoring import \
 
 
 class TestValidateScoring:
-
-
 
 
     @pytest.mark.parametrize('junk_scoring',
@@ -56,7 +52,7 @@ class TestValidateScoring:
         assert len(out) == 1
         assert good_scoring in out
         assert callable(out[good_scoring])
-        float(out[good_scoring]([1, 0, 1, 1], [1, 0, 0, 1]))
+        assert float(out[good_scoring]([1, 0, 1, 1], [1, 0, 0, 1]))
 
 
     @pytest.mark.parametrize('junk_scoring',
@@ -77,7 +73,7 @@ class TestValidateScoring:
         assert len(out) == 1
         assert 'score' in out
         assert callable(out['score'])
-        float(out['score']([1, 0, 1, 1], [1, 0, 0, 1]))
+        assert float(out['score']([1, 0, 1, 1], [1, 0, 0, 1]))
 
 
     @pytest.mark.parametrize('junk_scoring', ([], (), {}))
@@ -107,7 +103,7 @@ class TestValidateScoring:
         for metric in good_lists:
             assert metric in out
             assert callable(out[metric])
-            float(out[metric]([1,0,1,1], [1,0,0,1]))
+            assert float(out[metric]([1,0,1,1], [1,0,0,1]))
 
 
     @pytest.mark.parametrize('junk_dicts',
@@ -133,7 +129,7 @@ class TestValidateScoring:
         for metric in good_dict:
             assert metric in out
             assert callable(out[metric])
-            float(out[metric]([0,1,0,1],[1,0,0,1]))
+            assert float(out[metric]([0,1,0,1],[1,0,0,1]))
 
 
 

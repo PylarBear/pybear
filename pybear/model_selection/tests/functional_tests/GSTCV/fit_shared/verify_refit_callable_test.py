@@ -10,7 +10,6 @@ from copy import deepcopy
 from model_selection.GSTCV._fit_shared._verify_refit_callable import \
     _verify_refit_callable
 
-from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
 
 class TestVerifyRefitCallable:

@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+from typing import Union, Iterable
 from copy import deepcopy
 import time
 from sklearn.base import BaseEstimator
@@ -28,63 +30,20 @@ from model_selection.GSTCV._fit_shared._verify_refit_callable import \
 
 
 
-
-
-
-# pizza added BaseEstimator 24_08_15_16_43_00
 class _GSTCVMixin(BaseEstimator):
 
-    """
-
-    # PIZZA! BaseEstimator is intended to only provide __repr__.
-
-    --- Classifer must have predict_proba method. If does not have predict_proba,
-    try to wrap with CalibratedClassifierCV.
-
-
-
-    Notes
-    -----
-    The parameters selected are those that maximize the score of the left
-    out data, unless an explicit score is passed in which case it is
-    used instead.  ???
-
-
-    GridSearchCV(cache_cv=..., cv=..., error_score=...,
-        estimator=SVC(C=..., cache_size=..., class_weight=..., coef0=...,
-                      decision_function_shape=..., degree=..., gamma=...,
-                      kernel=..., max_iter=-1, probability=False,
-                      random_state=..., shrinking=..., tol=...,
-                      verbose=...),
-        iid=..., n_jobs=..., param_grid=..., refit=..., return_train_score=...,
-        scheduler=..., scoring=...)
-
-    >>> sorted(clf.cv_results_.keys())
-    ['mean_fit_time', 'mean_score_time', 'mean_test_score',...
-     'mean_train_score', 'param_C', 'param_kernel', 'params',...
-     'rank_test_score', 'split0_test_score',...
-     'split0_train_score', 'split1_test_score', 'split1_train_score',...
-     'split2_test_score', 'split2_train_score',...
-     'std_fit_time', 'std_score_time', 'std_test_score', 'std_train_score'...]
-    """
-
-    # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-    # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-    # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
+    # BaseEstimator is intended to only provide __repr__.
 
     @property
     def classes_(self):
+
         """
         classes_: ndarray of shape (n_classes,) - Class labels. Only
-            available when refit is not False and the estimator is a
-            classifier (must be classifier --- validated in
-            _validate_and_reset())
-
+            available when refit is not False.
 
         """
 
-        self.check_refit_is_false_no_attr_no_method('classes_')
+        self.check_refit__if_false_block_attr('classes_')
 
         self.check_is_fitted()
 
@@ -92,9 +51,9 @@ class _GSTCVMixin(BaseEstimator):
             # self._classes IS A HOLDER THAT IS FILLED ONE TIME WHEN
             # THIS METHOD IS CALLED
             # self._y IS y AND CAN ONLY BE np OR da ARRAY
-            if hasattr(self._estimator, 'classes_'):
-                self._classes = self.best_estimator_.classes_
-            else:
+            try:
+                self._classes = getattr(self.best_estimator_, 'classes_')
+            except:
                 with self._scheduler:
                     # da.unique WORKS ON np AND dask arrays
                     self._classes = da.unique(self._y).compute()
@@ -106,9 +65,10 @@ class _GSTCVMixin(BaseEstimator):
 
     @property
     def n_features_in_(self):
+
         """
-        property n_features_in_: Number of features seen during fit.
-        Only available when refit is not False.
+        n_features_in_: Number of features seen during fit. Only
+        available when refit is not False.
 
         """
 
@@ -132,127 +92,59 @@ class _GSTCVMixin(BaseEstimator):
     ####################################################################
     # SKLEARN / DASK GSTCV Methods #####################################
 
-    def fit(self, X, y, **params):
+    def fit(
+        self,
+        X: Iterable[Iterable[Union[int, float]]],
+        y: Iterable[int],
+        **params
+    ):
 
         """
-        Analog to dask/sklearn GridSearchCV fit() method. Run fit with
-        all sets of parameters.
-        Pizza add words.
+
+        Perform the grid search with the hyperparameter settings in
+        param grid to generate scores for the given X and y.
+
 
         Parameters
         ----------
-        # pizza can y be [] and [[]]
-        X: Iterable[Iterable[Union[int, float]]] - training data
-        y: Union[Iterable[Iterable[Union[int,float]]], Iterable[Union[int,float]]] -
-            target for training data
-        groups: Group labels for the samples used while splitting the dataset
-            into train/tests set
-        **params: ???
+        X:
+            Iterable[Iterable[Union[int, float]]], shape (n_samples,
+            n_features) - The data on which to perform the grid search.
+            Must contain all numerics. Must be able to convert to a
+            numpy.ndarray (GSTCV) or dask.array.core.Array (GSTCVDask).
+            Must fulfill the input assumptions of the underlying
+            estimator.
+
+        y:
+            Iterable[int], shape (n_samples,) or (n_samples, 1) - The
+            target relative to X. Must be binary in [0, 1]. Must be able
+            to convert to a numpy.ndarray (GSTCV) or dask.array.core.Array
+            (GSTCVDask). Must fulfill the input assumptions of the
+            underlying estimator.
+
+        **params:
+            dict[str, any] - Parameters passed to the fit method of the
+            estimator. If a fit parameter is an array-like whose length
+            is equal to num_samples, then it will be split across CV
+            groups along with X and y. For example, the sample_weight
+            parameter is split because len(sample_weights) = len(X). For
+            array-likes intended to be subject to CV splits, care must
+            be taken to ensure that any such vector is shaped
+            (num_samples, ) or (num_samples, 1), otherwise it will not
+            be split. For GSTCVDask, pybear recommends passing such
+            array-likes as dask arrays.
+
+            For pipelines, fit parameters can be passed to the fit method
+            of any of the steps. Prefix the parameter name with the name
+            of the step, such that parameter p for step s has key s__p.
+
 
         Return
         ------
         -
-            Instance of fitted estimator.
+            self: fitted estimator instance - GSTCV(Dask) instance.
 
 
-        """
-
-
-        """
-        refit:
-            if False:
-                self.best_index_:
-                    Indeterminate, not explicitly stated. Most likely is available.
-                self.best_estimator_:
-                    estimator --- Not available if refit=False.
-                self.best_score_:
-                    is available as a float
-                self.best_params_:
-                    For multi-metric evaluation, not present if refit is not specified.
-                self.n_features_in_:
-                    Not available.
-
-            if not False:
-
-                expose refit_time_ attr --- Seconds used for refitting the best model on the whole dataset.
-
-
-
-                the refitted estimator is made available at the best_estimator_ attribute and
-                                permits using predict directly on this GridSearchCV instance.
-
-                one metric:
-                    True --- maximum score is used to choose the best estimator
-                             best_index_ is available
-                             best_estimator is available, set according to the returned best_index_
-                             best_score_ is available as a float
-                             best_params_ is available, set according to the returned best_index_
-                             self.n_features_in_: sklearn only. Only available when refit = True (single metric)
-
-                multi metric:
-                    str --- maximum score for that metric is used to choose the best estimator
-                            best_index_ is available
-                            best_estimator is available, set according to the returned best_index_
-                            best_score_ is available as a float!  THE DASK DOCS ARE INCORRECT!  NO DICTIONARY EVER!
-                            best_params_ is available, set according to the returned best_index_
-
-                both:
-                    a function which returns the selected best_index_ when passed cv_results_
-                        ---best_index is available
-                        ---best_estimator_ is available, set according to the returned best_index_
-                        ---best_score_ attribute will not be available.
-                        ---best_params_ is available, set according to the returned best_index_
-        """
-
-        """
-        self.best_index_: int or dict of ints <--- pizza
-        The index of the cv_results_ dictionary which corresponds to the 
-        best candidate parameter setting. This locates the dict in 
-        GSTCV.cv_results_['params'] holding the parameter settings for 
-        the best model, i.e., best model being the model that gives the 
-        highest mean score (GSTCV.best_score_) on holdout data.
-        
-        # 24_07_30_13_20_00 pizza, this cannot be true, if this cannot be
-        # corroborated, remove it. 
-        When using multiple metrics, best_index_ will be a dictionary 
-        where the keys are the names of the scorers, and the values are 
-        the index with the best mean score for that scorer, as described 
-        above.
-        """
-
-        """
-        self.best_estimator_: estimator
-        Estimator that was chosen by the search, i.e. estimator which 
-        gave highest score (or smallest loss if specified) on the left 
-        out data. Not available if refit=False.
-        """
-
-        """
-        self.best_score_: float
-            THE DASK DOCS ARE INCORRECT!  NO DICTIONARY EVER!
-            Mean tests score of best_estimator on the hold out data.
-        """
-
-        """
-        self.best_params_: dict
-            The dict at search.cv_results_['params'][search.best_index_] 
-            that holds the parameter settings that yields the best model 
-            (i.e, gives the highest mean score -- search.best_score_ -- 
-            on the hold out data.) For multi-metric evaluation, this is 
-            present only if refit is specified.
-        """
-
-        """
-        self.n_features_in_:
-            sklearn only
-            Number of features seen during fit. Only available when 
-            refit = True.
-        """
-
-        """
-        self.refit_time_
-            Seconds used for refitting the best model on the whole dataset.
-            This is present only if refit is not False.
         """
 
 
@@ -270,7 +162,7 @@ class _GSTCVMixin(BaseEstimator):
 
         # DONT unique().compute() HERE, JUST RETAIN THE VECTOR & ONLY DO
         # THE PROCESSING IF classes_ IS CALLED
-        self._y = y
+        self._y = _y.copy()
 
         # THIS IS A HOLDER THAT IS FILLED ONE TIME WHEN THE unique().compute()
         # IS DONE ON self._y WHEN @property classes_ IS CALLED
@@ -298,7 +190,7 @@ class _GSTCVMixin(BaseEstimator):
                 self._param_grid,
                 self.n_splits_,
                 self.scorer_,
-                self.return_train_score
+                self._return_train_score
         )
 
         # USE A DUMMIED-UP cv_results TO TEST IF THE refit CALLABLE RETURNS
@@ -385,11 +277,14 @@ class _GSTCVMixin(BaseEstimator):
 
         if self._refit:
 
-            if self.verbose >= 3:
+            if self._verbose >= 3:
                 print(f'\nStarting refit...')
 
             self.best_estimator_ = \
                 type(self._estimator)(**self._estimator.get_params(deep=False))
+            self.best_estimator_.set_params(**self._estimator.get_params(deep=True))
+
+            del self._estimator
 
             self.best_estimator_.set_params(**self.best_params_)
 
@@ -401,7 +296,7 @@ class _GSTCVMixin(BaseEstimator):
 
             self.refit_time_ = time.perf_counter() - t0
             del t0
-            if self.verbose >= 3:
+            if self._verbose >= 3:
                 print(f'Finished refit. time = {self.refit_time_}')
 
         elif self._refit is False:
@@ -411,49 +306,52 @@ class _GSTCVMixin(BaseEstimator):
         return self
 
 
-    def decision_function(self, X):
+    def decision_function(self, X: Iterable[Iterable[Union[int, float]]]):
+
         """
+
         Call decision_function on the estimator with the best found
         parameters. Only available if refit is not False and the
         underlying estimator supports decision_function.
 
+
         Parameters
         ----------
-        X: indexable, length n_samples - Must fulfill the input
-            assumptions of the underlying estimator.
+        X:
+            Iterable[Iterable[Union[int, float]]], shape (n_samples,
+            n_features) - Must contain all numerics. Must be able to
+            convert to a numpy.ndarray (GSTCV) or dask.array.core.Array
+            (GSTCVDask). Must fulfill the input assumptions of the
+            underlying estimator.
+
 
         Return
         ------
-        y_score: ndarray of shape (n_samples,) or (n_samples, n_classes) or
-            (n_samples, n_classes * (n_classes-1) / 2) - Result of the
-            decision function for X based on the estimator with the best
-            found parameters.
-
+        -
+            The best_estimator_ decision_function method result for X.
 
         """
 
         self.estimator_hasattr('decision_function')
 
-        self.check_refit_is_false_no_attr_no_method('decision_function')
+        self.check_refit__if_false_block_attr('decision_function')
 
         self.check_is_fitted()
 
-        _X = self._handle_X_y(X, y=None)[0]
+        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+
+        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
             return self.best_estimator_.decision_function(_X)
 
 
     def get_metadata_routing(self):
-        """
-        Get metadata routing of this object.
-        Please check User Guide on how the routing mechanism works.
 
-        Return
-        ------
-        -
-            routingMetadataRouter: A MetadataRouter encapsulating routing
-                information.
+        """
+
+        get_metadata_routing is not implemented in GSTCV(Dask).
+
         """
 
         # sklearn only --- always available, before and after fit()
@@ -467,18 +365,28 @@ class _GSTCVMixin(BaseEstimator):
     def get_params(self, deep:bool=True):
 
         """
-        Get parameters for this estimator.
+
+        Get parameters for this GSTCV(Dask) instance.
+
 
         Parameters
         ----------
-        deep: bool, default=True
-            If True, will return the parameters for this estimator and
-            contained subobjects that are estimators.
+        deep:
+            bool, optional, default=True - 'False' only returns the
+            parameters of the GSTCV(Dask) instance. 'True' returns the
+            parameters of the GSTCV(Dask) instance as well as the
+            parameters of the estimator and anything embedded in the
+            estimator. When the estimator is a single estimator, the
+            parameters of the single estimator are returned. If the
+            estimator is a pipeline, the parameters of the pipeline and
+            the parameters of each of the steps in the pipeline are
+            returned.
+
 
         Return
         ------
         -
-            paramsdict: Parameter names mapped to their values.
+            params: dict - Parameter names mapped to their values.
 
         """
 
@@ -493,7 +401,10 @@ class _GSTCVMixin(BaseEstimator):
             if attr[0] == '_' or attr[-1] == '_':
                 continue
 
-            paramsdict[attr] = deepcopy(vars(self)[attr])
+            if attr == 'scheduler': # cant pickle asyncio object
+                paramsdict[attr] = self.scheduler
+            else:
+                paramsdict[attr] = deepcopy(vars(self)[attr])
 
 
         # gymnastics to get GSTCV param order the same as sk/dask GSCV
@@ -525,56 +436,75 @@ class _GSTCVMixin(BaseEstimator):
         return paramsdict
 
 
-    def inverse_transform(self, Xt):
+    def inverse_transform(self, X: Iterable[Iterable[Union[int, float]]]):
+
         """
-        Call inverse_transform on the estimator with the best found params.
-        Only available if the underlying estimator implements
-        inverse_transform and refit is not False.
+
+        Call inverse_transform on the estimator with the best found
+        parameters. Only available if refit is not False and the
+        underlying estimator supports inverse_transform.
+
 
         Parameters
         ----------
-        Xt: indexable, length n_samples - Must fulfill the input
+        X:
+            Iterable[Iterable[Union[int, float]]] - Must contain all
+            numerics. Must be able to convert to a numpy.ndarray (GSTCV)
+            or dask.array.core.Array (GSTCVDask). Must fulfill the input
             assumptions of the underlying estimator.
+
 
         Return
         ------
         -
-            X: Union[ndarray] of shape (n_samples,
-                n_features) - Result of the inverse_transform function
-                for Xt based on the estimator with the best found parameters.
+            The best_estimator_ inverse_transform method result for X.
 
 
         """
 
         self.estimator_hasattr('inverse_transform')
 
-        self.check_refit_is_false_no_attr_no_method('inverse_transform')
+        self.check_refit__if_false_block_attr('inverse_transform')
 
         self.check_is_fitted()
 
         with self._scheduler as scheduler:
-            return self.best_estimator_.inverse_transform(Xt)
+            return self.best_estimator_.inverse_transform(X)
 
 
-    def predict(self, X):
+    def predict(self, X: Iterable[Iterable[Union[int, float]]]):
+
         """
-        Call predict on the estimator with the best found parameters.
+
+        Call the best estimator's predict_proba method on the passed X
+        and apply the best_threshold_ to predict the classes for X. When
+        only one scorer is used, predict is available if refit is not
+        False. When more than one scorer is used, predict is only
+        available if refit is set to a string.
+
 
         Parameters
         ----------
-        X: pizza
+        X:
+            Iterable[Iterable[Union[int, float]]], shape (n_samples,
+            n_features) - Must contain all numerics. Must be able to
+            convert to a numpy.ndarray (GSTCV) or dask.array.core.Array
+            (GSTCVDask). Must fulfill the input assumptions of the
+            underlying estimator.
+
 
         Return
         ------
-        pizza
-            The predicted labels or values for X based on the estimator
-            with the best found parameters.
+        -
+            A vector in [0,1] indicating the class label for the examples
+            in X. A numpy.ndarray (GSTCV) or dask.array.core.Array
+            (GSTCVDask) is returned.
 
         """
 
         self.estimator_hasattr('predict')
 
-        self.check_refit_is_false_no_attr_no_method('predict')
+        self.check_refit__if_false_block_attr('predict')
 
         self.check_is_fitted()
 
@@ -583,7 +513,9 @@ class _GSTCVMixin(BaseEstimator):
                 f"are multiple scorers and refit is a callable because "
                 f"best_threshold_ cannot be determined.")
 
-        _X = self._handle_X_y(X, y=None)[0]
+        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+
+        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
 
@@ -593,161 +525,221 @@ class _GSTCVMixin(BaseEstimator):
             return y_pred.astype(np.uint8)
 
 
-    def predict_log_proba(self, X):
+    def predict_log_proba(self, X: Iterable[Iterable[Union[int, float]]]):
+
         """
+
         Call predict_log_proba on the estimator with the best found
         parameters. Only available if refit is not False and the
         underlying estimator supports predict_log_proba.
 
+
         Parameters
         ----------
-        X: indexable, length n_samples - Must fulfill the input
-            assumptions of the underlying estimator.
+        X:
+            Iterable[Iterable[Union[int, float]]], shape (n_samples,
+            n_features) - Must contain all numerics. Must be able to
+            convert to a numpy.ndarray (GSTCV) or dask.array.core.Array
+            (GSTCVDask). Must fulfill the input assumptions of the
+            underlying estimator.
+
 
         Return
         ------
-        y_pred: ndarray of shape (n_samples,) or (n_samples, n_classes) -
-            Predicted class log-probabilities for X based on the estimator
-            with the best found parameters. The order of the classes
-            corresponds to that in the fitted attribute classes_.
+        -
+            The best_estimator_ predict_log_proba method result for X.
+
         """
 
         self.estimator_hasattr('predict_log_proba')
 
-        self.check_refit_is_false_no_attr_no_method('predict_log_proba')
+        self.check_refit__if_false_block_attr('predict_log_proba')
 
         self.check_is_fitted()
 
-        _X = self._handle_X_y(X, y=None)[0]
+        _X , passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+
+        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
-            return self.best_estimator_.predict_log_proba(X)
+            return self.best_estimator_.predict_log_proba(_X)
 
 
-    def predict_proba(self, X):
+    def predict_proba(self, X: Iterable[Iterable[Union[int, float]]]):
+
         """
-        Call predict_proba on the estimator with the best found parameters.
-        Only available if refit is not False and the underlying estimator
-        supports predict_proba.
+
+        Call predict_proba on the estimator with the best found
+        parameters. Only available if refit is not False. The underlying
+        estimator must support this method, as it is a characteristic
+        that is validated.
+
 
         Parameters
         ----------
-        X: indexable, length n_samples - Must fulfill the input
-            assumptions of the underlying estimator.
+        X:
+            Iterable[Iterable[Union[int, float]]], shape (n_samples,
+            n_features) - Must contain all numerics. Must be able to
+            convert to a numpy.ndarray (GSTCV) or dask.array.core.Array
+            (GSTCVDask). Must fulfill the input assumptions of the
+            underlying estimator.
+
 
         Return
         ------
-        y_pred: ndarray of shape (n_samples,) or (n_samples, n_classes) -
-            Predicted class probabilities for X based on the estimator
-            with the best found parameters. The order of the classes
-            corresponds to that in the fitted attribute classes_.
-
+        -
+            The best_estimator_ predict_proba_ method result for X.
 
         """
 
         self.estimator_hasattr('predict_proba')
 
-        self.check_refit_is_false_no_attr_no_method('predict_proba')
+        self.check_refit__if_false_block_attr('predict_proba')
 
         self.check_is_fitted()
 
-        _X = self._handle_X_y(X, y=None)[0]
+        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+
+        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
-            return self.best_estimator_.predict_proba(X)
+            return self.best_estimator_.predict_proba(_X)
 
 
-    def score(self, X, y=None, **params):
+    def score(
+        self,
+        X: Iterable[Iterable[Union[int, float]]],
+        y: Iterable[int]
+    ):
+
         """
-        Return the score on the given data, if the estimator has been
-        refit. This uses the score defined by scoring where provided, and
-        the best_estimator_.score method otherwise.
+
+        Score the given X and y using the best estimator, best threshold,
+        and the defined scorer. When there is only one scorer, that is
+        the defined scorer, and score is available if refit is not False.
+        When there are multiple scorers, the defined scorer is the scorer
+        specified by 'refit', and score is available only if refit is set
+        to a string.
+
+        See the documentation for the 'scoring' parameter for information
+        about passing kwargs to the scorer.
+
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features) - Input data,
-            where n_samples is the number of samples and n_features is
-            the number of features.
-        y: array-like of shape (n_samples, n_output) or (n_samples,),
-            default=None - Target relative to X for classification or
-            regression; None for unsupervised learning.
-        **params: dict of parameters to be passed to the underlying
-            scorer(s). Only available if enable_metadata_routing=True.
-            See Metadata Routing User Guide for more details.
+        X:
+            Iterable[Iterable[Union[int, float]]], shape (n_samples,
+            n_features) - Must contain all numerics. Must be able to
+            convert to a numpy.ndarray (GSTCV) or dask.array.core.Array
+            (GSTCVDask). Must fulfill the input assumptions of the
+            underlying estimator.
+
+        y:
+            Iterable[Union[int, float]], shape (n_samples, ) or
+            (n_samples, 1) - The target relative to X. Must be binary in
+            [0, 1]. Must be able to convert to a numpy.ndarray (GSTCV)
+            or dask.array.core.Array (GSTCVDask).
+
 
         Return
         ------
-        score: float - The score defined by scoring if provided, and the
-            best_estimator_.score method otherwise.
+        -
+            score:
+                float - The score for X and y on the best estimator and
+                best threshold using the defined scorer.
+
         """
 
         self.estimator_hasattr('score')
 
-        self.check_refit_is_false_no_attr_no_method('score')
+        self.check_refit__if_false_block_attr('score')
 
         self.check_is_fitted()
 
         if callable(self._refit) and len(self.scorer_) > 1:
             return self._refit
 
-        _X, _y = self._handle_X_y(X, y=y)[:2]
+        _X, _y, passed_feature_names = self._handle_X_y(X, y=y)[:3]
 
-        with self._scheduler as scheduler:
-            y_pred = (self.predict_proba(_X)[:, -1] >= self.best_threshold_)
+        self._validate_features(passed_feature_names)
+
+        y_pred = self.predict(_X)
 
         # if refit is False, score() is not would be accessible
+        with self._scheduler as scheduler:
 
             if callable(self._refit) and len(self.scorer_) == 1:
-                return self.scorer_['score'](_y, y_pred, **params)
+                return self.scorer_['score'](_y, y_pred)
+            # elif callable(self._refit) and len(self.scorer_) > 1:
+            #   handled above
             else:
-                return self.scorer_[self._refit](_y, y_pred, **params)
+                return self.scorer_[self._refit](_y, y_pred)
 
 
-    def score_samples(self, X):
-        """Call score_samples on the estimator with the best found
+    def score_samples(self, X: Iterable[Iterable[Union[int, float]]]):
+
+        """
+
+        Call score_samples on the estimator with the best found
         parameters. Only available if refit is not False and the
-        underlying estimator supports score_samples. New in version 0.24.
+        underlying estimator supports score_samples.
+
 
         Parameters
         ----------
-        X: iterable - Data to predict on. Must fulfill input requirements
-            of the underlying estimator.
+        X:
+            Iterable[Iterable[Union[int, float]]] - Must contain all
+            numerics. Must be able to convert to a numpy.ndarray (GSTCV)
+            or dask.array.core.Array (GSTCVDask). Must fulfill the input
+            assumptions of the underlying estimator.
+
 
         Return
         ------
         -
-            The best_estimator_.score_samples method.
+            The best_estimator_ score_samples method result for X.
 
         """
 
         self.estimator_hasattr('score_samples')
 
-        self.check_refit_is_false_no_attr_no_method('score_samples')
+        self.check_refit__if_false_block_attr('score_samples')
 
         self.check_is_fitted()
 
-        _X = self._handle_X_y(X, y=None)[0]
+        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+
+        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
             return self.best_estimator_.score_samples(_X)
 
 
     def set_params(self, **params):
-        
+
         """
-        Set the parameters of this estimator. The method works on simple
-        estimators as well as on nested objects (such as Pipeline). The
-        latter have parameters of the form <component>__<parameter> so
-        that it’s possible to update each component of a nested object.
+
+        Set the parameters of the GSTCV(Dask) instance or the embedded
+        estimator. The method works on simple estimators as well as on
+        nested objects (such as Pipeline). The parameters of single
+        estimators can be updated using 'estimator__<parameter>'.
+        Pipeline parameters can be updated using the form
+        'estimator__<pipe_parameter>. Steps of a pipeline have parameters
+        of the form <step>__<parameter> so that it’s also possible to
+        update a step's parameters. The parameters of steps in the
+        pipeline can be updated using 'estimator__<step>__<parameter>'.
+
 
         Parameters
         ----------
-        **params: dict[str: any] - Estimator parameters.
+        **params:
+            dict[str: any] - GSTCV(Dask) and/or estimator parameters.
+
 
         Return
         ------
         -
-            GridSearchThresholdCV (GSTCV) instance.
+            self: estimator instance - GSTCV(Dask) instance.
 
         """
 
@@ -778,7 +770,7 @@ class _GSTCVMixin(BaseEstimator):
         def _invalid_est_param(parameter: str, ALLOWED: dict) -> None:
             raise ValueError(
                 f"invalid parameter '{parameter}' for estimator "
-                f"{type(self).__name__}(pipeline={ALLOWED['estimator']}, "
+                f"{type(self).__name__}(estimator={ALLOWED['estimator']}, "
                 f"param_grid={ALLOWED['param_grid']}). \n"
                 f"Valid parameters are: {list(ALLOWED.keys())}"
             )
@@ -798,7 +790,18 @@ class _GSTCVMixin(BaseEstimator):
         # IF self.estimator is dask/sklearn est/pipe, THIS SHOULD HANDLE
         # EXCEPTIONS FOR INVALID PASSED PARAMS. Must set params on estimator,
         # not _estimator, because _estimator may not exist (until fit())
-        self.estimator.set_params(**est_params)
+        try:
+            self.estimator.set_params(**est_params)
+        except TypeError:
+            raise TypeError(f"estimator must be an instance, not the class")
+        except AttributeError:
+            raise
+        except Exception as e:
+            raise Exception(
+                f'estimator.set_params() raised for reason other than TypeError '
+                f'(estimator is class, not instance) or AttributeError (not an '
+                f'estimator.) -- {e}'
+            ) from None
 
         # this is stop-gap validation in case an estimator (of a makeshift
         # sort, perhaps) does not block setting invalid params.
@@ -814,22 +817,28 @@ class _GSTCVMixin(BaseEstimator):
         return self
 
 
-    def transform(self, X):
+    def transform(self, X: Iterable[Iterable[Union[int, float]]]):
+
         """
+
         Call transform on the estimator with the best found parameters.
-        Only available if the underlying estimator supports transform and
-        refit is not False.
+        Only available if refit is not False and the underlying estimator
+        supports transform.
+
 
         Parameters
         ----------
-        X: indexable, length n_samples. Must fulfill the input assumptions
-            of the underlying estimator.
+        X:
+            Iterable[Iterable[Union[int, float]]] - Must contain all
+            numerics. Must be able to convert to a numpy.ndarray (GSTCV)
+            or dask.array.core.Array (GSTCVDask). Must fulfill the input
+            assumptions of the underlying estimator.
+
 
         Return
         ------
-        Xt: {ndarray, sparse matrix} of shape (n_samples, n_features) -
-            X transformed in the new space based on the estimator with
-            the best found parameters.
+        -
+            The best_estimator_ transform method result for X.
 
 
         """
@@ -837,30 +846,42 @@ class _GSTCVMixin(BaseEstimator):
 
         self.estimator_hasattr('transform')
 
-        self.check_refit_is_false_no_attr_no_method('transform')
+        self.check_refit__if_false_block_attr('transform')
 
         self.check_is_fitted()
 
-        _X = self._handle_X_y(X, y=None)[0]
+        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+
+        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
             return self.best_estimator_.transform(_X)
 
 
-    # END SKLEARN / DASK GSTCV Method ##################################
+    # END SKLEARN / DASK GSTCV Methods #################################
     ####################################################################
 
 
     ####################################################################
     # SUPPORT METHODS ##################################################
 
+    def _validate_and_reset(self) -> None:
+
+        """
+
+        Validate common __init__ args/kwargs for GSTCV and GSTCVDask.
 
 
+        Return
+        ------
+        -
+            None
 
-    def _validate_and_reset(self):
+        """
 
         self._param_grid = _validate_thresholds__param_grid(
-            self.thresholds, self.param_grid
+            self.thresholds,
+            self.param_grid
         )
 
         self.scorer_ = _validate_scoring(self.scoring)
@@ -920,35 +941,176 @@ class _GSTCVMixin(BaseEstimator):
     # END validate_and_reset ###########################################
 
 
-    def estimator_hasattr(self, attr_or_method_name):
+    def estimator_hasattr(self, attr_or_method_name: str) -> None:
+
+        """
+
+        Check if in estimator has an attribute or method. If yes, return
+        None. If not, raise AttributeError.
+
+
+        Parameters
+        ----------
+        attr_or_method_name:
+            str - the attribute or method name to look for.
+
+
+        Return
+        ------
+        None
+
+
+        """
 
         if not hasattr(self.estimator, attr_or_method_name):
-            raise AttributeError(f"This '{type(self).__name__}' has no attribute"
-                                 f" '{attr_or_method_name}'")
+            raise AttributeError(
+                f"This '{type(self).__name__}' has no attribute"
+                f" '{attr_or_method_name}'"
+            )
         else:
-            return True
+            return
 
 
-    def check_refit_is_false_no_attr_no_method(self, attr_or_method_name):
+    def check_refit__if_false_block_attr(
+            self,
+            attr_or_method_name: str
+    ) -> None:
+
+        """
+
+        Block attributes and methods that are not to be accessed if
+        refit is False. If refit is False, raise AttributeError, if
+        True, return None.
+
+
+        Parameters
+        ----------
+        attr_or_method_name:
+            str - the attribute or method name to block.
+
+
+        Return
+        ------
+        -
+            None
+
+        """
+
+
         if not self.refit:
-            raise AttributeError(f"This {type(self).__name__} instance was "
-                f"initialized with `refit=False`. {attr_or_method_name} "
-                f"is available only after refitting on the best parameters. "
-                f"You can refit an estimator manually using the "
-                f"`best_params_` attribute")
+            raise AttributeError(
+                f"This {type(self).__name__} instance was initialized with "
+                f"`refit=False`. {attr_or_method_name} is available only after "
+                f"refitting on the best parameters. You can refit an estimator "
+                f"manually using the `best_params_` attribute"
+            )
         else:
-            return True
+            return
 
 
-    def check_is_fitted(self):
+    def check_is_fitted(self) -> None:
+
+        """
+
+        Block access to attributes and methods if instance is not fitted.
+        If not fitted, raise Attribute Error, if fitted, return None.
+
+
+        Return
+        ------
+        -
+            None
+
+        """
 
         if not hasattr(self, '_refit'):
-            # changed this from NotFittedError to AttributeError 24_07_29_20_02_00
-            raise AttributeError(f"This {type(self).__name__} instance "
-                f"is not fitted yet. Call 'fit' with appropriate "
-                f"arguments before using this estimator.")
+            raise AttributeError(
+                f"This {type(self).__name__} instance is not fitted yet. "
+                f"Call 'fit' with appropriate arguments before using "
+                f"this estimator."
+            )
         else:
-            return True
+            return
+
+
+    def _validate_features(self, passed_feature_names: np.ndarray) -> None:
+
+        """
+
+        Validate that feature names passed to a method via a dataframe
+        have the exact names and order as those seen during fit, if fit
+        was done with a dataframe. If not, raise ValueError. Return None
+        if fit was done with an array or if the object passed to a
+        method is an array.
+
+
+        Parameters
+        ----------
+        passed_feature_names:
+            NDArray[str] - shape (n_features, ), the column header from
+            a dataframe passed to a method.
+
+
+        Return
+        ------
+        -
+            None
+
+
+
+        """
+
+        if passed_feature_names is None:
+            return
+
+        if not hasattr(self, 'feature_names_in_'):
+            return
+
+        pfn = passed_feature_names
+        fni = self.feature_names_in_
+
+        if np.array_equiv(pfn, fni):
+            return
+        else:
+
+            base_err_msg = (f"The feature names should match those that "
+                            f"were passed during fit. ")
+
+            if len(pfn) == len(fni) and np.array_equiv(sorted(pfn), sorted(fni)):
+
+                # when out of order
+                # ValueError: base_err_msg
+                # Feature names must be in the same order as they were in fit.
+                addon = (f"\nFeature names must be in the same order as they "
+                         f"were in fit.")
+
+            else:
+
+                addon = ''
+
+                UNSEEN = []
+                for col in pfn:
+                    if col not in fni:
+                        UNSEEN.append(col)
+                if len(UNSEEN) > 0:
+                    addon += f"\nFeature names unseen at fit time:"
+                    for col in UNSEEN:
+                        addon += f"\n- {col}"
+                del UNSEEN
+
+                SEEN = []
+                for col in fni:
+                    if col not in pfn:
+                        SEEN.append(col)
+                if len(SEEN) > 0:
+                    addon += f"\nFeature names seen at fit time, yet now missing:"
+                    for col in SEEN:
+                        addon += f"\n- {col}"
+                del SEEN
+
+            message = base_err_msg + addon
+
+            raise ValueError(message)
 
     # END SUPPORT METHODS ##############################################
     ####################################################################

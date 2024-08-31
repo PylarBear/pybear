@@ -16,7 +16,6 @@ from model_selection.GSTCV._type_aliases import (
     SKSlicerType,
     XSKWIPType,
     YSKWIPType
-
 )
 
 
@@ -28,6 +27,7 @@ def _fold_splitter(
 
 
     """
+
     Split given data objects into train / test pairs using the given
     train and test indices. The train and test indices independently
     slice the given data objects; the entire data object need not be
@@ -37,6 +37,7 @@ def _fold_splitter(
     of the train / test splits for the respective data objects. The data
     objects must be numpy 2D arrays or 1D vectors. train_idxs and
     test_idxs must be vectors of indices, not booleans.
+
 
     Parameters
     ----------
@@ -52,6 +53,7 @@ def _fold_splitter(
         in the train test splits. However, standard indexing rules apply
         when slicing by train_idxs and test_idxs.
 
+
     Return
     ------
     -
@@ -62,6 +64,7 @@ def _fold_splitter(
             containing a train/test pair.
 
     """
+
 
     train_idxs = np.array(train_idxs)
     if train_idxs.dtype == bool:
@@ -100,13 +103,6 @@ def _fold_splitter(
 
 
         assert len(_data.shape) in [1, 2], f"data objects must be 1-D or 2-D"
-
-        # validate data_objects rows == sum of folds' rows ** * ** * ** * ** *
-        # removed this 24_07_13 to allow for splits that do not use the entire
-        # dataset
-        # assert (len(train_idxs) + len(test_idxs)) == _data.shape[0], \
-        #     "SK fold_splitter(): (len(train_idxs) + len(test_idxs)) != _data.shape[0]"
-        # END validate data_objects rows == sum of folds' rows ** * ** * ** * *
 
         _data_train, _data_test = _data[train_idxs], _data[test_idxs]
 

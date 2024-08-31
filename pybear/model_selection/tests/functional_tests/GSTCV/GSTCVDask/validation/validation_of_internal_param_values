@@ -1,0 +1,14 @@
+
+different than validation of __init__ args/kwargs
+
+this validation will reject any invalid args/kwargs, fulfilling that purpose for
+args/kwargs passed to __init__, but continues on to convert the values into forms
+for internal GSTCV uses.
+therefore, values coming out of these validation modules are not necessarily
+the same as those given or as retrieved via get_params. which means the
+validation of outputs here is not the same as the validation of outputs retrieved
+via get_params when testing __init__ validation.
+
+
+
+

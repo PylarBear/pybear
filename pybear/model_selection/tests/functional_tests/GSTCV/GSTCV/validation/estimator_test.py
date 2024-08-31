@@ -11,7 +11,8 @@ from model_selection.GSTCV._GSTCV._validation._estimator import \
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
 
-from sklearn.calibration import CalibratedClassifierCV # wrap around RidgeClassifier
+# wrap around RidgeClassifier
+from sklearn.calibration import CalibratedClassifierCV
 
 from sklearn.linear_model import (
     LinearRegression as sk_LinearRegression,
@@ -21,8 +22,6 @@ from sklearn.linear_model import (
     SGDClassifier as sk_SGDClassifier,
     SGDRegressor as sk_SGDRegressor
 )
-
-
 
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -64,9 +63,6 @@ from lightgbm import (
 
 
 
-
-
-
 # must be an instance not the class! & be an estimator!
 
 
@@ -85,7 +81,10 @@ class TestValidateEstimator:
     )
     def test_rejects_not_instantiated(self, not_instantiated):
 
-        with pytest.raises(TypeError):
+        with pytest.raises(
+            TypeError,
+            match=f"estimator must be an instance, not the class"
+        ):
             _validate_estimator(not_instantiated)
 
 
@@ -134,15 +133,6 @@ class TestValidateEstimator:
         # must be an instance not the class! & be a classifier!
         with pytest.raises(TypeError):
             _validate_estimator(dask_classifiers())
-
-
-
-
-
-
-
-
-
 
 
 

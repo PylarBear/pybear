@@ -21,9 +21,10 @@ def _get_best_thresholds(
     ) -> npt.NDArray[np.uint16]:
 
     """
+
     After collecting the scores for every fold / threshold / scorer
     combination, average the scores across the folds for each scorer to
-    give the mean scores of fits in a vector of shape (n_thresholds, ).
+    give the mean scores of fits in vectors of shape (n_thresholds, ).
     If a fit excepted, every value in the corresponding plane on axis 0
     was set to 'error_score'. If error_score was numeric, that fold
     is included in the mean calculations; if that number was np.nan,
@@ -33,6 +34,7 @@ def _get_best_thresholds(
     value, finds the position that is closest to 0.5. Repeat this for all
     scorers to populate a TEST_BEST_THRESHOLD_IDXS_BY_SCORER vector with
     the index position of the best threshold for each scorer.
+
 
     Parameters
     ----------
@@ -48,10 +50,15 @@ def _get_best_thresholds(
         'param grid' being a single dict from the param_grid list of
         param grids.
 
+
     Return
     ------
     -
         TEST_BEST_THRESHOLD_IDXS_BY_SCORER: npt.NDArray[np.uint16] -
+            A vector of shape (n_scorers, ) that holds the index in the
+            'thresholds' vector of the threshold that had the highest
+            score (or lowest loss) for each scorer.
+
 
     """
 

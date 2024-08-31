@@ -6,16 +6,15 @@
 
 import pytest
 
-from uuid import uuid4
 import numpy as np
 import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
 import dask_expr._collection as ddf2
-from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
 
 
-
+pytest.skip(reason=f'for edification purposes only', allow_module_level=True)
+# no need to test the volatile and unpredictable state of dask error messages
 
 class TestDaskLogistic:
 
@@ -35,44 +34,16 @@ class TestDaskLogistic:
 
     @staticmethod
     @pytest.fixture
-    def X_dask_array():
-        return da.random.randint(0,10,(100, 30)).rechunk((20, 30))
+    def X_dask_series(X_ddf):
+        assert isinstance(X_ddf, (ddf.core.DataFrame, ddf2.DataFrame))
+        return X_ddf.iloc[:, 0]
 
 
     @staticmethod
     @pytest.fixture
-    def X_COLUMNS(X_dask_array):
-        return [str(uuid4())[:4] for _ in range(X_dask_array.shape[1])]
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_df(X_dask_array, X_COLUMNS):
-        return ddf.from_dask_array(X_dask_array, columns=X_COLUMNS)
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_series(X_dask_df):
-        return X_dask_df.iloc[:, 0]
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_np_array(X_dask_array):
-        return X_dask_array.compute()
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_pd_df(X_dask_df):
-        return X_dask_df.compute()
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_pd_series(X_pd_df):
-        return X_pd_df.iloc[:, 0]
+    def X_pd_series(X_pd):
+        assert isinstance(X_pd, pd.core.frame.DataFrame)
+        return X_pd.iloc[:, 0]
 
 
     # END X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -80,86 +51,103 @@ class TestDaskLogistic:
 
     # y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    y_dask_array = da.random.randint(0,10,(100, 1)).rechunk((20, 1))
+    @staticmethod
+    @pytest.fixture
+    def y_dask_series(y_ddf):
+        assert isinstance(y_ddf, (ddf.core.DataFrame, ddf2.DataFrame))
+        return y_ddf.iloc[:, 0]
 
-    y_dask_df = ddf.from_dask_array(y_dask_array, columns=['y'])
 
-    y_dask_series = y_dask_df.iloc[:, 0]
-
-    y_np_array = y_dask_array.compute()
-
-    y_pd_df = y_dask_df.compute()
-
-    y_pd_series = y_pd_df.iloc[:, 0]
+    @staticmethod
+    @pytest.fixture
+    def y_pd_series(y_pd):
+        assert isinstance(y_pd, pd.core.frame.DataFrame)
+        return y_pd.iloc[:, 0]
 
     # END y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # tests ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
+    @pytest.mark.parametrize('_y_format',
+        ('np_array', 'pd_df', 'pd_series', 'dask_array', 'dask_df', 'dask_series')
     )
-    def test_np_array(self, X_np_array, y):
+    def test_passing_X_y_in_different_formats(self, dask_est_log, X_da, X_ddf,
+        X_dask_series, X_np, X_pd, X_pd_series, _y_format, y_da, y_ddf,
+        y_dask_series, y_np, y_pd, y_pd_series
+    ):
+
+        if _y_format == 'np_array':
+            _y = y_np
+        elif _y_format == 'pd_df':
+            _y = y_pd
+        elif _y_format == 'pd_series':
+            _y = y_pd_series
+        elif _y_format == 'dask_array':
+            _y = y_da
+        elif _y_format == 'dask_df':
+            _y = y_ddf
+        elif _y_format == 'dask_series':
+            _y = y_dask_series
+
+
+    # make of copy of dask_est_log, these fits will stick since its session scope
+        dask_est = type(dask_est_log)()
+
+
+    # test_np_array ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * 
 
         # y cannot be pd.DF, dask.DF for no ravel() attribute
         # y cannot be da.Array because chunks dont match
 
-        if isinstance(y,
+        if isinstance(_y,
             (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
             with pytest.raises(AttributeError):
-                dask_LogisticRegression().fit(X_np_array, y)
-        elif isinstance(y, da.core.Array):
+                dask_est.fit(X_np, _y)
+        elif isinstance(_y, da.core.Array):
             with pytest.raises(ValueError):
-                dask_LogisticRegression().fit(X_np_array, y)
+                dask_est.fit(X_np, _y)
         else:
-            dask_LogisticRegression().fit(X_np_array, y)
+            dask_est.fit(X_np, _y)
 
+    # END test_np_array ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_pd_df(self, X_pd_df, y):
+    # test_pd_df ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # NotImplementedError: Could not find signature for add_intercept: <DataFrame>
+    # NotImplementedError: Could not find signature for add_intercept: <DataFrame>
 
         with pytest.raises(NotImplementedError):
-            dask_LogisticRegression().fit(X_pd_df, y)
+            dask_est.fit(X_pd, _y)
 
+    # END test_pd_df ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_pd_series(self, X_pd_series, y):
-        # NotImplementedError: Could not find signature for add_intercept: <Series>
+    # test_pd_series ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # NotImplementedError: Could not find signature for add_intercept: <Series>
 
         with pytest.raises(NotImplementedError):
-            dask_LogisticRegression().fit(X_pd_series, y)
+            dask_est.fit(X_pd_series, _y)
+
+    # END test_pd_series ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_dask_array(self, X_dask_array, y):
+    # test_dask_array ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        if isinstance(y,
+        if isinstance(_y,
             (np.ndarray, pd.core.series.Series, ddf.core.Series, ddf2.Series)):
             # chunks dont match
             with pytest.raises(ValueError):
-                dask_LogisticRegression().fit(X_dask_array, y)
-        elif isinstance(y,
+                dask_est.fit(X_da, _y)
+        elif isinstance(_y,
             (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
             # no ravel() attribute
             with pytest.raises(AttributeError):
-                dask_LogisticRegression().fit(X_dask_array, y)
+                dask_est.fit(X_da, _y)
         else:
-            dask_LogisticRegression().fit(X_dask_array, y)
+            dask_est.fit(X_da, _y)
 
+    # END test_dask_array ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_dask_df(self, X_dask_df, y):
+    # test_dask_df ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         # TypeError: This estimator does not support dask dataframes.
         # This might be resolved with one of
@@ -168,31 +156,17 @@ class TestDaskLogistic:
         #       unknown chunk sizes
 
         with pytest.raises(TypeError):
-            dask_LogisticRegression().fit(X_dask_df, y)
+            dask_est_log.fit(X_ddf, _y)
 
+    # END test_dask_df ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_dask_series(self, X_dask_series, y):
+    # test_dask_series ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # E       AttributeError: 'Series' object has no attribute 'columns'
 
         with pytest.raises(AttributeError):
-            dask_LogisticRegression().fit(X_dask_series, y)
+            dask_est.fit(X_dask_series, _y)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # END test_dask_series ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 

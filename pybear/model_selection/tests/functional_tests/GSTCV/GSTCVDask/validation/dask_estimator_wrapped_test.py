@@ -33,7 +33,6 @@ from dask_ml.linear_model import (
 )
 
 from dask_ml.feature_extraction.text import CountVectorizer as dask_CountVectorizer
-
 from dask_ml.preprocessing import OneHotEncoder as dask_OneHotEncoder
 
 from xgboost import (
@@ -317,14 +316,6 @@ class TestValidateWrappedDaskEstimator:
 
     # END pipeline - 3 inner objects ** * ** * ** * ** * ** * ** * ** *
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-
-
-
-
-
-
-
 
 
 

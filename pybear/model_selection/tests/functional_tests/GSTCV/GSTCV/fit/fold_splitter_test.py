@@ -11,7 +11,9 @@ import numpy as np
 import pandas as pd
 import dask.array as da
 
+
 from model_selection.GSTCV._GSTCV._fit._fold_splitter import _fold_splitter
+
 
 
 class TestSKFoldSplitter:
@@ -53,7 +55,7 @@ class TestSKFoldSplitter:
             )
 
 
-    def test_accuracy(self):
+    def test_accuracy(self, X_np, y_np, _rows):
 
         out = _fold_splitter(
             [0,2,4],
@@ -61,30 +63,33 @@ class TestSKFoldSplitter:
             np.array([1,2,3,4,5])
         )
 
+        assert isinstance(out[0], np.ndarray)
         assert np.array_equiv(out[0], [1,3,5])
+        assert isinstance(out[1], np.ndarray)
         assert np.array_equiv(out[1], [2,4])
 
         mask_train = np.random.choice(
-            range(1_000_000), (750_000,), replace=False
+            range(_rows), (int(0.75 * _rows), ), replace=False
         )
-        _ = np.ones(1_000_000).astype(bool)
+        _ = np.ones(_rows).astype(bool)
         _[mask_train] = False
-        mask_test = np.arange(1_000_000)[_]
-
-        in1 = np.random.randint(0, 10, (1_000_000, 2))
-        in2 = np.random.randint(0, 2, (1_000_000, ))
+        mask_test = np.arange(_rows)[_]
 
         out = _fold_splitter(
             mask_train,
             mask_test,
-            in1,
-            in2
+            X_np,
+            y_np
         )
 
-        assert np.array_equiv(out[0], in1[mask_train, :])
-        assert np.array_equiv(out[1], in1[mask_test, :])
-        assert np.array_equiv(out[2], in2[mask_train])
-        assert np.array_equiv(out[3], in2[mask_test])
+        assert isinstance(out[0], np.ndarray)
+        assert np.array_equiv(out[0], X_np[mask_train, :])
+        assert isinstance(out[1], np.ndarray)
+        assert np.array_equiv(out[1], X_np[mask_test, :])
+        assert isinstance(out[2], np.ndarray)
+        assert np.array_equiv(out[2], y_np[mask_train])
+        assert isinstance(out[3], np.ndarray)
+        assert np.array_equiv(out[3], y_np[mask_test])
 
 
 

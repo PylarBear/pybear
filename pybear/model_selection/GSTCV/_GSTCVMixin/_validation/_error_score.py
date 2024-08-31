@@ -15,23 +15,20 @@ def _validate_error_score(
     ) -> Union[Literal['raise'], float, int]:
 
     """
-    sklearn & dask 24_07_07_16_21_00, both are identical except sklearn
-    default = np.nan, dask default = 'raise'
 
-    Value to assign to the score if an error occurs in estimator fitting.
-    If set to ‘raise’, the error is raised. If a numeric value is given,
-    a warning is raised and the error score value is inserted into the
-    subsequent calculations in place of the missing value. This parameter
-    does not affect the refit step, which will always raise the error.
+    Validate that error_score is a numeric value or literal 'raise'.
 
     Parameters
     ----------
-    _error_score: Union[int, float, Literal['raise']] - 
+    _error_score:
+        Union[int, float, Literal['raise']] -
+        Score to assign if an error occurs in estimator fitting.
 
     Returns
     -------
     -
-        _error_score: Union[int, float, Literal['raise']] -
+        _error_score: Union[int, float, Literal['raise']] - the validated
+            error_score
 
     """
 

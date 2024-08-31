@@ -41,6 +41,8 @@ def _parallelized_train_scorer(
     _y_trains using all of the scorers.
     Fill one layer of the TRAIN_FOLD_x_SCORER__SCORE_MATRIX.
 
+
+
     Parameters
     ----------
     _X_train:
@@ -48,7 +50,7 @@ def _parallelized_train_scorer(
         the data that was fit. Must be 2D ndarray.
     _y_train:
         dask.array.core.Array[int] - The corresponding train partition of
-        the target for the X train partition. Must be 1D ndarray.
+        the target for the X train partition. Must be 1D da.core.Array.
     _FIT_OUTPUT_TUPLE:
         tuple[ClassifierProtocol, float, bool] - A tuple holding the
         fitted estimator, the fit time (not needed here), and the
@@ -59,15 +61,14 @@ def _parallelized_train_scorer(
     _SCORER_DICT:
         dict[str: Callable[[Iterable[int], Iterable[int]], float] -
         a dictionary with scorer name as keys and the scorer callables
-        as values. The scorer callables are sklearn metrics, not
-        make_scorer.
+        as values. The scorer callables are (or resemble) sklearn
+        metrics, not make_scorer.
     _BEST_THRESHOLDS_BY_SCORER:
         npt.NDArray[np.float64]: after all of the fold / threshold / scorer
         combinations are scored, the folds are averaged and the threshold
         with the maximum score for each scorer is found. This vector has
-        length n_scorers and in each position holds an integer indicating
-        the index position within the THRESHOLDS vector whose value is
-        the best threshold for that scorer.
+        length n_scorers and in each position holds a float indicating
+        the threshold value that is the best threshold for that scorer.
     _error_score:
         Union[int, float, Literal['raise']] - if this training fold
         excepted during fitting and error_score was set to the 'raise'
@@ -83,6 +84,7 @@ def _parallelized_train_scorer(
     **scorer_params:
         **dict[str: any] - dictionary of kwargs to be passed to the scorer
         metrics. 24_07_13 not used by the calling _core_fit module.
+
 
     Return
     ------
@@ -168,9 +170,6 @@ def _parallelized_train_scorer(
 
 
 
-
-
-
     for s_idx, scorer_key in enumerate(_SCORER_DICT):
 
         _y_pred_t0 = time.perf_counter()
@@ -180,7 +179,6 @@ def _parallelized_train_scorer(
         if _verbose == 10:
             print(f"fold {_f_idx+1} train thresholding time = {_ypt: ,.3g} s")
         del _ypt
-
 
         train_scorer_t0 = time.perf_counter()
         _score = _SCORER_DICT[scorer_key](_y_train, _y_train_pred, **scorer_params)
@@ -221,51 +219,6 @@ def _parallelized_train_scorer(
 
 
     return TRAIN_SCORER__SCORE_LAYER
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

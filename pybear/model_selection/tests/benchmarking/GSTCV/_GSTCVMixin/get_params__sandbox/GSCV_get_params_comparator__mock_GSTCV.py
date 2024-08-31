@@ -5,6 +5,7 @@
 #
 
 
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
@@ -271,7 +272,9 @@ for estimator_type in ['single', 'pipe']:
 
 if __ == 'd':
 
-    path = rf'/home/bear/Desktop/get_params_comparison.ods'
+    desktop_path = Path.home() / "Desktop"
+    filename = r'get_params_comparison.xlsx'
+    path = desktop_path / filename
     with pd.ExcelWriter(path, engine=None, mode="w") as writer:
         for idx, key in enumerate(DF_DICT, 1):
             DF_DICT[key].to_excel(writer, sheet_name=DF_SHEET_NAME[idx],

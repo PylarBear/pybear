@@ -9,7 +9,7 @@ from typing import Union
 import time
 import warnings
 import joblib
-
+import numpy as np
 from model_selection.GSTCV._type_aliases import (
     XSKWIPType,
     YSKWIPType,
@@ -65,6 +65,7 @@ def _parallelized_fit(
         **dict[str, any] - dictionary of kwarg: value pairs to be passed
         to the estimator's fit method.
 
+
     Return
     ------
     -
@@ -73,15 +74,30 @@ def _parallelized_fit(
         _fit_time:
             float - the time required to perform the fit
         _fit_excepted:
-            bool - True if the fit excepted and '_error_score"
-            was not 'raise'; False if the fit ran successfully.
+            bool - True if the fit excepted and '_error_score' was not
+            'raise'; False if the fit ran successfully.
 
 
     """
 
+
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    assert isinstance(f_idx, int)
+    assert isinstance(_X_train, np.ndarray)
+    assert isinstance(_y_train, np.ndarray)
+    assert isinstance(_grid, dict)
+    assert isinstance(_error_score, (str, float, int))
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
+
+
     t0_fit = time.perf_counter()
 
     _fit_excepted = False
+
+
 
 
     try:
@@ -103,15 +119,6 @@ def _parallelized_fit(
     del t0_fit
 
     return _estimator_, _fit_time, _fit_excepted
-
-
-
-
-
-
-
-
-
 
 
 

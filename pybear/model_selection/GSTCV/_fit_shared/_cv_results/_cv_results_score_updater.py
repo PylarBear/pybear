@@ -20,6 +20,7 @@ def _cv_results_score_updater(
     ) -> CVResultsType:
 
     """
+
     This module supports _cv_results_update().
 
     Update the correct permutation row (_trial_idx) and column
@@ -27,6 +28,7 @@ def _cv_results_score_updater(
     cv_results with the scores from _FOLD_x_SCORER__SCORE_MATRIX. The
     _FOLD_x_SCORER__SCORE_MATRIX grid can contain either test scores or
     train scores (not at the same time!)
+
 
     Parameters
     ----------
@@ -40,13 +42,14 @@ def _cv_results_score_updater(
         int - row index of cv_results to update
     _scorer:
         dict[str, Callable[[Iterable, Iterable], float] -
-            dictionary of scorer names and scorer functions. Note that
-            the scorer functions are sklearn metrics, not make_scorer.
-            Used to know what column names to look for in cv_results and
-            nothing more.
+        dictionary of scorer names and scorer functions. Note that
+        the scorer functions are sklearn metrics (or similar), not
+        make_scorer. Used to know what column names to look for in
+        cv_results and nothing more.
     _cv_results:
-        dict[str, np.ma.masked_array] - tabulated scores, times, etc., of
-        grid search trials
+        dict[str, np.ma.masked_array] - tabulated scores, times, etc.,
+        of grid search trials
+
 
     Return
     ------
@@ -72,10 +75,11 @@ def _cv_results_score_updater(
             f"cv_results with {_n_permutes} permutations")
     del _n_permutes
 
-    for _scorer_name in _scorer:
-        if _scorer_name != 'score' and _scorer_name not in master_scorer_dict:
-            raise ValueError(f"scorer names in '_scorer' ({_scorer_name}) must "
-                f"match those in allowed: {', '.join(master_scorer_dict)}")
+    # to allow for any user-defined scorer name
+    # for _scorer_name in _scorer:
+    #     if _scorer_name != 'score' and _scorer_name not in master_scorer_dict:
+    #         raise ValueError(f"scorer names in '_scorer' ({_scorer_name}) must "
+    #             f"match those in allowed: {', '.join(master_scorer_dict)}")
 
     assert isinstance(_cv_results, dict)
 

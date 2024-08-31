@@ -5,6 +5,7 @@
 #
 
 
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
@@ -197,8 +198,10 @@ while True:
 if __ == 'p':
     print(DF)
 elif __ == 'd':
-    path = rf'/home/bear/Desktop/get_params_comparison.ods'
-    with pd.ExcelWriter(path, engine=None, mode="w") as writer:
+    desktop_path = Path.home() / "Desktop"
+    filename = r'get_params_comparison.xlsx'
+    file_path = desktop_path / filename
+    with pd.ExcelWriter(file_path, engine=None, mode="w") as writer:
         sheet_name = f"{'deep' if _deep else 'shallow'}_{'est' if show_est else 'pipe'}"
         DF.to_excel(writer, sheet_name=sheet_name, engine=None, na_rep=None)
 elif __ == 's':

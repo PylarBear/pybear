@@ -40,14 +40,16 @@ def _get_kfold(
     return_train_score. Therefore, it must return the same indices for
     each call. The only things that should cause indices to be different
     are n_splits and the number of rows in _X. Since this is stratified
-    KFold examples are pulled based on the distribution of y. But the
+    KFold, examples are pulled based on the distribution of y. But the
     selection should be repeatable if shuffle is set to False.
     random_state does not matter when shuffle is False.
+
 
     Parameters
     ----------
     _X:
-        NDArray[Union[int,float]] - The data to be split. Must be 2D ndarray.
+        NDArray[Union[int,float]] - The data to be split. Must be 2D
+        ndarray.
     _y:
         NDArray[int] - The target the data is being fit against, to be
         split in the same way as the data. Must be 1D ndarray.
@@ -59,6 +61,7 @@ def _get_kfold(
         to display to screen during the grid search trials. 0 means no
         output, 10 means full output.
 
+
     Return
     ------
     -
@@ -67,6 +70,9 @@ def _get_kfold(
             object yielding pairs of train test indices as NDArray[int].
 
     """
+
+
+
 
 
 

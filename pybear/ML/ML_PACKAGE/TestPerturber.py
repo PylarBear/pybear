@@ -730,10 +730,15 @@ if __name__ == '__main__':
         DF = pd.DataFrame(data=data, columns=np.hstack((DATA_HEADER[0], ['TARGET']))
                           )
 
-        DF.to_excel(excel_writer=f'c://users//bill//desktop//{name}.xlsx',
-                    sheet_name=name,
-                    header=True,
-                    index=False
+        from pathlib import Path
+        desktop_path = Path.home() / "Desktop"
+        filename = desktop_path / f"{name}.xlsx"
+
+        DF.to_excel(
+            excel_writer=filename,
+            sheet_name=name,
+            header=True,
+            index=False
         )
 
     del DF

@@ -9,9 +9,6 @@ import pytest
 
 import time
 import numpy as np
-import dask.array as da
-
-
 
 from model_selection.GSTCV._GSTCVDask._fit._parallelized_train_scorer import \
     _parallelized_train_scorer
@@ -42,19 +39,7 @@ class TestParallelizedScorer:
 
     @staticmethod
     @pytest.fixture
-    def _X():
-        return da.random.randint(0, 10, (100, 10))
-
-
-    @staticmethod
-    @pytest.fixture
-    def _y():
-        return da.random.randint(0, 2, 100)
-
-
-    @staticmethod
-    @pytest.fixture
-    def _fit_output_excepted(_X, _y):
+    def _fit_output_excepted():
 
         xgb_clf = xgb.XGBClassifier()
         # [ClassifierProtocol, fit time, fit excepted]
@@ -63,13 +48,16 @@ class TestParallelizedScorer:
 
     @staticmethod
     @pytest.fixture
-    def _fit_output_good(_X, _y):
+    def _fit_output_good(X_da, y_da):
 
         xgb_clf = xgb.XGBClassifier()
 
         t0 = time.perf_counter()
 
-        xgb_clf.fit(_X[:80], _y[:80])
+        xgb_clf.fit(
+            X_da[:int(0.8 * X_da.shape[0])],
+            y_da[:int(0.8 * y_da.shape[0])]
+        )
 
         tf = time.perf_counter()
 
@@ -78,11 +66,11 @@ class TestParallelizedScorer:
 
 
 
-    def test_fit_excepted_accuracy(self, _X, _y, _fit_output_excepted):
+    def test_fit_excepted_accuracy(self, X_da, y_da, _fit_output_excepted):
 
         # 5 folds
-        _X_train = _X[:80, :]
-        _y_train = _y[:80]
+        _X_train = X_da[:int(0.8 * X_da.shape[0]), :]
+        _y_train = y_da[:int(0.8 * y_da.shape[0])]
 
 
         # error_score == np.nan
@@ -121,11 +109,11 @@ class TestParallelizedScorer:
         assert out_scores.mean() == 0.5
 
 
-    def test_fit_good_accuracy(self, _X, _y, _fit_output_good):
+    def test_fit_good_accuracy(self, X_da, y_da, _fit_output_good):
 
         # 5 folds
-        _X_train = _X[:80, :]
-        _y_train = _y[:80]
+        _X_train = X_da[:int(0.8 * X_da.shape[0]), :]
+        _y_train = y_da[:int(0.8 * y_da.shape[0])]
 
         # error_score == np.nan
         out_scores = _parallelized_train_scorer(

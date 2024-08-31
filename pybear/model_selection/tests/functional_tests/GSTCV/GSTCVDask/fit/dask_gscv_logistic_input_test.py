@@ -6,18 +6,15 @@
 
 import pytest
 
-from uuid import uuid4
-import numpy as np
 import pandas as pd
-import dask.array as da
 import dask.dataframe as ddf
 import dask_expr._collection as ddf2
 
-from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
-from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 
+pytest.skip(reason=f'for edification purposes only', allow_module_level=True)
+# no need to test the volatile and unpredictable state of dask error messages
 
-
+# do not pass _client!  much slower for some reason
 
 class TestDaskLogisticWrappedWithDaskGSCV:
 
@@ -47,44 +44,14 @@ class TestDaskLogisticWrappedWithDaskGSCV:
 
     @staticmethod
     @pytest.fixture
-    def X_dask_array():
-        return da.random.randint(0,10,(100, 30)).rechunk((20, 30))
+    def X_dask_series(X_ddf):
+        return X_ddf.iloc[:, 0]
 
 
     @staticmethod
     @pytest.fixture
-    def X_COLUMNS(X_dask_array):
-        return [str(uuid4())[:4] for _ in range(X_dask_array.shape[1])]
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_df(X_dask_array, X_COLUMNS):
-        return ddf.from_dask_array(X_dask_array, columns=X_COLUMNS)
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_series(X_dask_df):
-        return X_dask_df.iloc[:, 0]
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_np_array(X_dask_array):
-        return X_dask_array.compute()
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_pd_df(X_dask_df):
-        return X_dask_df.compute()
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_pd_series(X_pd_df):
-        return X_pd_df.iloc[:, 0]
+    def X_pd_series(X_pd):
+        return X_pd.iloc[:, 0]
 
 
     # END X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -92,121 +59,126 @@ class TestDaskLogisticWrappedWithDaskGSCV:
 
     # y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    y_dask_array = da.random.randint(0,10,(100, 1)).rechunk((20, 1))
+    @staticmethod
+    @pytest.fixture
+    def y_dask_series(y_ddf):
+        return y_ddf.iloc[:, 0]
 
-    y_dask_df = ddf.from_dask_array(y_dask_array, columns=['y'])
 
-    y_dask_series = y_dask_df.iloc[:, 0]
-
-    y_np_array = y_dask_array.compute()
-
-    y_pd_df = y_dask_df.compute()
-
-    y_pd_series = y_pd_df.iloc[:, 0]
+    @staticmethod
+    @pytest.fixture
+    def y_pd_series(y_pd):
+        return y_pd.iloc[:, 0]
 
     # END y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # tests ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
+    @pytest.mark.parametrize('_y_format',
+        ('array', 'pd_df', 'pd_series', 'dask_array', 'dask_df', 'dask_series')
     )
-    def test_np_array(self, X_np_array, y):
+    def test_passing_X_y_in_different_formats(self,
+        dask_GSCV_est_log_one_scorer_prefit, X_da, X_ddf, X_dask_series,
+        X_np, X_pd, X_pd_series, _y_format, y_da, y_ddf, y_dask_series,
+        y_np, y_pd, y_pd_series
+    ):
+
+        if _y_format == 'array':
+            _y = y_np
+        elif _y_format == 'pd_df':
+            _y = y_pd
+        elif _y_format == 'pd_series':
+            _y = y_pd_series
+        elif _y_format == 'dask_array':
+            _y = y_da
+        elif _y_format == 'dask_df':
+            _y = y_ddf
+        elif _y_format == 'dask_series':
+            _y = y_dask_series
+
+    # make a copy of the prefit GSCV since the fixture is session scope, the
+    # below fits would stick to it
+
+        shallow_params = dask_GSCV_est_log_one_scorer_prefit.get_params(deep=False)
+        deep_params = dask_GSCV_est_log_one_scorer_prefit.get_params(deep=True)
+        dask_GSCV = type(dask_GSCV_est_log_one_scorer_prefit)(**shallow_params)
+        dask_GSCV.set_params(**deep_params)
+
+    # test_np_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         # y cannot be pd.DF, dask.DF for no ravel() attribute
 
-        if isinstance(y,
+        if isinstance(_y,
             (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
 
             with pytest.raises(AttributeError):
-                dask_GridSearchCV(
-                    dask_LogisticRegression(),
-                    param_grid={}
-                ).fit(X_np_array, y)
+                dask_GSCV.fit(X_np, _y)
         else:
-            dask_GridSearchCV(
-                dask_LogisticRegression(),
-                param_grid={}
-            ).fit(X_np_array, y)
+            dask_GSCV.fit(X_np, _y)
+    # END test_np_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
+    # test_pd_df ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_pd_df(self, X_pd_df, y):
+    # AttributeError: 'DataFrame' object has no attribute 'ravel'
+        if _y_format in ['pd_df', 'dask_df']:
+            with pytest.raises(AttributeError):
+                dask_GSCV.fit(X_pd, _y)
+        else:
+            dask_GSCV.fit(X_pd, _y)
 
-        # NotImplementedError: Could not find signature for add_intercept: <DataFrame>
+    # END test_pd_df ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        with pytest.raises(NotImplementedError):
-            dask_GridSearchCV(
-                dask_LogisticRegression(),
-                param_grid={}
-            ).fit(X_pd_df, y)
+    # test_pd_series ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
+    # ValueError: Expected a 2-dimensional container but got
+    # <class 'pandas.core.series.Series'> instead. Pass a DataFrame
+    # containing a single row (i.e. single sample) or a single column
+    # (i.e. single feature) instead.
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_pd_series(self, X_pd_series, y):
-        # NotImplementedError: Could not find signature for add_intercept: <Series>
+        with pytest.raises(ValueError):
+            dask_GSCV.fit(X_pd_series, _y)
 
-        with pytest.raises(NotImplementedError):
-            dask_GridSearchCV(
-                dask_LogisticRegression(),
-                param_grid={}
-            ).fit(X_pd_series, y)
+    # END test_pd_series ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
+    # test_dask_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_dask_array(self, X_dask_array, y):
-
-        if isinstance(y,
+        if isinstance(_y,
             (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
-            
+
             # no ravel() attribute
             with pytest.raises(AttributeError):
-                dask_GridSearchCV(
-                    dask_LogisticRegression(),
-                    param_grid={}
-                ).fit(X_dask_array, y)
+                dask_GSCV.fit(X_da, _y)
         else:
-            dask_GridSearchCV(
-                dask_LogisticRegression(),
-                param_grid={}
-            ).fit(X_dask_array, y)
+            dask_GSCV.fit(X_da, _y)
 
+    # END test_dask_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_dask_df(self, X_dask_df, y):
+    # test_dask_df ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        # NotImplementedError: Could not find signature for add_intercept
+    # AttributeError: 'DataFrame' object has no attribute 'ravel'
 
-        with pytest.raises(NotImplementedError):
-            dask_GridSearchCV(
-                dask_LogisticRegression(),
-                param_grid={}
-            ).fit(X_dask_df, y)
+        if _y_format in ['pd_df', 'dask_df']:
+            with pytest.raises(AttributeError):
+                dask_GSCV.fit(X_ddf, _y)
+        else:
+            dask_GSCV.fit(X_ddf, _y)
 
+    # END test_dask_df ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-    @pytest.mark.parametrize('y',
-        (y_np_array, y_pd_df, y_pd_series, y_dask_array, y_dask_df, y_dask_series)
-    )
-    def test_dask_series(self, X_dask_series, y):
-        # NotImplementedError: Could not find signature for add_intercept
+    # test_dask_series ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        with pytest.raises(NotImplementedError):
-            dask_GridSearchCV(
-                dask_LogisticRegression(),
-                param_grid={}
-            ).fit(X_dask_series, y)
+    # NotImplementedError: Could not find signature for add_intercept
 
+    # ValueError: Expected a 2-dimensional container but got
+    # <class 'pandas.core.series.Series'> instead. Pass a DataFrame
+    # containing a single row (i.e. single sample) or a single column
+    # (i.e. single feature) instead.
 
+        with pytest.raises(ValueError):
+            dask_GSCV.fit(X_dask_series, _y)
+
+    # END test_dask_series ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
 

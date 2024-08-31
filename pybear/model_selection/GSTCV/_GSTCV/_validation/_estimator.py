@@ -8,6 +8,7 @@
 import sys
 import inspect
 
+
 from model_selection.GSTCV._type_aliases import ClassifierProtocol
 
 from sklearn.pipeline import Pipeline
@@ -20,17 +21,18 @@ def _validate_estimator(
     ) -> None:
 
     """
-    This package is expected to most likely encounter sklearn, dask,
+    The GSTCV module is expected to most likely encounter sklearn,
     xgboost, and lightgbm estimators, and maybe some other pybear modules.
     The estimator must be passed as an instance, not the class itself.
 
     Validate that an estimator:
-    1) is a classifier, as indicated by the presence of a predict_proba
-    method. (early in dev this was done by sklearn.base.is_classifier)
-    2) meets the other requirements of GridSearchCV in having 'fit',
-    'set_params', and 'get_params' methods.
-    3) is not a dask classifier, either from dask itself, or from XGBoost
+    1) if in a pipe, the pipe is built correctly
+    2) is not a dask estimator, either from dask itself, or from XGBoost
     or LightGBM.
+    3) is a classifier, as indicated by the presence of a predict_proba
+    method. (early in dev this was done by sklearn.base.is_classifier)
+    4) meets the other requirements of GridSearchCV in having 'fit',
+    'set_params', and 'get_params' methods.
 
 
     Parameters
@@ -86,6 +88,7 @@ def _validate_estimator(
     # END validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # if pipe, dig out the estimator ...---...---...---...---...---...---
     def get_inner_most_estimator(__estimator):
 
         try:
@@ -109,9 +112,9 @@ def _validate_estimator(
         raise TypeError(f"{__estimator.__class__.__name__}: GSTCV cannot "
             f"accept dask classifiers. To use dask classifiers, use GSTCVDask.")
 
+    del get_inner_most_estimator, __estimator, _module
 
-
-    del get_inner_most_estimator, _module
+    # END if pipe, dig out the estimator ...---...---...---...---...---.
 
     # must have the sklearn / dask API
     _has_method = lambda _method: callable(getattr(_estimator, _method, None))
@@ -129,7 +132,7 @@ def _validate_estimator(
     # END validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-
+    return
 
 
 
