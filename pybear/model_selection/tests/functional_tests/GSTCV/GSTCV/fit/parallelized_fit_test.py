@@ -9,22 +9,12 @@ import pytest
 import time
 
 import numpy as np
-from model_selection.GSTCV._GSTCV._fit._parallelized_fit import _parallelized_fit
+from model_selection.GSTCV._GSTCV._fit._parallelized_fit import \
+    _parallelized_fit
 
 
 
 class TestParallelizedFit:
-
-    @staticmethod
-    @pytest.fixture
-    def mock_X():
-        return np.random.randint(0, 10, (20,5))
-
-
-    @staticmethod
-    @pytest.fixture
-    def mock_y():
-        return np.random.randint(0,2, (20,1))
 
 
     @staticmethod
@@ -78,13 +68,13 @@ class TestParallelizedFit:
     #     ):
 
 
-    def test_when_completes_fit(self, mock_classifier, mock_X, mock_y):
+    def test_when_completes_fit(self, mock_classifier, X_np, y_np):
         # returns fitted est, time, fit_excepted == False
         out_fitted_estimator, out_time, out_fit_excepted = \
             _parallelized_fit(
                 np.random.randint(0,10),  # f_idx
-                mock_X,
-                mock_y,
+                X_np,
+                y_np,
                 _estimator_=mock_classifier(),
                 _grid = {'param_1': True, 'param_2': [3,4,5]},
                 _error_score=np.nan,
@@ -100,13 +90,13 @@ class TestParallelizedFit:
         assert out_fit_excepted is False
 
 
-    def test_other_error_with_raise(self, mock_classifier, mock_X, mock_y):
+    def test_other_error_with_raise(self, mock_classifier, X_np, y_np):
         # if error_score == 'raise', raise Exception
         with pytest.raises(ValueError):
             _parallelized_fit(
                 np.random.randint(0,10),  # f_idx
-                mock_X,
-                mock_y,
+                X_np,
+                y_np,
                 _estimator_=mock_classifier(command='other_error_with_raise'),
                 _grid = {'param_1': True, 'param_2': [3,4,5]},
                 _error_score='raise',  # ineffectual
@@ -114,15 +104,15 @@ class TestParallelizedFit:
             )
 
 
-    def test_other_error_not_raise(self, mock_classifier, mock_X, mock_y):
+    def test_other_error_not_raise(self, mock_classifier, X_np, y_np):
         # else warn, fit_excepted = True
         # returns fitted est, time, fit_excepted == False
 
         out_fitted_estimator, out_time, out_fit_excepted = \
             _parallelized_fit(
                 np.random.randint(0,10),  # f_idx
-                mock_X,
-                mock_y,
+                X_np,
+                y_np,
                 _estimator_=mock_classifier(command='other_error_not_raise'),
                 _grid = {'param_1': True, 'param_2': [3,4,5]},
                 _error_score=np.nan,
@@ -137,13 +127,13 @@ class TestParallelizedFit:
         assert out_fit_excepted is True
 
 
-    def test_fit_params(self, mock_classifier, mock_X, mock_y):
+    def test_fit_params(self, mock_classifier, X_np, y_np):
 
         with pytest.raises(BrokenPipeError):
             _parallelized_fit(
                 np.random.randint(0,10),  # f_idx
-                mock_X,
-                mock_y,
+                X_np,
+                y_np,
                 _estimator_=mock_classifier(),
                 _grid = {'param_1': True, 'param_2': [3,4,5]},
                 _error_score=np.nan,

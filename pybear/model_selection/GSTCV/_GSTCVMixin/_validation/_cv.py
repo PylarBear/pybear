@@ -11,38 +11,28 @@ from model_selection.GSTCV._type_aliases import GenericKFoldType
 
 
 
-
-def _validate_cv(_cv: Union[None, int, Iterable[GenericKFoldType]]) -> \
-    Union[int, Iterable[GenericKFoldType]]:
+def _validate_cv(
+        _cv: Union[None, int, Iterable[GenericKFoldType]]
+    ) -> Union[int, Iterable[GenericKFoldType]]:
 
     """
-    
-    cv - int, None, or an iterable, default=None
 
-    Determines the cross-validation splitting strategy.
-
-    For integer/None inputs:
-    If a number, validation is performed to ensure the number is an
-    integer greater than 1. If None, the default of 5 is used. This
-    number is used as 'n_splits' later in the spltting operation.
-    StratifiedKFold is used with sklearn, KFold is used with dask. These
-    splitters are instantiated with shuffle=False so the splits will be
-    the same across calls.
-
-    For passed iterables:
-    This module will convert generators to lists and
-    No validation is done beyond verifying that it is an iterable that
-    contains iterables of iterables. GSTCV will catch out of range
-    indices and raise an IndexError but any validation beyond that is
-    up to the user.
+    Validate that _cv is:
+    1) None,
+    2) an integer > 1, or
+    3) an iterable of tuples, with each tuple holding a pair of iterables;
+    the outer iterable cannot be empty, and must contain than one pair.
 
 
     Parameters
     ----------
-    _cv: int, None, Iterable - Possible inputs for cv are:
+    _cv:
+        int, Iterable, None -
+        Possible inputs for cv are:
         1) None, to use the default 5-fold cross validation,
-        2) integer, to specify the number of folds in a (Stratified)KFold,
-        3) An iterable yielding (train, test) splits as arrays of indices.
+        2) integer, must be 2 or greater, to specify the number of folds
+        in a (Stratified)KFold,
+        3) An iterable yielding (train, test) split indices as arrays.
 
 
     Return
@@ -50,7 +40,7 @@ def _validate_cv(_cv: Union[None, int, Iterable[GenericKFoldType]]) -> \
     -
         _cv: int, Iterable - validated cv input
 
-    
+
     """
 
 
@@ -62,7 +52,7 @@ def _validate_cv(_cv: Union[None, int, Iterable[GenericKFoldType]]) -> \
         "\n1) None, to use the default 5-fold cross validation, "
         "\n2) integer > 1, to specify the number of folds in a (Stratified)KFold, "
         "\n3) An iterable yielding a sequence of (train, test) split pairs "
-        "as arrays of indices."
+        "as arrays of indices, with at least 2 pairs."
     )
 
 
@@ -73,6 +63,7 @@ def _validate_cv(_cv: Union[None, int, Iterable[GenericKFoldType]]) -> \
         if isinstance(_cv, (dict, str)):
             raise Exception
         _is_iter = True
+        _cv = list(_cv)
     except:
         try:
             float(_cv)
@@ -104,6 +95,9 @@ def _validate_cv(_cv: Union[None, int, Iterable[GenericKFoldType]]) -> \
 
         if ctr == 0:
             raise ValueError(f"'cv' is an empty iterable")
+
+        elif ctr == 1:
+            raise ValueError(err_msg)
 
 
     elif _is_int:

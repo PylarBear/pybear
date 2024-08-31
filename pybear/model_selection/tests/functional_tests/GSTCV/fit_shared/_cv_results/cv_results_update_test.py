@@ -94,9 +94,12 @@ class TestCVResultsUpdate:
         _FOLD_FIT_TIMES_VECTOR = _make_holder(20, 30, (_n_splits,))
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = \
             _make_holder(1, 2, (_n_splits, _thresholds, _n_scorers))
-        _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = _make_holder(0, _thresholds, _n_scorers)
-        _TEST_FOLD_x_SCORER__SCORE_MATRIX = _make_holder(0, 1, (_n_splits, _n_scorers))
-        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = _make_holder(0, 1, (_n_splits, _n_scorers))
+        _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
+            _make_holder(0, _thresholds, _n_scorers)
+        _TEST_FOLD_x_SCORER__SCORE_MATRIX = \
+            _make_holder(0, 1, (_n_splits, _n_scorers))
+        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
+            _make_holder(0, 1, (_n_splits, _n_scorers))
         del _make_holder
 
         _scorers = {
@@ -170,8 +173,10 @@ class TestCVResultsUpdate:
                np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
 
         assert np.array_equiv(out['params'], ref_permuter)
-        assert out['param_param_1'][_trial_idx] == [ref_permuter[_trial_idx]['param_1']]
-        assert out['param_param_2'][_trial_idx] == [ref_permuter[_trial_idx]['param_2']]
+        assert out['param_param_1'][_trial_idx] == \
+               [ref_permuter[_trial_idx]['param_1']]
+        assert out['param_param_2'][_trial_idx] == \
+               [ref_permuter[_trial_idx]['param_2']]
 
         for _s_idx, _scorer in enumerate(_scorers):
 
@@ -235,9 +240,12 @@ class TestCVResultsUpdate:
         _FOLD_FIT_TIMES_VECTOR = _make_holder(50, 90, (_n_splits,))
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = \
             _make_holder(1, 2, (_n_splits, _thresholds, _n_scorers))
-        _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = _make_holder(0, _thresholds, _n_scorers)
-        _TEST_FOLD_x_SCORER__SCORE_MATRIX = _make_holder(0, 1, (_n_splits, _n_scorers))
-        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = _make_holder(0, 1, (_n_splits, _n_scorers))
+        _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
+            _make_holder(0, _thresholds, _n_scorers)
+        _TEST_FOLD_x_SCORER__SCORE_MATRIX = \
+            _make_holder(0, 1, (_n_splits, _n_scorers))
+        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
+            _make_holder(0, 1, (_n_splits, _n_scorers))
         del _make_holder
 
         _scorers = {
@@ -312,7 +320,8 @@ class TestCVResultsUpdate:
                np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
 
         assert np.array_equiv(out['params'], ref_permuter)
-        assert out['param_param_1'][_trial_idx] == [ref_permuter[_trial_idx]['param_1']]
+        assert out['param_param_1'][_trial_idx] == \
+               [ref_permuter[_trial_idx]['param_1']]
 
         for _s_idx, _scorer in enumerate(_scorers):
 
@@ -364,7 +373,9 @@ class TestCVResultsUpdate:
         }],
         indirect=True
     )
-    def test_accuracy_partial_mask(self, _cv_results_template, _trial_idx, _n_splits):
+    def test_accuracy_partial_mask(
+            self, _cv_results_template, _trial_idx, _n_splits
+    ):
 
         # 2 scorers, 1 param grid
 
@@ -383,12 +394,15 @@ class TestCVResultsUpdate:
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX[1, :, :] = np.ma.masked
         # best threshold idx cannot be 1, 1 is masked to mock except during fit
         while True:
-            _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = _make_holder(0, _thresholds, _n_scorers)
+            _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
+                _make_holder(0, _thresholds, _n_scorers)
             if 1 not in _TEST_BEST_THRESHOLD_IDXS_BY_SCORER:
                 break
-        _TEST_FOLD_x_SCORER__SCORE_MATRIX = _make_holder(0, 1, (_n_splits, _n_scorers))
+        _TEST_FOLD_x_SCORER__SCORE_MATRIX = \
+            _make_holder(0, 1, (_n_splits, _n_scorers))
         _TEST_FOLD_x_SCORER__SCORE_MATRIX[1, :] = np.ma.masked
-        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = _make_holder(0, 1, (_n_splits, _n_scorers))
+        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
+            _make_holder(0, 1, (_n_splits, _n_scorers))
         _TRAIN_FOLD_x_SCORER__SCORE_MATRIX[1, :] = np.ma.masked
         del _make_holder
 
@@ -463,8 +477,10 @@ class TestCVResultsUpdate:
                np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
 
         assert np.array_equiv(out['params'], ref_permuter)
-        assert out['param_param_1'][_trial_idx] == [ref_permuter[_trial_idx]['param_1']]
-        assert out['param_param_2'][_trial_idx] == [ref_permuter[_trial_idx]['param_2']]
+        assert out['param_param_1'][_trial_idx] == \
+               [ref_permuter[_trial_idx]['param_1']]
+        assert out['param_param_2'][_trial_idx] == \
+               [ref_permuter[_trial_idx]['param_2']]
 
         for _s_idx, _scorer in enumerate(_scorers):
 

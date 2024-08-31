@@ -6,7 +6,7 @@
 
 
 import time
-from typing import Generator
+from typing import Generator, Optional
 import dask.array as da
 
 from dask_ml.model_selection import KFold as dask_KFold
@@ -24,18 +24,18 @@ def _get_kfold(
         _n_splits: int,
         _iid: bool,
         _verbose: int,
-        _y: YDaskWIPType = None
+        _y: Optional[YDaskWIPType] = None
     ) -> Generator[DaskKFoldType, None, None]:
 
     """
     Use dask_ml KFold to get train / test splits when cv is passed as an
-    integer. KFold uses the number of rows in _X and _n_splits to determine
-    the indices in each train / test split.
-    _X must be a 2D dask.array.core.Array. y is optional in dask_ml KFold. If
-    passed, it must be a 1D dask.array.core.Array vector and the number of rows
-    in _X and _y must be equal. As of 24_06_27_09_08_00 only dask arrays
-    can be passed to dask_ml.KFold (not np, pd.DF, nor dask.DF).
-    See dask_kfold_input_test in functional_tests folder for details.
+    integer. KFold uses the number of rows in _X and _n_splits to
+    determine the indices in each train / test split.
+    _X must be a 2D dask.array.core.Array. y is optional in dask_ml KFold.
+    If passed, it must be a 1D da.core.Array vector and the number of
+    rows in _X and _y must be equal. As of 24_06_27, only dask arrays can
+    be passed to dask_ml.KFold (not np, pd.DF, nor dask.DF). See
+    dask_kfold_input_test in functional_tests folder for details.
 
     *** IMPORTANT!!!
     This function can be called multiple times within a single param grid
@@ -43,23 +43,27 @@ def _get_kfold(
     return_train_score. Therefore, it must return the same indices for
     each call. The only things that should cause indices to be different
     are n_splits and the number of rows in _X. Since this is dask KFold,
-    there is the wildcard of the 'iid' setting. If iid is False -- meaning
-    the data is known to have some non-random grouping along axis 0 --
-    via the 'shuffle' argument KFold will generate indices that sample
-    across chunks to randomize the data in the splits. In that case, fix
-    the random_state parameter to make selection repeatable. If iid is
-    True, shuffle is False, random_state can be None, and the splits
-    should be repeatable.
+    there is the wildcard of the 'iid' setting. If iid is False --
+    meaning the data is known to have some non-random grouping along
+    axis 0 -- via the 'shuffle' argument KFold will generate indices that
+    sample across chunks to randomize the data in the splits. In that
+    case, fix the random_state parameter to make selection repeatable.
+    If iid is True, shuffle is False, random_state can be None, and the
+    splits should be repeatable.
+
 
     Parameters
     ----------
     _X:
-        dask.array.core.Array[Union[int,float]] - The data to be split. Must be
-        2D dask.array.core.Array.
+        dask.array.core.Array[Union[int,float]] - The data to be split.
+        Must be 2D dask.array.core.Array.
     _y:
-        dask.array.core.Array[int] - optional - The target the data is being
-        fit against, to be split in the same way as the data. Must be 1D
-        dask.array.core.Array.
+        dask.array.core.Array[int] - optional - The target the data is
+        being fit against, to be split in the same way as the data. Must
+        be 1D dask.array.core.Array.
+    _iid:
+        bool - True, the examples in X are distributed randomly; False,
+        there is some kind of non-random ordering of the examples in X.
     _n_splits:
         int - the number of splits to produce; the number of split pairs
         yielded by the returned generator object.
@@ -68,15 +72,17 @@ def _get_kfold(
         to display to screen during the grid search trials. 0 means no
         output, 10 means full output.
 
+
     Return
     ------
     -
         KFOLD:
-            Generator[tuple[dask.array.core.Array[int],
-            dask.array.core.Array[int]] - A generator object yielding
-            pairs of train test indices as dask.array.core.Array[int].
+            Generator[tuple[da.core.Array[int], da.core.Array[int]] - A
+            generator object yielding pairs of train test indices as
+            da.core.Array[int].
 
     """
+
 
     err_msg = (f"_X ({type(_X)}) and _y ({type(_y)}) must both be dask "
                f"arrays.")

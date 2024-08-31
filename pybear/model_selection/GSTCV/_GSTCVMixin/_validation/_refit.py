@@ -21,18 +21,37 @@ def _validate_refit(
     ) -> RefitType:
 
     """
-    https://scikit-learn.org/stable/modules/grid_search.html#multimetric-grid-search
-    https://ml.dask.org/modules/generated/dask_ml.model_selection.GridSearchCV.html
 
-    refit - bool, str, or callable, default=True
+    Validate the refit parameter with respect to the number of scorers.
 
-    # pizza revisit
-    For single metric evaluation, must be bool.
-    # pizza revisit
-    For multiple metric evaluation, this needs to be a str denoting the
-    scorer that to be used to find the best parameters.
-    # pizza revisit
-    refit can be set to a callable(cv_results_) ->  best_index_.
+    In all cases, refit can be boolean False, a string that indicates the
+    scorer to use to determine the best parameters (when there is only
+    one scorer there is only one possible string value), or a callable.
+    When one metric is used, refit can be boolean True or False, but
+    boolean True cannot be used when there is more than one scorer.
+
+    The refit callable takes in cv_results_ and returns the best_index_
+    (an integer).
+
+
+    Parameters
+    ----------
+    _refit:
+        bool, str, or callable, default=True - Whether to refit the
+        estimator on the 'best' parameters after completing the grid
+        search, and if so, which scoring metric to use to determine the
+        'best' parameters.
+    _scorer:
+        dict[str, metric] - previously validated scorer object, must be
+        dict[str, metric], used to determine the number of scorers, which
+        impacts what values are allowed for the refit param.
+
+
+    Return
+    ------
+    -
+        _refit - bool, str, or callable, default=True - validated refit.
+
 
     """
 

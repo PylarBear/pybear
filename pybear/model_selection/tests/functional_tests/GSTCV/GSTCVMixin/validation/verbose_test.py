@@ -8,7 +8,8 @@
 import pytest
 
 
-from model_selection.GSTCV._GSTCVMixin._validation._verbose import _validate_verbose
+from model_selection.GSTCV._GSTCVMixin._validation._verbose \
+    import _validate_verbose
 
 
 class TestValidateVerbose:

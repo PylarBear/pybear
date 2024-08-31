@@ -22,21 +22,67 @@ def _validate_thresholds__param_grid(
     _param_grid: Union[ParamGridType, Iterable[ParamGridType], None]
     ) -> list[ParamGridType]:
 
+    """
 
-    err_msg = (f"param_grid must be a (1 - dictionary) or (2 - a list of "
-            f"dictionaries) with strings as keys and lists as values")
+    Jointly validate thresholds and param_grid, because once thresholds
+    is validated, it is put inside the param grids during internal
+    processing by GSTCV.
+
+    thresholds - The decision threshold strategy to use when performing
+    hyperparameter search.
+
+    param_grid - Dictionary with parameters names (str) as keys and
+    lists of parameter settings to try as values.
+
+    Validate param grids. If param grids are passed, verify format is
+    dict[str, list-like]. Get param_grid into list(dict[str, list-like])
+    format. Validate thresholds is None (default), a number, or a list-
+    like of numbers, with numbers in [0, 1] interval. Convert thresholds
+    to a list-like of floats. If thresholds is None, use default
+    thresholds. Put thresholds inside param grid(s).
+
+
+    Parameters
+    ----------
+
+    _thresholds:
+        Union[Iterable[Union[int, float]], Union[int, float], None] -
+
+    _param_grid:
+        Union[ParamGridType, Iterable[ParamGridType], None] -
+
+
+    Return
+    ------
+        returns param grid (inside a list) with thresholds inside it,
+        no matter how (or if) thresholds was passed.
+
+
+    """
+
+
+
+    err_msg = (f"param_grid must be a (1 - dictionary) or (2 - a list-like of "
+        f"dictionaries). the dictionary keys must be strings and the "
+        f"dictionary values must be vector-like")
 
     if _param_grid is None:
         _out_param_grid = [{}]
-    elif isinstance(_param_grid, dict):
-        _out_param_grid = [_param_grid]
-    elif isinstance(_param_grid, str):
-        raise TypeError(err_msg)
     else:
         try:
-            _out_param_grid = list(_param_grid)
+            iter(_param_grid)
+            if isinstance(_param_grid, str):
+                raise
         except:
             raise TypeError(err_msg)
+
+        if len(_param_grid) == 0:
+            _out_param_grid = [{}]
+        elif isinstance(_param_grid, dict):
+            _out_param_grid = [_param_grid]
+        else:
+            _out_param_grid = list(_param_grid)
+
 
     # param_grid must be list at this point
     for grid_idx, _grid in enumerate(_out_param_grid):
@@ -62,15 +108,9 @@ def _validate_thresholds__param_grid(
     # str as keys and np arrays as values
     for grid_idx, _grid in enumerate(_out_param_grid):
 
-        if sum(map(lambda x: 'threshold' in x, list(map(str.lower, _grid)))) > 1:
-            raise ValueError(
-                f"there are multiple keys in param_dict[{grid_idx}] "
-                f"indicating threshold"
-            )
-
         new_grid = {}
         for _key, _value in _grid.items():
-            if 'threshold' in _key.lower():
+            if _key.lower() == 'thresholds':
                 new_grid['thresholds'] = _value
             else:
                 new_grid[_key] = _value

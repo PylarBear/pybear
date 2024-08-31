@@ -29,6 +29,7 @@ def _cv_results_builder(
     ) -> tuple[CVResultsType, NDArray[np.uint8]]:
 
     """
+
     cv_results_ is a python dictionary that represents the columns of
     a data table that contains times, scores, and other pertinent
     information gathered during the grid search trials. The dictionary
@@ -186,6 +187,7 @@ def _cv_results_builder(
         bool - when True, calculate the scores for the train folds in
         addition to the test folds.
 
+
     Returns
     -------
     -
@@ -320,15 +322,25 @@ def _cv_results_builder(
 
             for _type in ['mean', 'std']:
                 COLUMNS, DTYPES = \
-                    c_d_a(COLUMNS, DTYPES, [f'{_type}_train_{metric}'], [np.float64])
+                    c_d_a(
+                        COLUMNS,
+                        DTYPES,
+                        [f'{_type}_train_{metric}'],
+                        [np.float64]
+                    )
 
     del c_d_a
     # END BUILD VECTOR OF COLUMN NAMES ** ** ** ** ** ** ** ** ** ** **
 
     # GET FULL COUNT OF ROWS FOR ALL PERMUTATIONS ACROSS ALL GRIDS
-    total_rows = np.sum(
-        list(map(lambda x: np.prod(list(map(len, x.values()))), param_grid))
-    )
+    total_rows = 0
+    for _grid in param_grid:
+        if _grid == {}:
+            total_rows += 1
+        else:
+            total_rows += np.prod(list(map(len, _grid.values())))
+
+    total_rows = int(total_rows)
 
     # BUILD cv_results_
     cv_results_ = {}
@@ -362,13 +374,18 @@ def _cv_results_builder(
         PARAMS = list(_grid.keys())
         VALUES = list(_grid.values())
 
-        PERMUTATIONS = permuter(_grid.values())
+        if len(VALUES) == 0:
+            PARAM_GRID_KEY[ctr] = grid_idx
+            cv_results_['params'][ctr] = _grid
+            ctr += 1
+            continue
 
-        # a permutation IN PERMUTATIONS LOOKS LIKE (grid_idx_param_0,
+
+        # a permutation IN permuter(VALUES) LOOKS LIKE (grid_idx_param_0,
         # grid_idx_param_1, grid_idx_param_2,....)
         # BUILD INDIVIDUAL param_grids TO GIVE TO estimator.set_params()
         # FROM THE PARAMS IN "PARAMS" AND VALUES KEYED FROM "VALUES"
-        for TRIAL in PERMUTATIONS:
+        for TRIAL in permuter(VALUES):
             trial_param_grid = dict()
             for param_idx, value_idx in enumerate(TRIAL):
                 cv_results_[f'param_{PARAMS[param_idx]}'][ctr] = \
@@ -382,8 +399,11 @@ def _cv_results_builder(
 
             ctr += 1
 
-    del PERMUTATIONS, PARAMS, VALUES
-    del trial_param_grid, ctr, grid_idx, _grid
+    del ctr, grid_idx, _grid, PARAMS, VALUES
+    try:
+        del TRIAL, trial_param_grid, param_idx, value_idx
+    except:
+        pass
 
 
     # END POPULATE KNOWN FIELDS IN cv_results_ (only columns associated

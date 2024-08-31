@@ -17,6 +17,43 @@ def _threshold_checker(
         idx: int
     ) -> npt.NDArray[np.float64]:
 
+    """
+
+    This is a support function for _thresholds__param_grid().
+
+    Validate __thresholds is
+    1) None, (default of np.linspace(0, 1, 21).astype(np.float64) is used)
+    2) a single number
+    3) a vector-like of numbers, vector-like is not empty
+    4) 0 <= number(s) <= 1.
+
+
+    Parameters
+    ----------
+        __thresholds:
+            Union[None, Iterable[Union[int, float]], Union[int, float]] -
+            user-defined threshold(s)
+        is_from_kwargs:
+            bool - whether __thresholds was passed via the __init__ kwarg
+            or inside a param grid.
+        idx:
+            int - the index of the param grid associated with
+            __thresholds. If __thresholds was not passed in param grid,
+            a dummy idx value of 0 is used, and cannot be accessed
+            because the code routes through 'is_from_kwargs'.
+
+
+    Return
+    ------
+    -
+        __thresholds:
+            NDArray[np.float64] - user-defined or default floats sorted
+            ascending
+
+
+    """
+
+
     if not isinstance(is_from_kwargs, bool):
         raise TypeError(f"'is_from_kwargs' must be a bool")
 

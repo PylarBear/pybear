@@ -35,34 +35,24 @@ class TestParallelizedScorer:
 
     @staticmethod
     @pytest.fixture
-    def _X():
-        return np.random.randint(0, 10, (100, 10))
+    def _fit_output_excepted(X_np, y_np):
 
-
-    @staticmethod
-    @pytest.fixture
-    def _y():
-        return np.random.randint(0, 2, 100)
-
-
-    @staticmethod
-    @pytest.fixture
-    def _fit_output_excepted(_X, _y):
-
-        xgb_clf = xgb.XGBClassifier()
         # [ClassifierProtocol, fit time, fit excepted]
-        return (xgb_clf, 0.1, True)
+        return (xgb.XGBClassifier(), 0.1, True)
 
 
     @staticmethod
     @pytest.fixture
-    def _fit_output_good(_X, _y):
+    def _fit_output_good(X_np, y_np):
 
         xgb_clf = xgb.XGBClassifier()
 
         t0 = time.perf_counter()
 
-        xgb_clf.fit(_X[:80], _y[:80])
+        xgb_clf.fit(
+            X_np[:int(0.8 * X_np.shape[0])],
+            y_np[:int(0.8 * y_np.shape[0])]
+        )
 
         tf = time.perf_counter()
 
@@ -71,11 +61,11 @@ class TestParallelizedScorer:
 
 
 
-    def test_fit_excepted_accuracy(self, _X, _y, _fit_output_excepted):
+    def test_fit_excepted_accuracy(self, X_np, y_np, _fit_output_excepted):
 
         # 5 folds
-        _X_test = _X[80:, :]
-        _y_test = _y[80:]
+        _X_test = X_np[int(0.8 * X_np.shape[0]):, :]
+        _y_test = y_np[int(0.8 * y_np.shape[0]):]
 
         # error_score == np.nan
         out_scores, out_times = _parallelized_scorer(
@@ -115,11 +105,11 @@ class TestParallelizedScorer:
         assert out_times.mask.all()
 
 
-    def test_fit_good_accuracy(self, _X, _y, _fit_output_good):
+    def test_fit_good_accuracy(self, X_np, y_np, _fit_output_good):
 
         # 5 folds
-        _X_test = _X[80:, :]
-        _y_test = _y[80:]
+        _X_test = X_np[int(0.8 * X_np.shape[0]):, :]
+        _y_test = y_np[int(0.8 * y_np.shape[0]):]
 
         # error_score == np.nan
         out_scores, out_times = _parallelized_scorer(

@@ -16,7 +16,6 @@ from model_selection.GSTCV._GSTCVDask._fit._get_kfold import _get_kfold
 
 
 
-
 class TestGetDaskKFold:
 
     # def _get_kfold(
@@ -100,7 +99,8 @@ class TestGetDaskKFold:
 
 
     @pytest.mark.parametrize(f'junk_iid',
-        (0, 1, 3.14, None, min, 'junk', [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
+        (0, 1, 3.14, None, min, 'junk', [0, 1], (0, 1), {0, 1}, {'a': 1},
+         lambda x: x)
     )
     @pytest.mark.parametrize('_X, _y', ((_X_da, _y_da),))
     def test_rejects_non_bool_iid(self, _X, _y, junk_iid):
@@ -158,6 +158,7 @@ class TestGetDaskKFold:
             assert test_idxs.max() < _X_da.shape[0]
 
 
+        # and second call returns same as the first
         out2 = _get_kfold(
             _X_da,
             _n_splits=3,

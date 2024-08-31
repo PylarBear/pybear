@@ -4,7 +4,8 @@
 # License: BSD 3 clause
 #
 
-from typing import Iterable, Union
+
+from typing import Union
 
 import numpy as np
 import numpy.typing as npt
@@ -32,6 +33,7 @@ def _cv_results_update(
     ) -> CVResultsType:
 
     """
+
     Fills a row of cv_results with thresholds, scores, and times, but
     not ranks. (Ranks must be done after cv_results is full.)
 
@@ -46,13 +48,13 @@ def _cv_results_update(
         param grids.
     _FOLD_FIT_TIMES_VECTOR:
         np.ma.masked_array[float] - the times to fit each of the folds
-        for this permutation. If a fit excepted, the corresponding position
-        is masked and excluded from aggregate calculations.
+        for this permutation. If a fit excepted, the corresponding
+        position is masked and excluded from aggregate calculations.
     _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX:
         np.ma.masked_array[float] - A 3D object of shape (n_splits,
         n_thresholds, n_scorers). If a fit excepted, the corresponding
         plane in axis 0 is masked, and is excluded from aggregate
-        calculations. Otherwise, holds scores times for every fold /
+        calculations. Otherwise, holds score times for every fold /
         threshold / scorer permutation.
     _TEST_BEST_THRESHOLD_IDXS_BY_SCORER:
         np.NDArray[np.uint16] - vector of shape (n_scorers,) that matches
@@ -74,14 +76,16 @@ def _cv_results_update(
     _scorer:
         dict[str, Callable[[Iterable, Iterable], float] -
         dictionary of scorer names and scorer functions. Note that the
-        scorer functions are sklearn metrics, not make_scorer. Used to
-        know what column names to look for in cv_results and nothing more.
+        scorer functions are sklearn metrics (or similar), not
+        make_scorer. Used to know what column names to look for in
+        cv_results and nothing more.
     _cv_results:
         dict[str, np.ma.masked_array] - empty cv_results dictionary other
-        than the 'param' columns and the 'params' column.
+        than the 'param_' columns and the 'params' column.
     _return_train_score:
         bool - when True, calculate the scores for the train folds in
         addition to the test folds.
+
 
     Return
     ------

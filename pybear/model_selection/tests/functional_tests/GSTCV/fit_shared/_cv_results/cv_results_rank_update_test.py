@@ -27,10 +27,6 @@ class TestCVResultsRankUpdateTest:
     # need to fill _cv_results_template with full 'params', then put dummy
     # scores into each trial and calculate the mean
 
-    @staticmethod
-    def _scorers():
-        return ['accuracy', 'balanced_accuracy', 'recall', 'f1']
-
 
     @staticmethod
     @pytest.fixture
@@ -43,7 +39,7 @@ class TestCVResultsRankUpdateTest:
         [{
             '_n_splits': 3,
             '_n_rows': 6,
-            '_scorer_names': _scorers(),
+            '_scorer_names': ['accuracy', 'balanced_accuracy', 'recall', 'f1'],
             '_grids': [{'param_1':[1,2,3], 'param_2':[True, False]}],
             '_return_train_score': True,
             '_fill_param_columns': True

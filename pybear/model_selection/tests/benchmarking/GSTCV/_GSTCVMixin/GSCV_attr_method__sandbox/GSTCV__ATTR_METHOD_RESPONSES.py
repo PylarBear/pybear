@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 import sys, os
 import string
+from pathlib import Path
 
-from sklearn.model_selection import \
-    train_test_split as sklearn_train_test_split
+
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 from xgboost import XGBClassifier as sk_XGBClassifier
@@ -46,7 +46,7 @@ from getattr_handling.getattr_handling import (
 
 dump_to_file = True
 
-run_dtype = 'array'  # array / dataframe
+run_dtype = 'dataframe'  # array / dataframe
 _scoring = ['accuracy', 'balanced_accuracy']   #'balanced_accuracy' #
 
 
@@ -354,7 +354,7 @@ def handler_for_getattr(
             for _gscv_type in TYPES:
 
                 itr = f'{_gscv_type}_refit_{refit_words}_{_round}'
-                print(itr)
+                # print(itr)
 
                 if 'sklearn' in _gscv_type:
                     for _ in (sk_X_train, sk_y_train, sk_X_test, sk_y_test):
@@ -456,10 +456,9 @@ if __name__ == '__main__':
 
     SINGLE_DF = SINGLE_DF.T
 
-    if os.name == 'posix':
-        attr_path = rf'/home/bear/Desktop/gscv_attr_comparison_dump.ods'
-    elif os.name == 'nt':
-        attr_path = rf'c:\users\bill\desktop\gscv_attr_comparison_dump.csv'
+    desktop_path = Path.home() / "Desktop"
+    filename = rf'gscv_attr_comparison_dump.csv'
+    attr_path = desktop_path / filename
 
     SINGLE_DF.to_csv(attr_path, index=True)
     # END WRITE ATTR RESULTS TO FILE ##########################################
@@ -478,10 +477,9 @@ if __name__ == '__main__':
 
     SINGLE_DF = SINGLE_DF.T
 
-    if os.name == 'posix':
-        method_path = rf'/home/bear/Desktop/gscv_method_comparison_dump.ods'
-    elif os.name == 'nt':
-        method_path = rf'c:\users\bill\desktop\gscv_method_comparison_dump.csv'
+    desktop_path = Path.home() / "Desktop"
+    filename = rf'gscv_method_comparison_dump.csv'
+    method_path = desktop_path / filename
 
     SINGLE_DF.to_csv(method_path, index=True)
     # END WRITE METHOD RESULTS TO FILE ########################################

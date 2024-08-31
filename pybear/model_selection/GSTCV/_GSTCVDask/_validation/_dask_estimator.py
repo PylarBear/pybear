@@ -21,17 +21,18 @@ def _validate_dask_estimator(
     ) -> None:
 
     """
-    This package is expected to most likely encounter dask,xgboost, and
-    lightgbm estimators. The estimator must be passed as an instance, not
-    the class itself.
+    The GSTCVDask module is expected to most likely encounter dask_ml,
+    xgboost, and lightgbm dask estimators. The estimator must be passed
+    as an instance, not the class itself.
 
     Validate that an estimator:
-    1) is a classifier, as indicated by the presence of a predict_proba
+    1) if in a pipe, the pipe is built correctly
+    2) warn if it is not a dask classifier, either from dask itself,
+    or from XGBoost or LightGBM.
+    3) is a classifier, as indicated by the presence of a predict_proba
     method. (early in dev this was done by pybear.base.is_classifier)
-    2) meets the other requirements of dask GridSearchCV in having 'fit',
+    4) meets the other requirements of dask GridSearchCV in having 'fit',
     'set_params', and 'get_params' methods.
-    3) is a dask classifier, either from dask itself, or from XGBoost
-    or LightGBM.
 
 
     Parameters
@@ -53,7 +54,7 @@ def _validate_dask_estimator(
     if inspect.isclass(_estimator):
         raise TypeError(f"estimator must be an instance, not the class")
 
-    # must be dask, could be a pipeline
+    # could be a pipeline
 
     # validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # because sklearn/dask dont do this, and could be hard to detect
@@ -87,6 +88,7 @@ def _validate_dask_estimator(
     # END validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # if pipe, dig out the estimator ...---...---...---...---...---...---
     def get_inner_most_estimator(__estimator):
 
         try:
@@ -108,7 +110,7 @@ def _validate_dask_estimator(
 
     # 24_08_04_07_28_00 change raise to warn
     # to allow XGBClassifier, reference errors associated with
-    # dask XGBClassifier and dask GridSearch CV
+    # DaskXGBClassifier and dask GridSearch CV
     __ = str(_module).lower()
     if 'dask' not in __ and 'conftest' not in __:  # allow pytest with mock clf
         warnings.warn(f"'{__estimator.__class__.__name__}' does not "
@@ -117,7 +119,9 @@ def _validate_dask_estimator(
         #     f"classifier. GSTCVDask can only accept dask classifiers. "
         #     f"\nTo use non-dask classifiers, use the GSTCV package.")
 
-    del get_inner_most_estimator, _module
+    del get_inner_most_estimator, __estimator, _module
+
+    # END if pipe, dig out the estimator ...---...---...---...---...---.
 
     # must have the sklearn / dask API
     _has_method = lambda _method: callable(getattr(_estimator, _method, None))
@@ -135,7 +139,7 @@ def _validate_dask_estimator(
     # END validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-
+    return
 
 
 

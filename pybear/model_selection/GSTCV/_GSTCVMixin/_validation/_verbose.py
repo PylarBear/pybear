@@ -7,6 +7,7 @@
 
 from typing import Union
 
+import numpy as np
 
 
 def _validate_verbose(
@@ -14,10 +15,13 @@ def _validate_verbose(
     ) -> int:
 
     """
+    Validate _verbose, the amount of verbosity to display to screen
+    during the grid search.
+
     Take in a bool, int, or float, and return an integer in the range of
-    0 to 10, inclusive. Bool False is converted to zero, bool True is
-    converted to 10. Floats are rounded to integers. Negative numbers
-    are rejected. Numbers greater than 10 are set to 10.
+    0 to 10, inclusive. Non-numbers are rejected. Bool False is converted
+    to zero, bool True is converted to 10. Floats are rounded to integers.
+    Negative numbers are rejected. Numbers greater than 10 are set to 10.
 
     Parameters
     ---------
@@ -33,8 +37,6 @@ def _validate_verbose(
     """
 
 
-
-
     err_msg = f"verbose must be a bool or a numeric > 0"
 
     try:
@@ -44,6 +46,8 @@ def _validate_verbose(
             elif _verbose is False:
                 _verbose = 0
         float(_verbose)
+        if _verbose is np.nan:
+            _verbose = 0
         _verbose = min(int(round(_verbose, 0)), 10)
     except:
         raise TypeError(err_msg)
@@ -54,6 +58,18 @@ def _validate_verbose(
     del err_msg
 
     return _verbose
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

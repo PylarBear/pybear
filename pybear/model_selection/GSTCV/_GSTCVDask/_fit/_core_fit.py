@@ -3,11 +3,13 @@
 #
 # License: BSD 3 clause
 #
-import inspect
+
+
 from typing import Union, Literal, Iterable
 import time
 from copy import deepcopy
 
+from dask import compute
 import numpy as np
 import numpy.typing as npt
 
@@ -22,6 +24,7 @@ from ..._type_aliases import (
 
 from ._get_kfold import _get_kfold
 from ._fold_splitter import _fold_splitter
+from ._estimator_fit_params_helper import _estimator_fit_params_helper
 from ._parallelized_fit import _parallelized_fit
 from ._parallelized_scorer import _parallelized_scorer
 from ._parallelized_train_scorer import _parallelized_train_scorer
@@ -52,10 +55,12 @@ def _core_fit(
     _return_train_score: bool,
     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
-    **params
+    **fit_params
     ) -> CVResultsType:
 
+
     """
+
     Perform all fit, scoring, and tabulation activities for every search
     performed in finding the hyperparameter values that maximize score
     (or minimize loss) for the given dataset (X) against the given target
@@ -69,16 +74,16 @@ def _core_fit(
     ----------
     _X:
         dask.array.core.Array[Union[int, float]] - the data to be fit by
-        DaskGSTCV against the target.
+        GSTCVDask against the target.
     _y:
-        dask.array.core.Array[Union[int, float]] - the target to train the data
-        against.
+        dask.array.core.Array[Union[int, float]] - the target to train
+        the data against.
     _estimator:
         Any classifier that fulfills the dask_ml API for classifiers,
         having fit, predict_proba, get_params, and set_params methods
-        (the score method is not necessary, as DaskGSTCV never calls it.)
+        (the score method is not necessary, as GSTCVDask never calls it.)
         This includes, but is not limited to, dask_ml, XGBoost, and LGBM
-        classifiers.
+        classifiers. Non-dask classifiers are allowed.
     _cv_results:
         dict[str, np.ma.masked_array] - an unfilled cv_results dictionary,
         to store the times, scores, and thresholds found during the
@@ -102,37 +107,31 @@ def _core_fit(
     _scorer:
         dict[str: Callable[[Iterable[int], Iterable[int]], float] -
         a dictionary with scorer name as keys and the scorer callables
-        as values. The scorer callables are sklearn metrics, not
-        make_scorer.
+        as values. The scorer callables are sklearn metrics (or similar),
+        not make_scorer.
     _cache_cv:
-        bool - Whether to extract each train/test subset at most once in
-        each worker
-        process, or every time that subset is needed. Caching the splits can
-        speedup computation at the cost of increased memory usage per worker
-        process.
-
-        If True, worst case memory usage is ``(n_splits + 1) * (X.nbytes +
-        y.nbytes)`` per worker. If False, worst case memory usage is
-        ``(n_threads_per_worker + 1) * (X.nbytes + y.nbytes)`` per worker.
+        bool - Indicates if the train/test folds are to be stored once
+        first generated, or if the folds are generated from X and y with
+        the KFold indices at each point of use.
     _iid:
-        bool - ndicates whether the data is believed to
-        have random distribution of examples (True) or if the data is
-        organized non-randomly in some way (False). If the data is not iid,
-        dask KFold will cross chunk boundaries when reading the data in an
-        attempt to randomize the data; this can be an expensive process.
-        Otherwise, if the data is iid, dask KFold can handle the data as
-        chunks which is much more efficient.
+        bool - indicates whether the examples in X are believed to
+        have random distribution (True) or if the examples are
+        organized non-randomly in some way (False). If the data is not
+        iid, dask KFold will cross chunk boundaries when reading the data
+        in an attempt to randomize the data; this can be an expensive
+        process. Otherwise, if the data is iid, dask KFold can handle the
+        data as chunks which is much more efficient.
     _return_train_score:
         bool - If True, calculate scores for the train data in addition
         to the test data. There is a (perhaps appreciable) time and
         compute cost to this, as train sets are typically much bigger
         than test sets.
     _PARAM_GRID_KEY:
-        npt.NDArray[np.uint8] - a vector of integers whose length is equal
-        to the number of search permutations (also the number of rows in
-        cv_results.) The integers indicate the index of the param grid
-        in the param_grid list that provided the search points for the
-        corresponding row in cv_results.
+        npt.NDArray[np.uint8] - a vector of integers whose length is
+        equal to the number of search permutations (also the number of
+        rows in cv_results.) The integers indicate the index of the param
+        grid in the param_grid kwarg that provided the search points for
+        the corresponding row in cv_results.
     _THRESHOLD_DICT:
         dict[int, npt.NDArray[np.float64]] - A dictionary whose values
         are the threshold vectors from each param grid in the param_grid
@@ -141,8 +140,8 @@ def _core_fit(
         param grid and put into this dictionary before building
         cv_results (if thresholds were left in param_grid and passed to
         the cv_results builder, they would be itemized out just like any
-        other parameter; instead, each vector must be separated out and
-        run in full for every search permutation.
+        other parameter; instead, each threshold vector must be separated
+        out and run in full for every search permutation.)
     **params:
         **dict[str, any] - dictionary of kwarg: value pairs to be passed
         to the estimator's fit method.
@@ -165,13 +164,19 @@ def _core_fit(
     if not hasattr(_estimator, 'predict_proba'):
         raise AttributeError(f"_estimator must have predict_proba method")
 
-    try:
-        _n_splits = len(list(_cv))
-        assert _n_splits  >= 2
-    except:
-        assert isinstance(_cv, int) and _cv >= 2, (f"_cv must be int >= 2 "
+    err_msg = (f"_cv must be int >= 2 "
                        f"or a generator or an iterable with len >= 2")
+
+    try:
+        _cv = list(_cv)
+        _n_splits = len(_cv)
+    except:
+        assert isinstance(_cv, int), err_msg
         _n_splits = _cv
+
+    assert _n_splits  >= 2, err_msg
+
+    del err_msg
 
     try:
         float(_error_score)
@@ -189,7 +194,7 @@ def _core_fit(
         f"_cache_cv must be bool"
 
     assert isinstance(_iid, bool), \
-        f"_cache_cv must be bool"
+        f"_iid must be bool"
 
     assert isinstance(_return_train_score, bool)
 
@@ -205,12 +210,18 @@ def _core_fit(
 
     # end validation * * * * * *
 
-    CACHE_CV = None
     if isinstance(_cv, int):
         KFOLD = list(_get_kfold(_X, _n_splits, _iid, _verbose, _y=_y))
     else:  # _cv is an iterable
-        KFOLD = list(_cv)
+        KFOLD = _cv
 
+    fold_fit_params = _estimator_fit_params_helper(
+        [*compute(len(_y))][0],
+        fit_params,
+        KFOLD
+    )
+
+    CACHE_CV = None
     if _cache_cv:
         CACHE_CV = []
         for (train_idxs, test_idxs) in KFOLD:
@@ -222,8 +233,8 @@ def _core_fit(
     for trial_idx, _grid in enumerate(_cv_results['params']):
 
         if _verbose >= 3:
-            print(f'\nparam grid {trial_idx + 1} of {len(_cv_results["params"])}: '
-                  f'{_grid}')
+            print(f'\nparam grid {trial_idx + 1} of '
+                  f'{len(_cv_results["params"])}: {_grid}')
 
 
         _THRESHOLDS = _THRESHOLD_DICT[_PARAM_GRID_KEY[trial_idx]]
@@ -249,14 +260,12 @@ def _core_fit(
 
         # FIT ALL FOLDS ###################################################
 
-
-
         # must use shallow params to construct estimator
         s_p = _estimator.get_params(deep=False)  # shallow_params
         # must use deep params for pipeline to set GSCV params (depth
         # doesnt matter for an estimator.)
         d_p = _estimator.get_params(deep=True)  # deep_params
-        print(f'pizza starts fits'); t0 = time.perf_counter()
+
         FIT_OUTPUT = list()
         if _cache_cv:
 
@@ -270,7 +279,7 @@ def _core_fit(
                         type(_estimator)(**s_p).set_params(**deepcopy(d_p)),
                         _grid,
                         _error_score,
-                        **params
+                        **fold_fit_params[f_idx]
                     )
                 )
 
@@ -284,17 +293,15 @@ def _core_fit(
                         type(_estimator)(**s_p).set_params(**d_p),
                         _grid,
                         _error_score,
-                        **params
+                        **fold_fit_params[f_idx]
                     )
                 )
 
         del s_p, d_p
 
-        print(f'pizza ends fits, t={time.perf_counter()-t0}')
-
         # END FIT ALL FOLDS ###############################################
 
-        # terminate if all folds excepted, display & compile fit times ** * ** *
+        # terminate if all folds excepted, display & compile fit times ** * **
         FOLD_FIT_TIMES_VECTOR = np.ma.empty(_n_splits, dtype=np.float64)
         FOLD_FIT_TIMES_VECTOR.mask = True
         num_failed_fits = 0
@@ -303,7 +310,10 @@ def _core_fit(
         for idx, (_, _fit_time, _fit_excepted) in enumerate(FIT_OUTPUT):
             num_failed_fits += _fit_excepted
 
-            FOLD_FIT_TIMES_VECTOR[idx] = np.ma.masked if _fit_excepted else _fit_time
+            if _fit_excepted:
+                FOLD_FIT_TIMES_VECTOR[idx] = np.ma.masked
+            else:
+                FOLD_FIT_TIMES_VECTOR[idx] = _fit_time
 
             if _verbose >= 5:
                 print(f'fold {idx + 1} train fit time = {_fit_time: ,.3g} s')
@@ -320,7 +330,7 @@ def _core_fit(
             print(f'\nStart scoring test with different thresholds and scorers')
 
         test_predict_and_score_t0 = time.perf_counter()
-        print(f'pizza starts scoring'); t0 = time.perf_counter()
+
         # TEST_SCORER_OUT IS:
         # TEST_THRESHOLD_x_SCORER__SCORE_LAYER,
         # TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER
@@ -360,7 +370,6 @@ def _core_fit(
                     )
                 )
 
-        print(f'pizza ends scoring, t = {time.perf_counter() - t0}')
         test_predict_and_score_tf = time.perf_counter()
         tpast = test_predict_and_score_tf - test_predict_and_score_t0
         del test_predict_and_score_tf, test_predict_and_score_t0
@@ -379,7 +388,8 @@ def _core_fit(
         del TEST_SCORER_OUT
 
         TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX = TSS.transpose((2, 0, 1))
-        TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = TSST.transpose((2, 0, 1))
+        TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = \
+            TSST.transpose((2, 0, 1))
         del TSS, TSST
         # END 3D-ify scores and times from parallel scorer ** * ** * ** *
 
@@ -449,7 +459,7 @@ def _core_fit(
             train_predict_and_score_t0 = time.perf_counter()
 
             # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
-            print(f'pizza start train score'); t0 = time.perf_counter()
+
             TRAIN_SCORER_OUT = []
             if _cache_cv:
                 for f_idx, (X_train, _, y_train, _) in enumerate(CACHE_CV):
@@ -483,7 +493,6 @@ def _core_fit(
                         )
                     )
 
-            print(f'pizza start train score, t = {time.perf_counter() - t0}')
             train_predict_and_score_tf = time.perf_counter()
             tpast = train_predict_and_score_tf - train_predict_and_score_t0
             del train_predict_and_score_tf, train_predict_and_score_t0
@@ -550,7 +559,6 @@ def _core_fit(
             del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
 
 
-
     # FINISH RANK COLUMNS HERE #####################################
     # ONLY DO TEST COLUMNS, DONT DO TRAIN RANK
     _cv_results_ = _cv_results_rank_update(
@@ -567,7 +575,7 @@ def _core_fit(
     # params back to the way they started
     _estimator.set_params(**original_params)
 
-    del original_params
+    del original_params, fold_fit_params
 
     return _cv_results
 

@@ -66,13 +66,13 @@ _error_score = 'raise'
 
 
 _X, _y = make_classification(
-    n_classes=2, n_features=5, n_redundant=0,
-    n_informative=5, n_samples=100, n_repeated=0
+    n_classes=2, n_features=100, n_redundant=0,
+    n_informative=5, n_samples=20_000, n_repeated=0
 )
 
 _cv = KFold(n_splits=_n_splits).split(_X, _y)
 
-_estimator = LogisticRegression()
+_estimator = LogisticRegression(max_iter=10_000)
 
 _cv_results, _PARAM_GRID_KEY = \
     _cv_results_builder(

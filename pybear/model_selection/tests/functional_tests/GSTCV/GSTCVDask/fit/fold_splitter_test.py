@@ -27,7 +27,8 @@ class TestFoldSplitter:
 
     @pytest.mark.parametrize('bad_data_object', (1, 3.14, True, False, None,
         'junk', min, [0,1], (0,1), {0,1}, {'a':1}, lambda x: x,
-        np.random.randint(0,10,(5,3)), ddf.from_pandas(pd.DataFrame(), npartitions=1))
+        np.random.randint(0,10,(5,3)),
+        ddf.from_pandas(pd.DataFrame(), npartitions=1))
     )
     def test_rejects_everything_not_dask_array(self, bad_data_object):
 
@@ -55,7 +56,7 @@ class TestFoldSplitter:
             )
 
 
-    def test_accuracy(self):
+    def test_accuracy(self, X_da, y_da, _rows):
 
         out = _fold_splitter(
             [0,2,4],
@@ -68,34 +69,28 @@ class TestFoldSplitter:
         assert isinstance(out[1], da.core.Array)
         assert np.array_equiv(out[1], [2,4])
 
-
         mask_train = da.random.choice(
-            range(1_000_000), (750_000,), replace=False
+            range(_rows), (int(0.75 * _rows), ), replace=False
         )
-        _ = np.ones(1_000_000).astype(bool)
+        _ = np.ones(_rows).astype(bool)
         _[mask_train] = False
-        mask_test = da.arange(1_000_000)[_]
-        in1 = da.random.randint(0, 10, (1_000_000, 2))
-        in2 = da.random.randint(0, 2, (1_000_000, ))
+        mask_test = da.arange(_rows)[_]
 
         out = _fold_splitter(
             mask_train,
             mask_test,
-            in1,
-            in2
+            X_da,
+            y_da
         )
 
         assert isinstance(out[0], da.core.Array)
-        assert np.array_equiv(out[0], in1[mask_train, :])
+        assert np.array_equiv(out[0], X_da[mask_train, :])
         assert isinstance(out[1], da.core.Array)
-        assert np.array_equiv(out[1], in1[mask_test, :])
+        assert np.array_equiv(out[1], X_da[mask_test, :])
         assert isinstance(out[2], da.core.Array)
-        assert np.array_equiv(out[2], in2[mask_train])
+        assert np.array_equiv(out[2], y_da[mask_train])
         assert isinstance(out[3], da.core.Array)
-        assert np.array_equiv(out[3], in2[mask_test])
-
-
-
+        assert np.array_equiv(out[3], y_da[mask_test])
 
 
 

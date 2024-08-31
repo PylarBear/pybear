@@ -23,19 +23,27 @@ class TestCVResultsBuilderTest:
     @staticmethod
     @pytest.fixture
     def param_grid():
+        # must be entered as a list (as it would be passing thru GSTCV internals)
         return [
             {'kernel': ['rbf'], 'gamma': [0.1, 0.2], 'test_param': [1, 2, 3]},
             {'kernel': ['poly'], 'degree': [2, 3], 'test_param': [1, 2, 3]},
+            {}
         ]
 
 
     @staticmethod
     @pytest.fixture
     def correct_cv_results_len(param_grid):
-        return np.sum(list(map(
-            np.prod,
-            [[len(_) for _ in __] for __ in map(dict.values, param_grid)]
-        )))
+
+        total_rows = 0
+        for _grid in param_grid:
+
+            if _grid == {}:
+                total_rows += 1
+            else:
+                total_rows += np.prod(list(map(len, _grid.values())))
+
+        return int(total_rows)
 
 
     @staticmethod
@@ -172,7 +180,9 @@ class TestCVResultsBuilderTest:
 
 
         assert isinstance(PARAM_GRID_KEY, np.ndarray)
-        assert all(map(isinstance, PARAM_GRID_KEY, (np.uint8 for _ in PARAM_GRID_KEY)))
+        assert all(
+            map(isinstance, PARAM_GRID_KEY, (np.uint8 for _ in PARAM_GRID_KEY))
+        )
         assert len(PARAM_GRID_KEY) == OUTPUT_LEN
 
         # COMPARE OUTPUT TO CONTROLS ##########################################

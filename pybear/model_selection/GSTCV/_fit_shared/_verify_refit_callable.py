@@ -22,23 +22,25 @@ def _verify_refit_callable(
     DUMMY_CV_RESULTS: CVResultsType
     ) -> None:
 
+
     """
-    If refit is a callable, fill the just-built and mostly empty cv_results
-    arrays with dummy data (all empties should take floats.) Pass the
-    dummy cv_results to the callable to see if it returns an integer
-    withing range of cv_results, before running the entirety of GSTCV
-    which could be hours or days just to have the whole thing crash
+
+    If refit is a callable, fill the just-built and mostly empty
+    cv_results arrays with dummy data (all empties should take floats.)
+    Pass the dummy cv_results to the callable to see if it returns an
+    integer within range of cv_results, before running the entirety of
+    GSTCV which could be hours or days just to have the whole thing crash
     because of a bad refit function. Remember that the refit callable
     finds best_idx_, which is the row whose search grid params are deemed
     "best".
 
+
     Parameters
     ----------
     refit_callable:
-        Callable[[dict[str, np.ma.masked_array], int] - A callable that
-        takes cv_results as an argument and returns an integer that
-        is best_index_, that indicates the row of cv_results that is
-        "best".
+        Callable[[dict[str, np.ma.masked_array]], int] - A callable that
+        takes cv_results as an argument and returns an integer that is
+        best_index_, that indicates the row of cv_results that is "best".
 
     DUMMY_CV_RESULTS:
         dict[str, np.ma.masked_array] - A deepcopy of the just-built
@@ -101,7 +103,7 @@ def _verify_refit_callable(
     del refit_fxn_test_output, _msg
 
 
-
+    return
 
 
 

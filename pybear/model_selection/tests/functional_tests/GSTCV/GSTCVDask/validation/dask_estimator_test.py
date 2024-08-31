@@ -10,10 +10,10 @@ from model_selection.GSTCV._GSTCVDask._validation._dask_estimator import \
     _validate_dask_estimator
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
-
 from sklearn.feature_extraction.text import CountVectorizer as sk_CountVectorizer
 
-from sklearn.calibration import CalibratedClassifierCV # wrap around RidgeClassifier
+# wrap around RidgeClassifier
+from sklearn.calibration import CalibratedClassifierCV
 
 from sklearn.linear_model import (
     LinearRegression as sk_LinearRegression,
@@ -30,11 +30,8 @@ from dask_ml.linear_model import (
     LinearRegression as dask_LinearRegression,
     LogisticRegression as dask_LogisticRegression
 )
-
 from dask_ml.feature_extraction.text import CountVectorizer as dask_CountVectorizer
-
 from dask_ml.preprocessing import OneHotEncoder as dask_OneHotEncoder
-
 
 from xgboost import (
     XGBRegressor,
@@ -66,7 +63,6 @@ from lightgbm import (
 )
 
 
-
 # must be an instance not the class! & be an estimator!
 
 
@@ -85,7 +81,10 @@ class TestValidateDaskEstimator:
     )
     def test_rejects_not_instantiated(self, not_instantiated):
 
-        with pytest.raises(TypeError):
+        with pytest.raises(
+            TypeError,
+            match=f"estimator must be an instance, not the class"
+        ):
             _validate_dask_estimator(not_instantiated)
 
 
@@ -150,20 +149,6 @@ class TestValidateDaskEstimator:
     def test_accepts_all_dask_classifiers(self, dask_classifiers):
         # must be an instance not the class! & be a classifier!
         _validate_dask_estimator(dask_classifiers())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

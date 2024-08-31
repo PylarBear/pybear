@@ -25,33 +25,35 @@ def _validate_scoring(
     ) -> ScorerWIPType:
 
     """
-    Validate scoring, the scoring metric(s) used to evaluate the predictions
-    on the test set. Convert any of the valid input formats to an output
-    format of dict[str, callable].
+
+    Validate scoring, the scoring metric(s) used to evaluate the
+    predictions on the test (and possibly train) sets. Convert any of
+    the valid input formats to an output format of dict[str, callable].
+
+    For any number of scorers, can be dict[str, callable].
+
+    For a single scoring metric, can be a single string or a single
+    callable. Valid strings that can be passed are 'accuracy',
+    'balanced_accuracy', 'average_precision', 'f1', 'precision', and
+    'recall'.
+
+    For evaluating multiple metrics, scoring can also be a vector-like
+    of (unique) strings, containing a combination of the allowed strings.
 
 
     Parameters
     ----------
-    _scoring: string, callable, list/tuple, dict, default: 'accuracy'
-
-        For a single scoring metric, a single string or a single callable
-        is allowed.
-
-        For evaluating multiple metrics, either give a list of (unique)
-        strings or a dict with names as keys and callables as values.
-        NOTE that when using custom scorers, each scorer should return a
-        single value. Metric functions returning a list/array of values
-        can be wrapped into multiple scorers that return one value each.
-
-        Cannot use None, the default scorer cannot be used because the
-        threshold cannot be manipulated.
+    _scoring:
+        Union[str, callable, vector-like[str], dict[str, callable]],
+        default = 'accuracy' - The scoring metric(s) used to evaluate
+        the predictions on the test (and possibly train) sets.
 
 
     Return
     ------
     -
-        _scoring: dict[str: callable] - dictionary of format
-    # {scorer_name: scorer}, when one or multiple metrics are used.
+        _scoring: dict[str, callable] - dictionary of format
+            {scorer_name: scorer}, when one or multiple metrics are used.
 
 
     """

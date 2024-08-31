@@ -10,15 +10,12 @@ import time
 import warnings
 import dask
 
-
 from model_selection.GSTCV._type_aliases import (
     XDaskWIPType,
     YDaskWIPType,
     ClassifierProtocol
 )
 
-
-# pizza congruize with sk version
 
 
 def _parallelized_fit(
@@ -43,10 +40,10 @@ def _parallelized_fit(
         this fit; parallelism occurs over the different splits.
     _X_train:
         dask.array.core.Array[Union[int,float]] - A train partition of
-        the data being fit. Must be 2D ndarray.
+        the data being fit. Must be 2D da.core.Array.
     _y_train:
         dask.array.core.Array[int] - The corresponding train partition
-        of the target for the X train partition. Must be 1D ndarray.
+        of the target for the X train partition. Must be 1D da.core.Array.
     _estimator_:
         ClassifierProtocol - Any classifier that fulfills the dask_ml
         API for classifiers, having fit, predict_proba, get_params, and
@@ -68,6 +65,7 @@ def _parallelized_fit(
         **dict[str, any] - dictionary of kwarg: value pairs to be passed
         to the estimator's fit method.
 
+
     Return
     ------
     -
@@ -76,8 +74,8 @@ def _parallelized_fit(
         _fit_time:
             float - the time required to perform the fit
         _fit_excepted:
-            bool - True if the fit excepted and '_error_score"
-            was not 'raise'; False if the fit ran successfully.
+            bool - True if the fit excepted and '_error_score' was not
+            'raise'; False if the fit ran successfully.
 
 
     """
@@ -104,7 +102,6 @@ def _parallelized_fit(
 
     try:
         _estimator_.fit(_X_train, _y_train, **fit_params)
-
     except BrokenPipeError:
         raise BrokenPipeError  # FOR PYTEST ONLY
     except Exception as f:
@@ -122,15 +119,6 @@ def _parallelized_fit(
     del t0_fit
 
     return _estimator_, _fit_time, fit_excepted
-
-
-
-
-
-
-
-
-
 
 
 

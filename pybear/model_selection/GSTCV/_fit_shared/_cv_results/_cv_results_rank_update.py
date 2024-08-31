@@ -19,15 +19,16 @@ def _cv_results_rank_update(
     ) -> CVResultsType:
 
     """
+
     Within each parameter search trial, every cv split has a test set
     that is scored using all the given scorers. The scores populate
     columns created for each split/scorer combination, in the row
     corresponding to the parameter search trial. For each scorer, the
     scores are averaged over all the splits and those results are put in
-    their respective 'mean_test_{scorer}' columns in the same row. Finally,
-    once all the parameter searches are complete, the mean scores in each
-    mean score column are ranked descending, with the value '1' indicating
-    the best score.
+    their respective 'mean_test_{scorer}' columns in the same row.
+    Finally, once all the parameter searches are complete, the mean
+    scores in each mean score column are ranked descending, with the
+    value '1' indicating the best score.
 
 
     Parameters
@@ -38,6 +39,7 @@ def _cv_results_rank_update(
         columns in cv_results. The callables are not used here.
     _cv_results:
         dict[str, np.ma.masked_array] - summary of results
+
 
     Returns
     -------

@@ -30,7 +30,7 @@ class TestValidateNJobs:
             _validate_n_jobs(bad_njobs)
 
 
-    def test_None_returns_one(self):
+    def test_None_returns_None(self):
         assert _validate_n_jobs(None) is None
 
 

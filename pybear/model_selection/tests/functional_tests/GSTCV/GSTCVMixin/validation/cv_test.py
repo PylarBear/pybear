@@ -6,7 +6,7 @@
 
 
 import pytest
-
+import inspect
 import numpy as np
 
 from sklearn.model_selection import KFold
@@ -51,11 +51,25 @@ class TestValidateCV:
 
     def test_accepts_good_iter(self):
 
+        _n_splits = 3
+
         X = np.random.randint(0, 10, (20, 5))
         y = np.random.randint(0, 2, 20)
-        good_iter = KFold(n_splits=3).split(X,y)
+        good_iter = KFold(n_splits=_n_splits).split(X,y)
+        good_iter2 = KFold(n_splits=_n_splits).split(X,y)
 
-        assert np.array_equiv(_validate_cv(good_iter), good_iter)
+        out = _validate_cv(good_iter)
+        assert isinstance(out, list)
+        assert inspect.isgenerator(good_iter2)
+        iter_as_list = list(good_iter2)
+        assert isinstance(iter_as_list, list)
+
+        for idx in range(_n_splits):
+            for X_y_idx in range(2):
+                assert np.array_equiv(
+                    out[idx][X_y_idx],
+                    iter_as_list[idx][X_y_idx]
+                )
 
 
     def test_rejects_empties(self):
@@ -66,6 +80,17 @@ class TestValidateCV:
 
         with pytest.raises(ValueError):
             _validate_cv((_ for _ in range(0)))
+
+
+
+
+
+
+
+
+
+
+
 
 
 

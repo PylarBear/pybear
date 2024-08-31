@@ -15,19 +15,19 @@ from model_selection.GSTCV._type_aliases import (
     GenericSlicerType,
     DaskSlicerType,
     XDaskWIPType,
-    YDaskWIPType,
-    SchedulerType
+    YDaskWIPType
 )
 
 
 def _fold_splitter(
         train_idxs: Union[GenericSlicerType, DaskSlicerType],
         test_idxs: Union[GenericSlicerType, DaskSlicerType],
-        *data_objects: Union[XDaskWIPType, YDaskWIPType],
-        scheduler: SchedulerType=None
+        *data_objects: Union[XDaskWIPType, YDaskWIPType]
     ) -> tuple[tuple[XDaskWIPType, YDaskWIPType, ...]]:
 
+
     """
+
     Split given data objects into train / test pairs using the given
     train and test indices. The train and test indices independently
     slice the given data objects; the entire data object need not be
@@ -35,8 +35,9 @@ def _fold_splitter(
     share indices. Standard indexing rules apply. Returns a tuple whose
     length is equal to the number of data objects passed, holding tuples
     of the train / test splits for the respective data objects. The data
-    objects must be dask.array.core.Array 2D arrays or 1D vectors. train_idxs
+    objects must be da.core.Array 2D arrays or 1D vectors. train_idxs
     and test_idxs must be vectors of indices, not booleans.
+
 
     Parameters
     ----------
@@ -47,21 +48,23 @@ def _fold_splitter(
         Iterable[int] - 1D vector of row indices used to slice test sets
         out ouf every given data object.
     *data_objects:
-        Union[XDaskWIPType, YDaskWIPType] - dask.array.core.Array 2D arrays or
-        1D vectors. Need not be of equal size, and need not be completely
-        consumed in the train test splits. However, standard indexing
-        rules apply when slicing by train_idxs and test_idxs.
+        Union[XDaskWIPType, YDaskWIPType] - dask.array.core.Array 2D
+        arrays or 1D vectors. Need not be of equal size, and need not be
+        completely consumed in the train test splits. However, standard
+        indexing rules apply when slicing by train_idxs and test_idxs.
+
 
     Return
     ------
     -
         SPLITS:
-            tuple[tuple[da.core.Array[float], da.core.Array[float]]] -
+            tuple[tuple[da.core.Array[DataType], da.core.Array[DataType]]] -
             return the train / test splits for the given data objects in
             the order passed in a tuple of tuples, each inner tuple
             containing a train/test pair.
 
     """
+
 
     train_idxs = da.array(train_idxs)
     if train_idxs.dtype == bool:
@@ -97,22 +100,15 @@ def _fold_splitter(
             raise TypeError(f"object of disallowed dtype '{type(_data)}' is in "
                 f"fold_splitter()")
 
-        _data_shape = compute(_data.shape, scheduler=scheduler)[0]
+        _data_shape = compute(_data.shape)[0]
 
         assert len(_data_shape) in [1, 2], f"data objects must be 1-D or 2-D"
 
-        # validate data_objects rows == sum of folds' rows ** * ** * ** * ** *
-        # removed this 24_07_13 to allow for splits that do not use the entire
-        # dataset
-        # assert compute(len(train_idxs) + len(test_idxs), scheduler=scheduler)[0] == \
-        #     _data_shape[0], \
-        #     "fold_splitter(): (len(train_idxs) + len(test_idxs)) != _data.shape[0]"
-        # END validate data_objects rows == sum of folds' rows ** * ** * ** * *
-
         _data_train, _data_test = _data[train_idxs], _data[test_idxs]
 
-        # IF USING DASK OBJECTS, ENTIRE OBJECT WOULD HAVE TO BE READ OFF DISK TO
-        # GET SHAPE, SO ONLY DO THIS FOR EAGER OBJECTS, BUT KEEP IN DASK FOR POSTERITY
+        # IF USING DASK OBJECTS, ENTIRE OBJECT WOULD HAVE TO BE READ OFF
+        # DISK TO GET SHAPE, SO ONLY DO THIS FOR EAGER OBJECTS, BUT KEEP
+        # IN DASK FOR POSTERITY
         train_shape = _data_train.shape
         test_shape = _data_test.shape
 

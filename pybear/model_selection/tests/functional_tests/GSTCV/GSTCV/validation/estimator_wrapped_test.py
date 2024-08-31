@@ -63,6 +63,9 @@ from sklearn.pipeline import Pipeline
 
 
 
+
+
+
 # must be an instance not the class! & be an estimator!
 
 
@@ -207,6 +210,10 @@ class TestValidateWrappedEstimator:
     def test_accepts_good_pipeline(self, good_pipeline_steps):
 
         _validate_estimator(Pipeline(steps=good_pipeline_steps))
+
+
+
+
 
 
 
