@@ -46,44 +46,43 @@ if __name__ == '__main__':
     }
 
 
-    gstcv = GSTCV(
-        clf,
-        param_grid,
-        thresholds=np.linspace(0,1,5),
-        scoring=['accuracy'], #'balanced_accuracy'],
-        n_jobs=1,
-        cv=3,
-        refit='accuracy',
-        error_score='raise',
-        return_train_score=False
-    )
-
-    gstcv.fit(X_np, y)
-
-    print(gstcv.predict(X_np))
-    print(type(gstcv.predict(X_np)))
-
-
-
-    # gscv = sk_GSCV(
+    # gstcv = GSTCV(
     #     clf,
     #     param_grid,
-    #     # thresholds=[0.5],
-    #     scoring='balanced_accuracy',
+    #     thresholds=np.linspace(0,1,5),
+    #     scoring=['accuracy'], #'balanced_accuracy'],
     #     n_jobs=1,
     #     cv=3,
-    #     refit='balanced_accuracy',
+    #     refit='accuracy',
     #     error_score='raise',
     #     return_train_score=False
     # )
     #
-    # # gscv.set_params(estimator=sk_LogisticRegression)
+    # gstcv.fit(X_np, y)
     #
-    # gscv.fit(X_np, y)
-    #
-    # print(gscv.get_params(deep=True))
+    # print(gstcv.predict(X_np))
+    # print(type(gstcv.predict(X_np)))
 
 
+
+    gscv = sk_GSCV(
+        clf,
+        param_grid,
+        # thresholds=[0.5],
+        scoring='balanced_accuracy',
+        n_jobs=1,
+        cv=3,
+        refit='balanced_accuracy',
+        error_score='raise',
+        return_train_score=False
+    )
+
+
+    gscv.fit(X_np, y)
+
+    print(f'gscv multimetric_ = {gscv.multimetric_}')
+
+    # print(gscv.best_params_)
 
 
 

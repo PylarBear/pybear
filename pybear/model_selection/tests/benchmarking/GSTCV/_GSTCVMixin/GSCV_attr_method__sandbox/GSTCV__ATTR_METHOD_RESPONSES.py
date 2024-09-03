@@ -46,7 +46,7 @@ from getattr_handling.getattr_handling import (
 
 dump_to_file = True
 
-run_dtype = 'dataframe'  # array / dataframe
+run_dtype = 'array'  # array / dataframe
 _scoring = ['accuracy', 'balanced_accuracy']   #'balanced_accuracy' #
 
 

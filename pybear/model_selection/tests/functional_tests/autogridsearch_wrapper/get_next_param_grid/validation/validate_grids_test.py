@@ -99,6 +99,7 @@ class TestValidateGrids:
     ### 1
     _values = (0, np.pi, True, False, None, min, (1,), [1, ], {1, 2},
                {'a': 1}, lambda x: x, 'junk')
+    @pytest.mark.skip(reason=f'24_09_02 no more val of grids, see _validate_grids')
     @pytest.mark.parametrize('value_1', _values)
     def test_rejects_grid_values_not_int(self, value_1):
 
@@ -112,6 +113,7 @@ class TestValidateGrids:
     ###
 
     ### 2
+    @pytest.mark.skip(reason=f'24_09_02 no more val of grids, see _validate_grids')
     @pytest.mark.parametrize('value_2', _values)
     def test_rejects_grid_values_not_float(self, value_2):
 
@@ -125,6 +127,7 @@ class TestValidateGrids:
     ###
 
     ### 3
+    @pytest.mark.skip(reason=f'24_09_02 no more val of grids, see _validate_grids')
     @pytest.mark.parametrize('value_3', _values)
     def test_rejects_grid_values_not_bool(self, value_3):
 
@@ -138,6 +141,7 @@ class TestValidateGrids:
     ####
 
     #### 4
+    @pytest.mark.skip(reason=f'24_09_02 no more val of grids, see _validate_grids')
     @pytest.mark.parametrize('value_4', _values)
     def test_rejects_grid_values_not_str(self, value_4):
 

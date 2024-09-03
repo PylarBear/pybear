@@ -603,7 +603,17 @@ class _GSTCVMixin(BaseEstimator):
         self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
-            return self.best_estimator_.predict_proba(_X)
+
+            __ = self.best_estimator_.predict_proba(_X)
+
+            _shape = __.shape
+            if len(_shape) != 2 or _shape[1] != 2:
+                raise ValueError(
+                    f"'predict_proba' output for X was expected to be 2 "
+                    f"dimensional with 2 columns, but got shape {_shape} instead")
+            del _shape
+
+            return __
 
 
     def score(

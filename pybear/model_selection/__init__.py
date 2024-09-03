@@ -6,9 +6,9 @@
 
 from .autogridsearch.autogridsearch_wrapper import autogridsearch_wrapper
 
-from .autogridsearch.SkLearnAutoGridSearch import SklearnAutoGridSearch
+from .autogridsearch.AutoGridSearchCV import AutoGridSearchCV
 
-from .autogridsearch.DaskAutoGridSearch import DaskAutoGridSearch
+from .autogridsearch.AutoGridSearchCVDask import AutoGridSearchCVDask
 
 from model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
@@ -19,8 +19,8 @@ __all__ = [
             'autogridsearch_wrapper',
             'GSTCV',
             'GSTCVDask',
-            'SklearnAutoGridSearch',
-            'DaskAutoGridSearch'
+            'AutoGridSearchCV',
+            'AutoGridSearchCVDask'
 ]
 
 

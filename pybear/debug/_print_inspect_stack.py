@@ -40,9 +40,6 @@ def print_inspect_stack(inspect_stack):
 
     print()
 
-    # pizza
-    for frame_info in inspect_stack:
-        print(frame_info.function)
 
 
 

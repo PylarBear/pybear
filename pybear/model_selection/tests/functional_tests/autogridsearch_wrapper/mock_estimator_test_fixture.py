@@ -6,6 +6,7 @@
 
 from typing import Union
 import numpy as np
+import dask.array as da
 
 
 
@@ -43,24 +44,63 @@ class MockEstimator:
         return self
 
 
-    def score(self, one, two):   # needs two args to satisify sklearn
-        return np.linalg.det(self._square_matrix)
+    def partial_fit(self, X):
+
+        if isinstance(X, da.core.Array):
+
+            _min_dim = min(X.shape)
+            X += self.param_a
+            _square_matrix = X[:_min_dim, :_min_dim]
+
+        else:
+            X = np.array(X)
+            _min_dim = min(X.shape)
+            X += self.param_a
+            _square_matrix = X[:_min_dim, :_min_dim]
+
+        _square_matrix -= self.param_b
+
+        if hasattr(self, '_square_matrix'):
+            self._square_matrix += _square_matrix
+        else:
+            self._square_matrix = _square_matrix
 
 
     def fit(self, X, y):
 
-        X = np.array(X)
+        if isinstance(X, da.core.Array):
 
-        _square_matrix = np.matmul(
-            X + self.param_a, X.transpose()
-        )
-        _square_matrix *= (y - self.param_b)
+            _min_dim = min(X.shape)
+            X += self.param_a
+            _square_matrix = X[:_min_dim, :_min_dim]
+
+        else:
+            X = np.array(X)
+            _min_dim = min(X.shape)
+            X += self.param_a
+            _square_matrix = X[:_min_dim, :_min_dim]
+
+        _square_matrix -= self.param_b
 
         self._square_matrix = _square_matrix
 
 
+    def predict_proba(self, X):
+
+        _rows = X.shape[0]
+
+        if isinstance(X, da.core.Array):
+            return da.random.uniform(0, 1, (_rows, 2))
+        else:
+            return np.random.uniform(0, 1, (_rows, 2))
 
 
+    def predict(self, X):
+        return (self.predict_proba(X)[:-1] >= 0.5).astype(np.uint8)
+
+
+    def score(self, X, y):   # needs two args to satisify sklearn
+        return self._square_matrix[0].sum() / self._square_matrix.sum()
 
 
 
