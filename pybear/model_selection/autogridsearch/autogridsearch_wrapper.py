@@ -9,6 +9,7 @@
 from copy import deepcopy
 from typing import Union, TypeAlias, Iterable
 import numpy as np
+import numpy.typing as npt
 
 from . import autogridsearch_docs
 
@@ -20,10 +21,12 @@ from ._autogridsearch_wrapper._validation._agscv_verbose import \
     _agscv_verbose as val_agscv_verbose
 from ._autogridsearch_wrapper._validation._estimator import _estimator \
     as val_estimator
-from ._autogridsearch_wrapper._validation._parent_gscv_kwargs import \
-    _val_parent_gscv_kwargs
+from ._autogridsearch_wrapper._validation._is_dask_gscv import _is_dask_gscv \
+    as val_dask_gscv
 from ._autogridsearch_wrapper._validation._max_shifts import _max_shifts \
     as val_max_shifts
+from ._autogridsearch_wrapper._validation._parent_gscv_kwargs import \
+    _val_parent_gscv_kwargs
 from ._autogridsearch_wrapper._validation._params__total_passes import \
     _params__total_passes as val_params_total_passes
 from ._autogridsearch_wrapper._validation._total_passes_is_hard import \
@@ -81,17 +84,19 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
 
     """
     Wrap a sci-kit learn or dask GridSearchCV class with a class that
-    overwrites the fit method of GridSearchCV. The supersedent fit
+    overwrites the fit method of GridSearchCV. The superseding fit
     method automates multiple calls to the super fit() method using
     progressively more precise search grids based on previous search
-    results. All sci-kit and dask GridSearch modules are supported. See
-    the sci-kit learn and dask documentation for more information about
-    the available GridSearchCV modules.
+    results. All sci-kit, dask, and pybear GridSearch modules are
+    supported. See the sci-kit, dask, and pybear documentation for more
+    information about the available GridSearchCV modules.
+
 
     Parameters
     ----------
     GridSearchParent:
         Sci-kit or dask GridSearchCV class, not instance.
+
 
     Return
     ------
@@ -101,6 +106,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
             replaced with a new fit method that can make multiple calls
             to the original fit method with increasingly convergent
             search grids.
+
 
     See Also
     --------
@@ -125,7 +131,10 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
         def __init__(
             self,
             estimator,
-            params: ParamsType,
+            params: dict[
+                str,
+                list[Union[list[any], npt.NDArray[any]], Union[int, list[int]], str]
+            ],
             *,
             total_passes: int=5,
             total_passes_is_hard: bool=False,
@@ -143,8 +152,8 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
 
             self._validation()
 
-            _val_parent_gscv_kwargs(
-                self.estimator, GridSearchParent, parent_gscv_kwargs
+            parent_gscv_kwargs = _val_parent_gscv_kwargs(
+                GridSearchParent, parent_gscv_kwargs
             )
 
             # super() instantiated in init() for access to GridSearchCV's
@@ -361,7 +370,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
             X: Iterable[Union[int, float]],
             y: Iterable[Union[int, float]]=None,
             groups=None,
-            **params
+            **fit_params
             ):
 
             """
@@ -413,8 +422,10 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
                 if self.agscv_verbose:
                     print(f"\nPass {_pass+1} starting grids:")
                     for k, v in self.GRIDS_[_pass].items():
-                        try: print(f'{k}'.ljust(15), np.round(v, 4))
-                        except: print(f'{k}'.ljust(15), v)
+                        try:
+                            print(f'{k}'.ljust(15), np.round(v, 4))
+                        except:
+                            print(f'{k}'.ljust(15), v)
 
                 # Should GridSearchCV param_grid format ever change, code
                 # would go here to adapt the _get_next_param_grid() output
@@ -433,30 +444,51 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
 
                 del _ADAPTED_GRIDS
 
-                # 24_02_28_07_25_00 if sklearn parent GridSearchCV has refit
-                # and refit is not False, only refit on the last pass --
-                # 24_06_01_11_48_00 dask GridSearchCV and RandomizedSearchCV
-                # require refit always be True, IncrementalSearchCV,
-                # HyperbandSearchCV, SuccessiveHalvingSearchCV and
-                # InverseDecaySearchCV do not take a refit kwarg
+                # *** ONLY REFIT ON THE LAST PASS TO SAVE TIME WHEN POSSIBLE ***
+                # IS POSSIBLE WHEN:
+                # sklearn or pybear parent -
+                # == has refit and refit is not False
+                # == is using only one scorer
+                # IS NOT POSSIBLE WHEN:
+                # == total_passes = 1
+                # == using dask GridSearchCV or RandomizedSearchCV, they
+                # require refit always be True to expose best_params_.
+                # == dask IncrementalSearchCV, HyperbandSearchCV,
+                # SuccessiveHalvingSearchCV and InverseDecaySearchCV do
+                # not take a refit kwarg.
+                # == When using multiple scorers, refit must always be
+                # left on because multiple scorers dont expose best_params_
+                # when multiscorer and refit=False
+                try:
+                    _multimetric = not (
+                        callable(self.scoring) \
+                        or isinstance(self.scoring, (str, type(None))) \
+                        or len(self.refit) == 1
+                    )
+                except:
+                    _multimetric = True  # maybe not really True, but
+                    # since cant determine it, make agscw do refit
+                    # everytime, if refit not False
 
-                _is_dask = 'DASK' in str(type(self.estimator)).upper()
-                if not _is_dask and hasattr(self, 'refit'):
+                if hasattr(self, 'refit') \
+                    and not self.total_passes == 1 \
+                    and not val_dask_gscv(GridSearchParent) \
+                    and not _multimetric:
                     if _pass == 0:
                         original_refit = self.refit
                         self.refit = False
                     elif _pass == self.total_passes - 1:
                         self.refit = original_refit
                         del original_refit
-                del _is_dask
+                # *** END ONLY REFIT ON THE LAST PASS TO SAVE TIME ********
 
                 if self.agscv_verbose:
                     print(f'Running GridSearch... ', end='')
 
                 try:
-                    super().fit(X, y=y, groups=groups, **params)
+                    super().fit(X, y=y, groups=groups, **fit_params)
                 except:
-                    super().fit(X, y=y, **params)
+                    super().fit(X, y=y, **fit_params)
 
                 if self.agscv_verbose:
                     print(f'Done.')

@@ -388,10 +388,31 @@ def _cv_results_builder(
         for TRIAL in permuter(VALUES):
             trial_param_grid = dict()
             for param_idx, value_idx in enumerate(TRIAL):
-                cv_results_[f'param_{PARAMS[param_idx]}'][ctr] = \
-                    VALUES[param_idx][value_idx]
-                trial_param_grid[PARAMS[param_idx]] = \
-                    VALUES[param_idx][value_idx]
+
+                # added this 24_08_31 to convert np ints to py ints, np bool to
+                # py bool (and why not do floats too) to get GSTCV to pass an
+                # autogridsearch test that sk_GSCV was passing.
+                # 24_09_01 this is (was) a must because these values will be
+                # transferred to best_params_, then in autogridsearch those
+                # values will be transferred into the next param grid, and
+                # cannot have np.True_ or np.int because of 'params' grid
+                # validation in autogridsearch --- 24_09_02 the validation of
+                # contents of 'params' grids has been disabled, but keep this
+                # anyway.
+                value = VALUES[param_idx][value_idx]
+                _type = str(type(value))
+                if 'int' in _type:
+                    value = int(value)
+                elif 'float' in _type:
+                    value = float(value)
+                elif 'bool' in _type:
+                    value = bool(value)
+                else:
+                    pass
+                # end added this 24_08_31 ** * **
+
+                cv_results_[f'param_{PARAMS[param_idx]}'][ctr] = value
+                trial_param_grid[PARAMS[param_idx]] = value
 
             cv_results_['params'][ctr] = trial_param_grid
 
@@ -401,7 +422,7 @@ def _cv_results_builder(
 
     del ctr, grid_idx, _grid, PARAMS, VALUES
     try:
-        del TRIAL, trial_param_grid, param_idx, value_idx
+        del TRIAL, trial_param_grid, param_idx, value_idx, value, _type
     except:
         pass
 

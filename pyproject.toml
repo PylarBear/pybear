@@ -2,16 +2,16 @@
 name = "pybear"
 version = "0.1.0"
 description = "Python modules for miscellaneous data analytics applications"
-license = "Proprietary"
+license = "BSD 3 clause"
 authors = ["Bill Sousa <WKSJR99@msn.com>"]
-maintainers = []
+maintainers = ["Bill Sousa"]
 readme = "README.rst"
 # The contents of the README file(s) are used to populate the Description field of your distribution’s metadata (similar to 
 # long_description in setuptools). When multiple files are specified they are concatenated with newlines.
 homepage = "https://github.com/PylarBear/pybear"
 repository = "https://github.com/PylarBear/pybear"
 #documentation
-keywords = ["analytics data science numpy sci-kit"]
+keywords = ["data analytics numpy sci-kit dask"]
 #classifiers
 #packages
 #include
@@ -23,6 +23,7 @@ keywords = ["analytics data science numpy sci-kit"]
 python = "^3.9"
 dask = "*"
 dask-ml = "*"
+distributed = "*"
 joblib = "*"
 numpy = "*"
 pandas = "*"
@@ -31,7 +32,6 @@ scipy = "*"
 
 
 [tool.poetry.group.dev.dependencies]
-distributed = "*"
 jupyter = "*"
 notebook = "*"
 pyarrow = "^17.0.0"

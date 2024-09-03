@@ -13,7 +13,7 @@ from model_selection.GSTCV._type_aliases import ClassifierProtocol
 
 from sklearn.pipeline import Pipeline
 
-
+from pybear.utils import check_pipeline
 
 
 def _validate_dask_estimator(
@@ -59,32 +59,7 @@ def _validate_dask_estimator(
     # validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # because sklearn/dask dont do this, and could be hard to detect
     if 'pipe' in str(type(_estimator)).lower():
-
-        err_msg = (f"pipeline steps must be in the format "
-                   f"[(str1, cls1()), (str2, cls2()), ...]")
-
-        _steps = _estimator.steps
-
-        try:
-            len(_steps)
-        except:
-            raise ValueError(err_msg)
-
-        if len(_steps) == 0:
-            raise ValueError(f"estimator pipeline has empty steps")
-
-        for step in _steps:
-            try:
-                len(step)
-            except:
-                raise ValueError(err_msg)
-
-            if len(step) != 2:
-                raise ValueError(err_msg)
-            if not isinstance(step[0], str):
-                raise ValueError(err_msg)
-            if not hasattr(step[1], 'fit'):
-                raise ValueError(f"all pipeline steps must define 'fit' method")
+        check_pipeline(_estimator)
     # END validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

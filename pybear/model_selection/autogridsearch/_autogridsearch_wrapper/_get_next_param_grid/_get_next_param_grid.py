@@ -27,23 +27,23 @@ from .._type_aliases import GridsType, ParamsType, BestParamsType
 
 
 def _get_next_param_grid(
-                         _GRIDS: GridsType,
-                         _params: ParamsType,
-                         _PHLITE: dict[str, bool],
-                         _IS_LOGSPACE: dict[str, Union[bool, float]],
-                         _best_params_from_previous_pass: BestParamsType,
-                         _pass: int,
-                         _total_passes: int,
-                         _total_passes_is_hard: bool,
-                         _shift_ctr: int,
-                         _max_shifts: Union[None, int]
+    _GRIDS: GridsType,
+    _params: ParamsType,
+    _PHLITE: dict[str, bool],
+    _IS_LOGSPACE: dict[str, Union[bool, float]],
+    _best_params_from_previous_pass: BestParamsType,
+    _pass: int,
+    _total_passes: int,
+    _total_passes_is_hard: bool,
+    _shift_ctr: int,
+    _max_shifts: Union[None, int]
     ) -> tuple[
-            GridsType,
-            ParamsType,
-            dict[str, bool],
-            dict[str, Union[bool, float]],
-            int,
-            int
+        GridsType,
+        ParamsType,
+        dict[str, bool],
+        dict[str, Union[bool, float]],
+        int,
+        int
     ]:
 
     """

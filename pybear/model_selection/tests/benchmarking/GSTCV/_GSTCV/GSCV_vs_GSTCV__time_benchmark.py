@@ -92,7 +92,7 @@ def skGSTCV(X, y, C=10):
         thresholds=[0.5],
         return_train_score=True,
         n_jobs=-1,
-        verbose=10
+        verbose=0
     )
 
     skGSTCV.fit(X, y)
@@ -126,7 +126,7 @@ def daGSTCV(X, y, C=10):
         thresholds=[0.5],
         return_train_score=True,
         scheduler=None,
-        verbose=10
+        verbose=0
     )
 
     daGSTCV.fit(X, y)
@@ -138,18 +138,18 @@ def daGSTCV(X, y, C=10):
 
 if __name__ == '__main__':
 
-    with distributed.Client(n_workers=4, threads_per_worker=1) as scheduler:
+    # with distributed.Client(n_workers=4, threads_per_worker=1) as scheduler:
+    #
+    #     print(f'dashboard url = ', scheduler.dashboard_link)
 
-        print(f'dashboard url = ', scheduler.dashboard_link)
-
-        tmb(
-            ('skGSCV_1e-4', skGSCV, [X_np, y_np], {'C':1e-4}),
-            ('skGSTCV_1e-4', skGSTCV, [X_np, y_np], {'C':1e-4}),
-            ('daGSCV_1e-4', daGSCV, [X_da, y_da], {'C': 1e-4}),
-            ('daGSTCV_1e-4', daGSTCV, [X_da, y_da], {'C': 1e-4}),
-            rest_time=3,
-            number_of_trials=6
-        )
+    tmb(
+        ('skGSCV_1e-4', skGSCV, [X_np, y_np], {'C':1e-4}),
+        ('skGSTCV_1e-4', skGSTCV, [X_np, y_np], {'C':1e-4}),
+        # ('daGSCV_1e-4', daGSCV, [X_da, y_da], {'C': 1e-4}),
+        # ('daGSTCV_1e-4', daGSTCV, [X_da, y_da], {'C': 1e-4}),
+        rest_time=3,
+        number_of_trials=6
+    )
 
 
 

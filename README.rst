@@ -7,8 +7,7 @@ Pybear
 
 |Build Status| |Coverage| |Doc Status| |Discourse| |Version Status|
 
-pybear is a python computing library for data analytics meant to augment functionality found in the popular numpy, 
-scikit-learn and dask libraries.
+pybear is a python computing library for data analytics meant to augment functionality found in the popular numpy, scikit-learn, and dask libraries.
 
 
 # .. _documentation: https://pylarbear.org
