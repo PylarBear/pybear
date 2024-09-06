@@ -14,7 +14,8 @@ on:
       - main
 
   workflow_dispatch:
-  
+    branches:
+      - main
 
 jobs:
   publish:
