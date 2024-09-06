@@ -10,13 +10,14 @@ from typing import Iterable
 import numpy as np
 
 
-def arg_kwarg_validater(arg: any,
-                        name: str,
-                        allowed: Iterable[any],
-                        module: str,
-                        function: str,
-                        return_if_none: any=None
-    ) -> any:
+def arg_kwarg_validater(
+        arg: any,
+        name: str,
+        allowed: Iterable[any],
+        module: str,
+        function: str,
+        return_if_none: any=None
+) -> any:
 
     """ Validate a parameter, param: arg, against allowable entries as
     listed in param: allowed. An exception is raised if there is no match.
@@ -53,12 +54,11 @@ def arg_kwarg_validater(arg: any,
 
     Notes
     ----
-    # PIZZA
-    # pybear Note 24_04_13_18_03_00 - 'name', 'module' and 'function' are
-    # relics and are not currently used inside this function. The
-    # arguments remain in place because of the numerous dependents on
-    # this funciton. Reinstitute them if more clarity in tracebacks is
-    # needed again.
+    pybear note 24_04_13_18_03_00 - 'name', 'module' and 'function' are
+    relics and are not currently used inside this function. The
+    arguments remain in place because of the numerous dependents on
+    this function. Reinstitute them if more clarity in tracebacks is
+    needed again.
 
 
     Examples

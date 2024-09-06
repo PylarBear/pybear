@@ -14,9 +14,11 @@ from sklearn.base import is_classifier as sk_is_classifier
 def is_classifier(estimator_) -> bool:
 
     """
-    Return True if the given estimator is a classifier, False otherwise. Works
-    with scikit-learn, dask_ml, xgboost, and lightgbm estimators. Also works
-    for wrapped estimators.
+    Return True if the given estimator is a classifier, False otherwise.
+    Works with scikit-learn, dask_ml, xgboost, and lightgbm estimators.
+    Also works for wrapped estimators. This module is intended to extend
+    the functionality of scikit-learns's is_classifier function to work
+    on dask estimators as well.
 
     Support for scikit-learn wrappers includes, but may not be limited to:
         CalibratedClassifierCV\\\n
@@ -29,24 +31,29 @@ def is_classifier(estimator_) -> bool:
         BlockwiseVotingClassifier\\\n
         BlockwiseVotingRegressor\\\n
 
+
     Parameters
     ----------
     estimator_:
-        scikit-learn, dask_ml, xgboost, or lightgbm estimator to tests.
+        scikit-learn, dask_ml, xgboost, or lightgbm estimator to test.
+
 
     Return
     ------
     -
         bool: True if the estimator is a classifier, False otherwise.
 
+
     See Also
     --------
     sklearn.base.is_classifier
 
+
     Notes
     -----
-    Also supports proper handling of non-estimator objects, returning False
-    without raising exception.
+    Also supports non-estimator objects, returning False for any object
+    that is not a classifier.
+
 
     Examples
     --------

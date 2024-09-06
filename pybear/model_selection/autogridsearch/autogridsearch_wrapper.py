@@ -13,7 +13,7 @@ import numpy.typing as npt
 
 from . import autogridsearch_docs
 
-from ._autogridsearch_wrapper._type_aliases import ParamsType, BestParamsType
+from ._autogridsearch_wrapper._type_aliases import BestParamsType
 
 from ._autogridsearch_wrapper._print_results import _print_results
 
@@ -57,7 +57,6 @@ from dask_ml.model_selection import (
 
 from ..GSTCV._GSTCV import GSTCV
 from ..GSTCV._GSTCVDask import GSTCVDask
-
 
 
 
@@ -122,6 +121,8 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
     dask_ml.model_selection.InverseDecaySearchCV
     pybear.model_selection.GSTCV
     pybear.model_selection.GSTCVDask
+    pybear.model_selection.AutoGSTCV
+    pybear.model_selection.AutoGSTCVDask
 
     """
 
@@ -285,7 +286,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
         def demo(
                 self,
                 *,
-                true_best_params: BestParamsType=None,
+                true_best_params: dict[str, any]=None,
                 mock_gscv_pause_time: Union[int, float]=5
             ):
 
