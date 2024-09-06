@@ -73,16 +73,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.repositories]
 testpypi = { url = "https://test.pypi.org/legacy/" }
-github = { url = "https://maven.pkg.github.com/PylarBear/pybear" }
 
 
 [tool.poetry.publish]
-# repository = "testpypi"
-repository = "github"
-
-
-
-
-
-
-
+repository = "testpypi"
