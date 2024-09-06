@@ -2,7 +2,7 @@
 name = "pybear"
 version = "0.1.0"
 description = "Python modules for miscellaneous data analytics applications"
-license = "BSD 3 clause"
+license = "BSD-3-clause"
 authors = ["Bill Sousa <WKSJR99@msn.com>"]
 maintainers = ["Bill Sousa"]
 readme = "README.rst"
@@ -14,7 +14,7 @@ repository = "https://github.com/PylarBear/pybear"
 keywords = ["data analytics numpy sci-kit dask"]
 #classifiers
 #packages
-#include
+include = ["LICENSE"]
 #exclude
 
 
@@ -48,10 +48,6 @@ scipy = "*"
 [tool.poetry.group.docs.dependencies]
 
 
-[tool.poetry.include]
-license = "LICENSE"
-
-
 [tool.poetry.extras]
 # Optional dependencies. They can be opted into by apps.
 
@@ -70,10 +66,3 @@ license = "LICENSE"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-
-[tool.poetry.repositories]
-testpypi = { url = "https://test.pypi.org/legacy/" }
-
-
-[tool.poetry.publish]
-repository = "testpypi"
