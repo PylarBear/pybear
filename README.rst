@@ -28,15 +28,15 @@ pybear is a python computing library for data analytics meant to augment functio
 
 .. |PythonMinVersion| replace:: 3.9
 .. |NumPyMinVersion| replace:: 1.19.5
-#.. |SciPyMinVersion| replace:: 1.6.0
+.. |SciPyMinVersion| replace:: 1.6.0
 .. |JoblibMinVersion| replace:: 1.2.0
-#.. |ThreadpoolctlMinVersion| replace:: 2.0.0
-#.. |MatplotlibMinVersion| replace:: 3.3.4
-#.. |Scikit-ImageMinVersion| replace:: 0.17.2
+.. |ThreadpoolctlMinVersion| replace:: 2.0.0
+.. |MatplotlibMinVersion| replace:: 3.3.4
+.. |Scikit-ImageMinVersion| replace:: 0.17.2
 .. |PandasMinVersion| replace:: 1.1.5
-#.. |SeabornMinVersion| replace:: 0.9.0
+.. |SeabornMinVersion| replace:: 0.9.0
 .. |PytestMinVersion| replace:: 7.1.2
-#.. |PlotlyMinVersion| replace:: 5.14.0
+.. |PlotlyMinVersion| replace:: 5.14.0
 
 
 
