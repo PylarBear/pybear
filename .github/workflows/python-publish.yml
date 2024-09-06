@@ -8,8 +8,8 @@ name: PyPI/TestPyPI Publishing Workflow
 
 on:
   workflow_dispatch:
-    branches:
-      - main
+    # branches:
+    #   - main
       
 #   push:
 #     branches:
