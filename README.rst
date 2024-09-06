@@ -11,32 +11,32 @@ pybear is a python computing library for data analytics meant to augment functio
 
 
 # .. _documentation: https://pylarbear.org
-.. |Build Status| image:: https://github.com/dask/dask-ml/workflows/CI/badge.svg?branch=main
-   :target: https://github.com/dask/dask-ml/actions?query=workflow%3A%22CI%22
-.. |Coverage| image:: https://codecov.io/gh/dask/dask-ml/branch/main/graph/badge.svg
-   :target: https://codecov.io/gh/dask/dask-ml/branch/main
-   :alt: Coverage status
-.. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
-   :target: https://ml.dask.org/
-   :alt: Documentation Status
-.. |Discourse| image:: https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fdask.discourse.group
-   :alt: Discuss Dask-related things and ask for help
-   :target: https://dask.discourse.group
-.. |Version Status| image:: https://img.shields.io/pypi/v/dask-ml.svg
-   :target: https://pypi.python.org/pypi/dask-ml/
+#.. |Build Status| image:: https://github.com/dask/dask-ml/workflows/CI/badge.svg?branch=main
+#   :target: https://github.com/dask/dask-ml/actions?query=workflow%3A%22CI%22
+#.. |Coverage| image:: https://codecov.io/gh/dask/dask-ml/branch/main/graph/badge.svg
+#   :target: https://codecov.io/gh/dask/dask-ml/branch/main
+#   :alt: Coverage status
+#.. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
+#   :target: https://ml.dask.org/
+#   :alt: Documentation Status
+#.. |Discourse| image:: https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fdask.discourse.group
+#   :alt: Discuss Dask-related things and ask for help
+#   :target: https://dask.discourse.group
+#.. |Version Status| image:: https://img.shields.io/pypi/v/dask-ml.svg
+#   :target: https://pypi.python.org/pypi/dask-ml/
 
 
 .. |PythonMinVersion| replace:: 3.9
 .. |NumPyMinVersion| replace:: 1.19.5
-.. |SciPyMinVersion| replace:: 1.6.0
+#.. |SciPyMinVersion| replace:: 1.6.0
 .. |JoblibMinVersion| replace:: 1.2.0
-.. |ThreadpoolctlMinVersion| replace:: 2.0.0
-.. |MatplotlibMinVersion| replace:: 3.3.4
-.. |Scikit-ImageMinVersion| replace:: 0.17.2
+#.. |ThreadpoolctlMinVersion| replace:: 2.0.0
+#.. |MatplotlibMinVersion| replace:: 3.3.4
+#.. |Scikit-ImageMinVersion| replace:: 0.17.2
 .. |PandasMinVersion| replace:: 1.1.5
-.. |SeabornMinVersion| replace:: 0.9.0
+#.. |SeabornMinVersion| replace:: 0.9.0
 .. |PytestMinVersion| replace:: 7.1.2
-.. |PlotlyMinVersion| replace:: 5.14.0
+#.. |PlotlyMinVersion| replace:: 5.14.0
 
 
 
