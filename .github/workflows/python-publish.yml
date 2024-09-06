@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: PyPI Publishing Workflow
+name: GitHub Packages Publishing Workflow
 
 on:
   push:
@@ -23,11 +23,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9  # Replace 'x' with your desired Python version
+          python-version: ^3.9  # Replace 'x' with your desired Python version
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel twine
+          python -m pip install pip setuptools wheel twine
           pip install -r requirements.txt  # If you have any requirements for your package
 
       - name: Build and Publish
@@ -35,5 +35,5 @@ jobs:
           python setup.py sdist bdist_wheel
           twine upload dist/*
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
