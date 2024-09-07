@@ -8,8 +8,8 @@
 
 import joblib
 import numpy as np
-from pybear.utils import serial_index_mapper as sim
-from pybear.utils import array_sparsity
+from pybear.utils._serial_index_mapper import serial_index_mapper as sim
+from pybear.utils._array_sparsity import array_sparsity
 from pybear.data_validation import arg_kwarg_validater as akv
 
 

@@ -5,15 +5,12 @@
 # License: BSD 3 clause
 
 
+import pytest
+
+import os
 import sys
 
-import pytest
-import os
-
-from pybear.utils import get_module_name
-
-
-
+from pybear.utils._get_module_name import get_module_name
 
 
 
