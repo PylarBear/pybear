@@ -1,6 +1,6 @@
 import numpy as np
 from pybear.new_numpy._random import choice
-from pybear.utils import time_memory_benchmark as tmb
+from pybear.utils._benchmarking import time_memory_benchmark as tmb
 
 
 

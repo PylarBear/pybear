@@ -8,7 +8,7 @@
 import pytest
 import numpy as np
 
-from pybear.utils import array_sparsity
+from pybear.utils._array_sparsity import array_sparsity
 
 
 

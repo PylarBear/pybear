@@ -8,8 +8,8 @@
 
 import numpy as np
 from pybear.new_numpy._random import Sparse
-from pybear.utils import time_memory_benchmark as tmb
-from pybear.utils import array_sparsity
+from pybear.utils._benchmarking import time_memory_benchmark as tmb
+from pybear.utils._array_sparsity import array_sparsity
 
 
 
