@@ -5,11 +5,14 @@ Pybear
 # 24_04_01_14_04_00 ENTIRE DOCUMENT NEEDS REWRITE, STUFF HERE IS COPY/PASTE FROM DASK/DASK-ML/SKLEARN
 
 
-|Build Status| |Coverage| |Doc Status| |Discourse| |Version Status|
+# PIZZA NOTE 24_09_06_20_50_00.... something in here is causing Error: long_description has syntax errors in markup and 
+# would not be rendered on PyPI 
+#|Build Status| |Coverage| |Doc Status| |Discourse| |Version Status|
 
 pybear is a python computing library for data analytics meant to augment functionality found in the popular numpy, scikit-learn, and dask libraries.
 
-
+# PIZZA NOTE 24_09_06_20_50_00.... something in here is causing Error: long_description has syntax errors in markup and 
+# would not be rendered on PyPI 
 # .. _documentation: https://pylarbear.org
 #.. |Build Status| image:: https://github.com/dask/dask-ml/workflows/CI/badge.svg?branch=main
 #   :target: https://github.com/dask/dask-ml/actions?query=workflow%3A%22CI%22
@@ -26,6 +29,8 @@ pybear is a python computing library for data analytics meant to augment functio
 #   :target: https://pypi.python.org/pypi/dask-ml/
 
 
+# PIZZA NOTE 24_09_06_20_50_00.... when hashed, something in here is causing Error: long_description has 
+# syntax errors in markup and would not be rendered on PyPI 
 .. |PythonMinVersion| replace:: 3.9
 .. |NumPyMinVersion| replace:: 1.19.5
 .. |SciPyMinVersion| replace:: 1.6.0
