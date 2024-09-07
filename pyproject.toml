@@ -18,10 +18,6 @@ include = ["LICENSE"]
 #exclude
 
 
-[project]
-readme = "README.md"
-
-
 [tool.poetry.dependencies]
 # These packages are mandatory and form the core of this package’s distribution.
 python = "^3.9"
