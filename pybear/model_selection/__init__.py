@@ -15,13 +15,13 @@ from .autogridsearch.AutoGSTCVDask import AutoGSTCVDask
 
 
 __all__ = [
-            'autogridsearch_wrapper',
-            'GSTCV',
-            'GSTCVDask',
-            'AutoGridSearchCV',
-            'AutoGridSearchCVDask',
-            'AutoGSTCV',
-            'AutoGSTCVDask'
+    'autogridsearch_wrapper',
+    'GSTCV',
+    'GSTCVDask',
+    'AutoGridSearchCV',
+    'AutoGridSearchCVDask',
+    'AutoGSTCV',
+    'AutoGSTCVDask'
 ]
 
 

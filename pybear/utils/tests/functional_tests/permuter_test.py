@@ -5,8 +5,10 @@
 # License: BSD 3 clause
 
 
-from pybear.utils import permuter
 import pytest
+
+from pybear.utils import permuter
+
 
 
 @pytest.fixture

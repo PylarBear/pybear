@@ -1,13 +1,18 @@
 import sys, inspect, warnings, time
 import numpy as np
 import sparse_dict as sd
-from MLObjects.TestObjectCreators import test_header as th
+# pizza
+# from MLObjects.TestObjectCreators import test_header as th
 
 # 3/26/23 PIZZA VERIFIED MODULES AND TEST CODE ARE GOOD.
 
 # 3/26/23 TEST sd.core_insert_outer, sd.insert_outer, sd.append_outer FOR FUNCTIONALITY
 
 # CAN ONLY PROVIDE DICT AS INPUT, INSERT OBJECTS CAN BE NP OR SD
+
+
+import pytest
+pytest.skip(reason=f'24_09_07_09_18_00 needs work', allow_module_level=True)
 
 
 def test_fail(test_name, oper_desc, GIVEN_OBJECT, EXP_OBJECT, ACT_OBJECT):

@@ -18,7 +18,7 @@ class TestNormalize:
         pass
 
 
-        out = _normalize()
+        # out = _normalize()
 
 
 

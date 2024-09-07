@@ -9,20 +9,20 @@ import numpy as np
 from functools import wraps
 
 from _validation import (
-                            _dict_init,
-                            _insufficient_dict_args_2
+    _dict_init,
+    _insufficient_dict_args_2
 
 )
 
 from _utils import (
-                    outer_len,
-                    inner_len,
-                    shape_,
-                    sparsity
+    outer_len,
+    inner_len,
+    shape_,
+    sparsity
 )
 
 from _linalg_validation import (
-                                _matrix_shape_check
+    _matrix_shape_check
 )
 
 """
