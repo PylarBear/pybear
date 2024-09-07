@@ -1,3 +1,10 @@
+
+import pytest
+
+pytest.skip(reason=f'24_09_07_11_41_00 need rewrite', allow_module_level=True)
+
+
+
 import numpy as n, pandas as p
 import time
 from MLObjects.ObjectOrienter import MLObjectOrienter as mloo

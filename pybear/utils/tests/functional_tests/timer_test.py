@@ -5,6 +5,8 @@
 # License: BSD 3 clause
 
 
+import pytest
+
 from pybear.utils import timer
 import sys, io
 

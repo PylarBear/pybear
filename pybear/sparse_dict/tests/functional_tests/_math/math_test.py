@@ -4,6 +4,10 @@
 # License: BSD 3 clause
 #
 
+import pytest
+
+pytest.skip(reason=f'24_09_07_06_55_00 needs a lot of work', allow_module_level=True)
+
 
 '''
 

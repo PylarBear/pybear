@@ -5,9 +5,10 @@
 #
 
 
-# this checks the functionality of the AutoGridSearchCV (SK) module.
+# this checks the general functionality of the AutoGSTCV module.
 
-from model_selection import AutoGridSearchCV
+
+from model_selection import AutoGSTCV
 
 import time
 import numpy as np
@@ -15,6 +16,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 from sklearn.datasets import make_classification
+
 
 
 
@@ -27,7 +29,7 @@ X, y = make_classification(
 
 
 
-agscv = AutoGridSearchCV(
+agstcv = AutoGSTCV(
     estimator=LogisticRegression(
         max_iter=100, fit_intercept=True, tol=1e-6, solver='lbfgs'
     ),
@@ -35,7 +37,7 @@ agscv = AutoGridSearchCV(
     total_passes=11,
     total_passes_is_hard=True,
     max_shifts=None,
-    agscv_verbose=False,
+    agstcv_verbose=False,
     scoring='balanced_accuracy',
     refit=True,
     n_jobs=None,
@@ -44,11 +46,12 @@ agscv = AutoGridSearchCV(
 )
 
 t0 = time.perf_counter()
-agscv.fit(X, y)
+agstcv.fit(X, y)
 tf = time.perf_counter() - t0
 
-print(agscv.best_params_)
-print(agscv.score(X, y))
+print(agstcv.best_params_)
+print(agstcv.best_threshold_)
+print(agstcv.score(X, y))
 print(f'total time = {round(tf, 1)}')
 
 

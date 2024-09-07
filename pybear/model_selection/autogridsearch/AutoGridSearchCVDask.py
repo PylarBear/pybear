@@ -6,7 +6,8 @@
 
 
 
-from ..autogridsearch.autogridsearch_wrapper import autogridsearch_wrapper
+from model_selection.autogridsearch.autogridsearch_wrapper import \
+    autogridsearch_wrapper
 from ..autogridsearch import autogridsearch_docs
 
 from typing import Union

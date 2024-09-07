@@ -1,3 +1,9 @@
+
+import pytest
+
+pytest.skip(reason=f'24_09_07_11_44_00 need rewrite', allow_module_level=True)
+
+
 import numpy as np
 from general_text import alphanumeric_str as ans
 

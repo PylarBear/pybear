@@ -16,6 +16,7 @@ from pybear.utils import array_sparsity
 def good_array():
     return np.random.randint(1,10,(10,10), dtype=np.uint8)
 
+
 @pytest.fixture
 def empty_array():
     return np.array([])

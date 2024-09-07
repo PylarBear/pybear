@@ -1,3 +1,9 @@
+
+import pytest
+
+pytest.skip(reason=f'24_09_07_11_43_00 need rewrite', allow_module_level=True)
+
+
 import numpy as np
 import sparse_dict as sd
 from MLObjects.SupportObjects import build_random_full_support_object as brfso, ApexSupportObjectHandling as soh

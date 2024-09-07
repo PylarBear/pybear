@@ -8,12 +8,12 @@
 from typing import Iterable, Union, TypeAlias
 
 import numpy as np
+import numpy.typing as npt
 
 
-
-OuterIterableType: TypeAlias = Union[np.ndarray, list]
+OuterIterableType: TypeAlias = Union[npt.NDArray, list]
 DataType: TypeAlias = str
-InnerIterableType: TypeAlias = Union[np.ndarray[DataType], list[DataType], DataType]
+InnerIterableType: TypeAlias = Union[npt.NDArray[DataType], list[DataType], DataType]
 
 
 
