@@ -96,7 +96,7 @@ compliant with the scikit-learn GridSearchCV API.
 Key class: GSTCV
 
 GSTCVDask (GridSearchThresholdCV for Dask)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Description: Perform conventional grid search with concurrent threshold search 
 using dask objects in parallel and distributed environments. Finds the global 
 optima for the passed parameters and thresholds. Is fully compliant with the 
