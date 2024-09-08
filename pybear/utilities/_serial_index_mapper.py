@@ -37,7 +37,7 @@ def serial_index_mapper(
 
     Example
     ------
-    >>> from pybear.utils import serial_index_mapper
+    >>> from pybear.utilities import serial_index_mapper
     >>> shape = (3,3,3)
     >>> positions = [4, 15, 25]
     >>> coordinates = serial_index_mapper(shape, positions, n_jobs=1)

@@ -7,7 +7,7 @@
 
 import pytest
 import numpy as np
-from pybear.utils._serial_index_mapper import serial_index_mapper as sim
+from utilities._serial_index_mapper import serial_index_mapper as sim
 
 
 @pytest.fixture

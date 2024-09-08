@@ -3,18 +3,18 @@ import numpy as np, pandas as pd
 from copy import deepcopy
 from functools import wraps
 
-from utils import get_module_name
+from utilities._get_module_name import get_module_name
 from pybear.data_validation import (
-                                    validate_user_input as vui,
-                                    arg_kwarg_validater as akv
+    validate_user_input as vui,
+    arg_kwarg_validater as akv
 )
 from pybear.sparse_dict._utils import (
-                                        outer_len
+    outer_len
 )
 from pybear.sparse_dict import get_shape as gs
 from pybear.sparse_dict._validation import (
-                                            _dict_init,
-                                            _insufficient_dict_args_1
+    _dict_init,
+    _insufficient_dict_args_1
 )
 
 

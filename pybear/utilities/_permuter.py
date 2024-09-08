@@ -34,7 +34,7 @@ def permuter(vector_of_vectors) -> list:
 
     Example
     -------
-    >>> from pybear.utils import permuter
+    >>> from pybear.utilities import permuter
     >>> vector1 = ['a', 'b', 'c']
     >>> vector2 = ['w', 'x']
     >>> vector3 = ['y', 'z']

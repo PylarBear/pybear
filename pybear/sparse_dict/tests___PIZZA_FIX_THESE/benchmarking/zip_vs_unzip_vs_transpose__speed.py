@@ -1,9 +1,9 @@
 import numpy as np
 import sparse_dict as sd
-from pybear.utils import time_memory_benchmark as tmb
-from pybear.new_numpy._random import sparse
-from pybear.sparse_dict._transform import zip_array, unzip_to_ndarray
-from pybear.sparse_dict._linalg import core_sparse_transpose
+from utilities._benchmarking import time_memory_benchmark as tmb
+from new_numpy._random_ import sparse
+from sparse_dict._transform import zip_array, unzip_to_ndarray
+from sparse_dict._linalg import core_sparse_transpose
 
 
 

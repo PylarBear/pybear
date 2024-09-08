@@ -7,7 +7,7 @@
 
 import pytest
 
-from pybear.utils._permuter import permuter
+from utilities._permuter import permuter
 
 
 

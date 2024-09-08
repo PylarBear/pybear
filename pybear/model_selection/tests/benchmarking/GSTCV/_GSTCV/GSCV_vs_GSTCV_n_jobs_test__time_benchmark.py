@@ -40,7 +40,7 @@ from sklearn.model_selection import GridSearchCV as sk_GridSearchCV
 
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 
-from pybear.utils import time_memory_benchmark as tmb
+from utilities._benchmarking import time_memory_benchmark as tmb
 
 
 

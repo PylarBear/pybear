@@ -1,7 +1,7 @@
 import numpy as n, sparse_dict as sd
 from copy import deepcopy
 
-from pybear.utils import time_memory_benchmark as tmb
+from utilities._benchmarking import time_memory_benchmark as tmb
 
 rows = 75000
 cols = 10

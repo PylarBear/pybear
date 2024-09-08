@@ -6,22 +6,22 @@
 
 
 from pybear.sparse_dict._utils import (
-                                        inner_len,
-                                        outer_len,
-                                        shape_
+    inner_len,
+    outer_len,
+    shape_
 )
 
 
 from pybear.sparse_dict._validation import (
-                                            _insufficient_dict_args_2,
-                                            _is_sparse_outer,
-                                            _is_sparse_inner,
-                                            _sparse_dict_check
+    _insufficient_dict_args_2,
+    _is_sparse_outer,
+    _is_sparse_inner,
+    _sparse_dict_check
 )
 
 from pybear.sparse_dict._utils import (
-                                        core_sparse_equiv,
-                                        safe_sparse_equiv
+    core_sparse_equiv,
+    safe_sparse_equiv
 )
 
 

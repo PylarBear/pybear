@@ -10,7 +10,7 @@ import sys, inspect, math, warnings
 from typing import Iterable
 import numpy as np, pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
-from utils import get_module_name
+from utilities._get_module_name import get_module_name
 from feature_extraction.text._Lexicon.Lexicon import Lexicon as lx
 from data_validation import (
     validate_user_input as vui,

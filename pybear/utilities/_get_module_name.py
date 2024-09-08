@@ -24,10 +24,10 @@ def get_module_name(sys_modules_string:str) -> str:
 
     Examples
     --------
-    >>> from pybear.utils import get_module_name
+    >>> from pybear.utilities import get_module_name
     >>> import sys
     >>> print(sys.modules[__name__]) #doctest:+SKIP
-    <module '__main__' from '...\\pybear\\utils\\scratch.py'>
+    <module '__main__' from '...\\pybear\\utilities\\scratch.py'>
 
     >>> out = get_module_name(str(sys.modules[__name__]))
     >>> print(out) #doctest:+SKIP

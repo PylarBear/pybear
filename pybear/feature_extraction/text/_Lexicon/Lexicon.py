@@ -11,7 +11,7 @@ from feature_extraction.text import (
     alphanumeric_str as ans,
     _statistics as _statistics
 )
-from utils import get_module_name
+from utilities._get_module_name import get_module_name
 from data_validation import arg_kwarg_validater
 from feature_extraction.text._Lexicon._old_py_lexicon import (
     lexicon_a as la,

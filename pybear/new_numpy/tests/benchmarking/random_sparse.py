@@ -7,9 +7,9 @@
 
 
 import numpy as np
-from pybear.new_numpy._random import Sparse
-from pybear.utils._benchmarking import time_memory_benchmark as tmb
-from pybear.utils._array_sparsity import array_sparsity
+from new_numpy._random_ import Sparse
+from pybear.utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 
 
@@ -90,19 +90,19 @@ for _sparsity_idx, _sparsity in enumerate(SPARSITIES):
     for _shape_idx, _shape in enumerate(SHAPES):
         # '_choice',
         a = Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine='choice').fit_transform()
-        SPARSITY_HOLDER[0, _sparsity_idx, _shape_idx] = array_sparsity(a)
+        SPARSITY_HOLDER[0, _sparsity_idx, _shape_idx] = arsp(a)
 
         # '_filter',
         b = Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine='filter').fit_transform()
-        SPARSITY_HOLDER[1, _sparsity_idx, _shape_idx] = array_sparsity(b)
+        SPARSITY_HOLDER[1, _sparsity_idx, _shape_idx] = arsp(b)
 
         # '_serialized',
         c = Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine='serialized').fit_transform()
-        SPARSITY_HOLDER[2, _sparsity_idx, _shape_idx] = array_sparsity(c)
+        SPARSITY_HOLDER[2, _sparsity_idx, _shape_idx] = arsp(c)
 
         # '_iterative',
         d = Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine='iterative').fit_transform()
-        SPARSITY_HOLDER[3, _sparsity_idx, _shape_idx] = array_sparsity(d)
+        SPARSITY_HOLDER[3, _sparsity_idx, _shape_idx] = arsp(d)
 
         del a, b, c, d
 

@@ -6,9 +6,9 @@
 
 import numpy as np
 import pandas as pd
-from pybear.sparse_dict._random_ import _create_random_sparse_dict
-from pybear.utils import time_memory_benchmark as tmb
-from pybear.sparse_dict._linalg import (
+from utilities._benchmarking import time_memory_benchmark as tmb
+from sparse_dict._random_ import _create_random_sparse_dict
+from sparse_dict._linalg import (
                                         core_sparse_transpose_brute_force,
                                         core_sparse_transpose_map
 )

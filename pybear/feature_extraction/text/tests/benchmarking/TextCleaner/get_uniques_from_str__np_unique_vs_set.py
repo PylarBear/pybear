@@ -8,7 +8,7 @@
 from copy import deepcopy
 import numpy as np
 from typing import Iterable, Union
-from utils._benchmarking import time_memory_benchmark as tmb
+from utilities._benchmarking import time_memory_benchmark as tmb
 from feature_extraction.text import alphanumeric_str as ans
 
 

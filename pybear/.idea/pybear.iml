@@ -8,10 +8,10 @@
       <sourceFolder url="file://$MODULE_DIR$/model_selection/tests/functional_tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/data_validation/tests/functional_tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/debug/tests/functional_tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/utils/tests/functional_tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/preprocessing/tests/functional_tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/feature_extraction/text/tests/functional_tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/utilities/tests/functional_tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/ML" />
       <excludeFolder url="file://$MODULE_DIR$/sparse_dict__BEFORE_REWRITE" />
     </content>

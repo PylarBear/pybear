@@ -465,7 +465,7 @@ def sparsity(DICT1:dict) -> float:
 
     See Also
     --------
-    pybear.utils.array_sparsity
+    pybear.utilities.array_sparsity
 
     Examples
     --------

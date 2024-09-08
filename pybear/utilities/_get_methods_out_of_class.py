@@ -26,9 +26,9 @@ def get_methods_out_of_class(MyClass) -> list:
 
     Examples
     --------
-    >>> from pybear.utils import get_methods_out_of_class
-    >>> from pybear.new_numpy import _random_
-    >>> out = get_methods_out_of_class(_random_.Sparse)
+    >>> from pybear.utilities import get_methods_out_of_class
+    >>> from pybear.new_numpy import random as pb_random
+    >>> out = get_methods_out_of_class(pb_random.Sparse)
     >>> out     #doctest:+SKIP
     ['__init__', '_calc_support_info', '_choice', '_filter',
      '_iterative', '_make_base_array_with_no_zeros', '_serialized',

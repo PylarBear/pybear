@@ -17,7 +17,7 @@ import dask.dataframe as ddf
 import dask_expr._collection as ddf2
 from dask_ml.linear_model import LogisticRegression as dask_Logistic
 
-from pybear.utils import time_memory_benchmark as tmb
+from utilities._benchmarking import time_memory_benchmark as tmb
 
 
 
