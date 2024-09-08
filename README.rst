@@ -78,6 +78,42 @@ Conda distributions are not available at this time.
 
 =======
 
+Major Modules
+-------------
+
+autogridsearch_wrapper
+~~~~~~~~~~~~~~~~~~~~~~
+Description: A function that wraps any scikit-learn or dask_ml GridSearchCV
+module to create an identical GridSearch class that performs multiple passes 
+of grid search using progressively narrower search grids.
+Key function: autogridsearch_wrapper
+
+GSTCV (GridSearchThresholdCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Description: Perform conventional grid search with concurrent threshold search.
+Finds the global optima for the passed parameters and thresholds. Is fully 
+compliant with the scikit-learn GridSearchCV API.
+Key class: GSTCV
+
+GSTCVDask (GridSearchThresholdCV for Dask)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Description: Perform conventional grid search with concurrent threshold search 
+using dask objects in parallel and distributed environments. Finds the global 
+optima for the passed parameters and thresholds. Is fully compliant with the 
+dask_ml GridSearchCV API.
+Key class: GSTCVDask
+
+MinCountTransformer
+~~~~~~~~~~~~~~~~~~~
+Description: Perform minimum frequency thresholding on numerical or categorical 
+data simulteously across an entire array of data. Violates the scikit-learn API 
+in that datasets are modified along the example axis (examples may be deleted.) 
+Otherwise is fully compliant with the sci-kit learn transformer API, with fit, 
+transform, and partial_fit methods.
+Key Class: MinCountTranformer.
+
+=======
+
 Changelog
 ---------
 
@@ -120,9 +156,8 @@ Project History
 ---------------
 
 The project originated in the early 2020's as a collection of miscelleanous 
-private modules to enhance the scikit-learn and dask_ml ecosystem. In 2024, 
-the modules were formalized and bundled together for their first release as 
-pybear.
+private modules to enhance the scikit-learn and dask_ml ecosystem. In 2024, the 
+modules were formalized and bundled together for their first release as pybear.
 
 Help and Support
 ----------------
