@@ -1,57 +1,50 @@
-Pybear
+PyBear
 ======
 
+|Build Status| |Doc Status| |Version Status| |PyPi|
 
-# 24_04_01_14_04_00 ENTIRE DOCUMENT NEEDS REWRITE, STUFF HERE IS COPY/PASTE FROM DASK/DASK-ML/SKLEARN
+.. |Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml
+.. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
+   :target: //pybear.readthedocs.io/
+   :alt: Documentation Status
+.. |Discourse| image:: https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fpybear.discourse.group
+   :alt: Discuss pybear-related things and ask for help
+   :target: https://github.com/PylarBear/pybear/discussions
+.. |Version Status| image:: https://img.shields.io/pypi/v/pybear.svg
+   :target: https://pypi.python.org/pypi/pybear/
+.. |PyPi| image:: https://img.shields.io/pypi/v/pybear
+   :target: https://pypi.org/project/pybear
 
+.. _documentation: https://pybear.readthedocs.io/
 
-# PIZZA NOTE 24_09_06_20_50_00.... something in here is causing Error: long_description has syntax errors in markup and 
-# would not be rendered on PyPI 
-#|Build Status| |Coverage| |Doc Status| |Discourse| |Version Status|
-
-pybear is a python computing library for data analytics meant to augment functionality found in the popular numpy, scikit-learn, and dask libraries.
-
-# PIZZA NOTE 24_09_06_20_50_00.... something in here is causing Error: long_description has syntax errors in markup and 
-# would not be rendered on PyPI 
-# .. _documentation: https://pylarbear.org
-#.. |Build Status| image:: https://github.com/dask/dask-ml/workflows/CI/badge.svg?branch=main
-#   :target: https://github.com/dask/dask-ml/actions?query=workflow%3A%22CI%22
-#.. |Coverage| image:: https://codecov.io/gh/dask/dask-ml/branch/main/graph/badge.svg
-#   :target: https://codecov.io/gh/dask/dask-ml/branch/main
-#   :alt: Coverage status
-#.. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
-#   :target: https://ml.dask.org/
-#   :alt: Documentation Status
-#.. |Discourse| image:: https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fdask.discourse.group
-#   :alt: Discuss Dask-related things and ask for help
-#   :target: https://dask.discourse.group
-#.. |Version Status| image:: https://img.shields.io/pypi/v/dask-ml.svg
-#   :target: https://pypi.python.org/pypi/dask-ml/
-
-
-# PIZZA NOTE 24_09_06_20_50_00.... when hashed, something in here is causing Error: long_description has 
-# syntax errors in markup and would not be rendered on PyPI 
 .. |PythonMinVersion| replace:: 3.9
-.. |NumPyMinVersion| replace:: 1.19.5
-.. |SciPyMinVersion| replace:: 1.6.0
-.. |JoblibMinVersion| replace:: 1.2.0
-.. |ThreadpoolctlMinVersion| replace:: 2.0.0
-.. |MatplotlibMinVersion| replace:: 3.3.4
-.. |Scikit-ImageMinVersion| replace:: 0.17.2
-.. |PandasMinVersion| replace:: 1.1.5
-.. |SeabornMinVersion| replace:: 0.9.0
-.. |PytestMinVersion| replace:: 7.1.2
-.. |PlotlyMinVersion| replace:: 5.14.0
+.. |DaskMinVersion| replace:: X.X.X
+.. |DaskMLMinVersion| replace:: X.X.X
+.. |DistributedMinVersion| replace:: X.X.X
+.. |JoblibMinVersion| replace:: X.X.X
+.. |NumpyMinVersion| replace:: X.X.X
+.. |PandasMinVersion| replace:: X.X.X
+.. |ScikitLearnMinVersion| replace:: X.X.X
 
 
 
-LICENSE
--------
 
-Under construction.
+Cool, but not frozen, packages to augment your Python data analytics experience.
 
+pybear is a python computing library for data analytics meant to augment 
+functionality found in the popular numpy, scikit-learn, dask, and dask_ml libraries.
+
+See documentation_ for more information.
 
 Website: https://github.com/PylarBear/pybear
+
+License
+-------
+
+BSD 3-Clause License. See `License File <https://github.com/PylarBear/pybear/blob/main/LICENSE>`__.
+
+=======
 
 Installation
 ------------
@@ -62,107 +55,74 @@ Dependencies
 pybear requires:
 
 - Python (>= |PythonMinVersion|)
-- NumPy (>= |NumPyMinVersion|)
-- SciPy (>= |SciPyMinVersion|)
+- dask (>= |DaskMinVersion|)
+- dask_ml (>= |DaskMLMinVersion|)
+- distributed (>= |DistributedMinVersion|)
 - joblib (>= |JoblibMinVersion|)
-- threadpoolctl (>= |ThreadpoolctlMinVersion|)
+- numpy (>= |NumPyMinVersion|)
+- pandas (>= |PandasMinVersion|)
+- scikit-learn (>= |ScikitLearnMinVersion|)
 
-=======
+pybear 0.1 requires Python 3.9 or newer.
+pybear is not tested on earlier versions, but some features may work.
 
-**Scikit-learn 0.20 was the last version to support Python 2.7 and Python 3.4.**
-scikit-learn 1.0 and later require Python 3.7 or newer.
-scikit-learn 1.1 and later require Python 3.8 or newer.
-
-Scikit-learn plotting capabilities (i.e., functions start with ``plot_`` and
-classes end with ``Display``) require Matplotlib (>= |MatplotlibMinVersion|).
-For running the examples Matplotlib >= |MatplotlibMinVersion| is required.
-A few examples require scikit-image >= |Scikit-ImageMinVersion|, a few examples
-require pandas >= |PandasMinVersion|, some examples require seaborn >=
-|SeabornMinVersion| and plotly >= |PlotlyMinVersion|.
 
 User installation
 ~~~~~~~~~~~~~~~~~
 
-If you already have a working installation of NumPy and SciPy,
-the easiest way to install scikit-learn is using ``pip``::
+The only way to install PyBear is from PyPI using ``pip``::
 
-    pip install -U scikit-learn
+    pip install pybear
 
-or ``conda``::
+Conda distributions are not available at this time.
 
-    conda install -c conda-forge scikit-learn
-
-The documentation includes more detailed `installation instructions <https://scikit-learn.org/stable/install.html>`_.
-
+=======
 
 Changelog
 ---------
 
-See the `changelog <https://scikit-learn.org/dev/whats_new.html>`__
-for a history of notable changes to scikit-learn.
+See the `changelog <https://github.com/PylarBear/pybear/blob/main/CHANGELOG.md>`__
+for a history of notable changes to pybear.
+
+=======
 
 Development
 -----------
 
-We welcome new contributors of all experience levels. The scikit-learn
-community goals are to be helpful, welcoming, and effective. The
-`Development Guide <https://scikit-learn.org/stable/developers/index.html>`_
-has detailed information about contributing code, documentation, tests, and
-more. We've included some basic information in this README.
-
 Important links
 ~~~~~~~~~~~~~~~
 
-- Official source code repo: https://github.com/scikit-learn/scikit-learn
-- Download releases: https://pypi.org/project/scikit-learn/
-- Issue tracker: https://github.com/scikit-learn/scikit-learn/issues
+- Official source code repo: https://github.com/PylarBear/pybear
+- Download releases: https://pypi.org/project/pybear/
+- Issue tracker: https://github.com/PylarBear/pybear/issues
 
 Source code
 ~~~~~~~~~~~
 
-You can check the latest sources with the command::
+You can clone the latest source code with the command::
 
-    git clone https://github.com/scikit-learn/scikit-learn.git
+    git clone https://github.com/PylarBear/pybear.git
 
 Contributing
 ~~~~~~~~~~~~
 
-To learn more about making a contribution to scikit-learn, please see our
-`Contributing guide
-<https://scikit-learn.org/dev/developers/contributing.html>`_.
+PyBear is not ready for contributions at this time!
 
 Testing
 ~~~~~~~
 
 After installation, you can launch the test suite from outside the source
-directory (you will need to have ``pytest`` >= |PyTestMinVersion| installed)::
+directory (you will need to have pytest installed)::
 
-    pytest sklearn
-
-See the web page https://scikit-learn.org/dev/developers/contributing.html#testing-and-improving-test-coverage
-for more information.
-
-    Random number generation can be controlled during testing by setting
-    the ``SKLEARN_SEED`` environment variable.
-
-Submitting a Pull Request
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Before opening a Pull Request, have a look at the
-full Contributing page to make sure your code complies
-with our guidelines: https://scikit-learn.org/stable/developers/index.html
+    pytest pybear
 
 Project History
 ---------------
 
-The project was started in 2007 by David Cournapeau as a Google Summer
-of Code project, and since then many volunteers have contributed. See
-the `About us <https://scikit-learn.org/dev/about.html#authors>`__ page
-for a list of core contributors.
-
-The project is currently maintained by a team of volunteers.
-
-**Note**: `scikit-learn` was previously referred to as `scikits.learn`.
+The project originated in the early 2020's as a collection of miscelleanous 
+private modules to enhance the scikit-learn and dask_ml ecosystem. In 2024, 
+the modules were formalized and bundled together for their first release as 
+pybear.
 
 Help and Support
 ----------------
@@ -170,34 +130,14 @@ Help and Support
 Documentation
 ~~~~~~~~~~~~~
 
-- HTML documentation (stable release): https://scikit-learn.org
-- HTML documentation (development version): https://scikit-learn.org/dev/
-- FAQ: https://scikit-learn.org/stable/faq.html
+- HTML documentation: https://pybear.readthedocs.io/
 
 Communication
 ~~~~~~~~~~~~~
 
-- Mailing list: https://mail.python.org/mailman/listinfo/scikit-learn
-- Logos & Branding: https://github.com/scikit-learn/scikit-learn/tree/main/doc/logos
-- Blog: https://blog.scikit-learn.org
-- Calendar: https://blog.scikit-learn.org/calendar/
-- Twitter: https://twitter.com/scikit_learn
-- Stack Overflow: https://stackoverflow.com/questions/tagged/scikit-learn
-- GitHub Discussions: https://github.com/scikit-learn/scikit-learn/discussions
-- Website: https://scikit-learn.org
-- LinkedIn: https://www.linkedin.com/company/scikit-learn
-- YouTube: https://www.youtube.com/channel/UCJosFjYm0ZYVUARxuOZqnnw/playlists
-- Facebook: https://www.facebook.com/scikitlearnofficial/
-- Instagram: https://www.instagram.com/scikitlearnofficial/
-- TikTok: https://www.tiktok.com/@scikit.learn
-- Mastodon: https://mastodon.social/@sklearn@fosstodon.org
-- Discord: https://discord.gg/h9qyrK8Jc8
+- GitHub Discussions: https://github.com/PylarBear/pybear/discussions
+- Website: https://github.com/PylarBear/pybear
 
-
-Citation
-~~~~~~~~
-
-If you use scikit-learn in a scientific publication, we would appreciate citations: https://scikit-learn.org/stable/about.html#citing-scikit-learn
 
 
 
