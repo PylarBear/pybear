@@ -51,7 +51,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #   environment:
   #     name: testpypi
-  #     url: https://pypi.org/p/pybear
+  #     url: https://pypi.org/p/pybear/
   #   permissions:
   #     id-token: write
   #   steps:
@@ -111,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/pybear
+      url: https://test.pypi.org/p/pybear/
     permissions:
       id-token: write
     steps:
@@ -123,6 +123,6 @@ jobs:
     - name: Publish distribution to TestPyPi
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository-url: https://test.pypi.org/legacy
+        repository-url: https://test.pypi.org/legacy/
 
 
