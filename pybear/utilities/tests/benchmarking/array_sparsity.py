@@ -6,10 +6,9 @@
 
 
 
-import time
 
-from pybear.utils._array_sparsity import array_sparsity
-from pybear.utils._benchmarking import time_memory_benchmark as tmb
+from utilities._array_sparsity import array_sparsity
+from utilities._benchmarking import time_memory_benchmark as tmb
 import numpy as np
 
 
@@ -25,7 +24,7 @@ a = np.random.randint(_min, _max, (_rows, _cols), dtype=np.uint8)
 
 
 tmb(
-    ('np._random_.randint',
+    ('np.random.randint',
      np.random.randint,
      [_min, _max, (_rows, _cols)],
      {'dtype': np.uint8}

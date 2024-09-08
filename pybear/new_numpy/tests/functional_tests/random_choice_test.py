@@ -6,33 +6,36 @@
 
 
 import pytest
-import numpy as np
-from pybear.new_numpy._random import choice
+
+from numpy import (
+    arange, array, int32, max as _max, min as _min, pi, unique
+)
+from pybear.new_numpy._random_ import choice
 
 
 
 @pytest.fixture
 def good_a():
-    return np.arange(int(1e5), dtype=np.int32)
+    return arange(int(1e5), dtype=int32)
 
 
 @pytest.fixture
 def good_str_a():
-    return np.array(list('abcdefghijlmnop'), dtype=object)
+    return array(list('abcdefghijlmnop'), dtype=object)
 
 
 @pytest.fixture
 def bad_a_empty():
-    return np.array([])
+    return array([])
 
 @pytest.fixture
 def bad_a_2D():
-    return np.arange(int(1e5), dtype=np.int32).reshape((-1, 100))
+    return arange(int(1e5), dtype=int32).reshape((-1, 100))
 
 
 @pytest.fixture
 def bad_a_3D():
-    return np.arange(int(1e5), dtype=np.int32).reshape((-1, 100, 100))
+    return arange(int(1e5), dtype=int32).reshape((-1, 100, 100))
 
 
 
@@ -41,7 +44,7 @@ class TestA:
 
     @pytest.mark.parametrize(
         'a',
-        ({'a': 1, 'b': 2}, 'junk string', np.pi, 3, None, False)
+        ({'a': 1, 'b': 2}, 'junk string', pi, 3, None, False)
     )
     def test_non_array_like(self, a):
         with pytest.raises(TypeError):
@@ -65,7 +68,7 @@ class TestA:
 
 class TestShape:
 
-    @pytest.mark.parametrize('shape', (np.pi, {'a':1, 'b':2}, None, False))
+    @pytest.mark.parametrize('shape', (pi, {'a':1, 'b':2}, None, False))
     def reject_not_int_or_tuple(self, shape, good_a):
         with pytest.raises(TypeError):
             choice(good_a, shape, replace=True)
@@ -81,7 +84,7 @@ class TestShape:
 
 class TestReplace:
 
-    @pytest.mark.parametrize('replace', ('q', np.pi, 3, []))
+    @pytest.mark.parametrize('replace', ('q', pi, 3, []))
     def test_rejects_non_bool(self, replace, good_a):
         with pytest.raises(TypeError):
             choice(good_a, (100,), replace=replace)
@@ -100,7 +103,7 @@ class TestNJobs:
 
     def test_rejects_float(self, good_a):
         with pytest.raises(ValueError):
-            choice(good_a, (100,), replace=True, n_jobs=np.pi)
+            choice(good_a, (100,), replace=True, n_jobs=pi)
 
     @pytest.mark.parametrize('n_jobs', (0, -2, 9235))
     def test_rejects_bad_ints(self, good_a, n_jobs):
@@ -127,12 +130,12 @@ def test_accuracy_num(good_a, shape, replace):
 
     assert PULL.shape == shape
 
-    assert np.max(PULL) <= np.max(good_a)
+    assert _max(PULL) <= _max(good_a)
 
-    assert np.min(PULL) >= np.min(good_a)
+    assert _min(PULL) >= _min(good_a)
 
     if not replace:
-        assert np.max(np.unique(PULL, return_counts=True)[1]) == 1
+        assert _max(unique(PULL, return_counts=True)[1]) == 1
 
 
 
@@ -144,7 +147,7 @@ def test_accuracy_str(good_str_a, shape, replace):
     assert PULL.shape == shape
 
     if not replace:
-        assert np.max(np.unique(PULL, return_counts=True)[1]) == 1
+        assert _max(unique(PULL, return_counts=True)[1]) == 1
 
     for item in PULL.ravel():
         assert item in good_str_a

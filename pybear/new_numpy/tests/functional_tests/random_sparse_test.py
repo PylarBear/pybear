@@ -7,8 +7,8 @@
 
 import pytest
 import numpy as np
-from pybear.new_numpy._random import sparse
-from pybear.utils._array_sparsity import array_sparsity
+from new_numpy._random_ import sparse
+from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 
 @pytest.fixture
@@ -29,7 +29,6 @@ class TestDtypes:
     def test_accepts_valid_dtypes(self, good_shape, valid_dtypes):
         for valid_dtype in valid_dtypes:
             sparse(0, 5, good_shape, 50, valid_dtype)
-        del valid_dtypes
 
 
     @pytest.mark.parametrize('_dtype', (0, 'junk', [], None, {'a':1}))
@@ -244,7 +243,7 @@ def test_function(shape, sparsity, dtype):
 def test_sparsity(_min, _max, shape, sparsity, dtype):
     output_array = sparse(_min, _max, shape, sparsity, dtype=dtype)
 
-    assert array_sparsity(output_array) == sparsity
+    assert arsp(output_array) == sparsity
 
 
 @pytest.mark.parametrize('shape', ((1000,1000), (100, 100, 100)))
@@ -254,7 +253,7 @@ def test_sparsity(_min, _max, shape, sparsity, dtype):
 def test_sparsity(_min, _max, shape, sparsity, dtype):
     output_array = sparse(_min, _max, shape, sparsity, dtype=dtype)
 
-    assert sparsity - 0.2 <= array_sparsity(output_array) <= sparsity + 0.2
+    assert sparsity - 0.2 <= arsp(output_array) <= sparsity + 0.2
 
 
 

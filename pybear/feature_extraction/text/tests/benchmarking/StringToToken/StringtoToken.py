@@ -8,7 +8,7 @@
 import time
 import numpy as np
 import joblib
-from pybear.utils import time_memory_benchmark as tmb
+from utilities._benchmarking import time_memory_benchmark as tmb
 
 # THE BIG TAKEAWAYS
 # -- WITH TOKENS, NP dtype=object MEM IS COMPARABLE TO py, '<U' IS MUCH MORE

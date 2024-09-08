@@ -29,7 +29,7 @@ def array_sparsity(a) -> float:
     Examples
     --------
     >>> import numpy as np
-    >>> from pybear.utils import array_sparsity
+    >>> from pybear.utilities import array_sparsity
     >>> a = np.array([[0,1,0,2,0],[1,0,2,0,3]])
     >>> array_sparsity(a)
     50.0

@@ -10,9 +10,9 @@ import numpy as np
 from pybear.sparse_dict import _validation as val
 from pybear.sparse_dict import _linalg_validation as lav
 from pybear.sparse_dict._utils import (
-                                        outer_len,
-                                        inner_len,
-                                        inner_len_quick
+    outer_len,
+    inner_len,
+    inner_len_quick
 )
 
 

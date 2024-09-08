@@ -29,7 +29,7 @@ def timer(orig_func):
 
     Examples
     --------
-    >>> from pybear.utils import timer
+    >>> from pybear.utilities import timer
 
     >>> @timer
     ... def my_function(x):
@@ -92,7 +92,7 @@ def time_memory_benchmark(
 
     Examples
     --------
-    >>> from pybear.utils import time_memory_benchmark
+    >>> from pybear.utilities import time_memory_benchmark
     >>> def function_a(a, b, c=1):
     ...     time.sleep(a + b + c)
     ...     return a + b + c

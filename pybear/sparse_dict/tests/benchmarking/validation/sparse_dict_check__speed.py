@@ -4,9 +4,9 @@
 # License: BSD 3 clause
 #
 
-from pybear import sparse_dict
-from pybear.sparse_dict._validation import _sparse_dict_check
-from pybear.utils._benchmarking import time_memory_benchmark as tmb
+import sparse_dict
+from sparse_dict._validation import _sparse_dict_check
+from utilities._benchmarking import time_memory_benchmark as tmb
 
 
 def build_sparse_dict(_shape):

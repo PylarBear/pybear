@@ -17,7 +17,7 @@ import distributed
 
 from pybear.model_selection import GSTCV, GSTCVDask
 
-from pybear.utils import time_memory_benchmark as tmb
+from utilities._benchmarking import time_memory_benchmark as tmb
 
 # ----------------------------
 # 24_8_10 LINUX, size=1e7, cv=5, chunks=5

@@ -1,4 +1,4 @@
-from . import _random as random
+import _random_ as random
 
 
 __all__ = [

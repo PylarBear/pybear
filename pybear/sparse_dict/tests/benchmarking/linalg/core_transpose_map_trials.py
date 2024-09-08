@@ -6,10 +6,10 @@
 
 import numpy as np
 import pandas as pd
-from pybear.utils import time_memory_benchmark as tmb
-from pybear.sparse_dict._random_ import _create_random_sparse_dict
-from pybear.sparse_dict import _validation as val
-from pybear.sparse_dict._utils import  outer_len, inner_len_quick
+from utilities._benchmarking import time_memory_benchmark as tmb
+from sparse_dict._random_ import _create_random_sparse_dict
+from sparse_dict import _validation as val
+from sparse_dict._utils import  outer_len, inner_len_quick
 
 
 def core_sparse_transpose_map_duality(DICT1:dict) -> dict:

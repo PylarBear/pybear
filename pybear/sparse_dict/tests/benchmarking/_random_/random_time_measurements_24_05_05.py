@@ -6,8 +6,8 @@
 
 import numpy as np
 import pandas as pd
-from pybear.utils import time_memory_benchmark as tmb
-from pybear.sparse_dict._random_ import (
+from utilities._benchmarking import time_memory_benchmark as tmb
+from sparse_dict._random_ import (
                                             randint,
                                             uniform
 )

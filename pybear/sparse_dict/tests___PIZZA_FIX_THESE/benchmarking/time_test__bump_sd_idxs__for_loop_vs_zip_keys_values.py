@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import sparse_dict as sd
-from pybear.utils import time_memory_benchmark as tmb
-from pybear.sparse_dict._random_ import randint
+from utilities._benchmarking import time_memory_benchmark as tmb
+from sparse_dict._random_ import randint
 
 
 # 12/25/22 bump_keys_zip_keys_values WINS HANDS DOWN

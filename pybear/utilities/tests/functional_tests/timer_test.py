@@ -7,7 +7,7 @@
 
 import pytest
 
-from pybear.utils._benchmarking import timer
+from utilities._benchmarking import timer
 import sys, io
 
 

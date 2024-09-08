@@ -7,7 +7,7 @@
 import sys
 from typing import Union, TypeAlias
 import numpy as np
-from pybear.utils._get_module_name import get_module_name
+from utilities._get_module_name import get_module_name
 from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
     _validation._validate_int_float_linlogspace import _validate_int_float_linlogspace
 

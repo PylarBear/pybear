@@ -7,8 +7,8 @@
 
 import pytest
 import numpy as np
-from pybear.new_numpy._random import Sparse
-from pybear.utils._array_sparsity import array_sparsity
+from new_numpy._random_ import Sparse
+from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 
 @pytest.fixture
@@ -37,7 +37,6 @@ class TestDtypes:
     def test_accepts_valid_dtypes(self, good_shape, engine, valid_dtypes):
         for valid_dtype in valid_dtypes:
             Sparse(0, 5, good_shape, 50, engine, valid_dtype).fit()
-        del valid_dtypes
 
 
     @pytest.mark.parametrize('_dtype', (0, 'junk', [], None, {'a':1}))
@@ -420,35 +419,35 @@ class TestReturnsCorrectSparsity_0_100_AlwaysExact:
         output_array = Sparse(_min, _max, shape, sparsity,
                           engine='choice', dtype=dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
     def test_filter(self, _min, _max, shape, sparsity, dtype):
         output_array = Sparse(_min, _max, shape, sparsity,
                           engine='filter', dtype=dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
     def test_serialized(self, _min, _max, shape, sparsity, dtype):
         output_array = Sparse(_min, _max, shape, sparsity,
                           engine='serialized', dtype=dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
     def test_iterative(self, _min, _max, shape, sparsity, dtype):
         output_array = Sparse(_min, _max, shape, sparsity,
                           engine='iterative', dtype=dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
     def test_default(self, _min, _max, shape, sparsity, dtype):
         output_array = Sparse(_min, _max, shape, sparsity,
                       engine='default', dtype=dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
 @pytest.mark.parametrize('shape', ((100,), (10,10), (10, 10, 10)))
@@ -461,14 +460,14 @@ class TestReturnsCorrectSparsity_SerializedIterativeAlwaysExact:
         output_array = Sparse(_min, _max, shape, sparsity,
                           engine='serialized', dtype=dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
     def test_iterative(self, _min, _max, shape, sparsity, dtype):
         output_array = Sparse(_min, _max, shape, sparsity,
                           engine='iterative', dtype=dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
 @pytest.mark.parametrize('shape', ((1000,1000), (100, 100, 100)))
@@ -481,14 +480,14 @@ class TestReturnsCorrectSparsity_ChoiceFilterClose:
         output_array = Sparse(_min, _max, shape, sparsity,
                           engine='choice', dtype=dtype).fit_transform()
 
-        assert sparsity - 0.2 <= array_sparsity(output_array) <= sparsity + 0.2
+        assert sparsity - 0.2 <= arsp(output_array) <= sparsity + 0.2
 
 
     def test_filter(self, _min, _max, shape, sparsity, dtype):
         output_array = Sparse(_min, _max, shape, sparsity,
                           engine='filter', dtype=dtype).fit_transform()
 
-        assert sparsity - 0.2 <= array_sparsity(output_array) <= sparsity + 0.2
+        assert sparsity - 0.2 <= arsp(output_array) <= sparsity + 0.2
 
 
 class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
@@ -526,7 +525,7 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
         output_array = Sparse(0, 10, shape, sparsity,
                               engine='default', dtype=_dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
     @pytest.mark.parametrize('sparsity', (25, 75))
@@ -535,7 +534,7 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
         output_array = Sparse(0, 10, (100, 100), sparsity,
                               engine='default', dtype=_dtype).fit_transform()
 
-        assert array_sparsity(output_array) == sparsity
+        assert arsp(output_array) == sparsity
 
 
     @pytest.mark.parametrize('sparsity', (25, 75))
@@ -544,7 +543,7 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
         output_array = Sparse(0, 10, (1100, 1100), sparsity,
                               engine='default', dtype=_dtype).fit_transform()
 
-        assert sparsity - 0.2 <= array_sparsity(output_array) <= sparsity + 0.2
+        assert sparsity - 0.2 <= arsp(output_array) <= sparsity + 0.2
 
 
 
