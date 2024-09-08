@@ -5,9 +5,12 @@
 #
 
 
-from ._version import __version__
 
-__all__ = ["__version__"]
+from . import *
+
+# from ._version import __version__
+
+# __all__ = ["__version__"]
 
 
 
