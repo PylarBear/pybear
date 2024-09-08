@@ -11,11 +11,9 @@ import numpy as np
 
 from ..._type_aliases import GridsType, ParamsType, BestParamsType
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _shift._shift_points_and_passes import _shift_points_and_passes
+from ._shift_points_and_passes import _shift_points_and_passes
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _shift._shift_grid import _shift_grid
+from ._shift_grid import _shift_grid
 
 
 def _shift(
