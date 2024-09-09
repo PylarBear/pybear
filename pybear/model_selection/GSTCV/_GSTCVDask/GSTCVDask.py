@@ -10,25 +10,25 @@ from typing import Union, Literal, Iterable, Optional
 import distributed
 from copy import deepcopy
 
-from model_selection.GSTCV._type_aliases import (
+from ...GSTCV._type_aliases import (
     XInputType,
     YInputType,
 )
 
-from model_selection.GSTCV._GSTCVMixin._GSTCVMixin import _GSTCVMixin
+from ...GSTCV._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
-from model_selection.GSTCV._GSTCVDask._validation._cache_cv import \
+from ...GSTCV._GSTCVDask._validation._cache_cv import \
     _validate_cache_cv
-from model_selection.GSTCV._GSTCVDask._validation._scheduler import \
+from ...GSTCV._GSTCVDask._validation._scheduler import \
     _validate_scheduler
-from model_selection.GSTCV._GSTCVDask._validation._iid import _validate_iid
-from model_selection.GSTCV._GSTCVDask._validation._dask_estimator import \
+from ...GSTCV._GSTCVDask._validation._iid import _validate_iid
+from ...GSTCV._GSTCVDask._validation._dask_estimator import \
     _validate_dask_estimator
 
-from model_selection.GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import \
+from ...GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import \
     _handle_X_y_dask
 
-from model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
+from ...GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
 
 

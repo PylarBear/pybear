@@ -9,9 +9,9 @@ from typing import Callable
 
 import numpy as np
 
-from model_selection.GSTCV._master_scorer_dict import master_scorer_dict
+from ....GSTCV._master_scorer_dict import master_scorer_dict
 
-from model_selection.GSTCV._type_aliases import (
+from ....GSTCV._type_aliases import (
     ScorerInputType,
     ScorerWIPType,
 )

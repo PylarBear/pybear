@@ -7,8 +7,8 @@
 import pytest
 from copy import deepcopy
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _string._string import _string
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._string._string import _string
 
 
 

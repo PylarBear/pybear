@@ -9,7 +9,7 @@ import pytest
 from copy import deepcopy
 import numpy as np
 
-from preprocessing.MinCountTransformer._shared._make_instructions. \
+from pybear.preprocessing.MinCountTransformer._shared._make_instructions. \
     _three_or_more_uniques_hab import _three_or_more_uniques_hab
 
 

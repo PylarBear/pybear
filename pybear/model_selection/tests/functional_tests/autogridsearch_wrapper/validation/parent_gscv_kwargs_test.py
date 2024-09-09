@@ -9,14 +9,15 @@ import pytest
 
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._validation. \
-    _parent_gscv_kwargs import _val_parent_gscv_kwargs
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _validation._parent_gscv_kwargs import _val_parent_gscv_kwargs
+
+from pybear.model_selection import GSTCV, GSTCVDask
 
 from sklearn.model_selection import GridSearchCV as sk_GridSearchCV
 
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 
-from model_selection import GSTCV, GSTCVDask
 
 
 

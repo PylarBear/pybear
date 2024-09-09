@@ -7,8 +7,8 @@
 import pytest
 import numpy as np
 
-from preprocessing.MinCountTransformer._shared._validation._val_ignore_columns \
-    import _val_ignore_columns
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_ignore_columns import _val_ignore_columns
 
 
 

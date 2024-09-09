@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 
-from model_selection.GSTCV._GSTCV._fit._get_kfold import _get_kfold
+from pybear.model_selection.GSTCV._GSTCV._fit._get_kfold import _get_kfold
 
 
 

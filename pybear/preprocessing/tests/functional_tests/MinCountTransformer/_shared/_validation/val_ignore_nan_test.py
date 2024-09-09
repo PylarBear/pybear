@@ -6,8 +6,8 @@
 
 import pytest
 
-from ......MinCountTransformer._shared._validation._val_ignore_nan \
-    import _val_ignore_nan
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_ignore_nan import _val_ignore_nan
 
 
 @pytest.mark.parametrize('_ignore_nan',

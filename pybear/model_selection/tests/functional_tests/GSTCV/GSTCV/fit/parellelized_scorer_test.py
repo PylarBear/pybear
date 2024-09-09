@@ -10,7 +10,8 @@ import pytest
 import time
 import numpy as np
 
-from model_selection.GSTCV._GSTCV._fit._parallelized_scorer import _parallelized_scorer
+from pybear.model_selection.GSTCV._GSTCV._fit._parallelized_scorer import \
+    _parallelized_scorer
 
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 

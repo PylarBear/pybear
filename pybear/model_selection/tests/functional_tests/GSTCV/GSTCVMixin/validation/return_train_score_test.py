@@ -7,8 +7,9 @@
 
 import pytest
 
-from model_selection.GSTCV._GSTCVMixin._validation._return_train_score import \
-    _validate_return_train_score
+from pybear.model_selection.GSTCV._GSTCVMixin._validation._return_train_score \
+    import _validate_return_train_score
+
 
 
 class TestValidateReturnTrainScore:

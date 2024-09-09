@@ -12,7 +12,7 @@ import pandas as pd
 import dask.array as da
 
 
-from model_selection.GSTCV._GSTCV._fit._fold_splitter import _fold_splitter
+from pybear.model_selection.GSTCV._GSTCV._fit._fold_splitter import _fold_splitter
 
 
 

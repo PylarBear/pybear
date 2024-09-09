@@ -15,7 +15,7 @@ import dask.array as da
 import dask.dataframe as ddf
 from dask import compute
 
-from model_selection.GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import \
+from pybear.model_selection.GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import \
     _handle_X_y_dask
 
 

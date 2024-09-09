@@ -7,8 +7,10 @@
 
 import pytest
 
-from preprocessing.MinCountTransformer._shared._validation._val_n_features_in import \
-    _val_n_features_in
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_n_features_in import _val_n_features_in
+
+
 
 
 class TestValNFeaturesIn:

@@ -8,7 +8,7 @@ from typing import Union
 from copy import deepcopy
 import numpy as np
 
-from preprocessing.MinCountTransformer._type_aliases import (
+from ..._type_aliases import (
     TotalCountsByColumnType,
     InstructionsType,
     OriginalDtypesDtype,

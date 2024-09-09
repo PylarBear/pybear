@@ -9,8 +9,9 @@ import pytest
 
 import numpy as np
 
-from preprocessing.MinCountTransformer._validation._mct_validation import \
-    _mct_validation
+from pybear.preprocessing.MinCountTransformer._validation._mct_validation \
+    import _mct_validation
+
 
 
 class TestMCTValidation:

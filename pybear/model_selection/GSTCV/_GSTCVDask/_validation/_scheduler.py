@@ -9,7 +9,7 @@ from distributed import Client, get_client
 
 import contextlib
 from typing import Union
-from model_selection.GSTCV._type_aliases import SchedulerType
+from ....GSTCV._type_aliases import SchedulerType
 
 
 

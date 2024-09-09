@@ -6,8 +6,9 @@
 
 import numpy as np
 import pytest
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _int._int_logspace_unit_gap import _int_logspace_unit_gap
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._int._int_logspace_unit_gap import \
+    _int_logspace_unit_gap
 
 
 

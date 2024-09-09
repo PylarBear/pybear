@@ -9,7 +9,7 @@ import pytest
 
 from copy import deepcopy
 
-from utilities._check_pipeline import check_pipeline
+from pybear.utilities._check_pipeline import check_pipeline
 
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler

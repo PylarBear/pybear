@@ -8,7 +8,7 @@ import pytest
 
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper.\
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper.\
     _build_is_logspace import _build_is_logspace
 
 

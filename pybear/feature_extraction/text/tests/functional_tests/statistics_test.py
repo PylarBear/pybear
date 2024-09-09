@@ -6,7 +6,7 @@
 
 import pytest
 
-from ..._statistics import _statistics
+from pybear.feature_extraction.text._statistics import _statistics
 
 
 

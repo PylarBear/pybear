@@ -12,7 +12,7 @@ from uuid import uuid4
 import numpy as np
 import pandas as pd
 
-from model_selection.GSTCV._GSTCV._handle_X_y._handle_X_y_sklearn import \
+from pybear.model_selection.GSTCV._GSTCV._handle_X_y._handle_X_y_sklearn import \
     _handle_X_y_sklearn
 
 

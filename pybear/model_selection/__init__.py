@@ -7,8 +7,8 @@
 from .autogridsearch.autogridsearch_wrapper import autogridsearch_wrapper
 from .autogridsearch.AutoGridSearchCV import AutoGridSearchCV
 from .autogridsearch.AutoGridSearchCVDask import AutoGridSearchCVDask
-from model_selection.GSTCV._GSTCV.GSTCV import GSTCV
-from model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
+from .GSTCV._GSTCV.GSTCV import GSTCV
+from .GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 from .autogridsearch.AutoGSTCV import AutoGSTCV
 from .autogridsearch.AutoGSTCVDask import AutoGSTCVDask
 

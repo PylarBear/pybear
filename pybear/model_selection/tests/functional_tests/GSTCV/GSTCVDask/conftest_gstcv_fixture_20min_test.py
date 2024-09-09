@@ -9,7 +9,8 @@ import pytest
 
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 from sklearn.pipeline import Pipeline as sk_Pipeline
-from model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask as dask_GSTCV
+from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask as \
+    dask_GSTCV
 
 
 

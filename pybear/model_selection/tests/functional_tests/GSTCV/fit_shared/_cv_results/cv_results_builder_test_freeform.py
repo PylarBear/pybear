@@ -6,7 +6,7 @@
 
 import numpy as np
 
-from model_selection.GSTCV._fit_shared._cv_results._cv_results_builder \
+from pybear.model_selection.GSTCV._fit_shared._cv_results._cv_results_builder \
     import _cv_results_builder
 
 

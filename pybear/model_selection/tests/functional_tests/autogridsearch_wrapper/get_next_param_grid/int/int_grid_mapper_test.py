@@ -7,8 +7,8 @@
 
 import pytest
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _int._int_grid_mapper import _int_grid_mapper
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._int._int_grid_mapper import _int_grid_mapper
 
 
 

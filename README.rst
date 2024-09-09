@@ -81,11 +81,23 @@ Conda distributions are not available at this time.
 Major Modules
 -------------
 
+AutoGridSearchCV
+~~~~~~~~~~~~~~~~
+Description: Perform multiple uninterrupted passes of grid search with sci-kit 
+learn GridSearchCV utilizing progressively narrower search grids.
+Key class: AutoGridSearchCV
+
+AutoGridSearchCVDask
+~~~~~~~~~~~~~~~~~~~~
+Description: Perform multiple uninterrupted passes of grid search with dask_ml  GridSearchCV and dask objects utilizing progressively narrower search grids.
+Key class: AutoGridSearchCVDask
+
 autogridsearch_wrapper
 ~~~~~~~~~~~~~~~~~~~~~~
-Description: A function that wraps any scikit-learn or dask_ml GridSearchCV
-module to create an identical GridSearch class that performs multiple passes 
-of grid search using progressively narrower search grids.
+Description: Create your own auto-gridsearch class. A function that wraps any 
+scikit-learn or dask_ml GridSearchCV module to create an identical GridSearch 
+class that performs multiple passes of grid search using progressively narrower 
+search grids.
 Key function: autogridsearch_wrapper
 
 GSTCV (GridSearchThresholdCV)
@@ -102,6 +114,18 @@ using dask objects in parallel and distributed environments. Finds the global
 optima for the passed parameters and thresholds. Is fully compliant with the 
 dask_ml GridSearchCV API.
 Key class: GSTCVDask
+
+AutoGSTCV
+~~~~~~~~~
+Description: Perform multiple uninterrupted passes of grid search with pybear 
+GSTCV utilizing progressively narrower search grids.
+Key class: AutoGSTCV
+
+AutoGSTCVDask
+~~~~~~~~~~~~~
+Description: Perform multiple uninterrupted passes of grid search with pybear 
+GSTCVDask utilizing progressively narrower search grids.
+Key class: AutoGSTCV
 
 MinCountTransformer
 ~~~~~~~~~~~~~~~~~~~

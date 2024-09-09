@@ -19,8 +19,8 @@ from sklearn.metrics import (
     balanced_accuracy_score
 )
 
-from model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
-from model_selection.GSTCV._fit_shared._cv_results._cv_results_builder \
+from pybear.model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
+from pybear.model_selection.GSTCV._fit_shared._cv_results._cv_results_builder \
     import _cv_results_builder
 
 

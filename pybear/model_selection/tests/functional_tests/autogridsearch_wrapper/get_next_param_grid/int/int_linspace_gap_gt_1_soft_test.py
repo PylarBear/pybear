@@ -6,8 +6,9 @@
 
 
 import pytest
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _int._int_linspace_gap_gt_1_soft import _int_linspace_gap_gt_1_soft
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid. _int._int_linspace_gap_gt_1_soft import \
+    _int_linspace_gap_gt_1_soft
 
 
 

@@ -7,8 +7,8 @@
 import pytest
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _float._float_linspace import _float_linspace
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._float._float_linspace import _float_linspace
 
 
 

@@ -7,7 +7,7 @@
 
 import pytest
 import numpy as np
-from model_selection.autogridsearch._autogridsearch_wrapper._validation. \
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
     _string_params import _string_param_value
 
 

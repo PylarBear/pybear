@@ -5,6 +5,16 @@
 #
 
 
+from . import (
+    data_validation,
+    debug,
+    model_selection,
+    new_numpy,
+    preprocessing,
+    utilities,
+    base
+)
+
 
 from ._version import __version__
 

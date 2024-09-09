@@ -6,8 +6,8 @@
 
 import pytest
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _regap_logspace import _regap_logspace
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._regap_logspace import _regap_logspace
 
 
 

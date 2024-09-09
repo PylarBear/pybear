@@ -10,8 +10,9 @@ import pytest
 from copy import deepcopy
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _shift._shift_points_and_passes import _shift_points_and_passes
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper.\
+    _get_next_param_grid._shift._shift_points_and_passes import \
+    _shift_points_and_passes
 
 
 

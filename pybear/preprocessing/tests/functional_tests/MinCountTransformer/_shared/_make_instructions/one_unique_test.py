@@ -8,8 +8,8 @@ import pytest
 
 import numpy as np
 
-from preprocessing.MinCountTransformer._shared._make_instructions._one_unique \
-    import _one_unique
+from pybear.preprocessing.MinCountTransformer._shared._make_instructions. \
+    _one_unique import _one_unique
 
 
 

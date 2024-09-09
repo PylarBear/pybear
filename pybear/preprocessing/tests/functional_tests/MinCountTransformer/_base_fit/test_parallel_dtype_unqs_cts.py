@@ -9,8 +9,8 @@ import pytest
 
 import numpy as np
 
-from preprocessing.MinCountTransformer._base_fit._parallel_dtypes_unqs_cts \
-    import _dtype_unqs_cts_processing
+from pybear.preprocessing.MinCountTransformer._base_fit. \
+    _parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
 
 
 

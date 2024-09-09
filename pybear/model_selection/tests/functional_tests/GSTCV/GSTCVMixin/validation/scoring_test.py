@@ -16,7 +16,7 @@ from sklearn.metrics import (
     recall_score
 )
 
-from model_selection.GSTCV._GSTCVMixin._validation._scoring import \
+from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring import \
     _validate_scoring
 
 

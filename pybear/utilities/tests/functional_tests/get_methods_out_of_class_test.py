@@ -6,7 +6,8 @@
 
 
 import pytest
-from utilities._get_methods_out_of_class import get_methods_out_of_class as gmooc
+from pybear.utilities._get_methods_out_of_class import \
+    get_methods_out_of_class as gmooc
 
 
 @pytest.fixture

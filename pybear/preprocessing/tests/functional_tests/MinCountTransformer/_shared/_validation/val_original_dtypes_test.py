@@ -9,8 +9,8 @@ import pytest
 
 import numpy as np
 
-from preprocessing.MinCountTransformer._shared._validation._val_original_dtypes \
-    import _val_original_dtypes
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_original_dtypes import _val_original_dtypes
 
 
 

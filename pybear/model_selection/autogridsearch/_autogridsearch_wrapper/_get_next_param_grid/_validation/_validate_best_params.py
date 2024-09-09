@@ -5,8 +5,7 @@
 #
 
 
-from model_selection.autogridsearch._autogridsearch_wrapper._type_aliases \
-    import GridsType, BestParamsType
+from ..._type_aliases import GridsType, BestParamsType
 
 
 

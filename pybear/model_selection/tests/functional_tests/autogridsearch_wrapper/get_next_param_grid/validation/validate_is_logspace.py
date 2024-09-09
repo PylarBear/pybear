@@ -9,8 +9,9 @@ import pytest
 
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _validation._validate_is_logspace import _validate_is_logspace
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._validation._validate_is_logspace import \
+    _validate_is_logspace
 
 
 

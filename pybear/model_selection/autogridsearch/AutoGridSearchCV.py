@@ -5,9 +5,9 @@
 #
 
 
-from model_selection.autogridsearch.autogridsearch_wrapper import \
+from ..autogridsearch.autogridsearch_wrapper import \
     autogridsearch_wrapper
-from model_selection.autogridsearch import autogridsearch_docs
+from ..autogridsearch import autogridsearch_docs
 
 from typing import Union
 import numpy.typing as npt

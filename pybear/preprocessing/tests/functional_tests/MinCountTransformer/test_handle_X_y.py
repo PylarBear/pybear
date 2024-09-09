@@ -12,8 +12,8 @@ import dask.array as da
 import dask.dataframe as ddf
 import pandas as pd
 
-from preprocessing.MinCountTransformer import MinCountTransformer
-from preprocessing.MinCountTransformer._handle_X_y import _handle_X_y
+from pybear.preprocessing.MinCountTransformer import MinCountTransformer
+from pybear.preprocessing.MinCountTransformer._handle_X_y import _handle_X_y
 
 
 

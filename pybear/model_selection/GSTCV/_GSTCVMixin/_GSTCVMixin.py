@@ -22,10 +22,10 @@ from ._validation._scoring import _validate_scoring
 from ._validation._thresholds__param_grid import _validate_thresholds__param_grid
 
 
-from model_selection.GSTCV._fit_shared._cv_results._cv_results_builder import \
+from .._fit_shared._cv_results._cv_results_builder import \
     _cv_results_builder
 
-from model_selection.GSTCV._fit_shared._verify_refit_callable import \
+from .._fit_shared._verify_refit_callable import \
     _verify_refit_callable
 
 

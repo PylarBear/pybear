@@ -12,8 +12,8 @@ import dask.array as da
 from sklearn.model_selection import KFold as sk_KFold
 from dask_ml.model_selection import KFold as dask_KFold
 
-from model_selection.GSTCV._GSTCVDask._fit._estimator_fit_params_helper import \
-    _estimator_fit_params_helper
+from pybear.model_selection.GSTCV._GSTCVDask._fit._estimator_fit_params_helper \
+    import _estimator_fit_params_helper
 
 
 

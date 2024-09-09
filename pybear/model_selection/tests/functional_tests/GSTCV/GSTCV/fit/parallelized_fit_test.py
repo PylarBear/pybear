@@ -9,7 +9,7 @@ import pytest
 import time
 
 import numpy as np
-from model_selection.GSTCV._GSTCV._fit._parallelized_fit import \
+from pybear.model_selection.GSTCV._GSTCV._fit._parallelized_fit import \
     _parallelized_fit
 
 

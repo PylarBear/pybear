@@ -1,4 +1,11 @@
-import _random_ as random
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+from . import _random_ as random
 
 
 __all__ = [

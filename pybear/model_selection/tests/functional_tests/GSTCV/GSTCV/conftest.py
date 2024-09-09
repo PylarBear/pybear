@@ -19,7 +19,7 @@ from sklearn.pipeline import Pipeline
 
 from sklearn.model_selection import GridSearchCV as sk_GSCV
 
-from model_selection.GSTCV._GSTCV.GSTCV import GSTCV as sk_GSTCV
+from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV as sk_GSTCV
 
 
 

@@ -6,8 +6,8 @@
 
 import pytest
 
-from ......MinCountTransformer._shared._validation._val_delete_axis_0 \
-    import _val_delete_axis_0
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_delete_axis_0 import _val_delete_axis_0
 
 
 @pytest.mark.parametrize('_delete_axis_0',

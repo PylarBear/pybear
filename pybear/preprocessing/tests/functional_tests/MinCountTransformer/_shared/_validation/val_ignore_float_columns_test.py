@@ -6,8 +6,8 @@
 
 import pytest
 
-from ......MinCountTransformer._shared._validation._val_ignore_float_columns \
-    import _val_ignore_float_columns
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_ignore_float_columns import _val_ignore_float_columns
 
 
 @pytest.mark.parametrize('_ignore_float_columns',

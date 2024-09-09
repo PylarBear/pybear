@@ -7,7 +7,9 @@
 
 import pytest
 
-from ......MinCountTransformer._shared._validation._val_n_jobs import _val_n_jobs
+from pybear.preprocessing.MinCountTransformer._shared._validation._val_n_jobs \
+    import _val_n_jobs
+
 
 
 class TestValNJobs:

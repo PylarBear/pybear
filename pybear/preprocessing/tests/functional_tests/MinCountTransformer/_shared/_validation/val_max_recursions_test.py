@@ -7,8 +7,9 @@
 
 import pytest
 
-from ......MinCountTransformer._shared._validation._val_max_recursions import \
-    _val_max_recursions
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_max_recursions import _val_max_recursions
+
 
 
 class TestValMaxRecursions:

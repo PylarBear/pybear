@@ -9,22 +9,29 @@ import numpy as np
 
 
 def array_sparsity(a) -> float:
-    """Calculate the sparsity (percentage of zeros) of an array-like.
+
+    """
+    Calculate the sparsity (percentage of zeros) of an array-like.
+
 
     Parameters
     -----------
     a:
-        array-like - object for which to calculate sparsity. Must be able to
-                    convert to a numpy.ndarray and must not be empty.
+        array-like - object for which to calculate sparsity. Must be
+            able to convert to a numpy.ndarray and must not be empty.
+
 
     Return
     ------
     return
         sparsity: float - percentage of zeros in a.
 
+
     See Also
     --------
-    pybear.sparse_dict.utils.sparsity for a sparse dictionary implementation
+    pybear.sparse_dict.utils.sparsity for a sparse dictionary implement-
+    ation
+
 
     Examples
     --------
@@ -37,8 +44,8 @@ def array_sparsity(a) -> float:
     """
 
 
-    err_msg = (f"'a' must be a non-empty array-like that can be converted to a "
-               f"numpy.ndarray.")
+    err_msg = (f"'a' must be a non-empty array-like that can be converted "
+               f"to a numpy.ndarray.")
 
 
     if isinstance(a, (str, type(None), dict)):

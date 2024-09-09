@@ -7,8 +7,8 @@
 import pytest
 from copy import deepcopy
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _bool._bool import _bool
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._bool._bool import _bool
 
 
 

@@ -8,7 +8,7 @@
 import pytest
 import numpy as np
 
-from model_selection.GSTCV._master_scorer_dict import master_scorer_dict
+from pybear.model_selection.GSTCV._master_scorer_dict import master_scorer_dict
 from sklearn.model_selection import ParameterGrid
 
 

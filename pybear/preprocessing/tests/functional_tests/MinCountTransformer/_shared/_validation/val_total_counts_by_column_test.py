@@ -9,8 +9,9 @@
 import pytest
 from copy import deepcopy
 
-from ......MinCountTransformer._shared._validation._val_total_counts_by_column \
-    import _val_total_counts_by_column
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_total_counts_by_column import _val_total_counts_by_column
+
 
 
 @pytest.fixture

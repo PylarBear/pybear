@@ -6,8 +6,9 @@
 
 import pytest
 
-from ......MinCountTransformer._shared._validation._val_reject_unseen_values \
-    import _val_reject_unseen_values
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_reject_unseen_values import _val_reject_unseen_values
+
 
 
 @pytest.mark.parametrize('_reject_unseen_values',

@@ -10,7 +10,7 @@ import pytest
 import os
 import sys
 
-from utilities._get_module_name import get_module_name
+from pybear.utilities._get_module_name import get_module_name
 
 
 

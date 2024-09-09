@@ -7,7 +7,7 @@
 
 import numpy as np
 import pandas as pd
-from utilities._get_module_name import get_module_name
+from pybear.utilities._get_module_name import get_module_name
 
 
 

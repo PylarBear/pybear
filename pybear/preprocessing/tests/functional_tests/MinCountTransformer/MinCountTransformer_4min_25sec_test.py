@@ -20,8 +20,9 @@ import dask.dataframe as ddf
 import dask_expr._collection as ddf2
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
-from preprocessing.MinCountTransformer.MinCountTransformer import MinCountTransformer
-from MinCountTransformer.pytest_fixtures.mock_min_count_trfm import mmct
+from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
+    MinCountTransformer
+from .pytest_fixtures.mock_min_count_trfm import mmct
 
 
 

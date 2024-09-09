@@ -7,7 +7,7 @@
 
 import pytest
 
-from model_selection.autogridsearch._autogridsearch_wrapper._validation. \
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
     _is_dask_gscv import _is_dask_gscv as val_dask_gscv
 
 
@@ -28,7 +28,7 @@ from dask_ml.model_selection import (
     InverseDecaySearchCV
 )
 
-from model_selection import (
+from pybear.model_selection import (
     GSTCV,
     GSTCVDask
 )

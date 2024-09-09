@@ -11,7 +11,7 @@ import dask.array as da
 
 from dask_ml.model_selection import KFold as dask_KFold
 
-from model_selection.GSTCV._type_aliases import (
+from ....GSTCV._type_aliases import (
     XDaskWIPType,
     YDaskWIPType,
     DaskKFoldType

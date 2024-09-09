@@ -9,7 +9,7 @@ import pytest
 import numpy as np
 
 from sklearn.model_selection import KFold as sk_KFold
-from model_selection.GSTCV._GSTCV.GSTCV import GSTCV
+from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
