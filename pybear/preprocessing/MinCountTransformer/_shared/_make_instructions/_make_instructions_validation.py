@@ -16,7 +16,7 @@ from .._validation._val_original_dtypes import _val_original_dtypes
 from .._validation._val_total_counts_by_column import _val_total_counts_by_column
 from .._validation._val_n_features_in import _val_n_features_in
 
-from typing import Union
+from typing_extensions import Union
 
 import numpy as np
 
