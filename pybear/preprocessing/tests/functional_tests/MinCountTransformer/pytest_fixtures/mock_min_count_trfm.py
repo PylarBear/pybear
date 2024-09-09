@@ -9,7 +9,8 @@ import numpy as np
 import joblib
 
 
-from typing import Union, Iterable
+from typing import Iterable
+from typing_extensions import Union
 
 
 # this is fixture for MinCountTransformer_test

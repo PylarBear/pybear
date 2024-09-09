@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 #
 
-from typing import Union
+from typing_extensions import Union
 from copy import deepcopy
 import numpy as np
 

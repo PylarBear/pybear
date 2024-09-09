@@ -5,7 +5,8 @@
 #
 
 
-from typing import Union, Callable
+from typing import Callable
+from typing_extensions import Union
 from ._type_aliases import DataType
 
 
