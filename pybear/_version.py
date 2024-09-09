@@ -23,7 +23,8 @@ except ImportError:
 
 TYPE_CHECKING = True   # pizza, revised from dask_ml
 if TYPE_CHECKING:
-    from typing import Tuple, Union
+    from typing import Tuple
+    from typing_extensions import Union
     VERSION_TUPLE = Tuple[Union[int, str], ...]
 else:
     VERSION_TUPLE = object
