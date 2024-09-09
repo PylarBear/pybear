@@ -5,7 +5,7 @@
 #
 
 
-from typing import Union
+from typing_extensions import Union
 
 
 def _val_transform(_transform: Union[str, None]) -> Union[str, None]:

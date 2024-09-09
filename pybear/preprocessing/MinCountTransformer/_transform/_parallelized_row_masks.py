@@ -6,7 +6,7 @@
 
 import numpy as np
 import joblib
-from typing import Union
+from typing_extensions import Union
 from .._type_aliases import DataType
 
 

@@ -10,6 +10,7 @@ from typing_extensions import Union, TypeAlias
 from ._type_aliases import DataType
 
 import numpy as np
+import numpy.typing as npt
 
 XType: TypeAlias = Iterable[Iterable[DataType]]
 YType: TypeAlias = Iterable[Iterable[DataType]]
@@ -21,7 +22,7 @@ def _handle_X_y(
         _name: str,  # use type(self).__name__ from MCT call
         __x_original_obj_type: Union[str, None], # use self._x_original_obj_type
         __y_original_obj_type: Union[str, None], # self._y_original_obj_type
-    ) -> tuple[XType, YType, str, str, Union[np.ndarray[int], None]]:
+    ) -> tuple[XType, YType, str, str, Union[npt.NDArray[int], None]]:
 
 
     """
