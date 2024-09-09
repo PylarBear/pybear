@@ -28,6 +28,7 @@ joblib = "*"
 numpy = "*"
 pandas = "*"
 scikit-learn = "*"
+typing_extensions = "*"
 
 
 [tool.poetry.group.dev.dependencies]
