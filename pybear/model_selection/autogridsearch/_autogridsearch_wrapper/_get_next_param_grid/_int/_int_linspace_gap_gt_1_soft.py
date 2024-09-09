@@ -5,7 +5,8 @@
 #
 
 
-from typing import Union, TypeAlias
+from typing import Union
+from typing_extensions import TypeAlias
 
 # see _type_aliases; subtypes for DataType and GridType
 IntDataType: TypeAlias = int

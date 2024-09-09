@@ -6,7 +6,7 @@
 
 
 import numpy as np
-from typing import TypeAlias
+from typing_extensions import TypeAlias
 
 # see _type_aliases; subtype for DataType
 IntDataType: TypeAlias = int

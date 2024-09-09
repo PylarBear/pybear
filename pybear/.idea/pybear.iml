@@ -14,6 +14,7 @@
       <sourceFolder url="file://$MODULE_DIR$/utilities/tests/functional_tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/ML" />
       <excludeFolder url="file://$MODULE_DIR$/sparse_dict__BEFORE_REWRITE" />
+      <excludeFolder url="file://$MODULE_DIR$/sparse_dict" />
     </content>
     <orderEntry type="jdk" jdkName="Poetry (pybear)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

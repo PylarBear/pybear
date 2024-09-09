@@ -5,7 +5,8 @@
 #
 
 
-from typing import Iterable, TypeAlias
+from typing import Iterable
+from typing_extensions import TypeAlias
 
 
 # see _type_aliases
