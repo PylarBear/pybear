@@ -6,9 +6,9 @@
 
 import sys
 from typing import Union, TypeAlias
-from utilities._get_module_name import get_module_name
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _validation._validate_int_float_linlogspace import _validate_int_float_linlogspace
+from pybear.utilities._get_module_name import get_module_name
+from ..._get_next_param_grid. _validation._validate_int_float_linlogspace import \
+    _validate_int_float_linlogspace
 from .._int._int_linspace_gap_gt_1_soft import _int_linspace_gap_gt_1_soft
 from .._int._int_linspace_gap_gt_1_hard import _int_linspace_gap_gt_1_hard
 from ._int_grid_mapper import _int_grid_mapper

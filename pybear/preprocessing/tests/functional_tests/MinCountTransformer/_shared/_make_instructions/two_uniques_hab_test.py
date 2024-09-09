@@ -9,8 +9,8 @@ import pytest
 from copy import deepcopy
 import numpy as np
 
-from preprocessing.MinCountTransformer._shared._make_instructions._two_uniques_hab \
-    import _two_uniques_hab
+from pybear.preprocessing.MinCountTransformer._shared._make_instructions. \
+    _two_uniques_hab import _two_uniques_hab
 
 
 

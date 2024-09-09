@@ -6,7 +6,7 @@
 
 import pytest
 
-from model_selection.GSTCV._GSTCVDask._validation._dask_estimator import \
+from pybear.model_selection.GSTCV._GSTCVDask._validation._dask_estimator import \
     _validate_dask_estimator
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder

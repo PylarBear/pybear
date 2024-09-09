@@ -7,7 +7,8 @@
 import pytest
 import numpy as np
 
-from preprocessing.MinCountTransformer._transform._tcbc_update import _tcbc_update
+from pybear.preprocessing.MinCountTransformer._transform._tcbc_update \
+    import _tcbc_update
 
 # _tcbc_update(
 #     old_tcbc: TotalCountsByColumnType,

@@ -7,7 +7,8 @@
 
 import pytest
 
-from model_selection.GSTCV._GSTCVDask._validation._cache_cv import _validate_cache_cv
+from pybear.model_selection.GSTCV._GSTCVDask._validation._cache_cv import \
+    _validate_cache_cv
 
 
 

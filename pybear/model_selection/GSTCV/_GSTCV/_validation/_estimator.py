@@ -9,11 +9,11 @@ import sys
 import inspect
 
 
-from model_selection.GSTCV._type_aliases import ClassifierProtocol
+from ....GSTCV._type_aliases import ClassifierProtocol
 
 from sklearn.pipeline import Pipeline
 
-from utilities._check_pipeline import check_pipeline
+from .....utilities._check_pipeline import check_pipeline
 
 
 

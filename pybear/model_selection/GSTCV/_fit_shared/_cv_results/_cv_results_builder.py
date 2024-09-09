@@ -10,9 +10,9 @@ from typing import Type, Union
 import numpy as np
 from numpy.typing import NDArray
 
-from utilities._permuter import permuter
+from .....utilities._permuter import permuter
 
-from model_selection.GSTCV._type_aliases import (
+from ....GSTCV._type_aliases import (
     ParamGridType,
     ScorerWIPType,
     CVResultsType

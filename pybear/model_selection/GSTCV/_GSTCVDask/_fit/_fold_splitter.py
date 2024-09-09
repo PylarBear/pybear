@@ -11,7 +11,7 @@ from dask import compute
 import dask.array as da
 import dask.dataframe as ddf
 import dask_expr._collection as ddf2
-from model_selection.GSTCV._type_aliases import (
+from ....GSTCV._type_aliases import (
     GenericSlicerType,
     DaskSlicerType,
     XDaskWIPType,

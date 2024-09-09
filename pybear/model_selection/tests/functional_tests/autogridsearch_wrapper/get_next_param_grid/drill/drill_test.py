@@ -8,8 +8,8 @@ import pytest
 from copy import deepcopy
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _drill._drill import _drill
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._drill._drill import _drill
 
 
 

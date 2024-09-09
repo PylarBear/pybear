@@ -9,8 +9,8 @@ import pytest
 
 import numpy as np
 
-from preprocessing.MinCountTransformer._transform._parallelized_row_masks \
-    import _parallelized_row_masks
+from pybear.preprocessing.MinCountTransformer._transform. \
+    _parallelized_row_masks import _parallelized_row_masks
 
 
 

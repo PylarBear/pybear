@@ -6,7 +6,7 @@
 
 
 import pytest
-from model_selection.autogridsearch._autogridsearch_wrapper._validation. \
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
     _total_passes_is_hard import _total_passes_is_hard
 
 

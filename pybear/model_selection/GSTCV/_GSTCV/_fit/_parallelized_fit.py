@@ -10,7 +10,7 @@ import time
 import warnings
 import joblib
 import numpy as np
-from model_selection.GSTCV._type_aliases import (
+from ....GSTCV._type_aliases import (
     XSKWIPType,
     YSKWIPType,
     ClassifierProtocol

@@ -8,7 +8,7 @@
 import pytest
 
 
-from model_selection.GSTCV._GSTCVMixin._validation._verbose \
+from pybear.model_selection.GSTCV._GSTCVMixin._validation._verbose \
     import _validate_verbose
 
 

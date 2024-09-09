@@ -6,7 +6,8 @@
 
 import pytest
 
-from .....MinCountTransformer._validation._val_transform import _val_transform
+from pybear.preprocessing.MinCountTransformer._validation._val_transform import \
+    _val_transform
 
 
 

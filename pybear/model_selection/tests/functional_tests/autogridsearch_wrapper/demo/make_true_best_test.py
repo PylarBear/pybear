@@ -6,7 +6,7 @@
 
 import pytest
 
-from model_selection.autogridsearch._autogridsearch_wrapper._demo. \
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper._demo. \
     _make_true_best import _make_true_best
 
 

@@ -7,8 +7,8 @@
 
 import pytest
 
-from ......MinCountTransformer._shared._validation._val_count_threshold import \
-    _val_count_threshold
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_count_threshold import _val_count_threshold
 
 
 class TestValCountThreshold:

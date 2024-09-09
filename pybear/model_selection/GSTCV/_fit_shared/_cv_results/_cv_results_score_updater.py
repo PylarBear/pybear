@@ -7,8 +7,8 @@
 
 import numpy as np
 from typing import Literal
-from model_selection.GSTCV._type_aliases import CVResultsType, ScorerWIPType
-from model_selection.GSTCV._master_scorer_dict import master_scorer_dict
+from ....GSTCV._type_aliases import CVResultsType, ScorerWIPType
+from ....GSTCV._master_scorer_dict import master_scorer_dict
 
 
 def _cv_results_score_updater(

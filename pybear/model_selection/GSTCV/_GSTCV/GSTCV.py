@@ -10,21 +10,19 @@ from typing import Union, Literal, Iterable, Optional
 from contextlib import nullcontext
 from copy import deepcopy
 
-from model_selection.GSTCV._type_aliases import (
+from ...GSTCV._type_aliases import (
     XInputType,
     YInputType
 )
 
 
-from model_selection.GSTCV._GSTCVMixin._GSTCVMixin import _GSTCVMixin
+from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
-from model_selection.GSTCV._GSTCV._validation._estimator import \
-    _validate_estimator
+from .._GSTCV._validation._estimator import _validate_estimator
 
-from model_selection.GSTCV._GSTCV._handle_X_y._handle_X_y_sklearn import \
-    _handle_X_y_sklearn
+from ._handle_X_y._handle_X_y_sklearn import _handle_X_y_sklearn
 
-from model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
+from .._GSTCV._fit._core_fit import _core_fit
 
 
 

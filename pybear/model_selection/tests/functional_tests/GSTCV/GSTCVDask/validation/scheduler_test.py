@@ -8,7 +8,7 @@ import pytest
 
 from dask.distributed import Client
 from contextlib import nullcontext
-from model_selection.GSTCV._GSTCVDask._validation._scheduler import \
+from pybear.model_selection.GSTCV._GSTCVDask._validation._scheduler import \
     _validate_scheduler
 
 

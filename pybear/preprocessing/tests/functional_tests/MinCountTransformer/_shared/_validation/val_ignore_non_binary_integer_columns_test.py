@@ -6,8 +6,11 @@
 
 import pytest
 
-from ......MinCountTransformer._shared._validation._val_ignore_non_binary_integer_columns \
-    import _val_ignore_non_binary_integer_columns
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
+    _val_ignore_non_binary_integer_columns import \
+    _val_ignore_non_binary_integer_columns
+
+
 
 
 @pytest.mark.parametrize('_inbic',

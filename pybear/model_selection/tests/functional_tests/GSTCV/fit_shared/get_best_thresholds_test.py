@@ -10,7 +10,7 @@ import pytest
 
 import numpy as np
 
-from model_selection.GSTCV._fit_shared._get_best_thresholds import \
+from pybear.model_selection.GSTCV._fit_shared._get_best_thresholds import \
     _get_best_thresholds
 
 

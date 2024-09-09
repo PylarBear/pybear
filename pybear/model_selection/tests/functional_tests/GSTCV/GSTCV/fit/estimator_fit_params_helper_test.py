@@ -11,8 +11,8 @@ import numpy as np
 
 from sklearn.model_selection import KFold as sk_KFold
 
-from model_selection.GSTCV._GSTCV._fit._estimator_fit_params_helper import \
-    _estimator_fit_params_helper
+from pybear.model_selection.GSTCV._GSTCV._fit._estimator_fit_params_helper \
+    import _estimator_fit_params_helper
 
 
 

@@ -7,7 +7,7 @@
 
 import pytest
 
-from model_selection.GSTCV._GSTCVDask._validation._iid import _validate_iid
+from pybear.model_selection.GSTCV._GSTCVDask._validation._iid import _validate_iid
 
 
 

@@ -8,8 +8,8 @@ import pytest
 
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _validation._validate_phlite import _validate_phlite
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._validation._validate_phlite import _validate_phlite
 
 
 

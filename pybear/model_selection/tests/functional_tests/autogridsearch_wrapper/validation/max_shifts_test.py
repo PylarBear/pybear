@@ -7,7 +7,7 @@
 
 import pytest
 
-from model_selection.autogridsearch._autogridsearch_wrapper._validation. \
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
     _max_shifts import _max_shifts
 
 

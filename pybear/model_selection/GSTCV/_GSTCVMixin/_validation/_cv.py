@@ -7,7 +7,7 @@
 
 from typing import Union, Iterable
 
-from model_selection.GSTCV._type_aliases import GenericKFoldType
+from ....GSTCV._type_aliases import GenericKFoldType
 
 
 

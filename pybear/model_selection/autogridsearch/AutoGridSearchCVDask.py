@@ -6,7 +6,7 @@
 
 
 
-from model_selection.autogridsearch.autogridsearch_wrapper import \
+from ..autogridsearch.autogridsearch_wrapper import \
     autogridsearch_wrapper
 from ..autogridsearch import autogridsearch_docs
 

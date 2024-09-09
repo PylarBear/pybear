@@ -5,14 +5,13 @@
 #
 
 
-from model_selection.autogridsearch.autogridsearch_wrapper import \
-    autogridsearch_wrapper
-from model_selection.autogridsearch import autogridsearch_docs
+from .autogridsearch_wrapper import autogridsearch_wrapper
+from . import autogridsearch_docs
 
 from typing import Union
 import numpy.typing as npt
 
-from model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
+from ..GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 
 

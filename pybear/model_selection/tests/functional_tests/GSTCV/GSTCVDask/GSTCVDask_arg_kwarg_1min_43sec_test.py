@@ -8,7 +8,7 @@
 import pytest
 
 from distributed import Client
-from model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
+from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
 

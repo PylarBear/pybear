@@ -10,8 +10,8 @@ import pytest
 import time
 import numpy as np
 
-from model_selection.GSTCV._GSTCVDask._fit._parallelized_train_scorer import \
-    _parallelized_train_scorer
+from pybear.model_selection.GSTCV._GSTCVDask._fit._parallelized_train_scorer \
+    import _parallelized_train_scorer
 
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 

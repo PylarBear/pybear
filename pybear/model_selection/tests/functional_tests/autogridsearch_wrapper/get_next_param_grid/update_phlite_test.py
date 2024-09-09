@@ -6,7 +6,8 @@
 
 import pytest
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid._update_phlite import _update_phlite
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._update_phlite import _update_phlite
 
 
 @pytest.fixture

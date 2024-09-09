@@ -9,7 +9,7 @@ import pytest
 
 from sklearn.model_selection import GridSearchCV as sk_GridSearchCV
 from sklearn.pipeline import Pipeline as sk_Pipeline
-from model_selection.GSTCV._GSTCV.GSTCV import GSTCV as sk_GSTCV
+from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV as sk_GSTCV
 
 
 

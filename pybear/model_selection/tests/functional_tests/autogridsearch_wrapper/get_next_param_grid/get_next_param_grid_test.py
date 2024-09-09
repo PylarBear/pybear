@@ -10,8 +10,8 @@ import pytest
 from copy import deepcopy
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _get_next_param_grid import _get_next_param_grid
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._get_next_param_grid import _get_next_param_grid
 
 
 

@@ -12,7 +12,7 @@ import numpy as np
 import dask.array as da
 import dask.dataframe as ddf
 
-from model_selection.GSTCV._GSTCVDask._fit._get_kfold import _get_kfold
+from pybear.model_selection.GSTCV._GSTCVDask._fit._get_kfold import _get_kfold
 
 
 

@@ -11,8 +11,8 @@
 import pytest
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _int._int import _int
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._int._int import _int
 
 
 class TestInt:

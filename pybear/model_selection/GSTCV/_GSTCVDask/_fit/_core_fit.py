@@ -29,13 +29,13 @@ from ._parallelized_fit import _parallelized_fit
 from ._parallelized_scorer import _parallelized_scorer
 from ._parallelized_train_scorer import _parallelized_train_scorer
 
-from model_selection.GSTCV._fit_shared._get_best_thresholds import \
+from ....GSTCV._fit_shared._get_best_thresholds import \
     _get_best_thresholds
 
-from model_selection.GSTCV._fit_shared._cv_results._cv_results_update import \
+from ....GSTCV._fit_shared._cv_results._cv_results_update import \
     _cv_results_update
 
-from model_selection.GSTCV._fit_shared._cv_results. \
+from ....GSTCV._fit_shared._cv_results. \
     _cv_results_rank_update import _cv_results_rank_update
 
 

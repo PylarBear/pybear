@@ -8,8 +8,8 @@ import pytest
 
 import numpy as np
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _shift._shift_grid import _shift_grid
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._shift._shift_grid import _shift_grid
 
 
 @pytest.fixture

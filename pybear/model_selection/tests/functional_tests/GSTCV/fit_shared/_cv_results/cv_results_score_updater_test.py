@@ -9,10 +9,10 @@ import pytest
 
 import numpy as np
 
-from model_selection.GSTCV._fit_shared._cv_results._cv_results_score_updater \
+from pybear.model_selection.GSTCV._fit_shared._cv_results._cv_results_score_updater \
     import _cv_results_score_updater
 
-from model_selection.GSTCV._master_scorer_dict import master_scorer_dict
+from pybear.model_selection.GSTCV._master_scorer_dict import master_scorer_dict
 
 
 

@@ -9,7 +9,7 @@ import pytest
 
 import numpy as np
 
-from model_selection.GSTCV._GSTCVMixin._validation._thresholds__param_grid \
+from pybear.model_selection.GSTCV._GSTCVMixin._validation._thresholds__param_grid \
     import _validate_thresholds__param_grid
 
 

@@ -8,7 +8,7 @@
 import pytest
 import sys, io
 import numpy as np
-from utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 
 
 

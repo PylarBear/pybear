@@ -9,8 +9,7 @@ from typing import Union
 from copy import deepcopy
 import warnings
 import numpy as np
-from model_selection.autogridsearch._autogridsearch_wrapper._type_aliases import \
-    DataType, GridType
+from ..._type_aliases import DataType, GridType
 
 
 

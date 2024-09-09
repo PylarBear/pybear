@@ -7,7 +7,7 @@
 
 import pytest
 import numpy as np
-from new_numpy._random_ import Sparse
+from pybear.new_numpy._random_ import Sparse
 from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 

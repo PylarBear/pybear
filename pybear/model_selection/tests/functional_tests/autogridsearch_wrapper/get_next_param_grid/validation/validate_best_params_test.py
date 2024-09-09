@@ -6,8 +6,9 @@
 
 import pytest
 
-from model_selection.autogridsearch._autogridsearch_wrapper._get_next_param_grid. \
-    _validation._validate_best_params import _validate_best_params
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _get_next_param_grid._validation._validate_best_params import \
+    _validate_best_params
 
 
 @pytest.fixture

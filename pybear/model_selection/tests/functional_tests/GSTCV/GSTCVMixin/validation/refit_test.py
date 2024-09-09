@@ -9,7 +9,9 @@ import pytest
 
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
-from model_selection.GSTCV._GSTCVMixin._validation._refit import _validate_refit
+from pybear.model_selection.GSTCV._GSTCVMixin._validation._refit import \
+    _validate_refit
+
 
 
 class TestValidateRefit:

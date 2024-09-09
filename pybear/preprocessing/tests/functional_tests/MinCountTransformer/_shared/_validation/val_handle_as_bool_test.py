@@ -7,7 +7,7 @@
 import pytest
 import numpy as np
 
-from preprocessing.MinCountTransformer._shared._validation. \
+from pybear.preprocessing.MinCountTransformer._shared._validation. \
     _val_handle_as_bool import _val_handle_as_bool
 
 

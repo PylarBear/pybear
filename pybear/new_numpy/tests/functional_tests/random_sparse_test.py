@@ -7,8 +7,9 @@
 
 import pytest
 import numpy as np
-from new_numpy._random_ import sparse
+from pybear.new_numpy._random_ import sparse
 from pybear.utilities._array_sparsity import array_sparsity as arsp
+
 
 
 @pytest.fixture
@@ -20,7 +21,7 @@ def valid_dtypes():
     return [
             np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16,
             np.uint32, np.uint64, np.float16, np.float32, np.float64, int, float
-            ]
+    ]
 
 
 # START DATA VALIDATION TESTS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -174,11 +175,9 @@ def test_function(good_shape, sparsity, valid_dtypes):
         assert output_array.dtype == _dtype
 
 
-@pytest.mark.parametrize('shape', (
-                                    1, 3, 100,
-                                    (1,), (3,), (3,3), (2, 3, 5), (2,2,3,3)
-                                    )
-                         )
+@pytest.mark.parametrize('shape',
+    (1, 3, 100, (1,), (3,), (3,3), (2, 3, 5), (2,2,3,3))
+)
 @pytest.mark.parametrize('sparsity', (0, 50, 100))
 @pytest.mark.parametrize('dtype', (np.int8, np.float64))
 def test_function(shape, sparsity, dtype):
@@ -192,21 +191,15 @@ def test_function(shape, sparsity, dtype):
 
 
 # WHEN PASSED NULL SHAPES, RETURNS SAME OBJECT AS NUMPY
-@pytest.mark.parametrize('shape', (
-                                   pytest.param(None,
-                                                marks=pytest.mark.xfail(
-                                                    reason = 'known divergence '
-                                                             'from numpy'
-                                                )
-                                   ),
-                                   0,
-                                   (1,0),
-                                   (1,0,1),
-                                   (),
-                                   (()),
-                                   []
-                                   )
-                         )
+@pytest.mark.parametrize('shape',
+    (
+        pytest.param(
+            None,
+            marks=pytest.mark.xfail(reason='known divergence from numpy')
+        ),
+        0, (1,0), (1,0,1), (), (()), []
+    )
+)
 @pytest.mark.parametrize('sparsity', (0, 50, 100))
 @pytest.mark.parametrize('dtype', (np.int8, np.float64))
 def test_function(shape, sparsity, dtype):

@@ -18,7 +18,7 @@ import numpy as np
 from copy import deepcopy
 
 
-from MinCountTransformer.pytest_fixtures.mock_min_count_trfm import mmct
+from ...pytest_fixtures.mock_min_count_trfm import mmct
 from .build_vectors_for_mock_mct_tst import build_vectors_for_mock_mct_test
 
 

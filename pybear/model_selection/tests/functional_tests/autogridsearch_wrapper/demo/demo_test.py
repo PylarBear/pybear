@@ -14,7 +14,7 @@ from sklearn.linear_model import Ridge
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 from dask_ml.linear_model import LogisticRegression
 
-from model_selection.autogridsearch.autogridsearch_wrapper import \
+from pybear.model_selection.autogridsearch.autogridsearch_wrapper import \
     autogridsearch_wrapper
 
 

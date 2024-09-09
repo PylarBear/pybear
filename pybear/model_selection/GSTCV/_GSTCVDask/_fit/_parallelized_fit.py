@@ -10,7 +10,7 @@ import time
 import warnings
 import dask
 
-from model_selection.GSTCV._type_aliases import (
+from ....GSTCV._type_aliases import (
     XDaskWIPType,
     YDaskWIPType,
     ClassifierProtocol

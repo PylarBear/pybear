@@ -6,7 +6,7 @@
 
 import pytest
 
-from preprocessing.MinCountTransformer._shared._validation.\
+from pybear.preprocessing.MinCountTransformer._shared._validation.\
     _val_ign_cols_hab_callable import _val_ign_cols_hab_callable
 
 

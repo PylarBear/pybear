@@ -9,11 +9,11 @@ import sys
 import inspect
 import warnings
 
-from model_selection.GSTCV._type_aliases import ClassifierProtocol
+from ....GSTCV._type_aliases import ClassifierProtocol
 
 from sklearn.pipeline import Pipeline
 
-from utilities._check_pipeline import check_pipeline
+from .....utilities._check_pipeline import check_pipeline
 
 
 def _validate_dask_estimator(

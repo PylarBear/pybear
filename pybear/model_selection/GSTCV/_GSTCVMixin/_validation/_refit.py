@@ -7,7 +7,7 @@
 
 import warnings
 
-from model_selection.GSTCV._type_aliases import (
+from ....GSTCV._type_aliases import (
     RefitType,
     ScorerWIPType
 )

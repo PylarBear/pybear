@@ -11,7 +11,7 @@ import numpy as np
 
 from sklearn.model_selection import StratifiedKFold
 
-from model_selection.GSTCV._type_aliases import (
+from ....GSTCV._type_aliases import (
     XSKWIPType,
     YSKWIPType,
     SKKFoldType
