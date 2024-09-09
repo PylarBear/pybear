@@ -4,7 +4,8 @@
 # License: BSD 3 clause
 #
 
-from typing import TypeAlias, TypeVar, Union, Iterable, Callable
+from typing import TypeVar, Union, Iterable, Callable
+from typing_extensions import TypeAlias
 import numpy as np
 
 # data is essentially all types that are not iterable

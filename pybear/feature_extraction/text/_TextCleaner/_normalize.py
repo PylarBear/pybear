@@ -7,7 +7,8 @@
 
 
 
-from typing import Iterable, Union, TypeAlias
+from typing import Iterable, Union
+from typing_extensions import TypeAlias
 
 import numpy as np
 import joblib

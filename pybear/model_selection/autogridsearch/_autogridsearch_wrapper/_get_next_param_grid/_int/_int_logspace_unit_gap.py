@@ -7,7 +7,8 @@
 
 
 import sys
-from typing import Union, TypeAlias
+from typing import Union
+from typing_extensions import TypeAlias
 from pybear.utilities._get_module_name import get_module_name
 from ..._get_next_param_grid._validation._validate_int_float_linlogspace import \
     _validate_int_float_linlogspace

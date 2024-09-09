@@ -17,7 +17,8 @@ import numpy as np
 # --- IF LINEAR GAP == 1, CANT DRILL ANY DEEPER
 
 
-from typing import Union, TypeAlias
+from typing import Union
+from typing_extensions import TypeAlias
 from ._int_linspace_unit_gap import _int_linspace_unit_gap
 from ._int_linspace_gap_gt_1 import _int_linspace_gap_gt_1
 from ._int_logspace_unit_gap import _int_logspace_unit_gap

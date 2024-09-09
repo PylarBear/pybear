@@ -5,7 +5,8 @@
 #
 
 
-from typing import Union, TypeAlias
+from typing import Union
+from typing_extensions import TypeAlias
 import numpy as np
 from ._int_linspace_gap_gt_1_soft import _int_linspace_gap_gt_1_soft
 
