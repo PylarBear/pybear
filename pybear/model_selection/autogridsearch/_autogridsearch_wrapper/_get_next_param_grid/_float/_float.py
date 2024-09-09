@@ -5,7 +5,7 @@
 #
 
 
-from typing import Union
+from typing_extensions import Union
 from typing_extensions import TypeAlias
 from ._float_linspace import _float_linspace
 from ._float_logspace import _float_logspace

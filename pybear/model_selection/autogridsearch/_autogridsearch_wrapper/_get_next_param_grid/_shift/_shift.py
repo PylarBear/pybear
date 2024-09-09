@@ -6,7 +6,7 @@
 
 
 from copy import deepcopy
-from typing import Union
+from typing_extensions import Union
 import numpy as np
 
 from ..._type_aliases import GridsType, ParamsType, BestParamsType

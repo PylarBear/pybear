@@ -6,7 +6,7 @@
 
 
 
-from typing import Union
+from typing_extensions import Union
 from typing_extensions import TypeAlias
 import numpy as np
 from ._int_logspace_gap_gt_1_soft import _int_logspace_gap_gt_1_soft

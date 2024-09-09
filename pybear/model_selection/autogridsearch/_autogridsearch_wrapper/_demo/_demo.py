@@ -5,7 +5,7 @@
 #
 
 
-from typing import Union
+from typing_extensions import Union
 from ._make_true_best import _make_true_best
 from ._validate_true_best import _validate_true_best
 from ._display_true_best import  _display_true_best

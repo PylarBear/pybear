@@ -5,7 +5,7 @@
 #
 
 import sys
-from typing import Union
+from typing_extensions import Union
 from typing_extensions import TypeAlias
 import numpy as np
 from pybear.utilities._get_module_name import get_module_name

@@ -5,7 +5,7 @@
 #
 
 
-from typing import Union
+from typing_extensions import Union
 
 from ....text import alphanumeric_str as ans
 

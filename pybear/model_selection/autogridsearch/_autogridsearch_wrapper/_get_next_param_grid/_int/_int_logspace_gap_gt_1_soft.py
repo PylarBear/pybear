@@ -7,7 +7,7 @@
 
 
 import numpy as np
-from typing import Union
+from typing_extensions import Union
 from typing_extensions import TypeAlias
 
 # see _type_aliases, subtype of DataType

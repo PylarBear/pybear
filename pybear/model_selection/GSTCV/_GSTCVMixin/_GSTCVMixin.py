@@ -5,7 +5,8 @@
 #
 
 
-from typing import Union, Iterable
+from typing import Iterable
+from typing_extensions import Union
 from copy import deepcopy
 import time
 from sklearn.base import BaseEstimator

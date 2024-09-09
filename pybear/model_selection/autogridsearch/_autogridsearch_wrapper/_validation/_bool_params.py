@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 #
 
-from typing import Union, Iterable
+from typing_extensions import Union, Iterable
 from typing_extensions import TypeAlias
 
 # see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType

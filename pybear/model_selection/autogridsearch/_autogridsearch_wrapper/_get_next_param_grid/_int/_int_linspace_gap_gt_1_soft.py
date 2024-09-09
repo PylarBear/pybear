@@ -5,7 +5,7 @@
 #
 
 
-from typing import Union
+from typing_extensions import Union
 from typing_extensions import TypeAlias
 
 # see _type_aliases; subtypes for DataType and GridType

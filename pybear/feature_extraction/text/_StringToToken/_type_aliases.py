@@ -5,7 +5,7 @@
 #
 
 
-from typing import Union, TypeAlias
+from typing_extensions import Union, TypeAlias
 
 import numpy as np
 import dask.array as da

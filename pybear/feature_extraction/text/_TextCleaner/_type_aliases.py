@@ -5,11 +5,9 @@
 #
 
 
-from typing import Iterable, Union, TypeAlias
+from typing_extensions import Union, TypeAlias
 
-import numpy as np
 import numpy.typing as npt
-
 
 OuterIterableType: TypeAlias = Union[npt.NDArray, list]
 DataType: TypeAlias = str

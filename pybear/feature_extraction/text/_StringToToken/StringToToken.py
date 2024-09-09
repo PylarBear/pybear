@@ -7,7 +7,8 @@
 
 import inspect
 import itertools
-from typing import TypeAlias, Union, Iterable
+from typing import Iterable
+from typing_extensions import TypeAlias, Union
 import numpy as np
 
 

@@ -5,7 +5,8 @@
 #
 
 
-from typing import Union, Literal
+from typing import Literal
+from typing_extensions import Union
 
 
 

@@ -8,7 +8,7 @@
 from .autogridsearch_wrapper import autogridsearch_wrapper
 from . import autogridsearch_docs
 
-from typing import Union
+from typing_extensions import Union
 import numpy.typing as npt
 
 from ..GSTCV._GSTCV.GSTCV import GSTCV

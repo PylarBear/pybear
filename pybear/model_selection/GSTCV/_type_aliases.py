@@ -6,8 +6,9 @@
 
 
 
-from typing import (TypeAlias, Union, Iterable, Literal, Callable, TypedDict,
+from typing import (TypeAlias, Iterable, Literal, Callable, TypedDict,
                     NotRequired, Protocol)
+from typing_extensions import Union
 
 import numpy as np
 import numpy.typing as npt

@@ -6,7 +6,8 @@
 
 
 
-from typing import Union, Literal, Iterable, Optional
+from typing import Literal, Iterable, Optional
+from typing_extensions import Union
 from contextlib import nullcontext
 from copy import deepcopy
 

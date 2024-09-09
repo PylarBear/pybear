@@ -5,7 +5,7 @@
 #
 
 
-from typing import Union
+from typing_extensions import Union
 from copy import deepcopy
 import warnings
 import numpy as np
