@@ -8,7 +8,7 @@
 from distributed import Client, get_client
 
 import contextlib
-from typing import Union
+from typing_extensions import Union
 from ....GSTCV._type_aliases import SchedulerType
 
 

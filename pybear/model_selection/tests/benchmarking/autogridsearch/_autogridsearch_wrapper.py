@@ -21,7 +21,7 @@
 
 from model_selection import autogridsearch_wrapper
 import numpy as np
-from typing import Union
+from typing_extensions import Union
 
 from sklearn.model_selection import GridSearchCV as skl_GridSearchCV
 from sklearn.datasets import make_regression, make_classification

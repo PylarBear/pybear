@@ -9,7 +9,7 @@ from ..autogridsearch.autogridsearch_wrapper import \
     autogridsearch_wrapper
 from ..autogridsearch import autogridsearch_docs
 
-from typing import Union
+from typing_extensions import Union
 import numpy.typing as npt
 
 from sklearn.model_selection import GridSearchCV

@@ -5,7 +5,8 @@
 #
 
 
-from typing import Union, Literal, Iterable
+from typing import Literal, Iterable
+from typing_extensions import Union
 import time
 from copy import deepcopy
 

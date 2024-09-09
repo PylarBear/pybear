@@ -5,7 +5,8 @@
 #
 
 
-from typing import Type, Union
+from typing import Type
+from typing_extensions import Union
 
 import numpy as np
 from numpy.typing import NDArray

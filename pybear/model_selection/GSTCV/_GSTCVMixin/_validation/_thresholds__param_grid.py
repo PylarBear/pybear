@@ -4,7 +4,8 @@
 # License: BSD 3 clause
 #
 
-from typing import Iterable, Union
+from typing import Iterable
+from typing_extensions import Union
 
 import numpy as np
 

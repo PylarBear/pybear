@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 #
 
-from typing import Union
+from typing_extensions import Union
 
 
 def _max_shifts(_max_shifts: Union[None, int]) -> Union[int, float]:
