@@ -13,7 +13,7 @@
 
 import pytest
 import warnings
-from typing import Union
+from typing_extensions import Union
 import numpy as np
 from copy import deepcopy
 

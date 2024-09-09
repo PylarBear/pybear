@@ -5,8 +5,8 @@
 #
 
 
-from typing import Union, Iterable
-from typing_extensions import TypeAlias
+from typing import Iterable
+from typing_extensions import Union, TypeAlias
 from ._type_aliases import DataType
 
 import numpy as np
