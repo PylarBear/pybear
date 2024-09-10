@@ -11,11 +11,25 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-        exclude:
-          # excludes 3.12 on macOS, failing for build issues 24_09_10_13_22_00
-          - os: macos-latest
-            python-version: '3.12'
+        # exclude:
+        #   # excludes 3.12 on macOS, failing for build issues 24_09_10_13_22_00
+        #   - os: macos-latest
+        #     python-version: '3.12'
+        
     steps:
+    - name: Install LLVM (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y llvm
+
+    - name: Install LLVM (macOS only)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install llvm
+        echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
+        echo "/usr/local/opt/llvm/lib" >> $GITHUB_LD_LIBRARY_PATH
+
     - name: Checkout code
       uses: actions/checkout@v3
 
