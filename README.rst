@@ -23,7 +23,7 @@ PyBear
 .. |DaskMLMinVersion| replace:: X.X.X
 .. |DistributedMinVersion| replace:: X.X.X
 .. |JoblibMinVersion| replace:: X.X.X
-.. |NumpyMinVersion| replace:: X.X.X
+.. |NumpyMinVersion| replace:: 1.26.0
 .. |PandasMinVersion| replace:: X.X.X
 .. |ScikitLearnMinVersion| replace:: X.X.X
 
