@@ -37,7 +37,7 @@ notebook = "*"
 pyarrow = "^17.0.0"
 bokeh = "*"
 graphviz = "*"
-docutils = "0.21.2"
+docutils = "^0.20"
 
 
 [tool.poetry.group.test.dependencies]
