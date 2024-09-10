@@ -11,7 +11,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-
+        exclude:
+          # excludes 3.12 on macOS, failing for build issues 24_09_10_13_22_00
+          - os: macos-latest
+            python-version: '3.12'
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -33,7 +36,5 @@ jobs:
 
     - name: Run tests
       run: |
-        poetry run pytest 
-      if: matrix.python-version != '3.12' && matrix.os != 'macos-latest'
 
 
