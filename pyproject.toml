@@ -20,12 +20,12 @@ include = ["LICENSE"]
 
 [tool.poetry.dependencies]
 # These packages are mandatory and form the core of this package’s distribution.
-python = "^3.9"
+python = "^3.9, <4.0"
 dask = "*"
 dask-ml = "*"
 distributed = "*"
 joblib = "*"
-numpy = "1.26.1"
+numpy = "1.26.0"
 pandas = "*"
 scikit-learn = "*"
 typing_extensions = "*"
