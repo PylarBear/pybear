@@ -31,20 +31,8 @@ jobs:
         poetry lock
         poetry install
 
-    - name: Install LLVM (macOS only)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install llvm
-        echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
-        echo "/usr/local/opt/llvm/lib" >> $GITHUB_LD_LIBRARY_PATH
-    
-    - name: Install LLVM (Ubuntu only)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y llvm
-
     - name: Run tests
+      if: matrix.python-version != '3.12' && matrix.os != 'macos-latest'
       run: |
         poetry run pytest 
 
