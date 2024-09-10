@@ -32,7 +32,7 @@ PyBear
 
 Cool, but not frozen, packages to augment your Python data analytics experience.
 
-pybear is a python computing library for data analytics meant to augment 
+pybear is a Python computing library for data analytics meant to augment 
 functionality found in the popular numpy, scikit-learn, dask, and dask_ml libraries.
 
 See documentation_ for more information.
@@ -63,9 +63,9 @@ pybear requires:
 - pandas (>= |PandasMinVersion|)
 - scikit-learn (>= |ScikitLearnMinVersion|)
 
-pybear 0.1 requires Python 3.9 or newer.
-pybear is not tested on earlier versions, but some features may work.
-
+pybear 0.1 is tested via GitHub Actions to run on Linux, Windows, and 
+MacOS, with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not 
+tested on earlier versions, but some features may work.
 
 User installation
 ~~~~~~~~~~~~~~~~~
@@ -89,7 +89,8 @@ Key class: AutoGridSearchCV
 
 AutoGridSearchCVDask
 ~~~~~~~~~~~~~~~~~~~~
-Description: Perform multiple uninterrupted passes of grid search with dask_ml  GridSearchCV and dask objects utilizing progressively narrower search grids.
+Description: Perform multiple uninterrupted passes of grid search with dask_ml 
+GridSearchCV and dask objects utilizing progressively narrower search grids.
 Key class: AutoGridSearchCVDask
 
 autogridsearch_wrapper

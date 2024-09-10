@@ -6,13 +6,14 @@
 
 import joblib
 import numpy as np
+import numpy.typing as npt
 from .._type_aliases import DataType
 
 
 
 @joblib.wrap_non_picklable_objects
 def _dtype_unqs_cts_processing(
-        _column_of_X: np.ndarray[DataType],
+        _column_of_X: npt.NDArray[DataType],
         col_idx: int,
         ignore_float_columns: bool,
         ignore_non_binary_integer_columns: bool
