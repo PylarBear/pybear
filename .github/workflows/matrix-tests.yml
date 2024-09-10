@@ -17,11 +17,11 @@ jobs:
             python-version: '3.12'
         
     steps:
-    # - name: Install LLVM (Ubuntu only)
-    #   if: matrix.os == 'ubuntu-latest'
-    #   run: |
-    #     sudo apt-get update
-    #     sudo apt-get install -y llvm
+    - name: Install LLVM (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y llvm
 
     - name: Checkout code
       uses: actions/checkout@v3
