@@ -4,16 +4,16 @@
 # License: BSD 3 clause
 #
 
-from typing_extensions import Union
+from typing_extensions import Union, Literal
 from ..._type_aliases import DataType
-import numpy as np
+
 
 
 def _two_uniques_hab(
     _instr_list: list,
     _threshold: int,
-    _nan_key: Union[float, str, False],
-    _nan_ct: Union[int, False],
+    _nan_key: Union[float, str, Literal[False]],
+    _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
     _delete_axis_0: bool
     ) -> list[Union[str, DataType]]:
@@ -53,8 +53,8 @@ def _two_uniques_hab(
     ----------
     _instr_list: list, should be empty
     _threshold: int
-    _nan_key: Union[float, str, False]
-    _nan_ct: Union[int, False]
+    _nan_key: Union[float, str, Literal[False]]
+    _nan_ct: Union[int, Literal[False]]
     _COLUMN_UNQ_CT_DICT: dict[DataType, int], cannot be empty
     _delete_axis_0: bool
 

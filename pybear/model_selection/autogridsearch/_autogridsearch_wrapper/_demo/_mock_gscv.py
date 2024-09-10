@@ -5,8 +5,7 @@
 #
 
 import time
-from typing_extensions import Union
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, Union
 
 import numpy as np
 

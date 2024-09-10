@@ -5,7 +5,7 @@
 #
 
 
-from typing_extensions import Union
+from typing_extensions import Union, Literal
 from ..._type_aliases import DataType
 
 
@@ -14,8 +14,8 @@ from ..._type_aliases import DataType
 def _one_unique(
     _instr_list: list,
     _threshold: int,
-    _nan_key: Union[float, str, False],
-    _nan_ct: Union[int, False],
+    _nan_key: Union[float, str, Literal[False]],
+    _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
     ) -> list[Union[str, DataType]]:
 
@@ -36,8 +36,8 @@ def _one_unique(
     ----------
     _instr_list: list, should be empty
     _threshold: int
-    _nan_key: Union[float, str, False]
-    _nan_ct: Union[int, False]
+    _nan_key: Union[float, str, Literal[False]]
+    _nan_ct: Union[int, Literal[False]]
     _COLUMN_UNQ_CT_DICT: dict[DataType, int], cannot be empty
 
     Return

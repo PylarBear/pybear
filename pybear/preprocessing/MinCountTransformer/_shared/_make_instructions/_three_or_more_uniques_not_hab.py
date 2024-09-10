@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 #
 
-from typing_extensions import Union
+from typing_extensions import Union, Literal
 from ..._type_aliases import DataType
 
 import numpy as np
@@ -14,8 +14,8 @@ import numpy as np
 def _three_or_more_uniques_not_hab(
         _instr_list: list,
         _threshold: int,
-        _nan_key: Union[float, str, False],
-        _nan_ct: Union[int,  False],
+        _nan_key: Union[float, str, Literal[False]],
+        _nan_ct: Union[int,  Literal[False]],
         _COLUMN_UNQ_CT_DICT: dict[DataType, int],
     ) -> list[Union[str, DataType]]:
 
@@ -40,8 +40,8 @@ def _three_or_more_uniques_not_hab(
     ----------
     _instr_list: list, should be empty
     _threshold: int
-    _nan_key: Union[float, str, False]
-    _nan_ct: Union[int,  False]
+    _nan_key: Union[float, str, Literal[False]]
+    _nan_ct: Union[int,  Literal[False]]
     _COLUMN_UNQ_CT_DICT: dict[DataType, int], cannot be empty
 
     Return

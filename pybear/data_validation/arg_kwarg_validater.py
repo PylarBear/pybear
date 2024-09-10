@@ -11,12 +11,12 @@ import numpy as np
 
 
 def arg_kwarg_validater(
-        arg: any,
-        name: str,
-        allowed: Iterable[any],
-        module: str,
-        function: str,
-        return_if_none: any=None
+    arg: any,
+    name: str,
+    allowed: Iterable[any],
+    module: str,
+    function: str,
+    return_if_none: any=None
 ) -> any:
 
     """ Validate a parameter, param: arg, against allowable entries as

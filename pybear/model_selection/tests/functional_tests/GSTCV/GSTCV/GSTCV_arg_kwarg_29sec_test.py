@@ -545,20 +545,16 @@ class TestGSTCVInput:
     # refit: Optional[RefitType]=True,
 
 
-    @staticmethod
-    def one_scorer():
-        return {'accuracy': accuracy_score}
+    one_scorer = {'accuracy': accuracy_score}
 
 
-    @staticmethod
-    def two_scorers():
-        return {
-                'accuracy': accuracy_score,
-                'balanced_accuracy': balanced_accuracy_score
-        }
+    two_scorers = {
+        'accuracy': accuracy_score,
+        'balanced_accuracy': balanced_accuracy_score
+    }
 
 
-    @pytest.mark.parametrize('n_scorers', (one_scorer(), two_scorers()))
+    @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
     @pytest.mark.parametrize('junk_refit',
         (0, 1, 3.14, [0,1], (0,1), {0,1}, {'a':1})
     )
@@ -567,7 +563,7 @@ class TestGSTCVInput:
             _GSTCV.set_params(refit=junk_refit, scoring=n_scorers).fit(X_np, y_np)
 
 
-    @pytest.mark.parametrize('n_scorers', (one_scorer(), two_scorers()))
+    @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
     @pytest.mark.parametrize('_callable',
         (lambda X: 0, lambda X: len(X['params']) - 1)
     )
@@ -581,7 +577,7 @@ class TestGSTCVInput:
         assert _GSTCV.get_params(deep=True)['refit'] == _callable
 
 
-    @pytest.mark.parametrize('n_scorers', (one_scorer(), two_scorers()))
+    @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
     @pytest.mark.parametrize('_refit', (None, False))
     def test_refit_accepts_None_and_False(
         self, _GSTCV, n_scorers, _refit, X_np, y_np
@@ -619,7 +615,7 @@ class TestGSTCVInput:
             assert _GSTCV.get_params(deep=True)['refit'] is None
 
 
-    @pytest.mark.parametrize('n_scorers', (one_scorer(),))
+    @pytest.mark.parametrize('n_scorers', (one_scorer,))
     def test_refit_single_accepts_true(self, _GSTCV, n_scorers, X_np, y_np):
 
         kwargs = {'refit': True, 'scoring': n_scorers}
@@ -632,7 +628,7 @@ class TestGSTCVInput:
         assert _GSTCV.get_params(deep=True)['refit'] is True
 
 
-    @pytest.mark.parametrize('n_scorers', (two_scorers(),))
+    @pytest.mark.parametrize('n_scorers', (two_scorers,))
     def test_refit_multi_rejects_true(self, _GSTCV, n_scorers, X_np, y_np):
 
         kwargs = {'refit': True, 'scoring': n_scorers}
@@ -641,7 +637,7 @@ class TestGSTCVInput:
             assert _GSTCV.set_params(**kwargs).fit(X_np, y_np)
 
 
-    @pytest.mark.parametrize('n_scorers', (one_scorer(), two_scorers()))
+    @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
     @pytest.mark.parametrize('junk_string', ('trash', 'garbage', 'junk'))
     def test_refit_rejects_junk_strings(
         self, _GSTCV, n_scorers, junk_string, X_np, y_np
@@ -653,7 +649,7 @@ class TestGSTCVInput:
             assert _GSTCV.set_params(**kwargs).fit(X_np, y_np)
 
 
-    @pytest.mark.parametrize('n_scorers', (two_scorers(),))
+    @pytest.mark.parametrize('n_scorers', (two_scorers,))
     def test_refit_accepts_good_strings(self, _GSTCV, n_scorers, X_np, y_np):
 
         data = (X_np, y_np)
