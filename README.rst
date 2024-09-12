@@ -1,16 +1,17 @@
 PyBear
 ======
 
-|Build Status| |Doc Status| |Version Status| |PyPi|
+|Build Status| |Test Status| |Doc Status| |PyPI Downloads| |Version Status| |PyPi|
 
 .. |Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml
+.. |Test Status| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests.yml
 .. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
    :target: //pybear.readthedocs.io/
    :alt: Documentation Status
-.. |Discourse| image:: https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fpybear.discourse.group
-   :alt: Discuss pybear-related things and ask for help
-   :target: https://github.com/PylarBear/pybear/discussions
+.. |PyPI Downloads| image:: https://img.shields.io/pypi/dm/pybear.svg?label=PyPI%20downloads
+   :target: https://pypi.org/project/pybear/
 .. |Version Status| image:: https://img.shields.io/pypi/v/pybear.svg
    :target: https://pypi.python.org/pypi/pybear/
 .. |PyPi| image:: https://img.shields.io/pypi/v/pybear
