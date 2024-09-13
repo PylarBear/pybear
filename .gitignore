@@ -1,4 +1,7 @@
 .idea/
 .ipynb_checkpoints/
 __pycache__/
-_venv/
+.pytest_cache/
+
+
+

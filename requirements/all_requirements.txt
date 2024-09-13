@@ -1,3 +1,0 @@
--r project_requirements.txt
--r dev_requirements.txt
--r test_requirements.txt
