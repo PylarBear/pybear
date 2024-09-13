@@ -1,0 +1,40 @@
+
+
+
+#                                       # ARGS                          # KWARGS
+# sklearn.model_selection
+# --- GridSearchCV                estimator, param_grid              scoring, n_jobs, cv, refit, verbose, +others
+# --- RandomizedSearchCV          estimator, param_distributions     scoring, n_jobs, cv, refit, verbose, +others
+# --- HalvingGridSearchCV         estimator, param_grid              scoring, n_jobs, cv, refit, verbose, +others
+# --- HalvingRandomSearchCV       estimator, param_distributions     scoring, n_jobs, cv, refit, verbose, +others
+
+# dask_ml.model_selection
+# --- GridSearchCV                estimator, param_grid              scoring, n_jobs, cv, refit, +others
+# --- RandomizedSearchCV          estimator, param_distributions     scoring, n_jobs, cv, refit, +others
+# --- IncrementalSearchCV         estimator, parameters              scoring, +others
+# --- HyperbandSearchCV           estimator, parameters              scoring, +others
+# --- SuccessiveHalvingSearchCV   estimator, parameters              scoring, +others
+# --- InverseDecaySearchCV        estimator, parameters              scoring, +others
+
+# other
+# --- GridSearchCVThreshold       estimator, param_grid              scoring, n_jobs, cv, refit, verbose, +others
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
