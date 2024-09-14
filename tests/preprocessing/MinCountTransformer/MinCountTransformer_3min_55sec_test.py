@@ -29,7 +29,7 @@ bypass = False
 
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-# SET X, y DIMENSIONS AND DEFAULT THRESHOLD (_args) FOR TESTING MinCountTransformer
+# SET X, y DIMENSIONS AND DEFAULT THRESHOLD (_args) FOR TESTING MCT
 
 @pytest.fixture(scope='session')
 def _mct_rows():
@@ -60,7 +60,7 @@ def y_cols():
     return 2
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def _args(_mct_rows):
     return [_mct_rows // 20]
 
@@ -79,7 +79,7 @@ def _kwargs():
         'n_jobs': -1
     }
 
-# END SET X, y DIMENSIONS AND DEFAULT THRESHOLD (_args) FOR TESTING MinCountTransformer
+# END SET X, y DIMENSIONS AND DEFAULT THRESHOLD (_args) FOR TESTING MCT
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
@@ -90,18 +90,214 @@ def _kwargs():
 # build_test_objects_for_MCT builds this objects in one shot in conftest
 
 @pytest.fixture(scope='function')
+def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
+
+    # This constructs a test array "X" of randomly filled vectors that
+    # have certain criteria like a certain number of certain types of
+    # columns, certain amounts of uniques, certain proportions of uniques,
+    # to make X manipulable with certain outcomes across all tests. The
+    # vectors are filled randomly and may not always be generated with
+    # the expected characteristics in one shot, so this iterates over and
+    # over until vectors are created that pass certain tests done on them
+    # by mmct.
+
+    ctr = 0
+    while True:  # LOOP UNTIL DATA IS SUFFICIENT TO BE USED FOR ALL THE TESTS
+
+        ctr += 1
+        _tries = 10
+        if ctr >= _tries:
+            raise Exception(
+                f"\033[91mMinCountThreshold failed at {_tries} attempts "
+                f"to generate an appropriate X for test\033[0m")
+
+        # vvv CORE TEST DATA vvv *************************
+        # CREATE _mct_cols COLUMNS OF BINARY INTEGERS
+        _X = np.random.randint(0, 2, (_mct_rows, _mct_cols)).astype(object)
+        # CREATE _mct_cols COLUMNS OF NON-BINARY INTEGERS
+        _X = np.hstack((
+            _X, np.random.randint(
+                0, _mct_rows // 15, (_mct_rows, _mct_cols)
+            ).astype(object)
+        ))
+        # CREATE _mct_cols COLUMNS OF FLOATS
+        _X = np.hstack((
+            _X, np.random.uniform(0, 1, (_mct_rows, _mct_cols)).astype(object)
+        ))
+        # CREATE _mct_cols COLUMNS OF STRS
+        _alpha = 'abcdefghijklmnopqrstuvwxyz'
+        _alpha = _alpha + _alpha.upper()
+        for _ in range(_mct_cols):
+            _X = np.hstack((_X,
+                np.random.choice(
+                    list(_alpha[:_mct_rows // 10]),
+                    (_mct_rows,),
+                    replace=True
+                ).astype(object).reshape((-1, 1))
+            ))
+        # END ^^^ CORE TEST DATA ^^^ *************************
+
+        # CREATE A COLUMN OF STRS THAT WILL ALWAYS BE DELETED BY FIRST RECURSION
+        DUM_STR_COL = np.fromiter(('dum' for _ in range(_mct_rows)), dtype='<U3')
+        DUM_STR_COL[0] = 'one'
+        DUM_STR_COL[1] = 'two'
+        DUM_STR_COL[2] = 'six'
+        DUM_STR_COL[3] = 'ten'
+
+        _X = np.hstack((_X, DUM_STR_COL.reshape((-1, 1)).astype(object)))
+        del DUM_STR_COL
+
+        # _X SHAPE SHOULD BE (x_rows, 4 * x_cols + 1)
+        x_rows = _mct_rows
+        x_cols = 4 * _mct_cols + 1
+
+        _DTYPE_KEY = [k for k in ['int', 'int', 'float', 'obj'] for j in
+                      range(_mct_cols)]
+        _DTYPE_KEY += ['obj']
+
+        # KEEP THIS FOR TESTING IF DTYPES RETRIEVED CORRECTLY WITH np.nan MIXED IN
+        _NO_NAN_X = _X.copy()
+
+        # FLOAT/STR ONLY --- NO_NAN_X MUST BE REDUCED WHEN STR COLUMNS ARE
+        # TRANSFORMED
+        FLOAT_STR_X = _NO_NAN_X[:, 2 * _mct_cols:4 * _mct_cols].copy()
+        # mmct() args = MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_flt_col,
+        # ignore_non_binary_int_col, handle_as_bool, delete_axis_0, ct_thresh
+        _X1 = mmct().trfm(_X, None, None, True, True, True, None, True, *_args)
+        if np.array_equiv(_X1, FLOAT_STR_X):
+            del _X1
+            continue
+        del _X1
+
+        del FLOAT_STR_X
+
+        # PEPPER 10% OF CORE DATA WITH np.nan
+        for _ in range(x_rows * x_cols // 10):
+            row_coor = np.random.randint(0, x_rows)
+            col_coor = np.random.randint(0, x_cols - 1)
+            if col_coor < 3 * _mct_cols:
+                _X[row_coor, col_coor] = np.nan
+            elif col_coor >= 3 * _mct_cols:
+                _X[row_coor, col_coor] = 'nan'
+        del row_coor, col_coor
+
+        # MAKE EVERY CORE COLUMN HAVE 2 VALUES THAT CT FAR EXCEEDS
+        # count_threshold SO DOESNT ALLOW FULL DELETE
+        _repl = x_rows // 3
+        _get_idxs = lambda: np.random.choice(range(x_rows), _repl, replace=False)
+        # 24_06_05_13_16_00 the assignments here cannot be considated using
+        # lambda functions - X is being passed to mmct and it is saying cannot
+        # pickle
+        for idx in range(_mct_cols):
+            _X[_get_idxs(), _mct_cols + idx] = \
+                int(np.random.randint(0, x_rows // 20) + idx)
+            _X[_get_idxs(), _mct_cols + idx] = \
+                int(np.random.randint(0, x_rows // 20) + idx)
+            _X[_get_idxs(), 2 * _mct_cols + idx] = np.random.uniform(0, 1) + idx
+            _X[_get_idxs(), 2 * _mct_cols + idx] = np.random.uniform(0, 1) + idx
+            _X[_get_idxs(), 3 * _mct_cols + idx] = _alpha[:x_rows // 15][idx]
+            _X[_get_idxs(), 3 * _mct_cols + idx] = _alpha[:x_rows // 15][idx + 1]
+
+        del idx, _repl, _alpha
+
+        # VERIFY ONE RECURSION OF mmct DELETED THE SACRIFICIAL LAST COLUMN
+        # (CORE COLUMNS ARE RIGGED TO NOT BE DELETED)
+        # MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_non_binary_int_col,
+        # ignore_flt_col, handle_as_bool, delete_axis_0, ct_thresh
+        _X1 = mmct().trfm(_X, None, None, False, False, False, None, True, *_args)
+        assert not np.array_equiv(_X1[:, -1], _X[:, -1]), \
+            "Mock MinCountTransformer did not delete last column"
+
+        if len(_X1.shape) != 2 or 0 in _X1.shape:
+            # IF ONE RECURSION DELETES EVERYTHING, BUILD NEW X
+            continue
+        elif np.array_equiv(_X1[:, :-1], _X[:, :-1]):
+            # IF ONE RECURSION DOESNT DELETE ANY ROWS OF THE CORE COLUMNS,
+            # BUILD NEW X
+            continue
+
+        # IF NUM OF RIGGED IDENTICAL NUMBERS IN ANY FLT COLUMN < THRESHOLD,
+        # BUILD NEW X
+        for flt_col_idx in range(2 * _mct_cols, 3 * _mct_cols, 1):
+            _max_ct = np.unique(
+                _X[:, flt_col_idx], return_counts=True
+            )[1].max(axis=0)
+            if _max_ct < _args[0]:
+                continue
+        del _max_ct
+
+        # TRFM OF NON-BINARY INTEGER COLUMNS MUST NOT DELETE EVERYTHING,
+        # BUT MUST DELETE SOMETHING
+        try:
+            _X1 = mmct().trfm(
+                _X[:, _mct_cols:(2 * _mct_cols)].copy(),
+                None,
+                None,
+                True,
+                False,
+                True,
+                False,
+                False,
+                *_args
+            )
+            # MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_non_binary_int_col,
+            # ignore_flt_col, handle_as_bool, delete_axis_0, ct_thresh
+            if np.array_equiv(_X1, _X[:, _mct_cols:(2 * _mct_cols)].copy()):
+                continue
+        except:
+            continue
+
+        try_again = False
+        # IF ALL CTS OF EVERY STR UNIQUE IS >= THRESHOLD, BUILD NEW X
+        for str_col_idx in range(x_cols - 1, x_cols - _mct_cols - 1, -1):
+            _min_ct = min(np.unique(_X[:, str_col_idx], return_counts=True)[1])
+            if _min_ct >= _args[0]:
+                try_again = True
+                break
+        if try_again:
+            continue
+        del _min_ct
+
+        # IF X CANNOT TAKE 2 RECURSIONS WITH THRESHOLD==3, BUILD NEW X
+        try_again = False
+        _X1 = mmct().trfm(_X, None, None, False, False, False, False, True, 3)
+        # MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_non_binary_int_col,
+        # ignore_flt_col, handle_as_bool, delete_axis_0, ct_thresh
+        try:
+            # THIS SHOULD EXCEPT IF ALL ROWS/COLUMNS WOULD BE DELETED
+            _X2 = mmct().trfm(_X1, None, None, False, False, False, False, True, 3)
+            # SECOND RECURSION SHOULD ALSO DELETE SOMETHING, BUT NOT EVERYTHING
+            if np.array_equiv(_X1, _X2):
+                try_again = True
+        except:
+            try_again = True
+
+        if try_again:
+            continue
+
+        del try_again, _X1, _X2
+
+        # IF X PASSED ALL THESE PRE-CONDITION TESTS, IT IS GOOD TO USE FOR TEST
+        break
+
+    # IF X PASSED ALL THESE PRE-CONDITION TESTS, IT IS GOOD TO USE FOR TEST
+
+    return _X, _NO_NAN_X, _DTYPE_KEY, x_rows, x_cols
+
+
+@pytest.fixture(scope='function')
 def X(build_test_objects_for_MCT):
-    return build_test_objects_for_MCT[0].copy()
+    return build_test_objects_for_MCT[0]
 
 
 @pytest.fixture(scope='function')
 def NO_NAN_X(build_test_objects_for_MCT):
-    return build_test_objects_for_MCT[1].copy()
+    return build_test_objects_for_MCT[1]
 
 
 @pytest.fixture(scope='function')
 def DTYPE_KEY(build_test_objects_for_MCT):
-    return build_test_objects_for_MCT[2].copy()
+    return build_test_objects_for_MCT[2]
 
 
 @pytest.fixture(scope='function')
@@ -132,11 +328,15 @@ def y(y_rows, y_cols):
 # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
 # TEST FOR EXCEPTS ON NON-BOOL _ignore_float_columns,
 # _ignore_non_binary_integer_columns, _ignore_nan, _delete_axis_0,
 # reject_unseen_values ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestBoolKwargsAcceptBoolRejectNonBool:
 
@@ -146,7 +346,8 @@ class TestBoolKwargsAcceptBoolRejectNonBool:
     @pytest.mark.parametrize('ign_nan', [True, False])
     @pytest.mark.parametrize('rej_unseen', [True, False])
     def test_bool_kwargs_accept_bool(self, X, y, _args, _kwargs, ign_float,
-        ign_bin_int, del_ax_0, ign_nan, rej_unseen):
+        ign_bin_int, del_ax_0, ign_nan, rej_unseen
+    ):
 
         _kwargs['ignore_float_columns'] = ign_float
         _kwargs['ignore_non_binary_integer_columns'] = ign_bin_int
@@ -407,7 +608,9 @@ class TestIgnoreColumnsHandleAsBool:
          np.nan, [np.nan], {0: 'a', 1: 'b'}, [1000, 1001, 1002]
          )
     )
-    @pytest.mark.parametrize('_kwarg', ('ignore_columns', 'handle_as_bool', 'both'))
+    @pytest.mark.parametrize('_kwarg',
+        ('ignore_columns', 'handle_as_bool', 'both')
+    )
     def test_rec_arrays_and_masked_arrays(self, input_format, kwarg_input,
         _kwarg, x_rows, x_cols, X, COLUMNS, _y, _args, _kwargs
     ):
@@ -523,7 +726,9 @@ class TestIgnoreColumnsHandleAsBool:
             X_NEW = pd.DataFrame(data=X, columns=COLUMNS, dtype=object)
             y_NEW = pd.DataFrame(data=_y, columns=['y'], dtype=object)
         elif input_format == 'pd_series':
-            X_NEW = pd.Series(data=X[:, _mct_cols], name=COLUMNS[0], dtype=np.float64)
+            X_NEW = pd.Series(
+                data=X[:, _mct_cols], name=COLUMNS[0], dtype=np.float64
+            )
             y_NEW = pd.Series(data=_y, name='y', dtype=object)
 
         with pytest.raises(ValueError):
@@ -562,7 +767,9 @@ class TestIgnoreColumnsHandleAsBool:
             X_NEW = pd.DataFrame(data=X, columns=COLUMNS, dtype=object)
             y_NEW = pd.DataFrame(data=_y, columns=['y'], dtype=object)
         elif input_format == 'pd_series':
-            X_NEW = pd.Series(data=X[:, _mct_cols], name=COLUMNS[0], dtype=np.float64)
+            X_NEW = pd.Series(
+                data=X[:, _mct_cols], name=COLUMNS[0], dtype=np.float64
+            )
             y_NEW = pd.Series(data=_y, name='y', dtype=object)
 
         _is_series = len(X_NEW.shape) == 1
@@ -573,19 +780,19 @@ class TestIgnoreColumnsHandleAsBool:
                     COLUMNS[:1] if _is_series else [COLUMNS[_] for _ in [2,4,6]]
             elif kwarg_input == 'good_callable':
                 _kwargs['ignore_columns'] = \
-                    lambda X: [0] if _is_series else list(range(3 * _mct_cols, x_cols))
+                    lambda X: [0] if _is_series else list(range(3*_mct_cols, x_cols))
             else:
                 _kwargs['ignore_columns'] = kwarg_input
             _kwargs['handle_as_bool'] = None
         elif _kwarg == 'handle_as_bool':
             if kwarg_input == 'get_from_COLUMNS':
-                NON_BIN_INT_COLS = [COLUMNS[_] for _ in range(_mct_cols, 2 * _mct_cols)]
+                NON_BIN_INT_COLS = [COLUMNS[_] for _ in range(_mct_cols, 2*_mct_cols)]
                 _kwargs['handle_as_bool'] = \
                     COLUMNS[:1] if _is_series else NON_BIN_INT_COLS
                 del NON_BIN_INT_COLS
             elif kwarg_input == 'good_callable':
                 _kwargs['handle_as_bool'] = \
-                    lambda X: [0] if _is_series else list(range(_mct_cols, 2 * _mct_cols))
+                    lambda X: [0] if _is_series else list(range(_mct_cols, 2*_mct_cols))
             else:
                 _kwargs['handle_as_bool'] = kwarg_input
             _kwargs['ignore_columns'] = None
@@ -601,7 +808,7 @@ class TestIgnoreColumnsHandleAsBool:
                 _kwargs['ignore_columns'] = \
                     lambda X: [0] if _is_series else list(range(3 * _mct_cols, x_cols))
                 _kwargs['handle_as_bool'] = \
-                    lambda X: [0] if _is_series else list(range(_mct_cols, 2 * _mct_cols))
+                    lambda X: [0] if _is_series else list(range(_mct_cols, 2*_mct_cols))
             else:
                 _kwargs['ignore_columns'] = kwarg_input
                 _kwargs['handle_as_bool'] = kwarg_input
@@ -1034,8 +1241,8 @@ class TestExceptsOnBadXShapes:
 
 
     del FIRST_FIT_X_DTYPE, SECOND_FIT_X_DTYPE, SECOND_FIT_X_SAME_DIFF_COLUMNS,
-    del SECOND_FIT_X_SAME_DIFF_ROWS, TRANSFORM_X_DTYPE, TRANSFORM_X_SAME_DIFF_ROWS
-    del TRANSFORM_X_SAME_DIFF_COLUMNS
+    del SECOND_FIT_X_SAME_DIFF_ROWS, TRANSFORM_X_DTYPE
+    del TRANSFORM_X_SAME_DIFF_ROWS, TRANSFORM_X_SAME_DIFF_COLUMNS
 
 # END TEST FOR EXCEPTS ON BAD X SHAPES, ON SERIES & ARRAY ##############
 
@@ -1574,7 +1781,12 @@ class TestHandleAsBoolWorks:
         # TEST handle_as_bool CANNOT BE USED ON STR ('obj') COLUMNS
         # STR COLUMNS SHOULD BE [:, 3*_mct_cols:] ON ORIGINAL X
         # PICK ONE COLUMN IS STR; ONE EACH FROM BIN-INT, INT, AND FLOAT
-        for col_idx in [_mct_cols - 1, 2 * _mct_cols - 1, 3 * _mct_cols - 1, 3 * _mct_cols]:
+        for col_idx in [
+            _mct_cols - 1,
+            2 * _mct_cols - 1,
+            3 * _mct_cols - 1,
+            3 * _mct_cols
+        ]:
             _kwargs['handle_as_bool'] = [col_idx]
             TestCls = MinCountTransformer(*_args, **_kwargs)
             if col_idx in range(3 * _mct_cols, x_cols): # IF IS STR SHOULD RAISE
@@ -2124,14 +2336,11 @@ class TestAccuracy:
                 _kwargs['ignore_columns'] = new_ignore_columns
                 _kwargs['handle_as_bool'] = new_handle_as_bool
                 NewTestCls_2 = MinCountTransformer(*args,**_kwargs)
-                # vvvv pizza ****************************************
-                # ValueError: cannot use handle_as_bool on str/object columns --- column index(es) == 6, 7
                 NEW_TRFM_X, NEW_TRFM_Y = \
                     NewTestCls_2.fit_transform(NEW_TRFM_X, NEW_TRFM_Y)
-                # ^^^^^ ************************************************
 
                 # vvvv pizza ****************************************
-                # where <function array_equiv at 0x7e4609fe21f0> = np.array_equiv 2133: AssertionError
+                # where <function array_equiv> 2133: AssertionError
                 assert np.array_equiv(NEW_TRFM_X[mask_maker(NEW_TRFM_X)],
                     MOCK_X[mask_maker(MOCK_X)]), (f'{max_recursions}X PASSES '
                     f'THRU TestCls WITH max_recursions=1 FAILED')

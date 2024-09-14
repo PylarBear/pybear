@@ -155,7 +155,6 @@ def choice(
 
     psis = range(0, a.size, partition_size)  # partition_start_indices
 
-    # pizza added this 24_09_13_10_26_00 as a precaution, need to test
     @joblib.wrap_non_picklable_objects
     def _puller(subpartition_of_a, _size, pick_qty, replace):
 
@@ -279,7 +278,7 @@ class Sparse:
 
     Attributes
     ----------
-    SPARSE_ARRAY:
+    sparse_array_:
         ndarray of shape 'shape'.
 
 
@@ -293,7 +292,7 @@ class Sparse:
     --------
     >>> from pybear.new_numpy import random as pb_random
     >>> instance = pb_random.Sparse(0, 10, (3,3), 50, dtype=int8)
-    >>> sparse_array = instance.fit_transform()
+    >>> sparse_array = instance.sparse_array_
     >>> print(sparse_array) #doctest:+SKIP
     [[0 6 0]
      [8 8 0]
@@ -320,207 +319,10 @@ class Sparse:
         self._engine = engine
         self._dtype = dtype
 
-
-    def get_params(self, deep=True):
-
-        """
-        Get parameters for this instance.
-
-
-        Parameters
-        ----------
-        deep:
-            bool, default=True - ignored.
-
-
-        Returns
-        -------
-        -
-            params:
-                dict[str, any] - Parameter names mapped to their values.
-
-        """
-
-        return {
-            'minimum': self._min,
-            'maximum': self._max,
-            'shape': self._shape,
-            'sparsity': self._sparsity,
-            'engine': self._engine,
-            'dtype': self._dtype
-        }
-
-
-    def set_params(self, **params):
-
-        """
-        Set the parameters of this instance.
-
-
-        Parameters
-        ----------
-        params:
-            dict - Instance parameters.
-
-
-        Return
-        ------
-        -
-            self: Sparse instance - This instance.
-
-        """
-
-        if 'minimum' in params: self._min = params['minimum']
-        if 'maximum' in params: self._max = params['maximum']
-        if 'shape' in params: self._shape = params['shape']
-        if 'sparsity' in params: self._sparsity = params['sparsity']
-        if 'engine' in params: self._engine = params['engine']
-        if 'dtype' in params: self._dtype = params['dtype']
-
-        self._validation()
-
-        return self
-
-
-
-    def fit(self):
-
-        """
-        Performs _validation on the given parameters.
-
-
-        Parameters
-        --------
-        None
-
-
-        Returns
-        ------
-        -
-            self: Sparse instance - This instance.
-
-        """
-
-        self._validation()
-
-        return self
-
-
-    def transform(self):
-
-        """
-        Generate a numpy array with given size, sparsity, and dtype.
-
-        Parameters
-        --------
-        None
-
-
-        Return
-        -----
-        -
-            SPARSE_ARRAY: np.ndarray of shape 'shape'
-
-        """
-
-        if self._shape == 0:
-            self.SPARSE_ARRAY = array([], dtype=self._dtype)
-
-            return self.SPARSE_ARRAY
-
-        try:
-            if 0 in self._shape:
-                self.SPARSE_ARRAY = \
-                    array([], dtype=self._dtype).reshape(self._shape)
-                return self.SPARSE_ARRAY
-        except:
-            pass
-
-
-        if self._sparsity == 0:
-            self.SPARSE_ARRAY = self._make_base_array_with_no_zeros(
-                self._min,
-                self._max,
-                self._shape,
-                self._dtype
-            ).astype(self._dtype)
-            return self.SPARSE_ARRAY
-
-        if self._sparsity == 100:
-            self.SPARSE_ARRAY = zeros(self._shape, dtype=self._dtype)
-            return self.SPARSE_ARRAY
-
-        if self._engine == "choice":
-            self.SPARSE_ARRAY = self._choice()
-
-        elif self._engine == "filter":
-            self.SPARSE_ARRAY = self._filter()
-
-        elif self._engine == "serialized":
-            self.SPARSE_ARRAY = self._serialized()
-
-        elif self._engine == "iterative":
-            self.SPARSE_ARRAY = self._iterative()
-
-        elif self._engine == "default":
-
-            # IF total_size IS ABOVE 1e6, MAKE BY FILTER METHOD, IS MUCH FASTER
-            # THAN SERIALIZED OR ITERATIVE AND LAW OF AVERAGES SHOULD GET
-            # SPARSITY CLOSE ENOUGH. BUT WHEN SIZE IS SMALL, "FILTER" AND
-            # "CHOICE" HAVE A HARD TIME GETTING SPARSITY CLOSE ENOUGH, SO USE
-            # ITERATIVE.
-            if prod(self._shape) >= 1e6:
-                self.SPARSE_ARRAY = self._filter()
-            else:
-                self.SPARSE_ARRAY = self._iterative()
-        else:
-            raise AssertionError(f"logic managing engine selection failed")
-
-        return self.SPARSE_ARRAY
-
-
-
-    def fit_transform(self):
-
-        """
-        Fit and transform. Generate a numpy array with given size,
-        sparsity, and dtype.
-
-
-        Parameters
-        --------
-        None
-
-
-        Return
-        -----
-        -
-            SPARSE_ARRAY: np.ndarray of shape 'shape'
-
-        """
-
-        self.fit()
-
-        return self.transform()
-
-
-    def _validation(self):
-
-        """
-        Validate arguments to numpy.random.{randint, uniform}, and
-        other arguments.
-
-        """
-
         # VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         # dtype ** * ** * ** * ** * ** * ** * ** *
         # THIS MUST BE BEFORE _min & _max
-
-        # allowed_dtypes = \
-        #     [f'{_}{__}' for _ in ['uint', 'int', 'float'] for __ in
-        #      [16, 32, 64]] + ['uint8', 'int8', 'int', 'float']
-
         if not isinstance(self._dtype, type(int)):
             raise TypeError(f'dtype must be a valid py or numpy dtype')
         # dtype ** * ** * ** * ** * ** * ** * ** *
@@ -663,7 +465,58 @@ class Sparse:
         # END VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    def _make_base_array_with_no_zeros(self, _min, _max, _shape, _dtype):
+        if self._shape == 0:
+            self.sparse_array_ = array([], dtype=self._dtype)
+
+        try:
+            if 0 in self._shape:
+                self.sparse_array_ = \
+                    array([], dtype=self._dtype).reshape(self._shape)
+        except:
+            pass
+
+
+        if self._sparsity == 0:
+            self.sparse_array_ = self._make_base_array_with_no_zeros(
+                self._min,
+                self._max,
+                self._shape,
+                self._dtype
+            ).astype(self._dtype)
+
+        if self._sparsity == 100:
+            self.sparse_array_ = zeros(self._shape, dtype=self._dtype)
+
+        if self._engine == "choice":
+            self.sparse_array_ = self._choice()
+
+        elif self._engine == "filter":
+            self.sparse_array_ = self._filter()
+
+        elif self._engine == "serialized":
+            self.sparse_array_ = self._serialized()
+
+        elif self._engine == "iterative":
+            self.sparse_array_ = self._iterative()
+
+        elif self._engine == "default":
+
+            # IF total_size IS ABOVE 1e6, MAKE BY FILTER METHOD, IS MUCH FASTER
+            # THAN SERIALIZED OR ITERATIVE AND LAW OF AVERAGES SHOULD GET
+            # SPARSITY CLOSE ENOUGH. BUT WHEN SIZE IS SMALL, "FILTER" AND
+            # "CHOICE" HAVE A HARD TIME GETTING SPARSITY CLOSE ENOUGH, SO USE
+            # ITERATIVE.
+            if prod(self._shape) >= 1e6:
+                self.sparse_array_ = self._filter()
+            else:
+                self.sparse_array_ = self._iterative()
+        else:
+            raise AssertionError(f"logic managing engine selection failed")
+
+
+    def _make_base_array_with_no_zeros(
+        self, _min, _max, _shape, _dtype
+    ) -> npt.NDArray[Union[int, float]]:
 
         """
         Generate an array based on the given minimum, maximum, shape, and
@@ -673,6 +526,24 @@ class Sparse:
 
         Parameters
         ----------
+        _min:
+            int - the low end of the range of random numbers in the
+                fully-dense base array
+        _max:
+            int - the hign end of the range of random numbers in the
+                fully-dense base array
+        _shape:
+            tuple[int] - the shape of the final sparse array
+        _dtype:
+            the dtype of the final sparse array
+
+
+        Return
+        ------
+        -
+            BASE_ARRAY: npt.NDArray[Union[int, float]] - fully dense
+                numpy ndarray with minumum, maximum, shape, and dtype as
+                specified.
 
         """
 
@@ -748,7 +619,18 @@ class Sparse:
 
     def _choice(self):
         """Apply a mask of bools generated by random.choice to a 100%
-        dense array to achieve sparsity."""
+        dense array to achieve sparsity.
+
+        Return
+        ------
+        -
+            SPARSE_ARRAY:
+                npt.NDArray[Union[int, float]] - sparse array of
+                specified minimum & maximum (excluding zeros), shape and
+                dtype, made by applying a random.choice binary mask to a
+                fully dense array.
+
+        """
 
         #######################################################################
         # METHOD 1 "choice" - BUILD A FULL-SIZED MASK WITH SPARSE LOCATIONS
@@ -793,6 +675,16 @@ class Sparse:
         mask by applying a number filter. Generate a 100% dense array of
         ints or floats then apply the mask to it to achieve sparsity.
 
+
+        Return
+        ------
+        -
+            SPARSE_ARRAY:
+                npt.NDArray[Union[int, float]] - sparse array of
+                specified minimum & maximum (excluding zeros), shape and
+                dtype, made by applying a number filter mask to a fully
+                dense array.
+
         """
 
         #######################################################################
@@ -829,6 +721,14 @@ class Sparse:
         (or zeros) then map the values (or zeros) into a fully sparse
         (or dense) array.
 
+        Return
+        ------
+        -
+            SPARSE_ARRAY: npt.NDArray[Union[int, float]] - sparse array
+                of specified minimum & maximum (excluding zeros), shape
+                and dtype, made by building a vector of positions that
+                identify dense or sparse locations in the final array.
+
         """
 
         #######################################################################
@@ -848,12 +748,11 @@ class Sparse:
         # dense_size OR sparse_size, SAVES MEMORY & TIME
 
         # WHEN DENSE IS SMALLER OR _sparse_size == 0
-
-
         if self._dense_size == 0 and self._sparse_size == 0:
             return self._filter()
 
-        elif (self._sparse_size >= self._dense_size > 0) or self._sparse_size == 0:
+        elif (self._sparse_size >= self._dense_size > 0) \
+            or self._sparse_size == 0:
 
             SERIAL_DENSE_POSNS = choice(
                 range(self._total_size),
@@ -920,9 +819,18 @@ class Sparse:
         """Generate a serialized list of not-necessarily-unique indices
         and random values (or zeros) then map the values (or zeros) into
         a fully sparse (or dense) array, and repeat iteratively until the
-        desired sparsity is achieved. Same as _serialized except the
-        serialized list of indices are not necessarily unique and the
-        process is iterative."""
+        desired sparsity is achieved. Same as _serialized except these
+        indices are not necessarily unique and the process is iterative.
+
+        Return
+        ------
+        -
+            SPARSE_ARRAY: npt.NDArray[Union[int, float]] - sparse array
+                of specified minimum & maximum (excluding zeros), shape
+                and dtype, made by building a vector of positions that
+                identify dense or sparse locations in the final array.
+
+        """
 
         #######################################################################
         # METHOD 4 - "iterative"
@@ -1021,7 +929,6 @@ class Sparse:
 
             return SPARSE_ARRAY.astype(self._dtype)
 
-
         # END METHOD 4 ########################################################
         #######################################################################
 
@@ -1091,7 +998,7 @@ def sparse(
 
     return Sparse(
         minimum, maximum, shape, sparsity, "default", dtype
-    ).fit_transform()
+    ).sparse_array_
 
 
 

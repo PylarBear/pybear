@@ -34,7 +34,7 @@ from copy import deepcopy
 # correct controlled attributes at the time of construction in conftest,
 # do the tests formally here.
 
-
+# pizza
 def custom_assert(condition, msg=None):
     try:
         assert condition, msg
@@ -95,6 +95,11 @@ def MOCK_Y(_mmct_test_rows) -> npt.NDArray[int]:
     return np.random.randint(0, 2, _mmct_test_rows)
 
 
+@pytest.fixture(scope='function')
+def _args(_mct_rows):
+    return [_mct_rows // 20]
+
+
 @pytest.fixture(scope='module')
 def DEFAULT_ARGS(MOCK_X_STR, MOCK_Y, _mmct_test_thresh) -> dict[
     str, Union[np.ndarray, None, bool, int]
@@ -146,7 +151,8 @@ def test_verify_mmct_ignores_columns(MOCK_X_STR, _mmct_test_thresh, arg_setter):
         f"MOCK_TRFM did not ignore str column"
 
     out = arg_setter(
-        MOCK_X=MOCK_X_STR, ignore_columns=None, count_threshold=2 * _mmct_test_thresh
+        MOCK_X=MOCK_X_STR, ignore_columns=None,
+        count_threshold=2 * _mmct_test_thresh
     )[0]
     assert len(out) < len(MOCK_X_STR), \
         f"MOCK_TRFM ignored str column when it shouldnt"
@@ -195,7 +201,9 @@ def test_verify_unqs_cts_after_trfm_gte_threshold(arg_setter, MOCK_X_NBI,
     assert min_counts >= _mmct_test_thresh, f"str ct < thresh"
 
 
-def test_verify_delete_axis_0(MOCK_X_BIN, MOCK_X_FLT, arg_setter, _mmct_test_thresh):
+def test_verify_delete_axis_0(
+    MOCK_X_BIN, MOCK_X_FLT, arg_setter, _mmct_test_thresh
+):
 
     NEW_X = np.hstack((MOCK_X_BIN, MOCK_X_FLT))
     TRFM_X = arg_setter(
@@ -307,11 +315,6 @@ class TestHandleAsBool_1:
                     f'handle_as_bool test deleted rows'
 
 
-
-
-
-
-
 class TestIgnoreNan:
     # TEST ignore_nan
 
@@ -320,7 +323,8 @@ class TestIgnoreNan:
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_FLT(MOCK_X_FLT, _mmct_test_rows, _mmct_test_thresh):
         NEW_MOCK_X_FLT = MOCK_X_FLT.copy()
-        NAN_MASK = np.random.choice(_mmct_test_rows, _mmct_test_thresh - 1, replace=False)
+        NAN_MASK = \
+            np.random.choice(_mmct_test_rows, _mmct_test_thresh - 1, replace=False)
         NEW_MOCK_X_FLT[NAN_MASK] = np.nan
         return NEW_MOCK_X_FLT
 
@@ -359,8 +363,9 @@ class TestIgnoreNan:
         while True:
             NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
             NAN_MASK = np.zeros(_mmct_test_rows).astype(bool)
-            RANDOM_IDXS = \
-                np.random.choice(_mmct_test_rows, _mmct_test_thresh // 2 - 1, replace=False)
+            RANDOM_IDXS = np.random.choice(
+                _mmct_test_rows, _mmct_test_thresh // 2 - 1, replace=False
+            )
             NAN_MASK[RANDOM_IDXS] = True
             NEW_MOCK_X_BIN[NAN_MASK] = np.nan
             if min(np.unique(NEW_MOCK_X_BIN[np.logical_not(NAN_MASK)],
@@ -376,7 +381,9 @@ class TestIgnoreNan:
         while True:
             NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
             NAN_MASK = np.zeros(_mmct_test_rows).astype(bool)
-            NAN_MASK[np.random.choice(_mmct_test_rows, _mmct_test_thresh, replace=False)] = True
+            NAN_MASK[
+                np.random.choice(_mmct_test_rows, _mmct_test_thresh, replace=False)
+            ] = True
             NEW_MOCK_X_BIN[NAN_MASK] = np.nan
             if min(np.unique(NEW_MOCK_X_BIN[np.logical_not(NAN_MASK)],
                              return_counts=True)[1]) >= _mmct_test_thresh // 2:
@@ -401,7 +408,9 @@ class TestIgnoreNan:
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_BIN_4(MOCK_X_BIN, _mmct_test_rows, _mmct_test_thresh):
         NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(_mmct_test_rows, _mmct_test_thresh // 2, replace=False)
+        NAN_MASK = np.random.choice(
+            _mmct_test_rows, _mmct_test_thresh // 2, replace=False
+        )
         NEW_MOCK_X_BIN[NAN_MASK] = np.nan
         return NEW_MOCK_X_BIN
 
@@ -563,7 +572,9 @@ class TestIgnoreNan:
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_NBI_2(MOCK_X_NBI, _mmct_test_rows, _mmct_test_thresh):
         NEW_MOCK_X_NBI = MOCK_X_NBI.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(_mmct_test_rows, _mmct_test_thresh // 2 + 1, replace=False)
+        NAN_MASK = np.random.choice(
+            _mmct_test_rows, _mmct_test_thresh // 2 + 1, replace=False
+        )
         NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.ravel()
         NEW_MOCK_X_NBI[NAN_MASK] = np.nan
         NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.reshape((-1, 1))
@@ -648,7 +659,9 @@ class TestHandleAsBool_2:
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_BOOL_1(MOCK_X_BOOL, _mmct_test_rows, _mmct_test_thresh):
         NEW_MOCK_X_BOOL = MOCK_X_BOOL.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(_mmct_test_rows, _mmct_test_thresh // 2 - 1, replace=False)
+        NAN_MASK = np.random.choice(
+            _mmct_test_rows, _mmct_test_thresh // 2 - 1, replace=False
+        )
         NEW_MOCK_X_BOOL[NAN_MASK] = np.nan
         return NEW_MOCK_X_BOOL
 
@@ -657,7 +670,9 @@ class TestHandleAsBool_2:
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_BOOL_2(MOCK_X_BOOL, _mmct_test_rows, _mmct_test_thresh):
         NEW_MOCK_X_BOOL = MOCK_X_BOOL.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(_mmct_test_rows, _mmct_test_thresh, replace=False)
+        NAN_MASK = np.random.choice(
+            _mmct_test_rows, _mmct_test_thresh, replace=False
+        )
         NEW_MOCK_X_BOOL[NAN_MASK] = np.nan
         return NEW_MOCK_X_BOOL
 
@@ -666,7 +681,9 @@ class TestHandleAsBool_2:
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_BOOL_3(MOCK_X_BOOL, _mmct_test_rows, _mmct_test_thresh):
         NEW_MOCK_X_BOOL = MOCK_X_BOOL.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(_mmct_test_rows, _mmct_test_thresh // 2, replace=False)
+        NAN_MASK = np.random.choice(
+            _mmct_test_rows, _mmct_test_thresh // 2, replace=False
+        )
         NEW_MOCK_X_BOOL[NAN_MASK] = np.nan
         return NEW_MOCK_X_BOOL
 
@@ -681,7 +698,8 @@ class TestHandleAsBool_2:
         )
     )
     def test_bool(self, _DATA, _ignore_nan, _delete_axis_0, arg_setter,
-        NEW_MOCK_X_BOOL_1, NEW_MOCK_X_BOOL_2, NEW_MOCK_X_BOOL_3, _mmct_test_thresh):
+        NEW_MOCK_X_BOOL_1, NEW_MOCK_X_BOOL_2, NEW_MOCK_X_BOOL_3, _mmct_test_thresh
+    ):
 
         _NEW_MOCK_X_BOOL = {'DATA_1':  NEW_MOCK_X_BOOL_1,
             'DATA_2': NEW_MOCK_X_BOOL_2, 'DATA_3': NEW_MOCK_X_BOOL_3}[_DATA]
@@ -816,7 +834,8 @@ def get_unqs_cts_again():
 @pytest.mark.parametrize('_handle_as_bool', [None, [4], [4, 5]])
 @pytest.mark.parametrize('_delete_axis_0', [False, True])
 @pytest.mark.parametrize('_ct_trial', ['_ct_1', '_ct_2', '_ct_3'])
-def test_accuracy(MOCK_X_NO_NAN, MOCK_X_NAN, _has_nan, _ignore_columns, _mmct_test_thresh,
+def test_accuracy(
+    MOCK_X_NO_NAN, MOCK_X_NAN, _has_nan, _ignore_columns, _mmct_test_thresh,
     _ignore_nan, _ignore_non_binary_integer_columns, _ignore_float_columns,
     _handle_as_bool, _delete_axis_0, _ct_trial, arg_setter, get_unqs_cts_again,
 ):
