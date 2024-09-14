@@ -466,10 +466,10 @@ class GSTCV(_GSTCVMixin):
           thresholds=array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
 
     >>> gstcv.best_params_
-    {'C': np.float64(0.001), 'l1_ratio': np.float64(0.25)}
+    {'C': 0.001, 'l1_ratio': 0.25}
 
     >>> gstcv.best_threshold_
-    np.float64(0.5)
+    0.5
 
     """
 

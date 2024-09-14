@@ -6,7 +6,7 @@
 
 
 
-from preprocessing import MinCountTransformer
+from pybear.preprocessing import MinCountTransformer
 
 from sklearn.datasets import load_breast_cancer
 

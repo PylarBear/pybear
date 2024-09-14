@@ -6,7 +6,6 @@
 
 
 
-import numpy as np
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
 from sklearn.linear_model import LogisticRegression as sklearn_Logistic
 
@@ -16,8 +15,7 @@ from dask_ml.linear_model import LogisticRegression as dask_Logistic
 import distributed
 
 from pybear.model_selection import GSTCV, GSTCVDask
-
-from utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 
 # ----------------------------
 # 24_8_10 LINUX, size=1e7, cv=5, chunks=5

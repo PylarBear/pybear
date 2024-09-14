@@ -33,6 +33,29 @@ def check_pipeline(
         None
 
 
+    Examples
+    --------
+    >>> from pybear.utilities import check_pipeline
+    >>> from sklearn.pipeline import Pipeline
+    >>> from sklearn.preprocessing import StandardScaler
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> import sys
+    >>>
+    >>> # not instantiated
+    >>> _steps = [('Scaler', StandardScaler), ('Logistic', LogisticRegression)]
+    >>> pipe = Pipeline(steps=_steps)
+    >>> try:
+    ...     check_pipeline(pipe)
+    ... except:
+    ...     print(sys.exc_info()[0])
+    <class 'ValueError'>
+    >>>
+    >>> # correctly instantiated
+    >>> _steps = [('Scaler', StandardScaler()), ('Logistic', LogisticRegression())]
+    >>> pipe = Pipeline(steps=_steps)
+    >>> print(check_pipeline(pipe))
+    None
+
     """
 
     if inspect.isclass(pipeline):

@@ -15,7 +15,7 @@ import pandas as pd
 import joblib
 from .docs.mincounttransformer_docs import mincounttransformer_docs
 from sklearn.exceptions import NotFittedError
-from sklearn.base import check_array
+from sklearn.base import check_array, BaseEstimator
 
 from ._shared._validation._val_ignore_columns import _val_ignore_columns
 from ._shared._validation._val_handle_as_bool import _val_handle_as_bool
@@ -36,7 +36,7 @@ XType: TypeAlias = Iterable[Iterable[DataType]]
 YType: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType]]
 
 
-class MinCountTransformer:
+class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
 
     """

@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 #
 
-from preprocessing.MinCountTransformer._transform._make_row_and_column_masks \
+from pybear.preprocessing.MinCountTransformer._transform._make_row_and_column_masks \
     import _make_row_and_column_masks
 
 import numpy as np

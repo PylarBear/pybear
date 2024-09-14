@@ -10,21 +10,17 @@
 
 
 
-
 import joblib
-import itertools
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from model_selection.GSTCV._GSTCV.GSTCV import GSTCV as GSTCV
-
 from sklearn.model_selection import GridSearchCV as sk_GridSearchCV
-
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 
-from utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV as GSTCV
+from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 
 
 

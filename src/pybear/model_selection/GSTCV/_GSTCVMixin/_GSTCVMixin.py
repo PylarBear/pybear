@@ -227,14 +227,14 @@ class _GSTCVMixin(BaseEstimator):
                 raise ValueError(_msg)
 
 
-            self.best_index_ = refit_fxn_output
+            self.best_index_ = int(refit_fxn_output)
             del refit_fxn_output
 
             self.best_params_ = _get_best('params')
 
             if len(self.scorer_) == 1:
-                self.best_threshold_ = _get_best('best_threshold')
-                self.best_score_ = _get_best('mean_test_score')
+                self.best_threshold_ = float(_get_best('best_threshold'))
+                self.best_score_ = float(_get_best('mean_test_score'))
 
             elif len(self.scorer_) > 1:
                 # A WARNING IS RAISED DURING VALIDATION
@@ -245,10 +245,10 @@ class _GSTCVMixin(BaseEstimator):
         elif self._refit == False:
 
             if len(self.scorer_) == 1:
-                self.best_index_ = _get_best_index('rank_test_score')
+                self.best_index_ = int(_get_best_index('rank_test_score'))
                 self.best_params_ = _get_best('params')
-                self.best_threshold_ = _get_best('best_threshold')
-                self.best_score_ = _get_best('mean_test_score')
+                self.best_threshold_ = float(_get_best('best_threshold'))
+                self.best_score_ = float(_get_best('mean_test_score'))
                 # 24_07_16 through various experiments verified best_score_
                 # really is mean_test_score for best_index
             elif len(self.scorer_) > 1:
@@ -259,7 +259,7 @@ class _GSTCVMixin(BaseEstimator):
 
         elif isinstance(self._refit, str):
             # DOESNT MATTER WHAT len(self.scorer_) IS
-            self.best_index_ = _get_best_index(f'rank_test_{self._refit}')
+            self.best_index_ = int(_get_best_index(f'rank_test_{self._refit}'))
             self.best_params_ = _get_best('params')
 
             if len(self.scorer_) == 1:
@@ -267,9 +267,9 @@ class _GSTCVMixin(BaseEstimator):
             else:
                 threshold_column = f'best_threshold_{self._refit}'
 
-            self.best_threshold_ = _get_best(threshold_column)
+            self.best_threshold_ = float(_get_best(threshold_column))
             del threshold_column
-            self.best_score_ = _get_best(f'mean_test_{self._refit}')
+            self.best_score_ = float(_get_best(f'mean_test_{self._refit}'))
         else:
             raise Exception(f"invalid 'refit' value '{self._refit}'")
 

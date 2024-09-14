@@ -2,8 +2,8 @@
 
 from ._array_sparsity import array_sparsity
 from ._benchmarking import (
-                            time_memory_benchmark,
-                            timer
+    time_memory_benchmark,
+    timer
 )
 from ._check_pipeline import check_pipeline
 from ._get_methods_out_of_class import get_methods_out_of_class

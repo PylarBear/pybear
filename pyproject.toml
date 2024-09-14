@@ -44,7 +44,10 @@ notebook = "*"
 pyarrow = "^17.0.0"
 bokeh = "*"
 graphviz = "*"
-docutils = "^0.20"
+docutils = ">=0.20"
+sphinx = "*"
+sphinx-autobuild = "*"
+sphinx-rtd-theme = "*"
 
 
 [tool.poetry.group.test.dependencies]

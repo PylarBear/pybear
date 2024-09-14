@@ -509,10 +509,10 @@ class GSTCVDask(_GSTCVMixin):
               scoring='balanced_accuracy', thresholds=[0.1, 0.5, 0.9])
 
     >>> gstcv.best_params_
-    {'C': np.float64(0.0001)}
+    {'C': 0.0001}
 
     >>> gstcv.best_threshold_
-    np.float64(0.5)
+    0.5
 
     """
 

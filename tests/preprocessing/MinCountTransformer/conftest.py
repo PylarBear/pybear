@@ -10,7 +10,6 @@ import pytest
 import numpy as np
 import numpy.typing as npt
 import joblib
-import uuid
 
 from typing_extensions import Union, Iterable, Callable
 
@@ -20,18 +19,10 @@ from typing_extensions import Union, Iterable, Callable
 # conftest__mmct__test.py
 
 
-# Build y for MCT tests (not mmct test!) ** * ** * ** * ** * ** * ** * **
+
 
 @pytest.fixture(scope='session')
-def y(y_rows, y_cols):
-    return np.random.randint(0, 2, (y_rows, y_cols), dtype=np.uint8)
-
-# Build y for MCT tests (not mmct test!) ** * ** * ** * ** * ** * ** * **
-
-# build X, NO_NAN_X, DTYPE_KEY, x_rows, x_cols for MCT test (not mmct test!)
-
-@pytest.fixture(scope='session')
-def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
+def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
 
     # This constructs a test array "X" of randomly filled vectors that have
     # certain criteria like a certain number of certain types of columns,
@@ -53,30 +44,30 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
                 f"to generate an appropriate X for test\033[0m")
 
         # vvv CORE TEST DATA vvv *************************
-        # CREATE _cols COLUMNS OF BINARY INTEGERS
-        _X = np.random.randint(0, 2, (_rows, _cols)).astype(object)
-        # CREATE _cols COLUMNS OF NON-BINARY INTEGERS
+        # CREATE _mct_cols COLUMNS OF BINARY INTEGERS
+        _X = np.random.randint(0, 2, (_mct_rows, _mct_cols)).astype(object)
+        # CREATE _mct_cols COLUMNS OF NON-BINARY INTEGERS
         _X = np.hstack((
-            _X, np.random.randint(0, _rows // 15, (_rows, _cols)).astype(object)
+            _X, np.random.randint(0, _mct_rows // 15, (_mct_rows, _mct_cols)).astype(object)
         ))
-        # CREATE _cols COLUMNS OF FLOATS
+        # CREATE _mct_cols COLUMNS OF FLOATS
         _X = np.hstack(
-            (_X, np.random.uniform(0, 1, (_rows, _cols)).astype(object)))
-        # CREATE _cols COLUMNS OF STRS
+            (_X, np.random.uniform(0, 1, (_mct_rows, _mct_cols)).astype(object)))
+        # CREATE _mct_cols COLUMNS OF STRS
         _alpha = 'abcdefghijklmnopqrstuvwxyz'
         _alpha = _alpha + _alpha.upper()
-        for _ in range(_cols):
+        for _ in range(_mct_cols):
             _X = np.hstack((_X,
                 np.random.choice(
-                    list(_alpha[:_rows // 10]),
-                    (_rows,),
+                    list(_alpha[:_mct_rows // 10]),
+                    (_mct_rows,),
                     replace=True
                 ).astype(object).reshape((-1, 1))
             ))
         # END ^^^ CORE TEST DATA ^^^ *************************
 
         # CREATE A COLUMN OF STRS THAT WILL ALWAYS BE DELETED BY FIRST RECURSION
-        DUM_STR_COL = np.fromiter(('dum' for _ in range(_rows)), dtype='<U3')
+        DUM_STR_COL = np.fromiter(('dum' for _ in range(_mct_rows)), dtype='<U3')
         DUM_STR_COL[0] = 'one'
         DUM_STR_COL[1] = 'two'
         DUM_STR_COL[2] = 'six'
@@ -86,11 +77,11 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
         del DUM_STR_COL
 
         # _X SHAPE SHOULD BE (x_rows, 4 * x_cols + 1)
-        x_rows = _rows
-        x_cols = 4 * _cols + 1
+        x_rows = _mct_rows
+        x_cols = 4 * _mct_cols + 1
 
         _DTYPE_KEY = [k for k in ['int', 'int', 'float', 'obj'] for j in
-                      range(_cols)]
+                      range(_mct_cols)]
         _DTYPE_KEY += ['obj']
 
         # KEEP THIS FOR TESTING IF DTYPES RETRIEVED CORRECTLY WITH np.nan MIXED IN
@@ -98,10 +89,10 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
 
         # FLOAT/STR ONLY --- NO_NAN_X MUST BE REDUCED WHEN STR COLUMNS ARE
         # TRANSFORMED
-        FLOAT_STR_X = _NO_NAN_X[:, 2 * _cols:4 * _cols].copy()
+        FLOAT_STR_X = _NO_NAN_X[:, 2 * _mct_cols:4 * _mct_cols].copy()
         # mmct() args = MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_flt_col,
         # ignore_non_binary_int_col, handle_as_bool, delete_axis_0, ct_thresh
-        _X1 = mmct(_X, None, None, True, True, True, None, True, *_args)
+        _X1 = mmct().trfm(_X, None, None, True, True, True, None, True, *_args)
         if np.array_equiv(_X1, FLOAT_STR_X):
             del _X1
             continue
@@ -113,9 +104,9 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
         for _ in range(x_rows * x_cols // 10):
             row_coor = np.random.randint(0, x_rows)
             col_coor = np.random.randint(0, x_cols - 1)
-            if col_coor < 3 * _cols:
+            if col_coor < 3 * _mct_cols:
                 _X[row_coor, col_coor] = np.nan
-            elif col_coor >= 3 * _cols:
+            elif col_coor >= 3 * _mct_cols:
                 _X[row_coor, col_coor] = 'nan'
         del row_coor, col_coor
 
@@ -126,15 +117,15 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
         # 24_06_05_13_16_00 the assignments here cannot be considated using
         # lambda functions - X is being passed to mmct and it is saying cannot
         # pickle
-        for idx in range(_cols):
-            _X[_get_idxs(), _cols + idx] = \
+        for idx in range(_mct_cols):
+            _X[_get_idxs(), _mct_cols + idx] = \
                 int(np.random.randint(0, x_rows // 20) + idx)
-            _X[_get_idxs(), _cols + idx] = \
+            _X[_get_idxs(), _mct_cols + idx] = \
                 int(np.random.randint(0, x_rows // 20) + idx)
-            _X[_get_idxs(), 2 * _cols + idx] = np.random.uniform(0, 1) + idx
-            _X[_get_idxs(), 2 * _cols + idx] = np.random.uniform(0, 1) + idx
-            _X[_get_idxs(), 3 * _cols + idx] = _alpha[:x_rows // 15][idx]
-            _X[_get_idxs(), 3 * _cols + idx] = _alpha[:x_rows // 15][idx + 1]
+            _X[_get_idxs(), 2 * _mct_cols + idx] = np.random.uniform(0, 1) + idx
+            _X[_get_idxs(), 2 * _mct_cols + idx] = np.random.uniform(0, 1) + idx
+            _X[_get_idxs(), 3 * _mct_cols + idx] = _alpha[:x_rows // 15][idx]
+            _X[_get_idxs(), 3 * _mct_cols + idx] = _alpha[:x_rows // 15][idx + 1]
 
         del idx, _repl, _alpha
 
@@ -142,7 +133,7 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
         # (CORE COLUMNS ARE RIGGED TO NOT BE DELETED)
         # MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_non_binary_int_col,
         # ignore_flt_col, handle_as_bool, delete_axis_0, ct_thresh
-        _X1 = mmct(_X, None, None, False, False, False, None, True, *_args)
+        _X1 = mmct().trfm(_X, None, None, False, False, False, None, True, *_args)
         assert not np.array_equiv(_X1[:, -1], _X[:, -1]), \
             "Mock MinCountTransformer did not delete last column"
 
@@ -156,7 +147,7 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
 
         # IF NUM OF RIGGED IDENTICAL NUMBERS IN ANY FLT COLUMN < THRESHOLD,
         # BUILD NEW X
-        for flt_col_idx in range(2 * _cols, 3 * _cols, 1):
+        for flt_col_idx in range(2 * _mct_cols, 3 * _mct_cols, 1):
             _max_ct = np.unique(
                 _X[:, flt_col_idx], return_counts=True
             )[1].max(axis=0)
@@ -167,8 +158,8 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
         # TRFM OF NON-BINARY INTEGER COLUMNS MUST NOT DELETE EVERYTHING,
         # BUT MUST DELETE SOMETHING
         try:
-            _X1 = mmct(
-                _X[:, _cols:(2 * _cols)].copy(),
+            _X1 = mmct().trfm(
+                _X[:, _mct_cols:(2 * _mct_cols)].copy(),
                 None,
                 None,
                 True,
@@ -180,14 +171,14 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
             )
             # MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_non_binary_int_col,
             # ignore_flt_col, handle_as_bool, delete_axis_0, ct_thresh
-            if np.array_equiv(_X1, _X[:, _cols:(2 * _cols)].copy()):
+            if np.array_equiv(_X1, _X[:, _mct_cols:(2 * _mct_cols)].copy()):
                 continue
         except:
             continue
 
         try_again = False
         # IF ALL CTS OF EVERY STR UNIQUE IS >= THRESHOLD, BUILD NEW X
-        for str_col_idx in range(x_cols - 1, x_cols - _cols - 1, -1):
+        for str_col_idx in range(x_cols - 1, x_cols - _mct_cols - 1, -1):
             _min_ct = min(np.unique(_X[:, str_col_idx], return_counts=True)[1])
             if _min_ct >= _args[0]:
                 try_again = True
@@ -198,12 +189,12 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
 
         # IF X CANNOT TAKE 2 RECURSIONS WITH THRESHOLD==3, BUILD NEW X
         try_again = False
-        _X1 = mmct(_X, None, None, False, False, False, False, True, 3)
+        _X1 = mmct().trfm(_X, None, None, False, False, False, False, True, 3)
         # MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_non_binary_int_col,
         # ignore_flt_col, handle_as_bool, delete_axis_0, ct_thresh
         try:
             # THIS SHOULD EXCEPT IF ALL ROWS/COLUMNS WOULD BE DELETED
-            _X2 = mmct(_X1, None, None, False, False, False, False, True, 3)
+            _X2 = mmct().trfm(_X1, None, None, False, False, False, False, True, 3)
             # SECOND RECURSION SHOULD ALSO DELETE SOMETHING, BUT NOT EVERYTHING
             if np.array_equiv(_X1, _X2):
                 try_again = True
@@ -223,36 +214,8 @@ def build_test_objects_for_MCT(mmct, _rows, _cols, _args):
     return _X, _NO_NAN_X, _DTYPE_KEY, x_rows, x_cols
 
 
-@pytest.fixture(scope='session')
-def X(build_test_objects_for_MCT):
-    return build_test_objects_for_MCT[0]
 
 
-@pytest.fixture(scope='session')
-def NO_NAN_X(build_test_objects_for_MCT):
-    return build_test_objects_for_MCT[1]
-
-
-@pytest.fixture(scope='session')
-def DTYPE_KEY(build_test_objects_for_MCT):
-    return build_test_objects_for_MCT[2]
-
-
-@pytest.fixture(scope='session')
-def x_rows(build_test_objects_for_MCT):
-    return build_test_objects_for_MCT[3]
-
-
-@pytest.fixture(scope='session')
-def x_cols(build_test_objects_for_MCT):
-    return build_test_objects_for_MCT[4]
-
-
-@pytest.fixture(scope='session')
-def COLUMNS(x_cols):
-    return [str(uuid.uuid4())[:4] for _ in range(x_cols)]
-
-# END build X, NO_NAN_X, DTYPE_KEY, x_rows, x_cols for MCT test (not mmct test!)
 
 
 
@@ -273,197 +236,203 @@ def COLUMNS(x_cols):
 # conftest__mmct__test.py. The fixtures used to run the tests in
 # conftest__mmct__test.py are at the bottom of this module.
 
+
 @pytest.fixture(scope='session')
 def mmct():
 
-    def trfm(
-        MOCK_X: npt.NDArray[any],
-        MOCK_Y: Union[npt.NDArray[int], None],
-        ignore_columns: Union[Iterable[int], None],
-        ignore_nan: bool,
-        ignore_non_binary_integer_columns: bool,
-        ignore_float_columns: bool,
-        handle_as_bool: Union[Iterable[int], None],
-        delete_axis_0: bool,
-        count_threshold: int
-    ) -> Union[tuple[npt.NDArray[any], npt.NDArray[int]], npt.NDArray[any]]:
+    class _mmct:
+        # this must be a class, cannot be a function. need to access
+        # get_support_ during MinCountTransformer_test
 
-        # GET UNIQUES:
-        @joblib.wrap_non_picklable_objects
-        def get_uniques(X_COLUMN: np.ndarray) -> np.ndarray:
-            # CANT HAVE X_COLUMN AS DTYPE object!
-            og_dtype = X_COLUMN.dtype
-            WIP_X_COLUMN = X_COLUMN.copy()
-            try:
-                WIP_X_COLUMN = WIP_X_COLUMN.astype(np.float64)
-            except:
-                WIP_X_COLUMN = WIP_X_COLUMN.astype(str)
+        def trfm(
+            self,
+            MOCK_X: npt.NDArray[any],
+            MOCK_Y: Union[npt.NDArray[int], None],
+            ignore_columns: Union[Iterable[int], None],
+            ignore_nan: bool,
+            ignore_non_binary_integer_columns: bool,
+            ignore_float_columns: bool,
+            handle_as_bool: Union[Iterable[int], None],
+            delete_axis_0: bool,
+            count_threshold: int
+        ) -> Union[tuple[npt.NDArray[any], npt.NDArray[int]], npt.NDArray[any]]:
 
-            UNIQUES, COUNTS = np.unique(WIP_X_COLUMN, return_counts=True)
-            del WIP_X_COLUMN
-            UNIQUES = UNIQUES.astype(og_dtype)
-            del og_dtype
-
-            return UNIQUES, COUNTS
-
-
-        ACTIVE_C_IDXS = [i for i in range(MOCK_X.shape[1])]
-        if ignore_columns:
-            for i in ignore_columns:
+            # GET UNIQUES:
+            @joblib.wrap_non_picklable_objects
+            def get_uniques(X_COLUMN: np.ndarray) -> np.ndarray:
+                # CANT HAVE X_COLUMN AS DTYPE object!
+                og_dtype = X_COLUMN.dtype
+                WIP_X_COLUMN = X_COLUMN.copy()
                 try:
-                    ACTIVE_C_IDXS.remove(i)
-                except ValueError:
-                    raise ValueError(f'ignore_columns column index {i} out '
-                        f'of bounds for data with {MOCK_X.shape[1]} columns')
-                except Exception as e1:
-                    raise Exception(f'ignore_columns remove from ACTIVE_C_IDXS '
-                        f'except for reason other than ValueError --- {e1}')
+                    WIP_X_COLUMN = WIP_X_COLUMN.astype(np.float64)
+                except:
+                    WIP_X_COLUMN = WIP_X_COLUMN.astype(str)
 
-        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-        UNIQUES_COUNTS_TUPLES = joblib.Parallel(return_as='list', n_jobs=-1)(
-            joblib.delayed(get_uniques)(MOCK_X[:, c_idx]) for c_idx in ACTIVE_C_IDXS
-        )
+                UNIQUES, COUNTS = np.unique(WIP_X_COLUMN, return_counts=True)
+                del WIP_X_COLUMN
+                UNIQUES = UNIQUES.astype(og_dtype)
+                del og_dtype
 
-        for col_idx in range(MOCK_X.shape[1]):
-            if col_idx not in ACTIVE_C_IDXS:
-                UNIQUES_COUNTS_TUPLES.insert(col_idx, None)
+                return UNIQUES, COUNTS
 
-        del ACTIVE_C_IDXS
 
-        get_support_ = np.ones(MOCK_X.shape[1]).astype(bool)
+            ACTIVE_C_IDXS = [i for i in range(MOCK_X.shape[1])]
+            if ignore_columns:
+                for i in ignore_columns:
+                    try:
+                        ACTIVE_C_IDXS.remove(i)
+                    except ValueError:
+                        raise ValueError(f'ignore_columns column index {i} out '
+                            f'of bounds for data with {MOCK_X.shape[1]} columns')
+                    except Exception as e1:
+                        raise Exception(f'ignore_columns remove from ACTIVE_C_IDXS '
+                            f'except for reason other than ValueError --- {e1}')
 
-        # GET DTYPES ** ** ** ** ** **
-        DTYPES = [None for _ in UNIQUES_COUNTS_TUPLES]
-        for col_idx in range(len(UNIQUES_COUNTS_TUPLES)):
-            if UNIQUES_COUNTS_TUPLES[col_idx] is None:
-                continue
+            # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
+            UNIQUES_COUNTS_TUPLES = \
+                joblib.Parallel(return_as='list', n_jobs=-1)(
+                    joblib.delayed(get_uniques)(MOCK_X[:, c_idx]) for c_idx in ACTIVE_C_IDXS
+            )
 
-            UNIQUES_COUNTS_TUPLES[col_idx] = list(UNIQUES_COUNTS_TUPLES[col_idx])
-            UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
+            for col_idx in range(MOCK_X.shape[1]):
+                if col_idx not in ACTIVE_C_IDXS:
+                    UNIQUES_COUNTS_TUPLES.insert(col_idx, None)
 
-            try:
-                MASK = np.logical_not(np.isnan(UNIQUES.astype(np.float64)))
-                NO_NAN_UNIQUES = UNIQUES[MASK]
-                del MASK
-                NO_NAN_UNIQUES_AS_FLT = NO_NAN_UNIQUES.astype(np.float64)
-                NO_NAN_UNIQUES_AS_INT = NO_NAN_UNIQUES_AS_FLT.astype(np.int32)
-                if np.array_equiv(NO_NAN_UNIQUES_AS_INT, NO_NAN_UNIQUES_AS_FLT):
-                    if len(NO_NAN_UNIQUES) == 1:
-                        DTYPES[col_idx] = 'constant'
-                    elif len(NO_NAN_UNIQUES) == 2:
-                        DTYPES[col_idx] = 'bin_int'
-                    elif len(NO_NAN_UNIQUES) > 2:
-                        DTYPES[col_idx] = 'non_bin_int'
-                        if ignore_non_binary_integer_columns:
+            del ACTIVE_C_IDXS
+
+            self.get_support_ = np.ones(MOCK_X.shape[1]).astype(bool)
+
+            # GET DTYPES ** ** ** ** ** **
+            DTYPES = [None for _ in UNIQUES_COUNTS_TUPLES]
+            for col_idx in range(len(UNIQUES_COUNTS_TUPLES)):
+                if UNIQUES_COUNTS_TUPLES[col_idx] is None:
+                    continue
+
+                UNIQUES_COUNTS_TUPLES[col_idx] = list(UNIQUES_COUNTS_TUPLES[col_idx])
+                UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
+
+                try:
+                    MASK = np.logical_not(np.isnan(UNIQUES.astype(np.float64)))
+                    NO_NAN_UNIQUES = UNIQUES[MASK]
+                    del MASK
+                    NO_NAN_UNIQUES_AS_FLT = NO_NAN_UNIQUES.astype(np.float64)
+                    NO_NAN_UNIQUES_AS_INT = NO_NAN_UNIQUES_AS_FLT.astype(np.int32)
+                    if np.array_equiv(NO_NAN_UNIQUES_AS_INT, NO_NAN_UNIQUES_AS_FLT):
+                        if len(NO_NAN_UNIQUES) == 1:
+                            DTYPES[col_idx] = 'constant'
+                        elif len(NO_NAN_UNIQUES) == 2:
+                            DTYPES[col_idx] = 'bin_int'
+                        elif len(NO_NAN_UNIQUES) > 2:
+                            DTYPES[col_idx] = 'non_bin_int'
+                            if ignore_non_binary_integer_columns:
+                                UNIQUES_COUNTS_TUPLES[col_idx] = None
+                                continue
+                    else:
+                        DTYPES[col_idx] = 'float'
+                        if ignore_float_columns:
                             UNIQUES_COUNTS_TUPLES[col_idx] = None
                             continue
-                else:
-                    DTYPES[col_idx] = 'float'
-                    if ignore_float_columns:
-                        UNIQUES_COUNTS_TUPLES[col_idx] = None
-                        continue
 
-                del NO_NAN_UNIQUES, NO_NAN_UNIQUES_AS_INT, NO_NAN_UNIQUES_AS_FLT
+                    del NO_NAN_UNIQUES, NO_NAN_UNIQUES_AS_INT, NO_NAN_UNIQUES_AS_FLT
 
-            except:
-                DTYPES[col_idx] = 'obj'
+                except:
+                    DTYPES[col_idx] = 'obj'
 
-            del UNIQUES, COUNTS
-        # END GET DTYPES ** ** ** ** ** **
+                del UNIQUES, COUNTS
+            # END GET DTYPES ** ** ** ** ** **
 
 
-        for col_idx in range(len(UNIQUES_COUNTS_TUPLES) - 1, -1, -1):
+            for col_idx in range(len(UNIQUES_COUNTS_TUPLES) - 1, -1, -1):
 
-            if UNIQUES_COUNTS_TUPLES[col_idx] is None:
-                continue
+                if UNIQUES_COUNTS_TUPLES[col_idx] is None:
+                    continue
 
-            UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
+                UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
 
-            if handle_as_bool and col_idx in handle_as_bool:
+                if handle_as_bool and col_idx in handle_as_bool:
 
-                if DTYPES[col_idx] == 'obj':
-                    raise ValueError(
-                        f"MOCK X trying to do handle_as_bool on str column"
-                    )
+                    if DTYPES[col_idx] == 'obj':
+                        raise ValueError(
+                            f"MOCK X trying to do handle_as_bool on str column"
+                        )
 
-                NEW_UNQ_CT_DICT = {0:0, 1:0}
-                for u,c in zip(UNIQUES, COUNTS):
-                    if str(u).lower() == 'nan':
-                        NEW_UNQ_CT_DICT[u] = c
-                    elif u != 0:
-                        NEW_UNQ_CT_DICT[1] += c
-                    elif u == 0:
-                        NEW_UNQ_CT_DICT[0] = c
-                UNIQUES = list(NEW_UNQ_CT_DICT.keys())
-                COUNTS = list(NEW_UNQ_CT_DICT.values())
-                del NEW_UNQ_CT_DICT
+                    NEW_UNQ_CT_DICT = {0:0, 1:0}
+                    for u,c in zip(UNIQUES, COUNTS):
+                        if str(u).lower() == 'nan':
+                            NEW_UNQ_CT_DICT[u] = c
+                        elif u != 0:
+                            NEW_UNQ_CT_DICT[1] += c
+                        elif u == 0:
+                            NEW_UNQ_CT_DICT[0] = c
+                    UNIQUES = list(NEW_UNQ_CT_DICT.keys())
+                    COUNTS = list(NEW_UNQ_CT_DICT.values())
+                    del NEW_UNQ_CT_DICT
 
 
-            ROW_MASK = np.zeros(MOCK_X.shape[0])
-            for u_idx, unq, ct in zip(
+                ROW_MASK = np.zeros(MOCK_X.shape[0])
+                for u_idx, unq, ct in zip(
                     range(len(UNIQUES) - 1, -1, -1),
                     np.flip(UNIQUES),
                     np.flip(COUNTS)
                 ):
 
-                if ignore_nan and str(unq).lower()=='nan':
-                    continue
+                    if ignore_nan and str(unq).lower()=='nan':
+                        continue
 
-                if ct < count_threshold:
-                    try:
-                        NAN_MASK = \
-                            np.isnan(MOCK_X[:, col_idx].astype(np.float64))
-                    except:
-                        NAN_MASK = \
-                            (np.char.lower(MOCK_X[:, col_idx].astype(str)) == 'nan')
-
-                    if str(unq).lower()=='nan':
-                        ROW_MASK += NAN_MASK
-                    else:
+                    if ct < count_threshold:
                         try:
-                            if col_idx in handle_as_bool:
-                                NOT_NAN_MASK = np.logical_not(NAN_MASK)
-                                _ = (MOCK_X[NOT_NAN_MASK, col_idx].astype(bool) == unq)
-                                ROW_MASK[NOT_NAN_MASK] += _
-                                del NOT_NAN_MASK, _
-                            else:
-                                # JUST TO SEND INTO not handle_as_bool CODE
-                                raise Exception
+                            NAN_MASK = \
+                                np.isnan(MOCK_X[:, col_idx].astype(np.float64))
                         except:
-                            ROW_MASK += (MOCK_X[:, col_idx] == unq)
+                            NAN_MASK = \
+                                (np.char.lower(MOCK_X[:, col_idx].astype(str)) == 'nan')
 
-                    del NAN_MASK
+                        if str(unq).lower()=='nan':
+                            ROW_MASK += NAN_MASK
+                        else:
+                            try:
+                                if col_idx in handle_as_bool:
+                                    NOT_NAN_MASK = np.logical_not(NAN_MASK)
+                                    _ = (MOCK_X[NOT_NAN_MASK, col_idx].astype(bool) == unq)
+                                    ROW_MASK[NOT_NAN_MASK] += _
+                                    del NOT_NAN_MASK, _
+                                else:
+                                    # JUST TO SEND INTO not handle_as_bool CODE
+                                    raise Exception
+                            except:
+                                ROW_MASK += (MOCK_X[:, col_idx] == unq)
 
-                    # vvv USE LEN LATER TO INDICATE TO DELETE COLUMN
-                    UNIQUES = np.delete(UNIQUES, u_idx)
-                    COUNTS = np.delete(COUNTS, u_idx)
+                        del NAN_MASK
 
-            if DTYPES[col_idx] == 'constant':
-                pass
-            elif DTYPES[col_idx] == 'bin_int' and not delete_axis_0:
-                pass
-            elif (handle_as_bool and col_idx in handle_as_bool) \
-                    and not delete_axis_0:
-                pass
+                        # vvv USE LEN LATER TO INDICATE TO DELETE COLUMN
+                        UNIQUES = np.delete(UNIQUES, u_idx)
+                        COUNTS = np.delete(COUNTS, u_idx)
+
+                if DTYPES[col_idx] == 'constant':
+                    pass
+                elif DTYPES[col_idx] == 'bin_int' and not delete_axis_0:
+                    pass
+                elif (handle_as_bool and col_idx in handle_as_bool) \
+                        and not delete_axis_0:
+                    pass
+                else:
+                    ROW_MASK = np.logical_not(ROW_MASK)
+                    MOCK_X = MOCK_X[ROW_MASK, :]
+                    if MOCK_Y is not None:
+                        MOCK_Y = MOCK_Y[ROW_MASK]
+
+                    del ROW_MASK
+
+                if len([_ for _ in UNIQUES if str(_).lower() != 'nan']) <= 1:
+                    self.get_support_[col_idx] = False
+                    MOCK_X = np.delete(MOCK_X, col_idx, axis=1)
+
+            if MOCK_Y is not None:
+                return MOCK_X, MOCK_Y
             else:
-                ROW_MASK = np.logical_not(ROW_MASK)
-                MOCK_X = MOCK_X[ROW_MASK, :]
-                if MOCK_Y is not None:
-                    MOCK_Y = MOCK_Y[ROW_MASK]
+                return MOCK_X
 
-                del ROW_MASK
-
-            if len([_ for _ in UNIQUES if str(_).lower() != 'nan']) <= 1:
-                get_support_[col_idx] = False
-                MOCK_X = np.delete(MOCK_X, col_idx, axis=1)
-
-        if MOCK_Y is not None:
-            return MOCK_X, MOCK_Y
-        else:
-            return MOCK_X
-
-
-    return trfm
+    return _mmct
 
 
 
