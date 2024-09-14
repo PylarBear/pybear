@@ -7,7 +7,7 @@
 
 
 import numpy as np
-from new_numpy._random_ import Sparse
+from pybear.new_numpy import random as pb_random
 from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 from pybear.utilities._array_sparsity import array_sparsity as arsp
 
@@ -26,9 +26,6 @@ from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 
 
-
-
-
 for _shape in [(500, 1000), (707,707), (1000,500)]:
 
     _min = -10
@@ -41,28 +38,36 @@ for _shape in [(500, 1000), (707,707), (1000,500)]:
     tmb(
         (
         '_choice',
-        Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine="choice").fit_transform,
+        pb_random.Sparse(
+            _min, _max, _shape, _sparsity, dtype=_dtype, engine="choice"
+        ).fit_transform,
         [],
         {}
         ),
 
         (
         '_filter',
-        Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine="filter").fit_transform,
+        pb_random.Sparse(
+            _min, _max, _shape, _sparsity, dtype=_dtype, engine="filter"
+        ).fit_transform,
         [],
         {}
         ),
 
         (
         '_serialized',
-        Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine="serialized").fit_transform,
+        pb_random.Sparse(
+            _min, _max, _shape, _sparsity, dtype=_dtype, engine="serialized"
+        ).fit_transform,
         [],
         {}
         ),
 
         (
         '_iterative',
-        Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine="iterative").fit_transform,
+        pb_random.Sparse(
+            _min, _max, _shape, _sparsity, dtype=_dtype, engine="iterative"
+        ).fit_transform,
         [],
         {}
         ),
@@ -89,19 +94,27 @@ SPARSITY_HOLDER = np.empty((4, len(SPARSITIES), len(SHAPES)))
 for _sparsity_idx, _sparsity in enumerate(SPARSITIES):
     for _shape_idx, _shape in enumerate(SHAPES):
         # '_choice',
-        a = Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine='choice').fit_transform()
+        a = pb_random.Sparse(
+            _min, _max, _shape, _sparsity, dtype=_dtype, engine='choice'
+        ).fit_transform()
         SPARSITY_HOLDER[0, _sparsity_idx, _shape_idx] = arsp(a)
 
         # '_filter',
-        b = Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine='filter').fit_transform()
+        b = pb_random.Sparse(
+            _min, _max, _shape, _sparsity, dtype=_dtype, engine='filter'
+        ).fit_transform()
         SPARSITY_HOLDER[1, _sparsity_idx, _shape_idx] = arsp(b)
 
         # '_serialized',
-        c = Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine='serialized').fit_transform()
+        c = pb_random.Sparse(
+            _min, _max, _shape, _sparsity, dtype=_dtype, engine='serialized'
+        ).fit_transform()
         SPARSITY_HOLDER[2, _sparsity_idx, _shape_idx] = arsp(c)
 
         # '_iterative',
-        d = Sparse(_min, _max, _shape, _sparsity, dtype=_dtype, engine='iterative').fit_transform()
+        d = pb_random.Sparse(
+            _min, _max, _shape, _sparsity, dtype=_dtype, engine='iterative'
+        ).fit_transform()
         SPARSITY_HOLDER[3, _sparsity_idx, _shape_idx] = arsp(d)
 
         del a, b, c, d

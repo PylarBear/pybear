@@ -5,7 +5,7 @@
 #
 
 
-from preprocessing import MinCountTransformer
+from pybear.preprocessing import MinCountTransformer
 import dask.array as da
 from dask_ml.wrappers import Incremental, ParallelPostFit
 import numpy as np

@@ -24,10 +24,10 @@ from sklearn.metrics import (
     balanced_accuracy_score
 )
 
-from model_selection.GSTCV._fit_shared._cv_results._cv_results_builder import \
-    _cv_results_builder
+from pybear.model_selection.GSTCV._fit_shared._cv_results._cv_results_builder \
+    import _cv_results_builder
 
-from model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
+from pybear.model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
 
 # 24_07_10 this module tests the equality of GSTCV's cv_results_ with
 # 0.5 threshold against sklearn GSCV cv_results_ 100 times over.

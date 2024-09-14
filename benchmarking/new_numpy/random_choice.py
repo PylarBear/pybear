@@ -6,8 +6,8 @@
 #
 
 import numpy as np
-from new_numpy._random_ import choice
-from pybear.utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.new_numpy import random as pb_random
+from pybear.utilities import time_memory_benchmark as tmb
 
 
 
@@ -49,7 +49,7 @@ shape = (10000,)
 
 TIME_MEM = tmb(
     ('np.random.choice', np.random.choice, [a, shape], {'replace' :False}),
-    ('new_numpy.random.choice', choice, [a, shape], {'replace' :False, 'n_jobs':-1}),
+    ('new_numpy.random.choice', pb_random.choice, [a, shape], {'replace' :False, 'n_jobs':-1}),
     number_of_trials=10,
     rest_time=2
 )

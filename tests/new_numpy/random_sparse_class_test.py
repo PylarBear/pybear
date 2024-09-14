@@ -214,56 +214,63 @@ class TestReturnsCorrectDtypes:
 
     def test_choice(self, good_shape, sparsity, valid_dtypes):
         for _dtype in valid_dtypes:
-            output_array = Sparse(0, 10, good_shape, sparsity,
-                          engine='choice', dtype=_dtype).fit_transform()
+            output_array = Sparse(
+                0, 10, good_shape, sparsity, engine='choice', dtype=_dtype
+            ).fit_transform()
 
             assert output_array.dtype == _dtype
 
 
     def test_filter(self, good_shape, sparsity, valid_dtypes):
         for _dtype in valid_dtypes:
-            output_array = Sparse(0, 10, good_shape, sparsity,
-                          engine='filter', dtype=_dtype).fit_transform()
+            output_array = Sparse(
+                0, 10, good_shape, sparsity, engine='filter', dtype=_dtype
+            ).fit_transform()
 
             assert output_array.dtype == _dtype
 
 
     def test_serialized(self, good_shape, sparsity, valid_dtypes):
         for _dtype in valid_dtypes:
-            output_array = Sparse(0, 10, good_shape, sparsity,
-                          engine='serialized', dtype=_dtype).fit_transform()
+            output_array = Sparse(
+                0, 10, good_shape, sparsity, engine='serialized', dtype=_dtype
+            ).fit_transform()
 
             assert output_array.dtype == _dtype
 
 
     def test_iterative(self, good_shape, sparsity, valid_dtypes):
         for _dtype in valid_dtypes:
-            output_array = Sparse(0, 10, good_shape, sparsity,
-                          engine='iterative', dtype=_dtype).fit_transform()
+            output_array = Sparse(
+                0, 10, good_shape, sparsity, engine='iterative', dtype=_dtype
+            ).fit_transform()
 
             assert output_array.dtype == _dtype
 
 
     def test_default(self, good_shape, sparsity, valid_dtypes):
         for _dtype in valid_dtypes:
-            output_array = Sparse(0, 10, good_shape, sparsity,
-                          engine='default', dtype=_dtype).fit_transform()
+            output_array = Sparse(
+                0, 10, good_shape, sparsity, engine='default', dtype=_dtype
+            ).fit_transform()
 
             assert output_array.dtype == _dtype
 
 
-@pytest.mark.parametrize('shape', (
-                                    1, 3, 100,
-                                    (1,), (3,), (3,3), (2, 3, 5), (2,2,3,3)
-                                    )
-                         )
+@pytest.mark.parametrize('shape',
+    (
+        1, 3, 100,
+        (1,), (3,), (3,3), (2, 3, 5), (2,2,3,3)
+    )
+)
 @pytest.mark.parametrize('sparsity', (0, 50, 100))
 @pytest.mark.parametrize('dtype', (np.int8, np.float64))
 class TestReturnsCorrectShapes_NonNull:
 
     def test_choice(self, shape, sparsity, dtype):
-        output_array = Sparse(0, 10, shape, sparsity,
-                          engine='choice', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, shape, sparsity, engine='choice', dtype=dtype
+        ).fit_transform()
 
         try:
             tuple(shape)
@@ -273,8 +280,9 @@ class TestReturnsCorrectShapes_NonNull:
 
 
     def test_filter(self, shape, sparsity, dtype):
-        output_array = Sparse(0, 10, shape, sparsity,
-                          engine='filter', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, shape, sparsity, engine='filter', dtype=dtype
+        ).fit_transform()
 
         try:
             tuple(shape)
@@ -284,8 +292,9 @@ class TestReturnsCorrectShapes_NonNull:
 
 
     def test_serialized(self, shape, sparsity, dtype):
-        output_array = Sparse(0, 10, shape, sparsity,
-                          engine='serialized', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, shape, sparsity, engine='serialized', dtype=dtype
+        ).fit_transform()
 
         try:
             tuple(shape)
@@ -295,8 +304,9 @@ class TestReturnsCorrectShapes_NonNull:
 
 
     def test_iterative(self, shape, sparsity, dtype):
-        output_array = Sparse(0, 10, shape, sparsity,
-                          engine='iterative', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, shape, sparsity, engine='iterative', dtype=dtype
+        ).fit_transform()
 
         try:
             tuple(shape)
@@ -306,8 +316,9 @@ class TestReturnsCorrectShapes_NonNull:
 
 
     def test_default(self, shape, sparsity, dtype):
-        output_array = Sparse(0, 10, shape, sparsity,
-                      engine='default', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, shape, sparsity, engine='default', dtype=dtype
+        ).fit_transform()
 
         try:
             tuple(shape)
@@ -318,21 +329,20 @@ class TestReturnsCorrectShapes_NonNull:
 
 
 # WHEN PASSED NULL SHAPES, RETURNS SAME OBJECT AS NUMPY
-@pytest.mark.parametrize('shape', (
-                                   pytest.param(None,
-                                                marks=pytest.mark.xfail(
-                                                    reason = 'known divergence '
-                                                             'from numpy'
-                                                )
-                                   ),
-                                   0,
-                                   (1,0),
-                                   (1,0,1),
-                                   (),
-                                   (()),
-                                   []
-                                   )
-                         )
+@pytest.mark.parametrize('shape',
+    (
+        pytest.param(
+            None,
+            marks=pytest.mark.xfail(reason='known divergence from numpy')
+        ),
+        0,
+        (1,0),
+        (1,0,1),
+        (),
+        (()),
+        []
+    )
+)
 @pytest.mark.parametrize('sparsity', (0, 50, 100))
 @pytest.mark.parametrize('dtype', (np.int8, np.float64))
 class TestNullShapesReturnsMatchNumpy:
@@ -367,8 +377,9 @@ class TestNullShapesReturnsMatchNumpy:
     def test_choice(self, shape, sparsity, dtype):
         np_output = self.get_np_output(shape, dtype)
 
-        output = Sparse(0, 10, shape, sparsity,
-                          engine='choice', dtype=dtype).fit_transform()
+        output = Sparse(
+            0, 10, shape, sparsity, engine='choice', dtype=dtype
+        ).fit_transform()
 
         self. asserter(np_output, output)
 
@@ -376,8 +387,9 @@ class TestNullShapesReturnsMatchNumpy:
     def test_filter(self, shape, sparsity, dtype):
         np_output = self.get_np_output(shape, dtype)
 
-        output = Sparse(0, 10, shape, sparsity,
-                          engine='filter', dtype=dtype).fit_transform()
+        output = Sparse(
+            0, 10, shape, sparsity, engine='filter', dtype=dtype
+        ).fit_transform()
 
         self. asserter(np_output, output)
 
@@ -385,8 +397,9 @@ class TestNullShapesReturnsMatchNumpy:
     def test_serialized(self, shape, sparsity, dtype):
         np_output = self.get_np_output(shape, dtype)
 
-        output = Sparse(0, 10, shape, sparsity,
-                          engine='serialized', dtype=dtype).fit_transform()
+        output = Sparse(
+            0, 10, shape, sparsity, engine='serialized', dtype=dtype
+        ).fit_transform()
 
         self. asserter(np_output, output)
 
@@ -394,8 +407,9 @@ class TestNullShapesReturnsMatchNumpy:
     def test_iterative(self, shape, sparsity, dtype):
         np_output = self.get_np_output(shape, dtype)
 
-        output = Sparse(0, 10, shape, sparsity,
-                          engine='iterative', dtype=dtype).fit_transform()
+        output = Sparse(
+            0, 10, shape, sparsity, engine='iterative', dtype=dtype
+        ).fit_transform()
 
         self. asserter(np_output, output)
 
@@ -403,8 +417,9 @@ class TestNullShapesReturnsMatchNumpy:
     def test_default(self, shape, sparsity, dtype):
         np_output = self.get_np_output(shape, dtype)
 
-        output = Sparse(0, 10, shape, sparsity,
-                          engine='default', dtype=dtype).fit_transform()
+        output = Sparse(
+            0, 10, shape, sparsity, engine='default', dtype=dtype
+        ).fit_transform()
 
         self. asserter(np_output, output)
 
@@ -416,36 +431,41 @@ class TestNullShapesReturnsMatchNumpy:
 class TestReturnsCorrectSparsity_0_100_AlwaysExact:
 
     def test_choice(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                          engine='choice', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='choice', dtype=dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
 
     def test_filter(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                          engine='filter', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='filter', dtype=dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
 
     def test_serialized(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                          engine='serialized', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='serialized', dtype=dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
 
     def test_iterative(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                          engine='iterative', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='iterative', dtype=dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
 
     def test_default(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                      engine='default', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='default', dtype=dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
@@ -457,15 +477,17 @@ class TestReturnsCorrectSparsity_0_100_AlwaysExact:
 class TestReturnsCorrectSparsity_SerializedIterativeAlwaysExact:
 
     def test_serialized(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                          engine='serialized', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='serialized', dtype=dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
 
     def test_iterative(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                          engine='iterative', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='iterative', dtype=dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
@@ -477,15 +499,17 @@ class TestReturnsCorrectSparsity_SerializedIterativeAlwaysExact:
 class TestReturnsCorrectSparsity_ChoiceFilterClose:
 
     def test_choice(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                          engine='choice', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='choice', dtype=dtype
+        ).fit_transform()
 
         assert sparsity - 0.2 <= arsp(output_array) <= sparsity + 0.2
 
 
     def test_filter(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(_min, _max, shape, sparsity,
-                          engine='filter', dtype=dtype).fit_transform()
+        output_array = Sparse(
+            _min, _max, shape, sparsity, engine='filter', dtype=dtype
+        ).fit_transform()
 
         assert sparsity - 0.2 <= arsp(output_array) <= sparsity + 0.2
 
@@ -496,8 +520,9 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
     @pytest.mark.parametrize('shape', ((10,10), (1100,1100)))
     def test_dtype(self, shape, valid_dtypes):
         for _dtype in valid_dtypes:
-            output_array = Sparse(0, 10, shape, 50,
-                          engine='default', dtype=_dtype).fit_transform()
+            output_array = Sparse(
+                0, 10, shape, 50, engine='default', dtype=_dtype
+            ).fit_transform()
 
             assert output_array.dtype == _dtype
 
@@ -506,8 +531,9 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
     @pytest.mark.parametrize('shape', (100, (10, 10), (1100, 1100)))
     @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
     def test_shape_non_null(self, shape, _dtype):
-        output_array = Sparse(0, 10, shape, 50,
-                              engine='default', dtype=_dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, shape, 50, engine='default', dtype=_dtype
+        ).fit_transform()
 
         try:
             tuple(shape)
@@ -522,8 +548,9 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
     @pytest.mark.parametrize('sparsity', (0, 100))
     @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
     def test_sparsity_0_100_always_exact(self, shape, sparsity, _dtype):
-        output_array = Sparse(0, 10, shape, sparsity,
-                              engine='default', dtype=_dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, shape, sparsity, engine='default', dtype=_dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
@@ -531,8 +558,9 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
     @pytest.mark.parametrize('sparsity', (25, 75))
     @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
     def test_sparsity_iterative_always_exact(self, sparsity, _dtype):
-        output_array = Sparse(0, 10, (100, 100), sparsity,
-                              engine='default', dtype=_dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, (100, 100), sparsity, engine='default', dtype=_dtype
+        ).fit_transform()
 
         assert arsp(output_array) == sparsity
 
@@ -540,8 +568,9 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
     @pytest.mark.parametrize('sparsity', (25, 75))
     @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
     def test_sparsity_filter_close(self, sparsity, _dtype):
-        output_array = Sparse(0, 10, (1100, 1100), sparsity,
-                              engine='default', dtype=_dtype).fit_transform()
+        output_array = Sparse(
+            0, 10, (1100, 1100), sparsity, engine='default', dtype=_dtype
+        ).fit_transform()
 
         assert sparsity - 0.2 <= arsp(output_array) <= sparsity + 0.2
 

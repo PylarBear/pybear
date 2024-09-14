@@ -7,7 +7,7 @@
 import numpy as np
 import pandas as pd
 
-from model_selection.GSTCV._GSTCV.GSTCV import GSTCV
+from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression

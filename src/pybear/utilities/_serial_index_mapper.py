@@ -10,9 +10,9 @@ import joblib
 
 
 def serial_index_mapper(
-                        shape:tuple,
-                        positions:[list,tuple],
-                        n_jobs:int=None
+        shape:tuple,
+        positions:[list,tuple],
+        n_jobs:int=None
     ) -> list:
 
     """Map serial index positions to their zero-based Cartesian coordinates in
@@ -136,13 +136,13 @@ def serial_index_mapper(
             raise RecursionError(f"Recursion depth has surpassed 100")
 
         if len(_coordinates) == len(shape) - 1:
-            _coordinates.append(_posn)
+            _coordinates.append(int(_posn))
             return tuple(_coordinates)
         else:
             # len(COORDINATE) is the axis we are looking to find next
             _axis = len(_coordinates)
             _remaining_axes = shape[_axis + 1:]
-            _current_axis_posn = _posn // np.prod(_remaining_axes)
+            _current_axis_posn = int(_posn // np.prod(_remaining_axes))
             _coordinates.append(_current_axis_posn)
             _positions_consumed = _current_axis_posn * np.prod(_remaining_axes)
             if _positions_consumed == 0:

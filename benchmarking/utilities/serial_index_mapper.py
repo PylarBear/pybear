@@ -6,8 +6,8 @@
 
 
 import numpy as np
-from utilities._serial_index_mapper import serial_index_mapper as sim
-from utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.utilities._serial_index_mapper import serial_index_mapper as sim
+from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 
 
 

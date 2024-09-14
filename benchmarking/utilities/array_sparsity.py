@@ -7,8 +7,8 @@
 
 
 
-from utilities._array_sparsity import array_sparsity
-from utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.utilities._array_sparsity import array_sparsity
+from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 import numpy as np
 
 

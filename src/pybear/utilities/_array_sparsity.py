@@ -61,7 +61,7 @@ def array_sparsity(a) -> float:
         raise TypeError(err_msg)
 
 
-    return (a == 0).astype(np.int32).sum() / a.size * 100
+    return float((a == 0).astype(np.int32).sum() / a.size * 100)
 
 
 

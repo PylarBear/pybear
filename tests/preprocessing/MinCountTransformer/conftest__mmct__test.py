@@ -34,6 +34,7 @@ from copy import deepcopy
 # correct controlled attributes at the time of construction in conftest,
 # do the tests formally here.
 
+
 def custom_assert(condition, msg=None):
     try:
         assert condition, msg
@@ -89,12 +90,12 @@ def test_vector_fixtures(_name, _mmct_test_thresh, _source_len, MOCK_X_BIN,
 # ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def MOCK_Y(_mmct_test_rows) -> npt.NDArray[int]:
     return np.random.randint(0, 2, _mmct_test_rows)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def DEFAULT_ARGS(MOCK_X_STR, MOCK_Y, _mmct_test_thresh) -> dict[
     str, Union[np.ndarray, None, bool, int]
 ]:
@@ -111,7 +112,7 @@ def DEFAULT_ARGS(MOCK_X_STR, MOCK_Y, _mmct_test_thresh) -> dict[
     }
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def arg_setter(mmct, DEFAULT_ARGS) -> Callable:
 
     def foo(**new_args) -> Union[
@@ -128,7 +129,7 @@ def arg_setter(mmct, DEFAULT_ARGS) -> Callable:
                 raise ValueError(f'illegal arg "{kwarg}" in arg_setter')
             NEW_DICT[kwarg] = value
 
-        return mmct(**NEW_DICT)
+        return mmct().trfm(**NEW_DICT)
 
     return foo
 
@@ -434,13 +435,22 @@ class TestIgnoreNan:
         )[0]
 
         # universal hands-off non-nans
+        # vvvvvvvvvv pizza *******************************************
         # 24_06_18 pizza this is intermittently failing, but it doesnt seem to
         # have ramifications as everything else is passing.
-        custom_assert(
-            np.array_equiv(TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-            _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]),
-            msg=f"bin column non-nans wrongly altered"
-        )
+        # custom_assert(
+        #     np.array_equiv(TRFM_X[np.logical_not(np.isnan(TRFM_X))],
+        #     _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]),
+        #     msg=f"bin column non-nans wrongly altered"
+        # )
+
+        assert np.array_equiv(
+            TRFM_X[np.logical_not(np.isnan(TRFM_X))],
+            _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]
+        ), f"bin column non-nans wrongly altered"
+
+        # ^^^^^ pizza **************************************************
+
 
         if _ignore_nan is True:
             assert len(TRFM_X) == len(_NEW_MOCK_X), \
@@ -583,16 +593,22 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
+        # vvvvvvvv pizza ************************************************
         # 24_06_18 pizza this is intermittently failing, but it doesnt seem to
         # have ramifications as everything else is passing. just skip it.
         # universal hands-off non-nan
-        custom_assert(
-            np.array_equiv(TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-            _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]),
-            msg=f"nbi non-nan rows wrongly altered"
-        )
+        # custom_assert(
+        #     np.array_equiv(TRFM_X[np.logical_not(np.isnan(TRFM_X))],
+        #     _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]),
+        #     msg=f"nbi non-nan rows wrongly altered"
+        # )
 
+        assert np.array_equiv(
+            TRFM_X[np.logical_not(np.isnan(TRFM_X))],
+            _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]
+        ), f"nbi non-nan rows wrongly altered"
 
+        # ^^^^^^^ pizza *************************************************
 
         if _ignore_nan is True:
             # cant do array_equiv with nans in them
@@ -613,11 +629,12 @@ class TestIgnoreNan:
             # Manipulating the number of nans in NEW_MOCK_X_NBI_2 has
             # cascading consequences elsewhere (even though it is not
             # readily apparent why.)
-            # elif _DATA == 'DATA_2':
-            #     # NAN ABOVE THRESH AND NO NANS DELETED
-            #     assert len(TRFM_X) == len(_NEW_MOCK_X), \
-            #         f"nbi nan rows wrongly deleted"
-
+            # vvvvvv pizza *********************************
+            elif _DATA == 'DATA_2':
+                # NAN ABOVE THRESH AND NO NANS DELETED
+                assert len(TRFM_X) == len(_NEW_MOCK_X), \
+                    f"nbi nan rows wrongly deleted"
+            # ^^^^^^^^^^ pizza *******************************
 
     # END nbi ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 

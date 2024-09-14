@@ -10,7 +10,7 @@ from dask_ml.linear_model import LogisticRegression
 from xgboost.dask import XGBClassifier
 from lightgbm.dask import LGBMClassifier
 
-from utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 
 # time trials linux 24_07_27
 # lgt_clf       time = 9.941 +/- 0.038 sec; mem = 0.000 +/- 0.000 MB

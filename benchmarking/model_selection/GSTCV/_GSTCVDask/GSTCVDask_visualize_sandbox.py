@@ -12,7 +12,7 @@ import dask.array as da
 import distributed
 from dask_ml.datasets import make_classification as dask_make_classification
 from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
-from model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
+from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 
 

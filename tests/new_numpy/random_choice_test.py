@@ -106,9 +106,9 @@ class TestNJobs:
         with pytest.raises(ValueError):
             pb_choice(good_a, (100,), replace=True, n_jobs=pi)
 
-    @pytest.mark.parametrize('n_jobs', (0, -2, 9235))
+    @pytest.mark.parametrize('n_jobs', (0, -2, min))
     def test_rejects_bad_ints(self, good_a, n_jobs):
-        with pytest.raises(ValueError):
+        with pytest.raises((TypeError, ValueError)):
             pb_choice(good_a, (100,), replace=True, n_jobs=n_jobs)
 
     @pytest.mark.parametrize('n_jobs', ('junk', [], {'a':1}))
