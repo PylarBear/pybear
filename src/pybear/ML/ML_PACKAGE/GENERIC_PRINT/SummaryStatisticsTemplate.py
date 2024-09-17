@@ -1,5 +1,5 @@
-import numpy as n
-import general_list_ops.list_of_lists_merger as llm
+import numpy as np
+
 
 
 
@@ -25,8 +25,7 @@ class SummaryStatisticsPrintTemplate:
     def rsq(self):
         # Define function for rsq
         # CANT DO THE "JUST 1s IN SOFTMAX TARGET" STYLE... VECTOR OF ALL 1 GIVES ERROR IN RSQ
-        return n.corrcoef(llm.list_of_lists_merger(self.TARGET_VECTOR.reshape((1,-1))[0]),
-                          llm.list_of_lists_merger(self.OUTPUT_VECTOR.reshape((1,-1))[0]))[0][1]**2
+        return np.corrcoef(self.TARGET_VECTOR.ravel(), self.OUTPUT_VECTOR.ravel())[0][1]**2
 
 
     def conditional_print_for_all(self):
@@ -34,9 +33,9 @@ class SummaryStatisticsPrintTemplate:
         # Define what to report based on what the output will be as determined by the final link function
         # INHERITED BY CHILD
         if self.link == 'None':
-            print(f'\nOUTPUT MAX = {n.max(self.OUTPUT_VECTOR[0]):.8f}')
-            print(f'OUTPUT MIN = {n.min(self.OUTPUT_VECTOR[0]):.8f}')
-            print(f'OUTPUT AVG = {n.mean(self.OUTPUT_VECTOR[0]):.8f}')
+            print(f'\nOUTPUT MAX = {np.max(self.OUTPUT_VECTOR[0]):.8f}')
+            print(f'OUTPUT MIN = {np.min(self.OUTPUT_VECTOR[0]):.8f}')
+            print(f'OUTPUT AVG = {np.mean(self.OUTPUT_VECTOR[0]):.8f}')
 
         elif self.link == 'ReLU_lower': pass
         elif self.link == 'ReLU_upper': pass
@@ -55,14 +54,14 @@ class SummaryStatisticsPrintTemplate:
                     else:
                         OUTPUT_NO_EVENT_VALUES.append(self.OUTPUT_VECTOR[col_idx][example_idx])
 
-            print(f'\nOUTPUT_EVENT_MAX = {n.max(OUTPUT_EVENT_VALUES):.8f}')
-            print(f'OUTPUT_EVENT_MIN = {n.min(OUTPUT_EVENT_VALUES):.8f}')
-            print(f'OUTPUT_EVENT_AVG = {n.mean(OUTPUT_EVENT_VALUES):.8f}')
-            print(f'OUTPUT_NO_EVENT_MAX = {n.max(OUTPUT_NO_EVENT_VALUES):.8f}')
-            print(f'OUTPUT_NO_EVENT_MIN = {n.min(OUTPUT_NO_EVENT_VALUES):.8f}')
-            print(f'OUTPUT_NO_EVENT_AVG = {n.mean(OUTPUT_NO_EVENT_VALUES):.8f}')
+            print(f'\nOUTPUT_EVENT_MAX = {np.max(OUTPUT_EVENT_VALUES):.8f}')
+            print(f'OUTPUT_EVENT_MIN = {np.min(OUTPUT_EVENT_VALUES):.8f}')
+            print(f'OUTPUT_EVENT_AVG = {np.mean(OUTPUT_EVENT_VALUES):.8f}')
+            print(f'OUTPUT_NO_EVENT_MAX = {np.max(OUTPUT_NO_EVENT_VALUES):.8f}')
+            print(f'OUTPUT_NO_EVENT_MIN = {np.min(OUTPUT_NO_EVENT_VALUES):.8f}')
+            print(f'OUTPUT_NO_EVENT_AVG = {np.mean(OUTPUT_NO_EVENT_VALUES):.8f}')
             print(f'TRUE HIT RATE = {round(100 * len(OUTPUT_EVENT_VALUES) / len(self.TARGET_VECTOR[0]), 2)}%')
-            error_rate = 100 * n.sum([round(_,0)==0 for _ in OUTPUT_EVENT_VALUES] +
+            error_rate = 100 * np.sum([round(_,0)==0 for _ in OUTPUT_EVENT_VALUES] +
                                            [round(__,0)==1 for __ in OUTPUT_NO_EVENT_VALUES]) / \
                                     len(OUTPUT_EVENT_VALUES+OUTPUT_NO_EVENT_VALUES)
             print(f'ERROR RATE (0.5 CUTOFF) = {round(error_rate, 2)}%')
@@ -71,8 +70,8 @@ class SummaryStatisticsPrintTemplate:
     def always_printed_for_all(self):
         # Statistics printed for all ML packages
         # INHERITED BY CHILD
-        print(f'\nMIN, MAX, AVG TARGET_ELEMENT = {n.min(self.TARGET_VECTOR):.8f}, {n.max(self.TARGET_VECTOR):.8f}, {n.mean(self.TARGET_VECTOR):.8f}')
-        print(f'MIN, MAX, AVG OUTPUT_ELEMENT = {n.min(self.OUTPUT_VECTOR):.8f}, {n.max(self.OUTPUT_VECTOR):.8f}, {n.mean(self.OUTPUT_VECTOR):.8f}')
+        print(f'\nMIN, MAX, AVG TARGET_ELEMENT = {np.min(self.TARGET_VECTOR):.8f}, {np.max(self.TARGET_VECTOR):.8f}, {np.mean(self.TARGET_VECTOR):.8f}')
+        print(f'MIN, MAX, AVG OUTPUT_ELEMENT = {np.min(self.OUTPUT_VECTOR):.8f}, {np.max(self.OUTPUT_VECTOR):.8f}, {np.mean(self.OUTPUT_VECTOR):.8f}')
         print(f'OUTPUT / TARGET R-SQUARED = {self.rsq()}')
         print(f'AVERAGE ERROR = {self.error / len(self.TARGET_VECTOR[0]):.8f}')
 
@@ -146,8 +145,8 @@ class SummaryStatisticsDumpTemplate:
     def rsq(self):
         # Define function for rsq
         # CANT DO THE "JUST 1s IN SOFTMAX TARGET" STYLE... VECTOR OF ALL 1 GIVES ERROR IN RSQ
-        return n.corrcoef(n.hstack((self.TARGET_VECTOR)).astype(n.float64),
-                          n.hstack((self.OUTPUT_VECTOR)).astype(n.float64)
+        return np.corrcoef(np.hstack((self.TARGET_VECTOR)).astype(np.float64),
+                          np.hstack((self.OUTPUT_VECTOR)).astype(np.float64)
                           )[0][1]**2
 
 
@@ -160,8 +159,8 @@ class SummaryStatisticsDumpTemplate:
 
         if self.link in ['None', 'ReLU_lower', 'ReLU_upper']:
             OUTPUT_STATS_HEADER = ['OUTPUT MAX', 'OUTPUT MIN', 'OUTPUT AVG']
-            OUTPUT_STATS = [f'{n.max(self.OUTPUT_VECTOR[0]):.8f}',f'{n.min(self.OUTPUT_VECTOR[0]):.8f}',
-                            f'{n.mean(self.OUTPUT_VECTOR[0]):.8f}']
+            OUTPUT_STATS = [f'{np.max(self.OUTPUT_VECTOR[0]):.8f}',f'{np.min(self.OUTPUT_VECTOR[0]):.8f}',
+                            f'{np.mean(self.OUTPUT_VECTOR[0]):.8f}']
 
             for idx in range(len(OUTPUT_STATS_HEADER)):
                 self.custom_write(self.sheet_name, self.row_counter, self.column_counter, OUTPUT_STATS_HEADER[idx],
@@ -185,12 +184,12 @@ class SummaryStatisticsDumpTemplate:
 
             OUTPUT_STATS_HEADER = ['OUTPUT EVENT MAX', 'OUTPUT EVENT MIN', 'OUTPUT EVENT AVG', 'OUTPUT NO EVENT MAX',
                                    'OUTPUT NO EVENT MIN', 'OUTPUT NO EVENT AVG', 'ERROR RATE (0.5 CUTOFF)']
-            error_rate = 100 * n.sum([round(_,0)==0 for _ in OUTPUT_EVENT_VALUES] +
+            error_rate = 100 * np.sum([round(_,0)==0 for _ in OUTPUT_EVENT_VALUES] +
                                            [round(__,0)==1 for __ in OUTPUT_NO_EVENT_VALUES]) / \
                                     len(OUTPUT_EVENT_VALUES+OUTPUT_NO_EVENT_VALUES)
-            OUTPUT_STATS =  [f'{n.max(OUTPUT_EVENT_VALUES):.8f}', f'{n.min(OUTPUT_EVENT_VALUES):.8f}',
-                             f'{n.mean(OUTPUT_EVENT_VALUES):.8f}', f'{n.max(OUTPUT_NO_EVENT_VALUES):.8f}',
-                             f'{n.min(OUTPUT_NO_EVENT_VALUES)}', f'{n.mean(OUTPUT_NO_EVENT_VALUES):.8f}',
+            OUTPUT_STATS =  [f'{np.max(OUTPUT_EVENT_VALUES):.8f}', f'{np.min(OUTPUT_EVENT_VALUES):.8f}',
+                             f'{np.mean(OUTPUT_EVENT_VALUES):.8f}', f'{np.max(OUTPUT_NO_EVENT_VALUES):.8f}',
+                             f'{np.min(OUTPUT_NO_EVENT_VALUES)}', f'{np.mean(OUTPUT_NO_EVENT_VALUES):.8f}',
                              f'{round(error_rate,2)}%']
 
             for idx in range(len(OUTPUT_STATS_HEADER)):
@@ -211,7 +210,7 @@ class SummaryStatisticsDumpTemplate:
         self.custom_write(self.sheet_name,
                           self.row_counter,
                           self.column_counter + 4,
-                          f'{n.min(self.TARGET_VECTOR):.8f}, {n.max(self.TARGET_VECTOR):.8f}, {n.mean(self.TARGET_VECTOR):.8f}',
+                          f'{np.min(self.TARGET_VECTOR):.8f}, {np.max(self.TARGET_VECTOR):.8f}, {np.mean(self.TARGET_VECTOR):.8f}',
                           'left',
                           'center',
                           False)
@@ -221,7 +220,7 @@ class SummaryStatisticsDumpTemplate:
         self.custom_write(self.sheet_name,
                           self.row_counter,
                           self.column_counter + 4,
-                          f'{n.min(self.OUTPUT_VECTOR):.8f}, {n.max(self.OUTPUT_VECTOR):.8f}, {n.mean(self.OUTPUT_VECTOR):.8f}',
+                          f'{np.min(self.OUTPUT_VECTOR):.8f}, {np.max(self.OUTPUT_VECTOR):.8f}, {np.mean(self.OUTPUT_VECTOR):.8f}',
                           'left',
                           'center',
                           False)
