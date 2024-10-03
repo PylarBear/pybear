@@ -384,19 +384,19 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
     _total_counts_by_column: TotalCountsByColumnType
 
     def __init__(
-                 self,
-                 count_threshold:int,
-                 *,
-                 ignore_float_columns:bool=True,
-                 ignore_non_binary_integer_columns:bool=True,
-                 ignore_columns:IgnColsHandleAsBoolDtype=None,
-                 ignore_nan:bool=True,
-                 handle_as_bool:IgnColsHandleAsBoolDtype=None,
-                 delete_axis_0:bool=False,
-                 reject_unseen_values:bool=False,
-                 max_recursions:int=1,
-                 n_jobs:[int, None]=None
-                 ):
+        self,
+        count_threshold:int,
+        *,
+        ignore_float_columns:bool=True,
+        ignore_non_binary_integer_columns:bool=True,
+        ignore_columns:IgnColsHandleAsBoolDtype=None,
+        ignore_nan:bool=True,
+        handle_as_bool:IgnColsHandleAsBoolDtype=None,
+        delete_axis_0:bool=False,
+        reject_unseen_values:bool=False,
+        max_recursions:int=1,
+        n_jobs:[int, None]=None
+    ):
 
 
         self.count_threshold = count_threshold
@@ -1039,15 +1039,15 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         """
 
         params = {
-                    'count_threshold': self.count_threshold,
-                    'ignore_float_columns': self.ignore_float_columns,
-                    'ignore_non_binary_integer_columns':
-                        self.ignore_non_binary_integer_columns,
-                    'ignore_columns': self.ignore_columns,
-                    'ignore_nan': self.ignore_nan,
-                    'delete_axis_0': self.delete_axis_0,
-                    'max_recursions': self.max_recursions,
-                    'n_jobs': self.n_jobs
+            'count_threshold': self.count_threshold,
+            'ignore_float_columns': self.ignore_float_columns,
+            'ignore_non_binary_integer_columns':
+                self.ignore_non_binary_integer_columns,
+            'ignore_columns': self.ignore_columns,
+            'ignore_nan': self.ignore_nan,
+            'delete_axis_0': self.delete_axis_0,
+            'max_recursions': self.max_recursions,
+            'n_jobs': self.n_jobs
         }
 
         return params
