@@ -8,7 +8,7 @@ import numpy as np
 import joblib
 from typing_extensions import Union
 from .._type_aliases import DataType
-
+from ....utilities._nan_masking import nan_mask
 
 
 
@@ -74,14 +74,7 @@ def _parallelized_row_masks(
         if unq in _instr or str(unq) in map(str, _instr) or _reject_unseen_values:
 
             if str(unq).lower() == 'nan':
-
-                try:
-                    MASK_ON_X_COLUMN_UNQ += \
-                        np.isnan(_X_COLUMN.ravel().astype(np.float64))
-                except:
-                    MASK_ON_X_COLUMN_UNQ += \
-                        (np.char.lower(_X_COLUMN.ravel().astype(str)) == 'nan')
-
+                MASK_ON_X_COLUMN_UNQ = nan_mask(_X_COLUMN.ravel())
             else:
                 MASK_ON_X_COLUMN_UNQ += (_X_COLUMN.ravel() == unq)
 

@@ -21,6 +21,7 @@ from ._two_uniques_hab import _two_uniques_hab
 from ._two_uniques_not_hab import _two_uniques_not_hab
 from ._three_or_more_uniques_hab import _three_or_more_uniques_hab
 from ._three_or_more_uniques_not_hab import _three_or_more_uniques_not_hab
+from .....utilities._nan_masking import nan_mask_numerical
 
 
 # _make_instructions()
@@ -54,9 +55,9 @@ def _make_instructions(
     items may be in the list:
     -- 'INACTIVE' - ignore the column and carry it through for all other
         operations
-    -- individual values (in raw datatype format, not converted to string)
-        indicates to delete the rows on axis 0 that contain that value
-        in that column, including 'nan' or np.nan values
+    -- individual values (in raw datatype format, not converted to
+        string) indicates to delete the rows on axis 0 that contain that
+        value in that column, including 'nan' or np.nan values
     -- 'DELETE COLUMN' - perform any individual row deletions that need
         to take place while the column is still in the data, then delete
         the column from the data.
@@ -83,14 +84,14 @@ def _make_instructions(
     unseen data.
 
     This module makes delete instructions based on the uniques and counts
-    as found as it iterates over all the columns in _total_counts_by_column.
+    as found as it iterates over the columns in _total_counts_by_column.
 
     A) if col_idx is inactive, skip.
     column is 'INACTIVE' if:
        - col_idx in _ignore_columns:
        - _total_counts_by_column[col_idx] is empty
        - _ignore_float_columns and is float column
-       - _ignore_non_binary_integer_columns and is 'int' and num unqs >= 3
+       - _ignore_non_binary_integer_columns, is 'int', and num unqs >= 3
 
     B) MANAGE nan
         Create holder objects to hold the value and the count.
@@ -243,7 +244,7 @@ def _make_instructions(
                 _total_counts_by_column[col_idx].keys(),
                 dtype=np.float64
             )
-            if len(UNQS[np.logical_not(np.isnan(UNQS))]) >= 3:
+            if len(UNQS[np.logical_not(nan_mask_numerical(UNQS))]) >= 3:
                 _delete_instr[col_idx].append('INACTIVE')
             del UNQS
 

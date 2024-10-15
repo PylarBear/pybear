@@ -19,7 +19,7 @@ PyBear
 
 .. _documentation: https://pybear.readthedocs.io/
 
-.. |PythonMinVersion| replace:: 3.9
+.. |PythonMinVersion| replace:: >=3.9, <3.13
 .. |DaskMinVersion| replace:: X.X.X
 .. |DaskMLMinVersion| replace:: X.X.X
 .. |DistributedMinVersion| replace:: X.X.X
@@ -86,13 +86,13 @@ AutoGridSearchCV
 ~~~~~~~~~~~~~~~~
 Description: Perform multiple uninterrupted passes of grid search with sci-kit 
 learn GridSearchCV utilizing progressively narrower search grids.
-Key class: AutoGridSearchCV
+Access via pybear.model_selection.AutoGridSearchCV.
 
 AutoGridSearchCVDask
 ~~~~~~~~~~~~~~~~~~~~
 Description: Perform multiple uninterrupted passes of grid search with dask_ml 
 GridSearchCV and dask objects utilizing progressively narrower search grids.
-Key class: AutoGridSearchCVDask
+Access via pybear.model_selecion.AutoGridSearchCVDask.
 
 autogridsearch_wrapper
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -100,14 +100,14 @@ Description: Create your own auto-gridsearch class. A function that wraps any
 scikit-learn or dask_ml GridSearchCV module to create an identical GridSearch 
 class that performs multiple passes of grid search using progressively narrower 
 search grids.
-Key function: autogridsearch_wrapper
+Access via pybear.model_selection.autogridsearch_wrapper.
 
 GSTCV (GridSearchThresholdCV)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Description: Perform conventional grid search with concurrent threshold search.
 Finds the global optima for the passed parameters and thresholds. Is fully 
 compliant with the scikit-learn GridSearchCV API.
-Key class: GSTCV
+Access via pybear.model_selection.GSTCV.
 
 GSTCVDask (GridSearchThresholdCV for Dask)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -115,19 +115,19 @@ Description: Perform conventional grid search with concurrent threshold search
 using dask objects in parallel and distributed environments. Finds the global 
 optima for the passed parameters and thresholds. Is fully compliant with the 
 dask_ml GridSearchCV API.
-Key class: GSTCVDask
+Access via pybear.model_selection.GSTCVDask.
 
 AutoGSTCV
 ~~~~~~~~~
 Description: Perform multiple uninterrupted passes of grid search with pybear 
 GSTCV utilizing progressively narrower search grids.
-Key class: AutoGSTCV
+Access via pybear.model_selection.AutoGSTCV.
 
 AutoGSTCVDask
 ~~~~~~~~~~~~~
 Description: Perform multiple uninterrupted passes of grid search with pybear 
 GSTCVDask utilizing progressively narrower search grids.
-Key class: AutoGSTCV
+Access via pybear.model_selection.AutoGSTCVDask.
 
 MinCountTransformer
 ~~~~~~~~~~~~~~~~~~~
@@ -136,7 +136,7 @@ data simulteously across an entire array of data. Violates the scikit-learn API
 in that datasets are modified along the example axis (examples may be deleted.) 
 Otherwise is fully compliant with the sci-kit learn transformer API, with fit, 
 transform, and partial_fit methods.
-Key Class: MinCountTranformer.
+Access via pybear.preprocessing.MinCountTranformer.
 
 =======
 

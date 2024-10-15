@@ -9,7 +9,7 @@ from pybear.preprocessing import MinCountTransformer
 import dask.array as da
 from dask_ml.wrappers import Incremental, ParallelPostFit
 import numpy as np
-from sklearn.cluster import MiniBatchKMeans
+
 
 _thresh = 10
 x_rows = 100
@@ -18,7 +18,12 @@ x_cols = 6
 y_cols = 2
 
 
-FLOAT_COL = np.random.randint(1, 4, size=(x_rows - (_thresh - 1), x_cols)).astype(np.float64)
+FLOAT_COL = np.random.randint(
+    1,
+    4,
+    size=(x_rows - (_thresh - 1), x_cols)
+).astype(np.float64)
+
 # for _col in range(x_cols):
 #     MASK = np.random.choice(list(range(x_rows - (_thresh - 1))), _thresh-1, replace=False)
 #     FLOAT_COL[MASK, _col] = np.nan
@@ -43,7 +48,7 @@ _mct = MinCountTransformer(
 
 _test_cls = ParallelPostFit(
     Incremental(
-        estimator=_mct   #MiniBatchKMeans()
+        estimator=_mct
     )
 )
 

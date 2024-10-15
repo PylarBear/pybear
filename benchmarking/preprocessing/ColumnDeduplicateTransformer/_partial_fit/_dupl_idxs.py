@@ -26,7 +26,9 @@ for _set in duplicates:
         X[:, _idx] = X[:, _set[0]]
 
 
-duplicates_ = _dupl_idxs(X, None)
+duplicates_ = _dupl_idxs(
+    X, None, _rtol=1e-6, _atol=1e6, _equal_nan=False, _n_jobs=None
+)
 
 # less_duplicates = [[1,8], [3,12]]
 # X_less = og_X.copy()
@@ -34,12 +36,16 @@ duplicates_ = _dupl_idxs(X, None)
 #     for _idx in _set[1:]:
 #         X_less[:, _idx] = X_less[:, _set[0]]
 #
-# out = _dupl_idxs(X_less, duplicates_)
+# out = _dupl_idxs(
+#   X_less, duplicates_, _atol=1e-6, _rtol=1e-6 _equal_nan=False, _n_jobs=None
+# )
 # print(out)    # should == less_duplicates
 
 
 # no duplicates
 new_X = og_X.copy()
-out = _dupl_idxs(new_X, duplicates_)
+out = _dupl_idxs(
+    new_X, duplicates_, _atol=1e-6, _rtol=1e-6, _equal_nan=False, _n_jobs=None
+)
 print(out)    # should == []
 

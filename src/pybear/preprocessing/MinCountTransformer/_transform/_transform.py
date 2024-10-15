@@ -224,9 +224,11 @@ def transform(self, X, y=None):
                                 np.fromiter(TCBC[old_col_idx].keys(),
                                             dtype='<U100')
                         ):
-                            raise AssertionError(f"algorithm failure, unique "
-                                                 f"in a deeper recursion is not in the "
-                                                 f"previous recursion")
+                            raise AssertionError(
+                                f"algorithm failure, unique in a deeper "
+                                f"recursion is not in the previous "
+                                f"recursion"
+                            )
                     try:
                         __ = TCBC[old_col_idx][unq]
                     except:
@@ -234,11 +236,10 @@ def transform(self, X, y=None):
                             __ = TCBC[old_col_idx][str(unq).lower()]
                         except:
                             try:
-                                __ = dict((zip(list(
-                                    map(str, TCBC[old_col_idx].keys())),
-                                               list(
-                                                   TCBC[old_col_idx].values()))
-                                           ))['nan']
+                                __ = dict((zip(
+                                    list(map(str, TCBC[old_col_idx].keys())),
+                                    list(TCBC[old_col_idx].values())
+                                )))['nan']
                             except:
                                 raise ValueError(f"could not access key {unq} "
                                                  f"in _total_counts_by_column")

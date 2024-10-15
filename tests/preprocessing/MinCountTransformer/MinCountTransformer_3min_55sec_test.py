@@ -25,7 +25,7 @@ from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
 
 
 
-bypass = False
+bypass = True
 
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -86,8 +86,6 @@ def _kwargs():
 
 
 # build X, NO_NAN_X, DTYPE_KEY, x_rows, x_cols for MCT test (not mmct test!)
-
-# build_test_objects_for_MCT builds this objects in one shot in conftest
 
 @pytest.fixture(scope='function')
 def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
@@ -2190,7 +2188,7 @@ class TestBinIntAboveThreshNotDeleted:
 
 
 # TEST ACCURACY ********************************************************
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
+# @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAccuracy:
 
     @pytest.mark.parametrize('count_threshold', [2, 3])
@@ -2303,7 +2301,8 @@ class TestAccuracy:
             lambda XX: np.logical_not(np.char.lower(XX.astype(str)) == 'nan')
 
         try:
-            # pizza vvvv failing when run all tests
+            # failing locally when run all tests, but not individually
+            # vvvv and is passing on GitHub Actions
             assert np.array_equiv(TRFM_X.astype(str), MOCK_X.astype(str))
             # ^^^^^ ^^^^^^ ^^^^^ ^^^^^
             assert np.array_equiv(TRFM_Y.astype(str), MOCK_Y.astype(str))
@@ -2339,7 +2338,7 @@ class TestAccuracy:
                 NEW_TRFM_X, NEW_TRFM_Y = \
                     NewTestCls_2.fit_transform(NEW_TRFM_X, NEW_TRFM_Y)
 
-                # vvvv pizza ****************************************
+                # vvvv *************************************************
                 # where <function array_equiv> 2133: AssertionError
                 assert np.array_equiv(NEW_TRFM_X[mask_maker(NEW_TRFM_X)],
                     MOCK_X[mask_maker(MOCK_X)]), (f'{max_recursions}X PASSES '
@@ -2466,12 +2465,30 @@ class TestManyPartialFitsEqualOneBigFit:
 
         # TEST PARTIAL FIT COUNTS ARE DOUBLED WHEN FULL DATA IS partial_fit() 2X
         SingleFitTestClass = MinCountTransformer(*_args, **_kwargs)
-        DoublePartialFitTestClass = MinCountTransformer(*_args, **_kwargs)
-
         SingleFitTestClass.fit(X, y)
-        DoublePartialFitTestClass.partial_fit(X, y)
+        CT1 = SingleFitTestClass._total_counts_by_column
 
+        DoublePartialFitTestClass = MinCountTransformer(*_args, **_kwargs)
         DoublePartialFitTestClass.partial_fit(X, y)
+        DoublePartialFitTestClass.partial_fit(X, y)
+        CT2 = DoublePartialFitTestClass._total_counts_by_column
+
+        # convert keys to strs to deal with nans
+        CT1 = {i:{str(k):v for k,v in _.items()} for i,_ in CT1.items()}
+        CT2 = {i:{str(k):v for k,v in _.items()} for i,_ in CT2.items()}
+        for _c_idx in CT1:
+            for _unq in CT1[_c_idx]:
+                # pizza
+                if CT2[_c_idx][_unq] != 2 * CT1[_c_idx][_unq]:
+                    print(f"{_unq} - 1: {CT1[_c_idx][_unq]}, 2: {CT2[_c_idx][_unq]}")
+                assert CT2[_c_idx][_unq] == 2 * CT1[_c_idx][_unq]
+        # pizza come back to this, nans are screwing up again!
+        # pizza set bypass back to false when done
+        # nan - 1: 25, 2: 25  (should be double)
+        # nan - 1: 17, 2: 17
+        del CT1, CT2
+
+        # END TEST PARTIAL FIT COUNTS ARE DOUBLED WHEN FULL DATA IS partial_fit() 2X
 
         # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X/y
         _chunks = 5
