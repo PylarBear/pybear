@@ -34,12 +34,6 @@ from copy import deepcopy
 # correct controlled attributes at the time of construction in conftest,
 # do the tests formally here.
 
-# pizza
-def custom_assert(condition, msg=None):
-    try:
-        assert condition, msg
-    except AssertionError as e:
-        warnings.warn(str(e))
 
 
 # MOCK_X_FLT IS NOT TESTED
@@ -443,22 +437,13 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
+        # 24_06_18 this is intermittently failing locally, but is
+        # passing on GitHub Actions.
         # universal hands-off non-nans
-        # vvvvvvvvvv pizza *******************************************
-        # 24_06_18 pizza this is intermittently failing, but it doesnt seem to
-        # have ramifications as everything else is passing.
-        # custom_assert(
-        #     np.array_equiv(TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-        #     _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]),
-        #     msg=f"bin column non-nans wrongly altered"
-        # )
-
         assert np.array_equiv(
             TRFM_X[np.logical_not(np.isnan(TRFM_X))],
             _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]
         ), f"bin column non-nans wrongly altered"
-
-        # ^^^^^ pizza **************************************************
 
 
         if _ignore_nan is True:
@@ -604,22 +589,13 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        # vvvvvvvv pizza ************************************************
-        # 24_06_18 pizza this is intermittently failing, but it doesnt seem to
-        # have ramifications as everything else is passing. just skip it.
-        # universal hands-off non-nan
-        # custom_assert(
-        #     np.array_equiv(TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-        #     _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]),
-        #     msg=f"nbi non-nan rows wrongly altered"
-        # )
-
+        # 24_06_18 this is intermittently failing locally, but is passing
+        # on GitHub Actions
+        # universal hands-off non-nans
         assert np.array_equiv(
             TRFM_X[np.logical_not(np.isnan(TRFM_X))],
             _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]
         ), f"nbi non-nan rows wrongly altered"
-
-        # ^^^^^^^ pizza *************************************************
 
         if _ignore_nan is True:
             # cant do array_equiv with nans in them
@@ -633,19 +609,18 @@ class TestIgnoreNan:
                 assert len(TRFM_X) < len(_NEW_MOCK_X), \
                     f"nbi rows were not altered with ignore_nan=False"
 
-            # 24_06_15 pizza this is itermittently failing. what seems to be
-            # happening is a number is in _NEW_MOCK_X that is not in TRFM_X.
-            # Likely because np.nan is overwriting one of the numbers
-            # enough times that it falls below threshold and is removed.
+            # 24_06_15 this is itermittently failing locally, but is
+            # passing on GitHub Actions. what seems to be happening is a
+            # number is in _NEW_MOCK_X that is not in TRFM_X. Likely
+            # because np.nan is overwriting enough instances of one of
+            # the numbers that it falls below threshold and is removed.
             # Manipulating the number of nans in NEW_MOCK_X_NBI_2 has
             # cascading consequences elsewhere (even though it is not
             # readily apparent why.)
-            # vvvvvv pizza *********************************
             elif _DATA == 'DATA_2':
                 # NAN ABOVE THRESH AND NO NANS DELETED
                 assert len(TRFM_X) == len(_NEW_MOCK_X), \
                     f"nbi nan rows wrongly deleted"
-            # ^^^^^^^^^^ pizza *******************************
 
     # END nbi ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -1034,8 +1009,7 @@ def test_accuracy(
         count_threshold=_count_threshold
     )[0]
 
-    # pizza this is itermittently failing. not taking the trouble fix REF_X when
-    # mock_mct works. a lot of wasted time and code.
+    # this is itermittently failing locally, but is passing on GitHub Actions
     assert np.array_equiv(TRFM_X.astype(str), REF_X.astype(str))
 
 

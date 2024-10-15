@@ -10,7 +10,6 @@ from pybear.preprocessing.ColumnDeduplicateTransformer._validation._columns \
 
 import numpy as np
 import pandas as pd
-from uuid import uuid4
 from copy import deepcopy
 
 
@@ -23,18 +22,18 @@ class TestColumns:
     # fixtures ** * ** * ** * ** * ** * ** *
     @staticmethod
     @pytest.fixture(scope='module')
-    def _cols():
-        return 5
+    def _shape():
+        return (20, 5)
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _X_np(_cols):
-        return np.random.randint(0, 10, (20,_cols))
+    def _X_np(_X_factory, _shape):
+        return _X_factory(_format='np', _shape=_shape)
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _columns(_cols):
-        return [str(uuid4())[:4] for _ in range(_cols)]
+    def _columns(_master_columns, _shape):
+        return _master_columns.copy()[:_shape[1]]
 
     @staticmethod
     @pytest.fixture(scope='module')

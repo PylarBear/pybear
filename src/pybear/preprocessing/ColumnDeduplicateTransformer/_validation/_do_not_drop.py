@@ -7,7 +7,7 @@
 
 from .._type_aliases import DoNotDropType, DataType
 
-import pandas as pd
+
 
 
 
@@ -34,10 +34,13 @@ def _val_do_not_drop(
 
     """
 
-    if isinstance(_X, pd.core.frame.DataFrame) and _columns is None:
-        raise ValueError(
-            f"if '_X' is a dataframe, '_columns' cannot be None"
-        )
+    # it appears that sklearn _validate_data recognizes when a DF was
+    # passed without a user-defined header (that is, the header is [1,2,3,...]),
+    # and in that case does not expose feature_names_in_.
+    # if isinstance(_X, pd.core.frame.DataFrame) and _columns is None:
+    #     raise ValueError(
+    #         f"if '_X' is a dataframe, '_columns' cannot be None"
+    #     )
 
     try:
         # if is None, just skip out
@@ -78,7 +81,7 @@ def _val_do_not_drop(
             f"integers, or None"
         )
 
-    # IF X IS PASSED AS A DF, _columns CANNOT BE None!
+
     if _columns is not None:
         _base_err_msg = (f"when passing 'do_not_drop' with column names, "
             f"all entries must exactly match columns of the data. ")
@@ -105,8 +108,7 @@ def _val_do_not_drop(
             raise ValueError(_err_msg(max(_do_not_drop)))
         del _err_msg
 
-    # pizza, this is not being returned so ineffectual
-    # _do_not_drop = sorted(_do_not_drop)
+
 
 
 

@@ -17,7 +17,10 @@ from ._find_duplicates import _find_duplicates
 
 def _dupl_idxs(
     _X: DataType,
-    _duplicates: list[list[int]],
+    _duplicates: Union[list[list[int]], None],
+    _rtol: float,
+    _atol: float,
+    _equal_nan: bool,
     _n_jobs: Union[int, None]
 ) -> list[list[int]]:
 
@@ -40,18 +43,49 @@ def _dupl_idxs(
         Union[list[list[int]], None] - the duplicate columns carried over
             from the previous partial fits. Is None if on the first
             partial fit.
+    _rtol:
+        pizza
+    _atol:
+        pizza
+    _equal_nan:
+        bool - pizza what!?!?!?
+    _n_jobs:
+        Union[int, None] - The number of jobs to use with joblib Parallel
+        while comparing columns. Default is to use processes, but can be
+        overridden externally using a joblib parallel_config context
+        manager. The default number of jobs is None, which uses the
+        joblib default when n_jobs is None.
 
 
     Return
     ------
     -
-        duplicates: list[list[int]] - the groups of identical columns,
+        duplicates_: list[list[int]] - the groups of identical columns,
             indicated by their zero-based column index positions.
 
 
     """
 
-    duplicates_ = _find_duplicates(_X, _n_jobs)
+    # pizza think if we want this, lots of ss.sparse
+    # assert isinstance(_X, pizza)
+    assert isinstance(_duplicates, (list, type(None)))
+    if _duplicates is not None:
+        for _set in _duplicates:
+            assert isinstance(_set, list)
+            assert all(map(isinstance, _set, (int for _ in _set)))
+    try:
+        float(_rtol)
+    except:
+        raise Exception
+    try:
+        float(_atol)
+    except:
+        raise Exception
+    assert isinstance(_equal_nan, bool)
+    assert isinstance(_n_jobs, (int, type(None)))
+
+
+    duplicates_ = _find_duplicates(_X, _rtol, _atol, _equal_nan, _n_jobs)
 
     # if _duplicates is None, this is the first pass
     if _duplicates is None:

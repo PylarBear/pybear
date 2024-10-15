@@ -8,17 +8,6 @@
 
 from sklearn.base import BaseEstimator, TransformerMixin, OneToOneFeatureMixin
 
-import numpy as np
-import pandas as pd
-from uuid import uuid4
-
-from sklearn.utils.validation import (
-    FLOAT_DTYPES,
-    _check_sample_weight,
-    check_is_fitted,
-    check_random_state,
-)
-
 import pytest
 
 
@@ -55,15 +44,22 @@ import pytest
 class Fixtures:
 
 
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _shape():
+        return (20, 5)
 
 
     @staticmethod
-    @pytest.fixture()
-    def X_pd():
-        _cols = 5
-        return pd.DataFrame(
-            data=np.random.randint(0,10,(20, _cols)),
-            columns=[str(uuid4())[:4] for _ in range(_cols)]
+    @pytest.fixture(scope='module')
+    def X_pd(_X_factory, _master_columns, _shape):
+
+        return _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format='pd',
+            _dtype='flt',
+            _columns=_master_columns.copy()[:_shape[1]]
         )
 
 
@@ -88,8 +84,8 @@ class Fixtures:
                 # this exposes n_features_in_ and feature_names_in_
                 X = cls._validate_data(
                     X,
-                    accept_sparse=("csr", "csc"),
-                    dtype=FLOAT_DTYPES,
+                    accept_sparse=("csr", "csc", "coo"),
+                    dtype=None,
                     force_all_finite="allow-nan",
                     reset=True,
                 )
@@ -161,8 +157,6 @@ class TestBaseEstimator(Fixtures):
     )
     def test_after_fit(self, attr, MockWithBaseEstimator, X_pd):
 
-        X = np.random.randint(0, 10, (20, 3))
-
         Fitted = MockWithBaseEstimator().fit(X_pd)
 
         if attr in [
@@ -191,8 +185,6 @@ class TestTransformerMixin(Fixtures):
     )
     def test_after_fit(self, attr, MockWithTransformerMixin, X_pd):
 
-        X = np.random.randint(0, 10, (20, 3))
-
         Fitted = MockWithTransformerMixin().fit(X_pd)
 
         assert not hasattr(Fitted, attr)
@@ -220,8 +212,6 @@ class TestOneToOneFeatureMixin(Fixtures):
          'get_feature_names_out', '_validate_data', 'set_params', 'get_params')
     )
     def test_after_fit(self, attr, MockWithOneToOneFeatureMixin, X_pd):
-
-        X = np.random.randint(0, 10, (20, 3))
 
         Fitted = MockWithOneToOneFeatureMixin().fit(X_pd)
 

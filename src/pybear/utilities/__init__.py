@@ -8,6 +8,11 @@ from ._benchmarking import (
 from ._check_pipeline import check_pipeline
 from ._get_methods_out_of_class import get_methods_out_of_class
 from ._get_module_name import get_module_name
+from ._nan_masking import (
+    nan_mask_numerical,
+    nan_mask_string,
+    nan_mask
+)
 from ._permuter import permuter
 from ._serial_index_mapper import serial_index_mapper
 
@@ -33,6 +38,9 @@ __all__ = [
     "check_pipeline",
     "get_methods_out_of_class",
     "get_module_name",
+    "nan_mask",
+    "nan_mask_numerical",
+    "nan_mask_string",
     "permuter",
     "serial_index_mapper",
     "time_memory_benchmark",

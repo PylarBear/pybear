@@ -10,7 +10,7 @@ from pybear.preprocessing.ColumnDeduplicateTransformer._validation. \
 
 import numpy as np
 import pandas as pd
-from uuid import uuid4
+
 
 import pytest
 
@@ -20,23 +20,23 @@ class Fixtures:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _cols():
-        return 5
+    def _shape():
+        return (20, 5)
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def X_np(_cols):
-        return np.random.randint(0,10,(20,_cols))
+    def _columns(_master_columns, _shape):
+        return _master_columns.copy()[:_shape[1]]
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def good_columns(_cols):
-        return [str(uuid4())[:4] for _ in range(_cols)]
+    def X_np(_X_factory, _shape):
+        return _X_factory(_format='np', _shape=_shape)
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def X_pd(X_np, good_columns):
-        return pd.DataFrame(data=X_np, columns=good_columns)
+    def X_pd(X_np, _columns):
+        return pd.DataFrame(data=X_np, columns=_columns)
 
 
 
@@ -44,36 +44,24 @@ class Fixtures:
 @pytest.mark.parametrize('_columns_is_passed', (True, False), scope='module')
 class TestDoNotDropJunk(Fixtures):
 
-    # fixtures ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(X_np, X_pd, _type):
-        if _type == 'np':
-            _X = X_np
-        elif _type == 'pd':
-            _X = X_pd
-
-        return _X
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_columns_is_passed, good_columns):
-        return good_columns if _columns_is_passed else None
-
-
-    # END fixtures ** * ** * ** * ** *
 
     @pytest.mark.parametrize('junk_dnd',
         (-1, 0, 1, 3.14, True, 'trash', {'a':1}, max, lambda x: x)
     )
-    def test_rejects_not_list_like_or_none(self, _X, _columns, junk_dnd):
+    def test_rejects_not_list_like_or_none(
+        self, X_np, X_pd, _type, _columns, _columns_is_passed, junk_dnd):
 
-        if isinstance(_X, pd.core.frame.DataFrame) and _columns is None:
+        _X = X_np if _type == 'np' else X_pd
+
+        if isinstance(_X, pd.core.frame.DataFrame) and not _columns_is_passed:
             pytest.skip(reason=f"algorithmic impossibility")
 
         with pytest.raises(TypeError):
-            _val_do_not_drop(junk_dnd, _X, _columns)
+            _val_do_not_drop(
+                junk_dnd,
+                _X,
+                _columns if _columns_is_passed else None
+            )
 
 
     @pytest.mark.parametrize('bad_dnd',
@@ -83,40 +71,43 @@ class TestDoNotDropJunk(Fixtures):
             [2.718, 3.141, 8.834]
         )
     )
-    def test_rejects_bad_list(self, _X, _columns, bad_dnd):
+    def test_rejects_bad_list(
+        self, X_np, X_pd, _type, _columns, _columns_is_passed, bad_dnd
+    ):
 
-        if isinstance(_X, pd.core.frame.DataFrame) and _columns is None:
+        _X = X_np if _type == 'np' else X_pd
+
+        if isinstance(_X, pd.core.frame.DataFrame) and not _columns_is_passed:
             pytest.skip(reason=f"algorithmic impossibility")
 
         with pytest.raises(TypeError):
-            _val_do_not_drop(bad_dnd, _X, _columns)
+            _val_do_not_drop(
+                bad_dnd,
+                _X,
+                _columns if _columns_is_passed else None
+            )
 
 
 class TestDoNotDropArray(Fixtures):
 
-    def test_array_rejects_str_when_columns_is_none(self, X_np, good_columns):
+    def test_array_str_handing(self, X_np, _columns):
 
+        # rejects str when columns is none
         with pytest.raises(TypeError):
             _val_do_not_drop(
-                [v for i,v in enumerate(good_columns) if i%2==0],
+                [v for i,v in enumerate(_columns) if i%2==0],
                 X_np,
                 None
             )
 
-    def test_array_accepts_good_str_when_columns_not_none(
-        self, X_np, good_columns
-    ):
+        # accepts good str when columns not none
         _val_do_not_drop(
-            [v for i, v in enumerate(good_columns) if i % 2 == 0],
+            [v for i, v in enumerate(_columns) if i % 2 == 0],
             X_np,
-            good_columns
+            _columns
         )
 
-
-    def test_array_rejects_bad_str_when_columns_not_none(
-        self, X_np, good_columns
-    ):
-
+        # rejects bad str when columns not none
         with pytest.raises(TypeError):
             _val_do_not_drop(
                 ['a', 'b'],
@@ -126,109 +117,102 @@ class TestDoNotDropArray(Fixtures):
 
 
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
-    def test_array_accepts_good_int_always(
-        self, X_np, _columns_is_passed, good_columns
+    def test_array_int_and_none_handling(
+        self, X_np, _columns_is_passed, _columns
     ):
+
+        # accepts good int always
         _val_do_not_drop(
             [0, 1],
             X_np,
-            good_columns if _columns_is_passed else None
+            _columns if _columns_is_passed else None
         )
 
-
-    @pytest.mark.parametrize('_columns_is_passed', (True, False))
-    def test_array_rejects_bad_int_always(
-        self, X_np, _columns_is_passed, good_columns
-    ):
-
+        # rejects bad int always - 1
         with pytest.raises(ValueError):
             _val_do_not_drop(
                 [-1, 1],
                 X_np,
-                good_columns if _columns_is_passed else None
+                _columns if _columns_is_passed else None
             )
 
+        # rejects bad int always - 2
         with pytest.raises(ValueError):
             _val_do_not_drop(
                 [0, X_np.shape[1]],
                 X_np,
-                good_columns if _columns_is_passed else None
+                _columns if _columns_is_passed else None
             )
 
-
-    @pytest.mark.parametrize('_columns_is_passed', (True, False))
-    def test_array_accepts_none_always(
-        self, X_np, _columns_is_passed, good_columns
-    ):
+        # accepts None always
         _val_do_not_drop(
             None,
             X_np,
-            good_columns if _columns_is_passed else None
+            _columns if _columns_is_passed else None
         )
 
 
 class TestDoNotDropDF(Fixtures):
 
-    def test_df_accepts_good_str_always(self, X_pd, good_columns):
+    # _columns IS ALWAYS PASSED IF X IS DF!
 
-        # _columns IS ALWAYS PASSED IF X IS DF!
+    def test_df_str_handling(self, X_pd, _columns):
 
+        # accepts good str always
         _val_do_not_drop(
-            [v for i, v in enumerate(good_columns) if i % 2 == 0],
+            [v for i, v in enumerate(_columns) if i % 2 == 0],
             X_pd,
-            good_columns
+            _columns
         )
 
-
-    def test_df_rejects_bad_str_always(self, X_pd, good_columns):
-
-        # _columns IS ALWAYS PASSED IF X IS DF!
-
+        # rejects bad str always
         with pytest.raises(ValueError):
             _val_do_not_drop(
                 ['a', 'b'],
                 X_pd,
-                good_columns
+                _columns
             )
 
 
-    def test_df_accepts_good_int_always(self, X_pd, good_columns):
+    def test_df_int_and_none_handling(self, X_pd, _columns):
 
-        # _columns IS ALWAYS PASSED IF X IS DF!
-
+        # accepts good int always
         _val_do_not_drop(
             [0, 1],
             X_pd,
-            good_columns
+            _columns
         )
 
-
-    def test_df_rejects_bad_int_always(self, X_pd, good_columns):
-
-        # _columns IS ALWAYS PASSED IF X IS DF!
-
+        # rejects bad int always - 1
         with pytest.raises(ValueError):
             _val_do_not_drop(
                 [-1, 1],
                 X_pd,
-                good_columns
+                _columns
             )
 
+        # rejects bad int always - 2
         with pytest.raises(ValueError):
             _val_do_not_drop(
                 [0, X_pd.shape[1]],
                 X_pd,
-                good_columns
+                _columns
             )
 
 
-    def test_columns_cannot_none_if_df(self, X_pd):
-        with pytest.raises(ValueError):
-            _val_do_not_drop(
-                None,
-                X_pd,
-                None
-            )
+        # columns can be None
+        _val_do_not_drop(
+            None,
+            X_pd,
+            None
+        )
+
+
+
+
+
+
+
 
 
 

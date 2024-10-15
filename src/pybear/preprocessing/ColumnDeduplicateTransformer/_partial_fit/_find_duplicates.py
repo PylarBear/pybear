@@ -7,11 +7,9 @@
 
 from .._type_aliases import DataType
 from typing_extensions import Union
-import numpy.typing as npt
 
 from ._column_getter import _column_getter
-
-import numpy as np
+from ._parallel_column_comparer import _parallel_column_comparer
 
 from joblib import Parallel, delayed
 
@@ -19,6 +17,9 @@ from joblib import Parallel, delayed
 
 def _find_duplicates(
     _X:DataType,
+    _rtol: float,
+    _atol: float,
+    _equal_nan: bool,
     _n_jobs: Union[int, None]
 ) -> list[list[int]]:
 
@@ -34,6 +35,18 @@ def _find_duplicates(
     ----------
     _X:
         DataType - The data to be deduplicated.
+    _rtol:
+        pizza
+    _atol:
+        pizza
+    _equal_nan:
+        bool - Pizza what!?!?!!
+    n_jobs:
+        Union[int, None] - The number of jobs to use with joblib Parallel
+        while comparing columns. Default is to use processes, but can be
+        overridden externally using a joblib parallel_config context
+        manager. The default number of jobs is None, which uses the
+        joblib default when n_jobs is None.
 
 
     Return
@@ -45,33 +58,32 @@ def _find_duplicates(
 
     """
 
+    # pizza think on if we want this, since so many ss.sparse
+    # assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame))
+    assert isinstance(_rtol, float)
+    assert isinstance(_atol, float)
+    assert isinstance(_equal_nan, bool)
+    assert isinstance(_n_jobs, (int, type(None)))
 
-    duplicates_: dict[int: list[int]] = {i: [] for i in range(_X.shape[1])}
+    duplicates_: dict[int: list[int]] = {int(i): [] for i in range(_X.shape[1])}
 
     _all_duplicates = []  # not used later, just a helper to track duplicates
 
-
-    def _column_comparer(
-        column1: npt.NDArray[any],
-        column2: npt.NDArray[any]
-    ):
-        return np.array_equal(column1, column2)
-
     kwargs = {'return_as':'list', 'prefer':'processes', 'n_jobs':_n_jobs}
+    args = (_rtol, _atol, _equal_nan)
 
     # .shape works for np, pd, and scipy.sparse
-    for col_idx1 in range(_X.shape[1] - 2):
+    for col_idx1 in range(_X.shape[1] - 1):
 
         if col_idx1 in _all_duplicates:
             continue
 
-        # PIZZA COME BACK AND PUT JOBLIB
         RANGE = range(col_idx1 + 1, _X.shape[1])
         IDXS = [i for i in RANGE if i not in _all_duplicates]
 
         hits = Parallel(**kwargs)(
-            delayed(_column_comparer)(
-                *_column_getter(_X, col_idx1, col_idx2)) for col_idx2 in IDXS
+            delayed(_parallel_column_comparer)(
+                *_column_getter(_X, col_idx1, col_idx2), *args) for col_idx2 in IDXS
         )
 
         if any(hits):
@@ -83,7 +95,7 @@ def _find_duplicates(
                 _all_duplicates.append(idx)
 
         """
-        24_10_03_08_24_00 code that worked * * * * * * * * *
+        code that worked pre-joblib * * * * * * * * *
         # .shape works for np, pd, and scipy.sparse
         for col_idx2 in range(col_idx1 + 1, _X.shape[1]):
 
@@ -99,15 +111,25 @@ def _find_duplicates(
     del _all_duplicates, kwargs, RANGE, IDXS, hits
 
     # ONLY RETAIN INFO FOR COLUMNS THAT ARE DUPLICATE
-    duplicates_ = {k: v for k, v in duplicates_.items() if len(v) > 0}
+    duplicates_ = {int(k): v for k, v in duplicates_.items() if len(v) > 0}
 
     # UNITE DUPLICATES INTO GROUPS
     GROUPS = []
     for idx1, v1 in duplicates_.items():
-        __ = sorted([idx1] + v1)
+        __ = sorted([int(idx1)] + v1)
         GROUPS.append(__)
 
+    # ALL SETS OF DUPLICATES MUST HAVE AT LEAST 2 ENTRIES
+    for _set in GROUPS:
+        assert len(_set) >= 2
+
     return GROUPS
+
+
+
+
+
+
 
 
 

@@ -8,6 +8,7 @@ import joblib
 import numpy as np
 import numpy.typing as npt
 from .._type_aliases import DataType
+from ....utilities._nan_masking import nan_mask_numerical
 
 
 
@@ -72,7 +73,7 @@ def _dtype_unqs_cts_processing(
 
         # if passed astype, must be numbers from here down
 
-        UNIQUES_NO_NAN = UNIQUES[np.logical_not(np.isnan(UNIQUES))]
+        UNIQUES_NO_NAN = UNIQUES[np.logical_not(nan_mask_numerical(UNIQUES))]
 
         # determine if is integer
         if np.allclose(UNIQUES_NO_NAN, UNIQUES_NO_NAN.astype(np.int32), atol=1e-6):
