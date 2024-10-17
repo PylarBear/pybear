@@ -21,6 +21,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    # Conditional step to install libomp on macOS
+    - name: Install libomp on macOS
+      if: matrix.os == 'macos-latest'
+      run: brew install libomp
+
     - name: Install Poetry
       run: |
         python -m pip install --upgrade pip
