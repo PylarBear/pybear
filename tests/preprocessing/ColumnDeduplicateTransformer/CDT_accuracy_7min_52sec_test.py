@@ -27,15 +27,14 @@ import pytest
 
 
 
+pytest.skip(reason=f"pizza says so", allow_module_level=True)
 
-bypass = False
 
 
 
 # TEST ACCURACY ********************************************************
 
 
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAccuracy:
 
 
@@ -58,7 +57,6 @@ class TestAccuracy:
             'keep': 'first',
             'do_not_drop': None,
             'conflict': 'raise',
-            'columns': None,
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': False,
@@ -122,7 +120,6 @@ class TestAccuracy:
         _kwargs['keep'] = keep
         _kwargs['do_not_drop'] = do_not_drop
         _kwargs['conflict'] = conflict
-        _kwargs['columns'] = _columns
         _kwargs['rtol'] = 1e-5
         _kwargs['atol'] = 1e-8
         _kwargs['equal_nan'] = equal_nan

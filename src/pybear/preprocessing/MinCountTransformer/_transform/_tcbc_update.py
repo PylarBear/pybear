@@ -27,17 +27,22 @@ def _tcbc_update(
     X. If X had features deleted, must map feature locations in
     RecursiveCls._tcbc to their old locations in self._tcbc.
 
+
     Parameters
     ----------
-    old_tcbc: TotalCountsByColumnType, # use deepcopy(self._total_counts_by_column)
-    recursion_tcbc: TotalCountsByColumnType, # use RecursiveCls._total_counts_by_column
-    MAP_DICT: dict[int: int] - dictionary mapping a feature's location in
+    old_tcbc:
+        TotalCountsByColumnType, # use deepcopy(self._total_counts_by_column)
+    recursion_tcbc:
+        TotalCountsByColumnType, # use RecursiveCls._total_counts_by_column
+    MAP_DICT:
+        dict[int: int] - dictionary mapping a feature's location in
         Recursion._tcbc to its (possibly different) location in self._tcbc.
 
     Return
     ------
-    old_tcbc:
-        TotalCountsByColumnType - updated with counts from Recursion._tcbc
+    -
+        old_tcbc:
+            TotalCountsByColumnType - updated with counts from Recursion._tcbc
 
     """
 
@@ -48,7 +53,7 @@ def _tcbc_update(
         for unq, ct in recursion_tcbc[new_col_idx].items():
 
             OLD_TCBC_UNIQUES = np.char.lower(
-                np.fromiter(old_tcbc[old_col_idx].keys(), dtype='<U100')
+                np.fromiter(old_tcbc[old_col_idx].keys(), dtype='<U10000')
             )
             # if not in at first look, look again after convert to str
             if unq not in old_tcbc[old_col_idx] and \

@@ -24,7 +24,7 @@ def _dtype_unqs_cts_processing(
 
     Parallelized fetching of dtype, unqs, and counts from one column of X.
 
-    # 24_03_23_11_28_00 SOMETIMES np.nan IS SHOWING UP MULTIPLE TIMES IN
+    # 24_03_23 SOMETIMES np.nan IS SHOWING UP MULTIPLE TIMES IN
     # UNIQUES. TROUBLESHOOTING HAS SHOWN THAT THE CONDITION THAT CAUSES
     # THIS IS WHEN dtype(_column_of_X) == object. CONVERT TO np.float64
     # IF POSSIBLE, OTHERWISE GET UNIQUES AS STR
@@ -65,14 +65,11 @@ def _dtype_unqs_cts_processing(
     del _column_orig_dtype
 
     try:
-        # 24_03_10_15_14_00 IF np.nan IS IN, IT EXISTS AS A str('nan')
-        # IN INT AND STR COLUMNS
 
         UNIQUES = UNIQUES.astype(np.float64)
         # float64 RAISES ValueError ON STR DTYPES, IN THAT CASE MUST BE STR
 
-        # if passed astype, must be numbers from here down
-
+        # if accepted astype, must be numbers from here down
         UNIQUES_NO_NAN = UNIQUES[np.logical_not(nan_mask_numerical(UNIQUES))]
 
         # determine if is integer
@@ -89,6 +86,7 @@ def _dtype_unqs_cts_processing(
 
     except ValueError:
         # float64 RAISES ValueError ON STR DTYPES, IN THAT CASE MUST BE STR
+        # IF np.nan IS IN, IT EXISTS AS A str('nan')
         try:
             UNIQUES.astype(str)
             return 'obj', UNQ_CT_DICT

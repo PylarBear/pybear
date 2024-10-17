@@ -5,7 +5,7 @@
 #
 
 
-from ._columns import _val_columns
+
 from ._conflict import _val_conflict
 from ._do_not_drop import _val_do_not_drop
 from ._keep import _val_keep
@@ -70,8 +70,6 @@ def _validation(
     _val_do_not_drop(_do_not_drop, _X, _columns)
 
     _val_conflict(_conflict)
-
-    _val_columns(_columns, _X)
 
     _val_rtol(_rtol)
 

@@ -10,6 +10,7 @@ import numpy as np
 from pybear.preprocessing.MinCountTransformer._transform._tcbc_update \
     import _tcbc_update
 
+
 # _tcbc_update(
 #     old_tcbc: TotalCountsByColumnType,
 #     recursion_tcbc: TotalCountsByColumnType,

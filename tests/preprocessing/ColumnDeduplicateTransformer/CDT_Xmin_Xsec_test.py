@@ -56,7 +56,6 @@ def _kwargs():
         'keep': 'first',
         'do_not_drop': None,
         'conflict': 'raise',
-        'columns': None,
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
@@ -165,7 +164,6 @@ class TestInputValidation:
             )
 
         _kwargs['do_not_drop'] = junk_dnd
-        _kwargs['columns'] = _columns
 
         TestCls = CDT(**_kwargs)
 
@@ -191,7 +189,6 @@ class TestInputValidation:
             )
 
         _kwargs['do_not_drop'] = bad_dnd
-        _kwargs['columns'] = _columns if _columns_is_passed else None
 
         TestCls = CDT(**_kwargs)
 
@@ -201,9 +198,8 @@ class TestInputValidation:
 
     def test_array_str_handing(self, _dum_X, _kwargs, _columns):
 
-        # rejects str when columns is none
+        # rejects str when no header
         _kwargs['do_not_drop'] = [v for i, v in enumerate(_columns) if i % 2 == 0]
-        _kwargs['columns'] = None
 
         TestCls = CDT(**_kwargs)
 
@@ -211,18 +207,8 @@ class TestInputValidation:
             TestCls.fit_transform(_dum_X)
 
 
-        # accepts good str when columns not none
-        _kwargs['do_not_drop'] = [v for i, v in enumerate(_columns) if i % 2 == 0]
-        _kwargs['columns'] = _columns
-
-        TestCls = CDT(**_kwargs)
-
-        TestCls.fit_transform(_dum_X)
-
-
-        # rejects bad str when columns not none
+        # rejects bad str when header
         _kwargs['do_not_drop'] = ['a', 'b']
-        _kwargs['columns'] = None
 
         TestCls = CDT(**_kwargs)
 
@@ -237,7 +223,6 @@ class TestInputValidation:
 
         # accepts good int always
         _kwargs['do_not_drop'] = [0, 1]
-        _kwargs['columns'] = _columns if _columns_is_passed else None
 
         TestCls = CDT(**_kwargs)
         TestCls.fit_transform(_dum_X)
@@ -245,7 +230,6 @@ class TestInputValidation:
 
         # rejects bad int always - 1
         _kwargs['do_not_drop'] = [-1, 1]
-        _kwargs['columns'] = _columns if _columns_is_passed else None
 
         TestCls = CDT(**_kwargs)
 
@@ -255,7 +239,6 @@ class TestInputValidation:
 
         # rejects bad int always - 2
         _kwargs['do_not_drop'] = [0, _dum_X.shape[1]]
-        _kwargs['columns'] = _columns if _columns_is_passed else None
 
         TestCls = CDT(**_kwargs)
 
@@ -265,7 +248,6 @@ class TestInputValidation:
 
         # accepts None always
         _kwargs['do_not_drop'] = None
-        _kwargs['columns'] = _columns if _columns_is_passed else None
 
         TestCls = CDT(**_kwargs)
         TestCls.fit_transform(_dum_X)
@@ -275,7 +257,6 @@ class TestInputValidation:
 
         # accepts good str always
         _kwargs['do_not_drop'] = [v for i, v in enumerate(_columns) if i % 2 == 0]
-        _kwargs['columns'] = _columns
 
         TestCls = CDT(**_kwargs)
         TestCls.fit_transform(_X_pd)
@@ -283,7 +264,6 @@ class TestInputValidation:
 
         # rejects bad str always
         _kwargs['do_not_drop'] = ['a', 'b']
-        _kwargs['columns'] = _columns
 
         TestCls = CDT(**_kwargs)
 
@@ -294,14 +274,12 @@ class TestInputValidation:
     def test_df_int_and_none_handling(self, _X_pd, _kwargs, _columns):
         # accepts good int always
         _kwargs['do_not_drop'] = [0, 1]
-        _kwargs['columns'] = _columns
 
         TestCls = CDT(**_kwargs)
         TestCls.fit_transform(_X_pd)
 
         # rejects bad int always - 1
         _kwargs['do_not_drop'] = [-1, 1]
-        _kwargs['columns'] = _columns
 
         TestCls = CDT(**_kwargs)
 
@@ -310,7 +288,6 @@ class TestInputValidation:
 
         # rejects bad int always - 2
         _kwargs['do_not_drop'] = [0, _X_pd.shape[1]]
-        _kwargs['columns'] = _columns
 
         TestCls = CDT(**_kwargs)
 
@@ -319,7 +296,6 @@ class TestInputValidation:
 
         # columns can be None
         _kwargs['do_not_drop'] = None
-        _kwargs['columns'] = None
 
         TestCls = CDT(**_kwargs)
 
@@ -359,95 +335,6 @@ class TestInputValidation:
 
         CDT(**_kwargs).fit_transform(_dum_X)
     # END conflict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    # columns ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    @pytest.mark.parametrize('junk_columns',
-        (-1, 0, np.pi, True, 'trash', {'a': 1}, lambda x: x, min)
-    )
-    def test_rejects_junk(self, _dum_X, _X_pd, _kwargs, junk_columns):
-
-        _kwargs['columns'] = junk_columns
-
-        TestCls = CDT(**_kwargs)
-
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
-
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(_X_pd)
-
-
-    @pytest.mark.parametrize('bad_columns_type',
-        ([0, 1, 2, 3, 4], np.random.uniform(0, 1, (5,)))
-    )
-    def test_rejects_bad_type(self, _dum_X, _X_pd, _kwargs, bad_columns_type):
-
-        _kwargs['columns'] = bad_columns_type
-
-        TestCls = CDT(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_pd)
-
-    @pytest.mark.parametrize('bad_columns_len',
-        ([0, 1], [True, False], np.random.uniform(0, 1, (3,)))
-    )
-    def test_rejects_bad_len(self, _dum_X, _X_pd, _kwargs, bad_columns_len):
-
-        _kwargs['columns'] = bad_columns_len
-
-        TestCls = CDT(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_pd)
-
-
-    @pytest.mark.parametrize('_type',
-        ('list', 'tuple', 'set', 'ndarray_1d', 'ndarray_2d', 'None')
-    )
-    def test_accepts_good(self, _dum_X, _X_pd, _kwargs, _columns, _type):
-
-        if _type == 'list':
-            good_columns = _columns
-        elif _type == 'tuple':
-            good_columns = tuple(_columns)
-        elif _type == 'set':
-            good_columns = set(_columns)
-        elif _type == 'ndarray_1d':
-            good_columns = np.array(_columns)
-        elif _type == 'ndarray_2d':
-            good_columns = np.array(_columns).reshape((1, -1))
-        elif _type == 'None':
-            good_columns = None
-        else:
-            raise Exception
-
-        _kwargs['columns'] = good_columns
-
-        TestCls = CDT(**_kwargs)
-
-        # np
-        TestCls.fit_transform(_dum_X)
-
-        # pd
-        if _type == 'set':
-            # set() changes the order in columns vs the columns set
-            # previously on the dataframe"
-            # this validates that CDT catches when 'columns' != DF header
-            with pytest.raises(ValueError):
-                TestCls.fit_transform(_X_pd)
-        else:
-            TestCls.fit_transform(_X_pd)
-
-    # END columns ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -904,7 +791,6 @@ class Test_Init_Fit_SetParams_Transform:
             'keep': 'first',
             'do_not_drop': None,
             'conflict': 'raise',
-            'columns': None,
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': True,
@@ -925,7 +811,6 @@ class Test_Init_Fit_SetParams_Transform:
         _new_kwargs['keep'] = 'random'
         _new_kwargs['conflict'] = 'ignore'
         _new_kwargs['n_jobs'] = 4
-        _new_kwargs.pop('columns')
         TestCls.set_params(**_new_kwargs)
 
         # test after set_params
@@ -933,7 +818,7 @@ class Test_Init_Fit_SetParams_Transform:
             assert getattr(TestCls, _new_kwarg) == value
 
 
-    def test_rejects_bad_assigments_at_init(self, _alt_kwargs):
+    def test_rejects_bad_assignments_at_init(self, _alt_kwargs):
 
         _junk_kwargs = deepcopy(_alt_kwargs)
         _junk_kwargs['trash'] = 'junk'
@@ -945,7 +830,7 @@ class Test_Init_Fit_SetParams_Transform:
             CDT(**_junk_kwargs)
 
 
-    def test_rejects_bad_assigments_in_set_params(self, _alt_kwargs):
+    def test_rejects_bad_assignments_in_set_params(self, _alt_kwargs):
 
         TestCls = CDT(**_alt_kwargs)
 
@@ -957,23 +842,6 @@ class Test_Init_Fit_SetParams_Transform:
         with pytest.raises(Exception):
             # this is managed by BaseEstimator, let it raise whatever
             TestCls.set_params(**_junk_kwargs)
-
-    def test_doesnt_block_setting_same_columns(self, _alt_kwargs, _columns):
-
-        TestCls = CDT(**_alt_kwargs)
-        TestCls.set_params(**_new_kwargs)
-
-
-    def test_blocks_setting_new_columns(self, _alt_kwargs, _columns):
-
-        TestCls = CDT(**_alt_kwargs)
-
-        _new_kwargs = deepcopy(_alt_kwargs)
-        _new_kwargs['columns'] = [str(uuid4())[:4] for _ in _columns]
-
-        with pytest.raises(ValueError):
-            TestCls.set_params(**_new_kwargs)
-
 
 
     def test_set_params(self, _X_factory, _alt_kwargs):

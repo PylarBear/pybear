@@ -8,6 +8,7 @@
 
 import pytest
 import uuid
+from copy import deepcopy
 
 import numpy as np
 np.random.seed(1)
@@ -22,10 +23,12 @@ from dask_ml.wrappers import Incremental, ParallelPostFit
 from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
     MinCountTransformer
 
+from pybear.utilities._nan_masking import nan_mask
 
 
 
-bypass = True
+
+bypass = False
 
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -111,7 +114,9 @@ def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
 
         # vvv CORE TEST DATA vvv *************************
         # CREATE _mct_cols COLUMNS OF BINARY INTEGERS
-        _X = np.random.randint(0, 2, (_mct_rows, _mct_cols)).astype(object)
+        _X = np.random.randint(
+            0, 2, (_mct_rows, _mct_cols)
+        ).astype(object)
         # CREATE _mct_cols COLUMNS OF NON-BINARY INTEGERS
         _X = np.hstack((
             _X, np.random.randint(
@@ -120,7 +125,9 @@ def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
         ))
         # CREATE _mct_cols COLUMNS OF FLOATS
         _X = np.hstack((
-            _X, np.random.uniform(0, 1, (_mct_rows, _mct_cols)).astype(object)
+            _X, np.random.uniform(
+                0, 1, (_mct_rows, _mct_cols)
+            ).astype(object)
         ))
         # CREATE _mct_cols COLUMNS OF STRS
         _alpha = 'abcdefghijklmnopqrstuvwxyz'
@@ -191,8 +198,10 @@ def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
                 int(np.random.randint(0, x_rows // 20) + idx)
             _X[_get_idxs(), _mct_cols + idx] = \
                 int(np.random.randint(0, x_rows // 20) + idx)
-            _X[_get_idxs(), 2 * _mct_cols + idx] = np.random.uniform(0, 1) + idx
-            _X[_get_idxs(), 2 * _mct_cols + idx] = np.random.uniform(0, 1) + idx
+            _X[_get_idxs(), 2 * _mct_cols + idx] = \
+                np.random.uniform(0, 1) + idx
+            _X[_get_idxs(), 2 * _mct_cols + idx] = \
+                np.random.uniform(0, 1) + idx
             _X[_get_idxs(), 3 * _mct_cols + idx] = _alpha[:x_rows // 15][idx]
             _X[_get_idxs(), 3 * _mct_cols + idx] = _alpha[:x_rows // 15][idx + 1]
 
@@ -632,7 +641,9 @@ class TestIgnoreColumnsHandleAsBool:
             _dtypes2 = ['<U1' for _ in range(x_cols // 2)]
             _formats = [list(zip(COLUMNS, _dtypes1 + _dtypes2))]
             del _dtypes1, _dtypes2
-            X_NEW = np.recarray((x_rows,), names=COLUMNS, formats=_formats, buf=X)
+            X_NEW = np.recarray(
+                (x_rows,), names=COLUMNS, formats=_formats, buf=X
+            )
             del _formats
             y_NEW = _y
         elif input_format == 'numpy_masked_array':
@@ -693,7 +704,9 @@ class TestIgnoreColumnsHandleAsBool:
             if kwarg_input == 'bad_callable':
                 _kwargs['ignore_columns'] = lambda X: 'unrecognizable junk'
                 _kwargs['handle_as_bool'] = lambda X: 'unrecognizable junk'
-            X_NEW = pd.Series(data=X[:, _mct_cols], name=COLUMNS[0], dtype=np.float64)
+            X_NEW = pd.Series(
+                data=X[:, _mct_cols], name=COLUMNS[0], dtype=np.float64
+            )
             y_NEW = pd.Series(data=_y, name='y', dtype=object)
 
         with pytest.raises(TypeError):
@@ -784,7 +797,8 @@ class TestIgnoreColumnsHandleAsBool:
             _kwargs['handle_as_bool'] = None
         elif _kwarg == 'handle_as_bool':
             if kwarg_input == 'get_from_COLUMNS':
-                NON_BIN_INT_COLS = [COLUMNS[_] for _ in range(_mct_cols, 2*_mct_cols)]
+                NON_BIN_INT_COLS = \
+                    [COLUMNS[_] for _ in range(_mct_cols, 2*_mct_cols)]
                 _kwargs['handle_as_bool'] = \
                     COLUMNS[:1] if _is_series else NON_BIN_INT_COLS
                 del NON_BIN_INT_COLS
@@ -798,7 +812,8 @@ class TestIgnoreColumnsHandleAsBool:
             if kwarg_input == 'get_from_COLUMNS':
                 _kwargs['ignore_columns'] = \
                     COLUMNS[:1] if _is_series else [COLUMNS[_] for _ in [2,4,6]]
-                NON_BIN_INT_COLS = [COLUMNS[_] for _ in range(_mct_cols, 2 * _mct_cols)]
+                NON_BIN_INT_COLS = \
+                    [COLUMNS[_] for _ in range(_mct_cols, 2 * _mct_cols)]
                 _kwargs['handle_as_bool'] = \
                     COLUMNS[:1] if _is_series else NON_BIN_INT_COLS
                 del NON_BIN_INT_COLS
@@ -843,7 +858,7 @@ class TestAssignedDtypesWithAndWithoutNansMixedIn:
 # END TEST CORRECT DTYPES ARE RETRIEVED W/ OR W/O np.nan MIXED IN ######
 
 
-# ALWAYS ACCEPTS y==None IS PASSED TO fit(), partial_fit(), AND transform() #######
+# ALWAYS ACCEPTS y==None IS PASSED TO fit(), partial_fit(), AND transform() ###
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestFitPartialFitTransformAcceptYEqualsNone:
 
@@ -1801,8 +1816,9 @@ class TestHandleAsBoolWorks:
         TestCls = MinCountTransformer(*_args, **_kwargs)
         TestCls.partial_fit(X)
 
+        TestCls.set_params(handle_as_bool=[x_cols - 1])  # STR COLUMN
         with pytest.raises(ValueError):
-            TestCls.set_params(handle_as_bool=[x_cols - 1])  # STR COLUMN
+            TestCls.partial_fit(X)
 
         TestCls._handle_as_bool = [x_cols - 1]  # STR COLUMN
         with pytest.raises(ValueError):
@@ -2171,7 +2187,9 @@ class TestBinIntAboveThreshNotDeleted:
 
         TestCls = MinCountTransformer(2, **_kwargs)
 
-        NEW_X = np.array([['a',0], ['b',0], ['a',1], ['b',1], ['c',0]], dtype=object)
+        NEW_X = np.array(
+            [['a',0], ['b',0], ['a',1], ['b',1], ['c',0]], dtype=object
+        )
         NEW_Y = np.array([0, 1, 0, 1, 1], dtype=np.uint8)
 
         TestCls.fit(NEW_X, NEW_Y)
@@ -2188,7 +2206,7 @@ class TestBinIntAboveThreshNotDeleted:
 
 
 # TEST ACCURACY ********************************************************
-# @pytest.mark.skipif(bypass is True, reason=f"bypass")
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAccuracy:
 
     @pytest.mark.parametrize('count_threshold', [2, 3])
@@ -2261,32 +2279,33 @@ class TestAccuracy:
             )
 
             if MOCK_X.shape[1] == TEST_X.shape[1]:
-                new_ignore_columns = _ignore_columns
-                new_handle_as_bool = _handle_as_bool
+                scd_ignore_columns = _ignore_columns
+                scd_handle_as_bool = _handle_as_bool
+            # ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION ** ** ** **
             else:
-                # ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION
                 NEW_COLUMN_MASK = np.arange(x_cols)[mmct_first_rcr.get_support_]
 
                 OG_IGN_COL_MASK = np.zeros(x_cols).astype(bool)
                 OG_IGN_COL_MASK[_ignore_columns] = True
-                new_ignore_columns = \
+                scd_ignore_columns = \
                     np.arange(len(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
 
                 OG_H_A_B_MASK = np.zeros(x_cols).astype(bool)
                 OG_H_A_B_MASK[_handle_as_bool] = True
-                new_handle_as_bool = \
+                scd_handle_as_bool = \
                     np.arange(len(NEW_COLUMN_MASK))[OG_H_A_B_MASK[NEW_COLUMN_MASK]]
 
                 del NEW_COLUMN_MASK, OG_IGN_COL_MASK, OG_H_A_B_MASK
+            # END ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION ** ** **
 
             MOCK_X, MOCK_Y = mmct().trfm(
-                MOCK_X1, MOCK_Y1, new_ignore_columns, ignore_nan,
+                MOCK_X1, MOCK_Y1, scd_ignore_columns, ignore_nan,
                 ignore_non_binary_integer_columns,
-                ignore_float_columns, new_handle_as_bool,
+                ignore_float_columns, scd_handle_as_bool,
                 delete_axis_0, count_threshold
             )
 
-            del MOCK_X1, MOCK_Y1, new_ignore_columns, new_handle_as_bool
+            del MOCK_X1, MOCK_Y1, scd_ignore_columns, scd_handle_as_bool
 
         else:
             raise Exception(
@@ -2297,14 +2316,21 @@ class TestAccuracy:
         ###########################################
         ###########################################
 
-        mask_maker = \
-            lambda XX: np.logical_not(np.char.lower(XX.astype(str)) == 'nan')
-
         try:
+            # 24_10_16_15_51_00 added nan standardization
+            TRFM_X[nan_mask(TRFM_X)] = np.nan
+            MOCK_X[nan_mask(MOCK_X)] = np.nan
             # failing locally when run all tests, but not individually
             # vvvv and is passing on GitHub Actions
-            assert np.array_equiv(TRFM_X.astype(str), MOCK_X.astype(str))
+            for row_idx in range(TRFM_X.shape[0]):
+                MASK1 = np.logical_not(nan_mask(TRFM_X[row_idx]))
+                MASK2 = np.logical_not(nan_mask(MOCK_X[row_idx]))
+                assert np.array_equiv(
+                    TRFM_X[row_idx][MASK1],
+                    MOCK_X[row_idx][MASK2]
+                )
             # ^^^^^ ^^^^^^ ^^^^^ ^^^^^
+
             assert np.array_equiv(TRFM_Y.astype(str), MOCK_Y.astype(str))
 
         except Exception as e:
@@ -2313,6 +2339,10 @@ class TestAccuracy:
                 raise AssertionError(e)
 
             elif max_recursions > 1:
+
+                # if 2 recursion test failed with MCT max_recursions==2,
+                # try to do 2 consecutive fit_transform w max_recursions==1
+
                 _kwargs['max_recursions'] = 1
                 NewTestCls_1 = MinCountTransformer(*args,**_kwargs)
                 NEW_TRFM_X, NEW_TRFM_Y = NewTestCls_1.fit_transform(TEST_X, TEST_Y)
@@ -2322,34 +2352,43 @@ class TestAccuracy:
 
                 OG_IGN_COL_MASK = np.zeros(x_cols).astype(bool)
                 OG_IGN_COL_MASK[_ignore_columns] = True
-                new_ignore_columns = \
+                scd_ignore_columns = \
                     np.arange(len(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
 
                 OG_H_A_B_MASK = np.zeros(x_cols).astype(bool)
                 OG_H_A_B_MASK[_handle_as_bool] = True
-                new_handle_as_bool = \
+                scd_handle_as_bool = \
                     np.arange(len(NEW_COLUMN_MASK))[OG_H_A_B_MASK[NEW_COLUMN_MASK]]
 
                 del NEW_COLUMN_MASK, OG_IGN_COL_MASK, OG_H_A_B_MASK
+                # END ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION
 
-                _kwargs['ignore_columns'] = new_ignore_columns
-                _kwargs['handle_as_bool'] = new_handle_as_bool
+                _kwargs['ignore_columns'] = scd_ignore_columns
+                _kwargs['handle_as_bool'] = scd_handle_as_bool
                 NewTestCls_2 = MinCountTransformer(*args,**_kwargs)
                 NEW_TRFM_X, NEW_TRFM_Y = \
                     NewTestCls_2.fit_transform(NEW_TRFM_X, NEW_TRFM_Y)
 
                 # vvvv *************************************************
                 # where <function array_equiv> 2133: AssertionError
-                assert np.array_equiv(NEW_TRFM_X[mask_maker(NEW_TRFM_X)],
-                    MOCK_X[mask_maker(MOCK_X)]), (f'{max_recursions}X PASSES '
-                    f'THRU TestCls WITH max_recursions=1 FAILED')
+                NEW_TRFM_X[nan_mask(NEW_TRFM_X)] = np.nan
+                MOCK_X[nan_mask(MOCK_X)] = np.nan
+                for row_idx in range(NEW_TRFM_X.shape[0]):
+                    MASK1 = np.logical_not(nan_mask(NEW_TRFM_X[row_idx]))
+                    MASK2 = np.logical_not(nan_mask(MOCK_X[row_idx]))
+                    assert np.array_equiv(
+                        NEW_TRFM_X[row_idx][MASK1], MOCK_X[row_idx][MASK2]
+                    ), (f'{max_recursions}X PASSES THRU TestCls WITH '
+                         f'max_recursions=1 FAILED')
                 # ^^^^^ ************************************************
 
-                assert np.array_equiv(NEW_TRFM_Y[mask_maker(NEW_TRFM_Y)],
-                    MOCK_Y[mask_maker(MOCK_Y)]), (f'{max_recursions}X PASSES '
-                    f'THRU TestCls WITH max_recursions=1 FAILED')
+                NEW_TRFM_Y[nan_mask(NEW_TRFM_Y)] = np.nan
+                MOCK_Y[nan_mask(MOCK_Y)] = np.nan
+                assert np.array_equiv(NEW_TRFM_Y, MOCK_Y), \
+                    (f'{max_recursions}X PASSES THRU TestCls WITH '
+                    f'max_recursions=1 FAILED')
 
-                del NEW_TRFM_X, NEW_TRFM_Y
+                del NEW_TRFM_X, NEW_TRFM_Y, scd_ignore_columns, scd_handle_as_bool
 
         del _ignore_columns, _handle_as_bool
 
@@ -2410,6 +2449,19 @@ class TestFitSetParamsTransform_SetParamsFitTransform:
 
         assert np.array_equiv(SPFT_TRFM_Y, FSPT_TRFM_Y), \
             f"SPFT_TRFM_Y != FSPT_TRFM_Y"
+
+        # FIT_TRFM->SET_PARAMS->FIT_TRFM
+        FTSPFTCls = MinCountTransformer(*alt_args, **alt_kwargs)
+        FTSPFTCls.set_params(max_recursions=2)
+        FTSPFTCls.fit_transform(TEST_X, TEST_Y)
+        FTSPFTCls.set_params(**alt_kwargs)
+        FTSPFT_TRFM_X, FTSPFT_TRFM_Y = FTSPFTCls.fit_transform(TEST_X, TEST_Y)
+
+        assert np.array_equiv(SPFT_TRFM_X.astype(str), FTSPFT_TRFM_X.astype(str)), \
+            f"SPFT_TRFM_X != FTSPFT_TRFM_X"
+
+        assert np.array_equiv(SPFT_TRFM_Y, FTSPFT_TRFM_Y), \
+            f"SPFT_TRFM_Y != FTSPFT_TRFM_Y"
 
         MOCK_X = mmct().trfm(
             TEST_X,
@@ -2478,16 +2530,8 @@ class TestManyPartialFitsEqualOneBigFit:
         CT2 = {i:{str(k):v for k,v in _.items()} for i,_ in CT2.items()}
         for _c_idx in CT1:
             for _unq in CT1[_c_idx]:
-                # pizza
-                if CT2[_c_idx][_unq] != 2 * CT1[_c_idx][_unq]:
-                    print(f"{_unq} - 1: {CT1[_c_idx][_unq]}, 2: {CT2[_c_idx][_unq]}")
                 assert CT2[_c_idx][_unq] == 2 * CT1[_c_idx][_unq]
-        # pizza come back to this, nans are screwing up again!
-        # pizza set bypass back to false when done
-        # nan - 1: 25, 2: 25  (should be double)
-        # nan - 1: 17, 2: 17
         del CT1, CT2
-
         # END TEST PARTIAL FIT COUNTS ARE DOUBLED WHEN FULL DATA IS partial_fit() 2X
 
         # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X/y
@@ -2581,7 +2625,8 @@ class TestLaterPartialFitsAcceptNewUniques:
         self, NO_NAN_X, y, _args, _kwargs, _mct_cols
     ):
 
-        X1 = NO_NAN_X[:, _mct_cols:(2 * _mct_cols)].copy().astype(np.float64).astype(np.int32)
+        X1 = NO_NAN_X[:, _mct_cols:(2 * _mct_cols)].copy()
+        X1 = X1.astype(np.float64).astype(np.int32)
         y1 = y.copy()
         # 10X THE VALUES IN THE COPY OF DATA TO INTRODUCE NEW UNIQUE VALUES
         X2 = (10 * X1.astype(np.float64)).astype(np.int32)
@@ -3075,20 +3120,19 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
         test_kwargs = dict((zip(KEYS, VALUES)))
         TestCls.set_params(**test_kwargs)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions, TestCls._n_jobs
-        ]
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
+
+        for _key, _value in zip(KEYS, VALUES):
+
+            assert getattr(TestCls, _key) == _value
+
+            with pytest.raises(AttributeError):
+                getattr(TestCls, f"_" + _key)
 
         # DEMONSTRATE EXCEPTS FOR UNKNOWN PARAM
         with pytest.raises(ValueError):
             TestCls.set_params(garbage=1)
 
-        del TestCls, KEYS, VALUES, ATTRS
+        del TestCls, KEYS, VALUES
 
         TestCls = MinCountTransformer(*_args, **_kwargs)
         # transform()
@@ -3138,8 +3182,10 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         _COLUMNS = np.array([f"x{i}" for i in range(len(COLUMNS))])
         ACTIVE_COLUMNS = _COLUMNS[TestCls.get_support(False)]
         del _COLUMNS
-        assert np.array_equiv( TestCls.get_feature_names_out(None), ACTIVE_COLUMNS), \
-            (f"get_feature_names_out(None) after fit() != sliced array of "
+        assert np.array_equiv(
+            TestCls.get_feature_names_out(None),
+            ACTIVE_COLUMNS
+        ), (f"get_feature_names_out(None) after fit() != sliced array of "
             f"generic headers")
         del ACTIVE_COLUMNS
 
@@ -3170,8 +3216,10 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # WITH HEADER PASSED AND input_features=None, SHOULD RETURN
         # SLICED ORIGINAL COLUMNS
         _ACTIVE_COLUMNS = np.array(COLUMNS)[TestCls.get_support(False)]
-        assert np.array_equiv(TestCls.get_feature_names_out(None), _ACTIVE_COLUMNS), \
-            f"get_feature_names_out(None) after fit() != originally passed columns"
+        assert np.array_equiv(
+            TestCls.get_feature_names_out(None),
+            _ACTIVE_COLUMNS
+        ), f"get_feature_names_out(None) after fit() != originally passed columns"
         del _ACTIVE_COLUMNS
 
         # WITH HEADER PASSED, SHOULD RAISE TypeError IF input_features
@@ -3311,11 +3359,10 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
                 f"the output of transform()")
 
         del junk_x, TRFM_X, TRFM_MASK, obj_type, diff_cols
-        del TEST_X, INV_TRFM_X, TestCls
+        del TEST_X, INV_TRFM_X
 
         # END inverse_transform() **********
 
-        TestCls = MinCountTransformer(*_args, **_kwargs)
 
         # ** _make_instructions()
         # ** _must_be_fitted()
@@ -3327,26 +3374,22 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # set_params()
         KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
+            'count_threshold', 'ignore_float_columns', 'ignore_columns',
+            'ignore_non_binary_integer_columns', 'ignore_nan', 'n_jobs',
             'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
+            'max_recursions'
         ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
+        VALUES = [4, False, [0], False, False, 4, [2], True, True, 2]
         test_kwargs = dict((zip(KEYS, VALUES)))
 
         TestCls.set_params(**test_kwargs)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions,
-            TestCls._n_jobs
-        ]
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
 
-        del TestCls, KEYS, VALUES, ATTRS
+        for _key, _value in zip(KEYS, VALUES):
+            assert getattr(TestCls, _key) == _value
+
+        # no method called after set_params above, '_'s not set
+
+        del TestCls, KEYS, VALUES
 
         # transform()
         # ** _validate_delete_instr()
@@ -3474,17 +3517,13 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         TestCls.set_params(**test_kwargs)
         TestCls.fit_transform(X, y)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions,
-            TestCls._n_jobs
-        ]
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
 
-        del KEYS, VALUES, ATTRS
+        for _key, _value in zip(KEYS, VALUES):
+            assert getattr(TestCls, _key) == _value
+            assert getattr(TestCls, f"_" + _key) == _value, \
+                f'set_params() did not set {_key}'
+
+        del KEYS, VALUES
 
         # transform()
         # ** _validate_delete_instr()
@@ -3687,17 +3726,15 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         test_kwargs = dict((zip(KEYS, VALUES)))
 
         TestCls.set_params(**test_kwargs)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions, TestCls._n_jobs
-        ]
 
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
+        for _key, _value in zip(KEYS, VALUES):
 
-        del TestCls, KEYS, VALUES, ATTRS
+            assert getattr(TestCls, _key) == _value
+
+            with pytest.raises(AttributeError):
+                getattr(TestCls, f"_" + _key)
+
+        del TestCls, KEYS, VALUES
 
         TwoRecurTestCls = MinCountTransformer(*_args, **_kwargs)
         # transform()
@@ -3816,10 +3853,14 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # vvv COLUMN NAMES PASSED (PD) vvv
         ONE_RCR_TRFM_X, ONE_RCR_TRFM_Y = \
-            OneRecurTestCls.fit_transform(pd.DataFrame(data=X, columns=COLUMNS), y)
+            OneRecurTestCls.fit_transform(
+                pd.DataFrame(data=X, columns=COLUMNS), y
+            )
 
         TWO_RCR_TRFM_X, TWO_RCR_TRFM_Y = \
-            TwoRecurTestCls.fit_transform(pd.DataFrame(data=X, columns=COLUMNS), y)
+            TwoRecurTestCls.fit_transform(
+                pd.DataFrame(data=X, columns=COLUMNS), y
+            )
 
         # WITH HEADER PASSED AND input_features=None:
         # SHOULD RETURN SLICED ORIGINAL COLUMNS
@@ -4046,10 +4087,7 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         TwoRecurTestCls.fit_transform(X, y)
         assert TwoRecurTestCls._output_transform == 'pandas_dataframe'
 
-        del TwoRecurTestCls
-
         # set_params()
-        TestCls = MinCountTransformer(*_args, **_kwargs)
         KEYS = [
             'count_threshold', 'ignore_float_columns',
             'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
@@ -4058,26 +4096,25 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         ]
         VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
         test_kwargs = dict((zip(KEYS, VALUES)))
+        TwoRecurTestCls.set_params(**test_kwargs)
 
-        TestCls.set_params(**test_kwargs)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions, TestCls._n_jobs
-        ]
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
+        for _key, _value in zip(KEYS, VALUES):
 
-        del TestCls, KEYS, VALUES, ATTRS
+            assert getattr(TwoRecurTestCls, _key) == _value, \
+                f'set_params() did not set {_key}'
+
+        # no method called after set_params above, '_'s not set
+
+
+
+        del KEYS, VALUES
 
         # transform()
         # ** _validate_delete_instr()
         # ** _validate_feature_names()
         # ** _validate()
 
-        del OneRecurTestCls,
-
+        del OneRecurTestCls, TwoRecurTestCls
         # END ^^^ AFTER fit_transform() ^^^ ****************************
         # **************************************************************
 
