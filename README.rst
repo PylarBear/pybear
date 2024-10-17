@@ -19,14 +19,14 @@ PyBear
 
 .. _documentation: https://pybear.readthedocs.io/
 
-.. |PythonMinVersion| replace:: >=3.9, <3.13
-.. |DaskMinVersion| replace:: X.X.X
-.. |DaskMLMinVersion| replace:: X.X.X
-.. |DistributedMinVersion| replace:: X.X.X
-.. |JoblibMinVersion| replace:: X.X.X
-.. |NumpyMinVersion| replace:: 1.26.0
-.. |PandasMinVersion| replace:: X.X.X
-.. |ScikitLearnMinVersion| replace:: X.X.X
+.. |PythonVersion| replace:: >=3.9, <3.13
+.. |DaskVersion| replace:: >=X.X.X
+.. |DaskMLVersion| replace:: >=X.X.X
+.. |DistributedVersion| replace:: >=X.X.X
+.. |JoblibVersion| replace:: >=X.X.X
+.. |NumpyVersion| replace:: >=1.26.0
+.. |PandasVersion| replace:: >=X.X.X
+.. |ScikitLearnVersion| replace:: >=X.X.X
 
 
 
@@ -55,14 +55,14 @@ Dependencies
 
 pybear requires:
 
-- Python (>= |PythonMinVersion|)
-- dask (>= |DaskMinVersion|)
-- dask_ml (>= |DaskMLMinVersion|)
-- distributed (>= |DistributedMinVersion|)
-- joblib (>= |JoblibMinVersion|)
-- numpy (>= |NumPyMinVersion|)
-- pandas (>= |PandasMinVersion|)
-- scikit-learn (>= |ScikitLearnMinVersion|)
+- Python (|PythonVersion|)
+- dask (|DaskVersion|)
+- dask_ml (|DaskMLVersion|)
+- distributed (|DistributedVersion|)
+- joblib (|JoblibVersion|)
+- numpy (|NumPyVersion|)
+- pandas (|PandasVersion|)
+- scikit-learn (|ScikitLearnVersion|)
 
 pybear 0.1 is tested via GitHub Actions to run on Linux, Windows, and 
 MacOS, with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not 

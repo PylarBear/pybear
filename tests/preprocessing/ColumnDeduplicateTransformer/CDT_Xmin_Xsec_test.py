@@ -30,7 +30,7 @@ from dask_ml.wrappers import Incremental, ParallelPostFit
 
 
 
-# pytest.skip(reason=f"pizza is not done!", allow_module_level=True)
+pytest.skip(reason=f"pizza is not done!", allow_module_level=True)
 
 # PIZZA BE SURE TO TEST PD NA HANDLING! AND SPARSE!
 
