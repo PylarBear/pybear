@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 #
 
-
+import time
 from copy import deepcopy
 from typing import Iterable
 from typing_extensions import Union, TypeAlias
@@ -27,6 +27,7 @@ from ._validation._mct_validation import _mct_validation
 from ._shared._make_instructions._make_instructions import _make_instructions
 from ._handle_X_y import _handle_X_y
 from ._base_fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
+from ._base_fit._tcbc_merger import _tcbc_merger
 from ._test_threshold import _test_threshold
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
 from ._transform._tcbc_update import _tcbc_update
@@ -539,16 +540,10 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             self._original_dtypes
         )
 
-        for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(DTYPE_UNQS_CTS_TUPLES):
-
-            if col_idx not in self._total_counts_by_column:
-                self._total_counts_by_column[col_idx] = UNQ_CT_DICT
-            else:
-                for unq, ct in UNQ_CT_DICT.items():
-                    if unq in self._total_counts_by_column[col_idx]:
-                        self._total_counts_by_column[col_idx][unq] += ct
-                    else:
-                        self._total_counts_by_column[col_idx][unq] = ct
+        self._total_counts_by_column = _tcbc_merger(
+            DTYPE_UNQS_CTS_TUPLES,
+            self._total_counts_by_column
+        )
 
         del DTYPE_UNQS_CTS_TUPLES, col_idx, _dtype, UNQ_CT_DICT
 
@@ -659,6 +654,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         self._must_be_fitted()
 
         self._recursion_check()
+
+        self._validate()
 
         X, y, _columns = self._handle_X_y(X, y)
         # X & y ARE NOW np.array
@@ -783,6 +780,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                 # FROM WHAT THEY WERE FOR self TO WHAT THEY ARE FOR THE
                 # CURRENT (POTENTIALLY COLUMN MASKED) DATA GOING INTO
                 # THIS RECURSION
+
                 if callable(self.ignore_columns):
                     NEW_IGN_COL = self.ignore_columns # pass the function!
                 else:
@@ -826,10 +824,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                              columns=self.feature_names_in_[COLUMN_KEEP_MASK]
                     )
 
-                if y is not None:
-                    X, y = RecursiveCls.fit_transform(X, y)
-                else:
-                    X = RecursiveCls.fit_transform(X)
+                X, y = RecursiveCls.fit_transform(X, y)
 
                 FEATURE_NAMES = RecursiveCls.get_feature_names_out(None)
 
@@ -866,6 +861,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                 X = X.squeeze()
 
         del FEATURE_NAMES
+
 
         __ = self._output_transform
         if y is not None:
@@ -1188,27 +1184,9 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             del _PARAMS
 
 
-        if 'count_threshold' in params: self.count_threshold = \
-            params['count_threshold']
-        if 'ignore_float_columns' in params: self.ignore_float_columns = \
-            params['ignore_float_columns']
-        if 'ignore_non_binary_integer_columns' in params:
-            self.ignore_non_binary_integer_columns = \
-                params['ignore_non_binary_integer_columns']
-        if 'ignore_columns' in params: self.ignore_columns = \
-            params['ignore_columns']
-        if 'ignore_nan' in params: self.ignore_nan = params['ignore_nan']
-        if 'handle_as_bool' in params: self.handle_as_bool = \
-            params['handle_as_bool']
-        if 'delete_axis_0' in params:
-            self.delete_axis_0 = params['delete_axis_0']
-        if 'reject_unseen_values' in params: self.reject_unseen_values = \
-            params['reject_unseen_values']
-        if 'max_recursions' in params: self.max_recursions = \
-            params['max_recursions']
-        if 'n_jobs' in params: self.n_jobs = params['n_jobs']
+        for _attr in params:
+            setattr(self, _attr, params[_attr])
 
-        self._validate()
 
         return self
 
@@ -1393,7 +1371,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
     def _check_is_fitted(self):
         """Check to see if the instance has been fitted."""
-        return hasattr(self, '_total_counts_by_column')
+
+        return hasattr(self, 'n_features_in_')
 
 
     def _must_be_fitted(self):

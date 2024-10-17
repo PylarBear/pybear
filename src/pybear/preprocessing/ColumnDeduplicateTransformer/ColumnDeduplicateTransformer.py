@@ -62,11 +62,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     conflict:
         Union[Literal['raise', 'ignore'] - Ignored when do_not_drop
         is not passed. Pizza say more words.
-    columns:
-        Union[Iterable[str], None], default=None - Externally
-        supplied column names. If X is a dataframe, passing columns
-        here will override those in the dataframe header; otherwise,
-        if this is None, the dataframe header is retained.
     rtol:
         float, default = 1e-5 - The relative tolerance parameter.
             See numpy.allclose.
@@ -127,7 +122,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         "keep": [StrOptions({"first", "last", "random"})],
         "do_not_drop": [list, tuple, set, None,],   # pizza what about empty
         "conflict": [StrOptions({"raise", "ignore"})],
-        "columns": [list, tuple, set, np.ndarray, None],
         "rtol": [numbers.Real],
         "atol": [numbers.Real],
         "equal_nan": ["boolean"],
@@ -140,7 +134,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         keep: Union[Literal['first'], Literal['last'], Literal['random']] = 'first',
         do_not_drop: Optional[Union[Iterable[str], Iterable[int], None]] = None,
         conflict: Optional[Literal['raise', 'ignore']] = 'raise',
-        columns: Optional[Union[Iterable[str], None]] = None,
         rtol: Optional[float] = 1e-5,
         atol: Optional[float] = 1e-8,
         equal_nan: Optional[bool] = False,
@@ -151,7 +144,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         self.keep = keep
         self.do_not_drop = do_not_drop
         self.conflict = conflict
-        self.columns = columns
         self.rtol = rtol
         self.atol = atol
         self.equal_nan = equal_nan
@@ -189,15 +181,10 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
 
     # def set_params!!! pizza dont forget about this! ESPECIALLY TEST!
-    def set_params(self, **params):
-
-        if 'columns' in params and not \
-                np.array_equal(params['columns'], self.columns):
-            raise ValueError(f"'columns' cannot be changed once instantiated.")
-
-        super().set_params(**params)
 
     # def set_output!!! pizza this is being tested as of 24_10_13
+
+    # def get_metadata_routing(self): pizza figure this out
 
 
     @_fit_context(prefer_skip_nested_validation=True)
@@ -262,28 +249,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         
         """
 
-        # do this before _validation so that self._columns
-        # is correctly assigned
-        if self.columns is None:
-            if hasattr(self, 'feature_names_in_'):
-                self._columns = self.feature_names_in_
-            else:
-                self._columns = None
-        else:
-            self._columns = list(map(str, np.array(list(self.columns)).ravel()))
-            if hasattr(self, 'feature_names_in_') and not \
-                np.array_equal(self.feature_names_in_, self._columns):
-                raise ValueError(
-                    f"conflict between column names passed via dataframe and "
-                    f"the 'columns' kwarg."
-                )
-
-            self._columns = self.columns
-
-
         _validation(
             X,  # Not validated, used for validation of other objects
-            self._columns,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.conflict,
             self.do_not_drop,
             self.keep,
@@ -292,9 +260,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             self.equal_nan,
             self.n_jobs
         )
-
-        if self._columns is not None:
-            self.feature_names_in_ = np.array(self._columns, dtype=str)
 
 
         # find the duplicate columns
@@ -308,18 +273,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 self.n_jobs
         )
 
-        _validation(
-            X,  # Not validated, used for validation of other objects
-            self._columns,
-            self.conflict,
-            self.do_not_drop,
-            self.keep,
-            self.rtol,
-            self.atol,
-            self.equal_nan,
-            self.n_jobs
-        )
-
 
         # determine the columns to remove based on given parameters.
         # pizza this makes removed_columns_ and column_mask_ available after
@@ -330,7 +283,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 self.duplicates_,
                 self.keep,
                 self.do_not_drop,
-                self._columns,
+                self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
                 self.conflict
             )
 
@@ -422,7 +375,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         _validation(
             X,  # Not validated, used for validation of other objects
-            self._columns,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.conflict,
             self.do_not_drop,
             self.keep,
@@ -440,7 +393,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 self.duplicates_,
                 self.keep,
                 self.do_not_drop,
-                self._columns,
+                self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
                 self.conflict
             )
 

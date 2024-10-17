@@ -12,6 +12,11 @@ from ._type_aliases import DataType
 import numpy as np
 import numpy.typing as npt
 
+
+from ...utilities._nan_masking import nan_mask
+
+
+
 XType: TypeAlias = Iterable[Iterable[DataType]]
 YType: TypeAlias = Iterable[Iterable[DataType]]
 
@@ -27,7 +32,9 @@ def _handle_X_y(
 
     """
     Validate dimensions of X and y, get dtypes of first-seen data objects,
-    standardize the containers for processing, get column names if available.
+    standardize the containers for processing, get column names if
+    available, standardize all nan-like representations to np.nan.
+
     
     Parameters
     ----------
@@ -155,6 +162,16 @@ def _handle_X_y(
     if len(X.shape) == 1:
         X = X.reshape((-1, 1))
 
+    # standardize nan-like to np.nan
+    _nan_mask = nan_mask(X)
+    try:
+        # this is excepting on int dtype
+        X[_nan_mask] = np.nan
+    except:
+        pass
+
+    del _nan_mask
+
     # *** X MUST BE np ***
 
     #  ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -211,6 +228,17 @@ def _handle_X_y(
                              f"not match the number of rows in X ({_X_rows})")
 
     # *** y MUST BE np OR None ***
+
+    # standardize nan-like to np.nan
+    if y is not None:
+        _nan_mask = nan_mask(y)
+        try:
+            # this is excepting on int dtypes
+            y[_nan_mask] = np.nan
+        except:
+            pass
+
+        del _nan_mask
 
 
     return X, y, __x_original_obj_type, __y_original_obj_type, _columns
