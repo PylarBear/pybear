@@ -194,8 +194,8 @@ def foo(
 
 
 _thresh = 3
-x_rows = 2000
-y_rows = 2000
+x_rows = 200
+y_rows = 200
 x_cols = 10
 y_cols = 2
 

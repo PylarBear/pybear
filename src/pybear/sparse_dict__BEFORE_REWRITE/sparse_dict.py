@@ -3,9 +3,9 @@ import numpy as np, pandas as pd
 from copy import deepcopy
 from functools import wraps
 
-from ..utils import get_module_name as gmn
+from ..utilities import get_module_name as gmn
 from pybear.data_validation import validate_user_input as vui, arg_kwarg_validater as akv
-from pybear.new_numpy._random import sparse
+from pybear.new_numpy._random_ import sparse
 
 from general_data_ops import list_sparsity as lsp, get_shape as gs
 

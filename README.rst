@@ -173,8 +173,8 @@ PyBear is not ready for contributions at this time!
 Testing
 ~~~~~~~
 
-After installation, you can launch the test suite from outside the source
-directory (you will need to have pytest installed)::
+After installation, you can launch the test suite from outside the pybear
+root directory (you will need to have pytest installed in your environment)::
 
     pytest pybear
 

@@ -14,12 +14,12 @@ from pybear.sparse_dict._transform import zip_array
 
 
 def _create_random_sparse_dict(
-                                minimum:[int, float],
-                                maximum:[int, float],
-                                shape:tuple,
-                                sparsity:[int, float],
-                                dtype=float
-    ) -> dict:
+    minimum:[int, float],
+    maximum:[int, float],
+    shape:tuple,
+    sparsity:[int, float],
+    dtype=float
+) -> dict:
 
     """Create a random sparse dictionary with given min, max, shape, sparsity,
     and dtype. When dtype is an integer-type, discrete dense values are
