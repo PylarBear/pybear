@@ -4,8 +4,8 @@
 # License: BSD 3 clause
 #
 
-from typing_extensions import Union
-from typing_extensions import TypeAlias
+from typing_extensions import Union, TypeAlias
+
 
 # see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
 StrDataType: TypeAlias = Union[None, str]

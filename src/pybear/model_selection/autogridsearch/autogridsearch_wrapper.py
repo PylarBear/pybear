@@ -7,8 +7,7 @@
 
 
 from copy import deepcopy
-from typing_extensions import Union, Iterable
-from typing_extensions import TypeAlias
+from typing_extensions import Union, Iterable, TypeAlias
 import numpy as np
 import numpy.typing as npt
 
