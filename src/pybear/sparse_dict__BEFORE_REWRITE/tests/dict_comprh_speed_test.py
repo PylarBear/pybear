@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import pandas as pd
-from pybear.sparse_dict import sparse_dict as sd
+from pybear.sparse_dict__BEFORE_REWRITE import sparse_dict as sd
 
 
 TEST1, TEST2, TEST3, TEST4, TEST5 = [], [], [], [], []
