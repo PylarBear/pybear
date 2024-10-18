@@ -6,8 +6,8 @@
 
 import numpy as np
 
-from typing_extensions import Union
-from typing_extensions import TypeAlias
+from typing_extensions import Union, TypeAlias
+
 
 # see _type_aliases, these are subtypes of
 # DataType, GridType, PointsType, ParamType

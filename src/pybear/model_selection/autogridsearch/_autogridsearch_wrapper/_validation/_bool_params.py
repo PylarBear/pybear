@@ -4,8 +4,7 @@
 # License: BSD 3 clause
 #
 
-from typing_extensions import Union, Iterable
-from typing_extensions import TypeAlias
+from typing_extensions import Union, TypeAlias
 
 # see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
 BoolDataType: TypeAlias = bool

@@ -5,8 +5,8 @@
 #
 
 
-from typing import Iterable, Literal, TypeAlias
-from typing_extensions import Union
+from typing import Iterable, Literal
+from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 import pandas as pd
 import scipy.sparse as ss
