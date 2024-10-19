@@ -12,12 +12,16 @@
 
 
 import pytest
-import warnings
 from typing_extensions import Union, Callable
 import numpy as np
 import numpy.typing as npt
 from copy import deepcopy
 
+from pybear.utilities._nan_masking import (
+    nan_mask,
+    nan_mask_string,
+    nan_mask_numerical
+)
 
 
 # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -105,7 +109,7 @@ def DEFAULT_ARGS(MOCK_X_STR, MOCK_Y, _mmct_test_thresh) -> dict[
         'ignore_nan': True,
         'ignore_non_binary_integer_columns': True,
         'ignore_float_columns': True,
-        'handle_as_bool': False,
+        'handle_as_bool': None,
         'delete_axis_0': False,
         'count_threshold': _mmct_test_thresh
     }
@@ -141,7 +145,7 @@ def arg_setter(mmct, DEFAULT_ARGS) -> Callable:
 def test_verify_mmct_ignores_columns(MOCK_X_STR, _mmct_test_thresh, arg_setter):
 
     out = arg_setter(MOCK_X=MOCK_X_STR, ignore_columns=[0])[0]
-    assert np.array_equiv(out, MOCK_X_STR), \
+    assert np.array_equiv(out.ravel(), MOCK_X_STR.ravel()), \
         f"MOCK_TRFM did not ignore str column"
 
     out = arg_setter(
@@ -437,12 +441,11 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        # 24_06_18 this is intermittently failing locally, but is
-        # passing on GitHub Actions.
+        # 24_06_18 this is intermittently failing locally.
         # universal hands-off non-nans
         assert np.array_equiv(
-            TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-            _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]
+            TRFM_X[np.logical_not(nan_mask_numerical(TRFM_X))],
+            _NEW_MOCK_X[np.logical_not(nan_mask_numerical(_NEW_MOCK_X))]
         ), f"bin column non-nans wrongly altered"
 
 
@@ -519,7 +522,7 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        NOT_NAN_MASK = np.char.lower(_NEW_MOCK_X) != 'nan'
+        NOT_NAN_MASK = np.logical_not(nan_mask_string(_NEW_MOCK_X))
 
         if _ignore_nan is True:
             assert len(TRFM_X) == len(_NEW_MOCK_X), \
@@ -589,12 +592,11 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        # 24_06_18 this is intermittently failing locally, but is passing
-        # on GitHub Actions
+        # 24_06_18 this is intermittently failing locally.
         # universal hands-off non-nans
         assert np.array_equiv(
-            TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-            _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]
+            TRFM_X[np.logical_not(nan_mask_numerical(TRFM_X))],
+            _NEW_MOCK_X[np.logical_not(nan_mask_numerical(_NEW_MOCK_X))]
         ), f"nbi non-nan rows wrongly altered"
 
         if _ignore_nan is True:
@@ -609,8 +611,8 @@ class TestIgnoreNan:
                 assert len(TRFM_X) < len(_NEW_MOCK_X), \
                     f"nbi rows were not altered with ignore_nan=False"
 
-            # 24_06_15 this is itermittently failing locally, but is
-            # passing on GitHub Actions. what seems to be happening is a
+            # 24_06_15 this is itermittently failing locally. what seems
+            # to be happening is a
             # number is in _NEW_MOCK_X that is not in TRFM_X. Likely
             # because np.nan is overwriting enough instances of one of
             # the numbers that it falls below threshold and is removed.
@@ -687,9 +689,10 @@ class TestHandleAsBool_2:
         )[0]
 
         # universal hands-off non-nans
-        assert np.array_equiv(TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-            _NEW_MOCK_X_BOOL[np.logical_not(np.isnan(_NEW_MOCK_X_BOOL))]), \
-            f"handle_as_bool non-nan rows wrongly deleted"
+        assert np.array_equiv(
+            TRFM_X[np.logical_not(nan_mask_numerical(TRFM_X))],
+            _NEW_MOCK_X_BOOL[np.logical_not(nan_mask_numerical(_NEW_MOCK_X_BOOL))]
+        ), f"handle_as_bool non-nan rows wrongly deleted"
 
         # NAN IGNORED
         if _ignore_nan:
@@ -839,7 +842,9 @@ def test_accuracy(
             continue
 
         try:
-            _DTYPE_DUM = UNQS[np.logical_not(np.isnan(UNQS.astype(np.float64)))]
+            _DTYPE_DUM = UNQS[
+                np.logical_not(nan_mask_numerical(UNQS.astype(np.float64)))
+            ]
             _DTYPE_DUM_AS_INT = _DTYPE_DUM.astype(np.float64).astype(np.int32)
             _DTYPE_DUM_AS_FLT = _DTYPE_DUM.astype(np.float64)
             if np.array_equiv(_DTYPE_DUM_AS_INT, _DTYPE_DUM_AS_FLT):
@@ -986,6 +991,8 @@ def test_accuracy(
         if len(DELETE_DICT[c_idx]):
             for _op in DELETE_DICT[c_idx]:
                 if str(_op).lower() == 'nan':
+
+                    # leave this like this, dont use nan_mask
                     try:
                         ROW_MASK += np.isnan(REF_X[:, c_idx].astype(np.float64))
                     except:
@@ -1009,8 +1016,11 @@ def test_accuracy(
         count_threshold=_count_threshold
     )[0]
 
-    # this is itermittently failing locally, but is passing on GitHub Actions
-    assert np.array_equiv(TRFM_X.astype(str), REF_X.astype(str))
+    # this is itermittently failing locally
+    assert np.array_equiv(
+        TRFM_X[np.logical_not(nan_mask(TRFM_X))],
+        REF_X[np.logical_not(nan_mask(REF_X))]
+    )
 
 
 

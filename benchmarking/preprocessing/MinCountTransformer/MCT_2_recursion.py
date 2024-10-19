@@ -196,86 +196,101 @@ def foo(
 _thresh = 3
 x_rows = 200
 y_rows = 200
-x_cols = 10
+x_cols = 6
 y_cols = 2
 
 
-_mct = MinCountTransformer(
-    count_threshold=_thresh,
-    ignore_float_columns=True,
-    ignore_non_binary_integer_columns=False,
-    ignore_columns=None,
-    ignore_nan=False,
-    handle_as_bool=[_ for _ in range(x_cols) if _ % 3 == 1],
-    delete_axis_0=False,
-    reject_unseen_values=False,
-    max_recursions=2,
-    n_jobs=-1
-)
+_kwargs = {
+    'count_threshold': _thresh,
+    'ignore_float_columns': True,
+    'ignore_non_binary_integer_columns': False,
+    'ignore_columns': None,
+    'ignore_nan': True,
+    'handle_as_bool': lambda X: [_ for _ in range(x_cols) if _ % 3 == 1],
+    'delete_axis_0': True,
+    'reject_unseen_values': False,
+    'max_recursions': 2,
+    'n_jobs': -1
+}
 
 
 
+for _itr in range(100):
 
-
-X = foo(
-    _dupl=None,
-    _has_nan=x_rows//10,
-    _format='np',
-    _dtype='hybrid',
-    _zeros=0.25,
-    _columns=None,
-    _shape=(x_rows, x_cols)
-)
-
-y = np.random.randint(0,2, (y_rows, y_cols))
-
-print(f'shapes:')
-print(X.shape)
-print(y.shape)
-print()
-
-TRFM_X_2rcr, TRFM_Y_2rcr = _mct.fit_transform(X, y)
-
-
-_mct.set_params(max_recursions=1)
-
-TRFM_X_1, TRFM_Y_1 = _mct.fit_transform(X, y)
-# because doing 2 separate recursions, need to adjust h_a_b in between!
-MASK = _mct.get_support(indices=True)
-hab = np.fromiter([True if _ % 3 == 1 else False for _ in range(x_cols)], dtype=int)
-hab = np.arange(len(hab))[hab[MASK]]
-_mct.set_params(handle_as_bool=hab)
-TRFM_X_2X1rcr, TRFM_Y_2X1rcr = _mct.fit_transform(TRFM_X_1, TRFM_Y_1)
-
-
-assert np.array_equal(TRFM_Y_2rcr, TRFM_Y_2X1rcr)
-
-for _row in range(x_rows):
-    NOT_NAN_MASK = np.logical_not(
-        nan_mask(TRFM_X_2rcr[_row]) + nan_mask(TRFM_X_2X1rcr[_row])
+    X = foo(
+        _dupl=None,
+        _has_nan=x_rows//10,
+        _format='np',
+        _dtype='hybrid',
+        _zeros=0,
+        _columns=None,
+        _shape=(x_rows, x_cols)
     )
-    if np.array_equal(
-        TRFM_X_2rcr[_row][NOT_NAN_MASK],
-        TRFM_X_2X1rcr[_row][NOT_NAN_MASK]
-    ):
-        continue
-    else:
-        print(f'- - - - - - - - - - - - - - - - - - - - - -')
-        print(f'TRFM_X_2rcr:')
-        print(TRFM_X_2rcr[_row])
-        print()
-        print(f'TRFM_X_2X1rcr:')
-        print(TRFM_X_2X1rcr[_row])
+
+    y = np.random.randint(0,2, (y_rows, y_cols))
+
+    print(f'shapes:')
+    print(X.shape)
+    print(y.shape)
+    print()
 
 
-assert np.array_equal(
-    TRFM_X_2rcr[np.logical_not(nan_mask(TRFM_X_2rcr))],
-    TRFM_X_2X1rcr[np.logical_not(nan_mask(TRFM_X_2X1rcr))]
-)
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # 2 recursion
+    _mct = MinCountTransformer(**_kwargs)
+    TRFM_X_2rcr, TRFM_Y_2rcr = _mct.fit_transform(X, y)
+    _2rcr_support = _mct.get_support(indices=False)
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # 1 recursion X 2
+    _mct = MinCountTransformer(**_kwargs)
+    _mct.set_params(max_recursions=1)
+
+    TRFM_X_1, TRFM_Y_1 = _mct.fit_transform(X, y)
+    # because doing 2 separate recursions, need to adjust h_a_b in between!
+    _1rcr_first_support = _mct.get_support(indices=False)
+    hab = np.fromiter([True if _ % 3 == 1 else False for _ in range(x_cols)], dtype=int)
+    hab = np.arange(len(hab))[hab[_1rcr_first_support]]
+    _mct.set_params(handle_as_bool=hab)
+    TRFM_X_2X1rcr, TRFM_Y_2X1rcr = _mct.fit_transform(TRFM_X_1, TRFM_Y_1)
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    # y
+    assert np.array_equal(TRFM_Y_2rcr, TRFM_Y_2X1rcr)
+
+    # X
+    for _row in range(x_rows):
+
+        NOT_NAN_MASK1 = np.logical_not(nan_mask(TRFM_X_2rcr[_row]))
+        NOT_NAN_MASK2 = np.logical_not(nan_mask(TRFM_X_2X1rcr[_row]))
+
+        if np.array_equal(
+            TRFM_X_2rcr[_row][NOT_NAN_MASK1],
+            TRFM_X_2X1rcr[_row][NOT_NAN_MASK2]
+        ):
+            continue
+        else:
+            print(f'- - - - - - - - - - - - - - - - - - - - - -')
+            print(f'TRFM_X_2rcr:')
+            print(TRFM_X_2rcr[_row])
+            print()
+            print(f'TRFM_X_2X1rcr:')
+            print(TRFM_X_2X1rcr[_row])
 
 
+    assert np.array_equal(
+        TRFM_X_2rcr[np.logical_not(nan_mask(TRFM_X_2rcr))],
+        TRFM_X_2X1rcr[np.logical_not(nan_mask(TRFM_X_2X1rcr))]
+    )
 
 
+    # get_support
+    _adj_1rcr_support = np.array(_1rcr_first_support.copy())
+    _idxs = np.arange(len(_adj_1rcr_support))[_adj_1rcr_support]
+    _adj_1rcr_support[_idxs] = _mct.get_support(indices=False)
+
+    assert np.array_equal(_adj_1rcr_support, _2rcr_support)
 
 
 

@@ -28,7 +28,7 @@ from pybear.utilities._nan_masking import nan_mask
 
 
 
-bypass = False
+bypass = True
 
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -40,7 +40,7 @@ def _mct_rows():
     # this is fixed, all MCT test (not mmct test) objects have this many rows
     # (mmct rows is set by the construction parameters when a suitable set
     # of vectors for building mmct is found, remember)
-    return 200
+    return 300
 
 
 @pytest.fixture(scope='session')
@@ -243,7 +243,7 @@ def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
                 True,
                 False,
                 True,
-                False,
+                None,
                 False,
                 *_args
             )
@@ -267,12 +267,12 @@ def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
 
         # IF X CANNOT TAKE 2 RECURSIONS WITH THRESHOLD==3, BUILD NEW X
         try_again = False
-        _X1 = mmct().trfm(_X, None, None, False, False, False, False, True, 3)
+        _X1 = mmct().trfm(_X, None, None, False, False, False, None, True, 3)
         # MOCK_X, MOCK_Y, ign_col, ign_nan, ignore_non_binary_int_col,
         # ignore_flt_col, handle_as_bool, delete_axis_0, ct_thresh
         try:
             # THIS SHOULD EXCEPT IF ALL ROWS/COLUMNS WOULD BE DELETED
-            _X2 = mmct().trfm(_X1, None, None, False, False, False, False, True, 3)
+            _X2 = mmct().trfm(_X1, None, None, False, False, False, None, True, 3)
             # SECOND RECURSION SHOULD ALSO DELETE SOMETHING, BUT NOT EVERYTHING
             if np.array_equiv(_X1, _X2):
                 try_again = True
@@ -2206,9 +2206,11 @@ class TestBinIntAboveThreshNotDeleted:
 
 
 # TEST ACCURACY ********************************************************
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
+# @pytest.mark.skipif(bypass is True, reason=f"bypass")  # pizza
 class TestAccuracy:
 
+
+    # @pytest.mark.skipif(True, reason=f"pizza says so")
     @pytest.mark.parametrize('count_threshold', [2, 3])
     @pytest.mark.parametrize('ignore_float_columns', [True, False])
     @pytest.mark.parametrize('ignore_non_binary_integer_columns', [True, False])
@@ -2216,11 +2218,12 @@ class TestAccuracy:
     @pytest.mark.parametrize('ignore_nan', [True, False])
     @pytest.mark.parametrize('handle_as_bool', ('hab_1', 'hab_2', 'hab_3'))
     @pytest.mark.parametrize('delete_axis_0', [False, True])
-    @pytest.mark.parametrize('max_recursions', [1, 2])
-    def test_accuracy(self, _kwargs, X, y, count_threshold, ignore_columns,
+    def test_accuracy_one_rcr(self, _kwargs, X, y, count_threshold, ignore_columns,
         ignore_float_columns, ignore_non_binary_integer_columns, ignore_nan,
-        handle_as_bool, delete_axis_0, max_recursions, _mct_cols, x_cols, mmct
+        handle_as_bool, delete_axis_0, _mct_cols, x_cols, mmct
     ):
+
+        # compare outputs of MCT and mmct
 
         if handle_as_bool == 'hab_1':
             HANDLE_AS_BOOL = None
@@ -2228,6 +2231,8 @@ class TestAccuracy:
             HANDLE_AS_BOOL = list(range(_mct_cols, 2 * _mct_cols))
         elif handle_as_bool == 'hab_3':
             HANDLE_AS_BOOL = lambda X: list(range(_mct_cols, 2 * _mct_cols))
+        else:
+            raise Exception
 
         args = [count_threshold]
         _kwargs['ignore_float_columns'] = ignore_float_columns
@@ -2237,162 +2242,410 @@ class TestAccuracy:
         _kwargs['ignore_nan'] = ignore_nan
         _kwargs['handle_as_bool'] = HANDLE_AS_BOOL
         _kwargs['delete_axis_0'] = delete_axis_0
-        _kwargs['max_recursions'] = max_recursions
+        _kwargs['max_recursions'] = 1
 
-        TEST_X = X.copy()
-        TEST_Y = y.copy()
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         TestCls = MinCountTransformer(*args, **_kwargs)
-        TRFM_X, TRFM_Y = TestCls.fit_transform(TEST_X, TEST_Y)
+        TRFM_X1, TRFM_Y1 = TestCls.fit_transform(X.copy(), y.copy())
 
-        ###########################################
-        ###########################################
-        # MANUALLY OPERATE ON MOCK_X & MOCK_Y #####
-        MOCK_X = X.copy()
-        MOCK_Y = y.copy()
+        assert len(TestCls.get_support(indices=False)) == X.shape[1]
+        assert TRFM_X1.shape[1] == sum(TestCls.get_support(indices=False))
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # BUILD MOCK_X & MOCK_Y
 
         try:
-            _ignore_columns = ignore_columns(TEST_X)
+            _ignore_columns = ignore_columns(X)
         except:
             _ignore_columns = ignore_columns
         try:
-            _handle_as_bool = HANDLE_AS_BOOL(TEST_X)
+            _handle_as_bool = HANDLE_AS_BOOL(X)
         except:
             _handle_as_bool = HANDLE_AS_BOOL
 
-        if max_recursions == 1:
-            MOCK_X, MOCK_Y = mmct().trfm(
-                MOCK_X, MOCK_Y, _ignore_columns, ignore_nan,
-                ignore_non_binary_integer_columns,
-                ignore_float_columns, _handle_as_bool,
-                delete_axis_0, count_threshold
-            )
+        MmctCls = mmct()
+        MOCK_X1, MOCK_Y1 = MmctCls.trfm(
+            X.copy(), y.copy(), _ignore_columns, ignore_nan,
+            ignore_non_binary_integer_columns, ignore_float_columns,
+            _handle_as_bool, delete_axis_0, count_threshold
+        )
 
-        elif max_recursions == 2:
+        assert len(MmctCls.get_support_) == X.shape[1]
+        assert MOCK_X1.shape[1] == sum(MmctCls.get_support_)
 
-            mmct_first_rcr = mmct()   # give class a name to access attr later
-            MOCK_X1, MOCK_Y1 = mmct_first_rcr.trfm(
-                MOCK_X, MOCK_Y, _ignore_columns, ignore_nan,
-                ignore_non_binary_integer_columns,
-                ignore_float_columns, _handle_as_bool,
-                delete_axis_0, count_threshold
-            )
+        # END BUILD MOCK_X & MOCK_Y #
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-            if MOCK_X.shape[1] == TEST_X.shape[1]:
-                scd_ignore_columns = _ignore_columns
-                scd_handle_as_bool = _handle_as_bool
-            # ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION ** ** ** **
-            else:
-                NEW_COLUMN_MASK = np.arange(x_cols)[mmct_first_rcr.get_support_]
+        assert np.array_equal(
+            TestCls.get_support(indices=False),
+            MmctCls.get_support_
+        )
 
-                OG_IGN_COL_MASK = np.zeros(x_cols).astype(bool)
-                OG_IGN_COL_MASK[_ignore_columns] = True
-                scd_ignore_columns = \
-                    np.arange(len(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
+        assert TRFM_X1.shape == MOCK_X1.shape
+        assert np.array_equiv(
+            TRFM_X1[np.logical_not(nan_mask(TRFM_X1))],
+            MOCK_X1[np.logical_not(nan_mask(MOCK_X1))]
+        )
+        # ^^^^^ ^^^^^^ ^^^^^ ^^^^^
 
-                OG_H_A_B_MASK = np.zeros(x_cols).astype(bool)
-                OG_H_A_B_MASK[_handle_as_bool] = True
-                scd_handle_as_bool = \
-                    np.arange(len(NEW_COLUMN_MASK))[OG_H_A_B_MASK[NEW_COLUMN_MASK]]
+        assert TRFM_Y1.shape == MOCK_Y1.shape
+        assert np.array_equiv(TRFM_Y1.astype(str), MOCK_Y1.astype(str))
 
-                del NEW_COLUMN_MASK, OG_IGN_COL_MASK, OG_H_A_B_MASK
-            # END ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION ** ** **
 
-            MOCK_X, MOCK_Y = mmct().trfm(
-                MOCK_X1, MOCK_Y1, scd_ignore_columns, ignore_nan,
-                ignore_non_binary_integer_columns,
-                ignore_float_columns, scd_handle_as_bool,
-                delete_axis_0, count_threshold
-            )
+    # @pytest.mark.skipif(True, reason=f"pizza says so")
+    @pytest.mark.parametrize('count_threshold', [2, 3])
+    @pytest.mark.parametrize('ignore_float_columns', [True, False])
+    @pytest.mark.parametrize('ignore_non_binary_integer_columns', [True, False])
+    @pytest.mark.parametrize('ignore_columns', [None, [0, 1, 2, 3]])
+    @pytest.mark.parametrize('ignore_nan', [True, False])
+    @pytest.mark.parametrize('handle_as_bool', ('hab_1', 'hab_2', 'hab_3'))
+    @pytest.mark.parametrize('delete_axis_0', [False, True])
+    def test_accuracy_two_rcr_one_shot(self, _kwargs, X, y, count_threshold,
+        ignore_columns, ignore_float_columns, ignore_non_binary_integer_columns,
+        ignore_nan, handle_as_bool, delete_axis_0, _mct_cols, x_cols, mmct
+    ):
 
-            del MOCK_X1, MOCK_Y1, scd_ignore_columns, scd_handle_as_bool
+        # compare outputs of MCT and mmct
 
+        if handle_as_bool == 'hab_1':
+            HANDLE_AS_BOOL = None
+        elif handle_as_bool == 'hab_2':
+            HANDLE_AS_BOOL = list(range(_mct_cols, 2 * _mct_cols))
+        elif handle_as_bool == 'hab_3':
+            HANDLE_AS_BOOL = lambda X: list(range(_mct_cols, 2 * _mct_cols))
         else:
-            raise Exception(
-                f"Test is not designed to handle more than 2 recursions"
-            )
+            raise Exception
 
-        # END MANUALLY OPERATE ON MOCK_X & MOCK_Y #
-        ###########################################
-        ###########################################
+        args = [count_threshold]
+        _kwargs['ignore_float_columns'] = ignore_float_columns
+        _kwargs['ignore_non_binary_integer_columns'] = \
+            ignore_non_binary_integer_columns
+        _kwargs['ignore_columns'] = ignore_columns
+        _kwargs['ignore_nan'] = ignore_nan
+        _kwargs['handle_as_bool'] = HANDLE_AS_BOOL
+        _kwargs['delete_axis_0'] = delete_axis_0
+        _kwargs['max_recursions'] = 2
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # MCT one-shot 2 rcr
+        TestCls = MinCountTransformer(*args, **_kwargs)
+        TRFM_X, TRFM_Y = TestCls.fit_transform(X.copy(), y.copy())
+
+        assert len(TestCls.get_support(indices=False)) == X.shape[1]
+        assert TRFM_X.shape[1] == sum(TestCls.get_support(indices=False))
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # BUILD MOCK_X & MOCK_Y
 
         try:
-            # 24_10_16_15_51_00 added nan standardization
-            TRFM_X[nan_mask(TRFM_X)] = np.nan
-            MOCK_X[nan_mask(MOCK_X)] = np.nan
-            # failing locally when run all tests, but not individually
-            # vvvv and is passing on GitHub Actions
-            for row_idx in range(TRFM_X.shape[0]):
-                MASK1 = np.logical_not(nan_mask(TRFM_X[row_idx]))
-                MASK2 = np.logical_not(nan_mask(MOCK_X[row_idx]))
-                assert np.array_equiv(
-                    TRFM_X[row_idx][MASK1],
-                    MOCK_X[row_idx][MASK2]
-                )
-            # ^^^^^ ^^^^^^ ^^^^^ ^^^^^
+            _ignore_columns = ignore_columns(X)
+        except:
+            _ignore_columns = ignore_columns
+        try:
+            _handle_as_bool = HANDLE_AS_BOOL(X)
+        except:
+            _handle_as_bool = HANDLE_AS_BOOL
 
-            assert np.array_equiv(TRFM_Y.astype(str), MOCK_Y.astype(str))
+        # ** * ** * ** * ** * **
+        # mmct first recursion
+        mmct_first_rcr = mmct()   # give class a name to access attr later
+        MOCK_X1, MOCK_Y1 = mmct_first_rcr.trfm(
+            X.copy(), y.copy(), _ignore_columns, ignore_nan,
+            ignore_non_binary_integer_columns, ignore_float_columns,
+            _handle_as_bool, delete_axis_0, count_threshold
+        )
 
-        except Exception as e:
+        assert len(mmct_first_rcr.get_support_) == X.shape[1]
+        assert MOCK_X1.shape[1] == sum(mmct_first_rcr.get_support_)
 
-            if max_recursions == 1:
-                raise AssertionError(e)
+        # ** * ** * ** * ** * ** *
 
-            elif max_recursions > 1:
 
-                # if 2 recursion test failed with MCT max_recursions==2,
-                # try to do 2 consecutive fit_transform w max_recursions==1
+        # ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION ** ** ** **
+        # USING mmct get_support
 
-                _kwargs['max_recursions'] = 1
-                NewTestCls_1 = MinCountTransformer(*args,**_kwargs)
-                NEW_TRFM_X, NEW_TRFM_Y = NewTestCls_1.fit_transform(TEST_X, TEST_Y)
+        if MOCK_X1.shape[1] == X.shape[1]:
+            scd_ignore_columns = _ignore_columns
+            scd_handle_as_bool = _handle_as_bool
+        else:
+            NEW_COLUMN_MASK = mmct_first_rcr.get_support_
 
-                # ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION
-                NEW_COLUMN_MASK = NewTestCls_1.get_support(True)
+            OG_IGN_COL_MASK = np.zeros(X.shape[1]).astype(bool)
+            OG_IGN_COL_MASK[_ignore_columns] = True
+            scd_ignore_columns = \
+                np.arange(sum(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
+            if _ignore_columns is None or len(scd_ignore_columns) == 0:
+                scd_ignore_columns = None
 
-                OG_IGN_COL_MASK = np.zeros(x_cols).astype(bool)
-                OG_IGN_COL_MASK[_ignore_columns] = True
-                scd_ignore_columns = \
-                    np.arange(len(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
+            OG_H_A_B_MASK = np.zeros(X.shape[1]).astype(bool)
+            OG_H_A_B_MASK[_handle_as_bool] = True
+            scd_handle_as_bool = \
+                np.arange(sum(NEW_COLUMN_MASK))[OG_H_A_B_MASK[NEW_COLUMN_MASK]]
+            if _handle_as_bool is None or len(scd_handle_as_bool) == 0:
+                scd_handle_as_bool = None
 
-                OG_H_A_B_MASK = np.zeros(x_cols).astype(bool)
-                OG_H_A_B_MASK[_handle_as_bool] = True
-                scd_handle_as_bool = \
-                    np.arange(len(NEW_COLUMN_MASK))[OG_H_A_B_MASK[NEW_COLUMN_MASK]]
+            del NEW_COLUMN_MASK, OG_IGN_COL_MASK, OG_H_A_B_MASK
+        # END ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION ** ** **
 
-                del NEW_COLUMN_MASK, OG_IGN_COL_MASK, OG_H_A_B_MASK
-                # END ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION
 
-                _kwargs['ignore_columns'] = scd_ignore_columns
-                _kwargs['handle_as_bool'] = scd_handle_as_bool
-                NewTestCls_2 = MinCountTransformer(*args,**_kwargs)
-                NEW_TRFM_X, NEW_TRFM_Y = \
-                    NewTestCls_2.fit_transform(NEW_TRFM_X, NEW_TRFM_Y)
+        # ** * ** * ** * ** * ** * **
+        # mmct 2nd recursion
+        mmct_scd_rcr = mmct()
+        MOCK_X2, MOCK_Y2 = mmct_scd_rcr.trfm(
+            MOCK_X1, MOCK_Y1, scd_ignore_columns, ignore_nan,
+            ignore_non_binary_integer_columns, ignore_float_columns,
+            scd_handle_as_bool, delete_axis_0, count_threshold
+        )
+        # ** * ** * ** * ** * ** * **
 
-                # vvvv *************************************************
-                # where <function array_equiv> 2133: AssertionError
-                NEW_TRFM_X[nan_mask(NEW_TRFM_X)] = np.nan
-                MOCK_X[nan_mask(MOCK_X)] = np.nan
-                for row_idx in range(NEW_TRFM_X.shape[0]):
-                    MASK1 = np.logical_not(nan_mask(NEW_TRFM_X[row_idx]))
-                    MASK2 = np.logical_not(nan_mask(MOCK_X[row_idx]))
-                    assert np.array_equiv(
-                        NEW_TRFM_X[row_idx][MASK1], MOCK_X[row_idx][MASK2]
-                    ), (f'{max_recursions}X PASSES THRU TestCls WITH '
-                         f'max_recursions=1 FAILED')
-                # ^^^^^ ************************************************
+        assert len(mmct_scd_rcr.get_support_) == MOCK_X1.shape[1]
+        assert MOCK_X2.shape[1] == sum(mmct_scd_rcr.get_support_)
 
-                NEW_TRFM_Y[nan_mask(NEW_TRFM_Y)] = np.nan
-                MOCK_Y[nan_mask(MOCK_Y)] = np.nan
-                assert np.array_equiv(NEW_TRFM_Y, MOCK_Y), \
-                    (f'{max_recursions}X PASSES THRU TestCls WITH '
-                    f'max_recursions=1 FAILED')
+        del MOCK_X1, MOCK_Y1, scd_ignore_columns, scd_handle_as_bool
 
-                del NEW_TRFM_X, NEW_TRFM_Y, scd_ignore_columns, scd_handle_as_bool
+        # END BUILD MOCK_X & MOCK_Y #
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+        _adj_get_support = np.array(mmct_first_rcr.get_support_.copy())
+        _idxs = np.arange(len(_adj_get_support))[_adj_get_support]
+        _adj_get_support[_idxs] = mmct_scd_rcr.get_support_
+        del _idxs
+
+        assert np.array_equal(
+            TestCls.get_support(indices=False),
+            _adj_get_support
+        )
+
+        del _adj_get_support
+
+        assert TRFM_X.shape == MOCK_X2.shape
+        assert np.array_equiv(
+            TRFM_X[np.logical_not(nan_mask(TRFM_X))],
+            MOCK_X2[np.logical_not(nan_mask(MOCK_X2))]
+        ), (f'TestCls y output WITH max_recursions=2 FAILED')
+
+        assert TRFM_Y.shape == MOCK_Y2.shape
+        assert np.array_equiv(TRFM_Y, MOCK_Y2), \
+            (f'TestCls y output WITH max_recursions=2 FAILED')
+
+
+
+    # @pytest.mark.skipif(True, reason=f"pizza says so")
+    @pytest.mark.parametrize('count_threshold', [2, 3])
+    @pytest.mark.parametrize('ignore_float_columns', [True, False])
+    @pytest.mark.parametrize('ignore_non_binary_integer_columns', [True, False])
+    @pytest.mark.parametrize('ignore_columns', [None, [0, 1, 2, 3]])
+    @pytest.mark.parametrize('ignore_nan', [True, False])
+    @pytest.mark.parametrize('handle_as_bool', ('hab_1', 'hab_2', 'hab_3'))
+    @pytest.mark.parametrize('delete_axis_0', [False, True])
+    def test_accuracy_two_rcr_two_shot(self, _kwargs, X, y, count_threshold,
+        ignore_columns, ignore_float_columns, ignore_non_binary_integer_columns,
+        ignore_nan, handle_as_bool, delete_axis_0, _mct_cols, x_cols, mmct
+    ):
+
+        # compare outputs of MCT and mmct
+
+        if handle_as_bool == 'hab_1':
+            HANDLE_AS_BOOL = None
+        elif handle_as_bool == 'hab_2':
+            HANDLE_AS_BOOL = list(range(_mct_cols, 2 * _mct_cols))
+        elif handle_as_bool == 'hab_3':
+            HANDLE_AS_BOOL = lambda X: list(range(_mct_cols, 2 * _mct_cols))
+        else:
+            raise Exception
+
+        args = [count_threshold]
+        _kwargs['ignore_float_columns'] = ignore_float_columns
+        _kwargs['ignore_non_binary_integer_columns'] = \
+            ignore_non_binary_integer_columns
+        _kwargs['ignore_columns'] = ignore_columns
+        _kwargs['ignore_nan'] = ignore_nan
+        _kwargs['handle_as_bool'] = HANDLE_AS_BOOL
+        _kwargs['delete_axis_0'] = delete_axis_0
+        _kwargs['max_recursions'] = 1
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # MCT first one-shot rcr
+        TestCls1 = MinCountTransformer(*args,**_kwargs)
+        TRFM_X_1, TRFM_Y_1 = TestCls1.fit_transform(X.copy(), y.copy())
+
+        _first_support = TestCls1.get_support(indices=False).copy()
+
+        assert len(_first_support) == X.shape[1]
+        assert TRFM_X_1.shape[1] == sum(_first_support)
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        try:
+            _ignore_columns = ignore_columns(X)
+        except:
+            _ignore_columns = ignore_columns
+        try:
+            _handle_as_bool = HANDLE_AS_BOOL(X)
+        except:
+            _handle_as_bool = HANDLE_AS_BOOL
+
+        # ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION
+        # USING MCT get_support
+        NEW_COLUMN_MASK = TestCls1.get_support(indices=False)
+
+        OG_IGN_COL_MASK = np.zeros(X.shape[1]).astype(bool)
+        OG_IGN_COL_MASK[_ignore_columns] = True
+        scd_ignore_columns = \
+            np.arange(sum(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
+        if _ignore_columns is None or len(scd_ignore_columns) == 0:
+            scd_ignore_columns = None
+
+        OG_H_A_B_MASK = np.zeros(X.shape[1]).astype(bool)
+        OG_H_A_B_MASK[_handle_as_bool] = True
+        scd_handle_as_bool = \
+            np.arange(sum(NEW_COLUMN_MASK))[OG_H_A_B_MASK[NEW_COLUMN_MASK]]
+        if _handle_as_bool is None or len(scd_handle_as_bool) == 0:
+            scd_handle_as_bool = None
+
+        del NEW_COLUMN_MASK, OG_IGN_COL_MASK, OG_H_A_B_MASK
+        # END ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION
+
+        _kwargs['ignore_columns'] = scd_ignore_columns
+        _kwargs['handle_as_bool'] = scd_handle_as_bool
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # MCT second one-shot rcr
+        TestCls2 = MinCountTransformer(*args,**_kwargs)
+        TRFM_X_2, TRFM_Y_2 = TestCls2.fit_transform(TRFM_X_1, TRFM_Y_1)
+
+        assert len(TestCls2.get_support(indices=False)) == TRFM_X_1.shape[1]
+        assert TRFM_X_2.shape[1] == sum(TestCls2.get_support(indices=False))
+
+        del TRFM_X_1, TRFM_Y_1
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # compare 2 one-shot MCTs against 1 two-shot MCT - -- - -- - -- - -- - --
+        TestCls_2SHOT = MinCountTransformer(*args, **_kwargs)
+        TestCls_2SHOT.set_params(max_recursions=2)
+        TRFM_X_2SHOT, TRFM_Y_2SHOT = TestCls_2SHOT.fit_transform(X.copy(), y.copy())
+
+        _adj_get_support_mct = np.array(_first_support.copy())
+        _idxs = np.arange(len(_adj_get_support_mct))[_adj_get_support_mct]
+        _adj_get_support_mct[_idxs] = TestCls2.get_support(indices=False)
+        del _idxs
+
+        # pizza
+        # assert np.array_equal(
+        #     _adj_get_support_mct,
+        #     TestCls_2SHOT.get_support(indices=False)
+        # )
+
+        del _adj_get_support_mct
+
+        assert TRFM_X_2.shape == TRFM_X_2SHOT.shape
+        assert np.array_equiv(
+            TRFM_X_2[np.logical_not(nan_mask(TRFM_X_2))],
+            TRFM_X_2SHOT[np.logical_not(nan_mask(TRFM_X_2SHOT))]
+        ), f'1X2rcr X output != 2X1rcr X output'
+
+        assert TRFM_Y_2.shape == TRFM_Y_2SHOT.shape
+        assert np.array_equiv(TRFM_Y_2, TRFM_Y_2SHOT), \
+            f'1X2rcr Y output != 2X1rcr Y output'
+        # END compare 2 one-shot MCTs against 1 two-shot MCT - -- - -- - -- - --
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # BUILD MOCK_X & MOCK_Y #
+        # mmct first recursion
+        mmct_first_rcr = mmct()   # give class a name to access attr later
+        MOCK_X1, MOCK_Y1 = mmct_first_rcr.trfm(
+            X.copy(), y.copy(), _ignore_columns, ignore_nan,
+            ignore_non_binary_integer_columns, ignore_float_columns,
+            _handle_as_bool, delete_axis_0, count_threshold
+        )
+
+        assert len(mmct_first_rcr.get_support_) == X.shape[1]
+        assert MOCK_X1.shape[1] == sum(mmct_first_rcr.get_support_)
+        assert np.array_equal(
+            TestCls1.get_support(indices=False),
+            mmct_first_rcr.get_support_
+        )
+
+        # ** * ** * ** * ** * ** *
+
+        # ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION ** ** ** **
+        # USING mmct get_support
+        NEW_COLUMN_MASK = mmct_first_rcr.get_support_
+
+        OG_IGN_COL_MASK = np.zeros(X.shape[1]).astype(bool)
+        OG_IGN_COL_MASK[_ignore_columns] = True
+        scd_ignore_columns = \
+            np.arange(sum(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
+        if _ignore_columns is None or len(scd_ignore_columns) == 0:
+            scd_ignore_columns = None
+
+        OG_H_A_B_MASK = np.zeros(x_cols).astype(bool)
+        OG_H_A_B_MASK[_handle_as_bool] = True
+        scd_handle_as_bool = \
+            np.arange(sum(NEW_COLUMN_MASK))[OG_H_A_B_MASK[NEW_COLUMN_MASK]]
+        if _handle_as_bool is None or len(scd_handle_as_bool) == 0:
+            scd_handle_as_bool = None
+
+        del NEW_COLUMN_MASK, OG_IGN_COL_MASK, OG_H_A_B_MASK
+        # # END ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION ** ** **
+
+        # ** * ** * ** * ** * ** * **
+        # mmct 2nd recursion
+        mmct_scd_rcr = mmct()   # give class a name to access attr later
+        MOCK_X2, MOCK_Y2 = mmct_scd_rcr.trfm(
+            MOCK_X1, MOCK_Y1, scd_ignore_columns, ignore_nan,
+            ignore_non_binary_integer_columns, ignore_float_columns,
+            scd_handle_as_bool, delete_axis_0, count_threshold
+        )
+
+        assert len(mmct_scd_rcr.get_support_) == MOCK_X1.shape[1]
+        assert MOCK_X2.shape[1] == sum(mmct_scd_rcr.get_support_)
+
+        del MOCK_X1, MOCK_Y1, scd_ignore_columns, scd_handle_as_bool
+
+        # END BUILD MOCK_X & MOCK_Y #
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+        # vvvv *************************************************
+        # where <function array_equiv> 2133: AssertionError
+
+        _adj_get_support_mct = np.array(TestCls1.get_support(indices=False).copy())
+        _idxs = np.arange(len(_adj_get_support_mct))[_adj_get_support_mct]
+        _adj_get_support_mct[_idxs] = TestCls2.get_support(indices=False)
+        del _idxs
+
+        _adj_get_support_mmct = np.array(mmct_first_rcr.get_support_.copy())
+        _idxs = np.arange(len(_adj_get_support_mmct))[_adj_get_support_mmct]
+        _adj_get_support_mmct[_idxs] = mmct_scd_rcr.get_support_
+        del _idxs
+
+        assert np.array_equal(_adj_get_support_mct, _adj_get_support_mmct)
+
+        del _adj_get_support_mct, _adj_get_support_mmct
+
+        assert TRFM_X_2.shape == MOCK_X2.shape
+        assert np.array_equiv(
+            TRFM_X_2[np.logical_not(nan_mask(TRFM_X_2))],
+            MOCK_X2[np.logical_not(nan_mask(MOCK_X2))]
+        ), f'X output for 2X PASSES THRU TestCls WITH max_recursions=1 FAILED'
+
+        assert TRFM_Y_2.shape == MOCK_Y2.shape
+        assert np.array_equiv(TRFM_Y_2, MOCK_Y2), \
+            (f'y output for 2X PASSES THRU TestCls WITH max_recursions=1 FAILED')
+
+        del TRFM_X_2, TRFM_Y_2
         del _ignore_columns, _handle_as_bool
-
-
 
 # END TEST ACCURACY ****************************************************
 

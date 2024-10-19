@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 #
 
-import time
+
 from copy import deepcopy
 from typing import Iterable
 from typing_extensions import Union, TypeAlias
@@ -829,8 +829,10 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                 FEATURE_NAMES = RecursiveCls.get_feature_names_out(None)
 
                 MAP_DICT = dict((
-                    zip(np.arange(RecursiveCls.n_features_in_),
-                        self.get_support(True))
+                    zip(
+                        np.arange(RecursiveCls.n_features_in_),
+                        sorted(self.get_support(True))
+                    )
                 ))
 
                 # vvv tcbc update vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv

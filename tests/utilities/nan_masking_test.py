@@ -25,6 +25,10 @@ import pytest
 
 # testing of 'nan_mask' is interspersed in Numerical and String tests
 
+# tests numpy arrays, pandas dataframes, and scipy.sparse with various
+# nan-like representations (np.nan, 'nan', 'pd.NA', None, float('inf')),
+# for float, int, str, and object dtypes.
+
 
 class Fixtures:
 

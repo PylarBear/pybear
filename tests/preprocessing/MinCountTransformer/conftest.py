@@ -14,6 +14,11 @@ from joblib import Parallel, delayed
 
 from typing_extensions import Union, Iterable, Callable
 
+from pybear.utilities._nan_masking import (
+    nan_mask_numerical,
+    nan_mask_string,
+    nan_mask
+)
 
 
 # at the bottom are fixtures used for testing mmct in
@@ -69,7 +74,7 @@ def mmct():
 
 
             ACTIVE_C_IDXS = [i for i in range(MOCK_X.shape[1])]
-            if ignore_columns:
+            if ignore_columns is not None and len(ignore_columns) > 0:
                 for i in ignore_columns:
                     try:
                         ACTIVE_C_IDXS.remove(i)
@@ -79,6 +84,7 @@ def mmct():
                     except Exception as e1:
                         raise Exception(f'ignore_columns remove from ACTIVE_C_IDXS '
                             f'except for reason other than ValueError --- {e1}')
+
 
             # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
             UNIQUES_COUNTS_TUPLES = \
@@ -92,7 +98,7 @@ def mmct():
 
             del ACTIVE_C_IDXS, get_unq
 
-            self.get_support_ = np.ones(MOCK_X.shape[1]).astype(bool)
+            self.get_support_ = list(map(bool, np.ones(MOCK_X.shape[1]).astype(bool)))
 
             # GET DTYPES ** ** ** ** ** **
             DTYPES = [None for _ in UNIQUES_COUNTS_TUPLES]
@@ -104,7 +110,9 @@ def mmct():
                 UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
 
                 try:
-                    MASK = np.logical_not(np.isnan(UNIQUES.astype(np.float64)))
+                    MASK = np.logical_not(nan_mask_numerical(
+                        UNIQUES.astype(np.float64))  # <=== if float64 excepts
+                    )
                     NO_NAN_UNIQUES = UNIQUES[MASK]
                     del MASK
                     NO_NAN_UNIQUES_AS_FLT = NO_NAN_UNIQUES.astype(np.float64)
@@ -141,7 +149,7 @@ def mmct():
 
                 UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
 
-                if handle_as_bool and col_idx in handle_as_bool:
+                if handle_as_bool is not None and col_idx in handle_as_bool:
 
                     if DTYPES[col_idx] == 'obj':
                         raise ValueError(
@@ -172,12 +180,8 @@ def mmct():
                         continue
 
                     if ct < count_threshold:
-                        try:
-                            NAN_MASK = \
-                                np.isnan(MOCK_X[:, col_idx].astype(np.float64))
-                        except:
-                            _ = np.char.lower(MOCK_X[:, col_idx].astype(str))
-                            NAN_MASK = (_ == 'nan')
+
+                        NAN_MASK = nan_mask(MOCK_X[:, col_idx])
 
                         if str(unq).lower()=='nan':
                             ROW_MASK += NAN_MASK
@@ -204,7 +208,7 @@ def mmct():
                     pass
                 elif DTYPES[col_idx] == 'bin_int' and not delete_axis_0:
                     pass
-                elif (handle_as_bool and col_idx in handle_as_bool) \
+                elif (handle_as_bool is not None and col_idx in handle_as_bool) \
                         and not delete_axis_0:
                     pass
                 else:
