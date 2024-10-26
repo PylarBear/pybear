@@ -89,11 +89,10 @@ class TestValTotalCountsByColumns:
                 _val_total_counts_by_column(bad_tcbc)
 
 
-
-    @pytest.mark.skip(reason=f"this iterable is not working here, might have "
-         f"something to do with fixtures... independently verified except is raised")
-    @pytest.mark.parametrize('_junk_inner_dict_key', ((1,2,3,4),))
-    def test_type_error_inner_key_iterable(self, good_tcbc, _junk_inner_dict_key):
+    @pytest.mark.parametrize('_junk_inner_dict_key', ((1,2,3,4), ('a','b','c')))
+    def test_type_error_inner_key_iterable(
+        self, good_tcbc, _junk_inner_dict_key
+    ):
 
         for outer_key in good_tcbc:
 
@@ -110,7 +109,9 @@ class TestValTotalCountsByColumns:
     @pytest.mark.parametrize('_junk_inner_dict_value',
         (3.14, True, None, 'junk', min, [1,2], (1,2), {1,2}, {'a':1}, lambda x: x)
     )
-    def test_type_error_inner_values_not_int(self, good_tcbc, _junk_inner_dict_value):
+    def test_type_error_inner_values_not_int(
+        self, good_tcbc, _junk_inner_dict_value
+    ):
 
         for outer_key in good_tcbc:
 
@@ -125,7 +126,9 @@ class TestValTotalCountsByColumns:
     @pytest.mark.parametrize('_bad_inner_dict_value',
         (-2, -1)
     )
-    def test_value_error_bad_inner_values(self, good_tcbc, _bad_inner_dict_value):
+    def test_value_error_bad_inner_values(
+        self, good_tcbc, _bad_inner_dict_value
+    ):
 
         for outer_key in good_tcbc:
 

@@ -4,6 +4,7 @@
 # License: BSD 3 clause
 #
 
+
 from typing_extensions import Union, Literal
 from ..._type_aliases import DataType
 
@@ -44,8 +45,8 @@ def _three_or_more_uniques_hab(
       if delete_axis_0:
           look at the cts in the 2 classes and nan ct
           if any below threshold
-              if delete_axis_0, mark assocated values to delete
-          if any of zero or non-zero classes below threshold
+              if delete_axis_0, mark associated values to delete
+          if either zero or non-zero classes below threshold
                DELETE COLUMN
       if not delete_axis_0
           look at the cts in the 2 classes
@@ -86,6 +87,7 @@ def _three_or_more_uniques_hab(
     if any([isinstance(x, str) for x in _COLUMN_UNQ_CT_DICT]):
         raise TypeError(f"handle_as_bool on a str column")
 
+    # nan should not be in _COLUMN_UNQ_CT_DICT!
 
     # IF HANDLING AS BOOL, ONLY NEED TO KNOW WHAT IS NON-ZERO AND
     # IF ROWS WILL BE DELETED OR KEPT
@@ -105,6 +107,7 @@ def _three_or_more_uniques_hab(
             # ROW MASK AND CAUSE EXCEPT DURING transform()
             if total_zeros < _threshold:
                 _instr_list.append(0)
+
             if total_non_zeros < _threshold:
                 for k in NON_ZERO_UNQS:
                     _instr_list.append(k)
@@ -136,15 +139,15 @@ def _three_or_more_uniques_hab(
             if _nan_ct < _threshold:
                 _instr_list.append(_nan_key)
 
-            if total_zeros < _threshold or total_non_zeros < _threshold:
+            if (total_zeros < _threshold) or (total_non_zeros < _threshold):
                 _instr_list.append('DELETE COLUMN')
 
         elif not _delete_axis_0:
             # only delete nans if below threshold and not deleting column
-            # IF _nan_ct < _threshold but not delete_axis_0
+            # OTHERWISE IF _nan_ct < _threshold but not delete_axis_0
             # AND NOT DELETE COLUMN THEY WOULD BE KEPT DESPITE
             # BREAKING THRESHOLD
-            if total_zeros < _threshold or total_non_zeros < _threshold:
+            if (total_zeros < _threshold) or (total_non_zeros < _threshold):
                 _instr_list.append('DELETE COLUMN')
             elif _nan_ct < _threshold:
                 _instr_list.append(_nan_key)

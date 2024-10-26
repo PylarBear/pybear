@@ -26,7 +26,7 @@ class TestOneUnique:
         _threshold, _nan_key, _nan_ct, _key, _value):
 
         if (_nan_key is False) + (_nan_ct is False) == 1:
-            pytest.skip(reason=f"impossible condition, only one of them is False")
+            pytest.skip(reason=f"disallowed condition")
 
 
         out = _one_unique(
@@ -40,8 +40,9 @@ class TestOneUnique:
         # doesnt matter what the non-nan ct is, rows wont be deleted, only
         # column gets deleted
 
-        # 24_06_11_14_38_00 originally had that nan_ct < thresh and not ignore nan,
-        # then delete rows for the nans; changing that to just delete the column
+        # 24_06_11_14_38_00 originally had that nan_ct < thresh and not ignore
+        # nan, then delete rows for the nans; changing that to just delete the
+        # column
         # if _nan_ct is not False and _nan_ct < _threshold:
         #     assert out == [_nan_key, 'DELETE COLUMN']
         # else:

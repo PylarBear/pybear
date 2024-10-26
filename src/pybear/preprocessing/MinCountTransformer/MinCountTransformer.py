@@ -496,15 +496,21 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         # GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** ** **
 
+        # need to run all columns to get the dtypes; no columns are ignored,
+        # for this operation, so any ignore inputs do not matter. getting
+        # dtypes on columns that are ignored is needed to validate new
+        # partial fits have appropriate data.
+
         # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
+        joblib_kwargs = {
+            'prefer': 'processes', 'return_as':'list', 'n_jobs':self._n_jobs
+        }
         DTYPE_UNQS_CTS_TUPLES = \
-            joblib.Parallel(return_as='list', n_jobs=self._n_jobs)(
+            joblib.Parallel(**joblib_kwargs)(
                 joblib.delayed(_dtype_unqs_cts_processing)(
                     X[:,_idx],
-                    _idx,
-                    self._ignore_float_columns,
-                    self._ignore_non_binary_integer_columns
-                    ) for _idx in range(self.n_features_in_)
+                    _idx
+                ) for _idx in range(self.n_features_in_)
             )
 
         _col_dtypes = np.empty(self.n_features_in_, dtype='<U8')
@@ -519,12 +525,14 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             self._original_dtypes = _col_dtypes
         else:
             if not np.array_equiv(_col_dtypes, self._original_dtypes):
-                raise TypeError(f"datatypes in most recently passed data do not "
-                                f"match original dtypes")
+                raise TypeError(
+                    f"datatypes in most recently passed data do not "
+                    f"match original dtypes"
+                )
 
         del _col_dtypes
 
-        # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
+
         self._ignore_columns = _val_ignore_columns(
             self._ignore_columns,
             self._check_is_fitted(),
@@ -532,6 +540,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
 
+        # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
         self._handle_as_bool = _val_handle_as_bool(
             self._handle_as_bool,
             self._check_is_fitted(),
@@ -540,12 +549,29 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             self._original_dtypes
         )
 
+        # now knowing what the dtypes are, and having validated _ignore_columns,
+        # set the UNQ_CT_DICT for any ignored column to {}
+        NEW_DTYPE_UNQS_CTS_TUPLES = []
+        for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(DTYPE_UNQS_CTS_TUPLES):
+            a = (_dtype == 'float' and self._ignore_float_columns)
+            b = (_dtype == 'int' and self._ignore_non_binary_integer_columns)
+
+            if a or b:
+                NEW_DTYPE_UNQS_CTS_TUPLES.append(tuple((_dtype, {})))
+            else:
+                NEW_DTYPE_UNQS_CTS_TUPLES.append(tuple((_dtype, UNQ_CT_DICT)))
+
+        del a, b, col_idx, _dtype, UNQ_CT_DICT
+
+        DTYPE_UNQS_CTS_TUPLES = NEW_DTYPE_UNQS_CTS_TUPLES
+        del NEW_DTYPE_UNQS_CTS_TUPLES
+
         self._total_counts_by_column = _tcbc_merger(
             DTYPE_UNQS_CTS_TUPLES,
             self._total_counts_by_column
         )
 
-        del DTYPE_UNQS_CTS_TUPLES, col_idx, _dtype, UNQ_CT_DICT
+        del DTYPE_UNQS_CTS_TUPLES
 
         # END GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** *
 
@@ -567,10 +593,11 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             Target relative to X for classification or regression;
             None for unsupervised learning.
 
-        Returns
-        -------
-        self : object
-            Fitted min count transformer.
+        Return
+        ------
+        -
+            self : object -
+                Fitted min count transformer.
 
 
         """
@@ -601,10 +628,11 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             Target relative to X for classification or regression;
             None for unsupervised learning.
 
-        Returns
-        -------
-        self : object
-            Fitted min count transformer.
+        Return
+        ------
+        -
+            self : object -
+                Fitted min count transformer.
         """
 
         self._validate()
@@ -638,8 +666,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             or (n_samples,), default=None - Target values (None for
             unsupervised transformations).
 
-        Returns
-        -------
+        Return
+        ------
         -
             X_tr : Union[numpy.ndarray, pandas.DataFrame, pandas.Series]
                     of shape (n_samples_new, n_features_new)
@@ -753,6 +781,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._row_support = ROW_KEEP_MASK.copy()
 
+        print(f'pizza goes into self.get_feature_names_out the first time in transform!, max_recursions={self._max_recursions}')
         FEATURE_NAMES = self.get_feature_names_out()
 
         if all(ROW_KEEP_MASK) and all(COLUMN_KEEP_MASK):
@@ -775,7 +804,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                 pass
             else:
                 assert self._max_recursions >= 1, f"max_recursions < 1"
-
+                print(f'pizza goes into the Recursion oven!')
                 # NEED TO RE-ALIGN _ignore_columns AND _handle_as_bool
                 # FROM WHAT THEY WERE FOR self TO WHAT THEY ARE FOR THE
                 # CURRENT (POTENTIALLY COLUMN MASKED) DATA GOING INTO
@@ -820,22 +849,24 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
                 # IF WAS PASSED WITH HEADER, REAPPLY TO DATA FOR RE-ENTRY
                 if hasattr(self, 'feature_names_in_'):
-                    X = pd.DataFrame(data=X,
-                             columns=self.feature_names_in_[COLUMN_KEEP_MASK]
+                    X = pd.DataFrame(
+                        data=X,
+                        columns=self.feature_names_in_[COLUMN_KEEP_MASK]
                     )
-
+                print(f'pizza is going to do fit_transform on RecursiveCls!')
                 X, y = RecursiveCls.fit_transform(X, y)
-
+                print(f'pizza goes into RecursiveCls.get_feature_names_out in transform from Recursion!, max_recursions = {self._max_recursions}')
                 FEATURE_NAMES = RecursiveCls.get_feature_names_out(None)
 
+                # vvv tcbc update vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+                print(f'pizza radios for support to get original indices kept right before tcbc update in MCT!')
                 MAP_DICT = dict((
                     zip(
-                        np.arange(RecursiveCls.n_features_in_),
-                        sorted(self.get_support(True))
+                        list(range(RecursiveCls.n_features_in_)),
+                        sorted(list(map(int, self.get_support(indices=True))))
                     )
                 ))
-
-                # vvv tcbc update vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
                 self._total_counts_by_column = \
                     _tcbc_update(
@@ -898,15 +929,16 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             (n_samples,) or (n_samples, n_outputs), default=None - Target
             values (None for unsupervised transformations).
 
-        Returns
-        -------
-        X_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
-                (n_samples_new, n_features_new)
-            Transformed data.
+        Return
+        ------
+        -
+            X_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
+                    (n_samples_new, n_features_new)
+                Transformed data.
 
-        y_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
-                (n_samples_new,) or (n_samples_new, n_outputs)
-            Transformed target.
+            y_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
+                    (n_samples_new,) or (n_samples_new, n_outputs)
+                Transformed target.
         """
 
         self._validate()
@@ -933,8 +965,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         X : ndarray of shape (n_samples, n_features_new) - The input
             samples.
 
-        Returns
-        -------
+        Return
+        ------
         -
             X_inv : ndarray of shape (n_samples, n_original_features)
                 X with columns of zeros inserted where features would
@@ -976,8 +1008,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             If input_features is an array-like, then input_features must
             match feature_names_in_ if feature_names_in_ is defined.
 
-        Returns
-        -------
+        Return
+        ------
         -
             feature_names_out : ndarray of str objects - Transformed
                 feature names.
@@ -986,6 +1018,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._must_be_fitted()
 
+        print(f'pizza radios for support in self.get_feature_names_out!')
         COLUMN_MASK = self.get_support(indices=False)
 
         err_msg = f"input_features must be a list-type of strings or None"
@@ -1024,31 +1057,33 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         raise NotImplementedError(f"get_metadata_routing is not available in {__}")
 
 
-    def get_params(self, deep=True):
-        """Get parameters for this transformer.
-
-        Parameters
-        ----------
-        deep : bool, default=True - Ignored.
-
-        Returns
-        -------
-        params : dict - Parameter names mapped to their values.
-        """
-
-        params = {
-            'count_threshold': self.count_threshold,
-            'ignore_float_columns': self.ignore_float_columns,
-            'ignore_non_binary_integer_columns':
-                self.ignore_non_binary_integer_columns,
-            'ignore_columns': self.ignore_columns,
-            'ignore_nan': self.ignore_nan,
-            'delete_axis_0': self.delete_axis_0,
-            'max_recursions': self.max_recursions,
-            'n_jobs': self.n_jobs
-        }
-
-        return params
+    # pizza hashed this 24_10_19_18_53_00, see if BaseEstimator get_params can handle this
+    # def get_params(self, deep=True):
+    #     """Get parameters for this transformer.
+    #
+    #     Parameters
+    #     ----------
+    #     deep : bool, default=True - Ignored.
+    #
+    #     Return
+    #     ------
+    #     -
+    #         params : dict - Parameter names mapped to their values.
+    #     """
+    #
+    #     params = {
+    #         'count_threshold': self.count_threshold,
+    #         'ignore_float_columns': self.ignore_float_columns,
+    #         'ignore_non_binary_integer_columns':
+    #             self.ignore_non_binary_integer_columns,
+    #         'ignore_columns': self.ignore_columns,
+    #         'ignore_nan': self.ignore_nan,
+    #         'delete_axis_0': self.delete_axis_0,
+    #         'max_recursions': self.max_recursions,
+    #         'n_jobs': self.n_jobs
+    #     }
+    #
+    #     return params
 
 
     def get_row_support(self, indices:bool=False):
@@ -1059,22 +1094,25 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         indices : bool, default=False - If True, the return value will
             be an array of integers, rather than a boolean mask.
 
-        Returns
-        -------
-        support : ndarray - A slicer that selects the retained rows from
-            the X most recently seen by transform. If indices is False,
-            this is a boolean array of shape (n_input_features, ) in
-            which an element is True if its corresponding row is selected
-            for retention. If indices is True, this is an integer array
-            of shape (n_output_features, ) whose values are indices into
-            the input feature vector.
+        Return
+        ------
+        -
+            support : ndarray - A slicer that selects the retained rows
+            from the X most recently seen by transform. If indices is
+            False, this is a boolean array of shape (n_input_features, )
+            in which an element is True if its corresponding row is
+            selected for retention. If indices is True, this is an
+            integer array of shape (n_output_features, ) whose values
+            are indices into the input feature vector.
         """
 
         self._must_be_fitted()
 
         if not hasattr(self, '_row_support'):
-            raise AttributeError(f"get_row_support() can only be accessed after "
-                                 f"some data has been transformed")
+            raise AttributeError(
+                f"get_row_support() can only be accessed after some data "
+                f"has been transformed"
+            )
 
         if indices is False:
             return self._row_support
@@ -1090,22 +1128,38 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         indices : bool, default=False - If True, the return value will
             be an array of integers rather than a boolean mask.
 
-        Returns
-        -------
-        support : ndarray - An index that selects the retained features
-            from a feature vector. If indices is False, this is a boolean
-            array of shape (n_input_features,) in which an element is
-            True if its corresponding feature is selected for retention.
-            If indices is True, this is an integer array of shape
-            (n_output_features, ) whose values are indices into the input
-            feature vector.
+        Return
+        ------
+        -
+            support : ndarray - An index that selects the retained
+            features from a feature vector. If indices is False, this is
+            a boolean array of shape (n_input_features,) in which an
+            element is True if its corresponding feature is selected for
+            retention. If indices is True, this is an integer array of
+            shape (n_output_features, ) whose values are indices into
+            the input feature vector.
         """
 
         self._must_be_fitted()
 
         if callable(self._ignore_columns) or callable(self._handle_as_bool):
-            raise ValueError(f"if ignore_columns or handle_as_bool is callable, "
-                f"get_support() is only available after a transform is done.")
+            raise ValueError(
+                f"if ignore_columns or handle_as_bool is callable, get_support() "
+                f"is only available after a transform is done."
+            )
+
+        # must use _make_instructions() in order to construct the column
+        # support mask after fit and before a transform. otherwise, if an
+        # attribute _column_support were assigned to COLUMN_KEEP_MASK in
+        # transform() like _row_support is assigned to ROW_KEEP_MASK, then
+        # a transform would have to be done before being able to access
+        # get_support().
+
+
+        print(f'max_recursions = ', self._max_recursions)
+        for k, v in self._make_instructions().items():
+            print(f'{k}: {v}')
+        print(f'-' * 50)
 
         COLUMNS = np.array(
             ['DELETE COLUMN' not in v for k, v in self._make_instructions().items()]
@@ -1133,9 +1187,10 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             "pandas_series": Series output
             None: Transform configuration is unchanged
 
-        Returns
-        -------
-        self : this instance - MinCountTransformer instance.
+        Return
+        ------
+        -
+            self : this instance - MinCountTransformer instance.
 
         """
 
@@ -1156,11 +1211,34 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         ----------
         params : dict - MinCountTransformer parameters.
 
-        Returns
-        -------
-        self : MinCountTransformer - This instance.
+        Return
+        ------
+        -
+            self : MinCountTransformer - This instance.
+
         """
 
+        # pizza new code, if this doesnt work fix it or go back to the old
+        # MAKE SOME PARAMETERS UNCHANGEABLE ONCE AN INSTANCE IS FITTED
+        if self._check_is_fitted() and self._max_recursions > 1:
+            # IF CHANGING PARAMS WHEN max_recursions WAS >1, RESET THE
+            # INSTANCE, BLOWING AWAY INTERNAL STATES ASSOCIATED WITH PRIOR
+            # FITS, WITH EXCEPTION FOR n_jobs & reject_unseen_values
+            # (r_u_v IS IRRELEVANT WHEN >1 RCRS BECAUSE ONLY fit_transform())
+            _PARAMS = \
+                [_ for _ in params if _ not in ('n_jobs','reject_unseen_values')]
+            if len(_PARAMS) > 0:
+                self._reset()
+            del _PARAMS
+
+        super().set_params(**params)
+        # END pizza new code, if this doesnt work fix it or go back to the old
+
+
+        """
+        # pizza this is the old way, 24_10_19_17_41_00, if the above new code
+        # works, take this out! (yay!)
+        
         ALLOWED = ['count_threshold', 'ignore_float_columns',
                    'ignore_non_binary_integer_columns', 'ignore_columns',
                     'ignore_nan', 'handle_as_bool', 'delete_axis_0',
@@ -1188,7 +1266,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         for _attr in params:
             setattr(self, _attr, params[_attr])
-
+        """
 
         return self
 
@@ -1268,11 +1346,12 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                 dask.DataFrame, dask.Series} - target object
 
 
-        Returns
+        Return
         ----------
-        X : ndarray - The given data as ndarray.
-        y : ndarray - The given target as ndarray.
-        _columns : ndarray - Feature names extracted from X.
+        -
+            X : ndarray - The given data as ndarray.
+            y : ndarray - The given target as ndarray.
+            _columns : ndarray - Feature names extracted from X.
 
         """
 

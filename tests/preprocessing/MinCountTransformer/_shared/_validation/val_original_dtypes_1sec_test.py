@@ -16,7 +16,9 @@ from pybear.preprocessing.MinCountTransformer._shared._validation. \
 
 class TestValOriginalDtypes:
 
-    @pytest.mark.parametrize('junk_og_dtype', (0, True, 3.14, min, None, lambda x: x))
+    @pytest.mark.parametrize('junk_og_dtype',
+        (0, True, 3.14, min, None, lambda x: x)
+    )
     def test_rejects_any_non_iterable(self, junk_og_dtype):
 
         with pytest.raises(TypeError):

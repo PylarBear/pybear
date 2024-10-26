@@ -4,6 +4,7 @@
 # License: BSD 3 clause
 #
 
+
 import joblib
 import numpy as np
 import numpy.typing as npt
@@ -15,9 +16,7 @@ from ....utilities._nan_masking import nan_mask_numerical
 @joblib.wrap_non_picklable_objects
 def _dtype_unqs_cts_processing(
         _column_of_X: npt.NDArray[DataType],
-        col_idx: int,
-        ignore_float_columns: bool,
-        ignore_non_binary_integer_columns: bool
+        col_idx: int
     ) -> tuple[str, dict[DataType: int]]:
 
     """
@@ -29,19 +28,20 @@ def _dtype_unqs_cts_processing(
     # THIS IS WHEN dtype(_column_of_X) == object. CONVERT TO np.float64
     # IF POSSIBLE, OTHERWISE GET UNIQUES AS STR
 
+
     Parameters
     ----------
-    _column_of_X: np.ndarray[DataType] - a single column from X.
-    col_idx: int,
-    ignore_float_columns: bool,
-    ignore_non_binary_integer_columns: bool
+    _column_of_X:
+        np.ndarray[DataType] - a single column from X.
+    col_idx: int
+
 
     Return
     ------
     -
         tuple[str, dict[DataType: int]] - tuple of dtype and a dictionary.
-        dtype can be in ['int', 'float', 'obj'], and the dictionary holds
-        uniques as keys and counts as values.
+        dtype can be in ['bin_int', 'int', 'float', 'obj'], and the
+        dictionary holds uniques as keys and counts as values.
 
     """
 
@@ -73,15 +73,16 @@ def _dtype_unqs_cts_processing(
         UNIQUES_NO_NAN = UNIQUES[np.logical_not(nan_mask_numerical(UNIQUES))]
 
         # determine if is integer
-        if np.allclose(UNIQUES_NO_NAN, UNIQUES_NO_NAN.astype(np.int32), atol=1e-6):
-            # if is integer and non-binary, return empty if ignoring
-            if len(UNIQUES_NO_NAN) > 2 and ignore_non_binary_integer_columns:
-                UNQ_CT_DICT = {}
-            return 'int', UNQ_CT_DICT
+        if np.allclose(
+            UNIQUES_NO_NAN,
+            UNIQUES_NO_NAN.astype(np.int32),
+            atol=1e-6
+        ):
+            if len(UNIQUES_NO_NAN) <= 2:
+                return 'bin_int', UNQ_CT_DICT
+            else:
+                return 'int', UNQ_CT_DICT
         else:
-            # if is not integer, must be float
-            if ignore_float_columns:
-                UNQ_CT_DICT = {}
             return 'float', UNQ_CT_DICT
 
     except ValueError:
@@ -91,12 +92,14 @@ def _dtype_unqs_cts_processing(
             UNIQUES.astype(str)
             return 'obj', UNQ_CT_DICT
         except:
-            err_msg = f"Unknown datatype '{UNIQUES.dtype}' in column index {col_idx}"
-            raise TypeError(err_msg)
+            raise TypeError(
+                f"Unknown datatype '{UNIQUES.dtype}' in column index {col_idx}"
+            )
     except:
-        err_msg = (f"Removing nans from column index {col_idx} excepted for reason "
-                   f"other than ValueError")
-        raise Exception(err_msg)
+        raise Exception(
+            f"Removing nans from column index {col_idx} excepted for reason "
+            f"other than ValueError"
+        )
 
 
 

@@ -230,7 +230,7 @@ def _X_factory(_shape):
 
 
 # at the bottom are fixtures used for testing mmct in
-# conftest__mmct__test.py
+# conftest__mmct__20sec_test.py
 
 
 
@@ -238,8 +238,8 @@ def _X_factory(_shape):
 # MinCountTransformer_test. It also is used to validate that X meets
 # certain rigged conditions for testing MinCountTransformer.
 # Tests for this fixture are in
-# conftest__mmct__test.py. The fixtures used to run the tests in
-# conftest__mmct__test.py are at the bottom of this module.
+# conftest__mmct__20sec_test.py. The fixtures used to run the tests in
+# conftest__mmct__20sec_test.py are at the bottom of this module.
 
 
 @pytest.fixture(scope='session')
@@ -450,7 +450,7 @@ def mmct():
 
 # Build vectors for mmct test. The process below builds random, but rigged,
 # vectors that are used to test mmct (mock_min_count_transformer, above).
-# The test for mmct is in conftest__mmct__test.py. mmct is then used to
+# The test for mmct is in conftest__mmct__20sec_test.py. mmct is then used to
 # test MinCountTransformer. There are 7 fixtures below. The first five
 # fixtures build 5 different types of test vectors (non-binary integer,
 # bin, float, str, bool). The process in the 7th fixture

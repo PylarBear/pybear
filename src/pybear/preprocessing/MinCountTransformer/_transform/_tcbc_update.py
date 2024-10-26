@@ -5,38 +5,52 @@
 #
 
 
-
 from .._type_aliases import TotalCountsByColumnType
 
-import numpy as np
+from copy import deepcopy
+
 
 
 
 
 def _tcbc_update(
-        old_tcbc: TotalCountsByColumnType, # use deepcopy(self._total_counts_by_column)
-        recursion_tcbc: TotalCountsByColumnType, # use RecursiveCls._total_counts_by_column
-        MAP_DICT: dict[int: int]
-    ) -> TotalCountsByColumnType:
+    old_tcbc: TotalCountsByColumnType, # use deepcopy(self._total_counts_by_column)
+    recursion_tcbc: TotalCountsByColumnType, # use RecursiveCls._total_counts_by_column
+    MAP_DICT: dict[int: int]
+) -> TotalCountsByColumnType:
 
     """
-    Iterate over RecursiveCls._total_counts_by_column (recursion_tcbc)
-    and compare the counts to the corresponding ones in self._tcbc
-    (old_tcbc). If RecursiveCls's value is lower, put it into self's.
+
+    Iterate over self._tcbc (old_tcbc) and compare the counts to the
+    corresponding ones in RecursiveCls._tcbc (recursion_tcbc). If
+    RecursiveCls's value is lower, put it into self's; if key does not
+    exist in recursion_tcbc, set self's value to 0.
+
     _total_counts_by_column is a dict of unqs and cts for each column in
-    X. If X had features deleted, must map feature locations in
+    X. If X had features deleted when it was processed by self before
+    being passed into recursion, then map feature locations in
     RecursiveCls._tcbc to their old locations in self._tcbc.
+
+    There is a problem with matching that largely seems to impact nan.
+    Create a new working unq_ct_dict for both self and recursion that
+    removes any nans (there should be at most one in each!), and
+    retain their counts. Perform the number swapping operation on the
+    working old_tcbc unq_ct_dict. After that, put the nan key from self
+    and the value from RecursionCls into the working old_tcbc unq_ct_dict.
+    Replace the unq_ct_dict in old_tcbc for that column index with the
+    working version. Do this for all the columns. Return old_tcbc.
 
 
     Parameters
     ----------
     old_tcbc:
-        TotalCountsByColumnType, # use deepcopy(self._total_counts_by_column)
+        TotalCountsByColumnType
     recursion_tcbc:
-        TotalCountsByColumnType, # use RecursiveCls._total_counts_by_column
+        TotalCountsByColumnType
     MAP_DICT:
         dict[int: int] - dictionary mapping a feature's location in
         Recursion._tcbc to its (possibly different) location in self._tcbc.
+
 
     Return
     ------
@@ -46,65 +60,151 @@ def _tcbc_update(
 
     """
 
+    # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # old_tcbc
+    for _c_idx, _inner in old_tcbc.items():
+        assert isinstance(_c_idx, int)
+        assert isinstance(_inner, dict)
+        # dont validate keys (uniques) could be anything
+        assert all(map(isinstance, _inner.values(), (int for _ in _inner)))
+
+    # recursion_tcbc
+    for _c_idx, _inner in recursion_tcbc.items():
+        assert isinstance(_c_idx, int)
+        assert isinstance(_inner, dict)
+        # dont validate keys (uniques) could be anything
+        assert all(map(isinstance, _inner.values(), (int for _ in _inner)))
+
+
+    # map_dict
+    assert isinstance(MAP_DICT, dict)
+    for k, v in MAP_DICT.items():
+        assert isinstance(k, int), f"k = {k}, type(k) = {type(k)}"
+        assert isinstance(v, int), f"v = {v}, type(v) = {type(v)}"
+    # END validation - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
     for new_col_idx in recursion_tcbc:
 
         old_col_idx = MAP_DICT[new_col_idx]
 
-        for unq, ct in recursion_tcbc[new_col_idx].items():
 
-            OLD_TCBC_UNIQUES = np.char.lower(
-                np.fromiter(old_tcbc[old_col_idx].keys(), dtype='<U10000')
+        # if old_tcbc had an empty UNQ_CT_DICT (which it may have, because
+        # for ignored <columns, float columns, or bin-int columns>
+        # UNQ_CT_DICT is set to {}) then recursion_tcbc UNQ_CT_DICT FOR
+        # that column (possibly in a different index slot) must also be {}
+        if not len(old_tcbc[old_col_idx]) and len(recursion_tcbc[new_col_idx]):
+            raise AssertionError(
+                f"old_tcbc[{old_col_idx}] is empty, but "
+                f"recursion_tcbc[{new_col_idx}] is not"
             )
-            # if not in at first look, look again after convert to str
-            if unq not in old_tcbc[old_col_idx] and \
-                    str(unq).lower() not in OLD_TCBC_UNIQUES:
-                raise AssertionError(f"algorithm failure, unique in a "
-                    f"deeper recursion is not in the previous recursion"
+
+
+        # manipulation of old_tcbc and recursion tcbc to get the nans out
+
+        # reconstruct old_tcbc[col_idx] in a copy
+        # remove any nans from unqs (should only be 1!), and get the count
+        _old_tcbc_nan_symbol = None
+        _old_tcbc_nan_ct = 0
+        _old_tcbc_col_dict = {}
+        for k, v in old_tcbc[old_col_idx].items():
+            if str(k) in ['nan', 'NAN', 'NaN', '<NA>']:
+                if _old_tcbc_nan_symbol is not None:
+                    raise ValueError(
+                        f">=2 nan-like in old_tcbc: col idx {old_col_idx}, "
+                        f"{old_tcbc[old_col_idx]}"
+                    )
+                _old_tcbc_nan_symbol = k
+                _old_tcbc_nan_ct = v
+            else:
+                _old_tcbc_col_dict[k] = v
+
+        # reconstruct recursion_tcbc in a copy
+        # remove any nans from unqs (should only be 1!), and get the count
+        _rcr_nan_symbol = None
+        _rcr_nan_ct = 0
+        _rcr_col_dict = {}
+        for k, v in recursion_tcbc[new_col_idx].items():
+            if str(k) in ['nan', 'NAN', 'NaN', '<NA>']:
+                if _rcr_nan_symbol is not None:
+                    raise ValueError(
+                        f">=2 nan-like in recursion_tcbc: col idx {new_col_idx}, "
+                        f"{recursion_tcbc[new_col_idx]}"
+                    )
+                _rcr_nan_symbol = k
+                _rcr_nan_ct = v
+            else:
+                _rcr_col_dict[k] = v
+
+        # END manipulation of old_tcbc and recursion tcbc to get the nans out
+
+        # now that nans are out, update self.tcbc (old_tcbc) with the new
+        # (lower) values in recursion_tcbc, where applicable
+
+        # pizza test!
+        if new_col_idx == 3:
+            print(f'-'*50)
+            print(f'col_idx 3 _old_tcbc_col_dict:')
+            print(_old_tcbc_col_dict)
+            print(f'col_idx 3 _rcr_col_dict:')
+            print(_rcr_col_dict)
+            print(f'-'*50)
+
+        for unq, ct in deepcopy(_old_tcbc_col_dict).items():
+
+            if not _rcr_col_dict.get(unq, 0) <= ct:
+                raise AssertionError(
+                    f"algorithm failure, count of a unique in a deeper "
+                    f"recursion is > the count of the same unique in a "
+                    f"higher recursion, can only be <="
                 )
 
-            del OLD_TCBC_UNIQUES
+            # if unq not in _rcr_col_dict, put 0 into that key for old tcbc
+            _old_tcbc_col_dict[unq] = _rcr_col_dict.get(unq, 0)
 
-            # there is a problem of matching that largely seems to impact
-            # nan. look to match the recursion_tcbc unq to a unq in
-            # old_tcbc. if no match convert recursion_tcbc unq to str &
-            # try again against old_tcbc, if still no match convert
-            # old_tcbc keys to str and try recursion_tcbc as str again,
-            # if still no match raise exception.
-            while True:
-                try:
-                    __ = old_tcbc[old_col_idx][unq]
-                    break
-                except:
-                    pass
 
-                try:
-                    __ = old_tcbc[old_col_idx][str(unq).lower()]
-                    break
-                except:
-                    pass
-
-                try:
-                    __ = dict((
-                        zip(list(map(str, old_tcbc[old_col_idx].keys())),
-                        list(old_tcbc[old_col_idx].values()))
-                    ))['nan']
-                    break
-                except:
-                    raise ValueError(f"could not access key {unq} in "
-                        f"_total_counts_by_column"
-                    )
-
-            assert ct <= __, (f"algorithm failure, count of a unique "
-                f"in a deeper recursion is > the count of the same unique "
-                f"in a higher recursion, can only be <="
+        # last thing, put the nans into the updated dict
+        if _old_tcbc_nan_symbol and _rcr_nan_symbol:
+            if not _rcr_nan_ct <= _old_tcbc_nan_ct:
+                raise AssertionError(
+                    f"algorithm failure, count of nans in a deeper "
+                    f"recursion is > the count of nans in a higher "
+                    f"recursion, can only be <="
+                )
+            _old_tcbc_col_dict[_old_tcbc_nan_symbol] = _rcr_nan_ct
+        elif _old_tcbc_nan_symbol and not _rcr_nan_symbol:
+            # if no nans in _rcr_col_dict, set _old_tcbc_col_dict to 1,
+            # placehold so that there is indication that the column
+            # originally had nans in it so they will be in delete_instr
+            # 1 will always be below thresh (min=2)
+            _old_tcbc_col_dict[_old_tcbc_nan_symbol] = 1
+        elif not _old_tcbc_nan_symbol and _rcr_nan_symbol:
+            raise AssertionError(
+                f"algorithm failure, nans have showed up in a deeper "
+                f"recursion but are not in the previous recursion -- "
+                f"{_rcr_nan_symbol}, type {type(_rcr_nan_symbol)}, "
+                f"\nold_tcbc unqs = {old_tcbc[old_col_idx]}, "
+                f"\nrecursion_tcbc unqs = {recursion_tcbc[new_col_idx]}"
             )
+        else:
+            # no nans in either
+            pass
 
-            # all of that just to get this one number __
-            if ct < __:
-                old_tcbc[old_col_idx][unq] = ct
+
+        # there is a problem of columns being identified for deletion in
+        # the recursive class, but that is not being conveyed into old tcbc,
+        # and the 'DELETE COLUMN' instruction is not being made when
+        # make_instructions() is called on the updated old tcbc back in the
+        # outer self when building the column mask in get_support().
+        # It is not sufficient to simply lower the counts in the old tcbc to
+        # the new counts in the recursion.
 
 
-    del new_col_idx, old_col_idx, unq, ct, __
+
+        old_tcbc[old_col_idx] = _old_tcbc_col_dict
+
+
+    del new_col_idx, old_col_idx, unq, ct
 
     return old_tcbc
 

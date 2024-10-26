@@ -61,7 +61,7 @@ def _one_unique(
 
 
     if _nan_ct:
-        # if not ign nan and has nans
+        # if not ign nan and has nans (it must be the only value in the column!)
         # 24_06_11_14_37_00, if nan ct < thresh, do not delete the rows
         # if _nan_ct < _threshold:
         #     _instr_list.append(_nan_key)

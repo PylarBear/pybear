@@ -22,7 +22,7 @@ from pybear.utilities._nan_masking import (
 
 
 # at the bottom are fixtures used for testing mmct in
-# conftest__mmct__test.py
+# conftest__mmct__20sec_test.py
 
 
 
@@ -30,8 +30,8 @@ from pybear.utilities._nan_masking import (
 # MinCountTransformer_test. It also is used to validate that X meets
 # certain rigged conditions for testing MinCountTransformer.
 # Tests for this fixture are in
-# conftest__mmct__test.py. The fixtures used to run the tests in
-# conftest__mmct__test.py are at the bottom of this module.
+# conftest__mmct__20sec_test.py. The fixtures used to run the tests in
+# conftest__mmct__20sec_test.py are at the bottom of this module.
 
 
 @pytest.fixture(scope='session')
@@ -40,6 +40,9 @@ def mmct():
     class _mmct:
         # this must be a class, cannot be a function. need to access
         # get_support_ during MinCountTransformer_test
+
+        def __init__(self):
+            self.get_support_ = None
 
         def trfm(
             self,
@@ -54,6 +57,12 @@ def mmct():
             count_threshold: int
         ) -> Union[tuple[npt.NDArray[any], npt.NDArray[int]], npt.NDArray[any]]:
 
+            if handle_as_bool is None:
+                handle_as_bool = []
+
+            if ignore_columns is None:
+                ignore_columns = []
+
             # GET UNIQUES:
             @joblib.wrap_non_picklable_objects
             def get_unq(X_COLUMN: np.ndarray) -> np.ndarray:
@@ -66,6 +75,33 @@ def mmct():
                     WIP_X_COLUMN = WIP_X_COLUMN.astype(str)
 
                 UNIQUES, COUNTS = np.unique(WIP_X_COLUMN, return_counts=True)
+
+                # UNIQUES nan ASSURANCES * * * * * *
+                UNQ_CT_DICT = dict((zip(UNIQUES, COUNTS)))
+
+                _num_nans = 0
+                _nan_symbol = None
+                _nan_ct = 0
+                _new_dict = {}
+                for _unq, _ct in UNQ_CT_DICT.items():
+                    if str(_unq) == 'nan':
+                        if _nan_symbol is not None:
+                            raise Exception(f'multiple nans in mmct UNQ_CT_DICT')
+                        _nan_ct += _ct
+                        _nan_symbol = _unq
+                    else:
+                        _new_dict[_unq] = _ct
+
+                if _nan_symbol:
+                    _new_dict[_nan_symbol] = _nan_ct
+
+                UNIQUES = np.fromiter(_new_dict.keys(), dtype=object)
+                COUNTS = np.fromiter(_new_dict.values(), dtype=int)
+
+                del _nan_symbol, _nan_ct, _unq, _ct, UNQ_CT_DICT, _new_dict
+
+                # END UNIQUES nan ASSURANCES * * * * * *
+
                 del WIP_X_COLUMN
                 UNIQUES = UNIQUES.astype(og_dtype)
                 del og_dtype
@@ -73,8 +109,10 @@ def mmct():
                 return UNIQUES, COUNTS
 
 
+            # only do np.unique on active columns (will put them back in
+            # ACTIVE_C_IDXS later)
             ACTIVE_C_IDXS = [i for i in range(MOCK_X.shape[1])]
-            if ignore_columns is not None and len(ignore_columns) > 0:
+            if ignore_columns is not None:
                 for i in ignore_columns:
                     try:
                         ACTIVE_C_IDXS.remove(i)
@@ -92,13 +130,16 @@ def mmct():
                     delayed(get_unq)(MOCK_X[:, c_idx]) for c_idx in ACTIVE_C_IDXS
             )
 
+            # put None in place of skipped columns in UNQ_CT_TUPLES,
+            # should get back to the the same size as MOCK_X columns
             for col_idx in range(MOCK_X.shape[1]):
                 if col_idx not in ACTIVE_C_IDXS:
                     UNIQUES_COUNTS_TUPLES.insert(col_idx, None)
 
             del ACTIVE_C_IDXS, get_unq
 
-            self.get_support_ = list(map(bool, np.ones(MOCK_X.shape[1]).astype(bool)))
+            self.get_support_ = \
+                list(map(bool, np.ones(MOCK_X.shape[1]).astype(bool)))
 
             # GET DTYPES ** ** ** ** ** **
             DTYPES = [None for _ in UNIQUES_COUNTS_TUPLES]
@@ -111,8 +152,8 @@ def mmct():
 
                 try:
                     MASK = np.logical_not(nan_mask_numerical(
-                        UNIQUES.astype(np.float64))  # <=== if float64 excepts
-                    )
+                        UNIQUES.astype(np.float64)    # <=== if float64 excepts
+                    ))
                     NO_NAN_UNIQUES = UNIQUES[MASK]
                     del MASK
                     NO_NAN_UNIQUES_AS_FLT = NO_NAN_UNIQUES.astype(np.float64)
@@ -126,30 +167,39 @@ def mmct():
                             DTYPES[col_idx] = 'non_bin_int'
                             if ignore_non_binary_integer_columns:
                                 UNIQUES_COUNTS_TUPLES[col_idx] = None
-                                continue
                     else:
                         DTYPES[col_idx] = 'float'
                         if ignore_float_columns:
                             UNIQUES_COUNTS_TUPLES[col_idx] = None
-                            continue
 
                     del NO_NAN_UNIQUES, NO_NAN_UNIQUES_AS_INT, NO_NAN_UNIQUES_AS_FLT
 
                 except:
                     DTYPES[col_idx] = 'obj'
 
+                if ignore_columns is not None and col_idx in ignore_columns:
+                    UNIQUES_COUNTS_TUPLES[col_idx] = None
+
                 del UNIQUES, COUNTS
             # END GET DTYPES ** ** ** ** ** **
 
+            _, __ = len(UNIQUES_COUNTS_TUPLES), MOCK_X.shape[1]
+            if _ != __:
+                raise AssertionError(
+                    f'entries in UNQ_CT_TUPLES ({len(_)}) does not equal number '
+                    f'of columns in MOCK_X ({__})'
+                )
+            del _, __
 
             for col_idx in range(len(UNIQUES_COUNTS_TUPLES) - 1, -1, -1):
 
                 if UNIQUES_COUNTS_TUPLES[col_idx] is None:
-                    continue
+                    continue   # was ignored
 
                 UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
 
-                if handle_as_bool is not None and col_idx in handle_as_bool:
+                if col_idx in handle_as_bool: #or \
+                #         DTYPES[col_idx] == 'bin_int':
 
                     if DTYPES[col_idx] == 'obj':
                         raise ValueError(
@@ -170,6 +220,10 @@ def mmct():
 
 
                 ROW_MASK = np.zeros(MOCK_X.shape[0])
+                NAN_MASK = nan_mask(MOCK_X[:, col_idx])
+                # need to go backwards, will be deleting from UNIQUES and COUNTS
+                # on the fly (the end len is the num of uniques staying in the
+                # column, if only one non-nan unique, delete column)
                 for u_idx, unq, ct in zip(
                     range(len(UNIQUES) - 1, -1, -1),
                     np.flip(UNIQUES),
@@ -181,35 +235,40 @@ def mmct():
 
                     if ct < count_threshold:
 
-                        NAN_MASK = nan_mask(MOCK_X[:, col_idx])
-
                         if str(unq).lower()=='nan':
                             ROW_MASK += NAN_MASK
+                        elif (col_idx in handle_as_bool or \
+                                DTYPES[col_idx] == 'bin_int') and not delete_axis_0:
+                            pass
+                            # NOT_NAN_MASK = np.logical_not(NAN_MASK)
+                            # _ = MOCK_X[NOT_NAN_MASK, col_idx].astype(np.uint8)
+                            # ROW_MASK[NOT_NAN_MASK] += (_ == unq)
+                            # del NOT_NAN_MASK, _
                         else:
-                            try:
-                                if col_idx in handle_as_bool:
-                                    NOT_NAN_MASK = np.logical_not(NAN_MASK)
-                                    _ = MOCK_X[NOT_NAN_MASK, col_idx].astype(bool)
-                                    ROW_MASK[NOT_NAN_MASK] += (_ == unq)
-                                    del NOT_NAN_MASK, _
-                                else:
-                                    # JUST TO SEND INTO not handle_as_bool CODE
-                                    raise Exception
-                            except:
-                                ROW_MASK += (MOCK_X[:, col_idx] == unq)
-
-                        del NAN_MASK
+                            ROW_MASK += (MOCK_X[:, col_idx] == unq)
 
                         # vvv USE LEN LATER TO INDICATE TO DELETE COLUMN
-                        UNIQUES = np.delete(UNIQUES, u_idx)
-                        COUNTS = np.delete(COUNTS, u_idx)
+                        UNIQUES = np.delete(UNIQUES, u_idx, axis=0)
+                        COUNTS = np.delete(COUNTS, u_idx, axis=0)
+
+                NUMBER_OF_UNIQUES_LEFT = \
+                    len([_ for _ in UNIQUES if str(_).lower() != 'nan'])
+
+                # crazy rule in MCT for bin-int and handle_as_bool columns:
+                # if not delete_axis_0 but nans < than threshold, then
+                # delete nans ... BUT... if column is marked for deletion
+                # because one of the non-nan uniques is below threshold,
+                # the rows for the non-nan uniques are not deleted because
+                # of do_not_delete and the column is just deleted entirely,
+                # WITHOUT DELETING THE ROWS ASSOCIATED WITH THE NANS!
+                # so set the ROW_MASK (which should only be True for the
+                # nan slots) back to empty!
+                if (col_idx in handle_as_bool or DTYPES[col_idx] == 'bin_int') \
+                        and not delete_axis_0 \
+                        and NUMBER_OF_UNIQUES_LEFT <= 1:
+                    ROW_MASK = np.zeros(MOCK_X.shape[0]).astype(bool)
 
                 if DTYPES[col_idx] == 'constant':
-                    pass
-                elif DTYPES[col_idx] == 'bin_int' and not delete_axis_0:
-                    pass
-                elif (handle_as_bool is not None and col_idx in handle_as_bool) \
-                        and not delete_axis_0:
                     pass
                 else:
                     ROW_MASK = np.logical_not(ROW_MASK)
@@ -219,9 +278,14 @@ def mmct():
 
                     del ROW_MASK
 
-                if len([_ for _ in UNIQUES if str(_).lower() != 'nan']) <= 1:
+                if NUMBER_OF_UNIQUES_LEFT <= 1:
                     self.get_support_[col_idx] = False
                     MOCK_X = np.delete(MOCK_X, col_idx, axis=1)
+
+                    # do not need to adjust handle_as_bool and ignore_columns
+                    # indices because iterating backwards over columns.
+
+                del NUMBER_OF_UNIQUES_LEFT
 
             if MOCK_Y is not None:
                 return MOCK_X, MOCK_Y
@@ -241,7 +305,7 @@ def mmct():
 
 # Build vectors for mmct test. The process below builds random, but rigged,
 # vectors that are used to test mmct (mock_min_count_transformer, above).
-# The test for mmct is in conftest__mmct__test.py. mmct is then used to
+# The test for mmct is in conftest__mmct__20sec_test.py. mmct is then used to
 # test MinCountTransformer. There are 7 fixtures below. The first five
 # fixtures build 5 different types of test vectors (non-binary integer,
 # bin, float, str, bool). The process in the 7th fixture

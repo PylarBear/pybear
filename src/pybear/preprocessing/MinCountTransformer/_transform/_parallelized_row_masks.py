@@ -57,37 +57,49 @@ def _parallelized_row_masks(
     assert isinstance(_X_COLUMN, np.ndarray)
     assert _X_COLUMN.shape[1] == 1
     assert isinstance(_COLUMN_UNQ_CT_DICT, dict)
+    assert all(map(
+        isinstance,
+        _COLUMN_UNQ_CT_DICT.values(),
+        (int for _ in _COLUMN_UNQ_CT_DICT)
+    ))
     assert isinstance(_instr, list)
     assert isinstance(_reject_unseen_values, bool)
     assert isinstance(_col_idx, int)
-
 
 
     COLUMN_ROW_MASK = np.zeros(_X_COLUMN.shape[0], dtype=np.uint8)
 
     RUV_MASK = np.zeros(_X_COLUMN.shape[0], dtype=np.uint8)
 
+    _nan_ctr = 0
     for unq in _COLUMN_UNQ_CT_DICT:
 
-        MASK_ON_X_COLUMN_UNQ = np.zeros((_X_COLUMN.shape[0],), dtype=np.uint8)
+        MASK_ON_X_COLUMN_UNQ = np.zeros(_X_COLUMN.shape[0], dtype=np.uint8)
 
         if unq in _instr or str(unq) in map(str, _instr) or _reject_unseen_values:
 
             if str(unq).lower() == 'nan':
-                MASK_ON_X_COLUMN_UNQ = nan_mask(_X_COLUMN.ravel())
+                _nan_ctr += 1
+                if _nan_ctr > 1:
+                    raise ValueError(f"more than one nan-like in UNQ_CT_DICT")
+                MASK_ON_X_COLUMN_UNQ += nan_mask(_X_COLUMN.ravel())
             else:
                 MASK_ON_X_COLUMN_UNQ += (_X_COLUMN.ravel() == unq)
 
-        MASK_ON_X_COLUMN_UNQ = MASK_ON_X_COLUMN_UNQ.astype(np.uint8)
-
         if _reject_unseen_values:
-            RUV_MASK += MASK_ON_X_COLUMN_UNQ
+            RUV_MASK += MASK_ON_X_COLUMN_UNQ.astype(np.uint8)
 
         if unq in _instr or str(unq) in map(str, _instr):
-            COLUMN_ROW_MASK += MASK_ON_X_COLUMN_UNQ
+            COLUMN_ROW_MASK += MASK_ON_X_COLUMN_UNQ.astype(np.uint8)
 
+    del _nan_ctr, MASK_ON_X_COLUMN_UNQ
 
-    if _reject_unseen_values and sum(RUV_MASK) != _X_COLUMN.shape[0]:
+    # 24_10_20, python sum is not working correctly on RUV_MASK when has a
+    # np dtype, need to use np sum to get the correct result. Or, could
+    # convert RUV_MASK with .astype(int), and py sum works correctly.
+    # Could go either way with this fix.
+
+    if _reject_unseen_values and np.sum(RUV_MASK) != _X_COLUMN.shape[0]:
 
         # build things to display info about unseen values ** * ** * **
         _X = _X_COLUMN[np.logical_not(RUV_MASK), :]
@@ -99,7 +111,7 @@ def _parallelized_row_masks(
             _UNSEEN_UNQS = np.unique(_X.astype(str)).astype(orig_dtype)
 
         del orig_dtype, _X
-        # build things to display info about unseen values ** * ** * **
+        # END build things to display info about unseen values ** * ** * **
 
         if len(_UNSEEN_UNQS) > 10:
             _UNSEEN_UNQS = f"{_UNSEEN_UNQS[:10]} + others"
@@ -112,7 +124,7 @@ def _parallelized_row_masks(
     del RUV_MASK
 
 
-    return COLUMN_ROW_MASK.astype(np.uint8)
+    return COLUMN_ROW_MASK
 
 
 

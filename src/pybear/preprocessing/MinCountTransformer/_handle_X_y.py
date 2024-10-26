@@ -31,7 +31,7 @@ def _handle_X_y(
 
 
     """
-    Validate dimensions of X and y, get dtypes of first-seen data objects,
+    Validate dimensions of X and y, get dtypes of first-seen data object,
     standardize the containers for processing, get column names if
     available, standardize all nan-like representations to np.nan.
 

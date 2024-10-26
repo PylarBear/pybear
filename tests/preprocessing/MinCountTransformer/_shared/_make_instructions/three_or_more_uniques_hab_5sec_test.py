@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 from copy import deepcopy
@@ -21,7 +23,9 @@ class TestValidation:
     @pytest.mark.parametrize('_nan_ct', (4, 7))
     @pytest.mark.parametrize('_delete_axis_0', (True, False))
     @pytest.mark.parametrize('_dtype', ('int', 'float'))
-    def test_rejects_nan_in_unq_ct_dict(self, _nan_key, _nan_ct, _delete_axis_0, _dtype):
+    def test_rejects_nan_in_unq_ct_dict(
+        self, _nan_key, _nan_ct, _delete_axis_0, _dtype
+    ):
 
         if _dtype == 'int':
             _unq_ct_dict = {_nan_key: _nan_ct, 0: 235, 1: 92, 2: 5}
@@ -133,7 +137,8 @@ class TestThreeOrMoreUniquesHandleAsBool:
         if _nan_ct is not False and _nan_ct < _threshold:
             if _delete_axis_0:
                 _instr_list.append(_nan_key)
-            elif not _delete_axis_0 and min(_zero_ct, _non_zero_ct) >= _threshold:
+            elif not _delete_axis_0 and \
+                    min(_zero_ct, _non_zero_ct) >= _threshold:
                 _instr_list.append(_nan_key)
 
 

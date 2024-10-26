@@ -17,9 +17,7 @@ from pybear.preprocessing.MinCountTransformer._base_fit. \
 
 # def _dtype_unqs_cts_processing(
 #         _column_of_X,
-#         col_idx: int,
-#         ignore_float_columns: bool,
-#         ignore_non_binary_integer_columns: bool
+#         col_idx: int
 #     )
 
 
@@ -106,14 +104,11 @@ class TestParallelizedRowMasks:
         return foo
 
 
-    @pytest.mark.parametrize('_ignore_float_columns', (True, False))
-    @pytest.mark.parametrize('_ign_nbics', (True, False))
+
     def test_accuracy_dtype_unq_ct__str(self,
             str_column_no_nan,
             str_column_nan,
-            good_unq_ct_dict,
-            _ignore_float_columns,
-            _ign_nbics
+            good_unq_ct_dict
         ):
 
 
@@ -123,9 +118,7 @@ class TestParallelizedRowMasks:
 
             out_dtype, out_unq_ct_dict = _dtype_unqs_cts_processing(
                 column_type,
-                col_idx=0,
-                ignore_float_columns=_ignore_float_columns,
-                ignore_non_binary_integer_columns=_ign_nbics
+                col_idx=0
             )
 
             assert out_dtype == 'obj'
@@ -141,16 +134,10 @@ class TestParallelizedRowMasks:
             assert np.array_equiv(OUT_VALUES, EXP_VALUES)
 
 
-
-
-    @pytest.mark.parametrize('_ignore_float_columns', (True, False))
-    @pytest.mark.parametrize('_ign_nbics', (True, False))
     def test_accuracy_dtype_unq_ct__float(self,
             float_column_no_nan,
             float_column_nan,
-            good_unq_ct_dict,
-            _ignore_float_columns,
-            _ign_nbics
+            good_unq_ct_dict
         ):
 
         for _dtype, column_type in \
@@ -158,43 +145,32 @@ class TestParallelizedRowMasks:
 
             out_dtype, out_unq_ct_dict = _dtype_unqs_cts_processing(
                 column_type,
-                col_idx=0,
-                ignore_float_columns=_ignore_float_columns,
-                ignore_non_binary_integer_columns=_ign_nbics
+                col_idx=0
             )
 
             assert out_dtype == 'float'
 
-            if _ignore_float_columns:
-                assert out_unq_ct_dict == {}
-            else:
-                EXP = good_unq_ct_dict(column_type)
-                EXP_KEYS = np.fromiter(EXP.keys(), dtype=np.float64)
-                EXP_VALUES = np.fromiter(EXP.values(), dtype=np.uint16)
-                OUT_KEYS = np.fromiter(out_unq_ct_dict.keys(), dtype=np.float64)
-                OUT_VALUES = np.fromiter(out_unq_ct_dict.values(), dtype=np.uint16)
+            EXP = good_unq_ct_dict(column_type)
+            EXP_KEYS = np.fromiter(EXP.keys(), dtype=np.float64)
+            EXP_VALUES = np.fromiter(EXP.values(), dtype=np.uint16)
+            OUT_KEYS = np.fromiter(out_unq_ct_dict.keys(), dtype=np.float64)
+            OUT_VALUES = np.fromiter(out_unq_ct_dict.values(), dtype=np.uint16)
 
-                if any(np.isnan(EXP_KEYS)):
-                    MASK = np.logical_not(np.isnan(EXP_KEYS))
-                    EXP_KEYS = EXP_KEYS[MASK]
-                    OUT_KEYS = OUT_KEYS[MASK]
+            if any(np.isnan(EXP_KEYS)):
+                MASK = np.logical_not(np.isnan(EXP_KEYS))
+                EXP_KEYS = EXP_KEYS[MASK]
+                OUT_KEYS = OUT_KEYS[MASK]
 
-                assert np.allclose(OUT_KEYS, EXP_KEYS, rtol=1e-6)
+            assert np.allclose(OUT_KEYS, EXP_KEYS, rtol=1e-6)
 
-                assert np.array_equiv(OUT_VALUES, EXP_VALUES)
+            assert np.array_equiv(OUT_VALUES, EXP_VALUES)
 
 
 
-
-
-    @pytest.mark.parametrize('_ignore_float_columns', (True, False))
-    @pytest.mark.parametrize('_ign_nbics', (True, False))
     def test_accuracy_dtype_unq_ct__int(self,
             int_column_no_nan,
             int_column_nan,
-            good_unq_ct_dict,
-            _ignore_float_columns,
-            _ign_nbics
+            good_unq_ct_dict
         ):
 
         for _dtype, column_type in \
@@ -202,25 +178,20 @@ class TestParallelizedRowMasks:
 
             out_dtype, out_unq_ct_dict = _dtype_unqs_cts_processing(
                 column_type,
-                col_idx=0,
-                ignore_float_columns=_ignore_float_columns,
-                ignore_non_binary_integer_columns=_ign_nbics
+                col_idx=0
             )
 
             assert out_dtype == 'int'
 
-            if _ign_nbics:
-                assert out_unq_ct_dict == {}
-            else:
-                EXP = good_unq_ct_dict(column_type)
-                EXP_KEYS = np.fromiter(EXP.keys(), dtype=np.uint32)
-                EXP_VALUES = np.fromiter(EXP.values(), dtype=np.uint16)
-                OUT_KEYS = np.fromiter(out_unq_ct_dict.keys(), dtype=np.uint32)
-                OUT_VALUES = np.fromiter(out_unq_ct_dict.values(), dtype=np.uint16)
+            EXP = good_unq_ct_dict(column_type)
+            EXP_KEYS = np.fromiter(EXP.keys(), dtype=np.uint32)
+            EXP_VALUES = np.fromiter(EXP.values(), dtype=np.uint16)
+            OUT_KEYS = np.fromiter(out_unq_ct_dict.keys(), dtype=np.uint32)
+            OUT_VALUES = np.fromiter(out_unq_ct_dict.values(), dtype=np.uint16)
 
-                assert np.allclose(OUT_KEYS, EXP_KEYS, rtol=1e-6)
+            assert np.allclose(OUT_KEYS, EXP_KEYS, rtol=1e-6)
 
-                assert np.array_equiv(OUT_VALUES, EXP_VALUES)
+            assert np.array_equiv(OUT_VALUES, EXP_VALUES)
 
 
 

@@ -4,10 +4,9 @@
 # License: BSD 3 clause
 #
 
+
 from typing_extensions import Union, Literal
 from ..._type_aliases import DataType
-
-import numpy as np
 
 
 
@@ -66,7 +65,7 @@ def _three_or_more_uniques_not_hab(
 
 
     if not _nan_ct:  # EITHER IGNORING NANS OR NONE IN FEATURE
-
+        print(f'pizza is in th right oven!')
         # _delete_axis_0 NO LONGER APPLIES, MUST DELETE ALONG AXIS 0
         # IF ONLY 1 UNQ LEFT, DELETE COLUMN,
         # IF ALL UNQS DELETED THIS SHOULD PUT ALL False IN
@@ -92,6 +91,7 @@ def _three_or_more_uniques_not_hab(
             if ct < _threshold:
                 _instr_list.append(unq)
 
+        # must get len(_instr_list) before (potentially) putting nan_key in it
         _delete_column = False
         if len(_instr_list) >= len(_COLUMN_UNQ_CT_DICT) - 1:
             _delete_column = True

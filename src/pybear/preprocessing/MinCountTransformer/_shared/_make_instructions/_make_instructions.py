@@ -174,7 +174,7 @@ def _make_instructions(
     _original_dtypes:
         np.ndarray[str] - The original datatypes for each column in the
         dataset as determined by MinCountTransformer. Values can be
-        'int', 'float', or 'obj'.
+        'bin_int', 'int', 'float', or 'obj'.
 
     _n_features_in:
         int - the number of features (columns) in the dataset.
@@ -187,7 +187,7 @@ def _make_instructions(
     _threshold:
         int - The threshold that determines whether a value is removed
         from the data (frequency is below threshold) or retained (frequency
-        is greater than or equal to threshold.) If not proved,
+        is greater than or equal to threshold.) If not provided,
         _count_threshold is used; if provided, overwrites _count_threshold
         to allow for tests of thresholds different than that defined by
         _count_threshold in the instance.
@@ -235,6 +235,9 @@ def _make_instructions(
         if col_idx in _ignore_columns:
             _delete_instr[col_idx].append('INACTIVE')
         elif _total_counts_by_column[col_idx] == {}:
+            # {} is acceptable here, when ignore <any column, float columns
+            # or non-bin-int columns>, _dtype_unqs_cts_processing returns
+            # UNQ_CT_DICT as {}
             _delete_instr[col_idx].append('INACTIVE')
         elif (_ignore_float_columns and _original_dtypes[col_idx] == 'float'):
             _delete_instr[col_idx].append('INACTIVE')
@@ -270,9 +273,11 @@ def _make_instructions(
             if len(_nan_dict) == 0:
                 _nan_key = False
                 _nan_ct = False
-            else:
+            elif len(_nan_dict) == 1:
                 _nan_key = list(_nan_dict.keys())[0]
                 _nan_ct = list(_nan_dict.values())[0]
+            else:
+                raise AssertionError(f">=2 nans found in COLUMN_UNQ_CT_DICT")
 
             del _nan_dict
 
@@ -293,7 +298,7 @@ def _make_instructions(
 
         elif len(COLUMN_UNQ_CT_DICT) == 2:  # BINARY, ANY DTYPE
 
-            if col_idx in _handle_as_bool:
+            if _original_dtypes[col_idx] == 'bin_int' or col_idx in _handle_as_bool:
                 _delete_instr[col_idx] = _two_uniques_hab(
                     _delete_instr[col_idx],
                     _threshold,
@@ -308,12 +313,13 @@ def _make_instructions(
                     _threshold,
                     _nan_key,
                     _nan_ct,
-                    COLUMN_UNQ_CT_DICT,
-                    _delete_axis_0,
-                    _original_dtypes[col_idx]
+                    COLUMN_UNQ_CT_DICT
                 )
 
         else:  # 3+ UNIQUES NOT INCLUDING nan
+
+            if col_idx == 3:
+                print(f'pizza goes into the right oven!')
 
             if col_idx in _handle_as_bool:
 
@@ -339,10 +345,9 @@ def _make_instructions(
 
 
 
-
-    del _threshold
+    del _threshold, col_idx, COLUMN_UNQ_CT_DICT
     try:
-        del col_idx, COLUMN_UNQ_CT_DICT, _nan_key, _nan_ct
+        _nan_key, _nan_ct, _nan_dict
     except:
         pass
 
