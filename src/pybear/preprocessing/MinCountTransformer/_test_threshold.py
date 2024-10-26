@@ -31,14 +31,16 @@ def _test_threshold(
     as a single set of instructions, as if to perform the cumulative
     effect of the recursions in a single step.
 
+
     Parameters
     ----------
     _MCTInstance:
         the instance of MinCountTransformer
     _threshold:
-        int - count_threshold value to tests.
+        int - count_threshold value to test.
     _clean_printout:
         bool - Truncate printout to fit on screen.
+
 
     Return
     ------

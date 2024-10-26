@@ -16,7 +16,7 @@ def _val_original_dtypes(
     if not isinstance(_original_dtypes, np.ndarray):
         raise TypeError(f"'_original_dtypes' must be a numpy array")
 
-    ALLOWED = ['int', 'float', 'obj']
+    ALLOWED = ['bin_int', 'int', 'float', 'obj']
 
     err_msg = f"entries in '_original_dtypes' must be {', '.join(ALLOWED)}"
 

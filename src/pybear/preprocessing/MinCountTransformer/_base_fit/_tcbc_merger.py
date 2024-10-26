@@ -4,9 +4,8 @@
 # License: BSD 3 clause
 #
 
+
 from copy import deepcopy
-import numpy as np
-import pandas as pd
 
 
 
@@ -16,10 +15,16 @@ def _tcbc_merger(
 ):
 
     """
-    Combine the results in the unq_cts dictionary from the current
-    {partial_}fit with the unqs/cts results from previous fits that are
+    If doing fit, or on the first partial_fit, there are no previous fits,
+    so the uniques and counts in the unq_cts dictionary of
+    _DTYPE_UNQS_CTS_TUPLES for the first fit are merged into an empty
+    total_counts_by_column (tcbc) dictionary.
+
+    When doing multiple partial_fits, combine the results in the unqs/cts
+    dictionary of _DTYPE_UNQS_CTS_TUPLES from the current partial_fit
+    with the unqs/cts results from previous partial_fits that are already
     in the total_counts_by_column dictionary. If the column does not
-    exist in totat_counts_by_column, add the entire unq_cts dict in that
+    exist in total_counts_by_column, add the entire unq_cts dict in that
     slot. For columns that already exist, if a unique is not in that
     column of total_counts_by_column, add the unique and its count. If
     the unique already exists in that column, add the current count to
@@ -28,7 +33,7 @@ def _tcbc_merger(
     This module was originally created to ease diagnosis and fixing of
     problems with nans getting multiple entries in a single column of
     total_counts_by_column when combining new unq/cts results from
-    _DTYPE_UNQS_CTS_TUPLES into the existing column in
+    _DTYPE_UNQS_CTS_TUPLES into an existing column in
     total_counts_by_column.
 
 
@@ -54,6 +59,28 @@ def _tcbc_merger(
 
     """
 
+    # validation - - - - - - - - - - - - - - - - - - - - - -
+    assert isinstance(_DTYPE_UNQS_CTS_TUPLES, list)
+    for _inner in _DTYPE_UNQS_CTS_TUPLES:
+        assert isinstance(_inner, tuple)
+        assert isinstance(_inner[0], str)
+        assert isinstance(_inner[1], dict)
+        # keys could be anything, dont test
+        assert all(map(isinstance, _inner[1].values(), (int for _ in _inner[1])))
+
+    assert isinstance(_tcbc, dict)
+    assert all(map(isinstance, _tcbc.values(), (dict for _ in _tcbc)))
+    for _c_idx, _inner in _tcbc.items():
+        assert isinstance(_c_idx, int)
+        assert isinstance(_inner, dict)
+        # keys could be anything, dont test
+        assert all(map(isinstance, _inner.values(), (int for _ in _inner)))
+
+    # _DTYPE_UNQS_CTS_TUPLES num columns must be >= tcbc num columns
+    assert len(_DTYPE_UNQS_CTS_TUPLES) >= len(_tcbc), \
+        f"_tcbc has more columns than _DTYPE_UNQS_CTS_TUPLES"
+    # END validation - - - - - - - - - - - - - - - - - - - - - -
+
     # this is important because of back-talk
     __tcbc = deepcopy(_tcbc)
 
@@ -63,27 +90,35 @@ def _tcbc_merger(
             __tcbc[col_idx] = UNQ_CT_DICT
         else:
 
-
-
             # reconstruct tcbc[col_idx] in a copy
-            # remove any nans from unqs, but get the count
+            # remove any nans from unqs (should only be 1!), and get the count
             _tcbc_nan_symbol = None
             _tcbc_nan_ct = 0
             _tcbc_col_dict = {}
             for k,v in __tcbc[col_idx].items():
                 if str(k) in ['nan', 'NAN', 'NaN', '<NA>']:
+                    if _tcbc_nan_symbol is not None:
+                        raise ValueError(
+                            f">=2 nan-like in tcbc: col_idx {col_idx}, "
+                            f"{__tcbc[col_idx]}"
+                        )
                     _tcbc_nan_symbol = k
                     _tcbc_nan_ct = v
                 else:
                     _tcbc_col_dict[k] = v
 
             # reconstruct UNQ_CT_DICT in a copy
-            # remove any nans from unqs, but get the count
+            # remove any nans from unqs (should only be 1!), and get the count
             _ucd_nan_symbol = None
             _ucd_nan_ct = 0
             _ucd_col_dict = {}
             for k,v in UNQ_CT_DICT.items():
                 if str(k) in ['nan', 'NAN', 'NaN', '<NA>']:
+                    if _ucd_nan_symbol is not None:
+                        raise ValueError(
+                            f">=2 nan-like in UNQ_CT_DICT: col idx {col_idx}, "
+                            f"{UNQ_CT_DICT}"
+                        )
                     _ucd_nan_symbol = k
                     _ucd_nan_ct = v
                 else:
@@ -110,6 +145,7 @@ def _tcbc_merger(
                 pass
 
             __tcbc[col_idx] = _tcbc_col_dict
+
 
     return __tcbc
 

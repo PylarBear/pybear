@@ -181,7 +181,9 @@ def _X_factory(_shape):
                 _sprinkles = _has_nan
 
             for _c_idx in range(_shape[1]):
-                _r_idxs = np.random.choice(range(_shape[0]), _sprinkles, replace=False)
+                _r_idxs = np.random.choice(
+                    range(_shape[0]), _sprinkles, replace=False
+                )
                 for _r_idx in _r_idxs:
                     if _format == 'pd':
                         X.iloc[_r_idx, _c_idx] = np.random.choice(_choices)

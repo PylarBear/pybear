@@ -80,14 +80,12 @@ class TestTwoUniquesHAB_NonInt:
     @pytest.mark.parametrize('_nan_key', ('NAN', np.nan, 'nan', False))
     @pytest.mark.parametrize('_nan_ct', (2, 4, 7, False))
     @pytest.mark.parametrize('_dtype, _unq_ct_dict',
-        (
-                ('float', {2.14: 5, 3.14: 7}),
-                ('float', {0: 5, 3.14: 7}),
-        )
+        (('float', {2.14: 5, 3.14: 7}), ('float', {0: 5, 3.14: 7}))
     )
     @pytest.mark.parametrize('_delete_axis_0', (True, False))
     def test_two_uniques_hab_non_int(self,
-        _threshold, _nan_key, _nan_ct, _dtype, _unq_ct_dict, _delete_axis_0):
+        _threshold, _nan_key, _nan_ct, _dtype, _unq_ct_dict, _delete_axis_0
+    ):
 
         if (_nan_key is False) + (_nan_ct is False) == 1:
             pytest.skip(reason=f"disallowed condition")
@@ -150,15 +148,12 @@ class TestTwoUniquesBinInt:
     @pytest.mark.parametrize('_nan_key', ('NAN', np.nan, 'nan', False))
     @pytest.mark.parametrize('_nan_ct', (2, 4, 7, False))
     @pytest.mark.parametrize('_dtype, _unq_ct_dict',
-        (
-                ('int', {0: 5, 1: 7}),
-                ('int', {0: 7, 1: 5}),
-                ('int', {1: 5, 2: 7})
-        )
+        (('int', {0: 5, 1: 7}), ('int', {0: 7, 1: 5}), ('int', {1: 5, 2: 7}))
     )
     @pytest.mark.parametrize('_delete_axis_0', (True, False))
     def test_two_uniques_hab_bin_int(self,
-        _threshold, _nan_key, _nan_ct, _dtype, _unq_ct_dict, _delete_axis_0):
+        _threshold, _nan_key, _nan_ct, _dtype, _unq_ct_dict, _delete_axis_0
+    ):
 
         if (_nan_key is False) + (_nan_ct is False) == 1:
             pytest.skip(reason=f"disallowed condition")
@@ -190,7 +185,7 @@ class TestTwoUniquesBinInt:
             if _delete_axis_0:
                 _instr_list.append(0)
         elif not _zero_ct:
-            # no zeros in when handling as bool
+            # no zeros in when handling as bool would mean all the same number
             _delete_column = True
 
 
@@ -201,15 +196,17 @@ class TestTwoUniquesBinInt:
                     if unq != 0:
                         _instr_list.append(unq)
         elif not _zero_ct:
-            # no non-zeros in when handling as bool
+            # a column of all zeroes
             _delete_column = True
 
 
         if _nan_ct is not False and _nan_ct < _threshold:
             if _delete_axis_0:
                 _instr_list.append(_nan_key)
-            elif not _delete_axis_0 and min(_zero_ct, _non_zero_ct) >= _threshold:
-                _instr_list.append(_nan_key)
+            elif not _delete_axis_0:
+                if min(_zero_ct, _non_zero_ct) >= _threshold:
+                    _instr_list.append(_nan_key)
+
 
 
         if _delete_column:

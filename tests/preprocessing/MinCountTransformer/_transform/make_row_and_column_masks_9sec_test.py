@@ -68,7 +68,9 @@ class TestMakeRowAndColumnMasks:
     @pytest.fixture
     def float_column_nan(float_column_no_nan, _rows, _thresh):
         np.random.seed(14)
-        NAN_MASK = np.random.choice(np.arange(_rows), int(_thresh-1), replace=False)
+        NAN_MASK = np.random.choice(
+            np.arange(_rows), int(_thresh-1), replace=False
+        )
         float_column_nan = float_column_no_nan.copy()
         float_column_nan[NAN_MASK, 0] = np.nan
 
@@ -79,7 +81,9 @@ class TestMakeRowAndColumnMasks:
     @pytest.fixture
     def str_column_nan(str_column_no_nan, _rows, _thresh):
         np.random.seed(14)
-        NAN_MASK = np.random.choice(np.arange(_rows), int(_thresh-1), replace=False)
+        NAN_MASK = np.random.choice(
+            np.arange(_rows), int(_thresh-1), replace=False
+        )
         str_column_nan = str_column_no_nan.copy().astype('<U3')
         str_column_nan[NAN_MASK, 0] = 'nan'
         return str_column_nan
@@ -93,8 +97,10 @@ class TestMakeRowAndColumnMasks:
 
             TCBC = {}
             for _idx, _column in enumerate(any_array_of_columns.transpose()):
-                TCBC[_idx] = \
-                    dict((zip(*np.unique(_column, return_counts=True))))
+                UNIQUES, COUNTS = np.unique(_column, return_counts=True)
+                COUNTS = list(map(int, COUNTS))
+                TCBC[_idx] = dict((zip(UNIQUES, COUNTS)))
+            del UNIQUES, COUNTS
             return TCBC
 
         return foo
@@ -130,7 +136,10 @@ class TestMakeRowAndColumnMasks:
         str_column_nan, float_column_nan, good_tcbc, good_instr, _thresh,
         reject_unseen, _n_jobs):
 
-        AVAIL = (float_column_no_nan, str_column_no_nan, str_column_nan, float_column_nan)
+        AVAIL = (
+            float_column_no_nan, str_column_no_nan, str_column_nan,
+            float_column_nan
+        )
 
         for _trial in range(5):
 
@@ -156,7 +165,9 @@ class TestMakeRowAndColumnMasks:
 
             for col_idx in TCBC:
                 __ = TCBC[col_idx]
-                TCBC[int(col_idx)] = dict((zip(map(str, __.keys()), __.values())))
+                TCBC[int(col_idx)] = dict((
+                    zip(map(str, __.keys()), map(int, __.values()))
+                ))
 
             _mock_instr = {}
             _DELETE_ROW_MASK = np.zeros(X.shape[0])

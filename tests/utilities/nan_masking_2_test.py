@@ -23,6 +23,9 @@ import pytest
 
 class TestNanMasking:
 
+    # tests using _X_factory. _X_factory is a fixture that can introduce
+    # into X a controlled amount of nan-like representations.
+
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():

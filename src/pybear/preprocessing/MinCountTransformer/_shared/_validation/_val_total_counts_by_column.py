@@ -62,8 +62,9 @@ def _val_total_counts_by_column(
     for _outer_key in __:
         for _inner_key in __[_outer_key]:
             try:
-                iter(__[_outer_key][_inner_key])
-                raise UnicodeError
+                iter(list(_inner_key))
+                if not isinstance(_inner_key, str):
+                    raise UnicodeError
             except UnicodeError:
                 raise TypeError(err_msg)
             except:

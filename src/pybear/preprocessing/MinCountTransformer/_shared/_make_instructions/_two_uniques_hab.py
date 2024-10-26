@@ -4,8 +4,11 @@
 # License: BSD 3 clause
 #
 
+
 from typing_extensions import Union, Literal
 from ..._type_aliases import DataType
+
+import numpy as np
 
 
 
@@ -49,6 +52,7 @@ def _two_uniques_hab(
         -- but if keeping the column (both above thresh) and nan ct
             less than thresh, delete the nans
 
+
     Parameters
     ----------
     _instr_list: list, should be empty
@@ -82,58 +86,63 @@ def _two_uniques_hab(
         raise TypeError(f"handle_as_bool on a str column")
 
 
-    _zero_ctr = 0
-    _non_zero_ctr = 0
-    for unq, ct in _COLUMN_UNQ_CT_DICT.items():
-        if unq == 0:
-            _zero_ctr += ct
-        elif unq != 0:
-            _non_zero_ctr += ct
+    # no nans should be in _COLUMN_UNQ_CT_DICT!
+
+    # SINCE HANDLING AS BOOL, ONLY NEED TO KNOW WHAT IS NON-ZERO AND
+    # IF ROWS WILL BE DELETED OR KEPT
+    UNQS = np.fromiter(_COLUMN_UNQ_CT_DICT.keys(), dtype=np.float64)
+    CTS = np.fromiter(_COLUMN_UNQ_CT_DICT.values(), dtype=np.float64)
+    NON_ZERO_MASK = UNQS.astype(bool)
+    NON_ZERO_UNQS = UNQS[NON_ZERO_MASK]
+    total_non_zeros = CTS[NON_ZERO_MASK].sum()
+    total_zeros = CTS[np.logical_not(NON_ZERO_MASK)].sum()
+    del UNQS, CTS, NON_ZERO_MASK
 
 
     if not _nan_ct:  # EITHER IGNORING NANS OR NONE IN FEATURE
 
         if _delete_axis_0:
-            if _zero_ctr < _threshold:
-                for unq, ct in _COLUMN_UNQ_CT_DICT.items():
-                    if unq == 0:
-                        _instr_list.append(0)
-            if _non_zero_ctr < _threshold:
-                for unq, ct in _COLUMN_UNQ_CT_DICT.items():
-                    if unq != 0:
-                        _instr_list.append(unq)
+            if total_zeros and total_zeros < _threshold:
+                _instr_list.append(0)
 
-        if (_zero_ctr < _threshold) or (_non_zero_ctr < _threshold):
+            if total_non_zeros and total_non_zeros < _threshold:
+                for k in NON_ZERO_UNQS:
+                    _instr_list.append(k)
+                del k
+
+        if (total_zeros < _threshold) or (total_non_zeros < _threshold):
             _instr_list.append('DELETE COLUMN')
-        del unq, ct
 
 
     else:  # HAS NANS AND NOT IGNORING
+
         if _delete_axis_0:
+            if total_zeros and total_zeros < _threshold:
+                _instr_list.append(0)
 
-            if _zero_ctr < _threshold:
-                for unq, ct in _COLUMN_UNQ_CT_DICT.items():
-                    if unq == 0:
-                        _instr_list.append(0)
-            if _non_zero_ctr < _threshold:
-                for unq, ct in _COLUMN_UNQ_CT_DICT.items():
-                    if unq != 0:
-                        _instr_list.append(unq)
+            if total_non_zeros and total_non_zeros < _threshold:
+                for k in NON_ZERO_UNQS:
+                    _instr_list.append(k)
+                del k
 
-            if _nan_ct < _threshold:
+            if _nan_ct and _nan_ct < _threshold:
                 _instr_list.append(_nan_key)
 
-            if (_zero_ctr < _threshold) or (_non_zero_ctr < _threshold):
+            if (total_zeros < _threshold) or (total_non_zeros < _threshold):
                 _instr_list.append('DELETE COLUMN')
 
-        else:
-            # nan IS NOT PUT BACK IN
-            if (_zero_ctr < _threshold) or (_non_zero_ctr < _threshold):
+        elif not _delete_axis_0:
+            # only delete nans if below threshold and not deleting column
+            # OTHERWISE IF _nan_ct < _threshold but not delete_axis_0
+            # AND NOT DELETE COLUMN THEY WOULD BE KEPT DESPITE
+            # BREAKING THRESHOLD
+            if (total_zeros < _threshold) or (total_non_zeros < _threshold):
                 _instr_list.append('DELETE COLUMN')
-            elif _nan_ct < _threshold:
+            elif _nan_ct and _nan_ct < _threshold:
                 _instr_list.append(_nan_key)
 
-    del _zero_ctr, _non_zero_ctr
+
+    del NON_ZERO_UNQS, total_zeros, total_non_zeros
 
     return _instr_list
 

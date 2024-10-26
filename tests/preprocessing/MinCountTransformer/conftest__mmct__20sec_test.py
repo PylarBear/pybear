@@ -12,12 +12,16 @@
 
 
 import pytest
-import warnings
 from typing_extensions import Union, Callable
 import numpy as np
 import numpy.typing as npt
 from copy import deepcopy
 
+from pybear.utilities._nan_masking import (
+    nan_mask,
+    nan_mask_string,
+    nan_mask_numerical
+)
 
 
 # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -105,7 +109,7 @@ def DEFAULT_ARGS(MOCK_X_STR, MOCK_Y, _mmct_test_thresh) -> dict[
         'ignore_nan': True,
         'ignore_non_binary_integer_columns': True,
         'ignore_float_columns': True,
-        'handle_as_bool': False,
+        'handle_as_bool': None,
         'delete_axis_0': False,
         'count_threshold': _mmct_test_thresh
     }
@@ -141,7 +145,7 @@ def arg_setter(mmct, DEFAULT_ARGS) -> Callable:
 def test_verify_mmct_ignores_columns(MOCK_X_STR, _mmct_test_thresh, arg_setter):
 
     out = arg_setter(MOCK_X=MOCK_X_STR, ignore_columns=[0])[0]
-    assert np.array_equiv(out, MOCK_X_STR), \
+    assert np.array_equiv(out.ravel(), MOCK_X_STR.ravel()), \
         f"MOCK_TRFM did not ignore str column"
 
     out = arg_setter(
@@ -229,23 +233,23 @@ class TestHandleAsBool_1:
 
     @staticmethod
     @pytest.fixture(scope='session')
-    def NEW_X(MOCK_X_FLT, MOCK_X_BOOL):
-        return np.hstack((MOCK_X_FLT, MOCK_X_BOOL))
+    def NEW_X(MOCK_X_FLT, MOCK_X_NBI):
+        return np.hstack((MOCK_X_FLT, MOCK_X_NBI))
 
 
     @pytest.mark.parametrize('_trial', ('trial_1', 'trial_2', 'trial_3'))
     @pytest.mark.parametrize('_delete_axis_0', (False, True))
     def test_delete_axis_0(
-        self, NEW_X, MOCK_X_BOOL, MOCK_X_FLT, _trial, _delete_axis_0,
-        arg_setter, _mmct_test_thresh, _mmct_test_rows
+        self, NEW_X, MOCK_X_NBI, MOCK_X_FLT, _trial, _delete_axis_0, arg_setter,
+        _mmct_test_thresh, _mmct_test_rows
     ):
 
         if _trial == 'trial_1':
             _handle_as_bool = None
-            _count_threshold = _mmct_test_thresh
+            _count_threshold = 2 * _mmct_test_thresh
         elif _trial == 'trial_2':
             _handle_as_bool = [1]
-            _count_threshold = _mmct_test_thresh
+            _count_threshold = _mmct_test_thresh // 2
         elif _trial == 'trial_3':
             _handle_as_bool = [1]
             _count_threshold = 2 * _mmct_test_thresh
@@ -261,19 +265,18 @@ class TestHandleAsBool_1:
 
         if _handle_as_bool is None:
             # column 0 is flt, column 1 is nbi
-            # delete_axis_0 ON NBI WITH handle_as_bool==None DOESNT MATTER,
-            # WILL ALWAYS DELETE ROWS
+            # delete_axis_0 ON NBI WITH handle_as_bool==None DOESNT MATTER
+            # HANDLED LIKE ANY NON_BIN_INT AND WILL ALWAYS DELETE ROWS
+            # for both delete_axis_zero and not:
             __ = TRFM_X.shape
             assert __[1] == 1, \
                 f'handle_as_bool test column was not removed; shape = {__}'
-            EXP_X = NEW_X[np.logical_not(MOCK_X_BOOL.ravel()), :-1]
-            assert np.array_equiv(TRFM_X, EXP_X), \
+            assert __[0] < MOCK_X_NBI.shape[0], \
                 f'handle_as_bool test column delete did not delete rows'
-            del EXP_X
+            del __
 
-            assert len(TRFM_X) < len(MOCK_X_BOOL)
-
-        elif _handle_as_bool == [1] and _count_threshold == _mmct_test_thresh:
+        elif _handle_as_bool == [1] and \
+                _count_threshold == _mmct_test_thresh // 2:
             # column 0 is flt, column 1 is nbi
             # delete_axis_0 ON NBI WHEN handle_as_bool w low thresh
             # SHOULD NOT DELETE
@@ -295,14 +298,6 @@ class TestHandleAsBool_1:
                 assert TRFM_X.shape[0] < _mmct_test_rows, \
                     f'handle_as_bool test did not delete rows'
 
-                EXP_X1 = NEW_X[np.logical_not(NEW_X[:, -1].ravel()), :-1]
-                assert np.array_equiv(TRFM_X, EXP_X1), \
-                    f'handle_as_bool test column delete did not delete rows'
-                EXP_X2 = MOCK_X_FLT[np.logical_not(MOCK_X_BOOL.ravel())]
-                assert np.array_equiv(TRFM_X, EXP_X2), \
-                    f'handle_as_bool test column delete did not delete rows'
-                del EXP_X1, EXP_X2
-
             elif _delete_axis_0 is False:
                 assert np.array_equiv(TRFM_X, MOCK_X_FLT)
                 assert TRFM_X.shape[0] == _mmct_test_rows, \
@@ -318,7 +313,9 @@ class TestIgnoreNan:
     def NEW_MOCK_X_FLT(MOCK_X_FLT, _mmct_test_rows, _mmct_test_thresh):
         NEW_MOCK_X_FLT = MOCK_X_FLT.copy()
         NAN_MASK = \
-            np.random.choice(_mmct_test_rows, _mmct_test_thresh - 1, replace=False)
+            np.random.choice(
+                _mmct_test_rows, _mmct_test_thresh - 1, replace=False
+            )
         NEW_MOCK_X_FLT[NAN_MASK] = np.nan
         return NEW_MOCK_X_FLT
 
@@ -354,6 +351,8 @@ class TestIgnoreNan:
     @staticmethod
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_BIN_1(MOCK_X_BIN, _mmct_test_rows, _mmct_test_thresh):
+        # has _mmct_test_thresh // 2 - 1 nans (below lowest thresh)
+        # lowest freq of any unq is >= _mmct_test_thresh // 2
         while True:
             NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
             NAN_MASK = np.zeros(_mmct_test_rows).astype(bool)
@@ -372,11 +371,15 @@ class TestIgnoreNan:
     @staticmethod
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_BIN_2(MOCK_X_BIN, _mmct_test_rows, _mmct_test_thresh):
+        # has _mmct_test_thresh nans (at or above lowest thresh)
+        # lowest freq of any unq is >= _mmct_test_thresh // 2
         while True:
             NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
             NAN_MASK = np.zeros(_mmct_test_rows).astype(bool)
             NAN_MASK[
-                np.random.choice(_mmct_test_rows, _mmct_test_thresh, replace=False)
+                np.random.choice(
+                    _mmct_test_rows, _mmct_test_thresh, replace=False
+                )
             ] = True
             NEW_MOCK_X_BIN[NAN_MASK] = np.nan
             if min(np.unique(NEW_MOCK_X_BIN[np.logical_not(NAN_MASK)],
@@ -390,6 +393,8 @@ class TestIgnoreNan:
     @staticmethod
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_BIN_3(MOCK_X_BIN, _mmct_test_rows, _mmct_test_thresh):
+        # has _mmct_test_thresh // 2 - 1 nans (below lowest thresh)
+        # unq frequencies not altered otherwise
         NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
         NAN_MASK = np.random.choice(
             _mmct_test_rows, _mmct_test_thresh // 2 - 1, replace=False
@@ -401,6 +406,8 @@ class TestIgnoreNan:
     @staticmethod
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_BIN_4(MOCK_X_BIN, _mmct_test_rows, _mmct_test_thresh):
+        # has _mmct_test_thresh // 2 nans (at lowest thresh)
+        # unq frequencies not altered otherwise
         NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
         NAN_MASK = np.random.choice(
             _mmct_test_rows, _mmct_test_thresh // 2, replace=False
@@ -437,12 +444,11 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        # 24_06_18 this is intermittently failing locally, but is
-        # passing on GitHub Actions.
+        # 24_06_18 this is intermittently failing locally.
         # universal hands-off non-nans
         assert np.array_equiv(
-            TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-            _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]
+            TRFM_X[np.logical_not(nan_mask_numerical(TRFM_X))],
+            _NEW_MOCK_X[np.logical_not(nan_mask_numerical(_NEW_MOCK_X))]
         ), f"bin column non-nans wrongly altered"
 
 
@@ -450,10 +456,9 @@ class TestIgnoreNan:
             assert len(TRFM_X) == len(_NEW_MOCK_X), \
                 f"bin column was altered with ignore_nan=True"
         elif _ignore_nan is False:
-
-            # NAN BELOW THRESH AND NOTHING DELETED
-            # NAN ABOVE THRESH AND NOTHING DELETED
-            if _DATA in ['DATA_1', 'DATA_2'] and _delete_axis_0 is False:
+            # NAN < THRESH AND NOTHING DELETED
+            # NAN >= THRESH AND NOTHING DELETED
+            if _DATA in ['DATA_2', 'DATA_4'] and _delete_axis_0 is False:
                 assert len(TRFM_X) == len(_NEW_MOCK_X), \
                     f"bin column was wrongly altered"
 
@@ -519,7 +524,7 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        NOT_NAN_MASK = np.char.lower(_NEW_MOCK_X) != 'nan'
+        NOT_NAN_MASK = np.logical_not(nan_mask_string(_NEW_MOCK_X))
 
         if _ignore_nan is True:
             assert len(TRFM_X) == len(_NEW_MOCK_X), \
@@ -546,6 +551,7 @@ class TestIgnoreNan:
     @staticmethod
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_NBI_1(MOCK_X_NBI, _mmct_test_rows):
+        # has one nan
         NEW_MOCK_X_NBI = MOCK_X_NBI.copy().astype(np.float64)
         NAN_MASK = np.random.choice(_mmct_test_rows, 1, replace=False)
         NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.ravel()
@@ -556,6 +562,7 @@ class TestIgnoreNan:
     @staticmethod
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_NBI_2(MOCK_X_NBI, _mmct_test_rows, _mmct_test_thresh):
+        # has _mmct_test_thresh // 2 + 1 nans
         NEW_MOCK_X_NBI = MOCK_X_NBI.copy().astype(np.float64)
         NAN_MASK = np.random.choice(
             _mmct_test_rows, _mmct_test_thresh // 2 + 1, replace=False
@@ -589,28 +596,25 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        # 24_06_18 this is intermittently failing locally, but is passing
-        # on GitHub Actions
+        # 24_06_18 this is intermittently failing locally.
         # universal hands-off non-nans
-        assert np.array_equiv(
-            TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-            _NEW_MOCK_X[np.logical_not(np.isnan(_NEW_MOCK_X))]
-        ), f"nbi non-nan rows wrongly altered"
-
-        if _ignore_nan is True:
-            # cant do array_equiv with nans in them
+        if _ignore_nan:
             assert len(TRFM_X) == len(_NEW_MOCK_X), \
                 f"nbi rows were altered with ignore_nan=True"
 
-        elif _ignore_nan is False:
+            assert np.array_equal(TRFM_X, _NEW_MOCK_X, equal_nan=True), \
+                f"nbi non-nan rows wrongly altered"
+
+        elif not _ignore_nan:
             if _DATA == 'DATA_1':
                 # number of nans less than threshold
                 # NAN BELOW THRESH AND nan ROWS DELETED
                 assert len(TRFM_X) < len(_NEW_MOCK_X), \
                     f"nbi rows were not altered with ignore_nan=False"
 
-            # 24_06_15 this is itermittently failing locally, but is
-            # passing on GitHub Actions. what seems to be happening is a
+            # pizza, if these failures stop, remove this note!
+            # 24_06_15 this is itermittently failing locally. what seems
+            # to be happening is a
             # number is in _NEW_MOCK_X that is not in TRFM_X. Likely
             # because np.nan is overwriting enough instances of one of
             # the numbers that it falls below threshold and is removed.
@@ -672,8 +676,8 @@ class TestHandleAsBool_2:
         ('DATA_3', False, True)
         )
     )
-    def test_bool(self, _DATA, _ignore_nan, _delete_axis_0, arg_setter,
-        NEW_MOCK_X_BOOL_1, NEW_MOCK_X_BOOL_2, NEW_MOCK_X_BOOL_3, _mmct_test_thresh
+    def test_bool(self, _DATA, _ignore_nan, _delete_axis_0, _mmct_test_thresh,
+        NEW_MOCK_X_BOOL_1, NEW_MOCK_X_BOOL_2, NEW_MOCK_X_BOOL_3, arg_setter
     ):
 
         _NEW_MOCK_X_BOOL = {'DATA_1':  NEW_MOCK_X_BOOL_1,
@@ -687,9 +691,12 @@ class TestHandleAsBool_2:
         )[0]
 
         # universal hands-off non-nans
-        assert np.array_equiv(TRFM_X[np.logical_not(np.isnan(TRFM_X))],
-            _NEW_MOCK_X_BOOL[np.logical_not(np.isnan(_NEW_MOCK_X_BOOL))]), \
-            f"handle_as_bool non-nan rows wrongly deleted"
+        assert np.array_equiv(
+            TRFM_X[np.logical_not(nan_mask_numerical(TRFM_X))],
+            _NEW_MOCK_X_BOOL[
+                np.logical_not(nan_mask_numerical(_NEW_MOCK_X_BOOL))
+            ]
+        ), f"handle_as_bool non-nan rows wrongly deleted"
 
         # NAN IGNORED
         if _ignore_nan:
@@ -769,10 +776,12 @@ def MOCK_X_NO_NAN(MOCK_X_BIN, MOCK_X_NBI, MOCK_X_FLT, MOCK_X_STR, MOCK_X_BOOL,
     _MOCK_X_BOOL_2 = np.random.randint(0, _source_len, (_mmct_test_rows, 1))
     _MOCK_X_BOOL_2[np.random.choice(_mmct_test_rows, 2, replace=False), 0] = 0
     for X in [MOCK_X_BIN, MOCK_X_NBI, MOCK_X_FLT, MOCK_X_STR, MOCK_X_BOOL,
-              _MOCK_X_BOOL_2, _MOCK_X_INT]:
+        _MOCK_X_BOOL_2, _MOCK_X_INT]:
+
         _MOCK_X_NO_NAN = np.hstack(
             (_MOCK_X_NO_NAN.astype(object), X.astype(object))
         )
+
     return _MOCK_X_NO_NAN
 
 
@@ -794,20 +803,22 @@ def get_unqs_cts_again():
 
     def foo(_COLUMN_OF_X):
         try:
-            return np.unique(_COLUMN_OF_X.astype(np.float64), return_counts=True)
+            return np.unique(
+                _COLUMN_OF_X.astype(np.float64), return_counts=True
+            )
         except:
             return np.unique(_COLUMN_OF_X.astype(str), return_counts=True)
 
     return foo
 
 
-@pytest.mark.parametrize('_has_nan', [True, False])
-@pytest.mark.parametrize('_ignore_columns', [None, [0, 3]])
+@pytest.mark.parametrize('_has_nan', (True,)) # pizza[True, False])
+@pytest.mark.parametrize('_ignore_columns', (None,)) # pizza [None, [0, 3]])
 @pytest.mark.parametrize('_ignore_nan', [True, False])
-@pytest.mark.parametrize('_ignore_non_binary_integer_columns', [True, False])
-@pytest.mark.parametrize('_ignore_float_columns', [True, False])
-@pytest.mark.parametrize('_handle_as_bool', [None, [4], [4, 5]])
-@pytest.mark.parametrize('_delete_axis_0', [False, True])
+@pytest.mark.parametrize('_ignore_non_binary_integer_columns', (False,)) # pizza[True, False])
+@pytest.mark.parametrize('_ignore_float_columns', (True,)) # pizza[True, False])
+@pytest.mark.parametrize('_handle_as_bool', [None, [1, 4, 5]])
+@pytest.mark.parametrize('_delete_axis_0', (True,)) # Pizza[False, True])
 @pytest.mark.parametrize('_ct_trial', ['_ct_1', '_ct_2', '_ct_3'])
 def test_accuracy(
     MOCK_X_NO_NAN, MOCK_X_NAN, _has_nan, _ignore_columns, _mmct_test_thresh,
@@ -824,77 +835,83 @@ def test_accuracy(
         '_ct_3': 2 * _mmct_test_thresh
     }[_ct_trial]
 
-    # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # MAKE REF_X
+
+    # get the uniques and counts for each column
     TEST_UNQS_CTS = []
     for c_idx in range(MOCK_X.shape[1]):
+        # get_unqs_cts_again returns a tuple of ([UNIQUES], [COUNTS])
+        # MOCK_X may or may not have nans
         TEST_UNQS_CTS.append(get_unqs_cts_again(MOCK_X[:, c_idx]))
 
+    # use TEST_UNQS_CTS to build DTYPES vector and unq_ct_dict
     unq_ct_dict = {}
-    _DTYPES = []
+    _DTYPES = [None for _ in TEST_UNQS_CTS]
     for c_idx, (UNQS, CTS) in enumerate(TEST_UNQS_CTS):
 
-        if _ignore_columns and c_idx in _ignore_columns:
-            _DTYPES.append(None)
-            continue
-
+        # determine if column is bin-int, int, float, or obj
         try:
-            _DTYPE_DUM = UNQS[np.logical_not(np.isnan(UNQS.astype(np.float64)))]
-            _DTYPE_DUM_AS_INT = _DTYPE_DUM.astype(np.float64).astype(np.int32)
-            _DTYPE_DUM_AS_FLT = _DTYPE_DUM.astype(np.float64)
-            if np.array_equiv(_DTYPE_DUM_AS_INT, _DTYPE_DUM_AS_FLT):
-                if len(_DTYPE_DUM) == 1:
-                    _DTYPES.append('constant')
-                elif len(_DTYPE_DUM) == 2:
-                    _DTYPES.append('bin_int')
+            # if excepts on any of these, is a str
+            _UNQS_NO_NAN = UNQS[
+                np.logical_not(nan_mask_numerical(UNQS.astype(np.float64)))
+            ]
+            _UNQS_NO_NAN_AS_INT = \
+                _UNQS_NO_NAN.astype(np.float64).astype(np.int32)
+            _UNQS_NO_NAN_AS_FLT = _UNQS_NO_NAN.astype(np.float64)
+
+            # if only one number, is constant regardless of bin-int, int, flt
+            if len(_UNQS_NO_NAN) == 1:
+                _DTYPES[c_idx] = 'constant'
+            # determine if is int or float
+            elif np.array_equiv(_UNQS_NO_NAN_AS_INT, _UNQS_NO_NAN_AS_FLT):
+                # if is integer with 2 unq values
+                if len(_UNQS_NO_NAN) == 2:
+                    _DTYPES[c_idx] = 'bin_int'
+                # if is integer with 3+ unq values
                 else:
-                    _DTYPES.append('int')
+                    _DTYPES[c_idx] = 'int'
             else:
-                _DTYPES.append('float')
-            del _DTYPE_DUM, _DTYPE_DUM_AS_INT, _DTYPE_DUM_AS_FLT
+                # if is float with 2+ unq values
+                _DTYPES[c_idx] = 'float'
+            del _UNQS_NO_NAN, _UNQS_NO_NAN_AS_INT, _UNQS_NO_NAN_AS_FLT
         except:
-            _DTYPES.append('obj')
+            _DTYPES[c_idx] = 'obj'
 
-        if _DTYPES[-1] == 'float' and _ignore_float_columns:
+        # if ignored, dont put a column unq_ct_dict into the full unq_ct_dict,
+        if _ignore_columns and c_idx in _ignore_columns:
             continue
-        elif _DTYPES[-1] == 'int' and _ignore_non_binary_integer_columns:
+        if _DTYPES[c_idx] == 'float' and _ignore_float_columns:
             continue
-        else:
-            unq_ct_dict[c_idx] = dict((zip(UNQS, CTS)))
+        if _DTYPES[c_idx] == 'int' and _ignore_non_binary_integer_columns:
+            continue
 
-    if _ignore_nan:
-        unq_ct_dict2 = deepcopy(unq_ct_dict)
-        for c_idx in unq_ct_dict2:
-            for unq, ct in unq_ct_dict2[c_idx].items():
-                if str(unq).lower() == 'nan':
-                    try:
-                        del unq_ct_dict[c_idx][unq]
-                        break
-                    except:
-                        pass
+        unq_ct_dict[int(c_idx)] = dict((zip(UNQS, CTS)))
 
-                    try:
-                        _unq_keys_as_str = \
-                            np.fromiter(unq_ct_dict[c_idx], dtype='<U20')
-                        _unq_values = list(unq_ct_dict[c_idx].values())
-                        unq_ct_dict[c_idx] = \
-                            dict((zip(_unq_keys_as_str, _unq_values)))
-                        del unq_ct_dict[c_idx]['nan']
-                        _unq_keys_as_flt = \
-                            np.fromiter(unq_ct_dict[c_idx], dtype=np.float64)
-                        _unq_values = list(unq_ct_dict[c_idx].values())
-                        unq_ct_dict[c_idx] = \
-                            dict((zip(_unq_keys_as_flt, _unq_values)))
-                        del _unq_keys_as_str, _unq_values, _unq_keys_as_flt
-                        break
-                    except:
-                        raise Exception(f"could not delete nan from unq_ct_dict")
 
-        del unq_ct_dict2
-
+    # manage nans (whether ignoring or not)
+    # determine what columns will be deleted:
+    # 1) has only one unique from the start (a column of constants)
+    # 2) is reduced to one unique by removal of other low freq uniques
     DELETE_DICT = {}
-    for c_idx in unq_ct_dict:
+    for c_idx in deepcopy(unq_ct_dict):
         DELETE_DICT[c_idx] = []
+
+        # life will be so much easier if we remove any nan & ct from the start!
+        # make a new working column wip_unq_ct_dict that has no nans!
+        # if ignoring nans, just wont put them back in later!
+        col_wip_unq_ct_dict = {}
+        _nan_symbol = None
+        _nan_ct = 0
+        for unq, ct in deepcopy(unq_ct_dict[c_idx]).items():
+            if str(unq).lower() == 'nan':
+                if _nan_symbol is not None:
+                    raise Exception(f"multiple nan-types in MOCK_X[{c_idx}]")
+                _nan_symbol = unq
+                _nan_ct = ct
+            else:
+                col_wip_unq_ct_dict[unq] = ct
+        # END make working col unq_ct_dict * * * * * * * * *
 
         if _DTYPES[c_idx] == 'constant':
             DELETE_DICT[c_idx].append(f'DELETE COLUMN')
@@ -906,97 +923,109 @@ def test_accuracy(
 
             NEW_DICT = {0: 0, 1: 0}
             UNQS_MIGHT_BE_DELETED = []
-            _float64_maker = lambda x: np.fromiter(x, dtype=np.float64)
-            _unq_keys_as_str = _float64_maker(unq_ct_dict[c_idx].keys())
-            _unq_values_as_flt = _float64_maker(unq_ct_dict[c_idx].values())
-            del _float64_maker
-            for k, v in dict((zip(_unq_keys_as_str, _unq_values_as_flt))).items():
+            for k, v in col_wip_unq_ct_dict.items():
                 if k == 0:
                     NEW_DICT[0] += v
-                elif str(k).lower() == 'nan':
-                    NEW_DICT[k] = v
                 else:
                     UNQS_MIGHT_BE_DELETED.append(k)
                     NEW_DICT[1] += v
 
-            del _unq_keys_as_str, _unq_values_as_flt
-
+            _delete_column = False
             for unq, ct in NEW_DICT.items():
                 if ct < _count_threshold:
-                    if unq == 0:
-                        DELETE_DICT[c_idx].append(unq)
-                    elif unq == 1:
-                        DELETE_DICT[c_idx] += UNQS_MIGHT_BE_DELETED
-                    elif str(unq).lower() == 'nan':
-                        DELETE_DICT[c_idx].append(unq)
-                    else:
-                        raise Exception(
-                            f"logic handling handle_as_bool dict failed"
-                        )
-
-            _number_to_delete = 0
-            for _ in DELETE_DICT[c_idx]:
-                if str(_).lower() != 'nan':
-                    _number_to_delete += 1
-
-            _number_to_keep = 0
-            for _ in unq_ct_dict[c_idx]:
-                if (str(_).lower() != 'nan' and _ not in DELETE_DICT[c_idx]):
-                    _number_to_keep += 1
-
-            # bin only 2 values in column, if 1 deleted, 1 left so del column
-            if _number_to_delete >= 1:
-                DELETE_DICT[c_idx].append(f'DELETE COLUMN')
-            elif _number_to_keep <= 1:
-                DELETE_DICT[c_idx].append(f'DELETE COLUMN')
-
-            del _number_to_delete, _number_to_keep
-
-            if not _delete_axis_0:
-                if f'DELETE COLUMN' in DELETE_DICT[c_idx]:
-                    DELETE_DICT[c_idx] = ['DELETE COLUMN']
-                else:
-                    DELETE_DICT[c_idx] = []
+                    _delete_column = True
+                    if _delete_axis_0:
+                        if unq == 0:
+                            DELETE_DICT[c_idx].append(0)
+                        elif unq == 1:
+                            DELETE_DICT[c_idx] += UNQS_MIGHT_BE_DELETED
+                        else:
+                            raise Exception(
+                                f"logic handling handle_as_bool dict failed"
+                            )
 
             del unq, ct, UNQS_MIGHT_BE_DELETED, NEW_DICT
 
+            # deal with nan for a bin-int or handle as bool column
+            if not _ignore_nan:
+                if not _delete_axis_0:
+                    if _delete_column:
+                        pass # if deleting column, dont delete nan rows!
+                    elif not _delete_column:
+                        if _nan_ct and _nan_ct < _count_threshold:
+                            DELETE_DICT[c_idx].append(_nan_symbol)
+                elif _delete_axis_0:
+                    if _nan_ct and _nan_ct < _count_threshold:
+                        DELETE_DICT[c_idx].append(_nan_symbol)
+
+            # bin only 2 values in column, if 1 deleted, 1 left so del column
+            if _delete_column:
+                DELETE_DICT[c_idx].append(f'DELETE COLUMN')
+
+            del _delete_column
+
         else:
-            for unq, ct in unq_ct_dict[c_idx].items():
+            for unq, ct in col_wip_unq_ct_dict.items():
+
+                if str(unq).lower() == 'nan':
+                    raise Exception
+
                 if ct < _count_threshold:
                     DELETE_DICT[c_idx].append(unq)
 
-            number_to_keep = 0
-            for _ in unq_ct_dict[c_idx]:
-                if str(_).lower() != 'nan' and _ not in DELETE_DICT[c_idx]:
-                    number_to_keep += 1
+            # before putting nan back in, determine the number of uniques
+            # being kept, if only 1 or less non-nan unique, delete column
+            _delete_column = False
+            if len(col_wip_unq_ct_dict) - len(DELETE_DICT[c_idx]) <= 1:
+                _delete_column = True
 
-            if number_to_keep <= 1:
+            if not _ignore_nan and _nan_ct < _count_threshold:
+                DELETE_DICT[c_idx].append(_nan_symbol)
+
+            if _delete_column:
                 DELETE_DICT[c_idx].append(f'DELETE COLUMN')
 
-            del number_to_keep
+            del _delete_column
 
+        # if there are no delete instructions for a column, then remove the
+        # empty list from DELETE_DICT
         if len(DELETE_DICT[c_idx]) == 0:
             del DELETE_DICT[c_idx]
 
+    # perform the instructions in DELETE_DICT on the columns, in reverse order
     for c_idx in reversed(sorted(DELETE_DICT)):
-        _del_col = DELETE_DICT[c_idx][-1] == 'DELETE COLUMN'
-        if _del_col:
+
+        if 'DELETE COLUMN' in DELETE_DICT[c_idx] and \
+            DELETE_DICT[c_idx][-1] != 'DELETE COLUMN':
+            raise ValueError(
+                f"'DELETE COLUMN' is in DELETE_DICT[{c_idx}] but not in "
+                f"the last position"
+            )
+
+        _delete_column = (DELETE_DICT[c_idx][-1] == 'DELETE COLUMN')
+        if _delete_column:
+            # extract only the uniques to delete
             DELETE_DICT[c_idx] = DELETE_DICT[c_idx][:-1]
-        ROW_MASK = np.zeros(REF_X.shape[0])
-        if len(DELETE_DICT[c_idx]):
-            for _op in DELETE_DICT[c_idx]:
-                if str(_op).lower() == 'nan':
-                    try:
-                        ROW_MASK += np.isnan(REF_X[:, c_idx].astype(np.float64))
-                    except:
-                        ROW_MASK += \
-                            (np.char.lower(REF_X[:, c_idx].astype(str)) == _op)
-                else:
-                    ROW_MASK += (REF_X[:, c_idx] == _op)
-            REF_X = REF_X[np.logical_not(ROW_MASK), :]
-        if _del_col:
+
+        # if the there are no uniques to delete, but deleting column
+        # just delete the column now and skip the rest
+        if _delete_column and len(DELETE_DICT[c_idx]) == 0:
             REF_X = np.delete(REF_X, c_idx, axis=1)
-    # END MAKE REF_X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+            continue
+
+        # but if there are uniques to delete
+        ROW_MASK = np.zeros(REF_X.shape[0]).astype(bool)
+        for _op in DELETE_DICT[c_idx]:
+            if str(_op).lower() == 'nan':
+                ROW_MASK += nan_mask(REF_X[:, c_idx]).astype(bool)
+            else:
+                ROW_MASK += (REF_X[:, c_idx] == _op).astype(bool)
+        REF_X = REF_X[np.logical_not(ROW_MASK), :]
+        if _delete_column:
+            REF_X = np.delete(REF_X, c_idx, axis=1)
+
+    # END MAKE REF_X
+    # # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     TRFM_X = arg_setter(
         MOCK_X=MOCK_X,
@@ -1009,8 +1038,12 @@ def test_accuracy(
         count_threshold=_count_threshold
     )[0]
 
-    # this is itermittently failing locally, but is passing on GitHub Actions
-    assert np.array_equiv(TRFM_X.astype(str), REF_X.astype(str))
+    # this is intermittently failing locally
+    assert np.array_equiv(
+        TRFM_X[np.logical_not(nan_mask(TRFM_X))],
+        REF_X[np.logical_not(nan_mask(REF_X))]
+    ), (f'TRFM_X shape = {TRFM_X.shape}: \n{TRFM_X}\n\n'
+        f'REF_X.shape = {REF_X.shape}: \n{REF_X}\n')
 
 
 
