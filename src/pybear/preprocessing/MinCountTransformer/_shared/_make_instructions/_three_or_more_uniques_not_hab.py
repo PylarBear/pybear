@@ -65,7 +65,7 @@ def _three_or_more_uniques_not_hab(
 
 
     if not _nan_ct:  # EITHER IGNORING NANS OR NONE IN FEATURE
-        print(f'pizza is in th right oven!')
+
         # _delete_axis_0 NO LONGER APPLIES, MUST DELETE ALONG AXIS 0
         # IF ONLY 1 UNQ LEFT, DELETE COLUMN,
         # IF ALL UNQS DELETED THIS SHOULD PUT ALL False IN

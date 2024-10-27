@@ -17,7 +17,10 @@ import numpy as np
 
 class TestSKGetParams:
 
-
+    # 24_10_27 now inheriting get_params from BaseEstimator.
+    # the below code previously tested the code that stood in stead of
+    # BaseEstimator.get_params, keep this for backup.
+    @pytest.mark.skip(reason=f"24_10_27, no bool val when inherit from BaseEstimator")
     @pytest.mark.parametrize('_refit', (False, 'accuracy', lambda x: 0))
     @pytest.mark.parametrize('state', ('prefit', 'postfit'))
     @pytest.mark.parametrize('bad_deep',

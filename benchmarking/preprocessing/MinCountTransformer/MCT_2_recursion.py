@@ -294,9 +294,7 @@ for count_threshold in [2,3]:
                                     del _new_ignore_columns
                                 if handle_as_bool is not None:
                                     hab = np.fromiter([True if _ % 3 == 1 else False for _ in range(x_cols)], dtype=int)
-                                    # hab = np.arange(len(hab))[hab[_1rcr_first_support]]
-                                    # _mct_1rcrX2.set_params(handle_as_bool=hab)  # pizza, is this working?
-                                    _mct_1rcrX2.handle_as_bool = hab
+                                    _mct_1rcrX2.set_params(handle_as_bool=hab)
                                     del hab
                                 TRFM_X_2X1rcr, TRFM_Y_2X1rcr = _mct_1rcrX2.fit_transform(TRFM_X_1, TRFM_Y_1)
                                 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
