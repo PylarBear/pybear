@@ -11,7 +11,7 @@ import uuid
 from copy import deepcopy
 
 import numpy as np
-np.random.seed(1)
+np.random.seed(12)    # this is important for stable test arrays
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 
@@ -23,7 +23,7 @@ from pybear.utilities._nan_masking import nan_mask
 
 
 
-bypass = True
+bypass = False
 
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -35,7 +35,7 @@ def _mct_rows():
     # this is fixed, all MCT test (not mmct test) objects have this many rows
     # (mmct rows is set by the construction parameters when a suitable set
     # of vectors for building mmct is found, remember)
-    return 50
+    return 100
 
 
 @pytest.fixture(scope='session')
@@ -48,17 +48,17 @@ def _mct_cols():
     return 2
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def y_rows(x_rows):
     return x_rows
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def y_cols():
     return 2
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def _args(_mct_rows):
     return [_mct_rows // 20]
 
@@ -85,7 +85,7 @@ def _kwargs():
 
 # build X, NO_NAN_X, DTYPE_KEY, x_rows, x_cols for MCT test (not mmct test!)
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
 
     # This constructs a test array "X" of randomly filled vectors that
@@ -288,32 +288,32 @@ def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _args):
     return _X, _NO_NAN_X, _DTYPE_KEY, x_rows, x_cols
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def X(build_test_objects_for_MCT):
     return build_test_objects_for_MCT[0]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def NO_NAN_X(build_test_objects_for_MCT):
     return build_test_objects_for_MCT[1]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def DTYPE_KEY(build_test_objects_for_MCT):
     return build_test_objects_for_MCT[2]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def x_rows(build_test_objects_for_MCT):
     return build_test_objects_for_MCT[3]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def x_cols(build_test_objects_for_MCT):
     return build_test_objects_for_MCT[4]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def COLUMNS(x_cols):
     return [str(uuid.uuid4())[:4] for _ in range(x_cols)]
 
@@ -322,7 +322,7 @@ def COLUMNS(x_cols):
 
 # Build y for MCT tests (not mmct test!) ** * ** * ** * ** * ** * ** * **
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def y(y_rows, y_cols):
     return np.random.randint(0, 2, (y_rows, y_cols), dtype=np.uint8)
 
@@ -977,7 +977,6 @@ class TestExceptsOnBadYRows:
         scd_fit_Y = y_builder(
             y.copy(),
             new_dtype=scd_fit_y_dtype,
-
             diff_rows=scd_fit_y_rows
         )
         # end second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -2202,11 +2201,10 @@ class TestBinIntAboveThreshNotDeleted:
 
 
 # TEST ACCURACY ********************************************************
-# @pytest.mark.skipif(bypass is True, reason=f"bypass")   # pizza
+
 class TestAccuracy:
 
 
-    @pytest.mark.skipif(True, reason=f"pizza says so")
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('ignore_float_columns', [True, False])
@@ -2224,9 +2222,6 @@ class TestAccuracy:
 
         # this module tests that 2 recursion MCT get_support() matches
         # the columns in the X output from transform
-
-        if _dtype == 'int' and _has_nan:
-            pytest.skip(reason=f"impossibility, int np dtype with nans")
 
         if _dtype in ('str', 'obj'):
             HANDLE_AS_BOOL = None
@@ -2282,7 +2277,6 @@ class TestAccuracy:
 
 
 
-    @pytest.mark.skipif(True, reason=f"pizza says so")
     @pytest.mark.parametrize('count_threshold', [2, 3])
     @pytest.mark.parametrize('ignore_float_columns', [True, False])
     @pytest.mark.parametrize('ignore_non_binary_integer_columns', [True, False])
@@ -2323,8 +2317,35 @@ class TestAccuracy:
         TestCls = MinCountTransformer(*args, **_kwargs)
         TRFM_X1, TRFM_Y1 = TestCls.fit_transform(X.copy(), y.copy())
 
-        assert len(TestCls.get_support(indices=False)) == X.shape[1]
-        assert TRFM_X1.shape[1] == sum(TestCls.get_support(indices=False))
+        # validate MCT 1rcrX1 get_support and object dimensions make sense
+        _support = TestCls.get_support(indices=False)
+        assert len(_support) == X.shape[1]
+        assert TRFM_X1.shape[1] == sum(_support)
+        del _support
+
+        _row_support = TestCls.get_row_support(indices=False)
+        assert len(_row_support) == X.shape[0]
+        assert TRFM_X1.shape[0] == sum(_row_support)
+
+        # assert columns in get_support and those actually in the output match
+        _get_support_idxs = TestCls.get_support(indices=True)
+        _actual_idxs = []
+        for col_idx in range(TRFM_X1.shape[1]):
+            for col_idx2 in range(X.shape[1]):
+                NOT_NAN_MASK = np.logical_not(nan_mask(TRFM_X1[:, col_idx]))
+                if np.array_equal(
+                    TRFM_X1[:, col_idx][NOT_NAN_MASK],
+                    X[_row_support, col_idx2][NOT_NAN_MASK]
+                ):
+                    _actual_idxs.append(col_idx2)
+
+        assert np.array_equal(_get_support_idxs, _actual_idxs), \
+            f"get_support: {_get_support_idxs}, actual_idxs: {_actual_idxs}"
+        # END assert columns in get_support and those actually in the data match
+
+        # END validate MCT 1rcrX1 get_support and object dimensions make sense
+
+        del _get_support_idxs, _actual_idxs, _row_support
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -2364,19 +2385,17 @@ class TestAccuracy:
             TRFM_X1[np.logical_not(nan_mask(TRFM_X1))],
             MOCK_X1[np.logical_not(nan_mask(MOCK_X1))]
         )
-        # ^^^^^ ^^^^^^ ^^^^^ ^^^^^
 
         assert TRFM_Y1.shape == MOCK_Y1.shape
         assert np.array_equiv(TRFM_Y1.astype(str), MOCK_Y1.astype(str))
 
 
-    # @pytest.mark.skipif(True, reason=f"pizza says so")
     @pytest.mark.parametrize('count_threshold', [2, 3])
-    @pytest.mark.parametrize('ignore_float_columns', (False,)) # pizza [True, False])
-    @pytest.mark.parametrize('ignore_non_binary_integer_columns', (False, )) # pizza [True, False])
-    @pytest.mark.parametrize('ignore_columns', (None,)) # Pizza [None, [0, 1, 2, 3]])
-    @pytest.mark.parametrize('ignore_nan', (True,)) # pizza [True, False])
-    @pytest.mark.parametrize('handle_as_bool', ('hab_1',)) # pizza ('hab_1', 'hab_2', 'hab_3'))
+    @pytest.mark.parametrize('ignore_float_columns', [True, False])
+    @pytest.mark.parametrize('ignore_non_binary_integer_columns', [True, False])
+    @pytest.mark.parametrize('ignore_columns', [None, [0, 1, 2, 3]])
+    @pytest.mark.parametrize('ignore_nan', [True, False])
+    @pytest.mark.parametrize('handle_as_bool', ('hab_1', 'hab_2', 'hab_3'))
     @pytest.mark.parametrize('delete_axis_0', [True, False])
     @pytest.mark.parametrize('reject_unseen_values', (True, False))
     def test_accuracy_two_rcr_one_shot(self, _kwargs, X, y, count_threshold,
@@ -2413,12 +2432,18 @@ class TestAccuracy:
         TestCls = MinCountTransformer(*args, **_kwargs)
         TRFM_X, TRFM_Y = TestCls.fit_transform(X.copy(), y.copy())
 
-        # pizza test!
-        print(f'pizza radios for support the first time in two_rcr_one_shot')
+        # validate MCT 2rcrX1 get_support and object dimensions make sense
         _support = TestCls.get_support(indices=False)
+        assert len(_support) == X.shape[1]
+        assert TRFM_X.shape[1] == sum(_support)
+
         _row_support = TestCls.get_row_support(indices=False)
-        print(f'get_support columns = ', np.arange(len(_support))[_support])
-        _old_idxs = []
+        assert len(_row_support) == X.shape[0]
+        assert TRFM_X.shape[0] == sum(_row_support)
+
+        # assert columns in get_support and those actually in the data match
+        _get_support_idxs = TestCls.get_support(indices=True)
+        _actual_idxs = []
         for col_idx in range(TRFM_X.shape[1]):
             for col_idx2 in range(X.shape[1]):
                 NOT_NAN_MASK = np.logical_not(nan_mask(TRFM_X[:, col_idx]))
@@ -2426,13 +2451,17 @@ class TestAccuracy:
                     TRFM_X[:, col_idx][NOT_NAN_MASK],
                     X[_row_support, col_idx2][NOT_NAN_MASK]
                 ):
-                    _old_idxs.append(col_idx2)
-        print(f'actual kept columns in TRFM_X:', _old_idxs)
+                    _actual_idxs.append(col_idx2)
 
-        # END pizza test!
 
-        assert len(_support) == X.shape[1]
-        assert TRFM_X.shape[1] == sum(_support)
+        assert np.array_equal(_get_support_idxs, _actual_idxs), \
+            f"get_support: {_get_support_idxs}, actual_idxs: {_actual_idxs}"
+
+        del _support, _actual_idxs, _get_support_idxs
+
+        # END assert columns in get_support and those actually in the data match
+
+        # END validate MCT 2rcrX1 get_support and object dimensions make sense
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -2531,8 +2560,6 @@ class TestAccuracy:
             (f'TestCls y output WITH max_recursions=2 FAILED')
 
 
-
-    @pytest.mark.skipif(True, reason=f"pizza says so")
     @pytest.mark.parametrize('count_threshold', [2, 3])
     @pytest.mark.parametrize('ignore_float_columns',[True, False])
     @pytest.mark.parametrize('ignore_non_binary_integer_columns', [True, False])
@@ -2594,6 +2621,28 @@ class TestAccuracy:
         assert len(_first_support) == X.shape[1]
         assert TRFM_X_1.shape[1] == sum(_first_support)
 
+        # assert columns in get_support and those actually in the data match
+        _get_support_idxs = TestCls1.get_support(indices=True)
+        _row_support = TestCls1.get_row_support(indices=False)
+        _actual_idxs = []
+        for col_idx in range(TRFM_X_1.shape[1]):
+            for col_idx2 in range(X.shape[1]):
+                NOT_NAN_MASK = np.logical_not(nan_mask(TRFM_X_1[:, col_idx]))
+                if np.array_equal(
+                    TRFM_X_1[:, col_idx][NOT_NAN_MASK],
+                    X[_row_support, col_idx2][NOT_NAN_MASK]
+                ):
+                    _actual_idxs.append(col_idx2)
+
+        assert np.array_equal(_get_support_idxs, _actual_idxs), \
+            f"get_support: {_get_support_idxs}, actual_idxs: {_actual_idxs}"
+
+        del _get_support_idxs, _row_support, _actual_idxs
+
+        # END assert columns in get_support and those actually in the data match
+
+        # END validate MCT 1rcrX1 get_support and object dimensions make sense
+
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -2629,10 +2678,32 @@ class TestAccuracy:
         TRFM_X_2, TRFM_Y_2 = TestCls2.fit_transform(TRFM_X_1, TRFM_Y_1)
 
         # validate MCT 1rcrX2 get_support and object dimensions make sense
-        assert len(TestCls2.get_support(indices=False)) == TRFM_X_1.shape[1]
-        assert TRFM_X_2.shape[1] == sum(TestCls2.get_support(indices=False))
+        _second_support = TestCls2.get_support(indices=False)
+        assert len(_second_support) == TRFM_X_1.shape[1]
+        assert TRFM_X_2.shape[1] == sum(_second_support)
+
+        # assert columns in get_support and those actually in the data match
+        _get_support_idxs = TestCls2.get_support(indices=True)
+        _row_support = TestCls2.get_row_support(indices=False)
+        _actual_idxs = []
+        for col_idx in range(TRFM_X_2.shape[1]):
+            for col_idx2 in range(TRFM_X_1.shape[1]):
+                NOT_NAN_MASK = np.logical_not(nan_mask(TRFM_X_2[:, col_idx]))
+                if np.array_equal(
+                    TRFM_X_2[:, col_idx][NOT_NAN_MASK],
+                    TRFM_X_1[_row_support, col_idx2][NOT_NAN_MASK]
+                ):
+                    _actual_idxs.append(col_idx2)
 
 
+        assert np.array_equal(_get_support_idxs, _actual_idxs), \
+            f"get_support: {_get_support_idxs}, actual_idxs: {_actual_idxs}"
+
+        del _second_support, _actual_idxs, _get_support_idxs, _row_support
+
+        # END assert columns in get_support and those actually in the data match
+
+        # END validate MCT 1rcrX2 get_support and object dimensions make sense
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -2642,8 +2713,7 @@ class TestAccuracy:
 
         # compare 2 one-shot MCTs against 1 two-shot MCT - -- - -- - -- - -- - --
         TestCls_2SHOT = MinCountTransformer(*args, **_kwargs)  # use original kwargs!
-        #TestCls_2SHOT.set_params(max_recursions=2)  # pizza, is this actually getting set?
-        TestCls_2SHOT.max_recursions = 2
+        TestCls_2SHOT.set_params(max_recursions=2)
         TRFM_X_2SHOT, TRFM_Y_2SHOT = TestCls_2SHOT.fit_transform(X.copy(), y.copy())
 
         _adj_get_support_mct = np.array(_first_support.copy())
@@ -3017,20 +3087,14 @@ class TestTransformConditionallyAcceptsNewUniques:
         TestCls.fit(X1, y1)
 
         # DEMONSTRATE NEW VALUES ARE ACCEPTED WHEN reject_unseen_values = False
-        # TestCls.set_params(reject_unseen_values=False)
-        # pizza if u come back to this and this is still set like this and
-        # isnt having a problem, then that means that set_params isnt working!
-        TestCls.reject_unseen_values = False
+        TestCls.set_params(reject_unseen_values=False)
         assert TestCls.reject_unseen_values is False
         TestCls.transform(X2, y1)
 
         # DEMONSTRATE NEW VALUES ARE REJECTED WHEN reject_unseen_values = True
-        TestCls.reject_unseen_values = True
+        TestCls.set_params(reject_unseen_values=True)
         assert TestCls.reject_unseen_values is True
         with pytest.raises(ValueError):
-            # TestCls.set_params(reject_unseen_values=True)
-            # pizza if u come back to this and this is still set like this and
-            # isnt having a problem, then that means that set_params isnt working!
             TestCls.transform(X2, y1)
 
         del X1, y1, X2, TestCls

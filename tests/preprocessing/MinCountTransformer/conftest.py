@@ -8,6 +8,7 @@
 import pytest
 
 import numpy as np
+np.random.seed(12)   # this is important for stable test arrays
 import numpy.typing as npt
 import joblib
 from joblib import Parallel, delayed
@@ -22,7 +23,7 @@ from pybear.utilities._nan_masking import (
 
 
 # at the bottom are fixtures used for testing mmct in
-# conftest__mmct__20sec_test.py
+# conftest__mmct__12sec_test.py
 
 
 
@@ -30,8 +31,8 @@ from pybear.utilities._nan_masking import (
 # MinCountTransformer_test. It also is used to validate that X meets
 # certain rigged conditions for testing MinCountTransformer.
 # Tests for this fixture are in
-# conftest__mmct__20sec_test.py. The fixtures used to run the tests in
-# conftest__mmct__20sec_test.py are at the bottom of this module.
+# conftest__mmct__12sec_test.py. The fixtures used to run the tests in
+# conftest__mmct__12sec_test.py are at the bottom of this module.
 
 
 @pytest.fixture(scope='session')
@@ -113,6 +114,9 @@ def mmct():
             # ACTIVE_C_IDXS later)
             ACTIVE_C_IDXS = [i for i in range(MOCK_X.shape[1])]
             if ignore_columns is not None:
+                # cant skip any floats or non-bin-ints here, wont know the
+                # dtype until we get the unqs, but we at least know that
+                # we dont need to get the dtypes for those in ignore_columns
                 for i in ignore_columns:
                     try:
                         ACTIVE_C_IDXS.remove(i)
@@ -124,9 +128,8 @@ def mmct():
                             f'except for reason other than ValueError --- {e1}')
 
 
-            # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
             UNIQUES_COUNTS_TUPLES = \
-                Parallel(return_as='list', n_jobs=-1)(
+                Parallel(return_as='list', n_jobs=-1, prefer='processes')(
                     delayed(get_unq)(MOCK_X[:, c_idx]) for c_idx in ACTIVE_C_IDXS
             )
 
@@ -158,12 +161,12 @@ def mmct():
                     del MASK
                     NO_NAN_UNIQUES_AS_FLT = NO_NAN_UNIQUES.astype(np.float64)
                     NO_NAN_UNIQUES_AS_INT = NO_NAN_UNIQUES_AS_FLT.astype(np.int32)
-                    if np.array_equiv(NO_NAN_UNIQUES_AS_INT, NO_NAN_UNIQUES_AS_FLT):
-                        if len(NO_NAN_UNIQUES) == 1:
-                            DTYPES[col_idx] = 'constant'
-                        elif len(NO_NAN_UNIQUES) == 2:
+                    if len(NO_NAN_UNIQUES) == 1:
+                        DTYPES[col_idx] = 'constant'
+                    elif np.array_equiv(NO_NAN_UNIQUES_AS_INT, NO_NAN_UNIQUES_AS_FLT):
+                        if len(NO_NAN_UNIQUES) == 2:
                             DTYPES[col_idx] = 'bin_int'
-                        elif len(NO_NAN_UNIQUES) > 2:
+                        else:
                             DTYPES[col_idx] = 'non_bin_int'
                             if ignore_non_binary_integer_columns:
                                 UNIQUES_COUNTS_TUPLES[col_idx] = None
@@ -175,7 +178,12 @@ def mmct():
                     del NO_NAN_UNIQUES, NO_NAN_UNIQUES_AS_INT, NO_NAN_UNIQUES_AS_FLT
 
                 except:
-                    DTYPES[col_idx] = 'obj'
+                    NO_NAN_UNIQUES = \
+                        UNIQUES[np.logical_not(nan_mask_string(UNIQUES))]
+                    if len(NO_NAN_UNIQUES) == 1:
+                        DTYPES[col_idx] = 'constant'
+                    else:
+                        DTYPES[col_idx] = 'obj'
 
                 if ignore_columns is not None and col_idx in ignore_columns:
                     UNIQUES_COUNTS_TUPLES[col_idx] = None
@@ -194,12 +202,12 @@ def mmct():
             for col_idx in range(len(UNIQUES_COUNTS_TUPLES) - 1, -1, -1):
 
                 if UNIQUES_COUNTS_TUPLES[col_idx] is None:
-                    continue   # was ignored
+                    continue   # was an ignored column
 
                 UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
 
-                if col_idx in handle_as_bool: #or \
-                #         DTYPES[col_idx] == 'bin_int':
+                if col_idx in handle_as_bool or \
+                     DTYPES[col_idx] == 'bin_int':
 
                     if DTYPES[col_idx] == 'obj':
                         raise ValueError(
@@ -240,10 +248,8 @@ def mmct():
                         elif (col_idx in handle_as_bool or \
                                 DTYPES[col_idx] == 'bin_int') and not delete_axis_0:
                             pass
-                            # NOT_NAN_MASK = np.logical_not(NAN_MASK)
-                            # _ = MOCK_X[NOT_NAN_MASK, col_idx].astype(np.uint8)
-                            # ROW_MASK[NOT_NAN_MASK] += (_ == unq)
-                            # del NOT_NAN_MASK, _
+                            # dont need to put anything in row mask,
+                            # not delete_axis_0, but also nan stuff see below
                         else:
                             ROW_MASK += (MOCK_X[:, col_idx] == unq)
 
@@ -305,7 +311,7 @@ def mmct():
 
 # Build vectors for mmct test. The process below builds random, but rigged,
 # vectors that are used to test mmct (mock_min_count_transformer, above).
-# The test for mmct is in conftest__mmct__20sec_test.py. mmct is then used to
+# The test for mmct is in conftest__mmct__12sec_test.py. mmct is then used to
 # test MinCountTransformer. There are 7 fixtures below. The first five
 # fixtures build 5 different types of test vectors (non-binary integer,
 # bin, float, str, bool). The process in the 7th fixture

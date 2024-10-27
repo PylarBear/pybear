@@ -141,15 +141,6 @@ def _tcbc_update(
         # now that nans are out, update self.tcbc (old_tcbc) with the new
         # (lower) values in recursion_tcbc, where applicable
 
-        # pizza test!
-        if new_col_idx == 3:
-            print(f'-'*50)
-            print(f'col_idx 3 _old_tcbc_col_dict:')
-            print(_old_tcbc_col_dict)
-            print(f'col_idx 3 _rcr_col_dict:')
-            print(_rcr_col_dict)
-            print(f'-'*50)
-
         for unq, ct in deepcopy(_old_tcbc_col_dict).items():
 
             if not _rcr_col_dict.get(unq, 0) <= ct:
@@ -175,8 +166,10 @@ def _tcbc_update(
         elif _old_tcbc_nan_symbol and not _rcr_nan_symbol:
             # if no nans in _rcr_col_dict, set _old_tcbc_col_dict to 1,
             # placehold so that there is indication that the column
-            # originally had nans in it so they will be in delete_instr
-            # 1 will always be below thresh (min=2)
+            # originally had nans in it so they will be in delete_instr.
+            # 1 will always be below thresh (min=2). much of the code
+            # that handles nan processing depends on nan being in tcbc
+            # keys, and freq being greater than zero.
             _old_tcbc_col_dict[_old_tcbc_nan_symbol] = 1
         elif not _old_tcbc_nan_symbol and _rcr_nan_symbol:
             raise AssertionError(

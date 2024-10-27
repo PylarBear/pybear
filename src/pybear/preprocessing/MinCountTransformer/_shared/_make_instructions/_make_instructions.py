@@ -4,6 +4,7 @@
 # License: BSD 3 clause
 #
 
+
 from typing_extensions import Union
 from copy import deepcopy
 import numpy as np
@@ -317,9 +318,6 @@ def _make_instructions(
                 )
 
         else:  # 3+ UNIQUES NOT INCLUDING nan
-
-            if col_idx == 3:
-                print(f'pizza goes into the right oven!')
 
             if col_idx in _handle_as_bool:
 

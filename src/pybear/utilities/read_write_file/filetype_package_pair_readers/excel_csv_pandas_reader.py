@@ -41,7 +41,7 @@ def excel_csv_pandas_reader(
             import textwrap
 
             # PIZZA 24_04_09_16_01_00 THIS WAS ONCE ITS OWN MODULE BUT WAS ONLY CALLED HERE
-            # THIS CAN BE MELDED INTO THE CURRRENT LANDSCAPE AS NEEDED
+            # THIS CAN BE MELDED INTO THE CURRENT LANDSCAPE AS NEEDED
             def pandas_merge_header_wrap(DF_OBJECT, wrap_width=15):
                 COLUMNS = [_ for _ in DF_OBJECT]
 
