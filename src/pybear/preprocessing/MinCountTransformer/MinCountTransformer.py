@@ -1035,17 +1035,21 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             except:
                 raise TypeError(err_msg)
 
-            if False in ['str' in str(type(__)).lower() for __ in input_features]:
+            if not all(['str' in str(type(__)).lower() for __ in input_features]):
                 raise TypeError(err_msg)
             elif len(np.array(input_features).ravel()) != self.n_features_in_:
                 raise ValueError(f"number of passed input_features does not "
-                     f"match number of features seen during (partial_)fit().")
+                        f"match number of features seen during (partial_)fit(). "
+                        f"input_features should have length equal."
+                    )
             elif hasattr(self, 'feature_names_in_') and \
                 not np.array_equiv(input_features, self.feature_names_in_):
                     raise ValueError(f"passed input_features does not match "
-                                f"feature names seen during (partial_)fit().")
+                        f"feature names seen during (partial_)fit(). input_features "
+                        f"is not equal to feature_names_in_"
+                    )
             else:
-                return np.array(input_features).ravel()[COLUMN_MASK]
+                return np.array(input_features).ravel()[COLUMN_MASK].astype(object)
 
 
     def get_metadata_routing(self):
