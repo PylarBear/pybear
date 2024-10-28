@@ -7,6 +7,8 @@
 
 import pytest
 
+import os
+
 from distributed import Client
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
@@ -192,16 +194,23 @@ class TestGSTCVInput:
             _GSTCVDask.set_params(estimator=dask_non_classifiers()).fit(X_da, y_da)
 
 
-    @pytest.mark.parametrize('dask_classifiers',
-        (#DaskXGBClassifier, DaskXGBRFClassifier,
-            DaskLGBMClassifier, dask_LogisticRegression
-        )
-    )
-    def test_accepts_all_dask_classifiers(
-        self, _GSTCVDask, dask_classifiers, X_da, y_da, _client
-    ):
+    def test_accepts_all_dask_classifiers(self, _GSTCVDask, X_da, y_da, _client):
+
         # must be an instance not the class! & be a classifier!
-        _GSTCVDask.set_params(estimator=dask_classifiers()).fit(X_da, y_da)
+
+        # AS OF 24_10_28 THIS IS THE ONLY ONE WORKING ON WINDOWS
+        _GSTCVDask.set_params(estimator=dask_LogisticRegression()).fit(X_da, y_da)
+
+        # pizza 24_10_28_14_55_00, revisit this on linux and see if this works
+
+        if os.name != 'nt':
+            _GSTCVDask.set_params(estimator=DaskXGBClassifier()).fit(X_da, y_da)
+
+            _GSTCVDask.set_params(estimator=DaskXGBRFClassifier()).fit(X_da, y_da)
+
+            _GSTCVDask.set_params(estimator=DaskLGBMClassifier()).fit(X_da, y_da)
+
+
 
     # END estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
