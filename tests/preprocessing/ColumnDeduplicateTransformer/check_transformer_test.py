@@ -20,15 +20,15 @@ from sklearn.utils.estimator_checks import (
 # how the tests were set up and the descriptions!
 
 
-check_transformer_general(
-    'MinCountTransformer',
-    MinCountTransformer(count_threshold=5)
-)
-
-check_transformers_unfitted(
-    'MinCountTransformer',
-    MinCountTransformer(count_threshold=5)
-)
+# check_transformer_general(
+#     'ColumnDeduplicateTransformer',
+#     ColumnDeduplicateTransformer()
+# )
+#
+# check_transformers_unfitted(
+#     'ColumnDeduplicateTransformer',
+#     ColumnDeduplicateTransformer()
+# )
 
 
 
