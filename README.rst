@@ -33,8 +33,8 @@ PyBear
 
 Cool, but not frozen, packages to augment your Python data analytics experience.
 
-pybear is a Python computing library for data analytics meant to augment 
-functionality found in the popular numpy, scikit-learn, dask, and dask_ml libraries.
+pybear is a Python computing library that augments data analytics functionality 
+found in the popular numpy, scikit-learn, dask, and dask_ml libraries.
 
 See documentation_ for more information.
 

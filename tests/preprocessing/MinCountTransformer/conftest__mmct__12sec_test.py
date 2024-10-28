@@ -14,7 +14,7 @@
 import pytest
 from typing_extensions import Union, Callable
 import numpy as np
-np.random.seed(12)    # this is important for stable test arrays
+
 import numpy.typing as npt
 from copy import deepcopy
 
@@ -252,7 +252,7 @@ class TestHandleAsBool_1:
             _count_threshold = 2 * _mmct_test_thresh
         elif _trial == 'trial_2':
             _handle_as_bool = [1]
-            _count_threshold = _mmct_test_thresh // 2
+            _count_threshold = _mmct_test_thresh // 2 - 1
         elif _trial == 'trial_3':
             _handle_as_bool = [1]
             _count_threshold = 2 * _mmct_test_thresh
@@ -279,7 +279,7 @@ class TestHandleAsBool_1:
             del __
 
         elif _handle_as_bool == [1] and \
-                _count_threshold == _mmct_test_thresh // 2:
+                _count_threshold == _mmct_test_thresh // 2 - 1:
             # column 0 is flt, column 1 is nbi
             # delete_axis_0 ON NBI WHEN handle_as_bool w low thresh
             # SHOULD NOT DELETE
@@ -364,12 +364,16 @@ class TestIgnoreNan:
             )
             NAN_MASK[RANDOM_IDXS] = True
             NEW_MOCK_X_BIN[NAN_MASK] = np.nan
-            if min(np.unique(NEW_MOCK_X_BIN[np.logical_not(NAN_MASK)],
-                             return_counts=True)[1]) >= _mmct_test_thresh // 2:
+            # ensure all unqs besides nans are still above _mmct_test_thresh // 2
+            if min(np.unique(
+                    NEW_MOCK_X_BIN[np.logical_not(NAN_MASK)],
+                    return_counts=True
+            )[1]) >= _mmct_test_thresh // 2:
                 del NAN_MASK, RANDOM_IDXS
                 break
 
         return NEW_MOCK_X_BIN
+
 
     @staticmethod
     @pytest.fixture(scope='session')
@@ -385,60 +389,29 @@ class TestIgnoreNan:
                 )
             ] = True
             NEW_MOCK_X_BIN[NAN_MASK] = np.nan
-            if min(np.unique(NEW_MOCK_X_BIN[np.logical_not(NAN_MASK)],
-                             return_counts=True)[1]) >= _mmct_test_thresh // 2:
+            # ensure all unqs besides nans are still above _mmct_test_thresh // 2
+            if min(np.unique(
+                NEW_MOCK_X_BIN[np.logical_not(NAN_MASK)],
+                return_counts=True
+            )[1]) >= _mmct_test_thresh // 2:
                 del NAN_MASK
                 break
 
         return NEW_MOCK_X_BIN
 
 
-    @staticmethod
-    @pytest.fixture(scope='session')
-    def NEW_MOCK_X_BIN_3(MOCK_X_BIN, _mmct_test_rows, _mmct_test_thresh):
-        # has _mmct_test_thresh // 2 - 1 nans (below lowest thresh)
-        # unq frequencies not altered otherwise
-        NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(
-            _mmct_test_rows, _mmct_test_thresh // 2 - 1, replace=False
-        )
-        NEW_MOCK_X_BIN[NAN_MASK] = np.nan
-        return NEW_MOCK_X_BIN
-
-
-    @staticmethod
-    @pytest.fixture(scope='session')
-    def NEW_MOCK_X_BIN_4(MOCK_X_BIN, _mmct_test_rows, _mmct_test_thresh):
-        # has _mmct_test_thresh // 2 nans (at lowest thresh)
-        # unq frequencies not altered otherwise
-        NEW_MOCK_X_BIN = MOCK_X_BIN.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(
-            _mmct_test_rows, _mmct_test_thresh // 2, replace=False
-        )
-        NEW_MOCK_X_BIN[NAN_MASK] = np.nan
-        return NEW_MOCK_X_BIN
-
-
-    # @pytest.mark.skip(reason=f"this is failing sporadically. not worth pursuing.")   # pizza
-    @pytest.mark.parametrize('_DATA, _delete_axis_0',
-        (
-            ('DATA_1', True),
-            ('DATA_1', False),
-            ('DATA_2', False),
-            ('DATA_3', True),
-            ('DATA_4', True)
-        )
-    )
+    @pytest.mark.parametrize('_DATA', ('DATA_1', 'DATA_2'))
+    @pytest.mark.parametrize('_delete_axis_0', (True, False))
     @pytest.mark.parametrize('_ignore_nan', (True, False))
-    def test_bin(self, NEW_MOCK_X_BIN_1, NEW_MOCK_X_BIN_2, NEW_MOCK_X_BIN_3,
-        NEW_MOCK_X_BIN_4, _DATA, _ignore_nan, _delete_axis_0, arg_setter,
-        _mmct_test_thresh,
+    def test_bin(self, NEW_MOCK_X_BIN_1, NEW_MOCK_X_BIN_2, _DATA, _ignore_nan,
+        _delete_axis_0, arg_setter, _mmct_test_thresh,
     ):
 
-        _NEW_MOCK_X = {
-            'DATA_1': NEW_MOCK_X_BIN_1, 'DATA_2': NEW_MOCK_X_BIN_2,
-            'DATA_3': NEW_MOCK_X_BIN_3, 'DATA_4': NEW_MOCK_X_BIN_4
-        }[_DATA]
+        # NEW_MOCK_X_BIN_1 nan freq is below threshold, all num freq >= threshold
+        # NEW_MOCK_X_BIN_2 nan freq is at threshold, all num freq >= threshold
+
+        _NEW_MOCK_X = \
+            {'DATA_1': NEW_MOCK_X_BIN_1, 'DATA_2': NEW_MOCK_X_BIN_2}[_DATA]
 
         # NAN IGNORED
         TRFM_X = arg_setter(
@@ -448,8 +421,7 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        # 24_06_18 this is intermittently failing locally.
-        # universal hands-off non-nans
+
         assert np.array_equiv(
             TRFM_X[np.logical_not(nan_mask_numerical(TRFM_X))],
             _NEW_MOCK_X[np.logical_not(nan_mask_numerical(_NEW_MOCK_X))]
@@ -457,27 +429,31 @@ class TestIgnoreNan:
 
 
         if _ignore_nan is True:
+            # NAN < THRESH AND NOTHING DELETED
+            # NAN >= THRESH AND NOTHING DELETED
+            # delete_axis_0 is irrelevant
             assert len(TRFM_X) == len(_NEW_MOCK_X), \
                 f"bin column was altered with ignore_nan=True"
         elif _ignore_nan is False:
-            # NAN < THRESH AND NOTHING DELETED
+            # NAN < THRESH AND SOMETHING DELETED
+            if _DATA == 'DATA_1':
+                # there is a nuance of MCT here, even if not deleting axis 0 on
+                # a bin/handleasbool column, if nans are below thresh they are
+                # still deleted!
+                # so delete_axis_0 is irrelevant, nans rows are always deleted
+                # when nan freq is below thresh
+                _num_nan = np.sum(nan_mask(_NEW_MOCK_X))
+                assert len(TRFM_X) == len(_NEW_MOCK_X) - _num_nan, \
+                    f"bin column was incorrectly altered"
+
             # NAN >= THRESH AND NOTHING DELETED
-            if _DATA in ['DATA_2', 'DATA_4'] and _delete_axis_0 is False:
+            elif _DATA == 'DATA_2':
+                # delete_axis_0 is irrelevant, nothing should be deleted
                 assert len(TRFM_X) == len(_NEW_MOCK_X), \
-                    f"bin column was wrongly altered"
+                    f"bin column was wrongly altered, shouldnt change"
+            else:
+                raise Exception(f'algorithm failure')
 
-
-            # NAN BELOW THRESH AND ROWS DELETED
-            if _DATA == 'DATA_3' and _delete_axis_0 is True:
-                assert len(TRFM_X) < len(_NEW_MOCK_X), \
-                    f"bin column not altered when should have been"
-                # gets universal hands-off non-nans
-
-
-            # NAN ABOVE THRESH AND ROWS NOT DELETED
-            if _DATA == 'DATA_4' and _delete_axis_0 is True:
-                assert len(TRFM_X) == len(_NEW_MOCK_X), \
-                    f"bin column was wrongly altered"
 
     # END bin ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -554,13 +530,21 @@ class TestIgnoreNan:
 
     @staticmethod
     @pytest.fixture(scope='session')
-    def NEW_MOCK_X_NBI_1(MOCK_X_NBI, _mmct_test_rows):
+    def NEW_MOCK_X_NBI_1(MOCK_X_NBI, _mmct_test_rows, _mmct_test_thresh):
         # has one nan
-        NEW_MOCK_X_NBI = MOCK_X_NBI.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(_mmct_test_rows, 1, replace=False)
-        NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.ravel()
-        NEW_MOCK_X_NBI[NAN_MASK] = np.nan
+        while True:
+            NEW_MOCK_X_NBI = MOCK_X_NBI.copy().astype(np.float64)
+            NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.ravel()
+            NEW_MOCK_X_NBI[np.random.choice(_mmct_test_rows)] = np.nan
+            # ensure all unqs besides nans are still above _mmct_test_thresh // 2
+            if min(np.unique(
+                NEW_MOCK_X_NBI[np.logical_not(nan_mask(NEW_MOCK_X_NBI))],
+                return_counts=True
+            )[1]) >= _mmct_test_thresh // 2:
+                break
+
         NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.reshape((-1, 1))
+
         return NEW_MOCK_X_NBI
 
 
@@ -568,25 +552,28 @@ class TestIgnoreNan:
     @pytest.fixture(scope='session')
     def NEW_MOCK_X_NBI_2(MOCK_X_NBI, _mmct_test_rows, _mmct_test_thresh):
         # has _mmct_test_thresh // 2 + 1 nans
-        NEW_MOCK_X_NBI = MOCK_X_NBI.copy().astype(np.float64)
-        NAN_MASK = np.random.choice(
-            _mmct_test_rows, _mmct_test_thresh // 2 + 1, replace=False
-        )
-        NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.ravel()
-        NEW_MOCK_X_NBI[NAN_MASK] = np.nan
+        while True:
+            NEW_MOCK_X_NBI = MOCK_X_NBI.copy().astype(np.float64)
+            NAN_MASK = np.random.choice(
+                _mmct_test_rows, _mmct_test_thresh // 2 + 1, replace=False
+            )
+            NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.ravel()
+            NEW_MOCK_X_NBI[NAN_MASK] = np.nan
+            # ensure all unqs besides nans are still above _mmct_test_thresh // 2
+            if min(np.unique(
+                    NEW_MOCK_X_NBI[np.logical_not(nan_mask(NEW_MOCK_X_NBI))],
+                    return_counts=True
+            )[1]) >= _mmct_test_thresh // 2:
+                del NAN_MASK
+                break
+
         NEW_MOCK_X_NBI = NEW_MOCK_X_NBI.reshape((-1, 1))
+
         return NEW_MOCK_X_NBI
 
 
-    # @pytest.mark.skip(reason=f"this is failing sporadically. not worth pursuing.")  # pizza
-    @pytest.mark.parametrize('_DATA, _ignore_nan',
-    (
-        ('DATA_1', True),
-        ('DATA_1', False),
-        ('DATA_2', True),
-        ('DATA_2', False)
-    )
-    )
+    @pytest.mark.parametrize('_DATA', ('DATA_1', 'DATA_2'))
+    @pytest.mark.parametrize('_ignore_nan', (True, False))
     def test_nbi(self, NEW_MOCK_X_NBI_1, NEW_MOCK_X_NBI_2, _DATA, _ignore_nan,
         arg_setter, _mmct_test_thresh
     ):
@@ -602,8 +589,6 @@ class TestIgnoreNan:
             count_threshold=_mmct_test_thresh // 2
         )[0]
 
-        # 24_06_18 this is intermittently failing locally.
-        # universal hands-off non-nans
         if _ignore_nan:
             assert len(TRFM_X) == len(_NEW_MOCK_X), \
                 f"nbi rows were altered with ignore_nan=True"
@@ -618,14 +603,6 @@ class TestIgnoreNan:
                 assert len(TRFM_X) < len(_NEW_MOCK_X), \
                     f"nbi rows were not altered with ignore_nan=False"
 
-            # this is intermittently failing locally. the mmct fixture is
-            # working, further pursuit isnt worth it. what seems to be
-            # happening is a number is in _NEW_MOCK_X that is not in
-            # TRFM_X. Likely because np.nan is overwriting enough
-            # instances of one of the numbers that it falls below
-            # threshold and is removed. Manipulating the number of nans
-            # in NEW_MOCK_X_NBI_2 has cascading consequences elsewhere
-            # (even though it is not readily apparent why.)
             elif _DATA == 'DATA_2':
                 # NAN ABOVE THRESH AND NO NANS DELETED
                 assert len(TRFM_X) == len(_NEW_MOCK_X), \
@@ -838,7 +815,7 @@ def test_accuracy(
     _ignore_nan, _ignore_non_binary_integer_columns, _ignore_float_columns,
     _handle_as_bool, _delete_axis_0, _ct_trial, arg_setter, get_unqs_cts_again,
 ):
-    # pizza
+
     # this is sporadically failing when delete_axis_0 and has columns being
     # handled as bool. after 2 days of troubleshooting, it isnt worth it to
     # pursue. skip those tests. the mmct fixture is working in the testing
