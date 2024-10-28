@@ -9,7 +9,6 @@ import pytest
 
 
 from pybear.preprocessing import MinCountTransformer
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.estimator_checks import (
     check_transformer_general,
     check_transformers_unfitted,

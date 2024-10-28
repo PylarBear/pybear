@@ -5,14 +5,9 @@
 #
 
 
-from pybear.utilities._nan_masking import (
-    nan_mask_numerical,
-    nan_mask_string,
-    nan_mask
-)
+from pybear.utilities._nan_masking import nan_mask
 
 import numpy as np
-import pandas as pd
 
 
 import pytest
@@ -35,7 +30,7 @@ class TestNanMasking:
 
     @pytest.mark.parametrize('X_format', ('np', 'pd'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9))  # dont use True, need exact
+    @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9)) # dont use True, need exact
     def test_accuracy(
         self, _X_factory, _master_columns, _shape, X_format, X_dtype, _has_nan
     ):
@@ -50,6 +45,9 @@ class TestNanMasking:
             _shape=_shape
         )
 
+
+        # by using nan_mask on ('flt', 'int', 'str', 'obj', 'hybrid'), both
+        # nan_mask_numerical and nan_mask_string are tested
         OUT = nan_mask(_X)
 
         assert isinstance(OUT, np.ndarray)

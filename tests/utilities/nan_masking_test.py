@@ -69,6 +69,23 @@ class Fixtures:
                 return _
 
 
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def pd_assnmt_handle():
+
+        # 24_10_28 pandas future warnings about casting incompatible
+        # dtypes. put assignments under a try/except, if OK, return new
+        # X, if bad return None. in the test functions, if X comes back
+        # as None, skip the test.
+
+        def foo(X: pd.DataFrame, MASK: np.ndarray, value: any):
+            try:
+                X[MASK] = value
+                return X
+            except:
+                return None
+
+        return foo
 
 
 
@@ -293,7 +310,8 @@ class TestNanMaskNumeric(Fixtures):
         ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
     )
     def test_pd_float(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns,
+        pd_assnmt_handle
     ):
 
         X = pd.DataFrame(
@@ -311,21 +329,24 @@ class TestNanMaskNumeric(Fixtures):
             raise Exception
 
         if _nan_type == 'npnan':
-            X[MASK] = np.nan
+            X = pd_assnmt_handle(X, MASK, np.nan)
         elif _nan_type == 'strnan':
-            X[MASK] = 'nan'
+            X = pd_assnmt_handle(X, MASK, 'nan')
         elif _nan_type == 'any string':
-            X[MASK] = 'any string'
+            X = pd_assnmt_handle(X, MASK, 'any string')
         elif _nan_type == 'pdNA':
-            X[MASK] = pd.NA
+            X = pd_assnmt_handle(X, MASK, pd.NA)
         elif _nan_type == 'none':
-            X[MASK] = None
+            X = pd_assnmt_handle(X, MASK, None)
         elif _nan_type == 'inf':
-            X[MASK] = float('inf')
+            X = pd_assnmt_handle(X, MASK, float('inf'))
             # this actually makes a valid assignment. pandas does not see
             # this as a nan-type.
         else:
             raise Exception
+
+        if X is None:
+            pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
         out = nan_mask_numerical(X)
         out_2 = nan_mask(X)
@@ -346,7 +367,8 @@ class TestNanMaskNumeric(Fixtures):
         ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
     )
     def test_pd_int(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns,
+        pd_assnmt_handle
     ):
 
         X = pd.DataFrame(
@@ -364,21 +386,24 @@ class TestNanMaskNumeric(Fixtures):
             raise Exception
 
         if _nan_type == 'npnan':
-            X[MASK] = np.nan
+            X = pd_assnmt_handle(X, MASK, np.nan)
         elif _nan_type == 'strnan':
-            X[MASK] = 'nan'
+            X = pd_assnmt_handle(X, MASK, 'nan')
         elif _nan_type == 'any string':
-            X[MASK] = 'any string'
+            X = pd_assnmt_handle(X, MASK, 'any string')
         elif _nan_type == 'pdNA':
-            X[MASK] = pd.NA
+            X = pd_assnmt_handle(X, MASK, pd.NA)
         elif _nan_type == 'none':
-            X[MASK] = None
+            X = pd_assnmt_handle(X, MASK, None)
         elif _nan_type == 'inf':
-            X[MASK] = float('inf')
+            X = pd_assnmt_handle(X, MASK, float('inf'))
             # this actually makes a valid assignment. pandas does not see
             # this as a nan-type.
         else:
             raise Exception
+
+        if X is None:
+            pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
         out = nan_mask_numerical(X)
         out_2 = nan_mask(X)
@@ -397,7 +422,8 @@ class TestNanMaskNumeric(Fixtures):
     # takeaway:
     # to_numpy() converts all of these different nans to np.nan correctly
     def numpy_float_via_pd_made_with_various_nan_types(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns,
+        pd_assnmt_handle
     ):
 
         X = pd.DataFrame(
@@ -540,7 +566,7 @@ class TestNanMaskString(Fixtures):
     )
     def test_pd_str(
         self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape,
-        _columns
+        _columns, pd_assnmt_handle
     ):
         # remember to set str dtype like '<U10' to _X
 
@@ -558,21 +584,24 @@ class TestNanMaskString(Fixtures):
             raise Exception
 
         if _nan_type == 'npnan':
-            X[MASK] = np.nan
+            X = pd_assnmt_handle(X, MASK, np.nan)
         elif _nan_type == 'strnan':
-            X[MASK] = 'nan'
+            X = pd_assnmt_handle(X, MASK, 'nan')
         elif _nan_type == 'any string':
-            X[MASK] = 'any string'
+            X = pd_assnmt_handle(X, MASK, 'any string')
             # this is a valid assignment into a pd str type
         elif _nan_type == 'pdNA':
-            X[MASK] = pd.NA
+            X = pd_assnmt_handle(X, MASK, pd.NA)
         elif _nan_type == 'none':
-            X[MASK] = None
+            X = pd_assnmt_handle(X, MASK, None)
         elif _nan_type == 'inf':
-            X[MASK] = float('inf')
+            X = pd_assnmt_handle(X, MASK, float('inf'))
             # this is a valid assignment into a pd str type
         else:
             raise Exception
+
+        if X is None:
+            pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
         out = nan_mask_string(X)
         out_2 = nan_mask(X)
@@ -593,7 +622,7 @@ class TestNanMaskString(Fixtures):
     )
     def test_pd_object(
         self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape,
-        _columns
+        _columns, pd_assnmt_handle
     ):
         # remember to set object dtype to _X
         X = pd.DataFrame(
@@ -610,21 +639,24 @@ class TestNanMaskString(Fixtures):
             raise Exception
 
         if _nan_type == 'npnan':
-            X[MASK] = np.nan
+            X = pd_assnmt_handle(X, MASK, np.nan)
         elif _nan_type == 'strnan':
-            X[MASK] = 'nan'
+            X = pd_assnmt_handle(X, MASK, 'nan')
         elif _nan_type == 'any string':
-            X[MASK] = 'any string'
+            X = pd_assnmt_handle(X, MASK, 'any string')
             # this is a valid assignment into a pd object type
         elif _nan_type == 'pdNA':
-            X[MASK] = pd.NA
+            X = pd_assnmt_handle(X, MASK, pd.NA)
         elif _nan_type == 'none':
-            X[MASK] = None
+            X = pd_assnmt_handle(X, MASK, None)
         elif _nan_type == 'inf':
-            X[MASK] = float('inf')
+            X = pd_assnmt_handle(X, MASK, float('inf'))
             # this is a valid assignment into a pd object type
         else:
             raise Exception
+
+        if X is None:
+            pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
         out = nan_mask_string(X)
         out_2 = nan_mask(X)

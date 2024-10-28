@@ -150,7 +150,8 @@ def mmct():
                 if UNIQUES_COUNTS_TUPLES[col_idx] is None:
                     continue
 
-                UNIQUES_COUNTS_TUPLES[col_idx] = list(UNIQUES_COUNTS_TUPLES[col_idx])
+                UNIQUES_COUNTS_TUPLES[col_idx] = \
+                    list(UNIQUES_COUNTS_TUPLES[col_idx])
                 UNIQUES, COUNTS = UNIQUES_COUNTS_TUPLES[col_idx]
 
                 try:
