@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 import numpy as np
@@ -100,7 +102,9 @@ class TestGSTCVInput:
     @pytest.fixture(scope='function')
     def _GSTCV():
         return GSTCV(
-            estimator=XGBClassifier(n_estimator=10, max_depth=2, tree_method='hist'),
+            estimator=XGBClassifier(
+                n_estimators=10, max_depth=2, tree_method='hist'
+            ),
             param_grid={},
             thresholds=[0.5],
             cv=2,
