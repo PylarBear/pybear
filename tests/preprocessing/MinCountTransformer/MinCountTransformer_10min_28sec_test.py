@@ -11,7 +11,7 @@ import uuid
 from copy import deepcopy
 
 import numpy as np
-np.random.seed(12)    # this is important for stable test arrays
+np.random.seed(0)
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 
@@ -1836,44 +1836,65 @@ class TestDeleteAxis0Works:
         self, NO_NAN_X, y, COLUMNS, _args, _kwargs, _mct_cols
     ):
 
-        # USE FLOAT AND STR COLUMNS, DUMMY THE STRS AND RUN delete_axis_0
-        # True, DO THE SAME WHEN STRS ARE NOT DUMMIED, BUT ONLY USE FLOAT
-        # COLUMNS TO SEE IF THE RESULTS ARE EQUAL; PROVE NO ROWS ARE
-        # DELETED FROM DUMMIED WHEN delete_axis_0 is False
-        FLOAT_STR_X = NO_NAN_X[:, 2 * _mct_cols:4 * _mct_cols].copy()
-        FLOAT_STR_COLUMNS = COLUMNS[2 * _mct_cols:4 * _mct_cols].copy()
+        args = [2 * _args[0]]
+
+        # 1) USE FLOAT AND STR COLUMNS ONLY, ignore_float_columns=True
+        # 2A) RUN MCT WHEN STRS ARE NOT DUMMIED, THE FLOAT COLUMN OUTPUT
+        #   IS SUPPOSED TO BE THE "TRUTH" FOR FLOAT COLUMNS WHEN DUMMIED AND
+        #   delete_axis_0 = True
+        # 2B) Ensure some rows were actually deleted (BUT NOT ALL) by comparing
+        #   NO_DUMMY_BASELINE_FLOAT_DF against ORIGINAL UN-TRANSFORMED FLOAT_DF
+        # 3A) BUILD THE DUMMIED EQUIVALENT OF THE FLOAT AND STR COLUMN DF
+        # 3B) PROVE NO ROWS ARE DELETED FROM DUMMIED WHEN delete_axis_0 is False
+        # 3C) RUN delete_axis_0 True ON DUMMIED, COMPARE THE FLT COLUMNS AGAINST
+        #   "TRUTH" TO SEE IF THE RESULTS ARE EQUAL
+
+        # 1) USE FLOAT AND STR COLUMNS ONLY * * * * * * * * * * * * * * * *
         FLOAT_STR_DF = pd.DataFrame(
-            data=FLOAT_STR_X,
-            columns=FLOAT_STR_COLUMNS
+            data=NO_NAN_X[:, 2 * _mct_cols:4 * _mct_cols].copy(),
+            columns=COLUMNS[2 * _mct_cols:4 * _mct_cols].copy()
         )
+
         FLOAT_DF = pd.DataFrame(
-            data=FLOAT_STR_X[:, :_mct_cols],
-            columns=FLOAT_STR_COLUMNS[:_mct_cols]
+            data=NO_NAN_X[:, 2 * _mct_cols:3 * _mct_cols].copy(),
+            columns=COLUMNS[2 * _mct_cols:3 * _mct_cols].copy()
         )  # "TRUTH" for when delete_axis_0 = False
+
+        # KEEP STR_DF TO DO OneHot
         STR_DF = pd.DataFrame(
-            data=FLOAT_STR_X[:, _mct_cols:],
-            columns=FLOAT_STR_COLUMNS[_mct_cols:]
+                data=NO_NAN_X[:, 3 * _mct_cols:4 * _mct_cols].copy(),
+                columns=COLUMNS[3 * _mct_cols:4 * _mct_cols].copy()
         )
-        del FLOAT_STR_X, FLOAT_STR_COLUMNS
+        # END 1) USE FLOAT AND STR COLUMNS ONLY * * * * * * * * * * * * * * *
 
-        # get remaining float rows after strs are chopped with MinCountTransformer
-        # THIS IS SUPPOSED TO BE THE "TRUTH" FOR WHEN delete_axis_0 = True
-        ChopStrTestCls = MinCountTransformer(*_args, **_kwargs)
-        STR_MIN_COUNTED_X = ChopStrTestCls.fit_transform(FLOAT_STR_DF)
+        # 2A) RUN MCT WHEN STRS ARE NOT DUMMIED, THE FLOAT COLUMN OUTPUT
+        #   IS SUPPOSED TO BE THE "TRUTH" FOR FLOAT COLUMNS WHEN DUMMIED AND
+        #   delete_axis_0 = True
+        ChopStrTestCls = MinCountTransformer(*args, **_kwargs)
+        # DOESNT MATTER WHAT delete_axis_0 IS SET TO, THERE ARE NO BOOL COLUMNS
+        ChopStrTestCls.set_params(ignore_float_columns=True)
+        STR_FLT_NO_DUMMY_BASELINE = ChopStrTestCls.fit_transform(FLOAT_STR_DF)
 
-        STR_MIN_COUNTED_X_DF = pd.DataFrame(
-            data=STR_MIN_COUNTED_X,
+        STR_FLT_NO_DUMMY_BASELINE_DF = pd.DataFrame(
+            data=STR_FLT_NO_DUMMY_BASELINE,
             columns=ChopStrTestCls.get_feature_names_out(None)
         )
-        del ChopStrTestCls, STR_MIN_COUNTED_X, FLOAT_STR_DF
+        del ChopStrTestCls, STR_FLT_NO_DUMMY_BASELINE, FLOAT_STR_DF
 
-        # "TRUTH" for when delete_axis_0 = True
-        STR_MIN_COUNTED_FLOAT_DF = STR_MIN_COUNTED_X_DF.iloc[:, :_mct_cols]
+        NO_DUMMY_BASELINE_FLOAT_DF = \
+            STR_FLT_NO_DUMMY_BASELINE_DF.iloc[:, :_mct_cols]
+        del STR_FLT_NO_DUMMY_BASELINE_DF
+        # END 2A * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        del STR_MIN_COUNTED_X_DF
-        # END get remaining float rows after strs are chopped with MinCountTransformer
+        # 2B) Ensure some rows were actually deleted (but not all) by comparing
+        #       NO_DUMMY_BASELINE_FLOAT_DF against ORIGINAL UN-TRANSFORMED FLOAT_DF
+        assert not NO_DUMMY_BASELINE_FLOAT_DF.equals(FLOAT_DF), \
+            f"MinCountTransform of FLOAT_STR_DF did not delete any rows"
+        assert NO_DUMMY_BASELINE_FLOAT_DF.shape[0] > 0, \
+            f"ALL ROWS WERE DELETED WHEN DURING BASELINE NO DUMMY TRANSFORM"
+        # END 2B * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        # GET DUMMIES FOR STR COLUMNS & CHOP USING delete_axis_0 = True / False
+        # 3A) BUILD THE DUMMIED EQUIVALENT OF THE FLOAT AND STR COLUMN DF
         onehot = OneHotEncoder(
             categories='auto',
             drop=None,
@@ -1884,63 +1905,72 @@ class TestDeleteAxis0Works:
             max_categories=None,
             feature_name_combiner='concat'
         )
+
         onehot.fit(STR_DF)
 
         DUMMIED_STR_DF = pd.DataFrame(
             data=onehot.transform(STR_DF),
             columns=onehot.get_feature_names_out()
         )
-        FULL_DUMMIED_STR_DF = pd.concat((FLOAT_DF, DUMMIED_STR_DF), axis=1)
+        FULL_DUMMIED_STR_FLOAT_DF = pd.concat((FLOAT_DF, DUMMIED_STR_DF), axis=1)
         del onehot, STR_DF, DUMMIED_STR_DF
+        # END 3A * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        _kwargs['delete_axis_0'] = True
-        ChopDummyDeleteAxis0TestCls = MinCountTransformer(*_args, **_kwargs)
-        FULL_DUM_MIN_COUNTED_DELETE_0_X = \
-            ChopDummyDeleteAxis0TestCls.fit_transform(FULL_DUMMIED_STR_DF)
-        FULL_DUMMIED_DELETE_0_DF = pd.DataFrame(
-            data=FULL_DUM_MIN_COUNTED_DELETE_0_X,
-            columns=ChopDummyDeleteAxis0TestCls.get_feature_names_out(None)
+        # 3B) PROVE NO ROWS ARE DELETED FROM DUMMIED WHEN delete_axis_0 is False
+        DummyDontDeleteAxis0TestCls = MinCountTransformer(*args, **_kwargs)
+        DummyDontDeleteAxis0TestCls.set_params(
+            delete_axis_0=False, ignore_float_columns=True
         )
-        del ChopDummyDeleteAxis0TestCls, FULL_DUM_MIN_COUNTED_DELETE_0_X
+        DUMMIED_FLT_STR_DONT_DELETE_AXIS_0 = \
+            DummyDontDeleteAxis0TestCls.fit_transform(FULL_DUMMIED_STR_FLOAT_DF)
 
-        # COMPARE AGAINST STR_MIN_COUNTED_FLOAT_DF
-        DUM_MIN_COUNTED_DELETE_0_FLOAT_DF = \
-            FULL_DUMMIED_DELETE_0_DF.iloc[:, :_mct_cols]
-        del FULL_DUMMIED_DELETE_0_DF
-
-        _kwargs['delete_axis_0'] = False
-        ChopDummyDontDeleteAxis0TestCls = MinCountTransformer(*_args, **_kwargs)
-        FULL_DUM_MIN_COUNTED_DONT_DELETE_0_X = \
-            ChopDummyDontDeleteAxis0TestCls.fit_transform(FULL_DUMMIED_STR_DF)
-        FULL_DUMMIED_DONT_DELETE_0_DF = pd.DataFrame(
-            data=FULL_DUM_MIN_COUNTED_DONT_DELETE_0_X,
-            columns=ChopDummyDontDeleteAxis0TestCls.get_feature_names_out(None)
+        DUMMIED_FLT_STR_DONT_DELETE_AXIS_0_DF = pd.DataFrame(
+            data=DUMMIED_FLT_STR_DONT_DELETE_AXIS_0,
+            columns=DummyDontDeleteAxis0TestCls.get_feature_names_out(None)
         )
-        del ChopDummyDontDeleteAxis0TestCls, FULL_DUM_MIN_COUNTED_DONT_DELETE_0_X
+        del DummyDontDeleteAxis0TestCls, DUMMIED_FLT_STR_DONT_DELETE_AXIS_0
 
-        # COMPARE AGAINST FLOAT_DF
-        DUM_MIN_COUNTED_DONT_DELETE_0_FLOAT_DF = \
-            FULL_DUMMIED_DONT_DELETE_0_DF.iloc[:, :_mct_cols]
-        del FULL_DUMMIED_DONT_DELETE_0_DF
+        DUMMIED_FLT_DONT_DELETE_AXIS_0_DF = \
+            DUMMIED_FLT_STR_DONT_DELETE_AXIS_0_DF.iloc[:, :_mct_cols]
+        del DUMMIED_FLT_STR_DONT_DELETE_AXIS_0_DF
 
-        # COMPARE:
-        # 1) Ensure some rows were actually deleted by comparing
-        #       STR_MIN_COUNTED_FLOAT_DF against FLOAT_DF
-        # 2) Compare DUM_MIN_COUNTED_DELETE_0_FLOAT_DF against
-        #       STR_MIN_COUNTED_FLOAT_DF
-        # 3) Compare DUM_MIN_COUNTED_DONT_DELETE_0_FLOAT_DF against FLOAT_DF
+        # Compare DUMMIED_FLT_DONT_DELETE_AXIS_0_DF against FLOAT_DF
+        assert DUMMIED_FLT_DONT_DELETE_AXIS_0_DF.equals(FLOAT_DF), \
+            (f"floats with dummies and delete_axis_0=False do not "
+             f"equal original untransformed floats (rows were deleted)")
 
-        assert not STR_MIN_COUNTED_FLOAT_DF.equals(FLOAT_DF), \
-            f"MinCountTransform of FLOAT_STR_DF did not delete any rows"
-        assert DUM_MIN_COUNTED_DELETE_0_FLOAT_DF.equals(STR_MIN_COUNTED_FLOAT_DF), \
-            (f"rows after MinCount on dummies with delete_axis_0=True do not "
-             f"equal rows from MinCount on strings")
-        assert DUM_MIN_COUNTED_DONT_DELETE_0_FLOAT_DF.equals(FLOAT_DF), \
-            (f"rows after MinCount on dummies with delete_axis_0=False do not "
-             f"equal original rows")
+        del DUMMIED_FLT_DONT_DELETE_AXIS_0_DF
+        # END 3B * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        del FLOAT_DF, FULL_DUMMIED_STR_DF, DUM_MIN_COUNTED_DONT_DELETE_0_FLOAT_DF
-        del DUM_MIN_COUNTED_DELETE_0_FLOAT_DF, STR_MIN_COUNTED_FLOAT_DF
+
+        # 3C) RUN delete_axis_0 True ON DUMMIED STRINGS, COMPARE THE FLT COLUMNS
+        # AGAINST NON-DUMMIED STRINGS TO SEE IF THE RESULTS ARE EQUAL
+        DummyDeleteAxis0TestCls = MinCountTransformer(*args, **_kwargs)
+        DummyDeleteAxis0TestCls.set_params(
+            delete_axis_0=True, ignore_float_columns=True
+        )
+        DUMMIED_FLT_STR_DELETE_0_X = \
+            DummyDeleteAxis0TestCls.fit_transform(FULL_DUMMIED_STR_FLOAT_DF)
+
+        DUMMIED_FLT_STR_DELETE_0_X_DF = pd.DataFrame(
+            data=DUMMIED_FLT_STR_DELETE_0_X,
+            columns=DummyDeleteAxis0TestCls.get_feature_names_out(None)
+        )
+        del DummyDeleteAxis0TestCls
+
+        # Compare DUM_MIN_COUNTED_DELETE_0_FLOAT_DF against NO_DUMMY_BASELINE_FLOAT_DF
+        DUMMIED_FLT_DELETE_0_X_DF = \
+            DUMMIED_FLT_STR_DELETE_0_X_DF.iloc[:, :_mct_cols]
+        del DUMMIED_FLT_STR_DELETE_0_X_DF
+
+        assert DUMMIED_FLT_DELETE_0_X_DF.equals(NO_DUMMY_BASELINE_FLOAT_DF), \
+            (f"floats with dummies and delete_axis_0=True do not "
+             f"equal no-dummy baseline floats")
+
+        del DUMMIED_FLT_DELETE_0_X_DF
+        # END 3C * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+        del FLOAT_DF, FULL_DUMMIED_STR_FLOAT_DF, NO_DUMMY_BASELINE_FLOAT_DF
 
 # END TEST delete_axis_0 WORKS #########################################
 

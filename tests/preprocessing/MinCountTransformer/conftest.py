@@ -8,7 +8,7 @@
 import pytest
 
 import numpy as np
-np.random.seed(12)   # this is important for stable test arrays
+
 import numpy.typing as npt
 import joblib
 from joblib import Parallel, delayed
