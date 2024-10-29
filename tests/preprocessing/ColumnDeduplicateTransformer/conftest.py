@@ -22,7 +22,6 @@ import scipy.sparse as ss
 
 
 
-# pizza new for CDT 24_10_10
 @pytest.fixture(scope='session')
 def _master_columns():
     _cols = 200
@@ -155,14 +154,7 @@ def _X_factory(_shape):
         if _has_nan:
 
             if _format == 'pd':
-                # 24_10_14_18_51_00 was:
-                # _choices = ['nan','NaN','NAN','<NA>', np.nan, pd.NA]
-                # .... pizza resolve this, ideally, want nan_mask(flt,int,str,obj)
-                # to recognize any of the choices
-                if _dtype in ['flt', 'int']:
-                    _choices = [np.nan, pd.NA, None, 'nan', 'NaN', 'NAN', '<NA>']
-                else:
-                    _choices = [np.nan, pd.NA, None, 'nan', 'NaN', 'NAN', '<NA>']
+                _choices = [np.nan, pd.NA, None, 'nan', 'NaN', 'NAN', '<NA>']
             else:
                 if _dtype == 'flt':
                     _choices = [np.nan, None, 'nan', 'NaN', 'NAN']

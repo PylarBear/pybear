@@ -11,11 +11,8 @@ from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransfor
 import pandas as pd
 import scipy.sparse as ss
 
-
 import pytest
 
-
-# @pytest.skip(reason=f"pizza says so", allow_module_level=True)
 
 
 # TEST FOR EXCEPTS ON BAD X SHAPES ON ARRAY & DF ##########################

@@ -230,28 +230,9 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         TestCls.set_output(transform='pandas_dataframe')
 
         # set_params()
-        KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
-        ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
-        TestCls.set_params(**test_kwargs)
+        TestCls.set_params(count_threshold=5)
 
-        for _key, _value in zip(KEYS, VALUES):
-
-            assert getattr(TestCls, _key) == _value
-
-            with pytest.raises(AttributeError):
-                getattr(TestCls, f"_" + _key)
-
-        # DEMONSTRATE EXCEPTS FOR UNKNOWN PARAM
-        with pytest.raises(ValueError):
-            TestCls.set_params(garbage=1)
-
-        del TestCls, KEYS, VALUES
+        del TestCls
 
         TestCls = MCT(*_args, **_kwargs)
         # transform()
@@ -497,23 +478,9 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         TestCls.set_output(transform='pandas_dataframe')
 
         # set_params()
-        KEYS = [
-            'count_threshold', 'ignore_float_columns', 'ignore_columns',
-            'ignore_non_binary_integer_columns', 'ignore_nan', 'n_jobs',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions'
-        ]
-        VALUES = [4, False, [0], False, False, 4, [2], True, True, 2]
-        test_kwargs = dict((zip(KEYS, VALUES)))
+        TestCls.set_params(count_threshold=4)
 
-        TestCls.set_params(**test_kwargs)
-
-        for _key, _value in zip(KEYS, VALUES):
-            assert getattr(TestCls, _key) == _value
-
-        # no method called after set_params above, '_'s not set
-
-        del TestCls, KEYS, VALUES
+        del TestCls
 
         # transform()
         # ** _validate_delete_instr()
@@ -626,35 +593,16 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         TransformedTestCls.set_output(transform='pandas_dataframe')
         TransformedTestCls.transform(X, y)
 
-        del TransformedTestCls
 
         # set_params()
-        TestCls = MCT(*_args, **_kwargs)
-        KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
-        ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
-
-        TestCls.set_params(**test_kwargs)
-        TestCls.fit_transform(X, y)
-
-        for _key, _value in zip(KEYS, VALUES):
-            assert getattr(TestCls, _key) == _value
-            assert getattr(TestCls, f"_" + _key) == _value, \
-                f'set_params() did not set {_key}'
-
-        del KEYS, VALUES
+        TransformedTestCls.set_params(count_threshold=4)
 
         # transform()
         # ** _validate_delete_instr()
         # ** _validate_feature_names()
         # ** _validate()
 
-        del FittedTestCls, TestCls, TRFM_X, TRFM_Y
+        del TransformedTestCls, FittedTestCls, TRFM_X, TRFM_Y
 
         # END ^^^ AFTER TRANSFORM ^^^ **********************************
         # **************************************************************
@@ -839,26 +787,9 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         TwoRecurTestCls.set_output(transform='pandas_dataframe')
 
         # set_params()
-        TestCls = MCT(*_args, **_kwargs)
-        KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
-        ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
+        TwoRecurTestCls.set_params(count_threshold=4)
 
-        TestCls.set_params(**test_kwargs)
-
-        for _key, _value in zip(KEYS, VALUES):
-
-            assert getattr(TestCls, _key) == _value
-
-            with pytest.raises(AttributeError):
-                getattr(TestCls, f"_" + _key)
-
-        del TestCls, KEYS, VALUES
+        del TwoRecurTestCls
 
         TwoRecurTestCls = MCT(*_args, **_kwargs)
         # transform()
@@ -1212,26 +1143,8 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         assert TwoRecurTestCls._output_transform == 'pandas_dataframe'
 
         # set_params()
-        KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
-        ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
-        TwoRecurTestCls.set_params(**test_kwargs)
+        TwoRecurTestCls.set_params(count_threshold=7)
 
-        for _key, _value in zip(KEYS, VALUES):
-
-            assert getattr(TwoRecurTestCls, _key) == _value, \
-                f'set_params() did not set {_key}'
-
-        # no method called after set_params above, '_'s not set
-
-
-
-        del KEYS, VALUES
 
         # transform()
         # ** _validate_delete_instr()

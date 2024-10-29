@@ -5,11 +5,11 @@
 #
 
 
+import pytest
 
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
-import pytest
-
+import sys
 import numpy as np
 import pandas as pd
 
@@ -46,15 +46,14 @@ def _kwargs():
     }
 
 
-@pytest.fixture(scope='module')
-def _dum_X(_X_factory, _shape):
-    return _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
-
-
-# pizza is this even used
 @pytest.fixture(scope='function')
-def _std_dupl(_shape):
-    return [[0, 4], [3, 5, _shape[1]-1]]
+def _dupl(_shape):
+    return [[3, 5, _shape[1]-1]]
+
+
+@pytest.fixture(scope='module')
+def _dum_X(_X_factory, _dupl, _shape):
+    return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
 
 
 @pytest.fixture(scope='module')
@@ -80,12 +79,9 @@ def _X_pd(_dum_X, _columns):
 
 
 
-
-
-
 # ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM, ATTR ACCURACY
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAttrAccuracyBeforeAndAfterFitAndTransform:
+class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
 
     @staticmethod
     def _attrs():
@@ -98,86 +94,108 @@ class TestAttrAccuracyBeforeAndAfterFitAndTransform:
         ]
 
 
+    @pytest.mark.parametrize('x_format', ('np', 'pd'))
     def test_attr_accuracy(
-        self, _dum_X, _columns, _kwargs, _shape, _attrs
+        self, _dum_X, _X_pd, _columns, _kwargs, _shape, _attrs, x_format
     ):
 
-        NEW_X = _dum_X.copy()
-        NEW_X_DF = pd.DataFrame(data=_dum_X, columns=_columns)
+        if x_format == 'np':
+            NEW_X = _dum_X.copy()
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        elif x_format == 'pd':
+            NEW_X = _X_pd
+            NEW_Y = pd.DataFrame(
+                data=np.random.randint(0, 2, _shape[0]), _columns=['y']
+            )
+        else:
+            raise Exception
 
-        NEW_Y = np.random.randint(0,2,_shape[0])
-        NEW_Y_DF = pd.DataFrame(data=NEW_Y, _columns=['y'])
+
+        TestCls = CDT(**_kwargs)
 
         # BEFORE FIT ***************************************************
-        TestCls = CDT(**_kwargs)
 
         # ALL OF THESE SHOULD GIVE AttributeError
         for attr in _attrs:
             with pytest.raises(AttributeError):
                 getattr(TestCls, attr)
 
-        del TestCls
         # END BEFORE FIT ***********************************************
 
         # AFTER FIT ****************************************************
-        for data_dtype in ['np', 'pd']:
-            if data_dtype == 'np':
-                TEST_X, TEST_Y = NEW_X.copy(), NEW_Y.copy()
-            elif data_dtype == 'pd':
-                TEST_X, TEST_Y = NEW_X_DF.copy(), NEW_Y_DF.copy()
 
-            TestCls = CDT(**_kwargs)
-            TestCls.fit(TEST_X, TEST_Y)
+        TestCls.fit(NEW_X, NEW_Y)
 
-            # ONLY EXCEPTION SHOULD BE feature_names_in_ IF NUMPY
-            if data_dtype == 'pd':
-                assert np.array_equiv(TestCls.feature_names_in_, _columns), \
-                    f"feature_names_in_ after fit() != originally passed columns"
-            elif data_dtype == 'np':
-                with pytest.raises(AttributeError):
-                    TestCls.feature_names_in_
-
-            assert TestCls.n_features_in_ == _shape[0], \
-                f"n_features_in_ after fit() != number of originally passed columns"
-
-        del data_dtype, TEST_X, TEST_Y, TestCls
+        # all attrs should be accessible after fit, the only exception
+        # should be feature_names_in_ if numpy
+        # duplicates_, removed_columns_, & column_mask_ tested elsewhere
+        for attr in _attrs:
+            try:
+                out = getattr(TestCls, attr)
+                if attr == 'feature_names_in_' and x_format == 'pd':
+                    assert np.array_equiv(out, _columns), \
+                        f"{attr} after fit() != originally passed columns"
+                elif attr == 'n_features_in_':
+                    assert out == _shape[0], \
+                        f"{attr} after fit() != number of originally passed columns"
+            except:
+                if attr == 'feature_names_in_' and x_format == 'np':
+                    assert isinstance(sys.exc_info()[1], AttributeError)
+                else:
+                    raise AssertionError(
+                        f"unexpected exception accessing {attr} after fit, "
+                        f"x_format == {x_format}"
+                    )
 
         # END AFTER FIT ************************************************
 
         # AFTER TRANSFORM **********************************************
 
-        for data_dtype in ['np', 'pd']:
+        # after transform, should be the exact same condition as after
+        # fit, and pass the same tests
+        # duplicates_, removed_columns_, & column_mask_ tested elsewhere
+        for attr in _attrs:
+            try:
+                out = getattr(TestCls, attr)
+                if attr == 'feature_names_in_' and x_format == 'pd':
+                    assert np.array_equiv(out, _columns), \
+                        f"{attr} after fit() != originally passed columns"
+                elif attr == 'n_features_in_':
+                    assert out == _shape[0], \
+                        f"{attr} after fit() != number of originally passed columns"
+            except:
+                if attr == 'feature_names_in_' and x_format == 'np':
+                    assert isinstance(sys.exc_info()[1], AttributeError)
+                else:
+                    raise AssertionError(
+                        f"unexpected exception accessing {attr} after fit, "
+                        f"x_format == {x_format}"
+                    )
 
-            if data_dtype == 'np':
-                TEST_X, TEST_Y = NEW_X.copy(), NEW_Y.copy()
-            elif data_dtype == 'pd':
-                TEST_X, TEST_Y = NEW_X_DF.copy(), NEW_Y_DF.copy()
-
-            TestCls = CDT(**_kwargs)
-            TestCls.fit_transform(TEST_X, TEST_Y)
-
-            # ONLY EXCEPTION SHOULD BE feature_names_in_ WHEN NUMPY
-            if data_dtype == 'pd':
-                assert np.array_equiv(TestCls.feature_names_in_, _columns), \
-                    f"feature_names_in_ after fit() != originally passed columns"
-            elif data_dtype == 'np':
-                with pytest.raises(AttributeError):
-                    TestCls.feature_names_in_
-
-            assert TestCls.n_features_in_ == _shape[1], \
-                f"n_features_in_ after fit() != number of originally passed columns"
-
-        del data_dtype, TEST_X, TEST_Y, TestCls
         # END AFTER TRANSFORM ******************************************
 
-        del NEW_X, NEW_Y, NEW_X_DF, NEW_Y_DF
+        del NEW_X, NEW_Y, TestCls
 
 # END ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM, ATTR ACCURACY
 
 
 # ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM ***
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
+class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
+
+
+    @staticmethod
+    def _methods():
+        return [
+            'fit',
+            'fit_transform',
+            'get_feature_names_out',
+            'get_metadata_routing',
+            'get_params',
+            'inverse_transform',
+            'partial_fit',
+            'set_params'
+        ]
 
     def test_access_methods_before_fit(self, _dum_X, _kwargs):
 
@@ -228,23 +246,7 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         #     'equal_nan': False,
         #     'n_jobs': -1
         # ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
-        TestCls.set_params(**test_kwargs)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions, TestCls._n_jobs
-        ]
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
-
-        # DEMONSTRATE EXCEPTS FOR UNKNOWN PARAM
-        with pytest.raises(ValueError):
-            TestCls.set_params(garbage=1)
-
-        del TestCls, KEYS, VALUES, ATTRS
+        TestCls.set_params(keep='last')
 
         TestCls = CDT(**_kwargs)
         # transform()
@@ -254,6 +256,7 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
         # **************************************************************
+
 
     def test_access_methods_after_fit(self, _X, _columns, _kwargs, _shape):
 
@@ -268,10 +271,6 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # ** _base_fit()
         # ** _check_is_fitted()
-
-        # ** test_threshold()
-        TestCls.test_threshold()
-        print(f'^^^ mask building instructions should be displayed above ^^^')
 
         # fit()
         # fit_transform()
@@ -485,27 +484,9 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         TestCls.set_output(transform='pandas_dataframe')
 
         # set_params()
-        KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
-        ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
+        TestCls.set_params(keep='random')
 
-        TestCls.set_params(**test_kwargs)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions,
-            TestCls._n_jobs
-        ]
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
-
-        del TestCls, KEYS, VALUES, ATTRS
+        del TestCls
 
         # transform()
         # ** _validate_delete_instr()
@@ -528,11 +509,6 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # ** _base_fit()
         # ** _check_is_fitted()
-
-        # ** test_threshold()
-        # SHOULD BE THE SAME AS AFTER FIT
-        TransformedTestCls.test_threshold()
-        print(f'^^^ mask building instructions should be displayed above ^^^')
 
         # fit()
         # fit_transform()
@@ -625,28 +601,7 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # set_params()
         TestCls = CDT(**_kwargs)
-        KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
-        ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
-
-        TestCls.set_params(**test_kwargs)
-        TestCls.fit_transform(X, y)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions,
-            TestCls._n_jobs
-        ]
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
-
-        del KEYS, VALUES, ATTRS
+        TestCls.set_params(keep='first')
 
         # transform()
         # ** _validate_delete_instr()
@@ -661,464 +616,14 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 # END ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM
 
 
-# ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM; FOR 2 RECURSIONS **
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
-    # CREATE AN INSTANCE WITH ONLY 1 RECURSION TO COMPARE 1X-TRFMED OBJECTS
-    # AGAINST 2X-TRFMED OBJECTS
-    @staticmethod
-    @pytest.fixture
-    def OneRecurTestCls(_kwargs):
-        args = [3]
-        _kwargs['ignore_columns'] = None
-        _kwargs['ignore_nan'] = False
-        _kwargs['ignore_non_binary_integer_columns'] = False
-        _kwargs['ignore_float_columns'] = False
-        _kwargs['delete_axis_0'] = True
-        _kwargs['max_recursions'] = 1
 
-        return CDT(**_kwargs)
 
 
-    @staticmethod
-    @pytest.fixture
-    def TwoRecurTestCls(_kwargs):
-        args = [3]
-        _kwargs['ignore_columns'] = None
-        _kwargs['ignore_nan'] = False
-        _kwargs['ignore_non_binary_integer_columns'] = False
-        _kwargs['ignore_float_columns'] = False
-        _kwargs['delete_axis_0'] = True
-        _kwargs['max_recursions'] = 2
 
-        return CDT(**_kwargs)
 
-    def test_before_fit_transform(self, OneRecurTestCls, TwoRecurTestCls,
-        X, y, _args, _kwargs):
 
-        # **************************************************************
-        # vvv BEFORE fit_transform() vvv *******************************
 
-        # ** _base_fit()
-        # ** _check_is_fitted()
 
-        # ** test_threshold()
-        with pytest.raises(AttributeError):
-            TwoRecurTestCls.test_threshold()
 
-        # fit()
-        # fit_transform()
 
-        # get_feature_names_out()
-        with pytest.raises(AttributeError):
-            TwoRecurTestCls.get_feature_names_out(None)
-
-        # get_metadata_routing()
-        with pytest.raises(NotImplementedError):
-            TwoRecurTestCls.get_metadata_routing()
-
-        # get_params()
-        # ALL PARAMS SHOULD BE THE SAME EXCEPT FOR max_recursions
-        _ = OneRecurTestCls.get_params(True)
-        del _['max_recursions']
-        __ = TwoRecurTestCls.get_params(True)
-        del __['max_recursions']
-        assert _ == __, (f"pre-fit 1 recursion instance get_params() != "
-                         f"get_params() from 2 recursion instance")
-        del _, __
-
-        # get_row_support()
-        with pytest.raises(AttributeError):
-            TwoRecurTestCls.get_row_support(True)
-
-        # get_support()
-        with pytest.raises(AttributeError):
-            TwoRecurTestCls.get_support(True)
-
-        # ** _handle_X_y()
-
-        # inverse_transform()
-        with pytest.raises(AttributeError):
-            TwoRecurTestCls.inverse_transform(X)
-
-        # ** _make_instructions()
-        # ** _must_be_fitted()
-        # partial_fit()
-        # ** _reset()
-
-        # set_output()
-        TwoRecurTestCls.set_output(transform='pandas_dataframe')
-
-        # set_params()
-        TestCls = CDT(**_kwargs)
-        KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
-        ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
-
-        TestCls.set_params(**test_kwargs)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions, TestCls._n_jobs
-        ]
-
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
-
-        del TestCls, KEYS, VALUES, ATTRS
-
-        TwoRecurTestCls = CDT(**_kwargs)
-        # transform()
-        with pytest.raises(AttributeError):
-            TwoRecurTestCls.transform(X, y)
-
-        # ** _validate_delete_instr()
-        # ** _validate_feature_names()
-        # ** _validate()
-
-        # END ^^^ BEFORE fit_transform() ^^^ ***************************
-        # **************************************************************
-
-        del TwoRecurTestCls
-
-
-    def test_after_fit_transform(self, OneRecurTestCls, TwoRecurTestCls, _X,
-        _columns, _kwargs, _shape):
-
-        X = _X()   # pizza figure out what this needs to be
-        y = np.random.randint(0,2,_shape[0])
-
-        ONE_RCR_TRFM_X, ONE_RCR_TRFM_Y = OneRecurTestCls.fit_transform(X, y)
-        TWO_RCR_TRFM_X, TWO_RCR_TRFM_Y = TwoRecurTestCls.fit_transform(X, y)
-
-        # **************************************************************
-        # vvv AFTER fit_transform() vvv ********************************
-
-        # ** _base_fit()
-        # ** _check_is_fitted()
-
-        # ** test_threshold()
-        assert not np.array_equiv(ONE_RCR_TRFM_X, TWO_RCR_TRFM_X), \
-            f"ONE_RCR_TRFM_X == TWO_RCR_TRFM_X when it shouldnt"
-
-        TwoRecurTestCls.test_threshold(clean_printout=True)
-        print(f'^^^ mask building instructions should be displayed above ^^^')
-
-
-        # fit()
-        # fit_transform()
-
-        # get_feature_names_out() **************************************
-        # vvv NO COLUMN NAMES PASSED (NP) vvv
-
-        # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
-        # SLICED ['x0', ..., 'x(n-1)]
-        _COLUMNS = np.array([f"x{i}" for i in range(len(_columns))])
-        _ACTIVE_COLUMNS = _COLUMNS[TwoRecurTestCls.get_support(False)]
-        del _COLUMNS
-        assert np.array_equiv(
-            TwoRecurTestCls.get_feature_names_out(None),
-            _ACTIVE_COLUMNS
-        ), (f"get_feature_names_out(None) after fit_transform() != sliced "
-            f"array of generic headers"
-        )
-        del _ACTIVE_COLUMNS
-
-        # WITH NO HEADER PASSED, SHOULD RAISE ValueError IF len(input_features) !=
-        # n_features_in_
-        with pytest.raises(ValueError):
-            _COLUMNS = [f"x{i}" for i in range(2 * len(_columns))]
-            TwoRecurTestCls.get_feature_names_out(_COLUMNS)
-            del _COLUMNS
-
-        # WHEN NO HEADER PASSED TO fit_transform() AND VALID input_features,
-        # SHOULD RETURN SLICED PASSED COLUMNS
-        RETURNED_FROM_GFNO = TwoRecurTestCls.get_feature_names_out(_columns)
-        assert isinstance(RETURNED_FROM_GFNO, np.ndarray), \
-            (f"TwoRecur.get_feature_names_out should return numpy.ndarray, "
-             f"but returned {type(RETURNED_FROM_GFNO)}")
-
-        assert np.array_equiv(RETURNED_FROM_GFNO,
-            np.array(_columns)[TwoRecurTestCls.get_support(False)]), \
-            f"TwoRecur.get_feature_names_out() did not return original columns"
-
-        del RETURNED_FROM_GFNO
-
-        # END ^^^ NO COLUMN NAMES PASSED (NP) ^^^
-
-        # vvv COLUMN NAMES PASSED (PD) vvv
-        ONE_RCR_TRFM_X, ONE_RCR_TRFM_Y = \
-            OneRecurTestCls.fit_transform(pd.DataFrame(data=X, columns=_columns), y)
-
-        TWO_RCR_TRFM_X, TWO_RCR_TRFM_Y = \
-            TwoRecurTestCls.fit_transform(pd.DataFrame(data=X, columns=_columns), y)
-
-        # WITH HEADER PASSED AND input_features=None:
-        # SHOULD RETURN SLICED ORIGINAL COLUMNS
-        assert np.array_equiv(
-            TwoRecurTestCls.get_feature_names_out(None),
-            np.array(_columns)[TwoRecurTestCls.get_support(False)]
-            ), (f"TwoRecur.get_feature_names_out(None) after fit_transform() != "
-            f"sliced originally passed columns"
-        )
-
-        # WHEN HEADER PASSED TO fit_transform() AND input_features IS THAT HEADER,
-        # SHOULD RETURN SLICED VERSION OF THAT HEADER
-        RETURNED_FROM_GFNO = TwoRecurTestCls.get_feature_names_out(_columns)
-        assert isinstance(RETURNED_FROM_GFNO, np.ndarray), \
-            (f"get_feature_names_out should return numpy.ndarray, but returned "
-             f"{type(RETURNED_FROM_GFNO)}")
-        assert np.array_equiv(
-            RETURNED_FROM_GFNO,
-            np.array(_columns)[TwoRecurTestCls.get_support(False)]
-            ), f"get_feature_names_out() did not return original columns"
-
-        del RETURNED_FROM_GFNO
-        # END ^^^ COLUMN NAMES PASSED (PD) ^^^
-        # END get_feature_names_out() **********************************
-
-        # get_metadata_routing()
-        with pytest.raises(NotImplementedError):
-            TwoRecurTestCls.get_metadata_routing()
-
-        # get_params()
-        # ALL PARAMS SHOULD BE THE SAME EXCEPT FOR max_recursions
-        _ = OneRecurTestCls.get_params(True)
-        del _['max_recursions']
-        __ = TwoRecurTestCls.get_params(True)
-        del __['max_recursions']
-        assert _ == __, (f"pre-fit 1 recursion instance get_params() != "
-                         f"get_params() from 2 recursion instance")
-        del _, __
-
-        # get_row_support()
-        for _indices in [True, False]:
-            _ONE = OneRecurTestCls.get_row_support(_indices)
-            _TWO = TwoRecurTestCls.get_row_support(_indices)
-
-            assert isinstance(_ONE, np.ndarray), \
-                f"get_row_support() for 1 recursion did not return numpy.ndarray"
-            assert isinstance(_TWO, np.ndarray), \
-                f"get_row_support() for 2 recursions did not return numpy.ndarray"
-
-            if not _indices:
-                assert _ONE.dtype == 'bool', (f"get_row_support with indices=False "
-                          f"for 1 recursion did not return a boolean array")
-                assert _TWO.dtype == 'bool', (f"get_row_support with indices=False "
-                              f"for 2 recursions did not return a boolean array")
-                # len(ROW SUPPORT TWO RECUR) AND len(ROW SUPPORT ONE RECUR)
-                # MUST EQUAL NUMBER OF ROWS IN X
-                assert len(_ONE) == _shape[0], \
-                    (f"row_support vector length for 1 recursion != rows in "
-                     f"passed data"
-                )
-                assert len(_TWO) == _shape[0], \
-                    (f"row_support vector length for 2 recursions != rows in "
-                     f"passed data"
-                )
-                # NUMBER OF Trues in ONE RECUR MUST == NUMBER OF ROWS IN
-                # ONE RCR TRFM X; SAME FOR TWO RCR
-                assert sum(_ONE) == ONE_RCR_TRFM_X.shape[0], \
-                    f"one rcr Trues IN row_support != TRFM X rows"
-                assert sum(_TWO) == TWO_RCR_TRFM_X.shape[0], \
-                    f"two rcr Trues IN row_support != TRFM X rows"
-                # NUMBER OF Trues IN ONE RECUR MUST BE >= NUMBER OF Trues
-                # IN TWO RECUR
-                assert sum(_ONE) >= sum(_TWO), \
-                    f"two recursion has more rows kept in it that one recursion"
-                # ANY Trues IN TWO RECUR MUST ALSO BE True IN ONE RECUR
-                assert np.unique(_ONE[_TWO])[0] == True, \
-                    (f"Rows that are to be kept in 2nd recur (True) were False "
-                     f"in 1st recur")
-            elif _indices:
-                assert 'int' in str(_ONE.dtype).lower(), \
-                    (f"get_row_support with indices=True for 1 recursion did not "
-                     f"return an array of integers")
-                assert 'int' in str(_TWO.dtype).lower(), \
-                    (f"get_row_support with indices=True for 2 recursions did not "
-                     f"return an array of integers")
-                # len(row_support) ONE RECUR MUST == NUMBER OF ROWS IN ONE RCR
-                # TRFM X; SAME FOR TWO RCR
-                assert len(_ONE) == ONE_RCR_TRFM_X.shape[0], \
-                    f"one rcr len(row_support) as idxs does not equal TRFM X rows"
-                assert len(_TWO) == TWO_RCR_TRFM_X.shape[0], \
-                    f"two rcr len(row_support) as idxs does not equal TRFM X rows "
-                # NUMBER OF ROW IDXS IN ONE RECUR MUST BE >= NUM ROW IDXS IN TWO RECUR
-                assert len(_ONE) >= len(_TWO), \
-                    f"two recursion has more rows kept in it that one recursion"
-                # INDICES IN TWO RECUR MUST ALSO BE IN ONE RECUR
-                for row_idx in _TWO:
-                    assert row_idx in _ONE, (f"Rows that are to be kept by 2nd "
-                                             f"recur were not kept by 1st recur")
-
-        del _ONE, _TWO, row_idx, _indices
-        del ONE_RCR_TRFM_X, ONE_RCR_TRFM_Y, TWO_RCR_TRFM_X, TWO_RCR_TRFM_Y
-
-        # get_support()
-        for _indices in [True, False]:
-            _ = OneRecurTestCls.get_support(_indices)
-            __ = TwoRecurTestCls.get_support(_indices)
-            assert isinstance(_, np.ndarray), \
-                f"2 recursion get_support() did not return numpy.ndarray"
-            assert isinstance(__, np.ndarray), \
-                f"2 recursion get_support() did not return numpy.ndarray"
-
-            if not _indices:
-                assert _.dtype == 'bool', \
-                    (f"1 recursion get_support with indices=False did not "
-                     f"return a boolean array")
-                assert __.dtype == 'bool', \
-                    (f"2 recursion get_support with indices=False did not "
-                     f"return a boolean array")
-
-                # len(ROW SUPPORT TWO RECUR) AND len(ROW SUPPORT ONE RECUR)
-                # MUST EQUAL NUMBER OF COLUMNS IN X
-                assert len(_) == _shape[1], \
-                    f"1 recursion len(get_support({_indices})) != X columns"
-                assert len(__) == _shape[1], \
-                    f"2 recursion len(get_support({_indices})) != X columns"
-                # NUM COLUMNS IN 1 RECURSION MUST BE <= NUM COLUMNS IN X
-                assert sum(_) <= _shape[1], \
-                    (f"impossibly, number of columns kept by 1 recursion > number "
-                     f"of columns in X")
-                # NUM COLUMNS IN 2 RECURSION MUST BE <= NUM COLUMNS IN 1 RECURSION
-                assert sum(__) <= sum(_),\
-                    (f"impossibly, number of columns kept by 2 recursion > number "
-                     f"of columns kept by 1 recursion")
-                # INDICES IN TWO RECUR MUST ALSO BE IN ONE RECUR
-                assert np.unique(_[__])[0] == True, (f"Columns that are to be "
-                         f"kept in 2nd recur (True) were False in 1st recur")
-            elif _indices:
-                assert 'int' in str(_.dtype).lower(), (f"1 recursion get_support "
-                    f"with indices=True did not return an array of integers")
-                assert 'int' in str(__.dtype).lower(), (f"2 recursion get_support "
-                    f"with indices=True did not return an array of integers")
-                # ONE RECURSION COLUMNS MUST BE <= n_features_in_
-                assert len(_) <= _shape[1], \
-                    f"impossibly, 1 recursion len(get_support({_indices})) > X columns"
-                # TWO RECURSION COLUMNS MUST BE <= ONE RECURSION COLUMNS
-                assert len(__) <= len(_), \
-                    (f"2 recursion len(get_support({_indices})) > 1 "
-                     f"recursion len(get_support({_indices}))")
-                # INDICES IN TWO RECUR MUST ALSO BE IN ONE RECUR
-                for col_idx in __:
-                    assert col_idx in _, (f"Columns that are to be kept by "
-                              f"2nd recur were not kept by 1st recur")
-
-        del TwoRecurTestCls, _, __, _indices, col_idx
-
-        # ** _handle_X_y()
-
-        # inverse_transform() ********************
-        TwoRecurTestCls = CDT(**_kwargs)
-        # X IS NP ARRAY
-        TRFM_X, TRFM_Y = TwoRecurTestCls.fit_transform(X, y)
-
-        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF RETAINED COLUMNS
-        __ = np.array(_columns)
-        TRFM_MASK = TwoRecurTestCls.get_support(False)
-        for obj_type in ['np', 'pd']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    TEST_X = TRFM_X.copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
-                elif diff_cols == 'less':
-                    TEST_X = TRFM_X[:, :2].copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK][:2])
-                elif diff_cols == 'more':
-                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
-                    if obj_type == 'pd':
-                        _COLUMNS = np.hstack((__[TRFM_MASK],
-                                              np.char.upper(__[TRFM_MASK])
-                        ))
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
-                        del _COLUMNS
-
-                if diff_cols == 'same':
-                    TwoRecurTestCls.inverse_transform(TEST_X)
-                else:
-                    with pytest.raises(ValueError):
-                        TwoRecurTestCls.inverse_transform(TEST_X)
-
-        INV_TRFM_X = TwoRecurTestCls.inverse_transform(TRFM_X)
-
-        assert isinstance(INV_TRFM_X, np.ndarray), \
-            f"output of inverse_transform() is not a numpy array"
-        assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
-            f"rows in output of inverse_transform() do not match input rows"
-        assert INV_TRFM_X.shape[1] == TwoRecurTestCls.n_features_in_, \
-            (f"columns in output of inverse_transform() do not match originally "
-             f"fitted columns")
-
-        __ = np.logical_not(TwoRecurTestCls.get_support(False))
-        _ZERO_ARRAY = np.zeros((TRFM_X.shape[0], sum(__)))
-        assert np.array_equiv(INV_TRFM_X[:, __], _ZERO_ARRAY), (f"back-filled "
-            f"parts of inverse_transform() output do not slice to a zero array")
-        del __, _ZERO_ARRAY
-
-        assert np.array_equiv(TRFM_X.astype(str),
-            INV_TRFM_X[:, TwoRecurTestCls.get_support(False)].astype(str)), \
-            (f"output of inverse_transform() does not reduce back to the output "
-             f"of transform()")
-
-        del TRFM_X, TRFM_Y, TRFM_MASK, obj_type, diff_cols, TEST_X, INV_TRFM_X
-
-        # END inverse_transform() **********
-
-        # ** _make_instructions()
-        # ** _must_be_fitted()
-        # partial_fit()
-        # ** _reset()
-
-        # set_output()
-        TwoRecurTestCls.set_output(transform='pandas_dataframe')
-        assert TwoRecurTestCls._output_transform == 'pandas_dataframe'
-        TwoRecurTestCls.fit_transform(X, y)
-        assert TwoRecurTestCls._output_transform == 'pandas_dataframe'
-
-        del TwoRecurTestCls
-
-        # set_params()
-        TestCls = CDT(**_kwargs)
-        KEYS = [
-            'count_threshold', 'ignore_float_columns',
-            'ignore_non_binary_integer_columns', 'ignore_columns', 'ignore_nan',
-            'handle_as_bool', 'delete_axis_0', 'reject_unseen_values',
-            'max_recursions', 'n_jobs'
-        ]
-        VALUES = [4, False, False, [0], False, [2], True, True, 2, 4]
-        test_kwargs = dict((zip(KEYS, VALUES)))
-
-        TestCls.set_params(**test_kwargs)
-        ATTRS = [
-            TestCls._count_threshold, TestCls._ignore_float_columns,
-            TestCls._ignore_non_binary_integer_columns, TestCls._ignore_columns,
-            TestCls._ignore_nan, TestCls._handle_as_bool, TestCls._delete_axis_0,
-            TestCls._reject_unseen_values, TestCls._max_recursions, TestCls._n_jobs
-        ]
-        for _key, _attr, _value in zip(KEYS, ATTRS, VALUES):
-            assert _attr == _value, f'set_params() did not set {_key}'
-
-        del TestCls, KEYS, VALUES, ATTRS
-
-        # transform()
-        # ** _validate_delete_instr()
-        # ** _validate_feature_names()
-        # ** _validate()
-
-        del OneRecurTestCls,
-
-        # END ^^^ AFTER fit_transform() ^^^ ****************************
-        # **************************************************************
-
-
-# END ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM; FOR 2 RECURSIONS

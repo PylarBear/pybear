@@ -212,12 +212,14 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
     # def get_params!!! pizza dont forget about this! ESPECIALLY TEST!
 
-
     # def set_params!!! pizza dont forget about this! ESPECIALLY TEST!
 
-    # def set_output!!! pizza this is being tested as of 24_10_13
+    # def set_output(self)
 
-    # def get_metadata_routing(self): pizza figure this out
+
+    def get_metadata_routing(self):
+        __ = type(self).__name__
+        raise NotImplementedError(f"get_metadata_routing not implemented in {__}")
 
 
     @_fit_context(prefer_skip_nested_validation=True)
@@ -306,11 +308,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 self.n_jobs
         )
 
-
-        # determine the columns to remove based on given parameters.
-        # pizza this makes removed_columns_ and column_mask_ available after
-        # (partial_)fit, but what if set_params() is used before transform?
-        # redo these operations at the top of transform()
         self.removed_columns_ = \
             _identify_idxs_to_delete(
                 self.duplicates_,
@@ -470,8 +467,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
-
-        # pizza, may want to put _val_X here
 
         copy = copy if copy is not None else self.copy
         X = check_array(

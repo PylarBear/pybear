@@ -18,6 +18,8 @@ import polars
 
 
 # pizza come back and reread this, see if it needs anything!
+# what about correct progression of reported duplicates as partial fits are done?
+# how about a rigged set of vstacked arrays that have progressively decreasing duplicates?
 
 # pytest.skip(reason=f"pizza is not done!", allow_module_level=True)
 
