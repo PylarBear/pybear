@@ -163,18 +163,51 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             del self.column_mask_
 
 
-    def get_feature_names_out(self):
+    def get_feature_names_out(self, input_features=None):
 
-        """Get output feature names after deduplication."""
+        """
+        Get output feature names after deduplication.
+
+        Parameters
+        ----------
+        input_features : array-like of str or None, default=None - Input
+            features. If input_features is None, then feature_names_in_
+            is used as feature names in. If feature_names_in_ is not
+            defined, then the following input feature names are generated:
+                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
+            If input_features is an array-like, then input_features must
+            match feature_names_in_ if feature_names_in_ is defined.
+
+        Return
+        ------
+        -
+            feature_names_out : ndarray of str objects - Transformed
+                feature names.
+
+        """
 
         # get_feature_names_out() would otherwise be provided by
         # OneToOneFeatureMixin, but since this transformer deletes
         # columns, must build a one-off.
 
+        if input_features is not None and \
+            len(input_features) != self.n_features_in_:
+            raise ValueError("input_features should have length equal")
+
         if hasattr(self, 'feature_names_in_'):
-            return self.feature_names_in_[self.column_mask_]
+
+            if input_features is not None and \
+                    not np.array_equal(input_features, self.feature_names_in_):
+                raise ValueError(
+                    f"input_features is not equal to feature_names_in_"
+                )
+
+            return self.feature_names_in_[self.column_mask_].astype(object)
         else:
-            return
+            return np.array(
+                [f"x{i}" for i in range(self.n_features_in_)],
+                dtype=object
+            )
 
 
     # def get_params!!! pizza dont forget about this! ESPECIALLY TEST!
@@ -289,6 +322,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
         self.column_mask_[list(self.removed_columns_)] = False
+        self.column_mask_ = list(map(bool, self.column_mask_))
 
         return self
 
@@ -399,6 +433,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
         self.column_mask_[list(self.removed_columns_)] = False
+        self.column_mask_ = list(map(bool, self.column_mask_))
         # end redo
 
         return _transform(X, self.column_mask_)
@@ -456,7 +491,13 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         )
 
 
+    def score(self, X, y=None):
+        """
+        Dummy method to spoof dask Incremental and ParallelPostFit
+        wrappers. Verified must be here for dask wrappers.
+        """
 
+        pass
 
 
 

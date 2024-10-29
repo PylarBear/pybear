@@ -5,33 +5,85 @@
 #
 
 
+import pytest
 
 
-from pybear.preprocessing import ColumnDeduplicateTransformer
-from sklearn.preprocessing import OneHotEncoder
+from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+
 from sklearn.utils.estimator_checks import (
     check_transformer_general,
     check_transformers_unfitted,
-    check_transformers_unfitted_stateless,
-    check_transformer_data_not_an_array
+    check_transformer_data_not_an_array,
+    check_transformer_preserve_dtypes,
+    check_transformer_n_iter,
+    check_transformer_get_feature_names_out,
+    check_transformer_get_feature_names_out_pandas
 )
 
-# pizza 24_10_28_10_23_00 when u work on this, go back to MCT and see
-# how the tests were set up and the descriptions!
-
-
-# check_transformer_general(
-#     'ColumnDeduplicateTransformer',
-#     ColumnDeduplicateTransformer()
-# )
-#
-# check_transformers_unfitted(
-#     'ColumnDeduplicateTransformer',
-#     ColumnDeduplicateTransformer()
-# )
 
 
 
+class TestSKLearnCheckTransformer:
+
+
+    def test_transformers_unfitted(self):
+        # this tests if Exception raised when transform() without fit()
+        check_transformers_unfitted(
+            'ColumnDeduplicateTransformer',
+            CDT()
+        )
+
+
+    def test_transformer_general(self):
+
+        check_transformer_general(
+            'ColumnDeduplicateTransformer',
+            CDT()
+        )
+
+
+    @pytest.mark.xfail(reason=f"pizza needs to finish this")
+    def test_transformer_data_not_an_array(self):
+
+        # this fails because it passes an object that does not have 'shape' attr
+        # pizza figure this out, what it is that sklearn is passing!
+        with pytest.raises(TypeError):
+            check_transformer_data_not_an_array(
+                'ColumnDeduplicateTransformer',
+                CDT()
+            )
+
+
+    def test_transformer_preserve_dtypes(self):
+        check_transformer_preserve_dtypes(
+            'ColumnDeduplicateTransformer',
+            CDT()
+        )
+
+
+    def test_check_transformer_n_iter(self):
+        check_transformer_n_iter(
+            'ColumnDeduplicateTransformer',
+            CDT()
+    )
+
+
+    def test_check_transformer_get_feature_names_out(self):
+        # looks for certain verbage in error if len(input_features) does not
+        # match n_features_in_, and if output dtype is object
+        check_transformer_get_feature_names_out(
+            'ColumnDeduplicateTransformer',
+            CDT()
+        )
+
+
+    def test_check_transformer_get_feature_names_out_pandas(self):
+        # looks for certain verbage in error if 'input_features' does not
+        # match feature_names_in_ if MCT was fit on a dataframe
+        check_transformer_get_feature_names_out_pandas(
+            'ColumnDeduplicateTransformer',
+            CDT()
+        )
 
 
 

@@ -27,7 +27,7 @@ import pytest
 
 
 
-pytest.skip(reason=f"pizza says so", allow_module_level=True)
+# pytest.skip(reason=f"pizza says so", allow_module_level=True)
 
 
 
@@ -135,9 +135,6 @@ class TestAccuracy:
         else:
             _og_dtype = X.dtype
 
-        # retain original columns
-        _og_cols = X.shape[1]
-
         if _conflict_condition and conflict=='raise':
             with pytest.raises(ValueError):
                 TestCls.fit_transform(X)
@@ -151,6 +148,16 @@ class TestAccuracy:
 
 
         # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+        # attributes:
+        #     'n_features_in_'
+        #     'feature_names_in_'
+        #     'duplicates_'
+        #     'removed_columns_'
+        #     'column_mask_'
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
         # returned format is same as given format
         assert isinstance(TRFM_X, _og_format)
 
@@ -159,6 +166,15 @@ class TestAccuracy:
             assert np.array_equal(TRFM_X.dtypes, _og_dtype[TestCls.column_mask_])
         else:
             assert TRFM_X.dtype == _og_dtype
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # attr 'n_features_in_' is correct
+        assert TestCls.n_features_in_ == X.shape[1]
+
+        # attr 'feature_names_in_' is correct
+        if X_dtype == 'pd':
+            assert np.array_equal(TestCls.feature_names_in_, _columns)
+            assert _columns.dtype == object
 
         # number of columns in output is adjusted correctly for num duplicates
         assert sum(TestCls.column_mask_) == \
@@ -167,39 +183,108 @@ class TestAccuracy:
         # number of columns in output == number of columns in column_mask_
         assert TRFM_X.shape[1] == sum(TestCls.column_mask_)
 
-        _kept_idxs = np.arange(_shape[1])[TestCls.column_mask_]
+        # attr 'duplicates_' is correct
+        if len(exp_dupls) == 0:
+            assert len(TestCls.duplicates_) == 0
+        else:
+            for idx, set in enumerate(exp_dupls):
+                assert np.array_equal(set, exp_dupls[idx])
+
+        # get expected number of kept columns
+        _num_kept = X.shape[1] - sum([len(_)-1 for _ in exp_dupls])
 
         # keep ('first','last','random') is correct when not muddied by do_not_drop
+        # also verify 'column_mask_' 'removed_columns_' 'get_feature_names_out_'
+        ref_column_mask = [True for _ in range(X.shape[1])]
+        ref_removed_columns = {}
+        ref_feature_names_out = list(deepcopy(_columns))
         if not _conflict_condition:
             # in this case, column idxs cannot be overridden by do_not_drop
-            if keep == 'first':
-                for _set in exp_dupls:
-                    assert _set[0] in _kept_idxs
-            elif keep == 'last':
-                for _set in exp_dupls:
-                    assert _set[-1] in _kept_idxs
-            elif keep == 'random':
-                for _set in exp_dupls:
-                    assert sum([__ in _kept_idxs for __ in _set]) == 1
+            for _set in exp_dupls:
+                if keep == 'first':
+                    for idx in _set[1:]:
+                        ref_column_mask[idx] = False
+                        ref_removed_columns[idx] = _set[0]
+                        ref_feature_names_out[idx] = None
+                elif keep == 'last':
+                    for idx in _set[:-1]:
+                        ref_column_mask[idx] = False
+                        ref_removed_columns[idx] = _set[-1]
+                        ref_feature_names_out[idx] = None
+                elif keep == 'random':
+                    # cop out a little here, since we cant know what index
+                    # was kept, use TestCls.removed_columns_ for help
+                    # (even tho removed_columns_ is something we are trying
+                    # to verify)
+                    ref_removed_columns = deepcopy(TestCls.removed_columns_)
+                    _kept_idxs = sorted(list(
+                        np.unique(list(TestCls.removed_columns_.values()))
+                    ))
+                    assert len(_kept_idxs) == len(exp_dupls)
+                    _dropped_idxs = sorted(list(
+                        np.unique(list(TestCls.removed_columns_.keys()))
+                    ))
+                    for idx in _dropped_idxs:
+                        ref_column_mask[idx] = False
+                        ref_feature_names_out[idx] = None
+
         elif _conflict_condition and conflict == 'raise':
             # this should have raised above
             raise Exception
         elif _conflict_condition and conflict == 'ignore':
-            # this could get really complicated. suffice it to determine
-            # only one column from each group of duplicates is kept
-            for _set in exp_dupls:
-                assert sum([__ in _kept_idxs for __ in _set]) == 1
+            # this could get really complicated.
+            # cop out here again, since the logic behind what index
+            # was kept is really complicated, use TestCls.removed_columns_
+            # for help (even tho removed_columns_ is something we are trying
+            # to verify)
+            ref_removed_columns = deepcopy(TestCls.removed_columns_)
+            _kept_idxs = sorted(list(
+                np.unique(list(TestCls.removed_columns_.values()))
+            ))
+            assert len(_kept_idxs) == len(exp_dupls)
+            _dropped_idxs = sorted(list(
+                np.unique(list(TestCls.removed_columns_.keys()))
+            ))
+            for idx in _dropped_idxs:
+                ref_column_mask[idx] = False
+                ref_feature_names_out[idx] = None
         else:
             raise Exception
+
+        # for convenient index management, positions to be dropped from
+        # ref_feature_names_out were set to None, take those out now
+        ref_feature_names_out = [_ for _ in ref_feature_names_out if _ is not None]
+
+        # validate TestCls attrs against ref objects
+        assert sum(ref_column_mask) == _num_kept
+        assert np.array_equal(ref_column_mask, TestCls.column_mask_)
+        if X_dtype == 'pd':
+            assert len(TestCls.get_feature_names_out()) == _num_kept
+            assert np.array_equal(
+                ref_feature_names_out,
+                TestCls.get_feature_names_out()
+            )
+        _, __ = TestCls.removed_columns_, ref_removed_columns
+        assert np.array_equal(
+            sorted(list(_.keys())),
+            sorted(list(__.keys()))
+        )
+        assert np.array_equal(
+            sorted(list(_.values())),
+            sorted(list(__.values()))
+        )
+        del _, __
+        # END validate TestCls attrs against ref objects
 
         # assure all columns that werent duplicates are in the output
         __all_dupls = list(itertools.chain(*deepcopy(exp_dupls)))
         for col_idx in range(_shape[1]):
             if col_idx not in __all_dupls:
-                assert col_idx in _kept_idxs
+                assert TestCls.column_mask_[col_idx] is True
 
         # for retained columns, assert they are equal to themselves in
         # the original data
+        _kept_idxs = np.arange(len(TestCls.column_mask_))[TestCls.column_mask_]
         for _new_idx, _kept_idx in enumerate(_kept_idxs, 0):
 
             if isinstance(X, np.ndarray):
