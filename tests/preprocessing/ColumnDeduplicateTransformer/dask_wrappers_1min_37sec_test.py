@@ -11,7 +11,6 @@ import pytest
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
 import numpy as np
-
 import pandas as pd
 import scipy.sparse as ss
 
@@ -60,11 +59,6 @@ def _columns(_master_columns, _shape):
 
 
 @pytest.fixture(scope='module')
-def _bad_columns(_master_columns, _shape):
-    return _master_columns.copy()[-_shape[1]:]
-
-
-@pytest.fixture(scope='module')
 def _X_pd(_dum_X, _columns):
     return pd.DataFrame(
         data=_dum_X,
@@ -109,17 +103,12 @@ class TestDaskIncrementalParallelPostFit:
     @pytest.mark.parametrize('x_format', FORMATS + ['csr', 'csc', 'coo'])
     @pytest.mark.parametrize('y_format', FORMATS + ['pdseries', None])
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
-    def test_fit_and_transform_accuracy(self, wrappings,
-        CDT_wrapped_parallel, CDT_wrapped_incremental, CDT_not_wrapped,
-        CDT_wrapped_both, _dum_X, _columns, x_format, y_format, _kwargs,
-        _shape
+    def test_fit_and_transform_accuracy(self, wrappings, CDT_wrapped_parallel,
+        CDT_wrapped_incremental, CDT_not_wrapped, CDT_wrapped_both, _dum_X,
+        _columns, x_format, y_format, _kwargs, _shape
     ):
 
         # no difference with or without Client --- pizza, check this
-
-        # USE NUMERICAL COLUMNS ONLY 24_03_27_11_45_00  --- pizza
-        # NotImplementedError: Cannot use auto rechunking with object dtype.
-        # We are unable to estimate the size in bytes of object data
 
         if wrappings == 'incr':
             _test_cls = CDT_wrapped_parallel
