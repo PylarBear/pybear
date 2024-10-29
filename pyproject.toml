@@ -48,7 +48,6 @@ docutils = ">=0.20"
 sphinx = "*"
 sphinx-autobuild = "*"
 sphinx-rtd-theme = "*"
-polars = "*"
 polars-lts-cpu = "*"
 
 
@@ -57,7 +56,6 @@ pytest = "*"
 lightgbm = "*"
 xgboost = "*"
 scipy = "*"
-polars = "*"
 polars-lts-cpu = "*"
 
 
