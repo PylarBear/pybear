@@ -201,9 +201,8 @@ class TestGSTCVInput:
         # AS OF 24_10_28 THIS IS THE ONLY ONE WORKING ON WINDOWS
         _GSTCVDask.set_params(estimator=dask_LogisticRegression()).fit(X_da, y_da)
 
-        # pizza 24_10_28_14_55_00, revisit this on linux and see if this works
-
         if os.name != 'nt':
+            # these are passing tests on Linux and MacOS as of 24_10_29
             _GSTCVDask.set_params(estimator=DaskXGBClassifier()).fit(X_da, y_da)
 
             _GSTCVDask.set_params(estimator=DaskXGBRFClassifier()).fit(X_da, y_da)

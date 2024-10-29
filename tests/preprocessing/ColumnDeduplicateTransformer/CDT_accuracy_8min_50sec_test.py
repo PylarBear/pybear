@@ -27,13 +27,6 @@ import pytest
 
 
 
-# pytest.skip(reason=f"pizza says so", allow_module_level=True)
-
-
-
-
-# TEST ACCURACY ********************************************************
-
 
 class TestAccuracy:
 
@@ -155,6 +148,7 @@ class TestAccuracy:
         #     'duplicates_'
         #     'removed_columns_'
         #     'column_mask_'
+        # and 'get_feature_names_out'
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -308,7 +302,7 @@ class TestAccuracy:
 
         # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-# END TEST ACCURACY ****************************************************
+
 
 
 

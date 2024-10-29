@@ -16,8 +16,6 @@ from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
 
 
 
-
-
 @pytest.fixture(scope='function')
 def _args(_rows):
     return [_rows // 20]
@@ -72,6 +70,14 @@ class TestSetParams:
         # }
 
 
+    def test_excepts_for_unknown_param(self, _args, _kwargs):
+
+        TestCls = MCT(*_args, **_kwargs)
+
+        with pytest.raises(ValueError):
+            TestCls.set_params(garbage=1)
+
+
     def test_set_params_correctly_applies(self, X, y, _args, _kwargs):
 
         _first_params = {'count_threshold': _args[0]} | _kwargs
@@ -82,7 +88,7 @@ class TestSetParams:
         for _param, _value in _first_params.items():
             assert getattr(TestCls, _param) == _value
 
-        # set new params
+        # set new params before fit
         _scd_params = {'count_threshold': _args[0]} | _kwargs
         _scd_params['count_threshold'] = 39
         _scd_params['ignore_float_columns'] = False

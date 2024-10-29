@@ -34,7 +34,7 @@ from ._transform._tcbc_update import _tcbc_update
 
 
 XType: TypeAlias = Iterable[Iterable[DataType]]
-YType: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType]]
+YType: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType], None]
 
 
 class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
@@ -374,15 +374,9 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
     """
 
 
-
-
-
-
-
-
-
     _original_dtypes: OriginalDtypesDtype
     _total_counts_by_column: TotalCountsByColumnType
+
 
     def __init__(
         self,
@@ -449,7 +443,12 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         except: pass
 
 
-    def _base_fit(self, X, y=None, **fit_kwargs):
+    def _base_fit(self,
+        X: XType,
+        y: YType=None,
+        **fit_kwargs
+    ):
+
         """
         Shared uniques and counts collection process for partial_fit() &
         fit().
@@ -1024,7 +1023,10 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         return X_inv
 
 
-    def get_feature_names_out(self, input_features=None):
+    def get_feature_names_out(
+        self,
+        input_features:Union[Iterable[str], None]=None
+    ):
         """
         Get output feature names for transformation.
 

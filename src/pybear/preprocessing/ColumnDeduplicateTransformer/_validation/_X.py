@@ -43,7 +43,7 @@ def _val_X(
     except UnicodeError:
         raise ValueError(_err_msg)
     except:
-        # pizza, need to figure out what sklearn in is trying to pass that doesnt have a shape attr!
+        # pizza, need to figure out what sklearn is trying to pass that doesnt have a shape attr!
         pass
 
 
