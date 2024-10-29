@@ -48,6 +48,8 @@ docutils = ">=0.20"
 sphinx = "*"
 sphinx-autobuild = "*"
 sphinx-rtd-theme = "*"
+polars = "*"
+polars-lts-cpu = "*"
 
 
 [tool.poetry.group.test.dependencies]
@@ -55,6 +57,8 @@ pytest = "*"
 lightgbm = "*"
 xgboost = "*"
 scipy = "*"
+polars = "*"
+polars-lts-cpu = "*"
 
 
 [tool.poetry.group.docs.dependencies]

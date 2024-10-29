@@ -7,7 +7,7 @@
 
 from copy import deepcopy
 from typing import Iterable
-from typing_extensions import Union, TypeAlias
+from typing_extensions import Union, TypeAlias, Self
 from ._type_aliases import OriginalDtypesDtype, TotalCountsByColumnType, \
     IgnColsHandleAsBoolDtype, DataType
 import numpy as np
@@ -578,20 +578,29 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         return self
 
 
-    def fit(self, X, y=None, **fit_kwargs):
+    def fit(
+        self,
+        X: XType,
+        y: YType=None,
+        **fit_kwargs
+    ) -> Self:
+
         """Determine the uniques and their frequencies to be used for
         later thresholding.
 
         Parameters
         ----------
-        X : {array-like, of shape (n_samples, n_features) The data used
-            to determine the uniques and their frequencies, used for later
-            thresholding along the feature axis.
+        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            n_features) - The data used to determine the uniques and
+            their frequencies, used for later thresholding along the
+            feature axis.
 
-        y : array-like of shape (n_samples, n_output) or (n_samples,),
-            default=None
-            Target relative to X for classification or regression;
-            None for unsupervised learning.
+        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series, None] of shape
+            (n_samples, n_outputs), or (n_samples,), default=None -
+            Target relative to X for classification or regression; None
+            for unsupervised learning.
 
         Return
         ------
@@ -610,7 +619,13 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         return self._base_fit(X, y, **fit_kwargs)
 
 
-    def partial_fit(self, X, y=None, **fit_kwargs):
+    def partial_fit(
+        self,
+        X: XType,
+        y: YType=None,
+        **fit_kwargs
+    ) -> Self:
+
         """Online accrual of uniques and counts for later thresholding.
 
         All of X is processed as a single batch. This is intended for
@@ -619,14 +634,17 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features)
-            The data used to determine the uniques and their frequencies,
-            used for later thresholding along the feature axis.
+        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            n_features) - The data used to determine the uniques and
+            their frequencies, used for later thresholding along the
+            feature axis.
 
-        y : array-like of shape (n_samples, n_output) or (n_samples,),
-            default=None
-            Target relative to X for classification or regression;
-            None for unsupervised learning.
+        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series, None] of shape
+            (n_samples, n_outputs), or (n_samples,), default=None -
+            Target relative to X for classification or regression; None
+            for unsupervised learning.
 
         Return
         ------
@@ -656,15 +674,15 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         Parameters
         ----------
-        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series dask.array,
-            dask.DataFrame, dask.Series] of shape (n_samples, n_features)}
-            The data that is to be reduced according to the thresholding
-            rules found during :term: fit.
+        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            n_features) - The data that is to be reduced according to
+            the thresholding rules found during :term: fit.
 
-        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series, dask.array,
-            dask.DataFrame, dask.Series] of shape (n_samples, n_outputs),
-            or (n_samples,), default=None - Target values (None for
-            unsupervised transformations).
+        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series, None] of shape
+            (n_samples, n_outputs), or (n_samples,), default=None -
+            Target values (None for unsupervised transformations).
 
         Return
         ------
@@ -894,6 +912,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         del FEATURE_NAMES
 
 
+        # pizza, come back to this, see if u can use TransformerMixin, or if u
+        # even want to.
         __ = self._output_transform
         if y is not None:
             __ = __ or self._y_original_obj_type
@@ -911,21 +931,29 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             return X
 
 
-    def fit_transform(self, X, y=None, **fit_kwargs):
+    def fit_transform(
+        self,
+        X: XType,
+        y: YType=None,
+        **fit_kwargs
+    ) -> Union[tuple[XType, YType], XType]:
+
         """
         Fits MinCountTransformer to X and returns a transformed version
         of X.
 
         Parameters
         ----------
-        X : {ndarray, pandas.DataFrame, pandas.Series } of shape
-            (n_samples, n_features)} - The data used to determine the
-            uniques and their frequencies and to be transformed by rules
-            created from those frequencies.
+        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            n_features) - The data used to determine the uniques and
+            their frequencies and to be transformed by rules created
+            from those frequencies.
 
-        y : {ndarray, pandas.DataFrame, pandas.Series} of shape
-            (n_samples,) or (n_samples, n_outputs), default=None - Target
-            values (None for unsupervised transformations).
+        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            n_outputs), or (n_samples,), default=None - Target values
+            (None for unsupervised transformations).
 
         Return
         ------
@@ -953,7 +981,11 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         return __
 
 
-    def inverse_transform(self, X_tr):
+    def inverse_transform(
+        self,
+        X_tr: XType
+    ) -> XType:
+
         """
         Reverse the transformation operation. This operation cannot
         restore removed examples, only features.

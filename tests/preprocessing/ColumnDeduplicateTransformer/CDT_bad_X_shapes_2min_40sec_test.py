@@ -4,6 +4,7 @@
 # License: BSD 3 clause
 #
 
+
 from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransformer \
     import ColumnDeduplicateTransformer as CDT
 
@@ -14,7 +15,7 @@ import scipy.sparse as ss
 import pytest
 
 
-@pytest.skip(reason=f"pizza says so", allow_module_level=True)
+# @pytest.skip(reason=f"pizza says so", allow_module_level=True)
 
 
 # TEST FOR EXCEPTS ON BAD X SHAPES ON ARRAY & DF ##########################
@@ -36,7 +37,6 @@ class TestExceptsOnBadXShapes:
             'keep': 'first',
             'do_not_drop': None,
             'conflict': 'raise',
-            'columns': None,
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': False,
