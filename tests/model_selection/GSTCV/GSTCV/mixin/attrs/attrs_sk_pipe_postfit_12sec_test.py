@@ -95,7 +95,7 @@ class TestSKAttrsPostFit:
         assert isinstance(__, dict)  # cv_results is dict
         assert all(map(isinstance, __.keys(), (str for _ in __))) # keys are str
         for _ in __.values():   # values are np masked or np array
-            assert(isinstance, (np.ma.masked_array, np.ndarray))
+            assert isinstance(_, (np.ma.masked_array, np.ndarray))
         assert len(__[list(__)[0]]) == 4  # number of permutations
 
         __ = getattr(_sk_GSTCV_PIPE, 'scorer_')

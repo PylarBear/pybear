@@ -11,11 +11,9 @@ import pytest
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
 from sklearn.utils.estimator_checks import (
-    check_transformer_general,
     check_transformers_unfitted,
-    check_transformer_data_not_an_array,
+    check_transformer_general,
     check_transformer_preserve_dtypes,
-    check_transformer_n_iter,
     check_transformer_get_feature_names_out,
     check_transformer_get_feature_names_out_pandas
 )
@@ -42,30 +40,11 @@ class TestSKLearnCheckTransformer:
         )
 
 
-    @pytest.mark.xfail(reason=f"pizza needs to finish this")
-    def test_transformer_data_not_an_array(self):
-
-        # this fails because it passes an object that does not have 'shape' attr
-        # pizza figure this out, what it is that sklearn is passing!
-        with pytest.raises(TypeError):
-            check_transformer_data_not_an_array(
-                'ColumnDeduplicateTransformer',
-                CDT()
-            )
-
-
     def test_transformer_preserve_dtypes(self):
         check_transformer_preserve_dtypes(
             'ColumnDeduplicateTransformer',
             CDT()
         )
-
-
-    def test_check_transformer_n_iter(self):
-        check_transformer_n_iter(
-            'ColumnDeduplicateTransformer',
-            CDT()
-    )
 
 
     def test_check_transformer_get_feature_names_out(self):

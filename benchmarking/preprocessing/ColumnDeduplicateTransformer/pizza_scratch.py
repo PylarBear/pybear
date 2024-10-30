@@ -6,10 +6,17 @@
 
 import numpy as np
 
-tron = np.random.randint(0,2,5).astype(bool)
-print(tron)
-tron = list(map(bool, tron))
-print(tron)
+from sklearn.utils.estimator_checks import check_transformer_data_not_an_array
+
+from sklearn.preprocessing import StandardScaler
+
+
+check_transformer_data_not_an_array('StandardScaler', StandardScaler)
+
+
+
+
+
 
 
 
