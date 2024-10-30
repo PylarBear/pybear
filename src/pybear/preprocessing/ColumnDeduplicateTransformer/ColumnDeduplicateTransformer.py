@@ -7,6 +7,7 @@
 
 from pandas import SparseDtype
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
+from sklearn.exceptions import NotFittedError
 from sklearn.utils._param_validation import StrOptions
 
 from typing import Iterable, Literal, Optional
@@ -166,17 +167,24 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
 
         """
-        Get output feature names after deduplication.
+        Get remaining feature names after deduplication.
 
         Parameters
         ----------
         input_features : array-like of str or None, default=None - Input
-            features. If input_features is None, then feature_names_in_
-            is used as feature names in. If feature_names_in_ is not
-            defined, then the following input feature names are generated:
+            features.
+            If input_features is None:
+            if feature_names_in_ is defined, then feature_names_in_ is
+            used as the input features.
+            If feature_names_in_ is not defined, then the following input
+            feature names are generated:
                 ["x0", "x1", ..., "x(n_features_in_ - 1)"].
-            If input_features is an array-like, then input_features must
-            match feature_names_in_ if feature_names_in_ is defined.
+            If input_features is not None:
+            if feature_names_in_ is not defined, then input_features is
+            used as the input features.
+            if feature_names_in_ is defined, then input_features must be
+            an array-like whose feature names exactly match those in
+            feature_names_in_.
 
         Return
         ------
@@ -190,31 +198,60 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         # OneToOneFeatureMixin, but since this transformer deletes
         # columns, must build a one-off.
 
-        if input_features is not None and \
-            len(input_features) != self.n_features_in_:
-            raise ValueError("input_features should have length equal")
 
-        if hasattr(self, 'feature_names_in_'):
-
-            if input_features is not None and \
-                    not np.array_equal(input_features, self.feature_names_in_):
-                raise ValueError(
-                    f"input_features is not equal to feature_names_in_"
-                )
-
-            return self.feature_names_in_[self.column_mask_].astype(object)
-        else:
-            return np.array(
-                [f"x{i}" for i in range(self.n_features_in_)],
-                dtype=object
+        try:
+            if isinstance(input_features, type(None)):
+                raise UnicodeError
+            iter(input_features)
+            if isinstance(input_features, (str, dict)):
+                raise Exception
+            if not all(map(
+                isinstance, input_features, (str for _ in input_features)
+            )):
+                raise Exception
+        except UnicodeError:
+            pass
+        except:
+            raise ValueError(
+                f"'input_features' must be a vector-like containing strings, or None"
             )
+
+
+        if input_features is not None:
+
+            if len(input_features) != self.n_features_in_:
+                raise ValueError("input_features should have length equal")
+
+            if hasattr(self, 'feature_names_in_'):
+
+                if not np.array_equal(input_features, self.feature_names_in_):
+                    raise ValueError(
+                        f"input_features is not equal to feature_names_in_"
+                    )
+
+            return input_features[self.column_mask_].astype(object)
+
+        elif hasattr(self, 'feature_names_in_'):
+            return self.feature_names_in_[self.column_mask_].astype(object)
+
+        else:
+            try:
+                input_features = \
+                    np.array([f"x{i}" for i in range(self.n_features_in_)])
+                return input_features.astype(object)[self.column_mask_]
+            except:
+                raise NotFittedError(
+                    f"This {type(self).__name__} instance is not fitted yet. "
+                    f"Call 'fit' with appropriate arguments before using this "
+                    f"estimator."
+                )
 
 
     # def get_params!!! pizza dont forget about this! ESPECIALLY TEST!
 
     # def set_params!!! pizza dont forget about this! ESPECIALLY TEST!
 
-    # def set_output(self)
+    # def set_output(self) - inherited from TransformerMixin
 
 
     def get_metadata_routing(self):
@@ -468,7 +505,18 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
-        copy = copy if copy is not None else self.copy
+
+        # the number of columns in X must be equal to the number of features
+        # remaining in column_mask_
+        _n_remaining = np.sum(self.column_mask_)
+        err_msg = (f"the number of columns in X must be equal to the number of "
+               f"columns kept from the fitted data after removing duplicates "
+               f"{_n_remaining}"
+        )
+        if X.shape[1] != _n_remaining:
+            raise ValueError(err_msg)
+
+
         X = check_array(
             array=X,
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),

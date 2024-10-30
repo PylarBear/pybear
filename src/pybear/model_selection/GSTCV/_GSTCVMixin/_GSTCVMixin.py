@@ -363,6 +363,41 @@ class _GSTCVMixin(BaseEstimator):
         )
 
 
+    def get_params(self, deep:bool=True):
+
+        """
+
+        Get parameters for this GSTCV(Dask) instance.
+
+
+        Parameters
+        ----------
+        deep:
+            bool, optional, default=True - 'False' only returns the
+            parameters of the GSTCV(Dask) instance. 'True' returns the
+            parameters of the GSTCV(Dask) instance as well as the
+            parameters of the estimator and anything embedded in the
+            estimator. When the estimator is a single estimator, the
+            parameters of the single estimator are returned. If the
+            estimator is a pipeline, the parameters of the pipeline and
+            the parameters of each of the steps in the pipeline are
+            returned.
+
+
+        Return
+        ------
+        -
+            params: dict - Parameter names mapped to their values.
+
+        """
+
+
+        if not isinstance(deep, bool):
+            raise ValueError(f"'deep' must be boolean")
+
+        return super().get_params(deep)
+
+
     # 24_10_27 now inheriting get_params from BaseEstimator
     # the below code previously worked in its stead, keep this for backup.
     # def get_params(self, deep:bool=True):
