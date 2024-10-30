@@ -123,9 +123,9 @@ class TestParallelizedFit:
         assert isinstance(out_fitted_estimator.score_, float)
         assert out_fitted_estimator.score_ is np.nan
         assert isinstance(out_time, float)
-        assert out_time > 0.48 # was 0.5, the sleep duration in mock_classifier
+        assert out_time > 0.48 # was 0.5, the sleep duration in mock_classifier;
         # this was excepting in github actions for out_time == 0.491....
-        # with windows and py3.10
+        # with windows
         assert out_fit_excepted is True
 
 

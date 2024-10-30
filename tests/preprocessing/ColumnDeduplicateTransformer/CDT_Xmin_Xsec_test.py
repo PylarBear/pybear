@@ -9,7 +9,10 @@ import pytest
 
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
+from pybear.utilities import nan_mask
+
 from copy import deepcopy
+import itertools
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -862,7 +865,7 @@ class TestManyPartialFitsEqualOneBigFit:
 # END TEST MANY PARTIAL FITS == ONE BIG FIT ****************************
 
 
-
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestDuplAccuracyOverManyPartialFits:
 
     # pizza
@@ -880,12 +883,12 @@ class TestDuplAccuracyOverManyPartialFits:
     @pytest.fixture()
     def _X(_X_factory, _chunk_shape):
 
-        def foo(_dupl, _has_nan, _format, _dtype):
+        def foo(_dupl, _has_nan, _dtype):
 
             return _X_factory(
                 _dupl=_dupl,
                 _has_nan=_has_nan,
-                _format=_format,
+                _format='np',
                 _dtype=_dtype,
                 _columns=None,
                 _zeros=None,
@@ -898,28 +901,110 @@ class TestDuplAccuracyOverManyPartialFits:
     @staticmethod
     @pytest.fixture()
     def _start_dupl(_chunk_shape):
+        # first indices of a set must be ascending
         return [
-            [2, 4, _chunk_shape[1]-1],
             [0, 7],
+            [2, 4, _chunk_shape[1]-1],
             [3, 5, _chunk_shape[1]-2]
         ]
 
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_has_nan', (0, 0.10))
-    def test_accuracy(self, _X, _start_dupl, _has_nan, _format, _dtype):
+    @pytest.mark.parametrize('_has_nan', (0, 5))
+    def test_accuracy(
+        self, _kwargs, _X, _start_dupl, _has_nan, _dtype
+    ):
+
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['equal_nan'] = True
+
+        TestCls = CDT(**_new_kwargs)
 
         # build a pool of non-dupls to fill the dupls in X along the way
         # build a starting data object for first partial fit, using full dupls
-        # assert reported dupls
-        # for how ever many times u want to do this:
+        # build a y vector
+        # do a verification partial_fit, assert reported dupls for original X make
+        # make a holder for all the different _wip_Xs, to do one big fit at the end
+        # for however many times u want to do this:
         #   randomly replace one of the dupls with non-dupl column
+        #   partial_fit
         #   assert reported dupls - should be one less (the randomly chosen column)
+        # at the very end, stack all the _wip_Xs, do one big fit, verify dupls
+
+        _pool_X = _X(None , _has_nan, _dtype)
+
+        _wip_X = _X(_start_dupl, _has_nan, _dtype)
+
+        _y = np.random.randint(0, 2, _wip_X.shape[0])
+
+        out = TestCls.partial_fit(_wip_X, _y).duplicates_
+        assert len(out) == len(_start_dupl)
+        for idx in range(len(_start_dupl)):
+            assert np.array_equal(out[idx], _start_dupl[idx])
+
+        # to know how many dupls we can take out, get the total number of dupls
+        _dupl_pool = list(itertools.chain(*_start_dupl))
+        _num_dupls = len(_dupl_pool)
+
+        X_HOLDER = []
+        X_HOLDER.append(_wip_X)
+
+        # take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v^v^
+        for trial in range(_num_dupls//2):
+
+            random_dupl = np.random.choice(_dupl_pool, 1, replace=False)[0]
+
+            # take the random dupl of out _start_dupl and _dupl_pool, and take
+            # a column out of the X pool to patch the dupl in _wip_X
+
+            for _idx, _set in enumerate(reversed(_start_dupl)):
+                try:
+                    _start_dupl[_idx].remove(random_dupl)
+                    if len(_start_dupl[_idx]) == 1:
+                        # gotta take that single dupl out of dupl pool!
+                        _dupl_pool.remove(_start_dupl[_idx][0])
+                        del _start_dupl[_idx]
+                    break
+                except:
+                    continue
+            else:
+                raise Exception(f"could not find dupl idx in _start_dupl")
+
+            _dupl_pool.remove(random_dupl)
 
 
-        pass
+            _from_X = _wip_X[:, random_dupl]
+            _from_pool = _pool_X[:, random_dupl]
+            assert not np.array_equal(
+                _from_X[np.logical_not(nan_mask(_from_X))],
+                _from_pool[np.logical_not(nan_mask(_from_pool))]
+            )
+
+            _wip_X[:, random_dupl] = _pool_X[:, random_dupl].copy()
+
+            X_HOLDER.append(_wip_X)
+
+            # verify correctly reported dupls after this partial_fit!
+            out = TestCls.partial_fit(_wip_X, _y).duplicates_
+            assert len(out) == len(_start_dupl)
+            for idx in range(len(_start_dupl)):
+                assert np.array_equal(out[idx], _start_dupl[idx])
+
+        # END take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v
+
+
+
+        # do a one-shot fit, compare results
+        # stack all the _wip_Xs
+        _final_X = np.vstack(X_HOLDER)
+
+        out = CDT(**_new_kwargs).fit(_final_X, _y).duplicates_
+        assert len(out) == len(_start_dupl)
+        for idx in range(len(_start_dupl)):
+            assert np.array_equal(out[idx], _start_dupl[idx])
+
+
 
 
 

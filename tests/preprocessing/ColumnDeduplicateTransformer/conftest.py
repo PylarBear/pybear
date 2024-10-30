@@ -56,7 +56,8 @@ def _X_factory():
             for idx, _set in enumerate(_dupl):
                 assert isinstance(_set, list)
                 assert all(map(isinstance, _set, (int for _ in _set)))
-                assert len(_set) >= 2, f'_dupl sets must have at least 2 entries'
+                assert len(_set) >= 2, \
+                    f'_dupl sets must have 0, or at least 2, entries'
 
             # make sure sets are sorted ascending, and first entries are asc
             __ = {_set[0]: sorted(_set) for _set in _dupl}
