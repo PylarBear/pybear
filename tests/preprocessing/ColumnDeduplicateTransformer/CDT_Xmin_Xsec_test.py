@@ -17,17 +17,12 @@ import polars as pl
 
 
 
-# pizza come back and reread this, see if it needs anything!
-# what about correct progression of reported duplicates as partial fits are done?
-# how about a rigged set of vstacked arrays that have progressively decreasing duplicates?
+
 
 # pytest.skip(reason=f"pizza is not done!", allow_module_level=True)
 
 # PIZZA BE SURE TO TEST PD NA HANDLING! AND SPARSE!
 
-# PIZZA! inverse_transform!
-
-# PIZZA! TEST IN A PIPELINE!
 
 
 bypass = False
@@ -768,161 +763,6 @@ class TestAllColumnsTheSameorDifferent:
 # END TEST ALL COLUMNS THE SAME OR DIFFERENT #####################################
 
 
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class Test_Init_Fit_SetParams_Transform:
-
-        # DEFAULT KWARGS
-        # _kwargs = {
-        #     'keep': 'first',
-        #     'do_not_drop': None,
-        #     'conflict': 'raise',
-        #     'columns': None,
-        #     'rtol': 1e-5,
-        #     'atol': 1e-8,
-        #     'equal_nan': False,
-        #     'n_jobs': -1
-        # }
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _alt_kwargs():
-        return {
-            'keep': 'first',
-            'do_not_drop': None,
-            'conflict': 'raise',
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'equal_nan': True,
-            'n_jobs': -1
-        }
-
-
-    def test_assignments(self, _alt_kwargs):
-
-        TestCls = CDT(**_alt_kwargs)
-
-        # test after init
-        for _alt_kwarg, value in _alt_kwargs.items():
-            assert getattr(TestCls, _alt_kwarg) == value
-
-        # test after setting different params
-        _new_kwargs = deepcopy(_alt_kwargs)
-        _new_kwargs['keep'] = 'random'
-        _new_kwargs['conflict'] = 'ignore'
-        _new_kwargs['n_jobs'] = 4
-        TestCls.set_params(**_new_kwargs)
-
-        # test after set_params
-        for _new_kwarg, value in _new_kwargs.items():
-            assert getattr(TestCls, _new_kwarg) == value
-
-
-    def test_rejects_bad_assignments_at_init(self, _alt_kwargs):
-
-        _junk_kwargs = deepcopy(_alt_kwargs)
-        _junk_kwargs['trash'] = 'junk'
-        _junk_kwargs['garbage'] = 'waste'
-        _junk_kwargs['refuse'] = 'rubbish'
-
-        with pytest.raises(Exception):
-            # this is managed by BaseEstimator, let it raise whatever
-            CDT(**_junk_kwargs)
-
-
-    def test_rejects_bad_assignments_in_set_params(self, _alt_kwargs):
-
-        TestCls = CDT(**_alt_kwargs)
-
-        _junk_kwargs = deepcopy(_alt_kwargs)
-        _junk_kwargs['trash'] = 'junk'
-        _junk_kwargs['garbage'] = 'waste'
-        _junk_kwargs['refuse'] = 'rubbish'
-
-        with pytest.raises(Exception):
-            # this is managed by BaseEstimator, let it raise whatever
-            TestCls.set_params(**_junk_kwargs)
-
-
-    def test_set_params(self, _X_factory, _alt_kwargs):
-
-        # rig data so that it is 3 columns, first and last are duplicates
-
-        # condition 1: prove that a changed instance gives correct result
-        # initialize #1 with keep='first', fit and transform, keep output
-        # initialize #2 with keep='last', fit.
-        # use set_params on #2 to change keep to 'first'.
-        # transform #2, and compare output with that of #1
-
-        # condition 2: prove that changing and changing back gives same result
-        # use set_params on #1 to change keep to 'last'.
-        # do a transform()
-        # use set_params on #1 again to change keep to 'first'.
-        # transform #1 again, and compare with the first output
-
-        _dupl = [[0,2]]
-
-        TEST_X = _X_factory(
-            _dupl=_dupl,
-            _format='np',
-            _dtype='flt',
-            _has_nan=False,
-            _columns=None,
-            _zeros=None,
-            _shape=(20,3)
-        )
-
-        # first class: initialize, fit, transform, and keep result
-        TestCls1 = CDT(**_alt_kwargs).fit(TEST_X)
-        FIRST_TRFM_X = TestCls1.transform(TEST_X, copy=True)
-
-        # condition 1 ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        # initialize #2 with keep='last', fit.
-        _dum_kwargs = deepcopy(_alt_kwargs)
-        _dum_kwargs['keep'] = 'last'
-        TestCls2 = CDT(**_dum_kwargs)
-        TestCls2.fit(TEST_X)
-        # set different params and transform without fit
-        # use set_params on #2 to change keep to 'first'.
-        TestCls2.set_params(**_alt_kwargs)
-        # transform #2, and compare output with that of #1
-        COND_1_OUT = TestCls2.transform(TEST_X, copy=True)
-
-
-        assert np.array_equal(COND_1_OUT, FIRST_TRFM_X)
-        # since kept 'first', OUT should be TEST_X[:, :2]
-        assert np.array_equal(COND_1_OUT, TEST_X[:, :2])
-
-        # END condition 1 ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-        # condition 2 ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        # prove that changing and changing back gives same result
-
-        # use set_params on #1 to change keep to 'last'.  DO NOT FIT!
-        TestCls1.set_params(**_dum_kwargs)
-        # do a transform()
-        SECOND_TRFM_X = TestCls1.transform(TEST_X, copy=True)
-        # should not be equal to first trfm with keep='first'
-        assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
-        # kept 'last' when 0 & 2 of 0,1,2 were identical, should leave 1,2
-        assert np.array_equal(SECOND_TRFM_X, TEST_X[:, [1, 2]])
-
-        # use set_params on #1 again to change keep to 'first'.
-        TestCls1.set_params(**_alt_kwargs)
-        # transform #1 again, and compare with the first output
-        THIRD_TRFM_X = TestCls1.transform(TEST_X, copy=True)
-
-        assert np.array_equal(FIRST_TRFM_X, THIRD_TRFM_X)
-
-        # kept 'last' when 0 & 2 of 0,1,2 were identical, should leave 1,2
-        assert np.array_equal(SECOND_TRFM_X, TEST_X[:, [1, 2]])
-
-        # END condition 2 ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-        del TEST_X
-
-
 # TEST MANY PARTIAL FITS == ONE BIG FIT ********************************
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestManyPartialFitsEqualOneBigFit:
@@ -1023,7 +863,63 @@ class TestManyPartialFitsEqualOneBigFit:
 
 
 
+class TestDuplAccuracyOverManyPartialFits:
 
+    # pizza
+    # verify correct progression of reported duplicates as partial fits are done
+    # rig a set of arrays that have progressively decreasing duplicates
+
+
+    @staticmethod
+    @pytest.fixture()
+    def _chunk_shape():
+        return (50,20)   # must have at least 10 columns for dupls to work
+
+
+    @staticmethod
+    @pytest.fixture()
+    def _X(_X_factory, _chunk_shape):
+
+        def foo(_dupl, _has_nan, _format, _dtype):
+
+            return _X_factory(
+                _dupl=_dupl,
+                _has_nan=_has_nan,
+                _format=_format,
+                _dtype=_dtype,
+                _columns=None,
+                _zeros=None,
+                _shape=_chunk_shape
+            )
+
+        return foo
+
+
+    @staticmethod
+    @pytest.fixture()
+    def _start_dupl(_chunk_shape):
+        return [
+            [2, 4, _chunk_shape[1]-1],
+            [0, 7],
+            [3, 5, _chunk_shape[1]-2]
+        ]
+
+
+
+    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_has_nan', (0, 0.10))
+    def test_accuracy(self, _X, _start_dupl, _has_nan, _format, _dtype):
+
+        # build a pool of non-dupls to fill the dupls in X along the way
+        # build a starting data object for first partial fit, using full dupls
+        # assert reported dupls
+        # for how ever many times u want to do this:
+        #   randomly replace one of the dupls with non-dupl column
+        #   assert reported dupls - should be one less (the randomly chosen column)
+
+
+        pass
 
 
 

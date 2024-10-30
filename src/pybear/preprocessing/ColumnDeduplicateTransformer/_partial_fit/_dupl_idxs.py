@@ -66,8 +66,8 @@ def _dupl_idxs(
 
     """
 
-    # pizza think if we want this, lots of ss.sparse
-    # assert isinstance(_X, pizza)
+
+
     assert isinstance(_duplicates, (list, type(None)))
     if _duplicates is not None:
         for _set in _duplicates:

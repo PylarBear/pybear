@@ -733,7 +733,7 @@ def sk_GSTCV_est_xgb_two_scorers_postfit_refit_fxn(
 
 
 
-# pipeline esimators ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# pipeline estimators ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 @pytest.fixture(scope='session')
 def sk_pipe_log(sk_standard_scaler, sk_est_log):
