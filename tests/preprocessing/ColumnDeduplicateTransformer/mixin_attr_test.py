@@ -14,18 +14,19 @@ import pytest
 
 # this test module shows which mixins have which attrs/methods (if any).
 # if the mixins dont have these attrs/methods, then they are built in
-# the parent module.
+# the module.
 #     n_features_in_
 #     feature_names_in_
 #     n_samples_seen_
 #     get_feature_names_out()
 #     _validate_data
-
+#     set_outputs
 
 # use a dataframe to make sure the feature name attrs get exposed!
 
 # 24_10_02_12_40_00
-# TransformerMixin alone does not expose any of these.
+# TransformerMixin alone does not expose any of these, it only exposes
+# fit_transform.
 # BaseEstimator alone exposes _validate_data, get_params, set_params.
 # _validate_data exposes n_features_in_ and feature_names_in_.
 # OneToOneFeatureMixin alone exposes get_feature_names_out().

@@ -13,7 +13,7 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-import polars
+import polars as pl
 
 
 
@@ -672,7 +672,7 @@ class TestOutputTypes:
                 f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
         elif output_type == 'polars':
             # polars.dataframe.frame.DataFrame
-            assert isinstance(TRFM_X, polars.dataframe.frame.DataFrame), \
+            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
                 f"output_type is polars dataframe, TRFM_X is {type(TRFM_X)}"
         else:
             raise Exception
