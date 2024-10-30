@@ -17,9 +17,6 @@ from sklearn.exceptions import NotFittedError
 
 
 
-pytest.skip(reason=f"pizza isnt done", allow_module_level=True)
-
-
 
 bypass = False
 

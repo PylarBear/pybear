@@ -58,8 +58,7 @@ def _find_duplicates(
 
     """
 
-    # pizza think on if we want this, since so many ss.sparse
-    # assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame))
+
     assert isinstance(_rtol, float)
     assert isinstance(_atol, float)
     assert isinstance(_equal_nan, bool)
