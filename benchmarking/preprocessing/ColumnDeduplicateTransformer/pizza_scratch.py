@@ -4,24 +4,13 @@
 # License: BSD 3 clause
 #
 
-import sys
+import numpy as np
 
+tron = np.random.randint(0,2,5).astype(bool)
+print(tron)
+tron = list(map(bool, tron))
+print(tron)
 
-# try:
-#     raise AttributeError()
-# except:
-#     __ = sys.exc_info()
-#     for idx, crap in enumerate(__):
-#         print(f'{idx}) {crap}')
-
-
-
-from sklearn.preprocessing import StandardScaler
-
-ss = StandardScaler(with_mean=True, with_std=True)
-
-
-ss.get_feature_names_out()
 
 
 

@@ -229,7 +229,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                         f"input_features is not equal to feature_names_in_"
                     )
 
-            return input_features[self.column_mask_].astype(object)
+            out = np.array(input_features, dtype=object)[self.column_mask_]
+
+            return out
 
         elif hasattr(self, 'feature_names_in_'):
             return self.feature_names_in_[self.column_mask_].astype(object)
