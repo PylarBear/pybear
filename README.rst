@@ -136,7 +136,7 @@ data simultaneously across an entire array of data. Violates the scikit-learn AP
 in that datasets are modified along the example axis (examples may be deleted.) 
 Otherwise is fully compliant with the sci-kit learn transformer API, with fit, 
 transform, and partial_fit methods.
-Access via pybear.preprocessing.MinCountTranformer.
+Access via pybear.preprocessing.MinCountTransformer.
 
 ColumnDeduplicateTransformer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
