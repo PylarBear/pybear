@@ -24,15 +24,44 @@ def _parallel_column_comparer(
 ) -> bool:
 
     """
-    pizza say things
+    Compare two columns for equality, subject to :param: rtol, :param:
+    atol, and :param: equal_nan.
+
 
     Parameters
     ----------
+    _column1:
+        npt.NDArray[any] - the first column of a pair to compare for
+        equality.
+    _column2:
+        npt.NDArray[any] - the second column of a pair to compare for
+        equality.
+    _rtol:
+        float, default = 1e-5 - The relative difference tolerance for
+            equality. See numpy.allclose.
+    _atol:
+        float, default = 1e-8 - The absolute tolerance parameter for .
+            equality. See numpy.allclose.
+    _equal_nan:
+        bool, default = False - When comparing pairs of columns row by
+        row:
+        If equal_nan is True, exclude from comparison any rows where one
+        or both of the values is/are nan. If one value is nan, this
+        essentially assumes that the nan value would otherwise be the
+        same as its non-nan counterpart. When both are nan, this
+        considers the nans as equal (contrary to the default numpy
+        handling of nan, where np.nan != np.nan) and will not in and of
+        itself cause a pair of columns to be marked as unequal.
+        If equal_nan is False and either one or both of the values in
+        the compared pair of values is/are nan, consider the pair to be
+        not equivalent, thus making the column pair not equal. This is
+        in line with the normal numpy handling of nan values.
 
 
     Return
     ------
-
+    -
+        bool: True, the columns are equal, False, the columns are uneqaul.
 
     """
 

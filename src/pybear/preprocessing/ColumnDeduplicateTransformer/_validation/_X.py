@@ -19,7 +19,25 @@ def _val_X(
 ) -> None:
 
     """
-    Pizza put words
+    Validate the dimensions of the data to be deduplicated. Cannot be
+    None and must have at least 2 columns.
+
+    All other validation of the data is handled by the _validate_data
+    function of the sklearn BaseEstimator mixin at fitting and tranform.
+
+
+    Parameters
+    ----------
+    _X:
+        {array-like, scipy sparse matrix} of shape (n_samples,
+        n_features) - the data to be deduplicated.
+
+
+    Return
+    ------
+    -
+        None
+
 
     """
 

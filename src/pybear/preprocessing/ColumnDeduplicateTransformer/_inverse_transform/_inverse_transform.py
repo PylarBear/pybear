@@ -26,7 +26,7 @@ def _inverse_transform(
 ) -> DataType:
 
     """
-    Revert transformed data back to the original.
+    Revert deduplicated data back to its original state.
 
 
     Parameters
@@ -42,16 +42,19 @@ def _inverse_transform(
         dict[int, int] - the keys are the indices of duplicate columns
         removed from the original data, indexed by their column location
         in the original data; the values are the respective column
-        index of the duplicate that was kept.
+        index in the original data of the respective duplicate that was
+        kept.
     _feature_names_in:
-        Union[npt.NDArray[str], None] - the feature names passed to the
-        class instance or, if not provided, found during fitting.
+        Union[npt.NDArray[str], None] - the feature names found during
+        fitting.
 
 
     Returns
     -------
-    X_tr : {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features) - Deduplicated data reverted to original data.
+    -
+        X_tr : {array-like, scipy sparse matrix} of shape (n_samples,
+            n_features) - Deduplicated data reverted to its original
+            state.
 
     """
 

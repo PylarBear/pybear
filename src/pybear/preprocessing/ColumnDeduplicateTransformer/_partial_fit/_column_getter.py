@@ -25,17 +25,19 @@ def _column_getter(
 ) -> tuple[npt.NDArray[any], npt.NDArray[any]]:
 
     """
-    This supports _find_duplicates. Handles the mechanics of getting
-    columns for the various input types.
+    This supports _find_duplicates. Handles the mechanics of extracting
+    columns from the various data container types. Return extracted
+    columns as numpy vectors.
+
 
     Parameters
     ----------
     _X:
         DataType - The data to be deduplicated.
     _col_idx1:
-        int - the first column in the comparison pair.
+        int - the first column index in the comparison pair.
     _col_idx2:
-        int - the second column in the comparison pair.
+        int - the second column index in the comparison pair.
 
 
     Return
