@@ -121,7 +121,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
     _parameter_constraints: dict = {
         "keep": [StrOptions({"first", "last", "random"})],
-        "do_not_drop": [list, tuple, set, None,],   # pizza what about empty
+        "do_not_drop": [list, tuple, set, None,],
         "conflict": [StrOptions({"raise", "ignore"})],
         "rtol": [numbers.Real],
         "atol": [numbers.Real],
@@ -249,9 +249,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 )
 
 
-    # def get_params!!! pizza dont forget about this! ESPECIALLY TEST!
+    # def get_params - inherited from BaseEstimator
 
-    # def set_params!!! pizza dont forget about this! ESPECIALLY TEST!
+    # def set_params - inherited from BaseEstimator
 
     # def set_output(self) - inherited from TransformerMixin
 

@@ -58,7 +58,7 @@ def _val_do_not_drop(
     except:
         raise TypeError(
             f"if passed, 'do_not_drop' must be a list-like of"
-            f" strings or integers"
+            f" strings or integers, and cannot be empty"
         )
 
     _dnd_int = True
@@ -77,8 +77,8 @@ def _val_do_not_drop(
 
     if _dnd_int + _dnd_str + (_do_not_drop is None) != 1:
         raise TypeError(
-            f"'do_not_drop' must be either all strings or all "
-            f"integers, or None"
+            f"if passed, 'do_not_drop' must be a list-like of"
+            f" strings or integers, and cannot be empty"
         )
 
 
