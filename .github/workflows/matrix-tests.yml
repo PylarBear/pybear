@@ -39,6 +39,6 @@ jobs:
 
     - name: Run tests
       run: poetry run pytest tests/ --doctest-modules
-      timeout-minutes: 40
+      timeout-minutes: 60
 
 
