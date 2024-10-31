@@ -37,27 +37,52 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     that removes duplicate columns from data, leaving behind one column
     out of a set of duplicate columns.
 
-    Columns with identical values within the same dataset may occur
-    coincidentally in a sampling of data, may occur during one-hot
-    encoding of categorical data, or may occur during polynomial feature
-    expansion.
-
     Duplicate columns are a point of concern for analysts. In many
     data analytics learning algorithms, such a condition can cause
     convergence problems, inversion problems, or other undesirable
     effects. The analyst is often forced to address the issue to
-    perform a meaningful analysis of the data.
+    perform a meaningful analysis of the data. CDT is a tool that can
+    help fix this problem.
 
-    ColumnDeduplicateTransformer is a tool that can help fix this
-    problem. 
+    Columns with identical values within the same dataset may occur
+    coincidentally in a sampling of data, may occur during one-hot
+    encoding of categorical data, or may occur during polynomial feature
+    expansion. CDT identifies duplicate columns, and selectively keeps
+    one from a group of duplicates based on the configuration of the
+    user.
+
+    Firstly, CDT affords parameters that give some flexibility to the
+    definition of "equal" for the sake of identifying duplicates. Namely, the rtol,
+    atol, and equal_nan parameters (see numpy documentation for deeper
+    clarification of the technical details.)
+    The rtol parameter
 
 
-    pizza, talk about nan handling. at time of column comparison,
-    both compared columns of data are converted to numpy array for the
-    comparison. for numeric columns, whatever is used to indicate
-    'not-a-number' must be recognizable by numpy as such, so that
-    numpy can convert it to np.nan and handle it as such. for string
-    data, CDT will recognize strings of the form 'nan' (not case sensitive.)
+
+
+        If equal_nan is True, exclude from comparison any rows where
+        one or both of the values is/are nan. If one value is nan, this
+        essentially assumes that the nan value would otherwise be the
+        same as its non-nan counterpart. When both are nan, this
+        considers the nans as equal (contrary to the default numpy
+        handling of nan, where np.nan != np.nan) and will not in and of
+        itself cause a pair of columns to be marked as unequal.
+        If equal_nan is False and either one or both of the values in
+        the compared pair of values is/are nan, consider the pair to be
+        not equivalent, thus making the column pair not equal. This is
+        in line with the normal numpy handling of nan values.
+
+
+
+
+    Secondly,
+
+
+
+    CDT has a partial fit method that allows for incremental fitting of
+    data sets. This makes CDT suitable for dask_ml Incremental and
+    ParallelPostFit wrappers.
+
 
 
 
@@ -151,6 +176,16 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     column_mask_: list[bool], shape (n_features_,) - Indicates which
         columns of the fitted data are kept (True) and which are deleted
         (False) during transform.
+
+
+    Notes
+    -----
+    pizza, talk about nan handling. at time of column comparison,
+    both compared columns of data are converted to numpy array for the
+    comparison. for numeric columns, whatever is used to indicate
+    'not-a-number' must be recognizable by numpy as such, so that
+    numpy can convert it to np.nan and handle it as such. for string
+    data, CDT will recognize strings of the form 'nan' (not case sensitive.)
 
 
     See Also
