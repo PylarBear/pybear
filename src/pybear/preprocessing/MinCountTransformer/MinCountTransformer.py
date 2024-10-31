@@ -911,8 +911,6 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         del FEATURE_NAMES
 
 
-        # pizza, come back to this, see if u can use TransformerMixin, or if u
-        # even want to.
         __ = self._output_transform
         if y is not None:
             __ = __ or self._y_original_obj_type
@@ -1182,8 +1180,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         Parameters
         ----------
         transform : {“default”, "numpy_array", “pandas_dataframe”,
-            "pandas_series"},
-            default = None - Configure output of transform and fit_transform.
+            "pandas_series"}, default = None - Configure output of
+                transform and fit_transform.
             "default": Default output format of a transformer (numpy array)
             "numpy_array": np.ndarray output
             "pandas_dataframe": DataFrame output

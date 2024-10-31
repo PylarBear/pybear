@@ -12,7 +12,25 @@ from typing_extensions import Union
 def _val_n_jobs(_n_jobs: Union[int, None]) -> None:
 
     """
-    n_jobs must be -1 or integer >= 1
+    Validate n_jobs is None, -1, or integer >= 1.
+
+
+    Parameters
+    ----------
+    _n_jobs:
+        Union[int, None], default = -1 - The number of joblib
+        Parallel jobs to use when comparing columns. The default is
+        to use processes, but can be overridden externally using a
+        joblib parallel_config context manager. The default number
+        of jobs is -1 (all processors). To get maximum speed benefit,
+        pybear recommends using the default setting.
+
+
+    Return
+    ------
+    -
+        None
+
 
     """
 

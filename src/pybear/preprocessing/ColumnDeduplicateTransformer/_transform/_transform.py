@@ -6,7 +6,6 @@
 
 
 from .._type_aliases import DataType
-import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
@@ -18,7 +17,7 @@ import scipy.sparse as ss
 
 def _transform(
     X: DataType,
-    _column_mask: npt.NDArray[bool]
+    _column_mask: list[bool]
 ) -> DataType:
 
     """
@@ -32,8 +31,9 @@ def _transform(
         {array-like, scipy sparse matrix} of shape (n_samples,
         n_features) - The data to be deduplicated.
     _column_mask:
-        NDArray[bool] - A boolean vector that indicates which
-        columns to keep (True) and which columns to delete (False).
+        list[bool] - A boolean vector of shape (n_features,) that
+        indicates which columns to keep (True) and which columns to
+        delete (False).
 
 
     Return

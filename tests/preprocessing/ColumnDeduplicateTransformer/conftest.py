@@ -24,7 +24,7 @@ import scipy.sparse as ss
 
 @pytest.fixture(scope='session')
 def _master_columns():
-    _cols = 200
+    _cols = 200   # do not change this, this gives surplus over columns in _shape
     while True:
         _ = [str(uuid4())[:4] for _ in range(_cols)]
         if len(np.unique(_)) == len(_):
@@ -33,7 +33,7 @@ def _master_columns():
 
 
 @pytest.fixture(scope='module')
-def _X_factory(_shape):
+def _X_factory():
 
 
     def _idx_getter(_rows, _zeros):
@@ -56,7 +56,8 @@ def _X_factory(_shape):
             for idx, _set in enumerate(_dupl):
                 assert isinstance(_set, list)
                 assert all(map(isinstance, _set, (int for _ in _set)))
-                assert len(_set) >= 2, f'_dupl sets must have at least 2 entries'
+                assert len(_set) >= 2, \
+                    f'_dupl sets must have 0, or at least 2, entries'
 
             # make sure sets are sorted ascending, and first entries are asc
             __ = {_set[0]: sorted(_set) for _set in _dupl}

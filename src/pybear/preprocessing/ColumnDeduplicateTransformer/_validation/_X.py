@@ -19,7 +19,25 @@ def _val_X(
 ) -> None:
 
     """
-    Pizza put words
+    Validate the dimensions of the data to be deduplicated. Cannot be
+    None and must have at least 2 columns.
+
+    All other validation of the data is handled by the _validate_data
+    function of the sklearn BaseEstimator mixin at fitting and tranform.
+
+
+    Parameters
+    ----------
+    _X:
+        {array-like, scipy sparse matrix} of shape (n_samples,
+        n_features) - the data to be deduplicated.
+
+
+    Return
+    ------
+    -
+        None
+
 
     """
 
@@ -29,22 +47,15 @@ def _val_X(
         f"example."
     )
 
-    # pizza, sklearn _validate_data is not catching this!
+    # sklearn _validate_data is not catching this
     if _X is None:
         raise TypeError(_err_msg)
 
 
-    # pizza, sklearn _validate_data is not catching this!
-    # pizza put a try/except 24_10_28_17_38_00 to pass sklearn.check_transformer_data_not_an_array
-    try:
-        getattr(_X, 'shape')
-        if len(_X.shape) != 2:
-            raise UnicodeError
-    except UnicodeError:
-        raise ValueError(_err_msg)
-    except:
-        # pizza, need to figure out what sklearn is trying to pass that doesnt have a shape attr!
-        pass
+    # sklearn _validate_data is not catching this
+    if len(_X.shape) != 2:
+        raise UnicodeError
+
 
 
 

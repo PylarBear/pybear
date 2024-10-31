@@ -40,20 +40,31 @@ def _validation(
 ) -> None:
 
     """
-    Pizza finish!
+    Centralized hub for performing parameter validation.
+    See the individual modules for more information.
 
 
     Parameters
     ----------
-    _X:DataType,
-    _columns: ColumnsType,
-    _conflict: ConflictType,
-    _do_not_drop: DoNotDropType,
-    _keep: KeepType,
-    _rtol: float,
-    _atol: float,
-    _equal_nan: bool,
-    _n_jobs: Union[int, None]
+    _X:
+        {array-like, scipy sparse matrix} of shape (n_samples, n_features)
+    _columns:
+        Union[Iterable[str], None]
+    _conflict:
+        Literal['raise', 'ignore'],
+    _do_not_drop:
+        Union[Iterable[str], Iterable[int], None],
+    _keep:
+        Literal['first', 'last', 'random'],
+    _rtol:
+        float,
+    _atol:
+        float,
+    _equal_nan:
+        bool,
+    _n_jobs:
+        Union[int, None]
+
 
     Return
     ------

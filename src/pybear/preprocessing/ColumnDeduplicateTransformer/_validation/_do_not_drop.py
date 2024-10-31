@@ -6,7 +6,8 @@
 
 
 from .._type_aliases import DoNotDropType, DataType
-
+from typing_extensions import Union
+from typing import Iterable
 
 
 
@@ -15,22 +16,40 @@ from .._type_aliases import DoNotDropType, DataType
 def _val_do_not_drop(
     _do_not_drop: DoNotDropType,
     _X: DataType,
-    _columns
+    _columns: Union[Iterable[str], None]
 ) -> None:
 
     """
-    Pizza gibberish
+    Validate :param: do_not_drop. May be None, an iterable of integers
+    indicating column indices, or, if fitting is done on pandas
+    dataframes with headers, an iterable of strings that match feature
+    names in the data header.
+
 
     Parameters
     ----------
     _do_not_drop:
+        Union[Iterable[int], Iterable[str], None], default=None - A list
+        of columns not to be dropped. If fitting is done on a pandas
+        dataframe that has a header, a list of feature names may be
+        provided. Otherwise, a list of column indices must be provided.
+        If a conflict arises, such as two columns specified in :param:
+        do_not_drop are duplicates of each other, the behavior is managed
+        by :param: conflict.
     _X:
+        {array-like, scipy sparse matrix} of shape (n_samples,
+        n_features) - The data to be deduplicated.
+
     _columns:
+        Union[Iterable[str], None] of shape (n_features,) - if fitting
+        is done on a pandas dataframe that has a header, this is a
+        ndarray of strings, otherwise is None.
 
 
     Return
     ------
-    None
+    -
+        None
 
     """
 
@@ -58,7 +77,7 @@ def _val_do_not_drop(
     except:
         raise TypeError(
             f"if passed, 'do_not_drop' must be a list-like of"
-            f" strings or integers"
+            f" strings or integers, and cannot be empty"
         )
 
     _dnd_int = True
@@ -77,8 +96,8 @@ def _val_do_not_drop(
 
     if _dnd_int + _dnd_str + (_do_not_drop is None) != 1:
         raise TypeError(
-            f"'do_not_drop' must be either all strings or all "
-            f"integers, or None"
+            f"if passed, 'do_not_drop' must be a list-like of"
+            f" strings or integers, and cannot be empty"
         )
 
 

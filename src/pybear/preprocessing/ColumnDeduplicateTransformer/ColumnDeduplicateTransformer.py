@@ -7,6 +7,7 @@
 
 from pandas import SparseDtype
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
+from sklearn.exceptions import NotFittedError
 from sklearn.utils._param_validation import StrOptions
 
 from typing import Iterable, Literal, Optional
@@ -32,7 +33,24 @@ from sklearn.utils.validation import check_is_fitted, check_array
 class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
     """
-    pizza gibberish!
+    ColumnDeduplicateTransformer (CDT) is a scikit-style transformer
+    that removes duplicate columns from data, leaving behind one column
+    out of a set of duplicate columns.
+
+    Columns with identical values within the same dataset may occur
+    coincidentally in a sampling of data, may occur during one-hot
+    encoding of categorical data, or may occur during polynomial feature
+    expansion.
+
+    Duplicate columns are a point of concern for analysts. In many
+    data analytics learning algorithms, such a condition can cause
+    convergence problems, inversion problems, or other undesirable
+    effects. The analyst is often forced to address the issue to
+    perform a meaningful analysis of the data.
+
+    ColumnDeduplicateTransformer is a tool that can help fix this
+    problem. 
+
 
     pizza, talk about nan handling. at time of column comparison,
     both compared columns of data are converted to numpy array for the
@@ -46,66 +64,93 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     Parameters
     ----------
     keep:
-        Literal['first', 'last', 'random'], default = None -
-        The strategy for keeping a single representative from a set
-        of identical columns. 'first' retains the column left-most
-        in the data; 'last' keeps the column right-most in the data;
-        'random' keeps a single random column of the set of
-        duplicates.
-    do_not_drop:
-        Union[Iterable[str], Iterable[int], None], default=None -
-        Columns to never drop, overriding the positional 'keep'
-        argument for the set of duplicates associated with the
-        indicated column. If a conflict arises, such as two columns
-        specified in 'do_not_drop' are duplicates of each other,
-        the behavior is managed by :param: 'conflict'.
+        Literal['first', 'last', 'random'], default = 'first' -
+        The strategy for keeping a single representative from a set of
+        identical columns. 'first' retains the column left-most in the
+        data; 'last' keeps the column right-most in the data; 'random'
+        keeps a single randomly-selected column of the set of duplicates.
+    _do_not_drop:
+        Union[Iterable[int], Iterable[str], None], default=None - A list
+        of columns not to be dropped. If fitting is done on a pandas
+        dataframe that has a header, a list of feature names may be
+        provided. Otherwise, a list of column indices must be provided.
+        If a conflict arises, such as two columns specified in :param:
+        do_not_drop are duplicates of each other, the behavior is managed
+        by :param: conflict.
     conflict:
-        Union[Literal['raise', 'ignore'] - Ignored when do_not_drop
-        is not passed. Pizza say more words.
+        Literal['raise', 'ignore'] - Ignored when :param: do_not_drop is
+        not passed. Instructs CDT how to deal with a conflict between
+        the instructions in :param: keep and :param: do_not_drop. A
+        conflict arises when the instruction in :param: keep ('first',
+        'last', 'random') is applied and column in :param: do_not_drop
+        is found to be a member of the columns to be deleted. When
+        :param: conflict is 'raise', an exception is raised in the case
+        of such a conflict. When :param: conflict is 'ignore', there are
+        2 possible scenarios:
+
+        1) when only one column in :param: do_not_drop is among the
+        columns to be deleted, the :param: keep instruction is overruled
+        and the do_not_drop column is kept
+
+        2) when multiple columns in :param: do_not_drop are among the
+        columns to be deleted, the :param: keep instruction ('first',
+        'last', 'random') is applied to the set of do-not-delete columns
+        that would be marked for deletion --- this may not give the same
+        result as applying the :param: keep instruction  to the entire
+        set of duplicate columns. This also causes at least one member
+        of the columns not to be dropped to be deleted.
     rtol:
-        float, default = 1e-5 - The relative tolerance parameter.
-            See numpy.allclose.
+        float, default = 1e-5 - The relative difference tolerance for
+            equality. See numpy.allclose.
     atol:
-        float, default = 1e-8 - The absolute tolerance parameter.
-            See numpy.allclose.
+        float, default = 1e-8 - The absolute tolerance parameter for .
+            equality. See numpy.allclose.
     equal_nan:
-        bool, default = False - When comparing pairs of columns row
-        by row:
+        bool, default = False - When comparing pairs of columns row by
+        row:
         If equal_nan is True, exclude from comparison any rows where
-        one or both of the values is/are nan. If one value is nan,
-        this essentially assumes that the nan value would otherwise
-        be the same as its non-nan counterpart. When both are nan,
-        this considers the nans as equal (contrary to the default
-        numpy handling of nan, where np.nan != np.nan) and will not
-        in and of itself cause a pair of columns to be marked as
-        unequal.
-        If equal_nan is False and either one or both of the values
-        in the compared pair of values is/are nan, consider the pair
-        to be not equivalent, thus making the column pair not equal.
-        This is in line with the normal numpy handling of nan values.
+        one or both of the values is/are nan. If one value is nan, this
+        essentially assumes that the nan value would otherwise be the
+        same as its non-nan counterpart. When both are nan, this
+        considers the nans as equal (contrary to the default numpy
+        handling of nan, where np.nan != np.nan) and will not in and of
+        itself cause a pair of columns to be marked as unequal.
+        If equal_nan is False and either one or both of the values in
+        the compared pair of values is/are nan, consider the pair to be
+        not equivalent, thus making the column pair not equal. This is
+        in line with the normal numpy handling of nan values.
     n_jobs:
-        Union[int, None], default = None - The number of joblib
-        Parallel jobs to use when comparing columns. The default is
-        to use processes, but can be overridden externally using a
-        joblib parallel_config context manager. The default number
-        of jobs is -1. To get maximum speed benefit, pybear recommends
-        using the default setting.    PIZZA disseminate!!!
+        Union[int, None], default = -1 - The number of joblib Parallel
+        jobs to use when comparing columns. The default is to use
+        processes, but can be overridden externally using a joblib
+        parallel_config context manager. The default number of jobs is
+        -1 (all processors). To get maximum speed benefit, pybear
+        recommends using the default setting.
 
 
     Attributes:
     -----------
     n_features_in_:
-        int - number of features in the data before deduplication.
+        int - number of features in the fitted data before deduplication.
 
     feature_names_in_:
-        Union[NDarray[str], None] - Only accessible if X is passed
-            to :methods: partial_fit or fit as pandas dataframe.
+        NDArray[str] - The names of the features as seen during fitting.
+        Only accessible if X is passed to :methods: partial_fit or fit
+        as a pandas dataframe that has a header.
 
-    duplicates_: list[list[int]] - pizza
+    duplicates_: list[list[int]] - a list of the groups of identical
+        columns, indicated by their zero-based column index positions
+        in the originally fit data.
 
-    removed_columns_: dict[int, int] - pizza
+    removed_columns_: dict[int, int] - a dictionary whose keys are the
+        indices of duplicate columns removed from the original data,
+        indexed by their column location in the original data; the values
+        are the respective column index in the original data of the
+        respective duplicate that was kept.
 
-    column_mask_: NDArray[int] - pizza
+    column_mask_: list[bool], shape (n_features_,) - Indicates which
+        columns of the fitted data are kept (True) and which are deleted
+        (False) during transform.
 
 
     See Also
@@ -113,14 +158,49 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     numpy.ndarray
     pandas.core.frame.DataFrame
     scipy.sparse
-    numpy.allclose (for numeric data)
-    numpy.array_equal (for string data)
+    numpy.allclose
+    numpy.array_equal
+
+
+    Examples
+    --------
+    >>> from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+    >>> import numpy as np
+    >>> np.random.seed(99)
+    >>> X = np.random.randint(0, 10, (5, 5))
+    >>> X[:, 2] = X[:, 0]
+    >>> X[:, 4] = X[:, 1]
+    >>> print(X)
+    [[1 3 1 8 3]
+     [8 2 8 5 2]
+     [1 7 1 7 7]
+     [1 0 1 4 0]
+     [2 0 2 8 0]]
+    >>> trf = CDT(keep='first', do_not_drop=None)
+    >>> trf.fit(X)
+    ColumnDeduplicateTransformer()
+    >>> out = trf.transform(X)
+    >>> print(out)
+    [[1 3 8]
+     [8 2 5]
+     [1 7 7]
+     [1 0 4]
+     [2 0 8]]
+    >>> print(trf.n_features_in_)
+    5
+    >>> print(trf.duplicates_)
+    [[0, 2], [1, 4]]
+    >>> print(trf.removed_columns_)
+    {2: 0, 4: 1}
+    >>> print(trf.column_mask_)
+    [True, True, False, True, False]
+
 
     """
 
     _parameter_constraints: dict = {
         "keep": [StrOptions({"first", "last", "random"})],
-        "do_not_drop": [list, tuple, set, None,],   # pizza what about empty
+        "do_not_drop": [list, tuple, set, None,],
         "conflict": [StrOptions({"raise", "ignore"})],
         "rtol": [numbers.Real],
         "atol": [numbers.Real],
@@ -131,7 +211,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         *,
-        keep: Union[Literal['first'], Literal['last'], Literal['random']] = 'first',
+        keep: Optional[Literal['first', 'last', 'random']] = 'first',
         do_not_drop: Optional[Union[Iterable[str], Iterable[int], None]] = None,
         conflict: Optional[Literal['raise', 'ignore']] = 'raise',
         rtol: Optional[float] = 1e-5,
@@ -153,7 +233,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     def _reset(self):
         """
         Reset internal data-dependent state of the transformer.
-        __init__ parameters are not touched.
+        __init__ parameters are not changed.
 
         """
 
@@ -166,23 +246,34 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
 
         """
-        Get output feature names after deduplication.
+        Get remaining feature names after deduplication.
+
 
         Parameters
         ----------
-        input_features : array-like of str or None, default=None - Input
-            features. If input_features is None, then feature_names_in_
-            is used as feature names in. If feature_names_in_ is not
-            defined, then the following input feature names are generated:
+        input_features :
+            array-like of str or None, default=None - Externally provided
+            feature names.
+
+            If input_features is None:
+            if feature_names_in_ is defined, then feature_names_in_ is
+            used as the input features.
+            If feature_names_in_ is not defined, then the following input
+            feature names are generated:
                 ["x0", "x1", ..., "x(n_features_in_ - 1)"].
-            If input_features is an array-like, then input_features must
-            match feature_names_in_ if feature_names_in_ is defined.
+
+            If input_features is not None:
+            if feature_names_in_ is not defined, then input_features is
+            used as the input features.
+            if feature_names_in_ is defined, then input_features must be
+            an array-like whose feature names exactly match those in
+            feature_names_in_.
 
         Return
         ------
         -
-            feature_names_out : ndarray of str objects - Transformed
-                feature names.
+            feature_names_out : NDArray[str] - The feature names in the
+            deduplicated data after transformation.
 
         """
 
@@ -190,36 +281,73 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         # OneToOneFeatureMixin, but since this transformer deletes
         # columns, must build a one-off.
 
-        if input_features is not None and \
-            len(input_features) != self.n_features_in_:
-            raise ValueError("input_features should have length equal")
 
-        if hasattr(self, 'feature_names_in_'):
-
-            if input_features is not None and \
-                    not np.array_equal(input_features, self.feature_names_in_):
-                raise ValueError(
-                    f"input_features is not equal to feature_names_in_"
-                )
-
-            return self.feature_names_in_[self.column_mask_].astype(object)
-        else:
-            return np.array(
-                [f"x{i}" for i in range(self.n_features_in_)],
-                dtype=object
+        try:
+            if isinstance(input_features, type(None)):
+                raise UnicodeError
+            iter(input_features)
+            if isinstance(input_features, (str, dict)):
+                raise Exception
+            if not all(map(
+                isinstance, input_features, (str for _ in input_features)
+            )):
+                raise Exception
+        except UnicodeError:
+            pass
+        except:
+            raise ValueError(
+                f"'input_features' must be a vector-like containing strings, or None"
             )
 
 
-    # def get_params!!! pizza dont forget about this! ESPECIALLY TEST!
+        if input_features is not None:
 
-    # def set_params!!! pizza dont forget about this! ESPECIALLY TEST!
+            if len(input_features) != self.n_features_in_:
+                raise ValueError("input_features should have length equal")
 
-    # def set_output(self)
+            if hasattr(self, 'feature_names_in_'):
+
+                if not np.array_equal(input_features, self.feature_names_in_):
+                    raise ValueError(
+                        f"input_features is not equal to feature_names_in_"
+                    )
+
+            out = np.array(input_features, dtype=object)[self.column_mask_]
+
+            return out
+
+        elif hasattr(self, 'feature_names_in_'):
+            return self.feature_names_in_[self.column_mask_].astype(object)
+
+        else:
+            try:
+                input_features = \
+                    np.array([f"x{i}" for i in range(self.n_features_in_)])
+                return input_features.astype(object)[self.column_mask_]
+            except:
+                raise NotFittedError(
+                    f"This {type(self).__name__} instance is not fitted yet. "
+                    f"Call 'fit' with appropriate arguments before using this "
+                    f"estimator."
+                )
+
+
+    # def get_params - inherited from BaseEstimator
+
+    # def set_params - inherited from BaseEstimator
+
+    # def set_output(self) - inherited from TransformerMixin
 
 
     def get_metadata_routing(self):
+        """
+        Get metadata routing is not implemented in ColumnDeduplicateTransformer.
+
+        """
         __ = type(self).__name__
-        raise NotImplementedError(f"get_metadata_routing not implemented in {__}")
+        raise NotImplementedError(
+            f"get_metadata_routing is not implemented in {__}"
+        )
 
 
     @_fit_context(prefer_skip_nested_validation=True)
@@ -230,7 +358,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     ) -> Self:
 
         """
-        pizza gibberish
+        Perform incremental fitting on one or more data sets. Determine
+        the duplicate columns in the given data, subject to the criteria
+        defined in :params: rtol, atol, and equal_nan.
 
 
         Parameters
@@ -239,7 +369,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             {array-like, scipy sparse matrix} of shape (n_samples,
             n_features) - Data to remove duplicate columns from.
         y:
-            {vector-like, None}, default = None - ignored.
+            {vector-like of shape (n_samples,) or None}, default = None -
+            ignored. The target for the data.
 
 
         Return
@@ -267,22 +398,18 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             ensure_min_features=2,
         )
 
-
-        """
-        PIZZA
         
-        reset – Whether to reset the n_features_in_ attribute. If False, 
-        the input will be checked for consistency with data provided when 
-        reset was last True.
-        It is recommended to call reset=True in fit and in the first call 
-        to partial_fit. All other methods that validate X should set 
-        reset=False.
-        
-        cast_to_ndarray – Cast X and y to ndarray with checks in 
-        check_params. If False, X and y are unchanged and only 
-        feature_names_in_ and n_features_in_ are checked.
-        
-        """
+        # reset – Whether to reset the n_features_in_ attribute. If False,
+        # the input will be checked for consistency with data provided when
+        # reset was last True.
+        # It is recommended to call reset=True in fit and in the first call
+        # to partial_fit. All other methods that validate X should set
+        # reset=False.
+        #
+        # cast_to_ndarray – Cast X and y to ndarray with checks in
+        # check_params. If False, X and y are unchanged and only
+        # feature_names_in_ and n_features_in_ are checked.
+        #
 
         _validation(
             X,  # Not validated, used for validation of other objects
@@ -331,7 +458,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     ) -> Self:
 
         """
-        pizza gibberish
+        Perform a single fitting on a data set. Determine the duplicate
+        columns in the given data, subject to the criteria defined
+        in :params: rtol, atol, and equal_nan.
 
 
         Parameters
@@ -340,7 +469,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             {array-like, scipy sparse matrix} of shape (n_samples,
             n_features) - Data to remove duplicate columns from.
         y:
-            {vector-like, None}, default = None - ignored.
+            {vector-like of shape (n_samples,) or None}, default = None -
+            ignored. The target for the data.
 
 
         Return
@@ -363,7 +493,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     ) -> Union[npt.NDArray[any], pd.DataFrame, SparseDtype]:
 
         """
-        Remove the duplicate columns from X.
+        Remove the duplicate columns from X. Apply the criteria given
+        by :params: keep, do_not_drop, and conflict to the sets of
+        duplicate columns found during fit.
 
 
         Parameters
@@ -372,8 +504,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             {array-like, scipy sparse matrix} of shape (n_samples,
             n_features) - The data to be deduplicated.
         copy:
-            Union[bool, None], default=None - Whether or not to make a
-            copy of X before the transform.
+            Union[bool, None], default=None - Whether to make a copy of
+            X before the transform.
 
 
         Return
@@ -444,22 +576,25 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         ) -> Union[npt.NDArray[any], pd.DataFrame, SparseDtype]:
 
         """
-        Revert transformed data back to the original.
+        Revert deduplicated data back to its original state.
 
 
         Parameters
         ----------
-        X : {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - A deduplicated data set.
+        X :
+            {array-like, scipy sparse matrix} of shape (n_samples,
+            n_features - n_features_removed) - A deduplicated data set.
         copy:
-            Union[bool, None], default=None - Whether or not to make a
-            copy of X before the inverse transform.
+            Union[bool, None], default=None - Whether to make a copy of
+            X before the inverse transform.
 
 
         Returns
         -------
-        X_tr : {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Deduplicated data reverted to original data.
+        -
+            X_tr : {array-like, scipy sparse matrix} of shape (n_samples,
+                n_features) - Deduplicated data reverted to its original
+                state.
 
         """
 
@@ -468,7 +603,18 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
-        copy = copy if copy is not None else self.copy
+
+        # the number of columns in X must be equal to the number of features
+        # remaining in column_mask_
+        _n_remaining = np.sum(self.column_mask_)
+        err_msg = (f"the number of columns in X must be equal to the number of "
+               f"columns kept from the fitted data after removing duplicates "
+               f"{_n_remaining}"
+        )
+        if X.shape[1] != _n_remaining:
+            raise ValueError(err_msg)
+
+
         X = check_array(
             array=X,
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),

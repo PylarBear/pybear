@@ -25,11 +25,12 @@ def _dupl_idxs(
 ) -> list[list[int]]:
 
     """
-    Find groups of identical columns with _find_duplicates. Compare
-    newest duplicates found with previous duplicates found on earlier
-    partial fits and meld together to produce overall duplicates. Any
-    columns previously not identified as equal but currently are equal,
-    are coincidentally equal and are not added to the final list. Columns
+    Find groups of identical columns for the current partial fit with
+    _find_duplicates. Compare the newest duplicates found in the current
+    partial fit with previous duplicates found on earlier partial fits
+    and meld together to produce overall duplicates. Any columns
+    previously not identified as equal but currently are equal, are
+    coincidentally equal and are not added to the final list. Columns
     previously found to be equal but are not currently equal are removed
     from the final lists of duplicates. The only duplicates retained are
     those columns found to be identical for all partial fits.
@@ -38,17 +39,32 @@ def _dupl_idxs(
     Parameters
     ----------
     _X:
-        DataType - the data to be deduplicated.
+        {array-like, scipy sparse matrix} of shape (n_samples,
+        n_features) - the data to be deduplicated.
     _duplicates:
         Union[list[list[int]], None] - the duplicate columns carried over
             from the previous partial fits. Is None if on the first
             partial fit.
     _rtol:
-        pizza
+        float, default = 1e-5 - The relative difference tolerance for
+            equality. See numpy.allclose.
     _atol:
-        pizza
+        float, default = 1e-8 - The absolute tolerance parameter for .
+            equality. See numpy.allclose.
     _equal_nan:
-        bool - pizza what!?!?!?
+        bool, default = False - When comparing pairs of columns row by
+        row:
+        If equal_nan is True, exclude from comparison any rows where one
+        or both of the values is/are nan. If one value is nan, this
+        essentially assumes that the nan value would otherwise be the
+        same as its non-nan counterpart. When both are nan, this
+        considers the nans as equal (contrary to the default numpy
+        handling of nan, where np.nan != np.nan) and will not in and of
+        itself cause a pair of columns to be marked as unequal.
+        If equal_nan is False and either one or both of the values in
+        the compared pair of values is/are nan, consider the pair to be
+        not equivalent, thus making the column pair not equal. This is
+        in line with the normal numpy handling of nan values.
     _n_jobs:
         Union[int, None] - The number of jobs to use with joblib Parallel
         while comparing columns. Default is to use processes, but can be
@@ -66,8 +82,8 @@ def _dupl_idxs(
 
     """
 
-    # pizza think if we want this, lots of ss.sparse
-    # assert isinstance(_X, pizza)
+
+
     assert isinstance(_duplicates, (list, type(None)))
     if _duplicates is not None:
         for _set in _duplicates:

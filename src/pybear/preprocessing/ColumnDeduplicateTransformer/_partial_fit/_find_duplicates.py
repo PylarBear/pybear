@@ -28,25 +28,40 @@ def _find_duplicates(
     indicates the zero-based column indices of columns that are identical.
     For example, if column indices 0 and 23 are identical, and indices 8,
     12, and 19 are identical, the returned object would be
-    [[0, 23], [8, 12, 19]].
+    [[0, 23], [8, 12, 19]]. It is important that the first indices of
+    each subset be sorted ascending in the outer container, i.e., in
+    this example, 0 is before 8.
 
 
     Parameters
     ----------
     _X:
-        DataType - The data to be deduplicated.
+        {array-like, scipy sparse matrix} of shape (n_samples,
+        n_features) - The data to be deduplicated.
     _rtol:
-        pizza
+        float - the relative difference tolerance for equality
     _atol:
-        pizza
+        float - the absolute difference tolerance for equality.
     _equal_nan:
-        bool - Pizza what!?!?!!
+        bool, default = False - When comparing pairs of columns row by
+        row:
+        If equal_nan is True, exclude from comparison any rows where one
+        or both of the values is/are nan. If one value is nan, this
+        essentially assumes that the nan value would otherwise be the
+        same as its non-nan counterpart. When both are nan, this
+        considers the nans as equal (contrary to the default numpy
+        handling of nan, where np.nan != np.nan) and will not in and of
+        itself cause a pair of columns to be marked as unequal.
+        If equal_nan is False and either one or both of the values in
+        the compared pair of values is/are nan, consider the pair to be
+        not equivalent, thus making the column pair not equal. This is
+        in line with the normal numpy handling of nan values.
     n_jobs:
-        Union[int, None] - The number of jobs to use with joblib Parallel
-        while comparing columns. Default is to use processes, but can be
-        overridden externally using a joblib parallel_config context
-        manager. The default number of jobs is None, which uses the
-        joblib default when n_jobs is None.
+        Union[int, None], default = -1 - The number of joblib Parallel
+        jobs to use when comparing columns. The default is to use
+        processes, but can be overridden externally using a joblib
+        parallel_config context manager. The default number of jobs is
+        -1 (all processors).
 
 
     Return
@@ -58,8 +73,7 @@ def _find_duplicates(
 
     """
 
-    # pizza think on if we want this, since so many ss.sparse
-    # assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame))
+
     assert isinstance(_rtol, float)
     assert isinstance(_atol, float)
     assert isinstance(_equal_nan, bool)

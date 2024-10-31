@@ -68,7 +68,8 @@ class TestDoNotDropJunk(Fixtures):
         (
             [True, min, 3.14],
             [min, max, float],
-            [2.718, 3.141, 8.834]
+            [2.718, 3.141, 8.834],
+            []
         )
     )
     def test_rejects_bad_list(

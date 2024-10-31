@@ -10,6 +10,25 @@ import numpy as np
 
 def _val_rtol(_rtol: float) -> None:
 
+    """
+    Verify rtol is a non-boolean number that is accepted by numpy
+    allclose.
+
+
+    Parameters
+    ----------
+    _rtol:
+        float - the relative difference tolerance for equality.
+
+
+    Return
+    ------
+    -
+        None
+
+
+    """
+
     if isinstance(_rtol, bool):
         raise TypeError(f"'rtol' cannot be bool")
 
