@@ -123,6 +123,7 @@ jobs:
     - name: Publish distribution to TestPyPi
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
+        verbose: true
         repository-url: https://test.pypi.org/legacy/
 
 
