@@ -73,16 +73,16 @@ def _identify_idxs_to_delete(
         possible scenarios:
 
         1) when only one column in :param: do_not_drop is among the
-        columns to be deleted, the :param: keep instruction is overruled
+        columns to be removed, the :param: keep instruction is overruled
         and the do_not_drop column is kept
 
         2) when multiple columns in :param: do_not_drop are among the
         columns to be deleted, the :param: keep instruction ('first',
         'last', 'random') is applied to the set of do-not-delete columns
-        that would be marked for deletion --- this may not give the same
-        result as applying the :param: keep instruction  to the entire
+        that are amongst the duplicates --- this may not give the same
+        result as applying the :param: keep instruction to the entire
         set of duplicate columns. This also causes at least one member
-        of the columns not to be dropped to be deleted.
+        of the columns not to be dropped to be removed.
 
 
     Return
@@ -91,8 +91,8 @@ def _identify_idxs_to_delete(
         removed_columns_: dict[int, int] - the keys are the indices of
         duplicate columns removed from the original data, indexed by
         their column location in the original data; the values are the
-        respective column index in the original data of the respective
-        duplicate that was kept.
+        column index in the original data of the respective duplicate
+        that was kept.
 
     """
 

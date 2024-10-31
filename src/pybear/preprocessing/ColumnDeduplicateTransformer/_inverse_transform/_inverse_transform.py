@@ -41,9 +41,8 @@ def _inverse_transform(
     _removed_columns:
         dict[int, int] - the keys are the indices of duplicate columns
         removed from the original data, indexed by their column location
-        in the original data; the values are the respective column
-        index in the original data of the respective duplicate that was
-        kept.
+        in the original data; the values are the column index in the
+        original data of the respective duplicate that was kept.
     _feature_names_in:
         Union[npt.NDArray[str], None] - the feature names found during
         fitting.

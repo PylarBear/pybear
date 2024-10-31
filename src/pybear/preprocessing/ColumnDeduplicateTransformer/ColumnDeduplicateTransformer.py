@@ -40,50 +40,101 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     Duplicate columns are a point of concern for analysts. In many
     data analytics learning algorithms, such a condition can cause
     convergence problems, inversion problems, or other undesirable
-    effects. The analyst is often forced to address the issue to
-    perform a meaningful analysis of the data. CDT is a tool that can
-    help fix this problem.
+    effects. The analyst is often forced to address the issue to perform
+    a meaningful analysis of the data.
 
     Columns with identical values within the same dataset may occur
     coincidentally in a sampling of data, may occur during one-hot
     encoding of categorical data, or may occur during polynomial feature
-    expansion. CDT identifies duplicate columns, and selectively keeps
-    one from a group of duplicates based on the configuration of the
-    user.
+    expansion.
 
-    Firstly, CDT affords parameters that give some flexibility to the
-    definition of "equal" for the sake of identifying duplicates. Namely, the rtol,
-    atol, and equal_nan parameters (see numpy documentation for deeper
-    clarification of the technical details.)
-    The rtol parameter
+    CDT is a tool that can help fix this problem. CDT identifies
+    duplicate columns and selectively keeps one from a group of
+    duplicates based on the configuration set by the user.
 
+    CDT affords parameters that give some flexibility to the definition
+    of "equal" for the sake of identifying duplicates. Namely, the
+    'rtol', 'atol', and 'equal_nan' parameters.
 
+    The rtol and atol parameters provide tolerance windows within which
+    numerical data that is not exactly equal but within the tolerance
+    are considered equal. See the numpy docs for deeper clarification of
+    the technical details.
 
+    The equal_nan parameter controls how CDT handles nan-like
+    representations during comparisons. If equal_nan is True, exclude
+    from comparison any rows where one or both of the values is/are nan.
+    If one value is nan, this essentially assumes that the nan value
+    would otherwise be the same as its non-nan counterpart. When both
+    are nan, this considers the nans as equal (contrary to the default
+    numpy handling of nan, where np.nan does not equal np.nan) and will
+    not in and of itself cause a pair of columns to be marked as unequal.
+    If equal_nan is False and either one or both of the values in the
+    compared pair of values is/are nan, consider the pair to be not
+    equivalent, thus making the column pair not equal. This is in line
+    with the normal numpy handling of nan values. See the Notes section
+    below for a discussion on the handling of nan-like values.
 
-        If equal_nan is True, exclude from comparison any rows where
-        one or both of the values is/are nan. If one value is nan, this
-        essentially assumes that the nan value would otherwise be the
-        same as its non-nan counterpart. When both are nan, this
-        considers the nans as equal (contrary to the default numpy
-        handling of nan, where np.nan != np.nan) and will not in and of
-        itself cause a pair of columns to be marked as unequal.
-        If equal_nan is False and either one or both of the values in
-        the compared pair of values is/are nan, consider the pair to be
-        not equivalent, thus making the column pair not equal. This is
-        in line with the normal numpy handling of nan values.
+    CDT has parameters that allow the user to control which column is
+    retained out of a set of duplicates: the 'keep', 'do_not_drop', and
+    'conflict' parameters.
 
+    The parameter 'keep' sets the strategy for keeping a single
+    representative from a set of identical columns. It accepts one of
+    three values: 'first', 'last', or 'random'. The default setting is
+    'first'. 'first' retains the column left-most in the data; 'last'
+    keeps the column right-most in the data; 'random' keeps a single
+    randomly-selected column of the set of duplicates. All other columns
+    in the set of duplicates are removed from the dataset.
 
+    The parameter 'do_not_drop' allows the user to indicate columns not
+    to be removed from the data. This is to be given as a list-like of
+    integers or strings. If fitting is done on a pandas dataframe that
+    has a header, a list of feature names may be provided; the values
+    within must match exactly the features as named in the dataframe
+    header (case sensitive.) Otherwise, a list of column indices must be
+    provided. The :param: do_not_drop instructions may conflict with
+    the :param: keep instructions. If such a conflict arises, such as
+    two columns specified in :param: do_not_drop are duplicates of each
+    other, the behavior is managed by :param: conflict.
 
+    The 'conflict' parameter accepts two possible values: 'raise' or
+    'ignore'. When :param: do_not_drop is not passed, :param: conflict
+    is ignored. This parameter instructs CDT how to deal with a conflict
+    between the instructions in :param: keep and :param: do_not_drop. A
+    conflict arises when the instruction in :param: keep ('first',
+    'last', 'random') is applied and a column in :param: do_not_drop is
+    found to be a member of the columns to be removed. When :param:
+    conflict is 'raise', an exception is raised in this case. When
+    :param: conflict is 'ignore', there are 2 possible scenarios:
 
-    Secondly,
+        1) when only one column in :param: do_not_drop is among the
+        columns to be removed, the :param: keep instruction is overruled
+        and the do_not_drop column is kept
 
+        2) when multiple columns in :param: do_not_drop are among the
+        duplicates, the :param: keep instruction ('first', 'last',
+        'random') is applied to the set of do-not-delete columns
+        that are amongst the duplicates --- this may not give the same
+        result as applying the :param: keep instruction to the entire
+        set of duplicate columns. This also causes at least one member
+        of the columns not to be dropped to be removed.
 
+    The partial_fit, fit, fit_transform, and inverse_transform methods
+    of CDT accept data as numpy arrays, pandas dataframes, and scipy
+    sparse matrices/arrays. CDT has a set_output method, whereby the user
+    can set the type of output container. This behavior is managed by
+    scikit-learn functionality adopted into CDT, and is subject to change
+    at their discretion. As of first publication, :method: set_output
+    can return transformed outputs as numpy arrays, pandas dataframes,
+    or polars dataframes. When :method: set_output is None, the output
+    container is the same as the input, that is, numpy array, pandas
+    dataframe, or scipy sparse matrix/array.
 
-    CDT has a partial fit method that allows for incremental fitting of
-    data sets. This makes CDT suitable for dask_ml Incremental and
+    The partial fit method allows for incremental fitting of data sets.
+    This makes CDT suitable for use with packages that do batch-wise
+    fitting and transforming, such as dask_ml via the Incremental and
     ParallelPostFit wrappers.
-
-
 
 
     Parameters
@@ -107,23 +158,22 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         not passed. Instructs CDT how to deal with a conflict between
         the instructions in :param: keep and :param: do_not_drop. A
         conflict arises when the instruction in :param: keep ('first',
-        'last', 'random') is applied and column in :param: do_not_drop
-        is found to be a member of the columns to be deleted. When
-        :param: conflict is 'raise', an exception is raised in the case
-        of such a conflict. When :param: conflict is 'ignore', there are
-        2 possible scenarios:
+        'last', 'random') is applied and a column in :param: do_not_drop
+        is found to be a member of the columns to be removed. When
+        :param: conflict is 'raise', an exception is raised in this case.
+        When :param: conflict is 'ignore', there are 2 possible scenarios:
 
         1) when only one column in :param: do_not_drop is among the
-        columns to be deleted, the :param: keep instruction is overruled
+        columns to be removed, the :param: keep instruction is overruled
         and the do_not_drop column is kept
 
         2) when multiple columns in :param: do_not_drop are among the
-        columns to be deleted, the :param: keep instruction ('first',
+        columns to be removed, the :param: keep instruction ('first',
         'last', 'random') is applied to the set of do-not-delete columns
-        that would be marked for deletion --- this may not give the same
-        result as applying the :param: keep instruction  to the entire
+        that are amongst the duplicates --- this may not give the same
+        result as applying the :param: keep instruction to the entire
         set of duplicate columns. This also causes at least one member
-        of the columns not to be dropped to be deleted.
+        of the columns not to be dropped to be removed.
     rtol:
         float, default = 1e-5 - The relative difference tolerance for
             equality. See numpy.allclose.
@@ -138,12 +188,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
-        handling of nan, where np.nan != np.nan) and will not in and of
-        itself cause a pair of columns to be marked as unequal.
-        If equal_nan is False and either one or both of the values in
-        the compared pair of values is/are nan, consider the pair to be
-        not equivalent, thus making the column pair not equal. This is
-        in line with the normal numpy handling of nan values.
+        handling of nan, where np.nan does not equal np.nan) and will
+        not in and of itself cause a pair of columns to be marked as
+        unequal. If equal_nan is False and either one or both of the
+        values in the compared pair of values is/are nan, consider the
+        pair to be not equivalent, thus making the column pair not equal.
+        This is in line with the normal numpy handling of nan values.
     n_jobs:
         Union[int, None], default = -1 - The number of joblib Parallel
         jobs to use when comparing columns. The default is to use
@@ -170,22 +220,29 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     removed_columns_: dict[int, int] - a dictionary whose keys are the
         indices of duplicate columns removed from the original data,
         indexed by their column location in the original data; the values
-        are the respective column index in the original data of the
-        respective duplicate that was kept.
+        are the column index in the original data of the respective
+        duplicate that was kept.
 
     column_mask_: list[bool], shape (n_features_,) - Indicates which
-        columns of the fitted data are kept (True) and which are deleted
+        columns of the fitted data are kept (True) and which are removed
         (False) during transform.
 
 
     Notes
     -----
-    pizza, talk about nan handling. at time of column comparison,
-    both compared columns of data are converted to numpy array for the
-    comparison. for numeric columns, whatever is used to indicate
-    'not-a-number' must be recognizable by numpy as such, so that
-    numpy can convert it to np.nan and handle it as such. for string
-    data, CDT will recognize strings of the form 'nan' (not case sensitive.)
+    Concerning the handling of nan-like representations. While CDT
+    accepts data in the form of numpy arrays, pandas dataframes, and
+    scipy sparse matrices/arrays, at the time of column comparison both
+    columns of data are converted to numpy arrays. After the conversion
+    and prior to the comparison, CDT identifies any nan-like
+    representations in both of the numpy arrays and standardizes all of
+    them to np.nan. The user needs to be wary that whatever is used to
+    indicate 'not-a-number' in the original data must first survive the
+    conversion to numpy array, then be recognizable by CDT as nan-like,
+    so that CDT can standardize it to np.nan. nan-like representations
+    that are recognized by CDT include, at least, np.nan, pandas.NA,
+    None (of type None, not string 'None'), and string representations
+    of "nan" (not case sensitive).
 
 
     See Also

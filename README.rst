@@ -71,7 +71,7 @@ tested on earlier versions, but some features may work.
 User installation
 ~~~~~~~~~~~~~~~~~
 
-The only way to install PyBear is from PyPI using ``pip``::
+The only way to install pybear is from PyPI using ``pip``::
 
     pip install pybear
 
@@ -92,7 +92,7 @@ AutoGridSearchCVDask
 ~~~~~~~~~~~~~~~~~~~~
 Description: Perform multiple uninterrupted passes of grid search with dask_ml 
 GridSearchCV and dask objects utilizing progressively narrower search grids.
-Access via pybear.model_selecion.AutoGridSearchCVDask.
+Access via pybear.model_selection.AutoGridSearchCVDask.
 
 autogridsearch_wrapper
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -132,11 +132,20 @@ Access via pybear.model_selection.AutoGSTCVDask.
 MinCountTransformer
 ~~~~~~~~~~~~~~~~~~~
 Description: Perform minimum frequency thresholding on numerical or categorical 
-data simulteously across an entire array of data. Violates the scikit-learn API 
+data simultaneously across an entire array of data. Violates the scikit-learn API 
 in that datasets are modified along the example axis (examples may be deleted.) 
 Otherwise is fully compliant with the sci-kit learn transformer API, with fit, 
 transform, and partial_fit methods.
 Access via pybear.preprocessing.MinCountTranformer.
+
+ColumnDeduplicateTransformer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Description: Identify and selectively remove duplicate columns in numerical or 
+categorical data. Fully compliant with the scikit-learn transformer API, with fit, 
+transform, and partial_fit methods. Perfect for removing duplicate columns in 
+one-hot encoded data in a scikit-learn pipeline. Can also fit and transform data 
+batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
+Access via pybear.preprocessing.ColumnDeduplicateTransformer.
 
 =======
 
@@ -168,7 +177,7 @@ You can clone the latest source code with the command::
 Contributing
 ~~~~~~~~~~~~
 
-PyBear is not ready for contributions at this time!
+pybear is not ready for contributions at this time!
 
 Testing
 ~~~~~~~
@@ -181,7 +190,7 @@ root directory (you will need to have pytest installed in your environment)::
 Project History
 ---------------
 
-The project originated in the early 2020's as a collection of miscelleanous 
+The project originated in the early 2020's as a collection of miscellaneous 
 private modules to enhance the scikit-learn and dask_ml ecosystem. In 2024, the 
 modules were formalized and bundled together for their first release as pybear.
 
