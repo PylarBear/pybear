@@ -21,13 +21,6 @@ import polars as pl
 
 
 
-
-# pytest.skip(reason=f"pizza is not done!", allow_module_level=True)
-
-# PIZZA BE SURE TO TEST PD NA HANDLING! AND SPARSE!
-
-
-
 bypass = False
 
 
@@ -55,12 +48,6 @@ def _kwargs():
 @pytest.fixture(scope='module')
 def _dum_X(_X_factory, _shape):
     return _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
-
-
-# pizza is this even used
-@pytest.fixture(scope='function')
-def _std_dupl(_shape):
-    return [[0, 4], [3, 5, _shape[1]-1]]
 
 
 @pytest.fixture(scope='module')
@@ -189,7 +176,8 @@ class TestInputValidation:
     def test_array_str_handing(self, _dum_X, _kwargs, _columns):
 
         # rejects str when no header
-        _kwargs['do_not_drop'] = [v for i, v in enumerate(_columns) if i % 2 == 0]
+        _kwargs['do_not_drop'] = \
+            [v for i, v in enumerate(_columns) if i % 2 == 0]
 
         TestCls = CDT(**_kwargs)
 
@@ -246,7 +234,8 @@ class TestInputValidation:
     def test_df_str_handling(self, _X_pd, _kwargs, _columns):
 
         # accepts good str always
-        _kwargs['do_not_drop'] = [v for i, v in enumerate(_columns) if i % 2 == 0]
+        _kwargs['do_not_drop'] = \
+            [v for i, v in enumerate(_columns) if i % 2 == 0]
 
         TestCls = CDT(**_kwargs)
         TestCls.fit_transform(_X_pd)
@@ -459,7 +448,7 @@ class TestFitPartialFitAcceptYEqualsAnything:
 # END ALWAYS ACCEPTS y==anything TO fit() AND partial_fit() #################
 
 
-# TEST EXCEPTS ANYTIME X==None IS PASSED TO fit(), partial_fit(), AND transform()
+# TEST EXCEPTS ANYTIME X==None PASSED TO fit(), partial_fit(), AND transform()
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestExceptsAnytimeXisNone:
 
@@ -493,7 +482,7 @@ class TestExceptsAnytimeXisNone:
 
         del TestCls
 
-# END TEST EXCEPTS ANYTIME X==None IS PASSED TO fit(), partial_fit(), OR transform()
+# END TEST EXCEPTS ANYTIME X==None PASSED TO fit(), partial_fit(), transform()
 
 
 # VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##################################
@@ -763,7 +752,7 @@ class TestAllColumnsTheSameorDifferent:
         elif same_or_diff == '_diff':
             assert out.shape[1] == _shape[1]
 
-# END TEST ALL COLUMNS THE SAME OR DIFFERENT #####################################
+# END TEST ALL COLUMNS THE SAME OR DIFFERENT ##################################
 
 
 # TEST MANY PARTIAL FITS == ONE BIG FIT ********************************
@@ -787,7 +776,10 @@ class TestManyPartialFitsEqualOneBigFit:
         ONE_SHOT_FULL_FIT_TRFM_X = \
             OneShotFullFitTestCls.transform(_dum_X, copy=True)
 
-        assert np.array_equal(ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_X), \
+        assert np.array_equal(
+            ONE_SHOT_PARTIAL_FIT_TRFM_X,
+            ONE_SHOT_FULL_FIT_TRFM_X
+        ), \
             f"one shot partial fit trfm X != one shot full fit trfm X"
 
         # END TEST THAT ONE-SHOT partial_fit/transform==ONE-SHOT fit/transform
@@ -868,7 +860,7 @@ class TestManyPartialFitsEqualOneBigFit:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestDuplAccuracyOverManyPartialFits:
 
-    # pizza
+
     # verify correct progression of reported duplicates as partial fits are done
     # rig a set of arrays that have progressively decreasing duplicates
 
