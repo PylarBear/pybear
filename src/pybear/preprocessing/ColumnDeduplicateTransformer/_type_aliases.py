@@ -49,11 +49,8 @@ DoNotDropType: TypeAlias = Union[
     None
 ]
 
-KeepType: TypeAlias = Union[
-    Literal['first'],
-    Literal['last'],
-    Literal['random']
-]
+KeepType: TypeAlias = Literal['first', 'last', 'random']
+
 
 
 

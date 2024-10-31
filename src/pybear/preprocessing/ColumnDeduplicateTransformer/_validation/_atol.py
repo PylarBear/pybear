@@ -11,6 +11,25 @@ import numpy as np
 
 def _val_atol(_atol: float) -> None:
 
+    """
+    Verify atol is a non-boolean number that is accepted by numpy
+    allclose.
+
+
+    Parameters
+    ----------
+    _atol:
+        float - the absolute difference tolerance for equality.
+
+
+    Return
+    ------
+    -
+        None
+
+
+    """
+
     if isinstance(_atol, bool):
         raise TypeError(f"'atol' cannot be bool")
 
