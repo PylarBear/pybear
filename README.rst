@@ -1,4 +1,4 @@
-PyBear
+pybear
 ======
 
 |Build Status| |Test Status| |Doc Status| |PyPI Downloads| |Version Status| |PyPi|
