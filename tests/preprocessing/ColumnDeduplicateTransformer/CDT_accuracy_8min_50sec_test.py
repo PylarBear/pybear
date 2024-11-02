@@ -134,6 +134,8 @@ class TestAccuracy:
             pytest.skip(reason=f"dont do remaining tests")
         else:
             TRFM_X = TestCls.fit_transform(X)
+            if isinstance(TRFM_X, np.ndarray):
+                assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
         exp_dupls = deepcopy(dupls or [])
         if has_nan and not equal_nan:
