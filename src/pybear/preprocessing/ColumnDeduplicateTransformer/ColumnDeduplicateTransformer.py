@@ -5,18 +5,15 @@
 #
 
 
-from pandas import SparseDtype
-from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
-from sklearn.exceptions import NotFittedError
-from sklearn.utils._param_validation import StrOptions
 
+import numpy as np
+import numpy.typing as npt
+import pandas as pd
+
+import numbers
 from typing import Iterable, Literal, Optional
 from typing_extensions import Union, Self
-import numpy.typing as npt
 from ._type_aliases import SparseTypes
-import numbers
-import numpy as np
-import pandas as pd
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
@@ -25,6 +22,9 @@ from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._transform._transform import _transform
 from ._inverse_transform._inverse_transform import _inverse_transform
 
+from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
+from sklearn.exceptions import NotFittedError
+from sklearn.utils._param_validation import StrOptions
 from sklearn.utils.validation import check_is_fitted, check_array
 
 
@@ -37,11 +37,11 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     that removes duplicate columns from data, leaving behind one column
     out of a set of duplicate columns.
 
-    Duplicate columns are a point of concern for analysts. In many
-    data analytics learning algorithms, such a condition can cause
-    convergence problems, inversion problems, or other undesirable
-    effects. The analyst is often forced to address the issue to perform
-    a meaningful analysis of the data.
+    Duplicate columns are a point of concern for analysts. In many data
+    analytics learning algorithms, such a condition can cause convergence
+    problems, inversion problems, or other undesirable effects. The
+    analyst is often forced to address the issue to perform a meaningful
+    analysis of the data.
 
     Columns with identical values within the same dataset may occur
     coincidentally in a sampling of data, may occur during one-hot
@@ -425,10 +425,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
 
     # def get_params - inherited from BaseEstimator
-
-    # def set_params - inherited from BaseEstimator
-
-    # def set_output(self) - inherited from TransformerMixin
+    # if ever needed, hard code that can be substituted for the
+    # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
 
     def get_metadata_routing(self):
@@ -488,6 +486,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             force_all_finite="allow-nan",
             ensure_2d=True,
             ensure_min_features=2,
+            order='F'
         )
 
         
@@ -501,7 +500,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         # cast_to_ndarray – Cast X and y to ndarray with checks in
         # check_params. If False, X and y are unchanged and only
         # feature_names_in_ and n_features_in_ are checked.
-        #
+
 
         _validation(
             X,  # Not validated, used for validation of other objects
@@ -577,95 +576,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         return self.partial_fit(X, y=y)
 
 
-    def transform(
-        self,
-        X: Union[npt.NDArray[any], pd.DataFrame, SparseDtype],
-        *,
-        copy: bool = None
-    ) -> Union[npt.NDArray[any], pd.DataFrame, SparseDtype]:
-
-        """
-        Remove the duplicate columns from X. Apply the criteria given
-        by :params: keep, do_not_drop, and conflict to the sets of
-        duplicate columns found during fit.
-
-
-        Parameters
-        ----------
-        X:
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - The data to be deduplicated.
-        copy:
-            Union[bool, None], default=None - Whether to make a copy of
-            X before the transform.
-
-
-        Return
-        ------
-        -
-            X: {array-like, scipy sparse matrix} of shape (n_samples,
-                n_features - n_removed_features) - The deduplicated data.
-
-        """
-
-        check_is_fitted(self)
-
-        if not isinstance(copy, (bool, type(None))):
-            raise TypeError(f"'copy' must be boolean or None")
-
-        _val_X(X)
-
-        X = self._validate_data(
-            X=X,
-            reset=False,
-            cast_to_ndarray=False,
-            copy=copy or False,
-            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-            dtype=None,
-            force_all_finite="allow-nan",
-            ensure_2d=True,
-            ensure_min_features=2
-        )
-
-
-        _validation(
-            X,  # Not validated, used for validation of other objects
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
-            self.conflict,
-            self.do_not_drop,
-            self.keep,
-            self.rtol,
-            self.atol,
-            self.equal_nan,
-            self.n_jobs
-        )
-
-
-        # redo these here in case set_params() was changed after (partial_)fit
-        # determine the columns to remove based on given parameters.
-        self.removed_columns_ = \
-            _identify_idxs_to_delete(
-                self.duplicates_,
-                self.keep,
-                self.do_not_drop,
-                self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
-                self.conflict
-            )
-
-        self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
-        self.column_mask_[list(self.removed_columns_)] = False
-        self.column_mask_ = list(map(bool, self.column_mask_))
-        # end redo
-
-        return _transform(X, self.column_mask_)
-
-
     def inverse_transform(
         self,
-        X: Union[npt.NDArray[any], pd.DataFrame, SparseDtype],
+        X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes],
         *,
         copy: bool = None
-        ) -> Union[npt.NDArray[any], pd.DataFrame, SparseDtype]:
+        ) -> Union[npt.NDArray[any], pd.DataFrame, SparseTypes]:
 
         """
         Revert deduplicated data back to its original state.
@@ -713,15 +629,21 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             dtype=None,
             force_all_finite="allow-nan",
             ensure_2d=True,
-            copy=copy or False
+            copy=copy or False,
+            order='F'
         )
 
-        return _inverse_transform(
+        out = _inverse_transform(
             X,
             self.duplicates_,
             self.removed_columns_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
+
+        if isinstance(out, np.ndarray):
+            out = np.ascontiguousarray(out)
+
+        return out
 
 
     def score(self, X, y=None):
@@ -733,10 +655,101 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         pass
 
 
+    # def set_params - inherited from BaseEstimator
+    # if ever needed, hard code that can be substituted for the
+    # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
 
+    # def set_output(self) - inherited from TransformerMixin
 
 
+    def transform(
+        self,
+        X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes],
+        *,
+        copy: bool = None
+    ) -> Union[npt.NDArray[any], pd.DataFrame, SparseTypes]:
+
+        """
+        Remove the duplicate columns from X. Apply the criteria given
+        by :params: keep, do_not_drop, and conflict to the sets of
+        duplicate columns found during fit.
+
+
+        Parameters
+        ----------
+        X:
+            {array-like, scipy sparse matrix} of shape (n_samples,
+            n_features) - The data to be deduplicated.
+        copy:
+            Union[bool, None], default=None - Whether to make a copy of
+            X before the transform.
+
+
+        Return
+        ------
+        -
+            X: {array-like, scipy sparse matrix} of shape (n_samples,
+                n_features - n_removed_features) - The deduplicated data.
+
+        """
+
+        check_is_fitted(self)
+
+        if not isinstance(copy, (bool, type(None))):
+            raise TypeError(f"'copy' must be boolean or None")
+
+        _val_X(X)
+
+        X = self._validate_data(
+            X=X,
+            reset=False,
+            cast_to_ndarray=False,
+            copy=copy or False,
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+            dtype=None,
+            force_all_finite="allow-nan",
+            ensure_2d=True,
+            ensure_min_features=2,
+            order ='F'
+        )
+
+
+        _validation(
+            X,  # Not validated, used for validation of other objects
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self.conflict,
+            self.do_not_drop,
+            self.keep,
+            self.rtol,
+            self.atol,
+            self.equal_nan,
+            self.n_jobs
+        )
+
+
+        # redo these here in case set_params() was changed after (partial_)fit
+        # determine the columns to remove based on given parameters.
+        self.removed_columns_ = \
+            _identify_idxs_to_delete(
+                self.duplicates_,
+                self.keep,
+                self.do_not_drop,
+                self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+                self.conflict
+            )
+
+        self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
+        self.column_mask_[list(self.removed_columns_)] = False
+        self.column_mask_ = list(map(bool, self.column_mask_))
+        # end redo
+
+        out = _transform(X, self.column_mask_)
+
+        if isinstance(out, np.ndarray):
+            out = np.ascontiguousarray(out)
+
+        return out
 
 
 

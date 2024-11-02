@@ -528,6 +528,16 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
             return self
 
 
+        # def get_params(self):
+        # if ever needed, hard code that can be substituted for the
+        # BaseEstimator get/set_params can be found in GSTCV_Mixin
+
+
+        # def set_params(self):
+        # if ever needed, hard code that can be substituted for the
+        # BaseEstimator get/set_params can be found in GSTCV_Mixin
+
+
     # pizza this is likely being correctly assigned but pycharm tool tip
     # does not show it
     AutoGridSearch.__doc__ = autogridsearch_docs.__doc__

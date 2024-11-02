@@ -390,7 +390,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         delete_axis_0:bool=False,
         reject_unseen_values:bool=False,
         max_recursions:int=1,
-        n_jobs:[int, None]=None
+        n_jobs:Union[int, None]=None
     ):
 
 
@@ -1090,7 +1090,9 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         raise NotImplementedError(f"get_metadata_routing is not available in {__}")
 
 
-    # get_params inherited from BaseEstimator
+    # def get_params inherited from BaseEstimator
+    # if ever needed, hard code that can be substituted for the
+    # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
 
     def get_row_support(self, indices:bool=False):
@@ -1231,6 +1233,9 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                 self._reset()
             del _PARAMS
 
+
+        # if ever needed, hard code that can be substituted for the
+        # BaseEstimator get/set_params can be found in GSTCV_Mixin
         super().set_params(**params)
 
         return self

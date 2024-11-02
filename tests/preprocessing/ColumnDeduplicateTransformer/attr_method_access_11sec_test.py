@@ -410,6 +410,8 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
                         TestCls.inverse_transform(TEST_X)
 
         INV_TRFM_X = TestCls.inverse_transform(TRFM_X)
+        if isinstance(TRFM_X, np.ndarray):
+            assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
 
         assert isinstance(INV_TRFM_X, np.ndarray), \
             f"output of inverse_transform() is not a numpy array"
