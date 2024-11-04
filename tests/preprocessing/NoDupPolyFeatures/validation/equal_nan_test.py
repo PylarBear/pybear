@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation. \
+from pybear.preprocessing.NoDupPolyFeatures._validation. \
     _equal_nan import _val_equal_nan
 
 

@@ -21,8 +21,7 @@ import scipy.sparse as ss
 def _inverse_transform(
     X: DataType,
     _duplicates: list[list[int]],
-    _removed_duplicates: dict[int, int],
-    _removed_constants: dict[Union[int, tuple[int]], any],
+    _removed_columns: dict[int, int],
     _feature_names_in: Union[npt.NDArray[str], None]
 ) -> DataType:
 

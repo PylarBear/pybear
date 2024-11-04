@@ -10,7 +10,7 @@ from typing import Literal
 
 from ._atol import _val_atol
 from ._conflict import _val_conflict
-from ._degree import _val_degree
+from ._degree__min_degree import _val_degree__min_degree
 from ._do_not_drop import _val_do_not_drop
 from ._drop_constants import _val_drop_constants
 from ._drop_duplicates import _val_drop_duplicates
@@ -18,7 +18,6 @@ from ._equal_nan import _val_equal_nan
 from ._include_bias import _val_include_bias
 from ._interaction_only import _val_interaction_only
 from ._keep import _val_keep
-from ._min_degree import _val_min_degree
 from ._n_jobs import _val_n_jobs
 from ._order import _val_order
 from ._output_sparse import _val_output_sparse
@@ -108,6 +107,7 @@ def _validation(
 
     """
 
+
     _val_atol(_atol)
 
     _val_conflict(_conflict)
@@ -124,9 +124,7 @@ def _validation(
 
     _val_rtol(_rtol)
 
-    _val_degree(_degree)
-
-    _val_min_degree(_min_degree)
+    _val_degree__min_degree(_degree, _min_degree)
 
     _val_drop_duplicates(_drop_duplicates)
 

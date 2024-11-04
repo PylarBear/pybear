@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation._rtol \
+from pybear.preprocessing.NoDupPolyFeatures._validation._rtol \
     import _val_rtol
 
 
