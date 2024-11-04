@@ -7,16 +7,13 @@
 
 
 import numpy as np
-import numpy.typing as npt
-import pandas as pd
 
-import numbers
+from numbers import Real, Integral
 from typing import Iterable, Literal, Optional
 from typing_extensions import Union, Self
-from ._type_aliases import SparseTypes
+from ._type_aliases import DataType
 
 from ._validation._validation import _validation
-from ._validation._X import _val_X
 from ._partial_fit._dupl_idxs import _dupl_idxs
 from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._transform._transform import _transform
@@ -145,7 +142,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
-    _do_not_drop:
+    do_not_drop:
         Union[Iterable[int], Iterable[str], None], default=None - A list
         of columns not to be dropped. If fitting is done on a pandas
         dataframe that has a header, a list of feature names may be
@@ -294,10 +291,10 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         "keep": [StrOptions({"first", "last", "random"})],
         "do_not_drop": [list, tuple, set, None,],
         "conflict": [StrOptions({"raise", "ignore"})],
-        "rtol": [numbers.Real],
-        "atol": [numbers.Real],
+        "rtol": [Real],
+        "atol": [Real],
         "equal_nan": ["boolean"],
-        "n_jobs": [numbers.Integral, None],
+        "n_jobs": [Integral, None],
     }
 
     def __init__(
@@ -443,7 +440,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     @_fit_context(prefer_skip_nested_validation=True)
     def partial_fit(
         self,
-        X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes],
+        X: DataType,
         y: any=None
     ) -> Self:
 
@@ -544,7 +541,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
     def fit(
         self,
-        X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes],
+        X: DataType,
         y: any=None
     ) -> Self:
 
@@ -578,10 +575,10 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
     def inverse_transform(
         self,
-        X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes],
+        X: DataType,
         *,
         copy: bool = None
-        ) -> Union[npt.NDArray[any], pd.DataFrame, SparseTypes]:
+        ) -> DataType:
 
         """
         Revert deduplicated data back to its original state.
@@ -665,10 +662,10 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
     def transform(
         self,
-        X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes],
+        X: DataType,
         *,
         copy: bool = None
-    ) -> Union[npt.NDArray[any], pd.DataFrame, SparseTypes]:
+    ) -> DataType:
 
         """
         Remove the duplicate columns from X. Apply the criteria given
@@ -699,7 +696,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
-        _val_X(X)
+        # 24_11_02_11_25_00 pizza hashed this because of _validation below,
+        # if tests pass, then delete
+        # _val_X(X)
 
         X = self._validate_data(
             X=X,
@@ -716,7 +715,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
 
         _validation(
-            X,  # Not validated, used for validation of other objects
+            X,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.conflict,
             self.do_not_drop,

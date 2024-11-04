@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation._validation \
+from pybear.preprocessing.NoDupPolyFeatures._validation._validation \
     import _validation
 
 import numpy as np
@@ -38,30 +38,46 @@ class TestValidation:
         return list(np.random.choice(range(_cols), _cols//10, replace=False))
 
 
-    @pytest.mark.parametrize('_conflict', ('raise', 'ignore'))
-    @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
-    @pytest.mark.parametrize('_rtol', (1e-6, 1e-1))
-    @pytest.mark.parametrize('_atol', (1e-6, 1))
-    @pytest.mark.parametrize('_equal_nan', (True, False))
-    @pytest.mark.parametrize('_n_jobs', (None, -1, 1))
-    def test_accepts_good(
-        self, _X, _columns, _conflict, _do_not_drop, _keep, _rtol, _atol,
-        _equal_nan, _n_jobs, _shape
-    ):
 
+    @pytest.mark.parametrize('_degree', (1, 2))
+    @pytest.mark.parametrize('_min_degree', (0, 1)) # 1))
+    @pytest.mark.parametrize('_drop_duplicates', (True, False))
+    @pytest.mark.parametrize('_conflict', ('raise', )) # 'ignore'))
+    @pytest.mark.parametrize('_keep', ('first', )) # 'last', 'random'))
+    @pytest.mark.parametrize('_interaction_only', (True, False))
+    @pytest.mark.parametrize('_include_bias', (True, False))
+    @pytest.mark.parametrize('_drop_constants', (True, False))
+    @pytest.mark.parametrize('_output_sparse', (True, False))
+    @pytest.mark.parametrize('_order', ('C', 'F'))
+    @pytest.mark.parametrize('_rtol', (1e-6, )) # 1e-1))
+    @pytest.mark.parametrize('_atol', (1e-6, )) # 1))
+    @pytest.mark.parametrize('_equal_nan', (True, False))
+    @pytest.mark.parametrize('_n_jobs', (-1, 1))
+    def test_accepts_good(
+        self, _X, _columns, _degree, _min_degree, _drop_duplicates, _conflict,
+        _do_not_drop, _keep, _interaction_only, _include_bias, _drop_constants,
+        _output_sparse, _order, _rtol, _atol, _equal_nan, _n_jobs, _shape
+    ):
 
         _validation(
             _X,
             _columns,
-            _conflict,
-            _do_not_drop,
+            _degree,
+            _min_degree,
+            _drop_duplicates,
             _keep,
+            _do_not_drop,
+            _conflict,
+            _interaction_only,
+            _include_bias,
+            _drop_constants,
+            _output_sparse,
+            _order,
             _rtol,
             _atol,
             _equal_nan,
             _n_jobs
         )
-
 
 
 

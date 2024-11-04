@@ -10,6 +10,7 @@ from typing_extensions import Union
 import numpy.typing as npt
 from .._type_aliases import SparseTypes
 
+import numpy as np
 import pandas as pd
 
 
@@ -52,9 +53,16 @@ def _val_X(
         raise TypeError(_err_msg)
 
 
-    # sklearn _validate_data is not catching this
-    if len(_X.shape) != 2:
-        raise UnicodeError
+    # rejects non-numeric, does not accept nan-likes
+    # BaseEstimator _validate_data is catching nans with force_all_finite = False,
+    # but keep this checking nans in case _validate_data should ever change
+    try:
+        _X.astype(np.uint8)
+        # this kills two birds, both non-numeric and nan cannot convert to int8
+    except:
+        raise ValueError(
+            f"data must be numeric and cannot have nan-like values"
+        )
 
 
 

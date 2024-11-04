@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation._atol \
+from pybear.preprocessing.NoDupPolyFeatures._validation._atol \
     import _val_atol
 
 
