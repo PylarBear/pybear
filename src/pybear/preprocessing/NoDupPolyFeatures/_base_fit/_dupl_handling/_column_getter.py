@@ -6,13 +6,15 @@
 
 
 
-from .._type_aliases import DataType
+from pybear.preprocessing.NoDupPolyFeatures._type_aliases import DataType
 import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
 
-from ....utilities._nan_masking import nan_mask
+import scipy.sparse as ss
+
+from pybear.utilities._nan_masking import nan_mask
 
 
 
@@ -56,7 +58,7 @@ def _column_getter(
     elif isinstance(_X, pd.core.frame.DataFrame):
         column1 = _X.iloc[:, _col_idx1].to_numpy()
         column2 = _X.iloc[:, _col_idx2].to_numpy()
-    elif hasattr(_X, 'toarray'):    # scipy sparse
+    elif hasattr(_X, 'toarray'):
         _X_wip = _X.copy().tocsc()
         column1 = _X_wip[:, [_col_idx1]].toarray().ravel()
         column2 = _X_wip[:, [_col_idx2]].toarray().ravel()

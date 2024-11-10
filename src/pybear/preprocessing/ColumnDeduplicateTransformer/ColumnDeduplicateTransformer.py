@@ -500,7 +500,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
 
         _validation(
-            X,  # Not validated, used for validation of other objects
+            X,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.conflict,
             self.do_not_drop,
@@ -695,10 +695,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
-
-        # 24_11_02_11_25_00 pizza hashed this because of _validation below,
-        # if tests pass, then delete
-        # _val_X(X)
 
         X = self._validate_data(
             X=X,

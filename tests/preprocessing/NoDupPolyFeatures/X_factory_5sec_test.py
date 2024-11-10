@@ -144,6 +144,24 @@ class TestXFactory:
 
     # - - - - - -
 
+    @pytest.mark.parametrize('junk_constants',
+        (-1,0,1,np.pi,True,'trash',{'a':1},min,lambda x: x)
+    )
+    def test_rejects_junk_constants(self, _X_factory, junk_constants):
+        with pytest.raises(AssertionError):
+            _X_factory(_constants=junk_constants)
+
+    @pytest.mark.parametrize('bad_constants', ([[0,1]], ['a','b']))
+    def test_rejects_bad_constants(self, _X_factory, bad_constants):
+        with pytest.raises(AssertionError):
+            _X_factory(_constants=bad_constants)
+
+    @pytest.mark.parametrize('good_constants', ([0,2],))
+    def test_accepts_good_constants(self, _X_factory, good_constants):
+        _X_factory(_constants=good_constants)
+
+    # - - - - - -
+
     @pytest.mark.parametrize('junk_zeros',
         ('trash',[0,1],(1,),{0,1},{'a':1},min,lambda x: x)
     )
@@ -252,6 +270,25 @@ class TestXFactory:
             assert np.array_equiv(out.columns, _ref_columns)
         else:
             assert np.array_equiv(out.columns, range(_shape[1]))
+
+
+    @pytest.mark.parametrize('_constants', ([0,2], None))
+    def test_constants_accuracy(self, _X_factory, _constants, _shape):
+
+        out = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _constants=_constants,
+            _shape=_shape
+        )
+
+        for c_idx in range(out.shape[1]):
+            if c_idx in (_constants or []):
+                assert len(np.unique(out[:, c_idx])) == 1
+            else:
+                assert len(np.unique(out[:, c_idx])) > 1
 
 
     @pytest.mark.parametrize('_dupl',

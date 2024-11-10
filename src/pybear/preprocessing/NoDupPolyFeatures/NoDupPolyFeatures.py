@@ -7,8 +7,6 @@
 
 
 import numpy as np
-import numpy.typing as npt
-import pandas as pd
 
 from joblib import Parallel
 
@@ -18,14 +16,10 @@ from ._type_aliases import DataType
 
 from numbers import Real, Integral
 
-from ...utilities import nan_mask_numerical
-
 from ._validation._validation import _validation
 from ._validation._X import _val_X
-from ._base_fit._get_constant_columns import _get_constant_columns
+from pybear.preprocessing.NoDupPolyFeatures._base_fit._constant_handling._get_constant_columns import _get_constant_columns
 from ._base_fit._combination_builder import _combination_builder
-from ._partial_fit._dupl_idxs import _dupl_idxs
-from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._transform._transform import _transform
 from ._inverse_transform._inverse_transform import _inverse_transform
 
@@ -174,7 +168,8 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         (False) during transform.
 
     constants_:
-        dict[tuple[int], any]] - put words about how the only constant, in this unforgiving world, is good pizza.
+        dict[tuple[int], any]] - put words about how the only constant,
+        in this unforgiving world, is good pizza.
 
     dropped_constants_:
         dict[int, any] - if :param: drop_constants is True, columns of

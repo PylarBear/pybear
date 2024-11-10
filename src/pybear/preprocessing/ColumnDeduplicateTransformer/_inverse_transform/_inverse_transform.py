@@ -21,8 +21,7 @@ import scipy.sparse as ss
 def _inverse_transform(
     X: DataType,
     _duplicates: list[list[int]],
-    _removed_duplicates: dict[int, int],
-    _removed_constants: dict[Union[int, tuple[int]], any],
+    _removed_columns: dict[int, int],
     _feature_names_in: Union[npt.NDArray[str], None]
 ) -> DataType:
 
@@ -71,12 +70,7 @@ def _inverse_transform(
         # saw a header via df or _columns, but a df has been passed to
         # inverse_transform.)
         X = X.to_numpy()
-    elif isinstance(X, (ss._csr.csr_matrix, ss._csc.csc_matrix,
-        ss._coo.coo_matrix, ss._dia.dia_matrix, ss._lil.lil_matrix,
-        ss._dok.dok_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-        ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-        ss._lil.lil_array, ss._dok.dok_array, ss._bsr.bsr_array)):
-
+    elif hasattr(X, 'toarray'):    # scipy sparse
         X = X.tocsc()
 
 
