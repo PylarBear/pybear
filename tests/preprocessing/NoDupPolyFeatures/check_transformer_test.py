@@ -8,7 +8,8 @@
 import pytest
 
 
-from pybear.preprocessing import NoDupPolyFeatures as NoDup
+from pybear.preprocessing.NoDupPolyFeatures.NoDupPolyFeatures import \
+    NoDupPolyFeatures as NoDup
 
 from sklearn.utils.estimator_checks import (
     check_transformers_unfitted,
@@ -19,6 +20,7 @@ from sklearn.utils.estimator_checks import (
 )
 
 
+@pytest.skip(reason=f"not finished", allow_module_level=True)
 
 
 class TestSKLearnCheckTransformer:

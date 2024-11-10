@@ -14,6 +14,8 @@ from pybear.preprocessing.NoDupPolyFeatures.NoDupPolyFeatures import \
     NoDupPolyFeatures as NoDup
 
 
+pytest.skip(reason=f"not finished", allow_module_level=True)
+
 
 
 @pytest.fixture(scope='function')

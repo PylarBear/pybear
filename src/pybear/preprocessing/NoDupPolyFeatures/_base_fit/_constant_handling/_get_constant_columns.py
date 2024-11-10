@@ -77,7 +77,7 @@ def _get_constant_columns(
 
 
     joblib_kwargs = {'prefer':'processes', 'return_as':'list', 'n_jobs':_n_jobs}
-    out = Parallel(**joblib_kwargs)(_pizza_function(what?!?!) for what in range(X.shape[1]))
+    # out = Parallel(**joblib_kwargs)(_pizza_function(what?!?!) for what in range(X.shape[1]))
 
 
 
@@ -106,7 +106,7 @@ def _get_constant_columns(
         return np.arange(_X.shape[1])[peak_to_peaks == 0].astype(np.int32)
     elif not _as_indices:
         return (peak_to_peaks == 0).astype(bool)
-
+    """
 
 
 
