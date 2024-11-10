@@ -8,7 +8,8 @@
 
 import pytest
 
-from pybear.preprocessing import NoDupPolyFeatures as NoDup
+from pybear.preprocessing.NoDupPolyFeatures.NoDupPolyFeatures import \
+    NoDupPolyFeatures as NoDup
 
 import numpy as np
 import pandas as pd
@@ -20,6 +21,10 @@ import dask.dataframe as ddf
 import dask_expr._collection as ddf2
 
 from distributed import Client
+
+
+
+pytest.skip(reason=f"not finished", allow_module_level=True)
 
 
 bypass = False

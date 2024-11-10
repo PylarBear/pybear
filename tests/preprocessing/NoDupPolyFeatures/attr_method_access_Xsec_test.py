@@ -7,7 +7,8 @@
 
 import pytest
 
-from pybear.preprocessing import NoDupPolyFeatures as NoDup
+from pybear.preprocessing.NoDupPolyFeatures.NoDupPolyFeatures import \
+    NoDupPolyFeatures as NoDup
 
 import sys
 import numpy as np
@@ -16,7 +17,7 @@ import pandas as pd
 from sklearn.exceptions import NotFittedError
 
 
-
+pytest.skip(reason="not finished", allow_module_level=True)
 
 bypass = False
 

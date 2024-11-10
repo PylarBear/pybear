@@ -18,7 +18,8 @@ from numbers import Real, Integral
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
-from pybear.preprocessing.NoDupPolyFeatures._base_fit._constant_handling._get_constant_columns import _get_constant_columns
+from pybear.preprocessing.NoDupPolyFeatures._base_fit._constant_handling. \
+    _get_constant_columns import _get_constant_columns
 from ._base_fit._combination_builder import _combination_builder
 from ._transform._transform import _transform
 from ._inverse_transform._inverse_transform import _inverse_transform
@@ -371,6 +372,18 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
                 )
 
 
+    def get_metadata_routing(self):
+        """
+        Get metadata routing is not implemented in ColumnDeduplicateTransformer.
+
+        """
+        __ = type(self).__name__
+        raise NotImplementedError(
+            f"get_metadata_routing is not implemented in {__}"
+        )
+
+
+
     # def get_params(self, deep=?:bool) -> dict[str: any]:
     # if ever needed, hard code that can be substituted for the
     # BaseEstimator get/set_params can be found in GSTCV_Mixin
@@ -418,9 +431,10 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             order='F'
         )
 
+
         _validation(
             X,
-            self.columns,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.degree,
             self.min_degree,
             self.drop_duplicates,
@@ -437,7 +451,6 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             self.equal_nan,
             self.n_jobs
         )
-
         # the only thing that exists at this point is the data and holders.
         # the holders may not be empty.
 
@@ -450,7 +463,14 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
 
         # cannot overwrite self.constants_! may have previous fits in it
-        _constant_columns = _get_constant_columns(X)
+        _constant_columns = _get_constant_columns(
+            X,
+            self.equal_nan,
+            self.rtol,
+            self.atol,
+            _as_indices=True,
+            _n_jobs=self.n_jobs
+        )
         # END Identify constants in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # need to get the permutations to run, based on the size of x,
@@ -562,7 +582,7 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         # only need to generate the constants and duplicates holder objects,
         # dont need to retain the data object constructed while making the
         # holder objects
-        self._base_fit(self, X, return_poly=False)
+        self._base_fit(X, return_poly=False)
 
         return self
 
@@ -594,7 +614,7 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
         """
 
-        self._stored_poly = self._base_fit(self, X, return_poly=True)
+        self._stored_poly = self._base_fit(X, return_poly=True)
 
         return self
 

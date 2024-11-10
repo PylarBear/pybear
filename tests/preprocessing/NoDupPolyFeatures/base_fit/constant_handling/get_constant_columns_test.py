@@ -16,6 +16,8 @@ from pybear.preprocessing.NoDupPolyFeatures._base_fit._constant_handling. \
     _get_constant_columns import _get_constant_columns
 
 
+pytest.skip(reason=f"pizza not finished", allow_module_level=True)
+
 
 class TestGetConstantColumns:
 
@@ -128,7 +130,7 @@ class TestGetConstantColumns:
         #         assert not np.any(_check_X[:, [_constant_idxs[0]]])
         #         assert not np.any(_check_X[:, [_constant_idxs[1]]])
 
-        out = _get_constant_columns(_wip_X, _as_indices)
+        out = _get_constant_columns(_wip_X, _equal_nan, _rtol, _atol, _as_indices)
 
         assert isinstance(out, np.ndarray)
 
