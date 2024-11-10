@@ -46,6 +46,7 @@ def _X_factory():
         _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
         _columns:Union[Iterable[str], None]=None,
+        _constants:Union[Iterable[int], None]=None,
         _zeros:Union[float,None]=0,
         _shape:tuple[int,int]=(20,5)
     ) -> npt.NDArray[any]:
@@ -73,7 +74,11 @@ def _X_factory():
         assert isinstance(_columns, (list, np.ndarray, type(None)))
         if _columns is not None:
             assert all(map(isinstance, _columns, (str for _ in _columns)))
-
+        assert isinstance(_constants, (list, np.ndarray, type(None)))
+        if _constants is not None:
+            assert all(map(isinstance, _constants, (int for _ in _constants)))
+        elif _constants is None:
+            _constants = []
         if _zeros is None:
             _zeros = 0
         assert not isinstance(_zeros, bool)
@@ -134,6 +139,11 @@ def _X_factory():
             del _col_shape, _, _cidx
         else:
             raise Exception
+
+        # pizza this changed for *constants*
+        for c_idx in _constants:
+            X[:, c_idx] = X[0, c_idx]
+
 
         if _dupl is not None:
             for _set in _dupl:

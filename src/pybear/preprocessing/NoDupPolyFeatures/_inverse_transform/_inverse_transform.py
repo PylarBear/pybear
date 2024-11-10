@@ -70,12 +70,7 @@ def _inverse_transform(
         # saw a header via df or _columns, but a df has been passed to
         # inverse_transform.)
         X = X.to_numpy()
-    elif isinstance(X, (ss._csr.csr_matrix, ss._csc.csc_matrix,
-        ss._coo.coo_matrix, ss._dia.dia_matrix, ss._lil.lil_matrix,
-        ss._dok.dok_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-        ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-        ss._lil.lil_array, ss._dok.dok_array, ss._bsr.bsr_array)):
-
+    elif hasattr(X, 'toarray'):
         X = X.tocsc()
 
 
