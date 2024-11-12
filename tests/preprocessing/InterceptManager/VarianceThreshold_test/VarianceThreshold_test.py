@@ -417,7 +417,7 @@ class TestVarianceThreshold:
                 else:
                     pass
                     # sparse array
-                    # pizza, cant take sparse array
+                    # pizza, nan_mask cant take sparse array
                     # not_nan_mask = np.logical_not(nan_mask(TRFM_X[:, [new_c_idx]]))
                     # assert np.array_equal(
                     #     X[not_nan_mask, c_idx],
