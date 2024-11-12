@@ -38,7 +38,7 @@ jobs:
         poetry install
 
     - name: Run tests
-      run: poetry run pytest tests/ --doctest-modules -v --maxfail=1 --disable-warnings
+      run: poetry run pytest tests/ --doctest-modules -v
       timeout-minutes: 120
 
 
