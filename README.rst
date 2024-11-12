@@ -6,7 +6,7 @@ pybear
 .. |Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml
 .. |Test Status| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310+.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests.yml
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310+.yml
 .. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
    :target: //pybear.readthedocs.io/
    :alt: Documentation Status
