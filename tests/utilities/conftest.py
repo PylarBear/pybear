@@ -9,7 +9,7 @@ import pytest
 
 
 from typing import Literal, Iterable
-from typing_extensions import Union
+from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 
 from uuid import uuid4
@@ -18,6 +18,11 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
+FormatType: TypeAlias = Literal[
+    'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+    'lil_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
+    'dia_array', 'lil_array', 'bsr_array'
+]
 
 
 # these fixtures are identical to those in ColumnDeduplicateTransformer
@@ -45,7 +50,7 @@ def _X_factory(_shape):
     def foo(
         _dupl:list[list[int]]=None,
         _has_nan:Union[int, bool]=False,
-        _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
+        _format:FormatType='np',
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
         _columns:Union[Iterable[str], None]=None,
         _zeros:Union[float,None]=0,
@@ -67,9 +72,14 @@ def _X_factory(_shape):
 
         assert isinstance(_has_nan, (bool, int, float))
         if not isinstance(_has_nan, bool):
-            assert int(_has_nan) == _has_nan, f"'_has_nan' must be bool or int >= 0"
+            assert int(_has_nan) == _has_nan, \
+                f"'_has_nan' must be bool or int >= 0"
         assert _has_nan >= 0, f"'_has_nan' must be bool or int >= 0"
-        assert _format in ['np', 'pd', 'csc', 'csr', 'coo']
+        assert _format in ['np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix',
+            'dia_matrix', 'lil_matrix', 'bsr_matrix', 'dok_matrix', 'csr_array',
+            'csc_array', 'coo_array', 'dia_array', 'lil_array', 'bsr_array',
+            'dok_array'
+        ], f"'_format' must be 'np', 'pd', or any scipy sparse except dok"
         assert _dtype in ['flt','int','str','obj','hybrid']
         assert isinstance(_columns, (list, np.ndarray, type(None)))
         if _columns is not None:
@@ -81,10 +91,10 @@ def _X_factory(_shape):
         assert isinstance(_zeros, (float, int))
         assert 0 <= _zeros <= 1, f"zeros must be 0 <= x <= 1"
 
-        if _format in ('csc', 'csr', 'coo') and \
-                _dtype in ('str', 'obj', 'hybrid'):
+        if _format not in ('np', 'pd', 'lil_matrix', 'dok_matrix',
+            'lil_array', 'dok_array') and _dtype in ('str', 'obj', 'hybrid'):
             raise ValueError(
-                f"cannot create csc, csr, or coo with str, obj, or hybrid dtypes"
+                f"cannot create scipy sparse with str, obj, or hybrid dtypes"
             )
 
         assert isinstance(_shape, tuple)
@@ -197,15 +207,43 @@ def _X_factory(_shape):
             del _sprinkles
 
         # do this after sprinkling the nans
-        if _format == 'csc':
-            X = ss.csc_array(X)
-        elif _format == 'csr':
-            X = ss.csr_array(X)
-        elif _format == 'coo':
-            X = ss.coo_array(X)
-
+        if _format == 'np':
+            pass
+        elif _format == 'pd':
+            pass
+        elif _format == 'csr_matrix':
+            X = ss._csr.csr_matrix(X)
+        elif _format == 'csc_matrix':
+            X = ss._csc.csc_matrix(X)
+        elif _format == 'coo_matrix':
+            X = ss._coo.coo_matrix(X)
+        elif _format == 'dia_matrix':
+            X = ss._dia.dia_matrix(X)
+        elif _format == 'lil_matrix':
+            X = ss._lil.lil_matrix(X)
+        elif _format == 'bsr_matrix':
+            X = ss._bsr.bsr_matrix(X)
+        elif _format == 'dok_matrix':
+            X = ss._dok.dok_matrix(X)
+        elif _format == 'csr_array':
+            X = ss._csr.csr_array(X)
+        elif _format == 'csc_array':
+            X = ss._csc.csc_array(X)
+        elif _format == 'coo_array':
+            X = ss._coo.coo_array(X)
+        elif _format == 'dia_array':
+            X = ss._dia.dia_array(X)
+        elif _format == 'lil_array':
+            X = ss._lil.lil_array(X)
+        elif _format == 'bsr_array':
+            X = ss._bsr.bsr_array(X)
+        elif _format == 'dok_array':
+            X = ss._dok.dok_array(X)
+        else:
+            raise Exception
 
         return X
+
 
     return foo
 
