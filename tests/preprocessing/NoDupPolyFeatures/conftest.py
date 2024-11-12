@@ -140,7 +140,9 @@ def _X_factory():
         else:
             raise Exception
 
-        # pizza this changed for *constants*
+        # pizza this changed for *constants*  ... meaning that XFactory was
+        # copied directly from previous versions and this is the only thing
+        # that was added to give it the constants property
         for c_idx in _constants:
             X[:, c_idx] = X[0, c_idx]
 
