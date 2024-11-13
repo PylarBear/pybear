@@ -95,9 +95,11 @@ def _find_duplicates(
         RANGE = range(col_idx1 + 1, _X.shape[1])
         IDXS = [i for i in RANGE if i not in _all_duplicates]
 
+        _column1 = _column_getter(_X, col_idx1)
+
         hits = Parallel(**kwargs)(
             delayed(_parallel_column_comparer)(
-                *_column_getter(_X, col_idx1, col_idx2), *args) for col_idx2 in IDXS
+                _column1, _column_getter(_X, col_idx2), *args) for col_idx2 in IDXS
         )
 
         if any(hits):
@@ -122,7 +124,7 @@ def _find_duplicates(
                 _all_duplicates.append(col_idx2)
         """
 
-    del _all_duplicates, kwargs, RANGE, IDXS, hits
+    del _all_duplicates, kwargs, RANGE, IDXS, hits, col_idx1, _column1
 
     # ONLY RETAIN INFO FOR COLUMNS THAT ARE DUPLICATE
     duplicates_ = {int(k): v for k, v in duplicates_.items() if len(v) > 0}

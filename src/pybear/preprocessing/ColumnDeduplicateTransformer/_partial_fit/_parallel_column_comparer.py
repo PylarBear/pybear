@@ -84,6 +84,25 @@ def _parallel_column_comparer(
 
     MASK1 = nan_mask(_column1)
     MASK2 = nan_mask(_column2)
+
+    # if using scipy sparse, the "column" being compared is an hstack of
+    # the indices and values of the dense in that column. It is very
+    # possible that the two vectors being compared will have different
+    # length, and the numpy vectorization used below will not broadcast.
+    # Compare the lengths of the vectors here and if different, short
+    # circuit out.
+    # pizza come back and finish this
+    # if not _equal_nan:
+    #     if len(_column1) != len(_column2):
+    #         return False
+    #     # else column lengths are equal so proceed to tests below
+    # elif _equal_nan:
+    #     if len(_column1[NOT_NAN_MASK1]) != len(_column2[NOT_NAN_MASK2]):
+    #         return False
+    #     # else column lengths are equal so proceed to tests below
+
+
+
     NOT_NAN_MASK = np.logical_not((MASK1 + MASK2).astype(bool))
     del MASK1, MASK2
 

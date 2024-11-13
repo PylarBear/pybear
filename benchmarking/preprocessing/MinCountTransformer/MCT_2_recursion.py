@@ -6,7 +6,8 @@
 
 
 
-from pybear.preprocessing import MinCountTransformer
+from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
+    MinCountTransformer
 from pybear.utilities._nan_masking import nan_mask
 
 import numpy.typing as npt
