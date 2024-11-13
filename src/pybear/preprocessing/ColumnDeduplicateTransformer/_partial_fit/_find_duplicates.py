@@ -10,6 +10,7 @@ from typing_extensions import Union
 
 from ._column_getter import _column_getter
 from ._parallel_column_comparer import _parallel_column_comparer
+from ._parallel_ss_comparer import _parallel_ss_comparer
 
 from joblib import Parallel, delayed
 
@@ -86,19 +87,28 @@ def _find_duplicates(
     kwargs = {'return_as':'list', 'prefer':'processes', 'n_jobs':_n_jobs}
     args = (_rtol, _atol, _equal_nan)
 
+    # the comparison of columns needs to be handled differently for pd/np
+    # vs scipy sparse. set the function to use based on the format of X
+    if hasattr(_X, 'toarray'):   # is scipy sparse
+        _comparer_function = _parallel_ss_comparer
+    else:
+        _comparer_function = _parallel_column_comparer
+
+
     # .shape works for np, pd, and scipy.sparse
     for col_idx1 in range(_X.shape[1] - 1):
 
         if col_idx1 in _all_duplicates:
             continue
 
+        _column1 = _column_getter(_X, col_idx1)
+
+        # make a list of col_idx2's
         RANGE = range(col_idx1 + 1, _X.shape[1])
         IDXS = [i for i in RANGE if i not in _all_duplicates]
 
-        _column1 = _column_getter(_X, col_idx1)
-
         hits = Parallel(**kwargs)(
-            delayed(_parallel_column_comparer)(
+            delayed(_comparer_function)(
                 _column1, _column_getter(_X, col_idx2), *args) for col_idx2 in IDXS
         )
 
@@ -111,20 +121,22 @@ def _find_duplicates(
                 _all_duplicates.append(idx)
 
         """
-        code that worked pre-joblib * * * * * * * * *
+        # code that worked pre-joblib * * * * * * * * *
         # .shape works for np, pd, and scipy.sparse
         for col_idx2 in range(col_idx1 + 1, _X.shape[1]):
 
             if col_idx2 in _all_duplicates:
                 continue
 
-            if _column_comparer(_X, col_idx1, col_idx2):
+            _column2 = _column_getter(_X, col_idx2)
+
+            if _parallel_column_comparer( _column1, _column2, *args):
                 duplicates_[col_idx1].append(col_idx2)
                 _all_duplicates.append(col_idx1)
                 _all_duplicates.append(col_idx2)
         """
 
-    del _all_duplicates, kwargs, RANGE, IDXS, hits, col_idx1, _column1
+    del _all_duplicates, kwargs, RANGE, IDXS, col_idx1, _column1, hits
 
     # ONLY RETAIN INFO FOR COLUMNS THAT ARE DUPLICATE
     duplicates_ = {int(k): v for k, v in duplicates_.items() if len(v) > 0}
@@ -138,6 +150,7 @@ def _find_duplicates(
     # ALL SETS OF DUPLICATES MUST HAVE AT LEAST 2 ENTRIES
     for _set in GROUPS:
         assert len(_set) >= 2
+
 
     return GROUPS
 

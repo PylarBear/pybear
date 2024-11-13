@@ -24,8 +24,10 @@ def _parallel_column_comparer(
 ) -> bool:
 
     """
-    Compare two columns for equality, subject to :param: rtol, :param:
-    atol, and :param: equal_nan.
+    Compare two columns for equality, subject to :param: rtol, :param: atol,
+    and :param: equal_nan. The columns here must have originated from a
+    numpy array or pandas dataframe, not a scipy sparse matrix/array. For
+    the scipy column comparer, see _parallel_ss_comparer.
 
 
     Parameters
@@ -40,7 +42,7 @@ def _parallel_column_comparer(
         float, default = 1e-5 - The relative difference tolerance for
             equality. See numpy.allclose.
     _atol:
-        float, default = 1e-8 - The absolute tolerance parameter for .
+        float, default = 1e-8 - The absolute tolerance parameter for
             equality. See numpy.allclose.
     _equal_nan:
         bool, default = False - When comparing pairs of columns row by
@@ -85,32 +87,12 @@ def _parallel_column_comparer(
     MASK1 = nan_mask(_column1)
     MASK2 = nan_mask(_column2)
 
-    # if using scipy sparse, the "column" being compared is an hstack of
-    # the indices and values of the dense in that column. It is very
-    # possible that the two vectors being compared will have different
-    # length, and the numpy vectorization used below will not broadcast.
-    # Compare the lengths of the vectors here and if different, short
-    # circuit out.
-    # pizza come back and finish this
-    # if not _equal_nan:
-    #     if len(_column1) != len(_column2):
-    #         return False
-    #     # else column lengths are equal so proceed to tests below
-    # elif _equal_nan:
-    #     if len(_column1[NOT_NAN_MASK1]) != len(_column2[NOT_NAN_MASK2]):
-    #         return False
-    #     # else column lengths are equal so proceed to tests below
-
-
-
     NOT_NAN_MASK = np.logical_not((MASK1 + MASK2).astype(bool))
     del MASK1, MASK2
-
 
     if _column1_is_num and _column2_is_num:
 
         if _equal_nan:
-
             return np.allclose(
                 _column1[NOT_NAN_MASK].astype(np.float64),
                 _column2[NOT_NAN_MASK].astype(np.float64),
@@ -129,7 +111,6 @@ def _parallel_column_comparer(
     elif not _column1_is_num and not _column2_is_num:
 
         if _equal_nan:
-
             return np.array_equal(
                 _column1[NOT_NAN_MASK].astype(object),
                 _column2[NOT_NAN_MASK].astype(object)
@@ -139,7 +120,10 @@ def _parallel_column_comparer(
             if not all(NOT_NAN_MASK):
                 return False
             else:
-                return np.array_equal(_column1.astype(object), _column2.astype(object))
+                return np.array_equal(
+                    _column1.astype(object),
+                    _column2.astype(object)
+                )
 
     else:
         # if one column is num and another column is not num, cannot be

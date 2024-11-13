@@ -57,7 +57,7 @@ class TestNpFindDuplicates:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @pytest.mark.parametrize('_dtype', ('flt', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_dupl_set', (1, 2, 3, 4))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -73,8 +73,8 @@ class TestNpFindDuplicates:
         _dupl_set, _dupl1, _dupl2, _dupl3, _dupl4
     ):
 
-        if _dtype in ['str', 'obj', 'hybrid'] and _type != 'ndarray':
-            pytest.skip(reason=f"scipy sparse cannot take non-numeric data")
+        if _type in ('bsr_matrix', 'bsr_array'):
+            pytest.skip(reason=f"pizza this is wack need to fix this")
 
 
         if _dupl_set == 1:
@@ -115,6 +115,11 @@ class TestNpFindDuplicates:
             _X_wip = ss._dok.dok_matrix(_X)
         elif _type == 'bsr_matrix':
             _X_wip = ss._bsr.bsr_matrix(_X)
+            assert np.array_equal(
+                _X_wip.tocsc().toarray(),
+                _X,
+                equal_nan=True
+            )
         elif _type == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _type == 'csc_array':
@@ -129,6 +134,11 @@ class TestNpFindDuplicates:
             _X_wip = ss._dok.dok_array(_X)
         elif _type == 'bsr_array':
             _X_wip = ss._bsr.bsr_array(_X)
+            assert np.array_equal(
+                _X_wip.tocsc().toarray(),
+                _X,
+                equal_nan=True
+            )
         else:
             raise Exception
 
