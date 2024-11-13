@@ -18,6 +18,8 @@ import scipy.sparse as ss
 import pytest
 
 
+
+
 @pytest.mark.parametrize('_has_nan', (True, False), scope='module')
 class TestColumnGetter:
 
@@ -65,10 +67,9 @@ class TestColumnGetter:
         )
     )
     @pytest.mark.parametrize('_col_idx1', (0, 1, 2))
-    @pytest.mark.parametrize('_col_idx2', (0, 1, 2))
     def test_accuracy(
-        self, _has_nan, _dtype, _type, _col_idx1, _col_idx2, _shape, _X_num,
-        _X_str, _master_columns
+        self, _has_nan, _dtype, _type, _col_idx1, _shape, _X_num, _X_str,
+        _master_columns
     ):
 
         if _dtype == 'str' and _type not in ('ndarray', 'df'):
@@ -117,14 +118,12 @@ class TestColumnGetter:
         else:
             raise Exception
 
-        column1, column2 = _column_getter(_X_wip, _col_idx1, _col_idx2)
+        column1 = _column_getter(_X_wip, _col_idx1)
 
         assert len(column1.shape) == 1
-        assert len(column2.shape) == 1
 
         if _dtype == 'num':
             assert np.array_equal(column1, _X[:, _col_idx1], equal_nan=True)
-            assert np.array_equal(column2, _X[:, _col_idx2], equal_nan=True)
         elif _dtype == 'str':
             # since changed column_getter to assign np.nan to nan-likes,
             # need to accommodate these np.nans when doing array_equal.
@@ -134,13 +133,8 @@ class TestColumnGetter:
                 assert np.array_equal(
                     column1[NOT_NAN1], _X[:, _col_idx1][NOT_NAN1]
                 )
-                NOT_NAN2 = np.logical_not(nan_mask(column2)).astype(bool)
-                assert np.array_equal(
-                    column2[NOT_NAN2], _X[:, _col_idx2][NOT_NAN2]
-                )
             else:
                 assert np.array_equal(column1, _X[:, _col_idx1])
-                assert np.array_equal(column2, _X[:, _col_idx2])
 
 
 

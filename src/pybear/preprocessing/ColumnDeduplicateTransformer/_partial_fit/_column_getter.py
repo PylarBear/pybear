@@ -18,48 +18,57 @@ from ....utilities._nan_masking import nan_mask
 
 def _column_getter(
     _X: DataType,
-    _col_idx1: int,
-    _col_idx2: int
-) -> tuple[npt.NDArray[any], npt.NDArray[any]]:
+    _col_idx: int,
+) -> npt.NDArray[any]:
 
     """
     This supports _find_duplicates. Handles the mechanics of extracting
-    columns from the various data container types. Return extracted
-    columns as numpy vectors.
+    a column from the various data container types. Return extracted
+    column as a numpy vector. In the case of scipy sparse, the columns
+    are not converted to dense, but the dense indices in the 'indices'
+    attribute and the values in the 'data' attribute are hstacked
+    together and that is sent for equality test.
 
 
     Parameters
     ----------
     _X:
         DataType - The data to be deduplicated.
-    _col_idx1:
-        int - the first column index in the comparison pair.
-    _col_idx2:
-        int - the second column index in the comparison pair.
+    _col_idx:
+        int - one column index of the comparison pair.
 
 
     Return
     ------
     -
-        column1, column2: tuple[NDArray[any], NDArray[any]] - The columns
-        corresponding to the given indices.
+        column: NDArray[any] - The column corresponding to the given
+            index.
 
 
     """
 
-    assert isinstance(_col_idx1, int)
-    assert isinstance(_col_idx2, int)
+
+    assert isinstance(_col_idx, int)
 
     if isinstance(_X, np.ndarray):
-        column1 = _X[:, _col_idx1]
-        column2 = _X[:, _col_idx2]
+        column = _X[:, _col_idx]
     elif isinstance(_X, pd.core.frame.DataFrame):
-        column1 = _X.iloc[:, _col_idx1].to_numpy()
-        column2 = _X.iloc[:, _col_idx2].to_numpy()
+        column = _X.iloc[:, _col_idx].to_numpy()
     elif hasattr(_X, 'toarray'):    # scipy sparse
+        # instead of expanding the column to dense np, pull the sparse
+        # column, get the values and indices out, hstack them, and send
+        # that off for equality test
+
+        # Extract the data and indices of the two columns
+        # c1 = _X.getcol(_col_idx)
+        #
+        # column = np.hstack((c1.indices, c1.data))
+        #
+        # del c1
+
+        # old code that converts a column to np array
         _X_wip = _X.copy().tocsc()
-        column1 = _X_wip[:, [_col_idx1]].toarray().ravel()
-        column2 = _X_wip[:, [_col_idx2]].toarray().ravel()
+        column = _X_wip[:, [_col_idx]].toarray().ravel()
         del _X_wip
     else:
         raise TypeError(f"invalid data type '{type(_X)}'")
@@ -74,17 +83,11 @@ def _column_getter(
     # nans identified here as np.nan resolved the issue.
     # np.nan assignment excepts on dtype int array, so ask for forgiveness
     try:
-        column1[nan_mask(column1)] = np.nan
+        column[nan_mask(column)] = np.nan
     except:
         pass
 
-    try:
-        column2[nan_mask(column2)] = np.nan
-    except:
-        pass
-
-
-    return column1, column2
+    return column
 
 
 

@@ -230,7 +230,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     Concerning the handling of nan-like representations. While CDT
     accepts data in the form of numpy arrays, pandas dataframes, and
     scipy sparse matrices/arrays, at the time of column comparison both
-    columns of data are converted to numpy arrays. After the conversion
+    columns of data are converted to numpy arrays (see below for more
+    detail about how scipy sparse are handled.) After the conversion
     and prior to the comparison, CDT identifies any nan-like
     representations in both of the numpy arrays and standardizes all of
     them to np.nan. The user needs to be wary that whatever is used to
@@ -240,6 +241,13 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     that are recognized by CDT include, at least, np.nan, pandas.NA,
     None (of type None, not string 'None'), and string representations
     of "nan" (not case sensitive).
+
+    Concerning the handling of scipy sparse arrays. When comparing
+    columns for equality, the columns are not converted to dense numpy
+    arrays. Each column is sliced from the data in sparse form and the
+    'indices' and 'data' attributes of this slice are stacked together.
+    The single vector holding the indices and dense values is used to
+    make equality comparisons.
 
 
     See Also
