@@ -35,7 +35,7 @@ def _column_getter(
     _X:
         DataType - The data to be deduplicated.
     _col_idx:
-        int - one column index of the comparison pair.
+        int - the column index of the column to be extracted from _X.
 
 
     Return
@@ -55,21 +55,19 @@ def _column_getter(
     elif isinstance(_X, pd.core.frame.DataFrame):
         column = _X.iloc[:, _col_idx].to_numpy()
     elif hasattr(_X, 'toarray'):    # scipy sparse
-        # instead of expanding the column to dense np, pull the sparse
-        # column, get the values and indices out, hstack them, and send
-        # that off for equality test
+        # instead of expanding the column to dense np, get the indices
+        # and values out of sparse column using the 'indices' and 'data'
+        # attributes, hstack them, and send that off for equality test
 
         # Extract the data and indices of the two columns
-        # c1 = _X.getcol(_col_idx)
-        #
-        # column = np.hstack((c1.indices, c1.data))
-        #
-        # del c1
+        c1 = _X.getcol(_col_idx).tocsc()  # tocsc() is important, must stay
+        column = np.hstack((c1.indices, c1.data))
+        del c1
 
-        # old code that converts a column to np array
-        _X_wip = _X.copy().tocsc()
-        column = _X_wip[:, [_col_idx]].toarray().ravel()
-        del _X_wip
+        # old code that converts a ss column to np array
+        # _X_wip = _X.copy().tocsc()
+        # column = _X_wip[:, [_col_idx]].toarray().ravel()
+        # del _X_wip
     else:
         raise TypeError(f"invalid data type '{type(_X)}'")
 

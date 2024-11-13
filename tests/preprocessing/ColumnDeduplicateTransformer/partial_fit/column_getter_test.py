@@ -59,7 +59,7 @@ class TestColumnGetter:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
-    @pytest.mark.parametrize('_type',
+    @pytest.mark.parametrize('_format',
         (
         'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
         'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
@@ -68,11 +68,11 @@ class TestColumnGetter:
     )
     @pytest.mark.parametrize('_col_idx1', (0, 1, 2))
     def test_accuracy(
-        self, _has_nan, _dtype, _type, _col_idx1, _shape, _X_num, _X_str,
+        self, _has_nan, _dtype, _format, _col_idx1, _shape, _X_num, _X_str,
         _master_columns
     ):
 
-        if _dtype == 'str' and _type not in ('ndarray', 'df'):
+        if _dtype == 'str' and _format not in ('ndarray', 'df'):
             pytest.skip(reason=f"scipy sparse cant take non numeric data")
 
         if _dtype == 'num':
@@ -80,40 +80,40 @@ class TestColumnGetter:
         elif _dtype == 'str':
             _X = _X_str
 
-        if _type == 'ndarray':
+        if _format == 'ndarray':
             _X_wip = _X
-        elif _type == 'df':
+        elif _format == 'df':
             _X_wip = pd.DataFrame(
                 data=_X,
                 columns=_master_columns.copy()[:_shape[1]]
             )
-        elif _type == 'csr_matrix':
+        elif _format == 'csr_matrix':
             _X_wip = ss._csr.csr_matrix(_X)
-        elif _type == 'csc_matrix':
+        elif _format == 'csc_matrix':
             _X_wip = ss._csc.csc_matrix(_X)
-        elif _type == 'coo_matrix':
+        elif _format == 'coo_matrix':
             _X_wip = ss._coo.coo_matrix(_X)
-        elif _type == 'dia_matrix':
+        elif _format == 'dia_matrix':
             _X_wip = ss._dia.dia_matrix(_X)
-        elif _type == 'lil_matrix':
+        elif _format == 'lil_matrix':
             _X_wip = ss._lil.lil_matrix(_X)
-        elif _type == 'dok_matrix':
+        elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
-        elif _type == 'bsr_matrix':
+        elif _format == 'bsr_matrix':
             _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _type == 'csr_array':
+        elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
-        elif _type == 'csc_array':
+        elif _format == 'csc_array':
             _X_wip = ss._csc.csc_array(_X)
-        elif _type == 'coo_array':
+        elif _format == 'coo_array':
             _X_wip = ss._coo.coo_array(_X)
-        elif _type == 'dia_array':
+        elif _format == 'dia_array':
             _X_wip = ss._dia.dia_array(_X)
-        elif _type == 'lil_array':
+        elif _format == 'lil_array':
             _X_wip = ss._lil.lil_array(_X)
-        elif _type == 'dok_array':
+        elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
-        elif _type == 'bsr_array':
+        elif _format == 'bsr_array':
             _X_wip = ss._bsr.bsr_array(_X)
         else:
             raise Exception
@@ -121,6 +121,17 @@ class TestColumnGetter:
         column1 = _column_getter(_X_wip, _col_idx1)
 
         assert len(column1.shape) == 1
+
+        # if running scipy sparse, then column1 will be hstack((indices, values)).
+        # take it easy on yourself, just transform this output to a regular
+        # np array to ensure the correct column is being pulled
+        if _format not in ('ndarray', 'df'):
+            new_column1 = np.zeros(_shape[0]).astype(np.float64)
+            new_column1[column1[:len(column1)//2].astype(np.int32)] = \
+                column1[len(column1)//2:]
+            column1 = new_column1
+            del new_column1
+
 
         if _dtype == 'num':
             assert np.array_equal(column1, _X[:, _col_idx1], equal_nan=True)

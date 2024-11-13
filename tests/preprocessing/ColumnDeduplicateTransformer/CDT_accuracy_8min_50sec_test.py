@@ -22,12 +22,6 @@ import pandas as pd
 import pytest
 
 
-
-
-
-
-
-
 class TestAccuracy:
 
 
@@ -58,7 +52,7 @@ class TestAccuracy:
 
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr')) #, 'csr', 'coo'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'csr', 'coo'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('dupls', (None, [[0,2,9]], [[0,6],[1,8]]))
