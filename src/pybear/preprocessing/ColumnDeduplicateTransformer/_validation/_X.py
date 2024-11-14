@@ -11,6 +11,8 @@ import numpy.typing as npt
 from .._type_aliases import SparseTypes
 
 import pandas as pd
+import scipy.sparse as ss
+
 
 
 
@@ -47,14 +49,24 @@ def _val_X(
         f"example."
     )
 
-    # sklearn _validate_data is not catching this
+    # sklearn _validate_data & check_array are not catching this
     if _X is None:
         raise TypeError(_err_msg)
 
 
-    # sklearn _validate_data is not catching this
-    if len(_X.shape) != 2:
-        raise UnicodeError
+    # sklearn _validate_data & check_array are not catching this
+    if len(_X.shape) != 2 or _X.shape[1] == 1:
+        raise ValueError
+
+
+    # sklearn _validate_data & check_array are not catching this.
+    # what appears to be happening is that they are converting bsr
+    # to the first allowed form in the 'accept_sparse' list.
+    if isinstance(_X, (ss.bsr_array, ss.bsr_matrix)):
+        raise TypeError(f"X cannot be a scipy BSR matrix / array")
+
+
+
 
 
 

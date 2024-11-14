@@ -82,9 +82,9 @@ class TestInverseTransform:
 
     @pytest.mark.parametrize('_format',
         (
-            'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+            'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix',
+            'dia_matrix', 'lil_matrix', 'dok_matrix', 'csr_array',
+            'csc_array', 'coo_array', 'dia_array', 'lil_array', 'dok_array'
         )
     )
     def test_accuracy(
@@ -116,8 +116,6 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_matrix(_base_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_base_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_base_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_base_X)
         elif _format == 'csc_array':
@@ -130,8 +128,6 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_array(_base_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_base_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_base_X)
         else:
             raise Exception
 
