@@ -7,6 +7,7 @@
 
 
 import numpy as np
+import scipy.sparse as ss
 
 from numbers import Real, Integral
 from typing import Iterable, Literal, Optional
@@ -627,6 +628,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         if X.shape[1] != _n_remaining:
             raise ValueError(err_msg)
 
+        # sklearn check_array is not catching this, appears to be changing
+        # bsr to the first allowed form in the 'accept_sparse' list without
+        # notice. do not let that happen, require CDT to return containers
+        # as given unless manipulated by set_output().
+        if isinstance(X, (ss.bsr_array, ss.bsr_matrix)):
+            raise TypeError(f"X cannot be a scipy BSR matrix / array")
 
         X = check_array(
             array=X,

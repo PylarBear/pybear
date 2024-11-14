@@ -30,7 +30,7 @@ class TestKeep:
 
 
     @pytest.mark.parametrize('good_keep', ('first', 'last', 'random'))
-    def test_rejects_junk(self, good_keep):
+    def test_accepts_good(self, good_keep):
         _val_keep(good_keep)
 
 

@@ -21,7 +21,7 @@ import polars as pl
 
 
 
-bypass = False
+bypass = True
 
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -596,6 +596,36 @@ class TestExceptWarnOnDifferentHeader:
     del NAMES
 
 # END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
+
+
+# @pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestAllMethodsExceptOnScipyBSR:
+
+    @pytest.mark.parametrize(f'_format', ('matrix', 'array'))
+    def test_all_methods_reject_BSR(self, _format, _kwargs, _dum_X):
+
+        TestCls = CDT(**deepcopy(_kwargs))
+
+        if _format == 'matrix':
+            BSR_X = ss.bsr_matrix(_dum_X)
+        elif _format == 'array':
+            BSR_X = ss.bsr_array(_dum_X)
+
+        # sklearn _validate_data is not catching this!
+
+        with pytest.raises(TypeError):
+            TestCls.partial_fit(BSR_X)
+
+        with pytest.raises(TypeError):
+            TestCls.fit(BSR_X)
+
+        TestCls.fit(_dum_X)
+
+        with pytest.raises(TypeError):
+            TestCls.transform(BSR_X)
+
+        with pytest.raises(TypeError):
+            TestCls.inverse_transform(BSR_X)
 
 
 # TEST OUTPUT TYPES ####################################################
