@@ -21,12 +21,12 @@ def _column_getter(
 ) -> npt.NDArray[any]:
 
     """
-    This supports _find_duplicates. Handles the mechanics of extracting
+    # Pizza cook this!
+    This supports _find_constants. Handles the mechanics of extracting
     a column from the various data container types. Return extracted
     column as a numpy vector. In the case of scipy sparse, the columns
-    are not converted to dense, but the dense indices in the 'indices'
-    attribute and the values in the 'data' attribute are hstacked
-    together and that is sent for equality test.
+    are not converted to dense, but the values in the 'data' attribute
+    are sent for equality test.
 
 
     Parameters
@@ -54,14 +54,12 @@ def _column_getter(
     elif isinstance(_X, pd.core.frame.DataFrame):
         column = _X.iloc[:, _col_idx].to_numpy()
     elif hasattr(_X, 'toarray'):    # scipy sparse
-        # instead of expanding the column to dense np, get the indices
-        # and values out of sparse column using the 'indices' and 'data'
-        # attributes, hstack them, and send that off for equality test
+        # instead of expanding the column to dense np, get the
+        # values out of sparse column using the 'data'
+        # attribute and send that off for equality test
 
-        # Extract the data and indices of the column
-        c1 = _X.getcol(_col_idx).tocsc()  # tocsc() is important, must stay
-        column = np.hstack((c1.indices, c1.data))
-        del c1
+        # Extract the data of the column
+        column = _X.getcol(_col_idx).tocsc().data  # tocsc() is important, must stay
 
         # old code that converts a ss column to np array
         # _X_wip = _X.copy().tocsc()
@@ -71,6 +69,7 @@ def _column_getter(
         raise TypeError(f"invalid data type '{type(_X)}'")
 
 
+    # pizza reassess this!
     # this assignment must stay here. there was a nan recognition problem
     # that wasnt happening in offline tests of entire data objects
     # holding the gamut of nan-likes but was happening with similar data

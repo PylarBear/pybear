@@ -21,12 +21,18 @@ from sklearn.feature_selection import VarianceThreshold as VT
 from pybear.utilities import nan_mask
 
 
-# these tests baseline VT handling of various NaN values and tolerance
-# for floating point error.
+# these tests baseline VT handling of various NaN values.
+# appears to always return np
+# cases where VT wont take nan-like
+# 1) np, dtype=str, nan is None
+# 2) np & pd, dtype=str or obj, nan is pd.NA
+
 
 # this is to help in deciding the marginal value of building a
 # InterceptManager module to deal with various nans and floating point
 # error
+
+
 
 
 
@@ -378,8 +384,9 @@ class TestVarianceThreshold:
             _nan_type=_nan_type
         )
 
-        # pizza, cases where VT wont take nan-like
-        if (_nan_type == 'pd' and _format in ['np', 'pd'] and _dtype in ['str', 'obj']) or \
+        # cases where VT wont take nan-like
+        if (_nan_type == 'pd' and _format in ['np', 'pd'] and
+            _dtype in ['str', 'obj']) or \
             (_nan_type == 'None' and _dtype == 'str' and _format == 'np'):
 
             with pytest.raises(Exception):
@@ -390,7 +397,7 @@ class TestVarianceThreshold:
 
 
         TRFM_X = trfm.transform(X)
-        # pizza, appears to always return np
+        # appears to always return np
 
         _X_shape = TRFM_X.shape
         assert _X_shape[0] == _shape[0]
@@ -417,11 +424,11 @@ class TestVarianceThreshold:
                 else:
                     # sparse array
                     not_nan_mask = np.logical_not(
-                        nan_mask(TRFM_X.tocsc()[:, [new_c_idx]])
+                        nan_mask(TRFM_X.tocsc()[:, [new_c_idx]].toarray().ravel())
                     )
                     assert np.array_equal(
-                        X[not_nan_mask, c_idx],
-                        TRFM_X[[not_nan_mask], [new_c_idx]]
+                        X.toarray()[not_nan_mask, c_idx],
+                        TRFM_X.toarray()[not_nan_mask, new_c_idx]
                     )
 
                 new_c_idx += 1
