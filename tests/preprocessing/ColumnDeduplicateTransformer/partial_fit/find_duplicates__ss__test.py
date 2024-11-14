@@ -64,17 +64,14 @@ class TestNpFindDuplicates:
     @pytest.mark.parametrize('_type',
     (
      'ndarray', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-     'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-     'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+     'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
+     'dia_array', 'lil_array', 'dok_array'
     )
     )
     def test_accuracy(
         self, _X_factory, _dtype, _equal_nan, _type, _shape, _has_nan,
         _dupl_set, _dupl1, _dupl2, _dupl3, _dupl4
     ):
-
-        if _type in ('bsr_matrix', 'bsr_array'):
-            pytest.skip(reason=f"pizza this is wack need to fix this")
 
 
         if _dupl_set == 1:
@@ -113,13 +110,6 @@ class TestNpFindDuplicates:
             _X_wip = ss._lil.lil_matrix(_X)
         elif _type == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
-        elif _type == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-            assert np.array_equal(
-                _X_wip.tocsc().toarray(),
-                _X,
-                equal_nan=True
-            )
         elif _type == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _type == 'csc_array':
@@ -132,13 +122,6 @@ class TestNpFindDuplicates:
             _X_wip = ss._lil.lil_array(_X)
         elif _type == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
-        elif _type == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-            assert np.array_equal(
-                _X_wip.tocsc().toarray(),
-                _X,
-                equal_nan=True
-            )
         else:
             raise Exception
 

@@ -5,7 +5,6 @@
 #
 
 
-
 from .._type_aliases import DataType
 import numpy.typing as npt
 
