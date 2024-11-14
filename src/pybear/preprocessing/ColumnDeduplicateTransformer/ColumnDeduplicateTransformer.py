@@ -119,14 +119,14 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
     The partial_fit, fit, fit_transform, and inverse_transform methods
     of CDT accept data as numpy arrays, pandas dataframes, and scipy
-    sparse matrices/arrays. CDT has a set_output method, whereby the user
-    can set the type of output container. This behavior is managed by
-    scikit-learn functionality adopted into CDT, and is subject to change
-    at their discretion. As of first publication, :method: set_output
-    can return transformed outputs as numpy arrays, pandas dataframes,
-    or polars dataframes. When :method: set_output is None, the output
-    container is the same as the input, that is, numpy array, pandas
-    dataframe, or scipy sparse matrix/array.
+    sparse matrices/arrays (except BSR). CDT has a set_output method,
+    whereby the user can set the type of output container. This behavior
+    is managed by scikit-learn functionality adopted into CDT, and is
+    subject to change at their discretion. As of first publication,
+    :method: set_output can return transformed outputs as numpy arrays,
+    pandas dataframes, or polars dataframes. When :method: set_output is
+    None, the output container is the same as the input, that is, numpy
+    array, pandas dataframe, or scipy sparse matrix/array.
 
     The partial fit method allows for incremental fitting of data sets.
     This makes CDT suitable for use with packages that do batch-wise
@@ -486,7 +486,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             reset=not hasattr(self, "duplicates_"),
             cast_to_ndarray=False,
             # vvv become **check_params, and get fed to check_array()
-            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"),
             dtype=None,
             force_all_finite="allow-nan",
             ensure_2d=True,
@@ -630,7 +630,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         X = check_array(
             array=X,
-            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"),
             dtype=None,
             force_all_finite="allow-nan",
             ensure_2d=True,
@@ -709,7 +709,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             reset=False,
             cast_to_ndarray=False,
             copy=copy or False,
-            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"),
             dtype=None,
             force_all_finite="allow-nan",
             ensure_2d=True,

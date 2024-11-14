@@ -415,24 +415,16 @@ class TestVarianceThreshold:
                         TRFM_X[not_nan_mask, new_c_idx]
                     )
                 else:
-                    pass
                     # sparse array
-                    # pizza, nan_mask cant take sparse array
-                    # not_nan_mask = np.logical_not(nan_mask(TRFM_X[:, [new_c_idx]]))
-                    # assert np.array_equal(
-                    #     X[not_nan_mask, c_idx],
-                    #     TRFM_X[[not_nan_mask], [new_c_idx]]
-                    # )
+                    not_nan_mask = np.logical_not(
+                        nan_mask(TRFM_X.tocsc()[:, [new_c_idx]])
+                    )
+                    assert np.array_equal(
+                        X[not_nan_mask, c_idx],
+                        TRFM_X[[not_nan_mask], [new_c_idx]]
+                    )
 
                 new_c_idx += 1
-
-
-
-
-    @pytest.mark.skipif(bypass is True, reason='bypass')
-    def test_floating_point_error(self):
-        # pizza
-        pass
 
 
 
