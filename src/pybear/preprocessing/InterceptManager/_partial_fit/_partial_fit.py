@@ -64,7 +64,7 @@ def _partial_fit(
     # the idxs of the list match the idxs of the data
     args = (_equal_nan, _rtol, _atol)
     joblib_kwargs = {
-        'prefer': 'precesses', 'return_as': 'list', 'n_jobs': _n_jobs
+        'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs
     }
     out = Parallel(**joblib_kwargs)(_parallel_constant_finder(
         _column_getter(_X, _col_idx), *args) for _col_idx in range(_X.shape[1])
