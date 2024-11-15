@@ -62,12 +62,13 @@ def _partial_fit(
 
     # out is list[Union[Literal[False], any]]
     # the idxs of the list match the idxs of the data
+    args = (_equal_nan, _rtol, _atol)
     joblib_kwargs = {
         'prefer': 'precesses', 'return_as': 'list', 'n_jobs': _n_jobs
     }
     out = Parallel(**joblib_kwargs)(_parallel_constant_finder(
-        _column_getter(_X, _col_idx) for _col_idx in range(_X.shape[1])
-    ))
+        _column_getter(_X, _col_idx), *args) for _col_idx in range(_X.shape[1])
+    )
 
 
     # convert out to dict[idx, value] of only the columns of constants
@@ -90,11 +91,6 @@ def _partial_fit(
 
 
 
-
-
-
-
-    return WHAT!?!?!?!
 
 
 

@@ -39,31 +39,46 @@ def _merge_constants(
     """
 
     assert isinstance(_old_constants, dict)
-    assert isinstance(list(_old_constants.keys())[0], int)
+    if len(_old_constants):
+        assert isinstance(list(_old_constants.keys())[0], int)
     assert isinstance(_new_constants, dict)
-    assert isinstance(list(_new_constants.keys())[0], int)
+    if len(_new_constants):
+        assert isinstance(list(_new_constants.keys())[0], int)
 
     _final_constants = {}
 
-    for _col_idx, _value in _old_constants.items():
+    _base_constants = _new_constants if _old_constants == {} else _old_constants
 
-        # for a column of constants to carry forward, the stored index
-        # must be in the currently found indices, and the value of the
+    for _col_idx, _value in _base_constants.items():
+
+        # for a column of constants to carry forward, the currently found
+        # indices must be in the previously found indices, and the value of the
         # constant must be the same
 
-        if _new_constants.get(_col_idx, uuid4()) == _value:
+        # need to handle nan
+        if str(_value) == 'nan' and \
+                str(_new_constants.get(_col_idx, uuid4())) == 'nan':
+            _final_constants[int(_col_idx)] = _value
+        elif _new_constants.get(_col_idx, uuid4()) == _value:
             _final_constants[int(_col_idx)] = _value
 
 
 
-    # verify that outgoing constants were in old constants:
+    # verify that outgoing constants were in base constants:
     for _col_idx, _value in _final_constants.items():
-        assert _col_idx in _old_constants
-        assert _final_constants[_col_idx] == _old_constants[_col_idx]
-
+        assert _col_idx in _base_constants
+        # need to handle nan
+        if str(_final_constants[_col_idx]) == 'nan':
+            assert str(_final_constants[_col_idx]) == str(_base_constants[_col_idx])
+        else:
+            assert _final_constants[_col_idx] == _base_constants[_col_idx]
 
 
     return _final_constants
+
+
+
+
 
 
 

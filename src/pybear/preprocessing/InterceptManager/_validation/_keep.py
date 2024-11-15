@@ -23,7 +23,7 @@ def _val_keep(
     Parameters
     ----------
     _keep:
-        Literal['first', 'last', 'random'], dict[str, any], or None,
+        Literal['first', 'last', 'random', 'none'], dict[str, any],
         default = 'last' -
         The strategy for keeping a single representative from a set of
         identical columns. 'first' retains the column left-most in the
@@ -43,18 +43,15 @@ def _val_keep(
 
 
 
-    _err_msg = (f"'keep' must be one of: "
-        f"\nLiteral['first', 'last', 'random'], "
-        f"\ndict[str, any], or "
-        f"\nNone"
+    _err_msg = (
+        f"'keep' must be one of: "
+        f"\nLiteral['first', 'last', 'random', 'none'], or "
+        f"\ndict[str, any]"
     )
-
-    if isinstance(_keep, type(None)):
-        return
 
     if isinstance(_keep, str):
         _keep = _keep.lower()
-        if _keep in ('first', 'last', 'random'):
+        if _keep in ('first', 'last', 'random', 'none'):
             return
 
     if isinstance(_keep, dict):

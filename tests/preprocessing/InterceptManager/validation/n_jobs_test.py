@@ -6,8 +6,9 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation. \
-    _n_jobs import _val_n_jobs
+from pybear.preprocessing.InterceptManager._validation. _n_jobs import (
+    _val_n_jobs
+)
 
 import pytest
 
@@ -22,9 +23,7 @@ class TestValNJobs:
             _val_n_jobs(_n_jobs)
 
 
-    @pytest.mark.parametrize('_n_jobs',
-        (-2, 0)
-    )
+    @pytest.mark.parametrize('_n_jobs', (-2, 0))
     def test_valueerror_n_jobs(self, _n_jobs):
         with pytest.raises(ValueError):
             _val_n_jobs(_n_jobs)
