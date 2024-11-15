@@ -33,7 +33,7 @@ class TestValidation:
 
 
     @pytest.mark.parametrize('_keep',
-        ('first', 'last', 'random', None, {'Intercept': 1})
+        ('first', 'last', 'random', 'none', {'Intercept': 1})
     )
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_rtol', (1e-6, 1e-1))
