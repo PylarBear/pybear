@@ -9,7 +9,7 @@ import pytest
 
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
-from pybear.utilities import nan_mask
+from pybear.utilities import nan_mask, nan_mask_numerical
 
 from copy import deepcopy
 import itertools
@@ -21,7 +21,7 @@ import polars as pl
 
 
 
-bypass = True
+bypass = False
 
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -598,7 +598,7 @@ class TestExceptWarnOnDifferentHeader:
 # END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
 
 
-# @pytest.mark.skipif(bypass is True, reason=f"bypass")
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAllMethodsExceptOnScipyBSR:
 
     @pytest.mark.parametrize(f'_format', ('matrix', 'array'))
@@ -1025,6 +1025,65 @@ class TestDuplAccuracyOverManyPartialFits:
         assert len(out) == len(_start_dupl)
         for idx in range(len(_start_dupl)):
             assert np.array_equal(out[idx], _start_dupl[idx])
+
+
+
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestAColumnOfAllNans:
+
+    def test_one_all_nans(self, _X_factory, _kwargs, _shape):
+
+        _X = _X_factory(
+            _dupl=[[0,1]],
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=None,
+            _shape=(_shape[0], 3)
+        )
+
+        # set a column to all nans
+        _X[:, -1] = np.nan
+        # verify last column is all nans
+        assert all(nan_mask_numerical(_X[:, -1]))
+
+        # 2nd column should drop, should have 2 columns, last is all np.nan
+
+        TestCls = CDT(**_kwargs)
+        out = TestCls.fit_transform(_X)
+
+        assert np.array_equal(out[:, 0], _X[:, 0])
+        assert all(nan_mask_numerical(out[:, -1]))
+
+
+    def test_two_all_nans(self, _X_factory, _kwargs, _shape):
+
+        _X = _X_factory(
+            _dupl=[[0,1]],
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=None,
+            _shape=(_shape[0], 4)
+        )
+
+        # set last 2 columns to all nans
+        _X[:, [-2, -1]] = np.nan
+        # verify last column is all nans
+        assert all(nan_mask_numerical(_X[:, -1]))
+        assert all(nan_mask_numerical(_X[:, -2]))
+
+        # 2nd & 4th column should drop, should have 2 columns, last is all np.nan
+
+        TestCls = CDT(**_kwargs)
+        out = TestCls.fit_transform(_X)
+
+        assert np.array_equal(out[:, 0], _X[:, 0])
+        assert all(nan_mask_numerical(out[:, -1]))
+
+
 
 
 
