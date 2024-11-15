@@ -5,10 +5,8 @@
 #
 
 
-import pytest
 
-
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing import InterceptManager as IM
 
 from sklearn.utils.estimator_checks import (
     check_transformers_unfitted,
@@ -19,6 +17,9 @@ from sklearn.utils.estimator_checks import (
 )
 
 
+import pytest
+
+
 
 
 class TestSKLearnCheckTransformer:
@@ -27,23 +28,23 @@ class TestSKLearnCheckTransformer:
     def test_transformers_unfitted(self):
         # this tests if Exception raised when transform() without fit()
         check_transformers_unfitted(
-            'ColumnDeduplicateTransformer',
-            CDT()
+            'InterceptManager',
+            IM()
         )
 
 
     def test_transformer_general(self):
 
         check_transformer_general(
-            'ColumnDeduplicateTransformer',
-            CDT()
+            'InterceptManager',
+            IM()
         )
 
 
     def test_transformer_preserve_dtypes(self):
         check_transformer_preserve_dtypes(
-            'ColumnDeduplicateTransformer',
-            CDT()
+            'InterceptManager',
+            IM()
         )
 
 
@@ -51,8 +52,8 @@ class TestSKLearnCheckTransformer:
         # looks for certain verbage in error if len(input_features) does not
         # match n_features_in_, and if output dtype is object
         check_transformer_get_feature_names_out(
-            'ColumnDeduplicateTransformer',
-            CDT()
+            'InterceptManager',
+            IM()
         )
 
 
@@ -60,8 +61,8 @@ class TestSKLearnCheckTransformer:
         # looks for certain verbage in error if 'input_features' does not
         # match feature_names_in_ if CDT was fit on a dataframe
         check_transformer_get_feature_names_out_pandas(
-            'ColumnDeduplicateTransformer',
-            CDT()
+            'InterceptManager',
+            IM()
         )
 
 

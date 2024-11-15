@@ -6,8 +6,9 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
-    _column_getter import _column_getter
+from pybear.preprocessing.InterceptManager._partial_fit._column_getter import (
+    _column_getter
+)
 
 from pybear.utilities._nan_masking import nan_mask
 
@@ -28,7 +29,7 @@ class TestColumnGetter:
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
-        return (100, 3)
+        return (5, 3)
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -119,33 +120,32 @@ class TestColumnGetter:
             raise Exception
 
         column1 = _column_getter(_X_wip, _col_idx1)
-
+        assert isinstance(column1, np.ndarray)
         assert len(column1.shape) == 1
 
-        # if running scipy sparse, then column1 will be hstack((indices, values)).
-        # take it easy on yourself, just transform this output to a regular
-        # np array to ensure the correct column is being pulled
-        if _format not in ('ndarray', 'df'):
-            new_column1 = np.zeros(_shape[0]).astype(np.float64)
-            new_column1[column1[:len(column1)//2].astype(np.int32)] = \
-                column1[len(column1)//2:]
-            column1 = new_column1
-            del new_column1
+        # if running scipy sparse, then column1 will be ss.data.
+        if hasattr(_X_wip, 'toarray'):
+            assert np.array_equal(
+                column1,
+                _X_wip.getcol(_col_idx1).tocsc().data,  # need to do csc for dok & lil
+                equal_nan=True
+            )
+        else: # ('ndarray', 'df')
 
-
-        if _dtype == 'num':
-            assert np.array_equal(column1, _X[:, _col_idx1], equal_nan=True)
-        elif _dtype == 'str':
-            # since changed column_getter to assign np.nan to nan-likes,
-            # need to accommodate these np.nans when doing array_equal.
-            # as of 24_10_15, array_equal equal_nan cannot cast for str types
-            if _has_nan:
-                NOT_NAN1 = np.logical_not(nan_mask(column1)).astype(bool)
-                assert np.array_equal(
-                    column1[NOT_NAN1], _X[:, _col_idx1][NOT_NAN1]
-                )
-            else:
-                assert np.array_equal(column1, _X[:, _col_idx1])
+            if _dtype == 'num':
+                assert np.array_equal(column1, _X[:, _col_idx1], equal_nan=True)
+            elif _dtype == 'str':
+                # pizza reaffirm this
+                # since changed column_getter to assign np.nan to nan-likes,
+                # need to accommodate these np.nans when doing array_equal.
+                # as of 24_10_15, array_equal equal_nan cannot cast for str types
+                if _has_nan:
+                    NOT_NAN1 = np.logical_not(nan_mask(column1)).astype(bool)
+                    assert np.array_equal(
+                        column1[NOT_NAN1], _X[:, _col_idx1][NOT_NAN1]
+                    )
+                else:
+                    assert np.array_equal(column1, _X[:, _col_idx1])
 
 
 

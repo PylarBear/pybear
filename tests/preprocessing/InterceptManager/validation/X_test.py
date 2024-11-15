@@ -5,8 +5,7 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation._X \
-    import _val_X
+from pybear.preprocessing.InterceptManager._validation._X import _val_X
 
 
 import pytest

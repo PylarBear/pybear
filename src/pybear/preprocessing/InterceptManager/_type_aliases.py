@@ -5,8 +5,8 @@
 #
 
 
-from typing import Iterable, Literal, Optional
-from typing_extensions import Union, TypeAlias
+from typing import Iterable, Literal, Optional, TypedDict
+from typing_extensions import Union, TypeAlias,  Required
 import numpy.typing as npt
 import pandas as pd
 import scipy.sparse as ss
@@ -43,13 +43,18 @@ DataType: TypeAlias = Union[
 ]
 
 KeepType: TypeAlias = Optional[Union[
-    Literal['first', 'last', 'random'],
-    dict[str, any],
-    None
+    Literal['first', 'last', 'random', 'none'],
+    dict[str, any]
 ]]
 
 
 
+
+class InstructionType(TypedDict):
+
+    keep: Required[Union[None, list, npt.NDArray[int]]]
+    delete: Required[Union[None, list, npt.NDArray[int]]]
+    add: Required[Union[None, dict[str, any]]]
 
 
 
