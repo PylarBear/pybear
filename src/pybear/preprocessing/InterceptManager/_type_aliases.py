@@ -5,15 +5,16 @@
 #
 
 
-from typing import Iterable, Literal, Optional, TypedDict
-from typing_extensions import Union, TypeAlias,  Required
+
+from typing import Iterable, Literal, Optional, TypedDict, Callable
+from typing_extensions import Union, TypeAlias, Required
 import numpy.typing as npt
 import pandas as pd
 import scipy.sparse as ss
 
 
 
-# pizza
+# pizzam make a decision, keep this here or just be explicit in every function?
 ColumnsType: TypeAlias = Union[
     Iterable[str],
     None
@@ -44,7 +45,10 @@ DataType: TypeAlias = Union[
 
 KeepType: TypeAlias = Optional[Union[
     Literal['first', 'last', 'random', 'none'],
-    dict[str, any]
+    dict[str, any],
+    int,
+    str,
+    Callable[[DataType], int]
 ]]
 
 

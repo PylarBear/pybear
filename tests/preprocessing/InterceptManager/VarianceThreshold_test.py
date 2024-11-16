@@ -36,7 +36,7 @@ from pybear.utilities import nan_mask
 
 
 
-bypass = True
+bypass = False
 
 
 
@@ -363,7 +363,7 @@ class TestNanFactory:
 
 class TestVarianceThreshold:
 
-    # @pytest.mark.skipif(bypass is True, reason='bypass')
+    @pytest.mark.skipif(bypass is True, reason='bypass')
     @pytest.mark.parametrize('_format', ('np', 'pd', 'csc', 'csr', 'coo'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj'))
     @pytest.mark.parametrize('_nan_type', ('np', 'pd', 'str', 'None', None))

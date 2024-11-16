@@ -15,11 +15,15 @@ from joblib import Parallel
 
 from ._column_getter import _column_getter
 from ._parallel_constant_finder import _parallel_constant_finder
+from ._merge_constants import _merge_constants
 
 
 
-def _partial_fit(
+
+
+def _find_constants(
     _X: DataType,
+    _constant_columns: dict[int, any],
     _equal_nan: bool,
     _rtol: Real,
     _atol: Real,
@@ -71,16 +75,20 @@ def _partial_fit(
     )
 
 
-    # convert out to dict[idx, value] of only the columns of constants
-    MASK = out.astype(bool)
+    # convert 'out' to dict[idx, value] of only the columns of constants
+    # do the mask the long way, the constants could be zeros
+    MASK = np.fromiter((v is False for v in out), dtype=bool)
     values = out[MASK]
-    idxs = np.arange(len(MASK))
+    idxs = np.arange(len(out))[MASK]
 
     _new_constants = dict((zip(idxs, values)))
 
     del MASK, idxs, values
 
-    return _new_constants
+    # merge newly found constant columns with those found during
+    # previous partial fits
+    _constant_columns_ = _merge_constants(_constant_columns, _new_constants)
+
 
 
 
