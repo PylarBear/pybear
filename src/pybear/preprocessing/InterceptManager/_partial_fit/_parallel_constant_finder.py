@@ -14,8 +14,7 @@ from numbers import Real
 
 import numpy as np
 
-from ....utilities import nan_mask
-
+from ....utilities import nan_mask, nan_mask_numerical
 
 
 def _parallel_constant_finder(
@@ -106,13 +105,13 @@ def _parallel_constant_finder(
         if not _equal_nan:
             out = False
         elif _equal_nan:
-            _non_nans = _column[np.logical_not(_nan_mask)]
-            _mean_value = np.mean(_non_nans)
+            _not_nan_mask = np.logical_not(nan_mask_numerical(_column))
+            _mean_value = np.mean(_column[_not_nan_mask])
             _allclose = np.allclose(
-                _non_nans, _mean_value, rtol=_rtol, atol=_atol
+                _mean_value, _column[_not_nan_mask], rtol=_rtol, atol=_atol, equal_nan=True
             )
             out = _mean_value if _allclose else False
-            del _non_nans, _mean_value, _allclose
+            del _not_nan_mask, _mean_value, _allclose
 
     elif _is_flt and not any(_nan_mask):
         # no nans, _equal_nan doesnt matter

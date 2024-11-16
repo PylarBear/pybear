@@ -6,13 +6,15 @@
 
 
 from uuid import uuid4
-
-
+from numbers import Real
+import numpy as np
 
 
 def _merge_constants(
     _old_constants: dict[int, any],
-    _new_constants: dict[int, any]
+    _new_constants: dict[int, any],
+    _rtol: Real,
+    _atol: Real
 ) -> dict[int, any]:
 
     """
@@ -26,14 +28,19 @@ def _merge_constants(
     _old_constants:
         dict[int, any] - the column indices of constant columns found in
             previous partial fits and the value in the columns.
-    _new_constants: dict[int, any]
+    _new_constants:
         dict[int, any] - the column indices of constant columns found in
             current partial fit and the value in the columns.
+    _rtol:
+        Real - pizza!
+    _atol:
+        Real - pizza!
+
 
     Return
     ------
     -
-        _final_constants: dict[int, str] - the compiled column indices of
+        _final_constants: dict[int, any] - the compiled column indices of
             constant columns found over all partial fits.
 
     """
@@ -55,12 +62,16 @@ def _merge_constants(
         # indices must be in the previously found indices, and the value of the
         # constant must be the same
 
-        # need to handle nan
-        if str(_value) == 'nan' and \
-                str(_new_constants.get(_col_idx, uuid4())) == 'nan':
-            _final_constants[int(_col_idx)] = _value
-        elif _new_constants.get(_col_idx, uuid4()) == _value:
-            _final_constants[int(_col_idx)] = _value
+        if _col_idx in _new_constants:
+            # need to handle nan - dont use dict.get here
+            if str(_value) == 'nan' and str(_new_constants[_col_idx]) == 'nan':
+                _final_constants[int(_col_idx)] = _value
+            elif _new_constants[_col_idx] == _value:
+                # this should get strings (or ints, or maybe some floats)
+                _final_constants[int(_col_idx)] = _value
+            elif np.isclose(_new_constants[_col_idx], _value, rtol=_rtol, atol=_atol):
+                # this should get floats
+                _final_constants[int(_col_idx)] = _value
 
 
 

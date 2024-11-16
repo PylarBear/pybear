@@ -322,7 +322,6 @@ class TestXFactory:
             else:
                 out = out.toarray()
 
-            # if
 
             for c_idx in range(_shape[1]):
                 _num_nans = np.sum(nan_mask(out[:, c_idx]))

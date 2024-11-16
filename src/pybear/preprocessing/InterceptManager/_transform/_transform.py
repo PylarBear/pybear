@@ -21,7 +21,7 @@ def _transform(
 
 
     """
-
+    Talking pizza?
 
 
 
@@ -53,12 +53,24 @@ def _transform(
 
     if isinstance(_X, np.ndarray):
         _X = _X[:, KEEP_MASK]
+        if _instructions['add']:
+            _key = list(_instructions['add'].keys())[0]
+            _X = np.hstack((_X, _instructions['add'][_key]))
+            del _key
 
     elif isinstance(_X, pd.core.frame.DataFrame):
         _X = _X.loc[:, KEEP_MASK]
+        if _instructions['add']:
+            _key = list(_instructions['add'].keys())[0]
+            _X[_key] = _instructions['add'][_key]
+            del _key
 
     elif hasattr(_X, 'toarray'):     # scipy.sparse
         _X = _X[:, KEEP_MASK]
+        if _instructions['add']:
+            _key = list(_instructions['add'].keys())[0]
+            _X = ss.hstack((_X, _instructions['add'][_key]))
+            del _key
 
     else:
         raise TypeError(f"Unknown dtype {type(_X)} in transform().")

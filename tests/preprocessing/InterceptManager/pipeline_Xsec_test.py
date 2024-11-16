@@ -20,7 +20,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.linear_model import LinearRegression
 
 
-pytest.skip(reason=f"pizza isnt ready", allow_module_level=True)
+
 
 
 

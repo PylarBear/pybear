@@ -11,7 +11,8 @@ from .._type_aliases import (
 from numbers import Integral, Real
 
 import numpy as np
-from joblib import Parallel
+import pandas as pd
+from joblib import Parallel, delayed
 
 from ._column_getter import _column_getter
 from ._parallel_constant_finder import _parallel_constant_finder
@@ -23,7 +24,7 @@ from ._merge_constants import _merge_constants
 
 def _find_constants(
     _X: DataType,
-    _constant_columns: dict[int, any],
+    _old_constant_columns: dict[int, any],
     _equal_nan: bool,
     _rtol: Real,
     _atol: Real,
@@ -40,7 +41,10 @@ def _find_constants(
     Parameters
     ----------
     _X:
-        DataType -
+        DataType - pizza!
+    _old_constant_columns:
+        dict[int, any] - constant column indices and their values found
+        in previous partial fits.
     _equal_nan:
         bool -
     _rtol:
@@ -62,6 +66,14 @@ def _find_constants(
 
 
 
+    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(_X, 'toarray')
+    assert isinstance(_old_constant_columns, dict)
+    assert max(_old_constant_columns) < _X.shape[1] if len(_old_constant_columns) else True
+    assert isinstance(_equal_nan, bool)
+    assert isinstance(_rtol, (int, float))
+    assert isinstance(_atol, (int, float))
+    assert isinstance(_n_jobs, (int, type(None)))
+
 
 
     # out is list[Union[Literal[False], any]]
@@ -70,24 +82,22 @@ def _find_constants(
     joblib_kwargs = {
         'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs
     }
-    out = Parallel(**joblib_kwargs)(_parallel_constant_finder(
+    out = Parallel(**joblib_kwargs)(delayed(_parallel_constant_finder)(
         _column_getter(_X, _col_idx), *args) for _col_idx in range(_X.shape[1])
     )
 
-
     # convert 'out' to dict[idx, value] of only the columns of constants
-    # do the mask the long way, the constants could be zeros
-    MASK = np.fromiter((v is False for v in out), dtype=bool)
-    values = out[MASK]
-    idxs = np.arange(len(out))[MASK]
+    _new_constants = {}
+    for idx, v in enumerate(out):
+        # do this out the long way, to do vectorization everything needs
+        # to be converted to np, and the np dtypes mess up the dict keys
+        if v is not False:  # the constants could be zeros, use is
+            _new_constants[idx] = v
 
-    _new_constants = dict((zip(idxs, values)))
-
-    del MASK, idxs, values
 
     # merge newly found constant columns with those found during
     # previous partial fits
-    _constant_columns_ = _merge_constants(_constant_columns, _new_constants)
+    return _merge_constants(_old_constant_columns, _new_constants, _rtol, _atol)
 
 
 
