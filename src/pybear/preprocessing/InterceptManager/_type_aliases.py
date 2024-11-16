@@ -14,7 +14,7 @@ import scipy.sparse as ss
 
 
 
-# pizzam make a decision, keep this here or just be explicit in every function?
+# pizza make a decision, keep this here or just be explicit in every function?
 ColumnsType: TypeAlias = Union[
     Iterable[str],
     None
