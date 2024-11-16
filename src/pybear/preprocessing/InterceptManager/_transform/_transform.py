@@ -7,6 +7,10 @@
 
 from .._type_aliases import DataType, InstructionType
 
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
+
 
 
 
@@ -15,14 +19,52 @@ def _transform(
     _instructions: InstructionType
 ) -> DataType:
 
-    # for _delete_idx in _instructions['delete'] or {}:
-        # 24_11_14_19_00_00 PIZZA IS TIRED!
+
+    """
 
 
 
 
+    Parameters
+    ----------
+    _X: DataType,
+    _instructions: InstructionType
 
-    return
+
+    Return
+    ------
+    -
+        _X:
+
+
+    """
+
+    # class InstructionType(TypedDict):
+    #
+    #     keep: Required[Union[None, list, npt.NDArray[int]]]
+    #     delete: Required[Union[None, list, npt.NDArray[int]]]
+    #     add: Required[Union[None, dict[str, any]]]
+
+    # 'keep' isnt needed to modify X, it is only in the dictionary for
+    # ease of making self.kept_columns_ later.
+
+    KEEP_MASK = np.ones(_X.shape[1]).astype(bool)
+    KEEP_MASK[_instructions['delete']] = False
+
+    if isinstance(_X, np.ndarray):
+        _X = _X[:, KEEP_MASK]
+
+    elif isinstance(_X, pd.core.frame.DataFrame):
+        _X = _X.loc[:, KEEP_MASK]
+
+    elif hasattr(_X, 'toarray'):     # scipy.sparse
+        _X = _X[:, KEEP_MASK]
+
+    else:
+        raise TypeError(f"Unknown dtype {type(_X)} in transform().")
+
+
+    return _X
 
 
 

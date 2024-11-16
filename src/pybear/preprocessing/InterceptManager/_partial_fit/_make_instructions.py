@@ -3,12 +3,12 @@
 #
 # License: BSD 3 clause
 #
-
-
+from numba.np.math.mathimpl import isinf_int_impl
 
 from .._type_aliases import (
     KeepType,
-    InstructionType
+    InstructionType,
+    ColumnsType
 )
 
 import numpy as np
@@ -17,7 +17,8 @@ import numpy as np
 
 def _make_instructions(
     _keep: KeepType,
-    constant_columns_: dict[int, any]
+    constant_columns_: dict[int, any],
+    _columns: ColumnsType
 ) -> InstructionType:
 
     """
@@ -66,17 +67,29 @@ def _make_instructions(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     err_msg = \
-        f"'_keep' must be 'first', 'last', 'random', 'none', or dict[str, any]"
+        f"'_keep' must be Literal['first', 'last', 'random', 'none'], dict[str, any], int, str, or callable"
     try:
         iter(_keep)
         if not isinstance(_keep, (str, dict)):
-            raise Exception
-        if isinstance(_keep, str):
-            assert _keep.lower() in ('first', 'last', 'random', 'none')
-        if isinstance(_keep, dict):
-            assert isinstance(list(_keep.keys())[0], str)
-    except:
+            raise UnicodeError
+        # pizza cant validate str really, could be column name, could be anything + keep literals
+        if isinstance(_keep, dict) and not isinstance(list(_keep.keys())[0], str):
+            raise UnicodeError
+    except UnicodeError:
         raise AssertionError(err_msg)
+    except:
+        try:
+            float(_keep)
+            if isinstance(_keep, bool):
+                raise UnicodeError
+            if int(_keep) != _keep:
+                raise UnicodeError
+            _keep = int(_keep)
+        except UnicodeError:
+            raise ValueError(err_msg)
+        except:
+            if not callable(_keep):
+                raise AssertionError(err_msg)
 
 
     assert isinstance(constant_columns_, dict)
@@ -90,7 +103,7 @@ def _make_instructions(
     _sorted_constant_column_idxs = sorted(list(constant_columns_))
 
     _instructions: InstructionType = {
-        'keep': None,
+        'keep': None,   #pizza, dont really need this for operating on X, 'keep' just makes it easy to make kept_columns_ later on.
         'delete': None,
         'add': None
     }
@@ -99,6 +112,33 @@ def _make_instructions(
     if len(constant_columns_) == 0:
         # if there are no constant columns, skip out and return Nones
         return _instructions
+    elif isinstance(_keep, int):
+        # this is the first place where we could validate whether the _keep int is actually
+        # a constant column in the data
+        if _keep not in constant_columns_:
+            raise ValueError(f"'keep' column index has been set to {_keep}, but that column is not constant.")
+        # pizza did this 24_11_15_16_54_00 and was so tired. doublecheck this.
+        _instructions['keep'] = [_keep]
+        _sorted_constant_column_idxs.remove(_keep)
+        _instructions['delete'] = _sorted_constant_column_idxs
+    elif isinstance(_keep, str) and _keep not in ('first', 'last', 'random', 'none'):
+        # then must be a header.
+        # this is the first place where we could validate whether the _keep str is actually
+        # a constant column in the data
+
+        # pizza
+        # shouldnt need to validate str keep on None header, that should have
+        # been done in validation
+
+        idx = np.arange(len(_columns))[_columns==_keep][0]
+        if idx not in constant_columns_:
+            raise ValueError(f"'keep' has been set to column '{_keep}', but that column is not constant.")
+        # pizza did this 24_11_15_16_54_00 and was so tired. doublecheck this.
+        _instructions['keep'] = [idx]
+        _sorted_constant_column_idxs.remove(idx)
+        _instructions['delete'] = _sorted_constant_column_idxs
+    elif callable(_keep):
+        raise ValueError(f"callable 'keep' has gotten into _make_instructions but should already be an int")
     elif _keep == 'first':
         # if keep == 'first', keep first, add none, delete all but first
         _instructions['keep'] = [_sorted_constant_column_idxs[0]]
@@ -125,13 +165,12 @@ def _make_instructions(
         # if keep == a dict, keep none, delete all, add value in last position
         _instructions['delete'] = _sorted_constant_column_idxs
         _instructions['add'] = _keep
-
         return _instructions
     else:
         raise Exception(f"algorithm failure, invalid 'keep'")
 
 
-
+    return _instructions
 
 
 

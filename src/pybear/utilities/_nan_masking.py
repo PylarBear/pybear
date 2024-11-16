@@ -7,6 +7,7 @@
 
 import numpy as np
 import pandas as pd
+import scipy
 import scipy.sparse as ss
 
 from typing_extensions import Union
@@ -15,7 +16,7 @@ import numpy.typing as npt
 
 
 def nan_mask_numerical(
-    obj: Union[npt.NDArray[float], pd.DataFrame]
+    obj: Union[npt.NDArray, pd.DataFrame, scipy.sparse]
 ) -> npt.NDArray[bool]:
 
     """
@@ -157,7 +158,7 @@ def nan_mask_string(
 
 
 def nan_mask(
-    obj: Union[npt.NDArray[Union[float, str]], pd.DataFrame]
+    obj: Union[npt.NDArray, pd.DataFrame, scipy.sparse]
 ) -> npt.NDArray[bool]:
 
     """

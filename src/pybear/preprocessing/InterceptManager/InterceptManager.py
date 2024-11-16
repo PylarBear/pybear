@@ -5,7 +5,7 @@
 #
 
 
-# pizza
+# pizza dont forget to clean up these imports!!
 from typing import Iterable, Literal, Optional
 from typing_extensions import Union, Self
 from ._type_aliases import (
@@ -17,11 +17,13 @@ from numbers import Real, Integral
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils._param_validation import StrOptions
 
-from ._partial_fit._partial_fit import _partial_fit
-from ._partial_fit._merge_constants import _merge_constants
+from ._validation import _validation
+
+from ._partial_fit._find_constants import _find_constants
 from ._partial_fit._make_instructions import _make_instructions
+from ._partial_fit._set_attributes import _set_attributes
 
-
+from ._transform._transform import _transform
 
 
 class InterceptManager(BaseEstimator, TransformerMixin):
@@ -33,16 +35,16 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     Parameters
     ----------
     keep:
-        Optional[Union[Literal['first', 'last', 'random'], dict[str,any], None]],
+        Optional[Union[Literal['first', 'last', 'random'], dict[str,any], None]], int, str, callable]
         default='last' - pizza!
     equal_nan:
         Optional[bool], default=True - pizza!
     rtol:
-        float, default = 1e-5 - The relative difference tolerance for
-            equality. See numpy.allclose.
+        real number, default = 1e-5 - The relative difference tolerance
+            for equality. See numpy.allclose.
     atol:
-        float, default = 1e-8 - The absolute tolerance parameter for .
-            equality. See numpy.allclose.
+        real number, default = 1e-8 - The absolute tolerance parameter
+            for equality. See numpy.allclose.
     n_jobs:
         # pizza finalize this based on benchmarking
         Optional[Integral], default=-1 - The number of joblib Parallel
@@ -116,6 +118,22 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             del self.removed_columns_
 
 
+    def get_feature_names_out(self):
+        # pizza!
+        pass
+
+
+    def get_metadata_routing(self):
+        """
+        Get metadata routing is not implemented in ColumnDeduplicateTransformer.
+
+        """
+        __ = type(self).__name__
+        raise NotImplementedError(
+            f"get_metadata_routing is not implemented in {__}"
+        )
+
+
     def partial_fit(
         self,
         X:DataType,
@@ -142,35 +160,77 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
 
         # pizza remember to set order to "F"!
+        # validation of X must be done here (with reset=True), not in a
+        # separate module
+        # BaseEstimator has _validate_data method, which when called
+        # exposes n_features_in_ and feature_names_in_.
+        X = self._validate_data(
+            X=X,
+            reset=not hasattr(self, "duplicates_"),
+            cast_to_ndarray=False,
+            # vvv become **check_params, and get fed to check_array()
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"),
+            dtype=None,
+            force_all_finite="allow-nan",
+            ensure_2d=True,
+            ensure_min_features=2,
+            order='F'
+        )
+
+        # reset – Whether to reset the n_features_in_ attribute. If False,
+        # the input will be checked for consistency with data provided when
+        # reset was last True.
+        # It is recommended to call reset=True in fit and in the first call
+        # to partial_fit. All other methods that validate X should set
+        # reset=False.
+        #
+        # cast_to_ndarray – Cast X and y to ndarray with checks in
+        # check_params. If False, X and y are unchanged and only
+        # feature_names_in_ and n_features_in_ are checked.
+
+        # ^^^^^^ pizza be sure to review _validate_data! ^^^^^^^
+
+        _validation(
+            X,
+            self.feature_names_in_ if hasattr('self', 'feature_names_in_') else None,
+            self.keep,
+            self.equal_nan,
+            self.rtol,
+            self.atol,
+            self.n_jobs
+        )
+
+
 
         # dictionary of column indices and respective constant values
-        _new_constants:dict[int, any] = \
-            _partial_fit(
+        self.constant_columns_:dict[int, any] = \
+            _find_constants(
                 X,
+                self.constant_columns_ if hasattr(self, 'constant_columns_') else {},
                 self.equal_nan,
                 self.rtol,
                 self.atol,
                 self.n_jobs
             )
 
-        # merge newly found constant columns with those found during
-        # previous partial fits
-        self.constant_columns_ = _merge_constants(
-            self.constant_columns_ if hasattr(self, 'constant_columns_') else {},
-            _new_constants
+
+        # pizza head, take it easy on yourself! instead of passing _keep
+        # callable and _X to _make_instructions, calculate it here and just
+        # send an int!
+        _instructions = _make_instructions(
+            self.keep(X) if callable(self.keep) else self.keep,
+            self.constant_columns_
         )
 
-        _instructions = _make_instructions(self.keep, self.constant_columns_)
+        self.kept_columns_, self.removed_columns_, self._column_mask = \
+            _set_attributes(
+                self.constant_columns_,
+                _instructions,
+                self.n_features_in_
+            )
 
-        self.kept_columns_: dict[int, any] = {}
-        self.removed_columns_: dict[int, any] = {}
-        for col_idx in range(X.shape[1]):
-            if col_idx in _instructions['keep'] or {}:
-                self.kept_columns_[col_idx] = self.constant_columns_[col_idx]
-            elif col_idx in _instructions['add'] or {}:
-                self.kept_columns_[col_idx] = self.constant_columns_[col_idx]
-            elif col_idx in _instructions['delete'] or {}:
-                self.removed_columns_[col_idx] = self.constant_columns_[col_idx]
+
+
 
 
 
@@ -235,19 +295,26 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         # this needs to be redone every transform in case 'keep' was
         # changed via set params
-        _instructions = _make_instructions(self.keep, self.constant_columns_)
+        _instructions = _make_instructions(
+            self.keep,
+            self.constant_columns_,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+        )
 
-        self.kept_columns_: dict[int, any] = {}
-        self.removed_columns_: dict[int, any] = {}
-        for col_idx in range(X.shape[1]):
-            if col_idx in _instructions['keep'] or {}:
-                self.kept_columns_[col_idx] = self.constant_columns_[col_idx]
-            elif col_idx in _instructions['add'] or {}:
-                self.kept_columns_[col_idx] = self.constant_columns_[col_idx]
-            elif col_idx in _instructions['delete'] or {}:
-                self.removed_columns_[col_idx] = self.constant_columns_[col_idx]
+        self.kept_columns_, self.removed_columns_ = \
+            _set_attributes(
+                self.constant_columns_,
+                _instructions,
+                self.n_features_in_
+            )
 
-        return _transform(X, _instructions)
+
+        out = _transform(X, _instructions)
+
+        # Pizzahead remember to do the 'C' order setting trick that
+        # u did in CDT
+
+        return out
 
 
     def inverse_transform(

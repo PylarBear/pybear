@@ -47,6 +47,7 @@ def _X_factory():
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
         _columns:Union[Iterable[str], None]=None,
         _constants:Union[Iterable[int], None]=None,
+        _noise:float=1e-5,
         _zeros:Union[float,None]=0,
         _shape:tuple[int,int]=(20,5)
     ) -> npt.NDArray[any]:
@@ -79,6 +80,7 @@ def _X_factory():
             assert all(map(isinstance, _constants, (int for _ in _constants)))
         elif _constants is None:
             _constants = []
+        assert isinstance(_noise, float)
         if _zeros is None:
             _zeros = 0
         assert not isinstance(_zeros, bool)
@@ -140,11 +142,17 @@ def _X_factory():
         else:
             raise Exception
 
-        # pizza this changed for *constants*  ... meaning that XFactory was
-        # copied directly from previous versions and this is the only thing
-        # that was added to give it the constants property
+
         for c_idx in _constants:
-            X[:, c_idx] = X[0, c_idx]
+            if _dtype=='flt':
+                X[:, c_idx] = \
+                    np.random.normal(
+                        loc=X[0, c_idx],
+                        scale=_noise,
+                        size=_shape[0]
+                    )
+            else:
+                X[:, c_idx] = X[0, c_idx]
 
 
         if _dupl is not None:
