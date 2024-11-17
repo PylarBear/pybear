@@ -24,7 +24,7 @@ class TestParallelConstantFinder:
     @pytest.mark.parametrize('dtype', ('flt', 'str'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('equal_nan', (True, False))
-    @pytest.mark.parametrize('rtol, atol', ((1e-5, 1e-8), (1e-1, 1e-2)))
+    @pytest.mark.parametrize('rtol, atol', ((1e-7, 1e-8), (1e-1, 1e-2)))
     def test_accuracy(self, dtype, has_nan, equal_nan, rtol, atol):
 
         # Methodology
@@ -35,7 +35,7 @@ class TestParallelConstantFinder:
         # the other case the column is not constant because the noise
         # is greater than rtol/atol.
 
-        _noise = 1e-3
+        _noise = 1e-6
         _size = 100
 
         if dtype=='flt':
@@ -47,7 +47,7 @@ class TestParallelConstantFinder:
                 _X[_rand_idxs] = np.nan
         elif dtype=='str':
             # if noise > tol, make a non-constant column
-            if _noise > rtol:
+            if _noise > atol:
                 _X = np.random.choice(list('abcde'), _size, replace=True)
             else:
                 _X = np.full((_size,), 'a')
@@ -69,18 +69,18 @@ class TestParallelConstantFinder:
         if dtype == 'flt':
             if has_nan:
                 if equal_nan:
-                    if _noise <= rtol:
+                    if _noise <= atol:
                         _not_nan_mask = np.logical_not(nan_mask_numerical(_X))
                         assert out == np.mean(_X[_not_nan_mask])
-                    elif _noise > rtol:
+                    elif _noise > atol:
                         assert out is False
                 elif not equal_nan:
                     assert out is False
             elif not has_nan:
                 # equal_nan doesnt matter
-                if _noise <= rtol:
+                if _noise <= atol:
                     assert out == np.mean(_X)
-                elif _noise > rtol:
+                elif _noise > atol:
                     assert out is False
 
         elif dtype == 'str':
@@ -89,9 +89,9 @@ class TestParallelConstantFinder:
                 # _noise and rtol dont matter for str column, but we built the
                 # str test vector to be constant or not based on _noise and rtol
                 if equal_nan:
-                    if _noise <= rtol:
+                    if _noise <= atol:
                         assert out == 'a'
-                    elif _noise > rtol:
+                    elif _noise > atol:
                         assert out is False
                 else:
                     assert out is False
@@ -99,9 +99,9 @@ class TestParallelConstantFinder:
                 # equal_nan doesnt matter
                 # _noise and rtol dont matter for str column, but we built the
                 # str test vector to be constant or not based on _noise and rtol
-                if _noise <= rtol:
+                if _noise <= atol:
                     assert out == 'a'
-                elif _noise > rtol:
+                elif _noise > atol:
                     assert out is False
 
         else:

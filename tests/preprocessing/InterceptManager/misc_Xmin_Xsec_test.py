@@ -20,7 +20,7 @@ import polars as pl
 
 
 
-pytest.skip(reason=f"pizza isnt ready", allow_module_level=True)
+pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
 
 
 bypass = False

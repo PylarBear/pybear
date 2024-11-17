@@ -3,7 +3,9 @@
 #
 # License: BSD 3 clause
 #
-from numba.np.math.mathimpl import isinf_int_impl
+
+
+from pybear.preprocessing.InterceptManager._validation._instructions import _val_instructions
 
 from .._type_aliases import (
     KeepType,
@@ -18,7 +20,8 @@ import numpy as np
 def _make_instructions(
     _keep: KeepType,
     constant_columns_: dict[int, any],
-    _columns: ColumnsType
+    _columns: ColumnsType,
+    _shape: tuple[int, int]
 ) -> InstructionType:
 
     """
@@ -48,6 +51,10 @@ def _make_instructions(
         pizza finish
     constant_columns_:
         dict[int, any] - finish your pizza!
+    _columns:
+        Union[Iterable[str], None] - pizza pizza! pan pan!
+    _shape:
+        tuple[int, int] - the (n_samples, n_features) shape of the data.
 
 
     Return
@@ -168,6 +175,9 @@ def _make_instructions(
         return _instructions
     else:
         raise Exception(f"algorithm failure, invalid 'keep'")
+
+
+    _val_instructions(_instructions, _shape)
 
 
     return _instructions

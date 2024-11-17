@@ -25,8 +25,14 @@ class TestMakeInstructions:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _columns(_master_columns):
-        return _master_columns.copy()[:10]   # arbitrary shape
+    def _shape():
+        return (200, 10)   # arbitrary shape
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _columns(_master_columns, _shape):
+        return _master_columns.copy()[:_shape[1]]   # arbitrary shape
 
 
     @staticmethod
@@ -37,14 +43,18 @@ class TestMakeInstructions:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _constant_columns_1():
-        return {0: 1, 8: 1}  # must have index 8 in it
+    def _constant_columns_1(_shape):
+        _ = {0: 1, 8: 1}  # must have index 8 in it
+        assert max(_) < _shape[1]
+        return _
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _constant_columns_2():
-        return {1: 1, 0: 0, 8: 1}   # must have index 8 in it
+    def _constant_columns_2(_shape):
+        _ = {1: 1, 0: 0, 8: 1}   # must have index 8 in it
+        assert max(_) < _shape[1]
+        return _
 
 
     @staticmethod
@@ -73,7 +83,7 @@ class TestMakeInstructions:
 
     def test_accuracy(
         self, _empty_constant_columns, _constant_columns_1, _constant_columns_2,
-        _keep_dict, _keep_int, _keep_str, _keep_callable, _columns
+        _keep_dict, _keep_int, _keep_str, _keep_callable, _columns, _shape
     ):
 
 
@@ -83,11 +93,11 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # keep is int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions(_keep_int, _empty_constant_columns, None)
+        out = _make_instructions(_keep_int, _empty_constant_columns, None, _shape)
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # keep _keep_int idx, delete all others
-        out = _make_instructions(_keep_int, _constant_columns_1, None)
+        out = _make_instructions(_keep_int, _constant_columns_1, None, _shape)
         _sorted = sorted(list(_constant_columns_1))
         _kept_idx = _keep_int
         _sorted.remove(_kept_idx)
@@ -95,7 +105,7 @@ class TestMakeInstructions:
         del _sorted, _kept_idx
 
         # keep _keep_int idx, delete all others
-        out = _make_instructions(_keep_int, _constant_columns_2, None)
+        out = _make_instructions(_keep_int, _constant_columns_2, None, _shape)
         _sorted = sorted(list(_constant_columns_2))
         _kept_idx = _keep_int
         _sorted.remove(_kept_idx)
@@ -107,11 +117,11 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # keep is str ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions(_keep_str, _empty_constant_columns, _columns)
+        out = _make_instructions(_keep_str, _empty_constant_columns, _columns, _shape)
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # keep first constant column, delete all others
-        out = _make_instructions(_keep_str, _constant_columns_1, _columns)
+        out = _make_instructions(_keep_str, _constant_columns_1, _columns, _shape)
         _sorted = sorted(list(_constant_columns_1))
         _kept_idx = np.arange(len(_columns))[_columns==_keep_str][0]
         _sorted.remove(_kept_idx)
@@ -119,7 +129,7 @@ class TestMakeInstructions:
         del _sorted, _kept_idx
 
         # keep first constant column, delete all others
-        out = _make_instructions(_keep_str, _constant_columns_2, _columns)
+        out = _make_instructions(_keep_str, _constant_columns_2, _columns, _shape)
         _sorted = sorted(list(_constant_columns_2))
         _kept_idx = np.where(_columns==_keep_str)[0]
         _sorted.remove(_kept_idx)
@@ -131,12 +141,12 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # keep is callable ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # if no constant columns, returns all Nones
-        out = _make_instructions(_keep_callable, _empty_constant_columns, None)
+        out = _make_instructions(_keep_callable, _empty_constant_columns, None, _shape)
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # keep first constant column, delete all others
         with pytest.raises(ValueError):
-            out = _make_instructions(_keep_callable, _constant_columns_1, None)
+            out = _make_instructions(_keep_callable, _constant_columns_1, None, _shape)
         # pizza
         # _sorted = sorted(list(_constant_columns_1))
         # _kept_idx = _keep_callable(np.random.randint(0,10,(5,3)))  # the callable isnt validated, could pass anything
@@ -146,7 +156,7 @@ class TestMakeInstructions:
 
         # keep first constant column, delete all others
         with pytest.raises(ValueError):
-            out = _make_instructions(_keep_callable, _constant_columns_2, None)
+            out = _make_instructions(_keep_callable, _constant_columns_2, None, _shape)
         # pizza
         # _sorted = sorted(list(_constant_columns_2))
         # _kept_idx = _keep_callable(np.random.randint(0, 10, (5, 3)))  # the callable isnt validated, could pass anything
@@ -159,11 +169,11 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # first ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions('first', _empty_constant_columns, None)
+        out = _make_instructions('first', _empty_constant_columns, None, _shape)
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # keep first constant column, delete all others
-        out = _make_instructions('first', _constant_columns_1, None)
+        out = _make_instructions('first', _constant_columns_1, None, _shape)
         _sorted = sorted(list(_constant_columns_1))
         _kept_idx = _sorted[0]
         _sorted.remove(_kept_idx)
@@ -171,7 +181,7 @@ class TestMakeInstructions:
         del _sorted, _kept_idx
 
         # keep first constant column, delete all others
-        out = _make_instructions('first', _constant_columns_2, None)
+        out = _make_instructions('first', _constant_columns_2, None, _shape)
         _sorted = sorted(list(_constant_columns_2))
         _kept_idx = _sorted[0]
         _sorted.remove(_kept_idx)
@@ -183,11 +193,11 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # last ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions('last', _empty_constant_columns, None)
+        out = _make_instructions('last', _empty_constant_columns, None, _shape)
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # keep last constant column, delete all others
-        out = _make_instructions('last', _constant_columns_1, None)
+        out = _make_instructions('last', _constant_columns_1, None, _shape)
         _sorted = sorted(list(_constant_columns_1))
         _kept_idx = _sorted[-1]
         _sorted.remove(_kept_idx)
@@ -195,7 +205,7 @@ class TestMakeInstructions:
         del _sorted, _kept_idx
 
         # keep last constant column, delete all others
-        out = _make_instructions('last', _constant_columns_2, None)
+        out = _make_instructions('last', _constant_columns_2, None, _shape)
         _sorted = sorted(list(_constant_columns_2))
         _kept_idx = _sorted[-1]
         _sorted.remove(_kept_idx)
@@ -207,18 +217,18 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # random ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions('random', _empty_constant_columns, None)
+        out = _make_instructions('random', _empty_constant_columns, None, _shape)
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # keep a random constant column, delete all others
-        out = _make_instructions('random', _constant_columns_1, None)
+        out = _make_instructions('random', _constant_columns_1, None, _shape)
         # can only validate len of instructions
         assert len(out['keep']) == 1
         assert len(out['delete']) == len(_constant_columns_1) - 1
         assert out['add'] is None
 
         # keep a random constant column, delete all others
-        out = _make_instructions('random', _constant_columns_2, None)
+        out = _make_instructions('random', _constant_columns_2, None, _shape)
         # can only validate len of instructions
         assert len(out['keep']) == 1
         assert len(out['delete']) == len(_constant_columns_2) - 1
@@ -229,11 +239,11 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # none ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions('none', _empty_constant_columns, None)
+        out = _make_instructions('none', _empty_constant_columns, None, _shape)
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # delete all constant columns
-        out = _make_instructions('none', _constant_columns_1, None)
+        out = _make_instructions('none', _constant_columns_1, None, _shape)
         assert out == {
             'keep': None,
             'delete': sorted(list(_constant_columns_1)),
@@ -241,7 +251,7 @@ class TestMakeInstructions:
         }
 
         # delete all constant columns
-        out = _make_instructions('none', _constant_columns_2, None)
+        out = _make_instructions('none', _constant_columns_2, None, _shape)
         assert out == {
             'keep': None,
             'delete': sorted(list(_constant_columns_2)),
@@ -253,11 +263,11 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # dict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions(_keep_dict, _empty_constant_columns, None)
+        out = _make_instructions(_keep_dict, _empty_constant_columns, None, _shape)
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # delete all constant columns, append contents of keep dict
-        out = _make_instructions(_keep_dict, _constant_columns_1, None)
+        out = _make_instructions(_keep_dict, _constant_columns_1, None, _shape)
         assert out == {
             'keep': None,
             'delete': sorted(list(_constant_columns_1)),
@@ -265,7 +275,7 @@ class TestMakeInstructions:
         }
 
         # delete all constant columns, append contents of keep dict
-        out = _make_instructions(_keep_dict, _constant_columns_2, None)
+        out = _make_instructions(_keep_dict, _constant_columns_2, None, _shape)
         assert out == {
             'keep': None,
             'delete': sorted(list(_constant_columns_2)),

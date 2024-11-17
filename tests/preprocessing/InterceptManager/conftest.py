@@ -46,8 +46,8 @@ def _X_factory():
         _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
         _columns:Union[Iterable[str], None]=None,
-        _constants:Union[Iterable[int], None]=None,
-        _noise:float=1e-5,
+        _constants:Union[dict[int, any], None]=None,
+        _noise:float=0,
         _zeros:Union[float,None]=0,
         _shape:tuple[int,int]=(20,5)
     ) -> npt.NDArray[any]:
@@ -75,12 +75,15 @@ def _X_factory():
         assert isinstance(_columns, (list, np.ndarray, type(None)))
         if _columns is not None:
             assert all(map(isinstance, _columns, (str for _ in _columns)))
-        assert isinstance(_constants, (list, np.ndarray, type(None)))
+        assert isinstance(_constants, (dict, type(None)))
         if _constants is not None:
             assert all(map(isinstance, _constants, (int for _ in _constants)))
+            assert np.all(np.array(list(_constants)) >= 0)
+            assert np.all(np.array(list(_constants)) <= _shape[1] - 1)
         elif _constants is None:
-            _constants = []
-        assert isinstance(_noise, float)
+            _constants = {}
+        assert not isinstance(_noise, bool)
+        assert isinstance(_noise, (int, float))
         if _zeros is None:
             _zeros = 0
         assert not isinstance(_zeros, bool)
@@ -104,7 +107,7 @@ def _X_factory():
         # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         if _dtype == 'flt':
-            X = np.random.uniform(0,1, _shape)
+            X = np.random.uniform(0,10, _shape)
             if _zeros:
                 for _col_idx in range(_shape[1]):
                     X[_idx_getter(_shape[0], _zeros), _col_idx] = 0
@@ -143,16 +146,16 @@ def _X_factory():
             raise Exception
 
 
-        for c_idx in _constants:
-            if _dtype=='flt':
+        for c_idx, _value in _constants.items():
+            if _dtype in ['int', 'flt']:
                 X[:, c_idx] = \
                     np.random.normal(
-                        loc=X[0, c_idx],
+                        loc=_value,
                         scale=_noise,
                         size=_shape[0]
                     )
             else:
-                X[:, c_idx] = X[0, c_idx]
+                X[:, c_idx] = _value
 
 
         if _dupl is not None:

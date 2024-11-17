@@ -17,7 +17,7 @@ from sklearn.exceptions import NotFittedError
 
 
 
-pytest.skip(reason=f"pizza isnt ready", allow_module_level=True)
+pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
 
 
 bypass = False
@@ -36,8 +36,6 @@ def _shape():
 def _kwargs():
     return {
         'keep': 'first',
-        'do_not_drop': None,
-        'conflict': 'raise',
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
@@ -89,7 +87,7 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
         return [
             'n_features_in_',
             'feature_names_in_',
-            'duplicates_',
+            'kept_columns_',
             'removed_columns_',
             'column_mask_'
         ]
@@ -231,8 +229,6 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # set_params()
         # KEYS = [
         #     'keep': 'first',
-        #     'do_not_drop': None,
-        #     'conflict': 'raise',
         #     'rtol': 1e-5,
         #     'atol': 1e-8,
         #     'equal_nan': False,

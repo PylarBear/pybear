@@ -22,33 +22,39 @@ import pytest
 class TestMergeConstants:
 
 
-    def test_accuracy(self):
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _rtol_atol():
+        return (1e-5, 1e-8)
+
+
+    def test_accuracy(self, _rtol_atol):
 
         _old_constants = {0:1, 4: 0, 5: 0}
 
         # one column dropped out
         _new_constants = {0:1, 5: 0}
-        assert _merge_constants(_old_constants, _new_constants) == \
+        assert _merge_constants(_old_constants, _new_constants, *_rtol_atol) == \
                {0: 1, 5: 0}
 
         # new columns of constants, with overlap
         _new_constants = {0: 1, 2: np.nan, 6: 0}
-        assert _merge_constants(_old_constants, _new_constants) == \
+        assert _merge_constants(_old_constants, _new_constants, *_rtol_atol) == \
                {0: 1}
 
         # new columns of constants, no overlap
         _new_constants = {11: 1, 12: 4, 13: 0}
-        assert _merge_constants(_old_constants, _new_constants) == \
+        assert _merge_constants(_old_constants, _new_constants, *_rtol_atol) == \
                {}
 
         # same columns, value changed
         _new_constants = {0:1, 4: 1, 5:0}
-        assert _merge_constants(_old_constants, _new_constants) == \
+        assert _merge_constants(_old_constants, _new_constants, *_rtol_atol) == \
                {0:1, 5:0}
 
         # empty new constants
         _new_constants = {}
-        assert _merge_constants(_old_constants, _new_constants) == {}
+        assert _merge_constants(_old_constants, _new_constants, *_rtol_atol) == {}
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
@@ -65,7 +71,7 @@ class TestMergeConstants:
 
         for _new_constants in NEW_CONSTANTS:
 
-            out = _merge_constants(_old_constants, _new_constants)
+            out = _merge_constants(_old_constants, _new_constants, *_rtol_atol)
 
             # need to do this the hard way because of np.nan
 

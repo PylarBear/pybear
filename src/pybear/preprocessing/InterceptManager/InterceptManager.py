@@ -17,7 +17,7 @@ from numbers import Real, Integral
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils._param_validation import StrOptions
 
-from ._validation import _validation
+from ._validation._validation import _validation
 
 from ._partial_fit._find_constants import _find_constants
 from ._partial_fit._make_instructions import _make_instructions
@@ -120,6 +120,9 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
     def get_feature_names_out(self):
         # pizza!
+        # when there is a {'Intercept': 1} in :param: keep, need to make sure
+        # that that column is accounted for here! and the dropped columns are
+        # also accounted for!
         pass
 
 
@@ -132,6 +135,12 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         raise NotImplementedError(
             f"get_metadata_routing is not implemented in {__}"
         )
+
+
+    # def set_params(self):
+        # pizza! dont forget! once the instance is fitted, cannot change equal_nan, rtol, and atol!
+        # ... or maybe u can.... its just that new fits will be fitted subject to
+        # different rules than prior fits
 
 
     def partial_fit(
@@ -219,10 +228,12 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # send an int!
         _instructions = _make_instructions(
             self.keep(X) if callable(self.keep) else self.keep,
-            self.constant_columns_
+            self.constant_columns_,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            X.shape
         )
 
-        self.kept_columns_, self.removed_columns_, self._column_mask = \
+        self.kept_columns_, self.removed_columns_, self.column_mask_ = \
             _set_attributes(
                 self.constant_columns_,
                 _instructions,
@@ -298,7 +309,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         _instructions = _make_instructions(
             self.keep,
             self.constant_columns_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            X.shape
         )
 
         self.kept_columns_, self.removed_columns_ = \

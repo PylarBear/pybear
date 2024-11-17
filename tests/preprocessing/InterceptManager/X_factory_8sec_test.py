@@ -16,9 +16,10 @@ import scipy.sparse as ss
 
 from pybear.utilities._nan_masking import nan_mask
 
+from pybear.preprocessing.InterceptManager._partial_fit._parallel_constant_finder \
+    import _parallel_constant_finder
 
 
-pytest.skip(reason=f"pizza isnt ready", allow_module_level=True)
 
 
 # this tests the X_factory fixture in conftest that makes X for the other tests
@@ -28,14 +29,17 @@ class TestXFactory:
 
     # def _X_factory():
     #
-    #     def foo(
+    #    def foo(
     #         _dupl:list[list[int]]=None,
-    #         _has_nan:bool=False,
+    #         _has_nan:Union[int, bool]=False,
     #         _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
     #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
     #         _columns:Union[Iterable[str], None]=None,
+    #         _constants:Union[dict[int, any], None]=None,
+    #         _noise:float=1e-5,
+    #         _zeros:Union[float,None]=0,
     #         _shape:tuple[int,int]=(20,5)
-    #     ) -> npt.NDArray[any]:
+    #    ) -> npt.NDArray[any]:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -123,7 +127,9 @@ class TestXFactory:
         with pytest.raises(AssertionError):
             _X_factory(_dtype=bad_dtype)
 
-    @pytest.mark.parametrize('good_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('good_dtype',
+        ('flt', 'int', 'str', 'obj', 'hybrid')
+    )
     def test_accepts_good_dtype(self, _X_factory, good_dtype):
         _X_factory(_dtype=good_dtype)
 
@@ -144,6 +150,42 @@ class TestXFactory:
     @pytest.mark.parametrize('good_columns', (list('abcde'),))
     def test_accepts_good_columns(self, _X_factory, good_columns):
         _X_factory(_columns=good_columns)
+
+    # - - - - - -
+
+    @pytest.mark.parametrize('junk_constants',
+        (-1,0,1,np.pi,True,'trash',[1,2],(1,),{0,1},min,lambda x: x)
+    )
+    def test_rejects_junk_constants(self, _X_factory, junk_constants):
+        with pytest.raises(AssertionError):
+            _X_factory(_constants=junk_constants)
+
+    @pytest.mark.parametrize('bad_constants', ({-1:1}, {0:1, 1000:-1}, {-2:0,-1:1}))
+    def test_rejects_bad_constants(self, _X_factory, bad_constants):
+        with pytest.raises(AssertionError):
+            _X_factory(_constants=bad_constants)
+
+    @pytest.mark.parametrize('good_constants', ({0:2}, None))
+    def test_accepts_good_constants(self, _X_factory, good_constants):
+        _X_factory(_constants=good_constants)
+
+    # - - - - - -
+
+    @pytest.mark.parametrize('junk_noise',
+        (True, False, None, 'trash', [0,1], (1,), {'a':1} ,min, lambda x: x)
+    )
+    def test_rejects_junk_noise(self, _X_factory, junk_noise):
+        with pytest.raises(AssertionError):
+            _X_factory(_noise=junk_noise)
+
+    @pytest.mark.parametrize('bad_noise', (-1, True, False))
+    def test_rejects_bad_noise(self, _X_factory, bad_noise):
+        with pytest.raises((AssertionError, ValueError)):
+            _X_factory(_constants={0:1}, _noise=bad_noise)
+
+    @pytest.mark.parametrize('good_noise', (0,0.5,3.14))
+    def test_accepts_good_noise(self, _X_factory, good_noise):
+        _X_factory(_noise=good_noise)
 
     # - - - - - -
 
@@ -282,7 +324,9 @@ class TestXFactory:
             if _dupl is None:
                 for c_idx_1 in range(_shape[1]-1):
                     for c_idx_2 in range(c_idx_1+1, _shape[1]):
-                        assert not np.array_equal(out[:, c_idx_1], out[:, c_idx_2])
+                        assert not np.array_equal(
+                            out[:, c_idx_1], out[:, c_idx_2]
+                        )
             else:
                 for _set in _dupl:
                     for _idx in _set[1:]:
@@ -325,7 +369,7 @@ class TestXFactory:
             else:
                 out = out.toarray()
 
-            # if
+
 
             for c_idx in range(_shape[1]):
                 _num_nans = np.sum(nan_mask(out[:, c_idx]))
@@ -337,6 +381,54 @@ class TestXFactory:
                     assert _num_nans == _has_nan
                 else:
                     raise Exception
+
+
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'csc', 'csr', 'coo'))
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_constants', ({0:1}, {0:1,1:2}, None))
+    @pytest.mark.parametrize('_noise', (1e-9, 1e-6, 1e-3, 1e-1))
+    def test_constants_and_noise_accuracy(
+        self, _X_factory, _format, _dtype, _constants, _noise, _shape
+    ):
+
+        out = _X_factory(
+            _format='np',
+            _dtype='flt',
+            _noise=_noise,
+            _constants=_constants,
+            _shape=_shape
+        )
+
+
+        for c_idx_1 in range(_shape[1]):
+
+            # use _equal_nan=True so that nans dont make it always be false
+            safe = _parallel_constant_finder(
+                out[:, c_idx_1], _equal_nan=True, _rtol=3*_noise, _atol=5*_noise
+            )
+
+            # if _constants is None, then no columns should be constant....
+            if _constants is None:
+                assert not safe
+                continue
+
+            _column = out[:, c_idx_1]
+
+            # ...but if there are constants
+            if c_idx_1 in _constants:
+                non_nans = _column[np.logical_not(nan_mask(_column))]
+                # constant value validation
+                assert np.isclose(
+                    _constants[c_idx_1], np.mean(non_nans), rtol=_noise, atol=_noise
+                )
+                assert np.isclose(
+                    safe, np.mean(non_nans), rtol=3*_noise, atol=3*_noise
+                )
+                # _noise validation - try to verify std of non-nan values
+                # is in some tolerance of :param: _noise
+                assert 0.5 * _noise <= np.std(non_nans) <= 1.5 * _noise
+            else:
+                assert not safe
 
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))
@@ -390,6 +482,21 @@ class TestXFactory:
                     assert _frac >= 1 - _tol
                 else:
                     assert (_frac - _tol) <= _zeros <= (_frac + _tol)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

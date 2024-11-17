@@ -22,8 +22,8 @@ import dask_expr._collection as ddf2
 from distributed import Client
 
 
+pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
 
-pytest.skip(reason=f"pizza isnt ready", allow_module_level=True)
 
 
 bypass = False

@@ -22,7 +22,8 @@ import pandas as pd
 import pytest
 
 
-pytest.skip(reason=f"pizza isnt ready", allow_module_level=True)
+
+pytest.skip(reason=f"pizza is raw!", allow_module_level=True)
 
 
 class TestAccuracy:
@@ -108,8 +109,6 @@ class TestAccuracy:
 
         # set _kwargs
         _kwargs['keep'] = keep
-        _kwargs['do_not_drop'] = do_not_drop
-        _kwargs['conflict'] = conflict
         _kwargs['rtol'] = 1e-5
         _kwargs['atol'] = 1e-8
         _kwargs['equal_nan'] = equal_nan
