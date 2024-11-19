@@ -29,33 +29,83 @@ class TestSetAttributes:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _instructions():
-        return {
-            'keep': None,
-            'delete': [1, 3, 5],
-            'add': {'Intercept', 1}
-        }
+    def _n_features():
+        return 8
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _constant_columns():
-        return {1: 0, 3: 1, 5:np.nan}
+        return {1: 0, 3: 1, 5:np.nan, 7: np.pi}
 
 
-    def test_accuracy(self, _instructions, _constant_columns):
+    @pytest.mark.parametrize('keep, delete',
+        (
+            (None, [1, 3, 5, 7]),
+            ([1, 5], [3, 7]),
+            ([1, 3, 5, 7], None),
+            (None, None),
+            ([1, 3, 5], [1, 3, 5])
+        )
+    )
+    @pytest.mark.parametrize('add', (None, {'Intercept': 1}))
+    def test_accuracy(self, _n_features, keep, delete, add, _constant_columns):
 
-        out_kept_columns, out_removed_columns, out_column_mask = \
-            _set_attributes(
-                _constant_columns,
-                _instructions,
-                _n_features=6
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # build '_instructions' from the given keep, delete, & add
+
+        # all constant columns must be accounted for. the 'slush' place is
+        # 'keep', so fill that based on what is in 'delete' and 'add'
+        _keep = keep or []
+        for _col_idx in _constant_columns.keys():
+            if (_col_idx in _keep) or (delete and _col_idx in delete):
+                pass
+            else:
+                _keep.append(_col_idx)
+            # pizza, this is a place where it matters about the decision
+            # of whether to put 'add' into 'keep'
+            # elif add:
+                # _keep.append(???)
+
+        _instructions = {
+            'keep': _keep if len(_keep) else None,
+            'delete': delete,
+            'add': add
+        }
+
+
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        if any([c_idx in (delete or []) for c_idx in (keep or [])]):
+            # a col idx in both 'keep' & 'delete'
+            with pytest.raises(AssertionError):
+                _set_attributes(
+                    _constant_columns,
+                    _instructions,
+                    _n_features=_n_features
+                )
+            pytest.skip(reason=f'cant continue after except')
+        else:
+            out_kept_columns, out_removed_columns, out_column_mask = \
+                _set_attributes(
+                    _constant_columns,
+                    _instructions,
+                    _n_features=_n_features
+                )
+
+        assert out_kept_columns == {k:_constant_columns[k] for k in _keep}
+        assert out_removed_columns == {k:_constant_columns[k] for k in (delete or [])}
+        assert len(out_column_mask) == (_n_features + (add is not None)) # if 'add', then one more column
+        exp_col_mask = np.array([((i in _keep) or (i not in _constant_columns)) for i in range(_n_features)]).astype(bool)
+        if add is None:
+            assert np.array_equal(
+                out_column_mask,
+                exp_col_mask
             )
-
-        assert out_kept_columns == {}
-        assert out_removed_columns == {1: 0, 3: 1, 5:np.nan}
-        assert np.array_equal(out_column_mask, [1,0,1,0,1,0])
-
+        else:
+            assert np.array_equal(
+                out_column_mask,
+                np.insert(exp_col_mask, len(exp_col_mask), True, axis=0)
+            )
 
 
 

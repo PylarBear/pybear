@@ -35,7 +35,7 @@ def _X(_X_factory, _shape):
     return _X_factory(
         _dupl=[[0, _shape[1]-1]],
         _has_nan=False,
-        _constants=[1],
+        _constants={1: 1},
         _format='np',
         _columns=None,
         _dtype='flt',

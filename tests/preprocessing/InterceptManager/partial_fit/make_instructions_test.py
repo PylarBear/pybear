@@ -86,10 +86,6 @@ class TestMakeInstructions:
         _keep_dict, _keep_int, _keep_str, _keep_callable, _columns, _shape
     ):
 
-
-        # pizza u need to add tests for keep is int, str, and callable.
-        # just too tired 24_11_15_16_58_00
-
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # keep is int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
@@ -123,7 +119,7 @@ class TestMakeInstructions:
         # keep first constant column, delete all others
         out = _make_instructions(_keep_str, _constant_columns_1, _columns, _shape)
         _sorted = sorted(list(_constant_columns_1))
-        _kept_idx = np.arange(len(_columns))[_columns==_keep_str][0]
+        _kept_idx = int(np.arange(len(_columns))[_columns==_keep_str][0])
         _sorted.remove(_kept_idx)
         assert out == {'keep': [_kept_idx], 'delete': _sorted, 'add': None}
         del _sorted, _kept_idx
@@ -131,7 +127,7 @@ class TestMakeInstructions:
         # keep first constant column, delete all others
         out = _make_instructions(_keep_str, _constant_columns_2, _columns, _shape)
         _sorted = sorted(list(_constant_columns_2))
-        _kept_idx = np.where(_columns==_keep_str)[0]
+        _kept_idx = int(np.where(_columns==_keep_str)[0])
         _sorted.remove(_kept_idx)
         assert out == {'keep': [_kept_idx], 'delete': _sorted, 'add': None}
         del _sorted, _kept_idx
@@ -146,8 +142,8 @@ class TestMakeInstructions:
 
         # keep first constant column, delete all others
         with pytest.raises(ValueError):
-            out = _make_instructions(_keep_callable, _constant_columns_1, None, _shape)
-        # pizza
+            _make_instructions(_keep_callable, _constant_columns_1, None, _shape)
+        # pizza, y does this raise?  make a note here for future pizza
         # _sorted = sorted(list(_constant_columns_1))
         # _kept_idx = _keep_callable(np.random.randint(0,10,(5,3)))  # the callable isnt validated, could pass anything
         # _sorted.remove(_kept_idx)
@@ -156,8 +152,8 @@ class TestMakeInstructions:
 
         # keep first constant column, delete all others
         with pytest.raises(ValueError):
-            out = _make_instructions(_keep_callable, _constant_columns_2, None, _shape)
-        # pizza
+            _make_instructions(_keep_callable, _constant_columns_2, None, _shape)
+        # pizza, y does this raise?  make a note here for future pizza
         # _sorted = sorted(list(_constant_columns_2))
         # _kept_idx = _keep_callable(np.random.randint(0, 10, (5, 3)))  # the callable isnt validated, could pass anything
         # _sorted.remove(_kept_idx)
@@ -285,11 +281,29 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
+    def test_all_columns_constant(self):
 
+        # if all columns are constant and not appending new constants, raise
+        with pytest.raises(ValueError):
+            _make_instructions(
+                _keep='none',
+                constant_columns_=dict((zip(range(5), (1 for _ in range(5))))),
+                _columns=None,
+                _shape=(1_000_000_000, 5)
+            )
 
+        # if all columns are constant but not appending new constants, warn
+        with pytest.warns():
+            out = _make_instructions(
+                _keep={'Intercept': 1},
+                constant_columns_=dict((zip(range(5), (1 for _ in range(5))))),
+                _columns=None,
+                _shape=(1_000_000_000, 5)
+            )
 
-
-
+        assert out['keep'] == None
+        assert out['delete'] == list(range(5))
+        assert out['add'] == {'Intercept': 1}
 
 
 
