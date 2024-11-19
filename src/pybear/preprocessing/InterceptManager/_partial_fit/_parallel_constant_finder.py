@@ -106,6 +106,10 @@ def _parallel_constant_finder(
             out = False
         elif _equal_nan:
             _not_nan_mask = np.logical_not(nan_mask_numerical(_column))
+            # pizza, there is something going on in here when a flt column
+            # is passed as a str dtype. it passes the float64 conversion
+            # above, but then there was '<UX' casting except here...
+            # someday run a column of floats.astype(str) and try to understand
             _mean_value = np.mean(_column[_not_nan_mask])
             _allclose = np.allclose(
                 _mean_value, _column[_not_nan_mask], rtol=_rtol, atol=_atol, equal_nan=True

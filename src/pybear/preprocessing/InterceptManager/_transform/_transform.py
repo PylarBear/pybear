@@ -49,13 +49,17 @@ def _transform(
     # ease of making self.kept_columns_ later.
 
     KEEP_MASK = np.ones(_X.shape[1]).astype(bool)
-    KEEP_MASK[_instructions['delete']] = False
+    if _instructions['delete'] is not None:
+        # if _instructions['delete'] is None numpy actually maps
+        # assignment to all positions!
+        KEEP_MASK[_instructions['delete']] = False
+
 
     if isinstance(_X, np.ndarray):
         _X = _X[:, KEEP_MASK]
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
-            _X = np.hstack((_X, _instructions['add'][_key]))
+            _X = np.hstack((_X, np.full(_X.shape[0], _instructions['add'][_key]).reshape((-1,1))))
             del _key
 
     elif isinstance(_X, pd.core.frame.DataFrame):
@@ -66,12 +70,14 @@ def _transform(
             del _key
 
     elif hasattr(_X, 'toarray'):     # scipy.sparse
-        _X = _X[:, KEEP_MASK]
+        _og_type = type(_X)
+        _X = _X.tocsc()[:, KEEP_MASK]   # must use tocsc, COO cannot be sliced
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
-            _X = ss.hstack((_X, _instructions['add'][_key]))
+            _X = ss.hstack((_X, type(_X)(np.full(_X.shape[0], _instructions['add'][_key]).reshape((-1,1)))))
             del _key
-
+        _X = _og_type(_X)
+        del _og_type
     else:
         raise TypeError(f"Unknown dtype {type(_X)} in transform().")
 

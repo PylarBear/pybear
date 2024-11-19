@@ -21,7 +21,7 @@ def _set_attributes(
 
     """
     use the constant_columns_ and _instructions attributes to build the
-    kept_columns_, removed_columns_, and column_mask attributes.
+    kept_columns_, removed_columns_, and column_mask_ attributes.
 
 
 
@@ -36,7 +36,7 @@ def _set_attributes(
     Return
     ------
     -
-        kept_columns_: dict[int: any], removed_columns_: dict[int, any], _column_mask: NDArray[bool]
+        kept_columns_: dict[int: any], removed_columns_: dict[int, any], _column_mask_: NDArray[bool]
 
     """
 
@@ -50,14 +50,21 @@ def _set_attributes(
     assert all(np.fromiter(constant_columns_, dtype=int) <= _n_features - 1)
     assert isinstance(_instructions, dict)
     assert all([_ in ('keep', 'delete', 'add') for _ in _instructions])
+    assert isinstance(_instructions['keep'], (type(None), list, np.ndarray))
+    assert isinstance(_instructions['delete'], (type(None), list, np.ndarray))
+    assert not any([c_idx in (_instructions['delete'] or []) for c_idx in (_instructions['keep'] or [])]), \
+        f"column index in both 'keep' and 'delete'"
+    assert isinstance(_instructions['add'], (type(None), dict))
     assert isinstance(_n_features, int)
     assert _n_features >= 0
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     kept_columns_: dict[int, any] = {}
     removed_columns_: dict[int, any] = {}
-    _column_mask = np.ones(_n_features).astype(bool)
+    column_mask_ = np.ones(_n_features).astype(bool)
 
+    # all values in _instructions dict are None could only happen if there are
+    # no constant columns, in which case this for loop wont be entereds
     for col_idx, constant_value in constant_columns_.items():
         if col_idx in (_instructions['keep'] or {}):
             kept_columns_[col_idx] = constant_value
@@ -66,7 +73,7 @@ def _set_attributes(
         #     kept_columns_[col_idx] = constant_value
         elif col_idx in (_instructions['delete'] or {}):
             removed_columns_[col_idx] = constant_value
-            _column_mask[col_idx] = False
+            column_mask_[col_idx] = False
         else:
             raise Exception(
                 f"a constant column in constant_columns_ is unaccounted for "
@@ -77,10 +84,11 @@ def _set_attributes(
     # pizza, figure out a more elegant way to deal with 'add'
     if _instructions['add']:
         _key = list(_instructions['add'].keys())[0]
-        _column_mask = np.insert(_column_mask, len(_column_mask), _instructions['add'][_key], axis=0)
+        column_mask_ = np.insert(column_mask_, len(column_mask_), _instructions['add'][_key], axis=0)
         del _key
 
-    return kept_columns_, removed_columns_, np.array(_column_mask, dtype=bool)
+
+    return kept_columns_, removed_columns_, column_mask_
 
 
 

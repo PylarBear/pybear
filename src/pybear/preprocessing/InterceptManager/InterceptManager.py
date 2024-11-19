@@ -226,8 +226,24 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # pizza head, take it easy on yourself! instead of passing _keep
         # callable and _X to _make_instructions, calculate it here and just
         # send an int!
+
+        # note to future pizza, remember that in runtime once the callable
+        # returns the index, validate that the column actually is constant
+        if callable(self.keep):
+            _keep = self.keep(X)
+            if not _keep in self.constant_columns_:
+                raise ValueError(
+                    f"'keep' callable has returned an integer column index "
+                    f"that is not a column of constants. \nconstant columns: "
+                    f"{self.constant_columns_}"
+                )
+        else:
+            _keep = self.keep
+
+
+
         _instructions = _make_instructions(
-            self.keep(X) if callable(self.keep) else self.keep,
+            _keep,
             self.constant_columns_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             X.shape
@@ -313,7 +329,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             X.shape
         )
 
-        self.kept_columns_, self.removed_columns_ = \
+        self.kept_columns_, self.removed_columns_, self.column_mask_ = \
             _set_attributes(
                 self.constant_columns_,
                 _instructions,

@@ -20,6 +20,9 @@ def _val_keep_and_columns(
     _X: DataType
 ) -> None:
 
+    # pizza do u want to have any limitations on what 'keep' dict value can be, currently any
+
+
     """
 
     Validate columns - must be None or Iterable[str] with len==X.shape[1]
@@ -144,9 +147,6 @@ def _val_keep_and_columns(
             return  # <====================================================
         except:
             ValueError(err_msg)
-
-        # note to future pizza, remember that in runtime once the callable
-        # returns the index, validate that the column actually is constant
 
     # END validate keep as callable ** * ** * ** * ** * ** * ** * ** * ** *
 

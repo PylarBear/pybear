@@ -70,7 +70,7 @@ def _make_instructions(
 
     """
 
-
+    # pizza brains do we want _instructions to have np.ndarray instead of list?
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     err_msg = \
@@ -104,6 +104,8 @@ def _make_instructions(
         assert all(map(
             isinstance, constant_columns_, (int for _ in constant_columns_)
         ))
+    if _columns is not None and len(constant_columns_):
+        assert max(constant_columns_) <= len(_columns) - 1
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -118,13 +120,15 @@ def _make_instructions(
 
     if len(constant_columns_) == 0:
         # if there are no constant columns, skip out and return Nones
-        return _instructions
+        pass
+        # pizza if ok, delete
+        # return _instructions
     elif isinstance(_keep, int):
         # this is the first place where we could validate whether the _keep int is actually
         # a constant column in the data
         if _keep not in constant_columns_:
             raise ValueError(f"'keep' column index has been set to {_keep}, but that column is not constant.")
-        # pizza did this 24_11_15_16_54_00 and was so tired. doublecheck this.
+        # pizza did this 24_11_15_18_54_00 and was so tired. doublecheck this.
         _instructions['keep'] = [_keep]
         _sorted_constant_column_idxs.remove(_keep)
         _instructions['delete'] = _sorted_constant_column_idxs
@@ -137,10 +141,10 @@ def _make_instructions(
         # shouldnt need to validate str keep on None header, that should have
         # been done in validation
 
-        idx = np.arange(len(_columns))[_columns==_keep][0]
+        idx = int(np.arange(len(_columns))[_columns==_keep][0])
         if idx not in constant_columns_:
             raise ValueError(f"'keep' has been set to column '{_keep}', but that column is not constant.")
-        # pizza did this 24_11_15_16_54_00 and was so tired. doublecheck this.
+        # pizza did this 24_11_15_18_54_00 and was so tired. doublecheck this.
         _instructions['keep'] = [idx]
         _sorted_constant_column_idxs.remove(idx)
         _instructions['delete'] = _sorted_constant_column_idxs
@@ -150,29 +154,34 @@ def _make_instructions(
         # if keep == 'first', keep first, add none, delete all but first
         _instructions['keep'] = [_sorted_constant_column_idxs[0]]
         _instructions['delete'] = _sorted_constant_column_idxs[1:]
-        return _instructions
+        # pizza if ok, delete
+        # return _instructions
     elif _keep == 'last':
         # if keep == 'last', keep last, add none, delete all but last
         _instructions['keep'] = [_sorted_constant_column_idxs[-1]]
         _instructions['delete'] = _sorted_constant_column_idxs[:-1]
-        return _instructions
+        # pizza if ok, delete
+        # return _instructions
     elif _keep == 'random':
         # if keep == 'random', keep a random idx, add none, delete remaining
-        _rand_idx = np.random.choice(_sorted_constant_column_idxs)
+        _rand_idx = int(np.random.choice(_sorted_constant_column_idxs))
         _instructions['keep'] = [_rand_idx]
         _sorted_constant_column_idxs.remove(_rand_idx)
         _instructions['delete'] = _sorted_constant_column_idxs
         del _rand_idx
-        return _instructions
+        # pizza if ok, delete
+        # return _instructions
     elif _keep == 'none':
         # if keep == 'none', keep none, add none, delete all
         _instructions['delete'] = _sorted_constant_column_idxs
-        return _instructions
+        # pizza if ok, delete
+        # return _instructions
     elif isinstance(_keep, dict):
         # if keep == a dict, keep none, delete all, add value in last position
         _instructions['delete'] = _sorted_constant_column_idxs
         _instructions['add'] = _keep
-        return _instructions
+        # pizza if ok, delete
+        # return _instructions
     else:
         raise Exception(f"algorithm failure, invalid 'keep'")
 
