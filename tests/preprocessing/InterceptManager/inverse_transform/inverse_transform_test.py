@@ -8,7 +8,8 @@
 from pybear.preprocessing.InterceptManager._inverse_transform. \
     _inverse_transform import _inverse_transform
 
-from pybear.preprocessing import InterceptManager
+from pybear.preprocessing.InterceptManager.InterceptManager import \
+    InterceptManager
 
 from pybear.preprocessing.InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
