@@ -70,24 +70,23 @@ def _val_keep_and_columns(
     if _columns is None:
         pass
     else:
-        err_msg = (
-            f"If passed, '_columns' must be a vector of strings whose "
-            f"length is equal to the number of features in the data."
-        )
 
         try:
             iter(_columns)
             assert len(_columns) == _X.shape[1]
             assert all(map(isinstance, _columns, (str for _ in _columns)))
         except:
-            raise ValueError(err_msg)
+            raise ValueError(
+                f"If passed, '_columns' must be a vector of strings whose "
+                f"length is equal to the number of features in the data."
+            )
 
     # END validate types, shapes, of _columns ** * ** * ** * ** * ** * **
 
 
 
     _err_msg = (
-        f"'keep' must be one of: "
+        f"\n'keep' must be one of: "
         f"\nLiteral['first', 'last', 'random', 'none'], "
         f"\ndict[str, any], "
         f"\nint (column index), "
@@ -100,7 +99,7 @@ def _val_keep_and_columns(
         _name = list(_keep.keys())[0]
         # must be one entry and key must be str
         if len(_keep) != 1 or not isinstance(_name, str):
-            raise ValueError(err_msg)
+            raise ValueError(_err_msg)
         # if keep conflicts with existing column name, will overwrite
         if _columns is not None and _name in _columns:
             warnings.warn(
@@ -126,7 +125,7 @@ def _val_keep_and_columns(
             raise UnicodeError
         return # <====================================================
     except UnicodeError:
-        raise ValueError(err_msg)
+        raise ValueError(_err_msg)
     except:
         pass
     # END validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -146,7 +145,7 @@ def _val_keep_and_columns(
                 raise Exception
             return  # <====================================================
         except:
-            ValueError(err_msg)
+            ValueError(_err_msg)
 
     # END validate keep as callable ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -171,7 +170,7 @@ def _val_keep_and_columns(
             if _columns is None:
                 raise ValueError(f":param: keep '{_keep}' is string but header was not passed")
             elif _keep not in _columns:
-                raise ValueError(f":param: keep '{_keep}' is ")
+                raise ValueError(f":param: keep '{_keep}' is not one of the originally seen features")
 
 
 

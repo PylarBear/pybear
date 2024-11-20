@@ -5,7 +5,6 @@
 #
 
 
-
 from typing import Iterable, Literal, Optional, TypedDict, Callable
 from typing_extensions import Union, TypeAlias, Required
 import numpy.typing as npt
@@ -14,11 +13,6 @@ import scipy.sparse as ss
 
 
 
-# pizza make a decision, keep this here or just be explicit in every function?
-ColumnsType: TypeAlias = Union[
-    Iterable[str],
-    None
-]
 
 SparseTypes: TypeAlias = Union[
     ss._csr.csr_matrix,
