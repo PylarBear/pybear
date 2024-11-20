@@ -20,7 +20,6 @@ import scipy.sparse as ss
 
 def _inverse_transform(
     X: DataType,
-    _duplicates: list[list[int]],
     _removed_columns: dict[int, int],
     _feature_names_in: Union[npt.NDArray[str], None]
 ) -> DataType:
@@ -34,10 +33,6 @@ def _inverse_transform(
     X :
         {array-like, scipy sparse matrix} of shape (n_samples,
         n_features - n_features_removed) - A deduplicated data set.
-    _duplicates:
-        list[list[int]] - the sets of indices of duplicate columns found
-        during fitting, indexed by their column location in the original
-        data.
     _removed_columns:
         dict[int, int] - the keys are the indices of duplicate columns
         removed from the original data, indexed by their column location

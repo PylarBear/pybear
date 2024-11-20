@@ -12,12 +12,13 @@ from pybear.preprocessing import InterceptManager as IM
 import sys
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from sklearn.exceptions import NotFittedError
 
 
 
-pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
+
 
 
 bypass = False
@@ -44,23 +45,18 @@ def _kwargs():
 
 
 @pytest.fixture(scope='module')
-def _dupl(_shape):
-    return [[3, 5, _shape[1]-1]]
+def _const(_shape):
+    return {3:0, 5:1, _shape[1]-1:2}
 
 
 @pytest.fixture(scope='module')
-def _dum_X(_X_factory, _dupl, _shape):
-    return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
+def _dum_X(_X_factory, _const, _shape):
+    return _X_factory(_constants=_const, _has_nan=False, _dtype='flt', _shape=_shape)
 
 
 @pytest.fixture(scope='module')
 def _columns(_master_columns, _shape):
     return _master_columns.copy()[:_shape[1]]
-
-
-@pytest.fixture(scope='function')
-def _bad_columns(_master_columns, _shape):
-    return _master_columns.copy()[-_shape[1]:]
 
 
 @pytest.fixture(scope='module')
@@ -87,13 +83,14 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
         return [
             'n_features_in_',
             'feature_names_in_',
+            'constant_columns_',
             'kept_columns_',
             'removed_columns_',
             'column_mask_'
         ]
 
 
-    @pytest.mark.parametrize('x_format', ('np', 'pd'))
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
     def test_attr_accuracy(
         self, _dum_X, _X_pd, _columns, _kwargs, _shape, _attrs, x_format
     ):
@@ -106,6 +103,15 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
             NEW_Y = pd.DataFrame(
                 data=np.random.randint(0, 2, _shape[0]), columns=['y']
             )
+        elif x_format == 'csc':
+            NEW_X = ss.csc_array(_dum_X.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        elif x_format == 'csr':
+            NEW_X = ss.csr_array(_dum_X.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        elif x_format == 'coo':
+            NEW_X = ss.coo_array(_dum_X.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
         else:
             raise Exception
 
@@ -138,7 +144,7 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
                     assert out == _shape[1], \
                         f"{attr} after fit() != number of originally passed columns"
             except:
-                if attr == 'feature_names_in_' and x_format == 'np':
+                if attr == 'feature_names_in_' and x_format != 'pd':
                     assert isinstance(sys.exc_info()[0](), AttributeError)
                 else:
                     raise
@@ -160,7 +166,7 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
                     assert out == _shape[1], \
                         f"{attr} after fit() != number of originally passed columns"
             except:
-                if attr == 'feature_names_in_' and x_format == 'np':
+                if attr == 'feature_names_in_' and x_format != 'pd':
                     assert isinstance(sys.exc_info()[1], AttributeError)
                 else:
                     raise AssertionError(
@@ -196,7 +202,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         ]
 
 
-    def test_access_methods_before_fit(self, _dum_X, _kwargs):
+    def test_access_methods_before_fit(self, _dum_X, _X_pd, _kwargs):
 
         TestCls = IM(**_kwargs)
 
@@ -247,7 +253,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
 
     def test_access_methods_after_fit(
-        self, _dum_X, _columns, _kwargs, _shape
+        self, _dum_X, _X_pd, _columns, _kwargs, _shape
     ):
 
         y = np.random.randint(0,2,_shape[0])
@@ -309,7 +315,8 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # vvv COLUMN NAMES PASSED (PD) vvv
 
         TestCls = IM(**_kwargs)
-        TestCls.fit(pd.DataFrame(data=_dum_X, columns=_columns), y)
+        print(f'pizza test {type(_X_pd)=}')
+        TestCls.fit(_X_pd, y)
 
         # WITH HEADER PASSED AND input_features=None, SHOULD RETURN
         # SLICED ORIGINAL COLUMNS

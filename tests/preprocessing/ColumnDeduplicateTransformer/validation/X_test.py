@@ -23,10 +23,10 @@ def test_X_cannot_be_none():
 
 
 
-def test_X_must_have_2_or_more_columns():
+def test_X_must_have_at_least_1_example():
 
     with pytest.raises(ValueError):
-        _val_X(np.random.randint(0, 10, (10, 1)))
+        _val_X(np.random.randint(0, 10, (0, 10)))
 
 
 

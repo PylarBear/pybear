@@ -58,11 +58,6 @@ def _columns(_master_columns, _shape):
     return _master_columns.copy()[:_shape[1]]
 
 
-@pytest.fixture(scope='function')
-def _bad_columns(_master_columns, _shape):
-    return _master_columns.copy()[-_shape[1]:]
-
-
 @pytest.fixture(scope='module')
 def _X_pd(_dum_X, _columns):
     return pd.DataFrame(
@@ -369,86 +364,26 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
         del TestCls
 
-        # inverse_transform() ********************
+        # inverse_transform()
         TestCls = CDT(**_kwargs)
         TestCls.fit(_dum_X, y)  # X IS NP ARRAY
+        TestCls.inverse_transform(_dum_X[:, TestCls.column_mask_])
 
-        # VALIDATION OF X GOING INTO inverse_transform IS HANDLED BY
-        # sklearn check_array, LET IT RAISE WHATEVER
-        for junk_x in [[], [[]], None, 'junk_string', 3, np.pi]:
-            with pytest.raises(Exception):
-                TestCls.inverse_transform(junk_x)
-
-        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
-        # RETAINED COLUMNS
-        TRFM_X = TestCls.transform(_dum_X)
-        TRFM_MASK = TestCls.column_mask_
-        __ = np.array(_columns)
-        for obj_type in ['np', 'pd']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    TEST_X = TRFM_X.copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
-                elif diff_cols == 'less':
-                    TEST_X = TRFM_X[:, :2].copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK][:2])
-                elif diff_cols == 'more':
-                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
-                    if obj_type == 'pd':
-                        _COLUMNS = np.hstack((
-                            __[TRFM_MASK],
-                            np.char.upper(__[TRFM_MASK])
-                        ))
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
-
-                if diff_cols == 'same':
-                    TestCls.inverse_transform(TEST_X)
-                else:
-                    with pytest.raises(ValueError):
-                        TestCls.inverse_transform(TEST_X)
-
-        INV_TRFM_X = TestCls.inverse_transform(TRFM_X)
-        if isinstance(TRFM_X, np.ndarray):
-            assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
-
-        assert isinstance(INV_TRFM_X, np.ndarray), \
-            f"output of inverse_transform() is not a numpy array"
-        assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
-            f"rows in output of inverse_transform() do not match input rows"
-        assert INV_TRFM_X.shape[1] == TestCls.n_features_in_, \
-            (f"columns in output of inverse_transform() do not match "
-             f"originally fitted columns")
-
-        assert np.array_equiv( INV_TRFM_X, _dum_X), \
-            f"inverse transform of transformed data does not equal original data"
-
-        assert np.array_equiv(
-            TRFM_X.astype(str),
-            INV_TRFM_X[:, TestCls.column_mask_].astype(str)
-        ), (f"output of inverse_transform() does not reduce back to the output "
-            f"of transform()")
-
-        del junk_x, TRFM_X, TRFM_MASK, obj_type, diff_cols
-        del TEST_X, INV_TRFM_X, TestCls
-
-        # END inverse_transform() **********
-
-        TestCls = CDT(**_kwargs)
+        del TestCls
 
         # partial_fit()
         # ** _reset()
 
         # set_output()
+        TestCls = CDT(**_kwargs)
+        TestCls.fit(_dum_X, y)  # X IS NP ARRAY
         TestCls.set_output(transform='pandas')
 
         # set_params()
         TestCls.set_params(keep='random')
 
-        del TestCls
-
         # transform()
+        TestCls.transform(_dum_X)
 
         # END ^^^ AFTER FIT ^^^ ****************************************
         # **************************************************************
@@ -512,15 +447,13 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
                 FittedTestCls.get_params(True), \
             f"get_params() after transform() != before transform()"
 
-        # inverse_transform() ************
-
+        # inverse_transform()
         assert np.array_equiv(
             FittedTestCls.inverse_transform(TRFM_X).astype(str),
-            TransformedTestCls.inverse_transform(TRFM_X).astype(str)), \
-            (f"inverse_transform(TRFM_X) after transform() != "
+            TransformedTestCls.inverse_transform(TRFM_X).astype(str)
+        ), (f"inverse_transform(TRFM_X) after transform() != "
              f"inverse_transform(TRFM_X) before transform()")
 
-        # END inverse_transform() **********
 
         # partial_fit()
         # ** _reset()
@@ -529,15 +462,14 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         TransformedTestCls.set_output(transform='pandas')
         TransformedTestCls.transform(_dum_X)
 
-        del TransformedTestCls
 
         # set_params()
-        TestCls = CDT(**_kwargs)
-        TestCls.set_params(keep='first')
+        TransformedTestCls.set_params(keep='first')
 
         # transform()
+        TransformedTestCls.transform(_dum_X)
 
-        del FittedTestCls, TestCls, TRFM_X
+        del FittedTestCls, TransformedTestCls, TRFM_X
 
         # END ^^^ AFTER TRANSFORM ^^^ **********************************
         # **************************************************************

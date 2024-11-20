@@ -38,18 +38,16 @@ def _shape():
 def _kwargs():
     return {
         'keep': 'first',
-        'do_not_drop': None,
-        'conflict': 'raise',
+        'equal_nan': False,
         'rtol': 1e-5,
         'atol': 1e-8,
-        'equal_nan': False,
         'n_jobs': -1
     }
 
 
 @pytest.fixture(scope='module')
-def _dum_X(_X_factory, _shape):
-    return _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
+def _dum_X(_X_factory, _constants, _shape):
+    return _X_factory(_has_nan=False, _dtype='flt', _constants=_constants, _shape=_shape)
 
 
 @pytest.fixture(scope='module')
@@ -121,201 +119,6 @@ class TestInputValidation:
 
         IM(**_kwargs).fit_transform(_dum_X)
     # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    # do_not_drop ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @pytest.mark.parametrize('_type', ('np', 'pd'), scope='module')
-    @pytest.mark.parametrize('_columns_is_passed', (True, False), scope='module')
-    @pytest.mark.parametrize('junk_dnd',
-        (-1, 0, 1, np.pi, True, False, 'trash', {'a': 1}, lambda x: x, min)
-    )
-    def test_rejects_not_list_like_or_none(
-        self, _kwargs, _dum_X, _type, _columns, _columns_is_passed, junk_dnd
-    ):
-
-        if _type == 'np':
-            _X = _dum_X
-        else:
-            _X = pd.DataFrame(
-                data=_dum_X,
-                columns=_columns if _columns_is_passed else None
-            )
-
-        _kwargs['do_not_drop'] = junk_dnd
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(_X)
-
-
-    @pytest.mark.parametrize('_type', ('np', 'pd'), scope='module')
-    @pytest.mark.parametrize('_columns_is_passed', (True, False), scope='module')
-    @pytest.mark.parametrize('bad_dnd',
-        ([True, min, 3.14], [min, max, float], [2.718, 3.141, 8.834])
-    )
-    def test_rejects_bad_list(
-        self, _dum_X, _kwargs, _type, _columns, _columns_is_passed, bad_dnd
-    ):
-
-        if _type == 'np':
-            _X = _dum_X
-        else:
-            _X = pd.DataFrame(
-                data=_dum_X,
-                columns=_columns if _columns_is_passed else None
-            )
-
-        _kwargs['do_not_drop'] = bad_dnd
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(_X)
-
-
-    def test_array_str_handing(self, _dum_X, _kwargs, _columns):
-
-        # rejects str when no header
-        _kwargs['do_not_drop'] = \
-            [v for i, v in enumerate(_columns) if i % 2 == 0]
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
-
-
-        # rejects bad str when header
-        _kwargs['do_not_drop'] = ['a', 'b']
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
-
-
-    @pytest.mark.parametrize('_columns_is_passed', (True, False))
-    def test_array_int_and_none_handling(
-            self, _dum_X, _kwargs, _columns_is_passed, _columns
-    ):
-
-        # accepts good int always
-        _kwargs['do_not_drop'] = [0, 1]
-
-        TestCls = IM(**_kwargs)
-        TestCls.fit_transform(_dum_X)
-
-
-        # rejects bad int always - 1
-        _kwargs['do_not_drop'] = [-1, 1]
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
-
-
-        # rejects bad int always - 2
-        _kwargs['do_not_drop'] = [0, _dum_X.shape[1]]
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
-
-
-        # accepts None always
-        _kwargs['do_not_drop'] = None
-
-        TestCls = IM(**_kwargs)
-        TestCls.fit_transform(_dum_X)
-
-
-    def test_df_str_handling(self, _X_pd, _kwargs, _columns):
-
-        # accepts good str always
-        _kwargs['do_not_drop'] = \
-            [v for i, v in enumerate(_columns) if i % 2 == 0]
-
-        TestCls = IM(**_kwargs)
-        TestCls.fit_transform(_X_pd)
-
-
-        # rejects bad str always
-        _kwargs['do_not_drop'] = ['a', 'b']
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_pd)
-
-
-    def test_df_int_and_none_handling(self, _X_pd, _kwargs, _columns):
-        # accepts good int always
-        _kwargs['do_not_drop'] = [0, 1]
-
-        TestCls = IM(**_kwargs)
-        TestCls.fit_transform(_X_pd)
-
-        # rejects bad int always - 1
-        _kwargs['do_not_drop'] = [-1, 1]
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_pd)
-
-        # rejects bad int always - 2
-        _kwargs['do_not_drop'] = [0, _X_pd.shape[1]]
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_pd)
-
-        # columns can be None
-        _kwargs['do_not_drop'] = None
-
-        TestCls = IM(**_kwargs)
-
-        TestCls.fit_transform(_X_pd)
-    # END do_not_drop ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    # conflict  ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    @pytest.mark.parametrize('junk_conflict',
-        (-1, 0, np.pi, True, None, [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
-    )
-    def test_junk_conflict(self, _dum_X, _kwargs, junk_conflict):
-
-        _kwargs['conflict'] = junk_conflict
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
-
-
-    @pytest.mark.parametrize('bad_conflict', ('trash', 'garbage', 'waste'))
-    def test_bad_conflict(self, _dum_X, _kwargs, bad_conflict):
-
-        _kwargs['conflict'] = bad_conflict
-
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
-
-
-    @pytest.mark.parametrize('good_conflict', ('raise', 'ignore'))
-    def test_good_conflict(self, _dum_X, _kwargs, good_conflict):
-
-        _kwargs['conflict'] = good_conflict
-
-        IM(**_kwargs).fit_transform(_dum_X)
-    # END conflict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -553,7 +356,7 @@ class TestExceptWarnOnDifferentHeader:
 
         _factory_kwargs = {
             '_dupl':None, '_format':'pd', '_dtype':'flt', '_has_nan':False,
-            '_shape':_shape
+            '_constants': None, '_shape':_shape
         }
 
         fst_fit_X = _X_factory(_columns=_col_dict[fst_fit_name], **_factory_kwargs)
@@ -818,7 +621,7 @@ class TestManyPartialFitsEqualOneBigFit:
         # ** ** ** ** ** ** ** ** ** ** **
 
         # ** ** ** ** ** ** ** ** ** ** **
-        # TEST PARTIAL FIT DUPLS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
+        # TEST PARTIAL FIT CONSTANTS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
         SingleFitTestClass = IM(**_kwargs)
         DoublePartialFitTestClass = IM(**_kwargs)
 
@@ -890,31 +693,33 @@ class TestManyPartialFitsEqualOneBigFit:
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestDuplAccuracyOverManyPartialFits:
+class TestConstantColumnsAccuracyOverManyPartialFits:
 
 
-    # verify correct progression of reported duplicates as partial fits are done
-    # rig a set of arrays that have progressively decreasing duplicates
+    # verify correct progression of reported constants as partial fits are done.
+    # rig a set of arrays that have progressively decreasing constants
 
 
     @staticmethod
     @pytest.fixture()
     def _chunk_shape():
-        return (50,20)   # must have at least 10 columns for dupls to work
+        return (50,20)
 
 
     @staticmethod
     @pytest.fixture()
     def _X(_X_factory, _chunk_shape):
 
-        def foo(_dupl, _has_nan, _dtype):
+        def foo(_format, _dtype, _has_nan, _constants, _noise):
 
             return _X_factory(
-                _dupl=_dupl,
+                _dupl=None,
                 _has_nan=_has_nan,
-                _format='np',
+                _format=_format,
                 _dtype=_dtype,
                 _columns=None,
+                _constants=_constants,
+                _noise=_noise,
                 _zeros=None,
                 _shape=_chunk_shape
             )
@@ -924,20 +729,16 @@ class TestDuplAccuracyOverManyPartialFits:
 
     @staticmethod
     @pytest.fixture()
-    def _start_dupl(_chunk_shape):
+    def _start_constants(_chunk_shape):
         # first indices of a set must be ascending
-        return [
-            [0, 7],
-            [2, 4, _chunk_shape[1]-1],
-            [3, 5, _chunk_shape[1]-2]
-        ]
+        return {3:1, 5:1, _chunk_shape[1]-2:1}
 
 
-
+    @pytest.mark.parametrize('_format', ('np',))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (0, 5))
     def test_accuracy(
-        self, _kwargs, _X, _start_dupl, _has_nan, _dtype
+        self, _kwargs, _X, _format, _dtype, _has_nan, _start_constants
     ):
 
         _new_kwargs = deepcopy(_kwargs)
@@ -945,30 +746,30 @@ class TestDuplAccuracyOverManyPartialFits:
 
         TestCls = IM(**_new_kwargs)
 
-        # build a pool of non-dupls to fill the dupls in X along the way
-        # build a starting data object for first partial fit, using full dupls
+        # build a pool of non-constants to fill the constants in X along the way
+        # build a starting data object for first partial fit, using full constants
         # build a y vector
-        # do a verification partial_fit, assert reported dupls for original X make
+        # do a verification partial_fit, assert reported constants for original X make
         # make a holder for all the different _wip_Xs, to do one big fit at the end
         # for however many times u want to do this:
-        #   randomly replace one of the dupls with non-dupl column
+        #   randomly replace one of the constants with non-constant column
         #   partial_fit
-        #   assert reported dupls - should be one less (the randomly chosen column)
-        # at the very end, stack all the _wip_Xs, do one big fit, verify dupls
+        #   assert reported constants - should be one less (the randomly chosen column)
+        # at the very end, stack all the _wip_Xs, do one big fit, verify constants
 
-        _pool_X = _X(None , _has_nan, _dtype)
+        _pool_X = _X(_format, _dtype, _has_nan, _constants, _noise=1e-9)
 
-        _wip_X = _X(_start_dupl, _has_nan, _dtype)
+        _wip_X = _X(_format, _dtype, _has_nan, _constants, _noise=1e-9)
 
         _y = np.random.randint(0, 2, _wip_X.shape[0])
 
-        out = TestCls.partial_fit(_wip_X, _y).duplicates_
-        assert len(out) == len(_start_dupl)
-        for idx in range(len(_start_dupl)):
-            assert np.array_equal(out[idx], _start_dupl[idx])
+        out = TestCls.partial_fit(_wip_X, _y).constant_columns_
+        assert len(out) == len(_start_constants)
+        for idx in range(len(_start_constants)):
+            assert np.array_equal(out[idx], _start_constants[idx])
 
         # to know how many dupls we can take out, get the total number of dupls
-        _dupl_pool = list(itertools.chain(*_start_dupl))
+        _dupl_pool = list(itertools.chain(*_start_constants))
         _num_dupls = len(_dupl_pool)
 
         X_HOLDER = []
@@ -979,21 +780,21 @@ class TestDuplAccuracyOverManyPartialFits:
 
             random_dupl = np.random.choice(_dupl_pool, 1, replace=False)[0]
 
-            # take the random dupl of out _start_dupl and _dupl_pool, and take
+            # take the random dupl of out _start_constants and _dupl_pool, and take
             # a column out of the X pool to patch the dupl in _wip_X
 
-            for _idx, _set in enumerate(reversed(_start_dupl)):
+            for _idx, _set in enumerate(reversed(_start_constants)):
                 try:
-                    _start_dupl[_idx].remove(random_dupl)
-                    if len(_start_dupl[_idx]) == 1:
+                    _start_constants[_idx].remove(random_dupl)
+                    if len(_start_constants[_idx]) == 1:
                         # gotta take that single dupl out of dupl pool!
-                        _dupl_pool.remove(_start_dupl[_idx][0])
-                        del _start_dupl[_idx]
+                        _dupl_pool.remove(_start_constants[_idx][0])
+                        del _start_constants[_idx]
                     break
                 except:
                     continue
             else:
-                raise Exception(f"could not find dupl idx in _start_dupl")
+                raise Exception(f"could not find dupl idx in _start_constants")
 
             _dupl_pool.remove(random_dupl)
 
@@ -1011,9 +812,9 @@ class TestDuplAccuracyOverManyPartialFits:
 
             # verify correctly reported dupls after this partial_fit!
             out = TestCls.partial_fit(_wip_X, _y).duplicates_
-            assert len(out) == len(_start_dupl)
-            for idx in range(len(_start_dupl)):
-                assert np.array_equal(out[idx], _start_dupl[idx])
+            assert len(out) == len(_start_constants)
+            for idx in range(len(_start_constants)):
+                assert np.array_equal(out[idx], _start_constants[idx])
 
         # END take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v
 
@@ -1024,9 +825,9 @@ class TestDuplAccuracyOverManyPartialFits:
         _final_X = np.vstack(X_HOLDER)
 
         out = IM(**_new_kwargs).fit(_final_X, _y).duplicates_
-        assert len(out) == len(_start_dupl)
-        for idx in range(len(_start_dupl)):
-            assert np.array_equal(out[idx], _start_dupl[idx])
+        assert len(out) == len(_start_constants)
+        for idx in range(len(_start_constants)):
+            assert np.array_equal(out[idx], _start_constants[idx])
 
 
 
@@ -1087,6 +888,7 @@ class TestAColumnOfAllNans:
 
 
 
+    # WHEN NEW CDT TESTS ARE DONE, PUT COPIES HERE
 
 
 

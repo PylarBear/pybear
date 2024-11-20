@@ -31,6 +31,7 @@ import pytest
 @pytest.mark.parametrize('_equal_nan', (True, False), scope='module')
 class TestInverseTransform:
 
+    # assert that inverse_transform takes transformed back to original
     # build an X with duplicates, use CDT to take out the duplicates under
     # different parameters (CDT transform() should be independently
     # validated), use inverse_transform to reconstruct back to the
@@ -80,6 +81,8 @@ class TestInverseTransform:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
+
+
     @pytest.mark.parametrize('_format',
         (
             'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix',
@@ -88,7 +91,7 @@ class TestInverseTransform:
         )
     )
     def test_accuracy(
-        self, _dupl, _dupl_X, _format, _keep, _do_not_drop, _equal_nan, _dtype,
+        self, _dupl_X, _format, _keep, _do_not_drop, _equal_nan, _dtype,
         _has_nan, _shape, _columns, _rtol_atol
     ):
 
@@ -150,7 +153,6 @@ class TestInverseTransform:
         # inverse transform v v v v v v v v v v v v v v v
         out = _inverse_transform(
             X=_dedupl_X,
-            _duplicates=_dupl,
             _removed_columns=_CDT.removed_columns_,
             _feature_names_in=_columns
         )
@@ -160,6 +162,7 @@ class TestInverseTransform:
         assert type(out) is type(_X_wip)
 
         assert out.shape == _X_wip.shape
+
 
         # nans in string columns are being a real pain
         # _parallel_column_comparer instead of np.array_equal
@@ -179,15 +182,9 @@ class TestInverseTransform:
                 _og_col = _X_wip.tocsc()[:, [_idx]].toarray()
 
 
-
-            if not _has_nan or (_has_nan and _equal_nan):
-                assert _parallel_column_comparer(
-                    _out_col, _og_col, *_rtol_atol, _equal_nan
-                )
-            else:
-                assert not _parallel_column_comparer(
-                    _out_col, _og_col, *_rtol_atol, _equal_nan
-                )
+            assert _parallel_column_comparer(
+                _out_col, _og_col, *_rtol_atol, _equal_nan=True
+            )
 
 
 
