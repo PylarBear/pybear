@@ -20,7 +20,7 @@ from sklearn.utils.estimator_checks import (
 import pytest
 
 
-pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
+# pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
 
 
 class TestSKLearnCheckTransformer:
@@ -60,7 +60,7 @@ class TestSKLearnCheckTransformer:
 
     def test_check_transformer_get_feature_names_out_pandas(self):
         # looks for certain verbage in error if 'input_features' does not
-        # match feature_names_in_ if CDT was fit on a dataframe
+        # match feature_names_in_ if IM was fit on a dataframe
         check_transformer_get_feature_names_out_pandas(
             'InterceptManager',
             IM()

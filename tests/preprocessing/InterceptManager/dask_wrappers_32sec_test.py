@@ -22,7 +22,7 @@ import dask_expr._collection as ddf2
 from distributed import Client
 
 
-pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
+# pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
 
 
 
@@ -41,11 +41,9 @@ def _shape():
 def _kwargs():
     return {
         'keep': 'first',
-        'do_not_drop': None,
-        'conflict': 'raise',
+        'equal_nan': False,
         'rtol': 1e-5,
         'atol': 1e-8,
-        'equal_nan': False,
         'n_jobs': -1
     }
 

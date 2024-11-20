@@ -7,7 +7,6 @@
 
 
 import numpy as np
-import scipy.sparse as ss
 
 from numbers import Real, Integral
 from typing import Iterable, Literal, Optional
@@ -15,6 +14,7 @@ from typing_extensions import Union, Self
 from ._type_aliases import DataType
 
 from ._validation._validation import _validation
+from ._validation._X import _val_X
 from ._partial_fit._dupl_idxs import _dupl_idxs
 from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._transform._transform import _transform
@@ -129,10 +129,20 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     None, the output container is the same as the input, that is, numpy
     array, pandas dataframe, or scipy sparse matrix/array.
 
-    The partial fit method allows for incremental fitting of data sets.
-    This makes CDT suitable for use with packages that do batch-wise
-    fitting and transforming, such as dask_ml via the Incremental and
+    The partial fit method allows for batch-wise fitting of data. This
+    makes CDT suitable for use with packages that do batch-wise fitting
+    and transforming, such as dask_ml via the Incremental and
     ParallelPostFit wrappers.
+
+    There are no safeguards in place to prevent the user from changing
+    rtol, atol, or equal_nan between partial fits. These 3 parameters
+    have strong influence over whether CDT classifies two columns as
+    equal, and therefore are instrumental in dictating what CDT learns
+    during fitting. Changes to these parameters between partial fits can
+    drastically change CDT's understanding of the duplicate columns in
+    the data versus what would otherwise be learned under constant
+    settings. pybear recommends against this practice, however, it is
+    not strictly blocked.
 
 
     Parameters
@@ -477,9 +487,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         """
 
+        # keep this before _validate_data. when X is junk, _validate_data
+        # and check_array except for varying reasons. this standardizes
+        # the error message for non-np/pd/ss X.
+        _val_X(X)
 
-        # validation of X must be done here (with reset=True), not in a
-        # separate module
+        # validation of X must be done here, not in a separate module
         # BaseEstimator has _validate_data method, which when called
         # exposes n_features_in_ and feature_names_in_.
         X = self._validate_data(
@@ -491,8 +504,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             dtype=None,
             force_all_finite="allow-nan",
             ensure_2d=True,
-            ensure_min_features=2,
-            order='F'
+            order='F',
+            ensure_min_features=2,  # this is doing squat, validated below
+            ensure_min_samples=1, # this is doing squat, validated in _val_X
         )
 
         
@@ -507,7 +521,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         # check_params. If False, X and y are unchanged and only
         # feature_names_in_ and n_features_in_ are checked.
 
-
+        # this must be after _validate_data, needs feature_names_in_ to
+        # be exposed, if available.
         _validation(
             X,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
@@ -519,6 +534,23 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             self.equal_nan,
             self.n_jobs
         )
+
+
+        # sklearn _validate_data & check_array are not catching this
+        if len(X.shape) != 2:
+            raise ValueError(
+                f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
+                f"dataframe, or scipy sparce matrix or array, with at "
+                f"least 2 columns and 1 example."
+            )
+
+        # sklearn _validate_data & check_array are not catching this
+        if X.shape[1] < 2:
+            raise ValueError(
+                f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
+                f"dataframe, or scipy sparce matrix or array, with at "
+                f"least 2 columns and 1 example."
+            )
 
 
         # find the duplicate columns
@@ -590,7 +622,17 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         ) -> DataType:
 
         """
-        Revert deduplicated data back to its original state.
+        Revert deduplicated data back to its original state. :method:
+        set_output does not control the output container here, the output
+        container is always the same as passed. Very little validation
+        is possible
+        to ensure that the passed data is valid for the current state of
+        CDT. It is only possible to ensure that the number of columns in
+        the passed data match the number of columns that are expected to
+        be outputted by :method: transform for the current state of CDT.
+        It is up to the user to ensure the state of CDT aligns with the
+        state of the data that is to undergo inverse transform. Otherwise
+        the output will be nonsensical.
 
 
         Parameters
@@ -612,42 +654,42 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         """
 
+
         check_is_fitted(self)
 
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
+        # keep this before check_array. when X is junk, _validate_data
+        # and check_array except for varying reasons. this standardizes
+        # the error message for non-np/pd/ss X.
+        _val_X(X)
 
-        # the number of columns in X must be equal to the number of features
-        # remaining in column_mask_
-        _n_remaining = np.sum(self.column_mask_)
-        err_msg = (f"the number of columns in X must be equal to the number of "
-               f"columns kept from the fitted data after removing duplicates "
-               f"{_n_remaining}"
-        )
-        if X.shape[1] != _n_remaining:
-            raise ValueError(err_msg)
-
-        # sklearn check_array is not catching this, appears to be changing
-        # bsr to the first allowed form in the 'accept_sparse' list without
-        # notice. do not let that happen, require CDT to return containers
-        # as given unless manipulated by set_output().
-        if isinstance(X, (ss.bsr_array, ss.bsr_matrix)):
-            raise TypeError(f"X cannot be a scipy BSR matrix / array")
-
-        X = check_array(
+        # dont assign to X, check_array always converts to ndarray
+        check_array(
             array=X,
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"),
             dtype=None,
             force_all_finite="allow-nan",
             ensure_2d=True,
             copy=copy or False,
-            order='F'
+            order='F',
+            ensure_min_samples=1, # this is doing squat, validated in _val_X
+            ensure_min_features=1,
         )
+
+        # the number of columns in X must be equal to the number of features
+        # remaining in column_mask_
+        if X.shape[1] != np.sum(self.column_mask_):
+            raise ValueError(
+                f"the number of columns in X must be equal to the number of "
+                f"columns kept from the fitted data after removing duplicates "
+                f"{np.sum(self.column_mask_)}"
+            )
+
 
         out = _inverse_transform(
             X,
-            self.duplicates_,
             self.removed_columns_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
@@ -711,6 +753,11 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
+        # keep this before _validate_data. when X is junk, _validate_data
+        # and check_array except for varying reasons. this standardizes
+        # the error message for non-np/pd/ss X.
+        _val_X(X)
+
         X = self._validate_data(
             X=X,
             reset=False,
@@ -719,11 +766,11 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"),
             dtype=None,
             force_all_finite="allow-nan",
-            ensure_2d=True,
-            ensure_min_features=2,
+            ensure_2d=True,  # this appears to be working
+            ensure_min_features=1,
+            ensure_min_samples=1, # this is doing squat, validated in _val_X
             order ='F'
         )
-
 
         _validation(
             X,

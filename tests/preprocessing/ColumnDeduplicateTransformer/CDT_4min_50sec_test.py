@@ -9,7 +9,7 @@ import pytest
 
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
-from pybear.utilities import nan_mask, nan_mask_numerical
+from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
 
 from copy import deepcopy
 import itertools
@@ -17,7 +17,8 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
-
+import dask.array as da
+import dask.dataframe as ddf
 
 
 
@@ -79,7 +80,7 @@ def _X_pd(_dum_X, _columns):
 
 # test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestInputValidation:
+class TestInitValidation:
 
     JUNK = (
             -1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
@@ -633,7 +634,7 @@ class TestAllMethodsExceptOnScipyBSR:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestOutputTypes:
 
-    _base_objects = ['np_array', 'pandas', 'scipy_sparse_csc']
+    _base_objects = ('np_array', 'pandas', 'scipy_sparse_csc')
 
     @pytest.mark.parametrize('x_input_type', _base_objects)
     @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
@@ -946,8 +947,8 @@ class TestDuplAccuracyOverManyPartialFits:
         # build a pool of non-dupls to fill the dupls in X along the way
         # build a starting data object for first partial fit, using full dupls
         # build a y vector
-        # do a verification partial_fit, assert reported dupls for original X make
-        # make a holder for all the different _wip_Xs, to do one big fit at the end
+        # do a verification partial_fit, assert reported dupls for original X
+        # make a holder for all the different _wip_Xs, to do one big fit at the end.
         # for however many times u want to do this:
         #   randomly replace one of the dupls with non-dupl column
         #   partial_fit
@@ -1082,6 +1083,755 @@ class TestAColumnOfAllNans:
 
         assert np.array_equal(out[:, 0], _X[:, 0])
         assert all(nan_mask_numerical(out[:, -1]))
+
+
+
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestPartialFit:
+    
+    #     def partial_fit(
+    #         self,
+    #         X: DataType,
+    #         y: any=None
+    #     ) -> Self:
+
+    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - cannot be None
+    # - must be 2D
+    # - must have at least 2 columns
+    # - allows nan
+    # - validates all instance attrs --- not tested here, see _validation
+
+
+    @pytest.mark.parametrize('_junk_X',
+        (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(self, _junk_X, _kwargs):
+
+        _CDT = CDT(**_kwargs)
+
+        # this is being caught by _validation at the top of partial_fit.
+        # in particular,
+        # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
+        #      hasattr(_X, 'toarray'):
+        with pytest.raises(TypeError):
+            _CDT.partial_fit(_junk_X)
+
+
+    @pytest.mark.parametrize('_format',
+    (
+         'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+         'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
+         'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
+    )
+    )
+    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+
+        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
+
+        _X = _dum_X.copy()
+
+        if _format == 'np':
+            _X_wip = _X
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(
+                data=_X,
+                columns=_columns
+            )
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_X)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_X)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'dask_array':
+            _X_wip = da.array(_X)
+        elif _format == 'dask_dataframe':
+            _ = da.array(_X)
+            _X_wip = ddf.from_dask_array(_, columns=_columns)
+        else:
+            raise Exception
+
+        _CDT = CDT(**_kwargs)
+
+        if _format in ('dask_array', 'dask_dataframe'):
+            with pytest.raises(TypeError):
+                # handled by CDT
+                _CDT.partial_fit(_X_wip)
+        else:
+            _CDT.partial_fit(_X_wip)
+
+
+    @pytest.mark.parametrize('_num_cols', (1, 2))
+    def test_X_must_have_2_or_more_columns(self, _X_factory, _kwargs, _num_cols):
+
+        # CDT transform() CAN *NEVER* REDUCE A DATASET TO ZERO COLUMNS,
+        # ALWAYS MUST BE AT LEAST ONE LEFT
+
+        _wip_X = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=0,
+            _shape=(20, 2)
+        )[:, np.arange(_num_cols)]
+
+        _kwargs['keep'] = 'first'
+        _CDT = CDT(**_kwargs)
+
+        if _num_cols < 2:
+            with pytest.raises(ValueError):
+                _CDT.partial_fit(_wip_X)
+        else:
+            _CDT.partial_fit(_wip_X)
+
+
+    def test_rejects_no_samples(self, _dum_X, _kwargs, _columns):
+
+        _X = _dum_X.copy()
+
+        _CDT = CDT(**_kwargs)
+
+        # dont know what is actually catching this! maybe _validate_data?
+        with pytest.raises(ValueError):
+            _CDT.partial_fit(np.empty((0, _X.shape[1]), dtype=np.float64))
+
+
+    def test_rejects_1D(self, _X_factory, _kwargs):
+
+        _wip_X = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=0,
+            _shape=(20,2)
+        )
+
+        _CDT = CDT(**_kwargs)
+
+        with pytest.raises(ValueError):
+            _CDT.partial_fit(_wip_X[:, 0])
+
+
+    # dont really need to test accuracy, see _partial_fit
+
+
+
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestTransform:
+
+    #     def transform(
+    #         self,
+    #         X: DataType,
+    #         *,
+    #         copy: bool = None
+    #     ) -> DataType:
+
+    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - cannot be None
+    # - must be 2D
+    # - must have at least 2 columns
+    # - must have at least 1 sample
+    # - num columns must equal num columns seen during fit
+    # - allows nan
+    # - output is C contiguous
+    # - validates all instance attrs -- this isnt tested here, see _validation
+
+
+    @pytest.mark.parametrize('_copy',
+        (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
+    )
+    def test_copy_validation(self, _dum_X, _shape, _kwargs, _copy):
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_dum_X)
+
+        if isinstance(_copy, (bool, type(None))):
+            _CDT.transform(_dum_X, copy=_copy)
+        else:
+            with pytest.raises(TypeError):
+                _CDT.transform(_dum_X, copy=_copy)
+
+
+    @pytest.mark.parametrize('_junk_X',
+        (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(self, _dum_X, _junk_X, _kwargs):
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_dum_X)
+
+        # this is being caught by _validation at the top of transform.
+        # in particular,
+        # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
+        #     hasattr(_X, 'toarray'):
+        with pytest.raises(TypeError):
+            _CDT.transform(_junk_X)
+
+
+    @pytest.mark.parametrize('_format',
+    (
+         'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+         'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
+         'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
+    )
+    )
+    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+
+        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
+
+        _X = _dum_X.copy()
+
+        if _format == 'np':
+            _X_wip = _X
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(
+                data=_X,
+                columns=_columns
+            )
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_X)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_X)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'dask_array':
+            _X_wip = da.array(_X)
+        elif _format == 'dask_dataframe':
+            _ = da.array(_X)
+            _X_wip = ddf.from_dask_array(_, columns=_columns)
+        else:
+            raise Exception
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_X)    # fit on numpy, not the converted data
+
+        if _format in ('dask_array', 'dask_dataframe'):
+            with pytest.raises(TypeError):
+                # handled by CDT
+                _CDT.transform(_X_wip)
+        else:
+            _CDT.transform(_X_wip)
+
+
+    # test_X_must_have_2_or_more_columns
+    # this is dictated by partial_fit. partial_fit requires 2+ columns, and
+    # transform must have same number of features as fit
+
+
+    def test_rejects_no_samples(self, _dum_X, _kwargs):
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_dum_X)
+
+        # this is caught by if _X.shape[0] == 0 in _val_X
+        with pytest.raises(ValueError):
+            _CDT.transform(
+                np.empty((0, np.sum(_CDT.column_mask_)),dtype=np.float64)
+            )
+
+
+    def test_rejects_1D(self, _X_factory, _kwargs):
+
+        _wip_X = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=0,
+            _shape=(20,2)
+        )
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_wip_X)
+
+        with pytest.raises(ValueError):
+            _CDT.transform(_wip_X[:, 0])
+
+
+    def test_rejects_bad_num_features(self, _dum_X, _kwargs, _columns):
+        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
+        # FITTED COLUMNS
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_dum_X)
+
+        TRFM_X = _CDT.transform(_dum_X)
+        TRFM_MASK = _CDT.column_mask_
+        __ = np.array(_columns)
+        for obj_type in ['np', 'pd']:
+            for diff_cols in ['more', 'less', 'same']:
+                if diff_cols == 'same':
+                    TEST_X = TRFM_X.copy()
+                    if obj_type == 'pd':
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
+                elif diff_cols == 'less':
+                    TEST_X = TRFM_X[:, :-1].copy()
+                    if obj_type == 'pd':
+                        TEST_X = pd.DataFrame(
+                            data=TEST_X,
+                            columns=__[TRFM_MASK][:-1]
+                        )
+                elif diff_cols == 'more':
+                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
+                    if obj_type == 'pd':
+                        _COLUMNS = np.hstack((
+                            __[TRFM_MASK],
+                            np.char.upper(__[TRFM_MASK])
+                        ))
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
+                else:
+                    raise Exception
+
+                if diff_cols == 'same':
+                    _CDT.transform(TEST_X)
+                else:
+                    with pytest.raises(ValueError):
+                        _CDT.transform(TEST_X)
+
+        del _CDT, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
+
+
+    # dont really need to test accuracy, see _transform
+
+
+
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestInverseTransform:
+
+    #     def inverse_transform(
+    #         self,
+    #         X: DataType,
+    #         *,
+    #         copy: bool = None
+    #         ) -> DataType:
+
+    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - cannot be None
+    # - must be 2D
+    # - must have at least 1 column
+    # - must have at least 1 sample
+    # - num columns must equal num columns in column_mask_
+    # - allows nan
+    # - output is C contiguous
+    # - no instance attr validation
+
+    # if we cant come up with a way to validate/ensure that the data
+    # being inverted back matches with the current state of the params,
+    # then will have to put some disclaimers in the docs.
+
+
+    @pytest.mark.parametrize('_copy',
+        (-1, 0, 1, 3.14, True, False, None, 'junk', [0,1], (1,), {'a': 1}, min)
+    )
+    def test_copy_validation(self, _dum_X, _shape, _kwargs, _copy):
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_dum_X)
+
+        if isinstance(_copy, (bool, type(None))):
+            _CDT.inverse_transform(_dum_X[:, _CDT.column_mask_], copy=_copy)
+        else:
+            with pytest.raises(TypeError):
+                _CDT.inverse_transform(_dum_X[:, _CDT.column_mask_], copy=_copy)
+
+
+    @pytest.mark.parametrize('_junk_X',
+        (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(self, _dum_X, _junk_X, _kwargs):
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_dum_X)
+
+        # this is being caught by _val_X at the top of inverse_transform.
+        # in particular,
+        # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
+        #     hasattr(_X, 'toarray'):
+        with pytest.raises(TypeError):
+            _CDT.inverse_transform(_junk_X)
+
+
+    @pytest.mark.parametrize('_format',
+        (
+            'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+            'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
+            'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
+        )
+    )
+    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+
+        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
+
+        _X = _dum_X.copy()
+
+        if _format == 'np':
+            _X_wip = _X
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(
+                data=_X,
+                columns=_columns
+            )
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_X)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_X)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'dask_array':
+            _X_wip = da.array(_X)
+        elif _format == 'dask_dataframe':
+            _ = da.array(_X)
+            _X_wip = ddf.from_dask_array(_, columns=_columns)
+        else:
+            raise Exception
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_X)  # fit on numpy, not the converted data
+
+        if _format == 'dask_array':
+            with pytest.raises(TypeError):
+                # handled by CDT
+                _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
+        elif _format == 'dask_dataframe':
+            with pytest.raises(TypeError):
+                # handled by CDT
+                _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_])
+        elif _format == 'pd':
+            _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_])
+        elif _format == 'np':
+            _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
+        elif hasattr(_X_wip, 'toarray'):
+            _og_dtype = type(_X_wip)
+            _CDT.inverse_transform(_og_dtype(_X_wip.tocsc()[:, _CDT.column_mask_]))
+            del _og_dtype
+        else:
+            raise Exception
+
+
+    @pytest.mark.parametrize('_dim', ('0D', '1D'))
+    def test_X_must_be_2D(self, _X_factory, _kwargs, _dim):
+
+        # CDT transform() CAN *NEVER* REDUCE A DATASET TO ZERO COLUMNS,
+        # ALWAYS MUST BE AT LEAST ONE LEFT. ZERO-D PROVES inverse_transform
+        # REJECTS LESS THAN 1 COLUMN.
+
+        _wip_X = _X_factory(
+            _dupl=[[0, 1, 2]],
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=0,
+            _shape=(20, 3)
+        )
+
+        _kwargs['keep'] = 'first'
+        _CDT = CDT(**_kwargs)
+        TRFM_X = _CDT.fit_transform(_wip_X)
+        # _wip_X is rigged to transform to only one column
+        assert TRFM_X.shape[1] == 1
+
+        if _dim == '0D':
+            TEST_TRFM_X = np.delete(
+                TRFM_X,
+                np.arange(TRFM_X.shape[1]),
+                axis=1
+            )
+        elif _dim == '1D':
+            TEST_TRFM_X = TRFM_X.ravel()
+        else:
+            raise Exception
+
+        with pytest.raises(ValueError):
+            _CDT.inverse_transform(TEST_TRFM_X)
+
+
+    def test_rejects_no_samples(self, _dum_X, _kwargs):
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_dum_X)
+
+        # this is caught by if _X.shape[0] == 0 in _val_X
+        with pytest.raises(ValueError):
+            _CDT.inverse_transform(
+                np.empty((0, np.sum(_CDT.column_mask_)), dtype=np.float64)
+            )
+
+
+    def test_rejects_bad_num_features(self, _dum_X, _kwargs, _columns):
+        # RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
+        # COLUMNS RETAINED BY column_mask_
+
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_dum_X)
+
+        TRFM_X = _CDT.transform(_dum_X)
+        TRFM_MASK = _CDT.column_mask_
+        __ = np.array(_columns)
+        for obj_type in ['np', 'pd']:
+            for diff_cols in ['more', 'less', 'same']:
+                if diff_cols == 'same':
+                    TEST_X = TRFM_X.copy()
+                    if obj_type == 'pd':
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
+                elif diff_cols == 'less':
+                    TEST_X = TRFM_X[:, :-1].copy()
+                    if obj_type == 'pd':
+                        TEST_X = pd.DataFrame(
+                            data=TEST_X,
+                            columns=__[TRFM_MASK][:-1]
+                        )
+                elif diff_cols == 'more':
+                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
+                    if obj_type == 'pd':
+                        _COLUMNS = np.hstack((
+                            __[TRFM_MASK],
+                            np.char.upper(__[TRFM_MASK])
+                        ))
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
+                else:
+                    raise Exception
+
+                if diff_cols == 'same':
+                    _CDT.inverse_transform(TEST_X)
+                else:
+                    with pytest.raises(ValueError):
+                        _CDT.inverse_transform(TEST_X)
+
+        del _CDT, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
+
+
+    @pytest.mark.parametrize('_format',
+        (
+            'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+            'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
+            'dia_array', 'lil_array', 'dok_array'
+        )
+    )
+    @pytest.mark.parametrize('_dtype', ('int', 'flt', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_has_nan', (True, False))
+    @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
+    @pytest.mark.parametrize('_copy', (True, False))
+    def test_accuracy(
+        self, _X_factory, _columns, _kwargs, _shape, _format, _dtype,
+        _has_nan, _keep, _copy
+    ):
+
+        # may not need to test accuracy here, see _inverse_transform,
+        # but it is pretty straightforward. affirms the CDT class
+        # inverse_transform method works correctly, above and beyond just
+        # the _inverse_transform function called within.
+
+        # set_output does not control the output container for inverse_transform
+        # the output container is always the same as passed
+
+        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
+
+        if _format not in ('np', 'pd') and _dtype not in ('int', 'flt'):
+            pytest.skip(reason=f"scipy sparse cant take non-numeric")
+
+        _base_X = _X_factory(
+            _dupl=None,
+            _has_nan=_has_nan,
+            _format='np',
+            _dtype=_dtype,
+            _columns=_columns,
+            _zeros=0,
+            _shape=_shape
+        )
+
+
+        if _format == 'np':
+            _X_wip = _base_X
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(
+                data=_base_X,
+                columns=_columns
+            )
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_base_X)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_base_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_base_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_base_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_base_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_base_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_base_X)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_base_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_base_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_base_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_base_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_base_X)
+        else:
+            raise Exception
+
+        _kwargs['keep'] = _keep
+
+        _CDT = CDT(**_kwargs)
+
+        # fit v v v v v v v v v v v v v v v v v v v v
+        _CDT.fit(_X_wip)
+        # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
+
+        # transform v v v v v v v v v v v v v v v v v v
+        TRFM_X = _CDT.transform(_X_wip, copy=True)
+        assert isinstance(TRFM_X, type(_X_wip))
+        # transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
+
+        # inverse transform v v v v v v v v v v v v v v v
+        INV_TRFM_X = _CDT.inverse_transform(
+            X=TRFM_X,
+            copy=_copy
+        )
+        assert isinstance(INV_TRFM_X, type(_X_wip))
+        # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
+
+        # output constainer is same as passed
+        assert isinstance(INV_TRFM_X, type(_X_wip))
+
+        # if output is numpy, order is C
+        if isinstance(INV_TRFM_X, np.ndarray):
+            assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
+
+        # verify dimension of output
+        assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
+            f"rows in output of inverse_transform() do not match input rows"
+        assert INV_TRFM_X.shape[1] == _CDT.n_features_in_, \
+            (f"num features in output of inverse_transform() do not match "
+             f"originally fitted columns")
+
+        # convert everything to ndarray to use array_equal
+        if isinstance(TRFM_X, np.ndarray):
+            NP_TRFM_X = TRFM_X
+            NP_INV_TRFM_X = INV_TRFM_X
+        elif isinstance(TRFM_X, pd.core.frame.DataFrame):
+            NP_TRFM_X = TRFM_X.to_numpy()
+            NP_INV_TRFM_X = INV_TRFM_X.to_numpy()
+        elif hasattr(TRFM_X, 'toarray'):
+            NP_TRFM_X = TRFM_X.toarray()
+            NP_INV_TRFM_X = INV_TRFM_X.toarray()
+        else:
+            raise Exception
+
+        assert isinstance(NP_TRFM_X, np.ndarray)
+        assert isinstance(NP_INV_TRFM_X, np.ndarray)
+
+        # assert output is equal to originally transformed data
+        # manage equal_nan for num or str
+        try:
+            NP_INV_TRFM_X.astype(np.float64)
+            # when num
+            assert np.array_equal(NP_INV_TRFM_X, _base_X, equal_nan=True), \
+                f"inverse transform of transformed data does not equal original data"
+
+            assert np.array_equal(
+                NP_TRFM_X,
+                NP_INV_TRFM_X[:, _CDT.column_mask_],
+                equal_nan=True
+            ), \
+                (f"output of inverse_transform() does not reduce back to the "
+                 f"output of transform()")
+        except:
+            # when str
+            # CDT converts all nan-likes to np.nan, need to standardize them
+            # in the inputs here for array_equal against the outputs
+            # for string data, array_equal does not accept equal_nan param
+            _base_X[nan_mask_string(_base_X)] = 'nan'
+            NP_TRFM_X[nan_mask_string(NP_TRFM_X)] = 'nan'
+            NP_INV_TRFM_X[nan_mask_string(NP_INV_TRFM_X)] = 'nan'
+
+            assert np.array_equal(NP_INV_TRFM_X, _base_X), \
+                f"inverse transform of transformed data != original data"
+
+            assert np.array_equal(
+                NP_TRFM_X,
+                NP_INV_TRFM_X[:, _CDT.column_mask_]
+            ), \
+                (f"output of inverse_transform() does not reduce back to the "
+                 f"output of transform()")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

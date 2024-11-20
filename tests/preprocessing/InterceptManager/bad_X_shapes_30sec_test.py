@@ -16,7 +16,7 @@ import pytest
 
 
 
-pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
+# pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
 
 
 # TEST FOR EXCEPTS ON BAD X SHAPES ON ARRAY & DF ##########################
@@ -36,12 +36,10 @@ class TestExceptsOnBadXShapes:
     def _kwargs():
         return {
             'keep': 'first',
-            'do_not_drop': None,
-            'conflict': 'raise',
+            'equal_nan': False,
             'rtol': 1e-5,
             'atol': 1e-8,
-            'equal_nan': False,
-            'n_jobs': 1  # leave this a 1 because of confliction
+            'n_jobs': 1  # leave this a 1 because of confliction... pizza verify!
         }
 
 
@@ -150,7 +148,8 @@ class TestExceptsOnBadXShapes:
         )
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    X_FORMAT = ['np', 'pd', 'csc']
+    # this is intentional, save some time, do only one ss
+    X_FORMAT = ['np', 'pd', 'csc'] #, 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
     SAME_DIFF_COLUMNS = ['good', 'less_col', 'more_col']
     SAME_DIFF_ROWS = ['good', 'less_row', 'more_row']
 
@@ -198,10 +197,26 @@ class TestExceptsOnBadXShapes:
             else:
                 raise Exception
 
-            if _format == 'df':
+            if _format == 'np':
+                pass
+            elif _format == 'pd':
                 _ = pd.DataFrame(data=_, columns=_columns_dict[_cols])
             elif _format == 'csc':
                 _ = ss.csc_array(_)
+            elif _format == 'csr':
+                _ = ss.csr_array(_)
+            elif _format == 'coo':
+                _ = ss.coo_array(_)
+            elif _format == 'lil':
+                _ = ss.lil_array(_)
+            elif _format == 'dok':
+                _ = ss.dok_array(_)
+            elif _format == 'dia':
+                _ = ss.dia_array(_)
+            elif _format == 'bsr':
+                _ = ss.bsr_array(_)
+            else:
+                raise Exception
             return _
         # END object selection ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

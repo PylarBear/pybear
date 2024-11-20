@@ -13,7 +13,6 @@ from ._rtol import _val_rtol
 from ._atol import _val_atol
 from ._equal_nan import _val_equal_nan
 from ._n_jobs import _val_n_jobs
-from ._X import _val_X
 
 
 
@@ -75,8 +74,6 @@ def _validation(
     """
 
     _val_keep(_keep)
-
-    _val_X(_X)
 
     _val_do_not_drop(_do_not_drop, _X, _columns)
 
