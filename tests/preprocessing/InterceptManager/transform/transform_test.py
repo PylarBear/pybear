@@ -110,8 +110,8 @@ class TestTransform:
     @pytest.mark.parametrize('_format',
         (
             'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix',
-            'dia_matrix', 'lil_matrix', 'dok_matrix', 'csr_array',
-            'csc_array', 'coo_array', 'dia_array', 'lil_array', 'dok_array'
+            'dia_matrix', 'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array',
+            'csc_array', 'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
         )
     )
     def test_output(
@@ -119,7 +119,6 @@ class TestTransform:
         _has_nan, _dupl, _rtol_atol, _instructions, _constant_columns_str, _constant_columns_flt
     ):
 
-        # pizza revisit this last thing
         # Methodology: use _set_attributes() to build expected column mask
         # from :fixture: _instructions. (_instructions is conditional based
         # on the test and is modified below.) for np, pd, and ss, iterate over
@@ -173,6 +172,8 @@ class TestTransform:
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
@@ -185,6 +186,8 @@ class TestTransform:
             _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
         else:
             raise Exception
         # END data format conversion v^v^v^v^v^v^v^v^v^v^v^v^v^v^

@@ -32,7 +32,7 @@ class TestXFactory:
     #    def foo(
     #         _dupl:list[list[int]]=None,
     #         _has_nan:Union[int, bool]=False,
-    #         _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
+    #         _format:Literal['np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']='np',
     #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
     #         _columns:Union[Iterable[str], None]=None,
     #         _constants:Union[dict[int, any], None]=None,
@@ -109,7 +109,7 @@ class TestXFactory:
         with pytest.raises(AssertionError):
             _X_factory(_format=bad_format)
 
-    @pytest.mark.parametrize('good_format', ('np', 'pd', 'csc', 'csr', 'coo'))
+    @pytest.mark.parametrize('good_format', ('np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'))
     def test_accepts_good_format(self, _X_factory, good_format):
         _X_factory(_format=good_format)
 
@@ -229,11 +229,11 @@ class TestXFactory:
 
     # test accuracy
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csc', 'csr', 'coo'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     def test_format_dtype_shape_accuracy(self, _X_factory, _format, _dtype, _shape):
 
-        if _format in ('csc', 'csr', 'coo') and _dtype in ('str', 'obj', 'hybrid'):
+        if _format not in ('np', 'pd') and _dtype in ('str', 'obj', 'hybrid'):
             with pytest.raises(Exception):
                 _X_factory(_format=_format, _dtype=_dtype, _shape=_shape)
             pytest.skip(reason=f"scipy sparse cant take string types")
@@ -252,7 +252,16 @@ class TestXFactory:
             assert isinstance(out, (ss._csr.csr_matrix, ss._csr.csr_array))
         elif _format == 'coo':
             assert isinstance(out, (ss._coo.coo_matrix, ss._coo.coo_array))
-
+        elif _format == 'dia':
+            assert isinstance(out, (ss._dia.dia_matrix, ss._dia.dia_array))
+        elif _format == 'lil':
+            assert isinstance(out, (ss._lil.lil_matrix, ss._lil.lil_array))
+        elif _format == 'dok':
+            assert isinstance(out, (ss._dok.dok_matrix, ss._dok.dok_array))
+        elif _format == 'bsr':
+            assert isinstance(out, (ss._bsr.bsr_matrix, ss._bsr.bsr_array))
+        else:
+            raise Exception
 
         if _format in ('np', 'csc', 'csr', 'coo'):
             if _dtype == 'flt':
