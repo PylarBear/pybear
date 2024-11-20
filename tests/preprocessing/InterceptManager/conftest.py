@@ -43,7 +43,7 @@ def _X_factory():
     def foo(
         _dupl:list[list[int]]=None,
         _has_nan:Union[int, bool]=False,
-        _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
+        _format:Literal['np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']='np',
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
         _columns:Union[Iterable[str], None]=None,
         _constants:Union[dict[int, any], None]=None,
@@ -70,7 +70,7 @@ def _X_factory():
         if not isinstance(_has_nan, bool):
             assert int(_has_nan) == _has_nan, f"'_has_nan' must be bool or int >= 0"
         assert _has_nan >= 0, f"'_has_nan' must be bool or int >= 0"
-        assert _format in ['np', 'pd', 'csc', 'csr', 'coo']
+        assert _format in ['np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
         assert _dtype in ['flt','int','str','obj','hybrid']
         assert isinstance(_columns, (list, np.ndarray, type(None)))
         if _columns is not None:
@@ -90,10 +90,10 @@ def _X_factory():
         assert isinstance(_zeros, (float, int))
         assert 0 <= _zeros <= 1, f"zeros must be 0 <= x <= 1"
 
-        if _format in ('csc', 'csr', 'coo') and \
+        if _format not in ('np', 'pd') and \
                 _dtype in ('str', 'obj', 'hybrid'):
             raise ValueError(
-                f"cannot create csc, csr, or coo with str, obj, or hybrid dtypes"
+                f"cannot create scipy sparse with str, obj, or hybrid dtypes"
             )
 
         assert isinstance(_shape, tuple)
@@ -222,7 +222,14 @@ def _X_factory():
             X = ss.csr_array(X)
         elif _format == 'coo':
             X = ss.coo_array(X)
-
+        elif _format == 'dia':
+            X = ss.dia_array(X)
+        elif _format == 'lil':
+            X = ss.lil_array(X)
+        elif _format == 'dok':
+            X = ss.dok_array(X)
+        elif _format == 'bsr':
+            X = ss.bsr_array(X)
 
         return X
 
