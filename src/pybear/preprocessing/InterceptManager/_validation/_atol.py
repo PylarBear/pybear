@@ -6,10 +6,11 @@
 
 
 import numpy as np
+from numbers import Real
 
 
 
-def _val_atol(_atol: float) -> None:
+def _val_atol(_atol: Real) -> None:
 
     """
     Verify atol is a non-boolean number that is accepted by numpy
@@ -19,7 +20,7 @@ def _val_atol(_atol: float) -> None:
     Parameters
     ----------
     _atol:
-        float - the absolute difference tolerance for equality.
+        Real - the absolute difference tolerance for equality.
 
 
     Return

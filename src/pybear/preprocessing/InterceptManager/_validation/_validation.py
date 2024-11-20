@@ -16,20 +16,21 @@ from ._X import _val_X
 
 
 from .._type_aliases import (
-    ColumnsType,  # pizza
     DataType,
     KeepType
 )
+from typing import Iterable
 from typing_extensions import Union
+from numbers import Real
 
 
 def _validation(
     _X:DataType,
-    _columns: ColumnsType,   # pizza think if we want to just make them all explicit
+    _columns: Union[Iterable[str], None],
     _keep: KeepType,
     _equal_nan: bool,
-    _rtol: float,
-    _atol: float,
+    _rtol: Real,
+    _atol: Real,
     _n_jobs: Union[int, None]
 ) -> None:
 
@@ -45,13 +46,13 @@ def _validation(
     _columns:
         pizza WHAT!?!?!?!!
     _keep:
-        Literal['first', 'last', 'random'], dict[str, int], None
+        Literal['first', 'last', 'random', 'none'], dict[str, int], str, int
     _equal_nan:
         bool,
     _rtol:
-        float,
+        Real,
     _atol:
-        float,
+        Real,
     _n_jobs:
         Union[int, None]
 

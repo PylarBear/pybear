@@ -9,9 +9,10 @@ from pybear.preprocessing.InterceptManager._validation._instructions import _val
 
 from .._type_aliases import (
     KeepType,
-    InstructionType,
-    ColumnsType
+    InstructionType
 )
+from typing_extensions import Union
+from typing import Iterable
 
 import numpy as np
 
@@ -20,7 +21,7 @@ import numpy as np
 def _make_instructions(
     _keep: KeepType,
     constant_columns_: dict[int, any],
-    _columns: ColumnsType,
+    _columns: Union[Iterable[str], None],
     _shape: tuple[int, int]
 ) -> InstructionType:
 

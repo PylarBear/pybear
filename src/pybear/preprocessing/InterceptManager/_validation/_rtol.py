@@ -6,9 +6,10 @@
 
 
 import numpy as np
+from numbers import Real
 
 
-def _val_rtol(_rtol: float) -> None:
+def _val_rtol(_rtol: Real) -> None:
 
     """
     Verify rtol is a non-boolean number that is accepted by numpy
@@ -18,7 +19,7 @@ def _val_rtol(_rtol: float) -> None:
     Parameters
     ----------
     _rtol:
-        float - the relative difference tolerance for equality.
+        Real - the relative difference tolerance for equality.
 
 
     Return
