@@ -20,24 +20,25 @@ import scipy.sparse as ss
 
 def _inverse_transform(
     X: DataType,
-    _removed_columns: dict[int, int],
+    _removed_columns: dict[int, any],
     _feature_names_in: Union[npt.NDArray[str], None]
 ) -> DataType:
 
     """
-    Revert transformed data back to its original state.
+    Revert transformed data back to its original state. IM cannot account
+    for any nan-like values that may have been in the original data.
 
 
     Parameters
     ----------
     X :
         {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features - n_features_removed) - A transformec data set.
+        n_features - n_features_removed) - A transformed data set.
     _removed_columns:
-        dict[int, int] - the keys are the indices of duplicate columns
+        dict[int, any] - the keys are the indices of constant columns
         removed from the original data, indexed by their column location
-        in the original data; the values are the column index in the
-        original data of the respective duplicate that was kept.
+        in the original data; the values are the constant value that was
+        in that column.
     _feature_names_in:
         Union[npt.NDArray[str], None] - the feature names found during
         fitting.
@@ -47,11 +48,16 @@ def _inverse_transform(
     -------
     -
         X_tr : {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Deduplicated data reverted to its original
+            n_features) - Transformed data reverted back to its original
             state.
 
     """
 
+    assert isinstance(_removed_columns, dict)
+    assert all(map(isinstance, _removed_columns, (int for _ in _removed_columns)))
+    if _feature_names_in is not None:
+        assert isinstance(_feature_names_in, np.ndarray)
+        assert all(map(isinstance, _feature_names_in, (str for _ in _feature_names_in)))
 
     # retain what the original format was
     # if data is a pd df, convert to numpy
@@ -70,10 +76,10 @@ def _inverse_transform(
 
 
     # pizza verify
-    # confirmed via pytest 24_10_10 this need to stay
+    # confirmed via pytest 24_10_10 this needs to stay
     # assure _removed_columns keys are accessed ascending
     for k in sorted(_removed_columns.keys()):
-        _removed_columns[int(k)] = int(_removed_columns.pop(k))
+        _removed_columns[int(k)] = _removed_columns.pop(k)
 
     # insert blanks into the given data to get dimensions back to original,
     # so indices will match the indices of _parent_dict.

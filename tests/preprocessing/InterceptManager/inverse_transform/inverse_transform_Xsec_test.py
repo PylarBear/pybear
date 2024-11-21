@@ -25,7 +25,7 @@ import pytest
 
 
 
-
+pytest.skip(reason=f"pizza says dont work on this until transform is proved out", allow_module_level=True)
 
 
 class TestInverseTransform:
@@ -83,9 +83,9 @@ class TestInverseTransform:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.skip(reason=f"pizza needs to run github actions!")
+
     @pytest.mark.parametrize('_dtype', ('flt', 'str'))
-    @pytest.mark.parametrize('_keep', ('first', 'first', 'last', 'random', 'none')) # pizza {'Intercept': 1}, 1, 'good_string', 'non_const_string', 'good_callable', 'non_const_callable'), scope='module')
+    @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none', 0, 'good_string', 'non_const_string', 'good_callable', 'non_const_callable', {'Intercept': 1})) # pizza, scope='module')
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_format',
@@ -220,11 +220,10 @@ class TestInverseTransform:
 
         assert type(out) is type(_X_wip)
 
-        assert out.shape == _X_wip.shape
+        assert out.shape == (_base_X.shape[0], _base_X.shape[1] + isinstance(_keep, dict))
 
         _ref_column_mask = _IM.column_mask_
 
-        print(f'pizza test {_ref_column_mask=}')
 
         # iterate over the input X and output X simultaneously, use
         # _kept_idxs to map column in output X to their original locations

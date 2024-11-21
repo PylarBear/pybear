@@ -9,7 +9,7 @@ import pytest
 
 from pybear.preprocessing import InterceptManager as IM
 
-from pybear.utilities import nan_mask, nan_mask_numerical
+from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
 
 from copy import deepcopy
 import itertools
@@ -17,6 +17,8 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
+import dask.array as da
+import dask.dataframe as ddf
 
 
 
@@ -757,9 +759,9 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
         #   assert reported constants - should be one less (the randomly chosen column)
         # at the very end, stack all the _wip_Xs, do one big fit, verify constants
 
-        _pool_X = _X(_format, _dtype, _has_nan, _constants, _noise=1e-9)
+        _pool_X = _X(_format, _dtype, _has_nan, _start_constants, _noise=1e-9)
 
-        _wip_X = _X(_format, _dtype, _has_nan, _constants, _noise=1e-9)
+        _wip_X = _X(_format, _dtype, _has_nan, _start_constants, _noise=1e-9)
 
         _y = np.random.randint(0, 2, _wip_X.shape[0])
 
@@ -911,14 +913,14 @@ class TestPartialFit:
     )
     def test_rejects_junk_X(self, _junk_X, _kwargs):
 
-        _CDT = CDT(**_kwargs)
+        _IM = IM(**_kwargs)
 
         # this is being caught by _validation at the top of partial_fit.
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #      hasattr(_X, 'toarray'):
         with pytest.raises(TypeError):
-            _CDT.partial_fit(_junk_X)
+            _IM.partial_fit(_junk_X)
 
 
     @pytest.mark.parametrize('_format',
@@ -973,20 +975,20 @@ class TestPartialFit:
         else:
             raise Exception
 
-        _CDT = CDT(**_kwargs)
+        _IM = IM(**_kwargs)
 
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
-                # handled by CDT
-                _CDT.partial_fit(_X_wip)
+                # handled by IM
+                _IM.partial_fit(_X_wip)
         else:
-            _CDT.partial_fit(_X_wip)
+            _IM.partial_fit(_X_wip)
 
 
     @pytest.mark.parametrize('_num_cols', (1, 2))
     def test_X_must_have_2_or_more_columns(self, _X_factory, _kwargs, _num_cols):
 
-        # CDT transform() CAN *NEVER* REDUCE A DATASET TO ZERO COLUMNS,
+        # IM transform() CAN *NEVER* REDUCE A DATASET TO ZERO COLUMNS,
         # ALWAYS MUST BE AT LEAST ONE LEFT
 
         _wip_X = _X_factory(
@@ -1000,24 +1002,24 @@ class TestPartialFit:
         )[:, np.arange(_num_cols)]
 
         _kwargs['keep'] = 'first'
-        _CDT = CDT(**_kwargs)
+        _IM = IM(**_kwargs)
 
         if _num_cols < 2:
             with pytest.raises(ValueError):
-                _CDT.partial_fit(_wip_X)
+                _IM.partial_fit(_wip_X)
         else:
-            _CDT.partial_fit(_wip_X)
+            _IM.partial_fit(_wip_X)
 
 
     def test_rejects_no_samples(self, _dum_X, _kwargs, _columns):
 
         _X = _dum_X.copy()
 
-        _CDT = CDT(**_kwargs)
+        _IM = IM(**_kwargs)
 
         # dont know what is actually catching this! maybe _validate_data?
         with pytest.raises(ValueError):
-            _CDT.partial_fit(np.empty((0, _X.shape[1]), dtype=np.float64))
+            _IM.partial_fit(np.empty((0, _X.shape[1]), dtype=np.float64))
 
 
     def test_rejects_1D(self, _X_factory, _kwargs):
@@ -1032,10 +1034,10 @@ class TestPartialFit:
             _shape=(20, 2)
         )
 
-        _CDT = CDT(**_kwargs)
+        _IM = IM(**_kwargs)
 
         with pytest.raises(ValueError):
-            _CDT.partial_fit(_wip_X[:, 0])
+            _IM.partial_fit(_wip_X[:, 0])
 
     # dont really need to test accuracy, see _partial_fit
 
@@ -1066,14 +1068,14 @@ class TestTransform:
     )
     def test_copy_validation(self, _dum_X, _shape, _kwargs, _copy):
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_dum_X)
 
         if isinstance(_copy, (bool, type(None))):
-            _CDT.transform(_dum_X, copy=_copy)
+            _IM.transform(_dum_X, copy=_copy)
         else:
             with pytest.raises(TypeError):
-                _CDT.transform(_dum_X, copy=_copy)
+                _IM.transform(_dum_X, copy=_copy)
 
 
     @pytest.mark.parametrize('_junk_X',
@@ -1081,15 +1083,15 @@ class TestTransform:
     )
     def test_rejects_junk_X(self, _dum_X, _junk_X, _kwargs):
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_dum_X)
 
         # this is being caught by _validation at the top of transform.
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #     hasattr(_X, 'toarray'):
         with pytest.raises(TypeError):
-            _CDT.transform(_junk_X)
+            _IM.transform(_junk_X)
 
 
     @pytest.mark.parametrize('_format',
@@ -1144,15 +1146,15 @@ class TestTransform:
         else:
             raise Exception
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_X)  # fit on numpy, not the converted data
+        _IM = IM(**_kwargs)
+        _IM.fit(_X)  # fit on numpy, not the converted data
 
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
-                # handled by CDT
-                _CDT.transform(_X_wip)
+                # handled by IM
+                _IM.transform(_X_wip)
         else:
-            _CDT.transform(_X_wip)
+            _IM.transform(_X_wip)
 
 
     # test_X_must_have_2_or_more_columns
@@ -1162,13 +1164,13 @@ class TestTransform:
 
     def test_rejects_no_samples(self, _dum_X, _kwargs):
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_dum_X)
 
         # this is caught by if _X.shape[0] == 0 in _val_X
         with pytest.raises(ValueError):
-            _CDT.transform(
-                np.empty((0, np.sum(_CDT.column_mask_)), dtype=np.float64)
+            _IM.transform(
+                np.empty((0, np.sum(_IM.column_mask_)), dtype=np.float64)
             )
 
 
@@ -1184,22 +1186,22 @@ class TestTransform:
             _shape=(20, 2)
         )
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_wip_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_wip_X)
 
         with pytest.raises(ValueError):
-            _CDT.transform(_wip_X[:, 0])
+            _IM.transform(_wip_X[:, 0])
 
 
     def test_rejects_bad_num_features(self, _dum_X, _kwargs, _columns):
         # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
         # FITTED COLUMNS
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_dum_X)
 
-        TRFM_X = _CDT.transform(_dum_X)
-        TRFM_MASK = _CDT.column_mask_
+        TRFM_X = _IM.transform(_dum_X)
+        TRFM_MASK = _IM.column_mask_
         __ = np.array(_columns)
         for obj_type in ['np', 'pd']:
             for diff_cols in ['more', 'less', 'same']:
@@ -1226,12 +1228,12 @@ class TestTransform:
                     raise Exception
 
                 if diff_cols == 'same':
-                    _CDT.transform(TEST_X)
+                    _IM.transform(TEST_X)
                 else:
                     with pytest.raises(ValueError):
-                        _CDT.transform(TEST_X)
+                        _IM.transform(TEST_X)
 
-        del _CDT, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
+        del _IM, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
 
     # dont really need to test accuracy, see _transform
 
@@ -1266,14 +1268,14 @@ class TestInverseTransform:
     )
     def test_copy_validation(self, _dum_X, _shape, _kwargs, _copy):
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_dum_X)
 
         if isinstance(_copy, (bool, type(None))):
-            _CDT.inverse_transform(_dum_X[:, _CDT.column_mask_], copy=_copy)
+            _IM.inverse_transform(_dum_X[:, _IM.column_mask_], copy=_copy)
         else:
             with pytest.raises(TypeError):
-                _CDT.inverse_transform(_dum_X[:, _CDT.column_mask_], copy=_copy)
+                _IM.inverse_transform(_dum_X[:, _IM.column_mask_], copy=_copy)
 
 
     @pytest.mark.parametrize('_junk_X',
@@ -1281,15 +1283,15 @@ class TestInverseTransform:
     )
     def test_rejects_junk_X(self, _dum_X, _junk_X, _kwargs):
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_dum_X)
 
         # this is being caught by _val_X at the top of inverse_transform.
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #     hasattr(_X, 'toarray'):
         with pytest.raises(TypeError):
-            _CDT.inverse_transform(_junk_X)
+            _IM.inverse_transform(_junk_X)
 
 
     @pytest.mark.parametrize('_format',
@@ -1344,24 +1346,24 @@ class TestInverseTransform:
         else:
             raise Exception
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_X)  # fit on numpy, not the converted data
+        _IM = IM(**_kwargs)
+        _IM.fit(_X)  # fit on numpy, not the converted data
 
         if _format == 'dask_array':
             with pytest.raises(TypeError):
-                # handled by CDT
-                _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
+                # handled by IM
+                _IM.inverse_transform(_X_wip[:, _IM.column_mask_])
         elif _format == 'dask_dataframe':
             with pytest.raises(TypeError):
-                # handled by CDT
-                _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_])
+                # handled by IM
+                _IM.inverse_transform(_X_wip.iloc[:, _IM.column_mask_])
         elif _format == 'pd':
-            _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_])
+            _IM.inverse_transform(_X_wip.iloc[:, _IM.column_mask_])
         elif _format == 'np':
-            _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
+            _IM.inverse_transform(_X_wip[:, _IM.column_mask_])
         elif hasattr(_X_wip, 'toarray'):
             _og_dtype = type(_X_wip)
-            _CDT.inverse_transform(_og_dtype(_X_wip.tocsc()[:, _CDT.column_mask_]))
+            _IM.inverse_transform(_og_dtype(_X_wip.tocsc()[:, _IM.column_mask_]))
             del _og_dtype
         else:
             raise Exception
@@ -1370,7 +1372,7 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_dim', ('0D', '1D'))
     def test_X_must_be_2D(self, _X_factory, _kwargs, _dim):
 
-        # CDT transform() CAN *NEVER* REDUCE A DATASET TO ZERO COLUMNS,
+        # IM transform() CAN *NEVER* REDUCE A DATASET TO ZERO COLUMNS,
         # ALWAYS MUST BE AT LEAST ONE LEFT. ZERO-D PROVES inverse_transform
         # REJECTS LESS THAN 1 COLUMN.
 
@@ -1385,8 +1387,8 @@ class TestInverseTransform:
         )
 
         _kwargs['keep'] = 'first'
-        _CDT = CDT(**_kwargs)
-        TRFM_X = _CDT.fit_transform(_wip_X)
+        _IM = IM(**_kwargs)
+        TRFM_X = _IM.fit_transform(_wip_X)
         # _wip_X is rigged to transform to only one column
         assert TRFM_X.shape[1] == 1
 
@@ -1402,18 +1404,18 @@ class TestInverseTransform:
             raise Exception
 
         with pytest.raises(ValueError):
-            _CDT.inverse_transform(TEST_TRFM_X)
+            _IM.inverse_transform(TEST_TRFM_X)
 
 
     def test_rejects_no_samples(self, _dum_X, _kwargs):
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_dum_X)
 
         # this is caught by if _X.shape[0] == 0 in _val_X
         with pytest.raises(ValueError):
-            _CDT.inverse_transform(
-                np.empty((0, np.sum(_CDT.column_mask_)), dtype=np.float64)
+            _IM.inverse_transform(
+                np.empty((0, np.sum(_IM.column_mask_)), dtype=np.float64)
             )
 
 
@@ -1421,11 +1423,11 @@ class TestInverseTransform:
         # RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
         # COLUMNS RETAINED BY column_mask_
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _IM = IM(**_kwargs)
+        _IM.fit(_dum_X)
 
-        TRFM_X = _CDT.transform(_dum_X)
-        TRFM_MASK = _CDT.column_mask_
+        TRFM_X = _IM.transform(_dum_X)
+        TRFM_MASK = _IM.column_mask_
         __ = np.array(_columns)
         for obj_type in ['np', 'pd']:
             for diff_cols in ['more', 'less', 'same']:
@@ -1452,12 +1454,12 @@ class TestInverseTransform:
                     raise Exception
 
                 if diff_cols == 'same':
-                    _CDT.inverse_transform(TEST_X)
+                    _IM.inverse_transform(TEST_X)
                 else:
                     with pytest.raises(ValueError):
-                        _CDT.inverse_transform(TEST_X)
+                        _IM.inverse_transform(TEST_X)
 
-        del _CDT, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
+        del _IM, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
 
 
     @pytest.mark.parametrize('_format',
@@ -1477,7 +1479,7 @@ class TestInverseTransform:
     ):
 
         # may not need to test accuracy here, see _inverse_transform,
-        # but it is pretty straightforward. affirms the CDT class
+        # but it is pretty straightforward. affirms the IM class
         # inverse_transform method works correctly, above and beyond just
         # the _inverse_transform function called within.
 
@@ -1535,19 +1537,19 @@ class TestInverseTransform:
 
         _kwargs['keep'] = _keep
 
-        _CDT = CDT(**_kwargs)
+        _IM = IM(**_kwargs)
 
         # fit v v v v v v v v v v v v v v v v v v v v
-        _CDT.fit(_X_wip)
+        _IM.fit(_X_wip)
         # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # transform v v v v v v v v v v v v v v v v v v
-        TRFM_X = _CDT.transform(_X_wip, copy=True)
+        TRFM_X = _IM.transform(_X_wip, copy=True)
         assert isinstance(TRFM_X, type(_X_wip))
         # transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # inverse transform v v v v v v v v v v v v v v v
-        INV_TRFM_X = _CDT.inverse_transform(
+        INV_TRFM_X = _IM.inverse_transform(
             X=TRFM_X,
             copy=_copy
         )
@@ -1564,7 +1566,7 @@ class TestInverseTransform:
         # verify dimension of output
         assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
             f"rows in output of inverse_transform() do not match input rows"
-        assert INV_TRFM_X.shape[1] == _CDT.n_features_in_, \
+        assert INV_TRFM_X.shape[1] == _IM.n_features_in_, \
             (f"num features in output of inverse_transform() do not match "
              f"originally fitted columns")
 
@@ -1594,14 +1596,14 @@ class TestInverseTransform:
 
             assert np.array_equal(
                 NP_TRFM_X,
-                NP_INV_TRFM_X[:, _CDT.column_mask_],
+                NP_INV_TRFM_X[:, _IM.column_mask_],
                 equal_nan=True
             ), \
                 (f"output of inverse_transform() does not reduce back to the "
                  f"output of transform()")
         except:
             # when str
-            # CDT converts all nan-likes to np.nan, need to standardize them
+            # IM converts all nan-likes to np.nan, need to standardize them
             # in the inputs here for array_equal against the outputs
             # for string data, array_equal does not accept equal_nan param
             _base_X[nan_mask_string(_base_X)] = 'nan'
@@ -1613,7 +1615,7 @@ class TestInverseTransform:
 
             assert np.array_equal(
                 NP_TRFM_X,
-                NP_INV_TRFM_X[:, _CDT.column_mask_]
+                NP_INV_TRFM_X[:, _IM.column_mask_]
             ), \
                 (f"output of inverse_transform() does not reduce back to the "
                  f"output of transform()")

@@ -344,9 +344,9 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         if callable(self.keep):
             _keep = self.keep(X)
-            if not _keep in self.constant_columns_:
+            if _keep not in self.constant_columns_:
                 raise ValueError(
-                    f"'keep' callable has returned an integer column index "
+                    f"'keep' callable has returned an integer column index ({_keep}) "
                     f"that is not a column of constants. \nconstant columns: "
                     f"{self.constant_columns_}"
                 )
@@ -472,6 +472,20 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             copy=copy or False,
             order='F'
         )
+
+        # if _keep is a dict, a column of constants was stacked to the right
+        # side of the data. check that the passed data matches against _keep,
+        # and remove the column
+        if isinstance(self.keep, dict):
+            _unqs = np.unique(X[:, -1])
+            if len(_unqs) == 1 and _unqs[0] == self.keep[list(self.keep.keys())[0]]:
+                X = np.delete(X, -1, axis=1)
+            else:
+                raise ValueError(
+                    f":param: 'keep' is a dictionary but the last column of the "
+                    f"data to be inverse transformed does not match."
+                )
+
 
         out = _inverse_transform(
             X,
