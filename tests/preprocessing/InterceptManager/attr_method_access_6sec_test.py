@@ -268,6 +268,11 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # fit_transform()
 
         # get_feature_names_out() v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        # pizza, revisit this
+        # probably should make it's own module to test all the extraneous
+
+
         # vvv NO COLUMN NAMES PASSED (NP) vvv
         # **** CAN ONLY TAKE LIST-TYPE OF STRS OR None
         JUNK_ARGS = [
@@ -315,7 +320,6 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # vvv COLUMN NAMES PASSED (PD) vvv
 
         TestCls = IM(**_kwargs)
-        print(f'pizza test {type(_X_pd)=}')
         TestCls.fit(_X_pd, y)
 
         # WITH HEADER PASSED AND input_features=None, SHOULD RETURN

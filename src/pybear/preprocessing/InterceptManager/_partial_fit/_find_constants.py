@@ -6,7 +6,7 @@
 
 
 from .._type_aliases import (
-    DataType
+    DataFormatType
 )
 from numbers import Integral, Real
 
@@ -23,7 +23,7 @@ from ._merge_constants import _merge_constants
 
 
 def _find_constants(
-    _X: DataType,
+    _X: DataFormatType,
     _old_constant_columns: dict[int, any],
     _equal_nan: bool,
     _rtol: Real,
@@ -41,7 +41,7 @@ def _find_constants(
     Parameters
     ----------
     _X:
-        DataType - pizza!
+        DataFormatType - pizza!
     _old_constant_columns:
         dict[int, any] - constant column indices and their values found
         in previous partial fits.

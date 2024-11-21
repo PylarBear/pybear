@@ -5,20 +5,19 @@
 #
 
 
-
-import numpy as np
-
 from numbers import Real, Integral
 from typing import Iterable, Literal, Optional
 from typing_extensions import Union, Self
 from ._type_aliases import DataType
 
+import numpy as np
+
 from ._validation._validation import _validation
 from ._validation._X import _val_X
 from ._partial_fit._dupl_idxs import _dupl_idxs
 from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
-from ._transform._transform import _transform
 from ._inverse_transform._inverse_transform import _inverse_transform
+from ._transform._transform import _transform
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.exceptions import NotFittedError

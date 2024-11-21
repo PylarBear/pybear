@@ -43,21 +43,7 @@ def _val_X(
 
     """
 
-    _err_msg = (
-        f"'X' must be a valid 2 dimensional numpy ndarray, pandas dataframe, "
-        f"or scipy sparce matrix or array, with at least 2 columns and 1 "
-        f"example."
-    )
 
-    # pizza
-    # sklearn _validate_data is not catching this
-    if _X is None:
-        raise TypeError(_err_msg)
-    #
-    #
-    # # sklearn _validate_data is not catching this
-    # if len(_X.shape) != 2:
-    #     raise UnicodeError
 
 
     # sklearn _validate_data & check_array are not catching dask arrays & dfs.
@@ -70,4 +56,9 @@ def _val_X(
         )
 
 
-
+    if _X.shape[0] < 1:
+        raise ValueError(
+            f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
+            f"dataframe, or scipy sparce matrix or array, with at least "
+            f"1 example."
+        )

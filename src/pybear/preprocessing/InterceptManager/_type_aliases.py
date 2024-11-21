@@ -31,7 +31,7 @@ SparseTypes: TypeAlias = Union[
     ss._bsr.bsr_array
 ]
 
-DataType: TypeAlias = Union[
+DataFormatType: TypeAlias = Union[
     npt.NDArray,
     pd.DataFrame,
     SparseTypes
@@ -42,7 +42,7 @@ KeepType: TypeAlias = Optional[Union[
     dict[str, any],
     int,
     str,
-    Callable[[DataType], int]
+    Callable[[DataFormatType], int]
 ]]
 
 

@@ -7,7 +7,7 @@
 
 from pybear.preprocessing.InterceptManager._validation._instructions import _val_instructions
 
-from .._type_aliases import (
+from pybear.preprocessing.InterceptManager._type_aliases import (
     KeepType,
     InstructionType
 )
@@ -26,6 +26,8 @@ def _make_instructions(
 ) -> InstructionType:
 
     """
+    :param: keep instructions must have been condition into dict[str, any],
+    int, or Literal['none'] only before this module.
     Based on the keep instructions provided, and the constant columns
     found during fitting, build a dictionary that gives explicit
     instructions about what constant columns to keep, delete, or add.
@@ -38,17 +40,17 @@ def _make_instructions(
     }
 
 
-    if keep == 'first', keep first, add none, delete all but first
-    if keep == 'last', keep last, add none, delete all but last
-    if keep == 'random', keep a random idx, add none, delete remaining
     if keep == 'none', keep none, add none, delete all
     if keep == a dict, keep none, delete all, add value in last position
+    if keep == int, keep that column, delete the remaining constant columns
+    keep callable & feature name, and the remaining str literals should not
+    get in here, should have been converted to int in _manage_keep
 
 
     Parameters
     ----------
     _keep:
-        Union[Literal['first', 'last', 'random', 'none'], dict[str, any]] -
+        Union[int, Literal['none'], dict[str, any]] -
         pizza finish
     constant_columns_:
         dict[int, any] - finish your pizza!
@@ -62,7 +64,7 @@ def _make_instructions(
     ------
     -
         _instructions:
-            dict['keep':various, 'delete':various, 'add':various] -
+            dict['keep':[list[int], None], 'delete':[list[int], None], 'add':[list[int], None]] -
             instructions for keeping, deleting, or adding constant
             columns to be applied during :method: transform
 
@@ -74,14 +76,14 @@ def _make_instructions(
     # pizza brains do we want _instructions to have np.ndarray instead of list?
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    err_msg = \
-        f"'_keep' must be Literal['first', 'last', 'random', 'none'], dict[str, any], int, str, or callable"
+    err_msg = f"'_keep' must be Literal['none'], dict[str, any], or int"
     try:
         iter(_keep)
         if not isinstance(_keep, (str, dict)):
             raise UnicodeError
-        # pizza cant validate str really, could be column name, could be anything + keep literals
         if isinstance(_keep, dict) and not isinstance(list(_keep.keys())[0], str):
+            raise UnicodeError
+        if isinstance(_keep, str) and _keep != 'none':
             raise UnicodeError
     except UnicodeError:
         raise AssertionError(err_msg)
@@ -96,8 +98,7 @@ def _make_instructions(
         except UnicodeError:
             raise ValueError(err_msg)
         except:
-            if not callable(_keep):
-                raise AssertionError(err_msg)
+            raise AssertionError(err_msg)
 
 
     assert isinstance(constant_columns_, dict)
@@ -119,72 +120,26 @@ def _make_instructions(
     }
 
 
-    if len(constant_columns_) == 0:
+    if len(_sorted_constant_column_idxs) == 0:
         # if there are no constant columns, skip out and return Nones
         pass
-        # pizza if ok, delete
-        # return _instructions
     elif isinstance(_keep, int):
-        # this is the first place where we could validate whether the _keep int is actually
-        # a constant column in the data
-        if _keep not in constant_columns_:
-            raise ValueError(f"'keep' column index has been set to {_keep}, but that column is not constant.")
-        # pizza did this 24_11_15_18_54_00 and was so tired. doublecheck this.
         _instructions['keep'] = [_keep]
         _sorted_constant_column_idxs.remove(_keep)
         _instructions['delete'] = _sorted_constant_column_idxs
-    elif isinstance(_keep, str) and _keep not in ('first', 'last', 'random', 'none'):
-        # then must be a header.
-        # this is the first place where we could validate whether the _keep str is actually
-        # a constant column in the data
-
-        # pizza
-        # shouldnt need to validate str keep on None header, that should have
-        # been done in validation
-
-        idx = int(np.arange(len(_columns))[_columns==_keep][0])
-        if idx not in constant_columns_:
-            raise ValueError(f"'keep' has been set to column '{_keep}', but that column is not constant.")
-        # pizza did this 24_11_15_18_54_00 and was so tired. doublecheck this.
-        _instructions['keep'] = [idx]
-        _sorted_constant_column_idxs.remove(idx)
-        _instructions['delete'] = _sorted_constant_column_idxs
+    elif isinstance(_keep, str) and _keep != 'none':
+        raise ValueError(f"str 'keep' not 'none' has gotten into _make_instructions but should already be an int")
     elif callable(_keep):
         raise ValueError(f"callable 'keep' has gotten into _make_instructions but should already be an int")
-    elif _keep == 'first':
-        # if keep == 'first', keep first, add none, delete all but first
-        _instructions['keep'] = [_sorted_constant_column_idxs[0]]
-        _instructions['delete'] = _sorted_constant_column_idxs[1:]
-        # pizza if ok, delete
-        # return _instructions
-    elif _keep == 'last':
-        # if keep == 'last', keep last, add none, delete all but last
-        _instructions['keep'] = [_sorted_constant_column_idxs[-1]]
-        _instructions['delete'] = _sorted_constant_column_idxs[:-1]
-        # pizza if ok, delete
-        # return _instructions
-    elif _keep == 'random':
-        # if keep == 'random', keep a random idx, add none, delete remaining
-        _rand_idx = int(np.random.choice(_sorted_constant_column_idxs))
-        _instructions['keep'] = [_rand_idx]
-        _sorted_constant_column_idxs.remove(_rand_idx)
-        _instructions['delete'] = _sorted_constant_column_idxs
-        del _rand_idx
-        # pizza if ok, delete
-        # return _instructions
     elif _keep == 'none':
         # if keep == 'none', keep none, add none, delete all
         _instructions['delete'] = _sorted_constant_column_idxs
-        # pizza if ok, delete
-        # return _instructions
     elif isinstance(_keep, dict):
         # if keep == a dict, keep none, delete all, add value in last position
         _instructions['delete'] = _sorted_constant_column_idxs
         _instructions['add'] = _keep
-        # pizza if ok, delete
-        # return _instructions
     else:
-        raise Exception(f"algorithm failure, invalid 'keep'")
+        raise Exception(f"algorithm failure, invalid 'keep': {_keep}")
 
 
     _val_instructions(_instructions, _shape)

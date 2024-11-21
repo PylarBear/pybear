@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import DataType, KeepType
+from .._type_aliases import DataFormatType, KeepType
 from typing import Iterable
 from typing_extensions import Union
 import warnings
@@ -17,7 +17,7 @@ import warnings
 def _val_keep_and_columns(
     _keep:KeepType,
     _columns:Union[Iterable[str], None],
-    _X: DataType
+    _X: DataFormatType
 ) -> None:
 
     # pizza do u want to have any limitations on what 'keep' dict value can be, currently any
@@ -38,7 +38,7 @@ def _val_keep_and_columns(
     Parameters
     ----------
     _keep:
-        Literal['first', 'last', 'random', 'none'], dict[str, any], int, str, Callable[[DataType], int]
+        Literal['first', 'last', 'random', 'none'], dict[str, any], int, str, Callable[[DataFormatType], int]
         default = 'last' -
         The strategy for keeping a single representative from a set of
         identical columns. 'first' retains the column left-most in the
@@ -49,7 +49,7 @@ def _val_keep_and_columns(
         Union[Iterable[str], None] - feature names of X, only available
         if X was passed as a pandas dataframe.
     _X:
-        PizzaDataType - of shape (n_samples, n_features). The data to be
+        PizzaDataFormatType - of shape (n_samples, n_features). The data to be
         searched for constant columns.
 
 
@@ -70,9 +70,10 @@ def _val_keep_and_columns(
     if _columns is None:
         pass
     else:
-
         try:
             iter(_columns)
+            if isinstance(_columns, (str, dict)):
+                raise Exception
             assert len(_columns) == _X.shape[1]
             assert all(map(isinstance, _columns, (str for _ in _columns)))
         except:
@@ -91,7 +92,7 @@ def _val_keep_and_columns(
         f"\ndict[str, any], "
         f"\nint (column index), "
         f"\nstr (column header, if X was passed as pandas dataframe), "
-        f"\ncallable on X, returning an integer indicating column index"
+        f"\ncallable on X, returning an integer indicating a valid column index"
     )
 
     # validate keep as dict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -111,6 +112,7 @@ def _val_keep_and_columns(
         del _name
 
         return # <====================================================
+
     # END validate keep as dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -133,6 +135,9 @@ def _val_keep_and_columns(
     # validate keep as callable ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # returns an integer in range of num X features
     if callable(_keep):
+        # pizza this is where keep callable is being computed before fit
+        # this checks if out is int and in range of X.shape[1]
+        # decide if u want to keep this here or move all callable validation into _manage_keep
         _test_keep = _keep(_X)
         try:
             float(_test_keep)
@@ -152,34 +157,50 @@ def _val_keep_and_columns(
     # validate keep as str ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     if isinstance(_keep, str):
         # could be one of the literals or a column header
-        _keep = _keep.lower()
         if _keep in ('first', 'last', 'random', 'none'):
             # this is when it is bad for 'keep' to be in _columns
             if _columns is not None and _keep in _columns:
-                # if is one of the literals
-                # pizza make a decision on this, case sensitivity and such!
+                # if a feature name is one of the literals
                 raise ValueError(
                     f"\nthere is a conflict with one of the feature names and "
-                    f"the literals for :param: keep. Column '{_keep}' conflicts with keep literal."
-                    f"\nkeep literals: 'first', 'last', 'random', 'none' pizza what about case sensitive?"
+                    f"the literals for :param: keep. Column '{_keep}' conflicts with a keep literal."
+                    f"\nallowed keep literals (case sensitive): 'first', 'last', 'random', 'none'"
                     f"\nplease change the column name or use a different keep literal."
                     f"\n"
                 )
         else:
             # is str, but is not one of the literals, then must be a column name
+            _base_msg = f":param: keep '{_keep}' is "
+
+            if _keep.lower() in ('first', 'last', 'random', 'none'):
+                _addon = (f"if you are trying use :param: keep literals "
+                    f"('first', 'last', 'random', 'none'), only enter these as lower-case."
+                )
+            else:
+                _addon = ""
+
+
             if _columns is None:
-                raise ValueError(f":param: keep '{_keep}' is string but header was not passed")
+                raise ValueError(
+                    _base_msg + f"string but header was not passed. " + _addon
+                )
             elif _keep not in _columns:
-                raise ValueError(f":param: keep '{_keep}' is not one of the originally seen features")
+                raise ValueError(
+                    _base_msg + f"not one of the originally seen features. " + _addon
+                )
+            elif _keep in _columns:
+                pass
 
-
+            del _base_msg, _addon
 
         return  # <====================================================
     # END validate keep as str ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 
-
+    # the returns in the if blocks should prevent us from getting here.
+    # if something is passed for :param: keep that dodges all the if
+    # blocks, then raise.
     raise ValueError(_err_msg)
 
 

@@ -9,7 +9,7 @@
 from pybear.preprocessing.InterceptManager._transform._transform import \
     _transform
 
-from pybear.preprocessing.InterceptManager._partial_fit._set_attributes \
+from pybear.preprocessing.InterceptManager._shared._set_attributes \
     import _set_attributes
 
 from pybear.preprocessing.InterceptManager._partial_fit._parallel_constant_finder import \

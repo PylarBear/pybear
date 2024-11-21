@@ -36,10 +36,7 @@ def _val_atol(_atol: Real) -> None:
 
     X1 = np.random.uniform(0, 1, 20)
 
-    try:
-        np.allclose(X1, X1, rtol=1e-6, atol=_atol)
-    except Exception as e:
-        raise e
+    np.allclose(X1, X1, rtol=1e-6, atol=_atol)
 
 
 
