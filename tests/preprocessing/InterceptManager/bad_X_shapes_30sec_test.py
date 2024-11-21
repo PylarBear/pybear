@@ -16,7 +16,7 @@ import pytest
 
 
 
-# pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
+
 
 
 # TEST FOR EXCEPTS ON BAD X SHAPES ON ARRAY & DF ##########################

@@ -130,13 +130,13 @@ def _parallel_constant_finder(
         elif _equal_nan:
             # get uniques of non-nans
             _unq = np.unique(_column[np.logical_not(_nan_mask)])
-            out = _unq if len(_unq) == 1 else False
+            out = _unq[0] if len(_unq) == 1 else False
             del _unq
 
     elif _is_str and not any(_nan_mask):
         # no nans, _equal_nan doesnt matter
         _unq = np.unique(_column)
-        out = _unq if len(_unq) == 1 else False
+        out = _unq[0] if len(_unq) == 1 else False
         del _unq
 
     else:

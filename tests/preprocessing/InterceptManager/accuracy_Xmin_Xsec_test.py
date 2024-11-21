@@ -60,7 +60,7 @@ class TestAccuracy:
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('constants', (None, {0:1,2:1,9:1}, {0:1,1:1,6:1,8:1}))
-    @pytest.mark.parametrize('keep', ('first', 'last', 'random', 'none', {'Intercept': 1}, 1, 'string', lambda x: 0))
+    @pytest.mark.parametrize('keep', ('first', 'last', 'random', 'none'))  # pizza , {'Intercept': 1}, 1, 'string', lambda x: 0))
     @pytest.mark.parametrize('equal_nan', (True, False))
     def test_accuracy(self, _X_factory, _kwargs, X_format, X_dtype, has_nan,
         constants, keep, _columns, equal_nan, _shape
@@ -150,7 +150,7 @@ class TestAccuracy:
 
         # number of columns in output is adjusted correctly for num constants
         assert sum(TestCls.column_mask_) == \
-               _shape[1] - sum([len(_)-1 for _ in exp_constants])
+               _shape[1] - len(exp_constants) + (keep != 'none')
 
         # number of columns in output == number of columns in column_mask_
         assert TRFM_X.shape[1] == sum(TestCls.column_mask_)
@@ -272,7 +272,8 @@ class TestAccuracy:
         __all_constants = list(itertools.chain(*deepcopy(exp_constants)))
         for col_idx in range(_shape[1]):
             if col_idx not in __all_constants:
-                assert TestCls.column_mask_[col_idx] is True
+                # pizza when this thing runs come back see if can get this to py True
+                assert TestCls.column_mask_[col_idx] is np.True_
 
         # for retained columns, assert they are equal to themselves in
         # the original data

@@ -84,12 +84,20 @@ class TestParallelConstantFinder:
                     assert out is False
 
         elif dtype == 'str':
-
             if has_nan:
                 # _noise and rtol dont matter for str column, but we built the
                 # str test vector to be constant or not based on _noise and rtol
                 if equal_nan:
                     if _noise <= atol:
+                        try:
+                            iter(out)
+                            if isinstance(out, str):
+                                raise Exception
+                            raise UnicodeError
+                        except UnicodeError:
+                            raise Exception
+                        except:
+                            pass
                         assert out == 'a'
                     elif _noise > atol:
                         assert out is False
@@ -100,6 +108,15 @@ class TestParallelConstantFinder:
                 # _noise and rtol dont matter for str column, but we built the
                 # str test vector to be constant or not based on _noise and rtol
                 if _noise <= atol:
+                    try:
+                        iter(out)
+                        if isinstance(out, str):
+                            raise Exception
+                        raise UnicodeError
+                    except UnicodeError:
+                        raise Exception
+                    except:
+                        pass
                     assert out == 'a'
                 elif _noise > atol:
                     assert out is False
@@ -137,6 +154,15 @@ class TestParallelConstantFinder:
                 assert out is False
         elif dtype == 'str':
             if equal_nan:
+                try:
+                    iter(out)
+                    if isinstance(out, str):
+                        raise Exception
+                    raise UnicodeError
+                except UnicodeError:
+                    raise Exception
+                except:
+                    pass
                 assert out == 'nan'
             elif not equal_nan:
                 assert out is False

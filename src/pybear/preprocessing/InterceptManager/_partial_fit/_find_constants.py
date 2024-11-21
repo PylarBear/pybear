@@ -86,6 +86,7 @@ def _find_constants(
         _column_getter(_X, _col_idx), *args) for _col_idx in range(_X.shape[1])
     )
 
+
     # convert 'out' to dict[idx, value] of only the columns of constants
     _new_constants = {}
     for idx, v in enumerate(out):

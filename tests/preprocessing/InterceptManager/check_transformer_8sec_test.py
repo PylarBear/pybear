@@ -20,7 +20,7 @@ from sklearn.utils.estimator_checks import (
 import pytest
 
 
-# pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
+
 
 
 class TestSKLearnCheckTransformer:
