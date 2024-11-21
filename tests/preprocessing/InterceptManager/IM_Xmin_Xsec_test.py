@@ -22,7 +22,7 @@ import dask.dataframe as ddf
 
 
 
-pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
+# pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
 
 
 bypass = False
@@ -45,6 +45,11 @@ def _kwargs():
         'atol': 1e-8,
         'n_jobs': -1
     }
+
+
+@pytest.fixture(scope='module')
+def _constants(_shape):
+    return {0: 0, _shape[1]-2: np.nan, _shape[1]-1: 1}
 
 
 @pytest.fixture(scope='module')
@@ -81,45 +86,41 @@ def _X_pd(_dum_X, _columns):
 
 # test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestInputValidation:
-
-    JUNK = (
-            -1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
-            lambda x: x, min
-    )
+class TestInitValidation:
 
 
     # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_keep',
-        (-1,0,1, np.pi, True, False, None, [1,2], {1,2}, {'a':1}, lambda x: x, min)
+        (True, False, None, [1,2], {1,2})
     )
     def test_junk_keep(self, _dum_X, _kwargs, junk_keep):
 
         _kwargs['keep'] = junk_keep
 
-        TestCls = IM(**_kwargs)
-
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+        with pytest.raises(ValueError):
+            IM(**_kwargs).fit_transform(_dum_X)
 
 
-    @pytest.mark.parametrize('bad_keep', ('trash', 'garbage', 'waste'))
+    @pytest.mark.parametrize('bad_keep',
+        (-1, np.pi, 'rubbish', {1:'trash'}, lambda x: 'junk', min)
+    )
     def test_bad_keep(self, _dum_X, _kwargs, bad_keep):
 
         _kwargs['keep'] = bad_keep
 
-        TestCls = IM(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_dum_X)
 
 
-    @pytest.mark.parametrize('good_keep', ('first', 'last', 'random'))
-    def test_good_keep(self, _dum_X, _kwargs, good_keep):
+    @pytest.mark.parametrize('good_keep', ('first', 'last', 'random', 'none', 0, {'Intercept': 1}, lambda x: 0, 'string'))
+    def test_good_keep(self, _X_pd, _columns, _kwargs, good_keep):
+
+        if good_keep == 'string':
+            good_keep = _columns[0]
 
         _kwargs['keep'] = good_keep
 
-        IM(**_kwargs).fit_transform(_dum_X)
+        IM(**_kwargs).fit_transform(_X_pd)
     # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -132,12 +133,10 @@ class TestInputValidation:
 
         _kwargs[_trial] = _junk
 
-        TestCls = IM(**_kwargs)
-
         # except for bools, this is handled by np.allclose, let it raise
         # whatever it will raise
         with pytest.raises(Exception):
-            TestCls.fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
@@ -146,12 +145,10 @@ class TestInputValidation:
 
         _kwargs[_trial] = _bad
 
-        TestCls = IM(**_kwargs)
-
         # except for bools, this is handled by np.allclose, let it raise
         # whatever it will raise
         with pytest.raises(Exception):
-            TestCls.fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
@@ -174,10 +171,8 @@ class TestInputValidation:
 
         _kwargs['equal_nan'] = _junk
 
-        TestCls = IM(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_equal_nan', [True, False])
@@ -198,10 +193,8 @@ class TestInputValidation:
 
         _kwargs['n_jobs'] = junk_n_jobs
 
-        TestCls = IM(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('bad_n_jobs', [-2, 0])
@@ -209,10 +202,8 @@ class TestInputValidation:
 
         _kwargs['n_jobs'] = bad_n_jobs
 
-        TestCls = IM(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('good_n_jobs', [-1, 1, 10, None])
@@ -238,13 +229,11 @@ class TestFitPartialFitAcceptYEqualsAnything:
 
     @pytest.mark.parametrize('_stuff', STUFF)
     def test_fit(self, _kwargs, _dum_X, _stuff):
-        TestCls = IM(**_kwargs)
-        TestCls.fit(_dum_X, _stuff)
+        IM(**_kwargs).fit(_dum_X, _stuff)
 
     @ pytest.mark.parametrize('_stuff', STUFF)
     def test_partial_fit_after_partial_fit(self, _kwargs, _dum_X, _stuff):
-        TestCls = IM(**_kwargs)
-        TestCls.partial_fit(_dum_X, _stuff)
+        IM(**_kwargs).partial_fit(_dum_X, _stuff)
 
     @ pytest.mark.parametrize('_stuff', STUFF)
     def test_partial_fit_after_fit(self, _kwargs, _dum_X, _stuff):
@@ -265,8 +254,7 @@ class TestExceptsAnytimeXisNone:
         # let it raise whatever
 
         with pytest.raises(Exception):
-            TestCls = IM(**_kwargs)
-            TestCls.fit(None)
+            IM(**_kwargs).fit(None)
 
         with pytest.raises(Exception):
             TestCls = IM(**_kwargs)
@@ -284,8 +272,7 @@ class TestExceptsAnytimeXisNone:
             TestCls.transform(None)
 
         with pytest.raises(Exception):
-            TestCls = IM(**_kwargs)
-            TestCls.fit_transform(None)
+            IM(**_kwargs).fit_transform(None)
 
         del TestCls
 
@@ -328,12 +315,10 @@ class TestRejectsXAsSingleColumnOrSeries:
         if _fst_fit_x_format == 'pandas_series':
             _fst_fit_X = _fst_fit_X.squeeze()
 
-        TestCls = IM(**_kwargs)
-
         with pytest.raises(Exception):
             # this is handled by sklearn.base.BaseEstimator._validate_data,
             # let it raise whatever
-            TestCls.fit_transform(_fst_fit_X)
+            IM(**_kwargs).fit_transform(_fst_fit_X)
 
 # END VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##############################
 
@@ -404,35 +389,35 @@ class TestExceptWarnOnDifferentHeader:
 
 # END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
 
-
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAllMethodsExceptOnScipyBSR:
-
-    @pytest.mark.parametrize(f'_format', ('matrix', 'array'))
-    def test_all_methods_reject_BSR(self, _format, _kwargs, _dum_X):
-
-        TestCls = IM(**deepcopy(_kwargs))
-
-        if _format == 'matrix':
-            BSR_X = ss.bsr_matrix(_dum_X)
-        elif _format == 'array':
-            BSR_X = ss.bsr_array(_dum_X)
-
-        # sklearn _validate_data is not catching this!
-
-        with pytest.raises(TypeError):
-            TestCls.partial_fit(BSR_X)
-
-        with pytest.raises(TypeError):
-            TestCls.fit(BSR_X)
-
-        TestCls.fit(_dum_X)
-
-        with pytest.raises(TypeError):
-            TestCls.transform(BSR_X)
-
-        with pytest.raises(TypeError):
-            TestCls.inverse_transform(BSR_X)
+# pizza dont delete this just yet, wait until everything proves out
+# @pytest.mark.skipif(bypass is True, reason=f"bypass")
+# class TestAllMethodsExceptOnScipyBSR:
+#
+#     @pytest.mark.parametrize(f'_format', ('matrix', 'array'))
+#     def test_all_methods_reject_BSR(self, _format, _kwargs, _dum_X):
+#
+#         TestCls = IM(**deepcopy(_kwargs))
+#
+#         if _format == 'matrix':
+#             BSR_X = ss.bsr_matrix(_dum_X)
+#         elif _format == 'array':
+#             BSR_X = ss.bsr_array(_dum_X)
+#
+#         # sklearn _validate_data is not catching this!
+#
+#         with pytest.raises(TypeError):
+#             TestCls.partial_fit(BSR_X)
+#
+#         with pytest.raises(TypeError):
+#             TestCls.fit(BSR_X)
+#
+#         TestCls.fit(_dum_X)
+#
+#         with pytest.raises(TypeError):
+#             TestCls.transform(BSR_X)
+#
+#         with pytest.raises(TypeError):
+#             TestCls.inverse_transform(BSR_X)
 
 
 # TEST OUTPUT TYPES ####################################################
@@ -581,13 +566,12 @@ class TestAllColumnsTheSameorDifferent:
         else:
             raise Exception
 
-        TestCls = IM(**_kwargs)
-        out = TestCls.fit_transform(TEST_X)
+        out = IM(**_kwargs).fit_transform(TEST_X)
 
         if same_or_diff == '_same':
             assert out.shape[1] == 1
         elif same_or_diff == '_diff':
-            assert out.shape[1] == _shape[1]
+            assert out.shape[1] == _shape[1] - 2
 
 # END TEST ALL COLUMNS THE SAME OR DIFFERENT ##################################
 
@@ -855,8 +839,7 @@ class TestAColumnOfAllNans:
 
         # 2nd column should drop, should have 2 columns, last is all np.nan
 
-        TestCls = IM(**_kwargs)
-        out = TestCls.fit_transform(_X)
+        out = IM(**_kwargs).fit_transform(_X)
 
         assert np.array_equal(out[:, 0], _X[:, 0])
         assert all(nan_mask_numerical(out[:, -1]))
@@ -882,8 +865,7 @@ class TestAColumnOfAllNans:
 
         # 2nd & 4th column should drop, should have 2 columns, last is all np.nan
 
-        TestCls = IM(**_kwargs)
-        out = TestCls.fit_transform(_X)
+        out = IM(**_kwargs).fit_transform(_X)
 
         assert np.array_equal(out[:, 0], _X[:, 0])
         assert all(nan_mask_numerical(out[:, -1]))
@@ -913,21 +895,19 @@ class TestPartialFit:
     )
     def test_rejects_junk_X(self, _junk_X, _kwargs):
 
-        _IM = IM(**_kwargs)
-
         # this is being caught by _validation at the top of partial_fit.
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #      hasattr(_X, 'toarray'):
         with pytest.raises(TypeError):
-            _IM.partial_fit(_junk_X)
+            IM(**_kwargs).partial_fit(_junk_X)
 
 
     @pytest.mark.parametrize('_format',
          (
              'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-             'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
+             'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
          )
     )
     def test_X_container(self, _dum_X, _columns, _kwargs, _format):
@@ -955,6 +935,8 @@ class TestPartialFit:
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
@@ -967,6 +949,8 @@ class TestPartialFit:
             _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
         elif _format == 'dask_array':
             _X_wip = da.array(_X)
         elif _format == 'dask_dataframe':
@@ -975,14 +959,12 @@ class TestPartialFit:
         else:
             raise Exception
 
-        _IM = IM(**_kwargs)
-
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
                 # handled by IM
-                _IM.partial_fit(_X_wip)
+                IM(**_kwargs).partial_fit(_X_wip)
         else:
-            _IM.partial_fit(_X_wip)
+            IM(**_kwargs).partial_fit(_X_wip)
 
 
     @pytest.mark.parametrize('_num_cols', (1, 2))
@@ -1002,24 +984,21 @@ class TestPartialFit:
         )[:, np.arange(_num_cols)]
 
         _kwargs['keep'] = 'first'
-        _IM = IM(**_kwargs)
 
         if _num_cols < 2:
             with pytest.raises(ValueError):
-                _IM.partial_fit(_wip_X)
+                IM(**_kwargs).partial_fit(_wip_X)
         else:
-            _IM.partial_fit(_wip_X)
+            IM(**_kwargs).partial_fit(_wip_X)
 
 
     def test_rejects_no_samples(self, _dum_X, _kwargs, _columns):
 
         _X = _dum_X.copy()
 
-        _IM = IM(**_kwargs)
-
         # dont know what is actually catching this! maybe _validate_data?
         with pytest.raises(ValueError):
-            _IM.partial_fit(np.empty((0, _X.shape[1]), dtype=np.float64))
+            IM(**_kwargs).partial_fit(np.empty((0, _X.shape[1]), dtype=np.float64))
 
 
     def test_rejects_1D(self, _X_factory, _kwargs):
@@ -1034,10 +1013,8 @@ class TestPartialFit:
             _shape=(20, 2)
         )
 
-        _IM = IM(**_kwargs)
-
         with pytest.raises(ValueError):
-            _IM.partial_fit(_wip_X[:, 0])
+            IM(**_kwargs).partial_fit(_wip_X[:, 0])
 
     # dont really need to test accuracy, see _partial_fit
 
@@ -1097,8 +1074,8 @@ class TestTransform:
     @pytest.mark.parametrize('_format',
          (
              'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-             'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
+             'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
          )
     )
     def test_X_container(self, _dum_X, _columns, _kwargs, _format):
@@ -1126,6 +1103,8 @@ class TestTransform:
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
@@ -1138,6 +1117,8 @@ class TestTransform:
             _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
         elif _format == 'dask_array':
             _X_wip = da.array(_X)
         elif _format == 'dask_dataframe':
@@ -1297,8 +1278,8 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_format',
         (
              'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-             'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
+             'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
         )
     )
     def test_X_container(self, _dum_X, _columns, _kwargs, _format):
@@ -1326,6 +1307,8 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
@@ -1338,6 +1321,8 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
         elif _format == 'dask_array':
             _X_wip = da.array(_X)
         elif _format == 'dask_dataframe':
@@ -1377,10 +1362,11 @@ class TestInverseTransform:
         # REJECTS LESS THAN 1 COLUMN.
 
         _wip_X = _X_factory(
-            _dupl=[[0, 1, 2]],
+            _dupl=None,
             _has_nan=False,
             _format='np',
             _dtype='flt',
+            _constants={0:1, 1:np.nan, 2:0},
             _columns=None,
             _zeros=0,
             _shape=(20, 3)
@@ -1465,8 +1451,8 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_format',
         (
             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-            'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-            'dia_array', 'lil_array', 'dok_array'
+            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
+            'dia_array', 'lil_array', 'dok_array', 'bsr_array'
         )
     )
     @pytest.mark.parametrize('_dtype', ('int', 'flt', 'str', 'obj', 'hybrid'))
@@ -1520,6 +1506,8 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_matrix(_base_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_base_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_base_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_base_X)
         elif _format == 'csc_array':
@@ -1532,6 +1520,8 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_array(_base_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_base_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_base_X)
         else:
             raise Exception
 

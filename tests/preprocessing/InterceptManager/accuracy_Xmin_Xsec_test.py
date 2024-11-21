@@ -25,7 +25,7 @@ import pytest
 
 
 
-pytest.skip(reason=f"pizza is raw!", allow_module_level=True)
+# pytest.skip(reason=f"pizza is raw!", allow_module_level=True)
 
 
 class TestAccuracy:
@@ -56,11 +56,11 @@ class TestAccuracy:
 
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'csr', 'coo'))
-    @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('X_format', ('np', )) # pizza 'pd', 'csr', 'csr', 'coo'))
+    @pytest.mark.parametrize('X_dtype', ('flt',)) # pizza  'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
-    @pytest.mark.parametrize('constants', (None, {0:1,2:1,9:1}, {0:1,1:1,6:1,8:1}))
-    @pytest.mark.parametrize('keep', ('first', 'last', 'random', 'none'))  # pizza , {'Intercept': 1}, 1, 'string', lambda x: 0))
+    @pytest.mark.parametrize('constants', (None, )) # pizza {0:1,2:1,9:1}, {0:1,1:1,6:1,8:1}))
+    @pytest.mark.parametrize('keep', ('first', 'last', 'random', 'none', 1, 'string', lambda x: 0)) #, {'Intercept': 1})) # pizza
     @pytest.mark.parametrize('equal_nan', (True, False))
     def test_accuracy(self, _X_factory, _kwargs, X_format, X_dtype, has_nan,
         constants, keep, _columns, equal_nan, _shape
@@ -108,7 +108,23 @@ class TestAccuracy:
             _og_dtype = X.dtype
 
 
-        TRFM_X = TestCls.fit_transform(X)
+        # if data has no constants and user put in keep str/int/callable, will raise
+        raise_for_keep_non_constant = False
+        has_constants = (constants is not None and len(constants) != 0 and not (has_nan and not equal_nan))
+        if not has_constants and (isinstance(keep, (int, str)) or callable(keep)):
+            raise_for_keep_non_constant += 1
+
+        if raise_for_keep_non_constant:
+            with pytest.raises(ValueError):
+                TRFM_X = TestCls.fit_transform(X)
+            pytest.skip(f"cannot do more tests without fit")
+        else:
+            TRFM_X = TestCls.fit_transform(X)
+        del raise_for_keep_non_constant
+
+
+
+
         if isinstance(TRFM_X, np.ndarray):
             assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
@@ -149,8 +165,20 @@ class TestAccuracy:
             assert _columns.dtype == object
 
         # number of columns in output is adjusted correctly for num constants
-        assert sum(TestCls.column_mask_) == \
-               _shape[1] - len(exp_constants) + (keep != 'none')
+        # pizza
+        exp_columns = _shape[1]
+        if not has_nan or (has_nan and equal_nan):
+            if len(exp_constants):
+                exp_columns -= len(exp_constants)
+                exp_columns +=  (keep != 'none')
+            else:
+                exp_columns += isinstance(keep, dict)
+        elif has_nan and not equal_nan:
+            exp_columns += isinstance(keep, dict)
+        else:
+            raise Exception(f"algorithm failure")
+        assert sum(TestCls.column_mask_) == exp_columns
+        del exp_columns
 
         # number of columns in output == number of columns in column_mask_
         assert TRFM_X.shape[1] == sum(TestCls.column_mask_)

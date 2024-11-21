@@ -6,33 +6,52 @@
 
 
 # pizza dont forget to clean up these imports!!
-from typing import Iterable, Literal, Optional
-from typing_extensions import Union, Self
+from typing import Optional
+from typing_extensions import Self
 from ._type_aliases import (
-    KeepType, DataType
+    KeepType, DataFormatType
 )
 from numbers import Real, Integral
 
 import numpy as np
+
+from ._validation._validation import _validation
+from ._validation._X import _val_X
+from ._partial_fit._find_constants import _find_constants
+from ._shared._make_instructions import _make_instructions
+from ._shared._set_attributes import _set_attributes
+from ._shared._manage_keep import _manage_keep
+from ._inverse_transform._inverse_transform import _inverse_transform
+from ._transform._transform import _transform
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import StrOptions
 from sklearn.utils.validation import check_is_fitted, check_array
 from sklearn.exceptions import NotFittedError
 
-from ._validation._validation import _validation
 
-from ._partial_fit._find_constants import _find_constants
-from ._partial_fit._make_instructions import _make_instructions
-from ._partial_fit._set_attributes import _set_attributes
-from ._inverse_transform._inverse_transform import _inverse_transform
-from ._transform._transform import _transform
 
 
 class InterceptManager(BaseEstimator, TransformerMixin):
 
     """
+
+    pizza head maybe stardardize rtol/atol hinting between IM & CDT
+
     pizza say something
+
+    pizza talk about callable keep, possible variable output
+
+    pizza talk about setting equal_nan, rtol, atol between partial fits
+
+    # pizza, this is for :param: keep
+    to access the :param: keep literals ('first', 'last', 'random', 'none'),
+    these MUST be passed as lower-case. If a pandas dataframe is passed and there is a conflict between
+    the literals and a feature name, IM will raise because it is not clear
+    to IM whether you want to indicate the literal or the feature name. to afford
+    a little more flexibility with feature names, IM does not normalize case for this
+    parameter. This means that if :param: keep is 'first',  feature names such as
+    'First', 'FIRST', 'FiRsT', etc. will not raise, only 'first' will.
 
 
     Parameters
@@ -259,7 +278,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     @_fit_context(prefer_skip_nested_validation=True)
     def partial_fit(
         self,
-        X:DataType,
+        X:DataFormatType,
         y:any=None
     ) -> Self:
 
@@ -289,6 +308,10 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         """
 
+        # keep this before _validate_data. when X is junk, _validate_data
+        # and check_array except for varying reasons. this standardizes
+        # the error message for non-np/pd/ss X.
+        _val_X(X)
 
         # validation of X must be done here, not in a separate module
         # BaseEstimator has _validate_data method, which when called
@@ -319,6 +342,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         # ^^^^^^ pizza be sure to review _validate_data! ^^^^^^^
 
+        # this must be after _validate_data, needs feature_names_in_ to
+        # be exposed, if available.
         _validation(
             X,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
@@ -328,6 +353,24 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             self.atol,
             self.n_jobs
         )
+
+
+        # sklearn _validate_data & check_array are not catching this
+        if len(X.shape) != 2:
+            raise ValueError(
+                f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
+                f"dataframe, or scipy sparce matrix or array, with at "
+                f"least 2 columns and 1 example."
+            )
+
+
+        # sklearn _validate_data & check_array are not catching this
+        if X.shape[1] < 2:
+            raise ValueError(
+                f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
+                f"dataframe, or scipy sparce matrix or array, with at "
+                f"least 2 columns and 1 example."
+            )
 
 
         # dictionary of column indices and respective constant values
@@ -342,16 +385,13 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             )
 
 
-        if callable(self.keep):
-            _keep = self.keep(X)
-            if _keep not in self.constant_columns_:
-                raise ValueError(
-                    f"'keep' callable has returned an integer column index ({_keep}) "
-                    f"that is not a column of constants. \nconstant columns: "
-                    f"{self.constant_columns_}"
-                )
-        else:
-            _keep = self.keep
+        _keep = _manage_keep(
+            self.keep,
+            X,
+            self.constant_columns_,
+            self.n_features_in_,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+        )
 
 
         _instructions = _make_instructions(
@@ -373,7 +413,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
     def fit(
         self,
-        X:DataType,
+        X:DataFormatType,
         y:any=None
     ) -> Self:
 
@@ -406,15 +446,12 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         return self.partial_fit(X, y=y)
 
 
-        return self.partial_fit(X)
-
-
     def inverse_transform(
         self,
-        X: DataType,
+        X: DataFormatType,
         *,
         copy: bool = None
-    ) -> DataType:
+    ) -> DataFormatType:
 
         """
         Revert transformed data back to its original state. This operation
@@ -453,25 +490,32 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
-        # the number of columns in X must be equal to the number of features
-        # remaining in column_mask_
-        _n_remaining = np.sum(self.column_mask_)
-        err_msg = (f"the number of columns in X must be equal to the number of "
-               f"columns kept from the fitted data after removing duplicates "
-               f"{_n_remaining}"
-        )
-        if X.shape[1] != _n_remaining:
-            raise ValueError(err_msg)
+        # keep this before check_array. when X is junk, _validate_data
+        # and check_array except for varying reasons. this standardizes
+        # the error message for non-np/pd/ss X.
+        _val_X(X)
 
-        X = check_array(
+        # dont assign to X, check_array always converts to ndarray
+        check_array(
             array=X,
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
             dtype=None,
             force_all_finite="allow-nan",
             ensure_2d=True,
             copy=copy or False,
-            order='F'
+            order='F',
+            ensure_min_samples=1,  # this is doing squat, validated in _val_X
+            ensure_min_features=1,
         )
+
+        # the number of columns in X must be equal to the number of features
+        # remaining in column_mask_
+        if X.shape[1] != np.sum(self.column_mask_):
+            raise ValueError(
+                f"the number of columns in X must be equal to the number of "
+                f"columns kept from the fitted data after removing duplicates "
+                f"{np.sum(self.column_mask_)}"
+            )
 
         # if _keep is a dict, a column of constants was stacked to the right
         # side of the data. check that the passed data matches against _keep,
@@ -513,16 +557,17 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # pizza! dont forget! once the instance is fitted, cannot change equal_nan, rtol, and atol!
         # ... or maybe u can.... its just that new fits will be fitted subject to
         # different rules than prior fits
-
+    # if ever needed, hard code that can be substituted for the
+    # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
     # def set_output(self) - inherited from TransformerMixin
 
 
     def transform(
         self,
-        X: DataType,
+        X: DataFormatType,
         copy: bool=None
-    ) -> DataType:
+    ) -> DataFormatType:
 
         """
         Manage the constant columns from X. Apply the criteria given
@@ -555,6 +600,11 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
+        # keep this before _validate_data. when X is junk, _validate_data
+        # and check_array except for varying reasons. this standardizes
+        # the error message for non-np/pd/ss X.
+        _val_X(X)
+
         X = self._validate_data(
             X=X,
             reset=False,
@@ -565,6 +615,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             force_all_finite="allow-nan",
             ensure_2d=True,
             ensure_min_features=1,
+            ensure_min_samples=1,  # this is doing squat, validated in _val_X
             order ='F'
         )
 
@@ -578,10 +629,18 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             self.n_jobs
         )
 
-        # this needs to be redone every transform in case 'keep' was
+        # everything below needs to be redone every transform in case 'keep' was
         # changed via set params after fit
-        _instructions = _make_instructions(
+        _keep = _manage_keep(
             self.keep,
+            X,
+            self.constant_columns_,
+            self.n_features_in_,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+        )
+
+        _instructions = _make_instructions(
+            _keep,
             self.constant_columns_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             X.shape

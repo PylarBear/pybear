@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataFormatType
 from typing import Literal
 from typing_extensions import Union
 
@@ -18,7 +18,7 @@ from ....utilities import nan_mask, nan_mask_numerical
 
 
 def _parallel_constant_finder(
-    _column: DataType,
+    _column: DataFormatType,
     _equal_nan: bool,
     _rtol: Real,
     _atol: Real
@@ -47,7 +47,7 @@ def _parallel_constant_finder(
     Parameters
     ----------
     _column:
-        Pizza DataType - pizza!
+        Pizza DataFormatType - pizza!
     _equal_nan:
         bool - finish your pizza!
     _rtol:

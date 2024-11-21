@@ -7,7 +7,7 @@
 
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataFormatType
 from typing_extensions import Union
 import numpy.typing as npt
 
@@ -19,10 +19,10 @@ import scipy.sparse as ss
 
 
 def _inverse_transform(
-    X: DataType,
+    X: DataFormatType,
     _removed_columns: dict[int, any],
     _feature_names_in: Union[npt.NDArray[str], None]
-) -> DataType:
+) -> DataFormatType:
 
     """
     Revert transformed data back to its original state. IM cannot account

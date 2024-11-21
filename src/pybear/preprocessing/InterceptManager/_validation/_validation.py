@@ -16,7 +16,7 @@ from ._X import _val_X
 
 
 from .._type_aliases import (
-    DataType,
+    DataFormatType,
     KeepType
 )
 from typing import Iterable
@@ -25,7 +25,7 @@ from numbers import Real
 
 
 def _validation(
-    _X:DataType,
+    _X:DataFormatType,
     _columns: Union[Iterable[str], None],
     _keep: KeepType,
     _equal_nan: bool,

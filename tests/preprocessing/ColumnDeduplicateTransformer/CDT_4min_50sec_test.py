@@ -82,11 +82,6 @@ def _X_pd(_dum_X, _columns):
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestInitValidation:
 
-    JUNK = (
-            -1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
-            lambda x: x, min
-    )
-
 
     # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_keep',
@@ -96,10 +91,8 @@ class TestInitValidation:
 
         _kwargs['keep'] = junk_keep
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('bad_keep', ('trash', 'garbage', 'waste'))
@@ -107,10 +100,8 @@ class TestInitValidation:
 
         _kwargs['keep'] = bad_keep
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('good_keep', ('first', 'last', 'random'))
@@ -143,10 +134,8 @@ class TestInitValidation:
 
         _kwargs['do_not_drop'] = junk_dnd
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_X)
+            CDT(**_kwargs).fit_transform(_X)
 
 
     @pytest.mark.parametrize('_type', ('np', 'pd'), scope='module')
@@ -168,10 +157,8 @@ class TestInitValidation:
 
         _kwargs['do_not_drop'] = bad_dnd
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_X)
+            CDT(**_kwargs).fit_transform(_X)
 
 
     def test_array_str_handing(self, _dum_X, _kwargs, _columns):
@@ -180,19 +167,15 @@ class TestInitValidation:
         _kwargs['do_not_drop'] = \
             [v for i, v in enumerate(_columns) if i % 2 == 0]
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
         # rejects bad str when header
         _kwargs['do_not_drop'] = ['a', 'b']
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
@@ -203,33 +186,27 @@ class TestInitValidation:
         # accepts good int always
         _kwargs['do_not_drop'] = [0, 1]
 
-        TestCls = CDT(**_kwargs)
-        TestCls.fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_dum_X)
 
 
         # rejects bad int always - 1
         _kwargs['do_not_drop'] = [-1, 1]
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
         # rejects bad int always - 2
         _kwargs['do_not_drop'] = [0, _dum_X.shape[1]]
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
         # accepts None always
         _kwargs['do_not_drop'] = None
 
-        TestCls = CDT(**_kwargs)
-        TestCls.fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_dum_X)
 
 
     def test_df_str_handling(self, _X_pd, _kwargs, _columns):
@@ -238,48 +215,38 @@ class TestInitValidation:
         _kwargs['do_not_drop'] = \
             [v for i, v in enumerate(_columns) if i % 2 == 0]
 
-        TestCls = CDT(**_kwargs)
-        TestCls.fit_transform(_X_pd)
+        CDT(**_kwargs).fit_transform(_X_pd)
 
 
         # rejects bad str always
         _kwargs['do_not_drop'] = ['a', 'b']
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_pd)
+            CDT(**_kwargs).fit_transform(_X_pd)
 
 
     def test_df_int_and_none_handling(self, _X_pd, _kwargs, _columns):
         # accepts good int always
         _kwargs['do_not_drop'] = [0, 1]
 
-        TestCls = CDT(**_kwargs)
-        TestCls.fit_transform(_X_pd)
+        CDT(**_kwargs).fit_transform(_X_pd)
 
         # rejects bad int always - 1
         _kwargs['do_not_drop'] = [-1, 1]
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_pd)
+            CDT(**_kwargs).fit_transform(_X_pd)
 
         # rejects bad int always - 2
         _kwargs['do_not_drop'] = [0, _X_pd.shape[1]]
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_pd)
+            CDT(**_kwargs).fit_transform(_X_pd)
 
         # columns can be None
         _kwargs['do_not_drop'] = None
 
-        TestCls = CDT(**_kwargs)
-
-        TestCls.fit_transform(_X_pd)
+        CDT(**_kwargs).fit_transform(_X_pd)
     # END do_not_drop ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -291,10 +258,8 @@ class TestInitValidation:
 
         _kwargs['conflict'] = junk_conflict
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('bad_conflict', ('trash', 'garbage', 'waste'))
@@ -302,10 +267,8 @@ class TestInitValidation:
 
         _kwargs['conflict'] = bad_conflict
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('good_conflict', ('raise', 'ignore'))
@@ -326,12 +289,10 @@ class TestInitValidation:
 
         _kwargs[_trial] = _junk
 
-        TestCls = CDT(**_kwargs)
-
         # except for bools, this is handled by np.allclose, let it raise
         # whatever it will raise
         with pytest.raises(Exception):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
@@ -340,12 +301,10 @@ class TestInitValidation:
 
         _kwargs[_trial] = _bad
 
-        TestCls = CDT(**_kwargs)
-
         # except for bools, this is handled by np.allclose, let it raise
         # whatever it will raise
         with pytest.raises(Exception):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
@@ -368,10 +327,8 @@ class TestInitValidation:
 
         _kwargs['equal_nan'] = _junk
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_equal_nan', [True, False])
@@ -392,10 +349,8 @@ class TestInitValidation:
 
         _kwargs['n_jobs'] = junk_n_jobs
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('bad_n_jobs', [-2, 0])
@@ -403,10 +358,8 @@ class TestInitValidation:
 
         _kwargs['n_jobs'] = bad_n_jobs
 
-        TestCls = CDT(**_kwargs)
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('good_n_jobs', [-1, 1, 10, None])
@@ -432,13 +385,11 @@ class TestFitPartialFitAcceptYEqualsAnything:
 
     @pytest.mark.parametrize('_stuff', STUFF)
     def test_fit(self, _kwargs, _dum_X, _stuff):
-        TestCls = CDT(**_kwargs)
-        TestCls.fit(_dum_X, _stuff)
+        CDT(**_kwargs).fit(_dum_X, _stuff)
 
     @ pytest.mark.parametrize('_stuff', STUFF)
     def test_partial_fit_after_partial_fit(self, _kwargs, _dum_X, _stuff):
-        TestCls = CDT(**_kwargs)
-        TestCls.partial_fit(_dum_X, _stuff)
+        CDT(**_kwargs).partial_fit(_dum_X, _stuff)
 
     @ pytest.mark.parametrize('_stuff', STUFF)
     def test_partial_fit_after_fit(self, _kwargs, _dum_X, _stuff):
@@ -459,8 +410,7 @@ class TestExceptsAnytimeXisNone:
         # let it raise whatever
 
         with pytest.raises(Exception):
-            TestCls = CDT(**_kwargs)
-            TestCls.fit(None)
+            CDT(**_kwargs).fit(None)
 
         with pytest.raises(Exception):
             TestCls = CDT(**_kwargs)
@@ -478,8 +428,7 @@ class TestExceptsAnytimeXisNone:
             TestCls.transform(None)
 
         with pytest.raises(Exception):
-            TestCls = CDT(**_kwargs)
-            TestCls.fit_transform(None)
+            CDT(**_kwargs).fit_transform(None)
 
         del TestCls
 
@@ -522,12 +471,11 @@ class TestRejectsXAsSingleColumnOrSeries:
         if _fst_fit_x_format == 'pandas_series':
             _fst_fit_X = _fst_fit_X.squeeze()
 
-        TestCls = CDT(**_kwargs)
 
         with pytest.raises(Exception):
             # this is handled by sklearn.base.BaseEstimator._validate_data,
             # let it raise whatever
-            TestCls.fit_transform(_fst_fit_X)
+            CDT(**_kwargs).fit_transform(_fst_fit_X)
 
 # END VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##############################
 
@@ -775,8 +723,7 @@ class TestAllColumnsTheSameorDifferent:
         else:
             raise Exception
 
-        TestCls = CDT(**_kwargs)
-        out = TestCls.fit_transform(TEST_X)
+        out = CDT(**_kwargs).fit_transform(TEST_X)
 
         if same_or_diff == '_same':
             assert out.shape[1] == 1
@@ -1051,8 +998,7 @@ class TestAColumnOfAllNans:
 
         # 2nd column should drop, should have 2 columns, last is all np.nan
 
-        TestCls = CDT(**_kwargs)
-        out = TestCls.fit_transform(_X)
+        out = CDT(**_kwargs).fit_transform(_X)
 
         assert np.array_equal(out[:, 0], _X[:, 0])
         assert all(nan_mask_numerical(out[:, -1]))
@@ -1078,8 +1024,7 @@ class TestAColumnOfAllNans:
 
         # 2nd & 4th column should drop, should have 2 columns, last is all np.nan
 
-        TestCls = CDT(**_kwargs)
-        out = TestCls.fit_transform(_X)
+        out = CDT(**_kwargs).fit_transform(_X)
 
         assert np.array_equal(out[:, 0], _X[:, 0])
         assert all(nan_mask_numerical(out[:, -1]))

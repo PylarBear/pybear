@@ -5,7 +5,7 @@
 #
 
 
-from .._type_aliases import DataType, InstructionType
+from .._type_aliases import DataFormatType, InstructionType
 
 import numpy as np
 import pandas as pd
@@ -15,9 +15,9 @@ import scipy.sparse as ss
 
 
 def _transform(
-    _X: DataType,
+    _X: DataFormatType,
     _instructions: InstructionType
-) -> DataType:
+) -> DataFormatType:
 
 
     """
@@ -27,7 +27,7 @@ def _transform(
 
     Parameters
     ----------
-    _X: DataType,
+    _X: DataFormatType,
     _instructions: InstructionType
 
 
