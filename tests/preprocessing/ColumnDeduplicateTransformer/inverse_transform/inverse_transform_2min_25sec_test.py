@@ -139,8 +139,8 @@ class TestInverseTransform:
             keep=_keep,
             do_not_drop=_do_not_drop,
             conflict='ignore',
-            # rtol: Optional[float] = 1e-5,
-            # atol: Optional[float] = 1e-8,
+            # rtol: Optional[Real] = 1e-5,
+            # atol: Optional[Real] = 1e-8,
             equal_nan=_equal_nan,
             n_jobs=-1
         ).fit(_X_wip)

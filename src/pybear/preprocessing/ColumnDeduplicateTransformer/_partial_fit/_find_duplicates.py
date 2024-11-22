@@ -8,6 +8,8 @@
 from .._type_aliases import DataType
 from typing_extensions import Union
 
+from numbers import Real
+
 from ._column_getter import _column_getter
 from ._parallel_column_comparer import _parallel_column_comparer
 from ._parallel_ss_comparer import _parallel_ss_comparer
@@ -18,8 +20,8 @@ from joblib import Parallel, delayed
 
 def _find_duplicates(
     _X:DataType,
-    _rtol: float,
-    _atol: float,
+    _rtol: Real,
+    _atol: Real,
     _equal_nan: bool,
     _n_jobs: Union[int, None]
 ) -> list[list[int]]:
@@ -40,9 +42,9 @@ def _find_duplicates(
         {array-like, scipy sparse matrix} of shape (n_samples,
         n_features) - The data to be deduplicated.
     _rtol:
-        float - the relative difference tolerance for equality
+        Real - the relative difference tolerance for equality
     _atol:
-        float - the absolute difference tolerance for equality.
+        Real - the absolute difference tolerance for equality.
     _equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
@@ -75,8 +77,8 @@ def _find_duplicates(
     """
 
 
-    assert isinstance(_rtol, float)
-    assert isinstance(_atol, float)
+    assert isinstance(_rtol, Real) and _rtol >= 0
+    assert isinstance(_atol, Real) and _atol >= 0
     assert isinstance(_equal_nan, bool)
     assert isinstance(_n_jobs, (int, type(None)))
 
