@@ -6,20 +6,21 @@
 
 
 import numpy as np
+from numbers import Real
 
 
 
-def _val_atol(_atol: float) -> None:
+def _val_atol(_atol: Real) -> None:
 
     """
-    Verify atol is a non-boolean number that is accepted by numpy
-    allclose.
+    Verify atol is a non-boolean, real, non-negative number that is
+    accepted by numpy allclose.
 
 
     Parameters
     ----------
     _atol:
-        float - the absolute difference tolerance for equality.
+        Real - the absolute difference tolerance for equality.
 
 
     Return
@@ -30,8 +31,19 @@ def _val_atol(_atol: float) -> None:
 
     """
 
+
+    err_msg = (f"'atol' must be a non-boolean, real, non-negative number "
+               f"that is accepted by numpy allclose")
+
+
+    if not isinstance(_atol, Real):
+        raise ValueError(err_msg)
+
     if isinstance(_atol, bool):
-        raise TypeError(f"'atol' cannot be bool")
+        raise ValueError(err_msg)
+
+    if _atol < 0:
+        raise ValueError(err_msg)
 
     X1 = np.random.uniform(0, 1, 20)
 

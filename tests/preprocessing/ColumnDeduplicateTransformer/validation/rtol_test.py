@@ -8,6 +8,7 @@
 from pybear.preprocessing.ColumnDeduplicateTransformer._validation._rtol \
     import _val_rtol
 
+import numpy as np
 
 import pytest
 
@@ -24,17 +25,13 @@ class TestRtol:
             _val_rtol(junk_rtol)
 
 
-    @pytest.mark.parametrize('bad_rtol',
-        (True, False)
-    )
-    def test_accepts_good(self, bad_rtol):
-        with pytest.raises(TypeError):
+    @pytest.mark.parametrize('bad_rtol', (True, False, -1, -np.e))
+    def test_rejects_bad(self, bad_rtol):
+        with pytest.raises(ValueError):
             _val_rtol(bad_rtol)
 
 
-    @pytest.mark.parametrize('good_rtol',
-        (-1, 0, 1e-6, 0.1, 1, 3.14)
-    )
+    @pytest.mark.parametrize('good_rtol', (0, 1e-6, 0.1, 1, np.pi))
     def test_accepts_good(self, good_rtol):
         _val_rtol(good_rtol)
 

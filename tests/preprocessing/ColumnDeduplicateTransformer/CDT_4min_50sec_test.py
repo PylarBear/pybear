@@ -289,26 +289,24 @@ class TestInitValidation:
 
         _kwargs[_trial] = _junk
 
-        # except for bools, this is handled by np.allclose, let it raise
+        # non-num are handled by np.allclose, let it raise
         # whatever it will raise
         with pytest.raises(Exception):
             CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_bad', [-2, 0, 100_000_000])
+    @pytest.mark.parametrize('_bad', (-np.pi, -2, -1))
     def test_bad_rtol_atol(self, _dum_X, _kwargs, _trial, _bad):
 
         _kwargs[_trial] = _bad
 
-        # except for bools, this is handled by np.allclose, let it raise
-        # whatever it will raise
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             CDT(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1))
+    @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1, 1_000_000))
     def test_good_rtol_atol(self, _dum_X, _kwargs, _trial, _good):
 
         _kwargs[_trial] = _good

@@ -8,6 +8,7 @@
 from .._type_aliases import DataType
 from typing_extensions import Union
 
+from numbers import Real
 import itertools
 
 from ._find_duplicates import _find_duplicates
@@ -18,8 +19,8 @@ from ._find_duplicates import _find_duplicates
 def _dupl_idxs(
     _X: DataType,
     _duplicates: Union[list[list[int]], None],
-    _rtol: float,
-    _atol: float,
+    _rtol: Real,
+    _atol: Real,
     _equal_nan: bool,
     _n_jobs: Union[int, None]
 ) -> list[list[int]]:
@@ -46,10 +47,10 @@ def _dupl_idxs(
             from the previous partial fits. Is None if on the first
             partial fit.
     _rtol:
-        float, default = 1e-5 - The relative difference tolerance for
+        Real, default = 1e-5 - The relative difference tolerance for
             equality. See numpy.allclose.
     _atol:
-        float, default = 1e-8 - The absolute tolerance parameter for .
+        Real, default = 1e-8 - The absolute tolerance parameter for .
             equality. See numpy.allclose.
     _equal_nan:
         bool, default = False - When comparing pairs of columns row by

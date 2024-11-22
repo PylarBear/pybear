@@ -5,6 +5,7 @@
 #
 
 
+from numbers import Real
 
 from ._conflict import _val_conflict
 from ._do_not_drop import _val_do_not_drop
@@ -32,8 +33,8 @@ def _validation(
     _conflict: ConflictType,
     _do_not_drop: DoNotDropType,
     _keep: KeepType,
-    _rtol: float,
-    _atol: float,
+    _rtol: Real,
+    _atol: Real,
     _equal_nan: bool,
     _n_jobs: Union[int, None]
 ) -> None:
@@ -56,9 +57,9 @@ def _validation(
     _keep:
         Literal['first', 'last', 'random'],
     _rtol:
-        float,
+        Real,
     _atol:
-        float,
+        Real,
     _equal_nan:
         bool,
     _n_jobs:

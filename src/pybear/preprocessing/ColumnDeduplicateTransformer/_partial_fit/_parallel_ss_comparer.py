@@ -10,6 +10,7 @@ import numpy.typing as npt
 import numpy as np
 import joblib
 from copy import deepcopy
+from numbers import Real
 
 from ....utilities._nan_masking import nan_mask
 
@@ -19,8 +20,8 @@ from ....utilities._nan_masking import nan_mask
 def _parallel_ss_comparer(
     _column1: npt.NDArray[any],
     _column2: npt.NDArray[any],
-    _rtol: float,
-    _atol: float,
+    _rtol: Real,
+    _atol: Real,
     _equal_nan: bool
 ) -> bool:
 
@@ -47,10 +48,10 @@ def _parallel_ss_comparer(
         npt.NDArray[any] - the second 'column' of a pair to compare for
         equality, extracted from a scipy sparse object.
     _rtol:
-        float, default = 1e-5 - The relative difference tolerance for
+        Real, default = 1e-5 - The relative difference tolerance for
             equality. See numpy.allclose.
     _atol:
-        float, default = 1e-8 - The absolute tolerance parameter for .
+        Real, default = 1e-8 - The absolute tolerance parameter for .
             equality. See numpy.allclose.
     _equal_nan:
         bool, default = False - When comparing pairs of columns row by

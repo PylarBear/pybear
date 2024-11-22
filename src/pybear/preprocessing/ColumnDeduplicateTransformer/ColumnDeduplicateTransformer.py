@@ -53,10 +53,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     of "equal" for the sake of identifying duplicates. Namely, the
     'rtol', 'atol', and 'equal_nan' parameters.
 
-    The rtol and atol parameters provide tolerance windows within which
+    The rtol and atol parameters provide tolerance windows where
     numerical data that is not exactly equal but within the tolerance
     are considered equal. See the numpy docs for deeper clarification of
-    the technical details.
+    the technical details. CDT requires that rtol and atol be non-boolean,
+    non-negative real numbers, in addition to any other restrictions
+    enforced by numpy.allclose.
 
     The equal_nan parameter controls how CDT handles nan-like
     representations during comparisons. If equal_nan is True, exclude
@@ -182,10 +184,10 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         set of duplicate columns. This also causes at least one member
         of the columns not to be dropped to be removed.
     rtol:
-        float, default = 1e-5 - The relative difference tolerance for
+        Real, default = 1e-5 - The relative difference tolerance for
             equality. See numpy.allclose.
     atol:
-        float, default = 1e-8 - The absolute tolerance parameter for .
+        Real, default = 1e-8 - The absolute tolerance parameter for .
             equality. See numpy.allclose.
     equal_nan:
         bool, default = False - When comparing pairs of columns row by
@@ -251,6 +253,11 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     that are recognized by CDT include, at least, np.nan, pandas.NA,
     None (of type None, not string 'None'), and string representations
     of "nan" (not case sensitive).
+
+    Concerning the handling of infinity. CDT has no special handling
+    for np.inf, -np.inf, float('inf') or float('-inf'). CDT falls back
+    to the native handling of these values for python and numpy.
+    Specifically, numpy.inf==numpy.inf and float('inf')==float('inf').
 
     Concerning the handling of scipy sparse arrays. When comparing
     columns for equality, the columns are not converted to dense numpy
@@ -321,8 +328,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
         do_not_drop: Optional[Union[Iterable[str], Iterable[int], None]] = None,
         conflict: Optional[Literal['raise', 'ignore']] = 'raise',
-        rtol: Optional[float] = 1e-5,
-        atol: Optional[float] = 1e-8,
+        rtol: Optional[Real] = 1e-5,
+        atol: Optional[Real] = 1e-8,
         equal_nan: Optional[bool] = False,
         n_jobs: Optional[Union[int, None]] = None
     ) -> None:
