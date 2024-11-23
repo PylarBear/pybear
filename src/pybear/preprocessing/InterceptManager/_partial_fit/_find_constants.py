@@ -75,9 +75,10 @@ def _find_constants(
     assert isinstance(_n_jobs, (int, type(None)))
 
 
-
+    # pizza, remember to come back and turn joblib back on!
     # out is list[Union[Literal[False], any]]
     # the idxs of the list match the idxs of the data
+    """
     args = (_equal_nan, _rtol, _atol)
     joblib_kwargs = {
         'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs
@@ -85,7 +86,14 @@ def _find_constants(
     out = Parallel(**joblib_kwargs)(delayed(_parallel_constant_finder)(
         _column_getter(_X, _col_idx), *args) for _col_idx in range(_X.shape[1])
     )
+    """
 
+    # pizza delete when go back to joblib v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    args = (_equal_nan, _rtol, _atol)
+    out = []
+    for _col_idx in range(_X.shape[1]):
+        out.append(_parallel_constant_finder(_column_getter(_X, _col_idx), *args))
+    # END pizza delete when go back to joblib v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     # convert 'out' to dict[idx, value] of only the columns of constants
     _new_constants = {}

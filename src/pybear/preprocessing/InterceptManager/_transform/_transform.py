@@ -59,22 +59,35 @@ def _transform(
         _X = _X[:, KEEP_MASK]
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
-            _X = np.hstack((_X, np.full(_X.shape[0], _instructions['add'][_key]).reshape((-1,1))))
+            _X = np.hstack((_X, np.full((_X.shape[0], 1), _instructions['add'][_key])))
             del _key
 
     elif isinstance(_X, pd.core.frame.DataFrame):
         _X = _X.loc[:, KEEP_MASK]
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
-            _X[_key] = _instructions['add'][_key]
-            del _key
+            _value = _instructions['add'][_key]
+            try:
+                float(_value)
+                _is_num = True
+            except:
+                _is_num = False
+
+            _dtype = np.float64 if _is_num else object
+
+            _X[_key] = np.full((_X.shape[0],), _value).astype(_dtype)
+
+            del _key, _value, _is_num, _dtype
 
     elif hasattr(_X, 'toarray'):     # scipy.sparse
         _og_type = type(_X)
         _X = _X.tocsc()[:, KEEP_MASK]   # must use tocsc, COO cannot be sliced
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
-            _X = ss.hstack((_X, type(_X)(np.full(_X.shape[0], _instructions['add'][_key]).reshape((-1,1)))))
+            _X = ss.hstack((
+                _X,
+                type(_X)(np.full((_X.shape[0], 1), _instructions['add'][_key]))
+            ))
             del _key
         _X = _og_type(_X)
         del _og_type

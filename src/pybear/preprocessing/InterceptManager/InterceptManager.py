@@ -36,22 +36,53 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
     """
 
-    pizza head maybe stardardize rtol/atol hinting between IM & CDT
-
     pizza say something
 
     pizza talk about callable keep, possible variable output
+    pizza dict keep does not make adjustment to column_mask_
 
     pizza talk about setting equal_nan, rtol, atol between partial fits
 
     # pizza, this is for :param: keep
     to access the :param: keep literals ('first', 'last', 'random', 'none'),
-    these MUST be passed as lower-case. If a pandas dataframe is passed and there is a conflict between
-    the literals and a feature name, IM will raise because it is not clear
-    to IM whether you want to indicate the literal or the feature name. to afford
-    a little more flexibility with feature names, IM does not normalize case for this
+    these MUST be passed as lower-case. If a pandas dataframe is passed
+    and there is a conflict between the literals and a feature name, IM
+    will raise because it is not clear to IM whether you want to indicate
+    the literal or the feature name. to afford a little more flexibility
+    with feature names, IM does not normalize case for this
     parameter. This means that if :param: keep is 'first',  feature names such as
     'First', 'FIRST', 'FiRsT', etc. will not raise, only 'first' will.
+
+
+    Notes
+    -----
+    pizza, this is straight from CDT 24_11_11. review this.
+    Concerning the handling of nan-like representations. While CDT
+    accepts data in the form of numpy arrays, pandas dataframes, and
+    scipy sparse matrices/arrays, at the time of column comparison both
+    columns of data are converted to numpy arrays (see below for more
+    detail about how scipy sparse is handled.) After the conversion
+    and prior to the comparison, CDT identifies any nan-like
+    representations in both of the numpy arrays and standardizes all of
+    them to np.nan. The user needs to be wary that whatever is used to
+    indicate 'not-a-number' in the original data must first survive the
+    conversion to numpy array, then be recognizable by CDT as nan-like,
+    so that CDT can standardize it to np.nan. nan-like representations
+    that are recognized by CDT include, at least, np.nan, pandas.NA,
+    None (of type None, not string 'None'), and string representations
+    of "nan" (not case sensitive).
+
+    Concerning the handling of infinity. CDT has no special handling
+    for np.inf, -np.inf, float('inf') or float('-inf'). CDT falls back
+    to the native handling of these values for python and numpy.
+    Specifically, numpy.inf==numpy.inf and float('inf')==float('inf').
+
+    Concerning the handling of scipy sparse arrays. When comparing
+    columns for equality, the columns are not converted to dense numpy
+    arrays. Each column is sliced from the data in sparse form and the
+    'indices' and 'data' attributes of this slice are stacked together.
+    The single vector holding the indices and dense values is used to
+    make equality comparisons.
 
 
     Parameters
@@ -62,10 +93,10 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     equal_nan:
         Optional[bool], default=True - pizza!
     rtol:
-        real number, default = 1e-5 - The relative difference tolerance
+        numbers.Real, default = 1e-5 - The relative difference tolerance
             for equality. See numpy.allclose.
     atol:
-        real number, default = 1e-8 - The absolute tolerance parameter
+        numbers.Real, default = 1e-8 - The absolute tolerance parameter
             for equality. See numpy.allclose.
     n_jobs:
         # pizza finalize this based on benchmarking
@@ -80,7 +111,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     Attributes
     ----------
     n_features_in_:
-        int - number of features in the fitted data before deduplication.
+        int - number of features in the fitted data before transform.
 
     feature_names_in_:
         NDArray[str] - The names of the features as seen during fitting.
@@ -157,7 +188,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
 
         """
-        Get remaining feature names after deduplication.
+        Get remaining feature names after transform.
 
 
         Parameters
@@ -184,7 +215,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         ------
         -
             feature_names_out : NDArray[str] - The feature names in the
-            deduplicated data after transformation.
+            transformed data.
 
         """
 
@@ -261,7 +292,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
     def get_metadata_routing(self):
         """
-        Get metadata routing is not implemented in ColumnDeduplicateTransformer.
+        Get metadata routing is not implemented in InterceptManager.
 
         """
         __ = type(self).__name__
@@ -292,7 +323,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         ----------
         X:
             {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Data to remove duplicate columns from.
+            n_features) - Data to remove constant columns from.
         y:
             {vector-like of shape (n_samples,) or None}, default = None -
             ignored. The target for the data.
@@ -344,6 +375,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         # this must be after _validate_data, needs feature_names_in_ to
         # be exposed, if available.
+
         _validation(
             X,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
@@ -355,22 +387,20 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         )
 
 
+        err_msg = (
+            f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
+            f"dataframe, or scipy sparce matrix or array, with at least "
+            f"1 column and 1 example."
+        )
+
         # sklearn _validate_data & check_array are not catching this
         if len(X.shape) != 2:
-            raise ValueError(
-                f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
-                f"dataframe, or scipy sparce matrix or array, with at "
-                f"least 2 columns and 1 example."
-            )
+            raise ValueError(err_msg)
 
 
         # sklearn _validate_data & check_array are not catching this
-        if X.shape[1] < 2:
-            raise ValueError(
-                f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
-                f"dataframe, or scipy sparce matrix or array, with at "
-                f"least 2 columns and 1 example."
-            )
+        if X.shape[1] < 1:
+            raise ValueError(err_msg)
 
 
         # dictionary of column indices and respective constant values
@@ -384,7 +414,6 @@ class InterceptManager(BaseEstimator, TransformerMixin):
                 self.n_jobs
             )
 
-
         _keep = _manage_keep(
             self.keep,
             X,
@@ -394,7 +423,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         )
 
 
-        _instructions = _make_instructions(
+        self._instructions = _make_instructions(
             _keep,
             self.constant_columns_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
@@ -404,9 +433,12 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         self.kept_columns_, self.removed_columns_, self.column_mask_ = \
             _set_attributes(
                 self.constant_columns_,
-                _instructions,
+                self._instructions,
                 self.n_features_in_
             )
+
+        # pizza take these training wheels off when done
+        assert len(self.column_mask_)== X.shape[1]
 
         return self
 
@@ -427,7 +459,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         ----------
         X:
             {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Data to remove duplicate columns from.
+            n_features) - Data to remove constant columns from.
         y:
             {vector-like of shape (n_samples,) or None}, default = None -
             ignored. The target for the data.
@@ -513,7 +545,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         if X.shape[1] != np.sum(self.column_mask_):
             raise ValueError(
                 f"the number of columns in X must be equal to the number of "
-                f"columns kept from the fitted data after removing duplicates "
+                f"columns kept from the fitted data after removing constants "
                 f"{np.sum(self.column_mask_)}"
             )
 
@@ -530,18 +562,21 @@ class InterceptManager(BaseEstimator, TransformerMixin):
                     f"data to be inverse transformed does not match."
                 )
 
+        # pizza take these training wheels off when done
+        assert sum(self.column_mask_)== X.shape[1], \
+            f"{sum(self.column_mask_)=}, {X.shape[1]=}"
 
-        out = _inverse_transform(
+        X = _inverse_transform(
             X,
             self.removed_columns_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
 
-        if isinstance(out, np.ndarray):
-            out = np.ascontiguousarray(out)
+        if isinstance(X, np.ndarray):
+            X = np.ascontiguousarray(X)
 
 
-        return out
+        return X
 
 
     def score(self, X, y=None):
@@ -588,7 +623,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         ------
         -
             X: {array-like, scipy sparse matrix} of shape (n_samples,
-                n_features - n_removed_features) - The deduplicated data.
+                n_features - n_removed_features) - The transformed data.
 
 
 
@@ -629,8 +664,10 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             self.n_jobs
         )
 
+
         # everything below needs to be redone every transform in case 'keep' was
         # changed via set params after fit
+
         _keep = _manage_keep(
             self.keep,
             X,
@@ -639,7 +676,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
 
-        _instructions = _make_instructions(
+        self._instructions = _make_instructions(
             _keep,
             self.constant_columns_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
@@ -649,17 +686,19 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         self.kept_columns_, self.removed_columns_, self.column_mask_ = \
             _set_attributes(
                 self.constant_columns_,
-                _instructions,
+                self._instructions,
                 self.n_features_in_
             )
 
+        # pizza take these training wheels off when done
+        assert len(self.column_mask_)== X.shape[1]
 
-        out = _transform(X, _instructions)
+        X = _transform(X, self._instructions)
 
-        if isinstance(out, np.ndarray):
-            out = np.ascontiguousarray(out)
+        if isinstance(X, np.ndarray):
+            X = np.ascontiguousarray(X)
 
-        return out
+        return X
 
 
 

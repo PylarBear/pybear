@@ -32,7 +32,7 @@ def _column_getter(
     Parameters
     ----------
     _X:
-        DataFormatType - The data to be deduplicated.
+        DataFormatType - The data.
     _col_idx:
         int - the column index of the column to be extracted from _X.
 
@@ -58,13 +58,17 @@ def _column_getter(
         # values out of sparse column using the 'data'
         # attribute and send that off for equality test
 
-        # Extract the data of the column
-        column = _X.getcol(_col_idx).tocsc().data  # tocsc() is important, must stay
+        # Extract the data and indices of the column
+        # # code that stacks ss column indices and values
+        # PIZZA THINK ON THIS, HOW TO MAKE DETERMINATION USING ONLY DENSE INDICES AND VALUES
+        # c1 = _X.getcol(_col_idx).tocsc()  # tocsc() is important, must stay
+        # column = np.hstack((c1.indices, c1.data))
+        # del c1
 
-        # old code that converts a ss column to np array
-        # _X_wip = _X.copy().tocsc()
-        # column = _X_wip[:, [_col_idx]].toarray().ravel()
-        # del _X_wip
+        # code that converts a ss column to np array
+        _X_wip = _X.copy().tocsc()
+        column = _X_wip[:, [_col_idx]].toarray().ravel()
+        del _X_wip
     else:
         raise TypeError(f"invalid data type '{type(_X)}'")
 

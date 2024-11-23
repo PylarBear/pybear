@@ -14,7 +14,7 @@ from pybear.preprocessing.InterceptManager._type_aliases import (
 from typing_extensions import Union
 from typing import Iterable
 
-import numpy as np
+
 
 
 
@@ -121,29 +121,28 @@ def _make_instructions(
 
 
     if len(_sorted_constant_column_idxs) == 0:
-        # if there are no constant columns, skip out and return Nones
+        # if there are no constant columns, skip everything except keep dict
         pass
     elif isinstance(_keep, int):
         _instructions['keep'] = [_keep]
         _sorted_constant_column_idxs.remove(_keep)
         _instructions['delete'] = _sorted_constant_column_idxs
     elif isinstance(_keep, str) and _keep != 'none':
-        raise ValueError(f"str 'keep' not 'none' has gotten into _make_instructions but should already be an int")
+        raise AssertionError(f"str 'keep' not 'none' has gotten into _make_instructions but should already be an int")
     elif callable(_keep):
-        raise ValueError(f"callable 'keep' has gotten into _make_instructions but should already be an int")
+        raise AssertionError(f"callable 'keep' has gotten into _make_instructions but should already be an int")
     elif _keep == 'none':
         # if keep == 'none', keep none, add none, delete all
         _instructions['delete'] = _sorted_constant_column_idxs
-    elif isinstance(_keep, dict):
+
+
+    if isinstance(_keep, dict):
         # if keep == a dict, keep none, delete all, add value in last position
-        _instructions['delete'] = _sorted_constant_column_idxs
+        _instructions['delete'] = _sorted_constant_column_idxs if len(_sorted_constant_column_idxs) else None
         _instructions['add'] = _keep
-    else:
-        raise Exception(f"algorithm failure, invalid 'keep': {_keep}")
 
 
     _val_instructions(_instructions, _shape)
-
 
     return _instructions
 

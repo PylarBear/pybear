@@ -11,8 +11,6 @@ from pybear.preprocessing.InterceptManager._inverse_transform. \
 from pybear.preprocessing.InterceptManager.InterceptManager import \
     InterceptManager
 
-from pybear.preprocessing.InterceptManager._partial_fit. \
-    _parallel_constant_finder import _parallel_constant_finder
 
 from pybear.utilities import nan_mask
 
@@ -25,7 +23,7 @@ import pytest
 
 
 
-pytest.skip(reason=f"pizza says dont work on this until transform is proved out", allow_module_level=True)
+
 
 
 class TestInverseTransform:
@@ -47,15 +45,6 @@ class TestInverseTransform:
     @pytest.fixture(scope='module')
     def _rtol_atol():
         return (1e-5, 1e-8)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _dupl():
-        return [
-            [0, 9],
-            [2, 4, 7]
-        ]
 
 
     @staticmethod
@@ -84,20 +73,21 @@ class TestInverseTransform:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    @pytest.mark.parametrize('_dtype', ('flt', 'str'))
-    @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none', 0, 'good_string', 'non_const_string', 'good_callable', 'non_const_callable', {'Intercept': 1})) # pizza, scope='module')
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none', 0, 'good_string', lambda x: 0, {'Intercept': 1}))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
-    @pytest.mark.parametrize('_format',
-        (
-            'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
-        )
+    @pytest.mark.parametrize('_constants', ('constants1', 'constants2'))
+    @pytest.mark.parametrize('_format', ('np', )
+        # (
+        #     'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+        #     'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+        #     'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
+        # )
     )
     def test_accuracy(
-        self, _const_X, _format, _keep, _equal_nan, _dtype, _has_nan, _shape,
-        _columns, _rtol_atol
+        self, _const_X, _format, _dtype, _keep, _equal_nan, _has_nan, _shape,
+        _constants, _columns, _rtol_atol
     ):
 
         # pizza revisit this last thing
@@ -112,34 +102,35 @@ class TestInverseTransform:
         if _dtype == 'str' and _format not in ('np', 'pd'):
             pytest.skip(reason=f"scipy sparse cannot take strings")
 
+        if _format != 'pd' and isinstance(_keep, str) and \
+                _keep not in ('first', 'last', 'random', 'none'):
+            pytest.skip(reason=f"cannot pass keep as str if X is not pd df")
+
+
+        if _constants == 'constants1':
+            if _dtype in ('int', 'flt'):
+                _constants = {0:1, _shape[1]-1: 1}
+            else:
+                _constants = {0: 'a', _shape[1]-1:'b'}
+        elif _constants == 'constants2':
+            if _dtype in ('int', 'flt'):
+                _constants = {0:1, _shape[1]-1: np.nan}
+            else:
+                _constants = {0: '1', _shape[1]-1:'nan'}
+        else:
+            raise Exception
+
+
         _base_X = _const_X(
             _has_nan=_has_nan,
             _format='np',
             _dtype=_dtype,
-            _constants={0:1, _shape[1]-1: 1} if _dtype in ('int', 'flt') else {0: 'a', _shape[1]-1:'b'}
+            _constants=_constants
         )
 
-        if _format != 'pd' and isinstance(_keep, str) and \
-                _keep not in ('first', 'last', 'random', 'none'):
-            with pytest.raises(ValueError):
-                InterceptManager(
-                    keep=_keep,
-                    rtol=1e-5,
-                    atol=1e-8,
-                    equal_nan=_equal_nan,
-                    n_jobs=-1
-                ).fit(_base_X)
-            pytest.skip(reason=f"cannot pass keep as str if X is not pd df")
-        elif _format == 'pd':
-            if _keep == 'good_string':
-                _keep = _columns[0]
-            elif _keep == 'non_const_string':
-                _keep = _columns[-1]
-        # set callable later
-        # elif _keep == 'good_callable':
-        #     _keep = lambda x: 0
-        # elif _keep == 'non_const_callable':
-        #     _keep = lambda x: 1
+
+        if _keep == 'good_string':
+            _keep = _columns[0]
 
 
         if _format == 'np':
@@ -189,20 +180,22 @@ class TestInverseTransform:
         )
 
         # fit v v v v v v v v v v v v v v v v v v v v
-        if _keep == 'non_const_string':
+        except_for_non_const_keep = 0
+        if callable(_keep):
+            except_for_non_const_keep += 1
+        elif isinstance(_keep, int):
+            except_for_non_const_keep += 1
+        elif isinstance(_keep, str) and _keep not in ('first', 'last', 'random', 'none'):
+            except_for_non_const_keep += 1
+
+        if _has_nan and not _equal_nan and except_for_non_const_keep:
             with pytest.raises(ValueError):
                 _IM.fit(_X_wip)
-            pytest.skip(reason=f"cant do tests without fit")
-        elif _keep == 'good_callable':
-            _IM.set_params(keep=lambda x: 0)
-            _IM.fit(_X_wip)
-        elif _keep == 'non_const_callable':
-            _IM.set_params(keep=lambda x: 1)
-            with pytest.raises(ValueError):
-                _IM.fit(_X_wip)
-            pytest.skip(reason=f"cant do tests without fit")
+            pytest.skip(f"cant do anymore tests without fit")
         else:
             _IM.fit(_X_wip)
+
+        del except_for_non_const_keep
         # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # transform v v v v v v v v v v v v v v v v v v
@@ -220,56 +213,67 @@ class TestInverseTransform:
 
         assert type(out) is type(_X_wip)
 
-        assert out.shape == (_base_X.shape[0], _base_X.shape[1] + isinstance(_keep, dict))
+        assert out.shape == (
+            _base_X.shape[0],
+            _base_X.shape[1] + isinstance(_keep, dict)
+        )
 
-        _ref_column_mask = _IM.column_mask_
 
+        # iterate over the input X and output X simultaneously, check
+        # equality column by column. remember that inverse_transform
+        # cannot replicate any nan-likes that may have been in the
+        # removed columns in the original data.
 
-        # iterate over the input X and output X simultaneously, use
-        # _kept_idxs to map column in output X to their original locations
-        # in input X.
-        _kept_idxs = np.arange(len(_ref_column_mask))[_ref_column_mask]
-
-        # pizza _out_idx = -1
         for _og_idx in range(_shape[1]):
-
-            # pizza
-            # if _og_idx in _kept_idxs:
-            #     _out_idx += 1
 
             if isinstance(_X_wip, np.ndarray):
                 _og_col = _X_wip[:, _og_idx]
-                # pizza
-                # if _og_idx in _kept_idxs:
-                #     _out_col = out[:, _out_idx]
                 _out_col = out[:, _og_idx]
             elif isinstance(_X_wip, pd.core.frame.DataFrame):
                 _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
-                # pizza
-                # if _og_idx in _kept_idxs:
-                #     _out_col = out.iloc[:, _out_idx].to_numpy()
                 _out_col = out.iloc[:, _og_idx].to_numpy()
             elif hasattr(_X_wip, 'toarray'):
                 _og_col = _X_wip.tocsc()[:, [_og_idx]].toarray()
-                # pizza
-                # if _og_idx in _kept_idxs:
-                #     _out_col = out.tocsc()[:, [_out_idx]].toarray()
                 _out_col = out.tocsc()[:, [_og_idx]].toarray()
             else:
                 raise Exception
 
 
-            if _og_idx in _kept_idxs:
-                # then both _og_col and _out_col exist
-                # the columns must be array_equal
-                assert np.array_equal(
-                    _out_col[np.logical_not(nan_mask(_out_col))],
-                    _og_col[np.logical_not(nan_mask(_og_col))]
+            try:
+                _og_col.astype(np.float64)
+                is_num = True
+            except:
+                is_num = False
+
+
+            if is_num:
+
+                # allclose is not calling equal on two identical vectors,
+                # one w nans and the other without, even with equal_nan.
+                # also verified this behavior externally.
+                # _og_col may or may not have the nans, but _out_col cannot.
+                # put nans into _out_col to get around this.
+
+                MASK = nan_mask(_og_col)
+                if np.any(MASK):
+                    _og_col[MASK] = np.nan
+                    _out_col[MASK] = np.nan
+
+                assert np.allclose(
+                    _out_col.astype(np.float64),
+                    _og_col.astype(np.float64),
+                    equal_nan=True
                 )
             else:
-                # columns that are not in column mask must therefore be constant
-                assert _parallel_constant_finder(_og_col, _equal_nan, *_rtol_atol)
 
+                # need to account for nans that may be in _og_col but
+                # cant be in _out_col
+                MASK = nan_mask(_og_col)
+                if np.any(MASK):
+                    _og_col[MASK] = 'nan'
+                    _out_col[MASK] = 'nan'
+
+                assert np.array_equal(_out_col, _og_col)
 
 
 

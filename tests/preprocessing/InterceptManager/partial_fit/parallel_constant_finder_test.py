@@ -30,6 +30,7 @@ class TestParallelConstantFinder:
         # Methodology
         # need to test two different data types, numbers and strings
         # with nans and without
+        # _parallel_constant_finder will only ever see numpy arrays
         # put a level of noise in the data that in one case is less
         # that rtol/atol, so that the column is considered constant; in
         # the other case the column is not constant because the noise

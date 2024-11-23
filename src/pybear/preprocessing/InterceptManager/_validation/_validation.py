@@ -66,8 +66,6 @@ def _validation(
     """
 
 
-    _val_X(_X)
-
     _val_keep_and_columns(_keep, _columns, _X)
 
     _val_equal_nan(_equal_nan)
