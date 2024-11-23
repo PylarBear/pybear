@@ -1137,7 +1137,7 @@ class TestPartialFit:
             _columns=None,
             _zeros=0,
             _shape=(20, 2)
-        )[:, np.arange(_num_cols)]
+        )[:, :_num_cols]
 
         _kwargs['keep'] = 'first'
         _CDT = CDT(**_kwargs)
@@ -1340,29 +1340,21 @@ class TestTransform:
         _CDT = CDT(**_kwargs)
         _CDT.fit(_dum_X)
 
-        TRFM_X = _CDT.transform(_dum_X)
-        TRFM_MASK = _CDT.column_mask_
         __ = np.array(_columns)
         for obj_type in ['np', 'pd']:
             for diff_cols in ['more', 'less', 'same']:
                 if diff_cols == 'same':
-                    TEST_X = TRFM_X.copy()
+                    TEST_X = _dum_X.copy()
                     if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=__)
                 elif diff_cols == 'less':
-                    TEST_X = TRFM_X[:, :-1].copy()
+                    TEST_X = _dum_X[:, :-1].copy()
                     if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(
-                            data=TEST_X,
-                            columns=__[TRFM_MASK][:-1]
-                        )
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[:-1])
                 elif diff_cols == 'more':
-                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
+                    TEST_X = np.hstack((_dum_X.copy(), _dum_X.copy()))
                     if obj_type == 'pd':
-                        _COLUMNS = np.hstack((
-                            __[TRFM_MASK],
-                            np.char.upper(__[TRFM_MASK])
-                        ))
+                        _COLUMNS = np.hstack((__, np.char.upper(__)))
                         TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
                 else:
                     raise Exception
@@ -1373,7 +1365,7 @@ class TestTransform:
                     with pytest.raises(ValueError):
                         _CDT.transform(TEST_X)
 
-        del _CDT, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
+        del _CDT, obj_type, diff_cols, TEST_X
 
 
     # dont really need to test accuracy, see _transform
