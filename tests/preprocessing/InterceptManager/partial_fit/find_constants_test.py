@@ -125,7 +125,7 @@ class TestFindConstants:
     ):
 
         # using these just to run more tests, the fact that they are 'more' or
-        # less compared to each other is not important
+        # less compared to each other is not important, theyre the fixtures available
         if _constants_set == 'init':
             _constants = _init_constants
         elif _constants_set == 'no':
@@ -139,7 +139,7 @@ class TestFindConstants:
 
         # build X
         _X_wip = _X_base(
-            _format='np',
+            _format=_format,
             _dtype=_dtype,
             _has_nan=_has_nan,
             _constants=_constants
@@ -156,7 +156,7 @@ class TestFindConstants:
         )
 
         # on first pass, the output of _find_constants is returned directly.
-        # assert found constants indices and values vs expected (the same)
+        # assert found constants indices and values vs expected are the same
         if (not _equal_nan and _has_nan) or _constants_set == 'no':
             assert out == {}
         elif _constants_set == 'init':
@@ -360,11 +360,23 @@ class TestFindConstants:
 
 
 
+    @pytest.mark.parametrize('_format', ('csr', 'csc', 'coo'))
+    def test_ss_all_zeros(self, _format, _shape):
 
+        # build X
+        _X_wip = np.zeros(_shape).astype(np.uint8)
 
+        # get constant idxs and their values
+        out: dict[int, any] = _find_constants(
+            _X_wip,
+            _old_constant_columns={},   # first pass!
+            _equal_nan=True,
+            _rtol=1e-5,
+            _atol=1e-8,
+            _n_jobs=-1
+        )
 
-
-
+        assert np.array_equal(list(out.keys()), list(range(_shape[1])))
 
 
 

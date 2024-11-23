@@ -81,11 +81,12 @@ def _set_attributes(
             )
 
 
+    # pizza 24_11_23_11_12_00 DECIDED NOT TO PUT APPENDED INTERCEPT ONTO column_mask_
     # pizza, figure out a more elegant way to deal with 'add'
-    if _instructions['add']:
-        _key = list(_instructions['add'].keys())[0]
-        column_mask_ = np.insert(column_mask_, len(column_mask_), _instructions['add'][_key], axis=0)
-        del _key
+    # if _instructions['add']:
+    #     _key = list(_instructions['add'].keys())[0]
+    #     column_mask_ = np.insert(column_mask_, len(column_mask_), _instructions['add'][_key], axis=0)
+    #     del _key
 
 
     return kept_columns_, removed_columns_, column_mask_

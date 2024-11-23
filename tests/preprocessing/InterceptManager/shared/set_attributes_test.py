@@ -94,18 +94,12 @@ class TestSetAttributes:
 
         assert out_kept_columns == {k:_constant_columns[k] for k in _keep}
         assert out_removed_columns == {k:_constant_columns[k] for k in (delete or [])}
-        assert len(out_column_mask) == (_n_features + (add is not None)) # if 'add', then one more column
+        assert len(out_column_mask) == _n_features
         exp_col_mask = np.array([((i in _keep) or (i not in _constant_columns)) for i in range(_n_features)]).astype(bool)
-        if add is None:
-            assert np.array_equal(
-                out_column_mask,
-                exp_col_mask
-            )
-        else:
-            assert np.array_equal(
-                out_column_mask,
-                np.insert(exp_col_mask, len(exp_col_mask), True, axis=0)
-            )
+        assert np.array_equal(
+            out_column_mask,
+            exp_col_mask
+        )
 
 
 

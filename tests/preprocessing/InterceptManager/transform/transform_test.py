@@ -224,7 +224,7 @@ class TestTransform:
             # on whether to add that
             assert np.array_equal(
                 out.dtypes[:_shape[1]],
-                _og_dtype[_ref_column_mask[:_shape[1]]]
+                _og_dtype[_ref_column_mask]
             )
         elif '<U' in str(_og_dtype):
             # pizza come back to this, str dtypes are being changed somewhere,
@@ -234,7 +234,7 @@ class TestTransform:
             assert out.dtype == _og_dtype
 
         # out shape & _column_mask
-        assert out.shape[1] == sum(_ref_column_mask)
+        assert out.shape[1] == sum(_ref_column_mask) + isinstance(_instructions['add'], dict)
 
 
         # iterate over the input X and output X simultaneously, use

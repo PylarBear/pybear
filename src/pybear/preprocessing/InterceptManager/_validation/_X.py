@@ -21,7 +21,7 @@ def _val_X(
 
     """
     pizza
-    Validate the dimensions of the data to be deduplicated. Cannot be
+    Validate the dimensions of the data. Cannot be
     None and must have at least 2 columns.
 
     All other validation of the data is handled by the _validate_data
@@ -32,7 +32,7 @@ def _val_X(
     ----------
     _X:
         {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features) - the data to be deduplicated.
+        n_features) - the data.
 
 
     Return
@@ -51,8 +51,7 @@ def _val_X(
         hasattr(_X, 'toarray'):
         raise TypeError(
             f"invalid container for X: {type(_X)}. X must be numpy array, "
-            f"pandas dataframe, or any scipy sparce matrix / array except "
-            f"BSR."
+            f"pandas dataframe, or any scipy sparce matrix / array."
         )
 
 

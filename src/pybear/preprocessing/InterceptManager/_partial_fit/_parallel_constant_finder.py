@@ -14,7 +14,7 @@ from numbers import Real
 
 import numpy as np
 
-from ....utilities import nan_mask, nan_mask_numerical
+from ....utilities import nan_mask
 
 
 def _parallel_constant_finder(
@@ -51,10 +51,10 @@ def _parallel_constant_finder(
     _equal_nan:
         bool - finish your pizza!
     _rtol:
-        real number - The relative difference tolerance for equality.
+        numbers.Real - The relative difference tolerance for equality.
             See numpy.allclose.
     _atol:
-        real number - The absolute tolerance parameter for equality.
+        numbers.Real - The absolute tolerance parameter for equality.
             See numpy.allclose.
 
 
@@ -105,22 +105,32 @@ def _parallel_constant_finder(
         if not _equal_nan:
             out = False
         elif _equal_nan:
-            _not_nan_mask = np.logical_not(nan_mask_numerical(_column))
+            _not_nan_mask = np.logical_not(nan_mask(_column))
             # pizza, there is something going on in here when a flt column
             # is passed as a str dtype. it passes the float64 conversion
-            # above, but then there was '<UX' casting except here...
+            # above, but then there was '<UX' casting exception here...
             # someday run a column of floats.astype(str) and try to understand
-            _mean_value = np.mean(_column[_not_nan_mask])
+            _mean_value = np.mean(_column[_not_nan_mask].astype(np.float64))
             _allclose = np.allclose(
-                _mean_value, _column[_not_nan_mask], rtol=_rtol, atol=_atol, equal_nan=True
+                _mean_value,
+                _column[_not_nan_mask].astype(np.float64),  # float64 is important
+                rtol=_rtol,
+                atol=_atol,
+                equal_nan=True
             )
+
             out = _mean_value if _allclose else False
             del _not_nan_mask, _mean_value, _allclose
 
     elif _is_flt and not any(_nan_mask):
         # no nans, _equal_nan doesnt matter
-        _mean_value = np.mean(_column)
-        _allclose = np.allclose(_column, _mean_value, rtol=_rtol, atol=_atol)
+        _mean_value = np.mean(_column.astype(np.float64)) # float64 is important
+        _allclose = np.allclose(
+            _column.astype(np.float64),    # float64 is important
+            _mean_value,
+            rtol=_rtol,
+            atol=_atol
+        )
         out = _mean_value if _allclose else False
         del _mean_value, _allclose
 
@@ -144,7 +154,6 @@ def _parallel_constant_finder(
 
 
     del _is_flt, _is_str, _nan_mask
-
 
     return out
 

@@ -12,7 +12,6 @@ from pybear.preprocessing import InterceptManager as IM
 from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
 
 from copy import deepcopy
-import itertools
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -21,8 +20,6 @@ import dask.array as da
 import dask.dataframe as ddf
 
 
-
-# pytest.skip(reason=f'pizza isnt finished', allow_module_level=True)
 
 
 bypass = False
@@ -133,21 +130,19 @@ class TestInitValidation:
 
         _kwargs[_trial] = _junk
 
-        # except for bools, this is handled by np.allclose, let it raise
+        # non-num are handled by np.allclose, let it raise
         # whatever it will raise
         with pytest.raises(Exception):
             IM(**_kwargs).fit_transform(_dum_X)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_bad', [-2, 0, 100_000_000])
+    @pytest.mark.parametrize('_bad', [-np.pi, -2, -1])
     def test_bad_rtol_atol(self, _dum_X, _kwargs, _trial, _bad):
 
         _kwargs[_trial] = _bad
 
-        # except for bools, this is handled by np.allclose, let it raise
-        # whatever it will raise
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             IM(**_kwargs).fit_transform(_dum_X)
 
 
@@ -279,48 +274,41 @@ class TestExceptsAnytimeXisNone:
 # END TEST EXCEPTS ANYTIME X==None PASSED TO fit(), partial_fit(), transform()
 
 
-# VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##################################
+# VERIFY ACCEPTS SINGLE 2D COLUMN ##################################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestRejectsXAsSingleColumnOrSeries:
+class TestAcceptsSingle2DColumn:
 
     # y is ignored
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def VECTOR_X(_dum_X):
-        return _dum_X[:, 0].copy()
+    def SINGLE_X(_dum_X):
+        return _dum_X[:, 0].copy().reshape((-1, 1))
 
 
     @pytest.mark.parametrize('_fst_fit_x_format',
-        ('numpy', 'pandas_dataframe', 'pandas_series')
+        ('numpy', 'pandas')
     )
     @pytest.mark.parametrize('_fst_fit_x_hdr', [True, None])
     def test_X_as_single_column(
-        self, _kwargs, _columns, VECTOR_X, _fst_fit_x_format, _fst_fit_x_hdr
+        self, _kwargs, _columns, SINGLE_X, _fst_fit_x_format, _fst_fit_x_hdr
     ):
 
         if _fst_fit_x_format == 'numpy':
             if _fst_fit_x_hdr:
                 pytest.skip(reason=f"numpy cannot have header")
             else:
-                _fst_fit_X = VECTOR_X.copy()
+                _fst_fit_X = SINGLE_X.copy()
 
-        if 'pandas' in _fst_fit_x_format:
+        if _fst_fit_x_format == 'pandas':
             if _fst_fit_x_hdr:
-                _fst_fit_X = pd.DataFrame(data=VECTOR_X, columns=_columns[:1])
+                _fst_fit_X = pd.DataFrame(data=SINGLE_X, columns=_columns[:1])
             else:
-                _fst_fit_X = pd.DataFrame(data=VECTOR_X)
+                _fst_fit_X = pd.DataFrame(data=SINGLE_X)
 
-        # not elif!
-        if _fst_fit_x_format == 'pandas_series':
-            _fst_fit_X = _fst_fit_X.squeeze()
+        IM(**_kwargs).fit_transform(_fst_fit_X)
 
-        with pytest.raises(Exception):
-            # this is handled by sklearn.base.BaseEstimator._validate_data,
-            # let it raise whatever
-            IM(**_kwargs).fit_transform(_fst_fit_X)
-
-# END VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##############################
+# END VERIFY ACCEPTS SINGLE 2D COLUMN ##################################
 
 
 # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
@@ -388,36 +376,6 @@ class TestExceptWarnOnDifferentHeader:
     del NAMES
 
 # END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
-
-# pizza dont delete this just yet, wait until everything proves out
-# @pytest.mark.skipif(bypass is True, reason=f"bypass")
-# class TestAllMethodsExceptOnScipyBSR:
-#
-#     @pytest.mark.parametrize(f'_format', ('matrix', 'array'))
-#     def test_all_methods_reject_BSR(self, _format, _kwargs, _dum_X):
-#
-#         TestCls = IM(**deepcopy(_kwargs))
-#
-#         if _format == 'matrix':
-#             BSR_X = ss.bsr_matrix(_dum_X)
-#         elif _format == 'array':
-#             BSR_X = ss.bsr_array(_dum_X)
-#
-#         # sklearn _validate_data is not catching this!
-#
-#         with pytest.raises(TypeError):
-#             TestCls.partial_fit(BSR_X)
-#
-#         with pytest.raises(TypeError):
-#             TestCls.fit(BSR_X)
-#
-#         TestCls.fit(_dum_X)
-#
-#         with pytest.raises(TypeError):
-#             TestCls.transform(BSR_X)
-#
-#         with pytest.raises(TypeError):
-#             TestCls.inverse_transform(BSR_X)
 
 
 # TEST OUTPUT TYPES ####################################################
@@ -543,35 +501,102 @@ class TestConditionalAccessToPartialFitAndFit:
 
 # TEST ALL COLUMNS THE SAME OR DIFFERENT #####################################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAllColumnsTheSameorDifferent:
+class TestAllColumnsTheSameOrDifferent:
 
+    # same also tests when scipy sparse is all zeros
+
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'coo', 'csc', 'csr'))
+    @pytest.mark.parametrize('keep',
+        ('first', 'last', 'random', 'none', 'int', 'string', 'callable'))
     @pytest.mark.parametrize('same_or_diff', ('_same', '_diff'))
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'coo'))
     def test_all_columns_the_same(
-        self, _kwargs, _dum_X, same_or_diff, x_format, _columns, _shape
+        self, _kwargs, _dum_X, keep, same_or_diff, x_format, _columns,
+        _constants, _shape
     ):
 
         TEST_X = _dum_X.copy()
 
+        _wip_constants = deepcopy(_constants)   # _constants is module scope!
+
+        if _kwargs['equal_nan'] is False:
+            _wip_constants = {k: v for k, v in _wip_constants.items() if str(v) != 'nan'}
+
+        if keep == 'string':
+            if x_format != 'pd':
+                pytest.skip(reason=f"cant use str keep when not pd df")
+            elif x_format == 'pd':
+                keep = _columns[0]
+        elif keep == 'callable':
+            keep = lambda x: list(_wip_constants.keys())[0]
+        elif keep == 'int':
+            keep = list(_wip_constants.keys())[0]
+        else:
+            pass
+            # no change to keep
+
+        # this must be after 'keep' management!
+        _kwargs['keep'] = keep
+        TestCls = IM(**_kwargs)
+
+
         if same_or_diff == '_same':
+            # make sure to use a constant column!
+            _c_idx = list(_wip_constants)[0]
             for col_idx in range(1, TEST_X.shape[1]):
-                TEST_X[:, col_idx] = TEST_X[:, 0]
+                TEST_X[:, col_idx] = TEST_X[:, _c_idx]
+            del _c_idx, col_idx
 
         if x_format == 'np':
             pass
         elif x_format == 'pd':
             TEST_X = pd.DataFrame(data=TEST_X, columns=_columns)
         elif x_format == 'coo':
-            TEST_X = ss.coo_matrix(TEST_X)
+            TEST_X = ss.coo_array(TEST_X)
+        elif x_format == 'csc':
+            TEST_X = ss.csc_array(TEST_X)
+        elif x_format == 'csr':
+            TEST_X = ss.csr_array(TEST_X)
         else:
             raise Exception
 
-        out = IM(**_kwargs).fit_transform(TEST_X)
+        if keep == 'none' and same_or_diff == '_same':
+            with pytest.raises(ValueError):
+                # raises if all columns will be deleted
+                TestCls.fit_transform(TEST_X)
+            pytest.skip(reason=f"cant do anymore tests without fit")
+        else:
+            out = TestCls.fit_transform(TEST_X)
 
         if same_or_diff == '_same':
-            assert out.shape[1] == 1
+            _value = _wip_constants[sorted(list(_wip_constants.keys()))[0]]
+            if _kwargs['equal_nan'] is False and str(_value) == 'nan':
+                _exp_constants = {}
+            else:
+                _exp_constants = {i: _value for i in range(_shape[1])}
+            assert TestCls.constant_columns_ == _exp_constants, \
+                f"TestCls.constant_columns_ != _exp_constants"
         elif same_or_diff == '_diff':
-            assert out.shape[1] == _shape[1] - 2
+            assert TestCls.constant_columns_ == _wip_constants, \
+                f"TestCls.constant_columns_ != _wip_constants"
+        else:
+            raise Exception
+
+        if keep != 'none' and not isinstance(keep, dict):
+            if same_or_diff == '_same':
+                assert out.shape[1] == 1
+            elif same_or_diff == '_diff':
+                assert out.shape[1] == _shape[1] - len(_wip_constants) + 1
+        elif isinstance(keep, dict):
+            # not currently testing dict, just a placeholder
+            raise Exception(f"shouldnt be in here!")
+        elif keep == 'none':
+            if same_or_diff == '_same':
+                assert out.shape[1] == 0
+            elif same_or_diff == '_diff':
+                assert out.shape[1] == _shape[1] - len(_wip_constants)
+        else:
+            raise Exception(f'algorithm failure')
+
 
 # END TEST ALL COLUMNS THE SAME OR DIFFERENT ##################################
 
@@ -597,9 +622,16 @@ class TestManyPartialFitsEqualOneBigFit:
         ONE_SHOT_FULL_FIT_TRFM_X = \
             OneShotFullFitTestCls.transform(_dum_X, copy=True)
 
+        assert OneShotPartialFitTestCls.constant_columns_ == \
+                    OneShotFullFitTestCls.constant_columns_
+
+        assert ONE_SHOT_PARTIAL_FIT_TRFM_X.shape == \
+                    ONE_SHOT_FULL_FIT_TRFM_X.shape
+
+        # this has np.nan in it, convert to str
         assert np.array_equal(
-            ONE_SHOT_PARTIAL_FIT_TRFM_X,
-            ONE_SHOT_FULL_FIT_TRFM_X
+            ONE_SHOT_PARTIAL_FIT_TRFM_X.astype(str),
+            ONE_SHOT_FULL_FIT_TRFM_X.astype(str)
         ), \
             f"one shot partial fit trfm X != one shot full fit trfm X"
 
@@ -714,18 +746,22 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
 
 
     @staticmethod
-    @pytest.fixture()
+    @pytest.fixture(scope='function')
     def _start_constants(_chunk_shape):
         # first indices of a set must be ascending
         return {3:1, 5:1, _chunk_shape[1]-2:1}
 
 
-    @pytest.mark.parametrize('_format', ('np',))
-    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_has_nan', (0, 5))
+    @pytest.mark.parametrize('_format', ('np', ))
+    @pytest.mark.parametrize('_dtype', ('int', 'flt', 'int', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_has_nan', (False, 5))
     def test_accuracy(
         self, _kwargs, _X, _format, _dtype, _has_nan, _start_constants
     ):
+
+        if _format not in ('np', 'pd') and _dtype not in ('flt', 'int'):
+            pytest.skip(reason=f"cant put non-num in scipy sparse")
+
 
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['equal_nan'] = True
@@ -743,7 +779,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
         #   assert reported constants - should be one less (the randomly chosen column)
         # at the very end, stack all the _wip_Xs, do one big fit, verify constants
 
-        _pool_X = _X(_format, _dtype, _has_nan, _start_constants, _noise=1e-9)
+        _pool_X = _X(_format, _dtype, _has_nan, None, _noise=1e-9)
 
         _wip_X = _X(_format, _dtype, _has_nan, _start_constants, _noise=1e-9)
 
@@ -751,12 +787,15 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
 
         out = TestCls.partial_fit(_wip_X, _y).constant_columns_
         assert len(out) == len(_start_constants)
-        for idx in range(len(_start_constants)):
-            assert np.array_equal(out[idx], _start_constants[idx])
+        for idx, v in _start_constants.items():
+            if str(v) == 'nan':
+                assert str(v) == str(_start_constants[idx])
+            else:
+                assert v == _start_constants[idx]
 
-        # to know how many dupls we can take out, get the total number of dupls
-        _dupl_pool = list(itertools.chain(*_start_constants))
-        _num_dupls = len(_dupl_pool)
+        # to know how many constants we can take out, get the total number of constants
+        _const_pool = list(_start_constants)
+        _num_dupls = len(_const_pool)
 
         X_HOLDER = []
         X_HOLDER.append(_wip_X)
@@ -764,43 +803,34 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
         # take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v^v^
         for trial in range(_num_dupls//2):
 
-            random_dupl = np.random.choice(_dupl_pool, 1, replace=False)[0]
+            random_const = np.random.choice(_const_pool, 1, replace=False)[0]
 
-            # take the random dupl of out _start_constants and _dupl_pool, and take
-            # a column out of the X pool to patch the dupl in _wip_X
+            # take the random constant of out _start_constants and _const_pool, and take
+            # a column out of the X pool to patch the constant in _wip_X
+            _start_constants.pop(random_const)
+            _const_pool.remove(random_const)
 
-            for _idx, _set in enumerate(reversed(_start_constants)):
-                try:
-                    _start_constants[_idx].remove(random_dupl)
-                    if len(_start_constants[_idx]) == 1:
-                        # gotta take that single dupl out of dupl pool!
-                        _dupl_pool.remove(_start_constants[_idx][0])
-                        del _start_constants[_idx]
-                    break
-                except:
-                    continue
-            else:
-                raise Exception(f"could not find dupl idx in _start_constants")
-
-            _dupl_pool.remove(random_dupl)
-
-
-            _from_X = _wip_X[:, random_dupl]
-            _from_pool = _pool_X[:, random_dupl]
+            _from_X = _wip_X[:, random_const]
+            _from_pool = _pool_X[:, random_const]
             assert not np.array_equal(
                 _from_X[np.logical_not(nan_mask(_from_X))],
                 _from_pool[np.logical_not(nan_mask(_from_pool))]
             )
 
-            _wip_X[:, random_dupl] = _pool_X[:, random_dupl].copy()
+            del _from_X, _from_pool
+
+            _wip_X[:, random_const] = _pool_X[:, random_const].copy()
 
             X_HOLDER.append(_wip_X)
 
-            # verify correctly reported dupls after this partial_fit!
-            out = TestCls.partial_fit(_wip_X, _y).duplicates_
+            # verify correctly reported constants after this partial_fit!
+            out = TestCls.partial_fit(_wip_X, _y).constant_columns_
             assert len(out) == len(_start_constants)
-            for idx in range(len(_start_constants)):
-                assert np.array_equal(out[idx], _start_constants[idx])
+            for idx, v in _start_constants.items():
+                if str(v) == 'nan':
+                    assert str(v) == str(_start_constants[idx])
+                else:
+                    assert v == _start_constants[idx]
 
         # END take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v
 
@@ -810,10 +840,13 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
         # stack all the _wip_Xs
         _final_X = np.vstack(X_HOLDER)
 
-        out = IM(**_new_kwargs).fit(_final_X, _y).duplicates_
+        out = IM(**_new_kwargs).fit(_final_X, _y).constant_columns_
         assert len(out) == len(_start_constants)
-        for idx in range(len(_start_constants)):
-            assert np.array_equal(out[idx], _start_constants[idx])
+        for idx, v in _start_constants.items():
+            if str(v) == 'nan':
+                assert str(out[idx]) == str(_start_constants[idx])
+            else:
+                assert v == _start_constants[idx]
 
 
 
@@ -882,7 +915,7 @@ class TestPartialFit:
     #         y: any=None
     #     ) -> Self:
 
-    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
     # - must have at least 2 columns
@@ -911,8 +944,6 @@ class TestPartialFit:
          )
     )
     def test_X_container(self, _dum_X, _columns, _kwargs, _format):
-
-        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
 
         _X = _dum_X.copy()
 
@@ -967,11 +998,8 @@ class TestPartialFit:
             IM(**_kwargs).partial_fit(_X_wip)
 
 
-    @pytest.mark.parametrize('_num_cols', (1, 2))
-    def test_X_must_have_2_or_more_columns(self, _X_factory, _kwargs, _num_cols):
-
-        # IM transform() CAN *NEVER* REDUCE A DATASET TO ZERO COLUMNS,
-        # ALWAYS MUST BE AT LEAST ONE LEFT
+    @pytest.mark.parametrize('_num_cols', (0, 1))
+    def test_X_must_have_1_or_more_columns(self, _X_factory, _kwargs, _num_cols):
 
         _wip_X = _X_factory(
             _dupl=None,
@@ -981,11 +1009,11 @@ class TestPartialFit:
             _columns=None,
             _zeros=0,
             _shape=(20, 2)
-        )[:, np.arange(_num_cols)]
+        )[:, :_num_cols]
 
         _kwargs['keep'] = 'first'
 
-        if _num_cols < 2:
+        if _num_cols < 1:
             with pytest.raises(ValueError):
                 IM(**_kwargs).partial_fit(_wip_X)
         else:
@@ -1029,7 +1057,7 @@ class TestTransform:
     #         copy: bool = None
     #     ) -> DataType:
 
-    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
     # - must have at least 2 columns
@@ -1079,8 +1107,6 @@ class TestTransform:
          )
     )
     def test_X_container(self, _dum_X, _columns, _kwargs, _format):
-
-        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
 
         _X = _dum_X.copy()
 
@@ -1181,29 +1207,21 @@ class TestTransform:
         _IM = IM(**_kwargs)
         _IM.fit(_dum_X)
 
-        TRFM_X = _IM.transform(_dum_X)
-        TRFM_MASK = _IM.column_mask_
         __ = np.array(_columns)
         for obj_type in ['np', 'pd']:
             for diff_cols in ['more', 'less', 'same']:
                 if diff_cols == 'same':
-                    TEST_X = TRFM_X.copy()
+                    TEST_X = _dum_X.copy()
                     if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=__)
                 elif diff_cols == 'less':
-                    TEST_X = TRFM_X[:, :-1].copy()
+                    TEST_X = _dum_X[:, :-1].copy()
                     if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(
-                            data=TEST_X,
-                            columns=__[TRFM_MASK][:-1]
-                        )
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[:-1])
                 elif diff_cols == 'more':
-                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
+                    TEST_X = np.hstack((_dum_X.copy(), _dum_X.copy()))
                     if obj_type == 'pd':
-                        _COLUMNS = np.hstack((
-                            __[TRFM_MASK],
-                            np.char.upper(__[TRFM_MASK])
-                        ))
+                        _COLUMNS = np.hstack((__, np.char.upper(__)))
                         TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
                 else:
                     raise Exception
@@ -1214,7 +1232,7 @@ class TestTransform:
                     with pytest.raises(ValueError):
                         _IM.transform(TEST_X)
 
-        del _IM, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
+        del _IM, obj_type, diff_cols, TEST_X
 
     # dont really need to test accuracy, see _transform
 
@@ -1229,7 +1247,7 @@ class TestInverseTransform:
     #         copy: bool = None
     #         ) -> DataType:
 
-    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
     # - must have at least 1 column
@@ -1283,8 +1301,6 @@ class TestInverseTransform:
         )
     )
     def test_X_container(self, _dum_X, _columns, _kwargs, _format):
-
-        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
 
         _X = _dum_X.copy()
 
@@ -1357,8 +1373,7 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_dim', ('0D', '1D'))
     def test_X_must_be_2D(self, _X_factory, _kwargs, _dim):
 
-        # IM transform() CAN *NEVER* REDUCE A DATASET TO ZERO COLUMNS,
-        # ALWAYS MUST BE AT LEAST ONE LEFT. ZERO-D PROVES inverse_transform
+        # ZERO-D PROVES inverse_transform
         # REJECTS LESS THAN 1 COLUMN.
 
         _wip_X = _X_factory(
@@ -1373,6 +1388,7 @@ class TestInverseTransform:
         )
 
         _kwargs['keep'] = 'first'
+        _kwargs['equal_nan'] = True
         _IM = IM(**_kwargs)
         TRFM_X = _IM.fit_transform(_wip_X)
         # _wip_X is rigged to transform to only one column
@@ -1471,8 +1487,6 @@ class TestInverseTransform:
 
         # set_output does not control the output container for inverse_transform
         # the output container is always the same as passed
-
-        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
 
         if _format not in ('np', 'pd') and _dtype not in ('int', 'flt'):
             pytest.skip(reason=f"scipy sparse cant take non-numeric")

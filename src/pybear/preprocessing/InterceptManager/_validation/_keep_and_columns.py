@@ -44,7 +44,7 @@ def _val_keep_and_columns(
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column from the set of
-        duplicates.
+        constant columns.
     _columns:
         Union[Iterable[str], None] - feature names of X, only available
         if X was passed as a pandas dataframe.
@@ -115,23 +115,6 @@ def _val_keep_and_columns(
 
     # END validate keep as dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    try:
-        float(_keep)
-        if _keep != int(_keep):
-            raise UnicodeError
-        if isinstance(_keep, bool):
-            raise UnicodeError
-        _keep = int(_keep)
-        if _keep not in range(_X.shape[1]):
-            raise UnicodeError
-        return # <====================================================
-    except UnicodeError:
-        raise ValueError(_err_msg)
-    except:
-        pass
-    # END validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
     # validate keep as callable ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # returns an integer in range of num X features
     if callable(_keep):
@@ -170,7 +153,7 @@ def _val_keep_and_columns(
                 )
         else:
             # is str, but is not one of the literals, then must be a column name
-            _base_msg = f":param: keep '{_keep}' is "
+            _base_msg = f":param: keep ('{_keep}') is "
 
             if _keep.lower() in ('first', 'last', 'random', 'none'):
                 _addon = (f"if you are trying use :param: keep literals "
@@ -196,6 +179,24 @@ def _val_keep_and_columns(
         return  # <====================================================
     # END validate keep as str ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    # validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    try:
+        # float(_keep) is taking str like '3840' and converting to float!
+        # the fix was to move 'validate keep as int' after 'validate keep as str'
+        float(_keep)
+        if _keep != int(_keep):
+            raise UnicodeError
+        if isinstance(_keep, bool):
+            raise UnicodeError
+        _keep = int(_keep)
+        if _keep not in range(_X.shape[1]):
+            raise UnicodeError
+        return # <====================================================
+    except UnicodeError:
+        raise ValueError(_err_msg)
+    except:
+        pass
+    # END validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # the returns in the if blocks should prevent us from getting here.

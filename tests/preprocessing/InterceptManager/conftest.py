@@ -43,7 +43,7 @@ def _X_factory():
     def foo(
         _dupl:list[list[int]]=None,
         _has_nan:Union[int, bool]=False,
-        _format:Literal['np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']='np',
+        _format:Literal['np','pd','csc','csr','coo','dia','lil','dok','bsr']='np',
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
         _columns:Union[Iterable[str], None]=None,
         _constants:Union[dict[int, any], None]=None,
@@ -147,7 +147,7 @@ def _X_factory():
 
 
         for c_idx, _value in _constants.items():
-            if _dtype in ['int', 'flt']:
+            if _dtype == 'flt':
                 X[:, c_idx] = \
                     np.random.normal(
                         loc=_value,
@@ -155,7 +155,15 @@ def _X_factory():
                         size=_shape[0]
                     )
             else:
-                X[:, c_idx] = _value
+                try:
+                    X[:, c_idx] = _value
+                except:
+                    warnings.warn(
+                        f"attempting to put nans into an integer dtype, "
+                        f"converted to float"
+                    )
+                    X = X.astype(np.float64)
+                    X[:, c_idx] = _value
 
 
         if _dupl is not None:

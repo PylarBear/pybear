@@ -9,8 +9,6 @@
 from pybear.preprocessing.InterceptManager._shared._make_instructions \
     import _make_instructions
 
-import numpy as np
-
 import pytest
 
 
@@ -124,9 +122,9 @@ class TestMakeInstructions:
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # dict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        # if no constant columns, returns all Nones
+        # if no constant columns, returns all Nones except 'add'
         out = _make_instructions(_keep_dict, _empty_constant_columns, None, _shape)
-        assert out == {'keep': None, 'delete': None, 'add': None}
+        assert out == {'keep': None, 'delete': None, 'add': _keep_dict}
 
         # delete all constant columns, append contents of keep dict
         out = _make_instructions(_keep_dict, _constant_columns_1, None, _shape)
