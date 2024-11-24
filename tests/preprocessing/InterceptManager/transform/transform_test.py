@@ -62,12 +62,6 @@ class TestTransform:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _dupl():
-        return []
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _constant_columns_flt():
         # must be in range of shape
         # must match columns in _instructions!
@@ -84,14 +78,14 @@ class TestTransform:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _base_X(_X_factory, _dtype, _has_nan, _shape, _dupl, _constant_columns_flt,
+    def _base_X(_X_factory, _dtype, _has_nan, _shape, _constant_columns_flt,
         _constant_columns_str
     ):
 
         def foo(_constants:dict[int, any], _noise:float):
 
             return _X_factory(
-                _dupl=_dupl,
+                _dupl=None,
                 _has_nan=_has_nan,
                 _format='np',
                 _dtype=_dtype,
@@ -116,7 +110,7 @@ class TestTransform:
     )
     def test_output(
         self, _dtype, _base_X, _format, _shape, _master_columns, _equal_nan,
-        _has_nan, _dupl, _rtol_atol, _instructions, _constant_columns_str, _constant_columns_flt
+        _has_nan, _rtol_atol, _instructions, _constant_columns_str, _constant_columns_flt
     ):
 
         # Methodology: use _set_attributes() to build expected column mask
@@ -235,6 +229,13 @@ class TestTransform:
 
         # out shape & _column_mask
         assert out.shape[1] == sum(_ref_column_mask) + isinstance(_instructions['add'], dict)
+
+        # pandas header
+        if _format == 'pd':
+            assert np.array_equal(
+                out.columns,
+                _master_columns.copy()[:_shape[1]][_ref_column_mask]
+            )
 
 
         # iterate over the input X and output X simultaneously, use

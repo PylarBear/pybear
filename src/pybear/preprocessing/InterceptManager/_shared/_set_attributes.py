@@ -61,10 +61,13 @@ def _set_attributes(
 
     kept_columns_: dict[int, any] = {}
     removed_columns_: dict[int, any] = {}
+    # set column_mask_ dtype to object to carry py bool, not np.bool_.
+    # unfortunately, numpy will not allow py bools in an object array for
+    # slicing! so live with the yucky np.True_ and np.False_ repr.
     column_mask_ = np.ones(_n_features).astype(bool)
 
     # all values in _instructions dict are None could only happen if there are
-    # no constant columns, in which case this for loop wont be entereds
+    # no constant columns, in which case this for loop wont be entered
     for col_idx, constant_value in constant_columns_.items():
         if col_idx in (_instructions['keep'] or {}):
             kept_columns_[col_idx] = constant_value

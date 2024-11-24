@@ -27,7 +27,6 @@ from ._transform._transform import _transform
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import StrOptions
 from sklearn.utils.validation import check_is_fitted, check_array
-from sklearn.exceptions import NotFittedError
 
 
 
@@ -36,13 +35,93 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
     """
 
-    pizza say something
+    InterceptManager (IM) is a scikit-style transformer that identifies
+    and manages the constant columns in a dataset.
+
+    Columns with constant values within the same dataset may occur
+    for a variety of reasons, some intentional, some circumstantial.
+    The use of a column of constants in a dataset may be a design
+    consideration for some data analytics algorithms, such as multiple
+    linear regression. Therefore, the existence of one such column may
+    be desirable.
+
+    The presence of multiple constant columns is generally a degenerate
+    condition. In many data analytics learning algorithms, such a
+    condition can cause convergence problems, inversion problems, or
+    other undesirable effects. The analyst is often forced to address
+    the issue to perform a meaningful analysis of the data.
+
+    IM is a tool that can help fix this condition, and has several key
+    characteristics that make it versatile and powerful.
+
+    IM...
+    1) handles numerical and non-numerical data
+    2) accepts nan-like values, and has flexibility in dealing with them
+    3) has a partial fit method for block-wise fitting and transforming
+    4) uses joblib for parallelized discovery of constant columns
+    5) has parameters that give flexibility to the definition of 'constant'
+    6) can remove all, selectively keep one, or append a column of constants to a dataset
+
+    IM affords parameters that give some flexibility to the definition
+    of 'equal' for the sake of identifying constants. Namely, the
+    'rtol', 'atol', and 'equal_nan' parameters.
+
+    The methodology that IM uses to identify constant columns is to
+    calculate the mean of a column then compare it against the individual
+    values for equality via numpy.allclose with respect to the rtol and
+    atol parameters.
+
+    The rtol and atol parameters provide a tolerance window whereby
+    numerical data that are not exactly equal are considered equal if their
+    difference falls within the tolerance. See the numpy docs for
+    clarification of the technical details. If
+    all values fall within the tolerance window then the column is considered constant.
+    IM requires rtol and atol be non-boolean, non-negative real numbers,
+    in addition to any other restrictions
+    IM requires that rtol and atol be non-boolean,
+    enforced by numpy.allclose.
+
+    The equal_nan parameter controls how IM handles nan-like
+    representations. If equal_nan is True, exclude
+    any nan-like values from the computation; this essentially assumes
+    that the nan values are equal to the mean of the non-nan values
+    within their column.  nan-like values will
+    not in and of themselves cause a pair of columns to be marked as unequal.
+    If equal_nan is False, IM does not make the same equality assumption, thus making
+    the column pair not constant. This is in line
+    with the normal numpy handling of nan values. See the Notes section
+    below for a discussion on the handling of nan-like values.
+
+    IM also has a 'keep' parameter that allows the user to manage the
+    constant columns that are identified. 'keep' accepts several different
+    types of values. 'first', 'last', 'random', 'none', an integer indicating
+    column index, a string indicating feature name if a pandas dataframe
+    is passed, a callable that returns a valid column index when the
+    fitted data is passed to it, or a dictionary of {column name, constant value}.
+    The default setting is 'last'.
+
+    That's a lot of options! Some general rules to help simplify the
+    situation.
+    The only value that removes all constant columns is 'none'. All other
+    valid values leave one column of constants behind.
+    If IM does not find any constant columns, 'first', 'last', 'random', and
+    'none' will not raise an exception. When using these values you are
+    saying to IM: "I dont know if there are any constant columns, but if you
+    find some, then apply this rule. However, if using the integer, feature name,
+    of callable, IM will raise an exception if IM does not find a constant
+    column there. What you are saying to IM is: "I know that this column is
+    constant, and you need to keep it and remove any others." If IM finds
+    that it is not constant, it will raise an exception because you lied to it.
+
+
+    'first': retains the constant column left-most in the data (if any)
+    'last': keeps the constant column right-most in the data (if any)
+    'random': keeps a single randomly-selected column of the set of constants.
+    All other constant columns are removed from the dataset.
 
     pizza talk about callable keep, possible variable output
-    pizza dict keep does not make adjustment to column_mask_
-
-    pizza talk about setting equal_nan, rtol, atol between partial fits
-
+    pizza dict keep does not make adjustment to column_mask_, but does
+    make adjustment to get_feature_names_out.
     # pizza, this is for :param: keep
     to access the :param: keep literals ('first', 'last', 'random', 'none'),
     these MUST be passed as lower-case. If a pandas dataframe is passed
@@ -52,6 +131,78 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     with feature names, IM does not normalize case for this
     parameter. This means that if :param: keep is 'first',  feature names such as
     'First', 'FIRST', 'FiRsT', etc. will not raise, only 'first' will.
+
+    The partial_fit, fit, fit_transform, and inverse_transform methods
+    of CDT accept data as numpy arrays, pandas dataframes, and scipy
+    sparse matrices/arrays. CDT has a set_output method,
+    whereby the user can set the type of output container. This behavior
+    is managed by scikit-learn functionality adopted into CDT, and is
+    subject to change at their discretion. As of first publication,
+    :method: set_output can return transformed outputs as numpy arrays,
+    pandas dataframes, or polars dataframes. When :method: set_output is
+    None, the output container is the same as the input, that is, numpy
+    array, pandas dataframe, or scipy sparse matrix/array.
+
+    The partial fit method allows for batch-wise fitting of data. This
+    makes CDT suitable for use with packages that do batch-wise fitting
+    and transforming, such as dask_ml via the Incremental and
+    ParallelPostFit wrappers.
+
+    pizza talk about setting equal_nan, rtol, atol between partial fits
+    There are no safeguards in place to prevent the user from changing
+    rtol, atol, or equal_nan between partial fits. These 3 parameters
+    have strong influence over whether CDT classifies two columns as
+    equal, and therefore are instrumental in dictating what CDT learns
+    during fitting. Changes to these parameters between partial fits can
+    drastically change CDT's understanding of the duplicate columns in
+    the data versus what would otherwise be learned under constant
+    settings. pybear recommends against this practice, however, it is
+    not strictly blocked.
+
+
+    Parameters
+    ----------
+    keep:
+        Optional[Union[Literal['first', 'last', 'random', 'none'], dict[str,any], None]], int, str, callable]
+        default='last' -         The strategy for keeping a single representative from a set of
+        identical columns. 'first' retains the column left-most in the
+        data; 'last' keeps the column right-most in the data; 'random'
+        keeps a single randomly-selected column of the set of duplicates.
+    equal_nan:
+        Optional[bool], default=True -         If equal_nan is True, exclude from comparison any rows where
+        one or both of the values is/are nan. If one value is nan, this
+        essentially assumes that the nan value would otherwise be the
+        same as its non-nan counterpart. When both are nan, this
+        considers the nans as equal (contrary to the default numpy
+        handling of nan, where np.nan does not equal np.nan) and will
+        not in and of itself cause a pair of columns to be marked as
+        unequal. If equal_nan is False and either one or both of the
+        values in the compared pair of values is/are nan, consider the
+        pair to be not equivalent, thus making the column pair not equal.
+        This is in line with the normal numpy handling of nan values.
+    rtol:
+        numbers.Real, default = 1e-5 - The relative difference tolerance
+            for equality. See numpy.allclose.
+    atol:
+        numbers.Real, default = 1e-8 - The absolute tolerance parameter
+            for equality. See numpy.allclose.
+    n_jobs:
+        # pizza finalize this based on benchmarking
+        Optional[Integral], default=-1 - The number of joblib Parallel
+        jobs to use when scanning the data for columns of constants. The
+        default is to use processes, but can be overridden externally
+        using a joblib parallel_config context manager. The default
+        number of jobs is -1 (all processors). To get maximum speed
+        benefit, pybear recommends using the default setting.
+    n_jobs:
+        Union[int, None], default = -1 - The number of joblib Parallel
+        jobs to use when comparing columns. The default is to use
+        processes, but can be overridden externally using a joblib
+        parallel_config context manager. The default number of jobs is
+        -1 (all processors). To get maximum speed benefit, pybear
+        recommends using the default setting.
+
+
 
 
     Notes
@@ -70,7 +221,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     so that CDT can standardize it to np.nan. nan-like representations
     that are recognized by CDT include, at least, np.nan, pandas.NA,
     None (of type None, not string 'None'), and string representations
-    of "nan" (not case sensitive).
+    of 'nan' (not case sensitive).
 
     Concerning the handling of infinity. CDT has no special handling
     for np.inf, -np.inf, float('inf') or float('-inf'). CDT falls back
@@ -85,27 +236,10 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     make equality comparisons.
 
 
-    Parameters
-    ----------
-    keep:
-        Optional[Union[Literal['first', 'last', 'random'], dict[str,any], None]], int, str, callable]
-        default='last' - pizza!
-    equal_nan:
-        Optional[bool], default=True - pizza!
-    rtol:
-        numbers.Real, default = 1e-5 - The relative difference tolerance
-            for equality. See numpy.allclose.
-    atol:
-        numbers.Real, default = 1e-8 - The absolute tolerance parameter
-            for equality. See numpy.allclose.
-    n_jobs:
-        # pizza finalize this based on benchmarking
-        Optional[Integral], default=-1 - The number of joblib Parallel
-        jobs to use when scanning the data for columns of constants. The
-        default is to use processes, but can be overridden externally
-        using a joblib parallel_config context manager. The default
-        number of jobs is -1 (all processors). To get maximum speed
-        benefit, pybear recommends using the default setting.
+
+
+
+
 
 
     Attributes
@@ -125,10 +259,27 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         dict[int, any] - pizza!
 
     removed_columns_:
-        dict[int, any] - pizza!
+        dict[int, any] - a dictionary whose keys are the
+        indices of duplicate columns removed from the original data,
+        indexed by their column location in the original data; the values
+        are the column index in the original data of the respective
+        duplicate that was kept.
 
     column_mask_:
-        NDArray[Union[bool]
+        NDArray[bool]
+
+
+
+    Attributes:
+    -----------
+
+
+    column_mask_: list[bool], shape (n_features_,) - Indicates which
+        columns of the fitted data are kept (True) and which are removed
+        (False) during transform.
+
+
+
 
 
     See Also
@@ -224,16 +375,22 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # and/or adds columns, must build a one-off.
 
         # when there is a {'Intercept': 1} in :param: keep, need to make sure
-        # that that column is accounted for here! and the dropped columns are
-        # also accounted for!
+        # that that column is accounted for here, and the dropped columns are
+        # also accounted for.
 
+
+        check_is_fitted(self)
 
         try:
+            # input_features can be None
             if isinstance(input_features, type(None)):
                 raise UnicodeError
+            # must be iterable
             iter(input_features)
+            # cannot be dict or str
             if isinstance(input_features, (str, dict)):
                 raise Exception
+            # iterable must contain strings
             if not all(map(
                 isinstance, input_features, (str for _ in input_features)
             )):
@@ -246,48 +403,69 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             )
 
 
+        # if input_features is passed, check against n_features_in_ &
+        # features_names_in_, apply column_mask_, optionally append intcpt
+        # from keep dict
         if input_features is not None:
 
-            # adjust if appending a new intercept column
             if len(input_features) != self.n_features_in_:
                 raise ValueError("input_features should have length equal")
 
             if hasattr(self, 'feature_names_in_'):
-
                 if not np.array_equal(input_features, self.feature_names_in_):
                     raise ValueError(
                         f"input_features is not equal to feature_names_in_"
                     )
 
+            # column_mask_ is always shaped against num features in fitted data,
+            # regardless of if keep is a dictionary. apply mask before adding
+            # keep dict intercept.
+            input_features = \
+                np.array(input_features)[self.column_mask_].astype(object)
+
+            # adjust if appending a new intercept column
             if isinstance(self.keep, dict):
-                input_features = np.hstack((input_features, list(self.keep.keys())[0]))
+                input_features = np.hstack((
+                    input_features,
+                    list(self.keep.keys())[0]
+                )).astype(object)
 
-            out = np.array(input_features, dtype=object)[self.column_mask_]
+            return input_features
 
-            return out
-
+        # if input_features is not passed, but feature_names_in_ is available,
+        # apply column_mask_ to feature_names_in_, optionally append intcpt
+        # from keep dict
         elif hasattr(self, 'feature_names_in_'):  # and input_features is None
+
+            # column_mask_ is always shaped against num features in fitted data,
+            # regardless of if keep is a dictionary. apply mask before adding
+            # keep dict intercept.
+            out = self.feature_names_in_[self.column_mask_].astype(object)
+
             if isinstance(self.keep, dict):
-                input_features = np.hstack((self.feature_names_in_, list(self.keep.keys())[0]))
-                out = input_features[self.column_mask_].astype(object)
-            else:
-                out = self.feature_names_in_[self.column_mask_].astype(object)
+                out = np.hstack((
+                    out,
+                    list(self.keep.keys())[0]
+                )).astype(object)
 
             return out
 
-        else:  # and input_features is None
-            try:
-                input_features = \
-                    np.array([f"x{i}" for i in range(self.n_features_in_)])
-                if isinstance(self.keep, dict):
-                    input_features = np.hstack((input_features, list(self.keep.keys())[0]))
-                return input_features.astype(object)[self.column_mask_]
-            except:
-                raise NotFittedError(
-                    f"This {type(self).__name__} instance is not fitted yet. "
-                    f"Call 'fit' with appropriate arguments before using this "
-                    f"estimator."
-                )
+        # if input_features is not passed and no attr feature_names_in_,
+        # build a dummy vector of headers, apply column_mask_, optionally
+        # append intcpt from keep dict
+        else:  # feature_names_in_ not available and input_features is None
+
+            # column_mask_ is always shaped against num features in fitted data,
+            # regardless of if keep is a dictionary. apply mask before adding
+            # keep dict intercept.
+            _dum_header = [f"x{i}" for i in range(self.n_features_in_)]
+
+            out = np.array(_dum_header, dtype=object)[self.column_mask_]
+
+            if isinstance(self.keep, dict):
+                out = np.hstack((out, list(self.keep.keys())[0])).astype(object)
+
+            return out
 
 
     def get_metadata_routing(self):
@@ -555,6 +733,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         if isinstance(self.keep, dict):
             _unqs = np.unique(X[:, -1])
             if len(_unqs) == 1 and _unqs[0] == self.keep[list(self.keep.keys())[0]]:
+                # pizza, this needs to be for np, df, and ss
                 X = np.delete(X, -1, axis=1)
             else:
                 raise ValueError(

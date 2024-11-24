@@ -49,13 +49,8 @@ def _kwargs():
 
 
 @pytest.fixture(scope='module')
-def _dupl(_shape):
-    return [[0, 1, _shape[1] - 1]]
-
-
-@pytest.fixture(scope='module')
-def _dum_X(_X_factory, _dupl, _shape):
-    return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
+def _dum_X(_X_factory, _shape):
+    return _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
 
 
 @pytest.fixture(scope='module')
