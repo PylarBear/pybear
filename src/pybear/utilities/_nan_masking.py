@@ -9,8 +9,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-from typing import TypeAlias
-from typing_extensions import Union
+from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 
 
