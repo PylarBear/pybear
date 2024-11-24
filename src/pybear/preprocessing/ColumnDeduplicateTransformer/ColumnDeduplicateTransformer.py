@@ -50,15 +50,15 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     duplicates based on the configuration set by the user.
 
     CDT affords parameters that give some flexibility to the definition
-    of "equal" for the sake of identifying duplicates. Namely, the
+    of 'equal' for the sake of identifying duplicates. Namely, the
     'rtol', 'atol', and 'equal_nan' parameters.
 
-    The rtol and atol parameters provide tolerance windows where
-    numerical data that is not exactly equal but within the tolerance
-    are considered equal. See the numpy docs for deeper clarification of
-    the technical details. CDT requires that rtol and atol be non-boolean,
-    non-negative real numbers, in addition to any other restrictions
-    enforced by numpy.allclose.
+    The rtol and atol parameters provide a tolerance window whereby
+    numerical data that are not exactly equal are considered equal if
+    their difference falls within the tolerance. See the numpy docs for
+    clarification of the technical details. CDT requires that rtol and
+    atol be non-boolean, non-negative real numbers, in addition to any
+    other restrictions enforced by numpy.allclose.
 
     The equal_nan parameter controls how CDT handles nan-like
     representations during comparisons. If equal_nan is True, exclude
@@ -232,7 +232,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         are the column index in the original data of the respective
         duplicate that was kept.
 
-    column_mask_: list[bool], shape (n_features_,) - Indicates which
+    column_mask_: NDArray[bool], shape (n_features_,) - Indicates which
         columns of the fitted data are kept (True) and which are removed
         (False) during transform.
 
@@ -252,7 +252,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     so that CDT can standardize it to np.nan. nan-like representations
     that are recognized by CDT include, at least, np.nan, pandas.NA,
     None (of type None, not string 'None'), and string representations
-    of "nan" (not case sensitive).
+    of 'nan' (not case sensitive).
 
     Concerning the handling of infinity. CDT has no special handling
     for np.inf, -np.inf, float('inf') or float('-inf'). CDT falls back
@@ -581,7 +581,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
         self.column_mask_[list(self.removed_columns_)] = False
-        self.column_mask_ = list(map(bool, self.column_mask_))
 
         return self
 
@@ -804,7 +803,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
         self.column_mask_[list(self.removed_columns_)] = False
-        self.column_mask_ = list(map(bool, self.column_mask_))
         # end redo
 
         out = _transform(X, self.column_mask_)
