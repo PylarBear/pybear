@@ -13,6 +13,7 @@ from pybear.preprocessing.InterceptManager._validation._keep_and_columns import 
 from copy import deepcopy
 from uuid import uuid4
 import numpy as np
+import pandas as pd
 
 import pytest
 
@@ -133,6 +134,24 @@ class TestValKeepAndColumns:
     def test_rejects_non_literal_str_keep_not_in_header(self, _X, _good_columns):
         with pytest.raises(ValueError):
             _val_keep_and_columns('Some Column', _good_columns, _X)
+
+
+    def test_warns_if_keep_dict_key_in_columns(self):
+
+        X = pd.DataFrame(
+            data=np.random.randint(0, 10, (5,3)),
+            columns=['x1', 'x2', 'Intercept']
+        )
+
+        with pytest.warns():
+            _val_keep_and_columns(
+                _keep={'Intercept': 1},
+                _columns=X.columns,
+                _X=X
+            )
+
+
+
 
 
 

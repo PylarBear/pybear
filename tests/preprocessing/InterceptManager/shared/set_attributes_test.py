@@ -55,7 +55,7 @@ class TestSetAttributes:
         # build '_instructions' from the given keep, delete, & add
 
         # all constant columns must be accounted for. the 'slush' place is
-        # 'keep', so fill that based on what is in 'delete' and 'add'
+        # 'keep', so fill that based on what is in 'delete'
         _keep = keep or []
         for _col_idx in _constant_columns.keys():
             if (_col_idx in _keep) or (delete and _col_idx in delete):
@@ -93,7 +93,10 @@ class TestSetAttributes:
                 )
 
         assert out_kept_columns == {k:_constant_columns[k] for k in _keep}
+
         assert out_removed_columns == {k:_constant_columns[k] for k in (delete or [])}
+
+        assert out_column_mask.dtype == bool
         assert len(out_column_mask) == _n_features
         exp_col_mask = np.array([((i in _keep) or (i not in _constant_columns)) for i in range(_n_features)]).astype(bool)
         assert np.array_equal(

@@ -795,13 +795,13 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
 
         # to know how many constants we can take out, get the total number of constants
         _const_pool = list(_start_constants)
-        _num_dupls = len(_const_pool)
+        _num_consts = len(_const_pool)
 
         X_HOLDER = []
         X_HOLDER.append(_wip_X)
 
-        # take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v^v^
-        for trial in range(_num_dupls//2):
+        # take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v^v^v^v^
+        for trial in range(_num_consts//2):
 
             random_const = np.random.choice(_const_pool, 1, replace=False)[0]
 
@@ -832,7 +832,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
                 else:
                     assert v == _start_constants[idx]
 
-        # END take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v
+        # END take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v^v^v
 
 
 
@@ -1161,10 +1161,11 @@ class TestTransform:
                 # handled by IM
                 _IM.transform(_X_wip)
         else:
-            _IM.transform(_X_wip)
+            out = _IM.transform(_X_wip)
+            assert isinstance(out, type(_X_wip))
 
 
-    # test_X_must_have_2_or_more_columns
+    # test_X_must_have_2_or_more_columns(self)
     # this is dictated by partial_fit. partial_fit requires 2+ columns, and
     # transform must have same number of features as fit
 
@@ -1257,6 +1258,7 @@ class TestInverseTransform:
     # - output is C contiguous
     # - no instance attr validation
 
+    # pizza
     # if we cant come up with a way to validate/ensure that the data
     # being inverted back matches with the current state of the params,
     # then will have to put some disclaimers in the docs.
@@ -1359,12 +1361,15 @@ class TestInverseTransform:
                 # handled by IM
                 _IM.inverse_transform(_X_wip.iloc[:, _IM.column_mask_])
         elif _format == 'pd':
-            _IM.inverse_transform(_X_wip.iloc[:, _IM.column_mask_])
+            out = _IM.inverse_transform(_X_wip.iloc[:, _IM.column_mask_])
+            assert isinstance(out, type(_X_wip))
         elif _format == 'np':
-            _IM.inverse_transform(_X_wip[:, _IM.column_mask_])
+            out = _IM.inverse_transform(_X_wip[:, _IM.column_mask_])
+            assert isinstance(out, type(_X_wip))
         elif hasattr(_X_wip, 'toarray'):
             _og_dtype = type(_X_wip)
-            _IM.inverse_transform(_og_dtype(_X_wip.tocsc()[:, _IM.column_mask_]))
+            out = _IM.inverse_transform(_og_dtype(_X_wip.tocsc()[:, _IM.column_mask_]))
+            assert isinstance(out, type(_X_wip))
             del _og_dtype
         else:
             raise Exception
@@ -1624,7 +1629,7 @@ class TestInverseTransform:
                 (f"output of inverse_transform() does not reduce back to the "
                  f"output of transform()")
 
-
+    # pizza, probably put a test here for pd header chopped right
 
 
 

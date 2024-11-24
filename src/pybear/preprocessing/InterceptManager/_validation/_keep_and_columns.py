@@ -104,7 +104,8 @@ def _val_keep_and_columns(
         # if keep conflicts with existing column name, will overwrite
         if _columns is not None and _name in _columns:
             warnings.warn(
-                f"'keep' column name '{_name}' is already in the data, "
+                f"'keep' column name '{_name}' is already in the data. "
+                f"pizza, run some experiments, understand how pandas handles this, and add some clarity here. "
                 f"the existing data in that column will be overwritten."
             )
         # pizza, not validating dict value at the moment, make a decision on this

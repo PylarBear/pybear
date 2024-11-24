@@ -12,7 +12,8 @@ from pybear.preprocessing.InterceptManager.InterceptManager import \
 from pybear.preprocessing.InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit._parallel_column_comparer import _parallel_column_comparer
+from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+    _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.utilities import nan_mask
 
@@ -271,7 +272,8 @@ class TestAccuracy:
 
 
         # keep ('first','last','random','none') is correct
-        # also verify 'column_mask_' 'kept_columns_', 'removed_columns_' 'get_feature_names_out_'
+        # also verify 'column_mask_' 'kept_columns_', 'removed_columns_'
+        # 'get_feature_names_out_' has its own test module
         ref_column_mask = [True for _ in range(X.shape[1])]
         ref_kept_columns = {}
         ref_removed_columns = {}
@@ -384,13 +386,7 @@ class TestAccuracy:
                 # pizza when this thing runs come back see if can get this to py True
                 assert TestCls.column_mask_[col_idx] is np.True_
 
-        # get_feature_names_out ------------
-        if X_dtype == 'pd':
-            assert len(TestCls.get_feature_names_out()) == exp_num_kept
-            assert np.array_equal(
-                ref_feature_names_out,
-                TestCls.get_feature_names_out()
-            )
+
 
         # kept_columns_ -----------------
         _, __ = TestCls.kept_columns_, ref_kept_columns

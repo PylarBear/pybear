@@ -78,28 +78,27 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_constants', ('constants1', 'constants2'))
-    @pytest.mark.parametrize('_format', ('np', )
-        # (
-        #     'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-        #     'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-        #     'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
-        # )
+    @pytest.mark.parametrize('_format',
+        # run only a few ss representative to save time
+        # 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
+        # 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
+        # 'dia_array'
+
+        (
+            'np', 'pd', 'lil_array', 'dok_array', 'bsr_array'
+        )
     )
     def test_accuracy(
         self, _const_X, _format, _dtype, _keep, _equal_nan, _has_nan, _shape,
         _constants, _columns, _rtol_atol
     ):
 
-        # pizza revisit this last thing
-        # Methodology: use _set_attributes() to build expected column mask
-        # from :fixture: _instructions. (_instructions is conditional based
-        # on the test and is modified below.) for np, pd, and ss, iterate over
-        # input X and output X simultaneously, using the expected column
-        # mask to map columns in input X to their locations in output X.
-        # Columns that are mapped to each other must be array_equal.
-        # Columns that are not mapped must be constant.
+        # Methodology: tranform data, then transform back using
+        # inverse_transform. the inverse transform must be equal to the
+        # originally fitted data, except for nans. inverse transform
+        # cannot infer the presence of nans in the original data.
 
-        if _dtype == 'str' and _format not in ('np', 'pd'):
+        if _dtype not in ('flt', 'int') and _format not in ('np', 'pd'):
             pytest.skip(reason=f"scipy sparse cannot take strings")
 
         if _format != 'pd' and isinstance(_keep, str) and \
@@ -199,12 +198,26 @@ class TestInverseTransform:
         # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # transform v v v v v v v v v v v v v v v v v v
-        _dedupl_X = _IM.transform(_X_wip, copy=True)
+        _trfm_x = _IM.transform(_X_wip, copy=True)
         # transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # inverse transform v v v v v v v v v v v v v v v
+
+        # if keep is a dict, a column was appended during transform.
+        # that column needs to be removed before going into _inverse_transform.
+        if isinstance(_keep, dict):
+            if isinstance(_trfm_x, np.ndarray):
+                _trfm_x = _trfm_x[:, :-1]
+            elif isinstance(_trfm_x, pd.core.frame.DataFrame):
+                _trfm_x = _trfm_x.iloc[:, :-1]
+            elif hasattr(_trfm_x, 'toarray'):
+                _og_dtype = type(_trfm_x)
+                _trfm_x = _trfm_x.tocsc()[:, :-1]
+                _trfm_x = _og_dtype(_trfm_x)
+                del _og_dtype
+
         out = _inverse_transform(
-            X=_dedupl_X,
+            X=_trfm_x,
             _removed_columns=_IM.removed_columns_,
             _feature_names_in=_columns
         )
@@ -213,10 +226,10 @@ class TestInverseTransform:
 
         assert type(out) is type(_X_wip)
 
-        assert out.shape == (
-            _base_X.shape[0],
-            _base_X.shape[1] + isinstance(_keep, dict)
-        )
+        assert out.shape == _X_wip.shape
+
+        if _format == 'pd':
+            assert np.array_equal(out.columns, _columns)
 
 
         # iterate over the input X and output X simultaneously, check

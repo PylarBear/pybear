@@ -286,7 +286,7 @@ class TestFindConstants:
 
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
-    def test_more_and_less_duplicates_found(
+    def test_more_and_less_constants_found(
         self, _X_base, _has_nan, _equal_nan, _init_constants, _less_constants,
         _more_constants, _rtol, _atol, _shape
     ):
