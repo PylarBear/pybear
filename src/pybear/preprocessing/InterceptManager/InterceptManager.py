@@ -266,17 +266,16 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         duplicate that was kept.
 
     column_mask_:
-        NDArray[bool]
-
+        NDArray[bool] - shape (n_features_,) - Indicates which
+        columns of the fitted data are kept (True) and which are removed
+        (False) during transform.
 
 
     Attributes:
     -----------
 
 
-    column_mask_: list[bool], shape (n_features_,) - Indicates which
-        columns of the fitted data are kept (True) and which are removed
-        (False) during transform.
+    column_mask_: list[bool],
 
 
 
