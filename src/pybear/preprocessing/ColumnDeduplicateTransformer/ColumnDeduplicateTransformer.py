@@ -66,13 +66,13 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     If one value is nan, this essentially assumes that the nan value
     would otherwise be the same as its non-nan counterpart. When both
     are nan, this considers the nans as equal (contrary to the default
-    numpy handling of nan, where np.nan does not equal np.nan) and will
-    not in and of itself cause a pair of columns to be marked as unequal.
-    If equal_nan is False and either one or both of the values in the
-    compared pair of values is/are nan, consider the pair to be not
-    equivalent, thus making the column pair not equal. This is in line
-    with the normal numpy handling of nan values. See the Notes section
-    below for a discussion on the handling of nan-like values.
+    numpy handling of nan, where numpy.nan does not equal numpy.nan) and
+    will not in and of itself cause a pair of columns to be marked as
+    unequal. If equal_nan is False and either one or both of the values
+    in the compared pair of values is/are nan, consider the pair to be
+    not equivalent, thus making the column pair not equal. This is in
+    line with the normal numpy handling of nan values. See the Notes
+    section below for a discussion on the handling of nan-like values.
 
     CDT has parameters that allow the user to control which column is
     retained out of a set of duplicates: the 'keep', 'do_not_drop', and
@@ -122,9 +122,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     The partial_fit, fit, fit_transform, and inverse_transform methods
     of CDT accept data as numpy arrays, pandas dataframes, and scipy
     sparse matrices/arrays (except BSR). CDT has a set_output method,
-    whereby the user can set the type of output container. This behavior
-    is managed by scikit-learn functionality adopted into CDT, and is
-    subject to change at their discretion. As of first publication,
+    whereby the user can set the type of output container for :method:
+    transform. This behavior is managed by scikit-learn functionality
+    adopted into CDT, and is subject to change at their discretion.
     :method: set_output can return transformed outputs as numpy arrays,
     pandas dataframes, or polars dataframes. When :method: set_output is
     None, the output container is the same as the input, that is, numpy
@@ -185,10 +185,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         of the columns not to be dropped to be removed.
     rtol:
         Real, default = 1e-5 - The relative difference tolerance for
-            equality. See numpy.allclose.
+            equality. Must be a non-boolean, non-negative, real
+            number. See numpy.allclose.
     atol:
-        Real, default = 1e-8 - The absolute tolerance parameter for .
-            equality. See numpy.allclose.
+        Real, default = 1e-8 - The absolute difference tolerance for .
+            equality. Must be a non-boolean, non-negative, real
+            number. See numpy.allclose.
     equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
@@ -197,9 +199,9 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
-        handling of nan, where np.nan does not equal np.nan) and will
-        not in and of itself cause a pair of columns to be marked as
-        unequal. If equal_nan is False and either one or both of the
+        handling of nan, where numpy.nan does not equal numpy.nan) and
+        will not in and of itself cause a pair of columns to be marked
+        as unequal. If equal_nan is False and either one or both of the
         values in the compared pair of values is/are nan, consider the
         pair to be not equivalent, thus making the column pair not equal.
         This is in line with the normal numpy handling of nan values.
@@ -246,17 +248,17 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     detail about how scipy sparse is handled.) After the conversion
     and prior to the comparison, CDT identifies any nan-like
     representations in both of the numpy arrays and standardizes all of
-    them to np.nan. The user needs to be wary that whatever is used to
-    indicate 'not-a-number' in the original data must first survive the
-    conversion to numpy array, then be recognizable by CDT as nan-like,
-    so that CDT can standardize it to np.nan. nan-like representations
-    that are recognized by CDT include, at least, np.nan, pandas.NA,
-    None (of type None, not string 'None'), and string representations
-    of 'nan' (not case sensitive).
+    them to numpy.nan. The user needs to be wary that whatever is used
+    to indicate 'not-a-number' in the original data must first survive
+    the conversion to numpy array, then be recognizable by CDT as
+    nan-like, so that CDT can standardize it to numpy.nan. nan-like
+    representations that are recognized by CDT include, at least,
+    numpy.nan, pandas.NA, None (of type None, not string 'None'), and
+    string representations of 'nan' (not case sensitive).
 
     Concerning the handling of infinity. CDT has no special handling
-    for np.inf, -np.inf, float('inf') or float('-inf'). CDT falls back
-    to the native handling of these values for python and numpy.
+    for numpy.inf, -numpy.inf, float('inf') or float('-inf'). CDT falls
+    back to the native handling of these values for python and numpy.
     Specifically, numpy.inf==numpy.inf and float('inf')==float('inf').
 
     Concerning the handling of scipy sparse arrays. When comparing
@@ -362,6 +364,20 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         """
         Get remaining feature names after deduplication.
 
+        If input_features is None:
+        if feature_names_in_ is defined, then feature_names_in_ is
+        used as the input features.
+        If feature_names_in_ is not defined, then the following input
+        feature names are generated:
+            ["x0", "x1", ..., "x(n_features_in_ - 1)"].
+
+        If input_features is not None:
+        if feature_names_in_ is not defined, then input_features is
+        used as the input features.
+        if feature_names_in_ is defined, then input_features must be
+        an array-like whose feature names exactly match those in
+        feature_names_in_.
+
 
         Parameters
         ----------
@@ -369,19 +385,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             array-like of str or None, default=None - Externally provided
             feature names.
 
-            If input_features is None:
-            if feature_names_in_ is defined, then feature_names_in_ is
-            used as the input features.
-            If feature_names_in_ is not defined, then the following input
-            feature names are generated:
-                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
-
-            If input_features is not None:
-            if feature_names_in_ is not defined, then input_features is
-            used as the input features.
-            if feature_names_in_ is defined, then input_features must be
-            an array-like whose feature names exactly match those in
-            feature_names_in_.
 
         Return
         ------

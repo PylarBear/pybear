@@ -20,7 +20,8 @@ def _val_rtol(_rtol: Real) -> None:
     Parameters
     ----------
     _rtol:
-        Real - the relative difference tolerance for equality.
+        Real - the relative difference tolerance for equality. Must be a
+            non-boolean, non-negative, real number. See numpy.allclose.
 
 
     Return

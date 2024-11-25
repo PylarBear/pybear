@@ -48,10 +48,12 @@ def _dupl_idxs(
             partial fit.
     _rtol:
         Real, default = 1e-5 - The relative difference tolerance for
-            equality. See numpy.allclose.
+            equality. Must be a non-boolean, non-negative, real
+            number. See numpy.allclose.
     _atol:
-        Real, default = 1e-8 - The absolute tolerance parameter for .
-            equality. See numpy.allclose.
+        Real, default = 1e-8 - The absolute difference tolerance for .
+            equality. Must be a non-boolean, non-negative, real
+            number. See numpy.allclose.
     _equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
@@ -60,8 +62,8 @@ def _dupl_idxs(
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
-        handling of nan, where np.nan != np.nan) and will not in and of
-        itself cause a pair of columns to be marked as unequal.
+        handling of nan, where numpy.nan != numpy.nan) and will not in
+        and of itself cause a pair of columns to be marked as unequal.
         If equal_nan is False and either one or both of the values in
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
