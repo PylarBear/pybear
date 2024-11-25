@@ -42,9 +42,11 @@ def _find_duplicates(
         {array-like, scipy sparse matrix} of shape (n_samples,
         n_features) - The data to be deduplicated.
     _rtol:
-        Real - the relative difference tolerance for equality
+        Real - the relative difference tolerance for equality. Must be a
+            non-boolean, non-negative, real number. See numpy.allclose.
     _atol:
-        Real - the absolute difference tolerance for equality.
+        Real - the absolute difference tolerance for equality. Must be a
+            non-boolean, non-negative, real number. See numpy.allclose.
     _equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
@@ -53,8 +55,8 @@ def _find_duplicates(
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
-        handling of nan, where np.nan != np.nan) and will not in and of
-        itself cause a pair of columns to be marked as unequal.
+        handling of nan, where numpy.nan != numpy.nan) and will not in
+        and of itself cause a pair of columns to be marked as unequal.
         If equal_nan is False and either one or both of the values in
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is

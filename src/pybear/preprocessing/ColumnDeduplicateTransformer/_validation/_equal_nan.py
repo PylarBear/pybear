@@ -25,8 +25,8 @@ def _val_equal_nan(
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
-        handling of nan, where np.nan != np.nan) and will not in and of
-        itself cause a pair of columns to be marked as unequal.
+        handling of nan, where numpy.nan != numpy.nan) and will not in
+        and of itself cause a pair of columns to be marked as unequal.
         If equal_nan is False and either one or both of the values in
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
