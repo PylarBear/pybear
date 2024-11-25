@@ -270,7 +270,7 @@ class TestAccuracy:
         __all_dupls = list(itertools.chain(*deepcopy(exp_dupls)))
         for col_idx in range(_shape[1]):
             if col_idx not in __all_dupls:
-                assert TestCls.column_mask_[col_idx] is True
+                assert TestCls.column_mask_[col_idx] is np.True_
 
         # for retained columns, assert they are equal to themselves in
         # the original data
