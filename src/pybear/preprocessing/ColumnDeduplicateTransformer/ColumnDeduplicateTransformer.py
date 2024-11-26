@@ -185,12 +185,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         of the columns not to be dropped to be removed.
     rtol:
         Real, default = 1e-5 - The relative difference tolerance for
-            equality. Must be a non-boolean, non-negative, real
-            number. See numpy.allclose.
+        equality. Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     atol:
-        Real, default = 1e-8 - The absolute difference tolerance for .
-            equality. Must be a non-boolean, non-negative, real
-            number. See numpy.allclose.
+        Real, default = 1e-8 - The absolute difference tolerance for
+        equality. Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
@@ -632,15 +632,18 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         """
         Revert deduplicated data back to its original state. :method:
         set_output does not control the output container here, the output
-        container is always the same as passed. Very little validation
-        is possible
-        to ensure that the passed data is valid for the current state of
-        CDT. It is only possible to ensure that the number of columns in
-        the passed data match the number of columns that are expected to
-        be outputted by :method: transform for the current state of CDT.
-        It is up to the user to ensure the state of CDT aligns with the
-        state of the data that is to undergo inverse transform. Otherwise
-        the output will be nonsensical.
+        container is always the same as passed. This operation cannot
+        restore any nan-like values that may have been in the original
+        untransformed data.
+
+        Very little validation is possible to ensure that the passed
+        data is valid for the current state of CDT. It is only possible
+        to ensure that the number of columns in the passed data match
+        the number of columns that are expected to be outputted by
+        :method: transform for the current state of CDT. It is up to the
+        user to ensure the state of CDT aligns with the state of the
+        data that is to undergo inverse transform. Otherwise the output
+        will be nonsensical.
 
 
         Parameters

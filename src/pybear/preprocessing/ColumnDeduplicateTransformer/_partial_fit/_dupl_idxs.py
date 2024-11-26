@@ -44,16 +44,16 @@ def _dupl_idxs(
         n_features) - the data to be deduplicated.
     _duplicates:
         Union[list[list[int]], None] - the duplicate columns carried over
-            from the previous partial fits. Is None if on the first
-            partial fit.
+        from the previous partial fits. Is None if on the first partial
+        fit.
     _rtol:
         Real, default = 1e-5 - The relative difference tolerance for
-            equality. Must be a non-boolean, non-negative, real
-            number. See numpy.allclose.
+        equality. Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     _atol:
-        Real, default = 1e-8 - The absolute difference tolerance for .
-            equality. Must be a non-boolean, non-negative, real
-            number. See numpy.allclose.
+        Real, default = 1e-8 - The absolute difference tolerance for
+        equality. Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     _equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:

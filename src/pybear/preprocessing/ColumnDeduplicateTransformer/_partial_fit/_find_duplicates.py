@@ -42,11 +42,13 @@ def _find_duplicates(
         {array-like, scipy sparse matrix} of shape (n_samples,
         n_features) - The data to be deduplicated.
     _rtol:
-        Real - the relative difference tolerance for equality. Must be a
-            non-boolean, non-negative, real number. See numpy.allclose.
+        numbers.Real - the relative difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
     _atol:
-        Real - the absolute difference tolerance for equality. Must be a
-            non-boolean, non-negative, real number. See numpy.allclose.
+        numbers.Real - the absolute difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
     _equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:

@@ -43,19 +43,18 @@ def _parallel_ss_comparer(
     ----------
     _column1:
         npt.NDArray[any] - the first 'column' of a pair to compare for
-       equality, extracted from a scipy sparse object.
+        equality, extracted from a scipy sparse object.
     _column2:
         npt.NDArray[any] - the second 'column' of a pair to compare for
         equality, extracted from a scipy sparse object.
     _rtol:
-        Real, default = 1e-5 - The relative difference tolerance for
-            equality. See numpy.allclose.
+        numbers.Real - The relative difference tolerance for equality.
+        See numpy.allclose.
     _atol:
-        Real, default = 1e-8 - The absolute difference tolerance for .
-            equality. See numpy.allclose.
+        numbers.Real - The absolute difference tolerance for equality.
+        See numpy.allclose.
     _equal_nan:
-        bool, default = False - When comparing pairs of columns row by
-        row:
+        bool - When comparing pairs of columns row by row:
         If equal_nan is True, exclude from comparison any rows where one
         or both of the values is/are nan. If one value is nan, this
         essentially assumes that the nan value would otherwise be the
@@ -72,7 +71,7 @@ def _parallel_ss_comparer(
     Return
     ------
     -
-        bool: True, the columns are equal, False, the columns are uneqaul.
+        bool: True, the columns are equal, False, the columns are unequal.
 
     """
 
