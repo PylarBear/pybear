@@ -21,7 +21,7 @@ def _val_atol(_atol: Real) -> None:
     ----------
     _atol:
         Real - the absolute difference tolerance for equality. Must be a
-            non-boolean, non-negative, real number. See numpy.allclose.
+        non-boolean, non-negative, real number. See numpy.allclose.
 
 
     Return

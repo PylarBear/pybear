@@ -9,8 +9,6 @@
 from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
     _column_getter import _column_getter
 
-from pybear.utilities._nan_masking import nan_mask
-
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -136,16 +134,29 @@ class TestColumnGetter:
         if _dtype == 'num':
             assert np.array_equal(column1, _X[:, _col_idx1], equal_nan=True)
         elif _dtype == 'str':
-            # since changed column_getter to assign np.nan to nan-likes,
-            # need to accommodate these np.nans when doing array_equal.
-            # as of 24_10_15, array_equal equal_nan cannot cast for str types
-            if _has_nan:
-                NOT_NAN1 = np.logical_not(nan_mask(column1)).astype(bool)
-                assert np.array_equal(
-                    column1[NOT_NAN1], _X[:, _col_idx1][NOT_NAN1]
-                )
-            else:
-                assert np.array_equal(column1, _X[:, _col_idx1])
+            assert np.array_equal(
+                column1.astype(str),
+                _X[:, _col_idx1].astype(str)
+            )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -25,10 +25,10 @@ def _parallel_column_comparer(
 ) -> bool:
 
     """
-    Compare two columns for equality, subject to :param: rtol, :param: atol,
-    and :param: equal_nan. The columns here must have originated from a
-    numpy array or pandas dataframe, not a scipy sparse matrix/array. For
-    the scipy column comparer, see _parallel_ss_comparer.
+    Compare two columns for equality, subject to rtol, atol, and
+    equal_nan. The columns here must have originated from a numpy array
+    or pandas dataframe, not a scipy sparse matrix/array. For the scipy
+    column comparer, see _parallel_ss_comparer.
 
 
     Parameters
@@ -40,16 +40,15 @@ def _parallel_column_comparer(
         npt.NDArray[any] - the second column of a pair to compare for
         equality.
     _rtol:
-        Real, default = 1e-5 - The relative difference tolerance for
-            equality. Must be a non-boolean, non-negative, real
-            number. See numpy.allclose.
+        numbers.Real - The relative difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
     _atol:
-        Real, default = 1e-8 - The absolute difference tolerance for
-            equality. Must be a non-boolean, non-negative, real
-            number. See numpy.allclose.
+        numbers.Real - The absolute difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
     _equal_nan:
-        bool, default = False - When comparing pairs of columns row by
-        row:
+        bool - When comparing pairs of columns row by row:
         If equal_nan is True, exclude from comparison any rows where one
         or both of the values is/are nan. If one value is nan, this
         essentially assumes that the nan value would otherwise be the
@@ -66,7 +65,7 @@ def _parallel_column_comparer(
     Return
     ------
     -
-        bool: True, the columns are equal, False, the columns are uneqaul.
+        bool: True, the columns are equal, False, the columns are unequal.
 
     """
 
