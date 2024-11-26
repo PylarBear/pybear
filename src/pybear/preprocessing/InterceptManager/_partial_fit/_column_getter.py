@@ -21,18 +21,18 @@ def _column_getter(
 ) -> npt.NDArray[any]:
 
     """
-    # Pizza cook this!
+
     This supports _find_constants. Handles the mechanics of extracting
     a column from the various data container types. Return extracted
     column as a numpy vector. In the case of scipy sparse, the columns
-    are not converted to dense, but the values in the 'data' attribute
-    are sent for equality test.
+    are converted to dense.
 
 
     Parameters
     ----------
     _X:
-        DataFormatType - The data.
+        {array-like, scipy sparse} - The data for which to find constant
+        columns.
     _col_idx:
         int - the column index of the column to be extracted from _X.
 
@@ -54,20 +54,19 @@ def _column_getter(
     elif isinstance(_X, pd.core.frame.DataFrame):
         column = _X.iloc[:, _col_idx].to_numpy()
     elif hasattr(_X, 'toarray'):    # scipy sparse
-        # instead of expanding the column to dense np, get the
-        # values out of sparse column using the 'data'
-        # attribute and send that off for equality test
+        # there are a lot of ifs, ands, and buts if trying to determine
+        # if a column is constant just from the dense indices and values.
+        # the most elegant way is just to convert to dense, at the expense
+        # of some memory swell (but it is only one column, right?)
 
-        # Extract the data and indices of the column
-        # # code that stacks ss column indices and values
-        # PIZZA THINK ON THIS, HOW TO MAKE DETERMINATION USING ONLY DENSE INDICES AND VALUES
+        # old code that stacks ss column indices and values
         # c1 = _X.getcol(_col_idx).tocsc()  # tocsc() is important, must stay
         # column = np.hstack((c1.indices, c1.data))
         # del c1
 
         # code that converts a ss column to np array
-        _X_wip = _X.copy().tocsc()
-        column = _X_wip[:, [_col_idx]].toarray().ravel()
+        _X_wip = _X.copy()
+        column = _X_wip.tocsc()[:, [_col_idx]].toarray().ravel()
         del _X_wip
     else:
         raise TypeError(f"invalid data type '{type(_X)}'")

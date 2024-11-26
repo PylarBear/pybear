@@ -62,10 +62,6 @@ class TestSetAttributes:
                 pass
             else:
                 _keep.append(_col_idx)
-            # pizza, this is a place where it matters about the decision
-            # of whether to put 'add' into 'keep'
-            # elif add:
-                # _keep.append(???)
 
         _instructions = {
             'keep': _keep if len(_keep) else None,

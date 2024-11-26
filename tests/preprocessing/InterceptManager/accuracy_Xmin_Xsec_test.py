@@ -52,7 +52,7 @@ class TestAccuracy:
             'equal_nan': False,
             'rtol': 1e-5,
             'atol': 1e-8,
-            'n_jobs': -1     # leave at -1, pizza set this after benchmarking
+            'n_jobs': -1     # pizza see if their is confliction
         }
 
 
@@ -375,6 +375,7 @@ class TestAccuracy:
         # for convenient index management, positions to be dropped from
         # ref_feature_names_out were set to None, take those out now
         ref_feature_names_out = [_ for _ in ref_feature_names_out if _ is not None]
+        # pizza whaaa..... not used?
 
         # validate TestCls attrs against ref objects v^v^v^v^v^v^v^v^v^v^v^v^v^
         # column_mask_ ------------
@@ -383,7 +384,6 @@ class TestAccuracy:
         # assert all columns that werent constants are in the output
         for col_idx in range(_shape[1]):
             if col_idx not in _sorted_constant_idxs:
-                # pizza when this thing runs come back see if can get this to py True
                 assert TestCls.column_mask_[col_idx] is np.True_
 
 

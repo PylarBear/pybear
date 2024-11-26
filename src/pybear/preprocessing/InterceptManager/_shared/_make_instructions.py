@@ -114,7 +114,9 @@ def _make_instructions(
     _sorted_constant_column_idxs = sorted(list(constant_columns_))
 
     _instructions: InstructionType = {
-        'keep': None,   #pizza, dont really need this for operating on X, 'keep' just makes it easy to make kept_columns_ later on.
+        # dont really need 'keep' for operating on X, just makes it easy
+        # to make kept_columns_ later on.
+        'keep': None,
         'delete': None,
         'add': None
     }

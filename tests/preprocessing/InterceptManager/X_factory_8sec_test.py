@@ -9,7 +9,7 @@
 
 import pytest
 
-from uuid import uuid4
+import uuid
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -291,7 +291,7 @@ class TestXFactory:
     @pytest.mark.parametrize('_columns', (True, None))
     def test_columns_accuracy(self, _X_factory, _columns, _shape):
 
-        _ref_columns = [str(uuid4())[:4] for _ in range(_shape[1])]
+        _ref_columns = [str(uuid.uuid4())[:4] for _ in range(_shape[1])]
 
         out = _X_factory(
             _dupl=None,
@@ -418,7 +418,8 @@ class TestXFactory:
 
             # if _constants is None, then no columns should be constant....
             if _constants is None:
-                assert not safe
+                #_parallel_constant_finder() returns a uuid when not constant
+                assert isinstance(safe, uuid.UUID)
                 continue
 
             _column = out[:, c_idx_1]
@@ -437,7 +438,8 @@ class TestXFactory:
                 # is in some tolerance of :param: _noise
                 assert 0.5 * _noise <= np.std(non_nans) <= 1.5 * _noise
             else:
-                assert not safe
+                # _parallel_constant_finder() returns a uuid when not constant
+                assert isinstance(safe, uuid.UUID)
 
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))

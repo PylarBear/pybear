@@ -83,7 +83,7 @@ class TestValKeepAndColumns:
 
     @pytest.mark.parametrize('junk_keep',
         (3.14, True, False, None, [0,1], {0,1})
-)
+    )
     def test_keep_rejects_junk(self, junk_keep, _good_columns, _X):
         # not int, str, dict[str, any], callable
         with pytest.raises(ValueError):
@@ -111,7 +111,7 @@ class TestValKeepAndColumns:
 
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none'))
     @pytest.mark.parametrize('conflict', (True, False))
-    def test_raise_on_conflict_with_keep_literal(
+    def test_raise_on_header_conflict_with_keep_literal(
         self, _keep, conflict, _good_columns, _X
     ):
 
@@ -126,12 +126,12 @@ class TestValKeepAndColumns:
             _val_keep_and_columns(_keep, _columns, _X)
 
 
-    def test_rejects_non_literal_str_keep_with_no_header(self, _X):
+    def test_keep_rejects_non_literal_str_with_no_header(self, _X):
         with pytest.raises(ValueError):
             _val_keep_and_columns('Some Column', None, _X)
 
 
-    def test_rejects_non_literal_str_keep_not_in_header(self, _X, _good_columns):
+    def test_keep_rejects_non_literal_str_not_in_header(self, _X, _good_columns):
         with pytest.raises(ValueError):
             _val_keep_and_columns('Some Column', _good_columns, _X)
 
@@ -151,10 +151,48 @@ class TestValKeepAndColumns:
             )
 
 
+    @pytest.mark.parametrize(f'keep_value',
+        ([0, 1], {0,1}, (0,1), {'a':1}, np.random.randint(0,2,(10,)))
+    )
+    def test_rejects_keep_dict_value_is_nonstr_iterable(self, keep_value):
+        # {'Intercept': value}, value cannot be list-like iterable
+        X = np.random.randint(0, 10, (5,3))
+
+        with pytest.raises(ValueError):
+            _val_keep_and_columns(
+                _keep={'Intercept': keep_value},
+                _columns=None,
+                _X=X
+            )
 
 
+    @pytest.mark.parametrize(f'keep_value',
+        (min, max, lambda x: x, np.random.randint)
+    )
+    def test_reject_keep_dict_value_is_callable(self, keep_value):
+        # {'Intercept': value}, value cannot be callable
+        X = np.random.randint(0, 10, (5,3))
+
+        with pytest.raises(ValueError):
+            _val_keep_and_columns(
+                _keep={'Intercept': keep_value},
+                _columns=None,
+                _X=X
+            )
 
 
+    @pytest.mark.parametrize(f'keep_value',
+        (-np.e, -1, 0, 1, np.e, True, False, np.nan, pd.NA, 'strings')
+    )
+    def test_accept_keep_dict_value(self, keep_value):
+        # {'Intercept': value}, value can be int, float, bool, str
+        X = np.random.randint(0, 10, (5,3))
+
+        _val_keep_and_columns(
+            _keep={'Intercept': keep_value},
+            _columns=None,
+            _X=X
+        )
 
 
 
