@@ -1258,11 +1258,6 @@ class TestInverseTransform:
     # - output is C contiguous
     # - no instance attr validation
 
-    # pizza
-    # if we cant come up with a way to validate/ensure that the data
-    # being inverted back matches with the current state of the params,
-    # then will have to put some disclaimers in the docs.
-
 
     @pytest.mark.parametrize('_copy',
         (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)

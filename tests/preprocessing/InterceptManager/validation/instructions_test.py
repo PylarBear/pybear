@@ -13,8 +13,6 @@ import pytest
 
 
 
-
-
 class TestValInstructions:
 
     @staticmethod
@@ -53,7 +51,13 @@ class TestValInstructions:
         with pytest.raises(AssertionError):
             _val_instructions(_instructions, _shape)
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
+        # accepts a dict for 'add', and no other
+        _instructions = {'keep':None, 'delete':[0,1,3,10], 'add': {'Intercept': 1}}
+        _val_instructions(_instructions, _shape)
+        _instructions = {'keep':None, 'delete':{'Intercept': 1}, 'add': None}
+        with pytest.raises(AssertionError):
+            _val_instructions(_instructions, _shape)
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 

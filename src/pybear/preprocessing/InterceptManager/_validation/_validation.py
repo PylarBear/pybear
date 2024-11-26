@@ -11,27 +11,28 @@ from ._equal_nan import _val_equal_nan
 from ._rtol import _val_rtol
 from ._atol import _val_atol
 from ._n_jobs import _val_n_jobs
-from ._X import _val_X
-
-
 
 from .._type_aliases import (
     DataFormatType,
     KeepType
 )
-from typing import Iterable
 from typing_extensions import Union
-from numbers import Real
+import numpy.typing as npt
+from numbers import Real, Integral
+
+import pandas as pd
+
+
 
 
 def _validation(
-    _X:DataFormatType,
-    _columns: Union[Iterable[str], None],
+    _X: DataFormatType,
+    _columns: Union[npt.NDArray[str], None],
     _keep: KeepType,
     _equal_nan: bool,
     _rtol: Real,
     _atol: Real,
-    _n_jobs: Union[int, None]
+    _n_jobs: Union[Integral, None]
 ) -> None:
 
     """
@@ -42,19 +43,37 @@ def _validation(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse matrix} of shape (n_samples, n_features)
+        {array-like, scipy sparse} of shape (n_samples, n_features) -
+        The data for which to find constant columns.
     _columns:
-        pizza WHAT!?!?!?!!
+        Union[NDArray[str], None] - An NDArray[str] of shape (n_features,)
+        if X was passed as a pandas dataframe with a header, otherwise
+        None.
     _keep:
-        Literal['first', 'last', 'random', 'none'], dict[str, int], str, int
+        Union[Literal['first', 'last', 'random', 'none'], dict[str, any],
+        str, int, callable] - The strategy for handling the constant
+        columns. See 'The Keep Parameter' discussion section for a
+        lengthy explanation of the 'keep' parameter.
     _equal_nan:
-        bool,
+        bool - If equal_nan is True, exclude nan-likes from computations
+        that discover constant columns. This essentially assumes that
+        the nan value would otherwise be equal to the mean of the non-nan
+        values in the same column. If equal_nan is False and any value
+        in a column is nan, do not assume that the nan value is equal to
+        the mean of the non-nan values in the same column, thus making
+        the column non-constant. This is in line with the normal numpy
+        handling of nan values.
     _rtol:
-        Real,
+        numbers.Real - The relative difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
     _atol:
-        Real,
+        numbers.Real - The absolute difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
     _n_jobs:
-        Union[int, None]
+        Union[numbers.Integral, None] - The number of joblib Parallel
+        jobs to use when scanning the data for columns of constants.
 
 
     Return

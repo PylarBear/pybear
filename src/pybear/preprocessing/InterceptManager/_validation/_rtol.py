@@ -13,14 +13,16 @@ from numbers import Real
 def _val_rtol(_rtol: Real) -> None:
 
     """
-    Verify rtol is a non-boolean, real, non-negative, number that is
+    Verify rtol is a non-boolean, non-negative, real number that is
     accepted by numpy allclose.
 
 
     Parameters
     ----------
     _rtol:
-        Real - the relative difference tolerance for equality.
+        numbers.Real - The relative difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
 
 
     Return
@@ -33,7 +35,7 @@ def _val_rtol(_rtol: Real) -> None:
 
 
 
-    err_msg = (f"'rtol' must be a non-boolean, real, non-negative number "
+    err_msg = (f"'rtol' must be a non-boolean, non-negative, real number "
                f"that is accepted by numpy allclose")
 
 
@@ -50,7 +52,7 @@ def _val_rtol(_rtol: Real) -> None:
 
     np.allclose(X1, X1, rtol=_rtol, atol=1e-6)
 
-
+    del X1
 
 
 

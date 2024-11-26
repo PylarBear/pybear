@@ -11,6 +11,8 @@ from pybear.preprocessing.InterceptManager._partial_fit. \
 
 from pybear.utilities import nan_mask_numerical
 
+import uuid
+
 import numpy as np
 
 import pytest
@@ -74,23 +76,26 @@ class TestParallelConstantFinder:
                         _not_nan_mask = np.logical_not(nan_mask_numerical(_X))
                         assert out == np.mean(_X[_not_nan_mask])
                     elif _noise > atol:
-                        assert out is False
+                        assert isinstance(out, uuid.UUID)
                 elif not equal_nan:
-                    assert out is False
+                    assert isinstance(out, uuid.UUID)
             elif not has_nan:
                 # equal_nan doesnt matter
                 if _noise <= atol:
                     assert out == np.mean(_X)
                 elif _noise > atol:
-                    assert out is False
+                    assert isinstance(out, uuid.UUID)
 
         elif dtype == 'str':
             if has_nan:
                 # _noise and rtol dont matter for str column, but we built the
                 # str test vector to be constant or not based on _noise and rtol
                 if equal_nan:
-                    if _noise <= atol:
+                    if _noise <= atol:   # should be constant
                         try:
+                            # this will catch if the unique is being returned
+                            # as a list (which it should not be). should be
+                            # returning a single value.
                             iter(out)
                             if isinstance(out, str):
                                 raise Exception
@@ -101,15 +106,18 @@ class TestParallelConstantFinder:
                             pass
                         assert out == 'a'
                     elif _noise > atol:
-                        assert out is False
+                        assert isinstance(out, uuid.UUID)
                 else:
-                    assert out is False
+                    assert isinstance(out, uuid.UUID)
             elif not has_nan:
                 # equal_nan doesnt matter
                 # _noise and rtol dont matter for str column, but we built the
                 # str test vector to be constant or not based on _noise and rtol
-                if _noise <= atol:
+                if _noise <= atol:    # should be constant
                     try:
+                        # this will catch if the unique is being returned
+                        # as a list (which it should not be). should be
+                        # returning a single value.
                         iter(out)
                         if isinstance(out, str):
                             raise Exception
@@ -120,7 +128,7 @@ class TestParallelConstantFinder:
                         pass
                     assert out == 'a'
                 elif _noise > atol:
-                    assert out is False
+                    assert isinstance(out, uuid.UUID)
 
         else:
             raise Exception
@@ -140,8 +148,7 @@ class TestParallelConstantFinder:
         if dtype=='flt':
             _X = np.full((_size,), np.nan)
         elif dtype=='str':
-            _X = np.full((_size,), 'nan')
-            _X = _X.astype(object)
+            _X = np.full((_size,), 'nan').astype(object)
         else:
             raise Exception
 
@@ -152,10 +159,13 @@ class TestParallelConstantFinder:
             if equal_nan:
                 assert str(out) == 'nan'
             elif not equal_nan:
-                assert out is False
+                assert isinstance(out, uuid.UUID)
         elif dtype == 'str':
             if equal_nan:
                 try:
+                    # this will catch if the unique is being returned
+                    # as a list (which it should not be). should be
+                    # returning a single value.
                     iter(out)
                     if isinstance(out, str):
                         raise Exception
@@ -166,7 +176,7 @@ class TestParallelConstantFinder:
                     pass
                 assert out == 'nan'
             elif not equal_nan:
-                assert out is False
+                assert isinstance(out, uuid.UUID)
 
 
 

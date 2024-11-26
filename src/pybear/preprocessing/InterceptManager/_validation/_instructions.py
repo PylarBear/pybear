@@ -6,34 +6,38 @@
 
 
 
-
 from typing_extensions import Union
+from typing import Literal
 import warnings
 import numpy as np
 
 
 
 def _val_instructions(
-    _instructions: dict[str, Union[list[int], None]],
+    _instructions: dict[Literal['keep', 'delete', 'add'], Union[list[int], None]],
     _shape: tuple[int, int]
 ) -> None:
 
     """
-    _instructions must be a dictionary with 3 keys: 'keep', 'delete', and 'add'.
-    values can only be None or list[int] (column indices in the data).
-    all column indices must be in range of the number of features in the data.
-    a column index cannot be in multiple lists.
+    _instructions must be a dictionary with 3 keys: 'keep', 'delete',
+    and 'add'. Values can only be None or list[int], where ints are
+    column indices in the data. All column indices must be in range of
+    the number of features in the data. A column index cannot be in
+    multiple lists.
 
 
     Parameters
     ----------
     _instructions:
-        dict[str, Union[list[int], None]] - pizza make some dough here
+        dict[Literal['keep', 'delete', 'add'], Union[list[int], None]] -
+        instructions for keeping, deleting, or adding constant columns,
+        to be applied during :method: transform
     _shape:
-        tuple[int, int] - (n_samples, n_features) of the data.
+        tuple[int, int] - (n_samples, n_features) shape of the data.
 
 
     Return
+    ------
     -
         None
 
@@ -47,18 +51,20 @@ def _val_instructions(
     assert 'keep' in _instructions
     assert 'delete' in _instructions
     assert 'add' in _instructions
+    assert isinstance(_shape, tuple)
 
     # values must be None or list[int]
     # col idx cannot be in more than one instruction
-    # pizza, come back to this --- does the 'add' col also go into 'keep'?
     # if all the lists are combined into a set, then len(set) must
     # equal sum of lens of individual lists
-    # raise if all columns deleted and not adding new intercept
+    # raise if all columns in the data are deleted and not adding new intercept
+
     _used_idxs = []
     for k, v in _instructions.items():
         if v is None:
             continue
         elif isinstance(v, dict):
+            assert k == 'add'
             assert isinstance(list(v.keys())[0], str)
         else:
             assert isinstance(v, list), f"{v=}"

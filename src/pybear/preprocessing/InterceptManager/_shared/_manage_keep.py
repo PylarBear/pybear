@@ -37,10 +37,10 @@ def _manage_keep(
     	is not bool
     	is in range(X.shape[1])
     if 'keep' is callable(X):
-        pizza revisit this after us decide about _keep_and_columns
     	output is int
     	output is not bool
     	output is in range(X.shape[1])
+    	output is a constant column
     if 'keep' is str in ('first', 'last', 'random', 'none'):
     	if 'feature_names_in_' is not None, keep literal is not in 'feature_names_in_'
     if 'keep' is str not in literals:

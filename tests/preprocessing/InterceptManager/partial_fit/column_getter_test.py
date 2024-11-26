@@ -10,8 +10,6 @@ from pybear.preprocessing.InterceptManager._partial_fit._column_getter import (
     _column_getter
 )
 
-from pybear.utilities._nan_masking import nan_mask
-
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -21,6 +19,7 @@ import pytest
 
 
 
+# this mark needs to stay here because fixtures _X_num & _X_str need it
 @pytest.mark.parametrize('_has_nan', (True, False), scope='module')
 class TestColumnGetter:
 
@@ -30,6 +29,7 @@ class TestColumnGetter:
     @pytest.fixture(scope='module')
     def _shape():
         return (5, 3)
+
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -43,6 +43,7 @@ class TestColumnGetter:
             _columns=None,
             _shape=_shape
         )
+
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -123,29 +124,25 @@ class TestColumnGetter:
         assert isinstance(column1, np.ndarray)
         assert len(column1.shape) == 1
 
-        # if running scipy sparse, then column1 will be ss.data.
-        if hasattr(_X_wip, 'toarray'):
-            assert np.array_equal(
-                column1,
-                _X_wip.getcol(_col_idx1).tocsc().data,  # need to do csc for dok & lil
-                equal_nan=True
-            )
-        else: # ('ndarray', 'df')
 
-            if _dtype == 'num':
-                assert np.array_equal(column1, _X[:, _col_idx1], equal_nan=True)
-            elif _dtype == 'str':
-                # pizza reaffirm this
-                # since changed column_getter to assign np.nan to nan-likes,
-                # need to accommodate these np.nans when doing array_equal.
-                # as of 24_10_15, array_equal equal_nan cannot cast for str types
-                if _has_nan:
-                    NOT_NAN1 = np.logical_not(nan_mask(column1)).astype(bool)
-                    assert np.array_equal(
-                        column1[NOT_NAN1], _X[:, _col_idx1][NOT_NAN1]
-                    )
-                else:
-                    assert np.array_equal(column1, _X[:, _col_idx1])
+        # since all the various _X_wips came from _X, just use _X to referee
+        # whether _column_getter pulled the correct column from _X_wip
+        if _dtype == 'num':
+            assert np.array_equal(column1, _X[:, _col_idx1], equal_nan=True)
+        elif _dtype == 'str':
+            assert np.array_equal(
+                column1.astype(str),
+                _X[:, _col_idx1].astype(str)
+            )
+
+
+
+
+
+
+
+
+
 
 
 

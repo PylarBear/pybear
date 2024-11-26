@@ -7,7 +7,7 @@
 
 # pizza dont forget to clean up these imports!!
 from typing import Optional
-from typing_extensions import Self
+from typing_extensions import Self, Union
 from ._type_aliases import (
     KeepType, DataFormatType
 )
@@ -42,7 +42,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     for a variety of reasons, some intentional, some circumstantial.
     The use of a column of constants in a dataset may be a design
     consideration for some data analytics algorithms, such as multiple
-    linear regression. Therefore, the existence of one such column may
+    linear regression. Therefore, the presence of one such column may
     be desirable.
 
     The presence of multiple constant columns is generally a degenerate
@@ -59,187 +59,255 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     2) accepts nan-like values, and has flexibility in dealing with them
     3) has a partial fit method for block-wise fitting and transforming
     4) uses joblib for parallelized discovery of constant columns
-    5) has parameters that give flexibility to the definition of 'constant'
-    6) can remove all, selectively keep one, or append a column of constants to a dataset
+    5) has parameters that give flexibility to how 'constant' is defined
+    6) can remove all, selectively keep one, or append a column of
+        constants to a dataset
 
-    IM affords parameters that give some flexibility to the definition
-    of 'equal' for the sake of identifying constants. Namely, the
-    'rtol', 'atol', and 'equal_nan' parameters.
+    The methodology that IM uses to identify a constant column is
+    different for numerical and non-numerical data.
 
-    The methodology that IM uses to identify constant columns is to
-    calculate the mean of a column then compare it against the individual
-    values for equality via numpy.allclose with respect to the rtol and
-    atol parameters.
+    In the simplest situation with non-numerical data where nan-like
+    values are not involved, the computation is simply to determine the
+    number of unique values in the column. If there is only one unique
+    value, then the column is constant.
 
-    The rtol and atol parameters provide a tolerance window whereby
-    numerical data that are not exactly equal are considered equal if their
-    difference falls within the tolerance. See the numpy docs for
-    clarification of the technical details. If
-    all values fall within the tolerance window then the column is considered constant.
-    IM requires rtol and atol be non-boolean, non-negative real numbers,
-    in addition to any other restrictions
-    IM requires that rtol and atol be non-boolean,
-    enforced by numpy.allclose.
+    The computation for numerical columns is slightly more complex.
+    IM calculates the mean of the column then compares it against the
+    individual values via numpy.allclose. allclose has rtol and atol
+    parameters to give latitude to the definition of 'equal'. They
+    provide a tolerance window whereby numerical data that are not
+    exactly equal are considered equal if their difference falls within
+    the tolerance. IM affords some flexibility in defining 'equal' for
+    the purpose of identifying constants by providing direct access to
+    the numpy.allclose rtol and atol parameters through its own rtol and
+    atol parameters. IM requires rtol and atol be non-boolean,
+    non-negative real numbers, in addition to any other restrictions IM
+    requires that rtol and atol be non-boolean, enforced by
+    numpy.allclose. See the numpy docs for clarification of the technical
+    details.
 
-    The equal_nan parameter controls how IM handles nan-like
-    representations. If equal_nan is True, exclude
-    any nan-like values from the computation; this essentially assumes
-    that the nan values are equal to the mean of the non-nan values
-    within their column.  nan-like values will
-    not in and of themselves cause a pair of columns to be marked as unequal.
-    If equal_nan is False, IM does not make the same equality assumption, thus making
-    the column pair not constant. This is in line
-    with the normal numpy handling of nan values. See the Notes section
-    below for a discussion on the handling of nan-like values.
+    The equal_nan parameter controls how IM handles nan-like values. If
+    equal_nan is True, exclude any nan-like values from the allclose
+    comparison. This essentially assumes that the nan values are equal
+    to the mean of the non-nan values within their column. nan-like
+    values will not in and of themselves cause a column to be considered
+    non-constant when equal_nan is True. If equal_nan is False, IM does
+    not make the same assumption that the nan values are implicitly equal
+    to the mean of the non-nan values, thus making the column not
+    constant. This is in line with the normal numpy handling of nan-like
+    values. See the Notes section below for a discussion on the handling
+    of nan-like values.
 
     IM also has a 'keep' parameter that allows the user to manage the
-    constant columns that are identified. 'keep' accepts several different
-    types of values. 'first', 'last', 'random', 'none', an integer indicating
-    column index, a string indicating feature name if a pandas dataframe
-    is passed, a callable that returns a valid column index when the
-    fitted data is passed to it, or a dictionary of {column name, constant value}.
-    The default setting is 'last'.
-
-    That's a lot of options! Some general rules to help simplify the
-    situation.
-    The only value that removes all constant columns is 'none'. All other
-    valid values leave one column of constants behind.
-    If IM does not find any constant columns, 'first', 'last', 'random', and
-    'none' will not raise an exception. When using these values you are
-    saying to IM: "I dont know if there are any constant columns, but if you
-    find some, then apply this rule. However, if using the integer, feature name,
-    of callable, IM will raise an exception if IM does not find a constant
-    column there. What you are saying to IM is: "I know that this column is
-    constant, and you need to keep it and remove any others." If IM finds
-    that it is not constant, it will raise an exception because you lied to it.
-
-
-    'first': retains the constant column left-most in the data (if any)
-    'last': keeps the constant column right-most in the data (if any)
-    'random': keeps a single randomly-selected column of the set of constants.
-    All other constant columns are removed from the dataset.
-
-    pizza talk about callable keep, possible variable output
-    pizza dict keep does not make adjustment to column_mask_, but does
-    make adjustment to get_feature_names_out.
-    # pizza, this is for :param: keep
-    to access the :param: keep literals ('first', 'last', 'random', 'none'),
-    these MUST be passed as lower-case. If a pandas dataframe is passed
-    and there is a conflict between the literals and a feature name, IM
-    will raise because it is not clear to IM whether you want to indicate
-    the literal or the feature name. to afford a little more flexibility
-    with feature names, IM does not normalize case for this
-    parameter. This means that if :param: keep is 'first',  feature names such as
-    'First', 'FIRST', 'FiRsT', etc. will not raise, only 'first' will.
+    constant columns that are identified. 'keep' accepts several types
+    of arguments. The 'Keep' discussion section has a list of all the
+    options that can be passed to :param: 'keep', what they do, and how
+    to use them.
 
     The partial_fit, fit, fit_transform, and inverse_transform methods
-    of CDT accept data as numpy arrays, pandas dataframes, and scipy
-    sparse matrices/arrays. CDT has a set_output method,
-    whereby the user can set the type of output container. This behavior
-    is managed by scikit-learn functionality adopted into CDT, and is
-    subject to change at their discretion. As of first publication,
-    :method: set_output can return transformed outputs as numpy arrays,
-    pandas dataframes, or polars dataframes. When :method: set_output is
-    None, the output container is the same as the input, that is, numpy
-    array, pandas dataframe, or scipy sparse matrix/array.
+    of IM accept data as numpy arrays, pandas dataframes, and scipy
+    sparse matrices/arrays. IM has a set_output method, whereby the user
+    can set the type of output container for :method: transform. This
+    behavior is managed by scikit-learn functionality adopted into IM,
+    and is subject to change at their discretion. :method: set_output
+    can return transformed outputs as numpy arrays, pandas dataframes,
+    or polars dataframes. When :method: set_output is None, the output
+    container is the same as the input, that is, numpy array, pandas
+    dataframe, or scipy sparse matrix/array.
 
     The partial fit method allows for batch-wise fitting of data. This
-    makes CDT suitable for use with packages that do batch-wise fitting
+    makes IM suitable for use with packages that do batch-wise fitting
     and transforming, such as dask_ml via the Incremental and
     ParallelPostFit wrappers.
 
-    pizza talk about setting equal_nan, rtol, atol between partial fits
     There are no safeguards in place to prevent the user from changing
     rtol, atol, or equal_nan between partial fits. These 3 parameters
-    have strong influence over whether CDT classifies two columns as
-    equal, and therefore are instrumental in dictating what CDT learns
+    have strong influence over whether IM classifies a column as
+    constant, and therefore is instrumental in dictating what IM learns
     during fitting. Changes to these parameters between partial fits can
-    drastically change CDT's understanding of the duplicate columns in
+    drastically change IM's understanding of the constant columns in
     the data versus what would otherwise be learned under constant
     settings. pybear recommends against this practice, however, it is
     not strictly blocked.
 
 
+    The 'keep' Parameter
+    --------------------
+    IM learns which columns are constant during fitting. At transform,
+    IM applies the instruction given to it via the 'keep' parameter.
+    The 'keep' parameter takes several types of arguments, providing
+    various ways to manage the columns of constants within a dataset.
+    Below is a comprehensive list of all the arguments that can be
+    passed to :param: keep.
+
+    Literal 'first':
+        Retains the constant column left-most in the data (if any) and
+        deletes any others. Must be lower case. Does not except if there
+        are no constant columns.
+    Literal 'last':
+        The default setting, keeps the constant column right-most in the
+        data (if any) and deletes any others. Must be lower case. Does
+        not except if there are no constant columns.
+    Literal 'random':
+        Keeps a single randomly-selected constant column (if any) and
+        deletes any others. Must be lower case. Does not except if there
+        are no constant columns.
+    Literal 'none':
+        Removes all constant columns (if any). Must be lower case. Does
+        not except if there are no constant columns.
+    integer:
+        An integer indicating the column index in the original data to
+        keep, while removing all other columns of constants. IM will
+        raise an exception if this passed index is not a column of
+        constants.
+    string: A string indicating feature name to keep if a pandas
+        dataframe is passed, while deleting all other constant columns.
+        Case sensitive. IM will except if 1) a string is passed that is
+        not an allowed string literal ('first', 'last', 'random', 'none')
+        and a pandas dataframe is not passed to :method: fit, 2) a pandas
+        dataframe is passed to :method: fit but the given feature name
+        is not valid, 3) the feature name is valid but the column is not
+        constant.
+    callable(X): a callable that returns a valid column index when the
+        fitted data is passed to it, indicating the index of the column
+        of constants to keep while deleting all other columns of
+        constants. This enables the analyst to use characteristics of the
+        data being transformed to determine which column of constants to
+        keep. IM will except if 1) the callable does not return an
+        integer, 2) the integer returned is out of the range of columns
+        in the passed data, 3) the integer that is returned does not
+        correspond to a constant column. IM does not retain state
+        information about what indices have been returned from the
+        callable durting transforms. IM cannot catch if the callable is
+        returning different indices for different blocks of data within
+        a sequence of calls to :method: transform. When doing multiple
+        batch-wise transforms, it is up to the user to ensure that the
+        callable returns the same index for each transform. If the
+        callable returns a different index for any of the blocks of data
+        passed in a sequence of transforms, then the results at transform
+        time will be nonsensical.
+    dictionary[str, any]: dictionary of {feature name:str, constant
+        value:any}. The :param: 'keep' dictionary requires a single
+        key:value pair.
+        The key must be a string indicating feature name. This applies to
+        any format of data that is transformed. If the data is a pandas
+        dataframe, then this string will become the feature name of the
+        new constant feature. If the fitted data is a numpy array or
+        scipy sparse, then this column name is ignored.
+        The dictionary value is the constant value for the new feature.
+        This value has only two restrictions: it cannot be a non-string
+        iterable (e.g. list, tuple, etc.) and it cannot be a callable.
+        Essentially, the constant value is restricted to being integer,
+        float, string, or boolean. It is up to the user to ensure the
+        datatype of the constant is compatible with the datatype of the
+        transformed data.
+        When transforming a pandas dataframe and the new feature name is
+        already a feature in the data, there are two possible outcomes.
+        1) If the original feature is not constant, the new constant
+        values will overwrite in the old column (generally an undesirable
+        outcome). 2) If the original feature is constant: the original
+        column will be removed and a new column with the same name will
+        be appended with the new constant values. IM will warn about
+        this condition but not terminate the program. It is up to the
+        user to manage the feature names in this situation.
+        :attr: column_mask_ is not adjusted for the new feature appended
+        by the :param: 'keep' dictionary (see the discussion on :attr:
+        column_mask_.) But the :param: 'keep' dictionary does make
+        adjustment to get_feature_names_out. As get_feature_names_out
+        reflects the characteristics of transformed data, and the
+        :param: 'keep' dictionary modifies the data at transform time,
+        then get_feature_names_out also reflects this modification.
+
+    To access the :param: keep literals ('first', 'last', 'random',
+    'none'), these MUST be passed as lower-case. If a pandas dataframe
+    is passed and there is a conflict between a literal that has been
+    passed and a feature name, IM will raise because it is not clear to
+    IM whether you want to indicate the literal or the feature name. To
+    afford a little more flexibility with feature names, IM does not
+    normalize case for this parameter. This means that if :param: keep
+    is passed as 'first',  feature names such as 'First', 'FIRST',
+    'FiRsT', etc. will not raise, only 'first' will.
+
+    The only value that removes all constant columns is 'none'. All other
+    valid arguments for :param: 'keep' leave one column of constants
+    behind. All other constant columns are removed from the dataset.
+    If IM does not find any constant columns, 'first', 'last', 'random',
+    and 'none' will not raise an exception. It is like telling IM: "I
+    dont know if there are any constant columns, but if you find some,
+    then apply this rule." However, if using the integer, feature name,
+    or callable, IM will raise an exception if IM does not find a
+    constant column at that index. It is like telling IM: "I know that
+    this column is constant, and you need to keep it and remove any
+    others." If IM finds that it is not constant, it will raise an
+    exception because you lied to it.
+
+
     Parameters
     ----------
     keep:
-        Optional[Union[Literal['first', 'last', 'random', 'none'], dict[str,any], None]], int, str, callable]
-        default='last' -         The strategy for keeping a single representative from a set of
-        identical columns. 'first' retains the column left-most in the
-        data; 'last' keeps the column right-most in the data; 'random'
-        keeps a single randomly-selected column of the set of duplicates.
+        Optional[Union[Literal['first', 'last', 'random', 'none'],
+        dict[str, any], int, str, callable], default='last' - The
+        strategy for handling the constant columns. See 'The keep
+        Parameter' section for a lengthy explanation of the 'keep'
+        parameter.
     equal_nan:
-        Optional[bool], default=True -         If equal_nan is True, exclude from comparison any rows where
-        one or both of the values is/are nan. If one value is nan, this
-        essentially assumes that the nan value would otherwise be the
-        same as its non-nan counterpart. When both are nan, this
-        considers the nans as equal (contrary to the default numpy
-        handling of nan, where np.nan does not equal np.nan) and will
-        not in and of itself cause a pair of columns to be marked as
-        unequal. If equal_nan is False and either one or both of the
-        values in the compared pair of values is/are nan, consider the
-        pair to be not equivalent, thus making the column pair not equal.
+        Optional[bool], default=True - If equal_nan is True, exclude
+        nan-likes from computations that discover constant columns.
+        This essentially assumes that the nan value would otherwise be
+        equal to the mean of the non-nan values in the same column.
+        If equal_nan is False and any value in a column is nan, do not
+        assume that the nan value is equal to the mean of the non-nan
+        values in the same column, thus making the column non-constant.
         This is in line with the normal numpy handling of nan values.
     rtol:
-        numbers.Real, default = 1e-5 - The relative difference tolerance
-            for equality. See numpy.allclose.
+        Optional[numbers.Real], default = 1e-5 - The relative difference
+        tolerance for equality. Must be a non-boolean, non-negative,
+        real number. See numpy.allclose.
     atol:
-        numbers.Real, default = 1e-8 - The absolute tolerance parameter
-            for equality. See numpy.allclose.
+        Optional[numbers.Real], default = 1e-8 - The absolute difference
+        tolerance for equality. Must be a non-boolean, non-negative,
+        real number. See numpy.allclose.
     n_jobs:
-        # pizza finalize this based on benchmarking
-        Optional[Integral], default=-1 - The number of joblib Parallel
-        jobs to use when scanning the data for columns of constants. The
-        default is to use processes, but can be overridden externally
-        using a joblib parallel_config context manager. The default
-        number of jobs is -1 (all processors). To get maximum speed
-        benefit, pybear recommends using the default setting.
-    n_jobs:
-        Union[int, None], default = -1 - The number of joblib Parallel
-        jobs to use when comparing columns. The default is to use
-        processes, but can be overridden externally using a joblib
-        parallel_config context manager. The default number of jobs is
-        -1 (all processors). To get maximum speed benefit, pybear
-        recommends using the default setting.
-
-
+        Optional[Union[numbers.Integral, None]], default=-1 - The number
+        of joblib Parallel jobs to use when scanning the data for columns
+        of constants. The default is to use processes, but can be
+        overridden externally using a joblib parallel_config context
+        manager. The default number of jobs is -1 (all processors). To
+        get maximum speed benefit, pybear recommends using the default
+        setting.
 
 
     Notes
     -----
-    pizza, this is straight from CDT 24_11_11. review this.
-    Concerning the handling of nan-like representations. While CDT
+    pizza revisit this when everything is said and done
+    Concerning the handling of nan-like representations. While IM
     accepts data in the form of numpy arrays, pandas dataframes, and
-    scipy sparse matrices/arrays, at the time of column comparison both
-    columns of data are converted to numpy arrays (see below for more
-    detail about how scipy sparse is handled.) After the conversion
-    and prior to the comparison, CDT identifies any nan-like
-    representations in both of the numpy arrays and standardizes all of
-    them to np.nan. The user needs to be wary that whatever is used to
-    indicate 'not-a-number' in the original data must first survive the
-    conversion to numpy array, then be recognizable by CDT as nan-like,
-    so that CDT can standardize it to np.nan. nan-like representations
-    that are recognized by CDT include, at least, np.nan, pandas.NA,
-    None (of type None, not string 'None'), and string representations
-    of 'nan' (not case sensitive).
+    scipy sparse matrices/arrays, during the search for constants
+    each column is separately converted to a 1D numpy array (see below
+    for more detail about how scipy sparse is handled.) After the
+    conversion to numpy 1D array and prior to calculating the mean and
+    applying numpy.allclose, IM identifies any nan-like representations
+    in the numpy array and standardizes all of them to numpy.nan. The
+    user needs to be wary that whatever is used to indicate 'not-a-number'
+    in the original data must first survive the conversion to numpy
+    array, then be recognizable by IM as nan-like, so that IM can
+    standardize it to numpy.nan. nan-like representations that are
+    recognized by IM include, at least, numpy.nan, pandas.NA, None (of
+    type None, not string 'None'), and string representations of 'nan'
+    (not case sensitive).
 
-    Concerning the handling of infinity. CDT has no special handling
-    for np.inf, -np.inf, float('inf') or float('-inf'). CDT falls back
-    to the native handling of these values for python and numpy.
+    Concerning the handling of infinity. IM has no special handling
+    for numpy.inf, -numpy.inf, float('inf') or float('-inf'). IM falls
+    back to the native handling of these values for python and numpy.
     Specifically, numpy.inf==numpy.inf and float('inf')==float('inf').
 
-    Concerning the handling of scipy sparse arrays. When comparing
-    columns for equality, the columns are not converted to dense numpy
-    arrays. Each column is sliced from the data in sparse form and the
-    'indices' and 'data' attributes of this slice are stacked together.
-    The single vector holding the indices and dense values is used to
-    make equality comparisons.
-
-
-
-
-
-
+    Concerning the handling of scipy sparse arrays. When searching for
+    constant columns, the columns are converted to dense 1D numpy arrays
+    one at a time. Each column is sliced from the data in sparse form
+    and is converted to numpy ndarray via the 'toarray' method. This a
+    compromise that causes some memory expansion but allows for efficient
+    handling of constant column calculations that would otherwise
+    involve implicit non-dense values.
 
 
     Attributes
@@ -253,32 +321,43 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         as a pandas dataframe that has a header.
 
     constant_columns_:
-        dict[int, any] - pizza!
+        dict[int, any] - A dictionary whose keys are the indices of the
+        constant columns found during fit, indexed by their column
+        location in the original data. The dictionary values are the
+        constant values in those columns. For example, if a dataset has
+        two constant columns, the first in the third index and the
+        constant value is 1, and the other is in the tenth index and the
+        constant value is 0, then constant_columns_ will be {3:1, 10:0}.
+        If there are no constant columns, then constant_columns_ is an
+        empty dictionary.
 
     kept_columns_:
-        dict[int, any] - pizza!
+        dict[int, any] - A subset of the constant_columns_ dictionary,
+        constructed with the same format. This holds the subset of
+        constant columns that are retained in the data. If a constant
+        column is kept, then this contains one key:value pair from
+        constant_columns_. If there are no constant columns or no columns
+        are kept, then this is an empty dictionary. When :param: 'keep'
+        is a dictionary, all the original constant columns are removed
+        and a new constant column is appended to the data. That column
+        is NOT included in kept_columns_.
 
     removed_columns_:
-        dict[int, any] - a dictionary whose keys are the
-        indices of duplicate columns removed from the original data,
-        indexed by their column location in the original data; the values
-        are the column index in the original data of the respective
-        duplicate that was kept.
+        dict[int, any] - A subset of the constant_columns_ dictionary,
+        constructed with the same format. This holds the subset of
+        constant columns that were removed from the data. If there are
+        no constant columns or no constant columns are removed, then
+        this is an empty dictionary.
 
     column_mask_:
-        NDArray[bool] - shape (n_features_,) - Indicates which
-        columns of the fitted data are kept (True) and which are removed
-        (False) during transform.
-
-
-    Attributes:
-    -----------
-
-
-    column_mask_: list[bool],
-
-
-
+        NDArray[bool] - shape (n_features_,) - Indicates which columns
+        of the fitted data are kept (True) and which are removed (False)
+        during transform. When :param: keep is a dictionary, all original
+        constant columns are removed and a new column of constants is
+        appended to the data. This new column is NOT appended to
+        column_mask_. This mask is intended to be applied to data of the
+        same dimension as that seen during fit, and the new column of
+        constants is a feature added after transform.
 
 
     See Also
@@ -286,7 +365,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     numpy.ndarray
     pandas.core.frame.DataFrame
     scipy.sparse
-    numpy.isclose
+    numpy.allclose
     numpy.unique
 
 
@@ -305,11 +384,11 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         *,
-        keep: KeepType='last',
+        keep: Optional[KeepType]='last',
         equal_nan: Optional[bool]=True,
         rtol: Optional[Real]=1e-5,
         atol: Optional[Real]=1e-8,
-        n_jobs: Optional[Integral]=-1  # pizza benchmark what is the best setting
+        n_jobs: Optional[Union[Integral, None]]=-1
     ):
 
         self.keep = keep
@@ -323,7 +402,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     def _reset(self):
 
         """
-        Reset internal data-dependent state of the transformer.
+        Reset internal data-dependent state of InterceptManager.
         __init__ parameters are not changed.
 
         """
@@ -338,7 +417,23 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
 
         """
-        Get remaining feature names after transform.
+        Get the remaining feature names after transform. When :param:
+        'keep' is a dictionary, the appended column of constants is
+        included in the outputted feature name vector.
+
+        If input_features is None:
+        if feature_names_in_ is defined, then feature_names_in_ is
+        used as the input features.
+        If feature_names_in_ is not defined, then the following input
+        feature names are generated:
+            ["x0", "x1", ..., "x(n_features_in_ - 1)"].
+
+        If input_features is not None:
+        if feature_names_in_ is not defined, then input_features is
+        used as the input features.
+        if feature_names_in_ is defined, then input_features must be
+        an array-like whose feature names exactly match those in
+        feature_names_in_.
 
 
         Parameters
@@ -347,24 +442,11 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             array-like of str or None, default=None - Externally provided
             feature names.
 
-            If input_features is None:
-            if feature_names_in_ is defined, then feature_names_in_ is
-            used as the input features.
-            If feature_names_in_ is not defined, then the following input
-            feature names are generated:
-                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
-
-            If input_features is not None:
-            if feature_names_in_ is not defined, then input_features is
-            used as the input features.
-            if feature_names_in_ is defined, then input_features must be
-            an array-like whose feature names exactly match those in
-            feature_names_in_.
 
         Return
         ------
         -
-            feature_names_out : NDArray[str] - The feature names in the
+            feature_names_out : NDArray[str] - The feature names of the
             transformed data.
 
         """
@@ -398,7 +480,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             pass
         except:
             raise ValueError(
-                f"'input_features' must be a vector-like containing strings, or None"
+                f"'input_features' must be a list-like of strings, or None"
             )
 
 
@@ -491,16 +573,16 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     ) -> Self:
 
         """
-        Perform incremental fitting on one or more data sets. Determine
-        the constant columns in the given data, subject to the criteria
-        defined in :params: rtol, atol, and equal_nan.
+        Perform incremental fitting on one or more blocks of data.
+        Determine the constant columns in the given data, subject to the
+        criteria defined in :params: rtol, atol, and equal_nan.
 
 
         Parameters
         ----------
         X:
             {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Data to remove constant columns from.
+            n_features) - Data to find constant columns in.
         y:
             {vector-like of shape (n_samples,) or None}, default = None -
             ignored. The target for the data.
@@ -580,16 +662,22 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             raise ValueError(err_msg)
 
 
-        # dictionary of column indices and respective constant values
-        self.constant_columns_:dict[int, any] = \
-            _find_constants(
-                X,
-                self.constant_columns_ if hasattr(self, 'constant_columns_') else {},
-                self.equal_nan,
-                self.rtol,
-                self.atol,
-                self.n_jobs
-            )
+        # if IM has already been fitted and constant_columns_ is empty
+        # (meaning there are no constant columns) dont even bother to
+        # scan more data, cant possibly have constant columns
+        if hasattr(self, 'constant_columns_') and self.constant_columns_ == {}:
+            self.constant_columns_ = {}
+        else:
+            # dictionary of column indices and respective constant values
+            self.constant_columns_:dict[int, any] = \
+                _find_constants(
+                    X,
+                    self.constant_columns_ if hasattr(self, 'constant_columns_') else {},
+                    self.equal_nan,
+                    self.rtol,
+                    self.atol,
+                    self.n_jobs
+                )
 
         _keep = _manage_keep(
             self.keep,
@@ -636,7 +724,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         ----------
         X:
             {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Data to remove constant columns from.
+            n_features) - Data to find constant columns in.
         y:
             {vector-like of shape (n_samples,) or None}, default = None -
             ignored. The target for the data.
@@ -663,19 +751,31 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     ) -> DataFormatType:
 
         """
-        Revert transformed data back to its original state. This operation
-        cannot restore any nan-like values that may have been in the
-        original untransformed data.
+        Revert transformed data back to its original state. :method:
+        set_output does not control the output container here, the output
+        container is always the same as passed. This operation cannot
+        restore any nan-like values that may have been in the original
+        untransformed data.
+
+        Very little validation is possible to ensure that the passed
+        data is valid for the current state of IM. It is only possible
+        to ensure that the number of columns in the passed data match
+        the number of columns that are expected to be outputted by
+        :method: transform for the current state of IM. It is up to the
+        user to ensure the state of IM aligns with the state of the data
+        that is to undergo inverse transform. Otherwise the output will
+        be nonsensical.
 
 
         Parameters
         ----------
         X :
             {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features - n_features_removed) - A transformed data set.
+            n_transform_features) - A transformed data set.
         copy:
             Union[bool, None], default=None - Whether to make a copy of
             X before the inverse transform.
+
 
         Return
         ------
@@ -685,14 +785,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
                 untransformed state.
 
 
-
         """
-
-        # pizza what if set_params is changed?
-        # think on this
-        # if we cant come up with a way to validate/ensure that the data
-        # being inverted back matches with the current state of the params,
-        # then will have to put some disclaimers in the docs.
 
         check_is_fitted(self)
 
@@ -733,6 +826,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             _unqs = np.unique(X[:, -1])
             if len(_unqs) == 1 and _unqs[0] == self.keep[list(self.keep.keys())[0]]:
                 # pizza, this needs to be for np, df, and ss
+                # do a test that hits this
                 X = np.delete(X, -1, axis=1)
             else:
                 raise ValueError(
@@ -766,10 +860,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         pass
 
 
-    # def set_params(self):
-        # pizza! dont forget! once the instance is fitted, cannot change equal_nan, rtol, and atol!
-        # ... or maybe u can.... its just that new fits will be fitted subject to
-        # different rules than prior fits
+    # def set_params(self) - inherited from TransformerMixin
     # if ever needed, hard code that can be substituted for the
     # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
@@ -783,7 +874,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     ) -> DataFormatType:
 
         """
-        Manage the constant columns from X. Apply the criteria given
+        Manage the constant columns in X. Apply the criteria given
         by :param: keep to the sets of constant columns found during fit.
 
 
@@ -801,9 +892,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         ------
         -
             X: {array-like, scipy sparse matrix} of shape (n_samples,
-                n_features - n_removed_features) - The transformed data.
-
-
+                n_transformed_features) - The transformed data.
 
 
         """

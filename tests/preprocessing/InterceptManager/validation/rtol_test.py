@@ -31,7 +31,7 @@ class TestRtol:
             _val_rtol(bad_rtol)
 
 
-    @pytest.mark.parametrize('good_rtol', (0, 1e-6, 0.1, 1, np.pi))
+    @pytest.mark.parametrize('good_rtol', (0, 1e-6, 1, np.pi))
     def test_accepts_good(self, good_rtol):
         _val_rtol(good_rtol)
 

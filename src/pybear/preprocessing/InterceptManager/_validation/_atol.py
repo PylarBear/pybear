@@ -13,14 +13,16 @@ from numbers import Real
 def _val_atol(_atol: Real) -> None:
 
     """
-    Verify atol is a non-boolean, real, non-negative number that is
+    Verify atol is a non-boolean, non-negative, real number that is
     accepted by numpy allclose.
 
 
     Parameters
     ----------
     _atol:
-        Real - the absolute difference tolerance for equality.
+        numbers.Real - The absolute difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
 
 
     Return
@@ -32,8 +34,8 @@ def _val_atol(_atol: Real) -> None:
     """
 
 
-    err_msg = (f"'atol' must be a non-boolean, real, non-negative number "
-               f"that is accepted by numpy allclose")
+    err_msg = (f"'atol' must be a non-boolean, non-negative, real number "
+               f"that is accepted by numpy allclose.")
 
 
     if not isinstance(_atol, Real):
@@ -48,6 +50,16 @@ def _val_atol(_atol: Real) -> None:
     X1 = np.random.uniform(0, 1, 20)
 
     np.allclose(X1, X1, rtol=1e-6, atol=_atol)
+
+    del X1
+
+
+
+
+
+
+
+
 
 
 

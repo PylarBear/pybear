@@ -5,7 +5,7 @@
 #
 
 
-from uuid import uuid4
+
 from numbers import Real
 import numpy as np
 
@@ -18,30 +18,34 @@ def _merge_constants(
 ) -> dict[int, any]:
 
     """
-    Merge the current constants found in the current partial fit with
-    those found in previous partial fits. Constant columns can only
-    stay the same or decrease on later partial fits, never increase.
+    Merge the constants found in the current partial fit with those
+    found in previous partial fits. Constant columns can only stay the
+    same or decrease on later partial fits, never increase.
 
 
     Parameters
     ----------
     _old_constants:
         dict[int, any] - the column indices of constant columns found in
-            previous partial fits and the value in the columns.
+        previous partial fits and the value in the columns.
     _new_constants:
         dict[int, any] - the column indices of constant columns found in
-            current partial fit and the value in the columns.
+        the current partial fit and the value in the columns.
     _rtol:
-        Real - pizza!
+        numbers.Real - The relative difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
     _atol:
-        Real - pizza!
+        numbers.Real - The absolute difference tolerance for equality.
+        Must be a non-boolean, non-negative, real number. See
+        numpy.allclose.
 
 
     Return
     ------
     -
-        _final_constants: dict[int, any] - the compiled column indices of
-            constant columns found over all partial fits.
+        _final_constants: dict[int, any] - the compiled column indices
+            and values of constant columns found over all partial fits.
 
     """
 
@@ -54,6 +58,10 @@ def _merge_constants(
 
     _final_constants = {}
 
+    # pizza, u pin head, this needs work. what if _old_constants is {},
+    # but it isnt the first pass... that means there cant be any columns
+    # of constants!
+
     _base_constants = _new_constants if _old_constants == {} else _old_constants
 
     for _col_idx, _value in _base_constants.items():
@@ -62,6 +70,8 @@ def _merge_constants(
         # indices must be in the previously found indices, and the value of the
         # constant must be the same
 
+        # if _old_constants is
+
         if _col_idx in _new_constants:
             # need to handle nan - dont use dict.get here
             if str(_value) == 'nan' and str(_new_constants[_col_idx]) == 'nan':
@@ -69,7 +79,12 @@ def _merge_constants(
             elif _new_constants[_col_idx] == _value:
                 # this should get strings (or ints, or maybe some floats)
                 _final_constants[int(_col_idx)] = _value
-            elif np.isclose(_new_constants[_col_idx], _value, rtol=_rtol, atol=_atol):
+            elif np.isclose(
+                _new_constants[_col_idx],
+                _value,
+                rtol=_rtol,
+                atol=_atol
+            ):
                 # this should get floats
                 _final_constants[int(_col_idx)] = _value
 
@@ -80,7 +95,8 @@ def _merge_constants(
         assert _col_idx in _base_constants
         # need to handle nan
         if str(_final_constants[_col_idx]) == 'nan':
-            assert str(_final_constants[_col_idx]) == str(_base_constants[_col_idx])
+            assert str(_final_constants[_col_idx]) == \
+                   str(_base_constants[_col_idx])
         else:
             assert _final_constants[_col_idx] == _base_constants[_col_idx]
 

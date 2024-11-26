@@ -5,7 +5,7 @@
 #
 
 
-from typing import Iterable, Literal, Optional, TypedDict, Callable
+from typing import Literal, TypedDict, Callable
 from typing_extensions import Union, TypeAlias, Required
 import numpy.typing as npt
 import pandas as pd
@@ -37,13 +37,13 @@ DataFormatType: TypeAlias = Union[
     SparseTypes
 ]
 
-KeepType: TypeAlias = Optional[Union[
+KeepType: TypeAlias = Union[
     Literal['first', 'last', 'random', 'none'],
     dict[str, any],
     int,
     str,
     Callable[[DataFormatType], int]
-]]
+]
 
 
 

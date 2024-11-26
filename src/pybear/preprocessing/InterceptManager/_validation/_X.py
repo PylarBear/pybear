@@ -20,12 +20,13 @@ def _val_X(
 ) -> None:
 
     """
-    pizza
-    Validate the dimensions of the data. Cannot be
-    None and must have at least 2 columns.
+    Validate the dimensions of the data. Cannot be None, must be numpy
+    ndarray, pandas dataframe, or scipy sparse matrix/array. Must have
+    at least 1 example.
 
-    All other validation of the data is handled by the _validate_data
-    function of the sklearn BaseEstimator mixin at fitting and tranform.
+    All other validation of the data is handled in the individual class
+    methods, either by pybear or by the _validate_data function of the
+    sklearn BaseEstimator mixin at fitting and transform.
 
 
     Parameters
@@ -61,3 +62,12 @@ def _val_X(
             f"dataframe, or scipy sparce matrix or array, with at least "
             f"1 example."
         )
+
+
+
+
+
+
+
+
+

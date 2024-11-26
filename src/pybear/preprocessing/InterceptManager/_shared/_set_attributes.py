@@ -71,9 +71,6 @@ def _set_attributes(
     for col_idx, constant_value in constant_columns_.items():
         if col_idx in (_instructions['keep'] or {}):
             kept_columns_[col_idx] = constant_value
-        # pizza this is the place to decide if the c idx in 'add' goes into 'kept_columns_'
-        # elif col_idx in (_instructions['add'] or {}):
-        #     kept_columns_[col_idx] = constant_value
         elif col_idx in (_instructions['delete'] or {}):
             removed_columns_[col_idx] = constant_value
             column_mask_[col_idx] = False
@@ -82,14 +79,6 @@ def _set_attributes(
                 f"a constant column in constant_columns_ is unaccounted for "
                 f"in _instructions."
             )
-
-
-    # pizza 24_11_23_11_12_00 DECIDED NOT TO PUT APPENDED INTERCEPT ONTO column_mask_
-    # pizza, figure out a more elegant way to deal with 'add'
-    # if _instructions['add']:
-    #     _key = list(_instructions['add'].keys())[0]
-    #     column_mask_ = np.insert(column_mask_, len(column_mask_), _instructions['add'][_key], axis=0)
-    #     del _key
 
 
     return kept_columns_, removed_columns_, column_mask_

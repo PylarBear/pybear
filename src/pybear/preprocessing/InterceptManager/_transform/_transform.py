@@ -48,22 +48,31 @@ def _transform(
     # 'keep' isnt needed to modify X, it is only in the dictionary for
     # ease of making self.kept_columns_ later.
 
+    # build the mask that will take out deleted columns
     KEEP_MASK = np.ones(_X.shape[1]).astype(bool)
     if _instructions['delete'] is not None:
         # if _instructions['delete'] is None numpy actually maps
-        # assignment to all positions!
+        # assignment to all positions! so that means we must put this
+        # statement under an if that only allows when not None
         KEEP_MASK[_instructions['delete']] = False
 
 
     if isinstance(_X, np.ndarray):
+        # remove the columns
         _X = _X[:, KEEP_MASK]
+        # if :param: keep is dict, add the new intercept
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
-            _X = np.hstack((_X, np.full((_X.shape[0], 1), _instructions['add'][_key])))
+            _X = np.hstack((
+                _X,
+                np.full((_X.shape[0], 1), _instructions['add'][_key])
+            ))
             del _key
 
     elif isinstance(_X, pd.core.frame.DataFrame):
+        # remove the columns
         _X = _X.loc[:, KEEP_MASK]
+        # if :param: keep is dict, add the new intercept
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
             _value = _instructions['add'][_key]
@@ -80,13 +89,15 @@ def _transform(
             del _key, _value, _is_num, _dtype
 
     elif hasattr(_X, 'toarray'):     # scipy.sparse
-        _og_type = type(_X)
+        _og_type = type(_X)  # keep this to convert back after going to csc
+        # remove the columns
         _X = _X.tocsc()[:, KEEP_MASK]   # must use tocsc, COO cannot be sliced
+        # if :param: keep is dict, add the new intercept
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
             _X = ss.hstack((
                 _X,
-                type(_X)(np.full((_X.shape[0], 1), _instructions['add'][_key]))
+                ss.csc_array(np.full((_X.shape[0], 1), _instructions['add'][_key]))
             ))
             del _key
         _X = _og_type(_X)

@@ -6,10 +6,11 @@
 
 
 from typing_extensions import Union
+from numbers import Integral
 
 
 
-def _val_n_jobs(_n_jobs: Union[int, None]) -> None:
+def _val_n_jobs(_n_jobs: Union[Integral, None]) -> None:
 
     """
     Validate n_jobs is None, -1, or integer >= 1.
@@ -18,12 +19,8 @@ def _val_n_jobs(_n_jobs: Union[int, None]) -> None:
     Parameters
     ----------
     _n_jobs:
-        Union[int, None], default = -1 - The number of joblib
-        Parallel jobs to use when comparing columns. The default is
-        to use processes, but can be overridden externally using a
-        joblib parallel_config context manager. The default number
-        of jobs is -1 (all processors). To get maximum speed benefit,
-        pybear recommends using the default setting.
+        Union[numbers.Integral, None] - The number of joblib Parallel
+        jobs to use when scanning the data for columns of constants.
 
 
     Return

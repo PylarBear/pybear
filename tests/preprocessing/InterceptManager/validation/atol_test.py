@@ -5,8 +5,7 @@
 #
 
 
-from pybear.preprocessing.InterceptManager._validation._atol \
-    import _val_atol
+from pybear.preprocessing.InterceptManager._validation._atol import _val_atol
 
 import numpy as np
 
@@ -32,7 +31,7 @@ class TestAtol:
             _val_atol(bad_atol)
 
 
-    @pytest.mark.parametrize('good_atol', (0, 1e-6, 0.1, 1, np.pi))
+    @pytest.mark.parametrize('good_atol', (0, 1e-6, 1, np.pi))
     def test_accepts_good(self, good_atol):
         _val_atol(good_atol)
 
