@@ -5,6 +5,7 @@
 #
 
 
+
 from .._type_aliases import DataFormatType, InstructionType
 
 import numpy as np
@@ -21,20 +22,28 @@ def _transform(
 
 
     """
-    Talking pizza?
-
+    Manage the constant columns in X. Apply the removal criteria given
+    by :param: keep via _instructions to the constant columns found
+    during fit.
 
 
     Parameters
     ----------
-    _X: DataFormatType,
-    _instructions: InstructionType
+    _X:
+        {array-like, scipy sparse matrix} of shape (n_samples,
+        n_features) - The data to be transformed.
+    _instructions:
+        dict[Literal['keep']: Union[list[int], None],
+            Literal['delete']: Union[list[int], None].
+            Literal['add']: Union[dict[str, any], None]] -
+        instructions for keeping, deleting, or adding constant columns.
 
 
     Return
     ------
     -
-        _X:
+        X: {array-like, scipy sparse matrix} of shape (n_samples,
+            n_transformed_features) - The transformed data.
 
 
     """
@@ -63,15 +72,26 @@ def _transform(
         # if :param: keep is dict, add the new intercept
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
+            _value = _instructions['add'][_key]
+            # pizza clean this up once u figure out if numpy will except
+            # for crazy dtype hstack.
+            # this just rams the fill value into _X, and conforms to
+            # whatever dtype _X is
+            # try:
             _X = np.hstack((
                 _X,
-                np.full((_X.shape[0], 1), _instructions['add'][_key])
+                np.full((_X.shape[0], 1), _value)
             ))
-            del _key
+            # except Exception as e:
+            #     raise TypeError(
+            #         f"attempted to "
+            #     ) from e
+
+            del _key, _value
 
     elif isinstance(_X, pd.core.frame.DataFrame):
         # remove the columns
-        _X = _X.loc[:, KEEP_MASK]
+        _X = _X.iloc[:, KEEP_MASK]
         # if :param: keep is dict, add the new intercept
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
@@ -95,9 +115,10 @@ def _transform(
         # if :param: keep is dict, add the new intercept
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
+            _value = _instructions['add'][_key]
             _X = ss.hstack((
                 _X,
-                ss.csc_array(np.full((_X.shape[0], 1), _instructions['add'][_key]))
+                ss.csc_array(np.full((_X.shape[0], 1), _value))
             ))
             del _key
         _X = _og_type(_X)

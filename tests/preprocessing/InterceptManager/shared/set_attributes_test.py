@@ -22,14 +22,14 @@ class TestSetAttributes:
 
     # def _set_attributes(
     #     constant_columns_: dict[int, any],
-    #     _instructions: dict[str, Union[None, Iterable[int]]],
-    #     _n_features: int
-    # ) -> tuple[dict[int, any], dict[int, any], npt.NDArray[bool]]:
+    #     _instructions: InstructionType,
+    #     _n_features_in: int
+    # ) -> tuple[dict[int, any], dict[int, any], npt.NDArray[np.bool_]]
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _n_features():
+    def _n_features_in():
         return 8
 
 
@@ -45,11 +45,16 @@ class TestSetAttributes:
             ([1, 5], [3, 7]),
             ([1, 3, 5, 7], None),
             (None, None),
-            ([1, 3, 5], [1, 3, 5])
+            ([1, 3, 5], [1, 3, 5]),
+            ([1], [3, 5, 7])
         )
     )
     @pytest.mark.parametrize('add', (None, {'Intercept': 1}))
-    def test_accuracy(self, _n_features, keep, delete, add, _constant_columns):
+    def test_accuracy(self, _n_features_in, keep, delete, add, _constant_columns):
+
+        # this test goes beyond what should normally would be seen by
+        # _set_attributes. keep should at most have only one value in it.
+
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # build '_instructions' from the given keep, delete, & add
@@ -71,13 +76,13 @@ class TestSetAttributes:
 
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if any([c_idx in (delete or []) for c_idx in (keep or [])]):
+        if len(set(delete or []).intersection(keep or [])):
             # a col idx in both 'keep' & 'delete'
             with pytest.raises(AssertionError):
                 _set_attributes(
                     _constant_columns,
                     _instructions,
-                    _n_features=_n_features
+                    _n_features_in=_n_features_in
                 )
             pytest.skip(reason=f'cant continue after except')
         else:
@@ -85,27 +90,26 @@ class TestSetAttributes:
                 _set_attributes(
                     _constant_columns,
                     _instructions,
-                    _n_features=_n_features
+                    _n_features_in=_n_features_in
                 )
 
         assert out_kept_columns == {k:_constant_columns[k] for k in _keep}
 
-        assert out_removed_columns == {k:_constant_columns[k] for k in (delete or [])}
+        assert out_removed_columns == \
+               {k:_constant_columns[k] for k in (delete or [])}
 
         assert out_column_mask.dtype == bool
-        assert len(out_column_mask) == _n_features
-        exp_col_mask = np.array([((i in _keep) or (i not in _constant_columns)) for i in range(_n_features)]).astype(bool)
+        assert len(out_column_mask) == _n_features_in
+        exp_col_mask = []
+        for i in range(_n_features_in):
+            if (i in _keep) or (i not in _constant_columns):
+                exp_col_mask.append(True)
+            else:
+                exp_col_mask.append(False)
         assert np.array_equal(
             out_column_mask,
             exp_col_mask
         )
-
-
-
-
-
-
-
 
 
 

@@ -17,6 +17,7 @@ import numpy as np
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
+from ._validation._keep_and_columns import _val_keep_and_columns
 from ._partial_fit._find_constants import _find_constants
 from ._shared._make_instructions import _make_instructions
 from ._shared._set_attributes import _set_attributes
@@ -178,7 +179,11 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         in the passed data, 3) the integer that is returned does not
         correspond to a constant column. IM does not retain state
         information about what indices have been returned from the
-        callable durting transforms. IM cannot catch if the callable is
+        callable during transforms.
+        IM passes the data as-is directly to the callable without any
+        preprocessing. The callable will need to operate on the data
+        object directly.
+        IM cannot catch if the callable is
         returning different indices for different blocks of data within
         a sequence of calls to :method: transform. When doing multiple
         batch-wise transforms, it is up to the user to ensure that the
@@ -198,9 +203,15 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         This value has only two restrictions: it cannot be a non-string
         iterable (e.g. list, tuple, etc.) and it cannot be a callable.
         Essentially, the constant value is restricted to being integer,
-        float, string, or boolean. It is up to the user to ensure the
-        datatype of the constant is compatible with the datatype of the
+        float, string, or boolean. pizza. when appending new value to a pandas df,
+        if the constant is numeric it is appended as float64; if it is not
+        numeric it is appended as object. Otherwise, if the constant is being
+        appended to a numpy array or scipy sparse it will be forced to the
+        dtype of the transformed data. It is up to the user to observe that the
+        datatype of the constant will be forced to the datatype of the
         transformed data.
+
+
         When transforming a pandas dataframe and the new feature name is
         already a feature in the data, there are two possible outcomes.
         1) If the original feature is not constant, the new constant
@@ -366,6 +377,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     pandas.core.frame.DataFrame
     scipy.sparse
     numpy.allclose
+    numpy.isclose
     numpy.unique
 
 
@@ -672,7 +684,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             self.constant_columns_:dict[int, any] = \
                 _find_constants(
                     X,
-                    self.constant_columns_ if hasattr(self, 'constant_columns_') else {},
+                    self.constant_columns_ if hasattr(self, 'constant_columns_') else None,
                     self.equal_nan,
                     self.rtol,
                     self.atol,
@@ -687,12 +699,10 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
 
-
         self._instructions = _make_instructions(
             _keep,
             self.constant_columns_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
-            X.shape
+            self.n_features_in_
         )
 
         self.kept_columns_, self.removed_columns_, self.column_mask_ = \
@@ -797,6 +807,15 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # the error message for non-np/pd/ss X.
         _val_X(X)
 
+        # pizza maybe we should put _validate here (or at least validate keep),
+        # since self.keep is called and set_params could have changed.
+        # .... but there is a problem because this X doesnt match feature_names_in_
+        # _val_keep_and_columns(
+        #     self.keep,
+        #     self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+        #     X
+        # )
+
         # dont assign to X, check_array always converts to ndarray
         check_array(
             array=X,
@@ -874,15 +893,15 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     ) -> DataFormatType:
 
         """
-        Manage the constant columns in X. Apply the criteria given
-        by :param: keep to the sets of constant columns found during fit.
+        Manage the constant columns in X. Apply the removal criteria
+        given by :param: keep to the constant columns found during fit.
 
 
         Parameters
         ----------
         X:
             {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - The data.
+            n_features) - The data to be transformed.
         copy:
             Union[bool, None], default=None - Whether to make a copy of
             X before the transform.
@@ -946,8 +965,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         self._instructions = _make_instructions(
             _keep,
             self.constant_columns_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
-            X.shape
+            self.n_features_in_
         )
 
         self.kept_columns_, self.removed_columns_, self.column_mask_ = \
