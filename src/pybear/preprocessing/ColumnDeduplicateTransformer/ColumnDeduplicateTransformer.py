@@ -698,6 +698,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 f"{np.sum(self.column_mask_)}"
             )
 
+        # dont need to do any other validation here, none of the parameters
+        # that could be changed by set_params are called here
 
         out = _inverse_transform(
             X,

@@ -16,8 +16,8 @@ import scipy.sparse as ss
 
 from pybear.utilities._nan_masking import nan_mask
 
-from pybear.preprocessing.InterceptManager._partial_fit._parallel_constant_finder \
-    import _parallel_constant_finder
+from pybear.preprocessing.InterceptManager._partial_fit. \
+    _parallel_constant_finder import _parallel_constant_finder
 
 
 
@@ -32,7 +32,9 @@ class TestXFactory:
     #    def foo(
     #         _dupl:list[list[int]]=None,
     #         _has_nan:Union[int, bool]=False,
-    #         _format:Literal['np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']='np',
+    #         _format:Literal[
+    #           'np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'
+    #         ]='np',
     #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
     #         _columns:Union[Iterable[str], None]=None,
     #         _constants:Union[dict[int, any], None]=None,
@@ -109,7 +111,9 @@ class TestXFactory:
         with pytest.raises(AssertionError):
             _X_factory(_format=bad_format)
 
-    @pytest.mark.parametrize('good_format', ('np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'))
+    @pytest.mark.parametrize('good_format',
+        ('np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr')
+    )
     def test_accepts_good_format(self, _X_factory, good_format):
         _X_factory(_format=good_format)
 
@@ -160,7 +164,9 @@ class TestXFactory:
         with pytest.raises(AssertionError):
             _X_factory(_constants=junk_constants)
 
-    @pytest.mark.parametrize('bad_constants', ({-1:1}, {0:1, 1000:-1}, {-2:0,-1:1}))
+    @pytest.mark.parametrize('bad_constants',
+        ({-1:1}, {0:1, 1000:-1}, {-2:0,-1:1})
+    )
     def test_rejects_bad_constants(self, _X_factory, bad_constants):
         with pytest.raises(AssertionError):
             _X_factory(_constants=bad_constants)
@@ -229,9 +235,13 @@ class TestXFactory:
 
     # test accuracy
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'))
+    @pytest.mark.parametrize('_format',
+        ('np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr')
+    )
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
-    def test_format_dtype_shape_accuracy(self, _X_factory, _format, _dtype, _shape):
+    def test_format_dtype_shape_accuracy(
+        self, _X_factory, _format, _dtype, _shape
+    ):
 
         if _format not in ('np', 'pd') and _dtype in ('str', 'obj', 'hybrid'):
             with pytest.raises(Exception):
@@ -429,7 +439,10 @@ class TestXFactory:
                 non_nans = _column[np.logical_not(nan_mask(_column))]
                 # constant value validation
                 assert np.isclose(
-                    _constants[c_idx_1], np.mean(non_nans), rtol=_noise, atol=_noise
+                    _constants[c_idx_1],
+                    np.mean(non_nans),
+                    rtol=_noise,
+                    atol=_noise
                 )
                 assert np.isclose(
                     safe, np.mean(non_nans), rtol=3*_noise, atol=3*_noise

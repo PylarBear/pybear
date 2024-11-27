@@ -6,16 +6,16 @@
 
 
 
-from typing_extensions import Union
-from typing import Literal
+
+from .._type_aliases import InstructionType
 import warnings
 import numpy as np
 
 
 
 def _val_instructions(
-    _instructions: dict[Literal['keep', 'delete', 'add'], Union[list[int], None]],
-    _shape: tuple[int, int]
+    _instructions: InstructionType,
+    _n_features_in: int
 ) -> None:
 
     """
@@ -32,8 +32,8 @@ def _val_instructions(
         dict[Literal['keep', 'delete', 'add'], Union[list[int], None]] -
         instructions for keeping, deleting, or adding constant columns,
         to be applied during :method: transform
-    _shape:
-        tuple[int, int] - (n_samples, n_features) shape of the data.
+    _n_features_in:
+        int - number of features in the fitted data before transform.
 
 
     Return
@@ -45,13 +45,14 @@ def _val_instructions(
     """
 
 
-
     assert isinstance(_instructions, dict)
     assert len(_instructions) == 3
     assert 'keep' in _instructions
     assert 'delete' in _instructions
     assert 'add' in _instructions
-    assert isinstance(_shape, tuple)
+    assert isinstance(_n_features_in, int)
+    assert _n_features_in > 0
+
 
     # values must be None or list[int]
     # col idx cannot be in more than one instruction
@@ -76,10 +77,10 @@ def _val_instructions(
         f"a column index is in more that one set of instructions"
 
     assert np.all(0 <= np.array(_used_idxs)) and \
-           np.all(np.array(_used_idxs) <= _shape[1] - 1)
+           np.all(np.array(_used_idxs) <= _n_features_in - 1)
 
 
-    if np.array_equal(_instructions['delete'], range(_shape[1])):
+    if np.array_equal(_instructions['delete'], range(_n_features_in)):
         if _instructions['add'] is None:
             raise ValueError(
                 f"All columns in the data are constant. The current :param: "
@@ -91,27 +92,6 @@ def _val_instructions(
                 f"keep configuration will delete all the original columns and "
                 f"leave only the appended intercept."
             )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

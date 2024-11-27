@@ -46,8 +46,6 @@ KeepType: TypeAlias = Union[
 ]
 
 
-
-
 class InstructionType(TypedDict):
 
     keep: Required[Union[None, list, npt.NDArray[int]]]

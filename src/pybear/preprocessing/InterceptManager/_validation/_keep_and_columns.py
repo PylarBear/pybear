@@ -55,7 +55,7 @@ def _val_keep_and_columns(
     ----------
     _keep:
         Literal['first', 'last', 'random', 'none'], dict[str, any], int,
-            str, Callable[[DataFormatType], int] -
+            str, Callable[[_X], int] -
         The strategy for handling the constant columns. See 'The keep
         Parameter' section for a lengthy explanation of the 'keep'
         parameter.
@@ -224,6 +224,7 @@ def _val_keep_and_columns(
                     _base_msg + f"not one of the seen features. " + _addon
                 )
             elif _keep in _columns:
+                # this is what we want to happen
                 pass
 
             del _base_msg, _addon

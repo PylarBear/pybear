@@ -6,8 +6,7 @@
 
 
 
-from typing import Iterable
-from typing_extensions import Union
+from .._type_aliases import InstructionType
 import numpy.typing as npt
 import numpy as np
 
@@ -15,48 +14,62 @@ import numpy as np
 
 def _set_attributes(
     constant_columns_: dict[int, any],
-    _instructions: dict[str, Union[None, Iterable[int], dict[str, any]]],
-    _n_features: int
-) -> tuple[dict[int, any], dict[int, any], npt.NDArray[bool]]:
+    _instructions: InstructionType,
+    _n_features_in: int
+) -> tuple[dict[int, any], dict[int, any], npt.NDArray[np.bool_]]:
 
     """
-    use the constant_columns_ and _instructions attributes to build the
+    Use the constant_columns_ and _instructions attributes to build the
     kept_columns_, removed_columns_, and column_mask_ attributes.
 
 
-
-
-    Parameter
-    ---------
-    constant_columns_: dict[int, any],
-    _instructions: dict[str, Union[None, Iterable[int]]],
-    _n_features: int
+    Parameters
+    ----------
+    constant_columns_:
+        dict[int, any] - constant column indices and their values found
+        in all partial fits.
+    _instructions:
+        dict[Literal['keep']: Union[list[int], None],
+        Literal['delete']: Union[list[int], None].
+        Literal['add']: Union[dict[str, any], None]] - instructions for
+        keeping, deleting, or adding constant columns to be applied
+        during :method: transform.
+    _n_features_in:
+        int - number of features in the fitted data before transform.
 
 
     Return
     ------
     -
-        kept_columns_: dict[int: any], removed_columns_: dict[int, any], _column_mask_: NDArray[bool]
+        tuple[
+            kept_columns_: dict[int: any],
+            removed_columns_: dict[int, any],
+            column_mask_: NDArray[np.bool_]
+        ]
 
     """
 
 
-
-
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(constant_columns_, dict)
-    assert all(map(isinstance, constant_columns_, (int for _ in constant_columns_)))
-    assert all(np.fromiter(constant_columns_, dtype=int) >= 0)
-    assert all(np.fromiter(constant_columns_, dtype=int) <= _n_features - 1)
+    assert all(
+        map(isinstance, constant_columns_,  (int for _ in constant_columns_))
+    )
+    assert np.all(np.fromiter(constant_columns_, dtype=int) >= 0)
+    assert np.all(np.fromiter(constant_columns_, dtype=int) <= _n_features_in - 1)
     assert isinstance(_instructions, dict)
+    assert len(_instructions) == 3
     assert all([_ in ('keep', 'delete', 'add') for _ in _instructions])
-    assert isinstance(_instructions['keep'], (type(None), list, np.ndarray))
-    assert isinstance(_instructions['delete'], (type(None), list, np.ndarray))
-    assert not any([c_idx in (_instructions['delete'] or []) for c_idx in (_instructions['keep'] or [])]), \
+    assert isinstance(_instructions['keep'], (type(None), list))
+    assert isinstance(_instructions['delete'], (type(None), list))
+    _keep_idxs = set(_instructions['keep'] or [])
+    _delete_idxs = set(_instructions['delete'] or [])
+    assert len(_keep_idxs.intersection(_delete_idxs)) == 0, \
         f"column index in both 'keep' and 'delete'"
+    del _keep_idxs, _delete_idxs
     assert isinstance(_instructions['add'], (type(None), dict))
-    assert isinstance(_n_features, int)
-    assert _n_features >= 0
+    assert isinstance(_n_features_in, int)
+    assert _n_features_in >= 0
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     kept_columns_: dict[int, any] = {}
@@ -64,20 +77,24 @@ def _set_attributes(
     # set column_mask_ dtype to object to carry py bool, not np.bool_.
     # unfortunately, numpy will not allow py bools in an object array for
     # slicing! so live with the yucky np.True_ and np.False_ repr.
-    column_mask_ = np.ones(_n_features).astype(bool)
+    column_mask_ = np.ones(_n_features_in).astype(bool)
 
     # all values in _instructions dict are None could only happen if there are
     # no constant columns, in which case this for loop wont be entered
     for col_idx, constant_value in constant_columns_.items():
-        if col_idx in (_instructions['keep'] or {}):
+        if col_idx in (_instructions['keep'] or []):
             kept_columns_[col_idx] = constant_value
-        elif col_idx in (_instructions['delete'] or {}):
+        elif col_idx in (_instructions['delete'] or []):
             removed_columns_[col_idx] = constant_value
             column_mask_[col_idx] = False
         else:
             raise Exception(
                 f"a constant column in constant_columns_ is unaccounted for "
                 f"in _instructions."
+                f"\n{constant_columns_=}"
+                f"\n{_instructions['keep']=}"
+                f"\n{_instructions['delete']=}"
+                f"\n{_instructions['add']=}"
             )
 
 

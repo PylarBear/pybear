@@ -16,21 +16,20 @@ import pytest
 class TestMakeInstructions:
 
     # def _make_instructions(
-    #     _keep: Union[int, Literal['none'], dict[str, any]],
-    #     constant_columns_: dict[int, any]
-    # ) -> InstructionType:
+    #     _keep: KeepType,
+    #     constant_columns_: dict[int, any],
+    #     _n_features_in: int
+    # ) -> dict[
+    #   Literal['keep']: Union[None, list[int]],
+    #   Literal['delete']: Union[None, list[int]],
+    #   Literal['add']: Union[None, list[int]]
+    # ]
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
         return (200, 10)   # arbitrary shape
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]   # arbitrary shape
 
 
     @staticmethod
@@ -63,47 +62,45 @@ class TestMakeInstructions:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _keep_int(_columns):
-        return len(_columns) - 2    # not arbitrary, must equal 8
+    def _keep_int(_shape):
+        return _shape[1] - 2    # not arbitrary, must equal 8
 
 
     def test_accuracy(
         self, _empty_constant_columns, _constant_columns_1, _constant_columns_2,
-        _keep_dict, _keep_int, _columns, _shape
+        _keep_dict, _keep_int, _shape
     ):
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        # keep is int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # keep is int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # if no constant columns, returns all Nones
-        out = _make_instructions(_keep_int, _empty_constant_columns, None, _shape)
+        out = _make_instructions(_keep_int, _empty_constant_columns, _shape[1])
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # keep _keep_int idx, delete all others
-        out = _make_instructions(_keep_int, _constant_columns_1, None, _shape)
+        out = _make_instructions(_keep_int, _constant_columns_1, _shape[1])
         _sorted = sorted(list(_constant_columns_1))
-        _kept_idx = _keep_int
-        _sorted.remove(_kept_idx)
-        assert out == {'keep': [_kept_idx], 'delete': _sorted, 'add': None}
-        del _sorted, _kept_idx
+        _sorted.remove(_keep_int)
+        assert out == {'keep': [_keep_int], 'delete': _sorted, 'add': None}
+        del _sorted
 
         # keep _keep_int idx, delete all others
-        out = _make_instructions(_keep_int, _constant_columns_2, None, _shape)
+        out = _make_instructions(_keep_int, _constant_columns_2, _shape[1])
         _sorted = sorted(list(_constant_columns_2))
-        _kept_idx = _keep_int
-        _sorted.remove(_kept_idx)
-        assert out == {'keep': [_kept_idx], 'delete': _sorted, 'add': None}
-        del _sorted, _kept_idx
+        _sorted.remove(_keep_int)
+        assert out == {'keep': [_keep_int], 'delete': _sorted, 'add': None}
+        del _sorted
         # END keep is int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # 'none' ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions('none', _empty_constant_columns, None, _shape)
+        out = _make_instructions('none', _empty_constant_columns, _shape[1])
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # delete all constant columns
-        out = _make_instructions('none', _constant_columns_1, None, _shape)
+        out = _make_instructions('none', _constant_columns_1, _shape[1])
         assert out == {
             'keep': None,
             'delete': sorted(list(_constant_columns_1)),
@@ -111,7 +108,7 @@ class TestMakeInstructions:
         }
 
         # delete all constant columns
-        out = _make_instructions('none', _constant_columns_2, None, _shape)
+        out = _make_instructions('none', _constant_columns_2, _shape[1])
         assert out == {
             'keep': None,
             'delete': sorted(list(_constant_columns_2)),
@@ -123,11 +120,11 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # dict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones except 'add'
-        out = _make_instructions(_keep_dict, _empty_constant_columns, None, _shape)
+        out = _make_instructions(_keep_dict, _empty_constant_columns, _shape[1])
         assert out == {'keep': None, 'delete': None, 'add': _keep_dict}
 
         # delete all constant columns, append contents of keep dict
-        out = _make_instructions(_keep_dict, _constant_columns_1, None, _shape)
+        out = _make_instructions(_keep_dict, _constant_columns_1, _shape[1])
         assert out == {
             'keep': None,
             'delete': sorted(list(_constant_columns_1)),
@@ -135,7 +132,7 @@ class TestMakeInstructions:
         }
 
         # delete all constant columns, append contents of keep dict
-        out = _make_instructions(_keep_dict, _constant_columns_2, None, _shape)
+        out = _make_instructions(_keep_dict, _constant_columns_2, _shape[1])
         assert out == {
             'keep': None,
             'delete': sorted(list(_constant_columns_2)),
@@ -152,8 +149,7 @@ class TestMakeInstructions:
             _make_instructions(
                 _keep='none',
                 constant_columns_=dict((zip(range(5), (1 for _ in range(5))))),
-                _columns=None,
-                _shape=(1_000_000_000, 5)
+                _n_features_in=5
             )
 
         # if all columns are constant but appending new constants, warn
@@ -161,13 +157,18 @@ class TestMakeInstructions:
             out = _make_instructions(
                 _keep={'Intercept': 1},
                 constant_columns_=dict((zip(range(5), (1 for _ in range(5))))),
-                _columns=None,
-                _shape=(1_000_000_000, 5)
+                _n_features_in=5
             )
 
         assert out['keep'] == None
         assert out['delete'] == list(range(5))
         assert out['add'] == {'Intercept': 1}
+
+
+
+
+
+
 
 
 

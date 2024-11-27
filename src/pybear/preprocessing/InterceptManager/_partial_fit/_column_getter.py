@@ -21,7 +21,6 @@ def _column_getter(
 ) -> npt.NDArray[any]:
 
     """
-
     This supports _find_constants. Handles the mechanics of extracting
     a column from the various data container types. Return extracted
     column as a numpy vector. In the case of scipy sparse, the columns
@@ -31,7 +30,7 @@ def _column_getter(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse} - The data for which to find constant
+        {array-like, scipy sparse} - The data to be searched for constant
         columns.
     _col_idx:
         int - the column index of the column to be extracted from _X.

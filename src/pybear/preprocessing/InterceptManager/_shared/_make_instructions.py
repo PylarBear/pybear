@@ -5,14 +5,14 @@
 #
 
 
-from pybear.preprocessing.InterceptManager._validation._instructions import _val_instructions
+from pybear.preprocessing.InterceptManager._validation._instructions import (
+    _val_instructions
+)
 
 from pybear.preprocessing.InterceptManager._type_aliases import (
     KeepType,
     InstructionType
 )
-from typing_extensions import Union
-from typing import Iterable
 
 
 
@@ -21,59 +21,61 @@ from typing import Iterable
 def _make_instructions(
     _keep: KeepType,
     constant_columns_: dict[int, any],
-    _columns: Union[Iterable[str], None],
-    _shape: tuple[int, int]
+    _n_features_in: int
 ) -> InstructionType:
 
     """
-    :param: keep instructions must have been condition into dict[str, any],
-    int, or Literal['none'] only before this module.
-    Based on the keep instructions provided, and the constant columns
+    'keep' must have been conditioned into dict[str, any], int, or
+    Literal['none'] before this module in _manage_keep.
+
+    Based on the 'keep' instructions provided, and the constant columns
     found during fitting, build a dictionary that gives explicit
     instructions about what constant columns to keep, delete, or add.
 
     The form of the dictionary is:
     {
         'keep': Union[None, list[constant column indices to keep]],
-        'delete: Union[None, list[constant column indices to delete]],
-        'add: Union[None, dict['{column name}', fill value]]
+        'delete': Union[None, list[constant column indices to delete]],
+        'add': Union[None, dict['{new column name}', fill value]]
     }
 
+    if keep == 'none', keep none, add none, delete all.
+    if keep == a dict, keep none, delete all, append fill value to data.
+    if keep == int, keep that idx, delete the remaining constant columns.
 
-    if keep == 'none', keep none, add none, delete all
-    if keep == a dict, keep none, delete all, add value in last position
-    if keep == int, keep that column, delete the remaining constant columns
-    keep callable & feature name, and the remaining str literals should not
-    get in here, should have been converted to int in _manage_keep
+    keep callable, str feature name, and the other str literals besides
+    'none' should not get in here, should have been converted to int in
+    _manage_keep
+
+    The column that is to be built by 'add' is not added to 'keep'.
 
 
     Parameters
     ----------
     _keep:
-        Union[int, Literal['none'], dict[str, any]] -
-        pizza finish
+        Union[int, Literal['none'], dict[str, any]] - The strategy for
+        handling the constant columns. See 'The keep Parameter' section
+        for a lengthy explanation of the 'keep' parameter.
     constant_columns_:
-        dict[int, any] - finish your pizza!
-    _columns:
-        Union[Iterable[str], None] - pizza pizza! pan pan!
-    _shape:
-        tuple[int, int] - the (n_samples, n_features) shape of the data.
+        dict[int, any] - constant column indices and their values found
+        in all partial fits.
+    _n_features_in:
+        int - number of features in the fitted data before transform.
 
 
     Return
     ------
     -
         _instructions:
-            dict['keep':[list[int], None], 'delete':[list[int], None], 'add':[list[int], None]] -
+            dict[Literal['keep']: Union[list[int], None],
+                Literal['delete']: Union[list[int], None].
+                Literal['add']: Union[dict[str, any], None]] -
             instructions for keeping, deleting, or adding constant
-            columns to be applied during :method: transform
-
-
+            columns to be applied during :method: transform.
 
 
     """
 
-    # pizza brains do we want _instructions to have np.ndarray instead of list?
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     err_msg = f"'_keep' must be Literal['none'], dict[str, any], or int"
@@ -81,7 +83,7 @@ def _make_instructions(
         iter(_keep)
         if not isinstance(_keep, (str, dict)):
             raise UnicodeError
-        if isinstance(_keep, dict) and not isinstance(list(_keep.keys())[0], str):
+        if isinstance(_keep, dict) and not isinstance(list(_keep)[0], str):
             raise UnicodeError
         if isinstance(_keep, str) and _keep != 'none':
             raise UnicodeError
@@ -96,18 +98,19 @@ def _make_instructions(
                 raise UnicodeError
             _keep = int(_keep)
         except UnicodeError:
-            raise ValueError(err_msg)
+            raise AssertionError(err_msg)
         except:
             raise AssertionError(err_msg)
 
+    assert isinstance(_n_features_in, int)
 
     assert isinstance(constant_columns_, dict)
-    if len(constant_columns_) > 0:
+    if len(constant_columns_):
         assert all(map(
             isinstance, constant_columns_, (int for _ in constant_columns_)
         ))
-    if _columns is not None and len(constant_columns_):
-        assert max(constant_columns_) <= len(_columns) - 1
+        assert min(constant_columns_) >= 0
+        assert max(constant_columns_) <= _n_features_in - 1
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -115,13 +118,15 @@ def _make_instructions(
 
     _instructions: InstructionType = {
         # dont really need 'keep' for operating on X, just makes it easy
-        # to make kept_columns_ later on.
+        # to make the kept_columns_ instance attr later on.
         'keep': None,
         'delete': None,
         'add': None
     }
 
 
+    # all of these operations in this if block are conditional on there
+    # being at least one constant column
     if len(_sorted_constant_column_idxs) == 0:
         # if there are no constant columns, skip everything except keep dict
         pass
@@ -130,21 +135,29 @@ def _make_instructions(
         _sorted_constant_column_idxs.remove(_keep)
         _instructions['delete'] = _sorted_constant_column_idxs
     elif isinstance(_keep, str) and _keep != 'none':
-        raise AssertionError(f"str 'keep' not 'none' has gotten into _make_instructions but should already be an int")
+        raise AssertionError(f"str 'keep' not 'none' has gotten into "
+            f"_make_instructions but should already be an int")
     elif callable(_keep):
-        raise AssertionError(f"callable 'keep' has gotten into _make_instructions but should already be an int")
+        raise AssertionError(f"callable 'keep' has gotten into "
+            f"_make_instructions but should already be an int")
     elif _keep == 'none':
         # if keep == 'none', keep none, add none, delete all
         _instructions['delete'] = _sorted_constant_column_idxs
 
-
+    # this must be separate from the above if block
+    # this operation takes place whether or not there are constant columns
+    # or not
     if isinstance(_keep, dict):
         # if keep == a dict, keep none, delete all, add value in last position
-        _instructions['delete'] = _sorted_constant_column_idxs if len(_sorted_constant_column_idxs) else None
+        if len(_sorted_constant_column_idxs):
+            _instructions['delete'] = _sorted_constant_column_idxs
+        # else:
+        #     _instructions['delete'] stays None
+
         _instructions['add'] = _keep
 
 
-    _val_instructions(_instructions, _shape)
+    _val_instructions(_instructions, _n_features_in)
 
     return _instructions
 

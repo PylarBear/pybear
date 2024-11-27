@@ -25,41 +25,30 @@ import joblib
 
 # dataset_n_jobs_process/threads
 
-# X1_None_p     time = 0.073 +/- 0.005 sec; mem = 0.000 +/- 0.000 MB
-# X1_None_t     time = 0.087 +/- 0.002 sec; mem = 0.000 +/- 0.000 MB
-
-# X1_1_p        time = 0.062 +/- 0.003 sec; mem = 0.000 +/- 0.000 MB
-# X1_1_t        time = 0.069 +/- 0.003 sec; mem = 0.000 +/- 0.000 MB
-
-# X1_2_p        time = 0.150 +/- 0.009 sec; mem = 0.000 +/- 0.000 MB
-# X1_2_t        time = 0.071 +/- 0.003 sec; mem = 0.000 +/- 0.000 MB
-
-# X1_3_p        time = 0.154 +/- 0.005 sec; mem = 0.000 +/- 0.000 MB
-# X1_3_t        time = 0.088 +/- 0.008 sec; mem = 0.000 +/- 0.000 MB
-
-# X1_4_p        time = 0.163 +/- 0.017 sec; mem = 0.000 +/- 0.000 MB
-# X1_4_t        time = 0.094 +/- 0.006 sec; mem = 0.000 +/- 0.000 MB
-
-# X1_-1_p       time = 0.165 +/- 0.007 sec; mem = 0.000 +/- 0.000 MB
-# X1_-1_t       time = 0.083 +/- 0.008 sec; mem = 0.000 +/- 0.000 MB
-
-# X2_None_p     time = 13.041 +/- 1.041 sec; mem = 0.000 +/- 0.000 MB
-# X2_None_t     time = 10.333 +/- 0.196 sec; mem = 0.000 +/- 0.000 MB
-
-# X2_1_p        time = 11.076 +/- 0.904 sec; mem = 0.000 +/- 0.000 MB
-# X2_1_t        time = 10.399 +/- 0.192 sec; mem = 0.000 +/- 0.000 MB
-
-# X2_2_p        time = 9.879 +/- 1.950 sec; mem = 0.000 +/- 0.000 MB
-# X2_2_t        time = 29.518 +/- 0.835 sec; mem = 0.000 +/- 0.000 MB
-
-# X2_3_p        time = 9.865 +/- 1.381 sec; mem = 0.000 +/- 0.000 MB
-# X2_3_t        time = 28.273 +/- 0.631 sec; mem = 0.000 +/- 0.000 MB
-
-# X2_4_p        time = 9.328 +/- 0.949 sec; mem = 0.000 +/- 0.000 MB
-# X2_4_t        time = 27.683 +/- 0.107 sec; mem = 0.000 +/- 0.000 MB
-
-# X2_-1_p       time = 8.394 +/- 0.635 sec; mem = 0.000 +/- 0.000 MB
-# X2_-1_t       time = 29.667 +/- 2.793 sec; mem = 0.000 +/- 0.000 MB
+# X1_None_p     time = 0.072 +/- 0.010 sec; mem = 0.000 +/- 0.000 MB
+# X1_1_p        time = 0.060 +/- 0.001 sec; mem = 0.000 +/- 0.000 MB
+# X1_2_p        time = 0.143 +/- 0.014 sec; mem = 0.000 +/- 0.000 MB
+# X1_3_p        time = 0.169 +/- 0.013 sec; mem = 0.000 +/- 0.000 MB
+# X1_4_p        time = 0.172 +/- 0.007 sec; mem = 0.000 +/- 0.000 MB
+# X1_-1_p       time = 0.170 +/- 0.006 sec; mem = 0.000 +/- 0.000 MB
+# X2_None_p     time = 11.683 +/- 1.035 sec; mem = 0.000 +/- 0.000 MB
+# X2_1_p        time = 11.621 +/- 1.058 sec; mem = 0.000 +/- 0.000 MB
+# X2_2_p        time = 8.887 +/- 0.861 sec; mem = 0.333 +/- 0.471 MB
+# X2_3_p        time = 8.865 +/- 0.985 sec; mem = 0.000 +/- 0.000 MB
+# X2_4_p        time = 8.942 +/- 1.103 sec; mem = 0.000 +/- 0.000 MB
+# X2_-1_p       time = 8.857 +/- 1.045 sec; mem = 0.000 +/- 0.000 MB
+# X1_None_t     time = 0.070 +/- 0.011 sec; mem = 0.000 +/- 0.000 MB
+# X1_1_t        time = 0.053 +/- 0.004 sec; mem = 0.000 +/- 0.000 MB
+# X1_2_t        time = 0.069 +/- 0.001 sec; mem = 0.000 +/- 0.000 MB
+# X1_3_t        time = 0.076 +/- 0.001 sec; mem = 0.000 +/- 0.000 MB
+# X1_4_t        time = 0.073 +/- 0.003 sec; mem = 0.000 +/- 0.000 MB
+# X1_-1_t       time = 0.079 +/- 0.005 sec; mem = 0.000 +/- 0.000 MB
+# X2_None_t     time = 11.610 +/- 1.049 sec; mem = 0.000 +/- 0.000 MB
+# X2_1_t        time = 11.563 +/- 1.047 sec; mem = 0.000 +/- 0.000 MB
+# X2_2_t        time = 29.145 +/- 5.898 sec; mem = 0.000 +/- 0.000 MB
+# X2_3_t        time = 31.954 +/- 6.462 sec; mem = 0.000 +/- 0.000 MB
+# X2_4_t        time = 30.918 +/- 5.360 sec; mem = 0.000 +/- 0.000 MB
+# X2_-1_t       time = 31.056 +/- 5.568 sec; mem = 0.000 +/- 0.000 MB
 
 
 

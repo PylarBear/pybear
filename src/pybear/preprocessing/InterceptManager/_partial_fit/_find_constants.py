@@ -25,7 +25,7 @@ from ._merge_constants import _merge_constants
 
 def _find_constants(
     _X: DataFormatType,
-    _old_constant_columns: dict[int, any],
+    _old_constant_columns: Union[dict[int, any], None],
     _equal_nan: bool,
     _rtol: Real,
     _atol: Real,
@@ -48,10 +48,10 @@ def _find_constants(
     ----------
     _X:
         {array-like, scipy sparse} of shape (n_samples, n_features) -
-        The data for which to identify constant columns.
+        The data to be searched for constant columns.
     _old_constant_columns:
-        dict[int, any] - constant column indices and their values found
-        in previous partial fits.
+        Union[dict[int, any], None] - constant column indices and their
+        values found in previous partial fits.
     _equal_nan:
         bool - If equal_nan is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
@@ -71,28 +71,24 @@ def _find_constants(
         numpy.allclose.
     _n_jobs:
         Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when scanning the data for columns of constants. The
-        default is to use processes, but can be overridden externally
-        using a joblib parallel_config context manager. The default
-        number of jobs is -1 (all processors). To get maximum speed
-        benefit, pybear recommends using the default setting.
+        jobs to use when scanning the data for columns of constants.
     
     
     Return
     ------
     -
-        _new_constants: dict[int, any] - dictionary of the indices of the
-            columns of constants and the values in them.
+        _new_constants: dict[int, any] - dictionary of the indices of
+            the columns of constants and the values in them for the
+            current partial fit.
     
     
     """
 
-
-
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) \
            or hasattr(_X, 'toarray')
-    assert isinstance(_old_constant_columns, dict)
-    if len(_old_constant_columns):
+    assert isinstance(_old_constant_columns, (dict, type(None)))
+    if _old_constant_columns and len(_old_constant_columns):
         assert max(_old_constant_columns) < _X.shape[1]
     assert isinstance(_equal_nan, bool)
     try:
@@ -103,6 +99,7 @@ def _find_constants(
     assert isinstance(_n_jobs, (int, type(None)))
     if _n_jobs:
         assert _n_jobs >= -1
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     # out is list[Union[uuid.uuid4, any]]

@@ -44,16 +44,16 @@ def _validation(
     ----------
     _X:
         {array-like, scipy sparse} of shape (n_samples, n_features) -
-        The data for which to find constant columns.
+        The data to be searched for constant columns.
     _columns:
         Union[NDArray[str], None] - An NDArray[str] of shape (n_features,)
         if X was passed as a pandas dataframe with a header, otherwise
         None.
     _keep:
         Union[Literal['first', 'last', 'random', 'none'], dict[str, any],
-        str, int, callable] - The strategy for handling the constant
-        columns. See 'The Keep Parameter' discussion section for a
-        lengthy explanation of the 'keep' parameter.
+        str, int, Callable[[_X], int] - The strategy for handling the
+        constant columns. See 'The Keep Parameter' discussion section
+        for a lengthy explanation of the 'keep' parameter.
     _equal_nan:
         bool - If equal_nan is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
