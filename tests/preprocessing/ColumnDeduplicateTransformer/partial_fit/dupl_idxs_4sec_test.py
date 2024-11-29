@@ -40,7 +40,7 @@ class Fixtures:
     @staticmethod
     @pytest.fixture(scope='module')
     def _n_jobs():
-        return -1
+        return 1     # leave set at 1 because of confliction
 
 
     @staticmethod

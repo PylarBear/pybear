@@ -47,7 +47,7 @@ class TestAccuracy:
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': False,
-            'n_jobs': -1     # leave at -1
+            'n_jobs': 1     # leave set at 1 because of confliction
         }
 
 
@@ -110,7 +110,6 @@ class TestAccuracy:
         _kwargs['rtol'] = 1e-5
         _kwargs['atol'] = 1e-8
         _kwargs['equal_nan'] = equal_nan
-        _kwargs['n_jobs'] = -1
 
 
         TestCls = CDT(**_kwargs)

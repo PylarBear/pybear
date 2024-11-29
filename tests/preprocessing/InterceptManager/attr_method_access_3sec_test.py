@@ -7,13 +7,16 @@
 
 import pytest
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing import InterceptManager as IM
 
 import sys
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from sklearn.exceptions import NotFittedError
+
+
 
 
 
@@ -33,24 +36,27 @@ def _shape():
 @pytest.fixture(scope='function')
 def _kwargs():
     return {
-        'keep': 'first',
-        'do_not_drop': None,
-        'conflict': 'raise',
+        'keep': 'last',
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
-        'n_jobs': -1
+        'n_jobs': 1  # pizza test for confliction
     }
 
 
 @pytest.fixture(scope='module')
-def _dupl(_shape):
-    return [[3, 5, _shape[1]-1]]
+def _const(_shape):
+    return {3:0, 5:1, _shape[1]-1:2}
 
 
 @pytest.fixture(scope='module')
-def _dum_X(_X_factory, _dupl, _shape):
-    return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
+def _dum_X(_X_factory, _const, _shape):
+    return _X_factory(
+        _constants=_const,
+        _has_nan=False,
+        _dtype='flt',
+        _shape=_shape
+    )
 
 
 @pytest.fixture(scope='module')
@@ -71,7 +77,7 @@ def _X_pd(_dum_X, _columns):
 
 
 
-# ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM, ATTR ACCURACY
+# ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
 
@@ -82,13 +88,14 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
         return [
             'n_features_in_',
             'feature_names_in_',
-            'duplicates_',
+            'constant_columns_',
+            'kept_columns_',
             'removed_columns_',
             'column_mask_'
         ]
 
 
-    @pytest.mark.parametrize('x_format', ('np', 'pd'))
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
     def test_attr_accuracy(
         self, _dum_X, _X_pd, _columns, _kwargs, _shape, _attrs, x_format
     ):
@@ -101,11 +108,20 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
             NEW_Y = pd.DataFrame(
                 data=np.random.randint(0, 2, _shape[0]), columns=['y']
             )
+        elif x_format == 'csc':
+            NEW_X = ss.csc_array(_dum_X.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        elif x_format == 'csr':
+            NEW_X = ss.csr_array(_dum_X.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        elif x_format == 'coo':
+            NEW_X = ss.coo_array(_dum_X.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
         else:
             raise Exception
 
 
-        TestCls = CDT(**_kwargs)
+        TestCls = IM(**_kwargs)
 
         # BEFORE FIT ***************************************************
 
@@ -122,7 +138,6 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
 
         # all attrs should be accessible after fit, the only exception
         # should be feature_names_in_ if numpy
-        # duplicates_, removed_columns_, & column_mask_ tested elsewhere
         for attr in _attrs:
             try:
                 out = getattr(TestCls, attr)
@@ -133,7 +148,7 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
                     assert out == _shape[1], \
                         f"{attr} after fit() != number of originally passed columns"
             except:
-                if attr == 'feature_names_in_' and x_format == 'np':
+                if attr == 'feature_names_in_' and x_format != 'pd':
                     assert isinstance(sys.exc_info()[0](), AttributeError)
                 else:
                     raise
@@ -144,7 +159,6 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
 
         # after transform, should be the exact same condition as after
         # fit, and pass the same tests
-        # duplicates_, removed_columns_, & column_mask_ tested elsewhere
         for attr in _attrs:
             try:
                 out = getattr(TestCls, attr)
@@ -155,7 +169,7 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
                     assert out == _shape[1], \
                         f"{attr} after fit() != number of originally passed columns"
             except:
-                if attr == 'feature_names_in_' and x_format == 'np':
+                if attr == 'feature_names_in_' and x_format != 'pd':
                     assert isinstance(sys.exc_info()[1], AttributeError)
                 else:
                     raise AssertionError(
@@ -167,7 +181,7 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
 
         del NEW_X, NEW_Y, TestCls
 
-# END ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM, ATTR ACCURACY
+# END ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
 
 
 # ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM ***
@@ -191,9 +205,9 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         ]
 
 
-    def test_access_methods_before_fit(self, _dum_X, _kwargs):
+    def test_access_methods_before_fit(self, _dum_X, _X_pd, _kwargs):
 
-        TestCls = CDT(**_kwargs)
+        TestCls = IM(**_kwargs)
 
         # **************************************************************
         # vvv BEFORE FIT vvv *******************************************
@@ -224,8 +238,6 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # set_params()
         # KEYS = [
         #     'keep': 'first',
-        #     'do_not_drop': None,
-        #     'conflict': 'raise',
         #     'rtol': 1e-5,
         #     'atol': 1e-8,
         #     'equal_nan': False,
@@ -244,7 +256,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
 
     def test_access_methods_after_fit(
-        self, _dum_X, _columns, _kwargs, _shape
+        self, _dum_X, _X_pd, _columns, _kwargs, _shape
     ):
 
         y = np.random.randint(0,2,_shape[0])
@@ -252,108 +264,14 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
 
-        TestCls = CDT(**_kwargs)
+        TestCls = IM(**_kwargs)
         TestCls.fit(_dum_X, y)
 
         # fit()
         # fit_transform()
 
-        # get_feature_names_out() v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        # vvv NO COLUMN NAMES PASSED (NP) vvv
-        # **** CAN ONLY TAKE LIST-TYPE OF STRS OR None
-        JUNK_ARGS = [
-            float('inf'), np.pi, 'garbage', {'junk': 3}, [*range(len(_columns))]
-        ]
-
-        for junk_arg in JUNK_ARGS:
-            with pytest.raises(ValueError):
-                TestCls.get_feature_names_out(junk_arg)
-
-        del JUNK_ARGS
-
-        # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
-        # ['x0', ..., 'x(n-1)][COLUMN MASK]
-        _COLUMNS = np.array([f"x{i}" for i in range(len(_columns))])
-        assert np.array_equiv(
-            TestCls.get_feature_names_out(None),
-            _COLUMNS[TestCls.column_mask_]
-        ), \
-            (f"get_feature_names_out(None) after fit() != sliced array of "
-            f"generic headers")
-
-        # WITH NO HEADER PASSED, SHOULD RAISE ValueError IF
-        # len(input_features) != n_features_in_
-        with pytest.raises(ValueError):
-            TestCls.get_feature_names_out(
-                [f"x{i}" for i in range(2 * len(_columns))]
-            )
-
-        # WHEN NO HEADER PASSED TO (partial_)fit() AND VALID input_features,
-        # SHOULD RETURN SLICED PASSED COLUMNS
-        RETURNED_FROM_GFNO = TestCls.get_feature_names_out(_columns)
-        assert isinstance(RETURNED_FROM_GFNO, np.ndarray), \
-            (f"get_feature_names_out should return numpy.ndarray, but "
-             f"returned {type(RETURNED_FROM_GFNO)}")
-
-        _ACTIVE_COLUMNS = np.array(_columns)[TestCls.column_mask_]
-        assert np.array_equiv(RETURNED_FROM_GFNO, _ACTIVE_COLUMNS), \
-            f"get_feature_names_out() did not return original columns"
-
-        del junk_arg, RETURNED_FROM_GFNO, TestCls, _ACTIVE_COLUMNS
-
-        # END ^^^ NO COLUMN NAMES PASSED (NP) ^^^
-
-        # vvv COLUMN NAMES PASSED (PD) vvv
-
-        TestCls = CDT(**_kwargs)
-        TestCls.fit(pd.DataFrame(data=_dum_X, columns=_columns), y)
-
-        # WITH HEADER PASSED AND input_features=None, SHOULD RETURN
-        # SLICED ORIGINAL COLUMNS
-        _ACTIVE_COLUMNS = np.array(_columns)[TestCls.column_mask_]
-        assert np.array_equiv(TestCls.get_feature_names_out(None), _ACTIVE_COLUMNS), \
-            f"get_feature_names_out(None) after fit() != originally passed columns"
-        del _ACTIVE_COLUMNS
-
-        # WITH HEADER PASSED, SHOULD RAISE TypeError IF input_features
-        # FOR DISALLOWED TYPES
-
-        JUNK_COL_NAMES = [
-            [*range(len(_columns))], [*range(2 * len(_columns))], {'a': 1, 'b': 2}
-        ]
-        for junk_col_names in JUNK_COL_NAMES:
-            with pytest.raises(ValueError):
-                TestCls.get_feature_names_out(junk_col_names)
-
-        del JUNK_COL_NAMES
-
-        # WITH HEADER PASSED, SHOULD RAISE ValueError IF input_features DOES
-        # NOT EXACTLY MATCH ORIGINALLY FIT COLUMNS
-        JUNK_COL_NAMES = [
-            np.char.upper(_columns), np.hstack((_columns, _columns)), []
-        ]
-        for junk_col_names in JUNK_COL_NAMES:
-            with pytest.raises(ValueError):
-                TestCls.get_feature_names_out(junk_col_names)
-
-        # WHEN HEADER PASSED TO (partial_)fit() AND input_features IS THAT HEADER,
-        # SHOULD RETURN SLICED VERSION OF THAT HEADER
-
-        RETURNED_FROM_GFNO = TestCls.get_feature_names_out(_columns)
-        assert isinstance(RETURNED_FROM_GFNO, np.ndarray), \
-            (f"get_feature_names_out should return numpy.ndarray, "
-             f"but returned {type(RETURNED_FROM_GFNO)}")
-
-        assert np.array_equiv(
-            RETURNED_FROM_GFNO,
-            np.array(_columns)[TestCls.column_mask_]
-        ), \
-            f"get_feature_names_out() did not return original columns"
-
-        del junk_col_names, RETURNED_FROM_GFNO
-        # END ^^^ COLUMN NAMES PASSED (PD) ^^^
-
-        # END get_feature_names_out() v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # get_feature_names_out()
+        assert isinstance(TestCls.get_feature_names_out(None), np.ndarray)
 
         # get_metadata_routing()
         with pytest.raises(NotImplementedError):
@@ -364,26 +282,90 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
         del TestCls
 
-        # inverse_transform()
-        TestCls = CDT(**_kwargs)
+        # inverse_transform() ********************
+        TestCls = IM(**_kwargs)
         TestCls.fit(_dum_X, y)  # X IS NP ARRAY
-        TestCls.inverse_transform(_dum_X[:, TestCls.column_mask_])
 
-        del TestCls
+        # VALIDATION OF X GOING INTO inverse_transform IS HANDLED BY
+        # sklearn check_array, LET IT RAISE WHATEVER
+        for junk_x in [[], [[]], None, 'junk_string', 3, np.pi]:
+            with pytest.raises(Exception):
+                TestCls.inverse_transform(junk_x)
+
+        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
+        # RETAINED COLUMNS
+        TRFM_X = TestCls.transform(_dum_X)
+        TRFM_MASK = TestCls.column_mask_
+        __ = np.array(_columns)
+        for obj_type in ['np', 'pd']:
+            for diff_cols in ['more', 'less', 'same']:
+                if diff_cols == 'same':
+                    TEST_X = TRFM_X.copy()
+                    if obj_type == 'pd':
+                        TEST_X = pd.DataFrame(
+                            data=TEST_X, columns=__[TRFM_MASK]
+                        )
+                elif diff_cols == 'less':
+                    TEST_X = TRFM_X[:, :2].copy()
+                    if obj_type == 'pd':
+                        TEST_X = pd.DataFrame(
+                            data=TEST_X, columns=__[TRFM_MASK][:2]
+                        )
+                elif diff_cols == 'more':
+                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
+                    if obj_type == 'pd':
+                        _COLUMNS = np.hstack((
+                            __[TRFM_MASK],
+                            np.char.upper(__[TRFM_MASK])
+                        ))
+                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
+
+                if diff_cols == 'same':
+                    TestCls.inverse_transform(TEST_X)
+                else:
+                    with pytest.raises(ValueError):
+                        TestCls.inverse_transform(TEST_X)
+
+        INV_TRFM_X = TestCls.inverse_transform(TRFM_X)
+        if isinstance(TRFM_X, np.ndarray):
+            assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
+
+        assert isinstance(INV_TRFM_X, np.ndarray), \
+            f"output of inverse_transform() is not a numpy array"
+        assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
+            f"rows in output of inverse_transform() do not match input rows"
+        assert INV_TRFM_X.shape[1] == TestCls.n_features_in_, \
+            (f"columns in output of inverse_transform() do not match "
+             f"originally fitted columns")
+
+        assert np.array_equiv( INV_TRFM_X, _dum_X), \
+            f"inverse transform of transformed data does not equal original data"
+
+        assert np.array_equiv(
+            TRFM_X.astype(str),
+            INV_TRFM_X[:, TestCls.column_mask_].astype(str)
+        ), (f"output of inverse_transform() does not reduce back to the output "
+            f"of transform()")
+
+        del junk_x, TRFM_X, TRFM_MASK, obj_type, diff_cols
+        del TEST_X, INV_TRFM_X, TestCls
+
+        # END inverse_transform() **********
+
+        TestCls = IM(**_kwargs)
 
         # partial_fit()
         # ** _reset()
 
         # set_output()
-        TestCls = CDT(**_kwargs)
-        TestCls.fit(_dum_X, y)  # X IS NP ARRAY
         TestCls.set_output(transform='pandas')
 
         # set_params()
         TestCls.set_params(keep='random')
 
+        del TestCls
+
         # transform()
-        TestCls.transform(_dum_X)
 
         # END ^^^ AFTER FIT ^^^ ****************************************
         # **************************************************************
@@ -397,46 +379,18 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************
-        FittedTestCls = CDT(**_kwargs).fit(_dum_X, y)
-        TransformedTestCls = CDT(**_kwargs).fit(_dum_X, y)
+        FittedTestCls = IM(**_kwargs).fit(_dum_X, y)
+        TransformedTestCls = IM(**_kwargs).fit(_dum_X, y)
         TRFM_X = TransformedTestCls.transform(_dum_X)
 
         # fit()
         # fit_transform()
 
-        # get_feature_names_out() **************************************
-        # vvv NO COLUMN NAMES PASSED (NP) vvv
-
-        # # WHEN NO HEADER PASSED TO (partial_)fit() AND VALID input_features,
-        # SHOULD RETURN ORIGINAL (SLICED) COLUMNS
-        RETURNED_FROM_GFNO = TransformedTestCls.get_feature_names_out(_columns)
-
-        _ACTIVE_COLUMNS = np.array(_columns)[TransformedTestCls.column_mask_]
-        assert np.array_equiv(RETURNED_FROM_GFNO, _ACTIVE_COLUMNS), \
-            (f"get_feature_names_out() after transform did not return "
-             f"sliced original columns")
-
-        del RETURNED_FROM_GFNO
-        # END ^^^ NO COLUMN NAMES PASSED (NP) ^^^
-
-        # vvv COLUMN NAMES PASSED (PD) vvv
-        PDTransformedTestCls = CDT(**_kwargs)
-        PDTransformedTestCls.fit_transform(
-            pd.DataFrame(data=_dum_X, columns=_columns), y
+        # get_feature_names_out()
+        assert isinstance(
+            TransformedTestCls.get_feature_names_out(None),
+            np.ndarray
         )
-
-        # WITH HEADER PASSED AND input_features=None,
-        # SHOULD RETURN SLICED ORIGINAL COLUMNS
-        assert np.array_equiv(
-                PDTransformedTestCls.get_feature_names_out(None),
-                np.array(_columns)[PDTransformedTestCls.column_mask_]
-        ), (f"get_feature_names_out(None) after transform() != originally "
-            f"passed columns")
-
-        del PDTransformedTestCls
-        # END ^^^ COLUMN NAMES PASSED (PD) ^^^
-
-        # END get_feature_names_out() **********************************
 
         # get_metadata_routing()
         with pytest.raises(NotImplementedError):
@@ -447,13 +401,15 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
                 FittedTestCls.get_params(True), \
             f"get_params() after transform() != before transform()"
 
-        # inverse_transform()
+        # inverse_transform() ************
+
         assert np.array_equiv(
             FittedTestCls.inverse_transform(TRFM_X).astype(str),
-            TransformedTestCls.inverse_transform(TRFM_X).astype(str)
-        ), (f"inverse_transform(TRFM_X) after transform() != "
+            TransformedTestCls.inverse_transform(TRFM_X).astype(str)), \
+            (f"inverse_transform(TRFM_X) after transform() != "
              f"inverse_transform(TRFM_X) before transform()")
 
+        # END inverse_transform() **********
 
         # partial_fit()
         # ** _reset()
@@ -462,14 +418,15 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         TransformedTestCls.set_output(transform='pandas')
         TransformedTestCls.transform(_dum_X)
 
+        del TransformedTestCls
 
         # set_params()
-        TransformedTestCls.set_params(keep='first')
+        TestCls = IM(**_kwargs)
+        TestCls.set_params(keep='first')
 
         # transform()
-        TransformedTestCls.transform(_dum_X)
 
-        del FittedTestCls, TransformedTestCls, TRFM_X
+        del FittedTestCls, TestCls, TRFM_X
 
         # END ^^^ AFTER TRANSFORM ^^^ **********************************
         # **************************************************************

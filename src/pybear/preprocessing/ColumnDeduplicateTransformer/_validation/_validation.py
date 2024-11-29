@@ -17,22 +17,17 @@ from ._n_jobs import _val_n_jobs
 
 
 
-from .._type_aliases import (
-    ColumnsType,
-    ConflictType,
-    DataType,
-    DoNotDropType,
-    KeepType
-)
+from .._type_aliases import DataType
+from typing import Iterable, Literal
 from typing_extensions import Union
 
 
 def _validation(
     _X:DataType,
-    _columns: ColumnsType,
-    _conflict: ConflictType,
-    _do_not_drop: DoNotDropType,
-    _keep: KeepType,
+    _columns: Union[Iterable[str], None],
+    _conflict: Literal['raise', 'ignore'],
+    _do_not_drop: Union[Iterable[str], Iterable[int], None],
+    _keep: Literal['first', 'last', 'random'],
     _rtol: Real,
     _atol: Real,
     _equal_nan: bool,

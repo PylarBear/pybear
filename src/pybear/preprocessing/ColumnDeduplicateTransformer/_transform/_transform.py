@@ -6,18 +6,19 @@
 
 
 from .._type_aliases import DataType
+import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
 
-import scipy.sparse as ss
+
 
 
 
 
 def _transform(
     X: DataType,
-    _column_mask: list[bool]
+    _column_mask: npt.NDArray[bool]
 ) -> DataType:
 
     """

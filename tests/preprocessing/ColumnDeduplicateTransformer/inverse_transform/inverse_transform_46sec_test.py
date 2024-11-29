@@ -142,7 +142,7 @@ class TestInverseTransform:
             # rtol: Optional[Real] = 1e-5,
             # atol: Optional[Real] = 1e-8,
             equal_nan=_equal_nan,
-            n_jobs=-1
+            n_jobs=1    # leave set at 1 because of confliction
         ).fit(_X_wip)
         # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 

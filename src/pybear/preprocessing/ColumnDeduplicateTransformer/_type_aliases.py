@@ -5,20 +5,13 @@
 #
 
 
-from typing import Iterable, Literal
+
 from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 import pandas as pd
 import scipy.sparse as ss
 
 
-
-ColumnsType: TypeAlias = Union[
-    Iterable[str],
-    None
-]
-
-ConflictType: TypeAlias = Literal['raise', 'ignore']
 
 SparseTypes: TypeAlias = Union[
     ss._csr.csr_matrix,
@@ -40,15 +33,6 @@ DataType: TypeAlias = Union[
     pd.DataFrame,
     SparseTypes
 ]
-
-DoNotDropType: TypeAlias = Union[
-    Iterable[str],
-    Iterable[int],
-    None
-]
-
-KeepType: TypeAlias = Literal['first', 'last', 'random']
-
 
 
 

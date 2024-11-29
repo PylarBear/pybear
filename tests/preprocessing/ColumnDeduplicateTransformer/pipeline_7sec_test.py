@@ -52,7 +52,7 @@ class TestPipeline:
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': True,
-            'n_jobs': 1
+            'n_jobs': 1    # leave set at 1 because of confliction
         }
 
 
@@ -81,6 +81,7 @@ class TestPipeline:
         _y = np.random.uniform(0,1, _shape[0])
 
         # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # n_jobs confliction doesnt seem to matter
         pipe = Pipeline(
             steps = [
                 ('onehot', OneHotEncoder()),
@@ -99,7 +100,7 @@ class TestPipeline:
 
 
         # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
+        # n_jobs confliction doesnt seem to matter
         encoded_X = OneHotEncoder().fit_transform(_X)
         deduplicated_X = CDT(**_kwargs).fit_transform(encoded_X)
         mlr = LinearRegression(fit_intercept = True, n_jobs = -1)

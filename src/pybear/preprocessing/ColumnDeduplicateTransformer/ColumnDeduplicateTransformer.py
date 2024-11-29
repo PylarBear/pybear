@@ -7,6 +7,7 @@
 
 from numbers import Real, Integral
 from typing import Iterable, Literal, Optional
+import numpy.typing as npt
 from typing_extensions import Union, Self
 from ._type_aliases import DataType
 
@@ -15,6 +16,7 @@ import numpy as np
 from ._validation._validation import _validation
 from ._validation._X import _val_X
 from ._partial_fit._dupl_idxs import _dupl_idxs
+from ._partial_fit._lock_in_random_idxs import _lock_in_random_idxs
 from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._inverse_transform._inverse_transform import _inverse_transform
 from ._transform._transform import _transform
@@ -37,13 +39,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     Duplicate columns are a point of concern for analysts. In many data
     analytics learning algorithms, such a condition can cause convergence
     problems, inversion problems, or other undesirable effects. The
-    analyst is often forced to address the issue to perform a meaningful
+    analyst is often forced to address this issue to perform a meaningful
     analysis of the data.
 
     Columns with identical values within the same dataset may occur
-    coincidentally in a sampling of data, may occur during one-hot
-    encoding of categorical data, or may occur during polynomial feature
-    expansion.
+    coincidentally in a sampling of data, during one-hot encoding of
+    categorical data, or during polynomial feature expansion.
 
     CDT is a tool that can help fix this problem. CDT identifies
     duplicate columns and selectively keeps one from a group of
@@ -83,8 +84,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     three values: 'first', 'last', or 'random'. The default setting is
     'first'. 'first' retains the column left-most in the data; 'last'
     keeps the column right-most in the data; 'random' keeps a single
-    randomly-selected column of the set of duplicates. All other columns
-    in the set of duplicates are removed from the dataset.
+    randomly-selected column from the set of duplicates. All other
+    columns in the set of duplicates are removed from the dataset.
 
     The parameter 'do_not_drop' allows the user to indicate columns not
     to be removed from the data. This is to be given as a list-like of
@@ -112,12 +113,12 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         and the do_not_drop column is kept
 
         2) when multiple columns in :param: do_not_drop are among the
-        duplicates, the :param: keep instruction ('first', 'last',
-        'random') is applied to the set of do-not-delete columns
-        that are amongst the duplicates --- this may not give the same
-        result as applying the :param: keep instruction to the entire
-        set of duplicate columns. This also causes at least one member
-        of the columns not to be dropped to be removed.
+        columns to be removed, the :param: keep instruction ('first',
+        'last', 'random') is applied to that subset of do-not-drop
+        columns --- this may not give the same result as applying the
+        :param: keep instruction to the entire set of duplicate columns.
+        This also causes at least one member of the columns not to be
+        dropped to be removed.
 
     The partial_fit, fit, fit_transform, and inverse_transform methods
     of CDT accept data as numpy arrays, pandas dataframes, and scipy
@@ -130,7 +131,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     None, the output container is the same as the input, that is, numpy
     array, pandas dataframe, or scipy sparse matrix/array.
 
-    The partial fit method allows for batch-wise fitting of data. This
+    The partial_fit method allows for incremental fitting of data. This
     makes CDT suitable for use with packages that do batch-wise fitting
     and transforming, such as dask_ml via the Incremental and
     ParallelPostFit wrappers.
@@ -144,6 +145,24 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     the data versus what would otherwise be learned under constant
     settings. pybear recommends against this practice, however, it is
     not strictly blocked.
+
+    When performing multiple batch-wise transformations of data, that is,
+    making sequential calls to :method: transform, it is critical that
+    the same column indices be kept / removed at each call. This issue
+    manifests when :param: keep is set to 'random'; the random indices
+    to keep must be the same at all calls to :method: transform, and
+    cannot be dynamically randomized within :method: transform. CDT
+    handles this by generating a static list of random indices to keep
+    at fit time, and does not mutate this list during transform time.
+    This list is dynamic with each call to :method: partial_fit, and
+    will likely change at each call. Fits performed after calls to
+    :method: transform will change the random indices away from those
+    used in the previous transforms, causing CDT to perform entirely
+    different tranformations than those previously being done. CDT cannot
+    block calls to :method: partial_fit after calls to :method:
+    transform, but pybear strongly discourages this practice because the
+    output will be nonsensical. pybear recommends doing all partial fits
+    consecutively, then doing all transformations consecutively.
 
 
     Parameters
@@ -413,7 +432,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             pass
         except:
             raise ValueError(
-                f"'input_features' must be a vector-like containing strings, or None"
+                f"'input_features' must be a vector-like containing strings, "
+                f"or None"
             )
 
 
@@ -563,7 +583,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
 
         # find the duplicate columns
-        self.duplicates_ = \
+        self.duplicates_: list[list[int]] = \
             _dupl_idxs(
                 X,
                 self.duplicates_ if hasattr(self, 'duplicates_') else None,
@@ -573,16 +593,30 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 self.n_jobs
         )
 
-        self.removed_columns_ = \
+        # if 'keep' == 'random', _transform() must pick the same random
+        # columns every time. need to set an instance attribute here
+        # that doesnt change when _transform() is called. must set a
+        # random idx for every set of dupls.
+        self._rand_idxs: tuple[int, ...] = _lock_in_random_idxs(
+            _duplicates=self.duplicates_,
+            _do_not_drop=self.do_not_drop,
+            _columns=self.feature_names_in_ if \
+                hasattr(self, 'feature_names_in_') else None
+        )
+
+        self.removed_columns_: dict[int, int] = \
             _identify_idxs_to_delete(
                 self.duplicates_,
                 self.keep,
                 self.do_not_drop,
-                self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
-                self.conflict
+                self.feature_names_in_ if \
+                    hasattr(self, 'feature_names_in_') else None,
+                self.conflict,
+                self._rand_idxs
             )
 
-        self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
+        self.column_mask_: npt.NDArray[bool] = \
+            np.ones(self.n_features_in_).astype(bool)
         self.column_mask_[list(self.removed_columns_)] = False
 
         return self
@@ -797,7 +831,6 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
             self.n_jobs
         )
 
-
         # redo these here in case set_params() was changed after (partial_)fit
         # determine the columns to remove based on given parameters.
         self.removed_columns_ = \
@@ -806,7 +839,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 self.keep,
                 self.do_not_drop,
                 self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
-                self.conflict
+                self.conflict,
+                self._rand_idxs
             )
 
         self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
