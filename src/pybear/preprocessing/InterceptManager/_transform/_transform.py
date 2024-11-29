@@ -73,19 +73,12 @@ def _transform(
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
             _value = _instructions['add'][_key]
-            # pizza clean this up once u figure out if numpy will except
-            # for crazy dtype hstack.
             # this just rams the fill value into _X, and conforms to
             # whatever dtype _X is
-            # try:
             _X = np.hstack((
                 _X,
                 np.full((_X.shape[0], 1), _value)
             ))
-            # except Exception as e:
-            #     raise TypeError(
-            #         f"attempted to "
-            #     ) from e
 
             del _key, _value
 

@@ -35,15 +35,6 @@ class TestPipeline:
 
     @staticmethod
     @pytest.fixture()
-    def _dupls():
-        return [
-            [0, 2],
-            [5, 7, 9]
-        ]
-
-
-    @staticmethod
-    @pytest.fixture()
     def _kwargs():
         return {
             'keep': 'first',
@@ -56,7 +47,7 @@ class TestPipeline:
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))
     def test_accuracy_in_pipe_vs_out_of_pipe(
-        self, _X_factory, _dupls, _shape, _kwargs, _format
+        self, _X_factory, _shape, _kwargs, _format
     ):
 
         # this also incidentally tests functionality in a pipe
@@ -68,7 +59,7 @@ class TestPipeline:
 
 
         _X = _X_factory(
-            _dupl=_dupls,
+            _dupl=None,
             _format=_format,
             _has_nan=False,
             _columns=[str(uuid4())[:5] for _ in range(_shape[1])],
@@ -81,7 +72,7 @@ class TestPipeline:
         # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         pipe = Pipeline(
             steps = [
-                ('onehot', OneHotEncoder()),
+                ('onehot', OneHotEncoder(sparse_output=True)),
                 ('IM', IM(**_kwargs)),
                 ('MLR', LinearRegression(fit_intercept = True, n_jobs = -1))
             ]
@@ -98,11 +89,11 @@ class TestPipeline:
 
         # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        encoded_X = OneHotEncoder().fit_transform(_X)
-        deduplicated_X = IM(**_kwargs).fit_transform(encoded_X)
+        encoded_X = OneHotEncoder(sparse_output=True).fit_transform(_X)
+        deconstanted_X = IM(**_kwargs).fit_transform(encoded_X)
         mlr = LinearRegression(fit_intercept = True, n_jobs = -1)
 
-        mlr.fit(deduplicated_X, _y)
+        mlr.fit(deconstanted_X, _y)
 
         _coef_separate = mlr.coef_
 

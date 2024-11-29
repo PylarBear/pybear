@@ -39,7 +39,7 @@ class TestExceptsOnBadXShapes:
             'equal_nan': False,
             'rtol': 1e-5,
             'atol': 1e-8,
-            'n_jobs': 1  # leave this a 1 because of confliction... pizza verify!
+            'n_jobs': 1  # leave this a 1 because of confliction
         }
 
 

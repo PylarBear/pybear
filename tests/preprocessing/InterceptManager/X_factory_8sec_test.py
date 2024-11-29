@@ -29,19 +29,20 @@ class TestXFactory:
 
     # def _X_factory():
     #
-    #    def foo(
+    #        def foo(
     #         _dupl:list[list[int]]=None,
     #         _has_nan:Union[int, bool]=False,
     #         _format:Literal[
-    #           'np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'
+    #               'np','pd','csc','csr','coo','dia','lil','dok','bsr'
     #         ]='np',
     #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
     #         _columns:Union[Iterable[str], None]=None,
     #         _constants:Union[dict[int, any], None]=None,
-    #         _noise:float=1e-5,
+    #         _noise:float=0,
     #         _zeros:Union[float,None]=0,
     #         _shape:tuple[int,int]=(20,5)
-    #    ) -> npt.NDArray[any]:
+    #     ) -> npt.NDArray[any]:
+
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -52,8 +53,6 @@ class TestXFactory:
         return (200, 10)
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
 
 
     # test validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **

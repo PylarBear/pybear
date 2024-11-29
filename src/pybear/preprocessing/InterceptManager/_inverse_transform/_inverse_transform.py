@@ -25,15 +25,17 @@ def _inverse_transform(
 ) -> DataFormatType:
 
     """
-    Revert transformed data back to its original state. IM cannot account
-    for any nan-like values that may have been in the original data.
+    Revert transformed data back to its original state. Any appended
+    intercept column needs to be removed before coming into here.
+    IM cannot account for any nan-like values that may have been in the
+    original data.
 
 
     Parameters
     ----------
     X :
         {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features - n_features_removed) - A transformed data set.
+        n_transformed_features) - A transformed data set.
     _removed_columns:
         dict[int, any] - the keys are the indices of constant columns
         removed from the original data, indexed by their column location
@@ -41,7 +43,7 @@ def _inverse_transform(
         in that column.
     _feature_names_in:
         Union[npt.NDArray[str], None] - the feature names found during
-        fitting.
+        fitting if X was passed as a dataframe with a header.
 
 
     Returns
@@ -53,11 +55,14 @@ def _inverse_transform(
 
     """
 
+    assert hasattr(X, 'shape')
     assert isinstance(_removed_columns, dict)
     assert all(map(isinstance, _removed_columns, (int for _ in _removed_columns)))
     if _feature_names_in is not None:
         assert isinstance(_feature_names_in, np.ndarray)
-        assert all(map(isinstance, _feature_names_in, (str for _ in _feature_names_in)))
+        assert all(
+            map(isinstance, _feature_names_in, (str for _ in _feature_names_in))
+        )
 
     # retain what the original format was
     # if data is a pd df, convert to numpy
@@ -68,7 +73,7 @@ def _inverse_transform(
         # remove any header that may be on this df, dont want to replicate
         # wrong headers in 'new' columns which would be exposed if
         # feature_names_in_ is not available (meaning that fit() never
-        # saw a header via df or _columns, but a df has been passed to
+        # saw a header via df, but a df has been passed to
         # inverse_transform.)
         X = X.to_numpy()
     elif hasattr(X, 'toarray'):    # scipy sparse
@@ -81,31 +86,22 @@ def _inverse_transform(
     for k in sorted(_removed_columns.keys()):
         _removed_columns[int(k)] = _removed_columns.pop(k)
 
-    # insert blanks into the given data to get dimensions back to original,
-    # so indices will match the indices of _parent_dict.
     # must do this from left to right!
-    _blank = np.zeros((X.shape[0], 1))
-    for _rmv_idx in _removed_columns:  # this was sorted above
-        if isinstance(X, np.ndarray):
-            X = np.insert(X, _rmv_idx, _blank.ravel(), axis=1)
+    # use the _removed_columns dict to insert columns with the original
+    # constant values
+    for _rmv_idx, _value in _removed_columns.items():  # this was sorted above
+        if isinstance(X, np.ndarray):   # pd was converted to np
+            X = np.insert(X, _rmv_idx, np.full((X.shape[0],), _value), axis=1)
         elif isinstance(X, (ss._csc.csc_array, ss._csc.csc_matrix)):
             X = ss.hstack(
-                (X[:, :_rmv_idx], ss.csc_matrix(_blank), X[:, _rmv_idx:]),
+                (
+                    X[:, :_rmv_idx],
+                    ss.csc_matrix(np.full((X.shape[0], 1), _value)),
+                    X[:, _rmv_idx:]
+                ),
                 format="csc",
                 dtype=X.dtype
             )
-
-    del _blank
-
-
-    # use the _removed_columns dict to put in the original constant values
-
-    for _const_idx, _value in _removed_columns.items():
-        if isinstance(X, np.ndarray):
-            # df was converted to array above!
-            X[:, _const_idx] = _value
-        elif isinstance(X, (ss._csc.csc_array, ss._csc.csc_matrix)):
-            X[:, [_const_idx]] = _value
 
 
     # if was a dataframe and feature names are available, reattach
@@ -120,3 +116,12 @@ def _inverse_transform(
         X = _og_X_format(X)
 
     return X
+
+
+
+
+
+
+
+
+
