@@ -2,53 +2,34 @@ pybear
 ======
 
 |Build Status|
-
 .. |Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml
-
 |Test Status 313|
-
 .. |Test Status 313| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml
-
 |Test Status 312|
-
 .. |Test Status 312| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml
-
 |Test Status 311|
-
 .. |Test Status 311| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py311.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py311.yml
-
 |Test Status 310|
-
 .. |Test Status 310| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310.yml
-
 |Test Status 39|
-
 .. |Test Status 39| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml
-
 |Doc Status|
-
 .. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
    :target: //pybear.readthedocs.io/
    :alt: Documentation Status
-
 |PyPI Downloads|
-
 .. |PyPI Downloads| image:: https://img.shields.io/pypi/dm/pybear.svg?label=PyPI%20downloads
    :target: https://pypi.org/project/pybear/
-
 |Version Status|
-
 .. |Version Status| image:: https://img.shields.io/pypi/v/pybear.svg
    :target: https://pypi.python.org/pypi/pybear/
-
 |PyPi|
-
 .. |PyPi| image:: https://img.shields.io/pypi/v/pybear
    :target: https://pypi.org/project/pybear
 
