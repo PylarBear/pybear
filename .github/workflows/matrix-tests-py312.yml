@@ -1,4 +1,4 @@
-name: Matrix Testing
+name: py3.12 Matrix Tests
 
 on:
   workflow_dispatch:
