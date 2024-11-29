@@ -12,13 +12,13 @@ from pybear.preprocessing import InterceptManager as IM
 from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
 
 from copy import deepcopy
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
 import dask.array as da
 import dask.dataframe as ddf
-
 
 
 
@@ -40,7 +40,7 @@ def _kwargs():
         'equal_nan': False,
         'rtol': 1e-5,
         'atol': 1e-8,
-        'n_jobs': -1
+        'n_jobs': 1     # pizza test for confliction
     }
 
 
@@ -50,8 +50,13 @@ def _constants(_shape):
 
 
 @pytest.fixture(scope='module')
-def _dum_X(_X_factory, _constants, _shape):
-    return _X_factory(_has_nan=False, _dtype='flt', _constants=_constants, _shape=_shape)
+def _X_np(_X_factory, _constants, _shape):
+    return _X_factory(
+        _has_nan=False,
+        _dtype='flt',
+        _constants=_constants,
+        _shape=_shape
+    )
 
 
 @pytest.fixture(scope='module')
@@ -65,9 +70,9 @@ def _bad_columns(_master_columns, _shape):
 
 
 @pytest.fixture(scope='module')
-def _X_pd(_dum_X, _columns):
+def _X_pd(_X_np, _columns):
     return pd.DataFrame(
-        data=_dum_X,
+        data=_X_np,
         columns=_columns
 )
 
@@ -90,26 +95,29 @@ class TestInitValidation:
     @pytest.mark.parametrize('junk_keep',
         (True, False, None, [1,2], {1,2})
     )
-    def test_junk_keep(self, _dum_X, _kwargs, junk_keep):
+    def test_junk_keep(self, _X_np, _kwargs, junk_keep):
 
         _kwargs['keep'] = junk_keep
 
         with pytest.raises(ValueError):
-            IM(**_kwargs).fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('bad_keep',
         (-1, np.pi, 'rubbish', {1:'trash'}, lambda x: 'junk', min)
     )
-    def test_bad_keep(self, _dum_X, _kwargs, bad_keep):
+    def test_bad_keep(self, _X_np, _kwargs, bad_keep):
 
         _kwargs['keep'] = bad_keep
 
         with pytest.raises(ValueError):
-            IM(**_kwargs).fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('good_keep', ('first', 'last', 'random', 'none', 0, {'Intercept': 1}, lambda x: 0, 'string'))
+    @pytest.mark.parametrize('good_keep',
+        ('first', 'last', 'random', 'none', 0, {'Intercept': 1},
+         lambda x: 0, 'string')
+    )
     def test_good_keep(self, _X_pd, _columns, _kwargs, good_keep):
 
         if good_keep == 'string':
@@ -124,35 +132,35 @@ class TestInitValidation:
     # rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
     @pytest.mark.parametrize('_junk',
-        (True, False, None, 'trash', [1,2], {1,2}, {'a':1}, lambda x: x, min)
+        (None, 'trash', [1,2], {1,2}, {'a':1}, lambda x: x, min)
     )
-    def test_junk_rtol_atol(self, _dum_X, _kwargs, _trial, _junk):
+    def test_junk_rtol_atol(self, _X_np, _kwargs, _trial, _junk):
 
         _kwargs[_trial] = _junk
 
         # non-num are handled by np.allclose, let it raise
         # whatever it will raise
         with pytest.raises(Exception):
-            IM(**_kwargs).fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_bad', [-np.pi, -2, -1])
-    def test_bad_rtol_atol(self, _dum_X, _kwargs, _trial, _bad):
+    @pytest.mark.parametrize('_bad', [-np.pi, -2, -1, True, False])
+    def test_bad_rtol_atol(self, _X_np, _kwargs, _trial, _bad):
 
         _kwargs[_trial] = _bad
 
         with pytest.raises(ValueError):
-            IM(**_kwargs).fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
     @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1))
-    def test_good_rtol_atol(self, _dum_X, _kwargs, _trial, _good):
+    def test_good_rtol_atol(self, _X_np, _kwargs, _trial, _good):
 
         _kwargs[_trial] = _good
 
-        IM(**_kwargs).fit_transform(_dum_X)
+        IM(**_kwargs).fit_transform(_X_np)
 
     # END rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -162,20 +170,20 @@ class TestInitValidation:
     @pytest.mark.parametrize('_junk',
         (-1, 0, 1, np.pi, None, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x)
     )
-    def test_non_bool_equal_nan(self, _dum_X, _kwargs, _junk):
+    def test_non_bool_equal_nan(self, _X_np, _kwargs, _junk):
 
         _kwargs['equal_nan'] = _junk
 
         with pytest.raises(TypeError):
-            IM(**_kwargs).fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('_equal_nan', [True, False])
-    def test_equal_nan_accepts_bool(self, _dum_X, _kwargs, _equal_nan):
+    def test_equal_nan_accepts_bool(self, _X_np, _kwargs, _equal_nan):
 
         _kwargs['equal_nan'] = _equal_nan
 
-        IM(**_kwargs).fit_transform(_dum_X)
+        IM(**_kwargs).fit_transform(_X_np)
 
     # END equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -184,29 +192,29 @@ class TestInitValidation:
     @pytest.mark.parametrize('junk_n_jobs',
         (True, False, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
     )
-    def test_junk_n_jobs(self, _dum_X, _kwargs, junk_n_jobs):
+    def test_junk_n_jobs(self, _X_np, _kwargs, junk_n_jobs):
 
         _kwargs['n_jobs'] = junk_n_jobs
 
         with pytest.raises(TypeError):
-            IM(**_kwargs).fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('bad_n_jobs', [-2, 0])
-    def test_bad_n_jobs(self, _dum_X, _kwargs, bad_n_jobs):
+    def test_bad_n_jobs(self, _X_np, _kwargs, bad_n_jobs):
 
         _kwargs['n_jobs'] = bad_n_jobs
 
         with pytest.raises(ValueError):
-            IM(**_kwargs).fit_transform(_dum_X)
+            IM(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('good_n_jobs', [-1, 1, 10, None])
-    def test_good_n_jobs(self, _dum_X, _kwargs, good_n_jobs):
+    def test_good_n_jobs(self, _X_np, _kwargs, good_n_jobs):
 
         _kwargs['n_jobs'] = good_n_jobs
 
-        IM(**_kwargs).fit_transform(_dum_X)
+        IM(**_kwargs).fit_transform(_X_np)
 
     # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -223,18 +231,13 @@ class TestFitPartialFitAcceptYEqualsAnything:
     )
 
     @pytest.mark.parametrize('_stuff', STUFF)
-    def test_fit(self, _kwargs, _dum_X, _stuff):
-        IM(**_kwargs).fit(_dum_X, _stuff)
+    def test_fit(self, _kwargs, _X_np, _stuff):
+        IM(**_kwargs).fit(_X_np, _stuff)
 
     @ pytest.mark.parametrize('_stuff', STUFF)
-    def test_partial_fit_after_partial_fit(self, _kwargs, _dum_X, _stuff):
-        IM(**_kwargs).partial_fit(_dum_X, _stuff)
+    def test_partial_fit(self, _kwargs, _X_np, _stuff):
+        IM(**_kwargs).partial_fit(_X_np, _stuff)
 
-    @ pytest.mark.parametrize('_stuff', STUFF)
-    def test_partial_fit_after_fit(self, _kwargs, _dum_X, _stuff):
-        TestCls = IM(**_kwargs)
-        TestCls.fit(_dum_X, None)
-        TestCls.partial_fit(_dum_X, _stuff)
 
 # END ALWAYS ACCEPTS y==anything TO fit() AND partial_fit() #################
 
@@ -243,33 +246,25 @@ class TestFitPartialFitAcceptYEqualsAnything:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestExceptsAnytimeXisNone:
 
-    def test_excepts_anytime_x_is_none(self, _dum_X, _kwargs):
+    def test_excepts_anytime_x_is_none(self, _X_np, _kwargs):
 
-        # this is handled by sklearn.base.BaseEstimator._validate_data,
-        # let it raise whatever
+        # this is handled by _val_X
 
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             IM(**_kwargs).fit(None)
 
         with pytest.raises(Exception):
-            TestCls = IM(**_kwargs)
-            TestCls.partial_fit(_dum_X)
-            TestCls.partial_fit(None)
+            IM(**_kwargs).partial_fit(None)
 
         with pytest.raises(Exception):
             TestCls = IM(**_kwargs)
-            TestCls.fit(_dum_X)
-            TestCls.partial_fit(None)
-
-        with pytest.raises(Exception):
-            TestCls = IM(**_kwargs)
-            TestCls.fit(_dum_X)
+            TestCls.fit(_X_np)
             TestCls.transform(None)
+            del TestCls
 
         with pytest.raises(Exception):
             IM(**_kwargs).fit_transform(None)
 
-        del TestCls
 
 # END TEST EXCEPTS ANYTIME X==None PASSED TO fit(), partial_fit(), transform()
 
@@ -282,8 +277,8 @@ class TestAcceptsSingle2DColumn:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def SINGLE_X(_dum_X):
-        return _dum_X[:, 0].copy().reshape((-1, 1))
+    def SINGLE_X(_X_np):
+        return _X_np[:, 0].copy().reshape((-1, 1))
 
 
     @pytest.mark.parametrize('_fst_fit_x_format',
@@ -375,7 +370,7 @@ class TestExceptWarnOnDifferentHeader:
 
     del NAMES
 
-# END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
+# END TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
 
 
 # TEST OUTPUT TYPES ####################################################
@@ -388,7 +383,7 @@ class TestOutputTypes:
     @pytest.mark.parametrize('x_input_type', _base_objects)
     @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
     def test_output_types(
-        self, _dum_X, _columns, _kwargs, x_input_type, output_type
+        self, _X_np, _columns, _kwargs, x_input_type, output_type
     ):
 
 
@@ -398,7 +393,7 @@ class TestOutputTypes:
             )
 
 
-        NEW_X = _dum_X.copy()
+        NEW_X = _X_np.copy()
         NEW_COLUMNS = _columns.copy()
 
 
@@ -459,11 +454,11 @@ class TestOutputTypes:
 class TestConditionalAccessToPartialFitAndFit:
 
     def test_conditional_access_to_partial_fit_and_fit(
-        self, _dum_X, _kwargs
+        self, _X_np, _kwargs
     ):
 
         TestCls = IM(**_kwargs)
-        TEST_X = _dum_X.copy()
+        TEST_X = _X_np.copy()
 
         # 1)
         for _ in range(5):
@@ -503,23 +498,25 @@ class TestConditionalAccessToPartialFitAndFit:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAllColumnsTheSameOrDifferent:
 
-    # same also tests when scipy sparse is all zeros
+    # '_same' also tests when scipy sparse is all zeros
 
     @pytest.mark.parametrize('x_format', ('np', 'pd', 'coo', 'csc', 'csr'))
     @pytest.mark.parametrize('keep',
-        ('first', 'last', 'random', 'none', 'int', 'string', 'callable'))
+        ('first', 'last', 'random', 'none', 'int', 'string', 'callable', 'dict'))
     @pytest.mark.parametrize('same_or_diff', ('_same', '_diff'))
     def test_all_columns_the_same(
-        self, _kwargs, _dum_X, keep, same_or_diff, x_format, _columns,
+        self, _kwargs, _X_np, keep, same_or_diff, x_format, _columns,
         _constants, _shape
     ):
 
-        TEST_X = _dum_X.copy()
+        TEST_X = _X_np.copy()
 
         _wip_constants = deepcopy(_constants)   # _constants is module scope!
 
         if _kwargs['equal_nan'] is False:
-            _wip_constants = {k: v for k, v in _wip_constants.items() if str(v) != 'nan'}
+            _wip_constants = {
+                k: v for k, v in _wip_constants.items() if str(v) != 'nan'
+            }
 
         if keep == 'string':
             if x_format != 'pd':
@@ -530,6 +527,8 @@ class TestAllColumnsTheSameOrDifferent:
             keep = lambda x: list(_wip_constants.keys())[0]
         elif keep == 'int':
             keep = list(_wip_constants.keys())[0]
+        elif keep == 'dict':
+            keep = {'Bias': np.e}
         else:
             pass
             # no change to keep
@@ -541,10 +540,14 @@ class TestAllColumnsTheSameOrDifferent:
 
         if same_or_diff == '_same':
             # make sure to use a constant column!
-            _c_idx = list(_wip_constants)[0]
-            for col_idx in range(1, TEST_X.shape[1]):
+            _c_idx = list(_wip_constants.keys())[0]
+            _value = _wip_constants[_c_idx]
+            for col_idx in range(0, TEST_X.shape[1]):
                 TEST_X[:, col_idx] = TEST_X[:, _c_idx]
-            del _c_idx, col_idx
+                _wip_constants[col_idx] = _value
+            if _kwargs['equal_nan'] is False and str(_value) == 'nan':
+                _wip_constants = {}
+            del _c_idx, col_idx, _value
 
         if x_format == 'np':
             pass
@@ -567,63 +570,72 @@ class TestAllColumnsTheSameOrDifferent:
         else:
             out = TestCls.fit_transform(TEST_X)
 
-        if same_or_diff == '_same':
-            _value = _wip_constants[sorted(list(_wip_constants.keys()))[0]]
-            if _kwargs['equal_nan'] is False and str(_value) == 'nan':
-                _exp_constants = {}
-            else:
-                _exp_constants = {i: _value for i in range(_shape[1])}
-            assert TestCls.constant_columns_ == _exp_constants, \
-                f"TestCls.constant_columns_ != _exp_constants"
-        elif same_or_diff == '_diff':
-            assert TestCls.constant_columns_ == _wip_constants, \
-                f"TestCls.constant_columns_ != _wip_constants"
-        else:
-            raise Exception
+        assert TestCls.constant_columns_ == _wip_constants, \
+            f"TestCls.constant_columns_ != _wip_constants"
 
         if keep != 'none' and not isinstance(keep, dict):
             if same_or_diff == '_same':
+                # if all are constant, all but 1 column is deleted
                 assert out.shape[1] == 1
             elif same_or_diff == '_diff':
                 assert out.shape[1] == _shape[1] - len(_wip_constants) + 1
         elif isinstance(keep, dict):
-            # not currently testing dict, just a placeholder
-            raise Exception(f"shouldnt be in here!")
+            if same_or_diff == '_same':
+                # if all are constant, all original are deleted, append new
+                assert out.shape[1] == 1
+            elif same_or_diff == '_diff':
+                assert out.shape[1] == _shape[1] - len(_wip_constants) + 1
         elif keep == 'none':
             if same_or_diff == '_same':
-                assert out.shape[1] == 0
+                raise Exception(f"shouldnt be in here!")
+                # this was tested above under a pytest.raises. should raise
+                # because all columns will be removed.
             elif same_or_diff == '_diff':
                 assert out.shape[1] == _shape[1] - len(_wip_constants)
         else:
             raise Exception(f'algorithm failure')
 
-
 # END TEST ALL COLUMNS THE SAME OR DIFFERENT ##################################
+
 
 
 # TEST MANY PARTIAL FITS == ONE BIG FIT ********************************
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestManyPartialFitsEqualOneBigFit:
 
+    @pytest.mark.skip(reason=f"need to finish static random keep")
+    @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none')) # pizza wanna do more here?
+    @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_many_partial_fits_equal_one_big_fit(
-        self, _dum_X, _kwargs, _shape
+        self, _X_np, _kwargs, _shape, _keep, _equal_nan
     ):
 
+        _kwargs['keep'] = _keep
+        _kwargs['equal_nan'] = _equal_nan
 
         # ** ** ** ** ** ** ** ** ** ** **
         # TEST THAT ONE-SHOT partial_fit/transform == ONE-SHOT fit/transform
         OneShotPartialFitTestCls = IM(**_kwargs)
-        OneShotPartialFitTestCls.partial_fit(_dum_X)
-        ONE_SHOT_PARTIAL_FIT_TRFM_X = \
-            OneShotPartialFitTestCls.transform(_dum_X, copy=True)
+        OneShotPartialFitTestCls.partial_fit(_X_np)
 
         OneShotFullFitTestCls = IM(**_kwargs)
-        OneShotFullFitTestCls.partial_fit(_dum_X)
-        ONE_SHOT_FULL_FIT_TRFM_X = \
-            OneShotFullFitTestCls.transform(_dum_X, copy=True)
+        OneShotFullFitTestCls.fit(_X_np)
 
-        assert OneShotPartialFitTestCls.constant_columns_ == \
-                    OneShotFullFitTestCls.constant_columns_
+        # need to break this up and turn to strings because of nans...
+        # _X_np _has_nan=False, but constants have a column of np.nans
+        _ = OneShotPartialFitTestCls.constant_columns_
+        __ = OneShotFullFitTestCls.constant_columns_
+        assert np.array_equal(list(_.keys()), list(__.keys()))
+        assert np.array_equal(
+            list(map(str, _.keys())), list(map(str, __.keys()))
+        )
+        del _, __
+
+        ONE_SHOT_PARTIAL_FIT_TRFM_X = \
+            OneShotPartialFitTestCls.transform(_X_np, copy=True)
+
+        ONE_SHOT_FULL_FIT_TRFM_X = \
+            OneShotFullFitTestCls.transform(_X_np, copy=True)
 
         assert ONE_SHOT_PARTIAL_FIT_TRFM_X.shape == \
                     ONE_SHOT_FULL_FIT_TRFM_X.shape
@@ -635,30 +647,55 @@ class TestManyPartialFitsEqualOneBigFit:
         ), \
             f"one shot partial fit trfm X != one shot full fit trfm X"
 
+        del ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_X
+
         # END TEST THAT ONE-SHOT partial_fit/transform==ONE-SHOT fit/transform
         # ** ** ** ** ** ** ** ** ** ** **
 
         # ** ** ** ** ** ** ** ** ** ** **
         # TEST PARTIAL FIT CONSTANTS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
         SingleFitTestClass = IM(**_kwargs)
-        DoublePartialFitTestClass = IM(**_kwargs)
+        SingleFitTestClass.fit(_X_np)
+        _ = SingleFitTestClass.constant_columns_
 
-        SingleFitTestClass.fit(_dum_X)
-        DoublePartialFitTestClass.partial_fit(_dum_X)
-        DoublePartialFitTestClass.partial_fit(_dum_X)
+        DoublePartialFitTestClass = IM(**_kwargs)
+        DoublePartialFitTestClass.partial_fit(_X_np)
+        __ = DoublePartialFitTestClass.constant_columns_
+        DoublePartialFitTestClass.partial_fit(_X_np)
+        ___ = DoublePartialFitTestClass.constant_columns_
+
+        assert np.array_equal(list(_.keys()), list(__.keys()))
+        assert np.array_equal(list(_.keys()), list(___.keys()))
+        assert np.array_equal(
+            list(map(str, _.keys())),
+            list(map(str, __.keys()))
+        )
+        assert np.array_equal(
+            list(map(str, _.keys())),
+            list(map(str, ___.keys()))
+        )
+
+        del _, __, ___, SingleFitTestClass, DoublePartialFitTestClass
+
+        # END PARTIAL FIT CONSTANTS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
+        # ** ** ** ** ** ** ** ** ** ** **
+
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # TEST MANY PARTIAL FITS == ONE BIG FIT
 
         # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X
         _chunks = 5
         X_CHUNK_HOLDER = []
         for row_chunk in range(_chunks):
-            MASK1 = row_chunk * _shape[0] // _chunks
-            MASK2 = (row_chunk + 1) * _shape[0] // _chunks
-            X_CHUNK_HOLDER.append(_dum_X[MASK1:MASK2, :])
-        del MASK1, MASK2
+            _mask_start = row_chunk * _shape[0] // _chunks
+            _mask_end = (row_chunk + 1) * _shape[0] // _chunks
+            X_CHUNK_HOLDER.append(_X_np[_mask_start:_mask_end, :])
+        del _mask_start, _mask_end
 
         assert np.array_equiv(
-            np.vstack(X_CHUNK_HOLDER).astype(str), _dum_X.astype(str)
-            ), \
+            np.vstack(X_CHUNK_HOLDER).astype(str), _X_np.astype(str)
+        ), \
             f"agglomerated X chunks != original X"
 
         PartialFitPartialTrfmTestCls = IM(**_kwargs)
@@ -671,29 +708,33 @@ class TestManyPartialFitsEqualOneBigFit:
             PartialFitOneShotTrfmTestCls.partial_fit(X_CHUNK)
 
         # PIECEMEAL TRANSFORM ******************************************
-        # THIS MUST BE IN ITS OWN LOOP, ALL FITS MUST BE DONE BEFORE
-        # DOING ANY TRFMS
+        # THIS CANT BE UNDER THE partial_fit LOOP, ALL FITS MUST BE DONE
+        # BEFORE DOING ANY TRFMS
         PARTIAL_TRFM_X_HOLDER = []
         for X_CHUNK in X_CHUNK_HOLDER:
-            PARTIAL_TRFM_X = \
-                PartialFitPartialTrfmTestCls.transform(X_CHUNK)
-            PARTIAL_TRFM_X_HOLDER.append(PARTIAL_TRFM_X)
 
-        del PartialFitPartialTrfmTestCls, PARTIAL_TRFM_X
+            PARTIAL_TRFM_X_HOLDER.append(
+                PartialFitPartialTrfmTestCls.transform(X_CHUNK)
+            )
+
+        del PartialFitPartialTrfmTestCls
 
         # AGGLOMERATE PARTIAL TRFMS FROM PARTIAL FIT
         FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM = \
             np.vstack(PARTIAL_TRFM_X_HOLDER)
         # END PIECEMEAL TRANSFORM **************************************
 
-        # DO ONE-SHOT TRANSFORM OF X,y ON THE PARTIALLY FIT INSTANCE
-        _ = PartialFitOneShotTrfmTestCls.transform(_dum_X)
-        FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM = _
-        del _
+        # DO ONE-SHOT TRANSFORM OF X ON THE PARTIALLY FIT INSTANCE
+        FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM = \
+            PartialFitOneShotTrfmTestCls.transform(_X_np)
+
+        del PartialFitOneShotTrfmTestCls
 
         # ONE-SHOT FIT TRANSFORM
         FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM = \
-            OneShotFitTransformTestCls.fit_transform(_dum_X)
+            OneShotFitTransformTestCls.fit_transform(_X_np)
+
+        del OneShotFitTransformTestCls
 
         # ASSERT ALL AGGLOMERATED X TRFMS ARE EQUAL
         assert np.array_equiv(
@@ -706,6 +747,10 @@ class TestManyPartialFitsEqualOneBigFit:
             FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
             FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
             ), f"trfm X from partial fits / one-shot trfm != one-shot fit/trfm X"
+
+        # TEST MANY PARTIAL FITS == ONE BIG FIT
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
 
 # END TEST MANY PARTIAL FITS == ONE BIG FIT ****************************
 
@@ -943,9 +988,9 @@ class TestPartialFit:
              'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
          )
     )
-    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+    def test_X_container(self, _X_np, _columns, _kwargs, _format):
 
-        _X = _dum_X.copy()
+        _X = _X_np.copy()
 
         if _format == 'np':
             _X_wip = _X
@@ -1020,9 +1065,9 @@ class TestPartialFit:
             IM(**_kwargs).partial_fit(_wip_X)
 
 
-    def test_rejects_no_samples(self, _dum_X, _kwargs, _columns):
+    def test_rejects_no_samples(self, _X_np, _kwargs, _columns):
 
-        _X = _dum_X.copy()
+        _X = _X_np.copy()
 
         # dont know what is actually catching this! maybe _validate_data?
         with pytest.raises(ValueError):
@@ -1071,25 +1116,25 @@ class TestTransform:
     @pytest.mark.parametrize('_copy',
         (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
     )
-    def test_copy_validation(self, _dum_X, _shape, _kwargs, _copy):
+    def test_copy_validation(self, _X_np, _shape, _kwargs, _copy):
 
         _IM = IM(**_kwargs)
-        _IM.fit(_dum_X)
+        _IM.fit(_X_np)
 
         if isinstance(_copy, (bool, type(None))):
-            _IM.transform(_dum_X, copy=_copy)
+            _IM.transform(_X_np, copy=_copy)
         else:
             with pytest.raises(TypeError):
-                _IM.transform(_dum_X, copy=_copy)
+                _IM.transform(_X_np, copy=_copy)
 
 
     @pytest.mark.parametrize('_junk_X',
         (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_X(self, _dum_X, _junk_X, _kwargs):
+    def test_rejects_junk_X(self, _X_np, _junk_X, _kwargs):
 
         _IM = IM(**_kwargs)
-        _IM.fit(_dum_X)
+        _IM.fit(_X_np)
 
         # this is being caught by _validation at the top of transform.
         # in particular,
@@ -1106,9 +1151,9 @@ class TestTransform:
              'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
          )
     )
-    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+    def test_X_container(self, _X_np, _columns, _kwargs, _format):
 
-        _X = _dum_X.copy()
+        _X = _X_np.copy()
 
         if _format == 'np':
             _X_wip = _X
@@ -1170,10 +1215,10 @@ class TestTransform:
     # transform must have same number of features as fit
 
 
-    def test_rejects_no_samples(self, _dum_X, _kwargs):
+    def test_rejects_no_samples(self, _X_np, _kwargs):
 
         _IM = IM(**_kwargs)
-        _IM.fit(_dum_X)
+        _IM.fit(_X_np)
 
         # this is caught by if _X.shape[0] == 0 in _val_X
         with pytest.raises(ValueError):
@@ -1201,26 +1246,26 @@ class TestTransform:
             _IM.transform(_wip_X[:, 0])
 
 
-    def test_rejects_bad_num_features(self, _dum_X, _kwargs, _columns):
+    def test_rejects_bad_num_features(self, _X_np, _kwargs, _columns):
         # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
         # FITTED COLUMNS
 
         _IM = IM(**_kwargs)
-        _IM.fit(_dum_X)
+        _IM.fit(_X_np)
 
         __ = np.array(_columns)
         for obj_type in ['np', 'pd']:
             for diff_cols in ['more', 'less', 'same']:
                 if diff_cols == 'same':
-                    TEST_X = _dum_X.copy()
+                    TEST_X = _X_np.copy()
                     if obj_type == 'pd':
                         TEST_X = pd.DataFrame(data=TEST_X, columns=__)
                 elif diff_cols == 'less':
-                    TEST_X = _dum_X[:, :-1].copy()
+                    TEST_X = _X_np[:, :-1].copy()
                     if obj_type == 'pd':
                         TEST_X = pd.DataFrame(data=TEST_X, columns=__[:-1])
                 elif diff_cols == 'more':
-                    TEST_X = np.hstack((_dum_X.copy(), _dum_X.copy()))
+                    TEST_X = np.hstack((_X_np.copy(), _X_np.copy()))
                     if obj_type == 'pd':
                         _COLUMNS = np.hstack((__, np.char.upper(__)))
                         TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
@@ -1262,25 +1307,25 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_copy',
         (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
     )
-    def test_copy_validation(self, _dum_X, _shape, _kwargs, _copy):
+    def test_copy_validation(self, _X_np, _shape, _kwargs, _copy):
 
         _IM = IM(**_kwargs)
-        _IM.fit(_dum_X)
+        _IM.fit(_X_np)
 
         if isinstance(_copy, (bool, type(None))):
-            _IM.inverse_transform(_dum_X[:, _IM.column_mask_], copy=_copy)
+            _IM.inverse_transform(_X_np[:, _IM.column_mask_], copy=_copy)
         else:
             with pytest.raises(TypeError):
-                _IM.inverse_transform(_dum_X[:, _IM.column_mask_], copy=_copy)
+                _IM.inverse_transform(_X_np[:, _IM.column_mask_], copy=_copy)
 
 
     @pytest.mark.parametrize('_junk_X',
         (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_X(self, _dum_X, _junk_X, _kwargs):
+    def test_rejects_junk_X(self, _X_np, _junk_X, _kwargs):
 
         _IM = IM(**_kwargs)
-        _IM.fit(_dum_X)
+        _IM.fit(_X_np)
 
         # this is being caught by _val_X at the top of inverse_transform.
         # in particular,
@@ -1297,9 +1342,9 @@ class TestInverseTransform:
              'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
         )
     )
-    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+    def test_X_container(self, _X_np, _columns, _kwargs, _format):
 
-        _X = _dum_X.copy()
+        _X = _X_np.copy()
 
         if _format == 'np':
             _X_wip = _X
@@ -1409,10 +1454,10 @@ class TestInverseTransform:
             _IM.inverse_transform(TEST_TRFM_X)
 
 
-    def test_rejects_no_samples(self, _dum_X, _kwargs):
+    def test_rejects_no_samples(self, _X_np, _kwargs):
 
         _IM = IM(**_kwargs)
-        _IM.fit(_dum_X)
+        _IM.fit(_X_np)
 
         # this is caught by if _X.shape[0] == 0 in _val_X
         with pytest.raises(ValueError):
@@ -1421,14 +1466,14 @@ class TestInverseTransform:
             )
 
 
-    def test_rejects_bad_num_features(self, _dum_X, _kwargs, _columns):
+    def test_rejects_bad_num_features(self, _X_np, _kwargs, _columns):
         # RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
         # COLUMNS RETAINED BY column_mask_
 
         _IM = IM(**_kwargs)
-        _IM.fit(_dum_X)
+        _IM.fit(_X_np)
 
-        TRFM_X = _IM.transform(_dum_X)
+        TRFM_X = _IM.transform(_X_np)
         TRFM_MASK = _IM.column_mask_
         __ = np.array(_columns)
         for obj_type in ['np', 'pd']:

@@ -62,6 +62,8 @@ def _base_X(_shape, _constant_col):
 @pytest.fixture(scope='module')
 def _nan_factory(_base_X, _shape):
 
+    # this is a fixture for poking at VarianceThreshold
+
     def foo(
         _format: Literal['np', 'pd', 'coo', 'csc', 'csr'],
         _dtype: Literal['flt', 'int', 'str', 'obj'],
@@ -176,6 +178,8 @@ def _nan_factory(_base_X, _shape):
 
 @pytest.mark.skipif(bypass is True, reason='bypass')
 class TestNanFactory:
+
+    # this is a test for the _nan_factory fixture
 
     @pytest.mark.parametrize('_format', ('np', 'pd', 'csc', 'csr', 'coo'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj'))

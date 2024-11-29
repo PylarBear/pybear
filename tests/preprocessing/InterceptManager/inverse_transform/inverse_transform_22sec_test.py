@@ -188,7 +188,7 @@ class TestInverseTransform:
             rtol=1e-5,
             atol=1e-8,
             equal_nan=_equal_nan,
-            n_jobs=1   # pizza test for contention
+            n_jobs=1   # leave this at 1 because of confliction
         )
 
         # fit v v v v v v v v v v v v v v v v v v v v

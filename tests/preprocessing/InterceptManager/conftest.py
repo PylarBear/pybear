@@ -68,9 +68,12 @@ def _X_factory():
 
         assert isinstance(_has_nan, (bool, int, float))
         if not isinstance(_has_nan, bool):
-            assert int(_has_nan) == _has_nan, f"'_has_nan' must be bool or int >= 0"
+            assert int(_has_nan) == _has_nan, \
+                f"'_has_nan' must be bool or int >= 0"
         assert _has_nan >= 0, f"'_has_nan' must be bool or int >= 0"
-        assert _format in ['np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
+        assert _format in [
+            'np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'
+        ]
         assert _dtype in ['flt','int','str','obj','hybrid']
         assert isinstance(_columns, (list, np.ndarray, type(None)))
         if _columns is not None:

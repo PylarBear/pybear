@@ -17,10 +17,6 @@ from sklearn.utils.estimator_checks import (
 )
 
 
-import pytest
-
-
-
 
 
 class TestSKLearnCheckTransformer:
