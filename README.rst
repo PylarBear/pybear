@@ -54,7 +54,7 @@ pybear
 
 .. _documentation: https://pybear.readthedocs.io/
 
-.. |PythonVersion| replace:: >=3.9, <3.13
+.. |PythonVersion| replace:: >=3.9, <3.14
 .. |DaskVersion| replace:: >=X.X.X
 .. |DaskMLVersion| replace:: >=X.X.X
 .. |DistributedVersion| replace:: >=X.X.X
