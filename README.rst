@@ -4,13 +4,16 @@ pybear
 |Build Status|
 .. |Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml
+
 |Test Status 313|
 .. |Test Status 313| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml
 |Test Status 312|
+
 .. |Test Status 312| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml
 |Test Status 311|
+
 .. |Test Status 311| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py311.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py311.yml
 |Test Status 310|
