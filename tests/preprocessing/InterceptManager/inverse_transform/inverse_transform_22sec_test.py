@@ -74,26 +74,32 @@ class TestInverseTransform:
 
 
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none', 0, 'good_string', lambda x: 0, {'Intercept': 1}))
+    @pytest.mark.parametrize('_keep',
+        (
+            'first', 'last', 'random', 'none', 0, 'good_string', lambda x: 0,
+            {'Intercept': 1}
+        )
+    )
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_constants', ('constants1', 'constants2'))
     @pytest.mark.parametrize('_format',
-        # run only a few ss representative to save time
+        # run only a few ss representatives to save time
         # 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
         # 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
         # 'dia_array'
 
         (
-            'np', 'pd', 'lil_array', 'dok_array', 'bsr_array'
+            'np', 'pd_with_header', 'pd_without_header', 'csr_matrix',
+            'bsr_array'
         )
     )
     def test_accuracy(
-        self, _const_X, _format, _dtype, _keep, _equal_nan, _has_nan, _shape,
-        _constants, _columns, _rtol_atol
+        self, _const_X, _dtype, _keep, _has_nan, _equal_nan, _constants,
+        _format, _columns, _rtol_atol, _shape
     ):
 
-        # Methodology: tranform data, then transform back using
+        # Methodology: transform data, then transform back using
         # inverse_transform. the inverse transform must be equal to the
         # originally fitted data, except for nans. inverse transform
         # cannot infer the presence of nans in the original data.
@@ -101,7 +107,7 @@ class TestInverseTransform:
         if _dtype not in ('flt', 'int') and _format not in ('np', 'pd'):
             pytest.skip(reason=f"scipy sparse cannot take strings")
 
-        if _format != 'pd' and isinstance(_keep, str) and \
+        if 'pd' not in _format and isinstance(_keep, str) and \
                 _keep not in ('first', 'last', 'random', 'none'):
             pytest.skip(reason=f"cannot pass keep as str if X is not pd df")
 
@@ -129,15 +135,22 @@ class TestInverseTransform:
 
 
         if _keep == 'good_string':
-            _keep = _columns[0]
-
+            if _format == 'pd_with_header':
+                _keep = _columns[0]
+            elif _format == 'pd_without_header':
+                _keep = pd.RangeIndex(start=0, stop=_shape[1], step=1)[0]
 
         if _format == 'np':
             _X_wip = _base_X
-        elif _format == 'pd':
+        elif _format == 'pd_with_header':
             _X_wip = pd.DataFrame(
                 data=_base_X,
                 columns=_columns
+            )
+        elif _format == 'pd_without_header':
+            _X_wip = pd.DataFrame(
+                data=_base_X,
+                columns=None
             )
         elif _format == 'csr_matrix':
             _X_wip = ss._csr.csr_matrix(_base_X)
@@ -175,7 +188,7 @@ class TestInverseTransform:
             rtol=1e-5,
             atol=1e-8,
             equal_nan=_equal_nan,
-            n_jobs=-1
+            n_jobs=1   # pizza test for contention
         )
 
         # fit v v v v v v v v v v v v v v v v v v v v
@@ -184,7 +197,8 @@ class TestInverseTransform:
             except_for_non_const_keep += 1
         elif isinstance(_keep, int):
             except_for_non_const_keep += 1
-        elif isinstance(_keep, str) and _keep not in ('first', 'last', 'random', 'none'):
+        elif isinstance(_keep, str) and \
+                _keep not in ('first', 'last', 'random', 'none'):
             except_for_non_const_keep += 1
 
         if _has_nan and not _equal_nan and except_for_non_const_keep:
@@ -219,7 +233,7 @@ class TestInverseTransform:
         out = _inverse_transform(
             X=_trfm_x,
             _removed_columns=_IM.removed_columns_,
-            _feature_names_in=_columns
+            _feature_names_in=_columns if _format == 'pd_with_header' else None
         )
         # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
@@ -228,9 +242,12 @@ class TestInverseTransform:
 
         assert out.shape == _X_wip.shape
 
-        if _format == 'pd':
+        if _format == 'pd_with_header':
             assert np.array_equal(out.columns, _columns)
-
+        elif _format == 'pd_without_header':
+            assert out.columns.equals(
+                pd.RangeIndex(start=0, stop=_shape[1], step=1)
+            )
 
         # iterate over the input X and output X simultaneously, check
         # equality column by column. remember that inverse_transform
@@ -287,6 +304,25 @@ class TestInverseTransform:
                     _out_col[MASK] = 'nan'
 
                 assert np.array_equal(_out_col, _og_col)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

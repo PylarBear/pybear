@@ -87,9 +87,9 @@ class TestPdFindDuplicates:
             _shape=_shape
         )
 
-
+        # leave n_jobs set at 1 because of confliction
         out = _find_duplicates(
-            _X, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan, _n_jobs=-1
+            _X, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan, _n_jobs=1
         )
 
         if (not _equal_nan and _has_nan) or _dupl_set in [2]:

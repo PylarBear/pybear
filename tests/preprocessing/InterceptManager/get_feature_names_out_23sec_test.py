@@ -69,7 +69,7 @@ class Fixtures:
             'equal_nan': True,
             'rtol': 1e-5,
             'atol': 1e-8,
-            'n_jobs': -1     # pizza see if their is confliction
+            'n_jobs': 1     # pizza see if their is confliction
         }
 
 
@@ -77,9 +77,15 @@ class Fixtures:
 
 
 @pytest.mark.parametrize('_format', ('np',), scope='module')
-@pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module')
-@pytest.mark.parametrize('_keep', ('first', 'none', {'Intercept': 1}), scope='module')
-@pytest.mark.parametrize('_constants', ('none', 'constants1', 'constants2'), scope='module')
+@pytest.mark.parametrize('_dtype',
+    ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module'
+)
+@pytest.mark.parametrize('_keep',
+    ('first', 'none', {'Intercept': 1}), scope='module'
+)
+@pytest.mark.parametrize('_constants',
+    ('none', 'constants1', 'constants2'), scope='module'
+)
 class TestGetFeatureNamesOutNonPd(Fixtures):
 
 
@@ -138,7 +144,9 @@ class TestGetFeatureNamesOutNonPd(Fixtures):
     @pytest.mark.parametrize('junk_input_features',
         (float('inf'), np.pi, 'garbage', {'junk': 3}, list(range(10)))
     )
-    def test_fitted__rejects_junk(self, _wip_X, _wip_kwargs, junk_input_features):
+    def test_fitted__rejects_junk(
+        self, _wip_X, _wip_kwargs, junk_input_features
+    ):
 
         TestCls = IM(**_wip_kwargs)
         TestCls.fit(_wip_X)
@@ -282,15 +290,17 @@ class TestGetFeatureNamesOutNonPd(Fixtures):
 
 
 
-    # v^v^v^v^v^v^ END test_access_methods_after_fit v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^ END test_access_methods_after_fit v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
 
-    # v^v^v^v^v^v^ test_access_methods_after_transform v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^ test_access_methods_after_transform v^v^v^v^v^v^v^v^v^v^v^v^
     @pytest.mark.parametrize('junk_input_features',
         (float('inf'), np.pi, 'garbage', {'junk': 3}, list(range(10)))
     )
-    def test_transformed__rejects_junk(self, _wip_X, _wip_kwargs, junk_input_features):
+    def test_transformed__rejects_junk(
+        self, _wip_X, _wip_kwargs, junk_input_features
+    ):
 
         TestCls = IM(**_wip_kwargs)
         TestCls.fit_transform(_wip_X)
@@ -428,7 +438,7 @@ class TestGetFeatureNamesOutNonPd(Fixtures):
 
         # END ^^^ NO COLUMN NAMES PASSED (NP) ^^^
 
-    # v^v^v^v^v^v^ END test_access_methods_after_transform v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^ END test_access_methods_after_transform v^v^v^v^v^v^v^v^v^v^
 
 
 
@@ -439,9 +449,15 @@ class TestGetFeatureNamesOutNonPd(Fixtures):
 
 
 @pytest.mark.parametrize('_format', ('pd',), scope='module')
-@pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module')
-@pytest.mark.parametrize('_keep', ('first', 'none', {'Intercept': 1}), scope='module')
-@pytest.mark.parametrize('_constants', ('none', 'constants1', 'constants2'), scope='module')
+@pytest.mark.parametrize('_dtype',
+    ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module'
+)
+@pytest.mark.parametrize('_keep',
+    ('first', 'none', {'Intercept': 1}), scope='module'
+)
+@pytest.mark.parametrize('_constants',
+    ('none', 'constants1', 'constants2'), scope='module'
+)
 class TestGetFeatureNamesOutPd(Fixtures):
 
 
@@ -500,7 +516,9 @@ class TestGetFeatureNamesOutPd(Fixtures):
     @pytest.mark.parametrize('junk_input_features',
         (float('inf'), np.pi, 'garbage', {'junk': 3}, list(range(10)))
     )
-    def test_fitted__rejects_junk(self, _wip_X, _wip_kwargs, junk_input_features):
+    def test_fitted__rejects_junk(
+        self, _wip_X, _wip_kwargs, junk_input_features
+    ):
 
         TestCls = IM(**_wip_kwargs)
         TestCls.fit(_wip_X)
@@ -644,15 +662,17 @@ class TestGetFeatureNamesOutPd(Fixtures):
              f"of valid input features")
 
 
-    # v^v^v^v^v^v^ END test_access_methods_after_fit v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^ END test_access_methods_after_fit v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
 
-    # v^v^v^v^v^v^ test_access_methods_after_transform v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^ test_access_methods_after_transform v^v^v^v^v^v^v^v^v^v^v^v^
     @pytest.mark.parametrize('junk_input_features',
         (float('inf'), np.pi, 'garbage', {'junk': 3}, list(range(10)))
     )
-    def test_transformed__rejects_junk(self, _wip_X, _wip_kwargs, junk_input_features):
+    def test_transformed__rejects_junk(
+        self, _wip_X, _wip_kwargs, junk_input_features
+    ):
 
         TestCls = IM(**_wip_kwargs)
         TestCls.fit_transform(_wip_X)
@@ -663,7 +683,9 @@ class TestGetFeatureNamesOutPd(Fixtures):
             TestCls.get_feature_names_out(junk_input_features)
 
 
-    def test_transformed__rejects_bad(self, _wip_X, _columns, _wip_kwargs, _shape):
+    def test_transformed__rejects_bad(
+        self, _wip_X, _columns, _wip_kwargs, _shape
+    ):
 
         TestCls = IM(**_wip_kwargs)
         TestCls.fit_transform(_wip_X)
@@ -793,7 +815,7 @@ class TestGetFeatureNamesOutPd(Fixtures):
             (f"get_feature_names_out(_columns) after fit() != sliced array "
              f"of valid input features")
 
-    # v^v^v^v^v^v^ END test_access_methods_after_transform v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^ END test_access_methods_after_transform v^v^v^v^v^v^v^v^v^v^
 
 
 

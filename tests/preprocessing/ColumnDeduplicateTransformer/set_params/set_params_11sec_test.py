@@ -25,7 +25,7 @@ def _kwargs():
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
-        'n_jobs': -1
+        'n_jobs': -1        # confliction isnt a problem, 1 or -1 is fine
     }
 
 

@@ -6,13 +6,8 @@
 
 
 
-from typing import Iterable
+from typing import Iterable, Literal
 from typing_extensions import Union
-from .._type_aliases import (
-    ColumnsType,
-    ConflictType,
-    KeepType
-)
 
 from copy import deepcopy
 import itertools
@@ -24,14 +19,14 @@ import numpy as np
 
 def _identify_idxs_to_delete(
     _duplicates: list[list[int]],
-    _keep: KeepType,   # Literal['first', 'last', 'random']
+    _keep: Literal['first', 'last', 'random'],
     _do_not_drop: Union[Iterable[int], Iterable[str], None],
-    _columns: ColumnsType,   # Union[Iterable[str], None]
-    _conflict: ConflictType   # Literal['raise', 'ignore']
+    _columns: Union[Iterable[str], None],
+    _conflict: Literal['raise', 'ignore'],
+    _rand_idxs: tuple[int, ...]
 ) -> dict[int, int]:
 
     """
-
     Apply the rules given by :param: keep, :param: conflict, and :param:
     do_not_drop to the sets of duplicates in :param: duplicates. Produce
     the removed_columns_ dictionary, which has all the deleted column
@@ -40,23 +35,23 @@ def _identify_idxs_to_delete(
 
     Parameters
     ----------
-    _duplicates: list[list[int]] - the groups of identical columns,
-        indicated by their zero-based column index positions.
+    _duplicates:
+        list[list[int]] - the groups of identical columns, indicated by
+        their zero-based column index positions.
     _keep:
-        Literal['first', 'last', 'random'], default = 'first' -
-        The strategy for keeping a single representative from a set
-        of identical columns. 'first' retains the column left-most
-        in the data; 'last' keeps the column right-most in the data;
-        'random' keeps a single randomly-selected column of the set of
-        duplicates.
+        Literal['first', 'last', 'random'] - The strategy for keeping a
+        single representative from a set of identical columns. 'first'
+        retains the column left-most in the data; 'last' keeps the column
+        right-most in the data; 'random' keeps a single randomly-selected
+        column of the set of duplicates.
     _do_not_drop:
-        Union[Iterable[int], Iterable[str], None], default=None - A list
-        of columns not to be dropped. If fitting is done on a pandas
-        dataframe that has a header, a list of feature names may be
-        provided. Otherwise, a list of column indices must be provided.
-        If a conflict arises, such as two columns specified in :param:
-        do_not_drop are duplicates of each other, the behavior is managed
-        by :param: conflict.
+        Union[Iterable[int], Iterable[str], None] - A list of columns not
+        to be dropped. If fitting is done on a pandas dataframe that has
+        a header, a list of feature names may be provided. Otherwise, a
+        list of column indices must be provided. If a conflict arises,
+        such as two columns specified in :param: do_not_drop are
+        duplicates of each other, the behavior is managed by :param:
+        conflict.
     _columns:
         Union[Iterable[str], None] of shape (n_features,) - if fitting
         is done on a pandas dataframe that has a header, this is a
@@ -67,10 +62,10 @@ def _identify_idxs_to_delete(
         the instructions in :param: keep and :param: do_not_drop. A
         conflict arises when the instruction in :param: keep ('first',
         'last', 'random') is applied and column in :param: do_not_drop
-        is found to be a member of the columns to be deleted. When :param:
-        conflict is 'raise', an exception is raised in the case of such
-        a conflict. When :param: conflict is 'ignore', there are 2
-        possible scenarios:
+        is found to be a member of the columns to be deleted. When
+        :param: conflict is 'raise', an exception is raised in the case
+        of such a conflict. When :param: conflict is 'ignore', there are
+        2 possible scenarios:
 
         1) when only one column in :param: do_not_drop is among the
         columns to be removed, the :param: keep instruction is overruled
@@ -83,6 +78,12 @@ def _identify_idxs_to_delete(
         result as applying the :param: keep instruction to the entire
         set of duplicate columns. This also causes at least one member
         of the columns not to be dropped to be removed.
+    _rand_idxs:
+        tuple[int] - An ordered tuple whose values are a sequence of
+        column indices, one index selected from each set of duplicates
+        in :param: duplicates. For example, if duplicates_ is
+        [[1, 5, 9], [0, 8]], then a possible _rand_idxs might look like
+        (1, 8).
 
 
     Return
@@ -102,14 +103,17 @@ def _identify_idxs_to_delete(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    # _duplicates must be list of list of ints
     assert isinstance(_duplicates, list)
     for _set in _duplicates:
         assert isinstance(_set, list)
         assert len(_set) >= 2
         assert all(map(isinstance, _set, (int for _ in _set)))
 
+    # all idxs in duplicates must be unique
     __ = list(itertools.chain(*_duplicates))
     assert len(np.unique(__)) == len(__)
+    del __
 
     assert isinstance(_keep, str)
     assert _keep.lower() in ['first', 'last', 'random']
@@ -127,7 +131,8 @@ def _identify_idxs_to_delete(
         assert all(map(isinstance, _columns, (str for _ in _columns))), err_msg
 
 
-    err_msg = "if not None, 'do_not_drop' must be an iterable of integers or strings"
+    err_msg = \
+        "if not None, 'do_not_drop' must be an iterable of integers or strings"
     if _do_not_drop is not None:
         try:
             iter(_do_not_drop)
@@ -136,7 +141,9 @@ def _identify_idxs_to_delete(
         except:
             raise AssertionError(err_msg)
 
-        assert not any(map(isinstance, _do_not_drop, (bool for _ in _do_not_drop)))
+        assert not any(
+            map(isinstance, _do_not_drop, (bool for _ in _do_not_drop))
+        )
         assert all(
             map(isinstance, _do_not_drop, ((int, str) for _ in _do_not_drop))
         ), err_msg
@@ -150,6 +157,26 @@ def _identify_idxs_to_delete(
     assert isinstance(_conflict, str)
     assert _conflict.lower() in ['raise', 'ignore']
 
+    err_msg = (
+        f"'_rand_idxs' must be a tuple of integers 0 <= idx < X.shape[1], "
+        f"and a single idx from each set of duplicates must be represented "
+        f"in _rand_idxs"
+    )
+    assert isinstance(_rand_idxs, tuple), err_msg
+    # all idxs in _rand_idxs must be in range of num features in X
+    if len(_rand_idxs):
+        assert min(_rand_idxs) >= 0, err_msg
+        if _columns is not None:
+            assert max(_rand_idxs) < len(_columns)
+    # len _rand_idxs must match number of sets of duplicates
+    assert len(_rand_idxs) == len(_duplicates)
+    # if there are duplicates, every entry in _rand_idxs must match one idx
+    # in each set of duplicates
+    if len(_duplicates):
+        for _idx, _dupl_set in enumerate(_duplicates):
+            assert list(_rand_idxs)[_idx] in _dupl_set, \
+                f'rand idx = {list(_rand_idxs)[_idx]}, dupl set = {_dupl_set}'
+
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -161,7 +188,7 @@ def _identify_idxs_to_delete(
 
 
     removed_columns_ = {}
-    for _set in _duplicates:
+    for _idx, _set in enumerate(_duplicates):
 
         if _do_not_drop is None:
             _n = 0
@@ -175,20 +202,24 @@ def _identify_idxs_to_delete(
             elif _keep == 'last':
                 _keep_idx = max(_set)
             elif _keep == 'random':
-                _keep_idx = np.random.choice(_set)
+                _keep_idx = list(_rand_idxs)[_idx]
 
         elif _n == 1:
 
-            # if the idx that is do_not_drop is the one we are keeping,
+            # if the idx we are keeping is the do_not_drop idx,
             # then all good
 
             _dnd_idx = _dnd_idxs[0]
 
-            if _dnd_idx == min(_set) and _keep == 'first' or \
-                _dnd_idx == max(_set) and _keep == 'last' or \
-                _keep == 'random' or _conflict == 'ignore':
+            if _dnd_idx == min(_set) and _keep == 'first':
                 _keep_idx = _dnd_idx
-            else:
+            elif _dnd_idx == max(_set) and _keep == 'last':
+                _keep_idx = _dnd_idx
+            elif _keep == 'random':
+                _keep_idx = _rand_idxs[_idx]
+            elif _conflict == 'ignore':
+                _keep_idx = _dnd_idx
+            else:   # 'keep' doesnt conveniently align and _conflict=='raise'
                 if _columns is None:
                     __ = f""
                 else:
@@ -211,7 +242,7 @@ def _identify_idxs_to_delete(
                 elif _keep == 'last':
                     _keep_idx = max(_dnd_idxs)
                 elif _keep == 'random':
-                    _keep_idx = np.random.choice(_dnd_idxs)
+                    _keep_idx = _rand_idxs[_idx]
 
             elif _conflict == 'raise':
                 if _columns is None:
@@ -219,10 +250,10 @@ def _identify_idxs_to_delete(
                 else:
                     __ = " (" + ", ".join([_columns[_] for _ in _dnd_idxs]) + ")"
                 raise ValueError(
-                    f"duplicate indices={_set}, do_not_drop={_do_not_drop}, ",
-                    f"keep={_keep}, wants to keep multiple column indices "
-                    f"{', '.join(map(str, _dnd_idxs))}"
-                    f"{__}, conflict with do_not_drop."
+                    f"Duplicates have a conflict with do_not_drop. "
+                    f"\nduplicate indices={_set}, do_not_drop={_do_not_drop}, ",
+                    f"keep={_keep}. CDT wants to drop do_not_drop index(es) "
+                    f"{', '.join(map(str, _dnd_idxs))} {__}"
                 )
 
         else:

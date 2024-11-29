@@ -4,12 +4,14 @@
 # License: BSD 3 clause
 #
 
-from .._type_aliases import KeepType
+
+
+from typing import Literal
 
 
 
 def _val_keep(
-    _keep:KeepType
+    _keep: Literal['first', 'last', 'random']
 ) -> None:
 
     """

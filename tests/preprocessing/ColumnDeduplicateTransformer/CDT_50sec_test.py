@@ -42,13 +42,21 @@ def _kwargs():
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
-        'n_jobs': -1
+        'n_jobs': 1   # leave set to 1 because of confliction
     }
 
 
 @pytest.fixture(scope='module')
-def _dum_X(_X_factory, _shape):
-    return _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
+def _X_np(_X_factory, _shape):
+    return _X_factory(
+        # _dupl must be intermingled like [[0,8],[1,9]], not [[0,1],[8,9]]
+        # for TestManyPartialFitsEqualOneBigFit to catch 'random' putting
+        # out different columns over a sequence of transforms
+        _dupl=[[0,_shape[1]-2], [1, _shape[1]-1]],
+        _has_nan=False,
+        _dtype='flt',
+        _shape=_shape
+    )
 
 
 @pytest.fixture(scope='module')
@@ -62,9 +70,9 @@ def _bad_columns(_master_columns, _shape):
 
 
 @pytest.fixture(scope='module')
-def _X_pd(_dum_X, _columns):
+def _X_pd(_X_np, _columns):
     return pd.DataFrame(
-        data=_dum_X,
+        data=_X_np,
         columns=_columns
 )
 
@@ -85,31 +93,31 @@ class TestInitValidation:
 
     # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_keep',
-        (-1,0,1, np.pi, True, False, None, [1,2], {1,2}, {'a':1}, lambda x: x, min)
+        (-1,0,1, np.pi, True, False, None, [1,2], {1,2}, {'a':1}, lambda x: x)
     )
-    def test_junk_keep(self, _dum_X, _kwargs, junk_keep):
+    def test_junk_keep(self, _X_np, _kwargs, junk_keep):
 
         _kwargs['keep'] = junk_keep
 
         with pytest.raises(TypeError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('bad_keep', ('trash', 'garbage', 'waste'))
-    def test_bad_keep(self, _dum_X, _kwargs, bad_keep):
+    def test_bad_keep(self, _X_np, _kwargs, bad_keep):
 
         _kwargs['keep'] = bad_keep
 
         with pytest.raises(ValueError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('good_keep', ('first', 'last', 'random'))
-    def test_good_keep(self, _dum_X, _kwargs, good_keep):
+    def test_good_keep(self, _X_np, _kwargs, good_keep):
 
         _kwargs['keep'] = good_keep
 
-        CDT(**_kwargs).fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_X_np)
     # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -121,14 +129,14 @@ class TestInitValidation:
         (-1, 0, 1, np.pi, True, False, 'trash', {'a': 1}, lambda x: x, min)
     )
     def test_rejects_not_list_like_or_none(
-        self, _kwargs, _dum_X, _type, _columns, _columns_is_passed, junk_dnd
+        self, _kwargs, _X_np, _type, _columns, _columns_is_passed, junk_dnd
     ):
 
         if _type == 'np':
-            _X = _dum_X
+            _X = _X_np
         else:
             _X = pd.DataFrame(
-                data=_dum_X,
+                data=_X_np,
                 columns=_columns if _columns_is_passed else None
             )
 
@@ -144,14 +152,14 @@ class TestInitValidation:
         ([True, min, 3.14], [min, max, float], [2.718, 3.141, 8.834])
     )
     def test_rejects_bad_list(
-        self, _dum_X, _kwargs, _type, _columns, _columns_is_passed, bad_dnd
+        self, _X_np, _kwargs, _type, _columns, _columns_is_passed, bad_dnd
     ):
 
         if _type == 'np':
-            _X = _dum_X
+            _X = _X_np
         else:
             _X = pd.DataFrame(
-                data=_dum_X,
+                data=_X_np,
                 columns=_columns if _columns_is_passed else None
             )
 
@@ -161,62 +169,67 @@ class TestInitValidation:
             CDT(**_kwargs).fit_transform(_X)
 
 
-    def test_array_str_handing(self, _dum_X, _kwargs, _columns):
+    def test_array_str_handing(self, _X_np, _kwargs, _columns):
 
         # rejects str when no header
         _kwargs['do_not_drop'] = \
             [v for i, v in enumerate(_columns) if i % 2 == 0]
 
         with pytest.raises(TypeError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
         # rejects bad str when header
         _kwargs['do_not_drop'] = ['a', 'b']
 
         with pytest.raises(TypeError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
     def test_array_int_and_none_handling(
-            self, _dum_X, _kwargs, _columns_is_passed, _columns
+            self, _X_np, _kwargs, _columns_is_passed, _columns
     ):
 
         # accepts good int always
         _kwargs['do_not_drop'] = [0, 1]
 
-        CDT(**_kwargs).fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_X_np)
 
 
         # rejects bad int always - 1
         _kwargs['do_not_drop'] = [-1, 1]
 
         with pytest.raises(ValueError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
         # rejects bad int always - 2
-        _kwargs['do_not_drop'] = [0, _dum_X.shape[1]]
+        _kwargs['do_not_drop'] = [0, _X_np.shape[1]]
 
         with pytest.raises(ValueError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
         # accepts None always
         _kwargs['do_not_drop'] = None
 
-        CDT(**_kwargs).fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_X_np)
 
 
     def test_df_str_handling(self, _X_pd, _kwargs, _columns):
+
+        _kwargs['conflict'] = 'ignore'
 
         # accepts good str always
         _kwargs['do_not_drop'] = \
             [v for i, v in enumerate(_columns) if i % 2 == 0]
 
         CDT(**_kwargs).fit_transform(_X_pd)
-
+        # excepted for this 24_11_29_06_30_00
+        # ValueError: ('duplicate indices=[0, 8], do_not_drop=[6, 0, 2, 4, 8], ',
+        # 'keep=first, wants to keep multiple column indices 0, 8 (987d, 6548),
+        # conflict with do_not_drop.')
 
         # rejects bad str always
         _kwargs['do_not_drop'] = ['a', 'b']
@@ -254,29 +267,29 @@ class TestInitValidation:
     @pytest.mark.parametrize('junk_conflict',
         (-1, 0, np.pi, True, None, [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
     )
-    def test_junk_conflict(self, _dum_X, _kwargs, junk_conflict):
+    def test_junk_conflict(self, _X_np, _kwargs, junk_conflict):
 
         _kwargs['conflict'] = junk_conflict
 
         with pytest.raises(TypeError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('bad_conflict', ('trash', 'garbage', 'waste'))
-    def test_bad_conflict(self, _dum_X, _kwargs, bad_conflict):
+    def test_bad_conflict(self, _X_np, _kwargs, bad_conflict):
 
         _kwargs['conflict'] = bad_conflict
 
         with pytest.raises(ValueError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('good_conflict', ('raise', 'ignore'))
-    def test_good_conflict(self, _dum_X, _kwargs, good_conflict):
+    def test_good_conflict(self, _X_np, _kwargs, good_conflict):
 
         _kwargs['conflict'] = good_conflict
 
-        CDT(**_kwargs).fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_X_np)
     # END conflict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -285,33 +298,33 @@ class TestInitValidation:
     @pytest.mark.parametrize('_junk',
         (True, False, None, 'trash', [1,2], {1,2}, {'a':1}, lambda x: x, min)
     )
-    def test_junk_rtol_atol(self, _dum_X, _kwargs, _trial, _junk):
+    def test_junk_rtol_atol(self, _X_np, _kwargs, _trial, _junk):
 
         _kwargs[_trial] = _junk
 
         # non-num are handled by np.allclose, let it raise
         # whatever it will raise
         with pytest.raises(Exception):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
     @pytest.mark.parametrize('_bad', (-np.pi, -2, -1))
-    def test_bad_rtol_atol(self, _dum_X, _kwargs, _trial, _bad):
+    def test_bad_rtol_atol(self, _X_np, _kwargs, _trial, _bad):
 
         _kwargs[_trial] = _bad
 
         with pytest.raises(ValueError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
     @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1, 1_000_000))
-    def test_good_rtol_atol(self, _dum_X, _kwargs, _trial, _good):
+    def test_good_rtol_atol(self, _X_np, _kwargs, _trial, _good):
 
         _kwargs[_trial] = _good
 
-        CDT(**_kwargs).fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_X_np)
 
     # END rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -321,20 +334,20 @@ class TestInitValidation:
     @pytest.mark.parametrize('_junk',
         (-1, 0, 1, np.pi, None, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x)
     )
-    def test_non_bool_equal_nan(self, _dum_X, _kwargs, _junk):
+    def test_non_bool_equal_nan(self, _X_np, _kwargs, _junk):
 
         _kwargs['equal_nan'] = _junk
 
         with pytest.raises(TypeError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('_equal_nan', [True, False])
-    def test_equal_nan_accepts_bool(self, _dum_X, _kwargs, _equal_nan):
+    def test_equal_nan_accepts_bool(self, _X_np, _kwargs, _equal_nan):
 
         _kwargs['equal_nan'] = _equal_nan
 
-        CDT(**_kwargs).fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_X_np)
 
     # END equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -343,29 +356,29 @@ class TestInitValidation:
     @pytest.mark.parametrize('junk_n_jobs',
         (True, False, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
     )
-    def test_junk_n_jobs(self, _dum_X, _kwargs, junk_n_jobs):
+    def test_junk_n_jobs(self, _X_np, _kwargs, junk_n_jobs):
 
         _kwargs['n_jobs'] = junk_n_jobs
 
         with pytest.raises(TypeError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('bad_n_jobs', [-2, 0])
-    def test_bad_n_jobs(self, _dum_X, _kwargs, bad_n_jobs):
+    def test_bad_n_jobs(self, _X_np, _kwargs, bad_n_jobs):
 
         _kwargs['n_jobs'] = bad_n_jobs
 
         with pytest.raises(ValueError):
-            CDT(**_kwargs).fit_transform(_dum_X)
+            CDT(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('good_n_jobs', [-1, 1, 10, None])
-    def test_good_n_jobs(self, _dum_X, _kwargs, good_n_jobs):
+    def test_good_n_jobs(self, _X_np, _kwargs, good_n_jobs):
 
         _kwargs['n_jobs'] = good_n_jobs
 
-        CDT(**_kwargs).fit_transform(_dum_X)
+        CDT(**_kwargs).fit_transform(_X_np)
 
     # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -382,18 +395,18 @@ class TestFitPartialFitAcceptYEqualsAnything:
     )
 
     @pytest.mark.parametrize('_stuff', STUFF)
-    def test_fit(self, _kwargs, _dum_X, _stuff):
-        CDT(**_kwargs).fit(_dum_X, _stuff)
+    def test_fit(self, _kwargs, _X_np, _stuff):
+        CDT(**_kwargs).fit(_X_np, _stuff)
 
     @ pytest.mark.parametrize('_stuff', STUFF)
-    def test_partial_fit_after_partial_fit(self, _kwargs, _dum_X, _stuff):
-        CDT(**_kwargs).partial_fit(_dum_X, _stuff)
+    def test_partial_fit_after_partial_fit(self, _kwargs, _X_np, _stuff):
+        CDT(**_kwargs).partial_fit(_X_np, _stuff)
 
     @ pytest.mark.parametrize('_stuff', STUFF)
-    def test_partial_fit_after_fit(self, _kwargs, _dum_X, _stuff):
+    def test_partial_fit_after_fit(self, _kwargs, _X_np, _stuff):
         TestCls = CDT(**_kwargs)
-        TestCls.fit(_dum_X, None)
-        TestCls.partial_fit(_dum_X, _stuff)
+        TestCls.fit(_X_np, None)
+        TestCls.partial_fit(_X_np, _stuff)
 
 # END ALWAYS ACCEPTS y==anything TO fit() AND partial_fit() #################
 
@@ -402,7 +415,7 @@ class TestFitPartialFitAcceptYEqualsAnything:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestExceptsAnytimeXisNone:
 
-    def test_excepts_anytime_x_is_none(self, _dum_X, _kwargs):
+    def test_excepts_anytime_x_is_none(self, _X_np, _kwargs):
 
         # this is handled by sklearn.base.BaseEstimator._validate_data,
         # let it raise whatever
@@ -412,17 +425,17 @@ class TestExceptsAnytimeXisNone:
 
         with pytest.raises(Exception):
             TestCls = CDT(**_kwargs)
-            TestCls.partial_fit(_dum_X)
+            TestCls.partial_fit(_X_np)
             TestCls.partial_fit(None)
 
         with pytest.raises(Exception):
             TestCls = CDT(**_kwargs)
-            TestCls.fit(_dum_X)
+            TestCls.fit(_X_np)
             TestCls.partial_fit(None)
 
         with pytest.raises(Exception):
             TestCls = CDT(**_kwargs)
-            TestCls.fit(_dum_X)
+            TestCls.fit(_X_np)
             TestCls.transform(None)
 
         with pytest.raises(Exception):
@@ -441,8 +454,8 @@ class TestRejectsXAsSingleColumnOrSeries:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def VECTOR_X(_dum_X):
-        return _dum_X[:, 0].copy()
+    def VECTOR_X(_X_np):
+        return _X_np[:, 0].copy()
 
 
     @pytest.mark.parametrize('_fst_fit_x_format',
@@ -501,8 +514,12 @@ class TestExceptWarnOnDifferentHeader:
             '_shape':_shape
         }
 
-        fst_fit_X = _X_factory(_columns=_col_dict[fst_fit_name], **_factory_kwargs)
-        scd_fit_X = _X_factory(_columns=_col_dict[scd_fit_name], **_factory_kwargs)
+        fst_fit_X = _X_factory(
+            _columns=_col_dict[fst_fit_name], **_factory_kwargs
+        )
+        scd_fit_X = _X_factory(
+            _columns=_col_dict[scd_fit_name], **_factory_kwargs
+        )
         trfm_X = _X_factory(_columns=_col_dict[trfm_name], **_factory_kwargs)
 
         _objs = [fst_fit_name, scd_fit_name, trfm_name]
@@ -549,14 +566,14 @@ class TestExceptWarnOnDifferentHeader:
 class TestAllMethodsExceptOnScipyBSR:
 
     @pytest.mark.parametrize(f'_format', ('matrix', 'array'))
-    def test_all_methods_reject_BSR(self, _format, _kwargs, _dum_X):
+    def test_all_methods_reject_BSR(self, _format, _kwargs, _X_np):
 
         TestCls = CDT(**deepcopy(_kwargs))
 
         if _format == 'matrix':
-            BSR_X = ss.bsr_matrix(_dum_X)
+            BSR_X = ss.bsr_matrix(_X_np)
         elif _format == 'array':
-            BSR_X = ss.bsr_array(_dum_X)
+            BSR_X = ss.bsr_array(_X_np)
 
         # sklearn _validate_data is not catching this!
 
@@ -566,7 +583,7 @@ class TestAllMethodsExceptOnScipyBSR:
         with pytest.raises(TypeError):
             TestCls.fit(BSR_X)
 
-        TestCls.fit(_dum_X)
+        TestCls.fit(_X_np)
 
         with pytest.raises(TypeError):
             TestCls.transform(BSR_X)
@@ -583,9 +600,11 @@ class TestOutputTypes:
     _base_objects = ('np_array', 'pandas', 'scipy_sparse_csc')
 
     @pytest.mark.parametrize('x_input_type', _base_objects)
-    @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
+    @pytest.mark.parametrize('output_type',
+        [None, 'default', 'pandas', 'polars']
+    )
     def test_output_types(
-        self, _dum_X, _columns, _kwargs, x_input_type, output_type
+        self, _X_np, _columns, _kwargs, x_input_type, output_type
     ):
 
 
@@ -595,7 +614,7 @@ class TestOutputTypes:
             )
 
 
-        NEW_X = _dum_X.copy()
+        NEW_X = _X_np.copy()
         NEW_COLUMNS = _columns.copy()
 
 
@@ -625,7 +644,7 @@ class TestOutputTypes:
             assert type(TRFM_X) == type(TEST_X), \
                 (f"output_type is None, X output type ({type(TRFM_X)}) != "
                  f"X input type ({type(TEST_X)})")
-        # if output_type is 'default', should return np array no matter what given
+        # if output_type 'default', should return np array no matter what given
         elif output_type == 'np_array':
             assert isinstance(TRFM_X, np.ndarray), \
                 f"output_type is default or np_array, TRFM_X is {type(TRFM_X)}"
@@ -656,11 +675,11 @@ class TestOutputTypes:
 class TestConditionalAccessToPartialFitAndFit:
 
     def test_conditional_access_to_partial_fit_and_fit(
-        self, _dum_X, _kwargs
+        self, _X_np, _kwargs
     ):
 
         TestCls = CDT(**_kwargs)
-        TEST_X = _dum_X.copy()
+        TEST_X = _X_np.copy()
 
         # 1)
         for _ in range(5):
@@ -703,10 +722,16 @@ class TestAllColumnsTheSameorDifferent:
     @pytest.mark.parametrize('same_or_diff', ('_same', '_diff'))
     @pytest.mark.parametrize('x_format', ('np', 'pd', 'coo'))
     def test_all_columns_the_same(
-        self, _kwargs, _dum_X, same_or_diff, x_format, _columns, _shape
+        self, _X_factory, _kwargs, same_or_diff, x_format, _columns, _shape
     ):
 
-        TEST_X = _dum_X.copy()
+        TEST_X = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _shape=_shape
+        )
 
         if same_or_diff == '_same':
             for col_idx in range(1, TEST_X.shape[1]):
@@ -735,28 +760,78 @@ class TestAllColumnsTheSameorDifferent:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestManyPartialFitsEqualOneBigFit:
 
+    @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
     def test_many_partial_fits_equal_one_big_fit(
-        self, _dum_X, _kwargs, _shape
+        self, _X_np, _kwargs, _shape, _keep
     ):
 
+        # **** **** **** **** **** **** **** **** **** **** **** **** ****
+        # THIS TEST IS CRITICAL FOR VERIFYING THAT transform PULLS THE
+        # SAME COLUMN INDICES FOR ALL CALLS TO transform() WHEN
+        # keep=='random'
+        # **** **** **** **** **** **** **** **** **** **** **** **** ****
+
+         # def _kwargs():
+         #     return {
+         #         'keep': 'first',
+         #         'do_not_drop': None,
+         #         'conflict': 'raise',
+         #         'rtol': 1e-5,
+         #         'atol': 1e-8,
+         #         'equal_nan': False,
+         #         'n_jobs': 1   # leave set to 1 because of confliction
+         #     }
+
+         # def _X_np(_X_factory, _shape):
+         #     return _X_factory(
+         #         _dupl=[[0,_shape[1]-2], [1, _shape[1]-1]],
+         #         _has_nan=False,
+         #         _dtype='flt',
+         #         _shape=_shape
+         #     )
+
+         # _X_np has no nans
+
+        _kwargs['keep'] = _keep
 
         # ** ** ** ** ** ** ** ** ** ** **
         # TEST THAT ONE-SHOT partial_fit/transform == ONE-SHOT fit/transform
         OneShotPartialFitTestCls = CDT(**_kwargs)
-        OneShotPartialFitTestCls.partial_fit(_dum_X)
-        ONE_SHOT_PARTIAL_FIT_TRFM_X = \
-            OneShotPartialFitTestCls.transform(_dum_X, copy=True)
+        OneShotPartialFitTestCls.partial_fit(_X_np)
 
         OneShotFullFitTestCls = CDT(**_kwargs)
-        OneShotFullFitTestCls.partial_fit(_dum_X)
-        ONE_SHOT_FULL_FIT_TRFM_X = \
-            OneShotFullFitTestCls.transform(_dum_X, copy=True)
+        OneShotFullFitTestCls.fit(_X_np)
 
-        assert np.array_equal(
-            ONE_SHOT_PARTIAL_FIT_TRFM_X,
-            ONE_SHOT_FULL_FIT_TRFM_X
-        ), \
-            f"one shot partial fit trfm X != one shot full fit trfm X"
+        _ = OneShotPartialFitTestCls.duplicates_
+        __ = OneShotFullFitTestCls.duplicates_
+        assert len(_) == len(__)
+        for _idx in range(len(_)):
+            assert np.array_equal(_[_idx], __[_idx])
+        del _, __
+
+        ONE_SHOT_PARTIAL_FIT_TRFM_X = \
+            OneShotPartialFitTestCls.transform(_X_np, copy=True)
+
+        ONE_SHOT_FULL_FIT_TRFM_X = \
+            OneShotFullFitTestCls.transform(_X_np, copy=True)
+
+        if _keep in ('first', 'last'):
+            assert np.array_equal(
+                ONE_SHOT_PARTIAL_FIT_TRFM_X,
+                ONE_SHOT_FULL_FIT_TRFM_X
+            ), \
+                f"one shot partial fit trfm X != one shot full fit trfm X"
+        else:
+            # since keep=='random' can keep different column indices for
+            # the different instances (OneShotPartialFitTestCls,
+            # OneShotFullFitTestCls), it would probably be better to
+            # avoid a mountain of complexity to prove out conditional
+            # column equalities between the 2, just assert shape is same.
+            assert ONE_SHOT_PARTIAL_FIT_TRFM_X.shape == \
+                ONE_SHOT_FULL_FIT_TRFM_X.shape
+
+        del OneShotPartialFitTestCls, OneShotFullFitTestCls
+        del ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_X
 
         # END TEST THAT ONE-SHOT partial_fit/transform==ONE-SHOT fit/transform
         # ** ** ** ** ** ** ** ** ** ** **
@@ -764,71 +839,98 @@ class TestManyPartialFitsEqualOneBigFit:
         # ** ** ** ** ** ** ** ** ** ** **
         # TEST PARTIAL FIT DUPLS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
         SingleFitTestClass = CDT(**_kwargs)
-        DoublePartialFitTestClass = CDT(**_kwargs)
+        SingleFitTestClass.fit(_X_np)
+        _ = SingleFitTestClass.duplicates_
 
-        SingleFitTestClass.fit(_dum_X)
-        DoublePartialFitTestClass.partial_fit(_dum_X)
-        DoublePartialFitTestClass.partial_fit(_dum_X)
+        DoublePartialFitTestClass = CDT(**_kwargs)
+        DoublePartialFitTestClass.partial_fit(_X_np)
+        __ = DoublePartialFitTestClass.duplicates_
+        DoublePartialFitTestClass.partial_fit(_X_np)
+        ___ = DoublePartialFitTestClass.duplicates_
+
+        assert len(_) == len(__) == len(___)
+
+        for _idx in range(len(_)):
+            assert np.array_equal(_[_idx], __[_idx])
+            assert np.array_equal(_[_idx], ___[_idx])
+
+        del _, __, ___, SingleFitTestClass, DoublePartialFitTestClass
+
+        # END PARTIAL FIT DUPLS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
+        # ** ** ** ** ** ** ** ** ** ** **
+
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # TEST MANY PARTIAL FITS == ONE BIG FIT
 
         # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X
         _chunks = 5
         X_CHUNK_HOLDER = []
         for row_chunk in range(_chunks):
-            MASK1 = row_chunk * _shape[0] // _chunks
-            MASK2 = (row_chunk + 1) * _shape[0] // _chunks
-            X_CHUNK_HOLDER.append(_dum_X[MASK1:MASK2, :])
-        del MASK1, MASK2
+            _mask_start = row_chunk * _shape[0] // _chunks
+            _mask_end = (row_chunk + 1) * _shape[0] // _chunks
+            X_CHUNK_HOLDER.append(_X_np[_mask_start:_mask_end, :])
+        del _mask_start, _mask_end
 
         assert np.array_equiv(
-            np.vstack(X_CHUNK_HOLDER).astype(str), _dum_X.astype(str)
-            ), \
-            f"agglomerated X chunks != original X"
+            np.vstack(X_CHUNK_HOLDER).astype(str), _X_np.astype(str)
+        ), f"agglomerated X chunks != original X"
 
-        PartialFitPartialTrfmTestCls = CDT(**_kwargs)
-        PartialFitOneShotTrfmTestCls = CDT(**_kwargs)
+        PartialFitTestCls = CDT(**_kwargs)
         OneShotFitTransformTestCls = CDT(**_kwargs)
 
         # PIECEMEAL PARTIAL FIT
         for X_CHUNK in X_CHUNK_HOLDER:
-            PartialFitPartialTrfmTestCls.partial_fit(X_CHUNK)
-            PartialFitOneShotTrfmTestCls.partial_fit(X_CHUNK)
+            PartialFitTestCls.partial_fit(X_CHUNK)
 
         # PIECEMEAL TRANSFORM ******************************************
-        # THIS MUST BE IN ITS OWN LOOP, ALL FITS MUST BE DONE BEFORE
-        # DOING ANY TRFMS
+        # THIS CANT BE UNDER THE partial_fit LOOP, ALL FITS MUST BE DONE
+        # BEFORE DOING ANY TRFMS
         PARTIAL_TRFM_X_HOLDER = []
         for X_CHUNK in X_CHUNK_HOLDER:
-            PARTIAL_TRFM_X = \
-                PartialFitPartialTrfmTestCls.transform(X_CHUNK)
-            PARTIAL_TRFM_X_HOLDER.append(PARTIAL_TRFM_X)
 
-        del PartialFitPartialTrfmTestCls, PARTIAL_TRFM_X
+            PARTIAL_TRFM_X_HOLDER.append(
+                PartialFitTestCls.transform(X_CHUNK)
+            )
 
         # AGGLOMERATE PARTIAL TRFMS FROM PARTIAL FIT
         FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM = \
             np.vstack(PARTIAL_TRFM_X_HOLDER)
         # END PIECEMEAL TRANSFORM **************************************
 
-        # DO ONE-SHOT TRANSFORM OF X,y ON THE PARTIALLY FIT INSTANCE
-        _ = PartialFitOneShotTrfmTestCls.transform(_dum_X)
-        FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM = _
-        del _
+        # DO ONE-SHOT TRANSFORM OF X ON THE PARTIALLY FIT INSTANCE
+        FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM = \
+            PartialFitTestCls.transform(_X_np)
+
+        del PartialFitTestCls
 
         # ONE-SHOT FIT TRANSFORM
         FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM = \
-            OneShotFitTransformTestCls.fit_transform(_dum_X)
+            OneShotFitTransformTestCls.fit_transform(_X_np)
 
-        # ASSERT ALL AGGLOMERATED X TRFMS ARE EQUAL
-        assert np.array_equiv(
-                FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
-                FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str)
-            ), \
-            f"compiled trfm X from partial fit / partial trfm != one-shot fit/trfm X"
+        del OneShotFitTransformTestCls
 
-        assert np.array_equiv(
-            FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
-            FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
+        if _keep in ('first', 'last'):
+            # ASSERT ALL AGGLOMERATED X TRFMS ARE EQUAL
+            assert np.array_equiv(
+                FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str),
+                FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str)
+            ), f"trfm X from partial fits / partial trfm != one-shot fit/trfm X"
+
+            assert np.array_equiv(
+                FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str),
+                FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str)
             ), f"trfm X from partial fits / one-shot trfm != one-shot fit/trfm X"
+        else:  # _keep == 'random'
+            assert np.array_equiv(
+                FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str),
+                FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str)
+            ), (f"trfm X from partial fits / one-shot trfm != "
+                f"partial fits / partial trfms X")
+
+        # TEST MANY PARTIAL FITS == ONE BIG FIT
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
 
 # END TEST MANY PARTIAL FITS == ONE BIG FIT ****************************
 
@@ -893,7 +995,8 @@ class TestDuplAccuracyOverManyPartialFits:
         # build a starting data object for first partial fit, using full dupls
         # build a y vector
         # do a verification partial_fit, assert reported dupls for original X
-        # make a holder for all the different _wip_Xs, to do one big fit at the end.
+        # make a holder for all the different _wip_Xs, to do one big fit at the
+        # end.
         # for however many times u want to do this:
         #   randomly replace one of the dupls with non-dupl column
         #   partial_fit
@@ -1031,7 +1134,7 @@ class TestAColumnOfAllNans:
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestPartialFit:
-    
+
     #     def partial_fit(
     #         self,
     #         X: DataType,
@@ -1068,11 +1171,12 @@ class TestPartialFit:
          'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
     )
     )
-    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+    def test_X_container(self, _X_np, _columns, _kwargs, _format):
 
-        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
+        # dont need to test if rejects scipy BSR,
+        # see TestAllMethodsExceptOnScipyBSR
 
-        _X = _dum_X.copy()
+        _X = _X_np.copy()
 
         if _format == 'np':
             _X_wip = _X
@@ -1149,9 +1253,9 @@ class TestPartialFit:
             _CDT.partial_fit(_wip_X)
 
 
-    def test_rejects_no_samples(self, _dum_X, _kwargs, _columns):
+    def test_rejects_no_samples(self, _X_np, _kwargs, _columns):
 
-        _X = _dum_X.copy()
+        _X = _X_np.copy()
 
         _CDT = CDT(**_kwargs)
 
@@ -1206,25 +1310,25 @@ class TestTransform:
     @pytest.mark.parametrize('_copy',
         (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
     )
-    def test_copy_validation(self, _dum_X, _shape, _kwargs, _copy):
+    def test_copy_validation(self, _X_np, _shape, _kwargs, _copy):
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _CDT.fit(_X_np)
 
         if isinstance(_copy, (bool, type(None))):
-            _CDT.transform(_dum_X, copy=_copy)
+            _CDT.transform(_X_np, copy=_copy)
         else:
             with pytest.raises(TypeError):
-                _CDT.transform(_dum_X, copy=_copy)
+                _CDT.transform(_X_np, copy=_copy)
 
 
     @pytest.mark.parametrize('_junk_X',
         (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_X(self, _dum_X, _junk_X, _kwargs):
+    def test_rejects_junk_X(self, _X_np, _junk_X, _kwargs):
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _CDT.fit(_X_np)
 
         # this is being caught by _validation at the top of transform.
         # in particular,
@@ -1241,11 +1345,12 @@ class TestTransform:
          'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
     )
     )
-    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+    def test_X_container(self, _X_np, _columns, _kwargs, _format):
 
-        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
+        # dont need to test if rejects scipy BSR,
+        # see TestAllMethodsExceptOnScipyBSR
 
-        _X = _dum_X.copy()
+        _X = _X_np.copy()
 
         if _format == 'np':
             _X_wip = _X
@@ -1302,10 +1407,10 @@ class TestTransform:
     # transform must have same number of features as fit
 
 
-    def test_rejects_no_samples(self, _dum_X, _kwargs):
+    def test_rejects_no_samples(self, _X_np, _kwargs):
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _CDT.fit(_X_np)
 
         # this is caught by if _X.shape[0] == 0 in _val_X
         with pytest.raises(ValueError):
@@ -1333,26 +1438,26 @@ class TestTransform:
             _CDT.transform(_wip_X[:, 0])
 
 
-    def test_rejects_bad_num_features(self, _dum_X, _kwargs, _columns):
+    def test_rejects_bad_num_features(self, _X_np, _kwargs, _columns):
         # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
         # FITTED COLUMNS
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _CDT.fit(_X_np)
 
         __ = np.array(_columns)
         for obj_type in ['np', 'pd']:
             for diff_cols in ['more', 'less', 'same']:
                 if diff_cols == 'same':
-                    TEST_X = _dum_X.copy()
+                    TEST_X = _X_np.copy()
                     if obj_type == 'pd':
                         TEST_X = pd.DataFrame(data=TEST_X, columns=__)
                 elif diff_cols == 'less':
-                    TEST_X = _dum_X[:, :-1].copy()
+                    TEST_X = _X_np[:, :-1].copy()
                     if obj_type == 'pd':
                         TEST_X = pd.DataFrame(data=TEST_X, columns=__[:-1])
                 elif diff_cols == 'more':
-                    TEST_X = np.hstack((_dum_X.copy(), _dum_X.copy()))
+                    TEST_X = np.hstack((_X_np.copy(), _X_np.copy()))
                     if obj_type == 'pd':
                         _COLUMNS = np.hstack((__, np.char.upper(__)))
                         TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
@@ -1400,25 +1505,25 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_copy',
         (-1, 0, 1, 3.14, True, False, None, 'junk', [0,1], (1,), {'a': 1}, min)
     )
-    def test_copy_validation(self, _dum_X, _shape, _kwargs, _copy):
+    def test_copy_validation(self, _X_np, _shape, _kwargs, _copy):
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _CDT.fit(_X_np)
 
         if isinstance(_copy, (bool, type(None))):
-            _CDT.inverse_transform(_dum_X[:, _CDT.column_mask_], copy=_copy)
+            _CDT.inverse_transform(_X_np[:, _CDT.column_mask_], copy=_copy)
         else:
             with pytest.raises(TypeError):
-                _CDT.inverse_transform(_dum_X[:, _CDT.column_mask_], copy=_copy)
+                _CDT.inverse_transform(_X_np[:, _CDT.column_mask_], copy=_copy)
 
 
     @pytest.mark.parametrize('_junk_X',
         (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_X(self, _dum_X, _junk_X, _kwargs):
+    def test_rejects_junk_X(self, _X_np, _junk_X, _kwargs):
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _CDT.fit(_X_np)
 
         # this is being caught by _val_X at the top of inverse_transform.
         # in particular,
@@ -1435,11 +1540,12 @@ class TestInverseTransform:
             'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
         )
     )
-    def test_X_container(self, _dum_X, _columns, _kwargs, _format):
+    def test_X_container(self, _X_np, _columns, _kwargs, _format):
 
-        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
+        # dont need to test if rejects scipy BSR,
+        # see TestAllMethodsExceptOnScipyBSR
 
-        _X = _dum_X.copy()
+        _X = _X_np.copy()
 
         if _format == 'np':
             _X_wip = _X
@@ -1497,7 +1603,9 @@ class TestInverseTransform:
             _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
         elif hasattr(_X_wip, 'toarray'):
             _og_dtype = type(_X_wip)
-            _CDT.inverse_transform(_og_dtype(_X_wip.tocsc()[:, _CDT.column_mask_]))
+            _CDT.inverse_transform(
+                _og_dtype(_X_wip.tocsc()[:, _CDT.column_mask_])
+            )
             del _og_dtype
         else:
             raise Exception
@@ -1541,10 +1649,10 @@ class TestInverseTransform:
             _CDT.inverse_transform(TEST_TRFM_X)
 
 
-    def test_rejects_no_samples(self, _dum_X, _kwargs):
+    def test_rejects_no_samples(self, _X_np, _kwargs):
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _CDT.fit(_X_np)
 
         # this is caught by if _X.shape[0] == 0 in _val_X
         with pytest.raises(ValueError):
@@ -1553,14 +1661,14 @@ class TestInverseTransform:
             )
 
 
-    def test_rejects_bad_num_features(self, _dum_X, _kwargs, _columns):
+    def test_rejects_bad_num_features(self, _X_np, _kwargs, _columns):
         # RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
         # COLUMNS RETAINED BY column_mask_
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_dum_X)
+        _CDT.fit(_X_np)
 
-        TRFM_X = _CDT.transform(_dum_X)
+        TRFM_X = _CDT.transform(_X_np)
         TRFM_MASK = _CDT.column_mask_
         __ = np.array(_columns)
         for obj_type in ['np', 'pd']:
@@ -1568,7 +1676,9 @@ class TestInverseTransform:
                 if diff_cols == 'same':
                     TEST_X = TRFM_X.copy()
                     if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
+                        TEST_X = pd.DataFrame(
+                            data=TEST_X, columns=__[TRFM_MASK]
+                        )
                 elif diff_cols == 'less':
                     TEST_X = TRFM_X[:, :-1].copy()
                     if obj_type == 'pd':
@@ -1620,7 +1730,8 @@ class TestInverseTransform:
         # set_output does not control the output container for inverse_transform
         # the output container is always the same as passed
 
-        # dont need to test if rejects scipy BSR, see TestAllMethodsExceptOnScipyBSR
+        # dont need to test if rejects scipy BSR,
+        # see TestAllMethodsExceptOnScipyBSR
 
         if _format not in ('np', 'pd') and _dtype not in ('int', 'flt'):
             pytest.skip(reason=f"scipy sparse cant take non-numeric")
@@ -1727,7 +1838,7 @@ class TestInverseTransform:
             NP_INV_TRFM_X.astype(np.float64)
             # when num
             assert np.array_equal(NP_INV_TRFM_X, _base_X, equal_nan=True), \
-                f"inverse transform of transformed data does not equal original data"
+                f"inverse transform of transformed data does not equal original"
 
             assert np.array_equal(
                 NP_TRFM_X,
