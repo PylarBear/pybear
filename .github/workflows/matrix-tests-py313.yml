@@ -26,6 +26,10 @@ jobs:
     - name: Install libomp on macOS
       if: matrix.os == 'macos-latest'
       run: brew install libomp
+
+    # Need llvm on macOS to run py3.13
+    - name: Install llvm on macOS
+      if: matrix.os == 'macos-latest'
       run: brew install llvm
 
     - name: Install Poetry
