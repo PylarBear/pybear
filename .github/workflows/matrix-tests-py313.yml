@@ -26,6 +26,7 @@ jobs:
     - name: Install libomp on macOS
       if: matrix.os == 'macos-latest'
       run: brew install libomp
+      run: brew install llvm
 
     - name: Install Poetry
       run: |
