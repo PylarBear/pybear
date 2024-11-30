@@ -76,14 +76,21 @@ def _transform(
             _key = list(_instructions['add'].keys())[0]
             _value = _instructions['add'][_key]
             # this just rams the fill value into _X, and conforms to
-            # whatever dtype _X is
+            # whatever dtype _X is (with some caveats)
 
+            # str dtypes are changing here. also on windows int dtypes
+            # are changing to int64.
             _X = np.hstack((
                 _X,
                 np.full((_X.shape[0], 1), _value)
             ))
+            # there does not seem to be an obvious connection between what
+            # the dtype of _value is and the resultant dtype (for example,
+            # _X with dtype '<U10' when appending float(1.0), the output dtype
+            # is '<U21' (???, maybe floating point error on the float?) )
 
             del _key, _value
+
 
     elif isinstance(_X, pd.core.frame.DataFrame):
         # remove the columns
