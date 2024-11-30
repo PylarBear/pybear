@@ -176,11 +176,21 @@ Access via pybear.preprocessing.MinCountTransformer.
 ColumnDeduplicateTransformer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Description: Identify and selectively remove duplicate columns in numerical or 
-categorical data. Fully compliant with the scikit-learn transformer API, with fit, 
-transform, and partial_fit methods. Perfect for removing duplicate columns in 
-one-hot encoded data in a scikit-learn pipeline. Can also fit and transform data 
-batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
+categorical data. Fully compliant with the scikit-learn transformer API, with 
+fit, transform, and partial_fit methods. Perfect for removing duplicate columns 
+in one-hot encoded data in a scikit-learn pipeline. Can also fit and transform 
+data batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
 Access via pybear.preprocessing.ColumnDeduplicateTransformer.
+
+InterceptManager
+~~~~~~~~~~~~~~~~
+Description: A scikit-style transformer that identifies and manages the constant 
+columns in a dataset. IM can remove all, selectively keep one, or append a column 
+of constants. Handles numerical data, non-numerical data, and nan-like values. 
+Does batch-wise fitting via a partial_fit method. Is suitable for sklearn 
+pipelines and can be wrapped with dask_ml Incremental and ParallelPostFit 
+wrappers.
+Access via pybear.preprocessing.InterceptManager.
 
 =======
 
