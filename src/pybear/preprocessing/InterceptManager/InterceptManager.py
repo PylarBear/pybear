@@ -36,6 +36,9 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
     """
 
+    pizza add something about keep=='random' and transform()
+
+
     InterceptManager (IM) is a scikit-style transformer that identifies
     and manages the constant columns in a dataset.
 
@@ -211,7 +214,6 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         datatype of the constant will be forced to the datatype of the
         transformed data.
 
-
         When transforming a pandas dataframe and the new feature name is
         already a feature in the data, there are two possible outcomes.
         1) If the original feature is not constant, the new constant
@@ -385,7 +387,10 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
 
     _parameter_constraints: dict = {
-        "keep": [StrOptions({"first", "last", "random", "none"}), dict, Integral, str, callable],
+        "keep": [
+            StrOptions({"first", "last", "random", "none"}),
+            dict, Integral, str, callable
+        ],
         "equal_nan": ["boolean"],
         "rtol": [Real],
         "atol": [Real],
@@ -684,19 +689,33 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             self.constant_columns_:dict[int, any] = \
                 _find_constants(
                     X,
-                    self.constant_columns_ if hasattr(self, 'constant_columns_') else None,
+                    self.constant_columns_ if \
+                        hasattr(self, 'constant_columns_') else None,
                     self.equal_nan,
                     self.rtol,
                     self.atol,
                     self.n_jobs
                 )
 
+
+        # Create an instance attribute that specifies the random column index
+        # to keep when 'keep' is 'random'. This value must be static on calls
+        # to :method: transform (meaning sequential calls to transform get the
+        # same random index every time.) This  value is generated and retained
+        # even if :param: 'keep' != 'random', in case :param: 'keep' should be
+        # set to 'random' at any point via set_params().
+        if len(self.constant_columns_):
+            self._rand_idx = int(np.random.choice(list(self.constant_columns_)))
+        else:
+            self._rand_idx = None
+
         _keep = _manage_keep(
             self.keep,
             X,
             self.constant_columns_,
             self.n_features_in_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self._rand_idx
         )
 
         self._instructions = _make_instructions(
@@ -959,7 +978,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             X,
             self.constant_columns_,
             self.n_features_in_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self._rand_idx
         )
 
         self._instructions = _make_instructions(

@@ -25,8 +25,9 @@ class TestManageKeep:
     #     _X: DataFormatType,
     #     constant_columns_: dict[int, any],
     #     _n_features_in: int,
-    #     _feature_names_in: Union[npt.NDArray[str], None]
-    # ) -> Union[Literal['first', 'last', 'random', 'none'], dict[str, any], int]:
+    #     _feature_names_in: Union[npt.NDArray[str], None],
+    #     _rand_idx: int
+    # ) -> Union[Literal['none'], dict[str, any], int]:
 
 
     # callable keep converts X to int, validated against constant_columns_
@@ -80,12 +81,18 @@ class TestManageKeep:
             _X = _X_np
             _columns = None
 
+        if len(_constant_columns):
+            _rand_idx = int(np.random.choice(list(_constant_columns)))
+        else:
+            _rand_idx = None
+
         out = _manage_keep(
             _keep=_keep,
             _X=_X,
             constant_columns_=_constant_columns,
             _n_features_in=_shape[1],
-            _feature_names_in=_columns
+            _feature_names_in=_columns,
+            _rand_idx=_rand_idx
         )
 
         assert isinstance(out, dict), "_manage_keep dict did not return dict"
@@ -112,13 +119,19 @@ class TestManageKeep:
             _X = _X_np
             _columns = None
 
+        if len(_constant_columns):
+            _rand_idx = int(np.random.choice(list(_constant_columns)))
+        else:
+            _rand_idx = None
+
         if _keep(_X) in _constant_columns:
             out = _manage_keep(
                 _keep=_keep,
                 _X=_X,
                 constant_columns_=_constant_columns,
                 _n_features_in=_shape[1],
-                _feature_names_in=_columns
+                _feature_names_in=_columns,
+                _rand_idx=_rand_idx
             )
 
             assert isinstance(out, int), \
@@ -134,7 +147,8 @@ class TestManageKeep:
                     _X=_X,
                     constant_columns_=_constant_columns,
                     _n_features_in=_shape[1],
-                    _feature_names_in=_columns
+                    _feature_names_in=_columns,
+                    _rand_idx=_rand_idx
                 )
     # END callable v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
@@ -163,13 +177,19 @@ class TestManageKeep:
         else:
             raise Exception
 
+        if len(_constant_columns):
+            _rand_idx = int(np.random.choice(list(_constant_columns)))
+        else:
+            _rand_idx = None
+
         if exp in _constant_columns:
             out = _manage_keep(
                 _keep=_keep,
                 _X=_X_pd,
                 constant_columns_=_constant_columns,
                 _n_features_in=_shape[1],
-                _feature_names_in=_X_pd.columns.to_numpy()
+                _feature_names_in=_X_pd.columns.to_numpy(),
+                _rand_idx=_rand_idx
             )
 
             assert isinstance(out, int), \
@@ -185,7 +205,8 @@ class TestManageKeep:
                     _X=_X_pd,
                     constant_columns_=_constant_columns,
                     _n_features_in=_shape[1],
-                    _feature_names_in=_X_pd.columns.to_numpy()
+                    _feature_names_in=_X_pd.columns.to_numpy(),
+                    _rand_idx=_rand_idx
                 )
     # END feature name str v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
@@ -216,13 +237,18 @@ class TestManageKeep:
             _X = _X_np
             _columns = None
 
+        if len(_constant_columns):
+            _rand_idx = int(np.random.choice(list(_constant_columns)))
+        else:
+            _rand_idx = None
 
         out = _manage_keep(
             _keep=_keep,
             _X=_X,
             constant_columns_=_constant_columns,
             _n_features_in=_shape[1],
-            _feature_names_in=_columns
+            _feature_names_in=_columns,
+            _rand_idx=_rand_idx
         )
 
         _sorted_const_cols = sorted(list(_constant_columns.keys()))
@@ -279,13 +305,19 @@ class TestManageKeep:
             _X = _X_np
             _columns = None
 
+        if len(_constant_columns):
+            _rand_idx = int(np.random.choice(list(_constant_columns)))
+        else:
+            _rand_idx = None
+
         if _keep in _constant_columns:
             out = _manage_keep(
                 _keep=_keep,
                 _X=_X,
                 constant_columns_=_constant_columns,
                 _n_features_in=_shape[1],
-                _feature_names_in=_columns
+                _feature_names_in=_columns,
+                _rand_idx=_rand_idx
             )
 
             assert isinstance(out, int), \
@@ -301,7 +333,8 @@ class TestManageKeep:
                     _X=_X,
                     constant_columns_=_constant_columns,
                     _n_features_in=_shape[1],
-                    _feature_names_in=_columns
+                    _feature_names_in=_columns,
+                    _rand_idx=_rand_idx
                 )
     # END int v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 

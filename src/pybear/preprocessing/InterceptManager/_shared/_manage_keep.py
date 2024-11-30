@@ -20,8 +20,9 @@ def _manage_keep(
     _X: DataFormatType,
     constant_columns_: dict[int, any],
     _n_features_in: int,
-    _feature_names_in: Union[npt.NDArray[str], None]
-) -> Union[Literal['first', 'last', 'random', 'none'], dict[str, any], int]:
+    _feature_names_in: Union[npt.NDArray[str], None],
+    _rand_idx: int
+) -> Union[Literal['none'], dict[str, any], int]:
 
     """
     Before going into _make_instructions, process some of the mapping of
@@ -108,6 +109,10 @@ def _manage_keep(
         Union[npt.NDArray[str], None] - The names of the features as seen
         during fitting. Only accessible if X is passed to :methods:
         partial_fit or fit as a pandas dataframe that has a header.
+    _rand_idx:
+        int - Instance attribute that specifies the random column index
+        to keep when :param: 'keep' is 'random'. This value must be
+        static on calls to :method: transform.
 
 
     Return
@@ -144,6 +149,9 @@ def _manage_keep(
         ))
         assert min(constant_columns_) >= 0
         assert max(constant_columns_) < _n_features_in
+
+    if _rand_idx is not None:
+        assert _rand_idx in range(_n_features_in)
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -186,7 +194,7 @@ def _manage_keep(
         elif _keep == 'last':
             __keep = int(_sorted_constant_column_idxs[-1])
         elif _keep == 'random':
-            __keep = int(np.random.choice(_sorted_constant_column_idxs))
+            __keep = _rand_idx
         elif _keep == 'none':
             __keep = 'none'
     elif isinstance(_keep, int):
@@ -195,9 +203,8 @@ def _manage_keep(
         __keep = _keep
         if __keep not in constant_columns_:
             raise ValueError(
-                f"'keep' was passed as column index ({_keep}) "
-                f"which is not a column of constants. \nconstant columns: "
-                f"{constant_columns_}"
+                f"'keep' was passed as column index ({_keep}) which is not a "
+                f"column of constants. \nconstant columns: {constant_columns_}"
             )
     else:
         raise AssertionError(f"algorithm failure. invalid 'keep': {_keep}")
