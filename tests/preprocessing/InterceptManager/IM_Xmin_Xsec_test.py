@@ -40,7 +40,7 @@ def _kwargs():
         'equal_nan': False,
         'rtol': 1e-5,
         'atol': 1e-8,
-        'n_jobs': 1     # pizza test for confliction
+        'n_jobs': 1     # leave this set at 1 because of confliction
     }
 
 
@@ -603,12 +603,20 @@ class TestAllColumnsTheSameOrDifferent:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestManyPartialFitsEqualOneBigFit:
 
-    @pytest.mark.skip(reason=f"need to finish static random keep")
-    @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none')) # pizza wanna do more here?
+
+    @pytest.mark.parametrize('_keep',
+        ('first', 'last', 'random', 'none', 0, lambda x: 0, {'Intercept':1})
+    )
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_many_partial_fits_equal_one_big_fit(
         self, _X_np, _kwargs, _shape, _keep, _equal_nan
     ):
+
+        # **** **** **** **** **** **** **** **** **** **** **** **** ****
+        # THIS TEST IS CRITICAL FOR VERIFYING THAT transform PULLS THE
+        # SAME COLUMN INDICES FOR ALL CALLS TO transform() WHEN
+        # keep=='random'
+        # **** **** **** **** **** **** **** **** **** **** **** **** ****
 
         _kwargs['keep'] = _keep
         _kwargs['equal_nan'] = _equal_nan
@@ -638,14 +646,15 @@ class TestManyPartialFitsEqualOneBigFit:
             OneShotFullFitTestCls.transform(_X_np, copy=True)
 
         assert ONE_SHOT_PARTIAL_FIT_TRFM_X.shape == \
-                    ONE_SHOT_FULL_FIT_TRFM_X.shape
+               ONE_SHOT_FULL_FIT_TRFM_X.shape
 
-        # this has np.nan in it, convert to str
-        assert np.array_equal(
-            ONE_SHOT_PARTIAL_FIT_TRFM_X.astype(str),
-            ONE_SHOT_FULL_FIT_TRFM_X.astype(str)
-        ), \
-            f"one shot partial fit trfm X != one shot full fit trfm X"
+        if _keep != 'random':
+            # this has np.nan in it, convert to str
+            assert np.array_equal(
+                ONE_SHOT_PARTIAL_FIT_TRFM_X.astype(str),
+                ONE_SHOT_FULL_FIT_TRFM_X.astype(str)
+            ), f"one shot partial fit trfm X != one shot full fit trfm X"
+
 
         del ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_X
 
@@ -698,14 +707,12 @@ class TestManyPartialFitsEqualOneBigFit:
         ), \
             f"agglomerated X chunks != original X"
 
-        PartialFitPartialTrfmTestCls = IM(**_kwargs)
-        PartialFitOneShotTrfmTestCls = IM(**_kwargs)
+        PartialFitTestCls = IM(**_kwargs)
         OneShotFitTransformTestCls = IM(**_kwargs)
 
         # PIECEMEAL PARTIAL FIT
         for X_CHUNK in X_CHUNK_HOLDER:
-            PartialFitPartialTrfmTestCls.partial_fit(X_CHUNK)
-            PartialFitOneShotTrfmTestCls.partial_fit(X_CHUNK)
+            PartialFitTestCls.partial_fit(X_CHUNK)
 
         # PIECEMEAL TRANSFORM ******************************************
         # THIS CANT BE UNDER THE partial_fit LOOP, ALL FITS MUST BE DONE
@@ -714,10 +721,9 @@ class TestManyPartialFitsEqualOneBigFit:
         for X_CHUNK in X_CHUNK_HOLDER:
 
             PARTIAL_TRFM_X_HOLDER.append(
-                PartialFitPartialTrfmTestCls.transform(X_CHUNK)
+                PartialFitTestCls.transform(X_CHUNK)
             )
 
-        del PartialFitPartialTrfmTestCls
 
         # AGGLOMERATE PARTIAL TRFMS FROM PARTIAL FIT
         FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM = \
@@ -726,27 +732,39 @@ class TestManyPartialFitsEqualOneBigFit:
 
         # DO ONE-SHOT TRANSFORM OF X ON THE PARTIALLY FIT INSTANCE
         FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM = \
-            PartialFitOneShotTrfmTestCls.transform(_X_np)
+            PartialFitTestCls.transform(_X_np)
 
-        del PartialFitOneShotTrfmTestCls
+        del PartialFitTestCls
 
-        # ONE-SHOT FIT TRANSFORM
-        FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM = \
-            OneShotFitTransformTestCls.fit_transform(_X_np)
 
-        del OneShotFitTransformTestCls
+        if _keep != 'random':
 
-        # ASSERT ALL AGGLOMERATED X TRFMS ARE EQUAL
-        assert np.array_equiv(
+            # ONE-SHOT FIT TRANSFORM
+            FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM = \
+                OneShotFitTransformTestCls.fit_transform(_X_np)
+
+            del OneShotFitTransformTestCls
+
+            # ASSERT ALL AGGLOMERATED X TRFMS ARE EQUAL
+            assert np.array_equiv(
+                    FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
+                    FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str)
+                ), \
+                f"compiled trfm X from partial fit / partial trfm != one-shot fit/trfm X"
+
+            assert np.array_equiv(
                 FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
-                FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str)
-            ), \
-            f"compiled trfm X from partial fit / partial trfm != one-shot fit/trfm X"
+                FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
+                ), f"trfm X from partial fits / one-shot trfm != one-shot fit/trfm X"
 
-        assert np.array_equiv(
-            FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
-            FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
-            ), f"trfm X from partial fits / one-shot trfm != one-shot fit/trfm X"
+        elif _keep == 'random':
+
+            assert np.array_equiv(
+                    FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str),
+                    FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
+                ), (f"trfm X from partial fit / partial trfm != "
+                 f"trfm X from partial fit / one-shot trfm/")
+
 
         # TEST MANY PARTIAL FITS == ONE BIG FIT
         # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
