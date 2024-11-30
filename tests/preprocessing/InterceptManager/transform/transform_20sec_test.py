@@ -282,10 +282,16 @@ class TestTransform:
 
                 del _key, _value, is_num
 
-        elif '<U' in str(_og_dtype):
-            # can only be np
-            # pizza come back to this, str dtypes are being changed somewhere,
-            # find where
+        elif _format == 'ndarray' and '<U' in str(_og_dtype):
+            # str dtypes are changing in _transform() at
+            # _X = np.hstack((
+            #     _X,
+            #     np.full((_X.shape[0], 1), _value)
+            # ))
+            # there does not seem to be an obvious connection between what
+            # the dtype of _value is and the resultant dtype (for example,
+            # _X with dtype '<U10' when appending float(1.0), the output dtype
+            # is '<U21' (???, maybe floating point error on the float?) )
             assert '<U' in str(out.dtype)
 
             # check the values in the appended column (if appended)
@@ -368,8 +374,12 @@ class TestHStackDtypesOnNP:
     @pytest.mark.parametrize('_value', (1, '1', 'a'))
     def test_various_dtypes_hstacked_to_np(self, _X_factory, _dtype, _value):
 
+        # this tests / shows what happens to the X container dtype when
+        # various types of values are appended to X from the 'keep' dictionary
+
         # when hstacking a str constant to a float array, numpy is
         # changing the array to '<U...'
+        # otherwise, the stacked value assumes the existing dtype of X
 
         X = _X_factory(
             _dupl=None,
@@ -388,9 +398,14 @@ class TestHStackDtypesOnNP:
             'add': {'Intercept': _value}
         }
 
-        _transform(X, _instr)
+        out = _transform(X, _instr)
 
-
+        if isinstance(_value, str) and _dtype == 'flt':
+            assert '<U' in str(out.dtype)
+        elif '<U' in str(X.dtype):
+            assert '<U' in str(out.dtype)
+        else:
+            assert X.dtype == out.dtype
 
 
 

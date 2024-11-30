@@ -198,9 +198,9 @@ def _val_keep_and_columns(
                 raise ValueError(
                     f"\nThere is a conflict with one of the feature names and "
                     f"the literals for :param: keep. \nColumn '{_keep}' conflicts "
-                    f"with a keep literal. \nAllowed keep literals (case sensitive): "
-                    f"'first', 'last', 'random', 'none'. \nPlease change the "
-                    f"column name or use a different keep literal.\n"
+                    f"with a keep literal. \nAllowed keep literals (case "
+                    f"sensitive): 'first', 'last', 'random', 'none'. \nPlease "
+                    f"change the column name or use a different keep literal.\n"
                 )
         else:
             # is str, but is not one of the literals, then must be a column name

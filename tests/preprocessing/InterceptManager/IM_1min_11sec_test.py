@@ -389,7 +389,7 @@ class TestOutputTypes:
 
         if x_input_type == 'scipy_sparse_csc' and output_type == 'polars':
             pytest.skip(
-                reason=f"skcannot convert scipy sparse input to polars directly"
+                reason=f"sk cannot convert scipy sparse input to polars directly"
             )
 
 
@@ -750,12 +750,14 @@ class TestManyPartialFitsEqualOneBigFit:
                     FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
                     FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str)
                 ), \
-                f"compiled trfm X from partial fit / partial trfm != one-shot fit/trfm X"
+                (f"compiled trfm X from partial fit / partial trfm != "
+                 f"one-shot fit/trfm X")
 
             assert np.array_equiv(
                 FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
                 FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
-                ), f"trfm X from partial fits / one-shot trfm != one-shot fit/trfm X"
+                ), (f"trfm X from partial fits / one-shot trfm != one-shot "
+                    f"fit/trfm X")
 
         elif _keep == 'random':
 
@@ -834,12 +836,12 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
         # build a pool of non-constants to fill the constants in X along the way
         # build a starting data object for first partial fit, using full constants
         # build a y vector
-        # do a verification partial_fit, assert reported constants for original X make
+        # do a verification partial_fit, assert reported constants for original X
         # make a holder for all the different _wip_Xs, to do one big fit at the end
         # for however many times u want to do this:
         #   randomly replace one of the constants with non-constant column
         #   partial_fit
-        #   assert reported constants - should be one less (the randomly chosen column)
+        #   assert reported constants - should be one less (the randomly chosen)
         # at the very end, stack all the _wip_Xs, do one big fit, verify constants
 
         _pool_X = _X(_format, _dtype, _has_nan, None, _noise=1e-9)
@@ -856,20 +858,20 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
             else:
                 assert v == _start_constants[idx]
 
-        # to know how many constants we can take out, get the total number of constants
+        # to know how many constants can come out, get total number of constants
         _const_pool = list(_start_constants)
         _num_consts = len(_const_pool)
 
         X_HOLDER = []
         X_HOLDER.append(_wip_X)
 
-        # take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v^v^v^v^
+        # take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v^v^v
         for trial in range(_num_consts//2):
 
             random_const = np.random.choice(_const_pool, 1, replace=False)[0]
 
-            # take the random constant of out _start_constants and _const_pool, and take
-            # a column out of the X pool to patch the constant in _wip_X
+            # take the random constant of out _start_constants and _const_pool,
+            # and take a column out of the X pool to patch the constant in _wip_X
             _start_constants.pop(random_const)
             _const_pool.remove(random_const)
 
@@ -895,7 +897,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
                 else:
                     assert v == _start_constants[idx]
 
-        # END take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v^v^v
+        # END take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v
 
 
 
@@ -1002,8 +1004,9 @@ class TestPartialFit:
     @pytest.mark.parametrize('_format',
          (
              'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
-             'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+             'dask_array', 'dask_dataframe'
          )
     )
     def test_X_container(self, _X_np, _columns, _kwargs, _format):
@@ -1089,7 +1092,9 @@ class TestPartialFit:
 
         # dont know what is actually catching this! maybe _validate_data?
         with pytest.raises(ValueError):
-            IM(**_kwargs).partial_fit(np.empty((0, _X.shape[1]), dtype=np.float64))
+            IM(**_kwargs).partial_fit(
+                np.empty((0, _X.shape[1]), dtype=np.float64)
+            )
 
 
     def test_rejects_1D(self, _X_factory, _kwargs):
@@ -1106,6 +1111,50 @@ class TestPartialFit:
 
         with pytest.raises(ValueError):
             IM(**_kwargs).partial_fit(_wip_X[:, 0])
+
+
+
+    @pytest.mark.parametrize('_dtype', ('str', 'obj'))
+    def test_fit_transform_floats_as_str_dtypes(
+        self, _X_factory, _dtype, _shape, _constants
+    ):
+
+        # make an array of floats....
+        _wip_X = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _constants=_constants,
+            _zeros=0,
+            _shape=_shape
+        )
+
+        # set dtype
+        _wip_X = _wip_X.astype('<U20' if _dtype == 'str' else object)
+
+        _IM = IM(
+            keep='last',
+            equal_nan=True,
+            rtol=1e-5,
+            atol=1e-8,
+            n_jobs=1
+        )
+
+        out = _IM.fit_transform(_wip_X)
+
+        assert isinstance(out, np.ndarray)
+
+        # keep == 'last'!
+        _ref_column_mask = np.ones((_shape[1],)).astype(bool)
+        MASK = [i in _constants for i in range(_shape[1])]
+        _ref_column_mask[MASK] = False
+        _ref_column_mask[sorted(list(_constants))[-1]] = True
+        del MASK
+
+        assert np.array_equal(_IM.column_mask_, _ref_column_mask)
+
 
     # dont really need to test accuracy, see _partial_fit
 
@@ -1165,8 +1214,9 @@ class TestTransform:
     @pytest.mark.parametrize('_format',
          (
              'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
-             'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+             'dask_array', 'dask_dataframe'
          )
     )
     def test_X_container(self, _X_np, _columns, _kwargs, _format):
@@ -1353,53 +1403,12 @@ class TestInverseTransform:
             _IM.inverse_transform(_junk_X)
 
 
-    @pytest.mark.parametrize('_format',
-        (
-             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
-             'dia_array', 'lil_array', 'dok_array', 'bsr_array', 'dask_array', 'dask_dataframe'
-        )
-    )
-    def test_X_container(self, _X_np, _columns, _kwargs, _format):
+    @pytest.mark.parametrize('_format', ('dask_array', 'dask_dataframe'))
+    def test_rejects_invalid_container(self, _X_np, _columns, _kwargs, _format):
 
         _X = _X_np.copy()
 
-        if _format == 'np':
-            _X_wip = _X
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(
-                data=_X,
-                columns=_columns
-            )
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        elif _format == 'dask_array':
+        if _format == 'dask_array':
             _X_wip = da.array(_X)
         elif _format == 'dask_dataframe':
             _ = da.array(_X)
@@ -1418,17 +1427,6 @@ class TestInverseTransform:
             with pytest.raises(TypeError):
                 # handled by IM
                 _IM.inverse_transform(_X_wip.iloc[:, _IM.column_mask_])
-        elif _format == 'pd':
-            out = _IM.inverse_transform(_X_wip.iloc[:, _IM.column_mask_])
-            assert isinstance(out, type(_X_wip))
-        elif _format == 'np':
-            out = _IM.inverse_transform(_X_wip[:, _IM.column_mask_])
-            assert isinstance(out, type(_X_wip))
-        elif hasattr(_X_wip, 'toarray'):
-            _og_dtype = type(_X_wip)
-            out = _IM.inverse_transform(_og_dtype(_X_wip.tocsc()[:, _IM.column_mask_]))
-            assert isinstance(out, type(_X_wip))
-            del _og_dtype
         else:
             raise Exception
 
@@ -1499,7 +1497,9 @@ class TestInverseTransform:
                 if diff_cols == 'same':
                     TEST_X = TRFM_X.copy()
                     if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
+                        TEST_X = pd.DataFrame(
+                            data=TEST_X, columns=__[TRFM_MASK]
+                        )
                 elif diff_cols == 'less':
                     TEST_X = TRFM_X[:, :-1].copy()
                     if obj_type == 'pd':
@@ -1530,17 +1530,23 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_format',
         (
             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
-            'dia_array', 'lil_array', 'dok_array', 'bsr_array'
+            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
         )
     )
     @pytest.mark.parametrize('_dtype', ('int', 'flt', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
-    @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
+    @pytest.mark.parametrize('_keep',
+        (
+            'first', 'last', 'random', 'none', 0, 'string', lambda x: 0,
+            {'Intercept': None}    # replace None in the function
+        )
+    )
+    @pytest.mark.parametrize('_constants', ('constants1', 'constants2'))
     @pytest.mark.parametrize('_copy', (True, False))
     def test_accuracy(
-            self, _X_factory, _columns, _kwargs, _shape, _format, _dtype,
-            _has_nan, _keep, _copy
+        self, _X_factory, _columns, _kwargs, _shape, _format, _dtype,
+        _has_nan, _keep, _constants, _copy
     ):
 
         # may not need to test accuracy here, see _inverse_transform,
@@ -1554,12 +1560,36 @@ class TestInverseTransform:
         if _format not in ('np', 'pd') and _dtype not in ('int', 'flt'):
             pytest.skip(reason=f"scipy sparse cant take non-numeric")
 
+        if isinstance(_keep, dict):
+            _key = list(_keep.keys())[0]
+            if _dtype in ('int', 'flt'):
+                _keep[_key] = 1
+            else:
+                _keep[_key] = '1'
+            del _key
+        elif _keep == 'string':
+            if _format == 'pd':
+                _keep = _columns[0]
+            else:
+                pytest.skip(reason=f"can only have str 'keep' with pd df")
+
+        if _constants == 'constants1':
+            _constants = {}
+        elif _constants == 'constants2':
+            if _dtype in ('int', 'flt'):
+                _constants = {0: -1, 7:np.nan, 9:1}
+            else:
+                _constants = {0: 'a', 2: 'b', 9:'nan'}
+        else:
+            raise Exception
+
         _base_X = _X_factory(
             _dupl=None,
             _has_nan=_has_nan,
             _format='np',
             _dtype=_dtype,
             _columns=_columns,
+            _constants=_constants,
             _zeros=0,
             _shape=_shape
         )
@@ -1603,11 +1633,44 @@ class TestInverseTransform:
             raise Exception
 
         _kwargs['keep'] = _keep
+        _kwargs['equal_nan'] = True
 
         _IM = IM(**_kwargs)
 
         # fit v v v v v v v v v v v v v v v v v v v v
-        _IM.fit(_X_wip)
+        _raise_for_keep_not_constant = 0
+        _warn_for_keep_not_constant = 0
+        # can only take literal keeps when no constants (but warns)
+        if isinstance(_keep, int):
+            if _keep not in _constants:
+                _raise_for_keep_not_constant += 1
+        elif callable(_keep):
+            if _keep(_X_wip) not in _constants:
+                _raise_for_keep_not_constant += 1
+        elif isinstance(_keep, str):
+            if _keep in ('first', 'last', 'random', 'none'):
+                if len(_constants) == 0:
+                    _warn_for_keep_not_constant += 1
+            else:
+                # should only be for pd, should have skipped above for non-pd
+                if len(_constants):
+                    _idx = np.arange(len(_columns))[_columns==_keep][0]
+                    if _idx not in _constants:
+                        _raise_for_keep_not_constant += 1
+                else:
+                    _raise_for_keep_not_constant += 1
+
+        if _warn_for_keep_not_constant:
+            with pytest.warns():
+                _IM.fit(_X_wip)
+        elif _raise_for_keep_not_constant:
+            with pytest.raises(ValueError):
+                _IM.fit(_X_wip)
+            pytest.skip(reason=f"cannot continue test without fit")
+        else:
+            _IM.fit(_X_wip)
+
+        del _raise_for_keep_not_constant
         # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # transform v v v v v v v v v v v v v v v v v v
@@ -1623,7 +1686,7 @@ class TestInverseTransform:
         assert isinstance(INV_TRFM_X, type(_X_wip))
         # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
-        # output constainer is same as passed
+        # output container is same as passed
         assert isinstance(INV_TRFM_X, type(_X_wip))
 
         # if output is numpy, order is C
@@ -1653,22 +1716,50 @@ class TestInverseTransform:
         assert isinstance(NP_TRFM_X, np.ndarray)
         assert isinstance(NP_INV_TRFM_X, np.ndarray)
 
-        # assert output is equal to originally transformed data
+        # v v v v assert output is equal to original pre-transform data v v v v
+
+        if isinstance(NP_INV_TRFM_X, pd.core.frame.DataFrame):
+            assert np.array_equal(NP_INV_TRFM_X.columns, _columns)
+
+
         # manage equal_nan for num or str
         try:
             NP_INV_TRFM_X.astype(np.float64)
-            # when num
-            assert np.array_equal(NP_INV_TRFM_X, _base_X, equal_nan=True), \
-                f"inverse transform of transformed data does not equal original data"
-
-            assert np.array_equal(
-                NP_TRFM_X,
-                NP_INV_TRFM_X[:, _IM.column_mask_],
-                equal_nan=True
-            ), \
-                (f"output of inverse_transform() does not reduce back to the "
-                 f"output of transform()")
+            is_num = True
         except:
+            is_num = False
+
+        # inverse_transform is unable to know where any nans were in the
+        # original data, so it puts in columns with no nans. np.array_equal
+        # with equal_nan does not work for that situation. need to apply
+        # nans to the inverse transform to make the nans the same as the
+        # input so that a non-complicated comparison can be made.
+        # (otherwise would probably need to do for loops and apply a mask
+        # to each individual column)
+        try:
+            NP_INV_TRFM_X[nan_mask(_base_X)] = np.nan
+        except:
+            pass
+
+        if is_num:
+            # when num
+
+            assert NP_INV_TRFM_X.shape == _base_X.shape, \
+                f"{NP_INV_TRFM_X.shape=}, {_base_X.shape=}"
+
+            assert np.array_equal(NP_INV_TRFM_X, _base_X, equal_nan=True), \
+                (f"inverse transform of transformed data does not equal "
+                 f"original data")
+
+            if not isinstance(_keep, dict):
+                assert np.array_equal(
+                    NP_TRFM_X,
+                    NP_INV_TRFM_X[:, _IM.column_mask_],
+                    equal_nan=True
+                ), \
+                    (f"output of inverse_transform() does not reduce back to "
+                     f"the input of transform()")
+        else:
             # when str
             # IM converts all nan-likes to np.nan, need to standardize them
             # in the inputs here for array_equal against the outputs
@@ -1677,17 +1768,29 @@ class TestInverseTransform:
             NP_TRFM_X[nan_mask_string(NP_TRFM_X)] = 'nan'
             NP_INV_TRFM_X[nan_mask_string(NP_INV_TRFM_X)] = 'nan'
 
-            assert np.array_equal(NP_INV_TRFM_X, _base_X), \
-                f"inverse transform of transformed data != original data"
+            assert NP_INV_TRFM_X.shape == _base_X.shape, \
+                f"{NP_INV_TRFM_X.shape=}, {_base_X.shape=}"
 
             assert np.array_equal(
-                NP_TRFM_X,
-                NP_INV_TRFM_X[:, _IM.column_mask_]
-            ), \
-                (f"output of inverse_transform() does not reduce back to the "
-                 f"output of transform()")
+                NP_INV_TRFM_X,
+                _base_X
+            ), f"inverse transform of transformed data != original data"
 
-    # pizza, probably put a test here for pd header chopped right
+            if not isinstance(_keep, dict):
+                assert np.array_equal(
+                    NP_TRFM_X,
+                    NP_INV_TRFM_X[:, _IM.column_mask_]
+                ), \
+                    (f"output of inverse_transform() does not reduce back to "
+                     f"the input of transform()")
+
+
+
+
+
+
+
+
 
 
 

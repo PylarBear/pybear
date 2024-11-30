@@ -67,14 +67,17 @@ def _transform(
 
 
     if isinstance(_X, np.ndarray):
+
         # remove the columns
         _X = _X[:, KEEP_MASK]
         # if :param: keep is dict, add the new intercept
+
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
             _value = _instructions['add'][_key]
             # this just rams the fill value into _X, and conforms to
             # whatever dtype _X is
+
             _X = np.hstack((
                 _X,
                 np.full((_X.shape[0], 1), _value)
@@ -116,6 +119,7 @@ def _transform(
             del _key
         _X = _og_type(_X)
         del _og_type
+
     else:
         raise TypeError(f"Unknown dtype {type(_X)} in transform().")
 

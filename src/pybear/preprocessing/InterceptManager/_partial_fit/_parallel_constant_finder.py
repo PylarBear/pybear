@@ -79,6 +79,7 @@ def _parallel_constant_finder(
 
     """
 
+
     # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     assert isinstance(_column, np.ndarray)
     assert isinstance(_equal_nan, bool)
@@ -121,10 +122,6 @@ def _parallel_constant_finder(
             out = uuid.uuid4()
         elif _equal_nan:
             _not_nan_mask = np.logical_not(nan_mask(_column))
-            # pizza, there is something going on in here when a flt column
-            # is passed as a str dtype. it passes the float64 conversion
-            # above, but then there was '<UX' casting exception here...
-            # someday run a column of floats.astype(str) and try to understand
             _mean_value = np.mean(_column[_not_nan_mask].astype(np.float64))
             _allclose = np.allclose(
                 _mean_value,

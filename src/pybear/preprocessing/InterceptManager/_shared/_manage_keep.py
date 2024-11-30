@@ -130,9 +130,8 @@ def _manage_keep(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # dont need to validate 'keep' this is the first thing 'keep' sees after
-    # _validate in both partial_fit and transform... pizza come back and
-    # revise this after inverse_transform is finalized, to account for the
-    # final state of that situation.
+    # _validate in both partial_fit and transform (the only places where
+    # this is called)
 
     assert hasattr(_X, 'shape')
 
