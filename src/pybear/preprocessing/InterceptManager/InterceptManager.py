@@ -14,6 +14,7 @@ from ._type_aliases import (
 from numbers import Real, Integral
 
 import numpy as np
+import pandas as pd
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
@@ -647,7 +648,6 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # check_params. If False, X and y are unchanged and only
         # feature_names_in_ and n_features_in_ are checked.
 
-        # ^^^^^^ pizza be sure to review _validate_data! ^^^^^^^
 
         # this must be after _validate_data, needs feature_names_in_ to
         # be exposed, if available.
@@ -730,9 +730,6 @@ class InterceptManager(BaseEstimator, TransformerMixin):
                 self._instructions,
                 self.n_features_in_
             )
-
-        # pizza take these training wheels off when done
-        assert len(self.column_mask_)== X.shape[1]
 
         return self
 
@@ -826,15 +823,6 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # the error message for non-np/pd/ss X.
         _val_X(X)
 
-        # pizza maybe we should put _validate here (or at least validate keep),
-        # since self.keep is called and set_params could have changed.
-        # .... but there is a problem because this X doesnt match feature_names_in_
-        # _val_keep_and_columns(
-        #     self.keep,
-        #     self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
-        #     X
-        # )
-
         # dont assign to X, check_array always converts to ndarray
         check_array(
             array=X,
@@ -848,33 +836,90 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             ensure_min_features=1,
         )
 
+        # if _keep is a dict, a column of constants was stacked to the right
+        # side of the data. check that _keep is valid (may have changed via
+        # set_params()), the passed data matches against _keep, and remove
+        # the column
+        if isinstance(self.keep, dict):
+
+            _name = list(self.keep.keys())[0]
+
+            err_msg = (
+                f"when passed as a dictionary, :param: 'keep' must have "
+                f"one key:value pair. The key must be a string and the "
+                f"value must not be callable or list-like iterable."
+            )
+            # must be one entry and key must be str
+            if len(self.keep) != 1 or not isinstance(_name, str):
+                raise ValueError(err_msg)
+
+            try:
+                # if is callable, except
+                if callable(self.keep[_name]):
+                    raise BrokenPipeError
+                iter(self.keep[_name])
+                if isinstance(self.keep[_name], str):
+                    raise Exception
+                # if is any iterable beside string, except
+                raise UnicodeError
+            except BrokenPipeError:
+                raise ValueError(
+                    f"The 'keep' dictionary value is a callable, which IM "
+                    f"does not allow. " + err_msg
+                )
+            except UnicodeError:
+                raise ValueError(
+                    f"The 'keep' dictionary value is a non-string iterable, "
+                    f"which IM does not allow. " + err_msg
+                )
+            except:
+                # accept anything that is string or not an iterable
+                pass
+
+            if isinstance(X, np.ndarray):
+                _unqs = np.unique(X[:, -1])
+            elif isinstance(X, pd.core.frame.DataFrame):
+                _unqs = np.unique(X.iloc[:, -1].to_numpy())
+            elif hasattr(X, 'toarray'):
+                _unqs = np.unique(X.tocsc().getcol(-1).toarray())
+
+            _key = list(self.keep.keys())[0]
+            _value_matches = False
+            try:
+                _value = float(self.keep[_key])
+                assert _value == _unqs[0]
+                _value_matches = True
+            except:
+                if _unqs[0] == self.keep[_key]:
+                    _value_matches = True
+
+            if len(_unqs) == 1 and _value_matches:
+                if isinstance(X, np.ndarray):
+                    X = np.delete(X, -1, axis=1)
+                elif isinstance(X, pd.core.frame.DataFrame):
+                    X = X.drop(columns=[_key], inplace=False)
+                elif hasattr(X, 'toarray'):
+                    _og_dtype = type(X)
+                    X = X.tocsc()[:, list(range(X.shape[1]-1))]
+                    X = _og_dtype(X)
+                    del _og_dtype
+            else:
+                raise ValueError(
+                    f":param: 'keep' is a dictionary but the last column "
+                    f"of the data to be inverse transformed does not match "
+                    f"{_unqs[0]=}, {self.keep[_key]=}"
+                )
+
+            del _value_matches
+
         # the number of columns in X must be equal to the number of features
         # remaining in column_mask_
         if X.shape[1] != np.sum(self.column_mask_):
             raise ValueError(
                 f"the number of columns in X must be equal to the number of "
                 f"columns kept from the fitted data after removing constants "
-                f"{np.sum(self.column_mask_)}"
+                f"({np.sum(self.column_mask_)})"
             )
-
-        # if _keep is a dict, a column of constants was stacked to the right
-        # side of the data. check that the passed data matches against _keep,
-        # and remove the column
-        if isinstance(self.keep, dict):
-            _unqs = np.unique(X[:, -1])
-            if len(_unqs) == 1 and _unqs[0] == self.keep[list(self.keep.keys())[0]]:
-                # pizza, this needs to be for np, df, and ss
-                # do a test that hits this
-                X = np.delete(X, -1, axis=1)
-            else:
-                raise ValueError(
-                    f":param: 'keep' is a dictionary but the last column of the "
-                    f"data to be inverse transformed does not match."
-                )
-
-        # pizza take these training wheels off when done
-        assert sum(self.column_mask_)== X.shape[1], \
-            f"{sum(self.column_mask_)=}, {X.shape[1]=}"
 
         X = _inverse_transform(
             X,
@@ -994,9 +1039,6 @@ class InterceptManager(BaseEstimator, TransformerMixin):
                 self._instructions,
                 self.n_features_in_
             )
-
-        # pizza take these training wheels off when done
-        assert len(self.column_mask_)== X.shape[1]
 
         X = _transform(X, self._instructions)
 

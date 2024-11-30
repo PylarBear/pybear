@@ -246,6 +246,7 @@ class TestAccuracy:
         assert isinstance(TRFM_X, _og_format)
 
         # returned dtypes are same as given dtypes ** * ** * ** * ** * **
+        import os
         if isinstance(TRFM_X, pd.core.frame.DataFrame):
             MASK = TestCls.column_mask_
             if isinstance(keep, dict):
@@ -257,16 +258,23 @@ class TestAccuracy:
             # dtypes could be shape[1] or (shape[1] + isinstance(keep, dict))
             assert np.array_equal(TRFM_X.dtypes, _og_dtype[MASK])
             del MASK
+        elif '<U' in str(_og_dtype):
+            # str dtypes are changing in _transform() at
+            # _X = np.hstack((
+            #     _X,
+            #     np.full((_X.shape[0], 1), _value)
+            # ))
+            # there does not seem to be an obvious connection between what
+            # the dtype of _value is and the resultant dtype (for example,
+            # _X with dtype '<U10' when appending float(1.0), the output dtype
+            # is '<U21' (???, maybe floating point error on the float?) )
+            assert '<U' in str(TRFM_X.dtype)
+        elif os.name == 'nt' and 'int' in str(_og_dtype).lower():
+            # pizza int dtypes are changing, at least on windows.
+            # come back and try to understand this
+            assert 'int' in str(TRFM_X.dtype).lower()
         else:
-            # pizza U dtypes are changing. come back and try to understand this
-            import os
-            if '<U' in str(_og_dtype):
-                assert '<U' in str(TRFM_X.dtype)
-            # pizza int dtypes are changing, at least on windows. come back and try to understand this
-            elif os.name == 'nt' and 'int' in str(_og_dtype).lower():
-                assert 'int' in str(TRFM_X.dtype).lower()
-            else:
-                assert TRFM_X.dtype == _og_dtype
+            assert TRFM_X.dtype == _og_dtype
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # attr 'n_features_in_' is correct
