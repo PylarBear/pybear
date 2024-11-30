@@ -71,11 +71,10 @@ def _column_getter(
         raise TypeError(f"invalid data type '{type(_X)}'")
 
 
-    # pizza reassess this!
     # this assignment must stay here. there was a nan recognition problem
     # that wasnt happening in offline tests of entire data objects
     # holding the gamut of nan-likes but was happening with similar data
-    # objects passing thru the CDT machinery. Dont know the reason why,
+    # objects passing thru the IM machinery. Dont know the reason why,
     # maybe because the columns get parted out, or because they get sent
     # thru the joblib machinery? using nan_mask here and reassigning all
     # nans identified here as np.nan resolved the issue.

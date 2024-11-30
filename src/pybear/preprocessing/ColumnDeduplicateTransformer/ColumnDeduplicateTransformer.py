@@ -158,8 +158,8 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
     will likely change at each call. Fits performed after calls to
     :method: transform will change the random indices away from those
     used in the previous transforms, causing CDT to perform entirely
-    different tranformations than those previously being done. CDT cannot
-    block calls to :method: partial_fit after calls to :method:
+    different transformations than those previously being done. CDT
+    cannot block calls to :method: partial_fit after calls to :method:
     transform, but pybear strongly discourages this practice because the
     output will be nonsensical. pybear recommends doing all partial fits
     consecutively, then doing all transformations consecutively.
