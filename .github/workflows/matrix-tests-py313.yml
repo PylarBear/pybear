@@ -28,14 +28,14 @@ jobs:
       run: brew install libomp
 
     # Need llvm on macOS to run py3.13
-    - name: Install llvm on macOS
-      if: matrix.os == 'macos-latest'
-      run: brew install llvm
+    # - name: Install llvm on macOS
+    #   if: matrix.os == 'macos-latest'
+    #   run: brew install llvm
 
     # Need to explicitly set the PATH to include LLVM’s binary directory
-    - name: Configure LLVM PATH on macOS
-      if: matrix.os == 'macos-latest'
-      run: echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> $GITHUB_ENV
+    # - name: Configure LLVM PATH on macOS
+    #   if: matrix.os == 'macos-latest'
+    #   run: echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> $GITHUB_ENV
 
     - name: Install Poetry
       run: |
@@ -45,6 +45,7 @@ jobs:
     - name: Install dependencies with Poetry
       run: |
         poetry lock
+        poetry add llvmlite --lock --dev
         poetry install
 
     - name: Run tests
