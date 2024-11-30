@@ -80,12 +80,6 @@ def _inverse_transform(
         X = X.tocsc()
 
 
-    # pizza verify
-    # confirmed via pytest 24_10_10 this needs to stay
-    # assure _removed_columns keys are accessed ascending
-    for k in sorted(_removed_columns.keys()):
-        _removed_columns[int(k)] = _removed_columns.pop(k)
-
     # must do this from left to right!
     # use the _removed_columns dict to insert columns with the original
     # constant values

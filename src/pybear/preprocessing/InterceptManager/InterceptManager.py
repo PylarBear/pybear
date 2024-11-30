@@ -5,7 +5,7 @@
 #
 
 
-# pizza dont forget to clean up these imports!!
+
 from typing import Optional
 from typing_extensions import Self, Union
 from ._type_aliases import (
@@ -18,7 +18,6 @@ import pandas as pd
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
-from ._validation._keep_and_columns import _val_keep_and_columns
 from ._partial_fit._find_constants import _find_constants
 from ._shared._make_instructions import _make_instructions
 from ._shared._set_attributes import _set_attributes
@@ -36,19 +35,14 @@ from sklearn.utils.validation import check_is_fitted, check_array
 class InterceptManager(BaseEstimator, TransformerMixin):
 
     """
-
-    pizza add something about keep=='random' and transform()
-
-
     InterceptManager (IM) is a scikit-style transformer that identifies
     and manages the constant columns in a dataset.
 
-    Columns with constant values within the same dataset may occur
-    for a variety of reasons, some intentional, some circumstantial.
-    The use of a column of constants in a dataset may be a design
-    consideration for some data analytics algorithms, such as multiple
-    linear regression. Therefore, the presence of one such column may
-    be desirable.
+    A dataset may contain columns with constant values for a variety of
+    reasons, some intentional, some circumstantial. The use of a column
+    of constants in a dataset may be a design consideration for some
+    data analytics algorithms, such as multiple linear regression.
+    Therefore, the presence of one such column may be desirable.
 
     The presence of multiple constant columns is generally a degenerate
     condition. In many data analytics learning algorithms, such a
@@ -56,8 +50,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     other undesirable effects. The analyst is often forced to address
     the issue to perform a meaningful analysis of the data.
 
-    IM is a tool that can help fix this condition, and has several key
-    characteristics that make it versatile and powerful.
+    IM has several key characteristics that make it a versatile and
+    powerful tool that can help fix this condition.
 
     IM...
     1) handles numerical and non-numerical data
@@ -79,17 +73,16 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     The computation for numerical columns is slightly more complex.
     IM calculates the mean of the column then compares it against the
     individual values via numpy.allclose. allclose has rtol and atol
-    parameters to give latitude to the definition of 'equal'. They
+    parameters that give latitude to the definition of 'equal'. They
     provide a tolerance window whereby numerical data that are not
     exactly equal are considered equal if their difference falls within
     the tolerance. IM affords some flexibility in defining 'equal' for
     the purpose of identifying constants by providing direct access to
     the numpy.allclose rtol and atol parameters through its own rtol and
     atol parameters. IM requires rtol and atol be non-boolean,
-    non-negative real numbers, in addition to any other restrictions IM
-    requires that rtol and atol be non-boolean, enforced by
-    numpy.allclose. See the numpy docs for clarification of the technical
-    details.
+    non-negative real numbers, in addition to any other restrictions
+    enforced by numpy.allclose. See the numpy docs for clarification of
+    the technical details.
 
     The equal_nan parameter controls how IM handles nan-like values. If
     equal_nan is True, exclude any nan-like values from the allclose
@@ -120,7 +113,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     container is the same as the input, that is, numpy array, pandas
     dataframe, or scipy sparse matrix/array.
 
-    The partial fit method allows for batch-wise fitting of data. This
+    The partial_fit method allows for incremental fitting of data. This
     makes IM suitable for use with packages that do batch-wise fitting
     and transforming, such as dask_ml via the Incremental and
     ParallelPostFit wrappers.
@@ -134,6 +127,24 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     the data versus what would otherwise be learned under constant
     settings. pybear recommends against this practice, however, it is
     not strictly blocked.
+
+    When performing multiple batch-wise transformations of data, that is,
+    making sequential calls to :method: transform, it is critical that
+    the same column indices be kept / removed at each call. This issue
+    manifests when :param: keep is set to 'random'; the random index
+    to keep must be the same at all calls to :method: transform, and
+    cannot be dynamically randomized within :method: transform. IM
+    handles this by generating a static random index to keep at fit time,
+    and does not change this number during transform time. This number
+    is dynamic with each call to :method: partial_fit, and will likely
+    change at each call. Fits performed after calls to :method: transform
+    will change the random index away from that used in the previous
+    transforms, causing IM to perform entirely different transformations
+    than those previously being done. IM cannot block calls to :method:
+    partial_fit after calls to :method: transform, but pybear strongly
+    discourages this practice because the output will be nonsensical.
+    pybear recommends doing all partial fits consecutively, then doing
+    all transformations consecutively.
 
 
     The 'keep' Parameter
@@ -174,52 +185,51 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         is not valid, 3) the feature name is valid but the column is not
         constant.
     callable(X): a callable that returns a valid column index when the
-        fitted data is passed to it, indicating the index of the column
-        of constants to keep while deleting all other columns of
-        constants. This enables the analyst to use characteristics of the
-        data being transformed to determine which column of constants to
-        keep. IM will except if 1) the callable does not return an
-        integer, 2) the integer returned is out of the range of columns
-        in the passed data, 3) the integer that is returned does not
-        correspond to a constant column. IM does not retain state
-        information about what indices have been returned from the
-        callable during transforms.
-        IM passes the data as-is directly to the callable without any
-        preprocessing. The callable will need to operate on the data
+        data is passed to it, indicating the index of the column of
+        constants to keep while deleting all other columns of constants.
+        This enables the analyst to use characteristics of the data
+        being transformed to determine which column of constants to
+        keep. IM passes the data as-is directly to the callable without
+        any preprocessing. The callable needs to operate on the data
         object directly.
-        IM cannot catch if the callable is
-        returning different indices for different blocks of data within
-        a sequence of calls to :method: transform. When doing multiple
-        batch-wise transforms, it is up to the user to ensure that the
-        callable returns the same index for each transform. If the
-        callable returns a different index for any of the blocks of data
-        passed in a sequence of transforms, then the results at transform
-        time will be nonsensical.
+        IM will except if 1) the callable does not return an integer,
+        2) the integer returned is out of the range of columns in the
+        passed data, 3) the integer that is returned does not correspond
+        to a constant column.
+        IM does not retain state information about what indices have
+        been returned from the callable during transforms. IM cannot
+        catch if the callable is returning different indices for
+        different blocks of data within a sequence of calls to :method:
+        transform. When doing multiple batch-wise transforms, it is up
+        to the user to ensure that the callable returns the same index
+        for each transform. If the callable returns a different index
+        for any of the blocks of data passed in a sequence of transforms
+        then the results will be nonsensical.
     dictionary[str, any]: dictionary of {feature name:str, constant
-        value:any}. The :param: 'keep' dictionary requires a single
+        value:any}. A column of constants is appended to the right
+        end of the data, with the constant being the value in the
+        dictionary. The :param: 'keep' dictionary requires a single
         key:value pair.
-        The key must be a string indicating feature name. This applies to
-        any format of data that is transformed. If the data is a pandas
-        dataframe, then this string will become the feature name of the
-        new constant feature. If the fitted data is a numpy array or
-        scipy sparse, then this column name is ignored.
+        The key must be a string indicating feature name. This applies
+        to any format of data that is transformed. If the data is a
+        pandas dataframe, then this string will become the feature name
+        of the new constant feature. If the fitted data is a numpy array
+        or scipy sparse, then this column name is ignored.
         The dictionary value is the constant value for the new feature.
         This value has only two restrictions: it cannot be a non-string
         iterable (e.g. list, tuple, etc.) and it cannot be a callable.
         Essentially, the constant value is restricted to being integer,
-        float, string, or boolean. pizza. when appending new value to a pandas df,
-        if the constant is numeric it is appended as float64; if it is not
-        numeric it is appended as object. Otherwise, if the constant is being
-        appended to a numpy array or scipy sparse it will be forced to the
-        dtype of the transformed data. It is up to the user to observe that the
-        datatype of the constant will be forced to the datatype of the
-        transformed data.
-
+        float, string, or boolean.
+        When appending a constant value to a pandas df, if the constant
+        is numeric it is appended as float64; if it is not numeric it is
+        appended as object. Otherwise, if the constant is being appended
+        to a numpy array or scipy sparse it will be forced to the dtype
+        of the transformed data (with some caveats.)
         When transforming a pandas dataframe and the new feature name is
         already a feature in the data, there are two possible outcomes.
         1) If the original feature is not constant, the new constant
         values will overwrite in the old column (generally an undesirable
-        outcome). 2) If the original feature is constant: the original
+        outcome.) 2) If the original feature is constant, the original
         column will be removed and a new column with the same name will
         be appended with the new constant values. IM will warn about
         this condition but not terminate the program. It is up to the
@@ -227,10 +237,11 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         :attr: column_mask_ is not adjusted for the new feature appended
         by the :param: 'keep' dictionary (see the discussion on :attr:
         column_mask_.) But the :param: 'keep' dictionary does make
-        adjustment to get_feature_names_out. As get_feature_names_out
-        reflects the characteristics of transformed data, and the
-        :param: 'keep' dictionary modifies the data at transform time,
-        then get_feature_names_out also reflects this modification.
+        adjustment to :method: get_feature_names_out. As :method:
+        get_feature_names_out reflects the characteristics of transformed
+        data, and the :param: 'keep' dictionary modifies the data at
+        transform time, then :method: get_feature_names_out also reflects
+        this modification.
 
     To access the :param: keep literals ('first', 'last', 'random',
     'none'), these MUST be passed as lower-case. If a pandas dataframe
@@ -248,8 +259,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     If IM does not find any constant columns, 'first', 'last', 'random',
     and 'none' will not raise an exception. It is like telling IM: "I
     dont know if there are any constant columns, but if you find some,
-    then apply this rule." However, if using the integer, feature name,
-    or callable, IM will raise an exception if IM does not find a
+    then apply this rule." However, if using an integer, feature name,
+    or callable, IM will raise an exception if it does not find a
     constant column at that index. It is like telling IM: "I know that
     this column is constant, and you need to keep it and remove any
     others." If IM finds that it is not constant, it will raise an
@@ -260,8 +271,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     ----------
     keep:
         Optional[Union[Literal['first', 'last', 'random', 'none'],
-        dict[str, any], int, str, callable], default='last' - The
-        strategy for handling the constant columns. See 'The keep
+        dict[str, any], int, str, callable[[X], int], default='last' -
+        The strategy for handling the constant columns. See 'The keep
         Parameter' section for a lengthy explanation of the 'keep'
         parameter.
     equal_nan:
@@ -293,7 +304,6 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
     Notes
     -----
-    pizza revisit this when everything is said and done
     Concerning the handling of nan-like representations. While IM
     accepts data in the form of numpy arrays, pandas dataframes, and
     scipy sparse matrices/arrays, during the search for constants
@@ -359,7 +369,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     removed_columns_:
         dict[int, any] - A subset of the constant_columns_ dictionary,
         constructed with the same format. This holds the subset of
-        constant columns that were removed from the data. If there are
+        constant columns that are removed from the data. If there are
         no constant columns or no constant columns are removed, then
         this is an empty dictionary.
 
@@ -654,7 +664,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         _validation(
             X,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self.feature_names_in_ if \
+                hasattr(self, 'feature_names_in_') else None,
             self.keep,
             self.equal_nan,
             self.rtol,
@@ -714,7 +725,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             X,
             self.constant_columns_,
             self.n_features_in_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self.feature_names_in_ if \
+                hasattr(self, 'feature_names_in_') else None,
             self._rand_idx
         )
 
@@ -924,7 +936,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         X = _inverse_transform(
             X,
             self.removed_columns_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+            self.feature_names_in_ if \
+                hasattr(self, 'feature_names_in_') else None
         )
 
         if isinstance(X, np.ndarray):
@@ -1006,7 +1019,8 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         _validation(
             X,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self.feature_names_in_ if \
+                hasattr(self, 'feature_names_in_') else None,
             self.keep,
             self.equal_nan,
             self.rtol,
@@ -1015,15 +1029,16 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         )
 
 
-        # everything below needs to be redone every transform in case 'keep' was
-        # changed via set params after fit
+        # everything below needs to be redone every transform in case 'keep'
+        # was changed via set params after fit
 
         _keep = _manage_keep(
             self.keep,
             X,
             self.constant_columns_,
             self.n_features_in_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self.feature_names_in_ if \
+                hasattr(self, 'feature_names_in_') else None,
             self._rand_idx
         )
 
