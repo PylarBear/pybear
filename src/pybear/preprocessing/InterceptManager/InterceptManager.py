@@ -394,6 +394,40 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     numpy.unique
 
 
+    Examples
+    --------
+    >>> from pybear.preprocessing import InterceptManager as IM
+    >>> import numpy as np
+    >>> np.random.seed(99)
+    >>> X = np.random.randint(0, 10, (5, 5))
+    >>> X[:, 1] = 0
+    >>> X[:, 2] = 1
+    >>> print(X)
+    [[1 0 1 8 9]
+     [8 0 1 5 4]
+     [1 0 1 7 1]
+     [1 0 1 4 7]
+     [2 0 1 8 4]]
+    >>> trf = IM(keep='first', equal_nan=True)
+    >>> trf.fit(X)
+    InterceptManager(keep='first')
+    >>> out = trf.transform(X)
+    >>> print(out)
+    [[1 0 8 9]
+     [8 0 5 4]
+     [1 0 7 1]
+     [1 0 4 7]
+     [2 0 8 4]]
+    >>> print(trf.n_features_in_)
+    5
+    >>> print(trf.constant_columns_)
+    {1: np.float64(0.0), 2: np.float64(1.0)}
+    >>> print(trf.removed_columns_)
+    {2: np.float64(1.0)}
+    >>> print(trf.column_mask_)
+    [ True  True False  True  True]
+
+
     """
 
 
