@@ -270,8 +270,12 @@ class TestAccuracy:
             # is '<U21' (???, maybe floating point error on the float?) )
             assert '<U' in str(TRFM_X.dtype)
         elif os.name == 'nt' and 'int' in str(_og_dtype).lower():
-            # pizza int dtypes are changing, at least on windows.
-            # come back and try to understand this
+            # on windows (verified not macos or linux), int dtypes are
+            # changing to int64, in _transform() at
+            # _X = np.hstack((
+            #     _X,
+            #     np.full((_X.shape[0], 1), _value)
+            # ))
             assert 'int' in str(TRFM_X.dtype).lower()
         else:
             assert TRFM_X.dtype == _og_dtype
