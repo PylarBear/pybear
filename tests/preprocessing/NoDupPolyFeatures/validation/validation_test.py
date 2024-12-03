@@ -42,13 +42,13 @@ class TestValidation:
     @pytest.mark.parametrize('_degree', (1, 2))
     @pytest.mark.parametrize('_min_degree', (0, 1)) # 1))
     @pytest.mark.parametrize('_drop_duplicates', (True, False))
-    @pytest.mark.parametrize('_conflict', ('raise', )) # 'ignore'))
-    @pytest.mark.parametrize('_keep', ('first', )) # 'last', 'random'))
+    # @pytest.mark.parametrize('_conflict', ('raise', 'ignore'))  # pizza on the block
+    @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
     @pytest.mark.parametrize('_interaction_only', (True, False))
-    @pytest.mark.parametrize('_include_bias', (True, False))
+    # @pytest.mark.parametrize('_include_bias', (True, False))  # pizza on the block
     @pytest.mark.parametrize('_drop_constants', (True, False))
     @pytest.mark.parametrize('_output_sparse', (True, False))
-    @pytest.mark.parametrize('_order', ('C', 'F'))
+    # @pytest.mark.parametrize('_order', ('C', 'F'))  # pizza on the block
     @pytest.mark.parametrize('_rtol', (1e-6, )) # 1e-1))
     @pytest.mark.parametrize('_atol', (1e-6, )) # 1))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -66,13 +66,13 @@ class TestValidation:
             _min_degree,
             _drop_duplicates,
             _keep,
-            _do_not_drop,
-            _conflict,
+            # _do_not_drop,  # pizza on the block
+            # _conflict,  # pizza on the block
             _interaction_only,
-            _include_bias,
+            # _include_bias,  # pizza on the block
             _drop_constants,
             _output_sparse,
-            _order,
+            # _order,  # pizza on the block
             _rtol,
             _atol,
             _equal_nan,

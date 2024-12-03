@@ -6,14 +6,11 @@
 
 
 import itertools
-import numpy as np
-import numpy.typing as npt
 
 
 
 def _combination_builder(
     _shape: tuple[int, int],
-    _constants: npt.NDArray[int],
     _min_degree: int,
     _max_degree: int,
     _intx_only: bool
@@ -23,12 +20,11 @@ def _combination_builder(
     Fill a list with tuples of column indices, with the indices indicating
     sets of columns to be multiplied together.
 
+
     Parameters
     ----------
     _shape:
-        tuple[int, int] - the rows and columns in X
-    _constants:
-        NDArray[int] - columns of constants; excluded from combinations
+        tuple[int, int] - the (n_samples, n_features) shape of X
     _min_degree:
         int - pizza get this from NoDup
     _max_degree:
@@ -53,8 +49,6 @@ def _combination_builder(
     except:
         raise AssertionError
     assert len(_shape) == 2
-    assert isinstance(_constants, np.ndarray)
-    assert _constants.dtype == np.int32
     assert isinstance(_min_degree, int)
     assert not isinstance(_min_degree, bool)
     assert _min_degree >= 0
@@ -77,11 +71,9 @@ def _combination_builder(
     fxn = itertools.combinations if _intx_only else \
         itertools.combinations_with_replacement
 
-    COLUMNS = set(range(_shape[1])) - set(_constants)
-
     _combinations = \
     itertools.chain.from_iterable(
-        fxn(list(COLUMNS), _deg) for _deg in range(_min_degree, _max_degree+1)
+        fxn(list(range(_shape[1])), _deg) for _deg in range(_min_degree, _max_degree+1)
     )
 
 
