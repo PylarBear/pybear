@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
@@ -1044,6 +1045,12 @@ class TestDuplAccuracyOverManyPartialFits:
 
             _dupl_pool.remove(random_dupl)
 
+            # now that random_dupl has been taken out of _start_dupl,
+            # it may have been in the first position of a set which would
+            # change the sorting of the sets. so re-sort the sets
+
+            _start_dupl = sorted(_start_dupl, key=lambda x: x[0])
+
 
             _from_X = _wip_X[:, random_dupl]
             _from_pool = _pool_X[:, random_dupl]
@@ -1060,7 +1067,8 @@ class TestDuplAccuracyOverManyPartialFits:
             out = TestCls.partial_fit(_wip_X, _y).duplicates_
             assert len(out) == len(_start_dupl)
             for idx in range(len(_start_dupl)):
-                assert np.array_equal(out[idx], _start_dupl[idx])
+                assert np.array_equal(out[idx], _start_dupl[idx]), \
+                    f"{out=}, {_start_dupl=}"
 
         # END take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v
 
