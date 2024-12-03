@@ -7,8 +7,8 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit._merge_dupls import (
-    _merge_dupls
+from pybear.preprocessing.NoDupPolyFeatures._base_fit._merge_partialfit_dupls import (
+    _merge_partialfit_dupls
 )
 
 
@@ -110,7 +110,7 @@ class TestDuplIdxs(Fixtures):
         # _find_duplicates is tested elsewhere for all input types. Only need
         # to test with numpy arrays here.
 
-        out = _merge_dupls(None, _init_duplicates)
+        out = _merge_partialfit_dupls(None, _init_duplicates)
 
         for idx in range(len(out)):
             #                               vvvvvvvvvvvvvvvvvvvvv
@@ -124,7 +124,7 @@ class TestDuplIdxs(Fixtures):
         # on a partial fit where less duplicates are found, outputted melded
         # duplicates should reflect the lesser columns
 
-        out = _merge_dupls(_init_duplicates, _less_duplicates)
+        out = _merge_partialfit_dupls(_init_duplicates, _less_duplicates)
 
         for idx in range(len(out)):
             #                               vvvvvvvvvvvvvvvvvvvvv
@@ -138,7 +138,7 @@ class TestDuplIdxs(Fixtures):
         # on a partial fit where more duplicates are found, outputted melded
         # duplicates should not add the newly found columns
 
-        out = _merge_dupls(_init_duplicates, _more_duplicates)
+        out = _merge_partialfit_dupls(_init_duplicates, _more_duplicates)
 
         for idx in range(len(out)):
             #                               vvvvvvvvvvvvvvvvvvvvv
@@ -149,11 +149,11 @@ class TestDuplIdxs(Fixtures):
         self, _init_duplicates, _less_duplicates, _more_duplicates
     ):
 
-        duplicates_ = _merge_dupls(None, _init_duplicates)
+        duplicates_ = _merge_partialfit_dupls(None, _init_duplicates)
 
-        duplicates_ = _merge_dupls(duplicates_, _more_duplicates)
+        duplicates_ = _merge_partialfit_dupls(duplicates_, _more_duplicates)
 
-        duplicates_ = _merge_dupls(duplicates_, _less_duplicates)
+        duplicates_ = _merge_partialfit_dupls(duplicates_, _less_duplicates)
 
         # _less_duplicates must be the correct output
         for idx in range(len(duplicates_)):
@@ -163,15 +163,15 @@ class TestDuplIdxs(Fixtures):
 
     def test_no_duplicates_found(self, _init_duplicates):
 
-        duplicates_ = _merge_dupls(None, [])
+        duplicates_ = _merge_partialfit_dupls(None, [])
 
         assert duplicates_ == []
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        duplicates_ = _merge_dupls(None, _init_duplicates)
+        duplicates_ = _merge_partialfit_dupls(None, _init_duplicates)
 
-        duplicates_ = _merge_dupls(duplicates_, [])
+        duplicates_ = _merge_partialfit_dupls(duplicates_, [])
 
         assert duplicates_ == []
 

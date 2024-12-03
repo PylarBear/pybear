@@ -54,9 +54,9 @@ class TestValidation:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_n_jobs', (-1, 1))
     def test_accepts_good(
-        self, _X, _columns, _degree, _min_degree, _drop_duplicates, _conflict,
-        _do_not_drop, _keep, _interaction_only, _include_bias, _drop_constants,
-        _output_sparse, _order, _rtol, _atol, _equal_nan, _n_jobs, _shape
+        self, _X, _columns, _degree, _min_degree, _drop_duplicates, #_conflict, _include_bias, _do_not_drop, _order,
+        _keep, _interaction_only, _drop_constants,
+        _output_sparse, _rtol, _atol, _equal_nan, _n_jobs, _shape
     ):
 
         _validation(
