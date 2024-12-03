@@ -15,7 +15,7 @@ import itertools
 
 
 
-def _merge_dupls(
+def _merge_partialfit_dupls(
     _old_duplicates: Union[list[list[tuple[int]]], None],
     _new_duplicates: Union[list[list[tuple[int]]]],
 ) -> list[list[tuple[int]]]:
@@ -88,26 +88,74 @@ def _merge_dupls(
         # previously found to be equal.
 
         # compare the newest duplicates against the previously found
-        # duplicates. Only columns that were in the previous list can
-        # carry forward, less any that are not in the newest duplicates.
+        # duplicates. Only a group of 2+ columns that appear together in
+        # a set of dupls in both duplicates can carry forward. make sense?
+        # _old_duplicates = [[0,1,2], [4,5]]
+        # _new_duplicates = [[0, 3], [1,2], [4,5]]
+        # only [1,2] and [4,5] carry forward.
 
-        _serialized_old_duplicates = list(itertools.chain(*_old_duplicates))
-        _serialized_new_duplicates = list(itertools.chain(*_new_duplicates))
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # get the possible combinations of pairs for both duplicates, then
+        # find the
+        # intersection, to find all pairs of numbers that are in the same subset
+        # for both duplicates.
 
-        # only keep the idxs that they have in common - coincidental
-        # identicals will fall out, newly found non-identicals fall out
-        _intersection = set(
-            _serialized_old_duplicates
-        ).intersection(_serialized_new_duplicates)
+        all_old_comb = []
+        for _set in _old_duplicates:
+            all_old_comb += list(itertools.combinations(_set, 2))
 
-        # now need to know which idxs in the old duplicates were found to
-        # be no longer be equal
-        _diff = set(_serialized_old_duplicates) - set(_intersection)
+        all_new_comb = []
+        for _set in _new_duplicates:
+            all_new_comb += list(itertools.combinations(_set, 2))
 
-        # need to find the _diff idxs in the original buckets, and remove
-        # them from their respective buckets.
-        duplicates_ = [[v for v in _set if v not in _diff] for _set in _old_duplicates]
-        duplicates_ = [_ for _ in duplicates_ if _ != []]
+        _intersection = set(all_old_comb).intersection(all_new_comb)
+
+        del _set, all_old_comb, all_new_comb
+
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # use this "union-find" stuff that CHATGPT came up with to convert
+        # pairs of duplicates like [(0,1), (1,2), (0,2), (4,5)] to [[0,1,2], [4,5]]
+
+
+        # pizza move this
+        from collections import defaultdict
+
+        # Find connected components using union-find
+        # Union-Find data structure
+        parent = {}
+
+        def find(x):
+            if parent[x] != x:
+                parent[x] = find(parent[x])  # Path compression
+            return parent[x]
+
+        def union(x, y):
+            root_x = find(x)
+            root_y = find(y)
+            if root_x != root_y:
+                parent[root_y] = root_x
+
+        # Initialize Union-Find
+        for x, y in _intersection:
+            if x not in parent:
+                parent[x] = x
+            if y not in parent:
+                parent[y] = y
+            union(x, y)
+
+        # Group elements by their root
+        components = defaultdict(list)
+        for node in parent:
+            root = find(node)
+            components[root].append(node)
+
+        duplicates_ = list(components.values())
+
+        # Sort each component and the final result for consistency
+        duplicates_ = [sorted(component) for component in duplicates_]
+        duplicates_ = sorted(duplicates_, key=lambda x: x[0])
 
 
         return duplicates_
