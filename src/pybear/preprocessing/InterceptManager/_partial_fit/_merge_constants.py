@@ -6,12 +6,13 @@
 
 
 
+from typing_extensions import Union
 from numbers import Real
 import numpy as np
 
 
 def _merge_constants(
-    _old_constants: dict[int, any],
+    _old_constants: Union[dict[int, any], None],
     _new_constants: dict[int, any],
     _rtol: Real,
     _atol: Real
@@ -26,8 +27,9 @@ def _merge_constants(
     Parameters
     ----------
     _old_constants:
-        dict[int, any] - the column indices of constant columns found in
-        previous partial fits and the values in the columns.
+        Union[dict[int, any], None] - the column indices of constant
+        columns found in previous partial fits and the values in the
+        columns.
     _new_constants:
         dict[int, any] - the column indices of constant columns found in
         the current partial fit and the values in the columns.
@@ -52,10 +54,10 @@ def _merge_constants(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_old_constants, (dict, type(None)))
     if _old_constants and len(_old_constants):
-        assert isinstance(list(_old_constants.keys())[0], int)
+        assert all(map(isinstance, _old_constants, (int for _ in _old_constants)))
     assert isinstance(_new_constants, dict)
     if len(_new_constants):
-        assert isinstance(list(_new_constants.keys())[0], int)
+        assert all(map(isinstance, _new_constants, (int for _ in _new_constants)))
     try:
         float(_rtol)
         float(_atol)
