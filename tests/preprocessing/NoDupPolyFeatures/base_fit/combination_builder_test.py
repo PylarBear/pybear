@@ -6,13 +6,14 @@
 
 
 
-import pytest
 
-
-import numpy as np
 
 from pybear.preprocessing.NoDupPolyFeatures._base_fit._combination_builder \
     import _combination_builder
+
+import pytest
+
+import numpy as np
 
 
 

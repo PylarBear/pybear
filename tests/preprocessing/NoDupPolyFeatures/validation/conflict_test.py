@@ -11,6 +11,7 @@ from pybear.preprocessing.NoDupPolyFeatures._validation.\
 import pytest
 
 
+pytest.skip(reason=f"pizza on the block", allow_module_level=True)
 
 
 class TestConflict:

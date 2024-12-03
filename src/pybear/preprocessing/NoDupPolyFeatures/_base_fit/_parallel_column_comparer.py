@@ -66,6 +66,13 @@ def _parallel_column_comparer(
     """
 
 
+    __ = _column1.shape
+    assert len(__) == 1 or (len(__)==2 and __[1] == 1)
+    __ = _column2.shape
+    assert len(__) == 1 or (len(__)==2 and __[1] == 1)
+    del __
+
+
     try:
         # float64 RAISES ValueError ON STR DTYPES, IN THAT CASE MUST BE STR
         _column1.astype(np.float64)
