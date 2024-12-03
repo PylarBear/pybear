@@ -104,8 +104,9 @@ class TestMergeConstantsValidation(Fixtures):
         ({}, {0: 1, 4: 0, 5: 0}, {0: 1, 2: np.nan})
     )
     def test_new_constants_accepts_good(self, _new_constants):
+
         _merge_constants(
-            {0: 0, 1: 1, 'c': np.nan},
+            {0: 0, 1: 1, 2: np.nan},
             _new_constants,
             _rtol=1e-5,
             _atol=1e-8
