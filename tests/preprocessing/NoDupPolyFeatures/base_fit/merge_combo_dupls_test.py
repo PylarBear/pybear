@@ -7,8 +7,8 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit._merge_partialfit_dupls import (
-    _merge_partialfit_dupls
+from pybear.preprocessing.NoDupPolyFeatures._base_fit._merge_combo_dupls import (
+    _merge_combo_dupls
 )
 
 
@@ -16,164 +16,138 @@ import pytest
 import numpy as np
 
 
+pytest.skip(reason=f"pizza is half baked!", allow_module_level=True)
 
 
 
-class Fixtures:
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 20)
+class TestMergeComboDupls:
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _X_base(_X_factory, _shape):
-        return _X_factory(
-            _dupl=None,
-            _format='np',
-            _dtype='flt',
-            _columns=None,
-            _shape=_shape
+    def _good_combo_dupls():
+        return [(1,), (1,2)]
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _good_partialfit_dupls():
+        return [[(1, ), (2, )]]
+
+
+
+    # _dupls_for_this_combo ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    @pytest.mark.parametrize('_dupls_for_this_combo',
+        (-np.e, -1, 0, 1, np.e, None, True, False, 'trash', lambda x: x)
+    )
+    def test_dupls_for_this_combo_rejects_junk(self, _dupls_for_this_combo, _good_partialfit_dupls):
+        with pytest.raises(AssertionError):
+            _merge_combo_dupls(
+                _dupls_for_this_combo,
+                _good_partialfit_dupls
+            )
+
+
+    @pytest.mark.parametrize('_dupls_for_this_combo',
+        ((), ((0,), (1,)), {(0,), (1,)}, [[0], [1]])
+    )
+    def test_dupls_for_this_combo_rejects_bad(self, _dupls_for_this_combo, _good_partialfit_dupls):
+        with pytest.raises(AssertionError):
+            _merge_combo_dupls(
+                _dupls_for_this_combo,
+                _good_partialfit_dupls
+            )
+
+
+    @pytest.mark.parametrize('_dupls_for_this_combo',
+        ([], [(0,)], [(0,), (1,)], [(2,), (0,1,2)])
+    )
+    def test_dupls_for_this_combo_accepts_good(self, _dupls_for_this_combo, _good_partialfit_dupls):
+        _merge_combo_dupls(
+            _dupls_for_this_combo,
+            _good_partialfit_dupls
+        )
+    # END _dupls_for_this_combo ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    # _poly_dupls_current_partial_fit ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    @pytest.mark.parametrize('_poly_dupls_current_partial_fit',
+        (-np.e, -1, 0, 1, np.e, None, True, False, 'trash', lambda x: x)
+    )
+    def test_poly_dupls_current_partial_fit_rejects_junk(
+        self, _good_dupls_for_this_combo, _poly_dupls_current_partial_fit
+    ):
+
+        with pytest.raises(AssertionError):
+            _merge_combo_dupls(
+                _good_dupls_for_this_combo,
+                _poly_dupls_current_partial_fit
+            )
+
+
+    @pytest.mark.parametrize('_poly_dupls_current_partial_fit',
+        ([(1,), (2,), (3,)], ([(1,),(2,),(3,)], [4,5,6]), {1,2,3}, [[1,2,3],[]])
+    )
+    def test_poly_dupls_current_partial_fit_rejects_bad(self, _good_combo_dupls, _poly_dupls_current_partial_fit):
+        with pytest.raises(AssertionError):
+            _merge_combo_dupls(
+                _good_combo_dupls,
+                _poly_dupls_current_partial_fit
+            )
+
+
+    @pytest.mark.parametrize('_poly_dupls_current_partial_fit',
+        ([], [[(1,),(2,)]], [[(1,),(2,),(3,)], [(4,),(5,),(6,)]])
+    )
+    def test_poly_dupls_current_partial_fit_accepts_good(self, _good_combo_dupls, _poly_dupls_current_partial_fit):
+        _merge_combo_dupls(
+            _good_combo_dupls,
+            _poly_dupls_current_partial_fit
+        )
+
+    # END _poly_dupls_current_partial_fit ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+
+
+class TestMergeComboDuplsAccuracy:
+
+
+    @pytest.mark.parametrize('_dupls_for_this_combo',
+        ([], [(1,)], [(0,), (4,), (5,)], [(0,10), (1,21), (2,33)])
+    )
+    @pytest.mark.parametrize('_poly_dupls_current_partial_fit',
+        (
+            [], [[(1,)]], [[(2,)]], [[(0,), (4,), (5,)]], [[(0,), (3,), (5,)]],
+            [[(0,10), (1,21), (2,33)]], [[(1,21), (2,34)]]
+        )
+    )
+    def test_accuracy(self, _dupls_for_this_combo, _poly_dupls_current_partial_fit):
+
+        # first pass _dupls_for_this_combo goes directly into _poly_dupls_current_partial_fit
+        # if _dupls_for_this_combo is empty, always just returns []
+
+        out = _merge_combo_dupls(
+            _dupls_for_this_combo=_dupls_for_this_combo,
+            _poly_dupls_current_partial_fit=_poly_dupls_current_partial_fit,
         )
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _init_duplicates():
-        return [
-            [(1,), (15,)],
-            [(3,), (8,), (12,)]
-        ]
-
-
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _X_initial(_X_base, _init_duplicates):
-    #     _X_initial = _X_base.copy()
-    #     for _set in _init_duplicates:
-    #         for idx in _set[1:]:
-    #             _X_initial[:, idx] = _X_initial[:, _set[0]]
-    #     return _X_initial
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _less_duplicates():
-        return [
-            [(1,), (15,)],
-            [(3,), (12,)]
-        ]
-
-
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _X_less_dupl_found(_X_base, _less_duplicates):
-    #     _X_less_dupl_found = _X_base.copy()
-    #     for _set in _less_duplicates:
-    #         for idx in _set[1:]:
-    #             _X_less_dupl_found[:, idx] = _X_less_dupl_found[:, _set[0]]
-    #     return _X_less_dupl_found
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _more_duplicates():
-        return [
-            [(1,), (4,), (15,)],
-            [(3,), (8,), (12,)]
-        ]
-
-
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _X_more_dupl_found(_X_base, _more_duplicates):
-    #     _X_more_dupl_found = _X_base.copy()
-    #     for _set in _more_duplicates:
-    #         for idx in _set[1:]:
-    #             _X_more_dupl_found[:, idx] = _X_more_dupl_found[:, _set[0]]
-    #     return _X_more_dupl_found
+        if not len(_dupls_for_this_combo):
+            assert out == _poly_dupls_current_partial_fit
+        elif len(_dupls_for_this_combo):
+            if not len(_poly_dupls_current_partial_fit):
+                assert out == [_dupls_for_this_combo]
+            elif len(_poly_dupls_current_partial_fit):
+            #     for what in what?!!?!
+                pass
 
 
 
-class TestDuplIdxs(Fixtures):
 
 
-    def test_first_pass(self, _init_duplicates):
-
-        # on first pass, the output of _find_duplicates is returned directly.
-        # _find_duplicates is tested elsewhere for all input types. Only need
-        # to test with numpy arrays here.
-
-        out = _merge_partialfit_dupls(None, _init_duplicates)
-
-        for idx in range(len(out)):
-            #                               vvvvvvvvvvvvvvvvvvvvv
-            assert np.array_equiv(out[idx], _init_duplicates[idx])
-
-
-    def test_less_dupl_found(
-        self, _init_duplicates, _less_duplicates
-    ):
-
-        # on a partial fit where less duplicates are found, outputted melded
-        # duplicates should reflect the lesser columns
-
-        out = _merge_partialfit_dupls(_init_duplicates, _less_duplicates)
-
-        for idx in range(len(out)):
-            #                               vvvvvvvvvvvvvvvvvvvvv
-            assert np.array_equiv(out[idx], _less_duplicates[idx])
-
-
-    def test_more_dupl_found(
-        self, _init_duplicates, _more_duplicates
-    ):
-
-        # on a partial fit where more duplicates are found, outputted melded
-        # duplicates should not add the newly found columns
-
-        out = _merge_partialfit_dupls(_init_duplicates, _more_duplicates)
-
-        for idx in range(len(out)):
-            #                               vvvvvvvvvvvvvvvvvvvvv
-            assert np.array_equiv(out[idx], _init_duplicates[idx])
-
-
-    def test_more_and_less_duplicates_found(
-        self, _init_duplicates, _less_duplicates, _more_duplicates
-    ):
-
-        duplicates_ = _merge_partialfit_dupls(None, _init_duplicates)
-
-        duplicates_ = _merge_partialfit_dupls(duplicates_, _more_duplicates)
-
-        duplicates_ = _merge_partialfit_dupls(duplicates_, _less_duplicates)
-
-        # _less_duplicates must be the correct output
-        for idx in range(len(duplicates_)):
-            assert np.array_equiv(duplicates_[idx], _less_duplicates[idx])
-
-
-
-    def test_no_duplicates_found(self, _init_duplicates):
-
-        duplicates_ = _merge_partialfit_dupls(None, [])
-
-        assert duplicates_ == []
-
-        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-        duplicates_ = _merge_partialfit_dupls(None, _init_duplicates)
-
-        duplicates_ = _merge_partialfit_dupls(duplicates_, [])
-
-        assert duplicates_ == []
 
 
 

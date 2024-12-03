@@ -25,7 +25,7 @@ class TestRtol:
 
 
     @pytest.mark.parametrize('bad_rtol',
-        (True, False)
+        (-1, True, False)
     )
     def test_accepts_good(self, bad_rtol):
         with pytest.raises(TypeError):
@@ -33,7 +33,7 @@ class TestRtol:
 
 
     @pytest.mark.parametrize('good_rtol',
-        (-1, 0, 1e-6, 0.1, 1, 3.14)
+        (0, 1e-6, 0.1, 1, 3.14)
     )
     def test_accepts_good(self, good_rtol):
         _val_rtol(good_rtol)
