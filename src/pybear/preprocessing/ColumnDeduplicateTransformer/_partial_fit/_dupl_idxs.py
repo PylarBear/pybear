@@ -131,14 +131,12 @@ def _dupl_idxs(
             _serialized_old_duplicates
         ).intersection(_serialized_new_duplicates)
 
-        # now need to know which idxs in the old duplicates were found to
-        # no longer be equal
-        _diff = set(_serialized_old_duplicates) - set(_intersection)
-
-        # need to find the _diff idxs in the original buckets, and remove
-        # them from their respective buckets.
-        duplicates_ = [[v for v in _set if v not in _diff] for _set in _duplicates]
-        duplicates_ = [_ for _ in duplicates_ if _ != []]
+        # need to find the _intersection idxs in the original buckets,
+        # and keep them in their respective buckets and remove the rest.
+        duplicates_ = [
+            [v for v in _set if v in _intersection] for _set in _duplicates
+        ]
+        duplicates_ = [_ for _ in duplicates_ if len(_) >= 2]
 
 
         return duplicates_

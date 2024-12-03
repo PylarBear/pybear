@@ -16,9 +16,9 @@ import itertools
 
 
 def _merge_dupls(
-    _old_duplicates: Union[list[list[tuple[int, ...]]], None],
-    _new_duplicates: Union[list[list[tuple[int, ...]]]],
-) -> list[list[tuple[int, ...]]]:
+    _old_duplicates: Union[list[list[tuple[int]]], None],
+    _new_duplicates: Union[list[list[tuple[int]]]],
+) -> list[list[tuple[int]]]:
 
     """
     Find groups of identical columns for the current partial fit with
