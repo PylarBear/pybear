@@ -23,6 +23,8 @@ def _merge_constants(
     found in previous partial fits. Constant columns can only stay the
     same or decrease on later partial fits, never increase.
 
+    This works for both X_constants_ and poly_constants_.
+
 
     Parameters
     ----------
