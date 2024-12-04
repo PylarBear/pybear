@@ -221,8 +221,75 @@ class TestDuplIdxs(Fixtures):
 
 
 
+    def test_special_case_accuracy(
+        self, _X_factory, _rtol, _atol, _equal_nan, _n_jobs, _shape
+    ):
+
+        # test cases where columns repeat, but in different groups
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        _fst_duplicates = [[0, 1, 2], [3, 4, 5]]
+        _scd_duplicates = [[0, 4, 5], [1, 2, 3]]
+
+        _scd_X = _X_factory(
+            _dupl=_scd_duplicates,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
+
+        out = _dupl_idxs(
+            _scd_X, _fst_duplicates, _rtol, _atol, _equal_nan, _n_jobs
+        )
+
+        assert out == [[1, 2], [4, 5]]
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        _fst_duplicates = [[1, 3, 5], [0, 2, 4]]
+        _scd_duplicates = [[0, 2, 4], [1, 3, 5]]
+
+        _scd_X = _X_factory(
+            _dupl=_scd_duplicates,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
+
+        out = _dupl_idxs(
+            _scd_X, _fst_duplicates, _rtol, _atol, _equal_nan, _n_jobs
+        )
 
 
+        assert out == [[0, 2, 4], [1, 3, 5]]
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        _fst_duplicates = [[0, 1], [2, 3], [4, 5]]
+        _scd_duplicates = [[0, 4], [1, 3], [2, 5]]
+
+        _scd_X = _X_factory(
+            _dupl=_scd_duplicates,
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
+
+        out = _dupl_idxs(
+            _scd_X, _fst_duplicates, _rtol, _atol, _equal_nan, _n_jobs
+        )
+
+        assert out == []
 
 
 
