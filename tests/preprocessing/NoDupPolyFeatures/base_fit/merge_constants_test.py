@@ -179,7 +179,7 @@ class TestMergeConstantsValidation(Fixtures):
         )
 
     @pytest.mark.parametrize('_atol', (0, 1e-5, 1, np.e))
-    def test_atol_rejects_bad(self, _atol):
+    def test_atol_accepts_good(self, _atol):
 
         _merge_constants(
             {(0,): 0, (1, 14): 1, (10, 16): np.e},

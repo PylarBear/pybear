@@ -11,8 +11,9 @@ from ._atol import _val_atol
 from ._conflict import _val_conflict     # pizza
 from ._degree__min_degree import _val_degree__min_degree
 from ._do_not_drop import _val_do_not_drop     # pizza
-from ._drop_constants import _val_drop_constants
 from ._drop_duplicates import _val_drop_duplicates
+from ._drop_constants import _val_drop_constants
+from ._drop_collinear import _val_drop_collinear
 from ._equal_nan import _val_equal_nan
 from ._include_bias import _val_include_bias     # pizza
 from ._interaction_only import _val_interaction_only
@@ -29,6 +30,8 @@ from .._type_aliases import DataType
 from typing import Literal, Iterable
 from typing_extensions import Union
 
+import numbers
+
 
 def _validation(
     _X:DataType,
@@ -42,10 +45,11 @@ def _validation(
     _interaction_only: bool,
     # _include_bias: bool,     # pizza
     _drop_constants: bool,
+    _drop_collinear: bool,
     _output_sparse: bool,
     # _order: Literal['C', 'F'],     # pizza
-    _rtol: float,
-    _atol: float,
+    _rtol: numbers.Real,
+    _atol: numbers.Real,
     _equal_nan: bool,
     _n_jobs: Union[int, None]
 ) -> None:
@@ -81,6 +85,8 @@ def _validation(
         bool
         pizza on the block
     _drop_constants:
+        bool
+    _drop_collinear:
         bool
     _output_sparse:
         bool
@@ -131,6 +137,8 @@ def _validation(
     # _val_include_bias(_include_bias)     # pizza
 
     _val_drop_constants(_drop_constants)
+
+    _val_drop_collinear(_drop_collinear)
 
     _val_output_sparse(_output_sparse)
 

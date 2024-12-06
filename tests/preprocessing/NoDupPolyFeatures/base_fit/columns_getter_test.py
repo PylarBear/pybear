@@ -6,8 +6,8 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit._column_getter import (
-    _column_getter
+from pybear.preprocessing.NoDupPolyFeatures._base_fit._columns_getter import (
+    _columns_getter
 )
 
 import numpy as np
@@ -92,9 +92,9 @@ class TestColumnGetter:
 
         if _out_of_range:
             with pytest.raises(AssertionError):
-                _column_getter(_X_wip, _col_idxs)
+                _columns_getter(_X_wip, _col_idxs)
         else:
-            _columns = _column_getter(_X_wip, _col_idxs)
+            _columns = _columns_getter(_X_wip, _col_idxs)
 
 
 
@@ -160,25 +160,39 @@ class TestColumnGetter:
         else:
             raise Exception
 
-        _columns = _column_getter(_X_wip, _col_idxs)
+        try:
+            iter(_col_idxs)
+            _col_idxs = tuple(sorted(list(_col_idxs)))
+        except:
+            pass
+
+        _columns = _columns_getter(_X_wip, _col_idxs)
+
         assert isinstance(_columns, np.ndarray)
+
         try:
             len(_col_idxs)  # except if is integer
-            if not _columns.shape[1] == len(_col_idxs):
-                raise UnicodeError
-        except UnicodeError:
-            assert _columns.shape[1] == len(_col_idxs)
         except: # if is integer
-            assert _columns.shape[1] == 1
             # change int to tuple to make _X[:, _col_idxs] slice right, below
             _col_idxs = (_col_idxs,)
 
 
+
+        if hasattr(_X_wip, 'toarray'):
+            assert _columns.shape[1] == 1
+        else:
+            assert _columns.shape[1] == len(_col_idxs)
+
         # since all the various _X_wips came from _X, just use _X to referee
-        # whether _column_getter pulled the correct column from _X_wip
+        # whether _columns_getter pulled the correct column from _X_wip
 
         if _dtype == 'num':
-            assert np.array_equal(_columns, _X[:, _col_idxs], equal_nan=True)
+            if hasattr(_X_wip, 'toarray'):
+                __ = ss.csc_array(_X[:, _col_idxs])
+                _stack = np.hstack((__.indices, __.data)).reshape((-1, 1))
+                assert np.array_equal(_columns, _stack, equal_nan=True)
+            elif not hasattr(_X_wip, 'toarray'):
+                assert np.array_equal(_columns, _X[:, _col_idxs], equal_nan=True)
         elif _dtype == 'str':
             assert np.array_equal(
                 _columns.astype(str),

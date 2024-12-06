@@ -42,30 +42,32 @@ def _val_X(
 
     """
 
-    _err_msg = (
-        f"'X' must be a valid 2 dimensional numpy ndarray, pandas dataframe, "
-        f"or scipy sparce matrix or array, with at least 2 columns and 1 "
-        f"example."
-    )
-
-    # sklearn _validate_data is not catching this
-    if _X is None:
-        raise TypeError(_err_msg)
-
-
+    # pizza see what _validate_data can do
     # rejects non-numeric, does not accept nan-likes
     # BaseEstimator _validate_data is catching nans with force_all_finite = False,
     # but keep this checking nans in case _validate_data should ever change
     try:
-        _X.astype(np.uint8)
+        _X.astype(np.float64)
         # this kills two birds, both non-numeric and nan cannot convert to int8
     except:
-        raise ValueError(
-            f"data must be numeric and cannot have nan-like values"
+        raise ValueError(f"X can only contain numeric datatypes")
+
+
+
+    # sklearn _validate_data & check_array are not catching dask arrays & dfs.
+    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
+        hasattr(_X, 'toarray'):
+        raise TypeError(
+            f"invalid container for X: {type(_X)}. X must be numpy array, "
+            f"pandas dataframe, or any scipy sparce matrix / array."
         )
 
 
-
-
+    if _X.shape[0] < 1:
+        raise ValueError(
+            f"'X' must be a valid 2 dimensional numpy ndarray, pandas dataframe, "
+            f"or scipy sparce matrix or array, with at least 2 columns and 1 "
+            f"example."
+    )
 
 

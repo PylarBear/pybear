@@ -17,7 +17,8 @@ def _val_drop_duplicates(
     Parameters
     ----------
     _drop_duplicates:
-        bool, default = False -
+        bool - whether to omit duplicate columns from the polynomial
+        feature expansion.
 
 
     Return
