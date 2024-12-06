@@ -17,7 +17,8 @@ def _val_drop_constants(
     Parameters
     ----------
     _drop_constants:
-        bool, default = False -
+        bool - whether to omit constant columns from the polynomial
+        feature expansion.
 
 
     Return

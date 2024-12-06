@@ -49,16 +49,6 @@ class Fixtures:
         ]
 
 
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _X_initial(_X_base, _init_duplicates):
-    #     _X_initial = _X_base.copy()
-    #     for _set in _init_duplicates:
-    #         for idx in _set[1:]:
-    #             _X_initial[:, idx] = _X_initial[:, _set[0]]
-    #     return _X_initial
-
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -69,16 +59,6 @@ class Fixtures:
         ]
 
 
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _X_less_dupl_found(_X_base, _less_duplicates):
-    #     _X_less_dupl_found = _X_base.copy()
-    #     for _set in _less_duplicates:
-    #         for idx in _set[1:]:
-    #             _X_less_dupl_found[:, idx] = _X_less_dupl_found[:, _set[0]]
-    #     return _X_less_dupl_found
-
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -87,17 +67,6 @@ class Fixtures:
             [(1,), (4,), (15,)],
             [(3,), (8,), (12,)]
         ]
-
-
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _X_more_dupl_found(_X_base, _more_duplicates):
-    #     _X_more_dupl_found = _X_base.copy()
-    #     for _set in _more_duplicates:
-    #         for idx in _set[1:]:
-    #             _X_more_dupl_found[:, idx] = _X_more_dupl_found[:, _set[0]]
-    #     return _X_more_dupl_found
 
 
 
@@ -176,9 +145,36 @@ class TestDuplIdxs(Fixtures):
         assert duplicates_ == []
 
 
+    def test_special_case_accuracy(self):
 
+        # test cases where columns repeat, but in different groups
 
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+        _fst_duplicates = [[(0,), (1,), (2,)], [(3,), (4,), (5,)]]
+        _scd_duplicates = [[(0,), (4,), (5,)], [(1,), (2,), (3,)]]
+
+        out = _merge_partialfit_dupls(_fst_duplicates, _scd_duplicates)
+
+        assert out == [[(1,), (2,)], [(4,), (5,)]]
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        _fst_duplicates = [[(1,), (3,), (5,)], [(0,), (2,), (4,)]]
+        _scd_duplicates = [[(0,), (2,), (4,)], [(1,), (3,), (5,)]]
+
+        out = _merge_partialfit_dupls(_fst_duplicates, _scd_duplicates)
+
+        assert out == [[(0,), (2,), (4,)], [(1,), (3,), (5,)]]
+
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        _fst_duplicates = [[(0,), (1,)], [(2,), (3,)], [(4,), (5,)]]
+        _scd_duplicates = [[(0,), (4,)], [(1,), (3,)], [(2,), (5,)]]
+
+        out = _merge_partialfit_dupls(_fst_duplicates, _scd_duplicates)
+
+        assert out == []
 
 
 

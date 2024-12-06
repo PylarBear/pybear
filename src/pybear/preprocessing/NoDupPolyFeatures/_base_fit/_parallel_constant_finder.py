@@ -9,7 +9,7 @@
 from typing_extensions import Union
 import numpy.typing as npt
 
-from numbers import Real
+import numbers
 import uuid
 
 import numpy as np
@@ -20,8 +20,8 @@ from ....utilities import nan_mask
 def _parallel_constant_finder(
     _column: npt.NDArray[any],
     _equal_nan: bool,
-    _rtol: Real,
-    _atol: Real
+    _rtol: numbers.Real,
+    _atol: numbers.Real
 ) -> Union[uuid.UUID, any]:
 
     """

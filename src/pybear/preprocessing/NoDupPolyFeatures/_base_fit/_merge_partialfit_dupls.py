@@ -8,6 +8,7 @@
 
 from typing_extensions import Union
 
+from collections import defaultdict
 import itertools
 
 
@@ -35,19 +36,20 @@ def _merge_partialfit_dupls(
     Parameters
     ----------
     _old_duplicates:
-        Union[list[list[tuple[int, ...]]], None] - the duplicate columns carried over
-        from the previous partial fits. Is None if on the first partial
-        fit.
+        Union[list[list[tuple[int, ...]]], None] - the duplicate columns
+        carried over from the previous partial fits. Is None if on the
+        first partial fit.
     _new_duplicates:
-        list[list[tuple[int, ...]]] - the duplicate columns found during the current
-        partial fit. Is None if on the first partial fit.
+        list[list[tuple[int, ...]]] - the duplicate columns found during
+        the current partial fit. Is None if on the first partial fit.
 
 
     Return
     ------
     -
-        duplicates_: list[list[tuple[int, ...]]] - the groups of identical columns,
-            indicated by their zero-based column index positions.
+        duplicates_: list[list[tuple[int, ...]]] - the groups of
+            identical columns, indicated by their zero-based column
+            index positions.
 
 
     """
@@ -96,9 +98,8 @@ def _merge_partialfit_dupls(
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # get the possible combinations of pairs for both duplicates, then
-        # find the
-        # intersection, to find all pairs of numbers that are in the same subset
-        # for both duplicates.
+        # find the intersection, to find all pairs of numbers that are in the
+        # same subset for both duplicates.
 
         all_old_comb = []
         for _set in _old_duplicates:
@@ -117,10 +118,6 @@ def _merge_partialfit_dupls(
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # use this "union-find" stuff that CHATGPT came up with to convert
         # pairs of duplicates like [(0,1), (1,2), (0,2), (4,5)] to [[0,1,2], [4,5]]
-
-
-        # pizza move this
-        from collections import defaultdict
 
         # Find connected components using union-find
         # Union-Find data structure

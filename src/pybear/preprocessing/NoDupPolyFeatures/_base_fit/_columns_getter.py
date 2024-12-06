@@ -12,12 +12,13 @@ from typing_extensions import Union
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from pybear.utilities._nan_masking import nan_mask
 
 
 
-def _column_getter(
+def _columns_getter(
     _DATA: DataType,
     _col_idxs: Union[int, tuple[int, ...]]
 ) -> npt.NDArray[any]:
@@ -39,7 +40,8 @@ def _column_getter(
     Return
     ------
     -
-        _columns: NDArray[any] - The columns corresponding to the given indices.
+        _columns: NDArray[any] - The columns corresponding to the given
+        indices.
 
     """
 
@@ -52,16 +54,35 @@ def _column_getter(
         assert isinstance(_idx, int)
         assert _idx in range(_DATA.shape[1]), f"col idx out of range"
 
-
+    _col_idxs = sorted(list(_col_idxs))
 
 
 
     if isinstance(_DATA, np.ndarray):
-        _columns = _DATA[:, list(_col_idxs)]
+        _columns = _DATA[:, _col_idxs]
     elif isinstance(_DATA, pd.core.frame.DataFrame):
-        _columns = _DATA.iloc[:, list(_col_idxs)].to_numpy()
+        _columns = _DATA.iloc[:, _col_idxs].to_numpy()
     elif hasattr(_DATA, 'toarray'):
-        _columns = _DATA.copy().tocsc()[:, list(_col_idxs)].toarray()
+        # instead of expanding the column to dense np, get the indices
+        # and values out of sparse column using the 'indices' and 'data'
+        # attributes, hstack them, and send that off for equality test
+
+        if isinstance(_DATA, (ss.dia_matrix, ss.dia_array)):
+            # for some unknown reason, when tocsc() is applied to dia,
+            # the indices come out sorted descending. but if u do tocsr()
+            # before tocsc(), then the indices come out sorted ascending.
+            # this really only serves to standardize the dia output with
+            # the other scipy sparse formats, and makes testing easier.
+            c1 = _DATA.tocsr().tocsc()[:, _col_idxs]
+        else:
+            # Extract the data and indices of the column
+            c1 = _DATA.tocsc()[:, _col_idxs]
+        # reshaping standardizes the output with np and pd
+        _columns = np.hstack((c1.indices, c1.data)).reshape((-1, 1))
+        del c1
+
+        # old code that converts a ss column to np array
+        # _columns = _X_wip.copy().tocsc()[:, _col_idxs].toarray()
     else:
         raise TypeError(f"invalid data type '{type(_DATA)}'")
 

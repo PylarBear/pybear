@@ -7,15 +7,15 @@
 
 
 from typing_extensions import Union
-from numbers import Real
+import numbers
 import numpy as np
 
 
 def _merge_constants(
     _old_constants: Union[dict[tuple[int, ...], any], None],
     _new_constants: dict[tuple[int, ...], any],
-    _rtol: Real,
-    _atol: Real
+    _rtol: numbers.Real,
+    _atol: numbers.Real
 ) -> dict[int, any]:
 
     """

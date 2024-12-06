@@ -14,8 +14,8 @@ from pybear.preprocessing.NoDupPolyFeatures.NoDupPolyFeatures import \
     NoDupPolyFeatures as NoDup
 
 
-pytest.skip(reason=f"not finished", allow_module_level=True)
 
+pytest.skip(reason=f"not finished", allow_module_level=True)
 
 
 @pytest.fixture(scope='function')
@@ -25,13 +25,13 @@ def _kwargs():
         'min_degree': 0,
         'drop_duplicates': True,
         'keep': 'first',
-        'do_not_drop': None,
-        'conflict': 'raise',
+        # 'do_not_drop': None, # pizza on the block
+        # 'conflict': 'raise', # pizza on the block
         'interaction_only': False,
-        'include_bias': True,
+        # 'include_bias': True, # pizza on the block
         'drop_constants': True,
         'output_sparse': False,
-        'order': 'C',
+        # 'order': 'C', # pizza on the block
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
@@ -57,17 +57,6 @@ def y(_rows):
 
 
 class TestSetParams:
-
-        # DEFAULT KWARGS
-        # _kwargs = {
-        #     'keep': 'first',
-        #     'do_not_drop': None,
-        #     'conflict': 'raise',
-        #     'rtol': 1e-5,
-        #     'atol': 1e-8,
-        #     'equal_nan': False,
-        #     'n_jobs': -1
-        # }
 
 
     def test_rejects_bad_assignments_at_init(self, _alt_kwargs):
@@ -106,8 +95,8 @@ class TestSetParams:
         # set new params before fit
         _scd_params = deepcopy(_kwargs)
         _scd_params['keep'] = 'random'
-        _scd_params['do_not_drop'] = [0]
-        _scd_params['conflict'] = 'ignore'
+        # _scd_params['do_not_drop'] = [0] # pizza on the block
+        # _scd_params['conflict'] = 'ignore' # pizza on the block
         _scd_params['rtol'] = 1e-7
         _scd_params['atol'] = 1e-9
         _scd_params['equal_nan'] = True
@@ -137,8 +126,8 @@ class TestSetParams:
 
         alt_kwargs = {
             'keep': 'last',
-            'do_not_drop': [1],
-            'conflict': 'raise',
+            # 'do_not_drop': [1], # pizza on the block
+            # 'conflict': 'raise', # pizza on the block
             'rtol': 1e-3,
             'atol': 1e-5,
             'equal_nan': False,
@@ -165,8 +154,8 @@ class TestSetParams:
 
         alt_kwargs = {
             'keep': 'random',
-            'do_not_drop': None,
-            'conflict': 'raise',
+            # 'do_not_drop': None, # pizza on the block
+            # 'conflict': 'raise', # pizza on the block
             'rtol': 1e-7,
             'atol': 1e-8,
             'equal_nan': False,
@@ -199,8 +188,8 @@ class TestSetParams:
     def _alt_kwargs():
         return {
             'keep': 'first',
-            'do_not_drop': None,
-            'conflict': 'raise',
+            # 'do_not_drop': None, # pizza on the block
+            # 'conflict': 'raise', # pizza on the block
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': True,
