@@ -21,7 +21,7 @@ import pytest
 
 
 
-class TestNpColumnComparer:
+class TestSSColumnComparer:
 
 
     @staticmethod
