@@ -202,29 +202,32 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         Only accessible if X is passed to :methods: partial_fit or fit
         as a pandas dataframe that has a header.
 
-    duplicates_:
-        list[list[tuple[int]]] - a list of the groups of identical
-        columns, indicated by their zero-based column index positions
-        in the originally fit data.
+    X_constants_:
+        dict[tuple[int, ...]: any] - A dictionary whose keys are unit-length
+        tuples of the indices
+        of the constant columns found during fit, indexed by their column
+        location in the original data. The dictionary values are the
+        constant values in those columns. For example, if a dataset has
+        two constant columns, the first in the third index and the
+        constant value is 1, and the other is in the tenth index and the
+        constant value is 0, then constant_columns_ will be {(3,):1, (10,):0}.
+        If there are no constant columns, then constant_columns_ is an
+        empty dictionary.
 
-    dropped_duplicates_:
-        dict[int, int] - a dictionary whose keys are the indices of
-        duplicate columns removed from the original data, indexed by
-        their column location in the original data; the values are the
-        column index in the original data of the respective duplicate
-        that was kept.
+    poly_constants_:
+        dict[tuple[int, ...]: any] - A dictionary whose keys are
+        tuples of the indices
+        of the constant polynomial columns found during fit, indexed by their column
+        location in the original data. The dictionary values are the
+        constant values in those columns. For example, if a dataset has
+        two constant columns, the first in the third index and the
+        constant value is 1, and the other is in the tenth index and the
+        constant value is 0, then constant_columns_ will be {(3,):1, (10,):0}.
+        If there are no constant columns, then constant_columns_ is an
+        empty dictionary.
 
-    column_mask_:
-        list[bool], shape (n_features_,) - Indicates which
-        columns of the fitted data are kept (True) and which are removed
-        (False) during transform.
-
-    constants_:
-        dict[tuple[int], any]] - put words about how the only constant,
-        in this unforgiving world, is good pizza.
-
-    dropped_constants_:
-        dict[int, any] - if :param: drop_constants is True, columns of
+    dropped_poly_constants_:
+        dict[tuple[int, ...]: any] - if :param: drop_constants is True, columns of
         constants other than NoDup's bias column are removed from the data.
         In that case, information about the removed constants is stored in the
         dropped_constants_ attribute. There are two scenarios:
@@ -237,6 +240,41 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         value is the value of the constant. If :param: drop_constants is False,
         or there are no columns of constants, then :attr: dropped_constants_ is
         an empty dictionary.
+
+    kept_poly_constants_:
+        dict[tuple[int, ...]: any] = {}
+
+    poly_duplicates_:
+        list[list[tuple[int, ...]]] - a list of the groups of identical
+        polynomial columns, indicated by tuples of their zero-based
+        column index positions in the originally fit data. pizza clarify
+        this.
+
+    dropped_poly_duplicates_:
+        dict[tuple[int, ...]: tuple[int, ...]] = a list of the groups of
+        identical polynomial columns, indicated by tuples of their
+        zero-based column index positions in the originally fit data.
+        pizza clarify this.
+
+        dict[tuple[int, ...], tuple[int, ...]] - a dictionary whose keys are the indices of
+        duplicate columns removed from the original data, indexed by
+        their column location in the original data; the values are the
+        column index in the original data of the respective duplicate
+        that was kept.
+
+    kept_poly_duplicates_:
+        list[tuple[int, ...]] = []
+
+
+    poly_collinear_:
+        list[list[tuple[int, ...]]]
+
+    dropped_poly_collinear_:
+        dict[tuple[int, ...]: tuple[int, ...]] = {}
+
+    kept_poly_collinear_:
+        dict[tuple[int, ...], tuple[int, ...]] = {}
+
 
 
     Notes
@@ -289,10 +327,10 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         interaction_only: Optional[bool] = False,
         drop_duplicates: Optional[bool] = True,
         drop_constants: Optional[bool] = True,
-        drop_colinear: Optional[bool] = True,
+        drop_collinear: Optional[bool] = True,
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
-        output_sparse: Optional[bool] = False,
-        equal_nan: Optional[bool] = False,
+        output_sparse: Optional[bool] = True,
+        equal_nan: Optional[bool] = True,
         rtol: Optional[numbers.Real] = 1e-5,
         atol: Optional[numbers.Real] = 1e-8,
         n_jobs: Optional[Union[int, None]] = None
@@ -303,7 +341,7 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         self.interaction_only = interaction_only
         self.drop_duplicates = drop_duplicates
         self.drop_constants = drop_constants
-        self.drop_colinear = drop_colinear
+        self.drop_collinear = drop_collinear
         self.keep = keep
         self.output_sparse = output_sparse
         self.rtol = rtol
@@ -314,11 +352,14 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
     # END init ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @property
-    def poly_duplicates_(self):
+    def poly_duplicates_(self) -> list[list[tuple[int, ...]]]:
+
+        check_is_fitted(self)
+
         # need to get the single columns from X out of _poly_duplicates
         # pizza, 24_12_05 it is not possible to get a guaranteed full list of
         # X duplicates from this information, would need to use CDT
-        _holder = []
+        _holder: list[list[tuple[int, ...]]] = []
         for _dupl_idx, _dupls in enumerate(deepcopy(self._poly_duplicates)):
             assert len(_dupls) >= 2
             _holder.append([])
@@ -332,6 +373,8 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
                     f'algorithm failure, _poly_duplicates dupl '
                     f'set does not have a combo tuple in it'
                 )
+
+        return _holder
 
 
     def _reset(self):
@@ -349,6 +392,9 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             del self.poly_constants_
             del self.dropped_poly_constants_
             del self.kept_poly_constants_
+            del self.poly_collinear_
+            del self.dropped_poly_collinear_
+            del self.kept_poly_collinear_
 
 
     def get_feature_names_out(self, input_features=None):
@@ -509,6 +555,7 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             self.keep,
             self.interaction_only,
             self.drop_constants,
+            self.drop_collinear,
             self.output_sparse,
             self.rtol,
             self.atol,
@@ -516,53 +563,55 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             self.n_jobs
         )
 
+
+        # pizza, revisit this at the end, see if we need to copy() X
+        # convert X to csc to save memory
+        # _validation should have caught non-numeric X. X must only be numeric
+        # throughout all of NDPF.
+        if hasattr(X, 'toarray'):   # is scipy sparse
+            X = X.tocsc()
+        else: # is np or pd
+            try:
+                X = ss.csc_array(X)
+            except:
+                X = ss.csc_array(X.astype(np.float64))
+
+
         if not hasattr(self, 'X_constants_'):
-            self.X_constants_: dict[tuple[int], any] = {}
+            self.X_constants_: dict[tuple[int, ...]: any] = {}
         if not hasattr(self, '_poly_duplicates'):
-            self._poly_duplicates: list[list[tuple[int]]] = []
+            self._poly_duplicates: list[list[tuple[int, ...]]] = []
         if not hasattr(self, 'dropped_poly_duplicates_'):
-            self.dropped_poly_duplicates_: list[list[tuple[int]]] = []
+            self.dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]] = {}
         if not hasattr(self, 'kept_poly_duplicates_'):
-            self.kept_poly_duplicates_: list[list[tuple[int]]] = []
+            self.kept_poly_duplicates_: dict[tuple[int, ...]: list[tuple[int, ...]]] = {}
         if not hasattr(self, 'poly_constants_'):
-            self.poly_constants_: dict[tuple[int], any] = {}
+            self.poly_constants_: dict[tuple[int, ...]: any] = {}
         if not hasattr(self, 'dropped_poly_constants_'):
-            self.dropped_poly_constants_: dict[tuple[int], any] = {}
+            self.dropped_poly_constants_: dict[tuple[int, ...]: any] = {}
         if not hasattr(self, 'kept_poly_constants_'):
-            self.kept_poly_constants_: dict[tuple[int], any] = {}
+            self.kept_poly_constants_: dict[tuple[int, ...]: any] = {}
+        if not hasattr(self, 'poly_collinear_'):
+            self.poly_collinear_: list[list[tuple[int, ...]]]
+        if not hasattr(self, 'dropped_poly_collinear_'):
+            self.dropped_poly_collinear_: dict[tuple[int, ...]: tuple[int, ...]] = {}
+        if not hasattr(self, 'kept_poly_collinear_'):
+            self.kept_poly_collinear_: dict[tuple[int, ...], tuple[int, ...]] = {}
 
         # the only thing that exists at this point is the data and
         # holders. the holders may not be empty.
 
 
-        # pizza, revisit this at the end, see if we need to copy() X
-        # convert X to csc to save memory
-        if hasattr(X, 'toarray'):   # is scipy sparse
-            X = X.tocsc()
-        else: # is np or pd
-            try:
-                # if numeric, convert to ss
-                X.astype(np.float64)
-                try:
-                    X = ss.csc_array(X)
-                except:
-                    X = ss.csc_array(X.astype(np.float64))
-            except:
-                # if non-numeric, leave in given format
-                pass
-
-
-
         # Identify constants in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # This is just to know which input columns to take out of the expansion
-        # if drop_constants=True.
+        # if drop_collinear=True.
         # They will not be removed from X.
 
         # cannot overwrite self.X_constants_! may have previous fits in it
         # pizza move this import
         from pybear.preprocessing.InterceptManager.InterceptManager import \
             InterceptManager as IM
-        _X_current_constants: dict[int: any] = \
+        _X_constants_current_partial_fit: dict[int: any] = \
             IM(
                 keep=self.keep,
                 equal_nan=self.equal_nan,
@@ -571,20 +620,9 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
                 n_jobs=self.n_jobs
             ).partial_fit(X).constant_columns_
 
-        # reformat _X_current_constants from dict[int, any] to dict[tuple[int], any]
-        _X_current_constants = {tuple(k,):v for k,v in _X_current_constants.items()}
-
-
-        # pizza, need to meld _X_current_constants into self.constants_
-        # self.X_constants_ would be holding the constants found in previous partial fits
-
-        # merge _X_current_constants and X_constants_
-        self.X_constants_ = _merge_constants(
-            self.X_constants_,
-            _X_current_constants,
-            _rtol=self.rtol,
-            _atol=self.atol
-        )
+        # reformat _X_constants_current_partial_fit from dict[int: any] to dict[tuple[int]: any]
+        _X_constants_current_partial_fit: dict[tuple[int]: any] = \
+            {tuple(k,):v for k,v in _X_constants_current_partial_fit.items()}
 
         # END Identify constants in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -593,16 +631,17 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         # need to carry this to compare the next calculated polynomial term against
         # X and the known unique polynomial columns in this.
         _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0)).astype(X.dtype))
-        IDXS_IN_POLY_CSC: list[tuple[int]] = []
-        _poly_dupls_current_partial_fit: list[list[tuple[int]]] = []
-        _poly_constants_current_partial_fit: dict[tuple[int], any] = {}
+        IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
+        _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
+        _poly_constants_current_partial_fit: dict[tuple[int, ...]: any] = {}
+
         
         # GENERATE COMBINATIONS W/ CONSTANTS IN # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         # need to get the permutations to run, based on the size of x,
         # min degree, max degree, and interaction_only.
         # since we dont know what the constants are in future Xs, need to keep the
         # constants in the current combinations
-        _combos: list[tuple[int]] = _combination_builder(
+        _combos: list[tuple[int, ...]] = _combination_builder(
             _shape=X.shape,
             _min_degree=self.min_degree,
             _max_degree=self.degree,
@@ -671,14 +710,14 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             # then append the current combo idxs to that list.
             # otherwise add the entire _dupls_for_this_combo to
             # _poly_dupls_current_partial_fit.
-            _poly_dupls_current_partial_fit: list[list[tuple[int]]] = \
+            _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = \
                 _merge_combo_dupls(
                     _dupls_for_this_combo,
                     _poly_dupls_current_partial_fit
                 )
             # END duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-            # constant columns must also go into _POLY_CSC to know if they are also
+            # constant columns and collinear must also go into _POLY_CSC to know if they are also
             # a member of duplicates
             # if _dupls_for_this_combo is empty, then the combo is unique, put it in _POLY_CSC
             if not len(_dupls_for_this_combo):
@@ -686,43 +725,93 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
                 IDXS_IN_POLY_CSC.append(combo)
 
 
-        # need to merge the current _poly_dupls_current_partial_fit with
-        # self._poly_duplicates
-        # which could be holding duplicates found in previous partial fits
-        # need to leave X tuples in here, need to follow the len(dupl_set) >= 2
-        # to correctly merge _poly_dupls_current_partial_fit into _poly_duplicates
-        self._poly_duplicates = _merge_partialfit_dupls(
-            self._poly_duplicates,
-            _poly_dupls_current_partial_fit
-        )
-        self.poly_constants_ = _merge_constants(
-            self.poly_constants_,
-            _poly_constants_current_partial_fit,
-            self.rtol,
-            self.atol
-        )
+
 
         # what do we have at this point?
 
-        # X_constants_
-        # poly_constants_
-        # combinations
-        # the original X
-        # _POLY_CSC --- this is correctly expanded out for when only drop_duplicates is True and would be fit to be returned
-        # IDXS_IN_POLY_CSC:list[tuple[int]]
-        # poly_duplicates_: list[list[tuple[int]]]
+        # _X_constants_current_partial_fit
         # dont need to know X duplicates
+        # _poly_dupls_current_partial_fit
+        # _poly_constants_current_partial_fit
+        # _combos
+        # the original X as csc_array
+        # _POLY_CSC --- this is correctly expanded out for when only
+        #       drop_duplicates is True and would be fit to be returned
+        # IDXS_IN_POLY_CSC:list[tuple[int, ...]]
+
+        # X_constants -----------------------
+        # pizza, need to meld _X_constants_current_partial_fit into self.X_constants_
+        # self.X_constants_ would be holding the constants found in previous partial fits
+        # need this for collinear
+        self.X_constants_ = _merge_constants(
+            self.X_constants_,
+            _X_constants_current_partial_fit,
+            _rtol=self.rtol,
+            _atol=self.atol
+        )
+        # END X_constants -----------------------
+
+        # poly_constants -----------------------
+        # pizza, need to meld _poly_constants_current_partial_fit into self.poly_constants_
+        # self.poly_constants_ would be holding the constants found in previous partial fits
+        # need this for collinear
+        self.poly_constants_ = _merge_constants(
+            self.poly_constants_,
+            _poly_constants_current_partial_fit,
+            _rtol=self.rtol,
+            _atol=self.atol
+        )
+        # END poly_constants -----------------------
+
+        # poly duplicates -----------------------
+        # need to merge the current _poly_dupls_current_partial_fit with
+        # self._poly_duplicates
+        # which could be holding duplicates found in previous partial fits
+        # need to leave X tuples in here, need to follow the len(dupl_set) >= 2 rule
+        # to correctly merge _poly_dupls_current_partial_fit into _poly_duplicates
+        # X tuples are removed when @property poly_duplicates_ is called, leaving
+        # only poly tuples.
+        self._poly_duplicates: list[list[tuple[int, ...]]] = \
+            _merge_partialfit_dupls(
+                self._poly_duplicates,
+                _poly_dupls_current_partial_fit
+            )
+        # END poly duplicates -----------------------
 
 
         # if 'keep' == 'random', _transform() must pick the same random
         # columns every time. need to set an instance attribute here
         # that doesnt change when _transform() is called. must set a
         # random idx for every set of dupls.
-        self._rand_idxs: tuple[tuple[int], ...] = \
+        self._rand_idxs: tuple[tuple[int, ...], ...] = \
             _lock_in_random_idxs(
                 poly_duplicates_=self.poly_duplicates_,
                 _combinations=_combos
             )
+
+
+
+        # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ##
+        # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ##
+        # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ##
+        # build attributes
+
+        _all_attributes = \
+            _build_attributes(
+
+            )
+
+        self.dropped_poly_duplicates_ = _all_attributes[0]
+        self.kept_poly_duplicates_ = _all_attributes[1]
+        self.dropped_poly_constants_ = _all_attributes[2]
+        self.kept_poly_constants_ = _all_attributes[3]
+        self.poly_collinear_ = _all_attributes[4]
+        self.dropped_poly_collinear_ = _all_attributes[5]
+        self.kept_poly_collinear_ = _all_attributes[6]
+
+        del _all_attributes
+
+
 
 
         if return_poly:

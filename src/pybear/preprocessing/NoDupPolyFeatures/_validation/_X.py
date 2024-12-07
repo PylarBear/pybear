@@ -43,7 +43,7 @@ def _val_X(
     """
 
     # pizza see what _validate_data can do
-    # rejects non-numeric, does not accept nan-likes
+    # rejects non-numeric, does not accept nan-likes (pizza we need to accept nans!)
     # BaseEstimator _validate_data is catching nans with force_all_finite = False,
     # but keep this checking nans in case _validate_data should ever change
     try:

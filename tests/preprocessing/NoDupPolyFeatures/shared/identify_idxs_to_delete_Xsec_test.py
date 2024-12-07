@@ -6,8 +6,8 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit. \
-    _identify_idxs_to_delete import _identify_idxs_to_delete
+from pybear.preprocessing.NoDupPolyFeatures._shared._identify_idxs_to_delete import \
+    _identify_idxs_to_delete
 
 from pybear.preprocessing.NoDupPolyFeatures._base_fit. \
     _lock_in_random_idxs import _lock_in_random_idxs
