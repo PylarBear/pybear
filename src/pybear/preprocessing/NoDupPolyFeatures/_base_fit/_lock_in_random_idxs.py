@@ -19,7 +19,7 @@ import numpy as np
 def _lock_in_random_idxs(
     poly_duplicates_: list[list[tuple[int, ...]]],
     _combinations: list[tuple[int, ...]]
-) -> tuple[tuple[int, ...]]:
+) -> tuple[tuple[int, ...], ...]:
 
     """
 

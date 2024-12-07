@@ -55,10 +55,15 @@ def _get_dupls_for_combo_in_X_and_poly(
     _COLUMN:
         npt.NDArray[any] - The column that is the product of the
         polynomial combo
-    _X: {array-like, scipy sparse} of shape (n_samples, n_features) - the
+    _X:
+        {array-like, scipy sparse} of shape (n_samples, n_features) - the
         data to undergo polynomial expansion.
-    _POLY_CSC: ss.csc_array,
-    _equal_nan: bool,
+    _POLY_CSC:
+        {ss.csc_array} of shape (n_samples, n_poly_features) - the
+        in-progress non-duplicate polynomial features found during
+        expansion.
+    _equal_nan:
+        bool -   
     _rtol:
         numbers.Real - The relative difference tolerance for
             equality. See numpy.allclose.
