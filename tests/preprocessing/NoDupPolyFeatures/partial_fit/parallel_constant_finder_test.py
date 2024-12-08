@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit. \
+from pybear.preprocessing.NoDupPolyFeatures._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
 from pybear.utilities import nan_mask_numerical

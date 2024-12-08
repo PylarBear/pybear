@@ -35,8 +35,6 @@ def _shape():
 def _kwargs():
     return {
         'keep': 'first',
-        'do_not_drop': None,
-        'conflict': 'raise',
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
@@ -230,8 +228,6 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # set_params()
         # KEYS = [
         #     'keep': 'first',
-        #     'do_not_drop': None,
-        #     'conflict': 'raise',
         #     'rtol': 1e-5,
         #     'atol': 1e-8,
         #     'equal_nan': False,

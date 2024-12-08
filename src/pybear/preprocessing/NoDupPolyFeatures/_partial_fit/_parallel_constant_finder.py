@@ -18,7 +18,7 @@ from ....utilities import nan_mask
 
 
 def _parallel_constant_finder(
-    _column: npt.NDArray[any],
+    _column: npt.NDArray[Union[int, float]],
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real

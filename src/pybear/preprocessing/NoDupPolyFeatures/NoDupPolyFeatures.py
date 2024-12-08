@@ -6,28 +6,38 @@
 
 
 
-import numpy as np
 
 from typing import Iterable, Literal, Optional
 from typing_extensions import Union, Self
 from ._type_aliases import DataType
+import numpy.typing as npt
 
 import numbers
+import uuid
 from copy import deepcopy
 
+import numpy as np
+import pandas as pd
 import scipy.sparse as ss
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
-from ._base_fit._combination_builder import _combination_builder
-from ._base_fit._columns_getter import _columns_getter
-from ._base_fit._parallel_constant_finder import _parallel_constant_finder
-from ._base_fit._get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
-from ._base_fit._merge_constants import _merge_constants
-from ._base_fit._merge_partialfit_dupls import _merge_partialfit_dupls
-from ._base_fit._merge_combo_dupls import _merge_combo_dupls
-from ._base_fit._lock_in_random_idxs import _lock_in_random_idxs
+from ._partial_fit._combination_builder import _combination_builder
+from ._partial_fit._columns_getter import _columns_getter
+from ._partial_fit._parallel_constant_finder import _parallel_constant_finder
+from ._partial_fit._get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
+from ._partial_fit._merge_constants import _merge_constants
+from ._partial_fit._merge_partialfit_dupls import _merge_partialfit_dupls
+from ._partial_fit._merge_combo_dupls import _merge_combo_dupls
+from ._partial_fit._lock_in_random_idxs import _lock_in_random_idxs
+from ._partial_fit._build_attributes import _build_attributes
 from ._transform._transform import _transform
+from ._transform._check_X_constants_dupls import _check_X_constants_dupls
+
+from pybear.preprocessing.InterceptManager.InterceptManager import \
+    InterceptManager as IM
+from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransformer import \
+    ColumnDeduplicateTransformer as CDT
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.exceptions import NotFittedError
@@ -104,71 +114,20 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
     min_degree:
         int, default=0 - The minimum polynomial degree of the generated
         features. Polynomial terms with degree below 'min_degree' are
-        not included in the final output array, except for zero-degree
-        terms (a column of ones), which is controlled by :param: include_bias.
-        Note that `min_degree=0`
-        and `min_degree=1` are equivalent as outputting the degree zero term is
-        determined by `include_bias`.
-
-    drop_duplicates:
-        bool - pizza!
-
+        not included in the final output array. pizza say something about
+        trivial cases.
+    scan_X:
+        bool, default=True - pizza finish!
     keep:
         Literal['first', 'last', 'random'], default = 'first' -
         The strategy for keeping a single representative from a set of
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
-    do_not_drop:
-        Union[Iterable[int], Iterable[str], None], default=None - A list
-        of columns not to be dropped. If fitting is done on a pandas
-        dataframe that has a header, a list of feature names may be
-        provided. Otherwise, a list of column indices must be provided.
-        If a conflict arises, such as two columns specified in :param:
-        do_not_drop are duplicates of each other, the behavior is managed
-        by :param: conflict.
-    conflict:
-        Literal['raise', 'ignore'] - Ignored when :param: do_not_drop is
-        not passed. Instructs CDT how to deal with a conflict between
-        the instructions in :param: keep and :param: do_not_drop. A
-        conflict arises when the instruction in :param: keep ('first',
-        'last', 'random') is applied and a column in :param: do_not_drop
-        is found to be a member of the columns to be removed. When
-        :param: conflict is 'raise', an exception is raised in this case.
-        When :param: conflict is 'ignore', there are 2 possible scenarios:
-
-        1) when only one column in :param: do_not_drop is among the
-        columns to be removed, the :param: keep instruction is overruled
-        and the do_not_drop column is kept
-
-        2) when multiple columns in :param: do_not_drop are among the
-        columns to be removed, the :param: keep instruction ('first',
-        'last', 'random') is applied to the set of do-not-delete columns
-        that are amongst the duplicates --- this may not give the same
-        result as applying the :param: keep instruction to the entire
-        set of duplicate columns. This also causes at least one member
-        of the columns not to be dropped to be removed.
     interaction_only:
         bool - pizza!
-    include_bias:
+    sparse_output:
         bool - pizza!
-    drop_constants:
-        bool - pizza!
-    output_sparse:
-        bool - pizza!
-    order:
-        Literal['C', 'F'], default = 'C' - Order of output array in the
-        dense cases. 'C' means the data is stored in memory in row-major
-        order, 'F' means column-major order. NoDup processes all dense
-        arrays in 'F' order and defaults to returning them in 'C' order.
-        'F' order may slow down subsequent estimators, because 'C' order
-        is the standard numpy layout.
-    rtol:
-        numbers.Real, default = 1e-5 - The relative difference tolerance for
-            equality. See numpy.allclose.
-    atol:
-        numbers.Real, default = 1e-8 - The absolute tolerance parameter for .
-            equality. See numpy.allclose.
     equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
@@ -183,6 +142,12 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         values in the compared pair of values is/are nan, consider the
         pair to be not equivalent, thus making the column pair not equal.
         This is in line with the normal numpy handling of nan values.
+    rtol:
+        numbers.Real, default = 1e-5 - The relative difference tolerance for
+            equality. See numpy.allclose.
+    atol:
+        numbers.Real, default = 1e-8 - The absolute tolerance parameter for .
+            equality. See numpy.allclose.
     n_jobs:
         Union[int, None], default = -1 - The number of joblib Parallel
         jobs to use when comparing columns. The default is to use
@@ -202,18 +167,6 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         Only accessible if X is passed to :methods: partial_fit or fit
         as a pandas dataframe that has a header.
 
-    X_constants_:
-        dict[tuple[int, ...]: any] - A dictionary whose keys are unit-length
-        tuples of the indices
-        of the constant columns found during fit, indexed by their column
-        location in the original data. The dictionary values are the
-        constant values in those columns. For example, if a dataset has
-        two constant columns, the first in the third index and the
-        constant value is 1, and the other is in the tenth index and the
-        constant value is 0, then constant_columns_ will be {(3,):1, (10,):0}.
-        If there are no constant columns, then constant_columns_ is an
-        empty dictionary.
-
     poly_constants_:
         dict[tuple[int, ...]: any] - A dictionary whose keys are
         tuples of the indices
@@ -225,8 +178,6 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         constant value is 0, then constant_columns_ will be {(3,):1, (10,):0}.
         If there are no constant columns, then constant_columns_ is an
         empty dictionary.
-
-    dropped_poly_constants_:
         dict[tuple[int, ...]: any] - if :param: drop_constants is True, columns of
         constants other than NoDup's bias column are removed from the data.
         In that case, information about the removed constants is stored in the
@@ -240,9 +191,6 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         value is the value of the constant. If :param: drop_constants is False,
         or there are no columns of constants, then :attr: dropped_constants_ is
         an empty dictionary.
-
-    kept_poly_constants_:
-        dict[tuple[int, ...]: any] = {}
 
     poly_duplicates_:
         list[list[tuple[int, ...]]] - a list of the groups of identical
@@ -264,17 +212,6 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
     kept_poly_duplicates_:
         list[tuple[int, ...]] = []
-
-
-    poly_collinear_:
-        list[list[tuple[int, ...]]]
-
-    dropped_poly_collinear_:
-        dict[tuple[int, ...]: tuple[int, ...]] = {}
-
-    kept_poly_collinear_:
-        dict[tuple[int, ...], tuple[int, ...]] = {}
-
 
 
     Notes
@@ -303,15 +240,10 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
     _parameter_constraints: dict = {
         "degree": [Interval(numbers.Integral, 0, None, closed="left")],
         "min_degree": [Interval(numbers.Integral, 0, None, closed="left")],
+        "scan_X": ["boolean"],
         "keep": [StrOptions({"first", "last", "random"})],
-        "do_not_drop": [list, tuple, set, None, ],
-        "conflict": [StrOptions({"raise", "ignore"})],
-        "drop_duplicates": ["boolean"],
         "interaction_only": ["boolean"],
-        "include_bias": ["boolean"],
-        "drop_constants": ["boolean"],
-        "output_sparse": ["boolean"],
-        "order": [StrOptions({"C", "F"})],
+        "sparse_output": ["boolean"],
         "rtol": [numbers.Real],
         "atol": [numbers.Real],
         "equal_nan": ["boolean"],
@@ -325,11 +257,9 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         *,
         min_degree:Optional[int]=1,
         interaction_only: Optional[bool] = False,
-        drop_duplicates: Optional[bool] = True,
-        drop_constants: Optional[bool] = True,
-        drop_collinear: Optional[bool] = True,
+        scan_X: Optional[bool] = True,
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
-        output_sparse: Optional[bool] = True,
+        sparse_output: Optional[bool] = True,
         equal_nan: Optional[bool] = True,
         rtol: Optional[numbers.Real] = 1e-5,
         atol: Optional[numbers.Real] = 1e-8,
@@ -339,11 +269,9 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         self.degree = degree
         self.min_degree = min_degree
         self.interaction_only = interaction_only
-        self.drop_duplicates = drop_duplicates
-        self.drop_constants = drop_constants
-        self.drop_collinear = drop_collinear
+        self.scan_X = scan_X
         self.keep = keep
-        self.output_sparse = output_sparse
+        self.sparse_output = sparse_output
         self.rtol = rtol
         self.atol = atol
         self.equal_nan = equal_nan
@@ -351,30 +279,29 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
     # END init ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @property
-    def poly_duplicates_(self) -> list[list[tuple[int, ...]]]:
-
-        check_is_fitted(self)
-
-        # need to get the single columns from X out of _poly_duplicates
-        # pizza, 24_12_05 it is not possible to get a guaranteed full list of
-        # X duplicates from this information, would need to use CDT
-        _holder: list[list[tuple[int, ...]]] = []
-        for _dupl_idx, _dupls in enumerate(deepcopy(self._poly_duplicates)):
-            assert len(_dupls) >= 2
-            _holder.append([])
-            for _tuple in _dupls:
-                if len(_tuple) >= 2:
-                    _holder[-1].append(_tuple)
-            # it shouldnt be possible for a set of _dupls to go empty, there
-            # should always be at least one combo term in it
-            if len(_holder[-1]) < 1:
-                raise AssertionError(
-                    f'algorithm failure, _poly_duplicates dupl '
-                    f'set does not have a combo tuple in it'
-                )
-
-        return _holder
+    # pizza delete if not needed 24_12_07_16_19_00
+    # @property
+    # def poly_duplicates_(self) -> list[list[tuple[int, ...]]]:
+    #
+    #     check_is_fitted(self)
+    #
+    #     # need to get the single columns from X out of _poly_duplicates
+    #     _holder: list[list[tuple[int, ...]]] = []
+    #     for _dupl_idx, _dupls in enumerate(deepcopy(self._poly_duplicates)):
+    #         assert len(_dupls) >= 2
+    #         _holder.append([])
+    #         for _tuple in _dupls:
+    #             if len(_tuple) >= 2:
+    #                 _holder[-1].append(_tuple)
+    #         # it shouldnt be possible for a set of _dupls to go empty, there
+    #         # should always be at least one combo term in it
+    #         if len(_holder[-1]) < 1:
+    #             raise AssertionError(
+    #                 f'algorithm failure, _poly_duplicates dupl '
+    #                 f'set does not have a combo tuple in it'
+    #             )
+    #
+    #     return _holder
 
 
     def _reset(self):
@@ -388,13 +315,9 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             del self._poly_duplicates
             del self.dropped_poly_duplicates_
             del self.kept_poly_duplicates_
-            del self.X_constants_
             del self.poly_constants_
-            del self.dropped_poly_constants_
-            del self.kept_poly_constants_
-            del self.poly_collinear_
-            del self.dropped_poly_collinear_
-            del self.kept_poly_collinear_
+            del self._IM
+            del self._CDT
 
 
     def get_feature_names_out(self, input_features=None):
@@ -503,10 +426,10 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
 
     @_fit_context(prefer_skip_nested_validation=True)
-    def _base_fit(
+    def partial_fit(
         self,
         X: DataType,
-        return_poly:bool=False
+        y: any
     ):
 
         """
@@ -518,15 +441,14 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         X:
             {array-like, scipy sparse matrix} of shape (n_samples, n_features) -
             The data to undergo polynomial expansion.
-        return_poly:
-            bool - Whether to cache the polynomial expansion object
-            created while finding the columns of constants and duplicates.
-
+        y:
+            {array-like, None} - Always ignored. The target for the data.
 
         Return
         ------
         -
             self - the fitted NoDupPolyFeatures instance.
+
 
         """
 
@@ -551,11 +473,9 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.degree,
             self.min_degree,
-            self.drop_duplicates,
+            self.scan_X,
             self.keep,
             self.interaction_only,
-            self.drop_constants,
-            self.drop_collinear,
             self.output_sparse,
             self.rtol,
             self.atol,
@@ -577,8 +497,6 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
                 X = ss.csc_array(X.astype(np.float64))
 
 
-        if not hasattr(self, 'X_constants_'):
-            self.X_constants_: dict[tuple[int, ...]: any] = {}
         if not hasattr(self, '_poly_duplicates'):
             self._poly_duplicates: list[list[tuple[int, ...]]] = []
         if not hasattr(self, 'dropped_poly_duplicates_'):
@@ -587,67 +505,59 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             self.kept_poly_duplicates_: dict[tuple[int, ...]: list[tuple[int, ...]]] = {}
         if not hasattr(self, 'poly_constants_'):
             self.poly_constants_: dict[tuple[int, ...]: any] = {}
-        if not hasattr(self, 'dropped_poly_constants_'):
-            self.dropped_poly_constants_: dict[tuple[int, ...]: any] = {}
-        if not hasattr(self, 'kept_poly_constants_'):
-            self.kept_poly_constants_: dict[tuple[int, ...]: any] = {}
-        if not hasattr(self, 'poly_collinear_'):
-            self.poly_collinear_: list[list[tuple[int, ...]]]
-        if not hasattr(self, 'dropped_poly_collinear_'):
-            self.dropped_poly_collinear_: dict[tuple[int, ...]: tuple[int, ...]] = {}
-        if not hasattr(self, 'kept_poly_collinear_'):
-            self.kept_poly_collinear_: dict[tuple[int, ...], tuple[int, ...]] = {}
 
         # the only thing that exists at this point is the data and
         # holders. the holders may not be empty.
 
 
-        # Identify constants in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        # This is just to know which input columns to take out of the expansion
-        # if drop_collinear=True.
-        # They will not be removed from X.
-
-        # cannot overwrite self.X_constants_! may have previous fits in it
-        # pizza move this import
-        from pybear.preprocessing.InterceptManager.InterceptManager import \
-            InterceptManager as IM
-        _X_constants_current_partial_fit: dict[int: any] = \
-            IM(
+        if self.scan_X and not hasattr(self, '_IM'):
+            self._IM = IM(
                 keep=self.keep,
                 equal_nan=self.equal_nan,
                 rtol=self.rtol,
                 atol=self.atol,
                 n_jobs=self.n_jobs
-            ).partial_fit(X).constant_columns_
+            )
 
-        # reformat _X_constants_current_partial_fit from dict[int: any] to dict[tuple[int]: any]
-        _X_constants_current_partial_fit: dict[tuple[int]: any] = \
-            {tuple(k,):v for k,v in _X_constants_current_partial_fit.items()}
+        if self.scan_X and not hasattr(self, '_CDT'):
+            self._CDT = CDT(
+                keep=self.keep,
+                do_not_drop=None,
+                conflict='ignore',
+                equal_nan=self.equal_nan,
+                rtol=self.rtol,
+                atol=self.atol,
+                n_jobs=self.n_jobs
+            )
 
-        # END Identify constants in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # This is just to know if we reject X for having constant or duplicate columns.
+
+        if self.scan_X:
+            self._IM.partial_fit(X)
+            self._CDT.partial_fit(X)
+        # END Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
         # build a ss csc that holds the unique polynomial columns that are discovered.
         # need to carry this to compare the next calculated polynomial term against
-        # X and the known unique polynomial columns in this.
+        # the known unique polynomial columns held in this.
         _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0)).astype(X.dtype))
         IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
         _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
         _poly_constants_current_partial_fit: dict[tuple[int, ...]: any] = {}
 
         
-        # GENERATE COMBINATIONS W/ CONSTANTS IN # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         # need to get the permutations to run, based on the size of x,
         # min degree, max degree, and interaction_only.
-        # since we dont know what the constants are in future Xs, need to keep the
-        # constants in the current combinations
         _combos: list[tuple[int, ...]] = _combination_builder(
             _shape=X.shape,
             _min_degree=self.min_degree,
             _max_degree=self.degree,
             _intx_only=self.interaction_only
         )
-        # END GENERATE COMBINATIONS W/ CONSTANTS IN # v^v^v^v^v^v^v^v^v^v^v^v^v
+        # END GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # need to iterate over the combos and find what is constant or duplicate
         for combo in _combos:
@@ -656,12 +566,14 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             # original data and should not be processed here
             assert len(combo) >= 2
 
+            _COLUMN: npt.NDArray[int, float] = _columns_getter(X, combo).prod(1)
 
-            _COLUMN = _columns_getter(X, combo).prod(1)
+            __ = _COLUMN.shape
+            assert len(__) == 1 or (len(__)==2 and __[1]==1)
+            del __
 
+            # poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-
-            import uuid  # pizza move import
             _poly_is_constant: Union[uuid.UUID, any] = \
                 _parallel_constant_finder(
                     _column=_COLUMN,
@@ -673,88 +585,79 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
             if not isinstance(_poly_is_constant, uuid.UUID):
                 _poly_constants_current_partial_fit[combo] = _poly_is_constant
 
+            # END poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-            # duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+            if isinstance(_poly_is_constant, uuid.UUID):  # is not constant
+                #  constant columns do not need to go into _POLY_CSC to know if they are also
+                # a member of duplicates because they are automatically deleted anyway.
 
-            # this function scans the combo column across the columns in X and
-            # poly looking for dupls. it returns a vector of bools whose len is
-            # X.shape[1] + POLY.shape[1]. if True, then the combo column is
-            # a duplicate of the X or POLY column that corresponds to that slot
-            # in the list
-            _out: list[bool] = _get_dupls_for_combo_in_X_and_poly(
-                _COLUMN,
-                X,
-                _POLY_CSC,
-                _equal_nan=self.equal_nan,
-                _rtol=self.rtol,
-                _atol=self.atol,
-                _n_jobs=self.n_jobs
-            )
+                # poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-
-            # need to convert 'out' to
-            # [(i1,), (i2,),..] SINGLE GROUP OF DUPLICATES
-            _indices = [(i,) for i in X.shape[1]] + IDXS_IN_POLY_CSC
-            _dupls_for_this_combo = []
-            for _idx_tuple, _is_dupl in zip(_indices, _out):
-                if _is_dupl:
-                    _dupls_for_this_combo.append(_idx_tuple)
-            if len(_dupls_for_this_combo):
-                _dupls_for_this_combo.append(combo)
-
-            assert len(_dupls_for_this_combo) != 1
-
-            # need to merge the current _dupls_for_this_combo with
-            # _poly_dupls_current_partial_fit. if the X idx or poly idxs
-            # is in any of the dupl sets in _poly_dupls_current_partial_fit,
-            # then append the current combo idxs to that list.
-            # otherwise add the entire _dupls_for_this_combo to
-            # _poly_dupls_current_partial_fit.
-            _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = \
-                _merge_combo_dupls(
-                    _dupls_for_this_combo,
-                    _poly_dupls_current_partial_fit
+                # this function scans the combo column across the columns in X and
+                # poly looking for dupls. it returns a vector of bools whose len is
+                # X.shape[1] + POLY.shape[1]. if True, then the combo column is
+                # a duplicate of the X or POLY column that corresponds to that slot
+                # in the list
+                _out: list[bool] = _get_dupls_for_combo_in_X_and_poly(
+                    _COLUMN,
+                    X,
+                    _POLY_CSC,
+                    _equal_nan=self.equal_nan,
+                    _rtol=self.rtol,
+                    _atol=self.atol,
+                    _n_jobs=self.n_jobs
                 )
-            # END duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-            # constant columns and collinear must also go into _POLY_CSC to know if they are also
-            # a member of duplicates
-            # if _dupls_for_this_combo is empty, then the combo is unique, put it in _POLY_CSC
-            if not len(_dupls_for_this_combo):
-                _POLY_CSC = ss.hstack((_POLY_CSC, ss.csc_array(_COLUMN)))
-                IDXS_IN_POLY_CSC.append(combo)
 
 
+                # need to convert 'out' to
+                # [(i1,), (i2,),..] SINGLE GROUP OF DUPLICATES
+                _indices = [(i,) for i in X.shape[1]] + IDXS_IN_POLY_CSC
+                _dupls_for_this_combo = []
+                for _idx_tuple, _is_dupl in zip(_indices, _out):
+                    if _is_dupl:
+                        _dupls_for_this_combo.append(_idx_tuple)
+                if len(_dupls_for_this_combo):
+                    _dupls_for_this_combo.append(combo)
+
+                assert len(_dupls_for_this_combo) != 1
+
+                # need to merge the current _dupls_for_this_combo with
+                # _poly_dupls_current_partial_fit. if _dupls_for_this_combo[0]
+                # == _dupl_set[0] for any of the dupl sets in _poly_dupls_current_partial_fit,
+                # then append the current combo idxs to that list.
+                # otherwise add the entire _dupls_for_this_combo to
+                # _poly_dupls_current_partial_fit.
+                _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = \
+                    _merge_combo_dupls(
+                        _dupls_for_this_combo,
+                        _poly_dupls_current_partial_fit
+                    )
+                # END poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+                # if _dupls_for_this_combo is empty, then combo column is unique,
+                # put it in _POLY_CSC
+                if not len(_dupls_for_this_combo):
+                    _POLY_CSC = ss.hstack((_POLY_CSC, ss.csc_array(_COLUMN)))
+                    IDXS_IN_POLY_CSC.append(combo)
+
+                del _poly_is_constant, _dupls_for_this_combo
 
 
         # what do we have at this point?
 
-        # _X_constants_current_partial_fit
-        # dont need to know X duplicates
-        # _poly_dupls_current_partial_fit
-        # _poly_constants_current_partial_fit
-        # _combos
         # the original X as csc_array
-        # _POLY_CSC --- this is correctly expanded out for when only
-        #       drop_duplicates is True and would be fit to be returned
-        # IDXS_IN_POLY_CSC:list[tuple[int, ...]]
-
-        # X_constants -----------------------
-        # pizza, need to meld _X_constants_current_partial_fit into self.X_constants_
-        # self.X_constants_ would be holding the constants found in previous partial fits
-        # need this for collinear
-        self.X_constants_ = _merge_constants(
-            self.X_constants_,
-            _X_constants_current_partial_fit,
-            _rtol=self.rtol,
-            _atol=self.atol
-        )
-        # END X_constants -----------------------
+        # X constants in _IM()
+        # X duplicates in _CDT()
+        # _combos
+        # _poly_constants_current_partial_fit
+        # _poly_dupls_current_partial_fit
+        # _POLY_CSC
+        # IDXS_IN_POLY_CSC: list[tuple[int, ...]]
 
         # poly_constants -----------------------
-        # pizza, need to meld _poly_constants_current_partial_fit into self.poly_constants_
-        # self.poly_constants_ would be holding the constants found in previous partial fits
-        # need this for collinear
+        # pizza, need to meld _poly_constants_current_partial_fit into
+        # self.poly_constants_, which would be holding the constants
+        # found in previous partial fits
         self.poly_constants_ = _merge_constants(
             self.poly_constants_,
             _poly_constants_current_partial_fit,
@@ -765,12 +668,13 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
         # poly duplicates -----------------------
         # need to merge the current _poly_dupls_current_partial_fit with
-        # self._poly_duplicates
-        # which could be holding duplicates found in previous partial fits
-        # need to leave X tuples in here, need to follow the len(dupl_set) >= 2 rule
-        # to correctly merge _poly_dupls_current_partial_fit into _poly_duplicates
-        # X tuples are removed when @property poly_duplicates_ is called, leaving
-        # only poly tuples.
+        # self._poly_duplicates, which could be holding duplicates found
+        # in previous partial fits.
+        # need to leave X tuples in here, need to follow the
+        # len(dupl_set) >= 2 rule to correctly merge
+        # _poly_dupls_current_partial_fit into _poly_duplicates
+        # pizza come back to this --- X tuples are removed when
+        # @property poly_duplicates_ is called, leaving only poly tuples.
         self._poly_duplicates: list[list[tuple[int, ...]]] = \
             _merge_partialfit_dupls(
                 self._poly_duplicates,
@@ -785,79 +689,22 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
         # random idx for every set of dupls.
         self._rand_idxs: tuple[tuple[int, ...], ...] = \
             _lock_in_random_idxs(
-                poly_duplicates_=self.poly_duplicates_,
+                poly_duplicates_=self._poly_duplicates,
                 _combinations=_combos
             )
 
 
-
-        # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ##
-        # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ##
-        # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ## # ##
-        # build attributes
-
-        _all_attributes = \
-            _build_attributes(
-
-            )
-
-        self.dropped_poly_duplicates_ = _all_attributes[0]
-        self.kept_poly_duplicates_ = _all_attributes[1]
-        self.dropped_poly_constants_ = _all_attributes[2]
-        self.kept_poly_constants_ = _all_attributes[3]
-        self.poly_collinear_ = _all_attributes[4]
-        self.dropped_poly_collinear_ = _all_attributes[5]
-        self.kept_poly_collinear_ = _all_attributes[6]
-
-        del _all_attributes
-
-
-
-
-        if return_poly:
-            # if transforming straight from here:
-            # hstack((X, _POLY_CSC)) and return
-            # if doing just one fit(), then keep this object and just return it in
-            # transform.
-            return _POLY_CSC
+        if len(self._poly_duplicates):
+            self.dropped_poly_duplicates_, self.kept_poly_duplicates_ = \
+                _build_attributes(
+                    self._poly_duplicates,
+                    self.keep,
+                    self._rand_idxs
+                )
         else:
-            # pizza, if doing partial fit, then this object doesnt need to be stored,
-            # all u need to know from each partial_fit is the columns of constants and
-            # duplicate columns, then apply them in transform.
-            del _POLY_CSC
-            return
+            self.dropped_poly_duplicates_ = {}
+            self.kept_poly_duplicates_ = {}
 
-
-    def partial_fit(
-        self,
-        X: DataType,
-        y: Union[Iterable[any], None]=None
-    ) -> Self:
-
-        """
-        pizza
-
-
-        Parameters
-        ----------
-        X:
-            {array-like, scipy sparse matrix} of shape (n_samples, n_features) -
-            The data to undergo polynomial expansion.
-        y:
-            {array-like, None} - Always ignored. The target for the data.
-
-
-        Return
-        ------
-        -
-            self - the fitted NoDupPolyFeatures instance.
-
-        """
-
-        # only need to generate the constants and duplicates holder objects,
-        # there is no point in retaining the data object constructed while making
-        # the holder objects
-        self._base_fit(X, return_poly=False)
 
         return self
 
@@ -891,9 +738,7 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
         self._reset()
 
-        self._stored_poly = self._base_fit(X, return_poly=True)
-
-        return self
+        return self.partial_fit(X)
 
 
 
@@ -939,7 +784,8 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
         Return
         -------
-
+        -
+            X_tr: {array-like, scipy sparse} - the polynomial feature expansion for X.
 
         """
 
@@ -948,6 +794,18 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
+
+        if self.scan_X and hasattr(self, '_IM') and hasattr(self, '_CDT'):
+            # if X was scanned for constants and dupls, raise if any
+            # were present.
+            # its possible that scan_X could be set to True via set_params
+            # but _IM and _CDT are not created yet because {partial_}fit()
+            # hasnt been called since.
+            _check_X_constants_dupls(
+                self._IM.constant_columns_,
+                self._CDT.duplicates_
+            )
+
 
         _val_X(X)
 
@@ -968,30 +826,97 @@ class NoDupPolyFeatures(BaseEstimator, TransformerMixin):
 
         _validation(
             X,
-            self.columns,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.degree,
             self.min_degree,
-            self.drop_duplicates,
+            self.scan_X,
             self.keep,
-            self.do_not_drop,
-            self.conflict,
             self.interaction_only,
-            self.include_bias,
-            self.drop_constants,
             self.output_sparse,
-            self.order,
             self.rtol,
             self.atol,
             self.equal_nan,
             self.n_jobs
         )
 
-        out = _transform(X)
+        # pizza, revisit this at the end, see if we need to copy() X
+        # convert X to csc to save memory
+        # _validation should have caught non-numeric X. X must only be numeric
+        # throughout all of NDPF.
+        # pizza think on this, what about if sparse_output
 
-        if isinstance(out, np.ndarray):
-            out = np.ascontiguousarray(out)
+        _og_dtype = type(X)
 
-        return out
+        if hasattr(X, 'toarray'):   # is scipy sparse
+            X = X.tocsc()
+        else: # is np or pd
+            try:
+                X = ss.csc_array(X)
+            except:
+                X = ss.csc_array(X.astype(np.float64))
+
+        # NDPF params may have changed via set_params. need to recalculate
+        # some attributes.
+        # poly_constants_ does not change no matter what params are
+        # poly_duplicates_ does not change no matter what params are
+        # kept_poly_duplicates_ and dropped_poly_duplicates_ might change
+        if len(self._poly_duplicates):
+            self.dropped_poly_duplicates_, self.kept_poly_duplicates_ = \
+                _build_attributes(
+                    self._poly_duplicates,
+                    self.keep,
+                    self._rand_idxs
+                )
+        else:
+            self.dropped_poly_duplicates_ = {}
+            self.kept_poly_duplicates_ = {}
+
+
+        # GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # need to get the permutations to run, based on the size of x,
+        # min degree, max degree, and interaction_only.
+        # pizza do we want to make this a self
+        _combos: list[tuple[int, ...]] = _combination_builder(
+            _shape=X.shape,
+            _min_degree=self.min_degree,
+            _max_degree=self.degree,
+            _intx_only=self.interaction_only
+        )
+        # END GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v
+
+        X_tr: Union[np.ndarray, pd.core.frame.DataFrame, ss.csc_array] = _transform(
+            X,
+            _combos,
+            self.dropped_poly_duplicates_,
+            self.poly_constants_,
+            self.n_jobs
+        )
+
+
+        if self.min_degree == 1:
+            X_tr = ss.hstack((X, X_tr))
+
+
+        if self.sparse_output:
+            return X_tr.tocsr()
+        elif 'scipy' in str(_og_dtype).lower():
+            return _og_dtype(X_tr)
+
+        X_tr = X_tr.toarray()
+
+        if _og_dtype is np.ndarray:
+
+            X_tr = np.ascontiguousarray(X_tr)
+
+        elif _og_dtype is pd.core.frame.DataFrame:
+            # pizza what about the new feature names for df
+            X_tr = pd.DataFrame(
+                data=X_tr,
+                columns=None# pizza fix this!
+            )
+
+
+        return X_tr
 
 
 

@@ -8,7 +8,7 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit._combination_builder \
+from pybear.preprocessing.NoDupPolyFeatures._partial_fit._combination_builder \
     import _combination_builder
 
 import pytest

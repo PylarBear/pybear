@@ -13,9 +13,9 @@ import itertools
 
 
 def _merge_combo_dupls(
-    _dupls_for_this_combo: list[tuple[int]],
-    _poly_dupls_current_partial_fit: list[list[tuple[int]]]
-) -> list[list[tuple[int]]]:
+    _dupls_for_this_combo: list[tuple[int, ...]],
+    _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]]
+) -> list[list[tuple[int, ...]]]:
 
     """
 

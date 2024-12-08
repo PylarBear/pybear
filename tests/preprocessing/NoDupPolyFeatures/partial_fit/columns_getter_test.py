@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit._columns_getter import (
+from pybear.preprocessing.NoDupPolyFeatures._partial_fit._columns_getter import (
     _columns_getter
 )
 

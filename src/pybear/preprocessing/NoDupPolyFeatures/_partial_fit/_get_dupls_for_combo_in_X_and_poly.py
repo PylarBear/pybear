@@ -11,15 +11,15 @@ import numpy.typing as npt
 
 import numbers
 
-from joblib import Parallel
+from joblib import Parallel, delayed
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-from .._base_fit._parallel_column_comparer import _parallel_column_comparer
-from .._base_fit._parallel_ss_comparer import _parallel_ss_comparer
-from .._base_fit._columns_getter import _columns_getter
+from .._partial_fit._parallel_column_comparer import _parallel_column_comparer
+from .._partial_fit._parallel_ss_comparer import _parallel_ss_comparer
+from .._partial_fit._columns_getter import _columns_getter
 
 
 
@@ -89,7 +89,7 @@ def _get_dupls_for_combo_in_X_and_poly(
     # this flexible in case we ever end up returning from _columns_getter() as
     # passed
     assert isinstance(_COLUMN, (np.ndarray, pd.core.frame.DataFrame, ss.csc_array, ss.csc_matrix))
-    # pizza revisit this, currently at the top of NDPF._base_fit() setting _X
+    # pizza revisit this, currently at the top of NDPF._partial_fit() setting _X
     # to ss.csc if came in as ss or is numeric, if not numeric format is not changed
     assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(_COLUMN, 'toarray')
     assert isinstance(_POLY_CSC, (ss.csc_array, ss.csc_matrix))
@@ -132,7 +132,7 @@ def _get_dupls_for_combo_in_X_and_poly(
 
     # there can be more than one hit for duplicates in X
     _X_dupls = Parallel(**joblib_kwargs)(
-        _comparer_function(_columns_getter(_X, (c_idx,)), *args) for c_idx in range(X.shape[1])
+        delayed(_comparer_function)(_columns_getter(_X, (c_idx,)), *args) for c_idx in range(X.shape[1])
     )
 
     del _comparer_function
@@ -141,7 +141,7 @@ def _get_dupls_for_combo_in_X_and_poly(
     # if there is no duplicate in X, there can only be zero or one duplicate in poly.
     # use _parallel_ss_comparer, _POLY_CSC should always be csc!
     _poly_dupls = Parallel(**joblib_kwargs)(
-        _parallel_ss_comparer(_columns_getter(_POLY_CSC, (c_idx,)), *args) for c_idx in range(_POLY_CSC.shape[1])
+        delayed(_parallel_ss_comparer)(_columns_getter(_POLY_CSC, (c_idx,)), *args) for c_idx in range(_POLY_CSC.shape[1])
     )
 
     if any(_X_dupls):

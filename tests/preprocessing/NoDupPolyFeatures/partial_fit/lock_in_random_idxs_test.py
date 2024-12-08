@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit. \
+from pybear.preprocessing.NoDupPolyFeatures._partial_fit. \
     _lock_in_random_idxs import _lock_in_random_idxs
 
 import itertools

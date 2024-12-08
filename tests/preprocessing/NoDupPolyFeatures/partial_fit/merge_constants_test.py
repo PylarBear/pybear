@@ -8,7 +8,7 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit._merge_constants import (
+from pybear.preprocessing.NoDupPolyFeatures._partial_fit._merge_constants import (
     _merge_constants
 )
 

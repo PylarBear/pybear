@@ -48,8 +48,6 @@ class TestPipeline:
     def _kwargs():
         return {
             'keep': 'first',
-            'conflict': 'ignore',
-            'do_not_drop': None,
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': True,

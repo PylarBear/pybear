@@ -23,6 +23,12 @@ def _lock_in_random_idxs(
 
     """
 
+    mention something somewhere that we can randomly pick columns for
+    dupl groups where a column from X is included, e.g., [[(1,), (1,2), 1,3)]],
+    because it will just be ignored when we choose columns to keep, because
+    in this case, the column from X is always kept.
+
+
     PIZZA REWRITE THIS
     :method: transform needs to mask the same indices for all batch-wise
     transforms, otherwise the outputted batches will have different
@@ -36,10 +42,9 @@ def _lock_in_random_idxs(
     transform is called.
 
     This module builds a static ordered tuple of randomly selected
-    indices, one index from each set of duplicates, subject to any
-    constraints imposed by :param: do_not_drop, if passed. For example,
+    indices, one index from each set of duplicates. For example,
     a simple case would be if :param: duplicates is [[(1,2), (3,5)], [(0, 8)]],
-    and :param: do_not_drop is not passed, then a possible _rand_idxs
+    then a possible _rand_idxs
     might look like ((1,2), (0,8)). THE ORDER OF THE INDICES IN _rand_idxs IS
     CRITICALLY IMPORTANT AND MUST ALWAYS MATCH THE ORDER IN :param:
     poly_duplicates_.
@@ -110,6 +115,8 @@ def _lock_in_random_idxs(
 
     for _idx, _set in enumerate(poly_duplicates_):
 
+        # we can just randomly pick anything from _set even if _set[0] turns
+        # out to be from X, because then all of this is overruled anyway
         _keep_tuple_idx = np.random.choice(np.arange(len(_set)))
 
         _rand_idxs.append(_set[_keep_tuple_idx])
