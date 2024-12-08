@@ -6,13 +6,15 @@
 
 
 
-from typing import Iterable, Callable
+from typing import Iterable, Callable, Literal
 from typing_extensions import Union
+from .._type_aliases import FeatureNameCombinerType
 
 import numpy.typing as npt
 import numpy as np
 
 from sklearn.exceptions import NotFittedError
+
 
 
 def _get_feature_names_out(
@@ -21,7 +23,7 @@ def _get_feature_names_out(
     _min_degree: int,
     _active_combos: tuple[tuple[int, ...], ...],
     _X_shape: tuple[int, ...],
-    _feature_name_combiner: Union[Callable[[tuple[int, ...]], str], None]
+    _feature_name_combiner: FeatureNameCombinerType
 ) -> npt.NDArray[object]:
 
     """

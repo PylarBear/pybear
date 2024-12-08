@@ -22,7 +22,7 @@ pytest.skip(reason=f"pizza not started, not finished", allow_module_level=True)
 class TestBuildAttributes:
 
     # def _build_attributes(
-    #     _poly_duplicates: list[list[tuple[int, ...]]],  # pizza, must be the version that has X columns in it, if any
+    #     _poly_duplicates: list[list[tuple[int, ...]]],
     #     _keep: Literal['first', 'last', 'random'],
     #     _rand_idxs: tuple[tuple[int, ...], ...]
     # ) -> tuple[
@@ -31,13 +31,15 @@ class TestBuildAttributes:
     # ]:
 
     """
-    # otherwise, need to know from :param: keep which
-    # one from each dupl set is kept, all other poly_duplicates_ are dropped
-    # kept_poly_duplicates_ is a dictionary whose keys are the kept X idx tuple/poly combo and
-    # values are a list of the poly combos that were deleted
+    # need to know from :param: keep which one from each dupl set is kept,
+    # all other poly_duplicates_ are dropped
+    # kept_poly_duplicates_ is a dictionary whose keys are the kept
+    # X idx tuple/poly combo tuple and values are a list of its associated poly combos that will be omitted
     # dropped_poly_duplicates_ is a dictionary whose keys are the dropped poly combos
     # and the values is the idx tuple of the associated dupl that was kept.
     # need to have X tuples in here! use _poly_duplicates not poly_duplicates_
+    """
+
     kept_poly_duplicates_: dict[tuple[int, ...]: list[tuple[int, ...]]] = {}
     dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]] = {}
     for _dupl_set_idx, _dupl_set in enumerate(_poly_duplicates):
@@ -47,12 +49,13 @@ class TestBuildAttributes:
         for _tuple in _dupl_set:
             _same_len_tuples[len(_tuple)].append(_tuple)
         if 1 in _same_len_tuples and len(_same_len_tuples[1]) > 1:
-            raise AssertionError(f"algorithm failure. more than 1 X col idx in a poly dupl set.")
+            raise AssertionError(f"algorithm failure. more than one X col idx in a poly dupl set.")
         _sorted_dupl_set = []
         for _len, _tuples in _same_len_tuples.items():
             _sorted_dupl_set += sorted(_tuples)
 
         del _tuples, _len, _tuples, _same_len_tuples
+        # END sort ----------------------------------------------------------
 
         # if there is a column from X (len(tuple)==1) there should only be 1
         # if any, that automatically is kept and the rest are omitted
@@ -76,7 +79,9 @@ class TestBuildAttributes:
                     dropped_poly_duplicates_ = {t: _rand_idxs[_dupl_set_idx]}
         else:
             raise Exception(f'algorithm failure')
-    """
+
+
+
 
 
 

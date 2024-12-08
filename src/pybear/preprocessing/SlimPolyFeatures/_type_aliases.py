@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable, Literal
+from typing import Iterable, Literal, Callable
 from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 import pandas as pd
@@ -41,6 +41,8 @@ DataType: TypeAlias = Union[
 ]
 
 
+FeatureNameCombinerType: TypeAlias = \
+    Union[Callable[[tuple[int, ...]], str], Literal['as_feature_names', 'as_indices']]
 
 
 DuplicatesType: TypeAlias = list[list[tuple[int]]]

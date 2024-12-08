@@ -17,7 +17,7 @@ def _val_degree__min_degree(
 
     """
 
-    min_degree, max_degree must be non-negative integers that fulfil "
+    min_degree, max_degree must be integers greater than 1 that fulfil "
     min_degree <= max_degree
 
 
@@ -41,19 +41,26 @@ def _val_degree__min_degree(
 
     """
 
+    err_msg = \
+        (f"\n'min_degree' must be an integer >= 1.\n'degree' must "
+        f"be an integer >= 2.\n'degree' must be greater than or equal "
+        f"to 'min_degree'. \ngot {_min_degree=}, {_degree=}.")
 
-    if isinstance(_degree, bool) or \
-        isinstance(_min_degree, bool) or not \
-        isinstance(_min_degree, Integral) or not \
-        isinstance(_degree, Integral) or \
-        _min_degree < 0 or \
-        _min_degree > _degree:
+    _value_error = 0
+    _value_error += isinstance(_degree, bool)
+    _value_error += isinstance(_min_degree, bool)
+    _value_error += not isinstance(_min_degree, Integral)
+    _value_error += not isinstance(_degree, Integral)
 
-        raise ValueError(
-            "'min_degree' and 'degree', must be non-negative integers "
-            f"that fulfil min_degree <= max_degree, got {_min_degree=}, "
-            f"{_degree=}."
-        )
+    if _value_error:
+        raise ValueError(err_msg)
+
+    _value_error += _min_degree < 1
+    _value_error += _degree < 2
+    _value_error += _min_degree > _degree
+
+    if _value_error:
+        raise ValueError(err_msg)
 
 
 

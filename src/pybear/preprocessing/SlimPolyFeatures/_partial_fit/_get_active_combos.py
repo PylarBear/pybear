@@ -6,18 +6,16 @@
 
 
 
-
-
-
 def _get_active_combos(
     _combos: list[tuple[int, ...]],
     poly_constants_: dict[tuple[int, ...]: any],
-    dropped_poly_duplicates_: dict[tuple[int, ...], tuple[int, ...]]
+    dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]]
 ) -> tuple[tuple[int, ...], ...]:
 
     """
     Pizza. Find the tuples of index combinations that will be in the
-    polynomial expansion. This supports both _transform and _get_feature_names_out.
+    polynomial expansion. This supports both _transform and
+    _get_feature_names_out.
     Index tuples in :param: _combos that are in :param:
     dropped_poly_duplicates_ or in :param: poly_constants_ are omitted
     from the expansion.

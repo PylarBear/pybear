@@ -28,7 +28,18 @@ def _build_attributes(
 
     """
 
+    Build dropped_poly_duplicates_ and kept_poly_duplicates_.
 
+    dropped_poly_duplicates_ is the subset of poly_duplicates that is left
+    out of the polynomial expansion. It is a dictionary with the excluded
+    duplicates as keys. The value for each key is the combo that is kept
+    that is identical to the key. pizza reword this.
+
+    kept_poly_duplicates is the subset of poly_duplicates that is kept in
+    the polynomial expansion. It is a dictionary with the kept combo tuples
+    as keys. The values are lists of combo tuples that were from the same
+    set of duplicates as the key; they are the combos that are omitted.
+    There should be only one representative from each set of duplicates.
 
 
     Parameters
@@ -73,10 +84,10 @@ def _build_attributes(
     # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-    # otherwise, need to know from :param: keep which
-    # one from each dupl set is kept, all other poly_duplicates_ are dropped
-    # kept_poly_duplicates_ is a dictionary whose keys are the kept X idx tuple/poly combo and
-    # values are a list of the poly combos that were deleted
+    # need to know from :param: keep which one from each dupl set is kept,
+    # all other poly_duplicates_ are dropped
+    # kept_poly_duplicates_ is a dictionary whose keys are the kept
+    # X idx tuple/poly combo tuple and values are a list of its associated poly combos that will be omitted
     # dropped_poly_duplicates_ is a dictionary whose keys are the dropped poly combos
     # and the values is the idx tuple of the associated dupl that was kept.
     # need to have X tuples in here! use _poly_duplicates not poly_duplicates_
@@ -89,12 +100,13 @@ def _build_attributes(
         for _tuple in _dupl_set:
             _same_len_tuples[len(_tuple)].append(_tuple)
         if 1 in _same_len_tuples and len(_same_len_tuples[1]) > 1:
-            raise AssertionError(f"algorithm failure. more than 1 X col idx in a poly dupl set.")
+            raise AssertionError(f"algorithm failure. more than one X col idx in a poly dupl set.")
         _sorted_dupl_set = []
         for _len, _tuples in _same_len_tuples.items():
             _sorted_dupl_set += sorted(_tuples)
 
         del _tuples, _len, _tuples, _same_len_tuples
+        # END sort ----------------------------------------------------------
 
         # if there is a column from X (len(tuple)==1) there should only be 1
         # if any, that automatically is kept and the rest are omitted
