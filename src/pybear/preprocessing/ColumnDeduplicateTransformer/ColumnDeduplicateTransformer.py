@@ -440,7 +440,10 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         if input_features is not None:
 
             if len(input_features) != self.n_features_in_:
-                raise ValueError("input_features should have length equal")
+                raise ValueError(
+                    "input_features should have length equal to number of "
+                    f"features ({self.n_features_in_}), got {len(input_features)}"
+                )
 
             if hasattr(self, 'feature_names_in_'):
 
