@@ -91,7 +91,7 @@ def _get_dupls_for_combo_in_X_and_poly(
     assert isinstance(_COLUMN, (np.ndarray, pd.core.frame.DataFrame, ss.csc_array, ss.csc_matrix))
     # pizza revisit this, currently at the top of SPF._partial_fit() setting _X
     # to ss.csc if came in as ss or is numeric, if not numeric format is not changed
-    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(_COLUMN, 'toarray')
+    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(_X, 'toarray')
     assert isinstance(_POLY_CSC, (ss.csc_array, ss.csc_matrix))
     assert len(_COLUMN.shape) == 1
     assert len(_COLUMN) == _X.shape[0] == _POLY_CSC.shape[0]
@@ -132,7 +132,7 @@ def _get_dupls_for_combo_in_X_and_poly(
 
     # there can be more than one hit for duplicates in X
     _X_dupls = Parallel(**joblib_kwargs)(
-        delayed(_comparer_function)(_columns_getter(_X, (c_idx,)), *args) for c_idx in range(X.shape[1])
+        delayed(_comparer_function)(_columns_getter(_X, (c_idx,)), *args) for c_idx in range(_X.shape[1])
     )
 
     del _comparer_function

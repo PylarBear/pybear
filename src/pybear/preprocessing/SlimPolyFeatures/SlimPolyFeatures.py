@@ -130,7 +130,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     sparse_output:
         bool - pizza!
     feature_name_combiner:
-        Union[Callable[[], str]
+        Union[Callable[[Iterable[str], tuple[int, ...]], str]] - pizza!
     equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
@@ -264,7 +264,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         scan_X: Optional[bool] = True,
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
         sparse_output: Optional[bool] = True,
-        feature_name_combiner: Optional[Union[Callable[[tuple[int, ...]], str], None]],
+        feature_name_combiner: Optional[Union[Callable[[Iterable[str], tuple[int, ...]], str], None]] = None,
         equal_nan: Optional[bool] = True,
         rtol: Optional[numbers.Real] = 1e-5,
         atol: Optional[numbers.Real] = 1e-8,
@@ -388,7 +388,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     def partial_fit(
         self,
         X: DataType,
-        y: any
+        y: Union[Iterable[any], None]=None
     ):
 
         """
@@ -435,7 +435,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             self.scan_X,
             self.keep,
             self.interaction_only,
-            self.output_sparse,
+            self.sparse_output,
+            self.feature_name_combiner,
             self.rtol,
             self.atol,
             self.equal_nan,
@@ -570,7 +571,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
                 # need to convert 'out' to
                 # [(i1,), (i2,),..] SINGLE GROUP OF DUPLICATES
-                _indices = [(i,) for i in X.shape[1]] + IDXS_IN_POLY_CSC
+                _indices = [(i,) for i in range(X.shape[1])] + IDXS_IN_POLY_CSC
                 _dupls_for_this_combo = []
                 for _idx_tuple, _is_dupl in zip(_indices, _out):
                     if _is_dupl:
@@ -798,7 +799,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             self.scan_X,
             self.keep,
             self.interaction_only,
-            self.output_sparse,
+            self.sparse_output,
+            self.feature_name_combiner,
             self.rtol,
             self.atol,
             self.equal_nan,

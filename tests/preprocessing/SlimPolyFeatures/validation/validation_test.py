@@ -35,11 +35,13 @@ class TestValidation:
 
 
 
-    @pytest.mark.parametrize('_degree', (1, 2))
-    @pytest.mark.parametrize('_min_degree', (0, 1)) # 1))
+    @pytest.mark.parametrize('_degree', (3, 4))
+    @pytest.mark.parametrize('_min_degree', (2, 3))
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
     @pytest.mark.parametrize('_interaction_only', (True, False))
     @pytest.mark.parametrize('_sparse_output', (True, False))
+    @pytest.mark.parametrize('_feature_name_combiner',
+        (lambda _columns, x: 'strings', lambda _columns, x: 'wires'))
     @pytest.mark.parametrize('_rtol', (1e-6, )) # 1e-1))
     @pytest.mark.parametrize('_atol', (1e-6, )) # 1))
     @pytest.mark.parametrize('_scan_X', (True, False))
@@ -47,7 +49,8 @@ class TestValidation:
     @pytest.mark.parametrize('_n_jobs', (-1, 1))
     def test_accepts_good(
         self, _X, _columns, _degree, _min_degree, _keep, _interaction_only,
-        _sparse_output, _rtol, _atol, _scan_X, _equal_nan, _n_jobs, _shape
+        _sparse_output, _feature_name_combiner, _rtol, _atol, _scan_X,
+        _equal_nan, _n_jobs, _shape
     ):
 
         _validation(
@@ -59,6 +62,7 @@ class TestValidation:
             _keep,
             _interaction_only,
             _sparse_output,
+            _feature_name_combiner,
             _rtol,
             _atol,
             _equal_nan,

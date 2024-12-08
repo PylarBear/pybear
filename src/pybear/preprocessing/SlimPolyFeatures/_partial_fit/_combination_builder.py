@@ -51,17 +51,17 @@ def _combination_builder(
     assert len(_shape) == 2
     assert isinstance(_min_degree, int)
     assert not isinstance(_min_degree, bool)
-    assert _min_degree >= 0
+    assert _min_degree >= 1
     assert isinstance(_max_degree, int)
     assert not isinstance(_max_degree, bool)
-    assert _max_degree > 0, f"max_degree == 0 shouldnt be getting in here"
+    assert _max_degree >= 2, f"max_degree in [0,1] shouldnt be getting in here"
     assert _max_degree >= _min_degree
     assert isinstance(_intx_only, bool)
 
 
     # forget about 0 degree, that is handled at the end of it all.
 
-    _min_degree = max(1, _min_degree)
+    _min_degree = max(2, _min_degree)
     # if max_degrees comes in as zero, then validation should have blown up.
     # pizza anticipates that if max_degree is ever set to zero, then
     # all of the machinery will be bypassed, including this module,

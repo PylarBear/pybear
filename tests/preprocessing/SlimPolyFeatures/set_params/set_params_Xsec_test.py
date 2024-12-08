@@ -22,10 +22,11 @@ pytest.skip(reason=f"not finished", allow_module_level=True)
 def _kwargs():
     return {
         'degree': 2,
-        'min_degree': 0,
+        'min_degree': 1,
         'keep': 'first',
         'interaction_only': False,
         'sparse_output': False,
+        'feature_name_combiner': lambda pizza_columns, x: 'any old string',
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
@@ -53,9 +54,9 @@ def y(_rows):
 class TestSetParams:
 
 
-    def test_rejects_bad_assignments_at_init(self, _alt_kwargs):
+    def test_rejects_bad_assignments_at_init(self, _kwargs):
 
-        _junk_kwargs = deepcopy(_alt_kwargs)
+        _junk_kwargs = deepcopy(_kwargs)
         _junk_kwargs['trash'] = 'junk'
         _junk_kwargs['garbage'] = 'waste'
         _junk_kwargs['refuse'] = 'rubbish'
@@ -65,10 +66,11 @@ class TestSetParams:
             SlimPoly(**_junk_kwargs)
 
 
-    def test_rejects_bad_assignments_in_set_params(self, _alt_kwargs):
-        TestCls = SlimPoly(**_alt_kwargs)
+    def test_rejects_bad_assignments_in_set_params(self, _kwargs):
 
-        _junk_kwargs = deepcopy(_alt_kwargs)
+        TestCls = SlimPoly(**_kwargs)
+
+        _junk_kwargs = deepcopy(_kwargs)
         _junk_kwargs['trash'] = 'junk'
         _junk_kwargs['garbage'] = 'waste'
         _junk_kwargs['refuse'] = 'rubbish'

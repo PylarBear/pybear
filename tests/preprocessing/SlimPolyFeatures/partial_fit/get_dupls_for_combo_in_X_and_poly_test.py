@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 
-pytest.skip(reason=f"pizza isnt done!", allow_module_level=True)
+# pytest.skip(reason=f"pizza isnt done!", allow_module_level=True)
 
 
 
@@ -46,7 +46,7 @@ class Fixtures:
     @pytest.fixture(scope='module')
     def _X_ss(_X_factory, _shape):
 
-        # pizza! X must always be ss if numeric dtype because SPF._partial_fit() sets this before _get_dupls!
+        # pizza! X must always be ss because SPF._partial_fit() sets this before _get_dupls!
         # otherwise is as passed (np or pd)
 
         def foo(_format, _dtype, _has_nan, _dupls):
@@ -72,7 +72,7 @@ class Fixtures:
     @staticmethod
     @pytest.fixture(scope='module')
     def _good_POLY_CSC(_X_ss):
-        return _X_ss[:, [0,1,2]].prod(1)
+        return _X_ss[:, [0,1,2]]
 
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -96,7 +96,7 @@ class TestDuplsForComboValidation(Fixtures):
     @pytest.mark.parametrize('_COLUMN',
         (-np.e, -1, 0, 1, np.e, True, False, 'trash', [0,1], (0,1), lambda x: x)
     )
-    def test_COLUMN_rejects_junk(self, _COLUMN, _X_ss, _rtol_atol, _n_jobs):
+    def test_COLUMN_rejects_junk(self, _COLUMN, _X_ss, _good_POLY_CSC, _rtol_atol, _n_jobs):
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _COLUMN,
@@ -112,7 +112,7 @@ class TestDuplsForComboValidation(Fixtures):
     @pytest.mark.parametrize('_COLUMN',
         ({'a':0, 'b': 1, 'c':np.nan}, {0: 1, 1:0, 2: np.nan})
     )
-    def test_COLUMM_rejects_bad(self, _COLUMN, _rtol_atol, _n_jobs):
+    def test_COLUMN_rejects_bad(self, _COLUMN, _rtol_atol, _n_jobs):
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _COLUMN,

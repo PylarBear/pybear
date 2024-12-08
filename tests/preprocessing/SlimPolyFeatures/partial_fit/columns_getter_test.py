@@ -18,9 +18,10 @@ import pytest
 
 
 
+# only need to test numeric data, SPF blocks all non-numeric data
 
-# this mark needs to stay here because fixtures _X_num & _X_str need it
-@pytest.mark.parametrize('_has_nan', (False,), scope='module')   # (True, False) pizza
+# this mark needs to stay here because _X_num fixture needs it
+@pytest.mark.parametrize('_has_nan', (True, False), scope='module')
 class TestColumnGetter:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -39,20 +40,6 @@ class TestColumnGetter:
             _dupl=None,
             _format='np',
             _dtype='flt',
-            _has_nan=_has_nan,
-            _columns=None,
-            _shape=_shape
-        )
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_str(_X_factory, _shape, _has_nan):
-
-        return _X_factory(
-            _dupl=None,
-            _format='np',
-            _dtype='str',
             _has_nan=_has_nan,
             _columns=None,
             _shape=_shape
@@ -98,7 +85,6 @@ class TestColumnGetter:
 
 
 
-    @pytest.mark.parametrize('_dtype', ('num', 'str'))
     @pytest.mark.parametrize('_format',
         (
         'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
@@ -110,17 +96,10 @@ class TestColumnGetter:
         (0, 1, 2, (0,), (1,), (2,), (0,1), (0,2), (1,2), (0,1,2))
     )
     def test_accuracy(
-        self, _has_nan, _dtype, _format, _col_idxs, _shape, _X_num, _X_str,
-        _master_columns
+        self, _has_nan, _format, _col_idxs, _shape, _X_num, _master_columns
     ):
 
-        if _dtype == 'str' and _format not in ('ndarray', 'df'):
-            pytest.skip(reason=f"scipy sparse cant take non numeric data")
-
-        if _dtype == 'num':
-            _X = _X_num
-        elif _dtype == 'str':
-            _X = _X_str
+        _X = _X_num
 
         if _format == 'ndarray':
             _X_wip = _X
@@ -184,20 +163,14 @@ class TestColumnGetter:
             assert _columns.shape[1] == len(_col_idxs)
 
         # since all the various _X_wips came from _X, just use _X to referee
-        # whether _columns_getter pulled the correct column from _X_wip
+        # whether _columns_getter pulled the correct columns from _X_wip
 
-        if _dtype == 'num':
-            if hasattr(_X_wip, 'toarray'):
-                __ = ss.csc_array(_X[:, _col_idxs])
-                _stack = np.hstack((__.indices, __.data)).reshape((-1, 1))
-                assert np.array_equal(_columns, _stack, equal_nan=True)
-            elif not hasattr(_X_wip, 'toarray'):
-                assert np.array_equal(_columns, _X[:, _col_idxs], equal_nan=True)
-        elif _dtype == 'str':
-            assert np.array_equal(
-                _columns.astype(str),
-                _X[:, _col_idxs].astype(str)
-            )
+        if hasattr(_X_wip, 'toarray'):
+            __ = ss.csc_array(_X[:, _col_idxs])
+            _stack = np.hstack((__.indices, __.data)).reshape((-1, 1))
+            assert np.array_equal(_columns, _stack, equal_nan=True)
+        elif not hasattr(_X_wip, 'toarray'):
+            assert np.array_equal(_columns, _X[:, _col_idxs], equal_nan=True)
 
 
 
