@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit._merge_partialfit_dupls import (
+from pybear.preprocessing.NoDupPolyFeatures._partial_fit._merge_partialfit_dupls import (
     _merge_partialfit_dupls
 )
 

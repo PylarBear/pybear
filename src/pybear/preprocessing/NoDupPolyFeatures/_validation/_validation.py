@@ -8,23 +8,15 @@
 
 
 from ._atol import _val_atol
-from ._conflict import _val_conflict     # pizza
 from ._degree__min_degree import _val_degree__min_degree
-from ._do_not_drop import _val_do_not_drop     # pizza
-from ._drop_duplicates import _val_drop_duplicates
-from ._drop_constants import _val_drop_constants
-from ._drop_collinear import _val_drop_collinear
 from ._equal_nan import _val_equal_nan
-from ._include_bias import _val_include_bias     # pizza
+from ._scan_X import _val_scan_X
 from ._interaction_only import _val_interaction_only
 from ._keep import _val_keep
 from ._n_jobs import _val_n_jobs
-from ._order import _val_order     # pizza
-from ._output_sparse import _val_output_sparse
+from ._sparse_output import _val_sparse_output
 from ._rtol import _val_rtol
 from ._X import _val_X
-
-
 
 from .._type_aliases import DataType
 from typing import Literal, Iterable
@@ -38,16 +30,10 @@ def _validation(
     _columns: Union[Iterable[str], None],
     _degree: int,
     _min_degree: int,
-    _drop_duplicates: bool,
+    _scan_X: bool,
     _keep: Literal['first', 'last', 'random'],
-    # _do_not_drop: Union[Iterable[str], Iterable[int], None],     # pizza
-    # _conflict: Literal['raise', 'ignore'],     # pizza
     _interaction_only: bool,
-    # _include_bias: bool,     # pizza
-    _drop_constants: bool,
-    _drop_collinear: bool,
-    _output_sparse: bool,
-    # _order: Literal['C', 'F'],     # pizza
+    _sparse_output: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,
@@ -69,30 +55,14 @@ def _validation(
         int
     _min_degree:
         int
-    _drop_duplicates:
+    _scan_X:
         bool
     _keep:
-        Literal['first', 'last', 'random'],
-    _do_not_drop:
-        Union[Iterable[str], Iterable[int], None],
-        pizza on the block
-    _conflict:
-        Literal['raise', 'ignore'],
-        pizza on the block
+        Literal['first', 'last', 'random']
     _interaction_only:
         bool
-    _include_bias:
+    _sparse_output:
         bool
-        pizza on the block
-    _drop_constants:
-        bool
-    _drop_collinear:
-        bool
-    _output_sparse:
-        bool
-    _order:
-        Literal['C', 'F'],
-        pizza on the block!
     _rtol:
         float
     _atol:
@@ -114,13 +84,11 @@ def _validation(
 
     _val_atol(_atol)
 
-    # _val_conflict(_conflict)     # pizza
-
     _val_keep(_keep)
 
     _val_X(_X)
 
-    # _val_do_not_drop(_do_not_drop, _X, _columns)     # pizza
+    _val_scan_X(_scan_X)
 
     _val_equal_nan(_equal_nan)
 
@@ -130,19 +98,9 @@ def _validation(
 
     _val_degree__min_degree(_degree, _min_degree)
 
-    _val_drop_duplicates(_drop_duplicates)
-
     _val_interaction_only(_interaction_only)
 
-    # _val_include_bias(_include_bias)     # pizza
-
-    _val_drop_constants(_drop_constants)
-
-    _val_drop_collinear(_drop_collinear)
-
-    _val_output_sparse(_output_sparse)
-
-    # _val_order(_order)     # pizza
+    _val_sparse_output(_sparse_output)
 
 
 

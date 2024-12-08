@@ -8,7 +8,7 @@
 # IMPORTANT!
 # this is sparse so this uses _parallel_ss_comparer!
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit import (
+from pybear.preprocessing.NoDupPolyFeatures._partial_fit import (
     _parallel_ss_comparer as pssc,
     _columns_getter as cg
 )

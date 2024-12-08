@@ -30,11 +30,7 @@ def _val_degree__min_degree(
     _min_degree:
         int, default=0 - The minimum polynomial degree of the generated
         features. Polynomial terms with degree below 'min_degree' are
-        not included in the final output array, except for zero-degree
-        terms (a column of ones), which is controlled by :param: include_bias.
-        Note that `min_degree=0`
-        and `min_degree=1` are equivalent as outputting the degree zero term is
-        determined by `include_bias`.
+        not included in the final output array. pizza say something about trivial cases.
 
 
     Return

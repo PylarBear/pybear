@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.NoDupPolyFeatures._base_fit.\
+from pybear.preprocessing.NoDupPolyFeatures._partial_fit.\
     _get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
 
 
@@ -46,7 +46,7 @@ class Fixtures:
     @pytest.fixture(scope='module')
     def _X_ss(_X_factory, _shape):
 
-        # pizza! X must always be ss if numeric dtype because NDPF._base_fit() sets this before _get_dupls!
+        # pizza! X must always be ss if numeric dtype because NDPF._partial_fit() sets this before _get_dupls!
         # otherwise is as passed (np or pd)
 
         def foo(_format, _dtype, _has_nan, _dupls):
