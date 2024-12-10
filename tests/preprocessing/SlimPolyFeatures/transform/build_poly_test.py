@@ -16,7 +16,7 @@ import pandas as pd
 import scipy.sparse as ss
 from joblib import Parallel, delayed, wrap_non_picklable_objects
 
-from pybear.preprocessing.SlimPolyFeatures._transform import _transform
+from pybear.preprocessing.SlimPolyFeatures._transform import _build_poly
 
 import pytest
 
@@ -29,13 +29,13 @@ pytest.skip(reason=f"not started, not finished", allow_module_level=True)
 # pizza finish this
 
 
-class TransformTest:
+class TestBuildPoly:
 
 
-    def test_transform(self):
+    def build_poly_test(self):
 
 
-        # def _transform(
+        # def _build_poly(
         #     X: ss.csc_array,
         #     _combos: list[tuple[int, ...]],
         #     dropped_poly_duplicates_: dict[tuple[int, ...], tuple[int, ...]],

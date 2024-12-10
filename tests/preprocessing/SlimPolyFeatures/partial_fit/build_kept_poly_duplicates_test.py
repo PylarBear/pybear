@@ -8,82 +8,29 @@
 
 
 
-from typing import Literal
+from pybear.preprocessing.SlimPolyFeatures._partial_fit._build_kept_poly_duplicates \
+    import _build_attributes
+
+
+import pytest
 
 
 
+pytest.skip(reason=f"pizza not started, not finished", allow_module_level=True)
 
 
+class TestBuildAttributes:
 
-
-
-def _build_attributes(
-    _poly_duplicates: list[list[tuple[int, ...]]],  # pizza, must be the version that has X columns in it, if any
-    _keep: Literal['first', 'last', 'random'],
-    _rand_idxs: tuple[tuple[int, ...], ...]
-) -> tuple[
-    dict[tuple[int, ...]: tuple[int, ...]],
-    dict[tuple[int, ...]: list[tuple[int, ...]]]
-]:
-
-    """
-
-    Build dropped_poly_duplicates_ and kept_poly_duplicates_.
-
-    dropped_poly_duplicates_ is the subset of poly_duplicates that is left
-    out of the polynomial expansion. It is a dictionary with the excluded
-    duplicates as keys. The value for each key is the combo that is kept
-    that is identical to the key. pizza reword this.
-
-    kept_poly_duplicates is the subset of poly_duplicates that is kept in
-    the polynomial expansion. It is a dictionary with the kept combo tuples
-    as keys. The values are lists of combo tuples that were from the same
-    set of duplicates as the key; they are the combos that are omitted.
-    There should be only one representative from each set of duplicates.
-
-
-    Parameters
-    ---------
-    _poly_duplicates:
-        list[list[tuple[int, ...]]] - The groups of duplicates found
-        in the polynomial expansions across all partial fits. If any
-        combos were equal to a column in X, then the X idx tuple
-        ... (c_idx, ) ... must be included.
-    _keep:
-        Literal['first', 'last', 'random'] - when there is no X idx in
-        a set of duplicates (all duplicates were within POLY) then apply
-        this rule to keep one of them and omit the rest.
-    _rand_idxs:
-        tuple[tuple[int, ...], ...] - the random indices to keep when
-        :param: keep == 'random'. This must be static when :method:
-        transform is called.
-
-
-    Return
-    ------
-    -
-        tuple[
-            dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]],
-            kept_poly_duplicates_: dict[tuple[int, ...], list[tuple[int, ...]]]
-        ]:
+    # def _build_attributes(
+    #     _poly_duplicates: list[list[tuple[int, ...]]],
+    #     _keep: Literal['first', 'last', 'random'],
+    #     _rand_idxs: tuple[tuple[int, ...], ...]
+    # ) -> tuple[
+    #     dict[tuple[int, ...]: tuple[int, ...]],
+    #     dict[tuple[int, ...]: list[tuple[int, ...]]]
+    # ]:
 
     """
-
-    # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    assert isinstance(_poly_duplicates, list)
-    for _list in _poly_duplicates:
-        assert isinstance(_list, list)
-        for _tuple in _list:
-            assert isinstance(_tuple, tuple)
-            assert all(map(isinstance, _tuple, (tuple for _ in _tuple)))
-    assert _keep in ['first', 'last', 'random']
-    assert isinstance(_rand_idxs, tuple)
-    for _tuple in _rand_idxs:
-        assert isinstance(_tuple, tuple)
-        assert all(map(isinstance, _tuple, (tuple for _ in _tuple)))
-    # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
     # need to know from :param: keep which one from each dupl set is kept,
     # all other poly_duplicates_ are dropped
     # kept_poly_duplicates_ is a dictionary whose keys are the kept
@@ -91,6 +38,8 @@ def _build_attributes(
     # dropped_poly_duplicates_ is a dictionary whose keys are the dropped poly combos
     # and the values is the idx tuple of the associated dupl that was kept.
     # need to have X tuples in here! use _poly_duplicates not poly_duplicates_
+    """
+
     kept_poly_duplicates_: dict[tuple[int, ...]: list[tuple[int, ...]]] = {}
     dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]] = {}
     for _dupl_set_idx, _dupl_set in enumerate(_poly_duplicates):
@@ -133,7 +82,6 @@ def _build_attributes(
 
 
 
-    return dropped_poly_duplicates_, kept_poly_duplicates_
 
 
 
