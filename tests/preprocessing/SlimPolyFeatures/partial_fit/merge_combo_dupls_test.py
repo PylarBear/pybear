@@ -237,7 +237,7 @@ class TestMergeComboDuplsAccuracy:
 
     def test_accuracy(self):
 
-        # first idx not in _poly_dupls_current_partial_fit,
+        # if first combo not in _poly_dupls_current_partial_fit,
         # add entire _dupls_for_this_combo to _poly_dupls_current_partial_fit
         _dupls_for_this_combo = [(2, ), (2,3)]
         _poly_dupls_current_partial_fit = [
@@ -256,8 +256,8 @@ class TestMergeComboDuplsAccuracy:
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # first idx of _dupls_for_this_combo already in _poly_dupls_current_partial_fit,
-        # merge the two sets that share the first idx
+        # if first combo of _dupls_for_this_combo already in _poly_dupls_current_partial_fit,
+        # merge the two sets that share the first combo
 
         # new columns of constants, with overlap
         _dupls_for_this_combo = [(1, ), (2,3)]

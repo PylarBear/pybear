@@ -28,24 +28,14 @@ class Fixtures:
         return (100, 20)
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_base(_X_factory, _shape):
-        return _X_factory(
-            _dupl=None,
-            _format='np',
-            _dtype='flt',
-            _columns=None,
-            _shape=_shape
-        )
-
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _init_duplicates():
+        # the sorting must be asc len(tuple) then asc tuple
         return [
-            [(1,), (15,)],
-            [(3,), (8,), (12,)]
+            [(1,), (15,18)],
+            [(3,4), (8,9), (12,18)]
         ]
 
 
@@ -53,9 +43,10 @@ class Fixtures:
     @staticmethod
     @pytest.fixture(scope='module')
     def _less_duplicates():
+        # the sorting must be asc len(tuple) then asc tuple
         return [
-            [(1,), (15,)],
-            [(3,), (12,)]
+            [(1,), (15,18)],
+            [(3,4), (12,18)]
         ]
 
 
@@ -63,14 +54,16 @@ class Fixtures:
     @staticmethod
     @pytest.fixture(scope='module')
     def _more_duplicates():
+        # the sorting must be asc len(tuple) then asc tuple
         return [
-            [(1,), (4,), (15,)],
-            [(3,), (8,), (12,)]
+            [(1,), (4,6), (15,18)],
+            [(3,4), (8,9), (12,18)]
         ]
 
 
 
-class TestDuplIdxs(Fixtures):
+
+class TestDuplCombos(Fixtures):
 
 
     def test_first_pass(self, _init_duplicates):
@@ -82,8 +75,8 @@ class TestDuplIdxs(Fixtures):
         out = _merge_partialfit_dupls(None, _init_duplicates)
 
         for idx in range(len(out)):
-            #                               vvvvvvvvvvvvvvvvvvvvv
-            assert np.array_equiv(out[idx], _init_duplicates[idx])
+            #                  vvvvvvvvvvvvvvvvvvvvv
+            assert out[idx] == _init_duplicates[idx]
 
 
     def test_less_dupl_found(
@@ -96,8 +89,8 @@ class TestDuplIdxs(Fixtures):
         out = _merge_partialfit_dupls(_init_duplicates, _less_duplicates)
 
         for idx in range(len(out)):
-            #                               vvvvvvvvvvvvvvvvvvvvv
-            assert np.array_equiv(out[idx], _less_duplicates[idx])
+            #                  vvvvvvvvvvvvvvvvvvvvv
+            assert out[idx] == _less_duplicates[idx]
 
 
     def test_more_dupl_found(
@@ -110,8 +103,8 @@ class TestDuplIdxs(Fixtures):
         out = _merge_partialfit_dupls(_init_duplicates, _more_duplicates)
 
         for idx in range(len(out)):
-            #                               vvvvvvvvvvvvvvvvvvvvv
-            assert np.array_equiv(out[idx], _init_duplicates[idx])
+            #                  vvvvvvvvvvvvvvvvvvvvv
+            assert out[idx] == _init_duplicates[idx]
 
 
     def test_more_and_less_duplicates_found(
@@ -126,7 +119,7 @@ class TestDuplIdxs(Fixtures):
 
         # _less_duplicates must be the correct output
         for idx in range(len(duplicates_)):
-            assert np.array_equiv(duplicates_[idx], _less_duplicates[idx])
+            assert duplicates_[idx] == _less_duplicates[idx]
 
 
 
@@ -151,32 +144,42 @@ class TestDuplIdxs(Fixtures):
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        _fst_duplicates = [[(0,), (1,), (2,)], [(3,), (4,), (5,)]]
-        _scd_duplicates = [[(0,), (4,), (5,)], [(1,), (2,), (3,)]]
+        _fst_duplicates = [[(0,), (1,9), (2,10)], [(3,11), (4,12), (5,13)]]
+        _scd_duplicates = [[(0,), (4,12), (5,13)], [(1,9), (2,10), (3,11)]]
 
         out = _merge_partialfit_dupls(_fst_duplicates, _scd_duplicates)
 
-        assert out == [[(1,), (2,)], [(4,), (5,)]]
+        assert out == [[(1,9), (2,10)], [(4,12), (5,13)]]
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        _fst_duplicates = [[(1,), (3,), (5,)], [(0,), (2,), (4,)]]
-        _scd_duplicates = [[(0,), (2,), (4,)], [(1,), (3,), (5,)]]
+        _fst_duplicates = [[(1,), (3,11), (5,13)], [(0,), (2,10), (4,12)]]
+        _scd_duplicates = [[(0,), (2,10), (4,12)], [(1,), (3,11), (5,13)]]
 
         out = _merge_partialfit_dupls(_fst_duplicates, _scd_duplicates)
 
-        assert out == [[(0,), (2,), (4,)], [(1,), (3,), (5,)]]
+        assert out == [[(0,), (2,10), (4,12)], [(1,), (3,11), (5,13)]]
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        _fst_duplicates = [[(0,), (1,)], [(2,), (3,)], [(4,), (5,)]]
-        _scd_duplicates = [[(0,), (4,)], [(1,), (3,)], [(2,), (5,)]]
+        _fst_duplicates = [[(0,), (1,10)], [(2,), (3,12)], [(4,), (5,14)]]
+        _scd_duplicates = [[(0,), (4,)], [(1,10), (3,12)], [(2,), (5,14)]]
 
         out = _merge_partialfit_dupls(_fst_duplicates, _scd_duplicates)
 
         assert out == []
 
 
+    def test_sorting(self):
+
+        # always returns _dupl_sets sorted by asc len(tuple), then asc on tuple
+
+        _fst_duplicates = [[(3,11), (1,), (5,13)], [(4,12), (0,1), (2,)]]
+        _scd_duplicates = [[(0,1), (4,12), (2,)], [(1,), (3,11), (5,13)]]
+
+        out = _merge_partialfit_dupls(_fst_duplicates, _scd_duplicates)
+
+        assert out == [[(1,), (3,11), (5,13)], [(2,), (0,1), (4,12)]]
 
 
 

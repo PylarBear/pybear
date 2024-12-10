@@ -16,7 +16,7 @@ import numpy as np
 
 
 
-def _lock_in_random_idxs(
+def _lock_in_random_combos(
     _poly_duplicates: list[list[tuple[int, ...]]],
     _combinations: list[tuple[int, ...]]
 ) -> tuple[tuple[int, ...], ...]:
@@ -118,19 +118,25 @@ def _lock_in_random_idxs(
     for _idx, _set in enumerate(_poly_duplicates):
 
         # we could just randomly pick anything from _set even if _set[0] turns
-        # out to be from X, because then all of this is overruled in _identify_idxs_to_keep anyway
+        # out to be from X (len(_set[0])==1), because then is overruled in
+        # _identify_idxs_to_keep for this dupl_set anyway if len(_set[0])==1
         # but it doesnt hurt to get it set right earlier in the process
-        # pizza come back to this, what about when first tuple of dupl set has len==1?
-        # _identify_idxs_to_keep is handling it, but it wont hurt to get it right
-        # farther back in the process.
         if len(_set[0]) == 1:
 
-            # pizza revisit this validation... the current thinking 24_12_09_15_50_00
-            # is that because partial fits could have situations early in fitting where
-            # columns look like they are duplicates (but end up being not duplicates)
-            # we cant validate about number of X columns in a dupl set!
-            if len(_set[1]) == 1:
-                raise AssertionError(f"two X columns in a dupl set, algorithm failure")
+            # we cant validate about number of X columns in a dupl set at this point!
+            # partial fits could have situations early in fitting where
+            # columns look like they are duplicates or constant (but end up not being after all partial fits are done).
+            # this means we could have multiple X columns in a dupl set.
+            # we have to build attributes with the (possibly bad) state of the current data,
+            # to allow SPF to continue to receive partial fits and get to a point where
+            # (maybe) there are no duplicates or constants. but we also need to control
+            # access to the attributes so that misleading or bad results arent accessible.
+            # this is handled by the @properties for the attributes. which check that
+            # there are no constant and duplicate columns in X before returning
+            # the attributes. this protection is not there when :param: scan_X is False.
+
+            # if len(_set[1]) == 1:
+            #     raise AssertionError(f"two X columns in a dupl set, algorithm failure")
 
             _keep_tuple_idx = _set[0]
 

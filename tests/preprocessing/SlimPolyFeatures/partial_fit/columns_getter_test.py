@@ -155,22 +155,12 @@ class TestColumnGetter:
             # change int to tuple to make _X[:, _col_idxs] slice right, below
             _col_idxs = (_col_idxs,)
 
-
-
-        if hasattr(_X_wip, 'toarray'):
-            assert _columns.shape[1] == 1
-        else:
-            assert _columns.shape[1] == len(_col_idxs)
+        assert _columns.shape[1] == len(_col_idxs)
 
         # since all the various _X_wips came from _X, just use _X to referee
         # whether _columns_getter pulled the correct columns from _X_wip
 
-        if hasattr(_X_wip, 'toarray'):
-            __ = ss.csc_array(_X[:, _col_idxs])
-            _stack = np.hstack((__.indices, __.data)).reshape((-1, 1))
-            assert np.array_equal(_columns, _stack, equal_nan=True)
-        elif not hasattr(_X_wip, 'toarray'):
-            assert np.array_equal(_columns, _X[:, _col_idxs], equal_nan=True)
+        assert np.array_equal(_columns, _X[:, _col_idxs], equal_nan=True)
 
 
 

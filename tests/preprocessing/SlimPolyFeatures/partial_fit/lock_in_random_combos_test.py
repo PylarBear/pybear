@@ -58,7 +58,7 @@ class TestLIRIValidation(Fixtures):
     def test_rejects_junk_duplicates(self, junk_duplicates, _combos):
 
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
+            _lock_in_random_combos(
                 junk_duplicates,
                 _combos
             )
@@ -78,7 +78,7 @@ class TestLIRIValidation(Fixtures):
         # repeated tuple
 
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
+            _lock_in_random_combos(
                 bad_duplicates,
                 _combos,
             )
@@ -86,7 +86,7 @@ class TestLIRIValidation(Fixtures):
 
     def test_accepts_good_duplicates(self, _duplicates, _combos):
 
-        out = _lock_in_random_idxs(
+        out = _lock_in_random_combos(
             _duplicates,
             _combos
         )
@@ -104,7 +104,7 @@ class TestLIRIValidation(Fixtures):
     def test_rejects_junk_combos(self, _duplicates, junk_combos):
 
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
+            _lock_in_random_combos(
                 _duplicates,
                 junk_combos
             )
@@ -116,7 +116,7 @@ class TestLIRIValidation(Fixtures):
     def test_rejects_bad_combos(self, _duplicates, bad_combos):
 
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
+            _lock_in_random_combos(
                 _duplicates,
                 bad_combos
             )
@@ -124,7 +124,7 @@ class TestLIRIValidation(Fixtures):
 
     def test_accepts_good_combos(self):
 
-        out = _lock_in_random_idxs(
+        out = _lock_in_random_combos(
             _poly_duplicates=[[(0,1), (0,2)], [(1,2),(1,3)]],
             _combinations=[(0,1), (1,2), (0,2), (0,3), (1,3), (2,3)]
         )
@@ -146,7 +146,7 @@ class TestLIRIAccuracy(Fixtures):
 
         # no duplicates, so _rand_idxs should be empty
 
-        rand_idxs_out = _lock_in_random_idxs(
+        rand_idxs_out = _lock_in_random_combos(
             _poly_duplicates=[],
             _combinations=_combos
         )
@@ -161,7 +161,7 @@ class TestLIRIAccuracy(Fixtures):
     )
     def test_accuracy(self, _poly_duplicates, _combos):
 
-        rand_idxs_out = _lock_in_random_idxs(
+        rand_idxs_out = _lock_in_random_combos(
             _poly_duplicates,
             _combinations=_combos
         )

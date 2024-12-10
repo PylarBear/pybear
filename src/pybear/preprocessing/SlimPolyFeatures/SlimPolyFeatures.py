@@ -29,11 +29,13 @@ from ._partial_fit._get_dupls_for_combo_in_X_and_poly import _get_dupls_for_comb
 from ._partial_fit._merge_constants import _merge_constants
 from ._partial_fit._merge_partialfit_dupls import _merge_partialfit_dupls
 from ._partial_fit._merge_combo_dupls import _merge_combo_dupls
-from ._partial_fit._lock_in_random_idxs import _lock_in_random_idxs
-from ._partial_fit._build_attributes import _build_attributes
+from ._partial_fit._lock_in_random_combos import _lock_in_random_combos
+from ._partial_fit._identify_combos_to_keep import _identify_combos_to_keep
+from ._partial_fit._build_kept_poly_duplicates import _build_kept_poly_duplicates
+from ._partial_fit._build_dropped_poly_duplicates import _build_dropped_poly_duplicates
 from ._partial_fit._get_active_combos import _get_active_combos
 from ._transform._check_X_constants_dupls import _check_X_constants_dupls
-from ._transform._transform import _transform
+from ._transform._build_poly import _build_poly
 
 from pybear.preprocessing.InterceptManager.InterceptManager import \
     InterceptManager as IM
@@ -125,6 +127,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
+        pizza, say that keep is always overruled if there is a column from
+        X in the duplicates, keep only applies for picking duplicates out of poly.
+        X cannot be mutated by SlimPoly!
     interaction_only:
         bool - pizza!
     sparse_output:
@@ -264,7 +269,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         scan_X: Optional[bool] = True,
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
         sparse_output: Optional[bool] = True,
-        feature_name_combiner: Optional[Union[Callable[[Iterable[str], tuple[int, ...]], str], None]] = None,
+        feature_name_combiner: Optional[Union[
+            Callable[[Iterable[str], tuple[int, ...]], str],
+            None
+        ]] = None,
         equal_nan: Optional[bool] = True,
         rtol: Optional[numbers.Real] = 1e-5,
         atol: Optional[numbers.Real] = 1e-8,
@@ -285,29 +293,98 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     # END init ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # pizza delete if not needed 24_12_07_16_19_00
-    # @property
-    # def poly_duplicates_(self) -> list[list[tuple[int, ...]]]:
-    #
-    #     check_is_fitted(self)
-    #
-    #     # need to get the single columns from X out of _poly_duplicates
-    #     _holder: list[list[tuple[int, ...]]] = []
-    #     for _dupl_idx, _dupls in enumerate(deepcopy(self._poly_duplicates)):
-    #         assert len(_dupls) >= 2
-    #         _holder.append([])
-    #         for _tuple in _dupls:
-    #             if len(_tuple) >= 2:
-    #                 _holder[-1].append(_tuple)
-    #         # it shouldnt be possible for a set of _dupls to go empty, there
-    #         # should always be at least one combo term in it
-    #         if len(_holder[-1]) < 1:
-    #             raise AssertionError(
-    #                 f'algorithm failure, _poly_duplicates dupl '
-    #                 f'set does not have a combo tuple in it'
-    #             )
-    #
-    #     return _holder
+
+    def _check_X_constants_and_dupls(self):
+
+        if self.scan_X and hasattr(self, '_IM') and hasattr(self, '_CDT'):
+            # if X was scanned for constants and dupls, raise if any
+            # were present.
+            # its possible that scan_X could be set to True via set_params
+            # but _IM and _CDT are not created yet because {partial_}fit()
+            # hasnt been called since.
+            _check_X_constants_dupls(
+                self._IM.constant_columns_,
+                self._CDT.duplicates_
+            )
+
+
+    @property
+    def poly_duplicates_(self) -> Union[list[list[tuple[int, ...]]], None]:
+
+        check_is_fitted(self)
+
+        try:
+            self._check_X_constants_and_dupls()
+
+            return self._poly_duplicates
+        except:
+            return
+
+        """
+        # pizza delete if not needed 24_12_07_16_19_00
+        # need to get the single columns from X out of _poly_duplicates
+        _holder: list[list[tuple[int, ...]]] = []
+        for _dupl_idx, _dupls in enumerate(deepcopy(self._poly_duplicates)):
+            assert len(_dupls) >= 2
+            _holder.append([])
+            for _tuple in _dupls:
+                if len(_tuple) >= 2:
+                    _holder[-1].append(_tuple)
+            # it shouldnt be possible for a set of _dupls to go empty, there
+            # should always be at least one combo term in it
+            if len(_holder[-1]) < 1:
+                raise AssertionError(
+                    f'algorithm failure, _poly_duplicates dupl '
+                    f'set does not have a combo tuple in it'
+                )
+
+        return _holder
+        """
+
+
+    @property
+    def kept_poly_duplicates_(self) -> Union[dict[tuple[int, ...]: list[tuple[int, ...]]], None]:
+
+        check_is_fitted(self)
+
+        try:
+            self._check_X_constants_and_dupls()
+
+            return _build_kept_poly_duplicates(
+                    self._poly_duplicates,
+                    self._kept_combos
+                )
+        except:
+            return
+
+
+    @property
+    def dropped_poly_duplicates_(self) -> Union[dict[tuple[int, ...]: tuple[int, ...]], None]:
+
+        check_is_fitted(self)
+
+        try:
+            self._check_X_constants_and_dupls()
+
+            return _build_dropped_poly_duplicates(
+                    self._poly_duplicates,
+                    self._kept_combos
+                )
+        except:
+            return
+
+
+    @property
+    def poly_constants_(self) -> Union[dict[tuple[int, ...]: any], None]:
+
+        check_is_fitted(self)
+
+        try:
+            self._check_X_constants_and_dupls()
+
+            return self._poly_constants
+        except:
+            return
 
 
     def _reset(self):
@@ -319,11 +396,13 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         if hasattr(self, "n_features_in_"):
             del self._poly_duplicates
-            del self.dropped_poly_duplicates_
-            del self.kept_poly_duplicates_
-            del self.poly_constants_
-            del self._IM
-            del self._CDT
+            del self._poly_constants
+
+            if hasattr(self, '_IM'):
+                del self._IM
+
+            if hasattr(self, '_CDT'):
+                del self._CDT
 
 
     def get_feature_names_out(self, input_features=None):
@@ -459,12 +538,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         if not hasattr(self, '_poly_duplicates'):
             self._poly_duplicates: list[list[tuple[int, ...]]] = []
-        if not hasattr(self, 'dropped_poly_duplicates_'):
-            self.dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]] = {}
-        if not hasattr(self, 'kept_poly_duplicates_'):
-            self.kept_poly_duplicates_: dict[tuple[int, ...]: list[tuple[int, ...]]] = {}
-        if not hasattr(self, 'poly_constants_'):
-            self.poly_constants_: dict[tuple[int, ...]: any] = {}
+        if not hasattr(self, '_poly_constants'):
+            self._poly_constants: dict[tuple[int, ...]: any] = {}
 
         # the only thing that exists at this point is the data and
         # holders. the holders may not be empty.
@@ -618,12 +693,14 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # pizza, need to meld _poly_constants_current_partial_fit into
         # self.poly_constants_, which would be holding the constants
         # found in previous partial fits
-        self.poly_constants_ = _merge_constants(
-            self.poly_constants_,
+        self._poly_constants = _merge_constants(
+            self._poly_constants,
             _poly_constants_current_partial_fit,
             _rtol=self.rtol,
             _atol=self.atol
         )
+
+        del _poly_constants_current_partial_fit
         # END poly_constants -----------------------
 
         # poly duplicates -----------------------
@@ -640,6 +717,12 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 self._poly_duplicates,
                 _poly_dupls_current_partial_fit
             )
+
+        del _poly_dupls_current_partial_fit
+
+        # _merge_partialfit_dupls sorts _poly_duplicates on the way out
+        # within dupl sets, sort on len asc, then within the same lens sort on values asc
+        # across all dupl sets, only look at the first value in a dupl set, sort on len asc, then values asc
         # END poly duplicates -----------------------
 
 
@@ -647,33 +730,25 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # columns every time. need to set an instance attribute here
         # that doesnt change when _transform() is called. must set a
         # random idx for every set of dupls.
-        self._rand_idxs: tuple[tuple[int, ...], ...] = \
-            _lock_in_random_idxs(
-                poly_duplicates_=self._poly_duplicates,
+        self._rand_combos: tuple[tuple[int, ...], ...] = \
+            _lock_in_random_combos(
+                _poly_duplicates=self._poly_duplicates,
                 _combinations=self._combos
             )
 
-
-        if len(self._poly_duplicates):
-            self.dropped_poly_duplicates_, self.kept_poly_duplicates_ = \
-                _build_attributes(
-                    self._poly_duplicates,
-                    self.keep,
-                    self._rand_idxs
-                )
-        else:
-            self.dropped_poly_duplicates_ = {}
-            self.kept_poly_duplicates_ = {}
-
-
-        self._active_combos = _get_active_combos(
-            self._combos,
-            self.poly_constants_,
-            self.dropped_poly_duplicates_
-        )
+        self._kept_combos: tuple[tuple[int, ...], ...] = \
+            _identify_combos_to_keep(
+                self._poly_duplicates,
+                self.keep,
+                self._rand_combos
+            )
 
 
         return self
+
+
+
+
 
 
     def fit(
@@ -718,6 +793,24 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     # if ever needed, hard code that can be substituted for the
     # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
+    # pizza, we probably need to cockblock some params from being set after
+    # fitting has started.
+    #         degree:Optional[int]=2,
+    #         *,
+    #         min_degree:Optional[int]=1,
+    #         interaction_only: Optional[bool] = False,
+    #         scan_X: Optional[bool] = True,
+    #         keep: Optional[Literal['first', 'last', 'random']] = 'first',
+    #         sparse_output: Optional[bool] = True,
+    #         feature_name_combiner: Optional[Union[
+    #             Callable[[Iterable[str], tuple[int, ...]], str],
+    #             None
+    #         ]] = None,
+    #         equal_nan: Optional[bool] = True,
+    #         rtol: Optional[numbers.Real] = 1e-5,
+    #         atol: Optional[numbers.Real] = 1e-8,
+    #         n_jobs: Optional[Union[int, None]] = None
+
 
     def score(
         self,
@@ -759,20 +852,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         check_is_fitted(self)
 
+        self._check_X_constants_and_dupls()
+
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
-
-        if self.scan_X and hasattr(self, '_IM') and hasattr(self, '_CDT'):
-            # if X was scanned for constants and dupls, raise if any
-            # were present.
-            # its possible that scan_X could be set to True via set_params
-            # but _IM and _CDT are not created yet because {partial_}fit()
-            # hasnt been called since.
-            _check_X_constants_dupls(
-                self._IM.constant_columns_,
-                self._CDT.duplicates_
-            )
-
 
         _val_X(X)
 
@@ -828,17 +911,16 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # poly_constants_ does not change no matter what params are
         # poly_duplicates_ does not change no matter what params are
         # kept_poly_duplicates_ and dropped_poly_duplicates_ might change
-        if len(self._poly_duplicates):
-            self.dropped_poly_duplicates_, self.kept_poly_duplicates_ = \
-                _build_attributes(
-                    self._poly_duplicates,
-                    self.keep,
-                    self._rand_idxs
-                )
-        else:
-            self.dropped_poly_duplicates_ = {}
-            self.kept_poly_duplicates_ = {}
+        # based on keep
 
+        # this needs to be before _get_active_combos because _kept_combos
+        # is an input into dropped_poly_duplicates_
+        self._kept_combos: tuple[tuple[int, ...], ...] = \
+            _identify_combos_to_keep(
+                self._poly_duplicates,
+                self.keep,
+                self._rand_combos
+            )
 
         self._active_combos = _get_active_combos(
             self._combos,
@@ -846,9 +928,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             self.dropped_poly_duplicates_
         )
 
-
         X_tr: Union[np.ndarray, pd.core.frame.DataFrame, ss.csc_array] = \
-            _transform(
+            _build_poly(
                 X,
                 self._active_combos,
                 self.n_jobs
