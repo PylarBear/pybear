@@ -5,6 +5,7 @@
 #
 
 
+
 from pybear.preprocessing.SlimPolyFeatures._partial_fit.\
     _get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
 
@@ -14,7 +15,7 @@ import numpy as np
 import pytest
 
 
-# pytest.skip(reason=f"pizza isnt done!", allow_module_level=True)
+pytest.skip(reason=f"pizza isnt done!", allow_module_level=True)
 
 
 

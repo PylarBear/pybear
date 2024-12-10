@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._identify_idxs_to_keep import _identify_idxs_to_keep
+from pybear.preprocessing.SlimPolyFeatures._partial_fit._identify_combos_to_keep import _identify_combos_to_keep
 
 
 
@@ -20,7 +20,7 @@ import pytest
 
 class TestIITKBasicValidation:
 
-    # def _identify_idxs_to_keep(
+    # def _identify_combos_to_keep(
     #     _poly_duplicates: list[list[tuple[int, ...]]],
     #     _keep: Literal['first', 'last', 'random'],
     #     _rand_combos: tuple[tuple[int, ...], ...]
@@ -34,7 +34,7 @@ class TestIITKBasicValidation:
 
         # poly_duplicates
         with pytest.raises(AssertionError):
-            _identify_idxs_to_keep(
+            _identify_combos_to_keep(
                 junk_inputs,
                 _keep='first',
                 _rand_combos=((1,),(2,3),(4,5))
@@ -42,7 +42,7 @@ class TestIITKBasicValidation:
 
         # keep
         with pytest.raises(AssertionError):
-            _identify_idxs_to_keep(
+            _identify_combos_to_keep(
                 _poly_duplicates=[[(1,), (8,9)], [(1,2), (2,3)], [(2,4), (4,5)]],
                 _keep=junk_inputs,
                 _rand_combos=((1,),(2,3),(4,5))
@@ -50,7 +50,7 @@ class TestIITKBasicValidation:
 
         # rand_idxs
         with pytest.raises(AssertionError):
-            _identify_idxs_to_keep(
+            _identify_combos_to_keep(
                 _poly_duplicates=[[(1,), (8,9)], [(1,2), (2,3)], [(2,4), (4,5)]],
                 _keep='last',
                 _rand_combos=junk_inputs
@@ -63,7 +63,7 @@ class TestIITKBasicValidation:
         _poly_dupls = [[(1,), (8,9)], [(1,2), (2,3)], [(2,4), (4,5)]]
         _rand_combos = ((1,), (2, 3), (4, 5))
 
-        out = _identify_idxs_to_keep(
+        out = _identify_combos_to_keep(
             _poly_duplicates=_poly_dupls,
             _keep=_keep,
             _rand_combos=_rand_combos
@@ -81,7 +81,7 @@ class TestIITKAccuracy:
         _poly_dupls = [[(1,), (8, 9)], [(1, 2), (2, 3)], [(2, 4), (4, 5)]]
         _rand_combos = ((1,), (2, 3), (4, 5))
 
-        out = _identify_idxs_to_keep(
+        out = _identify_combos_to_keep(
             _poly_duplicates=_poly_dupls,
             _keep=_keep,
             _rand_combos=_rand_combos
@@ -110,7 +110,7 @@ class TestIITKAccuracy:
     def rejects_mismatch_between_poly_dupls_and_rand_combos(self, _keep):
 
         with pytest.raises(AssertionError):
-            _identify_idxs_to_keep(
+            _identify_combos_to_keep(
                 _poly_duplicates=[[(1,), (8, 9)], [(1, 2), (2, 3)], [(2, 4), (4, 5)]],
                 _keep=_keep,
                 _rand_combos=((8, 8), (2, 4), (3, 5))

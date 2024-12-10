@@ -20,6 +20,10 @@ import pytest
 
 
 
+pytest.skip(reason=f"pizza says this goes away with explody ss in _columns_getter()", allow_module_level=True)
+
+
+
 
 class TestSSColumnComparer:
 

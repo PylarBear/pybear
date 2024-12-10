@@ -7,22 +7,20 @@
 
 
 
-from typing_extensions import Union
 
-import numbers
+
+import itertools
 
 import numpy as np
-import pandas as pd
 import scipy.sparse as ss
-from joblib import Parallel, delayed, wrap_non_picklable_objects
 
-from pybear.preprocessing.SlimPolyFeatures._transform import _build_poly
+from pybear.preprocessing.SlimPolyFeatures._transform._build_poly import _build_poly
 
 import pytest
 
 
 
-pytest.skip(reason=f"not started, not finished", allow_module_level=True)
+# pytest.skip(reason=f"not started, not finished", allow_module_level=True)
 
 
 
@@ -32,91 +30,131 @@ pytest.skip(reason=f"not started, not finished", allow_module_level=True)
 class TestBuildPoly:
 
 
-    def build_poly_test(self):
+    # def _build_poly(
+    #     X: ss.csc_array,
+    #     _active_combos: tuple[tuple[int, ...], ...],
+    #     _n_jobs: Union[numbers.Integral, None]
+    # ) -> ss.csc_array:
 
 
-        # def _build_poly(
-        #     X: ss.csc_array,
-        #     _combos: list[tuple[int, ...]],
-        #     dropped_poly_duplicates_: dict[tuple[int, ...], tuple[int, ...]],
-        #     poly_constants_: dict[tuple[int, ...], any],
-        #     _n_jobs: Union[numbers.Integral, None]
-        # ) -> ss.csc_array:
-
-        """
-        Pizza. Build the polynomial expansion for X as a scipy sparse csc array.
-        Index tuples in :param: _combos that are not in :param: dropped_poly_duplicates_
-        are omitted from the expansion.
-    
-    
-        Parameters
-        ----------
-        X:
-            {scipy sparse csc_array} of shape (n_samples,
-            n_features) - The data to be expanded.
-        _combos:
-            list[tuple[int, ...]] -
-        dropped_poly_duplicates_:
-            dict[tuple[int, ...], tuple[int, ...]] -
-    
-    
-        Return
-        ------
-        -
-            POLY: scipy sparse csc array of shape (n_samples, n_kept_polynomial_features) -
-            The polynomial expansion.
-    
-        """
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _shape():
+        return (10,5)
 
 
-        # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        assert isinstance(X, ss.csc_array)
-        assert isinstance(_combos, list)
-        for _tuple in _combos:
-            assert isinstance(_tuple, tuple)
-            assert all(map(isinstance, _tuple, (int for _ in _tuple)))
-        for k, v in dropped_poly_duplicates_.items():
-            assert isinstance(k, tuple)
-            assert all(map(isinstance, k, (int for _ in k)))
-            assert isinstance(v, tuple)
-            assert all(map(isinstance, v, (int for _ in v)))
-        assert isinstance(poly_constants_, dict)
-        assert all(map(isinstance, poly_constants_, (tuple for _ in poly_constants_)))
-        assert isinstance(_n_jobs, (numbers.Integral, type(None)))
-        assert _n_jobs >= -1 and _n_jobs != 0
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _good_active_combos(_shape):
+        # draw must be >= 2, SPF doesnt allow _degree < 2 in poly
+        return tuple(itertools.combinations_with_replacement(range(_shape[1]), 2))
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _good_X(_shape):
+        return ss.csc_array(np.random.randint(0,3,_shape))
+
+
+    @pytest.mark.parametrize('junk_inputs',
+        (-2.7, -1, 0, 1, 2.7, True, False, None, 'junk', [0,1], (0,1),
+         {0,1}, {'a': 1}, lambda x: x)
+    )
+    def test_minimalist_validation(
+        self, junk_inputs, _good_active_combos, _good_X, _shape
+    ):
+
+
+        # X
+        with pytest.raises(AssertionError):
+            _build_poly(
+                X=junk_inputs,
+                _active_combos=_good_active_combos,
+                _n_jobs=-1
+            )
+
+        # active_combos
+        with pytest.raises(AssertionError):
+            _build_poly(
+                X=_good_X,
+                _active_combos=junk_inputs,
+                _n_jobs=-1
+            )
+
+
+        # n_jobs
+        if isinstance(junk_inputs, int) and not isinstance(junk_inputs, bool) and (junk_inputs == -1 or junk_inputs >= 1):
+            _build_poly(
+                X=_good_X,
+                _active_combos=_good_active_combos,
+                _n_jobs=junk_inputs
+            )
+        elif junk_inputs is None:
+            _build_poly(
+                X=_good_X,
+                _active_combos=_good_active_combos,
+                _n_jobs=junk_inputs
+            )
+        else:
+            with pytest.raises(AssertionError):
+                _build_poly(
+                    X=ss.csc_array(np.random.randint(0,3,_shape)),
+                    _active_combos=_good_active_combos,
+                    _n_jobs=junk_inputs
+                )
+
         # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-        ACTIVE_COMBOS = []
-        for _combo in _combos:
+    @pytest.mark.parametrize('_n_jobs', (-1, 1, 2, 3, 4, None))
+    def test_accepts_good_params(self, _good_X, _good_active_combos, _n_jobs):
 
-            if _combo in dropped_poly_duplicates_:
-                continue
-
-            if _combo in poly_constants_:
-                continue
-
-            ACTIVE_COMBOS.append(_combo)
-
-
-        @wrap_non_picklable_objects
-        def _poly_stacker(_columns):
-            return ss.csc_array(_columns.prod(1))
-
-
-        # pizza, do a benchmark on this, is it faster to just do a for loop with all this serialization?
-        joblib_kwargs = {'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs}
-        out = Parallel(**joblib_kwargs)(
-            delayed(
-                _poly_stacker(_columns_getter(X, combo))
-            ) for combo in ACTIVE_COMBOS
+        _build_poly(
+            X=_good_X,
+            _active_combos=_good_active_combos,
+            _n_jobs=_n_jobs
         )
 
 
-        POLY = ss.hstack(out)
+
+    def test_build_poly(self, _good_X, _good_active_combos, _shape):
+
+        # def _build_poly(
+        #     X: ss.csc_array,
+        #     _active_combos: tuple[tuple[int, ...], ...],
+        #     _n_jobs: Union[numbers.Integral, None]
+        # ) -> ss.csc_array:
+
+        out =  _build_poly(
+            _good_X,
+            _good_active_combos,
+            _n_jobs=1
+        )
+
+        assert isinstance(out, ss.csc_array)
+        assert out.shape == (_shape[0], len(_good_active_combos))
 
 
-        return POLY
+        # build a referee output - - - - - - - - - - - -
+        ref = np.empty((_shape[0], 0))
+
+        _column_pool = _good_X.toarray()
+
+        for _combo in _good_active_combos:
+            ref = np.hstack((ref, _column_pool[:, _combo].prod(1).reshape((-1,1))))
+
+        # END build a referee output - - - - - - - - - - - -
+
+        out = out.toarray()
+
+        assert out.shape == ref.shape
+
+        assert np.array_equal(out, ref)
+
+
+
+
+
 
 
 

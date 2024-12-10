@@ -32,6 +32,8 @@ def _merge_partialfit_dupls(
     from the final lists of duplicates. The only duplicates retained are
     those columns found to be identical for all partial fits.
 
+    Pizza say something about sorting the merged dupls.
+
 
     Parameters
     ----------
@@ -79,7 +81,7 @@ def _merge_partialfit_dupls(
 
     # if _duplicates is None, this is the first pass
     if _old_duplicates is None:
-        return _new_duplicates
+        _duplicates = _new_duplicates
     elif _old_duplicates is not None:
         # duplicates found on subsequent partial fits cannot increase the
         # number of duplicates over what was found on previous partial
@@ -148,14 +150,27 @@ def _merge_partialfit_dupls(
             root = find(node)
             components[root].append(node)
 
-        duplicates_ = list(components.values())
-
-        # Sort each component and the final result for consistency
-        duplicates_ = [sorted(component) for component in duplicates_]
-        duplicates_ = sorted(duplicates_, key=lambda x: x[0])
+        _duplicates = list(components.values())
 
 
-        return duplicates_
+    # Sort each component and the final result for consistency
+    # within dupl sets, sort on len asc, then within the same lens sort on values asc
+    _duplicates = [sorted(component, key=lambda x: (len(x), x)) for component in _duplicates]
+    # across all dupl sets, only look at the first value in a dupl set, sort on len asc,
+    # then values asc
+    _duplicates = sorted(_duplicates, key=lambda x: (len(x[0]), x[0]))
+
+    # if any dupl set contains more than 1 tuple of len==1 (i.e., more than one column from X)
+    # raise exception for duplicate columns in X
+    for _dupl_set in _duplicates:
+        if sum(map(lambda x: x==1, map(len, _dupl_set))) > 1:
+            raise AssertionError(
+                f"There are duplicate columns in X. Use pybear "
+                f"ColumnDeduplicateTransformer to remove them before using SlimPoly."
+            )
+
+
+    return _duplicates
 
 
 

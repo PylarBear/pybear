@@ -63,6 +63,7 @@ def _columns_getter(
     elif isinstance(_DATA, pd.core.frame.DataFrame):
         _columns = _DATA.iloc[:, _col_idxs].to_numpy()
     elif hasattr(_DATA, 'toarray'):
+        """
         # instead of expanding the column to dense np, get the indices
         # and values out of sparse column using the 'indices' and 'data'
         # attributes, hstack them, and send that off for equality test
@@ -78,11 +79,19 @@ def _columns_getter(
             # Extract the data and indices of the column
             c1 = _DATA.tocsc()[:, _col_idxs]
         # reshaping standardizes the output with np and pd
+        # pizza, what kind of crack were u on?
         _columns = np.hstack((c1.indices, c1.data)).reshape((-1, 1))
         del c1
+        
+        
+        pizza 24_12_09_19_44_00, looks like both _parallel_constant_finder() 
+        and _build_poly need vectors extracted from ss to be full, not the 
+        stacked version. if this condition is still true at the finish, 
+        then delete all this jive.         
+        """
 
         # old code that converts a ss column to np array
-        # _columns = _X_wip.copy().tocsc()[:, _col_idxs].toarray()
+        _columns = _DATA.copy().tocsc()[:, _col_idxs].toarray()
     else:
         raise TypeError(f"invalid data type '{type(_DATA)}'")
 

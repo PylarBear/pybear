@@ -5,6 +5,7 @@
 #
 
 
+# PIZZA...... decided what to do with this
 
 
 from typing import Iterable, Literal, Optional, Callable
@@ -29,11 +30,11 @@ from ._partial_fit._get_dupls_for_combo_in_X_and_poly import _get_dupls_for_comb
 from ._partial_fit._merge_constants import _merge_constants
 from ._partial_fit._merge_partialfit_dupls import _merge_partialfit_dupls
 from ._partial_fit._merge_combo_dupls import _merge_combo_dupls
-from ._partial_fit._lock_in_random_idxs import _lock_in_random_idxs
-from ._partial_fit._build_attributes import _build_attributes
+from ._partial_fit._lock_in_random_combos import _lock_in_random_idxs
+from ._partial_fit._build_kept_poly_duplicates import _build_attributes
 from ._partial_fit._get_active_combos import _get_active_combos
 from ._transform._check_X_constants_dupls import _check_X_constants_dupls
-from ._transform._transform import _transform
+from ._transform._build_poly import _transform
 
 from pybear.preprocessing.InterceptManager.InterceptManager import \
     InterceptManager as IM

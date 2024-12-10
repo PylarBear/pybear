@@ -123,25 +123,27 @@ def _get_dupls_for_combo_in_X_and_poly(
     #     _equal_nan: bool
     # ) -> bool:
 
+    # as of 24_12_09_20_25_00 thinking this goes away since _columns_getter explodes ss out to dense now
     # the comparison of columns needs to be handled differently for pd/np
     # vs scipy sparse. set the function to use based on the format of X
-    if hasattr(_X, 'toarray'):   # is scipy sparse
-        _comparer_function = _parallel_ss_comparer
-    else:
-        _comparer_function = _parallel_column_comparer
+    # if hasattr(_X, 'toarray'):   # is scipy sparse
+    #     _comparer_function = _parallel_ss_comparer
+    # else:
+    #     _comparer_function = _parallel_column_comparer
 
     # there can be more than one hit for duplicates in X
     _X_dupls = Parallel(**joblib_kwargs)(
-        delayed(_comparer_function)(_columns_getter(_X, (c_idx,)), *args) for c_idx in range(_X.shape[1])
+        delayed(_parallel_column_comparer)(_columns_getter(_X, c_idx), *args) for c_idx in range(_X.shape[1])
     )
 
-    del _comparer_function
 
+    # as of 24_12_09_20_25_00 thinking this must use  since _columns_getter explodes ss out to dense now
+    # old notes from before change:
     # if there is a duplicate in X, there cannot be a duplicate in poly.
     # if there is no duplicate in X, there can only be zero or one duplicate in poly.
     # use _parallel_ss_comparer, _POLY_CSC should always be csc!
     _poly_dupls = Parallel(**joblib_kwargs)(
-        delayed(_parallel_ss_comparer)(_columns_getter(_POLY_CSC, (c_idx,)), *args) for c_idx in range(_POLY_CSC.shape[1])
+        delayed(_parallel_column_comparer)(_columns_getter(_POLY_CSC, c_idx), *args) for c_idx in range(_POLY_CSC.shape[1])
     )
 
     if any(_X_dupls):
