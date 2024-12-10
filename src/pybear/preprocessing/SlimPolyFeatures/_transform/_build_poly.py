@@ -22,16 +22,16 @@ from .._partial_fit._columns_getter import _columns_getter
 
 
 
-def _transform(
+def _build_poly(
     X: ss.csc_array,
     _active_combos: tuple[tuple[int, ...], ...],
     _n_jobs: Union[numbers.Integral, None]
 ) -> ss.csc_array:
 
     """
-    Pizza. Build the polynomial expansion for X as a scipy sparse csc array.
-    Index tuples in :param: _combos that are not in :param: dropped_poly_duplicates_
-    are omitted from the expansion.
+    Pizza. Build the polynomial expansion for X as a scipy sparse csc
+    array. Index tuples in :param: _combos that are not in :param:
+    dropped_poly_duplicates_ are omitted from the expansion.
 
 
     Parameters
@@ -73,7 +73,8 @@ def _transform(
         return ss.csc_array(_columns.prod(1))
 
 
-    # pizza, do a benchmark on this, is it faster to just do a for loop with all this serialization?
+    # pizza, do a benchmark on this, is it faster to just do a for loop
+    # with all this serialization?
     joblib_kwargs = {'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs}
     out = Parallel(**joblib_kwargs)(
         delayed(

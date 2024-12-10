@@ -17,7 +17,7 @@ import numpy as np
 
 
 def _lock_in_random_idxs(
-    poly_duplicates_: list[list[tuple[int, ...]]],
+    _poly_duplicates: list[list[tuple[int, ...]]],
     _combinations: list[tuple[int, ...]]
 ) -> tuple[tuple[int, ...], ...]:
 
@@ -47,7 +47,7 @@ def _lock_in_random_idxs(
     then a possible _rand_idxs
     might look like ((1,2), (0,8)). THE ORDER OF THE INDICES IN _rand_idxs IS
     CRITICALLY IMPORTANT AND MUST ALWAYS MATCH THE ORDER IN :param:
-    poly_duplicates_.
+    _poly_duplicates.
 
     This module assumes that 'keep' == 'random', even though that may
     not be the case. This makes the static list ready and waiting for
@@ -57,7 +57,7 @@ def _lock_in_random_idxs(
 
     Parameters
     ----------
-    poly_duplicates_: list[list[tuple[int]] - the groups of identical
+    _poly_duplicates: list[list[tuple[int]] - the groups of identical
         columns, indicated by their zero-based column index positions.
     _combinations:
         list[tuple[int]] - the combinations ot column indices being
@@ -78,21 +78,21 @@ def _lock_in_random_idxs(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # poly_duplicates_ must be list of lists of tuples of ints
-    assert isinstance(poly_duplicates_, list)
-    for _set in poly_duplicates_:
+    # _poly_duplicates must be list of lists of tuples of ints
+    assert isinstance(_poly_duplicates, list)
+    for _set in _poly_duplicates:
         assert isinstance(_set, list)
-        assert len(_set) >= 1
+        assert len(_set) >= 2
         for _tuple in _set:
             assert isinstance(_tuple, tuple)
             assert all(map(isinstance, _tuple, (int for _ in _tuple)))
-            # all tuples must be poly
-            assert len(_tuple) >= 2
+            assert len(_tuple) >= 1
 
-    # all idx tuples in poly_duplicates_ must be unique
-    a = set(itertools.chain(*poly_duplicates_))
-    b = list(itertools.chain(*poly_duplicates_))
-    assert len(a) == len(b), f"{a=}, {len(a)=}, {b=}, {len(b)=}"
+    # all idx tuples in _poly_duplicates must be unique
+    a = set(itertools.chain(*_poly_duplicates))
+    b = list(itertools.chain(*_poly_duplicates))
+    assert len(a) == len(b), \
+        f"{a=}, {len(a)=}, {b=}, {len(b)=}"
     del a, b
 
     try:
@@ -111,13 +111,31 @@ def _lock_in_random_idxs(
 
 
 
+
+
     _rand_idxs = []
 
-    for _idx, _set in enumerate(poly_duplicates_):
+    for _idx, _set in enumerate(_poly_duplicates):
 
-        # we can just randomly pick anything from _set even if _set[0] turns
-        # out to be from X, because then all of this is overruled anyway
-        _keep_tuple_idx = np.random.choice(np.arange(len(_set)))
+        # we could just randomly pick anything from _set even if _set[0] turns
+        # out to be from X, because then all of this is overruled in _identify_idxs_to_keep anyway
+        # but it doesnt hurt to get it set right earlier in the process
+        # pizza come back to this, what about when first tuple of dupl set has len==1?
+        # _identify_idxs_to_keep is handling it, but it wont hurt to get it right
+        # farther back in the process.
+        if len(_set[0]) == 1:
+
+            # pizza revisit this validation... the current thinking 24_12_09_15_50_00
+            # is that because partial fits could have situations early in fitting where
+            # columns look like they are duplicates (but end up being not duplicates)
+            # we cant validate about number of X columns in a dupl set!
+            if len(_set[1]) == 1:
+                raise AssertionError(f"two X columns in a dupl set, algorithm failure")
+
+            _keep_tuple_idx = _set[0]
+
+        else:
+            _keep_tuple_idx = np.random.choice(np.arange(len(_set)))
 
         _rand_idxs.append(_set[_keep_tuple_idx])
 
@@ -131,7 +149,7 @@ def _lock_in_random_idxs(
         f"'_rand_idxs' must be a tuple of tuples of integers, each tuple "
         f"of integers must be in _combinations, and a single tuple from "
         f"each set of duplicates must be represented, that is, "
-        f"len(_rand_idxs)==len(poly_duplicates_)."
+        f"len(_rand_idxs)==len(_poly_duplicates)."
     )
 
     assert isinstance(_rand_idxs, tuple), err_msg
@@ -139,11 +157,11 @@ def _lock_in_random_idxs(
     if len(_rand_idxs):
         assert all([_ in _combinations for _ in _rand_idxs]), err_msg
     # len _rand_idxs must match number of sets of duplicates
-    assert len(_rand_idxs) == len(poly_duplicates_), \
-        err_msg + f"{_rand_idxs=}, {poly_duplicates_=}"
+    assert len(_rand_idxs) == len(_poly_duplicates), \
+        err_msg + f"{_rand_idxs=}, {_poly_duplicates=}"
     # if there are duplicates, every entry in _rand_idxs must match one tuple
-    # in each set from poly_duplicates_
-    for _idx, _dupl_set in enumerate(poly_duplicates_):
+    # in each set from _poly_duplicates
+    for _idx, _dupl_set in enumerate(_poly_duplicates):
         assert _rand_idxs[_idx] in _dupl_set, \
             err_msg + f'rand tuple = {_rand_idxs[_idx]}, dupl set = {_dupl_set}'
 
