@@ -128,7 +128,10 @@ def _parallel_column_comparer(
             if not all(NOT_NAN_MASK):
                 return False
             else:
-                return np.array_equal(_column1.astype(object), _column2.astype(object))
+                return np.array_equal(
+                    _column1.astype(object),
+                    _column2.astype(object)
+                )
 
     else:
         # if one column is num and another column is not num, cannot be

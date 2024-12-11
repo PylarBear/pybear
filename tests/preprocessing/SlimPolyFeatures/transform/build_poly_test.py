@@ -20,11 +20,6 @@ import pytest
 
 
 
-# pytest.skip(reason=f"not started, not finished", allow_module_level=True)
-
-
-
-# pizza finish this
 
 
 class TestBuildPoly:

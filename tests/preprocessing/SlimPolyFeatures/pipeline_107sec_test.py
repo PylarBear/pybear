@@ -7,8 +7,6 @@
 
 
 
-from typing import Literal
-
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import SlimPolyFeatures as SlimPoly
 
 from pybear.utilities import check_pipeline
@@ -29,8 +27,6 @@ from sklearn.linear_model import LinearRegression
 import pytest
 
 
-
-# pytest.skip(reason=f"not finished", allow_module_level=True)
 
 
 

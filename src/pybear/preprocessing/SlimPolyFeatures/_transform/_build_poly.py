@@ -30,7 +30,7 @@ def _build_poly(
 
     """
     Pizza. Build the polynomial expansion for X as a scipy sparse csc
-    array. Index tuples in _active_combos that are not in :param:
+    array. Combo index tuples in _active_combos that are not in :param:
     dropped_poly_duplicates_ are omitted from the expansion.
 
 
@@ -57,7 +57,7 @@ def _build_poly(
 
 
     # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    assert isinstance(X, ss.csc_array)
+    assert isinstance(X, ss.csc_array), f"{type(X)=}"
     assert isinstance(_active_combos, tuple)
     assert len(_active_combos) > 0
     for _tuple in _active_combos:

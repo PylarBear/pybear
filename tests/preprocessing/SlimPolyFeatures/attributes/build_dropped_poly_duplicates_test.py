@@ -8,7 +8,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._build_dropped_poly_duplicates \
+from pybear.preprocessing.SlimPolyFeatures._attributes._build_dropped_poly_duplicates \
     import _build_dropped_poly_duplicates
 
 import itertools

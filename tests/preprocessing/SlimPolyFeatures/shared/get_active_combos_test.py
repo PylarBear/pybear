@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
+from pybear.preprocessing.SlimPolyFeatures._shared. \
     _get_active_combos import _get_active_combos
 
 import itertools

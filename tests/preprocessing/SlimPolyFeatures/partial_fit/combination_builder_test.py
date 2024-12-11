@@ -14,8 +14,8 @@ from pybear.preprocessing.SlimPolyFeatures._partial_fit._combination_builder \
 import pytest
 
 
-
-
+# PIZZA 24_12_10_16_11_00 _combinations MUST ALWAYS BE asc shortest
+# combos to longest combos, then sorted asc combo. maybe we should add a test
 
 
 
