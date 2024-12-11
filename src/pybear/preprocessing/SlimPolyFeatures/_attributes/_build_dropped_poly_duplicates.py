@@ -62,7 +62,10 @@ def _build_dropped_poly_duplicates(
         assert isinstance(_tuple, tuple)
         assert all(map(isinstance, _tuple, (int for _ in _tuple)))
 
-    del _list, _tuple
+    if len(_poly_duplicates):
+        del _list
+    if len(_kept_combos):
+        del _tuple
     # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 

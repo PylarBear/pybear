@@ -51,6 +51,7 @@ def _get_active_combos(
     for _tuple in _combos:
         assert isinstance(_tuple, tuple)
         assert all(map(isinstance, _tuple, (int for _ in _tuple)))
+    assert isinstance(dropped_poly_duplicates_, dict)
     for k, v in dropped_poly_duplicates_.items():
         assert isinstance(k, tuple)
         assert all(map(isinstance, k, (int for _ in k)))
