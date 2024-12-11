@@ -5,7 +5,7 @@
 #
 
 
-import pytest
+
 
 from copy import deepcopy
 import numpy as np
@@ -13,9 +13,10 @@ import numpy as np
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
+import pytest
 
 
-pytest.skip(reason=f"not finished", allow_module_level=True)
+pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
 # pizza need to add tests for 'keep', 'sparse_output', 'feature_name_combiner',

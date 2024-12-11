@@ -86,7 +86,7 @@ def _find_duplicates(
     assert isinstance(_equal_nan, bool)
     assert isinstance(_n_jobs, (int, type(None)))
 
-    duplicates_: dict[int: list[int]] = {int(i): [] for i in range(_X.shape[1])}
+    duplicates_: dict[int, list[int]] = {int(i): [] for i in range(_X.shape[1])}
 
     _all_duplicates = []  # not used later, just a helper to track duplicates
 

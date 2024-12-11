@@ -172,7 +172,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         as a pandas dataframe that has a header.
 
     poly_constants_:
-        dict[tuple[int, ...]: any] - A dictionary whose keys are
+        dict[tuple[int, ...], any] - A dictionary whose keys are
         tuples of the indices
         of the constant polynomial columns found during fit, indexed by their column
         location in the original data. The dictionary values are the
@@ -182,7 +182,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         constant value is 0, then constant_columns_ will be {(3,):1, (10,):0}.
         If there are no constant columns, then constant_columns_ is an
         empty dictionary.
-        dict[tuple[int, ...]: any] - if :param: drop_constants is True, columns of
+        dict[tuple[int, ...], any] - if :param: drop_constants is True, columns of
         constants other than NoDup's bias column are removed from the data.
         In that case, information about the removed constants is stored in the
         dropped_constants_ attribute. There are two scenarios:
@@ -203,7 +203,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         this.
 
     dropped_poly_duplicates_:
-        dict[tuple[int, ...]: tuple[int, ...]] = a list of the groups of
+        dict[tuple[int, ...], tuple[int, ...]] = a list of the groups of
         identical polynomial columns, indicated by tuples of their
         zero-based column index positions in the originally fit data.
         pizza clarify this.
@@ -419,7 +419,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         )
 
 
-    # def get_params(self, deep:bool=?) -> dict[str: any]:
+    # def get_params(self, deep:bool=?) -> dict[str, any]:
     # if ever needed, hard code that can be substituted for the
     # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
@@ -500,11 +500,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         if not hasattr(self, '_poly_duplicates'):
             self._poly_duplicates: list[list[tuple[int, ...]]] = []
         if not hasattr(self, 'dropped_poly_duplicates_'):
-            self.dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]] = {}
+            self.dropped_poly_duplicates_: dict[tuple[int, ...], tuple[int, ...]] = {}
         if not hasattr(self, 'kept_poly_duplicates_'):
-            self.kept_poly_duplicates_: dict[tuple[int, ...]: list[tuple[int, ...]]] = {}
+            self.kept_poly_duplicates_: dict[tuple[int, ...], list[tuple[int, ...]]] = {}
         if not hasattr(self, 'poly_constants_'):
-            self.poly_constants_: dict[tuple[int, ...]: any] = {}
+            self.poly_constants_: dict[tuple[int, ...], any] = {}
 
         # the only thing that exists at this point is the data and
         # holders. the holders may not be empty.
@@ -545,7 +545,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0)).astype(X.dtype))
         IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
         _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
-        _poly_constants_current_partial_fit: dict[tuple[int, ...]: any] = {}
+        _poly_constants_current_partial_fit: dict[tuple[int, ...], any] = {}
 
         
         # GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v

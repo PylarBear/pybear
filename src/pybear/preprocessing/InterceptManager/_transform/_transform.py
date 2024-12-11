@@ -33,10 +33,12 @@ def _transform(
         {array-like, scipy sparse matrix} of shape (n_samples,
         n_features) - The data to be transformed.
     _instructions:
-        dict[Literal['keep']: Union[list[int], None],
-            Literal['delete']: Union[list[int], None].
-            Literal['add']: Union[dict[str, any], None]] -
-        instructions for keeping, deleting, or adding constant columns.
+        TypedDict[
+            keep: Required[Union[None, list, npt.NDArray[int]]],
+            delete: Required[Union[None, list, npt.NDArray[int]]],
+            add: Required[Union[None, dict[str, any]]]
+        ] - instructions for keeping, deleting, or adding constant
+        columns.
 
 
     Return

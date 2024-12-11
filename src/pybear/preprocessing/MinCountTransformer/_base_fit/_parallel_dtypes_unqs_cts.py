@@ -17,7 +17,7 @@ from ....utilities._nan_masking import nan_mask_numerical
 def _dtype_unqs_cts_processing(
         _column_of_X: npt.NDArray[DataType],
         col_idx: int
-    ) -> tuple[str, dict[DataType: int]]:
+    ) -> tuple[str, dict[DataType, int]]:
 
     """
 
@@ -39,7 +39,7 @@ def _dtype_unqs_cts_processing(
     Return
     ------
     -
-        tuple[str, dict[DataType: int]] - tuple of dtype and a dictionary.
+        tuple[str, dict[DataType, int]] - tuple of dtype and a dictionary.
         dtype can be in ['bin_int', 'int', 'float', 'obj'], and the
         dictionary holds uniques as keys and counts as values.
 

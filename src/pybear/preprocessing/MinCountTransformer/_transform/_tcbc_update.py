@@ -16,7 +16,7 @@ from copy import deepcopy
 def _tcbc_update(
     old_tcbc: TotalCountsByColumnType, # use deepcopy(self._total_counts_by_column)
     recursion_tcbc: TotalCountsByColumnType, # use RecursiveCls._total_counts_by_column
-    MAP_DICT: dict[int: int]
+    MAP_DICT: dict[int, int]
 ) -> TotalCountsByColumnType:
 
     """
@@ -48,7 +48,7 @@ def _tcbc_update(
     recursion_tcbc:
         TotalCountsByColumnType
     MAP_DICT:
-        dict[int: int] - dictionary mapping a feature's location in
+        dict[int, int] - dictionary mapping a feature's location in
         Recursion._tcbc to its (possibly different) location in self._tcbc.
 
 

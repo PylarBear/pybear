@@ -29,9 +29,11 @@ def _set_attributes(
         dict[int, any] - constant column indices and their values found
         in all partial fits.
     _instructions:
-        dict[Literal['keep']: Union[list[int], None],
-        Literal['delete']: Union[list[int], None].
-        Literal['add']: Union[dict[str, any], None]] - instructions for
+        TypedDict[
+            keep: Required[Union[None, list, npt.NDArray[int]]],
+            delete: Required[Union[None, list, npt.NDArray[int]]],
+            add: Required[Union[None, dict[str, any]]]
+        ] - instructions for
         keeping, deleting, or adding constant columns to be applied
         during :method: transform.
     _n_features_in:
@@ -42,7 +44,7 @@ def _set_attributes(
     ------
     -
         tuple[
-            kept_columns_: dict[int: any],
+            kept_columns_: dict[int, any],
             removed_columns_: dict[int, any],
             column_mask_: NDArray[np.bool_]
         ]

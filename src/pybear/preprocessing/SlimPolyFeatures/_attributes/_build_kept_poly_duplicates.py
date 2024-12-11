@@ -20,7 +20,7 @@ from copy import deepcopy
 def _build_kept_poly_duplicates(
     _poly_duplicates: list[list[tuple[int, ...]]],  # pizza, must be the version that has X columns in it, if any
     _kept_combos: tuple[tuple[int, ...], ...]
-) -> dict[tuple[int, ...]: list[tuple[int, ...]]]:
+) -> dict[tuple[int, ...], list[tuple[int, ...]]]:
 
     """
 
@@ -79,7 +79,7 @@ def _build_kept_poly_duplicates(
     # kept_poly_duplicates_ is a dictionary whose keys are the kept
     # X idx tuple/poly combo tuple and values are a list of its associated poly combos that will be omitted.
     # need to have X tuples in _poly_duplicates!
-    kept_poly_duplicates_: dict[tuple[int, ...]: list[tuple[int, ...]]] = {}
+    kept_poly_duplicates_: dict[tuple[int, ...], list[tuple[int, ...]]] = {}
     for _dupl_set_idx, _dupl_set in enumerate(_poly_duplicates):
 
         # dont need to sort _poly_duplicates or _dupl_sets here, taken care of

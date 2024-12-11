@@ -12,11 +12,11 @@ import numpy as np
 
 
 def _merge_constants(
-    _old_constants: Union[dict[tuple[int, ...]: any], None],
-    _new_constants: dict[tuple[int, ...]: any],
+    _old_constants: Union[dict[tuple[int, ...], any], None],
+    _new_constants: dict[tuple[int, ...], any],
     _rtol: numbers.Real,
     _atol: numbers.Real
-) -> dict[tuple[int, ...]: any]:
+) -> dict[tuple[int, ...], any]:
 
     """
     Merge the constants found in the current partial fit with those
@@ -32,7 +32,7 @@ def _merge_constants(
         Union[dict[tuple[int,...], any]: None] - the column indices of constant columns found in
         previous partial fits and the values in the columns.
     _new_constants:
-        dict[tuple[int, ...]: any] - the column indices of constant columns found in
+        dict[tuple[int, ...], any] - the column indices of constant columns found in
         the current partial fit and the values in the columns.
     _rtol:
         numbers.Real - The relative difference tolerance for equality.
@@ -47,7 +47,7 @@ def _merge_constants(
     Return
     ------
     -
-        _final_constants: dict[tuple[int, ...]: any] - the compiled column indices
+        _final_constants: dict[tuple[int, ...], any] - the compiled column indices
             and values of constant columns found over all partial fits.
 
     """
