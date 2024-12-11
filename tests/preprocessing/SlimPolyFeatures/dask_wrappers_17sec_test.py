@@ -24,7 +24,7 @@ from distributed import Client
 
 
 
-pytest.skip(reason=f"not finished", allow_module_level=True)
+# pytest.skip(reason=f"not finished", allow_module_level=True)
 
 
 bypass = False
@@ -35,28 +35,36 @@ bypass = False
 
 @pytest.fixture(scope='session')
 def _shape():
-    return (200, 10)
+    return (10, 4)
 
 
 @pytest.fixture(scope='module')
 def _kwargs():
     return {
+        'degree': 2,
+        'min_degree': 1,
+        'scan_X': False,
         'keep': 'first',
+        'interaction_only': False,
+        'sparse_output': False,
+        'feature_name_combiner': "as_indices",
+        'equal_nan': True,
         'rtol': 1e-5,
         'atol': 1e-8,
-        'equal_nan': False,
-        'n_jobs': -1
+        'n_jobs': 1
     }
 
 
-@pytest.fixture(scope='module')
-def _dupl(_shape):
-    return [[0, 1, _shape[1] - 1]]
-
 
 @pytest.fixture(scope='module')
-def _dum_X(_X_factory, _dupl, _shape):
-    return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
+def _X_np(_X_factory, _shape):
+    
+    return _X_factory(
+        _dupl=None,
+        _has_nan=False,
+        _dtype='flt',
+        _shape=_shape
+    )
 
 
 @pytest.fixture(scope='module')
@@ -65,9 +73,9 @@ def _columns(_master_columns, _shape):
 
 
 @pytest.fixture(scope='module')
-def _X_pd(_dum_X, _columns):
+def _X_pd(_X_np, _columns):
     return pd.DataFrame(
-        data=_dum_X,
+        data=_X_np,
         columns=_columns
     )
 
@@ -115,7 +123,7 @@ class TestDaskIncrementalParallelPostFit:
     @pytest.mark.parametrize('row_chunk', (10, 20))
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
     def test_fit_and_transform_accuracy(self, wrappings, SlimPoly_wrapped_parallel,
-        SlimPoly_wrapped_incremental, SlimPoly_not_wrapped, SlimPoly_wrapped_both, _dum_X,
+        SlimPoly_wrapped_incremental, SlimPoly_not_wrapped, SlimPoly_wrapped_both, _X_np,
         _columns, x_format, y_format, _kwargs, _shape, row_chunk, _client
     ):
 
@@ -131,8 +139,8 @@ class TestDaskIncrementalParallelPostFit:
             _test_cls = SlimPoly_not_wrapped
 
         _X_chunks = (row_chunk, _shape[1])
-        _X = da.array(_dum_X.copy()).rechunk(_X_chunks)
-        _X_np = _dum_X.copy()
+        _X = da.array(_X_np.copy()).rechunk(_X_chunks)
+        _X_np = _X_np.copy()
         if x_format == 'da_array':
             pass
         elif x_format == 'ddf':
