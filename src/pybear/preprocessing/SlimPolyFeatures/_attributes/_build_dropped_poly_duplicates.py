@@ -14,7 +14,7 @@ from copy import deepcopy
 def _build_dropped_poly_duplicates(
     _poly_duplicates: list[list[tuple[int, ...]]],  # pizza, must be the version that has X columns in it, if any
     _kept_combos: tuple[tuple[int, ...], ...]
-) -> dict[tuple[int, ...]: tuple[int, ...]]:
+) -> dict[tuple[int, ...], tuple[int, ...]]:
 
     """
 
@@ -41,7 +41,7 @@ def _build_dropped_poly_duplicates(
     Return
     ------
     -
-        dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]]
+        dropped_poly_duplicates_: dict[tuple[int, ...], tuple[int, ...]]
 
 
     """
@@ -76,7 +76,7 @@ def _build_dropped_poly_duplicates(
     # dropped_poly_duplicates_ is a dictionary whose keys are the dropped poly combos
     # and the values is the idx tuple of the associated dupl that was kept.
     # need to have X tuples in here! use _poly_duplicates not poly_duplicates_
-    dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]] = {}
+    dropped_poly_duplicates_: dict[tuple[int, ...], tuple[int, ...]] = {}
     for _dupl_set_idx, _dupl_set in enumerate(_poly_duplicates):
 
         # dont need to sort _poly_duplicates or _dupl_sets here, taken care of

@@ -50,7 +50,7 @@ def _test_threshold(
     """
 
 
-    __make_instructions: Callable[[...], dict[int: list[str, DataType]]]
+    __make_instructions: Callable[[...], dict[int, list[str, DataType]]]
     __nfi: int
     __fni: Union[bool, np.ndarray[str]]
     __tcbc: dict[int, dict[DataType, int]]

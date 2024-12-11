@@ -734,7 +734,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             self.constant_columns_ = {}
         else:
             # dictionary of column indices and respective constant values
-            self.constant_columns_:dict[int, any] = \
+            self.constant_columns_: dict[int, any] = \
                 _find_constants(
                     X,
                     self.constant_columns_ if \

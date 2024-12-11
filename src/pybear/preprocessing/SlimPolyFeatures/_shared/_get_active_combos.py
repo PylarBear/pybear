@@ -8,8 +8,8 @@
 
 def _get_active_combos(
     _combos: list[tuple[int, ...]],
-    poly_constants_: dict[tuple[int, ...]: any],
-    dropped_poly_duplicates_: dict[tuple[int, ...]: tuple[int, ...]]
+    poly_constants_: dict[tuple[int, ...], any],
+    dropped_poly_duplicates_: dict[tuple[int, ...], tuple[int, ...]]
 ) -> tuple[tuple[int, ...], ...]:
 
     """

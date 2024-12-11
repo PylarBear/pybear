@@ -62,10 +62,10 @@ DroppedDuplicatesType: TypeAlias = dict[tuple[int], tuple[int]]
 #         columns of the fitted data are kept (True) and which are removed
 #         (False) during transform.
 #
-ConstantsType: TypeAlias = dict[tuple[int]: any]
+ConstantsType: TypeAlias = dict[tuple[int], any]
 #         put words about how the only constant, in this unforgiving world, is good pizza.
 #
-DroppedConstantsType: TypeAlias = dict[tuple[int]: any]
+DroppedConstantsType: TypeAlias = dict[tuple[int], any]
 #
 #
 #
