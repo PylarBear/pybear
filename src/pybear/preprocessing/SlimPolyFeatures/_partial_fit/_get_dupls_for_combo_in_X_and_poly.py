@@ -14,25 +14,18 @@ import numbers
 from joblib import Parallel, delayed
 
 import numpy as np
-import pandas as pd
 import scipy.sparse as ss
 
 from .._partial_fit._parallel_column_comparer import _parallel_column_comparer
-from .._partial_fit._parallel_ss_comparer import _parallel_ss_comparer
 from .._partial_fit._columns_getter import _columns_getter
-
-
-
-
-from .._type_aliases import DataType
 
 
 
 
 def _get_dupls_for_combo_in_X_and_poly(
     _COLUMN: npt.NDArray[any],
-    _X: DataType,
-    _POLY_CSC: ss.csc_array,
+    _X: Union[ss.csc_array, ss.csc_matrix],
+    _POLY_CSC: Union[ss.csc_array, ss.csc_matrix],
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real,
@@ -88,21 +81,29 @@ def _get_dupls_for_combo_in_X_and_poly(
     # _COLUMNS is always coming out of _columns_getter() as np.ndarray, but leave
     # this flexible in case we ever end up returning from _columns_getter() as
     # passed
-    assert isinstance(_COLUMN, (np.ndarray, pd.core.frame.DataFrame, ss.csc_array, ss.csc_matrix))
-    # pizza revisit this, currently at the top of SPF._partial_fit() setting _X
-    # to ss.csc if came in as ss or is numeric, if not numeric format is not changed
-    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(_X, 'toarray')
-    assert isinstance(_POLY_CSC, (ss.csc_array, ss.csc_matrix))
+
+    # pizza revisit this, currently _COLUMN is returned as ndarray and multiplied thru as ndarray
+    # assert isinstance(_COLUMN, (np.ndarray, pd.core.frame.DataFrame, ss.csc_array, ss.csc_matrix))
+    assert isinstance(_COLUMN, np.ndarray)
     assert len(_COLUMN.shape) == 1
-    assert len(_COLUMN) == _X.shape[0] == _POLY_CSC.shape[0]
+    # pizza revisit this, currently at the top of SPF._partial_fit() setting _X
+    # to ss.csc
+    # assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(_X, 'toarray')
+    assert isinstance(_X, (ss.csc_array, ss.csc_matrix))
     assert _X.shape[1] >= 2
+    # pizza revisit this, currently _POLY_CSC is constructed as a ss csc_array
+    assert isinstance(_POLY_CSC, (ss.csc_array, ss.csc_matrix))
+    assert len(_COLUMN) == _X.shape[0] == _POLY_CSC.shape[0]
     assert isinstance(_equal_nan, bool)
     assert isinstance(_rtol, numbers.Real)
+    assert not isinstance(_rtol, bool)
     assert _rtol >= 0
     assert isinstance(_atol, numbers.Real)
+    assert not isinstance(_atol, bool)
     assert _atol >= 0
     assert isinstance(_n_jobs, (numbers.Integral, type(None)))
-    assert (_n_jobs >= -1 and _n_jobs != 0) or _n_jobs is None
+    assert not isinstance(_n_jobs, bool)
+    assert _n_jobs is None or (_n_jobs >= -1 and _n_jobs != 0)
 
 
 
@@ -123,39 +124,31 @@ def _get_dupls_for_combo_in_X_and_poly(
     #     _equal_nan: bool
     # ) -> bool:
 
-    # as of 24_12_09_20_25_00 thinking this goes away since _columns_getter explodes ss out to dense now
-    # the comparison of columns needs to be handled differently for pd/np
-    # vs scipy sparse. set the function to use based on the format of X
-    # if hasattr(_X, 'toarray'):   # is scipy sparse
-    #     _comparer_function = _parallel_ss_comparer
-    # else:
-    #     _comparer_function = _parallel_column_comparer
 
+    # must use _parallel_column_comparer since _columns_getter explodes ss out to dense now
     # there can be more than one hit for duplicates in X
     _X_dupls = Parallel(**joblib_kwargs)(
-        delayed(_parallel_column_comparer)(_columns_getter(_X, c_idx), *args) for c_idx in range(_X.shape[1])
+        delayed(_parallel_column_comparer)(_columns_getter(_X, c_idx).ravel(), *args) for c_idx in range(_X.shape[1])
     )
 
-
-    # as of 24_12_09_20_25_00 thinking this must use  since _columns_getter explodes ss out to dense now
-    # old notes from before change:
-    # if there is a duplicate in X, there cannot be a duplicate in poly.
-    # if there is no duplicate in X, there can only be zero or one duplicate in poly.
-    # use _parallel_ss_comparer, _POLY_CSC should always be csc!
+    # must use _parallel_column_comparer since _columns_getter explodes ss out to dense now
     _poly_dupls = Parallel(**joblib_kwargs)(
-        delayed(_parallel_column_comparer)(_columns_getter(_POLY_CSC, c_idx), *args) for c_idx in range(_POLY_CSC.shape[1])
+        delayed(_parallel_column_comparer)(_columns_getter(_POLY_CSC, c_idx).ravel(), *args) for c_idx in range(_POLY_CSC.shape[1])
     )
 
+    # if there is a duplicate in X, there cannot be a duplicate in poly.
     if any(_X_dupls):
         assert not any(_poly_dupls)
-    elif not any(_X_dupls):
-        assert sum(_poly_dupls) in [0, 1]
+    # pizza
+    # if there is no duplicate in X, there can only be zero or one duplicate in poly.
+    # elif not any(_X_dupls):
+    #     _poly_dupls could be anything
 
     _all_dupls = _X_dupls + _poly_dupls
 
-    yield _all_dupls
 
-    del _X_dupls, _poly_dupls
+    return _all_dupls
+
 
 
 

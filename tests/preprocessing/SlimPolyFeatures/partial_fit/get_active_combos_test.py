@@ -7,8 +7,8 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
-    _get_active_combos import _get_active_combos
+from pybear.preprocessing.SlimPolyFeatures._shared. _get_active_combos \
+    import _get_active_combos
 
 import itertools
 import numpy as np

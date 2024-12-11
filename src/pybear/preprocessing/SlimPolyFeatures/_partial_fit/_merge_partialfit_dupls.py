@@ -113,7 +113,9 @@ def _merge_partialfit_dupls(
 
         _intersection = set(all_old_comb).intersection(all_new_comb)
 
-        del _set, all_old_comb, all_new_comb
+        if len(_old_duplicates) or len(_new_duplicates):
+            del _set
+        del all_old_comb, all_new_comb
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 

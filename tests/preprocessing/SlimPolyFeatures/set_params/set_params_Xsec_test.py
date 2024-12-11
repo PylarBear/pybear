@@ -18,6 +18,11 @@ from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
 pytest.skip(reason=f"not finished", allow_module_level=True)
 
 
+# pizza need to add tests for 'keep', 'sparse_output', 'feature_name_combiner',
+# and 'n_jobs' are allowed after fit, but all others are blocked.
+
+
+
 @pytest.fixture(scope='function')
 def _kwargs():
     return {

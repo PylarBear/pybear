@@ -15,31 +15,31 @@ import numpy as np
 import pandas as pd
 
 from sklearn.exceptions import NotFittedError
+from sklearn.utils.validation import check_is_fitted
 
 
-pytest.skip(reason="not finished", allow_module_level=True)
+pytest.skip(reason="pizza not finished", allow_module_level=True)
 
 bypass = False
 
+
+# pizza need to put a big part in here that checks accessing
+# expansion_combinations_
+# poly_constants_
+# poly_duplicates_
+# dropped_poly_duplicates_
+# kept_poly_duplicates_
+
+# when there are and arent duplicate/constant columns
 
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
 
+
 @pytest.fixture(scope='module')
 def _shape():
     return (20, 10)
-
-
-@pytest.fixture(scope='function')
-def _kwargs():
-    return {
-        'keep': 'first',
-        'rtol': 1e-5,
-        'atol': 1e-8,
-        'equal_nan': False,
-        'n_jobs': -1
-    }
 
 
 @pytest.fixture(scope='module')
@@ -47,9 +47,31 @@ def _dupl(_shape):
     return [[3, 5, _shape[1]-1]]
 
 
+@pytest.fixture(scope='function')
+def _kwargs():
+    return {
+        'degree': 2,
+        'min_degree': 1,
+        'scan_X': False,
+        'keep': 'first',
+        'interaction_only': False,
+        'sparse_output': False,
+        'feature_name_combiner': "as_indices",
+        'equal_nan': True,
+        'rtol': 1e-5,
+        'atol': 1e-8,
+        'n_jobs': 1
+    }
+
+
 @pytest.fixture(scope='module')
-def _dum_X(_X_factory, _dupl, _shape):
-    return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
+def _X_np(_X_factory, _dupl, _shape):
+    return _X_factory(
+        _dupl=_dupl,
+        _has_nan=False,
+        _dtype='flt',
+        _shape=_shape
+    )
 
 
 @pytest.fixture(scope='module')
@@ -63,9 +85,9 @@ def _bad_columns(_master_columns, _shape):
 
 
 @pytest.fixture(scope='module')
-def _X_pd(_dum_X, _columns):
+def _X_pd(_X_np, _columns):
     return pd.DataFrame(
-        data=_dum_X,
+        data=_X_np,
         columns=_columns
 )
 
@@ -73,6 +95,30 @@ def _X_pd(_dum_X, _columns):
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
+
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestResetChangesCheckIsFittedToFalse:
+
+    # pizza, see if there is an elegant way to tuck this into the tests below.
+    # the 'reset' method should be accessible at any point.
+
+    def test_check_is_fitted(self, _kwargs, _X_np):
+
+        # fit an instance
+        # assert the instance is fitted
+        # call :method: reset
+        # assert the instance is not fitted
+
+        SPF = SlimPoly(**_kwargs)
+
+        SPF.fit(_X_np)
+
+        assert check_is_fitted(SPF) is None
+
+        SPF.reset()
+
+        with pytest.raises(NotFittedError):
+            check_is_fitted(SPF)
 
 
 # ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM, ATTR ACCURACY
@@ -86,19 +132,21 @@ class TestAttrAccessAndAccuracyBeforeAndAfterFitAndTransform:
         return [
             'n_features_in_',
             'feature_names_in_',
-            'duplicates_',
-            'removed_columns_',
-            'column_mask_'
+            'expansion_combinations_',
+            'poly_duplicates_',
+            'dropped_poly_duplicates_',
+            'kept_poly_duplicates_',
+            'poly_constants_'
         ]
 
 
     @pytest.mark.parametrize('x_format', ('np', 'pd'))
     def test_attr_accuracy(
-        self, _dum_X, _X_pd, _columns, _kwargs, _shape, _attrs, x_format
+        self, _X_np, _X_pd, _columns, _kwargs, _shape, _attrs, x_format
     ):
 
         if x_format == 'np':
-            NEW_X = _dum_X.copy()
+            NEW_X = _X_np.copy()
             NEW_Y = np.random.randint(0, 2, _shape[0])
         elif x_format == 'pd':
             NEW_X = _X_pd
@@ -187,15 +235,15 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
             'get_feature_names_out',
             'get_metadata_routing',
             'get_params',
-            'inverse_transform',
             'partial_fit',
+            'reset',
             'set_output',
             'set_params',
             'transform'
         ]
 
 
-    def test_access_methods_before_fit(self, _dum_X, _kwargs):
+    def test_access_methods_before_fit(self, _X_np, _kwargs):
 
         TestCls = SlimPoly(**_kwargs)
 
@@ -216,37 +264,28 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # get_params()
         TestCls.get_params(True)
 
-        # inverse_transform()
-        with pytest.raises(NotFittedError):
-            TestCls.inverse_transform(_dum_X)
-
         # partial_fit()
+        TestCls.partial_fit(_X_np)
+
+        TestCls = SlimPoly(**_kwargs)
 
         # set_output()
         TestCls.set_output(transform='pandas')
 
         # set_params()
-        # KEYS = [
-        #     'keep': 'first',
-        #     'rtol': 1e-5,
-        #     'atol': 1e-8,
-        #     'equal_nan': False,
-        #     'n_jobs': -1
-        # ]
         TestCls.set_params(keep='last')
 
 
         # transform()
         with pytest.raises(NotFittedError):
-            TestCls.transform(_dum_X)
-
+            TestCls.transform(_X_np)
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
         # **************************************************************
 
 
     def test_access_methods_after_fit(
-        self, _dum_X, _columns, _kwargs, _shape
+        self, _X_np, _columns, _kwargs, _shape
     ):
 
         y = np.random.randint(0,2,_shape[0])
@@ -255,7 +294,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # vvv AFTER FIT vvv ********************************************
 
         TestCls = SlimPoly(**_kwargs)
-        TestCls.fit(_dum_X, y)
+        TestCls.fit(_X_np, y)
 
         # fit()
         # fit_transform()
@@ -308,7 +347,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # vvv COLUMN NAMES PASSED (PD) vvv
 
         TestCls = SlimPoly(**_kwargs)
-        TestCls.fit(pd.DataFrame(data=_dum_X, columns=_columns), y)
+        TestCls.fit(pd.DataFrame(data=_X_np, columns=_columns), y)
 
         # WITH HEADER PASSED AND input_features=None, SHOULD RETURN
         # SLICED ORIGINAL COLUMNS
@@ -366,75 +405,9 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
         del TestCls
 
-        # inverse_transform() ********************
-        TestCls = SlimPoly(**_kwargs)
-        TestCls.fit(_dum_X, y)  # X IS NP ARRAY
-
-        # VALIDATION OF X GOING INTO inverse_transform IS HANDLED BY
-        # sklearn check_array, LET IT RAISE WHATEVER
-        for junk_x in [[], [[]], None, 'junk_string', 3, np.pi]:
-            with pytest.raises(Exception):
-                TestCls.inverse_transform(junk_x)
-
-        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
-        # RETAINED COLUMNS
-        TRFM_X = TestCls.transform(_dum_X)
-        TRFM_MASK = TestCls.column_mask_
-        __ = np.array(_columns)
-        for obj_type in ['np', 'pd']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    TEST_X = TRFM_X.copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
-                elif diff_cols == 'less':
-                    TEST_X = TRFM_X[:, :2].copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK][:2])
-                elif diff_cols == 'more':
-                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
-                    if obj_type == 'pd':
-                        _COLUMNS = np.hstack((
-                            __[TRFM_MASK],
-                            np.char.upper(__[TRFM_MASK])
-                        ))
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
-
-                if diff_cols == 'same':
-                    TestCls.inverse_transform(TEST_X)
-                else:
-                    with pytest.raises(ValueError):
-                        TestCls.inverse_transform(TEST_X)
-
-        INV_TRFM_X = TestCls.inverse_transform(TRFM_X)
-        if isinstance(TRFM_X, np.ndarray):
-            assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
-
-        assert isinstance(INV_TRFM_X, np.ndarray), \
-            f"output of inverse_transform() is not a numpy array"
-        assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
-            f"rows in output of inverse_transform() do not match input rows"
-        assert INV_TRFM_X.shape[1] == TestCls.n_features_in_, \
-            (f"columns in output of inverse_transform() do not match "
-             f"originally fitted columns")
-
-        assert np.array_equiv( INV_TRFM_X, _dum_X), \
-            f"inverse transform of transformed data does not equal original data"
-
-        assert np.array_equiv(
-            TRFM_X.astype(str),
-            INV_TRFM_X[:, TestCls.column_mask_].astype(str)
-        ), (f"output of inverse_transform() does not reduce back to the output "
-            f"of transform()")
-
-        del junk_x, TRFM_X, TRFM_MASK, obj_type, diff_cols
-        del TEST_X, INV_TRFM_X, TestCls
-
-        # END inverse_transform() **********
-
         TestCls = SlimPoly(**_kwargs)
 
-        # partial_fit()
+        TestCls.partial_fit(_X_np)
         # ** _reset()
 
         # set_output()
@@ -452,16 +425,16 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
 
     def test_access_methods_after_transform(
-        self, _dum_X, _columns, _kwargs, _shape
+        self, _X_np, _columns, _kwargs, _shape
     ):
 
         y = np.random.randint(0, 2, _shape[0])
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************
-        FittedTestCls = SlimPoly(**_kwargs).fit(_dum_X, y)
-        TransformedTestCls = SlimPoly(**_kwargs).fit(_dum_X, y)
-        TRFM_X = TransformedTestCls.transform(_dum_X)
+        FittedTestCls = SlimPoly(**_kwargs).fit(_X_np, y)
+        TransformedTestCls = SlimPoly(**_kwargs).fit(_X_np, y)
+        TRFM_X = TransformedTestCls.transform(_X_np)
 
         # fit()
         # fit_transform()
@@ -484,7 +457,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # vvv COLUMN NAMES PASSED (PD) vvv
         PDTransformedTestCls = SlimPoly(**_kwargs)
         PDTransformedTestCls.fit_transform(
-            pd.DataFrame(data=_dum_X, columns=_columns), y
+            pd.DataFrame(data=_X_np, columns=_columns), y
         )
 
         # WITH HEADER PASSED AND input_features=None,
@@ -509,22 +482,12 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
                 FittedTestCls.get_params(True), \
             f"get_params() after transform() != before transform()"
 
-        # inverse_transform() ************
-
-        assert np.array_equiv(
-            FittedTestCls.inverse_transform(TRFM_X).astype(str),
-            TransformedTestCls.inverse_transform(TRFM_X).astype(str)), \
-            (f"inverse_transform(TRFM_X) after transform() != "
-             f"inverse_transform(TRFM_X) before transform()")
-
-        # END inverse_transform() **********
-
         # partial_fit()
         # ** _reset()
 
         # set_output()
         TransformedTestCls.set_output(transform='pandas')
-        TransformedTestCls.transform(_dum_X)
+        TransformedTestCls.transform(_X_np)
 
         del TransformedTestCls
 

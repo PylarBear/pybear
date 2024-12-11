@@ -5,6 +5,7 @@
 #
 
 
+
 import itertools
 
 
@@ -14,7 +15,7 @@ def _combination_builder(
     _min_degree: int,
     _max_degree: int,
     _intx_only: bool
-) -> list[tuple[int]]:
+) -> list[tuple[int, ...]]:
 
     """
     Fill a list with tuples of column indices, with the indices indicating
@@ -36,7 +37,7 @@ def _combination_builder(
     Return
     ------
     -
-        _combinations: list[tuple[int]] - the combinations of column
+        _combinations: list[tuple[int, ...]] - the combinations of column
             indices for the polynomial expansion.
 
 
@@ -72,10 +73,13 @@ def _combination_builder(
         itertools.combinations_with_replacement
 
     _combinations = \
-    itertools.chain.from_iterable(
+    list(itertools.chain.from_iterable(
         fxn(list(range(_shape[1])), _deg) for _deg in range(_min_degree, _max_degree+1)
-    )
+    ))
 
+
+    # PIZZA 24_12_10_16_11_00 _combinations MUST ALWAYS BE asc shortest
+    # combos to longest combos, then sorted asc combo. maybe we should add a test
 
     return _combinations
 

@@ -6,9 +6,8 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._identify_combos_to_keep import _identify_combos_to_keep
-
-
+from pybear.preprocessing.SlimPolyFeatures._shared._identify_combos_to_keep \
+    import _identify_combos_to_keep
 
 
 import pytest

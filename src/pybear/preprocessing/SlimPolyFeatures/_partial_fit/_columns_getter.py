@@ -45,7 +45,7 @@ def _columns_getter(
 
     """
 
-
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_col_idxs, (int, tuple))
     if isinstance(_col_idxs, int):
         _col_idxs = (_col_idxs,)
@@ -53,10 +53,10 @@ def _columns_getter(
     for _idx in _col_idxs:
         assert isinstance(_idx, int)
         assert _idx in range(_DATA.shape[1]), f"col idx out of range"
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
 
     _col_idxs = sorted(list(_col_idxs))
-
-
 
     if isinstance(_DATA, np.ndarray):
         _columns = _DATA[:, _col_idxs]
