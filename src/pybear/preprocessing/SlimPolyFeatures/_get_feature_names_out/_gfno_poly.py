@@ -24,6 +24,11 @@ def _gfno_poly(
 
     sklearn lingo ----> Get output feature names for transformation.
 
+    #   _poly_feature_names must be sorted asc len, then asc on idxs. if
+    #   _active_combos is sorted correctly,
+    #   then this is sorted correctly at construction.
+    #   _active_combos being sorted correctly depends on self._combos
+    #   being sorted correctly
 
     Return the feature name vector for the transformed output. Construct
     the polynomial feature names based on :param: feature_name_combiner.
@@ -144,8 +149,9 @@ def _gfno_poly(
 
             _poly_feature_names.append(_poly_feature_name)
 
+    else:
+        raise Exception()
 
-    print(f'pizza print {_poly_feature_names=}')
 
     return np.array(_poly_feature_names, dtype=object)
 

@@ -6,13 +6,13 @@
 
 
 
-from pybear.preprocessing.InterceptManager.InterceptManager import \
-    InterceptManager as IM
+from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
-from pybear.preprocessing.InterceptManager._partial_fit. \
+from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.utilities import nan_mask
@@ -21,12 +21,15 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 
-
 import pytest
 
 
 
-pytest.skip(reason=f"not finished", allow_module_level=True)
+
+
+
+
+pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
 
@@ -49,70 +52,47 @@ class TestAccuracy:
     @pytest.fixture(scope='function')
     def _kwargs():
         return {
-            'keep': 'random',
-            'equal_nan': False,
+            'degree': 2,
+            'min_degree': 1,
+            'keep': 'first',
+            'interaction_only': False,
+            'scan_X': False,
+            'sparse_output': False,
+            'feature_name_combiner': lambda _columns, _x: 'any old string',
             'rtol': 1e-5,
             'atol': 1e-8,
-            'n_jobs': 1     # leave at 1 because of confliction
+            'equal_nan': False,
+            'n_jobs': 1
         }
 
 
 
     @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'csc', 'coo'))
-    @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('X_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('equal_nan', (True, False))
-    @pytest.mark.parametrize('constants',
-        ('constants1', 'constants2', 'constants3')
-    )
-    @pytest.mark.parametrize('keep',
-        ('first', 'last', 'random', 'none', 'int', 'string', 'callable',
-        {'Intercept': 1})
-    )
+    @pytest.mark.parametrize('keep', ('first', 'last', 'random'))
     def test_accuracy(
         self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan,
-        constants, keep, _columns, _shape
+        keep, _columns, _shape
     ):
 
         # validate the test parameters
-        assert keep in ['first', 'last', 'random', 'none'] or \
-                    isinstance(keep, (int, dict, str)) or callable(keep)
+        assert keep in ['first', 'last', 'random']
         assert isinstance(has_nan, bool)
         assert isinstance(equal_nan, bool)
         assert X_format in (
             'np', 'pd', 'csr', 'csc', 'coo', 'lil', 'dok', 'bsr', 'dia'
         )
-        assert X_dtype in ('flt', 'int', 'str', 'obj', 'hybrid')
+        assert X_dtype in ('flt', 'int')
         # END validate the test parameters
 
         # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd']:
-            pytest.skip(reason=f"scipy sparse cant take str")
-
         if X_format == 'np' and X_dtype == 'int' and has_nan:
             pytest.skip(reason=f"numpy int dtype cant take 'nan'")
         # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-        # set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-        if constants == 'constants1':
-            constants = None
-        elif constants == 'constants2':
-            if X_dtype in ('flt', 'int'):
-                constants = {0: 1, 2: 1, 9: 1}
-            elif X_dtype in ('str', 'obj', 'hybrid'):
-                constants = {0: 1, 2: 'a', 9: 'b'}
-            else:
-                raise Exception
-        elif constants == 'constants3':
-            if X_dtype in ('flt', 'int'):
-                constants = {0: 1, 1: 1, 6: np.nan, 8: 1}
-            elif X_dtype in ('str', 'obj', 'hybrid'):
-                constants = {0: 'a', 1: 'b', 6: 'nan', 8: '1'}
-            else:
-                raise Exception
-        else:
-            raise Exception
-        # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
 
         X = _X_factory(
             _dupl=None,
@@ -120,35 +100,14 @@ class TestAccuracy:
             _format=X_format,
             _dtype=X_dtype,
             _columns=_columns,
-            _constants=constants,
-            _noise=1e-9,
-            _zeros=None,
             _shape=_shape
         )
-
-        # set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if keep == 'string':
-            keep = _columns[0]
-        elif keep == 'int':
-            if constants:
-                keep = sorted(list(constants.keys()))[-1]
-            else:
-                keep = 0
-        elif keep == 'callable':
-            if constants:
-                keep = lambda x: sorted(list(constants.keys()))[-1]
-            else:
-                keep = lambda x: 0
-        else:
-            # keep is not changed
-            pass
-        # END set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # set _kwargs
         _kwargs['keep'] = keep
         _kwargs['equal_nan'] = equal_nan
 
-        TestCls = IM(**_kwargs)
+        TestCls = SlimPoly(**_kwargs)
 
 
         # retain original format
@@ -187,45 +146,7 @@ class TestAccuracy:
         # END retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
-        # manage constants
-        exp_constants = deepcopy(constants or {})
-        if has_nan and not equal_nan:
-            exp_constants = {}
-        # if there are constants, and any of them are nan-like, but
-        # not equal_nan, then that column cant be a constant, so remove
-        if not equal_nan and len(exp_constants) and \
-                any(nan_mask(list(exp_constants.values()))):
-            exp_constants = \
-                {k:v for k,v in exp_constants.items() if str(v) != 'nan'}
-
-        # if data is not pd and user put in keep as feature_str, will raise
-        raise_for_no_header_str_keep = False
-        if X_format != 'pd' and isinstance(keep, str) and \
-                keep not in ('first', 'last', 'random', 'none'):
-            raise_for_no_header_str_keep += 1
-
-        # if data has no constants and
-        # user put in keep feature_str/int/callable, will raise
-        raise_for_keep_non_constant = False
-        has_constants = len(exp_constants) and not (has_nan and not equal_nan)
-        if not has_constants:
-            if callable(keep):
-                raise_for_keep_non_constant += 1
-            if isinstance(keep, int):
-                raise_for_keep_non_constant += 1
-            if isinstance(keep, str) and \
-                    keep not in ('first', 'last', 'random', 'none'):
-                raise_for_keep_non_constant += 1
-
-
-        if raise_for_no_header_str_keep or raise_for_keep_non_constant:
-            with pytest.raises(ValueError):
-                TestCls = TestCls.fit(X)
-            pytest.skip(reason=f"cant do anymore tests without fit")
-        else:
-            TestCls = TestCls.fit(X)
-
-        del raise_for_keep_non_constant, raise_for_no_header_str_keep
+        TestCls = TestCls.fit(X)
 
         TRFM_X = TestCls.transform(X)
 
@@ -284,9 +205,6 @@ class TestAccuracy:
 
         # attr 'n_features_in_' is correct
         assert TestCls.n_features_in_ == X.shape[1]
-        # column_mask_ is never adjusted for keep is dict. it is always
-        # meant to be applied to pre-transform data.
-        assert len(TestCls.column_mask_) == TestCls.n_features_in_
 
         # attr 'feature_names_in_' is correct
         if X_format == 'pd':

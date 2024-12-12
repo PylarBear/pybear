@@ -6,9 +6,10 @@
 
 
 
-from pybear.preprocessing.InterceptManager.InterceptManager import \
-    InterceptManager as IM
+from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
+import itertools
 import numpy as np
 from sklearn.exceptions import NotFittedError
 
@@ -25,18 +26,8 @@ class TestAlwaysExceptsBeforeFit:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_always_except_before_fit(self, _keep, _equal_nan):
 
-        _kwargs = {
-            'keep': _keep,
-            'equal_nan': _equal_nan,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1     # leave this at 1 because of confliction
-        }
-
         with pytest.raises(NotFittedError):
-            IM(**_kwargs).get_feature_names_out()
-
-
+            SlimPoly().get_feature_names_out()
 
 
 @pytest.mark.parametrize('_format', ('np', 'pd'), scope='module')
@@ -51,7 +42,7 @@ class TestGetFeatureNamesOutRejects:
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
-        return (50, 10)
+        return (8, 4)
 
 
     @staticmethod
@@ -64,7 +55,6 @@ class TestGetFeatureNamesOutRejects:
             _dtype='flt',
             _columns=_master_columns.copy()[:_shape[1]] if _format == 'pd' else None,
             _constants=None,
-            _noise=1e-9,
             _shape=_shape
         )
 
@@ -73,15 +63,7 @@ class TestGetFeatureNamesOutRejects:
     @pytest.fixture(scope='function')
     def _TestCls(_instance_state, _X):
 
-        _wip_kwargs = {
-            'keep': 'first',
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1  # leave this at 1 because of confliction
-        }
-
-        _TestCls = IM(**_wip_kwargs)
+        _TestCls = SlimPoly()
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
@@ -138,18 +120,12 @@ class TestGetFeatureNamesOutRejects:
 
 
 @pytest.mark.parametrize('_format', ('np', 'pd'), scope='module')
-@pytest.mark.parametrize('_dtype',
-    ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module'
-)
+@pytest.mark.parametrize('_dtype', ('flt', 'int'), scope='module')
 @pytest.mark.parametrize('_instance_state',
     ('after_fit', 'after_transform'), scope='module'
 )
-@pytest.mark.parametrize('_keep',
-    ('first', 'last', 'none', {'Intercept': 1}), scope='module'
-)
-@pytest.mark.parametrize('_constants',
-    ('none', 'constants1', 'constants2'), scope='module'
-)
+@pytest.mark.parametrize('_min_degree', (1, 2), scope='module')
+@pytest.mark.parametrize('_interaction_only', (True, False), scope='module')
 class TestGetFeatureNamesOut:
 
 
@@ -158,7 +134,7 @@ class TestGetFeatureNamesOut:
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
-        return (50, 10)
+        return (8, 4)
 
 
     @staticmethod
@@ -169,45 +145,32 @@ class TestGetFeatureNamesOut:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def _wip_kwargs(_keep):
+    def _wip_kwargs(_min_degree, _interaction_only):
         return {
-            'keep': _keep,
-            'equal_nan': True,
+            'degree': 3,
+            'min_degree': _min_degree,
+            'interaction_only': _interaction_only,
+            'scan_X': False,
+            'keep': 'first',
+            'sparse_output': False,
+            'feature_name_combiner': 'as_indices',
+            'equal_nan': False,
             'rtol': 1e-5,
             'atol': 1e-8,
-            'n_jobs': 1     # leave this at 1 because of confliction
+            'n_jobs': 1  # leave this at 1 because of confliction
         }
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _wip_constants(_constants, _dtype, _shape):
-
-        if _constants == 'none':
-            return {}
-        elif _constants == 'constants1':
-            if _dtype in ('flt', 'int'):
-                return {1: 1, _shape[1]-2: 1}
-            else:
-                return {1: 'a', _shape[1]-2: 'b'}
-        elif _constants == 'constants2':
-            if _dtype in ('flt', 'int'):
-                return {0: 0, _shape[1]-1: np.nan}
-            else:
-                return {1: 'a', _shape[1]-1: 'nan'}
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(_X_factory, _format, _dtype, _columns, _wip_constants, _shape):
+    def _X(_X_factory, _format, _dtype, _columns, _shape):
 
         return _X_factory(
             _dupl=None,
             _format=_format,
             _dtype=_dtype,
             _columns=_columns if _format == 'pd' else None,
-            _constants=_wip_constants,
-            _noise=1e-9,
+            _constants=None,
             _shape=_shape
         )
 
@@ -216,7 +179,7 @@ class TestGetFeatureNamesOut:
     @pytest.fixture(scope='function')
     def _TestCls(_instance_state, _wip_kwargs, _X):
 
-        _TestCls = IM(**_wip_kwargs)
+        _TestCls = SlimPoly(**_wip_kwargs)
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
@@ -232,8 +195,8 @@ class TestGetFeatureNamesOut:
 
     @pytest.mark.parametrize('_input_features_is_passed', (True, False))
     def test_valid_input_features(
-        self, _X, _wip_kwargs, _wip_constants, _format, _columns, _TestCls,
-        _keep, _shape, _input_features_is_passed
+        self, _X, _wip_kwargs, _format, _columns, _TestCls, _min_degree,
+        _interaction_only, _shape, _input_features_is_passed
     ):
 
         # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -244,51 +207,40 @@ class TestGetFeatureNamesOut:
         # END get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        if _format == 'np' and not _input_features_is_passed:
-            # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
-            # ['x0', ..., 'x(n-1)][column_mask_]
-            _EXP_COLUMNS = np.array(
-                [f"x{i}" for i in range(_shape[1])],
-                dtype=object
-            )
+        # build polynomial header for 'as_indices'
+        if _interaction_only:
+            _fxn = itertools.combinations
+        elif not _interaction_only:
+            _fxn = itertools.combinations_with_replacement
+
+        _POLY_HEADER = []
+        for _poly_degree in range(2, _TestCls.degree+1):
+            _POLY_HEADER += list(map(str, _fxn(range(_shape[1]), _poly_degree)))
+        # END build polynomial header for 'as_indices'
+
+        # build X header (if :param: min_degree == 1)
+        if _min_degree == 1:
+
+            if _format == 'np' and not _input_features_is_passed:
+                # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
+                # ['x0', ..., 'x(n-1)][column_mask_]
+                _X_HEADER = np.array(
+                    [f"x{i}" for i in range(_shape[1])],
+                    dtype=object
+                )
+            else:
+                # WITH HEADER PASSED SHOULD RETURN
+                # self.feature_names_in_[column_mask_]
+                # self.feature_names_in_ is being passed here for np input_features
+                # and is always returned for pd
+                _X_HEADER = _columns
+
+            _EXP_HEADER = np.hstack((_X_HEADER, _POLY_HEADER)).astype(object)
+
         else:
-            # WITH HEADER PASSED SHOULD RETURN
-            # self.feature_names_in_[column_mask_]
-            # self.feature_names_in_ is being passed here for np input_features
-            # and is always returned for pd
-            _EXP_COLUMNS = _columns
+            _EXP_HEADER = np.array(_POLY_HEADER).astype(object)
 
-        # build column_mask_ - - - - - - - - - - - - - - - - - - - - - - - -
-        MASK = np.ones((_shape[1], ), dtype=bool)
 
-        _sorted_constants = sorted(list(_wip_constants.keys()))
-
-        if len(_sorted_constants):
-            if _keep == 'none':
-                for c_idx in _sorted_constants:
-                    MASK[c_idx] = False
-            elif _keep == 'first':
-                for c_idx in _sorted_constants[1:]:
-                    MASK[c_idx] = False
-            elif _keep == 'last':
-                for c_idx in _sorted_constants[:-1]:
-                    MASK[c_idx] = False
-            elif isinstance(_keep, dict):
-                for c_idx in _sorted_constants:
-                    MASK[c_idx] = False
-        # elif not len(_sorted_constants):
-        #     with no constants no columns are dropped, MASK is unchanged
-
-        # END build column_mask_ - - - - - - - - - - - - - - - - - - - - - -
-
-        _EXP_COLUMNS = _EXP_COLUMNS[MASK]
-        del MASK
-
-        if isinstance(_keep, dict):
-            _EXP_COLUMNS = np.hstack((
-                _EXP_COLUMNS,
-                list(_keep.keys())[0]
-            )).astype(object)
         # END determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * s
 
         assert isinstance(out, np.ndarray), \
@@ -299,17 +251,9 @@ class TestGetFeatureNamesOut:
             (f"get_feature_names_out dtype should be object, but "
              f"returned {out.dtype}")
 
-        if _format == 'np' and not _input_features_is_passed:
-            assert np.array_equiv(out, _EXP_COLUMNS), \
-                (f"get_feature_names_out(None) after fit() != sliced array "
-                 f"of generic headers")
-        else:
-            # WHEN NO HEADER PASSED TO (partial_)fit() AND VALID input_features,
-            # SHOULD RETURN SLICED PASSED input_features
-            # PD SHOULD ALWAYS RETURN SLICED feature_names_in_
-            assert np.array_equiv(out, _EXP_COLUMNS), \
-                (f"get_feature_names_out(_columns) after fit() != sliced array "
-                 f"of valid input features")
+        assert np.array_equiv(out, _EXP_HEADER), \
+            (f"get_feature_names_out(_columns) after fit() != sliced array "
+             f"of valid input features")
 
 
 

@@ -77,9 +77,11 @@ def _combination_builder(
         fxn(list(range(_shape[1])), _deg) for _deg in range(_min_degree, _max_degree+1)
     ))
 
-
     # PIZZA 24_12_10_16_11_00 _combinations MUST ALWAYS BE asc shortest
-    # combos to longest combos, then sorted asc combo. maybe we should add a test
+    # combos to longest combos, then sorted asc on combo idx. maybe we should add a test
+    # should be coming out of itertools like, but ensure always sorted
+    _combinations = sorted(_combinations, key = lambda x: (len(x), x))
+
 
     return _combinations
 

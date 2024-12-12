@@ -15,7 +15,7 @@ def _check_X_constants_dupls(
 
     """
     Raise exception if InterceptManager found constants in X or if
-    ColumnDeduplicateTranformer found duplicates in X.
+    ColumnDeduplicateTransformer found duplicates in X.
 
 
     Parameters
