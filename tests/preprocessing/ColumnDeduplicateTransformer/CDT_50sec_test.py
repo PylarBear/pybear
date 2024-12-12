@@ -722,7 +722,7 @@ class TestAllColumnsTheSameorDifferent:
 
     @pytest.mark.parametrize('same_or_diff', ('_same', '_diff'))
     @pytest.mark.parametrize('x_format', ('np', 'pd', 'coo'))
-    def test_all_columns_the_same(
+    def test_all_columns_the_same_or_different(
         self, _X_factory, _kwargs, same_or_diff, x_format, _columns, _shape
     ):
 
@@ -1423,7 +1423,7 @@ class TestTransform:
         # this is caught by if _X.shape[0] == 0 in _val_X
         with pytest.raises(ValueError):
             _CDT.transform(
-                np.empty((0, np.sum(_CDT.column_mask_)),dtype=np.float64)
+                np.empty((0, _X_np.shape[1]),dtype=np.float64)
             )
 
 
