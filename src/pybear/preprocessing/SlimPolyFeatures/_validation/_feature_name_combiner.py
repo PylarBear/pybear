@@ -22,6 +22,17 @@ def _val_feature_name_combiner(
     _interaction_only: bool
 ) -> None:
 
+
+    # PIZZA 24_12_11_09_29_00 THE OUTPUT OF feature_name_combiner IS NOW
+    # BEING TESTED DIRECTLY FOR PERTINENT COMBOS AT POINT THE POINT OF
+    # GENERATION, _get_feature_names_out().
+    #
+    # WHY MAKE UP SOME WACK COMBOS LIKE HERE AND TEST IT, feature_name_combiner
+    # REALLY ONLY NEEDS TO WORK FOR THE COMBOS THAT ARE ACTUALLY USED.
+    # MAKE A DECISION ABOUT WHAT U WANT TO KEEP FROM HERE.
+
+
+
     """
     Validate feature_name_combiner. Must be:
     1) Literal 'as_feature_names' ... pizza pizza

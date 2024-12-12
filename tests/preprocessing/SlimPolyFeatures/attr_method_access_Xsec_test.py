@@ -18,7 +18,6 @@ from sklearn.exceptions import NotFittedError
 from sklearn.utils.validation import check_is_fitted
 
 
-pytest.skip(reason="pizza not finished", allow_module_level=True)
 
 bypass = False
 
@@ -314,10 +313,11 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
         # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
         # ['x0', ..., 'x(n-1)][COLUMN MASK]
-        _COLUMNS = np.array([f"x{i}" for i in range(len(_columns))])
+        _COLUMNS = [f"x{i}" for i in range(len(_columns))]
+        _POLY = list(map(str, TestCls.expansion_combinations_))
         assert np.array_equiv(
             TestCls.get_feature_names_out(None),
-            _COLUMNS[TestCls.column_mask_]
+            _COLUMNS + _POLY
         ), \
             (f"get_feature_names_out(None) after fit() != sliced array of "
             f"generic headers")
@@ -326,7 +326,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # len(input_features) != n_features_in_
         with pytest.raises(ValueError):
             TestCls.get_feature_names_out(
-                [f"x{i}" for i in range(2 * len(_columns))]
+                [f"x{i}" for i in range(len(_columns)//2)]
             )
 
         # WHEN NO HEADER PASSED TO (partial_)fit() AND VALID input_features,
@@ -336,11 +336,11 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
             (f"get_feature_names_out should return numpy.ndarray, but "
              f"returned {type(RETURNED_FROM_GFNO)}")
 
-        _ACTIVE_COLUMNS = np.array(_columns)[TestCls.column_mask_]
+        _ACTIVE_COLUMNS = np.hstack((_columns, _POLY))
         assert np.array_equiv(RETURNED_FROM_GFNO, _ACTIVE_COLUMNS), \
             f"get_feature_names_out() did not return original columns"
 
-        del junk_arg, RETURNED_FROM_GFNO, TestCls, _ACTIVE_COLUMNS
+        del junk_arg, RETURNED_FROM_GFNO, TestCls, _COLUMNS, _POLY, _ACTIVE_COLUMNS
 
         # END ^^^ NO COLUMN NAMES PASSED (NP) ^^^
 
@@ -351,7 +351,8 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
         # WITH HEADER PASSED AND input_features=None, SHOULD RETURN
         # SLICED ORIGINAL COLUMNS
-        _ACTIVE_COLUMNS = np.array(_columns)[TestCls.column_mask_]
+        _POLY = list(map(str, TestCls.expansion_combinations_))
+        _ACTIVE_COLUMNS = np.hstack((_columns, _POLY))
         assert np.array_equiv(TestCls.get_feature_names_out(None), _ACTIVE_COLUMNS), \
             f"get_feature_names_out(None) after fit() != originally passed columns"
         del _ACTIVE_COLUMNS
@@ -387,7 +388,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
         assert np.array_equiv(
             RETURNED_FROM_GFNO,
-            np.array(_columns)[TestCls.column_mask_]
+            np.hstack((_columns, _POLY))
         ), \
             f"get_feature_names_out() did not return original columns"
 
@@ -446,7 +447,8 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # SHOULD RETURN ORIGINAL (SLICED) COLUMNS
         RETURNED_FROM_GFNO = TransformedTestCls.get_feature_names_out(_columns)
 
-        _ACTIVE_COLUMNS = np.array(_columns)[TransformedTestCls.column_mask_]
+        _POLY = list(map(str, TransformedTestCls.expansion_combinations_))
+        _ACTIVE_COLUMNS = np.hstack((_columns, _POLY))
         assert np.array_equiv(RETURNED_FROM_GFNO, _ACTIVE_COLUMNS), \
             (f"get_feature_names_out() after transform did not return "
              f"sliced original columns")
@@ -464,7 +466,7 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # SHOULD RETURN SLICED ORIGINAL COLUMNS
         assert np.array_equiv(
                 PDTransformedTestCls.get_feature_names_out(None),
-                np.array(_columns)[PDTransformedTestCls.column_mask_]
+                np.hstack((_columns, list(map(str, PDTransformedTestCls.expansion_combinations_))))
         ), (f"get_feature_names_out(None) after transform() != originally "
             f"passed columns")
 

@@ -22,7 +22,7 @@ import dask.dataframe as ddf
 
 
 
-pytest.skip(reason=f"not finished", allow_module_level=True)
+pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
 bypass = False

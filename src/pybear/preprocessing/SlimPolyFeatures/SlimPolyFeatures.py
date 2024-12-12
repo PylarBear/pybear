@@ -24,6 +24,8 @@ from ._validation._validation import _validation
 from ._validation._X import _val_X
 from ._attributes._build_kept_poly_duplicates import _build_kept_poly_duplicates
 from ._attributes._build_dropped_poly_duplicates import _build_dropped_poly_duplicates
+from ._get_feature_names_out._gfno_X import _gfno_X
+from ._get_feature_names_out._gfno_poly import _gfno_poly
 from ._partial_fit._combination_builder import _combination_builder
 from ._partial_fit._columns_getter import _columns_getter
 from ._partial_fit._parallel_constant_finder import _parallel_constant_finder
@@ -130,7 +132,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     sparse_output:
         bool - pizza!
     feature_name_combiner:
-        Union[Callable[[Iterable[str], tuple[int, ...]], str]] - pizza!
+        Union[
+            Callable[[Iterable[str], tuple[int, ...]], str],
+            Literal['as_feature_names', 'as_indices']]
+        ], default='as_indices', - pizza!
     equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
@@ -273,9 +278,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
         sparse_output: Optional[bool] = True,
         feature_name_combiner: Optional[Union[
-            Callable[[Iterable[str], tuple[int, ...]], str],
-            None
-        ]] = None,
+            Callable[[Iterable[str], tuple[tuple[int, ...], ...]], str],
+            Literal['as_feature_names', 'as_indices']
+        ]] = 'as_indices',
         equal_nan: Optional[bool] = True,
         rtol: Optional[numbers.Real] = 1e-5,
         atol: Optional[numbers.Real] = 1e-8,
@@ -498,6 +503,25 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # columns, must build a one-off.
 
         check_is_fitted(self)
+
+        _X_header = _gfno_X(
+            input_features,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self.n_features_in_
+        )
+
+        # there must be a poly header, self.degree must be >= 2
+        _poly_header = _gfno_poly(
+            _X_header,
+            self._active_combos,
+            self.feature_name_combiner
+        )
+
+        if self.min_degree == 1:
+            _poly_header = np.hstack((_X_header, _poly_header)).astype(object)
+        # else poly header is returned as is
+
+        return _poly_header
 
 
     def get_metadata_routing(self):
