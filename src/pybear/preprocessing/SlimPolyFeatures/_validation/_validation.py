@@ -9,7 +9,6 @@
 from typing import Callable
 
 
-
 from ._atol import _val_atol
 from ._degree__min_degree import _val_degree__min_degree
 from ._equal_nan import _val_equal_nan
@@ -38,7 +37,7 @@ def _validation(
     _keep: Literal['first', 'last', 'random'],
     _interaction_only: bool,
     _sparse_output: bool,
-    _feature_name_combiner: Callable[[tuple[int, ...]], str],
+    _feature_name_combiner: Callable[[Iterable[str], tuple[int, ...]], str],
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,

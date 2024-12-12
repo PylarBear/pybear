@@ -42,6 +42,15 @@ def _val_X(
 
     """
 
+
+    # sklearn _validate_data & check_array are not catching dask arrays & dfs.
+    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
+        hasattr(_X, 'toarray'):
+        raise TypeError(
+            f"invalid container for X: {type(_X)}. X must be numpy array, "
+            f"pandas dataframe, or any scipy sparce matrix / array."
+        )
+
     # pizza see what _validate_data can do
     # rejects non-numeric, does not accept nan-likes (pizza we need to accept nans!)
     # BaseEstimator _validate_data is catching nans with force_all_finite = False,
@@ -54,13 +63,7 @@ def _val_X(
 
 
 
-    # sklearn _validate_data & check_array are not catching dask arrays & dfs.
-    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
-        hasattr(_X, 'toarray'):
-        raise TypeError(
-            f"invalid container for X: {type(_X)}. X must be numpy array, "
-            f"pandas dataframe, or any scipy sparce matrix / array."
-        )
+
 
 
     if _X.shape[0] < 1:

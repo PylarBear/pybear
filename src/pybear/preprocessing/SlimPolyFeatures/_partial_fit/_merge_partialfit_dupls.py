@@ -165,6 +165,7 @@ def _merge_partialfit_dupls(
     # if any dupl set contains more than 1 tuple of len==1 (i.e., more than one column from X)
     # raise exception for duplicate columns in X
     for _dupl_set in _duplicates:
+        # pizza this may need to come out or change to warn.
         if sum(map(lambda x: x==1, map(len, _dupl_set))) > 1:
             raise AssertionError(
                 f"There are duplicate columns in X. Use pybear "

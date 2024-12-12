@@ -260,7 +260,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         "keep": [StrOptions({"first", "last", "random"})],
         "interaction_only": ["boolean"],
         "sparse_output": ["boolean"],
-        "feature_name_combiner": [StrOptions({"as_feature_names", "as_indices"}), callable, None],
+        "feature_name_combiner": [StrOptions({"as_feature_names", "as_indices"}), callable],
         "equal_nan": ["boolean"],
         "rtol": [numbers.Real],
         "atol": [numbers.Real],
@@ -278,7 +278,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
         sparse_output: Optional[bool] = True,
         feature_name_combiner: Optional[Union[
-            Callable[[Iterable[str], tuple[tuple[int, ...], ...]], str],
+            Callable[[Iterable[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']
         ]] = 'as_indices',
         equal_nan: Optional[bool] = True,
@@ -349,7 +349,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         try:
             self._check_X_constants_and_dupls()
-
+            #     self._active_combos must be sorted asc len, then asc on idxs. if _combos is sorted
+            #     then this is sorted correctly at construction.
             return self._active_combos
         except:
             warnings.warn(self._attr_access_warning)
@@ -504,14 +505,21 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         check_is_fitted(self)
 
-        _X_header = _gfno_X(
+        try:
+            self._check_X_constants_and_dupls()
+        except:
+            warnings.warn(self._attr_access_warning)
+            return
+
+        # if did not except....
+        _X_header: npt.NDArray[object] = _gfno_X(
             input_features,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.n_features_in_
         )
 
         # there must be a poly header, self.degree must be >= 2
-        _poly_header = _gfno_poly(
+        _poly_header: npt.NDArray[object] = _gfno_poly(
             _X_header,
             self._active_combos,
             self.feature_name_combiner
@@ -522,6 +530,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # else poly header is returned as is
 
         return _poly_header
+
 
 
     def get_metadata_routing(self):
@@ -816,6 +825,19 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # across all dupl sets, only look at the first value in a dupl set, sort on len asc, then values asc
         # END poly duplicates -----------------------
 
+        # iff self.poly_constants_ is None it is because @property for it
+        # is excepting on self._check_X_constants_and_dupls() and returning
+        # None. In that case, all @properties will also trip on that and return None
+        # for everything. partial_fit
+        # will continue to warn. and transform (currently as of 24_12_12_13_31_00)
+        # will raise. so because all access points are a no-op when dupls or
+        # constants in X, then the below hidden params are not needed. need to
+        # skip them because what is happening is that while there are dupls/constants
+        # in X, _get_active_combos is calling self.poly_constants_ and
+        # self.dropped_poly_duplicates_ and they are returning None which is getting
+        # caught in the validation for those modules. so dont even access _get_active_combos.
+        if self.poly_constants_ is None:
+            return self
 
         # if 'keep' == 'random', _transform() must pick the same random
         # columns every time. need to set an instance attribute here
@@ -939,6 +961,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         try:
 
+            # this check must stay under try! if this is fitted, then run
+            # everything else in the try which imposes blocks on some params.
+            # if not fitted, except out and allow everything to be set
             check_is_fitted(self)
 
             allowed_params = (
@@ -1001,7 +1026,15 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         check_is_fitted(self)
 
-        self._check_X_constants_and_dupls()
+        # X CONST & DUP WARN IN TRANSFORM() INSTEAD OF EXCEPT ?
+        # pizza think on whether we want SlimPoly to retain state and return None here
+        # which will probably crash the next thing anyway.
+        try:
+            self._check_X_constants_and_dupls()
+        except:
+            warnings.warn(self._attr_access_warning)
+            return
+
 
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")

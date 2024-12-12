@@ -20,6 +20,9 @@ def _get_active_combos(
     dropped_poly_duplicates_ or in :param: poly_constants_ are omitted
     from the expansion.
 
+    must be sorted asc len, then asc on idxs. if _combos comes in sorted
+    then this goes out sorted.
+
 
     Parameters
     ----------
@@ -48,9 +51,7 @@ def _get_active_combos(
 
     # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     assert isinstance(_combos, list)
-    for _tuple in _combos:
-        assert isinstance(_tuple, tuple)
-        assert all(map(isinstance, _tuple, (int for _ in _tuple)))
+    assert all(map(isinstance, _combos, (tuple for _ in _combos)))
     assert isinstance(dropped_poly_duplicates_, dict)
     for k, v in dropped_poly_duplicates_.items():
         assert isinstance(k, tuple)

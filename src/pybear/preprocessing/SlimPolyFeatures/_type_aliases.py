@@ -43,7 +43,7 @@ DataType: TypeAlias = Union[
 
 FeatureNameCombinerType: TypeAlias = \
     Union[
-        Callable[[Iterable[str], tuple[tuple[int, ...], ...]], str],
+        Callable[[Iterable[str], tuple[int, ...]], str],
         Literal['as_feature_names', 'as_indices']
     ]
 

@@ -98,10 +98,7 @@ def _lock_in_random_combos(
     try:
         iter(_combinations)
         assert not isinstance(_combinations, (str, dict))
-        for item in _combinations:
-            assert isinstance(item, tuple)
-            assert len(item) >= 2
-            assert all(map(isinstance, item, (int for _ in item)))
+        assert all(map(isinstance, _combinations, (tuple for _ in _combinations)))
     except:
         raise AssertionError(
             f"'_combinations' must be Iterable[tuple[int, ...]]"
