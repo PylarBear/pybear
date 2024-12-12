@@ -25,16 +25,8 @@ class TestAlwaysExceptsBeforeFit:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_always_except_before_fit(self, _keep, _equal_nan):
 
-        _kwargs = {
-            'keep': _keep,
-            'equal_nan': _equal_nan,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1     # leave this at 1 because of confliction
-        }
-
         with pytest.raises(NotFittedError):
-            IM(**_kwargs).get_feature_names_out()
+            IM().get_feature_names_out()
 
 
 
@@ -73,15 +65,7 @@ class TestGetFeatureNamesOutRejects:
     @pytest.fixture(scope='function')
     def _TestCls(_instance_state, _X):
 
-        _wip_kwargs = {
-            'keep': 'first',
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1  # leave this at 1 because of confliction
-        }
-
-        _TestCls = IM(**_wip_kwargs)
+        _TestCls = IM()
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
@@ -247,7 +231,10 @@ class TestGetFeatureNamesOut:
         if _format == 'np' and not _input_features_is_passed:
             # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
             # ['x0', ..., 'x(n-1)][column_mask_]
-            _EXP_COLUMNS = np.array([f"x{i}" for i in range(_shape[1])], dtype=object)
+            _EXP_COLUMNS = np.array(
+                [f"x{i}" for i in range(_shape[1])],
+                dtype=object
+            )
         else:
             # WITH HEADER PASSED SHOULD RETURN
             # self.feature_names_in_[column_mask_]

@@ -504,7 +504,7 @@ class TestAllColumnsTheSameOrDifferent:
     @pytest.mark.parametrize('keep',
         ('first', 'last', 'random', 'none', 'int', 'string', 'callable', 'dict'))
     @pytest.mark.parametrize('same_or_diff', ('_same', '_diff'))
-    def test_all_columns_the_same(
+    def test_all_columns_the_same_or_different(
         self, _kwargs, _X_np, keep, same_or_diff, x_format, _columns,
         _constants, _shape
     ):
@@ -635,7 +635,7 @@ class TestManyPartialFitsEqualOneBigFit:
         __ = OneShotFullFitTestCls.constant_columns_
         assert np.array_equal(list(_.keys()), list(__.keys()))
         assert np.array_equal(
-            list(map(str, _.keys())), list(map(str, __.keys()))
+            list(map(str, _.values())), list(map(str, __.values()))
         )
         del _, __
 
@@ -676,12 +676,12 @@ class TestManyPartialFitsEqualOneBigFit:
         assert np.array_equal(list(_.keys()), list(__.keys()))
         assert np.array_equal(list(_.keys()), list(___.keys()))
         assert np.array_equal(
-            list(map(str, _.keys())),
-            list(map(str, __.keys()))
+            list(map(str, _.values())),
+            list(map(str, __.values()))
         )
         assert np.array_equal(
-            list(map(str, _.keys())),
-            list(map(str, ___.keys()))
+            list(map(str, _.values())),
+            list(map(str, ___.values()))
         )
 
         del _, __, ___, SingleFitTestClass, DoublePartialFitTestClass
@@ -1291,7 +1291,7 @@ class TestTransform:
         # this is caught by if _X.shape[0] == 0 in _val_X
         with pytest.raises(ValueError):
             _IM.transform(
-                np.empty((0, np.sum(_IM.column_mask_)), dtype=np.float64)
+                np.empty((0, _X_np.shape[1]), dtype=np.float64)
             )
 
 
