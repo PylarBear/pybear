@@ -92,7 +92,7 @@ def _validation(
 
     _val_keep(_keep)
 
-    _val_X(_X)
+    # dont need _val_X here, _val_X is before _validation() in both partial_fit() & transform()
 
     _val_scan_X(_scan_X)
 

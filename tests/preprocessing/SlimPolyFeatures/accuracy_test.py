@@ -71,14 +71,17 @@ class TestAccuracy:
     @pytest.mark.parametrize('X_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('equal_nan', (True, False))
-    @pytest.mark.parametrize('keep', ('first', 'last', 'random'))
+    @pytest.mark.parametrize('degree', (2, 3))
+    @pytest.mark.parametrize('min_degree', (1, 2))
+    @pytest.mark.parametrize('interaction_only', (True, False))
+    @pytest.mark.parametrize('scan_X', (True, False))
+    @pytest.mark.parametrize('sparse_output', (True, False))
+    @pytest.mark.parametrize('feature_name_combiner', ('as_indices', 'as_feature_names', lambda x, y: str(y)))
     def test_accuracy(
-        self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan,
-        keep, _columns, _shape
+        self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan, keep, _columns, _shape
     ):
 
         # validate the test parameters
-        assert keep in ['first', 'last', 'random']
         assert isinstance(has_nan, bool)
         assert isinstance(equal_nan, bool)
         assert X_format in (
