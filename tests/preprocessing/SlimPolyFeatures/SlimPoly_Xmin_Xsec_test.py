@@ -26,7 +26,7 @@ import pytest
 
 
 
-pytest.skip(reason=f"pizza not finished", allow_module_level=True)
+# pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
 bypass = False
@@ -62,7 +62,6 @@ def _X_np(_X_factory, _shape):
     return _X_factory(
         _has_nan=False,
         _dtype='flt',
-        _constants=None,
         _shape=_shape
     )
 
@@ -714,84 +713,9 @@ class TestConditionalAccessToPartialFitAndFit:
 # END TEST CONDITIONAL ACCESS TO partial_fit() AND fit() ###############
 
 
-# TEST ALL COLUMNS THE SAME OR DIFFERENT #####################################
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAllColumnsDifferent:
-
-
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'coo', 'csc', 'csr'))
-    def test_all_columns_different(
-        self, _kwargs, _X_np, keep, same_or_diff, x_format, _columns, _shape
-    ):
-
-        # pizza, come back to this, do we even need this? all we might be able to
-        # learn is that there should be no duplicate or constant poly terms and
-        # SlimPoly attrs should reflect that.
-
-        TEST_X = _X_np.copy()
-
-
-        # this must be after 'keep' management!
-        _kwargs['keep'] = keep
-        TestCls = SlimPoly(**_kwargs)
-
-
-        if x_format == 'np':
-            pass
-        elif x_format == 'pd':
-            TEST_X = pd.DataFrame(data=TEST_X, columns=_columns)
-        elif x_format == 'coo':
-            TEST_X = ss.coo_array(TEST_X)
-        elif x_format == 'csc':
-            TEST_X = ss.csc_array(TEST_X)
-        elif x_format == 'csr':
-            TEST_X = ss.csr_array(TEST_X)
-        else:
-            raise Exception
-
-        if keep == 'none' and same_or_diff == '_same':
-            with pytest.raises(ValueError):
-                # raises if all columns will be deleted
-                TestCls.fit_transform(TEST_X)
-            pytest.skip(reason=f"cant do anymore tests without fit")
-        else:
-            out = TestCls.fit_transform(TEST_X)
-
-        assert TestCls.constant_columns_ == _wip_constants, \
-            f"TestCls.constant_columns_ != _wip_constants"
-
-        if keep != 'none' and not isinstance(keep, dict):
-            if same_or_diff == '_same':
-                # if all are constant, all but 1 column is deleted
-                assert out.shape[1] == 1
-            elif same_or_diff == '_diff':
-                assert out.shape[1] == _shape[1] - len(_wip_constants) + 1
-        elif isinstance(keep, dict):
-            if same_or_diff == '_same':
-                # if all are constant, all original are deleted, append new
-                assert out.shape[1] == 1
-            elif same_or_diff == '_diff':
-                assert out.shape[1] == _shape[1] - len(_wip_constants) + 1
-        elif keep == 'none':
-            if same_or_diff == '_same':
-                raise Exception(f"shouldnt be in here!")
-                # this was tested above under a pytest.raises. should raise
-                # because all columns will be removed.
-            elif same_or_diff == '_diff':
-                assert out.shape[1] == _shape[1] - len(_wip_constants)
-        else:
-            raise Exception(f'algorithm failure')
-
-# END TEST ALL COLUMNS THE SAME OR DIFFERENT ##################################
-
-
-
 # TEST MANY PARTIAL FITS == ONE BIG FIT ********************************
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestManyPartialFitsEqualOneBigFit:
-
-    # PIZZA THINK ON THIS, NEED TO THINK OF A CLEVER WAY TO TEST THIS
-    #
 
 
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
@@ -847,7 +771,7 @@ class TestManyPartialFitsEqualOneBigFit:
         # ** ** ** ** ** ** ** ** ** ** **
 
         # ** ** ** ** ** ** ** ** ** ** **
-        # TEST PARTIAL FIT CONSTANTS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
+        # TEST PARTIAL FIT KEPT COMBINATIONS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
         SingleFitTestClass = SlimPoly(**_kwargs)
         SingleFitTestClass.fit(_X_np)
         _ = SingleFitTestClass.expansion_combinations_
@@ -858,16 +782,8 @@ class TestManyPartialFitsEqualOneBigFit:
         DoublePartialFitTestClass.partial_fit(_X_np)
         ___ = DoublePartialFitTestClass.expansion_combinations_
 
-        assert np.array_equal(list(_.keys()), list(__.keys()))
-        assert np.array_equal(list(_.keys()), list(___.keys()))
-        assert np.array_equal(
-            list(map(str, _.values())),
-            list(map(str, __.values()))
-        )
-        assert np.array_equal(
-            list(map(str, _.values())),
-            list(map(str, ___.values()))
-        )
+        assert _ == __
+        assert _ == ___
 
         del _, __, ___, SingleFitTestClass, DoublePartialFitTestClass
 
@@ -987,19 +903,11 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
                 _dtype=_dtype,
                 _columns=None,
                 _constants=_constants,
-                _noise=_noise,
                 _zeros=None,
                 _shape=_chunk_shape
             )
 
         return foo
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _start_constants(_chunk_shape):
-        # first indices of a set must be ascending
-        return {3:1, 5:1, _chunk_shape[1]-2:1}
 
 
     @pytest.mark.parametrize('_format', ('np', ))
@@ -1031,7 +939,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
 
         _pool_X = _X(_format, _dtype, _has_nan, None, _noise=1e-9)
 
-        _wip_X = _X(_format, _dtype, _has_nan, _start_constants, _noise=1e-9)
+        _wip_X = _X(_format, _dtype, _has_nan, _noise=1e-9)
 
         _y = np.random.randint(0, 2, _wip_X.shape[0])
 

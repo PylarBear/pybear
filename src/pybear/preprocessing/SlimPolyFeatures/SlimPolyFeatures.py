@@ -353,7 +353,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             #     then this is sorted correctly at construction.
             return self._active_combos
         except:
-            warnings.warn(self._attr_access_warning)
+            warnings.warn(self._attr_access_warning())
             return
 
 
@@ -367,7 +367,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
             return self._poly_duplicates
         except:
-            warnings.warn(self._attr_access_warning)
+            warnings.warn(self._attr_access_warning())
             return
 
         """
@@ -405,7 +405,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                     self._kept_combos
                 )
         except:
-            warnings.warn(self._attr_access_warning)
+            warnings.warn(self._attr_access_warning())
             return
 
 
@@ -424,7 +424,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 )
 
         except:
-            warnings.warn(self._attr_access_warning)
+            warnings.warn(self._attr_access_warning())
             return
 
 
@@ -438,7 +438,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
             return self._poly_constants
         except:
-            warnings.warn(self._attr_access_warning)
+            warnings.warn(self._attr_access_warning())
             return
 
 
@@ -454,15 +454,21 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         """
 
-        if hasattr(self, "n_features_in_"):
+        if hasattr(self, "_poly_duplicates"):
             del self._poly_duplicates
             del self._poly_constants
+            del self._combos
+            del self._rand_combos
+            del self._active_combos
+            del self._kept_combos
 
             if hasattr(self, '_IM'):
                 del self._IM
 
             if hasattr(self, '_CDT'):
                 del self._CDT
+
+        return self
 
 
     def get_feature_names_out(self, input_features=None):
@@ -508,7 +514,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         try:
             self._check_X_constants_and_dupls()
         except:
-            warnings.warn(self._attr_access_warning)
+            warnings.warn(self._attr_access_warning())
             return
 
         # if did not except....
@@ -559,6 +565,18 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         """
         pizza say something
 
+        pizza,
+        partial_fit makes a copy of your originally passed X.
+        talk about how all pd nan-likes are converted to np.nan.
+        This is to allow for validation of datatypes with astype(np.float64) (pd nan-likes blow this up)
+        and also to convert X to scipy sparse (pd nan-likes also blow this up!)
+        partial_fit always converts the copy of your X to scipy sparse. This
+        is to save memory because for SPF to learn what columns in the expansion are duplicate,
+        SPF must retain all the unique columns that were found during the expansion process.
+        So SPF actually does the expansion out brute force (which can be large), but does not retain the X.
+        At transform, the polynomial expansion is built based on what was learned about
+        constant and duplicate columns during fitting.
+
 
         Parameters
         ----------
@@ -576,11 +594,23 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         """
 
+        # keep this before _validate_data. when X is junk, _validate_data
+        # and check_array except for varying reasons. this standardizes
+        # the error message for non-np/pd/ss X.
 
-        X = self._validate_data(
-            X=X,
+        _X = X.copy()
+
+        _val_X(_X)
+
+
+        _X = self._validate_data(
+            X=_X,
             reset=not hasattr(self, "_poly_duplicates"),
-            cast_to_ndarray=False,
+            # cast_to_ndarray=False,   # pizza takes this out 24_12_13_13_43_00,
+            # "TypeError: check_array() got an unexpected keyword argument 'cast_to_ndarray'"
+            # started doing this after some changes to _val_X and did poetry install.
+            # come back at the end and see if this needs to stay out.
+
             # vvv become **check_params, and get fed to check_array() vvv
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
             dtype=None,  # do not use 'numeric' here, sk will force to float64
@@ -593,7 +623,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
         _validation(
-            X,
+            _X,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.degree,
             self.min_degree,
@@ -614,12 +644,12 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # _validation should have caught non-numeric X. X must only be numeric
         # throughout all of SPF.
         if hasattr(X, 'toarray'):   # is scipy sparse
-            X = X.tocsc()
+            _X = _X.tocsc()
         else: # is np or pd
             try:
-                X = ss.csc_array(X)
+                _X = ss.csc_array(_X)
             except:
-                X = ss.csc_array(X.astype(np.float64))
+                _X = ss.csc_array(_X.astype(np.float64))
 
 
         if not hasattr(self, '_poly_duplicates'):
@@ -656,8 +686,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # duplicate columns.
 
         if self.scan_X:
-            self._IM.partial_fit(X)
-            self._CDT.partial_fit(X)
+            self._IM.partial_fit(_X)
+            self._CDT.partial_fit(_X)
 
             try:
                 self._check_X_constants_and_dupls()
@@ -673,7 +703,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # discovered. need to carry this to compare the next calculated
         # polynomial term against the known unique polynomial columns held
         # in this.
-        _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0)).astype(X.dtype))
+        _POLY_CSC = ss.csc_array(np.empty((_X.shape[0], 0)).astype(_X.dtype))
         IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
         _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
         _poly_constants_current_partial_fit: dict[tuple[int, ...], any] = {}
@@ -697,7 +727,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             # original data and should not be processed here
             assert len(combo) >= 2
 
-            _COLUMN: npt.NDArray[int, float] = _columns_getter(X, combo).prod(1).ravel()
+            _COLUMN: npt.NDArray[int, float] = _columns_getter(_X, combo).prod(1).ravel()
 
             __ = _COLUMN.shape
             assert len(__) == 1 or (len(__)==2 and __[1]==1)
@@ -732,7 +762,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 # in the list
                 _out: list[bool] = _get_dupls_for_combo_in_X_and_poly(
                     _COLUMN,
-                    X,
+                    _X,
                     _POLY_CSC,
                     _equal_nan=self.equal_nan,
                     _rtol=self.rtol,
@@ -743,7 +773,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
                 # need to convert 'out' to
                 # [(i1,), (i2,),..] SINGLE GROUP OF DUPLICATES
-                _indices = [(i,) for i in range(X.shape[1])] + IDXS_IN_POLY_CSC
+                _indices = [(i,) for i in range(_X.shape[1])] + IDXS_IN_POLY_CSC
                 _dupls_for_this_combo = []
                 for _idx_tuple, _is_dupl in zip(_indices, _out):
                     if _is_dupl:
@@ -1032,13 +1062,16 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         try:
             self._check_X_constants_and_dupls()
         except:
-            warnings.warn(self._attr_access_warning)
+            warnings.warn(self._attr_access_warning())
             return
 
 
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
+        # keep this before _validate_data. when X is junk, _validate_data
+        # and check_array except for varying reasons. this standardizes
+        # the error message for non-np/pd/ss X.
         _val_X(X)
 
         X = self._validate_data(
