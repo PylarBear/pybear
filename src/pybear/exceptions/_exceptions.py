@@ -15,17 +15,18 @@ class NotFittedError(ValueError, AttributeError):
     This class inherits from both ValueError and AttributeError to help
     with exception handling.
 
+
     Examples
     --------
     >>> from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
-    >>> from pybear.utilities.exceptions import NotFittedError
+    >>> from pybear.exceptions import NotFittedError
     >>> import numpy as np
     >>> X = np.random.randint(0, 10, (5,3))
     >>> try:
     ...     CDT().transform(X)
     ... except NotFittedError as e:
     ...     print(repr(e))
-    NotFittedError("This LinearSVC instance is not fitted yet. Call 'fit'
+    NotFittedError("This ColumnDeduplicateTransformer instance is not fitted yet. Call 'fit'
     with appropriate arguments before using this estimator."...)
 
 
