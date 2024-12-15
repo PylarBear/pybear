@@ -46,9 +46,8 @@ from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransfor
     ColumnDeduplicateTransformer as CDT
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
-from sklearn.exceptions import NotFittedError
 from sklearn.utils._param_validation import Interval, StrOptions
-from sklearn.utils.validation import check_is_fitted
+from ...base import check_is_fitted
 
 
 

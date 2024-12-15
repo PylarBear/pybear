@@ -5,6 +5,7 @@
 #
 
 
+
 from typing import Iterable
 from typing_extensions import Union
 from copy import deepcopy
@@ -22,12 +23,13 @@ from ._validation._return_train_score import _validate_return_train_score
 from ._validation._scoring import _validate_scoring
 from ._validation._thresholds__param_grid import _validate_thresholds__param_grid
 
-
 from .._fit_shared._cv_results._cv_results_builder import \
     _cv_results_builder
 
 from .._fit_shared._verify_refit_callable import \
     _verify_refit_callable
+
+from ....base import check_is_fitted
 
 
 
@@ -46,7 +48,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('classes_')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         if self._classes is None:
             # self._classes IS A HOLDER THAT IS FILLED ONE TIME WHEN
@@ -76,7 +78,7 @@ class _GSTCVMixin(BaseEstimator):
         __ = type(self).__name__
 
         try:
-            self.check_is_fitted()
+            check_is_fitted(self, attributes='_refit')
         except:
             raise AttributeError(f"{__} object has no n_features_in_ attribute.")
 
@@ -337,7 +339,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('decision_function')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
 
@@ -504,7 +506,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('inverse_transform')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         with self._scheduler as scheduler:
             return self.best_estimator_.inverse_transform(X)
@@ -544,7 +546,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('predict')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         if len(self.scorer_) > 1 and callable(self._refit):
             raise AttributeError(f"'predict' is not available when there "
@@ -593,7 +595,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('predict_log_proba')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         _X , passed_feature_names = self._handle_X_y(X, y=None)[0::2]
 
@@ -634,7 +636,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('predict_proba')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
 
@@ -702,7 +704,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('score')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         if callable(self._refit) and len(self.scorer_) > 1:
             return self._refit
@@ -753,7 +755,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('score_samples')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
 
@@ -898,7 +900,7 @@ class _GSTCVMixin(BaseEstimator):
 
         self.check_refit__if_false_block_attr('transform')
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
 
@@ -1053,31 +1055,6 @@ class _GSTCVMixin(BaseEstimator):
                 f"`refit=False`. {attr_or_method_name} is available only after "
                 f"refitting on the best parameters. You can refit an estimator "
                 f"manually using the `best_params_` attribute"
-            )
-        else:
-            return
-
-
-    def check_is_fitted(self) -> None:
-
-        """
-
-        Block access to attributes and methods if instance is not fitted.
-        If not fitted, raise Attribute Error, if fitted, return None.
-
-
-        Return
-        ------
-        -
-            None
-
-        """
-
-        if not hasattr(self, '_refit'):
-            raise AttributeError(
-                f"This {type(self).__name__} instance is not fitted yet. "
-                f"Call 'fit' with appropriate arguments before using "
-                f"this estimator."
             )
         else:
             return

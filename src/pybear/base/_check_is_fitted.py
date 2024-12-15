@@ -91,7 +91,7 @@ def check_is_fitted(
     --------
     >>> import numpy as np
     >>> from pybear.preprocessing import InterceptManager as IM
-    >>> from pybear.utilities import check_is_fitted
+    >>> from pybear.base import check_is_fitted
     >>> from pybear.exceptions import NotFittedError
     >>> trf = IM()
     >>> try:

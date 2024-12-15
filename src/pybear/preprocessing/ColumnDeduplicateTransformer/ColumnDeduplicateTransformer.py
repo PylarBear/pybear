@@ -21,10 +21,12 @@ from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._inverse_transform._inverse_transform import _inverse_transform
 from ._transform._transform import _transform
 
+from ...exceptions import NotFittedError
+
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
-from sklearn.exceptions import NotFittedError
 from sklearn.utils._param_validation import StrOptions
-from sklearn.utils.validation import check_is_fitted, check_array
+from ...base import check_is_fitted
+from sklearn.utils.validation import check_array
 
 
 
