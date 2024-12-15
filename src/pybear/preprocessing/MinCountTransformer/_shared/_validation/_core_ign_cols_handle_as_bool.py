@@ -13,12 +13,12 @@ from ._val_n_features_in import _val_n_features_in
 
 
 def _core_ign_cols_handle_as_bool(
-        _kwarg_value: IgnColsHandleAsBoolDtype,
-        _name: str,
-        _mct_has_been_fit: bool=False,  # pass hasattr(self, 'n_features_in_')
-        _n_features_in: Union[None, int]=None,
-        _feature_names_in: Union[None, np.ndarray[str]]=None
-    ) -> Union[callable, np.ndarray[int], np.ndarray[str]]:
+    _kwarg_value: IgnColsHandleAsBoolDtype,
+    _name: str,
+    _mct_has_been_fit: bool=False,  # pass hasattr(self, 'n_features_in_')
+    _n_features_in: Union[None, int]=None,
+    _feature_names_in: Union[None, np.ndarray[str]]=None
+) -> Union[callable, np.ndarray[int], np.ndarray[str]]:
 
     """
     Validate containers and content for shared attributes of ignore_columns and

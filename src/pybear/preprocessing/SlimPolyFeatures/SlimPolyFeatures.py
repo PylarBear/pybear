@@ -559,7 +559,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         self,
         X: DataType,
         y: Union[Iterable[any], None]=None
-    ):
+    ) -> Self:
 
         """
         pizza say something
