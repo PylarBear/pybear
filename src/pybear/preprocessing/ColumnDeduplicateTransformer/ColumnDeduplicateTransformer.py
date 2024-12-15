@@ -25,7 +25,8 @@ from ...exceptions import NotFittedError
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import StrOptions
-from sklearn.utils.validation import check_is_fitted, check_array
+from ...base import check_is_fitted
+from sklearn.utils.validation import check_array
 
 
 

@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import joblib
 from .docs.mincounttransformer_docs import mincounttransformer_docs
-from pybear.exceptions import NotFittedError
+from ...base import is_fitted, check_is_fitted
 from sklearn.base import check_array, BaseEstimator
 
 from ._shared._validation._val_ignore_columns import _val_ignore_columns
@@ -534,7 +534,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._ignore_columns = _val_ignore_columns(
             self._ignore_columns,
-            self._check_is_fitted(),
+            check_is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
@@ -542,7 +542,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
         self._handle_as_bool = _val_handle_as_bool(
             self._handle_as_bool,
-            self._check_is_fitted(),
+            check_is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self._original_dtypes
@@ -654,7 +654,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._validate()
 
-        if not self._check_is_fitted():
+        if not check_is_fitted(self, attributes='n_features_in_'):
             self._reset()
 
         self._recursion_check()
@@ -696,7 +696,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         """
 
 
-        self._must_be_fitted()
+        check_is_fitted(self, attributes='n_features_in_')
 
         self._recursion_check()
 
@@ -756,7 +756,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._ignore_columns = _val_ignore_columns(
             self._ignore_columns,
-            self._check_is_fitted(),
+            is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
@@ -773,7 +773,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._handle_as_bool = _val_handle_as_bool(
             self._handle_as_bool,
-            self._check_is_fitted(),
+            is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self._original_dtypes
@@ -1001,7 +1001,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         """
 
-        self._must_be_fitted()
+        check_is_fitted(self, attributes='n_features_in_')
 
         X_tr = self._handle_X_y(X_tr, None)[0]
 
@@ -1046,7 +1046,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         """
 
-        self._must_be_fitted()
+        check_is_fitted(self, attributes='n_features_in_')
 
         COLUMN_MASK = self.get_support(indices=False)
 
@@ -1115,7 +1115,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             are indices into the input feature vector.
         """
 
-        self._must_be_fitted()
+        check_is_fitted(self, attributes='n_features_in_')
 
         if not hasattr(self, '_row_support'):
             raise AttributeError(
@@ -1149,7 +1149,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             the input feature vector.
         """
 
-        self._must_be_fitted()
+        check_is_fitted(self, attributes='n_features_in_')
 
         if callable(self._ignore_columns) or callable(self._handle_as_bool):
             raise ValueError(
@@ -1222,7 +1222,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         """
 
         # MAKE SOME PARAMETERS UNCHANGEABLE ONCE AN INSTANCE IS FITTED
-        if self._check_is_fitted() and self._max_recursions > 1:
+        if is_fitted(self, attributes='n_features_in_') and self._max_recursions > 1:
             # IF CHANGING PARAMS WHEN max_recursions WAS >1, RESET THE
             # INSTANCE, BLOWING AWAY INTERNAL STATES ASSOCIATED WITH PRIOR
             # FITS, WITH EXCEPTION FOR n_jobs & reject_unseen_values
@@ -1243,7 +1243,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
     def _make_instructions(self, _threshold=None):
 
-        self._must_be_fitted()  # must be before _make_instructions()
+        # must be before _make_instructions()
+        check_is_fitted(self, attributes='n_features_in_')
 
         return _make_instructions(
             self._count_threshold,
@@ -1291,7 +1292,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         """
 
-        self._must_be_fitted()
+        check_is_fitted(self, attributes='n_features_in_')
         if callable(self._ignore_columns) or callable(self._handle_as_bool):
             raise ValueError(f"if ignore_columns or handle_as_bool is "
                 f"callable, get_support() is only available after a "
@@ -1384,7 +1385,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         _n_features_in = None
         _feature_names_in = None
         _original_dtypes = None
-        _mct_has_been_fit = self._check_is_fitted()
+        _mct_has_been_fit = is_fitted(self, attributes='n_features_in_')
         if _mct_has_been_fit:
             _n_features_in = self.n_features_in_
             if hasattr(self, 'feature_names_in_'):
@@ -1417,22 +1418,6 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         if hasattr(self, '_n_rows_in') and self._count_threshold >= self._n_rows_in:
             raise ValueError(f"count_threshold is >= the number of rows, "
                              f"every column not ignored would be deleted.")
-
-
-
-    def _check_is_fitted(self):
-        """Check to see if the instance has been fitted."""
-
-        return hasattr(self, 'n_features_in_')
-
-
-    def _must_be_fitted(self):
-        """Allows access only if the instance has been fitted."""
-        if not self._check_is_fitted():
-            raise NotFittedError(f"This instance has not been fitted yet. "
-                         f"Fit data with partial_fit() or fit() first.")
-        else:
-            return True
 
 
     def _recursion_check(self):

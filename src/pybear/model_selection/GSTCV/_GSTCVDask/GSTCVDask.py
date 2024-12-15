@@ -31,6 +31,8 @@ from ...GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import \
 
 from ...GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
+from ....base import check_is_fitted
+
 
 
 class GSTCVDask(_GSTCVMixin):
@@ -646,7 +648,7 @@ class GSTCVDask(_GSTCVMixin):
         """
 
 
-        self.check_is_fitted()
+        check_is_fitted(self, attributes='_refit')
 
         __ = type(self).__name__
         raise NotImplementedError(
