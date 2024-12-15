@@ -534,7 +534,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._ignore_columns = _val_ignore_columns(
             self._ignore_columns,
-            check_is_fitted(self, attributes='n_features_in_'),
+            is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
@@ -542,7 +542,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
         self._handle_as_bool = _val_handle_as_bool(
             self._handle_as_bool,
-            check_is_fitted(self, attributes='n_features_in_'),
+            is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self._original_dtypes
@@ -654,7 +654,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._validate()
 
-        if not check_is_fitted(self, attributes='n_features_in_'):
+        if not is_fitted(self, attributes='n_features_in_'):
             self._reset()
 
         self._recursion_check()
