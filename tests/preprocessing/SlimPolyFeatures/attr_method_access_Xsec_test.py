@@ -14,8 +14,8 @@ import sys
 import numpy as np
 import pandas as pd
 
-from sklearn.exceptions import NotFittedError
-from sklearn.utils.validation import check_is_fitted
+from pybear.exceptions import NotFittedError
+from pybear.base import check_is_fitted
 
 
 
