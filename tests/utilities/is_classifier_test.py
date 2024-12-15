@@ -5,9 +5,11 @@
 # License: BSD 3 clause
 
 
+
+
 import pytest
 
-from pybear.base import is_classifier
+from pybear.utilities import is_classifier
 
 import pandas as pd
 import numpy as np
