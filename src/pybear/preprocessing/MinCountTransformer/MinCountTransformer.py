@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import joblib
 from .docs.mincounttransformer_docs import mincounttransformer_docs
-from sklearn.exceptions import NotFittedError
+from pybear.exceptions import NotFittedError
 from sklearn.base import check_array, BaseEstimator
 
 from ._shared._validation._val_ignore_columns import _val_ignore_columns
