@@ -23,17 +23,6 @@ import scipy.sparse as ss
 
 
 
-# PIZZA SKIPS ALL SlimPoly TESTS!
-def pytest_collection_modifyitems(items):
-    for item in items:
-        # Skip all tests in this folder
-        item.add_marker(
-            pytest.mark.skip(reason="Skipping all tests in this folder.")
-        )
-
-
-
-
 
 @pytest.fixture(scope='session')
 def _master_columns():
