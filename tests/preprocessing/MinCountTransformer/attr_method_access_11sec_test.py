@@ -12,7 +12,7 @@ import pandas as pd
 
 from uuid import uuid4
 
-from sklearn.exceptions import NotFittedError
+from pybear.exceptions import NotFittedError
 
 from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
     MinCountTransformer as MCT
