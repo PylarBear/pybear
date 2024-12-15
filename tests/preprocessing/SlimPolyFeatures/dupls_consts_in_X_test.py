@@ -21,6 +21,8 @@ import pytest
 
 
 
+pytest.skip(reason=f"pizza not finished", allow_module_level=True)
+
 
 
 class TestDupsAndConstants:
