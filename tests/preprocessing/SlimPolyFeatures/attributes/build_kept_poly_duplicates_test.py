@@ -25,7 +25,7 @@ class TestBuildKeptPolyDuplicates:
     # def _build_kept_poly_duplicates(
     #     _poly_duplicates: list[list[tuple[int, ...]]],
     #     _kept_combos: tuple[tuple[int, ...], ...]
-    # ) -> dict[tuple[int, ...]: list[tuple[int, ...]]]:
+    # ) -> dict[tuple[int, ...], list[tuple[int, ...]]]:
 
 
     @pytest.mark.parametrize('junk_inputs',
