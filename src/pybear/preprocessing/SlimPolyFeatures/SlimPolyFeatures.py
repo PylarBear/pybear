@@ -302,14 +302,12 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
 
-    def __sklearn_is_fitted__(self):
+    def __pybear_is_fitted__(self):
 
         """
-        If an estimator does not set any attributes with a trailing underscore, it
-        can define a ``__sklearn_is_fitted__`` method returning a boolean to
-        specify if the estimator is fitted or not. See
-        :ref:`sphx_glr_auto_examples_developing_estimators_sklearn_is_fitted.py`
-        for an example on how to use the API.
+        If an estimator does not set any attributes with a trailing
+        underscore,  it can define a '__pybear_is_fitted__' method
+        returning a boolean to specify if the estimator is fitted or not.
 
         """
 
@@ -441,7 +439,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             return
 
 
-    def reset(self):
+    def reset(self) -> Self:
         """
         Reset internal data-dependent state of the transformer.
         __init__ parameters are not changed.

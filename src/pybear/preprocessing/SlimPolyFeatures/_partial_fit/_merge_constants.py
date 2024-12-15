@@ -29,7 +29,7 @@ def _merge_constants(
     Parameters
     ----------
     _old_constants:
-        Union[dict[tuple[int,...], any]: None] - the column indices of constant columns found in
+        Union[dict[tuple[int, ...], any], None] - the column indices of constant columns found in
         previous partial fits and the values in the columns.
     _new_constants:
         dict[tuple[int, ...], any] - the column indices of constant columns found in
