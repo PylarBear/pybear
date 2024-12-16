@@ -56,14 +56,16 @@ def _build_dropped_poly_duplicates(
             assert len(_tuple) >= 1
             assert all(map(isinstance, _tuple, (int for _ in _tuple)))
 
+    if len(_poly_duplicates):
+        del _list, _tuple
+
     assert isinstance(_kept_combos, tuple)
     assert len(_kept_combos) == len(_poly_duplicates)
     for _tuple in _kept_combos:
         assert isinstance(_tuple, tuple)
         assert all(map(isinstance, _tuple, (int for _ in _tuple)))
 
-    if len(_poly_duplicates):
-        del _list
+    # _kept_combos might have len > 0, might not be any poly duplicates
     if len(_kept_combos):
         del _tuple
     # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

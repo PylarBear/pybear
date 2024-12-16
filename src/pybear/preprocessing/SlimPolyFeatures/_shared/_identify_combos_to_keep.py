@@ -55,12 +55,19 @@ def _identify_combos_to_keep(
             assert isinstance(_tuple, tuple)
             assert len(_tuple) >= 1
             assert all(map(isinstance, _tuple, (int for _ in _tuple)))
+
+    if len(_poly_duplicates):
+        del _list, _tuple
+
     assert _keep in ['first', 'last', 'random']
     assert isinstance(_rand_combos, tuple)
     assert len(_rand_combos) == len(_poly_duplicates)
     for _tuple in _rand_combos:
         assert isinstance(_tuple, tuple)
         assert all(map(isinstance, _tuple, (int for _ in _tuple)))
+    # _kept_combos might have len > 0, might not be any poly duplicates
+    if len(_rand_combos):
+        del _tuple
     # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -101,7 +108,7 @@ def _identify_combos_to_keep(
 
     assert len(_idxs_to_keep) == len(_poly_duplicates)
 
-    _idxs_to_keep: tuple[tuple[int, ...]] = tuple(_idxs_to_keep)
+    _idxs_to_keep: tuple[tuple[int, ...], ...] = tuple(_idxs_to_keep)
 
 
     return _idxs_to_keep

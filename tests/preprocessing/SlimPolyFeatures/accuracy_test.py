@@ -15,7 +15,7 @@ from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
 from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
-from pybear.utilities import nan_mask
+
 
 from copy import deepcopy
 import numpy as np
@@ -29,8 +29,14 @@ import pytest
 
 
 
-pytest.skip(reason=f"pizza not finished", allow_module_level=True)
+# pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
+
+# pizza, we need to put some tests in here that the X passed to transform()
+# is never mutated, that way we can take the copy param out of transform()
+
+# also pizza test for one column in X, when not 'interaction_only'.
+# pizza wants to allow one column X for interaction_only=False, but not =True.
 
 
 class TestAccuracy:
@@ -74,11 +80,14 @@ class TestAccuracy:
     @pytest.mark.parametrize('degree', (2, 3))
     @pytest.mark.parametrize('min_degree', (1, 2))
     @pytest.mark.parametrize('interaction_only', (True, False))
+    @pytest.mark.parametrize('keep', ('first', 'last', 'random'))
     @pytest.mark.parametrize('scan_X', (True, False))
     @pytest.mark.parametrize('sparse_output', (True, False))
     @pytest.mark.parametrize('feature_name_combiner', ('as_indices', 'as_feature_names', lambda x, y: str(y)))
     def test_accuracy(
-        self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan, keep, _columns, _shape
+        self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan, degree,
+        min_degree, interaction_only, keep, scan_X, sparse_output,
+        feature_name_combiner, _columns, _shape
     ):
 
         # validate the test parameters

@@ -181,39 +181,42 @@ class TestDuplsForComboValidation(Fixtures):
             )
 
 
-    @pytest.mark.parametrize('bad_X',
-        (None, 'pd_df', 'ndarray', 'ss_csr', 'ss_coo')
-    )
-    def test_X_rejects_bad(
-        self, _good_COLUMN, _X_ss, bad_X, _good_POLY_CSC, _good_equal_nan,
-        _rtol_atol, _n_jobs
-    ):
+    # pizza
+    #     # must be ss csc
+    #     # as of 24_12_16_07_28_00 not converting to csc.
+    # @pytest.mark.parametrize('bad_X',
+    #     (None, 'pd_df', 'ndarray', 'ss_csr', 'ss_coo')
+    # )
+    # def test_X_rejects_bad(
+    #     self, _good_COLUMN, _X_ss, bad_X, _good_POLY_CSC, _good_equal_nan,
+    #     _rtol_atol, _n_jobs
+    # ):
+    #
 
-        # must be ss csc
-
-        if bad_X is None:
-            pass
-        elif bad_X == 'pd_df':
-            bad_X = pd.DataFrame(data=_X_ss.toarray())
-        elif bad_X == 'ndarray':
-            bad_X = _X_ss.toarray()
-        elif bad_X == 'ss_csr':
-            bad_X = _X_ss.tocsr()
-        elif bad_X == 'ss_coo':
-            bad_X = _X_ss.tocoo()
-        else:
-            raise Exception
-
-
-        with pytest.raises(AssertionError):
-            _get_dupls_for_combo_in_X_and_poly(
-                _good_COLUMN,
-                bad_X,
-                _good_POLY_CSC,
-                _good_equal_nan,
-                *_rtol_atol,
-                _n_jobs=_n_jobs
-            )
+    #
+    #     if bad_X is None:
+    #         pass
+    #     elif bad_X == 'pd_df':
+    #         bad_X = pd.DataFrame(data=_X_ss.toarray())
+    #     elif bad_X == 'ndarray':
+    #         bad_X = _X_ss.toarray()
+    #     elif bad_X == 'ss_csr':
+    #         bad_X = _X_ss.tocsr()
+    #     elif bad_X == 'ss_coo':
+    #         bad_X = _X_ss.tocoo()
+    #     else:
+    #         raise Exception
+    #
+    #
+    #     with pytest.raises(AssertionError):
+    #         _get_dupls_for_combo_in_X_and_poly(
+    #             _good_COLUMN,
+    #             bad_X,
+    #             _good_POLY_CSC,
+    #             _good_equal_nan,
+    #             *_rtol_atol,
+    #             _n_jobs=_n_jobs
+    #         )
 
 
     # END _X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -411,16 +414,36 @@ class TestDuplsForComboValidation(Fixtures):
 
     # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
+    @pytest.mark.parametrize('_good_X',
+        ('pd_df', 'ndarray', 'ss_csr', 'ss_csc')
+    )
     @pytest.mark.parametrize(f'_equal_nan', (True, False))
     @pytest.mark.parametrize(f'_n_jobs', (-1, 1))
     def test_accepts_all_good(
-        self, _good_COLUMN, _X_ss, _good_POLY_CSC, _equal_nan, _rtol_atol, _n_jobs
+        self, _good_COLUMN, _good_POLY_CSC, _X_ss, _good_X, _equal_nan, _rtol_atol, _n_jobs
     ):
+
+        # pizza as of 24_12_16, now allowing np, pd, ss throughout partial_fit,
+        # instead of converting to csc, to avoid copy / mutate of X
+        # which means this must now accept all of them not just csc
+
+        # _columns_getter now only allows ss that are indexable, dont test with
+        # coo, dia, bsr
+
+        if _good_X == 'pd_df':
+            _good_X = pd.DataFrame(data=_X_ss.toarray())
+        elif _good_X == 'ndarray':
+            _good_X = _X_ss.toarray()
+        elif _good_X == 'ss_csr':
+            _good_X = _X_ss.tocsr()
+        elif _good_X == 'ss_csc':
+            _good_X = _X_ss.tocsc()
+        else:
+            raise Exception
 
         out = _get_dupls_for_combo_in_X_and_poly(
             _good_COLUMN,
-            _X_ss,
+            _good_X,
             _good_POLY_CSC,
             _equal_nan,
             *_rtol_atol,

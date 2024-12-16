@@ -38,12 +38,12 @@ def _kwargs():
 
 @pytest.fixture(scope='function')
 def _rows():
-    return 200
+    return 8
 
 
 @pytest.fixture(scope='function')
 def X(_rows):
-    return np.random.randint(0, 10, (_rows, 10))
+    return np.random.randint(0, 10, (_rows, 5))
 
 
 @pytest.fixture(scope='function')

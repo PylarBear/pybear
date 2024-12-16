@@ -24,6 +24,8 @@ import pytest
 
 
 
+# pizza put something in here for pandas with different dtypes
+# pizza verify that partial_fit does not mutate X!
 
 
 pytest.skip(reason=f"pizza not finished", allow_module_level=True)
@@ -1011,6 +1013,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAColumnOfAllNans:
 
+    # pizza make sure this test stays!
     def test_one_all_nans(self, _X_factory, _kwargs, _shape):
 
         _X = _X_factory(
