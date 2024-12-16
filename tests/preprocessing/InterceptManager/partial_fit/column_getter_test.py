@@ -63,9 +63,8 @@ class TestColumnGetter:
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
     @pytest.mark.parametrize('_format',
         (
-        'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-        'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-        'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+        'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'lil_matrix',
+        'dok_matrix', 'csr_array', 'csc_array', 'lil_array', 'dok_array'
         )
     )
     @pytest.mark.parametrize('_col_idx1', (0, 1, 2))
@@ -73,6 +72,9 @@ class TestColumnGetter:
         self, _has_nan, _dtype, _format, _col_idx1, _shape, _X_num, _X_str,
         _master_columns
     ):
+
+        # as of 24_12_16 _columns_getter only allows ss that are
+        # indexable, dont test with coo, dia, bsr
 
         if _dtype == 'str' and _format not in ('ndarray', 'df'):
             pytest.skip(reason=f"scipy sparse cant take non numeric data")

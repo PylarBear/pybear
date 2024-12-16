@@ -64,7 +64,7 @@ def _column_getter(
         # del c1
 
         # code that converts a ss column to np array
-        column = _X.copy().tocsc()[:, [_col_idx]].toarray().ravel()
+        column = _X[:, [_col_idx]].toarray().ravel()
     else:
         raise TypeError(f"invalid data type '{type(_X)}'")
 

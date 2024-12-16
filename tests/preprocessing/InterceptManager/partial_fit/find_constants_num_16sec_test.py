@@ -115,7 +115,7 @@ class TestFindConstants_Num:
 
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'lil'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_constants_set', ('init', 'no', 'more', 'less'))
     @pytest.mark.parametrize('_has_nan', (True, False))
@@ -127,6 +127,9 @@ class TestFindConstants_Num:
     ):
 
         # verifies accuracy of _find_constants on a single pass
+
+        # as of 24_12_16 _columns_getter only allows ss that are
+        # indexable, dont test with coo, dia, bsr
 
         # using these just to run more tests, the fact that they are
         # 'more' or less compared to each other is not important, theyre
@@ -226,7 +229,7 @@ class TestFindConstants_Num:
             raise Exception
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'lil'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -237,6 +240,9 @@ class TestFindConstants_Num:
 
         # verifies accuracy of _find_constants when second partial fit
         # has less constants than the first
+
+        # as of 24_12_16 _columns_getter only allows ss that are
+        # indexable, dont test with coo, dia, bsr
 
         # build first X
         _first_X_wip = _X_base(
@@ -295,7 +301,7 @@ class TestFindConstants_Num:
                     )
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'lil'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -306,6 +312,9 @@ class TestFindConstants_Num:
 
         # verifies accuracy of _find_constants when second partial fit
         # has more constants than the first
+
+        # as of 24_12_16 _columns_getter only allows ss that are
+        # indexable, dont test with coo, dia, bsr
 
         # build first X
         _first_X_wip = _X_base(
@@ -364,7 +373,7 @@ class TestFindConstants_Num:
                     )
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'lil'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -375,6 +384,9 @@ class TestFindConstants_Num:
 
         # verifies accuracy of _find_constants when partial fits after the
         # first have both more and less constants
+
+        # as of 24_12_16 _columns_getter only allows ss that are
+        # indexable, dont test with coo, dia, bsr
 
         # build first X
         _first_X_wip = _X_base(

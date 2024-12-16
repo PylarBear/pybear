@@ -11,10 +11,13 @@ from typing_extensions import Self, Union
 from ._type_aliases import (
     KeepType, DataFormatType
 )
+
 from numbers import Real, Integral
+import warnings
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
@@ -729,6 +732,25 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             raise ValueError(err_msg)
 
 
+        # ss sparse that cant be sliced
+        if isinstance(
+            X,
+            (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
+             ss.dia_array, ss.bsr_array)
+        ):
+
+            warnings.warn(
+                f"pybear works hard to avoid mutating or creating copies of "
+                f"your original data. \nyou have passed your data as {type(X)}, "
+                f"which cannot be sliced by columns. \npybear needs to create "
+                f"a copy. \nto avoid this, pass your sparse data as csr, csc, "
+                f"lil, or dok."
+            )
+            _X = X.copy().tocsc()
+        else:
+            _X = X
+
+
         # if IM has already been fitted and constant_columns_ is empty
         # (meaning there are no constant columns) dont even bother to
         # scan more data, cant possibly have constant columns
@@ -738,7 +760,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             # dictionary of column indices and respective constant values
             self.constant_columns_: dict[int, any] = \
                 _find_constants(
-                    X,
+                    _X,
                     self.constant_columns_ if \
                         hasattr(self, 'constant_columns_') else None,
                     self.equal_nan,
@@ -761,7 +783,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         _keep = _manage_keep(
             self.keep,
-            X,
+            _X,
             self.constant_columns_,
             self.n_features_in_,
             self.feature_names_in_ if \
@@ -1026,7 +1048,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         Return
         ------
         -
-            X: {array-like, scipy sparse matrix} of shape (n_samples,
+            X_tr: {array-like, scipy sparse matrix} of shape (n_samples,
                 n_transformed_features) - The transformed data.
 
 
@@ -1042,7 +1064,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # the error message for non-np/pd/ss X.
         _val_X(X)
 
-        X = self._validate_data(
+        X_tr = self._validate_data(
             X=X,
             reset=False,
             cast_to_ndarray=False,
@@ -1057,7 +1079,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         )
 
         _validation(
-            X,
+            X_tr,
             self.feature_names_in_ if \
                 hasattr(self, 'feature_names_in_') else None,
             self.keep,
@@ -1073,7 +1095,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         _keep = _manage_keep(
             self.keep,
-            X,
+            X_tr,
             self.constant_columns_,
             self.n_features_in_,
             self.feature_names_in_ if \
@@ -1094,12 +1116,12 @@ class InterceptManager(BaseEstimator, TransformerMixin):
                 self.n_features_in_
             )
 
-        X = _transform(X, self._instructions)
+        X_tr = _transform(X_tr, self._instructions)
 
-        if isinstance(X, np.ndarray):
-            X = np.ascontiguousarray(X)
+        if isinstance(X_tr, np.ndarray):
+            X_tr = np.ascontiguousarray(X_tr)
 
-        return X
+        return X_tr
 
 
 
