@@ -55,12 +55,15 @@ def _columns_getter(
         assert _idx in range(_DATA.shape[1]), f"col idx out of range"
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
     _col_idxs = sorted(list(_col_idxs))
 
     if isinstance(_DATA, np.ndarray):
         _columns = _DATA[:, _col_idxs]
     elif isinstance(_DATA, pd.core.frame.DataFrame):
+        # pizza
+        # additional steps are taken at the bottom of this module if the
+        # dataframe had funky nan-likes, causing _columns to leave this
+        # step as dtype object
         _columns = _DATA.iloc[:, _col_idxs].to_numpy()
     elif hasattr(_DATA, 'toarray'):
         """
@@ -91,7 +94,7 @@ def _columns_getter(
         """
 
         # old code that converts a ss column to np array
-        _columns = _DATA.copy().tocsc()[:, _col_idxs].toarray()
+        _columns = _DATA[:, _col_idxs].toarray()
     else:
         raise TypeError(f"invalid data type '{type(_DATA)}'")
 
@@ -109,6 +112,18 @@ def _columns_getter(
         _columns[nan_mask(_columns)] = np.nan
     except:
         pass
+
+    # pizza, if pandas had funky nan-likes (or if X was np, ss, or pd, and
+    # dtype was passed as object), then the dtype of this is
+    # guaranteed to be object and ss cant take it. need to convert the
+    # dtype, while also trying to preserve the dtype of low-bit data
+    # (meaning, dont just force everything over to float64). if there are
+    # nans in this, then it must be np.float64.
+    if any([_ in str(_columns.dtype).lower() for _ in ('int', 'float')]):
+        pass
+    else:
+        _columns = _columns.astype(np.float64)
+
 
     return _columns
 

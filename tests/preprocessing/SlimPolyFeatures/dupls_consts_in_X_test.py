@@ -6,22 +6,14 @@
 
 
 
-
-
-
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
 import numpy as np
-import pandas as pd
 import scipy.sparse as ss
 
 import pytest
 
-
-
-
-pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
 
@@ -59,34 +51,41 @@ class TestDupsAndConstants:
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
-        return (10, 6)
+        # need to have enough rows here so that there is *no* chance that
+        # higher order polynomial terms end up going to all nan, which
+        # will ruin the tests. 10 rows was too few.
+        # also need to have enough columns that the tests can be done with
+        # various mixes of constants and dupl columns without overlap, i.e.,
+        # having columns that are both constant and duplicate.
+        return (20, 6)
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'csr'))   # pizza , 'pd'
-    @pytest.mark.parametrize('dupls', ('none',)) # pizza ('dupls1', 'dupls2', 'none'))
-    @pytest.mark.parametrize('constants', ('none', )) # pizza 'constants1', 'constants2', 'none'))
-    @pytest.mark.parametrize('has_nan', (True, False))
-    @pytest.mark.parametrize('equal_nan', (True, False))
+    @pytest.mark.parametrize('X_format', ('np',  'pd', 'coo'))
+    @pytest.mark.parametrize('dupls', ('none', 'dupls1')) #, 'dupls2'))
+    @pytest.mark.parametrize('constants', ('none', 'constants1')) #, 'constants2'))
     def test_dupls_and_constants(
-        self, _X_factory, X_format, dupls, _master_columns, constants, has_nan, equal_nan, _shape
+        self, _X_factory, X_format, dupls, _master_columns, constants, _shape
     ):
 
         # scan_X must be True to find dupls and constants
 
         _kwargs = {
-            'degree': 2,
+            'degree': 3,
             'min_degree': 1,
             'interaction_only': False,
             'scan_X': True,
             'keep': 'first',
             'sparse_output': True,
             'feature_name_combiner': 'as_indices',
-            'equal_nan': equal_nan,
+            'equal_nan': True,
             'rtol': 1e-5,
             'atol': 1e-8,
             'n_jobs': 1
         }
 
+
+        # make sure there is no overlap of dupl & constant idxs or
+        # it will screw up X_factory
 
         # set dupls v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if dupls == 'dupls1':
@@ -115,9 +114,9 @@ class TestDupsAndConstants:
 
         TEST_X = _X_factory(
             _dupl=dupls,
-            _format=X_format,    # use pd to be able to access 'feature_names_in_'
+            _format=X_format,
             _dtype='flt',
-            _has_nan=has_nan,
+            _has_nan=False,
             _constants=constants,
             _columns=_master_columns.copy()[:_shape[1]],
             _zeros=None,
@@ -126,26 +125,29 @@ class TestDupsAndConstants:
 
         TestCls = SlimPoly(**_kwargs)
 
-        # if has_nan and not equal_nan, cannot have constants or dupls
-        # if any dupls or any constants, should be no-ops on almost everything
+        # if any dupls or any constants, should be no-ops on almost everything.
         # should still have access to feature_names_in_, n_features_in_ partial_fit,
-        # fit (which resets), get_params, reset, set_params,
-
+        # fit (which resets), get_params, reset, & set_params
         has_dupls_or_constants = False
         if dupls is not None or constants is not None:
-            if has_nan and not equal_nan:
-                pass
-            else:
-                has_dupls_or_constants += 1
+            has_dupls_or_constants += 1
 
 
         # must be fitted to access all of these attrs, properties, and methods!
-        # partial_fit and fit should always allow access regardless of dupls or constants
-        # partial_fit()   ---- do this first, prove it out....
-        # assert TestCls.partial_fit(TEST_X) is TestCls   # pizza unhash this
-        # then do fit(), which resets it, to have a fitted instance for the tests
+        # partial_fit and fit should always be accessible regardless of dupls or constants
+        # partial_fit()   ---- do this partial fit first to induce a state
+        # that may have constants and/or dupls...
+        assert TestCls.partial_fit(TEST_X) is TestCls
+        # TestCls may have degenerate condition, depending on the test.
+        # should be able to access partial_fit again...
+        assert TestCls.partial_fit(TEST_X) is TestCls
+        # then do fit(), which resets it, to have a fitted instance for the tests below
         # fit()
-        assert TestCls.fit(TEST_X) is TestCls
+        if X_format in ('coo', 'bsr', 'dia'):
+            with pytest.warns():
+                TestCls.fit(TEST_X)
+        else:
+            assert TestCls.fit(TEST_X) is TestCls
 
 
         if has_dupls_or_constants:
@@ -181,15 +183,13 @@ class TestDupsAndConstants:
             # all things that were no-op when there were constants/duplicates
             # should be operative w/o constants/duplicates
 
-            print(f'pizza print')
-
             assert isinstance(TestCls.get_feature_names_out(), np.ndarray)
-            print(f'pizza goes into the transform() oven')
+
             if _kwargs['sparse_output'] is True:
-                assert isinstance(TestCls.transform(TEST_X), (ss.csc_matrix, ss.csc_array))
+                assert isinstance(TestCls.transform(TEST_X), (ss.csr_matrix, ss.csr_array))
             elif _kwargs['sparse_output'] is False:
                 assert isinstance(TestCls.transform(TEST_X), type(TEST_X))
-            print(f'pizza comes out of the transform() oven')
+
             assert isinstance(TestCls.expansion_combinations_, tuple)
 
             assert isinstance(TestCls.poly_duplicates_, list)

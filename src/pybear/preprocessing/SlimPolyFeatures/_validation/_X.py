@@ -16,7 +16,8 @@ import pandas as pd
 
 
 def _val_X(
-    _X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes]
+    _X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes],
+    _interaction_only: bool
 ) -> None:
 
     """
@@ -32,7 +33,8 @@ def _val_X(
     _X:
         {array-like, scipy sparse matrix} of shape (n_samples,
         n_features) - the data to undergo polynomial expansion.
-
+    _interaction_only:
+        bool - pizza say something!
 
     Return
     ------
@@ -52,54 +54,61 @@ def _val_X(
         )
 
 
-    try:
-        # block non-numeric
-        print(f'pizza print b4 {_X=}')
+
+    # block non-numeric
+    if isinstance(_X, np.ndarray):
+        try:
+            _X.astype(np.float64)
+        except:
+            raise ValueError(f"X can only contain numeric datatypes")
+
+    elif isinstance(_X, pd.core.frame.DataFrame):
+        # pizza, as of 24_12_13_12_00_00, need to convert pd nan-likes to np.nan,
+        # empiricism shows must use nan_mask not nan_mask_numerical.
+        # .astype(np.float64) is trippin when having to convert pd nan-likes to float.
+        # but _X[nan_mask(_X)] = np.nan is back-talking to the passed X
+        # and mutating it. want to do this without mutating X or making a copy.
+        # so scan it columns by column. for sanity, keep this scan separate from
+        # anything going on in partial_fit with IM and CDT
         from ....utilities import nan_mask_numerical, nan_mask
-        # pizza this is what we need
-        # _X[nan_mask(_X)] = np.nan
-        # _X.astype(np.float64)
+        from .._partial_fit._columns_getter import _columns_getter
+        from joblib import Parallel, delayed, wrap_non_picklable_objects
+
+        @wrap_non_picklable_objects
+        def _test_is_num(_column: npt.NDArray) -> None:
+            np.float64(_column[np.logical_not(nan_mask(_column))])
+
+        # pizza if this all works out, pass n_jobs to this module
+        try:
+            joblib_kwargs = {'return_as': 'list', 'n_jobs': -1, 'prefer': 'processes'}
+            Parallel(**joblib_kwargs)(delayed(_test_is_num)(_columns_getter(_X, c_idx)) for c_idx in range(_X.shape[1]))
+        except:
+            raise ValueError(f"X can only contain numeric datatypes")
+
+        del _test_is_num
+
+    elif hasattr(_X, 'toarray'):
+        # scipy sparse can only be numeric dtype, so automatically good
+        pass
 
 
-
-
-
-        # if isinstance(_X, np.ndarray):
-        #     _X.astype(np.float64)
-        # elif isinstance(_X, pd.core.frame.DataFrame):
-        #     # pizza, as of 24_12_13_12_00_00, need to convert pd nan-likes to np.nan,
-        #     # must use nan_mask not nan_mask_numerical. .astype(np.float64) is
-        #     # trippin when having to convert pd nan-likes to float.
-        #     _X[nan_mask(_X)] = np.nan
-        #     _X.astype(np.float64)
-        # elif hasattr(_X, 'toarray'):
-        #     _X[nan_mask(_X)] = np.nan
-        #     _X.astype(np.float64)
-        #     # _X_data = np.array(_X.data)
-        #     # _X_data[nan_mask(_X_data)] = np.nan
-        #     # _X_data.astype(np.float64)
-        # else:
-        #     raise Exception
-        print(f'pizza print after {_X=}')
-
-        # pizza experiment, pd nan-likes blowing up on .astype(np.float64)
-        # try:
-        #     _X.astype(np.float64)
-        # except:
-
-    except:
-        raise ValueError(f"X can only contain numeric datatypes")
-
-
-
-
-
+    _base_msg = (f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
+                 f"dataframe, or scipy sparce matrix or array with at least 1 sample. ")
 
     if _X.shape[0] < 1:
-        raise ValueError(
-            f"'X' must be a valid 2 dimensional numpy ndarray, pandas dataframe, "
-            f"or scipy sparce matrix or array, with at least 2 columns and 1 "
-            f"example."
-    )
+        raise ValueError(_base_msg)
+
+    if _interaction_only:
+        if _X.shape[1] < 2:
+            _addon_msg = (f"\nWhen only generating interaction terms (:param: "
+                f"interaction_only is True), 'X' must have at least 2 features.")
+            raise ValueError(_base_msg + _addon_msg)
+    elif not _interaction_only:
+        _addon_msg = (f"\nWhen generating all polynomial terms (:param: "
+            f"interaction_only is False), 'X' must have at least 1 feature.")
+        raise ValueError(_base_msg + _addon_msg)
+
+
+
 
 

@@ -57,7 +57,9 @@ def _build_poly(
 
 
     # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    assert isinstance(X, ss.csc_array), f"{type(X)=}"
+    # pizza come back to this, finalize whether or not always converting X to csc in transform()
+    import numpy as np, pandas as pd
+    assert isinstance(X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(X, 'toarray'), f"{type(X)=}"
     assert isinstance(_active_combos, tuple)
     assert len(_active_combos) > 0
     for _tuple in _active_combos:

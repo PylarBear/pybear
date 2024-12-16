@@ -92,7 +92,7 @@ def _validation(
 
     _val_keep(_keep)
 
-    # dont need _val_X here, _val_X is before _validation() in both partial_fit() & transform()
+    # pizza, _val_X will probably end up back in here, because of sk _validate_data coming out.
 
     _val_scan_X(_scan_X)
 

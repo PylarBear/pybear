@@ -48,7 +48,7 @@ from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransfor
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import Interval, StrOptions
 from ...base import check_is_fitted
-
+from ...utilities import nan_mask
 
 
 
@@ -455,9 +455,15 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             del self._poly_duplicates
             del self._poly_constants
             del self._combos
-            del self._rand_combos
-            del self._active_combos
-            del self._kept_combos
+
+            # _rand_combos, _kept_combos, and _active_combos may not exist even if
+            # _poly_duplicates exists because
+            # partial_fit short circuits before making them if there
+            # are dupls/constants in X. so ask for permission.
+            if hasattr(self, '_rand_combos'):
+                del self._rand_combos
+                del self._kept_combos
+                del self._active_combos
 
             if hasattr(self, '_IM'):
                 del self._IM
@@ -514,6 +520,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             warnings.warn(self._attr_access_warning())
             return
 
+        # pizza, _gfno_X will likely become something like 'get_feature_names'
+        # mock sklearn function in pybear.base. so u will be coming back to this.
         # if did not except....
         _X_header: npt.NDArray[object] = _gfno_X(
             input_features,
@@ -595,13 +603,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # and check_array except for varying reasons. this standardizes
         # the error message for non-np/pd/ss X.
 
-        _X = X.copy()
-
-        _val_X(_X)
+        _val_X(X)
 
 
-        _X = self._validate_data(
-            X=_X,
+        X = self._validate_data(
+            X=X,
             reset=not hasattr(self, "_poly_duplicates"),
             # cast_to_ndarray=False,   # pizza takes this out 24_12_13_13_43_00,
             # "TypeError: check_array() got an unexpected keyword argument 'cast_to_ndarray'"
@@ -620,7 +626,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
         _validation(
-            _X,
+            X,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.degree,
             self.min_degree,
@@ -634,19 +640,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             self.equal_nan,
             self.n_jobs
         )
-
-
-        # pizza, revisit this at the end, see if we need to copy() X
-        # convert X to csc to save memory
-        # _validation should have caught non-numeric X. X must only be numeric
-        # throughout all of SPF.
-        if hasattr(X, 'toarray'):   # is scipy sparse
-            _X = _X.tocsc()
-        else: # is np or pd
-            try:
-                _X = ss.csc_array(_X)
-            except:
-                _X = ss.csc_array(_X.astype(np.float64))
 
 
         if not hasattr(self, '_poly_duplicates'):
@@ -683,8 +676,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # duplicate columns.
 
         if self.scan_X:
-            self._IM.partial_fit(_X)
-            self._CDT.partial_fit(_X)
+            self._IM.partial_fit(X)
+            self._CDT.partial_fit(X)
 
             try:
                 self._check_X_constants_and_dupls()
@@ -695,22 +688,58 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         # END Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
+        # _validation should have caught non-numeric X. X must only be numeric
+        # throughout all of SPF.
 
+
+        # pizza rewrite all this
         # build a ss csc that holds the unique polynomial columns that are
         # discovered. need to carry this to compare the next calculated
-        # polynomial term against the known unique polynomial columns held
+        # polynomial term against the known unique polynomial columns already held
         # in this.
-        _POLY_CSC = ss.csc_array(np.empty((_X.shape[0], 0)).astype(_X.dtype))
+        # ss cant take object dtype. want to keep the bits as low as possible,
+        # and preserve whatever dtype may have been passed. this is
+        # seeing object dtype when pandas has funky nan-likes. if object dtype,
+        # create POLY as np.float64, otherwise keep the original dtype.
+        # assigning the lowest bits to this csc is a hairy issue when trying to
+        # accommodate pandas dfs because of multiple dtypes. no matter what,
+        # if there are any nan-likes in X, POLY must be float64. keeping it
+        # simple, just assign float64 to for any pandas, and carry over dtype
+        # from ndarray and ss.
+        _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0)))
+        if not hasattr(X, 'dtype'):   # pd df
+            _POLY_CSC = _POLY_CSC.astype(np.float64)
+        elif any([_ in str(X.dtype).lower() for _ in ('int', 'float')]):
+            _POLY_CSC = _POLY_CSC.astype(X.dtype)
+        else:
+            _POLY_CSC = _POLY_CSC.astype(np.float64)
+
         IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
         _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
         _poly_constants_current_partial_fit: dict[tuple[int, ...], any] = {}
+
+
+
+        # ss sparse that cant be sliced
+        if isinstance(X, (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
+                       ss.dia_array, ss.bsr_array)):
+            warnings.warn(
+                f"pybear works hard to avoid mutating or creating copies of your original data. "
+                f"\nyou have passed your data as {type(X)}, which cannot be sliced by columns."
+                f"pybear needs to create a copy. \nto avoid this, pass your sparse data "
+                f"as csr, csc, lil, or dok."
+            )
+            _X = X.copy().tocsc()
+        else:
+            _X = X
+
 
         
         # GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         # need to get the permutations to run, based on the size of x,
         # min degree, max degree, and interaction_only.
         self._combos: list[tuple[int, ...]] = _combination_builder(
-            _shape=X.shape,
+            _shape=_X.shape,
             _min_degree=self.min_degree,
             _max_degree=self.degree,
             _intx_only=self.interaction_only
@@ -855,14 +884,17 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # iff self.poly_constants_ is None it is because @property for it
         # is excepting on self._check_X_constants_and_dupls() and returning
         # None. In that case, all @properties will also trip on that and return None
-        # for everything. partial_fit
-        # will continue to warn. and transform (currently as of 24_12_12_13_31_00)
-        # will raise. so because all access points are a no-op when dupls or
+        # for everything. partial_fit and transform
+        # will continue to warn and the @properties will continue to warn as long as the
+        # dupl and/or constants condition exists.
+        # so because all access points are a no-op when dupls or
         # constants in X, then the below hidden params are not needed. need to
-        # skip them because what is happening is that while there are dupls/constants
+        # skip them because while there are dupls/constants
         # in X, _get_active_combos is calling self.poly_constants_ and
         # self.dropped_poly_duplicates_ and they are returning None which is getting
         # caught in the validation for those modules. so dont even access _get_active_combos.
+        # _rand_combos and _kept_combos arent blowing anything up but they arent needed
+        # and are just filling with nonsense because of the degenerate state of X.
         if self.poly_constants_ is None:
             return self
 
@@ -884,6 +916,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 self.keep,
                 self._rand_combos
             )
+
 
         self._active_combos = _get_active_combos(
             self._combos,
@@ -1053,9 +1086,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         check_is_fitted(self)
 
-        # X CONST & DUP WARN IN TRANSFORM() INSTEAD OF EXCEPT ?
-        # pizza think on whether we want SlimPoly to retain state and return None here
-        # which will probably crash the next thing anyway.
+        # this does a no-op if there are dupls or constants in X
+        # returns None with a warning, allowing for more partial fits
         try:
             self._check_X_constants_and_dupls()
         except:
@@ -1066,10 +1098,15 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
+
         # keep this before _validate_data. when X is junk, _validate_data
         # and check_array except for varying reasons. this standardizes
         # the error message for non-np/pd/ss X.
+        # once _validata_data disappears, this can probably go back into _validation()
         _val_X(X)
+
+        # _validation should have caught non-numeric X. X must only be numeric
+        # throughout all of SPF.
 
         X = self._validate_data(
             X=X,
@@ -1102,21 +1139,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             self.n_jobs
         )
 
-        # pizza, revisit this at the end, see if we need to copy() X
-        # convert X to csc to save memory
-        # _validation should have caught non-numeric X. X must only be numeric
-        # throughout all of SPF.
-        # pizza think on this, what about if sparse_output
 
         _og_dtype = type(X)
-
-        if hasattr(X, 'toarray'):   # is scipy sparse
-            X = ss.csc_array(X)
-        else: # is np or pd
-            try:
-                X = ss.csc_array(X)
-            except:
-                X = ss.csc_array(X.astype(np.float64))
 
         # SPF params may have changed via set_params. need to recalculate
         # some attributes.
@@ -1134,23 +1158,63 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 self._rand_combos
             )
 
+        # ss sparse that cant be sliced
+        if isinstance(X, (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
+                       ss.dia_array, ss.bsr_array)):
+            warnings.warn(
+                f"pybear works hard to avoid mutating or creating copies of your original data. "
+                f"\nyou have passed your data as {type(X)}, which cannot be sliced by columns."
+                f"\npybear needs to create a copy. \nto avoid this, pass your sparse data "
+                f"as csr, csc, lil, or dok."
+            )
+            _X = X.copy().tocsc()
+        # pd df with funky nan-likes that np and ss dont like
+        elif self.min_degree == 1 and isinstance(X, pd.core.frame.DataFrame):
+            try:
+                X.astype(np.float64)
+                # if excepts, there are pd nan-likes that arent recognized by numpy.
+                # if passes, this df should just hstack with X_tr without a problem.
+                _X = X
+            except:
+                warnings.warn(
+                    f"pybear works hard to avoid mutating or creating copies of your original data."
+                    f"\nyou have passed a dataframe that has nan-like values "
+                    f"that are not recognized by numpy/scipy. \nbut to merge this data with "
+                    f"the polynomial expansion, pybear must make a copy to replace all "
+                    f"the nan-likes with numpy.nan. \nto avoid this copy, pass your dataframe "
+                    f"with numpy.nan in place of any nan-likes that are only recognized by pandas."
+                )
+                _X = X.copy()
+                _X[nan_mask(_X)] = np.nan
+        else:
+            _X = X
+
+
         self._active_combos = _get_active_combos(
             self._combos,
             self.poly_constants_,
             self.dropped_poly_duplicates_
         )
 
-        X_tr: Union[np.ndarray, pd.core.frame.DataFrame, ss.csc_array] = \
+        X_tr: ss.csc_array = \
             _build_poly(
-                X,
+                _X,
                 self._active_combos,
                 self.n_jobs
             )
 
-
+        # experiments show that if stacking with ss.hstack:
+        # 1) at least one of the terms must be a scipy sparse
+        # 2) if one is ss, and the other is not, always returns as COO
+        #       regardless of what ss format was passed
+        # 3) if both are ss, but are different types of ss, always returns as COO
+        # 4) only when both are the same type of ss is that type of ss returned
+        # 5) it is OK to mix ss array and ss matrix, array will trump matrix
+        # so we need to convert X to whatever X_tr is to maintain X_tr format
         if self.min_degree == 1:
-            X_tr = ss.hstack((X, X_tr))
+            X_tr = ss.hstack((type(X_tr)(_X), X_tr))
 
+        assert isinstance(X_tr, ss.csc_array)
 
         if self.sparse_output:
             return X_tr.tocsr()
@@ -1159,17 +1223,17 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             # original scipy format
             return _og_dtype(X_tr)
         else:
-            # ndarray or pd df
+            # ndarray or pd df, return in the given format
             X_tr = X_tr.toarray()
 
+            # pizza this will probably come out since abandoning sklearn _validate_data
             if _og_dtype is np.ndarray:
                 return np.ascontiguousarray(X_tr)
 
             elif _og_dtype is pd.core.frame.DataFrame:
-                # pizza what about the new feature names for df
                 return pd.DataFrame(
                     data=X_tr,
-                    columns=None# pizza need to put get_feature_names_out() here!
+                    columns=self.get_feature_names_out()
                 )
             else:
                 raise Exception
