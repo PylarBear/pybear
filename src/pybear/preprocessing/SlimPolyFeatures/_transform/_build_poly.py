@@ -61,7 +61,6 @@ def _build_poly(
     import numpy as np, pandas as pd
     assert isinstance(X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(X, 'toarray'), f"{type(X)=}"
     assert isinstance(_active_combos, tuple)
-    assert len(_active_combos) > 0
     for _tuple in _active_combos:
         assert isinstance(_tuple, tuple)
         assert all(map(isinstance, _tuple, (int for _ in _tuple)))
@@ -71,6 +70,10 @@ def _build_poly(
         assert _n_jobs >= -1 and _n_jobs != 0
     # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+
+    if not len(_active_combos):
+        POLY = ss.csc_array(np.empty((X.shape[0], 0), dtype=np.float64))
+        return POLY
 
 
     @wrap_non_picklable_objects
@@ -85,7 +88,7 @@ def _build_poly(
         delayed(_poly_stacker)(_columns_getter(X, combo)) for combo in _active_combos
     )
 
-    POLY = ss.hstack(POLY)
+    POLY = ss.hstack(POLY).astype(np.float64)
 
 
     assert POLY.shape == (X.shape[0], len(_active_combos))
