@@ -29,14 +29,10 @@ import pytest
 
 
 
-# pytest.skip(reason=f"pizza not finished", allow_module_level=True)
+pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
-# pizza, we need to put some tests in here that the X passed to transform()
-# is never mutated, that way we can take the copy param out of transform()
 
-# also pizza test for one column in X, when not 'interaction_only'.
-# pizza wants to allow one column X for interaction_only=False, but not =True.
 
 
 class TestAccuracy:

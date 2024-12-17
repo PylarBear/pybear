@@ -44,6 +44,8 @@ def _val_X(
 
     """
 
+    assert isinstance(_interaction_only, bool)
+
 
     # sklearn _validate_data & check_array are not catching dask arrays & dfs.
     if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
@@ -104,9 +106,10 @@ def _val_X(
                 f"interaction_only is True), 'X' must have at least 2 features.")
             raise ValueError(_base_msg + _addon_msg)
     elif not _interaction_only:
-        _addon_msg = (f"\nWhen generating all polynomial terms (:param: "
-            f"interaction_only is False), 'X' must have at least 1 feature.")
-        raise ValueError(_base_msg + _addon_msg)
+        if _X.shape[1] < 1:
+            _addon_msg = (f"\nWhen generating all polynomial terms (:param: "
+                f"interaction_only is False), 'X' must have at least 1 feature.")
+            raise ValueError(_base_msg + _addon_msg)
 
 
 

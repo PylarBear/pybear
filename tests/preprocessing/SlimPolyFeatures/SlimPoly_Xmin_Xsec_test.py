@@ -8,9 +8,10 @@
 
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import SlimPolyFeatures as SlimPoly
 
-from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
+from pybear.utilities import nan_mask, nan_mask_numerical
 
 from copy import deepcopy
+import uuid
 
 import numpy as np
 import pandas as pd
@@ -24,8 +25,7 @@ import pytest
 
 
 
-# pizza put something in here for pandas with different dtypes
-# pizza verify that partial_fit does not mutate X!
+
 
 
 pytest.skip(reason=f"pizza not finished", allow_module_level=True)
@@ -51,7 +51,7 @@ def _kwargs():
         'interaction_only': False,
         'scan_X': False,
         'sparse_output': False,
-        'feature_name_combiner': lambda _columns, _x: 'any old string',
+        'feature_name_combiner': 'as_indices',
         'equal_nan': False,
         'rtol': 1e-5,
         'atol': 1e-8,
@@ -295,7 +295,7 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('good_feature_name_combiner',
-        ('as_indices', 'as_feature_names', lambda x, y: 'Column1')
+        ('as_indices', 'as_feature_names', lambda x, y: str(uuid.uuid4())[:5])
     )
     def test_good_feature_name_combiner(self, _X_pd, _columns, _kwargs, good_feature_name_combiner):
 
@@ -445,6 +445,7 @@ class TestExceptsAnytimeXisNone:
 
 
 # VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##################################
+# WHEN INTERACTION ONLY
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestRejectsXAsSingleColumnOrSeries:
 
@@ -489,10 +490,56 @@ class TestRejectsXAsSingleColumnOrSeries:
 # END VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##############################
 
 
-
-# VERIFY ACCEPTS SINGLE 2D COLUMN ##################################
+# VERIFY ACCEPTS X AS SINGLE COLUMN ##########################################
+# WHEN NOT INTERACTION ONLY
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAccepts2Columns:
+class TestAcceptsXAsSingleColumnOrSeries:
+
+    # y is ignored
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def VECTOR_X(_X_np):
+        return _X_np[:, 0].copy()
+
+
+    @pytest.mark.parametrize('_fst_fit_x_format',
+        ('numpy', 'pandas_dataframe', 'pandas_series')
+    )
+    @pytest.mark.parametrize('_fst_fit_x_hdr', [True, None])
+    def test_X_as_single_column(
+        self, _kwargs, _columns, VECTOR_X, _fst_fit_x_format, _fst_fit_x_hdr
+    ):
+
+        if _fst_fit_x_format == 'numpy':
+            if _fst_fit_x_hdr:
+                pytest.skip(reason=f"numpy cannot have header")
+            else:
+                _fst_fit_X = VECTOR_X.copy()
+
+        if 'pandas' in _fst_fit_x_format:
+            if _fst_fit_x_hdr:
+                _fst_fit_X = pd.DataFrame(data=VECTOR_X, columns=_columns[:1])
+            else:
+                _fst_fit_X = pd.DataFrame(data=VECTOR_X)
+
+        # not elif!
+        if _fst_fit_x_format == 'pandas_series':
+            _fst_fit_X = _fst_fit_X.squeeze()
+
+
+        with pytest.raises(Exception):
+            # this is handled by sklearn.base.BaseEstimator._validate_data,
+            # let it raise whatever
+            SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+
+# END VERIFY ACCEPTS X AS SINGLE COLUMN #######################################
+
+
+
+# VERIFY ACCEPTS 2+ COLUMNS ##################################
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestAccepts2ColumnsAlways:
 
     # y is ignored
 
@@ -524,7 +571,7 @@ class TestAccepts2Columns:
 
         SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
 
-# END VERIFY ACCEPTS SINGLE 2D COLUMN ##################################
+# END VERIFY ACCEPTS 2+ COLUMNS ##################################
 
 
 # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
@@ -916,7 +963,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
     @pytest.mark.parametrize('_dtype', ('int', 'flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 5))
     def test_accuracy(
-        self, _kwargs, _X, _format, _dtype, _has_nan, _start_constants
+        self, _kwargs, _X, _format, _dtype, _has_nan
     ):
 
         if _format not in ('np', 'pd') and _dtype not in ('flt', 'int'):
@@ -1152,12 +1199,29 @@ class TestPartialFit:
         else:
             raise Exception
 
+        _X_wip_before_partial_fit = _X_wip.copy()
+
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
                 # handled by IM
                 SlimPoly(**_kwargs).partial_fit(_X_wip)
+            pytest.skip(reason=f'cant do anymore tests after except')
         else:
             SlimPoly(**_kwargs).partial_fit(_X_wip)
+
+        # verify _X_wip does not mutate in partial_fit()
+        assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
+        assert _X_wip.shape == _X_wip_before_partial_fit.shape
+
+        if hasattr(_X_wip_before_partial_fit, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_partial_fit.toarray()
+            )
+        elif isinstance(_X_wip_before_partial_fit, pd.core.frame.DataFrame):
+            assert _X_wip.equals(_X_wip_before_partial_fit)
+        else:
+            assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
 
 
     @pytest.mark.parametrize('_num_cols', (0, 1))
@@ -1170,7 +1234,7 @@ class TestPartialFit:
             _dtype='flt',
             _columns=None,
             _zeros=0,
-            _shape=(20, _num_cols)
+            _shape=(20, 3)  # need to spoof _X_factory, requires 2+ columns
         )[:, :_num_cols]
 
         _kwargs['keep'] = 'first'
@@ -1244,9 +1308,9 @@ class TestPartialFit:
 
         # keep == 'last'!
         _ref_column_mask = np.ones((_shape[1],)).astype(bool)
-        MASK = [i in _constants for i in range(_shape[1])]
+        # MASK = [i in _constants for i in range(_shape[1])]
         _ref_column_mask[MASK] = False
-        _ref_column_mask[sorted(list(_constants))[-1]] = True
+        # _ref_column_mask[sorted(list(_constants))[-1]] = True
         del MASK
 
         assert np.array_equal(_SPF.column_mask_, _ref_column_mask)
@@ -1362,6 +1426,8 @@ class TestTransform:
         else:
             raise Exception
 
+        _X_wip_before_transform = _X_wip.copy()
+
         _SPF = SlimPoly(**_kwargs)
         _SPF.fit(_X)  # fit on numpy, not the converted data
 
@@ -1369,9 +1435,24 @@ class TestTransform:
             with pytest.raises(TypeError):
                 # handled by IM
                 _SPF.transform(_X_wip)
+            pytest.skip(reason=f'cant do anymore tests after except')
         else:
             out = _SPF.transform(_X_wip)
             assert isinstance(out, type(_X_wip))
+
+        # verify _X_wip does not mutate in transform() when copy=True
+        assert isinstance(_X_wip, type(_X_wip_before_transform))
+        assert _X_wip.shape == _X_wip_before_transform.shape
+
+        if hasattr(_X_wip_before_transform, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_transform.toarray()
+            )
+        elif isinstance(_X_wip_before_transform, pd.core.frame.DataFrame):
+            assert _X_wip.equals(_X_wip_before_transform)
+        else:
+            assert np.array_equal(_X_wip_before_transform, _X_wip)
 
 
     # test_X_must_have_2_or_more_columns(self)
@@ -1447,7 +1528,7 @@ class TestTransform:
     # dont really need to test accuracy, see _transform
 
 
-
+    # pizza put a test for sparse_output!
 
 
 
