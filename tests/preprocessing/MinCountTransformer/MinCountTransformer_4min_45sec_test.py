@@ -74,7 +74,7 @@ def _kwargs():
         'handle_as_bool': None,
         'reject_unseen_values': False,
         'max_recursions': 1,
-        'n_jobs': -1
+        'n_jobs': 1   # leave this set a 1 because of confliction
     }
 
 # END SET X, y DIMENSIONS AND DEFAULT THRESHOLD (_args) FOR TESTING MCT
@@ -1538,7 +1538,7 @@ class TestIgnoreNonBinaryIntegerColumnsWorks:
 
         # ignore_non_binary_integer_columns = False deletes some rows
         _kwargs['ignore_non_binary_integer_columns'] = False
-        TestCls = MinCountTransformer(*_args, **_kwargs)
+        TestCls = MinCountTransformer(_args[0]+1, **_kwargs)
 
         OUTPUT_NON_BIN_INT_ONLY_X = TestCls.fit_transform(NON_BIN_INT_ONLY_X, y)[0]
         X_MASK = np.logical_not(

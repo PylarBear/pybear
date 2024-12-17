@@ -603,7 +603,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # and check_array except for varying reasons. this standardizes
         # the error message for non-np/pd/ss X.
 
-        _val_X(X)
+        _val_X(X, self.interaction_only)
 
 
         X = self._validate_data(
@@ -1103,7 +1103,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # and check_array except for varying reasons. this standardizes
         # the error message for non-np/pd/ss X.
         # once _validata_data disappears, this can probably go back into _validation()
-        _val_X(X)
+        _val_X(X, self.interaction_only)
 
         # _validation should have caught non-numeric X. X must only be numeric
         # throughout all of SPF.

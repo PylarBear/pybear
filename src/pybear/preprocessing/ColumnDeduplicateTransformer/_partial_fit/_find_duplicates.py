@@ -19,7 +19,7 @@ from joblib import Parallel, delayed
 
 
 def _find_duplicates(
-    _X:DataType,
+    _X: DataType,
     _rtol: Real,
     _atol: Real,
     _equal_nan: bool,

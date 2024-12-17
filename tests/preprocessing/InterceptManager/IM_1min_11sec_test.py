@@ -1056,12 +1056,32 @@ class TestPartialFit:
         else:
             raise Exception
 
+        _X_wip_before_partial_fit= _X_wip.copy()
+
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
                 # handled by IM
                 IM(**_kwargs).partial_fit(_X_wip)
+            pytest.skip(reason=f'cant do more tests after except')
         else:
             IM(**_kwargs).partial_fit(_X_wip)
+
+        # verify _X_wip does not mutate in partial_fit()
+        assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
+        assert _X_wip.shape == _X_wip_before_partial_fit.shape
+
+        if hasattr(_X_wip_before_partial_fit, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_partial_fit.toarray(),
+                equal_nan=True
+            )
+        elif isinstance(_X_wip_before_partial_fit, pd.core.frame.DataFrame):
+            assert _X_wip.equals(_X_wip_before_partial_fit)
+        else:
+            assert np.array_equal(
+                _X_wip_before_partial_fit, _X_wip, equal_nan=True
+            )
 
 
     @pytest.mark.parametrize('_num_cols', (0, 1))
@@ -1266,6 +1286,8 @@ class TestTransform:
         else:
             raise Exception
 
+        _X_wip_before_transform = _X_wip.copy()
+
         _IM = IM(**_kwargs)
         _IM.fit(_X)  # fit on numpy, not the converted data
 
@@ -1273,10 +1295,28 @@ class TestTransform:
             with pytest.raises(TypeError):
                 # handled by IM
                 _IM.transform(_X_wip)
+            pytest.skip(reason=f'cant do anymore tests after except')
         else:
-            out = _IM.transform(_X_wip)
+            out = _IM.transform(_X_wip, copy=True)
             assert isinstance(out, type(_X_wip))
 
+
+        # verify _X_wip does not mutate in transform() with copy=True
+        assert isinstance(_X_wip, type(_X_wip_before_transform))
+        assert _X_wip.shape == _X_wip_before_transform.shape
+
+        if hasattr(_X_wip_before_transform, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_transform.toarray(),
+                equal_nan=True
+            )
+        elif isinstance(_X_wip_before_transform, pd.core.frame.DataFrame):
+            assert _X_wip.equals(_X_wip_before_transform)
+        else:
+            assert np.array_equal(
+                _X_wip_before_transform, _X_wip, equal_nan=True
+            )
 
     # test_X_must_have_2_or_more_columns(self)
     # this is dictated by partial_fit. partial_fit requires 2+ columns, and
@@ -1632,6 +1672,8 @@ class TestInverseTransform:
         else:
             raise Exception
 
+        _X_wip_before_inv_tr = _X_wip.copy()
+
         _kwargs['keep'] = _keep
         _kwargs['equal_nan'] = True
 
@@ -1785,7 +1827,25 @@ class TestInverseTransform:
                      f"the input of transform()")
 
 
+        # verify _X_wip does not mutate in inverse_transform()
+        # save the headache of dealing with array_equal with nans and
+        # non-numeric data, just do numeric.
+        if _copy is True and _dtype in ('flt', 'int'):
+            assert isinstance(_X_wip, type(_X_wip_before_inv_tr))
+            assert _X_wip.shape == _X_wip_before_inv_tr.shape
 
+            if hasattr(_X_wip_before_inv_tr, 'toarray'):
+                assert np.array_equal(
+                    _X_wip.toarray(),
+                    _X_wip_before_inv_tr.toarray(),
+                    equal_nan=True
+                )
+            elif isinstance(_X_wip_before_inv_tr, pd.core.frame.DataFrame):
+                assert _X_wip.equals(_X_wip_before_inv_tr)
+            else:
+                assert np.array_equal(
+                    _X_wip_before_inv_tr, _X_wip, equal_nan=True
+                )
 
 
 

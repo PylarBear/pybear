@@ -137,14 +137,6 @@ def _get_dupls_for_combo_in_X_and_poly(
         delayed(_parallel_column_comparer)(_columns_getter(_POLY_CSC, c_idx).ravel(), *args) for c_idx in range(_POLY_CSC.shape[1])
     )
 
-    # if there is a duplicate in X, there cannot be a duplicate in poly.
-    if any(_X_dupls):
-        assert not any(_poly_dupls)
-    # pizza
-    # if there is no duplicate in X, there can only be zero or one duplicate in poly.
-    # elif not any(_X_dupls):
-    #     _poly_dupls could be anything
-
     _all_dupls = _X_dupls + _poly_dupls
 
 

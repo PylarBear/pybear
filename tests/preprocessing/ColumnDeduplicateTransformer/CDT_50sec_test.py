@@ -1225,14 +1225,31 @@ class TestPartialFit:
         else:
             raise Exception
 
+        _X_wip_before_partial_fit = _X_wip.copy()
+
         _CDT = CDT(**_kwargs)
 
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
                 # handled by CDT
                 _CDT.partial_fit(_X_wip)
+            pytest.skip(reason=f'cant do anymore tests after except')
         else:
             _CDT.partial_fit(_X_wip)
+
+        # verify _X_wip does not mutate in partial_fit()
+        assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
+        assert _X_wip.shape == _X_wip_before_partial_fit.shape
+
+        if hasattr(_X_wip_before_partial_fit, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_partial_fit.toarray()
+            )
+        elif isinstance(_X_wip_before_partial_fit, pd.core.frame.DataFrame):
+            assert _X_wip.equals(_X_wip_before_partial_fit)
+        else:
+            assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
 
 
     @pytest.mark.parametrize('_num_cols', (1, 2))
@@ -1399,6 +1416,8 @@ class TestTransform:
         else:
             raise Exception
 
+        _X_wip_before_transform = _X_wip.copy()
+
         _CDT = CDT(**_kwargs)
         _CDT.fit(_X)    # fit on numpy, not the converted data
 
@@ -1406,8 +1425,24 @@ class TestTransform:
             with pytest.raises(TypeError):
                 # handled by CDT
                 _CDT.transform(_X_wip)
+            pytest.skip(reason=f'cant do anymore tests after except')
         else:
-            _CDT.transform(_X_wip)
+            _CDT.transform(_X_wip, copy=True)
+
+        # verify _X_wip does not mutate in transform() when copy=True
+        # when copy=False anything goes
+        assert isinstance(_X_wip, type(_X_wip_before_transform))
+        assert _X_wip.shape == _X_wip_before_transform.shape
+
+        if hasattr(_X_wip_before_transform, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_transform.toarray()
+            )
+        elif isinstance(_X_wip_before_transform, pd.core.frame.DataFrame):
+            assert _X_wip.equals(_X_wip_before_transform)
+        else:
+            assert np.array_equal(_X_wip_before_transform, _X_wip)
 
 
     # test_X_must_have_2_or_more_columns
@@ -1594,6 +1629,8 @@ class TestInverseTransform:
         else:
             raise Exception
 
+        _X_wip_before_inv_tr = _X_wip.copy()
+
         _CDT = CDT(**_kwargs)
         _CDT.fit(_X)  # fit on numpy, not the converted data
 
@@ -1601,22 +1638,39 @@ class TestInverseTransform:
             with pytest.raises(TypeError):
                 # handled by CDT
                 _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
+            pytest.skip(reason=f'cant do anymore tests after except')
         elif _format == 'dask_dataframe':
             with pytest.raises(TypeError):
                 # handled by CDT
                 _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_])
+            pytest.skip(reason=f'cant do anymore tests after except')
         elif _format == 'pd':
-            _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_])
+            _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_], copy=True)
         elif _format == 'np':
-            _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
+            _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_], copy=True)
         elif hasattr(_X_wip, 'toarray'):
             _og_dtype = type(_X_wip)
             _CDT.inverse_transform(
-                _og_dtype(_X_wip.tocsc()[:, _CDT.column_mask_])
+                _og_dtype(_X_wip.tocsc()[:, _CDT.column_mask_], copy=True)
             )
             del _og_dtype
         else:
             raise Exception
+
+        # verify _X_wip does not mutate in inverse_transform() when copy=True
+        # when copy=False anything goes
+        assert isinstance(_X_wip, type(_X_wip_before_inv_tr))
+        assert _X_wip.shape == _X_wip_before_inv_tr.shape
+
+        if hasattr(_X_wip_before_inv_tr, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_inv_tr.toarray()
+            )
+        elif isinstance(_X_wip_before_inv_tr, pd.core.frame.DataFrame):
+            assert _X_wip.equals(_X_wip_before_inv_tr)
+        else:
+            assert np.array_equal(_X_wip_before_inv_tr, _X_wip)
 
 
     @pytest.mark.parametrize('_dim', ('0D', '1D'))

@@ -740,8 +740,13 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         # dont need to do any other validation here, none of the parameters
         # that could be changed by set_params are called here
 
+        if copy:
+            _X = X.copy()
+        else:
+            _X = X
+
         out = _inverse_transform(
-            X,
+            _X,
             self.removed_columns_,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
         )
@@ -795,7 +800,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         Return
         ------
         -
-            X: {array-like, scipy sparse matrix} of shape (n_samples,
+            X_tr: {array-like, scipy sparse matrix} of shape (n_samples,
                 n_features - n_removed_features) - The deduplicated data.
 
         """
@@ -810,7 +815,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         # the error message for non-np/pd/ss X.
         _val_X(X)
 
-        X = self._validate_data(
+        X_tr = self._validate_data(
             X=X,
             reset=False,
             cast_to_ndarray=False,
@@ -825,7 +830,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         )
 
         _validation(
-            X,
+            X_tr,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.conflict,
             self.do_not_drop,
@@ -852,7 +857,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         self.column_mask_[list(self.removed_columns_)] = False
         # end redo
 
-        out = _transform(X, self.column_mask_)
+        out = _transform(X_tr, self.column_mask_)
 
         if isinstance(out, np.ndarray):
             out = np.ascontiguousarray(out)
