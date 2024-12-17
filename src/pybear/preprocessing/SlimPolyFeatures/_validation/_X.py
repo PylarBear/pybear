@@ -10,6 +10,8 @@ from typing_extensions import Union
 import numpy.typing as npt
 from .._type_aliases import SparseTypes
 
+import numbers
+
 import numpy as np
 import pandas as pd
 
@@ -17,7 +19,8 @@ import pandas as pd
 
 def _val_X(
     _X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes],
-    _interaction_only: bool
+    _interaction_only: bool,
+    _n_jobs: Union[numbers.Integral, None]
 ) -> None:
 
     """
@@ -35,6 +38,8 @@ def _val_X(
         n_features) - the data to undergo polynomial expansion.
     _interaction_only:
         bool - pizza say something!
+    _n_jobs:
+        Union[numbers.Integral, None] -
 
     Return
     ------
@@ -82,7 +87,7 @@ def _val_X(
 
         # pizza if this all works out, pass n_jobs to this module
         try:
-            joblib_kwargs = {'return_as': 'list', 'n_jobs': -1, 'prefer': 'processes'}
+            joblib_kwargs = {'return_as': 'list', 'n_jobs': _n_jobs, 'prefer': 'processes'}
             Parallel(**joblib_kwargs)(delayed(_test_is_num)(_columns_getter(_X, c_idx)) for c_idx in range(_X.shape[1]))
         except:
             raise ValueError(f"X can only contain numeric datatypes")
@@ -96,6 +101,10 @@ def _val_X(
 
     _base_msg = (f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
                  f"dataframe, or scipy sparce matrix or array with at least 1 sample. ")
+
+    if len(_X.shape) != 2:
+        _addon_msg = (f"\nIf passing 1 feature, reshape your data to 2D.")
+        raise ValueError(_base_msg + _addon_msg)
 
     if _X.shape[0] < 1:
         raise ValueError(_base_msg)

@@ -119,10 +119,12 @@ def _columns_getter(
     # dtype, while also trying to preserve the dtype of low-bit data
     # (meaning, dont just force everything over to float64). if there are
     # nans in this, then it must be np.float64.
-    if any([_ in str(_columns.dtype).lower() for _ in ('int', 'float')]):
-        pass
-    else:
-        _columns = _columns.astype(np.float64)
+    # 24_12_17_13_54_00 pizza made the executive decision to always build POLY as float64,
+    # just make this float64 also.
+    # if any([_ in str(_columns.dtype).lower() for _ in ('int', 'float')]):
+    #     pass
+    # else:
+    _columns = _columns.astype(np.float64)
 
 
     return _columns

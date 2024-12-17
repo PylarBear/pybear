@@ -103,6 +103,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     amenable to batch-wise fitting and transforming via dask_ml Incremental
     and ParallelPostFit wrappers.
 
+    Pizza, talk about SlimPoly tries to keep dtype of original data, instead
+    of forcing everything over to 64 bit (unless pandas). This could be a
+    disaster if 8 bit multiplies out of range. User take warning.
+
 
     Parameters
     ----------
@@ -603,7 +607,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # and check_array except for varying reasons. this standardizes
         # the error message for non-np/pd/ss X.
 
-        _val_X(X, self.interaction_only)
+        _val_X(X, self.interaction_only, self.n_jobs)
 
 
         X = self._validate_data(
@@ -620,7 +624,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             # check for numeric in supplemental X validation
             force_all_finite=False,
             ensure_2d=True,
-            ensure_min_features=2,
+            ensure_min_features=1,
             order='F'
         )
 
@@ -645,11 +649,12 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         if not hasattr(self, '_poly_duplicates'):
             self._poly_duplicates: list[list[tuple[int, ...]]] = []
         if not hasattr(self, '_poly_constants'):
-            self._poly_constants: dict[tuple[int, ...], any] = {}
+            self._poly_constants: Union[dict[tuple[int, ...], any], None] = None
+            # this must be None on the first pass! _merge_constants needs
+            # this to be None to recognize first pass.
 
         # the only thing that exists at this point is the data and
         # holders. the holders may not be empty.
-
 
         if self.scan_X and not hasattr(self, '_IM'):
             self._IM = IM(
@@ -706,13 +711,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # if there are any nan-likes in X, POLY must be float64. keeping it
         # simple, just assign float64 to for any pandas, and carry over dtype
         # from ndarray and ss.
-        _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0)))
-        if not hasattr(X, 'dtype'):   # pd df
-            _POLY_CSC = _POLY_CSC.astype(np.float64)
-        elif any([_ in str(X.dtype).lower() for _ in ('int', 'float')]):
-            _POLY_CSC = _POLY_CSC.astype(X.dtype)
-        else:
-            _POLY_CSC = _POLY_CSC.astype(np.float64)
+        _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0))).astype(np.float64)
 
         IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
         _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
@@ -769,12 +768,14 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                     _atol = self.atol
                 )
 
+
             if not isinstance(_poly_is_constant, uuid.UUID):
                 _poly_constants_current_partial_fit[combo] = _poly_is_constant
 
             # END poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
             if isinstance(_poly_is_constant, uuid.UUID):  # is not constant
+
                 # constant columns do not need to go into _POLY_CSC to know if
                 # they are also a member of duplicates because they are
                 # automatically deleted anyway.
@@ -823,7 +824,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 # END poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
                 # if _dupls_for_this_combo is empty, then combo column is unique,
-                # put it in _POLY_CSC
+                # and if not constant, put it in _POLY_CSC
                 if not len(_dupls_for_this_combo):
                     _POLY_CSC = ss.hstack((
                         _POLY_CSC,
@@ -849,6 +850,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # pizza, need to meld _poly_constants_current_partial_fit into
         # self.poly_constants_, which would be holding the constants
         # found in previous partial fits
+
         self._poly_constants = _merge_constants(
             self._poly_constants,
             _poly_constants_current_partial_fit,
@@ -926,10 +928,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
         return self
-
-
-
-
 
 
     def fit(
@@ -1103,7 +1101,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # and check_array except for varying reasons. this standardizes
         # the error message for non-np/pd/ss X.
         # once _validata_data disappears, this can probably go back into _validation()
-        _val_X(X, self.interaction_only)
+        _val_X(X, self.interaction_only, self.n_jobs)
 
         # _validation should have caught non-numeric X. X must only be numeric
         # throughout all of SPF.
@@ -1118,7 +1116,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             # check for numeric in supplemental X validation
             force_all_finite=False,
             ensure_2d=True,
-            ensure_min_features=2,
+            ensure_min_features=1,
             order='F'
         )
 
@@ -1141,6 +1139,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
         _og_dtype = type(X)
+
 
         # SPF params may have changed via set_params. need to recalculate
         # some attributes.
@@ -1212,7 +1211,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # 5) it is OK to mix ss array and ss matrix, array will trump matrix
         # so we need to convert X to whatever X_tr is to maintain X_tr format
         if self.min_degree == 1:
-            X_tr = ss.hstack((type(X_tr)(_X), X_tr))
+            # this is excepting when trying to do type(X_tr)(_X) when type(X_tr)
+            # is ss and _X.dtype is object or str. we know from _validation that
+            # X is numeric, if original X dtype is str or object set the dtype
+            # of the merging X to float64
+            X_tr = ss.hstack((type(X_tr)(_X.astype(np.float64)), X_tr))
 
         assert isinstance(X_tr, ss.csc_array)
 

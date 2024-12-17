@@ -6,11 +6,12 @@
 
 
 
+
+
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import SlimPolyFeatures as SlimPoly
 
-from pybear.utilities import nan_mask, nan_mask_numerical
+from pybear.utilities import nan_mask_numerical, nan_mask
 
-from copy import deepcopy
 import uuid
 
 import numpy as np
@@ -25,10 +26,6 @@ import pytest
 
 
 
-
-
-
-pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
 bypass = False
@@ -52,7 +49,7 @@ def _kwargs():
         'scan_X': False,
         'sparse_output': False,
         'feature_name_combiner': 'as_indices',
-        'equal_nan': False,
+        'equal_nan': True,
         'rtol': 1e-5,
         'atol': 1e-8,
         'n_jobs': 1     # leave this set at 1 because of confliction
@@ -73,7 +70,7 @@ def _columns(_master_columns, _shape):
     return _master_columns.copy()[:_shape[1]]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='module')
 def _bad_columns(_master_columns, _shape):
     return _master_columns.copy()[-_shape[1]:]
 
@@ -400,18 +397,18 @@ class TestInitValidation:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestFitPartialFitAcceptYEqualsAnything:
 
-    STUFF = (
+    test_y = (
             -1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
             lambda x: x, min
     )
 
-    @pytest.mark.parametrize('_stuff', STUFF)
-    def test_fit(self, _kwargs, _X_np, _stuff):
-        SlimPoly(**_kwargs).fit(_X_np, _stuff)
+    @pytest.mark.parametrize('_test_y', test_y)
+    def test_fit(self, _kwargs, _X_np, _test_y):
+        SlimPoly(**_kwargs).fit(_X_np, _test_y)
 
-    @ pytest.mark.parametrize('_stuff', STUFF)
-    def test_partial_fit(self, _kwargs, _X_np, _stuff):
-        SlimPoly(**_kwargs).partial_fit(_X_np, _stuff)
+    @ pytest.mark.parametrize('_test_y', test_y)
+    def test_partial_fit(self, _kwargs, _X_np, _test_y):
+        SlimPoly(**_kwargs).partial_fit(_X_np, _test_y)
 
 
 # END ALWAYS ACCEPTS y==anything TO fit() AND partial_fit() #################
@@ -444,26 +441,30 @@ class TestExceptsAnytimeXisNone:
 # END TEST EXCEPTS ANYTIME X==None PASSED TO fit(), partial_fit(), transform()
 
 
-# VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##################################
-# WHEN INTERACTION ONLY
+# X AS SINGLE COLUMN ##########################################################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestRejectsXAsSingleColumnOrSeries:
+class TestXAsSingleColumn:
+
+    # DEPENDS ON interaction_only. IF True, MUST BE 2+ COLUMNS; IF False, CAN
+    # BE 1 COLUMN.
 
     # y is ignored
 
     @staticmethod
     @pytest.fixture(scope='module')
     def VECTOR_X(_X_np):
-        return _X_np[:, 0].copy()
+        return _X_np[:, 0].copy().reshape((-1, 1))
 
 
-    @pytest.mark.parametrize('_fst_fit_x_format',
-        ('numpy', 'pandas_dataframe', 'pandas_series')
-    )
-    @pytest.mark.parametrize('_fst_fit_x_hdr', [True, None])
+    @pytest.mark.parametrize('_fst_fit_x_format', ('numpy', 'pandas'))
+    @pytest.mark.parametrize('_fst_fit_x_hdr', (True, None))
+    @pytest.mark.parametrize('_intx_only', (True, False))
     def test_X_as_single_column(
-        self, _kwargs, _columns, VECTOR_X, _fst_fit_x_format, _fst_fit_x_hdr
+        self, _kwargs, _columns, VECTOR_X, _fst_fit_x_format, _fst_fit_x_hdr,
+        _intx_only
     ):
+
+        _kwargs['interaction_only'] = _intx_only
 
         if _fst_fit_x_format == 'numpy':
             if _fst_fit_x_hdr:
@@ -471,73 +472,27 @@ class TestRejectsXAsSingleColumnOrSeries:
             else:
                 _fst_fit_X = VECTOR_X.copy()
 
-        if 'pandas' in _fst_fit_x_format:
+        elif _fst_fit_x_format == 'pandas':
             if _fst_fit_x_hdr:
                 _fst_fit_X = pd.DataFrame(data=VECTOR_X, columns=_columns[:1])
             else:
                 _fst_fit_X = pd.DataFrame(data=VECTOR_X)
 
-        # not elif!
-        if _fst_fit_x_format == 'pandas_series':
-            _fst_fit_X = _fst_fit_X.squeeze()
+        else:
+            raise Exception
 
 
-        with pytest.raises(Exception):
-            # this is handled by sklearn.base.BaseEstimator._validate_data,
-            # let it raise whatever
-            SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+        if _intx_only:
+            with pytest.raises(ValueError):
+                SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+        elif not _intx_only:
+            out = SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+            assert isinstance(out, type(_fst_fit_X))
 
-# END VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##############################
-
-
-# VERIFY ACCEPTS X AS SINGLE COLUMN ##########################################
-# WHEN NOT INTERACTION ONLY
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAcceptsXAsSingleColumnOrSeries:
-
-    # y is ignored
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def VECTOR_X(_X_np):
-        return _X_np[:, 0].copy()
+# END X AS SINGLE COLUMN ######################################################
 
 
-    @pytest.mark.parametrize('_fst_fit_x_format',
-        ('numpy', 'pandas_dataframe', 'pandas_series')
-    )
-    @pytest.mark.parametrize('_fst_fit_x_hdr', [True, None])
-    def test_X_as_single_column(
-        self, _kwargs, _columns, VECTOR_X, _fst_fit_x_format, _fst_fit_x_hdr
-    ):
-
-        if _fst_fit_x_format == 'numpy':
-            if _fst_fit_x_hdr:
-                pytest.skip(reason=f"numpy cannot have header")
-            else:
-                _fst_fit_X = VECTOR_X.copy()
-
-        if 'pandas' in _fst_fit_x_format:
-            if _fst_fit_x_hdr:
-                _fst_fit_X = pd.DataFrame(data=VECTOR_X, columns=_columns[:1])
-            else:
-                _fst_fit_X = pd.DataFrame(data=VECTOR_X)
-
-        # not elif!
-        if _fst_fit_x_format == 'pandas_series':
-            _fst_fit_X = _fst_fit_X.squeeze()
-
-
-        with pytest.raises(Exception):
-            # this is handled by sklearn.base.BaseEstimator._validate_data,
-            # let it raise whatever
-            SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
-
-# END VERIFY ACCEPTS X AS SINGLE COLUMN #######################################
-
-
-
-# VERIFY ACCEPTS 2+ COLUMNS ##################################
+# VERIFY ALWAYS ACCEPTS 2+ COLUMNS ############################################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAccepts2ColumnsAlways:
 
@@ -549,11 +504,9 @@ class TestAccepts2ColumnsAlways:
         return _X_np[:, :2].copy().reshape((-1, 2))
 
 
-    @pytest.mark.parametrize('_fst_fit_x_format',
-        ('numpy', 'pandas')
-    )
-    @pytest.mark.parametrize('_fst_fit_x_hdr', [True, None])
-    def test_X_as_single_column(
+    @pytest.mark.parametrize('_fst_fit_x_format', ('numpy', 'pandas'))
+    @pytest.mark.parametrize('_fst_fit_x_hdr', (True, None))
+    def test_X_as_two_columns(
         self, _kwargs, _columns, TWO_COLUMN_X, _fst_fit_x_format, _fst_fit_x_hdr
     ):
 
@@ -563,15 +516,19 @@ class TestAccepts2ColumnsAlways:
             else:
                 _fst_fit_X = TWO_COLUMN_X.copy()
 
-        if _fst_fit_x_format == 'pandas':
+        elif _fst_fit_x_format == 'pandas':
             if _fst_fit_x_hdr:
                 _fst_fit_X = pd.DataFrame(data=TWO_COLUMN_X, columns=_columns[:2])
             else:
                 _fst_fit_X = pd.DataFrame(data=TWO_COLUMN_X)
 
-        SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+        else:
+            raise Exception
 
-# END VERIFY ACCEPTS 2+ COLUMNS ##################################
+        out = SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+        assert isinstance(out, type(_fst_fit_X))
+
+# END VERIFY ALWAYS ACCEPTS 2+ COLUMNS ########################################
 
 
 # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
@@ -654,6 +611,9 @@ class TestOutputTypes:
         self, _X_np, _columns, _kwargs, x_input_type, output_type
     ):
 
+        # pizza 24_12_17... anticipate that this will go away. when pybear comes
+        # off of sklearn mixin dependence, pybear most likely will not implement
+        # a set_output mixin.
 
         if x_input_type == 'scipy_sparse_csc' and output_type == 'polars':
             pytest.skip(
@@ -707,6 +667,37 @@ class TestOutputTypes:
         else:
             raise Exception
 
+
+    @pytest.mark.parametrize('x_input_type', _base_objects)
+    @pytest.mark.parametrize('_sparse_output', (True, False))
+    def test_output_types(
+            self, _X_np, _columns, _kwargs, x_input_type, _sparse_output
+    ):
+
+        _kwargs['sparse_output'] = _sparse_output
+
+        NEW_X = _X_np.copy()
+        NEW_COLUMNS = _columns.copy()
+
+        if x_input_type == 'np_array':
+            TEST_X = NEW_X
+        elif x_input_type == 'pandas':
+            TEST_X = pd.DataFrame(data=NEW_X, columns=NEW_COLUMNS)
+        elif x_input_type == 'scipy_sparse_csc':
+            TEST_X = ss.csc_array(NEW_X)
+        else:
+            raise Exception
+
+        TestCls = SlimPoly(**_kwargs)
+
+        out = TestCls.fit_transform(TEST_X)
+
+        # when 'sparse_output' is False, return in the original container
+        # when True, always return as ss csr, no matter what input container
+        if _sparse_output:
+            assert isinstance(out, ss.csr_array)
+        elif not _sparse_output:
+            assert isinstance(out, type(TEST_X))
 
 # TEST OUTPUT TYPES ####################################################
 
@@ -766,12 +757,28 @@ class TestConditionalAccessToPartialFitAndFit:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestManyPartialFitsEqualOneBigFit:
 
+    # rig X to have columns that will create duplicates when expanded
+    @staticmethod
+    @pytest.fixture(scope='class')
+    def _X():
+        return np.array(
+            [
+                [1, 0, 0],
+                [1, 0, 0],
+                [1, 0, 0],
+                [1, 1, 1],
+                [1, 1, 1],
+                [1, 1, 1],
+                [0, 0, 1],
+                [0, 1, 0],
+                [0, 1, 0]
+            ],
+            dtype=np.uint8
+        )
+
 
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
-    @pytest.mark.parametrize('_equal_nan', (True, False))
-    def test_many_partial_fits_equal_one_big_fit(
-        self, _X_np, _kwargs, _shape, _keep, _equal_nan
-    ):
+    def test_many_partial_fits_equal_one_big_fit(self, _X, _kwargs, _keep):
 
         # **** **** **** **** **** **** **** **** **** **** **** **** ****
         # THIS TEST IS CRITICAL FOR VERIFYING THAT transform PULLS THE
@@ -780,39 +787,34 @@ class TestManyPartialFitsEqualOneBigFit:
         # **** **** **** **** **** **** **** **** **** **** **** **** ****
 
         _kwargs['keep'] = _keep
-        _kwargs['equal_nan'] = _equal_nan
 
         # ** ** ** ** ** ** ** ** ** ** **
         # TEST THAT ONE-SHOT partial_fit/transform == ONE-SHOT fit/transform
         OneShotPartialFitTestCls = SlimPoly(**_kwargs)
-        OneShotPartialFitTestCls.partial_fit(_X_np)
+        OneShotPartialFitTestCls.partial_fit(_X)
 
         OneShotFullFitTestCls = SlimPoly(**_kwargs)
-        OneShotFullFitTestCls.fit(_X_np)
+        OneShotFullFitTestCls.fit(_X)
 
-        # need to break this up and turn to strings because of nans...
-        # _X_np _has_nan=False, but constants have a column of np.nans
         _ = OneShotPartialFitTestCls.expansion_combinations_
         __ = OneShotFullFitTestCls.expansion_combinations_
         assert _ == __
         del _, __
 
         ONE_SHOT_PARTIAL_FIT_TRFM_X = \
-            OneShotPartialFitTestCls.transform(_X_np, copy=True)
+            OneShotPartialFitTestCls.transform(_X)
 
         ONE_SHOT_FULL_FIT_TRFM_X = \
-            OneShotFullFitTestCls.transform(_X_np, copy=True)
+            OneShotFullFitTestCls.transform(_X)
 
         assert ONE_SHOT_PARTIAL_FIT_TRFM_X.shape == \
                ONE_SHOT_FULL_FIT_TRFM_X.shape
 
-        if _keep != 'random':
-            # this has np.nan in it, convert to str
-            assert np.array_equal(
-                ONE_SHOT_PARTIAL_FIT_TRFM_X.astype(str),
-                ONE_SHOT_FULL_FIT_TRFM_X.astype(str)
-            ), f"one shot partial fit trfm X != one shot full fit trfm X"
-
+        # this should be true for all 'keep', including random
+        assert np.array_equal(
+            ONE_SHOT_PARTIAL_FIT_TRFM_X,
+            ONE_SHOT_FULL_FIT_TRFM_X
+        ), f"one shot partial fit trfm X != one shot full fit trfm X"
 
         del ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_X
 
@@ -820,21 +822,31 @@ class TestManyPartialFitsEqualOneBigFit:
         # ** ** ** ** ** ** ** ** ** ** **
 
         # ** ** ** ** ** ** ** ** ** ** **
-        # TEST PARTIAL FIT KEPT COMBINATIONS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
+        # TEST PARTIAL FIT KEPT COMBINATIONS ARE THE SAME WHEN FULL DATA
+        # IS partial_fit() 2X
+        # the nature of SlimPoly should cause the same columns to be kept
+        # when the same data is partial_fit multiple times
         SingleFitTestClass = SlimPoly(**_kwargs)
-        SingleFitTestClass.fit(_X_np)
+        SingleFitTestClass.fit(_X)
         _ = SingleFitTestClass.expansion_combinations_
 
         DoublePartialFitTestClass = SlimPoly(**_kwargs)
-        DoublePartialFitTestClass.partial_fit(_X_np)
+        DoublePartialFitTestClass.partial_fit(_X)
         __ = DoublePartialFitTestClass.expansion_combinations_
-        DoublePartialFitTestClass.partial_fit(_X_np)
+        DoublePartialFitTestClass.partial_fit(_X)
         ___ = DoublePartialFitTestClass.expansion_combinations_
 
         assert _ == __
         assert _ == ___
 
-        del _, __, ___, SingleFitTestClass, DoublePartialFitTestClass
+        del _, __, ___
+
+        assert np.array_equal(
+            SingleFitTestClass.transform(_X),
+            DoublePartialFitTestClass.transform(_X)
+        )
+
+        del SingleFitTestClass, DoublePartialFitTestClass
 
         # END PARTIAL FIT CONSTANTS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
         # ** ** ** ** ** ** ** ** ** ** **
@@ -844,17 +856,15 @@ class TestManyPartialFitsEqualOneBigFit:
         # TEST MANY PARTIAL FITS == ONE BIG FIT
 
         # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X
-        _chunks = 5
+        _chunks = 3
         X_CHUNK_HOLDER = []
         for row_chunk in range(_chunks):
-            _mask_start = row_chunk * _shape[0] // _chunks
-            _mask_end = (row_chunk + 1) * _shape[0] // _chunks
-            X_CHUNK_HOLDER.append(_X_np[_mask_start:_mask_end, :])
+            _mask_start = row_chunk * _X.shape[0] // _chunks
+            _mask_end = (row_chunk + 1) * _X.shape[0] // _chunks
+            X_CHUNK_HOLDER.append(_X[_mask_start:_mask_end, :])
         del _mask_start, _mask_end
 
-        assert np.array_equiv(
-            np.vstack(X_CHUNK_HOLDER).astype(str), _X_np.astype(str)
-        ), \
+        assert np.array_equiv(np.vstack(X_CHUNK_HOLDER), _X), \
             f"agglomerated X chunks != original X"
 
         PartialFitTestCls = SlimPoly(**_kwargs)
@@ -865,7 +875,7 @@ class TestManyPartialFitsEqualOneBigFit:
             PartialFitTestCls.partial_fit(X_CHUNK)
 
         # PIECEMEAL TRANSFORM ******************************************
-        # THIS CANT BE UNDER THE partial_fit LOOP, ALL FITS MUST BE DONE
+        # THIS CANT BE UNDER THE partial_fit LOOP, ALL FITS MUST BE COMPLETED
         # BEFORE DOING ANY TRFMS
         PARTIAL_TRFM_X_HOLDER = []
         for X_CHUNK in X_CHUNK_HOLDER:
@@ -874,7 +884,6 @@ class TestManyPartialFitsEqualOneBigFit:
                 PartialFitTestCls.transform(X_CHUNK)
             )
 
-
         # AGGLOMERATE PARTIAL TRFMS FROM PARTIAL FIT
         FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM = \
             np.vstack(PARTIAL_TRFM_X_HOLDER)
@@ -882,41 +891,30 @@ class TestManyPartialFitsEqualOneBigFit:
 
         # DO ONE-SHOT TRANSFORM OF X ON THE PARTIALLY FIT INSTANCE
         FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM = \
-            PartialFitTestCls.transform(_X_np)
+            PartialFitTestCls.transform(_X)
 
         del PartialFitTestCls
 
 
-        if _keep != 'random':
+        # ONE-SHOT FIT TRANSFORM
+        FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM = \
+            OneShotFitTransformTestCls.fit_transform(_X)
 
-            # ONE-SHOT FIT TRANSFORM
-            FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM = \
-                OneShotFitTransformTestCls.fit_transform(_X_np)
+        del OneShotFitTransformTestCls
 
-            del OneShotFitTransformTestCls
+        # ASSERT ALL AGGLOMERATED X TRFMS ARE EQUAL
+        assert np.array_equiv(
+                FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM,
+                FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM
+            ), \
+            (f"compiled trfm X from partial fit / partial trfm != "
+             f"one-shot fit/trfm X")
 
-            # ASSERT ALL AGGLOMERATED X TRFMS ARE EQUAL
-            assert np.array_equiv(
-                    FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
-                    FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str)
-                ), \
-                (f"compiled trfm X from partial fit / partial trfm != "
-                 f"one-shot fit/trfm X")
-
-            assert np.array_equiv(
-                FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
-                FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
-                ), (f"trfm X from partial fits / one-shot trfm != one-shot "
-                    f"fit/trfm X")
-
-        elif _keep == 'random':
-
-            assert np.array_equiv(
-                    FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str),
-                    FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
-                ), (f"trfm X from partial fit / partial trfm != "
-                 f"trfm X from partial fit / one-shot trfm/")
-
+        assert np.array_equiv(
+                FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM,
+                FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM
+            ), (f"trfm X from partial fits / one-shot trfm != one-shot "
+                f"fit/trfm X")
 
         # TEST MANY PARTIAL FITS == ONE BIG FIT
         # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
@@ -926,192 +924,95 @@ class TestManyPartialFitsEqualOneBigFit:
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestConstantColumnsAccuracyOverManyPartialFits:
-
-
-    # verify correct progression of reported constants as partial fits are done.
-    # rig a set of arrays that have progressively decreasing constants
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _chunk_shape():
-        return (50,20)
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _X(_X_factory, _chunk_shape):
-
-        def foo(_format, _dtype, _has_nan, _constants, _noise):
-
-            return _X_factory(
-                _dupl=None,
-                _has_nan=_has_nan,
-                _format=_format,
-                _dtype=_dtype,
-                _columns=None,
-                _constants=_constants,
-                _zeros=None,
-                _shape=_chunk_shape
-            )
-
-        return foo
-
-
-    @pytest.mark.parametrize('_format', ('np', ))
-    @pytest.mark.parametrize('_dtype', ('int', 'flt', 'int', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_has_nan', (False, 5))
-    def test_accuracy(
-        self, _kwargs, _X, _format, _dtype, _has_nan
-    ):
-
-        if _format not in ('np', 'pd') and _dtype not in ('flt', 'int'):
-            pytest.skip(reason=f"cant put non-num in scipy sparse")
-
-
-        _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['equal_nan'] = True
-
-        TestCls = SlimPoly(**_new_kwargs)
-
-        # build a pool of non-constants to fill the constants in X along the way
-        # build a starting data object for first partial fit, using full constants
-        # build a y vector
-        # do a verification partial_fit, assert reported constants for original X
-        # make a holder for all the different _wip_Xs, to do one big fit at the end
-        # for however many times u want to do this:
-        #   randomly replace one of the constants with non-constant column
-        #   partial_fit
-        #   assert reported constants - should be one less (the randomly chosen)
-        # at the very end, stack all the _wip_Xs, do one big fit, verify constants
-
-        _pool_X = _X(_format, _dtype, _has_nan, None, _noise=1e-9)
-
-        _wip_X = _X(_format, _dtype, _has_nan, _noise=1e-9)
-
-        _y = np.random.randint(0, 2, _wip_X.shape[0])
-
-        out = TestCls.partial_fit(_wip_X, _y).constant_columns_
-        assert len(out) == len(_start_constants)
-        for idx, v in _start_constants.items():
-            if str(v) == 'nan':
-                assert str(v) == str(_start_constants[idx])
-            else:
-                assert v == _start_constants[idx]
-
-        # to know how many constants can come out, get total number of constants
-        _const_pool = list(_start_constants)
-        _num_consts = len(_const_pool)
-
-        X_HOLDER = []
-        X_HOLDER.append(_wip_X)
-
-        # take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v^v^v
-        for trial in range(_num_consts//2):
-
-            random_const = np.random.choice(_const_pool, 1, replace=False)[0]
-
-            # take the random constant of out _start_constants and _const_pool,
-            # and take a column out of the X pool to patch the constant in _wip_X
-            _start_constants.pop(random_const)
-            _const_pool.remove(random_const)
-
-            _from_X = _wip_X[:, random_const]
-            _from_pool = _pool_X[:, random_const]
-            assert not np.array_equal(
-                _from_X[np.logical_not(nan_mask(_from_X))],
-                _from_pool[np.logical_not(nan_mask(_from_pool))]
-            )
-
-            del _from_X, _from_pool
-
-            _wip_X[:, random_const] = _pool_X[:, random_const].copy()
-
-            X_HOLDER.append(_wip_X)
-
-            # verify correctly reported constants after this partial_fit!
-            out = TestCls.partial_fit(_wip_X, _y).constant_columns_
-            assert len(out) == len(_start_constants)
-            for idx, v in _start_constants.items():
-                if str(v) == 'nan':
-                    assert str(v) == str(_start_constants[idx])
-                else:
-                    assert v == _start_constants[idx]
-
-        # END take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v
-
-
-
-        # do a one-shot fit, compare results
-        # stack all the _wip_Xs
-        _final_X = np.vstack(X_HOLDER)
-
-        out = SlimPoly(**_new_kwargs).fit(_final_X, _y).constant_columns_
-        assert len(out) == len(_start_constants)
-        for idx, v in _start_constants.items():
-            if str(v) == 'nan':
-                assert str(out[idx]) == str(_start_constants[idx])
-            else:
-                assert v == _start_constants[idx]
-
-
-
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
+@pytest.mark.parametrize('_equal_nan', (True, False))
 class TestAColumnOfAllNans:
 
-    # pizza make sure this test stays!
-    def test_one_all_nans(self, _X_factory, _kwargs, _shape):
+    def test_one_all_nans(self, _X_factory, _kwargs, _shape, _equal_nan):
 
-        _X = _X_factory(
-            _dupl=[[0,1]],
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _columns=None,
-            _zeros=None,
-            _shape=(_shape[0], 3)
-        )
+        # do this with interaction_only = False
+        _kwargs['interaction_only'] = False
+
+        # scan_X must be True! or SlimPoly wont find the constants in X
+        _kwargs['scan_X'] = True
+
+        _kwargs['equal_nan'] = _equal_nan
+
+        # create 2 columns, one of them is all nans
+
+        # if equal_nan, then SlimPoly should see the nans as a column of constants
+        # in X, and transform() should always be a no-op
+
+        # if not equal_nan, then it wont be a column of constants in X,
+        # the expansion should be 3 columns.
+        #   1) column 1 squared
+        #   2) column 2 squared, which should be nans
+        #   3) the interaction term, and that should be all nans
+        # should return the original 2 columns and the 3 poly columns
+
+        _X = np.random.uniform(0, 1, (_shape[0], 2))
 
         # set a column to all nans
         _X[:, -1] = np.nan
         # verify last column is all nans
         assert all(nan_mask_numerical(_X[:, -1]))
 
-        # 2nd column should drop, should have 2 columns, last is all np.nan
+        TestCls = SlimPoly(**_kwargs).fit(_X)
 
-        out = SlimPoly(**_kwargs).fit_transform(_X)
+        if _equal_nan:
+            with pytest.warns():
+                out = TestCls.transform(_X)
+            assert out is None
+        elif not _equal_nan:
+            out = TestCls.transform(_X)
 
-        assert np.array_equal(out[:, 0], _X[:, 0])
-        assert all(nan_mask_numerical(out[:, -1]))
+            assert out.shape == (_shape[0], 5)
+
+            assert np.array_equal(out[:, 0], _X[:, 0])
+            assert all(nan_mask_numerical(out[:, 1]))
+            assert np.array_equal(out[:, 2], np.power(_X[:, 0], 2))
+            assert all(nan_mask_numerical(out[:, 3]))
+            assert all(nan_mask_numerical(out[:, 4]))
 
 
-    def test_two_all_nans(self, _X_factory, _kwargs, _shape):
+    def test_intx_creates_all_nans(self, _kwargs, _equal_nan):
 
-        _X = _X_factory(
-            _dupl=[[0,1]],
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _columns=None,
-            _zeros=None,
-            _shape=(_shape[0], 4)
+        # rig X to have 2 columns that multiply to all nans
+
+        _X = np.array(
+            [
+                [1, np.nan],
+                [2, np.nan],
+                [np.nan, 3],
+                [np.nan, 4],
+            ],
+            dtype=np.float64
         )
 
-        # set last 2 columns to all nans
-        _X[:, [-2, -1]] = np.nan
-        # verify last column is all nans
-        assert all(nan_mask_numerical(_X[:, -1]))
-        assert all(nan_mask_numerical(_X[:, -2]))
+        # do this with interaction_only = True
+        _kwargs['interaction_only'] = True
 
-        # 2nd & 4th column should drop, should have 2 columns, last is all np.nan
+        _kwargs['equal_nan'] = _equal_nan
 
-        out = SlimPoly(**_kwargs).fit_transform(_X)
+        # if equal_nan, then SlimPoly should see the output as a column of
+        # constants and not append it.
 
-        assert np.array_equal(out[:, 0], _X[:, 0])
-        assert all(nan_mask_numerical(out[:, -1]))
+        # if not equal_nan, then it wont be a column of constants in POLY,
+        # the expansion should be 1 column, a column of all nans.
+        # should return the original 2 columns and the 1 poly
 
+        TestCls = SlimPoly(**_kwargs).fit(_X)
 
+        if _equal_nan:
+            out = TestCls.transform(_X)
+            assert np.array_equal(out, _X, equal_nan=True)
+        elif not _equal_nan:
+            out = TestCls.transform(_X)
+
+            assert out.shape == (_X.shape[0], 3)
+
+            assert np.array_equal(out[:, 0], _X[:, 0], equal_nan=True)
+            assert np.array_equal(out[:, 1], _X[:, 1], equal_nan=True)
+            assert all(nan_mask_numerical(out[:, 2]))
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
@@ -1126,7 +1027,7 @@ class TestPartialFit:
     # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
-    # - must have at least 2 columns
+    # - must have at least 1 or 2 columns, depending on interaction_only
     # - allows nan
     # - validates all instance attrs --- not tested here, see _validation
 
@@ -1224,28 +1125,6 @@ class TestPartialFit:
             assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
 
 
-    @pytest.mark.parametrize('_num_cols', (0, 1))
-    def test_X_must_have_2_or_more_columns(self, _X_factory, _kwargs, _num_cols):
-
-        _wip_X = _X_factory(
-            _dupl=None,
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _columns=None,
-            _zeros=0,
-            _shape=(20, 3)  # need to spoof _X_factory, requires 2+ columns
-        )[:, :_num_cols]
-
-        _kwargs['keep'] = 'first'
-
-        if _num_cols < 2:
-            with pytest.raises(ValueError):
-                SlimPoly(**_kwargs).partial_fit(_wip_X)
-        else:
-            SlimPoly(**_kwargs).partial_fit(_wip_X)
-
-
     def test_rejects_no_samples(self, _X_np, _kwargs, _columns):
 
         _X = _X_np.copy()
@@ -1273,49 +1152,6 @@ class TestPartialFit:
             SlimPoly(**_kwargs).partial_fit(_wip_X[:, 0])
 
 
-
-    @pytest.mark.parametrize('_dtype', ('str', 'obj'))
-    def test_fit_transform_floats_as_str_dtypes(
-        self, _X_factory, _dtype, _shape
-    ):
-
-        # make an array of floats....
-        _wip_X = _X_factory(
-            _dupl=None,
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _columns=None,
-            _constants=None,
-            _zeros=0,
-            _shape=_shape
-        )
-
-        # set dtype
-        _wip_X = _wip_X.astype('<U20' if _dtype == 'str' else object)
-
-        _SPF = SlimPoly(
-            keep='last',
-            equal_nan=True,
-            rtol=1e-5,
-            atol=1e-8,
-            n_jobs=1
-        )
-
-        out = _SPF.fit_transform(_wip_X)
-
-        assert isinstance(out, np.ndarray)
-
-        # keep == 'last'!
-        _ref_column_mask = np.ones((_shape[1],)).astype(bool)
-        # MASK = [i in _constants for i in range(_shape[1])]
-        _ref_column_mask[MASK] = False
-        # _ref_column_mask[sorted(list(_constants))[-1]] = True
-        del MASK
-
-        assert np.array_equal(_SPF.column_mask_, _ref_column_mask)
-
-
     # dont really need to test accuracy, see _partial_fit
 
 
@@ -1332,7 +1168,7 @@ class TestTransform:
     # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
-    # - must have at least 2 columns
+    # - must have at least 1 or 2 columns, depending on interaction_only
     # - must have at least 1 sample
     # - num columns must equal num columns seen during fit
     # - allows nan
@@ -1455,9 +1291,9 @@ class TestTransform:
             assert np.array_equal(_X_wip_before_transform, _X_wip)
 
 
-    # test_X_must_have_2_or_more_columns(self)
-    # this is dictated by partial_fit. partial_fit requires 2+ columns, and
-    # transform must have same number of features as fit
+    # test_X_num_columns(self)
+    # this is dictated by partial_fit. partial_fit requires at least 1 or
+    # 2 columns, and transform must have same number of features as fit
 
 
     def test_rejects_no_samples(self, _X_np, _kwargs):
@@ -1525,10 +1361,119 @@ class TestTransform:
 
         del _SPF, obj_type, diff_cols, TEST_X
 
+
+
+    @staticmethod
+    @pytest.fixture(scope='class')
+    def _dtype_dict():
+        return {
+            'int8': np.int8,
+            'int16': np.int16,
+            'int32': np.int32,
+            'int64': np.int64,
+            'float64': np.float64,
+            '<U10': str,
+            'object': object
+        }
+
+
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr'))
+    @pytest.mark.parametrize('_dtype',
+         ('int8', 'int16', 'int32', 'int64', 'float64', '<U10', 'object')
+    )
+    @pytest.mark.parametrize('_has_nan', (True, False))
+    @pytest.mark.parametrize('_min_degree', (1, 2))
+    def test_dtype_preservation(
+        self, _format, _dtype, _has_nan, _min_degree,
+        _shape, _columns, _kwargs, _dtype_dict
+    ):
+
+        # poly is always created as float64 and if/when merged, the
+        # original data is also converted to float64.
+
+
+        # degree is always set to 2
+        # when min_degree == 1, tests mashup of original data and poly
+        # when min_degree == 2, tests poly only
+
+        # skip impossible scenarios
+        if _has_nan and _dtype in ('int8', 'int16', 'int32', 'int64'):
+            pytest.skip(reason='cant have nans in np int dtype')
+
+        if _format == 'csr':
+            if _dtype in ('<U10', 'object'):
+                pytest.skip(reason='cant have str or object dtype for scipy sparse')
+        # END skip impossible scenarios
+
+
+        _base_X = np.random.randint(0, 10, _shape).astype(_dtype_dict[_dtype])
+
+        # build X - - - - - - - - - - - - - - - - - - - - - -
+        if _format in ('np', 'csr'):
+            _X = _base_X
+            if _has_nan:
+                for _c_idx in range(_shape[1]):
+                    _rand_idxs = np.random.choice(
+                        range(_shape[0]), _shape[0] // 5, replace=False
+                    )
+                    _X[_rand_idxs, _c_idx] = np.nan
+
+                # verify nans were made correctly
+                assert np.sum(nan_mask(_X)) > 0
+
+            if _format == 'csr':
+                _X = ss.csr_array(_base_X)
+
+            assert _X.dtype is _base_X.dtype
+
+        elif _format == 'pd':
+            _X = pd.DataFrame(data=_base_X, columns=_columns)
+            if _has_nan:
+                for _column in _X.columns:
+                    _rand_idxs = np.random.choice(
+                        range(_shape[0]), _shape[0] // 5, replace=False
+                    )
+                    _X.loc[_rand_idxs, _column] = pd.NA
+
+                # verify nans were made correctly
+                assert np.sum(nan_mask(_X)) > 0
+
+            for _pd_dtype in _X.dtypes:
+                if _dtype == '<U10':
+                    assert _pd_dtype == object
+                else:
+                    assert _pd_dtype == _dtype_dict[_dtype]
+
+        else:
+            raise Exception
+        # END build X - - - - - - - - - - - - - - - - - - - -
+
+
+
+        _kwargs['degree'] = 2
+        _kwargs['min_degree'] = _min_degree
+        _kwargs['scan_X'] = False
+        _kwargs['sparse_output'] = False
+        _kwargs['equal_nan'] = True
+
+        TestCls = SlimPoly(**_kwargs)
+
+        out = TestCls.fit_transform(_X)
+
+
+        if _format == 'pd':
+            for _c_idx, _out_dtype in enumerate(out.dtypes):
+                assert _out_dtype == np.float64
+        else:
+            assert out.dtype == np.float64
+
+
+
+
     # dont really need to test accuracy, see _transform
 
 
-    # pizza put a test for sparse_output!
+
 
 
 

@@ -45,7 +45,7 @@ class TestCoreFit_FitParams_NotPipe:
         return sk_LogisticRegression(
             C=1e-5,
             solver='lbfgs',
-            n_jobs=None,
+            n_jobs=1,    # leave this set a 1 because of confliction
             max_iter=100,
             fit_intercept=False
         )
@@ -114,7 +114,7 @@ class TestCoreFit_FitParams_Pipe:
         return sk_LogisticRegression(
             C=1e-5,
             solver='lbfgs',
-            n_jobs=None,
+            n_jobs=1,    # leave this set a 1 because of confliction
             max_iter=100,
             fit_intercept=False
         )

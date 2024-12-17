@@ -91,7 +91,7 @@ def _get_dupls_for_combo_in_X_and_poly(
     # to ss.csc, but as of 24_12_16 this not the case allows np, pd, and ss
     assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or hasattr(_X, 'toarray')
     # assert isinstance(_X, (ss.csc_array, ss.csc_matrix))
-    assert _X.shape[1] >= 2
+    assert _X.shape[1] >= 1
     # pizza revisit this, currently _POLY_CSC is constructed as a ss csc_array
     assert isinstance(_POLY_CSC, (ss.csc_array, ss.csc_matrix))
     assert len(_COLUMN) == _X.shape[0] == _POLY_CSC.shape[0]

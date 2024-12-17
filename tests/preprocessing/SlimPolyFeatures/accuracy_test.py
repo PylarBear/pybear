@@ -29,10 +29,10 @@ import pytest
 
 
 
-pytest.skip(reason=f"pizza not finished", allow_module_level=True)
+# pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
-
+# pizza dont forget accuracy when X is 1 column
 
 
 class TestAccuracy:
@@ -69,7 +69,8 @@ class TestAccuracy:
 
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('X_format',
+        ('np', 'pd', 'csr', 'csc', 'coo', 'dia', 'lil', 'dok', 'bsr'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('equal_nan', (True, False))
@@ -79,21 +80,14 @@ class TestAccuracy:
     @pytest.mark.parametrize('keep', ('first', 'last', 'random'))
     @pytest.mark.parametrize('scan_X', (True, False))
     @pytest.mark.parametrize('sparse_output', (True, False))
-    @pytest.mark.parametrize('feature_name_combiner', ('as_indices', 'as_feature_names', lambda x, y: str(y)))
+    @pytest.mark.parametrize('feature_name_combiner',
+        ('as_indices', 'as_feature_names', lambda x, y: str(y))
+    )
     def test_accuracy(
-        self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan, degree,
-        min_degree, interaction_only, keep, scan_X, sparse_output,
+        self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan,
+        degree, min_degree, interaction_only, keep, scan_X, sparse_output,
         feature_name_combiner, _columns, _shape
     ):
-
-        # validate the test parameters
-        assert isinstance(has_nan, bool)
-        assert isinstance(equal_nan, bool)
-        assert X_format in (
-            'np', 'pd', 'csr', 'csc', 'coo', 'lil', 'dok', 'bsr', 'dia'
-        )
-        assert X_dtype in ('flt', 'int')
-        # END validate the test parameters
 
         # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if X_format == 'np' and X_dtype == 'int' and has_nan:
@@ -112,8 +106,18 @@ class TestAccuracy:
         )
 
         # set _kwargs
-        _kwargs['keep'] = keep
+        _kwargs['X_format'] = X_format
+        _kwargs['X_dtype'] = X_dtype
+        _kwargs['has_nan'] = has_nan
         _kwargs['equal_nan'] = equal_nan
+        _kwargs['degree'] = degree
+        _kwargs['min_degree'] = min_degree
+        _kwargs['interaction_only'] = interaction_only
+        _kwargs['keep'] = keep
+        _kwargs['scan_X'] = scan_X
+        _kwargs['sparse_output'] = sparse_output
+        _kwargs['feature_name_combiner'] = feature_name_combiner
+
 
         TestCls = SlimPoly(**_kwargs)
 
