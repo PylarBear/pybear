@@ -6,31 +6,33 @@
 
 
 
-from numbers import Integral
+import numbers
 
 
 
 def _val_degree__min_degree(
-    _degree:int,
-    _min_degree:int
+    _degree: numbers.Integral,
+    _min_degree: numbers.Integral
 ) -> None:
 
     """
-
-    min_degree, max_degree must be integers greater than 1 that fulfil "
-    min_degree <= max_degree
+    'min_degree' must be integer greater than 0, 'max_degree' must be
+    integer greater than 1, and both must fulfill 'min_degree' <=
+    'max_degree'.
 
 
     Parameters
     ----------
     _degree:
-        int, default=2 - The maximum polynomial degree of the generated
-        features.
-
+        numbers.Integral - The maximum polynomial degree of the generated
+        features. The minimum value accepted by SPF is 2; the no-op case
+        of simply returning the original degree-one data is not allowed.
     _min_degree:
-        int, default=0 - The minimum polynomial degree of the generated
+        numbers.Integral - The minimum polynomial degree of the generated
         features. Polynomial terms with degree below 'min_degree' are
-        not included in the final output array. pizza say something about trivial cases.
+        not included in the final output array. The minimum value
+        accepted by SPF is 1; SPF cannot be used to generate a
+        zero-degree column (a column of all ones).
 
 
     Return
@@ -41,6 +43,7 @@ def _val_degree__min_degree(
 
     """
 
+
     err_msg = \
         (f"\n'min_degree' must be an integer >= 1.\n'degree' must "
         f"be an integer >= 2.\n'degree' must be greater than or equal "
@@ -49,8 +52,8 @@ def _val_degree__min_degree(
     _value_error = 0
     _value_error += isinstance(_degree, bool)
     _value_error += isinstance(_min_degree, bool)
-    _value_error += not isinstance(_min_degree, Integral)
-    _value_error += not isinstance(_degree, Integral)
+    _value_error += not isinstance(_min_degree, numbers.Integral)
+    _value_error += not isinstance(_degree, numbers.Integral)
 
     if _value_error:
         raise ValueError(err_msg)

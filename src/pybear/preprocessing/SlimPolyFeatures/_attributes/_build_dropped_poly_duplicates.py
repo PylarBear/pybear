@@ -12,7 +12,7 @@ from copy import deepcopy
 
 
 def _build_dropped_poly_duplicates(
-    _poly_duplicates: list[list[tuple[int, ...]]],  # pizza, must be the version that has X columns in it, if any
+    _poly_duplicates: list[list[tuple[int, ...]]],
     _kept_combos: tuple[tuple[int, ...], ...]
 ) -> dict[tuple[int, ...], tuple[int, ...]]:
 

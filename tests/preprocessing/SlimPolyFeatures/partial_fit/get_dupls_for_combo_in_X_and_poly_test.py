@@ -56,6 +56,7 @@ class Fixtures:
     def _X_ss(_X_factory, _shape):
 
         # pizza! X must always be ss because SPF._partial_fit() sets this before _get_dupls!
+        #     # as of 24_12_16_07_28_00 not converting to csc.
 
         return _X_factory(
             _dupl=None,

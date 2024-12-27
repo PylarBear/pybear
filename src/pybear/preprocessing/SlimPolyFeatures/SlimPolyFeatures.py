@@ -36,7 +36,7 @@ from ._partial_fit._merge_combo_dupls import _merge_combo_dupls
 from ._partial_fit._lock_in_random_combos import _lock_in_random_combos
 from ._shared._identify_combos_to_keep import _identify_combos_to_keep
 from ._shared._get_active_combos import _get_active_combos
-from ._transform._check_X_constants_dupls import _check_X_constants_dupls
+from ._shared._check_X_constants_dupls import _check_X_constants_dupls
 from ._transform._build_poly import _build_poly
 
 
@@ -44,6 +44,7 @@ from pybear.preprocessing.InterceptManager.InterceptManager import \
     InterceptManager as IM
 from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransformer import \
     ColumnDeduplicateTransformer as CDT
+
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import Interval, StrOptions
@@ -55,43 +56,76 @@ from ...utilities import nan_mask
 class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     """
-    Perform a polynomial feature expansion on a set of data and optionally
-    omit duplicate and / or constant columns. Generate a new feature matrix
-    consisting of all polynomial combinations
-    of the features with degree less than or equal to the specified degree.
-    For example, if an input sample is two dimensional and of the form
-    [a, b], the degree-2 polynomial features are [1, a, b, a^2, ab, b^2].
+    SlimPolyFeatures (SPF) performs a polynomial feature expansion on a
+    dataset, where any expansion feature produced that is a column of
+    constants or is a duplicate of another column is omitted from the
+    final output.
 
-    Polynomial feature expansion is useful for finding non-linear relationships
-    of the data against the target.
+    A polynomial feature expansion generates all possible multiplicative
+    combinations of the original features, typically from the zero-degree
+    term up to and including a specified maximum degree. For example, if
+    a dataset has two features, called 'a' and 'b', then the degree-2
+    polynomial features are [1, a, b, a^2, ab, b^2], where the column of
+    ones is the zero-degree term, columns 'a' and 'b' are the first
+    degree terms, and columns a^2, ab, and b^2 are the second degree
+    terms. Generating these features for analysis is useful for finding
+    non-linear relationships between the data and the target.
 
-    Unfortunately, even modest-sized datasets can quickly expand to sizes
-    beyond RAM. This limits the number of polynomial terms that can be analyzed.
-    Many polynomial expansions generate columns that are duplicate,
-    constant (think all zeros from interactions on a one-hot encoded feature),
-    or directly proportional to another column (think columns being multiplied
-    by a constant column.) SPF finds these columns before the data is even
-    expanded and prevents them from ever appearing in the final array.
-    A conventional workflow would be to perform a polynomial expansion on
-    data (that fits in memory!), remove duplicate, constant, and multicollinear
-    columns, and perform an analysis. The memory occupied by the removed columns
-    prevented us from doing a higher order expansion. SPF affords the opportunity to
-    (possibly) do higher order expansions than otherwise possible because the
-    noisome irritant columns are never even created.
+    Unfortunately, even modest-sized polynomial expansions can quickly
+    grow to sizes beyond RAM. This limits the number of polynomial terms
+    that can be analyzed. But there is opportunity to reduce memory
+    footprint for a given expansion by eliminating features that do not
+    add value. Many polynomial expansions generate columns that are
+    duplicate or constant (think columns of all zeros from interactions
+    on a one-hot encoded feature). SPF finds columns such as these before
+    the data is fully expanded and prevents them from ever appearing in
+    the final array (and occupying memory!)
 
+    A typical workflow would be to perform a polynomial expansion
+    on data (that fits in memory!), remove duplicate and constant columns,
+    and perform an analysis. The memory occupied
+    by the removed columns may have prevented us from doing a higher
+    order expansion. SPF affords the opportunity to (possibly) do higher
+    order expansions
+    than otherwise possible because the problematic columns are never
+    even created, and also saves us the time of finding and removing
+    such columns after the expansion.
 
-    SlimPolyFeatures (SPF) never returns the 0-degree column (a column of ones)
-    and will except if :param: min_degree is set to zero (minimum allowed setting is 1).
-    To append a zero-degree column to your data, use pybear InterceptManager.
-    Also, SPF does not allow the idempotent case of :param: degree = 1, where
-    the original data is returned unchanged. The minimum setting for :param: degree is 2.
-    SPF prohibits the degenerate case of only returning the 0-degree column and
-    the idempotent case of returning the original data.
+    To robustly and tractably do this, pybear requires that the dataset to
+    undergo expansion have no duplicate or constant columns.
+    Remove duplicate columns from your data set beforehand
+    with pybear ColumnDeduplicateTransformer. Remove constant columns
+    from your data with pybear InterceptManager.
 
-    pybear strongly recommends removing duplicate columns from your data set
-    with pybear ColumnDeduplicateTransformer. SPF can find constant columns
-    within your data, and withhold them from the expansion via the drop_constants
-    parameter.
+    SPF prohibits the degenerate case of only returning the 0-degree
+    column and the no-op case of returning the original data. SPF never
+    returns the 0-degree column (a column of ones) and will terminate if
+    :param: min_degree is set to zero (minimum allowed setting is 1). To
+    append a zero-degree column to your data, use pybear InterceptManager
+    after using SPF. Also, SPF does not allow the no-op case of :param:
+    degree = 1, where the original data is returned unchanged. The
+    minimum setting for :param: degree is 2.
+
+    Numpy arrays, pandas dataframes, and all scipy sparse objects (csr,
+    csc, coo, lil, dia, dok, bsr) are accepted by :methods: partial_fit,
+    fit, and transform.
+
+    SPF also has a 'sparse_output' parameter that can also increase the
+    amount of useful expansion features held in memory. The internal
+    construction of the polynomial expansion in SPF is always as a scipy
+    sparse csc array, to maximize the amount of expansion that could be
+    done. <Pizza, talk about SlimPoly forcing everything over to 64 bit.>
+    The expansion is also always done with float64 datatypes,
+    regardless of datatype of the passed data, to prevent any overflow
+    problems that might arise from multiplication from low bit number
+    types. <Pizza, talk about risk of overflow. SlimPoly has no controls in place.>
+    However, overflow is still possible with 64 bit datatypes,
+    especially when the data has large values or the degree of the
+    expansion is high. SPF HAS NO PROTECTIONS FOR OVERFLOW BEYOND 64 BIT.
+    IT IS UP TO THE USER TO AVOID OVERFLOW CONDITIONS. If :param:
+    sparse_output is set to True, that expansion is returned as scipy
+    sparse csr array. Only if :param: sparse_output is set to False is
+    the data returned in the format passed to :method: transform.
 
 
     SPF has a partial_fit method that allows for incremental fitting of
@@ -103,65 +137,105 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     amenable to batch-wise fitting and transforming via dask_ml Incremental
     and ParallelPostFit wrappers.
 
-    Pizza, talk about SlimPoly tries to keep dtype of original data, instead
-    of forcing everything over to 64 bit (unless pandas). This could be a
-    disaster if 8 bit multiplies out of range. User take warning.
+
+
+
 
 
     Parameters
     ----------
     degree:
-        int, default=2 - The maximum polynomial degree of the generated
-        features.
-
+        numbers.Integral, default=2 - The maximum polynomial degree of
+        the generated features. The minimum value accepted by SPF is 2;
+        the no-op case of simply returning the original degree-one data
+        is not allowed.
     min_degree:
-        int, default=0 - The minimum polynomial degree of the generated
-        features. Polynomial terms with degree below 'min_degree' are
-        not included in the final output array. pizza say something about
-        trivial cases.
+        numbers.Integral, default=1 - The minimum polynomial degree of
+        the generated features. Polynomial terms with degree below
+        'min_degree' are not included in the final output array. The
+        minimum value accepted by SPF is 1; SPF cannot be used to
+        generate a zero-degree column (a column of all ones).
     scan_X:
-        bool, default=True - pizza finish!
+        bool, default=True - SPF requires that the data being fit has
+        no columns of constants and no duplicate columns. When True, SPF
+        does not assume that the user knows these states of the data
+        and diagnoses them, which can be very expensive to do, especially
+        finding duplicate columns. If it is known that there are no
+        constant or duplicate columns in the data, setting this to False
+        can greatly reduce the cost of the polynomial expansion. When in
+        doubt, pybear recommends setting this to True (the default).
+        When this is False, it is possible to pass columns of constants
+        or duplicates, but pybear will continue to operate by the stated
+        design requirement, and the output will be nonsensical.
     keep:
         Literal['first', 'last', 'random'], default = 'first' -
         The strategy for keeping a single representative from a set of
-        identical columns. 'first' retains the column left-most in the
-        data; 'last' keeps the column right-most in the data; 'random'
-        keeps a single randomly-selected column of the set of duplicates.
-        pizza, say that keep is always overruled if there is a column from
-        X in the duplicates, keep only applies for picking duplicates out of poly.
-        X cannot be mutated by SlimPoly!
+        identical columns in the polynomial expansion.
+        This is over-ruled if a polynomial feature is a duplicate of one
+        of the original features, and the original feature will always be
+        kept and the polynomial duplicates will always be dropped.
+        One of SPF's design rules is to never alter the originally passed
+        data, so the original feature will always be kept. Under SPF's
+        design rule that the original data has no duplicate columns, an
+        expansion feature cannot be identical to 2 of the original features.
+        In all cases where the duplicates are only within the polynomial
+        expansion, 'first' retains the column left-most in the
+        expansion (lowest degree); 'last' keeps the column right-most in
+        the expansion (highest degree); 'random' keeps a single
+        randomly-selected feature of the set of duplicates.
     interaction_only:
-        bool - pizza!
+        bool, default = False - If True, only interaction features are
+        produced, that is, polynomial features that are products of
+        'degree' distinct input features. Terms with power of 2 or higher
+        for any feature are excluded.
+        Consider 3 features 'a', 'b', and 'c'. If 'interaction_only' is
+        True, 'min_degree' is 1, and 'degree' is 2, then only the first
+        degree interaction terms ['a', 'b', 'c'] and the second degree
+        interaction terms ['ab', 'ac', 'bc'] are returned in the
+        polynomial expansion.
     sparse_output:
-        bool - pizza!
+        bool, default = True - If set to True, the polynomial expansion
+        is returned from :method: transform as a scipy sparse csr array.
+        If set to False, the polynomial expansion is returned in the
+        same format as passed to :method: transform.
     feature_name_combiner:
         Union[
             Callable[[Iterable[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']]
         ], default='as_indices', - pizza!
+        Original feature names are kept, this only applies to Poly feature names.
     equal_nan:
-        bool, default = False - When comparing pairs of columns row by
-        row:
-        If equal_nan is True, exclude from comparison any rows where
-        one or both of the values is/are nan. If one value is nan, this
-        essentially assumes that the nan value would otherwise be the
-        same as its non-nan counterpart. When both are nan, this
-        considers the nans as equal (contrary to the default numpy
-        handling of nan, where np.nan does not equal np.nan) and will
-        not in and of itself cause a pair of columns to be marked as
-        unequal. If equal_nan is False and either one or both of the
-        values in the compared pair of values is/are nan, consider the
-        pair to be not equivalent, thus making the column pair not equal.
-        This is in line with the normal numpy handling of nan values.
+        bool, default = False -
+
+        When comparing two columns for equality:
+
+        If equal_nan is True, assume that a nan value would otherwise be
+        the same as the compared non-nan counterpart, or if both compared
+        values are nan, consider them as equal (contrary to the default
+        numpy handling of nan, where numpy.nan != numpy.nan).
+        If equal_nan is False and either one or both of the values in
+        the compared pair of values is/are nan, consider the pair to be
+        not equivalent, thus making the column pair not equal. This is
+        in line with the normal numpy handling of nan values.
+
+        When assessing if a column is constant:
+
+        If equal_nan is True, assume any nan values are the mean of all
+        non-nan values in the respective column. If equal_nan is False,
+        any nan-values could never take the value of the mean of the
+        non-nan values in the column, making the column not constant.
     rtol:
-        numbers.Real, default = 1e-5 - The relative difference tolerance for
-            equality. See numpy.allclose.
+        numbers.Real, default = 1e-5 - The relative difference tolerance
+        for equality. Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     atol:
-        numbers.Real, default = 1e-8 - The absolute tolerance parameter for .
-            equality. See numpy.allclose.
+        numbers.Real, default = 1e-8 - The absolute difference tolerance
+        for equality. Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     n_jobs:
-        Union[int, None], default = -1 - The number of joblib Parallel
-        jobs to use when comparing columns. The default is to use
+        Union[numbers.Integral, None], default = -1 - The number of
+        joblib Parallel jobs to use when looking for duplicate columns
+        or looking for columns of constants. The default is to use
         processes, but can be overridden externally using a joblib
         parallel_config context manager. The default number of jobs is
         -1 (all processors). To get maximum speed benefit, pybear
@@ -171,17 +245,17 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     Attributes
     ----------
     n_features_in_:
-        int - number of features in the fitted data before deduplication.
+        int - number of features in the fitted data, i.e., number of features before expansion.
 
     feature_names_in_:
-        NDArray[str] - The names of the features as seen during fitting.
+        Union[NDArray[object], None] - The names of the features as seen during fitting.
         Only accessible if X is passed to :methods: partial_fit or fit
         as a pandas dataframe that has a header.
 
     expansion_combinations_:
         tuple[tuple[int, ...], ...] - The polynomial column combinations
         from X that are in the polynomial expansion part of the output.
-        An example might be ((0,0), (0,1), ...), where the each tuple
+        An example might be ((0,0), (0,1), ...), where each tuple
         holds the column indices from X that are multiplied to produce
         that feature in the polynomial expansion.
 
@@ -218,19 +292,20 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         this.
 
     dropped_poly_duplicates_:
-        dict[tuple[int, ...], tuple[int, ...]] = a list of the groups of
-        identical polynomial columns, indicated by tuples of their
-        zero-based column index positions in the originally fit data.
-        pizza clarify this.
-
-        dict[tuple[int, ...], tuple[int, ...]] - a dictionary whose keys are the indices of
-        duplicate columns removed from the original data, indexed by
-        their column location in the original data; the values are the
-        column index in the original data of the respective duplicate
+        dict[tuple[int, ...], tuple[int, ...]] - a dictionary whose keys are tuples of the indices of
+        the polynomial terms that
+        are removed from the polynomial expansion because they are a
+        duplicate of another polynomial column; the values of the dictionary are the
+        tuples of indices in the original data of the respective polynomial duplicate
         that was kept.
 
     kept_poly_duplicates_:
-        list[tuple[int, ...]] = []
+        dict[tuple[int, ...], list[tuple[int, ...]]] - a dictionary whose keys are
+        tuples of the indices of the columns of X that produced polynomial column
+        that were kept out of sets of duplicates. The dictionary values are the
+        tuples of indices that created polynomial columns that were duplicate of
+        the column indicated by the dictionary key, but were removed from the
+        polynomial expansion.
 
 
     Notes
@@ -248,7 +323,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     Examples
     --------
-
+    pizza finish this!
 
 
 
@@ -273,9 +348,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     def __init__(
         self,
-        degree:Optional[int]=2,
+        degree:Optional[numbers.Integral]=2,
         *,
-        min_degree:Optional[int]=1,
+        min_degree:Optional[numbers.Integral]=1,
         interaction_only: Optional[bool] = False,
         scan_X: Optional[bool] = True,
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
@@ -287,7 +362,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         equal_nan: Optional[bool] = True,
         rtol: Optional[numbers.Real] = 1e-5,
         atol: Optional[numbers.Real] = 1e-8,
-        n_jobs: Optional[Union[int, None]] = None
+        n_jobs: Optional[Union[numbers.Integral, None]] = None
     ):
 
         self.degree = degree
@@ -310,8 +385,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         """
         If an estimator does not set any attributes with a trailing
-        underscore,  it can define a '__pybear_is_fitted__' method
-        returning a boolean to specify if the estimator is fitted or not.
+        underscore, it can define a '__pybear_is_fitted__' method
+        returning a boolean to specify if the estimator/transformer is
+        fitted or not.
 
         """
 
@@ -481,7 +557,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
 
         """
-        Get remaining feature names after deduplication.
+        Get feature names after expansion.
 
 
         Parameters
@@ -508,7 +584,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         ------
         -
             feature_names_out : NDArray[str] - The feature names in the
-            deduplicated data after transformation.
+            expanded data after transformation.
 
         """
 
@@ -550,7 +626,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     def get_metadata_routing(self):
         """
-        Get metadata routing is not implemented in ColumnDeduplicateTransformer.
+        Get metadata routing is not implemented in SlimPolyFeatures.
 
         """
         __ = type(self).__name__
@@ -738,7 +814,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # need to get the permutations to run, based on the size of x,
         # min degree, max degree, and interaction_only.
         self._combos: list[tuple[int, ...]] = _combination_builder(
-            _shape=_X.shape,
+            n_features_in_=self.n_features_in_,
             _min_degree=self.min_degree,
             _max_degree=self.degree,
             _intx_only=self.interaction_only
@@ -1058,7 +1134,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     def transform(
         self,
         X: DataType,
-        copy: Union[bool, None]=None
+        copy: Union[bool, None]=None   # pizza, this is going to come out
     ) -> DataType:
 
         """
@@ -1070,7 +1146,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         X:
             {array-like, scipy sparse matrix} of shape (n_samples, n_features) -
             The data to undergo polynomial expansion.
-        copy:
+        copy:   # pizza this is going to come out
             Union[bool, None] -
 
 
@@ -1093,6 +1169,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             return
 
 
+        # pizza this is going to come out
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 

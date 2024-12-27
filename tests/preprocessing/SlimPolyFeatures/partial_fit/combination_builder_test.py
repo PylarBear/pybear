@@ -24,35 +24,25 @@ class TestCombinationBuilder:
 
 
     # def _combination_builder(
-    #     _shape: tuple[int, int],
+    #     n_features_in: int,
     #     _min_degree: int,
     #     _max_degree: int,
     #     _intx_only: bool
     # ) -> list[tuple[int]]:
 
 
-    @pytest.mark.parametrize('_shape',
-        (-1, 1, 3.14, None, True, 'junk', [1, 2], (2, 3), {'a': 1}, lambda x: x)
+    @pytest.mark.parametrize('_n_features_in',
+        (-1, 3.14, None, True, 'junk', [1, 2], (2, 3), {'a': 1}, lambda x: x)
     )
-    def test_shape_validation(self, _shape):
+    def test_n_features_in_validation(self, _n_features_in):
 
-        if isinstance(_shape, (tuple, list)):
-
+        with pytest.raises(AssertionError):
             _combination_builder(
-                _shape=_shape,
+                n_features_in_=_n_features_in,
                 _min_degree=1,
                 _max_degree=2,
                 _intx_only=True
             )
-
-        else:
-            with pytest.raises(AssertionError):
-                _combination_builder(
-                    _shape=_shape,
-                    _min_degree=1,
-                    _max_degree=2,
-                    _intx_only=True
-                )
 
 
     @pytest.mark.parametrize('_min_degree',
@@ -64,7 +54,7 @@ class TestCombinationBuilder:
             _min_degree >= 1:
 
             _combination_builder(
-                _shape=(5, 3),
+                n_features_in_=3,
                 _min_degree=_min_degree,
                 _max_degree=4,
                 _intx_only=False
@@ -73,7 +63,7 @@ class TestCombinationBuilder:
         else:
             with pytest.raises(AssertionError):
                 _combination_builder(
-                    _shape=(5, 3),
+                    n_features_in_=3,
                     _min_degree=_min_degree,
                     _max_degree=4,
                     _intx_only=False
@@ -89,7 +79,7 @@ class TestCombinationBuilder:
             _max_degree >= 2:
 
             _combination_builder(
-                _shape=(20,10),
+                n_features_in_=10,
                 _min_degree=1,
                 _max_degree=_max_degree,
                 _intx_only=True
@@ -98,7 +88,7 @@ class TestCombinationBuilder:
         else:
             with pytest.raises(AssertionError):
                 _combination_builder(
-                    _shape=(20, 10),
+                    n_features_in_=10,
                     _min_degree=1,
                     _max_degree=_max_degree,
                     _intx_only=True
@@ -114,7 +104,7 @@ class TestCombinationBuilder:
         if isinstance(_intx_only, bool):
 
             _combination_builder(
-                _shape=(5,3),
+                n_features_in_=3,
                 _min_degree=1,
                 _max_degree=3,
                 _intx_only=_intx_only
@@ -123,7 +113,7 @@ class TestCombinationBuilder:
         else:
             with pytest.raises(AssertionError):
                 _combination_builder(
-                    _shape=(5, 3),
+                    n_features_in_=3,
                     _min_degree=1,
                     _max_degree=3,
                     _intx_only=_intx_only
@@ -134,7 +124,7 @@ class TestCombinationBuilder:
     def test_blocks_zero_zero(self, _intx_only):
         with pytest.raises(AssertionError):
             _combination_builder(
-                _shape=(5, 3),
+                n_features_in_=3,
                 _min_degree=0,
                 _max_degree=0,
                 _intx_only=_intx_only
@@ -149,14 +139,14 @@ class TestCombinationBuilder:
         # getting into _combination_builder
 
         out_zero = _combination_builder(
-            _shape=(5, 3),
+            n_features_in_=3,
             _min_degree=1,
             _max_degree=2,
             _intx_only=_intx_only
         )
 
         out_one = _combination_builder(
-            _shape=(5, 3),
+            n_features_in_=3,
             _min_degree=2,
             _max_degree=2,
             _intx_only=_intx_only
@@ -176,7 +166,7 @@ class TestCombinationBuilder:
         # if min_degree comes in as 1, it is bumped up to 2
 
         out = _combination_builder(
-            _shape=(20, _n_features),
+            n_features_in_=_n_features,
             _min_degree=_min_degree,
             _max_degree=_max_degree,
             _intx_only=_intx_only

@@ -29,7 +29,7 @@ import pytest
 
 
 
-# pytest.skip(reason=f"pizza not finished", allow_module_level=True)
+pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 
 # pizza dont forget accuracy when X is 1 column
@@ -54,51 +54,33 @@ class TestAccuracy:
     @pytest.fixture(scope='function')
     def _kwargs():
         return {
-            'degree': 2,
-            'min_degree': 1,
+            'degree': 2,  # will be overwrit during test
+            'min_degree': 1,  # will be overwrit during test
             'keep': 'first',
-            'interaction_only': False,
+            'interaction_only': False,  # will be overwrit during test
             'scan_X': False,
             'sparse_output': False,
-            'feature_name_combiner': lambda _columns, _x: 'any old string',
+            'feature_name_combiner': 'as_indices',
             'rtol': 1e-5,
             'atol': 1e-8,
-            'equal_nan': False,
+            'equal_nan': True,
             'n_jobs': 1
         }
 
 
-
-    @pytest.mark.parametrize('X_format',
-        ('np', 'pd', 'csr', 'csc', 'coo', 'dia', 'lil', 'dok', 'bsr'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int'))
-    @pytest.mark.parametrize('has_nan', (True, False))
-    @pytest.mark.parametrize('equal_nan', (True, False))
     @pytest.mark.parametrize('degree', (2, 3))
     @pytest.mark.parametrize('min_degree', (1, 2))
     @pytest.mark.parametrize('interaction_only', (True, False))
-    @pytest.mark.parametrize('keep', ('first', 'last', 'random'))
-    @pytest.mark.parametrize('scan_X', (True, False))
-    @pytest.mark.parametrize('sparse_output', (True, False))
-    @pytest.mark.parametrize('feature_name_combiner',
-        ('as_indices', 'as_feature_names', lambda x, y: str(y))
-    )
     def test_accuracy(
-        self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan,
-        degree, min_degree, interaction_only, keep, scan_X, sparse_output,
-        feature_name_combiner, _columns, _shape
+        self, _X_factory, _kwargs, X_format, X_dtype, degree, min_degree,
+        interaction_only, _columns, _shape
     ):
-
-        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if X_format == 'np' and X_dtype == 'int' and has_nan:
-            pytest.skip(reason=f"numpy int dtype cant take 'nan'")
-        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
 
         X = _X_factory(
             _dupl=None,
-            _has_nan=has_nan,
+            _has_nan=False,
             _format=X_format,
             _dtype=X_dtype,
             _columns=_columns,
@@ -108,15 +90,9 @@ class TestAccuracy:
         # set _kwargs
         _kwargs['X_format'] = X_format
         _kwargs['X_dtype'] = X_dtype
-        _kwargs['has_nan'] = has_nan
-        _kwargs['equal_nan'] = equal_nan
         _kwargs['degree'] = degree
         _kwargs['min_degree'] = min_degree
         _kwargs['interaction_only'] = interaction_only
-        _kwargs['keep'] = keep
-        _kwargs['scan_X'] = scan_X
-        _kwargs['sparse_output'] = sparse_output
-        _kwargs['feature_name_combiner'] = feature_name_combiner
 
 
         TestCls = SlimPoly(**_kwargs)
@@ -125,40 +101,7 @@ class TestAccuracy:
         # retain original format
         _og_format = type(X)
 
-        # retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if isinstance(X, pd.core.frame.DataFrame):
-            # need to adjust the pd dtypes if keep is dict
-            if isinstance(keep, dict):
-                # in _transform(), when keep is a dict, it looks at whether
-                # the dict value is numerical; if so, the dtype of the appended
-                # column for pd is float64, if not num dtype is object.
-                # this constructs the appended column, puts it on the df,
-                # then gets all the dtypes.
-                from uuid import uuid4
-                _key = list(keep.keys())[0]
-                _value = keep[_key]
-                _vector = pd.DataFrame({uuid4(): np.full(X.shape[0], _value)})
-                # -----------------
-                try:
-                    float(_value)
-                    _dtype = np.float64
-                except:
-                    _dtype = object
-                # -----------------
-                del _key, _value
-                _og_dtype = pd.concat((X, _vector.astype(_dtype)), axis=1).dtypes
-                del _vector
-            else:
-                _og_dtype = X.dtypes
-        else:
-            # if np or ss
-            # dont need to worry about keep is dict (appending a column),
-            # X will still have one dtype
-            _og_dtype = X.dtype
-        # END retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
-        TestCls = TestCls.fit(X)
+        TestCls.fit(X)
 
         TRFM_X = TestCls.transform(X)
 

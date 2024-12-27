@@ -361,7 +361,7 @@ class TestInitValidation:
 
     # n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_n_jobs',
-        (True, False, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
+        ('trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
     )
     def test_junk_n_jobs(self, _X_np, _kwargs, junk_n_jobs):
 
@@ -371,7 +371,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('bad_n_jobs', [-2, 0])
+    @pytest.mark.parametrize('bad_n_jobs', [True, False, -2, 0, 2.7])
     def test_bad_n_jobs(self, _X_np, _kwargs, bad_n_jobs):
 
         _kwargs['n_jobs'] = bad_n_jobs
@@ -1152,9 +1152,6 @@ class TestPartialFit:
             SlimPoly(**_kwargs).partial_fit(_wip_X[:, 0])
 
 
-    # dont really need to test accuracy, see _partial_fit
-
-
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestTransform:
 
@@ -1277,6 +1274,7 @@ class TestTransform:
             assert isinstance(out, type(_X_wip))
 
         # verify _X_wip does not mutate in transform() when copy=True
+        # pizza, 'copy' is going to come out
         assert isinstance(_X_wip, type(_X_wip_before_transform))
         assert _X_wip.shape == _X_wip_before_transform.shape
 
@@ -1468,9 +1466,6 @@ class TestTransform:
             assert out.dtype == np.float64
 
 
-
-
-    # dont really need to test accuracy, see _transform
 
 
 
