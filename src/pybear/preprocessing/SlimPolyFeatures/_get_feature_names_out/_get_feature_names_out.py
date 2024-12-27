@@ -61,7 +61,7 @@ def _get_feature_names_out(
     n_features_in_:
         tuple[int, ...] - The shape of the data passed to undergo polynomial expansion.
     _feature_name_combiner:
-        # pizza finalized this and put it in the main module.
+        # pizza finalize this and put it in the main module.
         Union[
             Callable[[Iterable[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']

@@ -17,7 +17,7 @@ import pytest
 
 
 
-class TestDupsAndConstants:
+class TestDuplsAndConstants:
 
     # this also coincidentally handles testing of handling the various pd nan-likes.
 

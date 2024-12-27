@@ -219,10 +219,10 @@ class TestAccuracy:
 
         if raise_for_no_header_str_keep or raise_for_keep_non_constant:
             with pytest.raises(ValueError):
-                TestCls = TestCls.fit(X)
+                TestCls.fit(X)
             pytest.skip(reason=f"cant do anymore tests without fit")
         else:
-            TestCls = TestCls.fit(X)
+            TestCls.fit(X)
 
         del raise_for_keep_non_constant, raise_for_no_header_str_keep
 
