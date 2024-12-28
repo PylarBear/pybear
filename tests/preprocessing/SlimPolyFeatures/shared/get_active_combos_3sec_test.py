@@ -65,7 +65,8 @@ class TestGetActiveCombos:
 
         # create some poly constants and dropped duplicates based
         # on arbitrary selection from _combos
-        # there can be no repeated combos within or between constants and duplicates
+        # there can be no repeated combos within or between constants and
+        #   duplicates
 
         if _poly_constants == 'empty':
             _poly_constants = {}

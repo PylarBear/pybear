@@ -17,10 +17,10 @@ import pytest
 
 
 
-class TestIITKBasicValidation:
+class TestICTKBasicValidation:
 
     # def _identify_combos_to_keep(
-    #     _poly_duplicates: list[list[tuple[int, ...]]],
+    #     poly_duplicates_: list[list[tuple[int, ...]]],
     #     _keep: Literal['first', 'last', 'random'],
     #     _rand_combos: tuple[tuple[int, ...], ...]
     # ) -> tuple[tuple[int, ...], ...]:
@@ -42,7 +42,7 @@ class TestIITKBasicValidation:
         # keep
         with pytest.raises(AssertionError):
             _identify_combos_to_keep(
-                _poly_duplicates=[[(1,), (8,9)], [(1,2), (2,3)], [(2,4), (4,5)]],
+                poly_duplicates_=[[(1,), (8,9)], [(1,2), (2,3)], [(2,4), (4,5)]],
                 _keep=junk_inputs,
                 _rand_combos=((1,),(2,3),(4,5))
             )
@@ -50,7 +50,7 @@ class TestIITKBasicValidation:
         # rand_idxs
         with pytest.raises(AssertionError):
             _identify_combos_to_keep(
-                _poly_duplicates=[[(1,), (8,9)], [(1,2), (2,3)], [(2,4), (4,5)]],
+                poly_duplicates_=[[(1,), (8,9)], [(1,2), (2,3)], [(2,4), (4,5)]],
                 _keep='last',
                 _rand_combos=junk_inputs
             )
@@ -63,7 +63,7 @@ class TestIITKBasicValidation:
         _rand_combos = ((1,), (2, 3), (4, 5))
 
         out = _identify_combos_to_keep(
-            _poly_duplicates=_poly_dupls,
+            poly_duplicates_=_poly_dupls,
             _keep=_keep,
             _rand_combos=_rand_combos
         )
@@ -72,7 +72,7 @@ class TestIITKBasicValidation:
         assert len(out) == len(_poly_dupls)
 
 
-class TestIITKAccuracy:
+class TestICTKAccuracy:
 
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
     def test_accuracy(self, _keep):
@@ -81,7 +81,7 @@ class TestIITKAccuracy:
         _rand_combos = ((1,), (2, 3), (4, 5))
 
         out = _identify_combos_to_keep(
-            _poly_duplicates=_poly_dupls,
+            poly_duplicates_=_poly_dupls,
             _keep=_keep,
             _rand_combos=_rand_combos
         )
@@ -110,7 +110,7 @@ class TestIITKAccuracy:
 
         with pytest.raises(AssertionError):
             _identify_combos_to_keep(
-                _poly_duplicates=[[(1,), (8, 9)], [(1, 2), (2, 3)], [(2, 4), (4, 5)]],
+                poly_duplicates_=[[(1,), (8, 9)], [(1, 2), (2, 3)], [(2, 4), (4, 5)]],
                 _keep=_keep,
                 _rand_combos=((8, 8), (2, 4), (3, 5))
             )

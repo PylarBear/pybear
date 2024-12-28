@@ -6,7 +6,8 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._get_feature_names_out._gfno_X import _gfno_X
+from pybear.preprocessing.SlimPolyFeatures._get_feature_names_out._gfno_X \
+    import _gfno_X
 
 import uuid
 import numpy as np
@@ -20,8 +21,8 @@ class TestGetXFeatureNamesOut:
 
     # def _gfno_X(
     #     _input_features: Union[Iterable[str], None],
-    #     feature_names_in_: Union[npt.NDArray[str], None],
-    #     n_features_in_: tuple[int, ...]
+    #     feature_names_in_: Union[npt.NDArray[object], None],
+    #     n_features_in_: numbers.Integral
     # ) -> npt.NDArray[object]:
 
 
@@ -43,13 +44,13 @@ class TestGetXFeatureNamesOut:
         return _feature_names_in
 
 
-
     @pytest.mark.parametrize('junk_input_features',
         (float('-inf'), np.pi, True, False, 'garbage', {'junk': 3},
          list(range(10)), lambda x: x)
     )
     def test_rejects_junk(
-        self, junk_input_features, _input_features, _feature_names_in, _n_features_in
+        self, junk_input_features, _input_features, _feature_names_in,
+        _n_features_in
     ):
 
         # _input_features
@@ -77,7 +78,6 @@ class TestGetXFeatureNamesOut:
             )
 
 
-
     def test_input_features_conflicts(
         self, _input_features, _feature_names_in, _n_features_in
     ):
@@ -86,7 +86,8 @@ class TestGetXFeatureNamesOut:
         with pytest.raises(ValueError):
             _gfno_X(
                 _input_features=_feature_names_in,
-                feature_names_in_=np.hstack((_feature_names_in, _feature_names_in)),
+                feature_names_in_= \
+                    np.hstack((_feature_names_in, _feature_names_in)),
                 n_features_in_=_n_features_in*2
             )
 
@@ -141,7 +142,8 @@ class TestGetXFeatureNamesOut:
 
         elif _input_features_is_passed and not _feature_names_in_is_passed:
 
-            _input_features = [str(uuid.uuid4())[:5] for i in range(_n_features_in)]
+            _input_features = \
+                [str(uuid.uuid4())[:5] for i in range(_n_features_in)]
 
             out = _gfno_X(
                 _input_features=_input_features,

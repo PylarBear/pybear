@@ -67,9 +67,10 @@ def _lock_in_random_combos(
     Return
     ------
     -
-        _rand_idxs: tuple[tuple[int]] - An ordered tuple whose values
-        are a sequence of column indices, one index selected from each
-        set of duplicates in :param: duplicates.
+        _rand_idxs: tuple[tuple[int, ...], ...] - An ordered tuple whose
+        values are tuples of column indices from X, each tuple being
+        selected from a group of duplicates in poly_duplicates_. One
+        tuple is selected from each group of duplicates.
 
 
     """
@@ -143,6 +144,9 @@ def _lock_in_random_combos(
         _rand_idxs.append(_set[_keep_tuple_idx])
 
     # this cant be a set, it messes up the order against duplicates_
+    # it is also important that if there is only one tuple it be returned
+    # like ((0,1),).  The list-to-tuple method as used here is tested and
+    # appears to be robust for this purpose.
     _rand_idxs = tuple(_rand_idxs)
 
 

@@ -6,76 +6,89 @@
 
 
 
+
 import itertools
+import numbers
 
 from ._num_combinations import _val_num_combinations
 
 
 
 def _combination_builder(
-    n_features_in_: int,
-    _min_degree: int,
-    _max_degree: int,
+    n_features_in_: numbers.Integral,
+    _min_degree: numbers.Integral,
+    _max_degree: numbers.Integral,
     _intx_only: bool
 ) -> list[tuple[int, ...]]:
 
     """
-    Fill a list with tuples of column indices, with the indices indicating
-    sets of columns to be multiplied together.
-    Add pizza about validating for np.intp
+    Create a list containing the tuples of the column indices to be
+    multiplied together for the polynomial expansion. The size of the
+    list is validated to ensure it is small enough to be indexed by the
+    current operating system.
 
 
     Parameters
     ----------
     n_features_in_:
-        int - the number of features in X
+        numbers.Integral - the number of features in X.
     _min_degree:
-        int - pizza get this from SlimPoly
+        numbers.Integral - The minimum polynomial degree of the generated
+        features. Polynomial terms with degree below '_min_degree' are
+        not included in the final output array.
     _max_degree:
-        int - pizza get this from SlimPoly
+        numbers.Integral - The maximum polynomial degree of the generated
+        features.
     _intx_only:
-        bool - Whether to return only first-order interaction terms --- pizza check SlimPoly
+        bool - If True, only interaction features are produced, that is,
+        polynomial features that are products of 'degree' distinct input
+        features. Terms with power of 2 or higher for any feature are
+        excluded. If False, produce the full polynomial expansion.
 
 
     Return
     ------
     -
-        _combinations: list[tuple[int, ...]] - the combinations of column
-            indices for the polynomial expansion.
+        _combinations: list[tuple[int, ...]] - a list containing the
+            tuples of column index combinations to be multiplied
+            together for the polynomial expansion.
 
 
     """
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(n_features_in_, int)
     assert not isinstance(n_features_in_, bool)
     assert n_features_in_ >= 1
+
     assert isinstance(_min_degree, int)
     assert not isinstance(_min_degree, bool)
     assert _min_degree >= 1, f"min_degree == 0 shouldnt be getting in here"
+
     assert isinstance(_max_degree, int)
     assert not isinstance(_max_degree, bool)
     assert _max_degree >= 2, f"max_degree in [0,1] shouldnt be getting in here"
+
     assert _max_degree >= _min_degree
+
     assert isinstance(_intx_only, bool)
 
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # forget about 0 degree, that is handled at the end of it all.
 
     _min_degree = max(2, _min_degree)
-    # if max_degrees comes in as zero, then validation should have blown up.
-    # pizza anticipates that if max_degree is ever set to zero, then
-    # all of the machinery will be bypassed, including this module,
-    # and SlimPoly will just go straight to returning a column of ones.
+    # if _min_degree == 1, then the first order component (the original data)
+    # is handled directly in SPF.transform(). Only need to generate any terms
+    # that are greater than first order.
 
 
     fxn = itertools.combinations if _intx_only else \
         itertools.combinations_with_replacement
 
-    _combinations = \
-    list(itertools.chain.from_iterable(
-        fxn(list(range(n_features_in_)), _deg) for _deg in range(_min_degree, _max_degree+1)
-    ))
+    _combinations = []
+    for _deg in range(_min_degree, _max_degree + 1):
+        _combinations.extend(list(fxn(range(n_features_in_), _deg)))
 
     # this checks the number of features in the output polynomial expansion for
     # indexability based on the max value allowed by np.intp
@@ -87,9 +100,10 @@ def _combination_builder(
         _intx_only=_intx_only
     )
 
-    # PIZZA 24_12_10_16_11_00 _combinations MUST ALWAYS BE asc shortest
-    # combos to longest combos, then sorted asc on combo idxs. maybe we should add a test
-    # should be coming out of itertools like, but ensure always sorted
+    # _combinations MUST ALWAYS BE asc on degree (shortest combos to longest
+    # combos), then sorted asc on combo idxs. the output should be coming
+    # out of itertools like that, but ensure always sorted in case itertools
+    # ever changes
     _combinations = sorted(_combinations, key = lambda x: (len(x), x))
 
 

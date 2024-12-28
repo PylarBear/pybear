@@ -12,43 +12,37 @@ from typing_extensions import Union
 import numpy.typing as npt
 import numpy as np
 
+import numbers
+
 
 
 def _gfno_X(
     _input_features: Union[Iterable[str], None],
-    feature_names_in_: Union[npt.NDArray[str], None],
-    n_features_in_: int
+    feature_names_in_: Union[npt.NDArray[object], None],
+    n_features_in_: numbers.Integral
 ) -> npt.NDArray[object]:
 
     """
+    Return the feature name vector for X.
 
-    sklearn lingo ----> Get output feature names for transformation.
-
-
-    Return the feature name vector for the transformed output. Construct
-    the polynomial feature names based on :param: feature_name_combiner.
-    If :param: min_degree == 1, the feature names of X are prepended to
-    the polynomial feature names.
-
-        input_features : array-like of str or None, default=None
-            Input features.
-
-            - If `input_features` is `None`, then `feature_names_in_` is
-              used as feature names in. If `feature_names_in_` is not defined,
-              then the following input feature names are generated:
-              `["x0", "x1", ..., "x(n_features_in_ - 1)"]`.
-            - If `input_features` is an array-like, then `input_features` must
-              match `feature_names_in_` if `feature_names_in_` is defined.
+    - If 'input_features' is 'None', then 'feature_names_in_' is
+      used as feature names in. If 'feature_names_in_' is not defined,
+      then the following input feature names are generated:
+      '["x0", "x1", ..., "x(n_features_in_ - 1)"]'.
+    - If 'input_features' is an array-like, then 'input_features' must
+      match 'feature_names_in_' if 'feature_names_in_' is defined.
 
 
     Parameters
     ----------
     _input_features:
-        Union[Iterable[str], None] -
+        Union[Iterable[str], None] - Input features.
     feature_names_in_:
-        Union[npt.NDArray[str], None] -
+        Union[npt.NDArray[object], None] - The names of the features as
+        seen during fitting. Only available if X is passed to :methods:
+        partial_fit or fit as a pandas dataframe that has a header.
     n_features_in_:
-        tuple[int, ...] - The shape of the data passed to undergo polynomial expansion.
+        numbers.Integral - The number of features in X.
 
 
     Return
@@ -84,16 +78,17 @@ def _gfno_X(
         assert isinstance(feature_names_in_, np.ndarray)
         assert len(feature_names_in_.shape) == 1
         assert feature_names_in_.shape[0] == n_features_in_
-        assert all(map(isinstance, feature_names_in_, (str for _ in feature_names_in_)))
+        assert all(map(
+            isinstance, feature_names_in_, (str for _ in feature_names_in_)
+        ))
 
-    assert isinstance(n_features_in_, int)
+    assert isinstance(n_features_in_, numbers.Integral)
     assert not isinstance(n_features_in_, bool)
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # this code parallels sklearn.utils.validation _check_feature_names_in()
-    # since this is already written, keep it to minimize dependency on sklearn
     if _input_features is not None:
 
         if len(_input_features) != n_features_in_:

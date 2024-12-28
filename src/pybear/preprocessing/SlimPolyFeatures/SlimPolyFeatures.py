@@ -155,6 +155,17 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         'min_degree' are not included in the final output array. The
         minimum value accepted by SPF is 1; SPF cannot be used to
         generate a zero-degree column (a column of all ones).
+    interaction_only:
+        bool, default = False - If True, only interaction features are
+        produced, that is, polynomial features that are products of
+        'degree' distinct input features. Terms with power of 2 or higher
+        for any feature are excluded. If False, produce the full
+        polynomial expansion.
+        Consider 3 features 'a', 'b', and 'c'. If 'interaction_only' is
+        True, 'min_degree' is 1, and 'degree' is 2, then only the first
+        degree interaction terms ['a', 'b', 'c'] and the second degree
+        interaction terms ['ab', 'ac', 'bc'] are returned in the
+        polynomial expansion.
     scan_X:
         bool, default=True - SPF requires that the data being fit has
         no columns of constants and no duplicate columns. When True, SPF
@@ -183,16 +194,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         expansion (lowest degree); 'last' keeps the column right-most in
         the expansion (highest degree); 'random' keeps a single
         randomly-selected feature of the set of duplicates.
-    interaction_only:
-        bool, default = False - If True, only interaction features are
-        produced, that is, polynomial features that are products of
-        'degree' distinct input features. Terms with power of 2 or higher
-        for any feature are excluded.
-        Consider 3 features 'a', 'b', and 'c'. If 'interaction_only' is
-        True, 'min_degree' is 1, and 'degree' is 2, then only the first
-        degree interaction terms ['a', 'b', 'c'] and the second degree
-        interaction terms ['ab', 'ac', 'bc'] are returned in the
-        polynomial expansion.
     sparse_output:
         bool, default = True - If set to True, the polynomial expansion
         is returned from :method: transform as a scipy sparse csr array.
@@ -202,8 +203,41 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         Union[
             Callable[[Iterable[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']]
-        ], default='as_indices', - pizza!
-        Original feature names are kept, this only applies to Poly feature names.
+        ], default='as_indices' - Sets the naming convention for the
+        created polynomial features. This does not set nor change any
+        original feature names that may have been seen during fitting on
+        pandas dataframes.
+
+        feature_name_combiner must be:
+        1) Literal 'as_feature_names',
+        2) Literal 'as_indices',
+        - or -
+        3) a user-defined function (callable) for mapping polynomial
+            column index combination tuples to polynomial feature names.
+
+        If the default literal 'as_feature_names' is used, SPF generates
+        new polynomial feature names based on the feature names in the
+        original data. For example, if the feature names of X are
+        ['x0', 'x1', ..., 'xn'] and the polynomial column index
+        tuple is (1, 1, 3), then the polynomial feature name is
+        'x1^2_x3'.
+
+        If the default literal 'as_indices' is used, SPF generates new
+        polynomial feature names based on the polynomial column index
+        tuple itself. For example, if the polynomial column index tuple
+        is (2, 2, 4), then the polynomial feature name is '(2, 2, 4)'.
+
+        If a user-defined callable is passed, it must:
+        A) Accept 2 arguments:
+            1) a 1D vector of strings that contains the original feature
+                names of X, as is used internally in SPF,
+            2) the polynomial column indices combination tuple, which is
+                a tuple of integers of variable length (min length is
+                :param: min_degree, max length is :param: degree) with
+                each integer falling in the range of [0, n_features_in_-1]
+        B) Return a string that:
+            1) is not a duplicate of any originally seen feature name
+            2) is not a duplicate of any generated polynomial feature name
     equal_nan:
         bool, default = False -
 
@@ -257,14 +291,15 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         from X that are in the polynomial expansion part of the output.
         An example might be ((0,0), (0,1), ...), where each tuple
         holds the column indices from X that are multiplied to produce
-        that feature in the polynomial expansion.
+        that feature in the polynomial expansion. This does not include
+        any combinations that are excluded from the polynomial expansion
+        for being a duplicate or constant.
 
     poly_constants_:
-        dict[tuple[int, ...], any] - A dictionary whose keys are
-        tuples of the indices of the constant polynomial columns found
-        during fit, indexed by their column
-        location in the original data. The dictionary values are the
-        constant values in those columns. For example, if a dataset has
+        dict[tuple[int, ...], any] - A dictionary whose keys are tuples
+        of indices in the original data that produced a column of
+        constants. The dictionary values are the constant values in
+        those columns. For example, if a dataset has
         two constant columns, the first in the third index and the
         constant value is 1, and the other is in the tenth index and the
         constant value is 0, then constant_columns_ will be {(3,):1, (10,):0}.
@@ -287,17 +322,17 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     poly_duplicates_:
         list[list[tuple[int, ...]]] - a list of the groups of identical
-        polynomial columns, indicated by tuples of their zero-based
-        column index positions in the originally fit data. pizza clarify
-        this.
+        columns, indicated by tuples of their zero-based column index
+        positions in the originally fit data. Columns from the original
+        data itself can be in a group of duplicates, along with any
+        duplicates from the polynomial expansion.
 
     dropped_poly_duplicates_:
-        dict[tuple[int, ...], tuple[int, ...]] - a dictionary whose keys are tuples of the indices of
-        the polynomial terms that
-        are removed from the polynomial expansion because they are a
-        duplicate of another polynomial column; the values of the dictionary are the
-        tuples of indices in the original data of the respective polynomial duplicate
-        that was kept.
+        dict[tuple[int, ...], tuple[int, ...]] - A dictionary whose keys
+        are the tuples that are removed from the polynomial expansion
+        because they produced a duplicate of another column. The values
+        of the dictionary are the tuples of indices of the respective
+        duplicate that was kept.
 
     kept_poly_duplicates_:
         dict[tuple[int, ...], list[tuple[int, ...]]] - a dictionary whose keys are
@@ -399,6 +434,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     def _check_X_constants_and_dupls(self):
 
+        """
+        pizza
+
+        """
+
         if self.scan_X and hasattr(self, '_IM') and hasattr(self, '_CDT'):
             # if X was scanned for constants and dupls, raise if any
             # were present.
@@ -412,6 +452,12 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
     def _attr_access_warning(self) -> str:
+
+        """
+        pizza
+
+        """
+
         return (f"there are duplicate and/or constant columns in the data. "
             f"the attribute you have requested cannot be returned "
             f"because it is not accurate when the data has duplicate or "
@@ -422,11 +468,17 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     @property
     def expansion_combinations_(self) -> Union[tuple[tuple[int, ...], ...], None]:
 
+        """
+        The tuples of column index combinations that are in the outputted
+        polynomial expansion.
+
+        """
+
         check_is_fitted(self)
 
         try:
             self._check_X_constants_and_dupls()
-            #     self._active_combos must be sorted asc len, then asc on idxs. if _combos is sorted
+            #     self._active_combos must be sorted asc degree, then asc on idxs. if _combos is sorted
             #     then this is sorted correctly at construction.
             return self._active_combos
         except:
@@ -436,6 +488,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     @property
     def poly_duplicates_(self) -> Union[list[list[tuple[int, ...]]], None]:
+
+        """
+        pizza
+
+        """
 
         check_is_fitted(self)
 
@@ -472,6 +529,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     @property
     def kept_poly_duplicates_(self) -> Union[dict[tuple[int, ...], list[tuple[int, ...]]], None]:
 
+        """
+        pizza
+
+        """
+
         check_is_fitted(self)
 
         try:
@@ -488,6 +550,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     @property
     def dropped_poly_duplicates_(self) -> Union[dict[tuple[int, ...], tuple[int, ...]], None]:
+
+        """
+        pizza
+
+        """
 
         check_is_fitted(self)
 
@@ -508,6 +575,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     @property
     def poly_constants_(self) -> Union[dict[tuple[int, ...], any], None]:
 
+        """
+        pizza
+
+        """
+
         check_is_fitted(self)
 
         try:
@@ -520,6 +592,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
     def reset(self) -> Self:
+
         """
         Reset internal data-dependent state of the transformer.
         __init__ parameters are not changed.
@@ -588,6 +661,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         """
 
+        # pizza, OneToOneFeatureMixin will become irrelevant after the exorcism
         # get_feature_names_out() would otherwise be provided by
         # OneToOneFeatureMixin, but since this transformer deletes
         # columns, must build a one-off.
@@ -608,6 +682,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.n_features_in_
         )
+
+        # _X_header must exist as an actual header, and not None. if
+        # self.features_names_in_ is None, the default boilerplate
+        # feature names should have been generated for _X_header.
+        assert _X_header is not None
 
         # there must be a poly header, self.degree must be >= 2
         _poly_header: npt.NDArray[object] = _gfno_poly(
@@ -707,7 +786,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         _validation(
             X,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.degree,
             self.min_degree,
             self.scan_X,
@@ -977,7 +1055,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             return self
 
         # if 'keep' == 'random', _transform() must pick the same random
-        # columns every time. need to set an instance attribute here
+        # columns at every call after fitting is completed. need to set an instance attribute here
         # that doesnt change when _transform() is called. must set a
         # random idx for every set of dupls.
         self._rand_combos: tuple[tuple[int, ...], ...] = \
@@ -1200,7 +1278,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         _validation(
             X,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.degree,
             self.min_degree,
             self.scan_X,
