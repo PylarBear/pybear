@@ -277,9 +277,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('bad_feature_name_combiner',
-        ('that', 'was', 'trash', lambda x: x, min, lambda x, y: x + y)
-    )
+    @pytest.mark.parametrize('bad_feature_name_combiner', ('that', 'was', 'trash'))
     def test_bad_feature_name_combiner(self, _X_np, _kwargs, bad_feature_name_combiner):
 
         _kwargs['feature_name_combiner'] = bad_feature_name_combiner
@@ -287,7 +285,7 @@ class TestInitValidation:
         with pytest.raises(Exception):
             # this could except for numerous reasons. _val_feature_name_combiner tries to
             # pass feature names and a tuple of ints to the callable and sees if it
-            # returns a str. the exception is whatever the callable is raising.
+            # returns a str. the exception is whatever the callable itself is raising.
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 

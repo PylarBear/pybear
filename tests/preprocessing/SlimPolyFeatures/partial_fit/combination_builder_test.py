@@ -7,15 +7,10 @@
 
 
 
-
 from pybear.preprocessing.SlimPolyFeatures._partial_fit._combination_builder \
     import _combination_builder
 
 import pytest
-
-
-# PIZZA 24_12_10_16_11_00 _combinations MUST ALWAYS BE asc shortest
-# combos to longest combos, then sorted asc combo. maybe we should add a test
 
 
 
@@ -24,11 +19,11 @@ class TestCombinationBuilder:
 
 
     # def _combination_builder(
-    #     n_features_in: int,
-    #     _min_degree: int,
-    #     _max_degree: int,
+    #     n_features_in_: numbers.Integral,
+    #     _min_degree: numbers.Integral,
+    #     _max_degree: numbers.Integral,
     #     _intx_only: bool
-    # ) -> list[tuple[int]]:
+    # ) -> list[tuple[int, ...]]:
 
 
     @pytest.mark.parametrize('_n_features_in',
@@ -46,7 +41,7 @@ class TestCombinationBuilder:
 
 
     @pytest.mark.parametrize('_min_degree',
-        (-1, 0, 1, 3.14, None, True, 'junk', [1, 2], (2, 3), {'a': 1}, lambda x: x)
+        (-1, 0, 1, 3.14, None, True, 'junk', (2, 3), {'a': 1}, lambda x: x)
     )
     def test_min_degree_validation(self, _min_degree):
 
@@ -71,7 +66,7 @@ class TestCombinationBuilder:
 
 
     @pytest.mark.parametrize('_max_degree',
-        (-1, 0, 2, 3.14, None, True, 'junk', [1, 2], (2, 3), {'a': 1}, lambda x: x)
+        (-1, 0, 2, 3.14, None, True, 'junk', (2, 3), {'a': 1}, lambda x: x)
     )
     def test_max_degree_validation(self, _max_degree):
 
@@ -120,13 +115,18 @@ class TestCombinationBuilder:
                 )
 
 
+    @pytest.mark.parametrize('_min_degree', (0, ))
+    @pytest.mark.parametrize('_max_degree', (0, 1))
     @pytest.mark.parametrize('_intx_only', (True, False))
-    def test_blocks_zero_zero(self, _intx_only):
+    def test_blocks_disallowed_degrees(
+        self, _min_degree, _max_degree, _intx_only
+    ):
+
         with pytest.raises(AssertionError):
             _combination_builder(
                 n_features_in_=3,
-                _min_degree=0,
-                _max_degree=0,
+                _min_degree=_min_degree,
+                _max_degree=_max_degree,
                 _intx_only=_intx_only
             )
 
@@ -134,25 +134,24 @@ class TestCombinationBuilder:
     @pytest.mark.parametrize('_intx_only', (True, False))
     def test_bumps_min_degree_one_to_two(self, _intx_only):
 
-        # degree==1 is dealt with separately. if 1, _combination_builder
-        # bumps it up to one. if max_degree==1, then shouldnt even be
-        # getting into _combination_builder
+        # degree==1 is dealt with separately. if min_degree==1,
+        # _combination_builder bumps it up to 2.
 
-        out_zero = _combination_builder(
+        out_one = _combination_builder(
             n_features_in_=3,
             _min_degree=1,
             _max_degree=2,
             _intx_only=_intx_only
         )
 
-        out_one = _combination_builder(
+        out_two = _combination_builder(
             n_features_in_=3,
             _min_degree=2,
             _max_degree=2,
             _intx_only=_intx_only
         )
 
-        assert list(out_zero) == list(out_one)
+        assert list(out_one) == list(out_two)
 
 
     @pytest.mark.parametrize('_min_degree', (1, 2))

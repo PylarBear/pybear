@@ -71,7 +71,7 @@ class TestCheckXConstantsDupls:
         with pytest.raises(ValueError):
             _check_X_constants_dupls(
                 {0:0, 1:1, 2:2},
-                [[3,4], [4,5]]
+                [[3,4], [5,6]]
             )
 
 
@@ -89,13 +89,13 @@ class TestCheckXConstantsDupls:
         with pytest.raises(ValueError):
             _check_X_constants_dupls(
                 {},
-                [[3,4], [4,5]]
+                [[3,4], [5,6]]
             )
 
 
     def test_accepts_no_constants_no_dupls(self):
 
-            _check_X_constants_dupls({}, [])
+            assert _check_X_constants_dupls({}, []) is None
 
 
 

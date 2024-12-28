@@ -16,85 +16,34 @@ import pytest
 
 
 
-class TestFeatureNameCombiner:
+class TestValFeatureNameCombiner:
 
 
-    @pytest.mark.parametrize('_string_literals',
+    @pytest.mark.parametrize('_fnc_string_literals',
         ('junk', 'trash', 'as_indices', 'garbage', 'as_feature_names')
     )
-    @pytest.mark.parametrize('_min_degree, _degree', ((1,2), (1,3), (2,4)))
-    @pytest.mark.parametrize('_X_num_columns', (5, 10))
-    @pytest.mark.parametrize('_interaction_only', (True, False))
-    def test_string_literals(
-        self, _string_literals, _min_degree, _degree, _X_num_columns,
-        _interaction_only
-    ):
+    def test_string_literals(self, _fnc_string_literals):
 
-        if _string_literals in ('as_indices', 'as_feature_names'):
-            _val_feature_name_combiner(
-                _string_literals,
-                _min_degree,
-                _degree,
-                _X_num_columns,
-                _interaction_only
-            )
+        if _fnc_string_literals in ('as_indices', 'as_feature_names'):
+            _val_feature_name_combiner(_fnc_string_literals)
         else:
             with pytest.raises(ValueError):
-                _val_feature_name_combiner(
-                    _string_literals,
-                    _min_degree,
-                    _degree,
-                    _X_num_columns,
-                    _interaction_only
-                )
+                _val_feature_name_combiner(_fnc_string_literals)
 
 
-
-
-    @pytest.mark.parametrize('_fnc_output',
+    @pytest.mark.parametrize('_fnc_callable',
         (
             -np.e, -1, 0, 1, np.e, True, False, None, [0,1], (0,), {0,1},
-            {'a':1}, 'string'
+            {'a':1}, 'string', lambda x: x, lambda x, y: x + y
         )
     )
-    @pytest.mark.parametrize('_min_degree, _degree', ((1,2), (1,3), (2,4)))
-    @pytest.mark.parametrize('_X_num_columns', (5, 10))
-    @pytest.mark.parametrize('_interaction_only', (True, False))
-    def test_accepts_good_callable(
-        self, _fnc_output, _min_degree, _degree, _X_num_columns, _interaction_only
-    ):
+    def test_accepts_callable(self, _fnc_callable):
 
-        _rand_num_columns = np.random.choice(range(_min_degree, _degree+1))
-
-        _rand_combo = tuple(
-            np.random.choice(
-                range(_X_num_columns),
-                _rand_num_columns,
-                replace=True
-            )
-        )
-
-        _columns = [f'x{i}' for i in range(_X_num_columns)]
-
-        _feature_name_combiner = lambda _columns, x: _fnc_output
-
-        if _fnc_output == 'string':
-            _val_feature_name_combiner(
-                _feature_name_combiner,
-                _min_degree,
-                _degree,
-                _X_num_columns,
-                _interaction_only
-            )
+        if callable(_fnc_callable):
+            _val_feature_name_combiner(_fnc_callable)
         else:
             with pytest.raises(ValueError):
-                _val_feature_name_combiner(
-                    _feature_name_combiner,
-                    _min_degree,
-                    _degree,
-                    _X_num_columns,
-                    _interaction_only
-                )
+                _val_feature_name_combiner(_fnc_callable)
 
 
 

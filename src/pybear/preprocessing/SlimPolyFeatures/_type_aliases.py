@@ -47,33 +47,15 @@ FeatureNameCombinerType: TypeAlias = \
         Literal['as_feature_names', 'as_indices']
     ]
 
+ExpansionCombinationsType: tuple[tuple[int, ...], ...]
 
-DuplicatesType: TypeAlias = list[list[tuple[int]]]
-#         list[list[int]] - a list of the groups of identical
-#         columns, indicated by their zero-based column index positions
-#         in the originally fit data.
-#
-DroppedDuplicatesType: TypeAlias = dict[tuple[int], tuple[int]]
-#         dict[int, int] - a dictionary whose keys are the indices of
-#         duplicate columns removed from the original data, indexed by
-#         their column location in the original data; the values are the
-#         column index in the original data of the respective duplicate
-#         that was kept.
-#
-#     column_mask_:
-#         list[bool], shape (n_features_,) - Indicates which
-#         columns of the fitted data are kept (True) and which are removed
-#         (False) during transform.
-#
-ConstantsType: TypeAlias = dict[tuple[int], any]
-#         put words about how the only constant, in this unforgiving world, is good pizza.
-#
-DroppedConstantsType: TypeAlias = dict[tuple[int], any]
-#
-#
-#
+PolyDuplicatesType: TypeAlias = list[list[tuple[int, ...]]]
 
+KeptPolyDuplicatesType: TypeAlias = dict[tuple[int, ...], list[tuple[int, ...]]]
 
+DroppedPolyDuplicatesType: TypeAlias = dict[tuple[int, ...], tuple[int, ...]]
+
+PolyConstantsType: TypeAlias = dict[tuple[int, ...], any]
 
 
 

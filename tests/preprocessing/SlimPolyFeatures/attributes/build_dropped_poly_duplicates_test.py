@@ -6,10 +6,8 @@
 
 
 
-
-
-from pybear.preprocessing.SlimPolyFeatures._attributes._build_dropped_poly_duplicates \
-    import _build_dropped_poly_duplicates
+from pybear.preprocessing.SlimPolyFeatures._attributes. \
+    _build_dropped_poly_duplicates import _build_dropped_poly_duplicates
 
 import itertools
 
@@ -21,7 +19,7 @@ import pytest
 class TestBuildDroppedPolyDuplicates:
 
     # def _build_dropped_poly_duplicates(
-    #     _poly_duplicates: list[list[tuple[int, ...]]],
+    #     poly_duplicates_: list[list[tuple[int, ...]]],
     #     _kept_combos: tuple[tuple[int, ...], ...]
     # ) -> dict[tuple[int, ...], tuple[int, ...]]:
 
@@ -31,10 +29,10 @@ class TestBuildDroppedPolyDuplicates:
     )
     def test_basic_validation(self, junk_inputs):
 
-        # _poly_duplicates
+        # poly_duplicates_
         with pytest.raises(AssertionError):
             _build_dropped_poly_duplicates(
-                _poly_duplicates=junk_inputs,
+                poly_duplicates_=junk_inputs,
                 _kept_combos=((1,), (2,3), (4,5))
             )
 
@@ -42,7 +40,7 @@ class TestBuildDroppedPolyDuplicates:
         # _kept_combos
         with pytest.raises(AssertionError):
             _build_dropped_poly_duplicates(
-                _poly_duplicates=[[(1,), (6,7)], [(2,3), (4,5)]],
+                poly_duplicates_=[[(1,), (6,7)], [(2,3), (4,5)]],
                 _kept_combos=junk_inputs
             )
 
@@ -51,7 +49,7 @@ class TestBuildDroppedPolyDuplicates:
 
         with pytest.raises(AssertionError):
             _build_dropped_poly_duplicates(
-                _poly_duplicates=[[(1,), (6,7)], [(2,3), (4,5)]],
+                poly_duplicates_=[[(1,), (6,7)], [(2,3), (4,5)]],
                 _kept_combos=((2,), (8,9))
             )
 
@@ -62,7 +60,7 @@ class TestBuildDroppedPolyDuplicates:
         _kept_combos = ((1,), (4, 5))
 
         out = _build_dropped_poly_duplicates(
-            _poly_duplicates=_poly_dupls,
+            poly_duplicates_=_poly_dupls,
             _kept_combos=_kept_combos
         )
 
@@ -70,7 +68,8 @@ class TestBuildDroppedPolyDuplicates:
         assert all(map(isinstance, out.keys(), (tuple for _ in out)))
         assert all(map(isinstance, out.values(), (tuple for _ in out)))
 
-        assert len(out) == (len(list(itertools.chain(*_poly_dupls))) - len(_kept_combos))
+        assert len(out) == \
+               (len(list(itertools.chain(*_poly_dupls))) - len(_kept_combos))
 
         for _dropped_combo, _kept_combo in out.items():
             assert _dropped_combo not in _kept_combos

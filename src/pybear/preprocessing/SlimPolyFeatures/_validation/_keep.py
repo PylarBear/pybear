@@ -21,11 +21,20 @@ def _val_keep(
     Parameters
     ----------
     _keep:
-        Literal['first', 'last', 'random'], default = 'first' -
-        The strategy for keeping a single representative from a set of
-        identical columns. 'first' retains the column left-most in the
-        data; 'last' keeps the column right-most in the data; 'random'
-        keeps a single randomly-selected column from the set of
+        Literal['first', 'last', 'random'] - The strategy for keeping a
+        single representative from a set of identical columns in the
+        polynomial expansion. This is over-ruled if a polynomial feature
+        is a duplicate of one of the original features, and the original
+        feature will always be kept and the polynomial duplicates will
+        always be dropped. One of SPF's design rules is to never alter
+        the originally passed data, so the original feature will always
+        be kept. Under SPF's design rule that the original data has no
+        duplicate columns, an expansion feature cannot be identical to 2
+        of the original features. In all cases where the duplicates are
+        only within the polynomial expansion, 'first' retains the column
+        left-most in the expansion (lowest degree); 'last' keeps the
+        column right-most in the expansion (highest degree); 'random'
+        keeps a single randomly-selected feature of the set of
         duplicates.
 
 

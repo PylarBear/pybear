@@ -21,10 +21,15 @@ def _check_X_constants_dupls(
     Parameters
     ----------
     _X_constants:
-        dict[int, any] - the constants found in X by InterceptManager.
+        dict[int, any] - The constants found in X by InterceptManager.
+        The keys of the dictionary are the indices of the columns in X
+        and the values are the constant values in that respective
+        column. If it is empty, there are no constant columns.
     _X_dupls:
-        list[list[int]]] - the sets of duplicates found in X by
-        ColumnDeduplicateTransformer.
+        list[list[int]]] - The sets of duplicates found in X by
+        ColumnDeduplicateTransformer. Each list of integers is a group
+        of column indices in X that are duplicate. If _X_dupls is empty,
+        there are no duplicate columns.
 
 
     Return
@@ -50,7 +55,7 @@ def _check_X_constants_dupls(
 
 
     constants_err = (
-        f"X has columns of constants: {_X_constants}"
+        f"X has column(s) of constants: {_X_constants}"
         f"\nPlease use pybear InterceptManager to remove all constant "
         f"columns from X before using SlimPolyFeatures."
     )

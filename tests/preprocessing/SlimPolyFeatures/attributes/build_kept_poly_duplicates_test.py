@@ -8,8 +8,8 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._attributes._build_kept_poly_duplicates \
-    import _build_kept_poly_duplicates
+from pybear.preprocessing.SlimPolyFeatures._attributes. \
+    _build_kept_poly_duplicates import _build_kept_poly_duplicates
 
 import itertools
 
@@ -23,7 +23,7 @@ import pytest
 class TestBuildKeptPolyDuplicates:
 
     # def _build_kept_poly_duplicates(
-    #     _poly_duplicates: list[list[tuple[int, ...]]],
+    #     poly_duplicates_: list[list[tuple[int, ...]]],
     #     _kept_combos: tuple[tuple[int, ...], ...]
     # ) -> dict[tuple[int, ...], list[tuple[int, ...]]]:
 
@@ -33,10 +33,10 @@ class TestBuildKeptPolyDuplicates:
     )
     def test_basic_validation(self, junk_inputs):
 
-        # _poly_duplicates
+        # poly_duplicates_
         with pytest.raises(AssertionError):
             _build_kept_poly_duplicates(
-                _poly_duplicates=junk_inputs,
+                poly_duplicates_=junk_inputs,
                 _kept_combos=((1,), (2,3), (4,5))
             )
 
@@ -44,7 +44,7 @@ class TestBuildKeptPolyDuplicates:
         # _kept_combos
         with pytest.raises(AssertionError):
             _build_kept_poly_duplicates(
-                _poly_duplicates=[[(1,), (6,7)], [(2,3), (4,5)]],
+                poly_duplicates_=[[(1,), (6,7)], [(2,3), (4,5)]],
                 _kept_combos=junk_inputs
             )
 
@@ -53,7 +53,7 @@ class TestBuildKeptPolyDuplicates:
 
         with pytest.raises(AssertionError):
             _build_kept_poly_duplicates(
-                _poly_duplicates=[[(1,), (6,7)], [(2,3), (4,5)]],
+                poly_duplicates_=[[(1,), (6,7)], [(2,3), (4,5)]],
                 _kept_combos=((2,), (8,9))
             )
 
@@ -64,7 +64,7 @@ class TestBuildKeptPolyDuplicates:
         _kept_combos = ((1,), (4, 5))
 
         out = _build_kept_poly_duplicates(
-            _poly_duplicates=[[(1,), (6, 7)], [(2, 3), (4, 5)]],
+            poly_duplicates_=[[(1,), (6, 7)], [(2, 3), (4, 5)]],
             _kept_combos=_kept_combos
         )
 
