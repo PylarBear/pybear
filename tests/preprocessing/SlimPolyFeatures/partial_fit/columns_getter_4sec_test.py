@@ -6,9 +6,8 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._columns_getter import (
-    _columns_getter
-)
+from pybear.preprocessing.SlimPolyFeatures._partial_fit._columns_getter \
+    import _columns_getter
 
 import numpy as np
 import pandas as pd
@@ -85,11 +84,11 @@ class TestColumnGetter:
 
 
 
+    # _columns_getter only allows ss that are indexable, dont test coo, dia, bsr
     @pytest.mark.parametrize('_format',
         (
-        'ndarray', 'df', 'csr_matrix', 'csc_matrix',
-        'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array',
-        'lil_array', 'dok_array'
+        'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'lil_matrix', 'dok_matrix',
+        'csr_array', 'csc_array', 'lil_array', 'dok_array'
         )
     )
     @pytest.mark.parametrize('_col_idxs',
@@ -98,9 +97,6 @@ class TestColumnGetter:
     def test_accuracy(
         self, _has_nan, _format, _col_idxs, _shape, _X_num, _master_columns
     ):
-
-        # pizza, as of 24_12_16 _columns_getter only allows ss that are
-        # indexable, dont test with coo, dia, bsr
 
         _X = _X_num
 
@@ -142,20 +138,24 @@ class TestColumnGetter:
         else:
             raise Exception
 
+        # ensure _col_idxs, when tuple, is sorted, _columns_getter requires this,
+        # make sure any careless changes made to this test are handled.
         try:
             iter(_col_idxs)
             _col_idxs = tuple(sorted(list(_col_idxs)))
         except:
             pass
 
+        # pass _col_idxs as given (int or tuple) to _columns getter
         _columns = _columns_getter(_X_wip, _col_idxs)
 
         assert isinstance(_columns, np.ndarray)
 
+        # now that _columns getter has seen the given _col_idxs, covert all
+        # given _col_idxs to tuple to make _X[:, _col_idxs] slice right, below
         try:
             len(_col_idxs)  # except if is integer
-        except: # if is integer
-            # change int to tuple to make _X[:, _col_idxs] slice right, below
+        except: # if is integer change to tuple
             _col_idxs = (_col_idxs,)
 
         assert _columns.shape[1] == len(_col_idxs)

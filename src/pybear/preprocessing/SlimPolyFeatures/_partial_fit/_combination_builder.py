@@ -94,7 +94,7 @@ def _combination_builder(
     # indexability based on the max value allowed by np.intp
     _val_num_combinations(
         n_features_in_,
-        _n_poly_features=len(_combinations),
+        _n_poly_combos=len(_combinations),
         _min_degree=_min_degree,
         _max_degree=_max_degree,
         _intx_only=_intx_only

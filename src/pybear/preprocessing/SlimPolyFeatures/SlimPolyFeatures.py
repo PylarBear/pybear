@@ -801,7 +801,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
         if not hasattr(self, '_poly_duplicates'):
-            self._poly_duplicates: list[list[tuple[int, ...]]] = []
+            self._poly_duplicates: Union[list[list[tuple[int, ...]]], None] = None
         if not hasattr(self, '_poly_constants'):
             self._poly_constants: Union[dict[tuple[int, ...], any], None] = None
             # this must be None on the first pass! _merge_constants needs
@@ -842,7 +842,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 self._check_X_constants_and_dupls()
             except:
                 warnings.warn(
-                    f"There are duplicate and/or constant columns in the data."
+                    f"There are duplicate and/or constant columns in X."
                 )
 
         # END Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -900,13 +900,13 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # END GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # need to iterate over the combos and find what is constant or duplicate
-        for combo in self._combos:
+        for _combo in self._combos:
 
-            # combo must always be at least degree 2, degree 1 is just the
+            # _combo must always be at least degree 2, degree 1 is just the
             # original data and should not be processed here
-            assert len(combo) >= 2
+            assert len(_combo) >= 2
 
-            _COLUMN: npt.NDArray[int, float] = _columns_getter(_X, combo).prod(1).ravel()
+            _COLUMN: npt.NDArray[np.float64] = _columns_getter(_X, _combo).prod(1).ravel()
 
             __ = _COLUMN.shape
             assert len(__) == 1 or (len(__)==2 and __[1]==1)
@@ -914,25 +914,32 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
             # poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-            _poly_is_constant: Union[uuid.UUID, any] = \
-                _parallel_constant_finder(
-                    _column=_COLUMN,
-                    _equal_nan = self.equal_nan,
-                    _rtol = self.rtol,
-                    _atol = self.atol
-                )
-
+            # if _poly_constants (the place that holds what poly columns are constants
+            # across all partial fits) exists and it is empty, then there cannot
+            # possibly be any columns of constants going forward, so dont even
+            # expend the energy to check.
+            if self._poly_constants and not len(self._poly_constants):
+                _poly_is_constant = uuid.uuid4()
+            else:
+                _poly_is_constant: Union[uuid.UUID, any] = \
+                    _parallel_constant_finder(
+                        _column=_COLUMN,
+                        _equal_nan = self.equal_nan,
+                        _rtol = self.rtol,
+                        _atol = self.atol
+                    )
 
             if not isinstance(_poly_is_constant, uuid.UUID):
-                _poly_constants_current_partial_fit[combo] = _poly_is_constant
+                _poly_constants_current_partial_fit[_combo] = _poly_is_constant
 
             # END poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-            if isinstance(_poly_is_constant, uuid.UUID):  # is not constant
 
-                # constant columns do not need to go into _POLY_CSC to know if
-                # they are also a member of duplicates because they are
-                # automatically deleted anyway.
+            if isinstance(_poly_is_constant, uuid.UUID):  # is not constant
+                # constant columns NEED TO GO INTO _POLY_CSC to know if
+                # they are also a member of duplicates because even though
+                # they are constants now, they might not be after more
+                # partial fits, but they still might be duplicates.
 
                 # poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -951,16 +958,15 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                     _n_jobs=self.n_jobs
                 )
 
-
                 # need to convert 'out' to
-                # [(i1,), (i2,),..] SINGLE GROUP OF DUPLICATES
+                # [(i1,), (i2,),..] SINGLE 1D GROUP (list) OF DUPLICATES
                 _indices = [(i,) for i in range(_X.shape[1])] + IDXS_IN_POLY_CSC
                 _dupls_for_this_combo = []
                 for _idx_tuple, _is_dupl in zip(_indices, _out):
                     if _is_dupl:
                         _dupls_for_this_combo.append(_idx_tuple)
                 if len(_dupls_for_this_combo):
-                    _dupls_for_this_combo.append(combo)
+                    _dupls_for_this_combo.append(_combo)
 
                 assert len(_dupls_for_this_combo) != 1
 
@@ -984,7 +990,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                         _POLY_CSC,
                         ss.csc_array(_COLUMN.reshape((-1,1)))
                     ))
-                    IDXS_IN_POLY_CSC.append(combo)
+                    IDXS_IN_POLY_CSC.append(_combo)
 
                 del _poly_is_constant, _dupls_for_this_combo
 
@@ -1005,12 +1011,13 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # self.poly_constants_, which would be holding the constants
         # found in previous partial fits
 
-        self._poly_constants = _merge_constants(
-            self._poly_constants,
-            _poly_constants_current_partial_fit,
-            _rtol=self.rtol,
-            _atol=self.atol
-        )
+        self._poly_constants: dict[tuple[int, ...], any] = \
+            _merge_constants(
+                self._poly_constants,
+                _poly_constants_current_partial_fit,
+                _rtol=self.rtol,
+                _atol=self.atol
+            )
 
         del _poly_constants_current_partial_fit
         # END poly_constants -----------------------
@@ -1023,7 +1030,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # len(dupl_set) >= 2 rule to correctly merge
         # _poly_dupls_current_partial_fit into _poly_duplicates
         # pizza come back to this --- X tuples are removed when
-        # @property poly_duplicates_ is called, leaving only poly tuples.
+        # @property poly_duplicates_ is called, leaving only poly tuples -- not true anymore 24_12_28
         self._poly_duplicates: list[list[tuple[int, ...]]] = \
             _merge_partialfit_dupls(
                 self._poly_duplicates,
@@ -1033,8 +1040,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         del _poly_dupls_current_partial_fit
 
         # _merge_partialfit_dupls sorts _poly_duplicates on the way out
-        # within dupl sets, sort on len asc, then within the same lens sort on values asc
-        # across all dupl sets, only look at the first value in a dupl set, sort on len asc, then values asc
+        # within dupl sets, sort on combo len (degree) asc, then sort asc
+        # on combos, which should be sorted asc on idxs values
+        # across all dupl sets, only look at the first value in a dupl
+        # set, sort on len asc, then values asc
         # END poly duplicates -----------------------
 
         # iff self.poly_constants_ is None it is because @property for it
@@ -1059,10 +1068,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # that doesnt change when _transform() is called. must set a
         # random idx for every set of dupls.
         self._rand_combos: tuple[tuple[int, ...], ...] = \
-            _lock_in_random_combos(
-                _poly_duplicates=self._poly_duplicates,
-                _combinations=self._combos
-            )
+            _lock_in_random_combos(poly_duplicates_=self._poly_duplicates)
 
         # this needs to be before _get_active_combos because _kept_combos
         # is an input into @property dropped_poly_duplicates_
@@ -1073,13 +1079,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 self._rand_combos
             )
 
-
         self._active_combos = _get_active_combos(
             self._combos,
             self.poly_constants_,
             self.dropped_poly_duplicates_
         )
-
 
         return self
 

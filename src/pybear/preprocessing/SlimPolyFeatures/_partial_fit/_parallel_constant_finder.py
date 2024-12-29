@@ -17,6 +17,7 @@ import numpy as np
 from ....utilities import nan_mask
 
 
+
 def _parallel_constant_finder(
     _column: npt.NDArray[Union[int, float]],
     _equal_nan: bool,
@@ -29,26 +30,24 @@ def _parallel_constant_finder(
     _rtol, and _atol. If there is a single value, return the value.
     Otherwise, return a uuid4.
 
-    For numerical columns, get the mean of all the values and compare
-    against each of the values; if all of the values are within rtol /
-    atol of the mean, then the column is constant.
+    Get the mean of all the values and compare against each of the
+    values; if all of the values are within rtol / atol of the mean,
+    then the column is constant.
 
-    For non-numerical columns, count the number of unique values and if
-    there is only one, then that column is constant.
-
-    For both data types, if no nan-like values are present then the
-    operation is straightforward as above. When nan-like values are
-    present and _equal_nan is False, then the column is not constant.
-    If _equal_nan is True, then perform the above operations on the
-    non-nan-like values; if the column contains all nan-likes then
-    return the nan value.
+    If no nan-like values are present then the operation is
+    straightforward as above. When nan-like values are present and
+    _equal_nan is False, then the column is not constant. If _equal_nan
+    is True, then perform the above operations on the non-nan-like
+    values; if the column contains all nan-likes then return the nan
+    value.
 
 
     Parameters
     ----------
     _column:
-        NDArray[Union[int, float, str, bool]] - A single column drawn
-        from X as a numpy array.
+        NDArray[Union[int, float]] - A single column, drawn from X or
+        produced by a product of multiple columns from X, as a
+        numpy array.
     _equal_nan:
         bool - If equal_nan is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that

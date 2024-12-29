@@ -98,7 +98,7 @@ class TestICTKAccuracy:
             assert len(out) == len(_poly_dupls)
             # random indices must match those in _rand_combos exactly!
             for _out_idx, _out_combo in enumerate(out):
-                # remember that len(tuple)==1 always overrides keep! even for random!
+                # remember len(tuple)==1 always overrides keep! even for random!
                 if len(_poly_dupls[0]) == 1:
                     assert _out_combo == _poly_dupls[0]
                 else:
@@ -110,7 +110,9 @@ class TestICTKAccuracy:
 
         with pytest.raises(AssertionError):
             _identify_combos_to_keep(
-                poly_duplicates_=[[(1,), (8, 9)], [(1, 2), (2, 3)], [(2, 4), (4, 5)]],
+                poly_duplicates_=[
+                    [(1,), (8, 9)], [(1, 2), (2, 3)], [(2, 4), (4, 5)]
+                ],
                 _keep=_keep,
                 _rand_combos=((8, 8), (2, 4), (3, 5))
             )

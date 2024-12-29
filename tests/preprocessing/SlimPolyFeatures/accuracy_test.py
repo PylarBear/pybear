@@ -34,6 +34,10 @@ pytest.skip(reason=f"pizza not finished", allow_module_level=True)
 
 # pizza dont forget accuracy when X is 1 column
 
+# pizza need to test edge case of when no poly is produced, both for single
+# fit and across partial fits
+
+
 
 class TestAccuracy:
 

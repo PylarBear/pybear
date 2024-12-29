@@ -10,7 +10,7 @@ from typing_extensions import Union
 
 from collections import defaultdict
 import itertools
-
+import warnings
 
 
 
@@ -22,68 +22,82 @@ def _merge_partialfit_dupls(
 ) -> list[list[tuple[int, ...]]]:
 
     """
-    Find groups of identical columns for the current partial fit with
-    _find_duplicates. Compare the newest duplicates found in the current
-    partial fit with previous duplicates found on earlier partial fits
-    and meld together to produce overall duplicates. Any columns
-    previously not identified as equal but currently are equal, are
-    coincidentally equal and are not added to the final list. Columns
-    previously found to be equal but are not currently equal are removed
-    from the final lists of duplicates. The only duplicates retained are
-    those columns found to be identical for all partial fits.
+    The lead-up to this module:
+    Within a partial fit, for each combo get the duplicates with
+    _get_dupls_for_combo_in_X_and_poly. After each combo run,
+    progressively build the current partial fit's lists of duplicates
+    by passing the current combo dupls to _merge_combo_dupls. Once all
+    the combos are done, the output of _merge_combo_dupls is the final
+    list of duplicates for the current partial fit. Merge the current
+    partial fit's dupls with dupls from previous partial fits with
+    this module.
 
-    Pizza say something about sorting the merged dupls.
+    Compare the newest duplicates found in the current partial fit with
+    duplicates found on earlier partial fits and meld together to produce
+    overall duplicates. Any combos previously not identified as equal
+    but currently are equal, are coincidentally equal and are not added
+    to the final list. Combos previously found to be equal but are not
+    currently equal are removed from the final lists of duplicates. The
+    only duplicates retained are those combos found to be identical for
+    all partial fits.
+
+    The merged duplicates must be sorted in this way. All combos should
+    already be sorted asc on indices. Within each group of duplicates,
+    sort first on tuple len (degree), then sort asc on idx values. Across
+    groups of duplicates sort in the same way on the first value in each
+    group, so that the groups are asc on degree, then on indices.
 
 
     Parameters
     ----------
     _old_duplicates:
-        Union[list[list[tuple[int, ...]]], None] - the duplicate columns
+        Union[list[list[tuple[int, ...]]], None] - the duplicate combos
         carried over from the previous partial fits. Is None if on the
         first partial fit.
     _new_duplicates:
-        list[list[tuple[int, ...]]] - the duplicate columns found during
-        the current partial fit. Is None if on the first partial fit.
+        list[list[tuple[int, ...]]] - the duplicate combos found during
+        the current partial fit.
 
 
     Return
     ------
     -
         duplicates_: list[list[tuple[int, ...]]] - the groups of
-            identical columns, indicated by their zero-based column
-            index positions.
+            identical combos across all partial fits.
 
 
     """
 
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     assert isinstance(_old_duplicates, (list, type(None)))
     if _old_duplicates is not None:
-        for _set in _old_duplicates:
-            assert len(_set) >= 2
-            assert isinstance(_set, list)
-            assert all(map(isinstance, _set, (tuple for _ in _set)))
-            for _tuple in _set:
-                for _int in _tuple:
-                    assert isinstance(_int, int)
+        for _dupl_set in _old_duplicates:
+            assert len(_dupl_set) >= 2
+            assert isinstance(_dupl_set, list)
+            assert all(map(isinstance, _dupl_set, (tuple for _ in _dupl_set)))
+            for _tuple in _dupl_set:
+                assert isinstance(_tuple, tuple)
+                assert all(map(isinstance, _tuple, (int for _ in _tuple)))
 
     assert isinstance(_new_duplicates, list)
-    for _set in _new_duplicates:
-        assert len(_set) >= 2
-        assert isinstance(_set, list)
-        assert all(map(isinstance, _set, (tuple for _ in _set)))
-        for _tuple in _set:
-            for _int in _tuple:
-                assert isinstance(_int, int)
+    for _dupl_set in _new_duplicates:
+        assert len(_dupl_set) >= 2
+        assert isinstance(_dupl_set, list)
+        assert all(map(isinstance, _dupl_set, (tuple for _ in _dupl_set)))
+        for _tuple in _dupl_set:
+            assert isinstance(_tuple, tuple)
+            assert all(map(isinstance, _tuple, (int for _ in _tuple)))
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-
-    # if _duplicates is None, this is the first pass
+    # if _old_duplicates is None, this is the first pass
     if _old_duplicates is None:
         _duplicates = _new_duplicates
     elif _old_duplicates is not None:
-        # duplicates found on subsequent partial fits cannot increase the
+        # duplicates found on later partial fits cannot increase the
         # number of duplicates over what was found on previous partial
         # fits. If later partial fits find new identical columns, it can
         # only be coincidental, as those columns were previously found to
@@ -95,33 +109,34 @@ def _merge_partialfit_dupls(
         # duplicates. Only a group of 2+ columns that appear together in
         # a set of dupls in both duplicates can carry forward. make sense?
         # _old_duplicates = [[0,1,2], [4,5]]
-        # _new_duplicates = [[0, 3], [1,2], [4,5]]
+        # _new_duplicates = [[0,3], [1,2], [4,5]]
         # only [1,2] and [4,5] carry forward.
 
-        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        # get the possible combinations of pairs for both duplicates, then
-        # find the intersection, to find all pairs of numbers that are in the
-        # same subset for both duplicates.
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # get the possible combinations of pairs within both old and new
+        # duplicates, then find the intersection, to find all pairs of
+        # numbers that are in the same subset for both duplicates.
 
         all_old_comb = []
-        for _set in _old_duplicates:
-            all_old_comb += list(itertools.combinations(_set, 2))
+        for _dupl_set in _old_duplicates:
+            all_old_comb += list(itertools.combinations(_dupl_set, 2))
 
         all_new_comb = []
-        for _set in _new_duplicates:
-            all_new_comb += list(itertools.combinations(_set, 2))
+        for _dupl_set in _new_duplicates:
+            all_new_comb += list(itertools.combinations(_dupl_set, 2))
 
         _intersection = set(all_old_comb).intersection(all_new_comb)
 
         if len(_old_duplicates) or len(_new_duplicates):
-            del _set
+            del _dupl_set
         del all_old_comb, all_new_comb
 
-        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # use this "union-find" stuff that CHATGPT came up with to convert
-        # pairs of duplicates like [(0,1), (1,2), (0,2), (4,5)] to [[0,1,2], [4,5]]
+        # pairs of duplicates like
+        # [(0,1), (1,2), (0,2), (4,5)] to [[0,1,2], [4,5]]
 
         # Find connected components using union-find
         # Union-Find data structure
@@ -155,23 +170,28 @@ def _merge_partialfit_dupls(
         _duplicates = list(components.values())
 
 
-    # Sort each component and the final result for consistency
-    # within dupl sets, sort on len asc, then within the same lens sort on values asc
-    _duplicates = [sorted(component, key=lambda x: (len(x), x)) for component in _duplicates]
-    # across all dupl sets, only look at the first value in a dupl set, sort on len asc,
-    # then values asc
+    # Sort each component and the final result for consistency.
+    # within dupl sets, sort asc len, then within the same lens sort asc
+    # idxs
+    for _idx, _dupl_set in enumerate(_duplicates):
+        _duplicates[_idx] = sorted(_dupl_set, key=lambda x: (len(x), x))
+    # across all dupl sets, only look at the first value in a dupl set,
+    # sort on len asc, then indices asc
     _duplicates = sorted(_duplicates, key=lambda x: (len(x[0]), x[0]))
 
-    # if any dupl set contains more than 1 tuple of len==1 (i.e., more than one column from X)
-    # raise exception for duplicate columns in X
+    # if any dupl set contains more than 1 tuple of len==1 (i.e., more
+    # than one column from X) warn for duplicate columns in X.
+    # in SPF.partial_fit(), SPF will warn if duplicates/constants are
+    # found in X, but only when SPF :param: scan_X is True.
+    # This will warn regardless of whether the scan is performed or not.
     for _dupl_set in _duplicates:
-        # pizza this may need to come out or change to warn.
         if sum(map(lambda x: x==1, map(len, _dupl_set))) > 1:
-            raise AssertionError(
-                f"There are duplicate columns in X. Use pybear "
-                f"ColumnDeduplicateTransformer to remove them before using SlimPoly."
+            warnings.warn(
+                f"There are duplicate columns in X. Do more partial fits "
+                f"or use pybear ColumnDeduplicateTransformer to remove "
+                f"them before using SlimPoly."
             )
-
+    print(f'pizza print {_duplicates=}')
 
     return _duplicates
 

@@ -789,9 +789,11 @@ class TestManyPartialFitsEqualOneBigFit:
         # ** ** ** ** ** ** ** ** ** ** **
         # TEST THAT ONE-SHOT partial_fit/transform == ONE-SHOT fit/transform
         OneShotPartialFitTestCls = SlimPoly(**_kwargs)
+        print(f'pizza start OneShotPartialFitTestCls')
         OneShotPartialFitTestCls.partial_fit(_X)
 
         OneShotFullFitTestCls = SlimPoly(**_kwargs)
+        print(f'pizza start OneShotFullFitTestCls')
         OneShotFullFitTestCls.fit(_X)
 
         _ = OneShotPartialFitTestCls.expansion_combinations_
@@ -825,10 +827,12 @@ class TestManyPartialFitsEqualOneBigFit:
         # the nature of SlimPoly should cause the same columns to be kept
         # when the same data is partial_fit multiple times
         SingleFitTestClass = SlimPoly(**_kwargs)
+        print(f'pizza start SingleFitTestClass')
         SingleFitTestClass.fit(_X)
         _ = SingleFitTestClass.expansion_combinations_
 
         DoublePartialFitTestClass = SlimPoly(**_kwargs)
+        print(f'pizza start DoublePartialFitTestClass')
         DoublePartialFitTestClass.partial_fit(_X)
         __ = DoublePartialFitTestClass.expansion_combinations_
         DoublePartialFitTestClass.partial_fit(_X)
@@ -869,7 +873,10 @@ class TestManyPartialFitsEqualOneBigFit:
         OneShotFitTransformTestCls = SlimPoly(**_kwargs)
 
         # PIECEMEAL PARTIAL FIT
+        print(f'pizza start PartialFitTestCls')
         for X_CHUNK in X_CHUNK_HOLDER:
+            print(f'pizza print X_CHUNK')
+            print(X_CHUNK)
             PartialFitTestCls.partial_fit(X_CHUNK)
 
         # PIECEMEAL TRANSFORM ******************************************
@@ -895,6 +902,7 @@ class TestManyPartialFitsEqualOneBigFit:
 
 
         # ONE-SHOT FIT TRANSFORM
+        print(f'pizza start OneShotFitTransformTestCls')
         FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM = \
             OneShotFitTransformTestCls.fit_transform(_X)
 
