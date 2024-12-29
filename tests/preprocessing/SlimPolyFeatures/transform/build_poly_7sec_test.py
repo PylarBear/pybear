@@ -6,15 +6,13 @@
 
 
 
-
-
-
 import itertools
 
 import numpy as np
 import scipy.sparse as ss
 
-from pybear.preprocessing.SlimPolyFeatures._transform._build_poly import _build_poly
+from pybear.preprocessing.SlimPolyFeatures._transform._build_poly \
+    import _build_poly
 
 import pytest
 
@@ -26,7 +24,7 @@ class TestBuildPoly:
 
 
     # def _build_poly(
-    #     X: ss.csc_array,
+    #     X: DataType,
     #     _active_combos: tuple[tuple[int, ...], ...],
     #     _n_jobs: Union[numbers.Integral, None]
     # ) -> ss.csc_array:
@@ -48,7 +46,7 @@ class TestBuildPoly:
     @staticmethod
     @pytest.fixture(scope='module')
     def _good_X(_shape):
-        return ss.csc_array(np.random.randint(0,3,_shape))
+        return ss.csc_array(np.random.randint(0, 3, _shape))
 
 
     @pytest.mark.parametrize('junk_inputs',
@@ -58,7 +56,6 @@ class TestBuildPoly:
     def test_minimalist_validation(
         self, junk_inputs, _good_active_combos, _good_X, _shape
     ):
-
 
         # X
         with pytest.raises(AssertionError):
@@ -78,7 +75,14 @@ class TestBuildPoly:
 
 
         # n_jobs
-        if isinstance(junk_inputs, int) and not isinstance(junk_inputs, bool) and (junk_inputs == -1 or junk_inputs >= 1):
+        _is_bad_n_jobs = 0
+        _is_bad_n_jobs += not isinstance(junk_inputs, int)
+        _is_bad_n_jobs += isinstance(junk_inputs, bool)
+        try:
+            _is_bad_n_jobs += junk_inputs < -1 or junk_inputs == 0
+        except:
+            pass
+        if not _is_bad_n_jobs:
             _build_poly(
                 X=_good_X,
                 _active_combos=_good_active_combos,
@@ -111,14 +115,7 @@ class TestBuildPoly:
         )
 
 
-
     def test_build_poly(self, _good_X, _good_active_combos, _shape):
-
-        # def _build_poly(
-        #     X: ss.csc_array,
-        #     _active_combos: tuple[tuple[int, ...], ...],
-        #     _n_jobs: Union[numbers.Integral, None]
-        # ) -> ss.csc_array:
 
         out =  _build_poly(
             _good_X,
@@ -136,8 +133,9 @@ class TestBuildPoly:
         _column_pool = _good_X.toarray()
 
         for _combo in _good_active_combos:
-            ref = np.hstack((ref, _column_pool[:, _combo].prod(1).reshape((-1,1))))
-
+            ref = np.hstack((
+                ref, _column_pool[:, _combo].prod(1).reshape((-1,1))
+            ))
         # END build a referee output - - - - - - - - - - - -
 
         out = out.toarray()

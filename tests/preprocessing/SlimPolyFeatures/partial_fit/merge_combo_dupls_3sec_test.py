@@ -6,10 +6,8 @@
 
 
 
-
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._merge_combo_dupls import (
-    _merge_combo_dupls
-)
+from pybear.preprocessing.SlimPolyFeatures._partial_fit._merge_combo_dupls \
+    import _merge_combo_dupls
 
 import numpy as np
 from copy import deepcopy
@@ -35,7 +33,7 @@ class TestMergeComboDupls:
 
 
 
-    # _dupls_for_this_combo ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # _dupls_for_this_combo ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('_dupls_for_this_combo',
         (-np.e, -1, 0, 1, np.e, None, True, False, 'trash', lambda x: x)
     )
@@ -107,10 +105,10 @@ class TestMergeComboDupls:
             _dupls_for_this_combo,
             _good_partialfit_dupls
         )
-    # END _dupls_for_this_combo ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END _dupls_for_this_combo ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    # _poly_dupls_current_partial_fit ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # _poly_dupls_current_partial_fit ** * ** * ** * ** * ** * ** * ** * ** *
 
     @pytest.mark.parametrize('_poly_dupls_current_partial_fit',
         (-np.e, -1, 0, 1, np.e, None, True, False, 'trash', lambda x: x)
@@ -188,10 +186,7 @@ class TestMergeComboDupls:
             _poly_dupls_current_partial_fit
         )
 
-    # END _poly_dupls_current_partial_fit ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
+    # END _poly_dupls_current_partial_fit ** * ** * ** * ** * ** * ** * ** * **
 
 
 
@@ -221,7 +216,9 @@ class TestMergeComboDuplsAccuracy:
     @pytest.mark.parametrize('_poly_dupls_current_partial_fit',
         ([], [[(0,), (4,), (1,2)]], [[(2,), (2,3)]])
     )
-    def test_dupls_for_this_combo_is_empty(self, _poly_dupls_current_partial_fit):
+    def test_dupls_for_this_combo_is_empty(
+        self, _poly_dupls_current_partial_fit
+    ):
 
         # _dupls_for_this_combo=[], _poly_dupls_current_partial_fit always
         # returned unchanged.
@@ -256,8 +253,9 @@ class TestMergeComboDuplsAccuracy:
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # if first combo of _dupls_for_this_combo already in _poly_dupls_current_partial_fit,
-        # merge the two sets that share the first combo
+        # if first combo of _dupls_for_this_combo already in
+        # _poly_dupls_current_partial_fit, merge the two sets that share
+        # the first combo
 
         # new columns of constants, with overlap
         _dupls_for_this_combo = [(1, ), (2,3)]

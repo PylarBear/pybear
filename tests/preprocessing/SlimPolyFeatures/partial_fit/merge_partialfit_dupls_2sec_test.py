@@ -7,14 +7,10 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._merge_partialfit_dupls import (
-    _merge_partialfit_dupls
-)
-
+from pybear.preprocessing.SlimPolyFeatures._partial_fit._merge_partialfit_dupls \
+    import _merge_partialfit_dupls
 
 import pytest
-import numpy as np
-
 
 
 
@@ -28,33 +24,30 @@ class Fixtures:
         return (100, 20)
 
 
-
     @staticmethod
     @pytest.fixture(scope='module')
     def _init_duplicates():
-        # the sorting must be asc len(tuple) then asc tuple
+        # the sorting must be asc len(tuple) then asc idxs
         return [
             [(1,), (15,18)],
             [(3,4), (8,9), (12,18)]
         ]
 
 
-
     @staticmethod
     @pytest.fixture(scope='module')
     def _less_duplicates():
-        # the sorting must be asc len(tuple) then asc tuple
+        # the sorting must be asc len(tuple) then asc idxs
         return [
             [(1,), (15,18)],
             [(3,4), (12,18)]
         ]
 
 
-
     @staticmethod
     @pytest.fixture(scope='module')
     def _more_duplicates():
-        # the sorting must be asc len(tuple) then asc tuple
+        # the sorting must be asc len(tuple) then asc idxs
         return [
             [(1,), (4,6), (15,18)],
             [(3,4), (8,9), (12,18)]
@@ -68,9 +61,7 @@ class TestDuplCombos(Fixtures):
 
     def test_first_pass(self, _init_duplicates):
 
-        # on first pass, the output of _find_duplicates is returned directly.
-        # _find_duplicates is tested elsewhere for all input types. Only need
-        # to test with numpy arrays here.
+        # on first pass, the output of _new_duplicates is returned directly.
 
         out = _merge_partialfit_dupls(None, _init_duplicates)
 
@@ -172,7 +163,7 @@ class TestDuplCombos(Fixtures):
 
     def test_sorting(self):
 
-        # always returns _dupl_sets sorted by asc len(tuple), then asc on tuple
+        # always returns _dupl_sets sorted by asc len(tuple), then asc on idxs
 
         _fst_duplicates = [[(3,11), (1,), (5,13)], [(4,12), (0,1), (2,)]]
         _scd_duplicates = [[(0,1), (4,12), (2,)], [(1,), (3,11), (5,13)]]

@@ -64,6 +64,7 @@ class TestSetParams:
         _junk_kwargs['refuse'] = 'rubbish'
 
         with pytest.raises(Exception):
+            # pizza will be coming back to this!
             # this is managed by BaseEstimator, let it raise whatever
             SlimPoly(**_junk_kwargs)
 
@@ -78,6 +79,7 @@ class TestSetParams:
         _junk_kwargs['refuse'] = 'rubbish'
 
         with pytest.raises(Exception):
+            # pizza will be coming back to this!
             # this is managed by BaseEstimator, let it raise whatever
             TestCls.set_params(**_junk_kwargs)
 
@@ -113,7 +115,7 @@ class TestSetParams:
             assert getattr(TestCls, _param) == _value
 
 
-    def test_blocks_some_params_after_fit(self, X, y, _kwargs):
+    def test_blocks_some_params_after_fit(self, X, y):
 
 
         alt_kwargs = {
@@ -170,7 +172,8 @@ class TestSetParams:
             _og_value = getattr(IFTCls, param)
             with pytest.warns():
                 IFTCls.set_params(param=value)
-            # assert did not set the new value, kept old, which was from alt_kwargs
+            # assert did not set the new value,
+            # kept old, which was from alt_kwargs
             assert getattr(IFTCls, param) == _og_value == alt_kwargs[param]
 
 
@@ -207,12 +210,12 @@ class TestSetParams:
         FSPT_TRFM_X = FSPTCls.transform(X.copy())
         assert FSPTCls.keep == 'last'
 
-        # CHECK X AND Y EQUAL REGARDLESS OF WHEN SET_PARAMS
+        # CHECK OUTPUT EQUAL REGARDLESS OF WHEN SET_PARAMS
         assert np.array_equiv(SPFT_TRFM_X.astype(str), FSPT_TRFM_X.astype(str)), \
             f"SPFT_TRFM_X != FSPT_TRFM_X"
 
 
-    def test_set_params_between_fit_transforms(self, X, y, _kwargs):
+    def test_set_params_between_fit_transforms(self, X, y):
 
         alt_kwargs = {
             'degree': 3,

@@ -20,8 +20,8 @@ def _merge_constants(
 
     """
     Merge the constants found in the current partial fit with those
-    found in previous partial fits. Constant columns can only stay the
-    same or decrease on later partial fits, never increase.
+    found in previous partial fits. The number of constant columns can
+    only stay the same or decrease on later partial fits, never increase.
 
     This works for both X_constants_ and poly_constants_.
 
@@ -29,11 +29,13 @@ def _merge_constants(
     Parameters
     ----------
     _old_constants:
-        Union[dict[tuple[int, ...], any], None] - the column indices of constant columns found in
-        previous partial fits and the values in the columns.
+        Union[dict[tuple[int, ...], any], None] - the column indices of
+        constant columns found in previous partial fits and the values
+        in the columns.
     _new_constants:
-        dict[tuple[int, ...], any] - the column indices of constant columns found in
-        the current partial fit and the values in the columns.
+        dict[tuple[int, ...], any] - the column indices of constant
+        columns found in the current partial fit and the values in the
+        columns.
     _rtol:
         numbers.Real - The relative difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
@@ -47,24 +49,24 @@ def _merge_constants(
     Return
     ------
     -
-        _final_constants: dict[tuple[int, ...], any] - the compiled column indices
-            and values of constant columns found over all partial fits.
+        _final_constants: dict[tuple[int, ...], any] - the compiled
+            column indices and values of constant columns found over all
+            partial fits.
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_old_constants, (dict, type(None)))
     if _old_constants and len(_old_constants):
-        assert all(map(isinstance, _old_constants, (tuple for _ in _old_constants)))
-        for k in _old_constants:
-            if len(k):
-                assert all(map(isinstance, k, (int for _ in k)))
-    assert isinstance(_new_constants, dict)
+        for _tuple in _old_constants:
+            assert isinstance(_tuple, tuple)
+            assert all(map(isinstance, _tuple, (int for _ in _tuple)))
+
+    assert isinstance(_new_constants, dict)    # can never be None
     if len(_new_constants):
-        assert all(map(isinstance, _new_constants, (tuple for _ in _new_constants)))
-        for k in _new_constants:
-            if len(k):
-                assert all(map(isinstance, k, (int for _ in k)))
+        for _tuple in _new_constants:
+            assert isinstance(_tuple, tuple)
+            assert all(map(isinstance, _tuple, (int for _ in _tuple)))
 
     try:
         float(_rtol)
@@ -101,7 +103,8 @@ def _merge_constants(
 
             if _col_idx_tuple in _new_constants:
                 # need to handle nan - dont use dict.get here
-                if str(_value) == 'nan' and str(_new_constants[_col_idx_tuple]) == 'nan':
+                if str(_value) == 'nan' and \
+                        str(_new_constants[_col_idx_tuple]) == 'nan':
                     _final_constants[_col_idx_tuple] = _value
                 elif _new_constants[_col_idx_tuple] == _value:
                     # this should get strings (or ints, or maybe some floats)
@@ -114,7 +117,6 @@ def _merge_constants(
                 ):
                     # this should get floats
                     _final_constants[_col_idx_tuple] = _value
-
 
 
         # verify that outgoing constants were in old and new constants:
