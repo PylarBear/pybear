@@ -28,6 +28,7 @@ from ._get_feature_names_out._gfno_X import _gfno_X
 from ._get_feature_names_out._gfno_poly import _gfno_poly
 from ._partial_fit._combination_builder import _combination_builder
 from ._partial_fit._columns_getter import _columns_getter
+from ._partial_fit._deconstant_poly_dupls import _deconstant_poly_dupls
 from ._partial_fit._parallel_constant_finder import _parallel_constant_finder
 from ._partial_fit._get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
 from ._partial_fit._merge_constants import _merge_constants
@@ -298,7 +299,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     poly_constants_:
         dict[tuple[int, ...], any] - A dictionary whose keys are tuples
         of indices in the original data that produced a column of
-        constants. The dictionary values are the constant values in
+        constants in the polynomial expansion. The dictionary values are the constant values in
         those columns. For example, if a dataset has
         two constant columns, the first in the third index and the
         constant value is 1, and the other is in the tenth index and the
@@ -493,13 +494,24 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         pizza
 
         """
+        # pizza keep these notes.
+        # make some notes here that clarify how in-process _poly_duplicates
+        # can have constants because they need to be tracked until the final
+        # partial fit, but poly_duplicates_ cannot have the constants in it.
+        # the builder functions at the end of partial_fit() and transform()
+        # must use poly_duplicates_ and the user must get poly_duplicates_,
+        # but _poly_duplicates must always have constants in it and must be
+        # used for all other interal operations.
 
         check_is_fitted(self)
 
         try:
             self._check_X_constants_and_dupls()
 
-            return self._poly_duplicates
+            return _deconstant_poly_dupls(
+                _poly_duplicates=self._poly_duplicates,
+                _poly_constants=self._poly_constants
+            )
         except:
             warnings.warn(self._attr_access_warning())
             return
@@ -539,8 +551,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         try:
             self._check_X_constants_and_dupls()
 
+            # must use poly_duplicates_ here not _poly_duplicates
             return _build_kept_poly_duplicates(
-                    self._poly_duplicates,
+                    self.poly_duplicates_,
                     self._kept_combos
                 )
         except:
@@ -562,8 +575,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
             self._check_X_constants_and_dupls()
 
+            # must use poly_duplicates_ here not _poly_duplicates
             return _build_dropped_poly_duplicates(
-                    self._poly_duplicates,
+                    self.poly_duplicates_,
                     self._kept_combos
                 )
 
@@ -934,65 +948,66 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
             # END poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
+            # pizza this was hashed 24_12_29_08_20_00 need to include constants in duplicates
+            # if isinstance(_poly_is_constant, uuid.UUID):  # is not constant
 
-            if isinstance(_poly_is_constant, uuid.UUID):  # is not constant
-                # constant columns NEED TO GO INTO _POLY_CSC to know if
-                # they are also a member of duplicates because even though
-                # they are constants now, they might not be after more
-                # partial fits, but they still might be duplicates.
+            # constant columns NEED TO GO INTO _POLY_CSC to know if
+            # they are also a member of duplicates because even though
+            # they are constants now, they might not be after more
+            # partial fits, but they still might be duplicates.
 
-                # poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+            # poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-                # this function scans the combo column across the columns in X and
-                # poly looking for dupls. it returns a vector of bools whose len is
-                # X.shape[1] + POLY.shape[1]. if True, then the combo column is
-                # a duplicate of the X or POLY column that corresponds to that slot
-                # in the list
-                _out: list[bool] = _get_dupls_for_combo_in_X_and_poly(
-                    _COLUMN,
-                    _X,
-                    _POLY_CSC,
-                    _equal_nan=self.equal_nan,
-                    _rtol=self.rtol,
-                    _atol=self.atol,
-                    _n_jobs=self.n_jobs
+            # this function scans the combo column across the columns in X and
+            # poly looking for dupls. it returns a vector of bools whose len is
+            # X.shape[1] + POLY.shape[1]. if True, then the combo column is
+            # a duplicate of the X or POLY column that corresponds to that slot
+            # in the list
+            _out: list[bool] = _get_dupls_for_combo_in_X_and_poly(
+                _COLUMN,
+                _X,
+                _POLY_CSC,
+                _equal_nan=self.equal_nan,
+                _rtol=self.rtol,
+                _atol=self.atol,
+                _n_jobs=self.n_jobs
+            )
+
+            # need to convert 'out' to
+            # [(i1,), (i2,),..] SINGLE 1D GROUP (list) OF DUPLICATES
+            _indices = [(i,) for i in range(_X.shape[1])] + IDXS_IN_POLY_CSC
+            _dupls_for_this_combo = []
+            for _combo_tuple, _is_dupl in zip(_indices, _out):
+                if _is_dupl:
+                    _dupls_for_this_combo.append(_combo_tuple)
+            if len(_dupls_for_this_combo):
+                _dupls_for_this_combo.append(_combo)
+
+            assert len(_dupls_for_this_combo) != 1
+
+            # need to merge the current _dupls_for_this_combo with
+            # _poly_dupls_current_partial_fit. if _dupls_for_this_combo[0]
+            # == _dupl_set[0] for any of the dupl sets in _poly_dupls_current_partial_fit,
+            # then append the current combo idxs to that list.
+            # otherwise add the entire _dupls_for_this_combo to
+            # _poly_dupls_current_partial_fit.
+            _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = \
+                _merge_combo_dupls(
+                    _dupls_for_this_combo,
+                    _poly_dupls_current_partial_fit
                 )
+            # END poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-                # need to convert 'out' to
-                # [(i1,), (i2,),..] SINGLE 1D GROUP (list) OF DUPLICATES
-                _indices = [(i,) for i in range(_X.shape[1])] + IDXS_IN_POLY_CSC
-                _dupls_for_this_combo = []
-                for _idx_tuple, _is_dupl in zip(_indices, _out):
-                    if _is_dupl:
-                        _dupls_for_this_combo.append(_idx_tuple)
-                if len(_dupls_for_this_combo):
-                    _dupls_for_this_combo.append(_combo)
+            # if _dupls_for_this_combo is empty, then combo column is unique,
+            # put it in _POLY_CSC, even if it is constant
+            if not len(_dupls_for_this_combo):
+                _POLY_CSC = ss.hstack((
+                    _POLY_CSC,
+                    ss.csc_array(_COLUMN.reshape((-1,1)))
+                ))
+                IDXS_IN_POLY_CSC.append(_combo)
 
-                assert len(_dupls_for_this_combo) != 1
-
-                # need to merge the current _dupls_for_this_combo with
-                # _poly_dupls_current_partial_fit. if _dupls_for_this_combo[0]
-                # == _dupl_set[0] for any of the dupl sets in _poly_dupls_current_partial_fit,
-                # then append the current combo idxs to that list.
-                # otherwise add the entire _dupls_for_this_combo to
-                # _poly_dupls_current_partial_fit.
-                _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = \
-                    _merge_combo_dupls(
-                        _dupls_for_this_combo,
-                        _poly_dupls_current_partial_fit
-                    )
-                # END poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
-                # if _dupls_for_this_combo is empty, then combo column is unique,
-                # and if not constant, put it in _POLY_CSC
-                if not len(_dupls_for_this_combo):
-                    _POLY_CSC = ss.hstack((
-                        _POLY_CSC,
-                        ss.csc_array(_COLUMN.reshape((-1,1)))
-                    ))
-                    IDXS_IN_POLY_CSC.append(_combo)
-
-                del _poly_is_constant, _dupls_for_this_combo
+            del _poly_is_constant, _dupls_for_this_combo
 
 
         # what do we have at this point?
@@ -1046,12 +1061,12 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # set, sort on len asc, then values asc
         # END poly duplicates -----------------------
 
-        # iff self.poly_constants_ is None it is because @property for it
+        # iff self.poly_constants_ is None at this point it is because @property for it
         # is excepting on self._check_X_constants_and_dupls() and returning
         # None. In that case, all @properties will also trip on that and return None
         # for everything. partial_fit and transform
         # will continue to warn and the @properties will continue to warn as long as the
-        # dupl and/or constants condition exists.
+        # dupl and/or constants condition in X exists.
         # so because all access points are a no-op when dupls or
         # constants in X, then the below hidden params are not needed. need to
         # skip them because while there are dupls/constants
@@ -1063,22 +1078,36 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         if self.poly_constants_ is None:
             return self
 
+        # when doing partial fits, columns that are currently constant must be
+        # tracked in self._poly_duplicates because in future partial fits
+        # they may no longer be constant, but may still be duplicates. but this
+        # creates a problem in that things that are constant in the present
+        # state are mixed into self._poly_duplicates, which clouds the water
+        # when building _rand_combos, _kept_combos, and _active_combos. need
+        # a de-constanted _poly_duplicates for building these objects, while
+        # preserving the state of _poly_duplicates.
+        # all of this machinery is built into @property poly_duplicates_
+        # ---------------------------------------------------------------------
+        # BELOW THIS LINE USE poly_duplicates_ ONLY, DO NOT USE _poly_duplicates
+
         # if 'keep' == 'random', _transform() must pick the same random
-        # columns at every call after fitting is completed. need to set an instance attribute here
+        # duplicate columns at every call after fitting is completed. need
+        # to set an instance attribute here
         # that doesnt change when _transform() is called. must set a
         # random idx for every set of dupls.
         self._rand_combos: tuple[tuple[int, ...], ...] = \
-            _lock_in_random_combos(poly_duplicates_=self._poly_duplicates)
+            _lock_in_random_combos(poly_duplicates_=self.poly_duplicates_)
 
         # this needs to be before _get_active_combos because _kept_combos
         # is an input into @property dropped_poly_duplicates_
         self._kept_combos: tuple[tuple[int, ...], ...] = \
             _identify_combos_to_keep(
-                self._poly_duplicates,
+                self.poly_duplicates_,
                 self.keep,
                 self._rand_combos
             )
 
+        # @property dropped_poly_duplicates_ needs self._poly_duplicates and self._kept_combos
         self._active_combos = _get_active_combos(
             self._combos,
             self.poly_constants_,
@@ -1299,22 +1328,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         _og_dtype = type(X)
 
 
-        # SPF params may have changed via set_params. need to recalculate
-        # some attributes.
-        # poly_constants_ does not change no matter what params are
-        # poly_duplicates_ does not change no matter what params are
-        # kept_poly_duplicates_ and dropped_poly_duplicates_ might change
-        # based on keep
-
-        # this needs to be before _get_active_combos because _kept_combos
-        # is an input into @property dropped_poly_duplicates_
-        self._kept_combos: tuple[tuple[int, ...], ...] = \
-            _identify_combos_to_keep(
-                self._poly_duplicates,
-                self.keep,
-                self._rand_combos
-            )
-
         # ss sparse that cant be sliced
         if isinstance(X, (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
                        ss.dia_array, ss.bsr_array)):
@@ -1346,7 +1359,26 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         else:
             _X = X
 
+        # ---------------------------------------------------------------------
+        # BELOW THIS LINE USE poly_duplicates_ ONLY, DO NOT USE _poly_duplicates
 
+        # SPF params may have changed via set_params. need to recalculate
+        # some attributes.
+        # poly_constants_ does not change no matter what params are
+        # poly_duplicates_ does not change no matter what params are
+        # kept_poly_duplicates_ and dropped_poly_duplicates_ might change
+        # based on keep
+
+        # this needs to be before _get_active_combos because _kept_combos
+        # is an input into @property dropped_poly_duplicates_
+        self._kept_combos: tuple[tuple[int, ...], ...] = \
+            _identify_combos_to_keep(
+                self.poly_duplicates_,
+                self.keep,
+                self._rand_combos
+            )
+
+        # @property dropped_poly_duplicates_ needs self._poly_duplicates and self._kept_combos
         self._active_combos = _get_active_combos(
             self._combos,
             self.poly_constants_,
