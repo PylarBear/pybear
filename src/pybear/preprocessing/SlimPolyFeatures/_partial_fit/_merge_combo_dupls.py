@@ -24,14 +24,25 @@ def _merge_combo_dupls(
     In SPF :method: partial_fit, just before this is called, SPF has
     completed the check if combo produces a column of constants and has
     scanned the column against X and POLY. In that scan, SPF produced a
-    list called '_dupls_for this_combo'. Merge this list with
+    list called '_dupls_for_this_combo'. Merge this list with
     '_poly_dupls_current_partial_fit'.
 
-    If the first entry in '_dupls_for this_combo' matches the first
-    entry in any of the dupl groups in '_poly_dupls_current_partial_fit',
-    then append the current combo tuple to that list. If not, then add
+    If any entry in '_dupls_for_this_combo' matches any entry in any of
+    the dupl groups in '_poly_dupls_current_partial_fit', then append
+    the current combo tuple (in the last position of
+    '_dupls_for_this_combo') to that dupl group. If not, then add
     the entire '_dupls_for_this_combo' list to
     '_poly_dupls_current_partial_fit'.
+
+    ** IMPORTANT NOTE **
+    Prior to "If any entry in '_dupls_for_this_combo' matches any entry
+    in any of the dupl groups in '_poly_dupls_current_partial_fit'" the
+    logic was "If the first entry in '_dupls_for_this_combo' matches the
+    first entry in any of the dupl groups in
+    '_poly_dupls_current_partial_fit'". That logic was failing for
+    columns of all nans. "Failing" meaning that the handling of the
+    degenerate state of having a constant of all nans in X was excepting
+    in-process, not allowing any further partial fits.
 
 
     Parameters
@@ -129,10 +140,11 @@ def _merge_combo_dupls(
             __poly_dupls_current_partial_fit.append(_dupls_for_this_combo)
         else:
             # if _poly_dupls_current_partial_fit is not empty, look if a
-            # dupl set in it has the current X idx or poly idxs that is
-            # duplicate of combo in it already....
+            # dupl set in it has (any X idxs or poly idxs that is a
+            # duplicate of the current combo) in it already....
             for _dupl_set_idx, _dupls in enumerate(_poly_dupls_current_partial_fit):
-                if _dupls_for_this_combo[0] == _dupls[0]:
+
+                if len(set(_dupls).intersection(_dupls_for_this_combo)):
                     # if yes, put the current combo idxs into that dupl set
                     __poly_dupls_current_partial_fit[_dupl_set_idx].append(
                         _dupls_for_this_combo[-1]
