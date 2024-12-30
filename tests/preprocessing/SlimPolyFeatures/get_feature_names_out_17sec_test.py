@@ -231,7 +231,7 @@ class TestGetFeatureNamesOut:
             else:
                 # WITH HEADER PASSED SHOULD RETURN
                 # self.feature_names_in_[column_mask_]
-                # self.feature_names_in_ is being passed here for np input_features
+                # self.feature_names_in_ is passed here for np input_features
                 # and is always returned for pd
                 _X_HEADER = _columns
 

@@ -5,11 +5,10 @@
 #
 
 
-# IMPORTANT!
-# this is not sparse so this uses _parallel_column_comparer!
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._parallel_column_comparer \
-    import _parallel_column_comparer
+
+from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
+    _parallel_column_comparer import _parallel_column_comparer
 
 
 import pytest
@@ -17,7 +16,7 @@ import pytest
 
 
 
-class TestNpColumnComparer:
+class TestPdColumnComparer:
 
 
     @staticmethod
@@ -26,9 +25,8 @@ class TestNpColumnComparer:
         return (1000, 2)
 
 
-    # np cant be int if using nans
-    @pytest.mark.parametrize('_dtype1', ('flt', 'str', 'obj'))
-    @pytest.mark.parametrize('_dtype2', ('flt', 'str', 'obj'))
+    @pytest.mark.parametrize('_dtype1', ('flt', 'int', 'str', 'obj'))
+    @pytest.mark.parametrize('_dtype2', ('flt', 'int', 'str', 'obj'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_accuracy(
@@ -40,52 +38,65 @@ class TestNpColumnComparer:
         # column. so if create a 2 column array and both columns are the
         # same, then both will be identical except for the nans.
 
-
         _X_flt = _X_factory(
             _dupl=[[0,1]],
-            _format='np',
+            _format='pd',
             _dtype='flt',
             _has_nan=_has_nan,
-            _columns=None,
+            _columns=['a','b'],
+            _zeros=0.33,
+            _shape=_shape
+        )
+
+        _X_int = _X_factory(
+            _dupl=[[0,1]],
+            _format='pd',
+            _dtype='int',
+            _has_nan=_has_nan,
+            _columns=['c','d'],
             _zeros=0.33,
             _shape=_shape
         )
 
         _X_str = _X_factory(
             _dupl=[[0,1]],
-            _format='np',
+            _format='pd',
             _dtype='str',
             _has_nan=_has_nan,
-            _columns=None,
+            _columns=['e','f'],
             _zeros=0.33,
             _shape=_shape
         )
 
         _X_obj = _X_factory(
             _dupl=[[0,1]],
-            _format='np',
+            _format='pd',
             _dtype='obj',
             _has_nan=_has_nan,
-            _columns=None,
+            _columns=['g','h'],
             _zeros=0.33,
             _shape=_shape
         )
 
         if _dtype1 == 'flt':
-            _X1 = _X_flt[:,0].ravel()
+            _X1 = _X_flt.iloc[:, 0]
+        elif _dtype1 == 'int':
+            _X1 = _X_int.iloc[:, 0]
         elif _dtype1 == 'str':
-            _X1 = _X_str[:,0].ravel()
+            _X1 = _X_str.iloc[:, 0]
         elif _dtype1 == 'obj':
-            _X1 = _X_obj[:,0].ravel()
+            _X1 = _X_obj.iloc[:, 0]
         else:
             raise Exception
 
         if _dtype2 == 'flt':
-            _X2 = _X_flt[:,1].ravel()
+            _X2 = _X_flt.iloc[:, 1]
+        elif _dtype2 == 'int':
+            _X2 = _X_int.iloc[:, 1]
         elif _dtype2 == 'str':
-            _X2 = _X_str[:,1].ravel()
+            _X2 = _X_str.iloc[:, 1]
         elif _dtype2 == 'obj':
-            _X2 = _X_obj[:,1].ravel()
+            _X2 = _X_obj.iloc[:, 1]
         else:
             raise Exception
 

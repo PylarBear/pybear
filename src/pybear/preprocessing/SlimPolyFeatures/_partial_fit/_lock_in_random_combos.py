@@ -83,11 +83,11 @@ def _lock_in_random_combos(
     assert isinstance(poly_duplicates_, list)
     for _set in poly_duplicates_:
         assert isinstance(_set, list)
-        assert len(_set) >= 2
+        assert len(_set) >= 2, f"{len(_set)=}"
         for _tuple in _set:
             assert isinstance(_tuple, tuple)
             assert all(map(isinstance, _tuple, (int for _ in _tuple)))
-            assert len(_tuple) >= 1
+            assert len(_tuple) >= 1, f"{len(_tuple)=}"
 
     # all idx tuples in poly_duplicates_ must be unique
     a = set(itertools.chain(*poly_duplicates_))

@@ -83,7 +83,6 @@ def _gfno_poly(
     ))
 
     assert isinstance(_active_combos, tuple)
-    assert len(_active_combos), f"empty _active_combos has gotten into _gfno_poly"
     for _tuple in _active_combos:
         # this is important! for a single tuple, it must come in here (leave
         # _get_active_combos) as ((value1, value2),) like ((0,1),) !!!!!

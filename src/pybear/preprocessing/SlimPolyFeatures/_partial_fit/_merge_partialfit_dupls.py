@@ -191,7 +191,7 @@ def _merge_partialfit_dupls(
                 f"or use pybear ColumnDeduplicateTransformer to remove "
                 f"them before using SlimPoly."
             )
-    print(f'pizza print {_duplicates=}')
+
 
     return _duplicates
 

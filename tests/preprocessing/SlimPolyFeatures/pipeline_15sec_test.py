@@ -7,7 +7,8 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import SlimPolyFeatures as SlimPoly
+from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
 from pybear.utilities import check_pipeline
 
@@ -36,7 +37,7 @@ class TestPipeline:
     @staticmethod
     @pytest.fixture()
     def _shape():
-        return (20, 5)
+        return (5, 4)
 
 
     @staticmethod
@@ -75,7 +76,7 @@ class TestPipeline:
             _format='np',
             _has_nan=False,
             _columns=[str(uuid4())[:5] for _ in range(_shape[1])],
-            _dtype='obj',
+            _dtype='obj',      # <+=== THIS MUST BE OBJ, NEED CATEGORICAL
             _shape=_shape
         )
 
@@ -117,9 +118,12 @@ class TestPipeline:
         pipe = Pipeline(
             steps = [
                 ('onehot', OneHotEncoder(sparse_output=False)),
-                ('FunctionTransformer2', FunctionTransformer(_convert_format_before_SPF)),
+                (
+                    'FunctionTransformer2',
+                    FunctionTransformer(_convert_format_before_SPF)
+                 ),
                 ('SlimPoly', SlimPoly(**_kwargs)),
-                ('MLR', LinearRegression(fit_intercept = True, n_jobs = -1))
+                ('MLR', LinearRegression(fit_intercept = True, n_jobs = 1))
             ]
         )
 
@@ -137,7 +141,7 @@ class TestPipeline:
         encoded_X = OneHotEncoder(sparse_output=False).fit_transform(_X)
         reformatted_X = _convert_format_before_SPF(encoded_X)
         deduplicated_X = SlimPoly(**_kwargs).fit_transform(reformatted_X)
-        mlr = LinearRegression(fit_intercept = True, n_jobs = -1)
+        mlr = LinearRegression(fit_intercept = True, n_jobs = 1)
 
         mlr.fit(deduplicated_X, _y)
 

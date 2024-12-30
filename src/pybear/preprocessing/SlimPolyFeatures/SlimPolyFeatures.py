@@ -22,15 +22,18 @@ import scipy.sparse as ss
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
-from ._attributes._build_kept_poly_duplicates import _build_kept_poly_duplicates
-from ._attributes._build_dropped_poly_duplicates import _build_dropped_poly_duplicates
+from ._attributes._build_kept_poly_duplicates import \
+    _build_kept_poly_duplicates
+from ._attributes._build_dropped_poly_duplicates import \
+    _build_dropped_poly_duplicates
 from ._get_feature_names_out._gfno_X import _gfno_X
 from ._get_feature_names_out._gfno_poly import _gfno_poly
 from ._partial_fit._combination_builder import _combination_builder
 from ._partial_fit._columns_getter import _columns_getter
 from ._partial_fit._deconstant_poly_dupls import _deconstant_poly_dupls
 from ._partial_fit._parallel_constant_finder import _parallel_constant_finder
-from ._partial_fit._get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
+from ._partial_fit._get_dupls_for_combo_in_X_and_poly import \
+    _get_dupls_for_combo_in_X_and_poly
 from ._partial_fit._merge_constants import _merge_constants
 from ._partial_fit._merge_partialfit_dupls import _merge_partialfit_dupls
 from ._partial_fit._merge_combo_dupls import _merge_combo_dupls
@@ -43,8 +46,8 @@ from ._transform._build_poly import _build_poly
 
 from pybear.preprocessing.InterceptManager.InterceptManager import \
     InterceptManager as IM
-from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransformer import \
-    ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing.ColumnDeduplicateTransformer. \
+    ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
 
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
@@ -58,9 +61,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     """
     SlimPolyFeatures (SPF) performs a polynomial feature expansion on a
-    dataset, where any expansion feature produced that is a column of
-    constants or is a duplicate of another column is omitted from the
-    final output.
+    dataset, where any feature produced that is a column of constants or
+    is a duplicate of another column is omitted from the final output.
 
     A polynomial feature expansion generates all possible multiplicative
     combinations of the original features, typically from the zero-degree
@@ -82,65 +84,96 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     the data is fully expanded and prevents them from ever appearing in
     the final array (and occupying memory!)
 
-    A typical workflow would be to perform a polynomial expansion
-    on data (that fits in memory!), remove duplicate and constant columns,
-    and perform an analysis. The memory occupied
-    by the removed columns may have prevented us from doing a higher
-    order expansion. SPF affords the opportunity to (possibly) do higher
-    order expansions
-    than otherwise possible because the problematic columns are never
-    even created, and also saves us the time of finding and removing
+    A typical workflow would be to perform a polynomial expansion on data
+    (that fits in memory!), remove duplicate and constant columns, and
+    perform an analysis. The memory occupied by the columns that were
+    eventually removed may have prevented us from doing a higher order
+    expansion, which may have provided useful information. SPF affords
+    the opportunity to (possibly) do higher order expansions than
+    otherwise possible because the non-value-added columns are never even
+    created. SPF also saves the time of writing code to find and remove
     such columns after the expansion.
 
-    To robustly and tractably do this, pybear requires that the dataset to
-    undergo expansion have no duplicate or constant columns.
-    Remove duplicate columns from your data set beforehand
+    To robustly and tractably do this, pybear requires that the dataset
+    to undergo expansion have no duplicate or constant columns. There is
+    further discussion in these documents about how SlimPolyFeatures
+    handles these conditions in-situ during multiple partial fits, but
+    ultimately SPF requires the totality of seen data have no constants
+    and no duplicates. Remove duplicate columns from your data beforehand
     with pybear ColumnDeduplicateTransformer. Remove constant columns
     from your data with pybear InterceptManager.
 
-    SPF prohibits the degenerate case of only returning the 0-degree
-    column and the no-op case of returning the original data. SPF never
-    returns the 0-degree column (a column of ones) and will terminate if
-    :param: min_degree is set to zero (minimum allowed setting is 1). To
-    append a zero-degree column to your data, use pybear InterceptManager
-    after using SPF. Also, SPF does not allow the no-op case of :param:
-    degree = 1, where the original data is returned unchanged. The
-    minimum setting for :param: degree is 2.
+    SPF is able to learn what columns in the original data are
+    constant/duplicate and what columns in the expansion would be
+    constant/duplicate. At transform time, SPF applies the rules it
+    learned during fitting and only builds the columns that add value to
+    the dataset.
+
+    During the fitting process, partial_fit always generates the preliminary expansion as scipy sparse. This
+    is to save memory because for SPF to learn what columns in the expansion are duplicate,
+    SPF must retain all the unique columns that were found during the expansion process.
+    So SPF actually does the expansion out brute force (which can be large), but does not retain the X.
+    At transform, the polynomial expansion is built based on what was learned about
+    constant and duplicate columns during fitting.
+
+    The internal construction of the polynomial expansion in SPF is
+    always as a scipy sparse csc array to maximize the amount of
+    expansion that could be done. The expansion is also always done with
+    float64 datatypes, regardless of datatype of the passed data, to
+    prevent any overflow problems that might arise from multiplication
+    of low bit number types. However, overflow is still possible with 64
+    bit datatypes, especially when the data has large values or the
+    degree of the expansion is high. SPF HAS NO PROTECTIONS FOR OVERFLOW.
+    IT IS UP TO THE USER TO AVOID OVERFLOW CONDITIONS AND VERIFY RESULTS.
+
+    SPF follows the standard scikit-learn transformer API, and makes
+    the standard transformer methods available: fit, partial_fit,
+    transform, set_params, get_params, and get_feature_names_out. SPF
+    also has a reset method which is covered elsewhere in the docs.
 
     Numpy arrays, pandas dataframes, and all scipy sparse objects (csr,
     csc, coo, lil, dia, dok, bsr) are accepted by :methods: partial_fit,
     fit, and transform.
 
     SPF also has a 'sparse_output' parameter that can also increase the
-    amount of useful expansion features held in memory. The internal
-    construction of the polynomial expansion in SPF is always as a scipy
-    sparse csc array, to maximize the amount of expansion that could be
-    done. <Pizza, talk about SlimPoly forcing everything over to 64 bit.>
-    The expansion is also always done with float64 datatypes,
-    regardless of datatype of the passed data, to prevent any overflow
-    problems that might arise from multiplication from low bit number
-    types. <Pizza, talk about risk of overflow. SlimPoly has no controls in place.>
-    However, overflow is still possible with 64 bit datatypes,
-    especially when the data has large values or the degree of the
-    expansion is high. SPF HAS NO PROTECTIONS FOR OVERFLOW BEYOND 64 BIT.
-    IT IS UP TO THE USER TO AVOID OVERFLOW CONDITIONS. If :param:
+    amount of useful expansion features held in memory. If :param:
     sparse_output is set to True, that expansion is returned as scipy
     sparse csr array. Only if :param: sparse_output is set to False is
     the data returned in the format passed to :method: transform.
 
+    The SPF partial_fit method allows for incremental fitting. Through
+    this method, even if the data is bigger-than-memory, SPF is able to
+    learn what columns in X are constant/duplicate and what columns
+    in the expansion are constant/duplicate, and carry out instructions
+    to build the polynomial batch-wise.  This partial_fit method makes
+    SPF amenable to batch-wise fitting and transforming, such as via
+    dask_ml Incremental and ParallelPostFit wrappers.
 
-    SPF has a partial_fit method that allows for incremental fitting of
-    data. Through this method, SPF is able to learn what columns in the
-    original data are constant, and what columns in the expansion would be
-    duplicate, constant, or multicollinear. At transform time, SPF applies
-    the rules it learned during fitting and only builds the columns that
-    add value to the dataset. Through this partial_fit method SPF is
-    amenable to batch-wise fitting and transforming via dask_ml Incremental
-    and ParallelPostFit wrappers.
+    SPF takes parameters to set the minimum (:param: min_degree) and
+    maximum degrees (:param: degree) of the polynomial terms produced
+    during the expansion. The edge case of returning only the 0-degree
+    column of ones is disallowed. SPF never returns the 0-degree column
+    of ones under any circumstance. The lowest degree SPF ever returns
+    is degree one (the original data in addition to whatever other order
+    terms are required). SPF terminates if :param: min_degree is set to
+    zero (minimum allowed setting is 1). To append a zero-degree column
+    to your data, use pybear InterceptManager after using SPF. Also, SPF
+    does not allow the no-op case of :param: degree = 1, where the
+    original data would be returned unchanged. The minimum setting
+    for :param: degree is 2.
 
+    During fitting, SPF is able to tolerate constants and duplicates in
+    the data. While this condition exists, however, SPF remains in a
+    state where it waits for further partial fits to remedy the situation
+    and does no-ops with warnings on most other actions (such as calls
+    to attributes, the transform method, amongst others.) Only when the
+    internal state of SPF is satisfied that there are no constant or
+    duplicates are in the training data will SPF then allow access to
+    the other functionality.
 
-
-
+    SPF MUST ONLY TRANSFORM DATA IT HAS BEEN FITTED ON. TRANSFORMATION OF
+    ANY OTHER DATA WILL PRODUCE OUTPUT THAT MAY CONTAIN CONSTANTS AND
+    DUPLICATES.
 
 
     Parameters
@@ -189,9 +222,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         One of SPF's design rules is to never alter the originally passed
         data, so the original feature will always be kept. Under SPF's
         design rule that the original data has no duplicate columns, an
-        expansion feature cannot be identical to 2 of the original features.
-        In all cases where the duplicates are only within the polynomial
-        expansion, 'first' retains the column left-most in the
+        expansion feature cannot be identical to 2 of the original
+        features. In all cases where the duplicates are only within the
+        polynomial expansion, 'first' retains the column left-most in the
         expansion (lowest degree); 'last' keeps the column right-most in
         the expansion (highest degree); 'random' keeps a single
         randomly-selected feature of the set of duplicates.
@@ -280,53 +313,44 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     Attributes
     ----------
     n_features_in_:
-        int - number of features in the fitted data, i.e., number of features before expansion.
+        int - number of features in the fitted data, i.e., number of
+        features before expansion.
 
     feature_names_in_:
-        Union[NDArray[object], None] - The names of the features as seen during fitting.
-        Only accessible if X is passed to :methods: partial_fit or fit
-        as a pandas dataframe that has a header.
+        NDArray[object] - The names of the features as seen during
+        fitting. Only accessible if X is passed to :methods: partial_fit
+        or fit as a pandas dataframe that has a header.
 
     expansion_combinations_:
         tuple[tuple[int, ...], ...] - The polynomial column combinations
-        from X that are in the polynomial expansion part of the output.
-        An example might be ((0,0), (0,1), ...), where each tuple
+        from X that are in the polynomial expansion part of the final
+        output. An example might be ((0,0), (0,1), ...), where each tuple
         holds the column indices from X that are multiplied to produce
-        that feature in the polynomial expansion. This does not include
-        any combinations that are excluded from the polynomial expansion
-        for being a duplicate or constant.
+        a feature in the polynomial expansion. This matches one-to-one
+        with the created features, and similarly does not have any
+        combinations that are excluded from the polynomial expansion for
+        being a duplicate or constant.
 
     poly_constants_:
         dict[tuple[int, ...], any] - A dictionary whose keys are tuples
         of indices in the original data that produced a column of
-        constants in the polynomial expansion. The dictionary values are the constant values in
-        those columns. For example, if a dataset has
-        two constant columns, the first in the third index and the
-        constant value is 1, and the other is in the tenth index and the
-        constant value is 0, then constant_columns_ will be {(3,):1, (10,):0}.
-        If there are no constant columns, then constant_columns_ is an
-        empty dictionary.
-        dict[tuple[int, ...], any] - if :param: drop_constants is True, columns of
-        constants other than NoDup's bias column are removed from the data.
-        In that case, information about the removed constants is stored in the
-        dropped_constants_ attribute. There are two scenarios:
-        If the column of constants is in the originally passed data, then
-        the key in the dictionary is the zero-based index of that column
-        in the original data and the value is the value of the constant.
-        If the column of constants is in the polynomial expansion, then
-        the key in the dictionary is a tuple of the column indices in the
-        originally passed data whose product yields the constants, and the
-        value is the value of the constant. If :param: drop_constants is False,
-        or there are no columns of constants, then :attr: dropped_constants_ is
-        an empty dictionary.
-        These are always dropped from the polynomial expansion.
+        constants in the polynomial expansion. The dictionary values are
+        the constant values in those columns. For example, if an
+        expansion has a constant column that was produced by multiplying
+        the second and third columns in X (index positions 1 and 2,
+        respectively) and the constant value is 0, then constant_columns_
+        entry will be {(1,2): 0}. If there are no constant columns, then
+        constant_columns_ is an empty dictionary. These are always
+        excluded from the polynomial expansion.
 
     poly_duplicates_:
         list[list[tuple[int, ...]]] - a list of the groups of identical
-        columns, indicated by tuples of their zero-based column index
-        positions in the originally fit data. Columns from the original
-        data itself can be in a group of duplicates, along with any
-        duplicates from the polynomial expansion.
+        polynomial features, indicated by tuples of their zero-based
+        column index positions in the originally fit data. Columns from
+        the original data itself can be in a group of duplicates, along
+        with any duplicates from the polynomial expansion. For example,
+        poly_duplicates_ for some dataset might look like:
+        [[(1,), (2,3), (2,4)], [(5,6), (5,7), (6,7)]]
 
     dropped_poly_duplicates_:
         dict[tuple[int, ...], tuple[int, ...]] - A dictionary whose keys
@@ -336,16 +360,53 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         duplicate that was kept.
 
     kept_poly_duplicates_:
-        dict[tuple[int, ...], list[tuple[int, ...]]] - a dictionary whose keys are
-        tuples of the indices of the columns of X that produced polynomial column
-        that were kept out of sets of duplicates. The dictionary values are the
-        tuples of indices that created polynomial columns that were duplicate of
-        the column indicated by the dictionary key, but were removed from the
+        dict[tuple[int, ...], list[tuple[int, ...]]] - a dictionary whose
+        keys are tuples of the indices of the columns of X that produced
+        a polynomial column that was kept out of the sets of duplicates.
+        The dictionary values are lists of the tuples of indices that
+        created polynomial columns that were duplicate of the column
+        indicated by the dictionary key, but were removed from the
         polynomial expansion.
 
 
     Notes
     -----
+    pizza
+    talk about how all pd nan-likes are converted to np.nan.
+    talk about nan handling in general
+    This is to allow for validation of datatypes with astype(np.float64) (pd nan-likes blow this up)
+    and also to convert X to scipy sparse (pd nan-likes also blow this up!)
+
+    v v v v taken directly from IM notes v v v v
+    Concerning the handling of nan-like representations. While SPF
+    accepts data in the form of numpy arrays, pandas dataframes, and
+    scipy sparse matrices/arrays, during the search for constants
+    each column is separately converted to a 1D numpy array (see below
+    for more detail about how scipy sparse is handled.) After the
+    conversion to numpy 1D array and prior to calculating the mean and
+    applying numpy.allclose, IM identifies any nan-like representations
+    in the numpy array and standardizes all of them to numpy.nan. The
+    user needs to be wary that whatever is used to indicate 'not-a-number'
+    in the original data must first survive the conversion to numpy
+    array, then be recognizable by IM as nan-like, so that IM can
+    standardize it to numpy.nan. nan-like representations that are
+    recognized by IM include, at least, numpy.nan, pandas.NA, None (of
+    type None, not string 'None'), and string representations of 'nan'
+    (not case sensitive).
+
+    Concerning the handling of infinity. IM has no special handling
+    for numpy.inf, -numpy.inf, float('inf') or float('-inf'). IM falls
+    back to the native handling of these values for python and numpy.
+    Specifically, numpy.inf==numpy.inf and float('inf')==float('inf').
+
+    Concerning the handling of scipy sparse arrays. When searching for
+    constant columns, the columns are converted to dense 1D numpy arrays
+    one at a time. Each column is sliced from the data in sparse form
+    and is converted to numpy ndarray via the 'toarray' method. This a
+    compromise that causes some memory expansion but allows for efficient
+    handling of constant column calculations that would otherwise
+    involve implicit non-dense values.
+    ^ ^ ^ ^ taken directly from IM notes ^ ^ ^ ^
 
 
     See Also
@@ -359,6 +420,12 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     Examples
     --------
+    >>> from pybear.preprocessing import SlimPolyFeatures as SPF
+    >>> import numpy as np
+    >>> trf = SPF(degree=2, min_degree=1, interaction_only=False)
+    >>> X = [[0,1],[0,1],[1,1],[1,0]]
+    >>> out = trf.fit_transform(X)
+    >>> out
     pizza finish this!
 
 
@@ -367,6 +434,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
     """
 
+    # pizza this will ultimately come out at sklearn exorcism
     _parameter_constraints: dict = {
         "degree": [Interval(numbers.Integral, 0, None, closed="left")],
         "min_degree": [Interval(numbers.Integral, 0, None, closed="left")],
@@ -436,7 +504,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     def _check_X_constants_and_dupls(self):
 
         """
-        pizza
+        When SPF :param: scan_X is True, SPF uses pybear InterceptManager
+        and pybear ColumnDeduplicateTransformer to scan X for constants
+        and duplicates. If any are found, this method will raise an
+        exception.
 
         """
 
@@ -455,7 +526,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     def _attr_access_warning(self) -> str:
 
         """
-        pizza
+        Warning message for when duplicates and/or constants are found
+        in X.
 
         """
 
@@ -467,19 +539,16 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
     @property
-    def expansion_combinations_(self) -> Union[tuple[tuple[int, ...], ...], None]:
-
-        """
-        The tuples of column index combinations that are in the outputted
-        polynomial expansion.
-
-        """
+    def expansion_combinations_(
+        self
+    ) -> Union[tuple[tuple[int, ...], ...], None]:
 
         check_is_fitted(self)
 
         try:
             self._check_X_constants_and_dupls()
-            #     self._active_combos must be sorted asc degree, then asc on idxs. if _combos is sorted
+            #     self._active_combos must be sorted asc degree,
+            #     then asc on idxs. if _combos is sorted
             #     then this is sorted correctly at construction.
             return self._active_combos
         except:
@@ -490,10 +559,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     @property
     def poly_duplicates_(self) -> Union[list[list[tuple[int, ...]]], None]:
 
-        """
-        pizza
-
-        """
         # pizza keep these notes.
         # make some notes here that clarify how in-process _poly_duplicates
         # can have constants because they need to be tracked until the final
@@ -516,35 +581,11 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             warnings.warn(self._attr_access_warning())
             return
 
-        """
-        # pizza delete if not needed 24_12_07_16_19_00
-        # need to get the single columns from X out of _poly_duplicates
-        _holder: list[list[tuple[int, ...]]] = []
-        for _dupl_idx, _dupls in enumerate(deepcopy(self._poly_duplicates)):
-            assert len(_dupls) >= 2
-            _holder.append([])
-            for _tuple in _dupls:
-                if len(_tuple) >= 2:
-                    _holder[-1].append(_tuple)
-            # it shouldnt be possible for a set of _dupls to go empty, there
-            # should always be at least one combo term in it
-            if len(_holder[-1]) < 1:
-                raise AssertionError(
-                    f'algorithm failure, _poly_duplicates dupl '
-                    f'set does not have a combo tuple in it'
-                )
-
-        return _holder
-        """
-
 
     @property
-    def kept_poly_duplicates_(self) -> Union[dict[tuple[int, ...], list[tuple[int, ...]]], None]:
-
-        """
-        pizza
-
-        """
+    def kept_poly_duplicates_(
+        self
+    ) -> Union[dict[tuple[int, ...], list[tuple[int, ...]]], None]:
 
         check_is_fitted(self)
 
@@ -562,12 +603,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
     @property
-    def dropped_poly_duplicates_(self) -> Union[dict[tuple[int, ...], tuple[int, ...]], None]:
+    def dropped_poly_duplicates_(
+        self
+    ) -> Union[dict[tuple[int, ...], tuple[int, ...]], None]:
 
-        """
-        pizza
-
-        """
 
         check_is_fitted(self)
 
@@ -589,11 +628,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     @property
     def poly_constants_(self) -> Union[dict[tuple[int, ...], any], None]:
 
-        """
-        pizza
-
-        """
-
         check_is_fitted(self)
 
         try:
@@ -608,13 +642,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     def reset(self) -> Self:
 
         """
-        Reset internal data-dependent state of the transformer.
-        __init__ parameters are not changed.
-        Pizza, this is part of the external API to allow for reset because
-        setting most params after a fit has been done is blocked.
-        Need to verify if this (or find out how this can) set
-        :method: check_is_fitted() back to False.
-
+        Resets the data-dependent state of the transformer. __init__
+        parameters are not changed. This is part of the external API to
+        allow for reset because setting most params after a partial fit
+        has been done is blocked.
 
         """
 
@@ -623,8 +654,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             del self._poly_constants
             del self._combos
 
-            # _rand_combos, _kept_combos, and _active_combos may not exist even if
-            # _poly_duplicates exists because
+            # _rand_combos, _kept_combos, and _active_combos may not exist
+            # even if _poly_duplicates exists because
             # partial_fit short circuits before making them if there
             # are dupls/constants in X. so ask for permission.
             if hasattr(self, '_rand_combos'):
@@ -644,7 +675,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
 
         """
-        Get feature names after expansion.
+        Get feature names for the expanded feature set.
 
 
         Parameters
@@ -728,11 +759,14 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         )
 
 
-    # def get_params(self, deep:bool=?) -> dict[str, any]:
-    # if ever needed, hard code that can be substituted for the
-    # BaseEstimator get/set_params can be found in GSTCV_Mixin
+    # pizza this will be redid at sklearn exorcism
+    def get_params(self, deep:bool=True) -> dict[str, any]:
+        # if ever needed, hard code that can be substituted for the
+        # BaseEstimator get/set_params can be found in GSTCV_Mixin
+        return super().get_params(deep)
 
 
+    # pizza this decorator will come out, sklearn exorcism
     @_fit_context(prefer_skip_nested_validation=True)
     def partial_fit(
         self,
@@ -741,33 +775,24 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     ) -> Self:
 
         """
-        pizza say something
-
-        pizza,
-        partial_fit makes a copy of your originally passed X.
-        talk about how all pd nan-likes are converted to np.nan.
-        This is to allow for validation of datatypes with astype(np.float64) (pd nan-likes blow this up)
-        and also to convert X to scipy sparse (pd nan-likes also blow this up!)
-        partial_fit always converts the copy of your X to scipy sparse. This
-        is to save memory because for SPF to learn what columns in the expansion are duplicate,
-        SPF must retain all the unique columns that were found during the expansion process.
-        So SPF actually does the expansion out brute force (which can be large), but does not retain the X.
-        At transform, the polynomial expansion is built based on what was learned about
-        constant and duplicate columns during fitting.
+        Incrementally train the SPF transformer instance on batches of
+        data.
 
 
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples, n_features) -
-            The data to undergo polynomial expansion.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - A batch of the dataset to undergo
+            polynomial expansion.
         y:
-            {array-like, None} - Always ignored. The target for the data.
+            any - Always ignored. The target for the data.
+
 
         Return
         ------
         -
-            self - the fitted NoDupPolyFeatures instance.
+            self - the fitted SlimPolyFeatures instance.
 
 
         """
@@ -888,13 +913,16 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
         # ss sparse that cant be sliced
-        if isinstance(X, (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
-                       ss.dia_array, ss.bsr_array)):
+        if isinstance(X,
+            (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
+             ss.dia_array, ss.bsr_array)
+        ):
             warnings.warn(
-                f"pybear works hard to avoid mutating or creating copies of your original data. "
-                f"\nyou have passed your data as {type(X)}, which cannot be sliced by columns."
-                f"pybear needs to create a copy. \nto avoid this, pass your sparse data "
-                f"as csr, csc, lil, or dok."
+                f"pybear works hard to avoid mutating or creating copies "
+                f"of your original data. \nyou have passed your data as "
+                f"{type(X)}, which cannot be sliced by columns. pybear "
+                f"needs to create a copy. \nto avoid this, pass your "
+                f"sparse data as csr, csc, lil, or dok."
             )
             _X = X.copy().tocsc()
         else:
@@ -920,7 +948,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             # original data and should not be processed here
             assert len(_combo) >= 2
 
-            _COLUMN: npt.NDArray[np.float64] = _columns_getter(_X, _combo).prod(1).ravel()
+            _COLUMN: npt.NDArray[np.float64] = \
+                _columns_getter(_X, _combo).prod(1).ravel()
 
             __ = _COLUMN.shape
             assert len(__) == 1 or (len(__)==2 and __[1]==1)
@@ -928,10 +957,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
             # poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-            # if _poly_constants (the place that holds what poly columns are constants
-            # across all partial fits) exists and it is empty, then there cannot
-            # possibly be any columns of constants going forward, so dont even
-            # expend the energy to check.
+            # if _poly_constants (the place that holds what poly columns are
+            # constants across all partial fits) exists and it is empty, then
+            # there cannot possibly be any columns of constants going forward,
+            # so dont even expend the energy to check.
             if self._poly_constants and not len(self._poly_constants):
                 _poly_is_constant = uuid.uuid4()
             else:
@@ -1107,7 +1136,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 self._rand_combos
             )
 
-        # @property dropped_poly_duplicates_ needs self._poly_duplicates and self._kept_combos
+        # @property dropped_poly_duplicates_ needs self._poly_duplicates
+        # and self._kept_combos
         self._active_combos = _get_active_combos(
             self._combos,
             self.poly_constants_,
@@ -1124,22 +1154,25 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     ) -> Self:
 
         """
+        Train the SPF transformer instance on one batch of data. The
+        internal state of the instance is reset with every call to this
+        method.
 
 
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples, n_features) -
-            The data to undergo polynomial expansion.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - The full dataset to undergo
+            polynomial expansion.
         y:
-            {array-like, None} - Always ignored. The target for the data.
-
+            any - Always ignored. The target for the data.
 
 
         Return
         ------
         -
-            self - the fitted NoDupPolyFeatures instance.
+            self - the fitted SlimPolyFeatures instance.
 
 
         """
@@ -1175,17 +1208,19 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         Set the parameters of this estimator.
 
+        This method works on simple estimators as well as on nested objects
+        (such as :class: `sklearn.pipeline.Pipeline`). The latter have
+        parameters of the form ``<component>__<parameter>`` so that it's
+        possible to update parameters of nested objects.
+
+        ----------------------
+
         Once this transformer is fitted, only :params: 'sparse_output',
         'keep', 'feature_name_combiner', and 'n_jobs' can be changed via
         :method: set_params. All other parameters are blocked. To use
         different parameters without creating a new instance of this
         transformer class, call :method: reset on this instance,
         otherwise create a new instance of this transformer class."
-
-        This method works on simple estimators as well as on nested objects
-        (such as :class: `sklearn.pipeline.Pipeline`). The latter have
-        parameters of the form ``<component>__<parameter>`` so that it's
-        possible to update parameters of nested objects.
 
 
         Parameters
@@ -1226,11 +1261,12 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             warnings.warn(
                 "Once this transformer is fitted, only :params: 'keep', "
                 "'sparse_output', 'feature_name_combiner', and 'n_jobs' "
-                "can be changed via :method: set_params. All other parameters "
-                f"are blocked. The currently passed parameters {', '.join(list(_invalid_params))} have "
-                f"been blocked, but any valid parameters that were passed have been set."
-                "To use different parameters without creating a "
-                "new instance of this transformer class, call :method: reset "
+                "can be changed via :method: set_params. \nAll other "
+                "parameters are blocked. \nThe currently passed parameters "
+                f"{', '.join(list(_invalid_params))} have been blocked, "
+                "but any valid parameters that were passed have been set."
+                "\nTo use different parameters without creating a new "
+                "instance of this transformer class, call :method: reset "
                 "on this instance, otherwise create a new instance of this "
                 "transformer class."
             )
@@ -1249,14 +1285,17 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     ) -> DataType:
 
         """
-
+        Apply the expansion footprint that was learned during fitting to
+        the given data. pybear strongly urges that only data that was
+        seen during fitting be passed here.
 
 
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples, n_features) -
-            The data to undergo polynomial expansion.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - The data to undergo polynomial
+            expansion.
         copy:   # pizza this is going to come out
             Union[bool, None] -
 
@@ -1264,10 +1303,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         Return
         -------
         -
-            X_tr: {array-like, scipy sparse} - the polynomial feature expansion for X.
+            X_tr: Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] -
+            the polynomial feature expansion for X.
 
         """
-
 
         check_is_fitted(self)
 
@@ -1329,13 +1368,16 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
         # ss sparse that cant be sliced
-        if isinstance(X, (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
-                       ss.dia_array, ss.bsr_array)):
+        if isinstance(X,
+            (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
+            ss.dia_array, ss.bsr_array)
+        ):
             warnings.warn(
-                f"pybear works hard to avoid mutating or creating copies of your original data. "
-                f"\nyou have passed your data as {type(X)}, which cannot be sliced by columns."
-                f"\npybear needs to create a copy. \nto avoid this, pass your sparse data "
-                f"as csr, csc, lil, or dok."
+                f"pybear works hard to avoid mutating or creating copies of "
+                f"your original data. \nyou have passed your data as {type(X)}, "
+                f"which cannot be sliced by columns. \npybear needs to create "
+                f"a copy. \nto avoid this, pass your sparse data as csr, csc, "
+                f"lil, or dok."
             )
             _X = X.copy().tocsc()
         # pd df with funky nan-likes that np and ss dont like
@@ -1347,12 +1389,14 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
                 _X = X
             except:
                 warnings.warn(
-                    f"pybear works hard to avoid mutating or creating copies of your original data."
-                    f"\nyou have passed a dataframe that has nan-like values "
-                    f"that are not recognized by numpy/scipy. \nbut to merge this data with "
-                    f"the polynomial expansion, pybear must make a copy to replace all "
-                    f"the nan-likes with numpy.nan. \nto avoid this copy, pass your dataframe "
-                    f"with numpy.nan in place of any nan-likes that are only recognized by pandas."
+                    f"pybear works hard to avoid mutating or creating copies of "
+                    f"your original data. \nyou have passed a dataframe that has "
+                    f"nan-like values that are not recognized by numpy/scipy. "
+                    f"\nbut to merge this data with the polynomial expansion, "
+                    f"pybear must make a copy to replace all the nan-likes with "
+                    f"numpy.nan. \nto avoid this copy, pass your dataframe with "
+                    f"numpy.nan in place of any nan-likes that are only recognized "
+                    f"by pandas."
                 )
                 _X = X.copy()
                 _X[nan_mask(_X)] = np.nan

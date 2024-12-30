@@ -23,6 +23,8 @@ from pybear.base import check_is_fitted
 bypass = False
 
 
+# pizza put a test in here that verifies no inverse_transform() access.
+
 # pizza need to put a big part in here that checks accessing....
 # well compare this against dupls_consts_in_X_test, that is already doing some of this.
 # expansion_combinations_

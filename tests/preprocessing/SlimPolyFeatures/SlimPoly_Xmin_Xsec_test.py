@@ -789,59 +789,53 @@ class TestManyPartialFitsEqualOneBigFit:
         # ** ** ** ** ** ** ** ** ** ** **
         # TEST THAT ONE-SHOT partial_fit/transform == ONE-SHOT fit/transform
         OneShotPartialFitTestCls = SlimPoly(**_kwargs)
-        print(f'pizza start OneShotPartialFitTestCls')
         OneShotPartialFitTestCls.partial_fit(_X)
 
         OneShotFullFitTestCls = SlimPoly(**_kwargs)
-        print(f'pizza start OneShotFullFitTestCls')
         OneShotFullFitTestCls.fit(_X)
 
-        _ = OneShotPartialFitTestCls.expansion_combinations_
-        __ = OneShotFullFitTestCls.expansion_combinations_
-        assert _ == __
-        del _, __
-
-        ONE_SHOT_PARTIAL_FIT_TRFM_X = \
-            OneShotPartialFitTestCls.transform(_X)
-
-        ONE_SHOT_FULL_FIT_TRFM_X = \
-            OneShotFullFitTestCls.transform(_X)
-
-        assert ONE_SHOT_PARTIAL_FIT_TRFM_X.shape == \
-               ONE_SHOT_FULL_FIT_TRFM_X.shape
+        if _keep != 'random':
+            _ = OneShotPartialFitTestCls.expansion_combinations_
+            __ = OneShotFullFitTestCls.expansion_combinations_
+            assert _ == __
+            del _, __
 
         # this should be true for all 'keep', including random
+        # (random too only because of the special design of X)
         assert np.array_equal(
-            ONE_SHOT_PARTIAL_FIT_TRFM_X,
-            ONE_SHOT_FULL_FIT_TRFM_X
+            OneShotPartialFitTestCls.transform(_X),
+            OneShotFullFitTestCls.transform(_X)
         ), f"one shot partial fit trfm X != one shot full fit trfm X"
 
-        del ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_X
+        # del ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_X
+        del OneShotPartialFitTestCls, OneShotFullFitTestCls
 
         # END TEST THAT ONE-SHOT partial_fit/transform==ONE-SHOT fit/transform
         # ** ** ** ** ** ** ** ** ** ** **
 
+
         # ** ** ** ** ** ** ** ** ** ** **
         # TEST PARTIAL FIT KEPT COMBINATIONS ARE THE SAME WHEN FULL DATA
         # IS partial_fit() 2X
-        # the nature of SlimPoly should cause the same columns to be kept
+        # SlimPoly should cause the same columns to be kept
         # when the same data is partial_fit multiple times
         SingleFitTestClass = SlimPoly(**_kwargs)
-        print(f'pizza start SingleFitTestClass')
         SingleFitTestClass.fit(_X)
-        _ = SingleFitTestClass.expansion_combinations_
 
         DoublePartialFitTestClass = SlimPoly(**_kwargs)
-        print(f'pizza start DoublePartialFitTestClass')
         DoublePartialFitTestClass.partial_fit(_X)
-        __ = DoublePartialFitTestClass.expansion_combinations_
         DoublePartialFitTestClass.partial_fit(_X)
-        ___ = DoublePartialFitTestClass.expansion_combinations_
 
-        assert _ == __
-        assert _ == ___
+        if _keep != 'random':
+            _ = SingleFitTestClass.expansion_combinations_
+            __ = DoublePartialFitTestClass.expansion_combinations_
+            ___ = DoublePartialFitTestClass.expansion_combinations_
 
-        del _, __, ___
+            assert _ == __
+            assert _ == ___
+
+            del _, __, ___
+
 
         assert np.array_equal(
             SingleFitTestClass.transform(_X),
@@ -873,10 +867,7 @@ class TestManyPartialFitsEqualOneBigFit:
         OneShotFitTransformTestCls = SlimPoly(**_kwargs)
 
         # PIECEMEAL PARTIAL FIT
-        print(f'pizza start PartialFitTestCls')
         for X_CHUNK in X_CHUNK_HOLDER:
-            print(f'pizza print X_CHUNK')
-            print(X_CHUNK)
             PartialFitTestCls.partial_fit(X_CHUNK)
 
         # PIECEMEAL TRANSFORM ******************************************
@@ -902,7 +893,6 @@ class TestManyPartialFitsEqualOneBigFit:
 
 
         # ONE-SHOT FIT TRANSFORM
-        print(f'pizza start OneShotFitTransformTestCls')
         FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM = \
             OneShotFitTransformTestCls.fit_transform(_X)
 
@@ -930,10 +920,74 @@ class TestManyPartialFitsEqualOneBigFit:
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-@pytest.mark.parametrize('_equal_nan', (True, False))
-class TestAColumnOfAllNans:
+class TestAColumnOfAllOnesInX:
 
-    def test_one_all_nans(self, _X_factory, _kwargs, _shape, _equal_nan):
+    def test_all_ones_in_X(self, _kwargs, _shape):
+
+        # this should always end in a degenerate state that causes no-ops
+        # this tests whether SPF can handle the intermediate degenerate
+        # states that exist when the constant in X is 1.
+
+        # do this with interaction_only = False
+        _kwargs['interaction_only'] = False
+
+        # scan_X must be True! or SlimPoly wont find the constants in X
+        _kwargs['scan_X'] = True
+
+        # create 2 columns, one of them is all ones
+
+        # SlimPoly should see the ones as a column of constants
+        # in X, and transform() should always be a no-op
+
+        _X = np.random.uniform(0, 1, (_shape[0], 2))
+
+        # set a column to all ones
+        _X[:, -1] = 1
+
+        TestCls = SlimPoly(**_kwargs).fit(_X)
+
+        with pytest.warns():
+            out = TestCls.transform(_X)
+        assert out is None
+
+
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestAColumnOfAllZerosInX:
+
+    def test_all_ones_in_X(self, _kwargs, _shape):
+
+        # this should always end in a degenerate state that causes no-ops
+        # this tests whether SPF can handle the intermediate degenerate
+        # states that exist when the constant in X is 0.
+
+        # do this with interaction_only = False
+        _kwargs['interaction_only'] = False
+
+        # scan_X must be True! or SlimPoly wont find the constants in X
+        _kwargs['scan_X'] = True
+
+        # create 2 columns, one of them is all zeros
+
+        # SlimPoly should see the zeros as a column of constants
+        # in X, and transform() should always be a no-op
+
+        _X = np.random.uniform(0, 1, (_shape[0], 2))
+
+        # set a column to all zeros
+        _X[:, -1] = 0
+
+        TestCls = SlimPoly(**_kwargs).fit(_X)
+
+        with pytest.warns():
+            out = TestCls.transform(_X)
+        assert out is None
+
+
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+@pytest.mark.parametrize('_equal_nan', (True, False))
+class TestAColumnOfAllNansInX:
+
+    def test_one_all_nans(self, _kwargs, _shape, _equal_nan):
 
         # do this with interaction_only = False
         _kwargs['interaction_only'] = False
@@ -949,7 +1003,7 @@ class TestAColumnOfAllNans:
         # in X, and transform() should always be a no-op
 
         # if not equal_nan, then it wont be a column of constants in X,
-        # the expansion should be 3 columns.
+        # the poly component should have 3 columns.
         #   1) column 1 squared
         #   2) column 2 squared, which should be nans
         #   3) the interaction term, and that should be all nans
