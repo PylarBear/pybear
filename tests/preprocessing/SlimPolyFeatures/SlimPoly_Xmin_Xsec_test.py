@@ -609,9 +609,8 @@ class TestOutputTypes:
         self, _X_np, _columns, _kwargs, x_input_type, output_type
     ):
 
-        # pizza 24_12_17... anticipate that this will go away. when pybear comes
-        # off of sklearn mixin dependence, pybear most likely will not implement
-        # a set_output mixin.
+        # pizza 24_12_17... anticipate that this will go away at sklearn exorcism.
+        # pybear most likely will not implement a set_output mixin.
 
         if x_input_type == 'scipy_sparse_csc' and output_type == 'polars':
             pytest.skip(

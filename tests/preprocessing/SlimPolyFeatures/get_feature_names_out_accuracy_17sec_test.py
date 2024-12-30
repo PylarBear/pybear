@@ -34,7 +34,7 @@ class TestAlwaysExceptsBeforeFit:
 @pytest.mark.parametrize('_instance_state',
     ('after_fit', 'after_transform'), scope='module'
 )
-class TestGetFeatureNamesOutRejects:
+class TestInputFeaturesRejects:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
