@@ -44,7 +44,7 @@ class TestExceptsOnBadXShapes:
             'equal_nan': True,
             'rtol': 1e-5,
             'atol': 1e-8,
-            'n_jobs': 1    # leave this a 1 because of confliction
+            'n_jobs': 1    # leave this at 1 because of confliction
         }
 
 
@@ -153,6 +153,8 @@ class TestExceptsOnBadXShapes:
         )
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    # pizza come back to this after sklearn exorcism is done, see
+    # the state of SPF after that and see if some time can be saved
     # this is intentional, save some time, do only one ss
     X_FORMAT = ['np', 'pd', 'csc'] #, 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
     SAME_DIFF_COLUMNS = ['good', 'less_col', 'more_col']

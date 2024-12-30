@@ -12,8 +12,6 @@ from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
 import numpy as np
-import pandas as pd
-
 
 from dask_ml.wrappers import Incremental, ParallelPostFit
 import dask.array as da
@@ -34,7 +32,7 @@ bypass = False
 
 @pytest.fixture(scope='session')
 def _shape():
-    return (10, 4)
+    return (40, 4)
 
 
 @pytest.fixture(scope='module')
@@ -71,20 +69,12 @@ def _columns(_master_columns, _shape):
     return _master_columns.copy()[:_shape[1]]
 
 
-@pytest.fixture(scope='module')
-def _X_pd(_X_np, _columns):
-    return pd.DataFrame(
-        data=_X_np,
-        columns=_columns
-    )
-
-
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
 
-# TEST DASK Incremental + ParallelPostFit == ONE BIG sklearn fit_transform()
+# TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestDaskIncrementalParallelPostFit:
 
@@ -122,11 +112,11 @@ class TestDaskIncrementalParallelPostFit:
     @pytest.mark.parametrize('row_chunk', (10, 20))
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
     def test_fit_and_transform_accuracy(self, wrappings, SlimPoly_wrapped_parallel,
-        SlimPoly_wrapped_incremental, SlimPoly_not_wrapped, SlimPoly_wrapped_both, _X_np,
-        _columns, x_format, y_format, _kwargs, _shape, row_chunk, _client
+        SlimPoly_wrapped_incremental, SlimPoly_not_wrapped, SlimPoly_wrapped_both,
+        _X_np, _columns, x_format, y_format, _kwargs, _shape, row_chunk, #_client
     ):
 
-        # faster with client, verified 24_10_29
+        # faster without client
 
         if wrappings == 'incr':
             _test_cls = SlimPoly_wrapped_incremental
@@ -226,7 +216,7 @@ class TestDaskIncrementalParallelPostFit:
             f"wrapped output != unwrapped output"
 
 
-# END TEST DASK Incremental + ParallelPostFit == ONE BIG sklearn fit_transform()
+
 
 
 

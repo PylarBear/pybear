@@ -14,37 +14,17 @@ import scipy.sparse as ss
 
 import pytest
 
-
+# pizza think about if u want to validate the @property outputs here or in attr_method_access
 
 
 class TestDuplsAndConstants:
 
-    # this also coincidentally handles testing of handling the various pd nan-likes.
+    # this coincidentally handles testing of handling the various pd nan-likes.
 
-    # ALL @properties SHOULD RETURN NONE
-    # EVERYTHING SHOULD BE A NO-OP EXCEPT FOR PARTIAL FIT, set_params, & get_params, reset, n_features_in_, and feature_names_in_
-    # VERIFY THE STATE OF transform(), IS IT JUST A NO-OP OR DOES IT STILL
-    # TERMINATE PYTHON.
-
-
-
-    #         degree:Optional[int]=2,
-    #         *,
-    #         min_degree:Optional[int]=1,
-    #         interaction_only: Optional[bool] = False,
-    #         scan_X: Optional[bool] = True,
-    #         keep: Optional[Literal['first', 'last', 'random']] = 'first',
-    #         sparse_output: Optional[bool] = True,
-    #         feature_name_combiner: Optional[Union[
-    #             Callable[[Iterable[str], tuple[int, ...]], str],
-    #             Literal['as_feature_names', 'as_indices']
-    #         ]] = 'as_indices',
-    #         equal_nan: Optional[bool] = True,
-    #         rtol: Optional[numbers.Real] = 1e-5,
-    #         atol: Optional[numbers.Real] = 1e-8,
-    #         n_jobs: Optional[Union[int, None]] = None
-
-
+    # WHEN scan_X==True & THERE ARE CONSTANTS/DUPLS IN X:
+    # ALL @properties SHOULD WARN & RETURN NONE
+    # EVERYTHING (including transform()) SHOULD BE A NO-OP EXCEPT FOR partial_fit,
+    # fit, set_params, & get_params, reset, n_features_in_, and feature_names_in_
 
 
 
@@ -53,16 +33,19 @@ class TestDuplsAndConstants:
     def _shape():
         # need to have enough rows here so that there is *no* chance that
         # higher order polynomial terms end up going to all nan, which
-        # will ruin the tests. 10 rows was too few.
+        # will ruin the tests. 10 rows was too few. When multiplying
+        # columns with nans, the nans replicate, and if there are too many
+        # amongst the columns involved, eventually you end up with a column
+        # of all nans.
         # also need to have enough columns that the tests can be done with
         # various mixes of constants and dupl columns without overlap, i.e.,
-        # having columns that are both constant and duplicate.
+        # no columns that are both constant and duplicate.
         return (20, 6)
 
 
     @pytest.mark.parametrize('X_format', ('np',  'pd', 'coo'))
-    @pytest.mark.parametrize('dupls', ('none', 'dupls1')) #, 'dupls2'))
-    @pytest.mark.parametrize('constants', ('none', 'constants1')) #, 'constants2'))
+    @pytest.mark.parametrize('dupls', ('none', 'dupls1', 'dupls2'))
+    @pytest.mark.parametrize('constants', ('none', 'constants1', 'constants2'))
     def test_dupls_and_constants(
         self, _X_factory, X_format, dupls, _master_columns, constants, _shape
     ):
@@ -72,8 +55,8 @@ class TestDuplsAndConstants:
         _kwargs = {
             'degree': 3,
             'min_degree': 1,
-            'interaction_only': False,
-            'scan_X': True,
+            'interaction_only': True,
+            'scan_X': True,   # <+===== MUST BE True FOR no-ops TO HAPPEN
             'keep': 'first',
             'sparse_output': True,
             'feature_name_combiner': 'as_indices',
@@ -126,24 +109,26 @@ class TestDuplsAndConstants:
         TestCls = SlimPoly(**_kwargs)
 
         # if any dupls or any constants, should be no-ops on almost everything.
-        # should still have access to feature_names_in_, n_features_in_ partial_fit,
-        # fit (which resets), get_params, reset, & set_params
+        # should still have access to feature_names_in_, n_features_in_,
+        # partial_fit, fit (which resets), get_params, reset, & set_params
         has_dupls_or_constants = False
         if dupls is not None or constants is not None:
             has_dupls_or_constants += 1
 
 
         # must be fitted to access all of these attrs, properties, and methods!
-        # partial_fit and fit should always be accessible regardless of dupls or constants
-        # partial_fit()   ---- do this partial fit first to induce a state
+        # partial_fit and fit should always be accessible regardless of dupls or
+        # constants
+        # partial_fit() ---- do this partial fit first to induce a state
         # that may have constants and/or dupls...
         assert TestCls.partial_fit(TEST_X) is TestCls
         # TestCls may have degenerate condition, depending on the test.
         # should be able to access partial_fit again...
         assert TestCls.partial_fit(TEST_X) is TestCls
-        # then do fit(), which resets it, to have a fitted instance for the tests below
-        # fit()
+        # then do fit(), which resets it, to have a fitted instance for the
+        # tests below fit()
         if X_format in ('coo', 'bsr', 'dia'):
+            # warns because SPF is making a copy of X because not indexable
             with pytest.warns():
                 TestCls.fit(TEST_X)
         else:
@@ -156,8 +141,7 @@ class TestDuplsAndConstants:
             # and returns None
 
             with pytest.warns():
-                out = TestCls.get_feature_names_out()
-            assert out  is None
+                assert TestCls.get_feature_names_out() is None
 
             with pytest.warns():
                 assert TestCls.transform(TEST_X) is None
@@ -186,7 +170,9 @@ class TestDuplsAndConstants:
             assert isinstance(TestCls.get_feature_names_out(), np.ndarray)
 
             if _kwargs['sparse_output'] is True:
-                assert isinstance(TestCls.transform(TEST_X), (ss.csr_matrix, ss.csr_array))
+                assert isinstance(
+                    TestCls.transform(TEST_X), (ss.csr_matrix, ss.csr_array)
+                )
             elif _kwargs['sparse_output'] is False:
                 assert isinstance(TestCls.transform(TEST_X), type(TEST_X))
 

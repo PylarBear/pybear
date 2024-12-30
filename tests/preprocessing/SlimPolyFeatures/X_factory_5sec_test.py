@@ -25,12 +25,14 @@ class TestXFactory:
 
     # def _X_factory():
     #
-    #     def foo(
+    #    def foo(
     #         _dupl:list[list[int]]=None,
-    #         _has_nan:bool=False,
+    #         _has_nan:Union[int, bool]=False,
     #         _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
     #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
     #         _columns:Union[Iterable[str], None]=None,
+    #         _constants:Union[Iterable[int], None]=None,
+    #         _zeros:Union[float,None]=0,
     #         _shape:tuple[int,int]=(20,5)
     #     ) -> npt.NDArray[any]:
 
@@ -120,7 +122,9 @@ class TestXFactory:
         with pytest.raises(AssertionError):
             _X_factory(_dtype=bad_dtype)
 
-    @pytest.mark.parametrize('good_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('good_dtype',
+        ('flt', 'int', 'str', 'obj', 'hybrid')
+    )
     def test_accepts_good_dtype(self, _X_factory, good_dtype):
         _X_factory(_dtype=good_dtype)
 
@@ -204,7 +208,9 @@ class TestXFactory:
 
     @pytest.mark.parametrize('_format', ('np', 'pd', 'csc', 'csr', 'coo'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
-    def test_format_dtype_shape_accuracy(self, _X_factory, _format, _dtype, _shape):
+    def test_format_dtype_shape_accuracy(
+        self, _X_factory, _format, _dtype, _shape
+    ):
 
         if _format in ('csc', 'csr', 'coo') and _dtype in ('str', 'obj', 'hybrid'):
             with pytest.raises(Exception):
