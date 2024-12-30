@@ -88,7 +88,7 @@ def _validation(
 
     _val_keep(_keep)
 
-    # pizza, _val_X will probably end up back in here, because of sk _validate_data coming out.
+    # pizza, _val_X will probably end up back in here, because of sk _validate_data exorcism.
 
     _val_scan_X(_scan_X)
 

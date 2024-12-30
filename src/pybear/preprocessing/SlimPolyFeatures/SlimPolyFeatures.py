@@ -547,10 +547,15 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         try:
             self._check_X_constants_and_dupls()
-            #     self._active_combos must be sorted asc degree,
-            #     then asc on idxs. if _combos is sorted
-            #     then this is sorted correctly at construction.
-            return self._active_combos
+            # self._active_combos must be sorted asc degree,
+            # then asc on idxs. if _combos is sorted
+            # then this is sorted correctly at construction.
+            # if min_degree == 1, need to add original columns
+            if self.min_degree == 1:
+                _X_idxs = [(i,) for i in range(self.n_features_in_)]
+                return tuple(_X_idxs + list(self._active_combos))
+            else:
+                return self._active_combos
         except:
             warnings.warn(self._attr_access_warning())
             return
@@ -890,20 +895,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # throughout all of SPF.
 
 
-        # pizza rewrite all this
         # build a ss csc that holds the unique polynomial columns that are
         # discovered. need to carry this to compare the next calculated
-        # polynomial term against the known unique polynomial columns already held
-        # in this.
-        # ss cant take object dtype. want to keep the bits as low as possible,
-        # and preserve whatever dtype may have been passed. this is
-        # seeing object dtype when pandas has funky nan-likes. if object dtype,
-        # create POLY as np.float64, otherwise keep the original dtype.
-        # assigning the lowest bits to this csc is a hairy issue when trying to
-        # accommodate pandas dfs because of multiple dtypes. no matter what,
-        # if there are any nan-likes in X, POLY must be float64. keeping it
-        # simple, just assign float64 to for any pandas, and carry over dtype
-        # from ndarray and ss.
+        # polynomial term against the known unique polynomial columns already
+        # calculated for the expansion.
         _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0))).astype(np.float64)
 
         IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
@@ -977,9 +972,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
             # END poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-            # pizza this was hashed 24_12_29_08_20_00 need to include constants in duplicates
-            # if isinstance(_poly_is_constant, uuid.UUID):  # is not constant
-
             # constant columns NEED TO GO INTO _POLY_CSC to know if
             # they are also a member of duplicates because even though
             # they are constants now, they might not be after more
@@ -1051,7 +1043,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # IDXS_IN_POLY_CSC: list[tuple[int, ...]]
 
         # poly_constants -----------------------
-        # pizza, need to meld _poly_constants_current_partial_fit into
+        # need to meld _poly_constants_current_partial_fit into
         # self.poly_constants_, which would be holding the constants
         # found in previous partial fits
 
@@ -1073,8 +1065,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # need to leave X tuples in here, need to follow the
         # len(dupl_set) >= 2 rule to correctly merge
         # _poly_dupls_current_partial_fit into _poly_duplicates
-        # pizza come back to this --- X tuples are removed when
-        # @property poly_duplicates_ is called, leaving only poly tuples -- not true anymore 24_12_28
         self._poly_duplicates: list[list[tuple[int, ...]]] = \
             _merge_partialfit_dupls(
                 self._poly_duplicates,
@@ -1182,12 +1172,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         return self.partial_fit(X)
 
 
-
-    # pizza verify this cant be called from the Mixins
-    # def inverse_transform()
-        # raise NotImplementedError
-
-
     def score(
         self,
         X,
@@ -1201,7 +1185,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         pass
 
 
-    def set_params(self, **params):
+    def set_params(self, **params) -> Self:
 
         """
         Pizza, this jargon was taken directly from BaseEstimator 24_12_10_16_56_00
@@ -1276,6 +1260,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         except:
 
             super().set_params(**params)
+
+        return self
 
 
     def transform(

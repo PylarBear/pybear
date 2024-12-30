@@ -14,14 +14,22 @@ import scipy.sparse as ss
 
 import pytest
 
-# pizza think about if u want to validate the @property outputs here or in attr_method_access
 
 
-class TestDuplsAndConstants:
+# check accessing:
+# expansion_combinations_
+# poly_constants_
+# poly_duplicates_
+# dropped_poly_duplicates_
+# kept_poly_duplicates_
+# when there are and arent duplicate/constant columns
+
+
+class TestDuplsAndConstantsInX:
 
     # this coincidentally handles testing of handling the various pd nan-likes.
 
-    # WHEN scan_X==True & THERE ARE CONSTANTS/DUPLS IN X:
+    # WHEN scan_X==True AND THERE ARE CONSTANTS/DUPLS IN X:
     # ALL @properties SHOULD WARN & RETURN NONE
     # EVERYTHING (including transform()) SHOULD BE A NO-OP EXCEPT FOR partial_fit,
     # fit, set_params, & get_params, reset, n_features_in_, and feature_names_in_

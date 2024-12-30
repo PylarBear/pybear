@@ -73,7 +73,7 @@ def _build_poly(
         assert _n_jobs >= -1 and _n_jobs != 0
     # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    # pizza this is how poly expansion is empty is handled!
+
     if not len(_active_combos):
         POLY = ss.csc_array(np.empty((X.shape[0], 0), dtype=np.float64))
         return POLY
