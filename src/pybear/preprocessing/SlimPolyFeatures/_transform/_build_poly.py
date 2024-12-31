@@ -6,14 +6,11 @@
 
 
 
-from typing_extensions import Union
 from .._type_aliases import DataType
 
-import numbers
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-from joblib import Parallel, delayed, wrap_non_picklable_objects
 
 from .._partial_fit._columns_getter import _columns_getter
 
@@ -22,8 +19,7 @@ from .._partial_fit._columns_getter import _columns_getter
 
 def _build_poly(
     X: DataType,
-    _active_combos: tuple[tuple[int, ...], ...],
-    _n_jobs: Union[numbers.Integral, None]
+    _active_combos: tuple[tuple[int, ...], ...]
 ) -> ss.csc_array:
 
     """
@@ -43,9 +39,6 @@ def _build_poly(
     _active_combos:
         tuple[tuple[int, ...], ...] - the index tuple combinations to be
         kept in the final polynomial expansion.
-    _n_jobs:
-        Union[numbers.Integral, None] - the number of parallel jobs to
-        use when building the polynomial expansion.
 
 
     Return
@@ -66,11 +59,6 @@ def _build_poly(
     for _tuple in _active_combos:
         assert isinstance(_tuple, tuple)
         assert all(map(isinstance, _tuple, (int for _ in _tuple)))
-
-    assert isinstance(_n_jobs, (numbers.Integral, type(None)))
-    assert not isinstance(_n_jobs, bool)
-    if _n_jobs is not None:
-        assert _n_jobs >= -1 and _n_jobs != 0
     # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -79,24 +67,28 @@ def _build_poly(
         return POLY
 
 
-    @wrap_non_picklable_objects
-    def _poly_stacker(_columns):
-        return ss.csc_array(_columns.prod(1).reshape((-1,1)))
-
-
-    # pizza, do a benchmark on this, is it faster to just do a for loop
-    # with all this serialization?
-    joblib_kwargs = {
-        'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs
-    }
-    POLY = Parallel(**joblib_kwargs)(delayed(_poly_stacker)(
-        _columns_getter(X, combo)) for combo in _active_combos
-    )
-
-    POLY = ss.hstack(POLY).astype(np.float64)
-
+    POLY = ss.csc_array(np.empty((X.shape[0], 0))).astype(np.float64)
+    for combo in _active_combos:
+        _poly_feature = _columns_getter(X, combo).prod(1).reshape((-1, 1))
+        POLY = ss.hstack((POLY, ss.csc_array(_poly_feature)))
 
     assert POLY.shape == (X.shape[0], len(_active_combos))
+
+
+    # LINUX TIME TRIALS INDICATE A REGULAR FOR LOOP IS ABOUT HALF THE
+    # TIME OF JOBLIB
+    # @wrap_non_picklable_objects
+    # def _poly_stacker(_columns):
+    #     return ss.csc_array(_columns.prod(1).reshape((-1,1)))
+    # joblib_kwargs = {
+    #     'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs
+    # }
+    # POLY = Parallel(**joblib_kwargs)(delayed(_poly_stacker)(
+    #     _columns_getter(X, combo)) for combo in _active_combos
+    # )
+    #
+    # POLY = ss.hstack(POLY).astype(np.float64)
+    # assert POLY.shape == (X.shape[0], len(_active_combos))
 
 
     return POLY
