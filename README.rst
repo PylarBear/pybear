@@ -144,17 +144,17 @@ Access via pybear.model_selection.autogridsearch_wrapper.
 
 GSTCV (GridSearchThresholdCV)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Description: Perform conventional grid search with concurrent threshold search.
-Finds the global optima for the passed parameters and thresholds. Is fully 
-compliant with the scikit-learn GridSearchCV API.
+Description: Perform conventional grid search on a classifier with concurrent 
+threshold search. Finds the global optima for the passed parameters and 
+thresholds. Fully compliant with the scikit-learn GridSearchCV API.
 Access via pybear.model_selection.GSTCV.
 
 GSTCVDask (GridSearchThresholdCV for Dask)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Description: Perform conventional grid search with concurrent threshold search 
-using dask objects in parallel and distributed environments. Finds the global 
-optima for the passed parameters and thresholds. Is fully compliant with the 
-dask_ml GridSearchCV API.
+Description: Perform conventional grid search on a classifier with concurrent 
+threshold search using dask objects in parallel and distributed environments. 
+Finds the global optima for the passed parameters and thresholds. Fully 
+compliant with the dask_ml/scikit-learn GridSearchCV API.
 Access via pybear.model_selection.GSTCVDask.
 
 AutoGSTCV
@@ -172,10 +172,10 @@ Access via pybear.model_selection.AutoGSTCVDask.
 MinCountTransformer
 ~~~~~~~~~~~~~~~~~~~
 Description: Perform minimum frequency thresholding on numerical or categorical 
-data simultaneously across an entire array of data. Violates the scikit-learn API 
-in that datasets are modified along the example axis (examples may be deleted.) 
-Otherwise is fully compliant with the sci-kit learn transformer API, with fit, 
-transform, and partial_fit methods.
+data simultaneously across an entire array of data. Violates the scikit-learn 
+API in that datasets are modified along the example axis (examples may be 
+deleted.) Otherwise is fully compliant with the sci-kit learn transformer API, 
+with fit, transform, and partial_fit methods.
 Access via pybear.preprocessing.MinCountTransformer.
 
 ColumnDeduplicateTransformer
@@ -183,19 +183,27 @@ ColumnDeduplicateTransformer
 Description: Identify and selectively remove duplicate columns in numerical or 
 categorical data. Fully compliant with the scikit-learn transformer API, with 
 fit, transform, and partial_fit methods. Perfect for removing duplicate columns 
-in one-hot encoded data in a scikit-learn pipeline. Can also fit and transform 
+from one-hot encoded data in a scikit-learn pipeline. Also fits and transforms 
 data batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
 Access via pybear.preprocessing.ColumnDeduplicateTransformer.
 
 InterceptManager
 ~~~~~~~~~~~~~~~~
-Description: A scikit-style transformer that identifies and manages the constant 
-columns in a dataset. IM can remove all, selectively keep one, or append a column 
-of constants. Handles numerical data, non-numerical data, and nan-like values. 
-Does batch-wise fitting via a partial_fit method. Is suitable for sklearn 
-pipelines and can be wrapped with dask_ml Incremental and ParallelPostFit 
-wrappers.
+Description: A scikit-style transformer that identifies and manages constant 
+columns in a dataset. IM can remove all, selectively keep one, or append a 
+column of constants. Handles numerical & non-numerical data, and nan-like 
+values. Does batch-wise fitting via a partial_fit method, and can be wrapped 
+with dask_ml Incremental and ParallelPostFit wrappers.
 Access via pybear.preprocessing.InterceptManager.
+
+SlimPolyFeatures
+~~~~~~~~~~~~~~~~
+Description: Perform a polynomial feature expansion on a dataset omitting 
+constant and duplicate columns. Follows the standard scikit-learn transformer 
+API. Handles scipy sparse matrices/arrays. Suitable for sklearn pipelines. 
+Has a partial_fit method for batch-wise training and can be wrapped with 
+dask_ml Incremental and ParallelPostFit wrappers.
+Access via pybear.preprocessing.SlimPolyFeatures.
 
 =======
 
