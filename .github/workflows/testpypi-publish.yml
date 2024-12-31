@@ -1,7 +1,6 @@
 # TestPyPI git action template almost verbatim from 
 # https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
-# with some minor edits.
-# 24_09_06_19_11_00
+# with some minor edits. 24_09_06_19_11_00
 
 
 name: TestPyPI Publishing Workflow
