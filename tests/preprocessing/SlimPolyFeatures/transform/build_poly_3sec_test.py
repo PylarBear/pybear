@@ -61,46 +61,15 @@ class TestBuildPoly:
         with pytest.raises(AssertionError):
             _build_poly(
                 X=junk_inputs,
-                _active_combos=_good_active_combos,
-                _n_jobs=-1
+                _active_combos=_good_active_combos
             )
 
         # active_combos
         with pytest.raises(AssertionError):
             _build_poly(
                 X=_good_X,
-                _active_combos=junk_inputs,
-                _n_jobs=-1
+                _active_combos=junk_inputs
             )
-
-
-        # n_jobs
-        _is_bad_n_jobs = 0
-        _is_bad_n_jobs += not isinstance(junk_inputs, int)
-        _is_bad_n_jobs += isinstance(junk_inputs, bool)
-        try:
-            _is_bad_n_jobs += junk_inputs < -1 or junk_inputs == 0
-        except:
-            pass
-        if not _is_bad_n_jobs:
-            _build_poly(
-                X=_good_X,
-                _active_combos=_good_active_combos,
-                _n_jobs=junk_inputs
-            )
-        elif junk_inputs is None:
-            _build_poly(
-                X=_good_X,
-                _active_combos=_good_active_combos,
-                _n_jobs=junk_inputs
-            )
-        else:
-            with pytest.raises(AssertionError):
-                _build_poly(
-                    X=ss.csc_array(np.random.randint(0,3,_shape)),
-                    _active_combos=_good_active_combos,
-                    _n_jobs=junk_inputs
-                )
 
         # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -110,8 +79,7 @@ class TestBuildPoly:
 
         _build_poly(
             X=_good_X,
-            _active_combos=_good_active_combos,
-            _n_jobs=_n_jobs
+            _active_combos=_good_active_combos
         )
 
 
@@ -119,8 +87,7 @@ class TestBuildPoly:
 
         out =  _build_poly(
             _good_X,
-            _good_active_combos,
-            _n_jobs=1
+            _good_active_combos
         )
 
         assert isinstance(out, ss.csc_array)

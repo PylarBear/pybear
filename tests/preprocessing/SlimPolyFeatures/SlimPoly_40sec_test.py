@@ -8,7 +8,8 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import SlimPolyFeatures as SlimPoly
+from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
 from pybear.utilities import nan_mask_numerical, nan_mask
 
@@ -201,9 +202,9 @@ class TestInitValidation:
     # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # interaction_only ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # interaction_only ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_interaction_only',
-        (-2.7, -1, 0, 1, 2.7, None, 'junk', (0,1), [1,2], {1,2}, {'a':1}, lambda x: x)
+        (-2.7, -1, 0, 1, 2.7, None, 'junk', (0,1), [1,2], {'a':1}, lambda x: x)
     )
     def test_junk_interaction_only(self, _X_np, _kwargs, junk_interaction_only):
 
@@ -214,7 +215,9 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('good_interaction_only', (True, False))
-    def test_good_interaction_only(self, _X_pd, _columns, _kwargs, good_interaction_only):
+    def test_good_interaction_only(
+        self, _X_pd, _columns, _kwargs, good_interaction_only
+    ):
 
         _kwargs['interaction_only'] = good_interaction_only
 
@@ -222,9 +225,9 @@ class TestInitValidation:
     # END interaction_only ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    # scan_X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # scan_X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_scan_X',
-        (-2.7, -1, 0, 1, 2.7, None, 'junk', (0,1), [1,2], {1,2}, {'a':1}, lambda x: x)
+        (-2.7, -1, 0, 1, 2.7, None, 'junk', (0,1), [1,2], {'a':1}, lambda x: x)
     )
     def test_junk_scan_X(self, _X_np, _kwargs, junk_scan_X):
 
@@ -240,11 +243,11 @@ class TestInitValidation:
         _kwargs['scan_X'] = good_scan_X
 
         SlimPoly(**_kwargs).fit_transform(_X_pd)
-    # END scan_X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END scan_X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # sparse_output ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     @pytest.mark.parametrize('junk_sparse_output',
-        (-2.7, -1, 0, 1, 2.7, None, 'junk', (0,1), [1,2], {1,2}, {'a':1}, lambda x: x)
+        (-2.7, -1, 0, 1, 2.7, None, 'junk', (0,1), [1,2], {'a':1}, lambda x: x)
     )
     def test_junk_sparse_output(self, _X_np, _kwargs, junk_sparse_output):
 
@@ -255,21 +258,26 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('good_sparse_output', (True, False))
-    def test_good_sparse_output(self, _X_pd, _columns, _kwargs, good_sparse_output):
+    def test_good_sparse_output(
+        self, _X_pd, _columns, _kwargs, good_sparse_output
+    ):
 
         _kwargs['sparse_output'] = good_sparse_output
 
         SlimPoly(**_kwargs).fit_transform(_X_pd)
-    # END sparse_output ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END sparse_output ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # feature_name_combiner ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # can be Literal['as_indices', 'as_feature_names'] or Callable[[Iterable[str], tuple[int,...]], str]
+    # feature_name_combiner ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # can be Literal['as_indices', 'as_feature_names']
+    # or Callable[[Iterable[str], tuple[int,...]], str]
 
     @pytest.mark.parametrize('junk_feature_name_combiner',
         (-2.7, -1, 0, 1, 2.7, True, False, None, (0,1), [1,2], {1,2}, {'a':1})
     )
-    def test_junk_feature_name_combiner(self, _X_np, _kwargs, junk_feature_name_combiner):
+    def test_junk_feature_name_combiner(
+        self, _X_np, _kwargs, junk_feature_name_combiner
+    ):
 
         _kwargs['feature_name_combiner'] = junk_feature_name_combiner
 
@@ -277,27 +285,30 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('bad_feature_name_combiner', ('that', 'was', 'trash'))
-    def test_bad_feature_name_combiner(self, _X_np, _kwargs, bad_feature_name_combiner):
+    @pytest.mark.parametrize('bad_feature_name_combiner',
+        ('that', 'was', 'trash')
+    )
+    def test_bad_feature_name_combiner(
+        self, _X_np, _kwargs, bad_feature_name_combiner
+    ):
 
         _kwargs['feature_name_combiner'] = bad_feature_name_combiner
 
-        with pytest.raises(Exception):
-            # this could except for numerous reasons. _val_feature_name_combiner tries to
-            # pass feature names and a tuple of ints to the callable and sees if it
-            # returns a str. the exception is whatever the callable itself is raising.
+        with pytest.raises(ValueError):
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
     @pytest.mark.parametrize('good_feature_name_combiner',
         ('as_indices', 'as_feature_names', lambda x, y: str(uuid.uuid4())[:5])
     )
-    def test_good_feature_name_combiner(self, _X_pd, _columns, _kwargs, good_feature_name_combiner):
+    def test_good_feature_name_combiner(
+        self, _X_pd, _columns, _kwargs, good_feature_name_combiner
+    ):
 
         _kwargs['feature_name_combiner'] = good_feature_name_combiner
 
         SlimPoly(**_kwargs).fit_transform(_X_pd)
-    # END feature_name_combiner ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END feature_name_combiner ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     # equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -396,8 +407,8 @@ class TestInitValidation:
 class TestFitPartialFitAcceptYEqualsAnything:
 
     test_y = (
-            -1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
-            lambda x: x, min
+        -1, 0, 1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
+        lambda x: x, min
     )
 
     @pytest.mark.parametrize('_test_y', test_y)
@@ -998,8 +1009,8 @@ class TestAColumnOfAllNansInX:
 
         # create 2 columns, one of them is all nans
 
-        # if equal_nan, then SlimPoly should see the nans as a column of constants
-        # in X, and transform() should always be a no-op
+        # if equal_nan, then SlimPoly should see the nans as a column of
+        # constants in X, and transform() should always be a no-op
 
         # if not equal_nan, then it wont be a column of constants in X,
         # the poly component should have 3 columns.
@@ -1459,7 +1470,9 @@ class TestTransform:
 
         if _format == 'csr':
             if _dtype in ('<U10', 'object'):
-                pytest.skip(reason='cant have str or object dtype for scipy sparse')
+                pytest.skip(
+                    reason='cant have str or object dtype for scipy sparse'
+                )
         # END skip impossible scenarios
 
 

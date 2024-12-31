@@ -83,7 +83,7 @@ def _columns_getter(
         raise TypeError(f"invalid data type '{type(_DATA)}'")
 
 
-    # pizza verify this!
+
     # this assignment must stay here. there was a nan recognition problem
     # that wasnt happening in offline tests of entire data objects
     # holding the gamut of nan-likes but was happening with similar data

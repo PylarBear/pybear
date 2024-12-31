@@ -102,11 +102,11 @@ def time_memory_benchmark(
     ...     return d + e + f
     ...
     >>> results = time_memory_benchmark(
-    ...                 ('function_a', function_a, [1, 2], {'c': 3}),
-    ...                 ('function_b', function_b, [0, 3], {'f': 1}),
-    ...                 number_of_trials=2,
-    ...                 rest_time=1,
-    ...                 verbose=1
+    ...     ('function_a', function_a, [1, 2], {'c': 3}),
+    ...     ('function_b', function_b, [0, 3], {'f': 1}),
+    ...     number_of_trials=2,
+    ...     rest_time=1,
+    ...     verbose=1
     ... ) #doctest:+SKIP
 
 
