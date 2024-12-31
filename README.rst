@@ -1,10 +1,15 @@
 pybear
 ======
 
-|Build Status|
+|PyPI Build Status|
 
-.. |Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/python-publish.yml
+.. |PyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml
+
+|TestPyPI Build Status|
+
+.. |TestPyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/testpypi-publish.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/testpypi-publish.yml
 
 |Test Status 313|
 
