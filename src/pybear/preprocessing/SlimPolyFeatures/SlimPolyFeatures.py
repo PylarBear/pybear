@@ -321,7 +321,13 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         fitting. Only accessible if X is passed to :methods: partial_fit
         or fit as a pandas dataframe that has a header.
 
-    expansion_combinations_:
+
+    # PIZZA WORK THIS IN HERE SOMEHOW
+    # remember that the 5 @property attributes only reflect information
+    # about the poly expansion portion, never the original data even
+    # when min_degree == 1
+
+    poly_combinations_:
         tuple[tuple[int, ...], ...] - The polynomial column combinations
         from X that are in the polynomial expansion part of the final
         output. An example might be ((0,0), (0,1), ...), where each tuple
@@ -539,7 +545,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
     @property
-    def expansion_combinations_(
+    def poly_combinations_(
         self
     ) -> Union[tuple[tuple[int, ...], ...], None]:
 
@@ -550,12 +556,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             # self._active_combos must be sorted asc degree,
             # then asc on idxs. if _combos is sorted
             # then this is sorted correctly at construction.
-            # if min_degree == 1, need to add original columns
-            if self.min_degree == 1:
-                _X_idxs = [(i,) for i in range(self.n_features_in_)]
-                return tuple(_X_idxs + list(self._active_combos))
-            else:
-                return self._active_combos
+            return self._active_combos
         except:
             warnings.warn(self._attr_access_warning())
             return

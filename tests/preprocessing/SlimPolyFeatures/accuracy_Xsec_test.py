@@ -111,7 +111,7 @@ class TestAccuracy:
 
 
         # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-        # expansion_combinations_
+        # poly_combinations_
         # poly_constants_
         # poly_duplicates_
         # dropped_poly_duplicates_

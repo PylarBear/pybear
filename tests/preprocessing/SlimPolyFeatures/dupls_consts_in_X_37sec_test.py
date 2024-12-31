@@ -10,14 +10,13 @@ from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
 import numpy as np
-import scipy.sparse as ss
 
 import pytest
 
 
 
 # check accessing:
-# expansion_combinations_
+# poly_combinations_
 # poly_constants_
 # poly_duplicates_
 # dropped_poly_duplicates_
@@ -27,7 +26,7 @@ import pytest
 
 class TestDuplsAndConstantsInX:
 
-    # this coincidentally handles testing of handling the various pd nan-likes.
+    # this coincidentally tests handling of the various pd nan-likes.
 
     # WHEN scan_X==True AND THERE ARE CONSTANTS/DUPLS IN X:
     # ALL @properties SHOULD WARN & RETURN NONE
@@ -66,7 +65,7 @@ class TestDuplsAndConstantsInX:
             'interaction_only': True,
             'scan_X': True,   # <+===== MUST BE True FOR no-ops TO HAPPEN
             'keep': 'first',
-            'sparse_output': True,
+            'sparse_output': False,
             'feature_name_combiner': 'as_indices',
             'equal_nan': True,
             'rtol': 1e-5,
@@ -107,7 +106,7 @@ class TestDuplsAndConstantsInX:
             _dupl=dupls,
             _format=X_format,
             _dtype='flt',
-            _has_nan=False,
+            _has_nan=True,
             _constants=constants,
             _columns=_master_columns.copy()[:_shape[1]],
             _zeros=None,
@@ -155,7 +154,7 @@ class TestDuplsAndConstantsInX:
                 assert TestCls.transform(TEST_X) is None
 
             with pytest.warns():
-                assert TestCls.expansion_combinations_ is None
+                assert TestCls.poly_combinations_ is None
 
             with pytest.warns():
                 assert TestCls.poly_duplicates_ is None
@@ -177,14 +176,9 @@ class TestDuplsAndConstantsInX:
 
             assert isinstance(TestCls.get_feature_names_out(), np.ndarray)
 
-            if _kwargs['sparse_output'] is True:
-                assert isinstance(
-                    TestCls.transform(TEST_X), (ss.csr_matrix, ss.csr_array)
-                )
-            elif _kwargs['sparse_output'] is False:
-                assert isinstance(TestCls.transform(TEST_X), type(TEST_X))
+            assert isinstance(TestCls.transform(TEST_X), type(TEST_X))
 
-            assert isinstance(TestCls.expansion_combinations_, tuple)
+            assert isinstance(TestCls.poly_combinations_, tuple)
 
             assert isinstance(TestCls.poly_duplicates_, list)
 

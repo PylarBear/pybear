@@ -667,7 +667,7 @@ class TestOutputTypes:
 
     @pytest.mark.parametrize('x_input_type', _base_objects)
     @pytest.mark.parametrize('_sparse_output', (True, False))
-    def test_output_types(
+    def test_sparse_output(
             self, _X_np, _columns, _kwargs, x_input_type, _sparse_output
     ):
 
@@ -692,7 +692,7 @@ class TestOutputTypes:
         # when 'sparse_output' is False, return in the original container
         # when True, always return as ss csr, no matter what input container
         if _sparse_output:
-            assert isinstance(out, ss.csr_array)
+            assert isinstance(out, (ss.csr_matrix, ss.csr_array))
         elif not _sparse_output:
             assert isinstance(out, type(TEST_X))
 
@@ -794,8 +794,8 @@ class TestManyPartialFitsEqualOneBigFit:
         OneShotFullFitTestCls.fit(_X)
 
         if _keep != 'random':
-            _ = OneShotPartialFitTestCls.expansion_combinations_
-            __ = OneShotFullFitTestCls.expansion_combinations_
+            _ = OneShotPartialFitTestCls.poly_combinations_
+            __ = OneShotFullFitTestCls.poly_combinations_
             assert _ == __
             del _, __
 
@@ -826,9 +826,9 @@ class TestManyPartialFitsEqualOneBigFit:
         DoublePartialFitTestClass.partial_fit(_X)
 
         if _keep != 'random':
-            _ = SingleFitTestClass.expansion_combinations_
-            __ = DoublePartialFitTestClass.expansion_combinations_
-            ___ = DoublePartialFitTestClass.expansion_combinations_
+            _ = SingleFitTestClass.poly_combinations_
+            __ = DoublePartialFitTestClass.poly_combinations_
+            ___ = DoublePartialFitTestClass.poly_combinations_
 
             assert _ == __
             assert _ == ___
