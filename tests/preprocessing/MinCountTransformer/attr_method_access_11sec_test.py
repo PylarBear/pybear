@@ -272,7 +272,7 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         ]
 
         for junk_arg in JUNK_ARGS:
-            with pytest.raises(TypeError):
+            with pytest.raises(ValueError):
                 TestCls.get_feature_names_out(junk_arg)
 
         del JUNK_ARGS
@@ -331,7 +331,7 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
             [*range(len(COLUMNS))], [*range(2 * len(COLUMNS))], {'a': 1, 'b': 2}
         ]
         for junk_col_names in JUNK_COL_NAMES:
-            with pytest.raises(TypeError):
+            with pytest.raises(ValueError):
                 TestCls.get_feature_names_out(junk_col_names)
 
         del JUNK_COL_NAMES

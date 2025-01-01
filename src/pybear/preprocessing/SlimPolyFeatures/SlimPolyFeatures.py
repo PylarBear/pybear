@@ -26,7 +26,6 @@ from ._attributes._build_kept_poly_duplicates import \
     _build_kept_poly_duplicates
 from ._attributes._build_dropped_poly_duplicates import \
     _build_dropped_poly_duplicates
-from ._get_feature_names_out._gfno_X import _gfno_X
 from ._get_feature_names_out._gfno_poly import _gfno_poly
 from ._partial_fit._combination_builder import _combination_builder
 from ._partial_fit._columns_getter import _columns_getter
@@ -52,7 +51,7 @@ from pybear.preprocessing.ColumnDeduplicateTransformer. \
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import Interval, StrOptions
-from ...base import check_is_fitted
+from ...base import check_is_fitted, get_feature_names_out
 from ...utilities import nan_mask
 
 
@@ -781,41 +780,47 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
 
         """
-        Get feature names for the expanded feature set.
+        Get the feature names for the output of :method: transform. Use
+        'input_features' and SPF :param: 'feature_name_combiner' to build
+        the feature names for the polynomial component of the transformed
+        data.
 
 
         Parameters
         ----------
         input_features :
             array-like of str or None, default=None - Externally provided
-            feature names.
+            feature names for the fitted data, not the transformed data.
 
             If input_features is None:
-            if feature_names_in_ is defined, then feature_names_in_ is
-            used as the input features.
-            If feature_names_in_ is not defined, then the following input
-            feature names are generated:
+
+            - if feature_names_in_ is defined, then feature_names_in_ is
+                used as the input features.
+
+            - if feature_names_in_ is not defined, then the following
+                input feature names are generated:
                 ["x0", "x1", ..., "x(n_features_in_ - 1)"].
 
             If input_features is not None:
-            if feature_names_in_ is not defined, then input_features is
-            used as the input features.
-            if feature_names_in_ is defined, then input_features must be
-            an array-like whose feature names exactly match those in
-            feature_names_in_.
+
+            - if feature_names_in_ is not defined, then input_features is
+                used as the input features.
+
+            - if feature_names_in_ is defined, then input_features must
+                exactly match the features in feature_names_in_.
+
 
         Return
         ------
         -
-            feature_names_out : NDArray[str] - The feature names in the
-            expanded data after transformation.
+            feature_names_out : NDArray[str] - The feature names of the
+            transformed data.
 
         """
 
-        # pizza, OneToOneFeatureMixin will become irrelevant after the exorcism
         # get_feature_names_out() would otherwise be provided by
-        # OneToOneFeatureMixin, but since this transformer deletes
-        # columns, must build a one-off.
+        # pybear.base.GFNOMixin, but since this transformer adds columns,
+        # must build a one-off.
 
         check_is_fitted(self)
 
@@ -825,10 +830,8 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             warnings.warn(self._attr_access_warning())
             return
 
-        # pizza, _gfno_X will likely become something like 'get_feature_names'
-        # mock sklearn function in pybear.base. so u will be coming back to this.
         # if did not except....
-        _X_header: npt.NDArray[object] = _gfno_X(
+        _X_header: npt.NDArray[object] = get_feature_names_out(
             input_features,
             self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
             self.n_features_in_
@@ -852,7 +855,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # else poly header is returned as is
 
         return feature_names_out
-
 
 
     def get_metadata_routing(self):
