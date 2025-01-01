@@ -32,7 +32,7 @@ from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import StrOptions
 from sklearn.utils.validation import check_array
 
-from ...base import check_is_fitted
+from ...base import check_is_fitted, get_feature_names_out
 
 
 
@@ -484,139 +484,68 @@ class InterceptManager(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
 
         """
-        Get the remaining feature names after transform. When :param:
-        'keep' is a dictionary, the appended column of constants is
-        included in the outputted feature name vector.
-
-        If input_features is None:
-        if feature_names_in_ is defined, then feature_names_in_ is
-        used as the input features.
-        If feature_names_in_ is not defined, then the following input
-        feature names are generated:
-            ["x0", "x1", ..., "x(n_features_in_ - 1)"].
-
-        If input_features is not None:
-        if feature_names_in_ is not defined, then input_features is
-        used as the input features.
-        if feature_names_in_ is defined, then input_features must be
-        an array-like whose feature names exactly match those in
-        feature_names_in_.
+        Return the feature names for the output of :method: transform.
+        When :param: 'keep' is a dictionary, the appended column of
+        constants is included in the outputted feature name vector.
 
 
         Parameters
         ----------
         input_features :
             array-like of str or None, default=None - Externally provided
-            feature names.
+            feature names for the fitted data, not the transformed data.
+
+            If input_features is None:
+
+            - if feature_names_in_ is defined, then feature_names_in_ is
+                used as the input features.
+
+            - if feature_names_in_ is not defined, then the following
+                input feature names are generated:
+                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
+
+            If input_features is not None:
+
+            - if feature_names_in_ is not defined, then input_features is
+                used as the input features.
+
+            - if feature_names_in_ is defined, then input_features must
+                exactly match the features in feature_names_in_.
 
 
         Return
         ------
         -
-            feature_names_out : NDArray[str] - The feature names of the
-            transformed data.
+            feature_names_out : NDArray[object] - The feature names of
+            the transformed data.
 
         """
 
         # get_feature_names_out() would otherwise be provided by
-        # OneToOneFeatureMixin, but since this transformer deletes
+        # pybear.base.GFNOMixin, but since this transformer deletes
         # and/or adds columns, must build a one-off.
 
-        # when there is a {'Intercept': 1} in :param: keep, need to make sure
-        # that that column is accounted for here, and the dropped columns are
-        # also accounted for.
-
+        # when there is a {'Intercept': 1} in :param: keep, need to make
+        # sure that that column is accounted for here, and the dropped
+        # columns are also accounted for.
 
         check_is_fitted(self)
 
-        try:
-            # input_features can be None
-            if isinstance(input_features, type(None)):
-                raise UnicodeError
-            # must be iterable
-            iter(input_features)
-            # cannot be dict or str
-            if isinstance(input_features, (str, dict)):
-                raise Exception
-            # iterable must contain strings
-            if not all(map(
-                isinstance, input_features, (str for _ in input_features)
-            )):
-                raise Exception
-        except UnicodeError:
-            pass
-        except:
-            raise ValueError(
-                f"'input_features' must be a list-like of strings, or None"
-            )
+        feature_names_out = get_feature_names_out(
+            input_features,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self.n_features_in_
+        )
 
+        feature_names_out = feature_names_out[self.column_mask_]
 
-        # if input_features is passed, check against n_features_in_ &
-        # features_names_in_, apply column_mask_, optionally append intcpt
-        # from keep dict
-        if input_features is not None:
+        if isinstance(self.keep, dict):
+            feature_names_out = np.hstack((
+                  feature_names_out,
+                  list(self.keep.keys())[0]
+            )).astype(object)
 
-            if len(input_features) != self.n_features_in_:
-                raise ValueError(
-                    "input_features should have length equal to number of "
-                    f"features ({self.n_features_in_}), got {len(input_features)}"
-                )
-
-            if hasattr(self, 'feature_names_in_'):
-                if not np.array_equal(input_features, self.feature_names_in_):
-                    raise ValueError(
-                        f"input_features is not equal to feature_names_in_"
-                    )
-
-            # column_mask_ is always shaped against num features in fitted data,
-            # regardless of if keep is a dictionary. apply mask before adding
-            # keep dict intercept.
-            input_features = \
-                np.array(input_features)[self.column_mask_].astype(object)
-
-            # adjust if appending a new intercept column
-            if isinstance(self.keep, dict):
-                input_features = np.hstack((
-                    input_features,
-                    list(self.keep.keys())[0]
-                )).astype(object)
-
-            return input_features
-
-        # if input_features is not passed, but feature_names_in_ is available,
-        # apply column_mask_ to feature_names_in_, optionally append intcpt
-        # from keep dict
-        elif hasattr(self, 'feature_names_in_'):  # and input_features is None
-
-            # column_mask_ is always shaped against num features in fitted data,
-            # regardless of if keep is a dictionary. apply mask before adding
-            # keep dict intercept.
-            out = self.feature_names_in_[self.column_mask_].astype(object)
-
-            if isinstance(self.keep, dict):
-                out = np.hstack((
-                    out,
-                    list(self.keep.keys())[0]
-                )).astype(object)
-
-            return out
-
-        # if input_features is not passed and no attr feature_names_in_,
-        # build a dummy vector of headers, apply column_mask_, optionally
-        # append intcpt from keep dict
-        else:  # feature_names_in_ not available and input_features is None
-
-            # column_mask_ is always shaped against num features in fitted data,
-            # regardless of if keep is a dictionary. apply mask before adding
-            # keep dict intercept.
-            _dum_header = [f"x{i}" for i in range(self.n_features_in_)]
-
-            out = np.array(_dum_header, dtype=object)[self.column_mask_]
-
-            if isinstance(self.keep, dict):
-                out = np.hstack((out, list(self.keep.keys())[0])).astype(object)
-
-            return out
+        return feature_names_out
 
 
     def get_metadata_routing(self):

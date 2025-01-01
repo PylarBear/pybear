@@ -16,14 +16,14 @@ import numbers
 
 
 
-def _gfno_X(
+def get_feature_names_out(
     _input_features: Union[Iterable[str], None],
     feature_names_in_: Union[npt.NDArray[object], None],
     n_features_in_: numbers.Integral
 ) -> npt.NDArray[object]:
 
     """
-    Return the feature name vector for X.
+    Return the feature name vector for the transformed output.
 
     - If 'input_features' is 'None', then 'feature_names_in_' is
       used as feature names in. If 'feature_names_in_' is not defined,
@@ -49,10 +49,10 @@ def _gfno_X(
     ------
     -
         _feature_names_out: npt.NDArray[object] - The feature names for
-        the polynomial expansion.
-
+        the transformed output.
 
     """
+
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -116,6 +116,7 @@ def _gfno_X(
 
 
     return np.array(_X_feature_names, dtype=object)
+
 
 
 

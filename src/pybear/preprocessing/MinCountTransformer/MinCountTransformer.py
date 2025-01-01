@@ -14,7 +14,11 @@ import numpy as np
 import pandas as pd
 import joblib
 from .docs.mincounttransformer_docs import mincounttransformer_docs
-from ...base import is_fitted, check_is_fitted
+from ...base import (
+    is_fitted,
+    check_is_fitted,
+    get_feature_names_out as _get_feature_names_out
+)
 from sklearn.base import check_array, BaseEstimator
 
 from ._shared._validation._val_ignore_columns import _val_ignore_columns
@@ -472,7 +476,20 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         elif _columns is not None and not hasattr(self, 'feature_names_in_'):
             # FIRST PASS OR FIT WITH ARRAYS UP TO THIS POINT BUT CURRENTLY
             # PASSED IS DF
-            self.feature_names_in_ = _columns
+
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # pizza, during sklearn exorcism 25_01_01_09_43_00, changed from:
+            # self.feature_names_in_ = _columns
+            # because num in header are being rejected by get_feature_names_out
+            # need to redo this like sklearn so that a header with numbers
+            # doesnt even create self.feature_names_in_
+            # this is stopgap, see TestValueErrorDifferentHeader... marked as xfail
+            if all(map(isinstance, _columns, (str for _ in _columns))):
+                self.feature_names_in_ = np.array(_columns, dtype=object)
+            else:
+                # dont even create feature_names_in_
+                pass
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         _X_rows, _X_columns = X.shape
 
@@ -718,7 +735,15 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         elif _columns is not None and not hasattr(self, 'feature_names_in_'):
             # FIRST PASS OR FIT WITH ARRAYS UP TO THIS POINT BUT CURRENTLY
             # PASSED IS DF
-            self.feature_names_in_ = _columns
+            # self.feature_names_in_ = _columns
+            # pizza see the notes in the corresponding section of _base_fit
+            # pizza why are we even creating feature_names_in_ in transform?
+            if all(map(isinstance, _columns, (str for _ in _columns))):
+                self.feature_names_in_ = np.array(_columns, dtype=object)
+            else:
+                # dont even create feature_names_in_
+                pass
+
 
 
         if len(X.shape)==1:
@@ -1026,30 +1051,53 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         input_features:Union[Iterable[str], None]=None
     ):
         """
-        Get output feature names for transformation.
+        Get the feature names for the output of :method: transform.
+
 
         Parameters
         ----------
-        input_features : array-like of str or None, default=None - Input
-            features. If input_features is None, then feature_names_in_
-            is used as feature names in. If feature_names_in_ is not
-            defined, then the following input feature names are generated:
+        input_features :
+            array-like of str or None, default=None - Externally provided
+            feature names for the fitted data, not the transformed data.
+
+            If input_features is None:
+
+            - if feature_names_in_ is defined, then feature_names_in_ is
+                used as the input features.
+
+            - if feature_names_in_ is not defined, then the following
+                input feature names are generated:
                 ["x0", "x1", ..., "x(n_features_in_ - 1)"].
-            If input_features is an array-like, then input_features must
-            match feature_names_in_ if feature_names_in_ is defined.
+
+            If input_features is not None:
+
+            - if feature_names_in_ is not defined, then input_features is
+                used as the input features.
+
+            - if feature_names_in_ is defined, then input_features must
+                exactly match the features in feature_names_in_.
+
 
         Return
         ------
         -
-            feature_names_out : ndarray of str objects - Transformed
-                feature names.
+            feature_names_out : NDArray[object] - The feature names of
+            the transformed data.
 
         """
 
         check_is_fitted(self, attributes='n_features_in_')
 
-        COLUMN_MASK = self.get_support(indices=False)
+        feature_names_out = _get_feature_names_out(
+            input_features,
+            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            self.n_features_in_
+        )
 
+        return feature_names_out[self.get_support(indices=False)]
+
+
+        """
         err_msg = f"input_features must be a list-type of strings or None"
         if input_features is None:
             if hasattr(self, 'feature_names_in_'):
@@ -1082,6 +1130,9 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                     )
             else:
                 return np.array(input_features).ravel()[COLUMN_MASK].astype(object)
+        """
+
+
 
 
     def get_metadata_routing(self):
