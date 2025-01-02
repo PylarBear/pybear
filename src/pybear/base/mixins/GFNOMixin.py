@@ -14,7 +14,7 @@ from .._get_feature_names_out import get_feature_names_out
 
 
 
-
+# pizza this is going to be folded into FeatureMixin
 
 
 class GFNOMixin:
