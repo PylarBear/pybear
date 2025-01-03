@@ -5,8 +5,8 @@
 #
 
 
-
-from pybear.base._check_feature_names import check_feature_names
+# PIZZA
+# from pybear.base._check_feature_names import check_feature_names
 
 
 import pytest

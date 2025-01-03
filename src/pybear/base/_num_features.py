@@ -22,8 +22,9 @@ def num_features(OBJECT) -> int:
     Parameters
     ----------
     OBJECT:
-        array-like that has a 'shape' attribute - object to find the
-        number of features in.
+        array-like of shape (n_samples, n_features) or (n_samples,) that
+        has a 'shape' attribute - object to find the number of features
+        in.
 
 
     Return

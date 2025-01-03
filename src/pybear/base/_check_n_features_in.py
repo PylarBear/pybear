@@ -29,8 +29,8 @@ def check_n_features_in(
     Parameters
     ----------
     X:
-        array-like with a 'shape' attribute of shape (n_samples,
-        n_features) - The input data.
+        array-like of shape (n_samples, n_features) or (n_samples,) with
+        a 'shape' attribute - The input data.
     n_features_in_:
         Union[int, None] - the number of features in the
         data. If this attribute exists, it is integer. If it does not

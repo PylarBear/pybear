@@ -36,37 +36,42 @@ def check_feature_names(self, X, *, reset):
 
     # pizza dont delete this, compare it against what is in _GSTCVMixin
 
-    """Set or check the `feature_names_in_` attribute.
+    """
+    Set or check the 'feature_names_in_' attribute.
 
-    .. versionadded:: 1.0
+    pybear recommends setting 'reset=True' in 'fit' and in the first
+    call to 'partial_fit'. All other methods that validate 'X'
+    should set 'reset=False'.
+
 
     Parameters
     ----------
-    X : {ndarray, dataframe} of shape (n_samples, n_features)
+    X:
+        {ndarray, dataframe} of shape (n_samples, n_features)
         The input samples.
 
-    reset : bool
-        Whether to reset the `feature_names_in_` attribute.
-        If False, the input will be checked for consistency with
-        feature names of data provided when reset was last True.
-        .. note::
-           It is recommended to call `reset=True` in `fit` and in the first
-           call to `partial_fit`. All other methods that validate `X`
-           should set `reset=False`.
+    reset:
+        bool - Whether to reset the 'feature_names_in_' attribute. If
+        False, the input will be checked for consistency with  feature
+        names of data provided when reset was last True.
+
+
     """
 
+    X_feature_names = _get_feature_names(X)
+
     if reset:
-        feature_names_in = _get_feature_names(X)
-        if feature_names_in is not None:
-            self.feature_names_in_ = feature_names_in
-        elif hasattr(self, "feature_names_in_"):
+        if X_feature_names is not None:
+            self.feature_names_in_ = X_feature_names
+        elif hasattr(self, "feature_names_in_"):  # and feature_names_in_ is None
             # Delete the attribute when the estimator is fitted on a new dataset
             # that has no feature names.
             delattr(self, "feature_names_in_")
         return
 
+    # v v v v if not resetting, check currently passed against previous v v v v
     fitted_feature_names = getattr(self, "feature_names_in_", None)
-    X_feature_names = _get_feature_names(X)
+
 
     if fitted_feature_names is None and X_feature_names is None:
         # no feature names seen in fit and in X
@@ -86,10 +91,8 @@ def check_feature_names(self, X, *, reset):
         )
         return
 
-    # validate the feature names against the `feature_names_in_` attribute
-    if len(fitted_feature_names) != len(X_feature_names) or np.any(
-        fitted_feature_names != X_feature_names
-    ):
+    # validate the feature names against the 'feature_names_in_' attribute
+    if not np.array_equal(fitted_feature_names, X_feature_names):
         message = (
             "The feature names should match those that were passed during fit.\n"
         )

@@ -9,17 +9,14 @@ from pybear.base._cast_to_ndarray import cast_to_ndarray
 from pybear.utilities._nan_masking import nan_mask
 
 import numpy as np
-import pandas as pd
 import scipy.sparse as ss
 import dask.array as da
 import dask.dataframe as ddf
-from dask_expr._collection import DataFrame as ddf2
-
 
 import pytest
 
 
-pytest.skip(reason='pizza needs to finish', allow_module_level=True)
+
 
 
 class TestCastToNDArray:
@@ -50,7 +47,19 @@ class TestCastToNDArray:
             cast_to_ndarray(junk_X)
 
 
-    def test_blocks_other_non_descript(self):
+    def test_blocks_python_builtins(self):
+
+        with pytest.raises(TypeError):
+            cast_to_ndarray((1,2,3))
+
+        with pytest.raises(TypeError):
+            cast_to_ndarray([1,2,3])
+
+        with pytest.raises(TypeError):
+            cast_to_ndarray({1,2,3})
+
+
+    def test_blocks_oddball_containers(self):
 
         with pytest.raises(TypeError):
             cast_to_ndarray(np.recarray((1,2,3), dtype=np.float64))
@@ -80,7 +89,8 @@ class TestCastToNDArray:
          )
     )
     def test_accuracy(
-        self, _X_factory, _format, _has_nan, _dtype, _sub_dtype, _columns, _shape
+        self, _X_factory, _format, _has_nan, _dtype, _sub_dtype, _columns,
+        _shape
     ):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
@@ -169,9 +179,15 @@ class TestCastToNDArray:
         elif _format == 'dask_array':
             _X_wip = da.from_array(_X_base_np, chunks=_shape)
         elif _format == 'dask_series':
+            # dask is excepting on junky pd nan-likes, so for the dask
+            # test replace all nan-likes with numpy.nan
+            _X_base_pd[nan_mask(_X_base_pd)] = np.nan
             _X_wip = ddf.from_pandas(_X_base_pd)
             _X_wip = _X_wip.iloc[:, 0].squeeze()
         elif _format == 'dask_ddf':
+            # dask is excepting on junky pd nan-likes, so for the dask
+            # test replace all nan-likes with numpy.nan
+            _X_base_pd[nan_mask(_X_base_pd)] = np.nan
             _X_wip = ddf.from_pandas(_X_base_pd)
         else:
             raise Exception
@@ -216,8 +232,13 @@ class TestCastToNDArray:
             ref = _X_base_np
 
         if _dtype == 'flt':
-
-                assert np.array_equal(out, ref, equal_nan=True)
+            # out[nan_mask(out)] = np.nan
+            ref[nan_mask(ref)] = np.nan
+            assert np.array_equal(
+                out.astype(np.float64),
+                ref.astype(np.float64),
+                equal_nan=True
+            )
         else:
             # str NA causing
             # TypeError: boolean value of NA is ambiguous

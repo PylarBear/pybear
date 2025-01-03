@@ -8,7 +8,7 @@
 import warnings
 import numpy as np
 
-# pizza tomorrow proofread this and the tests
+
 
 # this parallels sklearn.utils.validation._get_feature_names(X), which is
 # called by the _check_feature_names method of BaseEstimator, which in
@@ -18,15 +18,18 @@ def get_feature_names(X):
     """
     Get feature names from X. X must have a 'columns' attribute or a
     __dataframe__ dunder, i.e., follows the dataframe interchange
-    protocol. Otherwise feature names are not retrieved and None is
-    returned.
+    protocol. Otherwise, feature names are not retrieved and None is
+    returned. If the dataframe does not have a header comprised of
+    strings (the dataframe was constructed without passing a header and
+    a default non-string header is used), a warning is raised and None
+    is returned.
 
 
     Parameters
     ----------
     X:
-        {array-like} of shape (n_samples, n_features) - Array container
-        from which to extract feature names.
+        {array-like} of shape (n_samples, n_features) of (n_samples, ) -
+        Array container from which to extract feature names.
 
         Objects that have known compatibility with this module:
         pandas dataframe, dask series, dask dataframe, polars dataframe.
