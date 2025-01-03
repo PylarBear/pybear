@@ -1087,6 +1087,12 @@ class _GSTCVMixin(BaseEstimator):
 
         """
 
+        # pizza, this will probably be replaced by a module
+        # from pybear.base.  whenever that's done.
+        # reconcile with sklearn.BaseEstimator._check_feature_names,
+        # MinCountTransformer._val_feature_names(), and whatever crack
+        # module pybear comes up with.
+
         if passed_feature_names is None:
             return
 
