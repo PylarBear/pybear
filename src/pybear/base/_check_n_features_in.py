@@ -52,6 +52,9 @@ def check_n_features_in(
 
     n_features = num_features(X)
 
+    # this is somewhat arbitrary, in that there is nothing following in
+    # this module that requires this. there is nothing in the near
+    # periphery that will be impacted if this is changed / removed.
     if n_features == 0:
         raise ValueError("X does not contain any features")
 

@@ -472,6 +472,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             pass
         elif _columns is not None and hasattr(self, 'feature_names_in_'):
             # CURRENT DATA HAS COLUMNS AND FIT HAS SEEN COLUMNS PREVIOUSLY
+            # pizza _val_feature_names will likely be replaced.
+            # go to _val_feature_names and read the comments
             _val_feature_names(_columns, self.feature_names_in_)
         elif _columns is not None and not hasattr(self, 'feature_names_in_'):
             # FIRST PASS OR FIT WITH ARRAYS UP TO THIS POINT BUT CURRENTLY

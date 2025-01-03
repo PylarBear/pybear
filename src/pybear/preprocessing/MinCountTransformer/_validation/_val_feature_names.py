@@ -30,6 +30,11 @@ def _val_feature_names(
     
     """
 
+    # pizza, u will be coming back to this.
+    # reconcile with sklearn.BaseEstimator._check_feature_names,
+    # and the
+
+
     try:
         iter(_columns)
         if isinstance(_columns, (str, dict)):
