@@ -1063,7 +1063,6 @@ class _GSTCVMixin(BaseEstimator):
     def _validate_features(self, passed_feature_names: np.ndarray) -> None:
 
         """
-
         Validate that feature names passed to a method via a dataframe
         have the exact names and order as those seen during fit, if fit
         was done with a dataframe. If not, raise ValueError. Return None

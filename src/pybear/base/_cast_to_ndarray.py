@@ -6,11 +6,11 @@
 
 
 
-import warnings
+
 import numpy as np
 import pandas as pd
 
-from pybear.utilities import nan_mask
+
 
 
 
@@ -18,6 +18,16 @@ def cast_to_ndarray(X):
 
     """
     Convert the container of OBJECT to numpy.ndarray.
+
+    Does not accept python built-in containers (list, set, tuple).
+    pybear strongly encourages (even requires) you to pass your data
+    in third party containers such as numpy arrays.
+
+    Does not do any nan handling. This module uses methods that are
+    native to the containers to convert them to numpy ndarray. pybear
+    cannot handle every possible edge case when converting data to
+    numpy ndarray. Let the native handling allow or disallow nan-likes.
+    This forces the user to clean up their own data outside of pybear.
 
 
     Parameters
@@ -34,7 +44,7 @@ def cast_to_ndarray(X):
 
     """
 
-    # block unmentionables -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     try:
         # ss dok is not passing iter()
@@ -44,13 +54,21 @@ def cast_to_ndarray(X):
         iter(X)
         if isinstance(X, (str, dict)):
             raise Exception
+        if isinstance(X, (set, tuple, list)):
+            raise MemoryError
     except UnicodeError:
         # skip out for scipy sparse
         pass
+    except MemoryError:
+        raise TypeError(
+            f"cast_to_ndarray does not currently accept python built-in "
+            f"iterables (set, list, tuple). Pass X as a container that "
+            f"has a 'shape' attribute."
+        )
     except:
         raise TypeError(
-            f"cast_to_ndarray: X must be an iterable that can be converted to "
-            f"a numpy ndarray."
+            f"cast_to_ndarray: X must be a vector-like or array-like that "
+            f"can be converted to a numpy ndarray."
         )
 
 
@@ -67,7 +85,7 @@ def cast_to_ndarray(X):
         raise TypeError(
             f"cast_to_ndarray: OBJECT is a numpy masked array. " + _suffix
         )
-    # END block unmentionables -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     # IF ss CONVERT TO np
@@ -79,33 +97,19 @@ def cast_to_ndarray(X):
         pass
 
 
-    # pandas may have funky nan-likes not recognized by numpy. not only do
-    # these prevent pd objects from going to numpy nicely via to_numpy(),
-    # they also cause ValueError on dask ddf when trying to do compute().
-    # forget all those headaches and standardize all nan-likes to
-    # numpy.nan with warning.
-    _nan_mask = nan_mask(X)
-    if np.sum(_nan_mask):
-        warnings.warn(
-            'The passed dataframe/series object has nan-like values.'
-            '\nReplacing all nan-like values with numpy.nan.'
-        )
-        X[_nan_mask] = np.nan
-    del _nan_mask
-
-
-
     # IF dask CONVERT TO np/pd
-    try:
+    if hasattr(X, 'compute'):
         X = X.compute()
-    except:
-        pass
 
 
     # IF pd CONVERT TO np
     if isinstance(X, (pd.core.series.Series, pd.core.frame.DataFrame)):
         X = X.to_numpy()
 
+
+    # # IF polars CONVERT TO np
+    # if isinstance(X, (pl.DataFrame)):
+    #     X = X.to_numpy()
 
 
     X = np.array(X)

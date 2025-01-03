@@ -23,14 +23,14 @@ import pytest
 
 class TestGetFeatureNames:
 
-    # as of 25_01_02 the landscape of headers in the python ecosystem
+    # as of 25_01_02 the landscape of headers in the python ecosystem:
     # -- numpy array, pandas series, dask array, scipy sparse never have
     #       a header and get_feature_names() should always return None.
     # -- pandas dataframe, dask series, dask dataframe
     #     -- when created with a valid header of strs get_features_names()
     #           will return that header
-    #     -- when created without a header, constructed with a default
-    #           header of numbers and get_features_names() will except
+    #     -- when created without a header (constructed with the default
+    #           header of numbers) get_features_names() will except
     #           for invalid header
     # -- polars dataframe
     #     -- when created with a valid header of strs get_features_names()

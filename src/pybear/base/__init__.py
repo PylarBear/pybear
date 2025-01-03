@@ -8,7 +8,7 @@
 
 
 from ._cast_to_ndarray import cast_to_ndarray
-from ._check_feature_names import check_feature_names
+# from ._check_feature_names import check_feature_names   PIZZA
 from ._check_n_features_in import check_n_features_in
 from ._check_is_fitted import check_is_fitted
 from ._check_shape import check_shape
@@ -27,7 +27,7 @@ from .mixins.GFNOMixin import GFNOMixin
 
 __all__ = [
     'cast_to_ndarray',
-    'check_feature_names',
+    # 'check_feature_names',   PIZZA
     'check_is_fitted',
     'check_n_features_in',
     'check_shape',
