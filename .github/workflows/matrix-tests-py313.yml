@@ -14,8 +14,8 @@ jobs:
     
     steps:
     - name: Install LLVM
+      if: matrix.os == 'ubuntu-latest'
       run: |
-        if: matrix.os == 'ubuntu-latest'
         sudo apt-get update
         sudo apt-get install -y llvm
         echo "LLVM installed."
