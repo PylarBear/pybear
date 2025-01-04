@@ -21,7 +21,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y llvm
         echo "LLVM installed."
-        # sudo apt-get install libarrow-dev
+        # Install libarrow
+        DISTRO=$(lsb_release --codename --short)
+        add-apt-repository "deb [arch=amd64] http://dl.bintray.com/apache/arrow/ubuntu $DISTRO main"
+        sudo apt-get install libarrow-dev
+        # Install OpenBLAS
         sudo apt install libopenblas-dev
     - name: Install LLVM MacOS
       if: matrix.os == 'macos-latest'
