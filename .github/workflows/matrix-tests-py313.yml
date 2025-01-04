@@ -21,9 +21,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y llvm
         echo "LLVM installed."
+        sudo apt-get install libarrow-dev
+        sudo apt install libopenblas-dev
     - name: Install LLVM MacOS
       if: matrix.os == 'macos-latest'
-      run: brew install llvm
+      run: |
+        brew install llvm
+        brew install apache-arrow
+        brew install openblas
     - name: Install LLVM Windows
       if: matrix.os == 'windows-latest'
       run: choco install llvm -y
@@ -36,8 +41,10 @@ jobs:
       run: |
         echo "PATH=/usr/local/opt/llvm/bin:$PATH" >> $GITHUB_ENV
         echo "LLVM_CONFIG_PATH=/usr/local/opt/llvm/bin/llvm-config" >> $GITHUB_ENV
-        # which llvm-config
-        # llvm-config --version
+        export CMAKE_PREFIX_PATH=/usr/local/lib/cmake/arrow
+        export OPENBLAS_HOME=/usr/local/opt/openblas
+        export CMAKE_PREFIX_PATH=$OPENBLAS_HOME:$CMAKE_PREFIX_PATH
+        export PKG_CONFIG_PATH=$OPENBLAS_HOME/lib/pkgconfig:$PKG_CONFIG_PATH
     - name: Set LLVM Path Windows
       if: matrix.os == 'windows-latest'
       run: echo "PATH=C:\Program Files\LLVM\bin;$PATH" >> $GITHUB_ENV
