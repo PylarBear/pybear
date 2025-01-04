@@ -15,11 +15,13 @@ jobs:
     steps:
     - name: Install LLVM
       run: |
+        if: matrix.os == 'ubuntu-latest'
         sudo apt-get update
         sudo apt-get install -y llvm
         echo "LLVM installed."
 
     - name: Set LLVM Path
+      if: matrix.os == 'ubuntu-latest'
       run: echo "export PATH=/usr/lib/llvm-12/bin:$PATH" >> $GITHUB_ENV
       
     - name: Checkout code
