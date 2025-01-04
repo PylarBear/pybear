@@ -13,7 +13,7 @@ jobs:
         python-version: ["3.13"]
         exclude:
           - os: "macos-latest"
-            environment: "3.13"
+            python-version: "3.13"
     steps:
     - name: Install LLVM Ubuntu
       if: matrix.os == 'ubuntu-latest'
