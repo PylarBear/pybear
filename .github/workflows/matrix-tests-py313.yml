@@ -21,22 +21,37 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y llvm
         echo "LLVM installed."
-        # Install libarrow
-        DISTRO=$(lsb_release --codename --short)
-        add-apt-repository "deb [arch=amd64] http://dl.bintray.com/apache/arrow/ubuntu $DISTRO main"
-        sudo apt-get install libarrow-dev
-        # Install OpenBLAS
-        sudo apt install libopenblas-dev
     - name: Install LLVM MacOS
       if: matrix.os == 'macos-latest'
-      run: |
-        brew install llvm
-        brew install apache-arrow
-        brew install openblas
+      run: brew install llvm
     - name: Install LLVM Windows
       if: matrix.os == 'windows-latest'
       run: choco install llvm -y
+      
+    - name: Install libarrow-dev Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        # Install libarrow-dev
+        DISTRO=$(lsb_release --codename --short)
+        add-apt-repository "deb [arch=amd64] http://dl.bintray.com/apache/arrow/ubuntu $DISTRO main"
+        sudo apt-get install libarrow-dev
+    - name: Install apache-arrow MacOS
+      if: matrix.os == 'macos-latest'
+      run: brew install apache-arrow
+      
+    - name: Install libopenblas-dev Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt install libopenblas-dev
+    - name: Install openblas MacOS
+      if: matrix.os == 'macos-latest'
+      run: brew install openblas
 
+    # Conditional step to install libomp on macOS
+    # Need libomp on macOS to run XGBoost
+    - name: Install libomp on macOS
+      if: matrix.os == 'macos-latest'
+      run: brew install libomp
+    
     - name: Set LLVM Path Ubuntu
       if: matrix.os == 'ubuntu-latest'
       run: echo "PATH=/usr/lib/llvm-12/bin:$PATH" >> $GITHUB_ENV
@@ -60,12 +75,6 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-
-    # Conditional step to install libomp on macOS
-    # Need libomp on macOS to run XGBoost
-    - name: Install libomp on macOS
-      if: matrix.os == 'macos-latest'
-      run: brew install libomp
 
     - name: Install Poetry
       run: |
