@@ -11,66 +11,13 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "windows-latest", "macos-latest"]
         python-version: ["3.13"]
-        exclude:
-          - os: "macos-latest"
-            python-version: "3.13"
-    steps:
-    - name: Install LLVM Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y llvm
-        echo "LLVM installed."
-    - name: Install LLVM MacOS
-      if: matrix.os == 'macos-latest'
-      run: brew install llvm
-    - name: Install LLVM Windows
-      if: matrix.os == 'windows-latest'
-      run: choco install llvm -y
-      
-    - name: Install libarrow-dev Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        # Install libarrow-dev
-          sudo apt install -y -V ca-certificates lsb-release wget
-          wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-          sudo apt install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-          sudo apt-get update -y
-          arrow_version=12.0.1-1
-          sudo apt-get install -y libpq-dev libarrow-dev=${arrow_version} libarrow-glib-dev=${arrow_version} gir1.2-arrow-1.0=${arrow_version} libparquet-dev=${arrow_version} libparquet-glib-dev=${arrow_version} gir1.2-parquet-1.0=${arrow_version}
-    - name: Install apache-arrow MacOS
-      if: matrix.os == 'macos-latest'
-      run: brew install apache-arrow
-      
-    - name: Install libopenblas-dev Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      run: sudo apt install libopenblas-dev
-    - name: Install openblas MacOS
-      if: matrix.os == 'macos-latest'
-      run: brew install openblas
-
+    steps:  
     # Conditional step to install libomp on macOS
     # Need libomp on macOS to run XGBoost
     - name: Install libomp on macOS
       if: matrix.os == 'macos-latest'
       run: brew install libomp
-    
-    - name: Set LLVM Path Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      run: echo "PATH=/usr/lib/llvm-12/bin:$PATH" >> $GITHUB_ENV
-    - name: Set LLVM Path MacOS
-      if: matrix.os == 'macos-latest'
-      run: |
-        echo "PATH=/usr/local/opt/llvm/bin:$PATH" >> $GITHUB_ENV
-        echo "LLVM_CONFIG_PATH=/usr/local/opt/llvm/bin/llvm-config" >> $GITHUB_ENV
-        export CMAKE_PREFIX_PATH=/usr/local/lib/cmake/arrow
-        export OPENBLAS_HOME=/usr/local/opt/openblas
-        export CMAKE_PREFIX_PATH=$OPENBLAS_HOME:$CMAKE_PREFIX_PATH
-        export PKG_CONFIG_PATH=$OPENBLAS_HOME/lib/pkgconfig:$PKG_CONFIG_PATH
-    - name: Set LLVM Path Windows
-      if: matrix.os == 'windows-latest'
-      run: echo "PATH=C:\Program Files\LLVM\bin;$PATH" >> $GITHUB_ENV
-      
+  
     - name: Checkout code
       uses: actions/checkout@v4
 
