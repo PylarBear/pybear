@@ -32,9 +32,12 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         # Install libarrow-dev
-        DISTRO=$(lsb_release --codename --short)
-        sudo add-apt-repository "deb [arch=amd64] http://dl.bintray.com/apache/arrow/ubuntu $DISTRO main"
-        sudo apt-get install libarrow-dev
+          sudo apt install -y -V ca-certificates lsb-release wget
+          wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+          sudo apt install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+          sudo apt-get update -y
+          arrow_version=12.0.1-1
+          sudo apt-get install -y libpq-dev libarrow-dev=${arrow_version} libarrow-glib-dev=${arrow_version} gir1.2-arrow-1.0=${arrow_version} libparquet-dev=${arrow_version} libparquet-glib-dev=${arrow_version} gir1.2-parquet-1.0=${arrow_version}
     - name: Install apache-arrow MacOS
       if: matrix.os == 'macos-latest'
       run: brew install apache-arrow
