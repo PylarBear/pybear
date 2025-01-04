@@ -33,7 +33,7 @@ jobs:
       run: |
         # Install libarrow-dev
         DISTRO=$(lsb_release --codename --short)
-        add-apt-repository "deb [arch=amd64] http://dl.bintray.com/apache/arrow/ubuntu $DISTRO main"
+        sudo add-apt-repository "deb [arch=amd64] http://dl.bintray.com/apache/arrow/ubuntu $DISTRO main"
         sudo apt-get install libarrow-dev
     - name: Install apache-arrow MacOS
       if: matrix.os == 'macos-latest'
