@@ -12,7 +12,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.13']
         exclude:
-          - os: "macos-latest"
+          - os: macos-latest
             environment: '3.13'
     steps:
     - name: Install LLVM Ubuntu
