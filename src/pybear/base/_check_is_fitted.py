@@ -8,7 +8,7 @@
 
 
 from ..base._is_fitted import is_fitted
-from ..exceptions import NotFittedError
+from ..base.exceptions import NotFittedError
 
 from inspect import isclass
 

@@ -12,7 +12,7 @@ from ._num_features import num_features
 
 
 
-def check_n_features_in(
+def check_n_features(
     X,
     n_features_in_: Union[int, None],
     reset: bool
@@ -32,9 +32,9 @@ def check_n_features_in(
         array-like of shape (n_samples, n_features) or (n_samples,) with
         a 'shape' attribute - The input data.
     n_features_in_:
-        Union[int, None] - the number of features in the
-        data. If this attribute exists, it is integer. If it does not
-        exist, it is None.
+        Union[int, None] - the number of features in the data. If this
+        attribute exists, it is integer. If it does not exist, it is
+        None.
     reset:
         bool -
         If True, the 'n_features_in_' attribute is set to 'X.shape[1]'
@@ -61,7 +61,7 @@ def check_n_features_in(
     if reset:
         return n_features
 
-    # reset must be False for all below
+    # reset must be False for all below v v v v v v v v v v v
     if n_features_in_ is None:
         return
 

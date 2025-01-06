@@ -7,7 +7,7 @@
 
 
 
-from pybear.base import FitTransformMixin
+from pybear.base.mixins._FitTransformMixin import FitTransformMixin
 
 
 import numpy as np

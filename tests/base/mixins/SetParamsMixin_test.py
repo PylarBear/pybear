@@ -7,7 +7,7 @@
 
 
 
-from pybear.base.mixins.SetParamsMixin import SetParamsMixin
+from pybear.base.mixins._SetParamsMixin import SetParamsMixin
 
 
 

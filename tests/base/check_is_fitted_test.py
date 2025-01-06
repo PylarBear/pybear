@@ -6,7 +6,7 @@
 
 
 
-from pybear.exceptions import NotFittedError
+from pybear.base.exceptions import NotFittedError
 from pybear.base._check_is_fitted import check_is_fitted
 from pybear.preprocessing import (
     ColumnDeduplicateTransformer as CDT,

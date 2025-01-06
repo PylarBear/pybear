@@ -21,7 +21,7 @@ from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._inverse_transform._inverse_transform import _inverse_transform
 from ._transform._transform import _transform
 
-from ...exceptions import NotFittedError
+from ...base import NotFittedError
 
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import StrOptions
@@ -426,7 +426,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         feature_names_out = get_feature_names_out(
             input_features,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self.n_features_in_
         )
 
@@ -518,7 +518,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         # be exposed, if available.
         _validation(
             X,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self.conflict,
             self.do_not_drop,
             self.keep,
@@ -550,7 +550,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         self.duplicates_: list[list[int]] = \
             _dupl_idxs(
                 X,
-                self.duplicates_ if hasattr(self, 'duplicates_') else None,
+                getattr(self, 'duplicates_', None),
                 self.rtol,
                 self.atol,
                 self.equal_nan,
@@ -707,7 +707,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
         out = _inverse_transform(
             _X,
             self.removed_columns_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+            getattr(self, 'feature_names_in_', None)
         )
 
         if isinstance(out, np.ndarray):
@@ -790,7 +790,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
 
         _validation(
             X_tr,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self.conflict,
             self.do_not_drop,
             self.keep,
@@ -807,7 +807,7 @@ class ColumnDeduplicateTransformer(BaseEstimator, TransformerMixin):
                 self.duplicates_,
                 self.keep,
                 self.do_not_drop,
-                self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+                getattr(self, 'feature_names_in_', None),
                 self.conflict,
                 self._rand_idxs
             )
