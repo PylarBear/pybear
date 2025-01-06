@@ -1,4 +1,4 @@
-# Author:
+         # Author:
 #         Bill Sousa
 #
 # License: BSD 3 clause
@@ -6,18 +6,12 @@
 
 
 
-class GetParamsMixin:
-
+def validate_data(
+    X
+):
 
     pass
-
     # pizza
-
-
-
-
-
-
 
 
 

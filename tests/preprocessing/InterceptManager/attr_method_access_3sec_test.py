@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-from pybear.exceptions import NotFittedError
+from pybear.base import NotFittedError
 
 
 

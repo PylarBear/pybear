@@ -400,6 +400,7 @@ class _GSTCVMixin(BaseEstimator):
         return super().get_params(deep)
 
 
+    # pizza
     # 24_10_27 now inheriting get_params from BaseEstimator
     # the below code previously worked in its stead, keep this for backup.
     # def get_params(self, deep:bool=True):
@@ -765,6 +766,7 @@ class _GSTCVMixin(BaseEstimator):
             return self.best_estimator_.score_samples(_X)
 
 
+    # pizza
     # 24_10_27 now inheriting set_params from BaseEstimator
     # the below code previously worked in its stead, keep this for backup.
     # def set_params(self, **params):

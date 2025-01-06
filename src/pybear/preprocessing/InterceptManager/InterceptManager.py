@@ -533,7 +533,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         feature_names_out = get_feature_names_out(
             input_features,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self.n_features_in_
         )
 
@@ -683,7 +683,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # if IM has already been fitted and constant_columns_ is empty
         # (meaning there are no constant columns) dont even bother to
         # scan more data, cant possibly have constant columns
-        if hasattr(self, 'constant_columns_') and self.constant_columns_ == {}:
+        if getattr(self, 'constant_columns_', None) == {}:
             self.constant_columns_ = {}
         else:
             # dictionary of column indices and respective constant values

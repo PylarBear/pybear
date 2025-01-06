@@ -19,7 +19,7 @@ class NotFittedError(ValueError, AttributeError):
     Examples
     --------
     >>> from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
-    >>> from pybear.exceptions import NotFittedError
+    >>> from pybear.base.exceptions import NotFittedError
     >>> import numpy as np
     >>> X = np.random.randint(0, 10, (5,3))
     >>> try:

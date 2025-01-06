@@ -833,7 +833,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         # if did not except....
         _X_header: npt.NDArray[object] = get_feature_names_out(
             input_features,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self.n_features_in_
         )
 

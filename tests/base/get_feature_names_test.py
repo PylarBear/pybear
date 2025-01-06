@@ -121,8 +121,7 @@ class TestGetFeatureNames:
             with pytest.warns():
                 # this warns for non-str feature names
                 # (the default header when 'columns=' is not passed)
-                assert get_feature_names(_X_wip) is None
-            pytest.skip(reason=f'the remaining tests dont apply')
+                out = get_feature_names(_X_wip)
         else:
             out = get_feature_names(_X_wip)
 

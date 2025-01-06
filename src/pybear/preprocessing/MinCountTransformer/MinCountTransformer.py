@@ -496,7 +496,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         _X_rows, _X_columns = X.shape
 
         # IF PREVIOUSLY FITTED, THEN self.n_features_in_ EXISTS
-        if hasattr(self, 'n_features_in_') and _X_columns != self.n_features_in_:
+        if getattr(self, 'n_features_in_', None) != _X_columns:
             raise ValueError( f"X has {_X_columns} columns, previously "
                 f"seen data had {self.n_features_in_} columns")
         else: # IF NOT PREVIOUSLY FITTED
@@ -555,7 +555,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             self._ignore_columns,
             is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+            getattr(self, 'feature_names_in_', None)
         )
 
         # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
@@ -563,7 +563,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             self._handle_as_bool,
             is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self._original_dtypes
         )
 
@@ -785,7 +785,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             self._ignore_columns,
             is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None
+            getattr(self, 'feature_names_in_', None)
         )
 
         # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
@@ -802,7 +802,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             self._handle_as_bool,
             is_fitted(self, attributes='n_features_in_'),
             self.n_features_in_,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self._original_dtypes
         )
         # END VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs ** **
@@ -1092,49 +1092,11 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         feature_names_out = _get_feature_names_out(
             input_features,
-            self.feature_names_in_ if hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self.n_features_in_
         )
 
         return feature_names_out[self.get_support(indices=False)]
-
-
-        """
-        err_msg = f"input_features must be a list-type of strings or None"
-        if input_features is None:
-            if hasattr(self, 'feature_names_in_'):
-                return self.feature_names_in_[COLUMN_MASK]
-            else:
-                return np.array(
-                    [f"x{i}" for i in range(self.n_features_in_)]
-                )[COLUMN_MASK]
-        else:
-            if isinstance(input_features, (str, dict)):
-                raise TypeError(err_msg)
-
-            try:
-                input_features = np.array(list(input_features))
-            except:
-                raise TypeError(err_msg)
-
-            if not all(['str' in str(type(__)).lower() for __ in input_features]):
-                raise TypeError(err_msg)
-            elif len(np.array(input_features).ravel()) != self.n_features_in_:
-                raise ValueError(f"number of passed input_features does not "
-                        f"match number of features seen during (partial_)fit(). "
-                        f"input_features should have length equal."
-                    )
-            elif hasattr(self, 'feature_names_in_') and \
-                not np.array_equiv(input_features, self.feature_names_in_):
-                    raise ValueError(f"passed input_features does not match "
-                        f"feature names seen during (partial_)fit(). input_features "
-                        f"is not equal to feature_names_in_"
-                    )
-            else:
-                return np.array(input_features).ravel()[COLUMN_MASK].astype(object)
-        """
-
-
 
 
     def get_metadata_routing(self):

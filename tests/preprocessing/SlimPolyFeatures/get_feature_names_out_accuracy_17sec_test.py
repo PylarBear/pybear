@@ -11,7 +11,7 @@ from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
 
 import itertools
 import numpy as np
-from pybear.exceptions import NotFittedError
+from pybear.base import NotFittedError
 
 import pytest
 

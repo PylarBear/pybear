@@ -6,7 +6,7 @@
 
 
 
-from pybear.base._check_n_features_in import check_n_features_in
+from pybear.base._check_n_features_in import check_n_features
 
 import numpy as np
 import pandas as pd
@@ -75,7 +75,7 @@ class TestCheckNFeaturesIn:
             # when reset is True, doesnt matter what n_features_in_ was
             # previously, n_features_in_ is set to whatever is in the X
             # that it is currently seeing
-            out = check_n_features_in(
+            out = check_n_features(
                 _X,
                 n_features_in_,
                 _reset
@@ -91,7 +91,7 @@ class TestCheckNFeaturesIn:
             if n_features_in_ is None:
 
                 # this basically a no-op, just returns None
-                out = check_n_features_in(
+                out = check_n_features(
                     _X,
                     n_features_in_,
                     _reset
@@ -103,7 +103,7 @@ class TestCheckNFeaturesIn:
 
                 if len(X_shape) == 1:
                     if n_features_in_ == 1:
-                        out = check_n_features_in(
+                        out = check_n_features(
                             _X,
                             n_features_in_,
                             _reset
@@ -112,7 +112,7 @@ class TestCheckNFeaturesIn:
                         assert out == n_features_in_ == 1
                     else:
                         with pytest.raises(ValueError):
-                            check_n_features_in(
+                            check_n_features(
                                 _X,
                                 n_features_in_,
                                 _reset
@@ -120,7 +120,7 @@ class TestCheckNFeaturesIn:
 
                 # otherwise, X_shape must be 2D
                 elif n_features_in_ == X_shape[1]:
-                    out = check_n_features_in(
+                    out = check_n_features(
                         _X,
                         n_features_in_,
                         _reset
@@ -132,7 +132,7 @@ class TestCheckNFeaturesIn:
                 elif n_features_in_ != X_shape[1]:
                     # new data has different num columns than previously
                     with pytest.raises(ValueError):
-                        check_n_features_in(
+                        check_n_features(
                             _X,
                             n_features_in_,
                             _reset
