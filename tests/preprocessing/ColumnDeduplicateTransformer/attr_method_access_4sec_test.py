@@ -13,7 +13,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-from pybear.base import NotFittedError
+from pybear.base.exceptions import NotFittedError
 
 
 

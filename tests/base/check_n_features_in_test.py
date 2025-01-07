@@ -6,7 +6,7 @@
 
 
 
-from pybear.base._check_n_features_in import check_n_features
+from pybear.base._check_n_features import check_n_features
 
 import numpy as np
 import pandas as pd
@@ -22,7 +22,7 @@ import pytest
 class TestCheckNFeaturesIn:
 
 
-    # def check_n_features_in(
+    # def check_n_features(
     #     X,
     #     n_features_in_: Union[int, None],
     #     reset: bool
@@ -43,7 +43,7 @@ class TestCheckNFeaturesIn:
     )
     @pytest.mark.parametrize('n_features_in_', (1, 4, 7, 10, 13, 17, 22, None))
     @pytest.mark.parametrize('_reset',  (True, False))
-    def test_check_n_features_in_(
+    def test_check_n_features(
         self, X_format, X_shape, n_features_in_, _reset
     ):
 

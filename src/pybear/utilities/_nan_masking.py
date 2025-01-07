@@ -37,14 +37,14 @@ def nan_mask_numerical(
     """
     This formula accepts numerical numpy arrays, pandas dataframes, and
     all scipy sparse matrices/arrays except dok and lil formats. In all
-    cases, return a boolean numpy array or vector indicating the locations
-    of nan-like representations in the data. "nan-like representations"
-    include, at least, numpy.nan, pandas.NA, and string representations
-    of "nan".
-    In the cases of numpy arrays and pandas dataframes of shape
-    (n_samples, n_features), return an identically shaped numpy array.
-    In the cases of scipy sparse objects, return a boolean numpy vector
-    of shape equal to that of the 'data' attribute of the sparse object.
+    cases, return a boolean numpy array or vector indicating the
+    locations of nan-like representations in the data. "nan-like
+    representations" include, at least, numpy.nan, pandas.NA, and string
+    representations of "nan". In the cases of numpy arrays and pandas
+    dataframes of shape (n_samples, n_features), return an identically
+    shaped numpy array. In the cases of scipy sparse objects, return a
+    boolean numpy vector of shape equal to that of the 'data' attribute
+    of the sparse object.
 
 
     Parameters

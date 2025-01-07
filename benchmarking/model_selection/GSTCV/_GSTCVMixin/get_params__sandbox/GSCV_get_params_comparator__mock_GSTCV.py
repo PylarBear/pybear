@@ -34,6 +34,7 @@ from dask_ml.linear_model import LinearRegression as dask_LinearRegression
 # MOCK THE _GSTCV CLASS AND ITS get_params METHOD ** ** ** ** ** ** ** **
 class mock_GSTCV:
 
+
     def __init__(self, estimator, param_grid):
         self.estimator = estimator
         self.param_grid = param_grid
@@ -59,6 +60,7 @@ class mock_GSTCV:
         if self.dask_estimator: self.iid = True
         if self.dask_estimator: self.scheduler = None
         if self.dask_estimator: self.cache_cv = True
+
 
     def get_params(self, deep=True):
 
@@ -102,10 +104,7 @@ if show_sklearn + show_dask == 0:
 
 # build single estimators ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 sklearn_est = sklearn_LogisticRegression()
-dask_est = dask_LogisticRegression()
-
 sklearn_one_est_param_grid = {'C': [1e-3, 1e-2, 1e-1], 'tol': [1e-9, 1e-8, 1e-7]}
-dask_one_est_param_grid = {'C': [1e-3, 1e-2, 1e-1], 'tol': [1e-9, 1e-8, 1e-7]}
 
 sklearn_gscv_single_est = sklearn_GridSearchCV(
     estimator=sklearn_est,
@@ -115,6 +114,10 @@ sklearn_mock_gstcv_single_est = mock_GSTCV(
     estimator=sklearn_est,
     param_grid=sklearn_one_est_param_grid
 )
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+dask_est = dask_LogisticRegression()
+dask_one_est_param_grid = {'C': [1e-3, 1e-2, 1e-1], 'tol': [1e-9, 1e-8, 1e-7]}
+
 dask_gscv_single_est = dask_GridSearchCV(
     estimator=dask_est,
     param_grid=dask_one_est_param_grid
@@ -134,22 +137,7 @@ sklearn_pipe = Pipeline(
     verbose=True
 )
 
-dask_pipe = Pipeline(
-    steps=[
-        ('pipe_class_1', dask_LogisticRegression()),
-        ('pipe_class_2', dask_LinearRegression())
-    ],
-    verbose=True
-)
-
 sklearn_pipe_param_grid = {
-    'pipe_class_1__C': [1e-3, 1e-2, 1e-1],
-    'pipe_class_1__tol': [1e-9, 1e-8, 1e-7],
-    'pipe_class_2__C': [1e-3, 1e-2, 1e-1],
-    'pipe_class_3__tol': [1e-9, 1e-8, 1e-7],
-}
-
-dask_pipe_param_grid = {
     'pipe_class_1__C': [1e-3, 1e-2, 1e-1],
     'pipe_class_1__tol': [1e-9, 1e-8, 1e-7],
     'pipe_class_2__C': [1e-3, 1e-2, 1e-1],
@@ -164,6 +152,22 @@ sklearn_mock_gstcv_pipe_est = mock_GSTCV(
     estimator=sklearn_pipe,
     param_grid=sklearn_pipe_param_grid
 )
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+dask_pipe = Pipeline(
+    steps=[
+        ('pipe_class_1', dask_LogisticRegression()),
+        ('pipe_class_2', dask_LinearRegression())
+    ],
+    verbose=True
+)
+
+dask_pipe_param_grid = {
+    'pipe_class_1__C': [1e-3, 1e-2, 1e-1],
+    'pipe_class_1__tol': [1e-9, 1e-8, 1e-7],
+    'pipe_class_2__C': [1e-3, 1e-2, 1e-1],
+    'pipe_class_2__tol': [1e-9, 1e-8, 1e-7],
+}
+
 dask_gscv_pipe_est = dask_GridSearchCV(
     estimator=dask_pipe,
     param_grid=dask_pipe_param_grid
@@ -225,14 +229,8 @@ for estimator_type in ['single', 'pipe']:
         ALL_PARAMS = sorted(list(ALL_PARAMS.keys()))
         # END mash params together to get uniques for DF row labels ** *
 
-        # get column labels for DF ** ** ** ** ** ** ** ** ** ** ** **
-        if show_sklearn:
-            COLUMNS = ['SK_REF', 'SK_MOCK']
-        if show_dask:
-            COLUMNS = ['DA_REF', 'DA_MOCK']
-        # END get column labels for DF ** ** ** ** ** ** ** ** ** ** **
 
-        DF = pd.DataFrame(index=ALL_PARAMS, columns=COLUMNS, dtype=object).fillna('-')
+        DF = pd.DataFrame(index=ALL_PARAMS, dtype=object).fillna('-')
         pd.options.display.width = 0
 
         # fill non-shared param values ** * ** * ** * ** * ** * ** * **
@@ -277,8 +275,11 @@ if __ == 'd':
     path = desktop_path / filename
     with pd.ExcelWriter(path, engine=None, mode="w") as writer:
         for idx, key in enumerate(DF_DICT, 1):
-            DF_DICT[key].to_excel(writer, sheet_name=DF_SHEET_NAME[idx],
-                                  engine=None, na_rep=None
+            DF_DICT[key].to_excel(
+                writer,
+                sheet_name=DF_SHEET_NAME[idx],
+                engine=None,
+                na_rep=None
             )
 
 elif __ == 's':
