@@ -8,25 +8,39 @@
 from pathlib import Path
 import numpy as np
 import pandas as pd
+
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
 from sklearn.linear_model import LinearRegression as sklearn_LinearRegression
-from sklearn.pipeline import Pipeline
 
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 from dask_ml.linear_model import LinearRegression as dask_LinearRegression
 
+from sklearn.pipeline import Pipeline
 
 
 # UNDERSTAND THE SIMILARITIES / DIFFERENCES OF SK/DASK SHALLOW/DEEP GSCV.get_params()
+
+# BUILD SK/DASK GSCVS WITH EITHER ESTIMATORS OR PIPELINES.
+# ACCESS get_params FOR THESE GSCVS WITH deep == True or False
+# FILL A DF WITH THE OUTPUT OF SK & DASK TO COMPARE THEM HEAD TO HEAD TO SEE
+# THE SIMILARITIES/DIFFERENCES OF WHAT PARAMS ARE RETURNED
+
+
+# SUMMARY:
 # BUILDING THE OUTPUT FOR get_params() IS THE SAME FOR BOTH
 # For shallow:
 #   GET ALL THE args/kwargs FOR SK/DASK GSCV & ADD AN ENTRY FOR ESTIMATOR.
 # For deep:
-#   ADD ONTO shallow OUTPUT THE OUTPUT FROM get_params(deep) ON THE estimator,
+#   ADD ONTO shallow GSCV OUTPUT THE OUTPUT FROM get_params(deep) ON THE estimator,
 #   WHETHER IT IS A SINGLE ESTIMATOR OR A PIPELINE.
 #   (shallow/deep IS IRRELEVANT FOR est, BUT MATTERS FOR pipe).
 #   THE DIFFERENCE IN OUTPUT BETWEEN SK & DASK LIES IN THE DIFFERENT args/kwargs OF
 #   GSCV AND THE DIFFERENT args/kwargs OF THE SK/DASK VERSIONS OF THE ESTIMATOR(S).
+
+# THIS MODULE DOES NOT REFLECT THE ORDER THAT PARAMS ARE STORED IN THE
+# paramsdict THAT IS RETURNED FROM get_params(). TO MAKE THIS COMPARISON OF
+# EST/PIPE SK/DASK PARAMS, ALL OF THE PARAMS ARE SORTED ALPHABETICALLY TO
+# MAKE THE ROW LABELS FOR THE OUTPUTTED DF.
 
 
 
@@ -36,8 +50,8 @@ use_shallow_param_deleter = False
 show_est = True
 show_pipe = False
 
-if show_est + show_pipe == 0:
-    raise KeyboardInterrupt(f"cant both be False")
+if show_est + show_pipe != 1:
+    raise KeyboardInterrupt(f"both cant be False, can only look at one at a time")
 # END SET COMPARISON PARAMETERS ** * ** * ** * ** * ** * ** *
 
 
@@ -50,10 +64,11 @@ def shallow_param_deleter(shallow_params, full_params):
 # BUILD EMPTY DF TO HOLD THE VARIOUS GSCV get_params() OUTPUT
 
 ########################################################################
+########################################################################
 # mash together all the params from each GSCV into one list of uniques
 # and use that as the row labels in the DF
 
-# sk no pipe ** * ** *
+# sk no pipe ** * ** * ** * ** * ** * ** * ** * ** * **
 sk_no_pipe_searcher = sklearn_GridSearchCV(
     estimator=sklearn_LinearRegression(),
     param_grid={'C': np.logspace(-3, 3, 7)}
@@ -67,9 +82,9 @@ if use_shallow_param_deleter:
     )
 
 del sk_no_pipe_searcher
-# END sk no pipe ** * ** *
+# END sk no pipe ** * ** * ** * ** * ** * ** * ** * **
 
-# dask no pipe ** * ** *
+# dask no pipe ** * ** * ** * ** * ** * ** * ** * ** *
 dask_no_pipe_searcher = dask_GridSearchCV(
     estimator=dask_LinearRegression(),
     param_grid={'C': np.logspace(-3, 3, 7)}
@@ -83,10 +98,10 @@ if use_shallow_param_deleter:
     )
 
 del dask_no_pipe_searcher
-# dask no pipe ** * ** *
+# dask no pipe ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-# sk pipe ** * ** * ** *
+# sk pipe ** * ** * ** * ** * ** * ** * ** * ** * ** *
 sk_pipe_searcher = sklearn_GridSearchCV(
     estimator=Pipeline(
         steps=[
@@ -105,24 +120,26 @@ if use_shallow_param_deleter:
     )
 
 del sk_pipe_searcher
-# END sk pipe ** * ** * ** *
+# END sk pipe ** * ** * ** * ** * ** * ** * ** * ** *
 
-# da pipe ** * ** * **
+# da pipe ** * ** * ** * ** ** * ** * ** * ** * ** *
 dask_pipe_searcher = dask_GridSearchCV(
     estimator=Pipeline(
         steps=[
-                ('pipe1', dask_LinearRegression()),
-                ('pipe2', dask_LinearRegression()),
+            ('pipe1', dask_LinearRegression()),
+            ('pipe2', dask_LinearRegression())
         ]
     ),
     param_grid={'pipe1__C': np.logspace(-3, 3, 7)}
 )
 
-shallow_params = dask_pipe_searcher.get_params(deep=False)
 da_pipe_params = dask_pipe_searcher.get_params(deep=_deep)
 if use_shallow_param_deleter:
-    da_pipe_params = shallow_param_deleter(shallow_params, da_pipe_params)
-# END da pipe ** * ** * **
+    da_pipe_params = shallow_param_deleter(
+        dask_pipe_searcher.get_params(deep=False),
+        da_pipe_params
+    )
+# END da pipe ** * ** * ** * ** ** * ** * ** * ** * **
 
 
 if show_est:
@@ -142,7 +159,8 @@ elif show_pipe:
 
 DF = pd.DataFrame(index=ALL_FIELDS, columns=COLUMNS).fillna('-')
 
-# END BUILD EMPTY DF TO HOLD THE VARIOUS GSCV get_params() OUTPUT ######
+# END BUILD DF TO HOLD THE VARIOUS GSCV get_params() OUTPUT ############
+########################################################################
 
 
 # FILL THE EMPTY DF

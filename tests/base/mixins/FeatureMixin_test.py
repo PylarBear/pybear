@@ -23,12 +23,12 @@ class TestFeatureMixin:
 
 
     # the workhorses of this mixin are
-    # pybear.base.check_n_features_in()
-    # pybear.base.check_feature_names_in()
+    # pybear.base.check_n_features()
+    # pybear.base.check_feature_names()
     # pybear.base.get_feature_names_out().
     # those modules are tested in
-    # check_n_features_in_test
-    # check_feature_names_in_test
+    # check_n_features_test
+    # check_feature_names_test
     # get_feature_names_out_test.
     # only test that the mixin works here.
 
@@ -69,7 +69,7 @@ class TestFeatureMixin:
             # FeatureMixin should provide
             # get_feature_names_out(input_features)
             # _check_n_features(X, self.n_features_in, reset)
-            # _check_feature_names_in(X, reset)
+            # _check_feature_names(X, reset)
 
             # feature axis of X is not altered during transform
 
@@ -112,7 +112,7 @@ class TestFeatureMixin:
 
                 assert self._is_fitted
 
-                # X must have same n_features as at fit or get_feature_names_out()
+                # X must have same n_features as at fit for get_feature_names_out()
                 assert X.shape[1] == self.n_features_in
 
                 return np.full(X.shape, self._random_fill)

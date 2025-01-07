@@ -12,9 +12,9 @@ import numpy.typing as npt
 
 
 def _estimator_fit_params_helper(
-        data_len: int,
-        fit_params: dict[str, any],
-        KFOLD: list[tuple[npt.NDArray, npt.NDArray]]
+    data_len: int,
+    fit_params: dict[str, any],
+    KFOLD: list[tuple[npt.NDArray, npt.NDArray]]
 ) -> dict[int, dict[str, any]]:
 
     """

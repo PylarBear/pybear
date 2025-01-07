@@ -496,7 +496,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         _X_rows, _X_columns = X.shape
 
         # IF PREVIOUSLY FITTED, THEN self.n_features_in_ EXISTS
-        if getattr(self, 'n_features_in_', None) != _X_columns:
+        if hasattr(self, 'n_features_in_') and self.n_features_in_ != _X_columns:
             raise ValueError( f"X has {_X_columns} columns, previously "
                 f"seen data had {self.n_features_in_} columns")
         else: # IF NOT PREVIOUSLY FITTED

@@ -23,13 +23,6 @@ class TestReprMixin:
 
         class DummyTransformer(ReprMixin, GetParamsMixin):
 
-            # FeatureMixin should provide
-            # get_feature_names_out(input_features)
-            # _check_n_features(X, self.n_features_in, reset)
-            # _check_feature_names_in(X, reset)
-
-            # feature axis of X is not altered during transform
-
             def __init__(self):
                 self._is_fitted = False
 

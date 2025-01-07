@@ -18,7 +18,7 @@ from sklearn.linear_model import (
 from sklearn.model_selection import GridSearchCV as sk_GridSearchCV
 
 
-from sklearn.preprocessing import OneHotEncoder as dask_OneHotEncoder
+from dask_ml.preprocessing import OneHotEncoder as dask_OneHotEncoder
 from dask_ml.linear_model import (
     LogisticRegression as dask_Logistic,
     LinearRegression as dask_LinearRegression

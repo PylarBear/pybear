@@ -11,7 +11,7 @@ from typing import Iterable
 import numpy.typing as npt
 
 from .._get_feature_names_out import get_feature_names_out
-from .._check_n_features_in import check_n_features
+from .._check_n_features import check_n_features
 from .._check_feature_names import check_feature_names
 from .._check_is_fitted import check_is_fitted
 
