@@ -83,9 +83,7 @@ def check_scipy_sparse(
     except MemoryError:
         raise ValueError(err_msg)
     except:
-        raise TypeError(
-
-        )
+        raise TypeError(err_msg)
 
     del err_msg
 

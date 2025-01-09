@@ -5,6 +5,7 @@
 #
 
 
+
 from pybear.utilities._nan_masking import nan_mask
 
 import numpy as np
@@ -91,7 +92,7 @@ class TestNanMasking:
             _shape=_shape
         )
 
-        # use nan_mask on the ss if it isnt dok
+        # use nan_mask on the ss if it isnt dok or lil
         if 'dok' in X_format or 'lil' in X_format:
             with pytest.raises(TypeError):
                 nan_mask(_X)

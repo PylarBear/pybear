@@ -68,6 +68,28 @@ class TestCastToNDArray:
             cast_to_ndarray(np.ma.masked_array([1,2,3]))
 
 
+    @pytest.mark.parametrize('junk_copy_X',
+        (-2.7, -1, 0, 1, 2.7, None, 'trash', [0,1], (0,1), {'A':1}, lambda x: x)
+    )
+    def test_copy_X_rejects_non_bool(self, junk_copy_X):
+        with pytest.raises(TypeError):
+            cast_to_ndarray(
+                np.random.randint(0, 10, (10,3)),
+                copy_X=junk_copy_X
+            )
+
+
+    @pytest.mark.parametrize('_copy_X',  (True, False))
+    def test_copy_X_accepts_bool(self, _copy_X):
+
+        out = cast_to_ndarray(
+            np.random.randint(0, 10, (10,3)),
+            copy_X=_copy_X
+        )
+
+        assert isinstance(out, np.ndarray)
+
+
     @pytest.mark.parametrize('_format',
          (
              'np', 'pd_series', 'pd_df', 'csr_matrix', 'csc_matrix', 'coo_matrix',

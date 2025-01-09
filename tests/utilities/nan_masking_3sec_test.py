@@ -23,10 +23,12 @@ import pytest
 
 
 
-# testing of 'nan_mask' is interspersed in Numerical and String tests
+
+# 'nan_mask' is tested alongside 'nan_mask_numerical' and
+# 'nan_mask_string', it should replicate the behavior of both
 
 # tests numpy arrays, pandas dataframes, and scipy.sparse with various
-# nan-like representations (np.nan, 'nan', 'pd.NA', None, float('inf')),
+# nan-like representations (np.nan, 'nan', 'pd.NA', None),
 # for float, int, str, and object dtypes.
 
 
@@ -95,7 +97,7 @@ class TestNanMaskNumeric(Fixtures):
     # and it must be np.nan, 'nan' (not case sensitive), or None (not pd.NA!)
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_np_float_array(
         self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type
@@ -124,22 +126,14 @@ class TestNanMaskNumeric(Fixtures):
             pytest.skip()
         elif _nan_type == 'none':
             X[MASK] = None
-        elif _nan_type == 'inf':
-            X[MASK] = float('inf')
-            # this actually makes a valid assignment. numpy does not see
-            # this as a nan-type.
         else:
             raise Exception
 
         out = nan_mask_numerical(X)
         out_2 = nan_mask(X)
 
-        if _nan_type == 'inf':
-            assert np.sum(out) == 0
-            assert np.sum(out_2) == 0
-        else:
-            assert np.array_equal(out, MASK)
-            assert np.array_equal(out_2, MASK)
+        assert np.array_equal(out, MASK)
+        assert np.array_equal(out_2, MASK)
 
 
 
@@ -147,7 +141,7 @@ class TestNanMaskNumeric(Fixtures):
     # would need to convert this to float64
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_np_int_array(
         self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type
@@ -183,10 +177,6 @@ class TestNanMaskNumeric(Fixtures):
             with pytest.raises(TypeError):
                 X[MASK] = None
             pytest.skip()
-        elif _nan_type == 'inf':
-            with pytest.raises(OverflowError):
-                X[MASK] = float('inf')
-            pytest.skip()
         else:
             raise Exception
 
@@ -208,7 +198,7 @@ class TestNanMaskNumeric(Fixtures):
         )
     )
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_scipy_sparse_via_np_float_array(
         self, _shape, truth_mask_1, truth_mask_2, _trial, _format, _nan_type
@@ -226,7 +216,6 @@ class TestNanMaskNumeric(Fixtures):
             X[_row_idxs, _col_idx] = 0
 
 
-        # mask it ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         if _trial == 1:
             MASK = truth_mask_1
         elif _trial == 2:
@@ -248,13 +237,8 @@ class TestNanMaskNumeric(Fixtures):
             pytest.skip()
         elif _nan_type == 'none':
             X[MASK] = None
-        elif _nan_type == 'inf':
-            X[MASK] = float('inf')
-            # this actually makes a valid assignment. numpy does not see
-            # this as a nan-type, but pandas does.
         else:
             raise Exception
-        # END mask it ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
         if _format == 'csr_matrix':
@@ -285,6 +269,8 @@ class TestNanMaskNumeric(Fixtures):
             X_wip = ss._dok.dok_array(X)
         elif _format == 'bsr_array':
             X_wip = ss._bsr.bsr_array(X)
+        else:
+            raise Exception
 
 
         # covert back to np to see if nan mask was affected
@@ -293,12 +279,8 @@ class TestNanMaskNumeric(Fixtures):
         out = nan_mask_numerical(X)
         out_2 = nan_mask(X)
 
-        if _nan_type == 'inf':
-            assert np.sum(out) == 0
-            assert np.sum(out_2) == 0
-        else:
-            assert np.array_equal(out, MASK)
-            assert np.array_equal(out_2, MASK)
+        assert np.array_equal(out, MASK)
+        assert np.array_equal(out_2, MASK)
 
 
 
@@ -307,7 +289,7 @@ class TestNanMaskNumeric(Fixtures):
     # np.nan, any string, pd.NA, or None
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_pd_float(
         self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns,
@@ -338,20 +320,18 @@ class TestNanMaskNumeric(Fixtures):
             X = pd_assnmt_handle(X, MASK, pd.NA)
         elif _nan_type == 'none':
             X = pd_assnmt_handle(X, MASK, None)
-        elif _nan_type == 'inf':
-            X = pd_assnmt_handle(X, MASK, float('inf'))
-            # this actually makes a valid assignment. pandas does not see
-            # this as a nan-type.
         else:
             raise Exception
 
+        # if exception is raised by pd_assnmnt_handle because of casting
+        # nan to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
         out = nan_mask_numerical(X)
         out_2 = nan_mask(X)
 
-        if _nan_type in ['any string', 'inf']:
+        if _nan_type == 'any string':
             assert np.sum(out) == 0
             assert np.sum(out_2) == 0
         else:
@@ -364,7 +344,7 @@ class TestNanMaskNumeric(Fixtures):
     # np.nan, any string, pd.NA, or None
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_pd_int(
         self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns,
@@ -395,20 +375,26 @@ class TestNanMaskNumeric(Fixtures):
             X = pd_assnmt_handle(X, MASK, pd.NA)
         elif _nan_type == 'none':
             X = pd_assnmt_handle(X, MASK, None)
-        elif _nan_type == 'inf':
-            X = pd_assnmt_handle(X, MASK, float('inf'))
-            # this actually makes a valid assignment. pandas does not see
-            # this as a nan-type.
         else:
             raise Exception
 
+        # if exception is raised by pd_assnmnt_handle because of casting
+        # nan to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
+
+        # putting float nans into a pd int df
+        # coerces the df over to float64
+        if _nan_type in ['strnan', 'any string']:
+            assert list(set(X.dtypes))[0] == 'O'
+        else:
+            assert list(set(X.dtypes))[0] == np.float64
+
 
         out = nan_mask_numerical(X)
         out_2 = nan_mask(X)
 
-        if _nan_type in ['any string', 'inf']:
+        if _nan_type == 'any string':
             assert np.sum(out) == 0
             assert np.sum(out_2) == 0
         else:
@@ -422,8 +408,7 @@ class TestNanMaskNumeric(Fixtures):
     # takeaway:
     # to_numpy() converts all of these different nans to np.nan correctly
     def numpy_float_via_pd_made_with_various_nan_types(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns,
-        pd_assnmt_handle
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns
     ):
 
         X = pd.DataFrame(
@@ -467,7 +452,7 @@ class TestNanMaskString(Fixtures):
     # np.nan, 'nan', pd.NA, None
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_np_array_str(
         self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape
@@ -494,16 +479,13 @@ class TestNanMaskString(Fixtures):
             X[MASK] = pd.NA
         elif _nan_type == 'none':
             X[MASK] = None
-        elif _nan_type == 'inf':
-            X[MASK] = float('inf')
-            # this a valid assignment into a str array
         else:
             raise Exception
 
         out = nan_mask_string(X)
         out_2 = nan_mask(X)
 
-        if _nan_type in ['any string', 'inf']:
+        if _nan_type == 'any string':
             assert np.sum(out) == 0
             assert np.sum(out_2) == 0
         else:
@@ -515,7 +497,7 @@ class TestNanMaskString(Fixtures):
     # np.nan, 'nan', pd.NA, None
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_np_array_object(
         self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape
@@ -541,16 +523,13 @@ class TestNanMaskString(Fixtures):
             X[MASK] = pd.NA
         elif _nan_type == 'none':
             X[MASK] = None
-        elif _nan_type == 'inf':
-            X[MASK] = float('inf')
-            # this is a valid assignment into a obj array
         else:
             raise Exception
 
         out = nan_mask_string(X)
         out_2 = nan_mask(X)
 
-        if _nan_type in ['any string', 'inf']:
+        if _nan_type == 'any string':
             assert np.sum(out) == 0
             assert np.sum(out_2) == 0
         else:
@@ -562,7 +541,7 @@ class TestNanMaskString(Fixtures):
     # np.nan, 'nan', pd.NA, None
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_pd_str(
         self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape,
@@ -594,19 +573,18 @@ class TestNanMaskString(Fixtures):
             X = pd_assnmt_handle(X, MASK, pd.NA)
         elif _nan_type == 'none':
             X = pd_assnmt_handle(X, MASK, None)
-        elif _nan_type == 'inf':
-            X = pd_assnmt_handle(X, MASK, float('inf'))
-            # this is a valid assignment into a pd str type
         else:
             raise Exception
 
+        # if exception is raised by pd_assnmnt_handle because of casting
+        # nan to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
         out = nan_mask_string(X)
         out_2 = nan_mask(X)
 
-        if _nan_type in ['any string', 'inf']:
+        if _nan_type == 'any string':
             assert np.sum(out) == 0
             assert np.sum(out_2) == 0
         else:
@@ -618,7 +596,7 @@ class TestNanMaskString(Fixtures):
     # np.nan, 'nan', pd.NA, None
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
-        ('npnan', 'strnan', 'any string', 'pdNA', 'none', 'inf')
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_pd_object(
         self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape,
@@ -649,19 +627,18 @@ class TestNanMaskString(Fixtures):
             X = pd_assnmt_handle(X, MASK, pd.NA)
         elif _nan_type == 'none':
             X = pd_assnmt_handle(X, MASK, None)
-        elif _nan_type == 'inf':
-            X = pd_assnmt_handle(X, MASK, float('inf'))
-            # this is a valid assignment into a pd object type
         else:
             raise Exception
 
+        # if exception is raised by pd_assnmnt_handle because of casting
+        # nan to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
         out = nan_mask_string(X)
         out_2 = nan_mask(X)
 
-        if _nan_type in ['any string', 'inf']:
+        if _nan_type == 'any string':
             assert np.sum(out) == 0
             assert np.sum(out_2) == 0
         else:

@@ -62,8 +62,28 @@ class TestEnsure2D:
         else:
             raise Exception
 
-
         ensure_2D(_X)
+
+
+    @pytest.mark.parametrize('junk_copy_X',
+        (-2.7, -1, 0, 1, 2.7, None, 'trash', {'a': 1}, lambda x: x, min)
+    )
+    def test_rejects_non_bool_copy_X(self, junk_copy_X):
+        with pytest.raises(TypeError):
+            ensure_2D(
+                np.random.randint(0, 10, (37,13)),
+                copy_X=junk_copy_X
+            )
+
+
+    @pytest.mark.parametrize('bool_copy_X', (True, False))
+    def test_accepts_bool_copy_X(self, bool_copy_X):
+
+        out = ensure_2D(
+            np.random.randint(0, 10, (37,13)),
+            copy_X=bool_copy_X
+        )
+        assert isinstance(out, np.ndarray)
 
 
     @pytest.mark.parametrize('dim', (0, 3, 4))
