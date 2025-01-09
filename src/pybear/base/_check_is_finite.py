@@ -1,0 +1,215 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
+from ..utilities._nan_masking import nan_mask
+from ..utilities._inf_masking import inf_mask
+
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
+
+from typing_extensions import Union, TypeAlias
+import numpy.typing as npt
+
+SparseTypes: TypeAlias = Union[
+    ss._csr.csr_matrix,
+    ss._csc.csc_matrix,
+    ss._coo.coo_matrix,
+    ss._dia.dia_matrix,
+    ss._bsr.bsr_matrix,
+    ss._csr.csr_array,
+    ss._csc.csc_array,
+    ss._coo.coo_array,
+    ss._dia.dia_array,
+    ss._bsr.bsr_array
+]
+
+
+
+
+
+def check_is_finite(
+    X: Union[npt.NDArray, pd.DataFrame, SparseTypes],
+    allow_nan: bool=True,
+    allow_inf: bool=True,
+    cast_inf_to_nan: bool=True,
+    standardize_nan: bool=True,
+    copy_X: bool=True
+) -> Union[npt.NDArray, pd.DataFrame, SparseTypes]:
+
+    """
+    Look for any nan-like and/or infinity-like values in X. If any of
+    these are disallowed then raise a ValueError if any are present.
+
+    If :param: 'cast_inf_to_nan' is True, all infinity-like values will
+    be cast to np.nan, otherwise they are left as is.
+
+    If :param: 'standardize_nan' is True, all nan-like values will be
+    cast to np.nan, otherwise they are left as is.
+
+    X cannot be a python builtin iterable, like list or set. X must have
+    a copy method.
+
+
+    Parameters
+    ----------
+    X:
+        Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+        (n_samples, n_features) or (n_samples,) - the data to be searched
+        for nan-like and infinity-like values.
+    allow_nan:
+        bool, default=True - If nan-like values are found and this
+        parameter is set to False then raise a ValueError.
+    allow_inf:
+        bool, default=True - If infinity-like values are found and this
+        parameter is set to False then raise a ValueError.
+    cast_inf_to_nan:
+        bool, default=True - if True, all infinity-like values will be
+        cast to np.nan.
+    standardize_nan:
+        bool, default=True, - if True, all nan-like values will be cast
+        to np.nan.
+    copy_X:
+        bool - If True, make a copy of X if any infinity-likes are cast
+        to np.nan or if any nan-likes are cast to np.nan. If False,
+        operate directly on the passed X object. Only applicable if
+        either cast_inf_to_nan or cast_nan_to_inf is True and there are
+        infinity-like or nan-like values in the data.
+
+
+    Return
+    ------
+    -
+        X: the originally passed data with all checks performed and any
+        replacements made.
+
+
+    """
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    if not hasattr(X, 'copy'):
+        raise TypeError(f"'X' must have a 'copy' method.")
+
+    if isinstance(X, (dict, str, list, set, tuple)):
+        raise TypeError(
+            f"'X' cannot be a python builtin iterable, got {type(X)}."
+        )
+
+    for _param in (allow_nan, allow_inf, cast_inf_to_nan, standardize_nan, copy_X):
+        if not isinstance(_param, bool):
+            raise TypeError(
+                f":param: {_param} must be boolean, got {type(_param)}."
+            )
+
+    if not allow_nan and standardize_nan:
+        raise ValueError(
+            f"if :param: allow_nan is False, then :param: standardize_nan "
+            f"must also be False."
+        )
+
+    if not allow_inf and cast_inf_to_nan:
+        raise ValueError(
+            f"if :param: allow_inf is False, then :param: cast_inf_to_nan "
+            f"must also be False."
+        )
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    # if allowing everything and not changing anything, just skip out
+    if all((allow_nan, allow_inf)) and not any((cast_inf_to_nan, standardize_nan)):
+        return X
+
+    # reasons we need to check for nans
+    if not allow_nan or standardize_nan:
+        NAN_MASK = nan_mask(X)
+        has_nan = np.any(NAN_MASK)
+    else:
+        # if we dont need to look for nans, pretend X doesnt have any
+        has_nan = False
+
+    # reasons we need to check for infinity
+    if not allow_inf or cast_inf_to_nan:
+        INF_MASK = inf_mask(X)
+        has_inf = np.any(INF_MASK)
+    else:
+        # if we dont need to look for infs, pretend X doesnt have any
+        has_inf = False
+
+    # if X is clean, then there is nothing to do, just return
+    if not has_nan and not has_inf:
+        try:
+            del NAN_MASK
+        except:
+            pass
+
+        try:
+            del INF_MASK
+        except:
+            pass
+
+        return X
+
+    if not cast_inf_to_nan:
+        try:
+            del INF_MASK
+        except:
+            pass
+
+    if not standardize_nan:
+        try:
+            del NAN_MASK
+        except:
+            pass
+
+    if has_nan and not allow_nan:
+        raise ValueError(f"'X' has nan-like values but are disallowed")
+
+    if has_inf and not allow_inf:
+        raise ValueError(f"'X' has infinity-like values but are disallowed")
+
+    if not standardize_nan and not cast_inf_to_nan:
+        return X
+
+    # copy_X matters only if we have nans and are  standardizing nans
+    # or we have infs and are converting over to nan
+
+    if ((has_nan and standardize_nan) or (has_inf and cast_inf_to_nan)) and copy_X:
+        _X = X.copy()
+    else:
+        _X = X
+
+    if has_nan and standardize_nan:
+        if hasattr(_X, 'toarray'):   # scipy sparse
+            _X.data[NAN_MASK] = np.nan
+        else:
+            _X[NAN_MASK] = np.nan
+
+    if has_inf and cast_inf_to_nan:
+        if hasattr(_X, 'toarray'):  # scipy sparse
+            _X.data[INF_MASK] = np.nan
+        else:
+            _X[INF_MASK] = np.nan
+
+
+    return _X
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

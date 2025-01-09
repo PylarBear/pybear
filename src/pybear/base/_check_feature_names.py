@@ -105,7 +105,7 @@ def check_feature_names(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # pizza, currently no validation of X is being done.
+    # currently no validation of X is being done.
     # anticipate that this module might see
     # python list of objects (low probability, but possible)
     # numpy 2D array

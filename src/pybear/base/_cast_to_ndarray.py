@@ -14,10 +14,13 @@ import pandas as pd
 
 
 
-def cast_to_ndarray(X):
+def cast_to_ndarray(
+    X,
+    copy_X:bool=True
+):
 
     """
-    Convert the container of OBJECT to numpy.ndarray.
+    Convert the container of X to numpy.ndarray.
 
     Does not accept python built-in containers (list, set, tuple).
     pybear strongly encourages (even requires) you to pass your data
@@ -35,14 +38,21 @@ def cast_to_ndarray(X):
     OBJECT:
         array-like of shape (n_samples, n_features) or (n_samples,) -
         The array-like data to be converted to NDArray.
+    copy_X:
+        bool, default=True - whether to copy X before casting to ndarray
+        or perform the operations directly on the passed X.
 
 
     Return
     ------
     -
-        OBJECT: the original data converted to NDArray.
+        X: the original data converted to NDArray.
 
     """
+
+    if not isinstance(copy_X, bool):
+        raise TypeError(f"'copy_X' must be boolean.")
+
 
     # block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -74,7 +84,8 @@ def cast_to_ndarray(X):
 
     _suffix = (
         f"\nPass X as a numpy ndarray, pandas dataframe, pandas series, "
-        f"dask array, dask dataframe, or dask series."
+        f"scipy sparse matrix/array dask array, dask dataframe, or dask "
+        f"series."
     )
     if isinstance(X, np.recarray):
         raise TypeError(
@@ -88,38 +99,43 @@ def cast_to_ndarray(X):
     # END block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
+    if copy_X:
+        _X = X.copy()
+    else:
+        _X = X
+
     # IF ss CONVERT TO np
     # do this before nan_mask, otherwise would need to do fancy mask things
     # on ss.data attribute separate from all other formats.
     try:
-        X = X.toarray()
+        _X = _X.toarray()
     except:
         pass
 
 
     # IF dask CONVERT TO np/pd
-    if hasattr(X, 'compute'):
-        X = X.compute()
+    if hasattr(_X, 'compute'):
+        _X = _X.compute()
 
 
     # IF pd CONVERT TO np
-    if isinstance(X, (pd.core.series.Series, pd.core.frame.DataFrame)):
-        X = X.to_numpy()
+    if isinstance(_X, (pd.core.series.Series, pd.core.frame.DataFrame)):
+        _X = _X.to_numpy()
 
 
     # # IF polars CONVERT TO np
-    # if isinstance(X, (pl.DataFrame)):
-    #     X = X.to_numpy()
+    # if isinstance(_X, (pl.DataFrame)):
+    #     _X = _X.to_numpy()
 
 
-    X = np.array(X)
+    _X = np.array(_X)
 
-    # *** X MUST BE np ***
+    # *** _X MUST BE np ***
 
-    if not isinstance(X, np.ndarray):
-        raise TypeError(f"X is an invalid data-type {type(X)}")
+    if not isinstance(_X, np.ndarray):
+        raise TypeError(f"X is an invalid data-type {type(_X)}")
 
-    return X
+    return _X
 
 
 

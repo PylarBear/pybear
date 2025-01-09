@@ -17,7 +17,8 @@ import numpy as np
 def set_order(
     X: npt.NDArray,
     *,
-    order: Literal['C', 'F']="C"
+    order: Literal['C', 'F']="C",
+    copy_X: bool=True
 ) -> npt.NDArray:
 
     """
@@ -39,6 +40,9 @@ def set_order(
     order:
         Literal['c', 'C', 'f', 'F'] - the memory layout for X. 'C' is
         row-major order, 'F' is column-major order.
+    copy_X:
+        bool - whether to make a copy of X when setting the memory
+        layout or operate directly on the passed X.
 
 
     Return
@@ -63,14 +67,23 @@ def set_order(
         raise ValueError(err_msg)
 
     del err_msg
+
+    if not isinstance(copy_X, bool):
+        raise TypeError(f"'copy_X' must be boolean.")
+
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    if order == 'C':
-        X = np.ascontiguousarray(X)
-    elif order == 'F':
-        X = np.asfortranarray(X)
+    if copy_X:
+        _X = X.copy()
+    else:
+        _X = X
 
-    return X
+    if order == 'C':
+        _X = np.ascontiguousarray(_X)
+    elif order == 'F':
+        _X = np.asfortranarray(_X)
+
+    return _X
 
 
 

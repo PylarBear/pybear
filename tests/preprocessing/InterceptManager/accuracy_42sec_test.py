@@ -193,7 +193,7 @@ class TestAccuracy:
         # if there are constants, and any of them are nan-like, but
         # not equal_nan, then that column cant be a constant, so remove
         if not equal_nan and len(exp_constants) and \
-                any(nan_mask(list(exp_constants.values()))):
+                any(nan_mask(np.array(list(exp_constants.values())))):
             exp_constants = \
                 {k:v for k,v in exp_constants.items() if str(v) != 'nan'}
 

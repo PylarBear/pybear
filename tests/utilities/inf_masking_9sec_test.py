@@ -1,0 +1,862 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
+from pybear.utilities._inf_masking import inf_mask
+
+
+import math
+import decimal
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
+
+
+import pytest
+
+
+
+
+# tests numpy arrays, pandas dataframes, and scipy.sparse with various
+# inf-like representations ('inf', '-inf', np.inf, -np.inf, np.PINF,
+# np.NINF, math.inf, -math.inf, float('inf'), float('-inf'),
+# decimal.Decimal('Infinity'), decimal.Decimal('-Infinity'), for float,
+# int, str, and object dtypes.
+
+# np.PINF and np.NINF were removed from numpy 2.0. Want to be able to
+# handle and test for older versions of numpy. But supposedly these
+# constants are just aliases for numpy.inf and -numpy.inf, so these tests
+# assume that tests for np.PINF np.NINF are accomplished by the tests for
+# np.inf and -np.inf.
+
+
+class Fixtures:
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _shape():
+        return (10, 3)
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _columns(_master_columns, _shape):
+
+        return _master_columns.copy()[:_shape[1]]
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def truth_mask_1(_shape):
+        while True:
+            _ = np.random.randint(0,2, _shape).astype(bool)
+            # make sure that there are both trues and falses in all columns
+            # so that pandas columns all have same dtype
+            for c_idx in range(_shape[1]):
+                if not 0 < np.sum(_[:, c_idx]) / _.size < 1:
+                    break
+            else:
+                return _
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def truth_mask_2(_shape):
+        while True:
+            _ = np.random.randint(0,2, _shape).astype(bool)
+            # make sure that there are both trues and falses in all columns
+            # so that pandas columns all have same dtype
+            for c_idx in range(_shape[1]):
+                if not 0 < np.sum(_[:, c_idx]) / _.size < 1:
+                    break
+            else:
+                return _
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def pd_assnmt_handle():
+
+        # 25_01_07 pandas future warnings about casting incompatible
+        # dtypes. put assignments under a try/except, if OK, return new
+        # X, if bad return None. in the test functions, if X comes back
+        # as None, skip the test.
+
+        def foo(X: pd.DataFrame, MASK: np.ndarray, value: any):
+            try:
+                X[MASK] = value
+                return X
+            except:
+                return None
+
+        return foo
+
+
+
+class TestInfMaskNumeric(Fixtures):
+
+
+    # the only np numerical dtype that can take inf is np.float64
+    # and it can take all of the inf-like forms tested here while staying
+    # in the float64 dtype.
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_np_float_array(
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _inf_type
+    ):
+
+        X = np.random.uniform(0,1,_shape)
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        # 'inf', '-inf',  decimal.Decimal('Infinity'), decimal.Decimal('-Infinity')
+        # are not changing dtype from float64 to object!
+        assert X.dtype == np.float64
+
+        out = inf_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
+    # numpy integer array cannot take any representation of inf, raises
+    # OverflowError. would need to convert X to float64.
+    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity',
+         'noinf')
+    )
+    def test_np_int_array(
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _inf_type
+    ):
+
+        # all inf-likes raise exception when casting into int dtypes
+
+        # this is also testing an int dtype with no infs to see if
+        # inf_mask() can take int dtype (and return a mask of all Falses).
+
+        X = np.random.randint(0,10, _shape)
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            with pytest.raises(OverflowError):
+                X[MASK] = np.inf
+            pytest.skip()
+        elif _inf_type == '-npinf':
+            with pytest.raises(OverflowError):
+                X[MASK] = -np.inf
+            pytest.skip()
+        elif _inf_type == 'mathinf':
+            with pytest.raises(OverflowError):
+                X[MASK] = math.inf
+            pytest.skip()
+        elif _inf_type == '-mathinf':
+            with pytest.raises(OverflowError):
+                X[MASK] = -math.inf
+            pytest.skip()
+        elif _inf_type == 'strinf':
+            with pytest.raises(ValueError):
+                X[MASK] = 'inf'
+            pytest.skip()
+        elif _inf_type == '-strinf':
+            with pytest.raises(ValueError):
+                X[MASK] = '-inf'
+            pytest.skip()
+        elif _inf_type == 'floatinf':
+            with pytest.raises(OverflowError):
+                X[MASK] = float('inf')
+            pytest.skip()
+        elif _inf_type == '-floatinf':
+            with pytest.raises(OverflowError):
+                X[MASK] = float('-inf')
+            pytest.skip()
+        elif _inf_type == 'decimalInfinity':
+            with pytest.raises(OverflowError):
+                X[MASK] = decimal.Decimal('Infinity')
+            pytest.skip()
+        elif _inf_type == '-decimalInfinity':
+            with pytest.raises(OverflowError):
+                X[MASK] = decimal.Decimal('-Infinity')
+            pytest.skip()
+        elif _inf_type == 'noinf':
+            out = inf_mask(X)
+            assert isinstance(out, np.ndarray)
+            assert out.shape == _shape
+            assert out.dtype == bool
+            assert np.array_equal(out, np.zeros(X.shape).astype(bool))
+        else:
+            raise Exception
+
+
+    # all scipy sparses return infs correctly
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_format',
+        (
+            'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
+        )
+    )
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_scipy_sparse_via_np_float_array(
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _format, _inf_type
+    ):
+
+        X = np.random.uniform(0, 1, _shape)
+
+        # make a lot of sparsity so that converting to sparse reduces
+        for _col_idx in range(_shape[1]):
+            _row_idxs = np.random.choice(
+                range(_shape[0]),
+                _shape[0]//4,
+                replace=False
+            )
+            X[_row_idxs, _col_idx] = 0
+
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        # 'inf', '-inf', decimal.Decimal('Infinity'), decimal.Decimal('-Infinity')
+        # are not changing dtype from float64 to object!
+        assert X.dtype == np.float64
+
+        if _format == 'csr_matrix':
+            X_wip = ss._csr.csr_matrix(X)
+        elif _format == 'csc_matrix':
+            X_wip = ss._csc.csc_matrix(X)
+        elif _format == 'coo_matrix':
+            X_wip = ss._coo.coo_matrix(X)
+        elif _format == 'dia_matrix':
+            X_wip = ss._dia.dia_matrix(X)
+        elif _format == 'lil_matrix':
+            X_wip = ss._lil.lil_matrix(X)
+        elif _format == 'dok_matrix':
+            X_wip = ss._dok.dok_matrix(X)
+        elif _format == 'bsr_matrix':
+            X_wip = ss._bsr.bsr_matrix(X)
+        elif _format == 'csr_array':
+            X_wip = ss._csr.csr_array(X)
+        elif _format == 'csc_array':
+            X_wip = ss._csc.csc_array(X)
+        elif _format == 'coo_array':
+            X_wip = ss._coo.coo_array(X)
+        elif _format == 'dia_array':
+            X_wip = ss._dia.dia_array(X)
+        elif _format == 'lil_array':
+            X_wip = ss._lil.lil_array(X)
+        elif _format == 'dok_array':
+            X_wip = ss._dok.dok_array(X)
+        elif _format == 'bsr_array':
+            X_wip = ss._bsr.bsr_array(X)
+        else:
+            raise Exception
+
+        # get the inf mask as ss (dok & lil should raise)
+        if 'lil' in str(X_wip).lower() or 'dok' in str(X_wip).lower():
+            with pytest.raises(TypeError):
+                inf_mask(X)
+        else:
+            ss_out = inf_mask(X)
+            assert isinstance(ss_out, np.ndarray)
+            assert ss_out.shape == _shape
+            assert ss_out.dtype == bool
+
+
+        # covert back to np to see if inf mask was affected, inf mask should
+        # equal the ss inf mask
+        X = X_wip.toarray()
+
+        np_out = inf_mask(X)
+        assert isinstance(np_out, np.ndarray)
+        assert np_out.shape == _shape
+        assert np_out.dtype == bool
+
+        assert np.array_equal(np_out, MASK)
+
+        if 'lil' in str(X_wip).lower() or 'dok' in str(X_wip).lower():
+            pass
+        else:
+            assert np.array_equal(ss_out, np_out)
+
+
+    # pd float dfs can take all of the inf-like forms tested here, but some
+    # of them are coercing float64 dtype to object dtype.
+    # 'strinf' and decimalinf' are changing dtype from float64 to object
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_pd_float(
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _inf_type, _columns,
+        pd_assnmt_handle
+    ):
+
+        X = pd.DataFrame(
+            data = np.random.uniform(0, 1, _shape),
+            columns = _columns,
+            dtype=np.float64
+        )
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+
+        # if exception is raised by pd_assnmnt_handle because of casting
+        # inf to disallowed dtype, then X is None and skip test
+        if X is None:
+            pytest.skip(
+                reason=f"invalid value cast to dataframe dtype, skip test"
+            )
+
+        _dtypes = list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
+
+        if np.sum(MASK) == 0:
+            assert _dtype == np.float64
+        elif _inf_type in [
+            'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
+        ]:
+            # 'strinf' and decimalinf' are changing dtype from float64 to object!
+            assert _dtype == object
+        else:
+            assert _dtype == np.float64
+
+
+        out = inf_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
+    # pd int dfs can take all of the inf-likes being tested here except
+    # they coerce the dtypes in the DF to object or float64
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_pd_int(
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _inf_type, _columns,
+        pd_assnmt_handle
+    ):
+
+        X = pd.DataFrame(
+            data = np.random.randint(0, 10, _shape),
+            columns = _columns,
+            dtype=np.uint32
+        )
+
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        # if exception is raised by pd_assnmnt_handle because of casting
+        # inf to disallowed dtype, then X is None and skip test
+        if X is None:
+            pytest.skip(
+                reason=f"invalid value cast to dataframe dtype, skip test"
+            )
+
+        _dtypes = list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
+
+        if np.sum(MASK) == 0:
+            assert _dtype == np.uint32
+        elif _inf_type in [
+            'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
+        ]:
+            # 'strinf' and decimalinf' are changing dtype from float64 to object!
+            assert _dtype == object
+        else:
+            # all other inf types are changing dtype from uint32 to float64!
+            assert _dtype == np.float64
+
+        out = inf_mask(X)
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
+    # make a pandas dataframe with all the possible things that make an
+    # inf-like in a dataframe. see if converting to np array via to_numpy()
+    # preserves all of the infs in a form that is recognized by inf_mask().
+    # takeaway:
+    # to_numpy() keeps all of these different infs in a recognizable form
+    def numpy_via_pd_made_with_various_inf_types(
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _inf_type, _columns
+    ):
+
+        X = pd.DataFrame(
+            data = np.random.uniform(0, 1, _shape),
+            columns = _columns,
+            dtype=np.float64
+        )
+
+        _pool = (
+            np.inf,
+            -np.inf,
+            math.inf,
+            -math.inf,
+            float('inf'),
+            float('-inf'),
+            decimal.Decimal('Infinity'),
+            decimal.Decimal('-Infinity')
+        )
+
+        # sprinkle the various inf-types into the float DF,
+        # make a ref mask DF to mark the places of the inf-likes
+        MASK = np.zeros(_shape).astype(bool)
+        for _sprinkling_itr in range(X.size//10):
+            _row_idx = np.random.randint(_shape[0])
+            _col_idx = np.random.randint(_shape[1])
+
+            X.iloc[_row_idx, _col_idx] = np.random.choice(_pool)
+            MASK[_row_idx, _col_idx] = True
+
+        _dtypes = list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
+
+        if _inf_type in [
+            'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
+        ]:
+            # 'strinf' and decimalinf' are changing dtype from float64 to object!
+            assert _dtype == object
+        else:
+            assert _dtype == np.float64
+
+        X = X.to_numpy()
+
+        out = inf_mask(X)
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
+class TestInfMaskString(Fixtures):
+
+    # scipy sparse cannot take non-numeric datatypes
+
+    @staticmethod
+    @pytest.fixture()
+    def _X(_shape):
+        return np.random.choice(list('abcdefghij'), _shape, replace=True)
+
+
+    # np str arrays can take all of the inf representations being tested.
+    # decimal.Decimal is coerced to str('Infinity') or str('-Infinity'),
+    # all others are coerced to str('inf') or str('-inf').
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_np_array_str(
+        self, _X, truth_mask_1, truth_mask_2, _trial, _inf_type, _shape
+    ):
+        # remember to set str dtype like '<U10' to _X
+
+        X = _X.astype('<U20')
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        assert X.dtype == '<U20'
+
+        out = inf_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
+    # np object arrays can take all of the inf representations being tested.
+    # because this is an object array, the inf-likes are not coerced to a
+    # different format, they are kept as given. This has implications for
+    # the way inf_mask() is built. see the inf_mask module.
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_np_array_object(
+        self, _X, truth_mask_1, truth_mask_2, _trial, _inf_type, _shape
+    ):
+        # remember to set object dtype to _X
+        X = _X.astype(object)
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        assert X.dtype == object
+
+        out = inf_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
+    # pd str dfs take all of the inf representations being tested....
+    # pd cant have str dtype it is always coerced to object
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_pd_str(
+        self, _X, truth_mask_1, truth_mask_2, _trial, _inf_type, _shape,
+        _columns, pd_assnmt_handle
+    ):
+        # remember to set str dtype like '<U10' to _X
+
+        X = pd.DataFrame(
+            data = _X,
+            columns = _columns,
+            dtype='<U10'
+        )
+
+        # turns out pd cant have str dtypes, always coerced to object
+        # so that means these tests are redundant with the next tests
+        _dtypes = list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
+        assert _dtype == object
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        # if exception is raised by pd_assnmnt_handle because of casting
+        # inf to disallowed dtype, then X is None and skip test
+        if X is None:
+            pytest.skip(
+                reason=f"invalid value cast to dataframe dtype, skip test"
+            )
+
+        _dtypes = list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
+        assert _dtype == object
+
+        out = inf_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
+    # pd obj dfs can take all of the inf representations being tested
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_pd_object(
+        self, _X, truth_mask_1, truth_mask_2, _trial, _inf_type, _shape,
+        _columns, pd_assnmt_handle
+    ):
+        # remember to set object dtype to _X
+        X = pd.DataFrame(
+            data = _X,
+            columns = _columns,
+            dtype=object
+        )
+
+        _dtypes = list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
+        assert _dtype == object
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        # if exception is raised by pd_assnmnt_handle because of casting
+        # inf to disallowed dtype, then X is None and skip test
+        if X is None:
+            pytest.skip(
+                reason=f"invalid value cast to dataframe dtype, skip test"
+            )
+
+        _dtypes = list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
+        assert _dtype == object
+
+        out = inf_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
+
+
+
+
+
+

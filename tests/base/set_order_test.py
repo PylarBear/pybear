@@ -22,10 +22,12 @@ class TestSetOrder:
 
     # def set_order(
     #     X: npt.NDArray,
-    #     order: Literal['C', 'F']="C"
+    #     *,
+    #     order: Literal['C', 'F']="C",
+    #     copy_X: bool=True
     # ) -> npt.NDArray:
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @pytest.mark.parametrize('non_ndarray', ('pd', 'csr', 'csc', 'da'))
     def test_rejects_non_ndarray(self, non_ndarray):
@@ -92,6 +94,31 @@ class TestSetOrder:
         out = set_order(
             np.random.randint(0, 10, (20, 5)),
             order=good_order
+        )
+
+        assert isinstance(out, np.ndarray)
+
+
+    @pytest.mark.parametrize('non_bool_copy_X',
+        (-2.7, -1, 0, 1, 2.7, None, 'trash', [0,1], (0,1), {'A':1}, lambda x: x)
+    )
+    def test_rejects_non_bool_copy_X(self, non_bool_copy_X):
+
+        with pytest.raises(TypeError):
+            set_order(
+                np.random.randint(0, 10, (20, 5)),
+                order="F",
+                copy_X=non_bool_copy_X
+            )
+
+
+    @pytest.mark.parametrize('bool_copy_X', (True, False))
+    def test_rejects_non_bool_copy_X(self, bool_copy_X):
+
+        out = set_order(
+            np.random.randint(0, 10, (20, 5)),
+            order="F",
+            copy_X=bool_copy_X
         )
 
         assert isinstance(out, np.ndarray)
