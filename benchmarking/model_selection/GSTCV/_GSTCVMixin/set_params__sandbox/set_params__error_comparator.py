@@ -26,8 +26,8 @@ from dask_ml.linear_model import (
 from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
 
 
-from model_selection.GSTCV._GSTCV.GSTCV import GSTCV
-from model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
+from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
+from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 
 from sklearn.pipeline import Pipeline
@@ -100,7 +100,7 @@ for pipe_or_est in PIPE_OR_EST:
                 # sk / dask output ** * ** * ** * ** * ** * ** * ** * ** *
                 try:
                     out = GSCV.set_params(**params)
-                    GSCV_OUTPUT.append(out)
+                    GSCV_OUTPUT.append(out)     # out should be self
                 except Exception as e:
                     GSCV_OUTPUT.append(f'{sys.exc_info()[1]!r}')
                 # END sk / dask output ** * ** * ** * ** * ** * ** * ** *

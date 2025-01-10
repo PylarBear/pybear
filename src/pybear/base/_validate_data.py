@@ -15,6 +15,7 @@ from ._check_shape import check_shape
 from ._set_order import set_order
 
 from typing import Literal, Iterable
+from typing_extensions import Union
 
 import numbers
 
@@ -39,7 +40,9 @@ def validate_data(
     ensure_2d:bool=True,
     order:Literal['C', 'F']='C',
     ensure_min_features:numbers.Integral=1,
-    ensure_min_samples:numbers.Integral=1
+    ensure_max_features:Union[numbers.Integral, None]=None,
+    ensure_min_samples:numbers.Integral=1,
+    sample_check:Union[numbers.Integral, None]=None
 ):
 
     """
@@ -121,9 +124,21 @@ def validate_data(
     ensure_min_features:
         numbers.Integral, default=1 - the minimum number of features
         (columns) that must be in X.
+    ensure_max_features:
+        Union[numbers.Integral, None] - The maximum number of features
+        allowed in X; if not None, must be greater than or equal to
+        ensure_min_features. If None, then there is no restriction on
+        the maximum number of features in X.
     ensure_min_samples:
         numbers.Integral, default=1 - the minimum number of samples
-        (rows) that must be in X.
+        (rows) that must be in X. Ignored if :param: sample_check is not
+        None.
+    sample_check:
+        Union[numbers.Integral, None] - The exact number of samples
+        allowed in OBJECT. If not None, must be a non-negative integer.
+        Use this to check, for example, that the number of samples in y
+        equals the number of samples in X. If None, this check is not
+        performed.
 
 
     Return
@@ -265,16 +280,41 @@ def validate_data(
     del err_msg
     # END ensure_min_features -- -- -- -- -- -- -- -- -- -- -- --
 
-    # ensure_min_samples -- -- -- -- -- -- -- -- -- -- -- -- --
-    err_msg = f"'ensure_min_features' must be a non-negative integer."
-    if not isinstance(ensure_min_samples,  numbers.Integral):
-        raise TypeError(err_msg)
-    if isinstance(ensure_min_samples, bool):
-        raise TypeError(err_msg)
-    if not ensure_min_samples >= 0:
-        raise ValueError(err_msg)
-    del err_msg
-    # END ensure_min_samples -- -- -- -- -- -- -- -- -- -- -- -- --
+    # ensure_max_features -- -- -- -- -- -- -- -- -- -- -- -- --
+    if ensure_max_features is not None:
+        err_msg = (
+            f"'ensure_max_features' must be None or a non-negative integer "
+            f"greater than or equal to :param: 'ensure_min_features'."
+        )
+        if not isinstance(ensure_max_features,  numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(ensure_max_features, bool):
+            raise TypeError(err_msg)
+        if ensure_max_features < ensure_min_features:
+            raise ValueError(err_msg)
+        del err_msg
+    # END ensure_max_features -- -- -- -- -- -- -- -- -- -- -- --
+
+    # ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- -- --
+    if sample_check is None:
+        err_msg = f"'ensure_min_features' must be a non-negative integer."
+        if not isinstance(ensure_min_samples,  numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(ensure_min_samples, bool):
+            raise TypeError(err_msg)
+        if not ensure_min_samples >= 0:
+            raise ValueError(err_msg)
+        del err_msg
+    elif sample_check is not None:
+        err_msg = (f"'sample_check' must be None or a non-negative integer.")
+        if not isinstance(sample_check, numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(sample_check, bool):
+            raise TypeError(err_msg)
+        if sample_check < 0:
+            raise ValueError(err_msg)
+        del err_msg
+    # END ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- -
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -341,7 +381,9 @@ def validate_data(
     check_shape(
         _X,
         min_features=ensure_min_features,
+        max_features=ensure_max_features,
         min_samples=ensure_min_samples,
+        sample_check=sample_check,
         allowed_dimensionality=allowed_dimensionality
         # if n_features_in_ is 1, then dimensionality could be 1 or 2, 
         # for any number of features greater than 1 dimensionality must

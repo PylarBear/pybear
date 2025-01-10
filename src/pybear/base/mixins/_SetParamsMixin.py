@@ -26,8 +26,8 @@ class SetParamsMixin:
 
         Setting the parameters of a GridSearch instance (but not the
         embedded instances) can be done in the same way as above. The
-        parameters of nested instances can be updated using prefixes on
-        the parameter names.
+        parameters of embedded instances can be updated using prefixes
+        on the parameter names.
 
         Simple estimators in a GridSearch instance can be updated by
         prefixing the estimator's parameters with 'estimator__'. For
@@ -67,16 +67,17 @@ class SetParamsMixin:
         # make lists of what parameters are valid
         # use shallow get_params to get valid params for top level instance
         ALLOWED_TOP_LEVEL_PARAMS = self.get_params(deep=False)
-        # use deep get_params to get valid sub params for estimator/pipe
+        # use deep get_params to get valid sub params for embedded
+        # estimator/pipe
         ALLOWED_SUB_PARAMS = {}
         for k, v in self.get_params(deep=True).items():
             if k not in ALLOWED_TOP_LEVEL_PARAMS:
                 ALLOWED_SUB_PARAMS[k.replace('estimator__', '')] = v
 
 
-        # separate top-level and sub parameters
-        GIVEN_SUB_PARAMS = {}
+        # separate the given top-level and sub parameters
         GIVEN_TOP_LEVEL_PARAMS = {}
+        GIVEN_SUB_PARAMS = {}
         for k,v in params.items():
             if 'estimator__' in k:
                 GIVEN_SUB_PARAMS[k.replace('estimator__', '')] = v
@@ -85,27 +86,28 @@ class SetParamsMixin:
         # END separate estimator and sub parameters
 
 
-        def _invalid_est_param(parameter: str, ALLOWED: dict) -> None:
+        def _invalid_param(parameter: str, ALLOWED: dict) -> None:
             raise ValueError(
-                f"invalid parameter '{parameter}' for estimator {self}). "
+                f"Invalid parameter '{parameter}' for estimator {self}"
                 f"\nValid parameters are: {list(ALLOWED.keys())}"
             )
 
 
-        # set GSCV params
-        # GSCV(Dask) parameters must be validated & set the long way
-        for top_level_param in GIVEN_TOP_LEVEL_PARAMS:
+        # set top-level params
+        # must be validated & set the long way
+        for top_level_param, value in GIVEN_TOP_LEVEL_PARAMS.items():
             if top_level_param not in ALLOWED_TOP_LEVEL_PARAMS:
                 raise ValueError(
-                    _invalid_est_param(
+                    _invalid_param(
                         top_level_param,
                         ALLOWED_TOP_LEVEL_PARAMS
                     )
                 )
-            setattr(self, top_level_param, params[top_level_param])
+            setattr(self, top_level_param, value)
 
-        # if self is a simple estimator/transformer, then short circuit
-        # out, bypassing everything that involves an 'estimator' attr.
+        # if top-level is a simple estimator/transformer, then short
+        # circuit out, bypassing everything that involves an 'estimator'
+        # attr.
         if not hasattr(self, 'estimator'):
             return self
 
@@ -126,7 +128,7 @@ class SetParamsMixin:
             raise Exception(
                 f'estimator.set_params() raised for reason other than '
                 f'\n-TypeError (estimator is class, not instance)'
-                f'\n-AttributeError (not an estimator)'
+                f'\n-AttributeError (not an estimator with set_params method)'
                 f'\n-ValueError (invalid parameter)'
                 f'\n -- {e}'
             ) from None
@@ -137,11 +139,11 @@ class SetParamsMixin:
         for sub_param in GIVEN_SUB_PARAMS:
             if sub_param not in ALLOWED_SUB_PARAMS:
                 raise ValueError(
-                    _invalid_est_param(sub_param, ALLOWED_SUB_PARAMS)
+                    _invalid_param(sub_param, ALLOWED_SUB_PARAMS)
                 )
         # END set estimator params ** * ** * ** * ** * ** * ** * ** * **
 
-        del ALLOWED_SUB_PARAMS, ALLOWED_TOP_LEVEL_PARAMS, _invalid_est_param
+        del ALLOWED_SUB_PARAMS, ALLOWED_TOP_LEVEL_PARAMS, _invalid_param
 
         return self
 
