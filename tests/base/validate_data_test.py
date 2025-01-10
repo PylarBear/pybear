@@ -101,7 +101,9 @@ class TestValidateData_ParamValidation(Fixtures):
     #     ensure_2d:bool=True,
     #     order:Literal['C', 'F']='C',
     #     ensure_min_features:numbers.Integral=1,
-    #     ensure_min_samples:numbers.Integral=1
+    #     ensure_max_features:Union[numbers.Integral, None]=None,
+    #     ensure_min_samples:numbers.Integral=1,
+    #     sample_check:Union[numbers.Integral, None]=None
     # ):
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -132,7 +134,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=junk if _param=='ensure_2d' else False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -155,7 +159,9 @@ class TestValidateData_ParamValidation(Fixtures):
             ensure_2d=(_param=='ensure_2d'),
             order='C',
             ensure_min_features=1,
-            ensure_min_samples=1
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
 
         assert isinstance(out, np.ndarray)
@@ -182,7 +188,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
         # f"if :param: require_all_finite is True, then :param: "
@@ -202,7 +210,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -226,7 +236,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -247,7 +259,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -269,7 +283,9 @@ class TestValidateData_ParamValidation(Fixtures):
             ensure_2d=False,
             order='C',
             ensure_min_features=1,
-            ensure_min_samples=1
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
 
         assert isinstance(out, np.ndarray)
@@ -297,7 +313,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -318,7 +336,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -338,7 +358,9 @@ class TestValidateData_ParamValidation(Fixtures):
             ensure_2d=False,
             order='C',
             ensure_min_features=1,
-            ensure_min_samples=1
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
 
         assert isinstance(out, np.ndarray)
@@ -366,7 +388,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -387,7 +411,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -409,7 +435,9 @@ class TestValidateData_ParamValidation(Fixtures):
                     ensure_2d=False,
                     order='C',
                     ensure_min_features=1,
-                    ensure_min_samples=1
+                    ensure_max_features=None,
+                    ensure_min_samples=1,
+                    sample_check=None
                 )
         else:
             out = validate_data(
@@ -425,7 +453,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
             assert isinstance(out, np.ndarray)
@@ -452,7 +482,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order=junk_order,
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -473,7 +505,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order=bad_order,
                 ensure_min_features=1,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -493,7 +527,9 @@ class TestValidateData_ParamValidation(Fixtures):
             ensure_2d=False,
             order=good_order,
             ensure_min_features=1,
-            ensure_min_samples=1
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
 
         assert isinstance(out, np.ndarray)
@@ -521,7 +557,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=junk_min_features,
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -541,7 +579,9 @@ class TestValidateData_ParamValidation(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=-1,   # <============
-                ensure_min_samples=1
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=None
             )
 
 
@@ -561,11 +601,94 @@ class TestValidateData_ParamValidation(Fixtures):
             ensure_2d=False,
             order='C',
             ensure_min_features=good_min_features,
-            ensure_min_samples=1
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
 
         assert isinstance(out, np.ndarray)
     # END ensure_min_features -- -- -- -- -- -- -- -- -- -- -- --
+
+    # ensure_max_features -- -- -- -- -- -- -- -- -- -- -- -- --
+    @pytest.mark.parametrize('junk_max_features',
+        (-2.7, 2.7, True, False, None, [0,1], (0,1), {'A':1}, lambda x: x, min)
+    )
+    def test_rejects_junk_max_features(
+        self, _X_np, _good_accept_sparse, junk_max_features
+    ):
+
+        with pytest.raises(TypeError):
+            validate_data(
+                _X_np,
+                copy_X=False,
+                cast_to_ndarray=False,
+                accept_sparse=_good_accept_sparse,
+                dtype='any',
+                require_all_finite=False,
+                cast_inf_to_nan=False,
+                standardize_nan=False,
+                allowed_dimensionality=(1, 2),
+                ensure_2d=False,
+                order='C',
+                ensure_min_features=0,
+                ensure_max_features=junk_max_features,
+                ensure_min_samples=1,
+                sample_check=False
+            )
+
+
+    @pytest.mark.parametrize('min_features, max_features',
+        ((-2, -1), (0, -1), (2, 1))
+    )
+    def test_rejects_bad_max_features(
+        self, _X_np, _good_accept_sparse, min_features, max_features
+    ):
+
+        # test max_features < 0 and max_features < min_features
+
+        with pytest.raises(ValueError):
+            validate_data(
+                _X_np,
+                copy_X=False,
+                cast_to_ndarray=False,
+                accept_sparse=_good_accept_sparse,
+                dtype='any',
+                require_all_finite=False,
+                cast_inf_to_nan=False,
+                standardize_nan=False,
+                allowed_dimensionality=(1, 2),
+                ensure_2d=False,
+                order='C',
+                ensure_min_features=min_features,
+                ensure_max_features=max_features,
+                ensure_min_samples=1,
+                sample_check=None
+            )
+
+
+    @pytest.mark.parametrize('good_max_features', (0, 1, 2))
+    def test_good_max_features(self, _X_np, _good_accept_sparse, good_max_features):
+
+        out = validate_data(
+            _X_np,
+            copy_X=False,
+            cast_to_ndarray=True,
+            accept_sparse=_good_accept_sparse,
+            dtype='any',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(1, 2),
+            ensure_2d=False,
+            order='C',
+            ensure_min_features=0,
+            ensure_max_features=_X_np.shape[1] + good_max_features,
+            ensure_min_samples=1,
+            sample_check=None
+        )
+
+        assert isinstance(out, np.ndarray)
+    # END ensure_max_features -- -- -- -- -- -- -- -- -- -- -- --
 
     # ensure_min_samples -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_min_samples',
@@ -630,6 +753,79 @@ class TestValidateData_ParamValidation(Fixtures):
             order='C',
             ensure_min_features=1,
             ensure_min_samples=good_min_samples
+        )
+
+        assert isinstance(out, np.ndarray)
+    # END ensure_min_samples -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    # sample_check -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    @pytest.mark.parametrize('junk_sample_check',
+        (-2.7, 2.7, True, False, [0,1], (0,1), {'A':1}, lambda x: x, min)
+    )
+    def test_rejects_sample_check(
+        self, _X_np, _good_accept_sparse, junk_sample_check
+    ):
+
+        with pytest.raises(TypeError):
+            validate_data(
+                _X_np,
+                copy_X=False,
+                cast_to_ndarray=False,
+                accept_sparse=_good_accept_sparse,
+                dtype='any',
+                require_all_finite=False,
+                cast_inf_to_nan=False,
+                standardize_nan=False,
+                allowed_dimensionality=(1, 2),
+                ensure_2d=False,
+                order='C',
+                ensure_min_features=1,
+                ensure_max_features=None,
+                ensure_min_samples=1,
+                sample_check=junk_sample_check
+            )
+
+
+    def test_rejects_bad_sample_check(self, _X_np, _good_accept_sparse):
+
+        with pytest.raises(ValueError):
+            validate_data(
+                _X_np,
+                copy_X=False,
+                cast_to_ndarray=False,
+                accept_sparse=_good_accept_sparse,
+                dtype='any',
+                require_all_finite=False,
+                cast_inf_to_nan=False,
+                standardize_nan=False,
+                allowed_dimensionality=(1, 2),
+                ensure_2d=False,
+                order='C',
+                ensure_min_features=1,
+                ensure_max_features=None,
+                ensure_min_samples=0,
+                sample_check=-1
+            )
+
+
+    def test_good_sample_check(self, _X_np, _good_accept_sparse):
+
+        out = validate_data(
+            _X_np,
+            copy_X=False,
+            cast_to_ndarray=True,
+            accept_sparse=_good_accept_sparse,
+            dtype='any',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(1, 2),
+            ensure_2d=False,
+            order='C',
+            ensure_min_features=1,
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=_X_np.shape[0]
         )
 
         assert isinstance(out, np.ndarray)
@@ -1201,11 +1397,13 @@ class TestValidateDataAccuracy(Fixtures):
     @pytest.mark.parametrize('_shape',
         ((1, ), (10, ), (1, 10), (10, 1), (2, 10), (10, 2), (10, 10))
     )
-    @pytest.mark.parametrize('_min_features', (0, 1, 2))
-    @pytest.mark.parametrize('_min_samples', (0, 1, 2))
-    def test_min_features_and_samples(
+    @pytest.mark.parametrize('_min_features', (0, 1))
+    @pytest.mark.parametrize('_max_features', (1, 2, None))
+    @pytest.mark.parametrize('_min_samples', (0, 1))
+    @pytest.mark.parametrize('_sample_check', (None, 0, 1))
+    def test_features_and_samples(
         self, _X_factory, _X_format, _dtype, _shape, _min_features,
-        _min_samples, _good_accept_sparse
+        _max_features, _min_samples, _sample_check, _good_accept_sparse
     ):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -1249,7 +1447,13 @@ class TestValidateDataAccuracy(Fixtures):
         else:
             raise Exception
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        except_for_max_features_lt_min_features = False
+        if _max_features and _max_features < _min_features:
+            except_for_max_features_lt_min_features = True
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         except_for_too_few_features = False
         if len(_X_wip.shape) == 1:
             # n_features == 1
@@ -1258,12 +1462,44 @@ class TestValidateDataAccuracy(Fixtures):
         elif len(_X_wip.shape) == 2:
             if _X_wip.shape[1] < _min_features:
                 except_for_too_few_features = True
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        except_for_too_many_features = False
+        if _max_features:
+            if len(_X_wip.shape) == 1:
+                # n_features == 1
+                if _max_features < 1:
+                    except_for_too_many_features = True
+            elif len(_X_wip.shape) == 2:
+                if _X_wip.shape[1] > _max_features:
+                    except_for_too_many_features = True
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         except_for_too_few_samples = False
-        if _X_wip.shape[0] < _min_samples:
+        if _sample_check is None and _X_wip.shape[0] < _min_samples:
             except_for_too_few_samples = True
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        if except_for_too_few_features or except_for_too_few_samples:
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        except_for_sample_check = False
+        if _sample_check and _sample_check != 0:
+            # look at the formulas where sample_check is passed to see
+            # how this is being tested.
+            # it is X.shape[0] + sample_check, and sample check is 0 or
+            # 1, so 0 should pass and 1 should fail
+            except_for_sample_check = True
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        value_error = 0
+        value_error += except_for_max_features_lt_min_features
+        value_error += except_for_too_few_features
+        value_error += except_for_too_many_features
+        value_error += except_for_too_few_samples
+        value_error += except_for_sample_check
+
+        if value_error:
             with pytest.raises(ValueError):
                 validate_data(
                     _X_wip,
@@ -1278,7 +1514,10 @@ class TestValidateDataAccuracy(Fixtures):
                     ensure_2d=False,
                     order='C',
                     ensure_min_features=_min_features,
-                    ensure_min_samples=_min_samples
+                    ensure_max_features=_max_features,
+                    ensure_min_samples=_min_samples,
+                    sample_check= \
+                        _X_wip.shape[0] + _sample_check if _sample_check else None
                 )
         else:
             out = validate_data(
@@ -1294,7 +1533,10 @@ class TestValidateDataAccuracy(Fixtures):
                 ensure_2d=False,
                 order='C',
                 ensure_min_features=_min_features,
-                ensure_min_samples=_min_samples
+                ensure_max_features=_max_features,
+                ensure_min_samples=_min_samples,
+                sample_check= \
+                    _X_wip.shape[0] + _sample_check if _sample_check else None
             )
 
             assert isinstance(out, type(_X_wip))

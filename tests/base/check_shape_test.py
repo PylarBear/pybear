@@ -24,7 +24,9 @@ class TestCheckShape:
     # def check_shape(
     #     OBJECT,
     #     min_features: numbers.Integral=1,
+    #     max_features: Union[numbers.Integral, None]=None,
     #     min_samples: numbers.Integral=1,
+    #     sample_check: Union[numbers.Integral, None]=None,
     #     allowed_dimensionality: Iterable[numbers.Integral] = (1, 2)
     # ) -> tuple[int, ...]:
 
@@ -56,7 +58,7 @@ class TestCheckShape:
         elif X_format == 'pd':
             _X = pd.DataFrame(data=_base_X)
             if dimensionality == 1:
-                _X = _X.squeeze()
+                _X = _X.iloc[:, 0].squeeze()
         elif X_format == 'coo':
             _X = ss.coo_array(_base_X)
         else:
@@ -133,6 +135,161 @@ class TestCheckShape:
                 )
 
 
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'dok'))
+    @pytest.mark.parametrize('dimensionality', (1, 2))
+    @pytest.mark.parametrize('features', (0, 1, 20, 100))
+    @pytest.mark.parametrize('min_features', (0, 1, 2))
+    @pytest.mark.parametrize('max_features', (1, 2, None))
+    def test_rejects_too_many_features(
+        self, X_format, dimensionality, features, min_features, max_features
+    ):
+
+        # also tests that max_features must be >= min features
+
+        # skip impossible conditions - - - - - - - - - - - - - - - - - -
+
+        if dimensionality == 1 and features != 1:
+            pytest.skip(reason=f"impossible condition")
+
+        if X_format == 'dok' and features != 2:
+            pytest.skip(reason=f"scipy sparse must be 2D")
+
+        # END skip impossible conditions - - - - - - - - - - - - - - - -
+
+
+        if dimensionality == 1:
+            # features == 1
+            _shape = (100, )
+        elif dimensionality == 2:
+            _shape = (100, features)
+
+        _base_X = np.random.randint(0, 10, _shape)
+
+        if X_format == 'np':
+            _X = _base_X
+        elif X_format == 'pd':
+            _X = pd.DataFrame(data=_base_X)
+            if dimensionality == 1:
+                _X = _X.iloc[:, 0].squeeze()
+        elif X_format == 'dok':
+            _X = ss.dok_array(_base_X)
+        else:
+            raise Exception
+
+
+        if max_features and max_features < min_features:
+            # raise fo max_features < min_features
+            with pytest.raises(ValueError):
+                check_shape(
+                    _X,
+                    min_features=min_features,
+                    max_features=max_features
+                )
+            pytest.skip(reason=f"cant do more tests after exception")
+
+
+        if features >= min_features:
+
+            if max_features is None:
+                # no max limit on number of features
+                out = check_shape(
+                    _X,
+                    min_features=min_features,
+                    max_features=max_features
+                )
+                assert out == _shape
+            elif features <= max_features:  # max_features is not None
+                # this is OK
+                out = check_shape(
+                    _X,
+                    min_features=min_features,
+                    max_features=max_features
+                )
+                assert out == _shape
+            elif features > max_features:   # max_features is not None
+                # too many feature
+                with pytest.raises(ValueError):
+                    check_shape(
+                        _X,
+                        min_features=min_features,
+                        max_features=max_features
+                    )
+            else:
+                raise Exception
+
+        elif features < min_features:
+            with pytest.raises(ValueError):
+                check_shape(
+                    _X,
+                    min_features=min_features,
+                    max_features=max_features
+                )
+
+
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'dok'))
+    @pytest.mark.parametrize('dimensionality', (1, 2))
+    @pytest.mark.parametrize('samples', (10, 20, 100))
+    @pytest.mark.parametrize('sample_check', (5, 10, 20, None))
+    def test_rejects_wrong_number_of_samples(
+        self, X_format, dimensionality, samples, sample_check
+    ):
+
+        # skip impossible conditions - - - - - - - - - - - - - - - - - -
+        if X_format == 'dok' and dimensionality != 2:
+            pytest.skip(reason=f"scipy sparse must be 2D")
+        if X_format == 'pd' and dimensionality == 1 and samples == 1:
+            pytest.skip(reason=f"1x1 pandas squeezes to a number.")
+        # END skip impossible conditions - - - - - - - - - - - - - - - -
+
+
+        if dimensionality == 1:
+            _shape = (samples,)
+            _base_X = np.random.randint(0, 10, _shape)
+        elif dimensionality == 2:
+            _shape = (samples, 5)
+            _base_X = np.random.randint(0, 10, _shape)
+
+        if X_format == 'np':
+            _X = _base_X
+        elif X_format == 'pd':
+            _X = pd.DataFrame(data=_base_X)
+            if dimensionality == 1:
+                _X = _X.iloc[:, 0].squeeze()
+        elif X_format == 'dok':
+            _X = ss.dok_array(_base_X)
+        else:
+            raise Exception
+
+
+        if sample_check is None:
+            # this is OK, samples not checked for exact count
+            out = check_shape(
+                _X,
+                min_samples=0,
+                sample_check=sample_check
+            )
+
+            assert out == _shape
+
+        elif samples == sample_check:  # sample_check is not None
+            out = check_shape(
+                _X,
+                min_samples=0,
+                sample_check=sample_check
+            )
+
+            assert out == _shape
+
+        elif samples != sample_check:   # sample_check is not None
+            # fails the check
+            with pytest.raises(ValueError):
+                check_shape(
+                    _X,
+                    min_samples=0,
+                    sample_check=sample_check
+                )
+
+
 
     @pytest.mark.parametrize('X_format', ('np', 'pd', 'lil'))
     @pytest.mark.parametrize('dimensionality', (1, 2))
@@ -183,10 +340,6 @@ class TestCheckShape:
                     _X,
                     min_samples=min_samples
                 )
-
-
-
-
 
 
 

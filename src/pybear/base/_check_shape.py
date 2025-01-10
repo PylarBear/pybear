@@ -6,8 +6,8 @@
 
 
 
-
 from typing import Iterable
+from typing_extensions import Union
 
 import numbers
 
@@ -16,12 +16,12 @@ from ._num_samples import num_samples
 
 
 
-
-
 def check_shape(
     OBJECT,
     min_features: numbers.Integral=1,
+    max_features: Union[numbers.Integral, None]=None,
     min_samples: numbers.Integral=1,
+    sample_check: Union[numbers.Integral, None]=None,
     allowed_dimensionality: Iterable[numbers.Integral] = (1, 2)
 ) -> tuple[int, ...]:
 
@@ -31,8 +31,14 @@ def check_shape(
     OBJECT must have a 'shape' method.
     The number of samples in OBJECT must be greater than or equal to
     min_samples.
+    If sample_check is not None (must be an integer greater than or equal
+    to min_samples), the number of samples in OBJECT must equal
+    sample_check.
     The number of features in OBJECT must be greater than or equal to
     min_features.
+    If max_features is not None (must be an integer greater than or equal
+    to min_features), then number of features in OBJECT cannot exceed
+    max_features.
     The dimensionality of OBJECT must be one of the allowed values in
     allowed_dimensionality.
 
@@ -45,9 +51,21 @@ def check_shape(
     min_features:
         numbers.Integral - The minimum number of features required in
         OBJECT; must be greater than or equal to zero.
+    max_features:
+        Union[numbers.Integral, None] - The maximum number of features
+        allowed in OBJECT; if not None, must be greater than or equal to
+        min_features. If None, then there is no restriction on the
+        maximum number of features in OBJECT.
     min_samples:
         numbers.Integral - The minimum number of samples required in
-        OBJECT; must be greater than or equal to zero.
+        OBJECT; must be greater than or equal to zero. Ignored if
+        :param: sample_check is not None.
+    sample_check:
+        Union[numbers.Integral, None] - The exact number of samples
+        allowed in OBJECT. If not None, must be a non-negative integer.
+        Use this to check, for example, that the number of samples in y
+        equals the number of samples in X. If None, this check is not
+        performed.
     allowed_dimensionality:
         Iterable[numbers.Integral] - The allowed dimensionalities of
         OBJECT. All entries must be greater than zero and less than or
@@ -69,15 +87,46 @@ def check_shape(
     if not hasattr(OBJECT, 'shape'):
         raise TypeError("the passed object must have a 'shape' attribute.")
 
-    assert isinstance(min_features,  numbers.Integral)
-    assert min_features >= 0
+    err_msg = f"'min_features' must be a non-negative integer"
+    if not isinstance(min_features,  numbers.Integral):
+        raise TypeError(err_msg)
+    if isinstance(min_features, bool):
+        raise TypeError(err_msg)
+    if min_features < 0:
+        raise ValueError(err_msg)
+    del err_msg
 
-    assert isinstance(min_samples,  numbers.Integral)
-    assert min_samples >= 0
+    if max_features is not None:
+        err_msg = (f"'max_features' must be None or a non-negative integer "
+            f"greater than or equal to 'min_features'")
+        if not isinstance(max_features,  numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(max_features, bool):
+            raise TypeError(err_msg)
+        if max_features < min_features:
+            raise ValueError(err_msg)
+        del err_msg
+
+    if sample_check is None:
+        err_msg = f"'min_samples' must be a non-negative integer"
+        if not isinstance(min_samples,  numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(min_samples, bool):
+            raise TypeError(err_msg)
+        if min_samples < 0:
+            raise ValueError(err_msg)
+    elif sample_check is not None:
+        err_msg = (f"'sample_check' must be None or a non-negative integer.")
+        if not isinstance(sample_check, numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(sample_check, bool):
+            raise TypeError(err_msg)
+        if sample_check < 0:
+            raise ValueError(err_msg)
+        del err_msg
 
     err_msg = (f"'allowed_dimensionality' must be a vector-like iterable "
         f"of integers greater than zero and less than three.")
-
     try:
         if isinstance(allowed_dimensionality, numbers.Integral):
             allowed_dimensionality = (allowed_dimensionality, )
@@ -107,16 +156,31 @@ def check_shape(
     _samples = num_samples(OBJECT)
     _features = num_features(OBJECT)
 
-    if _samples < min_samples:
-        raise ValueError(
-            f"passed object has {_samples} samples, minimum required is "
-            f"{min_samples}"
-        )
+    if sample_check is not None:
+        if _samples != sample_check:
+            raise ValueError(
+                f"passed object has {_samples} samples, but :param: "
+                f"sample_check requires there be exactly {sample_check}"
+                f"samples"
+            )
+    elif sample_check is None:
+        if _samples < min_samples:
+            raise ValueError(
+                f"passed object has {_samples} samples, minimum required "
+                f"is {min_samples}"
+            )
+
 
     if _features < min_features:
         raise ValueError(
             f"passed object has {_features} samples, minimum required is "
             f"{min_features}"
+        )
+
+    if max_features is not None and _features > max_features:
+        raise ValueError(
+            f"passed object has {_features} features, maximum allowed is "
+            f"{max_features}"
         )
 
 

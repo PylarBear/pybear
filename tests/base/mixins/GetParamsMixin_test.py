@@ -189,7 +189,7 @@ class Fixtures:
                 self._is_fitted = False
 
 
-            def fit(self, X, y=None):
+            def fit(self, X):
                 self.reset()
                 self._fill_value = np.random.uniform(0, 1)
                 self._is_fitted = True
@@ -204,7 +204,7 @@ class Fixtures:
 
 
             def fit_transform(self, X, y=None):
-                return self.fit(X, y=y).transform(X)
+                return self.fit(X).transform(X)
 
 
         return Bar  # <====== not initialized
@@ -213,7 +213,7 @@ class Fixtures:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def DummyGridSearch(DummyEstimator):
+    def DummyGridSearch():
 
         class Baz(GetParamsMixin):
 
@@ -232,7 +232,7 @@ class Fixtures:
                 self.apricots = False
 
 
-            def fit(self, X):
+            def fit(self, X, y=None):
 
                 self.best_params_ = {}
 
@@ -241,7 +241,7 @@ class Fixtures:
                         np.random.choice(self.param_grid[_param])
 
 
-        return Baz
+        return Baz  # <====== not initialized
 
 
 class TestVarsDoesNotReturnAlphabetical(Fixtures):
@@ -328,8 +328,6 @@ class TestGetParams(Fixtures):
         assert isinstance(out, dict)
 
 
-
-
     @pytest.mark.parametrize('_deep', (True, False))
     def test_accuracy(self, top_level_object, TopLevelObject, _deep):
 
@@ -382,6 +380,11 @@ class TestGetParams(Fixtures):
                 # then all of the alphabetized top level object shallow
                 # params from 'estimator' (inclusive) to the end
                 exp_params += ['estimator', 'param_grid', 'refit', 'scoring']
+
+                assert np.array_equal(
+                    list(out.keys()),
+                    exp_params
+                )
 
         else:
             raise Exception
