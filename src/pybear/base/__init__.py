@@ -8,8 +8,10 @@
 
 
 from ._cast_to_ndarray import cast_to_ndarray
+from ._check_dtype import check_dtype
 from ._check_feature_names import check_feature_names
 from ._check_n_features import check_n_features
+from ._check_is_finite import check_is_finite
 from ._check_is_fitted import check_is_fitted
 from ._check_scipy_sparse import check_scipy_sparse
 from ._check_shape import check_shape
@@ -32,9 +34,11 @@ from .mixins._SetParamsMixin import SetParamsMixin
 
 __all__ = [
     'cast_to_ndarray',
+    'check_dtype',
     'check_feature_names',
-    'check_is_fitted',
     'check_n_features',
+    'check_is_finite',
+    'check_is_fitted',
     'check_scipy_sparse',
     'check_shape',
     'ensure_2D',

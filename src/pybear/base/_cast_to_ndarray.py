@@ -105,8 +105,6 @@ def cast_to_ndarray(
         _X = X
 
     # IF ss CONVERT TO np
-    # do this before nan_mask, otherwise would need to do fancy mask things
-    # on ss.data attribute separate from all other formats.
     try:
         _X = _X.toarray()
     except:

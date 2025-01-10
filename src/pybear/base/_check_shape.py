@@ -66,14 +66,17 @@ def check_shape(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    assert hasattr(OBJECT, 'shape'), \
-        f"the passed object must have a 'shape' attribute."
+    if not hasattr(OBJECT, 'shape'):
+        raise TypeError("the passed object must have a 'shape' attribute.")
 
     assert isinstance(min_features,  numbers.Integral)
     assert min_features >= 0
 
     assert isinstance(min_samples,  numbers.Integral)
     assert min_samples >= 0
+
+    err_msg = (f"'allowed_dimensionality' must be a vector-like iterable "
+        f"of integers greater than zero and less than three.")
 
     try:
         if isinstance(allowed_dimensionality, numbers.Integral):
@@ -85,14 +88,13 @@ def check_shape(
         if not all(map(isinstance, __, (numbers.Integral for _ in __))):
             raise Exception
         if not all(map(lambda x: x > 0, __)):
-            raise Exception
+            raise UnicodeError
         if not all(map(lambda x: x <= 2, __)):
-            raise Exception
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(err_msg)
     except:
-        raise AssertionError(
-            f"'allowed_dimensionality' must be a vector-like iterable of "
-            f"integers greater than zero and less thar three."
-        )
+        raise TypeError(err_msg)
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 

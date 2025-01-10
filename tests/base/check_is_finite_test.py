@@ -416,9 +416,16 @@ class TestCheckIsFiniteAccuracy(Fixtures):
         else:
             raise Exception
 
-        NAN_MASK = nan_mask(_X_loaded)
+        NAN_MASK_IN = nan_mask(_X_loaded)
+        INF_MASK_IN = inf_mask(_X_loaded)
 
-        outputted_nans = out[NAN_MASK].ravel()
+        assert not np.array_equal(NAN_MASK_IN, INF_MASK_IN)
+
+        NAN_MASK_OUT = nan_mask(out)
+
+        assert np.array_equal(NAN_MASK_OUT, NAN_MASK_IN)
+
+        outputted_nans = out[NAN_MASK_IN].ravel()
 
         # if all nans are set to np.nan, all of those values should be np.float64
         assert all(map(
@@ -454,9 +461,17 @@ class TestCheckIsFiniteAccuracy(Fixtures):
         else:
             raise Exception
 
-        INF_MASK = inf_mask(_X_loaded)
+        NAN_MASK_IN = nan_mask(_X_loaded)
+        INF_MASK_IN = inf_mask(_X_loaded)
 
-        outputted_infs = out[INF_MASK].ravel()
+        NAN_MASK_OUT = nan_mask(out)
+
+        assert np.array_equal(
+            NAN_MASK_OUT,
+            (NAN_MASK_IN + INF_MASK_IN).astype(bool)
+        )
+
+        outputted_infs = out[INF_MASK_IN].ravel()
 
         # if all infs are set to np.nan, all of those values should be np.float64
         assert all(map(
