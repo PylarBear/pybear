@@ -35,6 +35,7 @@ def validate_data(
     require_all_finite:bool=True,
     cast_inf_to_nan:bool=True,
     standardize_nan:bool=True,
+    allowed_dimensionality:Iterable[numbers.Integral]=(1,2),
     ensure_2d:bool=True,
     order:Literal['C', 'F']='C',
     ensure_min_features:numbers.Integral=1,
@@ -43,7 +44,7 @@ def validate_data(
 
     """
     Validate characteristics of X and apply some select transformative
-    operations. This module is intended for validation in methods of
+    operations. This module is intended for validation of X in methods of
     pybear estimators and transformers, but can be used in stand-alone
     applications.
 
@@ -99,6 +100,10 @@ def validate_data(
         bool, default=True - If True, coerce all nan-like values in the
         data to numpy.nan; if False, leave all the nan-like values in
         the given state.
+    allowed_dimensionality:
+        Iterable[numbers.Integral] - The allowed dimensionalities of
+        X. All entries must be greater than zero and less than or
+        equal to two. Examples: (1,)  {1,2}, [2]
     ensure_2d:
         bool, default=True - coerce the data to a 2-dimensional format.
         For example, a 1D numpy vector would be reshaped to a 2D numpy
@@ -215,6 +220,25 @@ def validate_data(
             f"cast_inf_to_nan must be False."
         )
 
+    # allowed_dimensionality -- -- -- -- -- -- -- -- -- -- -- --
+    __ = allowed_dimensionality
+    err_msg = f"'allowed_dimensionality' must be a 1D iterable of positive integers."
+    try:
+        iter(__)
+        if isinstance(__, (str, dict)):
+            raise Exception
+        if not all(map(isinstance, __, (numbers.Integral for _ in __))):
+            raise Exception
+        if not all(map(lambda x: x > 0, __)):
+            raise UnicodeError
+        if not all(map(lambda x: x < 3, __)):
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(err_msg)
+    except:
+        raise TypeError(err_msg)
+    # END ensure_2d -- -- -- -- -- -- -- -- -- -- --
+
     # ensure_2d -- -- -- -- -- -- -- -- -- -- -- --
     if not isinstance(ensure_2d, bool):
         raise TypeError(f"'ensure_2d' must be boolean.")
@@ -302,7 +326,7 @@ def validate_data(
     )
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    if require_all_finite:
+    if require_all_finite or cast_inf_to_nan or standardize_nan:
 
         _X = check_is_finite(
             _X,
@@ -318,7 +342,7 @@ def validate_data(
         _X,
         min_features=ensure_min_features,
         min_samples=ensure_min_samples,
-        allowed_dimensionality=(1,2) if ensure_min_features==1 else (2,)
+        allowed_dimensionality=allowed_dimensionality
         # if n_features_in_ is 1, then dimensionality could be 1 or 2, 
         # for any number of features greater than 1 dimensionality must
         # be 2.
@@ -327,7 +351,7 @@ def validate_data(
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    return X
+    return _X
 
 
 

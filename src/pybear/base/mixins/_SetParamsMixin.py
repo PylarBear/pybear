@@ -13,100 +13,135 @@ class SetParamsMixin:
     def set_params(self, **params):
 
         """
-        Set the parameters of the estimator instance or an embedded
-        estimator. The method works on simple estimators as well as on
-        nested objects (such as Pipeline). Pipeline parameters can be
-        updated using the form 'estimator__<pipe_parameter>. The
-        parameters of nested estimators can be updated using
-        'estimator__<parameter>'. Steps of a pipeline have parameters
-        of the form <step>__<parameter> so that it’s also possible to
-        update a step's parameters. The parameters of steps in the
-        pipeline can be updated using 'estimator__<step>__<parameter>'.
+        Set the parameters of an instance or an embedded instance. This
+        method works on simple estimator and transformer instances as
+        well as on nested objects (such as GridSearch instances).
+
+        Setting the parameters of simple estimators and transformers is
+        straightforward. Pass the exact parameter name and its value
+        as a keyword argument to the set_params method call. Or use
+        ** dictionary unpacking on a dictionary keyed with exact
+        parameter names and the new parameter values as the dictionary
+        values.
+
+        Setting the parameters of a GridSearch instance (but not the
+        embedded instances) can be done in the same way as above. The
+        parameters of nested instances can be updated using prefixes on
+        the parameter names.
+
+        Simple estimators in a GridSearch instance can be updated by
+        prefixing the estimator's parameters with 'estimator__'. For
+        example, if some estimator has a 'depth' parameter, then setting
+        the value of that parameter to 3 would be accomplished by passing
+        estimator__depth=3 as a keyword argument to the set_params method
+        call.
+
+        The parameters of a pipeline embedded in a GridSearch instance
+        can be updated using the form estimator__<pipe_parameter>.
+        The parameters of the steps of a pipeline have the form
+        <step>__<parameter> so that it’s also possible to update a step's
+        parameters through the set_params method interface. The
+        parameters of steps in the pipeline can be updated using
+        'estimator__<step>__<parameter>'.
 
 
         Parameters
         ----------
         **params:
-            dict[str: any] - estimator parameters.
+            dict[str: any] - estimator parameters and their new values.
 
 
         Return
         ------
         -
-            self - the estimator instance with new parameters.
+            self - the estimator instance with new parameter values.
 
         """
+
+        if not len(params):
+            return self
 
         # estimators, pipelines, and gscv all raise exception for invalid
         # keys (parameters) passed
 
         # make lists of what parameters are valid
-        # use shallow get_params to get valid params for GSTCV
-        ALLOWED_GSTCV_PARAMS = self.get_params(deep=False)
-        # use deep get_params to get valid params for estimator/pipe
-        ALLOWED_EST_PARAMS = {}
+        # use shallow get_params to get valid params for top level instance
+        ALLOWED_TOP_LEVEL_PARAMS = self.get_params(deep=False)
+        # use deep get_params to get valid sub params for estimator/pipe
+        ALLOWED_SUB_PARAMS = {}
         for k, v in self.get_params(deep=True).items():
-            if k not in ALLOWED_GSTCV_PARAMS:
-                ALLOWED_EST_PARAMS[k.replace('estimator__', '')] = v
+            if k not in ALLOWED_TOP_LEVEL_PARAMS:
+                ALLOWED_SUB_PARAMS[k.replace('estimator__', '')] = v
 
 
-        # separate estimator and GSTCV parameters
-        est_params = {}
-        gstcv_params = {}
+        # separate top-level and sub parameters
+        GIVEN_SUB_PARAMS = {}
+        GIVEN_TOP_LEVEL_PARAMS = {}
         for k,v in params.items():
             if 'estimator__' in k:
-                est_params[k.replace('estimator__', '')] = v
+                GIVEN_SUB_PARAMS[k.replace('estimator__', '')] = v
             else:
-                gstcv_params[k] = v
-        # END separate estimator and GSTCV parameters
+                GIVEN_TOP_LEVEL_PARAMS[k] = v
+        # END separate estimator and sub parameters
 
 
         def _invalid_est_param(parameter: str, ALLOWED: dict) -> None:
             raise ValueError(
-                f"invalid parameter '{parameter}' for estimator "
-                f"{type(self).__name__}(estimator={ALLOWED['estimator']}, "
-                f"param_grid={ALLOWED['param_grid']}). \n"
-                f"Valid parameters are: {list(ALLOWED.keys())}"
+                f"invalid parameter '{parameter}' for estimator {self}). "
+                f"\nValid parameters are: {list(ALLOWED.keys())}"
             )
 
 
-        # set GSTCV params
-        # GSTCV(Dask) parameters must be validated & set the long way
-        for gstcv_param in gstcv_params:
-            if gstcv_param not in ALLOWED_GSTCV_PARAMS:
+        # set GSCV params
+        # GSCV(Dask) parameters must be validated & set the long way
+        for top_level_param in GIVEN_TOP_LEVEL_PARAMS:
+            if top_level_param not in ALLOWED_TOP_LEVEL_PARAMS:
                 raise ValueError(
-                    _invalid_est_param(gstcv_param, ALLOWED_GSTCV_PARAMS)
+                    _invalid_est_param(
+                        top_level_param,
+                        ALLOWED_TOP_LEVEL_PARAMS
+                    )
                 )
-            setattr(self, gstcv_param, params[gstcv_param])
+            setattr(self, top_level_param, params[top_level_param])
 
+        # if self is a simple estimator/transformer, then short circuit
+        # out, bypassing everything that involves an 'estimator' attr.
+        if not hasattr(self, 'estimator'):
+            return self
 
-        # set estimator params ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        # IF self.estimator is dask/sklearn est/pipe, THIS SHOULD HANDLE
-        # EXCEPTIONS FOR INVALID PASSED PARAMS. Must set params on estimator,
-        # not _estimator, because _estimator may not exist (until fit())
+        # v v v v v EVERYTHING BELOW IS FOR AN EMBEDDED v v v v v v v v
+
+        # set sub params ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # IF self.estimator is dask/sklearn/pybear est/pipe, IT SHOULD
+        # HANDLE EXCEPTIONS FOR INVALID PASSED PARAMS.
         try:
-            self.estimator.set_params(**est_params)
+            self.estimator.set_params(**GIVEN_SUB_PARAMS)
         except TypeError:
             raise TypeError(f"estimator must be an instance, not the class")
         except AttributeError:
             raise
+        except ValueError:
+            raise
         except Exception as e:
             raise Exception(
-                f'estimator.set_params() raised for reason other than TypeError '
-                f'(estimator is class, not instance) or AttributeError (not an '
-                f'estimator.) -- {e}'
+                f'estimator.set_params() raised for reason other than '
+                f'\n-TypeError (estimator is class, not instance)'
+                f'\n-AttributeError (not an estimator)'
+                f'\n-ValueError (invalid parameter)'
+                f'\n -- {e}'
             ) from None
 
-        # this is stop-gap validation in case an estimator (of a makeshift
-        # sort, perhaps) does not block setting invalid params.
-        for est_param in est_params:
-            if est_param not in ALLOWED_EST_PARAMS:
+        # this is stop-gap validation in case an embedded estimator
+        # (of a makeshift sort, perhaps) does not block setting invalid
+        # params.
+        for sub_param in GIVEN_SUB_PARAMS:
+            if sub_param not in ALLOWED_SUB_PARAMS:
                 raise ValueError(
-                    _invalid_est_param(est_param, ALLOWED_EST_PARAMS)
+                    _invalid_est_param(sub_param, ALLOWED_SUB_PARAMS)
                 )
         # END set estimator params ** * ** * ** * ** * ** * ** * ** * **
 
-        del ALLOWED_EST_PARAMS, ALLOWED_GSTCV_PARAMS, _invalid_est_param
+        del ALLOWED_SUB_PARAMS, ALLOWED_TOP_LEVEL_PARAMS, _invalid_est_param
 
         return self
 
