@@ -8,14 +8,14 @@
 
 
 from pybear.base.mixins._SetParamsMixin import SetParamsMixin
+from pybear.base.mixins._GetParamsMixin import GetParamsMixin
 
+import re
+from copy import deepcopy
 import numpy as np
+import inspect
 
 import pytest
-
-
-pytest.skip(reason='pizza not started, not finished', allow_module_level=True)
-
 
 
 
@@ -39,14 +39,21 @@ class Fixtures:
     @pytest.fixture(scope='function')
     def DummyEstimator():
 
-        class Foo(SetParamsMixin):
+        class Foo(SetParamsMixin, GetParamsMixin):
 
-            def __init__(self):
+            def __init__(
+                self,
+                bananas=True,
+                fries='yes',
+                ethanol=1,
+                apples=[0,1]
+            ):
+
                 self._is_fitted = False   # <===== leading under
-                self.bananas = 7
-                self.fries = 9
-                self.ethanol = 5
-                self.apples = 4
+                self.bananas = bananas
+                self.fries = fries
+                self.ethanol = ethanol
+                self.apples = apples
 
 
             def reset(self):
@@ -89,15 +96,23 @@ class Fixtures:
     @pytest.fixture(scope='function')
     def DummyTransformer():
 
-        class Bar(SetParamsMixin):
+        class Bar(SetParamsMixin, GetParamsMixin):
 
-            def __init__(self):
+            def __init__(
+                self,
+                tbone=False,
+                wings='yes',
+                bacon=0,
+                sausage=[4, 4],
+                hambone=False
+            ):
+
                 self._is_fitted = False   #  <==== leading under
-                self.tbone = 3
-                self.wings = 7
-                self.bacon = 9
-                self.sausage = 5
-                self.hambone = 4
+                self.tbone = tbone
+                self.wings = wings
+                self.bacon = bacon
+                self.sausage = sausage
+                self.hambone = hambone
 
 
             def reset(self):
@@ -145,7 +160,7 @@ class Fixtures:
     @pytest.fixture(scope='function')
     def DummyGridSearch():
 
-        class Baz(SetParamsMixin):
+        class Baz(SetParamsMixin, GetParamsMixin):
 
             def __init__(
                 self,
@@ -188,6 +203,127 @@ class Fixtures:
         }
 
 
+class TestSetParams__NotInstantiated(Fixtures):
+
+    # test a bad estimator:
+    # - is class not instance  (wont be able to do post-fit, cant be fitted)
+    # - estimator does not have set_params
+
+    # single_est not instantiated
+    # single_trfm not instantiated
+    # GSCV_est is not instantiated
+    # GSCV_est instantiated, estimator not instantiated
+
+
+    @staticmethod
+    @pytest.fixture()
+    def err_msg():
+
+        return (
+            f":method: set_params is being called on the class, not an "
+            f"instance. Instantiate the class, then call set_params."
+        )
+
+
+    def test_single_est(self, DummyEstimator, err_msg, _est_kwargs):
+
+        # call on class not instance, self is not passed -- -- -- -- --
+        # this error type/message is controlled by python, let it raise whatever
+        with pytest.raises(Exception):
+            DummyEstimator.set_params()
+
+        # this error type/message is controlled by python, let it raise whatever
+        with pytest.raises(Exception):
+            DummyEstimator.set_params(**_est_kwargs)
+
+        a = 1
+        b = 2
+        # this error type/message is controlled by pybear
+        with pytest.raises(TypeError, match=re.escape(err_msg)):
+            DummyEstimator.set_params(a)
+
+        # this error type/message is controlled by python, let it raise whatever
+        with pytest.raises(Exception):
+            DummyEstimator.set_params(a, b)
+        # END all on class not instance, thinks 'deep' is self  -- -- --
+
+
+    def test_single_trfm(self, DummyTransformer, err_msg, _trfm_kwargs):
+
+        # call on class not instance, self is not passed -- -- -- -- --
+        # this error type/message is controlled by python, let it raise whatever
+        with pytest.raises(Exception):
+            DummyTransformer.set_params()
+
+        with pytest.raises(Exception):
+            DummyTransformer.set_params(**_trfm_kwargs)
+
+        a = 1
+        b = 2
+        # this error type/message is controlled by pybear
+        with pytest.raises(TypeError, match=re.escape(err_msg)):
+            DummyTransformer.set_params(a)
+
+        # this error type/message is controlled by python, let it raise whatever
+        with pytest.raises(Exception):
+            DummyTransformer.set_params(a, b)
+        # END all on class not instance, thinks 'deep' is self  -- -- --
+
+
+    def test_gscv_est_part1(
+        self, DummyGridSearch, DummyEstimator, err_msg, _gscv_kwargs
+    ):
+
+        # GSCV_est is not instantiated
+
+        # call on class not instance, self is not passed -- -- -- -- --
+        # this error type/message is controlled by python, let it raise whatever
+        with pytest.raises(Exception):
+            DummyGridSearch.set_params()
+
+        with pytest.raises(Exception):
+            DummyGridSearch.set_params(**_gscv_kwargs)
+
+        a = 1
+        b = 2
+        # this error type/message is controlled by pybear
+        with pytest.raises(TypeError, match=re.escape(err_msg)):
+            DummyGridSearch.set_params(a)
+
+        # this error type/message is controlled by python, let it raise whatever
+        with pytest.raises(Exception):
+            DummyGridSearch.set_params(a, b)
+        # END all on class not instance, thinks 'deep' is self  -- -- --
+
+
+    def test_gscv_est_part2(
+        self, DummyGridSearch, DummyEstimator, _gscv_kwargs
+    ):
+        # GSCV_est instantiated, estimator not instantiated
+
+        gscv = DummyGridSearch(
+            estimator=DummyEstimator,
+            param_grid={
+                'bananas': [0, 1],
+                'fries': [0, 1],
+                'ethanol': [0, 1],
+                'apples': [0, 1]
+            }
+        )
+
+        # these are actually raising WHEN TRYING TO FILL 'ALLOWED_SUB_PARAMS':list
+        # IN GetParamsMixin.get_params, because junk_estimator doesnt have
+        # get_params. so this error message has a get_params reference instead
+        # of a set_params reference. (remember that if SetParamsMixin in being
+        # used, then the child must also have the GetParamsMixin)
+        err_msg = (
+            f"'estimator' must be an instance (not class) of a valid "
+            f"estimator or transformer that has a get_params method."
+        )
+
+        # this type/message is controlled by pybear
+        with pytest.raises(TypeError, match=re.escape(err_msg)):
+            gscv.set_params(**_gscv_kwargs)
 
 
 @pytest.mark.parametrize('top_level_object', ('single_est', 'single_trfm'))
@@ -217,17 +353,14 @@ class TestSetParams__NonEmbedded(Fixtures):
     ):
 
         if top_level_object == 'single_est':
-            foo = DummyEstimator
+            foo = DummyEstimator(**_kwargs)
         elif top_level_object == 'single_trfm':
-            foo = DummyTransformer
+            foo = DummyTransformer(**_kwargs)
         else:
             raise Exception
 
-
-        if state == 'pre-fit':
-            foo(**_kwargs)
-        elif state == 'post-fit':
-            foo(**_kwargs).fit(_X_np)
+        if state == 'post-fit':
+            foo.fit(_X_np)
 
         return foo
 
@@ -242,9 +375,15 @@ class TestSetParams__NonEmbedded(Fixtures):
             assert getattr(TopLevelObject, _param) == _value
 
 
-    def test_rejects_unknown_param(
-        self, TopLevelObject, junk_param
-    ):
+    def test_positional_arguments_rejected(self, TopLevelObject, _kwargs):
+
+        a, b, c = 1, 2, 3
+
+        with pytest.raises(TypeError):
+            TopLevelObject.set_params(a, b, c)
+
+
+    def test_rejects_unknown_param(self, TopLevelObject):
 
         with pytest.raises(ValueError):
             TopLevelObject.set_params(garbage=True)
@@ -257,223 +396,155 @@ class TestSetParams__NonEmbedded(Fixtures):
         self, top_level_object, TopLevelObject, _kwargs
     ):
 
+        _new_kwargs = deepcopy(_kwargs)
+
         if top_level_object == 'single_est':
-            _kwargs['bananas'] = False
-            _kwargs['fries'] = 'no'
-            _kwargs['ethanol'] = 0
-            _kwargs['apples'] = 'yikes'
+            _new_kwargs['bananas'] = False
+            _new_kwargs['fries'] = 'no'
+            _new_kwargs['ethanol'] = 0
+            _new_kwargs['apples'] = 'yikes'
         elif top_level_object == 'single_trfm':
-            _kwargs['tbone'] = True
-            _kwargs['wings'] = 'np'
-            _kwargs['bacon'] = 1
-            _kwargs['sausage'] = False
-            _kwargs['hambome'] = [1, 1]
+            _new_kwargs['tbone'] = True
+            _new_kwargs['wings'] = 'np'
+            _new_kwargs['bacon'] = 1
+            _new_kwargs['sausage'] = False
+            _new_kwargs['hambone'] = [1, 1]
         else:
             raise Exception
 
-
-        TopLevelObject.set_params(**_kwargs)
+        # TopLevelObject can be before fit or after fit
+        TopLevelObject.set_params(**_new_kwargs)
 
         # assert new values set correctly
-        for _param, _value in _kwargs.items():
+        for _param, _value in _new_kwargs.items():
             assert getattr(TopLevelObject, _param) == _value
 
 
-    @pytest.mark.skip(reason='pizza')
-    def test_equality_set_params_before_and_after_fit(
-        self, X, y, _args, _kwargs, _rows, mmct
-    ):
-
-        alt_args = [_rows // 25]
-        alt_kwargs = {
-            'ignore_float_columns': True,
-            'ignore_non_binary_integer_columns': True,
-            'ignore_columns': [0, 2],
-            'ignore_nan': False,
-            'delete_axis_0': False,
-            'handle_as_bool': None,
-            'reject_unseen_values': False,
-            'max_recursions': 1,
-            'n_jobs': -1
-        }
-
-        # INITIALIZE->FIT_TRFM
-        IFTCls = MCT(*alt_args, **alt_kwargs)
-        SPFT_TRFM_X, SPFT_TRFM_Y = IFTCls.fit_transform(X.copy(), y.copy())
-
-        # FIT->SET_PARAMS->TRFM
-        FSPTCls = MCT(*_args, **_kwargs)
-        FSPTCls.fit(X.copy(), y.copy())
-        FSPTCls.set_params(count_threshold=alt_args[0], **alt_kwargs)
-        FSPT_TRFM_X, FSPT_TRFM_Y = FSPTCls.transform(X.copy(), y.copy())
-        assert FSPTCls._count_threshold == alt_args[0]
-
-        # CHECK X AND Y EQUAL REGARDLESS OF WHEN SET_PARAMS
-        assert np.array_equiv(SPFT_TRFM_X.astype(str), FSPT_TRFM_X.astype(str)), \
-            f"SPFT_TRFM_X != FSPT_TRFM_X"
-
-        assert np.array_equiv(SPFT_TRFM_Y, FSPT_TRFM_Y), \
-            f"SPFT_TRFM_Y != FSPT_TRFM_Y"
+@pytest.mark.parametrize('junk_estimator',
+    (0, 1, True, None, 'junk', [0,1], min, lambda x: x)
+)
+class TestGetParams__Embedded__JunkEstimator(Fixtures):
 
 
-        # VERIFY transform AGAINST REFEREE OUTPUT WITH SAME INPUTS
-        MOCK_X = mmct().trfm(
-            X.copy(),
-            None,
-            alt_kwargs['ignore_columns'],
-            alt_kwargs['ignore_nan'],
-            alt_kwargs['ignore_non_binary_integer_columns'],
-            alt_kwargs['ignore_float_columns'],
-            alt_kwargs['handle_as_bool'],
-            alt_kwargs['delete_axis_0'],
-            alt_args[0]
+    def test_gscv_junk_estimator(self, DummyGridSearch, junk_estimator, _gscv_kwargs):
+
+        # GSCV_est instantiated, junk estimator
+
+        gscv = DummyGridSearch(
+            estimator=junk_estimator,
+            param_grid={
+                'bananas': [0, 1],
+                'fries': [0, 1],
+                'ethanol': [0, 1],
+                'apples': [0, 1]
+            }
         )
 
-        assert np.array_equiv(FSPT_TRFM_X.astype(str), MOCK_X.astype(str)), \
-            f"FSPT_TRFM_X != MOCK_X"
+        # these are actually raising WHEN TRYING TO FILL 'ALLOWED_SUB_PARAMS':list
+        # IN GetParamsMixin.get_params, because junk_estimator doesnt have
+        # get_params. so this error message has a get_params reference instead
+        # of a set_params reference. (remember that if SetParamsMixin in being
+        # used, then the child must also have the GetParamsMixin)
+        err_msg = (
+            f"'estimator' must be an instance (not class) of a valid "
+            f"estimator or transformer that has a get_params method."
+        )
 
-        del MOCK_X
-
-
-    @pytest.mark.skip(reason='pizza')
-    def test_set_params_between_fit_transforms(
-        self, X, y, _args, _kwargs, _rows, mmct
-    ):
-
-        alt_args = [_rows // 25]
-        alt_kwargs = {
-            'ignore_float_columns': True,
-            'ignore_non_binary_integer_columns': True,
-            'ignore_columns': [0, 2],
-            'ignore_nan': False,
-            'delete_axis_0': False,
-            'handle_as_bool': None,
-            'reject_unseen_values': False,
-            'max_recursions': 1,
-            'n_jobs': -1
-        }
+        if inspect.isclass(junk_estimator):
+            with pytest.raises(TypeError, match=re.escape(err_msg)):
+                gscv.set_params(**_gscv_kwargs)
+        else:
+            # then it must not have set_params(), because all of these are junk
+            with pytest.raises(TypeError, match=re.escape(err_msg)):
+                gscv.set_params(**_gscv_kwargs)
 
 
-        # INITIALIZE->FIT_TRFM
-        IFTCls = MCT(*alt_args, **alt_kwargs)
-        SPFT_TRFM_X, SPFT_TRFM_Y = IFTCls.fit_transform(X.copy(), y.copy())
-
-        # FIT_TRFM->SET_PARAMS->FIT_TRFM
-        FTSPFTCls = MCT(*alt_args, **alt_kwargs)
-        FTSPFTCls.set_params(max_recursions=2)
-        FTSPFTCls.fit_transform(X.copy(), y.copy())
-        assert FTSPFTCls._max_recursions == 2
-        FTSPFTCls.set_params(**alt_kwargs)
-        FTSPFT_TRFM_X, FTSPFT_TRFM_Y = \
-            FTSPFTCls.fit_transform(X.copy(), y.copy())
-        assert FTSPFTCls._max_recursions == 1
-
-        assert np.array_equiv(
-            SPFT_TRFM_X.astype(str), FTSPFT_TRFM_X.astype(str)
-        ), \
-            f"SPFT_TRFM_X != FTSPFT_TRFM_X"
-
-        assert np.array_equiv(SPFT_TRFM_Y, FTSPFT_TRFM_Y), \
-            f"SPFT_TRFM_Y != FTSPFT_TRFM_Y"
-
-
-
-@pytest.mark.skip(reason=f'pizza')
-@pytest.mark.parametrize('top_level_object',
-    ('single_est', 'single_trfm')
-)
-@pytest.mark.parametrize('state', ('pre-init', 'pre-fit', 'post-fit'))
-class TestSetParams(Fixtures):
+@pytest.mark.parametrize('state', ('pre-fit', 'post-fit'))
+class TestSetParams__Embedded(Fixtures):
 
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def _kwargs(top_level_object, _est_kwargs, _trfm_kwargs, _gscv_kwargs):
+    def TopLevelObject(DummyGridSearch, state, _X_np, _gscv_kwargs):
 
-        if top_level_object == 'single_est':
-            return _est_kwargs
-        elif top_level_object == 'single_trfm':
-            return _trfm_kwargs
-        elif top_level_object == 'GSCV_est':
-            return _gscv_kwargs
-        else:
-            raise Exception
+        foo = DummyGridSearch(**_gscv_kwargs)
 
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def TopLevelObject(
-        top_level_object, state, DummyEstimator, DummyTransformer,
-        DummyGridSearch, _X_np, _kwargs
-    ):
-
-        if top_level_object == 'single_est':
-            foo = DummyEstimator
-        elif top_level_object == 'single_trfm':
-            foo = DummyTransformer
-        elif top_level_object == 'GSCV_est':
-            foo = DummyGridSearch
-        else:
-            raise Exception
-
-        if state == 'pre-init':
-            pass
-        elif state == 'pre-fit':
-            foo(**_kwargs)
-        elif state == 'post-fit':
-            foo(**_kwargs).fit(_X_np)
+        if state == 'post-fit':
+            foo.fit(_X_np)
 
         return foo
-
-
 
 
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-    def test_init_was_correctly_applied(self, TopLevelObject, _kwargs, state):
-
-        if state == 'pre-init':
-            pytest.skip(reason='not init-ed')
+    def test_init_was_correctly_applied(self, TopLevelObject, _gscv_kwargs):
 
         # assert TestCls initiated correctly
-        for _param, _value in _kwargs.items():
+        for _param, _value in _gscv_kwargs.items():
             assert getattr(TopLevelObject, _param) == _value
 
 
-    @pytest.mark.parametrize(f'junk_param',
-        ({'garbage': True}, {'estimator__trash': True})
-    )
-    def test_rejects_unknown_param(
-        self, TopLevelObject, state, junk_param
-    ):
+    def test_positional_arguments_rejected(self, TopLevelObject, _gscv_kwargs):
+
+        a, b, c = 1, 2, 3
+
+        with pytest.raises(TypeError):
+            TopLevelObject.set_params(a, b, c)
+
+
+    def test_rejects_unknown_param(self, TopLevelObject):
 
         with pytest.raises(ValueError):
-            TopLevelObject.set_params(**junk_param)
+            TopLevelObject.set_params(garbage=True)
+
+        with pytest.raises(ValueError):
+            TopLevelObject.set_params(estimator__trash=True)
 
 
-    def test_set_params_correctly_applies(self, TopLevelObject, _kwargs, state):
+    def test_set_params_correctly_applies(
+        self, TopLevelObject, _gscv_kwargs):
 
+        _new_gscv_kwargs = deepcopy(_gscv_kwargs)
 
-        # set new params before fit
-        _scd_params = {'count_threshold': _args[0]} | _kwargs
-        _scd_params['count_threshold'] = 39
-        _scd_params['ignore_float_columns'] = False
-        _scd_params['ignore_non_binary_integer_columns'] = False
-        _scd_params['ignore_columns'] = [0, 1]
-        _scd_params['ignore_nan'] = False
-        _scd_params['delete_axis_0'] = False
-        _scd_params['handle_as_bool'] = [2, 3]
-        _scd_params['reject_unseen_values'] = True
-        _scd_params['max_recursions'] = 1   # <==== no change
-        _scd_params['n_jobs'] = 2
+        # set top-level params
+        _new_gscv_kwargs['param_grid'] = {
+                'fries': [1, 2, 3],
+                'ethanol': [11, 12, 13],
+                'apples': [71, 72, 73]
+        }
+        _new_gscv_kwargs['refit'] = False
+        _new_gscv_kwargs['scoring'] = 'accuracy'
 
-        TestCls.set_params(**_scd_params)
+        # set estimator_params (must be prefixed with 'estimator__')
+        # only testing DummyEstimator, not DummyTransformer inside GSCV
+        _new_gscv_kwargs['estimator__bananas'] = 8
+        _new_gscv_kwargs['estimator__fries'] = 1000
+        _new_gscv_kwargs['estimator__ethanol'] = float('inf')
+        _new_gscv_kwargs['estimator__apples'] = [0, 1]   # <==== no change
+
+        TopLevelObject.set_params(**_new_gscv_kwargs)
 
         # assert new values set correctly
-        for _param, _value in _scd_params.items():
-            assert getattr(TestCls, _param) == _value
+        for _param, _value in _new_gscv_kwargs.items():
+            if 'estimator__' in _param:
+                # if we were allowed to set params with an 'estimator__'
+                # prefix, then that means that there was an 'estimator'
+                # attribute, and this getattr must work
+                _actual = getattr(
+                    TopLevelObject.estimator,
+                    _param.replace('estimator__', '')
+                )
+                assert _actual == _value
+            else:
+                assert getattr(TopLevelObject, _param) == _value
+
+
+
+
+
+
 
 
 

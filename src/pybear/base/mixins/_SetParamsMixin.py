@@ -6,6 +6,9 @@
 
 
 
+from copy import deepcopy
+
+
 
 class SetParamsMixin:
 
@@ -58,6 +61,22 @@ class SetParamsMixin:
 
         """
 
+        # validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # catch invalid estimator/transformer or class (not instance)
+
+        # this catches if trying to make set_params calls on a top-level
+        # that isnt instantiated.
+
+        if not hasattr(self, 'set_params'):
+            raise TypeError(
+                f":method: set_params is being called on the class, not an "
+                f"instance. Instantiate the class, then call set_params."
+            )
+        # END catch invalid estimator/transformer or class (not instance)
+
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+
         if not len(params):
             return self
 
@@ -66,30 +85,48 @@ class SetParamsMixin:
 
         # make lists of what parameters are valid
         # use shallow get_params to get valid params for top level instance
-        ALLOWED_TOP_LEVEL_PARAMS = self.get_params(deep=False)
+        ALLOWED_TOP_LEVEL_PARAMS = list(self.get_params(deep=False).keys())
         # use deep get_params to get valid sub params for embedded
         # estimator/pipe
-        ALLOWED_SUB_PARAMS = {}
-        for k, v in self.get_params(deep=True).items():
+        ALLOWED_SUB_PARAMS = []
+        for k in self.get_params(deep=True):
+            # get_params() deep==False & deep==True must be equal for a simple
+            # estimator / transformer. If they are not, then must be dealing
+            # with a nested object, which must have an 'estimator' param.
+            # the diff between deep==True and deep==False must be the params
+            # that are associated with 'estimator', and all must be prefixed
+            # with 'estimator__'.
             if k not in ALLOWED_TOP_LEVEL_PARAMS:
-                ALLOWED_SUB_PARAMS[k.replace('estimator__', '')] = v
+                if 'estimator__' not in k:
+                    raise ValueError(
+                        f"set_params algorithm failure: a 'deep' param that is "
+                        f"not in 'shallow' params is not prefixed by 'estimator__'"
+                    )
+                ALLOWED_SUB_PARAMS.append(k.replace('estimator__', ''))
 
 
         # separate the given top-level and sub parameters
         GIVEN_TOP_LEVEL_PARAMS = {}
         GIVEN_SUB_PARAMS = {}
-        for k,v in params.items():
-            if 'estimator__' in k:
-                GIVEN_SUB_PARAMS[k.replace('estimator__', '')] = v
-            else:
-                GIVEN_TOP_LEVEL_PARAMS[k] = v
+        # if top-level does not have an 'estimator' param, then
+        # there shouldnt be any params with 'estimator__'. only collect
+        # and parse 'estimator__' params if there is in estimator.
+        if hasattr(self, 'estimator'):
+
+            for k,v in params.items():
+                if 'estimator__' in k:
+                    GIVEN_SUB_PARAMS[k.replace('estimator__', '')] = v
+                else:
+                    GIVEN_TOP_LEVEL_PARAMS[k] = v
+        else:
+            GIVEN_TOP_LEVEL_PARAMS = deepcopy(params)
         # END separate estimator and sub parameters
 
 
-        def _invalid_param(parameter: str, ALLOWED: dict) -> None:
+        def _invalid_param(parameter: str, ALLOWED: list) -> None:
             raise ValueError(
                 f"Invalid parameter '{parameter}' for estimator {self}"
-                f"\nValid parameters are: {list(ALLOWED.keys())}"
+                f"\nValid parameters are: {ALLOWED}"
             )
 
 
@@ -97,12 +134,7 @@ class SetParamsMixin:
         # must be validated & set the long way
         for top_level_param, value in GIVEN_TOP_LEVEL_PARAMS.items():
             if top_level_param not in ALLOWED_TOP_LEVEL_PARAMS:
-                raise ValueError(
-                    _invalid_param(
-                        top_level_param,
-                        ALLOWED_TOP_LEVEL_PARAMS
-                    )
-                )
+                _invalid_param(top_level_param, ALLOWED_TOP_LEVEL_PARAMS)
             setattr(self, top_level_param, value)
 
         # if top-level is a simple estimator/transformer, then short
@@ -114,33 +146,25 @@ class SetParamsMixin:
         # v v v v v EVERYTHING BELOW IS FOR AN EMBEDDED v v v v v v v v
 
         # set sub params ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        # IF self.estimator is dask/sklearn/pybear est/pipe, IT SHOULD
-        # HANDLE EXCEPTIONS FOR INVALID PASSED PARAMS.
-        try:
-            self.estimator.set_params(**GIVEN_SUB_PARAMS)
-        except TypeError:
-            raise TypeError(f"estimator must be an instance, not the class")
-        except AttributeError:
-            raise
-        except ValueError:
-            raise
-        except Exception as e:
-            raise Exception(
-                f'estimator.set_params() raised for reason other than '
-                f'\n-TypeError (estimator is class, not instance)'
-                f'\n-AttributeError (not an estimator with set_params method)'
-                f'\n-ValueError (invalid parameter)'
-                f'\n -- {e}'
-            ) from None
 
+        # there is not validation here for inspect.isclass(self.estimator)
+        # or not hasattr(self.estimator, 'set_params') because whatever
+        # would blow this up here would have blown up at
+        # self.get_params(deep=True). remember that if using the
+        # SetParamsMixin then the GetParamsMixin must also be used!
+
+        # IF self.estimator is dask/sklearn/pybear est/pipe, IT SHOULD
+        # HANDLE EXCEPTIONS FOR INVALID PASSED PARAMS..... <continued>....
+
+        self.estimator.set_params(**GIVEN_SUB_PARAMS)
+
+        # BUT IN CASE IS DOESNT....
         # this is stop-gap validation in case an embedded estimator
         # (of a makeshift sort, perhaps) does not block setting invalid
         # params.
         for sub_param in GIVEN_SUB_PARAMS:
             if sub_param not in ALLOWED_SUB_PARAMS:
-                raise ValueError(
-                    _invalid_param(sub_param, ALLOWED_SUB_PARAMS)
-                )
+                _invalid_param(sub_param, ALLOWED_SUB_PARAMS)
         # END set estimator params ** * ** * ** * ** * ** * ** * ** * **
 
         del ALLOWED_SUB_PARAMS, ALLOWED_TOP_LEVEL_PARAMS, _invalid_param

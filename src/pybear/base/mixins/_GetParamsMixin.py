@@ -6,6 +6,7 @@
 
 
 from copy import deepcopy
+import inspect
 
 
 class GetParamsMixin:
@@ -75,9 +76,27 @@ class GetParamsMixin:
         # estimator param, and all the deep parameters of the estimator
         # are inserted before the estimator param.
 
+        # validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # catch child of GetParamsMixin is class (not instance)
+
+        # this catches if trying to make get_params calls on a top-level
+        # that isnt instantiated when 'deep' is passed like get_params(deep),
+        # not get_params(deep=deep). get_params() and get_params(deep=deep)
+        # are caught by python signature related errors when the top-level
+        # is the class.
+
+        if not hasattr(self, 'get_params'):
+            raise TypeError(
+                f":method: get_params is being called on the class, not an "
+                f"instance. Instantiate the class, then call get_params."
+            )
+
+        # END catch invalid estimator/transformer or class (not instance)
 
         if not isinstance(deep, bool):
             raise ValueError(f"'deep' must be boolean")
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
 
         paramsdict = {}
         for attr in sorted(vars(self)):
@@ -115,10 +134,15 @@ class GetParamsMixin:
         # the 'estimator' param will be after all the params of that
         # estimator.
         if deep and 'estimator' in paramsdict2:
+
+            if inspect.isclass(paramsdict2['estimator']) or \
+                    not hasattr(paramsdict2['estimator'], 'get_params'):
+                raise TypeError(
+                    f"'estimator' must be an instance (not class) of a valid "
+                    f"estimator or transformer that has a get_params method."
+                )
+
             estimator_params = {}
-            # note to future pizza, find out if deep=True is important
-            # (it wasnt here until 25_01_09) pybear is guessing that it
-            # is important, if estimator is a pipeline.
             for k, v in deepcopy(paramsdict2['estimator'].get_params(deep)).items():
                 estimator_params[f'estimator__{k}'] = v
 
