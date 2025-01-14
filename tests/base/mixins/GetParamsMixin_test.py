@@ -10,7 +10,6 @@ from pybear.base.mixins._GetParamsMixin import GetParamsMixin
 
 import re
 import numpy as np
-import inspect
 
 import pytest
 
@@ -97,11 +96,15 @@ deep = True
 
 
 
-# things tested:
+# things tested for single estimator, single transformer, est wrapped in a mock GSCV:
 # builtin vars() returns attrs in alphabetical order (doesnt!)
-# single estimator, single transformer, est wrapped in a mock GSCV
+# calling get_params on not instantiated - single est, single trfm,
+#       GSCV not instantiated, GSCV instantiated estimator not instantiated
+# junk estimator in GSCV (does not have get_params method) is rejected
 # rejects non-bool deep
+# accepts bool deep
 # the basic sklearn get_params strategy, that the get_params paramsdict:
+# - has correct params
 # - does not have params/attrs/keys with leading or trailing underscore
 # - has params/attrs/keys sorted alphabetically, and that when deep=True,
 #   on an embedded object, the embedded's params are prefixed with
@@ -109,6 +112,7 @@ deep = True
 #
 # params should be the same before and after fit for all sklearn-style
 # objects.
+
 
 
 class Fixtures:
@@ -227,6 +231,8 @@ class Fixtures:
                 scoring='balanced_accuracy',
                 refit=False
             ):
+                self._is_fitted = False   #  <==== leading under
+                self.some_attr_ = 1    # <====== tralling under
                 self.estimator = estimator
                 self.param_grid = param_grid
                 self.scoring = scoring
@@ -234,13 +240,25 @@ class Fixtures:
                 self.apricots = False
 
 
+            def reset(self):
+                self._is_fitted = False
+
+
             def fit(self, X, y=None):
+
+                self.reset()
 
                 self.best_params_ = {}
 
                 for _param in self.param_grid:
                     self.best_params_[_param] = \
                         np.random.choice(self.param_grid[_param])
+
+                self._is_fitted = True
+
+
+            def score(self, X, y):
+                return np.random.uniform(0, 1)
 
 
         return Baz  # <====== not initialized
@@ -309,11 +327,12 @@ class TestGetParams__NotInstantiated(Fixtures):
 
         with pytest.raises(Exception):
             DummyEstimator.get_params(deep=deep)
-        # END all on class not instance, thinks 'deep' is self  -- -- --
+        # END call on class not instance, self is not passed -- -- -- --
 
 
     def test_single_trfm(self, DummyTransformer, err_msg, deep):
 
+        # call on class not instance, thinks 'deep' is self -- -- --
         # this type/message is controlled by pybear
         with pytest.raises(TypeError, match=re.escape(err_msg)):
             DummyTransformer.get_params(deep)
@@ -326,12 +345,13 @@ class TestGetParams__NotInstantiated(Fixtures):
 
         with pytest.raises(Exception):
             DummyTransformer.get_params(deep=deep)
-        # END all on class not instance, thinks 'deep' is self  -- -- --
+        # END call on class not instance, self is not passed -- -- -- --
 
 
     def test_gscv_est_part1(self, DummyGridSearch, DummyEstimator, err_msg, deep):
         # GSCV_est is not instantiated
 
+        # call on class not instance, thinks 'deep' is self -- -- --
         # this type/message is controlled by pybear
         with pytest.raises(TypeError, match=re.escape(err_msg)):
             DummyGridSearch.get_params(deep)
@@ -344,7 +364,7 @@ class TestGetParams__NotInstantiated(Fixtures):
 
         with pytest.raises(Exception):
             DummyGridSearch.get_params(deep=deep)
-        # END all on class not instance, thinks 'deep' is self  -- -- --
+        # END call on class not instance, self is not passed -- -- -- --
 
 
     def test_gscv_est_part2(self, DummyGridSearch, DummyEstimator, deep):
@@ -360,7 +380,7 @@ class TestGetParams__NotInstantiated(Fixtures):
             }
         )
 
-        # this should pass deep=False, because the top-level (gscv) is
+        # this deep=False should not fail, because the top-level (gscv) is
         # instantiated. deep=True should fail because estimator is a class
 
         err_msg = (
@@ -376,16 +396,16 @@ class TestGetParams__NotInstantiated(Fixtures):
             # this type/message is controlled by pybear
             with pytest.raises(TypeError, match=re.escape(err_msg)):
                 gscv.get_params(deep)
-            # END call on class not instance, thinks 'deep' is self -- -- --
+            # END call on class not instance, thinks 'deep' is self -- --
 
-            # call on class not instance, self is not passed -- -- -- -- --
+            # call on class not instance, self is not passed -- -- -- --
             # this error type/message is controlled by python, let it raise whatever
             with pytest.raises(Exception):
                 gscv.get_params()
 
             with pytest.raises(Exception):
                 gscv.get_params(deep=deep)
-            # END all on class not instance, thinks 'deep' is self  -- -- --
+            # END call on class not instance, self is not passed -- -- --
 
 
 @pytest.mark.parametrize('junk_estimator',
@@ -416,23 +436,25 @@ class TestGetParams__Embedded__JunkEstimator(Fixtures):
             # see that the estimator is junk
             assert isinstance(gscv.get_params(deep), dict)
         else:
-            # but if deep is True, it should try to do get_params on the estimator
-            # which will raise TypeError for not having that method.
-            # this type/message is controlled by pybear
+            # but if deep is True, it should try to do get_params on the
+            # estimator which will raise
 
             err_msg = (
                 f"'estimator' must be an instance (not class) of a valid "
                 f"estimator or transformer that has a get_params method."
             )
 
-
-            if inspect.isclass(junk_estimator):
-                with pytest.raises(TypeError, match=re.escape(err_msg)):
-                    gscv.get_params(deep)
-            else:
-                # then it must not have get_params(), because all of these are junk
-                with pytest.raises(TypeError, match=re.escape(err_msg)):
-                    gscv.get_params(deep)
+            # if inspect.isclass(junk_estimator):
+            # thinks deep is self
+            # all of these error types/messages are controlled by pybear
+            with pytest.raises(TypeError, match=re.escape(err_msg)):
+                gscv.get_params(deep)
+            # self is not passed
+            with pytest.raises(TypeError, match=re.escape(err_msg)):
+                gscv.get_params()
+            # self is not passed
+            with pytest.raises(TypeError, match=re.escape(err_msg)):
+                gscv.get_params(deep=deep)
 
 
 @pytest.mark.parametrize('top_level_object',

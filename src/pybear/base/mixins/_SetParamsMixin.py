@@ -87,7 +87,7 @@ class SetParamsMixin:
         # use shallow get_params to get valid params for top level instance
         ALLOWED_TOP_LEVEL_PARAMS = list(self.get_params(deep=False).keys())
         # use deep get_params to get valid sub params for embedded
-        # estimator/pipe
+        # estimator/pipe (if applicable, ALLOWED_SUB_PARAMS could stay empty)
         ALLOWED_SUB_PARAMS = []
         for k in self.get_params(deep=True):
             # get_params() deep==False & deep==True must be equal for a simple
@@ -97,15 +97,17 @@ class SetParamsMixin:
             # that are associated with 'estimator', and all must be prefixed
             # with 'estimator__'.
             if k not in ALLOWED_TOP_LEVEL_PARAMS:
+
                 if 'estimator__' not in k:
                     raise ValueError(
                         f"set_params algorithm failure: a 'deep' param that is "
                         f"not in 'shallow' params is not prefixed by 'estimator__'"
                     )
+
                 ALLOWED_SUB_PARAMS.append(k.replace('estimator__', ''))
 
 
-        # separate the given top-level and sub parameters
+        # separate the GIVEN top-level and sub parameters
         GIVEN_TOP_LEVEL_PARAMS = {}
         GIVEN_SUB_PARAMS = {}
         # if top-level does not have an 'estimator' param, then
@@ -120,12 +122,12 @@ class SetParamsMixin:
                     GIVEN_TOP_LEVEL_PARAMS[k] = v
         else:
             GIVEN_TOP_LEVEL_PARAMS = deepcopy(params)
-        # END separate estimator and sub parameters
+        # END separate the GIVEN top-level and sub parameters
 
 
         def _invalid_param(parameter: str, ALLOWED: list) -> None:
             raise ValueError(
-                f"Invalid parameter '{parameter}' for estimator {self}"
+                f"Invalid parameter '{parameter}' for {self}"
                 f"\nValid parameters are: {ALLOWED}"
             )
 
@@ -141,15 +143,16 @@ class SetParamsMixin:
         # circuit out, bypassing everything that involves an 'estimator'
         # attr.
         if not hasattr(self, 'estimator'):
+
             return self
 
         # v v v v v EVERYTHING BELOW IS FOR AN EMBEDDED v v v v v v v v
 
         # set sub params ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # there is not validation here for inspect.isclass(self.estimator)
+        # there is no validation here for inspect.isclass(self.estimator)
         # or not hasattr(self.estimator, 'set_params') because whatever
-        # would blow this up here would have blown up at
+        # would blow set_params up here would have blown up at
         # self.get_params(deep=True). remember that if using the
         # SetParamsMixin then the GetParamsMixin must also be used!
 
