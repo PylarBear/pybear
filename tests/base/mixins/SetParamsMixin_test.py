@@ -19,6 +19,24 @@ import pytest
 
 
 
+# things tested for single estimator, single transformer, est wrapped in a mock GSCV:
+# calling get_params on not instantiated - single est, single trfm,
+#       GSCV not instantiated, GSCV instantiated estimator not instantiated
+# single est, single trfm:
+# - init was correctly applied
+# - rejects positional arguments
+# - rejects invalid params
+# - accepts allowed params
+# nested:
+# - junk estimator (does not have set_params method) is rejected
+# - init was correctly applied
+# - rejects positional arguments
+# - rejects invalid params
+# - accepts allowed params
+# single est, single trfm, nested:
+# - setting of leading, trailing underscores is not allowed
+
+
 
 class Fixtures:
 
@@ -63,7 +81,7 @@ class Fixtures:
 
             def fit(self, X, y=None):
                 self.reset()
-                self._is_fitted = True
+                self._is_fitted = True   # <===== leading under
                 return self
 
 
@@ -170,19 +188,33 @@ class Fixtures:
                 scoring='balanced_accuracy',
                 refit=False
             ):
+                self._is_fitted = False   #  <==== leading under
+                self.some_attr_ = 1    # <====== tralling under
                 self.estimator = estimator
                 self.param_grid = param_grid
                 self.scoring = scoring
                 self.refit = refit
 
 
+            def reset(self):
+                self._is_fitted = False
+
+
             def fit(self, X, y=None):
+
+                self.reset()
 
                 self.best_params_ = {}
 
                 for _param in self.param_grid:
                     self.best_params_[_param] = \
                         np.random.choice(self.param_grid[_param])
+
+                self._is_fitted = True
+
+
+            def score(self, X, y):
+                return np.random.uniform(0, 1)
 
 
         return Baz  # <====== not initialized
@@ -228,14 +260,15 @@ class TestSetParams__NotInstantiated(Fixtures):
     def test_single_est(self, DummyEstimator, err_msg, _est_kwargs):
 
         # call on class not instance, self is not passed -- -- -- -- --
-        # this error type/message is controlled by python, let it raise whatever
+        # these error types/messages are controlled by python, let it raise whatever
         with pytest.raises(Exception):
             DummyEstimator.set_params()
 
-        # this error type/message is controlled by python, let it raise whatever
         with pytest.raises(Exception):
             DummyEstimator.set_params(**_est_kwargs)
+        # END call on class not instance, self is not passed -- -- -- -- --
 
+        # call on class not instance, bad positionals passed -- -- -- -- --
         a = 1
         b = 2
         # this error type/message is controlled by pybear
@@ -245,19 +278,21 @@ class TestSetParams__NotInstantiated(Fixtures):
         # this error type/message is controlled by python, let it raise whatever
         with pytest.raises(Exception):
             DummyEstimator.set_params(a, b)
-        # END all on class not instance, thinks 'deep' is self  -- -- --
+        # END call on class not instance, bad positionals passed -- -- -- -- --
 
 
     def test_single_trfm(self, DummyTransformer, err_msg, _trfm_kwargs):
 
         # call on class not instance, self is not passed -- -- -- -- --
-        # this error type/message is controlled by python, let it raise whatever
+        # these error types/messages are controlled by python, let it raise whatever
         with pytest.raises(Exception):
             DummyTransformer.set_params()
 
         with pytest.raises(Exception):
             DummyTransformer.set_params(**_trfm_kwargs)
+        # END call on class not instance, self is not passed -- -- -- --
 
+        # call on class not instance, bad positionals passed -- -- -- -- --
         a = 1
         b = 2
         # this error type/message is controlled by pybear
@@ -267,7 +302,7 @@ class TestSetParams__NotInstantiated(Fixtures):
         # this error type/message is controlled by python, let it raise whatever
         with pytest.raises(Exception):
             DummyTransformer.set_params(a, b)
-        # END all on class not instance, thinks 'deep' is self  -- -- --
+        # END call on class not instance, bad positionals passed -- -- -- --
 
 
     def test_gscv_est_part1(
@@ -277,13 +312,15 @@ class TestSetParams__NotInstantiated(Fixtures):
         # GSCV_est is not instantiated
 
         # call on class not instance, self is not passed -- -- -- -- --
-        # this error type/message is controlled by python, let it raise whatever
+        # these error types/messages are controlled by python, let it raise whatever
         with pytest.raises(Exception):
             DummyGridSearch.set_params()
 
         with pytest.raises(Exception):
             DummyGridSearch.set_params(**_gscv_kwargs)
+        # END call on class not instance, self is not passed -- -- -- --
 
+        # call on class not instance, bad positionals passed -- -- -- --
         a = 1
         b = 2
         # this error type/message is controlled by pybear
@@ -293,12 +330,10 @@ class TestSetParams__NotInstantiated(Fixtures):
         # this error type/message is controlled by python, let it raise whatever
         with pytest.raises(Exception):
             DummyGridSearch.set_params(a, b)
-        # END all on class not instance, thinks 'deep' is self  -- -- --
+        # END call on class not instance, bad positionals passed -- -- -- --
 
 
-    def test_gscv_est_part2(
-        self, DummyGridSearch, DummyEstimator, _gscv_kwargs
-    ):
+    def test_gscv_est_part2(self, DummyGridSearch, DummyEstimator):
         # GSCV_est instantiated, estimator not instantiated
 
         gscv = DummyGridSearch(
@@ -321,9 +356,18 @@ class TestSetParams__NotInstantiated(Fixtures):
             f"estimator or transformer that has a get_params method."
         )
 
+        _est_params = {
+            'estimator__bananas': True,
+            'estimator__fries': 'yes',
+            'estimator__ethanol': 1,
+            'estimator__apples': [0, 1]
+        }
+
+        # call on class not instance, self is not passed -- -- -- -- --
         # this type/message is controlled by pybear
         with pytest.raises(TypeError, match=re.escape(err_msg)):
-            gscv.set_params(**_gscv_kwargs)
+            gscv.set_params(**_est_params)
+        # END call on class not instance, self is not passed -- -- -- -- --
 
 
 @pytest.mark.parametrize('top_level_object', ('single_est', 'single_trfm'))
@@ -441,7 +485,7 @@ class TestGetParams__Embedded__JunkEstimator(Fixtures):
         )
 
         # these are actually raising WHEN TRYING TO FILL 'ALLOWED_SUB_PARAMS':list
-        # IN GetParamsMixin.get_params, because junk_estimator doesnt have
+        # IN GetParamsMixin.get_params because junk_estimator doesnt have
         # get_params. so this error message has a get_params reference instead
         # of a set_params reference. (remember that if SetParamsMixin in being
         # used, then the child must also have the GetParamsMixin)
@@ -538,10 +582,55 @@ class TestSetParams__Embedded(Fixtures):
                 )
                 assert _actual == _value
             else:
-                assert getattr(TopLevelObject, _param) == _value
+                _actual = getattr(TopLevelObject, _param)
+                assert _actual == _value
 
 
+@pytest.mark.parametrize('top_level_object',
+    ('single_est', 'single_trfm', 'GSCV_est')
+)
+@pytest.mark.parametrize('state', ('prefit', 'postfit'))
+class TestDisallowedSetUnderscoreParams(Fixtures):
 
+
+    @staticmethod
+    @pytest.fixture(scope='function')
+    def TopLevelObject(
+        top_level_object, state, DummyEstimator, DummyTransformer,
+        DummyGridSearch, _X_np
+    ):
+
+        if top_level_object == 'single_est':
+            foo = DummyEstimator()
+        elif top_level_object == 'single_trfm':
+            foo = DummyTransformer()
+        elif top_level_object == 'GSCV_est':
+            foo = DummyGridSearch(
+                estimator=DummyEstimator(),
+                param_grid={
+                    'fries': [7, 8, 9],
+                    'ethanol': [5, 6, 7],
+                    'apples': [3, 4, 5]
+                }
+            )
+        else:
+            raise Exception
+
+        if state == 'postfit':
+            foo.fit(_X_np)
+
+        return foo
+
+
+    def test_setting_underscore_params_disallowed(self, TopLevelObject):
+
+        with pytest.raises(ValueError) as exc:
+            TopLevelObject.set_params(_is_fitted=True)
+
+        _expedted_str = re.escape(f"Invalid parameter '_is_fitted' for ")
+        _actual_str = re.escape(str(exc))
+
+        assert _expedted_str in _actual_str
 
 
 
