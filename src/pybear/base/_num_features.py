@@ -38,10 +38,10 @@ def num_features(OBJECT) -> int:
         OBJECT.shape
     except:
         raise ValueError(
-            f"\nThe passed object does not have a 'shape' attribute. \nAll "
-            f"pybear estimators and transformers require data-bearing objects "
-            f"to have a 'shape' attribute, like numpy array, pandas dataframes, "
-            f"and scipy sparse matrices / arrays."
+            f"\nThe passed object does not have a 'shape' attribute. "
+            f"\nAll pybear estimators and transformers require data-bearing "
+            f"objects to have a 'shape' attribute, like numpy arrays, pandas "
+            f"dataframes, and scipy sparse matrices / arrays."
         )
 
 

@@ -5,6 +5,9 @@
 #
 
 
+import scipy.sparse as ss
+
+
 
 def ensure_2D(
     X,
@@ -15,9 +18,10 @@ def ensure_2D(
     Ensure that X has 2-dimensional shape, i.e., len(X.shape) == 2.
     If X is a 1D vector, assume the vector is a single feature of
     samples, not a single sample of features. X must have a 'shape'
-    attribute. If copy_X is True and X is 1-dimensional, then X must
-    have a 'copy' method. This module does not accept python builtin
-    iterables like list, set, and tuple.
+    attribute. If copy_X is True and X is given as 1-dimensional (this
+    is the only time copy_X matters), then X must have a 'copy' method.
+    This module does not accept python builtin iterables like list, set,
+    and tuple.
 
 
     Parameters
@@ -40,9 +44,14 @@ def ensure_2D(
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     try:
+        # bypass dok check, it is a python dict and wont pass
+        if isinstance(X, (ss.dok_array, ss.dok_matrix)):
+            raise UnicodeError
         iter(X)
         if isinstance(X, (str, dict, set, tuple, list)):
             raise Exception
+    except UnicodeError:
+        pass
     except:
         raise ValueError(
             f"ensure_2D: 'X' must be an iterable data-bearing container. "

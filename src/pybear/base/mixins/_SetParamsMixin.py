@@ -7,13 +7,13 @@
 
 
 from copy import deepcopy
-
+from typing_extensions import Self
 
 
 class SetParamsMixin:
 
 
-    def set_params(self, **params):
+    def set_params(self, **params) -> Self:
 
         """
         Set the parameters of an instance or an embedded instance. This

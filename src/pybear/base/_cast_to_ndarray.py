@@ -9,7 +9,7 @@
 
 import numpy as np
 import pandas as pd
-
+import scipy.sparse as ss
 
 
 
@@ -54,12 +54,12 @@ def cast_to_ndarray(
         raise TypeError(f"'copy_X' must be boolean.")
 
 
-    # block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     try:
-        # ss dok is not passing iter()
-        # make a short circuit for all scipy sparse
-        if hasattr(X, 'toarray'):
+        # ss dok is a dict instance and is not passing isinstance(X, dict)
+        # make a short circuit
+        if isinstance(X, (ss.dok_array, ss.dok_matrix)):
             raise UnicodeError
         iter(X)
         if isinstance(X, (str, dict)):
@@ -67,7 +67,7 @@ def cast_to_ndarray(
         if isinstance(X, (set, tuple, list)):
             raise MemoryError
     except UnicodeError:
-        # skip out for scipy sparse
+        # skip out for dok
         pass
     except MemoryError:
         raise TypeError(
@@ -96,7 +96,7 @@ def cast_to_ndarray(
         raise TypeError(
             f"cast_to_ndarray: OBJECT is a numpy masked array. " + _suffix
         )
-    # END block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     if copy_X:

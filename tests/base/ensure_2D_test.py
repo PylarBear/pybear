@@ -23,6 +23,51 @@ import pytest
 class TestEnsure2D:
 
 
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def build_scipy_sparse():
+
+        def foo(_base_X, X_format: str):
+
+            if X_format == 'csr_array':
+                _X = ss.csr_array(_base_X)
+            elif X_format == 'csc_array':
+                _X = ss.csc_array(_base_X)
+            elif X_format == 'coo_array':
+                _X = ss.coo_array(_base_X)
+            elif X_format == 'dia_array':
+                _X = ss.dia_array(_base_X)
+            elif X_format == 'lil_array':
+                _X = ss.lil_array(_base_X)
+            elif X_format == 'dok_array':
+                _X = ss.dok_array(_base_X)
+            elif X_format == 'bsr_array':
+                _X = ss.bsr_array(_base_X)
+            elif X_format == 'csr_matrix':
+                _X = ss.csr_matrix(_base_X)
+            elif X_format == 'csc_matrix':
+                _X = ss.csc_matrix(_base_X)
+            elif X_format == 'coo_matrix':
+                _X = ss.coo_matrix(_base_X)
+            elif X_format == 'dia_matrix':
+                _X = ss.dia_matrix(_base_X)
+            elif X_format == 'lil_matrix':
+                _X = ss.lil_matrix(_base_X)
+            elif X_format == 'dok_matrix':
+                _X = ss.dok_matrix(_base_X)
+            elif X_format == 'bsr_matrix':
+                _X = ss.bsr_matrix(_base_X)
+            else:
+                raise Exception
+
+            return _X
+
+        return foo
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
     @pytest.mark.parametrize('junk_object',
         (-2.7, -1, 0, 1, 2.7, True, None, 'trash', {'a': 1}, lambda x: x, min)
     )
@@ -44,8 +89,13 @@ class TestEnsure2D:
             )
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'da', 'ddf'))
-    def test_accepts_array_like(self, X_format):
+    @pytest.mark.parametrize('X_format',
+        ('np', 'pd', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
+         'coo_array', 'coo_matrix', 'dia_array', 'dia_matrix', 'lil_array',
+         'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix',
+         'da', 'ddf')
+    )
+    def test_accepts_array_like(self, build_scipy_sparse, X_format):
 
         _base_X = np.random.randint(0, 10, (10, 5))
 
@@ -53,8 +103,8 @@ class TestEnsure2D:
             _X = _base_X
         elif X_format == 'pd':
             _X = pd.DataFrame(data=_base_X)
-        elif X_format == 'csr':
-            _X = ss.csr_array(_base_X)
+        elif 'array' in X_format or 'matrix' in X_format:
+            _X = build_scipy_sparse(_base_X, X_format)
         elif X_format == 'da':
             _X = da.array(_base_X)
         elif X_format == 'ddf':
@@ -98,12 +148,17 @@ class TestEnsure2D:
             ensure_2D(_X)
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'da', 'ddf'))
+    @pytest.mark.parametrize('X_format',
+        ('np', 'pd', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
+         'coo_array', 'coo_matrix', 'dia_array', 'dia_matrix', 'lil_array',
+         'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix',
+         'da', 'ddf')
+    )
     @pytest.mark.parametrize('dim', (1, 2))
-    def test_accuracy(self, X_format, dim):
+    def test_accuracy(self, X_format, dim, build_scipy_sparse):
 
         # skip impossible conditions - - - - - - - - - - - - - - - - - -
-        if X_format == 'csr' and dim == 1:
+        if X_format not in ['np', 'pd', 'da', 'ddf'] and dim == 1:
             pytest.skip(f"scipy sparse can only be 2D")
         # END skip impossible conditions - - - - - - - - - - - - - - - -
 
@@ -125,8 +180,8 @@ class TestEnsure2D:
                 _X = pd.Series(data=_base_X)
             elif dim == 2:
                 _X = pd.DataFrame(data=_base_X)
-        elif X_format == 'csr':
-            _X = ss.csr_array(_base_X)
+        elif 'array' in X_format or 'matrix' in X_format:
+            _X = build_scipy_sparse(_base_X, X_format)
         elif X_format == 'da':
             _X = da.array(_base_X)
         elif X_format == 'ddf':
@@ -157,7 +212,7 @@ class TestEnsure2D:
             pass
         elif X_format == 'pd':
             out = out.to_numpy()
-        elif X_format == 'csr':
+        elif hasattr(out, 'toarray'):   # scipy sparse
             out = out.toarray()
         elif X_format == 'da':
             out = out.compute()

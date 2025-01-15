@@ -196,7 +196,7 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
             'partial_fit',
             'reset',
             'score',
-            'set_output', # pizza this is probably coming out during sklearn exorcism!
+            'set_output', # pizza this is perhaps coming out during sklearn exorcism
             'set_params',
             'transform'
         ]
@@ -253,10 +253,6 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # score()
         assert TestCls.score(_X_np) is None
 
-        # pizza this is probably coming out during sklearn exorcism!
-        # set_output()
-        assert isinstance(TestCls.set_output(transform='pandas'), SlimPoly)
-
         # set_params()
         assert isinstance(TestCls.set_params(keep='last'), SlimPoly)
         assert TestCls.keep == 'last'
@@ -264,6 +260,13 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # transform()
         with pytest.raises(NotFittedError):
             TestCls.transform(_X_np)
+
+        # pizza this is perhaps coming out during sklearn exorcism!
+        # 25_10_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+        # with pb.FitTransformMixin, that does not have set_output.
+        # set_output()
+        pytest.xfail(reason=f"pizza says so")
+        assert isinstance(TestCls.set_output(transform='pandas'), SlimPoly)
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
         # **************************************************************
@@ -313,15 +316,18 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # score()
         assert TestCls.score(_X_np) is None
 
-        # pizza this is probably coming out during sklearn exorcism!
-        # set_output()
-        assert isinstance(TestCls.set_output(transform='default'), SlimPoly)
-
         # set_params()
         assert isinstance(TestCls.set_params(keep='random'), SlimPoly)
 
         # transform()
         assert isinstance(TestCls.transform(_X_np), np.ndarray)
+
+        # pizza this is probably coming out during sklearn exorcism!
+        # 25_10_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+        # with pb.FitTransformMixin, that does not have set_output.
+        # set_output()
+        pytest.xfail(reason=f"pizza says so")
+        assert isinstance(TestCls.set_output(transform='default'), SlimPoly)
 
         # END ^^^ AFTER FIT ^^^ ****************************************
         # **************************************************************
@@ -372,12 +378,6 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         assert isinstance(TransformedTestCls.reset(), SlimPoly)
         TransformedTestCls.fit_transform(_X_np)
 
-        # set_output()
-        assert isinstance(
-            TransformedTestCls.set_output(transform='default'),
-            SlimPoly
-        )
-
         # set_params()
         assert isinstance(
             TransformedTestCls.set_params(keep='first'),
@@ -386,6 +386,16 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(_X_np), np.ndarray)
+
+        # pizza this is probably coming out during sklearn exorcism!
+        # 25_10_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+        # with pb.FitTransformMixin, that does not have set_output.
+        # set_output()
+        pytest.xfail(reason=f"pizza says so")
+        assert isinstance(
+            TransformedTestCls.set_output(transform='default'),
+            SlimPoly
+        )
 
         del FittedTestCls, TransformedTestCls
 
