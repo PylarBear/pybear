@@ -67,7 +67,7 @@ pybear
 .. |NumpyVersion| replace:: >=1.26.0
 .. |PandasVersion| replace:: >=X.X.X
 .. |ScikitLearnVersion| replace:: >=X.X.X
-
+.. |TypingExtensionsVersion| replace:: >=X.X.X
 
 
 
@@ -103,6 +103,7 @@ pybear requires:
 - numpy (|NumPyVersion|)
 - pandas (|PandasVersion|)
 - scikit-learn (|ScikitLearnVersion|)
+- typing_extensions (|TypingExtensionsVersion|)
 
 pybear 0.1 is tested via GitHub Actions to run on Linux, Windows, and 
 MacOS, with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not 
