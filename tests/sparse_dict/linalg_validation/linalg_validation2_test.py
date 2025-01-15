@@ -441,7 +441,7 @@ class TestSymmetricMatmulCheck:
     def test_accepts_outer_vectors(self, good_array):
         _symmetric_matmul_check(good_array, good_array)
 
-    @pytest.mark.xfail(reason=f'pizza needs to to fix inner vector handling in '
+    @pytest.mark.xfail(reason=f'pizza needs to fix inner vector handling in '
                               f'core sparse transpose'
     )
     def test_accepts_inner_vectors(self, good_array):

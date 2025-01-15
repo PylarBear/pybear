@@ -66,20 +66,48 @@ def check_dtype(
 
         # --------------
         # block non-numeric
-        if isinstance(X, np.ndarray):
-            try:
-                X.astype(np.float64)
-            except:
+
+        # any nan-likes prevent just doing astype(np.uint8) which would
+        # be the fastest & lowest memory way to check for numeric. best
+        # case scenario when nan-likes are present is they are all np.nan
+        # and astype(np.float64) could be used, which is higher memory,
+        # but faster than scanning pd dataframes like below. but nan_mask
+        # doesnt tell us what type the nan-likes are, so we cant assume
+        # they are all np.nan. the funky nan-likes in pandas are what
+        # prevent simply just doing astype(np.float64). so pybear uses
+        # a tiered system.
+        # scipy sparse must be numeric, return None
+        # try np.uint8, if pass, return None
+        # if fail, try np.float64, if pass return None, if numpy fail raise
+        # if non-numpy fail, then do the column by column search on pd
+
+        if hasattr(X, 'toarray'):
+            # scipy sparse can only be numeric dtype with nans that are
+            # recognized by numpy, so automatically good
+            return
+
+        try:
+            X.astype(np.int8)
+            return
+        except:
+            pass
+
+        try:
+            X.astype(np.float64)
+            return
+        except:
+            if isinstance(X, np.ndarray):
                 raise ValueError(err_msg)
 
-        elif isinstance(X, (pd.core.series.Series, pd.core.frame.DataFrame)):
+        if isinstance(X, (pd.core.series.Series, pd.core.frame.DataFrame)):
+
             # need to circumvent funky pd nan-likes.
             # .astype(np.float64) is raising when having to convert funky
-            # pd nan-likes to float, so pd cant be handled with ndarray
-            # above. but X[nan_mask(X)] = np.nan is back-talking to the
-            # passed X and mutating it. want to do this without mutating
-            # X or making a copy, so scan it column by column (still will
-            # there be copies, but smaller)
+            # pd nan-likes to float, this is the last-ditch high cost
+            # check for pandas. X[nan_mask(X)] = np.nan is back-talking
+            # to the passed X and mutating it. want to do this without
+            # mutating X or making a copy, so scan it column by column
+            # (still there will be copies, but smaller)
 
             if isinstance(X, pd.core.series.Series):
                 try:
@@ -97,10 +125,6 @@ def check_dtype(
                     except:
                         raise ValueError(err_msg)
                 del _column
-
-        elif hasattr(X, 'toarray'):
-            # scipy sparse can only be numeric dtype, so automatically good
-            pass
 
         else:
             raise TypeError(

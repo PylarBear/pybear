@@ -16,7 +16,7 @@ from ._n_jobs import _val_n_jobs
 from ._rtol import _val_rtol
 from ._scan_X import _val_scan_X
 from ._sparse_output import _val_sparse_output
-from ._X import _val_X   # pizza
+from ._X import _val_X
 
 from .._type_aliases import DataType, FeatureNameCombinerType
 from typing import Literal
@@ -88,8 +88,6 @@ def _validation(
 
     _val_keep(_keep)
 
-    # pizza, _val_X will probably end up back in here, because of sk _validate_data exorcism.
-
     _val_scan_X(_scan_X)
 
     _val_degree__min_degree(_degree, _min_degree)
@@ -108,7 +106,7 @@ def _validation(
 
     _val_n_jobs(_n_jobs)
 
-
+    _val_X(_X, _interaction_only)
 
 
 

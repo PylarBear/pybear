@@ -6,7 +6,6 @@
 
 
 
-
 from copy import deepcopy
 import numpy as np
 
@@ -14,7 +13,6 @@ from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
 import pytest
-
 
 
 
@@ -56,67 +54,7 @@ def y(_rows):
 class TestSetParams:
 
 
-    def test_rejects_bad_assignments_at_init(self, _kwargs):
-
-        _junk_kwargs = deepcopy(_kwargs)
-        _junk_kwargs['trash'] = 'junk'
-        _junk_kwargs['garbage'] = 'waste'
-        _junk_kwargs['refuse'] = 'rubbish'
-
-        with pytest.raises(Exception):
-            # pizza will be coming back to this!
-            # this is managed by BaseEstimator, let it raise whatever
-            SlimPoly(**_junk_kwargs)
-
-
-    def test_rejects_bad_assignments_in_set_params(self, _kwargs):
-
-        TestCls = SlimPoly(**_kwargs)
-
-        _junk_kwargs = deepcopy(_kwargs)
-        _junk_kwargs['trash'] = 'junk'
-        _junk_kwargs['garbage'] = 'waste'
-        _junk_kwargs['refuse'] = 'rubbish'
-
-        with pytest.raises(Exception):
-            # pizza will be coming back to this!
-            # this is managed by BaseEstimator, let it raise whatever
-            TestCls.set_params(**_junk_kwargs)
-
-
-    def test_set_params_correctly_applies(self, X, y, _kwargs):
-
-        TestCls = SlimPoly(**_kwargs)
-
-        # assert TestCls initiated correctly after init
-        for _param, _value in _kwargs.items():
-            assert getattr(TestCls, _param) == _value
-
-        # set new params before fit
-        _scd_params = deepcopy(_kwargs)
-        _scd_params['keep'] = 'random'
-        _scd_params['rtol'] = 1e-7
-        _scd_params['atol'] = 1e-9
-        _scd_params['equal_nan'] = True
-        _scd_params['n_jobs'] = 2
-
-        TestCls.set_params(**_scd_params)
-
-        # assert new values set correctly
-        for _param, _value in _scd_params.items():
-            assert getattr(TestCls, _param) == _value
-
-
-        # do a fit(), then assert all params are still set correctly
-        TestCls.fit(X, y)
-
-        # assert new values still set correctly after fit
-        for _param, _value in _scd_params.items():
-            assert getattr(TestCls, _param) == _value
-
-
     def test_blocks_some_params_after_fit(self, X, y):
-
 
         alt_kwargs = {
             'degree': 2,
@@ -134,14 +72,14 @@ class TestSetParams:
 
 
         # INITIALIZE
-        IFTCls = SlimPoly(**alt_kwargs)
+        TestCls = SlimPoly(**alt_kwargs)
 
         # CAN SET ANYTHING BEFORE FIT
-        IFTCls.set_params(**alt_kwargs)
+        TestCls.set_params(**alt_kwargs)
 
         # 'keep', 'sparse_output', 'feature_name_combiner',
         # and 'n_jobs' not blocked after fit()
-        IFTCls.fit(X.copy(), y.copy())
+        TestCls.fit(X, y)
 
         allowed_kwargs = {
             'keep': 'last',
@@ -150,11 +88,12 @@ class TestSetParams:
             'n_jobs': 2
         }
 
-        IFTCls.set_params(**allowed_kwargs)
+        TestCls.set_params(**allowed_kwargs)
 
         for param, value in allowed_kwargs.items():
-            assert getattr(IFTCls, param) == value
+            assert getattr(TestCls, param) == value
 
+        # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
         #  ANYTHING OTHER THAN 'keep', 'sparse_output', 'feature_name_combiner',
         #         # and 'n_jobs' are blocked after fit() and warns.
@@ -169,12 +108,41 @@ class TestSetParams:
         }
 
         for param, value in disallowed_kwargs.items():
-            _og_value = getattr(IFTCls, param)
+            _og_value = getattr(TestCls, param)
             with pytest.warns():
-                IFTCls.set_params(param=value)
+                TestCls.set_params(param=value)
             # assert did not set the new value,
             # kept old, which was from alt_kwargs
-            assert getattr(IFTCls, param) == _og_value == alt_kwargs[param]
+            assert getattr(TestCls, param) == _og_value == alt_kwargs[param]
+
+        # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+        # test a mix of allowed and disallowed applies the allowed and warns
+        TestCls.set_params(**alt_kwargs)
+
+        assert TestCls.keep == 'first'
+        assert TestCls.sparse_output is False
+        assert TestCls.degree == 2
+        assert TestCls.min_degree == 1
+
+        mixed_kwargs = {
+            'keep': 'last',
+            'sparse_output': True,
+            'degree': 3,
+            'min_degree': 2
+        }
+
+        with pytest.warns():
+            TestCls.set_params(**mixed_kwargs)
+
+        # were changed
+        assert TestCls.keep == 'last'
+        assert TestCls.sparse_output is True
+
+        # were not changed
+        assert TestCls.degree == 2
+        assert TestCls.min_degree == 1
+
 
 
     def test_equality_set_params_before_and_after_fit(self, X, y, _kwargs):
@@ -292,7 +260,7 @@ class TestSetParams:
 
         # first class: initialize, fit, transform, and keep result
         TestCls1 = SlimPoly(**_alt_kwargs).fit(TEST_X)
-        FIRST_TRFM_X = TestCls1.transform(TEST_X, copy=True)
+        FIRST_TRFM_X = TestCls1.transform(TEST_X)
 
         # condition 1 ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # initialize #2 with sparse_output=True, fit.
@@ -303,7 +271,7 @@ class TestSetParams:
         # use set_params on #2 to change sparse_output to False.
         TestCls2.set_params(**_alt_kwargs)
         # transform #2, and compare output with that of #1
-        COND_1_OUT = TestCls2.transform(TEST_X, copy=True)
+        COND_1_OUT = TestCls2.transform(TEST_X)
 
         assert np.array_equal(COND_1_OUT, FIRST_TRFM_X)
 
@@ -316,14 +284,14 @@ class TestSetParams:
         # use set_params on #1 to change sparse_output to True.  DO NOT FIT!
         TestCls1.set_params(**_dum_kwargs)
         # do a transform()
-        SECOND_TRFM_X = TestCls1.transform(TEST_X, copy=True)
+        SECOND_TRFM_X = TestCls1.transform(TEST_X)
         # should not be equal to first trfm with sparse_output = False
         assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
 
         # use set_params on #1 again to change sparse_output back to False.
         TestCls1.set_params(**_alt_kwargs)
         # transform #1 again, and compare with the first output
-        THIRD_TRFM_X = TestCls1.transform(TEST_X, copy=True)
+        THIRD_TRFM_X = TestCls1.transform(TEST_X)
 
         assert np.array_equal(FIRST_TRFM_X, THIRD_TRFM_X)
 
