@@ -183,13 +183,13 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
         """
 
         _global_config = {
-            "assume_finite": bool(os.environ.get("SKLEARN_ASSUME_FINITE", False)),
-            "working_memory": int(os.environ.get("SKLEARN_WORKING_MEMORY", 1024)),
+            # "assume_finite": bool(os.environ.get("SKLEARN_ASSUME_FINITE", False)),
+            # "working_memory": int(os.environ.get("SKLEARN_WORKING_MEMORY", 1024)),
             "print_changed_only": True,
             "display": "diagram",
-            "pairwise_dist_chunk_size": int(
-                os.environ.get("SKLEARN_PAIRWISE_DIST_CHUNK_SIZE", 256)
-            ),
+            # "pairwise_dist_chunk_size": int(
+            #     os.environ.get("SKLEARN_PAIRWISE_DIST_CHUNK_SIZE", 256)
+            # ),
             "enable_cython_pairwise_dist": True,
             "array_api_dispatch": False,
             "transform_output": "default",
@@ -223,14 +223,6 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
         config_context: Context manager for global scikit-learn
             configuration.
         set_config: Set global scikit-learn configuration.
-
-
-        Examples
-        --------
-        >>> import sklearn
-        >>> config = sklearn.get_config()
-        >>> config.keys()
-        dict_keys([...])
 
         """
         # Return a copy of the threadlocal configuration so that users will
@@ -294,21 +286,6 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
         -
             bool -  Returns true if x is NaN, and false otherwise.
 
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from sklearn.utils._missing import is_scalar_nan
-        >>> is_scalar_nan(np.nan)
-        True
-        >>> is_scalar_nan(float("nan"))
-        True
-        >>> is_scalar_nan(None)
-        False
-        >>> is_scalar_nan("")
-        False
-        >>> is_scalar_nan([np.nan])
-        False
         """
 
         return (

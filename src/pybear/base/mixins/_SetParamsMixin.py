@@ -128,7 +128,7 @@ class SetParamsMixin:
         def _invalid_param(parameter: str, ALLOWED: list) -> None:
             raise ValueError(
                 f"Invalid parameter '{parameter}' for {self}"
-                f"\nValid parameters are: {ALLOWED}"
+                f"\nValid parameters are: {', '.join(ALLOWED)}"
             )
 
 

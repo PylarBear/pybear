@@ -21,7 +21,6 @@ import pandas as pd
 import scipy.sparse as ss
 
 from ._validation._validation import _validation
-from ._validation._X import _val_X
 from ._attributes._build_kept_poly_duplicates import \
     _build_kept_poly_duplicates
 from ._attributes._build_dropped_poly_duplicates import \
@@ -52,10 +51,11 @@ from ...base import (
     FeatureMixin,
     FitTransformMixin,
     GetParamsMixin,
+    ReprMixin,
+    SetParamsMixin,
     validate_data
 )
 
-from sklearn.base import BaseEstimator
 from ...base import check_is_fitted, get_feature_names_out
 from ...utilities import nan_mask
 
@@ -64,8 +64,9 @@ from ...utilities import nan_mask
 class SlimPolyFeatures(
     FeatureMixin,
     GetParamsMixin,
+    SetParamsMixin,
     FitTransformMixin,
-    BaseEstimator
+    ReprMixin
 ):
 
     """
@@ -432,11 +433,13 @@ class SlimPolyFeatures(
     string 'None'), and string representations of 'nan' (not case
     sensitive).
 
-    # pizza make a decision on this in validate_data setting (force cast or not).
-    Concerning the handling of infinity. SPF has no special handling
-    for numpy.inf, -numpy.inf, float('inf') or float('-inf'). SPF falls
-    back to the native handling of these values for python and numpy.
-    Specifically, numpy.inf==numpy.inf and float('inf')==float('inf').
+    Concerning the handling of infinity. SPF has no special handling for
+    the various infinity-types, e.g, numpy.inf, -numpy.inf, float('inf'),
+    float('-inf'), etc. This is a design decision to not force infinity
+    values to numpy.nan to avoid mutating or making copies of passed
+    data. SPF falls back to the native handling of these values for
+    python and numpy. Specifically, numpy.inf==numpy.inf and
+    float('inf')==float('inf').
 
     Concerning the handling of scipy sparse arrays. When constructing
     the preliminary (learning) expansion and during transform, the
@@ -910,25 +913,6 @@ class SlimPolyFeatures(
             reset=not hasattr(self, "_poly_duplicates")
         )
 
-        # bearpizza
-        # X = self._validate_data(
-        #     X=X,
-        #     reset=not hasattr(self, "_poly_duplicates"),
-        #     # cast_to_ndarray=False,   # pizza takes this out 24_12_13_13_43_00,
-        #     # "TypeError: check_array() got an unexpected keyword argument
-        #     # 'cast_to_ndarray'" started doing this when sklearn -> 1.6.
-        #     # come back at the end and see if this needs to stay out.
-        #
-        #     # vvv become **check_params, and get fed to check_array() vvv
-        #     accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-        #     dtype=None,  # do not use 'numeric' here, sk will force to float64
-        #     # check for numeric in supplemental X validation
-        #     force_all_finite=False,
-        #     ensure_2d=True,
-        #     ensure_min_features=1,
-        #     order='F'
-        # )
-
         X = validate_data(
             X,
             copy_X=False,
@@ -939,7 +923,7 @@ class SlimPolyFeatures(
             cast_inf_to_nan=False,
             standardize_nan=False,
             allowed_dimensionality=(2,),
-            ensure_2d=False,   # bearpizza
+            ensure_2d=False,
             order='F',
             ensure_min_features=1,
             ensure_max_features=None,
@@ -963,9 +947,6 @@ class SlimPolyFeatures(
             self.n_jobs
         )
 
-        # bearpizza
-        _val_X(X, self.interaction_only, self.n_jobs)
-
         # these both must be None on the first pass!
         # on subsequent passes, the holders may not be empty.
         if not hasattr(self, '_poly_duplicates'):
@@ -974,6 +955,7 @@ class SlimPolyFeatures(
             self._poly_constants: Union[dict[tuple[int, ...], any], None] = None
 
         if self.scan_X and not hasattr(self, '_IM'):
+
             self._IM = IM(
                 keep=self.keep,
                 equal_nan=self.equal_nan,
@@ -983,6 +965,7 @@ class SlimPolyFeatures(
             )
 
         if self.scan_X and not hasattr(self, '_CDT'):
+
             self._CDT = CDT(
                 keep=self.keep,
                 do_not_drop=None,
@@ -998,8 +981,11 @@ class SlimPolyFeatures(
         # duplicate columns.
 
         if self.scan_X:
-            self._IM.partial_fit(X)
-            self._CDT.partial_fit(X)
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                self._IM.partial_fit(X)
+                self._CDT.partial_fit(X)
 
             try:
                 self._check_X_constants_and_dupls()
@@ -1308,20 +1294,17 @@ class SlimPolyFeatures(
     def set_params(self, **params) -> Self:
 
         """
-        Taken directly from BaseEstimator.
-        Set the parameters of this estimator.
+        Set the parameters of the SPF instance.
 
-        This method works on simple estimators as well as on nested
-        objects (such as :class: `sklearn.pipeline.Pipeline`). The latter
-        have parameters of the form ``<component>__<parameter>`` so that
-        it's possible to update parameters of nested objects.
-
-        ----------------------
+        Pass the exact parameter name and its value as a keyword argument
+        to :method: set_params. Or use ** dictionary unpacking on a
+        dictionary keyed with exact parameter names and the new parameter
+        values as the dictionary values.
 
         Once SPF is fitted, only SPF :params: 'sparse_output', 'keep',
-        'feature_name_combiner', and 'n_jobs' can be changed via
-        SPF :method: set_params. All other parameters are blocked. To
-        use different parameters without creating a new instance of SFP,
+        'feature_name_combiner', and 'n_jobs' can be changed via SPF
+        :method: set_params. All other parameters are blocked. To use
+        different parameters without creating a new instance of SFP,
         call SPF :method: reset on this instance, otherwise create a new
         SPF instance."
 
@@ -1338,10 +1321,6 @@ class SlimPolyFeatures(
 
 
         """
-
-        # pizza
-        # if ever needed, hard code that can be substituted for the
-        # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
         try:
             # this check must stay under try! if this is fitted, then run
@@ -1382,11 +1361,7 @@ class SlimPolyFeatures(
         return self
 
 
-    def transform(
-        self,
-        X: DataType,
-        copy: Union[bool, None]=None   # pizza, this is going to come out
-    ) -> DataType:
+    def transform(self, X: DataType) -> DataType:
 
         """
         Apply the expansion footprint that was learned during fitting to
@@ -1399,9 +1374,6 @@ class SlimPolyFeatures(
         X:
             Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
             (n_samples, n_features) - The data to undergo polynomial
-            expansion.
-        copy:   # pizza this is going to come out
-            Union[bool, None] - whether to make a copy of X before the
             expansion.
 
 
@@ -1424,35 +1396,27 @@ class SlimPolyFeatures(
             return
 
 
-        # pizza this is going to come out
-        if not isinstance(copy, (bool, type(None))):
-            raise TypeError(f"'copy' must be boolean or None")
+        self._check_n_features( X, reset=False)
 
+        self._check_feature_names(X, reset=False)
 
-        # keep this before _validate_data. when X is junk, _validate_data
-        # and check_array except for varying reasons. this standardizes
-        # the error message for non-np/pd/ss X. once _validata_data
-        # disappears, this can probably go back into _validation()
-        _val_X(X, self.interaction_only, self.n_jobs)
-
-        # _validation should have caught non-numeric X. X must only be
-        # numeric throughout all of SPF.
-
-        # pizza this will come out at sklearn exorcism!
-        X = self._validate_data(
-            X=X,
-            reset=False,
+        X = validate_data(
+            X,
+            copy_X=False,
             cast_to_ndarray=False,
-            copy=copy or False,
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-            dtype=None,  # do not use 'numeric' here, sk will force to float64
-            # check for numeric in supplemental X validation
-            force_all_finite=False,
-            ensure_2d=True,
+            dtype='numeric',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(2,),
+            ensure_2d=False,
+            order='F',
             ensure_min_features=1,
-            order='F'
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
-
 
         _validation(
             X,
@@ -1468,6 +1432,9 @@ class SlimPolyFeatures(
             self.equal_nan,
             self.n_jobs
         )
+
+        # _validation should have caught non-numeric X. X must only be
+        # numeric throughout all of SPF.
 
 
         _og_dtype = type(X)
@@ -1570,8 +1537,6 @@ class SlimPolyFeatures(
             # ndarray or pd df, return in the given format
             X_tr = X_tr.toarray()
 
-            # pizza this will probably come out since _validate_data is
-            # coming out during sklearn exorcism.
             if _og_dtype is np.ndarray:
                 return np.ascontiguousarray(X_tr)
 

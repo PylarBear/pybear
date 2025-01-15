@@ -6,8 +6,6 @@
 
 
 
-
-
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
@@ -23,8 +21,6 @@ import dask.array as da
 import dask.dataframe as ddf
 
 import pytest
-
-
 
 
 
@@ -1241,21 +1237,6 @@ class TestTransform:
     # - validates all instance attrs -- this isnt tested here, see _validation
 
 
-    @pytest.mark.parametrize('_copy',
-        (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
-    )
-    def test_copy_validation(self, _X_np, _shape, _kwargs, _copy):
-
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(_X_np)
-
-        if isinstance(_copy, (bool, type(None))):
-            _SPF.transform(_X_np, copy=_copy)
-        else:
-            with pytest.raises(TypeError):
-                _SPF.transform(_X_np, copy=_copy)
-
-
     @pytest.mark.parametrize('_junk_X',
         (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
     )
@@ -1264,8 +1245,8 @@ class TestTransform:
         _SPF = SlimPoly(**_kwargs)
         _SPF.fit(_X_np)
 
-        # this is being caught by validate_data at the top of transform... pizza not just yet
-        with pytest.raises(TypeError):
+        # this is being caught by _val_X in _validation at the top of transform
+        with pytest.raises(ValueError):
             _SPF.transform(_junk_X)
 
 
@@ -1338,8 +1319,7 @@ class TestTransform:
             out = _SPF.transform(_X_wip)
             assert isinstance(out, type(_X_wip))
 
-        # verify _X_wip does not mutate in transform() when copy=True
-        # pizza, 'copy' is going to come out
+        # verify _X_wip does not mutate in transform()
         assert isinstance(_X_wip, type(_X_wip_before_transform))
         assert _X_wip.shape == _X_wip_before_transform.shape
 

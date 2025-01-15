@@ -253,7 +253,7 @@ class TestExceptsOnBadXShapes:
         # end transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
-        # sklearn_exception WHEN n_features_in_ != FIRST FIT n_features_in_
+        # exception WHEN n_features_in_ != FIRST FIT n_features_in_
         # UNDER ALL CIRCUMSTANCES
         n_features_exception = 0
         n_features_exception += any(map(lambda __: \
@@ -261,9 +261,7 @@ class TestExceptsOnBadXShapes:
         ))
 
         if n_features_exception:
-            # sklearn.base.BaseEstimator._validate_data handles this,
-            # let it raise whatever
-            with pytest.raises(Exception):
+            with pytest.raises(ValueError):
                 TestCls.partial_fit(fst_fit_X)
                 TestCls.partial_fit(scd_fit_X)
                 TestCls.transform(trfm_X)
