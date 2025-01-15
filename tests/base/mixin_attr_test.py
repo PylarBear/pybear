@@ -19,23 +19,30 @@ import pytest
 #     feature_names_in_
 #     n_samples_seen_
 #     get_feature_names_out()
-#     _validate_data
-#     set_outputs
+#     _validate_data()
+#     get_params()
+#     set_params()
+#     fit_transform()
+#     set_output()
 
 # use a dataframe to make sure the feature name attrs get exposed!
 
-# 24_10_02_12_40_00
-# TransformerMixin alone does not expose any of these, it only exposes
-# fit_transform.
-# BaseEstimator alone exposes _validate_data, get_params, set_params.
-# _validate_data exposes n_features_in_ and feature_names_in_.
+# sklearn 1.5.2
+# BaseEstimator:
+# 	before and after fit() exposes __repr__, _validate_data, set_params(), get_params()
+#   _validate_data exposes n_features_in_ and feature_names_in_ after fit
+
+# TransformerMixin:
+# 	before and after fit() has fit_transform() and set_output()
+# 	set_output is exposed by the _SetOutputMixin on TransformerMixin
+
 # OneToOneFeatureMixin alone exposes get_feature_names_out().
 
 # So what happens with OneHotEncoder, which changes the columns?
 # n_features_in_ AND feature_names_in_ expose the values before transform.
 # To get feature names after transform, use get_feature_names_out(),
 # which is a one-off that overwrites get_feature_names_out() from
-# BaseEstimator.
+# OneToOneFeatureMixin.
 
 
 
@@ -74,11 +81,10 @@ class Fixtures:
         class MockBaseEstimator(BaseEstimator):
 
             def __init__(cls):
-                pass
+                cls.is_fitted = False
 
             def _reset(cls):
-                if hasattr(cls, 'is_fitted'):
-                    del cls.is_fitted
+                del cls.is_fitted
 
             def fit(cls, X, y=None):
                 cls._reset()
@@ -103,11 +109,10 @@ class Fixtures:
         class MockTransformerMixin(TransformerMixin):
 
             def __init__(cls):
-                pass
+                cls.is_fitted = False
 
             def _reset(cls):
-                if hasattr(cls, 'is_fitted'):
-                    del cls.is_fitted
+                del cls.is_fitted
 
             def fit(cls, X, y=None):
                 cls._reset()
@@ -124,11 +129,10 @@ class Fixtures:
         class MockOneToOneFeatureMixin(OneToOneFeatureMixin):
 
             def __init__(cls):
-                pass
+                cls.is_fitted = False
 
             def _reset(cls):
-                if hasattr(cls, 'is_fitted'):
-                    del cls.is_fitted
+                del cls.is_fitted
 
             def fit(cls, X, y=None):
                 cls._reset()
@@ -137,23 +141,25 @@ class Fixtures:
 
         return MockOneToOneFeatureMixin
 
+    # END FIXTURES v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
 
 class TestBaseEstimator(Fixtures):
 
     @pytest.mark.parametrize('attr',
-        ('n_features_in_', 'feature_names_in_', 'n_samples_seen_',
+        ('n_features_in_', 'feature_names_in_', 'n_samples_seen_', '__repr__',
          'get_feature_names_out', '_validate_data', 'set_params', 'get_params')
     )
     def test_before_fit(self, attr, MockWithBaseEstimator):
 
-        if attr in ['_validate_data', 'set_params', 'get_params']:
+        if attr in ['_validate_data', 'set_params', 'get_params', '__repr__']:
             assert hasattr(MockWithBaseEstimator, attr)
         else:
             assert not hasattr(MockWithBaseEstimator, attr)
 
 
     @pytest.mark.parametrize('attr',
-        ('n_features_in_', 'feature_names_in_', 'n_samples_seen_',
+        ('n_features_in_', 'feature_names_in_', 'n_samples_seen_', '__repr__',
          'get_feature_names_out', '_validate_data', 'set_params', 'get_params')
     )
     def test_after_fit(self, attr, MockWithBaseEstimator, X_pd):
@@ -162,7 +168,7 @@ class TestBaseEstimator(Fixtures):
 
         if attr in [
             '_validate_data', 'n_features_in_', 'feature_names_in_',
-            'set_params', 'get_params'
+            'set_params', 'get_params', '__repr__'
         ]:
             assert hasattr(Fitted, attr)
         else:
@@ -173,22 +179,33 @@ class TestTransformerMixin(Fixtures):
 
     @pytest.mark.parametrize('attr',
         ('n_features_in_', 'feature_names_in_', 'n_samples_seen_',
-         'get_feature_names_out', '_validate_data', 'set_params', 'get_params')
+         'get_feature_names_out', '_validate_data', 'set_params', 'get_params',
+         'fit_transform', 'set_output'
+         )
     )
     def test_before_fit(self, attr, MockWithTransformerMixin):
 
-        assert not hasattr(MockWithTransformerMixin, attr)
+        if attr in ['fit_transform', 'set_output']:
+            assert hasattr(MockWithTransformerMixin, attr)
+        else:
+            assert not hasattr(MockWithTransformerMixin, attr)
 
 
     @pytest.mark.parametrize('attr',
         ('n_features_in_', 'feature_names_in_', 'n_samples_seen_',
-         'get_feature_names_out', '_validate_data', 'set_params', 'get_params')
+         'get_feature_names_out', '_validate_data', 'set_params', 'get_params',
+         'fit_transform', 'set_output'
+         )
     )
     def test_after_fit(self, attr, MockWithTransformerMixin, X_pd):
 
         Fitted = MockWithTransformerMixin().fit(X_pd)
 
-        assert not hasattr(Fitted, attr)
+        if attr in ['fit_transform', 'set_output']:
+            assert hasattr(MockWithTransformerMixin, attr)
+        else:
+            assert not hasattr(MockWithTransformerMixin, attr)
+
 
 
 

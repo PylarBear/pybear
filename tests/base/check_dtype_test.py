@@ -63,9 +63,14 @@ class TestCheckDtype:
 
 
     @pytest.mark.parametrize('_allowed', ('numeric', 'any'))
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_format',
+        ('np', 'pd_df', 'pd_series', 'csr', 'csc', 'coo')
+    )
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
-    def test_accuracy_numeric(self, _X_factory, _allowed, _format, _dtype):
+    @pytest.mark.parametrize('_has_nan', (True, False))
+    def test_accuracy_numeric(
+        self, _X_factory, _allowed, _format, _dtype, _has_nan
+    ):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -73,18 +78,27 @@ class TestCheckDtype:
                 _dtype in ['str', 'obj', 'hybrid']:
             pytest.skip(reason=f"impossible condition")
 
+        # cant be hybrid (by the conftest meaning of hybrid) for pd_series
+        if _format == 'pd_series' and _dtype == 'hybrid':
+            pytest.skip(reason=f"impossible condition")
+
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        # build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _X_wip = _X_factory(
             _dupl=None,
             _constants=None,
-            _format=_format,
+            _format=_format if 'pd' not in _format else 'pd',
             _zeros=None,
             _columns=None,
-            _has_nan=False,
+            _has_nan=_has_nan,
             _shape=(20,10),
             _dtype=_dtype
         )
+
+        if _format == 'pd_series':
+            _X_wip = _X_wip.iloc[:, 0].squeeze()
+        # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         if _allowed == 'any':
 

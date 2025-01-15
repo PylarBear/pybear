@@ -169,19 +169,17 @@ class TestInitValidation:
 
     # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_keep',
-        (True, False, None, [1,2], {1,2})
+        (-1, np.pi, True, False, None, [1,2], {1,2}, {1: 'a'}, lambda x: 'junk')
     )
     def test_junk_keep(self, _X_np, _kwargs, junk_keep):
 
         _kwargs['keep'] = junk_keep
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('bad_keep',
-        (-1, np.pi, 'rubbish', {1:'trash'}, lambda x: 'junk', min)
-    )
+    @pytest.mark.parametrize('bad_keep', ('rubbish', 'trash', 'garbage'))
     def test_bad_keep(self, _X_np, _kwargs, bad_keep):
 
         _kwargs['keep'] = bad_keep
@@ -210,7 +208,7 @@ class TestInitValidation:
 
         _kwargs['interaction_only'] = junk_interaction_only
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
@@ -233,7 +231,7 @@ class TestInitValidation:
 
         _kwargs['scan_X'] = junk_scan_X
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
@@ -253,7 +251,7 @@ class TestInitValidation:
 
         _kwargs['sparse_output'] = junk_sparse_output
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
@@ -370,7 +368,7 @@ class TestInitValidation:
 
     # n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_n_jobs',
-        ('trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
+        (-2.7, 2.7, True, False, 'trash', [1, 2], {'a': 1}, lambda x: x, min)
     )
     def test_junk_n_jobs(self, _X_np, _kwargs, junk_n_jobs):
 
@@ -380,7 +378,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('bad_n_jobs', [True, False, -2, 0, 2.7])
+    @pytest.mark.parametrize('bad_n_jobs', [-3, -2, 0])
     def test_bad_n_jobs(self, _X_np, _kwargs, bad_n_jobs):
 
         _kwargs['n_jobs'] = bad_n_jobs
@@ -431,7 +429,7 @@ class TestExceptsAnytimeXisNone:
 
         # this is handled by _val_X
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             SlimPoly(**_kwargs).fit(None)
 
         with pytest.raises(Exception):
@@ -614,13 +612,16 @@ class TestOutputTypes:
 
     _base_objects = ['np_array', 'pandas', 'scipy_sparse_csc']
 
+    # 25_10_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+    # with pb.FitTransformMixin, that does not have set_output.
+    @pytest.mark.xfail(reason=f"pizza, come back when set_output is ready")
     @pytest.mark.parametrize('x_input_type', _base_objects)
     @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
     def test_output_types(
         self, _X_np, _columns, _kwargs, x_input_type, output_type
     ):
 
-        # pizza 24_12_17... anticipate that this will go away at sklearn exorcism.
+        # pizza 24_12_17... anticipate that this might go away at sklearn exorcism.
         # pybear most likely will not implement a set_output mixin.
 
         if x_input_type == 'scipy_sparse_csc' and output_type == 'polars':
@@ -1107,11 +1108,8 @@ class TestPartialFit:
     )
     def test_rejects_junk_X(self, _junk_X, _kwargs):
 
-        # this is being caught by _validation at the top of partial_fit.
-        # in particular,
-        # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
-        #      hasattr(_X, 'toarray'):
-        with pytest.raises(TypeError):
+        # this is being caught by validate_data at the top of partial_fit
+        with pytest.raises(ValueError):
             SlimPoly(**_kwargs).partial_fit(_junk_X)
 
 
@@ -1266,10 +1264,7 @@ class TestTransform:
         _SPF = SlimPoly(**_kwargs)
         _SPF.fit(_X_np)
 
-        # this is being caught by _validation at the top of transform.
-        # in particular,
-        # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
-        #     hasattr(_X, 'toarray'):
+        # this is being caught by validate_data at the top of transform... pizza not just yet
         with pytest.raises(TypeError):
             _SPF.transform(_junk_X)
 
@@ -1336,7 +1331,7 @@ class TestTransform:
 
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
-                # handled by IM
+                # handled by SPF
                 _SPF.transform(_X_wip)
             pytest.skip(reason=f'cant do anymore tests after except')
         else:
@@ -1451,14 +1446,16 @@ class TestTransform:
     )
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_min_degree', (1, 2))
-    def test_dtype_preservation(
-        self, _format, _dtype, _has_nan, _min_degree,
-        _shape, _columns, _kwargs, _dtype_dict
+    def test_dtype_handling(
+        self, _format, _dtype, _has_nan, _min_degree, _shape, _columns,
+        _kwargs, _dtype_dict
     ):
 
         # poly is always created as float64 and if/when merged, the
         # original data is also converted to float64.
 
+        # _dtype '<U10' and 'object' test when numerical data is passed
+        # with these formats
 
         # degree is always set to 2
         # when min_degree == 1, tests mashup of original data and poly

@@ -884,10 +884,11 @@ class TestValidateDataAccuracy(Fixtures):
 
     @pytest.mark.parametrize('_X_format', ('np', 'pd', 'csr', 'csc', 'coo'))
     @pytest.mark.parametrize('_cast_to_ndarray', (True, False))
+    @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_order', ('C', 'F'))
     def test_cast_to_nd_array_and_order(
         self, _X_factory, _X_format, _good_accept_sparse, _cast_to_ndarray,
-        _order
+        _has_nan, _order
     ):
 
         # order doesnt matter if not returning np
@@ -896,11 +897,18 @@ class TestValidateDataAccuracy(Fixtures):
         # dont worry about 1D (C and F should both always be True),
         # testing 2D order should be enough
 
+        # this also tests that funky pd nan-likes are cast to ndarray.
+        # cast_to_ndarray is robust to funky nans because no dtype
+        # constraint is imposed. cast_to_ndarray is not forcing the data
+        # over to np.float64, and any funky nans will coerce dtype over
+        # to object.
+
+
         _X_wip = _X_factory(
             _dupl=None,
             _format=_X_format,
             _dtype='flt',
-            _has_nan=False,
+            _has_nan=_has_nan,
             _columns=None,
             _constants=None,
             _zeros=None,
@@ -1542,7 +1550,104 @@ class TestValidateDataAccuracy(Fixtures):
             assert isinstance(out, type(_X_wip))
 
 
+    @pytest.mark.parametrize('_X_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_check_dtype', ('numeric', 'any'))
+    @pytest.mark.parametrize('_cast_to_ndarray', (True, False))
+    @pytest.mark.parametrize('_standardize_nan', (True, False))
+    def test_ndarray_nans_standardized_before_check_dtype(
+        self, _X_factory, _good_accept_sparse, _X_format, _check_dtype,
+        _cast_to_ndarray, _standardize_nan
+    ):
 
+        # the scenario is that a pd dataframe with funky nan-likes is
+        # cast to ndarray (cast_to_ndarray is True.) cast_to_ndarray does
+        # not impose a dtype to the converted ndarray, so the funky nans
+        # will persist in an ndarray of dtype object. this would otherwise
+        # raise in cast_to_ndarray if this ndarray were to be set to
+        # float64 there. if check_dtype is set to 'numeric', it will try
+        # to impose the float64 dtype there, and fail in check_dtype.
+        # but, if standardize_nan is True, then this failure should not
+        # be allowed to happen because the user is intending to use nice
+        # numpy.nans, so we need to ensure that the nans are standardized
+        # before check_dtype so that there wont be an exception.
+
+        # dont need to worry about infinities (np.inf, str('inf'), math.inf,
+        # float('inf'), decimal.Decimal('Infinity'), and the negative
+        # versions) because they all coerce nicely to np.inf / -np.inf
+        # when dtype is set to float64.
+
+        # build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # atypical process here, build everything as pd, then convert
+        # over to np when _X_format=='np', so that funky pd nans stay in
+        # the ndarray with dtype==object
+        _X_wip = _X_factory(
+            _dupl=None,
+            _format='pd',
+            _dtype='flt',     # <====== must be numeric
+            _has_nan=True,    # <====== must be True
+            _columns=None,
+            _constants=None,
+            _zeros=None,
+            _shape=(20, 10)
+        )
+
+        if _X_format == 'np':
+            _X_wip = _X_wip.to_numpy()
+        # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # if check_dtype == 'any' then everything always passes
+        # elif check_dtype == 'numeric':
+        #   if _X_format == 'pd':
+        #       if not cast_to_ndarray, then always pass
+        #           funky nan-likes are handled for pd in check_dtype
+        #       if cast_to_ndarray and standardize_nan: pass
+        #       if cast_to_ndarray and not standardize_nan: fail
+        #   if X given as ndarray:
+        #       doesnt matter what cast_to_ndarray is
+        #       if standardize_nan: pass
+        #       if not standardize_nan: fail
+        #
+        _raises_for_not_numeric = False
+        if _check_dtype == 'numeric' and not _standardize_nan:
+            if _X_format == 'np' or (_X_format == 'pd' and _cast_to_ndarray):
+                _raises_for_not_numeric = True
+
+
+        if _raises_for_not_numeric:
+
+            with pytest.raises(ValueError):
+                validate_data(
+                    _X_wip,
+                    copy_X=False,
+                    cast_to_ndarray=_cast_to_ndarray,
+                    accept_sparse=_good_accept_sparse,
+                    dtype=_check_dtype,
+                    require_all_finite=False,
+                    cast_inf_to_nan=False,
+                    standardize_nan=_standardize_nan,
+                    allowed_dimensionality=(1, 2),
+                    ensure_2d=False,
+                    order='C',
+                    ensure_min_features=1,
+                    ensure_min_samples=1
+                )
+
+        elif not _raises_for_not_numeric:
+            out = validate_data(
+                _X_wip,
+                copy_X=False,
+                cast_to_ndarray=_cast_to_ndarray,
+                accept_sparse=_good_accept_sparse,
+                dtype=_check_dtype,
+                require_all_finite=False,
+                cast_inf_to_nan=False,
+                standardize_nan=_standardize_nan,
+                allowed_dimensionality=(1, 2),
+                ensure_2d=False,
+                order='C',
+                ensure_min_features=1,
+                ensure_min_samples=1
+            )
 
 
 

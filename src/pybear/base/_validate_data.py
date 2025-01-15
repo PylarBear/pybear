@@ -360,13 +360,12 @@ def validate_data(
         )
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    check_dtype(
-        _X,
-        allowed=dtype
-    )
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     if require_all_finite or cast_inf_to_nan or standardize_nan:
+
+        # this must be before check_dtype to ensure that ndarrays have
+        # only np.nans in them if standardize_nan is True. otherwise
+        # an ndarray that is expected to have only np.nans in it will
+        # fail a 'numeric' dtype check before the nans are standardized.
 
         _X = check_is_finite(
             _X,
@@ -376,6 +375,12 @@ def validate_data(
             standardize_nan=standardize_nan,
             copy_X=False
         )
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    check_dtype(
+        _X,
+        allowed=dtype
+    )
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     check_shape(

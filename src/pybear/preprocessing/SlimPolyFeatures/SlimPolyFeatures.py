@@ -43,20 +43,30 @@ from ._shared._check_X_constants_dupls import _check_X_constants_dupls
 from ._transform._build_poly import _build_poly
 
 
-from pybear.preprocessing.InterceptManager.InterceptManager import \
+from ...preprocessing.InterceptManager.InterceptManager import \
     InterceptManager as IM
-from pybear.preprocessing.ColumnDeduplicateTransformer. \
+from ...preprocessing.ColumnDeduplicateTransformer. \
     ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
 
+from ...base import (
+    FeatureMixin,
+    FitTransformMixin,
+    GetParamsMixin,
+    validate_data
+)
 
-from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
-from sklearn.utils._param_validation import Interval, StrOptions
+from sklearn.base import BaseEstimator
 from ...base import check_is_fitted, get_feature_names_out
 from ...utilities import nan_mask
 
 
 
-class SlimPolyFeatures(BaseEstimator, TransformerMixin):
+class SlimPolyFeatures(
+    FeatureMixin,
+    GetParamsMixin,
+    FitTransformMixin,
+    BaseEstimator
+):
 
     """
     SlimPolyFeatures (SPF) performs a polynomial feature expansion on a
@@ -422,6 +432,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
     string 'None'), and string representations of 'nan' (not case
     sensitive).
 
+    # pizza make a decision on this in validate_data setting (force cast or not).
     Concerning the handling of infinity. SPF has no special handling
     for numpy.inf, -numpy.inf, float('inf') or float('-inf'). SPF falls
     back to the native handling of these values for python and numpy.
@@ -478,22 +489,6 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
 
     """
-
-    # pizza this will ultimately come out at sklearn exorcism
-    _parameter_constraints: dict = {
-        "degree": [Interval(numbers.Integral, 0, None, closed="left")],
-        "min_degree": [Interval(numbers.Integral, 0, None, closed="left")],
-        "scan_X": ["boolean"],
-        "keep": [StrOptions({"first", "last", "random"})],
-        "interaction_only": ["boolean"],
-        "sparse_output": ["boolean"],
-        "feature_name_combiner":
-            [StrOptions({"as_feature_names", "as_indices"}), callable],
-        "equal_nan": ["boolean"],
-        "rtol": [numbers.Real],
-        "atol": [numbers.Real],
-        "n_jobs": [numbers.Integral, None]
-    }
 
 
     def __init__(
@@ -819,7 +814,7 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         """
 
         # get_feature_names_out() would otherwise be provided by
-        # pybear.base.GFNOMixin, but since this transformer adds columns,
+        # pybear.base.FeatureMixin, but since this transformer adds columns,
         # must build a one-off.
 
         check_is_fitted(self)
@@ -870,15 +865,10 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
         )
 
 
-    # pizza this will be redid at sklearn exorcism
-    def get_params(self, deep:bool=True) -> dict[str, any]:
-        # if ever needed, hard code that can be substituted for the
-        # BaseEstimator get/set_params can be found in GSTCV_Mixin
-        return super().get_params(deep)
+    # this is inherited from GetParamsMixin
+    # def get_params(self, deep:bool=True) -> dict[str, any]:
 
 
-    # pizza this decorator will come out, sklearn exorcism
-    @_fit_context(prefer_skip_nested_validation=True)
     def partial_fit(
         self,
         X: DataType,
@@ -908,29 +898,53 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
 
         """
 
-        # keep this before _validate_data. when X is junk, _validate_data
-        # and check_array except for varying reasons. this standardizes
-        # the error message for non-np/pd/ss X.
+        # do not make an assignment! let the function handle it.
+        self._check_n_features(
+            X,
+            reset=not hasattr(self, "_poly_duplicates")
+        )
 
-        _val_X(X, self.interaction_only, self.n_jobs)
+        # do not make an assignment! let the function handle it.
+        self._check_feature_names(
+            X,
+            reset=not hasattr(self, "_poly_duplicates")
+        )
 
+        # bearpizza
+        # X = self._validate_data(
+        #     X=X,
+        #     reset=not hasattr(self, "_poly_duplicates"),
+        #     # cast_to_ndarray=False,   # pizza takes this out 24_12_13_13_43_00,
+        #     # "TypeError: check_array() got an unexpected keyword argument
+        #     # 'cast_to_ndarray'" started doing this when sklearn -> 1.6.
+        #     # come back at the end and see if this needs to stay out.
+        #
+        #     # vvv become **check_params, and get fed to check_array() vvv
+        #     accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+        #     dtype=None,  # do not use 'numeric' here, sk will force to float64
+        #     # check for numeric in supplemental X validation
+        #     force_all_finite=False,
+        #     ensure_2d=True,
+        #     ensure_min_features=1,
+        #     order='F'
+        # )
 
-        X = self._validate_data(
-            X=X,
-            reset=not hasattr(self, "_poly_duplicates"),
-            # cast_to_ndarray=False,   # pizza takes this out 24_12_13_13_43_00,
-            # "TypeError: check_array() got an unexpected keyword argument
-            # 'cast_to_ndarray'" started doing this when sklearn -> 1.6.
-            # come back at the end and see if this needs to stay out.
-
-            # vvv become **check_params, and get fed to check_array() vvv
+        X = validate_data(
+            X,
+            copy_X=False,
+            cast_to_ndarray=False,
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-            dtype=None,  # do not use 'numeric' here, sk will force to float64
-            # check for numeric in supplemental X validation
-            force_all_finite=False,
-            ensure_2d=True,
+            dtype='numeric',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(2,),
+            ensure_2d=False,   # bearpizza
+            order='F',
             ensure_min_features=1,
-            order='F'
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
 
 
@@ -948,6 +962,9 @@ class SlimPolyFeatures(BaseEstimator, TransformerMixin):
             self.equal_nan,
             self.n_jobs
         )
+
+        # bearpizza
+        _val_X(X, self.interaction_only, self.n_jobs)
 
         # these both must be None on the first pass!
         # on subsequent passes, the holders may not be empty.

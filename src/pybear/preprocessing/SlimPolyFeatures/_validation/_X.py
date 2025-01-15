@@ -66,19 +66,28 @@ def _val_X(
 
     """
 
-    assert isinstance(_interaction_only, bool)
+    """
+    # pizza, hitting this before _val_interaction_only and raising the wrong error
+    # hash this now, come back and deal with this after the order of validation
+    # in partial_fit is finalized (i.e., where does _val_X end up falling in
+    # relation to the others.)
+    # assert isinstance(_interaction_only, bool)
 
-    if _n_jobs is not None:
-        err_msg = f"'n_jobs' must be None, -1, or an integer greater than 0"
-        if not isinstance(_n_jobs, numbers.Integral):
-            raise ValueError(err_msg)
-        value_error = 0
-        value_error += not (_n_jobs == -1 or _n_jobs >= 1)
-        value_error += isinstance(_n_jobs, bool)
-        if value_error:
-            raise ValueError(err_msg)
-        del err_msg, value_error
-
+    # pizza, hitting this before _val_n_jobs and raising the wrong error
+    # hash this now, come back and deal with this after the order of validation
+    # in partial_fit is finalized (i.e., where does _val_X end up falling in
+    # relation to the others.)
+    # if _n_jobs is not None:
+    #     err_msg = f"'n_jobs' must be None, -1, or an integer greater than 0"
+    #     if not isinstance(_n_jobs, numbers.Integral):
+    #         raise ValueError(err_msg)
+    #     value_error = 0
+    #     value_error += not (_n_jobs == -1 or _n_jobs >= 1)
+    #     value_error += isinstance(_n_jobs, bool)
+    #     if value_error:
+    #         raise ValueError(err_msg)
+    #     del err_msg, value_error
+    """
 
     if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         hasattr(_X, 'toarray'):
@@ -87,7 +96,7 @@ def _val_X(
             f"pandas dataframe, or any scipy sparce matrix / array."
         )
 
-
+    """
     # block non-numeric
     if isinstance(_X, np.ndarray):
         try:
@@ -126,6 +135,20 @@ def _val_X(
     elif hasattr(_X, 'toarray'):
         # scipy sparse can only be numeric dtype, so automatically good
         pass
+    """
+
+    # bearpizza this is stopgap to get tests to pass
+    # this is directly copied from _num_samples
+    # try:
+    #     _X.shape
+    # except:
+    #     raise ValueError(
+    #         f"\nThe passed object does not have a 'shape' attribute. \nAll "
+    #         f"pybear estimators and transformers require data-bearing objects "
+    #         f"to have a 'shape' attribute, like numpy array, pandas dataframes, "
+    #         f"and scipy sparse matrices / arrays."
+    #     )
+    # END bearpizza this is stopgap to get tests to pass
 
 
     _base_msg = (
@@ -142,6 +165,11 @@ def _val_X(
 
     if _X.shape[0] < 1:
         raise ValueError(_base_msg)
+
+    _base_msg = (
+        f"'X' must be a valid 2 dimensional numpy ndarray, pandas dataframe, "
+        f"or scipy sparce matrix or array with at least 1 sample. "
+    )
 
     if _interaction_only:
         if _X.shape[1] < 2:

@@ -12,7 +12,7 @@ import inspect
 class GetParamsMixin:
 
 
-    def get_params(self, deep:bool=True):
+    def get_params(self, deep:bool=True) -> dict[str, any]:
 
         """
         Get parameters for this instance. The 'instance' may be a pybear
