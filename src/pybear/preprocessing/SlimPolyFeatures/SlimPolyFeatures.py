@@ -753,18 +753,23 @@ class SlimPolyFeatures(
         """
 
         if hasattr(self, "_poly_duplicates"):
-            del self._poly_duplicates
-            del self._poly_constants
-            del self._combos
+
+            delattr(self, '_poly_duplicates')
+            delattr(self, '_poly_constants')
+            delattr(self, '_combos')
+            delattr(self, 'n_features_in_')
+            if hasattr(self, 'feature_names_in_'):
+                delattr(self, 'feature_names_in_')
 
             # _rand_combos, _kept_combos, and _active_combos may not exist
             # even if _poly_duplicates exists because
             # partial_fit short circuits before making them if there
             # are dupls/constants in X. so ask for permission.
             if hasattr(self, '_rand_combos'):
-                del self._rand_combos
-                del self._kept_combos
-                del self._active_combos
+
+                delattr(self, '_rand_combos')
+                delattr(self, '_kept_combos')
+                delattr(self, '_active_combos')
 
             if hasattr(self, '_IM'):
                 del self._IM
@@ -901,18 +906,6 @@ class SlimPolyFeatures(
 
         """
 
-        # do not make an assignment! let the function handle it.
-        self._check_n_features(
-            X,
-            reset=not hasattr(self, "_poly_duplicates")
-        )
-
-        # do not make an assignment! let the function handle it.
-        self._check_feature_names(
-            X,
-            reset=not hasattr(self, "_poly_duplicates")
-        )
-
         X = validate_data(
             X,
             copy_X=False,
@@ -946,6 +939,17 @@ class SlimPolyFeatures(
             self.n_jobs
         )
 
+        # do not make an assignment! let the function handle it.
+        self._check_n_features(
+            X,
+            reset=not hasattr(self, "_poly_duplicates")
+        )
+
+        # do not make an assignment! let the function handle it.
+        self._check_feature_names(
+            X,
+            reset=not hasattr(self, "_poly_duplicates")
+        )
 
         # these both must be None on the first pass!
         # on subsequent passes, the holders may not be empty.
@@ -1278,11 +1282,7 @@ class SlimPolyFeatures(
         return self.partial_fit(X)
 
 
-    def score(
-        self,
-        X,
-        y:Union[Iterable[any], None]=None
-    ) -> None:
+    def score(self, X, y:Union[Iterable[any], None]=None) -> None:
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.
@@ -1399,10 +1399,6 @@ class SlimPolyFeatures(
             return
 
 
-        self._check_n_features( X, reset=False)
-
-        self._check_feature_names(X, reset=False)
-
         X = validate_data(
             X,
             copy_X=False,
@@ -1435,6 +1431,10 @@ class SlimPolyFeatures(
             self.equal_nan,
             self.n_jobs
         )
+
+        self._check_n_features( X, reset=False)
+
+        self._check_feature_names(X, reset=False)
 
         # _validation should have caught non-numeric X. X must only be
         # numeric throughout all of SPF.

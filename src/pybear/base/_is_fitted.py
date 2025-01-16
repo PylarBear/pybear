@@ -116,6 +116,7 @@ def is_fitted(
     fitted_attrs = [
         v for v in vars(estimator) if v.endswith("_") and not v.startswith("__")
     ]
+
     return len(fitted_attrs) > 0
 
 

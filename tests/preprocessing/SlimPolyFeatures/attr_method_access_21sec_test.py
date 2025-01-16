@@ -6,14 +6,14 @@
 
 
 
-
 import pytest
 
-from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+from pybear.preprocessing import SlimPolyFeatures as SlimPoly
 
+import sys
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
@@ -22,7 +22,6 @@ from pybear.base.exceptions import NotFittedError
 
 
 bypass = False
-
 
 
 
@@ -52,7 +51,7 @@ def _kwargs():
         'equal_nan': True,
         'rtol': 1e-5,
         'atol': 1e-8,
-        'n_jobs': 1
+        'n_jobs': 1  # leave this at 1 because of confliction
     }
 
 
@@ -88,9 +87,9 @@ def _y_np(_shape):
 
 
 
-# ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM, ATTR ACCURACY
+# ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestATTRAccessBeforeAndAfterFitAndTransform:
+class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
     @staticmethod
@@ -107,82 +106,126 @@ class TestATTRAccessBeforeAndAfterFitAndTransform:
         ]
 
 
-    @pytest.mark.parametrize('x_format', ('np', 'pd'))
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
     def test_attr_access(
         self, _X_np, _X_pd, _y_np, _columns, _kwargs, _shape, _attrs, x_format
     ):
+
+        if x_format == 'np':
+            NEW_X = _X_np.copy()
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        elif x_format == 'pd':
+            NEW_X = _X_pd
+            NEW_Y = pd.DataFrame(
+                data=np.random.randint(0, 2, _shape[0]), columns=['y']
+            )
+        elif x_format == 'csc':
+            NEW_X = ss.csc_array(_X_np.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        elif x_format == 'csr':
+            NEW_X = ss.csr_array(_X_np.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        elif x_format == 'coo':
+            NEW_X = ss.coo_array(_X_np.copy())
+            NEW_Y = np.random.randint(0, 2, _shape[0])
+        else:
+            raise Exception
+
 
         TestCls = SlimPoly(**_kwargs)
 
         # BEFORE FIT ***************************************************
 
-        # ALL OF THESE SHOULD GIVE AttributeError
-        # SPF native attrs raise NotFittedError which is child of AttrError
+        # ALL OF THESE SHOULD GIVE AttributeError/NotFittedError
+        # SPF external attrs are @property and raise NotFittedError
+        # which is child of AttrError
         # n_features_in_ & feature_names_in_ dont exist before fit
         for attr in _attrs:
-            with pytest.raises(AttributeError):
-                getattr(TestCls, attr)
+            if attr in ['n_features_in_', 'feature_names_in_']:
+                with pytest.raises(AttributeError):
+                    getattr(TestCls, attr)
+            else:
+                with pytest.raises(NotFittedError):
+                    getattr(TestCls, attr)
 
         # END BEFORE FIT ***********************************************
 
         # AFTER FIT ****************************************************
 
-        TestCls.fit(
-            _X_np if x_format == 'np' else _X_pd,
-            _y_np if x_format == 'np' else pd.DataFrame(data=_y_np)
-        )
+        TestCls.fit(NEW_X, NEW_Y)
 
         # all attrs should be accessible after fit, the only exception
-        # should be feature_names_in_ if numpy
+        # should be feature_names_in_ if not pd
         for attr in _attrs:
-
             try:
                 out = getattr(TestCls, attr)
-                if attr == 'feature_names_in_' and x_format == 'pd':
-                    assert np.array_equiv(out, _columns), \
-                        f"{attr} after fit() != originally passed columns"
+                if attr == 'feature_names_in_':
+                    if x_format == 'pd':
+                        assert np.array_equiv(out, _columns), \
+                            f"{attr} after fit() != originally passed columns"
+                    else:
+                        raise AssertionError(
+                            f"{x_format} allowed access to 'feature_names_in_"
+                        )
                 elif attr == 'n_features_in_':
-                    assert out == _shape[1], \
-                        f"{attr} after fit() != number of originally passed columns"
+                    assert out == _shape[1]
+                else:
+                    # not validating accuracy of other module specific outputs
+                    pass
+
             except Exception as e:
-                if attr == 'feature_names_in_' and x_format == 'np':
+                if attr == 'feature_names_in_' and x_format != 'pd':
                     assert isinstance(e, AttributeError)
                 else:
-                    raise
+                    raise AssertionError(
+                        f"unexpected exception {sys.exc_info()[0]} accessing "
+                        f"{attr} after fit, x_format == {x_format}"
+                    )
 
         # END AFTER FIT ************************************************
 
         # AFTER TRANSFORM **********************************************
 
-        TestCls.transform(_X_np if x_format == 'np' else _X_pd)
+        TestCls.transform(NEW_X)
 
         # after transform, should be the exact same condition as after
         # fit, and pass the same tests
         for attr in _attrs:
             try:
                 out = getattr(TestCls, attr)
-                if attr == 'feature_names_in_' and x_format == 'pd':
-                    assert np.array_equiv(out, _columns), \
-                        f"{attr} after fit() != originally passed columns"
+                if attr == 'feature_names_in_':
+                    if x_format == 'pd':
+                        assert np.array_equiv(out, _columns), \
+                            f"{attr} after fit() != originally passed columns"
+                    else:
+                        raise AssertionError(
+                            f"{x_format} allowed access to 'feature_names_in_"
+                        )
                 elif attr == 'n_features_in_':
-                    assert out == _shape[1], \
-                        f"{attr} after fit() != number of originally passed columns"
+                    assert out == _shape[1]
+                else:
+                    # not validating accuracy of other module specific outputs
+                    pass
+
             except Exception as e:
-                if attr == 'feature_names_in_' and x_format == 'np':
+                if attr == 'feature_names_in_' and x_format != 'pd':
                     assert isinstance(e, AttributeError)
                 else:
-                    raise
+                    raise AssertionError(
+                        f"unexpected exception {sys.exc_info()[0]} accessing "
+                        f"{attr} after fit, x_format == {x_format}"
+                    )
 
         # END AFTER TRANSFORM ******************************************
 
-        del TestCls
+        del NEW_X, NEW_Y, TestCls
 
-# END ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM, ATTR ACCURACY
+# END ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
 
 
 # ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM ***
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
+class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
 
 
     @staticmethod
@@ -202,7 +245,7 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         ]
 
 
-    def test_access_methods_before_fit(self, _X_np, _kwargs):
+    def test_access_methods_before_fit(self, _X_np, _y_np, _kwargs):
 
         TestCls = SlimPoly(**_kwargs)
 
@@ -210,7 +253,7 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # vvv BEFORE FIT vvv *******************************************
 
         # fit()
-        assert isinstance(TestCls.fit(_X_np), SlimPoly)
+        assert isinstance(TestCls.fit(_X_np, _y_np), SlimPoly)
 
         # HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^v^v^v
         # Reset Changes is_fitted To False:
@@ -224,7 +267,7 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^v^v^v
 
         # fit_transform()
-        assert isinstance(TestCls.fit_transform(_X_np), np.ndarray)
+        assert isinstance(TestCls.fit_transform(_X_np, _y_np), np.ndarray)
 
         TestCls.reset()
 
@@ -240,18 +283,18 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         assert isinstance(TestCls.get_params(True), dict)
 
         # inverse_transform()
-        # SPF should never have inverse_transform
+        # SPF should never have inverse_transform method
         with pytest.raises(AttributeError):
             getattr(TestCls, 'inverse_transform')
 
         # partial_fit()
-        assert isinstance(TestCls.partial_fit(_X_np), SlimPoly)
+        assert isinstance(TestCls.partial_fit(_X_np, _y_np), SlimPoly)
 
         # reset()
         assert isinstance(TestCls.reset(), SlimPoly)
 
         # score()
-        assert TestCls.score(_X_np) is None
+        assert TestCls.score(_X_np, _y_np) is None
 
         # set_params()
         assert isinstance(TestCls.set_params(keep='last'), SlimPoly)
@@ -262,7 +305,7 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
             TestCls.transform(_X_np)
 
         # pizza this is perhaps coming out during sklearn exorcism!
-        # 25_10_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+        # 25_01_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
         # with pb.FitTransformMixin, that does not have set_output.
         # set_output()
         pytest.xfail(reason=f"pizza says so")
@@ -322,12 +365,14 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # transform()
         assert isinstance(TestCls.transform(_X_np), np.ndarray)
 
-        # pizza this is probably coming out during sklearn exorcism!
-        # 25_10_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+        # pizza this is perhaps coming out during sklearn exorcism!
+        # 25_01_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
         # with pb.FitTransformMixin, that does not have set_output.
         # set_output()
         pytest.xfail(reason=f"pizza says so")
-        assert isinstance(TestCls.set_output(transform='default'), SlimPoly)
+        assert isinstance(TestCls.set_output(transform='pandas'), SlimPoly)
+
+        del TestCls
 
         # END ^^^ AFTER FIT ^^^ ****************************************
         # **************************************************************
@@ -387,8 +432,8 @@ class TestMETHODAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(_X_np), np.ndarray)
 
-        # pizza this is probably coming out during sklearn exorcism!
-        # 25_10_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+        # pizza this is perhaps coming out during sklearn exorcism!
+        # 25_01_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
         # with pb.FitTransformMixin, that does not have set_output.
         # set_output()
         pytest.xfail(reason=f"pizza says so")

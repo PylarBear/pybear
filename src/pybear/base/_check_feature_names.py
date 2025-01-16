@@ -119,9 +119,6 @@ def check_feature_names(
     # polars dataframe
     # any of the scipy sparse matrices / arrays (always 2D)
 
-    # if implemented, some validation that might be done is:
-    # hasattr(X, 'shape')
-
 
     try:
         if pfn is None:

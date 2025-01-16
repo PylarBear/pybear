@@ -6,7 +6,7 @@
 
 
 
-from typing import Optional
+from typing import Optional, Iterable
 from typing_extensions import Self, Union
 from ._type_aliases import (
     KeepType,
@@ -40,21 +40,15 @@ from ...base import (
     SetParamsMixin
 )
 
-from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
-from sklearn.utils._param_validation import StrOptions
-from sklearn.utils.validation import check_array
-
-
 
 
 
 class InterceptManager(
+FeatureMixin,
 FitTransformMixin,
 GetParamsMixin,
 ReprMixin,
-SetParamsMixin,
-BaseEstimator,
-TransformerMixin
+SetParamsMixin
 ):
 
     """
@@ -453,18 +447,6 @@ TransformerMixin
 
     """
 
-    # bearpizza
-    # _parameter_constraints: dict = {
-    #     "keep": [
-    #         StrOptions({"first", "last", "random", "none"}),
-    #         dict, Integral, str, callable
-    #     ],
-    #     "equal_nan": ["boolean"],
-    #     "rtol": [Real],
-    #     "atol": [Real],
-    #     "n_jobs": [Integral, None]
-    # }
-
 
     def __init__(
         self,
@@ -483,8 +465,7 @@ TransformerMixin
         self.n_jobs = n_jobs
 
 
-
-    def _reset(self):
+    def _reset(self) -> Self:
 
         """
         Reset internal data-dependent state of InterceptManager.
@@ -493,10 +474,16 @@ TransformerMixin
         """
 
         if hasattr(self, 'constant_columns_'):
-            del self.constant_columns_
-            del self.kept_columns_
-            del self.removed_columns_
-            del self.column_mask_
+
+            delattr(self, 'constant_columns_')
+            delattr(self, 'kept_columns_')
+            delattr(self, 'removed_columns_')
+            delattr(self, 'column_mask_')
+            delattr(self, 'n_features_in_')
+            if hasattr(self, 'feature_names_in_'):
+                delattr(self, 'feature_names_in_')
+
+        return self
 
 
     def get_feature_names_out(self, input_features=None):
@@ -579,8 +566,7 @@ TransformerMixin
 
     # def get_params - inherited from GetParamsMixin
 
-    # bearpizza
-    # @_fit_context(prefer_skip_nested_validation=True)
+
     def partial_fit(
         self,
         X:DataFormatType,
@@ -613,46 +599,24 @@ TransformerMixin
 
         """
 
-        # keep this before _validate_data. when X is junk, _validate_data
-        # and check_array except for varying reasons. this standardizes
-        # the error message for non-np/pd/ss X.
-        _val_X(X)
 
-        # bearpizza
-        # validation of X must be done here, not in a separate module
-        # BaseEstimator has _validate_data method, which when called
-        # exposes n_features_in_ and feature_names_in_.
-        X = self._validate_data(
-            X=X,
-            reset=not hasattr(self, "constant_columns_"),
+        X = validate_data(
+            X,
+            copy_X=False,
             cast_to_ndarray=False,
-            # vvv become **check_params, and get fed to check_array()
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-            dtype=None,
-            force_all_finite="allow-nan",
-            ensure_2d=True,
+            dtype='any',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(2,),
+            ensure_2d=False,
+            order='F',
             ensure_min_features=1,
-            order='F'
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
-
-
-        # X = validate_data(
-        #     X,
-        #     copy_X=True,
-        #     cast_to_ndarray=False,
-        #     accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-        #     dtype='any',
-        #     require_all_finite=False,
-        #     cast_inf_to_nan=False,
-        #     standardize_nan=False,
-        #     allowed_dimensionality=(2,),
-        #     ensure_2d=False,
-        #     order='F',
-        #     ensure_min_features=1,
-        #     ensure_max_features=None,
-        #     ensure_min_samples=1,
-        #     sample_check=None
-        # )
 
 
 
@@ -662,15 +626,20 @@ TransformerMixin
         # It is recommended to call reset=True in fit and in the first call
         # to partial_fit. All other methods that validate X should set
         # reset=False.
-        #
-        # cast_to_ndarray – Cast X and y to ndarray with checks in
-        # check_params. If False, X and y are unchanged and only
-        # feature_names_in_ and n_features_in_ are checked.
 
+        # do not make an assignment! let the function handle it.
+        self._check_n_features(
+            X,
+            reset=not hasattr(self, "constant_columns_")
+        )
 
-        # this must be after _validate_data, needs feature_names_in_ to
-        # be exposed, if available.
+        # do not make an assignment! let the function handle it.
+        self._check_feature_names(
+            X,
+            reset=not hasattr(self, "constant_columns_")
+        )
 
+        # this must be after _check_feature_names()
         _validation(
             X,
             getattr(self, 'feature_names_in_', None),
@@ -680,23 +649,6 @@ TransformerMixin
             self.atol,
             self.n_jobs
         )
-
-
-        err_msg = (
-            f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
-            f"dataframe, or scipy sparce matrix or array, with at least "
-            f"1 column and 1 example."
-        )
-
-        # sklearn _validate_data & check_array are not catching this
-        if len(X.shape) != 2:
-            raise ValueError(err_msg)
-
-
-        # sklearn _validate_data & check_array are not catching this
-        if X.shape[1] < 1:
-            raise ValueError(err_msg)
-
 
         # ss sparse that cant be sliced
         if isinstance(
@@ -828,7 +780,7 @@ TransformerMixin
         the number of columns that are expected to be outputted by
         :method: transform for the current state of IM. It is up to the
         user to ensure the state of IM aligns with the state of the data
-        that is to undergo inverse transform. Otherwise the output will
+        that is to undergo inverse transform. Otherwise, the output will
         be nonsensical.
 
 
@@ -857,28 +809,30 @@ TransformerMixin
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
-        # keep this before check_array. when X is junk, _validate_data
-        # and check_array except for varying reasons. this standardizes
-        # the error message for non-np/pd/ss X.
-        _val_X(X)
-
-        # dont assign to X, check_array always converts to ndarray
-        check_array(
-            array=X,
+        X = validate_data(
+            X,
+            copy_X=copy or False,
+            cast_to_ndarray=False,
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-            dtype=None,
-            force_all_finite="allow-nan",
-            ensure_2d=True,
-            copy=copy or False,
+            dtype='any',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(2,),
+            ensure_2d=False,
             order='F',
-            ensure_min_samples=1,  # this is doing squat, validated in _val_X
             ensure_min_features=1,
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
 
-        # if _keep is a dict, a column of constants was stacked to the right
-        # side of the data. check that _keep is valid (may have changed via
-        # set_params()), the passed data matches against _keep, and remove
-        # the column
+        _val_X(X)
+
+        # if _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # a column of constants was stacked to the right side of the data.
+        # check that 'keep' is valid (may have changed via set_params()),
+        # the passed data matches against 'keep', and remove the column
         if isinstance(self.keep, dict):
 
             _name = list(self.keep.keys())[0]
@@ -921,18 +875,17 @@ TransformerMixin
                 _unqs = np.unique(X.iloc[:, -1].to_numpy())
             elif hasattr(X, 'toarray'):
                 _unqs = np.unique(X.tocsc().getcol(-1).toarray())
+            else:
+                raise Exception
 
             _key = list(self.keep.keys())[0]
-            _value_matches = False
-            try:
-                _value = float(self.keep[_key])
-                assert _value == _unqs[0]
-                _value_matches = True
-            except:
-                if _unqs[0] == self.keep[_key]:
-                    _value_matches = True
+            if len(_unqs) == 1:
+                try:
+                    _are_equal = (float(self.keep[_key]) == float(_unqs[0]))
+                except:
+                    _are_equal = (self.keep[_key] == _unqs[0])
 
-            if len(_unqs) == 1 and _value_matches:
+            if len(_unqs) == 1 and _are_equal:
                 if isinstance(X, np.ndarray):
                     X = np.delete(X, -1, axis=1)
                 elif isinstance(X, pd.core.frame.DataFrame):
@@ -943,21 +896,27 @@ TransformerMixin
                     X = _og_dtype(X)
                     del _og_dtype
             else:
+                if len(_unqs) == 1:
+                    _addon = f" last column value = {_unqs[0]}."
+                else:
+                    _addon = f" last column is not constant."
+
                 raise ValueError(
                     f":param: 'keep' is a dictionary but the last column "
-                    f"of the data to be inverse transformed does not match "
-                    f"{_unqs[0]=}, {self.keep[_key]=}"
+                    f"of the data to be inverse transformed does not match."
+                    f"keep={self.keep}, but {_addon}."
                 )
 
-            del _value_matches
+            del _unqs, _key, _are_equal
+        # END _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # the number of columns in X must be equal to the number of features
         # remaining in column_mask_
         if X.shape[1] != np.sum(self.column_mask_):
             raise ValueError(
                 f"the number of columns in X must be equal to the number of "
-                f"columns kept from the fitted data after removing constants "
-                f"({np.sum(self.column_mask_)})"
+                f"columns kept from the fitted data after removing constants. "
+                f"\nexpected {np.sum(self.column_mask_)}, got {X.shape[1]}."
             )
 
         X = _inverse_transform(
@@ -974,7 +933,7 @@ TransformerMixin
         return X
 
 
-    def score(self, X, y=None):
+    def score(self, X, y:Union[Iterable[any], None]=None) -> None:
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.
@@ -1026,29 +985,27 @@ TransformerMixin
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
-        # keep this before _validate_data. when X is junk, _validate_data
-        # and check_array except for varying reasons. this standardizes
-        # the error message for non-np/pd/ss X.
-        _val_X(X)
-
-        X_tr = self._validate_data(
-            X=X,
-            reset=False,
+        X_tr = validate_data(
+            X,
+            copy_X=copy or False,
             cast_to_ndarray=False,
-            copy=copy or False,
             accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-            dtype=None,
-            force_all_finite="allow-nan",
-            ensure_2d=True,
+            dtype='any',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(2,),
+            ensure_2d=False,
+            order='F',
             ensure_min_features=1,
-            ensure_min_samples=1,  # this is doing squat, validated in _val_X
-            order ='F'
+            ensure_max_features=None,
+            ensure_min_samples=1,
+            sample_check=None
         )
 
         _validation(
             X_tr,
-            self.feature_names_in_ if \
-                hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self.keep,
             self.equal_nan,
             self.rtol,
@@ -1056,6 +1013,11 @@ TransformerMixin
             self.n_jobs
         )
 
+        # do not make an assignment! let the function handle it.
+        self._check_n_features(X_tr, reset=False)
+
+        # do not make an assignment! let the function handle it.
+        self._check_feature_names(X_tr, reset=False)
 
         # everything below needs to be redone every transform in case 'keep'
         # was changed via set params after fit

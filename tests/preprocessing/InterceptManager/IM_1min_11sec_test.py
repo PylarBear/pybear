@@ -250,19 +250,19 @@ class TestExceptsAnytimeXisNone:
 
         # this is handled by _val_X
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             IM(**_kwargs).fit(None)
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             IM(**_kwargs).partial_fit(None)
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             TestCls = IM(**_kwargs)
             TestCls.fit(_X_np)
             TestCls.transform(None)
             del TestCls
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             IM(**_kwargs).fit_transform(None)
 
 
@@ -380,6 +380,9 @@ class TestOutputTypes:
 
     _base_objects = ['np_array', 'pandas', 'scipy_sparse_csc']
 
+    # 25_10_16_08_36_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+    # with pb.FitTransformMixin, that does not have set_output.
+    @pytest.mark.xfail(reason=f"pizza, come back when set_output is ready")
     @pytest.mark.parametrize('x_input_type', _base_objects)
     @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
     def test_output_types(
@@ -997,7 +1000,7 @@ class TestPartialFit:
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #      hasattr(_X, 'toarray'):
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             IM(**_kwargs).partial_fit(_junk_X)
 
 
@@ -1227,7 +1230,7 @@ class TestTransform:
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #     hasattr(_X, 'toarray'):
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             _IM.transform(_junk_X)
 
 
@@ -1435,11 +1438,9 @@ class TestInverseTransform:
         _IM = IM(**_kwargs)
         _IM.fit(_X_np)
 
-        # this is being caught by _val_X at the top of inverse_transform.
-        # in particular,
-        # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
-        #     hasattr(_X, 'toarray'):
-        with pytest.raises(TypeError):
+        # this is being caught by _validate_data() at the top of
+        # inverse_transform. in particular, try: X.shape
+        with pytest.raises(ValueError):
             _IM.inverse_transform(_junk_X)
 
 
