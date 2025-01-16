@@ -428,16 +428,16 @@ class TestExceptsAnytimeXisNone:
         with pytest.raises(ValueError):
             SlimPoly(**_kwargs).fit(None)
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             SlimPoly(**_kwargs).partial_fit(None)
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             TestCls = SlimPoly(**_kwargs)
             TestCls.fit(_X_np)
             TestCls.transform(None)
             del TestCls
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             SlimPoly(**_kwargs).fit_transform(None)
 
 

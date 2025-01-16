@@ -171,7 +171,7 @@ class SlimPolyFeatures(
     this method, even if the data is bigger-than-memory, SPF is able to
     learn what columns in X are constant/duplicate and what columns
     in the expansion are constant/duplicate, and carry out instructions
-    to build the expansion batch-wise.  This partial_fit method makes
+    to build the expansion batch-wise. This partial_fit method makes
     SPF amenable to batch-wise fitting and transforming, such as via
     dask_ml Incremental and ParallelPostFit wrappers.
 
@@ -931,7 +931,6 @@ class SlimPolyFeatures(
             sample_check=None
         )
 
-
         _validation(
             X,
             self.degree,
@@ -946,6 +945,7 @@ class SlimPolyFeatures(
             self.equal_nan,
             self.n_jobs
         )
+
 
         # these both must be None on the first pass!
         # on subsequent passes, the holders may not be empty.
@@ -1289,6 +1289,9 @@ class SlimPolyFeatures(
         """
 
         pass
+
+
+    # def set_output()  pizza
 
 
     def set_params(self, **params) -> Self:
