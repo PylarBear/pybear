@@ -9,7 +9,8 @@
 from typing import Optional
 from typing_extensions import Self, Union
 from ._type_aliases import (
-    KeepType, DataFormatType
+    KeepType,
+    DataFormatType
 )
 
 from numbers import Real, Integral
@@ -28,16 +29,33 @@ from ._shared._manage_keep import _manage_keep
 from ._inverse_transform._inverse_transform import _inverse_transform
 from ._transform._transform import _transform
 
+from ...base import (
+    check_is_fitted,
+    get_feature_names_out,
+    validate_data,
+    FeatureMixin,
+    FitTransformMixin,
+    GetParamsMixin,
+    ReprMixin,
+    SetParamsMixin
+)
+
 from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
 from sklearn.utils._param_validation import StrOptions
 from sklearn.utils.validation import check_array
 
-from ...base import check_is_fitted, get_feature_names_out
 
 
 
 
-class InterceptManager(BaseEstimator, TransformerMixin):
+class InterceptManager(
+FitTransformMixin,
+GetParamsMixin,
+ReprMixin,
+SetParamsMixin,
+BaseEstimator,
+TransformerMixin
+):
 
     """
     InterceptManager (IM) is a scikit-style transformer that identifies
@@ -435,17 +453,17 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
     """
 
-
-    _parameter_constraints: dict = {
-        "keep": [
-            StrOptions({"first", "last", "random", "none"}),
-            dict, Integral, str, callable
-        ],
-        "equal_nan": ["boolean"],
-        "rtol": [Real],
-        "atol": [Real],
-        "n_jobs": [Integral, None]
-    }
+    # bearpizza
+    # _parameter_constraints: dict = {
+    #     "keep": [
+    #         StrOptions({"first", "last", "random", "none"}),
+    #         dict, Integral, str, callable
+    #     ],
+    #     "equal_nan": ["boolean"],
+    #     "rtol": [Real],
+    #     "atol": [Real],
+    #     "n_jobs": [Integral, None]
+    # }
 
 
     def __init__(
@@ -522,7 +540,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         """
 
         # get_feature_names_out() would otherwise be provided by
-        # pybear.base.GFNOMixin, but since this transformer deletes
+        # pybear.base.FeatureMixin, but since this transformer deletes
         # and/or adds columns, must build a one-off.
 
         # when there is a {'Intercept': 1} in :param: keep, need to make
@@ -559,12 +577,10 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         )
 
 
-    # def get_params - inherited from BaseEstimator
-    # if ever needed, hard code that can be substituted for the
-    # BaseEstimator get/set_params can be found in GSTCV_Mixin
+    # def get_params - inherited from GetParamsMixin
 
-
-    @_fit_context(prefer_skip_nested_validation=True)
+    # bearpizza
+    # @_fit_context(prefer_skip_nested_validation=True)
     def partial_fit(
         self,
         X:DataFormatType,
@@ -602,6 +618,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         # the error message for non-np/pd/ss X.
         _val_X(X)
 
+        # bearpizza
         # validation of X must be done here, not in a separate module
         # BaseEstimator has _validate_data method, which when called
         # exposes n_features_in_ and feature_names_in_.
@@ -617,6 +634,27 @@ class InterceptManager(BaseEstimator, TransformerMixin):
             ensure_min_features=1,
             order='F'
         )
+
+
+        # X = validate_data(
+        #     X,
+        #     copy_X=True,
+        #     cast_to_ndarray=False,
+        #     accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+        #     dtype='any',
+        #     require_all_finite=False,
+        #     cast_inf_to_nan=False,
+        #     standardize_nan=False,
+        #     allowed_dimensionality=(2,),
+        #     ensure_2d=False,
+        #     order='F',
+        #     ensure_min_features=1,
+        #     ensure_max_features=None,
+        #     ensure_min_samples=1,
+        #     sample_check=None
+        # )
+
+
 
         # reset – Whether to reset the n_features_in_ attribute. If False,
         # the input will be checked for consistency with data provided when
@@ -635,8 +673,7 @@ class InterceptManager(BaseEstimator, TransformerMixin):
 
         _validation(
             X,
-            self.feature_names_in_ if \
-                hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self.keep,
             self.equal_nan,
             self.rtol,
@@ -946,11 +983,12 @@ class InterceptManager(BaseEstimator, TransformerMixin):
         pass
 
 
-    # def set_params(self) - inherited from TransformerMixin
-    # if ever needed, hard code that can be substituted for the
-    # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
-    # def set_output(self) - inherited from TransformerMixin
+    # def set_params(self) - inherited from SetParamsMixin
+
+
+    # pizza
+    # def set_output(self)
 
 
     def transform(
