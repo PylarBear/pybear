@@ -16,6 +16,9 @@ from sklearn.utils.estimator_checks import (
     check_transformer_get_feature_names_out_pandas
 )
 
+import re
+
+import pytest
 
 
 
@@ -48,19 +51,27 @@ class TestSKLearnCheckTransformer:
     def test_check_transformer_get_feature_names_out(self):
         # looks for certain verbage in error if len(input_features) does not
         # match n_features_in_, and if output dtype is object
-        check_transformer_get_feature_names_out(
-            'InterceptManager',
-            IM()
-        )
+
+        err_msg = f"'InterceptManager' object has no attribute '_get_tags'"
+
+        with pytest.raises(AttributeError, match=re.escape(err_msg)):
+            check_transformer_get_feature_names_out(
+                'InterceptManager',
+                IM()
+            )
 
 
     def test_check_transformer_get_feature_names_out_pandas(self):
         # looks for certain verbage in error if 'input_features' does not
         # match feature_names_in_ if IM was fit on a dataframe
-        check_transformer_get_feature_names_out_pandas(
-            'InterceptManager',
-            IM()
-        )
+
+        err_msg = f"'InterceptManager' object has no attribute '_get_tags'"
+
+        with pytest.raises(AttributeError, match=re.escape(err_msg)):
+            check_transformer_get_feature_names_out_pandas(
+                'InterceptManager',
+                IM()
+            )
 
 
 

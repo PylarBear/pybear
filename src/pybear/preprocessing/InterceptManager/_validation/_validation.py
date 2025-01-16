@@ -6,6 +6,7 @@
 
 
 
+from ._X import _val_X
 from ._keep_and_columns import _val_keep_and_columns
 from ._equal_nan import _val_equal_nan
 from ._rtol import _val_rtol
@@ -19,8 +20,6 @@ from .._type_aliases import (
 from typing_extensions import Union
 import numpy.typing as npt
 from numbers import Real, Integral
-
-import pandas as pd
 
 
 
@@ -84,6 +83,8 @@ def _validation(
 
     """
 
+
+    _val_X(_X)
 
     _val_keep_and_columns(_keep, _columns, _X)
 

@@ -320,6 +320,26 @@ def validate_data(
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
+    # requirements of X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # some attr/methods are not *absolutely* necessary, such as:
+    # 'copy' is only called throughout validate_data and submodules if
+    #   'copy_X' is True
+    # 'astype' is only called by check_dtype() when 'dtype' is 'numeric'
+    # 'reshape'/'to_frame' is only called if ensure_2D:True and X not 2D
+    # but check_shape() is not optional, ensure_min_features and
+    # ensure_min_samples must be passed, so 'shape' is a must, but it
+    # is failing in other random ways prior to check_shape(). check it
+    # here to standardize the error.
+    try:
+        X.shape
+    except:
+        raise ValueError(
+            f"\nThe passed object does not have a 'shape' attribute. "
+            f"\nAll pybear estimators and transformers require data-bearing "
+            f"objects to have a 'shape' attribute, like numpy arrays, pandas "
+            f"dataframes, and scipy sparse matrices / arrays."
+        )
+    # END requirements of X -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     # avoid multiple copies of X. do not set 'copy_X' for each of the

@@ -20,13 +20,11 @@ def _val_X(
 ) -> None:
 
     """
-    Validate the dimensions of the data. Cannot be None, must be numpy
-    ndarray, pandas dataframe, or scipy sparse matrix/array. Must have
-    at least 1 example.
+    Validate the data. Cannot be None, must be numpy ndarray, pandas
+    dataframe, or scipy sparse matrix/array.
 
     All other validation of the data is handled in the individual class
-    methods, either by pybear or by the _validate_data function of the
-    sklearn BaseEstimator mixin at fitting and transform.
+    methods by pybear.base.validate_data.
 
 
     Parameters
@@ -46,7 +44,6 @@ def _val_X(
 
 
 
-
     # sklearn _validate_data & check_array are not catching dask arrays & dfs.
     if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         hasattr(_X, 'toarray'):
@@ -55,13 +52,6 @@ def _val_X(
             f"pandas dataframe, or any scipy sparce matrix / array."
         )
 
-
-    if _X.shape[0] < 1:
-        raise ValueError(
-            f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
-            f"dataframe, or scipy sparce matrix or array, with at least "
-            f"1 example."
-        )
 
 
 

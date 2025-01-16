@@ -112,7 +112,7 @@ def check_dtype(
             if isinstance(X, pd.core.series.Series):
                 try:
                     # empiricism shows must use nan_mask not nan_mask_numerical.
-                    np.float64(X.copy()[np.logical_not(nan_mask(X))])
+                    np.float64(X[np.logical_not(nan_mask(X))])
                 except:
                     raise ValueError(err_msg)
 
