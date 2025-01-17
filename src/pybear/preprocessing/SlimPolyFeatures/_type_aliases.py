@@ -41,6 +41,24 @@ DataType: TypeAlias = Union[
 ]
 
 
+InternalSparseTypes: TypeAlias = Union[
+    ss._csr.csr_matrix,
+    ss._csc.csc_matrix,
+    ss._lil.lil_matrix,
+    ss._dok.dok_matrix,
+    ss._csr.csr_array,
+    ss._csc.csc_array,
+    ss._lil.lil_array,
+    ss._dok.dok_array
+]
+
+InternalDataType: TypeAlias = Union[
+    npt.NDArray,
+    pd.DataFrame,
+    InternalSparseTypes
+]
+
+
 FeatureNameCombinerType: TypeAlias = \
     Union[
         Callable[[Iterable[str], tuple[int, ...]], str],

@@ -15,6 +15,7 @@ from ._nan_masking import (
     nan_mask
 )
 from ._permuter import permuter
+from ._scipy_sparse_preslice_handle import scipy_sparse_preslice_handle
 from ._serial_index_mapper import serial_index_mapper
 
 
@@ -44,6 +45,7 @@ __all__ = [
     "nan_mask_numerical",
     "nan_mask_string",
     "permuter",
+    "scipy_sparse_preslice_handle",
     "serial_index_mapper",
     "time_memory_benchmark",
     "timer"

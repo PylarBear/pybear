@@ -28,7 +28,7 @@ import numbers
 
 
 def _validation(
-    _X:DataType,
+    _X: DataType,
     _degree: numbers.Integral,
     _min_degree: numbers.Integral,
     _scan_X: bool,

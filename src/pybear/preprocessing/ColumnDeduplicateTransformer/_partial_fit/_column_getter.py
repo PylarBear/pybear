@@ -59,13 +59,13 @@ def _column_getter(
         # attributes, hstack them, and send that off for equality test
 
         # Extract the data and indices of the column
-        c1 = _X.getcol(_col_idx).tocsc()  # tocsc() is important, must stay
+        # PIZZABEAR COME BACK TO THIS tocsc(), IS IT REALLY NECESSARY?
+        c1 = _X[:, [_col_idx]].tocsc()  # tocsc() is important, must stay
         column = np.hstack((c1.indices, c1.data))
         del c1
 
         # old code that converts a ss column to np array
-        # _X_wip = _X.copy().tocsc()
-        # column = _X_wip[:, [_col_idx]].toarray().ravel()
+        # column = _X.copy().tocsc()[:, [_col_idx]].toarray().ravel()
         # del _X_wip
     else:
         raise TypeError(f"invalid data type '{type(_X)}'")

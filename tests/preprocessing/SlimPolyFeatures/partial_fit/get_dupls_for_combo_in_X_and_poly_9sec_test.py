@@ -110,8 +110,8 @@ class TestDuplsForComboValidation(Fixtures):
 
     # def _get_dupls_for_combo_in_X_and_poly(
     #     _COLUMN: npt.NDArray[any],
-    #     _X: DataType,
-    #     _POLY_CSC: ss.csc_array,
+    #     _X: InternalDataType,
+    #     _POLY_CSC: Union[ss.csc_array, ss.csc_matrix],
     #     _equal_nan: bool,
     #     _rtol: numbers.Real,
     #     _atol: numbers.Real,
@@ -207,6 +207,40 @@ class TestDuplsForComboValidation(Fixtures):
                 _n_jobs=_n_jobs
             )
 
+
+    @pytest.mark.parametrize('_format',
+        ('coo_matrix', 'coo_array', 'dia_matrix',
+         'dia_array', 'bsr_matrix', 'bsr_array')
+    )
+    def test_X_rejects_coo_dia_bsr(
+        self, _format, _good_COLUMN, _X_np, _good_POLY_CSC, _equal_nan,
+        _rtol_atol, _n_jobs
+    ):
+
+        if _format == 'coo_matrix':
+            _bad_X = ss._coo.coo_matrix(_X_np)
+        elif _format == 'dia_matrix':
+            _bad_X = ss._dia.dia_matrix(_X_np)
+        elif _format == 'bsr_matrix':
+            _bad_X = ss._bsr.bsr_matrix(_X_np)
+        elif _format == 'coo_array':
+            _bad_X = ss._coo.coo_array(_X_np)
+        elif _format == 'dia_array':
+            _bad_X = ss._dia.dia_array(_X_np)
+        elif _format == 'bsr_array':
+            _bad_X = ss._bsr.bsr_array(_X_np)
+        else:
+            raise Exception
+
+        with pytest.raises(AssertionError):
+            _get_dupls_for_combo_in_X_and_poly(
+                _good_COLUMN,
+                _bad_X,
+                _good_POLY_CSC,
+                _equal_nan,
+                *_rtol_atol,
+                _n_jobs=_n_jobs
+            )
 
     # END _X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
