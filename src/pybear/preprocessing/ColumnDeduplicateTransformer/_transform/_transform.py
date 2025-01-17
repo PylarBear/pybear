@@ -5,7 +5,7 @@
 #
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataContainer
 import numpy.typing as npt
 
 import numpy as np
@@ -17,9 +17,9 @@ import pandas as pd
 
 
 def _transform(
-    X: DataType,
+    X: DataContainer,
     _column_mask: npt.NDArray[bool]
-) -> DataType:
+) -> DataContainer:
 
     """
     Remove the duplicate columns from X as indicated in the _column_mask

@@ -22,7 +22,7 @@ class TestManageKeep:
 
     # def _manage_keep(
     #     _keep: KeepType,
-    #     _X: DataFormatType,
+    #     _X: DataContainer,
     #     constant_columns_: dict[int, any],
     #     _n_features_in: int,
     #     _feature_names_in: Union[npt.NDArray[str], None],

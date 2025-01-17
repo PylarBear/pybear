@@ -6,9 +6,7 @@
 
 
 
-from typing_extensions import Union
-import numpy.typing as npt
-from .._type_aliases import SparseTypes
+from .._type_aliases import DataContainer
 
 import numpy as np
 import pandas as pd
@@ -16,7 +14,7 @@ import pandas as pd
 
 
 def _val_X(
-    _X: Union[npt.NDArray[any], pd.DataFrame, SparseTypes]
+    _X: DataContainer
 ) -> None:
 
     """

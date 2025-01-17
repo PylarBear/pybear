@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataContainer
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ import pandas as pd
 
 
 def _val_X(
-    _X: DataType,
+    _X: DataContainer,
     _interaction_only: bool
 ) -> None:
 

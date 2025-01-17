@@ -1087,7 +1087,7 @@ class TestPartialFit:
 
     #     def partial_fit(
     #         self,
-    #         X: DataType,
+    #         X: DataContainer,
     #         y: any=None
     #     ) -> Self:
 
@@ -1226,10 +1226,10 @@ class TestTransform:
 
     #     def transform(
     #         self,
-    #         X: DataType,
+    #         X: DataContainer,
     #         *,
     #         copy: bool = None
-    #     ) -> DataType:
+    #     ) -> DataContainer:
 
     # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None

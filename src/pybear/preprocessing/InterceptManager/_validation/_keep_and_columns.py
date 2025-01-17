@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import DataFormatType, KeepType
+from .._type_aliases import DataContainer, KeepType
 from typing import Iterable
 from typing_extensions import Union
 import warnings
@@ -17,7 +17,7 @@ import warnings
 def _val_keep_and_columns(
     _keep: KeepType,
     _columns: Union[Iterable[str], None],
-    _X: DataFormatType
+    _X: DataContainer
 ) -> None:
 
 

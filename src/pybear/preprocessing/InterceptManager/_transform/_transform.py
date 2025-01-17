@@ -6,7 +6,9 @@
 
 
 
-from .._type_aliases import DataFormatType, InstructionType
+from .._type_aliases import InstructionType
+from typing_extensions import Union
+import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
@@ -16,9 +18,9 @@ import scipy.sparse as ss
 
 
 def _transform(
-    _X: DataFormatType,
+    _X: Union[npt.NDArray, pd.DataFrame, ss.csc_array, ss.csc_matrix],
     _instructions: InstructionType
-) -> DataFormatType:
+) -> Union[npt.NDArray, pd.DataFrame, ss.csc_array, ss.csc_matrix]:
 
 
     """
@@ -30,8 +32,10 @@ def _transform(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features) - The data to be transformed.
+        {array-like, scipy sparse csc} of shape (n_samples, n_features) -
+        The data to be transformed. Must be numpy ndarray, pandas
+        dataframe, or scipy sparse csc matrix/array.
+
     _instructions:
         TypedDict[
             keep: Required[Union[None, list, npt.NDArray[int]]],
@@ -44,7 +48,7 @@ def _transform(
     Return
     ------
     -
-        X: {array-like, scipy sparse matrix} of shape (n_samples,
+        X: {array-like, scipy sparse csc} of shape (n_samples,
             n_transformed_features) - The transformed data.
 
 
@@ -113,24 +117,21 @@ def _transform(
 
             del _key, _value, _is_num, _dtype
 
-    elif hasattr(_X, 'toarray'):     # scipy.sparse
-        _og_type = type(_X)  # keep this to convert back after going to csc
+    elif isinstance(_X, (ss.csc_matrix, ss.csc_array)):
         # remove the columns
-        _X = _X.tocsc()[:, KEEP_MASK]   # must use tocsc, COO cannot be sliced
+        _X = _X[:, KEEP_MASK]
         # if :param: keep is dict, add the new intercept
         if _instructions['add']:
             _key = list(_instructions['add'].keys())[0]
             _value = _instructions['add'][_key]
             _X = ss.hstack((
                 _X,
-                ss.csc_array(np.full((_X.shape[0], 1), _value))
+                type(_X)(np.full((_X.shape[0], 1), _value))
             ))
             del _key
-        _X = _og_type(_X)
-        del _og_type
 
     else:
-        raise TypeError(f"Unknown dtype {type(_X)} in transform().")
+        raise TypeError(f"Unknown dtype {type(_X)} in _transform().")
 
 
     return _X

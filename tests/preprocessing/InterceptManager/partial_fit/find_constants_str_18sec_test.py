@@ -10,6 +10,7 @@ from pybear.preprocessing.InterceptManager._partial_fit._find_constants \
     import _find_constants
 
 import numpy as np
+import scipy.sparse as ss
 
 import pytest
 
@@ -21,7 +22,7 @@ import pytest
 class TestFindConstants_Str:
 
     # def _find_constants(
-    #     _X: DataFormatType,
+    #     _X: InternalDataContainer,
     #     _old_constant_columns: dict[int, any],
     #     _equal_nan: bool,
     #     _rtol: Real,
@@ -113,6 +114,39 @@ class TestFindConstants_Str:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
+
+    @pytest.mark.parametrize('_format',
+        ('coo_matrix', 'coo_array', 'dia_matrix',
+        'dia_array', 'bsr_matrix', 'bsr_array')
+    )
+    def test_blocks_coo_dia_bsr(self, _X_base, _format, _rtol, _atol, _n_jobs):
+
+        _X = _X_base('np', 'flt', _has_nan=False, _constants=None)
+
+        if _format == 'coo_matrix':
+            _X_wip = ss.coo_matrix(_X)
+        elif _format == 'coo_array':
+            _X_wip = ss.coo_array(_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss.dia_matrix(_X)
+        elif _format == 'dia_array':
+            _X_wip = ss.dia_array(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss.bsr_matrix(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss.bsr_array(_X)
+        else:
+            raise Exception
+
+        with pytest.raises(AssertionError):
+            _find_constants(
+                _X_wip,
+                _old_constant_columns=None,
+                _equal_nan=True,
+                _rtol=_rtol,
+                _atol=_atol,
+                _n_jobs=_n_jobs
+            )
 
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))

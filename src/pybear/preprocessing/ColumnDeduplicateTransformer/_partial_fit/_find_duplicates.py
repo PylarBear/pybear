@@ -5,7 +5,7 @@
 #
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataContainer
 from typing_extensions import Union
 
 from numbers import Real
@@ -19,7 +19,7 @@ from joblib import Parallel, delayed
 
 
 def _find_duplicates(
-    _X: DataType,
+    _X: DataContainer,
     _rtol: Real,
     _atol: Real,
     _equal_nan: bool,

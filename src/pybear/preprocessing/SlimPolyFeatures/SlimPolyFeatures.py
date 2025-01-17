@@ -9,7 +9,7 @@
 
 from typing import Iterable, Literal, Optional, Callable
 from typing_extensions import Union, Self
-from ._type_aliases import DataType
+from ._type_aliases import DataContainer
 import numpy.typing as npt
 
 import numbers
@@ -57,7 +57,7 @@ from ...base import (
 )
 
 from ...base import check_is_fitted, get_feature_names_out
-from ...utilities import nan_mask, scipy_sparse_preslice_handle
+from ...utilities import nan_mask
 
 
 
@@ -879,7 +879,7 @@ class SlimPolyFeatures(
 
     def partial_fit(
         self,
-        X: DataType,
+        X: DataContainer,
         y: Union[Iterable[any], None]=None
     ) -> Self:
 
@@ -951,13 +951,18 @@ class SlimPolyFeatures(
             reset=not hasattr(self, "_poly_duplicates")
         )
 
-        # ss sparse that cant be sliced
-        _X = scipy_sparse_preslice_handle(X)
-
         # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # _validation should have caught non-numeric X. X must only be numeric
         # throughout all of SPF.
+
+        # ss sparse that cant be sliced
+        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it cannot
+        # be sliced. must convert to another ss. so just convert all of them
+        # to csc for faster column slicing. need to change it back later.
+        if hasattr(X, 'toarray'):
+            _og_dtype = type(X)
+            X = X.tocsc()
 
         # these both must be None on the first pass!
         # on subsequent passes, the holders may not be empty.
@@ -996,8 +1001,8 @@ class SlimPolyFeatures(
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                self._IM.partial_fit(_X)
-                self._CDT.partial_fit(_X)
+                self._IM.partial_fit(X)
+                self._CDT.partial_fit(X)
 
             try:
                 self._check_X_constants_and_dupls()
@@ -1013,7 +1018,7 @@ class SlimPolyFeatures(
         # discovered. need to carry this to compare the next calculated
         # polynomial term against the known unique polynomial columns already
         # calculated for the expansion.
-        _POLY_CSC = ss.csc_array(np.empty((_X.shape[0], 0))).astype(np.float64)
+        _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0))).astype(np.float64)
 
         IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
         _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
@@ -1039,7 +1044,7 @@ class SlimPolyFeatures(
             assert len(_combo) >= 2
 
             _COLUMN: npt.NDArray[np.float64] = \
-                _columns_getter(_X, _combo).prod(1).ravel()
+                _columns_getter(X, _combo).prod(1).ravel()
 
             __ = _COLUMN.shape
             assert len(__) == 1 or (len(__)==2 and __[1]==1)
@@ -1081,7 +1086,7 @@ class SlimPolyFeatures(
             # in the vector.
             _out: list[bool] = _get_dupls_for_combo_in_X_and_poly(
                 _COLUMN,
-                _X,
+                X,
                 _POLY_CSC,
                 _equal_nan=self.equal_nan,
                 _rtol=self.rtol,
@@ -1091,7 +1096,7 @@ class SlimPolyFeatures(
 
             # need to convert 'out' to
             # [(i1,), (i2,),..] SINGLE 1D GROUP OF DUPLICATES
-            _indices = [(i,) for i in range(_X.shape[1])] + IDXS_IN_POLY_CSC
+            _indices = [(i,) for i in range(X.shape[1])] + IDXS_IN_POLY_CSC
             _dupls_for_this_combo = []
             for _combo_tuple, _is_dupl in zip(_indices, _out):
                 if _is_dupl:
@@ -1126,6 +1131,11 @@ class SlimPolyFeatures(
 
             del _poly_is_constant, _dupls_for_this_combo
 
+        # all scipy sparse were converted to csc near the top of this
+        # method. change it back to original state. do not mutate X!
+        if hasattr(X, 'toarray'):
+            X = _og_dtype(X)
+            del _og_dtype
 
         # what do we have at this point?
         # the original X
@@ -1235,7 +1245,7 @@ class SlimPolyFeatures(
 
     def fit(
         self,
-        X: DataType,
+        X: DataContainer,
         y: Union[Iterable[any], None]=None
     ) -> Self:
 
@@ -1351,7 +1361,7 @@ class SlimPolyFeatures(
         return self
 
 
-    def transform(self, X: DataType) -> DataType:
+    def transform(self, X: DataContainer) -> DataContainer:
 
         """
         Apply the expansion footprint that was learned during fitting to
@@ -1423,18 +1433,22 @@ class SlimPolyFeatures(
 
         self._check_feature_names(X, reset=False)
 
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
         # _validation should have caught non-numeric X. X must only be
         # numeric throughout all of SPF.
 
-
         _og_format = type(X)
 
-
         # ss sparse that cant be sliced
+        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it cannot
+        # be sliced. must convert to another ss. so just convert all of them
+        # to csc for faster column slicing. need to change it back later.
         if hasattr(X, 'toarray'):
-            _X = scipy_sparse_preslice_handle(X)
+            X = X.tocsc()
+
         # pd df with funky nan-likes that np and ss dont like
-        elif self.min_degree == 1 and isinstance(X, pd.core.frame.DataFrame):
+        if self.min_degree == 1 and isinstance(X, pd.core.frame.DataFrame):
             try:
                 X.astype(np.float64)
                 # if excepts, there are pd nan-likes that arent recognized
@@ -1506,6 +1520,13 @@ class SlimPolyFeatures(
             X_tr = ss.hstack((type(X_tr)(_X.astype(np.float64)), X_tr))
 
         assert isinstance(X_tr, ss.csc_array)
+
+        del _X
+
+        # all scipy sparse were converted to csc near the top of this
+        # method. change it back to original state. do not mutate X!
+        if hasattr(X, 'toarray'):
+            X = _og_format(X)
 
         if self.sparse_output:
             return X_tr.tocsr()

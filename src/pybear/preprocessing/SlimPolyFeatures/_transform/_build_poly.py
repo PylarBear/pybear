@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import InternalDataType
+from .._type_aliases import InternalDataContainer
 
 import numpy as np
 import pandas as pd
@@ -18,7 +18,7 @@ from .._partial_fit._columns_getter import _columns_getter
 
 
 def _build_poly(
-    _X: InternalDataType,
+    _X: InternalDataContainer,
     _active_combos: tuple[tuple[int, ...], ...]
 ) -> ss.csc_array:
 

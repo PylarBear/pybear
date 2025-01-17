@@ -7,7 +7,7 @@
 
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataContainer
 from typing_extensions import Union
 import numpy.typing as npt
 
@@ -19,10 +19,10 @@ import scipy.sparse as ss
 
 
 def _inverse_transform(
-    X: DataType,
+    X: DataContainer,
     _removed_columns: dict[int, int],
     _feature_names_in: Union[npt.NDArray[str], None]
-) -> DataType:
+) -> DataContainer:
 
     """
     Revert deduplicated data back to its original state.

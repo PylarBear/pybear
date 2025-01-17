@@ -24,7 +24,7 @@ class TestBuildPoly:
 
 
     # def _build_poly(
-    #     _X: InternalDataType,
+    #     _X: InternalDataContainer,
     #     _active_combos: tuple[tuple[int, ...], ...]
     # ) -> ss.csc_array:
 

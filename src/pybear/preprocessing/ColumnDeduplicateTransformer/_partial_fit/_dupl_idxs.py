@@ -5,7 +5,7 @@
 #
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataContainer
 from typing_extensions import Union
 
 from numbers import Real
@@ -18,7 +18,7 @@ from ._find_duplicates import _find_duplicates
 
 
 def _dupl_idxs(
-    _X: DataType,
+    _X: DataContainer,
     _duplicates: Union[list[list[int]], None],
     _rtol: Real,
     _atol: Real,
