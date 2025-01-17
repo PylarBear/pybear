@@ -1171,6 +1171,11 @@ class TestPartialFit:
                 # handled by IM
                 SlimPoly(**_kwargs).partial_fit(_X_wip)
             pytest.skip(reason=f'cant do anymore tests after except')
+        elif _format in ('coo_matrix', 'dia_matrix', 'bsr_matrix',
+             'coo_array', 'dia_array', 'bsr_array'
+        ):
+            with pytest.warns():
+                SlimPoly(**_kwargs).partial_fit(_X_wip)
         else:
             SlimPoly(**_kwargs).partial_fit(_X_wip)
 
@@ -1308,16 +1313,30 @@ class TestTransform:
         _X_wip_before_transform = _X_wip.copy()
 
         _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(_X)  # fit on numpy, not the converted data
+
+        if _format in ('coo_matrix', 'dia_matrix', 'bsr_matrix',
+             'coo_array', 'dia_array', 'bsr_array'
+        ):
+            with pytest.warns():
+                _SPF.fit(_X)  # fit on numpy, not the converted data
+        else:
+            _SPF.fit(_X)  # fit on numpy, not the converted data
+
 
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
                 # handled by SPF
                 _SPF.transform(_X_wip)
             pytest.skip(reason=f'cant do anymore tests after except')
+        elif _format in ('coo_matrix', 'dia_matrix', 'bsr_matrix',
+             'coo_array', 'dia_array', 'bsr_array'
+        ):
+            with pytest.warns():
+                out = _SPF.transform(_X_wip)
         else:
             out = _SPF.transform(_X_wip)
-            assert isinstance(out, type(_X_wip))
+
+        assert isinstance(out, type(_X_wip))
 
         # if output is numpy, order is C
         if isinstance(out, np.ndarray):

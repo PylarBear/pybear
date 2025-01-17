@@ -24,9 +24,8 @@ class TestBuildPoly:
 
 
     # def _build_poly(
-    #     X: DataType,
-    #     _active_combos: tuple[tuple[int, ...], ...],
-    #     _n_jobs: Union[numbers.Integral, None]
+    #     _X: InternalDataType,
+    #     _active_combos: tuple[tuple[int, ...], ...]
     # ) -> ss.csc_array:
 
 
@@ -60,27 +59,48 @@ class TestBuildPoly:
         # X
         with pytest.raises(AssertionError):
             _build_poly(
-                X=junk_inputs,
+                _X=junk_inputs,
                 _active_combos=_good_active_combos
             )
 
         # active_combos
         with pytest.raises(AssertionError):
             _build_poly(
-                X=_good_X,
+                _X=_good_X,
                 _active_combos=junk_inputs
             )
 
         # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-    @pytest.mark.parametrize('_n_jobs', (-1, 1, 2, 3, 4, None))
-    def test_accepts_good_params(self, _good_X, _good_active_combos, _n_jobs):
+    @pytest.mark.parametrize('_format',
+        ('coo_matrix', 'coo_array', 'dia_matrix',
+         'dia_array', 'bsr_matrix', 'bsr_array')
+    )
+    def test_X_rejects_coo_dia_bsr(
+        self, _format, _good_active_combos, _good_X
+    ):
 
-        _build_poly(
-            X=_good_X,
-            _active_combos=_good_active_combos
-        )
+        if _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_good_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_good_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_good_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_good_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_good_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_good_X)
+        else:
+            raise Exception
+
+        with pytest.raises(AssertionError):
+            _build_poly(
+                _X=_X_wip,
+                _active_combos=_good_active_combos
+            )
 
 
     def test_build_poly(self, _good_X, _good_active_combos, _shape):

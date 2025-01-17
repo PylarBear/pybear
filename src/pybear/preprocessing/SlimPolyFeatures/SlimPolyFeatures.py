@@ -57,7 +57,7 @@ from ...base import (
 )
 
 from ...base import check_is_fitted, get_feature_names_out
-from ...utilities import nan_mask
+from ...utilities import nan_mask, scipy_sparse_preslice_handle
 
 
 
@@ -951,6 +951,14 @@ class SlimPolyFeatures(
             reset=not hasattr(self, "_poly_duplicates")
         )
 
+        # ss sparse that cant be sliced
+        _X = scipy_sparse_preslice_handle(X)
+
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        # _validation should have caught non-numeric X. X must only be numeric
+        # throughout all of SPF.
+
         # these both must be None on the first pass!
         # on subsequent passes, the holders may not be empty.
         if not hasattr(self, '_poly_duplicates'):
@@ -988,8 +996,8 @@ class SlimPolyFeatures(
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                self._IM.partial_fit(X)
-                self._CDT.partial_fit(X)
+                self._IM.partial_fit(_X)
+                self._CDT.partial_fit(_X)
 
             try:
                 self._check_X_constants_and_dupls()
@@ -1000,38 +1008,16 @@ class SlimPolyFeatures(
 
         # END Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-        # _validation should have caught non-numeric X. X must only be numeric
-        # throughout all of SPF.
-
 
         # build a ss csc that holds the unique polynomial columns that are
         # discovered. need to carry this to compare the next calculated
         # polynomial term against the known unique polynomial columns already
         # calculated for the expansion.
-        _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0))).astype(np.float64)
+        _POLY_CSC = ss.csc_array(np.empty((_X.shape[0], 0))).astype(np.float64)
 
         IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
         _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
         _poly_constants_current_partial_fit: dict[tuple[int, ...], any] = {}
-
-
-
-        # ss sparse that cant be sliced
-        if isinstance(X,
-            (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
-             ss.dia_array, ss.bsr_array)
-        ):
-            warnings.warn(
-                f"pybear works hard to avoid mutating or creating copies "
-                f"of your original data. \nyou have passed your data as "
-                f"{type(X)}, which cannot be sliced by columns. pybear "
-                f"needs to create a copy. \nto avoid this, pass your "
-                f"sparse data as csr, csc, lil, or dok."
-            )
-            _X = X.copy().tocsc()
-        else:
-            _X = X
-
 
         
         # GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
@@ -1441,22 +1427,12 @@ class SlimPolyFeatures(
         # numeric throughout all of SPF.
 
 
-        _og_dtype = type(X)
+        _og_format = type(X)
 
 
         # ss sparse that cant be sliced
-        if isinstance(X,
-            (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
-            ss.dia_array, ss.bsr_array)
-        ):
-            warnings.warn(
-                f"pybear works hard to avoid mutating or creating copies of "
-                f"your original data. \nyou have passed your data as {type(X)}, "
-                f"which cannot be sliced by columns. \npybear needs to create "
-                f"a copy. \nto avoid this, pass your sparse data as csr, csc, "
-                f"lil, or dok."
-            )
-            _X = X.copy().tocsc()
+        if hasattr(X, 'toarray'):
+            _X = scipy_sparse_preslice_handle(X)
         # pd df with funky nan-likes that np and ss dont like
         elif self.min_degree == 1 and isinstance(X, pd.core.frame.DataFrame):
             try:
@@ -1533,18 +1509,18 @@ class SlimPolyFeatures(
 
         if self.sparse_output:
             return X_tr.tocsr()
-        elif 'scipy' in str(_og_dtype).lower():
+        elif 'scipy' in str(_og_format).lower():
             # if input was scipy, but not 'sparse_output', return in the
             # original scipy format
-            return _og_dtype(X_tr)
+            return _og_format(X_tr)
         else:
             # ndarray or pd df, return in the given format
             X_tr = X_tr.toarray()
 
-            if _og_dtype is np.ndarray:
+            if _og_format is np.ndarray:
                 return np.ascontiguousarray(X_tr)
 
-            elif _og_dtype is pd.core.frame.DataFrame:
+            elif _og_format is pd.core.frame.DataFrame:
                 return pd.DataFrame(
                     data=X_tr,
                     columns=self.get_feature_names_out()

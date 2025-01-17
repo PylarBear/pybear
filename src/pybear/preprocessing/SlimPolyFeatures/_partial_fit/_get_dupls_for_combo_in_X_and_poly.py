@@ -8,7 +8,7 @@
 
 from typing_extensions import Union
 import numpy.typing as npt
-from .._type_aliases import DataType
+from .._type_aliases import InternalDataType
 
 import numbers
 
@@ -26,7 +26,7 @@ from .._partial_fit._columns_getter import _columns_getter
 
 def _get_dupls_for_combo_in_X_and_poly(
     _COLUMN: npt.NDArray[any],
-    _X: DataType,
+    _X: InternalDataType,
     _POLY_CSC: Union[ss.csc_array, ss.csc_matrix],
     _equal_nan: bool,
     _rtol: numbers.Real,
@@ -51,7 +51,10 @@ def _get_dupls_for_combo_in_X_and_poly(
     _X:
         Union[np.ndarray, pd.DataFrame, scipy.sparse] of shape
         (n_samples, n_features) - the data to undergo polynomial
-        expansion.
+        expansion. _X will be passed to _columns_getter which allows
+        ndarray, pd.DataFrame, and all scipy sparse except coo
+        matrix/array, dia matrix/array, or bsr matrix/array. _X should
+        be conditioned for this when passed here.
     _POLY_CSC:
         Union[ss.csc_array, ss.csc_matrix] of shape (n_samples,
         n_poly_features) - the in-progress deduplicated polynomial
@@ -93,6 +96,10 @@ def _get_dupls_for_combo_in_X_and_poly(
     # _X passes through SPF.partial_fit() into this as given
     assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or \
            hasattr(_X, 'toarray')
+    assert not isinstance(_X,
+        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+        ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    )
     assert _X.shape[1] >= 1   # must always have 1 or more features
 
     #  _POLY_CSC is constructed as a ss csc_array in SPF.partial_fit()

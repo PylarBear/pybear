@@ -83,12 +83,11 @@ class TestColumnGetter:
             _columns = _columns_getter(_X_wip, _col_idxs)
 
 
-
-    # _columns_getter only allows ss that are indexable, dont test coo, dia, bsr
     @pytest.mark.parametrize('_format',
         (
-        'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'lil_matrix', 'dok_matrix',
-        'csr_array', 'csc_array', 'lil_array', 'dok_array'
+        'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+        'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+        'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
         )
     )
     @pytest.mark.parametrize('_col_idxs',
@@ -97,6 +96,9 @@ class TestColumnGetter:
     def test_accuracy(
         self, _has_nan, _format, _col_idxs, _shape, _X_num, _master_columns
     ):
+
+        # _columns_getter only allows ss that are indexable
+        # coo, dia, bsr are blocked
 
         _X = _X_num
 
@@ -147,7 +149,15 @@ class TestColumnGetter:
             pass
 
         # pass _col_idxs as given (int or tuple) to _columns getter
-        _columns = _columns_getter(_X_wip, _col_idxs)
+        # verify _columns_getter rejects coo, dia, and bsr
+        if isinstance(_X_wip, (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+            ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+        ):
+            with pytest.raises(AssertionError):
+                _columns_getter(_X_wip, _col_idxs)
+            pytest.skip(reason=f"cant do anymore tests after except")
+        else:
+            _columns = _columns_getter(_X_wip, _col_idxs)
 
         assert isinstance(_columns, np.ndarray)
 

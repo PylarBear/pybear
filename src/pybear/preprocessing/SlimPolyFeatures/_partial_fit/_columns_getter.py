@@ -6,27 +6,29 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._type_aliases import DataType
+from pybear.preprocessing.SlimPolyFeatures._type_aliases import InternalDataType
 import numpy.typing as npt
 from typing_extensions import Union
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from pybear.utilities._nan_masking import nan_mask
 
 
 
 def _columns_getter(
-    _DATA: DataType,
+    _DATA: InternalDataType,
     _col_idxs: Union[int, tuple[int, ...]]
-) -> npt.NDArray[any]:
+) -> npt.NDArray[np.float64]:
 
     """
     Handles the mechanics of extracting one or more columns from the
-    various allowed data container types. Return extracted columns as a
-    numpy array in row-major order. Scipy sparse formats must be
-    indexable.
+    various allowed data container types. Data passed as scipy sparse
+    formats must be indexable. Therefore, coo matrix/array, dia
+    matrix/array, and bsr matrix/array are prohibited. Return extracted
+    columns as a numpy array in row-major order.
 
 
     Parameters
@@ -50,6 +52,11 @@ def _columns_getter(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_DATA, (np.ndarray, pd.core.frame.DataFrame)) or \
         hasattr(_DATA, 'toarray')
+
+    assert not isinstance(_DATA,
+        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+         ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    )
 
     assert isinstance(_col_idxs, (int, tuple))
     if isinstance(_col_idxs, int):
@@ -104,8 +111,7 @@ def _columns_getter(
     # executive decision was made to always build POLY as float64. if
     # there are nans in this, then it must be np.float64 anyway.
 
-    _columns = _columns.astype(np.float64)
-
+    _columns = np.ascontiguousarray(_columns).astype(np.float64)
 
     return _columns
 
