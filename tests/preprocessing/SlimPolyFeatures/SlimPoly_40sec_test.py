@@ -1319,6 +1319,10 @@ class TestTransform:
             out = _SPF.transform(_X_wip)
             assert isinstance(out, type(_X_wip))
 
+        # if output is numpy, order is C
+        if isinstance(out, np.ndarray):
+            assert out.flags['C_CONTIGUOUS'] is True
+
         # verify _X_wip does not mutate in transform()
         assert isinstance(_X_wip, type(_X_wip_before_transform))
         assert _X_wip.shape == _X_wip_before_transform.shape

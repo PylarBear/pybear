@@ -22,12 +22,12 @@ def _val_X(
 ) -> None:
 
     """
-    Validate the container type and dimensions of the data. Cannot be
-    None and must have at least 2 columns.
+    Validate the container type of the data. Cannot be None and cannot
+    be a scipy BSR matrix / array. Otherwise, X can be a numpy ndarray,
+    a pandas dataframe, or any other scipy sparse matrix / array.
 
-    All other validation of the data is handled by the _validate_data
-    function of the sklearn BaseEstimator mixin or check_array at fit,
-    transform, and inverse_transform.
+    All other validation of the data is handled by the validate_data
+    function at fit, transform, and inverse_transform.
 
 
     Parameters
@@ -56,23 +56,8 @@ def _val_X(
         )
 
 
-    # sklearn _validate_data & check_array are not catching this.
-    # appear to be converting bsr to the first allowed form in the
-    # 'accept_sparse' list of _validate_data and check_array without
-    # notice. do not let that happen, require CDT to return containers
-    # as given unless manipulated by set_output().
     if isinstance(_X, (ss.bsr_array, ss.bsr_matrix)):
         raise TypeError(f"X cannot be a scipy BSR matrix / array.")
-
-
-    if _X.shape[0] < 1:
-        raise ValueError(
-            f"'X' must be a valid 2 dimensional numpy ndarray, pandas "
-            f"dataframe, or scipy sparce matrix or array, with at least "
-            f"1 example."
-        )
-
-
 
 
 

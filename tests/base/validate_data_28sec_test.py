@@ -863,7 +863,7 @@ class TestValidateDataAccuracy(Fixtures):
             raise Exception
 
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
 
             validate_data(
                 _X_wip,

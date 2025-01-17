@@ -1291,7 +1291,8 @@ class SlimPolyFeatures(
         pass
 
 
-    # def set_output()  pizza
+    # pizza
+    # def set_output()
 
 
     def set_params(self, **params) -> Self:
@@ -1432,7 +1433,7 @@ class SlimPolyFeatures(
             self.n_jobs
         )
 
-        self._check_n_features( X, reset=False)
+        self._check_n_features(X, reset=False)
 
         self._check_feature_names(X, reset=False)
 

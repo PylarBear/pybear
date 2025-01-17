@@ -49,7 +49,7 @@ class TestSKLearnCheckTransformer:
 
 
     def test_check_transformer_get_feature_names_out(self):
-        # looks for certain verbage in error if len(input_features) does not
+        # looks for certain verbiage in error if len(input_features) does not
         # match n_features_in_, and if output dtype is object
 
         err_msg = f"'InterceptManager' object has no attribute '_get_tags'"
@@ -62,7 +62,7 @@ class TestSKLearnCheckTransformer:
 
 
     def test_check_transformer_get_feature_names_out_pandas(self):
-        # looks for certain verbage in error if 'input_features' does not
+        # looks for certain verbiage in error if 'input_features' does not
         # match feature_names_in_ if IM was fit on a dataframe
 
         err_msg = f"'InterceptManager' object has no attribute '_get_tags'"
