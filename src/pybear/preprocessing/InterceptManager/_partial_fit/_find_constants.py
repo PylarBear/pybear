@@ -5,7 +5,7 @@
 #
 
 
-from .._type_aliases import DataFormatType
+from .._type_aliases import InternalDataContainer
 from typing_extensions import Union
 
 from numbers import Integral, Real
@@ -13,6 +13,7 @@ import uuid
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 from joblib import Parallel, delayed
 
 from ._column_getter import _column_getter
@@ -24,7 +25,7 @@ from ._merge_constants import _merge_constants
 
 
 def _find_constants(
-    _X: DataFormatType,
+    _X: InternalDataContainer,
     _old_constant_columns: Union[dict[int, any], None],
     _equal_nan: bool,
     _rtol: Real,
@@ -48,7 +49,11 @@ def _find_constants(
     ----------
     _X:
         {array-like, scipy sparse} of shape (n_samples, n_features) -
-        The data to be searched for constant columns.
+        The data to be searched for constant columns. _X will be passed
+        to _column_getter and must observe the restrictions imposed
+        there. This can be passed as ndarray, pd.DataFrame, or any scipy
+        sparse matrix/array except coo, dia, and bsr. _X should be in
+        this state when passed to this module.
     _old_constant_columns:
         Union[dict[int, any], None] - constant column indices and their
         values found in previous partial fits.
@@ -87,6 +92,10 @@ def _find_constants(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) \
            or hasattr(_X, 'toarray')
+    assert not isinstance(_X,
+        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+         ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    )
     assert isinstance(_old_constant_columns, (dict, type(None)))
     if _old_constant_columns and len(_old_constant_columns):
         assert max(_old_constant_columns) < _X.shape[1]

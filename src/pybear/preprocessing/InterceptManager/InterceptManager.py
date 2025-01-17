@@ -10,18 +10,17 @@ from typing import Optional, Iterable
 from typing_extensions import Self, Union
 from ._type_aliases import (
     KeepType,
-    DataFormatType
+    DataContainer
 )
 
 from numbers import Real, Integral
-import warnings
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as ss
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
+from ._partial_fit._column_getter import _column_getter
 from ._partial_fit._find_constants import _find_constants
 from ._shared._make_instructions import _make_instructions
 from ._shared._set_attributes import _set_attributes
@@ -572,8 +571,8 @@ SetParamsMixin
 
     def partial_fit(
         self,
-        X:DataFormatType,
-        y:any=None
+        X: DataContainer,
+        y: any=None
     ) -> Self:
 
         """
@@ -596,8 +595,6 @@ SetParamsMixin
         ------
         -
             self: the fitted InterceptManager instance.
-
-
 
 
         """
@@ -653,23 +650,16 @@ SetParamsMixin
             self.n_jobs
         )
 
-        # ss sparse that cant be sliced
-        if isinstance(
-            X,
-            (ss.coo_matrix, ss.dia_matrix, ss.bsr_matrix, ss.coo_array,
-             ss.dia_array, ss.bsr_array)
-        ):
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-            warnings.warn(
-                f"pybear works hard to avoid mutating or creating copies of "
-                f"your original data. \nyou have passed your data as {type(X)}, "
-                f"which cannot be sliced by columns. \npybear needs to create "
-                f"a copy. \nto avoid this, pass your sparse data as csr, csc, "
-                f"lil, or dok."
-            )
-            _X = X.copy().tocsc()
-        else:
-            _X = X
+
+        # ss sparse that cant be sliced
+        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it cannot
+        # be sliced. must convert to another ss. so just convert all of them
+        # to csc for faster column slicing. need to change it back later.
+        if hasattr(X, 'toarray'):
+            _og_dtype = type(X)
+            X = X.tocsc()
 
 
         # if IM has already been fitted and constant_columns_ is empty
@@ -681,7 +671,7 @@ SetParamsMixin
             # dictionary of column indices and respective constant values
             self.constant_columns_: dict[int, any] = \
                 _find_constants(
-                    _X,
+                    X,
                     self.constant_columns_ if \
                         hasattr(self, 'constant_columns_') else None,
                     self.equal_nan,
@@ -702,13 +692,22 @@ SetParamsMixin
         else:
             self._rand_idx = None
 
+
+        # all scipy sparse were converted to csc near the top of this
+        # method. change it back to original state. do not mutate X!
+        # change this back before _manage_keep, a keep callable might
+        # depend on characteristics of the original X's container.
+        if hasattr(X, 'toarray'):
+            X = _og_dtype(X)
+            del _og_dtype
+
+
         _keep = _manage_keep(
             self.keep,
-            _X,
+            X,
             self.constant_columns_,
             self.n_features_in_,
-            self.feature_names_in_ if \
-                hasattr(self, 'feature_names_in_') else None,
+            getattr(self, 'feature_names_in_', None),
             self._rand_idx
         )
 
@@ -730,8 +729,8 @@ SetParamsMixin
 
     def fit(
         self,
-        X:DataFormatType,
-        y:any=None
+        X: DataContainer,
+        y: any=None
     ) -> Self:
 
         """
@@ -765,10 +764,10 @@ SetParamsMixin
 
     def inverse_transform(
         self,
-        X: DataFormatType,
+        X: DataContainer,
         *,
         copy: bool = None
-    ) -> DataFormatType:
+    ) -> DataContainer:
 
         """
         Revert transformed data back to its original state. :method:
@@ -812,7 +811,7 @@ SetParamsMixin
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
-        X = validate_data(
+        X_inv = validate_data(
             X,
             copy_X=copy or False,
             cast_to_ndarray=False,
@@ -830,7 +829,18 @@ SetParamsMixin
             sample_check=None
         )
 
-        _val_X(X)
+        _val_X(X_inv)
+
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        # ss sparse that cant be sliced
+        # if X_inv is coo, dia, bsr, it cannot be sliced. must convert to
+        # another ss. so just convert all of them to csc for faster column
+        # slicing. need to change it back later.
+        if hasattr(X_inv, 'toarray'):
+            _og_format = type(X_inv)
+            X_inv = X_inv.tocsc()
+
 
         # if _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # a column of constants was stacked to the right side of the data.
@@ -872,14 +882,7 @@ SetParamsMixin
                 # accept anything that is string or not an iterable
                 pass
 
-            if isinstance(X, np.ndarray):
-                _unqs = np.unique(X[:, -1])
-            elif isinstance(X, pd.core.frame.DataFrame):
-                _unqs = np.unique(X.iloc[:, -1].to_numpy())
-            elif hasattr(X, 'toarray'):
-                _unqs = np.unique(X.tocsc().getcol(-1).toarray())
-            else:
-                raise Exception
+            _unqs = np.unique(_column_getter(X_inv, -1))
 
             _key = list(self.keep.keys())[0]
             if len(_unqs) == 1:
@@ -889,15 +892,14 @@ SetParamsMixin
                     _are_equal = (self.keep[_key] == _unqs[0])
 
             if len(_unqs) == 1 and _are_equal:
-                if isinstance(X, np.ndarray):
-                    X = np.delete(X, -1, axis=1)
-                elif isinstance(X, pd.core.frame.DataFrame):
-                    X = X.drop(columns=[_key], inplace=False)
-                elif hasattr(X, 'toarray'):
-                    _og_dtype = type(X)
-                    X = X.tocsc()[:, list(range(X.shape[1]-1))]
-                    X = _og_dtype(X)
-                    del _og_dtype
+                if isinstance(X_inv, np.ndarray):
+                    X_inv = np.delete(X_inv, -1, axis=1)
+                elif isinstance(X_inv, pd.core.frame.DataFrame):
+                    X_inv = X_inv.drop(columns=[_key], inplace=False)
+                elif hasattr(X_inv, 'toarray'):
+                    X_inv = X_inv[:, list(range(X_inv.shape[1]-1))]
+                else:
+                    raise Exception
             else:
                 if len(_unqs) == 1:
                     _addon = f" last column value = {_unqs[0]}."
@@ -913,27 +915,32 @@ SetParamsMixin
             del _unqs, _key, _are_equal
         # END _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # the number of columns in X must be equal to the number of features
+        # the number of columns in X_inv must be equal to the number of features
         # remaining in column_mask_
-        if X.shape[1] != np.sum(self.column_mask_):
+        if X_inv.shape[1] != np.sum(self.column_mask_):
             raise ValueError(
-                f"the number of columns in X must be equal to the number of "
+                f"the number of columns in X_inv must be equal to the number of "
                 f"columns kept from the fitted data after removing constants. "
-                f"\nexpected {np.sum(self.column_mask_)}, got {X.shape[1]}."
+                f"\nexpected {np.sum(self.column_mask_)}, got {X_inv.shape[1]}."
             )
 
-        X = _inverse_transform(
-            X,
+        X_inv = _inverse_transform(
+            X_inv,
             self.removed_columns_,
-            self.feature_names_in_ if \
-                hasattr(self, 'feature_names_in_') else None
+            getattr(self, 'feature_names_in_', None)
         )
 
-        if isinstance(X, np.ndarray):
-            X = np.ascontiguousarray(X)
+        # all scipy sparse were converted to csc near the top of this
+        # method. change it back to original state.
+        if hasattr(X_inv, 'toarray'):
+            X_inv = _og_format(X_inv)
+            del _og_format
+
+        if isinstance(X_inv, np.ndarray):
+            X_inv = np.ascontiguousarray(X_inv)
 
 
-        return X
+        return X_inv
 
 
     def score(self, X, y:Union[Iterable[any], None]=None) -> None:
@@ -954,9 +961,9 @@ SetParamsMixin
 
     def transform(
         self,
-        X: DataFormatType,
+        X: DataContainer,
         copy: bool=None
-    ) -> DataFormatType:
+    ) -> DataContainer:
 
         """
         Manage the constant columns in X. Apply the removal criteria
@@ -1021,12 +1028,18 @@ SetParamsMixin
         # do not make an assignment! let the function handle it.
         self._check_feature_names(X_tr, reset=False)
 
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+
         # everything below needs to be redone every transform in case 'keep'
         # was changed via set params after fit
 
+        # validation should not have caused X_tr to be different than X
+        # when X is scipy sparse. but just to be safe, pass the original
+        # X to _manage_keep instead of X_tr.
         _keep = _manage_keep(
             self.keep,
-            X_tr,
+            X,
             self.constant_columns_,
             self.n_features_in_,
             self.feature_names_in_ if \
@@ -1047,10 +1060,25 @@ SetParamsMixin
                 self.n_features_in_
             )
 
+        # ss sparse that cant be sliced
+        # if X is coo, dia, bsr, it cannot be sliced. must convert to another
+        # ss. so just convert all of them to csc for faster column slicing.
+        # need to change it back later.
+        if hasattr(X_tr, 'toarray'):
+            _og_format = type(X_tr)
+            X_tr = X_tr.tocsc()
+
         X_tr = _transform(X_tr, self._instructions)
+
+        # all scipy sparse were converted to csc right before the _transform
+        # method. change it back to original state.
+        if hasattr(X_tr, 'toarray'):
+            X_tr = _og_format(X_tr)
+            del _og_format
 
         if isinstance(X_tr, np.ndarray):
             X_tr = np.ascontiguousarray(X_tr)
+
 
         return X_tr
 

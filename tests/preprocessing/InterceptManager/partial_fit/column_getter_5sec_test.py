@@ -60,6 +60,54 @@ class TestColumnGetter:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
+
+
+    @pytest.mark.parametrize('_format',
+        (
+             'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
+             'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
+             'dia_array', 'lil_array', 'dok_array', 'bsr_array'
+        )
+    )
+    def test_blocks_coo_dia_bsr(self, _format, _X_num):
+
+        # _columns_getter only allows ss that are indexable
+
+        if _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_X_num)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_X_num)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X_num)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X_num)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_X_num)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_X_num)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X_num)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_X_num)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_X_num)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X_num)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X_num)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_X_num)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_X_num)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X_num)
+        else:
+            raise Exception
+
+        with pytest.raises(AssertionError):
+            _column_getter(_X_wip, [0])
+
+
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
     @pytest.mark.parametrize('_format',
         (

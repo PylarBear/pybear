@@ -6,14 +6,17 @@
 
 
 
-from pybear.preprocessing.InterceptManager._transform._transform import \
-    _transform
+from pybear.preprocessing.InterceptManager._partial_fit. \
+    _column_getter import _column_getter
+
+from pybear.preprocessing.InterceptManager._partial_fit. \
+    _parallel_constant_finder import _parallel_constant_finder
 
 from pybear.preprocessing.InterceptManager._shared._set_attributes \
     import _set_attributes
 
-from pybear.preprocessing.InterceptManager._partial_fit. \
-    _parallel_constant_finder import _parallel_constant_finder
+from pybear.preprocessing.InterceptManager._transform._transform import \
+    _transform
 
 from pybear.utilities import nan_mask
 
@@ -33,6 +36,8 @@ import pytest
 class TestTransform:
 
     # these tests prove that _transform:
+    # - blocks anything that is not numpy ndarray, pandas dataframe, or
+    #       ss csc matrix/array
     # - correctly removes columns based on _instructions
     # - format and dtype(s) of the transformed are same as passed
     # - For appended intercept:
@@ -43,9 +48,9 @@ class TestTransform:
 
 
     # def _transform(
-    #     _X: DataType,
+    #     _X: Union[npt.NDArray, pd.DataFrame, ss.csc_array, ss.csc_matrix],
     #     _instructions: InstructionType
-    # ) -> DataType:
+    # ) -> Union[npt.NDArray, pd.DataFrame, ss.csc_array, ss.csc_matrix]:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -234,7 +239,13 @@ class TestTransform:
             assert np.all(_ref_column_mask)
 
         # apply the instructions to X via _transform
-        out = _transform(_X_wip, _wip_instr)
+        # everything except ndarray, pd dataframe, and csc are blocked!
+        if _format in ['ndarray', 'df', 'csc_matrix', 'csc_array']:
+            out = _transform(_X_wip, _wip_instr)
+        else:
+            with pytest.raises(TypeError):
+                _transform(_X_wip, _wip_instr)
+            pytest.skip(reason=f"cant do more tests after exception")
 
 
         # ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -312,10 +323,7 @@ class TestTransform:
                 _value = _wip_instr['add'][_key]
                 # the stacked column and the value in it takes the dtype
                 # of the original X
-                if isinstance(out, np.ndarray):
-                    assert out[0, -1] == _value
-                else:
-                    assert out.tocsc().getcol(-1).toarray().ravel()[0] == _value
+                assert _column_getter(out, -1).ravel()[0] == _value
         # END output dtypes are same as given -------------------------------
 
 

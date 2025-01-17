@@ -18,7 +18,7 @@ from ._scan_X import _val_scan_X
 from ._sparse_output import _val_sparse_output
 from ._X import _val_X
 
-from .._type_aliases import DataType, FeatureNameCombinerType
+from .._type_aliases import DataContainer, FeatureNameCombinerType
 from typing import Literal
 from typing_extensions import Union
 
@@ -28,7 +28,7 @@ import numbers
 
 
 def _validation(
-    _X: DataType,
+    _X: DataContainer,
     _degree: numbers.Integral,
     _min_degree: numbers.Integral,
     _scan_X: bool,

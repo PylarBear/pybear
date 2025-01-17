@@ -89,7 +89,7 @@ class TestInverseTransform:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
+    # pizza compare this against inverse_transform tests in IM_1min_11sec_test
     @pytest.mark.parametrize('junk_X', ([], [[]], None, 'junk_string', 3, np.pi))
     def test_rejects_junk_X(self, _const_X, _shape, junk_X, _kwargs):
         # VALIDATION OF X GOING INTO inverse_transform IS HANDLED BY
@@ -223,6 +223,74 @@ class TestInverseTransform:
             f"of transform()")
 
         del TRFM_X, TRFM_MASK, INV_TRFM_X, TestClass
+    # END pizza compare this against inverse_transform tests in IM_1min_11sec_test
+
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+
+    @pytest.mark.parametrize('_format',
+        (
+            'csr_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
+            'dok_matrix', 'bsr_matrix', 'csr_array', 'coo_array', 'dia_array',
+            'lil_array', 'dok_array', 'bsr_array'
+        )
+    )
+    def test_rejects_all_ss_that_are_not_csc(self, _const_X, _shape, _format):
+
+        _base_X = _const_X(
+            _has_nan=False,
+            _format='np',
+            _dtype='flt',
+            _constants={0:1, _shape[1]-1: 1}
+        )
+
+        if _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_base_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_base_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_base_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_base_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_base_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_base_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_base_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_base_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_base_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_base_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_base_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_base_X)
+        else:
+            raise Exception
+
+        # _IM is only being used here to get the legit TRFM_X. only test
+        # the core _inverse_transform module, not _IM.inverse_transform.
+        _IM = InterceptManager(
+            keep='first',
+            rtol=1e-5,
+            atol=1e-8,
+            equal_nan=True,
+            n_jobs=1   # leave this at 1 because of confliction
+        )
+
+        TRFM_X = _IM.fit_transform(_X_wip)
+
+
+        with pytest.raises(AssertionError):
+            _inverse_transform(
+                X=TRFM_X,
+                _removed_columns=_IM.removed_columns_,
+                _feature_names_in=None
+            )
+
 
 
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
@@ -236,13 +304,9 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_constants', ('constants1', 'constants2'))
     @pytest.mark.parametrize('_format',
-        # run only a few ss representatives to save time
-        # 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
-        # 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
-        # 'dia_array'
         (
-            'np', 'pd_with_header', 'pd_without_header', 'csr_matrix',
-            'bsr_array'
+            'np', 'pd_with_header', 'pd_without_header', 'csc_matrix',
+            'csc_array'
         )
     )
     def test_accuracy(
@@ -254,6 +318,8 @@ class TestInverseTransform:
         # inverse_transform. the inverse transform must be equal to the
         # originally fitted data, except for nans. inverse transform
         # cannot infer the presence of nans in the original data.
+
+        # this module only accepts ndarray, pd dataframe, & csc matrix/array
 
         if _dtype not in ('flt', 'int') and _format not in ('np', 'pd'):
             pytest.skip(reason=f"scipy sparse cannot take strings")
@@ -303,37 +369,15 @@ class TestInverseTransform:
                 data=_base_X,
                 columns=None
             )
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_base_X)
         elif _format == 'csc_matrix':
             _X_wip = ss._csc.csc_matrix(_base_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_base_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_base_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_base_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_base_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_base_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_base_X)
         elif _format == 'csc_array':
             _X_wip = ss._csc.csc_array(_base_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_base_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_base_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_base_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_base_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_base_X)
         else:
             raise Exception
 
+        # _IM is only being used here to get the legit TRFM_X. only test
+        # the core _inverse_transform module, not _IM.inverse_transform.
         _IM = InterceptManager(
             keep=_keep,
             rtol=1e-5,
@@ -381,6 +425,8 @@ class TestInverseTransform:
                 _trfm_x = _og_dtype(_trfm_x)
                 del _og_dtype
 
+        # _IM is only being used here to get the legit TRFM_X. only test
+        # the core _inverse_transform module, not _IM.inverse_transform.
         out = _inverse_transform(
             X=_trfm_x,
             _removed_columns=_IM.removed_columns_,

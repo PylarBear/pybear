@@ -5,18 +5,19 @@
 #
 
 
-from .._type_aliases import DataFormatType
+from .._type_aliases import InternalDataContainer
 import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from ....utilities._nan_masking import nan_mask
 
 
 
 def _column_getter(
-    _X: DataFormatType,
+    _X: InternalDataContainer,
     _col_idx: int,
 ) -> npt.NDArray[any]:
 
@@ -31,7 +32,9 @@ def _column_getter(
     ----------
     _X:
         {array-like, scipy sparse} - The data to be searched for constant
-        columns.
+        columns. _X must be indexable, which excludes scipy coo, dia, and
+        bsr. This module expects _X to be in a valid state when passed,
+        and will not condition it.
     _col_idx:
         int - the column index of the column to be extracted from _X.
 
@@ -45,8 +48,16 @@ def _column_getter(
 
     """
 
+    # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     assert isinstance(_col_idx, int)
+    assert _col_idx in range(-_X.shape[1], _X.shape[1])
+
+    assert not isinstance(_X,
+        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+         ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    )
+    # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     if isinstance(_X, np.ndarray):
         column = _X[:, _col_idx]
@@ -59,7 +70,7 @@ def _column_getter(
         # of some memory swell (but it is only one column, right?)
 
         # old code that stacks ss column indices and values
-        # c1 = _X.getcol(_col_idx).tocsc()  # tocsc() is important, must stay
+        # c1 = _X[:, [_col_idx]]
         # column = np.hstack((c1.indices, c1.data))
         # del c1
 

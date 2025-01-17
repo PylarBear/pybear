@@ -5,7 +5,7 @@
 #
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataContainer
 import numpy.typing as npt
 
 import numpy as np
@@ -16,7 +16,7 @@ from ....utilities._nan_masking import nan_mask
 
 
 def _column_getter(
-    _X: DataType,
+    _X: DataContainer,
     _col_idx: int,
 ) -> npt.NDArray[any]:
 
@@ -32,7 +32,7 @@ def _column_getter(
     Parameters
     ----------
     _X:
-        DataType - The data to be deduplicated.
+        DataContainer - The data to be deduplicated.
     _col_idx:
         int - the column index of the column to be extracted from _X.
 

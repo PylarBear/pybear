@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import KeepType, DataFormatType
+from .._type_aliases import KeepType, InternalDataContainer
 from typing import Literal
 from typing_extensions import Union
 import numpy.typing as npt
@@ -17,7 +17,7 @@ import warnings
 
 def _manage_keep(
     _keep: KeepType,
-    _X: DataFormatType,
+    _X: InternalDataContainer,
     constant_columns_: dict[int, any],
     _n_features_in: int,
     _feature_names_in: Union[npt.NDArray[str], None],

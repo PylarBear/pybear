@@ -5,7 +5,7 @@
 #
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataContainer
 from typing_extensions import Union
 from typing import Iterable
 
@@ -15,7 +15,7 @@ from typing import Iterable
 
 def _val_do_not_drop(
     _do_not_drop: Union[Iterable[str], Iterable[int], None],
-    _X: DataType,
+    _X: DataContainer,
     _columns: Union[Iterable[str], None]
 ) -> None:
 

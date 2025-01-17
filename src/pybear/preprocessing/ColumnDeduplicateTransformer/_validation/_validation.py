@@ -18,13 +18,13 @@ from ._X import _val_X
 
 
 
-from .._type_aliases import DataType
+from .._type_aliases import DataContainer
 from typing import Iterable, Literal
 from typing_extensions import Union
 
 
 def _validation(
-    _X:DataType,
+    _X: DataContainer,
     _columns: Union[Iterable[str], None],
     _conflict: Literal['raise', 'ignore'],
     _do_not_drop: Union[Iterable[str], Iterable[int], None],

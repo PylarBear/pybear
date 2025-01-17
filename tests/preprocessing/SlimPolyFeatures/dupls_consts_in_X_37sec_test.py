@@ -134,12 +134,7 @@ class TestDuplsAndConstantsInX:
         assert TestCls.partial_fit(TEST_X) is TestCls
         # then do fit(), which resets it, to have a fitted instance for the
         # tests below fit()
-        if X_format in ('coo', 'bsr', 'dia'):
-            # warns because SPF is making a copy of X because not indexable
-            with pytest.warns():
-                TestCls.fit(TEST_X)
-        else:
-            assert TestCls.fit(TEST_X) is TestCls
+        assert TestCls.fit(TEST_X) is TestCls
 
 
         if has_dupls_or_constants:

@@ -17,7 +17,7 @@ import scipy.sparse as ss
 
 
 
-SparseTypes: TypeAlias = Union[
+SparseContainer: TypeAlias = Union[
     ss._csr.csr_matrix,
     ss._csc.csc_matrix,
     ss._coo.coo_matrix,
@@ -34,14 +34,16 @@ SparseTypes: TypeAlias = Union[
     ss._bsr.bsr_array
 ]
 
-DataType: TypeAlias = Union[
+DataContainer: TypeAlias = Union[
     npt.NDArray,
     pd.DataFrame,
-    SparseTypes
+    SparseContainer
 ]
 
+# the internal containers differ from the above external data containers
+# by coo, dia, & bsr, because those cannot be sliced
 
-InternalSparseTypes: TypeAlias = Union[
+InternalSparseContainer: TypeAlias = Union[
     ss._csr.csr_matrix,
     ss._csc.csc_matrix,
     ss._lil.lil_matrix,
@@ -52,10 +54,10 @@ InternalSparseTypes: TypeAlias = Union[
     ss._dok.dok_array
 ]
 
-InternalDataType: TypeAlias = Union[
+InternalDataContainer: TypeAlias = Union[
     npt.NDArray,
     pd.DataFrame,
-    InternalSparseTypes
+    InternalSparseContainer
 ]
 
 

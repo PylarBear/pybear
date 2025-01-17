@@ -14,7 +14,7 @@ from ._atol import _val_atol
 from ._n_jobs import _val_n_jobs
 
 from .._type_aliases import (
-    DataFormatType,
+    DataContainer,
     KeepType
 )
 from typing_extensions import Union
@@ -25,7 +25,7 @@ from numbers import Real, Integral
 
 
 def _validation(
-    _X: DataFormatType,
+    _X: DataContainer,
     _columns: Union[npt.NDArray[str], None],
     _keep: KeepType,
     _equal_nan: bool,

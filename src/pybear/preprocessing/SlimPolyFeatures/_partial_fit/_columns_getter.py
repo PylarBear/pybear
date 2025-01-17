@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._type_aliases import InternalDataType
+from pybear.preprocessing.SlimPolyFeatures._type_aliases import InternalDataContainer
 import numpy.typing as npt
 from typing_extensions import Union
 
@@ -19,7 +19,7 @@ from pybear.utilities._nan_masking import nan_mask
 
 
 def _columns_getter(
-    _DATA: InternalDataType,
+    _DATA: InternalDataContainer,
     _col_idxs: Union[int, tuple[int, ...]]
 ) -> npt.NDArray[np.float64]:
 

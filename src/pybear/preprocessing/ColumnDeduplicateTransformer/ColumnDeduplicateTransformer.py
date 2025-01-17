@@ -10,7 +10,7 @@ from numbers import Real
 from typing import Iterable, Literal, Optional
 import numpy.typing as npt
 from typing_extensions import Union, Self
-from ._type_aliases import DataType
+from ._type_aliases import DataContainer
 
 import numpy as np
 
@@ -462,7 +462,7 @@ class ColumnDeduplicateTransformer(
 
     def partial_fit(
         self,
-        X: DataType,
+        X: DataContainer,
         y: any=None
     ) -> Self:
 
@@ -585,7 +585,7 @@ class ColumnDeduplicateTransformer(
 
     def fit(
         self,
-        X: DataType,
+        X: DataContainer,
         y: any=None
     ) -> Self:
 
@@ -619,10 +619,10 @@ class ColumnDeduplicateTransformer(
 
     def inverse_transform(
         self,
-        X: DataType,
+        X: DataContainer,
         *,
         copy: bool = None
-        ) -> DataType:
+        ) -> DataContainer:
 
         """
         Revert deduplicated data back to its original state. :method:
@@ -728,10 +728,10 @@ class ColumnDeduplicateTransformer(
 
     def transform(
         self,
-        X: DataType,
+        X: DataContainer,
         *,
         copy: bool = None
-    ) -> DataType:
+    ) -> DataContainer:
 
         """
         Remove the duplicate columns from X. Apply the criteria given
