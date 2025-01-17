@@ -225,7 +225,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 # ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM ***
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
+class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
     @staticmethod

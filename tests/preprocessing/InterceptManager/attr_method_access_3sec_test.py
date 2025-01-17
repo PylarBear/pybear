@@ -213,7 +213,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 # ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM ***
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
+class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
     @staticmethod
@@ -344,10 +344,10 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # ** _reset()
         assert isinstance(TestCls._reset(), IM)
 
-        TestCls.fit(_X_np)
+        TestCls.fit(_X_np, _y_np)
 
         # score()
-        assert TestCls.score(_X_np) is None
+        assert TestCls.score(_X_np, _y_np) is None
 
         # set_params()
         assert isinstance(TestCls.set_params(keep='random'), IM)
@@ -404,8 +404,8 @@ class TestMethodAccessAndAccuracyBeforeAndAfterFitAndAfterTransform:
         # inverse_transform()
         assert np.array_equiv(
             FittedTestCls.inverse_transform(TRFM_X).astype(str),
-            TransformedTestCls.inverse_transform(TRFM_X).astype(str)), \
-            (f"inverse_transform(TRFM_X) after transform() != "
+            TransformedTestCls.inverse_transform(TRFM_X).astype(str)
+        ), (f"inverse_transform(TRFM_X) after transform() != "
              f"inverse_transform(TRFM_X) before transform()")
 
         # partial_fit()

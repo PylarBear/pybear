@@ -600,10 +600,12 @@ class TestOutputTypes:
 
     _base_objects = ('np_array', 'pandas', 'scipy_sparse_csc')
 
+
+    # 25_10_16_13_40_00 sk.TransformerMixin(_SetOutputMixin) was replaced
+    # with pb.FitTransformMixin, that does not have set_output.
+    @pytest.mark.xfail(reason=f"pizza, come back when set_output is ready")
     @pytest.mark.parametrize('x_input_type', _base_objects)
-    @pytest.mark.parametrize('output_type',
-        [None, 'default', 'pandas', 'polars']
-    )
+    @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
     def test_output_types(
         self, _X_np, _columns, _kwargs, x_input_type, output_type
     ):
@@ -1164,11 +1166,11 @@ class TestPartialFit:
 
         _CDT = CDT(**_kwargs)
 
-        # this is being caught by _validation at the top of partial_fit.
+        # this is being caught by _val_X at the top of partial_fit.
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #      hasattr(_X, 'toarray'):
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             _CDT.partial_fit(_junk_X)
 
 
@@ -1355,11 +1357,11 @@ class TestTransform:
         _CDT = CDT(**_kwargs)
         _CDT.fit(_X_np)
 
-        # this is being caught by _validation at the top of transform.
+        # this is being caught by _val_X at the top of transform.
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #     hasattr(_X, 'toarray'):
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             _CDT.transform(_junk_X)
 
 
@@ -1572,7 +1574,7 @@ class TestInverseTransform:
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #     hasattr(_X, 'toarray'):
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             _CDT.inverse_transform(_junk_X)
 
 

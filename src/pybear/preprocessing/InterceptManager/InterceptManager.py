@@ -30,14 +30,14 @@ from ._inverse_transform._inverse_transform import _inverse_transform
 from ._transform._transform import _transform
 
 from ...base import (
-    check_is_fitted,
-    get_feature_names_out,
-    validate_data,
     FeatureMixin,
     FitTransformMixin,
     GetParamsMixin,
     ReprMixin,
-    SetParamsMixin
+    SetParamsMixin,
+    check_is_fitted,
+    get_feature_names_out,
+    validate_data
 )
 
 
@@ -337,10 +337,13 @@ SetParamsMixin
     type None, not string 'None'), and string representations of 'nan'
     (not case sensitive).
 
-    Concerning the handling of infinity. IM has no special handling
-    for numpy.inf, -numpy.inf, float('inf') or float('-inf'). IM falls
-    back to the native handling of these values for python and numpy.
-    Specifically, numpy.inf==numpy.inf and float('inf')==float('inf').
+    Concerning the handling of infinity. IM has no special handling for
+    the various infinity-types, e.g, numpy.inf, -numpy.inf, float('inf'),
+    float('-inf'), etc. This is a design decision to not force infinity
+    values to numpy.nan to avoid mutating or making copies of passed
+    data. SPF falls back to the native handling of these values for
+    python and numpy. Specifically, numpy.inf==numpy.inf and
+    float('inf')==float('inf').
 
     Concerning the handling of scipy sparse arrays. When searching for
     constant columns, the columns are converted to dense 1D numpy arrays
@@ -940,7 +943,6 @@ SetParamsMixin
         """
 
         pass
-
 
 
     # def set_params(self) - inherited from SetParamsMixin

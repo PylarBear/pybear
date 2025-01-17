@@ -34,6 +34,7 @@ distributed = "*"
 joblib = "*"
 numpy = ">=1.26.0"
 pandas = "*"
+scipy = "*"
 scikit-learn = "<1.6.0"
 typing_extensions = "*"
 
@@ -55,7 +56,6 @@ polars-lts-cpu = "*"
 pytest = "*"
 lightgbm = "*"
 xgboost = "*"
-scipy = "*"
 polars-lts-cpu = "*"
 
 

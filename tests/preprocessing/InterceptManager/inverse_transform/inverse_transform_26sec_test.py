@@ -400,6 +400,7 @@ class TestInverseTransform:
                 pd.RangeIndex(start=0, stop=_shape[1], step=1)
             )
 
+
         # iterate over the input X and output X simultaneously, check
         # equality column by column. remember that inverse_transform
         # cannot replicate any nan-likes that may have been in the
