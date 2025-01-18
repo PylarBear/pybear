@@ -8,6 +8,7 @@
 
 
 from typing import Iterable
+from typing_extensions import Union
 import numpy.typing as npt
 
 from .._get_feature_names_out import get_feature_names_out
@@ -168,7 +169,7 @@ class FeatureMixin:
 
     def get_feature_names_out(
         self,
-        input_features: Iterable[str]
+        input_features: Union[Iterable[str], None]=None
     ) -> npt.NDArray[object]:
 
         """

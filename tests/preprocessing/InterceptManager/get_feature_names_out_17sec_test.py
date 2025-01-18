@@ -6,15 +6,12 @@
 
 
 
-from pybear.preprocessing.InterceptManager.InterceptManager import \
-    InterceptManager as IM
+from pybear.preprocessing import InterceptManager as IM
 
 import numpy as np
 from pybear.base.exceptions import NotFittedError
 
 import pytest
-
-
 
 
 
@@ -27,8 +24,6 @@ class TestAlwaysExceptsBeforeFit:
 
         with pytest.raises(NotFittedError):
             IM().get_feature_names_out()
-
-
 
 
 @pytest.mark.parametrize('_format', ('np', 'pd'), scope='module')
@@ -120,8 +115,14 @@ class TestGetFeatureNamesOutRejects:
         # -------------
 
 
-
-@pytest.mark.parametrize('_format', ('np', 'pd'), scope='module')
+@pytest.mark.parametrize('_format, _pd_columns_is_passed',
+    (
+        ('np', False),
+        ('pd', True),
+        ('pd', False),
+    ),
+    scope='module'
+)
 @pytest.mark.parametrize('_dtype',
     ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module'
 )
@@ -179,17 +180,24 @@ class TestGetFeatureNamesOut:
                 return {0: 0, _shape[1]-1: np.nan}
             else:
                 return {1: 'a', _shape[1]-1: 'nan'}
+        else:
+            raise Exception
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _X(_X_factory, _format, _dtype, _columns, _wip_constants, _shape):
+    def _X(
+        _X_factory, _format, _dtype, _pd_columns_is_passed,
+        _columns, _wip_constants, _shape
+    ):
+
+        __ = _columns if (_format == 'pd' and _pd_columns_is_passed) else None
 
         return _X_factory(
             _dupl=None,
             _format=_format,
             _dtype=_dtype,
-            _columns=_columns if _format == 'pd' else None,
+            _columns=__,
             _constants=_wip_constants,
             _noise=1e-9,
             _shape=_shape
@@ -215,9 +223,9 @@ class TestGetFeatureNamesOut:
 
 
     @pytest.mark.parametrize('_input_features_is_passed', (True, False))
-    def test_valid_input_features(
+    def test_accuracy(
         self, _X, _wip_kwargs, _wip_constants, _format, _columns, _TestCls,
-        _keep, _shape, _input_features_is_passed
+        _keep, _shape, _input_features_is_passed, _pd_columns_is_passed
     ):
 
         # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -228,19 +236,29 @@ class TestGetFeatureNamesOut:
         # END get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        if _format == 'np' and not _input_features_is_passed:
-            # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
-            # ['x0', ..., 'x(n-1)][column_mask_]
-            _EXP_COLUMNS = np.array(
-                [f"x{i}" for i in range(_shape[1])],
-                dtype=object
-            )
+        # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
+        # ['x0', ..., 'x(n-1)][column_mask_]
+        _GENERIC_HEADER = np.array(
+            [f"x{i}" for i in range(_shape[1])],
+            dtype=object
+        )
+
+        # WITH HEADER PASSED TO input_features SHOULD RETURN
+        # self.feature_names_in_[column_mask_]
+        # self.feature_names_in_ is being passed here to input_features
+
+        if _format == 'np':
+            _EXP_HEADER = _columns if _input_features_is_passed else _GENERIC_HEADER
+        elif _format=='pd':
+            if _pd_columns_is_passed:
+                _EXP_HEADER = _columns
+            elif not _pd_columns_is_passed:
+                if _input_features_is_passed:
+                    _EXP_HEADER = _columns
+                else:
+                    _EXP_HEADER = _GENERIC_HEADER
         else:
-            # WITH HEADER PASSED SHOULD RETURN
-            # self.feature_names_in_[column_mask_]
-            # self.feature_names_in_ is being passed here for np input_features
-            # and is always returned for pd
-            _EXP_COLUMNS = _columns
+            raise Exception
 
         # build column_mask_ - - - - - - - - - - - - - - - - - - - - - - - -
         MASK = np.ones((_shape[1], ), dtype=bool)
@@ -265,12 +283,12 @@ class TestGetFeatureNamesOut:
 
         # END build column_mask_ - - - - - - - - - - - - - - - - - - - - - -
 
-        _EXP_COLUMNS = _EXP_COLUMNS[MASK]
-        del MASK
+        _EXP_HEADER = _EXP_HEADER[MASK]
+        del MASK, _sorted_constants
 
         if isinstance(_keep, dict):
-            _EXP_COLUMNS = np.hstack((
-                _EXP_COLUMNS,
+            _EXP_HEADER = np.hstack((
+                _EXP_HEADER,
                 list(_keep.keys())[0]
             )).astype(object)
         # END determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * s
@@ -283,17 +301,33 @@ class TestGetFeatureNamesOut:
             (f"get_feature_names_out dtype should be object, but "
              f"returned {out.dtype}")
 
-        if _format == 'np' and not _input_features_is_passed:
-            assert np.array_equiv(out, _EXP_COLUMNS), \
-                (f"get_feature_names_out(None) after fit() != sliced array "
-                 f"of generic headers")
+        if _format == 'np':
+            # WHEN NO HEADER PASSED TO (partial_)fit()
+            if _input_features_is_passed:
+                # SHOULD RETURN SLICED PASSED input_features
+                assert np.array_equiv(out, _EXP_HEADER), \
+                    (f"get_feature_names_out(_columns) after fit() != "
+                     f"sliced array of valid input features")
+            if not _input_features_is_passed:
+                assert np.array_equiv(out, _EXP_HEADER), \
+                    (f"get_feature_names_out(None) after fit() != sliced "
+                     f"array of generic headers")
+        elif _format == 'pd':
+            if _pd_columns_is_passed:
+                assert np.array_equiv(out, _EXP_HEADER), \
+                    (f"get_feature_names_out(_columns) after fit() != "
+                     f"sliced array of feature_names_in_")
+            elif not _pd_columns_is_passed:
+                if _input_features_is_passed:
+                    assert np.array_equiv(out, _EXP_HEADER), \
+                        (f"get_feature_names_out(_columns) after fit() != "
+                         f"sliced array of valid input features")
+                elif not _input_features_is_passed:
+                    assert np.array_equiv(out, _EXP_HEADER), \
+                        (f"get_feature_names_out(None) after fit() != sliced "
+                        f"array of generic headers")
         else:
-            # WHEN NO HEADER PASSED TO (partial_)fit() AND VALID input_features,
-            # SHOULD RETURN SLICED PASSED input_features
-            # PD SHOULD ALWAYS RETURN SLICED feature_names_in_
-            assert np.array_equiv(out, _EXP_COLUMNS), \
-                (f"get_feature_names_out(_columns) after fit() != sliced array "
-                 f"of valid input features")
+            raise Exception
 
 
 
