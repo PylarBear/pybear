@@ -109,6 +109,9 @@ class TestTransform:
         _dupl_equal_nan_is_True, _dupl_equal_nan_is_False, _rtol_atol
     ):
 
+        # rejects everything except np.ndarray, pd.DataFrame,
+        # and scipy csc_matrix/csc_array. should except.
+
         if _dtype == 'str' and _format not in ['ndarray', 'df']:
             pytest.skip(reason=f"scipy sparse cant take strings")
 
@@ -171,10 +174,15 @@ class TestTransform:
         _og_cols = _X_wip.shape[1]
 
         # apply the correct column mask to the original X
-        out = _transform(_X_wip, _column_mask)
+        if _format in ('ndarray', 'df', 'csc_matrix', 'csc_array'):
+            out = _transform(_X_wip, _column_mask)
+        else:
+            with pytest.raises(AssertionError):
+                _transform(_X_wip, _column_mask)
+            pytest.skip(reason=f"cant do more tests after exception")
 
 
-        # ASSERTIONS ** ** ** ** ** **
+        # ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         # output format is same as given
         assert isinstance(out, _og_format)
 
@@ -205,7 +213,6 @@ class TestTransform:
                 _og_col = _X_wip.tocsc()[:, [_kept_idx]].toarray()
 
 
-
             if not _has_nan or (_has_nan and _equal_nan):
                 assert _parallel_column_comparer(
                     _out_col, _og_col, *_rtol_atol, _equal_nan
@@ -215,8 +222,7 @@ class TestTransform:
                     _out_col, _og_col, *_rtol_atol, _equal_nan
                 )
 
-
-            # END ASSERTIONS ** ** ** ** ** **
+        # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
 

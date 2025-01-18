@@ -136,14 +136,14 @@ class ColumnDeduplicateTransformer(
 
     The partial_fit, fit, fit_transform, and inverse_transform methods
     of CDT accept data as numpy arrays, pandas dataframes, and scipy
-    sparse matrices/arrays (except BSR). CDT has a set_output method,
-    whereby the user can set the type of output container for :method:
-    transform. This behavior is managed by scikit-learn functionality
-    adopted into CDT, and is subject to change at their discretion.
-    :method: set_output can return transformed outputs as numpy arrays,
-    pandas dataframes, or polars dataframes. When :method: set_output is
-    None, the output container is the same as the input, that is, numpy
-    array, pandas dataframe, or scipy sparse matrix/array.
+    sparse matrices/arrays. CDT has a set_output method, whereby the
+    user can set the type of output container for :method: transform.
+    This behavior is managed by scikit-learn functionality adopted into
+    CDT, and is subject to change at their discretion. :method:
+    set_output can return transformed outputs as numpy arrays, pandas
+    dataframes, or polars dataframes. When :method: set_output is None,
+    the output container is the same as the input, that is, numpy array,
+    pandas dataframe, or scipy sparse matrix/array.
 
     The partial_fit method allows for incremental fitting of data. This
     makes CDT suitable for use with packages that do batch-wise fitting
@@ -494,7 +494,7 @@ class ColumnDeduplicateTransformer(
             X,
             copy_X=False,
             cast_to_ndarray=False,
-            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"), # not bsr
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
             dtype='any',
             require_all_finite=False,
             cast_inf_to_nan=False,
@@ -543,6 +543,16 @@ class ColumnDeduplicateTransformer(
             self.n_jobs
         )
 
+        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+        # ss sparse that cant be sliced
+        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it cannot
+        # be sliced. must convert to another ss. so just convert all of them
+        # to csc for faster column slicing. need to change it back later.
+        if hasattr(X, 'toarray'):
+            _og_dtype = type(X)
+            X = X.tocsc()
+
         # find the duplicate columns
         self.duplicates_: list[list[int]] = \
             _dupl_idxs(
@@ -553,6 +563,12 @@ class ColumnDeduplicateTransformer(
                 self.equal_nan,
                 self.n_jobs
         )
+
+        # all scipy sparse were converted to csc before _dupl_idxs.
+        # change it back to original state. do not mutate X!
+        if hasattr(X, 'toarray'):
+            X = _og_dtype(X)
+            del _og_dtype
 
         # if 'keep' == 'random', _transform() must pick the same random
         # columns every time. need to set an instance attribute here
@@ -643,7 +659,7 @@ class ColumnDeduplicateTransformer(
 
         Parameters
         ----------
-        X :
+        X:
             {array-like, scipy sparse matrix} of shape (n_samples,
             n_features - n_features_removed) - A deduplicated data set.
         copy:
@@ -654,23 +670,22 @@ class ColumnDeduplicateTransformer(
         Returns
         -------
         -
-            X_tr : {array-like, scipy sparse matrix} of shape (n_samples,
+            X_inv: {array-like, scipy sparse matrix} of shape (n_samples,
                 n_features) - Deduplicated data reverted to its original
                 state.
 
         """
-
 
         check_is_fitted(self)
 
         if not isinstance(copy, (bool, type(None))):
             raise TypeError(f"'copy' must be boolean or None")
 
-        _X = validate_data(
+        X_inv = validate_data(
             X,
             copy_X=copy or False,
             cast_to_ndarray=False,
-            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"), # not bsr
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
             dtype='any',
             require_all_finite=False,
             cast_inf_to_nan=False,
@@ -684,11 +699,11 @@ class ColumnDeduplicateTransformer(
             sample_check=None
         )
 
-        _val_X(X)
+        _val_X(X_inv)
 
         # the number of columns in X must be equal to the number of features
         # remaining in column_mask_
-        if X.shape[1] != np.sum(self.column_mask_):
+        if X_inv.shape[1] != np.sum(self.column_mask_):
             raise ValueError(
                 f"the number of columns in X must be equal to the number of "
                 f"columns kept from the fitted data after removing duplicates "
@@ -696,18 +711,34 @@ class ColumnDeduplicateTransformer(
             )
 
         # dont need to do any other validation here, none of the parameters
-        # that could be changed by set_params are called here
+        # that could be changed by set_params are used here
 
-        out = _inverse_transform(
-            _X,
+        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+        # ss sparse that cant be sliced
+        # if X_inv is coo, dia, bsr, it cannot be sliced. must convert to
+        # another ss. so just convert all of them to csc for faster column
+        # slicing. need to change it back later.
+        if hasattr(X_inv, 'toarray'):
+            _og_format = type(X_inv)
+            X_inv = X_inv.tocsc()
+
+        X_inv = _inverse_transform(
+            X_inv,
             self.removed_columns_,
             getattr(self, 'feature_names_in_', None)
         )
 
-        if isinstance(out, np.ndarray):
-            out = np.ascontiguousarray(out)
+        # all scipy sparse were converted to csc before _inverse_transform().
+        # change it back to original state.
+        if hasattr(X_inv, 'toarray'):
+            X_inv = _og_format(X_inv)
+            del _og_format
 
-        return out
+        if isinstance(X_inv, np.ndarray):
+            X_inv = np.ascontiguousarray(X_inv)
+
+        return X_inv
 
 
     def score(self, X, y=None) -> None:
@@ -766,7 +797,7 @@ class ColumnDeduplicateTransformer(
             X,
             copy_X=copy or False,
             cast_to_ndarray=False,
-            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok"), # not bsr
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
             dtype='any',
             require_all_finite=False,
             cast_inf_to_nan=False,
@@ -792,10 +823,11 @@ class ColumnDeduplicateTransformer(
             self.n_jobs
         )
 
-        self._check_n_features(X, reset=False)
+        self._check_n_features(X_tr, reset=False)
 
-        self._check_feature_names(X, reset=False)
+        self._check_feature_names(X_tr, reset=False)
 
+        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         # redo these here in case set_params() was changed after (partial_)fit
         # determine the columns to remove based on given parameters.
@@ -813,7 +845,21 @@ class ColumnDeduplicateTransformer(
         self.column_mask_[list(self.removed_columns_)] = False
         # end redo
 
+        # ss sparse that cant be sliced
+        # if X is coo, dia, bsr, it cannot be sliced. must convert to another
+        # ss. so just convert all of them to csc for faster column slicing.
+        # need to change it back later.
+        if hasattr(X_tr, 'toarray'):
+            _og_format = type(X_tr)
+            X_tr = X_tr.tocsc()
+
         X_tr = _transform(X_tr, self.column_mask_)
+
+        # all scipy sparse were converted to csc right before the _transform
+        # method. change it back to original state.
+        if hasattr(X_tr, 'toarray'):
+            X_tr = _og_format(X_tr)
+            del _og_format
 
         if isinstance(X_tr, np.ndarray):
             X_tr = np.ascontiguousarray(X_tr)

@@ -5,12 +5,16 @@
 #
 
 
-from .._type_aliases import DataContainer
+from .._type_aliases import InternalDataContainer
 from typing_extensions import Union
 
 from numbers import Real
 import itertools
 from collections import defaultdict
+
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
 
 from ._find_duplicates import _find_duplicates
 
@@ -18,7 +22,7 @@ from ._find_duplicates import _find_duplicates
 
 
 def _dupl_idxs(
-    _X: DataContainer,
+    _X: InternalDataContainer,
     _duplicates: Union[list[list[int]], None],
     _rtol: Real,
     _atol: Real,
@@ -41,8 +45,12 @@ def _dupl_idxs(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features) - the data to be deduplicated.
+        {array-like, scipy sparse} of shape (n_samples,n_features) -
+        the data to be deduplicated. The data is eventually passed to
+        _column_getter via _find_duplicates, therefore _X must be
+        indexable. Scipy sparse coo, dia, and bsr matrix/array are
+        prohibited. There is no conditioning of the data here, the data
+        must be passed to this module in suitable state.
     _duplicates:
         Union[list[list[int]], None] - the duplicate columns carried over
         from the previous partial fits. Is None if on the first partial
@@ -86,7 +94,15 @@ def _dupl_idxs(
 
     """
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    assert (isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or
+        hasattr(_X, 'toarray'))
+
+    assert not isinstance(_X,
+        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+         ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    )
 
     assert isinstance(_duplicates, (list, type(None)))
     if _duplicates is not None:
@@ -104,6 +120,7 @@ def _dupl_idxs(
     assert isinstance(_equal_nan, bool)
     assert isinstance(_n_jobs, (int, type(None)))
 
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     duplicates_ = _find_duplicates(_X, _rtol, _atol, _equal_nan, _n_jobs)
 

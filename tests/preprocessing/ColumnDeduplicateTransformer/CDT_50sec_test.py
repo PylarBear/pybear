@@ -418,28 +418,27 @@ class TestExceptsAnytimeXisNone:
 
     def test_excepts_anytime_x_is_none(self, _X_np, _kwargs):
 
-        # this is handled by sklearn.base.BaseEstimator._validate_data,
-        # let it raise whatever
+        # this is handled by _val_X
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             CDT(**_kwargs).fit(None)
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             TestCls = CDT(**_kwargs)
             TestCls.partial_fit(_X_np)
             TestCls.partial_fit(None)
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             TestCls = CDT(**_kwargs)
             TestCls.fit(_X_np)
             TestCls.partial_fit(None)
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             TestCls = CDT(**_kwargs)
             TestCls.fit(_X_np)
             TestCls.transform(None)
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             CDT(**_kwargs).fit_transform(None)
 
         del TestCls
@@ -484,9 +483,8 @@ class TestRejectsXAsSingleColumnOrSeries:
             _fst_fit_X = _fst_fit_X.squeeze()
 
 
-        with pytest.raises(Exception):
-            # this is handled by sklearn.base.BaseEstimator._validate_data,
-            # let it raise whatever
+        with pytest.raises(ValueError):
+            # this is handled by pybear validate_data()
             CDT(**_kwargs).fit_transform(_fst_fit_X)
 
 # END VERIFY REJECTS X AS SINGLE COLUMN / SERIES ##############################
@@ -525,29 +523,29 @@ class TestExceptWarnOnDifferentHeader:
 
         _objs = [fst_fit_name, scd_fit_name, trfm_name]
         # EXCEPT IF 2 DIFFERENT HEADERS ARE SEEN
-        sklearn_exception = 0
-        sklearn_exception += bool('DF1' in _objs and 'DF2' in _objs)
+        pybear_exception = 0
+        pybear_exception += bool('DF1' in _objs and 'DF2' in _objs)
         # IF FIRST FIT WAS WITH NO HEADER, THEN ANYTHING GETS THRU ON
         # SUBSEQUENT partial_fits AND transform
-        sklearn_exception -= bool(fst_fit_name == 'NO_HDR_DF')
-        sklearn_exception = max(0, sklearn_exception)
+        pybear_exception -= bool(fst_fit_name == 'NO_HDR_DF')
+        pybear_exception = max(0, pybear_exception)
 
         # WARN IF HAS-HEADER AND NOT-HEADER BOTH PASSED DURING fits/transform
-        sklearn_warn = 0
-        if not sklearn_exception:
-            sklearn_warn += ('NO_HDR_DF' in _objs and 'NO_HDR_DF' in _objs)
+        pybear_warn = 0
+        if not pybear_exception:
+            pybear_warn += ('NO_HDR_DF' in _objs and 'NO_HDR_DF' in _objs)
             # IF NONE OF THEM HAD A HEADER, THEN NO WARNING
-            sklearn_warn -= ('DF1' not in _objs and 'DF2' not in _objs)
-            sklearn_warn = max(0, sklearn_warn)
+            pybear_warn -= ('DF1' not in _objs and 'DF2' not in _objs)
+            pybear_warn = max(0, pybear_warn)
 
         del _objs
 
-        if sklearn_exception:
-            with pytest.raises(Exception):
+        if pybear_exception:
+            with pytest.raises(ValueError):
                 TestCls.partial_fit(fst_fit_X)
                 TestCls.partial_fit(scd_fit_X)
                 TestCls.transform(trfm_X)
-        elif sklearn_warn:
+        elif pybear_warn:
             with pytest.warns():
                 TestCls.partial_fit(fst_fit_X)
                 TestCls.partial_fit(scd_fit_X)
@@ -562,35 +560,6 @@ class TestExceptWarnOnDifferentHeader:
 
 # END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
 
-
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAllMethodsExceptOnScipyBSR:
-
-    @pytest.mark.parametrize(f'_format', ('matrix', 'array'))
-    def test_all_methods_reject_BSR(self, _format, _kwargs, _X_np):
-
-        TestCls = CDT(**deepcopy(_kwargs))
-
-        if _format == 'matrix':
-            BSR_X = ss.bsr_matrix(_X_np)
-        elif _format == 'array':
-            BSR_X = ss.bsr_array(_X_np)
-
-        # sklearn _validate_data is not catching this!
-
-        with pytest.raises(TypeError):
-            TestCls.partial_fit(BSR_X)
-
-        with pytest.raises(TypeError):
-            TestCls.fit(BSR_X)
-
-        TestCls.fit(_X_np)
-
-        with pytest.raises(TypeError):
-            TestCls.transform(BSR_X)
-
-        with pytest.raises(TypeError):
-            TestCls.inverse_transform(BSR_X)
 
 
 # TEST OUTPUT TYPES ####################################################
@@ -1151,7 +1120,7 @@ class TestPartialFit:
     #         y: any=None
     #     ) -> Self:
 
-    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
     # - must have at least 2 columns
@@ -1175,16 +1144,14 @@ class TestPartialFit:
 
 
     @pytest.mark.parametrize('_format',
-    (
-         'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-         'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-         'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
-    )
+        (
+             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+             'dask_array', 'dask_dataframe'
+        )
     )
     def test_X_container(self, _X_np, _columns, _kwargs, _format):
-
-        # dont need to test if rejects scipy BSR,
-        # see TestAllMethodsExceptOnScipyBSR
 
         _X = _X_np.copy()
 
@@ -1207,6 +1174,8 @@ class TestPartialFit:
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
@@ -1219,6 +1188,8 @@ class TestPartialFit:
             _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
         elif _format == 'dask_array':
             _X_wip = da.array(_X)
         elif _format == 'dask_dataframe':
@@ -1323,7 +1294,7 @@ class TestTransform:
     #         copy: bool = None
     #     ) -> DataContainer:
 
-    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
     # - must have at least 2 columns
@@ -1368,14 +1339,12 @@ class TestTransform:
     @pytest.mark.parametrize('_format',
     (
          'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-         'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-         'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
+         'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+         'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+         'dask_array', 'dask_dataframe'
     )
     )
     def test_X_container(self, _X_np, _columns, _kwargs, _format):
-
-        # dont need to test if rejects scipy BSR,
-        # see TestAllMethodsExceptOnScipyBSR
 
         _X = _X_np.copy()
 
@@ -1398,6 +1367,8 @@ class TestTransform:
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
@@ -1408,6 +1379,8 @@ class TestTransform:
             _X_wip = ss._dia.dia_array(_X)
         elif _format == 'lil_array':
             _X_wip = ss._lil.lil_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
         elif _format == 'dask_array':
@@ -1532,7 +1505,7 @@ class TestInverseTransform:
     #         copy: bool = None
     #         ) -> DataContainer:
 
-    # - only accepts ndarray, pd.DataFrame, and all ss except BSR
+    # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
     # - must have at least 1 column
@@ -1581,14 +1554,12 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_format',
         (
             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-            'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-            'dia_array', 'lil_array', 'dok_array', 'dask_array', 'dask_dataframe'
+            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+            'dask_array', 'dask_dataframe'
         )
     )
     def test_X_container(self, _X_np, _columns, _kwargs, _format):
-
-        # dont need to test if rejects scipy BSR,
-        # see TestAllMethodsExceptOnScipyBSR
 
         _X = _X_np.copy()
 
@@ -1611,6 +1582,8 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
@@ -1623,6 +1596,8 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
         elif _format == 'dask_array':
             _X_wip = da.array(_X)
         elif _format == 'dask_dataframe':
@@ -1773,8 +1748,8 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_format',
         (
             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-            'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-            'dia_array', 'lil_array', 'dok_array'
+            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
         )
     )
     @pytest.mark.parametrize('_dtype', ('int', 'flt', 'str', 'obj', 'hybrid'))
@@ -1793,9 +1768,6 @@ class TestInverseTransform:
 
         # set_output does not control the output container for inverse_transform
         # the output container is always the same as passed
-
-        # dont need to test if rejects scipy BSR,
-        # see TestAllMethodsExceptOnScipyBSR
 
         if _format not in ('np', 'pd') and _dtype not in ('int', 'flt'):
             pytest.skip(reason=f"scipy sparse cant take non-numeric")
@@ -1830,6 +1802,8 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_matrix(_base_X)
         elif _format == 'dok_matrix':
             _X_wip = ss._dok.dok_matrix(_base_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_base_X)
         elif _format == 'csr_array':
             _X_wip = ss._csr.csr_array(_base_X)
         elif _format == 'csc_array':
@@ -1842,6 +1816,8 @@ class TestInverseTransform:
             _X_wip = ss._lil.lil_array(_base_X)
         elif _format == 'dok_array':
             _X_wip = ss._dok.dok_array(_base_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_base_X)
         else:
             raise Exception
 
@@ -1859,11 +1835,22 @@ class TestInverseTransform:
         # transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # inverse transform v v v v v v v v v v v v v v v
-        INV_TRFM_X = _CDT.inverse_transform(
-            X=TRFM_X,
-            copy=_copy
-        )
-        assert isinstance(INV_TRFM_X, type(_X_wip))
+        if _format == 'dask_array':
+            with pytest.raises(TypeError):
+                # handled by CDT
+                _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
+            pytest.skip(reason=f'cant do anymore tests after except')
+        elif _format == 'dask_dataframe':
+            with pytest.raises(TypeError):
+                # handled by CDT
+                _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_])
+            pytest.skip(reason=f'cant do anymore tests after except')
+        else:
+            INV_TRFM_X = _CDT.inverse_transform(
+                X=TRFM_X,
+                copy=_copy
+            )
+            assert isinstance(INV_TRFM_X, type(_X_wip))
         # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # output constainer is same as passed

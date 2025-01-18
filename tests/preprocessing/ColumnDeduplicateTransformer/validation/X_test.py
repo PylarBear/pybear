@@ -29,7 +29,7 @@ def test_X_cannot_be_none():
 )
 def test_accepts_np_pd_ss(X_format):
 
-    # accepts all scipy sparse except bsr
+    # accepts all scipy sparse
 
     _base_X = np.random.uniform(0, 1, (20,13))
 
@@ -50,12 +50,7 @@ def test_accepts_np_pd_ss(X_format):
     else:
         raise Exception
 
-
-    if X_format in ('bsr_matrix', 'bsr_array'):
-        with pytest.raises(TypeError):
-            _val_X(_X)
-    else:
-        _val_X(_X)
+    _val_X(_X)
 
 
 

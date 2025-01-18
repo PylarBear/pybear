@@ -42,7 +42,6 @@ def _val_X(
 
 
 
-    # sklearn _validate_data & check_array are not catching dask arrays & dfs.
     if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         hasattr(_X, 'toarray'):
         raise TypeError(

@@ -31,7 +31,8 @@ class TestSSColumnComparer:
 
 
     # np cant be int if using nans
-    @pytest.mark.parametrize('_format', ('csc', 'csr', 'coo', 'bsr'))
+    # _column_getter cant take coo, dia, bsr
+    @pytest.mark.parametrize('_format', ('csc', 'csr', 'lil', 'dok'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_accuracy(
@@ -58,10 +59,10 @@ class TestSSColumnComparer:
             _X_flt = ss.csc_array(_X_flt)
         elif _format == 'csr':
             _X_flt = ss.csr_array(_X_flt)
-        elif _format == 'coo':
-            _X_flt = ss.coo_array(_X_flt)
-        elif _format == 'bsr':
-            _X_flt = ss.bsr_matrix(_X_flt)
+        elif _format == 'lil':
+            _X_flt = ss.lil_array(_X_flt)
+        elif _format == 'dok':
+            _X_flt = ss.dok_matrix(_X_flt)
         else:
             raise Exception
 

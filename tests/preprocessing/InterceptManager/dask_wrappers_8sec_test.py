@@ -70,7 +70,7 @@ def _X_pd(_X_np, _columns):
 
 
 
-# TEST DASK Incremental + ParallelPostFit == ONE BIG sklearn fit_transform()
+# TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestDaskIncrementalParallelPostFit:
 
@@ -212,7 +212,7 @@ class TestDaskIncrementalParallelPostFit:
             f"wrapped output != unwrapped output"
 
 
-# END TEST DASK Incremental + ParallelPostFit == ONE BIG sklearn fit_transform()
+# END TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 
 
 

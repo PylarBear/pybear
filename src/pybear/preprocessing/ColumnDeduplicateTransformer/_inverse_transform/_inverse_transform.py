@@ -6,11 +6,8 @@
 
 
 
-
-from .._type_aliases import DataContainer
 from typing_extensions import Union
 import numpy.typing as npt
-
 
 import numpy as np
 import pandas as pd
@@ -19,20 +16,24 @@ import scipy.sparse as ss
 
 
 def _inverse_transform(
-    X: DataContainer,
+    X: Union[npt.NDArray, pd.DataFrame, ss.csc_matrix, ss.csc_array],
     _removed_columns: dict[int, int],
     _feature_names_in: Union[npt.NDArray[str], None]
-) -> DataContainer:
+) -> Union[npt.NDArray, pd.DataFrame, ss.csc_matrix, ss.csc_array]:
 
     """
-    Revert deduplicated data back to its original state.
+    Revert deduplicated data back to its original state. CDT  cannot
+    restore any nan-like values that may have been in the original data
+    (unless the column was all nans.)
 
 
     Parameters
     ----------
     X :
-        {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features - n_features_removed) - A deduplicated data set.
+        {array-like, scipy sparse csc} of shape (n_samples,
+        n_features - n_features_removed) - A deduplicated data set. The
+        container must be numpy ndarray, pandas dataframe or scipy sparse
+        csc matrix/array only.
     _removed_columns:
         dict[int, int] - the keys are the indices of duplicate columns
         removed from the original data, indexed by their column location
@@ -40,24 +41,40 @@ def _inverse_transform(
         original data of the respective duplicate that was kept.
     _feature_names_in:
         Union[npt.NDArray[str], None] - the feature names found during
-        fitting.
+        fitting, if passed.
 
 
     Returns
     -------
     -
-        X_tr : {array-like, scipy sparse matrix} of shape (n_samples,
+        X_inv : {array-like, scipy sparse csc} of shape (n_samples,
             n_features) - Deduplicated data reverted to its original
             state.
 
     """
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    assert isinstance(
+        X,
+        (np.ndarray, pd.core.frame.DataFrame, ss.csc_matrix, ss.csc_array)
+    )
+
+    assert isinstance(_removed_columns, dict)
+    assert all(map(isinstance, _removed_columns, (int for _ in _removed_columns)))
+
+    if _feature_names_in is not None:
+        assert isinstance(_feature_names_in, np.ndarray)
+        assert all(
+            map(isinstance, _feature_names_in, (str for _ in _feature_names_in))
+        )
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # retain what the original format was
-    # if data is a pd df, convert to numpy
-    # if data is a scipy sparse convert to csc
     _og_X_format = type(X)
 
+    # if data is a pd df, convert to numpy
     if isinstance(X, pd.core.frame.DataFrame):
         # remove any header that may be on this df, dont want to replicate
         # wrong headers in 'new' columns which would be exposed if
@@ -65,9 +82,6 @@ def _inverse_transform(
         # saw a header via df or _columns, but a df has been passed to
         # inverse_transform.)
         X = X.to_numpy()
-    elif hasattr(X, 'toarray'):    # scipy sparse
-        X = X.tocsc()
-
 
     # confirmed via pytest 24_10_10 this need to stay
     # assure _removed_columns keys are accessed ascending
@@ -78,27 +92,34 @@ def _inverse_transform(
     # so indices will match the indices of _parent_dict.
     # must do this from left to right!
     _blank = np.zeros((X.shape[0], 1))
-    for _rmv_idx in _removed_columns:  # this was sorted above
-        if isinstance(X, np.ndarray):
+
+    if isinstance(X, np.ndarray):
+        for _rmv_idx in _removed_columns:  # this was sorted above
             X = np.insert(X, _rmv_idx, _blank.ravel(), axis=1)
-        elif isinstance(X, (ss._csc.csc_array, ss._csc.csc_matrix)):
+    elif isinstance(X, (ss.csc_matrix, ss.csc_array)):
+        for _rmv_idx in _removed_columns:  # this was sorted above
             X = ss.hstack(
                 (X[:, :_rmv_idx], ss.csc_matrix(_blank), X[:, _rmv_idx:]),
                 format="csc",
                 dtype=X.dtype
             )
+    else:
+        raise Exception
 
     del _blank
 
 
-    # use the _removed_columns dict to put in copies of the parent
+    # use the _removed_columns dict to put in copies of the parent column
 
-    for _dupl_idx, _parent_idx in _removed_columns.items():
-        if isinstance(X, np.ndarray):
-            # df was converted to array above!
+    if isinstance(X, np.ndarray):
+        # df was converted to array above!
+        for _dupl_idx, _parent_idx in _removed_columns.items():
             X[:, _dupl_idx] = X[:, _parent_idx].copy()
-        elif isinstance(X, (ss._csc.csc_array, ss._csc.csc_matrix)):
+    elif isinstance(X, (ss.csc_matrix, ss.csc_array)):
+        for _dupl_idx, _parent_idx in _removed_columns.items():
             X[:, [_dupl_idx]] = X[:, [_parent_idx]].copy()
+    else:
+        raise Exception
 
 
     # if was a dataframe and feature names are available, reattach

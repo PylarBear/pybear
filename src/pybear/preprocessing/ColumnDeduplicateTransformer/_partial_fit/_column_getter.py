@@ -5,18 +5,19 @@
 #
 
 
-from .._type_aliases import DataContainer
+from .._type_aliases import InternalDataContainer
 import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from ....utilities._nan_masking import nan_mask
 
 
 
 def _column_getter(
-    _X: DataContainer,
+    _X: InternalDataContainer,
     _col_idx: int,
 ) -> npt.NDArray[any]:
 
@@ -32,7 +33,11 @@ def _column_getter(
     Parameters
     ----------
     _X:
-        DataContainer - The data to be deduplicated.
+        InternalDataContainer - The data to be deduplicated. The data
+        container must be indexable. Therefore, scipy sparse coo, dia,
+        and bsr matrix/arrays are not permitted in this module. There is
+        no conditioning of the data here and this module expects to
+        receive it in suitable form.
     _col_idx:
         int - the column index of the column to be extracted from _X.
 
@@ -46,8 +51,18 @@ def _column_getter(
 
     """
 
-
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_col_idx, int)
+    assert _col_idx in range(-_X.shape[1], _X.shape[1])
+
+    assert (isinstance(_X, (np.ndarray, pd.core.frame.DataFrame))
+            or hasattr(_X, 'toarray'))
+
+    assert not isinstance(_X,
+        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+         ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    )
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     if isinstance(_X, np.ndarray):
         column = _X[:, _col_idx]

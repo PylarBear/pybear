@@ -335,29 +335,29 @@ class TestExceptWarnOnDifferentHeader:
 
         _objs = [fst_fit_name, scd_fit_name, trfm_name]
         # EXCEPT IF 2 DIFFERENT HEADERS ARE SEEN
-        sklearn_exception = 0
-        sklearn_exception += bool('DF1' in _objs and 'DF2' in _objs)
+        pybear_exception = 0
+        pybear_exception += bool('DF1' in _objs and 'DF2' in _objs)
         # IF FIRST FIT WAS WITH NO HEADER, THEN ANYTHING GETS THRU ON
         # SUBSEQUENT partial_fits AND transform
-        sklearn_exception -= bool(fst_fit_name == 'NO_HDR_DF')
-        sklearn_exception = max(0, sklearn_exception)
+        pybear_exception -= bool(fst_fit_name == 'NO_HDR_DF')
+        pybear_exception = max(0, pybear_exception)
 
         # WARN IF HAS-HEADER AND NOT-HEADER BOTH PASSED DURING fits/transform
-        sklearn_warn = 0
-        if not sklearn_exception:
-            sklearn_warn += ('NO_HDR_DF' in _objs and 'NO_HDR_DF' in _objs)
+        pybear_warn = 0
+        if not pybear_exception:
+            pybear_warn += ('NO_HDR_DF' in _objs and 'NO_HDR_DF' in _objs)
             # IF NONE OF THEM HAD A HEADER, THEN NO WARNING
-            sklearn_warn -= ('DF1' not in _objs and 'DF2' not in _objs)
-            sklearn_warn = max(0, sklearn_warn)
+            pybear_warn -= ('DF1' not in _objs and 'DF2' not in _objs)
+            pybear_warn = max(0, pybear_warn)
 
         del _objs
 
-        if sklearn_exception:
+        if pybear_exception:
             with pytest.raises(Exception):
                 TestCls.partial_fit(fst_fit_X)
                 TestCls.partial_fit(scd_fit_X)
                 TestCls.transform(trfm_X)
-        elif sklearn_warn:
+        elif pybear_warn:
             with pytest.warns():
                 TestCls.partial_fit(fst_fit_X)
                 TestCls.partial_fit(scd_fit_X)
@@ -1726,7 +1726,6 @@ class TestInverseTransform:
             X=TRFM_X,
             copy=_copy
         )
-        assert isinstance(INV_TRFM_X, type(_X_wip))
         # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # output container is same as passed
