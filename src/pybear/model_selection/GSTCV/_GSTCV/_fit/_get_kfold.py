@@ -71,19 +71,7 @@ def _get_kfold(
 
     """
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     err_msg = (f"_X ({type(_X)}) and _y ({type(_y)}) must both be numpy "
                f"arrays.")
 
@@ -103,6 +91,7 @@ def _get_kfold(
     except:
         raise AssertionError(f"'_verbose' must be an int, float, or bool")
     assert _verbose >= 0
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     split_t0 = time.perf_counter()
@@ -112,7 +101,6 @@ def _get_kfold(
         shuffle=False,
         random_state=None
     ).split(_X, _y)
-
 
 
     if _verbose >= 5:
