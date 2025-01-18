@@ -5,21 +5,18 @@
 #
 
 
+
 from pybear.preprocessing.InterceptManager._inverse_transform. \
     _inverse_transform import _inverse_transform
 
 from pybear.preprocessing.InterceptManager.InterceptManager import \
     InterceptManager
 
-
 from pybear.utilities import nan_mask
 
-import uuid
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-import dask.array as da
-import dask.dataframe as ddf
 
 import pytest
 
@@ -74,158 +71,7 @@ class TestInverseTransform:
         return foo
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs(_X_factory, _shape):
-
-        return {
-            'keep': 'last',
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': -1
-        }
-
-
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    # pizza compare this against inverse_transform tests in IM_1min_11sec_test
-    @pytest.mark.parametrize('junk_X', ([], [[]], None, 'junk_string', 3, np.pi))
-    def test_rejects_junk_X(self, _const_X, _shape, junk_X, _kwargs):
-        # VALIDATION OF X GOING INTO inverse_transform IS HANDLED BY
-        # pybear validate_data / _val_X
-
-        FIT_TRFM_X = _const_X(
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _constants={0: 1, 1: 5, _shape[1]-1: np.e}
-        )
-
-        TestClass = InterceptManager(**_kwargs)
-        _ = TestClass.fit_transform(FIT_TRFM_X)
-
-        with pytest.raises(ValueError):
-            TestClass.inverse_transform(junk_X)
-
-
-    @pytest.mark.parametrize('X_format', ('da', 'ddf'))
-    def test_rejects_bad_X(self, _const_X, _shape, X_format, _kwargs):
-        # VALIDATION OF X GOING INTO inverse_transform IS HANDLED BY
-        # pybear validate_data / _val_X
-
-        FIT_TRFM_X = _const_X(
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _constants={0: 1, 1: 5, _shape[1]-1: np.e}
-        )
-
-        if X_format == 'da':
-            BAD_FIT_TRFM_X = da.from_array(FIT_TRFM_X)
-        elif X_format == 'ddf':
-            BAD_FIT_TRFM_X = ddf.from_array(FIT_TRFM_X)
-        else:
-            raise Exception
-
-
-        TestClass = InterceptManager(**_kwargs)
-        _ = TestClass.fit_transform(FIT_TRFM_X)
-
-        with pytest.raises(TypeError):
-            TestClass.inverse_transform(BAD_FIT_TRFM_X)
-
-
-    @pytest.mark.parametrize('obj_type', ('np', 'pd'))
-    @pytest.mark.parametrize('diff_cols', ('more', 'less', 'same'))
-    def test_rejects_bad_shape(
-        self, _const_X, _kwargs, _shape, obj_type, diff_cols
-    ):
-
-        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
-        # RETAINED COLUMNS
-
-        # Build X & TRFM X --- --- --- --- --- --- --- --- --- --- --- ---
-        _wip_X = _const_X(
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _constants={0: 1, 1: 5, _shape[1]-1: np.e}
-        )
-
-        columns = np.array([str(uuid.uuid4()) for _ in range(_shape[1])])
-
-        TestClass = InterceptManager(**_kwargs)
-        TRFM_X = TestClass.fit_transform(_wip_X)
-        TRFM_MASK = TestClass.column_mask_
-        # END Build X & TRFM X --- --- --- --- --- --- --- --- --- --- ---
-
-
-        if diff_cols == 'same':
-            if obj_type == 'pd':
-                TRFM_X = pd.DataFrame(
-                    data=TRFM_X, columns=columns[TRFM_MASK]
-                )
-        elif diff_cols == 'less':
-            TRFM_X = TRFM_X[:, :2].copy()
-            if obj_type == 'pd':
-                TRFM_X = pd.DataFrame(
-                    data=TRFM_X, columns=columns[TRFM_MASK][:2]
-                )
-        elif diff_cols == 'more':
-            TRFM_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
-            if obj_type == 'pd':
-                _COLUMNS = np.hstack((
-                    columns[TRFM_MASK],
-                    np.char.upper(columns[TRFM_MASK])
-                ))
-                TRFM_X = pd.DataFrame(data=TRFM_X, columns=_COLUMNS)
-
-
-        # Test the inverse_transform operation ** ** ** ** ** ** ** ** ** **
-        if diff_cols == 'same':
-            INV_TRFM_X = TestClass.inverse_transform(TRFM_X)
-        else:
-            with pytest.raises(ValueError):
-                TestClass.inverse_transform(TRFM_X)
-            pytest.skip(f'cant do more test if inverse_transform call excepted')
-        # Test the inverse_transform operation ** ** ** ** ** ** ** ** ** **
-
-
-        if isinstance(TRFM_X, np.ndarray):
-            assert isinstance(INV_TRFM_X, np.ndarray), \
-                f"output of inverse_transform() is not a numpy array"
-            assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
-        elif isinstance(TRFM_X, pd.core.frame.DataFrame):
-            assert isinstance(INV_TRFM_X, pd.core.frame.DataFrame), \
-                f"output of inverse_transform() is not a pd dataframe"
-        else:
-            raise Exception
-
-
-        assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
-            f"rows in output of inverse_transform() do not match input rows"
-        assert INV_TRFM_X.shape[1] == TestClass.n_features_in_, \
-            (f"columns in output of inverse_transform() do not match "
-             f"originally fitted columns")
-
-        # convert pd INV_TRFM_X to np for array_equal
-        if isinstance(INV_TRFM_X, pd.core.frame.DataFrame):
-            INV_TRFM_X = INV_TRFM_X.to_numpy()
-
-        assert np.array_equiv(INV_TRFM_X, _wip_X), \
-            f"inverse transform of transformed data does not equal original data"
-
-        assert np.array_equiv(
-            TRFM_X.astype(str),
-            INV_TRFM_X[:, TestClass.column_mask_].astype(str)
-        ), (f"output of inverse_transform() does not reduce back to the output "
-            f"of transform()")
-
-        del TRFM_X, TRFM_MASK, INV_TRFM_X, TestClass
-    # END pizza compare this against inverse_transform tests in IM_1min_11sec_test
-
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
     @pytest.mark.parametrize('_format',
@@ -283,14 +129,12 @@ class TestInverseTransform:
 
         TRFM_X = _IM.fit_transform(_X_wip)
 
-
         with pytest.raises(AssertionError):
             _inverse_transform(
                 X=TRFM_X,
                 _removed_columns=_IM.removed_columns_,
                 _feature_names_in=None
             )
-
 
 
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
@@ -319,16 +163,19 @@ class TestInverseTransform:
         # originally fitted data, except for nans. inverse transform
         # cannot infer the presence of nans in the original data.
 
-        # this module only accepts ndarray, pd dataframe, & csc matrix/array
+        # everything except ndarray, pd dataframe, & scipy csc matrix/array
+        # are blocked.
 
+        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
         if _dtype not in ('flt', 'int') and _format not in ('np', 'pd'):
             pytest.skip(reason=f"scipy sparse cannot take strings")
 
         if 'pd' not in _format and isinstance(_keep, str) and \
                 _keep not in ('first', 'last', 'random', 'none'):
             pytest.skip(reason=f"cannot pass keep as str if X is not pd df")
+        # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
+        # build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         if _constants == 'constants1':
             if _dtype in ('int', 'flt'):
                 _constants = {0:1, _shape[1]-1: 1}
@@ -341,7 +188,6 @@ class TestInverseTransform:
                 _constants = {0: '1', _shape[1]-1:'nan'}
         else:
             raise Exception
-
 
         _base_X = _const_X(
             _has_nan=_has_nan,
@@ -375,6 +221,7 @@ class TestInverseTransform:
             _X_wip = ss._csc.csc_array(_base_X)
         else:
             raise Exception
+        # END build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         # _IM is only being used here to get the legit TRFM_X. only test
         # the core _inverse_transform module, not _IM.inverse_transform.

@@ -979,7 +979,7 @@ class TestPartialFit:
 
     #     def partial_fit(
     #         self,
-    #         X: DataType,
+    #         X: DataContainer,
     #         y: any=None
     #     ) -> Self:
 
@@ -1187,10 +1187,10 @@ class TestTransform:
 
     #     def transform(
     #         self,
-    #         X: DataType,
+    #         X: DataContainer,
     #         *,
     #         copy: bool = None
-    #     ) -> DataType:
+    #     ) -> DataContainer:
 
     # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
@@ -1357,41 +1357,43 @@ class TestTransform:
             _IM.transform(_wip_X[:, 0])
 
 
-    def test_rejects_bad_num_features(self, _X_np, _kwargs, _columns):
+    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_diff', ('more', 'less', 'same'))
+    def test_rejects_bad_num_features(
+        self, _X_np, _kwargs, _columns, _format, _diff
+    ):
+
         # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
         # FITTED COLUMNS
 
         _IM = IM(**_kwargs)
         _IM.fit(_X_np)
 
-        __ = np.array(_columns)
-        for obj_type in ['np', 'pd']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    TEST_X = _X_np.copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__)
-                elif diff_cols == 'less':
-                    TEST_X = _X_np[:, :-1].copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[:-1])
-                elif diff_cols == 'more':
-                    TEST_X = np.hstack((_X_np.copy(), _X_np.copy()))
-                    if obj_type == 'pd':
-                        _COLUMNS = np.hstack((__, np.char.upper(__)))
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
-                else:
-                    raise Exception
+        if _diff == 'same':
+            TEST_X = _X_np.copy()
+            if _format == 'pd':
+                TEST_X = pd.DataFrame(data=TEST_X, columns=_columns)
+        elif _diff == 'less':
+            TEST_X = _X_np[:, :-1].copy()
+            if _format == 'pd':
+                TEST_X = pd.DataFrame(data=TEST_X, columns=_columns[:-1])
+        elif _diff == 'more':
+            TEST_X = np.hstack((_X_np.copy(), _X_np.copy()))
+            if _format == 'pd':
+                _COLUMNS = np.hstack((_columns, np.char.upper(_columns)))
+                TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
+        else:
+            raise Exception
 
-                if diff_cols == 'same':
-                    _IM.transform(TEST_X)
-                else:
-                    with pytest.raises(ValueError):
-                        _IM.transform(TEST_X)
+        if _diff == 'same':
+            _IM.transform(TEST_X)
+        else:
+            with pytest.raises(ValueError):
+                _IM.transform(TEST_X)
 
-        del _IM, obj_type, diff_cols, TEST_X
+        del _IM, TEST_X
 
-    # dont really need to test accuracy, see _transform
+    # See IMTransform_accuracy for accuracy tests
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
@@ -1399,10 +1401,10 @@ class TestInverseTransform:
 
     #     def inverse_transform(
     #         self,
-    #         X: DataType,
+    #         X: DataContainer,
     #         *,
     #         copy: bool = None
-    #         ) -> DataType:
+    #     ) -> DataContainer:
 
     # - only accepts ndarray, pd.DataFrame, and all ss
     # - cannot be None
@@ -1438,8 +1440,10 @@ class TestInverseTransform:
         _IM = IM(**_kwargs)
         _IM.fit(_X_np)
 
-        # this is being caught by _validate_data() at the top of
-        # inverse_transform. in particular, try: X.shape
+        # this is being caught by _val_X at the top of inverse_transform.
+        # in particular,
+        # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
+        #     hasattr(_X, 'toarray'):
         with pytest.raises(ValueError):
             _IM.inverse_transform(_junk_X)
 
@@ -1462,11 +1466,9 @@ class TestInverseTransform:
 
         if _format == 'dask_array':
             with pytest.raises(TypeError):
-                # handled by IM
                 _IM.inverse_transform(_X_wip[:, _IM.column_mask_])
         elif _format == 'dask_dataframe':
             with pytest.raises(TypeError):
-                # handled by IM
                 _IM.inverse_transform(_X_wip.iloc[:, _IM.column_mask_])
         else:
             raise Exception
@@ -1475,8 +1477,7 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_dim', ('0D', '1D'))
     def test_X_must_be_2D(self, _X_factory, _kwargs, _dim):
 
-        # ZERO-D PROVES inverse_transform
-        # REJECTS LESS THAN 1 COLUMN.
+        # ZERO-D PROVES inverse_transform REJECTS LESS THAN 1 COLUMN.
 
         _wip_X = _X_factory(
             _dupl=None,
@@ -1523,49 +1524,59 @@ class TestInverseTransform:
             )
 
 
-    def test_rejects_bad_num_features(self, _X_np, _kwargs, _columns):
+    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_diff', ('more', 'less', 'same'))
+    def test_rejects_bad_num_features(
+        self, _X_np, _kwargs, _columns, _format, _diff
+    ):
+
         # RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
         # COLUMNS RETAINED BY column_mask_
 
         _IM = IM(**_kwargs)
         _IM.fit(_X_np)
 
+        # build TRFM_X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         TRFM_X = _IM.transform(_X_np)
         TRFM_MASK = _IM.column_mask_
-        __ = np.array(_columns)
-        for obj_type in ['np', 'pd']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    TEST_X = TRFM_X.copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(
-                            data=TEST_X, columns=__[TRFM_MASK]
-                        )
-                elif diff_cols == 'less':
-                    TEST_X = TRFM_X[:, :-1].copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(
-                            data=TEST_X,
-                            columns=__[TRFM_MASK][:-1]
-                        )
-                elif diff_cols == 'more':
-                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
-                    if obj_type == 'pd':
-                        _COLUMNS = np.hstack((
-                            __[TRFM_MASK],
-                            np.char.upper(__[TRFM_MASK])
-                        ))
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
-                else:
-                    raise Exception
+        if _diff == 'same':
+            if _format == 'pd':
+                TRFM_X = pd.DataFrame(
+                    data=TRFM_X,
+                    columns=_columns[TRFM_MASK]
+                )
+        elif _diff == 'less':
+            TRFM_X = TRFM_X[:, :-1]
+            if _format == 'pd':
+                TRFM_X = pd.DataFrame(
+                    data=TRFM_X,
+                    columns=_columns[TRFM_MASK][:-1]
+                )
+        elif _diff == 'more':
+            TRFM_X = np.hstack((TRFM_X, TRFM_X))
+            if _format == 'pd':
+                _COLUMNS = np.hstack((
+                    _columns[TRFM_MASK],
+                    np.char.upper(_columns[TRFM_MASK])
+                ))
+                TRFM_X = pd.DataFrame(
+                    data=TRFM_X,
+                    columns=_COLUMNS
+                )
+        else:
+            raise Exception
+        # END build TRFM_X ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-                if diff_cols == 'same':
-                    _IM.inverse_transform(TEST_X)
-                else:
-                    with pytest.raises(ValueError):
-                        _IM.inverse_transform(TEST_X)
 
-        del _IM, TRFM_X, TRFM_MASK, obj_type, diff_cols, TEST_X
+        # Test the inverse_transform operation ** ** ** ** ** ** **
+        if _diff == 'same':
+            _IM.inverse_transform(TRFM_X)
+        else:
+            with pytest.raises(ValueError):
+                _IM.inverse_transform(TRFM_X)
+        # END Test the inverse_transform operation ** ** ** ** ** ** **
+
+        del _IM, TRFM_X, TRFM_MASK
 
 
     @pytest.mark.parametrize('_format',
@@ -1598,8 +1609,10 @@ class TestInverseTransform:
         # set_output does not control the output container for inverse_transform
         # the output container is always the same as passed
 
+        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
         if _format not in ('np', 'pd') and _dtype not in ('int', 'flt'):
             pytest.skip(reason=f"scipy sparse cant take non-numeric")
+        # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
         if isinstance(_keep, dict):
             _key = list(_keep.keys())[0]
@@ -1614,6 +1627,7 @@ class TestInverseTransform:
             else:
                 pytest.skip(reason=f"can only have str 'keep' with pd df")
 
+        # build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         if _constants == 'constants1':
             _constants = {}
         elif _constants == 'constants2':
@@ -1672,6 +1686,7 @@ class TestInverseTransform:
             _X_wip = ss._bsr.bsr_array(_base_X)
         else:
             raise Exception
+        # END build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         _X_wip_before_inv_tr = _X_wip.copy()
 
@@ -1763,7 +1778,6 @@ class TestInverseTransform:
         if isinstance(NP_INV_TRFM_X, pd.core.frame.DataFrame):
             assert np.array_equal(NP_INV_TRFM_X.columns, _columns)
 
-
         # manage equal_nan for num or str
         try:
             NP_INV_TRFM_X.astype(np.float64)
@@ -1813,10 +1827,8 @@ class TestInverseTransform:
             assert NP_INV_TRFM_X.shape == _base_X.shape, \
                 f"{NP_INV_TRFM_X.shape=}, {_base_X.shape=}"
 
-            assert np.array_equal(
-                NP_INV_TRFM_X,
-                _base_X
-            ), f"inverse transform of transformed data != original data"
+            assert np.array_equal(NP_INV_TRFM_X, _base_X), \
+                f"inverse transform of transformed data != original data"
 
             if not isinstance(_keep, dict):
                 assert np.array_equal(
@@ -1831,21 +1843,25 @@ class TestInverseTransform:
         # save the headache of dealing with array_equal with nans and
         # non-numeric data, just do numeric.
         if _copy is True and _dtype in ('flt', 'int'):
+
             assert isinstance(_X_wip, type(_X_wip_before_inv_tr))
             assert _X_wip.shape == _X_wip_before_inv_tr.shape
 
-            if hasattr(_X_wip_before_inv_tr, 'toarray'):
+            if isinstance(_X_wip_before_inv_tr, np.ndarray):
+                assert np.array_equal(
+                    _X_wip_before_inv_tr, _X_wip, equal_nan=True
+                )
+                assert _X_wip.flags == _X_wip_before_inv_tr.flags
+            elif isinstance(_X_wip_before_inv_tr, pd.core.frame.DataFrame):
+                assert _X_wip.equals(_X_wip_before_inv_tr)
+            elif hasattr(_X_wip_before_inv_tr, 'toarray'):
                 assert np.array_equal(
                     _X_wip.toarray(),
                     _X_wip_before_inv_tr.toarray(),
                     equal_nan=True
                 )
-            elif isinstance(_X_wip_before_inv_tr, pd.core.frame.DataFrame):
-                assert _X_wip.equals(_X_wip_before_inv_tr)
             else:
-                assert np.array_equal(
-                    _X_wip_before_inv_tr, _X_wip, equal_nan=True
-                )
+                raise Exception
 
 
 
