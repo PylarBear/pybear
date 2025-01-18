@@ -35,8 +35,8 @@ joblib = "*"
 numpy = ">=1.26.0"
 pandas = "*"
 scipy = [
-    { version = "1.13.1", markers = "python_version < '3.10'" },
-    { version = ">=1.15.1", markers = "python_version >= '3.10'" }
+    { version = "<1.14.0", markers = "python_version < '3.10'" },
+    { version = "*", markers = "python_version >= '3.10'" }
 ]
 scikit-learn = "<1.6.0"
 typing_extensions = "*"

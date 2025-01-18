@@ -34,5 +34,25 @@ DataContainer: TypeAlias = Union[
     SparseContainer
 ]
 
+# the internal containers differ from the above external data containers
+# by coo, dia, & bsr, because those cannot be sliced
+
+InternalSparseContainer: TypeAlias = Union[
+    ss._csr.csr_matrix,
+    ss._csc.csc_matrix,
+    ss._lil.lil_matrix,
+    ss._dok.dok_matrix,
+    ss._csr.csr_array,
+    ss._csc.csc_array,
+    ss._lil.lil_array,
+    ss._dok.dok_array
+]
+
+InternalDataContainer: TypeAlias = Union[
+    npt.NDArray,
+    pd.DataFrame,
+    InternalSparseContainer
+]
+
 
 

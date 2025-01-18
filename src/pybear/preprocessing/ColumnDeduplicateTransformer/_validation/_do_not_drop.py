@@ -53,13 +53,6 @@ def _val_do_not_drop(
 
     """
 
-    # it appears that sklearn _validate_data recognizes when a DF was
-    # passed without a user-defined header (that is, the header is [1,2,3,...]),
-    # and in that case does not expose feature_names_in_.
-    # if isinstance(_X, pd.core.frame.DataFrame) and _columns is None:
-    #     raise ValueError(
-    #         f"if '_X' is a dataframe, '_columns' cannot be None"
-    #     )
 
     try:
         # if is None, just skip out

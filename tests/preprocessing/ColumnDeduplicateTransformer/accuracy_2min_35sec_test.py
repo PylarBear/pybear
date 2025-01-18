@@ -127,8 +127,6 @@ class TestAccuracy:
             pytest.skip(reason=f"dont do remaining tests")
         else:
             TRFM_X = TestCls.fit_transform(X)
-            if isinstance(TRFM_X, np.ndarray):
-                assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
         exp_dupls = deepcopy(dupls or [])
         if has_nan and not equal_nan:
@@ -149,6 +147,10 @@ class TestAccuracy:
 
         # returned format is same as given format
         assert isinstance(TRFM_X, _og_format)
+
+        # if numpy output, is C order
+        if isinstance(TRFM_X, np.ndarray):
+            assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
         # returned dtypes are same as given dtypes
         if isinstance(TRFM_X, pd.core.frame.DataFrame):

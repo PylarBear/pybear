@@ -86,8 +86,9 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_format',
         (
             'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix',
-            'dia_matrix', 'lil_matrix', 'dok_matrix', 'csr_array',
-            'csc_array', 'coo_array', 'dia_array', 'lil_array', 'dok_array'
+            'dia_matrix', 'lil_matrix', 'dok_matrix', 'bsr_matrix',
+            'csr_array', 'csc_array', 'coo_array', 'dia_array', 'lil_array',
+            'dok_array', 'bsr_array'
         )
     )
     def test_accuracy(
@@ -95,46 +96,14 @@ class TestInverseTransform:
         _has_nan, _shape, _columns, _rtol_atol
     ):
 
+        # everything except ndarray, pd dataframe, & scipy csc matrix/array
+        # are blocked. should raise.
+
         if _dtype == 'str' and _format not in ('ndarray', 'df'):
             pytest.skip(reason=f"scipy sparse cannot take strings")
 
         _base_X = _dupl_X.copy()
 
-        if _format == 'ndarray':
-            _X_wip = _base_X
-        elif _format == 'df':
-            _X_wip = pd.DataFrame(
-                data=_base_X,
-                columns=_columns
-            )
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_base_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_base_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_base_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_base_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_base_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_base_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_base_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_base_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_base_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_base_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_base_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_base_X)
-        else:
-            raise Exception
-
-        # fit v v v v v v v v v v v v v v v v v v v v
         _CDT = ColumnDeduplicateTransformer(
             keep=_keep,
             do_not_drop=_do_not_drop,
@@ -142,26 +111,83 @@ class TestInverseTransform:
             # rtol: Optional[Real] = 1e-5,
             # atol: Optional[Real] = 1e-8,
             equal_nan=_equal_nan,
-            n_jobs=1    # leave set at 1 because of confliction
-        ).fit(_X_wip)
+            n_jobs=1  # leave set at 1 because of confliction
+        )
+
+        # fit v v v v v v v v v v v v v v v v v v v v
+        # fit on the numpy X
+        # this actually isnt necessary, fit will take whatever
+        _CDT.fit(_base_X)
         # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # transform v v v v v v v v v v v v v v v v v v
-        _dedupl_X = _CDT.transform(_X_wip, copy=True)
+        # transform the numpy X
+        # this actually isnt necessary, transform will take whatever
+        _dedupl_X = _CDT.transform(_base_X, copy=True)
         # transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
+        # convert _dedupl_X to the test format
+
+        if _format == 'ndarray':
+            _X_wip = _dedupl_X
+        elif _format == 'df':
+            _X_wip = pd.DataFrame(
+                data=_dedupl_X,
+                columns=_columns[_CDT.column_mask_]
+            )
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_dedupl_X)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_dedupl_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_dedupl_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_dedupl_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_dedupl_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_dedupl_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_dedupl_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_dedupl_X)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_dedupl_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_dedupl_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_dedupl_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_dedupl_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_dedupl_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_dedupl_X)
+        else:
+            raise Exception
+
+
         # inverse transform v v v v v v v v v v v v v v v
-        out = _inverse_transform(
-            X=_dedupl_X,
-            _removed_columns=_CDT.removed_columns_,
-            _feature_names_in=_columns
-        )
+        if _format in ('ndarray', 'df', 'csc_matrix', 'csc_array'):
+            out = _inverse_transform(
+                X=_X_wip,
+                _removed_columns=_CDT.removed_columns_,
+                _feature_names_in=_columns
+            )
+        else:
+            with pytest.raises(AssertionError):
+                _inverse_transform(
+                    X=_X_wip,
+                    _removed_columns=_CDT.removed_columns_,
+                    _feature_names_in=_columns
+                )
+            pytest.skip(reason=f"cant do more tests after exception")
         # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
 
         assert type(out) is type(_X_wip)
 
-        assert out.shape == _X_wip.shape
+        assert out.shape == _base_X.shape
 
 
         # nans in string columns are being a real pain
@@ -171,16 +197,16 @@ class TestInverseTransform:
 
         for _idx in range(_X_wip.shape[1]):
 
+            _og_col = _base_X[:, _idx]
+
             if isinstance(_X_wip, np.ndarray):
                 _out_col = out[:, _idx]
-                _og_col = _X_wip[:, _idx]
             elif isinstance(_X_wip, pd.core.frame.DataFrame):
                 _out_col = out.iloc[:, _idx]
-                _og_col = _X_wip.iloc[:, _idx]
+            elif isinstance(_X_wip, (ss.csc_matrix, ss.csc_array)):
+                _out_col = out[:, [_idx]].toarray().ravel()
             else:
-                _out_col = out.tocsc()[:, [_idx]].toarray()
-                _og_col = _X_wip.tocsc()[:, [_idx]].toarray()
-
+                raise Exception
 
             assert _parallel_column_comparer(
                 _out_col, _og_col, *_rtol_atol, _equal_nan=True

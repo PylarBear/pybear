@@ -57,15 +57,59 @@ class TestNpFindDuplicates:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
+
+    @pytest.mark.parametrize('_format',
+        (
+         'coo_matrix', 'dia_matrix', 'bsr_matrix',
+         'coo_array', 'dia_array', 'bsr_array'
+        )
+    )
+    def test_blocks_ss_coo_dia_bsr(self, _X_factory, _format, _shape, _dupl1):
+
+        _X = _X_factory(
+            _dupl=_dupl1,
+            _format='np',
+            _dtype='flt',
+            _has_nan=False,
+            _columns=None,
+            _zeros=0.25,
+            _shape=_shape
+        )
+
+
+        if _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
+        else:
+            raise Exception
+
+        with pytest.raises(AssertionError):
+            _find_duplicates(
+                _X_wip,
+                _rtol=1e-5,
+                _atol=1e-8,
+                _equal_nan=True,
+                _n_jobs=1   # leave set a 1 because of confliction
+            )
+
+
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_dupl_set', (1, 2, 3, 4))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_format',
     (
-     'ndarray', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-     'lil_matrix', 'dok_matrix', 'csr_array', 'csc_array', 'coo_array',
-     'dia_array', 'lil_array', 'dok_array'
+     'ndarray', 'csr_matrix', 'csc_matrix', 'lil_matrix',
+     'dok_matrix', 'csr_array', 'csc_array', 'lil_array', 'dok_array'
     )
     )
     def test_accuracy(
@@ -102,10 +146,6 @@ class TestNpFindDuplicates:
             _X_wip = ss._csr.csr_matrix(_X)
         elif _format == 'csc_matrix':
             _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
         elif _format == 'lil_matrix':
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
@@ -114,10 +154,6 @@ class TestNpFindDuplicates:
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
             _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
         elif _format == 'lil_array':
             _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':
@@ -150,11 +186,10 @@ class TestNpFindDuplicates:
 
 
     @pytest.mark.parametrize('_format',
-    (
-     'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
-     'dok_matrix', 'csr_array', 'csc_array', 'coo_array', 'dia_array',
-     'lil_array', 'dok_array'
-    )
+        (
+         'csr_matrix', 'csc_matrix', 'lil_matrix', 'dok_matrix',
+         'csr_array', 'csc_array', 'lil_array', 'dok_array'
+        )
     )
     def test_accuracy_ss_all_zeros(self, _X_factory, _format, _shape):
 
@@ -166,10 +201,6 @@ class TestNpFindDuplicates:
             _X_wip = ss._csr.csr_matrix(_X)
         elif _format == 'csc_matrix':
             _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
         elif _format == 'lil_matrix':
             _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
@@ -178,10 +209,6 @@ class TestNpFindDuplicates:
             _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
             _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
         elif _format == 'lil_array':
             _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':

@@ -9,12 +9,12 @@
 from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
     _dupl_idxs import _dupl_idxs
 
+import uuid
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
 
 import pytest
-import numpy as np
-
-
-
 
 
 class Fixtures:
@@ -117,6 +117,66 @@ class Fixtures:
 
 
 class TestDuplIdxs(Fixtures):
+
+    @pytest.mark.parametrize('_format',
+        (
+             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
+        )
+    )
+    def test_rejects_ss_coo_dia_bsr(
+        self, _format, _shape, _X_base, _init_duplicates, _rtol, _atol,
+        _equal_nan, _n_jobs
+    ):
+
+        if _format == 'np':
+            _X_wip = _X_base
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(
+                data=_X_base,
+                columns=[str(uuid.uuid4)[:5] for _ in range(_shape[1])]
+            )
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_X_base)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_X_base)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X_base)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X_base)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_X_base)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_X_base)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X_base)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_X_base)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_X_base)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X_base)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X_base)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_X_base)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_X_base)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X_base)
+        else:
+            raise Exception
+
+        if isinstance(_X_wip,
+            (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+            ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+        ):
+            with pytest.raises(AssertionError):
+                _dupl_idxs(_X_wip, None, _rtol, _atol, _equal_nan, _n_jobs)
+        else:
+            out = _dupl_idxs(_X_wip, None, _rtol, _atol, _equal_nan, _n_jobs)
+            assert isinstance(out, list)
 
 
     def test_first_pass(

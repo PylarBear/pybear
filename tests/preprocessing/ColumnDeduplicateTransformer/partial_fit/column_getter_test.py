@@ -56,6 +56,7 @@ class TestColumnGetter:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
+
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
     @pytest.mark.parametrize('_format',
         (
@@ -69,6 +70,8 @@ class TestColumnGetter:
         self, _has_nan, _dtype, _format, _col_idx1, _shape, _X_num, _X_str,
         _master_columns
     ):
+
+        # coo, dia, & bsr matrix/array are blocked. should raise here.
 
         if _dtype == 'str' and _format not in ('ndarray', 'df'):
             pytest.skip(reason=f"scipy sparse cant take non numeric data")
@@ -116,7 +119,14 @@ class TestColumnGetter:
         else:
             raise Exception
 
-        column1 = _column_getter(_X_wip, _col_idx1)
+        if isinstance(_X_wip, (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+            ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+        ):
+            with pytest.raises(AssertionError):
+                _column_getter(_X_wip, _col_idx1)
+            pytest.skip(reason=f"cant do more tests after exception")
+        else:
+            column1 = _column_getter(_X_wip, _col_idx1)
 
         assert len(column1.shape) == 1
 

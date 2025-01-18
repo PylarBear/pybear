@@ -5,10 +5,14 @@
 #
 
 
-from .._type_aliases import DataContainer
+from .._type_aliases import InternalDataContainer
 from typing_extensions import Union
 
 from numbers import Real
+
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
 
 from ._column_getter import _column_getter
 from ._parallel_column_comparer import _parallel_column_comparer
@@ -19,7 +23,7 @@ from joblib import Parallel, delayed
 
 
 def _find_duplicates(
-    _X: DataContainer,
+    _X: InternalDataContainer,
     _rtol: Real,
     _atol: Real,
     _equal_nan: bool,
@@ -40,7 +44,10 @@ def _find_duplicates(
     ----------
     _X:
         {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features) - The data to be deduplicated.
+        n_features) - The data to be deduplicated. _X must indexable,
+        therefore scipy sparse coo, dia, and bsr are prohibited. There
+        is no conditioning of the data here, it must be passed to this
+        module in suitable state.
     _rtol:
         numbers.Real - the relative difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
@@ -80,11 +87,20 @@ def _find_duplicates(
 
     """
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    assert (isinstance(_X, (np.ndarray, pd.core.frame.DataFrame))
+            or hasattr(_X, 'toarray'))
+
+    assert not isinstance(_X,
+        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+         ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    )
 
     assert isinstance(_rtol, Real) and _rtol >= 0
     assert isinstance(_atol, Real) and _atol >= 0
     assert isinstance(_equal_nan, bool)
     assert isinstance(_n_jobs, (int, type(None)))
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     duplicates_: dict[int, list[int]] = {int(i): [] for i in range(_X.shape[1])}
 

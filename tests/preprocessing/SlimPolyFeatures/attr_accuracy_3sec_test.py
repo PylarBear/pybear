@@ -104,12 +104,7 @@ class TestNFeaturesInFeatureNamesIn(FixtureMixin):
         TestCls = SlimPoly(**_kwargs)
 
         # must be fitted to access all of these attrs & properties!
-        if X_format in ('coo', 'bsr', 'dia'):
-            # warns because SPF is making a copy of X because not indexable
-            with pytest.warns():
-                TestCls.fit(_X)
-        else:
-            assert TestCls.fit(_X) is TestCls
+        assert TestCls.fit(_X) is TestCls
 
         # feature_names_in_ - - - - - - - - - - - - - - -
         if X_format == 'pd':
