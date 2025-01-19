@@ -64,12 +64,12 @@ class TestHandleXY:
 
 
     # def _handle_X_y(
-    #         X: XType,
-    #         y: YType,
+    #         X: XContainer,
+    #         y: YContainer,
     #         _name: str,
     #         __x_original_obj_type: Union[str, None],
     #         __y_original_obj_type: Union[str, None],
-    #     ) -> tuple[XType, YType, str, str, Union[np.ndarray[int], None]]:
+    #     ) -> tuple[XContainer, YContainer, str, str, Union[np.ndarray[int], None]]:
 
 
     @pytest.mark.parametrize('_x_og_type',

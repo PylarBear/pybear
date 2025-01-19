@@ -148,7 +148,7 @@ class TestSetParams:
         for param, value in disallowed_kwargs.items():
             _og_value = getattr(TestCls, param)
             with pytest.warns():
-                TestCls.set_params(param=value)
+                TestCls.set_params(**{param:value})
             # assert did not set the new value,
             # kept old, which was from _kwargs
             assert getattr(TestCls, param) == _og_value == _kwargs[param]

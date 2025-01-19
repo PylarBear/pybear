@@ -5,9 +5,8 @@
 #
 
 
-from typing import Iterable
-from typing_extensions import Union, TypeAlias
-from ._type_aliases import DataType
+from typing_extensions import Union
+from ._type_aliases import XContainer, YContainer
 
 import numpy as np
 import numpy.typing as npt
@@ -17,23 +16,19 @@ from ...utilities._nan_masking import nan_mask
 
 
 
-XType: TypeAlias = Iterable[Iterable[DataType]]
-YType: TypeAlias = Iterable[Iterable[DataType]]
-
-
 def _handle_X_y(
-        X: XType,
-        y: Union[YType, None],
+        X: XContainer,
+        y: YContainer,
         _name: str,  # use type(self).__name__ from MCT call
         __x_original_obj_type: Union[str, None], # use self._x_original_obj_type
         __y_original_obj_type: Union[str, None], # self._y_original_obj_type
-    ) -> tuple[XType, YType, str, str, Union[npt.NDArray[int], None]]:
+    ) -> tuple[XContainer, YContainer, str, str, Union[npt.NDArray[int], None]]:
 
 
     """
     Validate dimensions of X and y, get dtypes of first-seen data object,
     standardize the containers for processing, get column names if
-    available, standardize all nan-like representations to np.nan.
+    available, pizza standardize all nan-like representations to np.nan.
 
     
     Parameters
@@ -73,17 +68,17 @@ def _handle_X_y(
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     # IF X IS Series, MAKE DataFrame
 
+    # pizza, keep this note v v v , does it mean anything for set_output?
     # _x_original_obj_type ONLY MATTERS WHEN _handle_X_y IS CALLED
     # THROUGH transform() (OR fit_transform())
 
     # validate og_obj_dtypes ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    _base_err = (f"must be in [None, 'numpy_array', 'pandas_dataframe', "
-                 f"'pandas_series']")
+    _allowed = [None, 'numpy_array', 'pandas_dataframe', 'pandas_series']
+
+    _base_err = f"must be in type(None), {', '.join(_allowed[1:])}"
     err_msg_x = f"__x_original_obj_type " + _base_err
     err_msg_y = f"__y_original_obj_type " + _base_err
-
-    _allowed = [None, 'numpy_array', 'pandas_dataframe', 'pandas_series']
 
     try:
         if __x_original_obj_type is not None:
@@ -142,6 +137,8 @@ def _handle_X_y(
         raise TypeError(f"{_name} cannot take numpy masked arrays. "
             f"Pass X as a numpy.ndarray, pandas dataframe, or pandas series.")
 
+    # pizza what is this for? .... sets not num to obj dtype?
+    # answer: this needs to stay unhashed for now --- makes dask array (at least) work
     if not isinstance(X, (type(None), str, dict)):
         try:
             list(X[:10])
@@ -162,6 +159,7 @@ def _handle_X_y(
     if len(X.shape) == 1:
         X = X.reshape((-1, 1))
 
+    # pizza see if we can get rid of this!
     # standardize nan-like to np.nan
     _nan_mask = nan_mask(X)
     try:
@@ -229,6 +227,7 @@ def _handle_X_y(
 
     # *** y MUST BE np OR None ***
 
+    # pizza see if we can get rid of this!
     # standardize nan-like to np.nan
     if y is not None:
         _nan_mask = nan_mask(y)

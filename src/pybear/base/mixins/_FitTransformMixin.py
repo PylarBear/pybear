@@ -34,7 +34,7 @@ class FitTransformMixin:
 
         Returns
         -------
-        X_new : ndarray array of shape (n_samples, n_features_new)
+        X_new : array-like of shape (n_samples, n_features_new)
             Transformed array.
 
         """

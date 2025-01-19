@@ -29,7 +29,7 @@ from .._shared._validation._val_n_jobs import _val_n_jobs
 
 
 
-def _mct_validation(
+def _validation(
         _count_threshold: int,
         _ignore_float_columns: bool,
         _ignore_non_binary_integer_columns: bool,

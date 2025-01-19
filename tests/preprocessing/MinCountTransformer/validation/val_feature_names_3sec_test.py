@@ -13,6 +13,8 @@ import numpy as np
 from pybear.preprocessing.MinCountTransformer._validation._val_feature_names \
     import _val_feature_names
 
+# pizza as of 25_01_18 this isnt being used, if still the case at the end, delete
+# replaced by FeatureMixin._check_feature_names
 
 class TestValFeatureNamesIn:
 
