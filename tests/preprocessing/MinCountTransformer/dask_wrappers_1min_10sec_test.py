@@ -24,7 +24,7 @@ from dask_ml.wrappers import Incremental, ParallelPostFit
 
 
 
-# TEST DASK Incremental + ParallelPostFit == ONE BIG sklearn fit_transform()
+# TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 class TestDaskIncrementalParallelPostFit:
 
 
@@ -305,7 +305,7 @@ class TestDaskIncrementalParallelPostFit:
                 FT_TRFM_Y.astype(str)
             ), f"transformed Y != transformed np Y on single fit/transform"
 
-# END TEST DASK Incremental + ParallelPostFit == ONE BIG sklearn fit_transform()
+# END TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 
 
 

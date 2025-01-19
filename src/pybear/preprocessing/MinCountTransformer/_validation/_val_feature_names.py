@@ -9,6 +9,9 @@
 import numpy as np
 
 
+# pizza as of 25_01_18 this isnt being used, if still the case at the end, delete
+# replaced by FeatureMixin._check_feature_names
+
 def _val_feature_names(
         _columns: np.ndarray,
         _feature_names_in: np.ndarray

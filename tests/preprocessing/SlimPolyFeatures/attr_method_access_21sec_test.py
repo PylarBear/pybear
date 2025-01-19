@@ -6,11 +6,8 @@
 
 
 
-import pytest
-
-from pybear.preprocessing import SlimPolyFeatures as SlimPoly
-
 import sys
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -18,7 +15,9 @@ import scipy.sparse as ss
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
 
+from pybear.preprocessing import SlimPolyFeatures as SlimPoly
 
+import pytest
 
 
 bypass = False

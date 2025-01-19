@@ -633,6 +633,10 @@ class ColumnDeduplicateTransformer(
         return self.partial_fit(X, y=y)
 
 
+    # def fit_transform(self, X, y=None, **fit_params):
+    # inherited from FitTransformMixin
+
+
     def inverse_transform(
         self,
         X: DataContainer,

@@ -5,28 +5,28 @@
 #
 
 
-from copy import deepcopy
 from typing import Iterable
-from typing_extensions import Union, TypeAlias, Self
-from ._type_aliases import OriginalDtypesDtype, TotalCountsByColumnType, \
-    IgnColsHandleAsBoolDtype, DataType
+from typing_extensions import Union, Self
+from ._type_aliases import (
+    OriginalDtypesDtype,
+    TotalCountsByColumnType,
+    IgnColsHandleAsBoolDtype,
+    XContainer,
+    YContainer
+)
+
+from copy import deepcopy
+import warnings
+
 import numpy as np
 import pandas as pd
 import joblib
-from .docs.mincounttransformer_docs import mincounttransformer_docs
-from ...base import (
-    is_fitted,
-    check_is_fitted,
-    get_feature_names_out as _get_feature_names_out
-)
-from sklearn.base import check_array, BaseEstimator
 
 from ._shared._validation._val_ignore_columns import _val_ignore_columns
 from ._shared._validation._val_handle_as_bool import _val_handle_as_bool
 from ._shared._validation._val_ign_cols_hab_callable import \
     _val_ign_cols_hab_callable
-from ._validation._val_feature_names import _val_feature_names
-from ._validation._mct_validation import _mct_validation
+from ._validation._validation import _validation
 
 from ._shared._make_instructions._make_instructions import _make_instructions
 from ._handle_X_y import _handle_X_y
@@ -36,12 +36,28 @@ from ._test_threshold import _test_threshold
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
 from ._transform._tcbc_update import _tcbc_update
 
+from .docs.mincounttransformer_docs import mincounttransformer_docs
+from ...base import (
+    FeatureMixin, # bearpizza
+    GetParamsMixin,
+    ReprMixin,
+    SetParamsMixin,
+    is_fitted,
+    check_is_fitted,
+    get_feature_names_out as _get_feature_names_out
+)
+from sklearn.base import check_array, BaseEstimator
 
-XType: TypeAlias = Iterable[Iterable[DataType]]
-YType: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType], None]
 
 
-class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
+
+class MinCountTransformer(
+    FeatureMixin,
+    GetParamsMixin,
+    ReprMixin,
+    SetParamsMixin,
+    BaseEstimator    # bearpizza
+):
 
 
     """
@@ -421,8 +437,24 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         raise AttributeError(f'original_dtypes_ attribute is read-only')
 
 
-    def _reset(self):
-        """Reset the internal data state of MinCountTransformer."""
+    def __pybear_is_fitted__(self):
+
+        """
+        If an estimator/transformer does not set any attributes with a
+        trailing underscore, it can define a '__pybear_is_fitted__' method
+        returning a boolean to specify if the estimator/transformer is
+        fitted or not.
+
+        """
+
+        return hasattr(self, 'n_features_in_')
+
+
+    def reset(self):
+        """
+        Reset the internal data state of MinCountTransformer.
+
+        """
 
         if not hasattr(self, '_output_transform'):
             self._output_transform = None
@@ -448,9 +480,9 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
 
     def _base_fit(self,
-        X: XType,
-        y: YType=None,
-        **fit_kwargs
+        X: XContainer,
+        y: YContainer=None,
+        **fit_kwargs   # pizza if this stays not used take it out!
     ):
 
         """
@@ -459,48 +491,19 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         """
 
+        # pizza this needs to go before _handle_X_y for now because
+        # it converts X to numpy
+        # pizza see TestValueErrorDifferentHeader... marked as xfail
+        # do not make an assignment! let the function handle it.
+        self._check_feature_names(X, reset=not is_fitted(self))
+
         X, y, _columns = self._handle_X_y(X, y)
 
         # GET _X_rows, _X_columns, n_features_in_, feature_names_in_, _n_rows_in_
 
-        if _columns is None and hasattr(self, 'feature_names_in_'):
-            # WAS FIT WITH A DF AT SOME POINT BUT CURRENTLY PASSED DATA
-            # IS ARRAY
-            pass
-        elif _columns is None and not hasattr(self, 'feature_names_in_'):
-            # DATA WITH COLUMNS HAS NEVER BEEN PASSED
-            pass
-        elif _columns is not None and hasattr(self, 'feature_names_in_'):
-            # CURRENT DATA HAS COLUMNS AND FIT HAS SEEN COLUMNS PREVIOUSLY
-            # pizza _val_feature_names will likely be replaced.
-            # go to _val_feature_names and read the comments
-            _val_feature_names(_columns, self.feature_names_in_)
-        elif _columns is not None and not hasattr(self, 'feature_names_in_'):
-            # FIRST PASS OR FIT WITH ARRAYS UP TO THIS POINT BUT CURRENTLY
-            # PASSED IS DF
-
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            # pizza, during sklearn exorcism 25_01_01_09_43_00, changed from:
-            # self.feature_names_in_ = _columns
-            # because num in header are being rejected by get_feature_names_out
-            # need to redo this like sklearn so that a header with numbers
-            # doesnt even create self.feature_names_in_
-            # this is stopgap, see TestValueErrorDifferentHeader... marked as xfail
-            if all(map(isinstance, _columns, (str for _ in _columns))):
-                self.feature_names_in_ = np.array(_columns, dtype=object)
-            else:
-                # dont even create feature_names_in_
-                pass
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
         _X_rows, _X_columns = X.shape
 
-        # IF PREVIOUSLY FITTED, THEN self.n_features_in_ EXISTS
-        if hasattr(self, 'n_features_in_') and self.n_features_in_ != _X_columns:
-            raise ValueError( f"X has {_X_columns} columns, previously "
-                f"seen data had {self.n_features_in_} columns")
-        else: # IF NOT PREVIOUSLY FITTED
-            self.n_features_in_ = _X_columns
+        self._check_n_features(X, reset=not is_fitted(self))
 
         try:
             # WAS PREVIOUSLY FITTED, THEN self._n_rows_in EXISTS
@@ -553,7 +556,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._ignore_columns = _val_ignore_columns(
             self._ignore_columns,
-            is_fitted(self, attributes='n_features_in_'),
+            is_fitted(self),
             self.n_features_in_,
             getattr(self, 'feature_names_in_', None)
         )
@@ -561,7 +564,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
         self._handle_as_bool = _val_handle_as_bool(
             self._handle_as_bool,
-            is_fitted(self, attributes='n_features_in_'),
+            is_fitted(self),
             self.n_features_in_,
             getattr(self, 'feature_names_in_', None),
             self._original_dtypes
@@ -598,8 +601,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
     def fit(
         self,
-        X: XType,
-        y: YType=None,
+        X: XContainer,
+        y: YContainer=None,
         **fit_kwargs
     ) -> Self:
 
@@ -630,7 +633,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         """
 
         self._validate()
-        self._reset()
+        self.reset()
 
         self._recursion_check()
 
@@ -639,8 +642,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
     def partial_fit(
         self,
-        X: XType,
-        y: YType=None,
+        X: XContainer,
+        y: YContainer=None,
         **fit_kwargs
     ) -> Self:
 
@@ -673,8 +676,8 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._validate()
 
-        if not is_fitted(self, attributes='n_features_in_'):
-            self._reset()
+        if not is_fitted(self):
+            self.reset()
 
         self._recursion_check()
 
@@ -682,10 +685,10 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
 
     def transform(
-            self,
-            X: XType,
-            y: YType=None
-        ) -> Union[tuple[XType, YType], XType]:
+        self,
+        X: XContainer,
+        y: YContainer=None
+    ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
         """
         Reduce X by the thresholding rules found during fit.
@@ -715,48 +718,20 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         """
 
 
-        check_is_fitted(self, attributes='n_features_in_')
+        check_is_fitted(self)
 
         self._recursion_check()
 
-        self._validate()
+        # pizza this needs to go before _handle_X_y for now because
+        # it converts X to numpy
+        self._check_feature_names(X, reset=False)
 
         X, y, _columns = self._handle_X_y(X, y)
         # X & y ARE NOW np.array
 
-        if _columns is None and hasattr(self, 'feature_names_in_'):
-            # WAS FIT WITH A DF AT SOME POINT BUT CURRENTLY PASSED DATA
-            # IS ARRAY
-            pass
-        elif _columns is None and not hasattr(self, 'feature_names_in_'):
-            # DATA WITH COLUMNS HAS NEVER BEEN PASSED
-            pass
-        elif _columns is not None and hasattr(self, 'feature_names_in_'):
-            # CURRENT DATA HAS COLUMNS AND FIT HAS SEEN COLUMNS PREVIOUSLY
-            _val_feature_names(_columns, self.feature_names_in_)
-        elif _columns is not None and not hasattr(self, 'feature_names_in_'):
-            # FIRST PASS OR FIT WITH ARRAYS UP TO THIS POINT BUT CURRENTLY
-            # PASSED IS DF
-            # self.feature_names_in_ = _columns
-            # pizza see the notes in the corresponding section of _base_fit
-            # pizza why are we even creating feature_names_in_ in transform?
-            if all(map(isinstance, _columns, (str for _ in _columns))):
-                self.feature_names_in_ = np.array(_columns, dtype=object)
-            else:
-                # dont even create feature_names_in_
-                pass
+        self._validate()
 
-
-
-        if len(X.shape)==1:
-            _X_columns = 1
-        elif len(X.shape)==2:
-            _X_columns = X.shape[1]
-        if _X_columns != self.n_features_in_:
-            raise ValueError(f"X has {_X_columns} columns, previously fit data "
-                             f"had {self.n_features_in_} columns")
-
-        del _X_columns
+        self._check_n_features(X, reset=False)
 
 
         # VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs **
@@ -783,7 +758,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._ignore_columns = _val_ignore_columns(
             self._ignore_columns,
-            is_fitted(self, attributes='n_features_in_'),
+            is_fitted(self),
             self.n_features_in_,
             getattr(self, 'feature_names_in_', None)
         )
@@ -800,7 +775,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         self._handle_as_bool = _val_handle_as_bool(
             self._handle_as_bool,
-            is_fitted(self, attributes='n_features_in_'),
+            is_fitted(self),
             self.n_features_in_,
             getattr(self, 'feature_names_in_', None),
             self._original_dtypes
@@ -957,10 +932,10 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
     def fit_transform(
         self,
-        X: XType,
-        y: YType=None,
+        X: XContainer,
+        y: YContainer=None,
         **fit_kwargs
-    ) -> Union[tuple[XType, YType], XType]:
+    ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
         """
         Fits MinCountTransformer to X and returns a transformed version
@@ -991,8 +966,10 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
                 Transformed target.
         """
 
+        # cant use FitTransformMixin, need custom code to handle _recursion_check
+
         self._validate()
-        self._reset()
+        self.reset()
 
         self._base_fit(X, y)
 
@@ -1003,49 +980,6 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         del _original_recursion_block
 
         return __
-
-
-    def inverse_transform(
-        self,
-        X_tr: XType
-    ) -> XType:
-
-        """
-        Reverse the transformation operation. This operation cannot
-        restore removed examples, only features.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features_new) - The input
-            samples.
-
-        Return
-        ------
-        -
-            X_inv : ndarray of shape (n_samples, n_original_features)
-                X with columns of zeros inserted where features would
-                have been removed by transform.
-
-        """
-
-        check_is_fitted(self, attributes='n_features_in_')
-
-        X_tr = self._handle_X_y(X_tr, None)[0]
-
-        # MOCK X WITH np.zeros, check_array WONT TAKE STRS
-        check_array(np.zeros(X_tr.shape))
-
-        __ = self.get_support(False)
-
-        if X_tr.shape[1] != sum(__):
-            raise ValueError(f"X has a different shape than during fitting.")
-
-        X_inv = np.zeros((X_tr.shape[0], self.n_features_in_), dtype=object)
-        X_inv[:, __] = X_tr
-
-        del __
-
-        return X_inv
 
 
     def get_feature_names_out(
@@ -1088,7 +1022,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         """
 
-        check_is_fitted(self, attributes='n_features_in_')
+        check_is_fitted(self)
 
         feature_names_out = _get_feature_names_out(
             input_features,
@@ -1105,9 +1039,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         raise NotImplementedError(f"get_metadata_routing is not available in {__}")
 
 
-    # def get_params inherited from BaseEstimator
-    # if ever needed, hard code that can be substituted for the
-    # BaseEstimator get/set_params can be found in GSTCV_Mixin
+    # def get_params inherited from GetParamsMixin
 
 
     def get_row_support(self, indices:bool=False):
@@ -1121,16 +1053,16 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         Return
         ------
         -
-            support : ndarray - A slicer that selects the retained rows
+            support: ndarray - A slicer that selects the retained rows
             from the X most recently seen by transform. If indices is
             False, this is a boolean array of shape (n_input_features, )
             in which an element is True if its corresponding row is
             selected for retention. If indices is True, this is an
             integer array of shape (n_output_features, ) whose values
-            are indices into the input feature vector.
+            are indices into the sample axis.
         """
 
-        check_is_fitted(self, attributes='n_features_in_')
+        check_is_fitted(self)
 
         if not hasattr(self, '_row_support'):
             raise AttributeError(
@@ -1164,7 +1096,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             the input feature vector.
         """
 
-        check_is_fitted(self, attributes='n_features_in_')
+        check_is_fitted(self)
 
         if callable(self._ignore_columns) or callable(self._handle_as_bool):
             raise ValueError(
@@ -1220,20 +1152,94 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
 
     def set_params(self, **params):
-        """Set the parameters of this transformer.
+        """
+        Set the parameters of the MCT instance.
 
-        Valid parameter keys can be listed with get_params(). Note that
-        you can directly set the parameters of MinCountTransformer.
+        Pass the exact parameter name and its value as a keyword argument
+        to the set_params method call. Or use ** dictionary unpacking on
+        a dictionary keyed with exact parameter names and the new
+        parameter values as the dictionary values. Valid parameter keys
+        can be listed with get_params(). Note that you can directly set
+        the parameters of MinCountTransformer.
+
+        Once MCT is fitted, only MCT :params: 'reject_unseen_values',
+        and 'n_jobs' can be changed via MCT :method: set_params. All
+        other parameters are blocked. To use different parameters without
+        creating a new instance of MCT, call MCT :method: reset on the
+        instance, otherwise create a new MCT instance.
+
 
         Parameters
         ----------
-        params : dict - MinCountTransformer parameters.
+        params:
+            dict[str, any] - MinCountTransformer parameters.
+
 
         Return
         ------
         -
-            self : MinCountTransformer - This instance.
+            self: the MinCountTransformer instance.
 
+        """
+
+        """
+        # IF CHANGING PARAMS WHEN max_recursions IS > 1, RESET THE
+        # INSTANCE, BLOWING AWAY INTERNAL STATES ASSOCIATED WITH PRIOR
+        # FITS, BECAUSE ONLY fit_transform() IS ALLOWED. THIS BYPASSES
+        # THE BLOCKS THAT WOULD BE IMPOSED IF THAT INSTANCE ALREADY
+        # HAD A fit_transform DONE ON IT.
+        if getattr(self, '_max_recursions', 0) > 1:
+            self.reset()
+            super().set_params(**params)
+            return self
+
+
+        # if this is fitted, impose blocks on most params.
+        # if not fitted, allow everything to be set.
+        if is_fitted(self):
+
+            allowed_params = ('reject_unseen_values', 'n_jobs')
+
+            _valid_params = {}
+            _invalid_params = {}
+            _garbage_params = {}
+            _spf_params = self.get_params()
+            for param in params:
+                if param not in _spf_params:
+                    _garbage_params[param] = params[param]
+                elif param in allowed_params:
+                    _valid_params[param] = params[param]
+                else:
+                    _invalid_params[param] = params[param]
+
+            if any(_garbage_params):
+                # let super.set_params raise
+                super().set_params(**params)
+
+            if any(_invalid_params):
+                warnings.warn(
+                    "Once this transformer is fitted, only :params: 'n_jobs' "
+                    "and 'reject_unseen_values' can be changed via :method: "
+                    "set_params. \nAll other parameters are blocked. \nThe "
+                    f"currently passed parameters {', '.join(list(_invalid_params))} "
+                    "have been blocked, but any valid parameters that were "
+                    "passed have been set. \nTo use different parameters "
+                    "without creating a new instance of this transformer class, "
+                    "call :method: reset on this instance, otherwise create a "
+                    "new instance of MCT."
+                )
+
+            super().set_params(**_valid_params)
+
+            del allowed_params, _valid_params, _invalid_params
+            del _garbage_params, _spf_params
+
+        else:
+
+            super().set_params(**params)
+
+
+        return self
         """
 
         # MAKE SOME PARAMETERS UNCHANGEABLE ONCE AN INSTANCE IS FITTED
@@ -1245,7 +1251,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
             _PARAMS = \
                 [_ for _ in params if _ not in ('n_jobs','reject_unseen_values')]
             if len(_PARAMS) > 0:
-                self._reset()
+                self.reset()
             del _PARAMS
 
 
@@ -1259,7 +1265,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
     def _make_instructions(self, _threshold=None):
 
         # must be before _make_instructions()
-        check_is_fitted(self, attributes='n_features_in_')
+        check_is_fitted(self)
 
         return _make_instructions(
             self._count_threshold,
@@ -1307,7 +1313,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
 
         """
 
-        check_is_fitted(self, attributes='n_features_in_')
+        check_is_fitted(self)
         if callable(self._ignore_columns) or callable(self._handle_as_bool):
             raise ValueError(f"if ignore_columns or handle_as_bool is "
                 f"callable, get_support() is only available after a "
@@ -1381,11 +1387,6 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         self._x_original_obj_type = out[2]
         self._y_original_obj_type = out[3]
 
-        _dask_objects = ['', '', '']
-        _non_dask_objects = ['', '', '']
-
-        del _dask_objects, _non_dask_objects
-
         return (out[0], out[1], out[4])
 
 
@@ -1400,7 +1401,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         _n_features_in = None
         _feature_names_in = None
         _original_dtypes = None
-        _mct_has_been_fit = is_fitted(self, attributes='n_features_in_')
+        _mct_has_been_fit = is_fitted(self)
         if _mct_has_been_fit:
             _n_features_in = self.n_features_in_
             if hasattr(self, 'feature_names_in_'):
@@ -1412,7 +1413,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         self._ignore_non_binary_integer_columns, self._ignore_nan, \
         self._delete_axis_0, self._ignore_columns, self._handle_as_bool, \
         self._reject_unseen_values, self._max_recursions, self._n_jobs = \
-            _mct_validation(
+            _validation(
                 self.count_threshold,
                 self.ignore_float_columns,
                 self.ignore_non_binary_integer_columns,
@@ -1432,7 +1433,7 @@ class MinCountTransformer(BaseEstimator):   # BaseEstimator for __repr__
         # extra count_threshold val
         if hasattr(self, '_n_rows_in') and self._count_threshold >= self._n_rows_in:
             raise ValueError(f"count_threshold is >= the number of rows, "
-                             f"every column not ignored would be deleted.")
+                             f"every column not ignored would be deleted.")  # pizza is this right?
 
 
     def _recursion_check(self):

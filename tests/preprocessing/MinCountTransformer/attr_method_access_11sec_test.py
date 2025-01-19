@@ -5,24 +5,26 @@
 #
 
 
-import pytest
+
+from uuid import uuid4
 
 import numpy as np
 import pandas as pd
 
-from uuid import uuid4
-
+from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
 
-from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
-    MinCountTransformer as MCT
+from pybear.preprocessing import MinCountTransformer as MCT
 
-
+import pytest
 
 
 bypass = False
 
 
+
+# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+# FIXTURES
 
 @pytest.fixture(scope='function')
 def _rows():
@@ -71,10 +73,8 @@ def y(_rows):
 def COLUMNS(_cols):
     return [str(uuid4())[:5] for _ in range(_cols)]
 
-
-
-
-
+# END fixtures
+# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
 
@@ -218,13 +218,14 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** _handle_X_y()
 
         # inverse_transform()
-        with pytest.raises(NotFittedError):
-            TestCls.inverse_transform(X)
+        # MCT should never have inverse_transform method
+        with pytest.raises(AttributeError):
+            getattr(TestCls, 'inverse_transform')
 
         # ** _make_instructions()
         # ** _must_be_fitted()
         # partial_fit()
-        # ** _reset()
+        # ** reset()
 
         # set_output()
         TestCls.set_output(transform='pandas_dataframe')
@@ -394,85 +395,19 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # ** _handle_X_y()
 
-        # inverse_transform() ********************
         TestCls = MCT(*_args, **_kwargs)
         TestCls.fit(X, y)  # X IS NP ARRAY
 
-        # SHOULD RAISE ValueError IF X IS NOT A 2D ARRAY
-        for junk_x in [[], [[]]]:
-            with pytest.raises(ValueError):
-                TestCls.inverse_transform(junk_x)
-
-        # SHOULD RAISE TypeError IF X IS NOT A LIST-TYPE
-        for junk_x in [None, 'junk_string', 3, np.pi]:
-            with pytest.raises(TypeError):
-                TestCls.inverse_transform(junk_x)
-
-        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
-        # RETAINED COLUMNS
-        TRFM_X = TestCls.transform(X)
-        TRFM_MASK = TestCls.get_support(False)
-        __ = np.array(COLUMNS)
-        for obj_type in ['np', 'pd']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    TEST_X = TRFM_X.copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
-                elif diff_cols == 'less':
-                    TEST_X = TRFM_X[:, :2].copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(
-                            data=TEST_X, columns=__[TRFM_MASK][:2]
-                        )
-                elif diff_cols == 'more':
-                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
-                    if obj_type == 'pd':
-                        _COLUMNS = np.hstack((__[TRFM_MASK],
-                                              np.char.upper(__[TRFM_MASK])
-                        ))
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
-
-                if diff_cols == 'same':
-                    TestCls.inverse_transform(TEST_X)
-                else:
-                    with pytest.raises(ValueError):
-                        TestCls.inverse_transform(TEST_X)
-
-        INV_TRFM_X = TestCls.inverse_transform(TRFM_X)
-
-        assert isinstance(INV_TRFM_X, np.ndarray), \
-            f"output of inverse_transform() is not a numpy array"
-        assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
-            f"rows in output of inverse_transform() do not match input rows"
-        assert INV_TRFM_X.shape[1] == TestCls.n_features_in_, \
-            (f"columns in output of inverse_transform() do not match "
-             f"originally fitted columns")
-
-        __ = np.logical_not(TestCls.get_support(False))
-        assert np.array_equiv(INV_TRFM_X[:, __],
-                              np.zeros((TRFM_X.shape[0], sum(__)))
-            ), \
-            (f"back-filled parts of inverse_transform() output do not slice "
-             f"to a zero array")
-        del __
-
-        assert np.array_equiv(
-            TRFM_X.astype(str),
-            INV_TRFM_X[:, TestCls.get_support(False)].astype(str)
-            ), (f"output of inverse_transform() does not reduce back to "
-                f"the output of transform()")
-
-        del junk_x, TRFM_X, TRFM_MASK, obj_type, diff_cols
-        del TEST_X, INV_TRFM_X
-
-        # END inverse_transform() **********
+        # inverse_transform()
+        # MCT should never have inverse_transform method
+        with pytest.raises(AttributeError):
+            getattr(TestCls, 'inverse_transform')
 
 
         # ** _make_instructions()
         # ** _must_be_fitted()
         # partial_fit()
-        # ** _reset()
+        # ** reset()
 
         # set_output()
         TestCls.set_output(transform='pandas_dataframe')
@@ -574,20 +509,15 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # ** _handle_X_y()
 
-        # inverse_transform() ************
-
-        assert np.array_equiv(
-            FittedTestCls.inverse_transform(TRFM_X).astype(str),
-            TransformedTestCls.inverse_transform(TRFM_X).astype(str)), \
-            (f"inverse_transform(TRFM_X) after transform() != "
-             f"inverse_transform(TRFM_X) before transform()")
-
-        # END inverse_transform() **********
+        # inverse_transform()
+        # MCT should never have inverse_transform method
+        with pytest.raises(AttributeError):
+            getattr(TransformedTestCls, 'inverse_transform')
 
         # ** _make_instructions()
         # ** _must_be_fitted()
         # partial_fit()
-        # ** _reset()
+        # ** reset()
 
         # set_output()
         TransformedTestCls.set_output(transform='pandas_dataframe')
@@ -775,13 +705,14 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** _handle_X_y()
 
         # inverse_transform()
+        # MCT should never have inverse_transform method
         with pytest.raises(AttributeError):
-            TwoRecurTestCls.inverse_transform(X)
+            getattr(TwoRecurTestCls, 'inverse_transform')
 
         # ** _make_instructions()
         # ** _must_be_fitted()
         # partial_fit()
-        # ** _reset()
+        # ** reset()
 
         # set_output()
         TwoRecurTestCls.set_output(transform='pandas_dataframe')
@@ -1073,68 +1004,17 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # ** _handle_X_y()
 
-        # inverse_transform() ********************
         TwoRecurTestCls = MCT(count_threshold=3, **_kwargs)
-        # X IS NP ARRAY
-        TRFM_X, TRFM_Y = TwoRecurTestCls.fit_transform(X, y)
 
-        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF RETAINED COLUMNS
-        __ = np.array(COLUMNS)
-        TRFM_MASK = TwoRecurTestCls.get_support(False)
-        for obj_type in ['np', 'pd']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    TEST_X = TRFM_X.copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK])
-                elif diff_cols == 'less':
-                    TEST_X = TRFM_X[:, :2].copy()
-                    if obj_type == 'pd':
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=__[TRFM_MASK][:2])
-                elif diff_cols == 'more':
-                    TEST_X = np.hstack((TRFM_X.copy(), TRFM_X.copy()))
-                    if obj_type == 'pd':
-                        _COLUMNS = np.hstack((__[TRFM_MASK],
-                                              np.char.upper(__[TRFM_MASK])
-                        ))
-                        TEST_X = pd.DataFrame(data=TEST_X, columns=_COLUMNS)
-                        del _COLUMNS
-
-                if diff_cols == 'same':
-                    TwoRecurTestCls.inverse_transform(TEST_X)
-                else:
-                    with pytest.raises(ValueError):
-                        TwoRecurTestCls.inverse_transform(TEST_X)
-
-        INV_TRFM_X = TwoRecurTestCls.inverse_transform(TRFM_X)
-
-        assert isinstance(INV_TRFM_X, np.ndarray), \
-            f"output of inverse_transform() is not a numpy array"
-        assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
-            f"rows in output of inverse_transform() do not match input rows"
-        assert INV_TRFM_X.shape[1] == TwoRecurTestCls.n_features_in_, \
-            (f"columns in output of inverse_transform() do not match originally "
-             f"fitted columns")
-
-        __ = np.logical_not(TwoRecurTestCls.get_support(False))
-        _ZERO_ARRAY = np.zeros((TRFM_X.shape[0], sum(__)))
-        assert np.array_equiv(INV_TRFM_X[:, __], _ZERO_ARRAY), (f"back-filled "
-            f"parts of inverse_transform() output do not slice to a zero array")
-        del __, _ZERO_ARRAY
-
-        assert np.array_equiv(TRFM_X.astype(str),
-            INV_TRFM_X[:, TwoRecurTestCls.get_support(False)].astype(str)), \
-            (f"output of inverse_transform() does not reduce back to the output "
-             f"of transform()")
-
-        del TRFM_X, TRFM_Y, TRFM_MASK, obj_type, diff_cols, TEST_X, INV_TRFM_X
-
-        # END inverse_transform() **********
+        # inverse_transform()
+        # MCT should never have inverse_transform method
+        with pytest.raises(AttributeError):
+            getattr(TwoRecurTestCls, 'inverse_transform')
 
         # ** _make_instructions()
         # ** _must_be_fitted()
         # partial_fit()
-        # ** _reset()
+        # ** reset()
 
         # set_output()
         TwoRecurTestCls.set_output(transform='pandas_dataframe')

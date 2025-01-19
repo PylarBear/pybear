@@ -9,8 +9,8 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing.MinCountTransformer._validation._mct_validation \
-    import _mct_validation
+from pybear.preprocessing.MinCountTransformer._validation._validation \
+    import _validation
 
 
 
@@ -22,7 +22,7 @@ class TestMCTValidation:
     def test_it_works(self):
 
 
-        _mct_validation(
+        _validation(
             _count_threshold=10,
             _ignore_float_columns=True,
             _ignore_non_binary_integer_columns=True,

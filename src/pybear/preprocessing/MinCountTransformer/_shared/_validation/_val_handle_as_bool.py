@@ -17,12 +17,12 @@ from ..._type_aliases import IgnColsHandleAsBoolDtype
 
 
 def _val_handle_as_bool(
-        kwarg_value: IgnColsHandleAsBoolDtype,
-        _mct_has_been_fit: bool = False,
-        _n_features_in: Union[None, int] = None,
-        _feature_names_in: Union[None, np.ndarray[str]] = None,
-        _original_dtypes: Union[None, OriginalDtypesDtype] = None,
-    ) -> Union[callable, np.ndarray[int], np.ndarray[str]]:
+    kwarg_value: IgnColsHandleAsBoolDtype,
+    _mct_has_been_fit: bool = False,
+    _n_features_in: Union[None, int] = None,
+    _feature_names_in: Union[None, np.ndarray[str]] = None,
+    _original_dtypes: Union[None, OriginalDtypesDtype] = None,
+) -> Union[callable, np.ndarray[int], np.ndarray[str]]:
 
 
 

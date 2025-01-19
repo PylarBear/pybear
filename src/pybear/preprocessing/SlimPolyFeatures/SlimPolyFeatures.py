@@ -56,7 +56,7 @@ from ...base import (
     validate_data
 )
 
-from ...base import check_is_fitted, get_feature_names_out
+from ...base import is_fitted, check_is_fitted, get_feature_names_out
 from ...utilities import nan_mask
 
 
@@ -532,8 +532,8 @@ class SlimPolyFeatures(
     def __pybear_is_fitted__(self):
 
         """
-        If an estimator does not set any attributes with a trailing
-        underscore, it can define a '__pybear_is_fitted__' method
+        If an estimator/transformer does not set any attributes with a
+        trailing underscore, it can define a '__pybear_is_fitted__' method
         returning a boolean to specify if the estimator/transformer is
         fitted or not.
 
@@ -1278,6 +1278,10 @@ class SlimPolyFeatures(
         return self.partial_fit(X)
 
 
+    # def fit_transform(self, X, y=None, **fit_params):
+    # inherited from FitTransformMixin
+
+
     def score(self, X, y:Union[Iterable[any], None]=None) -> None:
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
@@ -1299,34 +1303,34 @@ class SlimPolyFeatures(
         Pass the exact parameter name and its value as a keyword argument
         to :method: set_params. Or use ** dictionary unpacking on a
         dictionary keyed with exact parameter names and the new parameter
-        values as the dictionary values.
+        values as the dictionary values. Valid parameter keys can be
+        listed with get_params().
 
         Once SPF is fitted, only SPF :params: 'sparse_output', 'keep',
         'feature_name_combiner', and 'n_jobs' can be changed via SPF
         :method: set_params. All other parameters are blocked. To use
-        different parameters without creating a new instance of SFP,
-        call SPF :method: reset on this instance, otherwise create a new
-        SPF instance."
+        different parameters without creating a new instance of SPF,
+        call SPF :method: reset on the instance, otherwise create a new
+        SPF instance.
 
 
         Parameters
         ----------
         **params:
-            dict[str, any] - Estimator parameters.
+            dict[str, any] - SlimPolyFeatures parameters.
+
 
         Returns
         -------
         -
             self - the SlimPolyFeatures instance.
 
-
         """
 
-        try:
-            # this check must stay under try! if this is fitted, then run
-            # everything else in the try which imposes blocks on some params.
-            # if not fitted, except out and allow everything to be set
-            check_is_fitted(self)
+
+        # if this is fitted, impose blocks on some params.
+        # if not fitted, allow everything to be set.
+        if is_fitted(self):
 
             allowed_params = (
                 'keep', 'sparse_output', 'feature_name_combiner', 'n_jobs'
@@ -1334,29 +1338,43 @@ class SlimPolyFeatures(
 
             _valid_params = {}
             _invalid_params = {}
+            _garbage_params = {}
+            _spf_params = self.get_params()
             for param in params:
-                if param in allowed_params:
+                if param not in _spf_params:
+                    _garbage_params[param] = params[param]
+                elif param in allowed_params:
                     _valid_params[param] = params[param]
                 else:
                     _invalid_params[param] = params[param]
 
-            warnings.warn(
-                "Once this transformer is fitted, only :params: 'keep', "
-                "'sparse_output', 'feature_name_combiner', and 'n_jobs' "
-                "can be changed via :method: set_params. \nAll other "
-                "parameters are blocked. \nThe currently passed parameters "
-                f"{', '.join(list(_invalid_params))} have been blocked, "
-                "but any valid parameters that were passed have been set."
-                "\nTo use different parameters without creating a new "
-                "instance of this transformer class, call :method: reset "
-                "on this instance, otherwise create a new instance of SPF."
-            )
+
+            if any(_garbage_params):
+                # let super.set_params raise
+                super().set_params(**params)
+
+            if any(_invalid_params):
+                warnings.warn(
+                    "Once this transformer is fitted, only :params: 'keep', "
+                    "'sparse_output', 'feature_name_combiner', and 'n_jobs' "
+                    "can be changed via :method: set_params. \nAll other "
+                    "parameters are blocked. \nThe currently passed parameters "
+                    f"{', '.join(list(_invalid_params))} have been blocked, "
+                    "but any valid parameters that were passed have been set."
+                    "\nTo use different parameters without creating a new "
+                    "instance of this transformer class, call :method: reset "
+                    "on this instance, otherwise create a new instance of SPF."
+                )
 
             super().set_params(**_valid_params)
 
-        except:
+            del allowed_params, _valid_params, _invalid_params
+            del _garbage_params, _spf_params
+
+        else:
 
             super().set_params(**params)
+
 
         return self
 
