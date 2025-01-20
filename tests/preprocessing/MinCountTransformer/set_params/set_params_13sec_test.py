@@ -142,9 +142,10 @@ class TestSetParams:
         # FIT->SET_PARAMS->TRFM
         FSPTCls = MCT(*_args, **_kwargs)
         FSPTCls.fit(X.copy(), y.copy())
-        FSPTCls.set_params(count_threshold=alt_args[0], **alt_kwargs)
+        with pytest.warns():   # count_threshold is blocked
+            FSPTCls.set_params(count_threshold=alt_args[0], **alt_kwargs)
         FSPT_TRFM_X, FSPT_TRFM_Y = FSPTCls.transform(X.copy(), y.copy())
-        assert FSPTCls._count_threshold == alt_args[0]
+        assert FSPTCls._count_threshold == _args[0]  # the og value
 
         # CHECK X AND Y EQUAL REGARDLESS OF WHEN SET_PARAMS
         assert np.array_equiv(SPFT_TRFM_X.astype(str), FSPT_TRFM_X.astype(str)), \

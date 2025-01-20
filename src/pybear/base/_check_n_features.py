@@ -67,8 +67,7 @@ def check_n_features(
 
     if n_features != n_features_in_:
         raise ValueError(
-            f"X has {n_features} features, but {n_features_in_} were "
-            f"expected."
+            f"X has {n_features} feature(s), but expected {n_features_in_}."
         )
 
     # if get to here, n_features must == n_features_in__

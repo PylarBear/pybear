@@ -29,9 +29,9 @@ def validate_data(
     *,
     copy_X:bool=True,
     cast_to_ndarray:bool=False,
-    accept_sparse:Iterable[Literal[
+    accept_sparse:Union[Iterable[Literal[
         "csr", "csc", "coo", "dia", "lil", "dok", "bsr"
-    ]]=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+    ]], False, None]=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
     dtype:Literal['numeric','any']='any',
     require_all_finite:bool=True,
     cast_inf_to_nan:bool=True,
@@ -163,49 +163,13 @@ def validate_data(
         raise TypeError(f"'cast_to_ndarray' must be boolean.")
     # END cast_to_ndarray -- -- -- -- -- -- -- -- --
 
-    # accept_sparse -- -- -- -- -- -- -- -- -- --
-    err_msg = (f":param: 'accept_sparse' must be None, literal False, or a "
-        f"vector-like iterable of literals indicating the types of scipy "
-        f"sparse containers that are allowed. see the docs for the valid "
-        f"literals accepted in the :param: 'accept_sparse' iterable.")
+    # # accept_sparse -- -- -- -- -- -- -- -- -- --
+    # this is covered by check_scipy_sparse
+    # # END accept_sparse -- -- -- -- -- -- -- -- --
 
-    try:
-        if accept_sparse is None:
-            raise UnicodeError
-        if accept_sparse is False:
-            raise UnicodeError
-        iter(accept_sparse)
-        if isinstance(accept_sparse, (str, dict)):
-            raise Exception
-        if not all(map(isinstance, accept_sparse, (str for _ in accept_sparse))):
-            raise Exception
-        accept_sparse = list(map(str.lower, accept_sparse))
-        valid = ["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]
-        for _ in accept_sparse:
-            if _ not in valid:
-                raise MemoryError
-        del valid
-    except UnicodeError:
-        pass
-    except MemoryError:
-        raise ValueError(err_msg)
-    except:
-        raise TypeError(err_msg)
-
-    del err_msg
-    # END accept_sparse -- -- -- -- -- -- -- -- --
-
-    # dtype -- -- -- -- -- -- -- -- -- -- -- --
-    err_msg = (
-        f"'dtype' must be string literal 'numeric' or 'any', not case sensitive."
-    )
-    if not isinstance(dtype, str):
-        raise TypeError(err_msg)
-    dtype = dtype.lower()
-    if not dtype in ['numeric', 'any']:
-        raise ValueError(err_msg)
-    del err_msg
-    # END dtype -- -- -- -- -- -- -- -- -- -- --
+    # # dtype -- -- -- -- -- -- -- -- -- -- -- --
+    # this is covered by check_dtype()
+    # # END dtype -- -- -- -- -- -- -- -- -- -- --
 
     # require_all_finite -- -- -- -- -- -- -- -- -- -- -- --
     if not isinstance(require_all_finite, bool):
@@ -236,23 +200,8 @@ def validate_data(
         )
 
     # allowed_dimensionality -- -- -- -- -- -- -- -- -- -- -- --
-    __ = allowed_dimensionality
-    err_msg = f"'allowed_dimensionality' must be a 1D iterable of positive integers."
-    try:
-        iter(__)
-        if isinstance(__, (str, dict)):
-            raise Exception
-        if not all(map(isinstance, __, (numbers.Integral for _ in __))):
-            raise Exception
-        if not all(map(lambda x: x > 0, __)):
-            raise UnicodeError
-        if not all(map(lambda x: x < 3, __)):
-            raise UnicodeError
-    except UnicodeError:
-        raise ValueError(err_msg)
-    except:
-        raise TypeError(err_msg)
-    # END ensure_2d -- -- -- -- -- -- -- -- -- -- --
+    # this is covered by check_shape()
+    # END allowed_dimensionality -- -- -- -- -- -- -- -- -- -- --
 
     # ensure_2d -- -- -- -- -- -- -- -- -- -- -- --
     if not isinstance(ensure_2d, bool):
@@ -260,61 +209,20 @@ def validate_data(
     # END ensure_2d -- -- -- -- -- -- -- -- -- -- --
 
     # order -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    err_msg = f"'order' must be string literal 'C' or 'F', not case sensitive."
-    if not isinstance(order, str):
-        raise TypeError(err_msg)
-    order = order.upper()
-    if order not in ['C', 'F']:
-        raise ValueError(err_msg)
-    del err_msg
+    # this is covered by set_order()
     # order -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    # ensure_min_features -- -- -- -- -- -- -- -- -- -- -- -- --
-    err_msg = f"'ensure_min_features' must be a non-negative integer."
-    if not isinstance(ensure_min_features,  numbers.Integral):
-        raise TypeError(err_msg)
-    if isinstance(ensure_min_features, bool):
-        raise TypeError(err_msg)
-    if not ensure_min_features >= 0:
-        raise ValueError(err_msg)
-    del err_msg
-    # END ensure_min_features -- -- -- -- -- -- -- -- -- -- -- --
-
-    # ensure_max_features -- -- -- -- -- -- -- -- -- -- -- -- --
-    if ensure_max_features is not None:
-        err_msg = (
-            f"'ensure_max_features' must be None or a non-negative integer "
-            f"greater than or equal to :param: 'ensure_min_features'."
-        )
-        if not isinstance(ensure_max_features,  numbers.Integral):
-            raise TypeError(err_msg)
-        if isinstance(ensure_max_features, bool):
-            raise TypeError(err_msg)
-        if ensure_max_features < ensure_min_features:
-            raise ValueError(err_msg)
-        del err_msg
-    # END ensure_max_features -- -- -- -- -- -- -- -- -- -- -- --
-
-    # ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- -- --
-    if sample_check is None:
-        err_msg = f"'ensure_min_features' must be a non-negative integer."
-        if not isinstance(ensure_min_samples,  numbers.Integral):
-            raise TypeError(err_msg)
-        if isinstance(ensure_min_samples, bool):
-            raise TypeError(err_msg)
-        if not ensure_min_samples >= 0:
-            raise ValueError(err_msg)
-        del err_msg
-    elif sample_check is not None:
-        err_msg = (f"'sample_check' must be None or a non-negative integer.")
-        if not isinstance(sample_check, numbers.Integral):
-            raise TypeError(err_msg)
-        if isinstance(sample_check, bool):
-            raise TypeError(err_msg)
-        if sample_check < 0:
-            raise ValueError(err_msg)
-        del err_msg
-    # END ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- -
+    # # ensure_min_features -- -- -- -- -- -- -- -- -- -- -- -- --
+    # this is handled by check_shape()
+    # # END ensure_min_features -- -- -- -- -- -- -- -- -- -- -- --
+    #
+    # # ensure_max_features -- -- -- -- -- -- -- -- -- -- -- -- --
+    # this is handled by check_shape()
+    # # END ensure_max_features -- -- -- -- -- -- -- -- -- -- -- --
+    #
+    # # ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- -- --
+    # this is handled by check_shape()
+    # # END ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- -
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

@@ -128,13 +128,18 @@ def check_shape(
     err_msg = (f"'allowed_dimensionality' must be a vector-like iterable "
         f"of integers greater than zero and less than three.")
     try:
-        if isinstance(allowed_dimensionality, numbers.Integral):
-            allowed_dimensionality = (allowed_dimensionality, )
         __ = allowed_dimensionality
+
+        if isinstance(__, numbers.Integral):
+            if isinstance(__, bool):
+                raise Exception
+            __ = (__, )
         iter(__)
         if isinstance(__, (str, dict)):
             raise Exception
         if not all(map(isinstance, __, (numbers.Integral for _ in __))):
+            raise Exception
+        if any(map(isinstance, __, (bool for _ in __))):
             raise Exception
         if not all(map(lambda x: x > 0, __)):
             raise UnicodeError
@@ -144,6 +149,8 @@ def check_shape(
         raise ValueError(err_msg)
     except:
         raise TypeError(err_msg)
+    allowed_dimensionality = __
+    del __
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -166,7 +173,7 @@ def check_shape(
     elif sample_check is None:
         if _samples < min_samples:
             raise ValueError(
-                f"passed object has {_samples} samples, minimum required "
+                f"passed object has {_samples} sample(s), minimum required "
                 f"is {min_samples}"
             )
 

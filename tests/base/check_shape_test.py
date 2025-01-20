@@ -31,10 +31,13 @@ class TestCheckShape:
     # ) -> tuple[int, ...]:
 
 
+    # the validation at the top of check_shape is not tested here.
+    # it is tested in _validate_data_test.
+
     @pytest.mark.parametrize('X_format', ('np', 'pd', 'coo'))
     @pytest.mark.parametrize('dimensionality', (1, 2, 3, 4, 5))
     @pytest.mark.parametrize('allowed_dimensionality', ((1,), (2,), (1,2)))
-    def test_rejects_bad_dimensionality(
+    def test_rejects_disallowed_dimensionality(
         self, X_format, dimensionality, allowed_dimensionality
     ):
 

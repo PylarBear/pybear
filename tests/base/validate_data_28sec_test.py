@@ -6,7 +6,6 @@
 
 
 
-
 from pybear.base._validate_data import validate_data
 from pybear.utilities._nan_masking import nan_mask
 from pybear.utilities._inf_masking import inf_mask
@@ -370,7 +369,7 @@ class TestValidateData_ParamValidation(Fixtures):
 
     # allowed_dimensionality -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_a_d',
-        (-2.7, -1, 0, 1, 2.7, True, False, None, 'trash', {'A':1}, lambda x: x)
+        (-2.7, 2.7, True, False, None, 'trash', (True, False), {'A':1}, lambda x: x)
     )
     def test_rejects_junk_a_d(self, _X_np, _good_accept_sparse, junk_a_d):
 
@@ -394,7 +393,9 @@ class TestValidateData_ParamValidation(Fixtures):
             )
 
 
-    @pytest.mark.parametrize('bad_a_d', ((-1, 0), [0, 1], {2, 3, 4}))
+    @pytest.mark.parametrize('bad_a_d',
+        (-1, 0, (-1, 0), [0, 1], {2, 3, 4})
+    )
     def test_rejects_bad_a_d(self, _X_np, _good_accept_sparse, bad_a_d):
 
         with pytest.raises(ValueError):
@@ -417,10 +418,18 @@ class TestValidateData_ParamValidation(Fixtures):
             )
 
 
-    @pytest.mark.parametrize('good_a_d', ((1, ), [1, 2], {2, }))
+    @pytest.mark.parametrize('good_a_d', (1, 2, (1, ), [1, 2], {2, }))
     def test_good_a_d(self, _X_np, _good_accept_sparse, good_a_d):
 
-        if len(_X_np.shape) not in good_a_d:
+        _X_shape_should_raise = False
+        if isinstance(good_a_d, int):
+            if len(_X_np.shape) != good_a_d:
+                _X_shape_should_raise = True
+        else:
+            if len(_X_np.shape) not in good_a_d:
+                _X_shape_should_raise = True
+
+        if _X_shape_should_raise:
             with pytest.raises(ValueError):
                 validate_data(
                     _X_np,
