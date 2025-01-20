@@ -11,13 +11,9 @@ from .._type_aliases import XContainer, YContainer
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-import dask.array as da
-import dask.dataframe as ddf
-import dask_expr._collection as ddf2
 
 
 
-# pizza dont forget to write test for this
 
 
 def _get_og_obj_type(
@@ -50,6 +46,8 @@ def _get_og_obj_type(
     # pizza, keep this note v v v , does it mean anything for set_output?
     # _x_original_obj_type ONLY MATTERS WHEN _handle_X_y IS CALLED
     # THROUGH transform() (OR fit_transform())
+    # self._y_original_obj_type ONLY MATTERS WHEN _handle_X_y IS
+    # CALLED THROUGH transform() (OR fit_transform())
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -57,8 +55,7 @@ def _get_og_obj_type(
     if not isinstance(OBJECT,
         (
             type(None), np.ndarray, pd.core.frame.DataFrame, pd.core.series.Series,
-            da.core.Array, ddf.core.DataFrame, ddf.core.Series, ddf2.DataFrame,
-            ddf2.Series, ss.csr_matrix, ss.csr_array, ss.csc_matrix, ss.csc_array,
+            ss.csr_matrix, ss.csr_array, ss.csc_matrix, ss.csc_array,
             ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array, ss.lil_matrix,
             ss.lil_array, ss.dok_matrix, ss.dok_array, ss.bsr_matrix, ss.bsr_array
          )
@@ -66,18 +63,12 @@ def _get_og_obj_type(
         raise TypeError(f"unrecognized container {type(OBJECT)}")
     # END validate OBJECT -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
     # validate og_obj_dtypes -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # pizza!
     _allowed = [
         None,
         'numpy_array',
         'pandas_dataframe',
         'pandas_series',
-        'dask_array',
-        'dask_dataframe',
-        'dask_series',
         'scipy_sparse_csr_matrix',
         'scipy_sparse_csr_array',
         'scipy_sparse_csc_matrix',
@@ -108,7 +99,11 @@ def _get_og_obj_type(
     del _allowed, _err_msg_x
     # END validate og_obj_dtypes -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # pizza come back to this. this is setting the obj_type on every pass,
+    # it isnt checking against a 'first-seen'. do u want to do some kind of
+    # 'reset' here like _check_feature_names_in?
 
     if isinstance(OBJECT, type(None)):
         return None
@@ -118,16 +113,6 @@ def _get_og_obj_type(
         return 'pandas_dataframe'
     elif isinstance(OBJECT, pd.core.series.Series):
         return 'pandas_series'
-    elif isinstance(OBJECT, da.core.Array):
-        return 'dask_array'
-    elif isinstance(OBJECT, ddf.core.DataFrame):
-        return 'dask_dataframe'
-    elif isinstance(OBJECT, ddf.core.Series):
-        return 'dask_series'
-    elif isinstance(OBJECT, ddf2.DataFrame):
-        return 'dask_dataframe'
-    elif isinstance(OBJECT, ddf2.Series):
-        return 'dask_series'
     elif isinstance(OBJECT, ss.csr_matrix):
         return 'scipy_sparse_csr_matrix'
     elif isinstance(OBJECT, ss.csr_array):

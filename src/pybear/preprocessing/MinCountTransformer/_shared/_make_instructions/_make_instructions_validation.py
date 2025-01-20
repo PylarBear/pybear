@@ -4,17 +4,19 @@
 # License: BSD 3 clause
 #
 
-from .._validation._val_count_threshold import _val_count_threshold
-from .._validation._val_ignore_float_columns import _val_ignore_float_columns
-from .._validation._val_ignore_non_binary_integer_columns import \
+
+
+from ..._validation._val_count_threshold import _val_count_threshold
+from ..._validation._val_ignore_float_columns import _val_ignore_float_columns
+from ..._validation._val_ignore_non_binary_integer_columns import \
     _val_ignore_non_binary_integer_columns
-from .._validation._val_ignore_columns import _val_ignore_columns
-from .._validation._val_ignore_nan import _val_ignore_nan
-from .._validation._val_handle_as_bool import _val_handle_as_bool
-from .._validation._val_delete_axis_0 import _val_delete_axis_0
-from .._validation._val_original_dtypes import _val_original_dtypes
-from .._validation._val_total_counts_by_column import _val_total_counts_by_column
-from .._validation._val_n_features_in import _val_n_features_in
+from ..._validation._val_ignore_columns import _val_ignore_columns
+from ..._validation._val_ignore_nan import _val_ignore_nan
+from ..._validation._val_handle_as_bool import _val_handle_as_bool
+from ..._validation._val_delete_axis_0 import _val_delete_axis_0
+from ..._validation._val_original_dtypes import _val_original_dtypes
+from ..._validation._val_total_counts_by_column import _val_total_counts_by_column
+from ..._validation._val_n_features_in import _val_n_features_in
 
 from typing_extensions import Union
 
@@ -24,6 +26,7 @@ from ..._type_aliases import (
     OriginalDtypesDtype,
     TotalCountsByColumnType
 )
+
 
 
 def _make_instructions_validation(
@@ -38,19 +41,19 @@ def _make_instructions_validation(
     _n_features_in: int,
     _total_counts_by_column: TotalCountsByColumnType,
     _threshold: Union[int, None] = None
-    ) -> tuple[
-        int,
-        bool,
-        bool,
-        np.ndarray[int],
-        bool,
-        np.ndarray[int],
-        bool,
-        OriginalDtypesDtype,
-        int,
-        TotalCountsByColumnType,
-        int
-    ]:
+) -> tuple[
+    int,
+    bool,
+    bool,
+    np.ndarray[int],
+    bool,
+    np.ndarray[int],
+    bool,
+    OriginalDtypesDtype,
+    int,
+    TotalCountsByColumnType,
+    int
+]:
 
     """
     Validate all args/kwargs taken in by _make_instructions. This
@@ -123,17 +126,17 @@ def _make_instructions_validation(
     _threshold = _val_count_threshold(_threshold)
 
     return (
-            _count_threshold,
-            _ignore_float_columns,
-            _ignore_non_binary_integer_columns,
-            _ignore_columns,
-            _ignore_nan,
-            _handle_as_bool,
-            _delete_axis_0,
-            _original_dtypes,
-            _n_features_in,
-            _total_counts_by_column,
-            _threshold
+        _count_threshold,
+        _ignore_float_columns,
+        _ignore_non_binary_integer_columns,
+        _ignore_columns,
+        _ignore_nan,
+        _handle_as_bool,
+        _delete_axis_0,
+        _original_dtypes,
+        _n_features_in,
+        _total_counts_by_column,
+        _threshold
     )
 
 

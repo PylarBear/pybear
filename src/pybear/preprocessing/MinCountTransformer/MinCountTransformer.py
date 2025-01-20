@@ -15,6 +15,7 @@ from ._type_aliases import (
     YContainer
 )
 
+import inspect
 from copy import deepcopy
 import warnings
 
@@ -22,41 +23,41 @@ import numpy as np
 import pandas as pd
 import joblib
 
-from ._shared._validation._val_ignore_columns import _val_ignore_columns
-from ._shared._validation._val_handle_as_bool import _val_handle_as_bool
-from ._shared._validation._val_ign_cols_hab_callable import \
-    _val_ign_cols_hab_callable
+from ._validation._val_ignore_columns import _val_ignore_columns
+from ._validation._val_handle_as_bool import _val_handle_as_bool
+from ._validation._val_ign_cols_hab_callable import _val_ign_cols_hab_callable
+from ._validation._val_X import _val_X
+from ._validation._val_y import _val_y
 from ._validation._validation import _validation
 
 from ._shared._make_instructions._make_instructions import _make_instructions
-from ._handle_X_y import _handle_X_y
 from ._base_fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
 from ._base_fit._tcbc_merger import _tcbc_merger
+from ._set_output._get_og_obj_type import _get_og_obj_type
 from ._test_threshold import _test_threshold
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
 from ._transform._tcbc_update import _tcbc_update
 
 from .docs.mincounttransformer_docs import mincounttransformer_docs
 from ...base import (
-    FeatureMixin, # bearpizza
+    FeatureMixin,
     GetParamsMixin,
     ReprMixin,
     SetParamsMixin,
     is_fitted,
     check_is_fitted,
-    get_feature_names_out as _get_feature_names_out
+    get_feature_names_out as _get_feature_names_out,
+    validate_data
 )
-from sklearn.base import check_array, BaseEstimator
-
 
 
 
 class MinCountTransformer(
     FeatureMixin,
+    # FitTransformMixin,  # do not use this, need custom code
     GetParamsMixin,
     ReprMixin,
-    SetParamsMixin,
-    BaseEstimator    # bearpizza
+    SetParamsMixin
 ):
 
 
@@ -450,38 +451,9 @@ class MinCountTransformer(
         return hasattr(self, 'n_features_in_')
 
 
-    def reset(self):
-        """
-        Reset the internal data state of MinCountTransformer.
-
-        """
-
-        if not hasattr(self, '_output_transform'):
-            self._output_transform = None
-
-        self._x_original_obj_type = None
-        self._y_original_obj_type = None
-
-        self._total_counts_by_column = {}
-
-        self._recursion_block = self._max_recursions > 1
-
-        try: del self.n_features_in_
-        except: pass
-
-        try: del self.feature_names_in_
-        except: pass
-
-        try: del self._n_rows_in
-        except: pass
-
-        try: del self._original_dtypes
-        except: pass
-
-
     def _base_fit(self,
         X: XContainer,
-        y: YContainer=None,
+        y: any=None,
         **fit_kwargs   # pizza if this stays not used take it out!
     ):
 
@@ -491,28 +463,49 @@ class MinCountTransformer(
 
         """
 
-        # pizza this needs to go before _handle_X_y for now because
-        # it converts X to numpy
+        # GET n_features_in_, feature_names_in_, _n_rows_in_
+        # pizza this needs to go before validate_data() for now because
+        # validate_data() converts X to numpy
         # pizza see TestValueErrorDifferentHeader... marked as xfail
         # do not make an assignment! let the function handle it.
         self._check_feature_names(X, reset=not is_fitted(self))
 
-        X, y, _columns = self._handle_X_y(X, y)
-
-        # GET _X_rows, _X_columns, n_features_in_, feature_names_in_, _n_rows_in_
-
-        _X_rows, _X_columns = X.shape
-
+        # do not make an assignment! let the function handle it.
         self._check_n_features(X, reset=not is_fitted(self))
 
-        try:
-            # WAS PREVIOUSLY FITTED, THEN self._n_rows_in EXISTS
-            self._n_rows_in += _X_rows
-        except:
-            self._n_rows_in = _X_rows
 
-        del _X_columns
-        # END GET _X_rows, _X_columns, n_features_in_, feature_names_in_, _n_rows_in_
+        # 24_03_03_09_54_00 THE INTENT IS TO RUN EVERYTHING AS NP ARRAY
+        # TO STANDARDIZE INDEXING.
+
+        X = validate_data(
+            X,
+            copy_X=False,
+            cast_to_ndarray=True, # <===== bearpizza
+            accept_sparse=None, #("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),  # <===== bearpizza
+            dtype='any',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(1, 2),
+            ensure_2d=True,   # bearpizza this will need to be False
+            order='F',
+            ensure_min_features=1,
+            ensure_max_features=None,
+            ensure_min_samples=3,    # bearpizza finalize this, 2 or 3 samples?
+            sample_check=None
+        )
+
+        # pizza, probably will go into _validation, then under self._validate
+        _val_X(X)
+
+
+        # IF WAS PREVIOUSLY FITTED, THEN self._n_rows_in EXISTS
+        if hasattr(self, '_n_rows_in'):
+            self._n_rows_in += X.shape[0]
+        else:
+            self._n_rows_in = X.shape[0]
+
+        # END GET n_features_in_, feature_names_in_, _n_rows_in_
 
 
         # GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** ** **
@@ -596,48 +589,11 @@ class MinCountTransformer(
 
         # END GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** *
 
+        # pizza dont forget this!    C_CONTIGUOUS
+        # if _og_format is np.ndarray:
+        #     return np.ascontiguousarray(X_tr)
+
         return self
-
-
-    def fit(
-        self,
-        X: XContainer,
-        y: YContainer=None,
-        **fit_kwargs
-    ) -> Self:
-
-        """Determine the uniques and their frequencies to be used for
-        later thresholding.
-
-        Parameters
-        ----------
-        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
-            n_features) - The data used to determine the uniques and
-            their frequencies, used for later thresholding along the
-            feature axis.
-
-        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series, None] of shape
-            (n_samples, n_outputs), or (n_samples,), default=None -
-            Target relative to X for classification or regression; None
-            for unsupervised learning.
-
-        Return
-        ------
-        -
-            self : object -
-                Fitted min count transformer.
-
-
-        """
-
-        self._validate()
-        self.reset()
-
-        self._recursion_check()
-
-        return self._base_fit(X, y, **fit_kwargs)
 
 
     def partial_fit(
@@ -656,7 +612,7 @@ class MinCountTransformer(
         Parameters
         ----------
         X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            scipy sparse] of shape (n_samples,
             n_features) - The data used to determine the uniques and
             their frequencies, used for later thresholding along the
             feature axis.
@@ -682,6 +638,438 @@ class MinCountTransformer(
         self._recursion_check()
 
         return self._base_fit(X, y, **fit_kwargs)
+
+
+    def fit(
+        self,
+        X: XContainer,
+        y: YContainer=None,
+        **fit_kwargs
+    ) -> Self:
+
+        """Determine the uniques and their frequencies to be used for
+        later thresholding.
+
+        Parameters
+        ----------
+        X:
+            Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            n_features) - The data used to determine the uniques and
+            their frequencies, used for later thresholding along the
+            feature axis.
+
+        y:
+            Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None]
+            of shape (n_samples, n_outputs), or (n_samples,),
+            default=None - Target relative to X; None for unsupervised
+            learning.
+
+
+        Return
+        ------
+        -
+            self : object -
+                Fitted min count transformer.
+
+
+        """
+
+        self._validate()
+        self.reset()
+
+        self._recursion_check()
+
+        return self._base_fit(X, y, **fit_kwargs)
+
+
+    def fit_transform(
+        self,
+        X: XContainer,
+        y: YContainer=None,
+        **fit_kwargs
+    ) -> Union[tuple[XContainer, YContainer], XContainer]:
+
+        """
+        Fits MinCountTransformer to X and returns a transformed version
+        of X.
+
+        Parameters
+        ----------
+        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            n_features) - The data used to determine the uniques and
+            their frequencies and to be transformed by rules created
+            from those frequencies.
+
+        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
+            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
+            n_outputs), or (n_samples,), default=None - Target values
+            (None for unsupervised transformations).
+
+        Return
+        ------
+        -
+            X_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
+                    (n_samples_new, n_features_new)
+                Transformed data.
+
+            y_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
+                    (n_samples_new,) or (n_samples_new, n_outputs)
+                Transformed target.
+        """
+
+        # cant use FitTransformMixin, need custom code to handle _recursion_check
+
+        # self._validate()
+        # self.reset()
+
+        # this temporarily creates an attribute that is only looked at by
+        # self._recursion_check. recursion check needs to be disabled
+        # when calling transform() from this method, but otherwise the
+        # recursion check in transform() must always be operative.
+        self.recursion_check_disable = True
+
+        __ = self.fit(X, y).transform(X, y)
+
+        delattr(self, 'recursion_check_disable')
+
+        return __
+
+
+    def get_feature_names_out(
+        self,
+        input_features:Union[Iterable[str], None]=None
+    ):
+        """
+        Get the feature names for the output of :method: transform.
+
+
+        Parameters
+        ----------
+        input_features :
+            array-like of str or None, default=None - Externally provided
+            feature names for the fitted data, not the transformed data.
+
+            If input_features is None:
+
+            - if feature_names_in_ is defined, then feature_names_in_ is
+                used as the input features.
+
+            - if feature_names_in_ is not defined, then the following
+                input feature names are generated:
+                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
+
+            If input_features is not None:
+
+            - if feature_names_in_ is not defined, then input_features is
+                used as the input features.
+
+            - if feature_names_in_ is defined, then input_features must
+                exactly match the features in feature_names_in_.
+
+
+        Return
+        ------
+        -
+            feature_names_out : NDArray[object] - The feature names of
+            the transformed data.
+
+        """
+
+        check_is_fitted(self)
+
+        feature_names_out = _get_feature_names_out(
+            input_features,
+            getattr(self, 'feature_names_in_', None),
+            self.n_features_in_
+        )
+
+        return feature_names_out[self.get_support(indices=False)]
+
+
+    def get_metadata_routing(self):
+        """Get metadata routing of this object - Not implemented."""
+        __ = type(self).__name__
+        raise NotImplementedError(f"get_metadata_routing is not available in {__}")
+
+
+    # def get_params inherited from GetParamsMixin
+
+
+    def get_row_support(self, indices:bool=False):
+        """Get a mask, or integer index, of the rows selected.
+
+        Parameters
+        ----------
+        indices : bool, default=False - If True, the return value will
+            be an array of integers, rather than a boolean mask.
+
+        Return
+        ------
+        -
+            support: ndarray - A slicer that selects the retained rows
+            from the X most recently seen by transform. If indices is
+            False, this is a boolean array of shape (n_input_features, )
+            in which an element is True if its corresponding row is
+            selected for retention. If indices is True, this is an
+            integer array of shape (n_output_features, ) whose values
+            are indices into the sample axis.
+        """
+
+        check_is_fitted(self)
+
+        if not hasattr(self, '_row_support'):
+            raise AttributeError(
+                f"get_row_support() can only be accessed after some data "
+                f"has been transformed"
+            )
+
+        if indices is False:
+            return self._row_support
+        elif indices is True:
+            return np.arange(len(self._row_support))[self._row_support]
+
+
+    def get_support(self, indices:bool=False):
+        """Get a mask, or integer index, of the features selected.
+
+        Parameters
+        ----------
+        indices : bool, default=False - If True, the return value will
+            be an array of integers rather than a boolean mask.
+
+        Return
+        ------
+        -
+            support : ndarray - An index that selects the retained
+            features from a feature vector. If indices is False, this is
+            a boolean array of shape (n_input_features,) in which an
+            element is True if its corresponding feature is selected for
+            retention. If indices is True, this is an integer array of
+            shape (n_output_features, ) whose values are indices into
+            the input feature vector.
+        """
+
+        check_is_fitted(self)
+
+        if callable(self._ignore_columns) or callable(self._handle_as_bool):
+            raise ValueError(
+                f"if ignore_columns or handle_as_bool is callable, get_support() "
+                f"is only available after a transform is done."
+            )
+
+        # must use _make_instructions() in order to construct the column
+        # support mask after fit and before a transform. otherwise, if an
+        # attribute _column_support were assigned to COLUMN_KEEP_MASK in
+        # transform() like _row_support is assigned to ROW_KEEP_MASK, then
+        # a transform would have to be done before being able to access
+        # get_support().
+
+        COLUMNS = np.array(
+            ['DELETE COLUMN' not in v for k, v in self._make_instructions().items()]
+        )
+
+        if indices is False:
+            return np.array(COLUMNS)
+        elif indices is True:
+            return np.arange(self.n_features_in_)[COLUMNS].astype(np.uint32)
+
+
+    def reset(self):
+        """
+        Reset the internal data state of MinCountTransformer.
+
+        """
+
+        if not hasattr(self, '_output_transform'):
+            self._output_transform = None
+
+        self._x_original_obj_type = None
+        self._y_original_obj_type = None
+
+        self._total_counts_by_column = {}
+
+        try: del self.n_features_in_
+        except: pass
+
+        try: del self.feature_names_in_
+        except: pass
+
+        try: del self._n_rows_in
+        except: pass
+
+        try: del self._original_dtypes
+        except: pass
+
+
+    def score(self, X, y=None) -> None:
+        """
+        Dummy method to spoof dask Incremental and ParallelPostFit
+        wrappers. Verified must be here for dask wrappers.
+        """
+
+        pass
+
+
+    def set_output(self, transform=None):
+        """
+        Set the output container when "transform" and "fit_transform"
+        are called.
+
+        Parameters
+        ----------
+        transform : {“default”, "numpy_array", “pandas_dataframe”,
+            "pandas_series"}, default = None - Configure output of
+                transform and fit_transform.
+            "default": Default output format of a transformer (numpy array)
+            "numpy_array": np.ndarray output
+            "pandas_dataframe": DataFrame output
+            "pandas_series": Series output
+            None: Transform configuration is unchanged
+
+        Return
+        ------
+        -
+            self : this instance - MinCountTransformer instance.
+
+        """
+
+        from ._validation._val_transform import _val_transform
+
+        self._output_transform = _val_transform(transform)
+
+        return self
+
+
+    def set_params(self, **params):
+        """
+        Set the parameters of the MCT instance.
+
+        Pass the exact parameter name and its value as a keyword argument
+        to the set_params method call. Or use ** dictionary unpacking on
+        a dictionary keyed with exact parameter names and the new
+        parameter values as the dictionary values. Valid parameter keys
+        can be listed with get_params(). Note that you can directly set
+        the parameters of MinCountTransformer.
+
+        Once MCT is fitted, only MCT :params: 'reject_unseen_values',
+        and 'n_jobs' can be changed via MCT :method: set_params. All
+        other parameters are blocked. To use different parameters without
+        creating a new instance of MCT, call MCT :method: reset on the
+        instance, otherwise create a new MCT instance.
+
+
+        Parameters
+        ----------
+        params:
+            dict[str, any] - MinCountTransformer parameters.
+
+
+        Return
+        ------
+        -
+            self: the MinCountTransformer instance.
+
+        """
+
+
+        # IF CHANGING PARAMS WHEN max_recursions IS > 1, RESET THE
+        # INSTANCE, BLOWING AWAY INTERNAL STATES ASSOCIATED WITH PRIOR
+        # FITS, BECAUSE ONLY fit_transform() IS ALLOWED. THIS BYPASSES
+        # THE BLOCKS THAT WOULD BE IMPOSED IF THAT INSTANCE ALREADY
+        # HAD A fit_transform DONE ON IT.
+        if getattr(self, '_max_recursions', 0) > 1:
+            self.reset()
+            super().set_params(**params)
+            return self
+
+        
+        # if this is fitted, impose blocks on most params.
+        # if not fitted, allow everything to be set.
+        if is_fitted(self):
+
+            allowed_params = ('reject_unseen_values', 'n_jobs')
+
+            _valid_params = {}
+            _invalid_params = {}
+            _garbage_params = {}
+            _spf_params = self.get_params()
+            for param in params:
+                if param not in _spf_params:
+                    _garbage_params[param] = params[param]
+                elif param in allowed_params:
+                    _valid_params[param] = params[param]
+                else:
+                    _invalid_params[param] = params[param]
+
+            if any(_garbage_params):
+                # let super.set_params raise
+                super().set_params(**params)
+
+            if any(_invalid_params):
+                warnings.warn(
+                    "Once this transformer is fitted, only :params: 'n_jobs' "
+                    "and 'reject_unseen_values' can be changed via :method: "
+                    "set_params. \nAll other parameters are blocked. \nThe "
+                    f"currently passed parameters {', '.join(list(_invalid_params))} "
+                    "have been blocked, but any valid parameters that were "
+                    "passed have been set. \nTo use different parameters "
+                    "without creating a new instance of this transformer class, "
+                    "call :method: reset on this instance, otherwise create a "
+                    "new instance of MCT."
+                )
+
+            super().set_params(**_valid_params)
+
+            del allowed_params, _valid_params, _invalid_params
+            del _garbage_params, _spf_params
+
+        else:
+
+            super().set_params(**params)
+
+
+        return self
+
+
+    def test_threshold(
+            self,
+            threshold:int=None,
+            clean_printout:bool=True
+        ) -> None:
+
+        """
+        Display instructions generated for the current fitted state,
+        subject to the passed threshold and the current settings of other
+        parameters. The printout will indicate what rows / columns will
+        be deleted, and if all columns or all rows will be deleted.
+
+        If the instance has multiple recursions, the results are displayed
+        as a single set of instructions, as if to perform the cumulative
+        effect of the recursions in a single step.
+
+
+        Parameters
+        ----------
+        threshold : int, default=None - count_threshold value to tests.
+
+        clean_printout: bool, default=True - Truncate printout to fit on
+        screen
+
+        Return
+        ------
+        None
+
+        """
+
+        check_is_fitted(self)
+        if callable(self._ignore_columns) or callable(self._handle_as_bool):
+            raise ValueError(f"if ignore_columns or handle_as_bool is "
+                f"callable, get_support() is only available after a "
+                f"transform is done.")
+
+        _test_threshold(self, _threshold=threshold, _clean_printout=clean_printout)
 
 
     def transform(
@@ -717,21 +1105,117 @@ class MinCountTransformer(
 
         """
 
-
+        # this was for diagnosing why dask_ml wrappers are changing a
+        # dask 200x20 array to 1x20 in dask_wrappers_test
+        # print(f'pizza print in main very top of transform {X.shape=}')
+        # print(f'pizza print in main very top of transform {type(X)=}')
+        # print(f'pizza print in main very top of transform {X=}')
         check_is_fitted(self)
 
         self._recursion_check()
 
-        # pizza this needs to go before _handle_X_y for now because
-        # it converts X to numpy
+        # pizza this needs to go before validate_data() for now because
+        # validate_data() converts X to numpy
         self._check_feature_names(X, reset=False)
 
-        X, y, _columns = self._handle_X_y(X, y)
-        # X & y ARE NOW np.array
+        self._check_n_features(X, reset=False)
+
+        self._x_original_obj_type = _get_og_obj_type(
+            X,
+            self._x_original_obj_type
+        )
+
+        # 24_03_03_09_54_00 THE INTENT IS TO RUN EVERYTHING AS NP ARRAY
+        # TO STANDARDIZE INDEXING.
+
+        X = validate_data(
+            X,
+            copy_X=False,    # bearpizza we need to put a copy kwarg
+            cast_to_ndarray=True, # <===== bearpizza
+            accept_sparse=None, #("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),  # <===== bearpizza
+            dtype='any',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(1, 2),
+            ensure_2d=True,
+            order='F',
+            ensure_min_features=1,
+            ensure_max_features=None,
+            ensure_min_samples=3,    # bearpizza finalize this, 2 or 3 samples?
+            sample_check=None
+        )
+
+        _val_X(X)
+
+        # y handling ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        if y is not None:
+
+            # 24_06_17 When dask_ml Incremental and ParallelPostFit (versions
+            # 2024.4.4 and 2023.5.27 at least) are passed y = None, they are
+            # putting y = ('', order[i]) into the dask graph for y and sending
+            # that junk as the value of y to the wrapped partial fit method.
+            # All use cases where y=None are like this, it will always happen
+            # and there is no way around it. To get around this, diagnose if
+            # MCT is wrapped with Incr and/or PPF, then look to see if y is
+            # of the form tuple(str, int). If both are the case, override y
+            # with y = None.
+
+            # pizza do we even need this? isnt an obcsure object like
+            # ('', order[i]) enough to convince u that its wrapped by dask?
+            _using_dask_ml_wrapper = False
+            for frame_info in inspect.stack():
+                _module = inspect.getmodule(frame_info.frame)
+                if _module:
+                    if _module.__name__ == 'dask_ml._partial':
+                        _using_dask_ml_wrapper = True
+                        break
+            del _module
+
+            _is_garbage_y_from_dask_ml = False
+            if isinstance(y, tuple) and isinstance(y[0], str) and isinstance(y[1], int):
+                _is_garbage_y_from_dask_ml = True
+
+            if _using_dask_ml_wrapper and _is_garbage_y_from_dask_ml:
+                y = None
+
+            del _using_dask_ml_wrapper, _is_garbage_y_from_dask_ml
+            # END accommodate dask_ml junk y ** * ** * ** * ** * ** * ** * *
+
+            self._y_original_obj_type = _get_og_obj_type(
+                y,
+                self._y_original_obj_type
+            )
+
+            y = validate_data(
+                y,
+                copy_X=False,    # bearpizza we need to put a copy kwarg
+                cast_to_ndarray=True, # <===== bearpizza
+                accept_sparse=None,
+                dtype='any',
+                require_all_finite=False,
+                cast_inf_to_nan=False,
+                standardize_nan=False,
+                allowed_dimensionality=(1, 2),
+                ensure_2d=True,   # <==== bearpizza, this must be True (for now)
+                order='C',
+                ensure_min_features=1,
+                ensure_max_features=None,
+                ensure_min_samples=3,    # bearpizza finalize this, 2 or 3 samples?
+                sample_check=X.shape[0]
+            )
+
+            _val_y(y)
+        # END y handling ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         self._validate()
 
-        self._check_n_features(X, reset=False)
+        # extra count_threshold val
+        if self._count_threshold >= getattr(self, '_n_rows_in', float('inf')):
+            raise ValueError(
+                f"count_threshold is >= the number of rows, every column "
+                f"not ignored would be deleted."
+            )  # pizza is this right?
 
 
         # VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs **
@@ -751,8 +1235,9 @@ class MinCountTransformer(
             try:
                 self._ignore_columns = self._ignore_columns(X)
             except Exception as e:
-                raise Exception(f"ignore_columns callable excepted with "
-                                f"this error --- {e}")
+                raise Exception(
+                    f"ignore_columns callable excepted with this error --- {e}"
+                )
 
             _val_ign_cols_hab_callable(self._ignore_columns, 'ignore_columns')
 
@@ -930,336 +1415,9 @@ class MinCountTransformer(
             return X
 
 
-    def fit_transform(
-        self,
-        X: XContainer,
-        y: YContainer=None,
-        **fit_kwargs
-    ) -> Union[tuple[XContainer, YContainer], XContainer]:
-
-        """
-        Fits MinCountTransformer to X and returns a transformed version
-        of X.
-
-        Parameters
-        ----------
-        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
-            n_features) - The data used to determine the uniques and
-            their frequencies and to be transformed by rules created
-            from those frequencies.
-
-        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
-            n_outputs), or (n_samples,), default=None - Target values
-            (None for unsupervised transformations).
-
-        Return
-        ------
-        -
-            X_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
-                    (n_samples_new, n_features_new)
-                Transformed data.
-
-            y_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
-                    (n_samples_new,) or (n_samples_new, n_outputs)
-                Transformed target.
-        """
-
-        # cant use FitTransformMixin, need custom code to handle _recursion_check
-
-        self._validate()
-        self.reset()
-
-        self._base_fit(X, y)
-
-        _original_recursion_block = self._recursion_block
-        self._recursion_block = False
-        __ = self.transform(X, y)
-        self._recursion_block = _original_recursion_block
-        del _original_recursion_block
-
-        return __
-
-
-    def get_feature_names_out(
-        self,
-        input_features:Union[Iterable[str], None]=None
-    ):
-        """
-        Get the feature names for the output of :method: transform.
-
-
-        Parameters
-        ----------
-        input_features :
-            array-like of str or None, default=None - Externally provided
-            feature names for the fitted data, not the transformed data.
-
-            If input_features is None:
-
-            - if feature_names_in_ is defined, then feature_names_in_ is
-                used as the input features.
-
-            - if feature_names_in_ is not defined, then the following
-                input feature names are generated:
-                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
-
-            If input_features is not None:
-
-            - if feature_names_in_ is not defined, then input_features is
-                used as the input features.
-
-            - if feature_names_in_ is defined, then input_features must
-                exactly match the features in feature_names_in_.
-
-
-        Return
-        ------
-        -
-            feature_names_out : NDArray[object] - The feature names of
-            the transformed data.
-
-        """
-
-        check_is_fitted(self)
-
-        feature_names_out = _get_feature_names_out(
-            input_features,
-            getattr(self, 'feature_names_in_', None),
-            self.n_features_in_
-        )
-
-        return feature_names_out[self.get_support(indices=False)]
-
-
-    def get_metadata_routing(self):
-        """Get metadata routing of this object - Not implemented."""
-        __ = type(self).__name__
-        raise NotImplementedError(f"get_metadata_routing is not available in {__}")
-
-
-    # def get_params inherited from GetParamsMixin
-
-
-    def get_row_support(self, indices:bool=False):
-        """Get a mask, or integer index, of the rows selected.
-
-        Parameters
-        ----------
-        indices : bool, default=False - If True, the return value will
-            be an array of integers, rather than a boolean mask.
-
-        Return
-        ------
-        -
-            support: ndarray - A slicer that selects the retained rows
-            from the X most recently seen by transform. If indices is
-            False, this is a boolean array of shape (n_input_features, )
-            in which an element is True if its corresponding row is
-            selected for retention. If indices is True, this is an
-            integer array of shape (n_output_features, ) whose values
-            are indices into the sample axis.
-        """
-
-        check_is_fitted(self)
-
-        if not hasattr(self, '_row_support'):
-            raise AttributeError(
-                f"get_row_support() can only be accessed after some data "
-                f"has been transformed"
-            )
-
-        if indices is False:
-            return self._row_support
-        elif indices is True:
-            return np.arange(len(self._row_support))[self._row_support]
-
-
-    def get_support(self, indices:bool=False):
-        """Get a mask, or integer index, of the features selected.
-
-        Parameters
-        ----------
-        indices : bool, default=False - If True, the return value will
-            be an array of integers rather than a boolean mask.
-
-        Return
-        ------
-        -
-            support : ndarray - An index that selects the retained
-            features from a feature vector. If indices is False, this is
-            a boolean array of shape (n_input_features,) in which an
-            element is True if its corresponding feature is selected for
-            retention. If indices is True, this is an integer array of
-            shape (n_output_features, ) whose values are indices into
-            the input feature vector.
-        """
-
-        check_is_fitted(self)
-
-        if callable(self._ignore_columns) or callable(self._handle_as_bool):
-            raise ValueError(
-                f"if ignore_columns or handle_as_bool is callable, get_support() "
-                f"is only available after a transform is done."
-            )
-
-        # must use _make_instructions() in order to construct the column
-        # support mask after fit and before a transform. otherwise, if an
-        # attribute _column_support were assigned to COLUMN_KEEP_MASK in
-        # transform() like _row_support is assigned to ROW_KEEP_MASK, then
-        # a transform would have to be done before being able to access
-        # get_support().
-
-        COLUMNS = np.array(
-            ['DELETE COLUMN' not in v for k, v in self._make_instructions().items()]
-        )
-
-        if indices is False:
-            return np.array(COLUMNS)
-        elif indices is True:
-            return np.arange(self.n_features_in_)[COLUMNS].astype(np.uint32)
-
-
-    def set_output(self, transform=None):
-        """
-        Set the output container when "transform" and "fit_transform"
-        are called.
-
-        Parameters
-        ----------
-        transform : {“default”, "numpy_array", “pandas_dataframe”,
-            "pandas_series"}, default = None - Configure output of
-                transform and fit_transform.
-            "default": Default output format of a transformer (numpy array)
-            "numpy_array": np.ndarray output
-            "pandas_dataframe": DataFrame output
-            "pandas_series": Series output
-            None: Transform configuration is unchanged
-
-        Return
-        ------
-        -
-            self : this instance - MinCountTransformer instance.
-
-        """
-
-        from ._validation._val_transform import _val_transform
-
-        self._output_transform = _val_transform(transform)
-
-        return self
-
-
-    def set_params(self, **params):
-        """
-        Set the parameters of the MCT instance.
-
-        Pass the exact parameter name and its value as a keyword argument
-        to the set_params method call. Or use ** dictionary unpacking on
-        a dictionary keyed with exact parameter names and the new
-        parameter values as the dictionary values. Valid parameter keys
-        can be listed with get_params(). Note that you can directly set
-        the parameters of MinCountTransformer.
-
-        Once MCT is fitted, only MCT :params: 'reject_unseen_values',
-        and 'n_jobs' can be changed via MCT :method: set_params. All
-        other parameters are blocked. To use different parameters without
-        creating a new instance of MCT, call MCT :method: reset on the
-        instance, otherwise create a new MCT instance.
-
-
-        Parameters
-        ----------
-        params:
-            dict[str, any] - MinCountTransformer parameters.
-
-
-        Return
-        ------
-        -
-            self: the MinCountTransformer instance.
-
-        """
-
-        """
-        # IF CHANGING PARAMS WHEN max_recursions IS > 1, RESET THE
-        # INSTANCE, BLOWING AWAY INTERNAL STATES ASSOCIATED WITH PRIOR
-        # FITS, BECAUSE ONLY fit_transform() IS ALLOWED. THIS BYPASSES
-        # THE BLOCKS THAT WOULD BE IMPOSED IF THAT INSTANCE ALREADY
-        # HAD A fit_transform DONE ON IT.
-        if getattr(self, '_max_recursions', 0) > 1:
-            self.reset()
-            super().set_params(**params)
-            return self
-
-
-        # if this is fitted, impose blocks on most params.
-        # if not fitted, allow everything to be set.
-        if is_fitted(self):
-
-            allowed_params = ('reject_unseen_values', 'n_jobs')
-
-            _valid_params = {}
-            _invalid_params = {}
-            _garbage_params = {}
-            _spf_params = self.get_params()
-            for param in params:
-                if param not in _spf_params:
-                    _garbage_params[param] = params[param]
-                elif param in allowed_params:
-                    _valid_params[param] = params[param]
-                else:
-                    _invalid_params[param] = params[param]
-
-            if any(_garbage_params):
-                # let super.set_params raise
-                super().set_params(**params)
-
-            if any(_invalid_params):
-                warnings.warn(
-                    "Once this transformer is fitted, only :params: 'n_jobs' "
-                    "and 'reject_unseen_values' can be changed via :method: "
-                    "set_params. \nAll other parameters are blocked. \nThe "
-                    f"currently passed parameters {', '.join(list(_invalid_params))} "
-                    "have been blocked, but any valid parameters that were "
-                    "passed have been set. \nTo use different parameters "
-                    "without creating a new instance of this transformer class, "
-                    "call :method: reset on this instance, otherwise create a "
-                    "new instance of MCT."
-                )
-
-            super().set_params(**_valid_params)
-
-            del allowed_params, _valid_params, _invalid_params
-            del _garbage_params, _spf_params
-
-        else:
-
-            super().set_params(**params)
-
-
-        return self
-        """
-
-        # MAKE SOME PARAMETERS UNCHANGEABLE ONCE AN INSTANCE IS FITTED
-        if is_fitted(self, attributes='n_features_in_') and self._max_recursions > 1:
-            # IF CHANGING PARAMS WHEN max_recursions WAS >1, RESET THE
-            # INSTANCE, BLOWING AWAY INTERNAL STATES ASSOCIATED WITH PRIOR
-            # FITS, WITH EXCEPTION FOR n_jobs & reject_unseen_values
-            # (r_u_v IS IRRELEVANT WHEN >1 RCRS BECAUSE ONLY fit_transform())
-            _PARAMS = \
-                [_ for _ in params if _ not in ('n_jobs','reject_unseen_values')]
-            if len(_PARAMS) > 0:
-                self.reset()
-            del _PARAMS
-
-
-        # if ever needed, hard code that can be substituted for the
-        # BaseEstimator get/set_params can be found in GSTCV_Mixin
-        super().set_params(**params)
-
-        return self
+        # pizza dont forget this!   C_CONTIGUOUS
+        # if _og_format is np.ndarray:
+        #     return np.ascontiguousarray(X)
 
 
     def _make_instructions(self, _threshold=None):
@@ -1282,112 +1440,19 @@ class MinCountTransformer(
         )
 
 
-
-    def test_threshold(
-            self,
-            threshold:int=None,
-            clean_printout:bool=True
-        ) -> None:
+    def _recursion_check(self) -> None:
+        """
+        Raise exception if attempting to use recursion with partial_fit,
+        fit, and transform. Only allow fit_transform.
 
         """
-        Display instructions generated for the current fitted state,
-        subject to the passed threshold and the current settings of other
-        parameters. The printout will indicate what rows / columns will
-        be deleted, and if all columns or all rows will be deleted.
+        if getattr(self, 'recursion_check_disable', False) is False:
 
-        If the instance has multiple recursions, the results are displayed
-        as a single set of instructions, as if to perform the cumulative
-        effect of the recursions in a single step.
-
-
-        Parameters
-        ----------
-        threshold : int, default=None - count_threshold value to tests.
-
-        clean_printout: bool, default=True - Truncate printout to fit on
-        screen
-
-        Return
-        ------
-        None
-
-        """
-
-        check_is_fitted(self)
-        if callable(self._ignore_columns) or callable(self._handle_as_bool):
-            raise ValueError(f"if ignore_columns or handle_as_bool is "
-                f"callable, get_support() is only available after a "
-                f"transform is done.")
-
-        _test_threshold(self, _threshold=threshold, _clean_printout=clean_printout)
-
-
-
-    def _handle_X_y(self, X, y):
-
-        """
-        Validate dimensions of X and y and standardize the containers
-        for processing.
-
-        Parameters
-        ----------
-        X : {ndarray, pandas.DataFrame, pandas.Series, dask.array,
-                dask.DataFrame, dask.Series} - data object
-
-        y : {ndarray, pandas.DataFrame, pandas.Series, dask.array,
-                dask.DataFrame, dask.Series} - target object
-
-
-        Return
-        ----------
-        -
-            X : ndarray - The given data as ndarray.
-            y : ndarray - The given target as ndarray.
-            _columns : ndarray - Feature names extracted from X.
-
-        """
-
-        # 24_03_03_09_54_00 THE INTENT IS TO RUN EVERYTHING AS NP ARRAY
-        # TO STANDARDIZE INDEXING. IF DFS ARE PASSED, COLUMNS CAN
-        # OPTIONALLY BE PULLED OFF AND RETAINED.
-
-
-        # 24_06_17 When dask_ml Incremental and ParallelPostFit (versions
-        # 2024.4.4 and 2023.5.27 at least) are passed y = None, they are
-        # putting y = ('', order[i]) into the dask graph for y and sending
-        # that junk as the value of y to the wrapped partial fit method.
-        # All use cases where y=None are like this, it will always happen
-        # and there is no way around it. To get around this, diagnose if
-        # MCT is wrapped with Incr and/or PPF, then look to see if y is
-        # of the form tuple(str, int). If both are the case, override y
-        # with y = None.
-
-        _is_garbage_y_from_dask_ml = False
-        if isinstance(y, tuple) and isinstance(y[0], str) and isinstance(y[1], int):
-            _is_garbage_y_from_dask_ml = True
-
-        if self._using_dask_ml_wrapper and _is_garbage_y_from_dask_ml:
-            y = None
-
-        del _is_garbage_y_from_dask_ml
-        # END accommodate dask_ml junk y ** * ** * ** * ** * ** * ** * *
-
-
-        _columns = None
-
-        # out is (X, y, _x_original_obj_type, _y_original_obj_type, columns)
-        out = _handle_X_y(
-            X,
-            y,
-            type(self).__name__,
-            self._x_original_obj_type,
-            self._y_original_obj_type
-        )
-
-        self._x_original_obj_type = out[2]
-        self._y_original_obj_type = out[3]
-
-        return (out[0], out[1], out[4])
+            if self._max_recursions > 1:
+                raise ValueError(
+                    f"partial_fit(), fit(), and transform() are not "
+                    f"available if max_recursions > 1. fit_transform() only."
+                )
 
 
     def _validate(self):
@@ -1396,18 +1461,13 @@ class MinCountTransformer(
 
         """
 
-        self._wrapped_by_dask_ml()
+        """
+        Determine if the MCT instance is wrapped by dask_ml Incremental
+        or ParallelPostFit by checking the stack and looking for the
+        '_partial' method used by those modules. Wrapping with these
+        modules imposes limitations on passing a value to y.
 
-        _n_features_in = None
-        _feature_names_in = None
-        _original_dtypes = None
-        _mct_has_been_fit = is_fitted(self)
-        if _mct_has_been_fit:
-            _n_features_in = self.n_features_in_
-            if hasattr(self, 'feature_names_in_'):
-                _feature_names_in = self.feature_names_in_
-            _original_dtypes = self._original_dtypes
-
+        """
 
         self._count_threshold, self._ignore_float_columns, \
         self._ignore_non_binary_integer_columns, self._ignore_nan, \
@@ -1424,59 +1484,11 @@ class MinCountTransformer(
                 self.reject_unseen_values,
                 self.max_recursions,
                 self.n_jobs,
-                _mct_has_been_fit=_mct_has_been_fit,
-                _n_features_in=_n_features_in,
-                _feature_names_in=_feature_names_in,
-                _original_dtypes=_original_dtypes
-        )
-
-        # extra count_threshold val
-        if hasattr(self, '_n_rows_in') and self._count_threshold >= self._n_rows_in:
-            raise ValueError(f"count_threshold is >= the number of rows, "
-                             f"every column not ignored would be deleted.")  # pizza is this right?
-
-
-    def _recursion_check(self):
-        """Raise exception if attempting to use recursion with partial_fit,
-        fit, and transform. Only allow fit_transform.
-        """
-
-        if self._recursion_block:
-            raise ValueError(f"partial_fit(), fit(), and transform() are "
-            f"not available if max_recursions > 1. fit_transform() only.")
-
-
-    def _wrapped_by_dask_ml(self) -> None:
-        """
-        Determine if the MCT instance is wrapped by dask_ml Incremental
-        or ParallelPostFit by checking the stack and looking for the
-        '_partial' method used by those modules. Wrapping with these
-        modules imposes limitations on passing a value to y.
-
-        """
-
-
-        import inspect
-
-        self._using_dask_ml_wrapper = False
-        for frame_info in inspect.stack():
-            _module = inspect.getmodule(frame_info.frame)
-            if _module:
-                if _module.__name__ == 'dask_ml._partial':
-                    self._using_dask_ml_wrapper = True
-                    break
-        del _module
-
-
-    def score(self, X, y=None):
-        """
-        Dummy method to spoof dask Incremental and ParallelPostFit
-        wrappers. Verified must be here for dask wrappers.
-        """
-
-        pass
-
-
+                _mct_has_been_fit=is_fitted(self),
+                _n_features_in=getattr(self, 'n_features_in_', None),
+                _feature_names_in=getattr(self, 'feature_names_in_', None),
+                _original_dtypes=getattr(self, '_original_dtypes', None)
+            )
 
 
 

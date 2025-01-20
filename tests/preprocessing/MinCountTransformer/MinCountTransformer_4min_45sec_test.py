@@ -959,9 +959,10 @@ class TestExceptsOnBadYRows:
     @pytest.mark.parametrize('trfm_y_dtype', TRANSFORM_y_DTYPE)
     @pytest.mark.parametrize('trfm_y_rows', TRANSFORM_y_DIFF_ROWS)
     def test_except_on_bad_y_rows(self,
-            X, y, _args, _kwargs, row_checker, y_builder, fst_fit_y_dtype,
-            scd_fit_y_dtype, scd_fit_y_rows, trfm_y_dtype, trfm_y_rows, x_rows
-        ):
+        X, y, _args, _kwargs, row_checker, y_builder, fst_fit_y_dtype,
+        scd_fit_y_dtype, scd_fit_y_rows, trfm_y_dtype, trfm_y_rows, x_rows
+    ):
+        # only in transform. y is ignored in all of the 'fit's
 
         TestCls = MinCountTransformer(*_args, **_kwargs)
 
@@ -991,20 +992,17 @@ class TestExceptsOnBadYRows:
 
         value_error = 0
         # True only if y rows != X rows ** ** ** ** ** ** ** ** ** ** **
-        value_error += row_checker(fst_fit_Y, x_rows)
-        value_error += row_checker(scd_fit_Y, x_rows)
         value_error += row_checker(trfm_Y, x_rows)
         # END True only if y rows != X rows ** ** ** ** ** ** ** ** ** *
 
+        TestCls.partial_fit(X, fst_fit_Y)
+        TestCls.partial_fit(X, scd_fit_Y)
+
         if value_error:
             with pytest.raises(ValueError):
-                TestCls.partial_fit(X, fst_fit_Y)
-                TestCls.partial_fit(X, scd_fit_Y)
                 TestCls.transform(X, trfm_Y)
 
         elif not value_error:
-            TestCls.partial_fit(X, fst_fit_Y)
-            TestCls.partial_fit(X, scd_fit_Y)
             TestCls.transform(X, trfm_Y)
 
     del FIRST_FIT_y_DTYPE, SECOND_FIT_y_DTYPE, SECOND_FIT_y_DIFF_ROWS
@@ -1019,27 +1017,27 @@ class TestExceptsAnytimeXisNone:
 
     def test_excepts_anytime_x_is_none(self, X, _args, _kwargs):
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             TestCls = MinCountTransformer(*_args, **_kwargs)
             TestCls.fit(None)
 
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             TestCls = MinCountTransformer(*_args, **_kwargs)
             TestCls.partial_fit(X)
             TestCls.partial_fit(None)
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             TestCls = MinCountTransformer(*_args, **_kwargs)
             TestCls.fit(X)
             TestCls.partial_fit(None)
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             TestCls = MinCountTransformer(*_args, **_kwargs)
             TestCls.fit(X)
             TestCls.transform(None)
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             TestCls = MinCountTransformer(*_args, **_kwargs)
             TestCls.fit_transform(None)
 
@@ -1153,6 +1151,7 @@ class TestExceptsOnBadXShapes:
     # end X_builder ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
     # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
+    # pizza, maybe this can be merged with DF test below, and add ss
     @pytest.mark.parametrize('fst_fit_x_dtype', FIRST_FIT_X_DTYPE)
     @pytest.mark.parametrize('scd_fit_x_dtype', SECOND_FIT_X_DTYPE)
     @pytest.mark.parametrize('scd_fit_x_cols', SECOND_FIT_X_SAME_DIFF_COLUMNS)
@@ -1163,7 +1162,7 @@ class TestExceptsOnBadXShapes:
     def test_excepts_on_bad_x_shapes(self, X, y, _args, _kwargs, X_builder,
         fst_fit_x_dtype, scd_fit_x_dtype, scd_fit_x_cols, scd_fit_x_rows,
         trfm_x_dtype, trfm_x_cols, trfm_x_rows, x_rows, x_cols
-        ):
+    ):
 
             # CANT HAVE 'more_col' or 'less_col' WHEN X IS A SERIES
             _reason = f"CANT HAVE 'more_col' or 'less_col' WHEN X IS A SERIES"
@@ -1209,33 +1208,34 @@ class TestExceptsOnBadXShapes:
 
             value_error = 0
 
-            # ValueError WHEN ROWS OF y != X ROWS UNDER ALL CIRCUMSTANCES
-            if fst_fit_X is not None and fst_fit_y.shape[0] != fst_fit_X.shape[0]:
-                value_error += 1
-            if scd_fit_X is not None and scd_fit_y.shape[0] != scd_fit_X.shape[0]:
-                value_error += 1
+            # ValueError WHEN ROWS OF y != X ROWS ONLY UNDER transform
             if trfm_X is not None and trfm_y.shape[0] != trfm_X.shape[0]:
                 value_error += 1
 
-            # ValueError WHEN n_features_in_ != FIRST FIT n_features_in_
-            # UNDER ALL OTHER CIRCUMSTANCES
-            value_error += True in [__ in ['more_col', 'less_col'] for __ in
-                                    [scd_fit_x_cols, trfm_x_cols]]
+            try:
+                fst_fit_X.shape[1]
+                fst_fit_X_cols = fst_fit_X.shape[1]
+            except:
+                fst_fit_X_cols = 1
 
-            # ValueError WHEN COLUMNS PASSED TO
-            # i) A LATER {partial_}fit() OR
-            # 2) TRANSFORM DO NOT MATCH COLUMNS SEEN ON ANY PREVIOUS
-            # {partial_}fit() COLUMNS CANNOT BE "BAD" WHEN SEEN FOR THE
-            # FIRST TIME
+            try:
+                scd_fit_X.shape[1]
+                scd_fit_X_cols = scd_fit_X.shape[1]
+            except:
+                scd_fit_X_cols = 1
 
-            if scd_fit_X is None:
-                pass
-            elif scd_fit_X.shape != fst_fit_X.shape:
+            if scd_fit_X_cols != fst_fit_X_cols:
                 value_error += 1
-            if trfm_X is None:
-                pass
-            elif trfm_X.shape != fst_fit_X.shape:
+
+            try:
+                trfm_X.shape[1]
+                trfm_X_cols = trfm_X.shape[1]
+            except:
+                trfm_X_cols = 1
+
+            if trfm_X_cols != fst_fit_X_cols:
                 value_error += 1
+
 
             if value_error:
                 with pytest.raises(ValueError):
@@ -1262,7 +1262,6 @@ class TestValueErrorDifferentHeader:
 
     NAMES = ['GOOD_DF', 'BAD_DF', 'NO_HDR_DF']
 
-    @pytest.mark.xfail(reason=f"pizza come back and fix this after sklearn exorcism")
     @pytest.mark.parametrize('fst_fit_name', NAMES)
     @pytest.mark.parametrize('scd_fit_name', NAMES)
     @pytest.mark.parametrize('trfm_name', NAMES)
@@ -1294,40 +1293,64 @@ class TestValueErrorDifferentHeader:
         elif trfm_name == 'NO_HDR_DF':
             trfm_X = NO_HDR_DF.copy()
 
-        value_error = 0
+        scd_value_error = 0
+        trfm_value_error = 0
+        scd_warn = 0
+        trfm_warn = 0
 
-        value_error += (scd_fit_name != fst_fit_name)
-        value_error += (trfm_name != fst_fit_name)
-        value_error += (trfm_name != scd_fit_name)
+        if scd_fit_name != fst_fit_name:
+            scd_value_error += 1
+            if 'NO_HDR_DF' in [fst_fit_name, scd_fit_name]:
+                scd_value_error -= 1
+                scd_warn += 1
 
-        if value_error == 0:
-            TestCls = MinCountTransformer(*_args, **_kwargs)
-            TestCls.partial_fit(fst_fit_X)
-            TestCls.partial_fit(scd_fit_X)
-            TestCls.transform(trfm_X)
+        if trfm_name != fst_fit_name:
+            trfm_value_error += 1
+            if 'NO_HDR_DF' in [fst_fit_name, trfm_name]:
+                trfm_value_error -= 1
+                trfm_warn += 1
 
-            TestCls = MinCountTransformer(*_args, **_kwargs)
-            TestCls.fit(fst_fit_X)
-            TestCls.transform(trfm_X)
-
-            TestCls = MinCountTransformer(*_args, **_kwargs)
-            TestCls.fit_transform(fst_fit_X)  # SHOULD NOT EXCEPT
-
-        elif value_error != 0:
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        TestCls = MinCountTransformer(*_args, **_kwargs)
+        TestCls.partial_fit(fst_fit_X)
+        if scd_value_error:
             with pytest.raises(ValueError):
-                TestCls = MinCountTransformer(*_args, **_kwargs)
-                TestCls.partial_fit(fst_fit_X)
                 TestCls.partial_fit(scd_fit_X)
+        elif scd_warn:
+            with pytest.warns():
+                TestCls.partial_fit(scd_fit_X)
+        else:
+            TestCls.partial_fit(scd_fit_X)
+
+        if trfm_value_error:
+            with pytest.raises(ValueError):
                 TestCls.transform(trfm_X)
-
-                TestCls = MinCountTransformer(*_args, **_kwargs)
-                TestCls.fit(fst_fit_X)
+        elif trfm_warn:
+            with pytest.warns():
                 TestCls.transform(trfm_X)
+        else:
+            TestCls.transform(trfm_X)
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-                TestCls = MinCountTransformer(*_args, **_kwargs)
-                TestCls.fit_transform(fst_fit_X)  # SHOULD NOT EXCEPT
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        TestCls = MinCountTransformer(*_args, **_kwargs)
 
-    del NAMES
+        TestCls.fit(fst_fit_X)
+
+        if trfm_value_error:
+            with pytest.raises(ValueError):
+                TestCls.transform(trfm_X)
+        elif trfm_warn:
+            with pytest.warns():
+                TestCls.transform(trfm_X)
+        else:
+            TestCls.transform(trfm_X)
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+        # SHOULD NEVER EXCEPT FOR HEADER ISSUE
+        TestCls = MinCountTransformer(*_args, **_kwargs)
+        TestCls.fit_transform(fst_fit_X)
+
 
 # END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
 
@@ -1446,26 +1469,33 @@ class TestValueErrorBadXDFColumnsRows:
 
         value_error = 0
 
-        # ValueError WHEN ROWS OF y (IF PASSED) != X ROWS UNDER ALL CIRCUMSTANCES
-        if fst_fit_X is not None and fst_fit_y.shape[0] != fst_fit_X.shape[0]:
-            value_error += 1
-        if scd_fit_X is not None and scd_fit_y.shape[0] != scd_fit_X.shape[0]:
-            value_error += 1
+        # ValueError WHEN ROWS OF y (IF PASSED) != X ROWS IN transform ONLY
         if trfm_X is not None and trfm_y.shape[0] != trfm_X.shape[0]:
             value_error += 1
 
-        # THESE TRIGGER ERROR FROM feature_names_in_
-        value_error += (scd_fit_x_cols != 'good')
-        value_error += (trfm_x_cols != 'good')
-        value_error += (trfm_x_cols != scd_fit_x_cols)
-        # END THESE TRIGGER ERROR FROM feature_names_in_
+        try:
+            fst_fit_X.shape[1]
+            fst_fit_X_cols = fst_fit_X.shape[1]
+        except:
+            fst_fit_X_cols = 1
 
-        # ValueError WHEN n_features_in_ != FIRST FIT n_features_in_
-        # UNDER ALL OTHER CIRCUMSTANCES
-        _ = ['more_col', 'less_col']
-        __ = [scd_fit_x_cols, trfm_x_cols]
-        value_error += any([i in _ for i in __])
-        del _, __
+        try:
+            scd_fit_X.shape[1]
+            scd_fit_X_cols = scd_fit_X.shape[1]
+        except:
+            scd_fit_X_cols = 1
+
+        if scd_fit_X_cols != fst_fit_X_cols:
+            value_error += 1
+
+        try:
+            trfm_X.shape[1]
+            trfm_X_cols = trfm_X.shape[1]
+        except:
+            trfm_X_cols = 1
+
+        if trfm_X_cols != fst_fit_X_cols:
+            value_error += 1
 
         if value_error:
             with pytest.raises(ValueError):
@@ -1811,6 +1841,9 @@ class TestHandleAsBoolWorks:
         _kwargs['handle_as_bool'] = [_mct_cols + 1]  # A NON-BINARY INT COLUMN
         TestCls = MinCountTransformer(*_args, **_kwargs)
         TestCls.partial_fit(X)
+
+        # pizza, need to reset() 'handle_as_bool' is blocked otherwise
+        TestCls.reset()
 
         TestCls.set_params(handle_as_bool=[x_cols - 1])  # STR COLUMN
         with pytest.raises(ValueError):
