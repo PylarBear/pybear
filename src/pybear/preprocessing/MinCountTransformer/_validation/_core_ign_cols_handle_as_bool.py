@@ -5,20 +5,26 @@
 #
 
 
+
 from typing_extensions import Union
+import numpy.typing as npt
+
 import numpy as np
 
-from .._type_aliases import IgnColsHandleAsBoolDtype
-from ._val_n_features_in import _val_n_features_in
+from .._type_aliases import IgnoreColumnsType, HandleAsBoolType
+
+
+# pizza, as of 25_01_21_19_06_00 this isnt being used. keep for reference until the end.
 
 
 def _core_ign_cols_handle_as_bool(
-    _kwarg_value: IgnColsHandleAsBoolDtype,
+    _kwarg_value: Union[IgnoreColumnsType, HandleAsBoolType],
     _name: str,
     _mct_has_been_fit: bool=False,  # pass hasattr(self, 'n_features_in_')
-    _n_features_in: Union[None, int]=None,
-    _feature_names_in: Union[None, np.ndarray[str]]=None
-) -> Union[callable, np.ndarray[int], np.ndarray[str]]:
+    _n_features_in: Union[None, int]=None,  # pizza come back to this, None allowed
+        # in case MCT has not been fit.... is this being called when MCT not fit?
+    _feature_names_in: Union[npt.NDArray[str], None]=None
+) -> Union[callable, npt.NDArray[int], npt.NDArray[str]]:
 
     """
     Validate containers and content for shared attributes of ignore_columns and
@@ -41,9 +47,11 @@ def _core_ign_cols_handle_as_bool(
     ----------
     -
         _kwarg_value:
-            Union[np.ndarray[int], np.ndarray[str], callable] - Standardized container.
+            Union[np.ndarray[int], np.ndarray[str], callable] -
+            Standardized container.
 
     """
+
 
     if _name.lower() not in ['handle_as_bool', 'ignore_columns']:
         raise ValueError(f"'_name' must be 'handle_as_bool' or 'ignore_columns'")
@@ -52,32 +60,41 @@ def _core_ign_cols_handle_as_bool(
         raise TypeError(f"'_mct_has_been_fit must be boolean")
 
     if _mct_has_been_fit:
+
         if _n_features_in is None:
-            raise ValueError(f'if _mct_has_been_fit is True, must also pass '
-                             f'_n_features_in')
-        elif _n_features_in is not None:
-            _n_features_in = _val_n_features_in(_n_features_in)
+            raise ValueError(
+                f'if _mct_has_been_fit is True, must also pass _n_features_in'
+            )
 
-            if _feature_names_in is not None:
-                if not isinstance(_feature_names_in, np.ndarray):
-                    raise TypeError(
-                        f"_feature_names_in must be a numpy ndarray of strings"
-                    )
+        assert not isinstance(_n_features_in, bool)
+        assert isinstance(_n_features_in, int)
+        assert _n_features_in >= 1
 
-                _ = len(_feature_names_in)
-                __ = _n_features_in
-                if _ != __:
-                    raise ValueError(f"len(_feature_names_in) ({_}) must equal "
-                                     f"n_features_in ({__})")
-                del _, __
+        if _feature_names_in is not None:
+            if not isinstance(_feature_names_in, np.ndarray):
+                raise TypeError(
+                    f"_feature_names_in must be a numpy ndarray of strings"
+                )
+            # pizza come back to this.... y test say <U1 ?
+            # assert str(_feature_names_in.dtype) == 'object'
+
+            _ = len(_feature_names_in)
+            __ = _n_features_in
+            if _ != __:
+                raise ValueError(
+                    f"len(_feature_names_in) ({_}) must equal _n_features_in "
+                    f"({__})"
+                )
+            del _, __
 
     elif not _mct_has_been_fit:
+        _base_msg = lambda _param: \
+            f"not allowed to pass '{_param}' if '_mct_has_been_fit' is False"
         if _n_features_in is not None:
-            raise ValueError(f"not allowed to pass _n_features in if "
-                             f"_mct_has_been_fit is False")
+            raise ValueError(_base_msg('_n_features_in'))
         if _feature_names_in is not None:
-            raise ValueError(f"not allowed to pass _feature_names_in in if "
-                             f"_mct_has_been_fit is False")
+            raise ValueError(_base_msg('_feature_names_in'))
+        del _base_msg
 
     while True:
         # ESCAPE VALIDATION IF _kwarg_value IS CALLABLE AND JUST RETURN THE CALLABLE
@@ -111,7 +128,7 @@ def _core_ign_cols_handle_as_bool(
         try:
             _kwarg_value = np.array(sorted(list(set(_kwarg_value))), dtype=object)
         except:
-            raise TypeError(err_msg) from None
+            raise TypeError(err_msg)
 
         _dtypes = []
         # if _kwarg_value was None it was converted to [] and skips this
@@ -170,8 +187,9 @@ def _core_ign_cols_handle_as_bool(
                         _kwarg_value[idx] = np.arange(_n_features_in)[MASK][0]
                         del MASK
                     else: # feature_names_in_ is None
-                        raise ValueError(f"{_name} as list-like can only contain indices "
-                            f"when the data is not passed with column names")
+                        raise ValueError(f"{_name} as list-like can only contain "
+                            f"indices when the data is not passed with column names"
+                        )
 
             _kwarg_value = _kwarg_value.astype(np.uint32)
 

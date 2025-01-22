@@ -7,12 +7,12 @@
 
 
 
-import pytest
+from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
+    MinCountTransformer as MCT
 
 import numpy as np
 
-from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
-    MinCountTransformer as MCT
+import pytest
 
 
 
@@ -113,7 +113,10 @@ class TestSetParams:
 
         for _param, _value in _scd_params.items():
             try:
-                assert getattr(TestCls, f"_" + _param) == _value
+                if hasattr(TestCls, _param):
+                    assert getattr(TestCls, _param) == _value
+                else:
+                    assert getattr(TestCls, f"_" + _param) == _value
             except:
                 assert np.array_equal(getattr(TestCls, f"_" + _param), _value)
 
@@ -145,7 +148,7 @@ class TestSetParams:
         with pytest.warns():   # count_threshold is blocked
             FSPTCls.set_params(count_threshold=alt_args[0], **alt_kwargs)
         FSPT_TRFM_X, FSPT_TRFM_Y = FSPTCls.transform(X.copy(), y.copy())
-        assert FSPTCls._count_threshold == _args[0]  # the og value
+        assert FSPTCls.count_threshold == _args[0]  # the og value
 
         # CHECK X AND Y EQUAL REGARDLESS OF WHEN SET_PARAMS
         assert np.array_equiv(SPFT_TRFM_X.astype(str), FSPT_TRFM_X.astype(str)), \
@@ -201,11 +204,13 @@ class TestSetParams:
         FTSPFTCls = MCT(*alt_args, **alt_kwargs)
         FTSPFTCls.set_params(max_recursions=2)
         FTSPFTCls.fit_transform(X.copy(), y.copy())
-        assert FTSPFTCls._max_recursions == 2
-        FTSPFTCls.set_params(**alt_kwargs)
-        FTSPFT_TRFM_X, FTSPFT_TRFM_Y = \
-            FTSPFTCls.fit_transform(X.copy(), y.copy())
-        assert FTSPFTCls._max_recursions == 1
+        assert FTSPFTCls.max_recursions == 2
+        with pytest.warns():
+            FTSPFTCls.set_params(**alt_kwargs)
+            FTSPFT_TRFM_X, FTSPFT_TRFM_Y = \
+                FTSPFTCls.fit_transform(X.copy(), y.copy())
+        # max_recursions cannot be set after fit because it is blocked
+        assert FTSPFTCls.max_recursions == 2
 
         assert np.array_equiv(
             SPFT_TRFM_X.astype(str), FTSPFT_TRFM_X.astype(str)

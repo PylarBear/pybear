@@ -71,7 +71,7 @@ def check_n_features(
         )
 
     # if get to here, n_features must == n_features_in__
-    return n_features
+    return int(n_features)
 
 
 
