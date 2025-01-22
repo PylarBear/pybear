@@ -58,7 +58,7 @@ def num_features(OBJECT) -> int:
     if len(OBJECT.shape) == 1:
         return 1
     elif len(OBJECT.shape) == 2:
-        return OBJECT.shape[1]
+        return int(OBJECT.shape[1])
     else:
         raise ValueError(
             f"The passed object has {len(OBJECT.shape)} dimensions. pybear "

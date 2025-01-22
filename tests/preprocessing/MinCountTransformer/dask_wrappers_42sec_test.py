@@ -230,8 +230,8 @@ class TestDaskIncrementalParallelPostFit:
             # always transforms with just X
             # pizza this is failing because dask_ml wrappers somehow started
             # changing a 200x20 array to 1x20.
-            print(f'bearpizza before transform print {_X.shape=}')
-            print(f'bearpizza before transform print {type(_X)=}')
+            # print(f'bearpizza before transform print {_X.shape=}')
+            # print(f'bearpizza before transform print {type(_X)=}')
             TRFM_X = _test_cls.transform(_X)
 
         elif wrappings in ['none']:

@@ -10,7 +10,8 @@ from typing_extensions import Union, Self
 from ._type_aliases import (
     OriginalDtypesDtype,
     TotalCountsByColumnType,
-    IgnColsHandleAsBoolDtype,
+    IgnoreColumnsType,
+    HandleAsBoolType,
     XContainer,
     YContainer
 )
@@ -23,24 +24,26 @@ import numpy as np
 import pandas as pd
 import joblib
 
-from ._validation._val_ignore_columns import _val_ignore_columns
-from ._validation._val_handle_as_bool import _val_handle_as_bool
-from ._validation._val_ign_cols_hab_callable import _val_ign_cols_hab_callable
-from ._validation._val_X import _val_X
-from ._validation._val_y import _val_y
+from ._validation._handle_as_bool_v_dtypes import _val_handle_as_bool_v_dtypes
+from ._validation._ign_cols_hab_callable import _val_ign_cols_hab_callable
+from ._validation._y import _val_y
 from ._validation._validation import _validation
 
 from ._shared._make_instructions._make_instructions import _make_instructions
-from ._base_fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
-from ._base_fit._tcbc_merger import _tcbc_merger
+from ._fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
+from ._fit._tcbc_merger import _tcbc_merger
 from ._set_output._get_og_obj_type import _get_og_obj_type
 from ._test_threshold import _test_threshold
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
 from ._transform._tcbc_update import _tcbc_update
 
 from .docs.mincounttransformer_docs import mincounttransformer_docs
+
+from ...utilities._column_name_mapper import column_name_mapper
+
 from ...base import (
     FeatureMixin,
+    # FitTransformMixin, not used, fit_transform needs special handling
     GetParamsMixin,
     ReprMixin,
     SetParamsMixin,
@@ -405,9 +408,9 @@ class MinCountTransformer(
         *,
         ignore_float_columns:bool=True,
         ignore_non_binary_integer_columns:bool=True,
-        ignore_columns:IgnColsHandleAsBoolDtype=None,
+        ignore_columns:IgnoreColumnsType=None,
         ignore_nan:bool=True,
-        handle_as_bool:IgnColsHandleAsBoolDtype=None,
+        handle_as_bool:HandleAsBoolType=None,
         delete_axis_0:bool=False,
         reject_unseen_values:bool=False,
         max_recursions:int=1,
@@ -422,9 +425,9 @@ class MinCountTransformer(
         self.ignore_nan = ignore_nan
         self.handle_as_bool = handle_as_bool
         self.delete_axis_0 = delete_axis_0
-        self.n_jobs = n_jobs
         self.reject_unseen_values = reject_unseen_values
         self.max_recursions = max_recursions
+        self.n_jobs = n_jobs
 
 
 
@@ -451,156 +454,10 @@ class MinCountTransformer(
         return hasattr(self, 'n_features_in_')
 
 
-    def _base_fit(self,
-        X: XContainer,
-        y: any=None,
-        **fit_kwargs   # pizza if this stays not used take it out!
-    ):
-
-        """
-        Shared uniques and counts collection process for partial_fit() &
-        fit().
-
-        """
-
-        # GET n_features_in_, feature_names_in_, _n_rows_in_
-        # pizza this needs to go before validate_data() for now because
-        # validate_data() converts X to numpy
-        # pizza see TestValueErrorDifferentHeader... marked as xfail
-        # do not make an assignment! let the function handle it.
-        self._check_feature_names(X, reset=not is_fitted(self))
-
-        # do not make an assignment! let the function handle it.
-        self._check_n_features(X, reset=not is_fitted(self))
-
-
-        # 24_03_03_09_54_00 THE INTENT IS TO RUN EVERYTHING AS NP ARRAY
-        # TO STANDARDIZE INDEXING.
-
-        X = validate_data(
-            X,
-            copy_X=False,
-            cast_to_ndarray=True, # <===== bearpizza
-            accept_sparse=None, #("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),  # <===== bearpizza
-            dtype='any',
-            require_all_finite=False,
-            cast_inf_to_nan=False,
-            standardize_nan=False,
-            allowed_dimensionality=(1, 2),
-            ensure_2d=True,   # bearpizza this will need to be False
-            order='F',
-            ensure_min_features=1,
-            ensure_max_features=None,
-            ensure_min_samples=3,    # bearpizza finalize this, 2 or 3 samples?
-            sample_check=None
-        )
-
-        # pizza, probably will go into _validation, then under self._validate
-        _val_X(X)
-
-
-        # IF WAS PREVIOUSLY FITTED, THEN self._n_rows_in EXISTS
-        if hasattr(self, '_n_rows_in'):
-            self._n_rows_in += X.shape[0]
-        else:
-            self._n_rows_in = X.shape[0]
-
-        # END GET n_features_in_, feature_names_in_, _n_rows_in_
-
-
-        # GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** ** **
-
-        # need to run all columns to get the dtypes; no columns are ignored,
-        # for this operation, so any ignore inputs do not matter. getting
-        # dtypes on columns that are ignored is needed to validate new
-        # partial fits have appropriate data.
-
-        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-        joblib_kwargs = {
-            'prefer': 'processes', 'return_as':'list', 'n_jobs':self._n_jobs
-        }
-        DTYPE_UNQS_CTS_TUPLES = \
-            joblib.Parallel(**joblib_kwargs)(
-                joblib.delayed(_dtype_unqs_cts_processing)(
-                    X[:,_idx],
-                    _idx
-                ) for _idx in range(self.n_features_in_)
-            )
-
-        _col_dtypes = np.empty(self.n_features_in_, dtype='<U8')
-        # DOING THIS for LOOP 2X TO KEEP DTYPE CHECK SEPARATE AND PRIOR TO
-        # MODIFYING self._total_counts_by_column, PREVENTS INVALID DATA FROM
-        # INVALIDATING ANY VALID UNQS/CT IN THE INSTANCE'S
-        # self._total_counts_by_column
-        for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(DTYPE_UNQS_CTS_TUPLES):
-            _col_dtypes[col_idx] = _dtype
-
-        if not hasattr(self, '_original_dtypes'):
-            self._original_dtypes = _col_dtypes
-        else:
-            if not np.array_equiv(_col_dtypes, self._original_dtypes):
-                raise TypeError(
-                    f"datatypes in most recently passed data do not "
-                    f"match original dtypes"
-                )
-
-        del _col_dtypes
-
-
-        self._ignore_columns = _val_ignore_columns(
-            self._ignore_columns,
-            is_fitted(self),
-            self.n_features_in_,
-            getattr(self, 'feature_names_in_', None)
-        )
-
-        # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
-        self._handle_as_bool = _val_handle_as_bool(
-            self._handle_as_bool,
-            is_fitted(self),
-            self.n_features_in_,
-            getattr(self, 'feature_names_in_', None),
-            self._original_dtypes
-        )
-
-        # now knowing what the dtypes are, and having validated _ignore_columns,
-        # set the UNQ_CT_DICT for any ignored column to {}
-        NEW_DTYPE_UNQS_CTS_TUPLES = []
-        for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(DTYPE_UNQS_CTS_TUPLES):
-            a = (_dtype == 'float' and self._ignore_float_columns)
-            b = (_dtype == 'int' and self._ignore_non_binary_integer_columns)
-
-            if a or b:
-                NEW_DTYPE_UNQS_CTS_TUPLES.append(tuple((_dtype, {})))
-            else:
-                NEW_DTYPE_UNQS_CTS_TUPLES.append(tuple((_dtype, UNQ_CT_DICT)))
-
-        del a, b, col_idx, _dtype, UNQ_CT_DICT
-
-        DTYPE_UNQS_CTS_TUPLES = NEW_DTYPE_UNQS_CTS_TUPLES
-        del NEW_DTYPE_UNQS_CTS_TUPLES
-
-        self._total_counts_by_column = _tcbc_merger(
-            DTYPE_UNQS_CTS_TUPLES,
-            self._total_counts_by_column
-        )
-
-        del DTYPE_UNQS_CTS_TUPLES
-
-        # END GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** *
-
-        # pizza dont forget this!    C_CONTIGUOUS
-        # if _og_format is np.ndarray:
-        #     return np.ascontiguousarray(X_tr)
-
-        return self
-
-
     def partial_fit(
         self,
         X: XContainer,
-        y: YContainer=None,
-        **fit_kwargs
+        y: YContainer=None
     ) -> Self:
 
         """Online accrual of uniques and counts for later thresholding.
@@ -630,21 +487,231 @@ class MinCountTransformer(
                 Fitted min count transformer.
         """
 
-        self._validate()
 
-        if not is_fitted(self):
+        if not hasattr(self, '_total_counts_by_column'):
             self.reset()
 
         self._recursion_check()
 
-        return self._base_fit(X, y, **fit_kwargs)
+        # GET n_features_in_, feature_names_in_, _n_rows_in_
+        # pizza this needs to go before validate_data() for now because
+        # validate_data() converts X to numpy
+        # do not make an assignment! let the function handle it.
+        self._check_feature_names(X, reset=not is_fitted(self))
+
+        # do not make an assignment! let the function handle it.
+        self._check_n_features(X, reset=not is_fitted(self))
+
+
+        # 24_03_03_09_54_00 THE INTENT IS TO RUN EVERYTHING AS NP ARRAY
+        # TO STANDARDIZE INDEXING. pizza
+
+        X = validate_data(
+            X,
+            copy_X=False,
+            cast_to_ndarray=True, # <===== bearpizza
+            accept_sparse=None, #("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),  # <===== bearpizza
+            dtype='any',
+            require_all_finite=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            allowed_dimensionality=(1, 2),
+            ensure_2d=True,   # bearpizza this will need to be False
+            order='F',
+            ensure_min_features=1,
+            ensure_max_features=None,
+            ensure_min_samples=3,    # bearpizza finalize this, 2 or 3 samples?
+            sample_check=None
+        )
+
+        _validation(
+            X,
+            self.count_threshold,
+            self.ignore_float_columns,
+            self.ignore_non_binary_integer_columns,
+            self.ignore_columns,
+            self.ignore_nan,
+            self.handle_as_bool,
+            self.delete_axis_0,
+            self.reject_unseen_values,
+            self.max_recursions,
+            self.n_jobs,
+            getattr(self, 'n_features_in_'),
+            getattr(self, 'feature_names_in_', None)
+        )
+
+        # pizza, remember to test at some point that ['0270', '4980'] is recognized as str, not idx!
+
+        # IF WAS PREVIOUSLY FITTED, THEN self._n_rows_in EXISTS
+        if hasattr(self, '_n_rows_in'):
+            self._n_rows_in += X.shape[0]
+        else:
+            self._n_rows_in = X.shape[0]
+
+        # END GET n_features_in_, feature_names_in_, _n_rows_in_
+
+
+        # GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** ** **
+
+        # need to run all columns to get the dtypes; no columns are ignored,
+        # for this operation, so any ignore inputs do not matter. getting
+        # dtypes on columns that are ignored is needed to validate new
+        # partial fits have appropriate data.
+
+        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
+        joblib_kwargs = {
+            'prefer': 'processes', 'return_as':'list', 'n_jobs':self.n_jobs
+        }
+        DTYPE_UNQS_CTS_TUPLES = \
+            joblib.Parallel(**joblib_kwargs)(
+                joblib.delayed(_dtype_unqs_cts_processing)(
+                    X[:,_idx],
+                    _idx
+                ) for _idx in range(self.n_features_in_)
+            )
+
+        _col_dtypes = np.empty(self.n_features_in_, dtype='<U8')
+        # DOING THIS for LOOP 2X TO KEEP DTYPE CHECK SEPARATE AND PRIOR TO
+        # MODIFYING self._total_counts_by_column, PREVENTS INVALID DATA FROM
+        # INVALIDATING ANY VALID UNQS/CT IN THE INSTANCE'S
+        # self._total_counts_by_column
+        for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(DTYPE_UNQS_CTS_TUPLES):
+            _col_dtypes[col_idx] = _dtype
+
+        if not hasattr(self, '_original_dtypes'):
+            self._original_dtypes = _col_dtypes
+        else:
+            # if self._original_dtypes exists, check its dtypes against the
+            # dtypes in the currently passed data
+            if not np.array_equiv(_col_dtypes, self._original_dtypes):
+                raise TypeError(
+                    f"datatypes in most recently passed data do not "
+                    f"match original dtypes"
+                )
+
+        del _col_dtypes
+
+        # self._ignore_columns = _core_ign_cols_handle_as_bool(
+        #     self.ignore_columns,
+        #     'ignore_columns',
+        #     _mct_has_been_fit=is_fitted(self),
+        #     _n_features_in=self.n_features_in_,
+        #     _feature_names_in=getattr(self, 'feature_names_in_', None)
+        # )
+
+        if callable(self.ignore_columns):
+            try:
+                self._ignore_columns = self.ignore_columns(X)
+            except Exception as e:
+                raise Exception(
+                    f"ignore_columns callable excepted with this error --- {e}"
+                )
+
+            _val_ign_cols_hab_callable(
+                self._ignore_columns,
+                'ignore_columns',
+                getattr(self, 'feature_names_in_', None)
+            )
+        else:
+            if self.ignore_columns is None:
+                self._ignore_columns = np.array([], dtype=np.int32)
+            else:
+                self._ignore_columns = deepcopy(self.ignore_columns)
+
+        self._ignore_columns = column_name_mapper(
+            self._ignore_columns,
+            getattr(self, 'feature_names_in_', None)
+        )
+
+        # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
+        # self._handle_as_bool = _core_ign_cols_handle_as_bool(
+        #     self._handle_as_bool,
+        #     'handle_as_bool',
+        #     _mct_has_been_fit=is_fitted(self),
+        #     _n_features_in=self.n_features_in_,
+        #     _feature_names_in=getattr(self, 'feature_names_in_', None)
+        # )
+
+        if callable(self.handle_as_bool):
+            try:
+                self._handle_as_bool = self.handle_as_bool(X)
+            except Exception as e:
+                raise Exception(
+                    f"handle_as_bool callable excepted with this error --- {e}"
+                )
+
+            _val_ign_cols_hab_callable(
+                self._handle_as_bool,
+                'handle_as_bool',
+                getattr(self, 'feature_names_in_', None)
+            )
+        else:
+            if self.handle_as_bool is None:
+                self._handle_as_bool = np.array([], dtype=np.int32)
+            else:
+                self._handle_as_bool = deepcopy(self.handle_as_bool)
+
+        self._handle_as_bool = column_name_mapper(
+            self._handle_as_bool,
+            getattr(self, 'feature_names_in_', None)
+        )
+
+        _val_handle_as_bool_v_dtypes(
+            self._handle_as_bool,
+            self._original_dtypes
+        )
+        # pizza keep this for reference.... _val_handle_as_bool originally took in _original_dtypes
+        # _val_handle_as_bool(
+        #     self._handle_as_bool,
+        #     is_fitted(self),
+        #     self.n_features_in_,
+        #     getattr(self, 'feature_names_in_', None),
+        #     self._original_dtypes
+        # )
+
+
+
+        # pizza come back to this. dont skip any columns here, keep all the
+        # information. if we have all the information and all the *ignore*
+        # type params are only applied in transform, then this will enable to
+        # change all params (not have any blocked!)
+        # now knowing what the dtypes are, and having validated _ignore_columns,
+        # set the UNQ_CT_DICT for any ignored column to {}
+        NEW_DTYPE_UNQS_CTS_TUPLES = []
+        for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(DTYPE_UNQS_CTS_TUPLES):
+            a = (_dtype == 'float' and self.ignore_float_columns)
+            b = (_dtype == 'int' and self.ignore_non_binary_integer_columns)
+
+            if a or b:
+                NEW_DTYPE_UNQS_CTS_TUPLES.append(tuple((_dtype, {})))
+            else:
+                NEW_DTYPE_UNQS_CTS_TUPLES.append(tuple((_dtype, UNQ_CT_DICT)))
+
+        del a, b, col_idx, _dtype, UNQ_CT_DICT
+
+        DTYPE_UNQS_CTS_TUPLES = NEW_DTYPE_UNQS_CTS_TUPLES
+        del NEW_DTYPE_UNQS_CTS_TUPLES
+
+        self._total_counts_by_column = _tcbc_merger(
+            DTYPE_UNQS_CTS_TUPLES,
+            self._total_counts_by_column
+        )
+
+        del DTYPE_UNQS_CTS_TUPLES
+
+        # END GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** *
+
+        # pizza dont forget this!    C_CONTIGUOUS
+        # if _og_format is np.ndarray:
+        #     return np.ascontiguousarray(X_tr)
+
+        return self
 
 
     def fit(
         self,
         X: XContainer,
-        y: YContainer=None,
-        **fit_kwargs
+        y: YContainer=None
     ) -> Self:
 
         """Determine the uniques and their frequencies to be used for
@@ -675,19 +742,15 @@ class MinCountTransformer(
 
         """
 
-        self._validate()
         self.reset()
 
-        self._recursion_check()
-
-        return self._base_fit(X, y, **fit_kwargs)
+        return self.partial_fit(X, y)
 
 
     def fit_transform(
         self,
         X: XContainer,
-        y: YContainer=None,
-        **fit_kwargs
+        y: YContainer=None
     ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
         """
@@ -720,9 +783,6 @@ class MinCountTransformer(
         """
 
         # cant use FitTransformMixin, need custom code to handle _recursion_check
-
-        # self._validate()
-        # self.reset()
 
         # this temporarily creates an attribute that is only looked at by
         # self._recursion_check. recursion check needs to be disabled
@@ -853,11 +913,11 @@ class MinCountTransformer(
 
         check_is_fitted(self)
 
-        if callable(self._ignore_columns) or callable(self._handle_as_bool):
-            raise ValueError(
-                f"if ignore_columns or handle_as_bool is callable, get_support() "
-                f"is only available after a transform is done."
-            )
+        # if callable(self.ignore_columns) or callable(self.handle_as_bool):
+        #     raise ValueError(
+        #         f"if ignore_columns or handle_as_bool is callable, get_support() "
+        #         f"is only available after a transform is done."
+        #     )
 
         # must use _make_instructions() in order to construct the column
         # support mask after fit and before a transform. otherwise, if an
@@ -885,6 +945,7 @@ class MinCountTransformer(
         if not hasattr(self, '_output_transform'):
             self._output_transform = None
 
+        # pizza see if we can take these out
         self._x_original_obj_type = None
         self._y_original_obj_type = None
 
@@ -935,7 +996,7 @@ class MinCountTransformer(
 
         """
 
-        from ._validation._val_transform import _val_transform
+        from ._validation._transform import _val_transform
 
         self._output_transform = _val_transform(transform)
 
@@ -1064,7 +1125,7 @@ class MinCountTransformer(
         """
 
         check_is_fitted(self)
-        if callable(self._ignore_columns) or callable(self._handle_as_bool):
+        if callable(self.ignore_columns) or callable(self.handle_as_bool):
             raise ValueError(f"if ignore_columns or handle_as_bool is "
                 f"callable, get_support() is only available after a "
                 f"transform is done.")
@@ -1120,12 +1181,11 @@ class MinCountTransformer(
 
         self._check_n_features(X, reset=False)
 
+        # pizza this probably will come out, dont think we need to track this
         self._x_original_obj_type = _get_og_obj_type(
             X,
             self._x_original_obj_type
         )
-
-        # 24_03_03_09_54_00 THE INTENT IS TO RUN EVERYTHING AS NP ARRAY
         # TO STANDARDIZE INDEXING.
 
         X = validate_data(
@@ -1146,7 +1206,21 @@ class MinCountTransformer(
             sample_check=None
         )
 
-        _val_X(X)
+        _validation(
+            X,
+            self.count_threshold,
+            self.ignore_float_columns,
+            self.ignore_non_binary_integer_columns,
+            self.ignore_columns,
+            self.ignore_nan,
+            self.handle_as_bool,
+            self.delete_axis_0,
+            self.reject_unseen_values,
+            self.max_recursions,
+            self.n_jobs,
+            getattr(self, 'n_features_in_'),
+            getattr(self, 'feature_names_in_', None)
+        )
 
         # y handling ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         if y is not None:
@@ -1161,7 +1235,13 @@ class MinCountTransformer(
             # of the form tuple(str, int). If both are the case, override y
             # with y = None.
 
-            # pizza do we even need this? isnt an obcsure object like
+
+
+            # Determine if the MCT instance is wrapped by dask_ml Incremental
+            # or ParallelPostFit by checking the stack and looking for the
+            # '_partial' method used by those modules. Wrapping with these
+            # modules imposes limitations on passing a value to y.
+            # pizza do we even need this? isnt an obscure object like
             # ('', order[i]) enough to convince u that its wrapped by dask?
             _using_dask_ml_wrapper = False
             for frame_info in inspect.stack():
@@ -1182,6 +1262,7 @@ class MinCountTransformer(
             del _using_dask_ml_wrapper, _is_garbage_y_from_dask_ml
             # END accommodate dask_ml junk y ** * ** * ** * ** * ** * ** * *
 
+            # pizza this probably will come out, dont think we need to track this
             self._y_original_obj_type = _get_og_obj_type(
                 y,
                 self._y_original_obj_type
@@ -1208,10 +1289,9 @@ class MinCountTransformer(
             _val_y(y)
         # END y handling ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        self._validate()
 
         # extra count_threshold val
-        if self._count_threshold >= getattr(self, '_n_rows_in', float('inf')):
+        if self.count_threshold >= self._n_rows_in:
             raise ValueError(
                 f"count_threshold is >= the number of rows, every column "
                 f"not ignored would be deleted."
@@ -1219,8 +1299,8 @@ class MinCountTransformer(
 
 
         # VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs **
-        # _val_ignore_cols and _val_handle_as_bool INSIDE OF
-        # self._validate() SKIPPED THE col_idx VALIDATE/CONVERT PART
+        # _val_ignore_columns_handle_as_bool INSIDE OF
+        # _validation SKIPPED THE col_idx VALIDATE/CONVERT PART
         # WHEN self.n_features_in_ DIDNT EXIST (I.E., UP UNTIL THE START
         # OF FIRST FIT) BUT ON FIRST PASS THRU HERE (AND EACH THEREAFTER)
         # n_features_in_ (AND POSSIBLY feature_names_in_) NOW EXISTS SO
@@ -1231,42 +1311,86 @@ class MinCountTransformer(
         # BECAUSE THEY MAY (UNDESIRABLY) GENERATE DIFFERENT IDXS.
         # _ignore_columns MUST BE BEFORE _make_instructions
 
-        if callable(self._ignore_columns):
+        # self._ignore_columns = _core_ign_cols_handle_as_bool(
+        #     self._ignore_columns,
+        #     'ignore_columns',
+        #     _mct_has_been_fit=is_fitted(self),
+        #     _n_features_in=self.n_features_in_,
+        #     _feature_names_in=getattr(self, 'feature_names_in_', None)
+        # )
+
+        if callable(self.ignore_columns):
             try:
-                self._ignore_columns = self._ignore_columns(X)
+                self._ignore_columns = self.ignore_columns(X)
             except Exception as e:
                 raise Exception(
                     f"ignore_columns callable excepted with this error --- {e}"
                 )
 
-            _val_ign_cols_hab_callable(self._ignore_columns, 'ignore_columns')
+            _val_ign_cols_hab_callable(
+                self._ignore_columns,
+                'ignore_columns',
+                getattr(self, 'feature_names_in_', None)
+            )
+        else:
+            if self.ignore_columns is None:
+                self._ignore_columns = np.array([], dtype=np.int32)
+            else:
+                self._ignore_columns = deepcopy(self.ignore_columns)
 
-        self._ignore_columns = _val_ignore_columns(
+        self._ignore_columns = column_name_mapper(
             self._ignore_columns,
-            is_fitted(self),
-            self.n_features_in_,
             getattr(self, 'feature_names_in_', None)
         )
 
+
         # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
-        if callable(self._handle_as_bool):
+        # self._handle_as_bool = _core_ign_cols_handle_as_bool(
+        #     self._handle_as_bool,
+        #     'handle_as_bool',
+        #     _mct_has_been_fit=is_fitted(self),
+        #     _n_features_in=self.n_features_in_,
+        #     _feature_names_in=getattr(self, 'feature_names_in_', None)
+        # )
+
+        if callable(self.handle_as_bool):
             try:
-                self._handle_as_bool = self._handle_as_bool(X)
+                self._handle_as_bool = self.handle_as_bool(X)
             except Exception as e:
-                raise Exception(f"handle_as_bool callable excepted with "
-                                f"this error --- {e}")
+                raise Exception(
+                    f"handle_as_bool callable excepted with this error --- {e}"
+                )
 
-            _val_ign_cols_hab_callable(self._handle_as_bool, 'handle_as_bool')
+            _val_ign_cols_hab_callable(
+                self._handle_as_bool,
+                'handle_as_bool',
+                getattr(self, 'feature_names_in_', None)
+            )
+        else:
+            if self.handle_as_bool is None:
+                self._handle_as_bool = np.array([], dtype=np.int32)
+            else:
+                self._handle_as_bool = deepcopy(self.handle_as_bool)
 
-        self._handle_as_bool = _val_handle_as_bool(
+        self._handle_as_bool = column_name_mapper(
             self._handle_as_bool,
-            is_fitted(self),
-            self.n_features_in_,
-            getattr(self, 'feature_names_in_', None),
+            getattr(self, 'feature_names_in_', None)
+        )
+
+        _val_handle_as_bool_v_dtypes(
+            self._handle_as_bool,
             self._original_dtypes
         )
-        # END VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs ** **
 
+        # pizza keep this for reference.... _val_handle_as_bool originally took in _original_dtypes
+        # _val_handle_as_bool(
+        #     self._handle_as_bool,
+        #     is_fitted(self),
+        #     self.n_features_in_,
+        #     getattr(self, 'feature_names_in_', None),
+        #     self._original_dtypes
+        # )
+        # END VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs ** **
 
         _delete_instr = self._make_instructions()
 
@@ -1277,8 +1401,8 @@ class MinCountTransformer(
                 X,
                 self._total_counts_by_column,
                 _delete_instr,
-                self._reject_unseen_values,
-                self._n_jobs
+                self.reject_unseen_values,
+                self.n_jobs
             )
 
         # END BUILD ROW_KEEP & COLUMN_KEEP MASKS ** ** ** ** ** ** ** **
@@ -1302,11 +1426,11 @@ class MinCountTransformer(
             if y is not None:
                 y = y[ROW_KEEP_MASK]
 
-            if self._max_recursions == 1:
+            if self.max_recursions == 1:
                 # if reached last recursion, skip to output formatting
                 pass
             else:
-                assert self._max_recursions >= 1, f"max_recursions < 1"
+                assert self.max_recursions >= 1, f"max_recursions < 1"
 
                 # NEED TO RE-ALIGN _ignore_columns AND _handle_as_bool
                 # FROM WHAT THEY WERE FOR self TO WHAT THEY ARE FOR THE
@@ -1343,7 +1467,7 @@ class MinCountTransformer(
                     handle_as_bool=NEW_HDL_AS_BOOL_COL,
                     delete_axis_0=self.delete_axis_0,
                     max_recursions=self.max_recursions-1,
-                    n_jobs=self._n_jobs
+                    n_jobs=self.n_jobs
                 )
 
                 del NEW_IGN_COL, NEW_HDL_AS_BOOL_COL
@@ -1426,15 +1550,16 @@ class MinCountTransformer(
         check_is_fitted(self)
 
         return _make_instructions(
-            self._count_threshold,
-            self._ignore_float_columns,
-            self._ignore_non_binary_integer_columns,
+            self.count_threshold,
+            self.ignore_float_columns,
+            self.ignore_non_binary_integer_columns,
             self._ignore_columns,
-            self._ignore_nan,
+            self.ignore_nan,
             self._handle_as_bool,
-            self._delete_axis_0,
+            self.delete_axis_0,
             self._original_dtypes,
             self.n_features_in_,
+            getattr(self, 'feature_names_in_', None),
             self._total_counts_by_column,
             _threshold=_threshold
         )
@@ -1448,48 +1573,11 @@ class MinCountTransformer(
         """
         if getattr(self, 'recursion_check_disable', False) is False:
 
-            if self._max_recursions > 1:
+            if self.max_recursions > 1:
                 raise ValueError(
                     f"partial_fit(), fit(), and transform() are not "
                     f"available if max_recursions > 1. fit_transform() only."
                 )
-
-
-    def _validate(self):
-        """
-        Validate MinCountTransformer arg and kwargs.
-
-        """
-
-        """
-        Determine if the MCT instance is wrapped by dask_ml Incremental
-        or ParallelPostFit by checking the stack and looking for the
-        '_partial' method used by those modules. Wrapping with these
-        modules imposes limitations on passing a value to y.
-
-        """
-
-        self._count_threshold, self._ignore_float_columns, \
-        self._ignore_non_binary_integer_columns, self._ignore_nan, \
-        self._delete_axis_0, self._ignore_columns, self._handle_as_bool, \
-        self._reject_unseen_values, self._max_recursions, self._n_jobs = \
-            _validation(
-                self.count_threshold,
-                self.ignore_float_columns,
-                self.ignore_non_binary_integer_columns,
-                self.ignore_nan,
-                self.delete_axis_0,
-                self.ignore_columns,
-                self.handle_as_bool,
-                self.reject_unseen_values,
-                self.max_recursions,
-                self.n_jobs,
-                _mct_has_been_fit=is_fitted(self),
-                _n_features_in=getattr(self, 'n_features_in_', None),
-                _feature_names_in=getattr(self, 'feature_names_in_', None),
-                _original_dtypes=getattr(self, '_original_dtypes', None)
-            )
-
 
 
 

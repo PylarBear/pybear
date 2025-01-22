@@ -358,7 +358,6 @@ class TestBoolKwargsAcceptBoolRejectNonBool:
         _kwargs['ignore_nan'] = ign_nan
         _kwargs['reject_unseen_values'] = rej_unseen
 
-        # should not except
         TestCls = MinCountTransformer(*_args, **_kwargs)
         TestCls.fit_transform(X, y)
 
@@ -753,7 +752,7 @@ class TestIgnoreColumnsHandleAsBool:
     )
     @pytest.mark.parametrize('_kwarg',
         ('ignore_columns', 'handle_as_bool', 'both')
-    )
+)
     def test_accepts_good_ign_cols_handle_as_bool(self, X, COLUMNS, _y, _args,
         _kwargs, input_format, kwarg_input, _kwarg, _mct_cols, x_cols):
 
@@ -1671,13 +1670,13 @@ class TestIgnoreNanWorks:
         assert len(TRFM_Y) == correct_x_and_y_len, \
             f"TRFM_X is not the correct length after transform"
 
-        if TestCls._ignore_nan == True:
+        if TestCls.ignore_nan == True:
             # 2.5's SHOULD BE DELETED, BUT NOT nan
             if nan_type == 'str_nan':
                 MASK = (TEST_X != 2.5).astype(bool)
             elif nan_type == 'np_nan':
                 MASK = (TEST_X != 2.5).astype(bool)
-        elif TestCls._ignore_nan == False:
+        elif TestCls.ignore_nan == False:
             # 2.5's AND nan SHOULD BE DELETED
             if nan_type == 'str_nan':
                 MASK = ((TEST_X != 2.5) * (TEST_X.astype(str) != f'{np.nan}'))
@@ -1701,7 +1700,7 @@ class TestIgnoreNanWorks:
             return ARRAY_1[MASK].ravel().astype(np.float64)
 
 
-        if has_nan and TestCls._ignore_nan == True:
+        if has_nan and TestCls.ignore_nan == True:
             NAN_MASK = np.logical_not(np.isnan(REF_X.astype(np.float64)))
 
             assert np.array_equiv(
@@ -2495,7 +2494,6 @@ class TestAccuracy:
         # MCT one-shot 2 rcr
         TestCls = MinCountTransformer(*args, **_kwargs)
         TRFM_X, TRFM_Y = TestCls.fit_transform(X.copy(), y.copy())
-
         # validate MCT 2rcrX1 get_support and object dimensions make sense
         _support = TestCls.get_support(indices=False)
         assert len(_support) == X.shape[1]

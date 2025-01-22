@@ -5,17 +5,19 @@
 #
 
 
-from typing_extensions import Union
-from copy import deepcopy
-import numpy as np
 
+from typing_extensions import Union
 from ..._type_aliases import (
     TotalCountsByColumnType,
     InstructionsType,
     OriginalDtypesDtype,
 )
+import numpy.typing as npt
 
-from ._make_instructions_validation import _make_instructions_validation
+from copy import deepcopy
+import numpy as np
+
+from ._validation._make_instructions_validation import _make_instructions_validation
 
 from ._one_unique import _one_unique
 from ._two_uniques_hab import _two_uniques_hab
@@ -33,18 +35,19 @@ from .....utilities._nan_masking import nan_mask_numerical
 
 
 def _make_instructions(
-        _count_threshold: int,
-        _ignore_float_columns: bool,
-        _ignore_non_binary_integer_columns: bool,
-        _ignore_columns: np.ndarray[int],
-        _ignore_nan: bool,
-        _handle_as_bool: np.ndarray[int],
-        _delete_axis_0: bool,
-        _original_dtypes: OriginalDtypesDtype,
-        _n_features_in: int,
-        _total_counts_by_column: TotalCountsByColumnType,
-        _threshold: Union[int, None] = None
-    ) -> InstructionsType:
+    _count_threshold: int,
+    _ignore_float_columns: bool,
+    _ignore_non_binary_integer_columns: bool,
+    _ignore_columns: npt.NDArray[int],
+    _ignore_nan: bool,
+    _handle_as_bool: npt.NDArray[int],
+    _delete_axis_0: bool,
+    _original_dtypes: OriginalDtypesDtype,
+    _n_features_in: int,
+    _feature_names_in: Union[npt.NDArray[object], None],
+    _total_counts_by_column: TotalCountsByColumnType,
+    _threshold: Union[int, None]
+) -> InstructionsType:
 
     """
     Convert compiled uniques and frequencies into instructions for
@@ -180,6 +183,11 @@ def _make_instructions(
     _n_features_in:
         int - the number of features (columns) in the dataset.
 
+    _feature_names_in:
+        Union[NDArray[object], None] - if the object passed to the first
+        fit had features names this is an ndarray of those feature
+        names. Otherwise, this is None.
+
     _total_counts_by_column:
         dict[int, dict[DataType, int]] - a zero-indexed dictionary that
         holds dictionaries containing the counts of the uniques in each
@@ -195,8 +203,8 @@ def _make_instructions(
 
 
 
-    Returns
-    ----------
+    Return
+    ------
     -
         _delete_instr: dict[int, Union[str, DataType]]
 
@@ -207,12 +215,11 @@ def _make_instructions(
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    _threshold = _threshold or _count_threshold
 
 
     # _validation
-    _count_threshold, _ignore_float_columns, _ignore_non_binary_integer_columns, \
-    _ignore_columns, _ignore_nan, _handle_as_bool, _delete_axis_0, \
-    _original_dtypes, _n_features_in, _total_counts_by_column, _threshold = \
+    _ignore_columns, _handle_as_bool = \
         _make_instructions_validation(
             _count_threshold,
             _ignore_float_columns,
@@ -223,10 +230,10 @@ def _make_instructions(
             _delete_axis_0,
             _original_dtypes,
             _n_features_in,
+            _feature_names_in,
             _total_counts_by_column,
             _threshold
         )
-
 
 
     # find inactive columns and populate _delete_instr
@@ -345,7 +352,7 @@ def _make_instructions(
 
     del _threshold, col_idx, COLUMN_UNQ_CT_DICT
     try:
-        _nan_key, _nan_ct, _nan_dict
+        del _nan_key, _nan_ct, _nan_dict
     except:
         pass
 

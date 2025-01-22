@@ -56,8 +56,8 @@ def _test_threshold(
     __tcbc: dict[int, dict[DataType, int]]
 
 
-    __count_threshold = _MCTInstance._count_threshold
-    __max_recursions = _MCTInstance._max_recursions
+    __count_threshold = _MCTInstance.count_threshold
+    __max_recursions = _MCTInstance.max_recursions
     __make_instructions = _MCTInstance._make_instructions
     __nfi = _MCTInstance.n_features_in_
     __fni = False
@@ -89,7 +89,7 @@ def _test_threshold(
 
     _all_rows_deleted = False
     ALL_COLUMNS_DELETED = []
-    _ardm = f"\nAll rows will be deleted."  # all_rows_deleted_msg
+    _ardm = f"\nAll rows will be deleted. "  # all_rows_deleted_msg
     for col_idx, _instr in _delete_instr.items():
         _ardd = False  # all_rows_deleted_dummy
         if __fni is not False:
