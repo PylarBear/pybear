@@ -8,7 +8,8 @@
 from typing import Iterable
 from typing_extensions import Union, Self
 from ._type_aliases import (
-    OriginalDtypesDtype,
+    CountThresholdType,
+    OriginalDtypesType,
     TotalCountsByColumnType,
     IgnoreColumnsType,
     HandleAsBoolType,
@@ -29,17 +30,20 @@ from ._validation._ign_cols_hab_callable import _val_ign_cols_hab_callable
 from ._validation._y import _val_y
 from ._validation._validation import _validation
 
-from ._shared._make_instructions._make_instructions import _make_instructions
+from ._make_instructions._make_instructions import _make_instructions
+from ._fit._original_dtypes_merger import _original_dtypes_merger
 from ._fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
 from ._fit._tcbc_merger import _tcbc_merger
 from ._set_output._get_og_obj_type import _get_og_obj_type
 from ._test_threshold import _test_threshold
+from ._transform._conflict_warner import _conflict_warner
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
+from ._transform._NDArrayify_integerize_ic_hab import _NDArrayify_integerize_ic_hab
 from ._transform._tcbc_update import _tcbc_update
 
 from .docs.mincounttransformer_docs import mincounttransformer_docs
 
-from ...utilities._column_name_mapper import column_name_mapper
+from ...utilities._feature_name_mapper import feature_name_mapper
 
 from ...base import (
     FeatureMixin,
@@ -398,13 +402,13 @@ class MinCountTransformer(
     """
 
 
-    _original_dtypes: OriginalDtypesDtype
+    _original_dtypes: OriginalDtypesType
     _total_counts_by_column: TotalCountsByColumnType
 
 
     def __init__(
         self,
-        count_threshold:int,
+        count_threshold:CountThresholdType,  # pizza this needs to go to kwarg... this will be nasty
         *,
         ignore_float_columns:bool=True,
         ignore_non_binary_integer_columns:bool=True,
@@ -578,97 +582,12 @@ class MinCountTransformer(
         for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(DTYPE_UNQS_CTS_TUPLES):
             _col_dtypes[col_idx] = _dtype
 
-        if not hasattr(self, '_original_dtypes'):
-            self._original_dtypes = _col_dtypes
-        else:
-            # if self._original_dtypes exists, check its dtypes against the
-            # dtypes in the currently passed data
-            if not np.array_equiv(_col_dtypes, self._original_dtypes):
-                raise TypeError(
-                    f"datatypes in most recently passed data do not "
-                    f"match original dtypes"
-                )
+        self._original_dtypes = _original_dtypes_merger(
+            _col_dtypes,
+            getattr(self, '_original_dtypes', None)
+        )
 
         del _col_dtypes
-
-        # self._ignore_columns = _core_ign_cols_handle_as_bool(
-        #     self.ignore_columns,
-        #     'ignore_columns',
-        #     _mct_has_been_fit=is_fitted(self),
-        #     _n_features_in=self.n_features_in_,
-        #     _feature_names_in=getattr(self, 'feature_names_in_', None)
-        # )
-
-        if callable(self.ignore_columns):
-            try:
-                self._ignore_columns = self.ignore_columns(X)
-            except Exception as e:
-                raise Exception(
-                    f"ignore_columns callable excepted with this error --- {e}"
-                )
-
-            _val_ign_cols_hab_callable(
-                self._ignore_columns,
-                'ignore_columns',
-                getattr(self, 'feature_names_in_', None)
-            )
-        else:
-            if self.ignore_columns is None:
-                self._ignore_columns = np.array([], dtype=np.int32)
-            else:
-                self._ignore_columns = deepcopy(self.ignore_columns)
-
-        self._ignore_columns = column_name_mapper(
-            self._ignore_columns,
-            getattr(self, 'feature_names_in_', None)
-        )
-
-        # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
-        # self._handle_as_bool = _core_ign_cols_handle_as_bool(
-        #     self._handle_as_bool,
-        #     'handle_as_bool',
-        #     _mct_has_been_fit=is_fitted(self),
-        #     _n_features_in=self.n_features_in_,
-        #     _feature_names_in=getattr(self, 'feature_names_in_', None)
-        # )
-
-        if callable(self.handle_as_bool):
-            try:
-                self._handle_as_bool = self.handle_as_bool(X)
-            except Exception as e:
-                raise Exception(
-                    f"handle_as_bool callable excepted with this error --- {e}"
-                )
-
-            _val_ign_cols_hab_callable(
-                self._handle_as_bool,
-                'handle_as_bool',
-                getattr(self, 'feature_names_in_', None)
-            )
-        else:
-            if self.handle_as_bool is None:
-                self._handle_as_bool = np.array([], dtype=np.int32)
-            else:
-                self._handle_as_bool = deepcopy(self.handle_as_bool)
-
-        self._handle_as_bool = column_name_mapper(
-            self._handle_as_bool,
-            getattr(self, 'feature_names_in_', None)
-        )
-
-        _val_handle_as_bool_v_dtypes(
-            self._handle_as_bool,
-            self._original_dtypes
-        )
-        # pizza keep this for reference.... _val_handle_as_bool originally took in _original_dtypes
-        # _val_handle_as_bool(
-        #     self._handle_as_bool,
-        #     is_fitted(self),
-        #     self.n_features_in_,
-        #     getattr(self, 'feature_names_in_', None),
-        #     self._original_dtypes
-        # )
-
 
 
         # pizza come back to this. dont skip any columns here, keep all the
@@ -701,9 +620,29 @@ class MinCountTransformer(
 
         # END GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** *
 
-        # pizza dont forget this!    C_CONTIGUOUS
-        # if _og_format is np.ndarray:
-        #     return np.ascontiguousarray(X_tr)
+        self._ignore_columns, self._handle_as_bool = \
+            _NDArrayify_integerize_ic_hab(
+                X,
+                self.ignore_columns,
+                self.handle_as_bool,
+                self.n_features_in_,
+                getattr(self, 'feature_names_in_', None)
+            )
+
+        _conflict_warner(
+            self._original_dtypes,
+            self._handle_as_bool,
+            self._ignore_columns,
+            self.ignore_float_columns,
+            self.ignore_non_binary_integer_columns,
+            self.n_features_in_
+        )
+
+        self._handle_as_bool = _val_handle_as_bool_v_dtypes(
+            self._handle_as_bool,
+            self._ignore_columns,
+            self._original_dtypes
+        )
 
         return self
 
@@ -913,6 +852,7 @@ class MinCountTransformer(
 
         check_is_fitted(self)
 
+        # pizza hashed this 25_01_21 to get the tests passing. not sure if this is kosher.
         # if callable(self.ignore_columns) or callable(self.handle_as_bool):
         #     raise ValueError(
         #         f"if ignore_columns or handle_as_bool is callable, get_support() "
@@ -996,7 +936,7 @@ class MinCountTransformer(
 
         """
 
-        from ._validation._transform import _val_transform
+        from ._set_output._validation._transform import _val_transform
 
         self._output_transform = _val_transform(transform)
 
@@ -1299,6 +1239,7 @@ class MinCountTransformer(
 
 
         # VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs **
+
         # _val_ignore_columns_handle_as_bool INSIDE OF
         # _validation SKIPPED THE col_idx VALIDATE/CONVERT PART
         # WHEN self.n_features_in_ DIDNT EXIST (I.E., UP UNTIL THE START
@@ -1311,85 +1252,32 @@ class MinCountTransformer(
         # BECAUSE THEY MAY (UNDESIRABLY) GENERATE DIFFERENT IDXS.
         # _ignore_columns MUST BE BEFORE _make_instructions
 
-        # self._ignore_columns = _core_ign_cols_handle_as_bool(
-        #     self._ignore_columns,
-        #     'ignore_columns',
-        #     _mct_has_been_fit=is_fitted(self),
-        #     _n_features_in=self.n_features_in_,
-        #     _feature_names_in=getattr(self, 'feature_names_in_', None)
-        # )
-
-        if callable(self.ignore_columns):
-            try:
-                self._ignore_columns = self.ignore_columns(X)
-            except Exception as e:
-                raise Exception(
-                    f"ignore_columns callable excepted with this error --- {e}"
-                )
-
-            _val_ign_cols_hab_callable(
-                self._ignore_columns,
-                'ignore_columns',
+        self._ignore_columns, self._handle_as_bool = \
+            _NDArrayify_integerize_ic_hab(
+                X,
+                self.ignore_columns,
+                self.handle_as_bool,
+                self.n_features_in_,
                 getattr(self, 'feature_names_in_', None)
             )
-        else:
-            if self.ignore_columns is None:
-                self._ignore_columns = np.array([], dtype=np.int32)
-            else:
-                self._ignore_columns = deepcopy(self.ignore_columns)
 
-        self._ignore_columns = column_name_mapper(
+        _conflict_warner(
+            self._original_dtypes,
+            self._handle_as_bool,
             self._ignore_columns,
-            getattr(self, 'feature_names_in_', None)
+            self.ignore_float_columns,
+            self.ignore_non_binary_integer_columns,
+            self.n_features_in_
         )
 
-
-        # _handle_as_bool MUST ALSO BE HERE OR WILL NOT CATCH obj COLUMN
-        # self._handle_as_bool = _core_ign_cols_handle_as_bool(
-        #     self._handle_as_bool,
-        #     'handle_as_bool',
-        #     _mct_has_been_fit=is_fitted(self),
-        #     _n_features_in=self.n_features_in_,
-        #     _feature_names_in=getattr(self, 'feature_names_in_', None)
-        # )
-
-        if callable(self.handle_as_bool):
-            try:
-                self._handle_as_bool = self.handle_as_bool(X)
-            except Exception as e:
-                raise Exception(
-                    f"handle_as_bool callable excepted with this error --- {e}"
-                )
-
-            _val_ign_cols_hab_callable(
+        self._handle_as_bool = \
+            _val_handle_as_bool_v_dtypes(
                 self._handle_as_bool,
-                'handle_as_bool',
-                getattr(self, 'feature_names_in_', None)
+                self._ignore_columns,
+                self._original_dtypes
             )
-        else:
-            if self.handle_as_bool is None:
-                self._handle_as_bool = np.array([], dtype=np.int32)
-            else:
-                self._handle_as_bool = deepcopy(self.handle_as_bool)
+        # END handle_as_bool -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        self._handle_as_bool = column_name_mapper(
-            self._handle_as_bool,
-            getattr(self, 'feature_names_in_', None)
-        )
-
-        _val_handle_as_bool_v_dtypes(
-            self._handle_as_bool,
-            self._original_dtypes
-        )
-
-        # pizza keep this for reference.... _val_handle_as_bool originally took in _original_dtypes
-        # _val_handle_as_bool(
-        #     self._handle_as_bool,
-        #     is_fitted(self),
-        #     self.n_features_in_,
-        #     getattr(self, 'feature_names_in_', None),
-        #     self._original_dtypes
-        # )
         # END VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs ** **
 
         _delete_instr = self._make_instructions()

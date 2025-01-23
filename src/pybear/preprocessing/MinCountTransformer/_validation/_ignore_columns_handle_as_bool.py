@@ -138,7 +138,6 @@ def _val_ignore_columns_handle_as_bool(
     if is_empty:
         pass
     elif is_int:
-        # pizza, can we allow negative indices? will everything else work?
         if any(map(lambda x: x < -_n_features_in, _value)):
             raise ValueError(
                 f"'{_name}' index {min(_value)} is out of bounds for "

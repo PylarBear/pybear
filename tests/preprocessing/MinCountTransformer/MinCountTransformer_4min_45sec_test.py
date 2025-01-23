@@ -436,7 +436,7 @@ class TestJunkCountThresholdMaxRecursionsSetOutputNjobs:
                     lambda x: x, min, None, np.pi, np.nan, float('inf')
     ]
 
-    JUNK_CT_THRESH = BASELINE_JUNK.copy() + ['junk']
+    # JUNK_CT_THRESH = BASELINE_JUNK.copy() + ['junk']
     JUNK_RECURSIONS = BASELINE_JUNK.copy() + ['junk']
     JUNK_OUTPUT_TYPE = BASELINE_JUNK.copy()
     JUNK_OUTPUT_TYPE.remove(None)
@@ -445,7 +445,7 @@ class TestJunkCountThresholdMaxRecursionsSetOutputNjobs:
     JUNK_N_JOBS += ['junk']
 
 
-    @pytest.mark.parametrize('junk_ct_thresh', JUNK_CT_THRESH)
+    @pytest.mark.parametrize('junk_ct_thresh', (None, lambda x: x))
     def test_junk_ct_thresh(self, X, y, _kwargs, junk_ct_thresh):
 
         TestCls = MinCountTransformer(junk_ct_thresh, **_kwargs)
@@ -494,7 +494,7 @@ class TestJunkCountThresholdMaxRecursionsSetOutputNjobs:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestBadCountThresholdMaxRecursionsSetOutputNjobs:
 
-    BAD_CT_THRESH = [-2, 1, 100_000_000]
+    BAD_CT_THRESH = [-2, 1, 100_000_000, 'bad_list_1', 'bad_list_2']
     BAD_RECURSIONS = [-1, 0]
     BAD_OUTPUT_TYPE = ['dask_array', 'wrong_junk']
     BAD_N_JOBS = [-2, 0]
@@ -502,6 +502,11 @@ class TestBadCountThresholdMaxRecursionsSetOutputNjobs:
 
     @pytest.mark.parametrize('bad_ct_thresh', BAD_CT_THRESH)
     def test_bad_ct_thresh(self, X, y, _kwargs, bad_ct_thresh):
+
+        if bad_ct_thresh == 'bad_list_1':
+            bad_ct_thresh = [1 for _ in range(X.shape[1])]
+        elif bad_ct_thresh == 'bad_list_2':
+            bad_ct_thresh = range(X.shape[1])  # has a zero in it
 
         TestCls = MinCountTransformer(bad_ct_thresh, **_kwargs)
 
