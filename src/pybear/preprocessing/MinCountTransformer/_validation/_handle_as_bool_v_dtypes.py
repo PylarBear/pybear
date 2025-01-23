@@ -16,6 +16,10 @@ import numbers
 import numpy as np
 
 
+# pizza maybe move this?
+# since it is not just val anymore, now mutates and returns.
+# pizza proofread this and test and make some decisions
+
 # pizza, think on this.
 # this is expected to see _handle_as_bool and _ignore_columns after fully
 # conditioned, i.e., as np.ndarray.astype(np.int32), which would be
