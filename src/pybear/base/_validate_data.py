@@ -31,7 +31,8 @@ def validate_data(
     cast_to_ndarray:bool=False,
     accept_sparse:Union[Iterable[Literal[
         "csr", "csc", "coo", "dia", "lil", "dok", "bsr"
-    ]], False, None]=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+    ]], Literal[False], None]=\
+        ("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
     dtype:Literal['numeric','any']='any',
     require_all_finite:bool=True,
     cast_inf_to_nan:bool=True,
@@ -77,15 +78,16 @@ def validate_data(
         ndarray.
     accept_sparse:
         Union[Iterable[Literal["csr", "csc", "coo", "dia", "lil", "dok",
-        "bsr"]], False, None], default=("csr", "csc", "coo", "dia",
-        "lil", "dok", "bsr") - The allowed scipy sparse matrix/array
-        formats. If no scipy sparse are allowed, False or None can be
-        passed, and an exception will be raised if X is a scipy sparse
-        object. Otherwise, must be a 1D vector-like (such as a python
-        list or tuple) containing some or all of the 3-character acronyms
-        shown here. Not case sensitive. Entries cover both the 'matrix'
-        and 'array' formats, e.g., ['csr', 'csc'] will allow csr_matrix,
-        csr_array, csc_matrix, and csc_array formats.
+        "bsr"]], Literal[False], None], default=("csr", "csc", "coo",
+        "dia", "lil", "dok", "bsr") - The scipy sparse matrix/array
+        formats that are allowed. If no scipy sparse are allowed, literal
+        False or None can be passed, and an exception will be raised if
+        X is a scipy sparse object. Otherwise, must be a 1D vector-like
+        (such as a python list or tuple) containing some or all of the
+        3-character acronyms shown here. Not case sensitive. Entries
+        cover both the 'matrix' and 'array' formats, e.g., ['csr',
+        'csc'] will allow csr_matrix, csr_array, csc_matrix, and
+        csc_array formats.
     dtype:
         Literal['numeric','any'], default='any' - the allowed datatype
         of X. If 'numeric', data that cannot be coerced to a numeric
