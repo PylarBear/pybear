@@ -8,6 +8,7 @@
 from typing_extensions import Union
 from .._type_aliases import (
     XContainer,
+    CountThresholdType,
     IgnoreColumnsType,
     HandleAsBoolType
 )
@@ -30,7 +31,7 @@ from ._n_jobs import _val_n_jobs
 
 def _validation(
     _X: XContainer,
-    _count_threshold: int,
+    _count_threshold: CountThresholdType,
     _ignore_float_columns: bool,
     _ignore_non_binary_integer_columns: bool,
     _ignore_columns: IgnoreColumnsType,
@@ -53,7 +54,7 @@ def _validation(
     Parameters
     ----------
     _X: XContainer
-    _count_threshold: int
+    _count_threshold: CountThresholdType
     _ignore_float_columns: bool
     _ignore_non_binary_integer_columns: bool
     _ignore_nan: bool
@@ -78,8 +79,10 @@ def _validation(
 
     _val_X(_X)
 
-    # core count_threshold val
-    _val_count_threshold(_count_threshold)
+    _val_count_threshold(
+        _count_threshold,
+        _n_features_in
+    )
 
     _val_ignore_float_columns(_ignore_float_columns)
 
@@ -92,11 +95,6 @@ def _validation(
         _feature_names_in=_feature_names_in
     )
 
-    # pizza do we want to calculate a hab/ignore_columns callable here
-    # for validation, before hours of partial fits are done just to find
-    # out the callable is bad
-
-
     _val_ignore_nan(_ignore_nan)
 
     _val_delete_axis_0(_delete_axis_0)
@@ -108,7 +106,7 @@ def _validation(
         _feature_names_in=_feature_names_in
     )
 
-    # pizza dont validate the ignore_columns/hab callables here
+    # dont validate the ignore_columns/hab callables here
     # we could validate
     # --returns list-like
     # --returns ints if no fni_

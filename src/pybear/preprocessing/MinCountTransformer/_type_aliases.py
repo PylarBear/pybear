@@ -5,9 +5,13 @@
 #
 
 
+
 from typing import TypeVar, Iterable, Callable, Literal
 from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
+
+import numbers
+import numpy as np
 
 
 
@@ -20,7 +24,11 @@ XContainer: TypeAlias = Iterable[Iterable[DataType]]
 
 YContainer: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType], None]
 
-OriginalDtypesDtype: TypeAlias = npt.NDArray[
+# pizza remember to proliferate new type
+CountThresholdType: TypeAlias = \
+    Union[numbers.Integral, Iterable[numbers.Integral]]
+
+OriginalDtypesType: TypeAlias = npt.NDArray[
     Union[Literal['bin_int', 'int', 'float', 'obj']]
 ]
 
@@ -30,23 +38,23 @@ InstructionsType: TypeAlias = dict[int, list[Union[str, DataType]]]
 
 IgnoreColumnsType: TypeAlias = \
     Union[
+        None,
         Iterable[int],
         Iterable[str],
-        Callable[[XContainer], npt.NDArray],
-        None
+        Callable[[XContainer], Union[Iterable[int], Iterable[str]]]
     ]
 
 HandleAsBoolType: TypeAlias = \
     Union[
+        None,
         Iterable[int],
         Iterable[str],
-        Callable[[XContainer], npt.NDArray],
-        None
+        Callable[[XContainer], Union[Iterable[int], Iterable[str]]]
     ]
 
-InternalIgnoreColumnsType: Iterable[int]   # pizza, is this NDArray?
+InternalIgnoreColumnsType: TypeAlias = npt.NDArray[np.int32]
 
-InternalHandleAsBoolType: TypeAlias = Iterable[int]   # pizza, is this NDArray?
+InternalHandleAsBoolType: TypeAlias = npt.NDArray[np.int32]
 
 
 

@@ -20,6 +20,7 @@ from ....utilities._nan_masking import nan_mask_numerical
 def _val_ign_cols_hab_callable(
     _fxn_output: Union[Iterable[str], Iterable[numbers.Integral]],
     _name: Literal['ignore_columns', 'handle_as_bool'],
+    _n_features_in: int,
     _feature_names_in: Union[npt.NDArray[str], None]
 ) -> None:
 
@@ -36,11 +37,9 @@ def _val_ign_cols_hab_callable(
     feature_names_in is not provided, raise exception, feature names
     cannot be mapped to column indices if there are no feature names.
 
-    If the callable returned a vector of integers and feature_names_in
-    is provided, validate the minimum and maximum values of the
-    callable's returned indices are within the dimensions of
-    feature_names_in. If feature_names_in is not provided, skip
-    validation.
+    If the callable returned a vector of integers, validate the minimum
+    and maximum values of the callable's returned indices are within the
+    bounds of n_features_in.
 
 
     Parameters
@@ -51,6 +50,8 @@ def _val_ign_cols_hab_callable(
     _name:
         Literal['ignore_columns', 'handle_as_bool'] - the name of the
         parameter for which a callable was passed
+    _n_features_in:
+        int - the number of features in the data
     _feature_names_in:
         Union[NDArray[str], None] - the feature names of a data-bearing
         object
@@ -64,6 +65,17 @@ def _val_ign_cols_hab_callable(
 
     """
 
+
+    # validate n_features_in ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    err_msg = f"'_n_features_in' must be an integer >= 1"
+    if not isinstance(_n_features_in, int):
+        raise TypeError(err_msg)
+    if isinstance(_n_features_in, bool):
+        raise TypeError(err_msg)
+    if not _n_features_in >= 1:
+        raise ValueError(err_msg)
+    del err_msg
+    # END validate n_features_in ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # validate feature_names_in ** * ** * ** * ** * ** * ** * ** * ** * ** *
     err_msg = (
@@ -88,6 +100,11 @@ def _val_ign_cols_hab_callable(
         raise TypeError(err_msg)
 
     del err_msg
+
+    if _feature_names_in is not None and len(_feature_names_in) != _n_features_in:
+        raise ValueError(
+            f"len(_feature_names_in) ({len(_feature_names_in)}) must equal "
+            f"_n_features_in ({_n_features_in})")
     # END validate feature_names_in ** * ** * ** * ** * ** * ** * ** * ** *
 
     # validate _name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -162,25 +179,17 @@ def _val_ign_cols_hab_callable(
                     )
 
     elif not is_str:
-        if _feature_names_in is None:
-            # without knowing feature_names_in, all we have is a _fxn_output
-            # vector with integers that may be all positive, all negative, or a
-            # mix of both, and we cant validate the values. so just skip.
-            pass
 
-        elif _feature_names_in is not None:  # must be 1D vector of strings
-
-            _n_features_in = len(_feature_names_in)
-            if min(_fxn_output) < -_n_features_in:
-                raise ValueError(
-                    f"column index {min(_fxn_output)} is out of bounds for a "
-                    f"feature name vector with {_n_features_in} features"
-                )
-            if max(_fxn_output) >= _n_features_in:
-                raise ValueError(
-                    f"column index {max(_fxn_output)} is out of bounds for a "
-                    f"feature name vector with {_n_features_in} features"
-                )
+        if min(_fxn_output) < -_n_features_in:
+            raise ValueError(
+                f"column index {min(_fxn_output)} is out of bounds for a "
+                f"feature name vector with {_n_features_in} features"
+            )
+        if max(_fxn_output) >= _n_features_in:
+            raise ValueError(
+                f"column index {max(_fxn_output)} is out of bounds for a "
+                f"feature name vector with {_n_features_in} features"
+            )
 
 
 
