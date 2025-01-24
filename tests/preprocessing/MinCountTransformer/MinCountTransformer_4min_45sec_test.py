@@ -6,21 +6,19 @@
 
 
 
-import pytest
+from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
+    MinCountTransformer
+
 import uuid
 from copy import deepcopy
-
 import numpy as np
 np.random.seed(0)
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 
-from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
-    MinCountTransformer
-
 from pybear.utilities._nan_masking import nan_mask
 
-
+import pytest
 
 
 bypass = False

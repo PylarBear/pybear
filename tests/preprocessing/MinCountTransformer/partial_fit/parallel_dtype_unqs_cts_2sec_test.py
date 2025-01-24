@@ -10,7 +10,7 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing.MinCountTransformer._fit. \
+from pybear.preprocessing.MinCountTransformer._partial_fit. \
     _parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
 
 

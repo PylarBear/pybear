@@ -6,37 +6,40 @@
 
 
 
-from typing import Literal
+from typing import Literal, Iterable
 from typing_extensions import Union
 from .._type_aliases import IgnoreColumnsType, HandleAsBoolType
-import numpy.typing as npt
 
 import numbers
 import numpy as np
 
 from ....utilities._nan_masking import nan_mask_numerical
 
+from .._validation._n_features_in import _val_n_features_in
+from .._validation._feature_names_in import _val_feature_names_in
+
 
 
 def _val_ignore_columns_handle_as_bool(
     _value: Union[IgnoreColumnsType, HandleAsBoolType],
     _name: Literal['ignore_columns', 'handle_as_bool'],
+    _allowed: Iterable[
+        Union[Literal['callable', 'Iterable[str]', 'Iterable[int]', 'None']],
+    ],
     _n_features_in: int,
-    _feature_names_in: Union[npt.NDArray[str], None]=None
+    _feature_names_in: Union[Iterable[str], None]=None
 ) -> None:
 
     """
-    Validate ignore_columns or handle_as_bool.
+    Validate ignore_columns or handle_as_bool. Subject to the allowed
+    states indicated in :param: '_allowed'.
 
     Validate:
-    - container is iterable, callable, or None
-    - if iterable, contains integers or valid strings
 
-    - name is either 'ignore_columns' or 'handle_as_bool' only
+    - passed value is Iterable[str], Iterable[int], Callable, or None,
+        subject to those allowed by :param: '_allowed'.
 
-    - _n_features_in is passed and is int >= 0
-
-    - _feature_names_in is NDArray[str] or None
+    - if iterable, contains valid integers or strings
 
 
     Parameters
@@ -45,6 +48,20 @@ def _val_ignore_columns_handle_as_bool(
         Union[Iterable[str], Iterable[int], callable, None] - the value
         passed for the 'ignore_columns' or 'handle_as_bool' parameter to
         the MinCountTransformer instance.
+    _name:
+        Literal['ignore_columns', 'handle_as_bool'] - the name of the
+        parameter being validated.
+    _allowed:
+        Iterable[Union[Literal[
+            'callable', 'Iterable[str]', 'Iterable[int]', 'None'
+        ]]] - the states which _value is allowed to be.
+    _n_features_in:
+        int - the number of features in the data.
+    _feature_names_in:
+        Union[Iterable[str], None]=None - if the MCT instance was fitted
+        on a data-bearing object that had a header (like a pandas
+        dataframe) then this is a 1D list-like of strings. Otherwise, is
+        None.
 
 
     Return
@@ -52,52 +69,111 @@ def _val_ignore_columns_handle_as_bool(
     -
         None
 
+
     """
 
     # other validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert isinstance(_n_features_in, int)
-    assert not isinstance(_n_features_in, bool)
-    assert _n_features_in >= 0
-
+    # name -- -- -- -- -- -- -- --
     assert isinstance(_name, str)
     _name = _name.lower()
     assert _name in ['ignore_columns', 'handle_as_bool']
+    # END name -- -- -- -- -- -- -- --
 
-    if _feature_names_in is not None:
-        assert isinstance(_feature_names_in, np.ndarray)
-        assert len(_feature_names_in) == _n_features_in
-        assert all(map(
-            isinstance, _feature_names_in, (str for _ in _feature_names_in)
-        ))
+    # allowed -- -- -- -- -- -- -- --
+    _allowed_allowed = ['callable', 'Iterable[str]', 'Iterable[int]', 'None']
+    _err_msg = lambda x: (
+        f"'_allowed' must be a 1D list-like with values in "
+        f"{', '.join(_allowed_allowed)}, case sensitive. cannot be empty. "
+        f"got {x}."
+    )
+
+    try:
+        _addon = f"type {type(_allowed)}"
+        iter(_allowed)
+        if isinstance(_allowed, (str, dict)):
+            _addon = f"type {type(_allowed)}"
+            raise Exception
+        if len(np.array(list(_allowed)).shape) != 1:
+            _addon = f"{len(np.array(list(_allowed)).shape)}D"
+            raise UnicodeError
+        if len(_allowed) == 0:
+            _addon = f"empty"
+            raise UnicodeError
+        if not all(map(isinstance, _allowed, (str for _ in _allowed))):
+            _addon = f"non-string entries"
+            raise Exception
+        if not all(map(lambda x: x in _allowed_allowed, _allowed)):
+            _bad = [x for x in _allowed if x not in _allowed_allowed]
+            _addon = f"bad entries: {', '.join(_bad)}"
+            del _bad
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(_err_msg(_addon))
+    except:
+        raise TypeError(_err_msg(_addon))
+
+    _allowed = list(map(str, _allowed))
+
+    del _allowed_allowed, _err_msg, _addon
+    # END allowed -- -- -- -- -- -- -- --
+
+    _val_n_features_in(_n_features_in)
+
+    _val_feature_names_in(_feature_names_in, _n_features_in)
     # END other validation ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # ESCAPE VALIDATION IF _value IS CALLABLE OR None
 
     if _value is None:
-        return
+        if 'None' in _allowed:
+            return
+        else:
+            raise ValueError(
+                f"'{_name}' must be in {', '.join(_allowed)}. got None."
+            )
 
     elif callable(_value):
-        return
+        if 'callable' in _allowed:
+            return
+        else:
+            raise ValueError(
+                f"'_value' must be in {', '.join(_allowed)}. got a callable."
+            )
 
 
-    err_msg = (f"'{_name}' must be None, a list-like, or a callable "
-               f"that returns a list-like")
+    # dealt with None & callable, must be Iterable[str] or Iterable[int]
+    _err_msg = lambda x: (f"'{_name}' must be None, a list-like, or a callable "
+               f"that returns a list-like. got {x}.")
 
     try:
+        _addon = f"type {type(_value)}"
         iter(_value)
         if isinstance(_value, (str, dict)):
+            _addon = f"type {type(_value)}"
             raise Exception
+        if len(np.array(list(_value)).shape) != 1:
+            _addon = f"{len(np.array(list(_value)).shape)}D"
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(_err_msg(_addon))
     except:
-        raise TypeError(err_msg)
+        raise TypeError(_err_msg(_addon))
 
-    del err_msg
+    del _err_msg, _addon
+
+
+    if 'Iterable[str]' not in _allowed and 'Iterable[int]' not in _allowed:
+        raise ValueError(
+            f"'_value' is list-like but no list-likes are allowed"
+        )
 
 
     # if list-like, validate contents are all str or all int ** * ** * ** *
 
-    err_msg = (f"if '{_name}' is passed as a list-like, it must contain "
-        f"all integers indicating column indices or all strings indicating "
+    err_msg = (
+        f"if '{_name}' is passed as a list-like, it must contain all "
+        f"integers indicating column indices or all strings indicating "
         f"column names"
     )
 
@@ -118,7 +194,7 @@ def _val_ignore_columns_handle_as_bool(
             isinstance, _value, (bool for _ in _value)
         )):
             raise TypeError(err_msg)
-        if np.any(nan_mask_numerical(np.array(_value, dtype=object))):
+        if np.any(nan_mask_numerical(np.array(list(_value), dtype=object))):
             raise TypeError
         if not all(map(lambda x: int(x)==x, _value)):
             raise TypeError(err_msg)
@@ -136,22 +212,37 @@ def _val_ignore_columns_handle_as_bool(
     # _feature_names_in is not necessarily available, could be None
 
     if is_empty:
+        # it might be Iterable[str] or Iterable[int] but is empty
         pass
     elif is_int:
-        if any(map(lambda x: x < -_n_features_in, _value)):
+
+        if 'Iterable[int]' not in _allowed:
             raise ValueError(
-                f"'{_name}' index {min(_value)} is out of bounds for "
-                f"data with {_n_features_in} columns"
+                f"'_value' is Iterable[int] but Iterable[int] is not "
+                f"allowed"
             )
 
-        if any(map(lambda x: x >= _n_features_in, _value)):
+        if min(_value) < -_n_features_in:
+            raise ValueError(
+                f"'{_name}' index {min(_value)} is out of bounds for "
+                f"data with {_n_features_in} features"
+            )
+
+        if max(_value) >= _n_features_in:
             raise ValueError(
                 f"'{_name}' index {max(_value)} is out of bounds for "
-                f"data with {_n_features_in} columns"
+                f"data with {_n_features_in} features"
             )
     elif is_str:
+
+        if 'Iterable[str]' not in _allowed:
+            raise ValueError(
+                f"'_value' is Iterable[str] but Iterable[str] is not "
+                f"allowed"
+            )
+
         if _feature_names_in is not None:
-            # if _value is empty list-like, this is bypassed
+
             for _column in _value:
                 if _column not in _feature_names_in:
                     raise ValueError(
@@ -169,6 +260,26 @@ def _val_ignore_columns_handle_as_bool(
     del is_int, is_str, is_empty
 
     # END validate list-like against characteristics of X ** ** ** ** ** **
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

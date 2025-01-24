@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._fit._original_dtypes_merger \
+from pybear.preprocessing.MinCountTransformer._partial_fit._original_dtypes_merger \
     import _original_dtypes_merger
 
 import numpy as np
@@ -25,78 +25,6 @@ class TestOriginalDtypesMerger:
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # _col_dtypes -- -- -- -- -- -- -- -- -- --
-    @pytest.mark.parametrize('junk_col_dtypes',
-        (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1}, lambda x: x)
-    )
-    def test_rejects_junk_col_dtypes(self, junk_col_dtypes):
-
-        with pytest.raises(TypeError):
-            _original_dtypes_merger(
-                junk_col_dtypes,
-                ['obj', 'float', 'int', 'bin_int']
-            )
-
-
-    @pytest.mark.parametrize('bad_col_dtypes',
-        (list('abcd'), tuple('abcd'), set('abcd'), np.array(['junk', 'trash']))
-    )
-    def test_rejects_bad_col_dtypes(self, bad_col_dtypes):
-
-        with pytest.raises(ValueError):
-            _original_dtypes_merger(
-                bad_col_dtypes,
-                ['obj', 'float', 'int', 'bin_int']
-            )
-
-
-    def test_accepts_good_col_dtypes(self):
-
-        out = _original_dtypes_merger(
-            ['bin_int', 'obj', 'float', 'int'],
-            ['obj', 'float', 'int', 'bin_int']
-        )
-
-        assert isinstance(out, np.ndarray)
-        assert all(map(isinstance, out, (str for _ in out)))
-    # END _col_dtypes -- -- -- -- -- -- -- -- -- --
-
-    # _previous_col_dtypes -- -- -- -- -- -- -- -- -- --
-    @pytest.mark.parametrize('junk_previous_col_dtypes',
-        (-2.7, -1, 0, 1, 2.7, True, 'junk', [0,1], {'a':1}, lambda x: x)
-    )
-    def test_rejects_junk_previous_col_dtypes(self, junk_previous_col_dtypes):
-
-        with pytest.raises(TypeError):
-            _original_dtypes_merger(
-                ['obj', 'float', 'int', 'bin_int'],
-                junk_previous_col_dtypes
-            )
-
-
-    @pytest.mark.parametrize('bad_previous_col_dtypes',
-        (list('abcd'), tuple('abcd'), set('abcd'), np.array(['junk', 'trash']))
-    )
-    def test_rejects_bad_previous_col_dtypes(self, bad_previous_col_dtypes):
-
-        with pytest.raises(ValueError):
-            _original_dtypes_merger(
-                ['obj', 'float', 'int', 'bin_int'],
-                bad_previous_col_dtypes
-            )
-
-
-    def test_accepts_good_previous_col_dtypes(self):
-
-        out = _original_dtypes_merger(
-            ['bin_int', 'obj', 'float', 'int'],
-            ['obj', 'float', 'int', 'bin_int']
-        )
-
-        assert isinstance(out, np.ndarray)
-        assert all(map(isinstance, out, (str for _ in out)))
-    # END _previous_col_dtypes -- -- -- -- -- -- -- -- -- --
-
 
     # joint -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('length_mismatch',

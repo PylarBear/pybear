@@ -6,23 +6,64 @@
 
 
 
-from typing import TypeVar, Iterable, Callable, Literal
+from typing import Iterable, Callable, Literal, TypeVar
 from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 
 import numbers
 import numpy as np
+import pandas as pd
+import scipy.sparse as ss
 
 
 
-# pizza, probably get rid of this
-# data is essentially all types that are not iterable
-DataType = TypeVar('DataType', bool, int, float, str)
+DataType = TypeVar('DataType', numbers.Real, str)
 
-# pizza finalize these containers!
-XContainer: TypeAlias = Iterable[Iterable[DataType]]
+YContainer: TypeAlias = Union[npt.NDArray, pd.DataFrame, None]
 
-YContainer: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType], None]
+
+SparseContainer: TypeAlias = Union[
+    ss._csr.csr_matrix,
+    ss._csc.csc_matrix,
+    ss._coo.coo_matrix,
+    ss._dia.dia_matrix,
+    ss._lil.lil_matrix,
+    ss._dok.dok_matrix,
+    ss._csr.csr_array,
+    ss._csc.csc_array,
+    ss._coo.coo_array,
+    ss._dia.dia_array,
+    ss._lil.lil_array,
+    ss._dok.dok_array
+]
+
+XContainer: TypeAlias = Union[
+    npt.NDArray,
+    pd.DataFrame,
+    SparseContainer
+]
+
+# the internal containers differ from the above external data containers
+# by coo, dia, & bsr, because those cannot be sliced
+
+InternalSparseContainer: TypeAlias = Union[
+    ss._csr.csr_matrix,
+    ss._csc.csc_matrix,
+    ss._lil.lil_matrix,
+    ss._dok.dok_matrix,
+    ss._csr.csr_array,
+    ss._csc.csc_array,
+    ss._lil.lil_array,
+    ss._dok.dok_array
+]
+
+InternalXContainer: TypeAlias = Union[
+    npt.NDArray,
+    pd.DataFrame,
+    InternalSparseContainer
+]
+
+
 
 # pizza remember to proliferate new type
 CountThresholdType: TypeAlias = \
@@ -32,29 +73,33 @@ OriginalDtypesType: TypeAlias = npt.NDArray[
     Union[Literal['bin_int', 'int', 'float', 'obj']]
 ]
 
-TotalCountsByColumnType: TypeAlias = dict[int, dict[DataType, int]]
+TotalCountsByColumnType: TypeAlias = dict[int, dict[any, int]]
 
 InstructionsType: TypeAlias = dict[int, list[Union[str, DataType]]]
 
 IgnoreColumnsType: TypeAlias = \
     Union[
         None,
-        Iterable[int],
+        Iterable[numbers.Integral],
+        npt.NDArray[np.int32],
         Iterable[str],
-        Callable[[XContainer], Union[Iterable[int], Iterable[str]]]
+        Callable[[XContainer], Union[Iterable[numbers.Integral], Iterable[str]]]
     ]
 
 HandleAsBoolType: TypeAlias = \
     Union[
         None,
-        Iterable[int],
+        Iterable[numbers.Integral],
+        npt.NDArray[np.int32],
         Iterable[str],
-        Callable[[XContainer], Union[Iterable[int], Iterable[str]]]
+        Callable[[XContainer], Union[Iterable[numbers.Integral], Iterable[str]]]
     ]
 
 InternalIgnoreColumnsType: TypeAlias = npt.NDArray[np.int32]
 
 InternalHandleAsBoolType: TypeAlias = npt.NDArray[np.int32]
+
+
 
 
 

@@ -13,13 +13,13 @@ import numpy as np
 
 
 def _three_or_more_uniques_hab(
-        _instr_list: list,
-        _threshold: int,
-        _nan_key: Union[float, str, Literal[False]],
-        _nan_ct: Union[int,  Literal[False]],
-        _COLUMN_UNQ_CT_DICT: dict[DataType, int],
-        _delete_axis_0: bool
-    ) -> list[Union[str, DataType]]:
+    _instr_list: list,
+    _threshold: int,
+    _nan_key: Union[float, str, Literal[False]],
+    _nan_ct: Union[int,  Literal[False]],
+    _COLUMN_UNQ_CT_DICT: dict[DataType, int],
+    _delete_axis_0: bool
+) -> list[Union[str, DataType]]:
 
     """
     Make delete instructions for a column with three or more unique

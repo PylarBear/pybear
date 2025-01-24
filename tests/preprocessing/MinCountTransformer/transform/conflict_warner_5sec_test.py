@@ -47,97 +47,17 @@ class TestConflictWarner:
         return np.random.choice(allowed, n_features_in, replace=True)
 
 
-
     # basic validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    # n_features_in -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    @pytest.mark.parametrize('bad_n_features_in',
-        (-2.7, 0, 2.7, True, None, 'trash', [0,1], (1,), {'a':1}, lambda x: x)
-    )
-    def test_rejects_bad_n_features_in(self, good_og_dtypes, bad_n_features_in):
-        with pytest.raises(Exception):
-            _conflict_warner(
-                good_og_dtypes,
-                _handle_as_bool=None,
-                _ignore_columns=None,
-                _ignore_float_columns=False,
-                _ignore_non_binary_integer_columns=False,
-                _n_features_in=bad_n_features_in
-            )
-
-
-    @pytest.mark.parametrize('good_n_features_in', (1, 10, 100))
-    def test_accepts_good_n_features_in(
-        self, allowed, good_n_features_in
-    ):
-
-        out = _conflict_warner(
-            _original_dtypes= \
-                np.random.choice(allowed, good_n_features_in, replace=True),
-            _handle_as_bool=None,
-            _ignore_columns=None,
-            _ignore_float_columns=False,
-            _ignore_non_binary_integer_columns=False,
-            _n_features_in=good_n_features_in
-        )
-
-        assert out is None
-    # END n_features_in -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # original_dtypes -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @pytest.mark.parametrize('bad_og_dtypes',
-        (-2.7, 0, 2.7, True, None, 'trash', [0,1], (1,), {'a':1}, lambda x: x)
-    )
-    def test_rejects_bad_og_dtypes(self, bad_og_dtypes, n_features_in):
-        with pytest.raises(Exception):
-            _conflict_warner(
-                _original_dtypes=bad_og_dtypes,
-                _handle_as_bool=None,
-                _ignore_columns=None,
-                _ignore_float_columns=False,
-                _ignore_non_binary_integer_columns=False,
-                _n_features_in=n_features_in
-            )
-
-
-    @pytest.mark.parametrize('_og_dtypes', ('list', 'ndarray'))
-    def test_accepts_good_og_dtypes(
-        self, _og_dtypes, good_og_dtypes, n_features_in
-    ):
-
-        # only list & ndarray
-
-        if _og_dtypes == 'list':
-            good_og_dtypes = good_og_dtypes.tolist()
-        elif _og_dtypes == 'ndarray':
-            pass
-        else:
-            raise Exception
-
-
-        out = _conflict_warner(
-            _original_dtypes=good_og_dtypes,
-            _handle_as_bool=None,
-            _ignore_columns=None,
-            _ignore_float_columns=False,
-            _ignore_non_binary_integer_columns=False,
-            _n_features_in=n_features_in
-        )
-
-        assert out is None
-    # END original_dtypes -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
 
     # ignore_columns -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('bad_ignore_columns',
-        (-2.7, -1, 0, 1, 2.7, True, 'junk', [1,2], (1,2), {'a':1}, lambda x: x)
+        (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1}, lambda x: x)
     )
     def test_rejects_bad_ignore_columns(
         self, good_og_dtypes, bad_ignore_columns, n_features_in
     ):
 
-        # only None or ndarray.dtype(np.int32)
+        # only None or list-like-int
 
         with pytest.raises(Exception):
             _conflict_warner(
@@ -155,7 +75,7 @@ class TestConflictWarner:
         self, good_og_dtypes, good_ignore_columns, n_features_in
     ):
 
-        # only None or ndarray, dtype = np.int32
+        # only None or list-like-int
         if good_ignore_columns == 'ndarray':
             good_ignore_columns = np.array([0, n_features_in-2]).astype(np.int32)
 
@@ -174,13 +94,13 @@ class TestConflictWarner:
 
     # handle_as_bool -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('bad_handle_as_bool',
-        (-2.7, -1, 0, 1, 2.7, True, 'junk', [1,2], (1,2), {'a':1}, lambda x: x)
+        (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1}, lambda x: x)
     )
     def test_rejects_bad_handle_as_bool(
         self, good_og_dtypes, bad_handle_as_bool, n_features_in
     ):
 
-        # only None or ndarray.dtype(np.int32)
+        # only None or list-like-int
 
         with pytest.raises(Exception):
             _conflict_warner(
@@ -198,7 +118,7 @@ class TestConflictWarner:
         self, good_og_dtypes, good_handle_as_bool, n_features_in
     ):
 
-        # only None or ndarray, dtype = np.int32
+        # only None or list-like-int
         if good_handle_as_bool == 'ndarray':
             good_handle_as_bool = np.array([0, n_features_in-2]).astype(np.int32)
 
@@ -214,6 +134,7 @@ class TestConflictWarner:
         assert out is None
     # END handle_as_bool -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+    # END basic validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     @pytest.mark.parametrize('og_dtypes', ['short', 'good', 'long'])
     @pytest.mark.parametrize('ignore_columns', ['low', 'good', 'high'])

@@ -27,7 +27,6 @@ from ._two_uniques_hab import _two_uniques_hab
 from ._two_uniques_not_hab import _two_uniques_not_hab
 from ._three_or_more_uniques_hab import _three_or_more_uniques_hab
 from ._three_or_more_uniques_not_hab import _three_or_more_uniques_not_hab
-from ....utilities._nan_masking import nan_mask_numerical
 
 
 # _make_instructions()
@@ -225,7 +224,6 @@ def _make_instructions(
 
 
     # _validation
-    # _ignore_columns, _handle_as_bool = \
     _make_instructions_validation(
         _count_threshold,
         _ignore_float_columns,
@@ -249,22 +247,14 @@ def _make_instructions(
         if col_idx in _ignore_columns:
             _delete_instr[col_idx].append('INACTIVE')
         elif _total_counts_by_column[col_idx] == {}:
-            # {} is acceptable here, when ignore <any column, float columns
-            # or non-bin-int columns>, _dtype_unqs_cts_processing returns
-            # UNQ_CT_DICT as {}
             _delete_instr[col_idx].append('INACTIVE')
         elif (_ignore_float_columns and _original_dtypes[col_idx] == 'float'):
             _delete_instr[col_idx].append('INACTIVE')
         elif _ignore_non_binary_integer_columns and \
                 _original_dtypes[col_idx] == 'int':
-            UNQS = np.fromiter(
-                _total_counts_by_column[col_idx].keys(),
-                dtype=np.float64
-            )
-            if len(UNQS[np.logical_not(nan_mask_numerical(UNQS))]) >= 3:
-                _delete_instr[col_idx].append('INACTIVE')
-            del UNQS
-
+            _delete_instr[col_idx].append('INACTIVE')
+        elif _original_dtypes[col_idx] == 'obj' and col_idx in _handle_as_bool:
+            raise ValueError(f"handle_as_bool on str column")
 
 
     for col_idx, COLUMN_UNQ_CT_DICT in deepcopy(_total_counts_by_column).items():
@@ -333,9 +323,6 @@ def _make_instructions(
         else:  # 3+ UNIQUES NOT INCLUDING nan
 
             if col_idx in _handle_as_bool:
-
-                if _original_dtypes[col_idx] == 'obj':
-                    raise ValueError(f"handle_as_bool on str column")
 
                 _delete_instr[col_idx] = _three_or_more_uniques_hab(
                     _delete_instr[col_idx],

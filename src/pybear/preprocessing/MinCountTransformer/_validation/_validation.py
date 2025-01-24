@@ -14,17 +14,17 @@ from .._type_aliases import (
 )
 import numpy.typing as npt
 
-from .._validation._X import _val_X
-from .._validation._count_threshold import _val_count_threshold
+from ._X import _val_X
+from ._n_features_in import _val_n_features_in
+from ._feature_names_in import _val_feature_names_in
+from ._count_threshold import _val_count_threshold
 from ._ignore_float_columns import _val_ignore_float_columns
-from .._validation._ignore_non_binary_integer_columns import \
-    _val_ignore_non_binary_integer_columns
-from .._validation._ignore_columns_handle_as_bool import \
-    _val_ignore_columns_handle_as_bool
-from .._validation._ignore_nan import _val_ignore_nan
-from .._validation._delete_axis_0 import _val_delete_axis_0
-from .._validation._reject_unseen_values import _val_reject_unseen_values
-from .._validation._max_recursions import _val_max_recursions
+from ._ignore_non_binary_integer_columns import _val_ignore_non_binary_integer_columns
+from ._ignore_columns_handle_as_bool import _val_ignore_columns_handle_as_bool
+from ._ignore_nan import _val_ignore_nan
+from ._delete_axis_0 import _val_delete_axis_0
+from ._reject_unseen_values import _val_reject_unseen_values
+from ._max_recursions import _val_max_recursions
 from ._n_jobs import _val_n_jobs
 
 
@@ -79,6 +79,13 @@ def _validation(
 
     _val_X(_X)
 
+    _val_n_features_in(_n_features_in)
+
+    _val_feature_names_in(
+        _feature_names_in,
+        _n_features_in
+    )
+
     _val_count_threshold(
         _count_threshold,
         _n_features_in
@@ -91,6 +98,7 @@ def _validation(
     _val_ignore_columns_handle_as_bool(
         _ignore_columns,
         'ignore_columns',
+        ['Iterable[str]', 'Iterable[int]', 'callable', 'None'],
         _n_features_in=_n_features_in,
         _feature_names_in=_feature_names_in
     )
@@ -102,6 +110,7 @@ def _validation(
     _val_ignore_columns_handle_as_bool(
         _handle_as_bool,
         'handle_as_bool',
+        ['Iterable[str]', 'Iterable[int]', 'callable', 'None'],
         _n_features_in=_n_features_in,
         _feature_names_in=_feature_names_in
     )

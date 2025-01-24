@@ -19,21 +19,32 @@ def _dtype_unqs_cts_processing(
     col_idx: int
 ) -> tuple[str, dict[DataType, int]]:
 
+    # pizza when u revisit this, remember that _column_of_X is now having
+    # any nan-likes changed to np.nan in _column_getter().
+    # *** VERY IMPORTANT *** when ss columns are extracted, only the
+    # data attribute is sent here. so the difference _X.shape[1] - len(_column_of_X)
+    # is the number of zeros in the column.
+    # THIS HASNT BEEN ACCOUNT FOR YET IN THIS FILE!
+
+
     """
 
-    Parallelized fetching of dtype, unqs, and counts from one column of X.
+    Parallelized collection of dtype, uniques, and frequencies from one
+    column of X.
 
-    # 24_03_23 SOMETIMES np.nan IS SHOWING UP MULTIPLE TIMES IN
-    # UNIQUES. TROUBLESHOOTING HAS SHOWN THAT THE CONDITION THAT CAUSES
-    # THIS IS WHEN dtype(_column_of_X) == object. CONVERT TO np.float64
-    # IF POSSIBLE, OTHERWISE GET UNIQUES AS STR
+    Sometimes np.nan is showing up multiple times in uniques.
+    Troubleshooting has shoown that the condition that causes this is
+    when dtype(_column_of_X) is object. Convert to np.float64 if
+    possible, otherwise get uniques as str.
 
 
     Parameters
     ----------
     _column_of_X:
         np.ndarray[DataType] - a single column from X.
-    col_idx: int
+    col_idx:
+        int - the column index _column_of_X occupies in the data. this
+        is for error reporting purposes only.
 
 
     Return
@@ -42,6 +53,7 @@ def _dtype_unqs_cts_processing(
         tuple[str, dict[DataType, int]] - tuple of dtype and a dictionary.
         dtype can be in ['bin_int', 'int', 'float', 'obj'], and the
         dictionary holds uniques as keys and counts as values.
+
 
     """
 
