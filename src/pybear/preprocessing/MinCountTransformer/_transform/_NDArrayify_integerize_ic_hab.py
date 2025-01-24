@@ -6,9 +6,6 @@
 
 
 
-from .._validation._ign_cols_hab_callable import _val_ign_cols_hab_callable
-from ....utilities._feature_name_mapper import feature_name_mapper
-
 from typing_extensions import Union
 import numpy.typing as npt
 from .._type_aliases import (
@@ -21,6 +18,14 @@ from .._type_aliases import (
 
 from copy import deepcopy
 import numpy as np
+
+from ....utilities._feature_name_mapper import feature_name_mapper
+
+from .._validation._n_features_in import _val_n_features_in
+from .._validation._feature_names_in import _val_feature_names_in
+from .._validation._ign_cols_hab_callable import _val_ign_cols_hab_callable
+from .._validation._ignore_columns_handle_as_bool import \
+    _val_ignore_columns_handle_as_bool
 
 
 
@@ -49,6 +54,30 @@ def _NDArrayify_integerize_ic_hab(
 
 
     """
+
+
+    _val_n_features_in(_n_features_in)
+
+    _val_feature_names_in(
+        _feature_names_in,
+        _n_features_in
+    )
+
+    _val_ignore_columns_handle_as_bool(
+        _ignore_columns,
+        'ignore_columns',
+        ['callable', 'Iterable[str]', 'Iterable[int]', 'None'],
+        _n_features_in,
+        _feature_names_in
+    )
+
+    _val_ignore_columns_handle_as_bool(
+        _handle_as_bool,
+        'handle_as_bool',
+        ['callable', 'Iterable[str]', 'Iterable[int]', 'None'],
+        _n_features_in,
+        _feature_names_in
+    )
 
 
     # ignore_columns  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

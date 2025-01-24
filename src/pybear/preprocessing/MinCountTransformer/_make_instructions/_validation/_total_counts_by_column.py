@@ -11,8 +11,8 @@ import numpy as np
 
 
 def _val_total_counts_by_column(
-        _total_counts_by_column: TotalCountsByColumnType
-    ) -> TotalCountsByColumnType:
+    _total_counts_by_column: TotalCountsByColumnType
+) -> TotalCountsByColumnType:
 
     """
     Validate _total_counts_by_column is dict, outer keys are integer >= 0,

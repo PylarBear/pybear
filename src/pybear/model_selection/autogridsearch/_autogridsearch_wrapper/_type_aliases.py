@@ -5,7 +5,9 @@
 #
 
 
-from typing_extensions import Union, TypeVar, TypeAlias
+
+from typing import TypeVar
+from typing_extensions import Union, TypeAlias
 
 
 

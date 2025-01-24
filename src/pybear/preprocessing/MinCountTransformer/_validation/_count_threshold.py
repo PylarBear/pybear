@@ -11,6 +11,8 @@ from .._type_aliases import CountThresholdType
 import numbers
 import numpy as np
 
+from ._n_features_in import _val_n_features_in
+
 
 
 def _val_count_threshold(
@@ -40,6 +42,9 @@ def _val_count_threshold(
 
 
     """
+
+
+    _val_n_features_in(_n_features_in)
 
     err_msg1 = (f"\nwhen 'count_threshold' is passed as a single integer it "
                f"must be >= 2. ")

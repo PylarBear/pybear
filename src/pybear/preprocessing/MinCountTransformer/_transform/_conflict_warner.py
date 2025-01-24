@@ -4,6 +4,7 @@
 # License: BSD 3 clause
 #
 
+# pizza see if this can be combined with handle_as_bool_v_dtypes
 
 
 from .._type_aliases import (
@@ -15,6 +16,10 @@ from typing_extensions import Union
 
 import warnings
 import numpy as np
+
+from .._validation._n_features_in import _val_n_features_in
+from .._validation._original_dtypes import _val_original_dtypes
+from .._validation._ignore_columns_handle_as_bool import _val_ignore_columns_handle_as_bool
 
 
 
@@ -67,27 +72,31 @@ def _conflict_warner(
     """
 
     # basic validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-    assert isinstance(_original_dtypes, (list, np.ndarray))
-    assert isinstance(_ignore_columns, (np.ndarray, type(None)))
-    if isinstance(_ignore_columns, np.ndarray):
-        assert _ignore_columns.dtype == np.int32
-    assert isinstance(_handle_as_bool, (np.ndarray, type(None)))
-    if isinstance(_handle_as_bool, np.ndarray):
-        assert _handle_as_bool.dtype == np.int32
-    assert isinstance(_ignore_non_binary_integer_columns, bool)
-    assert isinstance(_n_features_in, int)
-    assert not isinstance(_n_features_in, bool)
-    assert _n_features_in >= 1
 
-    if _ignore_columns is not None and len(_ignore_columns) != 0:
-        assert min(_ignore_columns) >= -_n_features_in
-        assert max(_ignore_columns) < _n_features_in
+    _val_n_features_in(_n_features_in)
 
-    if _handle_as_bool is not None and len(_handle_as_bool) != 0:
-        assert min(_handle_as_bool) >= -_n_features_in
-        assert max(_handle_as_bool) < _n_features_in
+    _val_original_dtypes(_original_dtypes)
 
     assert len(_original_dtypes) == _n_features_in
+
+    assert isinstance(_ignore_non_binary_integer_columns, bool)
+
+    _val_ignore_columns_handle_as_bool(
+        _ignore_columns,
+        'ignore_columns',
+        ['Iterable[int]', 'None'],
+        _n_features_in=_n_features_in,
+        _feature_names_in=None
+    )
+
+    _val_ignore_columns_handle_as_bool(
+        _handle_as_bool,
+        'handle_as_bool',
+        ['Iterable[int]', 'None'],
+        _n_features_in=_n_features_in,
+        _feature_names_in=None
+    )
+
     # END basic validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     if _handle_as_bool is None or len(_handle_as_bool) == 0:

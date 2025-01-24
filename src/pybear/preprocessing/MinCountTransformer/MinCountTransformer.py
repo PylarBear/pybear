@@ -20,23 +20,23 @@ from ._type_aliases import (
 import inspect
 from copy import deepcopy
 import warnings
-
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 import joblib
 
-from ._validation._handle_as_bool_v_dtypes import _val_handle_as_bool_v_dtypes
 from ._validation._ign_cols_hab_callable import _val_ign_cols_hab_callable
 from ._validation._y import _val_y
 from ._validation._validation import _validation
 
 from ._make_instructions._make_instructions import _make_instructions
-from ._fit._original_dtypes_merger import _original_dtypes_merger
-from ._fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
-from ._fit._tcbc_merger import _tcbc_merger
+from ._partial_fit._original_dtypes_merger import _original_dtypes_merger
+from ._partial_fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
+from ._partial_fit._tcbc_merger import _tcbc_merger
 from ._set_output._get_og_obj_type import _get_og_obj_type
 from ._test_threshold import _test_threshold
 from ._transform._conflict_warner import _conflict_warner
+from ._transform._handle_as_bool_v_dtypes import _val_handle_as_bool_v_dtypes
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
 from ._transform._NDArrayify_integerize_ic_hab import _NDArrayify_integerize_ic_hab
 from ._transform._tcbc_update import _tcbc_update
@@ -544,7 +544,6 @@ class MinCountTransformer(
             getattr(self, 'feature_names_in_', None)
         )
 
-        # pizza, remember to test at some point that ['0270', '4980'] is recognized as str, not idx!
 
         # IF WAS PREVIOUSLY FITTED, THEN self._n_rows_in EXISTS
         if hasattr(self, '_n_rows_in'):
@@ -556,6 +555,16 @@ class MinCountTransformer(
 
 
         # GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** ** **
+
+        # scipy coo, dia, and bsr cant be sliced by columns, need to be
+        # converted to another format. standardize all scipy sparse to
+        # csc, makes for quicker column scans when getting unqs/cts.
+        # need to change it back after the scan. dont mutate X, avoid
+        # copies of X.
+        if hasattr(X, 'toarray'):
+            _og_dtype = type(X)
+            X = ss.csc_array(X)
+
 
         # need to run all columns to get the dtypes; no columns are ignored,
         # for this operation, so any ignore inputs do not matter. getting
@@ -574,6 +583,15 @@ class MinCountTransformer(
                 ) for _idx in range(self.n_features_in_)
             )
 
+        # if scipy sparse, change back to the original format. do this
+        # before going into the ic/hab callables below, possible that the
+        # callable may have some dependency on the container.
+        if hasattr(X, 'toarray'):
+            X = _og_dtype(X)
+            del _og_dtype
+
+
+
         _col_dtypes = np.empty(self.n_features_in_, dtype='<U8')
         # DOING THIS for LOOP 2X TO KEEP DTYPE CHECK SEPARATE AND PRIOR TO
         # MODIFYING self._total_counts_by_column, PREVENTS INVALID DATA FROM
@@ -589,29 +607,12 @@ class MinCountTransformer(
 
         del _col_dtypes
 
+        if len(self._original_dtypes) != self.n_features_in_:
+            raise AssertionError(
+                f"len(self._original_dtypes) != self.n_features_in_"
+            )
 
-        # pizza come back to this. dont skip any columns here, keep all the
-        # information. if we have all the information and all the *ignore*
-        # type params are only applied in transform, then this will enable to
-        # change all params (not have any blocked!)
-        # now knowing what the dtypes are, and having validated _ignore_columns,
-        # set the UNQ_CT_DICT for any ignored column to {}
-        NEW_DTYPE_UNQS_CTS_TUPLES = []
-        for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(DTYPE_UNQS_CTS_TUPLES):
-            a = (_dtype == 'float' and self.ignore_float_columns)
-            b = (_dtype == 'int' and self.ignore_non_binary_integer_columns)
-
-            if a or b:
-                NEW_DTYPE_UNQS_CTS_TUPLES.append(tuple((_dtype, {})))
-            else:
-                NEW_DTYPE_UNQS_CTS_TUPLES.append(tuple((_dtype, UNQ_CT_DICT)))
-
-        del a, b, col_idx, _dtype, UNQ_CT_DICT
-
-        DTYPE_UNQS_CTS_TUPLES = NEW_DTYPE_UNQS_CTS_TUPLES
-        del NEW_DTYPE_UNQS_CTS_TUPLES
-
-        self._total_counts_by_column = _tcbc_merger(
+        self._total_counts_by_column: dict[int, dict[any, int]] = _tcbc_merger(
             DTYPE_UNQS_CTS_TUPLES,
             self._total_counts_by_column
         )
@@ -641,7 +642,8 @@ class MinCountTransformer(
         self._handle_as_bool = _val_handle_as_bool_v_dtypes(
             self._handle_as_bool,
             self._ignore_columns,
-            self._original_dtypes
+            self._original_dtypes,
+            _raise=True
         )
 
         return self
@@ -1274,7 +1276,8 @@ class MinCountTransformer(
             _val_handle_as_bool_v_dtypes(
                 self._handle_as_bool,
                 self._ignore_columns,
-                self._original_dtypes
+                self._original_dtypes,
+                _raise=True
             )
         # END handle_as_bool -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

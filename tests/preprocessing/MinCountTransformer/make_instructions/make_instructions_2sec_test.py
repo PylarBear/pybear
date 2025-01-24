@@ -78,8 +78,11 @@ class TestMakeInstructions:
     """
 
     # random spot check _validation
-    @pytest.mark.parametrize('junk_value', ('junk', np.nan, np.pi, {1: 2}, min))
+    @pytest.mark.parametrize('junk_value',
+        (-1, 0, 1, 2.7, 'junk', np.nan, {1: 2})
+    )
     def test_random_validation(self, junk_value, good_og_dtypes, good_tcbc):
+
         with pytest.raises(TypeError):
             _make_instructions(
                 _count_threshold=100,

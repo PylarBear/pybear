@@ -15,6 +15,9 @@ import numpy as np
 
 from ....utilities._nan_masking import nan_mask_numerical
 
+from .._validation._n_features_in import _val_n_features_in
+from .._validation._feature_names_in import _val_feature_names_in
+
 
 
 def _val_ign_cols_hab_callable(
@@ -66,46 +69,12 @@ def _val_ign_cols_hab_callable(
     """
 
 
-    # validate n_features_in ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    err_msg = f"'_n_features_in' must be an integer >= 1"
-    if not isinstance(_n_features_in, int):
-        raise TypeError(err_msg)
-    if isinstance(_n_features_in, bool):
-        raise TypeError(err_msg)
-    if not _n_features_in >= 1:
-        raise ValueError(err_msg)
-    del err_msg
-    # END validate n_features_in ** * ** * ** * ** * ** * ** * ** * ** * **
+    _val_n_features_in(_n_features_in)
 
-    # validate feature_names_in ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    err_msg = (
-        f"'feature_names_in' must be None or a 1D vector of strings "
-        f"indicating the feature names of a data-bearing object"
+    _val_feature_names_in(
+        _feature_names_in,
+        _n_features_in
     )
-    try:
-        if _feature_names_in is None:
-            raise UnicodeError
-        iter(_feature_names_in)
-        if isinstance(_feature_names_in, (str, dict)):
-            raise Exception
-        if not all(map(
-            isinstance, _feature_names_in, (str for _ in _feature_names_in)
-        )):
-            raise MemoryError
-    except UnicodeError:
-        pass
-    except MemoryError:
-        raise ValueError(err_msg)
-    except:
-        raise TypeError(err_msg)
-
-    del err_msg
-
-    if _feature_names_in is not None and len(_feature_names_in) != _n_features_in:
-        raise ValueError(
-            f"len(_feature_names_in) ({len(_feature_names_in)}) must equal "
-            f"_n_features_in ({_n_features_in})")
-    # END validate feature_names_in ** * ** * ** * ** * ** * ** * ** * ** *
 
     # validate _name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     err_msg = f"'_name' must be 'ignore_columns' or 'handle_as_bool'"
@@ -182,13 +151,15 @@ def _val_ign_cols_hab_callable(
 
         if min(_fxn_output) < -_n_features_in:
             raise ValueError(
-                f"column index {min(_fxn_output)} is out of bounds for a "
-                f"feature name vector with {_n_features_in} features"
+                f"the '{_name}' callable produced a vector of indices but "
+                f"column index {min(_fxn_output)} is out of bounds for "
+                f"data with {_n_features_in} features"
             )
         if max(_fxn_output) >= _n_features_in:
             raise ValueError(
-                f"column index {max(_fxn_output)} is out of bounds for a "
-                f"feature name vector with {_n_features_in} features"
+                f"the '{_name}' callable produced a vector of indices but "
+                f"column index {max(_fxn_output)} is out of bounds for "
+                f"data with {_n_features_in} features"
             )
 
 

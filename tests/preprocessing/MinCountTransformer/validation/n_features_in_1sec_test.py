@@ -6,14 +6,15 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._make_instructions. \
-    _validation._n_features_in import _val_n_features_in
+from pybear.preprocessing.MinCountTransformer. _validation._n_features_in \
+    import _val_n_features_in
 
 import pytest
 
 
 
 class TestValNFeaturesIn:
+
 
     @pytest.mark.parametrize('_n_features_in',
         (True, None, min, [1], (1,), {1,2}, {'a':1}, lambda x: x, 'junk', 3.14)
@@ -33,7 +34,7 @@ class TestValNFeaturesIn:
 
     @pytest.mark.parametrize('_n_features_in', (1, 2, 3)
     )
-    def test_accepts_good_count_threshold(self, _n_features_in):
+    def test_accepts_good_n_features_in(self, _n_features_in):
         _val_n_features_in(_n_features_in)
 
 

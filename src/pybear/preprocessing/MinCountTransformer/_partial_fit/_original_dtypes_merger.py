@@ -11,6 +11,8 @@ from typing_extensions import Union
 
 import numpy as np
 
+from .._validation._original_dtypes import _val_original_dtypes
+
 
 
 def _original_dtypes_merger(
@@ -62,67 +64,11 @@ def _original_dtypes_merger(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    _allowed = ['bin_int', 'int', 'float', 'obj']
-
-    # _col_dtypes -- -- -- -- -- -- -- -- -- --
-    _err_msg = (
-        f"'_col_dtypes' must be a 1D vector of values in "
-        f"{', '.join(_allowed)}. "
-    )
-    try:
-        iter(_col_dtypes)
-        if isinstance(_col_dtypes, (str, dict)):
-            raise Exception
-        if not len(np.array(list(_col_dtypes)).shape) == 1:
-            raise Exception
-        if not all(map(
-            isinstance, _col_dtypes, (str for _ in _col_dtypes)
-        )):
-            raise Exception
-        for _ in list(map(str.lower, _col_dtypes)):
-            if _ not in _allowed:
-                _addon = f"got '{_}'"
-                raise UnicodeError
-    except UnicodeError:
-        raise ValueError(_err_msg + _addon)
-    except:
-        raise TypeError(_err_msg)
-    # END _col_dtypes -- -- -- -- -- -- -- -- -- --
-
-    # _previous_col_dtypes -- -- -- -- -- -- -- -- -- --
-    if _previous_col_dtypes is not None:
-        _err_msg = (
-            f"'if not None, _previous_col_dtypes' must be a 1D vector of values "
-            f"in {', '.join(_allowed)}. "
-        )
-        try:
-            iter(_previous_col_dtypes)
-            if isinstance(_previous_col_dtypes, (str, dict)):
-                raise Exception
-            if not len(np.array(list(_previous_col_dtypes)).shape) == 1:
-                raise Exception
-            if not all(map(
-                isinstance,
-                _previous_col_dtypes,
-                (str for _ in _previous_col_dtypes)
-            )):
-                raise Exception
-            for _ in list(map(str.lower, _previous_col_dtypes)):
-                if _ not in _allowed:
-                    _addon = f"got '{_}'"
-                    raise UnicodeError
-        except UnicodeError:
-            raise ValueError(_err_msg + _addon)
-        except:
-            raise TypeError(_err_msg)
-    # END _previous_col_dtypes -- -- -- -- -- -- -- -- -- --
-
-    # joint -- -- -- -- -- -- -- -- -- --
+    _val_original_dtypes(_col_dtypes)
 
     if _previous_col_dtypes is not None:
+        _val_original_dtypes(_previous_col_dtypes)
         assert len(_col_dtypes) == len(_previous_col_dtypes)
-
-    # END joint -- -- -- -- -- -- -- -- -- --
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

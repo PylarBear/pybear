@@ -59,25 +59,6 @@ class TestNDArrayify_integerize_ic_hab:
                 None
             )
 
-        # junk n_features_in only raises if ic or hab is a callable
-        # this wont raise for bad n_features_in
-        _NDArrayify_integerize_ic_hab(
-            np.random.randint(0, 10, (3, 3)),
-            [0, 1],
-            [0, 2],
-            junk_value,
-            None
-        )
-
-        with pytest.raises(Exception):
-            _NDArrayify_integerize_ic_hab(
-                np.random.randint(0, 10, (3, 3)),
-                [0, 1],
-                [2, 3],
-                3,
-                junk_value
-            )
-
 
     @pytest.mark.parametrize('ic', ([0, 1], lambda x: [0, 1]))
     @pytest.mark.parametrize('hab', ([0, 1], lambda x: [0, 1]))
@@ -100,35 +81,6 @@ class TestNDArrayify_integerize_ic_hab:
                 ic,
                 hab,
                 10,
-                None
-            )
-
-
-    @pytest.mark.parametrize('ic', ([0, 1], lambda x: [0, 1]))
-    @pytest.mark.parametrize('hab', ([0, 1], lambda x: [0, 1]))
-    @pytest.mark.parametrize('nfi',
-        (-2.7, -1, 0, 5, 2.7, True, None, 'junk', [0,1], (1,), lambda x: x)
-    )
-    def test_rejects_junk_n_features_if_ic_or_hab_callable(self, ic, hab, nfi):
-
-        # junk n_features_in only raises if ic or hab is a callable
-        # this wont raise for bad n_features_in
-        if (callable(ic) or callable(hab)) and (not isinstance(nfi, int) \
-            or (isinstance(nfi, int) and not nfi >= 1) or isinstance(nfi, bool)):
-            with pytest.raises(Exception):
-                _NDArrayify_integerize_ic_hab(
-                    np.random.uniform(0, 1, (10, 5)),
-                    ic,
-                    hab,
-                    nfi,
-                    None
-                )
-        else:
-            _NDArrayify_integerize_ic_hab(
-                np.random.uniform(0, 1, (10, 5)),
-                ic,
-                hab,
-                nfi,
                 None
             )
 
