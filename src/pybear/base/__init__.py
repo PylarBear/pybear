@@ -6,7 +6,6 @@
 
 
 
-
 from ._cast_to_ndarray import cast_to_ndarray
 from ._check_dtype import check_dtype
 from ._check_feature_names import check_feature_names
@@ -28,6 +27,7 @@ from .mixins._FeatureMixin import FeatureMixin
 from .mixins._FitTransformMixin import FitTransformMixin
 from .mixins._GetParamsMixin import GetParamsMixin
 from .mixins._ReprMixin import ReprMixin
+from .mixins._SetOutputMixin import SetOutputMixin
 from .mixins._SetParamsMixin import SetParamsMixin
 
 
@@ -54,6 +54,7 @@ __all__ = [
     'FitTransformMixin',
     'GetParamsMixin',
     'ReprMixin',
+    'SetOutputMixin',
     'SetParamsMixin'
 ]
 

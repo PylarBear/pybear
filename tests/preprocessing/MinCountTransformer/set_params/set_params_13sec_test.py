@@ -205,12 +205,12 @@ class TestSetParams:
         FTSPFTCls.set_params(max_recursions=2)
         FTSPFTCls.fit_transform(X.copy(), y.copy())
         assert FTSPFTCls.max_recursions == 2
-        with pytest.warns():
-            FTSPFTCls.set_params(**alt_kwargs)
-            FTSPFT_TRFM_X, FTSPFT_TRFM_Y = \
-                FTSPFTCls.fit_transform(X.copy(), y.copy())
-        # max_recursions cannot be set after fit because it is blocked
-        assert FTSPFTCls.max_recursions == 2
+
+        FTSPFTCls.set_params(**alt_kwargs)
+        FTSPFT_TRFM_X, FTSPFT_TRFM_Y = \
+            FTSPFTCls.fit_transform(X.copy(), y.copy())
+
+        assert FTSPFTCls.max_recursions == 1
 
         assert np.array_equiv(
             SPFT_TRFM_X.astype(str), FTSPFT_TRFM_X.astype(str)

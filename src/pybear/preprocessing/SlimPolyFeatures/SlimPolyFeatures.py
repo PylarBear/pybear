@@ -6,7 +6,6 @@
 
 
 
-
 from typing import Iterable, Literal, Optional, Callable
 from typing_extensions import Union, Self
 from ._type_aliases import DataContainer
@@ -52,6 +51,7 @@ from ...base import (
     FitTransformMixin,
     GetParamsMixin,
     ReprMixin,
+    SetOutputMixin,
     SetParamsMixin,
     validate_data
 )
@@ -64,6 +64,7 @@ from ...utilities import nan_mask
 class SlimPolyFeatures(
     FeatureMixin,
     GetParamsMixin,
+    SetOutputMixin,
     SetParamsMixin,
     FitTransformMixin,
     ReprMixin
@@ -1291,8 +1292,7 @@ class SlimPolyFeatures(
         pass
 
 
-    # pizza
-    # def set_output()
+    # def set_output() - inherited from SetOutputMixin
 
 
     def set_params(self, **params) -> Self:
@@ -1379,6 +1379,7 @@ class SlimPolyFeatures(
         return self
 
 
+    @SetOutputMixin._set_output_for_transform
     def transform(self, X: DataContainer) -> DataContainer:
 
         """

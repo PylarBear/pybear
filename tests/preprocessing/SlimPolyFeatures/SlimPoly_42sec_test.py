@@ -608,27 +608,14 @@ class TestOutputTypes:
 
     _base_objects = ['np_array', 'pandas', 'scipy_sparse_csc']
 
-    # 25_10_14_12_45_00 sk.TransformerMixin(_SetOutputMixin) was replaced
-    # with pb.FitTransformMixin, that does not have set_output.
-    @pytest.mark.xfail(reason=f"pizza, come back when set_output is ready")
     @pytest.mark.parametrize('x_input_type', _base_objects)
     @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
     def test_output_types(
         self, _X_np, _columns, _kwargs, x_input_type, output_type
     ):
 
-        # pizza 24_12_17... anticipate that this might go away at sklearn exorcism.
-        # pybear most likely will not implement a set_output mixin.
-
-        if x_input_type == 'scipy_sparse_csc' and output_type == 'polars':
-            pytest.skip(
-                reason=f"sk cannot convert scipy sparse input to polars directly"
-            )
-
-
         NEW_X = _X_np.copy()
         NEW_COLUMNS = _columns.copy()
-
 
         if x_input_type == 'np_array':
             TEST_X = NEW_X
@@ -642,24 +629,17 @@ class TestOutputTypes:
         TestCls = SlimPoly(**_kwargs)
         TestCls.set_output(transform=output_type)
 
-        if x_input_type == 'scipy_sparse_csc' and output_type == 'pandas':
-            # when passed a scipy sparse, sklearn cannot convert to
-            # pandas output. this is a sklearn problem, let it raise whatever
-            with pytest.raises(Exception):
-                TRFM_X = TestCls.fit_transform(TEST_X)
-            pytest.skip(reason=f"sklearn cannot convert csc to pandas")
-        else:
-            TRFM_X = TestCls.fit_transform(TEST_X)
+        TRFM_X = TestCls.fit_transform(TEST_X)
 
         # if output_type is None, should return same type as given
-        if output_type in [None, 'default']:
+        if output_type is None:
             assert type(TRFM_X) == type(TEST_X), \
                 (f"output_type is None, X output type ({type(TRFM_X)}) != "
                  f"X input type ({type(TEST_X)})")
         # if output_type is 'default', should return np array no matter what given
-        elif output_type == 'np_array':
+        elif output_type == 'default':
             assert isinstance(TRFM_X, np.ndarray), \
-                f"output_type is default or np_array, TRFM_X is {type(TRFM_X)}"
+                f"output_type is default, TRFM_X is {type(TRFM_X)}"
         # if output_type is 'pandas', should return pd df no matter what given
         elif output_type == 'pandas':
             # pandas.core.frame.DataFrame

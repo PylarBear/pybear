@@ -227,7 +227,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
             'inverse_transform',
             'partial_fit',
             'score',
-            'set_output', # pizza this is perhaps coming out during sklearn exorcism
+            'set_output',
             'set_params',
             'transform'
         ]
@@ -291,11 +291,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         with pytest.raises(NotFittedError):
             TestCls.transform(_X_np)
 
-        # pizza this is perhaps coming out during sklearn exorcism!
-        # 25_01_16_10_44_00 sk.TransformerMixin(_SetOutputMixin) was replaced
-        # with pb.FitTransformMixin, that does not have set_output.
         # set_output()
-        pytest.xfail(reason=f"pizza says so")
         assert isinstance(TestCls.set_output(transform='pandas'), IM)
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
@@ -355,11 +351,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # transform()
         assert isinstance(TestCls.transform(_X_np), np.ndarray)
 
-        # pizza this is perhaps coming out during sklearn exorcism!
-        # 25_01_16_10_44_00 sk.TransformerMixin(_SetOutputMixin) was replaced
-        # with pb.FitTransformMixin, that does not have set_output.
         # set_output()
-        pytest.xfail(reason=f"pizza says so")
         assert isinstance(TestCls.set_output(transform='pandas'), IM)
 
         del TestCls
@@ -424,11 +416,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(_X_np), np.ndarray)
 
-        # pizza this is perhaps coming out during sklearn exorcism!
-        # 25_01_16_10_44_00 sk.TransformerMixin(_SetOutputMixin) was replaced
-        # with pb.FitTransformMixin, that does not have set_output.
         # set_output()
-        pytest.xfail(reason=f"pizza says so")
         assert isinstance(TransformedTestCls.set_output(transform='default'), IM)
 
         del FittedTestCls, TransformedTestCls, TRFM_X

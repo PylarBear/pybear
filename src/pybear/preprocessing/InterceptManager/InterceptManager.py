@@ -33,6 +33,7 @@ from ...base import (
     FitTransformMixin,
     GetParamsMixin,
     ReprMixin,
+    SetOutputMixin,
     SetParamsMixin,
     check_is_fitted,
     get_feature_names_out,
@@ -47,6 +48,7 @@ FeatureMixin,
 FitTransformMixin,
 GetParamsMixin,
 ReprMixin,
+SetOutputMixin,
 SetParamsMixin
 ):
 
@@ -959,10 +961,10 @@ SetParamsMixin
     # def set_params(self) - inherited from SetParamsMixin
 
 
-    # pizza
-    # def set_output(self)
+    # def set_output(self) - inherited from SetOutputMixin
 
 
+    @SetOutputMixin._set_output_for_transform
     def transform(
         self,
         X: DataContainer,
