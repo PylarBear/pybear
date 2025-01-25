@@ -22,6 +22,7 @@ from .._validation._feature_names_in import _val_feature_names_in
 
 def _val_ign_cols_hab_callable(
     _fxn_output: Union[Iterable[str], Iterable[numbers.Integral]],
+    _first_fxn_output: Union[Iterable[str], Iterable[numbers.Integral], None],
     _name: Literal['ignore_columns', 'handle_as_bool'],
     _n_features_in: int,
     _feature_names_in: Union[npt.NDArray[str], None]
@@ -44,12 +45,24 @@ def _val_ign_cols_hab_callable(
     and maximum values of the callable's returned indices are within the
     bounds of n_features_in.
 
+    Validate the current output of the callable exactly matches the
+    output from the first call to it, if applicable, as held in the
+    '_first_function_output' parameter. If this is the first pass,
+    '_first_function_output' must be None. The callable must output the
+    same indices/feature names across all sequential partial fits and
+    transforms. If unequal, raise exception.
+
 
     Parameters
     ----------
     _fxn_output:
         Iterable[numbers.Integral, str] - the output of the callable used
         for ignore_columns or handle_as_bool
+    _first_fxn_output:
+        Iterable[numbers.Integral, str] - the output of the callable on
+        the first call to :methods: partial_fit or transform. used to
+        validate that all subsequent outputs of the callable equal the
+        first.
     _name:
         Literal['ignore_columns', 'handle_as_bool'] - the name of the
         parameter for which a callable was passed
@@ -86,51 +99,86 @@ def _val_ign_cols_hab_callable(
     del err_msg
     # END validate _name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+
     err_msg = (
         f"{_name}: when a callable is used, the callable must return a "
         f"1D list-like containing all integers indicating column indices "
-        f"or all strings indicating column names"
+        f"or all strings indicating column names. "
     )
 
+    # do not use the generic validation from _val_ignore_columns_handle_as_bool
+    # here. use the special verbiage for callables.
+
+    # pass the most current callable output thru this just in case the output
+    # has mutated into garbage. if after the first pass, we know the first
+    # pass was good, so the output would have changed significantly.
+
     # verify is iterable -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    _addon = f"got type {type(_fxn_output)}"
     try:
         iter(_fxn_output)
         if isinstance(_fxn_output, (str, dict)):
             raise Exception
-        _fxn_output = np.array(list(_fxn_output), dtype=object)
-        if len(_fxn_output.shape) != 1:
+        if len(np.array(list(_fxn_output)).shape) != 1:
+            _addon = f"got {len(np.array(list(_fxn_output)).shape)}D."
             raise Exception
     except:
-        raise TypeError(err_msg)
+        raise TypeError(err_msg + _addon)
+    del _addon
+
+    # dont need to validate _first_fxn_output here. it would have gone
+    # thru the validation on the first pass and should not have changed
+    # since.
     # END verify is iterable -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    if len(_fxn_output) == 0:
-        return
 
+    is_empty, is_str, is_num = False, False, False
+    if len(_fxn_output) == 0:
+        is_empty = True
     # verify the callable returned an iterable holding ints or strs.
     # do not use .astype(np.float64) to check if is num/str!
     # ['0787', '5927', '4060', '2473'] will pass and be treated as
     # column indices when they are actually column headers.
-    is_str = False
-    if all(map(isinstance, _fxn_output, (str for _ in _fxn_output))):
+    elif all(map(isinstance, _fxn_output, (str for _ in _fxn_output))):
         is_str = True
     elif all(map(
         isinstance, _fxn_output, (numbers.Real for _ in _fxn_output)
     )):
         # ensure all are integers
         if any(map(isinstance, _fxn_output, (bool for _ in _fxn_output))):
-            raise TypeError(err_msg)
-        if np.any(nan_mask_numerical(np.array(_fxn_output))):
-            raise TypeError(err_msg)
+            raise TypeError(err_msg + f"got a boolean.")
+        if np.any(nan_mask_numerical(np.array(list(_fxn_output), dtype=object))):
+            raise TypeError(err_msg + f"got a nan-like value.")
         if not all(map(lambda x: int(x)==x, _fxn_output)):
-            raise TypeError(err_msg)
+            raise TypeError(err_msg + f"got a non-integer number.")
+        is_num = True
     else:
-        raise TypeError(err_msg)
+        raise TypeError(err_msg + f"got a non-string/numeric value.")
     # END if list-like validate contents are all str or all int ** * ** *
 
     del err_msg
 
-    if is_str:
+    assert (is_empty + is_str + is_num) == 1
+
+    # if on a later pass, dont need to check internals, check directly
+    # against the first output.
+    if _first_fxn_output is not None:
+        if not np.array_equal(_fxn_output, _first_fxn_output):
+            raise ValueError(
+                f"every call to the '{_name}' callable must produce the same "
+                f"output across a series of partial fits or transforms. the "
+                f"current output is different than the first seen output. "
+                f"\ngot: {_fxn_output}"
+                f"\nexpected: {_first_fxn_output}"
+            )
+
+        return
+
+    # v v v all of this should only be accessed on the first partial_fit/transform
+
+    if is_empty:
+        pass
+    elif is_str:
         if _feature_names_in is None:
             raise ValueError(
                 f"the '{_name}' callable produced a vector of strings but "
@@ -146,9 +194,7 @@ def _val_ign_cols_hab_callable(
                         f"the feature name '{_feature}' produced by the "
                         f"{_name} callable is not in 'feature_names_in'"
                     )
-
-    elif not is_str:
-
+    elif is_num:
         if min(_fxn_output) < -_n_features_in:
             raise ValueError(
                 f"the '{_name}' callable produced a vector of indices but "
@@ -161,6 +207,8 @@ def _val_ign_cols_hab_callable(
                 f"column index {max(_fxn_output)} is out of bounds for "
                 f"data with {_n_features_in} features"
             )
+    else:
+        raise Exception
 
 
 

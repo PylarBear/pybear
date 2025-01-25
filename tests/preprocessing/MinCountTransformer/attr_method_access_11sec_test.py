@@ -228,7 +228,7 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** reset()
 
         # set_output()
-        TestCls.set_output(transform='pandas_dataframe')
+        TestCls.set_output(transform='pandas')
 
         # set_params()
         TestCls.set_params(count_threshold=5)
@@ -410,7 +410,7 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** reset()
 
         # set_output()
-        TestCls.set_output(transform='pandas_dataframe')
+        TestCls.set_output(transform='pandas')
 
         # set_params()
         TestCls.set_params(count_threshold=4)
@@ -520,7 +520,7 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** reset()
 
         # set_output()
-        TransformedTestCls.set_output(transform='pandas_dataframe')
+        TransformedTestCls.set_output(transform='pandas')
         TransformedTestCls.transform(X, y)
 
 
@@ -715,7 +715,7 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** reset()
 
         # set_output()
-        TwoRecurTestCls.set_output(transform='pandas_dataframe')
+        TwoRecurTestCls.set_output(transform='pandas')
 
         # set_params()
         TwoRecurTestCls.set_params(count_threshold=4)
@@ -1017,10 +1017,10 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** reset()
 
         # set_output()
-        TwoRecurTestCls.set_output(transform='pandas_dataframe')
-        assert TwoRecurTestCls._output_transform == 'pandas_dataframe'
+        TwoRecurTestCls.set_output(transform='pandas')
+        assert TwoRecurTestCls._output_transform == 'pandas'
         TwoRecurTestCls.fit_transform(X, y)
-        assert TwoRecurTestCls._output_transform == 'pandas_dataframe'
+        assert TwoRecurTestCls._output_transform == 'pandas'
 
         # set_params()
         TwoRecurTestCls.set_params(count_threshold=7)

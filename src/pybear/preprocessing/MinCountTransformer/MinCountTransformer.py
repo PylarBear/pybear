@@ -5,6 +5,7 @@
 #
 
 
+
 from typing import Iterable
 from typing_extensions import Union, Self
 from ._type_aliases import (
@@ -25,7 +26,6 @@ import pandas as pd
 import scipy.sparse as ss
 import joblib
 
-from ._validation._ign_cols_hab_callable import _val_ign_cols_hab_callable
 from ._validation._y import _val_y
 from ._validation._validation import _validation
 
@@ -33,7 +33,6 @@ from ._make_instructions._make_instructions import _make_instructions
 from ._partial_fit._original_dtypes_merger import _original_dtypes_merger
 from ._partial_fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
 from ._partial_fit._tcbc_merger import _tcbc_merger
-from ._set_output._get_og_obj_type import _get_og_obj_type
 from ._test_threshold import _test_threshold
 from ._transform._conflict_warner import _conflict_warner
 from ._transform._handle_as_bool_v_dtypes import _val_handle_as_bool_v_dtypes
@@ -43,13 +42,12 @@ from ._transform._tcbc_update import _tcbc_update
 
 from .docs.mincounttransformer_docs import mincounttransformer_docs
 
-from ...utilities._feature_name_mapper import feature_name_mapper
-
 from ...base import (
     FeatureMixin,
     # FitTransformMixin, not used, fit_transform needs special handling
     GetParamsMixin,
     ReprMixin,
+    SetOutputMixin,
     SetParamsMixin,
     is_fitted,
     check_is_fitted,
@@ -64,6 +62,7 @@ class MinCountTransformer(
     # FitTransformMixin,  # do not use this, need custom code
     GetParamsMixin,
     ReprMixin,
+    SetOutputMixin,
     SetParamsMixin
 ):
 
@@ -259,12 +258,18 @@ class MinCountTransformer(
         False, the feature is handled as if it is categorical and unique
         values are subject to count threshold rules and possible removal.
 
-    ignore_columns : list, callable, or None, default=None
-        A one-dimensional vector of integer index positions or feature
-        names (if data formats containing column names were passed to
-        :meth: fit.) Also accepts a callable that creates such vectors
-        when passed the 'X' argument that was passed to :meth: transform.
-        Excludes indicated features from the thresholding operation.
+    ignore_columns:
+        Union[Iterable[str], Iterable[int], callable(X), None],
+        default=None - Excludes indicated features from the thresholding
+        operation. A one-dimensional vector of integer index positions
+        or feature names (if data formats containing column names were
+        used during fitting.) Also accepts a callable that creates such
+        vectors when passed the data (the 'X' argument). THERE ARE NO
+        PROTECTIONS IN PLACE IF THE CALLABLE GENERATES DIFFERENT
+        PLAUSIBLE OUTPUTS ON DIFFERENT BATCHES IN AN EPOCH OF DATA. IF
+        CONSISTENCY OF IGNORED COLUMNS IS REQUIRED, THEN THE USER MUST
+        ENSURE THAT THE CALLABLE PRODUCES CONSISTENT OUTPUTS FOR EACH
+        BATCH OF DATA.
 
     ignore_nan : bool, default=True
         If True, nan is ignored in all features and passes through the
@@ -273,11 +278,18 @@ class MinCountTransformer(
         False, frequency for both numpy.nan and 'nan' as string (not case
         sensitive) are calculated and assessed against count_threshold.
 
-    handle_as_bool : list, callable, or None, default=None
-        A one-dimensional vector of integer index positions or feature
-        names (if data formats containing column names were passed to
-        :meth: fit.) For the indicated features, non-zero values within
-        the feature are treated as if they are the same value.
+    handle_as_bool: Union[Iterable[str], Iterable[int], callable(X), None],
+        default=None - For the indicated features, non-zero values within
+        the feature are treated as if they are the same value. A
+        one-dimensional vector of integer index positions or feature
+        names (if data formats containing column names were used during
+        fitting.) Also accepts a callable that creates such vectors when
+        passed the data (the 'X' argument). THERE ARE NO PROTECTIONS IN
+        PLACE IF THE CALLABLE GENERATES DIFFERENT PLAUSIBLE OUTPUTS ON
+        DIFFERENT BATCHES IN AN EPOCH OF DATA. IF CONSISTENCY OF COLUMNS
+        TO BE HANDLED AS BOOLEAN IS REQUIRED, THEN THE USER MUST ENSURE
+        THAT THE CALLABLE PRODUCES CONSISTENT OUTPUTS FOR EACH BATCH OF
+        DATA.
 
     delete_axis_0 : bool, default=False
         Only applies to features indicated in :param: handle_as_bool or
@@ -887,16 +899,18 @@ class MinCountTransformer(
         if not hasattr(self, '_output_transform'):
             self._output_transform = None
 
-        # pizza see if we can take these out
-        self._x_original_obj_type = None
-        self._y_original_obj_type = None
-
         self._total_counts_by_column = {}
 
         try: del self.n_features_in_
         except: pass
 
         try: del self.feature_names_in_
+        except: pass
+
+        try: del self._ignore_columns
+        except: pass
+
+        try: del self._handle_as_bool
         except: pass
 
         try: del self._n_rows_in
@@ -915,34 +929,7 @@ class MinCountTransformer(
         pass
 
 
-    def set_output(self, transform=None):
-        """
-        Set the output container when "transform" and "fit_transform"
-        are called.
-
-        Parameters
-        ----------
-        transform : {“default”, "numpy_array", “pandas_dataframe”,
-            "pandas_series"}, default = None - Configure output of
-                transform and fit_transform.
-            "default": Default output format of a transformer (numpy array)
-            "numpy_array": np.ndarray output
-            "pandas_dataframe": DataFrame output
-            "pandas_series": Series output
-            None: Transform configuration is unchanged
-
-        Return
-        ------
-        -
-            self : this instance - MinCountTransformer instance.
-
-        """
-
-        from ._set_output._validation._transform import _val_transform
-
-        self._output_transform = _val_transform(transform)
-
-        return self
+    # def set_output(self, transform) - inherited from SetOutputMixin
 
 
     def set_params(self, **params):
@@ -976,13 +963,15 @@ class MinCountTransformer(
 
         """
 
+        # pizza revisit this, unblock everything except ignore_columns & hab
+
 
         # IF CHANGING PARAMS WHEN max_recursions IS > 1, RESET THE
         # INSTANCE, BLOWING AWAY INTERNAL STATES ASSOCIATED WITH PRIOR
         # FITS, BECAUSE ONLY fit_transform() IS ALLOWED. THIS BYPASSES
         # THE BLOCKS THAT WOULD BE IMPOSED IF THAT INSTANCE ALREADY
         # HAD A fit_transform DONE ON IT.
-        if getattr(self, '_max_recursions', 0) > 1:
+        if self.max_recursions > 1:
             self.reset()
             super().set_params(**params)
             return self
@@ -1075,6 +1064,7 @@ class MinCountTransformer(
         _test_threshold(self, _threshold=threshold, _clean_printout=clean_printout)
 
 
+    @SetOutputMixin._set_output_for_transform
     def transform(
         self,
         X: XContainer,
@@ -1122,13 +1112,6 @@ class MinCountTransformer(
         self._check_feature_names(X, reset=False)
 
         self._check_n_features(X, reset=False)
-
-        # pizza this probably will come out, dont think we need to track this
-        self._x_original_obj_type = _get_og_obj_type(
-            X,
-            self._x_original_obj_type
-        )
-        # TO STANDARDIZE INDEXING.
 
         X = validate_data(
             X,
@@ -1204,12 +1187,6 @@ class MinCountTransformer(
             del _using_dask_ml_wrapper, _is_garbage_y_from_dask_ml
             # END accommodate dask_ml junk y ** * ** * ** * ** * ** * ** * *
 
-            # pizza this probably will come out, dont think we need to track this
-            self._y_original_obj_type = _get_og_obj_type(
-                y,
-                self._y_original_obj_type
-            )
-
             y = validate_data(
                 y,
                 copy_X=False,    # bearpizza we need to put a copy kwarg
@@ -1254,6 +1231,7 @@ class MinCountTransformer(
         # BECAUSE THEY MAY (UNDESIRABLY) GENERATE DIFFERENT IDXS.
         # _ignore_columns MUST BE BEFORE _make_instructions
 
+        # pizza remember to test callables that spew differing output
         self._ignore_columns, self._handle_as_bool = \
             _NDArrayify_integerize_ic_hab(
                 X,
@@ -1400,31 +1378,8 @@ class MinCountTransformer(
 
             del ROW_KEEP_MASK, COLUMN_KEEP_MASK
 
-        # EVERYTHING WAS PROCESSED AS np.array
-        __ = self._output_transform or self._x_original_obj_type
-        if any([j in __ for j in ['dataframe', 'series']]):
-            X = pd.DataFrame(X, columns=FEATURE_NAMES)
-            if 'series' in __:
-                if self.n_features_in_ > 1:
-                    raise ValueError(
-                        f"cannot return as Series when n_features_in_ is > 1.")
-                X = X.squeeze()
-
-        del FEATURE_NAMES
-
-
-        __ = self._output_transform
+        # pizza EVERYTHING WAS PROCESSED AS np.array
         if y is not None:
-            __ = __ or self._y_original_obj_type
-            if True in [j in __ for j in ['dataframe', 'series']]:
-                y = pd.DataFrame(y, columns=[f"y{k}" for k in
-                                 range(y.shape[1] if len(y.shape)==2 else 1)])
-                if 'series' in __:
-                    if y.shape[1] > 1:
-                        raise ValueError(
-                            f"cannot return y as Series when y is multi-class.")
-                    y = y.squeeze()
-
             return X, y
         else:
             return X

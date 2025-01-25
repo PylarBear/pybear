@@ -52,6 +52,41 @@ def _NDArrayify_integerize_ic_hab(
     _validation > _val_ignore_columns_handle_as_bool. Here is where
     values passed as feature names are finally mapped to indices.
 
+    if ignore_columns and/or handle_as_bool are callable, the output must
+    be the same for every call in a sequence of partial fits or
+    transforms. If on a later pass, validate the current output is equal
+    to the first output.
+
+
+    Parameters
+    ----------
+    X:
+        array-like | scipy sparse of shape (n_samples, n_features) -
+        the data to undergo minimum frequency thresholding.
+    _ignore_columns:
+        Union[callable(X), Iterable[str], Iterable[int], None] - the
+        columns to be ignored during the thresholding process.
+        ignored if 'ignore_columns' is not callable.
+    _handle_as_bool:
+        Union[callable(X), Iterable[str], Iterable[int], None] - the
+        columns to be handled as boolean during the thresholding process.
+        i.e., all zero values are handled as False and all non-zero
+        values are handled as True.
+    _n_features_in:
+        int - the number of features in the data.
+    _feature_names_in:
+        Union[npt.NDArray[str], None] - if the data was passed in a
+        container that had a valid header, then a list-like of the
+        feature names. otherwise, None.
+
+
+    Return
+    ------
+    -
+        tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        ignore_columns and handle_as_bool in Iterable[int] form. all
+        indices are >= 0.
+
 
     """
 
@@ -97,6 +132,7 @@ def _NDArrayify_integerize_ic_hab(
 
         _val_ign_cols_hab_callable(
             __ignore_columns,
+            None,
             'ignore_columns',
             _n_features_in,
             _feature_names_in
@@ -131,6 +167,7 @@ def _NDArrayify_integerize_ic_hab(
 
         _val_ign_cols_hab_callable(
             __handle_as_bool,
+            None,
             'ignore_columns',
             _n_features_in,
             _feature_names_in
