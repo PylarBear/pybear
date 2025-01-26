@@ -3,9 +3,7 @@
 #
 # License: BSD 3 clause
 #
-
-
-
+import numbers
 from typing import Iterable
 from typing_extensions import Union, Self
 from ._type_aliases import (
@@ -30,8 +28,9 @@ from ._validation._y import _val_y
 from ._validation._validation import _validation
 
 from ._make_instructions._make_instructions import _make_instructions
+from ._partial_fit._column_getter import _column_getter
 from ._partial_fit._original_dtypes_merger import _original_dtypes_merger
-from ._partial_fit._parallel_dtypes_unqs_cts import _dtype_unqs_cts_processing
+from ._partial_fit._parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
 from ._partial_fit._tcbc_merger import _tcbc_merger
 from ._test_threshold import _test_threshold
 from ._transform._conflict_warner import _conflict_warner
@@ -420,7 +419,7 @@ class MinCountTransformer(
 
     def __init__(
         self,
-        count_threshold:CountThresholdType,  # pizza this needs to go to kwarg... this will be nasty
+        count_threshold:CountThresholdType=3,
         *,
         ignore_float_columns:bool=True,
         ignore_non_binary_integer_columns:bool=True,
@@ -501,44 +500,43 @@ class MinCountTransformer(
         -
             self : object -
                 Fitted min count transformer.
+
         """
 
 
-        if not hasattr(self, '_total_counts_by_column'):
-            self.reset()
-
         self._recursion_check()
 
-        # GET n_features_in_, feature_names_in_, _n_rows_in_
-        # pizza this needs to go before validate_data() for now because
-        # validate_data() converts X to numpy
-        # do not make an assignment! let the function handle it.
-        self._check_feature_names(X, reset=not is_fitted(self))
-
-        # do not make an assignment! let the function handle it.
-        self._check_n_features(X, reset=not is_fitted(self))
-
-
-        # 24_03_03_09_54_00 THE INTENT IS TO RUN EVERYTHING AS NP ARRAY
-        # TO STANDARDIZE INDEXING. pizza
 
         X = validate_data(
             X,
             copy_X=False,
-            cast_to_ndarray=True, # <===== bearpizza
-            accept_sparse=None, #("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),  # <===== bearpizza
+            cast_to_ndarray=False,
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
             dtype='any',
             require_all_finite=False,
             cast_inf_to_nan=False,
             standardize_nan=False,
-            allowed_dimensionality=(1, 2),
-            ensure_2d=True,   # bearpizza this will need to be False
+            allowed_dimensionality=(2,),
+            ensure_2d=False,
             order='F',
             ensure_min_features=1,
             ensure_max_features=None,
-            ensure_min_samples=3,    # bearpizza finalize this, 2 or 3 samples?
+            ensure_min_samples=3,
             sample_check=None
         )
+
+        # GET n_features_in_, feature_names_in_, _n_rows_in_ ** * ** *
+        # do not make assignments! let the functions handle it.
+        self._check_feature_names(X, reset=not is_fitted(self))
+        self._check_n_features(X, reset=not is_fitted(self))
+
+        # IF WAS PREVIOUSLY FITTED, THEN self._n_rows_in EXISTS
+        if hasattr(self, '_n_rows_in'):
+            self._n_rows_in += X.shape[0]
+        else:
+            self._n_rows_in = X.shape[0]
+
+        # END GET n_features_in_, feature_names_in_, _n_rows_in_ ** * **
 
         _validation(
             X,
@@ -555,15 +553,6 @@ class MinCountTransformer(
             getattr(self, 'n_features_in_'),
             getattr(self, 'feature_names_in_', None)
         )
-
-
-        # IF WAS PREVIOUSLY FITTED, THEN self._n_rows_in EXISTS
-        if hasattr(self, '_n_rows_in'):
-            self._n_rows_in += X.shape[0]
-        else:
-            self._n_rows_in = X.shape[0]
-
-        # END GET n_features_in_, feature_names_in_, _n_rows_in_
 
 
         # GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** ** **
@@ -589,8 +578,9 @@ class MinCountTransformer(
         }
         DTYPE_UNQS_CTS_TUPLES = \
             joblib.Parallel(**joblib_kwargs)(
-                joblib.delayed(_dtype_unqs_cts_processing)(
-                    X[:,_idx],
+                joblib.delayed(_parallel_dtypes_unqs_cts)(
+                    _column_getter(X,_idx),
+                    X.shape[0],
                     _idx
                 ) for _idx in range(self.n_features_in_)
             )
@@ -626,7 +616,7 @@ class MinCountTransformer(
 
         self._total_counts_by_column: dict[int, dict[any, int]] = _tcbc_merger(
             DTYPE_UNQS_CTS_TUPLES,
-            self._total_counts_by_column
+            getattr(self, '_total_counts_by_column', {})
         )
 
         del DTYPE_UNQS_CTS_TUPLES
@@ -896,11 +886,6 @@ class MinCountTransformer(
 
         """
 
-        if not hasattr(self, '_output_transform'):
-            self._output_transform = None
-
-        self._total_counts_by_column = {}
-
         try: del self.n_features_in_
         except: pass
 
@@ -1026,10 +1011,10 @@ class MinCountTransformer(
 
 
     def test_threshold(
-            self,
-            threshold:int=None,
-            clean_printout:bool=True
-        ) -> None:
+        self,
+        threshold: Union[CountThresholdType, None]=None,
+        clean_printout:bool=True
+    ) -> None:
 
         """
         Display instructions generated for the current fitted state,
@@ -1044,31 +1029,41 @@ class MinCountTransformer(
 
         Parameters
         ----------
-        threshold : int, default=None - count_threshold value to tests.
+        threshold:
+            Union[int, Iterable[int], None], default=None -
+            count_threshold value(s) to test.
 
-        clean_printout: bool, default=True - Truncate printout to fit on
-        screen
+        clean_printout:
+            bool, default=True - Truncate printout to fit on screen.
+
 
         Return
         ------
-        None
+        -
+            None
 
         """
 
         check_is_fitted(self)
+        # pizza figure out what to do here
         if callable(self.ignore_columns) or callable(self.handle_as_bool):
             raise ValueError(f"if ignore_columns or handle_as_bool is "
                 f"callable, get_support() is only available after a "
                 f"transform is done.")
 
-        _test_threshold(self, _threshold=threshold, _clean_printout=clean_printout)
+        _test_threshold(
+            self,
+            _threshold=threshold,
+            _clean_printout=clean_printout
+        )
 
 
     @SetOutputMixin._set_output_for_transform
     def transform(
         self,
         X: XContainer,
-        y: YContainer=None
+        y: YContainer=None,
+        copy=False
     ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
         """
@@ -1076,25 +1071,26 @@ class MinCountTransformer(
 
         Parameters
         ----------
-        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
-            n_features) - The data that is to be reduced according to
-            the thresholding rules found during :term: fit.
+        X:
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - The data that is to be reduced
+            according to the thresholding rules found during :term: fit.
 
-        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series, None] of shape
-            (n_samples, n_outputs), or (n_samples,), default=None -
-            Target values (None for unsupervised transformations).
+        y:
+            Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None]
+            of shape (n_samples, n_outputs), or (n_samples,), default =
+            None - Target values (None for unsupervised transformations).
+
 
         Return
         ------
         -
-            X_tr : Union[numpy.ndarray, pandas.DataFrame, pandas.Series]
-                    of shape (n_samples_new, n_features_new)
+            X_tr : Union[numpy.ndarray, pandas.DataFrame, scipy.sparse]
+                    of shape (n_samples_new, n_features_new) -
                     Transformed array.
             y_tr : Union[numpy.ndarray, pandas.DataFrame, pandas.Series]
-                    of shape (n_samples_new, n_outputs) or (n_samples_new,)
-                    Transformed target.
+                    of shape (n_samples_new, n_outputs) or
+                    (n_samples_new,) - Transformed target.
 
         """
 
@@ -1107,32 +1103,29 @@ class MinCountTransformer(
 
         self._recursion_check()
 
-        # pizza this needs to go before validate_data() for now because
-        # validate_data() converts X to numpy
-        self._check_feature_names(X, reset=False)
-
-        self._check_n_features(X, reset=False)
-
-        X = validate_data(
+        X_tr = validate_data(
             X,
-            copy_X=False,    # bearpizza we need to put a copy kwarg
-            cast_to_ndarray=True, # <===== bearpizza
-            accept_sparse=None, #("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),  # <===== bearpizza
+            copy_X=copy or False,
+            cast_to_ndarray=False,
+            accept_sparse=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
             dtype='any',
             require_all_finite=False,
             cast_inf_to_nan=False,
             standardize_nan=False,
-            allowed_dimensionality=(1, 2),
-            ensure_2d=True,
+            allowed_dimensionality=(2,),
+            ensure_2d=False,
             order='F',
             ensure_min_features=1,
             ensure_max_features=None,
-            ensure_min_samples=3,    # bearpizza finalize this, 2 or 3 samples?
+            ensure_min_samples=3,
             sample_check=None
         )
 
+        self._check_feature_names(X_tr, reset=False)
+        self._check_n_features(X_tr, reset=False)
+
         _validation(
-            X,
+            X_tr,
             self.count_threshold,
             self.ignore_float_columns,
             self.ignore_non_binary_integer_columns,
@@ -1147,7 +1140,9 @@ class MinCountTransformer(
             getattr(self, 'feature_names_in_', None)
         )
 
-        # y handling ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # END X handling ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # y handling ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         if y is not None:
 
             # 24_06_17 When dask_ml Incremental and ParallelPostFit (versions
@@ -1159,8 +1154,6 @@ class MinCountTransformer(
             # MCT is wrapped with Incr and/or PPF, then look to see if y is
             # of the form tuple(str, int). If both are the case, override y
             # with y = None.
-
-
 
             # Determine if the MCT instance is wrapped by dask_ml Incremental
             # or ParallelPostFit by checking the stack and looking for the
@@ -1187,34 +1180,43 @@ class MinCountTransformer(
             del _using_dask_ml_wrapper, _is_garbage_y_from_dask_ml
             # END accommodate dask_ml junk y ** * ** * ** * ** * ** * ** * *
 
-            y = validate_data(
+            y_tr = validate_data(
                 y,
-                copy_X=False,    # bearpizza we need to put a copy kwarg
-                cast_to_ndarray=True, # <===== bearpizza
+                copy_X=copy or False,
+                cast_to_ndarray=False,
                 accept_sparse=None,
                 dtype='any',
                 require_all_finite=False,
                 cast_inf_to_nan=False,
                 standardize_nan=False,
                 allowed_dimensionality=(1, 2),
-                ensure_2d=True,   # <==== bearpizza, this must be True (for now)
+                ensure_2d=False,
                 order='C',
                 ensure_min_features=1,
                 ensure_max_features=None,
-                ensure_min_samples=3,    # bearpizza finalize this, 2 or 3 samples?
+                ensure_min_samples=3,
                 sample_check=X.shape[0]
             )
 
-            _val_y(y)
+            _val_y(y_tr)
+        else:
+            y_tr = None
         # END y handling ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
         # extra count_threshold val
-        if self.count_threshold >= self._n_rows_in:
-            raise ValueError(
-                f"count_threshold is >= the number of rows, every column "
-                f"not ignored would be deleted."
-            )  # pizza is this right?
+        _base_err = (
+            f":param: 'count_threshold' is >= the total number of rows "
+            f"seen during fitting. this is a degenerate condition. "
+            f"\nfit more data or set a lower count_threshold."
+        )
+        if isinstance(self.count_threshold, numbers.Integral) \
+                and self.count_threshold >= self._n_rows_in:
+            raise ValueError(_base_err)
+        # must be list-like
+        elif np.any(self.count_threshold) >= self._n_rows_in:
+            raise ValueError(f"at least one value in " + _base_err)
+        del _base_err
 
 
         # VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs **
@@ -1234,7 +1236,7 @@ class MinCountTransformer(
         # pizza remember to test callables that spew differing output
         self._ignore_columns, self._handle_as_bool = \
             _NDArrayify_integerize_ic_hab(
-                X,
+                X_tr,
                 self.ignore_columns,
                 self.handle_as_bool,
                 self.n_features_in_,
@@ -1263,11 +1265,21 @@ class MinCountTransformer(
 
         _delete_instr = self._make_instructions()
 
+        # if scipy sparse, dia, coo, and bsr cannot be indexed, need to convert
+        # to an indexable sparse. since this needs to be done, might as well
+        # convert all scipy sparse to csc for fast column operations.
+        # need to change this back later.
+        # do this after the ignore_columns/handle_as_bool callables, the
+        # callables may depend on the container.
+        if hasattr(X_tr, 'toarray'):
+            _og_dtype = type(X_tr)
+            X_tr = X_tr.tocsc()
+
         # BUILD ROW_KEEP & COLUMN_KEEP MASKS ** ** ** ** ** ** ** ** **
 
         ROW_KEEP_MASK, COLUMN_KEEP_MASK = \
             _make_row_and_column_masks(
-                X,
+                X_tr,
                 self._total_counts_by_column,
                 _delete_instr,
                 self.reject_unseen_values,
@@ -1278,33 +1290,50 @@ class MinCountTransformer(
 
         self._row_support = ROW_KEEP_MASK.copy()
 
-        FEATURE_NAMES = self.get_feature_names_out()
-
         if all(ROW_KEEP_MASK) and all(COLUMN_KEEP_MASK):
-            # Skip all recursion code and go directly to output formatting.
+            # Skip all recursion code.
             # if all rows and all columns are kept, the data has converged
             # to a point where all the values in every column appear in
             # their respective column at least count_threshold times.
-            # There is no point to performing any (more) (possible)
-            # recursions.
+            # There is no point to performing any more possible recursions.
             pass
         else:
-            X = X[ROW_KEEP_MASK, :]
-            X = X[:, COLUMN_KEEP_MASK]
-
-            if y is not None:
-                y = y[ROW_KEEP_MASK]
-
-            if self.max_recursions == 1:
-                # if reached last recursion, skip to output formatting
-                pass
+            # X must be 2D, np, pd, or csc
+            if isinstance(X_tr, np.ndarray):
+                X_tr = X_tr[ROW_KEEP_MASK, :]
+                X_tr = X_tr[:, COLUMN_KEEP_MASK]
+            elif isinstance(X_tr, pd.core.frame.DataFrame):
+                X_tr = X_tr.loc[ROW_KEEP_MASK, :]
+                X_tr = X_tr.loc[:, COLUMN_KEEP_MASK]
+            elif isinstance(X_tr, (ss.csc_matrix, ss.csc_array)):
+                # ensure bool mask for ss
+                X_tr = X_tr[ROW_KEEP_MASK.astype(bool), :]
+                X_tr = X_tr[:, COLUMN_KEEP_MASK.astype(bool)]
             else:
-                assert self.max_recursions >= 1, f"max_recursions < 1"
+                raise Exception(
+                    f"expected X as ndarray, pd df, or csc. got {type(X_tr)}."
+                )
 
-                # NEED TO RE-ALIGN _ignore_columns AND _handle_as_bool
-                # FROM WHAT THEY WERE FOR self TO WHAT THEY ARE FOR THE
-                # CURRENT (POTENTIALLY COLUMN MASKED) DATA GOING INTO
-                # THIS RECURSION
+            if y_tr is not None:
+                # y can be only np or pd, 1 or 2D
+                if isinstance(y_tr, np.ndarray):
+                    y_tr = y_tr[ROW_KEEP_MASK]
+                elif isinstance(y_tr, pd.core.series.Series):
+                    y_tr = y_tr.loc[ROW_KEEP_MASK]
+                elif isinstance(y_tr, pd.core.frame.DataFrame):
+                    y_tr = y_tr.loc[ROW_KEEP_MASK, :]
+                else:
+                    raise Exception(
+                        f"expected y as ndarray or pd df or series, got {type(y_tr)}."
+                    )
+
+            # v v v everything below here is for recursion v v v v v v
+            if self.max_recursions > 1:
+
+                # NEED TO RE-ALIGN _ignore_columns, _handle_as_bool AND
+                # count_threshold FROM WHAT THEY WERE FOR self TO WHAT
+                # THEY ARE FOR THE CURRENT (POTENTIALLY COLUMN MASKED)
+                # DATA GOING INTO THIS RECURSION
 
                 if callable(self.ignore_columns):
                     NEW_IGN_COL = self.ignore_columns # pass the function!
@@ -1324,10 +1353,16 @@ class MinCountTransformer(
                     NEW_HDL_AS_BOOL_COL = np.arange(sum(COLUMN_KEEP_MASK))[
                                             HDL_AS_BOOL_MASK[COLUMN_KEEP_MASK]]
                     del HDL_AS_BOOL_MASK
-                # END RE-ALIGN _ignore_columns AND _handle_as_bool ** * ** * **
+
+                if isinstance(self.count_threshold, numbers.Integral):
+                    NEW_COUNT_THRESHOLD = self.count_threshold
+                else:
+                    NEW_COUNT_THRESHOLD = self.count_threshold[COLUMN_KEEP_MASK]
+
+                # END RE-ALIGN _ic, _hab, count_threshold ** * ** * ** * **
 
                 RecursiveCls = MinCountTransformer(
-                    self.count_threshold,
+                    NEW_COUNT_THRESHOLD,
                     ignore_float_columns=self.ignore_float_columns,
                     ignore_non_binary_integer_columns=
                         self.ignore_non_binary_integer_columns,
@@ -1339,23 +1374,11 @@ class MinCountTransformer(
                     n_jobs=self.n_jobs
                 )
 
-                del NEW_IGN_COL, NEW_HDL_AS_BOOL_COL
+                del NEW_IGN_COL, NEW_HDL_AS_BOOL_COL, NEW_COUNT_THRESHOLD
 
-                RecursiveCls.set_output(transform=None)
-
-                # IF WAS PASSED WITH HEADER, REAPPLY TO DATA FOR RE-ENTRY
-                if hasattr(self, 'feature_names_in_'):
-                    X = pd.DataFrame(
-                        data=X,
-                        columns=self.feature_names_in_[COLUMN_KEEP_MASK]
-                    )
-
-                X, y = RecursiveCls.fit_transform(X, y)
-
-                FEATURE_NAMES = RecursiveCls.get_feature_names_out(None)
+                X_tr, y_tr = RecursiveCls.fit_transform(X_tr, y_tr)
 
                 # vvv tcbc update vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
                 MAP_DICT = dict((
                     zip(
                         list(range(RecursiveCls.n_features_in_)),
@@ -1378,16 +1401,17 @@ class MinCountTransformer(
 
             del ROW_KEEP_MASK, COLUMN_KEEP_MASK
 
-        # pizza EVERYTHING WAS PROCESSED AS np.array
-        if y is not None:
-            return X, y
+
+        if hasattr(X_tr, 'toarray'):
+            X_tr = _og_dtype(X_tr)
+            del _og_dtype
+        elif isinstance(X_tr, np.ndarray):
+            X_tr = np.ascontiguousarray(X_tr)
+
+        if y_tr is not None:
+            return X_tr, y_tr
         else:
-            return X
-
-
-        # pizza dont forget this!   C_CONTIGUOUS
-        # if _og_format is np.ndarray:
-        #     return np.ascontiguousarray(X)
+            return X_tr
 
 
     def _make_instructions(self, _threshold=None):

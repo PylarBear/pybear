@@ -14,12 +14,15 @@ from copy import deepcopy
 import numpy as np
 np.random.seed(0)
 import pandas as pd
+import scipy.sparse as ss
 import polars as pl
 from sklearn.preprocessing import OneHotEncoder
 
 from pybear.utilities._nan_masking import nan_mask
 
 import pytest
+
+
 
 
 bypass = False
@@ -553,19 +556,13 @@ class TestBadCountThresholdMaxRecursionsSetOutputNjobs:
 class TestGoodCountThresholdMaxRecursionsSetOutputNjobs:
 
 
-    GOOD_CT_THRESH = [3, 5]
-    GOOD_RECURSIONS = [1, 10]
-    GOOD_OUTPUT_TYPE = [None, 'default', 'pandas', 'polars']
-    GOOD_N_JOBS = [-1, 1, 10, None]
-
-
-    @pytest.mark.parametrize('good_ct_thresh', GOOD_CT_THRESH)
+    @pytest.mark.parametrize('good_ct_thresh', [3, 5])
     def test_good_ct_thresh(self, X, y, _kwargs, good_ct_thresh):
 
         MinCountTransformer(good_ct_thresh, **_kwargs).fit_transform(X, y)
 
 
-    @pytest.mark.parametrize('good_recursions', GOOD_RECURSIONS)
+    @pytest.mark.parametrize('good_recursions', [1, 10])
     def test_good_recursions(self, X, y, _args, _kwargs, good_recursions):
 
         _kwargs['max_recursions'] = good_recursions
@@ -573,7 +570,7 @@ class TestGoodCountThresholdMaxRecursionsSetOutputNjobs:
         MinCountTransformer(*_args, **_kwargs).fit_transform(X, y)
 
 
-    @pytest.mark.parametrize('good_n_jobs', GOOD_N_JOBS)
+    @pytest.mark.parametrize('good_n_jobs', [-1, 1, 10, None])
     def test_good_n_jobs(self, X, y, _args, _kwargs, good_n_jobs):
 
         _kwargs['n_jobs'] = good_n_jobs
@@ -581,12 +578,14 @@ class TestGoodCountThresholdMaxRecursionsSetOutputNjobs:
         MinCountTransformer(*_args, **_kwargs).fit_transform(X, y)
 
 
-    @pytest.mark.parametrize('good_output_type', GOOD_OUTPUT_TYPE)
+    @pytest.mark.parametrize('good_output_type',
+        [None, 'default', 'pandas', 'polars']
+    )
     def test_good_output_type(self, X, y, _args, _kwargs, good_output_type):
 
         TestCls = MinCountTransformer(*_args, **_kwargs)
         TestCls.set_output(transform=good_output_type)
-        TestCls.fit_transform(X[:, 0], y[:, 0])
+        TestCls.fit_transform(X, y[:, 0])
 
 
 # END TEST ACCEPTS GOOD count_threshold, max_recursions, set_output, n_jobs
@@ -604,56 +603,7 @@ class TestIgnoreColumnsHandleAsBool:
         return y[:, 0].copy()
 
 
-    @pytest.mark.parametrize('input_format',
-        ('numpy_recarray', 'numpy_masked_array')
-    )
-    @pytest.mark.parametrize('kwarg_input',
-        ([1, 3, 5], [True, False, None, 'junk'], True, False, None, 'junk',
-         np.nan, [np.nan], {0: 'a', 1: 'b'}, [1000, 1001, 1002]
-         )
-    )
-    @pytest.mark.parametrize('_kwarg',
-        ('ignore_columns', 'handle_as_bool', 'both')
-    )
-    def test_rec_arrays_and_masked_arrays(self, input_format, kwarg_input,
-        _kwarg, x_rows, x_cols, X, COLUMNS, _y, _args, _kwargs
-    ):
-
-        # this pulled out of the old big tests
-        # this actually tests X & y inputs (coincidentally with various
-        # ignore_columns & handle as bool inputs.)
-
-        if _kwarg == 'ignore_columns':
-            _kwargs['ignore_columns'] = kwarg_input
-            _kwargs['handle_as_bool'] = None
-        elif _kwarg == 'handle_as_bool':
-            _kwargs['handle_as_bool'] = kwarg_input
-            _kwargs['ignore_columns'] = None
-        elif _kwarg == 'both':
-            _kwargs['ignore_columns'] = kwarg_input
-            _kwargs['handle_as_bool'] = kwarg_input
-
-        if input_format == 'numpy_recarray':
-            _dtypes1 = [np.uint8 for _ in range(x_cols // 2)]
-            _dtypes2 = ['<U1' for _ in range(x_cols // 2)]
-            _formats = [list(zip(COLUMNS, _dtypes1 + _dtypes2))]
-            del _dtypes1, _dtypes2
-            X_NEW = np.recarray(
-                (x_rows,), names=COLUMNS, formats=_formats, buf=X
-            )
-            del _formats
-            y_NEW = _y
-        elif input_format == 'numpy_masked_array':
-            X_NEW = np.ma.array(X, mask=False)
-            y_NEW = np.ma.array(_y, mask=False)
-
-        with pytest.raises(TypeError):
-            TestCls = MinCountTransformer(*_args, **_kwargs)
-            TestCls.fit_transform(X_NEW, y_NEW)
-
-
-
-    @pytest.mark.parametrize('input_format', ('numpy', 'pd_df', 'pd_series'))
+    @pytest.mark.parametrize('input_format', ('numpy', 'pd_df'))
     @pytest.mark.parametrize('kwarg_input', (
         0, 1, 3.14, True, False, 'junk', np.nan, {0: 'a', 1: 'b'},
         [True, False, None, 'junk'], 'get_from_COLUMNS', [np.nan],
@@ -697,14 +647,8 @@ class TestIgnoreColumnsHandleAsBool:
         elif input_format == 'pd_df':
             X_NEW = pd.DataFrame(data=X, columns=COLUMNS, dtype=object)
             y_NEW = pd.DataFrame(data=_y, columns=['y'], dtype=object)
-        elif input_format == 'pd_series':
-            if kwarg_input == 'bad_callable':
-                _kwargs['ignore_columns'] = lambda X: 'unrecognizable junk'
-                _kwargs['handle_as_bool'] = lambda X: 'unrecognizable junk'
-            X_NEW = pd.Series(
-                data=X[:, _mct_cols], name=COLUMNS[0], dtype=np.float64
-            )
-            y_NEW = pd.Series(data=_y, name='y', dtype=object)
+        else:
+            raise Exception
 
         with pytest.raises(TypeError):
             TestCls.fit_transform(X_NEW, y_NEW)
@@ -743,7 +687,7 @@ class TestIgnoreColumnsHandleAsBool:
             TestCls.fit_transform(X_NEW, y_NEW)
 
 
-    @pytest.mark.parametrize('input_format', ('numpy', 'pd_df'))  #, 'pd_series')) skip pd_series for now to keep things passing. make a decision about allowing 1D.
+    @pytest.mark.parametrize('input_format', ('numpy', 'pd_df'))
     @pytest.mark.parametrize('kwarg_input', (
         [],
         [0],
@@ -764,21 +708,15 @@ class TestIgnoreColumnsHandleAsBool:
             )
 
         if kwarg_input == 'make_from_cols':
-            if input_format == 'pd_series':
-                pytest.skip(reason=f"columns are out of range for a series")
-            else:
-                kwarg_input = list(range(_mct_cols, 2*_mct_cols))
+            kwarg_input = list(range(_mct_cols, 2*_mct_cols))
 
         if input_format == 'numpy':
             X_NEW, y_NEW = X.copy(), _y
         elif input_format == 'pd_df':
             X_NEW = pd.DataFrame(data=X, columns=COLUMNS, dtype=object)
             y_NEW = pd.DataFrame(data=_y, columns=['y'], dtype=object)
-        elif input_format == 'pd_series':
-            X_NEW = pd.Series(
-                data=X[:, _mct_cols], name=COLUMNS[0], dtype=np.float64
-            )
-            y_NEW = pd.Series(data=_y, name='y', dtype=object)
+        else:
+            raise Exception
 
         _is_series = len(X_NEW.shape) == 1
 
@@ -1047,60 +985,68 @@ class TestExceptsAnytimeXisNone:
 # END TEST EXCEPTS ANYTIME X==None IS PASSED TO fit(), partial_fit(), OR transform()
 
 
-# VERIFY ACCEPTS X AS SINGLE COLUMN / SERIES ##################################
+# VERIFY ACCEPTS X AS SINGLE COLUMN ##################################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAcceptsXAsSingleColumnOrSeries:
+class TestAcceptsXAsSingleColumn:
 
-    @staticmethod
-    @pytest.fixture
-    def _fst_fit_y(y):
-        return y[:, 0].copy()
 
-    @staticmethod
-    @pytest.fixture
-    def NEW_X(X):
-        return X[:, 0].copy()
-
-    @pytest.mark.parametrize('_fst_fit_x_dtype',
-        ['numpy', 'pandas_dataframe', 'pandas_series']
-    )
-    @pytest.mark.parametrize('_fst_fit_x_hdr', [True, None])
-    def test_X_as_single_column(self, _args, _kwargs, COLUMNS, _fst_fit_y, NEW_X,
-        _fst_fit_x_dtype, _fst_fit_x_hdr):
-
-        if _fst_fit_x_dtype == 'numpy':
-            if _fst_fit_x_hdr:
-                pytest.skip(reason=f"numpy cannot have header")
-            else:
-                _fst_fit_X = NEW_X.copy()
-
-        if 'pandas' in _fst_fit_x_dtype:
-            if _fst_fit_x_hdr:
-                _fst_fit_X = pd.DataFrame(data=NEW_X, columns=COLUMNS[:1])
-            else:
-                _fst_fit_X = pd.DataFrame(data=NEW_X)
-
-        # not elif!
-        if _fst_fit_x_dtype == 'pandas_series':
-            _fst_fit_X = _fst_fit_X.squeeze()
+    def test_X_as_single_column(self, X, y, _args, _kwargs, COLUMNS):
 
         TestCls = MinCountTransformer(*_args, **_kwargs)
 
-        TestCls.fit_transform(_fst_fit_X, _fst_fit_y)
+        _y = y[:, 0].copy()
 
-# END VERIFY ACCEPTS X AS SINGLE COLUMN / SERIES ##############################
+        NEW_X = X[:, 0].copy().reshape((-1, 1))
+
+        # numpy
+        TestCls.fit_transform(NEW_X.copy(), _y)
+
+        # pandas w header
+        TestCls.fit_transform(
+            pd.DataFrame(data=NEW_X.copy(), columns=COLUMNS[:1]),
+            _y
+        )
+
+        # pandas w/o header
+        TestCls.fit_transform(pd.DataFrame(data=NEW_X.copy()), _y)
+
+# END VERIFY ACCEPTS X AS SINGLE COLUMN ###################################
+
+
+# VERIFY REJECTS X AS 1D COLUMN / SERIES ##################################
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestRejectsXAs1DColumnOrSeries:
+
+
+    def test_X_as_1D_column(self, X, y, _args, _kwargs, COLUMNS):
+
+        TestCls = MinCountTransformer(*_args, **_kwargs)
+
+        _y = y[:, 0].copy()
+
+        NEW_X = X[:, 0].copy()   # not reshaped to 2D
+
+        # numpy
+        with pytest.raises(ValueError):
+            TestCls.fit_transform(NEW_X.copy(), _y)
+
+        # pandas series
+        with pytest.raises(ValueError):
+            TestCls.fit_transform(pd.Series(data=NEW_X.copy().ravel()), _y)
+
+# END VERIFY REJECTS X AS 1D COLUMN / SERIES ##############################
 
 
 # TEST FOR EXCEPTS ON BAD X SHAPES ON SERIES & ARRAY ##########################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestExceptsOnBadXShapes:
 
-    FIRST_FIT_X_DTYPE = list(reversed(['numpy', 'pandas_series']))
-    SECOND_FIT_X_DTYPE = list(reversed(['numpy', 'pandas_series']))
+    FIRST_FIT_X_DTYPE = list(reversed(['numpy', 'pandas']))
+    SECOND_FIT_X_DTYPE = list(reversed(['numpy', 'pandas']))
     SECOND_FIT_X_SAME_DIFF_COLUMNS = \
         list(reversed(['good', 'less_col', 'more_col']))
     SECOND_FIT_X_SAME_DIFF_ROWS = list(reversed(['good', 'less_row', 'more_row']))
-    TRANSFORM_X_DTYPE = list(reversed(['numpy', 'pandas_series']))
+    TRANSFORM_X_DTYPE = list(reversed(['numpy', 'pandas']))
     TRANSFORM_X_SAME_DIFF_COLUMNS = \
         list(reversed(['good', 'less_col', 'more_col']))
     TRANSFORM_X_SAME_DIFF_ROWS = list(reversed(['good', 'less_row', 'more_row']))
@@ -1110,11 +1056,11 @@ class TestExceptsOnBadXShapes:
     def X_builder(x_rows: int, x_cols):
 
         def foo(
-                X: np.ndarray,
-                new_dtype: str,
-                diff_cols: str,
-                diff_rows: str
-                ):
+            X: np.ndarray,
+            new_dtype: str,
+            diff_cols: str,
+            diff_rows: str
+        ):
 
             if new_dtype is None:
                 NEW_X = None
@@ -1141,8 +1087,6 @@ class TestExceptsOnBadXShapes:
 
                 if 'pandas' in new_dtype:
                     NEW_X = pd.DataFrame(data=NEW_X, columns=None, dtype=object)
-                if new_dtype == 'pandas_series':
-                    NEW_X = NEW_X.iloc[:, 0].squeeze()
 
             return NEW_X
 
@@ -1165,88 +1109,79 @@ class TestExceptsOnBadXShapes:
         trfm_x_dtype, trfm_x_cols, trfm_x_rows, x_rows, x_cols
     ):
 
-            # CANT HAVE 'more_col' or 'less_col' WHEN X IS A SERIES
-            _reason = f"CANT HAVE 'more_col' or 'less_col' WHEN X IS A SERIES"
-            if scd_fit_x_dtype == 'pandas_series' and \
-                    scd_fit_x_cols in ['less_col', 'more_col']:
-                pytest.skip(reason=_reason)
-            if trfm_x_dtype == 'pandas_series' and \
-                    trfm_x_cols in ['less_col', 'more_col']:
-                pytest.skip(reason=_reason)
+        TestCls = MinCountTransformer(*_args, **_kwargs)
 
-            TestCls = MinCountTransformer(*_args, **_kwargs)
+        # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        fst_fit_X = X_builder(
+            X.copy(),
+            new_dtype=fst_fit_x_dtype,
+            diff_cols='good',
+            diff_rows='good'
+        )
+        # end first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-            # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-            fst_fit_X = X_builder(
-                X.copy(),
-                new_dtype=fst_fit_x_dtype,
-                diff_cols='good',
-                diff_rows='good'
-            )
-            # end first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        scd_fit_X = X_builder(
+            X.copy(),
+            new_dtype=scd_fit_x_dtype,
+            diff_cols=scd_fit_x_cols,
+            diff_rows=scd_fit_x_rows
+        )
+        # end second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
 
-            # second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-            scd_fit_X = X_builder(
-                X.copy(),
-                new_dtype=scd_fit_x_dtype,
-                diff_cols=scd_fit_x_cols,
-                diff_rows=scd_fit_x_rows
-            )
-            # end second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
+        # transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        trfm_X = X_builder(
+            X.copy(),
+            new_dtype=trfm_x_dtype,
+            diff_cols=trfm_x_cols,
+            diff_rows=trfm_x_rows
+        )
+        # end transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-            # transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-            trfm_X = X_builder(
-                X.copy(),
-                new_dtype=trfm_x_dtype,
-                diff_cols=trfm_x_cols,
-                diff_rows=trfm_x_rows
-            )
-            # end transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        fst_fit_y = y.copy()[:, 0].ravel()
+        scd_fit_y = fst_fit_y.copy()
+        trfm_y = fst_fit_y.copy()
 
-            fst_fit_y = y.copy()[:, 0].ravel()
-            scd_fit_y = fst_fit_y.copy()
-            trfm_y = fst_fit_y.copy()
+        value_error = 0
 
-            value_error = 0
+        # ValueError WHEN ROWS OF y != X ROWS ONLY UNDER transform
+        if trfm_X is not None and trfm_y.shape[0] != trfm_X.shape[0]:
+            value_error += 1
 
-            # ValueError WHEN ROWS OF y != X ROWS ONLY UNDER transform
-            if trfm_X is not None and trfm_y.shape[0] != trfm_X.shape[0]:
-                value_error += 1
+        try:
+            fst_fit_X.shape[1]
+            fst_fit_X_cols = fst_fit_X.shape[1]
+        except:
+            fst_fit_X_cols = 1
 
-            try:
-                fst_fit_X.shape[1]
-                fst_fit_X_cols = fst_fit_X.shape[1]
-            except:
-                fst_fit_X_cols = 1
+        try:
+            scd_fit_X.shape[1]
+            scd_fit_X_cols = scd_fit_X.shape[1]
+        except:
+            scd_fit_X_cols = 1
 
-            try:
-                scd_fit_X.shape[1]
-                scd_fit_X_cols = scd_fit_X.shape[1]
-            except:
-                scd_fit_X_cols = 1
+        if scd_fit_X_cols != fst_fit_X_cols:
+            value_error += 1
 
-            if scd_fit_X_cols != fst_fit_X_cols:
-                value_error += 1
+        try:
+            trfm_X.shape[1]
+            trfm_X_cols = trfm_X.shape[1]
+        except:
+            trfm_X_cols = 1
 
-            try:
-                trfm_X.shape[1]
-                trfm_X_cols = trfm_X.shape[1]
-            except:
-                trfm_X_cols = 1
-
-            if trfm_X_cols != fst_fit_X_cols:
-                value_error += 1
+        if trfm_X_cols != fst_fit_X_cols:
+            value_error += 1
 
 
-            if value_error:
-                with pytest.raises(ValueError):
-                    TestCls.partial_fit(fst_fit_X, fst_fit_y)
-                    TestCls.partial_fit(scd_fit_X, scd_fit_y)
-                    TestCls.transform(trfm_X, trfm_y)
-            elif not value_error:
+        if value_error:
+            with pytest.raises(ValueError):
                 TestCls.partial_fit(fst_fit_X, fst_fit_y)
                 TestCls.partial_fit(scd_fit_X, scd_fit_y)
                 TestCls.transform(trfm_X, trfm_y)
+        elif not value_error:
+            TestCls.partial_fit(fst_fit_X, fst_fit_y)
+            TestCls.partial_fit(scd_fit_X, scd_fit_y)
+            TestCls.transform(trfm_X, trfm_y)
 
 
     del FIRST_FIT_X_DTYPE, SECOND_FIT_X_DTYPE, SECOND_FIT_X_SAME_DIFF_COLUMNS,
@@ -1650,8 +1585,10 @@ class TestIgnoreNanWorks:
 
         del NOT_DEL_VECTOR
 
-        TEST_Y = np.random.randint(0, 2, len(TEST_X))
+        # RESHAPE, MCT REQUIRES X TO BE 2D
+        TEST_X = TEST_X.reshape((-1, 1))
 
+        TEST_Y = np.random.randint(0, 2, len(TEST_X))
 
 
         _kwargs['ignore_nan'] = _ignore_nan
@@ -1686,7 +1623,7 @@ class TestIgnoreNanWorks:
                 MASK = ((TEST_X != 2.5) * np.logical_not(np.isnan(TEST_X)))
 
         REF_X = TEST_X[MASK]
-        REF_Y = TEST_Y[MASK]
+        REF_Y = TEST_Y.reshape((-1, 1,))[MASK].ravel()
 
         assert len(REF_X) == correct_x_and_y_len, \
             f"REF_X is not the correct length"
@@ -2018,7 +1955,7 @@ class TestOutputTypes:
 
 
     @pytest.mark.parametrize('x_input_type',
-        ['numpy_array', 'pandas_dataframe', 'pandas_series']
+        ['numpy_array', 'pandas_dataframe', 'scipy_csr']
     )
     @pytest.mark.parametrize('y_input_type',
         ['numpy_array', 'pandas_dataframe', 'pandas_series']
@@ -2030,17 +1967,19 @@ class TestOutputTypes:
         self, X, y, _args, _kwargs, x_input_type, y_input_type, output_type
     ):
 
-        NEW_X = X[:, 0].copy()
+        NEW_X = X[:, :1].copy()
         NEW_COLUMNS = X[:1].copy()
         NEW_Y = y[:, 0].copy()
 
 
         if x_input_type == 'numpy_array':
             TEST_X = NEW_X.copy()
-        elif 'pandas' in x_input_type:
+        elif x_input_type == 'pandas_dataframe':
             TEST_X = pd.DataFrame(data=NEW_X, columns=NEW_COLUMNS)
-            if x_input_type == 'pandas_series':
-                TEST_X = TEST_X.squeeze()
+        elif x_input_type == 'scipy_csr':
+            TEST_X = ss.csr_array(NEW_X.astype(np.float64))
+        else:
+            raise Exception
 
         if y_input_type == 'numpy_array':
             TEST_Y = NEW_Y.copy()
@@ -2056,61 +1995,32 @@ class TestOutputTypes:
 
         # y output container is never changed
         if output_type is None:
-            pass
-            # xfail -- currently X is cast to 2D ndarray by validate_data
-            # in transform. this will change in the future, and X will
-            # pass thru in its given state.
-            # assert type(TRFM_X) == type(TEST_X), \
-            #     (f"output_type is None, X output type ({type(TRFM_X)}) != "
-            #      f"X input type ({type(TEST_X)})")
-            # xfail -- currently y is cast to 2D ndarray by validate_data
-            # in transform. this will change in the future, and y will
-            # pass thru in its given state.
-            # assert type(TRFM_Y) == type(TEST_Y), \
-            #     (f"output_type is None, Y output type ({type(TRFM_Y)}) != "
-            #      f"Y input type ({type(TEST_Y)})")
+            assert type(TRFM_X) == type(TEST_X), \
+                (f"output_type is None, X output type ({type(TRFM_X)}) != "
+                 f"X input type ({type(TEST_X)})")
+            assert type(TRFM_Y) == type(TEST_Y), \
+                (f"output_type is None, Y output type ({type(TRFM_Y)}) != "
+                 f"Y input type ({type(TEST_Y)})")
         elif output_type == 'default':
-            pass
-            # xfail -- currently X is cast to 2D ndarray by validate_data
-            # in transform. this will change in the future, and X will
-            # pass thru in its given state.
-            # assert isinstance(TRFM_X, np.ndarray), \
-            #     f"output_type is default, TRFM_X is {type(TRFM_X)}"
-            # xfail -- currently y is cast to 2D ndarray by validate_data
-            # in transform. this will change in the future, and y will
-            # pass thru in its given state.
-            # assert type(TRFM_Y) == type(TEST_Y), \
-            #     (f"output_type is default, Y output type ({type(TRFM_Y)}) != "
-            #      f"Y input type ({type(TEST_Y)})")
+            assert isinstance(TRFM_X, np.ndarray), \
+                f"output_type is default, TRFM_X is {type(TRFM_X)}"
+            assert type(TRFM_Y) == type(TEST_Y), \
+                (f"output_type is default, Y output type ({type(TRFM_Y)}) != "
+                 f"Y input type ({type(TEST_Y)})")
         elif output_type == 'pandas':
-            # pandas.core.frame.DataFrame
-            pass
-            # xfail -- currently X is cast to 2D ndarray by validate_data
-            # in transform. this will change in the future, and X will
-            # pass thru in its given state.
-            # assert isinstance(TRFM_X, pd.core.frame.DataFrame), \
-            #     f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
-            # xfail -- currently y is cast to 2D ndarray by validate_data
-            # in transform. this will change in the future, and y will
-            # pass thru in its given state.
-            # assert type(TRFM_Y) == type(TEST_Y), \
-            #     (f"output_type is pandas, Y output type ({type(TRFM_Y)}) != "
-            #      f"Y input type ({type(TEST_Y)})")
+            assert isinstance(TRFM_X, pd.core.frame.DataFrame), \
+                f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
+            assert type(TRFM_Y) == type(TEST_Y), \
+                (f"output_type is pandas, Y output type ({type(TRFM_Y)}) != "
+                 f"Y input type ({type(TEST_Y)})")
         elif output_type == 'polars':
-            # polars.dataframe.frame.DataFrame
-            pass
-            # xfail -- currently X is cast to 2D ndarray by validate_data
-            # in transform. this will change in the future, and X will
-            # pass thru in its given state.
-            # assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
-            #     f"output_type is polars, TRFM_X is {type(TRFM_X)}"
-            # xfail -- currently y is cast to 2D ndarray by validate_data
-            # in transform. this will change in the future, and y will
-            # pass thru in its given state.
-            # assert type(TRFM_Y) == type(TEST_Y), \
-            #     (f"output_type is polars, Y output type ({type(TRFM_Y)}) != "
-            #      f"Y input type ({type(TEST_Y)})")
-
+            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
+                f"output_type is polars, TRFM_X is {type(TRFM_X)}"
+            assert type(TRFM_Y) == type(TEST_Y), \
+                (f"output_type is polars, Y output type ({type(TRFM_Y)}) != "
+                 f"Y input type ({type(TEST_Y)})")
+        else:
+            raise Exception
 
 # TEST OUTPUT TYPES ####################################################
 

@@ -88,7 +88,9 @@ def _val_count_threshold(
         if len(_count_threshold) != _n_features_in:
             raise MemoryError
         if not all(map(
-            isinstance, _count_threshold, (numbers.Integral for _ in _count_threshold)
+            isinstance,
+            _count_threshold,
+            (numbers.Integral for _ in _count_threshold)
         )):
             raise MemoryError
         if not all(map(lambda x: x >= 1, _count_threshold)):

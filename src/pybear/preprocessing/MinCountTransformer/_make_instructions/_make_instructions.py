@@ -17,8 +17,8 @@ from .._type_aliases import (
 )
 import numpy.typing as npt
 
+import numbers
 from copy import deepcopy
-import numpy as np
 
 from ._validation._make_instructions_validation import _make_instructions_validation
 
@@ -32,7 +32,7 @@ from ._three_or_more_uniques_not_hab import _three_or_more_uniques_not_hab
 # _make_instructions()
 #   CALLED in MCT BY get_support(), test_threshold(), AND transform()
 # get_support()
-#   CALLED in MCT BY get_feature_names(), inverse_transform() AND transform()
+#   CALLED in MCT BY get_feature_names() AND transform()
 
 
 
@@ -220,6 +220,11 @@ def _make_instructions(
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    # condition count_threshold to be an iterable
+    if isinstance(_count_threshold, numbers.Integral):
+        NEW_COUNT_THRESHOLD = [_count_threshold for _ in range(_n_features_in)]
+    # otherwise already is good validated iterable
+
     _threshold = _threshold or _count_threshold
 
 
@@ -254,7 +259,7 @@ def _make_instructions(
                 _original_dtypes[col_idx] == 'int':
             _delete_instr[col_idx].append('INACTIVE')
         elif _original_dtypes[col_idx] == 'obj' and col_idx in _handle_as_bool:
-            raise ValueError(f"handle_as_bool on str column")
+            raise ValueError(f"handle_as_bool on obj column")
 
 
     for col_idx, COLUMN_UNQ_CT_DICT in deepcopy(_total_counts_by_column).items():
@@ -293,8 +298,8 @@ def _make_instructions(
         if len(COLUMN_UNQ_CT_DICT) == 1:  # SAME VALUE IN THE WHOLE COLUMN
 
             _delete_instr[col_idx] = _one_unique(
-                _delete_instr[col_idx],
-                _threshold,
+                _delete_instr[col_idx],  # pizza get this nonsense out of here
+                NEW_COUNT_THRESHOLD[col_idx],
                 _nan_key,
                 _nan_ct,
                 COLUMN_UNQ_CT_DICT
@@ -305,7 +310,7 @@ def _make_instructions(
             if _original_dtypes[col_idx] == 'bin_int' or col_idx in _handle_as_bool:
                 _delete_instr[col_idx] = _two_uniques_hab(
                     _delete_instr[col_idx],
-                    _threshold,
+                    NEW_COUNT_THRESHOLD[col_idx],
                     _nan_key,
                     _nan_ct,
                     COLUMN_UNQ_CT_DICT,
@@ -314,7 +319,7 @@ def _make_instructions(
             else:
                 _delete_instr[col_idx] = _two_uniques_not_hab(
                     _delete_instr[col_idx],
-                    _threshold,
+                    NEW_COUNT_THRESHOLD[col_idx],
                     _nan_key,
                     _nan_ct,
                     COLUMN_UNQ_CT_DICT
@@ -326,7 +331,7 @@ def _make_instructions(
 
                 _delete_instr[col_idx] = _three_or_more_uniques_hab(
                     _delete_instr[col_idx],
-                    _threshold,
+                    NEW_COUNT_THRESHOLD[col_idx],
                     _nan_key,
                     _nan_ct,
                     COLUMN_UNQ_CT_DICT,
@@ -335,7 +340,7 @@ def _make_instructions(
             else:
                 _delete_instr[col_idx] = _three_or_more_uniques_not_hab(
                     _delete_instr[col_idx],
-                    _threshold,
+                    NEW_COUNT_THRESHOLD[col_idx],
                     _nan_key,
                     _nan_ct,
                     COLUMN_UNQ_CT_DICT
@@ -372,8 +377,9 @@ def _make_instructions(
                              f"OF _delete_instr[{col_idx}]")
 
         if len([_ for _ in _instr if _ == 'DELETE COLUMN']) > 1:
-            raise ValueError(f"'DELETE COLUMN' IS IN _delete_instr[{col_idx}] "
-                             f"MORE THAN ONCE")
+            raise ValueError(
+                f"'DELETE COLUMN' is in _delete_instr[{col_idx}] more than once"
+            )
 
 
     return _delete_instr

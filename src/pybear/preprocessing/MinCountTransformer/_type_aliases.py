@@ -29,12 +29,14 @@ SparseContainer: TypeAlias = Union[
     ss._dia.dia_matrix,
     ss._lil.lil_matrix,
     ss._dok.dok_matrix,
+    ss._bsr.bsr_matrix,
     ss._csr.csr_array,
     ss._csc.csc_array,
     ss._coo.coo_array,
     ss._dia.dia_array,
     ss._lil.lil_array,
-    ss._dok.dok_array
+    ss._dok.dok_array,
+    ss._bsr.bsr_array
 ]
 
 XContainer: TypeAlias = Union[
@@ -58,14 +60,12 @@ InternalSparseContainer: TypeAlias = Union[
 ]
 
 InternalXContainer: TypeAlias = Union[
-    npt.NDArray,
+    npt.NDArray[DataType],
     pd.DataFrame,
     InternalSparseContainer
 ]
 
 
-
-# pizza remember to proliferate new type
 CountThresholdType: TypeAlias = \
     Union[numbers.Integral, Iterable[numbers.Integral]]
 

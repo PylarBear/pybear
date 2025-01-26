@@ -5,19 +5,23 @@
 #
 
 
-from typing import Callable
+
+from typing import Callable, Iterable
 from typing_extensions import Union
+import numpy.typing as npt
 from ._type_aliases import DataType
 
-
+import numbers
+import warnings
 import numpy as np
 
+from ._validation._count_threshold import _val_count_threshold
 
 
 
 def _test_threshold(
     _MCTInstance,
-    _threshold: Union[int, None],
+    _threshold: Union[int, Iterable[int], None],
     _clean_printout: bool
 ) -> None:
 
@@ -37,7 +41,7 @@ def _test_threshold(
     _MCTInstance:
         the instance of MinCountTransformer
     _threshold:
-        int - count_threshold value to test.
+        int - count_threshold value(s) to test.
     _clean_printout:
         bool - Truncate printout to fit on screen.
 
@@ -52,7 +56,7 @@ def _test_threshold(
 
     __make_instructions: Callable[[...], dict[int, list[str, DataType]]]
     __nfi: int
-    __fni: Union[bool, np.ndarray[str]]
+    __fni: Union[npt.NDArray[str], None]
     __tcbc: dict[int, dict[DataType, int]]
 
 
@@ -60,49 +64,63 @@ def _test_threshold(
     __max_recursions = _MCTInstance.max_recursions
     __make_instructions = _MCTInstance._make_instructions
     __nfi = _MCTInstance.n_features_in_
-    __fni = False
-    if hasattr(_MCTInstance, 'feature_names_in_'):
-        __fni = _MCTInstance.feature_names_in_
+    __fni = getattr(_MCTInstance, 'feature_names_in_', None)
     __tcbc = _MCTInstance._total_counts_by_column
+
 
 
     if _threshold is None:
         _threshold = __count_threshold
         # OK FOR 1 OR MORE RECURSIONS
+        if isinstance(_threshold, numbers.Integral):
+            _threshold = [_threshold for _ in range(__nfi)]
     else:
+        _val_count_threshold(_threshold, __nfi)
+
+        # if ct_thresh is int, map to full list. make_instruction()
+        # will do this on its own, this is for display purposes.
+        if isinstance(_threshold, numbers.Integral):
+            _threshold = [_threshold for _ in range(__nfi)]
+
+        if isinstance(__count_threshold, numbers.Integral):
+            __count_threshold = [__count_threshold for _ in range(__nfi)]
+
         if __max_recursions == 1:
-            if int(_threshold) != _threshold or not _threshold >= 2:
-                raise ValueError(f"threshold must be an integer >= 2")
+            if np.any((np.array(_threshold) < 2)):
+                raise ValueError(f"threshold(s) must be integer >= 2. ")
         elif __max_recursions > 1:
-            if _threshold != __count_threshold:
-                raise ValueError(f"can only tests the original threshold "
-                                 f"when max_recursions > 1")
+            if not np.array_equal(_threshold, __count_threshold):
+                raise ValueError(
+                    f"can only test the original threshold "
+                    f"when max_recursions > 1. "
+                )
+
 
     _delete_instr = __make_instructions(_threshold=_threshold)
 
-    print(f'\nThreshold = {_threshold}')
-
-    if __fni is not False:
+    if __fni is not None:
         _pad = min(25, max(map(len, __fni)))
     else:
         _pad = len(str(f"Column {__nfi}"))
+
+    _thresh_pad = min(5, max(map(len, map(str, _threshold))))
 
     _all_rows_deleted = False
     ALL_COLUMNS_DELETED = []
     _ardm = f"\nAll rows will be deleted. "  # all_rows_deleted_msg
     for col_idx, _instr in _delete_instr.items():
         _ardd = False  # all_rows_deleted_dummy
-        if __fni is not False:
+        if __fni is not None:
             _column_name = __fni[col_idx]
         else:
             _column_name = f"Column {col_idx + 1}"
 
         if len(_instr) == 0:
-            print(f"{_column_name[:_pad]}".ljust(_pad + 5), "No operations.")
+            print(f"{_column_name[:_pad]}".ljust(_pad + 5), str(_threshold[col_idx]).ljust(_thresh_pad + 2), "No operations.")
             continue
 
         if _instr[0] == 'INACTIVE':
-            print(f"{_column_name[:_pad]}".ljust(_pad + 5), "Ignored")
+            print(f"{_column_name[:_pad]}".ljust(_pad + 5), str(_threshold[col_idx]).ljust(_thresh_pad + 2), "Ignored")
             continue
 
         _delete_rows, _delete_col = "", ""
@@ -143,7 +161,7 @@ def _test_threshold(
 
             del ctr, _value
 
-        print(f"{_column_name[:_pad]}".ljust(_pad + 5), _delete_rows + _delete_col)
+        print(f"{_column_name[:_pad]}".ljust(_pad + 5), str(_threshold[col_idx]).ljust(_thresh_pad + 2), _delete_rows + _delete_col)
 
     if False not in ALL_COLUMNS_DELETED:
         print(f'\nAll columns will be deleted.')
@@ -152,7 +170,6 @@ def _test_threshold(
 
     del _threshold, _delete_instr, _all_rows_deleted, _ardm, col_idx, _instr
     del _column_name, _delete_rows, _delete_col, _pad, _ardd, ALL_COLUMNS_DELETED
-
 
 
 

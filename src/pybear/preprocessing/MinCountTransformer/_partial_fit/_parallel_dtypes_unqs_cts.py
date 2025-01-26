@@ -5,6 +5,7 @@
 #
 
 
+
 import joblib
 import numpy as np
 import numpy.typing as npt
@@ -14,35 +15,36 @@ from ....utilities._nan_masking import nan_mask_numerical
 
 
 @joblib.wrap_non_picklable_objects
-def _dtype_unqs_cts_processing(
+def _parallel_dtypes_unqs_cts(
     _column_of_X: npt.NDArray[DataType],
-    col_idx: int
+    _n_rows: int,
+    _col_idx: int
 ) -> tuple[str, dict[DataType, int]]:
-
-    # pizza when u revisit this, remember that _column_of_X is now having
-    # any nan-likes changed to np.nan in _column_getter().
-    # *** VERY IMPORTANT *** when ss columns are extracted, only the
-    # data attribute is sent here. so the difference _X.shape[1] - len(_column_of_X)
-    # is the number of zeros in the column.
-    # THIS HASNT BEEN ACCOUNT FOR YET IN THIS FILE!
 
 
     """
-
     Parallelized collection of dtype, uniques, and frequencies from one
     column of X.
 
+    *** VERY IMPORTANT *** when ss columns are extracted, only the data
+    attribute is sent here. Need to infer the number of zeros in the
+    column. The difference  _n_rows - len(_column_of_X) is the number of
+    zeros in the column.
+
     Sometimes np.nan is showing up multiple times in uniques.
-    Troubleshooting has shoown that the condition that causes this is
+    Troubleshooting has shown that the condition that causes this is
     when dtype(_column_of_X) is object. Convert to np.float64 if
-    possible, otherwise get uniques as str.
+    possible, otherwise get uniques as str. As of 25_01_25 all nan-likes
+    are cast to np.nan in _column_getter().
 
 
     Parameters
     ----------
     _column_of_X:
         np.ndarray[DataType] - a single column from X.
-    col_idx:
+    _n_rows:
+        int - the number of samples in X.
+    _col_idx:
         int - the column index _column_of_X occupies in the data. this
         is for error reporting purposes only.
 
@@ -77,12 +79,19 @@ def _dtype_unqs_cts_processing(
     del _column_orig_dtype
 
     try:
-
         UNIQUES = UNIQUES.astype(np.float64)
         # float64 RAISES ValueError ON STR DTYPES, IN THAT CASE MUST BE STR
 
         # if accepted astype, must be numbers from here down
         UNIQUES_NO_NAN = UNIQUES[np.logical_not(nan_mask_numerical(UNIQUES))]
+
+        _has_hidden_zeros = (_n_rows - len(_column_of_X))
+
+        if _has_hidden_zeros:
+            # then is .data attribute from scipy, get the zeros
+            ZERO_ADDON_DICT = {0: _n_rows - len(_column_of_X)}
+        else:
+            ZERO_ADDON_DICT = {}
 
         # determine if is integer
         if np.allclose(
@@ -90,26 +99,27 @@ def _dtype_unqs_cts_processing(
             UNIQUES_NO_NAN.astype(np.int32),
             atol=1e-6
         ):
-            if len(UNIQUES_NO_NAN) <= 2:
-                return 'bin_int', UNQ_CT_DICT
+            if (len(UNIQUES_NO_NAN) + _has_hidden_zeros) <= 2:
+                return 'bin_int', ZERO_ADDON_DICT | UNQ_CT_DICT
             else:
-                return 'int', UNQ_CT_DICT
+                return 'int', ZERO_ADDON_DICT | UNQ_CT_DICT
         else:
-            return 'float', UNQ_CT_DICT
+            return 'float', ZERO_ADDON_DICT | UNQ_CT_DICT
 
     except ValueError:
         # float64 RAISES ValueError ON STR DTYPES, IN THAT CASE MUST BE STR
         # IF np.nan IS IN, IT EXISTS AS A str('nan')
+        # scipy sparse cant get in here, cant take obj dtype
         try:
             UNIQUES.astype(str)
             return 'obj', UNQ_CT_DICT
         except:
             raise TypeError(
-                f"Unknown datatype '{UNIQUES.dtype}' in column index {col_idx}"
+                f"Unknown datatype '{UNIQUES.dtype}' in column index {_col_idx}"
             )
     except:
         raise Exception(
-            f"Removing nans from column index {col_idx} excepted for reason "
+            f"Removing nans from column index {_col_idx} excepted for reason "
             f"other than ValueError"
         )
 

@@ -6,25 +6,21 @@
 
 
 
-# pizza this is a fluid situation
-# need to finalize containers, and in validate_data min rows
-
-
-
 from .._type_aliases import YContainer
 
+import warnings
 import numpy as np
 import pandas as pd
 
 
 
 def _val_y(
-    y: YContainer
+    _y: YContainer
 ) -> None:
 
 
     if not isinstance(
-        y,
+        _y,
         (
             type(None),
             np.ndarray,
@@ -32,11 +28,19 @@ def _val_y(
             pd.core.series.Series
         )
     ):
+        raise TypeError(f'invalid data container for y, {type(_y)}.')
+
+    if isinstance(_y, np.rec.recarray):
         raise TypeError(
-            f'invalid data container for y, {type(y)}. pizza placeholder, '
-            f'finalize allowed containers'
+            f"MCT does not accept numpy recarrays. "
+            f"\npass your data as a standard numpy array."
+        )
+
+    if np.ma.isMaskedArray(_y):
+        warnings.warn(
+            f"MCT does not block numpy masked arrays but they are not tested. "
+            f"\nuse them at your own risk."
         )
 
 
-    # pizza
-    # validate_data() reshapes y to 2D always (for now)
+

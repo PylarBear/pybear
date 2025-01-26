@@ -5,19 +5,21 @@
 #
 
 
+
 from typing_extensions import Union, Literal
 from .._type_aliases import DataType
 
+import numbers
 
 
 
 def _one_unique(
     _instr_list: list,
-    _threshold: int,
+    _threshold: numbers.Integral,
     _nan_key: Union[float, str, Literal[False]],
     _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
-    ) -> list[Union[str, DataType]]:
+) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
 
     """
     Make delete instructions for a column with one unique non-nan value.
@@ -32,13 +34,20 @@ def _one_unique(
         Do not delete impacted rows no matter what the dtype was or what
         kwargs were given, would delete all rows.
 
+
     Parameters
     ----------
-    _instr_list: list, should be empty
-    _threshold: int
-    _nan_key: Union[float, str, Literal[False]]
-    _nan_ct: Union[int, Literal[False]]
-    _COLUMN_UNQ_CT_DICT: dict[DataType, int], cannot be empty
+    _instr_list:
+        list, should be empty
+    _threshold:
+        int - the threshold value for the selected column
+    _nan_key:
+        Union[float, str, Literal[False]]
+    _nan_ct:
+        Union[int, Literal[False]]
+    _COLUMN_UNQ_CT_DICT:
+        dict[DataType, int], cannot be empty
+
 
     Return
     ------

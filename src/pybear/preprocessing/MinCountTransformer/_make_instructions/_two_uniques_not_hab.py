@@ -5,10 +5,10 @@
 #
 
 
+
 from typing_extensions import Union
 from typing import Literal
 from .._type_aliases import DataType
-
 
 
 
@@ -18,7 +18,7 @@ def _two_uniques_not_hab(
     _nan_key: Union[float, str, Literal[False]],
     _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int]
-    ) -> list[Union[str, DataType]]:
+) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
 
 
     """

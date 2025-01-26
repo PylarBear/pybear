@@ -5,23 +5,28 @@
 #
 
 
+
 from typing_extensions import Union
 from .._type_aliases import DataType, TotalCountsByColumnType
+import numpy.typing as npt
 
 import joblib
 import numpy as np
+import pandas as pd
+import scipy.sparse as ss
 
 from ._parallelized_row_masks import _parallelized_row_masks
+from .._partial_fit._column_getter import _column_getter
 
 
 
 def _make_row_and_column_masks(
-    X: np.ndarray[DataType],
+    X: Union[npt.NDArray[DataType], pd.DataFrame, ss.csc_matrix, ss.csc_array],
     _total_counts_by_column: TotalCountsByColumnType,
     _delete_instr: dict[int, Union[str, DataType]],
     _reject_unseen_values: bool,
-    _n_jobs: int
-    ) -> Union[np.ndarray[np.uint8], np.ndarray[np.uint8]]:
+    _n_jobs: Union[int, None]
+) -> Union[npt.NDArray[bool], npt.NDArray[bool]]:
 
     """
     Make a mask that indicates which columns to keep and another mask
@@ -97,7 +102,7 @@ def _make_row_and_column_masks(
                      'n_jobs': _n_jobs}
     ROW_MASKS = joblib.Parallel(**joblib_kwargs)(
         joblib.delayed(_parallelized_row_masks)(
-            X[:, _idx].reshape((-1, 1)),
+            _column_getter(X, _idx).reshape((-1, 1)),
             _total_counts_by_column[_idx],
             _delete_instr[_idx],
             _reject_unseen_values,
