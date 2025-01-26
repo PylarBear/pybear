@@ -88,7 +88,11 @@ def _make_instructions_validation(
         _n_features_in
     )
 
-    _val_count_threshold(_count_threshold, _n_features_in)
+    _val_count_threshold(
+        _count_threshold,
+        ['int', 'Iterable[int]'],
+        _n_features_in
+    )
 
     _val_ignore_float_columns(_ignore_float_columns)
 
@@ -120,6 +124,7 @@ def _make_instructions_validation(
 
     _val_count_threshold(
         _threshold or _count_threshold,
+        ['int', 'Iterable[int]'],
         _n_features_in
     )
 

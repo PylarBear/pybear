@@ -5,6 +5,8 @@
 #
 
 
+
+from typing import Iterable
 from typing_extensions import Union
 from .._type_aliases import (
     XContainer,
@@ -12,7 +14,6 @@ from .._type_aliases import (
     IgnoreColumnsType,
     HandleAsBoolType
 )
-import numpy.typing as npt
 
 from ._X import _val_X
 from ._n_features_in import _val_n_features_in
@@ -42,7 +43,7 @@ def _validation(
     _max_recursions: int,
     _n_jobs: Union[int, None],
     _n_features_in: int,
-    _feature_names_in: Union[npt.NDArray[str], None]
+    _feature_names_in: Union[Iterable[str], None]
 ) -> None:
 
     """
@@ -64,8 +65,8 @@ def _validation(
     _reject_unseen_values: bool
     _max_recursions: int
     _n_jobs: Union[int, None]
-    _n_features_in: Union[int, None]=None
-    _feature_names_in: Union[np.ndarray[str], None]=None
+    _n_features_in: Union[int, None]
+    _feature_names_in: Union[Iterable[str], None]
 
 
     Return
@@ -88,6 +89,7 @@ def _validation(
 
     _val_count_threshold(
         _count_threshold,
+        ['int', 'Iterable[int]'],
         _n_features_in
     )
 

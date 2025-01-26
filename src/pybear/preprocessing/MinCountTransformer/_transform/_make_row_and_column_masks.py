@@ -61,7 +61,8 @@ def _make_row_and_column_masks(
         there are unknown uniques in the column. If True, compare uniques
         in the column against uniques in _COLUMN_UNQ_CT_DICT and raise
         exception if there is a value not previously seen.
-    _n_jobs: int, default=None
+    _n_jobs:
+        Union[int, None] -
         Number of CPU cores used when parallelizing over features during
         fit. None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.

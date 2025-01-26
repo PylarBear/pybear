@@ -5,6 +5,7 @@
 #
 
 
+
 from ..._type_aliases import TotalCountsByColumnType
 import numpy as np
 
@@ -12,7 +13,7 @@ import numpy as np
 
 def _val_total_counts_by_column(
     _total_counts_by_column: TotalCountsByColumnType
-) -> TotalCountsByColumnType:
+) -> None:
 
     """
     Validate _total_counts_by_column is dict, outer keys are integer >= 0,
@@ -55,8 +56,8 @@ def _val_total_counts_by_column(
 
     del err_msg
 
-    err_msg = (f"_total_counts_by_column inner dictionaries must be keyed with "
-               f"data values (DataType)")
+    err_msg = (f"_total_counts_by_column inner dictionaries must be keyed "
+               f"with data values (DataType)")
 
     # inner key (DataType) must be non-iterable
     for _outer_key in __:
@@ -83,9 +84,15 @@ def _val_total_counts_by_column(
     err_msg = (f"_total_counts_by_column inner dictionaries' counts "
                f"must be integers")
 
-    if any(map(lambda x: any(map(isinstance, x, (bool for _ in x))), _inner_values)):
+    if any(map(
+            lambda x: any(map(isinstance, x, (bool for _ in x))),
+            _inner_values
+    )):
         raise TypeError(err_msg)
-    if not all(map(lambda x: all(map(isinstance, x, (int for _ in x))), _inner_values)):
+    if not all(map(
+            lambda x: all(map(isinstance, x, (int for _ in x))),
+            _inner_values
+    )):
         raise TypeError(err_msg)
 
     # inner values must be >= 0
@@ -96,7 +103,6 @@ def _val_total_counts_by_column(
 
 
 
-    return __
 
 
 

@@ -10,7 +10,6 @@ from pybear.preprocessing.MinCountTransformer._validation. \
     _count_threshold import _val_count_threshold
 
 import re
-import numbers
 import numpy as np
 
 import pytest
@@ -20,9 +19,11 @@ import pytest
 class TestValCountThreshold:
 
 
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
     @staticmethod
     @pytest.fixture(scope='module')
-    def err_quip_1():
+    def err_quip_1():                   
         return "is passed as a single integer it must be"
 
 
@@ -30,6 +31,63 @@ class TestValCountThreshold:
     @pytest.fixture(scope='module')
     def err_quip_2():
         return "the length of the iterable also must "
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # other validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # dont need to test _val_n_features, handled elsewhere
+
+    @pytest.mark.parametrize(f'junk_allowed',
+        (-2.7, -1, 0, 1, 2.7, True, None, 'trash', {'a':1}, lambda x: x)
+    )
+    def test_rejects_junk_allowed(self, junk_allowed):
+
+        with pytest.raises(TypeError):
+            _val_count_threshold(
+                _count_threshold=2,
+                _allowed=junk_allowed,
+                _n_features_in=5
+            )
+
+
+    @pytest.mark.parametrize(f'bad_allowed',
+        ([], ['that', 'was', 'trash'], ['INT'], ['ITERABLE[INT]'])
+    )
+    def test_rejects_bad_allowed(self, bad_allowed):
+
+        with pytest.raises(ValueError):
+            _val_count_threshold(
+                _count_threshold=2,
+                _allowed=bad_allowed,
+                _n_features_in=5
+            )
+
+
+    @pytest.mark.parametrize(f'container', (list, set, tuple, np.array))
+    @pytest.mark.parametrize(f'threshold,value',
+        (
+            (2, ['int']),
+            ([2, 2], ['Iterable[int]']),
+            (2, ['int', 'Iterable[int]'])
+        )
+    )
+    def test_accepts_good_allowed(self, container, threshold, value):
+
+        _allowed = container(value)
+
+        if container is np.array:
+            assert isinstance(_allowed, np.ndarray)
+        else:
+            assert isinstance(_allowed, container)
+
+        _val_count_threshold(
+            _count_threshold=threshold,
+            _allowed=_allowed,
+            _n_features_in=2
+        )
+
+    # END other validation ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     @pytest.mark.parametrize('_junk_count_threshold',
@@ -44,6 +102,7 @@ class TestValCountThreshold:
         with pytest.raises(TypeError) as exc:
             _val_count_threshold(
                 _count_threshold=_junk_count_threshold,
+                _allowed=['int', 'Iterable[int]'],
                 _n_features_in=5
             )
 
@@ -71,12 +130,14 @@ class TestValCountThreshold:
             with pytest.raises(TypeError) as exc:
                 _val_count_threshold(
                     _bad_count_threshold,
+                    _allowed=['int', 'Iterable[int]'],
                     _n_features_in=5
                 )
         else:
             with pytest.raises(ValueError) as exc:
                 _val_count_threshold(
                     _bad_count_threshold,
+                    _allowed=['int', 'Iterable[int]'],
                     _n_features_in=5
                 )
 
@@ -102,6 +163,7 @@ class TestValCountThreshold:
         with pytest.raises(ValueError) as exc:
             _val_count_threshold(
                 _bad_count_threshold,
+                _allowed=['int', 'Iterable[int]'],
                 _n_features_in=3
             )
 
@@ -113,15 +175,44 @@ class TestValCountThreshold:
         (2, [1, 1, 2], [10, 20, 30])
     )
     def test_accepts_good_count_threshold(self, _count_threshold):
-        _val_count_threshold(
+
+        out = _val_count_threshold(
             _count_threshold,
+            _allowed=['int', 'Iterable[int]'],
             _n_features_in=3
         )
 
+        assert out is None
 
 
+    @pytest.mark.parametrize('_threshold', (2, [2, 3, 1, 1]))
+    @pytest.mark.parametrize('_allowed',
+        (['int'], ['Iterable[int]'], ['int', 'Iterable[int]'])
+    )
+    def test_rejects_disallowed_dtype(self, _threshold, _allowed):
 
+        will_fail = False
 
+        if isinstance(_threshold, int) and 'int' not in _allowed:
+            will_fail = True
+        if isinstance(_threshold, list) and 'Iterable[int]' not in _allowed:
+            will_fail = True
+
+        if will_fail:
+            with pytest.raises(TypeError):
+                _val_count_threshold(
+                    _threshold,
+                    _allowed=_allowed,
+                    _n_features_in=4
+                )
+        else:
+            out = _val_count_threshold(
+                _threshold,
+                _allowed=_allowed,
+                _n_features_in=4
+            )
+
+            assert out is None
 
 
 
