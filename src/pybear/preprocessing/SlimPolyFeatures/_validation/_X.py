@@ -8,6 +8,7 @@
 
 from .._type_aliases import DataContainer
 
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -63,6 +64,19 @@ def _val_X(
         raise TypeError(
             f"invalid container for X: {type(_X)}. X must be numpy array, "
             f"pandas dataframe, or any scipy sparce matrix / array."
+        )
+
+
+    if isinstance(_X, np.rec.recarray):
+        raise TypeError(
+            f"SlimPoly does not accept numpy recarrays. "
+            f"\npass your data as a standard numpy array."
+        )
+
+    if np.ma.isMaskedArray(_X):
+        warnings.warn(
+            f"SlimPoly does not block numpy masked arrays but they are not "
+            f"tested. \nuse them at your own risk."
         )
 
 

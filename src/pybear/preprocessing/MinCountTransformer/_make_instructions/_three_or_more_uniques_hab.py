@@ -5,6 +5,7 @@
 #
 
 
+
 from typing_extensions import Union, Literal
 from .._type_aliases import DataType
 
@@ -19,7 +20,7 @@ def _three_or_more_uniques_hab(
     _nan_ct: Union[int,  Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
     _delete_axis_0: bool
-) -> list[Union[str, DataType]]:
+) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
 
     """
     Make delete instructions for a column with three or more unique

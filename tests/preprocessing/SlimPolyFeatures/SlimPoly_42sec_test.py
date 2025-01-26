@@ -1077,6 +1077,7 @@ class TestPartialFit:
     # - must have at least 1 or 2 columns, depending on interaction_only
     # - allows nan
     # - validates all instance attrs --- not tested here, see _validation
+    # - does not mutate X
 
 
     @pytest.mark.parametrize('_junk_X',
@@ -1157,6 +1158,8 @@ class TestPartialFit:
         # verify _X_wip does not mutate in partial_fit()
         assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
         assert _X_wip.shape == _X_wip_before_partial_fit.shape
+        if isinstance(_X_wip, np.ndarray):
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
 
         if hasattr(_X_wip_before_partial_fit, 'toarray'):
             assert np.array_equal(

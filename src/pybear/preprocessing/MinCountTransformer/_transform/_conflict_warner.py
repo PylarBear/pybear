@@ -35,7 +35,8 @@ def _conflict_warner(
     """
     Determine if there is any intersection between columns to be handled
     as bool and any of the ignored columns. There is a hierarchy of
-    what takes precedence, pizza finalize this!
+    what takes precedence, ignored columns always supersede handling as
+    boolean.
 
     If handle_as_bool is None or an empty list, bypass all of this.
 
@@ -124,7 +125,6 @@ def _conflict_warner(
                 f"column {q} {', '.join(__)} {z} designated as handle a bool "
                 f"but {z} float and float columns are ignored. \nignore "
                 f"float columns supersedes and the column is ignored. "
-                f"pizza finalize this"
             )
             del q, z
 
@@ -143,7 +143,7 @@ def _conflict_warner(
                 f"column {q} {', '.join(__)} {z} designated as handle a bool "
                 f"but {z} non-binary integer and non-binary integer columns are "
                 f"ignored. \nignore non-binary integer columns supersedes and "
-                f"the column is ignored. pizza finalize this"
+                f"the column is ignored."
             )
             del q, z
 
@@ -162,7 +162,7 @@ def _conflict_warner(
             warnings.warn(
                 f"column {q} {', '.join(__)} {z} designated as handle a bool "
                 f"but {z} is also in 'ignore_columns'. \n'ignore_columns' "
-                f"supersedes and the column is ignored. pizza finalize this"
+                f"supersedes and the column is ignored."
             )
             del q, z
 

@@ -10,6 +10,7 @@ from pybear.preprocessing import MinCountTransformer
 
 from sklearn.datasets import load_breast_cancer
 
+import numpy as np
 import pandas as pd
 
 
@@ -29,7 +30,10 @@ test_cls = MinCountTransformer(
 
 test_cls.partial_fit(X, y)
 
-test_cls.test_threshold(threshold=5, clean_printout=True)
+test_cls.test_threshold(
+    threshold=np.random.randint(2, X.shape[1]+2, X.shape[1]),    # pizza
+    clean_printout=True
+)
 
 print(f'** * ' * 20)
 print()
@@ -44,7 +48,10 @@ test_cls = MinCountTransformer(
 
 test_cls.fit_transform(X, y)
 
-test_cls.test_threshold(threshold=5, clean_printout=True)
+test_cls.test_threshold(
+    threshold=5,
+    clean_printout=True
+)
 
 
 

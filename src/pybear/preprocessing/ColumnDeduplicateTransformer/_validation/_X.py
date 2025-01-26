@@ -8,9 +8,9 @@
 
 from .._type_aliases import DataContainer
 
+import warnings
 import numpy as np
 import pandas as pd
-
 
 
 
@@ -51,7 +51,17 @@ def _val_X(
         )
 
 
+    if isinstance(_X, np.rec.recarray):
+        raise TypeError(
+            f"CDT does not accept numpy recarrays. "
+            f"\npass your data as a standard numpy array."
+        )
 
+    if np.ma.isMaskedArray(_X):
+        warnings.warn(
+            f"CDT does not block numpy masked arrays but they are not tested. "
+            f"\nuse them at your own risk."
+        )
 
 
 

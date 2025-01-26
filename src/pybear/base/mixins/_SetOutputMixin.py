@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
+from pybear.utilities._nan_masking import nan_mask
 
 
 
@@ -165,13 +166,25 @@ class SetOutputMixin:
                     _columns = self.get_feature_names_out().tolist()
                 else:
                     _columns = range(X.shape[1])
+                # polars PyString really hates numpy.nan, but loves None.
+                # all polars dtypes love None! cast all nan-likes to None
+                # before converting numpy and scipy to polars.
                 if isinstance(X, np.ndarray):
+                    X[nan_mask(X)] = None
                     X = pl.DataFrame(X, schema=_columns, orient='row')
                 elif isinstance(X, pd.core.frame.DataFrame):
                     X = pl.from_pandas(X)
                 elif isinstance(X, pl.dataframe.frame.DataFrame):
                     pass
                 elif hasattr(X, 'toarray'):
+                    # unfortunately X must have a .data attribute to recast
+                    # the nans. we are allowing all scipy but at least dok
+                    # doesnt have a .data attr. so convert and convert back.
+                    _og_dtype = type(X)
+                    X = X.tocsr()
+                    X.data[nan_mask(X)] = None
+                    X = _og_dtype(X)
+                    del _og_dtype
                     X = pl.DataFrame(X.toarray(), schema=_columns, orient='row')
                 else:
                     raise TypeError(f"unsupported X container {type(X)}")
