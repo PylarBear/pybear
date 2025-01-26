@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable, Callable, Literal, TypeVar
+from typing import Iterable, Callable, Literal
 from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 
@@ -17,7 +17,7 @@ import scipy.sparse as ss
 
 
 
-DataType = TypeVar('DataType', numbers.Real, str)
+DataType = Union[numbers.Real, str]
 
 YContainer: TypeAlias = Union[npt.NDArray, pd.DataFrame, None]
 
@@ -75,7 +75,11 @@ OriginalDtypesType: TypeAlias = npt.NDArray[
 
 TotalCountsByColumnType: TypeAlias = dict[int, dict[any, int]]
 
-InstructionsType: TypeAlias = dict[int, list[Union[str, DataType]]]
+InstructionsType: TypeAlias = \
+    dict[
+        int,
+        list[Union[DataType, Literal['INACTIVE'], Literal['DELETE COLUMN']]]
+    ]
 
 IgnoreColumnsType: TypeAlias = \
     Union[

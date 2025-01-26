@@ -1,0 +1,85 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
+from ..._type_aliases import InstructionsType
+
+from ..._validation._n_features_in import _val_n_features_in
+
+
+
+def _val_delete_instr(
+    _delete_instr: InstructionsType,
+    _n_features_in: int
+) -> None:
+
+    """
+    Validate that _delete_instr is a dictionary with an entry for each
+    feature in the data. the keys must be the integer column indices of
+    the features and the values must be lists that hold the values to be
+    removed from the data for that column. the individual lists may be
+    empty.
+
+
+    Parameters
+    ----------
+    _delete_instr:
+        dict[int, list[Union[any, Literal['INACTIVE'], Literal['DELETE COLUMN']]]] -
+        the recipe for deleting values and columns from the data derived
+        from the unqs_ct_dict and the parameter values passed to the MCT
+        instance.
+    _n_features_in:
+        int - the number of features in the data.
+
+
+    Return
+    ------
+    -
+        None
+
+
+    """
+
+
+    _err_msg = (
+        f"'_delete_instr' must be a dictionary with an entry for each "
+        f"feature in the data. the keys must be the integer column indices "
+        f"of the features and the values must be lists that hold the "
+        f"values to be removed from the data for that column. "
+    )
+
+
+    _val_n_features_in(_n_features_in)
+
+    if not isinstance(_delete_instr, dict):
+        raise TypeError(_err_msg + f"got outer container {type(_delete_instr)}. ")
+
+    if len(_delete_instr) != _n_features_in:
+        raise ValueError(_err_msg + f"got {len(_delete_instr)} entries.")
+
+    for col_idx, _instr in _delete_instr.items():
+
+        assert isinstance(_instr, list), \
+            _err_msg + f"got col idx {col_idx} value is {type(_instr)}."
+
+        if 'INACTIVE' in _instr and len(_instr) > 1:
+            raise ValueError(f"'INACTIVE' IN len(_delete_instr[{col_idx}]) > 1")
+
+        # 'DELETE COLUMN' MUST ALWAYS BE IN THE LAST POSITION!
+        if 'DELETE COLUMN' in _instr and _instr[-1] != 'DELETE COLUMN':
+            raise ValueError(f"'DELETE COLUMN' is not in the -1 position "
+                             f"of _delete_instr[{col_idx}]")
+
+        if len([_ for _ in _instr if _ == 'DELETE COLUMN']) > 1:
+            raise ValueError(
+                f"'DELETE COLUMN' is in _delete_instr[{col_idx}] more than once"
+            )
+
+
+
+
+

@@ -158,7 +158,8 @@ class SetOutputMixin:
                 elif hasattr(X, 'toarray'):
                     # as of 25_01_24, pandas can only convert csc & csr directly
                     # map all ss to csr then make dataframe
-                    X = pd.DataFrame(X.tocsr(), columns=_columns)
+                    # # 25_01_26 with .tocsr() is excepting on py3.9.
+                    X = pd.DataFrame(X.toarray(), columns=_columns)
                 else:
                     raise TypeError(f"unsupported X container {type(X)}")
             elif output_container == 'polars':

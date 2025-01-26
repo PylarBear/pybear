@@ -21,6 +21,7 @@ import numbers
 from copy import deepcopy
 
 from ._validation._make_instructions_validation import _make_instructions_validation
+from ._validation._delete_instr import _val_delete_instr
 
 from ._one_unique import _one_unique
 from ._two_uniques_hab import _two_uniques_hab
@@ -249,6 +250,7 @@ def _make_instructions(
     _delete_instr = {}
     for col_idx in range(_n_features_in):
         _delete_instr[col_idx] = []
+        # pizza add something that makes it skip if threshold == 1
         if col_idx in _ignore_columns:
             _delete_instr[col_idx].append('INACTIVE')
         elif _total_counts_by_column[col_idx] == {}:
@@ -355,31 +357,7 @@ def _make_instructions(
         pass
 
 
-    # _validation that was formerly in the main MCT module, now simply
-    # just run it here every time
-
-    if not isinstance(_delete_instr, dict):
-        raise TypeError(f"_delete_instr must be a dictionary")
-
-    if len(_delete_instr) != _n_features_in:
-        raise ValueError(
-            f"_delete_instr must have an entry for each column in X"
-        )
-
-    for col_idx, _instr in _delete_instr.items():
-
-        if 'INACTIVE' in _instr and len(_instr) > 1:
-            raise ValueError(f"'INACTIVE' IN len(_delete_instr[{col_idx}]) > 1")
-
-        # 'DELETE COLUMN' MUST ALWAYS BE IN THE LAST POSITION!
-        if 'DELETE COLUMN' in _instr and _instr[-1] != 'DELETE COLUMN':
-            raise ValueError(f"'DELETE COLUMN' IS NOT IN THE -1 POSITION "
-                             f"OF _delete_instr[{col_idx}]")
-
-        if len([_ for _ in _instr if _ == 'DELETE COLUMN']) > 1:
-            raise ValueError(
-                f"'DELETE COLUMN' is in _delete_instr[{col_idx}] more than once"
-            )
+    _val_delete_instr(_delete_instr, _n_features_in)
 
 
     return _delete_instr

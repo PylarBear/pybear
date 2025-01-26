@@ -5,7 +5,7 @@
 #
 
 # pizza see if this can be combined with handle_as_bool_v_dtypes
-
+# pizza what about when threshold==1? same as ignoring, right?
 
 from .._type_aliases import (
     OriginalDtypesType,

@@ -142,12 +142,12 @@ class TestValTotalCountsByColumns:
 
 
     def test_accepts_good_tcbc(self, good_tcbc):
-        assert _val_total_counts_by_column(good_tcbc) == good_tcbc
+        assert _val_total_counts_by_column(good_tcbc) is None
 
 
     def test_accepts_empty_inner_dicts(self):
         good_tcbc = {0: {'a':25, 'b':10}, 1: {}, 2:{}, 3: {0: 17, 1:28}}
-        assert _val_total_counts_by_column(good_tcbc) == good_tcbc
+        assert _val_total_counts_by_column(good_tcbc) is None
 
 
 

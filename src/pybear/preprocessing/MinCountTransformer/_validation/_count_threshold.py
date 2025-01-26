@@ -6,6 +6,8 @@
 
 
 
+from typing import Literal, Iterable
+from typing_extensions import Union
 from .._type_aliases import CountThresholdType
 
 import numbers
@@ -17,22 +19,32 @@ from ._n_features_in import _val_n_features_in
 
 def _val_count_threshold(
     _count_threshold: CountThresholdType,
+    _allowed: Iterable[Union[Literal['int', 'Iterable[int]']]],
     _n_features_in: int
 ) -> None:
 
     """
-    Validate count_threshold is non-bool integer >= 2, or a 1D list-like
+    Validate a threshold is non-bool integer >= 2, or a 1D list-like
     of non-bool integers >= 1 with at least one value >= 2 and length
-    that equals '_n_features_in'.
+    that equals '_n_features_in'. Validate the passed dtype is in the
+    allowed dtypes. _count_threshold must exist, cannot be None.
 
 
     Parameters
     ----------
     _count_threshold:
-        Union[int, Iterable[int]]: the minimum frequency a value must
-        have within a column in order to not be removed.
+        Union[int, Iterable[int]] - integer >= 2 or list-like of
+        integers of shape (n_features, ) the minimum frequency a value
+        must have within a column in order to not be removed. if
+        list-like, the length must equal the number of features in the
+        data.
+    _allowed:
+        Iterable[Union[Literal['int', 'Iterable[int]']] - must be 1D
+        list-like of literal strings. indicates the dtype(s) of threshold
+        that is/are allowed for this validation session. cannot be empty,
+        can contain either 'int', 'Iterable[int]' or both.
     _n_features_in:
-        int: the number of features in the data.
+        int - the number of features in the data.
 
 
     Return
@@ -43,12 +55,38 @@ def _val_count_threshold(
 
     """
 
+    # other validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     _val_n_features_in(_n_features_in)
 
-    err_msg1 = (f"\nwhen 'count_threshold' is passed as a single integer it "
-               f"must be >= 2. ")
+    _err_msg = (
+        f"'_allowed' must be 1D list-like that contains string 'int' "
+        f"or 'Iterable[int]' or both, case-sensitive, cannot be empty."
+    )
+    try:
+        iter(_allowed)
+        if isinstance(_allowed, (str, dict)):
+            raise Exception
+        if not all(map(isinstance, _allowed, (str for _ in _allowed))):
+            raise Exception
+        if len(_allowed) not in [1, 2]:
+            raise UnicodeError
+        for _ in _allowed:
+            if _ not in ['int', 'Iterable[int]']:
+                raise UnicodeError
+    except UnicodeError:
+        raise ValueError(_err_msg + f" got {_allowed}.")
+    except:
+        raise TypeError(_err_msg + f" got {_allowed}.")
+    del _err_msg
 
+    # END other validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # number handling -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    err_msg1 = (f"\nwhen 'count_threshold' is passed as a single integer it "
+               f"must be non-boolean >= 2. ")
+
+    is_num = False
     try:
         float(_count_threshold)
         if isinstance(_count_threshold, bool):
@@ -58,7 +96,8 @@ def _val_count_threshold(
         if not _count_threshold >= 2:
             raise IndexError
         # if get to this point, we are good to go as integer
-        return
+        is_num = True
+        _count_threshold = int(_count_threshold)
     except MemoryError:
         # # if MemoryError, means bad number
         raise TypeError(err_msg1)
@@ -69,8 +108,9 @@ def _val_count_threshold(
         # if not MemoryError or IndexError, excepted for not number,
         # must be Iterable to pass, but could be other junk
         pass
+    # END number handling -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
+    # iter handling -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     err_msg2 = (
         f"\nwhen 'count_threshold' is passed as an iterable it must be a 1D "
         f"list-like of integers where any value can be >= 1, but at least "
@@ -78,12 +118,14 @@ def _val_count_threshold(
         f"match the number of features in the data. "
     )
 
+    is_iter = False
     try:
+        if is_num:
+            raise UnboundLocalError
         iter(_count_threshold)
         if isinstance(_count_threshold, (str, dict)):
             raise UnicodeError
-        _count_threshold = np.array(_count_threshold)
-        if len(_count_threshold.shape) != 1:
+        if len(np.array(list(_count_threshold)).shape) != 1:
             raise MemoryError
         if len(_count_threshold) != _n_features_in:
             raise MemoryError
@@ -97,20 +139,36 @@ def _val_count_threshold(
             raise MemoryError
         if not any(map(lambda x: x >= 2, _count_threshold)):
             raise MemoryError
+        # if passes all these check, good to go as iterable
+        is_iter = True
+    except UnboundLocalError:
+        pass
     except UnicodeError:
         # if UnicodeError is str or dict iterable
         raise TypeError(err_msg2)
     except MemoryError:
-        # if MemoryError, then bad shape or not integers, not all >=1, not one >= 2
+        # if MemoryError, bad shape, bad len, non-int, not all >=1, not one >= 2
         raise ValueError(err_msg2)
     except:
-        # if not UnicodeError or MemoryError, then is not a float and is not iterable
+        # if not Unicode or MemoryError, then is not a float and is not iterable
         raise TypeError(err_msg1 + err_msg2 + f"got {type(_count_threshold)}.")
 
+    # END iter handling -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
+    assert not (is_num and is_iter)
 
+    if is_num and 'int' not in _allowed:
+        raise TypeError(
+            f"'threshold' was passed as a non-iterable number but that "
+            f"dtype is not allowed."
+        )
 
+    if is_iter and 'Iterable[int]' not in _allowed:
+        raise TypeError(
+            f"'threshold' was passed as a iterable of thresholds but that "
+            f"dtype is not allowed."
+        )
 
 
 

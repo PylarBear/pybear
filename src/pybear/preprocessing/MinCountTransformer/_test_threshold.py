@@ -12,7 +12,6 @@ import numpy.typing as npt
 from ._type_aliases import DataType
 
 import numbers
-import warnings
 import numpy as np
 
 from ._validation._count_threshold import _val_count_threshold
@@ -75,7 +74,11 @@ def _test_threshold(
         if isinstance(_threshold, numbers.Integral):
             _threshold = [_threshold for _ in range(__nfi)]
     else:
-        _val_count_threshold(_threshold, __nfi)
+        _val_count_threshold(
+            _threshold,
+            ['int', 'Iterable[int]'],
+            __nfi
+        )
 
         # if ct_thresh is int, map to full list. make_instruction()
         # will do this on its own, this is for display purposes.
@@ -98,6 +101,7 @@ def _test_threshold(
 
     _delete_instr = __make_instructions(_threshold=_threshold)
 
+    # old _delete_instr repr v v v v v v v v v v v v v v v v v v v v v v v v
     if __fni is not None:
         _pad = min(25, max(map(len, __fni)))
     else:

@@ -6,7 +6,7 @@
 
 
 
-from typing import Literal, Iterable
+from typing import Literal, Iterable, Optional
 from typing_extensions import Union
 from .._type_aliases import IgnoreColumnsType, HandleAsBoolType
 
@@ -27,7 +27,7 @@ def _val_ignore_columns_handle_as_bool(
         Union[Literal['callable', 'Iterable[str]', 'Iterable[int]', 'None']],
     ],
     _n_features_in: int,
-    _feature_names_in: Union[Iterable[str], None]=None
+    _feature_names_in: Optional[Union[Iterable[str], None]]=None
 ) -> None:
 
     """
@@ -58,7 +58,7 @@ def _val_ignore_columns_handle_as_bool(
     _n_features_in:
         int - the number of features in the data.
     _feature_names_in:
-        Union[Iterable[str], None]=None - if the MCT instance was fitted
+        Optional[Union[Iterable[str], None]]=None - if the MCT instance was fitted
         on a data-bearing object that had a header (like a pandas
         dataframe) then this is a 1D list-like of strings. Otherwise, is
         None.

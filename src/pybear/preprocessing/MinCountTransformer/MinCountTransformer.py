@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 #
 import numbers
-from typing import Iterable
+from typing import Iterable, Optional
 from typing_extensions import Union, Self
 from ._type_aliases import (
     CountThresholdType,
@@ -258,7 +258,7 @@ class MinCountTransformer(
         values are subject to count threshold rules and possible removal.
 
     ignore_columns:
-        Union[Iterable[str], Iterable[int], callable(X), None],
+        Optional[Union[Iterable[str], Iterable[int], callable(X), None]],
         default=None - Excludes indicated features from the thresholding
         operation. A one-dimensional vector of integer index positions
         or feature names (if data formats containing column names were
@@ -270,14 +270,16 @@ class MinCountTransformer(
         ENSURE THAT THE CALLABLE PRODUCES CONSISTENT OUTPUTS FOR EACH
         BATCH OF DATA.
 
-    ignore_nan : bool, default=True
+    ignore_nan:
+        Optional[bool], default=True -
         If True, nan is ignored in all features and passes through the
         :term: transform operation; it would only be removed collateraly
         by removal of examples for causes dictated by other features. If
         False, frequency for both numpy.nan and 'nan' as string (not case
         sensitive) are calculated and assessed against count_threshold.
 
-    handle_as_bool: Union[Iterable[str], Iterable[int], callable(X), None],
+    handle_as_bool:
+        Optional[Union[Iterable[str], Iterable[int], callable(X), None]],
         default=None - For the indicated features, non-zero values within
         the feature are treated as if they are the same value. A
         one-dimensional vector of integer index positions or feature
@@ -315,7 +317,8 @@ class MinCountTransformer(
         The number of times MCT repeats its algorithm on passed data.
         Only available for :meth: fit_transform.
 
-    n_jobs: int, default=None
+    n_jobs:
+        Optional[Union[int, None]], default=None
         Number of CPU cores used when parallelizing over features while
         gathering uniques and counts during :term: fit and when
         parallelizing over features while building masks during :term:
@@ -419,17 +422,17 @@ class MinCountTransformer(
 
     def __init__(
         self,
-        count_threshold:CountThresholdType=3,
+        count_threshold:Optional[CountThresholdType]=3,
         *,
-        ignore_float_columns:bool=True,
-        ignore_non_binary_integer_columns:bool=True,
-        ignore_columns:IgnoreColumnsType=None,
-        ignore_nan:bool=True,
-        handle_as_bool:HandleAsBoolType=None,
-        delete_axis_0:bool=False,
-        reject_unseen_values:bool=False,
-        max_recursions:int=1,
-        n_jobs:Union[int, None]=None
+        ignore_float_columns:Optional[bool]=True,
+        ignore_non_binary_integer_columns:Optional[bool]=True,
+        ignore_columns:Optional[IgnoreColumnsType]=None,
+        ignore_nan:Optional[bool]=True,
+        handle_as_bool:Optional[HandleAsBoolType]=None,
+        delete_axis_0:Optional[bool]=False,
+        reject_unseen_values:Optional[bool]=False,
+        max_recursions:Optional[int]=1,
+        n_jobs:Optional[Union[int, None]]=None
     ):
 
 
@@ -472,7 +475,7 @@ class MinCountTransformer(
     def partial_fit(
         self,
         X: XContainer,
-        y: YContainer=None
+        y: Optional[YContainer]=None
     ) -> Self:
 
         """Online accrual of uniques and counts for later thresholding.
@@ -489,11 +492,10 @@ class MinCountTransformer(
             their frequencies, used for later thresholding along the
             feature axis.
 
-        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series, None] of shape
-            (n_samples, n_outputs), or (n_samples,), default=None -
-            Target relative to X for classification or regression; None
-            for unsupervised learning.
+        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None]
+            of shape (n_samples, n_outputs), or (n_samples,), default=
+            None - Target relative to X for classification or regression;
+            None for unsupervised learning.
 
         Return
         ------
@@ -654,7 +656,7 @@ class MinCountTransformer(
     def fit(
         self,
         X: XContainer,
-        y: YContainer=None
+        y: Optional[YContainer]=None
     ) -> Self:
 
         """Determine the uniques and their frequencies to be used for
@@ -670,7 +672,7 @@ class MinCountTransformer(
             feature axis.
 
         y:
-            Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None]
+            Optional[Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None]]
             of shape (n_samples, n_outputs), or (n_samples,),
             default=None - Target relative to X; None for unsupervised
             learning.
@@ -693,7 +695,7 @@ class MinCountTransformer(
     def fit_transform(
         self,
         X: XContainer,
-        y: YContainer=None
+        y: Optional[YContainer]=None
     ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
         """
@@ -708,9 +710,8 @@ class MinCountTransformer(
             their frequencies and to be transformed by rules created
             from those frequencies.
 
-        y : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
-            n_outputs), or (n_samples,), default=None - Target values
+        y : Optional[Union[numpy.ndarray, pandas.DataFrame, pandas.Series]]
+            of shape (n_samples, n_outputs), or (n_samples,), default=None - Target values
             (None for unsupervised transformations).
 
         Return
@@ -742,7 +743,7 @@ class MinCountTransformer(
 
     def get_feature_names_out(
         self,
-        input_features:Union[Iterable[str], None]=None
+        input_features:Optional[Union[Iterable[str], None]]=None
     ):
         """
         Get the feature names for the output of :method: transform.
@@ -751,7 +752,7 @@ class MinCountTransformer(
         Parameters
         ----------
         input_features :
-            array-like of str or None, default=None - Externally provided
+            Optional[Iterable[str], None]], default=None - Externally provided
             feature names for the fitted data, not the transformed data.
 
             If input_features is None:
@@ -1012,8 +1013,8 @@ class MinCountTransformer(
 
     def test_threshold(
         self,
-        threshold: Union[CountThresholdType, None]=None,
-        clean_printout:bool=True
+        threshold:Optional[Union[CountThresholdType, None]]=None,
+        clean_printout:Optional[bool]=True
     ) -> None:
 
         """
@@ -1030,7 +1031,7 @@ class MinCountTransformer(
         Parameters
         ----------
         threshold:
-            Union[int, Iterable[int], None], default=None -
+            Optional[Union[int, Iterable[int], None]], default=None -
             count_threshold value(s) to test.
 
         clean_printout:
@@ -1062,7 +1063,7 @@ class MinCountTransformer(
     def transform(
         self,
         X: XContainer,
-        y: YContainer=None,
+        y: Optional[YContainer]=None,
         copy=False
     ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
@@ -1414,7 +1415,10 @@ class MinCountTransformer(
             return X_tr
 
 
-    def _make_instructions(self, _threshold=None):
+    def _make_instructions(
+        self,
+        _threshold:Optional[Union[int, Iterable[int], None]]=None
+    ):
 
         # must be before _make_instructions()
         check_is_fitted(self)
