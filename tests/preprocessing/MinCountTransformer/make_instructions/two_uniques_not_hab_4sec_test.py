@@ -32,7 +32,6 @@ class TestValidation:
 
         with pytest.raises(ValueError):
             _two_uniques_not_hab(
-                _instr_list=[],
                 _threshold=5,
                 _nan_key=_nan_key,
                 _nan_ct=_nan_ct,
@@ -51,7 +50,6 @@ class TestValidation:
             _unq_ct_dict = {'a': 634, 'b': 312}
 
         _two_uniques_not_hab(
-            _instr_list=[],
             _threshold=5,
             _nan_key=False,
             _nan_ct=False,
@@ -81,7 +79,6 @@ class TestTwoUniquesNonInt:
         _copy_unq_ct_dict = deepcopy(_unq_ct_dict)
 
         out = _two_uniques_not_hab(
-            _instr_list=[],
             _threshold=_threshold,
             _nan_key=_nan_key,
             _nan_ct=_nan_ct,
@@ -126,7 +123,6 @@ class TestTwoUniquesBinInt:
         _copy_unq_ct_dict = deepcopy(_unq_ct_dict)
 
         out = _two_uniques_not_hab(
-            _instr_list=[],
             _threshold=_threshold,
             _nan_key=_nan_key,
             _nan_ct=_nan_ct,

@@ -91,24 +91,36 @@ def _make_row_and_column_masks(
 
     # MAKE ROW DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    # conditionally build _ACTIVE_COL_IDXS while looking for 'DELETE ALL'
+    # in any of the column _instr. if there is a 'DELETE ALL' just make
+    # a mask of all ones and forget about _ACTIVE_COL_IDXS.
+    ROW_MASKS = []
     _ACTIVE_COL_IDXS = []
     for col_idx, _instr in _delete_instr.items():
-        if 'INACTIVE' in _instr or len(_instr) == 0:
+        if 'DELETE ALL' in _instr:
+            ROW_MASKS.append(np.ones(X.shape[0], dtype=np.uint8))
+            break
+        elif 'INACTIVE' in _instr or len(_instr) == 0:
             continue
         else:
             _ACTIVE_COL_IDXS.append(col_idx)
 
-    # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-    joblib_kwargs = {'prefer': 'processes', 'return_as': 'list',
-                     'n_jobs': _n_jobs}
-    ROW_MASKS = joblib.Parallel(**joblib_kwargs)(
-        joblib.delayed(_parallelized_row_masks)(
-            _column_getter(X, _idx).reshape((-1, 1)),
-            _total_counts_by_column[_idx],
-            _delete_instr[_idx],
-            _reject_unseen_values,
-            _idx
-        ) for _idx in _ACTIVE_COL_IDXS)
+    if any(ROW_MASKS):
+        # if it exists, just flow the mask that deletes all rows past
+        # this searching step.
+        pass
+    else:
+        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
+        joblib_kwargs = {'prefer': 'processes', 'return_as': 'list',
+                         'n_jobs': _n_jobs}
+        ROW_MASKS = joblib.Parallel(**joblib_kwargs)(
+            joblib.delayed(_parallelized_row_masks)(
+                _column_getter(X, _idx).reshape((-1, 1)),
+                _total_counts_by_column[_idx],
+                _delete_instr[_idx],
+                _reject_unseen_values,
+                _idx
+            ) for _idx in _ACTIVE_COL_IDXS)
 
     del _ACTIVE_COL_IDXS, joblib_kwargs
 

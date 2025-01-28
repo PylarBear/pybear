@@ -14,7 +14,6 @@ import numpy as np
 
 
 def _two_uniques_hab(
-    _instr_list: list,
     _threshold: int,
     _nan_key: Union[float, str, Literal[False]],
     _nan_ct: Union[int, Literal[False]],
@@ -56,7 +55,6 @@ def _two_uniques_hab(
 
     Parameters
     ----------
-    _instr_list: list, should be empty
     _threshold: int
     _nan_key: Union[float, str, Literal[False]]
     _nan_ct: Union[int, Literal[False]]
@@ -71,8 +69,6 @@ def _two_uniques_hab(
 
     """
 
-    if not len(_instr_list) == 0:
-        raise ValueError(f"'_instr_list' must be empty")
 
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
@@ -91,15 +87,12 @@ def _two_uniques_hab(
 
     # SINCE HANDLING AS BOOL, ONLY NEED TO KNOW WHAT IS NON-ZERO AND
     # IF ROWS WILL BE DELETED OR KEPT
-    UNQS = np.fromiter(_COLUMN_UNQ_CT_DICT.keys(), dtype=np.float64)
-    CTS = np.fromiter(_COLUMN_UNQ_CT_DICT.values(), dtype=np.float64)
-    NON_ZERO_MASK = UNQS.astype(bool)
-    NON_ZERO_UNQS = UNQS[NON_ZERO_MASK]
-    total_non_zeros = CTS[NON_ZERO_MASK].sum()
-    total_zeros = CTS[np.logical_not(NON_ZERO_MASK)].sum()
-    del UNQS, CTS, NON_ZERO_MASK
+
+    total_zeros = _COLUMN_UNQ_CT_DICT.get(0, 0)
+    total_non_zeros = sum(_COLUMN_UNQ_CT_DICT.values()) - total_zeros
 
 
+    _instr_list = []
     if not _nan_ct:  # EITHER IGNORING NANS OR NONE IN FEATURE
 
         if _delete_axis_0:
@@ -107,9 +100,9 @@ def _two_uniques_hab(
                 _instr_list.append(0)
 
             if total_non_zeros and total_non_zeros < _threshold:
-                for k in NON_ZERO_UNQS:
-                    _instr_list.append(k)
-                del k
+                UNQS = np.fromiter(_COLUMN_UNQ_CT_DICT.keys(), dtype=np.float64)
+                _instr_list += UNQS[UNQS.astype(bool)].tolist()
+                del UNQS
 
         if (total_zeros < _threshold) or (total_non_zeros < _threshold):
             _instr_list.append('DELETE COLUMN')
@@ -122,9 +115,9 @@ def _two_uniques_hab(
                 _instr_list.append(0)
 
             if total_non_zeros and total_non_zeros < _threshold:
-                for k in NON_ZERO_UNQS:
-                    _instr_list.append(k)
-                del k
+                UNQS = np.fromiter(_COLUMN_UNQ_CT_DICT.keys(), dtype=np.float64)
+                _instr_list += UNQS[UNQS.astype(bool)].tolist()
+                del UNQS
 
             if _nan_ct and _nan_ct < _threshold:
                 _instr_list.append(_nan_key)
@@ -143,7 +136,7 @@ def _two_uniques_hab(
                 _instr_list.append(_nan_key)
 
 
-    del NON_ZERO_UNQS, total_zeros, total_non_zeros
+    del total_zeros, total_non_zeros
 
     return _instr_list
 

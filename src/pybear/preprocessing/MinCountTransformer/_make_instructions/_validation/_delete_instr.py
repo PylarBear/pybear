@@ -69,15 +69,42 @@ def _val_delete_instr(
         if 'INACTIVE' in _instr and len(_instr) > 1:
             raise ValueError(f"'INACTIVE' IN len(_delete_instr[{col_idx}]) > 1")
 
-        # 'DELETE COLUMN' MUST ALWAYS BE IN THE LAST POSITION!
-        if 'DELETE COLUMN' in _instr and _instr[-1] != 'DELETE COLUMN':
-            raise ValueError(f"'DELETE COLUMN' is not in the -1 position "
-                             f"of _delete_instr[{col_idx}]")
+        # 'DELETE ALL' MUST ALWAYS BE SECOND TO LAST AND 'DELETE COLUMN'
+        # MUST ALSO BE IN!
+        if 'DELETE ALL' in _instr:
 
-        if len([_ for _ in _instr if _ == 'DELETE COLUMN']) > 1:
-            raise ValueError(
-                f"'DELETE COLUMN' is in _delete_instr[{col_idx}] more than once"
-            )
+            if _instr[-2] != 'DELETE ALL':
+                raise ValueError(
+                    f"'DELETE ALL' is not in the -2 position of "
+                    f"_delete_instr[{col_idx}]"
+                )
+
+            if len([_ for _ in _instr if _ == 'DELETE ALL']) > 1:
+                raise ValueError(
+                    f"'DELETE ALL' is in _delete_instr[{col_idx}] more "
+                    f"than once"
+                )
+
+            if 'DELETE COLUMN' not in _instr:
+                raise ValueError(
+                    f"'DELETE ALL' is in _delete_instr[{col_idx}] but "
+                    f"'DELETE COLUMN' is not"
+                )
+
+        # 'DELETE COLUMN' MUST ALWAYS BE IN THE LAST POSITION!
+        if 'DELETE COLUMN' in _instr:
+
+            if _instr[-1] != 'DELETE COLUMN':
+                raise ValueError(
+                    f"'DELETE COLUMN' is not in the -1 position of "
+                    f"_delete_instr[{col_idx}]"
+                )
+
+            if len([_ for _ in _instr if _ == 'DELETE COLUMN']) > 1:
+                raise ValueError(
+                    f"'DELETE COLUMN' is in _delete_instr[{col_idx}] more "
+                    f"than once"
+                )
 
 
 
