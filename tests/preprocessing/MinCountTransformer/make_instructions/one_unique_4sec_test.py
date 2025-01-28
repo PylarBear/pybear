@@ -4,14 +4,14 @@
 # License: BSD 3 clause
 #
 
-import pytest
 
-import numpy as np
 
 from pybear.preprocessing.MinCountTransformer._make_instructions. \
     _one_unique import _one_unique
 
+import numpy as np
 
+import pytest
 
 
 
@@ -30,7 +30,6 @@ class TestOneUnique:
 
 
         out = _one_unique(
-                _instr_list=[],
                 _threshold=_threshold,
                 _nan_key=_nan_key,
                 _nan_ct=_nan_ct,

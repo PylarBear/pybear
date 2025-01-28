@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._transform._handle_as_bool_v_dtypes \
+from pybear.preprocessing.MinCountTransformer._validation._handle_as_bool_v_dtypes \
     import _val_handle_as_bool_v_dtypes
 
 import numpy as np
@@ -65,11 +65,7 @@ class TestHandleAsBoolVDtypes:
             np.array(['int', 'int', 'obj'])
         )
 
-        if isinstance(hab, type(None)):
-            assert out is None
-        else:
-            assert isinstance(out, np.ndarray)
-            assert np.array_equal(out, hab)
+        assert out is None
 
 
     def test_warns_excepts_hab_on_obj(self):
@@ -99,9 +95,7 @@ class TestHandleAsBoolVDtypes:
             tuple(['int', 'int', 'int', 'obj'])
         )
 
-        assert isinstance(out, np.ndarray)
-        # -1 is ignored and hab, so that falls out of returned hab
-        assert np.array_equal(out, [-4, -2])
+        assert out is None
 
 
     def test_accept_hab_on_numeric(self):
@@ -112,8 +106,7 @@ class TestHandleAsBoolVDtypes:
             set(('int', 'float', 'bin_int', 'obj'))
         )
 
-        assert isinstance(out, np.ndarray)
-        assert np.array_equal(out, [0, 1, 2])
+        assert out is None
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -123,8 +116,7 @@ class TestHandleAsBoolVDtypes:
             np.array(['int', 'float', 'bin_int', 'obj'])
         )
 
-        assert isinstance(out, np.ndarray)
-        assert np.array_equal(out, [-4, -3, -2])
+        assert out is None
 
 
 

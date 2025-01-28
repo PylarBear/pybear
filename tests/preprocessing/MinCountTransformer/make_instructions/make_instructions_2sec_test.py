@@ -156,8 +156,10 @@ class TestMakeInstructions:
 
 
 
-    def test_ignore_all_columns_returns_all_inactive(self, good_tcbc,
-                                                     good_og_dtypes):
+    def test_ignore_all_columns_returns_all_inactive(
+        self, good_tcbc, good_og_dtypes
+    ):
+
         out = _make_instructions(
             _count_threshold=100,
             _ignore_float_columns=True,
@@ -213,7 +215,8 @@ class TestMakeInstructions:
 
         assert out == {idx: ['INACTIVE'] for idx in range(4)}
 
-    def test_ignore_all_binint_returns_all_inactive(self, good_og_dtypes):
+
+    def test_ignore_all_nonbinint_returns_all_inactive(self, good_og_dtypes):
 
         _len = range(len(good_og_dtypes))
 
@@ -233,6 +236,34 @@ class TestMakeInstructions:
         )
 
         assert out == {idx: ['INACTIVE'] for idx in range(4)}
+
+
+    def test_DELETE_ALL_msg_for_all_floats(self):
+
+        _tcbc = {}
+        for _ in range(4):
+            _tcbc[_] = {
+                np.random.uniform(0, 1): np.random.randint(0, 10) for i in range(10)
+            }
+
+        out = _make_instructions(
+            _count_threshold=100,
+            _ignore_float_columns=False,
+            _ignore_non_binary_integer_columns=True,
+            _ignore_columns=[],
+            _ignore_nan=False,
+            _handle_as_bool=[],
+            _delete_axis_0=False,
+            _original_dtypes=np.array(['float' for _ in range(4)]),
+            _n_features_in=4,
+            _feature_names_in=None,
+            _total_counts_by_column=_tcbc,
+            _threshold=None
+        )
+
+        for _key in out:
+            assert out[_key][-2] == 'DELETE ALL'
+            assert out[_key][-1] == 'DELETE COLUMN'
 
 
     @pytest.mark.parametrize('tcbc',
@@ -286,8 +317,24 @@ class TestMakeInstructions:
         assert out == {0: ['a', 'c', np.nan, 'DELETE COLUMN']}
 
 
+        _tcbc = {0: {1.969: 3, 2.718: 2, 3.141: 3}}
 
+        out = _make_instructions(
+            _count_threshold=5,
+            _ignore_float_columns=False,
+            _ignore_non_binary_integer_columns=False,
+            _ignore_columns=[],
+            _ignore_nan=False,
+            _handle_as_bool=[],
+            _delete_axis_0=False,
+            _original_dtypes=np.array(['float']),
+            _n_features_in=1,
+            _feature_names_in=None,
+            _total_counts_by_column=_tcbc,
+            _threshold=None
+        )
 
+        assert out == {0: ['DELETE ALL', 'DELETE COLUMN']}
 
 
 

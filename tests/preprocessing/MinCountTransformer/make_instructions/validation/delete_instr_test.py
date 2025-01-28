@@ -65,6 +65,7 @@ class TestValDeleteInstr:
 
     def test_miscellaneous(self):
 
+        # INACTIVE -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # 'INACTIVE' is not the only entry for a column
         with pytest.raises(ValueError):
             _val_delete_instr(
@@ -76,8 +77,45 @@ class TestValDeleteInstr:
             {i: ['INACTIVE'] for i in range(3)},
             _n_features_in=3
         )
+        # END INACTIVE -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
+        # DELETE ALL -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # 'DELETE ALL' MUST ALWAYS BE IN THE SECOND TO LAST POSITION!
+        with pytest.raises(ValueError):
+            _val_delete_instr(
+                {i:['DELETE ALL', 0, 1, 2] for i in range(3)},
+                _n_features_in=3
+            )
+
+        _val_delete_instr(
+            {i:[0, 1, 'DELETE ALL', 'DELETE COLUMN'] for i in range(3)},
+            _n_features_in=3
+        )
+
+        # multiple 'DELETE ALL' for a column
+        with pytest.raises(ValueError):
+            _val_delete_instr(
+                {i:['DELETE ALL', 'DELETE ALL'] for i in range(5)},
+                _n_features_in=5
+            )
+
+        _val_delete_instr(
+            {i:['DELETE ALL', 'DELETE COLUMN'] for i in range(5)},
+            _n_features_in=5
+        )
+
+        # DELETE ALL but no DELETE COLUMN
+        with pytest.raises(ValueError):
+            _val_delete_instr(
+                {i:[0, 1, 'DELETE ALL'] for i in range(3)},
+                _n_features_in=3
+            )
+
+
+        # END DELETE ALL -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # DELETE COLUMN -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # 'DELETE COLUMN' MUST ALWAYS BE IN THE LAST POSITION!
         with pytest.raises(ValueError):
             _val_delete_instr(
@@ -101,6 +139,12 @@ class TestValDeleteInstr:
             {i:['DELETE COLUMN'] for i in range(5)},
             _n_features_in=5
         )
+
+        # END DELETE COLUMN -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
+
+
 
 
 

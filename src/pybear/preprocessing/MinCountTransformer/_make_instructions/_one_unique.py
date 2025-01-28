@@ -14,7 +14,6 @@ import numbers
 
 
 def _one_unique(
-    _instr_list: list,
     _threshold: numbers.Integral,
     _nan_key: Union[float, str, Literal[False]],
     _nan_ct: Union[int, Literal[False]],
@@ -37,8 +36,6 @@ def _one_unique(
 
     Parameters
     ----------
-    _instr_list:
-        list, should be empty
     _threshold:
         int - the threshold value for the selected column
     _nan_key:
@@ -56,8 +53,6 @@ def _one_unique(
 
     """
 
-    if not len(_instr_list) == 0:
-        raise ValueError(f"'_instr_list' must be empty")
 
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
@@ -73,14 +68,14 @@ def _one_unique(
         # if not ign nan and has nans (it must be the only value in the column!)
         # 24_06_11_14_37_00, if nan ct < thresh, do not delete the rows
         # if _nan_ct < _threshold:
-        #     _instr_list.append(_nan_key)
+        #     _instr_list = [_nan_key]
 
-        _instr_list.append('DELETE COLUMN')
+        _instr_list = ['DELETE COLUMN']
 
 
     elif not _nan_ct:
         # if ignoring nan or there are no nans
-        _instr_list.append('DELETE COLUMN')
+        _instr_list = ['DELETE COLUMN']
 
 
     return _instr_list

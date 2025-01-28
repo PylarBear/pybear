@@ -33,7 +33,6 @@ class TestValidation:
 
         with pytest.raises(ValueError):
             _two_uniques_hab(
-                _instr_list=[],
                 _threshold=5,
                 _nan_key=_nan_key,
                 _nan_ct=_nan_ct,
@@ -52,7 +51,6 @@ class TestValidation:
             _unq_ct_dict = {2.718: 34, 3.14: 7}
 
         _two_uniques_hab(
-            _instr_list=[],
             _threshold=5,
             _nan_key=False,
             _nan_ct=False,
@@ -65,7 +63,6 @@ class TestValidation:
     def test_rejects_str_data(self, _delete_axis_0):
         with pytest.raises(TypeError):
             _two_uniques_hab(
-                _instr_list=[],
                 _threshold=5,
                 _nan_key=False,
                 _nan_ct=False,
@@ -95,7 +92,6 @@ class TestTwoUniquesHAB_NonInt:
         _copy_unq_ct_dict = deepcopy(_unq_ct_dict)
 
         out = _two_uniques_hab(
-            _instr_list=[],
             _threshold=_threshold,
             _nan_key=_nan_key,
             _nan_ct=_nan_ct,
@@ -163,7 +159,6 @@ class TestTwoUniquesBinInt:
         _copy_unq_ct_dict = deepcopy(_unq_ct_dict)
 
         out = _two_uniques_hab(
-            _instr_list=[],
             _threshold=_threshold,
             _nan_key=_nan_key,
             _nan_ct=_nan_ct,

@@ -4,14 +4,15 @@
 # License: BSD 3 clause
 #
 
-import pytest
 
-from copy import deepcopy
-import numpy as np
 
 from pybear.preprocessing.MinCountTransformer._make_instructions. \
     _three_or_more_uniques_not_hab import _three_or_more_uniques_not_hab
 
+from copy import deepcopy
+import numpy as np
+
+import pytest
 
 
 
@@ -30,7 +31,6 @@ class TestValidation:
 
         with pytest.raises(ValueError):
             _three_or_more_uniques_not_hab(
-                _instr_list=[],
                 _threshold=5,
                 _nan_key=_nan_key,
                 _nan_ct=_nan_ct,
@@ -48,7 +48,6 @@ class TestValidation:
     def test_accepts_good_unq_ct_dict(self, _unq_ct_dict):
 
         _three_or_more_uniques_not_hab(
-            _instr_list=[],
             _threshold=5,
             _nan_key=False,
             _nan_ct=False,
@@ -79,7 +78,6 @@ class TestThreeOrMoreUniquesNotHandleAsBool:
         _copy_unq_ct_dict = deepcopy(_unq_ct_dict)
 
         out = _three_or_more_uniques_not_hab(
-            _instr_list=[],
             _threshold=_threshold,
             _nan_key=_nan_key,
             _nan_ct=_nan_ct,
@@ -88,15 +86,22 @@ class TestThreeOrMoreUniquesNotHandleAsBool:
 
 
         _instr_list = []
-        for unq, ct in _unq_ct_dict.items():
-            if ct < _threshold:
-                _instr_list.append(unq)
+        _UNQS = np.fromiter(_unq_ct_dict.keys(), dtype=object)
+        _CTS = np.fromiter(_unq_ct_dict.values(), dtype=np.uint32)
+        if np.all((_CTS < _threshold)):
+            _instr_list.append('DELETE ALL')
+        else:
+            for unq, ct in _unq_ct_dict.items():
+                if ct < _threshold:
+                    _instr_list.append(unq)
+        del _UNQS, _CTS
 
         _delete_column = False
-        if len(_instr_list) >= len(_unq_ct_dict) - 1:
+        if 'DELETE ALL' in _instr_list or \
+                len(_instr_list) >= len(_unq_ct_dict) - 1:
             _delete_column = True
 
-        if _nan_ct is not False and _nan_ct < _threshold:
+        if 'DELETE ALL' not in _instr_list and _nan_ct and _nan_ct < _threshold:
             _instr_list.append(_nan_key)
 
         if _delete_column:

@@ -3,6 +3,9 @@
 #
 # License: BSD 3 clause
 #
+
+
+
 import numbers
 from typing import Iterable, Optional
 from typing_extensions import Union, Self
@@ -24,22 +27,23 @@ import pandas as pd
 import scipy.sparse as ss
 import joblib
 
-from ._validation._y import _val_y
-from ._validation._validation import _validation
-
 from ._make_instructions._make_instructions import _make_instructions
 from ._partial_fit._column_getter import _column_getter
 from ._partial_fit._original_dtypes_merger import _original_dtypes_merger
 from ._partial_fit._parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
 from ._partial_fit._tcbc_merger import _tcbc_merger
-from ._test_threshold import _test_threshold
+from ._print_instructions._repr_instructions import _repr_instructions
 from ._transform._conflict_warner import _conflict_warner
-from ._transform._handle_as_bool_v_dtypes import _val_handle_as_bool_v_dtypes
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
 from ._transform._NDArrayify_integerize_ic_hab import _NDArrayify_integerize_ic_hab
 from ._transform._tcbc_update import _tcbc_update
+from ._validation._handle_as_bool_v_dtypes import _val_handle_as_bool_v_dtypes
+from ._validation._validation import _validation
+from ._validation._y import _val_y
 
 from .docs.mincounttransformer_docs import mincounttransformer_docs
+
+from ...utilities._feature_name_mapper import feature_name_mapper
 
 from ...base import (
     FeatureMixin,
@@ -54,6 +58,9 @@ from ...base import (
     validate_data
 )
 
+# pizza, after set_params_test is done, when all the tests there prove out that
+# the og params are not mutated, see if all the deepcopy can come out.
+
 
 
 class MinCountTransformer(
@@ -65,6 +72,7 @@ class MinCountTransformer(
     SetParamsMixin
 ):
 
+    # pizza say something about the load of huge float columns on _unq_ct_dict
 
     """
     Remove examples (and/or features) that contain values whose feature-
@@ -625,6 +633,8 @@ class MinCountTransformer(
 
         # END GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** *
 
+        # pizza streamline these 3 operations, they are all used in sequence
+        # in partial_fit and transform. and pieces are used in print_instructions.
         self._ignore_columns, self._handle_as_bool = \
             _NDArrayify_integerize_ic_hab(
                 X,
@@ -640,10 +650,11 @@ class MinCountTransformer(
             self._ignore_columns,
             self.ignore_float_columns,
             self.ignore_non_binary_integer_columns,
+            self.count_threshold,
             self.n_features_in_
         )
 
-        self._handle_as_bool = _val_handle_as_bool_v_dtypes(
+        _val_handle_as_bool_v_dtypes(
             self._handle_as_bool,
             self._ignore_columns,
             self._original_dtypes,
@@ -857,13 +868,6 @@ class MinCountTransformer(
 
         check_is_fitted(self)
 
-        # pizza hashed this 25_01_21 to get the tests passing. not sure if this is kosher.
-        # if callable(self.ignore_columns) or callable(self.handle_as_bool):
-        #     raise ValueError(
-        #         f"if ignore_columns or handle_as_bool is callable, get_support() "
-        #         f"is only available after a transform is done."
-        #     )
-
         # must use _make_instructions() in order to construct the column
         # support mask after fit and before a transform. otherwise, if an
         # attribute _column_support were assigned to COLUMN_KEEP_MASK in
@@ -879,6 +883,105 @@ class MinCountTransformer(
             return np.array(COLUMNS)
         elif indices is True:
             return np.arange(self.n_features_in_)[COLUMNS].astype(np.uint32)
+
+
+    def print_instructions(
+        self,
+        *,
+        clean_printout:bool=True,
+        max_print_len:int=100
+    ):
+
+        # pizza add this method to the main docs
+
+        # pizza make test for this
+
+        """
+        Display instructions generated for the current fitted state,
+        subject to the current settings of the parameters. The printout
+        will indicate what rows / columns will be deleted, and if all
+        columns or all rows will be deleted. Use :method: set_params to
+        change MCTs parameters and see the impact on the transformation.
+
+        If the instance has multiple recursions (i.e., :param:
+        max_recursions is > 1, parameters cannot be changed via :method:
+        set_params, but the net effect of the actual transformation that
+        was performed is displayed (remember that multiple recursions
+        can only be accessed through :method: fit_transform). The results
+        are displayed as a single set of instructions, as if to perform
+        the cumulative effect of the recursions in a single step.
+
+
+        Parameters
+        ----------
+        _clean_printout:
+            bool - Truncate printout to fit on screen.
+        _max_print_len:
+            int - the maximum number of characters to display per line.
+
+
+        Return
+        ------
+        -
+            None
+
+
+        """
+
+
+        check_is_fitted(self)
+
+        # params can be changed after fit & before calling this by set_params().
+        # need to validate params.
+        # _make_instructions() handles the validation of almost all the params
+        # in __init__ except max_recursions, reject_unseen_params, and n_jobs.
+        # max_recursions cannot be changed in set_params once fitted. None of
+        # these 3 are used here.
+
+        # if ic/hab were changed to Iterable[str] in set_params, need to map
+        # to Iterable[int].
+
+        # pizza streamline these operations, they are all used in sequence
+        # in partial_fit and transform. and pieces are used in print_instructions.
+
+        self._ignore_columns = feature_name_mapper(
+            feature_names=self.ignore_columns,
+            feature_names_in=getattr(self, 'feature_names_in_', None),
+            positive=True
+        )
+
+        self._handle_as_bool = feature_name_mapper(
+            feature_names=self.ignore_columns,
+            feature_names_in=getattr(self, 'feature_names_in_', None),
+            positive=True
+        )
+
+        _conflict_warner(
+            self._original_dtypes,
+            self._handle_as_bool,
+            self._ignore_columns,
+            self.ignore_float_columns,
+            self.ignore_non_binary_integer_columns,
+            self.count_threshold,
+            self.n_features_in_
+        )
+
+        _val_handle_as_bool_v_dtypes(
+            self._handle_as_bool,
+            self._ignore_columns,
+            self._original_dtypes,
+            _raise=True
+        )
+
+        _repr_instructions(
+            _delete_instr=self._make_instructions(),  # dont pass threshold here
+            _total_counts_by_column=self._total_counts_by_column,
+            _thresholds=self.count_threshold,
+            _n_features_in=self.n_features_in_,
+            _feature_names_in=getattr(self, 'feature_names_in_', None),
+            _clean_printout=clean_printout,
+            _max_print_len=max_print_len
+        )
 
 
     def reset(self):
@@ -905,6 +1008,9 @@ class MinCountTransformer(
         try: del self._original_dtypes
         except: pass
 
+        try: del self._row_support
+        except: pass
+
 
     def score(self, X, y=None) -> None:
         """
@@ -923,22 +1029,38 @@ class MinCountTransformer(
         Set the parameters of the MCT instance.
 
         Pass the exact parameter name and its value as a keyword argument
-        to the set_params method call. Or use ** dictionary unpacking on
-        a dictionary keyed with exact parameter names and the new
+        to the 'set_params' method call. Or use ** dictionary unpacking
+        on a dictionary keyed with exact parameter names and the new
         parameter values as the dictionary values. Valid parameter keys
         can be listed with get_params(). Note that you can directly set
         the parameters of MinCountTransformer.
 
-        Once MCT is fitted, only MCT :params: 'reject_unseen_values',
-        and 'n_jobs' can be changed via MCT :method: set_params. All
-        other parameters are blocked. To use different parameters without
-        creating a new instance of MCT, call MCT :method: reset on the
-        instance, otherwise create a new MCT instance.
+        Once MCT is fitted, MCT :method: set_params blocks some
+        parameters from being set to ensure the validity of results.
+        In these cases, to use different parameters without creating a
+        new instance of MCT, call MCT :method: 'reset' on the instance.
+        Otherwise, create a new MCT instance.
+
+        'max_recursions' is always blocked when MCT is in a fitted state.
+
+        If MCT was fit with :param: 'max_recursions' >= 2  (only a
+        fit_transform could be done), all parameters are blocked. To
+        break the block, call :method: 'reset' before calling :method:
+        'set_params'. All information learned from any prior
+        'fit_transform' will be lost.
+
+        Also, when MCT has been fitted, :params: 'ignore_columns' and
+        'handle_as_bool' cannot be set to a callable (they can, however,
+        be changed to None, Iterable[int], or Iterable[str]). To set
+        these parameters to a callable when MCT is in a fitted state,
+        call :method: 'reset' then use :method: 'set_params' to set them
+        to a callable. All information learned from any prior fit(s)
+        will be lost when calling :method: 'reset'.
 
 
         Parameters
         ----------
-        params:
+        **params:
             dict[str, any] - MinCountTransformer parameters.
 
 
@@ -949,25 +1071,21 @@ class MinCountTransformer(
 
         """
 
-        # pizza revisit this, unblock everything except ignore_columns & hab
-
-
-        # IF CHANGING PARAMS WHEN max_recursions IS > 1, RESET THE
-        # INSTANCE, BLOWING AWAY INTERNAL STATES ASSOCIATED WITH PRIOR
-        # FITS, BECAUSE ONLY fit_transform() IS ALLOWED. THIS BYPASSES
-        # THE BLOCKS THAT WOULD BE IMPOSED IF THAT INSTANCE ALREADY
-        # HAD A fit_transform DONE ON IT.
-        if self.max_recursions > 1:
-            self.reset()
-            super().set_params(**params)
-            return self
-
         
-        # if this is fitted, impose blocks on most params.
+        # if MCT is fitted with max_recursions==1, allow everything but
+        # block 'ignore_columns' and 'handle_as_bool' from being set to
+        # callables.
+        # if max_recursions is >= 2, block everything.
         # if not fitted, allow everything to be set.
         if is_fitted(self):
 
-            allowed_params = ('reject_unseen_values', 'n_jobs')
+            if self.max_recursions > 1:
+                raise ValueError(
+                    f":method: 'set_params' blocks all parameters from being "
+                    f"set when MCT is fitted with :param: 'max_recursions' "
+                    f">= 2. \nto set new parameter values, call :method: "
+                    f"'reset' then call :method: 'set_params'."
+                )
 
             _valid_params = {}
             _invalid_params = {}
@@ -976,32 +1094,47 @@ class MinCountTransformer(
             for param in params:
                 if param not in _spf_params:
                     _garbage_params[param] = params[param]
-                elif param in allowed_params:
-                    _valid_params[param] = params[param]
-                else:
+                elif param == 'max_recursions':
                     _invalid_params[param] = params[param]
+                elif param in ['ignore_columns', 'handle_as_bool'] \
+                        and callable(params[param]):
+                    _invalid_params[param] = params[param]
+                else:
+                    _valid_params[param] = params[param]
 
             if any(_garbage_params):
                 # let super.set_params raise
                 super().set_params(**params)
 
-            if any(_invalid_params):
+            if 'max_recursions' in _invalid_params:
                 warnings.warn(
-                    "Once this transformer is fitted, only :params: 'n_jobs' "
-                    "and 'reject_unseen_values' can be changed via :method: "
-                    "set_params. \nAll other parameters are blocked. \nThe "
-                    f"currently passed parameters {', '.join(list(_invalid_params))} "
-                    "have been blocked, but any valid parameters that were "
-                    "passed have been set. \nTo use different parameters "
-                    "without creating a new instance of this transformer class, "
-                    "call :method: reset on this instance, otherwise create a "
-                    "new instance of MCT."
+                    "Once MCT is fitted, :param: 'max_recursions' cannot be "
+                    "changed. To change this setting, call :method: 'reset' or "
+                    "create a new instance of MCT. 'max_recursions' has not "
+                    "been changed but any other valid parameters passed have "
+                    "been set."
+                )
+
+            if any(
+                [_ in _invalid_params for _ in ['ignore_columns', 'handle_as_bool']]
+            ):
+                warnings.warn(
+                    "Once MCT is fitted, :params: 'ignore_columns' and "
+                    "'handle_as_bool' cannot be set to callables. \nThe "
+                    "currently passed parameter(s) "
+                    f"{', '.join(list(_invalid_params))} has/have been "
+                    "skipped, but any other valid parameters that were "
+                    "passed have been set. \nTo set "
+                    "ignore_columns/handle_as_bool to callables without "
+                    "creating a new instance of MCT, call :method: 'reset' "
+                    "on this instance then set the callable parameter "
+                    "values (all results from previous fits will be lost). "
+                    "Otherwise, create a new instance of MCT."
                 )
 
             super().set_params(**_valid_params)
 
-            del allowed_params, _valid_params, _invalid_params
-            del _garbage_params, _spf_params
+            del _valid_params, _invalid_params, _garbage_params, _spf_params
 
         else:
 
@@ -1009,54 +1142,6 @@ class MinCountTransformer(
 
 
         return self
-
-
-    def test_threshold(
-        self,
-        threshold:Optional[Union[CountThresholdType, None]]=None,
-        clean_printout:Optional[bool]=True
-    ) -> None:
-
-        """
-        Display instructions generated for the current fitted state,
-        subject to the passed threshold and the current settings of other
-        parameters. The printout will indicate what rows / columns will
-        be deleted, and if all columns or all rows will be deleted.
-
-        If the instance has multiple recursions, the results are displayed
-        as a single set of instructions, as if to perform the cumulative
-        effect of the recursions in a single step.
-
-
-        Parameters
-        ----------
-        threshold:
-            Optional[Union[int, Iterable[int], None]], default=None -
-            count_threshold value(s) to test.
-
-        clean_printout:
-            bool, default=True - Truncate printout to fit on screen.
-
-
-        Return
-        ------
-        -
-            None
-
-        """
-
-        check_is_fitted(self)
-        # pizza figure out what to do here
-        if callable(self.ignore_columns) or callable(self.handle_as_bool):
-            raise ValueError(f"if ignore_columns or handle_as_bool is "
-                f"callable, get_support() is only available after a "
-                f"transform is done.")
-
-        _test_threshold(
-            self,
-            _threshold=threshold,
-            _clean_printout=clean_printout
-        )
 
 
     @SetOutputMixin._set_output_for_transform
@@ -1250,16 +1335,16 @@ class MinCountTransformer(
             self._ignore_columns,
             self.ignore_float_columns,
             self.ignore_non_binary_integer_columns,
+            self.count_threshold,
             self.n_features_in_
         )
 
-        self._handle_as_bool = \
-            _val_handle_as_bool_v_dtypes(
-                self._handle_as_bool,
-                self._ignore_columns,
-                self._original_dtypes,
-                _raise=True
-            )
+        _val_handle_as_bool_v_dtypes(
+            self._handle_as_bool,
+            self._ignore_columns,
+            self._original_dtypes,
+            _raise=True
+        )
         # END handle_as_bool -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # END VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs ** **

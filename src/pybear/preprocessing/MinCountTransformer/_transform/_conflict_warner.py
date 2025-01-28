@@ -4,22 +4,24 @@
 # License: BSD 3 clause
 #
 
-# pizza see if this can be combined with handle_as_bool_v_dtypes
-# pizza what about when threshold==1? same as ignoring, right?
 
+# pizza see if this can be combined with handle_as_bool_v_dtypes
 from .._type_aliases import (
     OriginalDtypesType,
     InternalIgnoreColumnsType,
     InternalHandleAsBoolType
 )
 from typing_extensions import Union
+from typing import Iterable
 
 import warnings
 import numpy as np
 
+from .._validation._count_threshold import _val_count_threshold
 from .._validation._n_features_in import _val_n_features_in
 from .._validation._original_dtypes import _val_original_dtypes
-from .._validation._ignore_columns_handle_as_bool import _val_ignore_columns_handle_as_bool
+from .._validation._ignore_columns_handle_as_bool import \
+    _val_ignore_columns_handle_as_bool
 
 
 
@@ -29,6 +31,7 @@ def _conflict_warner(
     _ignore_columns: Union[InternalIgnoreColumnsType, None],
     _ignore_float_columns: bool,
     _ignore_non_binary_integer_columns: bool,
+    _threshold: Union[int, Iterable[int]],
     _n_features_in: int
 ) -> None:
 
@@ -60,6 +63,9 @@ def _conflict_warner(
     _ignore_non_binary_integer_columns:
         bool - whether to exclude non-binary integer columns from the
         thresholding rules.
+    _threshold:
+        Union[int, Iterable[int]] - the minimum frequency threshold(s)
+        to be applied to the columns of the data.
     _n_features_in:
         int - the number of features in the data.
 
@@ -72,7 +78,7 @@ def _conflict_warner(
 
     """
 
-    # basic validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     _val_n_features_in(_n_features_in)
 
@@ -98,7 +104,15 @@ def _conflict_warner(
         _feature_names_in=None
     )
 
-    # END basic validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    _val_count_threshold(
+        _threshold,
+        ['int', 'Iterable[int]'],
+        _n_features_in
+    )
+
+
+    # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
 
     if _handle_as_bool is None or len(_handle_as_bool) == 0:
         return
@@ -148,6 +162,27 @@ def _conflict_warner(
             del q, z
 
         del _non_bin_int_columns, __
+
+
+    # if _threshold passed as int, must be >= 2, and no columns are
+    # 'ignored' in this way. but if passed as list, then some can be 1.
+    if isinstance(_threshold, int):
+        pass
+    else:  # must be Iterable[int] because of validation
+        __ = np.array(_threshold)
+        __ = np.arange(len(__))[(__ == 1)]
+        __ = list(map(str, set(_handle_as_bool).intersection(__)))
+        if np.any(__):
+            q = "index" if len(__) == 1 else "indices"
+            z = "is" if len(__) == 1 else "are"
+            warnings.warn(
+                f"column {q} {', '.join(__)} {z} designated as handle as bool "
+                f"but the threshold(s) {z} set to 1, which ignores the column. "
+                f"\nignore supersedes and the column is ignored."
+            )
+            del q, z
+
+        del __
 
 
     if _ignore_columns is None:

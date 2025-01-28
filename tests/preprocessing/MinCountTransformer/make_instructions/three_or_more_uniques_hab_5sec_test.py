@@ -34,7 +34,6 @@ class TestValidation:
 
         with pytest.raises(ValueError):
             _three_or_more_uniques_hab(
-                _instr_list=[],
                 _threshold=5,
                 _nan_key=_nan_key,
                 _nan_ct=_nan_ct,
@@ -54,7 +53,6 @@ class TestValidation:
             _unq_ct_dict = {2.718: 34, 3.14: 7, 8.834: 51}
 
         _three_or_more_uniques_hab(
-            _instr_list=[],
             _threshold=5,
             _nan_key=False,
             _nan_ct=False,
@@ -67,7 +65,6 @@ class TestValidation:
     def test_rejects_str_data(self, _delete_axis_0):
         with pytest.raises(TypeError):
             _three_or_more_uniques_hab(
-                _instr_list=[],
                 _threshold=5,
                 _nan_key=False,
                 _nan_ct=False,
@@ -102,7 +99,6 @@ class TestThreeOrMoreUniquesHandleAsBool:
         _copy_unq_ct_dict = deepcopy(_unq_ct_dict)
 
         out = _three_or_more_uniques_hab(
-            _instr_list=[],
             _threshold=_threshold,
             _nan_key=_nan_key,
             _nan_ct=_nan_ct,

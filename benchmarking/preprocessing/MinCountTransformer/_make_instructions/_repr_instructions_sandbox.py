@@ -10,7 +10,7 @@
 from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
     MinCountTransformer
 
-from pybear.preprocessing.MinCountTransformer._make_instructions. \
+from pybear.preprocessing.MinCountTransformer._print_instructions. \
     _repr_instructions import _repr_instructions
 
 from sklearn.datasets import load_breast_cancer
@@ -52,7 +52,8 @@ _repr_instructions(
     _thresholds=[_threshold for _ in range(X.shape[1])],
     _n_features_in=X.shape[1],
     _feature_names_in=X.columns,
-    _clean_printout=True
+    _clean_printout=True,
+    _max_print_len=100
 )
 
 print(f'** * ' * 20)

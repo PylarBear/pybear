@@ -4,7 +4,9 @@
 # License: BSD 3 clause
 #
 
-
+# pizza dont forget to put print_instructions() in here
+# pizza check if get_support() and get_row_support() are tested in here
+# pizza dont forget about set_params() blocks (max_recursions, ic, hab)
 
 from uuid import uuid4
 
@@ -190,8 +192,9 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** _check_is_fitted()
 
         # ** test_threshold()
-        with pytest.raises(NotFittedError):
-            TestCls.test_threshold()
+        # pizza replace with print_instructions
+        # with pytest.raises(NotFittedError):
+        #     TestCls.test_threshold()
 
         # fit()
         # fit_transform()
@@ -259,8 +262,9 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** _check_is_fitted()
 
         # ** test_threshold()
-        TestCls.test_threshold()
-        print(f'^^^ mask building instructions should be displayed above ^^^')
+        # pizza replace with print_instructions
+        # TestCls.test_threshold()
+        # print(f'^^^ mask building instructions should be displayed above ^^^')
 
         # fit()
         # fit_transform()
@@ -438,8 +442,9 @@ class Test1RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         # ** test_threshold()
         # SHOULD BE THE SAME AS AFTER FIT
-        TransformedTestCls.test_threshold()
-        print(f'^^^ mask building instructions should be displayed above ^^^')
+        # pizza replace with print_instructions
+        # TransformedTestCls.test_threshold()
+        # print(f'^^^ mask building instructions should be displayed above ^^^')
 
         # fit()
         # fit_transform()
@@ -670,8 +675,9 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         # ** _check_is_fitted()
 
         # ** test_threshold()
-        with pytest.raises(AttributeError):
-            TwoRecurTestCls.test_threshold()
+        # pizza replace with print_instructions
+        # with pytest.raises(AttributeError):
+        #     TwoRecurTestCls.test_threshold()
 
         # fit()
         # fit_transform()
@@ -790,11 +796,13 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
 
         del _ONE_delete_instr, _TWO_delete_instr, _, __, col_idx, unq
 
-        TwoRecurTestCls.test_threshold(clean_printout=True)
-        print(f'^^^ mask building instructions should be displayed above ^^^')
+        # pizza replace with print_instructions
+        # TwoRecurTestCls.test_threshold(clean_printout=True)
+        # print(f'^^^ mask building instructions should be displayed above ^^^')
 
-        with pytest.raises(ValueError):
-            TwoRecurTestCls.test_threshold(2 * _args[0])
+        # pizza test_threshold came out 25_01_27_18_15_00
+        # with pytest.raises(ValueError):
+        # TwoRecurTestCls.test_threshold(2 * _args[0])
 
         # fit()
         # fit_transform()
@@ -1023,7 +1031,10 @@ class Test2RecursionAccessMethodsBeforeAndAfterFitAndTransform:
         assert TwoRecurTestCls._output_transform == 'pandas'
 
         # set_params()
-        TwoRecurTestCls.set_params(count_threshold=7)
+        # pizza 25_01_27_10_12_00 set_params now blocks all params and
+        # raises ValueError when fitted w max_recursions >= 2
+        with pytest.raises(ValueError):
+            TwoRecurTestCls.set_params(count_threshold=7)
 
 
         # transform()

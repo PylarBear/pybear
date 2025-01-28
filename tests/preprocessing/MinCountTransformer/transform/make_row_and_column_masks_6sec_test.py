@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -26,7 +27,6 @@ from pybear.preprocessing.MinCountTransformer._transform. \
 class TestMakeRowAndColumnMasks:
 
     # accuracy of row masks is tested in test_parallelized_row_masks
-
 
 
     @staticmethod
@@ -118,16 +118,25 @@ class TestMakeRowAndColumnMasks:
             for col_idx, column_unq_ct_dict in any_tcbc.items():
 
                 _INSTR[col_idx] = []
-                for unq, ct in column_unq_ct_dict.items():
-                    if ct < _thresh:
-                        _INSTR[col_idx].append(unq)
+                _UNQS = np.fromiter(column_unq_ct_dict.keys(), dtype=object)
+                _CTS = np.fromiter(column_unq_ct_dict.values(), dtype=np.uint32)
 
-                if len(_INSTR[col_idx]) >= len(column_unq_ct_dict) - 1:
+                if np.all((_CTS < _thresh)):
+                    _INSTR[col_idx].append('DELETE ALL')
+                else:
+                    _INSTR[col_idx] += _UNQS[(_CTS < _thresh)].tolist()
+
+                del _UNQS, _CTS
+
+                if 'DELETE ALL' in _INSTR[col_idx] \
+                        or len(_INSTR[col_idx]) >= len(column_unq_ct_dict) - 1:
                     _INSTR[col_idx].append('DELETE COLUMN')
 
             return _INSTR
 
         return foo
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     @pytest.mark.parametrize('reject_unseen', (True, False))
@@ -179,11 +188,14 @@ class TestMakeRowAndColumnMasks:
                         UNQ_MASK = X[:, col_idx] == unq
                         if np.sum(UNQ_MASK) == 0:
                             UNQ_MASK = X[:, col_idx].astype(str) == str(unq)
-                            assert np.sum(UNQ_MASK) > 0
+                        assert np.sum(UNQ_MASK) > 0
 
                         _DELETE_ROW_MASK[UNQ_MASK] = 1
 
                         del UNQ_MASK
+
+                if len(_mock_instr[col_idx]) == len(UNQ_CT_DICT):
+                    _mock_instr[col_idx].append('DELETE ALL')
 
                 if len(_mock_instr[col_idx]) >= len(UNQ_CT_DICT) - 1:
                     _mock_instr[col_idx].append('DELETE COLUMN')

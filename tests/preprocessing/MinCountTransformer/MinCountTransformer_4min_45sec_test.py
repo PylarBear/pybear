@@ -2143,8 +2143,10 @@ class TestAllColumnsWillBeDeleted:
         TestCls = MinCountTransformer(*_args, **_kwargs)
         TestCls.fit(TEST_X, TEST_Y)
 
-        TestCls.test_threshold()
-        print(f'^^^ mask building instructions should be displayed above ^^^')
+        # pizza probably separate this out, make a new folder since this is a method directly on MCT
+        # pizza replace with print_instructions
+        # TestCls.test_threshold()
+        # print(f'^^^ mask building instructions should be displayed above ^^^')
 
         with pytest.raises(ValueError):
             TestCls.transform(TEST_X, TEST_Y)
@@ -2170,8 +2172,10 @@ class TestAllRowsWillBeDeleted:
         TestCls = MinCountTransformer(*_args, **_kwargs)
         TestCls.fit(TEST_X, TEST_Y)
 
-        TestCls.test_threshold()
-        print(f'^^^ mask building instructions should be displayed above ^^^')
+        # pizza probably separate this out, make a new folder since this is a method directly on MCT
+        # pizza replace with print_instructions
+        # TestCls.test_threshold()
+        # print(f'^^^ mask building instructions should be displayed above ^^^')
 
         with pytest.raises(ValueError):
             TestCls.transform(TEST_X, TEST_Y)

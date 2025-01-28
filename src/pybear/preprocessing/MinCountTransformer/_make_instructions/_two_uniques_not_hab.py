@@ -13,7 +13,6 @@ from .._type_aliases import DataType
 
 
 def _two_uniques_not_hab(
-    _instr_list: list,
     _threshold: int,
     _nan_key: Union[float, str, Literal[False]],
     _nan_ct: Union[int, Literal[False]],
@@ -45,7 +44,6 @@ def _two_uniques_not_hab(
 
     Parameters
     ----------
-    _instr_list: list, should be empty
     _threshold: int
     _nan_key: Union[float, str, Literal[False]]
     _nan_ct: Union[int, Literal[False]]
@@ -60,8 +58,6 @@ def _two_uniques_not_hab(
 
     """
 
-    if not len(_instr_list) == 0:
-        raise ValueError(f"'_instr_list' must be empty")
 
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
@@ -75,6 +71,7 @@ def _two_uniques_not_hab(
 
     # nans should not be in _COLUMN_UNQ_CT_DICT!
 
+    _instr_list = []
     if not _nan_ct:  # EITHER IGNORING NANS OR NONE IN FEATURE
 
         _ctr = 0

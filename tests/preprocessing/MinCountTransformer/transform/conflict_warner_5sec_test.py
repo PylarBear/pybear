@@ -24,6 +24,7 @@ class TestConflictWarner:
     #     _ignore_columns: Union[InternalIgnoreColumnsType, None],
     #     _ignore_float_columns: bool,
     #     _ignore_non_binary_integer_columns: bool,
+    #     _threshold: Union[int, Iterable[int]],
     #     _n_features_in: int
     # ) -> None:
 
@@ -66,6 +67,7 @@ class TestConflictWarner:
                 _ignore_columns=bad_ignore_columns,
                 _ignore_float_columns=False,
                 _ignore_non_binary_integer_columns=False,
+                _threshold=2,
                 _n_features_in=n_features_in
             )
 
@@ -85,6 +87,7 @@ class TestConflictWarner:
             _ignore_columns=good_ignore_columns,
             _ignore_float_columns=False,
             _ignore_non_binary_integer_columns=False,
+            _threshold=2,
             _n_features_in=n_features_in
         )
 
@@ -109,6 +112,7 @@ class TestConflictWarner:
                 _ignore_columns=None,
                 _ignore_float_columns=False,
                 _ignore_non_binary_integer_columns=False,
+                _threshold=2,
                 _n_features_in=n_features_in
             )
 
@@ -128,19 +132,68 @@ class TestConflictWarner:
             _ignore_columns=None,
             _ignore_float_columns=False,
             _ignore_non_binary_integer_columns=False,
+            _threshold=2,
             _n_features_in=n_features_in
         )
 
         assert out is None
     # END handle_as_bool -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+
+    # threshold -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    @pytest.mark.parametrize('bad_threshold',
+        (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1}, lambda x: x)
+    )
+    def test_rejects_bad_threshold(
+        self, good_og_dtypes, bad_threshold, n_features_in
+    ):
+
+        # only int or list-like-int
+
+        with pytest.raises(Exception):
+            _conflict_warner(
+                _original_dtypes=good_og_dtypes,
+                _handle_as_bool=None,
+                _ignore_columns=None,
+                _ignore_float_columns=False,
+                _ignore_non_binary_integer_columns=False,
+                _threshold=bad_threshold,
+                _n_features_in=n_features_in
+            )
+
+
+    @pytest.mark.parametrize('good_threshold', ('int', 'Iterable[int]'))
+    def test_accepts_good_threshold(
+        self, good_og_dtypes, good_threshold, n_features_in
+    ):
+
+        if good_threshold == 'int':
+            _threshold = 2
+        elif good_threshold == 'Iterable[int]':
+            _threshold = [2 for _ in range(n_features_in)]
+
+        out = _conflict_warner(
+            _original_dtypes=good_og_dtypes,
+            _handle_as_bool=None,
+            _ignore_columns=None,
+            _ignore_float_columns=False,
+            _ignore_non_binary_integer_columns=False,
+            _threshold=_threshold,
+            _n_features_in=n_features_in
+        )
+
+        assert out is None
+    # END threshold -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
     # END basic validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     @pytest.mark.parametrize('og_dtypes', ['short', 'good', 'long'])
     @pytest.mark.parametrize('ignore_columns', ['low', 'good', 'high'])
     @pytest.mark.parametrize('handle_as_bool', ['low', 'good', 'high'])
+    @pytest.mark.parametrize('threshold', ['short', 'good', 'long'])
     def test_rejects_bad_param_lens_wrt_n_features_in(
-        self, allowed, og_dtypes, ignore_columns, handle_as_bool, n_features_in
+        self, allowed, og_dtypes, ignore_columns, handle_as_bool, threshold,
+        n_features_in
     ):
 
         len_dict = {
@@ -158,10 +211,10 @@ class TestConflictWarner:
         _og_dtypes = np.random.choice(allowed, len_dict[og_dtypes], replace=True)
         _ignore_columns = np.array(idx_dict[ignore_columns]).astype(np.int32)
         _handle_as_bool = np.array(idx_dict[handle_as_bool]).astype(np.int32)
-
+        _threshold = [2 for _ in range(len_dict[threshold])]
 
         if og_dtypes=='good' and ignore_columns=='good' \
-                and handle_as_bool=='good':
+                and handle_as_bool=='good' and threshold=='good':
 
             _conflict_warner(
                 _original_dtypes=_og_dtypes,
@@ -169,6 +222,7 @@ class TestConflictWarner:
                 _ignore_columns=_ignore_columns,
                 _ignore_float_columns=False,
                 _ignore_non_binary_integer_columns=False,
+                _threshold=_threshold,
                 _n_features_in=n_features_in
             )
 
@@ -180,6 +234,7 @@ class TestConflictWarner:
                     _ignore_columns=_ignore_columns,
                     _ignore_float_columns=False,
                     _ignore_non_binary_integer_columns=False,
+                    _threshold=_threshold,
                     _n_features_in=n_features_in
                 )
 
@@ -203,6 +258,7 @@ class TestConflictWarner:
             _ignore_columns=None,
             _ignore_float_columns=False,
             _ignore_non_binary_integer_columns=False,
+            _threshold=2,
             _n_features_in=n_features_in
         )
 
@@ -216,9 +272,10 @@ class TestConflictWarner:
     @pytest.mark.parametrize('_ignore_columns', options)
     @pytest.mark.parametrize('_ignore_float_columns', (True, False))
     @pytest.mark.parametrize('_ignore_non_binary_integer_columns', (True, False))
+    @pytest.mark.parametrize('_threshold', ('int', 'Iterable[int]'))
     def test_accuracy(
         self, good_og_dtypes, n_features_in, _handle_as_bool, _ignore_columns,
-        _ignore_float_columns, _ignore_non_binary_integer_columns
+        _ignore_float_columns, _ignore_non_binary_integer_columns, _threshold
     ):
 
         if n_features_in < 6:
@@ -234,6 +291,7 @@ class TestConflictWarner:
         # warn on handle_as_bool intersects ignore_columns
         # warn on handle_as_bool intersects ignore_float_columns
         # warn on handle_as_bool intersects ignore_non_binary_integer_columns
+        # warn on handle_as_bool intersects threshold==1
 
 
         vector1 = [0, 1, 2],
@@ -261,20 +319,36 @@ class TestConflictWarner:
         else:
             _non_bin_int_columns = np.array([])
 
+        if _threshold == 'int':
+            _threshold = 2
+        else:
+            while True:
+                _threshold = \
+                    [int(np.random.randint(1, 3)) for _ in range(n_features_in)]
+                if any(np.array(_threshold)==1):
+                    break
+
         if hab is not None:
             if ic is not None:
                 hab_vs_ic = \
-                    bool(len(set(list(hab)).intersection(set(list(ic)))))
+                    bool(len(set(list(hab)).intersection(list(ic))))
             else:
                 hab_vs_ic = False
             hab_vs_ign_flt = \
-                bool(len(set(list(hab)).intersection(set(list(_float_columns)))))
+                bool(len(set(list(hab)).intersection(list(_float_columns))))
             hab_vs_ign_non_bin_int = \
-                bool(len(set(list(hab)).intersection(set(list(_non_bin_int_columns)))))
+                bool(len(set(list(hab)).intersection(list(_non_bin_int_columns))))
+            if isinstance(_threshold, int):
+                hab_vs_threshold = False
+            else:
+                __ = np.array(_threshold)
+                __ = np.arange(len(__))[(__==1)]
+                hab_vs_threshold = bool(len(set(list(hab)).intersection(__)))
         else:
             hab_vs_ic = False
             hab_vs_ign_flt = False
             hab_vs_ign_non_bin_int = False
+            hab_vs_threshold = False
 
 
         del _float_columns, _non_bin_int_columns
@@ -282,10 +356,11 @@ class TestConflictWarner:
         # warn on handle_as_bool intersects ignore_columns
         # warn on handle_as_bool intersects ignore_float_columns
         # warn on handle_as_bool intersects ignore_non_binary_integer_columns
-
+        # warn on handle_as_bool intersects threshold==1
 
         # handle_as_bool is None or empty, never warn.
-        if hab_vs_ic or hab_vs_ign_flt or hab_vs_ign_non_bin_int:
+        if hab_vs_ic or hab_vs_ign_flt or hab_vs_ign_non_bin_int \
+                or hab_vs_threshold:
             with pytest.warns():
                 out = _conflict_warner(
                     _original_dtypes=good_og_dtypes,
@@ -294,6 +369,7 @@ class TestConflictWarner:
                     _ignore_float_columns=_ignore_float_columns,
                     _ignore_non_binary_integer_columns= \
                         _ignore_non_binary_integer_columns,
+                    _threshold=_threshold,
                     _n_features_in=n_features_in
                 )
                 assert out is None
@@ -306,6 +382,7 @@ class TestConflictWarner:
                 _ignore_float_columns=_ignore_float_columns,
                 _ignore_non_binary_integer_columns= \
                     _ignore_non_binary_integer_columns,
+                _threshold=_threshold,
                 _n_features_in=n_features_in
             )
             assert out is None

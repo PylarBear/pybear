@@ -5,7 +5,7 @@
 #
 
 
-
+# pizza dont forget about set_params() blocks (max_recursions, ic, hab)
 
 from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
     MinCountTransformer as MCT
@@ -145,10 +145,9 @@ class TestSetParams:
         # FIT->SET_PARAMS->TRFM
         FSPTCls = MCT(*_args, **_kwargs)
         FSPTCls.fit(X.copy(), y.copy())
-        with pytest.warns():   # count_threshold is blocked
-            FSPTCls.set_params(count_threshold=alt_args[0], **alt_kwargs)
+        FSPTCls.set_params(count_threshold=alt_args[0], **alt_kwargs)
         FSPT_TRFM_X, FSPT_TRFM_Y = FSPTCls.transform(X.copy(), y.copy())
-        assert FSPTCls.count_threshold == _args[0]  # the og value
+        assert FSPTCls.count_threshold == alt_args[0]  # the og value
 
         # CHECK X AND Y EQUAL REGARDLESS OF WHEN SET_PARAMS
         assert np.array_equiv(SPFT_TRFM_X.astype(str), FSPT_TRFM_X.astype(str)), \
@@ -206,19 +205,23 @@ class TestSetParams:
         FTSPFTCls.fit_transform(X.copy(), y.copy())
         assert FTSPFTCls.max_recursions == 2
 
-        FTSPFTCls.set_params(**alt_kwargs)
-        FTSPFT_TRFM_X, FTSPFT_TRFM_Y = \
-            FTSPFTCls.fit_transform(X.copy(), y.copy())
 
-        assert FTSPFTCls.max_recursions == 1
+        # pizza 25_01_27_10_16_00 MCT now blocks setting any params when
+        # in fitted state with max_recursions >= 2
+        with pytest.raises(ValueError):
+            FTSPFTCls.set_params(**alt_kwargs)
+        # FTSPFT_TRFM_X, FTSPFT_TRFM_Y = \
+        #     FTSPFTCls.fit_transform(X.copy(), y.copy())
+        #
+        # assert FTSPFTCls.max_recursions == 1
+        #
+        # assert np.array_equiv(
+        #     SPFT_TRFM_X.astype(str), FTSPFT_TRFM_X.astype(str)
+        # ), \
+        #     f"SPFT_TRFM_X != FTSPFT_TRFM_X"
 
-        assert np.array_equiv(
-            SPFT_TRFM_X.astype(str), FTSPFT_TRFM_X.astype(str)
-        ), \
-            f"SPFT_TRFM_X != FTSPFT_TRFM_X"
-
-        assert np.array_equiv(SPFT_TRFM_Y, FTSPFT_TRFM_Y), \
-            f"SPFT_TRFM_Y != FTSPFT_TRFM_Y"
+        # assert np.array_equiv(SPFT_TRFM_Y, FTSPFT_TRFM_Y), \
+        #     f"SPFT_TRFM_Y != FTSPFT_TRFM_Y"
 
 
 
