@@ -25,11 +25,6 @@ def good_tcbc():
 
 
 
-
-
-
-
-
 class TestValTotalCountsByColumns:
 
 
@@ -79,7 +74,7 @@ class TestValTotalCountsByColumns:
     @pytest.mark.parametrize('_junk_inner_dict',
         (3.14, True, None, 'junk', min, [1,2], (1,2), lambda x: x)
     )
-    def test_type_error_objects_must_be_dict(self, good_tcbc, _junk_inner_dict):
+    def test_type_error_values_must_be_dict(self, good_tcbc, _junk_inner_dict):
 
         for outer_key in good_tcbc:
 

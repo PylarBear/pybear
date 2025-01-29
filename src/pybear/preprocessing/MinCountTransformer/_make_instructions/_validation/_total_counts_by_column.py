@@ -20,11 +20,24 @@ def _val_total_counts_by_column(
     values are dict with data values as keys and counts (integers >= 0)
     as values.
 
+
+    Parameters
+    ----------
+    _total_counts_by_column:
+        dict[int, dict[DataType, int]] - the uniques and their frequencies
+        for all the columns in the data.
+
+
+    Return
+    ------
+    -
+        None
+
     """
 
 
-    err_msg = (f"'_total_counts_by_column' must be a dictionary of dictionaries, \n"
-               f"with positive integer keys and dictionaries as values.")
+    err_msg = (f"'_total_counts_by_column' must be a dictionary of dictionaries, "
+               f"\nwith positive integer keys and dictionaries as values.")
 
     __ = _total_counts_by_column
 

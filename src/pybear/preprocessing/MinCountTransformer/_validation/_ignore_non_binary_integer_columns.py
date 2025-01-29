@@ -22,7 +22,7 @@ def _val_ignore_non_binary_integer_columns(
     ----------
     _inbic:
         bool - whether to ignore non-binary integer columns during the
-        column search.
+        transform operation.
 
 
     Return
@@ -33,7 +33,7 @@ def _val_ignore_non_binary_integer_columns(
     """
 
 
-    return _core_bool_val('_ignore_non_binary_integer_columns', _inbic)
+    _core_bool_val('_ignore_non_binary_integer_columns', _inbic)
 
 
 

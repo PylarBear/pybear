@@ -27,8 +27,7 @@ from pybear.preprocessing.MinCountTransformer._make_instructions. \
 #     _original_dtypes: OriginalDtypesType,
 #     _n_features_in: int,
 #     _feature_names_in: Union[npt.NDArray[object], None],
-#     _total_counts_by_column: TotalCountsByColumnType,
-#     _threshold: Union[int, None] = None
+#     _total_counts_by_column: TotalCountsByColumnType
 # ) -> InstructionsType:
 
 
@@ -73,8 +72,7 @@ class TestMakeInstructions:
             _original_dtypes,
             _n_features_in,
             _feature_names_in,
-            _total_counts_by_column,
-            _threshold
+            _total_counts_by_column
         )
     """
 
@@ -96,8 +94,7 @@ class TestMakeInstructions:
                 _original_dtypes=good_og_dtypes,
                 _n_features_in=len(good_og_dtypes),
                 _feature_names_in=None,
-                _total_counts_by_column=good_tcbc,
-                _threshold=None
+                _total_counts_by_column=good_tcbc
             )
 
         with pytest.raises((TypeError, ValueError)):
@@ -112,8 +109,7 @@ class TestMakeInstructions:
                 _original_dtypes=good_og_dtypes,
                 _n_features_in=len(good_og_dtypes),
                 _feature_names_in=None,
-                _total_counts_by_column=good_tcbc,
-                _threshold=None
+                _total_counts_by_column=good_tcbc
             )
 
         with pytest.raises(TypeError):
@@ -128,10 +124,8 @@ class TestMakeInstructions:
                 _original_dtypes=good_og_dtypes,
                 _n_features_in=len(good_og_dtypes),
                 _feature_names_in=None,
-                _total_counts_by_column=good_tcbc,
-                _threshold=None
+                _total_counts_by_column=good_tcbc
             )
-
 
 
     def test_it_runs(self, good_tcbc, good_og_dtypes):
@@ -146,8 +140,7 @@ class TestMakeInstructions:
             _original_dtypes=good_og_dtypes,
             _n_features_in=len(good_og_dtypes),
             _feature_names_in=None,
-            _total_counts_by_column=good_tcbc,
-            _threshold=None
+            _total_counts_by_column=good_tcbc
         )
 
 
@@ -171,8 +164,7 @@ class TestMakeInstructions:
             _original_dtypes=good_og_dtypes,
             _n_features_in=len(good_og_dtypes),
             _feature_names_in=None,
-            _total_counts_by_column=good_tcbc,
-            _threshold=None
+            _total_counts_by_column=good_tcbc
         )
 
         assert out == {idx: ['INACTIVE'] for idx in range(4)}
@@ -190,8 +182,7 @@ class TestMakeInstructions:
             _original_dtypes=good_og_dtypes,
             _n_features_in=len(good_og_dtypes),
             _feature_names_in=None,
-            _total_counts_by_column={0:{}, 1:{}, 2:{}, 3:{}},
-            _threshold=None
+            _total_counts_by_column={0:{}, 1:{}, 2:{}, 3:{}}
         )
 
         assert out == {idx: ['INACTIVE'] for idx in range(4)}
@@ -209,8 +200,7 @@ class TestMakeInstructions:
             _original_dtypes=np.array(['float' for _ in good_og_dtypes]),
             _n_features_in=len(good_og_dtypes),
             _feature_names_in=None,
-            _total_counts_by_column={idx:{} for idx in range(len(good_og_dtypes))},
-            _threshold=None
+            _total_counts_by_column={idx:{} for idx in range(len(good_og_dtypes))}
         )
 
         assert out == {idx: ['INACTIVE'] for idx in range(4)}
@@ -231,8 +221,7 @@ class TestMakeInstructions:
             _original_dtypes=np.array(['int' for _ in _len]),
             _n_features_in=len(good_og_dtypes),
             _feature_names_in=None,
-            _total_counts_by_column={i: {1: 10, 2: 10, 3: 10} for i in _len},
-            _threshold=None
+            _total_counts_by_column={i: {1: 10, 2: 10, 3: 10} for i in _len}
         )
 
         assert out == {idx: ['INACTIVE'] for idx in range(4)}
@@ -257,8 +246,7 @@ class TestMakeInstructions:
             _original_dtypes=np.array(['float' for _ in range(4)]),
             _n_features_in=4,
             _feature_names_in=None,
-            _total_counts_by_column=_tcbc,
-            _threshold=None
+            _total_counts_by_column=_tcbc
         )
 
         for _key in out:
@@ -288,8 +276,7 @@ class TestMakeInstructions:
                 _original_dtypes=np.array(['obj']),
                 _n_features_in=1,
                 _feature_names_in=None,
-                _total_counts_by_column=tcbc,
-                _threshold=None
+                _total_counts_by_column=tcbc
             )
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -310,8 +297,7 @@ class TestMakeInstructions:
             _original_dtypes=np.array(['obj']),
             _n_features_in=1,
             _feature_names_in=None,
-            _total_counts_by_column={0: {'a':3, 'b': 9, 'c': 3, np.nan: 4}},
-            _threshold=None
+            _total_counts_by_column={0: {'a':3, 'b': 9, 'c': 3, np.nan: 4}}
         )
 
         assert out == {0: ['a', 'c', np.nan, 'DELETE COLUMN']}
@@ -330,8 +316,7 @@ class TestMakeInstructions:
             _original_dtypes=np.array(['float']),
             _n_features_in=1,
             _feature_names_in=None,
-            _total_counts_by_column=_tcbc,
-            _threshold=None
+            _total_counts_by_column=_tcbc
         )
 
         assert out == {0: ['DELETE ALL', 'DELETE COLUMN']}

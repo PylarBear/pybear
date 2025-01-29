@@ -236,6 +236,7 @@ def feature_name_mapper(
 
         return np.array(list(indices), dtype=np.int32)
 
+
     # if we get here, algorithm failure
     raise Exception
 

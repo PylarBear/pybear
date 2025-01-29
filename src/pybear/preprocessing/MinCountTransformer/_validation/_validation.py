@@ -15,6 +15,8 @@ from .._type_aliases import (
     HandleAsBoolType
 )
 
+import numbers
+
 from ._X import _val_X
 from ._n_features_in import _val_n_features_in
 from ._feature_names_in import _val_feature_names_in
@@ -40,33 +42,46 @@ def _validation(
     _handle_as_bool: HandleAsBoolType,
     _delete_axis_0: bool,
     _reject_unseen_values: bool,
-    _max_recursions: int,
-    _n_jobs: Union[int, None],
+    _max_recursions: numbers.Integral,
+    _n_jobs: Union[numbers.Integral, None],
     _n_features_in: int,
     _feature_names_in: Union[Iterable[str], None]
 ) -> None:
 
     """
-    Validate arg and kwargs for MinCountTransformer. This module is a
+    Validate parameters for MinCountTransformer. This module is a
     centralized hub for parameter validation. See the individual modules
     for more details.
 
 
     Parameters
     ----------
-    _X: XContainer
-    _count_threshold: CountThresholdType
-    _ignore_float_columns: bool
-    _ignore_non_binary_integer_columns: bool
-    _ignore_nan: bool
-    _delete_axis_0: bool
-    _ignore_columns: IgnoreColumnsType
-    _handle_as_bool: HandleAsBoolType
-    _reject_unseen_values: bool
-    _max_recursions: int
-    _n_jobs: Union[int, None]
-    _n_features_in: Union[int, None]
-    _feature_names_in: Union[Iterable[str], None]
+    _X:
+        XContainer
+    _count_threshold:
+        CountThresholdType
+    _ignore_float_columns:
+        bool
+    _ignore_non_binary_integer_columns:
+        bool
+    _ignore_columns:
+        IgnoreColumnsType
+    _ignore_nan:
+        bool
+    _handle_as_bool:
+        HandleAsBoolType
+    _delete_axis_0:
+        bool
+    _reject_unseen_values:
+        bool
+    _max_recursions:
+        numbers.Integral
+    _n_jobs:
+        Union[numbers.Integral, None]
+    _n_features_in:
+        Union[int, None]
+    _feature_names_in:
+        Union[Iterable[str], None]
 
 
     Return
@@ -124,7 +139,7 @@ def _validation(
     # --returns ints or strs if fni_
     # --if str & fni_, has valid strs
     # --if int, is in range of columns
-    # BUT WE CANT VALIDATE THE COLUMNS AGAINST original_dtypes!!!
+    # BUT WE CANT VALIDATE THE COLUMNS AGAINST original_dtypes
     # we can do all of them at once in partial_fit/transform once we know the dtypes
 
     _val_reject_unseen_values(_reject_unseen_values)

@@ -29,7 +29,9 @@ def _core_bool_val(
     -
         None
 
+
     """
+
 
     if not isinstance(_param, str):
         raise AssertionError(f"design error: '_param' must be a string")

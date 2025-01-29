@@ -9,8 +9,12 @@
 from ..._type_aliases import (
     CountThresholdType,
     InternalHandleAsBoolType,
-    InternalIgnoreColumnsType
+    InternalIgnoreColumnsType,
+    OriginalDtypesType,
+    TotalCountsByColumnType
 )
+from typing_extensions import Union
+import numpy.typing as npt
 
 from ..._validation._count_threshold import _val_count_threshold
 from ..._validation._ignore_float_columns import _val_ignore_float_columns
@@ -25,14 +29,6 @@ from ._total_counts_by_column import _val_total_counts_by_column
 from ..._validation._n_features_in import _val_n_features_in
 from ..._validation._feature_names_in import _val_feature_names_in
 
-from typing_extensions import Union
-import numpy.typing as npt
-
-from ..._type_aliases import (
-    OriginalDtypesType,
-    TotalCountsByColumnType
-)
-
 
 
 def _make_instructions_validation(
@@ -46,8 +42,7 @@ def _make_instructions_validation(
     _original_dtypes: OriginalDtypesType,
     _n_features_in: int,
     _feature_names_in: Union[npt.NDArray[object], None],
-    _total_counts_by_column: TotalCountsByColumnType,
-    _threshold: Union[int, None] = None
+    _total_counts_by_column: TotalCountsByColumnType
 ) -> None:
 
     """
@@ -58,18 +53,28 @@ def _make_instructions_validation(
 
     Parameters
     ----------
-    _count_threshold: Union[int, Iterable[int]],
-    _ignore_float_columns: bool
-    _ignore_non_binary_integer_columns: bool,
-    _ignore_columns: npt.NDArray[np.int32],
-    _ignore_nan: bool,
-    _handle_as_bool: npt.NDArray[np.int32],
-    _delete_axis_0: bool,
-    _original_dtypes: OriginalDtypesType,
-    _n_features_in: int,
-    _feature_names_in: Union[npt.NDArray[object], None],
-    _total_counts_by_column: TotalCountsByColumnType,
-    _threshold: Union[int, None] = None
+    _count_threshold:
+        Union[int, Iterable[int]]
+    _ignore_float_columns:
+        bool
+    _ignore_non_binary_integer_columns:
+        bool
+    _ignore_columns:
+        npt.NDArray[np.int32]
+    _ignore_nan:
+        bool
+    _handle_as_bool:
+        npt.NDArray[np.int32]
+    _delete_axis_0:
+        bool
+    _original_dtypes:
+        OriginalDtypesType
+    _n_features_in:
+        int
+    _feature_names_in:
+        Union[npt.NDArray[object], None]
+    _total_counts_by_column:
+        TotalCountsByColumnType
 
 
     Return
@@ -108,7 +113,10 @@ def _make_instructions_validation(
 
     _val_ignore_nan(_ignore_nan)
 
-    _val_original_dtypes(_original_dtypes)
+    _val_original_dtypes(
+        _original_dtypes,
+        _n_features_in
+    )
 
     _val_ignore_columns_handle_as_bool(
         _handle_as_bool,
@@ -121,12 +129,6 @@ def _make_instructions_validation(
     _val_delete_axis_0(_delete_axis_0)
 
     _val_total_counts_by_column(_total_counts_by_column)
-
-    _val_count_threshold(
-        _threshold or _count_threshold,
-        ['int', 'Iterable[int]'],
-        _n_features_in
-    )
 
 
 

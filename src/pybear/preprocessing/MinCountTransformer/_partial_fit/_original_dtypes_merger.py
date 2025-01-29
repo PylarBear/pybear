@@ -11,13 +11,15 @@ from typing_extensions import Union
 
 import numpy as np
 
+from .._validation._n_features_in import _val_n_features_in
 from .._validation._original_dtypes import _val_original_dtypes
 
 
 
 def _original_dtypes_merger(
     _col_dtypes: OriginalDtypesType,
-    _previous_col_dtypes: Union[OriginalDtypesType, None]
+    _previous_col_dtypes: Union[OriginalDtypesType, None],
+    _n_features_in: int
 ) -> OriginalDtypesType:
 
     """
@@ -26,7 +28,7 @@ def _original_dtypes_merger(
     this module, MCT would raise if datatypes in the current partial
     fit did not match those from previous partial fits.
 
-    # if _previous_col_dtypes is not None, check its dtypes against the
+    If _previous_col_dtypes is not None, check its dtypes against the
     dtypes in the currently passed data, use the hierarchy to set the
     merged dtype.
 
@@ -49,13 +51,15 @@ def _original_dtypes_merger(
     _previous_col_dtypes:
         npt.NDArray[Union[Literal['bin_int', 'int', 'float', 'obj']] -
         the datatypes found by MCT in data seen in previous partial fits.
+    _n_features_in:
+        int - the number of features in the data.
 
 
     Return
     ------
     -
         _merged_col_dtypes:
-            npt.NDArray[Union[Literal['bin_int', 'int', 'float', 'obj']] -
+            NDArray[Union[Literal['bin_int', 'int', 'float', 'obj']] -
             the datatypes merged based on the hierarchy.
 
 
@@ -64,11 +68,18 @@ def _original_dtypes_merger(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    _val_original_dtypes(_col_dtypes)
+    _val_n_features_in(_n_features_in)
 
     if _previous_col_dtypes is not None:
-        _val_original_dtypes(_previous_col_dtypes)
-        assert len(_col_dtypes) == len(_previous_col_dtypes)
+        _val_original_dtypes(
+            _previous_col_dtypes,
+            _n_features_in
+        )
+
+    _val_original_dtypes(
+        _col_dtypes,
+        _n_features_in
+    )
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

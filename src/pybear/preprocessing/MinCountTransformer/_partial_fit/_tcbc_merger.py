@@ -30,12 +30,6 @@ def _tcbc_merger(
     the unique already exists in that column, add the current count to
     the old count.
 
-    This module was originally created to ease diagnosis and fixing of
-    problems with nans getting multiple entries in a single column of
-    total_counts_by_column when combining new unq/cts results from
-    _DTYPE_UNQS_CTS_TUPLES into an existing column in
-    total_counts_by_column.
-
 
     Parameters
     ----------
@@ -46,8 +40,8 @@ def _tcbc_merger(
     _tcbc:
         dict[int, dict[any, int]] - total_counts_by_column dictionary,
         outer keys are the column index of the data, values are dicts
-        with keys that are the uniques in that column, and the values are
-        the frequency.
+        with keys that are the uniques in that column, and the values
+        are the frequency.
 
 
     Return
@@ -58,6 +52,7 @@ def _tcbc_merger(
             updated with the uniques and counts in _DTYPE_UNQS_CTS_TUPLES.
 
     """
+
 
     # validation - - - - - - - - - - - - - - - - - - - - - -
     assert isinstance(_DTYPE_UNQS_CTS_TUPLES, list)

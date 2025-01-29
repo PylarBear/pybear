@@ -6,58 +6,76 @@
 
 
 
-import numpy as np
-import joblib
+from typing import Literal
 from typing_extensions import Union
 from .._type_aliases import DataType
+import numpy.typing as npt
+
+import numpy as np
+import joblib
+
 from ....utilities._nan_masking import nan_mask
 
 
 
 @joblib.wrap_non_picklable_objects
 def _parallelized_row_masks(
-    _X_COLUMN: np.ndarray[DataType],
+    _X_COLUMN: npt.NDArray[DataType],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
-    _instr: list[Union[str, DataType]],
+    _instr: list[
+        Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], DataType]
+    ],
     _reject_unseen_values: bool,
     _col_idx: int
-    ) -> np.ndarray[np.uint8]:
+) -> npt.NDArray[np.uint8]:
 
 
     """
-    Create mask indicating row positions to delete for one column of data
-    from X. Using the instructions provided in _instr, locate the positions
-    of each unique to be deleted and store the locations as a vector that
-    is the same size as the column.
+    Create mask indicating row positions to delete for one column of
+    data from X. Using the instructions provided in _instr, locate the
+    positions of each unique to be deleted and store the locations as a
+    vector that is the same size as the column.
 
     Simultaneously, if rejecting unseen values, compare the uniques found
     in _COLUMN_UNQ_CT_DICT against the uniques found in the column.
     Raise exception if rejecting unseen values and there are new uniques.
 
+
     Parameters
     ----------
-    _X_COLUMN: np.ndarray[DataType] - A column of data from X
-    _COLUMN_UNQ_CT_DICT: dict[DataType, int] - The entry for this column
-        in _total_counts_by_column
-    _instr: list[Union[str, DataType]] - The entry for the this column
-        in _delete_instr
-    _reject_unseen_values: bool - If False, do not even look to see if
-        there are unknown uniques in the column. If True, compare uniques
-        in the column against uniques in _COLUMN_UNQ_CT_DICT and raise
-        exception if there is a value not previously seen.
-    _col_idx: int - The index that this column occupied in X. For error
+    _X_COLUMN:
+        npt.NDArray[DataType] - A column of data from X. If X is a scipy
+        sparse matrix/array, this is the 'data' attribute for the single
+        column.
+    _COLUMN_UNQ_CT_DICT:
+        dict[DataType, int] - The _total_counts_by_column entry for this
+        column.
+    _instr:
+        list[Union[str, DataType]] - The entry for this column in
+        _delete_instr
+    _reject_unseen_values:
+        bool - If False, do not even look to see if there are unknown
+        uniques in the column. If True, compare uniques in the column
+        against uniques in _COLUMN_UNQ_CT_DICT and raise exception if
+        there is a value not previously seen.
+    _col_idx:
+        int - The index that this column occupied in X. For error
         reporting purposes only.
+
 
     Return
     ------
     -
-        COLUMN_ROW_MASK: np.ndarray[int]: Mask of rows to delete based on
+        COLUMN_ROW_MASK: npt.NDArray[int]: Mask of rows to delete based on
             the instructions in _delete_instr for that column
 
     """
 
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
     assert isinstance(_X_COLUMN, np.ndarray)
-    assert _X_COLUMN.shape[1] == 1
+    assert len(_X_COLUMN.shape) == 1
     assert isinstance(_COLUMN_UNQ_CT_DICT, dict)
     assert all(map(
         isinstance,
@@ -67,6 +85,8 @@ def _parallelized_row_masks(
     assert isinstance(_instr, list)
     assert isinstance(_reject_unseen_values, bool)
     assert isinstance(_col_idx, int)
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     COLUMN_ROW_MASK = np.zeros(_X_COLUMN.shape[0], dtype=np.uint8)
@@ -84,9 +104,9 @@ def _parallelized_row_masks(
                 _nan_ctr += 1
                 if _nan_ctr > 1:
                     raise ValueError(f"more than one nan-like in UNQ_CT_DICT")
-                MASK_ON_X_COLUMN_UNQ += nan_mask(_X_COLUMN.ravel())
+                MASK_ON_X_COLUMN_UNQ += nan_mask(_X_COLUMN)
             else:
-                MASK_ON_X_COLUMN_UNQ += (_X_COLUMN.ravel() == unq)
+                MASK_ON_X_COLUMN_UNQ += (_X_COLUMN == unq)
 
         if _reject_unseen_values:
             RUV_MASK += MASK_ON_X_COLUMN_UNQ.astype(np.uint8)
@@ -104,7 +124,7 @@ def _parallelized_row_masks(
     if _reject_unseen_values and np.sum(RUV_MASK) != _X_COLUMN.shape[0]:
 
         # build things to display info about unseen values ** * ** * **
-        _X = _X_COLUMN[np.logical_not(RUV_MASK), :]
+        _X = _X_COLUMN[np.logical_not(RUV_MASK)]
         orig_dtype = _X_COLUMN.dtype
 
         try:

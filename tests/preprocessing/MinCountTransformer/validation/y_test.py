@@ -28,6 +28,8 @@ class TestValY:
     # ) -> None:
 
 
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
@@ -44,6 +46,8 @@ class TestValY:
     @pytest.fixture(scope='module')
     def _columns(_shape):
         return [str(uuid.uuid4())[:5] for _ in range(_shape[1])]
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     @pytest.mark.parametrize('junk_y',
@@ -85,6 +89,9 @@ class TestValY:
             _val_y(Y_NEW)
         del Y_NEW
         # END numpy_recarray ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+
+    def test_masked_array_warns(self, _y_np):
 
         # numpy_masked_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         with pytest.warns():

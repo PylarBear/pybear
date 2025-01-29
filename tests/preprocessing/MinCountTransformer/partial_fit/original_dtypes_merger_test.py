@@ -34,10 +34,11 @@ class TestOriginalDtypesMerger:
 
         _allowed = ['obj', 'float', 'int', 'bin_int']
 
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             _original_dtypes_merger(
                 np.random.choice(_allowed, length_mismatch[0]),
-                np.random.choice(_allowed, length_mismatch[1])
+                np.random.choice(_allowed, length_mismatch[1]),
+                _n_features_in=length_mismatch[0]
             )
 
     # END joint -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -53,7 +54,8 @@ class TestOriginalDtypesMerger:
 
         out = _original_dtypes_merger(
             _col_dtypes,
-            None
+            None,
+            _n_features_in=4
         )
 
         assert isinstance(out, np.ndarray)
@@ -71,7 +73,8 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
         out = _original_dtypes_merger(
             ['obj', 'float', 'int', 'bin_int'],
-            ['obj', 'float', 'int', 'bin_int']
+            ['obj', 'float', 'int', 'bin_int'],
+            _n_features_in=4
         )
 
         assert isinstance(out, np.ndarray)
@@ -85,7 +88,8 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
         out = _original_dtypes_merger(
             ['float', 'bin_int', 'int', 'bin_int'],
-            ['obj', 'float', 'obj', 'float']
+            ['obj', 'float', 'obj', 'float'],
+            _n_features_in=4
         )
 
         assert isinstance(out, np.ndarray)
@@ -99,7 +103,8 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
         out = _original_dtypes_merger(
             ['bin_int', 'int', 'float', 'obj'],
-            ['obj', 'float', 'int', 'bin_int']
+            ['obj', 'float', 'int', 'bin_int'],
+            _n_features_in=4
         )
 
         assert isinstance(out, np.ndarray)
@@ -113,7 +118,8 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
         out = _original_dtypes_merger(
             ['obj', 'float', 'obj', 'bin_int'],
-            ['bin_int', 'obj', 'int', 'obj']
+            ['bin_int', 'obj', 'int', 'obj'],
+            _n_features_in=4
         )
 
         assert isinstance(out, np.ndarray)
@@ -127,7 +133,8 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
         out = _original_dtypes_merger(
             ['float', 'int', 'float', 'bin_int'],
-            ['int', 'bin_int', 'bin_int', 'bin_int']
+            ['int', 'bin_int', 'bin_int', 'bin_int'],
+            _n_features_in=4
         )
 
         assert isinstance(out, np.ndarray)
@@ -141,7 +148,8 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
         out = _original_dtypes_merger(
             ['int', 'bin_int', 'int', 'bin_int'],
-            ['bin_int', 'int', 'bin_int', 'int']
+            ['bin_int', 'int', 'bin_int', 'int'],
+            _n_features_in=4
         )
 
         assert isinstance(out, np.ndarray)

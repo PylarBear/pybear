@@ -35,8 +35,7 @@ class TestMakeInstructionsValidation:
             _original_dtypes=np.array(['int', 'float', 'obj'], dtype='<U5'),
             _n_features_in=3,
             _feature_names_in=np.array(list('abc'), dtype=object),
-            _total_counts_by_column=TCBC,
-            _threshold=None
+            _total_counts_by_column=TCBC
         )
 
 

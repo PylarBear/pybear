@@ -19,6 +19,26 @@ def _val_X(
     _X: XContainer
 ) -> None:
 
+    """
+    Validate X is a valid data container. Numpy ndarrays, pandas
+    dataframes, and all scipy sparse matrices/arrays are allowed.
+
+
+    Parameters
+    ----------
+    _X:
+        Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+        (n_samples, n_features). The data to undergo minimum thresholding.
+
+
+    Return
+    ------
+    -
+        None
+
+
+    """
+
 
     if not isinstance(
         _X,
@@ -45,8 +65,8 @@ def _val_X(
 
     if np.ma.isMaskedArray(_X):
         warnings.warn(
-            f"MCT does not block numpy masked arrays but they are not tested. "
-            f"\nuse them at your own risk."
+            f"MCT does not block numpy masked arrays but they are not "
+            f"tested. \nuse them at your own risk."
         )
 
 

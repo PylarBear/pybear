@@ -17,6 +17,7 @@ import pytest
 
 class TestValIgnColsHabCallable:
 
+
     # def _val_ign_cols_hab_callable(
     #     _fxn_output: Union[Iterable[str], Iterable[numbers.Integral]],
     #     _first_fxn_output: Union[Iterable[str], Iterable[numbers.Integral]],
@@ -25,6 +26,10 @@ class TestValIgnColsHabCallable:
     #     _feature_names_in: Union[npt.NDArray[str], None]
     # ) -> None:
 
+
+    # _n_features_in is validated by _val_n_features_in, tested elsewhere
+
+    # _feature_names_in is validated by _val_feature_names_in, tested elsewhere
 
     # validate _name -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_name',
@@ -217,7 +222,7 @@ class TestValIgnColsHabCallable:
     @pytest.mark.parametrize('_fxn_output', (list('abc'), [-2, -1, 0], ['c', 'd']))
     @pytest.mark.parametrize('_name', ('ignore_columns', 'handle_as_bool'))
     @pytest.mark.parametrize('_feature_names_in', (None, np.array(list('abcdefgh'))))
-    def test_rejects_index_out_of_range(self, _fxn_output, _name, _feature_names_in):
+    def test_accepts_good(self, _fxn_output, _name, _feature_names_in):
 
         # the only thing that should fail is passing str output w/o feature_names_in
         # index output works with or without feature_names_in

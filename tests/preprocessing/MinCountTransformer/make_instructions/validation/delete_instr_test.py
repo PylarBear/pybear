@@ -34,10 +34,11 @@ class TestValDeleteInstr:
                 _n_features_in=5
             )
 
+
     @pytest.mark.parametrize(f'bad_instr',
         (-2.7, -1, 0, 1, 2.7, True, None, [0, 1], (1,), {0, 1}, lambda x: x)
     )
-    def test_rejects_junk_delete_instr(self, bad_instr):
+    def test_rejects_bad_delete_instr(self, bad_instr):
 
         n_features_in=5
 

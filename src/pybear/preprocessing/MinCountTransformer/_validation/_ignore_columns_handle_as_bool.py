@@ -54,7 +54,7 @@ def _val_ignore_columns_handle_as_bool(
     _allowed:
         Iterable[Union[Literal[
             'callable', 'Iterable[str]', 'Iterable[int]', 'None'
-        ]]] - the states which _value is allowed to be.
+        ]]] - the datatype which _value is allowed to be.
     _n_features_in:
         int - the number of features in the data.
     _feature_names_in:

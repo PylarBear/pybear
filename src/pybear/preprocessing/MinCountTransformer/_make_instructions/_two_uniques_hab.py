@@ -55,20 +55,35 @@ def _two_uniques_hab(
 
     Parameters
     ----------
-    _threshold: int
-    _nan_key: Union[float, str, Literal[False]]
-    _nan_ct: Union[int, Literal[False]]
-    _COLUMN_UNQ_CT_DICT: dict[DataType, int], cannot be empty
-    _delete_axis_0: bool
+    _threshold:
+        int - the minimum threshold frequency for this column
+    _nan_key:
+        Union[float, str, Literal[False]] - the nan value found in the
+        column in its original dtype. as of 25_01, _column_getter is
+        converting all nan-likes to numpy.nan.
+    _nan_ct:
+        Union[int, Literal[False]] - the number of nan-like values found
+        in the column.
+    _COLUMN_UNQ_CT_DICT:
+        dict[DataType, int] - the value from the _total_cts_by_column
+        dict for this column, which is a dictionary that contains the
+        uniques and frequencies. cannot be empty.
+    _delete_axis_0:
+        bool - whether to delete the rows associated with any of the
+        values that fall below the minimum frequency.
+
 
     Return
     ------
     -
-        _instr_list: list[Union[str, DataType]]
+        _instr_list: list[Union[Literal['DELETE COLUMN', DataType]] -
+        the row and column operations to be performed for this column.
 
 
     """
 
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
@@ -81,6 +96,8 @@ def _two_uniques_hab(
 
     if any([isinstance(x, str) for x in _COLUMN_UNQ_CT_DICT]):
         raise TypeError(f"handle_as_bool on a str column")
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # no nans should be in _COLUMN_UNQ_CT_DICT!

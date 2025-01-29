@@ -28,7 +28,7 @@ def _parallel_dtypes_unqs_cts(
 
     *** VERY IMPORTANT *** when ss columns are extracted, only the data
     attribute is sent here. Need to infer the number of zeros in the
-    column. The difference  _n_rows - len(_column_of_X) is the number of
+    column. The difference _n_rows - len(_column_of_X) is the number of
     zeros in the column.
 
     Sometimes np.nan is showing up multiple times in uniques.
@@ -45,8 +45,8 @@ def _parallel_dtypes_unqs_cts(
     _n_rows:
         int - the number of samples in X.
     _col_idx:
-        int - the column index _column_of_X occupies in the data. this
-        is for error reporting purposes only.
+        int - the column index occupied by _column_of_X in the data.
+        this is for error reporting purposes only.
 
 
     Return

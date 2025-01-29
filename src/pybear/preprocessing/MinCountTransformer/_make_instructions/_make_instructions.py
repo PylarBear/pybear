@@ -6,6 +6,7 @@
 
 
 
+from typing import Iterable
 from typing_extensions import Union
 from .._type_aliases import (
     CountThresholdType,
@@ -15,8 +16,6 @@ from .._type_aliases import (
     OriginalDtypesType,
     InstructionsType,
 )
-import numpy.typing as npt
-
 
 from copy import deepcopy
 
@@ -48,14 +47,14 @@ def _make_instructions(
     _delete_axis_0: bool,
     _original_dtypes: OriginalDtypesType,
     _n_features_in: int,
-    _feature_names_in: Union[npt.NDArray[object], None],
-    _total_counts_by_column: TotalCountsByColumnType,
-    _threshold: Union[int, None]
+    _feature_names_in: Union[Iterable[str], None],
+    _total_counts_by_column: TotalCountsByColumnType
 ) -> InstructionsType:
 
     """
-    Convert compiled uniques and frequencies into instructions for
-    transforming data based on given parameters.
+    Convert compiled uniques and frequencies in _total_counts_by_column
+    that were found by MCT during fit into instructions for transforming
+    data based on given parameters.
 
     _delete_instr is a dictionary that is keyed by column index and the
     values are lists. Within the lists is information about operations
@@ -65,7 +64,12 @@ def _make_instructions(
         operations
     -- individual values (in raw datatype format, not converted to
         string) indicates to delete the rows on axis 0 that contain that
-        value in that column, including 'nan' or np.nan values
+        value in that column, including nan-like values
+    -- 'DELETE ALL' - delete all values in the column. this text string
+        is substituted in if MCT finds that all unique values in the
+        column are to be deleted. this saves memory over filling the
+        instruction list with all the unique values, especially for
+        float columns.
     -- 'DELETE COLUMN' - perform any individual row deletions that need
         to take place while the column is still in the data, then delete
         the column from the data.
@@ -91,25 +95,23 @@ def _make_instructions(
     like dask ParallelPostFit. This also allows for transformation of
     unseen data.
 
-    This module makes delete instructions based on the uniques and counts
-    as found as it iterates over the columns in _total_counts_by_column.
-
     A) if col_idx is inactive, skip.
     column is 'INACTIVE' if:
        - col_idx in _ignore_columns:
+       - the minimum frequency threshold for the column is 1
        - _total_counts_by_column[col_idx] is empty
        - _ignore_float_columns and is float column
        - _ignore_non_binary_integer_columns, is 'int', and num unqs >= 3
 
     B) MANAGE nan
-        Create holder objects to hold the value and the count.
-        1) Get nan information if nan is in _total_counts_by_column[col_idx]
+        Get nan information if nan is in _total_counts_by_column[col_idx]
+        1) Create holder objects to hold the nan value and the count.
         - if ignore_nan, holder objects hold False
         - if not ignoring nan:
           -- 'nan' not in column, holder objects hold False
           -- 'nan' in column, holder objects hold the nan value and ct
-        2) Temporarily remove nan and its count from _total_counts_by_column,
-            if ignoring or not
+        2) Temporarily remove nan from _total_counts_by_column, if
+        ignoring or not
 
     C) Assess the remaining values and counts and create instructions.
     Now that nan is out of _total_counts_by_column, look at the number of
@@ -133,63 +135,63 @@ def _make_instructions(
 
     _ignore_float_columns:
         bool - If True, values and frequencies within float features are
-        ignored and the feature is retained through transform. If False,
-        the feature is handled as if it is categorical and unique values
-        are subject to count threshold rules and possible removal.
+        ignored and instructions are not made for this feature. If False,
+        the feature's unique values are subject to count threshold rules
+        and possible removal.
 
     _ignore_non_binary_integer_columns:
         bool - If True, values and frequencies within non-binary integer
-        features are ignored and the feature is retained through transform.
-        If False, the feature is handled as if it is categorical and
-        unique values are subject to count threshold rules and possible
-        removal.
+        features are ignored and instructions are not made for this
+        feature. If False, the feature's unique values are subject to
+        count threshold rules and possible removal.
 
     _ignore_columns:
-        np.ndarray[int] - A one-dimensional vector of integer index
-        positions. Excludes indicated features from the thresholding
-        operation.
+        NDArray[int] - A one-dimensional vector of integer index
+        positions. Excludes the indicated features when making
+        instructions.
 
     _ignore_nan:
         bool - If True, nan is ignored in all features and passes through
         the transform operation; it can only be removed collaterally by
         removal of examples for causes dictated by other features. If
-        False, frequency for both numpy.nan and 'nan' as string are
-        calculated and assessed against count_threshold.
+        False, frequency for nan-like values are calculated and assessed
+        against :param: 'count_threshold'.
 
     _handle_as_bool:
-        np.ndarray[int] - A one-dimensional vector of integer index
+        NDArray[int] - A one-dimensional vector of integer index
         positions. For the indicated features, non-zero values within
         the feature are treated as if they are the same value.
 
     _delete_axis_0:
-        bool - Only applies to features indicated in :param:
-        handle_as_bool or binary integer features such as those generated
-        by OneHotEncoder. Under normal operation of MinCountTransformer
-        for datatypes other than binary integer, when the frequency of
-        one of the values in the feature is below :param: count_threshold,
-        the respective examples are removed. However, binary integers
-        do not behave like this in that the rows of deficient frequency
-        are not removed, only the entire column is removed. :param:
-        delete_axis_0 overrides this behavior. When :param: delete_axis_0
-        is False under the above conditions, MinCountTransformer does the
-        default behavior for binary integers, the feature is removed
-        without deleting examples, preserving the data in the other
-        features. If True, however, the default behavior for other
-        datatypes is used and examples associated with the minority value
-        are removed and the feature is then also removed for having only
-        one value.
+        bool - Only applies to binary integer features such as those
+        generated by OneHotEncoder or features indicated in :param:
+        handle_as_bool. Under normal operation of MCT for datatypes
+        other than binary integer, when the frequency of one of the
+        values in the feature is below :param: count_threshold, the
+        respective examples are removed (the entire row is deleted from
+        the data). However, MCT does not handle binary integers like this
+        in that the rows with deficient frequency are not removed, only
+        the entire column is removed. :param: delete_axis_0 overrides
+        this behavior. When :param: delete_axis_0 is False under the
+        above conditions, MCT does the default behavior for binary
+        integers, the feature is removed without deleting examples,
+        preserving the data in the other features. If delete_axis_0 is
+        True, however, the default behavior for other datatypes is used
+        and the rows associated with the minority value are deleted
+        from the data and the feature is then also removed for having
+        only one value.
 
     _original_dtypes:
-        np.ndarray[str] - The original datatypes for each column in the
-        dataset as determined by MinCountTransformer. Values can be
-        'bin_int', 'int', 'float', or 'obj'.
+        NDArray[Literal['bin_int', 'int', 'float', 'obj']] - The original
+        datatypes for each column in the dataset as determined by MCT.
+        Values can be 'bin_int', 'int', 'float', or 'obj'.
 
     _n_features_in:
         int - the number of features (columns) in the dataset.
 
     _feature_names_in:
-        Union[NDArray[object], None] - if the object passed to the first
-        fit had features names this is an ndarray of those feature
+        Union[Iterable[str], None] - if the data container passed to the
+        first fit had features names this is an ndarray of those feature
         names. Otherwise, this is None.
 
     _total_counts_by_column:
@@ -197,24 +199,16 @@ def _make_instructions(
         holds dictionaries containing the counts of the uniques in each
         column.
 
-    # pizza, this might be able to come out once all the set_params() blocks are off
-    # pizza would simply use set params to change the params then call a replacement
-    # for test_threshold(), which previews everything including count_threshold
-    _threshold:
-        int - The threshold that determines whether a value is removed
-        from the data (frequency is below threshold) or retained (frequency
-        is greater than or equal to threshold.) If not provided,
-        _count_threshold is used; if provided, overwrites _count_threshold
-        to allow for tests of thresholds different than that defined by
-        _count_threshold in the instance.
-
-
 
     Return
     ------
     -
-        _delete_instr: dict[int, Union[str, DataType]]
-
+        _delete_instr: dict[
+            int,
+            Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN', DataType]
+        ] - a dictionary that is keyed by column index and the values are
+        lists. Within the lists is information about operations to
+        perform with respect to values in the column.
 
 
     """
@@ -235,14 +229,12 @@ def _make_instructions(
         _n_features_in,
         _feature_names_in,
         _total_counts_by_column,
-        _threshold
     )
 
-    _threshold = _threshold or _count_threshold
 
     _threshold = _threshold_listifier(
         _n_features_in,
-        _threshold
+        deepcopy(_count_threshold)
     )
 
     # find inactive columns and populate _delete_instr
@@ -308,7 +300,7 @@ def _make_instructions(
 
         elif len(COLUMN_UNQ_CT_DICT) == 2:  # BINARY, ANY DTYPE
 
-            if _original_dtypes[col_idx] == 'bin_int' or col_idx in _handle_as_bool:
+            if _original_dtypes[col_idx] == 'bin_int':
                 _delete_instr[col_idx] = _two_uniques_hab(
                     _threshold[col_idx],
                     _nan_key,
@@ -317,6 +309,7 @@ def _make_instructions(
                     _delete_axis_0
                 )
             else:
+                # this could only be accessed by 'obj' column
                 _delete_instr[col_idx] = _two_uniques_not_hab(
                     _threshold[col_idx],
                     _nan_key,

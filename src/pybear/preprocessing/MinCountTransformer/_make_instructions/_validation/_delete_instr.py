@@ -21,14 +21,18 @@ def _val_delete_instr(
     Validate that _delete_instr is a dictionary with an entry for each
     feature in the data. the keys must be the integer column indices of
     the features and the values must be lists that hold the values to be
-    removed from the data for that column. the individual lists may be
-    empty.
+    removed from that column. the lists may also contain any of
+    'DELETE ALL', 'DELETE COLUMN' or 'INACTIVE'. the individual lists
+    may be empty.
 
 
     Parameters
     ----------
     _delete_instr:
-        dict[int, list[Union[any, Literal['INACTIVE'], Literal['DELETE COLUMN']]]] -
+        dict[
+            int,
+            list[Union[any, Literal['INACTIVE'], Literal['DELETE COLUMN']]]
+        ] -
         the recipe for deleting values and columns from the data derived
         from the unqs_ct_dict and the parameter values passed to the MCT
         instance.
