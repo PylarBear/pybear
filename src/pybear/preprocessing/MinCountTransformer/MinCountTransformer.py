@@ -502,6 +502,9 @@ class MinCountTransformer(
 
     @property
     def original_dtypes_(self):
+
+        check_is_fitted(self)
+
         return self._original_dtypes
 
 
@@ -512,6 +515,9 @@ class MinCountTransformer(
 
     @property
     def total_counts_by_column_(self):
+
+        check_is_fitted(self)
+
         return self._total_counts_by_column
 
 
@@ -522,6 +528,9 @@ class MinCountTransformer(
 
     @property
     def instructions_(self):
+
+        check_is_fitted(self)
+
         return self._make_instructions()
 
 
