@@ -89,24 +89,29 @@ class TestThresholdListifier:
 
         if threshold == 'int':  # n_thresholds must == 1
             value = int(np.random.randint(2, 10))  # must be >= 2
-            out = _threshold_listifier(n_features_in, value)
+            group = _threshold_listifier(n_features_in, value)
 
-            assert isinstance(out, list)
-            assert len(out) == n_features_in
-            assert all(map(lambda x: x==value, out))
+            assert isinstance(group, list)
+            assert len(group) == n_features_in
+            assert all(map(lambda x: x==value, group))
         else:
             THRESHOLD = []
             for _ in range(n_thresholds):
-                # keep this 'value' thing for array_equal when only 1 list-likes
-                value = list(np.random.randint(1, 10, n_features_in))
-                THRESHOLD.append(value)
+                # keep this 'value' thing for array_equal when only 1 group
+                # of thresholds
+                while True:
+                    # at least 1 value must be >= 2
+                    group = list(np.random.randint(1, 10, n_features_in))
+                    if any(map(lambda x: x >= 2, group)):
+                        break
+                THRESHOLD.append(group)
             out = _threshold_listifier(n_features_in, *THRESHOLD)
 
             if n_thresholds == 1:
                 assert isinstance(out, list)
                 assert len(out) == n_features_in
                 assert all(map(isinstance, out, (int for _ in out)))
-                assert np.array_equal(out, value)
+                assert np.array_equal(out, group)
             else:
                 assert isinstance(out, tuple)
                 assert len(out) == n_thresholds
