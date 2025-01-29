@@ -12,7 +12,7 @@ from ._core_bool_val import _core_bool_val
 
 def _val_ignore_nan(
     _ignore_nan: bool
-) -> bool:
+) -> None:
 
     """
     _ignore_nan must be bool
@@ -34,7 +34,8 @@ def _val_ignore_nan(
 
     """
 
-    return _core_bool_val('_ignore_nan', _ignore_nan)
+
+    _core_bool_val('_ignore_nan', _ignore_nan)
 
 
 

@@ -15,6 +15,7 @@ import pytest
 
 class TestValMaxRecursions:
 
+
     @pytest.mark.parametrize('_max_recursions',
         (True, None, min, [1], (1,), {1,2}, {'a':1}, lambda x: x, 'junk', 3.14)
     )

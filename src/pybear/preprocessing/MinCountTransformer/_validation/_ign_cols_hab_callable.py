@@ -8,7 +8,6 @@
 
 from typing import Iterable, Literal
 from typing_extensions import Union
-import numpy.typing as npt
 
 import numbers
 import numpy as np
@@ -25,7 +24,7 @@ def _val_ign_cols_hab_callable(
     _first_fxn_output: Union[Iterable[str], Iterable[numbers.Integral], None],
     _name: Literal['ignore_columns', 'handle_as_bool'],
     _n_features_in: int,
-    _feature_names_in: Union[npt.NDArray[str], None]
+    _feature_names_in: Union[Iterable[str], None]
 ) -> None:
 
     """
@@ -48,28 +47,26 @@ def _val_ign_cols_hab_callable(
     Validate the current output of the callable exactly matches the
     output from the first call to it, if applicable, as held in the
     '_first_function_output' parameter. If this is the first pass,
-    '_first_function_output' must be None. The callable must output the
-    same indices/feature names across all sequential partial fits and
-    transforms. If unequal, raise exception.
+    '_first_function_output' must be None. If unequal, raise exception.
 
 
     Parameters
     ----------
     _fxn_output:
-        Iterable[numbers.Integral, str] - the output of the callable used
-        for ignore_columns or handle_as_bool
+        Union[Iterable[str], Iterable[numbers.Integral]] - the output of
+        the callable used for ignore_columns or handle_as_bool
     _first_fxn_output:
-        Iterable[numbers.Integral, str] - the output of the callable on
-        the first call to :methods: partial_fit or transform. used to
-        validate that all subsequent outputs of the callable equal the
-        first.
+        Union[Iterable[str], Iterable[numbers.Integral], None] - the
+        output of the callable on the first call to :methods: partial_fit
+        or transform. used to validate that all subsequent outputs of
+        the callable equal the first.
     _name:
         Literal['ignore_columns', 'handle_as_bool'] - the name of the
         parameter for which a callable was passed
     _n_features_in:
         int - the number of features in the data
     _feature_names_in:
-        Union[NDArray[str], None] - the feature names of a data-bearing
+        Union[Iterable[str], None] - the feature names of a data-bearing
         object
 
 
@@ -195,18 +192,16 @@ def _val_ign_cols_hab_callable(
                         f"{_name} callable is not in 'feature_names_in'"
                     )
     elif is_num:
+        _err_msg = lambda _value: (
+            f"the '{_name}' callable produced a vector of indices but "
+            f"column index {_value} is out of bounds for data with "
+            f"{_n_features_in} features"
+        )
         if min(_fxn_output) < -_n_features_in:
-            raise ValueError(
-                f"the '{_name}' callable produced a vector of indices but "
-                f"column index {min(_fxn_output)} is out of bounds for "
-                f"data with {_n_features_in} features"
-            )
+            raise ValueError(_err_msg(min(_fxn_output)))
         if max(_fxn_output) >= _n_features_in:
-            raise ValueError(
-                f"the '{_name}' callable produced a vector of indices but "
-                f"column index {max(_fxn_output)} is out of bounds for "
-                f"data with {_n_features_in} features"
-            )
+            raise ValueError(_err_msg(max(_fxn_output)))
+        del _err_msg
     else:
         raise Exception
 

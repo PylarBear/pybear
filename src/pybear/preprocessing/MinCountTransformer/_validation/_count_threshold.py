@@ -26,18 +26,19 @@ def _val_count_threshold(
     """
     Validate a threshold is non-bool integer >= 2, or a 1D list-like
     of non-bool integers >= 1 with at least one value >= 2 and length
-    that equals '_n_features_in'. Validate the passed dtype is in the
-    allowed dtypes. _count_threshold must exist, cannot be None.
+    that equals '_n_features_in'. Validate the passed dtype of
+    _count_threshold is in the allowed dtypes. _count_threshold must
+    exist, cannot be None.
 
 
     Parameters
     ----------
     _count_threshold:
         Union[int, Iterable[int]] - integer >= 2 or list-like of
-        integers of shape (n_features, ) the minimum frequency a value
-        must have within a column in order to not be removed. if
-        list-like, the length must equal the number of features in the
-        data.
+        integers of shape (n_features, ) with all values >= 1 and at
+        least one value >= 2. the minimum frequency a value must have
+        within a column in order to not be removed. if list-like, the
+        length must equal the number of features in the data.
     _allowed:
         Iterable[Union[Literal['int', 'Iterable[int]']] - must be 1D
         list-like of literal strings. indicates the dtype(s) of threshold

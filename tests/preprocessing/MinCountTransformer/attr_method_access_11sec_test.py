@@ -7,6 +7,7 @@
 # pizza dont forget to put print_instructions() in here
 # pizza check if get_support() and get_row_support() are tested in here
 # pizza dont forget about set_params() blocks (max_recursions, ic, hab)
+# pizza added total_counts_by_column_ & instructions_ on 25_01_28
 
 from uuid import uuid4
 

@@ -6,7 +6,10 @@
 
 
 
-def _val_n_features_in(_n_features_in: int) -> int:
+import numbers
+
+
+def _val_n_features_in(_n_features_in: numbers.Integral) -> None:
 
     """
     Validate n_features_in_ is non-bool integer >= 1.
@@ -15,7 +18,7 @@ def _val_n_features_in(_n_features_in: int) -> int:
     Parameters
     ----------
     _n_features_in:
-        int - the number of features in the data being fitted.
+        numbers.Integral - the number of features in the data.
 
 
     Return
@@ -43,8 +46,6 @@ def _val_n_features_in(_n_features_in: int) -> int:
 
     del err_msg
 
-
-    return _n_features_in
 
 
 

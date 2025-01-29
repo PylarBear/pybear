@@ -27,23 +27,17 @@ import pandas as pd
 import scipy.sparse as ss
 import joblib
 
+from ._ic_hab_condition import _ic_hab_condition
 from ._make_instructions._make_instructions import _make_instructions
 from ._partial_fit._column_getter import _column_getter
 from ._partial_fit._original_dtypes_merger import _original_dtypes_merger
 from ._partial_fit._parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
 from ._partial_fit._tcbc_merger import _tcbc_merger
 from ._print_instructions._repr_instructions import _repr_instructions
-from ._transform._conflict_warner import _conflict_warner
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
-from ._transform._NDArrayify_integerize_ic_hab import _NDArrayify_integerize_ic_hab
 from ._transform._tcbc_update import _tcbc_update
-from ._validation._handle_as_bool_v_dtypes import _val_handle_as_bool_v_dtypes
 from ._validation._validation import _validation
 from ._validation._y import _val_y
-
-from .docs.mincounttransformer_docs import mincounttransformer_docs
-
-from ...utilities._feature_name_mapper import feature_name_mapper
 
 from ...base import (
     FeatureMixin,
@@ -336,18 +330,50 @@ class MinCountTransformer(
 
     Attributes
     ----------
-    n_features_in_ : int
-        Number of features seen during :term: fit.
+    n_features_in_:
+        int - the number of features seen during fit.
 
-    feature_names_in_ :
-        Names of features seen during :term: fit. Defined only when X
-        is passed in a format that contains feature names and has feature
-        names that are all strings.
+    feature_names_in_:
+        NDArray[str] of shape (n_features_in_,) - Names of features seen
+        during fit. Defined only when X is passed in a container that
+        has feature names and has feature names that are all strings. If
+        not defined, MCT will raise an AttributeError.
 
-    original_dtypes_ : ndarray of shape (n_features_in,)
-        The datatypes discovered in each feature at first :term: fit.
-        np.nan or 'nan' values are ignored while discovering datatypes
+    original_dtypes_ :
+        NDArray[Literal['bin_int', 'int', 'float', 'obj']] of shape
+        (n_features_in,) - The datatypes assigned by MCT to each feature.
+        nan-like values are ignored while discovering datatypes
         and the collective datatype of the non-nan values is reported.
+
+    total_counts_by_column_:
+        dict[int, dict[any, int]] - A dictionary of the uniques and their
+        frequencies found in each column of the fitted data. The keys are
+        the zero-based column indices and the values are dictionaries.
+        The inner dictionaries are keyed by the unique values found in
+        that respective column and the values are their counts. All
+        nan-like values are represented by numpy.nan.
+
+    delete_instructions_:
+        dict[
+            int,
+            Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], any]
+        ] - a dictionary that is keyed by column index and the values are
+        lists. Within the lists is information about operations to
+        perform with respect to values in the column. The following items
+        may be in the list:
+
+        -'INACTIVE' - ignore the column and carry it through for all
+            other operations
+
+        -Individual values - (in raw datatype format, not converted to
+            string) indicates to delete the rows on axis 0 that contain
+            that value in that column, including nan-like values
+
+        -'DELETE ALL' - delete every value in the column.
+
+        -'DELETE COLUMN' - perform any individual row deletions that
+            need to take place while the column is still in the data,
+            then delete the column from the data.
 
 
     Notes
@@ -408,19 +434,36 @@ class MinCountTransformer(
     Examples
     --------
     >>> from pybear.preprocessing import MinCountTransformer
-    >>> data = [['a', 0], ['a', 1], ['b', 0], ['c', 1], ['b', 2], ['d', 0]]
-    >>> mincount = MinCountTransformer(2, ignore_non_binary_integer_columns=False)
-    >>> out = mincount.fit(data)
-    >>> print(mincount.original_dtypes_)
+    >>> import numpy as np
+    >>> column1 = np.array(['a', 'a', 'b', 'c', 'b', 'd'])
+    >>> column2 = np.array([0, 1, 0, 1, 2, 0])
+    >>> data = np.vstack((column1, column2)).transpose().astype(object)
+    >>> data
+    array([['a', '0'],
+           ['a', '1'],
+           ['b', '0'],
+           ['c', '1'],
+           ['b', '2'],
+           ['d', '0']], dtype=object)
+    >>> MCT = MinCountTransformer(2, ignore_non_binary_integer_columns=False)
+    >>> MCT.fit(data)
+    MinCountTransformer(count_threshold=2, ignore_non_binary_integer_columns=False)
+    >>> print(MCT.original_dtypes_)
     ['obj' 'int']
-    >>> print(mincount.transform(data))
-    [['a' 0]
-     ['a' 1]
-     ['b' 0]]
-    >>> print(mincount.transform([['a', 2], ['b', 0], ['c', 1], ['b', 1]]))
-    [['b' 0]
-     ['b' 1]]
+    >>> tcbc = MCT.total_counts_by_column_
+    >>> tcbc[0]
+    {np.str_('a'): 2, np.str_('b'): 2, np.str_('c'): 1, np.str_('d'): 1}
+    >>> tcbc[1]
+    {np.float64(0.0): 3, np.float64(1.0): 2, np.float64(2.0): 1}
+    >>> print(MCT.instructions_)
+    {0: [np.str_('c'), np.str_('d')], 1: [np.float64(2.0)]}
+    >>> print(MCT.transform(data))
+    [['a' '0']
+     ['a' '1']
+     ['b' '0']
+     ['b' '2']]
 
+    # pizza this is bad!  tests need to catch this!
     """
 
 
@@ -465,6 +508,26 @@ class MinCountTransformer(
     @original_dtypes_.setter
     def original_dtypes_(self, value):
         raise AttributeError(f'original_dtypes_ attribute is read-only')
+
+
+    @property
+    def total_counts_by_column_(self):
+        return self._total_counts_by_column
+
+
+    @total_counts_by_column_.setter
+    def total_counts_by_column_(self, value):
+        raise AttributeError(f'total_counts_by_column_ attribute is read-only')
+
+
+    @property
+    def instructions_(self):
+        return self._make_instructions()
+
+
+    @instructions_.setter
+    def instructions_(self, value):
+        raise AttributeError(f'instructions_ attribute is read-only')
 
 
     def __pybear_is_fitted__(self):
@@ -614,15 +677,11 @@ class MinCountTransformer(
 
         self._original_dtypes = _original_dtypes_merger(
             _col_dtypes,
-            getattr(self, '_original_dtypes', None)
+            getattr(self, '_original_dtypes', None),
+            self.n_features_in_
         )
 
         del _col_dtypes
-
-        if len(self._original_dtypes) != self.n_features_in_:
-            raise AssertionError(
-                f"len(self._original_dtypes) != self.n_features_in_"
-            )
 
         self._total_counts_by_column: dict[int, dict[any, int]] = _tcbc_merger(
             DTYPE_UNQS_CTS_TUPLES,
@@ -633,33 +692,19 @@ class MinCountTransformer(
 
         # END GET TYPES, UNQS, & CTS FOR ACTIVE COLUMNS ** ** ** ** ** *
 
-        # pizza streamline these 3 operations, they are all used in sequence
-        # in partial_fit and transform. and pieces are used in print_instructions.
         self._ignore_columns, self._handle_as_bool = \
-            _NDArrayify_integerize_ic_hab(
+            _ic_hab_condition(
                 X,
                 self.ignore_columns,
                 self.handle_as_bool,
+                self.ignore_float_columns,
+                self.ignore_non_binary_integer_columns,
+                self._original_dtypes,
+                self.count_threshold,
                 self.n_features_in_,
-                getattr(self, 'feature_names_in_', None)
+                getattr(self, 'feature_names_in_', None),
+                _raise=True
             )
-
-        _conflict_warner(
-            self._original_dtypes,
-            self._handle_as_bool,
-            self._ignore_columns,
-            self.ignore_float_columns,
-            self.ignore_non_binary_integer_columns,
-            self.count_threshold,
-            self.n_features_in_
-        )
-
-        _val_handle_as_bool_v_dtypes(
-            self._handle_as_bool,
-            self._ignore_columns,
-            self._original_dtypes,
-            _raise=True
-        )
 
         return self
 
@@ -932,49 +977,53 @@ class MinCountTransformer(
         check_is_fitted(self)
 
         # params can be changed after fit & before calling this by set_params().
-        # need to validate params.
-        # _make_instructions() handles the validation of almost all the params
-        # in __init__ except max_recursions, reject_unseen_params, and n_jobs.
-        # max_recursions cannot be changed in set_params once fitted. None of
-        # these 3 are used here.
+        # need to validate params. _make_instructions() handles the validation
+        # of almost all the params in __init__ except max_recursions,
+        # reject_unseen_params, and n_jobs. max_recursions cannot be changed
+        # in set_params once fitted. None of these 3 are used here.
 
+        # after fit, ic & hab are blocked from being set to callable (but is OK
+        # if was already a callable when fit.) that means that the mapping of
+        # the callable used during fit lives in self._ignore_columns and
+        # self._handle_as_bool. but, set_params does not block setting ic/hab
+        # to Iterable[str] or Iterable[int]. so if self.ignore_columns and/or
+        # self.handle_as_bool are callable, we need to pass the output that
+        # lives in _ic & _hab. but if not callable, need to use the (perhaps
+        # changed) ic/hab in self.ignore_columns & self.handle_as_bool.
         # if ic/hab were changed to Iterable[str] in set_params, need to map
         # to Iterable[int].
 
-        # pizza streamline these operations, they are all used in sequence
-        # in partial_fit and transform. and pieces are used in print_instructions.
+        # _ic_hab_condition takes X, but we dont have it so we need to spoof it.
+        # X doesnt matter here, X is only for ic/hab callable in partial_fit()
+        # and transform(). since we are always passing ic/hab as vectors, dont
+        # need to worry about the callables.
 
-        self._ignore_columns = feature_name_mapper(
-            feature_names=self.ignore_columns,
-            feature_names_in=getattr(self, 'feature_names_in_', None),
-            positive=True
-        )
 
-        self._handle_as_bool = feature_name_mapper(
-            feature_names=self.ignore_columns,
-            feature_names_in=getattr(self, 'feature_names_in_', None),
-            positive=True
-        )
+        if callable(self.ignore_columns):
+            _wip_ic = self._ignore_columns
+        else:
+            _wip_ic = self.ignore_columns
+        if callable(self.handle_as_bool):
+            _wip_hab = self._handle_as_bool
+        else:
+            _wip_hab = self.handle_as_bool
 
-        _conflict_warner(
-            self._original_dtypes,
-            self._handle_as_bool,
-            self._ignore_columns,
-            self.ignore_float_columns,
-            self.ignore_non_binary_integer_columns,
-            self.count_threshold,
-            self.n_features_in_
-        )
-
-        _val_handle_as_bool_v_dtypes(
-            self._handle_as_bool,
-            self._ignore_columns,
-            self._original_dtypes,
-            _raise=True
-        )
+        self._ignore_columns, self._handle_as_bool = \
+            _ic_hab_condition(
+                None,     # placehold X
+                _wip_ic,
+                _wip_hab,
+                self.ignore_float_columns,
+                self.ignore_non_binary_integer_columns,
+                self._original_dtypes,
+                self.count_threshold,
+                self.n_features_in_,
+                getattr(self, 'feature_names_in_', None),
+                _raise=True
+            )
 
         _repr_instructions(
-            _delete_instr=self._make_instructions(),  # dont pass threshold here
+            _delete_instr=self._make_instructions(),
             _total_counts_by_column=self._total_counts_by_column,
             _thresholds=self.count_threshold,
             _n_features_in=self.n_features_in_,
@@ -1307,13 +1356,8 @@ class MinCountTransformer(
 
         # VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs **
 
-        # _val_ignore_columns_handle_as_bool INSIDE OF
-        # _validation SKIPPED THE col_idx VALIDATE/CONVERT PART
-        # WHEN self.n_features_in_ DIDNT EXIST (I.E., UP UNTIL THE START
-        # OF FIRST FIT) BUT ON FIRST PASS THRU HERE (AND EACH THEREAFTER)
-        # n_features_in_ (AND POSSIBLY feature_names_in_) NOW EXISTS SO
-        # PERFORM VALIDATION TO CONVERT IDXS. 24_03_18_16_42_00 MUST
-        # VALIDATE ON ALL PASSES NOW BECAUSE _ignore_columns AND/OR
+        # PERFORM VALIDATION & CONVERT ic/hab callables to IDXS.
+        # MUST VALIDATE ON ALL PASSES BECAUSE _ignore_columns AND/OR
         # _handle_as_bool CAN BE CALLABLE BASED ON X AND X IS NEW EVERY
         # TIME SO THE CALLABLES MUST BE RECOMPUTED AND RE-VALIDATED
         # BECAUSE THEY MAY (UNDESIRABLY) GENERATE DIFFERENT IDXS.
@@ -1321,30 +1365,18 @@ class MinCountTransformer(
 
         # pizza remember to test callables that spew differing output
         self._ignore_columns, self._handle_as_bool = \
-            _NDArrayify_integerize_ic_hab(
+            _ic_hab_condition(
                 X_tr,
                 self.ignore_columns,
                 self.handle_as_bool,
+                self.ignore_float_columns,
+                self.ignore_non_binary_integer_columns,
+                self._original_dtypes,
+                self.count_threshold,
                 self.n_features_in_,
-                getattr(self, 'feature_names_in_', None)
+                getattr(self, 'feature_names_in_', None),
+                _raise=True
             )
-
-        _conflict_warner(
-            self._original_dtypes,
-            self._handle_as_bool,
-            self._ignore_columns,
-            self.ignore_float_columns,
-            self.ignore_non_binary_integer_columns,
-            self.count_threshold,
-            self.n_features_in_
-        )
-
-        _val_handle_as_bool_v_dtypes(
-            self._handle_as_bool,
-            self._ignore_columns,
-            self._original_dtypes,
-            _raise=True
-        )
         # END handle_as_bool -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # END VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs ** **
@@ -1519,8 +1551,7 @@ class MinCountTransformer(
             self._original_dtypes,
             self.n_features_in_,
             getattr(self, 'feature_names_in_', None),
-            self._total_counts_by_column,
-            _threshold=_threshold
+            self._total_counts_by_column
         )
 
 

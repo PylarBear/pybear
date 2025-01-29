@@ -14,11 +14,11 @@ def _val_max_recursions(
     _max_recursions must be an integer >= 1
 
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     _max_recursions:
         int - the number of times to repeatedly perform the minimum
-        threshold culling process on the data.
+        threshold process on the data.
 
 
     Return
@@ -30,7 +30,7 @@ def _val_max_recursions(
     """
 
 
-    err_msg = f"max_recursions must be an integer >= 1 and less than 100"
+    err_msg = f"'max_recursions' must be an integer >= 1 and less than 100"
 
     try:
         float(_max_recursions)

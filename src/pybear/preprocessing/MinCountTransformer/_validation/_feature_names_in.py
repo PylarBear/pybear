@@ -6,16 +6,15 @@
 
 
 
-from typing import Optional
+from typing import Optional, Iterable
 from typing_extensions import Union
-import numpy.typing as npt
 
 from ._n_features_in import _val_n_features_in
 
 
 
 def _val_feature_names_in(
-    _feature_names_in: Union[npt.NDArray[str], None],
+    _feature_names_in: Union[Iterable[str], None],
     _n_features_in: Optional[Union[int, None]]=None
 ) -> None:
 
@@ -29,7 +28,7 @@ def _val_feature_names_in(
     Parameters
     ----------
     _feature_names_in:
-        Union[npt.NDArray[str], None] - if MCT was fit on a data
+        Union[Iterable[str], None] - if MCT was fit on a data
         container that had a header (e.g. pandas dataframe) then this is
         a list-like of those feature names. Otherwise, is None.
 
@@ -50,10 +49,10 @@ def _val_feature_names_in(
 
 
     err_msg = (
-        f"'feature_names_in' must be None or a 1D list-like of strings "
+        f"'_feature_names_in' must be None or a 1D list-like of strings "
         f"indicating the feature names of a data-bearing object. if "
         f"list-like and 'n_features_in' is provided, the length must "
-        f"equal 'n_features_in'."
+        f"equal '_n_features_in'."
     )
 
     try:

@@ -18,7 +18,7 @@ def _three_or_more_uniques_not_hab(
     _nan_key: Union[float, str, Literal[False]],
     _nan_ct: Union[int,  Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
-) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
+) -> list[Union[Literal['DELETE ALL', 'DELETE COLUMN'], DataType]]:
 
     """
     Make delete instructions for a column with three or more unique
@@ -41,19 +41,27 @@ def _three_or_more_uniques_not_hab(
     Parameters
     ----------
     _threshold:
-        int
+        int - the minimum frequency threshold for this column
     _nan_key:
-        Union[float, str, Literal[False]]
+        Union[float, str, Literal[False]] - the nan value found in the
+        column in its original dtype. as of 25_01 _column_getter is
+        converting all nan-like values to numpy.nan.
     _nan_ct:
-        Union[int,  Literal[False]]
+        Union[int,  Literal[False]] - the number of nan-like value found
+        in the column.
     _COLUMN_UNQ_CT_DICT:
-        dict[DataType, int], cannot be empty
+        dict[DataType, int] - the value from _total_cts_by_column for
+        this column which is a dictionary that holds the uniques and
+        their frequencies. cannot be empty.
 
 
     Return
     ------
     -
-        _instr_list: list[Union[str, DataType]]
+        _instr_list:
+            list[Union[Literal['DELETE ALL', 'DELETE COLUMN', DataType]] -
+            the row and columns operations to be performed for this
+            column.
 
 
     """

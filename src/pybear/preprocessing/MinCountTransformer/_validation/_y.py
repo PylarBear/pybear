@@ -18,6 +18,31 @@ def _val_y(
     _y: YContainer
 ) -> None:
 
+    """
+    Validate the target for the data is a valid data container. Numpy
+    ndarrays, pandas dataframes, and pandas series are allowed. This
+    validation is performed for :methods: partial_fit and fit even though
+    y is ignored. This validation is also performed for :method:
+    transform and is necessary because y may be passed to transform and
+    be reduced along the sample axis.
+
+
+    Parameters
+    ----------
+    _y:
+        Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None] of
+        shape (n_samples, n_features) or (n_samples,). The target for
+        the data. Ignored in :methods: partial_fit and fit, optional for
+        :method: transform.
+
+
+    Return
+    ------
+    -
+        None
+
+    """
+
 
     if not isinstance(
         _y,

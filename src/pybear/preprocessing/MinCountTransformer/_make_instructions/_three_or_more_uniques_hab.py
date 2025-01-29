@@ -55,18 +55,31 @@ def _three_or_more_uniques_hab(
           if no class below threshold, column is staying, look at nan ct,
           if below threshold, delete nan rows
 
+
     Parameters
     ----------
-    _threshold: int,
-    _nan_key: Union[float, str, Literal[False]],
-    _nan_ct: Union[int,  Literal[False]],
-    _COLUMN_UNQ_CT_DICT: dict[DataType, int], cannot be empty
-    _delete_axis_0: bool
+    _threshold:
+        int - the minimum frequency threshold for this column
+    _nan_key:
+        Union[float, str, Literal[False]] - the nan value in its original
+        dtype. as of 25_01, _column_getter is converting all nan-likes
+        to numpy.nan.
+    _nan_ct:
+        Union[int,  Literal[False]] - the frequency of nan in the column
+    _COLUMN_UNQ_CT_DICT:
+        dict[DataType, int] - the value from _total_cts_by_column for
+         this column which is a dictionary that holds the uniques and
+         their frequencies. cannot be empty.
+    _delete_axis_0:
+        bool - whether to delete along the sample axis if either or both
+        of the boolean values fall below the minimum count threshold.
+
 
     Return
     ------
     -
-        _instr_list: list[Union[str, DataType]]
+        _instr_list: list[Union[Literal['DELETE COLUMN', DataType]] -
+            the row and column operation instructions for this column.
 
 
     """

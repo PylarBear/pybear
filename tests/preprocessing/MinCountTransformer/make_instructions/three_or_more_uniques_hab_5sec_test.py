@@ -16,7 +16,6 @@ from pybear.preprocessing.MinCountTransformer._make_instructions. \
 
 
 
-
 class TestValidation:
 
     @pytest.mark.parametrize('_nan_key', ('NAN', np.nan, 'nan'))
@@ -42,7 +41,6 @@ class TestValidation:
             )
 
 
-
     @pytest.mark.parametrize('_delete_axis_0', (True, False))
     @pytest.mark.parametrize('_dtype', ('int', 'float'))
     def test_accepts_good_unq_ct_dict(self, _delete_axis_0, _dtype):
@@ -62,7 +60,7 @@ class TestValidation:
 
 
     @pytest.mark.parametrize('_delete_axis_0', (True, False))
-    def test_rejects_str_data(self, _delete_axis_0):
+    def test_rejects_obj_data(self, _delete_axis_0):
         with pytest.raises(TypeError):
             _three_or_more_uniques_hab(
                 _threshold=5,
@@ -71,8 +69,6 @@ class TestValidation:
                 _COLUMN_UNQ_CT_DICT={'a': 25, 'b': 99, 'c':34},
                 _delete_axis_0=_delete_axis_0
             )
-
-
 
 
 class TestThreeOrMoreUniquesHandleAsBool:

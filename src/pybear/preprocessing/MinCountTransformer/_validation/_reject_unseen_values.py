@@ -12,7 +12,7 @@ from ._core_bool_val import _core_bool_val
 
 def _val_reject_unseen_values(
     _reject_unseen_values: bool
-) -> bool:
+) -> None:
 
     """
     _reject_unseen_values must be bool
@@ -32,7 +32,8 @@ def _val_reject_unseen_values(
 
     """
 
-    return _core_bool_val('_reject_unseen_values', _reject_unseen_values)
+
+    _core_bool_val('_reject_unseen_values', _reject_unseen_values)
 
 
 

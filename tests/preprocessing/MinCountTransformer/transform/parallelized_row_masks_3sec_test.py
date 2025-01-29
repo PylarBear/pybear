@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -22,12 +23,12 @@ from pybear.preprocessing.MinCountTransformer._transform. \
 
 
 #  def _parallelized_row_masks(
-#     _X_COLUMN: np.ndarray[DataType],
+#     _X_COLUMN: npt.NDArray[DataType],
 #     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
 #     _instr: list[Union[str, DataType]],
 #     _reject_unseen_values: bool,
 #     _col_idx: int
-#     ) -> np.ndarray[np.uint8]:
+# ) -> npt.NDArray[np.uint8]:
 
 
 class TestParallelizedRowMasks:
@@ -234,7 +235,7 @@ class TestParallelizedRowMasks:
             _dtype=_dtype,
             _zeros=None,
             _shape=(_rows, 1)
-        )
+        ).ravel()
 
         UNQ_CT_DICT = good_unq_ct_dict(_X)
         assert len(good_instr(UNQ_CT_DICT, _thresh)) > 0, \
@@ -279,17 +280,17 @@ class TestParallelizedRowMasks:
             _dtype=_dtype,
             _zeros=None,
             _shape=(_rows, 1)
-        )
+        ).ravel()
 
         UNQ_CT_DICT = good_unq_ct_dict(_X)
         assert len(good_instr(UNQ_CT_DICT, _thresh)) > 0, \
             f"if this excepts, it wants to keep all unqs"
 
         # put unseen values into data
-        if isinstance(_X[0][0], str):
-            _X[np.random.choice(_rows, int(0.9 * _rows)), -1] = 'z'
+        if isinstance(_X[0], str):
+            _X[np.random.choice(_rows, int(0.9 * _rows))] = 'z'
         else:
-            _X[np.random.choice(_rows, int(0.9 * _rows)), -1] = 13
+            _X[np.random.choice(_rows, int(0.9 * _rows))] = 13
 
         # False does not except
         out = _parallelized_row_masks(

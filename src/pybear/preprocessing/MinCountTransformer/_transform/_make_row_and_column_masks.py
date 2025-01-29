@@ -6,14 +6,17 @@
 
 
 
+from typing import Literal
 from typing_extensions import Union
-from .._type_aliases import DataType, TotalCountsByColumnType
+from .._type_aliases import (
+    DataType,
+    InternalXContainer,
+    TotalCountsByColumnType
+)
 import numpy.typing as npt
 
 import joblib
 import numpy as np
-import pandas as pd
-import scipy.sparse as ss
 
 from ._parallelized_row_masks import _parallelized_row_masks
 from .._partial_fit._column_getter import _column_getter
@@ -21,9 +24,12 @@ from .._partial_fit._column_getter import _column_getter
 
 
 def _make_row_and_column_masks(
-    X: Union[npt.NDArray[DataType], pd.DataFrame, ss.csc_matrix, ss.csc_array],
+    X: InternalXContainer,
     _total_counts_by_column: TotalCountsByColumnType,
-    _delete_instr: dict[int, Union[str, DataType]],
+    _delete_instr: dict[
+        int,
+        Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], DataType]
+    ],
     _reject_unseen_values: bool,
     _n_jobs: Union[int, None]
 ) -> Union[npt.NDArray[bool], npt.NDArray[bool]]:
@@ -36,24 +42,33 @@ def _make_row_and_column_masks(
     over its respective uniques in _delete_instr, to identify which rows
     are to be deleted.
 
+
     Parameters
     ----------
     X:
-        np.ndarray[DataType] - the data to be transformed
+        Union[np.ndarray, pd.DataFrame, scipy.sparse] - the data to be
+        transformed.
     _total_counts_by_column:
         dict[int, dict[DataType, int]] - dictionary holding the uniques
-        and their counts for each column
+        and their counts for each column.
     _delete_instr:
-        dict[int, Union[str, DataType]] - _delete_instr is a dictionary
-        that is keyed by column index and the values are lists. Within
-        the lists is information about operations to perform with respect
-        to values in the column. The following items may be in the list:
+        dict[
+            int,
+            Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], DataType]
+        ] - a dictionary that is keyed by column index and the values are
+        lists. Within the lists is information about operations to
+        perform with respect to values in the column. The following items
+        may be in the list:
 
         -'INACTIVE' - ignore the column and carry it through for all
             other operations
+
         -Individual values - (in raw datatype format, not converted to
             string) indicates to delete the rows on axis 0 that contain
-            that value in that column, including 'nan' or np.nan values
+            that value in that column, including nan-like values
+
+        -'DELETE ALL' - delete every value in the column.
+
         -'DELETE COLUMN' - perform any individual row deletions that
             need to take place while the column is still in the data,
             then delete the column from the data.
@@ -62,18 +77,17 @@ def _make_row_and_column_masks(
         in the column against uniques in _COLUMN_UNQ_CT_DICT and raise
         exception if there is a value not previously seen.
     _n_jobs:
-        Union[int, None] -
-        Number of CPU cores used when parallelizing over features during
-        fit. None means 1 unless in a joblib.parallel_backend context.
-        -1 means using all processors.
+        Union[int, None] - Number of CPU cores/threads used when doing
+        parallel search of features during fit. -1 means using all
+        processors.
 
 
     Return
     ------
     -
         tuple[ROW_KEEP_MASK, COLUMN_KEEP_MASK]:
-            tuple[np.ndarray[np.uint8], np.ndarray[np.uint8] - the masks
-            for the rows and columns to keep in binary integer format.
+            tuple[np.ndarray[bool], np.ndarray[bool] - the masks for the
+            rows and columns to keep in binary integer format.
 
     """
 
@@ -115,7 +129,7 @@ def _make_row_and_column_masks(
                          'n_jobs': _n_jobs}
         ROW_MASKS = joblib.Parallel(**joblib_kwargs)(
             joblib.delayed(_parallelized_row_masks)(
-                _column_getter(X, _idx).reshape((-1, 1)),
+                _column_getter(X, _idx),
                 _total_counts_by_column[_idx],
                 _delete_instr[_idx],
                 _reject_unseen_values,

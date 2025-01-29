@@ -5,11 +5,10 @@
 #
 
 
+
 from .._type_aliases import TotalCountsByColumnType
 
 from copy import deepcopy
-
-
 
 
 
@@ -44,19 +43,23 @@ def _tcbc_update(
     Parameters
     ----------
     old_tcbc:
-        TotalCountsByColumnType
+        dict[int, dict[any, int]] - the total_cts_by_column dictionary
+        from self.
     recursion_tcbc:
-        TotalCountsByColumnType
+        dict[int, dict[any, int]] - the total_cts_by_column dictionary
+        from the recursion instance.
     MAP_DICT:
         dict[int, int] - dictionary mapping a feature's location in
-        Recursion._tcbc to its (possibly different) location in self._tcbc.
+        Recursion._tcbc to its (possibly different) location in
+        self._tcbc.
 
 
     Return
     ------
     -
         old_tcbc:
-            TotalCountsByColumnType - updated with counts from Recursion._tcbc
+            dict[int, dict[any, int]] - updated with counts from
+            Recursion._tcbc
 
     """
 

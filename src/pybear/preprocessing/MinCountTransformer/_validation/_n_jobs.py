@@ -12,7 +12,7 @@ import numbers
 
 def _val_n_jobs(
     _n_jobs: Union[numbers.Integral, None]
-) -> int:
+) -> None:
 
     """
     n_jobs must be None, -1, or integer >= 1.
@@ -22,7 +22,8 @@ def _val_n_jobs(
     ----------
     _n_jobs:
         Union[numbers.Integral, None] - the number of processors/threads
-        to use in extracting columns.
+        to use in scanning the columns of the data for uniques and
+        frequencies.
 
 
     Return
@@ -58,7 +59,6 @@ def _val_n_jobs(
     del err_msg
 
 
-    return
 
 
 

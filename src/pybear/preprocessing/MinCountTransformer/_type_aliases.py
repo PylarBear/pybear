@@ -19,7 +19,7 @@ import scipy.sparse as ss
 
 DataType = Union[numbers.Real, str]
 
-YContainer: TypeAlias = Union[npt.NDArray, pd.DataFrame, None]
+YContainer: TypeAlias = Union[npt.NDArray, pd.DataFrame, pd.Series, None]
 
 
 SparseContainer: TypeAlias = Union[
@@ -78,7 +78,7 @@ TotalCountsByColumnType: TypeAlias = dict[int, dict[any, int]]
 InstructionsType: TypeAlias = \
     dict[
         int,
-        list[Union[DataType, Literal['INACTIVE'], Literal['DELETE COLUMN']]]
+        list[Union[DataType, Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN']]]
     ]
 
 IgnoreColumnsType: TypeAlias = \
