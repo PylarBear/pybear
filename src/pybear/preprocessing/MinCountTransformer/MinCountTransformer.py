@@ -454,16 +454,15 @@ class MinCountTransformer(
     >>> tcbc[0]
     {np.str_('a'): 2, np.str_('b'): 2, np.str_('c'): 1, np.str_('d'): 1}
     >>> tcbc[1]
-    {np.float64(0.0): 3, np.float64(1.0): 2, np.float64(2.0): 1}
+    {np.str_('0'): 3, np.str_('1'): 2, np.str_('2'): 1}
     >>> print(MCT.instructions_)
-    {0: [np.str_('c'), np.str_('d')], 1: [np.float64(2.0)]}
+    {0: [np.str_('c'), np.str_('d')], 1: [np.str_('2')]}
     >>> print(MCT.transform(data))
     [['a' '0']
      ['a' '1']
-     ['b' '0']
-     ['b' '2']]
+     ['b' '0']]
 
-    # pizza this is bad!  tests need to catch this!
+
     """
 
 
