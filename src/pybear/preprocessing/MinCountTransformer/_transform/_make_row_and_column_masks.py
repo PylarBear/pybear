@@ -15,7 +15,6 @@ from .._type_aliases import (
 )
 import numpy.typing as npt
 
-import joblib
 import numpy as np
 
 from ._parallelized_row_masks import _parallelized_row_masks
@@ -42,7 +41,7 @@ def _make_row_and_column_masks(
     over its respective uniques in _delete_instr, to identify which rows
     are to be deleted.
 
-
+import joblib
     Parameters
     ----------
     X:
@@ -105,52 +104,42 @@ def _make_row_and_column_masks(
 
     # MAKE ROW DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # conditionally build _ACTIVE_COL_IDXS while looking for 'DELETE ALL'
-    # in any of the column _instr. if there is a 'DELETE ALL' just make
-    # a mask of all ones and forget about _ACTIVE_COL_IDXS.
-    ROW_MASKS = []
-    _ACTIVE_COL_IDXS = []
-    for col_idx, _instr in _delete_instr.items():
+    # old joblib that worked
+    # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
+    # joblib_kwargs = {'prefer': 'processes', 'return_as': 'list',
+    #                  'n_jobs': _n_jobs}
+    # ROW_MASKS = joblib.Parallel(**joblib_kwargs)(
+    #     joblib.delayed(_parallelized_row_masks)(
+    #         _column_getter_to_dense(X, _idx),
+    #         _total_counts_by_column[_idx],
+    #         _delete_instr[_idx],
+    #         _reject_unseen_values,
+    #         _idx
+    #     ) for _idx in _ACTIVE_COL_IDXS)
+    #
+    # del joblib_kwargs
+
+    # 25_01_30 linux time trial for loop is about 10% faster than joblib.
+    # if there is a 'DELETE ALL' just make a mask of all ones and forget
+    # about the loop.
+    for _instr in _delete_instr.values():
         if 'DELETE ALL' in _instr:
-            ROW_MASKS.append(np.ones(X.shape[0], dtype=np.uint8))
+            _delete_rows_mask = np.ones(X.shape[0], dtype=np.uint8)
             break
-        elif 'INACTIVE' in _instr or len(_instr) == 0:
-            continue
-        else:
-            _ACTIVE_COL_IDXS.append(col_idx)
-
-    if len(ROW_MASKS) >= 1:
-        # if it exists, just flow the mask that deletes all rows past
-        # this searching step.
-        pass
+    # otherwise build the mask from individual row masks.
     else:
-        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-        joblib_kwargs = {'prefer': 'processes', 'return_as': 'list',
-                         'n_jobs': _n_jobs}
-        ROW_MASKS = joblib.Parallel(**joblib_kwargs)(
-            joblib.delayed(_parallelized_row_masks)(
-                _column_getter_to_dense(X, _idx),
-                _total_counts_by_column[_idx],
-                _delete_instr[_idx],
-                _reject_unseen_values,
-                _idx
-            ) for _idx in _ACTIVE_COL_IDXS)
-
-        del joblib_kwargs
-
-    del _ACTIVE_COL_IDXS
-
-
-    # sum the individual masks in ROW_MASKS
-    # _delete_rows_mask = np.sum(ROW_MASKS, axis=0).astype(np.uint8)
-    # 24_06_15 dont use np.sum(ROW_MASKS, axis=0)!!! This works fine as
-    # long there are any non-zero in the masks. But when all the masks are
-    # full of zeroes, even with specifying axis=0 numpy is reducing this
-    # to a single value instead of a vector. Sum the vectors individually.
-
-    _delete_rows_mask = np.zeros(X.shape[0], dtype=np.uint8)
-    for _MASK in ROW_MASKS:
-        _delete_rows_mask += _MASK
+        _delete_rows_mask = np.zeros(X.shape[0], dtype=np.uint8)
+        for col_idx, _instr in _delete_instr.items():
+            if 'INACTIVE' in _instr or len(_instr) == 0:
+                continue
+            else:
+                _delete_rows_mask += _parallelized_row_masks(
+                    _column_getter_to_dense(X, col_idx),
+                    _total_counts_by_column[col_idx],
+                    _delete_instr[col_idx],
+                    _reject_unseen_values,
+                    col_idx
+                )
 
     # END MAKE ROW DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -163,10 +152,10 @@ def _make_row_and_column_masks(
     delete_all_msg = \
         lambda x: f"this threshold and recursion depth will delete all {x}"
 
-    if True not in ROW_KEEP_MASK:
+    if not any(ROW_KEEP_MASK):
         raise ValueError(delete_all_msg('rows'))
 
-    if True not in COLUMN_KEEP_MASK:
+    if not any(COLUMN_KEEP_MASK):
         raise ValueError(delete_all_msg('columns'))
 
     del delete_all_msg

@@ -192,82 +192,29 @@ class TestSetParams:
 
         # set_params(via init) -> fit -> transform
         FirstTestClass = SlimPoly(**_kwargs)
-        assert FirstTestClass.degree == 2
-        assert FirstTestClass.min_degree == 1
-        assert FirstTestClass.keep == 'first'
-        assert FirstTestClass.interaction_only is False
-        assert FirstTestClass.scan_X is False
-        assert FirstTestClass.sparse_output is False
-        assert FirstTestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert FirstTestClass.rtol == 1e-5
-        assert FirstTestClass.atol == 1e-8
-        assert FirstTestClass.equal_nan is False
-        assert FirstTestClass.n_jobs == 1
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
         FirstTestClass.fit(X.copy(), y.copy())
-        assert FirstTestClass.degree == 2
-        assert FirstTestClass.min_degree == 1
-        assert FirstTestClass.keep == 'first'
-        assert FirstTestClass.interaction_only is False
-        assert FirstTestClass.scan_X is False
-        assert FirstTestClass.sparse_output is False
-        assert FirstTestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert FirstTestClass.rtol == 1e-5
-        assert FirstTestClass.atol == 1e-8
-        assert FirstTestClass.equal_nan is False
-        assert FirstTestClass.n_jobs == 1
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
         FIRST_TRFM_X = FirstTestClass.transform(X.copy())
-        assert FirstTestClass.degree == 2
-        assert FirstTestClass.min_degree == 1
-        assert FirstTestClass.keep == 'first'
-        assert FirstTestClass.interaction_only is False
-        assert FirstTestClass.scan_X is False
-        assert FirstTestClass.sparse_output is False
-        assert FirstTestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert FirstTestClass.rtol == 1e-5
-        assert FirstTestClass.atol == 1e-8
-        assert FirstTestClass.equal_nan is False
-        assert FirstTestClass.n_jobs == 1
-        del FirstTestClass
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
 
+        del FirstTestClass
 
         # fit -> set_params -> transform
         # all different params to start
         SecondTestClass = SlimPoly(**_alt_kwargs_not_blocked)
-        assert SecondTestClass.degree == 3
-        assert SecondTestClass.min_degree == 2
-        assert SecondTestClass.keep == 'last'
-        assert SecondTestClass.interaction_only is True
-        assert SecondTestClass.scan_X is True
-        assert SecondTestClass.sparse_output is False
-        assert SecondTestClass.feature_name_combiner([], (1, 2, 3)) == 'xyz'
-        assert SecondTestClass.rtol == 1e-4
-        assert SecondTestClass.atol == 1e-7
-        assert SecondTestClass.equal_nan is True
-        assert SecondTestClass.n_jobs == 2
+        for param, value in _alt_kwargs_not_blocked.items():
+            assert getattr(SecondTestClass, param) == value
         SecondTestClass.fit(X.copy(), y.copy())
-        assert SecondTestClass.degree == 3
-        assert SecondTestClass.min_degree == 2
-        assert SecondTestClass.keep == 'last'
-        assert SecondTestClass.interaction_only is True
-        assert SecondTestClass.scan_X is True
-        assert SecondTestClass.sparse_output is False
-        assert SecondTestClass.feature_name_combiner([], (1, 2, 3)) == 'xyz'
-        assert SecondTestClass.rtol == 1e-4
-        assert SecondTestClass.atol == 1e-7
-        assert SecondTestClass.equal_nan is True
-        assert SecondTestClass.n_jobs == 2
+        for param, value in _alt_kwargs_not_blocked.items():
+            assert getattr(SecondTestClass, param) == value
         SECOND_TRFM_X = SecondTestClass.transform(X.copy())
-        assert SecondTestClass.degree == 3
-        assert SecondTestClass.min_degree == 2
-        assert SecondTestClass.keep == 'last'
-        assert SecondTestClass.interaction_only is True
-        assert SecondTestClass.scan_X is True
-        assert SecondTestClass.sparse_output is False
-        assert SecondTestClass.feature_name_combiner([], (1, 2, 3)) == 'xyz'
-        assert SecondTestClass.rtol == 1e-4
-        assert SecondTestClass.atol == 1e-7
-        assert SecondTestClass.equal_nan is True
-        assert SecondTestClass.n_jobs == 2
+        for param, value in _alt_kwargs_not_blocked.items():
+            assert getattr(SecondTestClass, param) == value
+
         # should not be equal to first transform
         assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
 
@@ -311,43 +258,16 @@ class TestSetParams:
 
         # fit_transform
         FirstTestClass = SlimPoly(**_kwargs)
-        assert FirstTestClass.degree == 2
-        assert FirstTestClass.min_degree == 1
-        assert FirstTestClass.keep == 'first'
-        assert FirstTestClass.interaction_only is False
-        assert FirstTestClass.scan_X is False
-        assert FirstTestClass.sparse_output is False
-        assert FirstTestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert FirstTestClass.rtol == 1e-5
-        assert FirstTestClass.atol == 1e-8
-        assert FirstTestClass.equal_nan is False
-        assert FirstTestClass.n_jobs == 1
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
         FIRST_TRFM_X = FirstTestClass.fit_transform(X.copy(), y.copy())
-        assert FirstTestClass.degree == 2
-        assert FirstTestClass.min_degree == 1
-        assert FirstTestClass.keep == 'first'
-        assert FirstTestClass.interaction_only is False
-        assert FirstTestClass.scan_X is False
-        assert FirstTestClass.sparse_output is False
-        assert FirstTestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert FirstTestClass.rtol == 1e-5
-        assert FirstTestClass.atol == 1e-8
-        assert FirstTestClass.equal_nan is False
-        assert FirstTestClass.n_jobs == 1
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
 
         # fit_transform -> set_params -> fit_transform
         SecondTestClass = SlimPoly(**_kwargs)
-        assert SecondTestClass.degree == 2
-        assert SecondTestClass.min_degree == 1
-        assert SecondTestClass.keep == 'first'
-        assert SecondTestClass.interaction_only is False
-        assert SecondTestClass.scan_X is False
-        assert SecondTestClass.sparse_output is False
-        assert SecondTestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert SecondTestClass.rtol == 1e-5
-        assert SecondTestClass.atol == 1e-8
-        assert SecondTestClass.equal_nan is False
-        assert SecondTestClass.n_jobs == 1
+        for param, value in _kwargs.items():
+            assert getattr(SecondTestClass, param) == value
         # this is already fit, only can change allowed params
         SecondTestClass.set_params(**_alt_kwargs_allowed)
         assert SecondTestClass.degree == 2
@@ -423,41 +343,14 @@ class TestSetParams:
 
         # initialize, fit, transform, and keep result
         TestClass = SlimPoly(**_kwargs)
-        assert TestClass.degree == 2
-        assert TestClass.min_degree == 1
-        assert TestClass.keep == 'first'
-        assert TestClass.interaction_only is False
-        assert TestClass.scan_X is False
-        assert TestClass.sparse_output is False
-        assert TestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert TestClass.rtol == 1e-5
-        assert TestClass.atol == 1e-8
-        assert TestClass.equal_nan is False
-        assert TestClass.n_jobs == 1
+        for param, value in _kwargs.items():
+            assert getattr(TestClass, param) == value
         TestClass.fit(X.copy(), y.copy())
-        assert TestClass.degree == 2
-        assert TestClass.min_degree == 1
-        assert TestClass.keep == 'first'
-        assert TestClass.interaction_only is False
-        assert TestClass.scan_X is False
-        assert TestClass.sparse_output is False
-        assert TestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert TestClass.rtol == 1e-5
-        assert TestClass.atol == 1e-8
-        assert TestClass.equal_nan is False
-        assert TestClass.n_jobs == 1
+        for param, value in _kwargs.items():
+            assert getattr(TestClass, param) == value
         FIRST_TRFM_X = TestClass.transform(X.copy())
-        assert TestClass.degree == 2
-        assert TestClass.min_degree == 1
-        assert TestClass.keep == 'first'
-        assert TestClass.interaction_only is False
-        assert TestClass.scan_X is False
-        assert TestClass.sparse_output is False
-        assert TestClass.feature_name_combiner([], (1, 2, 3)) == 'abc'
-        assert TestClass.rtol == 1e-5
-        assert TestClass.atol == 1e-8
-        assert TestClass.equal_nan is False
-        assert TestClass.n_jobs == 1
+        for param, value in _kwargs.items():
+            assert getattr(TestClass, param) == value
 
         # use set_params to change allowed params.  DO NOT FIT!
         # most params are blocked

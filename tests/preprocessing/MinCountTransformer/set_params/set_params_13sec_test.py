@@ -115,7 +115,7 @@ class TestSetParams:
         assert getattr(TestCls, 'reject_unseen_values') == 3
         with pytest.warns():  # max_recursions -> no-op with warn
             TestCls.set_params(max_recursions=3)
-        assert TestCls.max_recursions == 1
+        assert TestCls.max_recursions == 1  # did not change
         TestCls.set_params(n_jobs=3)
         assert getattr(TestCls, 'n_jobs') == 3
 
@@ -141,10 +141,37 @@ class TestSetParams:
             with pytest.raises(ValueError):
                 TestCls.set_params(**{param: value})
 
-        # nothing should have changed, should all be the original kwargs
+        # nothing should have changed, should all be the original values
         for param, value in _new_kwargs.items():
 
             assert getattr(TestCls, param) == value
+
+
+    def test_max_recursions_blocked(self, X, y, _kwargs):
+
+        # max_recursions always blocked
+
+        # INITIALIZE
+        TestCls = MCT(**_kwargs)
+
+        # CAN SET ANYTHING BEFORE FIT
+        TestCls.set_params(max_recursions=2)
+        assert TestCls.max_recursions == 2
+
+        TestCls.set_params(max_recursions=1)
+        assert TestCls.max_recursions == 1
+
+        TestCls.fit(X, y)
+
+        with pytest.warns():
+            TestCls.set_params(max_recursions=2)
+        assert TestCls.max_recursions == 1
+
+        TestCls.transform(X, y)
+
+        with pytest.warns():
+            TestCls.set_params(max_recursions=2)
+        assert TestCls.max_recursions == 1
 
 
     def test_equality_set_params_before_and_after_fit(
