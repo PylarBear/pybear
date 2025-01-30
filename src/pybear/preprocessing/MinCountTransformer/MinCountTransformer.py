@@ -52,8 +52,8 @@ from ...base import (
     validate_data
 )
 
-# pizza, after set_params_test is done, when all the tests there prove out that
-# the og params are not mutated, see if all the deepcopy can come out.
+# pizza, set_params_test is done, when all the other tests are done,
+# see if all the deepcopy can come out.
 
 
 
@@ -904,24 +904,34 @@ class MinCountTransformer(
             return np.arange(len(self._row_support))[self._row_support]
 
 
-    def get_support(self, indices:bool=False):
-        """Get a mask, or integer index, of the features selected.
+    def get_support(self, indices:Optional[bool]=False):
+
+        """
+        Get a boolean mask or the integer indices of the features
+        retained in the data.
+
 
         Parameters
         ----------
-        indices : bool, default=False - If True, the return value will
-            be an array of integers rather than a boolean mask.
+        indices:
+            Optional[bool], default=False - If True, the return
+            value will be a 1D array of integers; if False, the return
+            will be a 1D boolean mask.
+
 
         Return
         ------
         -
-            support : ndarray - An index that selects the retained
-            features from a feature vector. If indices is False, this is
-            a boolean array of shape (n_input_features,) in which an
-            element is True if its corresponding feature is selected for
-            retention. If indices is True, this is an integer array of
-            shape (n_output_features, ) whose values are indices into
-            the input feature vector.
+            support:
+                Union[numpy.NDArray[bool], numpy.NDArray[np.uint32]] -
+                A mask that selects the retained features from a feature
+                vector. If indices is False, this is a boolean array of
+                shape (n_features_in_,) in which an element is True if
+                its corresponding feature is selected for retention. If
+                indices is True, this is an integer array of shape
+                (n_features_in_, ) whose values are indices into the
+                input feature vector.
+
         """
 
         check_is_fitted(self)
@@ -934,7 +944,7 @@ class MinCountTransformer(
         # get_support().
 
         COLUMNS = np.array(
-            ['DELETE COLUMN' not in v for k, v in self._make_instructions().items()]
+            ['DELETE COLUMN' not in v for v in self._make_instructions().values()]
         )
 
         if indices is False:
@@ -946,8 +956,8 @@ class MinCountTransformer(
     def print_instructions(
         self,
         *,
-        clean_printout:bool=True,
-        max_print_len:int=100
+        clean_printout:Optional[bool]=True,
+        max_print_len:Optional[int]=100
     ):
 
         # pizza add this method to the main docs
@@ -1068,6 +1078,9 @@ class MinCountTransformer(
         except: pass
 
         try: del self._original_dtypes
+        except: pass
+
+        try: del self._total_counts_by_column
         except: pass
 
         try: del self._row_support

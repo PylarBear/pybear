@@ -6,7 +6,6 @@
 
 
 
-
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
@@ -94,8 +93,8 @@ class TestPipeline:
 
             # _format: Literal['np', 'pd', 'csr', 'csc', 'bsr']
 
-            # a function for FunctionTransformer, to convert X into a scipy
-            # sparse inside a pipeline, if needed.
+            # a function for FunctionTransformer, to convert X format
+            # inside a pipeline, if needed.
 
             assert isinstance(_X_, np.ndarray)
 
