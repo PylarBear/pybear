@@ -6,14 +6,12 @@
 
 
 
-import numpy as np
-
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
+import numpy as np
+
 import pytest
-
-
 
 
 

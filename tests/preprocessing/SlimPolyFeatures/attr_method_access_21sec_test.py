@@ -263,7 +263,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         TestCls.reset()
         # assert the instance is not fitted
         assert is_fitted(TestCls) is False
-        # HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^v^v^v
+        # END HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^v^
 
         # fit_transform()
         assert isinstance(TestCls.fit_transform(_X_np, _y_np), np.ndarray)
@@ -295,6 +295,9 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # score()
         assert TestCls.score(_X_np, _y_np) is None
 
+        # set_output()
+        assert isinstance(TestCls.set_output(transform='pandas'), SlimPoly)
+
         # set_params()
         assert isinstance(TestCls.set_params(keep='last'), SlimPoly)
         assert TestCls.keep == 'last'
@@ -302,9 +305,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # transform()
         with pytest.raises(NotFittedError):
             TestCls.transform(_X_np)
-
-        # set_output()
-        assert isinstance(TestCls.set_output(transform='pandas'), SlimPoly)
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
         # **************************************************************
@@ -354,14 +354,14 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # score()
         assert TestCls.score(_X_np) is None
 
+        # set_output()
+        assert isinstance(TestCls.set_output(transform='default'), SlimPoly)
+
         # set_params()
         assert isinstance(TestCls.set_params(keep='random'), SlimPoly)
 
         # transform()
         assert isinstance(TestCls.transform(_X_np), np.ndarray)
-
-        # set_output()
-        assert isinstance(TestCls.set_output(transform='pandas'), SlimPoly)
 
         del TestCls
 
@@ -409,25 +409,22 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
         # partial_fit()
         assert isinstance(TransformedTestCls.partial_fit(_X_np), SlimPoly)
+        TransformedTestCls.transform(_X_np)
 
         # reset()
         assert isinstance(TransformedTestCls.reset(), SlimPoly)
         TransformedTestCls.fit_transform(_X_np)
 
-        # set_params()
+        # set_output()
         assert isinstance(
-            TransformedTestCls.set_params(keep='first'),
-            SlimPoly
+            TransformedTestCls.set_output(transform='default'), SlimPoly
         )
+
+        # set_params()
+        assert isinstance(TransformedTestCls.set_params(keep='first'), SlimPoly)
 
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(_X_np), np.ndarray)
-
-        # set_output()
-        assert isinstance(
-            TransformedTestCls.set_output(transform='default'),
-            SlimPoly
-        )
 
         del FittedTestCls, TransformedTestCls
 

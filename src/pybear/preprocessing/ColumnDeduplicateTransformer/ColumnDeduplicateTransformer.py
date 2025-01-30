@@ -182,16 +182,16 @@ class ColumnDeduplicateTransformer(
     Parameters
     ----------
     keep:
-        Literal['first', 'last', 'random'], default = 'first' -
+        Optional[Literal['first', 'last', 'random']], default = 'first' -
         The strategy for keeping a single representative from a set of
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
     do_not_drop:
-        Union[Iterable[int], Iterable[str], None], default=None - A list
-        of columns not to be dropped. If fitting is done on a pandas
-        dataframe that has a header, a list of feature names may be
-        provided. Otherwise, a list of column indices must be provided.
+        Optional[Union[Iterable[int], Iterable[str], None]], default=None
+        - A list of columns not to be dropped. If fitting is done on a
+        pandas dataframe that has a header, a list of feature names may
+        be provided. Otherwise, a list of column indices must be provided.
         If a conflict arises, such as two columns specified in :param:
         do_not_drop are duplicates of each other, the behavior is managed
         by :param: conflict.
@@ -393,7 +393,10 @@ class ColumnDeduplicateTransformer(
         return self
 
 
-    def get_feature_names_out(self, input_features=None):
+    def get_feature_names_out(
+        self,
+        input_features:Optional[Union[Iterable[str], None]]=None
+    ):
 
         """
         Get the feature names for the deduplicated data.
@@ -402,8 +405,9 @@ class ColumnDeduplicateTransformer(
         Parameters
         ----------
         input_features :
-            array-like of str or None, default=None - Externally provided
-            feature names for the fitted data, not the transformed data.
+            Optional[Union[Iterable[str], None], default=None -
+            Externally provided feature names for the fitted data, not
+            the transformed data.
 
             If input_features is None:
 
@@ -463,7 +467,7 @@ class ColumnDeduplicateTransformer(
     def partial_fit(
         self,
         X: DataContainer,
-        y: any=None
+        y: Optional[any]=None
     ) -> Self:
 
         """
@@ -475,11 +479,12 @@ class ColumnDeduplicateTransformer(
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Data to remove duplicate columns from.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - Data to remove duplicate columns
+            from.
         y:
-            {vector-like of shape (n_samples,) or None}, default = None -
-            ignored. The target for the data.
+            Optional[any], default = None - ignored. The target for the
+            data.
 
 
         Return
@@ -602,7 +607,7 @@ class ColumnDeduplicateTransformer(
     def fit(
         self,
         X: DataContainer,
-        y: any=None
+        y: Optional[any]=None
     ) -> Self:
 
         """
@@ -614,11 +619,12 @@ class ColumnDeduplicateTransformer(
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Data to remove duplicate columns from.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - Data to remove duplicate columns
+            from.
         y:
-            {vector-like of shape (n_samples,) or None}, default = None -
-            ignored. The target for the data.
+            Optional[any], default = None - ignored. The target for the
+            data.
 
 
         Return
@@ -641,7 +647,7 @@ class ColumnDeduplicateTransformer(
         self,
         X: DataContainer,
         *,
-        copy: bool = None
+        copy: Optional[Union[bool, None]] = None
         ) -> DataContainer:
 
         """
@@ -664,11 +670,12 @@ class ColumnDeduplicateTransformer(
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features - n_features_removed) - A deduplicated data set.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features - n_features_removed) - A deduplicated
+            data set.
         copy:
-            Union[bool, None], default=None - Whether to make a copy of
-            X before the inverse transform.
+            Optional[Union[bool, None]], default=None - Whether to make
+            a copy of X before the inverse transform.
 
 
         Returns
@@ -745,7 +752,12 @@ class ColumnDeduplicateTransformer(
         return X_inv
 
 
-    def score(self, X, y=None) -> None:
+    def score(
+        self,
+        X: DataContainer,
+        y: Optional[any]=None
+    ) -> None:
+
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.
@@ -765,7 +777,7 @@ class ColumnDeduplicateTransformer(
         self,
         X: DataContainer,
         *,
-        copy: bool = None
+        copy: Optional[Union[bool, None]] = None
     ) -> DataContainer:
 
         """
@@ -777,18 +789,19 @@ class ColumnDeduplicateTransformer(
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - The data to be deduplicated.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - The data to be deduplicated.
         copy:
-            Union[bool, None], default=None - Whether to make a copy of
-            X before the transform.
+            Optional[Union[bool, None]], default=None - Whether to make
+            a copy of X before the transform.
 
 
         Return
         ------
         -
-            X_tr: {array-like, scipy sparse matrix} of shape (n_samples,
-                n_features - n_removed_features) - The deduplicated data.
+            X_tr: Union[numpy.ndarray, pandas.DataFrame, scipy.sparse]
+            of shape (n_samples, n_features - n_removed_features) - The
+            deduplicated data.
 
         """
 

@@ -19,7 +19,7 @@ import joblib
 import numpy as np
 
 from ._parallelized_row_masks import _parallelized_row_masks
-from .._partial_fit._column_getter import _column_getter
+from .._transform._column_getter_to_dense import _column_getter_to_dense
 
 
 
@@ -119,7 +119,7 @@ def _make_row_and_column_masks(
         else:
             _ACTIVE_COL_IDXS.append(col_idx)
 
-    if any(ROW_MASKS):
+    if len(ROW_MASKS) >= 1:
         # if it exists, just flow the mask that deletes all rows past
         # this searching step.
         pass
@@ -129,14 +129,16 @@ def _make_row_and_column_masks(
                          'n_jobs': _n_jobs}
         ROW_MASKS = joblib.Parallel(**joblib_kwargs)(
             joblib.delayed(_parallelized_row_masks)(
-                _column_getter(X, _idx),
+                _column_getter_to_dense(X, _idx),
                 _total_counts_by_column[_idx],
                 _delete_instr[_idx],
                 _reject_unseen_values,
                 _idx
             ) for _idx in _ACTIVE_COL_IDXS)
 
-    del _ACTIVE_COL_IDXS, joblib_kwargs
+        del joblib_kwargs
+
+    del _ACTIVE_COL_IDXS
 
 
     # sum the individual masks in ROW_MASKS

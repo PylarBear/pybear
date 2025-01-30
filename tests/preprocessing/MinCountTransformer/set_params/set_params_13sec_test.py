@@ -5,223 +5,317 @@
 #
 
 
-# pizza dont forget about set_params() blocks (max_recursions, ic, hab)
 
 from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
     MinCountTransformer as MCT
 
+from copy import deepcopy
 import numpy as np
 
 import pytest
 
 
 
-@pytest.fixture(scope='function')
-def _args(_rows):
-    return [_rows // 20]
-
-
-@pytest.fixture(scope='function')
-def _kwargs():
-    return {
-        'ignore_float_columns': True,
-        'ignore_non_binary_integer_columns': True,
-        'ignore_columns': None,
-        'ignore_nan': True,
-        'delete_axis_0': True,
-        'handle_as_bool': None,
-        'reject_unseen_values': False,
-        'max_recursions': 1,
-        'n_jobs': -1
-    }
-
-
-@pytest.fixture(scope='function')
-def _rows():
-    return 200
-
-
-@pytest.fixture(scope='function')
-def X(_rows):
-    return np.random.randint(0, 10, (_rows, 10))
-
-
-@pytest.fixture(scope='function')
-def y(_rows):
-    return np.random.randint(0, 2, (_rows, 2), dtype=np.uint8)
-
-
-
-
 class TestSetParams:
 
-        # DEFAULT ARGS/KWARGS
-        # _args = [_rows // 20]
-        # _kwargs = {
-        #     'ignore_float_columns': True,
-        #     'ignore_non_binary_integer_columns': True,
-        #     'ignore_columns': None,
-        #     'ignore_nan': True,
-        #     'delete_axis_0': True,
-        #     'handle_as_bool': None,
-        #     'reject_unseen_values': False,
-        #     'max_recursions': 1,
-        #     'n_jobs': -1
-        # }
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _rows():
+        return 200
 
 
-    def test_excepts_for_unknown_param(self, _args, _kwargs):
-
-        TestCls = MCT(*_args, **_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.set_params(garbage=1)
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def X(_rows):
+        return np.random.randint(0, 10, (_rows, 10))
 
 
-    def test_set_params_correctly_applies(self, X, y, _args, _kwargs):
-
-        _first_params = {'count_threshold': _args[0]} | _kwargs
-
-        TestCls = MCT(*_args, **_kwargs)
-
-        # assert TestCls initiated correctly
-        for _param, _value in _first_params.items():
-            assert getattr(TestCls, _param) == _value
-
-        # set new params before fit
-        _scd_params = {'count_threshold': _args[0]} | _kwargs
-        _scd_params['count_threshold'] = 39
-        _scd_params['ignore_float_columns'] = False
-        _scd_params['ignore_non_binary_integer_columns'] = False
-        _scd_params['ignore_columns'] = [0, 1]
-        _scd_params['ignore_nan'] = False
-        _scd_params['delete_axis_0'] = False
-        _scd_params['handle_as_bool'] = [2, 3]
-        _scd_params['reject_unseen_values'] = True
-        _scd_params['max_recursions'] = 1   # <==== no change
-        _scd_params['n_jobs'] = 2
-
-        TestCls.set_params(**_scd_params)
-
-        # assert new values set correctly
-        for _param, _value in _scd_params.items():
-            assert getattr(TestCls, _param) == _value
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def y(_rows):
+        return np.random.randint(0, 2, (_rows, 2), dtype=np.uint8)
 
 
-        # do a fit(), then assert all of the hidden params are set correctly
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _kwargs(_rows):
+        return {
+            'count_threshold': _rows // 20,
+            'ignore_float_columns': True,
+            'ignore_non_binary_integer_columns': True,
+            'ignore_columns': None,
+            'ignore_nan': True,
+            'handle_as_bool': None,
+            'delete_axis_0': True,
+            'reject_unseen_values': False,
+            'max_recursions': 1,
+            'n_jobs': 1   # use 1 because of confliction
+        }
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _alt_kwargs(_rows):
+
+        return {
+            'count_threshold': _rows // 10,
+            'ignore_float_columns': False,
+            'ignore_non_binary_integer_columns': False,
+            'ignore_columns': [0, 1],
+            'ignore_nan': False,
+            'handle_as_bool': [2, 3],
+            'delete_axis_0': False,
+            'reject_unseen_values': True,
+            'max_recursions': 1,  # make life easier, dont do 2+ here
+            'n_jobs': 2
+        }
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    def test_blocks_some_params_after_fit(self, X, y, _kwargs):
+
+        # INITIALIZE
+        TestCls = MCT(**_kwargs)
+
+        # CAN SET ANYTHING BEFORE FIT
+        TestCls.set_params(**_kwargs)
+
+        # everything is open after fit except 'max_recursions', and ic/hab
+        # cannot be set to callable.
         TestCls.fit(X, y)
 
-        for _param, _value in _scd_params.items():
-            try:
-                if hasattr(TestCls, _param):
-                    assert getattr(TestCls, _param) == _value
-                else:
-                    assert getattr(TestCls, f"_" + _param) == _value
-            except:
-                assert np.array_equal(getattr(TestCls, f"_" + _param), _value)
+        TestCls.set_params(count_threshold=66)
+        assert getattr(TestCls, 'count_threshold') == 66
+        TestCls.set_params(ignore_float_columns=False)
+        assert getattr(TestCls, 'ignore_float_columns') is False
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        TestCls.set_params(ignore_columns=[0, 1])
+        assert getattr(TestCls, 'ignore_columns') == [0, 1]
+        TestCls.set_params(ignore_columns=None)
+        assert getattr(TestCls, 'ignore_columns') is None
+        with pytest.warns():  # callable -> no-op with warn
+            TestCls.set_params(ignore_columns=lambda x: [2, 3])
+        assert getattr(TestCls, 'ignore_columns') is None  # did not change
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        TestCls.set_params(handle_as_bool=[0, 1])
+        assert getattr(TestCls, 'handle_as_bool') == [0, 1]
+        TestCls.set_params(handle_as_bool=None)
+        assert getattr(TestCls, 'handle_as_bool') is None
+        with pytest.warns():  # callable -> no-op with warn
+            TestCls.set_params(ignore_columns=lambda x: [2, 3])
+        assert getattr(TestCls, 'handle_as_bool') is None  # did not change
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        TestCls.set_params(ignore_nan=False)
+        assert getattr(TestCls, 'ignore_nan') == False
+        TestCls.set_params(delete_axis_0=3)
+        assert getattr(TestCls, 'delete_axis_0') == 3
+        TestCls.set_params(reject_unseen_values=3)
+        assert getattr(TestCls, 'reject_unseen_values') == 3
+        with pytest.warns():  # max_recursions -> no-op with warn
+            TestCls.set_params(max_recursions=3)
+        assert TestCls.max_recursions == 1
+        TestCls.set_params(n_jobs=3)
+        assert getattr(TestCls, 'n_jobs') == 3
+
+
+    def test_fitted_max_rcr_over_one_blocks(self, X, y, _kwargs, _alt_kwargs):
+
+        # everything blocked after fit with max_recursions >=2
+        # can only do fit_transform when 2+ recursions
+
+        # INITIALIZE
+        TestCls = MCT(**_kwargs)
+
+        # CAN SET ANYTHING BEFORE FIT
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['max_recursions'] = 2
+        TestCls.set_params(**_new_kwargs)
+
+        TestCls.fit_transform(X, y)
+
+        # should always except whenever set_params on anything
+        for param, value in _kwargs.items():
+
+            with pytest.raises(ValueError):
+                TestCls.set_params(**{param: value})
+
+        # nothing should have changed, should all be the original kwargs
+        for param, value in _new_kwargs.items():
+
+            assert getattr(TestCls, param) == value
 
 
     def test_equality_set_params_before_and_after_fit(
-        self, X, y, _args, _kwargs, _rows, mmct
+        self, X, y, _kwargs, _alt_kwargs, mmct
     ):
 
-        alt_args = [_rows // 25]
-        alt_kwargs = {
-            'ignore_float_columns': True,
-            'ignore_non_binary_integer_columns': True,
-            'ignore_columns': [0, 2],
-            'ignore_nan': False,
-            'delete_axis_0': False,
-            'handle_as_bool': None,
-            'reject_unseen_values': False,
-            'max_recursions': 1,
-            'n_jobs': -1
-        }
+        # test the equality of the data output under:
+        # 1) set_params(via init) -> fit -> transform
+        # 2) fit -> set_params -> transform
 
-        # INITIALIZE->FIT_TRFM
-        IFTCls = MCT(*alt_args, **alt_kwargs)
-        SPFT_TRFM_X, SPFT_TRFM_Y = IFTCls.fit_transform(X.copy(), y.copy())
+        # set_params(via init) -> fit -> transform
+        FirstTestClass = MCT(**_kwargs)
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
+        FirstTestClass.fit(X.copy(), y.copy())
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
+        FIRST_TRFM_X, FIRST_TRFM_Y = FirstTestClass.transform(X.copy(), y.copy())
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
+        del FirstTestClass
 
-        # FIT->SET_PARAMS->TRFM
-        FSPTCls = MCT(*_args, **_kwargs)
-        FSPTCls.fit(X.copy(), y.copy())
-        FSPTCls.set_params(count_threshold=alt_args[0], **alt_kwargs)
-        FSPT_TRFM_X, FSPT_TRFM_Y = FSPTCls.transform(X.copy(), y.copy())
-        assert FSPTCls.count_threshold == alt_args[0]  # the og value
+        # fit -> set_params -> transform
+        # all different params to start
+        SecondTestClass = MCT(**_alt_kwargs)
+        for param, value in _alt_kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+        SecondTestClass.fit(X.copy(), y.copy())
+        for param, value in _alt_kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+        SECOND_TRFM_X, SECOND_TRFM_Y = \
+            SecondTestClass.transform(X.copy(), y.copy())
+        for param, value in _alt_kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+        # should not be equal to first transform
+        assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
+        assert not np.array_equal(FIRST_TRFM_Y, SECOND_TRFM_Y)
 
-        # CHECK X AND Y EQUAL REGARDLESS OF WHEN SET_PARAMS
-        assert np.array_equiv(SPFT_TRFM_X.astype(str), FSPT_TRFM_X.astype(str)), \
-            f"SPFT_TRFM_X != FSPT_TRFM_X"
+        # all params are being changed back to those in FirstTestClass
+        SecondTestClass.set_params(**_kwargs)
+        for param, value in _kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+        THIRD_TRFM_X, THIRD_TRFM_Y = SecondTestClass.transform(X.copy(), y.copy())
+        for param, value in _kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+        del SecondTestClass
 
-        assert np.array_equiv(SPFT_TRFM_Y, FSPT_TRFM_Y), \
-            f"SPFT_TRFM_Y != FSPT_TRFM_Y"
+        # CHECK OUTPUT EQUAL REGARDLESS OF WHEN SET_PARAMS
+        assert np.array_equiv(FIRST_TRFM_X, THIRD_TRFM_X)
+        assert np.array_equiv(FIRST_TRFM_Y, THIRD_TRFM_Y)
 
 
         # VERIFY transform AGAINST REFEREE OUTPUT WITH SAME INPUTS
         MOCK_X = mmct().trfm(
             X.copy(),
             None,
-            alt_kwargs['ignore_columns'],
-            alt_kwargs['ignore_nan'],
-            alt_kwargs['ignore_non_binary_integer_columns'],
-            alt_kwargs['ignore_float_columns'],
-            alt_kwargs['handle_as_bool'],
-            alt_kwargs['delete_axis_0'],
-            alt_args[0]
+            _kwargs['ignore_columns'],
+            _kwargs['ignore_nan'],
+            _kwargs['ignore_non_binary_integer_columns'],
+            _kwargs['ignore_float_columns'],
+            _kwargs['handle_as_bool'],
+            _kwargs['delete_axis_0'],
+            _kwargs['count_threshold']
         )
 
-        assert np.array_equiv(FSPT_TRFM_X.astype(str), MOCK_X.astype(str)), \
-            f"FSPT_TRFM_X != MOCK_X"
+        assert np.array_equiv(FIRST_TRFM_X.astype(str), MOCK_X.astype(str))
 
         del MOCK_X
 
 
-
     def test_set_params_between_fit_transforms(
-        self, X, y, _args, _kwargs, _rows, mmct
+        self, X, y, _kwargs, _alt_kwargs, _rows, mmct
     ):
 
-        alt_args = [_rows // 25]
-        alt_kwargs = {
-            'ignore_float_columns': True,
-            'ignore_non_binary_integer_columns': True,
-            'ignore_columns': [0, 2],
-            'ignore_nan': False,
-            'delete_axis_0': False,
-            'handle_as_bool': None,
-            'reject_unseen_values': False,
-            'max_recursions': 1,
-            'n_jobs': -1
-        }
+        # only with max_recursions == 1
+
+        # fit_transform
+        FirstTestClass = MCT(**_kwargs)
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
+        FIRST_TRFM_X, FIRST_TRFM_Y = \
+            FirstTestClass.fit_transform(X.copy(), y.copy())
+        for param, value in _kwargs.items():
+            assert getattr(FirstTestClass, param) == value
+
+        # fit_transform -> set_params -> fit_transform
+        SecondTestClass = MCT(**_kwargs)
+        for param, value in _kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+        SecondTestClass.set_params(**_alt_kwargs)
+        for param, value in _alt_kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+        SECOND_TRFM_X, SECOND_TRFM_Y = \
+            SecondTestClass.fit_transform(X.copy(), y.copy())
+        for param, value in _alt_kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+
+        # should not be equal to first transform
+        assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
+        assert not np.array_equal(FIRST_TRFM_Y, SECOND_TRFM_Y)
+
+        # all params are being changed back to the original
+        SecondTestClass.set_params(**_kwargs)
+        for param, value in _kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+        THIRD_TRFM_X, THIRD_TRFM_Y = \
+            SecondTestClass.fit_transform(X.copy(), y.copy())
+        for param, value in _kwargs.items():
+            assert getattr(SecondTestClass, param) == value
+
+        assert np.array_equiv(FIRST_TRFM_X, THIRD_TRFM_X)
+        assert np.array_equiv(FIRST_TRFM_Y, THIRD_TRFM_Y)
 
 
-        # INITIALIZE->FIT_TRFM
-        IFTCls = MCT(*alt_args, **alt_kwargs)
-        SPFT_TRFM_X, SPFT_TRFM_Y = IFTCls.fit_transform(X.copy(), y.copy())
+    def test_set_params_output_repeatability(
+        self, X, y, _kwargs, _alt_kwargs
+    ):
 
-        # FIT_TRFM->SET_PARAMS->FIT_TRFM
-        FTSPFTCls = MCT(*alt_args, **alt_kwargs)
-        FTSPFTCls.set_params(max_recursions=2)
-        FTSPFTCls.fit_transform(X.copy(), y.copy())
-        assert FTSPFTCls.max_recursions == 2
+        # changing and changing back on the same class gives same result
+        # initialize, fit, transform, keep results
+        # set all new params and transform
+        # set back to the old params and transform, compare with the first output
+
+        # initialize, fit, transform, and keep result
+        TestClass = MCT(**_kwargs)
+        for param, value in _kwargs.items():
+            assert getattr(TestClass, param) == value
+        TestClass.fit(X.copy(), y.copy())
+        for param, value in _kwargs.items():
+            assert getattr(TestClass, param) == value
+        FIRST_TRFM_X, FIRST_TRFM_Y = TestClass.transform(X.copy(), y.copy())
+        for param, value in _kwargs.items():
+            assert getattr(TestClass, param) == value
+        # use set_params to change all params.  DO NOT FIT!
+        TestClass.set_params(**_alt_kwargs)
+        for param, value in _alt_kwargs.items():
+            assert getattr(TestClass, param) == value
+        SECOND_TRFM_X, SECOND_TRFM_Y = TestClass.transform(X.copy(), y.copy())
+        for param, value in _alt_kwargs.items():
+            assert getattr(TestClass, param) == value
+
+        # should not be equal to first transform
+        assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
+        assert not np.array_equal(FIRST_TRFM_Y, SECOND_TRFM_Y)
+
+        # use set_params again to change all params back to original values
+        TestClass.set_params(**_kwargs)
+        for param, value in _kwargs.items():
+            assert getattr(TestClass, param) == value
+        # transform again, and compare with the first output
+        THIRD_TRFM_X, THIRD_TRFM_Y = TestClass.transform(X.copy(), y.copy())
+        for param, value in _kwargs.items():
+            assert getattr(TestClass, param) == value
+
+        assert np.array_equal(FIRST_TRFM_X, THIRD_TRFM_X)
+        assert np.array_equal(FIRST_TRFM_Y, THIRD_TRFM_Y)
 
 
-        # pizza 25_01_27_10_16_00 MCT now blocks setting any params when
-        # in fitted state with max_recursions >= 2
-        with pytest.raises(ValueError):
-            FTSPFTCls.set_params(**alt_kwargs)
-        # FTSPFT_TRFM_X, FTSPFT_TRFM_Y = \
-        #     FTSPFTCls.fit_transform(X.copy(), y.copy())
-        #
-        # assert FTSPFTCls.max_recursions == 1
-        #
-        # assert np.array_equiv(
-        #     SPFT_TRFM_X.astype(str), FTSPFT_TRFM_X.astype(str)
-        # ), \
-        #     f"SPFT_TRFM_X != FTSPFT_TRFM_X"
 
-        # assert np.array_equiv(SPFT_TRFM_Y, FTSPFT_TRFM_Y), \
-        #     f"SPFT_TRFM_Y != FTSPFT_TRFM_Y"
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

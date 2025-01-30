@@ -497,9 +497,9 @@ class SlimPolyFeatures(
 
     def __init__(
         self,
-        degree: Optional[numbers.Integral]=2,
+        degree: Optional[numbers.Integral] = 2,
         *,
-        min_degree: Optional[numbers.Integral]=1,
+        min_degree: Optional[numbers.Integral] = 1,
         interaction_only: Optional[bool] = False,
         scan_X: Optional[bool] = True,
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
@@ -781,7 +781,10 @@ class SlimPolyFeatures(
         return self
 
 
-    def get_feature_names_out(self, input_features=None):
+    def get_feature_names_out(
+        self,
+        input_features:Optional[Union[Iterable[str], None]]=None
+    ):
 
         """
         Get the feature names for the output of :method: transform. Use
@@ -793,8 +796,9 @@ class SlimPolyFeatures(
         Parameters
         ----------
         input_features :
-            array-like of str or None, default=None - Externally provided
-            feature names for the fitted data, not the transformed data.
+            Optional[Union[Iterable[str], None]], default=None -
+            Externally provided feature names for the fitted data, not
+            the transformed data.
 
             If input_features is None:
 
@@ -881,7 +885,7 @@ class SlimPolyFeatures(
     def partial_fit(
         self,
         X: DataContainer,
-        y: Union[Iterable[any], None]=None
+        y: Optional[any]=None
     ) -> Self:
 
         """
@@ -896,7 +900,7 @@ class SlimPolyFeatures(
             (n_samples, n_features) - A batch of the dataset to undergo
             polynomial expansion.
         y:
-            any - Always ignored. The target for the data.
+            Optional[any] - Always ignored. The target for the data.
 
 
         Return
@@ -1247,7 +1251,7 @@ class SlimPolyFeatures(
     def fit(
         self,
         X: DataContainer,
-        y: Union[Iterable[any], None]=None
+        y: Optional[any]=None
     ) -> Self:
 
         """
@@ -1263,7 +1267,7 @@ class SlimPolyFeatures(
             (n_samples, n_features) - The full dataset to undergo
             polynomial expansion.
         y:
-            any - Always ignored. The target for the data.
+            Optional[any] - Always ignored. The target for the data.
 
 
         Return
@@ -1283,7 +1287,12 @@ class SlimPolyFeatures(
     # inherited from FitTransformMixin
 
 
-    def score(self, X, y:Union[Iterable[any], None]=None) -> None:
+    def score(
+        self,
+        X: DataContainer,
+        y:Optional[any]=None
+    ) -> None:
+
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.

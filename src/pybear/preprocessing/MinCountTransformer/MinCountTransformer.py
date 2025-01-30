@@ -27,13 +27,13 @@ import pandas as pd
 import scipy.sparse as ss
 import joblib
 
-from ._ic_hab_condition import _ic_hab_condition
 from ._make_instructions._make_instructions import _make_instructions
 from ._partial_fit._column_getter import _column_getter
 from ._partial_fit._original_dtypes_merger import _original_dtypes_merger
 from ._partial_fit._parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
 from ._partial_fit._tcbc_merger import _tcbc_merger
 from ._print_instructions._repr_instructions import _repr_instructions
+from ._transform._ic_hab_condition import _ic_hab_condition
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
 from ._transform._tcbc_update import _tcbc_update
 from ._validation._validation import _validation
@@ -201,7 +201,7 @@ class MinCountTransformer(
     luxury of identifying features to ignore or handle as boolean when
     the ultimate name or index of the feature is not known beforehand,
     as in a sci-kit learn pipeline operation. The callables must accept
-    a single argument, which is the X parameter passed to :meth: transform,
+    a single argument, the X parameter passed to :method: transform,
     whereby column indices can be found based on characteristics of X.
     Consider a pipeline process that includes some operations that act
     on the features of the data, e.g. TextVectorizer or OneHotEncoder.
@@ -310,22 +310,22 @@ class MinCountTransformer(
         feature is then also removed for having only one value.
 
     reject_unseen_data : bool, default=False
-        If False (default), new values encountered during :term: transform
-        that were not seen during :term: fit are ignored. If True, MCT
-        will terminate when a value that was not seen during :term: fit
-        is encountered while transforming data.
+        If False (default), new values encountered during transform that
+        were not seen during :term: fit are ignored. If True, MCT will
+        terminate when a value that was not seen during :term: fit is
+        encountered while transforming data.
 
     max_recursions : int, default=1
         The number of times MCT repeats its algorithm on passed data.
         Only available for :meth: fit_transform.
 
     n_jobs:
-        Optional[Union[int, None]], default=None
-        Number of CPU cores used when parallelizing over features while
-        gathering uniques and counts during :term: fit and when
-        parallelizing over features while building masks during :term:
-        transform. None means 1 unless in a joblib.parallel_backend
-        context. -1 means using all processors.
+        Optional[Union[int, None]], default=None - Number of CPU cores
+        used when parallelizing over features while gathering uniques
+        and counts during :term: fit and when parallelizing over features
+        while building masks during :term: transform. None means 1 unless
+        in a joblib.parallel_backend context. -1 means using all
+        processors.
 
 
     Attributes
@@ -353,7 +353,7 @@ class MinCountTransformer(
         that respective column and the values are their counts. All
         nan-like values are represented by numpy.nan.
 
-    delete_instructions_:
+    instructions_:
         dict[
             int,
             Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], any]
@@ -766,28 +766,32 @@ class MinCountTransformer(
         Fits MinCountTransformer to X and returns a transformed version
         of X.
 
+
         Parameters
         ----------
-        X : Union[numpy.ndarray, pandas.DataFrame, pandas.Series,
-            dask.array, dask.DataFrame, dask.Series] of shape (n_samples,
-            n_features) - The data used to determine the uniques and
-            their frequencies and to be transformed by rules created
-            from those frequencies.
+        X:
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - The data used to determine the
+            uniques and their frequencies and to be transformed by rules
+            created from those frequencies.
+        y:
+            Optional[Union[None, numpy.ndarray, pandas.DataFrame,
+            pandas.Series]] of shape (n_samples, n_outputs), or
+            (n_samples,), default=None - Target values for the data.
+            None for unsupervised transformations.
 
-        y : Optional[Union[numpy.ndarray, pandas.DataFrame, pandas.Series]]
-            of shape (n_samples, n_outputs), or (n_samples,), default=None - Target values
-            (None for unsupervised transformations).
 
         Return
         ------
         -
-            X_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
-                    (n_samples_new, n_features_new)
-                Transformed data.
+            X_tr: Union[numpy.ndarray, pandas.DataFrame, scipy.sparse]
+                of shape (n_samples_new, n_features_new) - the transformed
+                data.
 
-            y_tr : {ndarray, pandas.DataFrame, pandas.Series} of shape
-                    (n_samples_new,) or (n_samples_new, n_outputs)
-                Transformed target.
+            y_tr: Union[numpy.ndarray, pandas.DataFrame, pandas.Series]
+                of shape (n_samples_new,) or (n_samples_new, n_outputs)
+                Transformed target, if provided.
+
         """
 
         # cant use FitTransformMixin, need custom code to handle _recursion_check
@@ -816,8 +820,9 @@ class MinCountTransformer(
         Parameters
         ----------
         input_features :
-            Optional[Iterable[str], None]], default=None - Externally provided
-            feature names for the fitted data, not the transformed data.
+            Optional[Iterable[str], None]], default=None - Externally
+            provided feature names for the fitted data, not the
+            transformed data.
 
             If input_features is None:
 
@@ -1041,7 +1046,7 @@ class MinCountTransformer(
         )
 
 
-    def reset(self):
+    def reset(self) -> Self:
         """
         Reset the internal data state of MinCountTransformer.
 
@@ -1068,8 +1073,10 @@ class MinCountTransformer(
         try: del self._row_support
         except: pass
 
+        return self
 
-    def score(self, X, y=None) -> None:
+
+    def score(self, X: XContainer, y:Optional[YContainer]=None) -> None:
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.
@@ -1206,11 +1213,12 @@ class MinCountTransformer(
         self,
         X: XContainer,
         y: Optional[YContainer]=None,
-        copy=False
+        copy: Optional[Union[bool, None]]=None
     ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
         """
         Reduce X by the thresholding rules found during fit.
+
 
         Parameters
         ----------
@@ -1220,9 +1228,14 @@ class MinCountTransformer(
             according to the thresholding rules found during :term: fit.
 
         y:
-            Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None]
-            of shape (n_samples, n_outputs), or (n_samples,), default =
-            None - Target values (None for unsupervised transformations).
+            Optional[Union[None, numpy.ndarray, pandas.DataFrame,
+            pandas.Series]] of shape (n_samples, n_outputs), or
+            (n_samples,), default = None - Target values for the data.
+            None for unsupervised transformations.
+
+        copy:
+            Optional[Union[bool, None]], default = None - whether to
+            copy X (and y, if provided) before doing the transformation.
 
 
         Return
@@ -1502,7 +1515,10 @@ class MinCountTransformer(
 
                 del NEW_IGN_COL, NEW_HDL_AS_BOOL_COL, NEW_COUNT_THRESHOLD
 
-                X_tr, y_tr = RecursiveCls.fit_transform(X_tr, y_tr)
+                if y_tr is None:
+                    X_tr = RecursiveCls.fit_transform(X_tr, y_tr)
+                else:
+                    X_tr, y_tr = RecursiveCls.fit_transform(X_tr, y_tr)
 
                 # vvv tcbc update vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
                 MAP_DICT = dict((
@@ -1534,16 +1550,13 @@ class MinCountTransformer(
         elif isinstance(X_tr, np.ndarray):
             X_tr = np.ascontiguousarray(X_tr)
 
-        if y_tr is not None:
-            return X_tr, y_tr
-        else:
+        if y_tr is None:
             return X_tr
+        else:
+            return X_tr, y_tr
 
 
-    def _make_instructions(
-        self,
-        _threshold:Optional[Union[int, Iterable[int], None]]=None
-    ):
+    def _make_instructions(self):
 
         # must be before _make_instructions()
         check_is_fitted(self)
