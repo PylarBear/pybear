@@ -112,6 +112,9 @@ def _repr_instructions(
     _max_print_len = 80
     _pad = 2   # number of spaces between name/thresh info & delete info
 
+    if _feature_names_in is None:
+        _feature_names_in = [f"Column {i}" for i in range(_n_features_in)]
+
     _tcnw = min(25, max(map(len, _feature_names_in)))
     # total column name width  ... the total number of spaces allowed
     # for f"column name (threshold)" and _pad.

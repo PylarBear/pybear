@@ -58,10 +58,10 @@ def _val_ignore_columns_handle_as_bool(
     _n_features_in:
         int - the number of features in the data.
     _feature_names_in:
-        Optional[Union[Iterable[str], None]]=None - if the MCT instance was fitted
-        on a data-bearing object that had a header (like a pandas
-        dataframe) then this is a 1D list-like of strings. Otherwise, is
-        None.
+        Optional[Union[Iterable[str], None]]=None - if the MCT instance
+        was fitted on a data-bearing object that had a header (like a
+        pandas dataframe) then this is a 1D list-like of strings.
+        Otherwise, is None.
 
 
     Return

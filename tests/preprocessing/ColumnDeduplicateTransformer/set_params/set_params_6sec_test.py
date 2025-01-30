@@ -6,12 +6,14 @@
 
 
 
-from pybear.preprocessing.InterceptManager.InterceptManager import \
-    InterceptManager as IM
+
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing.ColumnDeduplicateTransformer. \
+    ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
+
 
 
 
@@ -28,8 +30,7 @@ class TestSetParams:
     @pytest.fixture(scope='function')
     def X(_X_factory, _shape):
         return _X_factory(
-            _constants={0: 1, _shape[1]-1: 2},   # <===== important
-            _dupl=None,
+            _dupl=[[0, 1, _shape[1]-1]],   # <===== important
             _format='np',
             _dtype='int',
             _has_nan=False,
@@ -46,14 +47,16 @@ class TestSetParams:
 
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs(_shape):
+    @pytest.fixture(scope='function')
+    def _kwargs():
         return {
-            'keep': 'last',
-            'equal_nan': True,
+            'keep': 'first',
+            'do_not_drop': None,
+            'conflict': 'raise',
             'rtol': 1e-5,
             'atol': 1e-8,
-            'n_jobs': -1
+            'equal_nan': False,
+            'n_jobs': 1  # confliction isnt a problem, 1 or -1 is fine
         }
 
 
@@ -61,11 +64,13 @@ class TestSetParams:
     @pytest.fixture(scope='module')
     def _alt_kwargs(_shape):
         return {
-            'keep': 'first',
-            'equal_nan': False,
+            'keep': 'last',
+            'do_not_drop': None,
+            'conflict': 'ignore',
             'rtol': 1e-6,
             'atol': 1e-9,
-            'n_jobs': 2
+            'equal_nan': True,
+            'n_jobs': -1  # confliction isnt a problem, 1 or -1 is fine
         }
 
     # END Fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -80,7 +85,7 @@ class TestSetParams:
         # 2) fit -> set_params -> transform
 
         # set_params(via init) -> fit -> transform
-        FirstTestClass = IM(**_kwargs)
+        FirstTestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
         FirstTestClass.fit(X.copy(), y.copy())
@@ -91,9 +96,10 @@ class TestSetParams:
             assert getattr(FirstTestClass, param) == value
         del FirstTestClass
 
+
         # fit -> set_params -> transform
         # all different params to start
-        SecondTestClass = IM(**_alt_kwargs)
+        SecondTestClass = CDT(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
         SecondTestClass.fit(X.copy(), y.copy())
@@ -102,7 +108,6 @@ class TestSetParams:
         SECOND_TRFM_X = SecondTestClass.transform(X.copy())
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-
         # should not be equal to first transform
         assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
 
@@ -124,7 +129,7 @@ class TestSetParams:
     ):
 
         # fit_transform
-        FirstTestClass = IM(**_kwargs)
+        FirstTestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
         FIRST_TRFM_X = FirstTestClass.fit_transform(X.copy(), y.copy())
@@ -132,7 +137,7 @@ class TestSetParams:
             assert getattr(FirstTestClass, param) == value
 
         # fit_transform -> set_params -> fit_transform
-        SecondTestClass = IM(**_kwargs)
+        SecondTestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
         SecondTestClass.set_params(**_alt_kwargs)
@@ -153,6 +158,7 @@ class TestSetParams:
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
+
         assert np.array_equiv(FIRST_TRFM_X, THIRD_TRFM_X)
 
 
@@ -166,7 +172,7 @@ class TestSetParams:
         # set back to the old params and transform, compare with the first output
 
         # initialize, fit, transform, and keep result
-        TestClass = IM(**_kwargs)
+        TestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
         TestClass.fit(X.copy(), y.copy())
@@ -182,7 +188,6 @@ class TestSetParams:
         SECOND_TRFM_X = TestClass.transform(X.copy())
         for param, value in _alt_kwargs.items():
             assert getattr(TestClass, param) == value
-
         # should not be equal to first transform
         assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
 
@@ -195,11 +200,8 @@ class TestSetParams:
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
 
+
         assert np.array_equal(FIRST_TRFM_X, THIRD_TRFM_X)
-
-
-
-
 
 
 

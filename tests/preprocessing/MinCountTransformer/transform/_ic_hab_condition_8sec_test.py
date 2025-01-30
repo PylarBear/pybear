@@ -6,8 +6,8 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._ic_hab_condition import \
-    _ic_hab_condition
+from pybear.preprocessing.MinCountTransformer._transform._ic_hab_condition \
+    import _ic_hab_condition
 
 import uuid
 import numpy as np

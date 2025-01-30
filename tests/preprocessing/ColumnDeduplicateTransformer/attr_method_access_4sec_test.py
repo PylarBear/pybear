@@ -284,6 +284,9 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # score()
         assert TestCls.score(_X_np, _y_np) is None
 
+        # set_output()
+        assert isinstance(TestCls.set_output(transform='pandas'), CDT)
+
         # set_params()
         assert isinstance(TestCls.set_params(keep='last'), CDT)
         assert TestCls.keep == 'last'
@@ -291,9 +294,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # transform()
         with pytest.raises(NotFittedError):
             TestCls.transform(_X_np)
-
-        # set_output()
-        assert isinstance(TestCls.set_output(transform='pandas'), CDT)
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
         # **************************************************************
@@ -346,14 +346,14 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # score()
         assert TestCls.score(_X_np, _y_np) is None
 
+        # set_output()
+        assert isinstance(TestCls.set_output(transform='default'), CDT)
+
         # set_params()
         assert isinstance(TestCls.set_params(keep='random'), CDT)
 
         # transform()
         assert isinstance(TestCls.transform(_X_np), np.ndarray)
-
-        # set_output()
-        assert isinstance(TestCls.set_output(transform='pandas'), CDT)
 
         del TestCls
 
@@ -409,6 +409,9 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         assert isinstance(TransformedTestCls._reset(), CDT)
         TransformedTestCls.fit_transform(_X_np)
 
+        # set_output()
+        assert isinstance(TransformedTestCls.set_output(transform='default'), CDT)
+
         # set_params()
         assert isinstance(
             TransformedTestCls.set_params(keep='first'),
@@ -417,9 +420,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(_X_np), np.ndarray)
-
-        # set_output()
-        assert isinstance(TransformedTestCls.set_output(transform='default'), CDT)
 
         del FittedTestCls, TransformedTestCls, TRFM_X
 

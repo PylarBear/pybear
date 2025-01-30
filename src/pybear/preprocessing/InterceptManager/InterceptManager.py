@@ -490,7 +490,10 @@ SetParamsMixin
         return self
 
 
-    def get_feature_names_out(self, input_features=None):
+    def get_feature_names_out(
+        self,
+        input_features:Optional[Union[Iterable[str], None]]=None
+    ):
 
         """
         Return the feature names for the output of :method: transform.
@@ -501,8 +504,9 @@ SetParamsMixin
         Parameters
         ----------
         input_features :
-            array-like of str or None, default=None - Externally provided
-            feature names for the fitted data, not the transformed data.
+            Optional[Union[Iterable[str], None]], default=None -
+            Externally provided feature names for the fitted data, not
+            the transformed data.
 
             If input_features is None:
 
@@ -574,7 +578,7 @@ SetParamsMixin
     def partial_fit(
         self,
         X: DataContainer,
-        y: any=None
+        y: Optional[any]=None
     ) -> Self:
 
         """
@@ -586,11 +590,11 @@ SetParamsMixin
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Data to find constant columns in.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - Data to find constant columns in.
         y:
-            {vector-like of shape (n_samples,) or None}, default = None -
-            ignored. The target for the data.
+            Optional[any], default = None - ignored. The target for the
+            data.
 
 
         Return
@@ -732,7 +736,7 @@ SetParamsMixin
     def fit(
         self,
         X: DataContainer,
-        y: any=None
+        y: Optional[any]=None
     ) -> Self:
 
         """
@@ -744,11 +748,11 @@ SetParamsMixin
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - Data to find constant columns in.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - Data to find constant columns in.
         y:
-            {vector-like of shape (n_samples,) or None}, default = None -
-            ignored. The target for the data.
+            Optional[any], default = None - ignored. The target for the
+            data.
 
 
         Return
@@ -772,7 +776,7 @@ SetParamsMixin
         self,
         X: DataContainer,
         *,
-        copy: bool = None
+        copy: Optional[Union[bool, None]] = None
     ) -> DataContainer:
 
         """
@@ -795,11 +799,11 @@ SetParamsMixin
         Parameters
         ----------
         X :
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_transform_features) - A transformed data set.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_transform_features) - A transformed data set.
         copy:
-            Union[bool, None], default=None - Whether to make a copy of
-            X before the inverse transform.
+            Optional[Union[bool, None]], default=None - Whether to make
+            a copy of X before the inverse transform.
 
 
         Return
@@ -949,7 +953,12 @@ SetParamsMixin
         return X_inv
 
 
-    def score(self, X, y:Union[Iterable[any], None]=None) -> None:
+    def score(
+        self,
+        X: DataContainer,
+        y: Optional[any]=None
+    ) -> None:
+
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.
@@ -968,7 +977,7 @@ SetParamsMixin
     def transform(
         self,
         X: DataContainer,
-        copy: bool=None
+        copy: Optional[Union[bool, None]]=None
     ) -> DataContainer:
 
         """
@@ -979,11 +988,11 @@ SetParamsMixin
         Parameters
         ----------
         X:
-            {array-like, scipy sparse matrix} of shape (n_samples,
-            n_features) - The data to be transformed.
+            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
+            (n_samples, n_features) - The data to be transformed.
         copy:
-            Union[bool, None], default=None - Whether to make a copy of
-            X before the transform.
+            Optional[Union[bool, None]], default=None - Whether to make
+            a copy of X before the transform.
 
 
         Return
