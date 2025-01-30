@@ -9,7 +9,7 @@
 from pybear.preprocessing import MinCountTransformer as MCT
 
 import numpy as np
-np.random.seed(1)
+
 import pytest
 
 
@@ -53,6 +53,8 @@ class TestGetSupport:
         _MCT = MCT(**_kwargs)
 
         _exc = Exception(f"failed to make a good X test fixture after 200 tries")
+
+        np.random.seed(np.random.choice([0, 1, 3, 4, 11]))
 
         ctr = 0
         while True:
