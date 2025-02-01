@@ -68,7 +68,6 @@ def _three_or_more_uniques_not_hab(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
 
@@ -81,12 +80,12 @@ def _three_or_more_uniques_not_hab(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # _delete_axis_0 NO LONGER APPLIES, MUST DELETE ALONG AXIS 0
+    # _delete_axis_0 DOES NOT APPLY, MUST DELETE ALONG AXIS 0
     # IF ONLY 1 UNQ LEFT, DELETE COLUMN,
     # IF ALL UNQS DELETED THIS SHOULD PUT ALL False IN
     # ROW MASK AND CAUSE EXCEPT DURING transform()
     _instr_list = []
-    UNQS = np.fromiter(_COLUMN_UNQ_CT_DICT.keys(), dtype=object)
+    UNQS = np.array(list(_COLUMN_UNQ_CT_DICT.keys()))
     CTS = np.fromiter(_COLUMN_UNQ_CT_DICT.values(), dtype=np.uint32)
     if np.sum((CTS < _threshold)) == len(CTS):
         _instr_list.append('DELETE ALL')

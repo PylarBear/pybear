@@ -691,10 +691,11 @@ class MinCountTransformer(
 
         del _col_dtypes
 
-        self._total_counts_by_column: dict[int, dict[any, int]] = _tcbc_merger(
-            DTYPE_UNQS_CTS_TUPLES,
-            getattr(self, '_total_counts_by_column', {})
-        )
+        self._total_counts_by_column: dict[int, dict[any, int]] = \
+            _tcbc_merger(
+                DTYPE_UNQS_CTS_TUPLES,
+                getattr(self, '_total_counts_by_column', {})
+            )
 
         del DTYPE_UNQS_CTS_TUPLES
 

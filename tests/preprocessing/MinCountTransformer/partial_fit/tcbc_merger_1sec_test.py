@@ -115,9 +115,6 @@ class TestTCBCMergerTest:
                 assert out[_c_idx][_unq] == 2 * _tcbc_no_nan[_c_idx][_unq]
 
 
-
-
-
     def test_correctly_doubles_values_with_nans(self, _tcbc):
 
         out = _tcbc_merger(
