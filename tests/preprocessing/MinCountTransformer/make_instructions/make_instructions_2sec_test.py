@@ -232,7 +232,8 @@ class TestMakeInstructions:
         _tcbc = {}
         for _ in range(4):
             _tcbc[_] = {
-                np.random.uniform(0, 1): np.random.randint(0, 10) for i in range(10)
+                np.random.uniform(0, 1):
+                    np.random.randint(0, 10) for i in range(10)
             }
 
         out = _make_instructions(
@@ -285,6 +286,48 @@ class TestMakeInstructions:
 
     def test_accuracy(self):
 
+        out = _make_instructions(
+            _count_threshold=5,
+            _ignore_float_columns=True,
+            _ignore_non_binary_integer_columns=False,
+            _ignore_columns=[],
+            _ignore_nan=False,
+            _handle_as_bool=[],
+            _delete_axis_0=True,
+            _original_dtypes=np.array(['int', 'int']),
+            _n_features_in=2,
+            _feature_names_in=None,
+            _total_counts_by_column={
+                0: {0: 6, 1: 4, 2: 6, 3: 4, 4: 6},
+                1: {0: 4, 1: 5, 2: 4, 3: 5, 4: 4},
+            }
+        )
+
+        # even tho _delete_axis_0 is True, not 'DELETE ALL' because
+        # it is a constant column, which never has rows deleted.
+        assert out == {0: [1, 3], 1: [0, 2, 4]}
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        out = _make_instructions(
+            _count_threshold=5,
+            _ignore_float_columns=True,
+            _ignore_non_binary_integer_columns=True,
+            _ignore_columns=[],
+            _ignore_nan=False,
+            _handle_as_bool=[],
+            _delete_axis_0=True,
+            _original_dtypes=np.array(['obj']),
+            _n_features_in=1,
+            _feature_names_in=None,
+            _total_counts_by_column={0: {'a':100}}
+        )
+
+        # even tho _delete_axis_0 is True, not 'DELETE ALL' because
+        # it is a constant column, which never has rows deleted.
+        assert out == {0: ['DELETE COLUMN']}
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         out = _make_instructions(
             _count_threshold=5,
@@ -302,8 +345,7 @@ class TestMakeInstructions:
 
         assert out == {0: ['a', 'c', np.nan, 'DELETE COLUMN']}
 
-
-        _tcbc = {0: {1.969: 3, 2.718: 2, 3.141: 3}}
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         out = _make_instructions(
             _count_threshold=5,
@@ -316,7 +358,7 @@ class TestMakeInstructions:
             _original_dtypes=np.array(['float']),
             _n_features_in=1,
             _feature_names_in=None,
-            _total_counts_by_column=_tcbc
+            _total_counts_by_column={0: {1.969: 3, 2.718: 2, 3.141: 3}}
         )
 
         assert out == {0: ['DELETE ALL', 'DELETE COLUMN']}

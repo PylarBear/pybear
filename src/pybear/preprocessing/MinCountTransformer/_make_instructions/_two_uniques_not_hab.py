@@ -68,6 +68,7 @@ def _two_uniques_not_hab(
 
     """
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
@@ -78,6 +79,7 @@ def _two_uniques_not_hab(
     if (_nan_ct is False) + (_nan_key is False) not in [0, 2]:
         raise ValueError(f"_nan_key is {_nan_key} and _nan_ct is {_nan_ct}")
 
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # nans should not be in _COLUMN_UNQ_CT_DICT!
 
@@ -96,18 +98,18 @@ def _two_uniques_not_hab(
 
     else:  # HAS NANS AND NOT IGNORING
 
-        non_nan_ctr = 0
+        _ctr = 0
         for unq, ct in _COLUMN_UNQ_CT_DICT.items():
             if ct < _threshold:
-                non_nan_ctr += 1
+                _ctr += 1
                 _instr_list.append(unq)
 
         if _nan_ct < _threshold:
             _instr_list.append(_nan_key)
 
-        if non_nan_ctr > 0:
+        if _ctr > 0:
             _instr_list.append('DELETE COLUMN')
-        del non_nan_ctr, unq, ct
+        del _ctr, unq, ct
 
 
     return _instr_list

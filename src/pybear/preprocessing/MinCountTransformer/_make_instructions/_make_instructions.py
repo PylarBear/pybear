@@ -114,8 +114,8 @@ def _make_instructions(
         ignoring or not
 
     C) Assess the remaining values and counts and create instructions.
-    Now that nan is out of _total_counts_by_column, look at the number of
-    items in uniques and direct based on if is 1, 2, or 3+, and if
+    Now that nan is out of _total_counts_by_column, look at the number
+    of items in uniques and direct based on if is 1, 2, or 3+, and if
     handling as boolean.
 
     There are 5 modules called by this module. All cases where there is
@@ -205,18 +205,18 @@ def _make_instructions(
     -
         _delete_instr: dict[
             int,
-            Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN', DataType]
-        ] - a dictionary that is keyed by column index and the values are
-        lists. Within the lists is information about operations to
+            Union[
+            Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN',
+            DataType
+            ]
+        ] - a dictionary that is keyed by column index and the values
+        are lists. Within the lists is information about operations to
         perform with respect to values in the column.
 
 
     """
 
-
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    # _validation
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     _make_instructions_validation(
         _count_threshold,
         _ignore_float_columns,
@@ -231,35 +231,38 @@ def _make_instructions(
         _total_counts_by_column,
     )
 
-
     _threshold = _threshold_listifier(
         _n_features_in,
         deepcopy(_count_threshold)
     )
 
-    # find inactive columns and populate _delete_instr
-    _delete_instr = {}
-    for col_idx in range(_n_features_in):
-        _delete_instr[col_idx] = []
-        if _threshold[col_idx] == 1:
-            _delete_instr[col_idx].append('INACTIVE')
-        elif col_idx in _ignore_columns:
-            _delete_instr[col_idx].append('INACTIVE')
-        elif _total_counts_by_column[col_idx] == {}:
-            _delete_instr[col_idx].append('INACTIVE')
-        elif (_ignore_float_columns and _original_dtypes[col_idx] == 'float'):
-            _delete_instr[col_idx].append('INACTIVE')
-        elif _ignore_non_binary_integer_columns and \
-                _original_dtypes[col_idx] == 'int':
-            _delete_instr[col_idx].append('INACTIVE')
-        elif _original_dtypes[col_idx] == 'obj' and col_idx in _handle_as_bool:
-            raise ValueError(f"handle_as_bool on obj column")
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+
+    _delete_instr = {}
     # pizza can this deepcopy() come out?
     for col_idx, COLUMN_UNQ_CT_DICT in deepcopy(_total_counts_by_column).items():
         # _total_counts_by_column GIVES A DICT OF UNQ & CTS FOR COLUMN;
         # IF _ignore_nan, nans & THEIR CTS ARE TAKEN OUT BELOW. IF nan IS
         # IN, THIS COMPLICATES ASSESSMENT OF COLUMN HAS 1 VALUE, IS BINARY, ETC.
+
+        # find inactive columns
+        # need to put something on every pass to keep asc order of keys
+        if _threshold[col_idx] == 1:
+            _delete_instr[col_idx] = ['INACTIVE']
+        elif col_idx in _ignore_columns:
+            _delete_instr[col_idx] = ['INACTIVE']
+        elif _total_counts_by_column[col_idx] == {}:
+            _delete_instr[col_idx] = ['INACTIVE']
+        elif (_ignore_float_columns and _original_dtypes[col_idx] == 'float'):
+            _delete_instr[col_idx] = ['INACTIVE']
+        elif _ignore_non_binary_integer_columns and \
+                _original_dtypes[col_idx] == 'int':
+            _delete_instr[col_idx] = ['INACTIVE']
+        elif _original_dtypes[col_idx] == 'obj' and col_idx in _handle_as_bool:
+            raise ValueError(f"handle_as_bool on obj column")
+        else:
+            _delete_instr[col_idx] = []
 
         if _delete_instr[col_idx] == ['INACTIVE']:
             continue
@@ -288,6 +291,8 @@ def _make_instructions(
         COLUMN_UNQ_CT_DICT = {unq: ct for unq, ct in COLUMN_UNQ_CT_DICT.items()
                               if str(unq).lower() != 'nan'}
         # ^^^ END MANAGE nan ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+        # populate _delete_instr
 
         if len(COLUMN_UNQ_CT_DICT) == 1:  # SAME VALUE IN THE WHOLE COLUMN
 
@@ -336,43 +341,16 @@ def _make_instructions(
                     COLUMN_UNQ_CT_DICT
                 )
 
-
-
     del _threshold, col_idx, COLUMN_UNQ_CT_DICT
     try:
         del _nan_key, _nan_ct, _nan_dict
     except:
         pass
 
-
     _val_delete_instr(_delete_instr, _n_features_in)
 
 
     return _delete_instr
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

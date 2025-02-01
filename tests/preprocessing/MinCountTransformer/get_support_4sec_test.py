@@ -19,22 +19,22 @@ class TestGetSupport:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _count_threshold():
-        return 10
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _shape():
         return (100, 4)
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _kwargs(_shape):
+    def _count_threshold(_shape):
+        return _shape[0] // 10
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _kwargs(_shape, _count_threshold):
 
         return {
-            'count_threshold': _shape[0] // 10,
+            'count_threshold': _count_threshold,
             'ignore_float_columns': True,
             'ignore_non_binary_integer_columns': False,
             'delete_axis_0': False,
@@ -54,30 +54,23 @@ class TestGetSupport:
 
         _exc = Exception(f"failed to make a good X test fixture after 200 tries")
 
-        np.random.seed(np.random.choice([0, 1, 3, 4, 11]))
-
         ctr = 0
         while True:
 
             ctr += 1
-            print(f'attempt to build X fixture trial {ctr}')
+
+            np.random.seed(np.random.choice([0, 1, 2]))
 
             __ = np.random.randint(
                 0,
-                (_shape[0] // (_count_threshold + 2)),
+                (_shape[0] // (1.2*_count_threshold)),
                 _shape
             )
             # a column to be removed on the second rcr
-            _p = (_count_threshold + 1)/_shape[0]
-            __ = np.hstack((
-                __,
-                np.random.choice(
-                    [0,1],
-                    (_shape[0], 1),
-                    replace=True,
-                    p=[_p, 1-_p]
-                )
-            ))
+            _dum_column = np.zeros((_shape[0],))
+            _dum_column[-_count_threshold:] = 1
+            __ = np.hstack((__, _dum_column.reshape((-1, 1))))
+            del _dum_column
             # a column of constants to be removed on the first rcr
             __ = np.hstack((__, np.ones((_shape[0], 1))))
 
@@ -95,7 +88,7 @@ class TestGetSupport:
             try:
                 # under try in case all columns or rows are deleted
                 out2 = _MCT.fit_transform(__)
-                if (out2.shape[1] == out1.shape[1]) or out2.shape[0] == 0:
+                if out2.shape[1] != (_shape[1] + 2 - 2):
                     raise Exception
                 break
             except:
@@ -117,9 +110,9 @@ class TestGetSupport:
         _MCT_2.set_params(max_recursions=2)
 
         TRFM_X_1 = _MCT_1.fit_transform(_X_np)
-        assert TRFM_X_1.shape[1] < _X_np.shape[1]
+        assert TRFM_X_1.shape[1] == (_X_np.shape[1] - 1)
         TRFM_X_2 = _MCT_2.fit_transform(_X_np)
-        assert TRFM_X_2.shape[1] < TRFM_X_1.shape[1]
+        assert TRFM_X_2.shape[1] == (_X_np.shape[1] - 2)
 
 
         for _indices in [True, False]:
@@ -142,19 +135,19 @@ class TestGetSupport:
                          f"did not return a boolean array")
                 # END must be boolean -- -- -- -- -- -- -- -- -- -- -- -- --
 
-                # len(SUPPORT) MUST EQUAL NUMBER OF _columns IN X -- -- -- --
+                # len(SUPPORT) MUST EQUAL NUMBER OF COLUMNS IN X -- -- -- --
                 for _rcr, _out in enumerate([out1, out2], 1):
                     assert len(_out) == _X_np.shape[1], \
                         (f"{_rcr} recursion len(get_support({_indices})) != X "
                          f"columns")
-                # END len(SUPPORT) MUST EQUAL NUMBER OF _columns IN X -- --
+                # END len(SUPPORT) MUST EQUAL NUMBER OF COLUMNS IN X -- --
 
-                # NUM COLUMNS KEPT MUST BE <= NUM _columns IN X -- -- -- --
+                # NUM COLUMNS KEPT MUST BE <= n_features_in_ -- -- -- --
                 for _rcr, _out in enumerate([out1, out2], 1):
                     assert sum(_out) <= _X_np.shape[1], \
                         (f"impossibly, number of columns kept by {_rcr} "
                          f"recursion > number of columns in X")
-                # END NUM COLUMNS KEPT MUST BE <= NUM _columns IN X -- -- --
+                # END NUM COLUMNS KEPT MUST BE <= n_features_in_ -- -- --
 
                 # INDICES IN TWO RECUR MUST ALSO BE IN ONE RECUR -- -- -- --
                 assert np.all(out1[out2]), (f"Columns that are to be "
@@ -169,12 +162,12 @@ class TestGetSupport:
                          f"return an array of integers")
                 # END all integers -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-                # NUM COLUMNS MUST BE <= n_features_in_ -- -- -- -- -- -- --
+                # NUM COLUMNS KEPT MUST BE <= n_features_in_ -- -- -- -- --
                 for _rcr, _out in enumerate([out1, out2], 1):
                     assert len(_out) <= _X_np.shape[1], \
-                        (f"impossibly, {_rcr} recursion len(get_support({_indices})) "
-                         f"> X columns")
-                # END NUM COLUMNS MUST BE <= n_features_in_ -- -- -- -- -- --
+                        (f"impossibly, number of columns kept by {_rcr} "
+                         f"recursion > number of columns in X")
+                # END NUM COLUMNS KEPT MUST BE <= n_features_in_ -- -- -- --
 
                 # INDICES IN TWO RECUR MUST ALSO BE IN ONE RECUR -- -- -- --
                 _bool1 = np.zeros(_X_np.shape[1]).astype(bool)
@@ -185,6 +178,31 @@ class TestGetSupport:
                     f"kept by 2 rcr were not kept by 1 rcr")
                 # END INDICES IN TWO RECUR MUST ALSO BE IN ONE RECUR -- -- --
 
+        _ref_mask_1 = np.ones(_X_np.shape[1]).astype(bool)
+        _ref_mask_1[-1] = False
+
+        assert np.array_equal(
+            _MCT_1.get_support(False),
+            _ref_mask_1
+        )
+
+        _ref_mask_2 = np.ones(_X_np.shape[1]).astype(bool)
+        _ref_mask_2[-2:] = False
+
+        assert np.array_equal(
+            _MCT_2.get_support(False),
+            _ref_mask_2
+        )
+
+        assert np.array_equal(
+            np.arange(_X_np.shape[1])[_MCT_1.get_support(False)],
+            _MCT_1.get_support(True)
+        )
+
+        assert np.array_equal(
+            np.arange(_X_np.shape[1])[_MCT_2.get_support(False)],
+            _MCT_2.get_support(True)
+        )
 
         del _MCT_1, _MCT_2, _out, out1, out2, _indices
 

@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing import InterceptManager as IM
-
 import numpy as np
-from pybear.base.exceptions import NotFittedError
 
 import pytest
+
+from pybear.preprocessing import InterceptManager as IM
+from pybear.base.exceptions import NotFittedError
 
 
 

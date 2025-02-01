@@ -8,7 +8,6 @@
 
 from uuid import uuid4
 
-from copy import deepcopy
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -150,6 +149,15 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                 with pytest.raises(NotFittedError):
                     getattr(TwoRcrTestCls, attr)
 
+
+        # @property attributes can never be set
+        for attr in [
+            'original_dtypes_', 'total_counts_by_column_', 'instructions_'
+        ]:
+            with pytest.raises(AttributeError):
+                setattr(OneRcrTestCls, attr, ['int', 'bin_int', 'float'])
+            with pytest.raises(AttributeError):
+                setattr(TwoRcrTestCls, attr, ['int', 'bin_int', 'float'])
         # END BEFORE FIT ***********************************************
 
         # AFTER FIT ****************************************************
@@ -184,6 +192,15 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                         f"unexpected exception {sys.exc_info()[0]} accessing "
                         f"{attr} after fit, x_format == {x_format}"
                     )
+
+        # @property attributes can never be set
+        for attr in [
+            'original_dtypes_', 'total_counts_by_column_', 'instructions_'
+        ]:
+            with pytest.raises(AttributeError):
+                setattr(OneRcrTestCls, attr, ['int', 'bin_int', 'float'])
+            with pytest.raises(AttributeError):
+                setattr(TwoRcrTestCls, attr, ['int', 'bin_int', 'float'])
 
         # END AFTER FIT ************************************************
 
@@ -221,6 +238,15 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                         f"unexpected exception {sys.exc_info()[0]} accessing "
                         f"{attr} after fit, x_format == {x_format}"
                     )
+
+        # @property attributes can never be set
+        for attr in [
+            'original_dtypes_', 'total_counts_by_column_', 'instructions_'
+        ]:
+            with pytest.raises(AttributeError):
+                setattr(OneRcrTestCls, attr, ['int', 'bin_int', 'float'])
+            with pytest.raises(AttributeError):
+                setattr(TwoRcrTestCls, attr, ['int', 'bin_int', 'float'])
 
         # END AFTER TRANSFORM ******************************************
 

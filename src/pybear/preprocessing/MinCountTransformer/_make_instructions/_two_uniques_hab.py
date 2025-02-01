@@ -9,8 +9,6 @@
 from typing_extensions import Union, Literal
 from .._type_aliases import DataType
 
-import numpy as np
-
 
 
 def _two_uniques_hab(
@@ -94,32 +92,37 @@ def _two_uniques_hab(
     if (_nan_ct is False) + (_nan_key is False) not in [0, 2]:
         raise ValueError(f"_nan_key is {_nan_key} and _nan_ct is {_nan_ct}")
 
-    if any([isinstance(x, str) for x in _COLUMN_UNQ_CT_DICT]):
-        raise TypeError(f"handle_as_bool on a str column")
-
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
     # no nans should be in _COLUMN_UNQ_CT_DICT!
 
-    # SINCE HANDLING AS BOOL, ONLY NEED TO KNOW WHAT IS NON-ZERO AND
-    # IF ROWS WILL BE DELETED OR KEPT
+    # SINCE HANDLING AS BOOL, ONLY NEED TO KNOW WHAT IS ZERO, NON-ZERO
+    # AND IF ROWS WILL BE DELETED OR KEPT
 
-    total_zeros = _COLUMN_UNQ_CT_DICT.get(0, 0)
+    # let nums as strs be handled as nums. the unqs in COLUMN_UNQ_CT_DICT
+    # are in the raw format as found in X. it is possible that numbers
+    # are in string format but MCT correctly diagnosed the column as
+    # numbers, and is handling as such.
+    total_zeros = dict((zip(
+        map(float, _COLUMN_UNQ_CT_DICT.keys()),
+        _COLUMN_UNQ_CT_DICT.values()
+    ))).get(0, 0)
     total_non_zeros = sum(_COLUMN_UNQ_CT_DICT.values()) - total_zeros
-
 
     _instr_list = []
     if not _nan_ct:  # EITHER IGNORING NANS OR NONE IN FEATURE
 
         if _delete_axis_0:
-            if total_zeros and total_zeros < _threshold:
-                _instr_list.append(0)
+            # there are only be 2 entries in _UNQ_CT_DICT so iterating
+            # is light. need to do this the hard way because numbers
+            # could be str formats
+            for unq in _COLUMN_UNQ_CT_DICT:
 
-            if total_non_zeros and total_non_zeros < _threshold:
-                UNQS = np.fromiter(_COLUMN_UNQ_CT_DICT.keys(), dtype=np.float64)
-                _instr_list += UNQS[UNQS.astype(bool)].tolist()
-                del UNQS
+                if float(unq) == 0 and total_zeros < _threshold:
+                    _instr_list.append(unq)
+
+                if float(unq) != 0 and total_non_zeros < _threshold:
+                    _instr_list.append(unq)
 
         if (total_zeros < _threshold) or (total_non_zeros < _threshold):
             _instr_list.append('DELETE COLUMN')
@@ -128,15 +131,18 @@ def _two_uniques_hab(
     else:  # HAS NANS AND NOT IGNORING
 
         if _delete_axis_0:
-            if total_zeros and total_zeros < _threshold:
-                _instr_list.append(0)
+            # there are only be 2 entries in _UNQ_CT_DICT so iterating
+            # is light. need to do this the hard way because numbers
+            # could be str formats
+            for unq in _COLUMN_UNQ_CT_DICT:
 
-            if total_non_zeros and total_non_zeros < _threshold:
-                UNQS = np.fromiter(_COLUMN_UNQ_CT_DICT.keys(), dtype=np.float64)
-                _instr_list += UNQS[UNQS.astype(bool)].tolist()
-                del UNQS
+                if float(unq) == 0 and total_zeros < _threshold:
+                    _instr_list.append(unq)
 
-            if _nan_ct and _nan_ct < _threshold:
+                if float(unq) != 0 and total_non_zeros < _threshold:
+                    _instr_list.append(unq)
+
+            if _nan_ct < _threshold:
                 _instr_list.append(_nan_key)
 
             if (total_zeros < _threshold) or (total_non_zeros < _threshold):
@@ -149,7 +155,7 @@ def _two_uniques_hab(
             # BREAKING THRESHOLD
             if (total_zeros < _threshold) or (total_non_zeros < _threshold):
                 _instr_list.append('DELETE COLUMN')
-            elif _nan_ct and _nan_ct < _threshold:
+            elif _nan_ct < _threshold:
                 _instr_list.append(_nan_key)
 
 

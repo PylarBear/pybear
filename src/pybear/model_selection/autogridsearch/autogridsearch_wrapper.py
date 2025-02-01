@@ -375,7 +375,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
             ):
 
             """
-            Supercedes sklearn / dask GridSearchCV fit() method. Run
+            Supersedes sklearn / dask GridSearchCV fit() method. Run
             underlying fit() method with all sets of parameters at least
             'total_passes' number of times.
 

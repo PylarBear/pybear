@@ -72,14 +72,8 @@ def _one_unique(
 
 
     if _nan_ct:
-        # if not ign nan and has nans (it must be the only value in the column!)
-        # 24_06_11_14_37_00, if nan ct < thresh, do not delete the rows
-        # if _nan_ct < _threshold:
-        #     _instr_list = [_nan_key]
-
+        # if not ign nan and has nans, it must be the only value in the column
         _instr_list = ['DELETE COLUMN']
-
-
     elif not _nan_ct:
         # if ignoring nan or there are no nans
         _instr_list = ['DELETE COLUMN']

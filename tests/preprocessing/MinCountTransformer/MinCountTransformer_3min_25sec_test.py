@@ -22,7 +22,9 @@ from pybear.utilities._nan_masking import nan_mask
 
 import pytest
 
-
+# pizza how bout a test for reset,
+# _original_dtype and _total_counts_by_column
+# fit/fit/transform == fit/transform
 
 
 bypass = False
@@ -2216,78 +2218,6 @@ class TestBinIntAboveThreshNotDeleted:
 class TestAccuracy:
 
 
-    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_has_nan', (True, False))
-    @pytest.mark.parametrize('ignore_float_columns', [True, False])
-    @pytest.mark.parametrize('ignore_non_binary_integer_columns', [True, False])
-    @pytest.mark.parametrize('ignore_columns', [None, [0, 1, 2, 3]])
-    @pytest.mark.parametrize('ignore_nan', [True, False])
-    @pytest.mark.parametrize('handle_as_bool', ('hab_1', 'hab_2', 'hab_3'))
-    @pytest.mark.parametrize('delete_axis_0', [False, True])
-    @pytest.mark.parametrize('reject_unseen_values', [False, True])
-    def test_2rcr_get_support_accuracy(
-        self, _dtype, _has_nan, ignore_non_binary_integer_columns, ignore_nan,
-        ignore_float_columns, ignore_columns, handle_as_bool, delete_axis_0,
-        reject_unseen_values, _args, _kwargs, X, y, x_rows, x_cols,
-    ):
-
-        # this module tests that 2 recursion MCT get_support() matches
-        # the columns in the X output from transform
-
-        if _dtype in ('str', 'obj'):
-            HANDLE_AS_BOOL = None
-        elif handle_as_bool == 'hab_1':
-            HANDLE_AS_BOOL = None
-        elif handle_as_bool == 'hab_2':
-            HANDLE_AS_BOOL = [1]
-        elif handle_as_bool == 'hab_3':
-            HANDLE_AS_BOOL = lambda X: [1]
-        else:
-            raise Exception
-
-        kwargs = deepcopy(_kwargs)
-
-        kwargs['ignore_columns'] = ignore_columns
-        kwargs['ignore_float_columns'] = ignore_float_columns
-        kwargs['ignore_non_binary_integer_columns'] = ignore_non_binary_integer_columns
-        kwargs['ignore_nan'] = ignore_nan
-        kwargs['handle_as_bool'] = HANDLE_AS_BOOL
-        kwargs['delete_axis_0'] = delete_axis_0
-        kwargs['reject_unseen_values'] = reject_unseen_values
-        kwargs['max_recursions'] = 1
-
-        TestCls = MinCountTransformer(*_args, **kwargs)
-
-        TRFM_X, TRFM_Y = TestCls.fit_transform(X, y)
-
-        _get_support = TestCls.get_support(indices=False)
-        assert len(_get_support) == x_cols == X.shape[1]
-        assert sum(_get_support) == TRFM_X.shape[1]
-
-        _row_support = TestCls.get_row_support(indices=False)
-
-        # y
-        assert np.array_equal(y[_row_support], TRFM_Y)
-
-
-        # verify X was changed
-        assert TRFM_X.shape != X.shape
-
-        # individual X columns that were kept
-        _kept_idx = 0
-        for c_idx, _kept in enumerate(_get_support):
-
-            if _kept is True:
-
-                assert np.array_equal(
-                    X[_row_support, c_idx],
-                    TRFM_X[:, _kept_idx]
-                )
-
-                _kept_idx += 1
-
-
-
     @pytest.mark.parametrize('count_threshold', [2, 3])
     @pytest.mark.parametrize('ignore_float_columns', [True, False])
     @pytest.mark.parametrize('ignore_non_binary_integer_columns', [True, False])
@@ -2654,7 +2584,6 @@ class TestAccuracy:
         # END validate MCT 1rcrX1 get_support and object dimensions make sense
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
 
         # ADJUST ign_columns & handle_as_bool FOR 2ND RECURSION
