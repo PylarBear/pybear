@@ -55,6 +55,52 @@ from attr_method_access, 2 RCR after transform.
 """
 
 
+"""
+class TestAllRowsWillBeDeleted:
+    # pizza this was from MinCountTransformer_test.
+    def test_all_rows_will_be_deleted(self, _kwargs, _mct_rows, x_cols):
+
+        # ALL FLOATS
+        TEST_X = np.random.uniform(0, 1, (_mct_rows, x_cols))
+        TEST_Y = np.random.randint(0, 2, _mct_rows)
+
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['ignore_float_columns'] = False
+        TestCls = MinCountTransformer(**_new_kwargs)
+        TestCls.fit(TEST_X, TEST_Y)
+
+        # pizza probably separate this out, make a new folder since this is a method directly on MCT
+        # pizza replace with print_instructions
+        # TestCls.test_threshold()
+        # print(f'^^^ mask building instructions should be displayed above ^^^')
+
+
+class TestAllColumnsWillBeDeleted:
+    # pizza this was from MinCountTransformer_test.
+    def test_all_columns_will_be_deleted(
+        self, _kwargs, _mct_rows, x_cols, x_rows
+    ):
+
+        # CREATE VERY SPARSE DATA
+        TEST_X = np.zeros((_mct_rows, x_cols), dtype=np.uint8)
+        TEST_Y = np.random.randint(0, 2, _mct_rows)
+
+        for col_idx in range(x_cols):
+            MASK = np.random.choice(range(x_rows), 2, replace=False), col_idx
+            TEST_X[MASK] = 1
+        del MASK
+
+        TestCls = MinCountTransformer(**_kwargs)
+        TestCls.fit(TEST_X, TEST_Y)
+
+        # pizza probably separate this out, make a new folder since this is a method directly on MCT
+        # pizza replace with print_instructions
+        # TestCls.test_threshold()
+        # print(f'^^^ mask building instructions should be displayed above ^^^')
+"""
+
+
+
 
 
 
