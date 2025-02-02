@@ -6,7 +6,6 @@
 
 
 
-import numbers
 from typing import Iterable, Optional
 from typing_extensions import Union, Self
 from ._type_aliases import (
@@ -22,6 +21,7 @@ from ._type_aliases import (
 import inspect
 from copy import deepcopy
 import warnings
+import numbers
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -462,7 +462,7 @@ class MinCountTransformer(
      ['a' '1']
      ['b' '0']]
 
-
+    pizza do the docstring test with floats, see if dict comes out with np crap in it
     """
 
 
@@ -496,7 +496,6 @@ class MinCountTransformer(
         self.reject_unseen_values = reject_unseen_values
         self.max_recursions = max_recursions
         self.n_jobs = n_jobs
-
 
 
     @property
@@ -548,7 +547,7 @@ class MinCountTransformer(
 
         """
 
-        return hasattr(self, 'n_features_in_')
+        return hasattr(self, '_total_counts_by_column')
 
 
     def partial_fit(
