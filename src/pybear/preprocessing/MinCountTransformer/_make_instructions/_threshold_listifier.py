@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 
 import numbers
@@ -17,7 +17,7 @@ from .._validation._count_threshold import _val_count_threshold
 
 def _threshold_listifier(
     _n_features_in: int,
-    *_threshold: Union[int, Iterable[int]]
+    *_threshold: Union[int, Sequence[int]]
 ) -> Union[list[int], tuple[list[int], ...]]:
 
     """
@@ -33,7 +33,7 @@ def _threshold_listifier(
     _n_features_in:
         int - the number of features in the data.
     *_threshold:
-        Union[int, Iterable[int]] - the threshold value(s) to be
+        Union[int, Sequence[int]] - the threshold value(s) to be
         converted to list[int]. Any number of threshold values can be
         passed as positional arguments.
 
@@ -58,7 +58,7 @@ def _threshold_listifier(
 
         _val_count_threshold(
             _threshold_entry,
-            ['int', 'Iterable[int]'],
+            ['int', 'Sequence[int]'],
             _n_features_in
         )
 

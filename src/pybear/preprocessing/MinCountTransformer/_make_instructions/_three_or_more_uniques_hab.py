@@ -9,8 +9,6 @@
 from typing_extensions import Union, Literal
 from .._type_aliases import DataType
 
-import numpy as np
-
 
 
 def _three_or_more_uniques_hab(

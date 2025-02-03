@@ -6,7 +6,7 @@
 
 
 
-from typing import Literal, Iterable
+from typing import Literal, Sequence
 from typing_extensions import Union
 from .._type_aliases import CountThresholdType
 
@@ -19,7 +19,7 @@ from ._n_features_in import _val_n_features_in
 
 def _val_count_threshold(
     _count_threshold: CountThresholdType,
-    _allowed: Iterable[Union[Literal['int', 'Iterable[int]']]],
+    _allowed: Sequence[Union[Literal['int', 'Sequence[int]']]],
     _n_features_in: int
 ) -> None:
 
@@ -34,16 +34,16 @@ def _val_count_threshold(
     Parameters
     ----------
     _count_threshold:
-        Union[int, Iterable[int]] - integer >= 2 or list-like of
+        Union[int, Sequence[int]] - integer >= 2 or list-like of
         integers of shape (n_features, ) with all values >= 1 and at
         least one value >= 2. the minimum frequency a value must have
         within a column in order to not be removed. if list-like, the
         length must equal the number of features in the data.
     _allowed:
-        Iterable[Union[Literal['int', 'Iterable[int]']] - must be 1D
+        Sequence[Union[Literal['int', 'Sequence[int]']] - must be 1D
         list-like of literal strings. indicates the dtype(s) of threshold
         that is/are allowed for this validation session. cannot be empty,
-        can contain either 'int', 'Iterable[int]' or both.
+        can contain either 'int', 'Sequence[int]' or both.
     _n_features_in:
         int - the number of features in the data.
 
@@ -62,7 +62,7 @@ def _val_count_threshold(
 
     _err_msg = (
         f"'_allowed' must be 1D list-like that contains string 'int' "
-        f"or 'Iterable[int]' or both, case-sensitive, cannot be empty."
+        f"or 'Sequence[int]' or both, case-sensitive, cannot be empty."
     )
     try:
         iter(_allowed)
@@ -73,7 +73,7 @@ def _val_count_threshold(
         if len(_allowed) not in [1, 2]:
             raise UnicodeError
         for _ in _allowed:
-            if _ not in ['int', 'Iterable[int]']:
+            if _ not in ['int', 'Sequence[int]']:
                 raise UnicodeError
     except UnicodeError:
         raise ValueError(_err_msg + f" got {_allowed}.")
@@ -107,15 +107,15 @@ def _val_count_threshold(
         raise ValueError(err_msg1)
     except:
         # if not MemoryError or IndexError, excepted for not number,
-        # must be Iterable to pass, but could be other junk
+        # must be Sequence to pass, but could be other junk
         pass
     # END number handling -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # iter handling -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     err_msg2 = (
-        f"\nwhen 'count_threshold' is passed as an iterable it must be a 1D "
+        f"\nwhen 'count_threshold' is passed as a sequence it must be a 1D "
         f"list-like of integers where any value can be >= 1, but at least "
-        f"one value must be >= 2. \nthe length of the iterable also must "
+        f"one value must be >= 2. \nthe length of the sequence also must "
         f"match the number of features in the data. "
     )
 
@@ -140,18 +140,18 @@ def _val_count_threshold(
             raise MemoryError
         if not any(map(lambda x: x >= 2, _count_threshold)):
             raise MemoryError
-        # if passes all these check, good to go as iterable
+        # if passes all these check, good to go as sequence
         is_iter = True
     except UnboundLocalError:
         pass
     except UnicodeError:
-        # if UnicodeError is str or dict iterable
+        # if UnicodeError is str or dict sequence
         raise TypeError(err_msg2)
     except MemoryError:
         # if MemoryError, bad shape, bad len, non-int, not all >=1, not one >= 2
         raise ValueError(err_msg2)
     except:
-        # if not Unicode or MemoryError, then is not a float and is not iterable
+        # if not Unicode or MemoryError, then is not a float and is not sequence
         raise TypeError(err_msg1 + err_msg2 + f"got {type(_count_threshold)}.")
 
     # END iter handling -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -161,13 +161,13 @@ def _val_count_threshold(
 
     if is_num and 'int' not in _allowed:
         raise TypeError(
-            f"'threshold' was passed as a non-iterable number but that "
+            f"'threshold' was passed as a non-sequence number but that "
             f"dtype is not allowed."
         )
 
-    if is_iter and 'Iterable[int]' not in _allowed:
+    if is_iter and 'Sequence[int]' not in _allowed:
         raise TypeError(
-            f"'threshold' was passed as a iterable of thresholds but that "
+            f"'threshold' was passed as a sequence of thresholds but that "
             f"dtype is not allowed."
         )
 

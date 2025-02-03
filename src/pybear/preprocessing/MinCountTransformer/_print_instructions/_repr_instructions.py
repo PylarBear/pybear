@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 from .._type_aliases import InstructionsType, TotalCountsByColumnType
 
@@ -26,9 +26,9 @@ from .._make_instructions._threshold_listifier import _threshold_listifier
 def _repr_instructions(
     _delete_instr: InstructionsType,
     _total_counts_by_column: TotalCountsByColumnType,
-    _thresholds: Union[int, Iterable[int]],
+    _thresholds: Union[int, Sequence[int]],
     _n_features_in: int,
-    _feature_names_in: Union[Iterable[str], None],
+    _feature_names_in: Union[Sequence[str], None],
     _clean_printout: bool,
     _max_print_len: int
 ):
@@ -62,12 +62,12 @@ def _repr_instructions(
         dict[int, dict[any, int]] - the uniques and their counts for
         each column in the data.
     _thresholds:
-        Union[int, Iterable[int]] - the threshold value(s) that determine
+        Union[int, Sequence[int]] - the threshold value(s) that determine
         whether a unique value is removed from a dataset.
     _n_features_in:
         int - the number of features in the data.
     _feature_names_in:
-        Union[Iterable[str], None] - the features names of the data if
+        Union[Sequence[str], None] - the features names of the data if
         the data was passed in a container that had features names, like
         a pandas dataframe. Otherwise, None.
     _clean_printout:
@@ -96,7 +96,7 @@ def _repr_instructions(
     _val_total_counts_by_column(_total_counts_by_column)
 
     # must be list[int] coming into here
-    _val_count_threshold(_thresholds, ['int', 'Iterable[int]'], _n_features_in)
+    _val_count_threshold(_thresholds, ['int', 'Sequence[int]'], _n_features_in)
 
     if not isinstance(_clean_printout, bool):
         raise TypeError(f"'_clean_printout' must be boolean")
@@ -266,7 +266,7 @@ def _repr_instructions(
     #
     # _val_count_threshold(
     #     _threshold,
-    #     ['int', 'Iterable[int]'],
+    #     ['int', 'Sequence[int]'],
     #     __nfi
     # )
     #

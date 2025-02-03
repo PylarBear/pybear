@@ -7,7 +7,7 @@
 
 
 from numbers import Real
-from typing import Iterable, Literal, Optional
+from typing import Sequence, Literal, Optional
 import numpy.typing as npt
 from typing_extensions import Union, Self
 from ._type_aliases import DataContainer
@@ -188,7 +188,7 @@ class ColumnDeduplicateTransformer(
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
     do_not_drop:
-        Optional[Union[Iterable[int], Iterable[str], None]], default=None
+        Optional[Union[Sequence[int], Sequence[str], None]], default=None
         - A list of columns not to be dropped. If fitting is done on a
         pandas dataframe that has a header, a list of feature names may
         be provided. Otherwise, a list of column indices must be provided.
@@ -355,7 +355,7 @@ class ColumnDeduplicateTransformer(
         self,
         *,
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
-        do_not_drop: Optional[Union[Iterable[str], Iterable[int], None]] = None,
+        do_not_drop: Optional[Union[Sequence[str], Sequence[int], None]] = None,
         conflict: Optional[Literal['raise', 'ignore']] = 'raise',
         rtol: Optional[Real] = 1e-5,
         atol: Optional[Real] = 1e-8,
@@ -395,7 +395,7 @@ class ColumnDeduplicateTransformer(
 
     def get_feature_names_out(
         self,
-        input_features:Optional[Union[Iterable[str], None]]=None
+        input_features:Optional[Union[Sequence[str], None]]=None
     ):
 
         """
@@ -405,7 +405,7 @@ class ColumnDeduplicateTransformer(
         Parameters
         ----------
         input_features :
-            Optional[Union[Iterable[str], None], default=None -
+            Optional[Union[Sequence[str], None], default=None -
             Externally provided feature names for the fitted data, not
             the transformed data.
 

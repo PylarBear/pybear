@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 
 import itertools
@@ -18,8 +18,8 @@ import numpy as np
 
 def _lock_in_random_idxs(
     _duplicates: list[list[int]],
-    _do_not_drop: Union[Iterable[int], Iterable[str], None],
-    _columns: Union[Iterable[str], None]
+    _do_not_drop: Union[Sequence[int], Sequence[str], None],
+    _columns: Union[Sequence[str], None]
 ) -> tuple[int]:
 
     """
@@ -55,12 +55,12 @@ def _lock_in_random_idxs(
     _duplicates: list[list[int]] - the groups of identical columns,
         indicated by their zero-based column index positions.
     _do_not_drop:
-        Union[Iterable[int], Iterable[str], None], default=None - A list
+        Union[Sequence[int], Sequence[str], None], default=None - A list
         of columns not to be dropped. If fitting is done on a pandas
         dataframe that has a header, a list of feature names may be
         provided. Otherwise, a list of column indices must be provided.
     _columns:
-        Union[Iterable[str], None] of shape (n_features,) - if fitting
+        Union[Sequence[str], None] of shape (n_features,) - if fitting
         is done on a pandas dataframe that has a header, this is a
         ndarray of strings, otherwise is None.
 
@@ -92,7 +92,7 @@ def _lock_in_random_idxs(
     del __
 
 
-    err_msg = "if not None, '_columns' must be an iterable of strings"
+    err_msg = "if not None, '_columns' must be a sequence of strings"
     if _columns is not None:
         try:
             iter(_columns)
@@ -105,7 +105,7 @@ def _lock_in_random_idxs(
 
 
     err_msg = \
-        "if not None, 'do_not_drop' must be an iterable of integers or strings"
+        "if not None, 'do_not_drop' must be a sequence of integers or strings"
     if _do_not_drop is not None:
         try:
             iter(_do_not_drop)

@@ -6,78 +6,62 @@
 
 
 
+import numpy as np
+import dask.array as da
+import dask.dataframe as ddf
+import dask_expr._collection as ddf2
+from distributed import Client
 import pytest
+from dask_ml.wrappers import Incremental, ParallelPostFit
 
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
-import numpy as np
-
-from dask_ml.wrappers import Incremental, ParallelPostFit
-import dask.array as da
-import dask.dataframe as ddf
-import dask_expr._collection as ddf2
-
-from distributed import Client
-
-
-
-
-
-bypass = False
-
-
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-# FIXTURES
-
-@pytest.fixture(scope='session')
-def _shape():
-    return (40, 4)
-
-
-@pytest.fixture(scope='module')
-def _kwargs():
-    return {
-        'degree': 2,
-        'min_degree': 1,
-        'scan_X': False,
-        'keep': 'first',
-        'interaction_only': False,
-        'sparse_output': False,
-        'feature_name_combiner': "as_indices",
-        'equal_nan': True,
-        'rtol': 1e-5,
-        'atol': 1e-8,
-        'n_jobs': 1
-    }
-
-
-
-@pytest.fixture(scope='module')
-def _X_np(_X_factory, _shape):
-    
-    return _X_factory(
-        _dupl=None,
-        _has_nan=False,
-        _dtype='flt',
-        _shape=_shape
-    )
-
-
-@pytest.fixture(scope='module')
-def _columns(_master_columns, _shape):
-    return _master_columns.copy()[:_shape[1]]
-
-
-# END fixtures
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
 
 
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestDaskIncrementalParallelPostFit:
 
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # FIXTURES
+
+    @staticmethod
+    @pytest.fixture(scope='session')
+    def _shape():
+        return (40, 4)
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _kwargs():
+        return {
+            'degree': 2,
+            'min_degree': 1,
+            'scan_X': False,
+            'keep': 'first',
+            'interaction_only': False,
+            'sparse_output': False,
+            'feature_name_combiner': "as_indices",
+            'equal_nan': True,
+            'rtol': 1e-5,
+            'atol': 1e-8,
+            'n_jobs': 1
+        }
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _X_np(_X_factory, _shape):
+
+        return _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _dtype='flt',
+            _shape=_shape
+        )
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _columns(_master_columns, _shape):
+        return _master_columns.copy()[:_shape[1]]
 
     @staticmethod
     @pytest.fixture
@@ -105,6 +89,9 @@ class TestDaskIncrementalParallelPostFit:
         client = Client(n_workers=1, threads_per_worker=1) # 0:42
         yield client
         client.close()
+
+    # END fixtures
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])
@@ -214,16 +201,6 @@ class TestDaskIncrementalParallelPostFit:
         assert isinstance(REF_X, np.ndarray)
         assert np.array_equal(TRFM_X, REF_X), \
             f"wrapped output != unwrapped output"
-
-
-
-
-
-
-
-
-
-
 
 
 

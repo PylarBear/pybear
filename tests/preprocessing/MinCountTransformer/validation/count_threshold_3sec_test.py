@@ -30,7 +30,7 @@ class TestValCountThreshold:
     @staticmethod
     @pytest.fixture(scope='module')
     def err_quip_2():
-        return "the length of the iterable also must "
+        return "the length of the sequence also must "
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -52,7 +52,7 @@ class TestValCountThreshold:
 
 
     @pytest.mark.parametrize(f'bad_allowed',
-        ([], ['that', 'was', 'trash'], ['INT'], ['ITERABLE[INT]'])
+        ([], ['that', 'was', 'trash'], ['INT'], ['SEQUENCE[INT]'])
     )
     def test_rejects_bad_allowed(self, bad_allowed):
 
@@ -68,8 +68,8 @@ class TestValCountThreshold:
     @pytest.mark.parametrize(f'threshold,value',
         (
             (2, ['int']),
-            ([2, 2], ['Iterable[int]']),
-            (2, ['int', 'Iterable[int]'])
+            ([2, 2], ['Sequence[int]']),
+            (2, ['int', 'Sequence[int]'])
         )
     )
     def test_accepts_good_allowed(self, container, threshold, value):
@@ -97,17 +97,17 @@ class TestValCountThreshold:
         self, _junk_count_threshold, err_quip_1, err_quip_2
     ):
 
-        # valid is single number or could be iterable of numbers
+        # valid is single number or could be sequence of numbers
 
         with pytest.raises(TypeError) as exc:
             _val_count_threshold(
                 _count_threshold=_junk_count_threshold,
-                _allowed=['int', 'Iterable[int]'],
+                _allowed=['int', 'Sequence[int]'],
                 _n_features_in=5
             )
 
-        # these are iterable so would enter into the iterable handling and
-        # return errors only for iterables
+        # these are sequences so would enter into the sequence handling and
+        # return errors only for sequences
         if isinstance(_junk_count_threshold, (str, dict)):
             assert re.escape(err_quip_1) not in re.escape(str(exc))
             assert re.escape(err_quip_2) in re.escape(str(exc))
@@ -130,14 +130,14 @@ class TestValCountThreshold:
             with pytest.raises(TypeError) as exc:
                 _val_count_threshold(
                     _bad_count_threshold,
-                    _allowed=['int', 'Iterable[int]'],
+                    _allowed=['int', 'Sequence[int]'],
                     _n_features_in=5
                 )
         else:
             with pytest.raises(ValueError) as exc:
                 _val_count_threshold(
                     _bad_count_threshold,
-                    _allowed=['int', 'Iterable[int]'],
+                    _allowed=['int', 'Sequence[int]'],
                     _n_features_in=5
                 )
 
@@ -154,7 +154,7 @@ class TestValCountThreshold:
             [2, 3, 4, 5, 6]      # bad len
         )
     )
-    def test_bad_count_threshold_as_iterable(
+    def test_bad_count_threshold_as_sequence(
         self, _bad_count_threshold, err_quip_1, err_quip_2
     ):
 
@@ -163,7 +163,7 @@ class TestValCountThreshold:
         with pytest.raises(ValueError) as exc:
             _val_count_threshold(
                 _bad_count_threshold,
-                _allowed=['int', 'Iterable[int]'],
+                _allowed=['int', 'Sequence[int]'],
                 _n_features_in=3
             )
 
@@ -178,7 +178,7 @@ class TestValCountThreshold:
 
         out = _val_count_threshold(
             _count_threshold,
-            _allowed=['int', 'Iterable[int]'],
+            _allowed=['int', 'Sequence[int]'],
             _n_features_in=3
         )
 
@@ -187,7 +187,7 @@ class TestValCountThreshold:
 
     @pytest.mark.parametrize('_threshold', (2, [2, 3, 1, 1]))
     @pytest.mark.parametrize('_allowed',
-        (['int'], ['Iterable[int]'], ['int', 'Iterable[int]'])
+        (['int'], ['Sequence[int]'], ['int', 'Sequence[int]'])
     )
     def test_rejects_disallowed_dtype(self, _threshold, _allowed):
 
@@ -195,7 +195,7 @@ class TestValCountThreshold:
 
         if isinstance(_threshold, int) and 'int' not in _allowed:
             will_fail = True
-        if isinstance(_threshold, list) and 'Iterable[int]' not in _allowed:
+        if isinstance(_threshold, list) and 'Sequence[int]' not in _allowed:
             will_fail = True
 
         if will_fail:

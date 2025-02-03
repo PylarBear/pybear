@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable, Optional
+from typing import Sequence, Optional
 from typing_extensions import Union, Self
 from ._type_aliases import (
     CountThresholdType,
@@ -55,7 +55,7 @@ from ...base import (
 # pizza, set_params_test is done, when all the other tests are done,
 # see if all the deepcopy can come out.
 
-
+# pizza proofread the docs!
 
 class MinCountTransformer(
     FeatureMixin,
@@ -260,7 +260,7 @@ class MinCountTransformer(
         values are subject to count threshold rules and possible removal.
 
     ignore_columns:
-        Optional[Union[Iterable[str], Iterable[int], callable(X), None]],
+        Optional[Union[Sequence[str], Sequence[int], callable(X), None]],
         default=None - Excludes indicated features from the thresholding
         operation. A one-dimensional vector of integer index positions
         or feature names (if data formats containing column names were
@@ -281,7 +281,7 @@ class MinCountTransformer(
         sensitive) are calculated and assessed against count_threshold.
 
     handle_as_bool:
-        Optional[Union[Iterable[str], Iterable[int], callable(X), None]],
+        Optional[Union[Sequence[str], Sequence[int], callable(X), None]],
         default=None - For the indicated features, non-zero values within
         the feature are treated as if they are the same value. A
         one-dimensional vector of integer index positions or feature
@@ -714,6 +714,8 @@ class MinCountTransformer(
                 _raise=True
             )
 
+        X = np.ascontiguousarray(X)
+
         return self
 
 
@@ -811,7 +813,7 @@ class MinCountTransformer(
 
     def get_feature_names_out(
         self,
-        input_features:Optional[Union[Iterable[str], None]]=None
+        input_features:Optional[Union[Sequence[str], None]]=None
     ):
         """
         Get the feature names for the output of :method: transform.
@@ -820,7 +822,7 @@ class MinCountTransformer(
         Parameters
         ----------
         input_features :
-            Optional[Iterable[str], None]], default=None - Externally
+            Optional[Sequence[str], None]], default=None - Externally
             provided feature names for the fitted data, not the
             transformed data.
 
@@ -1009,12 +1011,12 @@ class MinCountTransformer(
         # if was already a callable when fit.) that means that the mapping of
         # the callable used during fit lives in self._ignore_columns and
         # self._handle_as_bool. but, set_params does not block setting ic/hab
-        # to Iterable[str] or Iterable[int]. so if self.ignore_columns and/or
+        # to Sequence[str] or Sequence[int]. so if self.ignore_columns and/or
         # self.handle_as_bool are callable, we need to pass the output that
         # lives in _ic & _hab. but if not callable, need to use the (perhaps
         # changed) ic/hab in self.ignore_columns & self.handle_as_bool.
-        # if ic/hab were changed to Iterable[str] in set_params, need to map
-        # to Iterable[int].
+        # if ic/hab were changed to Sequence[str] in set_params, need to map
+        # to Sequence[int].
 
         # _ic_hab_condition takes X, but we dont have it so we need to spoof it.
         # X doesnt matter here, X is only for ic/hab callable in partial_fit()
@@ -1128,7 +1130,7 @@ class MinCountTransformer(
 
         Also, when MCT has been fitted, :params: 'ignore_columns' and
         'handle_as_bool' cannot be set to a callable (they can, however,
-        be changed to None, Iterable[int], or Iterable[str]). To set
+        be changed to None, Sequence[int], or Sequence[str]). To set
         these parameters to a callable when MCT is in a fitted state,
         call :method: 'reset' then use :method: 'set_params' to set them
         to a callable. All information learned from any prior fit(s)
@@ -1263,11 +1265,6 @@ class MinCountTransformer(
 
         """
 
-        # this was for diagnosing why dask_ml wrappers are changing a
-        # dask 200x20 array to 1x20 in dask_wrappers_test
-        # print(f'pizza print in main very top of transform {X.shape=}')
-        # print(f'pizza print in main very top of transform {type(X)=}')
-        # print(f'pizza print in main very top of transform {X=}')
         check_is_fitted(self)
 
         self._recursion_check()
@@ -1391,13 +1388,8 @@ class MinCountTransformer(
         # VALIDATE _ignore_columns & handle_as_bool; CONVERT TO IDXs **
 
         # PERFORM VALIDATION & CONVERT ic/hab callables to IDXS.
-        # MUST VALIDATE ON ALL PASSES BECAUSE _ignore_columns AND/OR
-        # _handle_as_bool CAN BE CALLABLE BASED ON X AND X IS NEW EVERY
-        # TIME SO THE CALLABLES MUST BE RECOMPUTED AND RE-VALIDATED
-        # BECAUSE THEY MAY (UNDESIRABLY) GENERATE DIFFERENT IDXS.
         # _ignore_columns MUST BE BEFORE _make_instructions
 
-        # pizza remember to test callables that spew differing output
         self._ignore_columns, self._handle_as_bool = \
             _ic_hab_condition(
                 X_tr,

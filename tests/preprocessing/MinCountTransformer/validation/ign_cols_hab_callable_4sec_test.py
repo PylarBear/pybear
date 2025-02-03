@@ -19,8 +19,8 @@ class TestValIgnColsHabCallable:
 
 
     # def _val_ign_cols_hab_callable(
-    #     _fxn_output: Union[Iterable[str], Iterable[numbers.Integral]],
-    #     _first_fxn_output: Union[Iterable[str], Iterable[numbers.Integral]],
+    #     _fxn_output: Union[Sequence[str], Sequence[numbers.Integral]],
+    #     _first_fxn_output: Union[Sequence[str], Sequence[numbers.Integral]],
     #     _name: Literal['ignore_columns', 'handle_as_bool'],
     #     _n_features_in: int,
     #     _feature_names_in: Union[npt.NDArray[str], None]

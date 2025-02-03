@@ -50,7 +50,7 @@ class TestValKeepAndColumns:
 
     # def _val_keep_and_columns(
     #     _keep:KeepType,
-    #     _columns:Union[Iterable[str], None],
+    #     _columns:Union[Sequence[str], None],
     #     _X: DataContainer
     # ) -> None:
 
@@ -154,8 +154,8 @@ class TestValKeepAndColumns:
     @pytest.mark.parametrize(f'keep_value',
         ([0, 1], {0,1}, (0,1), {'a':1}, np.random.randint(0,2,(10,)))
     )
-    def test_rejects_keep_dict_value_is_nonstr_iterable(self, keep_value):
-        # {'Intercept': value}, value cannot be list-like iterable
+    def test_rejects_keep_dict_value_is_nonstr_sequence(self, keep_value):
+        # {'Intercept': value}, value cannot be list-like sequence
         X = np.random.randint(0, 10, (5,3))
 
         with pytest.raises(ValueError):

@@ -85,13 +85,17 @@ def _three_or_more_uniques_not_hab(
     # IF ALL UNQS DELETED THIS SHOULD PUT ALL False IN
     # ROW MASK AND CAUSE EXCEPT DURING transform()
     _instr_list = []
-    UNQS = np.array(list(_COLUMN_UNQ_CT_DICT.keys()))
     CTS = np.fromiter(_COLUMN_UNQ_CT_DICT.values(), dtype=np.uint32)
     if np.sum((CTS < _threshold)) == len(CTS):
         _instr_list.append('DELETE ALL')
+        del CTS
     else:
-        _instr_list += UNQS[(CTS < _threshold)].tolist()
-    del UNQS, CTS
+        # do this the long way, not by slicing numpy vectors which will
+        # turn everything to stuff like np.str_('a'), to preserve
+        # the original format of the unqs.
+        for unq, ct in _COLUMN_UNQ_CT_DICT.items():
+            if ct < _threshold:
+                _instr_list.append(unq)
 
     # must get len(_instr_list) before (potentially) putting nan_key in it
     _delete_column = False

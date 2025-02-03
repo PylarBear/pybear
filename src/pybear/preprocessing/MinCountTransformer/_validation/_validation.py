@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 from .._type_aliases import (
     XContainer,
@@ -45,7 +45,7 @@ def _validation(
     _max_recursions: numbers.Integral,
     _n_jobs: Union[numbers.Integral, None],
     _n_features_in: int,
-    _feature_names_in: Union[Iterable[str], None]
+    _feature_names_in: Union[Sequence[str], None]
 ) -> None:
 
     """
@@ -81,7 +81,7 @@ def _validation(
     _n_features_in:
         Union[int, None]
     _feature_names_in:
-        Union[Iterable[str], None]
+        Union[Sequence[str], None]
 
 
     Return
@@ -104,7 +104,7 @@ def _validation(
 
     _val_count_threshold(
         _count_threshold,
-        ['int', 'Iterable[int]'],
+        ['int', 'Sequence[int]'],
         _n_features_in
     )
 
@@ -115,7 +115,7 @@ def _validation(
     _val_ignore_columns_handle_as_bool(
         _ignore_columns,
         'ignore_columns',
-        ['Iterable[str]', 'Iterable[int]', 'callable', 'None'],
+        ['Sequence[str]', 'Sequence[int]', 'callable', 'None'],
         _n_features_in=_n_features_in,
         _feature_names_in=_feature_names_in
     )
@@ -127,7 +127,7 @@ def _validation(
     _val_ignore_columns_handle_as_bool(
         _handle_as_bool,
         'handle_as_bool',
-        ['Iterable[str]', 'Iterable[int]', 'callable', 'None'],
+        ['Sequence[str]', 'Sequence[int]', 'callable', 'None'],
         _n_features_in=_n_features_in,
         _feature_names_in=_feature_names_in
     )

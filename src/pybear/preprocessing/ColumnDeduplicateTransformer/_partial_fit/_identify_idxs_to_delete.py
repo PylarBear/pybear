@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable, Literal
+from typing import Sequence, Literal
 from typing_extensions import Union
 
 from copy import deepcopy
@@ -20,8 +20,8 @@ import numpy as np
 def _identify_idxs_to_delete(
     _duplicates: list[list[int]],
     _keep: Literal['first', 'last', 'random'],
-    _do_not_drop: Union[Iterable[int], Iterable[str], None],
-    _columns: Union[Iterable[str], None],
+    _do_not_drop: Union[Sequence[int], Sequence[str], None],
+    _columns: Union[Sequence[str], None],
     _conflict: Literal['raise', 'ignore'],
     _rand_idxs: tuple[int, ...]
 ) -> dict[int, int]:
@@ -45,7 +45,7 @@ def _identify_idxs_to_delete(
         right-most in the data; 'random' keeps a single randomly-selected
         column of the set of duplicates.
     _do_not_drop:
-        Union[Iterable[int], Iterable[str], None] - A list of columns not
+        Union[Sequence[int], Sequence[str], None] - A list of columns not
         to be dropped. If fitting is done on a pandas dataframe that has
         a header, a list of feature names may be provided. Otherwise, a
         list of column indices must be provided. If a conflict arises,
@@ -53,7 +53,7 @@ def _identify_idxs_to_delete(
         duplicates of each other, the behavior is managed by :param:
         conflict.
     _columns:
-        Union[Iterable[str], None] of shape (n_features,) - if fitting
+        Union[Sequence[str], None] of shape (n_features,) - if fitting
         is done on a pandas dataframe that has a header, this is a
         ndarray of strings, otherwise is None.
     _conflict:
@@ -119,7 +119,7 @@ def _identify_idxs_to_delete(
     assert _keep.lower() in ['first', 'last', 'random']
 
 
-    err_msg = "if not None, '_columns' must be an iterable of strings"
+    err_msg = "if not None, '_columns' must be a sequence of strings"
     if _columns is not None:
         try:
             iter(_columns)
@@ -132,7 +132,7 @@ def _identify_idxs_to_delete(
 
 
     err_msg = \
-        "if not None, 'do_not_drop' must be an iterable of integers or strings"
+        "if not None, 'do_not_drop' must be a sequence of integers or strings"
     if _do_not_drop is not None:
         try:
             iter(_do_not_drop)

@@ -36,7 +36,7 @@ class TestXFactory:
     #               'np','pd','csc','csr','coo','dia','lil','dok','bsr'
     #         ]='np',
     #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
-    #         _columns:Union[Iterable[str], None]=None,
+    #         _columns:Union[Sequence[str], None]=None,
     #         _constants:Union[dict[int, any], None]=None,
     #         _noise:float=0,
     #         _zeros:Union[float,None]=0,

@@ -86,7 +86,7 @@ class TestValTotalCountsByColumns:
 
 
     @pytest.mark.parametrize('_junk_inner_dict_key', ((1,2,3,4), ('a','b','c')))
-    def test_type_error_inner_key_iterable(
+    def test_type_error_inner_key_sequence(
         self, good_tcbc, _junk_inner_dict_key
     ):
 

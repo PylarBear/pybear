@@ -7,7 +7,7 @@
 
 
 from .._type_aliases import DataContainer, KeepType
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 import warnings
 
@@ -16,7 +16,7 @@ import warnings
 
 def _val_keep_and_columns(
     _keep: KeepType,
-    _columns: Union[Iterable[str], None],
+    _columns: Union[Sequence[str], None],
     _X: DataContainer
 ) -> None:
 
@@ -24,7 +24,7 @@ def _val_keep_and_columns(
     """
 
     Validate columns:
-        must be None or Iterable[str] with len==X.shape[1]
+        must be None or Sequence[str] with len==X.shape[1]
 
     Validate keep:
         must be any of:
@@ -145,7 +145,7 @@ def _val_keep_and_columns(
             iter(_keep[_name])
             if isinstance(_keep[_name], str):
                 raise Exception
-            # if is any iterable beside string, except
+            # if is any sequence beside string, except
             raise UnicodeError
         except BrokenPipeError:
             raise ValueError(
@@ -154,11 +154,11 @@ def _val_keep_and_columns(
             )
         except UnicodeError:
             raise ValueError(
-                f"The 'keep' dictionary value is a non-string iterable, which "
+                f"The 'keep' dictionary value is a non-string sequence, which "
                 f"IM does not allow. " + _base_msg
             )
         except:
-            # accept anything that is string or not an iterable
+            # accept anything that is string or not a sequence
             pass
 
         del _name, _base_msg

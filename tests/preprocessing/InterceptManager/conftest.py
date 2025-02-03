@@ -8,7 +8,7 @@
 import pytest
 
 
-from typing import Literal, Iterable
+from typing import Literal, Sequence
 from typing_extensions import Union
 import numpy.typing as npt
 
@@ -45,7 +45,7 @@ def _X_factory():
         _has_nan:Union[int, bool]=False,
         _format:Literal['np','pd','csc','csr','coo','dia','lil','dok','bsr']='np',
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
-        _columns:Union[Iterable[str], None]=None,
+        _columns:Union[Sequence[str], None]=None,
         _constants:Union[dict[int, any], None]=None,
         _noise:float=0,
         _zeros:Union[float,None]=0,

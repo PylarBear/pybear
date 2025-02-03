@@ -19,8 +19,8 @@ import pytest
 # def _identify_idxs_to_delete(
 #     _duplicates: list[list[int]],
 #     _keep: Literal['first', 'last', 'random'],
-#     _do_not_drop: Union[Iterable[int], Iterable[str], None],
-#     _columns: Union[Iterable[str], None],
+#     _do_not_drop: Union[Sequence[int], Sequence[str], None],
+#     _columns: Union[Sequence[str], None],
 #     _conflict: Literal['raise', 'ignore'],
 #     _rand_idxs: tuple[int]
 # ) -> dict[int, int]:

@@ -7,7 +7,7 @@
 
 
 from typing_extensions import Union
-from typing import Iterable
+from typing import Sequence
 from .._type_aliases import (
     XContainer,
     IgnoreColumnsType,
@@ -40,15 +40,15 @@ def _ic_hab_condition(
     _ignore_float_columns: bool,
     _ignore_non_binary_integer_columns: bool,
     _original_dtypes: OriginalDtypesType,
-    _threshold: Union[int, Iterable[int]],
+    _threshold: Union[int, Sequence[int]],
     _n_features_in: int,
-    _feature_names_in: Union[Iterable[str], None],
+    _feature_names_in: Union[Sequence[str], None],
     _raise: bool = False
 ) -> tuple[InternalIgnoreColumnsType, InternalHandleAsBoolType]:
 
     """
     Receive 'ignore_columns' and 'handle_as_bool' as callable(X),
-    Iterable[str], Iterable[int], or None, and convert to Iterable[int]
+    Sequence[str], Sequence[int], or None, and convert to Sequence[int]
     with all non-negative indices. Perform any validation that can be
     done against n_features_in and feature_names_in, if passed.
     This module is essentially a hub that centralizes calling any
@@ -56,7 +56,7 @@ def _ic_hab_condition(
     ndarray, and converting any string values to indices.
 
     if ignore_columns and handle_as_bool were originally passed to MCT
-    as Iterable[int] or Iterable[str], the dimensions of them or the
+    as Sequence[int] or Sequence[str], the dimensions of them or the
     feature names in them would have been validated in
     _validation > _val_ignore_columns_handle_as_bool. Here is where
     values passed as feature names are finally mapped to indices.
@@ -82,10 +82,10 @@ def _ic_hab_condition(
         array-like or scipy sparse of shape (n_samples, n_features) -
         the data to undergo minimum frequency thresholding.
     _ignore_columns:
-        Union[callable(X), Iterable[str], Iterable[int], None] - the
+        Union[callable(X), Sequence[str], Sequence[int], None] - the
         columns to be ignored during the transform process.
     _handle_as_bool:
-        Union[callable(X), Iterable[str], Iterable[int], None] - the
+        Union[callable(X), Sequence[str], Sequence[int], None] - the
         columns to be handled as boolean during the transform process.
         i.e., all zero values are handled as False and all non-zero
         values are handled as True. MCT internal datatype 'obj' columns
@@ -97,11 +97,11 @@ def _ic_hab_condition(
         bool - whether to exclude non-binary integer columns from the
         thresholding rules during the transform operation.
     _original_dtypes:
-        Iterable[Union[Literal['bin_int', 'int', 'float', 'obj']]] -
+        Sequence[Union[Literal['bin_int', 'int', 'float', 'obj']]] -
         The datatypes for each column in the dataset as determined by
         MCT. Values can be 'bin_int', 'int', 'float', or 'obj'.
     _threshold:
-        Union[int, Iterable[int]] - the minimum frequency threshold(s)
+        Union[int, Sequence[int]] - the minimum frequency threshold(s)
         to be applied to the columns of the data. Setting a threshold to
         1 is the same as ignoring a column.
     _n_features_in:
@@ -119,7 +119,7 @@ def _ic_hab_condition(
     ------
     -
         tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        ignore_columns and handle_as_bool in Iterable[int] form. all
+        ignore_columns and handle_as_bool in Sequence[int] form. all
         indices are >= 0.
 
 
@@ -139,7 +139,7 @@ def _ic_hab_condition(
     _val_ignore_columns_handle_as_bool(
         _ignore_columns,
         'ignore_columns',
-        ['callable', 'Iterable[str]', 'Iterable[int]', 'None'],
+        ['callable', 'Sequence[str]', 'Sequence[int]', 'None'],
         _n_features_in,
         _feature_names_in
     )
@@ -147,7 +147,7 @@ def _ic_hab_condition(
     _val_ignore_columns_handle_as_bool(
         _handle_as_bool,
         'handle_as_bool',
-        ['callable', 'Iterable[str]', 'Iterable[int]', 'None'],
+        ['callable', 'Sequence[str]', 'Sequence[int]', 'None'],
         _n_features_in,
         _feature_names_in
     )
@@ -163,7 +163,7 @@ def _ic_hab_condition(
 
     _val_count_threshold(
         _threshold,
-        ['int', 'Iterable[int]'],
+        ['int', 'Sequence[int]'],
         _n_features_in
     )
 
@@ -252,11 +252,11 @@ def _ic_hab_condition(
     # END handle_as_bool  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    # secondary validation ensure Iterable[int] ** * ** * ** * ** * ** * **
+    # secondary validation ensure Sequence[int] ** * ** * ** * ** * ** * **
     _val_ignore_columns_handle_as_bool(
         __ignore_columns,
         'ignore_columns',
-        ['Iterable[int]'],
+        ['Sequence[int]'],
         _n_features_in=_n_features_in,
         _feature_names_in=None
     )
@@ -264,12 +264,12 @@ def _ic_hab_condition(
     _val_ignore_columns_handle_as_bool(
         __handle_as_bool,
         'handle_as_bool',
-        ['Iterable[int]'],
+        ['Sequence[int]'],
         _n_features_in=_n_features_in,
         _feature_names_in=None
     )
 
-    # END secondary validation ensure Iterable[int] ** * ** * ** * ** * **
+    # END secondary validation ensure Sequence[int] ** * ** * ** * ** * **
 
 
 
@@ -327,7 +327,7 @@ def _ic_hab_condition(
     # 'ignored' in this way. but if passed as list, then some can be 1.
     if isinstance(_threshold, int):
         pass
-    else:  # must be Iterable[int] because of validation
+    else:  # must be Sequence[int] because of validation
         __ = np.array(_threshold)
         __ = np.arange(len(__))[(__ == 1)]
         __ = list(map(str, set(__handle_as_bool).intersection(__)))

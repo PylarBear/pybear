@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable, Literal, Optional, Callable
+from typing import Sequence, Literal, Optional, Callable
 from typing_extensions import Union, Self
 from ._type_aliases import DataContainer
 import numpy.typing as npt
@@ -280,7 +280,7 @@ class SlimPolyFeatures(
         same format as passed to :method: transform.
     feature_name_combiner:
         Union[
-            Callable[[Iterable[str], tuple[int, ...]], str],
+            Callable[[Sequence[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']]
         ], default='as_indices' - Sets the naming convention for the
         created polynomial features. This does not set nor change any
@@ -505,7 +505,7 @@ class SlimPolyFeatures(
         keep: Optional[Literal['first', 'last', 'random']] = 'first',
         sparse_output: Optional[bool] = True,
         feature_name_combiner: Optional[Union[
-            Callable[[Iterable[str], tuple[int, ...]], str],
+            Callable[[Sequence[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']
         ]] = 'as_indices',
         equal_nan: Optional[bool] = True,
@@ -783,7 +783,7 @@ class SlimPolyFeatures(
 
     def get_feature_names_out(
         self,
-        input_features:Optional[Union[Iterable[str], None]]=None
+        input_features:Optional[Union[Sequence[str], None]]=None
     ):
 
         """
@@ -796,7 +796,7 @@ class SlimPolyFeatures(
         Parameters
         ----------
         input_features :
-            Optional[Union[Iterable[str], None]], default=None -
+            Optional[Union[Sequence[str], None]], default=None -
             Externally provided feature names for the fitted data, not
             the transformed data.
 

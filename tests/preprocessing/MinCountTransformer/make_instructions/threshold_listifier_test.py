@@ -20,7 +20,7 @@ class TestThresholdListifier:
 
     # def _threshold_listifier(
     #     _n_features_in: int,
-    #     *_threshold: Union[int, Iterable[int]]
+    #     *_threshold: Union[int, Sequence[int]]
     # ) -> Union[list[int], tuple[list[int], ...]]:
 
 
