@@ -6,78 +6,66 @@
 
 
 
-import pytest
-
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
-
 import numpy as np
 import pandas as pd
-
-
-from dask_ml.wrappers import Incremental, ParallelPostFit
 import dask.array as da
 import dask.dataframe as ddf
 import dask_expr._collection as ddf2
-
 from distributed import Client
+import pytest
 
+from dask_ml.wrappers import Incremental, ParallelPostFit
 
-bypass = False
-
-
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-# FIXTURES
-
-@pytest.fixture(scope='session')
-def _shape():
-    return (200, 10)
-
-
-@pytest.fixture(scope='module')
-def _kwargs():
-    return {
-        'keep': 'first',
-        'do_not_drop': None,
-        'conflict': 'raise',
-        'rtol': 1e-5,
-        'atol': 1e-8,
-        'equal_nan': False,
-        'n_jobs': 1    # leave set at 1 because of confliction
-    }
-
-
-@pytest.fixture(scope='module')
-def _dupl(_shape):
-    return [[0, 1, _shape[1] - 1]]
-
-
-@pytest.fixture(scope='module')
-def _dum_X(_X_factory, _dupl, _shape):
-    return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
-
-
-@pytest.fixture(scope='module')
-def _columns(_master_columns, _shape):
-    return _master_columns.copy()[:_shape[1]]
-
-
-@pytest.fixture(scope='module')
-def _X_pd(_dum_X, _columns):
-    return pd.DataFrame(
-        data=_dum_X,
-        columns=_columns
-    )
-
-
-# END fixtures
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
 
 
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestDaskIncrementalParallelPostFit:
 
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # FIXTURES
+
+    @staticmethod
+    @pytest.fixture(scope='session')
+    def _shape():
+        return (200, 10)
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _kwargs():
+        return {
+            'keep': 'first',
+            'do_not_drop': None,
+            'conflict': 'raise',
+            'rtol': 1e-5,
+            'atol': 1e-8,
+            'equal_nan': False,
+            'n_jobs': 1  # leave set at 1 because of confliction
+        }
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _dupl(_shape):
+        return [[0, 1, _shape[1] - 1]]
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _dum_X(_X_factory, _dupl, _shape):
+        return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _columns(_master_columns, _shape):
+        return _master_columns.copy()[:_shape[1]]
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _X_pd(_dum_X, _columns):
+        return pd.DataFrame(
+            data=_dum_X,
+            columns=_columns
+        )
 
     @staticmethod
     @pytest.fixture
@@ -105,6 +93,9 @@ class TestDaskIncrementalParallelPostFit:
         client = Client(n_workers=1, threads_per_worker=1) # 0:42
         yield client
         client.close()
+
+    # END fixtures
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])

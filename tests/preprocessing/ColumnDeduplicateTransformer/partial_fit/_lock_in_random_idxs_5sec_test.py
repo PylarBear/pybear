@@ -15,8 +15,8 @@ import pytest
 
 # def _lock_in_random_idxs(
 #     _duplicates: list[list[int]],
-#     _do_not_drop: Union[Iterable[int], Iterable[str], None],
-#     _columns: Union[Iterable[str], None]
+#     _do_not_drop: Union[Sequence[int], Sequence[str], None],
+#     _columns: Union[Sequence[str], None]
 # ) -> tuple[int]:
 
 

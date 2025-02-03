@@ -54,7 +54,7 @@ def _gfno_poly(
         combinations that will be in the outputted polynomial expansion.
     _feature_name_combiner:
         Union[
-            Callable[[Iterable[str], tuple[int, ...]], str],
+            Callable[[Sequence[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']]
         ], default='as_indices' - Sets the naming convention for the
         created polynomial features.

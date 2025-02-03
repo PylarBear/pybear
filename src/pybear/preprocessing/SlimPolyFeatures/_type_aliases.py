@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable, Literal, Callable
+from typing import Sequence, Literal, Callable
 from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 import pandas as pd
@@ -63,7 +63,7 @@ InternalDataContainer: TypeAlias = Union[
 
 FeatureNameCombinerType: TypeAlias = \
     Union[
-        Callable[[Iterable[str], tuple[int, ...]], str],
+        Callable[[Sequence[str], tuple[int, ...]], str],
         Literal['as_feature_names', 'as_indices']
     ]
 

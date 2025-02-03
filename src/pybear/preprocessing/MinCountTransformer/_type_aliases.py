@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable, Callable, Literal
+from typing import Callable, Literal, Sequence, Sequence
 from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 
@@ -67,7 +67,7 @@ InternalXContainer: TypeAlias = Union[
 
 
 CountThresholdType: TypeAlias = \
-    Union[numbers.Integral, Iterable[numbers.Integral]]
+    Union[numbers.Integral, Sequence[numbers.Integral]]
 
 OriginalDtypesType: TypeAlias = npt.NDArray[
     Union[Literal['bin_int', 'int', 'float', 'obj']]
@@ -84,19 +84,19 @@ InstructionsType: TypeAlias = \
 IgnoreColumnsType: TypeAlias = \
     Union[
         None,
-        Iterable[numbers.Integral],
+        Sequence[numbers.Integral],
         npt.NDArray[np.int32],
-        Iterable[str],
-        Callable[[XContainer], Union[Iterable[numbers.Integral], Iterable[str]]]
+        Sequence[str],
+        Callable[[XContainer], Union[Sequence[numbers.Integral], Sequence[str]]]
     ]
 
 HandleAsBoolType: TypeAlias = \
     Union[
         None,
-        Iterable[numbers.Integral],
+        Sequence[numbers.Integral],
         npt.NDArray[np.int32],
-        Iterable[str],
-        Callable[[XContainer], Union[Iterable[numbers.Integral], Iterable[str]]]
+        Sequence[str],
+        Callable[[XContainer], Union[Sequence[numbers.Integral], Sequence[str]]]
     ]
 
 InternalIgnoreColumnsType: TypeAlias = npt.NDArray[np.int32]

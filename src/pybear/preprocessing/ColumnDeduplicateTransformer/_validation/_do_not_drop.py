@@ -8,27 +8,27 @@
 
 from .._type_aliases import DataContainer
 from typing_extensions import Union
-from typing import Iterable
+from typing import Sequence
 
 
 
 def _val_do_not_drop(
-    _do_not_drop: Union[Iterable[str], Iterable[int], None],
+    _do_not_drop: Union[Sequence[str], Sequence[int], None],
     _X: DataContainer,
-    _columns: Union[Iterable[str], None]
+    _columns: Union[Sequence[str], None]
 ) -> None:
 
     """
-    Validate :param: do_not_drop. May be None, an iterable of integers
+    Validate :param: do_not_drop. May be None, a sequence of integers
     indicating column indices, or, if fitting is done on pandas
-    dataframes with headers, an iterable of strings that match feature
+    dataframes with headers, a sequence of strings that match feature
     names in the data header.
 
 
     Parameters
     ----------
     _do_not_drop:
-        Union[Iterable[int], Iterable[str], None], default=None - A list
+        Union[Sequence[int], Sequence[str], None], default=None - A list
         of columns not to be dropped. If fitting is done on a pandas
         dataframe that has a header, a list of feature names may be
         provided. Otherwise, a list of column indices must be provided.
@@ -40,7 +40,7 @@ def _val_do_not_drop(
         n_features) - The data to be deduplicated.
 
     _columns:
-        Union[Iterable[str], None] of shape (n_features,) - if fitting
+        Union[Sequence[str], None] of shape (n_features,) - if fitting
         is done on a pandas dataframe that has a header, this is a
         ndarray of strings, otherwise is None.
 

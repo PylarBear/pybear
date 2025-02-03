@@ -30,7 +30,7 @@ class TestXFactory:
     #         _has_nan:bool=False,
     #         _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
     #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
-    #         _columns:Union[Iterable[str], None]=None,
+    #         _columns:Union[Sequence[str], None]=None,
     #         _shape:tuple[int,int]=(20,5)
     #     ) -> npt.NDArray[any]:
 

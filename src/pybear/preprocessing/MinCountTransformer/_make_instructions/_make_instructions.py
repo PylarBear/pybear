@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 from .._type_aliases import (
     CountThresholdType,
@@ -47,7 +47,7 @@ def _make_instructions(
     _delete_axis_0: bool,
     _original_dtypes: OriginalDtypesType,
     _n_features_in: int,
-    _feature_names_in: Union[Iterable[str], None],
+    _feature_names_in: Union[Sequence[str], None],
     _total_counts_by_column: TotalCountsByColumnType
 ) -> InstructionsType:
 
@@ -129,7 +129,7 @@ def _make_instructions(
     Parameters
     ----------
     _count_threshold:
-        Union[int, Iterable[int]] - The threshold that determines whether
+        Union[int, Sequence[int]] - The threshold that determines whether
         a value is removed from the data (frequency is below threshold)
         or retained (frequency is greater than or equal to threshold.)
 
@@ -190,7 +190,7 @@ def _make_instructions(
         int - the number of features (columns) in the dataset.
 
     _feature_names_in:
-        Union[Iterable[str], None] - if the data container passed to the
+        Union[Sequence[str], None] - if the data container passed to the
         first fit had features names this is an ndarray of those feature
         names. Otherwise, this is None.
 

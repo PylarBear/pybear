@@ -72,7 +72,7 @@ def _val_total_counts_by_column(
     err_msg = (f"_total_counts_by_column inner dictionaries must be keyed "
                f"with data values (DataType)")
 
-    # inner key (DataType) must be non-iterable
+    # inner key (DataType) must be non-sequence
     for _outer_key in __:
         for _inner_key in __[_outer_key]:
             try:

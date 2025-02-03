@@ -45,7 +45,7 @@ def _manage_keep(
 
     'feature_names_in_' could be:
         type(None),
-        Iterable[str] whose len == X.shape[1]
+        Sequence[str] whose len == X.shape[1]
 
     'keep' could be
         Literal['first', 'last', 'random', 'none'],
@@ -60,7 +60,7 @@ def _manage_keep(
     	len == 1
     	key is str
     	warns if 'feature_names_in_' is not None and key is in it
-        value cannot be callable, cannot be non-str iterable
+        value cannot be callable, cannot be non-str sequence
     if 'keep' is callable(X):
     	output is int
     	output is not bool

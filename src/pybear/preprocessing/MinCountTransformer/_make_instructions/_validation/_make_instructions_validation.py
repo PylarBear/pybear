@@ -54,7 +54,7 @@ def _make_instructions_validation(
     Parameters
     ----------
     _count_threshold:
-        Union[int, Iterable[int]]
+        Union[int, Sequence[int]]
     _ignore_float_columns:
         bool
     _ignore_non_binary_integer_columns:
@@ -95,7 +95,7 @@ def _make_instructions_validation(
 
     _val_count_threshold(
         _count_threshold,
-        ['int', 'Iterable[int]'],
+        ['int', 'Sequence[int]'],
         _n_features_in
     )
 
@@ -106,7 +106,7 @@ def _make_instructions_validation(
     _val_ignore_columns_handle_as_bool(
         _ignore_columns,
         'ignore_columns',
-        ['Iterable[int]'],
+        ['Sequence[int]'],
         _n_features_in=_n_features_in,
         _feature_names_in=_feature_names_in
     )
@@ -121,7 +121,7 @@ def _make_instructions_validation(
     _val_ignore_columns_handle_as_bool(
         _handle_as_bool,
         'handle_as_bool',
-        ['Iterable[int]'],
+        ['Sequence[int]'],
         _n_features_in=_n_features_in,
         _feature_names_in=_feature_names_in
     )

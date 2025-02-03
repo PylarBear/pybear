@@ -6,7 +6,7 @@
 
 
 
-from typing import Optional, Iterable
+from typing import Optional, Sequence
 from typing_extensions import Self, Union
 from ._type_aliases import (
     KeepType,
@@ -235,7 +235,7 @@ SetParamsMixin
         or scipy sparse, then this column name is ignored.
         The dictionary value is the constant value for the new feature.
         This value has only two restrictions: it cannot be a non-string
-        iterable (e.g. list, tuple, etc.) and it cannot be a callable.
+        sequence (e.g. list, tuple, etc.) and it cannot be a callable.
         Essentially, the constant value is restricted to being integer,
         float, string, or boolean.
         When appending a constant value to a pandas df, if the constant
@@ -492,7 +492,7 @@ SetParamsMixin
 
     def get_feature_names_out(
         self,
-        input_features:Optional[Union[Iterable[str], None]]=None
+        input_features:Optional[Union[Sequence[str], None]]=None
     ):
 
         """
@@ -504,7 +504,7 @@ SetParamsMixin
         Parameters
         ----------
         input_features :
-            Optional[Union[Iterable[str], None]], default=None -
+            Optional[Union[Sequence[str], None]], default=None -
             Externally provided feature names for the fitted data, not
             the transformed data.
 
@@ -863,7 +863,7 @@ SetParamsMixin
             err_msg = (
                 f"when passed as a dictionary, :param: 'keep' must have "
                 f"one key:value pair. The key must be a string and the "
-                f"value must not be callable or list-like iterable."
+                f"value must not be callable or list-like sequence."
             )
             # must be one entry and key must be str
             if len(self.keep) != 1 or not isinstance(_name, str):
@@ -876,7 +876,7 @@ SetParamsMixin
                 iter(self.keep[_name])
                 if isinstance(self.keep[_name], str):
                     raise Exception
-                # if is any iterable beside string, except
+                # if is any sequence beside string, except
                 raise UnicodeError
             except BrokenPipeError:
                 raise ValueError(
@@ -885,11 +885,11 @@ SetParamsMixin
                 )
             except UnicodeError:
                 raise ValueError(
-                    f"The 'keep' dictionary value is a non-string iterable, "
+                    f"The 'keep' dictionary value is a non-string sequence, "
                     f"which IM does not allow. " + err_msg
                 )
             except:
-                # accept anything that is string or not an iterable
+                # accept anything that is string or not a sequence
                 pass
 
             _unqs = np.unique(_column_getter(X_inv, -1))

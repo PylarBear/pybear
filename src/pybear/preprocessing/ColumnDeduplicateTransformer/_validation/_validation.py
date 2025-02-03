@@ -19,15 +19,15 @@ from ._X import _val_X
 
 
 from .._type_aliases import DataContainer
-from typing import Iterable, Literal
+from typing import Sequence, Literal
 from typing_extensions import Union
 
 
 def _validation(
     _X: DataContainer,
-    _columns: Union[Iterable[str], None],
+    _columns: Union[Sequence[str], None],
     _conflict: Literal['raise', 'ignore'],
-    _do_not_drop: Union[Iterable[str], Iterable[int], None],
+    _do_not_drop: Union[Sequence[str], Sequence[int], None],
     _keep: Literal['first', 'last', 'random'],
     _rtol: Real,
     _atol: Real,
@@ -45,11 +45,11 @@ def _validation(
     _X:
         {array-like, scipy sparse matrix} of shape (n_samples, n_features)
     _columns:
-        Union[Iterable[str], None]
+        Union[Sequence[str], None]
     _conflict:
         Literal['raise', 'ignore'],
     _do_not_drop:
-        Union[Iterable[str], Iterable[int], None],
+        Union[Sequence[str], Sequence[int], None],
     _keep:
         Literal['first', 'last', 'random'],
     _rtol:

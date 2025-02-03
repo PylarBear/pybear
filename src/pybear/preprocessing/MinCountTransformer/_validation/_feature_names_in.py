@@ -6,7 +6,7 @@
 
 
 
-from typing import Optional, Iterable
+from typing import Optional, Sequence
 from typing_extensions import Union
 
 from ._n_features_in import _val_n_features_in
@@ -14,7 +14,7 @@ from ._n_features_in import _val_n_features_in
 
 
 def _val_feature_names_in(
-    _feature_names_in: Union[Iterable[str], None],
+    _feature_names_in: Union[Sequence[str], None],
     _n_features_in: Optional[Union[int, None]]=None
 ) -> None:
 
@@ -28,7 +28,7 @@ def _val_feature_names_in(
     Parameters
     ----------
     _feature_names_in:
-        Union[Iterable[str], None] - if MCT was fit on a data
+        Union[Sequence[str], None] - if MCT was fit on a data
         container that had a header (e.g. pandas dataframe) then this is
         a list-like of those feature names. Otherwise, is None.
 

@@ -21,7 +21,7 @@ from attr_method_access, 2 RCR after transform.
             (f"OneRecurTestCls._total_counts_by_column == "
              f"TwoRecurTestCls._total_counts_by_column when it shouldnt")
 
-        _ONE_delete_instr = OneRecurTestCls._make_instructions(_args[0])
+        _ONE_delete_instr = OneRecurTestCls._make_instructions(_args[0])  # pizza _args
         _TWO_delete_instr = TwoRecurTestCls._make_instructions(_args[0])
         # THE FOLLOWING MUST BE TRUE BECAUSE TEST DATA BUILD VALIDATION
         # REQUIRES 2 RECURSIONS W CERTAIN KWARGS DOES DELETE SOMETHING

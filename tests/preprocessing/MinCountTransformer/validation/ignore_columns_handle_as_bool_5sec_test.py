@@ -23,18 +23,18 @@ class TestValIgnoreColumns:
     # def _val_ignore_columns_handle_as_bool(
     #     _value: Union[IgnoreColumnsType, HandleAsBoolType],
     #     _name: Literal['ignore_columns', 'handle_as_bool'],
-    #     _allowed: Iterable[
-    #         Union[Literal['callable', 'Iterable[str]', 'Iterable[int]', 'None']],
+    #     _allowed: Sequence[
+    #         Union[Literal['callable', 'Sequence[str]', 'Sequence[int]', 'None']],
     #     ],
     #     _n_features_in: int,
-    #     _feature_names_in: Union[Iterable[str], None]=None
+    #     _feature_names_in: Union[Sequence[str], None]=None
     # ) -> None:
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def full_allowed():
-        return ['None', 'callable', 'Iterable[int]', 'Iterable[str]']
+        return ['None', 'callable', 'Sequence[int]', 'Sequence[str]']
 
 
     # helper param validation ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -48,7 +48,7 @@ class TestValIgnoreColumns:
             _val_ignore_columns_handle_as_bool(
                 [0, 1, 2, 3],
                 junk_name,
-                ['Iterable[int]'],
+                ['Sequence[int]'],
                 4,
                 None
             )
@@ -60,7 +60,7 @@ class TestValIgnoreColumns:
             _val_ignore_columns_handle_as_bool(
                 [0, 1, 2, 3],
                 bad_name,
-                ['Iterable[int]'],
+                ['Sequence[int]'],
                 4,
                 None
             )
@@ -72,7 +72,7 @@ class TestValIgnoreColumns:
         _val_ignore_columns_handle_as_bool(
             [0, 1, 2, 3],
             good_name,
-            ['Iterable[int]'],
+            ['Sequence[int]'],
             4,
             None
         )
@@ -345,7 +345,7 @@ class TestValIgnoreColumns:
         _val_ignore_columns_handle_as_bool(
             ['4890', '1089', '4821', '1243'],
             'handle_as_bool',
-            ['Iterable[str]'],
+            ['Sequence[str]'],
             4,
             ['4890', '1089', '4821', '1243']
         )
@@ -353,7 +353,7 @@ class TestValIgnoreColumns:
         _val_ignore_columns_handle_as_bool(
             [4890, 1089, 4821, 1243],
             'handle_as_bool',
-            ['Iterable[int]'],
+            ['Sequence[int]'],
             10000,
             None
         )
@@ -375,7 +375,7 @@ class TestValIgnoreColumns:
 
         _fni = [str(uuid.uuid4())[:4] for _ in range(_n_features_in)]
 
-        _allowed_allowed = ['callable', 'None', 'Iterable[int]', 'Iterable[str]']
+        _allowed_allowed = ['callable', 'None', 'Sequence[int]', 'Sequence[str]']
 
         if given_value == 'callable':
             _value = lambda X: [0, 1]
@@ -403,9 +403,9 @@ class TestValIgnoreColumns:
                 will_raise = True
             elif given_value == 'none' and 'None' not in _allowed:
                 will_raise = True
-            elif given_value == 'list-str' and 'Iterable[str]' not in _allowed:
+            elif given_value == 'list-str' and 'Sequence[str]' not in _allowed:
                 will_raise = True
-            elif given_value == 'list-int' and 'Iterable[int]' not in _allowed:
+            elif given_value == 'list-int' and 'Sequence[int]' not in _allowed:
                 will_raise = True
 
             if will_raise:

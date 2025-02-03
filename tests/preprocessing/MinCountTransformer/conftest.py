@@ -13,7 +13,7 @@ import numpy.typing as npt
 import joblib
 from joblib import Parallel, delayed
 
-from typing_extensions import Union, Iterable, Callable
+from typing_extensions import Union, Sequence, Callable
 
 from pybear.utilities._nan_masking import (
     nan_mask_numerical,
@@ -49,11 +49,11 @@ def mmct():
             self,
             MOCK_X: npt.NDArray[any],
             MOCK_Y: Union[npt.NDArray[int], None],
-            ignore_columns: Union[Iterable[int], None],
+            ignore_columns: Union[Sequence[int], None],
             ignore_nan: bool,
             ignore_non_binary_integer_columns: bool,
             ignore_float_columns: bool,
-            handle_as_bool: Union[Iterable[int], None],
+            handle_as_bool: Union[Sequence[int], None],
             delete_axis_0: bool,
             count_threshold: int
         ) -> Union[tuple[npt.NDArray[any], npt.NDArray[int]], npt.NDArray[any]]:

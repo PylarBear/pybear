@@ -25,7 +25,7 @@ class TestGFNOPoly:
     # ) -> npt.NDArray[object]:
 
     # _feature_name_combiner: Union[
-    #     Callable[[Iterable[str], tuple[tuple[int, ...], ...]], str],
+    #     Callable[[Sequence[str], tuple[tuple[int, ...], ...]], str],
     #     Literal['as_feature_names', 'as_indices']
     # ]
 

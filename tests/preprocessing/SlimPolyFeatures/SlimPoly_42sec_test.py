@@ -264,7 +264,7 @@ class TestInitValidation:
 
     # feature_name_combiner ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # can be Literal['as_indices', 'as_feature_names']
-    # or Callable[[Iterable[str], tuple[int,...]], str]
+    # or Callable[[Sequence[str], tuple[int,...]], str]
 
     @pytest.mark.parametrize('junk_feature_name_combiner',
         (-2.7, -1, 0, 1, 2.7, True, False, None, (0,1), [1,2], {1,2}, {'a':1})
@@ -1149,7 +1149,7 @@ class TestPartialFit:
 
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
-                # handled by IM
+                # handled by SPF
                 SlimPoly(**_kwargs).partial_fit(_X_wip)
             pytest.skip(reason=f'cant do anymore tests after except')
         else:

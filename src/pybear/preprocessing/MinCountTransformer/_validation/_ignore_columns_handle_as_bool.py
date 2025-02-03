@@ -6,7 +6,7 @@
 
 
 
-from typing import Literal, Iterable, Optional
+from typing import Literal, Sequence, Optional
 from typing_extensions import Union
 from .._type_aliases import IgnoreColumnsType, HandleAsBoolType
 
@@ -23,11 +23,11 @@ from .._validation._feature_names_in import _val_feature_names_in
 def _val_ignore_columns_handle_as_bool(
     _value: Union[IgnoreColumnsType, HandleAsBoolType],
     _name: Literal['ignore_columns', 'handle_as_bool'],
-    _allowed: Iterable[
-        Union[Literal['callable', 'Iterable[str]', 'Iterable[int]', 'None']],
+    _allowed: Sequence[
+        Union[Literal['callable', 'Sequence[str]', 'Sequence[int]', 'None']],
     ],
     _n_features_in: int,
-    _feature_names_in: Optional[Union[Iterable[str], None]]=None
+    _feature_names_in: Optional[Union[Sequence[str], None]]=None
 ) -> None:
 
     """
@@ -36,29 +36,29 @@ def _val_ignore_columns_handle_as_bool(
 
     Validate:
 
-    - passed value is Iterable[str], Iterable[int], Callable, or None,
+    - passed value is Sequence[str], Sequence[int], Callable, or None,
         subject to those allowed by :param: '_allowed'.
 
-    - if iterable, contains valid integers or strings
+    - if sequence, contains valid integers or strings
 
 
     Parameters
     ----------
     _value:
-        Union[Iterable[str], Iterable[int], callable, None] - the value
+        Union[Sequence[str], Sequence[int], callable, None] - the value
         passed for the 'ignore_columns' or 'handle_as_bool' parameter to
         the MinCountTransformer instance.
     _name:
         Literal['ignore_columns', 'handle_as_bool'] - the name of the
         parameter being validated.
     _allowed:
-        Iterable[Union[Literal[
-            'callable', 'Iterable[str]', 'Iterable[int]', 'None'
+        Sequence[Union[Literal[
+            'callable', 'Sequence[str]', 'Sequence[int]', 'None'
         ]]] - the datatype which _value is allowed to be.
     _n_features_in:
         int - the number of features in the data.
     _feature_names_in:
-        Optional[Union[Iterable[str], None]]=None - if the MCT instance
+        Optional[Union[Sequence[str], None]]=None - if the MCT instance
         was fitted on a data-bearing object that had a header (like a
         pandas dataframe) then this is a 1D list-like of strings.
         Otherwise, is None.
@@ -80,7 +80,7 @@ def _val_ignore_columns_handle_as_bool(
     # END name -- -- -- -- -- -- -- --
 
     # allowed -- -- -- -- -- -- -- --
-    _allowed_allowed = ['callable', 'Iterable[str]', 'Iterable[int]', 'None']
+    _allowed_allowed = ['callable', 'Sequence[str]', 'Sequence[int]', 'None']
     _err_msg = lambda x: (
         f"'_allowed' must be a 1D list-like with values in "
         f"{', '.join(_allowed_allowed)}, case sensitive. cannot be empty. "
@@ -142,7 +142,7 @@ def _val_ignore_columns_handle_as_bool(
             )
 
 
-    # dealt with None & callable, must be Iterable[str] or Iterable[int]
+    # dealt with None & callable, must be Sequence[str] or Sequence[int]
     _err_msg = lambda x: (f"'{_name}' must be None, a list-like, or a callable "
                f"that returns a list-like. got {x}.")
 
@@ -163,7 +163,7 @@ def _val_ignore_columns_handle_as_bool(
     del _err_msg, _addon
 
 
-    if 'Iterable[str]' not in _allowed and 'Iterable[int]' not in _allowed:
+    if 'Sequence[str]' not in _allowed and 'Sequence[int]' not in _allowed:
         raise ValueError(
             f"'_value' is list-like but no list-likes are allowed"
         )
@@ -212,13 +212,13 @@ def _val_ignore_columns_handle_as_bool(
     # _feature_names_in is not necessarily available, could be None
 
     if is_empty:
-        # it might be Iterable[str] or Iterable[int] but is empty
+        # it might be Sequence[str] or Sequence[int] but is empty
         pass
     elif is_int:
 
-        if 'Iterable[int]' not in _allowed:
+        if 'Sequence[int]' not in _allowed:
             raise ValueError(
-                f"'_value' is Iterable[int] but Iterable[int] is not "
+                f"'_value' is Sequence[int] but Sequence[int] is not "
                 f"allowed"
             )
 
@@ -235,9 +235,9 @@ def _val_ignore_columns_handle_as_bool(
             )
     elif is_str:
 
-        if 'Iterable[str]' not in _allowed:
+        if 'Sequence[str]' not in _allowed:
             raise ValueError(
-                f"'_value' is Iterable[str] but Iterable[str] is not "
+                f"'_value' is Sequence[str] but Sequence[str] is not "
                 f"allowed"
             )
 

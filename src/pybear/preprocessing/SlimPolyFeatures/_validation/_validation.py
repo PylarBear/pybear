@@ -65,7 +65,7 @@ def _validation(
         bool
     _feature_name_combiner:
         Union[
-            Callable[[Iterable[str], tuple[int, ...]], str],
+            Callable[[Sequence[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']]
         ]
     _rtol:

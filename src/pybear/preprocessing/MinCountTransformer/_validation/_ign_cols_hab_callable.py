@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable, Literal
+from typing import Sequence, Literal
 from typing_extensions import Union
 
 import numbers
@@ -20,11 +20,11 @@ from .._validation._feature_names_in import _val_feature_names_in
 
 
 def _val_ign_cols_hab_callable(
-    _fxn_output: Union[Iterable[str], Iterable[numbers.Integral]],
-    _first_fxn_output: Union[Iterable[str], Iterable[numbers.Integral], None],
+    _fxn_output: Union[Sequence[str], Sequence[numbers.Integral]],
+    _first_fxn_output: Union[Sequence[str], Sequence[numbers.Integral], None],
     _name: Literal['ignore_columns', 'handle_as_bool'],
     _n_features_in: int,
-    _feature_names_in: Union[Iterable[str], None]
+    _feature_names_in: Union[Sequence[str], None]
 ) -> None:
 
     """
@@ -53,10 +53,10 @@ def _val_ign_cols_hab_callable(
     Parameters
     ----------
     _fxn_output:
-        Union[Iterable[str], Iterable[numbers.Integral]] - the output of
+        Union[Sequence[str], Sequence[numbers.Integral]] - the output of
         the callable used for ignore_columns or handle_as_bool
     _first_fxn_output:
-        Union[Iterable[str], Iterable[numbers.Integral], None] - the
+        Union[Sequence[str], Sequence[numbers.Integral], None] - the
         output of the callable on the first call to :methods: partial_fit
         or transform. used to validate that all subsequent outputs of
         the callable equal the first.
@@ -66,7 +66,7 @@ def _val_ign_cols_hab_callable(
     _n_features_in:
         int - the number of features in the data
     _feature_names_in:
-        Union[Iterable[str], None] - the feature names of a data-bearing
+        Union[Sequence[str], None] - the feature names of a data-bearing
         object
 
 
@@ -110,7 +110,7 @@ def _val_ign_cols_hab_callable(
     # has mutated into garbage. if after the first pass, we know the first
     # pass was good, so the output would have changed significantly.
 
-    # verify is iterable -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # verify is sequence -- -- -- -- -- -- -- -- -- -- -- -- -- --
     _addon = f"got type {type(_fxn_output)}"
     try:
         iter(_fxn_output)
@@ -126,13 +126,13 @@ def _val_ign_cols_hab_callable(
     # dont need to validate _first_fxn_output here. it would have gone
     # thru the validation on the first pass and should not have changed
     # since.
-    # END verify is iterable -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END verify is sequence -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     is_empty, is_str, is_num = False, False, False
     if len(_fxn_output) == 0:
         is_empty = True
-    # verify the callable returned an iterable holding ints or strs.
+    # verify the callable returned a sequence holding ints or strs.
     # do not use .astype(np.float64) to check if is num/str!
     # ['0787', '5927', '4060', '2473'] will pass and be treated as
     # column indices when they are actually column headers.

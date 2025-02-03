@@ -25,7 +25,7 @@ class TestIcHabCondition:
     #     _ignore_float_columns: bool,
     #     _ignore_non_binary_integer_columns: bool,
     #     _original_dtypes: OriginalDtypesType,
-    #     _threshold: Union[int, Iterable[int]],
+    #     _threshold: Union[int, Sequence[int]],
     #     _n_features_in: int,
     #     _feature_names_in: Union[npt.NDArray[str], None],
     #     _raise: bool = False
@@ -128,7 +128,7 @@ class TestIcHabCondition:
         self, _X_np, good_og_dtypes, bad_ignore_columns, n_features_in
     ):
 
-        # _ignore_columns must be None, callable, Iterable[str], Iterable[int]
+        # _ignore_columns must be None, callable, Sequence[str], Sequence[int]
 
         with pytest.raises(Exception):
             _ic_hab_condition(
@@ -152,7 +152,7 @@ class TestIcHabCondition:
         self, _X_np, good_og_dtypes, good_ignore_columns, n_features_in
     ):
 
-        # _ignore_columns must be None, callable, Iterable[str], Iterable[int]
+        # _ignore_columns must be None, callable, Sequence[str], Sequence[int]
         # _feature_names_in: Union[npt.NDArray[str], None]
 
         _base_ic = [1, n_features_in-1]
@@ -195,7 +195,7 @@ class TestIcHabCondition:
         self, _X_np, good_og_dtypes, bad_handle_as_bool, n_features_in
     ):
 
-        # _handle_as_bool must be None, callable, Iterable[str], Iterable[int]
+        # _handle_as_bool must be None, callable, Sequence[str], Sequence[int]
         # _feature_names_in: Union[npt.NDArray[str], None]
 
 
@@ -396,14 +396,14 @@ class TestIcHabCondition:
             )
 
 
-    @pytest.mark.parametrize('good_threshold', ('int', 'Iterable[int]'))
+    @pytest.mark.parametrize('good_threshold', ('int', 'Sequence[int]'))
     def test_accepts_good_threshold(
         self, _X_np, good_og_dtypes, good_threshold, n_features_in
     ):
 
         if good_threshold == 'int':
             _threshold = 2
-        elif good_threshold == 'Iterable[int]':
+        elif good_threshold == 'Sequence[int]':
             _threshold = [2 for _ in range(n_features_in)]
         else:
             raise Exception
@@ -698,7 +698,7 @@ class TestIcHabCondition:
     @pytest.mark.parametrize('_ignore_columns', options)
     @pytest.mark.parametrize('_ignore_float_columns', (True, False))
     @pytest.mark.parametrize('_ignore_non_binary_integer_columns', (True, False))
-    @pytest.mark.parametrize('_threshold', ('int', 'Iterable[int]'))
+    @pytest.mark.parametrize('_threshold', ('int', 'Sequence[int]'))
     def test_ignore_conflict_warn_accuracy(
         self, _X_np, good_og_dtypes, n_features_in, _handle_as_bool, _threshold,
         _ignore_columns, _ignore_float_columns, _ignore_non_binary_integer_columns
@@ -979,13 +979,13 @@ class TestIcHabCondition:
 
 
     # this is for print_instructions. prove out that when ic/hab are
-    # given as Iterable[int], Iterable[str], or None, X doesnt matter,
-    # Iterable[str] is converted to Iterable[int], Iterable[int] is
+    # given as Sequence[int], Sequence[str], or None, X doesnt matter,
+    # Sequence[str] is converted to Sequence[int], Sequence[int] is
     # mapped to positive, and None is converted to empty.
     def test_print_instructions_conditions(self, _X_np):
 
 
-        # Iterable[str]
+        # Sequence[str]
         out = _ic_hab_condition(
             X=None,
             _ignore_columns=['c', 'a'],
@@ -1007,7 +1007,7 @@ class TestIcHabCondition:
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        # Iterable[int]
+        # Sequence[int]
         out = _ic_hab_condition(
             X=None,
             _ignore_columns=[-3, -2],
