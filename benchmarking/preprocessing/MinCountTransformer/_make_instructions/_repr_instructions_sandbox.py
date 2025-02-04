@@ -46,20 +46,15 @@ test_cls = MinCountTransformer(
 
 test_cls.partial_fit(X, y)
 
-_repr_instructions(
+out = _repr_instructions(
     _delete_instr=test_cls._make_instructions(),
     _total_counts_by_column=test_cls._total_counts_by_column,
     _thresholds=[_threshold for _ in range(X.shape[1])],
     _n_features_in=X.shape[1],
     _feature_names_in=X.columns,
     _clean_printout=True,
-    _max_print_len=100
+    _max_char=99
 )
-
-print(f'** * ' * 20)
-
-
-
 
 
 

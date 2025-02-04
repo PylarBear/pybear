@@ -104,10 +104,10 @@ class TestDaskIncrementalParallelPostFit:
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
     def test_fit_and_transform_accuracy(self, wrappings, CDT_wrapped_parallel,
         CDT_wrapped_incremental, CDT_not_wrapped, CDT_wrapped_both, _dum_X,
-        _columns, x_format, y_format, _kwargs, _shape, row_chunk, _client
+        _columns, x_format, y_format, _kwargs, _shape, row_chunk
     ):
 
-        # faster with client, verified 24_10_29
+        # faster without client, verified 24_02_03
 
         if wrappings == 'incr':
             _test_cls = CDT_wrapped_incremental

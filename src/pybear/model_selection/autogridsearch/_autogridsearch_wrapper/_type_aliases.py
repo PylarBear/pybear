@@ -6,16 +6,17 @@
 
 
 
-from typing import TypeVar
+from typing import TypeVar, Sequence
 from typing_extensions import Union, TypeAlias
 
+import numbers
 
 
-DataType = TypeVar('DataType', int, float, bool, str)
+DataType = TypeVar('DataType', numbers.Real, str)
 
-GridType: TypeAlias = Union[list[DataType], tuple[DataType], set[DataType]]
+GridType: TypeAlias = Sequence[DataType]
 
-PointsType: TypeAlias = Union[int, Union[list[int], tuple[int]]]
+PointsType: TypeAlias = Union[int, Sequence[int]]
 
 ParamType: TypeAlias = list[GridType, PointsType, str]
 

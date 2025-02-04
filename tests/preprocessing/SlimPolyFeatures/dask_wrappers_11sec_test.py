@@ -12,6 +12,7 @@ import dask.dataframe as ddf
 import dask_expr._collection as ddf2
 from distributed import Client
 import pytest
+
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
 from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
@@ -44,7 +45,7 @@ class TestDaskIncrementalParallelPostFit:
             'equal_nan': True,
             'rtol': 1e-5,
             'atol': 1e-8,
-            'n_jobs': 1
+            'n_jobs': 1    # leave at 1, confliction
         }
 
     @staticmethod

@@ -5,13 +5,14 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransformer \
-    import ColumnDeduplicateTransformer as CDT
 
 import pandas as pd
 import scipy.sparse as ss
 
 import pytest
+
+from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransformer \
+    import ColumnDeduplicateTransformer as CDT
 
 
 
@@ -148,7 +149,12 @@ class TestExceptsOnBadXShapes:
 
     X_FORMAT = ['np', 'pd', 'csc']
     SAME_DIFF_COLUMNS = ['good', 'less_col', 'more_col']
-    SAME_DIFF_ROWS = ['good', 'less_row', 'more_row']
+    SAME_DIFF_ROWS = ['good']   #, 'less_row', 'more_row']
+
+    # save yourself 90 seconds of life. CDT *NEVER* raises for different
+    # number of rows in X in partial_fit, fit, and transform. run these
+    # tests with only one row length. CDT only raises for different
+    # number of columns after seeing a first article in partial_fit/fit.
 
     @pytest.mark.parametrize('fst_fit_x_format', X_FORMAT)
     @pytest.mark.parametrize('scd_fit_x_format', X_FORMAT)

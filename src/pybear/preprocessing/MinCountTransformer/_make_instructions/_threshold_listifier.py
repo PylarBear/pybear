@@ -17,7 +17,7 @@ from .._validation._count_threshold import _val_count_threshold
 
 def _threshold_listifier(
     _n_features_in: int,
-    *_threshold: Union[int, Sequence[int]]
+    *_threshold: Union[numbers.Integral, Sequence[numbers.Integral]]
 ) -> Union[list[int], tuple[list[int], ...]]:
 
     """
@@ -33,9 +33,9 @@ def _threshold_listifier(
     _n_features_in:
         int - the number of features in the data.
     *_threshold:
-        Union[int, Sequence[int]] - the threshold value(s) to be
-        converted to list[int]. Any number of threshold values can be
-        passed as positional arguments.
+        Union[numbers.Integral, Sequence[numbers.Integral]] - the
+        threshold value(s) to be converted to list[int]. Any number of
+        threshold values can be passed as positional arguments.
 
 
     Return

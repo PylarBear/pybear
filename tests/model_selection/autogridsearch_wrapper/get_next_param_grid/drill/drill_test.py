@@ -20,12 +20,12 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 # def _drill(
 #         _param_name: str,
-#         _grid: Iterable[Union[int, float, bool, str]],
-#         _param_value: list[Iterable[Union[str, int, bool, float]]],
-#                                       Union[int, list[int]], str],
-#         _is_logspace: Union[bool, float],
-#         _pass: int,
-#         _best: Union[int, float, bool, str]
+#         _grid: Sequence[Union[numbers.real, str]],
+#         _param_value: list[Sequence[Union[str, numbers.Real]]],
+#                                       Union[int, Sequence[int]], str],
+#         _is_logspace: Union[Literal[False], numbers.Real],
+#         _pass: numbers.Integral,
+#         _best: Union[numbers.Real, str]
 # ) -> tuple[
 #     list[Union[str, int, bool, float]],
 #     list[list[Union[str, int, bool, float]], Union[int, list[int]], str],

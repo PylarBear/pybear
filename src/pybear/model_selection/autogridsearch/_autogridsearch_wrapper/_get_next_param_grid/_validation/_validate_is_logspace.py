@@ -4,8 +4,12 @@
 # License: BSD 3 clause
 #
 
+
+
+from typing import Literal
 from typing_extensions import Union
 
+import numbers
 import numpy as np
 
 from ..._type_aliases import ParamsType
@@ -13,21 +17,24 @@ from ..._type_aliases import ParamsType
 
 
 def _validate_is_logspace(
-        _IS_LOGSPACE: dict[str, Union[bool, float]],
-        _params: ParamsType
-    ) -> None:
+    _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]],
+    _params: ParamsType
+) -> None:
 
     """
-    Validate _IS_LOGSPACE is dict[str, Union[bool, float]]
+    Validate _IS_LOGSPACE is dict[str, Union[Literal[False], numbers.Real]]
+
 
     Parameters
     ----------
-    _IS_LOGSPACE: dict[str, Union[bool, float]] - for all numerical
-    parameters, if the space is linear, or some other non-standard
-    interval, it is False. If it is logspace, the 'truth' of being a
-    logspace is represented by a number indicating the interval of
-    the logspace. E.g., np.logspace(-5, 5, 11) would be represented
-    by 1.0, and np.logspace(-20, 20, 9) would be represented by 5.0.
+    _IS_LOGSPACE:
+        dict[str, Union[Literal[False], numbers.Real]] - for all numerical
+        parameters, if the space is linear, or some other non-standard
+        interval, it is False. If it is logspace, the 'truth' of being a
+        logspace is represented by a number indicating the interval of
+        the logspace. E.g., np.logspace(-5, 5, 11) would be represented
+        by 1.0, and np.logspace(-20, 20, 9) would be represented by 5.0.
+
 
     Return
     ------

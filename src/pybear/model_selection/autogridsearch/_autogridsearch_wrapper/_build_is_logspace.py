@@ -4,6 +4,12 @@
 # License: BSD 3 clause
 #
 
+
+
+from typing import Literal
+from typing_extensions import Union
+
+import numbers
 import numpy as np
 
 from ._type_aliases import ParamsType
@@ -12,7 +18,7 @@ from ._type_aliases import ParamsType
 
 def _build_is_logspace(
         _params: ParamsType
-    ) -> dict[str: bool]:
+    ) -> dict[str, Union[Literal[False], numbers.Real]]:
 
     """
     _IS_LOGSPACE is a dictionary keyed by all param names, including
@@ -23,6 +29,20 @@ def _build_is_logspace(
     E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
     np.logspace(-20, 20, 9) would be represented by 5.0.
 
+
+    Parameters
+    ----------
+    _params:
+        dict[str, list[GridType, PointsType, str]] - autogridsearch's
+        instructions for performing grid searches for each parameter.
+
+
+    Return
+    ------
+    -
+        _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]] -
+        a dictionary indicating whether a parameters search space is
+        logarithmic. If so, the logspace interval of the space.
 
 
     """

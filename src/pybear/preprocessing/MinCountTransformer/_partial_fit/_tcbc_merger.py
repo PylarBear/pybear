@@ -5,6 +5,7 @@
 #
 
 
+
 from copy import deepcopy
 
 
@@ -76,7 +77,7 @@ def _tcbc_merger(
         f"_tcbc has more columns than _DTYPE_UNQS_CTS_TUPLES"
     # END validation - - - - - - - - - - - - - - - - - - - - - -
 
-    # this is important because of back-talk
+    # this is important because of back-talk. verified this needs to stay!
     __tcbc = deepcopy(_tcbc)
 
     for col_idx, (_dtype, UNQ_CT_DICT) in enumerate(_DTYPE_UNQS_CTS_TUPLES):

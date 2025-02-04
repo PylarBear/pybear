@@ -1857,7 +1857,7 @@ class TestInverseTransform:
                     equal_nan=True
                 )
             else:
-                raise Exceptiom
+                raise Exception
 
 
 

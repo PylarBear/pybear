@@ -10,7 +10,7 @@ from typing import Sequence
 from typing_extensions import Union
 from .._type_aliases import InstructionsType, TotalCountsByColumnType
 
-from copy import deepcopy
+import numbers
 import numpy as np
 
 from .._make_instructions._validation._delete_instr import _val_delete_instr
@@ -26,11 +26,11 @@ from .._make_instructions._threshold_listifier import _threshold_listifier
 def _repr_instructions(
     _delete_instr: InstructionsType,
     _total_counts_by_column: TotalCountsByColumnType,
-    _thresholds: Union[int, Sequence[int]],
+    _thresholds: Union[numbers.Integral, Sequence[numbers.Integral]],
     _n_features_in: int,
     _feature_names_in: Union[Sequence[str], None],
     _clean_printout: bool,
-    _max_print_len: int
+    _max_char: numbers.Integral = 99
 ):
 
     """
@@ -41,12 +41,19 @@ def _repr_instructions(
     to change MCTs parameters and see the impact on the transformation.
 
     If the instance has multiple recursions (i.e., :param: max_recursions
-    is > 1, parameters cannot be changed via :method: set_params, but
+    is > 1), parameters cannot be changed via :method: set_params, but
     the net effect of the actual transformation that was performed is
     displayed (remember that multiple recursions can only be accessed
     through :method: fit_transform). The results are displayed as a
     single set of instructions, as if to perform the cumulative effect
     of the recursions in a single step.
+
+    This print utility can only report the instructions and outcomes that
+    can be directly inferred from the information learned about uniques
+    and counts during fitting. It cannot predict any interaction effects
+    that occur during transform of a dataset that may ultimately cause
+    all rows to be deleted. It also cannot capture the effects of
+    previously unseen values that may be passed during transform.
 
 
     Parameters
@@ -62,8 +69,9 @@ def _repr_instructions(
         dict[int, dict[any, int]] - the uniques and their counts for
         each column in the data.
     _thresholds:
-        Union[int, Sequence[int]] - the threshold value(s) that determine
-        whether a unique value is removed from a dataset.
+        Union[numbers.Integral, Sequence[numbers.Integral]] - the
+        threshold value(s) that determine whether a unique value is
+        removed from a dataset.
     _n_features_in:
         int - the number of features in the data.
     _feature_names_in:
@@ -72,17 +80,24 @@ def _repr_instructions(
         a pandas dataframe. Otherwise, None.
     _clean_printout:
         bool - Truncate printout to fit on screen.
-    _max_print_len:
-        int - the maximum number of characters to display per line.
+    _max_char:
+        numbers.Integral, default = 99 - the maximum number of characters
+        to display per line if :param: 'clean_printout' is set to True.
+        Ignored if 'clean_printout' is False. Must be an integer in
+        range [72, 120].
 
 
     Return
     ------
     -
-        None
+        OUTPUT_HOLDER_FOR_TEST: list[str] - the printed summary captured
+        in a list. This is only for test purposes.
 
 
     """
+
+    _tcnw = 35 # the number of chars for idx/name/thresh/_pad
+    _pad = 2  # number of spaces between name/thresh info & delete info
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -94,32 +109,95 @@ def _repr_instructions(
     _val_delete_instr(_delete_instr, _n_features_in)
 
     _val_total_counts_by_column(_total_counts_by_column)
+    assert len(_total_counts_by_column) == _n_features_in
 
-    # must be list[int] coming into here
     _val_count_threshold(_thresholds, ['int', 'Sequence[int]'], _n_features_in)
 
     if not isinstance(_clean_printout, bool):
-        raise TypeError(f"'_clean_printout' must be boolean")
+        raise TypeError(f"'clean_printout' must be boolean")
 
+    _err_msg = f"'max_char' must be an integer >= 75 and <= 120"
+    if not isinstance(_max_char, numbers.Integral):
+        raise TypeError(_err_msg)
+    if _max_char < 72 or _max_char > 120:
+        raise ValueError(_err_msg)
+    del _err_msg
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _thresholds = _threshold_listifier(
         _n_features_in,
-        deepcopy(_thresholds)
+        _thresholds
     )
 
-    _max_print_len = 80
-    _pad = 2   # number of spaces between name/thresh info & delete info
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # build the idx/feature name/threshold/pad part of the display
 
-    if _feature_names_in is None:
-        _feature_names_in = [f"Column {i}" for i in range(_n_features_in)]
+    # the maximum width for idx/name/thresh/pad is fixed to a maximum
+    # but could be shorter. do all these gymnastics to find out:
+    # 1) if shorter, and what is the final total len
+    # 2) if longer, that will determine that names need to be chopped
 
-    _tcnw = min(25, max(map(len, _feature_names_in)))
-    # total column name width  ... the total number of spaces allowed
-    # for f"column name (threshold)" and _pad.
-    _tcnw += (max(map(len, map(str, _thresholds))) + 3)
-    _tcnw += _pad
+    # get max idx len -- -- -- -- -- -- -- -- -- -- --
+    _max_idx_len = len(f"{_n_features_in-1}) ")
+    # END get max idx len -- -- -- -- -- -- -- -- -- --
+
+    # get the max name len -- -- -- -- -- -- -- --
+    if _feature_names_in is not None:
+        _columns = list(map(str, _feature_names_in))
+    else:
+        _columns = [f"Column {i+1}" for i in range(_n_features_in)]
+
+    _max_name_len = max(map(len, _columns))
+    # END get the max name len -- -- -- -- -- -- -- --
+
+    # get the max thresh len -- -- -- -- -- -- -- --
+    _max_thresh_len = len(f" ({max(_thresholds)})")
+    # END get the max thresh len -- -- -- -- -- -- --
+
+    # set the final width for the description part -- -- --
+    _final_tcnw: int = min(
+        _tcnw,
+        _max_idx_len + _max_name_len + _max_thresh_len + _pad
+    )
+    # END set the final width for the description part -- -- --
+
+    del _max_idx_len, _max_name_len, _max_thresh_len,
+
+    # build the description part for all the columns -- -- --
+    DESCRIPTION_PART = []
+    for c_idx in range(_n_features_in):
+
+        _allotment_for_name = _final_tcnw
+        _allotment_for_name -= len(f"{c_idx}) ")
+        _allotment_for_name -= len(f" ({_thresholds[c_idx]})")
+        _allotment_for_name -= _pad
+
+        _description = f""
+        _description += f"{c_idx}) "
+
+        if len(_columns[c_idx]) <= _allotment_for_name:
+            _description += f"{_columns[c_idx]}"
+        else:
+            _chop_point = (_allotment_for_name - len(f"..."))
+            _description += f"{_columns[c_idx][:_chop_point]}"
+            _description += f"..."
+            del _chop_point
+
+        _description += f" ({_thresholds[c_idx]})"
+
+        _description = _description.ljust(_final_tcnw)
+
+        DESCRIPTION_PART.append(_description)
+
+    del c_idx, _allotment_for_name, _description, _columns
+    # END build the description part for all the columns -- -- --
+
+    # END build the idx/feature name/threshold/pad part of the display
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+    # MAKE A VECTOR TO HOLD THE OUTPUTS FOR TESTING
+    OUTPUT_HOLDER_FOR_TEST = [f"" for _ in range(_n_features_in)]
 
     _delete_column = False
     _all_rows_deleted = False
@@ -128,125 +206,178 @@ def _repr_instructions(
     _cdm = f"Delete column."   # column_delete_msg
     for col_idx, _instr in _delete_instr.items():
 
-        _wip_instr = deepcopy(_instr)
-
-        # print the column & threshold part -- -- -- -- -- -- -- -- -- --
-        if _feature_names_in is not None:
-            _column_name = _feature_names_in[col_idx]
-        else:
-            _column_name = f"Column {col_idx + 1}"
-
-        _col_w = len(_column_name)
-        _thresh_w = len(f" ({_thresholds[col_idx]})")
-
-        if (_col_w + _thresh_w) > (_tcnw - _pad):
-            _trunc_len = _tcnw - _pad - _thresh_w - 4  # (-4 for space/ellipsis)
-            _column_name = _column_name[:_trunc_len] + f"..."
-            del _trunc_len
-
-        del _col_w, _thresh_w
-
-        _base_printout = f"{_column_name} ({_thresholds[col_idx]})"
-
-        assert len(_base_printout) <= _tcnw
-
-        # notice the end="" here!
-        print(_base_printout.ljust(_tcnw), end="")
-
-        del _column_name, _base_printout   # dont delete _tcnw
-        # END print the column & threshold part -- -- -- -- -- -- -- --
+        # notice the end="". tack on the instructions part below.
+        print(DESCRIPTION_PART[col_idx], end="")
+        OUTPUT_HOLDER_FOR_TEST[col_idx] += DESCRIPTION_PART[col_idx]
 
         # print the instructions part -- -- -- -- -- -- -- -- -- -- --
-
-
-        if 'DELETE COLUMN' in _wip_instr:
+        if 'DELETE COLUMN' in _instr:
             # IF IS BIN-INT & NOT DELETE ROWS, ONLY ENTRY WOULD BE "DELETE COLUMN"
             _delete_column = True
-            _wip_instr = _wip_instr[:-1]
-            if len(_wip_instr) == 0:  # then 'DELETE COLUMN' was the only entry
+            _instr.remove('DELETE COLUMN')
+            if len(_instr) == 0:  # then 'DELETE COLUMN' was the only entry
                 print(_cdm)
+                OUTPUT_HOLDER_FOR_TEST[col_idx] += _cdm
                 continue
         else:
             _all_columns_deleted = False
 
-        if len(_wip_instr) == 0:
+        # must be after _all_columns_deleted logic
+        if len(_instr) == 0:
             print("No operations.")
+            OUTPUT_HOLDER_FOR_TEST[col_idx] += f"No operations."
             continue
 
-        if _wip_instr[0] == 'INACTIVE':
+        if _instr[0] == 'INACTIVE':
             print("Ignored.")
+            OUTPUT_HOLDER_FOR_TEST[col_idx] += f"Ignored."
             continue
 
-        if 'DELETE ALL' in _wip_instr \
-                or len(_wip_instr) == len(_total_counts_by_column[col_idx]):
+        if 'DELETE ALL' in _instr:
             _all_rows_deleted = True
+            _instr.remove('DELETE ALL')
+        elif len(_instr) == len(_total_counts_by_column[col_idx]):
+            _all_rows_deleted = True
+            _instr = []
 
-        # condition the values in _wip_instr for easier viewing
-        for _idx, _value in enumerate(_wip_instr):
+        if _all_rows_deleted:
+            # notice the 'end'!
+            print(_ardm, end='')
+            OUTPUT_HOLDER_FOR_TEST[col_idx] += _ardm
+            if _all_columns_deleted:
+                print(_cdm)
+                OUTPUT_HOLDER_FOR_TEST[col_idx] += _cdm
+            else:
+                print('')
+
+            continue
+
+        # sanity check
+        if len(_instr) == 0:
+            raise Exception(f"_instr is empty and should not be")
+
+        # if get to here, _instr must have single values, not empty
+        # all_rows_deleted cannot be triggered, would have caught above
+
+        # condition the values in _instr for easier viewing
+        for _idx, _value in enumerate(_instr):
             try:
                 _value = np.float64(str(_value)[:7])
-                _wip_instr[_idx] = f"{_value}"
+                _instr[_idx] = f"{_value}"
             except:
-                _wip_instr[_idx] = str(_value)
+                _instr[_idx] = str(_value)
+        del _idx, _value
+        # END condition the values in _instr for easier viewing
 
-        _wip_instr: list[str]
+        _instr: list[str]
 
         _delete_rows_msg = "Delete rows containing "
-        _mpl = _max_print_len - _tcnw   # subtract allowance for column name
+        _mpl: int = (_max_char - _final_tcnw)  # subtract chars for description
         _mpl -= len(_delete_rows_msg)   # subtract the row del prefix jargon
-        _mpl -= len(_ardm) if _all_rows_deleted else 0 # subtract all row del
         _mpl -= len(_cdm) if _delete_column else 0 # subtract col del jargon
         # what is left in _mpl is the num spaces we have to put row values
 
+        _trunc_msg = lambda _idx: f"... + {len(_instr[_idx+1:])} other(s). "
 
-        trunc_msg = lambda _idx: f"... + {len(_wip_instr[_idx:])} other(s). "
-
-        if not _clean_printout or len(', '.join(_wip_instr) + ". ") <= _mpl:
-            _delete_rows_msg += (', '.join(_wip_instr) + ". ")
+        if not _clean_printout or len(', '.join(_instr) + ". ") <= _mpl:
+            _delete_rows_msg += (', '.join(_instr) + ". ")
             # if the total length of the entries is less than _mpl, just
             # join and get on with it
-        elif (_mpl - len(trunc_msg(0))) <= 0:
-            _delete_rows_msg = f"{len(_wip_instr)} unique values will be deleted. "
+        elif len(f"{_instr[0]}, {_trunc_msg(0)}") > _mpl:
+            # if a single deleted value + trunc_msg is over the length
+            _num_deleted = len(_instr)
+            _num_uniques = len(_total_counts_by_column[col_idx])
+            _delete_rows_msg = \
+                f"Delete {_num_deleted} of {_num_uniques} uniques. "
+            del _num_deleted, _num_uniques
         else:
-            _running_len_tally = 0
-            for _idx, _value in enumerate(_wip_instr):
-                _running_len_tally += len(_value)
-                if (_running_len_tally + len(trunc_msg(_idx))) >= _mpl:
+            _shown_values = ""
+            for idx, word in enumerate(_instr):
+                # cant reach the last word here... we know from above that
+                # if we could fit all the words we joined all in one shot
+                # and bypassed this.
+
+                _shown_values += f"{word}, "
+
+                # if the next word and addon are too long, stay at the
+                # current word, attach the addon, and break.
+                if len(
+                    _shown_values
+                    + _instr[idx + 1] + f", "
+                    + _trunc_msg(idx + 1)
+                ) > _mpl:
+                    _delete_rows_msg += (_shown_values + _trunc_msg(idx))
                     break
-            # keep this _idx number!
 
-            _delete_rows_msg += ", ".join(_wip_instr[:_idx])
-            _delete_rows_msg += f"... + {len(_wip_instr[_idx:])} other(s). "
+            del _shown_values, idx, word
 
-
-        _delete_rows_msg += _ardm if _all_rows_deleted else ""
+        del _mpl, _trunc_msg
 
         _delete_rows_msg += _cdm if _delete_column else ""
 
-        # pizza
-        # assert len(_delete_rows_msg) <= (_max_print_len - _tcnw)
+        if _clean_printout:
+            try:
+                assert len(_delete_rows_msg) <= (_max_char - _final_tcnw)
+            except AssertionError:
+                raise ValueError(
+                    f"MCT does not have an instruction display layout for "
+                    f"column index {col_idx} that fits within the maximum "
+                    f"\ncharacter window that you have provided. Please use "
+                    f"a larger value for :param: 'max_char'."
+                )
+
 
         print(_delete_rows_msg)
+        OUTPUT_HOLDER_FOR_TEST[col_idx] += _delete_rows_msg
+        # end individual column printing ** ** ** ** ** ** ** ** ** ** ** **
 
     if _all_columns_deleted:
         print(f'\nAll columns will be deleted.')
+        OUTPUT_HOLDER_FOR_TEST.append(f'All columns will be deleted.')
     if _all_rows_deleted:
         print(f'\nAll rows are guaranteed to be deleted.')
+        OUTPUT_HOLDER_FOR_TEST.append(f'All rows are guaranteed to be deleted.')
+
+    del DESCRIPTION_PART, _ardm, _cdm, col_idx, _instr
+    del _all_columns_deleted, _all_rows_deleted, _delete_column
+
+    try:
+        _delete_rows_msg
+    except:
+        pass
 
     print(f"\n*** NOTE *** ")
-    print(
+    NOTE = (
         f"This print utility can only report the instructions and "
         f"outcomes that can be directly inferred from the information "
-        f"learned about uniques and counts during fitting. \nIt cannot "
+        f"learned about uniques and counts during fitting. It cannot "
         f"predict any interaction effects that occur during transform of "
         f"a dataset that may ultimately cause all rows to be deleted. "
-        f"\nIt also cannot capture the effects of previously unseen "
+        f"It also cannot capture the effects of previously unseen "
         f"values that may be passed during transform."
     )
 
+    if _clean_printout:
+        split_NOTE = NOTE.split(' ')
+        out = f""
+        for idx, word in enumerate(split_NOTE):
+            last_word = (idx == len(split_NOTE) - 1)
+            out += f" {word}"
+            if not last_word:
+                next_word = f" {split_NOTE[idx + 1]}"
+            if last_word or (len(out[1:]) + len(next_word)) > _max_char:
+                print(out.strip())
+                out = f""
+        del split_NOTE, out, idx, word, last_word
+    else:
+        print(NOTE)
+
+    del NOTE
 
 
-    # pizza
+    return OUTPUT_HOLDER_FOR_TEST
+
+
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # OLD REPR FROM _test_threshold. KEEP THIS FOR REFERENCE.
     #

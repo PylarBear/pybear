@@ -5,8 +5,12 @@
 #
 
 
-from copy import deepcopy
+
+from typing import Literal
 from typing_extensions import Union
+
+import numbers
+from copy import deepcopy
 import numpy as np
 
 from ..._type_aliases import GridsType, ParamsType, BestParamsType
@@ -16,15 +20,16 @@ from ._shift_points_and_passes import _shift_points_and_passes
 from ._shift_grid import _shift_grid
 
 
+
 def _shift(
-            _GRIDS: GridsType,
-            _PHLITE : dict[str, bool],
-            _IS_LOGSPACE: dict[str, Union[bool, float]],
-            _params: ParamsType,
-            _pass: int,
-            _best_params_from_previous_pass: BestParamsType,
-            _total_passes_is_hard: bool
-    ) -> tuple[GridsType, ParamsType]:
+    _GRIDS: GridsType,
+    _PHLITE : dict[str, bool],
+    _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]],
+    _params: ParamsType,
+    _pass: int,
+    _best_params_from_previous_pass: BestParamsType,
+    _total_passes_is_hard: bool
+) -> tuple[GridsType, ParamsType]:
 
     """
 
@@ -97,7 +102,6 @@ def _shift(
         raise ValueError(f"_GRIDS does not have key for {_pass}")
 
 
-
     if _GRIDS[_pass] != {}:
         raise ValueError(
             f"_GRIDS pass {_pass} going into _shift is not empty."
@@ -122,15 +126,13 @@ def _shift(
             _best = _best_params_from_previous_pass[_param]
 
             _GRIDS[_pass][_param] = _shift_grid(
-                                    _params[_param],
-                                    _OLD_GRID.tolist(),
-                                    _IS_LOGSPACE[_param],
-                                    _best
+                _params[_param],
+                _OLD_GRID.tolist(),
+                _IS_LOGSPACE[_param],
+                _best
             )
 
             del _OLD_GRID, _best
-
-
 
 
     # This must remain separate from grid shift because all points/passes
@@ -138,9 +140,9 @@ def _shift(
     # 24_05_10_18_02_00 code moved into its own module for easier testing.
 
     _params = _shift_points_and_passes(
-                                        deepcopy(_params),
-                                        _pass,
-                                        _total_passes_is_hard
+        deepcopy(_params),
+        _pass,
+        _total_passes_is_hard
     )
 
 

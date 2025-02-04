@@ -345,7 +345,7 @@ class ColumnDeduplicateTransformer(
     >>> print(trf.removed_columns_)
     {2: 0, 4: 1}
     >>> print(trf.column_mask_)
-    [True, True, False, True, False]
+    [ True  True False  True False]
 
 
     """

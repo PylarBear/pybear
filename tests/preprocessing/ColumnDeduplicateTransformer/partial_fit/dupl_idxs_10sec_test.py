@@ -327,7 +327,6 @@ class TestDuplIdxs(Fixtures):
             _scd_X, _fst_duplicates, _rtol, _atol, _equal_nan, _n_jobs
         )
 
-
         assert out == [[0, 2, 4], [1, 3, 5]]
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

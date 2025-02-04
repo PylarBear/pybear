@@ -5,35 +5,49 @@
 #
 
 
+
+from typing import Literal
 from typing_extensions import Union
 
 from .._type_aliases import ParamsType, BestParamsType
 
+import numbers
 
 
 
 def _validate_true_best(
-        _params: ParamsType,
-        _IS_LOGSPACE: dict[str, Union[bool, float]],
-        _true_best: BestParamsType
-    ) -> None:
+    _params: ParamsType,
+    _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]],
+    _true_best: BestParamsType
+) -> None:
 
     """
-    Ensure _true_best matches sklearn / dask GridSearchCV best_params_
-    format and best values are valid for the given starting search grids.
+    Ensure _true_best matches GridSearchCV best_params_ format and best
+    values are valid for the given starting search grids.
     _make_true_best() may intentionally put some best values outside of
     starting search grid to verify autogridsearch's ability to shift.
 
+
     Parameters
     ----------
-    _params: dict[str, list[...]] - full set of grid-building instructions
-    for all params
+    _params:
+        dict[str, list[...]] - full set of grid-building instructions
+        for all params
+    _IS_LOGSPACE:
+        dict[str, Union[Literal[False], numbers.Real]] - False | float
+        for the full set of parameters indicating if is not logspace or
+        if logspace, what the logspace gap is.
+    _true_best:
+        dict[str, [int, float, str]] - mocked best GridSearchCV results
+        in format identical to sklearn / dask_ml GridSearchCV.best_params_
 
-    _IS_LOGSPACE: dict[bool, float] - False | float for the full set of
-    parameters indicating if is not logspace or if logspace, what the
-    logspace gap is.
 
-    _true_best: dict[str, [int, float, str]] -
+    Return
+    ------
+    -
+        None
+
+
 
     """
 

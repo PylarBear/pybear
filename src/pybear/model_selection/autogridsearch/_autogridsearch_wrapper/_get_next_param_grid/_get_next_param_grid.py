@@ -5,8 +5,12 @@
 #
 
 
+
+from typing import Literal
 from typing_extensions import Union
+
 from copy import deepcopy
+import numbers
 import numpy as np
 
 from ._update_phlite import _update_phlite
@@ -30,7 +34,7 @@ def _get_next_param_grid(
     _GRIDS: GridsType,
     _params: ParamsType,
     _PHLITE: dict[str, bool],
-    _IS_LOGSPACE: dict[str, Union[bool, float]],
+    _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]],
     _best_params_from_previous_pass: BestParamsType,
     _pass: int,
     _total_passes: int,
@@ -41,7 +45,7 @@ def _get_next_param_grid(
         GridsType,
         ParamsType,
         dict[str, bool],
-        dict[str, Union[bool, float]],
+        dict[str, Union[Literal[False], numbers.Real]],
         int,
         int
     ]:
@@ -76,12 +80,13 @@ def _get_next_param_grid(
         the edges, that parameter's grid is shifted, otherwise the search
         window is narrowed.
     _IS_LOGSPACE:
-        dict[str, Union[bool, float]] - for all numerical parameters, if
-        the space is linear, or some other non-standard interval, it is
-        False. If it is logspace, the 'truth' of being a logspace is
-        represented by a number indicating the interval of the logspace.
-        E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
-        np.logspace(-20, 20, 9) would be represented by 5.0.
+        dict[str, Union[Literal[False], numbers.Real]] - for all
+        numerical parameters, if the space is linear, or some other
+        non-standard interval, it is False. If it is logspace, the
+        'truth' of being a logspace is represented by a number indicating
+        the interval of the logspace. E.g., np.logspace(-5, 5, 11) would
+        be represented by 1.0, and np.logspace(-20, 20, 9) would be
+        represented by 5.0.
     _best_params_from_previous_pass:
         dict[str, [str, int, float]] - best_params_ returned by
         sklearn / dask GridsearchCV for the previous pass
@@ -116,7 +121,8 @@ def _get_next_param_grid(
         _PHLITE: dict[str, bool] - Updated with the results from the
         previous round.
 
-        _IS_LOGSPACE: dict[str, Union[bool, float]] - updated _IS_LOGSPACE
+        _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]] -
+        updated _IS_LOGSPACE
 
         _shift_ctr: int - incremented _shift_ctr if shifts are needed
 
@@ -217,10 +223,10 @@ def _get_next_param_grid(
         if _shift_ctr < _max_shifts:
 
             _PHLITE = _update_phlite(
-                                        _PHLITE,
-                                        _GRIDS[_pass-1],
-                                        _params,
-                                        _best_params_from_previous_pass
+                _PHLITE,
+                _GRIDS[_pass-1],
+                _params,
+                _best_params_from_previous_pass
             )
 
         elif _shift_ctr == _max_shifts:
@@ -240,13 +246,13 @@ def _get_next_param_grid(
             _total_passes += 1
 
         _GRIDS, _params = _shift(
-                                    _GRIDS,
-                                    _PHLITE,
-                                    _IS_LOGSPACE,
-                                    _params,
-                                    _pass,
-                                    _best_params_from_previous_pass,
-                                    _total_passes_is_hard
+            _GRIDS,
+            _PHLITE,
+            _IS_LOGSPACE,
+            _params,
+            _pass,
+            _best_params_from_previous_pass,
+            _total_passes_is_hard
         )
 
     # END SHIFT ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
