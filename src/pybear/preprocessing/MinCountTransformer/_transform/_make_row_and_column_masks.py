@@ -41,7 +41,7 @@ def _make_row_and_column_masks(
     over its respective uniques in _delete_instr, to identify which rows
     are to be deleted.
 
-import joblib
+
     Parameters
     ----------
     X:
