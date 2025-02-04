@@ -8,8 +8,6 @@
 # this is not directly tested for the MCT method. see repr_instructions_test.
 # MCT.print_instructions() calls _repr_instructions().
 
-# pizza revisit this when not so tired
-
 
 
 import numpy as np
