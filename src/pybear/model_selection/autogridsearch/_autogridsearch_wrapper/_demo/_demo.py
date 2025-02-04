@@ -5,7 +5,12 @@
 #
 
 
+
+from typing import Literal
 from typing_extensions import Union
+
+import numbers
+
 from ._make_true_best import _make_true_best
 from ._validate_true_best import _validate_true_best
 from ._display_true_best import  _display_true_best
@@ -17,7 +22,7 @@ from .._print_results import _print_results
 
 
 _params: ParamsType
-_IS_LOGSPACE: dict[str: Union[bool, float]]
+_IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]]
 _RESULTS: ResultsType
 _pass: int
 _param_grid: ParamType
@@ -25,10 +30,10 @@ _RESULTS: ResultsType
 
 
 def _demo(
-        _DemoCls,
-        _true_best: [None, BestParamsType]=None,
-        _mock_gscv_pause_time: Union[int, float]=5
-    ):
+    _DemoCls,
+    _true_best: [None, BestParamsType] = None,
+    _mock_gscv_pause_time: numbers.Real = 5
+):
 
     """
     Simulated trials of this AutoGridSearch instance.
@@ -43,23 +48,22 @@ def _demo(
     best values are generated from the set of first search grids
     provided in params.
 
+
     Parameters
     ----------
-
     _DemoCls:
         Instance of AutoGridSearch created for demo purposes,
         not "self".
-
     _true_best:
-        dict[str, Union[int, float, bool, str]] - dict of mocked
-        true best values for an estimator's hyperparameters, as
-        provided by the user or generated randomly. If not passed,
-        random true best values are generated based on the first
-        round grids made from the instructions in params.
-
+        dict[str, Union[numbers.Real, str]] - dict of mocked true best
+        values for an estimator's hyperparameters, as provided by the
+        user or generated randomly. If not passed, random true best
+        values are generated based on the first round grids made from
+        the instructions in params.
     _mock_gscv_pause_time:
         int, float - time in seconds to pause, simulating a trial
         of GridSearch
+
 
     Return
     ------

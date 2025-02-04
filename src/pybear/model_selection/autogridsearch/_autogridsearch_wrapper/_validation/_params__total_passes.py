@@ -26,7 +26,7 @@ def _params__total_passes(
     Parameters
     ----------
     _params:
-        dict[str, Iterable[Iterable, Iterable|int, str] - A single
+        dict[str, Sequence[Sequence, Sequence|int], str] - A single
         dictionary that contains parameter names as keys and lists that
         follow the format rules for string, bool, and numerical
         parameters. AutoGridSearch does not accept lists of multiple

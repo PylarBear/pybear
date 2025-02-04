@@ -5,7 +5,7 @@
 #
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import TypeAlias
 
 
@@ -13,7 +13,7 @@ from typing_extensions import TypeAlias
 
 # subtypes for bool only
 BoolDataType: TypeAlias = bool  # DataType sub
-BoolGridType: TypeAlias = Iterable[BoolDataType]  # GridType sub
+BoolGridType: TypeAlias = Sequence[BoolDataType]  # GridType sub
 BoolPointsType: TypeAlias = int  # PointsType sub
 BoolParamType: TypeAlias = list[BoolGridType, BoolPointsType, str] # ParamType sub
 
@@ -21,33 +21,37 @@ BoolParamType: TypeAlias = list[BoolGridType, BoolPointsType, str] # ParamType s
 
 
 def _bool(
-            _param_value: BoolParamType,
-            _grid: BoolGridType,
-            _pass: int,
-            _best_param_from_previous_pass: BoolDataType
-    ) -> list[BoolDataType]:
+    _param_value: BoolParamType,
+    _grid: BoolGridType,
+    _pass: int,
+    _best_param_from_previous_pass: BoolDataType
+) -> list[BoolDataType]:
 
     """
     Create the current round's search grid for a boolean parameter based
     on results from _best_params.
 
+
     Parameters
     ----------
     _param_value:
-        list[Iterable[bool], int, str] - boolean parameter grid instructions
+        list[Sequence[bool], int, str] - boolean parameter grid
+        instructions
     _grid:
-        Iterable[bool] - previous round's gridsearch values for boolean
+        Sequence[bool] - previous round's gridsearch values for boolean
         parameter
     _pass:
-        int - zero-indexed count of passes to this point, inclusive; the
-        current pass
+        numbers.Integral - zero-indexed count of passes to this point,
+        inclusive; the current pass
     _best_param_from_previous_pass:
         bool - best value returned from sklearn / dask best_params_
+
 
     Return
     ------
     -
         _grid: list[bool] - new search grid for the current pass
+
 
     """
 

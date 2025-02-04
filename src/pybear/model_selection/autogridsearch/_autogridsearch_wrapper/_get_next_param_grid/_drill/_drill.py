@@ -4,8 +4,12 @@
 # License: BSD 3 clause
 #
 
+
+
+from typing import Literal
 from typing_extensions import Union
 
+import numbers
 import numpy as np
 
 from .._float._float import _float
@@ -18,13 +22,13 @@ from ..._type_aliases import DataType, ParamType, GridType
 
 
 def _drill(
-            _param_name: str,
-            _grid: GridType,
-            _param_value: ParamType,
-            _is_logspace: Union[bool, float],
-            _pass: int,
-            _best: DataType
-    ) -> tuple[GridType, ParamType, bool]:
+    _param_name: str,
+    _grid: GridType,
+    _param_value: ParamType,
+    _is_logspace: Union[Literal[False], numbers.Real],
+    _pass: numbers.Integral,
+    _best: DataType
+) -> tuple[GridType, ParamType, bool]:
 
 
     """
@@ -33,7 +37,8 @@ def _drill(
     _points if any of the individual type's algorithms override the user-
     entered number of points. Update _is_logspace for any parameters
     converted from logspace to linspace.
-    
+
+
     Parameters
     ----------
     _param_name:
@@ -45,38 +50,44 @@ def _drill(
         list[list[Union[str, int, float]], Union[int, list[int]], str] -
         the parameter's grid construction instructions from _params
     _is_logspace:
-        Union[bool, float] - False for all string, hard numerics, and fixed
-        numerics. For soft numerical params, if the space is linear, or
-        some other non-standard interval, it is False. If it is logspace,
-        the 'truth' of being a logspace is represented by a number
-        indicating the interval of the logspace. E.g.,
-        np.logspace(-5, 5, 11) would be represented by 1.0, and
+        Union[Literal[False], numbers.Real] - False for all string, hard
+        numerics, and fixed numerics. For soft numerical params, if the
+        space is linear, or some other non-standard interval, it is
+        False. If it is logspace, the 'truth' of being a logspace is
+        represented by a number indicating the interval of the logspace.
+        E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
         np.logspace(-20, 20, 9) would be represented by 5.0
     _pass:
-        int - zero-indexed counter of number of gridsearches performed
-        inclusive of this round. If this is the second gridsearch,
-        _pass == 1.
+        numbers.Integral - zero-indexed counter of number of gridsearches
+        performed inclusive of this round. If this is the second
+        gridsearch, _pass == 1.
     _best:
-        Union[int, float, str] - the best value for this parameter from
+        Union[numbers.Real, str] - the best value for this parameter from
         the previous round as returned by best_params_ from sklearn /
         dask GridSearchCV
     )
 
+
     Return
     ------
     -
-        _grid: list[Union[str, int, float]] - the new param_grid for
+        _grid: list[Union[str, numbers.Real]] - the new param_grid for
         this parameter
 
         _param_value:
-            list[list[Union[str, int, float]], Union[int, list[int]], str] -
-            Grid construction instructions from _params for this parameter
-            with any update to _points
+            list[
+                Sequence[Union[str, numbers.Real]],
+                Union[int, Sequence[int]],
+                str
+            ] - Grid construction instructions from _params for this
+            parameter with any update to _points
 
         _is_logspace:
-            Union[bool, float] - Updated _is_logspace for this parameter;
-            everything entering here that is logspace should always be
-            converted to linspace, so this should always return False.
+            Union[Literal[False], numbers.Real] - Updated _is_logspace
+            for this parameter; everything entering here that is logspace
+            should always be converted to linspace, so this should always
+            return False.
+
 
     """
 
@@ -170,25 +181,25 @@ def _drill(
     if 'INTEGER' in _type:
 
         _grid, _is_logspace = _int(
-                                    _grid,
-                                    _is_logspace,
-                                    _best_param_posn,
-                                    _is_hard,
-                                    _hard_min,
-                                    _hard_max,
-                                    _points
+            _grid,
+            _is_logspace,
+            _best_param_posn,
+            _is_hard,
+            _hard_min,
+            _hard_max,
+            _points
         )
 
     elif 'FLOAT' in _type:
 
         _grid, _is_logspace = _float(
-                                        _grid,
-                                        _is_logspace,
-                                        _best_param_posn,
-                                        _is_hard,
-                                        _hard_min,
-                                        _hard_max,
-                                        _points
+            _grid,
+            _is_logspace,
+            _best_param_posn,
+            _is_hard,
+            _hard_min,
+            _hard_max,
+            _points
         )
 
     else:

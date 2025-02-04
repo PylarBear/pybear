@@ -18,9 +18,9 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 # def _get_next_param_grid(
-#      _GRIDS: dict[int, dict[str, list[Union[str, int, bool, float]]]],
-#      _params: dict[str, list[Iterable[Union[str, int, bool, float]],
-#         Union[int, Iterable[int]], str]],
+#      _GRIDS: dict[int, dict[str, list[Union[str, numbers.Real]]]],
+#      _params: dict[str, list[Sequence[Union[str, numbers.Real]],
+#         Union[int, Sequence[int]], str]],
 #      _PHLITE: dict[str, bool],
 #      _IS_LOGSPACE: dict[str, Union[bool, float]],
 #      _best_params_from_previous_pass: dict[str,

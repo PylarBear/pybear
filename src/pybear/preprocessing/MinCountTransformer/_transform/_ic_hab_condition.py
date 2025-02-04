@@ -17,6 +17,7 @@ from .._type_aliases import (
     OriginalDtypesType
 )
 
+import numbers
 import warnings
 from copy import deepcopy
 import numpy as np
@@ -34,13 +35,13 @@ from .._validation._feature_names_in import _val_feature_names_in
 
 
 def _ic_hab_condition(
-    X: XContainer,
+    X: Union[XContainer, None],  # can be None when called from print_instructions
     _ignore_columns: IgnoreColumnsType,
     _handle_as_bool: HandleAsBoolType,
     _ignore_float_columns: bool,
     _ignore_non_binary_integer_columns: bool,
     _original_dtypes: OriginalDtypesType,
-    _threshold: Union[int, Sequence[int]],
+    _threshold: Union[numbers.Integral, Sequence[numbers.Integral]],
     _n_features_in: int,
     _feature_names_in: Union[Sequence[str], None],
     _raise: bool = False
@@ -101,9 +102,9 @@ def _ic_hab_condition(
         The datatypes for each column in the dataset as determined by
         MCT. Values can be 'bin_int', 'int', 'float', or 'obj'.
     _threshold:
-        Union[int, Sequence[int]] - the minimum frequency threshold(s)
-        to be applied to the columns of the data. Setting a threshold to
-        1 is the same as ignoring a column.
+        Union[numbers.Integral, Sequence[numbers.Integral]] - the minimum
+        frequency threshold(s) to be applied to the columns of the data.
+        Setting a threshold to 1 is the same as ignoring a column.
     _n_features_in:
         int - the number of features in the data.
     _feature_names_in:

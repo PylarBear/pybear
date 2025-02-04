@@ -8,13 +8,11 @@
 
 from .._type_aliases import TotalCountsByColumnType
 
-from copy import deepcopy
-
 
 
 def _tcbc_update(
-    old_tcbc: TotalCountsByColumnType, # use deepcopy(self._total_counts_by_column)
-    recursion_tcbc: TotalCountsByColumnType, # use RecursiveCls._total_counts_by_column
+    old_tcbc: TotalCountsByColumnType,
+    recursion_tcbc: TotalCountsByColumnType,
     MAP_DICT: dict[int, int]
 ) -> TotalCountsByColumnType:
 
@@ -144,7 +142,7 @@ def _tcbc_update(
         # now that nans are out, update self.tcbc (old_tcbc) with the new
         # (lower) values in recursion_tcbc, where applicable
 
-        for unq, ct in deepcopy(_old_tcbc_col_dict).items():
+        for unq, ct in _old_tcbc_col_dict.items():
 
             if not _rcr_col_dict.get(unq, 0) <= ct:
                 raise AssertionError(

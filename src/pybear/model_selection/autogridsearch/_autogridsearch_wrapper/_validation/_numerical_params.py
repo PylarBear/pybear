@@ -128,7 +128,7 @@ def _numerical_param_value(
     )
 
     try:
-        iter(__[-2])  # IF IS A SINGLE NON-ITERABLE, CONVERT TO LIST
+        iter(__[-2])  # IF IS A SINGLE NON-SEQUENCE, CONVERT TO LIST
         if isinstance(__[-2], (dict, set, str)):
             raise UnicodeError
         __[-2] = list(__[-2])
@@ -137,7 +137,7 @@ def _numerical_param_value(
     except UnicodeError:
         raise TypeError(err_msg)
     except Exception as e:
-        raise Exception(f"'points' iterable check failed for uncontrolled "
+        raise Exception(f"'points' sequence check failed for uncontrolled "
                         f"reason --- {e}")
 
 

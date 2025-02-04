@@ -23,9 +23,6 @@ from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
 
 
 
-# pizza come back to this, probably should split into multiple tests.
-# compare against the other pybear transformers.
-
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 class TestDaskIncrementalParallelPostFit:
 
@@ -50,7 +47,7 @@ class TestDaskIncrementalParallelPostFit:
             'handle_as_bool': None,
             'reject_unseen_values': True,
             'max_recursions': 1,
-            'n_jobs': 4
+            'n_jobs': 1    # leave at 1, confliction
         }
 
     @staticmethod

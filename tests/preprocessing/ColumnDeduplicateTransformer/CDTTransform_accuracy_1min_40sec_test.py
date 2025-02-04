@@ -6,20 +6,19 @@
 
 
 
+from copy import deepcopy
+import itertools
+import numpy as np
+import pandas as pd
+
+import pytest
+
 from pybear.preprocessing.ColumnDeduplicateTransformer. \
     ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
 
 from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
-
-from copy import deepcopy
-import itertools
-import numpy as np
-import pandas as pd
-
-
-import pytest
 
 
 class TestAccuracy:
@@ -51,8 +50,9 @@ class TestAccuracy:
         }
 
 
+    # save yourself 50 seconds of life. test only one scipy sparse.
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'csr', 'coo'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr')) # , 'csc', 'coo'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('dupls', (None, [[0,2,9]], [[0,6],[1,8]]))

@@ -116,7 +116,7 @@ def _mock_gscv(
     # SIMULATE WORK BY GridSearchCV ON AN ESTIMATOR ** * ** * ** * ** *
     combinations = np.prod(list(map(len, _GRIDS[_pass].values())))
     print(f'\nThere are {combinations:,.0f} combinations to run')
-    print(f"Simulating dask/sklearn GridSearchCV running on pass {_pass + 1}...")
+    print(f"Simulating GridSearchCV running on pass {_pass + 1}...")
     time.sleep(_pause_time)  # (combinations)
     del combinations
 

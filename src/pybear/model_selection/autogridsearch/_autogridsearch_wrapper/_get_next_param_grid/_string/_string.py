@@ -5,27 +5,30 @@
 #
 
 
-from typing import Iterable
+
+from typing import Sequence
 from typing_extensions import TypeAlias
+
+import numbers
 
 
 # see _type_aliases
 
 # subtypes for str only
 StrDataType: TypeAlias = str  # DataType sub
-StrGridType: TypeAlias = Iterable[StrDataType] # GridType sub
-StrPointsType: TypeAlias = int # PointsType sub
+StrGridType: TypeAlias = Sequence[StrDataType] # GridType sub
+StrPointsType: TypeAlias = numbers.Integral # PointsType sub
 StrParamType: TypeAlias = list[StrGridType, StrPointsType, str] # ParamType sub
 
 
 
 
 def _string(
-            _param_value: StrParamType,
-            _grid: StrGridType,
-            _pass: int,
-            _best_param_from_previous_pass: StrDataType
-    ) -> list[StrDataType]:
+    _param_value: StrParamType,
+    _grid: StrGridType,
+    _pass: numbers.Integral,
+    _best_param_from_previous_pass: StrDataType
+) -> list[StrDataType]:
 
     """
     Create the current round's search grid for a string parameter based
@@ -34,13 +37,13 @@ def _string(
     Parameters
     ----------
     _param_value:
-        list[Iterable[str], int, str] - string parameter grid instructions
+        list[Sequence[str], int, str] - string parameter grid instructions
     _grid:
-        Iterable[str] - previous round's gridsearch values for string
+        Sequence[str] - previous round's gridsearch values for string
         parameter
     _pass:
-        int - zero-indexed count of passes to this point, inclusive; the
-        current pass
+        numbers.Integral - zero-indexed count of passes to this point,
+        inclusive; the current pass
     _best_param_from_previous_pass:
         str - best value returned from sklearn / dask best_params_
 

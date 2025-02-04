@@ -6,10 +6,12 @@
 
 
 
+from typing import Iterable, Sequence
+from typing_extensions import Union, TypeAlias
+
+import numbers
 from copy import deepcopy
-from typing_extensions import Union, Iterable, TypeAlias
 import numpy as np
-import numpy.typing as npt
 
 from . import autogridsearch_docs
 
@@ -79,7 +81,9 @@ GridSearchType: TypeAlias = Union[
 
 
 
-def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
+def autogridsearch_wrapper(
+    GridSearchParent: GridSearchType
+) -> GridSearchType:
 
     """
     Wrap a sci-kit learn or dask GridSearchCV class with a class that
@@ -134,12 +138,12 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
             estimator,
             params: dict[
                 str,
-                list[Union[list[any], npt.NDArray[any]], Union[int, list[int]], str]
+                list[Sequence[any], Union[int, Sequence[int]], str]
             ],
             *,
             total_passes: int=5,
             total_passes_is_hard: bool=False,
-            max_shifts: Union[None, int]=None,
+            max_shifts: Union[None, numbers.Integral]=None,
             agscv_verbose: bool=False,
             **parent_gscv_kwargs
             ) -> None:
@@ -258,8 +262,8 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
             _pass:
                 int - internal iteration counter
             _best_params_from_previous_pass:
-                dict[str, [int, float, str]] - best_params_ returned by
-                Gridsearch for the previous pass
+                dict[str, Union[numbers.Real, str]] - best_params_
+                returned by Gridsearch for the previous pass
 
             Return
             ------
@@ -287,7 +291,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
                 self,
                 *,
                 true_best_params: dict[str, any]=None,
-                mock_gscv_pause_time: Union[int, float]=5
+                mock_gscv_pause_time: numbers.Real=5
             ):
 
             """
@@ -307,7 +311,7 @@ def autogridsearch_wrapper(GridSearchParent: GridSearchType) -> GridSearchType:
             ----------
 
             true_best_params:
-                dict[str, Union[int, float, bool, str]] - dict of mocked
+                dict[str, Union[numbers.Real, str]] - dict of mocked
                 true best values for an estimator's hyperparameters, as
                 provided by the user or generated randomly. If not passed,
                 random true best values are generated based on the first

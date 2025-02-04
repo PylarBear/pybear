@@ -17,8 +17,6 @@ from .._type_aliases import (
     InstructionsType,
 )
 
-from copy import deepcopy
-
 from ._validation._make_instructions_validation import _make_instructions_validation
 from ._validation._delete_instr import _val_delete_instr
 
@@ -233,15 +231,14 @@ def _make_instructions(
 
     _threshold = _threshold_listifier(
         _n_features_in,
-        deepcopy(_count_threshold)
+        _count_threshold
     )
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _delete_instr = {}
-    # pizza can this deepcopy() come out?
-    for col_idx, COLUMN_UNQ_CT_DICT in deepcopy(_total_counts_by_column).items():
+    for col_idx, COLUMN_UNQ_CT_DICT in _total_counts_by_column.items():
         # _total_counts_by_column GIVES A DICT OF UNQ & CTS FOR COLUMN;
         # IF _ignore_nan, nans & THEIR CTS ARE TAKEN OUT BELOW. IF nan IS
         # IN, THIS COMPLICATES ASSESSMENT OF COLUMN HAS 1 VALUE, IS BINARY, ETC.
