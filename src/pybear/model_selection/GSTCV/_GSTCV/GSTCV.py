@@ -8,13 +8,13 @@
 
 from typing import Literal, Iterable, Optional
 from typing_extensions import Union
-from contextlib import nullcontext
-from copy import deepcopy
-
-from ...GSTCV._type_aliases import (
+from ._type_aliases import (
     XInputType,
     YInputType
 )
+
+from contextlib import nullcontext
+from copy import deepcopy
 
 
 from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
@@ -24,10 +24,6 @@ from .._GSTCV._validation._estimator import _validate_estimator
 from ._handle_X_y._handle_X_y_sklearn import _handle_X_y_sklearn
 
 from .._GSTCV._fit._core_fit import _core_fit
-
-
-
-
 
 
 
@@ -46,7 +42,6 @@ class GSTCV(_GSTCVMixin):
     “transform” and “inverse_transform” if they are exposed by the
     classifier used.
 
-    ********************************************************************
 
     Parameters
     ----------
@@ -404,7 +399,6 @@ class GSTCV(_GSTCVMixin):
         threshold for each scorer is by inspection of the cv_results_
         attribute.
 
-    ********************************************************************
 
     Notes
     -----
@@ -422,7 +416,6 @@ class GSTCV(_GSTCVMixin):
     Any other exception that is raised by a GSTCV method besides these 3
     is being raised from within the estimator itself.
 
-    ********************************************************************
 
     Examples
     --------

@@ -4,17 +4,18 @@
 # License: BSD 3 clause
 #
 
+
+
 from typing import Iterable
 from typing_extensions import Union
 
 import numpy as np
 
-from ....GSTCV._type_aliases import (
+from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
     ParamGridType
 )
 
 from ._threshold_checker import _threshold_checker
-
 
 
 

@@ -5,16 +5,11 @@
 #
 
 
+
 from typing import Literal, Iterable
 from typing_extensions import Union
-import time
-from copy import deepcopy
-
-import joblib
-import numpy as np
 import numpy.typing as npt
-
-from ..._type_aliases import (
+from .._type_aliases import (
     CVResultsType,
     ClassifierProtocol,
     ScorerWIPType,
@@ -22,6 +17,12 @@ from ..._type_aliases import (
     YSKWIPType,
     GenericKFoldType
 )
+
+import time
+from copy import deepcopy
+
+import joblib
+import numpy as np
 
 from ._get_kfold import _get_kfold
 from ._fold_splitter import _fold_splitter
@@ -36,7 +37,6 @@ from ..._fit_shared._cv_results._cv_results_update import _cv_results_update
 
 from ..._fit_shared._cv_results._cv_results_rank_update import \
     _cv_results_rank_update
-
 
 
 

@@ -5,17 +5,19 @@
 #
 
 
-import time
+
 from typing import Generator
-import numpy as np
-
-from sklearn.model_selection import StratifiedKFold
-
-from ....GSTCV._type_aliases import (
+from .._type_aliases import (
     XSKWIPType,
     YSKWIPType,
     SKKFoldType
 )
+
+import time
+
+import numpy as np
+
+from sklearn.model_selection import StratifiedKFold
 
 
 

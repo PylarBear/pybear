@@ -5,18 +5,18 @@
 #
 
 
+
 from typing_extensions import Union
-
-import numpy as np
-import pandas as pd
-
-
-from ....GSTCV._type_aliases import (
+from .._type_aliases import (
     GenericSlicerType,
     SKSlicerType,
     XSKWIPType,
     YSKWIPType
 )
+
+import numpy as np
+import pandas as pd
+
 
 
 def _fold_splitter(

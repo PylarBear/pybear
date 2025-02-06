@@ -13,7 +13,7 @@ from numpy.typing import NDArray
 
 from .....utilities._permuter import permuter
 
-from ....GSTCV._type_aliases import (
+from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
     ParamGridType,
     ScorerWIPType,
     CVResultsType

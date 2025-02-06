@@ -5,25 +5,27 @@
 #
 
 
-from typing_extensions import Union
 
-from dask import compute
-import dask.array as da
-import dask.dataframe as ddf
-import dask_expr._collection as ddf2
-from ....GSTCV._type_aliases import (
+from typing_extensions import Union
+from .._type_aliases import (
     GenericSlicerType,
     DaskSlicerType,
     XDaskWIPType,
     YDaskWIPType
 )
 
+from dask import compute
+import dask.array as da
+import dask.dataframe as ddf
+import dask_expr._collection as ddf2
+
+
 
 def _fold_splitter(
-        train_idxs: Union[GenericSlicerType, DaskSlicerType],
-        test_idxs: Union[GenericSlicerType, DaskSlicerType],
-        *data_objects: Union[XDaskWIPType, YDaskWIPType]
-    ) -> tuple[tuple[XDaskWIPType, YDaskWIPType, ...]]:
+    train_idxs: Union[GenericSlicerType, DaskSlicerType],
+    test_idxs: Union[GenericSlicerType, DaskSlicerType],
+    *data_objects: Union[XDaskWIPType, YDaskWIPType]
+) -> tuple[tuple[XDaskWIPType, YDaskWIPType, ...]]:
 
 
     """

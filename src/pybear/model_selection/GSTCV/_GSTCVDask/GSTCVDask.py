@@ -8,13 +8,14 @@
 
 from typing import Literal, Iterable, Optional
 from typing_extensions import Union
-import distributed
-from copy import deepcopy
-
-from ...GSTCV._type_aliases import (
+from ._type_aliases import (
     XInputType,
     YInputType,
 )
+
+from copy import deepcopy
+
+import distributed
 
 from ...GSTCV._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
