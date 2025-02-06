@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import ClassifierProtocol
+from ..._type_aliases import ClassifierProtocol
 
 import sys
 import inspect

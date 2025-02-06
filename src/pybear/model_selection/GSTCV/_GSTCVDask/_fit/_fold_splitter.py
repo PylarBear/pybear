@@ -7,7 +7,7 @@
 
 
 from typing_extensions import Union
-from .._type_aliases import (
+from ..._type_aliases import (
     GenericSlicerType,
     DaskSlicerType,
     XDaskWIPType,

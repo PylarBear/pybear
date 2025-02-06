@@ -5,12 +5,14 @@
 #
 
 
+
 import numpy as np
 
-from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
+from ..._type_aliases import (
     CVResultsType,
     ScorerWIPType
 )
+
 
 
 def _cv_results_rank_update(

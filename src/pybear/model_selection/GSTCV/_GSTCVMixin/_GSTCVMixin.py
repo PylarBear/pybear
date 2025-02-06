@@ -380,7 +380,7 @@ class _GSTCVMixin(
 
 
     # do not use pybear.base.GetParamsMixin
-    def get_params(self, deep:bool=True):
+    def get_params(self, deep: Optional[bool]=True):
 
         """
         Get parameters for this GSTCV(Dask) instance.
@@ -742,7 +742,7 @@ class _GSTCVMixin(
             return self.best_estimator_.score_samples(_X)
 
 
-    def set_params(self, **params):
+    def set_params(self, **params: dict[str, any]):
 
         """
         Set the parameters of the GSTCV(Dask) instance or the embedded
@@ -1034,7 +1034,10 @@ class _GSTCVMixin(
             return
 
 
-    def _validate_features(self, passed_feature_names: np.ndarray) -> None:
+    def _validate_features(
+        self,
+        passed_feature_names: npt.NDArray[str]
+    ) -> None:
 
         """
         Validate that feature names passed to a method via a dataframe

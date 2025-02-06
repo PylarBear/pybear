@@ -5,18 +5,20 @@
 #
 
 
+
 from typing_extensions import Union
 
 import numpy as np
 import numpy.typing as npt
 
-from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
+from ..._type_aliases import (
     CVResultsType,
     IntermediateHolderType,
     ScorerWIPType
 )
 
 from ._cv_results_score_updater import _cv_results_score_updater
+
 
 
 def _cv_results_update(

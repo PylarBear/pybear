@@ -14,7 +14,7 @@ import numpy as np
 import numpy.typing as npt
 import dask
 
-from .._type_aliases import (
+from ..._type_aliases import (
     ScorerWIPType,
     ClassifierProtocol,
     XDaskWIPType,

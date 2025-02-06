@@ -6,13 +6,13 @@
 
 
 
-
 from typing_extensions import Union
 
 import numpy as np
 import numpy.typing as npt
 
-from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import IntermediateHolderType
+from .._type_aliases import IntermediateHolderType
+
 
 
 def _get_best_thresholds(

@@ -5,18 +5,20 @@
 #
 
 
+
 import numpy as np
 from typing import Literal
-from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import CVResultsType, ScorerWIPType
+from ..._type_aliases import CVResultsType, ScorerWIPType
+
 
 
 def _cv_results_score_updater(
-        _FOLD_x_SCORER__SCORE_MATRIX: np.ma.masked_array[float],
-        _type: Literal['train', 'test'],
-        _trial_idx: int,
-        _scorer: ScorerWIPType,
-        _cv_results: CVResultsType
-    ) -> CVResultsType:
+    _FOLD_x_SCORER__SCORE_MATRIX: np.ma.masked_array[float],
+    _type: Literal['train', 'test'],
+    _trial_idx: int,
+    _scorer: ScorerWIPType,
+    _cv_results: CVResultsType
+) -> CVResultsType:
 
     """
 

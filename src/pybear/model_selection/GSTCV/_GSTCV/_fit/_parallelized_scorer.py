@@ -8,7 +8,7 @@
 
 from typing_extensions import Union
 import numpy.typing as npt
-from .._type_aliases import (
+from ..._type_aliases import (
     ScorerWIPType,
     ClassifierProtocol,
     XSKWIPType,

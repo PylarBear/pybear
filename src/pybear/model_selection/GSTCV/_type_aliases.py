@@ -6,23 +6,38 @@
 
 
 
-from typing import Iterable, Literal, Callable, TypedDict, Protocol
-from typing_extensions import TypeAlias, Union, NotRequired
+from typing import (
+    Iterable,
+    Sequence,
+    Literal,
+    Callable,
+    TypedDict,
+    Protocol
+)
+from typing_extensions import (
+    TypeAlias,
+    Union,
+    NotRequired
+)
+import numpy.typing as npt
+
+import numbers
 
 import numpy as np
-import numpy.typing as npt
+import dask
 import distributed
 
 
 
-
-DataType: TypeAlias = Union[int, float, np.float64]
+DataType: TypeAlias = Union[numbers.Real]
 
 XInputType: TypeAlias = Iterable[Iterable[DataType]]
 XSKWIPType: TypeAlias = npt.NDArray[DataType]
+XDaskWIPType: TypeAlias = dask.array.core.Array
 
 YInputType: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType], None]
 YSKWIPType: TypeAlias = Union[npt.NDArray[DataType], None]
+YDaskWIPType: TypeAlias = Union[dask.array.core.Array, None]
 
 CVResultsType: TypeAlias = \
     dict[str, np.ma.masked_array[Union[float, dict[str, any]]]]
@@ -37,9 +52,11 @@ ParamGridType: TypeAlias = Union[
     list[dict[str, Union[list[any], npt.NDArray[any]]]]
 ]
 SKSlicerType: TypeAlias = npt.NDArray[int]
-GenericSlicerType: TypeAlias = Iterable[int]
+DaskSlicerType: TypeAlias = dask.array.core.Array
+GenericSlicerType: TypeAlias = Sequence[int]
 
 SKKFoldType: TypeAlias = tuple[SKSlicerType, SKSlicerType]
+DaskKFoldType: TypeAlias = tuple[DaskSlicerType, DaskSlicerType]
 GenericKFoldType: TypeAlias = tuple[GenericSlicerType, GenericSlicerType]
 
 FeatureNamesInType: TypeAlias = Union[npt.NDArray[str], None]
@@ -106,11 +123,6 @@ class ClassifierProtocol(Protocol):
 
     def predict_proba(self, *args, **kwargs) -> any:
         ...
-
-
-
-
-
 
 
 

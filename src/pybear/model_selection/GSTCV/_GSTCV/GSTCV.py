@@ -6,9 +6,14 @@
 
 
 
-from typing import Literal, Iterable, Optional
+from typing import (
+    Literal,
+    Iterable,
+    Sequence,
+    Optional
+)
 from typing_extensions import Union
-from ._type_aliases import (
+from .._type_aliases import (
     XInputType,
     YInputType
 )
@@ -68,7 +73,7 @@ class GSTCV(_GSTCVMixin):
         searching over any sequence of parameter settings.
 
     thresholds:
-        Union[None, Union[int, float], vector-like[Union[int, float]] -
+        Optional[Union[None, numbers.Real, Sequence[Union[numbers.Real]]] -
         The decision threshold search grid to use when performing hyper-
         parameter search. Other GridSearchCV modules only allow for
         search at the conventional decision threshold for binary class-
@@ -121,7 +126,7 @@ class GSTCV(_GSTCVMixin):
         reported in cv_results_.
 
     scoring:
-        Union[str, callable, vector-like[str], dict[str, callable]],
+        Optional[Union[str, Callable, Sequence[str], dict[str, Callable]]],
         default='accuracy' - Strategy to evaluate the performance of the
         cross-validated model on the test set (and also train set, if
         return_train_score is True.)
@@ -169,8 +174,8 @@ class GSTCV(_GSTCVMixin):
             return your_metric(y_true, y_pred, **hard_coded_kwargs)
 
     _n_jobs:
-        Union[int, None], default=None - Number of jobs to run in
-        parallel. -1 means using all processors.
+        Optional[Union[int, None]], default=None - Number of jobs to run
+        in parallel. -1 means using all processors.
 
         For best speed benefit, pybear recommends setting n_jobs in both
         GSTCV and the wrapped estimator to None, whether under a joblib
@@ -178,17 +183,17 @@ class GSTCV(_GSTCVMixin):
         manager, also set n_jobs in the context manager to None.
 
     refit:
-        bool, str, or callable, default=True - After completion of the
-        grid search, fit the estimator on the whole dataset using the
-        best found parameters, and expose this fitted estimator via the
-        best_estimator_ attribute. Also, when the estimator is refit the
-        GSTCV instance itself becomes the best estimator, exposing the
-        predict_proba, predict, and score methods (and possibly others.)
-        When refit is not performed, the search simply finds the best
-        parameters and exposes them via the best_params_ attribute
-        (unless there are multiple scorers and refit is False, in which
-        case information about the grid search is only available via the
-        cv_results_ attribute.)
+        Optional[Union[bool, str, Callable]], default=True - After
+        completion of the grid search, fit the estimator on the whole
+        dataset using the best found parameters, and expose this fitted
+        estimator via the best_estimator_ attribute. Also, when the
+        estimator is refit the GSTCV instance itself becomes the best
+        estimator, exposing the predict_proba, predict, and score methods
+        (and possibly others.) When refit is not performed, the search
+        simply finds the best parameters and exposes them via the
+        best_params_ attribute (unless there are multiple scorers and
+        refit is False, in which case information about the grid search
+        is only available via the cv_results_ attribute.)
 
         The values accepted by refit depend on the scoring scheme, that
         is, whether a single or multiple scorers are used. In all cases,
@@ -212,8 +217,8 @@ class GSTCV(_GSTCVMixin):
         evaluation.
 
     cv:
-        int, iterable, or None, default=None - Sets the cross-validation
-        splitting strategy.
+        Optional[Union[int, Iterable, None]], default=None - Sets the
+        cross-validation splitting strategy.
 
         Possible inputs for cv are:
         1) None, to use the default 5-fold cross validation,
@@ -230,26 +235,27 @@ class GSTCV(_GSTCVMixin):
         GSTCV.
 
     verbose:
-        bool, int, float, default=0 - The amount of verbosity to display
-        to screen during the grid search. Accepts integers from 0 to 10.
-        0 means no information displayed to the screen, 10 means full
-        verbosity. Non-numbers are rejected. Boolean False is set to 0,
-        boolean True is set to 10. Negative numbers are rejected. Numbers
-        greater than 10 are set to 10. Floats are rounded to integers.
+        Optional[numbers.Real], default=0 - The amount of verbosity to
+        display to screen during the grid search. Accepts integers from
+        0 to 10. 0 means no information displayed to the screen, 10 means
+        full verbosity. Non-numbers are rejected. Boolean False is set
+        to 0, boolean True is set to 10. Negative numbers are rejected.
+        Numbers greater than 10 are set to 10. Floats are rounded to
+        integers.
 
     error_score:
-        Union[int, float, Literal['raise']], default='raise' - Score to
-        assign if an error occurs in estimator fitting. If set to
-        ‘raise’, the error is raised. If a numeric value is given, a
+        Optional[Union[int, float, Literal['raise']]], default='raise' -
+        Score to assign if an error occurs in estimator fitting. If set
+        to ‘raise’, the error is raised. If a numeric value is given, a
         warning is raised and the error score value is inserted into the
         subsequent calculations in place of the missing value(s). This
         parameter does not affect the refit step, which will always raise
         the error.
 
     return_train_score:
-        bool - If False, the cv_results_ attribute will not include
-        training scores. Computing training scores is used to get
-        insights on how different parameter settings impact the
+        Optional[bool] - If False, the cv_results_ attribute will not
+        include training scores. Computing training scores is used to
+        get insights on how different parameter settings impact the
         overfitting/underfitting trade-off. However, computing the scores
         on the training set can be computationally expensive and is not
         strictly required to select the parameters that yield the best
@@ -470,7 +476,7 @@ class GSTCV(_GSTCVMixin):
     def __init__(
         self,
         estimator: any,
-        param_grid: Union[dict[str, Iterable[any]], list[dict[str, Iterable[any]]]],
+        param_grid: Union[dict[str, Sequence[any]], list[dict[str, Sequence[any]]]],
         *,
         thresholds: Optional[
             Union[Iterable[Union[int, float]], int, float, None]
@@ -509,10 +515,9 @@ class GSTCV(_GSTCVMixin):
     ####################################################################
     # SUPPORT METHODS ##################################################
 
-    def _handle_X_y(self, X, y=None):
+    def _handle_X_y(self, X, y: Optional[any] = None):
 
         """
-
         Implements GSTCV _handle_X_y_sklearn in methods in _GSTCVMixin.
         See the docs for GSTCV _handle_X_y_sklearn.
 
@@ -522,11 +527,11 @@ class GSTCV(_GSTCVMixin):
 
 
     def _core_fit(
-            self,
-            X: XInputType,
-            y: YInputType=None,
-            **params
-        ):
+        self,
+        X: XInputType,
+        y: YInputType=None,
+        **params
+    ):
 
         """
 
@@ -585,7 +590,6 @@ class GSTCV(_GSTCVMixin):
     def _validate_and_reset(self):
 
         """
-
         Perform initialization and validation for GSTCV-specific and
         shared parameters.
 
