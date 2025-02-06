@@ -7,8 +7,7 @@
 
 import numpy as np
 from typing import Literal
-from ....GSTCV._type_aliases import CVResultsType, ScorerWIPType
-from ....GSTCV._master_scorer_dict import master_scorer_dict
+from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import CVResultsType, ScorerWIPType
 
 
 def _cv_results_score_updater(

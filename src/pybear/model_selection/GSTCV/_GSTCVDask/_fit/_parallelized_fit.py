@@ -5,28 +5,30 @@
 #
 
 
-from typing_extensions import Union
-import time
-import warnings
-import dask
 
-from ....GSTCV._type_aliases import (
+from typing_extensions import Union
+from .._type_aliases import (
     XDaskWIPType,
     YDaskWIPType,
     ClassifierProtocol
 )
 
+import time
+import warnings
+
+import dask
+
 
 
 def _parallelized_fit(
-        f_idx: int,
-        _X_train: XDaskWIPType,
-        _y_train: YDaskWIPType,
-        _estimator_: ClassifierProtocol,
-        _grid: dict[str, Union[str, int, float, bool]],
-        _error_score,
-        **fit_params
-    ) -> tuple[ClassifierProtocol, float, bool]:
+    f_idx: int,
+    _X_train: XDaskWIPType,
+    _y_train: YDaskWIPType,
+    _estimator_: ClassifierProtocol,
+    _grid: dict[str, Union[str, int, float, bool]],
+    _error_score,
+    **fit_params
+) -> tuple[ClassifierProtocol, float, bool]:
 
     """
     Estimator fit method designed for dask parallelism. Special dask_ml

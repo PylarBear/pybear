@@ -5,20 +5,23 @@
 #
 
 
-import itertools
-import numpy as np
-import pandas as pd
-from dask import compute
-import dask.array as da
-import dask.dataframe as ddf
-import dask_expr._collection as ddf2
-from ....GSTCV._type_aliases import (
+
+from .._type_aliases import (
     XInputType,
     YInputType,
     XSKWIPType,
     YSKWIPType,
     FeatureNamesInType
 )
+
+import itertools
+
+import numpy as np
+import pandas as pd
+from dask import compute
+import dask.array as da
+import dask.dataframe as ddf
+import dask_expr._collection as ddf2
 
 
 

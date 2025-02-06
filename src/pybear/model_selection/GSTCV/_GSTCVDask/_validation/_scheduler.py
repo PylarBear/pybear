@@ -5,18 +5,23 @@
 #
 
 
-from distributed import Client, get_client
+
+from typing_extensions import Union
+from .._type_aliases import SchedulerType
 
 import contextlib
-from typing_extensions import Union
-from ....GSTCV._type_aliases import SchedulerType
+
+from distributed import (
+    Client,
+    get_client
+)
 
 
 
 def _validate_scheduler(
-        _scheduler: SchedulerType,
-        _n_jobs: Union[int, None]
-        ) -> SchedulerType:
+    _scheduler: SchedulerType,
+    _n_jobs: Union[int, None]
+) -> SchedulerType:
 
     """
 

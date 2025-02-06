@@ -5,11 +5,11 @@
 #
 
 
+
+from .._type_aliases import ClassifierProtocol
+
 import sys
 import inspect
-
-
-from ....GSTCV._type_aliases import ClassifierProtocol
 
 from sklearn.pipeline import Pipeline
 

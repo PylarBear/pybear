@@ -5,10 +5,11 @@
 #
 
 
+
 from typing import Iterable
 from typing_extensions import Union
 
-from ....GSTCV._type_aliases import GenericKFoldType
+from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import GenericKFoldType
 
 
 

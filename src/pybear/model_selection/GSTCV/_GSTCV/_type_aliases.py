@@ -11,12 +11,7 @@ from typing_extensions import TypeAlias, Union, NotRequired
 
 import numpy as np
 import numpy.typing as npt
-
-import dask
 import distributed
-
-
-
 
 
 
@@ -25,11 +20,9 @@ DataType: TypeAlias = Union[int, float, np.float64]
 
 XInputType: TypeAlias = Iterable[Iterable[DataType]]
 XSKWIPType: TypeAlias = npt.NDArray[DataType]
-XDaskWIPType: TypeAlias = dask.array.core.Array
 
 YInputType: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType], None]
 YSKWIPType: TypeAlias = Union[npt.NDArray[DataType], None]
-YDaskWIPType: TypeAlias = Union[dask.array.core.Array, None]
 
 CVResultsType: TypeAlias = \
     dict[str, np.ma.masked_array[Union[float, dict[str, any]]]]
@@ -44,11 +37,9 @@ ParamGridType: TypeAlias = Union[
     list[dict[str, Union[list[any], npt.NDArray[any]]]]
 ]
 SKSlicerType: TypeAlias = npt.NDArray[int]
-DaskSlicerType: TypeAlias = dask.array.core.Array
 GenericSlicerType: TypeAlias = Iterable[int]
 
 SKKFoldType: TypeAlias = tuple[SKSlicerType, SKSlicerType]
-DaskKFoldType: TypeAlias = tuple[DaskSlicerType, DaskSlicerType]
 GenericKFoldType: TypeAlias = tuple[GenericSlicerType, GenericSlicerType]
 
 FeatureNamesInType: TypeAlias = Union[npt.NDArray[str], None]

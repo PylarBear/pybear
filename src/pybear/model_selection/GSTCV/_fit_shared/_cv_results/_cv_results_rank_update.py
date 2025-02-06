@@ -7,7 +7,7 @@
 
 import numpy as np
 
-from ..._type_aliases import (
+from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
     CVResultsType,
     ScorerWIPType
 )

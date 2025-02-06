@@ -5,13 +5,13 @@
 #
 
 
+
 import warnings
 
-from ....GSTCV._type_aliases import (
+from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
     RefitType,
     ScorerWIPType
 )
-
 
 
 

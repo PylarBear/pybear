@@ -5,16 +5,20 @@
 #
 
 
+
 from typing_extensions import Union
-import time
-import warnings
-import joblib
-import numpy as np
-from ....GSTCV._type_aliases import (
+from .._type_aliases import (
     XSKWIPType,
     YSKWIPType,
     ClassifierProtocol
 )
+
+import time
+import warnings
+
+import joblib
+import numpy as np
+
 
 
 @joblib.wrap_non_picklable_objects

@@ -5,16 +5,11 @@
 #
 
 
+
 from typing import Literal, Iterable
 from typing_extensions import Union
-import time
-from copy import deepcopy
-
-from dask import compute
-import numpy as np
 import numpy.typing as npt
-
-from ..._type_aliases import (
+from .._type_aliases import (
     CVResultsType,
     ClassifierProtocol,
     ScorerWIPType,
@@ -22,6 +17,12 @@ from ..._type_aliases import (
     YDaskWIPType,
     GenericKFoldType
 )
+
+import time
+from copy import deepcopy
+
+import numpy as np
+from dask import compute
 
 from ._get_kfold import _get_kfold
 from ._fold_splitter import _fold_splitter
@@ -41,7 +42,6 @@ from ....GSTCV._fit_shared._cv_results. \
 
 
 
-
 def _core_fit(
     _X: XDaskWIPType,
     _y: YDaskWIPType,
@@ -57,7 +57,7 @@ def _core_fit(
     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
     **fit_params
-    ) -> CVResultsType:
+) -> CVResultsType:
 
 
     """

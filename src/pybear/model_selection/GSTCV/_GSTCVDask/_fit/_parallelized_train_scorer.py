@@ -5,20 +5,22 @@
 #
 
 
-import time
 
 from typing_extensions import Union
-
-import numpy as np
 import numpy.typing as npt
-import dask
-
-from ....GSTCV._type_aliases import (
+from .._type_aliases import (
     ScorerWIPType,
     ClassifierProtocol,
     XDaskWIPType,
     YDaskWIPType
 )
+
+import time
+
+import numpy as np
+import dask
+
+
 
 
 def _parallelized_train_scorer(

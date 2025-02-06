@@ -5,20 +5,22 @@
 #
 
 
-import time
 
 from typing_extensions import Union
+
+import time
 
 import numpy as np
 import numpy.typing as npt
 import dask
 
-from ....GSTCV._type_aliases import (
+from .._type_aliases import (
     ScorerWIPType,
     ClassifierProtocol,
     XDaskWIPType,
     YDaskWIPType
 )
+
 
 
 def _parallelized_scorer(
@@ -31,7 +33,7 @@ def _parallelized_scorer(
     _error_score: Union[int, float, None],
     _verbose: int,
     **scorer_params
-    ) -> tuple[np.ma.masked_array, np.ma.masked_array]:
+) -> tuple[np.ma.masked_array, np.ma.masked_array]:
 
     # dont adjust the spacing, is congruent with train scorer
 

@@ -5,18 +5,17 @@
 #
 
 
+
 from typing import Callable
 
 import numpy as np
 
 from ....GSTCV._master_scorer_dict import master_scorer_dict
 
-from ....GSTCV._type_aliases import (
+from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
     ScorerInputType,
     ScorerWIPType,
 )
-
-
 
 
 
