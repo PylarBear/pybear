@@ -16,6 +16,8 @@ from sklearn.utils.estimator_checks import (
     check_transformer_get_feature_names_out_pandas
 )
 
+import re
+
 import pytest
 
 
@@ -51,6 +53,10 @@ class TestSKLearnCheckTransformer:
         # looks for certain verbiage in error if len(input_features) does not
         # match n_features_in_, and if output dtype is object
 
+        # err_msg = (f"'ColumnDeduplicateTransformer' object has no "
+        #            f"attribute '_get_tags'")
+        #
+        # with pytest.raises(AttributeError, match=re.escape(err_msg)):
         check_transformer_get_feature_names_out(
             'ColumnDeduplicateTransformer',
             CDT()
@@ -61,6 +67,10 @@ class TestSKLearnCheckTransformer:
         # looks for certain verbiage in error if 'input_features' does not
         # match feature_names_in_ if CDT was fit on a dataframe
 
+        # err_msg = (f"'ColumnDeduplicateTransformer' object has no "
+        #            f"attribute '_get_tags'")
+        #
+        # with pytest.raises(AttributeError, match=re.escape(err_msg)):
         check_transformer_get_feature_names_out_pandas(
             'ColumnDeduplicateTransformer',
             CDT()
