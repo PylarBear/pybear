@@ -8,7 +8,7 @@
 
 import warnings
 
-from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
+from ..._type_aliases import (
     RefitType,
     ScorerWIPType
 )

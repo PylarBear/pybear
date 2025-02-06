@@ -208,8 +208,8 @@ class TestSKGetParams:
 
         assert len(gstcv_deep) == len(skgscv_deep)
 
-        assert len(skgscv_deep) == 33
-        assert len(gstcv_deep) == 33
+        assert len(skgscv_deep) == 34
+        assert len(gstcv_deep) == 34
 
         gstcv_deep.remove('thresholds')
         skgscv_deep.remove('pre_dispatch')

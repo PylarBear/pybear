@@ -9,7 +9,7 @@
 from typing import Iterable
 from typing_extensions import Union
 
-from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import GenericKFoldType
+from ..._type_aliases import GenericKFoldType
 
 
 

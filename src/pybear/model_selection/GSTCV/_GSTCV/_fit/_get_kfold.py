@@ -7,7 +7,7 @@
 
 
 from typing import Generator
-from .._type_aliases import (
+from ..._type_aliases import (
     XSKWIPType,
     YSKWIPType,
     SKKFoldType

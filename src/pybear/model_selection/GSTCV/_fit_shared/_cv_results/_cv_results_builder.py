@@ -5,6 +5,7 @@
 #
 
 
+
 from typing import Type
 from typing_extensions import Union
 
@@ -13,12 +14,11 @@ from numpy.typing import NDArray
 
 from .....utilities._permuter import permuter
 
-from pybear.model_selection.GSTCV._GSTCVDask._type_aliases import (
+from ..._type_aliases import (
     ParamGridType,
     ScorerWIPType,
     CVResultsType
 )
-
 
 
 

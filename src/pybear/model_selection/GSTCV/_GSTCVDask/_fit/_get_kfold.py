@@ -7,7 +7,7 @@
 
 
 from typing import Generator, Optional
-from .._type_aliases import (
+from ..._type_aliases import (
     XDaskWIPType,
     YDaskWIPType,
     DaskKFoldType

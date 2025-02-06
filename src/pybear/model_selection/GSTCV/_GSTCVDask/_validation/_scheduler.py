@@ -7,7 +7,7 @@
 
 
 from typing_extensions import Union
-from .._type_aliases import SchedulerType
+from ..._type_aliases import SchedulerType
 
 import contextlib
 

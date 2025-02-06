@@ -34,11 +34,12 @@ distributed = "*"
 joblib = "*"
 numpy = ">=1.26.0"
 pandas = "*"
+polars-lts-cpu = "*"
 scipy = [
     { version = "<1.14.0", markers = "python_version < '3.10'" },
     { version = "*", markers = "python_version >= '3.10'" }
 ]
-scikit-learn = "<1.6.0"
+scikit-learn = "*"
 typing_extensions = "*"
 
 
@@ -52,14 +53,12 @@ docutils = ">=0.20"
 sphinx = "*"
 sphinx-autobuild = "*"
 sphinx-rtd-theme = "*"
-polars-lts-cpu = "*"
 
 
 [tool.poetry.group.test.dependencies]
 pytest = "*"
 lightgbm = "*"
 xgboost = "*"
-polars-lts-cpu = "*"
 
 
 [tool.poetry.extras]

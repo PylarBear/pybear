@@ -10,7 +10,7 @@
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-
+import polars as pl
 
 
 
@@ -122,8 +122,8 @@ def cast_to_ndarray(
 
 
     # # IF polars CONVERT TO np
-    # if isinstance(_X, (pl.DataFrame)):
-    #     _X = _X.to_numpy()
+    if isinstance(_X, (pl.DataFrame)):
+        _X = _X.to_numpy()
 
 
     _X = np.array(_X)

@@ -16,8 +16,6 @@ from sklearn.utils.estimator_checks import (
     check_transformer_get_feature_names_out_pandas
 )
 
-import re
-
 import pytest
 
 
@@ -52,26 +50,20 @@ class TestSKLearnCheckTransformer:
         # looks for certain verbiage in error if len(input_features) does not
         # match n_features_in_, and checks if output dtype is object
 
-        err_msg = f"'SlimPolyFeatures' object has no attribute '_get_tags'"
-
-        with pytest.raises(AttributeError, match=re.escape(err_msg)):
-            check_transformer_get_feature_names_out(
-                'SlimPoly',
-                SlimPoly()
-            )
+        check_transformer_get_feature_names_out(
+            'SlimPoly',
+            SlimPoly()
+        )
 
 
     def test_check_transformer_get_feature_names_out_pandas(self):
         # looks for certain verbiage in error if 'input_features' does not
         # match feature_names_in_ if was fit on a dataframe
 
-        err_msg = f"'SlimPolyFeatures' object has no attribute '_get_tags'"
-
-        with pytest.raises(AttributeError, match=re.escape(err_msg)):
-            check_transformer_get_feature_names_out_pandas(
-                'SlimPoly',
-                SlimPoly()
-            )
+        check_transformer_get_feature_names_out_pandas(
+            'SlimPoly',
+            SlimPoly()
+        )
 
 
 
