@@ -5,12 +5,13 @@
 #
 
 
+
 import pytest
+
 from copy import deepcopy
+
 from pybear.feature_extraction.text._TextCleaner._lex_lookup. \
     _lex_lookup_add import _lex_lookup_add
-
-
 
 
 

@@ -1,8 +1,17 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
 import numpy as np
-from data_validation import validate_user_input as vui
-from feature_extraction.text import alphanumeric_str as ans
-from feature_extraction.text._Lexicon import Lexicon as lex
-from feature_extraction.text._Lexicon._old_py_lexicon import (
+
+from .....data_validation import validate_user_input as vui
+from ... import alphanumeric_str as ans
+from .. import Lexicon as lex
+from . import (
     lexicon_a as la,
     lexicon_b as lb,
     lexicon_c as lc,

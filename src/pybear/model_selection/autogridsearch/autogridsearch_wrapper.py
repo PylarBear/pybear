@@ -159,7 +159,7 @@ def autogridsearch_wrapper(
 
             parent_gscv_kwargs = _val_parent_gscv_kwargs(
                 GridSearchParent, parent_gscv_kwargs
-            )
+        )
 
             # super() instantiated in init() for access to GridSearchCV's
             # pre-run attrs and methods
@@ -248,7 +248,7 @@ def autogridsearch_wrapper(
             self,
             _pass: int,
             _best_params_from_previous_pass: BestParamsType
-            ) -> None:
+        ) -> None:
 
             """
             Core functional method. Bypassed on first pass (pass zero
@@ -288,11 +288,11 @@ def autogridsearch_wrapper(
 
 
         def demo(
-                self,
-                *,
-                true_best_params: dict[str, any]=None,
-                mock_gscv_pause_time: numbers.Real=5
-            ):
+            self,
+            *,
+            true_best_params: dict[str, any]=None,
+            mock_gscv_pause_time: numbers.Real=5
+        ):
 
             """
             Simulated trials of this AutoGridSearch instance.
@@ -318,8 +318,8 @@ def autogridsearch_wrapper(
                 round grids made from the instructions in params.
 
             mock_gscv_pause_time:
-                int, float - time in seconds to pause, simulating a trial
-                of GridSearch
+                numbers.Real - time in seconds to pause, simulating a
+                trial of GridSearch
 
             Return
             ------
@@ -376,7 +376,7 @@ def autogridsearch_wrapper(
             y: Iterable[Union[int, float]]=None,
             groups=None,
             **fit_params
-            ):
+        ):
 
             """
             Supersedes sklearn / dask GridSearchCV fit() method. Run

@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 from unittest.mock import patch
 
@@ -12,7 +13,6 @@ import io
 
 from pybear.feature_extraction.text._TextCleaner._lex_lookup. \
     _display_lexicon_update import _display_lexicon_update
-
 
 
 

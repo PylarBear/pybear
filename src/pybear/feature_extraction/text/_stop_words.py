@@ -15,15 +15,18 @@ def _stop_words() -> np.ndarray:
      """
      Return a numpy vector of subjectively determined stop words.
 
+
      Parameters
      ----------
      None
 
+
      Return
      ------
      -
-          STOP_WORDS: np.ndarray[str] - numpy array of subjectively
+          STOP_WORDS: NDArray[str] - numpy array of subjectively
           determined stop words.
+
 
      """
 

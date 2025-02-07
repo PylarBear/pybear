@@ -10,13 +10,13 @@ import sys, inspect, math, warnings
 from typing import Iterable
 import numpy as np, pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
-from utilities._get_module_name import get_module_name
-from feature_extraction.text._Lexicon.Lexicon import Lexicon as lx
-from data_validation import (
+from ....utilities._get_module_name import get_module_name
+from .._Lexicon.Lexicon import Lexicon as lex
+from ....data_validation import (
     validate_user_input as vui,
     arg_kwarg_validater
 )
-from feature_extraction.text import (
+from .. import (
     alphanumeric_str as ans,
     _stop_words as sw,
     _statistics as stats
@@ -55,14 +55,16 @@ from feature_extraction.text import (
 
 class TextCleaner:
 
-    def __init__(self,
-                 LIST_OF_STRINGS: Iterable[str],
-                 update_lexicon: bool=False,
-                 auto_add: bool=False,
-                 auto_delete: bool=False
-        ) -> None:  # return_as_list_of_lists=False,  # pizza what this mean?
+    def __init__(
+        self,
+        LIST_OF_STRINGS: Iterable[str],
+        update_lexicon: bool = False,
+        auto_add: bool = False,
+        auto_delete: bool = False
+    ) -> None:  # return_as_list_of_lists=False,  # pizza what this mean?
 
         """
+        pizza say something
 
         Parameters
         ----------
@@ -344,7 +346,7 @@ class TextCleaner:
         # 24_06_22 see the benchmark module for this.
         # winner was map_set
 
-        '''Keep only allowed or removed disallowed characters from entire CLEANED_TEXT object.'''
+        """Keep only allowed or removed disallowed characters from entire CLEANED_TEXT object."""
         fxn = inspect.stack()[0][3]
 
         # VALIDATION ###################################################
@@ -389,7 +391,7 @@ class TextCleaner:
 
 
     def _strip(self):
-        '''Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object.'''
+        """Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object."""
 
 
 
@@ -410,7 +412,7 @@ class TextCleaner:
 
 
     def normalize(self, upper=True):    # IF NOT upper THEN lower
-        '''Set all text in CLEANED_TEXT object to upper case (default) or lower case.'''
+        """Set all text in CLEANED_TEXT object to upper case (default) or lower case."""
 
 
 
@@ -430,7 +432,7 @@ class TextCleaner:
 
 
     def view_cleaned_text(self):
-        '''Print cleaned text to screen.'''
+        """Print cleaned text to screen."""
 
         _type = "LISTS" if self.is_list_of_lists else "STRINGS"
 
@@ -442,13 +444,13 @@ class TextCleaner:
 
 
     def return_row_uniques(self, return_counts=False):
-        '''
+        """
         Return a potentially ragged vector containing the unique words
         for each row in CLEANED_TEXT object.
 
 
 
-        '''
+        """
 
         # MAKE BE LIST OF LISTS, THEN USE np.unique() ON EACH ROW TO FILL UNIQUES_HOLDER
 
@@ -488,7 +490,7 @@ class TextCleaner:
 
 
     def view_row_uniques(self, return_counts=None):
-        '''Print row uniques and optionally counts to screen.'''
+        """Print row uniques and optionally counts to screen."""
 
         fxn = inspect.stack()[0][3]
 
@@ -523,7 +525,7 @@ class TextCleaner:
 
 
     def return_overall_uniques(self, return_counts=False):
-        '''Return unique words in the entire CLEANED_TEXT object.'''
+        """Return unique words in the entire CLEANED_TEXT object."""
 
 
         if not return_counts:
@@ -547,11 +549,11 @@ class TextCleaner:
 
 
     def view_overall_uniques(self, return_counts:bool=None):
-        '''
+        """
         Print overall uniques and optionally counts to screen.
 
 
-        '''
+        """
 
         fxn = inspect.stack()[0][3]
 
@@ -587,7 +589,7 @@ class TextCleaner:
 
 
     def remove_stops(self):
-        '''Remove stop words from the entire CLEANED_TEXT object.'''
+        """Remove stop words from the entire CLEANED_TEXT object."""
         converted = False
         if not self.is_list_of_lists:
             self.as_list_of_lists()
@@ -606,7 +608,7 @@ class TextCleaner:
 
 
     def justify(self, chars:int=None):
-        '''Fit text as strings or as lists to user-specified number of characters per row.'''
+        """Fit text as strings or as lists to user-specified number of characters per row."""
 
         # ALSO SEE text.notepad_justifier FOR SIMILAR CODE, IF EVER CONSOLIDATING
 
@@ -663,7 +665,7 @@ class TextCleaner:
 
 
     def delete_words(self):
-        '''Delete one or more words from the entire CLEANED_TEXT object.'''
+        """Delete one or more words from the entire CLEANED_TEXT object."""
 
         converted = False
         if not self.is_list_of_lists:
@@ -714,7 +716,7 @@ class TextCleaner:
 
 
     def substitute_words(self):
-        '''Substitute all occurrences of one or more words throughout CLEANED_TEXT.'''
+        """Substitute all occurrences of one or more words throughout CLEANED_TEXT."""
 
         converted = False
         if not self.is_list_of_lists:
@@ -779,7 +781,7 @@ class TextCleaner:
 
 
     def statistics(self):
-        '''Print statistics for CLEANED_TEXT to screen.'''
+        """Print statistics for CLEANED_TEXT to screen."""
 
         converted = False
         if not self.is_list_of_lists:
@@ -923,7 +925,7 @@ class TextCleaner:
 
 
     def dump_to_csv(self):
-        '''Dump CLEANED_TEXT object to csv.'''
+        """Dump CLEANED_TEXT object to csv."""
 
         print(f'\nSaving CLEANED TEXT to csv...')
 
@@ -941,7 +943,7 @@ class TextCleaner:
 
 
     def dump_to_txt(self):
-        '''Dump CLEANED_TEXT object to txt.'''
+        """Dump CLEANED_TEXT object to txt."""
 
         print(f'\nSaving CLEANED TEXT to txt file...')
 
@@ -955,7 +957,7 @@ class TextCleaner:
 
 
     def toggle_undo(self):
-        '''Turn undo capability ON or OFF to save memory (only used in menu()).'''
+        """Turn undo capability ON or OFF to save memory (only used in menu())."""
         if self.undo_status is False:   # CONVERTING OVER TO True
             self.undo_status = True
         elif self.undo_status is True:   # CONVERTING OVER TO False

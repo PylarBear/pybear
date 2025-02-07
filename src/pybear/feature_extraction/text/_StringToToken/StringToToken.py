@@ -20,16 +20,15 @@ ListOfStringsType: TypeAlias = Iterable[str]
 class StringToToken:
 
     def __init__(
-            self,
-            *,
-            sep: Union[None, str]=None,
-            maxsplit: int=-1,
-            pad: Union[None, str]=None,
-            # return_as: Union[None, str]=None # pizza think on this
-        ) -> None:
+        self,
+        *,
+        sep: Union[None, str]=None,
+        maxsplit: int=-1,
+        pad: Union[None, str]=None,
+        # return_as: Union[None, str]=None # pizza think on this
+    ) -> None:
 
         """
-
         Transform strings containing a sequence of words into a list of
         lists containing full-word tokens.
         When passed a list-like of strings,
@@ -38,7 +37,8 @@ class StringToToken:
         string.
         When passed a list-like of lists of strings, StringToToken assumes
         this data is already converted to tokens and simply returns the
-        passes object.
+        passed object.
+
 
         Parameters
         ----------

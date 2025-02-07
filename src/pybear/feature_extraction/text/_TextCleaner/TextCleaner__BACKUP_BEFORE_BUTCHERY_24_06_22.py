@@ -7,7 +7,7 @@
 
 
 import sys, inspect, math, warnings
-from typing import Iterable
+from typing import Sequence
 import numpy as np, pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
 from utilities._get_module_name import get_module_name
@@ -61,19 +61,20 @@ from feature_extraction.text import (
 
 class TextCleaner:
 
-    def __init__(self,
-                 LIST_OF_STRINGS: Iterable[str],
-                 update_lexicon: bool=False,
-                 auto_add: bool=False,
-                 auto_delete: bool=False
-        ) -> None:  # return_as_list_of_lists=False,  # pizza what this mean?
+    def __init__(
+        self,
+        LIST_OF_STRINGS: Sequence[str],
+        update_lexicon: bool=False,
+        auto_add: bool=False,
+        auto_delete: bool=False
+    ) -> None:  # return_as_list_of_lists=False,  # pizza what this mean?
 
         """
 
         Parameters
         ----------
         LIST_OF_STRINGS:
-            Iterable[str] -
+            Sequence[str] -
         update_lexicon:
             bool=False -
         auto_add:
@@ -95,7 +96,7 @@ class TextCleaner:
         Return
         ------
         -
-            None.
+            None
 
         """
 
@@ -337,7 +338,7 @@ class TextCleaner:
         # 24_06_22 see the benchmark module for this.
         # winner was map_set
 
-        '''Keep only allowed or removed disallowed characters from entire CLEANED_TEXT object.'''
+        """Keep only allowed or removed disallowed characters from entire CLEANED_TEXT object."""
         fxn = inspect.stack()[0][3]
 
         # VALIDATION ###################################################
@@ -382,7 +383,7 @@ class TextCleaner:
 
 
     def _strip(self):
-        '''Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object.'''
+        """Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object."""
         # DO THIS ROW-WISE (SINGLE ARRAY AT A TIME), BECAUSE np.char WILL THROW A FIT IF GIVEN A RAGGED ARRAY
         for row_idx in range(len(self.CLEANED_TEXT)):
             if self.is_list_of_lists:
@@ -402,7 +403,7 @@ class TextCleaner:
 
 
     def normalize(self, upper:bool=True):    # IF NOT upper THEN lower
-        '''Set all text in CLEANED_TEXT object to upper case (default) or lower case.'''
+        """Set all text in CLEANED_TEXT object to upper case (default) or lower case."""
         # WILL PROBABLY BE A RAGGED ARRAY AND np.char WILL THROW A FIT, SO GO ROW BY ROW
         if self.is_list_of_lists:
             for row_idx in range(len(self.CLEANED_TEXT)):
@@ -458,14 +459,14 @@ class TextCleaner:
 
 
     def view_cleaned_text(self):
-        '''Print cleaned text to screen.'''
+        """Print cleaned text to screen."""
         print(f'\nCLEANED TEXT (currently in memory as {"LISTS" if self.is_list_of_lists else "STRINGS"}):')
         [print(_) for _ in self.CLEANED_TEXT]
 
 
 
     def view_row_uniques(self, return_counts=None):
-        '''Print row uniques and optionally counts to screen.'''
+        """Print row uniques and optionally counts to screen."""
 
         fxn = inspect.stack()[0][3]
 
@@ -502,7 +503,7 @@ class TextCleaner:
 
 
     def return_overall_uniques(self, return_counts:bool=False):
-        '''Return unique words in the entire CLEANED_TEXT object.'''
+        """Return unique words in the entire CLEANED_TEXT object."""
         if not return_counts:
             # CANT DO unique IN ONE SHOT ON self.CLEANED_TEXT BECAUSE IS LIKELY RAGGED
             return np.unique(np.hstack(self.return_row_uniques(return_counts=False)))
@@ -523,7 +524,7 @@ class TextCleaner:
 
 
     def view_overall_uniques(self, return_counts:bool=None):
-        '''Print overall uniques and optionally counts to screen.'''
+        """Print overall uniques and optionally counts to screen."""
         fxn = inspect.stack()[0][3]
 
         return_counts = arg_kwarg_validater(
@@ -557,7 +558,7 @@ class TextCleaner:
 
 
     def remove_stops(self):
-        '''Remove stop words from the entire CLEANED_TEXT object.'''
+        """Remove stop words from the entire CLEANED_TEXT object."""
         converted = False
         if not self.is_list_of_lists:
             self.as_list_of_lists()
@@ -641,7 +642,7 @@ class TextCleaner:
 
 
     def delete_words(self):
-        '''Delete one or more words from the entire CLEANED_TEXT object.'''
+        """Delete one or more words from the entire CLEANED_TEXT object."""
 
         converted = False
         if not self.is_list_of_lists:
@@ -687,7 +688,7 @@ class TextCleaner:
 
 
     def substitute_words(self):
-        '''Substitute all occurrences of one or more words throughout CLEANED_TEXT.'''
+        """Substitute all occurrences of one or more words throughout CLEANED_TEXT."""
 
         converted = False
         if not self.is_list_of_lists:
@@ -735,7 +736,7 @@ class TextCleaner:
 
 
     def as_list_of_lists(self):
-        '''Convert CLEANED_TEXT object to a possibly ragged vector of vectors, each vector containing split text.'''
+        """Convert CLEANED_TEXT object to a possibly ragged vector of vectors, each vector containing split text."""
         if self.is_list_of_lists:
             pass
         elif not self.is_list_of_lists:  # MUST BE LIST OF strs
@@ -749,7 +750,7 @@ class TextCleaner:
 
 
     def as_list_of_strs(self):
-        '''Convert CLEANED_TEXT object to a single vector of strings.'''
+        """Convert CLEANED_TEXT object to a single vector of strings."""
         if not self.is_list_of_lists:
             pass
         elif self.is_list_of_lists:
@@ -758,7 +759,7 @@ class TextCleaner:
 
 
     def statistics(self):
-        '''Print statistics for CLEANED_TEXT to screen.'''
+        """Print statistics for CLEANED_TEXT to screen."""
 
         converted = False
         if not self.is_list_of_lists:
@@ -887,7 +888,7 @@ class TextCleaner:
 
 
     def dump_to_csv(self):
-        '''Dump CLEANED_TEXT object to csv.'''
+        """Dump CLEANED_TEXT object to csv."""
 
         print(f'\nSaving CLEANED TEXT to csv...')
 
@@ -905,7 +906,7 @@ class TextCleaner:
 
 
     def dump_to_txt(self):
-        '''Dump CLEANED_TEXT object to txt.'''
+        """Dump CLEANED_TEXT object to txt."""
 
         print(f'\nSaving CLEANED TEXT to txt file...')
 
@@ -919,7 +920,7 @@ class TextCleaner:
 
 
     def toggle_undo(self):
-        '''Turn undo capability ON or OFF to save memory (only used in menu()).'''
+        """Turn undo capability ON or OFF to save memory (only used in menu())."""
         if self.undo_status is False:   # CONVERTING OVER TO True
             self.undo_status = True
         elif self.undo_status is True:   # CONVERTING OVER TO False
@@ -939,7 +940,7 @@ class TextCleaner:
             fxn:Union[str,None]=None
         ):    # ALLOWED ARE 'adelks'
 
-        '''Dynamic function for returning variable menu prompts and allowed commands.'''
+        """Dynamic function for returning variable menu prompts and allowed commands."""
         fxn = fxn or inspect.stack()[0][3]
 
         if not allowed is None and not disallowed is None:
@@ -978,7 +979,7 @@ class TextCleaner:
 
 
     def word_editor(self, word, prompt=None):
-        '''Validation function for single words entered by user.'''
+        """Validation function for single words entered by user."""
 
         while True:
             word = input(f'{prompt} > ').upper()
@@ -989,7 +990,7 @@ class TextCleaner:
 
 
     def lex_lookup_add(self, word):
-        '''Append a word to the LEXICON_ADDENDUM object.'''
+        """Append a word to the LEXICON_ADDENDUM object."""
         self.LEXICON_ADDENDUM = \
             np.insert(self.LEXICON_ADDENDUM, len(self.LEXICON_ADDENDUM), word, axis=0)
         self.KNOWN_WORDS = \
@@ -997,7 +998,7 @@ class TextCleaner:
 
 
     def view_snippet(self, VECTOR, idx, span=9):
-        '''Highlights the word of interest in a series of words.'''
+        """Highlights the word of interest in a series of words."""
 
         fxn = inspect.stack()[0][3]
 
@@ -1282,7 +1283,7 @@ class TextCleaner:
 
 
     def display_lexicon_update(self):
-        '''Prints and returns LEXICON_ADDENDUM object for copy and paste into LEXICON.'''
+        """Prints and returns LEXICON_ADDENDUM object for copy and paste into LEXICON."""
         if len(self.LEXICON_ADDENDUM) != 0:
             self.LEXICON_ADDENDUM.sort()
             print(f'\n *** COPY AND PASTE THESE WORDS INTO LEXICON:\n')

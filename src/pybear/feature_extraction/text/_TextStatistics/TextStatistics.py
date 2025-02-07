@@ -6,33 +6,39 @@
 
 
 
-import numpy as np
+from typing import Sequence, Self
+
 from copy import deepcopy
-from typing import Sequence
 
-#  pizza this will be replaced by class TextStatistics
-
-def _statistics(WORDS: Sequence[str]) -> None:
-
-    """
-    Print statistics about a list of words to the screen. Returns nothing.
-    Statistics reported include
-    - size
-    - uniques count
-    - average length and standard deviation
-    - max word length
-    - min word length
-    - 'starts with' frequency
-    - letter frequency
-    - top word frequencies
-    - top longest words
+import numpy as np
 
 
-    Parameters
-    ----------
-    WORDS:
-        Sequence[str] - a single list-like vector of words to report
-        statistics for. Words do not need to be in the Lexicon.
+
+class TextStatistics:
+
+
+    def __init__(self) -> None:
+
+        """
+        pizza finalize this.
+        Print statistics about a list of words to the screen. Returns
+        nothing. Statistics reported include
+        - size
+        - uniques count
+        - average length and standard deviation
+        - max word length
+        - min word length
+        - 'starts with' frequency
+        - letter frequency
+        - top word frequencies
+        - top longest words
+
+
+        Parameters
+        ----------
+        WORDS:
+            Sequence[str] - a single list-like vector of words to report
+            statistics for. Words do not need to be in the Lexicon.
 
 
     Return
@@ -42,30 +48,10 @@ def _statistics(WORDS: Sequence[str]) -> None:
 
     """
 
-    # ** validate WORDS ** * ** * ** * ** *** * ** *** * ** *** * ** *
 
-    err_msg = (f"'WORDS' must be passed as a list-like vector of strings, "
-               f"cannot be empty")
-    try:
-        iter(WORDS)
-        if isinstance(WORDS, (dict, str)):
-            raise Exception
-    except:
-        raise TypeError(err_msg)
+    def partial_fit(self, WORDS: Sequence[str]) -> Self:
 
-    if len(WORDS) == 0:
-        raise ValueError(err_msg)
 
-    if not all(map(isinstance, WORDS, (str for _ in WORDS))):
-        raise TypeError(err_msg)
-
-    del err_msg
-
-    if max(map(len, WORDS)) > 30:
-        raise ValueError(f"'WORDS' is likely not a vector of individual words. "
-        f"pass 'WORDS' as a list-like of individual words only.")
-
-    # END validate words ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     _lp = 5  # left pad
     _rp = 15  # right pad

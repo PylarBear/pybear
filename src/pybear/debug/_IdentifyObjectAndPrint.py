@@ -5,10 +5,13 @@
 # License: BSD 3 clause
 
 
+
 import pandas as pd, numpy as np, inspect
 from copy import deepcopy
+
 from pybear.data_validation import validate_user_input as vui
 import pybear.sparse_dict as sd
+
 
 
 class IdentifyObjectAndPrint:
@@ -53,15 +56,14 @@ class IdentifyObjectAndPrint:
 
 
     def __init__(
-                    self,
-                    OBJECT: any,
-                    object_name: str,
-                    module: str,
-                    rows:int=1,
-                    columns:int=1,
-                    start_row:int=0,
-                    start_col:int=0
-
+        self,
+        OBJECT: any,
+        object_name: str,
+        module: str,
+        rows:int=1,
+        columns:int=1,
+        start_row:int=0,
+        start_col:int=0
     ):
 
 
