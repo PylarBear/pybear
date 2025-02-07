@@ -28,7 +28,7 @@ import dask_expr._collection as ddf2
 def _handle_X_y_dask(
     X: XInputType,
     y: YInputType = None,
-    ) -> tuple[XSKWIPType, YSKWIPType, FeatureNamesInType, int]:
+) -> tuple[XSKWIPType, YSKWIPType, FeatureNamesInType, int]:
 
     """
     Process given X and y into dask.array.core.Arrays. All GSTCVDask
@@ -105,7 +105,8 @@ def _handle_X_y_dask(
         _X = da.from_array(_X, chunks=_X.shape)
 
     elif isinstance(_X,
-        (ddf.core.Series, ddf.core.DataFrame, ddf2.Series, ddf2.DataFrame)):
+            (ddf.core.Series, ddf.core.DataFrame, ddf2.Series, ddf2.DataFrame)
+        ):
 
         try:
             _X = _X.to_frame()

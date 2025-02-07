@@ -4,11 +4,17 @@
 # License: BSD 3 clause
 #
 
+
+
 import os
+
 import numpy as np
-from data_validation import validate_user_input as vui
-from feature_extraction.text import alphanumeric_str as ans
-from feature_extraction.text._Lexicon import Lexicon as lex
+
+from .....data_validation import validate_user_input as vui
+from ... import alphanumeric_str as ans
+from .. import Lexicon as lex
+
+
 
 NEW_WORDS = [
     # ********PASTE NEW WORDS HERE ******

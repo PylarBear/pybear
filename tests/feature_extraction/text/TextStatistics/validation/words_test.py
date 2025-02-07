@@ -8,9 +8,10 @@
 
 import pytest
 
-from pybear.feature_extraction.text._statistics import _statistics
+from pybear.feature_extraction.text._TextStatistics._validation._words import \
+    _val_words
 
-#  pizza this will be replaced by class TextStatistics
+
 
 class TestStatistics:
 
@@ -20,7 +21,7 @@ class TestStatistics:
     )
     def test_rejects_non_list_like(self, non_iterable):
         with pytest.raises(TypeError):
-            _statistics(non_iterable)
+            _val_words(non_iterable)
 
 
     @pytest.mark.parametrize('junk_value',
@@ -28,7 +29,7 @@ class TestStatistics:
     )
     def test_rejects_vector_of_non_words(self, junk_value):
         with pytest.raises(TypeError):
-            _statistics(['good', 'bad', 'indifferent', junk_value])
+            _val_words(['good', 'bad', 'indifferent', junk_value])
 
 
     def test_rejects_strings_too_long(self):
@@ -40,29 +41,28 @@ class TestStatistics:
         ]
 
         with pytest.raises(ValueError):
-            _statistics(WORDS)
+            _val_words(WORDS)
 
 
     def test_accepts_good_list_of_strs(self):
-        _statistics(['good', 'bad', 'indifferent', 'garbage'])
+        _val_words(['good', 'bad', 'indifferent', 'garbage'])
 
 
     def test_rejects_empty(self):
 
         with pytest.raises(ValueError):
-            _statistics([])
+            _val_words([])
 
 
     def test_handles_small_lists(self):
-        _statistics(['short', 'list'])
+        _val_words(['short', 'list'])
 
-        _statistics(['alone'])
+        _val_words(['alone'])
 
 
     def test_catches_junk_characters_in_bucket_called_other(self):
 
-        _statistics(['@junk_characters.com', 'please ignore me!!!!'])
-
+        _val_words(['@junk_characters.com', 'please ignore me!!!!'])
 
 
 

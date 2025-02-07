@@ -5,24 +5,30 @@
 #
 
 
+
 import pytest
+
 import numpy as np
-from pybear.feature_extraction.text._Lexicon.Lexicon import Lexicon
+
+from pybear.feature_extraction.text import Lexicon
+
 
 
 class TestLexicon:
+
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture
     def Lexicon_instance():
         return Lexicon()
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
 
     def test_size_returns_int(self, Lexicon_instance):
 
-        out = Lexicon_instance.size()
-
-        assert isinstance(out, int)
+        assert isinstance(Lexicon_instance.size, int)
 
 
     def test_find_duplicates_returns_empty_ndarray(self, Lexicon_instance):
@@ -106,7 +112,7 @@ class TestLexicon:
 
         assert isinstance(out, np.ndarray)
 
-        assert len(out) == Lexicon_instance.size()
+        assert len(out) == Lexicon_instance.size
 
 
     def _old_py_lexicon(self, Lexicon_instance):

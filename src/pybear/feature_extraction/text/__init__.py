@@ -1,7 +1,14 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
 
-from feature_extraction.text._Lexicon.Lexicon import Lexicon
-from feature_extraction.text._StringToToken import StringToToken
-from feature_extraction.text._TextCleaner.TextCleaner import TextCleaner
+
+
+from ._Lexicon.Lexicon import Lexicon
+from ._StringToToken import StringToToken
+from ._TextCleaner.TextCleaner import TextCleaner
 
 
 

@@ -22,7 +22,7 @@ import pandas as pd
 def _handle_X_y_sklearn(
     X: XInputType,
     y: YInputType = None
-    ) -> tuple[XSKWIPType, YSKWIPType, FeatureNamesInType, int]:
+) -> tuple[XSKWIPType, YSKWIPType, FeatureNamesInType, int]:
 
     """
     Process given X and y into numpy ndarrays. All SK GSTCV internals

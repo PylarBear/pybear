@@ -5,14 +5,19 @@
 #
 
 
-import numpy as np
+
+import numpy.typing as npt
+
 import os, sys, inspect
+
+import numpy as np
+
+from ....utilities._get_module_name import get_module_name
+from ....data_validation import arg_kwarg_validater
 from ...text import (
     alphanumeric_str as ans,
     _statistics as _statistics
 )
-from ....utilities._get_module_name import get_module_name
-from ....data_validation import arg_kwarg_validater
 from ...text._Lexicon._old_py_lexicon import (
     lexicon_a as la,
     lexicon_b as lb,
@@ -58,8 +63,19 @@ from ...text._Lexicon._old_py_lexicon import (
 class Lexicon:
 
     """
-    The lexicon of words in the the English vocabulary. May not be
+    The lexicon of words in the English vocabulary. May not be
     exhaustive.
+
+
+    Parameters
+    ----------
+
+
+    Attributes
+    ----------
+    size:
+        int - the number of words in the Lexicon.
+
 
 
     """
@@ -70,14 +86,17 @@ class Lexicon:
         self.LEXICON = self.lexicon()
 
 
+    @property
     def size(self) -> int:
 
         """
-        The count of words in the Lexicon.
+        The number of words in the Lexicon.
+
 
         Parameters
         ----------
         None
+
 
         Return
         ------
@@ -95,14 +114,16 @@ class Lexicon:
         Find any duplicates in the Lexicon. If any, display to screen
         and return as numpy vector.
 
+
         Parameters
         ----------
         None
 
+
         Return
         ------
         -
-            Duplicates: np.ndarray - vector of any duplicates in the
+            Duplicates: NDArray[str] - vector of any duplicates in the
             Lexicon.
 
         """
@@ -112,7 +133,6 @@ class Lexicon:
             print(f'\n*** THERE ARE NO DUPLICATES IN THE LEXICON ***\n')
             del UNIQUES, COUNTS
             return np.empty(0, dtype='<U40')
-
         else:
             MASTER_SORT = np.flip(np.argsort(COUNTS))
             MASK = MASTER_SORT[..., COUNTS[..., MASTER_SORT] > 1]
@@ -141,7 +161,7 @@ class Lexicon:
             return DUPLICATES
 
 
-    def check_order(self) -> np.ndarray:
+    def check_order(self) -> npt.NDArray:
 
         """
         Determine if words stored in the Lexicon files are out of
@@ -149,15 +169,17 @@ class Lexicon:
         sorted vector of the words. Displays any out-of-order words to
         screen and returns a numpy vector of the words.
 
+
         Parameters
         ----------
         None
 
+
         Return
         ------
         -
-            OUT_OF_ORDER: np.ndarray - vector of any duplicates in the
-            Lexicon.
+            OUT_OF_ORDER: NDArray[str] - vector of any out of sequence
+            words in the Lexicon.
 
         """
 
@@ -181,12 +203,15 @@ class Lexicon:
 
     def _string_validation(self, char_seq:str) -> str:
 
-        """Validate alpha character string entry and return in all caps.
+        """
+        Validate alpha character string entry and return in all caps.
+
 
         Parameters
         ----------
         char_seq:
             str - alpha character string to be validated
+
 
         Return
         ------
@@ -331,14 +356,16 @@ class Lexicon:
         """
         Generate the Lexicon as a numpy vector from files.
 
+
         Parameters
         ----------
         None
 
+
         Return
         ------
         -
-            WORDS: np.ndarray - the full alphabetically sorted Lexicon
+            WORDS: NDArray[str] - the full alphabetically sorted Lexicon
 
 
         """
@@ -367,37 +394,37 @@ class Lexicon:
         """
 
         return np.hstack((
-                        la.lexicon_a(),
-                        lb.lexicon_b(),
-                        lc.lexicon_c(),
-                        ld.lexicon_d(),
-                        le.lexicon_e(),
-                        lf.lexicon_f(),
-                        lg.lexicon_g(),
-                        lh.lexicon_h(),
-                        li.lexicon_i(),
-                        lj.lexicon_j(),
-                        lk.lexicon_k(),
-                        ll.lexicon_l(),
-                        lm.lexicon_m(),
-                        ln.lexicon_n(),
-                        lo.lexicon_o(),
-                        lp.lexicon_p(),
-                        lq.lexicon_q(),
-                        lr.lexicon_r(),
-                        lsa.lexicon_sa_sm(),
-                        lsn.lexicon_sn_sz(),
-                        lt.lexicon_t(),
-                        lu.lexicon_u(),
-                        lv.lexicon_v(),
-                        lw.lexicon_w(),
-                        lx.lexicon_x(),
-                        ly.lexicon_y(),
-                        lz.lexicon_z()
-            ))
+            la.lexicon_a(),
+            lb.lexicon_b(),
+            lc.lexicon_c(),
+            ld.lexicon_d(),
+            le.lexicon_e(),
+            lf.lexicon_f(),
+            lg.lexicon_g(),
+            lh.lexicon_h(),
+            li.lexicon_i(),
+            lj.lexicon_j(),
+            lk.lexicon_k(),
+            ll.lexicon_l(),
+            lm.lexicon_m(),
+            ln.lexicon_n(),
+            lo.lexicon_o(),
+            lp.lexicon_p(),
+            lq.lexicon_q(),
+            lr.lexicon_r(),
+            lsa.lexicon_sa_sm(),
+            lsn.lexicon_sn_sz(),
+            lt.lexicon_t(),
+            lu.lexicon_u(),
+            lv.lexicon_v(),
+            lw.lexicon_w(),
+            lx.lexicon_x(),
+            ly.lexicon_y(),
+            lz.lexicon_z()
+        ))
 
 
-
+# PIZZA
 if __name__ == '__main__':
 
     Lexicon().check_order()
