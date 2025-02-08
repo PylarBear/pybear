@@ -50,7 +50,7 @@ class TextStatistics:
 
 
     def partial_fit(self, WORDS: Sequence[str]) -> Self:
-
+        pass
 
 
     _lp = 5  # left pad
