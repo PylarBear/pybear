@@ -8,6 +8,8 @@
 
 import pytest
 
+import numpy as np
+
 from pybear.feature_extraction.text._TextStatistics._validation._words import \
     _val_words
 
@@ -32,20 +34,28 @@ class TestStatistics:
             _val_words(['good', 'bad', 'indifferent', junk_value])
 
 
-    def test_rejects_strings_too_long(self):
+    def test_rejects_spaces(self):
 
         WORDS = [
-            'this is a string that is too long to be one word',
-            'this is another that is way too long',
-            'and yet another that could not be one word'
+            'this isnt too long',
+            'one space',
+            'sixty six'
         ]
 
         with pytest.raises(ValueError):
             _val_words(WORDS)
 
 
-    def test_accepts_good_list_of_strs(self):
-        _val_words(['good', 'bad', 'indifferent', 'garbage'])
+    def test_rejects_strings_too_long(self):
+
+        WORDS = [
+            'floccinaucinihilipilificationisacceptedasaword',
+            'reallyneedtosplitthisstringintoindividualwords',
+            'usepybearTextCleanertopreprocessesyourstrings'
+        ]
+
+        with pytest.raises(ValueError):
+            _val_words(WORDS)
 
 
     def test_rejects_empty(self):
@@ -54,15 +64,29 @@ class TestStatistics:
             _val_words([])
 
 
+    @pytest.mark.parametrize('container', (list, set, tuple, np.ndarray))
+    def test_accepts_good_sequence_of_strs(self, container):
+
+        LIST = ['good', 'bad', 'indifferent', 'garbage']
+
+        if container is np.ndarray:
+            WORDS = np.array(LIST)
+            assert isinstance(WORDS, np.ndarray)
+        else:
+            WORDS = container(LIST)
+            assert isinstance(WORDS, container)
+
+        _val_words(WORDS)
+
+
     def test_handles_small_lists(self):
         _val_words(['short', 'list'])
 
         _val_words(['alone'])
 
 
-    def test_catches_junk_characters_in_bucket_called_other(self):
 
-        _val_words(['@junk_characters.com', 'please ignore me!!!!'])
+
 
 
 
