@@ -18,6 +18,7 @@ def _val_words(words: Sequence[str]) -> None:
     - Must be 1D sequence of strings
     - cannot be empty
     - all strings must be under 30 characters
+    - individual strings cannot have spaces
 
 
     Parameters
@@ -38,7 +39,8 @@ def _val_words(words: Sequence[str]) -> None:
 
 
     err_msg = (f"'words' must be passed as a list-like vector of strings, "
-               f"cannot be empty")
+               f"cannot be empty. individual strings cannot have spaces, "
+               f"and cannot be more than 30 characters long.")
 
     try:
         iter(words)
@@ -60,6 +62,14 @@ def _val_words(words: Sequence[str]) -> None:
             f"'words' is likely not a vector of individual words. "
             f"\npass 'words' as a list-like of individual words only."
         )
+
+    if any(map(lambda x: ' ' in x, words)):
+        raise ValueError(
+            f"'words' is likely not a vector of individual words. "
+            f"\npass 'words' as a list-like of individual words only."
+        )
+
+
 
 
 
