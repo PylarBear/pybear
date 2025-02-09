@@ -6,11 +6,11 @@
 
 
 
-from typing import (
-    TypedDict,
-    TypeAlias
+from typing import TypedDict
+from typing_extensions import (
+    TypeAlias,
+    Required
 )
-from typing_extensions import Required
 
 import numbers
 
