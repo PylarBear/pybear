@@ -12,18 +12,18 @@ import numbers
 
 
 
-def _val_overall_statistics_dict(
-    _overall_statistics_dict: OverallStatisticsType
+def _val_overall_statistics(
+    _overall_statistics: OverallStatisticsType
 ) -> None:
 
     """
-    Validate overall_statistics_dict is a dictionary with the required
+    Validate overall_statistics is a dictionary with the required
     keys and valid values.
 
 
     Parameters
     ----------
-    _overall_statistics_dict:
+    _overall_statistics:
         dict[str, numbers.Real] - the dictionary containing summary
         statistics about the words fit on the TextStatistics instance,
         such as number of words, average length of words, etc.
@@ -37,8 +37,9 @@ def _val_overall_statistics_dict(
 
     """
 
-    assert isinstance(_overall_statistics_dict, dict)
-    assert len(_overall_statistics_dict) == 6
+
+    assert isinstance(_overall_statistics, dict)
+    assert len(_overall_statistics) == 6
 
     _allowed_keys = [
         'size',
@@ -49,18 +50,18 @@ def _val_overall_statistics_dict(
         'std_length'
     ]
 
-    for key in _overall_statistics_dict:
+    for key in _overall_statistics:
         if key not in _allowed_keys:
             raise AssertionError(
-                f"dict key '{key}' not an allowed key for overall_statistics_dict"
+                f"dict key '{key}' not an allowed key for overall_statistics"
             )
 
-    _size = _overall_statistics_dict['size']
-    _uniques_count =_overall_statistics_dict['uniques_count']
-    _max_len = _overall_statistics_dict['max_length']
-    _min_len = _overall_statistics_dict['min_length']
-    _average_length = _overall_statistics_dict['average_length']
-    _std_length = _overall_statistics_dict['std_length']
+    _size = _overall_statistics['size']
+    _uniques_count =_overall_statistics['uniques_count']
+    _max_len = _overall_statistics['max_length']
+    _min_len = _overall_statistics['min_length']
+    _average_length = _overall_statistics['average_length']
+    _std_length = _overall_statistics['std_length']
 
     assert isinstance(_size, int)
     assert not isinstance(_size, bool)

@@ -12,10 +12,10 @@ from pybear.feature_extraction.text._TextStatistics._partial_fit. \
     _merge_overall_statistics import _merge_overall_statistics
 
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
-    _build_current_overall_statistics import _build_current_overall_statistics
+    _build_overall_statistics import _build_overall_statistics
 
 from pybear.feature_extraction.text._TextStatistics._validation. \
-    _overall_statistics_dict import _val_overall_statistics_dict
+    _overall_statistics import _val_overall_statistics
 
 
 
@@ -44,7 +44,7 @@ class TestMergeOverallStatistics:
             'uniques_count': 10
         }
 
-        _val_overall_statistics_dict(__)
+        _val_overall_statistics(__)
 
         return __
 
@@ -126,7 +126,7 @@ class TestMergeOverallStatistics:
 
         word_list_1 = ['I', 'would', 'not', 'like', 'them', 'here', 'or', 'there']
 
-        _dict_1 = _build_current_overall_statistics(
+        _dict_1 = _build_overall_statistics(
             word_list_1,
             case_sensitive=case_sensitive
         )
@@ -142,7 +142,7 @@ class TestMergeOverallStatistics:
 
         word_list_2 = ['I', 'WOULD', 'NOT', 'LIKE', 'THEM', 'ANYWHERE']
 
-        _dict_2 = _build_current_overall_statistics(
+        _dict_2 = _build_overall_statistics(
             word_list_2,
             case_sensitive=case_sensitive
         )

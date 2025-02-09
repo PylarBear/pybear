@@ -15,7 +15,7 @@ from .._validation._words import _val_words
 
 
 
-def _build_current_word_frequency(
+def _build_word_frequency(
     WORDS: Sequence[str],
     case_sensitive: Optional[bool] = False
 ) -> WordFrequencyType:
@@ -46,7 +46,10 @@ def _build_current_word_frequency(
 
     _val_words(WORDS)
 
-    assert isinstance(case_sensitive, bool)
+    if not isinstance(case_sensitive, bool):
+        raise TypeError(f"'case_sensitive' must be boolean")
+
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if case_sensitive:
         _word_frequency = dict((zip(*np.unique(WORDS, return_counts=True))))

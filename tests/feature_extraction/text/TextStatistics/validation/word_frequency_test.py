@@ -26,7 +26,7 @@ class TestWordFrequency:
 
 
     @pytest.mark.parametrize('bad_key',
-        (-2.7, -1, 0, 1, 2.7, True, False, None, 'junk')
+        (-2.7, -1, 0, 1, 2.7, True, False, None)
     )
     def test_rejects_bad_key(self, bad_key):
 
@@ -38,7 +38,7 @@ class TestWordFrequency:
     @pytest.mark.parametrize('bad_value',
         (-2.7, -1, 0, 2.7, True, False, None, 'junk', [0, 1], (1,), lambda x: x)
     )
-    def test_rejects_bad_key(self, bad_value):
+    def test_rejects_bad_value(self, bad_value):
 
         # non-positive-int value
         with pytest.raises(AssertionError):

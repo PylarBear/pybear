@@ -10,7 +10,9 @@ from .._type_aliases import WordFrequencyType
 
 
 
-def _val_word_frequency(_word_frequency: WordFrequencyType) -> None:
+def _val_word_frequency(
+    _word_frequency: WordFrequencyType
+) -> None:
 
     """
     Validate the word_frequency dictionary
@@ -22,8 +24,8 @@ def _val_word_frequency(_word_frequency: WordFrequencyType) -> None:
     Parameters
     ----------
     _word_frequency:
-        dict[str, int] - a dictionary of unique character strings and
-        counts.
+        dict[str, numbers.Integral] - a dictionary of unique character
+        strings and counts.
 
 
     Return

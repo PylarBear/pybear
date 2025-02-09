@@ -20,21 +20,36 @@ from ._type_aliases import (
     ShortestWordsType
 )
 
+import numbers
 from copy import deepcopy
 
 import numpy as np
 
 from ._validation._words import _val_words
-from ._validation._overall_statistics_dict import _val_overall_statistics_dict
+from ._validation._overall_statistics import _val_overall_statistics
 from ._validation._uniques import _val_uniques
 from ._validation._word_frequency import _val_word_frequency
+from ._validation._startswith_frequency import _val_startswith_frequency
+from ._validation._character_frequency import _val_character_frequency
 
-from ._partial_fit._build_current_overall_statistics import \
-    _build_current_overall_statistics
+from ._partial_fit._build_overall_statistics import _build_overall_statistics
 from ._partial_fit._merge_overall_statistics import _merge_overall_statistics
-from ._partial_fit._build_current_word_frequency import \
-    _build_current_word_frequency
+from ._partial_fit._build_uniques import _build_uniques
+from ._partial_fit._merge_uniques import _merge_uniques
+from ._partial_fit._build_word_frequency import _build_word_frequency
 from ._partial_fit._merge_word_frequency import _merge_word_frequency
+from ._partial_fit._build_startswith_frequency import _build_startswith_frequency
+from ._partial_fit._merge_startswith_frequency import _merge_startswith_frequency
+from ._partial_fit._build_character_frequency import _build_character_frequency
+from ._partial_fit._merge_character_frequency import _merge_character_frequency
+
+from ._print._overall_statistics import _print_overall_statistics
+from ._print._startswith_frequency import _print_starts_with_frequency
+from ._print._word_frequency import _print_word_frequency
+from ._print._character_frequency import _print_character_frequency
+from ._print._uniques import _print_uniques
+from ._print._longest_words import _print_longest_words
+from ._print._shortest_words import _print_shortest_words
 
 from ....base import (
     GetParamsMixin,
@@ -51,6 +66,9 @@ class TextStatistics(
     ReprMixin,
     SetParamsMixin
 ):
+
+    _lp: numbers.Integral = 5
+    _rp: numbers.Integral = 15
 
 
     def __init__(
@@ -114,13 +132,17 @@ class TextStatistics(
         return hasattr(self, '_overall_statistics')
 
 
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+    # @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
     # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def overall_statistics_(self) -> OverallStatisticsType:
 
         """
-        A dictionary that holds information about all the words fitted
-        on the TextStatistics instance.
+        A dictionary that holds information about all the strings fitted
+        on the TextStatistics instance, such as average string length,
+        maximum string length, total number of strings, etc.
 
         """
 
@@ -134,22 +156,25 @@ class TextStatistics(
         raise AttributeError(f'overall_statistics_ attribute is read-only')
 
 
-    def print_overall_statistics(self):
+    def print_overall_statistics(self) -> None:
 
-        """Print overall statistics to screen."""
+        """Print the 'overall_statistics_' attribute to screen."""
 
-        _lp = 5  # left pad
-        _rp = 15  # right pad
+        check_is_fitted(self)
 
-        print(f'\nSTATISTICS:')
-        for _description, _value in self.overall_statistics_.items():
-            print(f' ' * _lp + str(_description).ljust(2 * _rp), _value)
+        _print_overall_statistics(self._overall_statistics, self._lp, self._rp)
 
     # END overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # uniques_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def uniques_(self):
+
+        """
+        A sequence of the unique strings fitted on the TextStatistics
+        instance.
+
+        """
 
         check_is_fitted(self)
 
@@ -160,54 +185,29 @@ class TextStatistics(
     def uniques_(self, value):
         raise AttributeError(f'overall_statistics_ attribute is read-only')
 
+
+    def print_uniques(self) -> None:
+        """Print the 'uniques_' attribute to the screen."""
+
+        check_is_fitted(self)
+
+        _print_uniques(self._uniques, self._lp, self._rp)
+
     # END uniques_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # starts_with_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def starts_with_frequency_(self) -> StartsWithFrequencyType:
 
+        """
+        A dictionary that holds the first characters and their frequencies
+        for all the strings fitted on the TextStatistics instance.
+
+        """
+
         check_is_fitted(self)
 
-        # dictionary for holding frequency counts of letters
-        LETTER_DICT = {
-            'a':0, 'b':0, 'c':0, 'd':0, 'e':0, 'f':0, 'g':0, 'h':0, 'i':0,
-            'j':0, 'k':0, 'l':0, 'm':0, 'n':0, 'o':0, 'p':0, 'q':0, 'r':0,
-            's':0, 't':0, 'u':0, 'v':0, 'w':0, 'x':0, 'y':0, 'z':0, 'other':0
-        }
-
-        # "STARTS WITH" FREQ ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-        START_DICT = deepcopy(LETTER_DICT)
-        for word in WORDS:
-            try:
-                START_DICT[word[0].lower()] += 1
-            except:
-                START_DICT['other'] += 1
-
-        KEYS = np.fromiter(START_DICT.keys(), dtype='<U5')
-        # DONT USE np.int8 OR 16! NUMBERS TOO BIG!
-        VALUES = np.fromiter(START_DICT.values(), dtype=np.int32)
-        MASK = np.flip(np.argsort(VALUES))
-        SORTED_DICT = {k:v for k,v in zip(KEYS[MASK], VALUES[MASK])}
-        SORTED_KEYS = np.fromiter(SORTED_DICT.keys(), dtype='<U5')
-
-        # CHANGE KEYS FOR EASY PRINT
-        for new_key in range(26):
-            START_DICT[new_key] = START_DICT.pop(KEYS[new_key])
-            SORTED_DICT[new_key] = SORTED_DICT.pop(SORTED_KEYS[new_key])
-
-        del VALUES, MASK
-
-
-        print(f'\n"STARTS WITH" FREQUENCY:')
-
-        for i in range(26):
-            print(_lp*' ' + f'{KEYS[i].upper()}:'.ljust(_rp), end='')
-            print(f'{START_DICT[i]}'.ljust(2*_rp), end='')
-            print(_lp*' ' + f'{SORTED_KEYS[i].upper()}:'.ljust(_rp), end='')
-            print(f'{SORTED_DICT[i]}')
-
-        del START_DICT, KEYS, SORTED_DICT, SORTED_KEYS
-        # END "STARTS WITH" FREQ ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        return self._starts_with_frequency
 
 
     @starts_with_frequency_.setter
@@ -215,49 +215,25 @@ class TextStatistics(
         raise AttributeError(f'starts_with_frequency_ attribute is read-only')
 
 
+    def print_starts_with_frequency(self) -> None:
+
+        """Print the 'starts_with_frequency_' attribute to screen."""
+
+        check_is_fitted(self)
+
+        _print_starts_with_frequency(
+            self._starts_with_frequency, self._lp, self._rp
+        )
+
+    # END starts_with_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    # character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def character_frequency_(self) -> CharacterFrequencyType:
 
         check_is_fitted(self)
 
-        # LETTER FREQ ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-        LETTER_DICT = {
-            'a':0, 'b':0, 'c':0, 'd':0, 'e':0, 'f':0, 'g':0, 'h':0, 'i':0,
-            'j':0, 'k':0, 'l':0, 'm':0, 'n':0, 'o':0, 'p':0, 'q':0, 'r':0,
-            's':0, 't':0, 'u':0, 'v':0, 'w':0, 'x':0, 'y':0, 'z':0, 'other':0
-        }
-
-        FREQ_DICT = deepcopy(LETTER_DICT)
-        for word in WORDS:
-            for letter in word:
-                try: FREQ_DICT[letter.lower()] += 1
-                except: FREQ_DICT['other'] += 1
-
-        KEYS = np.fromiter(FREQ_DICT.keys(), dtype='<U5')
-        # DONT USE np.int8 OR 16! NUMBERS TOO BIG!
-        VALUES = np.fromiter(FREQ_DICT.values(), dtype=np.int32)
-        MASK = np.flip(np.argsort(VALUES))
-        SORTED_DICT = {k:v for k,v in zip(KEYS[MASK], VALUES[MASK])}
-        SORTED_KEYS = np.fromiter(SORTED_DICT.keys(), dtype='<U5')
-
-        # CHANGE KEYS FOR EASY PRINT
-        for new_key in range(27):
-            FREQ_DICT[new_key] = FREQ_DICT.pop(KEYS[new_key])
-            SORTED_DICT[new_key] = SORTED_DICT.pop(SORTED_KEYS[new_key])
-
-        del VALUES, MASK
-
-        print(f'\nOVERALL LETTER FREQUENCY:')
-
-        for i in range(26):
-            print(_lp*' ' + f'{KEYS[i].upper()}:'.ljust(_rp), end='')
-            print(f'{FREQ_DICT[i]}'.ljust(2*_rp), end='')
-            print(_lp*' ' + f'{SORTED_KEYS[i].upper()}:'.ljust(_rp), end='')
-            print(f'{SORTED_DICT[i]}')
-
-        del FREQ_DICT, KEYS, SORTED_DICT, SORTED_KEYS
-        # END LETTER FREQ ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        return self._character_frequency
 
 
     @character_frequency_.setter
@@ -265,9 +241,23 @@ class TextStatistics(
         raise AttributeError(f'character_frequency_ attribute is read-only')
 
 
-    # word_frequency ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    def print_character_frequency(self) -> None:
+
+        """Print the 'character_frequency_' attribute to screen."""
+
+        check_is_fitted(self)
+
+        _print_character_frequency(
+            self._character_frequency, self._lp, self._rp
+        )
+
+    # END character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    # word_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def word_frequency_(self) -> WordFrequencyType:
+
+        """The unique strings seen and the number of occurrences."""
 
         check_is_fitted(self)
 
@@ -279,47 +269,40 @@ class TextStatistics(
         raise AttributeError(f'word_frequency_ attribute is read-only')
 
 
-    def print_word_frequency(self):
+    def print_word_frequency(
+        self,
+        n:Optional[numbers.Integral] = 10
+    ) -> None:
+
+        """Print the 'word_frequency_' attribute to screen."""
 
         check_is_fitted(self)
 
-        n = min(20, len(_UNIQUES))
-        print(f'\n TOP {n} WORD FREQUENCY:')
-        MASK = np.flip(np.argsort(_COUNTS))[:n]
+        err_msg = f"'n' must be an integer >= 1"
+        if not isinstance(n, numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(n, bool):
+            raise TypeError(err_msg)
+        if n < 1:
+            raise ValueError(err_msg)
+        del err_msg
 
-        print(_lp*' ' + (f'WORD').ljust(2*_rp) + f'FREQUENCY')
-        for i in range(n):
-            print(_lp * ' ' + f'{_UNIQUES[..., MASK][i]}'.ljust(2*_rp), end='')
-            print(f'{_COUNTS[..., MASK][i]}')
+        _print_word_frequency(
+            self._word_frequency, self._lp, self._rp, n
+        )
 
-        del _UNIQUES, _COUNTS, _LENS, _lp, _rp
+    # END word_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    # END word_frequency ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-
+    # longest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ==
     @property
     def longest_words_(self) -> LongestWordsType:
 
+        """The longest strings seen during fitting."""
+
         check_is_fitted(self)
 
-        # TOP LONGEST WORDS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        n = min(20, len(_UNIQUES))
-        print(f'\nTOP {n} LONGEST WORDS:')
-
-        _LENS = np.fromiter(map(len, _UNIQUES), dtype=np.int8)
-
-        MASK = np.flip(np.argsort(_LENS))
-        LONGEST_WORDS = _UNIQUES[MASK][:n]
-        _LENS = _LENS[MASK][:n]
-        del MASK
-
-        print(_lp*' ' + f'WORD'.ljust(3*_rp) + f'LENGTH')
-        for i in range(n):
-            print(_lp*' ' + f'{(LONGEST_WORDS[i])}'.ljust(3*_rp), end='')
-            print(f'{_LENS[i]}')
-
-        del LONGEST_WORDS
-        # END TOP LONGEST WORDS ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # pizza
+        pass
 
 
     @longest_words_.setter
@@ -327,11 +310,54 @@ class TextStatistics(
         raise AttributeError(f'longest_words_ attribute is read-only')
 
 
-    @property
-    def shortest_words_(self) -> ShortestWordsType:
+    def print_longest_words(
+        self,
+        n: Optional[numbers.Integral] = 10
+    ) -> None:
+
+        """
+        Print the 'longest_words_' attribute to screen.
+
+
+        Parameters
+        ----------
+        n:
+            Optional[numbers.Integral], default = 10 - the number of
+            longest words to print to screen.
+
+
+        Return
+        ------
+        -
+            None
+
+
+        """
 
         check_is_fitted(self)
 
+        err_msg = f"'n' must be an integer >= 1"
+        if not isinstance(n, numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(n, bool):
+            raise TypeError(err_msg)
+        if n < 1:
+            raise ValueError(err_msg)
+        del err_msg
+
+        _print_longest_words(self.longest_words_, self._lp, self._rp, n)
+
+    # END longest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    # shortest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    @property
+    def shortest_words_(self) -> ShortestWordsType:
+
+        """The shortest strings seen during fitting."""
+
+        check_is_fitted(self)
+
+        # pizza
         pass
 
 
@@ -340,26 +366,74 @@ class TextStatistics(
         raise AttributeError(f'shortest_words_ attribute is read-only')
 
 
+    def print_shortest_words(
+        self,
+        n: Optional[numbers.Integral] = 10
+    ) -> None:
+
+        """
+        Print the 'shortest_words_' attribute to screen.
+
+
+        Parameters
+        ----------
+        n:
+            Optional[numbers.Integral], default = 10 - the number of
+            shortest strings to print to screen.
+
+        Return
+        ------
+        -
+            None
+
+        """
+
+        check_is_fitted(self)
+
+        err_msg = f"'n' must be an integer >= 1"
+        if not isinstance(n, numbers.Integral):
+            raise TypeError(err_msg)
+        if isinstance(n, bool):
+            raise TypeError(err_msg)
+        if n < 1:
+            raise ValueError(err_msg)
+        del err_msg
+
+        _print_shortest_words(self.shortest_words_, self._lp, self._rp, n)
+
+    # END shortest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    # END @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+
     def _reset(self):
 
-        pass
-        # pizza what to delete?
+        try:
+            del self._word_frequency
+            del self._uniques
+            del self._overall_statistics
+            del self._starts_with_frequency
+            del self._character_frequency
+        except:
+            pass
 
 
+    # pizza on the block!
     def _lowercase_dict(self):
         CHARS = list('abcdefghijklmnopqrstuvwxyz')  
         return dict((zip(CHARS, [0 for _ in range(26)])))
 
-
+    # pizza on the block!
     def _uppercase_dict(self):
         CHARS = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         return dict((zip(CHARS, [0 for _ in range(26)])))
 
-
+    # pizza on the block!
     def _number_dict(self):
         return {}
 
-
+    # pizza on the block!
     def _other_dict(self):
         return {
             'other':0
@@ -413,70 +487,94 @@ class TextStatistics(
 
         # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        # uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        # pizza make a decision on the format of UNIQUES
-        # pizza probably turn this into its own module, something like _merge_uniques
-        if not hasattr(self, '_uniques'):
-            if self.case_sensitive:
-                self._uniques = set(WORDS)
-            elif not self.case_sensitive:
-                self._uniques = set(map(str.upper, WORDS))
-        else:
-            if self.case_sensitive:
-                self._uniques = set(self._uniques).union(set(WORDS))
-            elif not self.case_sensitive:
-                self._uniques = set(
-                    map(str.upper, self._uniques)
-                ).union(map(str.upper, WORDS))
-
-        _val_uniques(self._uniques)
-        # END uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-        # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _current_overall_statistics = \
-            _build_current_overall_statistics(
-                WORDS,
-                case_sensitive=self.case_sensitive
-            )
-
-        self._overall_statistics = _merge_overall_statistics(
-            _current_overall_statistics,
-            getattr(self, '_overall_statistics', {}),
-            len(self._uniques)
-        )
-
-        del _current_overall_statistics
-
-        _val_overall_statistics_dict(self._overall_statistics)
-        # END overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- --
-
-        # pizza
-        self._starts_with_frequency = _merge_startswith_frequency_dict(
-
-        )
-
-        # pizza
-        self._character_frequency = _merge_character_frequency_dict(
-
-        )
-
         # word_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-        _current_word_frequency = \
-            _build_current_word_frequency(
+        _current_word_frequency: dict[str, numbers.Integral] = \
+            _build_word_frequency(
                 WORDS,
                 case_sensitive=self.case_sensitive
             )
 
-        self._word_frequency = _merge_word_frequency(
-            _current_word_frequency,
-            getattr(self, '_word_frequency', {})
-        )
+        self._word_frequency: dict[str, numbers.Integral] = \
+            _merge_word_frequency(
+                _current_word_frequency,
+                getattr(self, '_word_frequency', {})
+            )
 
         del _current_word_frequency
 
         _val_word_frequency(self._word_frequency)
         # END word_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _current_uniques: Sequence[str] = \
+            _build_uniques(
+                WORDS,
+                case_sensitive=self.case_sensitive
+            )
+
+        self._uniques: Sequence[str] = \
+            _merge_uniques(
+                _current_uniques,
+                self._uniques
+            )
+
+        del _current_uniques
+
+        _val_uniques(self._uniques)
+        # END uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _current_overall_statistics: dict[str, numbers.Real] = \
+            _build_overall_statistics(
+                WORDS,
+                case_sensitive=self.case_sensitive
+            )
+
+        self._overall_statistics: dict[str, numbers.Real] = \
+            _merge_overall_statistics(
+                _current_overall_statistics,
+                getattr(self, '_overall_statistics', {}),
+                len(self._uniques)
+            )
+
+        del _current_overall_statistics
+
+        _val_overall_statistics(self._overall_statistics)
+        # END overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # startswith_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _current_starts_with_frequency = \
+            _build_startswith_frequency(
+                self._word_frequency
+            )
+        self._starts_with_frequency: dict[str, numbers.Integral] = \
+            _merge_startswith_frequency(
+                _current_starts_with_frequency,
+                getattr(self, '_starts_with_frequency', {})
+            )
+
+        del _current_starts_with_frequency
+
+        _val_startswith_frequency(self._starts_with_frequency)
+        # END startswith_frequency -- -- -- -- -- -- -- -- -- -- -- --
+
+
+        # character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _current_character_frequency: dict[str, numbers.Integral] = \
+            _build_character_frequency(
+                self._word_frequency
+            )
+
+        self._character_frequency: dict[str, numbers.Integral] = \
+            _merge_character_frequency(
+                _current_character_frequency,
+                getattr(self, '_character_frequency', {})
+            )
+
+        del _current_character_frequency
+
+        _val_character_frequency(self._character_frequency)
+        # END character_frequency -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     def fit(self, WORDS: Sequence[str]):
