@@ -6,7 +6,7 @@
 
 
 
-from typing import TypedDict
+from typing import TypedDict, Sequence
 from typing_extensions import (
     TypeAlias,
     Required
@@ -25,6 +25,8 @@ class OverallStatisticsType(TypedDict):
     max_length: Required[numbers.Integral]
     min_length: Required[numbers.Integral]
 
+
+UniquesType: TypeAlias = Sequence[str]
 
 StartsWithFrequencyType: TypeAlias = dict[str, numbers.Integral]
 

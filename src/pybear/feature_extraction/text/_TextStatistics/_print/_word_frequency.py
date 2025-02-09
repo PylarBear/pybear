@@ -1,0 +1,75 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
+from typing import Optional
+from .._type_aliases import WordFrequencyType
+
+import numbers
+
+import numpy as np
+
+
+
+def _print_word_frequency(
+    word_frequency: WordFrequencyType,
+    lp: numbers.Integral,
+    rp: numbers.Integral,
+    n: Optional[numbers.Integral] = 10
+) -> None:
+
+    """
+    Print the 'word_frequency_' attribute to screen.
+
+
+    Parameters
+    ----------
+    word_frequency:
+        dict[str, numbers.Integral] - the dictionary holding the unique
+        strings and their respective counts for all strings fitted on
+        the TextStatistics instance.
+    lp:
+        numbers.Integral - the left padding for the display.
+    rp:
+        numbers.Integral - the right padding for the display.
+    n:
+        Optional[numbers.Integral], default = 10 - the number of most
+        frequent strings to print.
+
+
+    Return
+    ------
+    -
+        None
+
+    """
+
+
+    _max_len = max(map(len, word_frequency))
+
+    _UNIQUES = np.fromiter(word_frequency, dtype=f"<U{_max_len}")
+    _COUNTS = np.fromiter(word_frequency.values(), dtype=np.uint32)
+
+    n = min(n, len(_UNIQUES))
+    print(f'\n TOP {n} STRING FREQUENCY:')
+    MASK = np.flip(np.argsort(_COUNTS))[:n]
+
+    print(lp * ' ' + (f'STRING').ljust(_max_len + rp) + f'FREQUENCY')
+    for i in range(n):
+        print(lp * ' ' + f'{_UNIQUES[MASK][i]}'.ljust(_max_len + rp), end='')
+        print(f'{_COUNTS[MASK][i]}')
+
+    del _UNIQUES, _COUNTS, MASK
+
+
+
+
+
+
+
+
+

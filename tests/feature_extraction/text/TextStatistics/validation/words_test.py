@@ -33,7 +33,7 @@ class TestStatistics:
         with pytest.raises(TypeError):
             _val_words(['good', 'bad', 'indifferent', junk_value])
 
-
+    @pytest.mark.xfail(reason=f"pizza needs to decide about phrases or words")
     def test_rejects_spaces(self):
 
         WORDS = [
@@ -45,7 +45,7 @@ class TestStatistics:
         with pytest.raises(ValueError):
             _val_words(WORDS)
 
-
+    @pytest.mark.xfail(reason=f"pizza needs to decide about phrases or words")
     def test_rejects_strings_too_long(self):
 
         WORDS = [

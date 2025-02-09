@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
-    _build_current_word_frequency import _build_current_word_frequency
+    _build_word_frequency import _build_word_frequency
 
 
 
@@ -25,7 +25,7 @@ class TestBuildCurrentWordFrequency:
     def test_junk_words(self, junk_WORDS):
 
         with pytest.raises(TypeError):
-            _build_current_word_frequency(
+            _build_word_frequency(
                 junk_WORDS,
                 case_sensitive=False
             )
@@ -36,8 +36,8 @@ class TestBuildCurrentWordFrequency:
     )
     def test_junk_case_sensitive(self, junk_case_sensitive):
 
-        with pytest.raises(AssertionError):
-            _build_current_word_frequency(
+        with pytest.raises(TypeError):
+            _build_word_frequency(
                 ['A', 'BE', 'TWO', 'FOUR', 'SEVEN', 'ELEVEN', 'FIFTEEN'],
                 case_sensitive=junk_case_sensitive
             )
@@ -48,7 +48,7 @@ class TestBuildCurrentWordFrequency:
 
         WORDS = ['A', 'BE', 'TWO', 'FOUR', 'SEVEN', 'ELEVEN', 'FIFTEEN']
 
-        out = _build_current_word_frequency(
+        out = _build_word_frequency(
             WORDS,
             case_sensitive=case_sensitive
         )
@@ -71,7 +71,7 @@ class TestBuildCurrentWordFrequency:
 
         WORDS = ['a', 'be', 'two', 'for', 'seven', 'eleven', 'fifteen']
 
-        out = _build_current_word_frequency(
+        out = _build_word_frequency(
             WORDS,
             case_sensitive=case_sensitive
         )
@@ -101,7 +101,7 @@ class TestBuildCurrentWordFrequency:
 
         WORDS = ['one', 'ONE', 'two', 'TWO', 'two', 'TWO', 'THREE']
 
-        out = _build_current_word_frequency(
+        out = _build_word_frequency(
             WORDS,
             case_sensitive=case_sensitive
         )

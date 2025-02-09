@@ -39,7 +39,7 @@ def _val_words(words: Sequence[str]) -> None:
 
 
     err_msg = (f"'words' must be passed as a list-like vector of strings, "
-               f"cannot be empty. individual strings cannot have spaces, "
+               f"cannot be empty. \nindividual strings cannot have spaces, "
                f"and cannot be more than 30 characters long.")
 
     try:
@@ -57,17 +57,19 @@ def _val_words(words: Sequence[str]) -> None:
 
     del err_msg
 
-    if max(map(len, words)) > 30:
-        raise ValueError(
-            f"'words' is likely not a vector of individual words. "
-            f"\npass 'words' as a list-like of individual words only."
-        )
+    # pizza, make a decision on if allowing unlimited strings
+    # if max(map(len, words)) > 30:
+    #     raise ValueError(
+    #         f"'words' is likely not a vector of individual words. "
+    #         f"\npass 'words' as a list-like of individual words only."
+    #     )
 
-    if any(map(lambda x: ' ' in x, words)):
-        raise ValueError(
-            f"'words' is likely not a vector of individual words. "
-            f"\npass 'words' as a list-like of individual words only."
-        )
+    # pizza, make a decision on if allowing unlimited strings
+    # if any(map(lambda x: ' ' in x, words)):
+    #     raise ValueError(
+    #         f"'words' is likely not a vector of individual words. "
+    #         f"\npass 'words' as a list-like of individual words only."
+    #     )
 
 
 

@@ -11,9 +11,11 @@ from .._type_aliases import OverallStatisticsType
 
 import numpy as np
 
+from .._validation._words import _val_words
 
 
-def _build_current_overall_statistics(
+
+def _build_overall_statistics(
     WORDS: Sequence[str],
     case_sensitive: Optional[bool] = False
 ) -> OverallStatisticsType:
@@ -50,14 +52,7 @@ def _build_current_overall_statistics(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    try:
-        iter(WORDS)
-        if isinstance(WORDS, (str, dict)):
-            raise Exception
-        if not all(map(isinstance, WORDS, (str for _ in WORDS))):
-            raise Exception
-    except:
-        raise TypeError(f"'WORDS' must be a list-like of strings")
+    _val_words(WORDS)
 
     if not isinstance(case_sensitive, bool):
         raise TypeError(f"'case_sensitive' must be boolean")

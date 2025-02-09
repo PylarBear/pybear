@@ -11,7 +11,7 @@ from copy import deepcopy
 import pytest
 
 from pybear.feature_extraction.text._TextStatistics._validation. \
-    _overall_statistics_dict import _val_overall_statistics_dict
+    _overall_statistics import _val_overall_statistics
 
 
 
@@ -48,20 +48,20 @@ class TestValOverallStatisticsDict:
     def test_rejects_non_dict(self, junk_osd):
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(junk_osd)
+            _val_overall_statistics(junk_osd)
 
 
     def test_rejects_bad_keys(self, _good_osd):
 
         # integers
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(
+            _val_overall_statistics(
                 dict((zip(range(6), [10, 10, 6, 3, 4.5, 1.2])))
             )
 
         # invalid strings
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(
+            _val_overall_statistics(
                 dict((zip(list('abcde'), [10, 10, 6, 3, 4.5, 1.2])))
             )
 
@@ -70,14 +70,14 @@ class TestValOverallStatisticsDict:
         _long_osd['crazy key'] = 12
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_long_osd)
+            _val_overall_statistics(_long_osd)
 
         # too short
         _short_osd = deepcopy(_good_osd)
         del _short_osd['size']
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_short_osd)
+            _val_overall_statistics(_short_osd)
 
 
     @pytest.mark.parametrize('junk_size',
@@ -92,7 +92,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['size'] = junk_size
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
 
     @pytest.mark.parametrize('junk_unq_ct',
@@ -107,7 +107,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['uniques_count'] = junk_unq_ct
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
 
     @pytest.mark.parametrize('junk_max_len',
@@ -122,7 +122,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['max_length'] = junk_max_len
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
 
     @pytest.mark.parametrize('junk_min_len',
@@ -137,7 +137,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['min_length'] = junk_min_len
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
 
     @pytest.mark.parametrize('junk_average_len',
@@ -152,7 +152,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['average_length'] = junk_average_len
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
 
     @pytest.mark.parametrize('junk_std',
@@ -167,7 +167,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['std_length'] = junk_std
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
 
     def test_relative_values(self, _good_osd):
@@ -177,7 +177,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['uniques_count'] = _wip_osd['size'] + 1
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -186,7 +186,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['min_length'] = _wip_osd['max_length'] + 1
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -195,7 +195,7 @@ class TestValOverallStatisticsDict:
         _wip_osd['average_length'] = _wip_osd['max_length'] + 1
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -207,14 +207,14 @@ class TestValOverallStatisticsDict:
         _wip_osd['average_length'] = _wip_osd['min_length'] - 1
 
         with pytest.raises(AssertionError):
-            _val_overall_statistics_dict(_wip_osd)
+            _val_overall_statistics(_wip_osd)
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     def test_accepts_good(self, _good_osd):
 
-        _val_overall_statistics_dict(_good_osd)
+        _val_overall_statistics(_good_osd)
 
 
 

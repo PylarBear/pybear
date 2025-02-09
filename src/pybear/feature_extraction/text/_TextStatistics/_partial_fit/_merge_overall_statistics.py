@@ -11,7 +11,7 @@ from .._type_aliases import OverallStatisticsType
 import numbers
 import math
 
-from .._validation._overall_statistics_dict import _val_overall_statistics_dict
+from .._validation._overall_statistics import _val_overall_statistics
 
 
 
@@ -53,7 +53,7 @@ def _merge_overall_statistics(
     assert not isinstance(_len_uniques, bool)
 
     # _current_overall_statistics must be passed
-    _val_overall_statistics_dict(_current_overall_statistics)
+    _val_overall_statistics(_current_overall_statistics)
 
     # _overall_statistics could be empty dict
     try:
@@ -63,7 +63,7 @@ def _merge_overall_statistics(
     except UnicodeError:
         pass
     except TimeoutError:
-        _val_overall_statistics_dict(_overall_statistics)
+        _val_overall_statistics(_overall_statistics)
         assert _len_uniques >= _overall_statistics['uniques_count']
     except Exception as f:
         raise AssertionError(f)

@@ -11,13 +11,13 @@ import numpy as np
 import pytest
 
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
-    _build_current_overall_statistics import _build_current_overall_statistics
+    _build_overall_statistics import _build_overall_statistics
 
 
 
 class TestBuildCurrentOverallStatistics:
 
-    # def _build_current_overall_statistics(
+    # def _build_overall_statistics(
     #         WORDS: Sequence[str]
     # ) -> OverallStatisticsType:
 
@@ -43,7 +43,7 @@ class TestBuildCurrentOverallStatistics:
     def test_WORDS_rejects_non_list_like(self, junk_WORDS):
 
         with pytest.raises(TypeError):
-            _build_current_overall_statistics(
+            _build_overall_statistics(
                 junk_WORDS,
                 case_sensitive=True
             )
@@ -56,7 +56,7 @@ class TestBuildCurrentOverallStatistics:
     def test_case_sensitive_rejects_non_bool(self, junk_case_sensitive):
 
         with pytest.raises(TypeError):
-            _build_current_overall_statistics(
+            _build_overall_statistics(
                 ['Do', 'You', 'Like', 'Green', 'Eggs', 'And', 'Ham'],
                 junk_case_sensitive
             )
@@ -65,7 +65,7 @@ class TestBuildCurrentOverallStatistics:
     @pytest.mark.parametrize('case_sensitive', (True, False))
     def test_accepts_good(self, case_sensitive):
 
-        _build_current_overall_statistics(
+        _build_overall_statistics(
             ['THAT', 'SAM-I-AM', 'THAT', 'SAM-I-AM', 'I', 'DO',
              'NOT', 'LIKE', 'THAT' 'SAM-I-AM'],
             case_sensitive=case_sensitive
@@ -79,7 +79,7 @@ class TestBuildCurrentOverallStatistics:
         WORDS = ['I', 'Am', 'Sam', 'I', 'AM', 'SAM', 'sam', 'i', 'am']
 
         # case_sensitive False -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _build_current_overall_statistics(WORDS, case_sensitive=False)
+        out = _build_overall_statistics(WORDS, case_sensitive=False)
 
         assert isinstance(out, dict)
 
@@ -108,7 +108,7 @@ class TestBuildCurrentOverallStatistics:
         assert out['min_length'] == min(map(len, WORDS))
 
         # case_sensitive True -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _build_current_overall_statistics(WORDS, case_sensitive=True)
+        out = _build_overall_statistics(WORDS, case_sensitive=True)
 
         assert isinstance(out, dict)
 
