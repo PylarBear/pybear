@@ -30,7 +30,7 @@ def _print_character_frequency(
     character_frequency:
         dict[str, numbers.Integral] - the dictionary holding all the
         unique characters and their respective counts seen by the fitted
-        TextStatistic instance.
+        TextStatistics instance.
 
     lp:
         numbers.Integral - the left padding for the display.

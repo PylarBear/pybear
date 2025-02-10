@@ -13,6 +13,9 @@ import numbers
 
 import numpy as np
 
+from .._validation._n import _val_n
+from .._validation._word_frequency import _val_word_frequency
+
 
 
 def _print_word_frequency(
@@ -49,13 +52,18 @@ def _print_word_frequency(
     """
 
 
+    _val_word_frequency(word_frequency)
+    _val_n(n)
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
     _max_len = max(map(len, word_frequency))
 
     _UNIQUES = np.fromiter(word_frequency, dtype=f"<U{_max_len}")
     _COUNTS = np.fromiter(word_frequency.values(), dtype=np.uint32)
 
     n = min(n, len(_UNIQUES))
-    print(f'\n TOP {n} STRING FREQUENCY:')
+    print(f'\n TOP {n} STRING FREQUENCY OF {len(_UNIQUES)}:')
     MASK = np.flip(np.argsort(_COUNTS))[:n]
 
     print(lp * ' ' + (f'STRING').ljust(_max_len + rp) + f'FREQUENCY')

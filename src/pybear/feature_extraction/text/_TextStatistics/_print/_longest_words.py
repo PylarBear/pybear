@@ -11,32 +11,38 @@ from typing import Optional
 
 import numbers
 
+from .._validation._word_frequency import _val_word_frequency
+from .._validation._n import _val_n
+
+from .._get._get_longest_words import _get_longest_words
+
 
 
 def _print_longest_words(
-    longest_words: WordFrequencyType,
+    word_frequency: WordFrequencyType,
     lp: numbers.Integral,
     rp: numbers.Integral,
     n: Optional[numbers.Integral] = 10
 ) -> None:
 
     """
-    Print the 'longest_words_' attribute to screen.
+    Print the longest strings in the 'word_frequency_' attribute and
+    their frequencies to screen.
 
 
     Parameters
     ----------
-    longest_words:
-        dict[str, numbers.Integral] - the dictionary holding the longest
-        strings seen by the fitted TextStatistics instance, and the
-        number of characters in the respective string.
+    word_frequency:
+        dict[str, numbers.Integral] - the dictionary holding all the
+        unique strings and their frequencies seen by the fitted
+        TextStatistics instance.
     lp:
         numbers.Integral - the left padding for the display.
     rp:
         numbers.Integral - the right padding for the display.
     n:
-        Optional[numbers.Integral], default = 10 - the number of top
-        longest strings to display.
+        Optional[numbers.Integral], default = 10 - the number of longest
+        strings to print to screen.
 
 
     Return
@@ -46,25 +52,25 @@ def _print_longest_words(
 
     """
 
-    n = min(20, len(_UNIQUES))
-    print(f'\nTOP {n} LONGEST WORDS:')
 
-    _LENS = np.fromiter(map(len, _UNIQUES), dtype=np.int8)
-
-    MASK = np.flip(np.argsort(_LENS))
-    LONGEST_WORDS = _UNIQUES[MASK][:n]
-    _LENS = _LENS[MASK][:n]
-    del MASK
-
-    print(_lp * ' ' + f'WORD'.ljust(3 * _rp) + f'LENGTH')
-    for i in range(n):
-        print(_lp * ' ' + f'{(LONGEST_WORDS[i])}'.ljust(3 * _rp), end='')
-        print(f'{_LENS[i]}')
-
-    del LONGEST_WORDS
+    _val_word_frequency(word_frequency)
+    _val_n(n)
 
 
+    n = min(n, len(word_frequency))
 
+    longest_string_dict = _get_longest_words(word_frequency, n)
+
+
+    print(f'\n TOP {n} LONGEST STRINGS OF {len(word_frequency)}:')
+
+    _max_len = max(map(len, longest_string_dict.keys()))
+
+    print(lp * ' ' + (f'STRING').ljust(_max_len + rp) + f'FREQUENCY')
+    for k, v in longest_string_dict.items():
+        print(lp * ' ' + f'{k}'.ljust(_max_len + rp) +f'{v}')
+
+    del longest_string_dict, _max_len
 
 
 

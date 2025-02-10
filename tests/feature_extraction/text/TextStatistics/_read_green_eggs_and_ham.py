@@ -8,10 +8,10 @@
 import os
 
 
-def _read_dummy_strings():
+def _read_green_eggs_and_ham():
 
     module_dir = os.path.dirname(os.path.abspath(__file__))
-    file = '_dummy_strings'
+    file = '_green_eggs_and_ham'
 
     WORDS = []
     with open(os.path.join(module_dir, file)) as f:
