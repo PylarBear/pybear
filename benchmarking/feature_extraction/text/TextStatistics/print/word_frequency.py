@@ -12,11 +12,11 @@ from pybear.feature_extraction.text._TextStatistics._print._word_frequency \
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
     _build_word_frequency import _build_word_frequency
 
-from _read_dummy_strings import _read_dummy_strings
+from _read_green_eggs_and_ham import _read_green_eggs_and_ham
 
 
 
-STRINGS = _read_dummy_strings()
+STRINGS = _read_green_eggs_and_ham()
 
 word_frequency = \
     _build_word_frequency(

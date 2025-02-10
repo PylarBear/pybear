@@ -19,9 +19,9 @@ from ._type_aliases import (
     LongestWordsType,
     ShortestWordsType
 )
+import numpy.typing as npt
 
 import numbers
-from copy import deepcopy
 
 import numpy as np
 
@@ -31,11 +31,10 @@ from ._validation._uniques import _val_uniques
 from ._validation._word_frequency import _val_word_frequency
 from ._validation._startswith_frequency import _val_startswith_frequency
 from ._validation._character_frequency import _val_character_frequency
+from ._validation._n import _val_n
 
 from ._partial_fit._build_overall_statistics import _build_overall_statistics
 from ._partial_fit._merge_overall_statistics import _merge_overall_statistics
-from ._partial_fit._build_uniques import _build_uniques
-from ._partial_fit._merge_uniques import _merge_uniques
 from ._partial_fit._build_word_frequency import _build_word_frequency
 from ._partial_fit._merge_word_frequency import _merge_word_frequency
 from ._partial_fit._build_startswith_frequency import _build_startswith_frequency
@@ -47,35 +46,29 @@ from ._print._overall_statistics import _print_overall_statistics
 from ._print._startswith_frequency import _print_starts_with_frequency
 from ._print._word_frequency import _print_word_frequency
 from ._print._character_frequency import _print_character_frequency
-from ._print._uniques import _print_uniques
 from ._print._longest_words import _print_longest_words
 from ._print._shortest_words import _print_shortest_words
 
+from ._get._get_longest_words import _get_longest_words
+from ._get._get_shortest_words import _get_shortest_words
+
+from ._lookup._lookup_substring import _lookup_substring
+from ._lookup._lookup_string import _lookup_string
+
 from ....base import (
-    GetParamsMixin,
     ReprMixin,
-    SetParamsMixin,
-    check_is_fitted,
-    validate_data
+    check_is_fitted
 )
 
 
 
-class TextStatistics(
-    GetParamsMixin,
-    ReprMixin,
-    SetParamsMixin
-):
+class TextStatistics(ReprMixin):
 
     _lp: numbers.Integral = 5
     _rp: numbers.Integral = 15
 
 
-    def __init__(
-        self,
-        case_sensitive: Optional[bool] = False,
-        ignore_non_latin_characters: Optional[bool] = True
-    ) -> None:
+    def __init__(self) -> None:
 
         """
         pizza finalize this.
@@ -92,28 +85,12 @@ class TextStatistics(
         - top longest words
 
 
-        Parameters
-        ----------
-        case_sensitive:
-            Optional[bool], default = False - whether to handle all
-            letters as if they are the same case. When True, keep
-            separate statistics for upper and lower-case letters; when
-            False, ignore the case.
-        ignore_non_latin_characters:
-            Optional[bool], default = True, whether to keep statistics
-            for non-Latin characters.
-
-
-
         Return
         ------
         -
             None
 
         """
-
-        self.case_sensitive = case_sensitive
-        self.ignore_non_latin_characters = ignore_non_latin_characters
 
 
     def __pybear_is_fitted__(self):
@@ -135,6 +112,22 @@ class TextStatistics(
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
     # @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
+    # size_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    @property
+    def size_(self) -> numbers.Integral:
+
+        """The number of strings fitted on the TextStatistics instance."""
+
+        check_is_fitted(self)
+
+        return self.overall_statistics_['size']
+
+
+    @size_.setter
+    def size_(self, value):
+        raise AttributeError(f'size_ attribute is read-only')
+    # END size_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
     # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def overall_statistics_(self) -> OverallStatisticsType:
@@ -154,50 +147,37 @@ class TextStatistics(
     @overall_statistics_.setter
     def overall_statistics_(self, value):
         raise AttributeError(f'overall_statistics_ attribute is read-only')
-
-
-    def print_overall_statistics(self) -> None:
-
-        """Print the 'overall_statistics_' attribute to screen."""
-
-        check_is_fitted(self)
-
-        _print_overall_statistics(self._overall_statistics, self._lp, self._rp)
-
     # END overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # uniques_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
-    def uniques_(self):
+    def uniques_(self) -> Sequence[str]:  # pizza want ndarray here?
 
         """
-        A sequence of the unique strings fitted on the TextStatistics
+        A list of the unique strings fitted on the TextStatistics
         instance.
 
         """
 
         check_is_fitted(self)
 
-        return self._uniques
+        uniques = list(self._word_frequency.keys())
+
+        _val_uniques(uniques)
+
+        return uniques
 
 
     @uniques_.setter
     def uniques_(self, value):
         raise AttributeError(f'overall_statistics_ attribute is read-only')
-
-
-    def print_uniques(self) -> None:
-        """Print the 'uniques_' attribute to the screen."""
-
-        check_is_fitted(self)
-
-        _print_uniques(self._uniques, self._lp, self._rp)
-
     # END uniques_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # starts_with_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def starts_with_frequency_(self) -> StartsWithFrequencyType:
+
+        # pizza make a decision ... starts_with_frequency or startswith_frequency
 
         """
         A dictionary that holds the first characters and their frequencies
@@ -213,18 +193,6 @@ class TextStatistics(
     @starts_with_frequency_.setter
     def starts_with_frequency_(self, value):
         raise AttributeError(f'starts_with_frequency_ attribute is read-only')
-
-
-    def print_starts_with_frequency(self) -> None:
-
-        """Print the 'starts_with_frequency_' attribute to screen."""
-
-        check_is_fitted(self)
-
-        _print_starts_with_frequency(
-            self._starts_with_frequency, self._lp, self._rp
-        )
-
     # END starts_with_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -239,18 +207,6 @@ class TextStatistics(
     @character_frequency_.setter
     def character_frequency_(self, value):
         raise AttributeError(f'character_frequency_ attribute is read-only')
-
-
-    def print_character_frequency(self) -> None:
-
-        """Print the 'character_frequency_' attribute to screen."""
-
-        check_is_fitted(self)
-
-        _print_character_frequency(
-            self._character_frequency, self._lp, self._rp
-        )
-
     # END character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # word_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -267,141 +223,7 @@ class TextStatistics(
     @word_frequency_.setter
     def word_frequency_(self, value):
         raise AttributeError(f'word_frequency_ attribute is read-only')
-
-
-    def print_word_frequency(
-        self,
-        n:Optional[numbers.Integral] = 10
-    ) -> None:
-
-        """Print the 'word_frequency_' attribute to screen."""
-
-        check_is_fitted(self)
-
-        err_msg = f"'n' must be an integer >= 1"
-        if not isinstance(n, numbers.Integral):
-            raise TypeError(err_msg)
-        if isinstance(n, bool):
-            raise TypeError(err_msg)
-        if n < 1:
-            raise ValueError(err_msg)
-        del err_msg
-
-        _print_word_frequency(
-            self._word_frequency, self._lp, self._rp, n
-        )
-
     # END word_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # longest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ==
-    @property
-    def longest_words_(self) -> LongestWordsType:
-
-        """The longest strings seen during fitting."""
-
-        check_is_fitted(self)
-
-        # pizza
-        pass
-
-
-    @longest_words_.setter
-    def longest_words_(self, value):
-        raise AttributeError(f'longest_words_ attribute is read-only')
-
-
-    def print_longest_words(
-        self,
-        n: Optional[numbers.Integral] = 10
-    ) -> None:
-
-        """
-        Print the 'longest_words_' attribute to screen.
-
-
-        Parameters
-        ----------
-        n:
-            Optional[numbers.Integral], default = 10 - the number of
-            longest words to print to screen.
-
-
-        Return
-        ------
-        -
-            None
-
-
-        """
-
-        check_is_fitted(self)
-
-        err_msg = f"'n' must be an integer >= 1"
-        if not isinstance(n, numbers.Integral):
-            raise TypeError(err_msg)
-        if isinstance(n, bool):
-            raise TypeError(err_msg)
-        if n < 1:
-            raise ValueError(err_msg)
-        del err_msg
-
-        _print_longest_words(self.longest_words_, self._lp, self._rp, n)
-
-    # END longest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # shortest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @property
-    def shortest_words_(self) -> ShortestWordsType:
-
-        """The shortest strings seen during fitting."""
-
-        check_is_fitted(self)
-
-        # pizza
-        pass
-
-
-    @shortest_words_.setter
-    def shortest_words_(self, value):
-        raise AttributeError(f'shortest_words_ attribute is read-only')
-
-
-    def print_shortest_words(
-        self,
-        n: Optional[numbers.Integral] = 10
-    ) -> None:
-
-        """
-        Print the 'shortest_words_' attribute to screen.
-
-
-        Parameters
-        ----------
-        n:
-            Optional[numbers.Integral], default = 10 - the number of
-            shortest strings to print to screen.
-
-        Return
-        ------
-        -
-            None
-
-        """
-
-        check_is_fitted(self)
-
-        err_msg = f"'n' must be an integer >= 1"
-        if not isinstance(n, numbers.Integral):
-            raise TypeError(err_msg)
-        if isinstance(n, bool):
-            raise TypeError(err_msg)
-        if n < 1:
-            raise ValueError(err_msg)
-        del err_msg
-
-        _print_shortest_words(self.shortest_words_, self._lp, self._rp, n)
-
-    # END shortest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # END @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
@@ -411,7 +233,6 @@ class TextStatistics(
 
         try:
             del self._word_frequency
-            del self._uniques
             del self._overall_statistics
             del self._starts_with_frequency
             del self._character_frequency
@@ -419,28 +240,12 @@ class TextStatistics(
             pass
 
 
-    # pizza on the block!
-    def _lowercase_dict(self):
-        CHARS = list('abcdefghijklmnopqrstuvwxyz')  
-        return dict((zip(CHARS, [0 for _ in range(26)])))
 
-    # pizza on the block!
-    def _uppercase_dict(self):
-        CHARS = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-        return dict((zip(CHARS, [0 for _ in range(26)])))
-
-    # pizza on the block!
-    def _number_dict(self):
-        return {}
-
-    # pizza on the block!
-    def _other_dict(self):
-        return {
-            'other':0
-        }
-
-
-    def partial_fit(self, WORDS: Sequence[str]) -> Self:
+    def partial_fit(
+        self,
+        WORDS: Sequence[str],
+        y: Optional[any] = None
+    ) -> Self:
 
         """
         Batch-wise accumulation of statistics.
@@ -453,6 +258,9 @@ class TextStatistics(
             statistics for, cannot be empty. Words do not need to be in
             the Lexicon. Individual words cannot have spaces and must be
             under 30 characters in length.
+        y:
+            Optional[any], default = None - a target for the data. Always
+            ignored.
 
 
         Return
@@ -463,35 +271,14 @@ class TextStatistics(
 
         """
 
-        # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-        validate_data(
-            WORDS,
-            copy_X=False,
-            cast_to_ndarray=False,
-            accept_sparse=None,
-            dtype='any',
-            require_all_finite=False,
-            cast_inf_to_nan=False,
-            standardize_nan=False,
-            allowed_dimensionality=(1,),
-            ensure_2d=False,
-            order='C',
-            ensure_min_features=1,
-            ensure_max_features=1,
-            ensure_min_samples=1,
-            sample_check=None
-        )
-
         _val_words(WORDS)
 
-        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
         # word_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # this must be before overall_statistics
         _current_word_frequency: dict[str, numbers.Integral] = \
             _build_word_frequency(
                 WORDS,
-                case_sensitive=self.case_sensitive
+                case_sensitive=True
             )
 
         self._word_frequency: dict[str, numbers.Integral] = \
@@ -505,36 +292,18 @@ class TextStatistics(
         _val_word_frequency(self._word_frequency)
         # END word_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        # uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _current_uniques: Sequence[str] = \
-            _build_uniques(
-                WORDS,
-                case_sensitive=self.case_sensitive
-            )
-
-        self._uniques: Sequence[str] = \
-            _merge_uniques(
-                _current_uniques,
-                self._uniques
-            )
-
-        del _current_uniques
-
-        _val_uniques(self._uniques)
-        # END uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
         # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _current_overall_statistics: dict[str, numbers.Real] = \
             _build_overall_statistics(
                 WORDS,
-                case_sensitive=self.case_sensitive
+                case_sensitive=True
             )
 
         self._overall_statistics: dict[str, numbers.Real] = \
             _merge_overall_statistics(
                 _current_overall_statistics,
                 getattr(self, '_overall_statistics', {}),
-                len(self._uniques)
+                len(self._word_frequency)
             )
 
         del _current_overall_statistics
@@ -576,8 +345,14 @@ class TextStatistics(
         _val_character_frequency(self._character_frequency)
         # END character_frequency -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        return self
 
-    def fit(self, WORDS: Sequence[str]):
+
+    def fit(
+        self,
+        WORDS: Sequence[str],
+        y: Optional[any] = None
+    ) -> Self:
 
         """
         Get statistics for one sequence of words.
@@ -590,6 +365,9 @@ class TextStatistics(
             statistics for, cannot be empty. Words do not need to be in
             the Lexicon. Individual words cannot have spaces and must be
             under 30 characters in length.
+        y:
+            Optional[any], default = None - a target for the data. Always
+            ignored.
 
 
         Return
@@ -606,11 +384,290 @@ class TextStatistics(
 
 
 
+    # OTHER METHODS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+    def print_overall_statistics(self) -> None:
+
+        """Print the 'overall_statistics_' attribute to screen."""
+
+        check_is_fitted(self)
+
+        _print_overall_statistics(self._overall_statistics, self._lp, self._rp)
+
+
+    def print_starts_with_frequency(self) -> None:
+
+        """Print the 'starts_with_frequency_' attribute to screen."""
+
+        check_is_fitted(self)
+
+        _print_starts_with_frequency(
+            self._starts_with_frequency, self._lp, self._rp
+        )
+
+
+    def print_character_frequency(self) -> None:
+
+        """Print the 'character_frequency_' attribute to screen."""
+
+        check_is_fitted(self)
+
+        _print_character_frequency(self._character_frequency, self._lp, self._rp)
+
+
+    def print_word_frequency(
+        self,
+        n:Optional[numbers.Integral] = 10
+    ) -> None:
+
+        """
+        Print the 'word_frequency_' attribute to screen.
+
+
+        Parameters
+        ----------
+        n:
+            Optional[numbers.Integral], default = 10 - the number of the
+            most frequent strings to print to screen.
+
+
+        Return
+        ------
+        -
+            None
+
+        """
+
+        check_is_fitted(self)
+
+        _print_word_frequency(self._word_frequency, self._lp, self._rp, n)
+
+
+    # pizza make a decision ... 'words' or 'strings'
+
+    # longest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ==
+    def get_longest_words(
+        self,
+        n: Optional[numbers.Integral] = 10
+    ) -> LongestWordsType:
+
+        """
+        The longest strings seen by the TextStatistics instance during
+        fitting.
+
+
+        Parameters
+        ----------
+        n:
+            Optional[numbers.Integral], default = 10 - the number of the
+            top longest strings to return.
+
+
+        Return
+        ------
+        -
+            dict[str, numbers.Integral] - the top 'n' longest strings
+            seen by the TextStatistics instance during fitting.
+
+
+        """
+
+        check_is_fitted(self)
+
+        return _get_longest_words(self._word_frequency, n=n)
+
+
+    def print_longest_words(
+        self,
+        n: Optional[numbers.Integral] = 10
+    ) -> None:
+
+        """
+        Print the longest strings in the 'word_frequency_' attribute to
+        screen.
+
+
+        Parameters
+        ----------
+        n:
+            Optional[numbers.Integral], default = 10 - the number of top
+            longest strings to print to screen.
+
+
+        Return
+        ------
+        -
+            None
+
+
+        """
+
+        check_is_fitted(self)
+
+        _print_longest_words(self._word_frequency, self._lp, self._rp, n)
+    # END longest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    # shortest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    def get_shortest_words(
+        self,
+        n: Optional[numbers.Integral] = 10
+    ) -> ShortestWordsType:
+
+        """
+        The shortest strings seen by the TextStatistics instance during
+        fitting.
+
+
+        Parameters
+        ----------
+        n:
+            Optional[numbers.Integral], default = 10 - the number of the
+            top shortest strings to return.
+
+
+        Return
+        ------
+        -
+            dict[str, numbers.Integral] - the top 'n' shortest strings
+            seen by the TextStatistics instance during fitting.
+
+
+        """
+
+        check_is_fitted(self)
+
+        return _get_shortest_words(self._word_frequency, n=n)
+
+
+    def print_shortest_words(
+        self,
+        n: Optional[numbers.Integral] = 10
+    ) -> None:
+
+        """
+        Print the shortest strings in the 'word_frequency_' attribute to
+        screen.
+
+
+        Parameters
+        ----------
+        n:
+            Optional[numbers.Integral], default = 10 - the number of
+            shortest strings to print to screen.
+
+        Return
+        ------
+        -
+            None
+
+        """
+
+        check_is_fitted(self)
+
+        _print_shortest_words(self._word_frequency, self._lp, self._rp, n)
+
+    # END shortest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
 
+    def lookup_substring(
+        self,
+        char_seq: str,
+        case_sensitive: Optional[bool] = True
+    ) -> Sequence[str]:   # pizza want ndarray here?
+
+        """
+        Return a sequence of all strings that have been fitted on the
+        TextStatistics instance that contain the given character
+        substring.
 
 
+        Parameters
+        ----------
+        char_seq:
+            str - character substring to be looked up against the
+            strings fitted on the TextStatistics instance.
+        case_sensitive:
+            Optional[bool], default = True - If True, search for the
+            exact string in the fitted data. If False, normalize both
+            the given string and the strings fitted on the TextStatistics
+            instance, then perform the search.
+
+
+        Return
+        ------
+        -
+            matching_strings: Sequence[str] - sequence of all strings in
+            the fitted data that contain the given character substring.
+            Returns an empty sequence if there are no matches.
+
+
+        """
+
+        check_is_fitted(self)
+
+        return _lookup_substring(char_seq, self.uniques_, case_sensitive)
+
+
+    def lookup_string(
+        self,
+        char_seq: str,
+        case_sensitive: Optional[bool]=False
+    ) -> Sequence[str]:   # pizza want ndarray here?
+
+        """
+        Look in the fitted strings for a full character sequence (not a
+        substring) that exactly matches the given character sequence. If
+        the case_sensitive parameter is True, look for an identical match
+        to the given character sequence, and if at least one is found,
+        return that character string. If an exact match is not found,
+        return None. If the case_sensitive parameter is False, normalize
+        the strings seen by the TextStatistics instance and the given
+        character string and search for matches. If matches are found,
+        return a 1D sequence of the matches in their original form from
+        the fitted data (there may be different capitalizations in the
+        fitted data, so there may be multiple entries.) If no matches
+        are found, return None.
+
+
+        Parameters
+        ----------
+        char_seq:
+            str - character string to be looked up against the strings
+            fitted on the TextStatistics instance.
+        case_sensitive:
+            Optional[bool], default = True - If True, search for the
+            exact string in the fitted data. If False, normalize both
+            the given string and the strings fitted on the TextStatistics
+            instance, then perform the search.
+
+
+        Return
+        ------
+        -
+            Union[str, Sequence[str], None] - if there are any matches,
+            return the matching string(s) from the originally fitted
+            data; if there are no matches, return None.
+
+
+        """
+
+
+        check_is_fitted(self)
+
+        return _lookup_string(char_seq, self.uniques_, case_sensitive)
+
+
+    def score(self, X: any, y: Optional[any] = None) -> None:
+
+        """
+        Dummy method to spoof dask Incremental and ParallelPostFit
+        wrappers. Verified must be here for dask wrappers.
+        """
+
+        check_is_fitted(self)
+
+        return
 
 
 

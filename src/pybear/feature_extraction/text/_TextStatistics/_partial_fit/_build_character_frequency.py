@@ -14,7 +14,6 @@ from .._validation._word_frequency import _val_word_frequency
 
 def _build_character_frequency(
     _word_frequency: dict[str, numbers.Integral]
-    # pizza what about case_sensitive on this?
 ) -> dict[str, numbers.Integral]:
 
     """

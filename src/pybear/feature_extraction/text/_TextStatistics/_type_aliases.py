@@ -26,8 +26,6 @@ class OverallStatisticsType(TypedDict):
     min_length: Required[numbers.Integral]
 
 
-UniquesType: TypeAlias = Sequence[str]
-
 StartsWithFrequencyType: TypeAlias = dict[str, numbers.Integral]
 
 CharacterFrequencyType: TypeAlias = dict[str, numbers.Integral]

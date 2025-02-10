@@ -33,35 +33,17 @@ class TestStatistics:
         with pytest.raises(TypeError):
             _val_words(['good', 'bad', 'indifferent', junk_value])
 
-    @pytest.mark.xfail(reason=f"pizza needs to decide about phrases or words")
-    def test_rejects_spaces(self):
-
-        WORDS = [
-            'this isnt too long',
-            'one space',
-            'sixty six'
-        ]
-
-        with pytest.raises(ValueError):
-            _val_words(WORDS)
-
-    @pytest.mark.xfail(reason=f"pizza needs to decide about phrases or words")
-    def test_rejects_strings_too_long(self):
-
-        WORDS = [
-            'floccinaucinihilipilificationisacceptedasaword',
-            'reallyneedtosplitthisstringintoindividualwords',
-            'usepybearTextCleanertopreprocessesyourstrings'
-        ]
-
-        with pytest.raises(ValueError):
-            _val_words(WORDS)
-
 
     def test_rejects_empty(self):
 
         with pytest.raises(ValueError):
             _val_words([])
+
+
+    def test_rejects_2D(self):
+
+        with pytest.raises(TypeError):
+            _val_words([['a', 'b', 'c']])
 
 
     @pytest.mark.parametrize('container', (list, set, tuple, np.ndarray))

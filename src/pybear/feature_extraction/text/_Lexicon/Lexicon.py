@@ -53,8 +53,6 @@ from ...text._Lexicon._old_py_lexicon import (
 # find_duplicates
 # check_order
 # _string_validation
-# lookup_substring
-# lookup_word
 # statistics
 # lexicon
 # _old_py_lexicon
@@ -232,6 +230,7 @@ class Lexicon:
         return char_seq.upper()
 
 
+    # pizza once this is in TextStatistics it can come out of here
     def lookup_substring(
             self,
             char_seq: str,
@@ -280,6 +279,7 @@ class Lexicon:
         return SELECTED_WORDS
 
 
+    # pizza once this is in TextStatistics it can come out of here
     def lookup_word(
             self,
             char_seq: str,
@@ -422,6 +422,24 @@ class Lexicon:
             ly.lexicon_y(),
             lz.lexicon_z()
         ))
+
+
+
+
+    # pizza on the block!
+    def _lowercase_dict(self):
+        CHARS = list('abcdefghijklmnopqrstuvwxyz')
+        return dict((zip(CHARS, [0 for _ in range(26)])))
+
+    # pizza on the block!
+    def _uppercase_dict(self):
+        CHARS = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        return dict((zip(CHARS, [0 for _ in range(26)])))
+
+    # pizza on the block!
+    def _number_dict(self):
+        return {}
+
 
 
 # PIZZA
