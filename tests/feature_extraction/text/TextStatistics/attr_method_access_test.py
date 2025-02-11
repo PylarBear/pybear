@@ -61,7 +61,7 @@ class TestAttrAccessBeforeAndAfterFit:
             'uniques_',
             'starts_with_frequency_',
             'character_frequency_',
-            'word_frequency_'
+            'string_frequency_'
         ]
 
 
@@ -83,7 +83,7 @@ class TestAttrAccessBeforeAndAfterFit:
         # BEFORE FIT ***************************************************
 
         for attr in _attrs:
-            with pytest.raises(NotFittedError):
+            with pytest.raises(AttributeError):
                 getattr(TestCls, attr)
 
         # END BEFORE FIT ***********************************************
@@ -126,7 +126,7 @@ class TestAttrAccessBeforeAndAfterFit:
                     isinstance, out.values(), (numbers.Integral for _ in out)
                 ))
                 assert all(map(lambda x: x >= 1, out.values()))
-            elif attr == 'word_frequency_':
+            elif attr == 'string_frequency_':
                 assert isinstance(out, dict)
                 assert all(map(isinstance, out, (str for _ in out)))
                 assert all(map(
@@ -156,11 +156,11 @@ class TestMethodAccessBeforeAndAfterFit:
             'print_overall_statistics',
             'print_starts_with_frequency',
             'print_character_frequency',
-            'print_word_frequency',
-            'get_longest_words',
-            'print_longest_words',
-            'get_shortest_words',
-            'print_shortest_words',
+            'print_string_frequency',
+            'get_longest_strings',
+            'print_longest_strings',
+            'get_shortest_strings',
+            'print_shortest_strings',
             'lookup_substring',
             'lookup_string',
             'score'
@@ -219,19 +219,19 @@ class TestMethodAccessBeforeAndAfterFit:
             elif _method == 'print_character_frequency':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)()
-            elif _method == 'print_word_frequency':
+            elif _method == 'print_string_frequency':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)(n=10)
-            elif _method == 'get_longest_words':
+            elif _method == 'get_longest_strings':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)(n=10)
-            elif _method == 'print_longest_words':
+            elif _method == 'print_longest_strings':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)(n=10)
-            elif _method == 'get_shortest_words':
+            elif _method == 'get_shortest_strings':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)(n=10)
-            elif _method == 'print_shortest_words':
+            elif _method == 'print_shortest_strings':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)(n=10)
             elif _method == 'lookup_substring':
@@ -286,25 +286,25 @@ class TestMethodAccessBeforeAndAfterFit:
                 assert getattr(TestCls, _method)() is None
             elif _method == 'print_character_frequency':
                 assert getattr(TestCls, _method)() is None
-            elif _method == 'print_word_frequency':
+            elif _method == 'print_string_frequency':
                 assert getattr(TestCls, _method)(n=10) is None
-            elif _method == 'get_longest_words':
+            elif _method == 'get_longest_strings':
                 out = getattr(TestCls, _method)(n=10)
                 assert isinstance(out, dict)
                 assert all(map(isinstance, out, (str for _ in out)))
                 assert all(map(
                     isinstance, out.values(), (numbers.Integral for _ in out)
                 ))
-            elif _method == 'print_longest_words':
+            elif _method == 'print_longest_strings':
                 assert getattr(TestCls, _method)(n=10) is None
-            elif _method == 'get_shortest_words':
+            elif _method == 'get_shortest_strings':
                 out = getattr(TestCls, _method)(n=10)
                 assert isinstance(out, dict)
                 assert all(map(isinstance, out, (str for _ in out)))
                 assert all(map(
                     isinstance, out.values(), (numbers.Integral for _ in out)
                 ))
-            elif _method == 'print_shortest_words':
+            elif _method == 'print_shortest_strings':
                 assert getattr(TestCls, _method)(n=10) is None
             elif _method == 'lookup_substring':
                 out = getattr(TestCls, _method)(

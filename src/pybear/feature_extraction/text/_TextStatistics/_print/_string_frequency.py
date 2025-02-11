@@ -7,31 +7,31 @@
 
 
 from typing import Optional
-from .._type_aliases import WordFrequencyType
+from .._type_aliases import StringFrequencyType
 
 import numbers
 
 import numpy as np
 
 from .._validation._n import _val_n
-from .._validation._word_frequency import _val_word_frequency
+from .._validation._string_frequency import _val_string_frequency
 
 
 
-def _print_word_frequency(
-    word_frequency: WordFrequencyType,
+def _print_string_frequency(
+    string_frequency: StringFrequencyType,
     lp: numbers.Integral,
     rp: numbers.Integral,
     n: Optional[numbers.Integral] = 10
 ) -> None:
 
     """
-    Print the 'word_frequency_' attribute to screen.
+    Print the 'string_frequency_' attribute to screen.
 
 
     Parameters
     ----------
-    word_frequency:
+    string_frequency:
         dict[str, numbers.Integral] - the dictionary holding the unique
         strings and their respective counts for all strings fitted on
         the TextStatistics instance.
@@ -52,15 +52,15 @@ def _print_word_frequency(
     """
 
 
-    _val_word_frequency(word_frequency)
+    _val_string_frequency(string_frequency)
     _val_n(n)
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    _max_len = max(map(len, word_frequency))
+    _max_len = max(map(len, string_frequency))
 
-    _UNIQUES = np.fromiter(word_frequency, dtype=f"<U{_max_len}")
-    _COUNTS = np.fromiter(word_frequency.values(), dtype=np.uint32)
+    _UNIQUES = np.fromiter(string_frequency, dtype=f"<U{_max_len}")
+    _COUNTS = np.fromiter(string_frequency.values(), dtype=np.uint32)
 
     n = min(n, len(_UNIQUES))
     print(f'\n TOP {n} STRING FREQUENCY OF {len(_UNIQUES)}:')

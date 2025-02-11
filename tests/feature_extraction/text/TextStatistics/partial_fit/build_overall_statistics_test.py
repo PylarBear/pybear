@@ -18,7 +18,7 @@ from pybear.feature_extraction.text._TextStatistics._partial_fit. \
 class TestBuildCurrentOverallStatistics:
 
     # def _build_overall_statistics(
-    #         WORDS: Sequence[str]
+    #    STRINGS: Sequence[str]
     # ) -> OverallStatisticsType:
 
 
@@ -36,15 +36,15 @@ class TestBuildCurrentOverallStatistics:
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @pytest.mark.parametrize('junk_WORDS',
+    @pytest.mark.parametrize('junk_STRINGS',
         (-2.7, -1, 0, 1, 2.7, True, False, None, 'junk', [1,2], (1,), {1,2},
          {'a': 1}, np.random.randint(0, 10, (10,)), lambda x: x)
     )
-    def test_WORDS_rejects_non_list_like(self, junk_WORDS):
+    def test_STRINGS_rejects_non_list_like(self, junk_STRINGS):
 
         with pytest.raises(TypeError):
             _build_overall_statistics(
-                junk_WORDS,
+                junk_STRINGS,
                 case_sensitive=True
             )
 
@@ -76,10 +76,10 @@ class TestBuildCurrentOverallStatistics:
 
     def test_accuracy(self):
 
-        WORDS = ['I', 'Am', 'Sam', 'I', 'AM', 'SAM', 'sam', 'i', 'am']
+        STRINGS = ['I', 'Am', 'Sam', 'I', 'AM', 'SAM', 'sam', 'i', 'am']
 
         # case_sensitive False -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _build_overall_statistics(WORDS, case_sensitive=False)
+        out = _build_overall_statistics(STRINGS, case_sensitive=False)
 
         assert isinstance(out, dict)
 
@@ -93,22 +93,22 @@ class TestBuildCurrentOverallStatistics:
 
         assert 'average_length' in out
         assert isinstance(out['average_length'], float)
-        assert out['average_length'] == (sum(map(len, WORDS)) / len(WORDS))
+        assert out['average_length'] == (sum(map(len, STRINGS)) / len(STRINGS))
 
         assert 'std_length' in out
         assert isinstance(out['std_length'], float)
-        assert out['std_length'] == float(np.std(list(map(len, WORDS))))
+        assert out['std_length'] == float(np.std(list(map(len, STRINGS))))
 
         assert 'max_length' in out
         assert isinstance(out['max_length'], int)
-        assert out['max_length'] == max(map(len, WORDS))
+        assert out['max_length'] == max(map(len, STRINGS))
 
         assert 'min_length' in out
         assert isinstance(out['min_length'], int)
-        assert out['min_length'] == min(map(len, WORDS))
+        assert out['min_length'] == min(map(len, STRINGS))
 
         # case_sensitive True -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _build_overall_statistics(WORDS, case_sensitive=True)
+        out = _build_overall_statistics(STRINGS, case_sensitive=True)
 
         assert isinstance(out, dict)
 
@@ -122,19 +122,19 @@ class TestBuildCurrentOverallStatistics:
 
         assert 'average_length' in out
         assert isinstance(out['average_length'], float)
-        assert out['average_length'] == (sum(map(len, WORDS)) / len(WORDS))
+        assert out['average_length'] == (sum(map(len, STRINGS)) / len(STRINGS))
 
         assert 'std_length' in out
         assert isinstance(out['std_length'], float)
-        assert out['std_length'] == float(np.std(list(map(len, WORDS))))
+        assert out['std_length'] == float(np.std(list(map(len, STRINGS))))
 
         assert 'max_length' in out
         assert isinstance(out['max_length'], int)
-        assert out['max_length'] == max(map(len, WORDS))
+        assert out['max_length'] == max(map(len, STRINGS))
 
         assert 'min_length' in out
         assert isinstance(out['min_length'], int)
-        assert out['min_length'] == min(map(len, WORDS))
+        assert out['min_length'] == min(map(len, STRINGS))
 
 
 

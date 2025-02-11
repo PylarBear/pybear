@@ -8,21 +8,21 @@
 
 import pytest
 
-from pybear.feature_extraction.text._TextStatistics._validation._word_frequency \
-    import _val_word_frequency
+from pybear.feature_extraction.text._TextStatistics._validation._string_frequency \
+    import _val_string_frequency
 
 
 
-class TestWordFrequency:
+class TestStringFrequency:
 
-    @pytest.mark.parametrize('junk_word_frequency',
+    @pytest.mark.parametrize('junk_string_frequency',
         (-2.7, -1, 0, 1, 2.7, True, None, 'rubbish', [0, 1], (1,), lambda x: x)
     )
-    def test_rejects_non_dict(self, junk_word_frequency):
+    def test_rejects_non_dict(self, junk_string_frequency):
 
         with pytest.raises(AssertionError):
 
-            _val_word_frequency(junk_word_frequency)
+            _val_string_frequency(junk_string_frequency)
 
 
     @pytest.mark.parametrize('bad_key',
@@ -32,7 +32,7 @@ class TestWordFrequency:
 
         # non-str key
         with pytest.raises(AssertionError):
-            _val_word_frequency({bad_key: 1})
+            _val_string_frequency({bad_key: 1})
 
 
     @pytest.mark.parametrize('bad_value',
@@ -42,14 +42,14 @@ class TestWordFrequency:
 
         # non-positive-int value
         with pytest.raises(AssertionError):
-            _val_word_frequency({'what': bad_value})
+            _val_string_frequency({'what': bad_value})
 
 
-    def test_accepts_good_word_frequency(self):
+    def test_accepts_good_string_frequency(self):
 
-        _val_word_frequency({'apple': 1})
+        _val_string_frequency({'apple': 1})
 
-        _val_word_frequency({'APPLE': 1_234_567})
+        _val_string_frequency({'APPLE': 1_234_567})
 
 
 

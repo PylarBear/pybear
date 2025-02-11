@@ -490,8 +490,6 @@ class SlimPolyFeatures(
     >>> trf.get_feature_names_out()
     array(['x0', 'x1', '(0, 1)'], dtype=object)
 
-
-
     """
 
 

@@ -38,7 +38,7 @@ def _merge_character_frequency(
     ------
     -
         _character_frequency: dict[str, numbers.Integral] - the merged
-        unique characters and counts for all words seen across all
+        unique characters and counts for all strings seen across all
         partial fits of the TextStatistics instance.
 
 

@@ -124,10 +124,10 @@ class TestMergeOverallStatistics:
     @pytest.mark.parametrize('case_sensitive', (True, False))
     def test_accuracy_after_first_pass(self, case_sensitive):
 
-        word_list_1 = ['I', 'would', 'not', 'like', 'them', 'here', 'or', 'there']
+        string_list_1 = ['I', 'would', 'not', 'like', 'them', 'here', 'or', 'there']
 
         _dict_1 = _build_overall_statistics(
-            word_list_1,
+            string_list_1,
             case_sensitive=case_sensitive
         )
         assert isinstance(_dict_1, dict)
@@ -140,10 +140,10 @@ class TestMergeOverallStatistics:
         assert _dict_1['uniques_count'] == 8
 
 
-        word_list_2 = ['I', 'WOULD', 'NOT', 'LIKE', 'THEM', 'ANYWHERE']
+        string_list_2 = ['I', 'WOULD', 'NOT', 'LIKE', 'THEM', 'ANYWHERE']
 
         _dict_2 = _build_overall_statistics(
-            word_list_2,
+            string_list_2,
             case_sensitive=case_sensitive
         )
         assert isinstance(_dict_2, dict)
@@ -156,11 +156,11 @@ class TestMergeOverallStatistics:
         assert _dict_2['uniques_count'] == 6
 
         if case_sensitive:
-            _UNIQUES = set(word_list_1).union(word_list_2)
+            _UNIQUES = set(string_list_1).union(string_list_2)
         else:
             _UNIQUES = set(
-                map(str.upper, word_list_1)
-            ).union(map(str.upper, word_list_2))
+                map(str.upper, string_list_1)
+            ).union(map(str.upper, string_list_2))
 
         out = _merge_overall_statistics(
             _dict_1,

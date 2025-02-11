@@ -11,18 +11,18 @@ from .._type_aliases import OverallStatisticsType
 
 import numpy as np
 
-from .._validation._words import _val_words
+from .._validation._strings import _val_strings
 
 
 
 def _build_overall_statistics(
-    WORDS: Sequence[str],
+    STRINGS: Sequence[str],
     case_sensitive: Optional[bool] = False
 ) -> OverallStatisticsType:
 
     """
     Populate a dictionary with the following statistics for the current
-    batch of words:
+    batch of strings:
     - size
     - uniques_count
     - average_length
@@ -33,7 +33,7 @@ def _build_overall_statistics(
 
     Parameters
     ----------
-    WORDS:
+    STRINGS:
         Sequence[str] - a list-like of strings
     case_sensitive:
         Optional[bool], default = False - whether to normalize all
@@ -52,7 +52,7 @@ def _build_overall_statistics(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    _val_words(WORDS)
+    _val_strings(STRINGS)
 
     if not isinstance(case_sensitive, bool):
         raise TypeError(f"'case_sensitive' must be boolean")
@@ -60,16 +60,16 @@ def _build_overall_statistics(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    _LENGTHS = np.fromiter(map(len, WORDS), dtype=np.uint32)
+    _LENGTHS = np.fromiter(map(len, STRINGS), dtype=np.uint32)
 
     overall_statistics = {}
 
-    overall_statistics['size'] = len(WORDS)
+    overall_statistics['size'] = len(STRINGS)
 
     if case_sensitive:
-        overall_statistics['uniques_count'] = len(set(WORDS))
+        overall_statistics['uniques_count'] = len(set(STRINGS))
     else:
-        overall_statistics['uniques_count'] = len(set(map(str.upper, WORDS)))
+        overall_statistics['uniques_count'] = len(set(map(str.upper, STRINGS)))
 
     overall_statistics['average_length'] = float(np.mean(_LENGTHS))
     overall_statistics['std_length'] = float(np.std(_LENGTHS))

@@ -10,14 +10,14 @@ import pytest
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextStatistics._get._get_longest_words \
-    import _get_longest_words
+from pybear.feature_extraction.text._TextStatistics._get._get_shortest_strings \
+    import _get_shortest_strings
 
 
 
-class TestGetLongestWords:
+class TestGetShortestStrings:
 
-    # _val_word_frequency tested elsewhere
+    # _val_string_frequency tested elsewhere
 
     # _val_n tested elsewhere
 
@@ -38,14 +38,14 @@ class TestGetLongestWords:
         _ref_n = min(n, len(FREQ_DICT_1))
         _mask = np.lexsort((
             list(FREQ_DICT_1.keys()),
-            list(map(lambda x: 1 / x, map(len, FREQ_DICT_1.keys())))
+            list(map(len, FREQ_DICT_1.keys()))
         ))[:_ref_n]
         _ref_strs = np.array(list(FREQ_DICT_1.keys()))[_mask].tolist()
         _ref_freqs = np.array(list(FREQ_DICT_1.values()))[_mask].tolist()
         del _ref_n, _mask
 
 
-        out = _get_longest_words(FREQ_DICT_1, n)
+        out = _get_shortest_strings(FREQ_DICT_1, n)
 
         assert isinstance(out, dict)
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
@@ -70,14 +70,14 @@ class TestGetLongestWords:
         _ref_n = min(n, len(FREQ_DICT_2))
         _mask = np.lexsort((
             list(FREQ_DICT_2.keys()),
-            list(map(lambda x: 1 / x, map(len, FREQ_DICT_2.keys())))
+            list(map(len, FREQ_DICT_2.keys()))
         ))[:_ref_n]
         _ref_strs = np.array(list(FREQ_DICT_2.keys()))[_mask].tolist()
         _ref_freqs = np.array(list(FREQ_DICT_2.values()))[_mask].tolist()
         del _ref_n, _mask
 
 
-        out = _get_longest_words(FREQ_DICT_2, n)
+        out = _get_shortest_strings(FREQ_DICT_2, n)
 
         assert isinstance(out, dict)
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
@@ -102,14 +102,14 @@ class TestGetLongestWords:
         _ref_n = min(n, len(FREQ_DICT_3))
         _mask = np.lexsort((
             list(FREQ_DICT_3.keys()),
-            list(map(lambda x: 1 / x, map(len, FREQ_DICT_3.keys())))
+            list(map(len, FREQ_DICT_3.keys()))
         ))[:_ref_n]
         _ref_strs = np.array(list(FREQ_DICT_3.keys()))[_mask].tolist()
         _ref_freqs = np.array(list(FREQ_DICT_3.values()))[_mask].tolist()
         del _ref_n, _mask
 
 
-        out = _get_longest_words(FREQ_DICT_3, n)
+        out = _get_shortest_strings(FREQ_DICT_3, n)
 
         assert isinstance(out, dict)
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))

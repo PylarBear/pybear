@@ -30,11 +30,11 @@ StartsWithFrequencyType: TypeAlias = dict[str, numbers.Integral]
 
 CharacterFrequencyType: TypeAlias = dict[str, numbers.Integral]
 
-WordFrequencyType: TypeAlias = dict[str, numbers.Integral]
+StringFrequencyType: TypeAlias = dict[str, numbers.Integral]
 
-LongestWordsType: TypeAlias = dict[str, numbers.Integral]
+LongestStringsType: TypeAlias = dict[str, numbers.Integral]
 
-ShortestWordsType: TypeAlias = dict[str, numbers.Integral]
+ShortestStringsType: TypeAlias = dict[str, numbers.Integral]
 
 
 

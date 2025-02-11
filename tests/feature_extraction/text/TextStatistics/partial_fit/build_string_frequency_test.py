@@ -11,22 +11,22 @@ import numpy as np
 import pytest
 
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
-    _build_word_frequency import _build_word_frequency
+    _build_string_frequency import _build_string_frequency
 
 
 
-class TestBuildCurrentWordFrequency:
+class TestBuildCurrentStringFrequency:
 
 
-    @pytest.mark.parametrize('junk_WORDS',
+    @pytest.mark.parametrize('junk_STRINGS',
         (-2.7, -1, 0, 1, 2.7, True, False, None, 'trash', [0,1], (1,),
          {'a': 1}, lambda x: x)
     )
-    def test_junk_words(self, junk_WORDS):
+    def test_junk_strings(self, junk_STRINGS):
 
         with pytest.raises(TypeError):
-            _build_word_frequency(
-                junk_WORDS,
+            _build_string_frequency(
+                junk_STRINGS,
                 case_sensitive=False
             )
 
@@ -37,7 +37,7 @@ class TestBuildCurrentWordFrequency:
     def test_junk_case_sensitive(self, junk_case_sensitive):
 
         with pytest.raises(TypeError):
-            _build_word_frequency(
+            _build_string_frequency(
                 ['A', 'BE', 'TWO', 'FOUR', 'SEVEN', 'ELEVEN', 'FIFTEEN'],
                 case_sensitive=junk_case_sensitive
             )
@@ -46,10 +46,10 @@ class TestBuildCurrentWordFrequency:
     @pytest.mark.parametrize('case_sensitive', (True, False))
     def test_accuracy(self, case_sensitive):
 
-        WORDS = ['A', 'BE', 'TWO', 'FOUR', 'SEVEN', 'ELEVEN', 'FIFTEEN']
+        STRINGS = ['A', 'BE', 'TWO', 'FOUR', 'SEVEN', 'ELEVEN', 'FIFTEEN']
 
-        out = _build_word_frequency(
-            WORDS,
+        out = _build_string_frequency(
+            STRINGS,
             case_sensitive=case_sensitive
         )
 
@@ -62,17 +62,17 @@ class TestBuildCurrentWordFrequency:
 
         assert np.array_equal(
             sorted(list(out.keys())),
-            sorted(WORDS)
+            sorted(STRINGS)
         )
 
         assert all(map(lambda x: x==1, out.values()))
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        WORDS = ['a', 'be', 'two', 'for', 'seven', 'eleven', 'fifteen']
+        STRINGS = ['a', 'be', 'two', 'for', 'seven', 'eleven', 'fifteen']
 
-        out = _build_word_frequency(
-            WORDS,
+        out = _build_string_frequency(
+            STRINGS,
             case_sensitive=case_sensitive
         )
 
@@ -86,12 +86,12 @@ class TestBuildCurrentWordFrequency:
         if case_sensitive:
             assert np.array_equal(
                 sorted(list(out.keys())),
-                sorted(WORDS)
+                sorted(STRINGS)
             )
         elif not case_sensitive:
             assert np.array_equal(
                 sorted(list(out.keys())),
-                sorted(map(str.upper, WORDS))
+                sorted(map(str.upper, STRINGS))
             )
 
         assert all(map(lambda x: x==1, out.values()))
@@ -99,10 +99,10 @@ class TestBuildCurrentWordFrequency:
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        WORDS = ['one', 'ONE', 'two', 'TWO', 'two', 'TWO', 'THREE']
+        STRINGS = ['one', 'ONE', 'two', 'TWO', 'two', 'TWO', 'THREE']
 
-        out = _build_word_frequency(
-            WORDS,
+        out = _build_string_frequency(
+            STRINGS,
             case_sensitive=case_sensitive
         )
 

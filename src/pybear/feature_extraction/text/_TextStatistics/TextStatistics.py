@@ -9,15 +9,15 @@
 from typing import (
     Optional,
     Sequence,
-    Self
 )
+from typing_extensions import Self
 from ._type_aliases import (
     OverallStatisticsType,
     StartsWithFrequencyType,
     CharacterFrequencyType,
-    WordFrequencyType,
-    LongestWordsType,
-    ShortestWordsType
+    StringFrequencyType,
+    LongestStringsType,
+    ShortestStringsType
 )
 import numpy.typing as npt
 
@@ -25,18 +25,17 @@ import numbers
 
 import numpy as np
 
-from ._validation._words import _val_words
+from ._validation._strings import _val_strings
 from ._validation._overall_statistics import _val_overall_statistics
 from ._validation._uniques import _val_uniques
-from ._validation._word_frequency import _val_word_frequency
+from ._validation._string_frequency import _val_string_frequency
 from ._validation._startswith_frequency import _val_startswith_frequency
 from ._validation._character_frequency import _val_character_frequency
-from ._validation._n import _val_n
 
 from ._partial_fit._build_overall_statistics import _build_overall_statistics
 from ._partial_fit._merge_overall_statistics import _merge_overall_statistics
-from ._partial_fit._build_word_frequency import _build_word_frequency
-from ._partial_fit._merge_word_frequency import _merge_word_frequency
+from ._partial_fit._build_string_frequency import _build_string_frequency
+from ._partial_fit._merge_string_frequency import _merge_string_frequency
 from ._partial_fit._build_startswith_frequency import _build_startswith_frequency
 from ._partial_fit._merge_startswith_frequency import _merge_startswith_frequency
 from ._partial_fit._build_character_frequency import _build_character_frequency
@@ -44,13 +43,13 @@ from ._partial_fit._merge_character_frequency import _merge_character_frequency
 
 from ._print._overall_statistics import _print_overall_statistics
 from ._print._startswith_frequency import _print_starts_with_frequency
-from ._print._word_frequency import _print_word_frequency
+from ._print._string_frequency import _print_string_frequency
 from ._print._character_frequency import _print_character_frequency
-from ._print._longest_words import _print_longest_words
-from ._print._shortest_words import _print_shortest_words
+from ._print._longest_strings import _print_longest_strings
+from ._print._shortest_strings import _print_shortest_strings
 
-from ._get._get_longest_words import _get_longest_words
-from ._get._get_shortest_words import _get_shortest_words
+from ._get._get_longest_strings import _get_longest_strings
+from ._get._get_shortest_strings import _get_shortest_strings
 
 from ._lookup._lookup_substring import _lookup_substring
 from ._lookup._lookup_string import _lookup_string
@@ -64,54 +63,120 @@ from ....base import (
 
 class TextStatistics(ReprMixin):
 
+    """
+    Generate summary information about a list or multiple lists of
+    strings. Statistics include:
+
+    - size (number of strings fitted)
+
+    - unique strings count
+
+    - average length and standard deviation of all strings
+
+    - max string length
+
+    - min string length
+
+    - string frequencies
+
+    - 'starts with' frequency
+
+    - single character frequency
+
+    - longest strings
+
+    - shortest strings
+
+    TextStatistics has 2 scikit-style methods, partial_fit and fit. It
+    does not have a transform method, and because the instance does not
+    take parameters, it does not have a set_params method. TextStatistics
+    does have other methods that allow access to certain functionality,
+    such as conveniently printing summary information from attributes to
+    screen. See the methods section of the docs.
+
+    TextStatistics can be fit on a single batch of data via :method: fit,
+    and can be fit in batches via :method: partial_fit. The fit method
+    resets the instance with each call, that is, all information held
+    within the instance prior is deleted and the new fit information
+    repopulates. The partial_fit method, however, does not reset and
+    accumulates information across all batches seen. This makes
+    TextStatistics suitable for streaming data and batch-wise training,
+    such as with dask_ml Incremental and ParallelPostFit wrappers.
+
+    TextStatistics accepts 1D list-likes containing only strings. This
+    includes numpy arrays, python lists, sets, and tuples, and pandas
+    Series.
+
+
+    Attributes
+    ----------
+    size_:
+        numbers.Integral - The number of strings fitted on the
+        TextStatistics instance.
+    uniques_:
+        Sequence[str] - A 1D sequence of the unique strings fitted
+        on the TextStatistics instance.
+    overall_statistics_:
+        dict[str: numbers.Real] - A dictionary that holds information
+        about all the strings fitted on the TextStatistics instance,
+        such as average string length, maximum string length, total
+        number of strings, etc.
+    string_frequency_:
+        dict[str, numbers.Integral] - The unique strings and the number
+        of occurrences seen during fitting.
+    starts_with_frequency_:
+        dict[str, numbers.Integral] - A dictionary that holds the first
+        characters and their frequencies in the first position for all
+        the strings fitted on the TextStatistics instance.
+    character_frequency_:
+        dict[str, numbers.Integral] - A dictionary that holds all the
+        unique single characters and their frequencies for all the
+        strings fitted on the TextStatistics instance.
+
+
+    Examples
+    --------
+    >>> from pybear.feature_extraction.text import TextStatistics
+    >>> STRINGS = ['I am Sam', 'Sam I am', 'That Sam-I-am!', 'That Sam-I-am!',
+    ...    'I do not like that Sam-I-am!']
+    >>> TS = TextStatistics()
+    >>> TS.fit(STRINGS)
+    TextStatistics()
+    >>> TS.size_
+    5
+    >>> TS.overall_statistics_['max_length']
+    28
+    >>> TS.overall_statistics_['average_length']
+    14.4
+
+    >>> STRINGS = ['a', 'a', 'b', 'c', 'c', 'c', 'd', 'd', 'e', 'f', 'f']
+    >>> TS = TextStatistics()
+    >>> TS.fit(STRINGS)
+    TextStatistics()
+    >>> TS.size_
+    11
+    >>> TS.string_frequency_
+    {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
+    >>> TS.uniques_
+    ['a', 'b', 'c', 'd', 'e', 'f']
+    >>> TS.overall_statistics_['max_length']
+    1
+    >>> TS.character_frequency_
+    {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
+
+    """
+
+
     _lp: numbers.Integral = 5
     _rp: numbers.Integral = 15
 
 
     def __init__(self) -> None:
-
-        """
-        pizza finalize this.
-        Generate statistics about a list of words. Returns
-        nothing. Statistics include
-        - size
-        - uniques count
-        - average length and standard deviation
-        - max word length
-        - min word length
-        - 'starts with' frequency
-        - letter frequency
-        - top word frequencies
-        - top longest words
+        """Intialize a TextStatistics class."""
+        pass
 
 
-        Return
-        ------
-        -
-            None
-
-        """
-
-
-    def __pybear_is_fitted__(self):
-
-        """
-        If an estimator/transformer does not set any attributes with a
-        trailing underscore, it can define a '__pybear_is_fitted__' method
-        returning a boolean to specify if the estimator/transformer is
-        fitted or not.
-
-        """
-
-        # must have this because there are no trailing-underscore attrs
-        # generated by {partial_}fit(). all the trailing-underscore attrs
-        # are accessed via @property.
-        return hasattr(self, '_overall_statistics')
-
-
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
     # @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
     # size_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def size_(self) -> numbers.Integral:
@@ -128,27 +193,6 @@ class TextStatistics(ReprMixin):
         raise AttributeError(f'size_ attribute is read-only')
     # END size_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @property
-    def overall_statistics_(self) -> OverallStatisticsType:
-
-        """
-        A dictionary that holds information about all the strings fitted
-        on the TextStatistics instance, such as average string length,
-        maximum string length, total number of strings, etc.
-
-        """
-
-        check_is_fitted(self)
-
-        return self._overall_statistics
-
-
-    @overall_statistics_.setter
-    def overall_statistics_(self, value):
-        raise AttributeError(f'overall_statistics_ attribute is read-only')
-    # END overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
     # uniques_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def uniques_(self) -> Sequence[str]:  # pizza want ndarray here?
@@ -159,9 +203,8 @@ class TextStatistics(ReprMixin):
 
         """
 
-        check_is_fitted(self)
 
-        uniques = list(self._word_frequency.keys())
+        uniques = list(self.string_frequency_.keys())
 
         _val_uniques(uniques)
 
@@ -172,78 +215,33 @@ class TextStatistics(ReprMixin):
     def uniques_(self, value):
         raise AttributeError(f'overall_statistics_ attribute is read-only')
     # END uniques_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # starts_with_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @property
-    def starts_with_frequency_(self) -> StartsWithFrequencyType:
-
-        # pizza make a decision ... starts_with_frequency or startswith_frequency
-
-        """
-        A dictionary that holds the first characters and their frequencies
-        for all the strings fitted on the TextStatistics instance.
-
-        """
-
-        check_is_fitted(self)
-
-        return self._starts_with_frequency
-
-
-    @starts_with_frequency_.setter
-    def starts_with_frequency_(self, value):
-        raise AttributeError(f'starts_with_frequency_ attribute is read-only')
-    # END starts_with_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @property
-    def character_frequency_(self) -> CharacterFrequencyType:
-
-        check_is_fitted(self)
-
-        return self._character_frequency
-
-
-    @character_frequency_.setter
-    def character_frequency_(self, value):
-        raise AttributeError(f'character_frequency_ attribute is read-only')
-    # END character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # word_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @property
-    def word_frequency_(self) -> WordFrequencyType:
-
-        """The unique strings seen and the number of occurrences."""
-
-        check_is_fitted(self)
-
-        return self._word_frequency
-
-
-    @word_frequency_.setter
-    def word_frequency_(self, value):
-        raise AttributeError(f'word_frequency_ attribute is read-only')
-    # END word_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
     # END @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
     def _reset(self):
 
         try:
-            del self._word_frequency
-            del self._overall_statistics
-            del self._starts_with_frequency
-            del self._character_frequency
+            del self.string_frequency_
+            del self.overall_statistics_
+            del self.starts_with_frequency_
+            del self.character_frequency_
         except:
             pass
 
 
+    def get_params(self, deep: Optional[bool] = True):
+
+        """
+        A spoof get_params for ReprMixin functionality. TextStatistics
+        does not have any init parameters.
+        """
+
+        return {}
+
 
     def partial_fit(
         self,
-        WORDS: Sequence[str],
+        STRINGS: Sequence[str],
         y: Optional[any] = None
     ) -> Self:
 
@@ -253,14 +251,14 @@ class TextStatistics(ReprMixin):
 
         Parameters
         ----------
-        WORDS:
-            Sequence[str] - a single list-like vector of words to report
-            statistics for, cannot be empty. Words do not need to be in
-            the Lexicon. Individual words cannot have spaces and must be
-            under 30 characters in length.
+        STRINGS:
+            Sequence[str] - a single list-like vector of strings to
+            report statistics for, cannot be empty. strings do not need
+            to be in the Lexicon. Individual strings cannot have spaces
+            and must be under 30 characters in length.
         y:
-            Optional[any], default = None - a target for the data. Always
-            ignored.
+            Optional[any], default = None - a target for the data.
+            Always ignored.
 
 
         Return
@@ -271,52 +269,52 @@ class TextStatistics(ReprMixin):
 
         """
 
-        _val_words(WORDS)
+        _val_strings(STRINGS)
 
-        # word_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # this must be before overall_statistics
-        _current_word_frequency: dict[str, numbers.Integral] = \
-            _build_word_frequency(
-                WORDS,
+        _current_string_frequency: StringFrequencyType = \
+            _build_string_frequency(
+                STRINGS,
                 case_sensitive=True
             )
 
-        self._word_frequency: dict[str, numbers.Integral] = \
-            _merge_word_frequency(
-                _current_word_frequency,
-                getattr(self, '_word_frequency', {})
+        self.string_frequency_: StringFrequencyType = \
+            _merge_string_frequency(
+                _current_string_frequency,
+                getattr(self, '_string_frequency', {})
             )
 
-        del _current_word_frequency
+        del _current_string_frequency
 
-        _val_word_frequency(self._word_frequency)
-        # END word_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _val_string_frequency(self.string_frequency_)
+        # END string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _current_overall_statistics: dict[str, numbers.Real] = \
+        _current_overall_statistics: OverallStatisticsType = \
             _build_overall_statistics(
-                WORDS,
+                STRINGS,
                 case_sensitive=True
             )
 
-        self._overall_statistics: dict[str, numbers.Real] = \
+        self.overall_statistics_: OverallStatisticsType = \
             _merge_overall_statistics(
                 _current_overall_statistics,
                 getattr(self, '_overall_statistics', {}),
-                len(self._word_frequency)
+                len(self.string_frequency_)
             )
 
         del _current_overall_statistics
 
-        _val_overall_statistics(self._overall_statistics)
+        _val_overall_statistics(self.overall_statistics_)
         # END overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # startswith_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _current_starts_with_frequency = \
+        _current_starts_with_frequency: StartsWithFrequencyType = \
             _build_startswith_frequency(
-                self._word_frequency
+                self.string_frequency_
             )
-        self._starts_with_frequency: dict[str, numbers.Integral] = \
+        self.starts_with_frequency_: StartsWithFrequencyType = \
             _merge_startswith_frequency(
                 _current_starts_with_frequency,
                 getattr(self, '_starts_with_frequency', {})
@@ -324,17 +322,17 @@ class TextStatistics(ReprMixin):
 
         del _current_starts_with_frequency
 
-        _val_startswith_frequency(self._starts_with_frequency)
+        _val_startswith_frequency(self.starts_with_frequency_)
         # END startswith_frequency -- -- -- -- -- -- -- -- -- -- -- --
 
 
         # character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _current_character_frequency: dict[str, numbers.Integral] = \
+        _current_character_frequency: CharacterFrequencyType = \
             _build_character_frequency(
-                self._word_frequency
+                self.string_frequency_
             )
 
-        self._character_frequency: dict[str, numbers.Integral] = \
+        self.character_frequency_: CharacterFrequencyType = \
             _merge_character_frequency(
                 _current_character_frequency,
                 getattr(self, '_character_frequency', {})
@@ -342,7 +340,7 @@ class TextStatistics(ReprMixin):
 
         del _current_character_frequency
 
-        _val_character_frequency(self._character_frequency)
+        _val_character_frequency(self.character_frequency_)
         # END character_frequency -- -- -- -- -- -- -- -- -- -- -- -- --
 
         return self
@@ -350,21 +348,21 @@ class TextStatistics(ReprMixin):
 
     def fit(
         self,
-        WORDS: Sequence[str],
+        STRINGS: Sequence[str],
         y: Optional[any] = None
     ) -> Self:
 
         """
-        Get statistics for one sequence of words.
+        Get statistics for one sequence of strings.
 
 
         Parameters
         ----------
-        WORDS:
-            Sequence[str] - a single list-like vector of words to report
-            statistics for, cannot be empty. Words do not need to be in
-            the Lexicon. Individual words cannot have spaces and must be
-            under 30 characters in length.
+        STRINGS:
+            Sequence[str] - a single list-like vector of strings to
+            report statistics for, cannot be empty. Strings do not need
+            to be in the Lexicon. Individual strings cannot have spaces
+            and must be under 30 characters in length.
         y:
             Optional[any], default = None - a target for the data. Always
             ignored.
@@ -380,8 +378,7 @@ class TextStatistics(ReprMixin):
 
         self._reset()
 
-        return self.partial_fit(WORDS)
-
+        return self.partial_fit(STRINGS)
 
 
     # OTHER METHODS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -392,7 +389,7 @@ class TextStatistics(ReprMixin):
 
         check_is_fitted(self)
 
-        _print_overall_statistics(self._overall_statistics, self._lp, self._rp)
+        _print_overall_statistics(self.overall_statistics_, self._lp, self._rp)
 
 
     def print_starts_with_frequency(self) -> None:
@@ -402,7 +399,7 @@ class TextStatistics(ReprMixin):
         check_is_fitted(self)
 
         _print_starts_with_frequency(
-            self._starts_with_frequency, self._lp, self._rp
+            self.starts_with_frequency_, self._lp, self._rp
         )
 
 
@@ -412,16 +409,16 @@ class TextStatistics(ReprMixin):
 
         check_is_fitted(self)
 
-        _print_character_frequency(self._character_frequency, self._lp, self._rp)
+        _print_character_frequency(self.character_frequency_, self._lp, self._rp)
 
 
-    def print_word_frequency(
+    def print_string_frequency(
         self,
         n:Optional[numbers.Integral] = 10
     ) -> None:
 
         """
-        Print the 'word_frequency_' attribute to screen.
+        Print the 'string_frequency_' attribute to screen.
 
 
         Parameters
@@ -440,16 +437,14 @@ class TextStatistics(ReprMixin):
 
         check_is_fitted(self)
 
-        _print_word_frequency(self._word_frequency, self._lp, self._rp, n)
+        _print_string_frequency(self.string_frequency_, self._lp, self._rp, n)
 
 
-    # pizza make a decision ... 'words' or 'strings'
-
-    # longest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ==
-    def get_longest_words(
+    # longest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    def get_longest_strings(
         self,
         n: Optional[numbers.Integral] = 10
-    ) -> LongestWordsType:
+    ) -> LongestStringsType:
 
         """
         The longest strings seen by the TextStatistics instance during
@@ -474,17 +469,22 @@ class TextStatistics(ReprMixin):
 
         check_is_fitted(self)
 
-        return _get_longest_words(self._word_frequency, n=n)
+        __ = _get_longest_strings(self.string_frequency_, n=n)
+
+        # _val_string_frequency will work for this
+        _val_string_frequency(__)
+
+        return __
 
 
-    def print_longest_words(
+    def print_longest_strings(
         self,
         n: Optional[numbers.Integral] = 10
     ) -> None:
 
         """
-        Print the longest strings in the 'word_frequency_' attribute to
-        screen.
+        Print the longest strings in the 'string_frequency_' attribute
+        to screen.
 
 
         Parameters
@@ -504,14 +504,14 @@ class TextStatistics(ReprMixin):
 
         check_is_fitted(self)
 
-        _print_longest_words(self._word_frequency, self._lp, self._rp, n)
-    # END longest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _print_longest_strings(self.string_frequency_, self._lp, self._rp, n)
+    # END longest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    # shortest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    def get_shortest_words(
+    # shortest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    def get_shortest_strings(
         self,
         n: Optional[numbers.Integral] = 10
-    ) -> ShortestWordsType:
+    ) -> ShortestStringsType:
 
         """
         The shortest strings seen by the TextStatistics instance during
@@ -536,17 +536,22 @@ class TextStatistics(ReprMixin):
 
         check_is_fitted(self)
 
-        return _get_shortest_words(self._word_frequency, n=n)
+        __ = _get_shortest_strings(self.string_frequency_, n=n)
+
+        # _val_string_frequency will work for this
+        _val_string_frequency(__)
+
+        return __
 
 
-    def print_shortest_words(
+    def print_shortest_strings(
         self,
         n: Optional[numbers.Integral] = 10
     ) -> None:
 
         """
-        Print the shortest strings in the 'word_frequency_' attribute to
-        screen.
+        Print the shortest strings in the 'string_frequency_' attribute
+        to screen.
 
 
         Parameters
@@ -564,11 +569,8 @@ class TextStatistics(ReprMixin):
 
         check_is_fitted(self)
 
-        _print_shortest_words(self._word_frequency, self._lp, self._rp, n)
-
-    # END shortest_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-
+        _print_shortest_strings(self.string_frequency_, self._lp, self._rp, n)
+    # END shortest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     def lookup_substring(
         self,

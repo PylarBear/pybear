@@ -12,10 +12,10 @@ import numpy as np
 
 
 
-def _val_words(words: Sequence[str]) -> None:
+def _val_strings(strings: Sequence[str]) -> None:
 
     """
-    Validate 'words'.
+    Validate 'strings'.
 
     - Must be 1D sequence of strings
     - cannot be empty
@@ -25,9 +25,9 @@ def _val_words(words: Sequence[str]) -> None:
 
     Parameters
     ----------
-    words:
-        Sequence[str] - a single list-like vector of words to report
-        statistics for. Words do not need to be in the Lexicon.
+    strings:
+        Sequence[str] - a single list-like vector of strings to report
+        statistics for. Strings do not need to be in the pybear Lexicon.
 
 
     Return
@@ -40,22 +40,22 @@ def _val_words(words: Sequence[str]) -> None:
 
 
 
-    err_msg = (f"'words' must be passed as a list-like vector of strings, "
+    err_msg = (f"'strings' must be passed as a list-like vector of strings, "
                f"cannot be empty.")
 
     try:
-        iter(words)
-        if isinstance(words, (dict, str)):
+        iter(strings)
+        if isinstance(strings, (dict, str)):
             raise Exception
-        if not len(np.array(list(words)).shape) == 1:
+        if not len(np.array(list(strings)).shape) == 1:
             raise Exception
     except:
         raise TypeError(err_msg)
 
-    if len(words) == 0:
+    if len(strings) == 0:
         raise ValueError(err_msg)
 
-    if not all(map(isinstance, words, (str for _ in words))):
+    if not all(map(isinstance, strings, (str for _ in strings))):
         raise TypeError(err_msg)
 
     del err_msg
