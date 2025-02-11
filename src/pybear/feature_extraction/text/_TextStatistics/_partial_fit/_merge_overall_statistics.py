@@ -22,7 +22,7 @@ def _merge_overall_statistics(
 ) -> OverallStatisticsType:
 
     """
-    Combine the statistics for the current batch of words with those
+    Combine the statistics for the current batch of strings with those
     from the previous partial fits.
 
 
@@ -32,10 +32,10 @@ def _merge_overall_statistics(
         dict[str, numbers.Real] - the overall statistics for the current
         partial fit.
     _overall_statistics:
-        dict[str, numbers.Real] - the statistics for all words seen prior
-        to the current partial fit.
+        dict[str, numbers.Real] - the statistics for all strings seen
+        prior to the current partial fit.
     _len_uniques:
-        the number of unique words seen by all partial fits, including
+        the number of unique strings seen by all partial fits, including
         the current partial fit.
 
 
@@ -43,7 +43,7 @@ def _merge_overall_statistics(
     ------
     -
         _overall_statistics: dict[str, numbers.Real] - the statistics
-        for all words seen.
+        for all strings seen.
 
     """
 

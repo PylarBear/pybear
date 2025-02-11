@@ -11,13 +11,13 @@ import numpy as np
 import pytest
 
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
-    _merge_word_frequency import _merge_word_frequency
+    _merge_string_frequency import _merge_string_frequency
 
 
 
-class TestMergeWordFrequency:
+class TestMergeStringFrequency:
 
-    # all validation is handled by _val_word_frequency, which is tested
+    # all validation is handled by _val_string_frequency, which is tested
     # elsewhere
 
     def test_accuracy(self):
@@ -31,7 +31,7 @@ class TestMergeWordFrequency:
         }
 
 
-        out1 = _merge_word_frequency(_wf_1, _wf_2)
+        out1 = _merge_string_frequency(_wf_1, _wf_2)
         assert isinstance(out1, dict)
         assert all(map(isinstance, out1.keys(), (str for _ in out1)))
         assert all(map(isinstance, out1.values(), (int for _ in out1)))
@@ -50,7 +50,7 @@ class TestMergeWordFrequency:
             assert out1[k] == v
 
 
-        out2 = _merge_word_frequency(_wf_3, out1)
+        out2 = _merge_string_frequency(_wf_3, out1)
         assert isinstance(out2, dict)
         assert all(map(isinstance, out2.keys(), (str for _ in out2)))
         assert all(map(isinstance, out2.values(), (int for _ in out2)))

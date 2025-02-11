@@ -8,23 +8,23 @@
 
 import numbers
 
-from .._validation._word_frequency import _val_word_frequency
+from .._validation._string_frequency import _val_string_frequency
 
 
 
 def _build_startswith_frequency(
-    _word_frequency: dict[str, numbers.Integral]
+    _string_frequency: dict[str, numbers.Integral]
 ) -> dict[str, numbers.Integral]:
 
     """
     Build a dictionary that contains the first character of every string
-    in '_word_frequency' as keys and the number of times that that
+    in '_string_frequency' as keys and the number of times that that
     character appears as the first character of a string as the values.
 
 
     Parameters
     ----------
-    _word_frequency:
+    _string_frequency:
         dict[str, numbers.Integral] - the dictionary holding the unique
         strings passed to the current partial fit and their respective
         frequencies.
@@ -42,11 +42,11 @@ def _build_startswith_frequency(
     """
 
 
-    _val_word_frequency(_word_frequency)
+    _val_string_frequency(_string_frequency)
 
     # pizza, maybe do some benchmarking on this.
-    # another way would to pass WORDS directly and do:
-    # _char_getter = map(lambda x: str(x[0]), WORDS)
+    # another way would to pass STRINGS directly and do:
+    # _char_getter = map(lambda x: str(x[0]), STRINGS)
     # _startswith_frequency: dict[str: numbers.Integral] = dict((zip(
     #     *np.unique(np.fromiter(_char_getter, dtype='<U1'), return_counts=True)
     # )))
@@ -54,7 +54,7 @@ def _build_startswith_frequency(
 
     _startswith_frequency: dict[str: numbers.Integral] = {}
 
-    for _string, _ct in _word_frequency.items():
+    for _string, _ct in _string_frequency.items():
         _startswith_frequency[str(_string[0])] = \
             (_startswith_frequency.get(str(_string[0]), 0) + _ct)
 

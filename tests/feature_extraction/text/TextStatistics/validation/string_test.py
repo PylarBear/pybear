@@ -10,8 +10,8 @@ import pytest
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextStatistics._validation._words import \
-    _val_words
+from pybear.feature_extraction.text._TextStatistics._validation._strings import \
+    _val_strings
 
 
 
@@ -23,27 +23,27 @@ class TestStatistics:
     )
     def test_rejects_non_list_like(self, non_iterable):
         with pytest.raises(TypeError):
-            _val_words(non_iterable)
+            _val_strings(non_iterable)
 
 
     @pytest.mark.parametrize('junk_value',
         (0, 3.14, True, False, None, lambda x: x, {'a': 1}, [1,2])
     )
-    def test_rejects_vector_of_non_words(self, junk_value):
+    def test_rejects_vector_of_non_strings(self, junk_value):
         with pytest.raises(TypeError):
-            _val_words(['good', 'bad', 'indifferent', junk_value])
+            _val_strings(['good', 'bad', 'indifferent', junk_value])
 
 
     def test_rejects_empty(self):
 
         with pytest.raises(ValueError):
-            _val_words([])
+            _val_strings([])
 
 
     def test_rejects_2D(self):
 
         with pytest.raises(TypeError):
-            _val_words([['a', 'b', 'c']])
+            _val_strings([['a', 'b', 'c']])
 
 
     @pytest.mark.parametrize('container', (list, set, tuple, np.ndarray))
@@ -52,19 +52,19 @@ class TestStatistics:
         LIST = ['good', 'bad', 'indifferent', 'garbage']
 
         if container is np.ndarray:
-            WORDS = np.array(LIST)
-            assert isinstance(WORDS, np.ndarray)
+            STRINGS = np.array(LIST)
+            assert isinstance(STRINGS, np.ndarray)
         else:
-            WORDS = container(LIST)
-            assert isinstance(WORDS, container)
+            STRINGS = container(LIST)
+            assert isinstance(STRINGS, container)
 
-        _val_words(WORDS)
+        _val_strings(STRINGS)
 
 
     def test_handles_small_lists(self):
-        _val_words(['short', 'list'])
+        _val_strings(['short', 'list'])
 
-        _val_words(['alone'])
+        _val_strings(['alone'])
 
 
 

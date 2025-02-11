@@ -38,8 +38,8 @@ def _merge_startswith_frequency(
     ------
     -
         _startswith_frequency: dict[str, numbers.Integral] - the merged
-        unique first characters and counts for all words seen across all
-        partial fits of the TextStatistics instance.
+        unique first characters and counts for all strings seen across
+        all partial fits of the TextStatistics instance.
 
 
     """
@@ -51,8 +51,8 @@ def _merge_startswith_frequency(
 
 
     # pizza, maybe do some benchmarking on this.
-    # another way would to pass WORDS directly and do:
-    # _char_getter = map(lambda x: str(x[0]), WORDS)
+    # another way would to pass STRINGS directly and do:
+    # _char_getter = map(lambda x: str(x[0]), STRINGS)
     # _startswith_frequency: dict[str: numbers.Integral] = dict((zip(
     #     *np.unique(np.fromiter(_char_getter, dtype='<U1'), return_counts=True)
     # )))

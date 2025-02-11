@@ -25,8 +25,8 @@ def _val_overall_statistics(
     ----------
     _overall_statistics:
         dict[str, numbers.Real] - the dictionary containing summary
-        statistics about the words fit on the TextStatistics instance,
-        such as number of words, average length of words, etc.
+        statistics about the strings fit on the TextStatistics instance,
+        such as number of strings, average length of strings, etc.
 
 
     Return
