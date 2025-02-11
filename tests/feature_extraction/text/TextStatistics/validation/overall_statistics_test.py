@@ -15,7 +15,7 @@ from pybear.feature_extraction.text._TextStatistics._validation. \
 
 
 
-class TestValOverallStatisticsDict:
+class TestValOverallStatistics:
 
 
     @staticmethod

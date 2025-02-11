@@ -6,12 +6,12 @@
 
 
 
-from .._type_aliases import StringFrequencyType
+import numbers
 
 
 
 def _val_string_frequency(
-    _string_frequency: StringFrequencyType
+    _string_frequency: dict[str, numbers.Integral]
 ) -> None:
 
     """

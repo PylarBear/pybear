@@ -17,7 +17,7 @@ def _lookup_string(
     char_seq: str,
     uniques: Sequence[str],
     case_sensitive: Optional[bool] = True
-) -> Union[str, Sequence[str], None]:
+) -> Union[str, list[str], None]:
 
     """
     Look in the fitted strings for a full character sequence (not a
@@ -27,7 +27,7 @@ def _lookup_string(
     that character string. If an exact match is not found, return None.
     If the case_sensitive parameter is False, normalize the given
     character string and the strings seen by the TextStatistics instance
-    and search for matches. If matches are found, return a 1D sequence
+    and search for matches. If matches are found, return a 1D list
     of the matches in their original form from the fitted data (there
     may be matches with different capitalization in the fitted data, so
     there may be multiple entries.) If no matches are found, return None.
@@ -51,9 +51,9 @@ def _lookup_string(
     Return
     ------
     -
-        Union[str, Sequence[str], None] - if there are any matches,
-        return the matching string(s) from the originally fitted data;
-        if there are no matches, return None.
+        Union[str, list[str], None] - if there are any matches, return
+        the matching string(s) from the originally fitted data; if there
+        are no matches, return None.
 
 
     """
@@ -110,9 +110,6 @@ def _lookup_string(
             return list(map(str, list(set(np.array(list(uniques))[MASK].tolist()))))
         elif not np.any(MASK):
             return
-
-
-    del _finder, MASK
 
 
 

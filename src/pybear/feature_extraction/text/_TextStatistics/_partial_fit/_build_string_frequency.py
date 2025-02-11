@@ -7,9 +7,8 @@
 
 
 from typing import Sequence, Optional
-from .._type_aliases import StringFrequencyType
 
-import numpy as np
+import numbers
 
 from .._validation._strings import _val_strings
 
@@ -18,7 +17,7 @@ from .._validation._strings import _val_strings
 def _build_string_frequency(
     STRINGS: Sequence[str],
     case_sensitive: Optional[bool] = False
-) -> StringFrequencyType:
+) -> dict[str, numbers.Integral]:
 
     """
     Build a dictionary of the unique strings in STRINGS and their counts.
@@ -51,17 +50,19 @@ def _build_string_frequency(
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    _string_frequency = {}
     if case_sensitive:
-        _string_frequency = dict((zip(*np.unique(STRINGS, return_counts=True))))
+        for _string in STRINGS:
+            _string_frequency[str(_string)] = \
+                _string_frequency.get(str(_string), 0) + 1
     elif not case_sensitive:
-        _string_frequency = dict((zip(
-            *np.unique(list(map(str.upper, STRINGS)), return_counts=True)
-        )))
+        for _string in STRINGS:
+            _string_frequency[str(_string).upper()] = \
+                _string_frequency.get(str(_string).upper(), 0) + 1
 
-    _string_frequency = dict((zip(
-        map(str, _string_frequency.keys()),
-        map(int, _string_frequency.values())
-    )))
+    # alphabetize
+    for k in sorted(_string_frequency.keys()):
+        _string_frequency[str(k)] = _string_frequency.pop(str(k))
 
 
     return _string_frequency

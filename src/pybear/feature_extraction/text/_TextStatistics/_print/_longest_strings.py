@@ -6,7 +6,6 @@
 
 
 
-from .._type_aliases import StringFrequencyType
 from typing import Optional
 
 import numbers
@@ -19,7 +18,7 @@ from .._get._get_longest_strings import _get_longest_strings
 
 
 def _print_longest_strings(
-    string_frequency: StringFrequencyType,
+    string_frequency: dict[str, numbers.Integral],
     lp: numbers.Integral,
     rp: numbers.Integral,
     n: Optional[numbers.Integral] = 10

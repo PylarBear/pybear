@@ -7,7 +7,6 @@
 
 
 from typing import Optional
-from .._type_aliases import StringFrequencyType
 
 import numbers
 
@@ -19,7 +18,7 @@ from .._validation._n import _val_n
 
 
 def _get_shortest_strings(
-    string_frequency: StringFrequencyType,
+    string_frequency: dict[str, numbers.Integral],
     n: Optional[numbers.Integral] = 10
 ) -> dict[str, numbers.Integral]:
 

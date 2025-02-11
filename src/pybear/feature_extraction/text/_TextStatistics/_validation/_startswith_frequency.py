@@ -6,11 +6,12 @@
 
 
 
-from .._type_aliases import StartsWithFrequencyType
+import numbers
+
 
 
 def _val_startswith_frequency(
-    _startswith_frequency: StartsWithFrequencyType
+    _startswith_frequency: dict[str, numbers.Integral]
 ) -> None:
 
     """

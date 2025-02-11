@@ -59,7 +59,7 @@ class TestAttrAccessBeforeAndAfterFit:
             'size_',
             'overall_statistics_',
             'uniques_',
-            'starts_with_frequency_',
+            'startswith_frequency_',
             'character_frequency_',
             'string_frequency_'
         ]
@@ -110,7 +110,7 @@ class TestAttrAccessBeforeAndAfterFit:
             elif attr == 'uniques_':
                 assert isinstance(attr, Sequence)
                 assert all(map(isinstance, out, (str for _ in out)))
-            elif attr == 'starts_with_frequency_':
+            elif attr == 'startswith_frequency_':
                 assert isinstance(out, dict)
                 assert all(map(isinstance, out, (str for _ in out)))
                 assert all(map(lambda x: len(x) == 1, out))
@@ -154,7 +154,7 @@ class TestMethodAccessBeforeAndAfterFit:
             'partial_fit',
             'fit',
             'print_overall_statistics',
-            'print_starts_with_frequency',
+            'print_startswith_frequency',
             'print_character_frequency',
             'print_string_frequency',
             'get_longest_strings',
@@ -213,7 +213,7 @@ class TestMethodAccessBeforeAndAfterFit:
             elif _method == 'print_overall_statistics':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)()
-            elif _method == 'print_starts_with_frequency':
+            elif _method == 'print_startswith_frequency':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)()
             elif _method == 'print_character_frequency':
@@ -282,7 +282,7 @@ class TestMethodAccessBeforeAndAfterFit:
                 assert isinstance(TestCls.partial_fit(_X), TS)
             elif _method == 'print_overall_statistics':
                 assert getattr(TestCls, _method)() is None
-            elif _method == 'print_starts_with_frequency':
+            elif _method == 'print_startswith_frequency':
                 assert getattr(TestCls, _method)() is None
             elif _method == 'print_character_frequency':
                 assert getattr(TestCls, _method)() is None

@@ -10,7 +10,7 @@ from pybear.feature_extraction.text._TextStatistics._print._overall_statistics \
     import _print_overall_statistics
 
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
-    _build_overall_statistics import _build_overall_statistics
+    _build_overall_statistics_OLD import _build_overall_statistics
 
 from _read_green_eggs_and_ham import _read_green_eggs_and_ham
 

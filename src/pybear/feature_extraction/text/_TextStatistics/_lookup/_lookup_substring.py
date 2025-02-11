@@ -16,10 +16,10 @@ def _lookup_substring(
     char_seq: str,
     uniques: Sequence[str],
     case_sensitive: Optional[bool] = True
-) -> Sequence[str]:
+) -> list[str]:
 
     """
-    Return a sequence of all strings that have been fitted on the
+    Return a list of all strings that have been fitted on the
     TextStatistics instance that contain the given character substring.
 
 
@@ -41,9 +41,9 @@ def _lookup_substring(
     Return
     ------
     -
-        matching_strings: Sequence[str] - sequence of all strings in the
-        fitted data that contain the given character substring. Returns
-        an empty sequence if there are no matches.
+        matching_strings: list[str] - list of all strings in the fitted
+        data that contain the given character substring. Returns an
+        empty list if there are no matches.
 
 
     """
@@ -68,7 +68,6 @@ def _lookup_substring(
             f"'uniques' must be a list-like sequence of strings, "
             f"cannot be empty."
         )
-
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

@@ -14,11 +14,13 @@ import math
 from .._validation._overall_statistics import _val_overall_statistics
 
 
+# not used as of first release
+
 
 def _merge_overall_statistics(
     _current_overall_statistics: OverallStatisticsType,
     _overall_statistics: OverallStatisticsType,
-    _len_uniques: int
+    _len_uniques: numbers.Integral
 ) -> OverallStatisticsType:
 
     """
@@ -35,8 +37,8 @@ def _merge_overall_statistics(
         dict[str, numbers.Real] - the statistics for all strings seen
         prior to the current partial fit.
     _len_uniques:
-        the number of unique strings seen by all partial fits, including
-        the current partial fit.
+        numbers.Integral - the number of unique strings seen by all
+        partial fits, including the current partial fit.
 
 
     Return

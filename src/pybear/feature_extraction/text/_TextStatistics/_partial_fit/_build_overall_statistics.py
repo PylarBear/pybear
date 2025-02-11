@@ -6,35 +6,45 @@
 
 
 
-from typing import Sequence, Optional
+from typing import Optional
 from .._type_aliases import OverallStatisticsType
+
+import numbers
 
 import numpy as np
 
-from .._validation._strings import _val_strings
+from .._validation._string_frequency import _val_string_frequency
 
 
 
 def _build_overall_statistics(
-    STRINGS: Sequence[str],
+    string_frequency_: dict[str, numbers.Integral],
     case_sensitive: Optional[bool] = False
 ) -> OverallStatisticsType:
 
     """
-    Populate a dictionary with the following statistics for the current
-    batch of strings:
+    Populate a dictionary with the following statistics for all strings
+    seen by the TextStatistics instance:
+
     - size
+
     - uniques_count
+
     - average_length
+
     - std_length
+
     - max_length
+
     - min_length
 
 
     Parameters
     ----------
-    STRINGS:
-        Sequence[str] - a list-like of strings
+    string_frequency_:
+        dict[str, numbers.Integral] - a dictionary holding all the
+        unique strings seen and their frequencies across all fits on the
+        TextStatistics instance.
     case_sensitive:
         Optional[bool], default = False - whether to normalize all
         characters to the same case or preserve the original case.
@@ -44,7 +54,7 @@ def _build_overall_statistics(
     ------
     -
         overall_statistics: dict[str, numbers.Real] - the statistics for
-        the current batch of data.
+        the all the strings seen by the TextStatistics instance.
 
 
     """
@@ -52,7 +62,7 @@ def _build_overall_statistics(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    _val_strings(STRINGS)
+    _val_string_frequency(string_frequency_)
 
     if not isinstance(case_sensitive, bool):
         raise TypeError(f"'case_sensitive' must be boolean")
@@ -60,19 +70,29 @@ def _build_overall_statistics(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    _LENGTHS = np.fromiter(map(len, STRINGS), dtype=np.uint32)
-
     overall_statistics = {}
 
-    overall_statistics['size'] = len(STRINGS)
+    overall_statistics['size'] = sum(string_frequency_.values())
 
     if case_sensitive:
-        overall_statistics['uniques_count'] = len(set(STRINGS))
+        overall_statistics['uniques_count'] = len(string_frequency_)
     else:
-        overall_statistics['uniques_count'] = len(set(map(str.upper, STRINGS)))
+        overall_statistics['uniques_count'] = \
+            len(set(map(str.upper, string_frequency_)))
 
-    overall_statistics['average_length'] = float(np.mean(_LENGTHS))
-    overall_statistics['std_length'] = float(np.std(_LENGTHS))
+
+    _LENGTHS = np.fromiter(map(len, string_frequency_), dtype=np.uint32)
+    __ = _LENGTHS.copy()
+    __ *= np.array(list(string_frequency_.values()), dtype=np.uint32)
+    __ = np.sum(__)
+    __ /= overall_statistics['size']
+    overall_statistics['average_length'] = float(__)
+    del __
+    len_pool = []
+    for k, v in string_frequency_.items():
+        len_pool += [len(k) for _ in range(v)]
+    overall_statistics['std_length'] = float(np.std(len_pool))
+    del len_pool
     overall_statistics['max_length'] = int(np.max(_LENGTHS))
     overall_statistics['min_length'] = int(np.min(min(_LENGTHS)))
 

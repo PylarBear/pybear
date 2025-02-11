@@ -9,14 +9,17 @@
 import pytest
 
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
-    _merge_overall_statistics import _merge_overall_statistics
+    _merge_overall_statistics_NOT_USED import _merge_overall_statistics
 
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
-    _build_overall_statistics import _build_overall_statistics
+    _build_overall_statistics_OLD import _build_overall_statistics
 
 from pybear.feature_extraction.text._TextStatistics._validation. \
     _overall_statistics import _val_overall_statistics
 
+
+
+pytest.skip(reason=f'not used as of first release', allow_module_level=True)
 
 
 class TestMergeOverallStatistics:

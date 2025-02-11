@@ -10,13 +10,11 @@ import numbers
 
 import numpy as np
 
-from .._type_aliases import CharacterFrequencyType
-
 from .._validation._character_frequency import _val_character_frequency
 
 
 def _print_character_frequency(
-    character_frequency: CharacterFrequencyType,
+    character_frequency: dict[str, numbers.Integral],
     lp: numbers.Integral,
     rp: numbers.Integral
 ) -> None:
