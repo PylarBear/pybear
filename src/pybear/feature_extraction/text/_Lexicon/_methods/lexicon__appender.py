@@ -6,13 +6,17 @@
 
 
 
+# pizza this probably should go when _add_word is done uce!
+
+
+
 import os
 
 import numpy as np
 
-from .....data_validation import validate_user_input as vui
-from ... import alphanumeric_str as ans
-from .. import Lexicon as lex
+from pybear.data_validation import validate_user_input as vui
+from pybear.feature_extraction.text import alphanumeric_str as ans
+from pybear.feature_extraction.text._Lexicon import Lexicon as lex
 
 
 

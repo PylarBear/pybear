@@ -3,22 +3,22 @@
 #
 # License: BSD 3 clause
 #
-
-
+import numbers
 
 import numpy.typing as npt
 
-import os, sys, inspect
+import os
 
 import numpy as np
 
-from ....utilities._get_module_name import get_module_name
-from ....data_validation import arg_kwarg_validater
-from ...text import (
-    alphanumeric_str as ans,
-    _statistics as _statistics
-)
-from ...text._Lexicon._old_py_lexicon import (
+from .._TextStatistics.TextStatistics import TextStatistics
+
+from ._methods._add_words import _add_words
+from ._methods._check_order import _check_order
+from ._methods._delete_words import _delete_words
+from ._methods._find_duplicates import _find_duplicates
+
+from ._old_py_lexicon import (
     lexicon_a as la,
     lexicon_b as lb,
     lexicon_c as lc,
@@ -49,64 +49,142 @@ from ...text._Lexicon._old_py_lexicon import (
 )
 
 
-# size
-# find_duplicates
-# check_order
-# _string_validation
-# statistics
-# lexicon
-# _old_py_lexicon
+
+class Lexicon(TextStatistics):
+
+    # size
+    # find_duplicates
+    # check_order
+    # _string_validation
+    # statistics
+    # lexicon
+    # _old_py_lexicon
+
+    # from TextStatistics:
+    # @property ------
+    # size_
+    # uniques_
+
+    # methods ------
+    # _reset
+    # get_params            --- pizza probably should block
+    # partial_fit           --- pizza probably should block
+    # fit                   --- pizza probably should block
+    # print_overall_statistics
+    # print_startswith_frequency
+    # print_character_frequency
+    # print_string_frequency
+    # get_longest_strings
+    # print_longest_strings
+    # get_shortest_strings
+    # print_shortest_strings
+    # lookup substring
+    # lookup string
+    # score                 --- pizza probably should block
 
 
-class Lexicon:
 
-    """
-    The lexicon of words in the English vocabulary. May not be
-    exhaustive.
-
-
-    Parameters
-    ----------
-
-
-    Attributes
-    ----------
-    size:
-        int - the number of words in the Lexicon.
-
-
-
-    """
-
-
-    def __init__(self):
-
-        self.LEXICON = self.lexicon()
-
-
-    @property
-    def size(self) -> int:
+    def __init__(self) -> None:
 
         """
-        The number of words in the Lexicon.
+        The pybear lexicon of words in the English language. May not be
+        exhaustive.
+
+        This serves as a list of legitimate words in the English language.
 
 
-        Parameters
+        Attributes
         ----------
-        None
+        size_:
+            int - the number of words in the pybear lexicon.
+        lexicon_
+            NDArray[str] - the words in the pybear English language
+            lexicon.
+        overall_statistics_:
+            dict[str: numbers.Real] - A dictionary that holds information
+            about all the strings fitted on the TextStatistics instance.
+            Available statistics are size (number of strings seen during
+            fitting), uniques count, average string length, standara
+            deviation of string length, maximum string length, and
+            minimum string length.
+        string_frequency_:
+            dict[str, int] - A dictionary that holds the unique strings
+            and the respective number of occurrences seen during fitting.
+        startswith_frequency_:
+            dict[str, int] - A dictionary that holds the first characters
+            and their frequencies in the first position for all the
+            strings fitted on the TextStatistics instance.
+        character_frequency_:
+            dict[str, int] - A dictionary that holds all the unique
+            single characters and their frequencies for all the strings
+            fitted on the TextStatistics instance.
 
 
-        Return
-        ------
-        -
-            len(Lexicon): int
+        Notes
+        -----
+        pizza
+
+
+        Examples
+        --------
+        pizza
+
+
 
         """
 
-        return len(self.LEXICON)
+
+        super().__init__()
+
+        module_dir = os.path.dirname(os.path.abspath(__file__))
+        lexicon_dir = os.path.join(module_dir, '_lexicon')
+        FILES = [f'lexicon_{_}' for _ in 'abcdefghijklmnopqrstuvwxyz']
+        for file in FILES:
+            with open(os.path.join(lexicon_dir, file + f'.txt')) as f:
+                # pizza can this generator be changed uce?
+                words = np.fromiter((_ for _ in f), dtype='<U40')
+                words = np.char.replace(words, '\n', '')
+                super().partial_fit(words)
+                # pizza
+                # WORDS = np.hstack((WORDS, words), dtype='<U40')
 
 
-    def find_duplicates(self) -> np.ndarray:
+        self.lexicon_ = np.array(self.uniques_, dtype='<U30')
+
+        del module_dir, lexicon_dir, FILES, words
+
+
+    @TextStatistics.uniques_.getter
+    def uniques_(self):
+        raise AttributeError(f"'uniques_' is blocked, use 'lexicon_'")
+
+
+    @TextStatistics.uniques_.setter
+    def uniques_(self, value):
+        raise AttributeError(f"'uniques_' is blocked, use 'lexicon_'")
+
+
+    def _reset(self):
+        raise AttributeError(f"'_reset' is blocked")
+
+
+    def get_params(self):
+        raise AttributeError(f"'get_params' is blocked")
+
+
+    def partial_fit(self):
+        raise AttributeError(f"'partial_fit' is blocked")
+
+
+    def fit(self):
+        raise AttributeError(f"'fit' is blocked")
+
+
+    def score(self):
+        raise AttributeError(f"'score' is blocked")
+
+
+    def find_duplicates(self) -> dict[str, numbers.Integral]:
 
         """
         Find any duplicates in the Lexicon. If any, display to screen
@@ -121,45 +199,15 @@ class Lexicon:
         Return
         ------
         -
-            Duplicates: NDArray[str] - vector of any duplicates in the
-            Lexicon.
+            Duplicates: dict[str, numbers.Integral] - vector of any
+            duplicates in the pybear lexicon and their frequencies.
 
         """
 
-        UNIQUES, COUNTS = np.unique(self.LEXICON, return_counts=True)
-        if len(UNIQUES) == len(self.LEXICON):
-            print(f'\n*** THERE ARE NO DUPLICATES IN THE LEXICON ***\n')
-            del UNIQUES, COUNTS
-            return np.empty(0, dtype='<U40')
-        else:
-            MASTER_SORT = np.flip(np.argsort(COUNTS))
-            MASK = MASTER_SORT[..., COUNTS[..., MASTER_SORT] > 1]
-            MASKED_SORTED_UNIQUES = UNIQUES[..., MASK]
-            MASKED_SORTED_COUNTS = COUNTS[..., MASK]
-            INDICES = np.unique(MASKED_SORTED_UNIQUES, return_index=True)[1]
-            DUPLICATES = MASKED_SORTED_UNIQUES[INDICES]
-            COUNTS = MASKED_SORTED_COUNTS[INDICES]
-
-            del MASTER_SORT, UNIQUES, MASK
-            del MASKED_SORTED_UNIQUES, MASKED_SORTED_COUNTS, INDICES
-
-            if len(DUPLICATES) == 0:
-                print(f'\n*** THERE ARE NO DUPLICATED IN LEXICON ***\n')
-            else:
-                print()
-                print(f'*' * 79)
-                print(f'\n DUPLICATE'.ljust(30) + f'COUNT')
-                print(f'-' * 40)
-                [print(f'{d}'.ljust(30) + f'{c}') for d,c in zip(DUPLICATES, COUNTS)]
-                print()
-                print(f'*' * 79)
-
-            del COUNTS
-
-            return DUPLICATES
+        return _find_duplicates(self.string_frequency_)
 
 
-    def check_order(self) -> npt.NDArray:
+    def check_order(self) -> npt.NDArray[str]:
 
         """
         Determine if words stored in the Lexicon files are out of
@@ -181,164 +229,50 @@ class Lexicon:
 
         """
 
-        __ = np.unique(self.LEXICON)
-
-        if np.array_equiv(self.LEXICON, __):
-            print(f'\n*** LEXICON IS IN ALPHABETICAL ORDER ***\n')
-            return np.empty(0, dtype='<U40')
-
-        else:
-            OUT_OF_ORDER = []
-            for idx in range(len(__)):
-                if self.LEXICON[idx] != __[idx]:
-                    OUT_OF_ORDER.append(__[idx])
-            if len(OUT_OF_ORDER) > 0:
-                print(f'OUT OF ORDER:')
-                print(OUT_OF_ORDER)
-
-            return np.array(OUT_OF_ORDER, dtype='<U40')
+        return _check_order(self.lexicon_)
 
 
-    def _string_validation(self, char_seq:str) -> str:
+    def add_words(
+        self,
+        # pizza one word at a time or a list?
+    ):
 
         """
-        Validate alpha character string entry and return in all caps.
+        Add words to the lexicon text files.
+        Pizza add more stuff.
 
 
         Parameters
         ----------
-        char_seq:
-            str - alpha character string to be validated
 
 
         Return
         ------
         -
-            char_seq: str - Validated alpha character string.
+            None
 
         """
 
-        err_msg = f'char_seq MUST BE A str OF alpha characters'
+        _add_words(self.lexicon_)
 
-        if not isinstance(char_seq, str):
-            raise TypeError(err_msg)
-
-        for _ in char_seq:
-            if _.upper() not in ans.alphabet_str_upper():
-                raise ValueError(err_msg)
-
-        return char_seq.upper()
+        # pizza
+        # _add_words writes new words to files. need to re-read files into
+        # the instance and rebuild the attributes.
+        self.__init__()
 
 
-    # pizza once this is in TextStatistics it can come out of here
-    def lookup_substring(
-            self,
-            char_seq: str,
-            *,
-            bypass_validation=False
-        ) -> np.ndarray:
-
+    def delete_words(
+        self,
+        # pizza one word at a time or a list?
+    ):
         """
-        Return a numpy array of all words in the Lexicon that contain the
-        given character string.
+        Delete words from the lexicon text files.
+        Pizza add more stuff.
+
 
         Parameters
         ----------
-        char_seq:
-            str - alpha character string to be looked up
-        bypass_validation:
-            bool - if True, bypass _validation of char_seq
 
-        Return
-        ------
-        -
-            SELECTED_WORDS: np.ndarray - list of all words in the Lexicon
-            that contain the given character string
-
-        """
-
-        bypass_validation = arg_kwarg_validater(
-            bypass_validation,
-            'bypass_validation',
-            [True, False, None],
-            get_module_name(str(sys.modules[__name__])),
-            inspect.stack()[0][3],
-            return_if_none=True
-        )
-
-        if not bypass_validation:
-            char_seq = self._string_validation(char_seq)
-
-        MASK = np.fromiter(
-            map(lambda x: x.find(char_seq, 0, len(char_seq)) + 1, self.LEXICON),
-            dtype=bool
-        )
-        SELECTED_WORDS = self.lexicon()[MASK]
-        del char_seq, MASK
-
-        return SELECTED_WORDS
-
-
-    # pizza once this is in TextStatistics it can come out of here
-    def lookup_word(
-            self,
-            char_seq: str,
-            *,
-            bypass_validation: bool=False
-        ):
-
-        """
-        Return a boolean indicating if a given character string matches
-        a word in the Lexicon.
-
-        Parameters
-        ----------
-        char_seq:
-            str - alpha character string to be looked up
-        bypass_validation:
-            bool - if True, bypass _validation of char_seq
-
-        Return
-        ------
-        -
-            bool: boolean indicating if the given character string matches
-                a word in the Lexicon.
-
-        """
-
-        bypass_validation = arg_kwarg_validater(
-            bypass_validation,
-            'bypass_validation',
-            [True, False, None],
-            get_module_name(str(sys.modules[__name__])),
-            inspect.stack()[0][3],
-            return_if_none=True
-        )
-
-        if not bypass_validation:
-            char_seq = self._string_validation(char_seq)
-
-        return char_seq in self.LEXICON
-
-
-    def statistics(self):
-
-        """
-        Print statistics about the Lexicon to the screen. Returns nothing.
-        Statistics reported include
-        - size
-        - uniques count
-        - average length and standard deviation
-        - max word length
-        - min word length
-        - 'starts with' frequency
-        - letter frequency
-        - top word frequencies,
-        - top longest words
-
-        Parameters
-        ----------
-        None
 
         Return
         ------
@@ -348,40 +282,167 @@ class Lexicon:
         """
 
 
-        _statistics._statistics(self.LEXICON)
+        _delete_words()
+
+        # pizza
+        # pizza
+        # _delete_words removes words from the files. need to re-read files
+        # into the instance and rebuild the attributes.
+        self.__init__()
 
 
-    def lexicon(self) -> np.ndarray:
+    # pizza this can probably come out uce!
+    # def _string_validation(self, char_seq:str) -> str:
+    #
+    #     """
+    #     Validate alpha character string entry and return in all caps.
+    #
+    #
+    #     Parameters
+    #     ----------
+    #     char_seq:
+    #         str - alpha character string to be validated
+    #
+    #
+    #     Return
+    #     ------
+    #     -
+    #         char_seq: str - Validated alpha character string.
+    #
+    #     """
+    #
+    #     err_msg = f'char_seq MUST BE A str OF alpha characters'
+    #
+    #     if not isinstance(char_seq, str):
+    #         raise TypeError(err_msg)
+    #
+    #     for _ in char_seq:
+    #         if _.upper() not in ans.alphabet_str_upper():
+    #             raise ValueError(err_msg)
+    #
+    #     return char_seq.upper()
 
-        """
-        Generate the Lexicon as a numpy vector from files.
+
+    # pizza once this is in TextStatistics it can come out of here
+    # def lookup_substring(
+    #         self,
+    #         char_seq: str,
+    #         *,
+    #         bypass_validation=False
+    #     ) -> np.ndarray:
+    #
+    #     """
+    #     Return a numpy array of all words in the Lexicon that contain the
+    #     given character string.
+    #
+    #     Parameters
+    #     ----------
+    #     char_seq:
+    #         str - alpha character string to be looked up
+    #     bypass_validation:
+    #         bool - if True, bypass _validation of char_seq
+    #
+    #     Return
+    #     ------
+    #     -
+    #         SELECTED_WORDS: np.ndarray - list of all words in the Lexicon
+    #         that contain the given character string
+    #
+    #     """
+    #
+    #     bypass_validation = arg_kwarg_validater(
+    #         bypass_validation,
+    #         'bypass_validation',
+    #         [True, False, None],
+    #         get_module_name(str(sys.modules[__name__])),
+    #         inspect.stack()[0][3],
+    #         return_if_none=True
+    #     )
+    #
+    #     if not bypass_validation:
+    #         char_seq = self._string_validation(char_seq)
+    #
+    #     MASK = np.fromiter(
+    #         map(lambda x: x.find(char_seq, 0, len(char_seq)) + 1, self.LEXICON),
+    #         dtype=bool
+    #     )
+    #     SELECTED_WORDS = self.lexicon()[MASK]
+    #     del char_seq, MASK
+    #
+    #     return SELECTED_WORDS
 
 
-        Parameters
-        ----------
-        None
+    # pizza once this is in TextStatistics it can come out of here
+    # def lookup_word(
+    #         self,
+    #         char_seq: str,
+    #         *,
+    #         bypass_validation: bool=False
+    #     ):
+    #
+    #     """
+    #     Return a boolean indicating if a given character string matches
+    #     a word in the Lexicon.
+    #
+    #     Parameters
+    #     ----------
+    #     char_seq:
+    #         str - alpha character string to be looked up
+    #     bypass_validation:
+    #         bool - if True, bypass _validation of char_seq
+    #
+    #     Return
+    #     ------
+    #     -
+    #         bool: boolean indicating if the given character string matches
+    #             a word in the Lexicon.
+    #
+    #     """
+    #
+    #     bypass_validation = arg_kwarg_validater(
+    #         bypass_validation,
+    #         'bypass_validation',
+    #         [True, False, None],
+    #         get_module_name(str(sys.modules[__name__])),
+    #         inspect.stack()[0][3],
+    #         return_if_none=True
+    #     )
+    #
+    #     if not bypass_validation:
+    #         char_seq = self._string_validation(char_seq)
+    #
+    #     return char_seq in self.LEXICON
 
 
-        Return
-        ------
-        -
-            WORDS: NDArray[str] - the full alphabetically sorted Lexicon
-
-
-        """
-
-        module_dir = os.path.dirname(os.path.abspath(__file__))
-        lexicon_dir = os.path.join(module_dir, '_lexicon')
-        FILES = [f'lexicon_{_}' for _ in 'abcdefghijklmnopqrstuvwxyz']
-        WORDS = np.empty(0, dtype='<U40')
-        for file in FILES:
-
-            with open(os.path.join(lexicon_dir, file + f'.txt')) as f:
-                words = np.fromiter((_ for _ in f), dtype='<U40')
-                words = np.char.replace(words, '\n', '')
-                WORDS = np.insert(WORDS, len(WORDS), words, axis=0)
-
-        return WORDS
+    # pizza this probably comes out!
+    # def statistics(self):
+    #
+    #     """
+    #     Print statistics about the Lexicon to the screen. Returns nothing.
+    #     Statistics reported include
+    #     - size
+    #     - uniques count
+    #     - average length and standard deviation
+    #     - max word length
+    #     - min word length
+    #     - 'starts with' frequency
+    #     - letter frequency
+    #     - top word frequencies,
+    #     - top longest words
+    #
+    #     Parameters
+    #     ----------
+    #     None
+    #
+    #     Return
+    #     ------
+    #     -
+    #         None
+    #
+    #     """
+    #
+    #
+    #     _statistics._statistics(self.LEXICON)
 
 
     def _old_py_lexicon(self):
@@ -426,29 +487,7 @@ class Lexicon:
 
 
 
-    # pizza on the block!
-    def _lowercase_dict(self):
-        CHARS = list('abcdefghijklmnopqrstuvwxyz')
-        return dict((zip(CHARS, [0 for _ in range(26)])))
 
-    # pizza on the block!
-    def _uppercase_dict(self):
-        CHARS = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-        return dict((zip(CHARS, [0 for _ in range(26)])))
-
-    # pizza on the block!
-    def _number_dict(self):
-        return {}
-
-
-
-# PIZZA
-if __name__ == '__main__':
-
-    Lexicon().check_order()
-    Lexicon().find_duplicates()
-    print(Lexicon().size())
-    Lexicon().statistics()
 
 
 

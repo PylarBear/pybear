@@ -20,15 +20,10 @@ class TestLexicon:
 
     @staticmethod
     @pytest.fixture
-    def Lexicon_instance():
+    def Lexicon_instance(scope='module'):
         return Lexicon()
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    def test_size_returns_int(self, Lexicon_instance):
-
-        assert isinstance(Lexicon_instance.size, int)
 
 
     def test_find_duplicates_returns_empty_ndarray(self, Lexicon_instance):
@@ -45,6 +40,28 @@ class TestLexicon:
 
         assert isinstance(out, np.ndarray)
         assert len(out) == 0
+
+
+    def test_lexicon(self, Lexicon_instance):
+
+        out = Lexicon_instance.lexicon()
+
+        assert isinstance(out, np.ndarray)
+
+        assert len(out) == Lexicon_instance.size
+
+
+    def _old_py_lexicon(self, Lexicon_instance):
+
+        out = Lexicon_instance._old_py_lexicon()
+
+        assert isinstance(out, np.ndarray)
+
+        # as of 24_06_21 this is passing, but because the files and array
+        # containers are independent, the arrays could fall into neglect
+        # and make this not true.
+
+        assert len(out) == Lexicon_instance.size()
 
 
     @pytest.mark.parametrize('junk', (0, np.pi, 'trash', [1,2], (1,2), {1,2}))
@@ -67,6 +84,15 @@ class TestLexicon:
 
         # lookup_word
         Lexicon_instance.lookup_word('aard', bypass_validation=good)
+
+
+
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # v v v v these are all handled by TextStatistics as of 25_02 v v v v
+
+    def test_size_returns_int(self, Lexicon_instance):
+
+        assert isinstance(Lexicon_instance.size, int)
 
 
     def test_lookup_substring(self, Lexicon_instance):
@@ -105,27 +131,6 @@ class TestLexicon:
 
         Lexicon_instance.statistics()
 
-
-    def test_lexicon(self, Lexicon_instance):
-
-        out = Lexicon_instance.lexicon()
-
-        assert isinstance(out, np.ndarray)
-
-        assert len(out) == Lexicon_instance.size
-
-
-    def _old_py_lexicon(self, Lexicon_instance):
-
-        out = Lexicon_instance._old_py_lexicon()
-
-        assert isinstance(out, np.ndarray)
-
-        # as of 24_06_21 this is passing, but because the files and array
-        # containers are independent, the arrays could fall into neglect
-        # and make this not true.
-
-        assert len(out) == Lexicon_instance.size()
 
 
 
