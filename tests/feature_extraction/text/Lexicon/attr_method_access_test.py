@@ -165,12 +165,11 @@ class TestMethodAccess:
         assert isinstance(out, list)
         assert len(out) == 0
 
-        # pizza
         # 'add_words'
-        # assert getattr(TestCls, 'add_words')() is None
-        #
-        # # 'delete_words'
-        # assert getattr(TestCls, 'delete_words')() is None
+        assert getattr(TestCls, 'add_words')('APPLE') is None
+
+        # 'delete_words'
+        assert getattr(TestCls, 'delete_words')('ZYZCZCK') is None
 
         # 'print_overall_statistics'
         assert getattr(TestCls, 'print_overall_statistics')() is None
@@ -207,7 +206,7 @@ class TestMethodAccess:
         assert getattr(TestCls, 'print_shortest_strings')(n=10) is None
 
         # 'lookup_substring'
-        out = getattr(TestCls, 'lookup_substring')('aard')
+        out = getattr(TestCls, 'lookup_substring')('AARD')
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
         assert np.array_equiv(
@@ -221,7 +220,7 @@ class TestMethodAccess:
 
 
         # 'lookup_string'
-        out = getattr(TestCls, 'lookup_string')('AaRdVaRk')
+        out = getattr(TestCls, 'lookup_string')('AARDVARK')
         assert isinstance(out, str)
         assert out == 'AARDVARK'
 

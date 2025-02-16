@@ -5,10 +5,14 @@
 #
 
 
-import inspect
-import itertools
+
+
 from typing import Iterable
 from typing_extensions import TypeAlias, Union
+
+import inspect
+import itertools
+
 import numpy as np
 
 

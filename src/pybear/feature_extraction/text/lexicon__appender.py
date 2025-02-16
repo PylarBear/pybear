@@ -6,9 +6,6 @@
 
 
 
-# pizza this probably should go when _add_word is done uce!
-
-
 
 import os
 

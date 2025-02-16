@@ -6,7 +6,7 @@
 
 
 
-from typing import Sequence, Optional
+from typing import Sequence
 from typing_extensions import Union
 
 import os
@@ -21,16 +21,17 @@ from ._identify_sublexicon import _identify_sublexicon
 
 def _delete_words(
     WORDS: Union[str, Sequence[str]],
-    lexicon_folder_path: str,
-    case_sensitive: Optional[bool] = True
+    lexicon_folder_path: str
 ) -> None:
 
     """
-    Remove the given words from the pybear lexicon.
+    Remove the given word(s) from the pybear lexicon text files.
+    Case sensitive! Any words that are not in the pybear lexicon are
+    silently ignored.
 
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     WORDS:
         Union[str, Sequence[str]] - the word or words to remove from
         the pybear lexicon. Cannot be an empty string or an empty
@@ -38,11 +39,6 @@ def _delete_words(
     lexicon_folder_path:
         str - the path to the directory that holds the lexicon text
         files.
-    case_sensitive:
-        Optional[bool], default = True - If True, search for the exact
-        string in the fitted data. If False, normalize both the given
-        string and the strings fitted on the TextStatistics instance,
-        then perform the search.
 
 
     Return
@@ -53,52 +49,76 @@ def _delete_words(
     """
 
 
-
-    _validate_word_input(WORDS)
-
     if not isinstance(lexicon_folder_path, str):
         raise TypeError(f"'lexicon_folder_path' must be a string")
 
-    if not isinstance(case_sensitive, bool):
-        raise TypeError(f"'case_sensitive' must be boolean")
+    _validate_word_input(
+        WORDS,
+        character_validation=False,
+        majuscule_validation=False
+    )
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # pizza finish
-
     file_base = f'lexicon_'
 
-    file_identifiers: list[str] = _identify_sublexicon(WORDS)
+    # dont block bad first characters here, just let them through and if
+    # the file doesnt exist for it, then skip it.
+    file_identifiers: list[str] = \
+        _identify_sublexicon(
+            WORDS,
+            file_validation=False
+        )
+
+    if isinstance(WORDS, str):
+        _WORDS = [WORDS]
+    else:
+        _WORDS = WORDS
 
     for file_letter in file_identifiers:
 
         full_path = os.path.join(
             lexicon_folder_path,
-            file_base + file_letter.lower() + '.txt'
+            file_base + file_letter + '.txt'
         )
 
-        with open(full_path, 'r') as f:
-            raw_text = np.fromiter(f, dtype='<U40')
+        try:
+            with open(full_path, 'r') as f:
+                raw_text = np.fromiter(f, dtype='<U40')
+        except:
+            # if the file does not exist in the lexicon, skip all words
+            # that would be associated with that file.
+            continue
 
-        OLD_SUB_LEXICON = np.char.replace(raw_text, f'\n', f' ')
+        OLD_SUB_LEXICON = np.char.replace(raw_text, f'\n', f'')
         del raw_text
 
-        PERTINENT_WORDS = [w for w in WORDS if w[0].lower() == file_letter]
+        PERTINENT_WORDS = [w for w in _WORDS if w[0] == file_letter]
 
-        MASK = np.ones(len(OLD_SUB_LEXICON), dtype=bool)
+        MASK = np.ones(len(OLD_SUB_LEXICON), dtype=np.int8)
         for _word in PERTINENT_WORDS:
-            if case_sensitive:
-                MASK -= (_word == OLD_SUB_LEXICON)
-            elif not case_sensitive:
-                MASK -= (_word.upper() == np.char.upper(OLD_SUB_LEXICON))
+
+            SUB_MASK = (_word == OLD_SUB_LEXICON)
+
+            MASK -= SUB_MASK.astype(np.int8)
+
+        del PERTINENT_WORDS, SUB_MASK
 
         NEW_LEXICON = list(map(str, OLD_SUB_LEXICON[(MASK == 1)]))
+
+        del MASK, OLD_SUB_LEXICON
 
         with open(full_path, 'w') as f:
             for line in NEW_LEXICON:
                 f.write(line+f'\n')
             f.close()
+
+        del full_path
+        del NEW_LEXICON
+
+
+    del _WORDS, file_base, file_identifiers
 
 
     print(f'\n*** Lexicon update successful. ***\n')
