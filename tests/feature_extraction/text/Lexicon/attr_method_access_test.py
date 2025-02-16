@@ -6,16 +6,12 @@
 
 
 
-from typing import Sequence
-
 import pytest
 import numbers
 
 import numpy as np
 
 from pybear.feature_extraction.text._Lexicon.Lexicon import Lexicon
-
-
 
 
 
@@ -34,7 +30,7 @@ class TestAttrAccess:
     #         'startswith_frequency_',
     #         'character_frequency_',
     #         'string_frequency_',
-    #         'uniques_'    # this is blocked from the super()
+    #         'uniques_'
     #     ]
 
 
@@ -50,9 +46,10 @@ class TestAttrAccess:
 
         # 'lexicon_',
         out = getattr(TestCls, 'lexicon_')
-        assert isinstance(out, np.ndarray)
+        assert isinstance(out, list)
         assert len(out) >= 1
         assert all(map(isinstance, out, (str for _ in out)))
+        assert len(out) == TestCls.size_
 
         # 'overall_statistics_',
         out = getattr(TestCls, 'overall_statistics_')
@@ -94,11 +91,11 @@ class TestAttrAccess:
         ))
 
         # 'uniques_'
-        with pytest.raises(AttributeError):
-            getattr(TestCls, 'uniques_')
-
-        with pytest.raises(AttributeError):
-            setattr(TestCls, 'uniques_', [])
+        out = getattr(TestCls, 'uniques_')
+        assert isinstance(out, list)
+        assert len(out) >= 1
+        assert all(map(isinstance, out, (str for _ in out)))
+        assert len(out) == TestCls.size_
 
 
         del TestCls
@@ -134,6 +131,7 @@ class TestMethodAccess:
 
         TestCls = Lexicon()
 
+        # blocked ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # '_reset'   # blocked
         with pytest.raises(AttributeError):
@@ -158,16 +156,21 @@ class TestMethodAccess:
         # END blocked ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # 'find_duplicates'
-        assert len(getattr(TestCls, 'find_duplicates')()) == 0
+        out = getattr(TestCls, 'find_duplicates')()
+        assert isinstance(out, dict)
+        assert len(out) == 0
 
         # 'check_order'
-        assert len(getattr(TestCls, 'check_order')()) == 0
+        out = getattr(TestCls, 'check_order')()
+        assert isinstance(out, list)
+        assert len(out) == 0
 
+        # pizza
         # 'add_words'
-        assert getattr(TestCls, 'add_words')() is None
-
-        # 'delete_words'
-        assert getattr(TestCls, 'delete_words')() is None
+        # assert getattr(TestCls, 'add_words')() is None
+        #
+        # # 'delete_words'
+        # assert getattr(TestCls, 'delete_words')() is None
 
         # 'print_overall_statistics'
         assert getattr(TestCls, 'print_overall_statistics')() is None
@@ -204,20 +207,26 @@ class TestMethodAccess:
         assert getattr(TestCls, 'print_shortest_strings')(n=10) is None
 
         # 'lookup_substring'
-        out = getattr(TestCls, 'lookup_substring')(
-            'I do so like',
-            case_sensitive=False
-        )
-        assert isinstance(out, Sequence)
+        out = getattr(TestCls, 'lookup_substring')('aard')
+        assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
-        assert np.array_equal(out, ['I do so like'])
+        assert np.array_equiv(
+            out,
+            ["AARDVARK", "AARDVARKS", "AARDWOLF", "AARDWOLVES"]
+        )
+
+        out = TestCls.lookup_substring('pxlq')
+        assert isinstance(out, list)
+        assert np.array_equiv(out, [])
+
 
         # 'lookup_string'
-        out = getattr(TestCls, 'lookup_string')('I am Sam', case_sensitive=False)
-        assert isinstance(out, Sequence)
-        assert all(map(isinstance, out, (str for _ in out)))
-        assert np.array_equal(out, ['I am Sam'])
+        out = getattr(TestCls, 'lookup_string')('AaRdVaRk')
+        assert isinstance(out, str)
+        assert out == 'AARDVARK'
 
+        out = getattr(TestCls, 'lookup_string')('pxlq')
+        assert isinstance(out, type(None))
 
 
 

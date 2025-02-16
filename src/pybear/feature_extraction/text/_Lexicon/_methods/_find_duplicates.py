@@ -10,15 +10,15 @@ import numbers
 
 import numpy as np
 
-# pizza this needs test
+
 
 def _find_duplicates(
     string_frequency_: dict[str, numbers.Integral]
 ) -> dict[str, numbers.Integral]:
 
     """
-    Find any duplicates in the lexicon. If any, display them to screen
-    and return them in a numpy vector.
+    Find any duplicates in the Lexicon. If any, display to screen and
+    return as python dictionary with frequencies.
 
 
     Parameters
@@ -69,14 +69,13 @@ def _find_duplicates(
         del UNIQUES, COUNTS, MASK
 
         print()
-        print(f'*' * 79)
+        # print(f'*' * 79)
         print(f'\n DUPLICATE'.ljust(30) + f'COUNT')
         print(f'-' * 40)
         [print(f'{k}'.ljust(30) + f'{v}') for k, v in DUPLICATES.items()]
         print()
-        print(f'*' * 79)
+        # print(f'*' * 79)
 
-        del COUNTS
 
         return DUPLICATES
 

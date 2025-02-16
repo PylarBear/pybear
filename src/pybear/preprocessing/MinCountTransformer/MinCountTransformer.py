@@ -560,11 +560,6 @@ class MinCountTransformer(
         return self._original_dtypes
 
 
-    @original_dtypes_.setter
-    def original_dtypes_(self, value):
-        raise AttributeError(f'original_dtypes_ attribute is read-only')
-
-
     @property
     def total_counts_by_column_(self):
 
@@ -573,22 +568,12 @@ class MinCountTransformer(
         return self._total_counts_by_column
 
 
-    @total_counts_by_column_.setter
-    def total_counts_by_column_(self, value):
-        raise AttributeError(f'total_counts_by_column_ attribute is read-only')
-
-
     @property
     def instructions_(self):
 
         check_is_fitted(self)
 
         return self._make_instructions()
-
-
-    @instructions_.setter
-    def instructions_(self, value):
-        raise AttributeError(f'instructions_ attribute is read-only')
 
 
     def __pybear_is_fitted__(self):

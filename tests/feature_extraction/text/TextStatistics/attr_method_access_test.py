@@ -86,6 +86,13 @@ class TestAttrAccessBeforeAndAfterFit:
             with pytest.raises(AttributeError):
                 getattr(TestCls, attr)
 
+        # uniques_ and size_ cannot be set
+        with pytest.raises(AttributeError):
+            setattr(TestCls, 'uniques_', list('abc'))
+
+        with pytest.raises(AttributeError):
+            setattr(TestCls, 'size_', 37)
+
         # END BEFORE FIT ***********************************************
 
         # AFTER FIT ****************************************************
@@ -134,6 +141,15 @@ class TestAttrAccessBeforeAndAfterFit:
                 ))
             else:
                 raise Exception
+
+
+        # uniques_ and size_ cannot be set
+        with pytest.raises(AttributeError):
+            setattr(TestCls, 'uniques_', list('abc'))
+
+        with pytest.raises(AttributeError):
+            setattr(TestCls, 'size_', 37)
+
 
         # END AFTER FIT ************************************************
 

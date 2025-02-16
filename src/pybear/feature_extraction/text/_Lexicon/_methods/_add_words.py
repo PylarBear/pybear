@@ -6,97 +6,116 @@
 
 
 
-import numpy.typing as npt
+from typing import Sequence, Optional
+from typing_extensions import Union
 
 import os
-import numbers
 
 import numpy as np
 
-from .....data_validation import validate_user_input as vui
-from ... import alphanumeric_str as ans
-from pybear.feature_extraction.text._Lexicon import Lexicon as lex
-
-
-
-NEW_WORDS = [
-    # ********PASTE NEW WORDS HERE ******
-]
-
+from ._validate_word_input import _validate_word_input
+from ._identify_sublexicon import _identify_sublexicon
 
 
 # MODULE FOR APPENDING NEW WORDS TO A SUB-LEXICON
 
+
 def _add_words(
-    lexicon_: npt.NDArray[str]
-) -> None:    # pizza?
+    WORDS: Union[str, Sequence[str]],
+    lexicon_folder_path: str,
+    character_validation: Optional[bool] = True,
+    majuscule_validation: Optional[bool] = True
+) -> None:
+
+    """
+    Update the pybear lexicon with the given words.
 
 
-    active_letter = vui.validate_user_str(
-        f'Enter letter of lexicon to append to > ',
-        ans.alphabet_str_upper()
-    )
+    Parameter
+    ---------
+    WORDS:
+        Union[str, Sequence[str]] - the word or words to be appended to
+        the pybear lexicon. Cannot be an empty string or an empty
+        sequence.
+    lexicon_folder_path:
+        str - the path to the directory that holds the lexicon text
+        files.
+    character_validation:
+        Optional[bool], default = True - whether to apply pybear lexicon
+        character validation to the word or sequence of words. pybear
+        lexicon allows only the 26 letters in the English language, no
+        others. No spaces, no hypens, no apostrophes. If True, any
+        non-alpha characters will raise an exception during validation.
+        If False, any string character is accepted.
+    majuscule_validation:
+        Optional[bool], default = True - whether to apply pybear lexicon
+        majuscule validation to the word or sequence of words. The pybear
+        lexicon requires all characters be majuscule, i.e., EVERYTHING
+        MUST BE UPPER-CASE. If True, any non-majuscule characters will
+        raise an exception during validation. If False, any case is
+        accepted.
 
-    module_dir = os.path.dirname(os.path.abspath(__file__))
+
+    Return
+    ------
+    -
+        None
+
+    """
+
+
+    _validate_word_input(WORDS)
+
+    if not isinstance(lexicon_folder_path, str):
+        raise TypeError(f"'lexicon_folder_path' must be a string")
+
+    if not isinstance(character_validation, bool):
+        raise TypeError(f"'character_validation' must be boolean")
+
+    if not isinstance(majuscule_validation, bool):
+        raise TypeError(f"'majuscule_validation' must be boolean")
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
     file_base = f'lexicon_'
-    full_path = os.path.join(module_dir, file_base, active_letter.lower(), '.txt')
-    del module_dir, file_base
 
-    with open(full_path, 'r') as f:
-        raw_text = np.fromiter(f, dtype='<U40')
+    file_identifiers: list[str] = _identify_sublexicon(WORDS)
 
-    OLD_LEXICON = np.char.replace(raw_text, f'\n', f' ')
-    del raw_text
+    for file_letter in file_identifiers:
 
-    NEW_LEXICON = np.hstack((OLD_LEXICON, NEW_WORDS))
-
-    # MUST USE uniques TO TAKE OUT ANY NEW WORDS ALREADY IN LEXICON (AND SORT)
-    NEW_LEXICON = np.unique(NEW_LEXICON)
-
-    [print(_) for _ in NEW_LEXICON]
-
-    LEX = lex.Lexicon()
-
-    LEX.statistics()
-
-    print(f'\nDUPLICATES:')
-    LEX.find_duplicates()
-
-    print(f'\nWORDS CONTAINING NON-ALPHA CHARACTERS:')
-    HOLDER = []
-    for word in LEX.LEXICON:
-        for char in word:
-            if char.upper() not in ans.alphabet_str_upper():
-                HOLDER.append(word)
-    if len(HOLDER) > 0:
-        [print(' '*5 + f'{_}') for _ in HOLDER]
-    elif len(HOLDER) == 0:
-        print(f'None.')
-    print()
-
-    del HOLDER
-
-
-
-    while True:
-
-        __ = vui.validate_user_str(
-            f'Going to overwrite {full_path} with words as printed. '
-            f'Proceed? (y)es (a)bort > ',
-            'YA'
+        full_path = os.path.join(
+            lexicon_folder_path,
+            file_base + file_letter.lower() + '.txt'
         )
 
-        if __ == 'Y':
-            with open(full_path, 'w') as f:
-                for line in NEW_LEXICON:
-                    f.write(line+f'\n')
-                f.close()
+        with open(full_path, 'r') as f:
+            raw_text = np.fromiter(f, dtype='<U40')
 
-            print(f'\n*** Dump to txt successful. ***\n')
-            break
+        OLD_SUB_LEXICON = np.char.replace(raw_text, f'\n', f' ')
+        del raw_text
 
-        elif __ == 'A':
-            print(f'\n*** ABORTED BY USER. ***\n')
-            break
+        PERTINENT_WORDS = [w for w in WORDS if w[0].lower() == file_letter]
+
+        NEW_LEXICON = np.hstack((OLD_SUB_LEXICON, PERTINENT_WORDS))
+
+        # MUST USE uniques TO TAKE OUT ANY NEW WORDS ALREADY IN LEXICON (AND SORT)
+        NEW_LEXICON = np.unique(NEW_LEXICON)
+
+
+        with open(full_path, 'w') as f:
+            for line in NEW_LEXICON:
+                f.write(line+f'\n')
+            f.close()
+
+
+    print(f'\n*** Lexicon update successful. ***\n')
+
+
+
+
+
+
+
+
 
 

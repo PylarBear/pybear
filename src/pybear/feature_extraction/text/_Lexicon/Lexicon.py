@@ -3,11 +3,13 @@
 #
 # License: BSD 3 clause
 #
-import numbers
 
-import numpy.typing as npt
+
+from typing import Optional, Sequence
+from typing_extensions import Union
 
 import os
+import numbers
 
 import numpy as np
 
@@ -98,8 +100,7 @@ class Lexicon(TextStatistics):
         size_:
             int - the number of words in the pybear lexicon.
         lexicon_
-            NDArray[str] - the words in the pybear English language
-            lexicon.
+            list[str] - the words in the pybear English language lexicon.
         overall_statistics_:
             dict[str: numbers.Real] - A dictionary that holds information
             about all the strings fitted on the TextStatistics instance.
@@ -118,6 +119,8 @@ class Lexicon(TextStatistics):
             dict[str, int] - A dictionary that holds all the unique
             single characters and their frequencies for all the strings
             fitted on the TextStatistics instance.
+        uniques_
+            list[str] - same as lexicon_.
 
 
         Notes
@@ -136,32 +139,34 @@ class Lexicon(TextStatistics):
 
         super().__init__()
 
-        module_dir = os.path.dirname(os.path.abspath(__file__))
-        lexicon_dir = os.path.join(module_dir, '_lexicon')
+        self._module_dir = os.path.dirname(os.path.abspath(__file__))
+        self._lexicon_dir = os.path.join(self._module_dir, '_lexicon')
+
+
         FILES = [f'lexicon_{_}' for _ in 'abcdefghijklmnopqrstuvwxyz']
         for file in FILES:
-            with open(os.path.join(lexicon_dir, file + f'.txt')) as f:
+            with open(os.path.join(self._lexicon_dir, file + f'.txt')) as f:
                 # pizza can this generator be changed uce?
-                words = np.fromiter((_ for _ in f), dtype='<U40')
+                # (_ for _ in f)
+                words = np.fromiter(f, dtype='<U40')
                 words = np.char.replace(words, '\n', '')
                 super().partial_fit(words)
                 # pizza
                 # WORDS = np.hstack((WORDS, words), dtype='<U40')
 
-
-        self.lexicon_ = np.array(self.uniques_, dtype='<U30')
-
-        del module_dir, lexicon_dir, FILES, words
+        del FILES, words
 
 
-    @TextStatistics.uniques_.getter
-    def uniques_(self):
-        raise AttributeError(f"'uniques_' is blocked, use 'lexicon_'")
+    # pizza
+    # @TextStatistics.uniques_.getter
+    # def uniques_(self):
+    #     raise AttributeError(
+    #         f"'uniques_' attribute is blocked, use 'lexicon_'"
+    #     )
 
-
-    @TextStatistics.uniques_.setter
-    def uniques_(self, value):
-        raise AttributeError(f"'uniques_' is blocked, use 'lexicon_'")
+    @property
+    def lexicon_(self):
+        return self.uniques_
 
 
     def _reset(self):
@@ -184,11 +189,72 @@ class Lexicon(TextStatistics):
         raise AttributeError(f"'score' is blocked")
 
 
+    def lookup_substring(self, char_seq: str) -> list[str]:
+
+        """
+        Return a list of all words in the pybear lexicon that contain
+        the given character substring.
+
+
+        Parameters
+        ----------
+        char_seq:
+            str - character substring to be looked up against the words
+            in the pybear lexicon.
+
+
+        Return
+        ------
+        -
+            list[str] - list of all words in the pybear lexicon that
+            contain the given character substring. Returns an empty list
+            if there are no matches.
+
+
+        """
+
+        if not isinstance(char_seq, str):
+            raise TypeError(f"'char_seq' must be a string")
+
+        return super().lookup_substring(char_seq.upper(), case_sensitive=True)
+
+
+    def lookup_string(self, char_seq: str) -> Union[str, None]:
+
+        """
+        Look in the pybear lexicon for an identical word (not substring)
+        that exactly matches the given character sequence. If a match is
+        found, return that character string. If an exact match is not
+        found, return None.
+
+
+        Parameters
+        ----------
+        char_seq:
+            str - character string to be looked up against the words in
+            the pybear lexicon.
+
+
+        Return
+        ------
+        -
+            Union[str, None] - if 'char_seq' is in the pybear lexicon,
+            return the word; if there is no match, return None.
+
+
+        """
+
+        if not isinstance(char_seq, str):
+            raise TypeError(f"'char_seq' must be a string")
+
+        return super().lookup_string(char_seq.upper(), case_sensitive=True)
+
+
     def find_duplicates(self) -> dict[str, numbers.Integral]:
 
         """
         Find any duplicates in the Lexicon. If any, display to screen
-        and return as numpy vector.
+        and return as python dictionary with frequencies.
 
 
         Parameters
@@ -199,21 +265,21 @@ class Lexicon(TextStatistics):
         Return
         ------
         -
-            Duplicates: dict[str, numbers.Integral] - vector of any
-            duplicates in the pybear lexicon and their frequencies.
+            Duplicates: dict[str, numbers.Integral] - any duplicates in
+            the pybear lexicon and their frequencies.
 
         """
 
         return _find_duplicates(self.string_frequency_)
 
 
-    def check_order(self) -> npt.NDArray[str]:
+    def check_order(self) -> list[str]:
 
         """
         Determine if words stored in the Lexicon files are out of
         alphabetical order by comparing the words as stored against a
-        sorted vector of the words. Displays any out-of-order words to
-        screen and returns a numpy vector of the words.
+        sorted list of the words. Displays any out-of-order words to
+        screen and returns a python list of the words.
 
 
         Parameters
@@ -224,8 +290,8 @@ class Lexicon(TextStatistics):
         Return
         ------
         -
-            OUT_OF_ORDER: NDArray[str] - vector of any out of sequence
-            words in the Lexicon.
+            list[str] - vector of any out of sequence words in the
+            Lexicon.
 
         """
 
@@ -234,16 +300,59 @@ class Lexicon(TextStatistics):
 
     def add_words(
         self,
-        # pizza one word at a time or a list?
+        WORDS: Union[str, Sequence[str]],
+        character_validation: Optional[bool] = True,
+        majuscule_validation: Optional[bool] = True
     ):
 
         """
-        Add words to the lexicon text files.
-        Pizza add more stuff.
+        Silently update the pybear lexicon text files with the given
+        words. Words that are already in the lexicon are skipped.
+
+        The 'validation' parameters allow you to disable the pybear
+        lexicon rules. The pybear lexicon does not allow any characters
+        that are not one of the 26 letters of the English alphabet.
+        Numbers, spaces, and punctuation, for example, are not allowed
+        in the formal pybear lexicon. Also, the pybear lexicon requires
+        that all entries in the lexicon be MAJUSCULE, i.e., upper-case.
+        The installed pybear lexicon will always follow these rules.
+        When the validation is used it ensures the integrity of the
+        lexicon. However, the user can override this validation for
+        local copies of pybear by setting 'character_validation' and
+        'majuscule_validation' to False. If you want your lexicon to
+        have strings that contain numbers, spaces, punctuation, and have
+        different cases, then set the validation to False and add your
+        strings to the lexicon via this method. There is a caveat,
+        however, in that whatever is to be added to the lexicon via this
+        method must start with one of the 26 letters of the English
+        alphabet. 'over-easy' and 'python2@gmail.com' could be added to
+        the lexicon, but '2' and '@gmail' are not accepted.
+
+        The Lexicon instance reloads the lexicon from disk and refills
+        the attributes when update is complete.
 
 
         Parameters
         ----------
+        WORDS:
+            Union[str, Sequence[str]] - the word or words to be appended
+            to the pybear lexicon. Cannot be an empty string or an empty
+            sequence.
+        character_validation:
+            Optional[bool], default = True - whether to apply pybear
+            lexicon character validation to the word or sequence of
+            words. pybear lexicon allows only the 26 letters in the
+            English language, no others. No spaces, no hypens, no
+            apostrophes. If True, any non-alpha characters will raise
+            an exception during validation. If False, any string
+            character is accepted.
+        majuscule_validation:
+            Optional[bool], default = True - whether to apply pybear
+            lexicon majuscule validation to the word or sequence of
+            words. The pybear lexicon requires all characters be
+            majuscule, i.e., EVERYTHING MUST BE UPPER-CASE. If True,
+            any non-majuscule characters will raise an exception during
+            validation. If False, any case is accepted.
 
 
         Return
@@ -253,11 +362,15 @@ class Lexicon(TextStatistics):
 
         """
 
-        _add_words(self.lexicon_)
+        _add_words(
+            WORDS,
+            self._lexicon_dir,
+            character_validation=character_validation,
+            majuscule_validation=majuscule_validation
+        )
 
-        # pizza
-        # _add_words writes new words to files. need to re-read files into
-        # the instance and rebuild the attributes.
+        # _add_words writes new words to files. need to re-read files
+        # into the instance and rebuild the lexicon and attributes.
         self.__init__()
 
 
@@ -321,128 +434,6 @@ class Lexicon(TextStatistics):
     #             raise ValueError(err_msg)
     #
     #     return char_seq.upper()
-
-
-    # pizza once this is in TextStatistics it can come out of here
-    # def lookup_substring(
-    #         self,
-    #         char_seq: str,
-    #         *,
-    #         bypass_validation=False
-    #     ) -> np.ndarray:
-    #
-    #     """
-    #     Return a numpy array of all words in the Lexicon that contain the
-    #     given character string.
-    #
-    #     Parameters
-    #     ----------
-    #     char_seq:
-    #         str - alpha character string to be looked up
-    #     bypass_validation:
-    #         bool - if True, bypass _validation of char_seq
-    #
-    #     Return
-    #     ------
-    #     -
-    #         SELECTED_WORDS: np.ndarray - list of all words in the Lexicon
-    #         that contain the given character string
-    #
-    #     """
-    #
-    #     bypass_validation = arg_kwarg_validater(
-    #         bypass_validation,
-    #         'bypass_validation',
-    #         [True, False, None],
-    #         get_module_name(str(sys.modules[__name__])),
-    #         inspect.stack()[0][3],
-    #         return_if_none=True
-    #     )
-    #
-    #     if not bypass_validation:
-    #         char_seq = self._string_validation(char_seq)
-    #
-    #     MASK = np.fromiter(
-    #         map(lambda x: x.find(char_seq, 0, len(char_seq)) + 1, self.LEXICON),
-    #         dtype=bool
-    #     )
-    #     SELECTED_WORDS = self.lexicon()[MASK]
-    #     del char_seq, MASK
-    #
-    #     return SELECTED_WORDS
-
-
-    # pizza once this is in TextStatistics it can come out of here
-    # def lookup_word(
-    #         self,
-    #         char_seq: str,
-    #         *,
-    #         bypass_validation: bool=False
-    #     ):
-    #
-    #     """
-    #     Return a boolean indicating if a given character string matches
-    #     a word in the Lexicon.
-    #
-    #     Parameters
-    #     ----------
-    #     char_seq:
-    #         str - alpha character string to be looked up
-    #     bypass_validation:
-    #         bool - if True, bypass _validation of char_seq
-    #
-    #     Return
-    #     ------
-    #     -
-    #         bool: boolean indicating if the given character string matches
-    #             a word in the Lexicon.
-    #
-    #     """
-    #
-    #     bypass_validation = arg_kwarg_validater(
-    #         bypass_validation,
-    #         'bypass_validation',
-    #         [True, False, None],
-    #         get_module_name(str(sys.modules[__name__])),
-    #         inspect.stack()[0][3],
-    #         return_if_none=True
-    #     )
-    #
-    #     if not bypass_validation:
-    #         char_seq = self._string_validation(char_seq)
-    #
-    #     return char_seq in self.LEXICON
-
-
-    # pizza this probably comes out!
-    # def statistics(self):
-    #
-    #     """
-    #     Print statistics about the Lexicon to the screen. Returns nothing.
-    #     Statistics reported include
-    #     - size
-    #     - uniques count
-    #     - average length and standard deviation
-    #     - max word length
-    #     - min word length
-    #     - 'starts with' frequency
-    #     - letter frequency
-    #     - top word frequencies,
-    #     - top longest words
-    #
-    #     Parameters
-    #     ----------
-    #     None
-    #
-    #     Return
-    #     ------
-    #     -
-    #         None
-    #
-    #     """
-    #
-    #
-    #     _statistics._statistics(self.LEXICON)
 
 
     def _old_py_lexicon(self):

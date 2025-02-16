@@ -10,7 +10,7 @@ from typing import (
     Optional,
     Sequence,
 )
-from typing_extensions import Self
+from typing_extensions import Self, Union
 from ._type_aliases import OverallStatisticsType
 
 import numbers
@@ -167,7 +167,6 @@ class TextStatistics(ReprMixin):
 
 
     # @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # size_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def size_(self) -> int:
 
@@ -178,12 +177,6 @@ class TextStatistics(ReprMixin):
         return self.overall_statistics_['size']
 
 
-    @size_.setter
-    def size_(self, value):
-        raise AttributeError(f'size_ attribute is read-only')
-    # END size_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # uniques_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def uniques_(self) -> list[str]:
 
@@ -199,12 +192,6 @@ class TextStatistics(ReprMixin):
         _val_uniques(uniques)
 
         return uniques
-
-
-    @uniques_.setter
-    def uniques_(self, value):
-        raise AttributeError(f'overall_statistics_ attribute is read-only')
-    # END uniques_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     # END @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
@@ -590,9 +577,9 @@ class TextStatistics(ReprMixin):
         Return
         ------
         -
-            matching_strings: list[str] - list of all strings in the
-            fitted data that contain the given character substring.
-            Returns an empty list if there are no matches.
+            list[str] - list of all strings in the fitted data that
+            contain the given character substring. Returns an empty list
+            if there are no matches.
 
 
         """
@@ -606,7 +593,7 @@ class TextStatistics(ReprMixin):
         self,
         char_seq: str,
         case_sensitive: Optional[bool]=True
-    ) -> list[str]:
+    ) -> Union[str, list[str], None]:
 
         """
         Look in the fitted strings for a full character sequence (not a
