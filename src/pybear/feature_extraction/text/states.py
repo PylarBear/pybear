@@ -13,8 +13,10 @@ def states_incl_dc():
              'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI',
              'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
 
+
 def states():
     return [state for state in states_incl_dc() if state != 'DC']
+
 
 def lower_states():
     return [state for state in states_incl_dc() if state not in ['DC','HI','AK']]

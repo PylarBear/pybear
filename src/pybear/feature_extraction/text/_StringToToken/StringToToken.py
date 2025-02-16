@@ -7,17 +7,17 @@
 
 
 
-from typing import Iterable
+from typing import Iterable, Optional
 from typing_extensions import TypeAlias, Union
+from ._type_aliases import ListOfListsType, ListOfStringsType
 
 import inspect
 import itertools
 
 import numpy as np
 
-
-ListOfListsType: TypeAlias = Iterable[Iterable[str]]
-ListOfStringsType: TypeAlias = Iterable[str]
+from ._validation._validation import _validation
+from ._validation._X import _val_X
 
 
 
@@ -26,19 +26,20 @@ class StringToToken:
     def __init__(
         self,
         *,
-        sep: Union[None, str]=None,
-        maxsplit: int=-1,
-        pad: Union[None, str]=None,
+        sep: Optional[Union[str, None]] = None,
+        maxsplit: Optional[int] = -1,
+        pad: Optional[Union[str, None]] = None,
         # return_as: Union[None, str]=None # pizza think on this
     ) -> None:
 
         """
         Transform strings containing a sequence of words into a list of
         lists containing full-word tokens.
-        When passed a list-like of strings,
-        StringToToken splits each string on the value given by :param:
-        sep and returns a vector of tokens in place of the original
-        string.
+
+        When passed a list-like of strings, StringToToken splits each
+        string on the value given by :param: 'sep' and returns a vector
+        of tokens in place of the original string.
+
         When passed a list-like of lists of strings, StringToToken assumes
         this data is already converted to tokens and simply returns the
         passed object.
@@ -73,6 +74,7 @@ class StringToToken:
             well. When wrapping StringToToken with a dask_ml wrapper, the
             :kwarg: pad is required, in order to fill out the
 
+
         Notes
         -----
         StringToToken can be wrapped by the dask_ml ParallelPostFit
@@ -97,7 +99,7 @@ class StringToToken:
                 The maximum number of splits made, working from left
                 to right.
             pad:
-                String used to fill ragged area
+                String used to fill ragged area.
 
         See Also
         --------
@@ -127,6 +129,7 @@ class StringToToken:
 
 
     def fit(self, X):
+
         """
         Not effectual.
 
@@ -142,6 +145,7 @@ class StringToToken:
 
 
     def score(self, X):
+
         """
         Not effectual.
 
@@ -156,27 +160,10 @@ class StringToToken:
         """
 
 
-    def _validate(self):
-
-        if not isinstance(self.sep, (str, type(None))):
-            raise TypeError(f"'sep' must be str or None, not {type(self.sep)}")
-
-        try:
-            float(self.maxsplit)
-            if int(self.maxsplit) != self.maxsplit:
-                raise Exception
-            self.maxsplit = int(self.maxsplit)
-        except:
-            raise TypeError(f"'maxsplit' must be an integer")
-
-        if not isinstance(self.pad, str):
-            raise TypeError(f"'pad' must be a string")
-
-
     def transform(
-            self,
-            X: Union[ListOfStringsType, ListOfListsType]
-        ) -> ListOfListsType:
+        self,
+        X: Union[ListOfStringsType, ListOfListsType]
+    ) -> ListOfListsType:
 
 
         """
@@ -197,33 +184,23 @@ class StringToToken:
 
         """
 
-        # validate init kwargs
-        self._validate()
 
         self._wrapped_by_dask_ml()
 
-        if self._using_dask_ml_wrapper:
-            # 'pad' must be a string
-            if not isinstance(self.pad, str):
-                raise ValueError(f"When using dask_ml wrappers, 'pad' must be "
-                                 f"provided as a string. '' is recommended for "
-                                 f"compatibility with other pybear modules.")
+        _validation(self.maxsplit, self.pad, self.sep, self._using_dask_ml_wrapper)
 
-        invalid_X:str = (f"X can only have 3 possible valid formats: \n"
+        _val_X(X)
+
+
+
+
+        invalid_X = (
+            f"X can only have 3 possible valid formats: \n"
             f"1) ['valid sequences', 'of strings', ...], \n"
             f"2) [['valid sequences', 'of strings', ...]], \n"
-            f"3) [['already', 'tokenized'], ['string', 'sequences']]")
+            f"3) [['already', 'tokenized'], ['string', 'sequences']]"
+        )
 
-
-        try:
-            iter(X)
-            if isinstance(X, (dict, str)):
-                raise Exception
-        except:
-            raise TypeError(invalid_X)
-
-        if len(X) == 0:
-            raise ValueError(f"X cannot be empty")
 
         _is_list_of_strs = all(map(isinstance, X, (str for _ in X)))
 

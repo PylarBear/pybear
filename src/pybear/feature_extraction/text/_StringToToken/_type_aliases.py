@@ -5,6 +5,8 @@
 #
 
 
+
+from typing import Iterable
 from typing_extensions import Union, TypeAlias
 
 import numpy as np
@@ -20,7 +22,8 @@ InnerIterableType: TypeAlias = Union[np.ndarray[DataType], list[DataType], DataT
 CleanedTextType: TypeAlias = OuterIterableType[InnerIterableType]
 
 
-
+ListOfListsType: TypeAlias = Iterable[Iterable[str]]
+ListOfStringsType: TypeAlias = Iterable[str]
 
 
 
