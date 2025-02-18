@@ -11,11 +11,11 @@ from typing import (
     Sequence,
 )
 from typing_extensions import Self, Union
-from ._type_aliases import OverallStatisticsType
 
 import numbers
 
 from ._validation._strings import _val_strings
+from ._validation._store_uniques import _val_store_uniques
 from ._validation._overall_statistics import _val_overall_statistics
 from ._validation._uniques import _val_uniques
 from ._validation._string_frequency import _val_string_frequency
@@ -23,6 +23,7 @@ from ._validation._startswith_frequency import _val_startswith_frequency
 from ._validation._character_frequency import _val_character_frequency
 
 from ._partial_fit._build_overall_statistics import _build_overall_statistics
+from ._partial_fit._merge_overall_statistics import _merge_overall_statistics
 from ._partial_fit._build_string_frequency import _build_string_frequency
 from ._partial_fit._merge_string_frequency import _merge_string_frequency
 from ._partial_fit._build_startswith_frequency import _build_startswith_frequency
@@ -52,118 +53,131 @@ from ....base import (
 
 class TextStatistics(ReprMixin):
 
-    """
-    Generate summary information about a list or multiple lists of
-    strings. Statistics include:
-
-    - size (number of strings fitted)
-
-    - unique strings count
-
-    - average length and standard deviation of all strings
-
-    - max string length
-
-    - min string length
-
-    - string frequencies
-
-    - 'starts with' frequency
-
-    - single character frequency
-
-    - longest strings
-
-    - shortest strings
-
-    TextStatistics has 2 scikit-style methods, partial_fit and fit. It
-    does not have a transform method, and because the instance does not
-    take parameters, it does not have a set_params method. TextStatistics
-    does have other methods that allow access to certain functionality,
-    such as conveniently printing summary information from attributes to
-    screen. See the methods section of the docs.
-
-    TextStatistics can be fit on a single batch of data via :method: fit,
-    and can be fit in batches via :method: partial_fit. The fit method
-    resets the instance with each call, that is, all information held
-    within the instance prior is deleted and the new fit information
-    repopulates. The partial_fit method, however, does not reset and
-    accumulates information across all batches seen. This makes
-    TextStatistics suitable for streaming data and batch-wise training,
-    such as with dask_ml Incremental and ParallelPostFit wrappers.
-
-    TextStatistics accepts 1D list-likes containing only strings. This
-    includes numpy arrays, python lists, sets, and tuples, and pandas
-    Series.
-
-
-    Attributes
-    ----------
-    size_:
-        int - The number of strings fitted on the TextStatistics instance.
-    uniques_:
-        list[str] - A 1D list of the unique strings fitted on the
-        TextStatistics instance.
-    overall_statistics_:
-        dict[str: numbers.Real] - A dictionary that holds information
-        about all the strings fitted on the TextStatistics instance.
-        Available statistics are size (number of strings seen during
-        fitting), uniques count, average string length, standara deviation
-        of string length, maximum string length, and minimum string
-        length.
-    string_frequency_:
-        dict[str, int] - A dictionary that holds the unique strings and
-        the respective number of occurrences seen during fitting.
-    startswith_frequency_:
-        dict[str, int] - A dictionary that holds the first characters and
-        their frequencies in the first position for all the strings
-        fitted on the TextStatistics instance.
-    character_frequency_:
-        dict[str, int] - A dictionary that holds all the unique single
-        characters and their frequencies for all the strings fitted on
-        the TextStatistics instance.
-
-
-    Examples
-    --------
-    >>> from pybear.feature_extraction.text import TextStatistics
-    >>> STRINGS = ['I am Sam', 'Sam I am', 'That Sam-I-am!', 'That Sam-I-am!',
-    ...    'I do not like that Sam-I-am!']
-    >>> TS = TextStatistics()
-    >>> TS.fit(STRINGS)
-    TextStatistics()
-    >>> TS.size_
-    5
-    >>> TS.overall_statistics_['max_length']
-    28
-    >>> TS.overall_statistics_['average_length']
-    14.4
-
-    >>> STRINGS = ['a', 'a', 'b', 'c', 'c', 'c', 'd', 'd', 'e', 'f', 'f']
-    >>> TS = TextStatistics()
-    >>> TS.fit(STRINGS)
-    TextStatistics()
-    >>> TS.size_
-    11
-    >>> TS.string_frequency_
-    {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
-    >>> TS.uniques_
-    ['a', 'b', 'c', 'd', 'e', 'f']
-    >>> TS.overall_statistics_['max_length']
-    1
-    >>> TS.character_frequency_
-    {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
-
-    """
-
 
     _lp: int = 5
     _rp: int = 15
 
 
-    def __init__(self) -> None:
-        """Initialize a TextStatistics class."""
-        pass
+    def __init__(
+        self,
+        store_uniques: Optional[bool] = True
+    ) -> None:
+
+        """
+        Generate summary information about a list or multiple lists of
+        strings. Statistics include:
+
+        - size (number of strings fitted)
+
+        - unique strings count
+
+        - average length and standard deviation of all strings
+
+        - max string length
+
+        - min string length
+
+        - string frequencies
+
+        - 'starts with' frequency
+
+        - single character frequency
+
+        - longest strings
+
+        - shortest strings
+
+        TextStatistics has 2 scikit-style methods, partial_fit and fit.
+        It does not have a transform method, and because pizza the instance
+        does not take parameters, it does not have a set_params method.
+        TextStatistics does have other methods that allow access to
+        certain functionality, such as conveniently printing summary
+        information from attributes to screen. See the methods section
+        of the docs.
+
+        TextStatistics can be fit on a single batch of data via :method:
+        fit, and can be fit in batches via :method: partial_fit. The fit
+        method resets the instance with each call, that is, all
+        information held within the instance prior is deleted and the
+        new fit information repopulates. The partial_fit method, however,
+        does not reset and accumulates information across all batches
+        seen. This makes TextStatistics suitable for streaming data and
+        batch-wise training, such as with dask_ml Incremental and
+        ParallelPostFit wrappers.
+
+        TextStatistics accepts 1D list-likes containing only strings.
+        This includes numpy arrays, python lists, sets, and tuples, and
+        pandas series.
+
+
+        Parameters
+        ----------
+        store_uniques:
+            Optional[bool], default = True - pizza!!!
+
+
+        Attributes
+        ----------
+        size_:
+            int - The number of strings fitted on the TextStatistics
+            instance.
+        uniques_:
+            list[str] - A 1D list of the unique strings fitted on the
+            TextStatistics instance.
+        overall_statistics_:
+            dict[str: numbers.Real] - A dictionary that holds information
+            about all the strings fitted on the TextStatistics instance.
+            Available statistics are size (number of strings seen during
+            fitting), uniques count, average string length, standara
+            deviation of string length, maximum string length, and
+            minimum string length.
+        string_frequency_:
+            dict[str, int] - A dictionary that holds the unique strings
+            and the respective number of occurrences seen during fitting.
+        startswith_frequency_:
+            dict[str, int] - A dictionary that holds the first characters
+            and their frequencies in the first position for all the
+            strings fitted on the TextStatistics instance.
+        character_frequency_:
+            dict[str, int] - A dictionary that holds all the unique
+            single characters and their frequencies for all the strings
+            fitted on the TextStatistics instance.
+
+
+        Examples
+        --------
+        >>> from pybear.feature_extraction.text import TextStatistics
+        >>> STRINGS = ['I am Sam', 'Sam I am', 'That Sam-I-am!',
+        ...    'That Sam-I-am!', 'I do not like that Sam-I-am!']
+        >>> TS = TextStatistics()
+        >>> TS.fit(STRINGS)
+        TextStatistics()
+        >>> TS.size_
+        5
+        >>> TS.overall_statistics_['max_length']
+        28
+        >>> TS.overall_statistics_['average_length']
+        14.4
+
+        >>> STRINGS = ['a', 'a', 'b', 'c', 'c', 'c', 'd', 'd', 'e', 'f', 'f']
+        >>> TS = TextStatistics()
+        >>> TS.fit(STRINGS)
+        TextStatistics()
+        >>> TS.size_
+        11
+        >>> TS.string_frequency_
+        {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
+        >>> TS.uniques_
+        ['a', 'b', 'c', 'd', 'e', 'f']
+        >>> TS.overall_statistics_['max_length']
+        1
+        >>> TS.character_frequency_
+        {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
+
+        """
+
+
+        self.store_uniques = store_uniques
 
 
     # @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
@@ -213,14 +227,29 @@ class TextStatistics(ReprMixin):
             pass
 
 
-    def get_params(self, deep: Optional[bool] = True):
+    def get_params(
+        self,
+        deep: Optional[bool] = True
+    ) -> dict[str, any]:
 
         """
-        A spoof get_params for ReprMixin functionality. TextStatistics
-        does not have any init parameters.
+        Get parameters for this TextStatistics instance.
+
+
+        Parameters
+        ----------
+        deep:
+            bool, optional, default=True - Ignored.
+
+
+        Return
+        ------
+        -
+            params: dict - Parameter names mapped to their values.
+
         """
 
-        return {}
+        return {'store_uniques': self.store_uniques}
 
 
     def partial_fit(
@@ -256,6 +285,7 @@ class TextStatistics(ReprMixin):
         """
 
         _val_strings(X)
+        _val_store_uniques(self.store_uniques)
 
         # string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # this must be before overall_statistics
@@ -265,13 +295,16 @@ class TextStatistics(ReprMixin):
                 case_sensitive=True
             )
 
-        self.string_frequency_: dict[str, int] = \
-            _merge_string_frequency(
-                _current_string_frequency,
-                getattr(self, 'string_frequency_', {})
-            )
+        if self.store_uniques:
+            self.string_frequency_: dict[str, int] = \
+                _merge_string_frequency(
+                    _current_string_frequency,
+                    getattr(self, 'string_frequency_', {})
+                )
+        else:
+            self.string_frequency_ = {}
 
-        _val_string_frequency(self.string_frequency_)
+            _val_string_frequency(self.string_frequency_)
         # END string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # startswith_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -311,10 +344,24 @@ class TextStatistics(ReprMixin):
 
         # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        self.overall_statistics_: OverallStatisticsType = \
+        # pizza
+        # self.overall_statistics_: OverallStatisticsType = \
+        #     _build_overall_statistics(
+        #         self.string_frequency_,
+        #         case_sensitive=True
+        #     )
+
+        _current_overall_statistics = \
             _build_overall_statistics(
-                self.string_frequency_,
-                case_sensitive=True
+                X,
+                case_sensitive=False
+            )
+
+        self.overall_statistics_: dict[str, numbers.Real] = \
+            _merge_overall_statistics(
+                _current_overall_statistics,
+                getattr(self, 'overall_statistics_', {}),
+                _len_uniques=len(self.uniques_)
             )
 
         _val_overall_statistics(self.overall_statistics_)

@@ -13,14 +13,19 @@ import pytest
 from pybear.feature_extraction.text._TextStatistics._partial_fit. \
     _build_overall_statistics_OLD import _build_overall_statistics
 
+from pybear.feature_extraction.text._TextStatistics._partial_fit. \
+    _build_string_frequency import _build_string_frequency
+
 
 pytest.skip(reason=f'not used as of first release', allow_module_level=True)
 
 
-class TestBuildCurrentOverallStatistics:
+class TestBuildOverallStatisticsOLD:
+
 
     # def _build_overall_statistics(
-    #    STRINGS: Sequence[str]
+    #     string_frequency_: dict[str, numbers.Integral],
+    #     case_sensitive: Optional[bool] = False
     # ) -> OverallStatisticsType:
 
 
@@ -38,15 +43,15 @@ class TestBuildCurrentOverallStatistics:
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @pytest.mark.parametrize('junk_STRINGS',
+    @pytest.mark.parametrize('junk_DICT',
         (-2.7, -1, 0, 1, 2.7, True, False, None, 'junk', [1,2], (1,), {1,2},
-         {'a': 1}, np.random.randint(0, 10, (10,)), lambda x: x)
+         np.random.randint(0, 10, (10,)), lambda x: x)
     )
-    def test_STRINGS_rejects_non_list_like(self, junk_STRINGS):
+    def test_string_frequency_rejects_non_dict(self, junk_DICT):
 
-        with pytest.raises(TypeError):
+        with pytest.raises(AssertionError):
             _build_overall_statistics(
-                junk_STRINGS,
+                junk_DICT,
                 case_sensitive=True
             )
 
@@ -59,7 +64,7 @@ class TestBuildCurrentOverallStatistics:
 
         with pytest.raises(TypeError):
             _build_overall_statistics(
-                ['Do', 'You', 'Like', 'Green', 'Eggs', 'And', 'Ham'],
+                {'Do':1, 'You':1, 'Like':1, 'Green':1, 'Eggs':1, 'And':1},
                 junk_case_sensitive
             )
 
@@ -68,8 +73,7 @@ class TestBuildCurrentOverallStatistics:
     def test_accepts_good(self, case_sensitive):
 
         _build_overall_statistics(
-            ['THAT', 'SAM-I-AM', 'THAT', 'SAM-I-AM', 'I', 'DO',
-             'NOT', 'LIKE', 'THAT' 'SAM-I-AM'],
+            {'Do':1, 'You':1, 'Like':1, 'Green':1, 'Eggs':1, 'And':1},
             case_sensitive=case_sensitive
         )
 
@@ -80,8 +84,11 @@ class TestBuildCurrentOverallStatistics:
 
         STRINGS = ['I', 'Am', 'Sam', 'I', 'AM', 'SAM', 'sam', 'i', 'am']
 
+        DICT = _build_string_frequency(STRINGS, case_sensitive=True)
+
         # case_sensitive False -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _build_overall_statistics(STRINGS, case_sensitive=False)
+
+        out = _build_overall_statistics(DICT, case_sensitive=False)
 
         assert isinstance(out, dict)
 
@@ -110,7 +117,7 @@ class TestBuildCurrentOverallStatistics:
         assert out['min_length'] == min(map(len, STRINGS))
 
         # case_sensitive True -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _build_overall_statistics(STRINGS, case_sensitive=True)
+        out = _build_overall_statistics(DICT, case_sensitive=True)
 
         assert isinstance(out, dict)
 
