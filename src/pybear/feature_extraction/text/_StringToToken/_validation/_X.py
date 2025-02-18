@@ -8,7 +8,7 @@
 
 
 def _val_X(
-    _X: pizza
+    _X    #pizza
 ) -> None:
 
     """

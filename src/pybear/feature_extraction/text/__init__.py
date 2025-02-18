@@ -8,7 +8,7 @@
 
 from ._Lexicon.Lexicon import Lexicon
 from ._StringToToken import StringToToken
-from ._TextCleaner.TextCleaner import TextCleaner
+from ._TextCleaner._TextCleaner.TextCleaner import TextCleaner
 from ._TextStatistics.TextStatistics import TextStatistics
 
 

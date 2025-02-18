@@ -29,6 +29,8 @@ def _val_maxsplit(_maxsplit: numbers.Integral) -> None:
         float(_maxsplit)
         if int(_maxsplit) != _maxsplit:
             raise Exception
+        if isinstance(_maxsplit, bool):
+            raise Exception
     except:
         raise TypeError(f"'maxsplit' must be an integer")
 

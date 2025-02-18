@@ -13,7 +13,7 @@ import numpy as np
 import dask.array as da
 
 
-OuterIterableType: TypeAlias = Union[list, np.ndarray, da.core.Array]
+OuterIterableType: TypeAlias = Iterable #Union[list, np.ndarray, da.core.Array]
 DataType: TypeAlias = str
 InnerIterableType: TypeAlias = Union[np.ndarray[DataType], list[DataType], DataType]
 
