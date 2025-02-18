@@ -86,6 +86,9 @@ class TestAttrAccessBeforeAndAfterFit:
             with pytest.raises(AttributeError):
                 getattr(TestCls, attr)
 
+        # parameter is accessible
+        assert isinstance(getattr(TestCls, 'store_uniques', None), bool)
+
         # uniques_ and size_ cannot be set
         with pytest.raises(AttributeError):
             setattr(TestCls, 'uniques_', list('abc'))
@@ -142,6 +145,8 @@ class TestAttrAccessBeforeAndAfterFit:
             else:
                 raise Exception
 
+        # parameter is accessible
+        assert isinstance(getattr(TestCls, 'store_uniques', None), bool)
 
         # uniques_ and size_ cannot be set
         with pytest.raises(AttributeError):
@@ -169,6 +174,7 @@ class TestMethodAccessBeforeAndAfterFit:
             '_reset',
             'partial_fit',
             'fit',
+            'get_params',
             'print_overall_statistics',
             'print_startswith_frequency',
             'print_character_frequency',
@@ -226,6 +232,10 @@ class TestMethodAccessBeforeAndAfterFit:
 
             if _method in ['fit', 'partial_fit', '_reset']:
                 continue
+            elif _method == 'get_params':
+                out = getattr(TestCls, _method)()
+                assert isinstance(out, dict)
+                assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
             elif _method == 'print_overall_statistics':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)()
@@ -296,6 +306,10 @@ class TestMethodAccessBeforeAndAfterFit:
                 assert is_fitted(TestCls) is True
             elif _method == 'partial_fit':
                 assert isinstance(TestCls.partial_fit(_X), TS)
+            elif _method == 'get_params':
+                out = getattr(TestCls, _method)()
+                assert isinstance(out, dict)
+                assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
             elif _method == 'print_overall_statistics':
                 assert getattr(TestCls, _method)() is None
             elif _method == 'print_startswith_frequency':
