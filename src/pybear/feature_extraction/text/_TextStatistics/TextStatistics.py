@@ -432,6 +432,30 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         return self.partial_fit(X)
 
 
+    def transform(self, X: Sequence[str]) -> Sequence[str]:
+
+        """
+        A no-op transform method for data processing scenarios that may
+        require the transform method. X is returned as given.
+
+
+        Parameters
+        ----------
+        X:
+            Sequence[str] - the data. Ignored.
+
+
+        Return
+        ------
+        -
+            X: Sequence[str] - the original, unchanged, data.
+
+
+        """
+
+        return X
+
+
     # OTHER METHODS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     def print_overall_statistics(self) -> None:
