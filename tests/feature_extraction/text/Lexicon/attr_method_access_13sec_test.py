@@ -8,6 +8,7 @@
 
 import pytest
 import numbers
+import uuid
 
 import numpy as np
 
@@ -113,6 +114,8 @@ class TestMethodAccess:
     #         'get_params',  # blocked
     #         'partial_fit',  # blocked
     #         'fit',   # blocked
+    #         'transform'   # blocked
+    #         'score'   # blocked
     #         'print_overall_statistics',
     #         'print_startswith_frequency',
     #         'print_character_frequency',
@@ -123,11 +126,16 @@ class TestMethodAccess:
     #         'print_shortest_strings',
     #         'lookup_substring',
     #         'lookup_string',
-    #         'score'   # blocked
     #     ]
 
 
-    def test_method_access(self):
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _X():
+        return [str(uuid.uuid4())[:5] for _ in range(100)]
+
+
+    def test_method_access(self, _X):
 
         TestCls = Lexicon()
 
@@ -143,15 +151,19 @@ class TestMethodAccess:
 
         # 'partial_fit'  # blocked
         with pytest.raises(AttributeError):
-            getattr(TestCls, 'partial_fit')()
+            getattr(TestCls, 'partial_fit')(_X)
 
         # 'fit'   # blocked
         with pytest.raises(AttributeError):
-            getattr(TestCls, 'fit')()
+            getattr(TestCls, 'fit')(_X)
+
+        # 'transform'   # blocked
+        with pytest.raises(AttributeError):
+            getattr(TestCls, 'transform')(_X)
 
         # 'score'   # blocked
         with pytest.raises(AttributeError):
-            getattr(TestCls, 'score')()
+            getattr(TestCls, 'score')(_X)
 
         # END blocked ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

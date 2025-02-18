@@ -453,6 +453,8 @@ class TextStatistics(GetParamsMixin, ReprMixin):
 
         """
 
+        check_is_fitted(self)
+
         return X
 
 
