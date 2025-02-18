@@ -204,6 +204,24 @@ scipy sparse matrices/arrays. Suitable for sklearn pipelines. Has a partial_fit
 method for batch-wise training and can be wrapped with dask_ml Incremental and
 ParallelPostFit wrappers. Access via pybear.preprocessing.SlimPolyFeatures.
 
+Lexicon
+~~~~~~~
+A class object that has an attribute that is a list of the words in the English 
+lexicon, as well as other methods and attributes that have summary statistics 
+about the words. Currently has over 68,000 words, but is not 100% exhaustive 
+though attempts have been made to do so. Users are able to modify the contents  
+of the lexicon on their local installation via built-in methods.
+Access via pybear.feature_extraction.text.Lexicon.
+
+TextStatistics
+~~~~~~~~~~~~~~
+A scikit-like class that ingests 1D vectors of strings and compiles statistics 
+about the characters and strings seen during fitting. Has a partial_fit method 
+that allows it to accumulate information for multiple batches of data. Reported 
+information includes number of strings seen, average length of strings, maximum 
+and minimum length, character frequency, starts-with frequency, and others.
+Access via pybear.feature_extraction.text.TextStatistics.
+
 =======
 
 Changelog
