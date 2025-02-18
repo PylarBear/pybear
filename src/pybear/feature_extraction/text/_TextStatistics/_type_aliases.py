@@ -6,11 +6,8 @@
 
 
 
-from typing import TypedDict, Sequence
-from typing_extensions import (
-    TypeAlias,
-    Required
-)
+from typing import TypedDict
+from typing_extensions import Required
 
 import numbers
 
@@ -26,15 +23,6 @@ class OverallStatisticsType(TypedDict):
     min_length: Required[numbers.Integral]
 
 
-StartsWithFrequencyType: TypeAlias = dict[str, numbers.Integral]
-
-CharacterFrequencyType: TypeAlias = dict[str, numbers.Integral]
-
-StringFrequencyType: TypeAlias = dict[str, numbers.Integral]
-
-LongestStringsType: TypeAlias = dict[str, numbers.Integral]
-
-ShortestStringsType: TypeAlias = dict[str, numbers.Integral]
 
 
 

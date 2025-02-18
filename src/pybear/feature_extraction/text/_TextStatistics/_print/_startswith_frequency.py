@@ -6,8 +6,6 @@
 
 
 
-from .._type_aliases import StartsWithFrequencyType
-
 import numbers
 
 import numpy as np
@@ -16,19 +14,19 @@ from .._validation._startswith_frequency import _val_startswith_frequency
 
 
 
-def _print_starts_with_frequency(
-    starts_with_frequency: StartsWithFrequencyType,
+def _print_startswith_frequency(
+    startswith_frequency: dict[str, numbers.Integral],
     lp: numbers.Integral,
     rp: numbers.Integral
 ) -> None:
 
     """
-    Print the 'starts_with_frequency_' attribute to screen.
+    Print the 'startswith_frequency_' attribute to screen.
 
 
     Parameters
     ----------
-    starts_with_frequency:
+    startswith_frequency:
         dict[str, numbers.Integral] - the dictionary holding the unique
         first characters and the number of times those characters
         appeared in the first position for every string fitted on the
@@ -48,11 +46,11 @@ def _print_starts_with_frequency(
     """
 
 
-    _val_startswith_frequency(starts_with_frequency)
+    _val_startswith_frequency(startswith_frequency)
 
-    _UNIQUES = np.fromiter(starts_with_frequency, dtype=f"<U1")
+    _UNIQUES = np.fromiter(startswith_frequency, dtype=f"<U1")
     # DONT USE np.int8 OR 16! NUMBERS TOO BIG!
-    _COUNTS = np.fromiter(starts_with_frequency.values(), dtype=np.uint32)
+    _COUNTS = np.fromiter(startswith_frequency.values(), dtype=np.uint32)
 
     COUNT_MASK = np.flip(np.argsort(_COUNTS))
     COUNT_SORTED_DICT = dict((zip(_UNIQUES[COUNT_MASK], _COUNTS[COUNT_MASK])))

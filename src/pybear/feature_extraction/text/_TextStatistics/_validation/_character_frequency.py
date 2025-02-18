@@ -6,11 +6,12 @@
 
 
 
-from .._type_aliases import CharacterFrequencyType
+import numbers
+
 
 
 def _val_character_frequency(
-    _character_frequency: CharacterFrequencyType
+    _character_frequency: dict[str, numbers.Integral]
 ) -> None:
 
     """

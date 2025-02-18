@@ -42,7 +42,6 @@ def _build_character_frequency(
 
     _val_string_frequency(_string_frequency)
 
-    # pizza, maybe do some benchmarking on this.
 
     _character_frequency: dict[str: numbers.Integral] = {}
 

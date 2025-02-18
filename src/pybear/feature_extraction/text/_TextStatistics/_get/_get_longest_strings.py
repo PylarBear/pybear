@@ -7,7 +7,6 @@
 
 
 from typing import Optional
-from .._type_aliases import StringFrequencyType
 
 import numbers
 
@@ -19,9 +18,9 @@ from .._validation._n import _val_n
 
 
 def _get_longest_strings(
-    string_frequency: StringFrequencyType,
+    string_frequency: dict[str, numbers.Integral],
     n: Optional[numbers.Integral] = 10
-) -> dict[str, numbers.Integral]:
+) -> dict[str, int]:
 
     """
     Return the longest strings in the 'string_frequency_' attribute as a
@@ -42,8 +41,8 @@ def _get_longest_strings(
     Return
     ------
     -
-        longest_strings: dict[str, numbers.Integral] - the top 'n'
-        longest strings and their frequencies.
+        longest_strings: dict[str, int] - the top 'n' longest strings
+        and their frequencies.
 
     """
 

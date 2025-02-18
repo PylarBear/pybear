@@ -7,7 +7,6 @@
 
 
 from typing import Optional
-from .._type_aliases import StringFrequencyType
 
 import numbers
 
@@ -19,7 +18,7 @@ from .._validation._string_frequency import _val_string_frequency
 
 
 def _print_string_frequency(
-    string_frequency: StringFrequencyType,
+    string_frequency: dict[str, numbers.Integral],
     lp: numbers.Integral,
     rp: numbers.Integral,
     n: Optional[numbers.Integral] = 10

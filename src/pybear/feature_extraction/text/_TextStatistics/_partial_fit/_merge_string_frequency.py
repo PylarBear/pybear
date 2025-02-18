@@ -6,15 +6,16 @@
 
 
 
-from .._type_aliases import StringFrequencyType
+import numbers
 
 from .._validation._string_frequency import _val_string_frequency
 
 
+
 def _merge_string_frequency(
-    _current_string_frequency: StringFrequencyType,
-    _string_frequency: StringFrequencyType
-) ->  StringFrequencyType:
+    _current_string_frequency: dict[str, numbers.Integral],
+    _string_frequency: dict[str, numbers.Integral]
+) ->  dict[str, int]:
 
     """
     Merge the uniques and counts in the current partial fit's string
@@ -35,9 +36,9 @@ def _merge_string_frequency(
     Return
     ------
     -
-        _string_frequency: dict[str, numbers.Integral] - the merged
-        uniques and counts for all strings seen across all partial fits
-        of the TextStatistics instance.
+        _string_frequency: dict[str, int] - the merged uniques and counts
+        for all strings seen across all partial fits of the TextStatistics
+        instance.
 
 
     """
@@ -49,16 +50,9 @@ def _merge_string_frequency(
     _val_string_frequency(_string_frequency)
 
 
-    # pizza maybe do some benchmarking on this
     for k, v in _current_string_frequency.items():
 
-        _string_frequency[str(k)] = (_string_frequency.get(str(k), 0) + v)
-
-        # was:
-        # if k in _string_frequency:
-        #     _string_frequency[k] += v
-        # else:
-        #     _string_frequency[k] = v
+        _string_frequency[str(k)] = int(_string_frequency.get(str(k), 0) + v)
 
 
     return _string_frequency

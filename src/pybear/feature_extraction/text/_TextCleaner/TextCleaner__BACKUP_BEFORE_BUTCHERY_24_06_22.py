@@ -28,13 +28,13 @@ from feature_extraction.text import (
 # remove_characters         Keep only allowed or removed disallowed characters from entire CLEANED_TEXT object.
 # _strip                    Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object.
 # normalize                 Set all text in CLEANED_TEXT object to upper case (default) or lower case.
-# return_row_uniques        Return a potentially ragged vector containing the unique words for each row in CLEANED_TEXT object.
-# return_overall_uniques    Return unique words in the entire CLEANED_TEXT object.
-# return_row_uniques        Return a potentially ragged vector containing the unique words for each row in CLEANED_TEXT object.
+
 # view_cleaned_text         Print cleaned text to screen.
+# return_row_uniques        Return a potentially ragged vector containing the unique words for each row in CLEANED_TEXT object.
 # view_row_uniques          Print row uniques and optionally counts to screen.
 # return_overall_uniques    Return unique words in the entire CLEANED_TEXT object.
 # view_overall_uniques      Print overall uniques and optionally counts to screen.
+
 # remove_stops              Remove stop words from the entire CLEANED_TEXT object.
 # justify                   Fit text as strings or as lists to user-specified number of characters per row.
 # delete_words              Delete one or more words from the entire CLEANED_TEXT object.
@@ -418,6 +418,12 @@ class TextCleaner:
                 self.CLEANED_TEXT = np.fromiter(map(str.lower, self.CLEANED_TEXT), dtype='U100000')
 
 
+    def view_cleaned_text(self):
+        """Print cleaned text to screen."""
+        print(f'\nCLEANED TEXT (currently in memory as {"LISTS" if self.is_list_of_lists else "STRINGS"}):')
+        [print(_) for _ in self.CLEANED_TEXT]
+
+
     def return_row_uniques(self, return_counts=False):
         """
         Return a potentially ragged vector containing the unique words
@@ -458,13 +464,6 @@ class TextCleaner:
             return UNIQUES_HOLDER, COUNTS_HOLDER
 
 
-    def view_cleaned_text(self):
-        """Print cleaned text to screen."""
-        print(f'\nCLEANED TEXT (currently in memory as {"LISTS" if self.is_list_of_lists else "STRINGS"}):')
-        [print(_) for _ in self.CLEANED_TEXT]
-
-
-
     def view_row_uniques(self, return_counts=None):
         """Print row uniques and optionally counts to screen."""
 
@@ -503,7 +502,9 @@ class TextCleaner:
 
 
     def return_overall_uniques(self, return_counts:bool=False):
+
         """Return unique words in the entire CLEANED_TEXT object."""
+
         if not return_counts:
             # CANT DO unique IN ONE SHOT ON self.CLEANED_TEXT BECAUSE IS LIKELY RAGGED
             return np.unique(np.hstack(self.return_row_uniques(return_counts=False)))
@@ -524,7 +525,9 @@ class TextCleaner:
 
 
     def view_overall_uniques(self, return_counts:bool=None):
+
         """Print overall uniques and optionally counts to screen."""
+
         fxn = inspect.stack()[0][3]
 
         return_counts = arg_kwarg_validater(
@@ -642,6 +645,7 @@ class TextCleaner:
 
 
     def delete_words(self):
+
         """Delete one or more words from the entire CLEANED_TEXT object."""
 
         converted = False

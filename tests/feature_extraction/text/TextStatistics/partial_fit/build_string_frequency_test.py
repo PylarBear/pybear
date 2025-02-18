@@ -15,7 +15,7 @@ from pybear.feature_extraction.text._TextStatistics._partial_fit. \
 
 
 
-class TestBuildCurrentStringFrequency:
+class TestBuildStringFrequency:
 
 
     @pytest.mark.parametrize('junk_STRINGS',

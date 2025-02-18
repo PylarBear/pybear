@@ -34,9 +34,9 @@ def _build_startswith_frequency(
     ------
     -
         _startswith_frequency: dict[str, numbers.Integral] - a dictionary
-        that holds the first characters of every string passed to
-        this partial fit and their respective number of appearances in
-        the first position as values.
+        that holds the first characters of every string passed to this
+        partial fit and their respective number of appearances in the
+        first position as values.
 
 
     """
@@ -44,24 +44,12 @@ def _build_startswith_frequency(
 
     _val_string_frequency(_string_frequency)
 
-    # pizza, maybe do some benchmarking on this.
-    # another way would to pass STRINGS directly and do:
-    # _char_getter = map(lambda x: str(x[0]), STRINGS)
-    # _startswith_frequency: dict[str: numbers.Integral] = dict((zip(
-    #     *np.unique(np.fromiter(_char_getter, dtype='<U1'), return_counts=True)
-    # )))
-
 
     _startswith_frequency: dict[str: numbers.Integral] = {}
 
     for _string, _ct in _string_frequency.items():
         _startswith_frequency[str(_string[0])] = \
-            (_startswith_frequency.get(str(_string[0]), 0) + _ct)
-
-    _startswith_frequency = dict((zip(
-        map(str, _startswith_frequency.keys()),
-        map(int, _startswith_frequency.values())
-    )))
+            int(_startswith_frequency.get(str(_string[0]), 0) + _ct)
 
 
     return _startswith_frequency
