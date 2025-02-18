@@ -151,27 +151,27 @@ class Lexicon(TextStatistics):
         raise AttributeError(f"'_reset' is blocked")
 
 
-    def get_params(self):
+    def get_params(self, deep:Optional[bool] = True):
         """Blocked."""
         raise AttributeError(f"'get_params' is blocked")
 
 
-    def partial_fit(self):
+    def partial_fit(self, X:any, y:Optional[any] = None):
         """Blocked."""
         raise AttributeError(f"'partial_fit' is blocked")
 
 
-    def fit(self):
+    def fit(self, X:any, y:Optional[any] = None):
         """Blocked."""
         raise AttributeError(f"'fit' is blocked")
 
 
-    def transform(self):
+    def transform(self, X:any):
         """Blocked."""
         raise AttributeError(f"'transform' is blocked")
 
 
-    def score(self):
+    def score(self, X:any, y:Optional[any] = None):
         """Blocked."""
         raise AttributeError(f"'score' is blocked")
 

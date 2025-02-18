@@ -178,6 +178,8 @@ class TestMethodAccessBeforeAndAfterFit:
             'partial_fit',
             'fit',
             'get_params',
+            'transform',
+            'score',
             'print_overall_statistics',
             'print_startswith_frequency',
             'print_character_frequency',
@@ -187,8 +189,7 @@ class TestMethodAccessBeforeAndAfterFit:
             'get_shortest_strings',
             'print_shortest_strings',
             'lookup_substring',
-            'lookup_string',
-            'score'
+            'lookup_string'
         ]
 
 
@@ -241,6 +242,12 @@ class TestMethodAccessBeforeAndAfterFit:
                 assert isinstance(out, dict)
                 assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
                 assert list(out.keys())[0] == 'store_uniques'
+            elif _method == 'transform':
+                with pytest.raises(NotFittedError):
+                    getattr(TestCls, _method)(_X)
+            elif _method == 'score':
+                with pytest.raises(NotFittedError):
+                    getattr(TestCls, _method)(_X)
             elif _method == 'print_overall_statistics':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)()
@@ -271,9 +278,6 @@ class TestMethodAccessBeforeAndAfterFit:
             elif _method == 'lookup_string':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)('look me up')
-            elif _method == 'score':
-                with pytest.raises(NotFittedError):
-                    getattr(TestCls, _method)(_X)
             else:
                 raise Exception
 
@@ -316,6 +320,11 @@ class TestMethodAccessBeforeAndAfterFit:
                 assert isinstance(out, dict)
                 assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
                 assert list(out.keys())[0] == 'store_uniques'
+            elif _method == 'transform':
+                out = getattr(TestCls, _method)(_X)
+                assert np.array_equal(out, _X)
+            elif _method == 'score':
+                assert getattr(TestCls, _method)(_X) is None
             elif _method == 'print_overall_statistics':
                 assert getattr(TestCls, _method)() is None
             elif _method == 'print_startswith_frequency':
@@ -365,8 +374,6 @@ class TestMethodAccessBeforeAndAfterFit:
                     assert np.array_equal(out, ['I am Sam'])
                 else:
                     assert out is None
-            elif _method == 'score':
-                assert getattr(TestCls, _method)(_X) is None
             else:
                 raise Exception
 
