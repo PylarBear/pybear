@@ -28,7 +28,8 @@ class TestTextStatistics:
         return _read_green_eggs_and_ham()
 
 
-    def test_multiple_partial_fit_accuracy(self, STRINGS):
+    @pytest.mark.parametrize('store_uniques', (True, False))
+    def test_multiple_partial_fit_accuracy(self, STRINGS, store_uniques):
 
         # fit data with partial_fit
         # store the attributes
@@ -50,7 +51,7 @@ class TestTextStatistics:
 
 
 
-        TestCls = TS()
+        TestCls = TS(store_uniques=store_uniques)
 
         TestCls.partial_fit(STRINGS)
 
@@ -76,6 +77,8 @@ class TestTextStatistics:
 
         # uniques_ should be the same
         assert np.array_equal(scd_uniques, fst_uniques)
+        if not store_uniques:
+            assert len(fst_uniques) == len(scd_uniques) == 0
 
         # overall_statistics_
         # - 'size' should double
@@ -84,6 +87,8 @@ class TestTextStatistics:
         # - 'uniques_count' should stay the same
         assert scd_overall_statistics['uniques_count'] == \
                fst_overall_statistics['uniques_count']
+        if not store_uniques:
+            assert scd_overall_statistics['uniques_count'] == 0
 
         # - 'max_length' should stay the same
         assert scd_overall_statistics['max_length'] == \
@@ -103,6 +108,8 @@ class TestTextStatistics:
 
         # string_frequency_ should double
         assert len(scd_string_frequency) == len(fst_string_frequency)
+        if not store_uniques:
+            assert len(scd_string_frequency) == 0
         assert np.array_equal(
             list(scd_string_frequency.keys()),
             list(fst_string_frequency.keys())

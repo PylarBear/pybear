@@ -17,9 +17,16 @@ from pybear.feature_extraction.text._TextStatistics._get._get_longest_strings \
 
 class TestGetLongestStrings:
 
+
     # _val_string_frequency tested elsewhere
 
     # _val_n tested elsewhere
+
+
+    def test_empty_string_frequency_returns_empty_dict(self):
+        out = _get_longest_strings({})
+        assert isinstance(out, dict)
+        assert len(out) == 0
 
 
     @pytest.mark.parametrize('n', (1, 2, 3, 7, 10))

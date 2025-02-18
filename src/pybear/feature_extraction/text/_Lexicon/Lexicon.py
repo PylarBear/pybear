@@ -125,7 +125,7 @@ class Lexicon(TextStatistics):
         """
 
 
-        super().__init__()
+        super().__init__(store_uniques=True)
 
         self._module_dir = os.path.dirname(os.path.abspath(__file__))
         self._lexicon_dir = os.path.join(self._module_dir, '_lexicon')

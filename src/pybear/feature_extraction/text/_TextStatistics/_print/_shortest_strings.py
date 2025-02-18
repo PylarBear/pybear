@@ -26,7 +26,9 @@ def _print_shortest_strings(
 
     """
     Print the shortest strings in the 'string_frequency_' attribute and
-    their frequencies to screen.
+    their frequencies to screen. Only available if TS parameter
+    'store_uniques' is True. If False, string_frequency is empty, so
+    print a message that uniques are not available.
 
 
     Parameters
@@ -53,6 +55,15 @@ def _print_shortest_strings(
 
 
     _val_string_frequency(string_frequency)
+
+
+    if not len(string_frequency):
+        print(
+            "Parameter 'store_uniques' is False, individual uniques have "
+            "not been retained for display."
+        )
+        return
+
     _val_n(n)
 
 
