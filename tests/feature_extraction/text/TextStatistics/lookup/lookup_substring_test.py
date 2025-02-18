@@ -64,11 +64,6 @@ class TestLookupSubstring:
             _lookup_substring('look me up', junk_uniques, case_sensitive=False)
 
 
-    def test_blocks_empty_uniques(self):
-        with pytest.raises(TypeError):
-            _lookup_substring('look me up', [], case_sensitive=False)
-
-
     @pytest.mark.parametrize('container', (set, tuple, list, np.ndarray))
     def test_accepts_sequence_str_uniques(self, container, uniques):
 
@@ -80,6 +75,10 @@ class TestLookupSubstring:
         assert isinstance(uniques, container)
 
         _lookup_substring('look me up', uniques, case_sensitive=False)
+
+
+    def test_allows_empty_uniques(self):
+        _lookup_substring('look me up', [], case_sensitive=False)
     # END uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # case_sensitive -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -99,6 +98,13 @@ class TestLookupSubstring:
     # END case_sensitive -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    def test_empty_uniques_returns_empty(self):
+        out = _lookup_substring('this is only a test', [], case_sensitive=False)
+
+        assert isinstance(out, list)
+        assert len(out) == 0
 
 
     @pytest.mark.parametrize('case_sensitive', (True, False))

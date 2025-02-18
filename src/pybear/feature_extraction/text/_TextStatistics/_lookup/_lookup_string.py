@@ -32,6 +32,11 @@ def _lookup_string(
     may be matches with different capitalization in the fitted data, so
     there may be multiple entries.) If no matches are found, return None.
 
+    This is only available if parameter 'store_uniques' is True. If
+    False, the unique strings that have been fitted on the TextStatistics
+    instance are not retained therefore cannot be searched, and None is
+    always returned.
+
 
     Parameters
     ----------
@@ -69,17 +74,18 @@ def _lookup_string(
         iter(uniques)
         if isinstance(uniques, (str, dict)):
             raise Exception
-        if len(uniques) == 0:
-            raise Exception
         if not all(map(isinstance, uniques, (str for _ in uniques))):
             raise Exception
     except:
         raise TypeError(
-            f"'uniques' must be a list-like sequence of strings, "
-            f"cannot be empty."
+            f"'uniques' must be a list-like sequence of strings."
         )
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    if not len(uniques):
+        return
 
 
     def _finder(x: str) -> bool:

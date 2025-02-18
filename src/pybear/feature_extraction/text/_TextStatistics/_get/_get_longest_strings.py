@@ -24,7 +24,9 @@ def _get_longest_strings(
 
     """
     Return the longest strings in the 'string_frequency_' attribute as a
-    dictionary with strings as keys and frequencies as values.
+    dictionary with strings as keys and frequencies as values. If TS
+    parameter 'store_uniques' is False, 'string_frequency' will be empty,
+    so just return an empty dictionary.
 
 
     Parameters
@@ -49,6 +51,10 @@ def _get_longest_strings(
 
     _val_string_frequency(string_frequency)
     _val_n(n)
+
+
+    if not len(string_frequency):
+        return {}
 
 
     _LENS = np.fromiter(map(len, string_frequency), dtype=np.uint32)

@@ -21,6 +21,10 @@ def _lookup_substring(
     """
     Return a list of all strings that have been fitted on the
     TextStatistics instance that contain the given character substring.
+    This is only available if parameter 'store_uniques' is True. If
+    False, the unique strings that have been fitted on the TextStatistics
+    instance are not retained therefore cannot be searched and an empty
+    list is returned.
 
 
     Parameters
@@ -41,7 +45,7 @@ def _lookup_substring(
     Return
     ------
     -
-        matching_strings: list[str] - list of all strings in the fitted
+        SELECTED_STRINGS: list[str] - list of all strings in the fitted
         data that contain the given character substring. Returns an
         empty list if there are no matches.
 
@@ -59,17 +63,19 @@ def _lookup_substring(
         iter(uniques)
         if isinstance(uniques, (str, dict)):
             raise Exception
-        if len(uniques) == 0:
-            raise Exception
         if not all(map(isinstance, uniques, (str for _ in uniques))):
             raise Exception
     except:
         raise TypeError(
-            f"'uniques' must be a list-like sequence of strings, "
-            f"cannot be empty."
+            f"'uniques' must be a list-like sequence of strings."
         )
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+
+    if not len(uniques):
+        return []
 
 
     def _finder(x: str) -> int:

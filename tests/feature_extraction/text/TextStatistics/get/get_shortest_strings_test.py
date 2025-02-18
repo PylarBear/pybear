@@ -22,6 +22,13 @@ class TestGetShortestStrings:
     # _val_n tested elsewhere
 
 
+    def test_empty_string_frequency_returns_empty_dict(self):
+
+        out = _get_shortest_strings({})
+        assert isinstance(out, dict)
+        assert len(out) == 0
+
+
     @pytest.mark.parametrize('n', (1, 2, 3, 7, 10))
     def test_accuracy(self, n):
 

@@ -25,7 +25,9 @@ def _print_string_frequency(
 ) -> None:
 
     """
-    Print the 'string_frequency_' attribute to screen.
+    Print the 'string_frequency_' attribute to screen. Only available if
+    TS parameter 'store_uniques' is True. If False, string_frequency is
+    empty, so print a message that uniques are not available.
 
 
     Parameters
@@ -55,6 +57,15 @@ def _print_string_frequency(
     _val_n(n)
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+    if not len(string_frequency):
+        print(
+            "Parameter 'store_uniques' is False, individual uniques have "
+            "not been retained for display."
+        )
+        return
+
 
     _max_len = max(map(len, string_frequency))
 

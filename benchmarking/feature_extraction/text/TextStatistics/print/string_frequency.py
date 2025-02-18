@@ -31,6 +31,14 @@ _print_string_frequency(
     n=100
 )
 
+print(f'-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --')
+
+_print_string_frequency(
+    {},
+    lp=5,
+    rp=15,
+    n=100
+)
 
 
 

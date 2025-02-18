@@ -30,5 +30,11 @@ _print_longest_strings(
     n=10
 )
 
+print(f'-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ')
 
-
+_print_longest_strings(
+    {},
+    lp=5,
+    rp=15,
+    n=10
+)

@@ -17,8 +17,6 @@ from pybear.feature_extraction.text._TextStatistics._partial_fit. \
     _build_string_frequency import _build_string_frequency
 
 
-pytest.skip(reason=f'not used as of first release', allow_module_level=True)
-
 
 class TestBuildOverallStatisticsOLD:
 

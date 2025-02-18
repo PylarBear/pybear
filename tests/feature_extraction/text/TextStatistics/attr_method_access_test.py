@@ -65,8 +65,11 @@ class TestAttrAccessBeforeAndAfterFit:
         ]
 
 
+    @pytest.mark.parametrize('store_uniques', (True, False))
     @pytest.mark.parametrize('x_format', ('list', 'np', 'pd'))
-    def test_attr_access(self, _X_list, _X_np, _X_pd, _attrs, x_format):
+    def test_attr_access(
+        self, _X_list, _X_np, _X_pd, _attrs, store_uniques, x_format
+    ):
 
         if x_format == 'list':
             _X = _X_list.copy()
@@ -78,7 +81,7 @@ class TestAttrAccessBeforeAndAfterFit:
             raise Exception
 
 
-        TestCls = TS()
+        TestCls = TS(store_uniques=store_uniques)
 
         # BEFORE FIT ***************************************************
 
@@ -189,9 +192,10 @@ class TestMethodAccessBeforeAndAfterFit:
         ]
 
 
+    @pytest.mark.parametrize('store_uniques', (True, False))
     @pytest.mark.parametrize('x_format', ('list', 'np', 'pd'))
     def test_access_methods_before_fit(
-        self, _X_list, _X_np, _X_pd, _methods, x_format
+        self, _X_list, _X_np, _X_pd, _methods, store_uniques, x_format
     ):
 
         if x_format == 'list':
@@ -203,7 +207,7 @@ class TestMethodAccessBeforeAndAfterFit:
         else:
             raise Exception
 
-        TestCls = TS()
+        TestCls = TS(store_uniques=store_uniques)
 
         # **************************************************************
         # vvv BEFORE FIT vvv *******************************************
@@ -236,6 +240,7 @@ class TestMethodAccessBeforeAndAfterFit:
                 out = getattr(TestCls, _method)()
                 assert isinstance(out, dict)
                 assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
+                assert list(out.keys())[0] == 'store_uniques'
             elif _method == 'print_overall_statistics':
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, _method)()
@@ -276,9 +281,10 @@ class TestMethodAccessBeforeAndAfterFit:
         # **************************************************************
 
 
+    @pytest.mark.parametrize('store_uniques', (True, False))
     @pytest.mark.parametrize('x_format', ('list', 'np', 'pd'))
     def test_access_methods_after_fit(
-        self, _X_list, _X_np, _X_pd, _methods, x_format
+        self, _X_list, _X_np, _X_pd, _methods, store_uniques, x_format
     ):
 
         # **************************************************************
@@ -293,8 +299,7 @@ class TestMethodAccessBeforeAndAfterFit:
         else:
             raise Exception
 
-        TestCls = TS()
-
+        TestCls = TS(store_uniques=store_uniques)
 
 
         for _method in _methods:
@@ -310,6 +315,7 @@ class TestMethodAccessBeforeAndAfterFit:
                 out = getattr(TestCls, _method)()
                 assert isinstance(out, dict)
                 assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
+                assert list(out.keys())[0] == 'store_uniques'
             elif _method == 'print_overall_statistics':
                 assert getattr(TestCls, _method)() is None
             elif _method == 'print_startswith_frequency':
@@ -325,6 +331,8 @@ class TestMethodAccessBeforeAndAfterFit:
                 assert all(map(
                     isinstance, out.values(), (numbers.Integral for _ in out)
                 ))
+                if not store_uniques:
+                    assert len(out) == 0
             elif _method == 'print_longest_strings':
                 assert getattr(TestCls, _method)(n=10) is None
             elif _method == 'get_shortest_strings':
@@ -334,6 +342,8 @@ class TestMethodAccessBeforeAndAfterFit:
                 assert all(map(
                     isinstance, out.values(), (numbers.Integral for _ in out)
                 ))
+                if not store_uniques:
+                    assert len(out) == 0
             elif _method == 'print_shortest_strings':
                 assert getattr(TestCls, _method)(n=10) is None
             elif _method == 'lookup_substring':
@@ -343,12 +353,18 @@ class TestMethodAccessBeforeAndAfterFit:
                 )
                 assert isinstance(out, Sequence)
                 assert all(map(isinstance, out, (str for _ in out)))
-                assert np.array_equal(out, ['I do so like'])
+                if store_uniques:
+                    assert np.array_equal(out, ['I do so like'])
+                else:
+                    assert np.array_equal(out, [])
             elif _method == 'lookup_string':
                 out = getattr(TestCls, _method)('I am Sam', case_sensitive=False)
-                assert isinstance(out, Sequence)
-                assert all(map(isinstance, out, (str for _ in out)))
-                assert np.array_equal(out, ['I am Sam'])
+                if store_uniques:
+                    assert isinstance(out, Sequence)
+                    assert all(map(isinstance, out, (str for _ in out)))
+                    assert np.array_equal(out, ['I am Sam'])
+                else:
+                    assert out is None
             elif _method == 'score':
                 assert getattr(TestCls, _method)(_X) is None
             else:
