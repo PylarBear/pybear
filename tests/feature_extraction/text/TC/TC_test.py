@@ -424,7 +424,7 @@ class TestReturnedAsListOfStrings:
 
     def test_strip(self, AS_STR_STRIPPED):
 
-        self.TestClass._strip()
+        self.TestClass.strip()
         assert all(map(
             np.array_equiv,
             self.TestClass.CLEANED_TEXT,
@@ -454,52 +454,6 @@ class TestReturnedAsListOfStrings:
             self.TestClass.CLEANED_TEXT,
             AS_STR_LOOKEDUP
         ))
-
-
-    def test_return_row_uniques(
-        self, AS_STR_ROW_UNIQUES, AS_STR_ROW_UNIQUES_COUNTS
-    ):
-
-        # COMPARE ROW UNIQUES ROW BY ROW
-        for idx, ROW in enumerate(
-            self.TestClass.return_row_uniques(return_counts=False)
-        ):
-            assert np.array_equiv(ROW, AS_STR_ROW_UNIQUES[idx])
-
-
-        # COMPARE ROW UNIQUES IN TOTALITY
-        ROW_UNIQUES = self.TestClass.return_row_uniques(return_counts=False)
-
-        assert all(map(np.array_equiv, ROW_UNIQUES, AS_STR_ROW_UNIQUES))
-
-        del ROW_UNIQUES
-
-
-        ROW_UNIQUES, ROW_COUNTS = \
-            self.TestClass.return_row_uniques(return_counts=True)
-
-        assert all(map(np.array_equiv, ROW_UNIQUES, AS_STR_ROW_UNIQUES))
-        assert all(map(np.array_equiv, ROW_COUNTS, AS_STR_ROW_UNIQUES_COUNTS))
-
-        del ROW_UNIQUES, ROW_COUNTS
-
-
-    def test_return_overall_uniques(
-        self, AS_STR_ALL_UNIQUES, AS_STR_ALL_UNIQUES_COUNTS
-    ):
-
-        ALL_UNIQUES = self.TestClass.return_overall_uniques(return_counts=False)
-        assert np.array_equiv(ALL_UNIQUES, AS_STR_ALL_UNIQUES)
-
-        del ALL_UNIQUES
-
-
-        ALL_UNIQUES, ALL_COUNTS = \
-            self.TestClass.return_overall_uniques(return_counts=True)
-        assert all(map(np.array_equiv, ALL_UNIQUES, AS_STR_ALL_UNIQUES))
-        assert all(map(np.array_equiv, ALL_COUNTS, AS_STR_ALL_UNIQUES_COUNTS))
-
-        del ALL_UNIQUES, ALL_COUNTS
 
 
     def test_remove_stops(self, AS_STR_STOPS_REMOVED):
@@ -969,7 +923,7 @@ class TestReturnedAsListOfLists:
 
     def test_strip(self, AS_LISTS_STRIPPED):
 
-        self.TestClass._strip()
+        self.TestClass.strip()
         assert all(map(
             np.array_equiv,
             self.TestClass.CLEANED_TEXT,
@@ -998,48 +952,6 @@ class TestReturnedAsListOfLists:
                 self.TestClass.CLEANED_TEXT,
                 AS_LISTS_LOOKEDUP
             ))
-
-
-    def test_return_row_uniques(
-        self, AS_LISTS_ROW_UNIQUES, AS_LISTS_ROW_UNIQUES_COUNTS
-    ):
-
-        # COMPARE ROW UNIQUES ROW BY ROW
-        for idx, ROW in enumerate(self.TestClass.return_row_uniques()):
-            assert np.array_equiv(ROW, AS_LISTS_ROW_UNIQUES[idx])
-
-
-        ROW_UNIQUES = self.TestClass.return_row_uniques(return_counts=False)
-        assert all(map(np.array_equiv, ROW_UNIQUES, AS_LISTS_ROW_UNIQUES))
-
-        del ROW_UNIQUES
-
-
-        ROW_UNIQUES, ROW_COUNTS = \
-            self.TestClass.return_row_uniques(return_counts=True)
-
-        assert all(map(np.array_equiv, ROW_UNIQUES, AS_LISTS_ROW_UNIQUES))
-        assert all(map(np.array_equiv, ROW_COUNTS, AS_LISTS_ROW_UNIQUES_COUNTS))
-
-        del ROW_UNIQUES, ROW_COUNTS
-
-
-    def test_return_overall_uniques(
-        self, AS_LISTS_ALL_UNIQUES, AS_LISTS_ALL_UNIQUES_COUNTS
-    ):
-
-        ALL_UNIQUES = self.TestClass.return_overall_uniques(return_counts=False)
-        assert np.array_equiv(ALL_UNIQUES, AS_LISTS_ALL_UNIQUES)
-
-        del ALL_UNIQUES
-
-
-        ALL_UNIQUES, ALL_COUNTS = \
-            self.TestClass.return_overall_uniques(return_counts=True)
-        assert np.array_equiv(ALL_UNIQUES, AS_LISTS_ALL_UNIQUES)
-        assert np.array_equiv(ALL_COUNTS, AS_LISTS_ALL_UNIQUES_COUNTS)
-
-        del ALL_UNIQUES, ALL_COUNTS
 
 
     def test_remove_stops(self, AS_LISTS_STOPS_REMOVED):

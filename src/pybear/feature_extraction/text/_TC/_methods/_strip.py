@@ -6,65 +6,108 @@
 
 
 
-from typing import Sequence
 from typing_extensions import Union
-from .._type_aliases import WIPXContainer
+import numpy.typing as npt
+
+import re
 
 import numpy as np
+
+from ._validation._wip_X import _val_wip_X
 
 
 
 def _strip(
-    _WIP_X: WIPXContainer,
+    _WIP_X: Union[list[str], list[list[str]], npt.NDArray[str]],
     _is_2D: bool
-) -> WIPXContainer:
+) -> Union[list[str], list[list[str]], npt.NDArray[str]]:
 
     """
-    Remove extra spaces from the data.
+    Remove multiple spaces and leading and trailing spaces from all text
+    in the data.
 
 
     Parameters
     ----------
     _WIP_X:
-        Union[Sequence[str], Sequence[Sequence[str]]] - The data object.
+        Union[list[str], list[list[str]], npt.NDArray[str]] - The data
+        object. Must be a list of strings, a list of lists of strings,
+        or a numpy array of strings.
     _is_2D:
         bool - whether the data object is 1D or 2D.
+
 
     Return
     ------
     -
-        Union[Sequence[str], Sequence[Sequence[str]]]
+        Union[list[str], list[list[str]], npt.NDArray[str]] - the data
+        less any unnecessary spaces.
 
     """
 
 
-    # DO THIS ROW-WISE (SINGLE ARRAY AT A TIME), BECAUSE np.char WILL
-    # THROW A FIT IF GIVEN A RAGGED ARRAY
+    _val_wip_X(_WIP_X)
 
-    # pizza u will be back. 2D needs work. think about container agnostic.
-
-    # pizza _WIP_X needs validation
-    # _WIP_X: WIPXContainer
     if not isinstance(_is_2D, bool):
         raise TypeError(f"'_is_2D' must be boolean")
 
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
+    def _list_stripper(_X):
+        for _idx, _string in enumerate(_X):
+            _string = re.sub(" +", " ", _string)
+            _string = re.sub(" ,", ",", _string)
+            _X[_idx] = _string.strip()
+        return list(_X)
+
+
+    def _ndarray_stripper(_X):
+        # pizza put .astype(str) to get this to pass on object dtype
+        # is there a more robust way
+        while not np.all(np.char.find(_X.astype(str), "  ") == -1):
+            _X = np.char.replace(_X.astype(str), f'  ', f' ')
+
+        _X = np.char.replace(_X.astype(str), f' ,', f',')
+
+        _X = np.char.strip(_X)
+        return np.array(_X)
 
 
     if _is_2D:
-        for row_idx in range(len(_WIP_X)):
-            for idx in range(len(_WIP_X[row_idx])):
-                while f'  ' in _WIP_X[row_idx][idx]:
-                    _WIP_X[row_idx][idx] = \
-                        np.char.replace(_WIP_X[row_idx][idx], f'  ', f' ')
 
-                _WIP_X[row_idx][idx] = np.char.strip(_WIP_X[row_idx][idx])
+        # DO THIS ROW-WISE (SINGLE ARRAY AT A TIME), BECAUSE np.char WILL
+        # THROW A FIT IF GIVEN A RAGGED ARRAY
 
-    elif not _is_2D:  # MUST BE LIST OF strs
-        for idx in range(len(_WIP_X)):
-            while f'  ' in _WIP_X[idx]:
-                _WIP_X[idx] = str(np.char.replace(_WIP_X[idx], f'  ', f' '))
+        if isinstance(_WIP_X, list):
 
-            _WIP_X[idx] = np.char.strip(_WIP_X[idx])
+            for row_idx in range(len(_WIP_X)):
+                _WIP_X[row_idx] = _list_stripper(_WIP_X[row_idx])
+
+        elif isinstance(_WIP_X, np.ndarray):
+
+            for row_idx in range(len(_WIP_X)):
+                _WIP_X[row_idx] = _ndarray_stripper(_WIP_X[row_idx])
+
+            # pizza doesnt like the for loop, see if u can get it to just
+            # _WIP_X = _ndarray_stripper(_WIP_X)
+
+
+    elif not _is_2D:  # MUST BE 1D OF strs
+
+        if isinstance(_WIP_X, list):
+
+            _WIP_X = _list_stripper(_WIP_X)
+
+        elif isinstance(_WIP_X, np.ndarray):
+
+            _WIP_X = _ndarray_stripper(_WIP_X)
+
+        else:
+            raise Exception
+
+
+    del _list_stripper, _ndarray_stripper
 
 
     return _WIP_X

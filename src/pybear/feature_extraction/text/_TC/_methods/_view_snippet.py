@@ -11,7 +11,7 @@ from typing import Sequence
 import math
 import numbers
 
-from .._validation._1D_str_sequence import _val_1D_str_sequence
+from ._validation._view_snippet import _view_snippet_validation
 
 
 
@@ -50,6 +50,9 @@ def _view_snippet(
 
 
     """
+
+
+    _view_snippet_validation(VECTOR, idx, span)
 
 
     _lower = math.floor(idx - (span - 1) / 2)
