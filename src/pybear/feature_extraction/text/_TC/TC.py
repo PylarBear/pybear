@@ -3,11 +3,15 @@
 #
 # License: BSD 3 clause
 #
-import numbers
+
+
+
 from typing import Optional, Sequence
 from typing_extensions import Union
 import numpy.typing as npt
 from ._type_aliases import MenuDictType
+
+import numbers
 
 import numpy as np, pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
@@ -15,8 +19,7 @@ import numpy as np, pandas as pd
 from .._Lexicon.Lexicon import Lexicon
 from .. import (
     alphanumeric_str as ans,
-    _stop_words as sw,
-    _statistics as stats
+    _stop_words as sw
 )
 
 from ....data_validation import (
@@ -30,18 +33,18 @@ from ._validation._auto_delete import _val_auto_delete
 from ._validation._update_lexicon import _val_update_lexicon
 
 from ._methods._strip import _strip
+from ._methods._remove_characters import _remove_characters
+from ._methods._normalize import _normalize
 from ._methods._view_snippet import _view_snippet
 
 from ._methods._validation._menu import _menu_validation
-from ._methods._validation._remove_characters import _remove_characters_validation
-from ._methods._validation._view_snippet import _view_snippet_validation
 from ._methods._validation._lex_lookup_menu import _lex_lookup_menu_validation
-from ._methods._normalize import _normalize
+
 
 
 # delete_empty_rows         Remove textless rows from data.
 # remove_characters         Keep only allowed or removed disallowed characters from entire CLEANED_TEXT object.
-# _strip                    Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object.
+# strip                    Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object.
 # normalize                 Set all text in CLEANED_TEXT object to upper case (default) or lower case.
 
 # view_cleaned_text         Print cleaned text to screen.
@@ -56,8 +59,6 @@ from ._methods._normalize import _normalize
 # substitute_words          Substitute all occurrences of one or more words throughout CLEANED_TEXT.
 # as_list_of_lists          Convert CLEANED_TEXT object to a possibly ragged vector of vectors, each vector containing split text.
 # as_list_of_strs           Convert CLEANED_TEXT object to a single vector of strings.
-# statistics                Print statistics for CLEANED_TEXT to screen.
-# word_counter              Calculate frequencies for CLEANED_TEXT and print to screen or dump to file.
 # dump_to_file_wrapper      Wrapper function for dumping CLEANED_TEXT object to csv or txt.
 # dump_to_csv               Dump CLEANED_TEXT object to csv.
 # dump_to_txt               Dump CLEANED_TEXT object to txt.
@@ -76,6 +77,7 @@ from ._methods._normalize import _normalize
 
 class TC:
 
+
     def __init__(
         self,
         X: Sequence[str],
@@ -85,6 +87,8 @@ class TC:
     ) -> None:  # return_as_list_of_lists=False,  # pizza what this mean?
 
         """
+        Pizza
+
 
         Parameters
         ----------
@@ -105,7 +109,6 @@ class TC:
         # W/O PROMPTING USER
         # (JUST GOES ALL THE WAY THRU WITHOUT PROMPTS) AUTOMATICALLY
         # SENSES AND MAKES 2-WAY SPLITS
-
 
 
         Return
@@ -164,10 +167,11 @@ class TC:
         self.KNOWN_WORDS = None
 
         self.LEX_LOOK_DICT = {
-            'A': 'ADD TO LEXICON', 'D': 'DELETE', 'E': 'EDIT', 'F': 'EDIT ALL',
-            'L': 'DELETE ALL', 'S': 'SPLIT', 'U': 'SPLIT ALWAYS', 'K': 'SKIP ONCE',
-            'W': 'SKIP ALWAYS', 'Y': 'VIEW LEXICON ADDENDUM', 'Z': 'GO TO MAIN MENU'
-        }  # DONT USE 'T' !!!
+            'A': 'ADD TO LEXICON', 'D': 'DELETE', 'E': 'EDIT',
+            'F': 'EDIT ALL', 'L': 'DELETE ALL', 'S': 'SPLIT',
+            'U': 'SPLIT ALWAYS', 'K': 'SKIP ONCE', 'W': 'SKIP ALWAYS',
+            'Y': 'VIEW LEXICON ADDENDUM', 'Z': 'GO TO MAIN MENU'
+        }  # DONT USE 'T' !!!   pizza why?
 
         if not self.update_lexicon:
             del self.LEX_LOOK_DICT['A']
@@ -178,29 +182,25 @@ class TC:
         self.CLEANED_TEXT_BACKUP = None
 
         self.MENU_DICT: MenuDictType = {
-            'D': {'label':'delete_empty_rows',                              'function': self.delete_empty_rows        },
-            'R': {'label':'remove_characters',                              'function': self.remove_characters        },
-            'S': {'label':'strip',                                          'function': self._strip                   },
-            'N': {'label':'normalize',                                      'function': self.normalize                },
-            'A': {'label':'statistics',                                     'function': self.statistics               },
-            'K': {'label':'word_counter',                                   'function': self.word_counter             },
-            'V': {'label':'view_CLEANED_TEXT',                              'function': self.view_cleaned_text        },
-            'U': {'label':'view_row_uniques',                               'function': self.view_row_uniques         },
-            'O': {'label':'view_overall_uniques',                           'function': self.view_overall_uniques     },
-            'Y': {'label':'view_lexicon_addendum',                          'function': self.display_lexicon_update   },
-            'T': {'label':'remove_stops',                                   'function': self.remove_stops             },
-            'J': {'label':'justify',                                        'function': self.justify                  },
-            'W': {'label':'delete_words',                                   'function': self.delete_words             },
-            'B': {'label':'substitute_words',                               'function': self.substitute_words         },
-            'L': {'label':'as_list_of_lists',                               'function': self.as_list_of_lists         },
-            'I': {'label':'as_list_of_strs',                                'function': self.as_list_of_strs          },
-            'P': {'label':'lex_lookup',                                     'function': self.lex_lookup               },
-            'C': {'label':'dump_to_csv',                                    'function': self.dump_to_csv              },
-            'X': {'label':'dump_to_txt',                                    'function': self.dump_to_txt              },
-            'E': {'label':f'toggle UNDO (currently {self.undo_status})',    'function': self.toggle_undo              },
-            'F': {'label':'undo',                                           'function': None                          },
-            'Q': {'label':'quit',                                           'function': None                          },
-            'Z': {'label':'accept and exit',                                'function': None                          }
+            'D': {'label':'delete_empty_rows', 'function': self.delete_empty_rows},
+            'R': {'label':'remove_characters',  'function': self.remove_characters},
+            'S': {'label':'strip', 'function': self.strip},
+            'N': {'label':'normalize', 'function': self.normalize},
+            'V': {'label':'view_CLEANED_TEXT', 'function': self.view_cleaned_text},
+            'Y': {'label':'view_lexicon_addendum', 'function': self.display_lexicon_update},
+            'T': {'label':'remove_stops', 'function': self.remove_stops},
+            'J': {'label':'justify', 'function': self.justify},
+            'W': {'label':'delete_words', 'function': self.delete_words},
+            'B': {'label':'substitute_words', 'function': self.substitute_words},
+            'L': {'label':'as_list_of_lists', 'function': self.as_list_of_lists},
+            'I': {'label':'as_list_of_strs', 'function': self.as_list_of_strs},
+            'P': {'label':'lex_lookup', 'function': self.lex_lookup},
+            'C': {'label':'dump_to_csv', 'function': self.dump_to_csv},
+            'X': {'label':'dump_to_txt', 'function': self.dump_to_txt},
+            'E': {'label':f'toggle UNDO (currently {self.undo_status})', 'function': self.toggle_undo},
+            'F': {'label':'undo', 'function': None},
+            'Q': {'label':'quit', 'function': None},
+            'Z': {'label':'accept and exit', 'function': None}
         }
 
         # END DECLARATIONS #############################################
@@ -244,8 +244,10 @@ class TC:
         while True:
 
             # BUILD MENU DISPLAY #######################################
-            # MUST BE INSIDE while BECAUSE PRINTOUT IS DYNAMIC BASED ON undo_status AND AVAILABILITY OF BACKUP
-            # MANAGE AVAILABILITY OF undo COMMAND BASED ON STATUS OF undo_status AND BACKUP
+            # MUST BE INSIDE while BECAUSE PRINTOUT IS DYNAMIC BASED ON
+            # undo_status AND AVAILABILITY OF BACKUP
+            # MANAGE AVAILABILITY OF undo COMMAND BASED ON STATUS OF
+            # undo_status AND BACKUP
             if self.undo_status is False or (self.undo_status is True and self.CLEANED_TEXT_BACKUP is None):
                 allowed = allowed.replace('F', '')
             elif self.undo_status is True and not self.CLEANED_TEXT_BACKUP is None and 'F' not in allowed:
@@ -307,70 +309,88 @@ class TC:
         self,
         allowed_chars:Optional[Union[str, None]] = ans.alphanumeric_str(),
         disallowed_chars:Optional[Union[str, None]] = None
-    ):
-
-        # 24_06_22 see the benchmark module for this.
-        # winner was map_set
-
-        """Keep only allowed or remove disallowed characters from entire CLEANED_TEXT object."""
-
-        _remove_characters_validation(allowed_chars, disallowed_chars)
-
-        if not self.is_list_of_lists:   # MUST BE LIST OF strs
-            for row_idx in range(len(self.CLEANED_TEXT)):
-                # GET ALL CHARS INTO A LIST, GET UNIQUES, THEN REFORM INTO A STRING OF UNIQUES
-                UNIQUES = "".join(np.unique(np.fromiter((_ for _ in str(self.CLEANED_TEXT[row_idx])), dtype='<U1')))
-                for char in UNIQUES:
-                    if (allowed_chars is not None and char not in allowed_chars) or \
-                            (disallowed_chars is not None and char in disallowed_chars):
-                        self.CLEANED_TEXT[row_idx] = \
-                            str(np.char.replace(str(self.CLEANED_TEXT[row_idx]), char, ''))
-            del UNIQUES
-
-        elif self.is_list_of_lists:
-            # 1/21/23 WHEN LIST OF LISTS [['str1', 'str2',...], [...], ...], remove IS CAUSING SOME SLOTS TO GO TO ''.  DELETE THEM.
-            for row_idx in range(len(self.CLEANED_TEXT)):
-                # JOIN ROW ENTRIES W " " INTO ONE STRING, PUT INTO AN ARRAY, GET UNIQUES, REFORM AS SINGLE STRING OF UNIQUES
-                UNIQUES = "".join(np.unique(np.fromiter((_ for _ in " ".join(self.CLEANED_TEXT[row_idx])), dtype='<U1')))
-                for char in UNIQUES:
-                    if (not allowed_chars is None and char not in allowed_chars) or \
-                            (not disallowed_chars is None and char in disallowed_chars):
-                        self.CLEANED_TEXT[row_idx] = np.char.replace(self.CLEANED_TEXT[row_idx], char, '')
-
-                if not f'' in self.CLEANED_TEXT[row_idx]:
-                    continue
-                else:
-                    self.CLEANED_TEXT[row_idx] = self.CLEANED_TEXT[row_idx][..., self.CLEANED_TEXT[row_idx]!='']
-
-            del UNIQUES
-
-
-    def _strip(self):
-        """
-        Remove multiple spaces and leading and trailing spaces from all
-        text in CLEAND_TEXT object.
-        """
-
-        self.CLEANED_TEXT = _strip(self.CLEANED_TEXT, self.is_list_of_lists)
-
-
-    def normalize(self, upper:Optional[bool] = True):    # IF NOT upper THEN lower
+    ) -> None:
 
         """
-        Set all text in CLEANED_TEXT object to upper case (default) or
-        lower case.
+        Remove characters that are not allowed or are explicitly
+        disallowed from the data. allowed_chars and disallowed_chars
+        cannot simultaneously be strings and cannot simultaneously be
+        None.
 
 
-        Parameters
-        ----------
-        upper:
-            Optional[bool], default=True - pizza?
+        Parameter
+        ---------
+        allowed_chars:
+            str - the characters that are to be kept; cannot be passed
+            if disallowed_chars is passed.
+        disallowed_chars:
+            str - the characters that are to be removed; cannot be passed
+            if allowed_chars is passed.
 
 
         Return
         ------
         -
-            pizza?
+            None
+
+
+        """
+
+
+        self.CLEANED_TEXT = _remove_characters(
+            self.CLEANED_TEXT,
+            self.is_list_of_lists,
+            allowed_chars,
+            disallowed_chars
+        )
+
+
+    def strip(self) -> None:
+
+        """
+        Remove multiple spaces and leading and trailing spaces from all
+        text in the data.
+
+
+        Parameters
+        ----------
+        _WIP_X:
+            Union[list[str], list[list[str]], npt.NDArray[str]] - The
+            data object. Must be a list of strings, a list of lists of
+            strings, or a numpy array of strings.
+        _is_2D:
+            bool - whether the data object is 1D or 2D.
+
+
+        Return
+        ------
+        -
+            Union[list[str], list[list[str]], npt.NDArray[str]] - the
+            data less any unnecessary spaces.
+
+        """
+
+        self.CLEANED_TEXT = _strip(self.CLEANED_TEXT, self.is_list_of_lists)
+
+
+    def normalize(self, upper:Optional[bool] = True) -> None:
+
+        """
+        Set all text in the data to upper case (default) or lower case.
+
+
+        Parameters
+        ----------
+        upper:
+            Optional[bool], default=True - the case to normalize to;
+            upper case if True, lower case if False.
+
+
+        Return
+        ------
+        -
+            Union[list[str], list[list[str]], npt.NDArray[str]] - the
+            data with normalized text.
 
 
         """
@@ -379,148 +399,15 @@ class TC:
         self.CLEANED_TEXT = \
             _normalize(
                 self.CLEANED_TEXT,
-                self.is_list_of_lists
+                self.is_list_of_lists,
+                upper
             )
 
 
-    def view_cleaned_text(self):
+    def view_cleaned_text(self) -> None:
         """Print cleaned text to screen."""
         print(f'\nCLEANED TEXT (currently in memory as {"LISTS" if self.is_list_of_lists else "STRINGS"}):')
         [print(_) for _ in self.CLEANED_TEXT]
-
-
-    def return_row_uniques(self, return_counts=False):
-        """
-        Return a potentially ragged vector containing the unique words
-        for each row in CLEANED_TEXT object.
-
-
-
-        """
-
-        # MAKE BE LIST OF LISTS, THEN USE np.unique() ON EACH ROW TO FILL UNIQUES_HOLDER
-
-        converted = False
-        if not self.is_list_of_lists:
-            self.as_list_of_lists()
-            converted = True
-
-        if not return_counts:
-
-            UNIQUES = np.fromiter(map(np.unique, self.CLEANED_TEXT), dtype=object)
-
-            # CHANGE BACK TO LIST OF strs
-            if converted:
-                self.as_list_of_strs()
-            del converted
-
-            return UNIQUES
-
-        elif return_counts:
-            UNIQUES_HOLDER = np.empty(len(self.CLEANED_TEXT), dtype=object)
-            COUNTS_HOLDER = np.empty(len(self.CLEANED_TEXT), dtype=object)
-            for row_idx in range(len(self.CLEANED_TEXT)):
-                UNIQUES_HOLDER[row_idx], COUNTS_HOLDER[row_idx] = \
-                    np.unique(self.CLEANED_TEXT[row_idx], return_counts=True)
-
-            if converted:
-                self.as_list_of_strs()
-            del converted
-
-            return UNIQUES_HOLDER, COUNTS_HOLDER
-
-
-    def view_row_uniques(self, return_counts=None):
-        """Print row uniques and optionally counts to screen."""
-
-        arg_kwarg_validater(
-            return_counts,
-            'return_counts',
-            [True, False, None],
-            'TC',
-            'view_row_uniques'
-        )
-
-        if return_counts is None:
-            return_counts = {'Y':True, 'N':False}[vui.validate_user_str(f'View counts? (y/n) > ', 'YN')]
-
-        if return_counts is True:
-            UNIQUES, COUNTS = self.return_row_uniques(return_counts=True)
-        elif return_counts is False:
-            UNIQUES = self.return_row_uniques(return_counts=False)
-
-        for row_idx in range(len(UNIQUES)):
-            print(f'ROW {row_idx+1}:')
-            if return_counts is True:
-                for word_idx in range(len(UNIQUES[row_idx])):
-                    print(f'   {UNIQUES[row_idx][word_idx]}'.ljust(30) + f'{COUNTS[row_idx][word_idx]}')
-            elif return_counts is False:
-                for word_idx in range(len(UNIQUES[row_idx])):
-                    print(f'   {UNIQUES[row_idx][word_idx]}')
-            print()
-
-        if return_counts is True:
-            del UNIQUES, COUNTS
-        elif return_counts is False:
-            del UNIQUES
-
-
-    def return_overall_uniques(self, return_counts:bool=False):
-
-        """Return unique words in the entire CLEANED_TEXT object."""
-
-        if not return_counts:
-            # CANT DO unique IN ONE SHOT ON self.CLEANED_TEXT BECAUSE IS LIKELY RAGGED
-            return np.unique(np.hstack(self.return_row_uniques(return_counts=False)))
-
-        elif return_counts:
-            converted = False
-            if not self.is_list_of_lists:
-                self.as_list_of_lists()
-                converted = True
-
-            # DEFAULT IS ASCENDING
-            UNIQUES, COUNTS = np.unique(np.hstack(self.CLEANED_TEXT), return_counts=True)
-
-            if converted:
-                self.as_list_of_strs()
-            del converted
-
-            return UNIQUES, COUNTS
-
-
-    def view_overall_uniques(self, return_counts:bool=None):
-
-        """Print overall uniques and optionally counts to screen."""
-
-        arg_kwarg_validater(
-            return_counts,
-            'return_counts',
-            [True, False, None],
-            'TC',
-            'view_overall_uniques'
-        )
-
-        if return_counts is None:
-            return_counts = {'Y':True, 'N':False}[vui.validate_user_str(f'View counts? (y/n) > ', 'YN')]
-
-        if return_counts is True:
-            UNIQUES, COUNTS = self.return_overall_uniques(return_counts=True)
-
-            MASK = np.flip(np.argsort(COUNTS))
-            UNIQUES = UNIQUES[..., MASK]
-            COUNTS = COUNTS[..., MASK]
-            del MASK
-
-            print(f'OVERALL UNIQUES:')
-            [print(f'   {UNIQUES[idx]}'.ljust(30) + f'{COUNTS[idx]}') for idx in range(len(UNIQUES))]
-            del UNIQUES, COUNTS
-
-        elif return_counts is False:
-            UNIQUES = self.return_overall_uniques(return_counts=False)
-            print(f'OVERALL UNIQUES:')
-            [print(f'   {_}') for _ in UNIQUES]
-            del UNIQUES
 
 
     def remove_stops(self):
@@ -543,14 +430,19 @@ class TC:
         del converted
 
 
-    def justify(self, chars:int=None):
+    def justify(
+        self,
+        chars:Optional[Union[numbers.Integral, None]] = None
+    ) -> None:
+
         """
         Fit text as strings or as lists to user-specified number of
         characters per row.
 
         Parameters
         ----------
-        chars: int - number of characters per row
+        chars:
+            int - number of characters per row
 
 
         """
@@ -567,7 +459,7 @@ class TC:
             )
         elif chars is None:
             # DONT PUT THIS IN akv(return_if_none=)... PROMPTS USER FOR
-            # sINPUT BEFORE ENDING args/kwargs TO akv
+            # INPUT BEFORE PASSING TO akv
             chars = vui.validate_user_int(
                 f'\nEnter number of characters per line (min=30, max=50000) > ', min=30, max=50000)
 
@@ -600,8 +492,11 @@ class TC:
 
 
         # OBJECT WAS WORKED ON AS LIST OF LISTS, BUT OUTPUT IS LIST OF STRS
-        if converted: pass  # MEANING THAT IS WAS list_of_strs TO START WITH, JUST LEAVE AS IS
-        elif not converted:   # OTHERWISE WAS LIST OF LISTS TO START, SO CONVERT BACK TO LIST OF LISTS
+        if converted:
+            # MEANING THAT IS WAS list_of_strs TO START WITH, JUST LEAVE AS IS
+            pass
+        elif not converted:
+            # OTHERWISE WAS LIST OF LISTS TO START, SO CONVERT BACK TO LIST OF LISTS
             self.as_list_of_lists()
             map(str.strip, self.CLEANED_TEXT)
         del converted
@@ -753,113 +648,6 @@ class TC:
             self.CLEANED_TEXT = \
                 np.fromiter(map(' '.join, self.CLEANED_TEXT), dtype=object)
             self.is_list_of_lists = False
-
-
-    def statistics(self):
-        """Print statistics for CLEANED_TEXT to screen."""
-
-        converted = False
-        if not self.is_list_of_lists:
-            self.as_list_of_lists()
-            converted = True
-
-        stats._statistics(np.hstack(self.CLEANED_TEXT))
-
-        if converted:
-            self.as_list_of_strs()
-        del converted
-
-
-    def word_counter(self):
-
-        is_asc = True
-        SUB_MENU = {
-            'e': 'exit', 'c': 'set count cutoff', 'd': 'dump to file',
-            'p': 'print table to screen', 'r': 'print chart to screen',
-            's': f'change sort (currently XXX)'
-        }  # DONT FORGET 's' BELOW
-
-        cutoff_ct = 100 # SEED
-        allowed = "".join(list(SUB_MENU.keys()))
-        MASTER_UNIQUES, MASTER_COUNTS = self.return_overall_uniques(return_counts=True)   # DEFAULTS TO ASCENDING
-        MASK = np.argsort(MASTER_COUNTS)
-        MASTER_UNIQUES = MASTER_UNIQUES[..., MASK]
-        MASTER_COUNTS = MASTER_COUNTS[..., MASK]
-        del MASK
-        WIP_UNIQUES = MASTER_UNIQUES[MASTER_COUNTS > cutoff_ct]
-        WIP_COUNTS = MASTER_COUNTS[MASTER_COUNTS > cutoff_ct]
-
-        while True:
-            # MUST BE UNDER while TO RECALC is_asc
-            SUB_MENU['s'] = f'change sort (currently {["ASCENDING" if is_asc else "DESCENDING"][0]})'
-            display = f""
-            for idx, key in enumerate(allowed):
-                display += f"{SUB_MENU[key]}({key.lower()})".ljust(40)
-                if idx % 3 == 2:
-                    display += f"\n"
-
-            print(display)
-            selection = vui.validate_user_str(f'\nSelect operation > ', allowed).lower()
-
-            if selection == 'e': #'exit'
-                break
-            elif selection == 'c': #'set count cutoff'
-                cutoff_ct = vui.validate_user_int(f'\nSet count cutoff (currently {cutoff_ct}) > ', min=1)
-                MASK = np.where(MASTER_COUNTS >= cutoff_ct, True, False)
-                WIP_UNIQUES = MASTER_UNIQUES[MASK]
-                WIP_COUNTS = MASTER_COUNTS[MASK]
-                del MASK
-            elif selection == 'd': #'dump to file'
-                print(f'\nSaving WORD COUNTS to csv...')
-                _core_fxn = pd.DataFrame(
-                    data=np.vstack((WIP_UNIQUES, WIP_COUNTS)).transpose(),
-                    columns=[f'WORD', f'COUNT']
-                ).to_csv
-                self.dump_to_file_wrapper(
-                    _core_fxn,
-                    f'.csv',
-                    {'header': True, 'index': False}
-                )
-                print(f'\n*** Dump to csv successful. ***\n')
-            elif selection == 'p': #'print table to screen'
-                _pad = lambda x: f' ' * 5 + str(x)
-                __ = 10
-                print(_pad(f'WORD').ljust(2 * __) + f'FREQUENCY')
-                [print(f'{_pad(WIP_UNIQUES[i])}'.ljust(2 * __) + f'{WIP_COUNTS[i]}') for i in range(len(WIP_UNIQUES))]
-                print()
-            elif selection == 'r': #'print chart to screen'
-                # PIZZA CHANGE THIS TO PD.PLOT(KIND=BAR)
-                df = pd.DataFrame(
-                    data=WIP_COUNTS,
-                    columns=['COUNT'],
-                    index=WIP_UNIQUES
-                )
-                df.plot(kind='barh')
-                # fig = px.bar(x=WIP_UNIQUES, y=WIP_COUNTS, labels={'x':'WORD','y':'COUNT'})
-                # fig_widget = go.FigureWidget(fig)
-                # MUST END IN .html SO IT KNOWS TO OPEN IN BROWSER
-                # fig_widget.write_html('word_frequency.html', auto_open=True)
-                # del fig, fig_widget
-            elif selection == 's': #'change sort (currently XXX)'
-                if is_asc:
-                    is_asc = False
-                elif not is_asc:
-                    is_asc = True
-                WIP_UNIQUES = np.flip(WIP_UNIQUES)
-                MASTER_UNIQUES = np.flip(MASTER_UNIQUES)
-                WIP_COUNTS = np.flip(WIP_COUNTS)
-                MASTER_COUNTS = np.flip(MASTER_COUNTS)
-
-        del SUB_MENU, display, selection, cutoff_ct, is_asc, MASTER_UNIQUES, MASTER_COUNTS
-        try:
-            del WIP_UNIQUES
-        except:
-            pass
-
-        try:
-            del WIP_COUNTS
-        except:
-            pass
 
 
     def dump_to_file_wrapper(self, core_write_function, _ext, kwargs):
@@ -1089,8 +877,6 @@ class TC:
             to display around and including the highlighted string.
 
         """
-
-        _view_snippet_validation(VECTOR, idx, span)
 
         return _view_snippet(VECTOR, idx, span=span)
 

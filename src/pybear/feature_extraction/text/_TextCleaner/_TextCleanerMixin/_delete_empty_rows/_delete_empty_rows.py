@@ -41,7 +41,7 @@ def _delete_empty_rows(
 
     # pizza there needs to be a decision here. might need to impose that
     # only list[str], list[list[str]], NDArray[str] be passed, given
-    # all the various slicing that would have to be write out.
+    # all the various slicing that would have to be wrote out.
 
 
     _is_list_of_lists = False

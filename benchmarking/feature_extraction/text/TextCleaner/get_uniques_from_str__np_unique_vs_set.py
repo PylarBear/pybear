@@ -5,12 +5,17 @@
 #
 
 
-from copy import deepcopy
-import numpy as np
+
 from typing import Iterable
 from typing_extensions import Union
-from utilities._benchmarking import time_memory_benchmark as tmb
-from feature_extraction.text import alphanumeric_str as ans
+
+from copy import deepcopy
+
+import numpy as np
+
+from pybear.utilities._benchmarking import time_memory_benchmark as tmb
+from pybear.feature_extraction.text import alphanumeric_str as ans
+
 
 
 # TEST FOR TextCleaner.remove_characters()
@@ -43,11 +48,11 @@ plug_n_chug              time = 5.516 +/- 0.009 sec; mem = 0.000 +/- 0.000 MB
 # STR W ONLY ALLOWED CHARS
 
 def np_unique1(
-        LIST_OF_STRS: Iterable[str],
-        *,
-        allowed_chars:str=ans.alphanumeric_str(),
-        disallowed_chars:str=None
-    ) -> Iterable[str]:
+    LIST_OF_STRS: Iterable[str],
+    *,
+    allowed_chars:str=ans.alphanumeric_str(),
+    disallowed_chars:str=None
+) -> Iterable[str]:
 
     err_msg = f"can only pass one of 'allowed_chars' or 'disallowed_chars'"
     if allowed_chars is not None and disallowed_chars is not None:
