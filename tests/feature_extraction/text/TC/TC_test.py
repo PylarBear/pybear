@@ -6,18 +6,15 @@
 
 
 
+import os
 import io
 import pytest
 from unittest.mock import patch
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextCleaner._TextCleaner.TextCleaner import \
-    TextCleaner as tc
+from pybear.feature_extraction.text._TC.TC import TC
 
-
-pytest.skip(reason=f'pizza has some work to do', allow_module_level=True)
-# PIZZA 23_01_27   TEST CODE WORKS AND TextCleaner() VERIFIED
 
 
 WORDS = [
@@ -401,36 +398,48 @@ class TestReturnedAsListOfStrings:
     # @classmethod
     # @pytest.fixture(scope="class", autouse=True)
     # def setup_class(self):
-    TestClass = tc.TextCleaner(WORDS, update_lexicon=False)
+    TestClass = TC(WORDS, update_lexicon=False)
     TestClass.as_list_of_strs()
 
 
     def test_deleted_empty_rows(self, AS_STR_EMPTIES_DELETED):
 
         self.TestClass.delete_empty_rows()
-        assert np.array_equiv(self.TestClass.CLEANED_TEXT,
-                              AS_STR_EMPTIES_DELETED
-        )
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_STR_EMPTIES_DELETED
+        ))
 
 
     def test_remove_characters(self, AS_STR_CHARS_REMOVED):
 
         self.TestClass.remove_characters()
-        assert np.array_equiv(self.TestClass.CLEANED_TEXT,
-                              AS_STR_CHARS_REMOVED
-        )
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_STR_CHARS_REMOVED
+        ))
 
 
     def test_strip(self, AS_STR_STRIPPED):
 
         self.TestClass._strip()
-        assert np.array_equiv(self.TestClass.CLEANED_TEXT, AS_STR_STRIPPED)
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_STR_STRIPPED
+        ))
 
 
     def test_normalize(self, AS_STR_NORMALIZED):
 
         self.TestClass.normalize()
-        assert np.array_equiv(self.TestClass.CLEANED_TEXT, AS_STR_NORMALIZED)
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_STR_NORMALIZED
+        ))
 
 
     # THIS IS INTERACTIVE
@@ -440,36 +449,44 @@ class TestReturnedAsListOfStrings:
         with patch('sys.stdin', io.StringIO(user_inputs)):
             self.TestClass.lex_lookup()
 
-        assert np.array_equiv(self.TestClass.CLEANED_TEXT, AS_STR_LOOKEDUP)
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_STR_LOOKEDUP
+        ))
 
 
-    def test_return_row_uniques(self, AS_STR_ROW_UNIQUES, AS_STR_ROW_UNIQUES_COUNTS):
+    def test_return_row_uniques(
+        self, AS_STR_ROW_UNIQUES, AS_STR_ROW_UNIQUES_COUNTS
+    ):
 
         # COMPARE ROW UNIQUES ROW BY ROW
-        for idx, ROW in enumerate(self.TestClass.return_row_uniques(return_counts=False)):
+        for idx, ROW in enumerate(
+            self.TestClass.return_row_uniques(return_counts=False)
+        ):
             assert np.array_equiv(ROW, AS_STR_ROW_UNIQUES[idx])
 
 
         # COMPARE ROW UNIQUES IN TOTALITY
         ROW_UNIQUES = self.TestClass.return_row_uniques(return_counts=False)
-        # CONVERT return_row_uniques() TO list(list()) FOR COMPARISON,
-        # UNEXPECTEDLY EXCEPTING WHEN NUMPY
 
-        assert np.array_equiv(ROW_UNIQUES, AS_STR_ROW_UNIQUES)
+        assert all(map(np.array_equiv, ROW_UNIQUES, AS_STR_ROW_UNIQUES))
 
         del ROW_UNIQUES
 
 
-        ROW_UNIQUES, ROW_COUNTS = self.TestClass.return_row_uniques(return_counts=True)
-        # CONVERT return_row_uniques() TO list(list()) FOR COMPARISON,
-        # UNEXPECTEDLY EXCEPTING WHEN NUMPY
-        assert np.array_equiv(list(map(list, ROW_UNIQUES)), AS_STR_ROW_UNIQUES)
-        assert np.array_equiv(list(map(list, ROW_COUNTS)), AS_STR_ROW_UNIQUES_COUNTS)
+        ROW_UNIQUES, ROW_COUNTS = \
+            self.TestClass.return_row_uniques(return_counts=True)
+
+        assert all(map(np.array_equiv, ROW_UNIQUES, AS_STR_ROW_UNIQUES))
+        assert all(map(np.array_equiv, ROW_COUNTS, AS_STR_ROW_UNIQUES_COUNTS))
 
         del ROW_UNIQUES, ROW_COUNTS
 
 
-    def test_return_overall_uniques(self, AS_STR_ALL_UNIQUES, AS_STR_ALL_UNIQUES_COUNTS):
+    def test_return_overall_uniques(
+        self, AS_STR_ALL_UNIQUES, AS_STR_ALL_UNIQUES_COUNTS
+    ):
 
         ALL_UNIQUES = self.TestClass.return_overall_uniques(return_counts=False)
         assert np.array_equiv(ALL_UNIQUES, AS_STR_ALL_UNIQUES)
@@ -479,8 +496,8 @@ class TestReturnedAsListOfStrings:
 
         ALL_UNIQUES, ALL_COUNTS = \
             self.TestClass.return_overall_uniques(return_counts=True)
-        assert np.array_equiv(ALL_UNIQUES, AS_STR_ALL_UNIQUES)
-        assert np.array_equiv(ALL_COUNTS, AS_STR_ALL_UNIQUES_COUNTS)
+        assert all(map(np.array_equiv, ALL_UNIQUES, AS_STR_ALL_UNIQUES))
+        assert all(map(np.array_equiv, ALL_COUNTS, AS_STR_ALL_UNIQUES_COUNTS))
 
         del ALL_UNIQUES, ALL_COUNTS
 
@@ -489,7 +506,7 @@ class TestReturnedAsListOfStrings:
 
         self.TestClass.remove_stops()
         STOPS_REMOVED = self.TestClass.CLEANED_TEXT
-        assert np.array_equiv(STOPS_REMOVED, AS_STR_STOPS_REMOVED)
+        assert all(map(np.array_equiv, STOPS_REMOVED, AS_STR_STOPS_REMOVED))
 
         del STOPS_REMOVED
 
@@ -870,32 +887,28 @@ class TestReturnedAsListOfLists:
         return [
             ['FOUR', 'SCORE', 'SEVEN', 'YEARS', 'AGO', 'FATHERS', 'BROUGHT',
             'FORTH', 'CONTINENT', 'NEW', 'NATION', 'CONCEIVED', 'LIBERTY',
-            'DEDICATED', 'PROPOSITION', 'ALL', 'MEN', 'CREATED', 'EQUAL'],
-            ['NOW', 'ENGAGED', 'GREAT', 'CIVIL', 'WAR', 'TESTING', 'WHETHER',
-            'NATION', 'ANY', 'NATION', 'CONCEIVED', 'DEDICATED', 'CAN', 'LONG',
-            'ENDURE'],
-            ['MET', 'GREAT', 'BATTLEFIELD', 'WAR'],
-            ['HAVE', 'COME', 'DEDICATE', 'PORTION', 'FIELD', 'FINAL', 'RESTING',
+            'DEDICATED', 'PROPOSITION', 'MEN', 'CREATED', 'EQUAL'],
+            ['ENGAGED', 'CIVIL', 'WAR', 'TESTING', 'WHETHER',
+            'NATION', 'NATION', 'CONCEIVED', 'DEDICATED', 'ENDURE'],
+            ['MET', 'BATTLEFIELD', 'WAR'],
+            ['DEDICATE', 'PORTION', 'FIELD', 'FINAL', 'RESTING',
             'PLACE', 'THOSE', 'GAVE', 'LIVES', 'NATION', 'MIGHT', 'LIVE'],
-            ['ALTOGETHER', 'FITTING', 'PROPER', 'SHOULD', 'LARGER', 'SENSE',
+            ['ALTOGETHER', 'FITTING', 'PROPER', 'LARGER', 'SENSE',
             'CANNOT', 'DEDICATE', 'CANNOT', 'CONSECRATE', 'CANNOT', 'HALLOW',
             'GROUND'],
-            ['BRAVE', 'MEN', 'LIVING', 'DEAD', 'STRUGGLED', 'HAVE', 'CONSECRATED',
-            'FAR', 'ABOVE', 'POOR', 'POWER', 'ADD', 'DETRACT'],
-            ['WORLD', 'LITTLE', 'NOTE', 'NOR', 'LONG', 'REMEMBER', 'SAY', 'CAN',
-            'NEVER', 'FORGET', 'DID'],
-            ['LIVING', 'RATHER', 'DEDICATED', 'UNFINISHED', 'WORK', 'WHICH',
-            'FOUGHT', 'HAVE', 'THUS', 'FAR', 'NOBLY', 'ADVANCED'],
-            ['RATHER', 'DEDICATED', 'GREAT', 'TASK', 'REMAINING', 'BEFORE'],
-            ['THESE', 'HONORED', 'DEAD', 'TAKE', 'INCREASED', 'DEVOTION',
-            'CAUSE', 'WHICH', 'GAVE', 'LAST', 'FULL', 'MEASURE', 'DEVOTION'],
-            ['HIGHLY', 'RESOLVE', 'THESE', 'DEAD', 'SHALL', 'HAVE', 'DIED',
-            'VAIN'],
-            ['NATION', 'UNDER', 'GOD', 'SHALL', 'HAVE', 'NEW', 'BIRTH',
-            'FREEDOM'],
-            ['GOVERNMENT', 'PEOPLE', 'PEOPLE', 'PEOPLE', 'SHALL', 'PERISH',
-            'EARTH']
+            ['BRAVE', 'MEN', 'LIVING', 'DEAD', 'STRUGGLED', 'CONSECRATED',
+            'ABOVE', 'POOR', 'POWER', 'ADD', 'DETRACT'],
+            ['WORLD', 'NOTE', 'NOR', 'REMEMBER', 'FORGET'],
+            ['LIVING', 'RATHER', 'DEDICATED', 'UNFINISHED', 'WORK',
+            'FOUGHT', 'THUS', 'NOBLY', 'ADVANCED'],
+            ['RATHER', 'DEDICATED', 'TASK', 'REMAINING'],
+            ['HONORED', 'DEAD', 'TAKE', 'INCREASED', 'DEVOTION',
+            'CAUSE', 'GAVE', 'FULL', 'MEASURE', 'DEVOTION'],
+            ['HIGHLY', 'RESOLVE', 'DEAD', 'DIED', 'VAIN'],
+            ['NATION', 'GOD', 'NEW', 'BIRTH', 'FREEDOM'],
+            ['GOVERNMENT', 'PEOPLE', 'PEOPLE', 'PEOPLE', 'PERISH', 'EARTH']
         ]
+
 
     @staticmethod
     @pytest.fixture
@@ -930,40 +943,48 @@ class TestReturnedAsListOfLists:
     # dump_to_txt          Dump CLEANED_TEXT object to txt.
 
 
-    TestClass = tc.TextCleaner(WORDS, update_lexicon=False)
+    TestClass = TC(WORDS, update_lexicon=False)
     TestClass.as_list_of_lists()
 
 
     def test_delete_empty_rows(self, AS_LISTS_EMPTIES_DELETED):
 
         self.TestClass.delete_empty_rows()
-        # list(list()) INSTEAD OF NP TO GET TO PASS THIS TEST
-        assert np.array_equiv(self.TestClass.CLEANED_TEXT,
-                               AS_LISTS_EMPTIES_DELETED)
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_LISTS_EMPTIES_DELETED
+        ))
 
 
     def test_remove_characters(self, AS_LISTS_CHARS_REMOVED):
 
         self.TestClass.remove_characters()
-        # list(list()) INSTEAD OF NP TO GET TO PASS THIS TEST
-        assert np.array_equiv(list(map(list, self.TestClass.CLEANED_TEXT)),
-                          AS_LISTS_CHARS_REMOVED)
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_LISTS_CHARS_REMOVED
+        ))
 
 
     def test_strip(self, AS_LISTS_STRIPPED):
 
         self.TestClass._strip()
-        # list(list()) INSTEAD OF NP TO GET TO PASS THIS TEST
-        assert np.array_equiv(list(map(list, self.TestClass.CLEANED_TEXT)),
-                          AS_LISTS_STRIPPED)
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_LISTS_STRIPPED
+        ))
 
 
     def test_normalize(self, AS_LISTS_NORMALIZED):
 
         self.TestClass.normalize()
-        # list(list()) INSTEAD OF NP TO GET TO PASS THIS TEST
-        assert np.array_equiv(list(map(list, self.TestClass.CLEANED_TEXT)),
-                          AS_LISTS_NORMALIZED)
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_LISTS_NORMALIZED
+        ))
 
 
 
@@ -972,12 +993,16 @@ class TestReturnedAsListOfLists:
         user_inputs = "e\nSEVEN\nY\nY\nY\ne\nDEVOTION\nY\ne\nGOVERNMENT\nY\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
             self.TestClass.lex_lookup()
-            # list(list()) INSTEAD OF NP TO GET TO PASS THIS TEST
-            assert np.array_equiv(list(map(list, self.TestClass.CLEANED_TEXT)),
-                              AS_LISTS_LOOKEDUP)
+            assert all(map(
+                np.array_equiv,
+                self.TestClass.CLEANED_TEXT,
+                AS_LISTS_LOOKEDUP
+            ))
 
 
-    def test_return_row_uniques(self, AS_LISTS_ROW_UNIQUES, AS_LISTS_ROW_UNIQUES_COUNTS):
+    def test_return_row_uniques(
+        self, AS_LISTS_ROW_UNIQUES, AS_LISTS_ROW_UNIQUES_COUNTS
+    ):
 
         # COMPARE ROW UNIQUES ROW BY ROW
         for idx, ROW in enumerate(self.TestClass.return_row_uniques()):
@@ -985,25 +1010,23 @@ class TestReturnedAsListOfLists:
 
 
         ROW_UNIQUES = self.TestClass.return_row_uniques(return_counts=False)
-        # CONVERT return_row_uniques() TO list(list()) FOR COMPARISON,
-        # UNEXPECTEDLY EXCEPTING WHEN NUMPY
-        assert np.array_equiv(list(map(list, ROW_UNIQUES)), AS_LISTS_ROW_UNIQUES)
+        assert all(map(np.array_equiv, ROW_UNIQUES, AS_LISTS_ROW_UNIQUES))
 
         del ROW_UNIQUES
 
 
         ROW_UNIQUES, ROW_COUNTS = \
             self.TestClass.return_row_uniques(return_counts=True)
-        # CONVERT return_row_uniques() TO list(list()) FOR COMPARISON,
-        # UNEXPECTEDLY EXCEPTING WHEN NUMPY
-        assert np.array_equiv(list(map(list, ROW_UNIQUES)), AS_LISTS_ROW_UNIQUES)
-        assert np.array_equiv(list(map(list, ROW_COUNTS)), AS_LISTS_ROW_UNIQUES_COUNTS)
 
+        assert all(map(np.array_equiv, ROW_UNIQUES, AS_LISTS_ROW_UNIQUES))
+        assert all(map(np.array_equiv, ROW_COUNTS, AS_LISTS_ROW_UNIQUES_COUNTS))
 
         del ROW_UNIQUES, ROW_COUNTS
 
 
-    def test_return_overall_uniques(self, AS_LISTS_ALL_UNIQUES, AS_LISTS_ALL_UNIQUES_COUNTS):
+    def test_return_overall_uniques(
+        self, AS_LISTS_ALL_UNIQUES, AS_LISTS_ALL_UNIQUES_COUNTS
+    ):
 
         ALL_UNIQUES = self.TestClass.return_overall_uniques(return_counts=False)
         assert np.array_equiv(ALL_UNIQUES, AS_LISTS_ALL_UNIQUES)
@@ -1023,9 +1046,7 @@ class TestReturnedAsListOfLists:
 
         self.TestClass.remove_stops()
         STOPS_REMOVED = self.TestClass.CLEANED_TEXT
-        # CONVERT return_row_uniques() TO list(list()) FOR COMPARISON,
-        # UNEXPECTEDLY EXCEPTING WHEN NUMPY
-        assert np.array_equiv(list(map(list, STOPS_REMOVED)), AS_LISTS_STOPS_REMOVED)
+        assert all(map(np.array_equiv, STOPS_REMOVED, AS_LISTS_STOPS_REMOVED))
 
         del STOPS_REMOVED
 
@@ -1033,10 +1054,15 @@ class TestReturnedAsListOfLists:
     # this is interactive
     def test_dump_to_csv(self):
 
+        # pizza this is saving as a txt file with .csv in the file name, not as ext
+
         # dump_to_csv               Dump CLEANED_TEXT object to csv.
         user_inputs = "dump_to_csv_test_dump\nY\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
             self.TestClass.dump_to_csv()
+
+        os.remove(os.path.join(os.curdir, 'dump_to_csv_test_dump.csv'))
+
 
     # this is interactive
     def test_dump_to_txt(self):
@@ -1046,7 +1072,7 @@ class TestReturnedAsListOfLists:
         with patch('sys.stdin', io.StringIO(user_inputs)):
             self.TestClass.dump_to_txt()
 
-
+        os.remove(os.path.join(os.curdir, 'dump_to_txt_test_dump.txt'))
 
 # END FOR DATA RETURNED AS LIST OF LISTS ###############################
 ########################################################################
