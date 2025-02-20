@@ -3,30 +3,42 @@
 #
 # License: BSD 3 clause
 #
-
-
-
-from typing import Sequence
+import numbers
+from typing import Optional, Sequence
 from typing_extensions import Union
+import numpy.typing as npt
+from ._type_aliases import MenuDictType
 
-import sys, inspect, math, warnings
 import numpy as np, pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
 
-from ....utilities._get_module_name import get_module_name
 from .._Lexicon.Lexicon import Lexicon
-from ....data_validation import (
-    validate_user_input as vui,
-    arg_kwarg_validater
-)
 from .. import (
     alphanumeric_str as ans,
     _stop_words as sw,
     _statistics as stats
 )
 
+from ....data_validation import (
+    validate_user_input as vui,
+    arg_kwarg_validater
+)
 
-# _exception                Exception handling for this module.
+from ._validation._X import _val_X
+from ._validation._auto_add import _val_auto_add
+from ._validation._auto_delete import _val_auto_delete
+from ._validation._update_lexicon import _val_update_lexicon
+
+from ._methods._strip import _strip
+from ._methods._view_snippet import _view_snippet
+
+from ._methods._validation._menu import _menu_validation
+from ._methods._validation._remove_characters import _remove_characters_validation
+from ._methods._validation._view_snippet import _view_snippet_validation
+from ._methods._validation._lex_lookup_menu import _lex_lookup_menu_validation
+from ._methods._normalize import _normalize
+
+
 # delete_empty_rows         Remove textless rows from data.
 # remove_characters         Keep only allowed or removed disallowed characters from entire CLEANED_TEXT object.
 # _strip                    Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object.
@@ -62,21 +74,21 @@ from .. import (
 
 
 
-class TextCleaner:
+class TC:
 
     def __init__(
         self,
-        LIST_OF_STRINGS: Sequence[str],
-        update_lexicon: bool=False,
-        auto_add: bool=False,
-        auto_delete: bool=False
+        X: Sequence[str],
+        update_lexicon: Optional[bool] = False,
+        auto_add: Optional[Union[bool, None]] = False,
+        auto_delete: Optional[bool] = False
     ) -> None:  # return_as_list_of_lists=False,  # pizza what this mean?
 
         """
 
         Parameters
         ----------
-        LIST_OF_STRINGS:
+        X:
             Sequence[str] -
         update_lexicon:
             bool=False -
@@ -86,7 +98,7 @@ class TextCleaner:
             bool=False
 
         # pizza
-        # LIST_OF_STRINGS MUST BE PASSED AS ['str1','str2','str3'...],
+        # X MUST BE PASSED AS ['str1','str2','str3'...],
         # JUST LIKE NNLM50
 
         # auto_add AUTOMATICALLY ADDS AN UNKNOWN WORD TO LEXICON_UPDATE
@@ -104,66 +116,33 @@ class TextCleaner:
         """
 
 
-
-
-        self.this_module = get_module_name(str(sys.modules[__name__]))
-
-        fxn = "__init__"
-
         ################################################################
         # ARG / KWARG VALIDATION #######################################
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+        _val_X(X)
 
-            LIST_OF_STRINGS = np.array(LIST_OF_STRINGS)
-            if len(LIST_OF_STRINGS.shape) == 1:
-                LIST_OF_STRINGS = LIST_OF_STRINGS.reshape((1, -1))
+        # pizza as of 25_02_19_12_48_00 this fails when dtype is not '<U10000'
+        # come back to this and see if can make this take f'<U{min(map(len, list(X)))}'
+        self.X = np.fromiter(map(str, list(X)), dtype=f'<U10000')
 
-        try:
-            self.LIST_OF_STRINGS = \
-                np.fromiter(map(str, LIST_OF_STRINGS[0]), dtype='<U10000')
-        except:
-            raise TypeError(f"LIST_OF_STRINGS MUST CONTAIN DATA THAT CAN "
-                            f"BE CONVERTED TO str", fxn)
+        self.CLEANED_TEXT = self.X.copy().astype(object)
 
-        self.CLEANED_TEXT = self.LIST_OF_STRINGS.copy().astype(object)
-                # np.empty((1, len(self.LIST_OF_STRINGS)), dtype=object)[0]
+        _val_update_lexicon(auto_add)
+        self.update_lexicon: bool = update_lexicon or False
 
-        self.update_lexicon = arg_kwarg_validater(
-            update_lexicon,
-            'update_lexicon',
-            [True, False, None],
-            self.this_module,
-            fxn,
-            return_if_none=False
-        )
+        _val_auto_add(auto_add)
+        self.auto_add: bool = auto_add or False
 
-        self.auto_add = arg_kwarg_validater(
-            auto_add,
-            'auto_add',
-            [True, False, None],
-            self.this_module,
-            fxn,
-            return_if_none=False
-        )
-
-        self.auto_delete = arg_kwarg_validater(
-            auto_delete,
-            'auto_delete',
-            [True, False, None],
-            self.this_module,
-            fxn,
-            return_if_none=False
-        )
+        _val_auto_delete(auto_delete)
+        self.auto_delete = auto_delete or False
 
         # if self.update_lexicon is True and self.auto_delete is True:
             # 2/7/23 auto_delete CAUSES BYPASS OF HANDLING OPTIONS FOR
-            # UNKNOWN WORDS DURING lex_lookup PROCESSES.  CANNOT
+            # UNKNOWN WORDS DURING lex_lookup PROCESSES. CANNOT
             # update_lexicon IF BEING BYPASSED. update_lexicon ENABLES
             # OR DISABLES THE add to _lexicon MENU OPTION DURING
             # HANDLING OF UNKNOWN WORDS
-            # self._exception(f'update_lexicon AND auto_delete CANNOT BOTH BE True SIMULTANEOUSLY', fxn=fxn)
+            # raise ValueError(f'update_lexicon AND auto_delete CANNOT BOTH BE True SIMULTANEOUSLY')
 
         # 3/2/23 PIZZA MAY HAVE TO REVISIT THIS LOGIC
         if self.update_lexicon is False:
@@ -181,7 +160,7 @@ class TextCleaner:
         # DECLARATIONS #################################################
         self.is_list_of_lists = False
 
-        self.LEXICON_ADDENDUM = np.empty((1,0), dtype='<U30')[0]
+        self.LEXICON_ADDENDUM: npt.NDArray[str] = np.empty((1,0), dtype='<U30')[0]
         self.KNOWN_WORDS = None
 
         self.LEX_LOOK_DICT = {
@@ -193,12 +172,12 @@ class TextCleaner:
         if not self.update_lexicon:
             del self.LEX_LOOK_DICT['A']
 
-        self.LEX_LOOK_DISPLAY = ", ".join(list(f'{v}({k.lower()})' for k, v in self.LEX_LOOK_DICT.items()))
+
         self.lex_look_allowed = "".join(list(self.LEX_LOOK_DICT.keys())).lower()
         self.undo_status = False
         self.CLEANED_TEXT_BACKUP = None
 
-        self.MENU_DICT = {
+        self.MENU_DICT: MenuDictType = {
             'D': {'label':'delete_empty_rows',                              'function': self.delete_empty_rows        },
             'R': {'label':'remove_characters',                              'function': self.remove_characters        },
             'S': {'label':'strip',                                          'function': self._strip                   },
@@ -227,48 +206,40 @@ class TextCleaner:
         # END DECLARATIONS #############################################
         ################################################################
 
-    def _exception(self, words, fxn=None):
-        """Exception handling for this module."""
-        fxn = f".{fxn}()" if not fxn is None else ""
-        raise Exception(f'\n*** {self.this_module}{fxn} >>> {words} ***\n')
-
 
     def menu(
-            self,
-            allowed:str=None,
-            disallowed:str=None
-        ) -> None:
+        self,
+        allowed: Optional[Union[str, None]] = None,   # pizza Literal?
+        disallowed: Optional[Union[str, None]] = None
+    ) -> None:
 
-        # VALIDATION ###################################################
-        fxn = inspect.stack()[0][3]
+        """
+        Dynamic function for returning variable menu prompts and allowed
+        commands. Both cannot simultaneously be strings. If both are
+        simultaneously None, then all keys are allowed. Inputs are
+        case-sensitive.
 
-        allowed_key = "".join(self.MENU_DICT.keys()).upper()
-        # alloweds = 'ABCDEFIJLNOPQRSTUWXZ'
 
-        if not allowed is None and not disallowed is None:
-            self._exception(f'{fxn} >>> CANNOT ENTER BOTH allowed AND disallowed, MUST BE ONE OR THE OTHER OR NEITHER', fxn=fxn)
-        elif not allowed is None:
-            if not isinstance(allowed, str):
-                self._exception(f'{fxn} allowed KWARG REQUIRES str AS INPUT', fxn)
-            for _char in allowed:
-                if not _char in allowed_key:
-                    self._exception(f'INVALID KEY "{_char}" IN allowed, MUST BE IN {allowed_key}.', fxn)
-        elif not disallowed is None:
-            if not isinstance(disallowed, str):
-                self._exception(f'{fxn} disallowed KWARG REQUIRES str AS INPUT', fxn)
-            for _char in disallowed:
-                if not _char in allowed_key:
-                    self._exception(f'INVALID KEY "{_char}" IN disallowed, MUST BE IN {allowed_key}.', fxn)
-            allowed = ''.join([_ for _ in allowed_key if not _ in disallowed])
+        Parameters
+        ----------
+        allowed:
+            str - the keys of MENU_DICT that are allowed to be accessed.
+        disallowed:
+            str - the keys of MENU_DICT that are not allowed to be accessed.
+
+
+        """
+
+
+        _possible_keys = "".join(self.MENU_DICT.keys())
+
+        _menu_validation(_possible_keys, allowed, disallowed)
+
+        if disallowed is not None:  # then 'allowed' is None
+            allowed = "".join([_ for _ in _possible_keys if _ not in disallowed])
         elif allowed is None and disallowed is None:
-            allowed = allowed_key
+            allowed = _possible_keys
 
-        allowed = allowed.upper()
-
-        for _ in allowed:
-            if _ not in allowed_key:
-                self._exception(f'{fxn} allowed KWARG CHARACTERS MUST BE IN *{allowed_key}*', fxn)
-        # END VALIDATION ###############################################
 
         while True:
 
@@ -308,7 +279,7 @@ class TextCleaner:
                 self.CLEANED_TEXT_BACKUP = None
                 continue    # FORCE BYPASS AROUND BELOW FUNCTION CALL
             elif selection == 'Q':
-                self._exception(f'USER TERMINATED', fxn)
+                raise ValueError(f'USER TERMINATED')
             elif selection == 'Z':
                 del display
                 return self.CLEANED_TEXT   # 4-8-23 ALLOW RETURN OF CLEANED_TEXT FROM menu()
@@ -333,38 +304,27 @@ class TextCleaner:
 
 
     def remove_characters(
-            self,
-            allowed_chars_as_str:str=ans.alphanumeric_str(),
-            disallowed_chars_as_str:str=None
-        ):
+        self,
+        allowed_chars:Optional[Union[str, None]] = ans.alphanumeric_str(),
+        disallowed_chars:Optional[Union[str, None]] = None
+    ):
 
         # 24_06_22 see the benchmark module for this.
         # winner was map_set
 
-        """Keep only allowed or removed disallowed characters from entire CLEANED_TEXT object."""
-        fxn = inspect.stack()[0][3]
+        """Keep only allowed or remove disallowed characters from entire CLEANED_TEXT object."""
 
-        # VALIDATION ###################################################
-        if not allowed_chars_as_str is None:
-            if not 'STR' in str(type(allowed_chars_as_str)).upper():
-                self._exception(f'allowed_chars_as_str MUST BE GIVEN AS str', fxn)
-            if not disallowed_chars_as_str is None:
-                self._exception(f'CANNOT ENTER BOTH allowed_chars AND disallowed_chars. ONLY ONE OR THE OTHER OR NEITHER.', fxn)
-        elif allowed_chars_as_str is None and disallowed_chars_as_str is None:
-            self._exception(f'MUST SPECIFY ONE OF allowed_chars AND disallowed_chars.', fxn)
-        elif allowed_chars_as_str is None:
-            if not 'STR' in str(type(disallowed_chars_as_str)).upper():
-                self._exception(f'disallowed_chars_as_str MUST BE GIVEN AS str', fxn)
-        # END VALIDATION ###############################################
+        _remove_characters_validation(allowed_chars, disallowed_chars)
 
         if not self.is_list_of_lists:   # MUST BE LIST OF strs
             for row_idx in range(len(self.CLEANED_TEXT)):
                 # GET ALL CHARS INTO A LIST, GET UNIQUES, THEN REFORM INTO A STRING OF UNIQUES
                 UNIQUES = "".join(np.unique(np.fromiter((_ for _ in str(self.CLEANED_TEXT[row_idx])), dtype='<U1')))
                 for char in UNIQUES:
-                    if (not allowed_chars_as_str is None and char not in allowed_chars_as_str) or \
-                            (not disallowed_chars_as_str is None and char in disallowed_chars_as_str):
-                        self.CLEANED_TEXT[row_idx] = str(np.char.replace(str(self.CLEANED_TEXT[row_idx]), char, ''))
+                    if (allowed_chars is not None and char not in allowed_chars) or \
+                            (disallowed_chars is not None and char in disallowed_chars):
+                        self.CLEANED_TEXT[row_idx] = \
+                            str(np.char.replace(str(self.CLEANED_TEXT[row_idx]), char, ''))
             del UNIQUES
 
         elif self.is_list_of_lists:
@@ -373,8 +333,8 @@ class TextCleaner:
                 # JOIN ROW ENTRIES W " " INTO ONE STRING, PUT INTO AN ARRAY, GET UNIQUES, REFORM AS SINGLE STRING OF UNIQUES
                 UNIQUES = "".join(np.unique(np.fromiter((_ for _ in " ".join(self.CLEANED_TEXT[row_idx])), dtype='<U1')))
                 for char in UNIQUES:
-                    if (not allowed_chars_as_str is None and char not in allowed_chars_as_str) or \
-                            (not disallowed_chars_as_str is None and char in disallowed_chars_as_str):
+                    if (not allowed_chars is None and char not in allowed_chars) or \
+                            (not disallowed_chars is None and char in disallowed_chars):
                         self.CLEANED_TEXT[row_idx] = np.char.replace(self.CLEANED_TEXT[row_idx], char, '')
 
                 if not f'' in self.CLEANED_TEXT[row_idx]:
@@ -386,39 +346,41 @@ class TextCleaner:
 
 
     def _strip(self):
-        """Remove multiple spaces and leading and trailing spaces from all text in CLEAND_TEXT object."""
-        # DO THIS ROW-WISE (SINGLE ARRAY AT A TIME), BECAUSE np.char WILL THROW A FIT IF GIVEN A RAGGED ARRAY
-        for row_idx in range(len(self.CLEANED_TEXT)):
-            if self.is_list_of_lists:
-                while True:
-                    if f'  ' in self.CLEANED_TEXT[row_idx]:
-                        self.CLEANED_TEXT[row_idx] = np.char.replace(self.CLEANED_TEXT[row_idx], f'  ', f' ')
-                    else:
-                        map(str.strip, self.CLEANED_TEXT[row_idx])
-                        break
-            elif not self.is_list_of_lists:   # MUST BE LIST OF strs
-                while True:
-                    if f'  ' in self.CLEANED_TEXT[row_idx]:
-                        self.CLEANED_TEXT[row_idx] = str(np.char.replace(self.CLEANED_TEXT[row_idx], f'  ', f' '))
-                    else:
-                        self.CLEANED_TEXT[row_idx] = self.CLEANED_TEXT[row_idx].strip()
-                        break
+        """
+        Remove multiple spaces and leading and trailing spaces from all
+        text in CLEAND_TEXT object.
+        """
+
+        self.CLEANED_TEXT = _strip(self.CLEANED_TEXT, self.is_list_of_lists)
 
 
-    def normalize(self, upper:bool=True):    # IF NOT upper THEN lower
-        """Set all text in CLEANED_TEXT object to upper case (default) or lower case."""
-        # WILL PROBABLY BE A RAGGED ARRAY AND np.char WILL THROW A FIT, SO GO ROW BY ROW
-        if self.is_list_of_lists:
-            for row_idx in range(len(self.CLEANED_TEXT)):
-                if upper:
-                    self.CLEANED_TEXT[row_idx] = np.fromiter(map(str.upper, self.CLEANED_TEXT[row_idx]), dtype='U30')
-                elif not upper:
-                    self.CLEANED_TEXT[row_idx] = np.fromiter(map(str.lower, self.CLEANED_TEXT[row_idx]), dtype='U30')
-        elif not self.is_list_of_lists:   # LIST OF strs
-            if upper:
-                self.CLEANED_TEXT = np.fromiter(map(str.upper, self.CLEANED_TEXT), dtype='U100000')
-            elif not upper:
-                self.CLEANED_TEXT = np.fromiter(map(str.lower, self.CLEANED_TEXT), dtype='U100000')
+    def normalize(self, upper:Optional[bool] = True):    # IF NOT upper THEN lower
+
+        """
+        Set all text in CLEANED_TEXT object to upper case (default) or
+        lower case.
+
+
+        Parameters
+        ----------
+        upper:
+            Optional[bool], default=True - pizza?
+
+
+        Return
+        ------
+        -
+            pizza?
+
+
+        """
+
+
+        self.CLEANED_TEXT = \
+            _normalize(
+                self.CLEANED_TEXT,
+                self.is_list_of_lists
+            )
 
 
     def view_cleaned_text(self):
@@ -461,7 +423,8 @@ class TextCleaner:
                 UNIQUES_HOLDER[row_idx], COUNTS_HOLDER[row_idx] = \
                     np.unique(self.CLEANED_TEXT[row_idx], return_counts=True)
 
-            if converted: self.as_list_of_strs()
+            if converted:
+                self.as_list_of_strs()
             del converted
 
             return UNIQUES_HOLDER, COUNTS_HOLDER
@@ -470,14 +433,12 @@ class TextCleaner:
     def view_row_uniques(self, return_counts=None):
         """Print row uniques and optionally counts to screen."""
 
-        fxn = inspect.stack()[0][3]
-
-        return_counts = arg_kwarg_validater(
+        arg_kwarg_validater(
             return_counts,
             'return_counts',
             [True, False, None],
-            self.this_module,
-            fxn
+            'TC',
+            'view_row_uniques'
         )
 
         if return_counts is None:
@@ -521,7 +482,8 @@ class TextCleaner:
             # DEFAULT IS ASCENDING
             UNIQUES, COUNTS = np.unique(np.hstack(self.CLEANED_TEXT), return_counts=True)
 
-            if converted: self.as_list_of_strs()
+            if converted:
+                self.as_list_of_strs()
             del converted
 
             return UNIQUES, COUNTS
@@ -531,14 +493,12 @@ class TextCleaner:
 
         """Print overall uniques and optionally counts to screen."""
 
-        fxn = inspect.stack()[0][3]
-
-        return_counts = arg_kwarg_validater(
+        arg_kwarg_validater(
             return_counts,
             'return_counts',
             [True, False, None],
-            self.this_module,
-            fxn
+            'TC',
+            'view_overall_uniques'
         )
 
         if return_counts is None:
@@ -565,6 +525,7 @@ class TextCleaner:
 
     def remove_stops(self):
         """Remove stop words from the entire CLEANED_TEXT object."""
+
         converted = False
         if not self.is_list_of_lists:
             self.as_list_of_lists()
@@ -577,7 +538,8 @@ class TextCleaner:
                 if len(self.CLEANED_TEXT) == 0:
                     break
 
-        if converted: self.as_list_of_strs()
+        if converted:
+            self.as_list_of_strs()
         del converted
 
 
@@ -595,15 +557,13 @@ class TextCleaner:
 
         # ALSO SEE text.notepad_justifier FOR SIMILAR CODE, IF EVER CONSOLIDATING
 
-        fxn = inspect.stack()[0][3]
-
         if not chars is None:
-            chars = arg_kwarg_validater(
+            arg_kwarg_validater(
                 chars,
                 'characters',
                 list(range(30,50001)),
-                self.this_module,
-                fxn
+                'TC',
+                'justify'
             )
         elif chars is None:
             # DONT PUT THIS IN akv(return_if_none=)... PROMPTS USER FOR
@@ -679,23 +639,32 @@ class TextCleaner:
             else:
                 TO_DELETE = np.empty((1,0), dtype='<U30')[0]; ctr=0
 
-        if to_delete != 'Z' and len(TO_DELETE) > 0:  # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE, PROCEED WITH DELETE
+        # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE, PROCEED WITH DELETE
+        if to_delete != 'Z' and len(TO_DELETE) > 0:
 
             for row_idx in range(len(self.CLEANED_TEXT)):
                 for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
                     if self.CLEANED_TEXT[row_idx][word_idx] in TO_DELETE:
-                        self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
+                        self.CLEANED_TEXT[row_idx] = \
+                            np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
 
-                    if len(self.CLEANED_TEXT[row_idx]) == 0: break
+                    if len(self.CLEANED_TEXT[row_idx]) == 0:
+                        break
 
         del TO_DELETE, to_delete
 
-        if converted: self.as_list_of_strs()
+        if converted:
+            self.as_list_of_strs()
         del converted
 
 
     def substitute_words(self):
-        """Substitute all occurrences of one or more words throughout CLEANED_TEXT."""
+        """
+        Substitute all occurrences of one or more words throughout
+        CLEANED_TEXT.
+
+
+        """
 
         converted = False
         if not self.is_list_of_lists:
@@ -708,22 +677,34 @@ class TextCleaner:
         while True:
             replaced, replacement = '', ''
             while True:
-                replaced = input(f'\nEnter word to replace '
-                                 f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > ').upper()
-                if replaced in 'DZ': break
+                replaced = input(
+                    f'\nEnter word to replace '
+                    f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > '
+                ).upper()
+                if replaced in 'DZ':
+                    break
                 else:
-                    replacement = input(f'Enter word to substitute in '
-                                f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > ').upper()
-                    if replacement in 'DZ': break
+                    replacement = input(
+                        f'Enter word to substitute in '
+                        f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > '
+                    ).upper()
+                    if replacement in 'DZ':
+                        break
                 if vui.validate_user_str(
-                        f'User entered to replace *{replaced}* with *{replacement}*--- Accept? (y/n) > ',
-                        'YN') == 'Y':
+                    f'Replace *{replaced}* with *{replacement}*--- Accept? (y/n) > ',
+                    'YN'
+                ) == 'Y':
                     ctr += 1
                     TO_SUB_DICT[replaced] = replacement
-            if replaced == 'Z' or replacement == 'Z': del ctr; break
+            if replaced == 'Z' or replacement == 'Z':
+                del ctr
+                break
+
             print(f'\nUser entered to replace')
             [print(f'{k} with {v}') for k,v in TO_SUB_DICT.items()]
-            if vui.validate_user_str(f'\nAccept? (y/n) > ', 'YN') == 'Y': del ctr; break
+            if vui.validate_user_str(f'\nAccept? (y/n) > ', 'YN') == 'Y':
+                del ctr
+                break
 
         # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE, PROCEED WITH DELETE
         if (replaced != 'Z' and replacement != 'Z') and len(TO_SUB_DICT) > 0:
@@ -743,15 +724,23 @@ class TextCleaner:
 
 
     def as_list_of_lists(self):
-        """Convert CLEANED_TEXT object to a possibly ragged vector of vectors, each vector containing split text."""
+        """
+        Convert CLEANED_TEXT object to a possibly ragged vector of
+        vectors, each vector containing split text.
+
+        """
+
+
         if self.is_list_of_lists:
             pass
         elif not self.is_list_of_lists:  # MUST BE LIST OF strs
             # ASSUME THE TEXT STRING CAN BE SEPARATED ON ' '
-            self.CLEANED_TEXT = np.fromiter(map(str.split, self.CLEANED_TEXT), dtype=object)
+            self.CLEANED_TEXT = \
+                np.fromiter(map(str.split, self.CLEANED_TEXT), dtype=object)
             for row_idx in range(len(self.CLEANED_TEXT)):
                 # WONT LET ME DO np.fromiter(map(np.ndarray SO PLUG-N-CHUG
-                self.CLEANED_TEXT[row_idx] = np.array(self.CLEANED_TEXT[row_idx], dtype='<U30')
+                self.CLEANED_TEXT[row_idx] = \
+                    np.array(self.CLEANED_TEXT[row_idx], dtype='<U30')
 
             self.is_list_of_lists = True
 
@@ -761,7 +750,8 @@ class TextCleaner:
         if not self.is_list_of_lists:
             pass
         elif self.is_list_of_lists:
-            self.CLEANED_TEXT = np.fromiter(map(' '.join, self.CLEANED_TEXT), dtype=object)
+            self.CLEANED_TEXT = \
+                np.fromiter(map(' '.join, self.CLEANED_TEXT), dtype=object)
             self.is_list_of_lists = False
 
 
@@ -861,10 +851,15 @@ class TextCleaner:
                 MASTER_COUNTS = np.flip(MASTER_COUNTS)
 
         del SUB_MENU, display, selection, cutoff_ct, is_asc, MASTER_UNIQUES, MASTER_COUNTS
-        try: del WIP_UNIQUES
-        except: pass
-        try: del WIP_COUNTS
-        except: pass
+        try:
+            del WIP_UNIQUES
+        except:
+            pass
+
+        try:
+            del WIP_COUNTS
+        except:
+            pass
 
 
     def dump_to_file_wrapper(self, core_write_function, _ext, kwargs):
@@ -890,7 +885,8 @@ class TextCleaner:
             elif __ == 'N': continue
             elif __ == 'A': break
 
-        if converted: self.as_list_of_lists()
+        if converted:
+            self.as_list_of_lists()
         del converted
 
 
@@ -941,52 +937,95 @@ class TextCleaner:
     # STUFF FOR LEXICON LOOKUP #########################################
 
     def lex_lookup_menu(
-            self,
-            allowed:Union[str, None]=None,
-            disallowed:Union[str, None]=None,
-            fxn:Union[str,None]=None
-        ):    # ALLOWED ARE 'adelks'
+        self,
+        allowed:Optional[Union[str, None]] = None,
+        disallowed:Optional[Union[str, None]] = None
+    ) -> tuple[str, str]:    # ALLOWED ARE 'adelks'
 
-        """Dynamic function for returning variable menu prompts and allowed commands."""
-        fxn = fxn or inspect.stack()[0][3]
+        """
+        Dynamic function for returning variable menu prompts and allowed
+        commands. Both cannot simultaneously be strings. If both are
+        simultaneously None, then all keys are allowed. Both inputs are
+        case-sensitive.
 
-        if not allowed is None and not disallowed is None:
-            self._exception(f'CANNOT ENTER BOTH allowed AND disallowed, ONLY ONE OR THE OTHER OR NEITHER', fxn=fxn)
 
-        elif allowed is None and disallowed is None:
+        Parameters
+        ----------
+        allowed:
+            Optional[Union[str, None]] - keys of the menu that are
+            allowed to be accessed.
+        disallowed:
+            Optional[Union[str, None]] - keys of the menu that are not
+            allowed to be accessed.
+
+
+        Return
+        ------
+        -
+            tuple[str, str] - pizza
+
+
+        """
+
+        _possible: str = self.lex_look_allowed
+
+
+        _lex_lookup_menu_validation(
+            _possible,
+            allowed,
+            disallowed
+        )
+
+        if allowed is None and disallowed is None:
             allowed = self.lex_look_allowed
+        elif disallowed is not None:
+            allowed = "".join([_ for _ in _possible if _ not in disallowed])
 
-        elif not allowed is None and disallowed is None:
-            # VALIDATE ENTRY FOR allowed kwarg #########################
-            if not isinstance(allowed, str):
-                self._exception(fxn, f'{inspect.stack()[0][3]}() allowed kwarg must be a single string')
+        WIP_DISPLAY = []
+        for k, v in self.LEX_LOOK_DICT.items():
+            if k in allowed:
+                WIP_DISPLAY.append(f'{v.upper()}({k.lower()})')
 
-            for _ in allowed:
-                if _.upper() not in ans.alphabet_str_upper():
-                    self._exception(fxn, f'lexicon_menu() kwarg allowed CAN ONLY CONTAIN {self.lex_look_allowed.lower()}')
-            # END VALIDATE ENTRY FOR allowed kwarg #####################
+        WIP_DISPLAY = ", ".join(WIP_DISPLAY)
 
-        elif allowed is None and not disallowed is None:
-            # VALIDATE ENTRY FOR disallowed kwarg ######################
-            if not isinstance(disallowed, str):
-                self._exception(fxn, f'{inspect.stack()[0][3]}() disallowed kwarg must be a single string')
-
-            for _ in disallowed:
-                if _.upper() not in ans.alphabet_str_upper():
-                    self._exception(fxn, f'lexicon_menu() kwarg disallowed CAN ONLY CONTAIN {self.lex_look_allowed.lower()}')
-            # END VALIDATE ENTRY FOR disallowed kwarg ##################
-
-            allowed = ''.join([_ for _ in self.lex_look_allowed.lower() if _ not in disallowed])
-
-
-        WIP_DISPLAY = ", ".join([f'{v.upper()}({k.lower()})' for k, v in self.LEX_LOOK_DICT.items() if k.lower() in allowed.lower()])
         wip_allowed = allowed
+
 
         return WIP_DISPLAY, wip_allowed
 
 
-    def word_editor(self, word, prompt=None):
-        """Validation function for single words entered by user."""
+    def word_editor(
+        self,
+        word:str,
+        prompt:Optional[Union[str, None]] = None
+    ) -> str:
+
+        """
+        Validation function for single words entered by user.
+
+
+        Parameter
+        ---------
+        word:
+            str - the word prompting a new entry by the user.
+        prompt:
+            Optional[Union[str, None]], default=None - a special prompt.
+
+
+        Return
+        ------
+        -
+            word: str - the new word entered by the user.
+
+
+        """
+
+        if not isinstance(word, str):
+            raise TypeError(f"'word' must be a string")
+
+        if not isinstance(prompt, (str, None)):
+            raise TypeError(f"'prompt' must be a string or None")
+
 
         while True:
             word = input(f'{prompt} > ').upper()
@@ -996,44 +1035,77 @@ class TextCleaner:
         return word
 
 
-    def lex_lookup_add(self, word):
-        """Append a word to the LEXICON_ADDENDUM object."""
+    def lex_lookup_add(self, word: str) -> None:
+
+        """
+        Append a word to the LEXICON_ADDENDUM object.
+
+
+        Parameters
+        ----------
+        word:
+            str - word to add to the LEXICON_ADDENDUM
+
+
+        Return
+        ------
+        -
+            None
+
+        """
+
+        if not isinstance(word, str):
+            raise TypeError(f"'word' must be str")
+
+        self.LEXICON_ADDENDUM: npt.NDArray[str]
+        self.KNOWN_WORDS: list[str]
+
         self.LEXICON_ADDENDUM = \
             np.insert(self.LEXICON_ADDENDUM, len(self.LEXICON_ADDENDUM), word, axis=0)
         self.KNOWN_WORDS = \
             np.insert(self.KNOWN_WORDS, len(self.KNOWN_WORDS), word, axis=0)
 
 
-    def view_snippet(self, VECTOR, idx, span=9):
-        """Highlights the word of interest in a series of words."""
+    def view_snippet(
+        self,
+        VECTOR: Sequence[str],
+        idx: numbers.Integral,
+        span: Optional[numbers.Integral]=9
+    ):
 
-        fxn = inspect.stack()[0][3]
-
-        if 'INT' not in str(type(idx)).upper() or idx not in range(0, len(VECTOR)):
-            self._exception(fxn, f'idx MUST BE GIVEN AS A NON-NEGATIVE INTEGER IN RANGE OF GIVEN VECTOR')
-
-        _lower = math.floor(idx-(span-1)/2)
-        _upper = math.ceil(idx+(span-1)/2)
-        if _lower <= 0: _min, _max = 0, min(span, len(VECTOR))
-        elif _upper >= len(VECTOR): _min, _max = max(0, len(VECTOR)-span), len(VECTOR)
-        else: _min, _max = _lower, _upper
-        del _lower, _upper
-
-        SNIPPET = []
-        for word_idx in range(_min, _max):
-            if word_idx == idx: SNIPPET.append(VECTOR[word_idx].upper())
-            else:  # word_idx is not on the target word...
-                SNIPPET.append(VECTOR[word_idx].lower())
-
-        return " ".join(SNIPPET)     # RETURNS AS STRING
+        """
+        Highlights the word of interest in a series of words.
 
 
-    def lex_lookup(self, print_notes:bool=False):
+        Parameters
+        ----------
+        VECTOR:
+            Sequence[str] - The sequence of strings from which to
+            highlight one string.
+        idx:
+            numbers.Integral - the index of the string to highlight.
+        span:
+            Optional[numbers.Integral], default=9 - the number of strings
+            to display around and including the highlighted string.
+
+        """
+
+        _view_snippet_validation(VECTOR, idx, span)
+
+        return _view_snippet(VECTOR, idx, span=span)
+
+
+    def lex_lookup(self, print_notes:Optional[bool] = False):
 
         """
         Scan entire CLEANED_TEXT object and prompt for handling of words
         not in LEXICON.
 
+
+        Parameters
+        ----------
+        print_notes:
+            Optional[bool], default=False - pizza
 
 
         """
@@ -1046,33 +1118,35 @@ class TextCleaner:
             converted = True
 
         # VALIDATION, ETC ##############################################
-        fxn = inspect.stack()[0][3]
-
-        print_notes = arg_kwarg_validater(
+        arg_kwarg_validater(
             print_notes,
             'print_notes',
             [True, False, None],
-            self.this_module,
-            fxn,
-            return_if_none=False
+            'TC',
+            'lex_lookup'
         )
+
+        print_notes = print_notes or False
 
         _abort = False
         if self.update_lexicon:
-            MENU_DISPLAY, menu_allowed = self.lex_lookup_menu(fxn=fxn)
+            MENU_DISPLAY, menu_allowed = self.lex_lookup_menu()
             if len(self.LEXICON_ADDENDUM) != 0:
                 print(f'\n*** LEXICON ADDENDUM IS NOT EMPTY ***\n')
                 print(f'PREVIEW OF LEXICON ADDENDUM:')
                 [print(_) for _ in self.LEXICON_ADDENDUM[:10]]
                 print()
-                _ = vui.validate_user_str(f'EMPTY LEXICON ADDENDUM(e), PROCEED ANYWAY(p), ABORT lex_lookup(a) > ', 'AEP')
+                _ = vui.validate_user_str(
+                    f'EMPTY LEXICON ADDENDUM(e), PROCEED ANYWAY(p), ABORT lex_lookup(a) > ',
+                    'AEP'
+                )
                 if _ == 'A':
                     _abort = True
                 elif _ == 'E':
                     self.LEXICON_ADDENDUM = np.empty((1,0), dtype='<U30')[0]
                 del _
         elif not self.update_lexicon:
-            MENU_DISPLAY, menu_allowed = self.lex_lookup_menu(allowed='desk', fxn=fxn)
+            MENU_DISPLAY, menu_allowed = self.lex_lookup_menu(allowed='desk')
 
         self.KNOWN_WORDS = Lexicon().lexicon_.copy()
         WORDS_TO_DELETE = np.empty(0, dtype='<U30')
@@ -1280,7 +1354,8 @@ class TextCleaner:
 
         self.KNOWN_WORDS = None
 
-        if converted: self.as_list_of_strs()
+        if converted:
+            self.as_list_of_strs()
         del converted
 
         print(f'\n*** LEX LOOKUP COMPLETE ***\n')
