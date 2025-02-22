@@ -74,7 +74,7 @@ from ._methods._validation._lex_lookup_menu import _lex_lookup_menu_validation
 # END STUFF FOR LEXICON LOOKUP #####################################################################################
 
 
-
+# pizza dont forget mixins!
 class TC:
 
 
@@ -447,6 +447,14 @@ class TC:
 
         """
 
+
+        # CONVERT TO LIST OF LISTS
+        converted = False
+        if not self.is_list_of_lists:
+            self.as_list_of_lists()
+            converted = True
+
+
         # ALSO SEE text.notepad_justifier FOR SIMILAR CODE, IF EVER CONSOLIDATING
 
         if not chars is None:
@@ -463,16 +471,12 @@ class TC:
             chars = vui.validate_user_int(
                 f'\nEnter number of characters per line (min=30, max=50000) > ', min=30, max=50000)
 
-        # CONVERT TO LIST OF LISTS
-        converted = False
-        if not self.is_list_of_lists:
-            self.as_list_of_lists()
-            converted = True
+
 
         seed = f''
         max_line_len = chars
         del chars
-        NEW_TXT = np.empty((1, 0), dtype=f'<U{max_line_len}')[0]
+        NEW_TXT = np.empty((1,), dtype=f'<U{max_line_len}')
         for row_idx in range(len(self.CLEANED_TEXT)):
             for word_idx in range(len(self.CLEANED_TEXT[row_idx])):
                 new_word = self.CLEANED_TEXT[row_idx][word_idx]
