@@ -9,6 +9,8 @@
 import pytest
 
 import numpy as np
+import pandas as pd
+import polars as pl
 
 from pybear.feature_extraction.text._TextSplitter.TextSplitter import TextSplitter
 
@@ -118,6 +120,66 @@ class TestAccuracy:
             ))
 
 
+    def test_various_input_containers(self):
+
+        _base_text = [
+            "Scale of dragon",
+            "Witch’s mummy"
+        ]
+
+        _exp = [
+            ["Scale", "of", "dragon"],
+            ["Witch’s", "mummy"]
+        ]
+
+        TestCls = TextSplitter(str_sep=" ")
+
+
+        # python list accepted
+        out = TestCls.transform(list(_base_text))
+        assert isinstance(out, list)
+        assert all(map(np.array_equal, out, _exp))
+
+        # python 1D tuple accepted
+        out = TestCls.transform(tuple(_base_text))
+        assert isinstance(out, list)
+        assert all(map(np.array_equal, out, _exp))
+
+        # python 1D set accepted
+        out = TestCls.transform(set(_base_text))
+        assert isinstance(out, list)
+        assert all(map(np.array_equal, sorted(out), sorted(_exp)))
+
+        # np 1D accepted
+        out = TestCls.transform(np.array(_base_text))
+        assert isinstance(out, list)
+        assert all(map(np.array_equal, out, _exp))
+
+        # pd series accepted
+        out = TestCls.transform(pd.Series(_base_text))
+        assert isinstance(out, list)
+        assert all(map(np.array_equal, out, _exp))
+
+        # polars series accepted
+        out = TestCls.transform(pl.Series(_base_text))
+        assert isinstance(out, list)
+        assert all(map(np.array_equal, out, _exp))
+
+        # np 2D rejected
+        with pytest.raises(TypeError):
+            TestCls.transform(np.array(_base_text).reshape((2, -1)))
+
+        # pd DataFrame rejected
+        with pytest.raises(TypeError):
+            TestCls.transform(
+                pd.DataFrame(np.array(_base_text).reshape((2, -1)))
+            )
+
+        # polars 2D rejected
+        with pytest.raises(TypeError):
+            TestCls.transform(
+                pl.DataFrame(np.array(_base_text).reshape((2, -1)))
+            )
 
 
 

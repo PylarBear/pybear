@@ -281,7 +281,8 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         assert isinstance(TestCls._reset(), IM)
 
         # score()
-        assert TestCls.score(_X_np, _y_np) is None
+        with pytest.raises(NotFittedError):
+            TestCls.score(_X_np, _y_np)
 
         # set_output()
         assert isinstance(TestCls.set_output(transform='pandas'), IM)

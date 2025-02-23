@@ -763,7 +763,9 @@ class ColumnDeduplicateTransformer(
         wrappers. Verified must be here for dask wrappers.
         """
 
-        pass
+        check_is_fitted(self)
+
+        return
 
 
     # def set_params(self) - inherited from SetParamsMixin

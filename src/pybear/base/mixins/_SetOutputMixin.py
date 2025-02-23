@@ -35,7 +35,7 @@ class SetOutputMixin:
 
     def set_output(
         self,
-        transform: Union[Literal['default', 'pandas', 'polars'], None]=None
+        transform: Union[Literal['default', 'pandas', 'polars'], None] = None
     ):
 
         """
@@ -172,7 +172,7 @@ class SetOutputMixin:
                 # before converting numpy and scipy to polars.
                 if isinstance(X, np.ndarray):
                     X[nan_mask(X)] = None
-                    X = pl.DataFrame(X, schema=_columns, orient='row')
+                    X = pl.DataFrame(X, orient='row')
                 elif isinstance(X, pd.core.frame.DataFrame):
                     X = pl.from_pandas(X)
                 elif isinstance(X, pl.dataframe.frame.DataFrame):

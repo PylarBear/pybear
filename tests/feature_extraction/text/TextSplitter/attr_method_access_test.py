@@ -99,6 +99,8 @@ class TestMethodAccess:
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        with pytest.raises(NotImplementedError):
+            getattr(TestCls, 'get_metadata_routing')()
 
         out = getattr(TestCls, 'get_params')()
         assert isinstance(out, dict)
