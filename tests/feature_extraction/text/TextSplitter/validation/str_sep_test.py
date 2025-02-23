@@ -12,28 +12,28 @@ import uuid
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextSplitter._validation._sep import \
-    _val_sep
+from pybear.feature_extraction.text._TextSplitter._validation._str_sep import \
+    _val_str_sep
 
 
 
 
-class TestValSep:
+class TestValStrSep:
 
 
-    @pytest.mark.parametrize('junk_sep',
+    @pytest.mark.parametrize('junk_single_sep',
         (-2.7, -1, 0, 1, 2.7, True, False, {'A': 1}, lambda x: x)
     )
-    def test_rejects_junk_sep_as_single(self, junk_sep):
-        # could be None, str, set[str], list[of the 3]
+    def test_rejects_junk_single(self, junk_single_sep):
+        # could be None, str, set[str], list[of the 4]
         with pytest.raises(TypeError):
-            _val_sep(junk_sep, list('abcde'))
+            _val_str_sep(junk_single_sep, list('abcde'))
 
 
     @pytest.mark.parametrize('good_single_sep', (None, ', ', {' ', ', ', '. '}))
     def test_accepts_good_single(self, good_single_sep):
         # could be None, str, set[str]
-        _val_sep(good_single_sep, list('abcde'))
+        _val_str_sep(good_single_sep, list('abcde'))
 
 
     @pytest.mark.parametrize('junk_container', (tuple, list, np.ndarray))
@@ -54,28 +54,36 @@ class TestValSep:
             assert isinstance(junk_sep, junk_container)
 
         with pytest.raises(TypeError):
-            _val_sep(junk_sep, list('ab'))
+            _val_str_sep(junk_sep, list('ab'))
 
 
     def test_rejects_bad_sep_as_seq(self):
 
         # too long
         with pytest.raises(ValueError):
-            _val_sep([str(uuid.uuid4())[:4] for _ in range(6)], list('abcde'))
+            _val_str_sep([str(uuid.uuid4())[:4] for _ in range(6)], list('abcde'))
 
 
         # too short
         with pytest.raises(ValueError):
-            _val_sep([str(uuid.uuid4())[:4] for _ in range(4)], list('abcde'))
+            _val_str_sep([str(uuid.uuid4())[:4] for _ in range(4)], list('abcde'))
 
 
-    @pytest.mark.parametrize('innards', (None, ' ', set((' ', ', ', '. '))))
-    def test_accepts_good_sequence(self, innards):
-        # list[of the 3]
+    def test_accepts_good_sequence(self):
+        # list[of the 4]
 
-        _sep = [innards for _ in range(5)]
+        for trial in range(20):
 
-        assert _val_sep(_sep, list('abcde')) is None
+            _sep = np.random.choice(
+                [',', None, False, {'.', ',', ';'}],
+                (5,),
+                replace=True
+            ).tolist()
+
+            assert _val_str_sep(
+                _sep,
+                list('abcde')
+            ) is None
 
 
 
