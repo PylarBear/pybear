@@ -1296,7 +1296,9 @@ class SlimPolyFeatures(
         wrappers. Verified must be here for dask wrappers.
         """
 
-        pass
+        check_is_fitted(self)
+
+        return
 
 
     # def set_output() - inherited from SetOutputMixin

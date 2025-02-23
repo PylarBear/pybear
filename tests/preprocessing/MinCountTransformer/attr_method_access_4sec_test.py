@@ -6,6 +6,7 @@
 
 
 
+import sys
 from uuid import uuid4
 
 import numpy as np
@@ -378,8 +379,10 @@ class TestMethodAccessBeforeAndAfterFitAndTransform:
             TwoRcrTestCls.print_instructions()
 
         # score()
-        assert OneRcrTestCls.score(_X_np, _y_np) is None
-        assert TwoRcrTestCls.score(_X_np, _y_np) is None
+        with pytest.raises(NotFittedError):
+            OneRcrTestCls.score(_X_np, _y_np)
+        with pytest.raises(NotFittedError):
+            TwoRcrTestCls.score(_X_np, _y_np)
 
         # set_output()
         assert isinstance(OneRcrTestCls.set_output(transform='pandas'), MCT)

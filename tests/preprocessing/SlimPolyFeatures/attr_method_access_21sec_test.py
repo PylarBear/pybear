@@ -293,7 +293,8 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         assert isinstance(TestCls.reset(), SlimPoly)
 
         # score()
-        assert TestCls.score(_X_np, _y_np) is None
+        with pytest.raises(NotFittedError):
+            TestCls.score(_X_np, _y_np)
 
         # set_output()
         assert isinstance(TestCls.set_output(transform='pandas'), SlimPoly)

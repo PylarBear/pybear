@@ -187,6 +187,20 @@ class TextSplitter(
         re.split()
 
 
+        Examples
+        --------
+        >>> from pybear.feature_extraction.text import TextSplitter as TS
+        >>> Trfm = TextSplitter(str_sep=' ', str_maxsplit=2)
+        >>> X = [
+        ...     'This is a test.',
+        ...     'This is only a test.'
+        ... ]
+        >>> Trfm.fit(X)
+        TextSplitter(str_maxsplit=2, str_sep=' ')
+        >>> Trfm.transform(X)
+        [['This', 'is', 'a test.'], ['This', 'is', 'only a test.']]
+
+
         """
 
         self.str_sep = str_sep
@@ -204,6 +218,12 @@ class TextSplitter(
 
     def __pybear_is_fitted__(self):
         return True
+
+
+    def get_metadata_routing(self):
+        raise NotImplementedError(
+            f"metadata routing is not implemented in TextSplitter"
+        )
 
 
     def partial_fit(
@@ -309,10 +329,10 @@ class TextSplitter(
 
 
         if copy:
-            if isinstance(X, (list, set, tuple)):
-                _X = list(deepcopy(X))
-            else:
+            try:
                 _X = list(X.copy())
+            except:
+                _X = list(deepcopy(X))
         else:
             _X = list(X)
 

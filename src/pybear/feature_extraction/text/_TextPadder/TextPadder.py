@@ -6,23 +6,29 @@
 
 
 
-from typing import Optional, Sequence
+from typing import Optional
 from typing_extensions import Self, Union
+from ._type_aliases import XContainer
 
+import numbers
 from copy import deepcopy
 
-
+import numpy as np
 
 from ....base import (
     FitTransformMixin,
     GetParamsMixin,
     ReprMixin,
+    SetOutputMixin,
     SetParamsMixin,
     check_is_fitted
 )
 
+from ._partial_fit._partial_fit import _partial_fit
 
 from ._transform._transform import _transform
+
+from ._validation._validation import _validation
 
 
 
@@ -30,80 +36,204 @@ class TextPadder(
     FitTransformMixin,
     GetParamsMixin,
     ReprMixin,
+    SetOutputMixin,
     SetParamsMixin
 ):
 
     def __init__(
         self,
-        sep: Optional[Union[str, Sequence[str]], None] = None,  # pizza make a decision about default
-        fill: Optional[str] = ''
+        fill: Optional[str] = '',
+        n_features: Optional[Union[numbers.Integral, None]] = None
     ) -> None:
 
         """
-        Pizza
         Map ragged text data to a shaped array.
+
+        Why not just use itertools.zip_longest? TextPadder has 2
+        benefits not available with zip_longest.
+
+        First, TextPadder can be fit on multiple batches of data and
+        keep track of which example had the most strings. TextPadder
+        sets that value as the minimum possible feature axis length for
+        the output during transform, and will default to returning output
+        with that exact dimensionality unless overridden by the user to
+        a longer dimension.
+
+        Second, TextPadder can pad beyond the maximum number of strings
+        in the data through a 'n_features' parameter, whereas zip_longest
+        will always return the tightest shape possible for the data
+        passed.
+
+        TextPadder is a scikit-style transformer and has the following
+        methods: get_params, set_params, set_output, partial_fit, fit,
+        transform, fit_transform, and score.
+
+        TextPadder's methods require that data be passed as (possibly
+        ragged) 2D array-like containers of string data. Pandas
+        dataframes are not accepted, convert them to numpy arrays first
+        (you may not need to use this transformer if your data already
+        fits comfortably in a pandas dataframe or numpy array!)
+
+        The partial_fit and fit methods find the length of the example
+        with the most strings in it and keeps that number. This is the
+        minimum length that can be set for the feature axis of outputted
+        arrays at transform time. The partial_fit method can fit data
+        batch-wise and does not reset TextPadder when called, meaning
+        that TextPadder can remember the longest example it has seen
+        across many batches of data. The fit method does reset the
+        TextPadder instance, causing it to forget any previously seen
+        data, and records the maximum length anew with every call to it.
+
+        During transform, TextPadder will always force the n_features
+        value to be at least the maximum number of strings seen in a
+        single example during fitting. This is the tightest possible
+        wrap on the data without truncating, what zip_longest would do,
+        and is what TextPadder does when the 'n_features' parameter is
+        set to the default value of None. If data that is shorter than
+        this is passed to transform, then all examples will be padded
+        with the fill value to the minimum feature axis dimension. If
+        data to be transformed has an example that is longer than any
+        example seen during fitting (which means that TextPadder was not
+        fitted on this example), and is also longer than the current
+        setting for 'n_features', then an error is raised.
+
+        The 'transform' method by default returns output as a python
+        list of python lists of strings. There is some control over the
+        output as the 'set_output' method allows the user to set some
+        common output containers for the shaped array. 'set_output' can
+        be set to None which returns the default python list, 'default'
+        which returns a numpy array, 'pandas' which returns a pandas
+        dataframe, and 'polars', which returns a polars dataframe.
+
+        set_params, get_params, and fit_transform behave as expected for
+        scikit-style transformers.
+
+        The score method is a no-op that allows TextPadder to be wrapped
+        by dask_ml ParallelPostFit and Incremental wrappers.
 
 
         Parameters
         ----------
-        sep:
-            Optional[Union[str, Sequence[str], None]], default=" " -
-            pizza make a decision about default
-            if
-            passing 1D vectors of strings, the character sequence(s) to
-            split on.
-            Ignored if passing 2D tokenized strings.
-        maxsplit:
-            Optional[Union[numbers.Integral, Sequence[numbers.Integral]],
-            default = -1 - the maximum number of splits to perform per string.
-            If a sequence of integers, X must be 1D and the the number of
-            entries in maxsplit must match the number of strings in X.
         fill:
             Optional[str], default="" -  The character sequence to pad
             text sequences with.
+        n_features:
+            Optional[Union[numbers.Integral, None]], default=None - the
+            number of features to create when padding the data, i.e.,
+            the length of the feature axis. When None, TextPadder pads
+            all examples to match the number of strings in the example
+            with the most strings. If the user enters a number that is
+            less than the number of strings in the longest example,
+            TextPadder will increment this parameter back to that value.
+            The length of the feature axis of the outputted array is
+            always the greater of this parameter or the number of strings
+            in the example with the most strings.
+
+
+        Attributes
+        ----------
+        n_features_:
+            int - the number of features to pad the data to during
+            transform; the number of features in the outputted array.
+            This number is the greater of the maximum number of strings
+            seen in a single example during fitting or the n_features
+            parameter.
+
+
+        See Also
+        --------
+        'itertools.zip_longest'
+
+
+        Examples
+        --------
+        >>> from pybear.feature_extraction.text import TextPadder as TP
+        >>> Trfm = TP(fill='-', n_features=5)
+        >>> Trfm.set_output(transform='default')
+        TextPadder(fill='-', n_features=5)
+        >>> X = [
+        ...     ['Seven', 'ate', 'nine.'],
+        ...     ['You', 'eight', 'one', 'two.']
+        ... ]
+        >>> Trfm.fit(X)
+        TextPadder(fill='-', n_features=5)
+        >>> Trfm.transform(X)
+        array([['Seven', 'ate', 'nine.', '-', '-'],
+               ['You', 'eight', 'one', 'two.', '-']], dtype='<U5')
 
         """
 
-        self.sep = sep
+
         self.fill = fill
+        self.n_features = n_features
 
 
     # handled by GetParamsMixin
     # def get_params(self, deep:Optional[bool] = True):
 
-
     # handled by SetParamsMixin
     # def set_params(self, **params):
 
+    # handled by FitTransformMixin
+    # def fit_transform(self, X):
+
+    # handled by SetOutputMixin
+    # def set_output(
+    #     self,
+    #     transform: Union[Literal['default', 'pandas', 'polars'], None]=None
+    # )
+
 
     def __pybear_is_fitted__(self):
-        # this is always fitted because it doesnt need to be fit!
+        return hasattr(self, '_n_features')
 
-        # pizza think on this... doesnt need to be fitted, so maybe all
-        # this clutter can come out?
 
-        return True
+    def _reset(self) -> Self:
+        """Reset the internal state of the TextPadder instance."""
 
+        if hasattr(self, '_n_features'):
+            delattr(self, '_n_features')
+        if hasattr(self, '_hard_n_features'):
+            delattr(self, '_hard_n_features')
+
+        return self
+
+
+    @property
+    def n_features_(self) -> int:
+        """The number of features in the outputted shaped array."""
+
+        check_is_fitted(self)
+
+        return self._n_features
+
+
+    def get_metadata_routing(self):
+        raise NotImplementedError(
+            f"metadata routing is not implemented in TextPadder"
+        )
 
 
     def partial_fit(
         self,
-        X,
+        X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> Self:
 
         """
-        No-op batch-wise fitting operation.
+        Batch-wise fitting operation. Find the largest number of strings
+        in any single example across multiple batches of data. Update the
+        target number of features for transform.
 
 
         Parameters
         ----------
         X:
-            1D list-like of shape (n_samples,) or 2D array-like of
-            (possibly ragged) shape (n_samples, n_features) - The data.
+            2D array-like of (possibly ragged) shape (n_samples,
+            n_features) - The data.
         y:
-            Optional[Union[any, None]], default = None. The target for the
-            data. Always ignored.
+            Optional[Union[any, None]], default = None. The target for
+            the data. Always ignored.
 
 
         Return
@@ -114,9 +244,23 @@ class TextPadder(
         """
 
 
-        check_is_fitted(self)
+        _validation(
+            X,
+            self.fill,
+            self.n_features or 0
+        )
 
-        _validation()
+        _current_n_features: int = _partial_fit(X)
+
+        self._hard_n_features: int = max(
+            _current_n_features,
+            getattr(self, '_hard_n_features', 0)
+        )
+
+        self._n_features: int = max(
+            self._hard_n_features,
+            self.n_features or 0
+        )
 
 
         return self
@@ -124,22 +268,23 @@ class TextPadder(
 
     def fit(
         self,
-        X,
+        X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> Self:
 
         """
-        No-op one-shot fitting operation.
+        One-shot fitting operation. Find the largest number of strings
+        in any single example of the passed data.
 
 
         Parameters
         ----------
         X:
-            1D list-like of shape (n_samples,) or 2D array-like of
-            (possibly ragged) shape (n_samples, n_features) - The data.
+            2D array-like of (possibly ragged) shape (n_samples,
+            n_features) - The data.
         y:
-            Optional[Union[any, None]], default = None. The target for the
-            data. Always ignored.
+            Optional[Union[any, None]], default = None. The target for
+            the data. Always ignored.
 
 
         Return
@@ -149,18 +294,15 @@ class TextPadder(
 
         """
 
-        check_is_fitted(self)
+        self._reset()
 
-        _validation()
-
-
-        return self
+        return self.partial_fit(X, y)
 
 
-
+    @SetOutputMixin._set_output_for_transform
     def transform(
         self,
-        X,
+        X: XContainer,
         copy: Optional[bool] = True
     ):
 
@@ -171,9 +313,8 @@ class TextPadder(
         Parameters
         ----------
         X:
-            1D list-like of shape (n_samples,) or 2D array-like of
-            (possibly ragged) shape (n_samples, n_features) - The data
-            to be transformed.
+            2D array-like of (possibly ragged) shape (n_samples,
+            n_features) - The data to be transformed.
         copy:
             Optional[bool], default=True - whether to make a copy of the
             data before performing the transformation.
@@ -182,28 +323,44 @@ class TextPadder(
         Return
         ------
         -
-            self - the TextPadder instance.
+            list[list[str]] - the padded data.
 
         """
 
 
         check_is_fitted(self)
 
-        _validation()
+        _validation(
+            X,
+            self.fill,
+            self.n_features or 0
+        )
+
+        self._n_features: int = max(
+            self._hard_n_features,
+            self.n_features or 0
+        )
 
         if copy:
-            if isinstance(X, (list, set, tuple)):
-                _X = deepcopy(X)
-            else:
+            try:
                 _X = X.copy()
-        else: _X = X
+            except:
+                _X = deepcopy(X)
+        else:
+            _X = X
 
 
-        return _transform(_X)
+        _X = _transform(_X, self.fill, self._n_features)
 
-
-    # handled by FitTransformMixin
-    # def fit_transform(self, X):
+        # the SetOutputMixin cant take python list when it actually has
+        # to change the container, but when not changing the container
+        # X just passes thru. so if set_output is None, just return, but
+        # otherwise need to convert the list to a numpy array beforehand
+        # going into the wrapper's operations.
+        if getattr(self, '_output_transform', None) is None:
+            return _X
+        else:
+            return np.array(_X)
 
 
     def score(
@@ -237,6 +394,9 @@ class TextPadder(
 
 
         return
+
+
+
 
 
 

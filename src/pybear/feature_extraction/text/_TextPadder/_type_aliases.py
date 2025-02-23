@@ -7,18 +7,17 @@
 
 
 from typing import Sequence
-from typing_extensions import TypeAlias, Union
+from typing_extensions import TypeAlias
+
+import numbers
 
 
 
-
-
-XContainer: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
-
-sep: Union[str, Sequence[str]]
+XContainer: TypeAlias = Sequence[Sequence[str]]
 
 fill: str
 
+n_features: numbers.Integral
 
 
 
