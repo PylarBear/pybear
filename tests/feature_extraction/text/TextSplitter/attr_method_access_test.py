@@ -6,10 +6,7 @@
 
 
 
-from typing import Sequence
-
 import pytest
-import numbers
 
 import numpy as np
 
@@ -46,7 +43,7 @@ class TestAttrAccess:
     @pytest.mark.parametrize('has_seen_data', (True, False))
     def test_attr_access(self, has_seen_data, _X_list):
 
-        TestCls = TextSplitter(maxsplit=-1)
+        TestCls = TextSplitter(str_maxsplit=-1)
 
         assert is_fitted(TestCls) is True
 
@@ -56,10 +53,11 @@ class TestAttrAccess:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # all attrs should be accessible always
-        assert getattr(TestCls, 'regexp') is None
-        assert getattr(TestCls, 'sep') is None
-        assert getattr(TestCls, 'maxsplit') == -1
-        assert getattr(TestCls, 'flags') is None
+        assert getattr(TestCls, 'str_sep') is None
+        assert getattr(TestCls, 'str_maxsplit') == -1
+        assert getattr(TestCls, 'regexp_sep') is None
+        assert getattr(TestCls, 'regexp_maxsplit') is None
+        assert getattr(TestCls, 'regexp_flags') is None
 
 
 
@@ -92,7 +90,7 @@ class TestMethodAccess:
     def test_access_methods(self, _X_list, has_seen_data):
 
 
-        TestCls = TextSplitter(maxsplit=-1)
+        TestCls = TextSplitter(str_maxsplit=-1)
 
         assert is_fitted(TestCls) is True
 
@@ -105,7 +103,8 @@ class TestMethodAccess:
         out = getattr(TestCls, 'get_params')()
         assert isinstance(out, dict)
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
-        for param in ['regexp', 'sep', 'maxsplit']:
+        for param in ['str_sep', 'str_maxsplit', 'regexp_sep',
+                'regexp_maxsplit', 'regexp_flags']:
             assert param in out
 
 

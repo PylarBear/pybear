@@ -6,20 +6,50 @@
 
 
 
-from typing import Sequence
+from typing import Literal, Sequence
 from typing_extensions import TypeAlias, Union
 
 import re
 import numbers
 
 
+
 XContainer: TypeAlias = Sequence[str]
 
-regexp: TypeAlias = Union[str, re.Pattern, Sequence[Union[str, re.Pattern]], None]
+SepType: TypeAlias = Union[str, set[str], None]
+StrSepType: TypeAlias = Union[SepType, list[Union[SepType, Literal[False]]]]
 
-sep: TypeAlias = Union[str, set[str], None, list[Union[str, set[str], None]]]
+RegExpType: TypeAlias = Union[str, re.Pattern]
+RegExpSepType: TypeAlias = \
+    Union[RegExpType, None, list[Union[RegExpType, Literal[False]]]]
 
-maxsplit: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral], None]
+MaxSplitType: TypeAlias = Union[numbers.Integral, None]
+StrMaxSplitType: TypeAlias = \
+    Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
+RegExpMaxSplitType: TypeAlias = \
+    Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
+
+RegExpType: TypeAlias = Union[numbers.Integral, None]
+RegExpFlagsType: TypeAlias = \
+    Union[RegExpType, list[Union[RegExpType, Literal[False]]]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
