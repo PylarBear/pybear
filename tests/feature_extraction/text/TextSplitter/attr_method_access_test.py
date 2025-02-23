@@ -108,9 +108,9 @@ class TestMethodAccess:
             assert param in out
 
 
-        out = getattr(TestCls, 'set_params')(**{})
+        out = getattr(TestCls, 'set_params')(**{'str_sep': ' '})
         assert isinstance(out, TextSplitter)
-
+        assert TestCls.str_sep == ' '
 
          # v v v v v must see X every time, put these last v v v v v v v
 
