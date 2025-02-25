@@ -26,104 +26,99 @@ from ._methods._find_duplicates import _find_duplicates
 
 class Lexicon(TextStatistics):
 
+    """
+    The pybear lexicon of words in the English language. May not be
+    exhaustive, though attempts have been made.
+
+    This serves as a list of words in the English language for
+    text-cleaning purposes.
+
+    The published pybear lexicon only allows the 26 letters of the
+    English alphabet and all must be capitalized. Other characters, such
+    as numbers, hyphens, apostrophes, etc., are not allowed. For example,
+    entries one may see in the pybear lexicon include 'APPLE', 'APRICOT',
+    'APRIL'. Entries that one will not see in the published version are
+    'AREN'T', 'ISN'T' and 'WON'T' (the entries would be 'ARENT', 'ISNT',
+    and 'WONT'.) Lexicon has validation in place to protect the integrity
+    of the published pybear lexicon toward these rules. However, this
+    validation can be turned off and local copies can be updated with
+    any strings that the user likes.
+
+
+    Attributes
+    ----------
+    size_:
+        int - the number of words in the pybear English language lexicon.
+    lexicon_
+        list[str] - a list of all the words in the lexicon.
+    overall_statistics_:
+        dict[str: numbers.Real] - A dictionary that holds information
+        about all the words in the Lexicon instance. Available statistics
+        are size, uniques count (should be the same as size), average
+        word length, standard deviation of word length, maximum word
+        length, and minimum word length.
+    string_frequency_:
+        dict[str, int] - A dictionary that holds the unique words in the
+        lexicon and the respective frequency. For the pybear lexicon,
+        the frequency of every word should be one.
+    startswith_frequency_:
+        dict[str, int] - A dictionary that holds the unique first
+        characters for all the words in the lexicon (expected to be all
+        26 letters of the English alphabet) and their frequencies in the
+        first position. That is, the 'A' key will report the number of
+        words in the lexicon that start with 'A'.
+    character_frequency_:
+        dict[str, int] - A dictionary that holds all the unique single
+        characters and their frequencies for all the words in the Lexicon
+        instance.
+    uniques_
+        list[str] - same as lexicon_.
+
+
+    Notes
+    -----
+    pybear stores its lexicon in text files that are read from the local
+    disk when a Lexicon class is instantiated, populating the attributes
+    of the instance. The files are named by the 26 letters of the English
+    alphabet, therefore there are 26 files.
+
+    The 'add_words' method allows users who have installed pybear locally
+    to add words to their copies of the lexicon. There are several
+    validation protocols in place to secure the integrity of the
+    published version of the pybear lexicon, and the user must consider
+    these when attempting to change their copy of the lexicon.
+
+    Again, the published pybear lexicon only consists of the 26 letters
+    of the English alphabet and must be upper-case. When making local
+    additions to the lexicon via the 'add_words' method, this validation
+    can be turned off via the 'character_validation',
+    'majuscule_validation', and 'file_validation' keyword arguments.
+    These allow your lexicon to take non-alpha characters in upper or
+    lower case, and allows Lexicon to create new text files for itself.
+
+
+    Examples
+    --------
+    >>> from pybear.feature_extraction.text import Lexicon
+    >>> Lex = Lexicon()
+    >>> Lex.size_
+    68370
+    >>> Lex.lexicon_[:5]
+    ['A', 'AA', 'AAA', 'AARDVARK', 'AARDVARKS']
+    >>> round(Lex.overall_statistics_['average_length'], 3)
+    8.431
+    >>> Lex.lookup_string('MONKEY')
+    'MONKEY'
+    >>> Lex.lookup_string('SUPERCALIFRAGILISTICEXPIALIDOCIOUS')
+
+    >>> Lex.lookup_substring('TCHSTR')
+    ['LATCHSTRING', 'LATCHSTRINGS']
+
+
+    """
+
 
     def __init__(self) -> None:
-
-        """
-        The pybear lexicon of words in the English language. May not be
-        exhaustive, though attempts have been made.
-
-        This serves as a list of words in the English language for
-        text-cleaning purposes.
-
-        The published pybear lexicon only allows the 26 letters of the
-        English alphabet and all must be capitalized. Other characters,
-        such as numbers, hyphens, apostrophes, etc., are not allowed.
-        For example, entries one may see in the pybear lexicon include
-        'APPLE', 'APRICOT', 'APRIL'. Entries that one will not see in
-        the published version are 'AREN'T', 'ISN'T' and 'WON'T' (the
-        entries would be 'ARENT', 'ISNT', and 'WONT'.) Lexicon has
-        validation in place to protect the integrity of the published
-        pybear lexicon toward these rules. However, this validation can
-        be turned off and local copies can be updated with any strings
-        that the user likes.
-
-
-        Attributes
-        ----------
-        size_:
-            int - the number of words in the pybear English language
-            lexicon.
-        lexicon_
-            list[str] - a list of all the words in the lexicon.
-        overall_statistics_:
-            dict[str: numbers.Real] - A dictionary that holds information
-            about all the words in the Lexicon instance. Available
-            statistics are size, uniques count (should be the same as
-            size), average word length, standard deviation of word
-            length, maximum word length, and minimum word length.
-        string_frequency_:
-            dict[str, int] - A dictionary that holds the unique words
-            in the lexicon and the respective frequency. For the pybear
-            lexicon, the frequency of every word should be one.
-        startswith_frequency_:
-            dict[str, int] - A dictionary that holds the unique first
-            characters for all the words in the lexicon (expected to be
-            all 26 letters of the English alphabet) and their frequencies
-            in the first position. That is, the 'A' key will report the
-            number of words in the lexicon that start with 'A'.
-        character_frequency_:
-            dict[str, int] - A dictionary that holds all the unique
-            single characters and their frequencies for all the words in
-            the Lexicon instance.
-        uniques_
-            list[str] - same as lexicon_.
-
-
-        Notes
-        -----
-        pybear stores its lexicon in text files that are read from the
-        local disk when a Lexicon class is instantiated, populating the
-        attributes of the instance. The files are named by the 26 letters
-        of the English alphabet, therefore there are 26 files.
-
-        The 'add_words' method allows users who have installed pybear
-        locally to add words to their copies of the lexicon. There are
-        several validation protocols in place to secure the integrity of
-        the published version of the pybear lexicon, and the user must
-        consider these when attempting to change their copy of the
-        lexicon.
-
-        Again, the published pybear lexicon only consists of the 26
-        letters of the English alphabet and must be upper-case. When
-        making local additions to the lexicon via the 'add_words' method,
-        this validation can be turned off via the 'character_validation',
-        'majuscule_validation', and 'file_validation' keyword arguments.
-        These allow your lexicon to take non-alpha characters in upper
-        or lower case, and allows Lexicon to create new text files for
-        itself.
-
-
-        Examples
-        --------
-        >>> from pybear.feature_extraction.text import Lexicon
-        >>> Lex = Lexicon()
-        >>> Lex.size_
-        68370
-        >>> Lex.lexicon_[:5]
-        ['A', 'AA', 'AAA', 'AARDVARK', 'AARDVARKS']
-        >>> round(Lex.overall_statistics_['average_length'], 3)
-        8.431
-        >>> Lex.lookup_string('MONKEY')
-        'MONKEY'
-        >>> Lex.lookup_string('SUPERCALIFRAGILISTICEXPIALIDOCIOUS')
-
-        >>> Lex.lookup_substring('TCHSTR')
-        ['LATCHSTRING', 'LATCHSTRINGS']
-
-
-        """
-
 
         super().__init__(store_uniques=True)
 
@@ -349,8 +344,9 @@ class Lexicon(TextStatistics):
             with the 26 upper-case letters of the English alphabet (which
             then dictates the file name in which it will be stored). If
             True, any disallowed characters in the first position will
-            raise an exception during validation. If False, any character is
-            accepted, which may then necessitate that a file be created.
+            raise an exception during validation. If False, any character
+            is accepted, which may then necessitate that a file be
+            created.
 
 
         Return

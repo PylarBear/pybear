@@ -23,6 +23,81 @@ from ._validation._X import _val_X
 
 class StringToToken:
 
+    """
+    Transform strings containing a sequence of words into a list of
+    lists containing full-word tokens.
+
+    When passed a list-like of strings, StringToToken splits each string
+    on the value given by :param: 'sep' and returns a vector of tokens
+    in place of the original string.
+
+    When passed a list-like of lists of strings, StringToToken assumes
+    this data is already converted to tokens and simply returns the
+    passed object.
+
+
+    Parameters
+    ----------
+    sep:
+        Union[None, str], default=None. The character sequence where the
+        given strings are to be split into tokens. The sep characters
+        are removed and are not retained in the tokens. If sep is not
+        specified or is None, runs of consecutive whitespace are regarded
+        as a single separator, and the result will contain no empty
+        strings at the start or end if the string has leading or trailing
+        whitespace. Consequently, splitting an empty string or a string
+        consisting of just whitespace with a None separator returns [].
+
+    maxsplit: int, default=-1 - If maxsplit is given, at most maxsplit
+        splits are done working left to right (thus, the list will have
+        at most maxsplit+1 elements). If maxsplit is not specified or -1,
+        then there is no limit on the number of splits (all possible
+        splits are made).
+
+    pad: Union[None, str]: default=None - If not None, the passed value
+        is used to fill any ragged area created by vectorizing, so that
+        the returned object can be packaged neatly in the formats used
+        by popular third-party Python packages. When vectoring strings
+        from sequences of words into vectors of tokens, the resulting
+        array is likely to be ragged (vectors of unequal length.) Popular
+        data handling packages such as numpy and dask do not handle such
+        shapes well. When wrapping StringToToken with a dask_ml wrapper,
+        the :kwarg: pad is required, in order to fill out the
+
+
+    Notes
+    -----
+    StringToToken can be wrapped by the dask_ml ParallelPostFit wrapper.
+    This enables StringtoToken to process bigger-than-memory data via
+    dask arrays. The dask_ml ParallelPostFit transform method requires
+    that arrays be passed with 2 dimensional shape, i.e., as [['this is
+    one string.', 'this is another string']]. Other text vectorizing
+    applications typically require a single 1 dimensional vector of
+    strings. To accommodate this constraint imposed by ParallelPostFit,
+    StringtoToken can take both 1 and 2 dimensional vectors.
+
+    Pizza, cannot return ragged array when using ParallelPostFit.
+
+
+    Attributes
+    ----------
+    -
+        sep:
+            The character sequence where the strings are separated.
+        maxsplit:
+            The maximum number of splits made, working from left
+            to right.
+        pad:
+            String used to fill ragged area.
+
+    See Also
+    --------
+    str.split,
+    https://docs.python.org/3/library/stdtypes.html
+
+    """
+
+
     def __init__(
         self,
         *,
@@ -31,83 +106,6 @@ class StringToToken:
         pad: Optional[Union[str, None]] = None,
         # return_as: Union[None, str]=None # pizza think on this
     ) -> None:
-
-        """
-        Transform strings containing a sequence of words into a list of
-        lists containing full-word tokens.
-
-        When passed a list-like of strings, StringToToken splits each
-        string on the value given by :param: 'sep' and returns a vector
-        of tokens in place of the original string.
-
-        When passed a list-like of lists of strings, StringToToken assumes
-        this data is already converted to tokens and simply returns the
-        passed object.
-
-
-        Parameters
-        ----------
-        sep:
-            Union[None, str], default=None. The character sequence where
-            the given strings are to be split into tokens. The sep
-            characters are removed and are not retained in the tokens.
-            If sep is not specified or is None, runs of consecutive
-            whitespace are regarded as a single separator, and the result
-            will contain no empty strings at the start or end if the
-            string has leading or trailing whitespace. Consequently,
-            splitting an empty string or a string consisting of just
-            whitespace with a None separator returns [].
-
-        maxsplit: int, default=-1 - If maxsplit is given, at most
-            maxsplit splits are done working left to right (thus, the
-            list will have at most maxsplit+1 elements). If maxsplit is
-            not specified or -1, then there is no limit on the number of
-            splits (all possible splits are made).
-
-        pad: Union[None, str]: default=None - If not None, the passed value
-            is used to fill any ragged area created by vectorizing, so that
-            the returned object can be packaged neatly in the formats used
-            by popular third-party Python packages. When vectoring strings from sequences of
-            words into vectors of tokens, the resulting array is likely to
-            be ragged (vectors of unequal length.) Popular data handling
-            packages such as numpy and dask do not handle such shapes
-            well. When wrapping StringToToken with a dask_ml wrapper, the
-            :kwarg: pad is required, in order to fill out the
-
-
-        Notes
-        -----
-        StringToToken can be wrapped by the dask_ml ParallelPostFit
-        wrapper. This enables StringtoToken to process bigger-than-memory
-        data via dask arrays. The dask_ml ParallelPostFit transform
-        method requires that arrays be passed with 2 dimensional shape,
-        i.e., as [['this is one string.', 'this is another string']].
-        Other text vectorizing applications typicall require a single
-        1 dimensional vector of strings. To accommodate this constraint
-        imposed by ParallelPostFit, StringtoToken can take both 1 and 2
-        dimensional vectors.
-
-        Pizza, cannot return ragged array when using ParallelPostFit.
-
-
-        Attributes
-        ----------
-        -
-            sep:
-                The character sequence where the strings are separated.
-            maxsplit:
-                The maximum number of splits made, working from left
-                to right.
-            pad:
-                String used to fill ragged area.
-
-        See Also
-        --------
-        str.split,
-        https://docs.python.org/3/library/stdtypes.html
-
-        """
-
 
         self.sep = sep
         self.maxsplit = maxsplit

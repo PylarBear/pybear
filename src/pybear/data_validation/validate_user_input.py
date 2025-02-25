@@ -237,7 +237,7 @@ class ValidateUserDate:
         str - default = '12/31/2099', the latest allowed date
 
     Attributes
-    --------
+    ----------
     user_prompt:
         str - text string displayed to the user at prompt
     user_verify:
@@ -270,7 +270,7 @@ class ValidateUserDate:
         int - deprecated.
 
     Examples
-    -------
+    --------
 
     """
 
