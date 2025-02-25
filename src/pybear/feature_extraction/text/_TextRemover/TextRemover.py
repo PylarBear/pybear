@@ -290,8 +290,9 @@ class TextRemover(
             list-like 1D vector of strings or (possibly ragged) 2D
             array-like of strings - the data.
         copy:
-            Optional[bool], default=True - whether to make a copy of the
-            data before removing the unwanted strings.
+            Optional[bool], default=True - whether to remove the unwanted
+            strings directly from the original X or from a copy of the
+            original X.
 
 
         Return

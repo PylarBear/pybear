@@ -492,8 +492,6 @@ class GSTCV(_GSTCVMixin):
         return_train_score: Optional[bool]=False
     ):
 
-
-
         self.estimator = estimator
         self.param_grid = param_grid
         self.thresholds = thresholds
@@ -504,12 +502,6 @@ class GSTCV(_GSTCVMixin):
         self.verbose = verbose
         self.error_score = error_score
         self.return_train_score = return_train_score
-
-
-
-    # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-    # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-    # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     ####################################################################

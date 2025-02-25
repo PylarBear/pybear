@@ -182,7 +182,7 @@ class ColumnDeduplicateTransformer(
     Parameters
     ----------
     keep:
-        Optional[Literal['first', 'last', 'random']], default = 'first' -
+        Optional[Literal['first', 'last', 'random']], default='first' -
         The strategy for keeping a single representative from a set of
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'

@@ -44,12 +44,12 @@ from ...base import (
 
 
 class InterceptManager(
-FeatureMixin,
-FitTransformMixin,
-GetParamsMixin,
-ReprMixin,
-SetOutputMixin,
-SetParamsMixin
+    FeatureMixin,
+    FitTransformMixin,
+    GetParamsMixin,
+    ReprMixin,
+    SetOutputMixin,
+    SetParamsMixin
 ):
 
     """
