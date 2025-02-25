@@ -21,22 +21,22 @@ def _val_regexp_flags(
 ) -> None:
 
     """
-    Validate the 'flags' parameter for re.split(). Must be integer, None,
-    or list of integer, None, and literal False. If a list, the length
-    must match the length of X.
+    Validate the 'flags' parameter for re.fullmatch(). Must be integer,
+    None, or list of integer, None, and literal False. If a list, the
+    length must match the length of X.
 
 
     Parameters
     ----------
     _regexp_flags:
-        RegExpFlagsType - the flags arguments for re.split(), if regular
-        expressions are being used. Must be None, an integer, or a list
-        of Nones, integers, or Falses. When passed as a list, the
-        length must match the number of strings in the data. The values
-        of the integers are not validated for legitimacy, any exceptions
-        would be raised by re.split().
+        RexExpFlagsType - the flags arguments for re.fullmatch(), if
+        regular expressions are being used. Must be None, an integer,
+        or a list of Nones, integers, or Falses. When passed as a list,
+        the length must match the number of strings in the data. The
+        values of the integers are not validated for legitimacy, any
+        exceptions would be raised by re.fullmatch().
     _X:
-        Sequence[str] - the data to be split.
+        XContainer - the data.
 
 
     Return
@@ -47,7 +47,7 @@ def _val_regexp_flags(
 
     Notes
     -----
-    re.split()
+    re.fullmatch()
 
     """
 
@@ -59,7 +59,7 @@ def _val_regexp_flags(
     err_msg = (
         f"'regexp_flags' must be None, a single integer, or a list that "
         f"contains any combination of Nones, integers, or literal Falses, "
-        f"whose length matches the number of strings in X."
+        f"whose length matches the length of X."
     )
 
     try:
@@ -73,7 +73,7 @@ def _val_regexp_flags(
         if isinstance(_regexp_flags, bool):
             raise TypeError(err_msg)
     except TimeoutError:
-        # must be list of somethings
+        # if is a list of things
         if len(_regexp_flags) != len(_X):
             raise ValueError(err_msg)
         # numbers.Integral covers integers and bool

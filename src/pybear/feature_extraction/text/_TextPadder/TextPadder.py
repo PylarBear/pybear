@@ -342,10 +342,10 @@ class TextPadder(
         )
 
         if copy:
-            try:
-                _X = X.copy()
-            except:
+            if isinstance(X, (list, tuple)) or not hasattr(X, 'copy'):
                 _X = deepcopy(X)
+            else:
+                _X = X.copy()
         else:
             _X = X
 

@@ -29,9 +29,9 @@ StrMaxSplitType: TypeAlias = \
 RegExpMaxSplitType: TypeAlias = \
     Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
 
-RegExpType: TypeAlias = Union[numbers.Integral, None]
+FlagType: TypeAlias = Union[numbers.Integral, None]
 RegExpFlagsType: TypeAlias = \
-    Union[RegExpType, list[Union[RegExpType, Literal[False]]]]
+    Union[FlagType, list[Union[FlagType, Literal[False]]]]
 
 
 
