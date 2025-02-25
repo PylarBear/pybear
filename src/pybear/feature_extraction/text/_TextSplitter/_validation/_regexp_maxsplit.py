@@ -66,15 +66,13 @@ def _val_regexp_maxsplit(
 
 
     try:
-        if isinstance(_regexp_maxsplit, numbers.Real):
+        if isinstance(_regexp_maxsplit, numbers.Integral):
             raise UnicodeError
-        if not isinstance(_regexp_maxsplit, list):
-            raise Exception
-        raise TimeoutError
+        if isinstance(_regexp_maxsplit, list):
+            raise TimeoutError
+        raise Exception
     except UnicodeError:
         # if is a single number
-        if not isinstance(_regexp_maxsplit, numbers.Integral):
-            raise TypeError(err_msg)
         if isinstance(_regexp_maxsplit, bool):
             raise TypeError(err_msg)
     except TimeoutError:

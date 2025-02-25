@@ -60,7 +60,7 @@ def _validation(
         RegExpSepType - if using re.split(), the regular expression(s)
         and/or the re.Pattern object(s) to split with.
     _regexp_maxsplit:
-        RexExpMaxSplitType - if using re.split(), the maximum number of
+        RegExpMaxSplitType - if using re.split(), the maximum number of
         splits to perform working left to right.
     _regexp_flags:
         RegExpFlagsType - if using re.split(), the flag value(s).

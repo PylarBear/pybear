@@ -63,14 +63,11 @@ def _val_regexp_sep(
     )
 
     try:
-        if isinstance(_regexp_sep, re.Pattern):
+        if isinstance(_regexp_sep, (str, re.Pattern)):
             raise UnicodeError
-        iter(_regexp_sep)
-        if isinstance(_regexp_sep, dict):
-            raise Exception
-        if isinstance(_regexp_sep, str):
-            raise UnicodeError
-        raise TimeoutError
+        if isinstance(_regexp_sep, list):
+            raise TimeoutError
+        raise Exception
     except UnicodeError:
         # if is a single string or re.Pattern
         pass

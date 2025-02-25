@@ -137,48 +137,65 @@ class TextSplitter(
         RegExpMaxSplitType:
             Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
 
-        RegExpType: Union[numbers.Integral, None]
+        FlagType: Union[numbers.Integral, None]
 
         RegExpFlagsType: \
-            Union[RegExpType, list[Union[RegExpType, Literal[False]]]]
+            Union[FlagType, list[Union[FlagType, Literal[False]]]]
 
 
         Parameters
         ----------
         str_sep:
             Optional[StrSepType], default=None - the separator(s) to
-            split the strings in X on when in str.split() mode. When
-            passed as a single character string or a set of such, that
-            is applied to every string in X. None applies the default
-            str.split() criteria to every string in X. If passed as a
-            list of separators, the number of entries must match the
-            number of strings in X, and each is applied to the
-            corresponding string in X.
+            split the strings in X on when in str.split() mode. None
+            applies the default str.split() criteria to every string in
+            X. When passed as a single character string, that is applied
+            to every string in X. When passed as a set of character
+            strings, each separator in the set is applied to every
+            string. If passed as a list of separators, the number of
+            entries must match the number of strings in X, and each
+            string or set of strings is applied to the corresponding
+            string in X. If any entry in the list is False, no split is
+            performed on the corresponding string in X. Case-sensitive.
         str_maxsplit:
             Optional[StrMaxSplitType], default=None - the maximum number
-            of splits to perform when in str.split() mode. If passed as
-            a list of integers, the number of entries must match the
-            number of strings in X, and each is applied correspondingly
-            to X. If None, the default for str.split() is used.
+            of splits to perform when in str.split() mode. Only applies
+            when something is passed to 'str_sep'. If None, the default
+            number of splits for str.split() is used on every string in
+            X. If passed as an integer, that number is applied to every
+            string in X. If passed as a list, the number of entries must
+            match the number of strings in X, and each is applied
+            correspondingly to X, subject to the rules for Nones and
+            numbers stated above.  If any entry in the list is False, no
+            split is performed on the corresponding string in X.
         regexp_sep:
             Optional[RegExpSepType], default=None - if using regular
             expressions, the regexp pattern(s) to split the strings in X
             on. If a single regular expression or re.Patten object is
             passed, that split is performed on every entry in X. If
-            passed as a list, the number of entries must match the
-            number of strings in X, and each is applied to the
-            corresponding string in X.
+            passed as a list, the number of entries must match the number
+            of strings in X, and each pattern is applied to the
+            corresponding string in X. If any entry in the list is False,
+            no split is performed for that string in X.
         regexp_maxsplit:
             Optional[RegExpMaxSplitType], default=None - the maximum
-            number of splits to perform. If passed as a sequence of
-            integers, the number of entries must match the number of
-            strings in X. If None, the default number of splits for
-            re.split() are performed.
+            number of splits to perform. Only applies if a pattern is
+            passed to 'regexp_sep'. If None, the default number of splits
+            for re.split() are performed. If passed as a list, the number
+            of entries must match the number of strings in X. Integers
+            and Nones in the list follow the same rules stated above. If
+            any entry in the list is False, no split is performed for
+            that string in X.
         regexp_flags:
             Optional[RegExpFlagsType] - the flags parameter for re.split,
-            if regular expressions are being used. Can be passed as a
-            list of integers that matches the length of X. If None, the
-            default flags for re.split() are used.
+            if regular expressions are being used. Only applies if a
+            pattern is passed to 'regexp_sep'. If None, the default flags
+            for re.split() are used on every string in X. If a single
+            flags object, that is applied to every string in X. If passed
+            as a list, the number of entries must match the number of
+            strings in X. Flags objects and Nones in the list follow the
+            same rules stated above. If any entry in the list is False,
+            no split is performed for that string in X.
 
 
         Notes
@@ -199,6 +216,17 @@ class TextSplitter(
         TextSplitter(str_maxsplit=2, str_sep=' ')
         >>> Trfm.transform(X)
         [['This', 'is', 'a test.'], ['This', 'is', 'only a test.']]
+
+        >>> Trfm = TextSplitter(regexp_sep='s', regexp_maxsplit=2)
+        >>> X = [
+        ...     'This is a test.',
+        ...     'This is only a test.'
+        ... ]
+        >>> Trfm.fit(X)
+        TextSplitter(regexp_maxsplit=2, regexp_sep='s')
+        >>> Trfm.transform(X)
+        [['Thi', ' i', ' a test.'], ['Thi', ' i', ' only a test.']]
+
 
 
         """
@@ -329,10 +357,10 @@ class TextSplitter(
 
 
         if copy:
-            try:
-                _X = list(X.copy())
-            except:
+            if isinstance(X, (list, tuple, set)) or not hasattr(X, 'copy'):
                 _X = list(deepcopy(X))
+            else:
+                _X = list(X.copy())
         else:
             _X = list(X)
 

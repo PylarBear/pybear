@@ -12,13 +12,12 @@ import re
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextSplitter._validation._regexp_flags \
+from pybear.feature_extraction.text._TextRemover._validation._regexp_flags \
     import _val_regexp_flags
 
 
 
-
-class TestValRegExpFlags:
+class TestValRexExpFlags:
 
 
     # must be None, numbers.Integral, or

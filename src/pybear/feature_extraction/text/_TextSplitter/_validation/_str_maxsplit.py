@@ -65,15 +65,13 @@ def _val_str_maxsplit(
 
 
     try:
-        if isinstance(_str_maxsplit, numbers.Real):
+        if isinstance(_str_maxsplit, numbers.Integral):
             raise UnicodeError
-        if not isinstance(_str_maxsplit, list):
-            raise Exception
-        raise TimeoutError
+        if isinstance(_str_maxsplit, list):
+            raise TimeoutError
+        raise Exception
     except UnicodeError:
         # if is a single number
-        if not isinstance(_str_maxsplit, numbers.Integral):
-            raise TypeError(err_msg)
         if isinstance(_str_maxsplit, bool):
             raise TypeError(err_msg)
     except TimeoutError:
