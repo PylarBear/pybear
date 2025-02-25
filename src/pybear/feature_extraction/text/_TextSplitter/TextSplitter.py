@@ -316,7 +316,7 @@ class TextSplitter(
     def transform(
         self,
         X: XContainer,
-        copy: Optional[bool]=True
+        copy: Optional[bool] = True
     ) -> list[list[str]]:
 
         """

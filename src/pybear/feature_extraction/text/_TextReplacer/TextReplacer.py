@@ -16,5 +16,26 @@ from ._type_aliases import (
 
 class TextReplacer:
 
+    """
+
+    """
+
+
+    def __init__(
+            self
+    ) -> None:
+
+        """
+
+        """
+
+
+        pass
+
+
+
+
+
+
 
 
