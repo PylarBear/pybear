@@ -6,17 +6,21 @@
 
 
 
+import numpy.typing as npt
 from .._type_aliases import (
     XContainer,
-    StrRemoveType
+    StrRemoveType,
+    RowSupportType
 )
+
+import numpy as np
 
 
 
 def _str_2D_core(
     _X: XContainer,
     _str_remove: StrRemoveType
-) -> XContainer:
+) -> tuple[XContainer, RowSupportType]:
 
     """
     Remove unwanted strings from a 2D dataset using exact string matching.
@@ -33,7 +37,9 @@ def _str_2D_core(
     Return
     ------
     -
-        XContainer
+        tuple[XContainer, RowSupportType] - the 2D array of data with
+        unwanted strings removed and the boolean vector indicating which
+        rows in the data were kept.
 
     """
 
@@ -52,6 +58,8 @@ def _str_2D_core(
         raise Exception
 
 
+    _row_support: npt.NDArray[bool] = np.ones(len(_X), dtype=bool)
+
     for _idx in range(len(_X)-1, -1, -1):
 
         if _remove[_idx] is False:
@@ -69,13 +77,14 @@ def _str_2D_core(
             raise Exception
 
         if len(_X[_idx]) == 0:
+            _row_support[_idx] = False
             _X.pop(_idx)
 
 
     del _remove
 
 
-    return _X
+    return _X, _row_support
 
 
 

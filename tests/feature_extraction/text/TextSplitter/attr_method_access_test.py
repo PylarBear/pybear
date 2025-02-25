@@ -33,10 +33,11 @@ class TestAttrAccess:
     # @pytest.fixture
     # def _attrs():
     #     return [
-    #         'regexp',
-    #         'sep',
-    #         'maxsplit',
-    #         'flags'
+    #           'str_sep'
+    #           'str_maxsplit'
+    #           'regexp_sep'
+    #           'regexp_maxsplit'
+    #           'regexp_flags'
     #     ]
 
 
