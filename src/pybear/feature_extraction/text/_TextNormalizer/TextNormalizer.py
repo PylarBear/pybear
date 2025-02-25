@@ -25,6 +25,7 @@ from ....base import (
     check_is_fitted
 )
 
+from ._validation._validation import _validation
 from ._transform._transform import _transform
 
 
@@ -53,7 +54,11 @@ class TextNormalizer(
     TextNormalizer accepts 1D list-like vectors of strings and (possibly
     ragged) 2D array-likes of strings. It does not accept pandas
     dataframes, convert your pandas dataframes to numpy array or python 
-    lists before using TextNormalizer.
+    lists before using TextNormalizer. Pandas and polars series give
+    expected results. Polars dataframes pass the validation but pybear
+    cannot guarantee sensible results.  The returned objects are always
+    constructed with python lists, and have shape identical to the shape
+    of the inputted data.
 
 
     Parameters
@@ -177,7 +182,7 @@ class TextNormalizer(
     ) -> XContainer:
 
         """
-        No-op one-shot fit.
+        Normalize the text in a dataset.
 
 
         Parameters
@@ -199,6 +204,8 @@ class TextNormalizer(
         """
 
         check_is_fitted(self)
+
+        _validation(X, self.upper)
 
         if copy:
             if isinstance(X, (list, tuple, set)) or not hasattr(X, 'copy'):
