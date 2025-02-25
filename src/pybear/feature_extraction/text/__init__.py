@@ -14,6 +14,7 @@ from ._TextPadder.TextPadder import TextPadder
 from ._TextRemover.TextRemover import TextRemover
 from ._TextSplitter.TextSplitter import TextSplitter
 from ._TextStatistics.TextStatistics import TextStatistics
+from ._TextStripper.TextStripper import TextStripper
 
 
 __all__ = [
@@ -24,7 +25,8 @@ __all__ = [
     'TextPadder',
     'TextRemover',
     'TextSplitter',
-    'TextStatistics'
+    'TextStatistics',
+    'TextStripper'
 ]
 
 
