@@ -3,13 +3,18 @@
 #
 # License: BSD 3 clause
 #
-import numbers
 
+
+
+import numpy.typing as npt
 from .._type_aliases import (
     XContainer,
     RegExpRemoveType,
-    RegExpFlagsType
+    RegExpFlagsType,
+    RowSupportType
 )
+
+import numpy as np
 
 import re
 import numbers
@@ -20,7 +25,7 @@ def _regexp_1D_core(
     _X: XContainer,
     _regexp_remove: RegExpRemoveType,
     _regexp_flags: RegExpFlagsType
-) -> XContainer:
+) -> tuple[XContainer, RowSupportType]:
 
     """
     Remove unwanted strings from a 1D dataset using regular expressions.
@@ -40,7 +45,9 @@ def _regexp_1D_core(
     Return
     ------
     -
-        list[str]: the data with unwanted strings removed.
+        tuple[list[str], RowSupportType]: the data with unwanted strings
+        removed and a boolean vector indicating which rows of data were
+        kept.
 
     """
 
@@ -70,6 +77,8 @@ def _regexp_1D_core(
     # END convert re.fullmatch params to lists -- -- -- -- -- -- -- --
 
 
+    _row_support: npt.NDArray[bool] = np.ones(len(_X), dtype=bool)
+
     for _idx in range(len(_X)-1, -1, -1):
 
         if _remove[_idx] is False:
@@ -81,14 +90,14 @@ def _regexp_1D_core(
 
         # _regexp_remove aka _remove[_idx] must be Union[str, re.Pattern]
         if re.fullmatch(_remove[_idx], _X[_idx], **_full_match_kwargs):
+            _row_support[_idx] = False
             _X.pop(_idx)
 
 
     del _remove, _flags
 
 
-
-    return _X
+    return _X, _row_support
 
 
 

@@ -54,6 +54,167 @@ from ....base import (
 
 class TextStatistics(GetParamsMixin, ReprMixin):
 
+    """
+    Generate summary information about a 1D sequence, or multiple 1D
+    sequences, of strings. Statistics include:
+
+    - size (number of strings fitted)
+
+    - unique strings count
+
+    - average length and standard deviation of all strings
+
+    - max string length
+
+    - min string length
+
+    - string frequencies
+
+    - 'starts with' frequency
+
+    - single character frequency
+
+    - longest strings
+
+    - shortest strings
+
+    TextStatistics (TS) has 2 scikit-style methods, partial_fit and fit.
+    It does not have a transform method because it does not mutate data,
+    it only reports information about the strings in it.
+
+    TS can be fit on a single batch of data via :method: fit, and can be
+    fit in batches via :method: partial_fit. The fit method resets the
+    instance with each call, that is, all information held within the
+    instance prior is deleted and the new fit information repopulates.
+    The partial_fit method, however, does not reset and accumulates
+    information across all batches seen. This makes TS suitable for
+    streaming data and batch-wise training, such as with a dask_ml
+    Incremental wrapper.
+
+    TS does have other methods that allow access to certain functionality,
+    such as conveniently printing summary information from attributes to
+    screen. See the methods section of the docs.
+
+    TS accepts 1D list-likes containing only strings. This includes
+    numpy arrays, python lists, sets, and tuples, and pandas series.
+
+    TS is case-sensitive during fitting, always. This is a deliberate
+    design choice so that users who want to differentiate between the
+    same characters in different cases can do so. If you want your
+    strings to be treated in a non-case-sensitive way, normalize the
+    case of your strings prior to fitting on TS.
+
+    The TS instance takes only one parameter, 'store_uniques'. More on
+    that below. The pybear intends for the 'store_uniques' parameter to
+    be set once at instantiation and not changed thereafter for that
+    instance. This protects the integrity of the reported information.
+    As such, TS does not have a 'set_params' method, but it does have a
+    'get_params' method. Advanced users may access and set the
+    'store_uniques' parameter directly on the instance, but the impacts
+    of doing so in the midst of a series of partial fits or afterward is
+    not tested. pybear does not recommend this technique; create a new
+    instance with the desired setting and fit your data again.
+
+    When the 'store_uniques' parameter is True, the TS instance retains
+    a dictionary of all the unique strings it has seen during fitting.
+    In this case, TS is able to yield all the information that it is
+    designed to collect. This is ideal for situations with a 'small'
+    number of unique strings, such as when fitting on tokens, where a
+    recurrence of a unique will simply increment the count of that
+    unique in the dictionary instead of creating a new entry.
+
+    When the 'store_uniques' parameter is False, however, the unique
+    strings seen during fitting are not stored. In this case, the
+    memory footprint of the TS instance will not grow linearly with the
+    number of unique strings seen during fitting. This enables TS to fit
+    on practially unlimited amounts of text data. This is ideal for
+    situations where the individual strings being fit are phrases,
+    sentences, or even entire books. This comes at cost, though, because
+    some reporting capability is lost.
+
+    Functionality available when 'store_uniques' is False is size (the
+    number of strings seen by the TS instance), average length, standard
+    deviation of length, maximum length, minimum length, overall
+    character frequency, and first character frequency. Functionality
+    lost includes the unique strings themselves as would otherwise be
+    available through the 'uniques_' and 'string_frequencies_' attributes,
+    longest string, shortest string, lookup substring, and lookup string
+    reporting and printing.
+
+
+    Parameters
+    ----------
+    store_uniques:
+        Optional[bool], default = True - whether to retain the unique
+        strings seen by the TextStatistics instance in memory. If True,
+        all attributes and print methods are fully informative. If False,
+        the 'string_frequencies_' and 'uniques_' attributes are always
+        empty, and functionality that depends on these attributes have
+        reduced capability.
+
+
+    Attributes
+    ----------
+    size_:
+        int - The number of strings fitted on the TextStatistics instance.
+    uniques_:
+        list[str] - A 1D list of the unique strings fitted on the
+        TextStatistics instance. If parameter 'store_uniques' is False,
+        this will always be empty.
+    overall_statistics_:
+        dict[str, numbers.Real] - A dictionary that holds information
+        about all the strings fitted on the TextStatistics instance.
+        Available statistics are size (number of strings seen during
+        fitting), uniques count, average string length, standard
+        deviation of string length, maximum string length, and minimum
+        string length. If parameter 'store_uniques' is False, the
+        'uniques_count' field will always be zero.
+    string_frequency_:
+        dict[str, int] - A dictionary that holds the unique strings and
+        the respective number of occurrences seen during fitting. If
+        parameter 'store_uniques' is False, this will always be empty.
+    startswith_frequency_:
+        dict[str, int] - A dictionary that holds the first characters
+        and their frequencies in the first position for all the strings
+        fitted on the TextStatistics instance.
+    character_frequency_:
+        dict[str, int] - A dictionary that holds all the unique single
+        characters and their frequencies for all the strings fitted on
+        the TextStatistics instance.
+
+
+    Examples
+    --------
+    >>> from pybear.feature_extraction.text import TextStatistics
+    >>> STRINGS = ['I am Sam', 'Sam I am', 'That Sam-I-am!',
+    ...    'That Sam-I-am!', 'I do not like that Sam-I-am!']
+    >>> TS = TextStatistics(store_uniques=True)
+    >>> TS.fit(STRINGS)
+    TextStatistics()
+    >>> TS.size_
+    5
+    >>> TS.overall_statistics_['max_length']
+    28
+    >>> TS.overall_statistics_['average_length']
+    14.4
+
+    >>> STRINGS = ['a', 'a', 'b', 'c', 'c', 'c', 'd', 'd', 'e', 'f', 'f']
+    >>> TS = TextStatistics()
+    >>> TS.fit(STRINGS)
+    TextStatistics()
+    >>> TS.size_
+    11
+    >>> TS.string_frequency_
+    {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
+    >>> TS.uniques_
+    ['a', 'b', 'c', 'd', 'e', 'f']
+    >>> TS.overall_statistics_['max_length']
+    1
+    >>> TS.character_frequency_
+    {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
+
+    """
+
 
     _lp: int = 5
     _rp: int = 15
@@ -63,173 +224,6 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         self,
         store_uniques: Optional[bool] = True
     ) -> None:
-
-        """
-        Generate summary information about a 1D sequence, or multiple
-        1D sequences, of strings. Statistics include:
-
-        - size (number of strings fitted)
-
-        - unique strings count
-
-        - average length and standard deviation of all strings
-
-        - max string length
-
-        - min string length
-
-        - string frequencies
-
-        - 'starts with' frequency
-
-        - single character frequency
-
-        - longest strings
-
-        - shortest strings
-
-        TextStatistics (TS) has 2 scikit-style methods, partial_fit and
-        fit. It does not have a transform method because it does not
-        mutate data, it only reports information about the strings in it.
-
-        TS can be fit on a single batch of data via :method: fit, and
-        can be fit in batches via :method: partial_fit. The fit method
-        resets the instance with each call, that is, all information
-        held within the instance prior is deleted and the new fit
-        information repopulates. The partial_fit method, however, does
-        not reset and accumulates information across all batches seen.
-        This makes TS suitable for streaming data and batch-wise
-        training, such as with a dask_ml Incremental wrapper.
-
-        TS does have other methods that allow access to certain
-        functionality, such as conveniently printing summary information
-        from attributes to screen. See the methods section of the docs.
-
-        TS accepts 1D list-likes containing only strings. This includes
-        numpy arrays, python lists, sets, and tuples, and pandas series.
-
-        TS is case-sensitive during fitting, always. This is a deliberate
-        design choice so that users who want to differentiate between
-        the same characters in different cases can do so. If you want
-        your strings to be treated in a non-case-sensitive way, normalize
-        the case of your strings prior to fitting on TS.
-
-        The TS instance takes only one parameter, 'store_uniques'. More
-        on that below. The pybear intends for the 'store_uniques'
-        parameter to be set once at instantiation and not changed
-        thereafter for that instance. This protects the integrity of the
-        reported information. As such, TS does not have a 'set_params'
-        method, but it does have a 'get_params' method. Advanced users
-        may access and set the 'store_uniques' parameter directly on the
-        instance, but the impacts of doing so in the midst of a series
-        of partial fits or afterward is not tested. pybear does not
-        recommend this technique; create a new instance with the desired
-        setting and fit your data again.
-
-        When the 'store_uniques' parameter is True, the TS instance
-        retains a dictionary of all the unique strings it has seen
-        during fitting. In this case, TS is able to yield all the
-        information that it is designed to collect. This is ideal for
-        situations with a 'small' number of unique strings, such as when
-        fitting on tokens, where a recurrence of a unique will simply
-        increment the count of that unique in the dictionary instead of
-        creating a new entry.
-
-        When the 'store_uniques' parameter is False, however, the unique
-        strings seen during fitting are not stored. In this case, the
-        memory footprint of the TS instance will not grow linearly with
-        the number of unique strings seen during fitting. This enables
-        TS to fit on practially unlimited amounts of text data. This is
-        ideal for situations where the individual strings being fit are
-        phrases, sentences, or even entire books. This comes at cost,
-        though, because some reporting capability is lost.
-
-        Functionality available when 'store_uniques' is False is size
-        (the number of strings seen by the TS instance), average length,
-        standard deviation of length, maximum length, minimum length,
-        overall character frequency, and first character frequency.
-        Functionality lost includes the unique strings themselves as
-        would otherwise be available through the 'uniques_' and
-        'string_frequencies_' attributes, longest string, shortest
-        string, lookup substring, and lookup string reporting and
-        printing.
-
-
-        Parameters
-        ----------
-        store_uniques:
-            Optional[bool], default = True - whether to retain the
-            unique strings seen by the TextStatistics instance in memory.
-            If True, all attributes and print methods are fully
-            informative. If False, the 'string_frequencies_' and
-            'uniques_' attributes are always empty, and functionality
-            that depends on these attributes have reduced capability.
-
-
-        Attributes
-        ----------
-        size_:
-            int - The number of strings fitted on the TextStatistics
-            instance.
-        uniques_:
-            list[str] - A 1D list of the unique strings fitted on the
-            TextStatistics instance. If parameter 'store_uniques' is
-            False, this will always be empty.
-        overall_statistics_:
-            dict[str: numbers.Real] - A dictionary that holds information
-            about all the strings fitted on the TextStatistics instance.
-            Available statistics are size (number of strings seen during
-            fitting), uniques count, average string length, standard
-            deviation of string length, maximum string length, and
-            minimum string length. If parameter 'store_uniques' is False,
-            the 'uniques_count' field will always be zero.
-        string_frequency_:
-            dict[str, int] - A dictionary that holds the unique strings
-            and the respective number of occurrences seen during fitting.
-            If parameter 'store_uniques' is False, this will always be
-            empty.
-        startswith_frequency_:
-            dict[str, int] - A dictionary that holds the first characters
-            and their frequencies in the first position for all the
-            strings fitted on the TextStatistics instance.
-        character_frequency_:
-            dict[str, int] - A dictionary that holds all the unique
-            single characters and their frequencies for all the strings
-            fitted on the TextStatistics instance.
-
-
-        Examples
-        --------
-        >>> from pybear.feature_extraction.text import TextStatistics
-        >>> STRINGS = ['I am Sam', 'Sam I am', 'That Sam-I-am!',
-        ...    'That Sam-I-am!', 'I do not like that Sam-I-am!']
-        >>> TS = TextStatistics(store_uniques=True)
-        >>> TS.fit(STRINGS)
-        TextStatistics()
-        >>> TS.size_
-        5
-        >>> TS.overall_statistics_['max_length']
-        28
-        >>> TS.overall_statistics_['average_length']
-        14.4
-
-        >>> STRINGS = ['a', 'a', 'b', 'c', 'c', 'c', 'd', 'd', 'e', 'f', 'f']
-        >>> TS = TextStatistics()
-        >>> TS.fit(STRINGS)
-        TextStatistics()
-        >>> TS.size_
-        11
-        >>> TS.string_frequency_
-        {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
-        >>> TS.uniques_
-        ['a', 'b', 'c', 'd', 'e', 'f']
-        >>> TS.overall_statistics_['max_length']
-        1
-        >>> TS.character_frequency_
-        {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
-
-        """
-
 
         self.store_uniques = store_uniques
 

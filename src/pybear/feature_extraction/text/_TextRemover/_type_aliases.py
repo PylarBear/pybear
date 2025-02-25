@@ -8,6 +8,7 @@
 
 from typing import Literal, Sequence
 from typing_extensions import TypeAlias, Union
+import numpy.typing as npt
 
 import re
 import numbers
@@ -28,7 +29,7 @@ FlagType: TypeAlias = Union[None, numbers.Integral]
 RegExpFlagsType: TypeAlias = \
     Union[FlagType, list[Union[FlagType, Literal[False]]]]
 
-
+RowSupportType: TypeAlias = npt.NDArray[bool]
 
 
 

@@ -6,14 +6,17 @@
 
 
 
+import numpy.typing as npt
 from .._type_aliases import (
     XContainer,
     RegExpRemoveType,
-    RegExpFlagsType
+    RegExpFlagsType,
+    RowSupportType
 )
 
 import re
 import numbers
+
 import numpy as np
 
 
@@ -22,7 +25,7 @@ def _regexp_2D_core(
     _X: XContainer,
     _regexp_remove: RegExpRemoveType,
     _regexp_flags: RegExpFlagsType
-) -> XContainer:
+) -> tuple[XContainer, RowSupportType]:
 
     """
     Remove unwanted strings from a 2D dataset using regular expressions.
@@ -42,15 +45,18 @@ def _regexp_2D_core(
     Return
     ------
     -
-        list[list[str]]: the data with unwanted strings removed.
+        tuple[list[list[str]], RowSupportType]: the data with unwanted
+        strings removed and a boolean vector indicating which rows of
+        the data were kept.
+
 
     """
 
 
-
     assert isinstance(_X, list)
-    assert isinstance(_X[0], list)
-    assert isinstance(_X[0][0], list)
+    for _ in _X:
+        assert isinstance(_, list)
+        assert all(map(isinstance, _, (str for i in _)))
     assert isinstance(_regexp_remove, (str, re.Pattern, list))
     assert isinstance(_regexp_flags, (type(None), numbers.Integral, list))
 
@@ -74,29 +80,35 @@ def _regexp_2D_core(
     # END convert re.fullmatch params to lists -- -- -- -- -- -- -- --
 
 
+    _row_support: npt.NDArray[bool] = np.ones(len(_X), dtype=bool)
+
+
     for _idx in range(len(_X)-1, -1, -1):
 
         if _remove[_idx] is False:
             continue
 
+        # must convert flags to int() or
+        # re TypeError: unsupported operand type(s) for &: 'NoneType' and 'RegexFlag'
         MASK = np.logical_not(list(map(
             re.fullmatch,
             (_remove[_idx] for _ in _X[_idx]),
             _X[_idx],
-            (_flags[_idx] for _ in _X[_idx])
-        )))
+            ((_flags[_idx] or 0) for _ in _X[_idx])
+        ))).astype(bool)
 
         _X[_idx] = np.array(_X[_idx])[MASK].tolist()
 
 
         if len(_X[_idx]) == 0:
+            _row_support[_idx] = False
             _X.pop(_idx)
 
 
     del _remove, _flags
 
 
-    return _X
+    return _X, _row_support
 
 
 
