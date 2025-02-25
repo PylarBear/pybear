@@ -159,6 +159,20 @@ class TextRemover(
     re.fullmatch
 
 
+    Examples
+    --------
+    >>> from pybear.feature_extraction.text import TextRemover as TR
+    >>> trfm = TR(str_remove={' ', ''})
+    >>> X = [' ', 'One', 'Two', '', 'Three', ' ']
+    >>> trfm.fit_transform(X)
+    ['One', 'Two', 'Three']
+    >>> trfm.set_params(**{'str_remove': None, 'regexp_remove': '[bcdei]'})
+    TextRemover(regexp_remove='[bcdei]')
+    >>> X = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']]
+    >>> trfm.fit_transform(X)
+    [['a'], ['f'], ['g', 'h']]
+
+
     """
 
 

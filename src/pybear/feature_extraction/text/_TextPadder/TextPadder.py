@@ -337,6 +337,7 @@ class TextPadder(
             self.n_features or 0
         )
 
+
         if copy:
             if isinstance(X, (list, tuple)) or not hasattr(X, 'copy'):
                 _X = deepcopy(X)
