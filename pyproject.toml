@@ -27,7 +27,7 @@ include = [
 
 [tool.poetry.dependencies]
 # These packages are mandatory and form the core of this package’s distribution.
-python = "^3.8, <3.14"
+python = "^3.9, <3.14"
 dask = "*"
 dask-ml = "*"
 distributed = "*"
@@ -36,9 +36,7 @@ numpy = ">=1.26.0"
 pandas = "*"
 polars-lts-cpu = "*"
 scipy = [
-    { version = "<1.11", markers = "python_version == '3.8'" },
-    { version = "<1.14", markers = "python_version == '3.9'" },
-    { version = "<1.14", markers = "python_version == '3.10'" },
+    { version = "<1.14.0", markers = "python_version < '3.10'" },
     { version = "*", markers = "python_version >= '3.10'" }
 ]
 scikit-learn = "*"
