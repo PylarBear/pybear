@@ -8,7 +8,7 @@
 
 import pytest
 
-from pybear.feature_extraction.text._StringToToken.StringToToken \
+from pybear.feature_extraction.text._StringToToken__PIZZA.StringToToken \
     import StringToToken
 
 
