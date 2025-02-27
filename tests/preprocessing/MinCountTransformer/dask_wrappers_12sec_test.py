@@ -140,7 +140,7 @@ class TestDaskIncrementalParallelPostFit:
             _X = ddf.from_array(_X, chunksize=_chunks)
         if x_format == 'ddf_series':
             _X = _X.iloc[:, 0].squeeze()
-            assert isinstance(_X, ddf.core.Series)
+            assert isinstance(_X, ddf.Series)
             _np_X = _X.compute().to_frame().to_numpy()
         if x_format == 'csr':
             _X = ss.csr_array(_X)
@@ -170,7 +170,7 @@ class TestDaskIncrementalParallelPostFit:
             _y = ddf.from_array(_y, chunksize = _chunks)
         if y_format == 'ddf_series':
             _y = _y.iloc[:, 0].squeeze()
-            assert isinstance(_y, ddf.core.Series)
+            assert isinstance(_y, ddf.Series)
             _np_y = _y.compute().to_frame().to_numpy()
         if y_format is None:
             _y = None
@@ -267,11 +267,11 @@ class TestDaskIncrementalParallelPostFit:
         if x_format == 'ddf_df' and wrappings == 'none':
             assert isinstance(TRFM_X, pd.core.frame.DataFrame)
         elif x_format == 'ddf_df':
-            assert isinstance(TRFM_X, ddf.core.DataFrame)
+            assert isinstance(TRFM_X, ddf.DataFrame)
         if x_format == 'ddf_series' and wrappings == 'none':
             assert isinstance(TRFM_X, pd.core.series.Series)
         elif x_format == 'ddf_series':
-            assert isinstance(TRFM_X, ddf.core.Series)
+            assert isinstance(TRFM_X, ddf.Series)
 
         if _y_was_transformed:
             if y_format == 'np':
@@ -287,11 +287,11 @@ class TestDaskIncrementalParallelPostFit:
             if y_format == 'ddf_df' and wrappings == 'none':
                 assert isinstance(TRFM_Y, pd.core.frame.DataFrame)
             elif y_format == 'ddf_df':
-                assert isinstance(TRFM_Y, ddf.core.DataFrame)
+                assert isinstance(TRFM_Y, ddf.DataFrame)
             if y_format == 'ddf_series' and wrappings == 'none':
                 assert isinstance(TRFM_Y, pd.core.series.Series)
             elif y_format == 'ddf_series':
-                assert isinstance(TRFM_Y, ddf.core.Series)
+                assert isinstance(TRFM_Y, ddf.Series)
 
         # CONVERT TO NP ARRAY FOR COMPARISON AGAINST ONE-SHOT fit_trfm()
         try:
