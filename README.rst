@@ -66,7 +66,7 @@ pybear
 .. |JoblibVersion| replace:: >=X.X.X
 .. |NumpyVersion| replace:: >=1.26.0
 .. |PandasVersion| replace:: >=X.X.X
-.. |ScikitLearnVersion| replace:: >=X.X.X
+.. |ScikitLearnVersion| replace:: >=1.1.3
 .. |TypingExtensionsVersion| replace:: >=X.X.X
 
 
