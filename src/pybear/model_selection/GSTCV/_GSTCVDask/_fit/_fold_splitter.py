@@ -17,7 +17,6 @@ from ..._type_aliases import (
 from dask import compute
 import dask.array as da
 import dask.dataframe as ddf
-import dask_expr._collection as ddf2
 
 
 
@@ -92,10 +91,10 @@ def _fold_splitter(
 
         if isinstance(_data, da.core.Array):
             pass
-        elif isinstance(_data, (ddf.core.DataFrame, ddf2.DataFrame)):
+        elif isinstance(_data, ddf.DataFrame):
             raise TypeError(f"A dask dataframe is in _fold_splitter, should only "
                 f"be dask array")
-        elif isinstance(_data, (ddf.core.Series, ddf2.Series)):
+        elif isinstance(_data, ddf.Series):
             raise TypeError(f"A dask series is in _fold_splitter, should "
                 f"only be dask array")
         else:

@@ -4,13 +4,15 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 import numpy as np
 import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
-import dask_expr._collection as ddf2
+
 
 
 pytest.skip(reason=f'for edification purposes only', allow_module_level=True)
@@ -35,7 +37,7 @@ class TestDaskLogistic:
     @staticmethod
     @pytest.fixture
     def X_dask_series(X_ddf):
-        assert isinstance(X_ddf, (ddf.core.DataFrame, ddf2.DataFrame))
+        assert isinstance(X_ddf, ddf.DataFrame)
         return X_ddf.iloc[:, 0]
 
 
@@ -54,7 +56,7 @@ class TestDaskLogistic:
     @staticmethod
     @pytest.fixture
     def y_dask_series(y_ddf):
-        assert isinstance(y_ddf, (ddf.core.DataFrame, ddf2.DataFrame))
+        assert isinstance(y_ddf, ddf.DataFrame)
         return y_ddf.iloc[:, 0]
 
 
@@ -100,8 +102,7 @@ class TestDaskLogistic:
         # y cannot be pd.DF, dask.DF for no ravel() attribute
         # y cannot be da.Array because chunks dont match
 
-        if isinstance(_y,
-            (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
+        if isinstance(_y, (pd.core.frame.DataFrame, ddf.DataFrame)):
             with pytest.raises(AttributeError):
                 dask_est.fit(X_np, _y)
         elif isinstance(_y, da.core.Array):
@@ -132,13 +133,11 @@ class TestDaskLogistic:
 
     # test_dask_array ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        if isinstance(_y,
-            (np.ndarray, pd.core.series.Series, ddf.core.Series, ddf2.Series)):
+        if isinstance(_y, (np.ndarray, pd.core.series.Series, ddf.Series)):
             # chunks dont match
             with pytest.raises(ValueError):
                 dask_est.fit(X_da, _y)
-        elif isinstance(_y,
-            (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
+        elif isinstance(_y, (pd.core.frame.DataFrame, ddf.DataFrame)):
             # no ravel() attribute
             with pytest.raises(AttributeError):
                 dask_est.fit(X_da, _y)

@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
-import dask_expr._collection as ddf2
 from distributed import Client
 import pytest
 
@@ -170,7 +169,7 @@ class TestDaskIncrementalParallelPostFit:
         if x_format == 'da_array':
             assert isinstance(TRFM_X, da.core.Array)
         elif x_format == 'ddf':
-            assert isinstance(TRFM_X, ddf2.DataFrame)
+            assert isinstance(TRFM_X, ddf.DataFrame)
         else:
             raise Exception
 

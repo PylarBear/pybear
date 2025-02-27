@@ -12,7 +12,6 @@ import numpy as np
 import dask.array as da
 import pandas as pd
 import dask.dataframe as ddf
-import dask_expr._collection as ddf2
 import scipy.sparse as ss
 
 import pytest
@@ -199,7 +198,7 @@ class TestEnsure2D:
             assert isinstance(out, pd.core.frame.DataFrame)
         elif X_format == 'ddf':
             # anything 2D in dask dataframe is always DF
-            assert isinstance(out, (ddf.core.DataFrame, ddf2.DataFrame))
+            assert isinstance(out, ddf.core.DataFrame)
         else:
             assert type(out) == type(_X)
 

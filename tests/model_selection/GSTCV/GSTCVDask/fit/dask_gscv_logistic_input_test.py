@@ -8,7 +8,6 @@ import pytest
 
 import pandas as pd
 import dask.dataframe as ddf
-import dask_expr._collection as ddf2
 
 
 pytest.skip(reason=f'for edification purposes only', allow_module_level=True)
@@ -109,8 +108,7 @@ class TestDaskLogisticWrappedWithDaskGSCV:
 
         # y cannot be pd.DF, dask.DF for no ravel() attribute
 
-        if isinstance(_y,
-            (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
+        if isinstance(_y, (pd.core.frame.DataFrame, ddf.core.DataFrame)):
 
             with pytest.raises(AttributeError):
                 dask_GSCV.fit(X_np, _y)
@@ -143,8 +141,7 @@ class TestDaskLogisticWrappedWithDaskGSCV:
 
     # test_dask_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        if isinstance(_y,
-            (pd.core.frame.DataFrame, ddf.core.DataFrame, ddf2.DataFrame)):
+        if isinstance(_y, (pd.core.frame.DataFrame, ddf.core.DataFrame)):
 
             # no ravel() attribute
             with pytest.raises(AttributeError):
