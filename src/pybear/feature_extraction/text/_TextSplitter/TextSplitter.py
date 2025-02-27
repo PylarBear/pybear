@@ -103,18 +103,23 @@ class TextSplitter(
 
     Type Aliases
     ------------
-    XContainer: Sequence[str]
+    XContainer:
+        Sequence[str]
 
-    SepType: Union[str, set[str], None]
+    SepType:
+        Union[str, set[str], None]
 
-    StrSepType: Union[SepType, list[Union[SepType, Literal[False]]]]
+    StrSepType:
+        Union[SepType, list[Union[SepType, Literal[False]]]]
 
-    RegExpType: Union[str, re.Pattern]
+    RegExpType:
+        Union[str, re.Pattern]
 
     RegExpSepType:
         Union[RegExpType, None, list[Union[RegExpType, Literal[False]]]]
 
-    MaxSplitType: Union[numbers.Integral, None]
+    MaxSplitType:
+        Union[numbers.Integral, None]
 
     StrMaxSplitType:
         Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
@@ -122,9 +127,10 @@ class TextSplitter(
     RegExpMaxSplitType:
         Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
 
-    FlagType: Union[numbers.Integral, None]
+    FlagType:
+        Union[numbers.Integral, None]
 
-    RegExpFlagsType: \
+    RegExpFlagsType:
         Union[FlagType, list[Union[FlagType, Literal[False]]]]
 
 
