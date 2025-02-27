@@ -335,6 +335,8 @@ def wrap_with_gscv(_est_name, _estimator, gscv_name, gscv):
             gscv_params = {'parameters': {'C': np.logspace(-1, 1, 3)}}
         elif gscv_name == 'dask_InverseDecaySearchCV':
             gscv_params = {'parameters': {'C': np.logspace(-1, 1, 3)}}
+        else:
+            raise Exception
 
         new_est_name = f"{gscv_name}({_est_name})"
         est_wrapped_in_gscv = gscv(_estimator, **gscv_params)

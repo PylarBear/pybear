@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 from uuid import uuid4
@@ -114,7 +116,7 @@ class TestDaskScore_XyValidation:
         attr = 'score'
 
         # do not change this (unless ddf changes). it appears that the
-        # dask_expr dataframe needs to have .shape computed, whereas
+        # dataframe needs to have .shape computed, whereas
         # da.array does not.
         try:
             _x_rows = X_dask.shape[0].compute()

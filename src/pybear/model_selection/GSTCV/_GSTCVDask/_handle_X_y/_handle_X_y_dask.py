@@ -21,7 +21,6 @@ import pandas as pd
 from dask import compute
 import dask.array as da
 import dask.dataframe as ddf
-import dask_expr._collection as ddf2
 
 
 
@@ -72,7 +71,7 @@ def _handle_X_y_dask(
 
 
     err_msg = lambda _name, _object: (f"{_name} was passed with unknown "
-        f"data type '{type(_object)}'. Use dask array, dask series, "
+        f"data type '{type(_object)}'. \nUse dask array, dask series, "
         f"dask dataFrame, numpy array, pandas series, pandas dataframe.")
 
     _feature_names_in = None
@@ -104,9 +103,7 @@ def _handle_X_y_dask(
 
         _X = da.from_array(_X, chunks=_X.shape)
 
-    elif isinstance(_X,
-            (ddf.core.Series, ddf.core.DataFrame, ddf2.Series, ddf2.DataFrame)
-        ):
+    elif isinstance(_X, (ddf.Series, ddf.DataFrame)):
 
         try:
             _X = _X.to_frame()
@@ -168,8 +165,7 @@ def _handle_X_y_dask(
         _y = _y.to_numpy()
         _y = da.from_array(_y, chunks=_y.shape)
 
-    elif isinstance(_y,
-        (ddf.core.Series, ddf.core.DataFrame, ddf2.Series, ddf2.DataFrame)):
+    elif isinstance(_y, (ddf.Series, ddf.DataFrame)):
 
         try:
             _y = _y.to_frame()

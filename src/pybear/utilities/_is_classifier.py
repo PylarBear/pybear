@@ -123,8 +123,9 @@ def is_classifier(estimator_) -> bool:
     except:
         _path = str(estimator_.__class__)
 
-    dask_supported = ['lightgbm', 'xgboost', 'dask.delayed', 'dask.array',
-                      'dask.dataframe', 'dask_expr._collection.DataFrame']
+    dask_supported = [
+        'lightgbm', 'xgboost', 'dask.delayed', 'dask.array', 'dask.dataframe'
+    ]
 
     if 'dask' in _path and all([x not in _path for x in dask_supported]):
         # use hard strings, dont import any dask modules to avoid circular imports
