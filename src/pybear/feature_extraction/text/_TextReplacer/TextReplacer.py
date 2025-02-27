@@ -228,6 +228,15 @@ class TextReplacer(
 
     Examples
     --------
+    >>> from pybear.feature_extraction.text import TextReplacer as TR
+    >>> trfm = TR(str_replace={(',', ''),('.', '')})
+    >>> X = ['To be, or not to be, that is the question.']
+    >>> trfm.fit_transform(X)
+    ['To be or not to be that is the question']
+    >>> trfm.set_params(str_replace=None, regexp_replace=('b', ''))
+    TextReplacer(regexp_replace=('b', ''))
+    >>> trfm.fit_transform(X)
+    ['To e, or not to e, that is the question.']
 
 
     """
@@ -240,7 +249,7 @@ class TextReplacer(
         regexp_replace: Optional[RegExpReplaceType] = None
     ) -> None:
 
-        """Initialize instance parameters."""
+        """Initialize the TextReplacer instance."""
 
         self.str_replace = str_replace
         self.regexp_replace = regexp_replace
@@ -296,7 +305,7 @@ class TextReplacer(
     ) -> Self:
 
         """
-        No-op one-shot batch-wise fit of the TextReplacer instance.
+        No-op one-shot fit of the TextReplacer instance.
 
 
         Parameters
@@ -340,7 +349,7 @@ class TextReplacer(
             whose strings will be searched and may be replaced in whole
             or in part.
         copy:
-            Optional[bool]], default = True - whether to make the
+            Optional[bool], default = True - whether to make the
             replacements directly on the given data or a copy of it.
 
 
@@ -386,8 +395,8 @@ class TextReplacer(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            that is to undergo search and replace. Always ignored.
+            Union[Sequence[str], Sequence[Sequence[str]]] - the data.
+            Always ignored.
         y:
             Optional[Union[any, None]], default = None - the target for
             the data. Always ignored.
