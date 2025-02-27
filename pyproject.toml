@@ -34,7 +34,7 @@ dask-ml = "<2025.1.0"
 distributed = "*"
 joblib = "*"
 numpy = ">=1.26.0"
-pandas = "==2.0.0"  #"*"
+pandas = "*"
 polars-lts-cpu = "*"
 scipy = [
     { version = "<1.14.0", markers = "python_version < '3.10'" },
