@@ -108,7 +108,7 @@ class TestDaskLogisticWrappedWithDaskGSCV:
 
         # y cannot be pd.DF, dask.DF for no ravel() attribute
 
-        if isinstance(_y, (pd.core.frame.DataFrame, ddf.core.DataFrame)):
+        if isinstance(_y, (pd.core.frame.DataFrame, ddf.DataFrame)):
 
             with pytest.raises(AttributeError):
                 dask_GSCV.fit(X_np, _y)
@@ -141,7 +141,7 @@ class TestDaskLogisticWrappedWithDaskGSCV:
 
     # test_dask_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        if isinstance(_y, (pd.core.frame.DataFrame, ddf.core.DataFrame)):
+        if isinstance(_y, (pd.core.frame.DataFrame, ddf.DataFrame)):
 
             # no ravel() attribute
             with pytest.raises(AttributeError):

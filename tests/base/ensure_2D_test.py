@@ -198,7 +198,7 @@ class TestEnsure2D:
             assert isinstance(out, pd.core.frame.DataFrame)
         elif X_format == 'ddf':
             # anything 2D in dask dataframe is always DF
-            assert isinstance(out, ddf.core.DataFrame)
+            assert isinstance(out, ddf.DataFrame)
         else:
             assert type(out) == type(_X)
 
