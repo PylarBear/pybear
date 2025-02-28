@@ -66,6 +66,8 @@ pybear
 .. |JoblibVersion| replace:: >=X.X.X
 .. |NumpyVersion| replace:: >=1.26.0
 .. |PandasVersion| replace:: >=X.X.X
+.. |Polars| replace:: >=X.X.X
+.. |Scipy| replace:: >=X.X.X
 .. |ScikitLearnVersion| replace:: >=1.1.3
 .. |TypingExtensionsVersion| replace:: >=4.7.0
 
@@ -102,6 +104,8 @@ pybear requires:
 - joblib (|JoblibVersion|)
 - numpy (|NumPyVersion|)
 - pandas (|PandasVersion|)
+- polars (|PolarsVersion|)
+- scipy (|ScipyVersion|)
 - scikit-learn (|ScikitLearnVersion|)
 - typing_extensions (|TypingExtensionsVersion|)
 
