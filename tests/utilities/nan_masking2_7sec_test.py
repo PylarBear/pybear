@@ -28,12 +28,12 @@ class TestNanMasking:
         return (100, 10)
 
 
-
+    @pytest.mark.parametrize('_dim', (1, 2))
     @pytest.mark.parametrize('X_format', ('np', 'pd'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9)) # use numbers, need exact
     def test_accuracy_np_pd(
-        self, _X_factory, _master_columns, _shape, X_format, X_dtype, _has_nan
+        self, _X_factory, _master_columns, _shape, _dim, X_format, X_dtype, _has_nan
     ):
 
         # by using nan_mask on ('flt', 'int', 'str', 'obj', 'hybrid'), both
@@ -49,19 +49,28 @@ class TestNanMasking:
             _shape=_shape
         )
 
+        if _dim == 1:
+            if X_format == 'np':
+                _X = _X[:, 0]
+            elif X_format == 'pd':
+                _X = _X.iloc[:, 1].squeeze()
+
         OUT = nan_mask(_X)
 
         assert isinstance(OUT, np.ndarray)
 
-        for _col_idx in range(OUT.shape[1]):
+        _n_columns = 1 if _dim == 1 else OUT.shape[1]
+        for _col_idx in range(_n_columns):
 
-            measured_num_nans = np.sum(OUT[:, _col_idx])
+            if _dim == 1:
+                measured_num_nans = np.sum(OUT)
+            else:
+                measured_num_nans = np.sum(OUT[:, _col_idx])
 
             if _has_nan is False:
                 assert measured_num_nans == 0
             else:
                 assert measured_num_nans == _has_nan
-
 
 
     @pytest.mark.parametrize('X_format',
@@ -120,38 +129,62 @@ class TestNanMasking:
         assert np.all(_X[_ref_out] == -99)
 
 
-    @pytest.mark.skip(reason=f"pizza needs to finish this")
+    @pytest.mark.parametrize('_dim', (1, 2))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9)) # use numbers, need exact
-    def test_accuracy_polars(self, _X_factory, _shape, X_dtype, _has_nan):
+    def test_accuracy_polars(
+        self, _X_factory, _master_columns, _shape, _dim, X_dtype, _has_nan
+    ):
+
+
+        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if X_dtype == 'hybrid' and _dim == 1:
+            pytest.skip(reason=f'cant have hybrid when a single vector')
+
+        # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
         _X = _X_factory(
             _dupl=None,
             _format='pd',
             _dtype=X_dtype,
             _has_nan=_has_nan,
-            _columns=None,
+            _columns=_master_columns[:_shape[1]],
             _zeros=None,
             _shape=_shape
         )
+
+        if _dim == 1:
+            _X = _X.iloc[:, 0].squeeze()
+
+        # polars cant take 'nan' 'NaN' 'NAN' '<NA>' -- map these to None
+        _X[_X == 'nan'] = None
+        _X[_X == 'NaN'] = None
+        _X[_X == 'NAN'] = None
+        _X[_X == '<NA>'] = None
 
         _X = pl.from_pandas(
             data=_X,
             schema_overrides=None,
             rechunk=True,
-            nan_to_null=False,
+            nan_to_null=True,
             include_index=False
         )
 
-
+        if _dim == 1:
+            assert isinstance(_X, pl.Series)
 
         OUT = nan_mask(_X)
 
         assert isinstance(OUT, np.ndarray)
 
-        for _col_idx in range(OUT.shape[1]):
+        _n_columns = 1 if _dim == 1 else OUT.shape[1]
+        for _col_idx in range(_n_columns):
 
-            measured_num_nans = np.sum(OUT[:, _col_idx])
+            if _dim == 1:
+                measured_num_nans = np.sum(OUT)
+            elif _dim == 2:
+                measured_num_nans = np.sum(OUT[:, _col_idx])
 
             if _has_nan is False:
                 assert measured_num_nans == 0
