@@ -1,3 +1,9 @@
+# Authors:
+#
+#       Bill Sousa
+#
+# License: BSD 3 clause
+
 
 
 from ._array_sparsity import array_sparsity
