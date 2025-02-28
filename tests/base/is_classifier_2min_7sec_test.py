@@ -15,7 +15,7 @@ import dask.array as da
 import dask.dataframe as ddf
 import scipy.sparse as ss
 
-from pybear.utilities import is_classifier
+from pybear.base import is_classifier
 
 from xgboost import XGBClassifier
 from xgboost import XGBRegressor
