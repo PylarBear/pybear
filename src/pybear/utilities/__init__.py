@@ -15,7 +15,6 @@ from ._check_pipeline import check_pipeline
 from ._feature_name_mapper import feature_name_mapper
 from ._get_methods_out_of_class import get_methods_out_of_class
 from ._get_module_name import get_module_name
-from ._is_classifier import is_classifier
 from ._nan_masking import (
     nan_mask_numerical,
     nan_mask_string,
@@ -48,7 +47,6 @@ __all__ = [
     "feature_name_mapper",
     "get_methods_out_of_class",
     "get_module_name",
-    "is_classifier",
     "nan_mask",
     "nan_mask_numerical",
     "nan_mask_string",
