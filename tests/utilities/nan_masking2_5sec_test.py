@@ -9,7 +9,7 @@
 from pybear.utilities._nan_masking import nan_mask
 
 import numpy as np
-
+import polars as pl
 
 import pytest
 
@@ -119,6 +119,44 @@ class TestNanMasking:
 
         assert np.all(_X[_ref_out] == -99)
 
+
+    @pytest.mark.skip(reason=f"pizza needs to finish this")
+    @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9)) # use numbers, need exact
+    def test_accuracy_polars(self, _X_factory, _shape, X_dtype, _has_nan):
+
+        _X = _X_factory(
+            _dupl=None,
+            _format='pd',
+            _dtype=X_dtype,
+            _has_nan=_has_nan,
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
+
+        _X = pl.from_pandas(
+            data=_X,
+            schema_overrides=None,
+            rechunk=True,
+            nan_to_null=False,
+            include_index=False
+        )
+
+
+
+        OUT = nan_mask(_X)
+
+        assert isinstance(OUT, np.ndarray)
+
+        for _col_idx in range(OUT.shape[1]):
+
+            measured_num_nans = np.sum(OUT[:, _col_idx])
+
+            if _has_nan is False:
+                assert measured_num_nans == 0
+            else:
+                assert measured_num_nans == _has_nan
 
 
 
