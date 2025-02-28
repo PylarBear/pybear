@@ -23,27 +23,26 @@ import numpy as np
 
 
 
-
 def validate_data(
     X,
     *,
-    copy_X:bool=True,
-    cast_to_ndarray:bool=False,
+    copy_X:bool = True,
+    cast_to_ndarray:bool = False,
     accept_sparse:Union[Iterable[Literal[
         "csr", "csc", "coo", "dia", "lil", "dok", "bsr"
-    ]], Literal[False], None]=\
+    ]], Literal[False], None] = \
         ("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-    dtype:Literal['numeric','any']='any',
-    require_all_finite:bool=True,
-    cast_inf_to_nan:bool=True,
-    standardize_nan:bool=True,
-    allowed_dimensionality:Iterable[numbers.Integral]=(1,2),
-    ensure_2d:bool=True,
-    order:Literal['C', 'F']='C',
-    ensure_min_features:numbers.Integral=1,
-    ensure_max_features:Union[numbers.Integral, None]=None,
-    ensure_min_samples:numbers.Integral=1,
-    sample_check:Union[numbers.Integral, None]=None
+    dtype:Literal['numeric','any'] = 'any',
+    require_all_finite:bool = True,
+    cast_inf_to_nan:bool = True,
+    standardize_nan:bool = True,
+    allowed_dimensionality:Iterable[numbers.Integral] = (1,2),
+    ensure_2d:bool = True,
+    order:Literal['C', 'F'] = 'C',
+    ensure_min_features:numbers.Integral = 1,
+    ensure_max_features:Union[numbers.Integral, None] = None,
+    ensure_min_samples:numbers.Integral = 1,
+    sample_check:Union[numbers.Integral, None] = None
 ):
 
     """
