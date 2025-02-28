@@ -37,7 +37,7 @@ def test_accepts_a_good_sys_modules_string():
     assert get_module_name(str(sys.modules[__name__])) == 'get_module_name_test'
 
 
-print(str(sys.modules[__name__]))
+
 
 
 
