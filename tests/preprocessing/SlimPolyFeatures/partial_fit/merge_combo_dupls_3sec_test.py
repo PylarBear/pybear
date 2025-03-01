@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._merge_combo_dupls \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit._merge_combo_dupls \
     import _merge_combo_dupls
 
 import numpy as np

@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures \
+from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures \
     import SlimPolyFeatures as SlimPoly
 
 import pandas as pd

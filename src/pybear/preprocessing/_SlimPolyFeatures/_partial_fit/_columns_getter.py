@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._type_aliases import InternalDataContainer
+from pybear.preprocessing._SlimPolyFeatures._type_aliases import InternalDataContainer
 import numpy.typing as npt
 from typing_extensions import Union
 

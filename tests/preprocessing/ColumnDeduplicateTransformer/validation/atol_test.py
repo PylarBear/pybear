@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation._atol \
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation._atol \
     import _val_atol
 
 import numpy as np

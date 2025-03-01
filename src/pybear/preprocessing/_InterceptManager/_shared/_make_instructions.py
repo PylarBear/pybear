@@ -5,11 +5,11 @@
 #
 
 
-from pybear.preprocessing.InterceptManager._validation._instructions import (
+from pybear.preprocessing._InterceptManager._validation._instructions import (
     _val_instructions
 )
 
-from pybear.preprocessing.InterceptManager._type_aliases import (
+from pybear.preprocessing._InterceptManager._type_aliases import (
     KeepType,
     InstructionType
 )

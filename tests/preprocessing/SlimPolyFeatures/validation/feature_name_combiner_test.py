@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._validation._feature_name_combiner \
+from pybear.preprocessing._SlimPolyFeatures._validation._feature_name_combiner \
     import _val_feature_name_combiner
 
 import numpy as np

@@ -9,7 +9,7 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from pybear.preprocessing.MinCountTransformer._transform._tcbc_update \
+from pybear.preprocessing._MinCountTransformer._transform._tcbc_update \
     import _tcbc_update
 
 

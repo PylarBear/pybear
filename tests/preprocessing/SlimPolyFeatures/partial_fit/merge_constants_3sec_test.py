@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._merge_constants \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit._merge_constants \
     import _merge_constants
 
 import numpy as np

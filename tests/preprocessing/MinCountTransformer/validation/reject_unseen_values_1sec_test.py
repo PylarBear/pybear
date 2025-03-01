@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation. \
+from pybear.preprocessing._MinCountTransformer._validation. \
     _reject_unseen_values import _val_reject_unseen_values
 
 import pytest

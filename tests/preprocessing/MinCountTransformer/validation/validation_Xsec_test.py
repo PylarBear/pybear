@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation._validation \
+from pybear.preprocessing._MinCountTransformer._validation._validation \
     import _validation
 
 import numpy as np

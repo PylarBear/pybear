@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._partial_fit._original_dtypes_merger \
+from pybear.preprocessing._MinCountTransformer._partial_fit._original_dtypes_merger \
     import _original_dtypes_merger
 
 import numpy as np

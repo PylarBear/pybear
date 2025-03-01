@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._columns_getter \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit._columns_getter \
     import _columns_getter
 
 import numpy as np

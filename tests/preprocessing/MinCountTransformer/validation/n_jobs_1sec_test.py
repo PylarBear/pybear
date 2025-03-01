@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation._n_jobs \
+from pybear.preprocessing._MinCountTransformer._validation._n_jobs \
     import _val_n_jobs
 
 import pytest

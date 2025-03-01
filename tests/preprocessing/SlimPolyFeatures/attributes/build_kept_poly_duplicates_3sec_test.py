@@ -8,7 +8,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._attributes. \
+from pybear.preprocessing._SlimPolyFeatures._attributes. \
     _build_kept_poly_duplicates import _build_kept_poly_duplicates
 
 import itertools

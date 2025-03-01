@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _column_getter import _column_getter
 
 import numpy as np

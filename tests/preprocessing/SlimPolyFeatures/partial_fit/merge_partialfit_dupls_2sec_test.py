@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._merge_partialfit_dupls \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit._merge_partialfit_dupls \
     import _merge_partialfit_dupls
 
 import pytest

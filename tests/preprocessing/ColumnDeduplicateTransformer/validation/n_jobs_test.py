@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation. \
     _n_jobs import _val_n_jobs
 
 import pytest

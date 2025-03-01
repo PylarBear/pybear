@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._make_instructions. \
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
     _three_or_more_uniques_not_hab import _three_or_more_uniques_not_hab
 
 from copy import deepcopy

@@ -36,7 +36,7 @@ import numpy as np
 import scipy.sparse as ss
 from joblib import Parallel, delayed, wrap_non_picklable_objects
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._columns_getter \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit._columns_getter \
     import _columns_getter
 
 from pybear.utilities import time_memory_benchmark as tmb

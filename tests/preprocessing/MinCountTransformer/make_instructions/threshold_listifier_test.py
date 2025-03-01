@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._make_instructions. \
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
     _threshold_listifier import _threshold_listifier
 
 import numpy as np

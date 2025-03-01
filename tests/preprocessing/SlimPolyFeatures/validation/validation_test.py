@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._validation._validation \
+from pybear.preprocessing._SlimPolyFeatures._validation._validation \
     import _validation
 
 import pytest

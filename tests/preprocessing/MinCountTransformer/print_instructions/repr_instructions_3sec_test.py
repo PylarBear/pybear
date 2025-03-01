@@ -13,7 +13,7 @@
 
 import pytest
 
-from pybear.preprocessing.MinCountTransformer._print_instructions. \
+from pybear.preprocessing._MinCountTransformer._print_instructions. \
     _repr_instructions import _repr_instructions
 
 

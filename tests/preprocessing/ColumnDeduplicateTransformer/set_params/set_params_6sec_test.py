@@ -11,7 +11,7 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing.ColumnDeduplicateTransformer. \
+from pybear.preprocessing._ColumnDeduplicateTransformer. \
     ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
 
 

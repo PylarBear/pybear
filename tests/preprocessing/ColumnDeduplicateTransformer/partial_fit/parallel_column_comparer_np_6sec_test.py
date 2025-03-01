@@ -8,7 +8,7 @@
 # IMPORTANT!
 # this is not sparse so this uses _parallel_column_comparer!
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 

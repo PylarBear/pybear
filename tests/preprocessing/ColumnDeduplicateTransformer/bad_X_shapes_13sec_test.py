@@ -11,7 +11,7 @@ import scipy.sparse as ss
 
 import pytest
 
-from pybear.preprocessing.ColumnDeduplicateTransformer.ColumnDeduplicateTransformer \
+from pybear.preprocessing._ColumnDeduplicateTransformer.ColumnDeduplicateTransformer \
     import ColumnDeduplicateTransformer as CDT
 
 

@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._transform._column_getter_to_dense \
+from pybear.preprocessing._MinCountTransformer._transform._column_getter_to_dense \
     import _column_getter_to_dense
 
 import uuid

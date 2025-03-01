@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit. \
     _deconstant_poly_dupls import _deconstant_poly_dupls
 
 

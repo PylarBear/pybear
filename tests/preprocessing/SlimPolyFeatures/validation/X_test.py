@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._validation._X import _val_X
+from pybear.preprocessing._SlimPolyFeatures._validation._X import _val_X
 
 import numpy as np
 import pandas as pd

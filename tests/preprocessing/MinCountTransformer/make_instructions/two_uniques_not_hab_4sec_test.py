@@ -11,7 +11,7 @@ import pytest
 from copy import deepcopy
 import numpy as np
 
-from pybear.preprocessing.MinCountTransformer._make_instructions. \
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
     _two_uniques_not_hab import _two_uniques_not_hab
 
 

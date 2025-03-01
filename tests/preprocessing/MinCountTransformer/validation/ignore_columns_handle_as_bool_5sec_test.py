@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation. \
+from pybear.preprocessing._MinCountTransformer._validation. \
     _ignore_columns_handle_as_bool import _val_ignore_columns_handle_as_bool
 
 import uuid

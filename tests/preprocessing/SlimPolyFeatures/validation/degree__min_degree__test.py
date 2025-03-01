@@ -10,7 +10,7 @@ import pytest
 
 from numbers import Integral
 
-from pybear.preprocessing.SlimPolyFeatures._validation._degree__min_degree import \
+from pybear.preprocessing._SlimPolyFeatures._validation._degree__min_degree import \
     _val_degree__min_degree
 
 

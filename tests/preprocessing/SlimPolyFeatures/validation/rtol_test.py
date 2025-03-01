@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.SlimPolyFeatures._validation._rtol \
+from pybear.preprocessing._SlimPolyFeatures._validation._rtol \
     import _val_rtol
 
 

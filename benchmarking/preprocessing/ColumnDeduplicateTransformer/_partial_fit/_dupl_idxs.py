@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit.\
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit.\
     _dupl_idxs import _dupl_idxs
 
 import numpy as np

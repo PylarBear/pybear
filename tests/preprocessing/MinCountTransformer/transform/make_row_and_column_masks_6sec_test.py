@@ -10,7 +10,7 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing.MinCountTransformer._transform. \
+from pybear.preprocessing._MinCountTransformer._transform. \
     _make_row_and_column_masks import _make_row_and_column_masks
 
 

@@ -6,10 +6,10 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _identify_idxs_to_delete import _identify_idxs_to_delete
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _lock_in_random_idxs import _lock_in_random_idxs
 
 import pytest

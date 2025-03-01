@@ -12,7 +12,7 @@ from pybear.preprocessing.InterceptManager.InterceptManager import \
 from pybear.preprocessing.InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.utilities import nan_mask

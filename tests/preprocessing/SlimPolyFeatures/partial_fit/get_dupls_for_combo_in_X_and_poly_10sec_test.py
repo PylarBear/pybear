@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit.\
+from pybear.preprocessing._SlimPolyFeatures._partial_fit.\
     _get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
 
 import numpy as np

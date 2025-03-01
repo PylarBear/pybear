@@ -1,9 +1,9 @@
 
-from .ColumnDeduplicateTransformer.ColumnDeduplicateTransformer import \
+from ._ColumnDeduplicateTransformer.ColumnDeduplicateTransformer import \
     ColumnDeduplicateTransformer
-from .InterceptManager.InterceptManager import InterceptManager
-from .MinCountTransformer.MinCountTransformer import MinCountTransformer
-from .SlimPolyFeatures.SlimPolyFeatures import SlimPolyFeatures
+from ._InterceptManager.InterceptManager import InterceptManager
+from ._MinCountTransformer.MinCountTransformer import MinCountTransformer
+from ._SlimPolyFeatures.SlimPolyFeatures import SlimPolyFeatures
 
 
 __all__ = [
