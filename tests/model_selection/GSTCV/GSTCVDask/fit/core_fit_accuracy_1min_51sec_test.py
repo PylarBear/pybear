@@ -182,7 +182,7 @@ class TestCoreFitAccuracy:
 
             if 'threshold' not in column and 'time' not in column:
                 assert column in pd_dask_cv_results, \
-                    print(f'\033[91mcolumn {column} not in!\033[0m')
+                    f'\033[91mcolumn {column} not in!\033[0m'
 
             if 'threshold' in column:
                 assert (pd_gstcv_cv_results[column] == 0.5).all()

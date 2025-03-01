@@ -6,6 +6,7 @@
 
 
 
+from typing_extensions import Self, Union, TypeAlias
 
 
 class InteractiveTextCleaner:
