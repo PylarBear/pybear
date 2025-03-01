@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._partial_fit._find_constants \
+from pybear.preprocessing._InterceptManager._partial_fit._find_constants \
     import _find_constants
 
 import numpy as np

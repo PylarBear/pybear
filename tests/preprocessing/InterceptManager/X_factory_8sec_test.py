@@ -16,7 +16,7 @@ import scipy.sparse as ss
 
 from pybear.utilities._nan_masking import nan_mask
 
-from pybear.preprocessing.InterceptManager._partial_fit. \
+from pybear.preprocessing._InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
 

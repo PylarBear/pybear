@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._shared._manage_keep import (
+from pybear.preprocessing._InterceptManager._shared._manage_keep import (
     _manage_keep
 )
 

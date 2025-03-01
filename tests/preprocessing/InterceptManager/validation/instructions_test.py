@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._validation._instructions import \
+from pybear.preprocessing._InterceptManager._validation._instructions import \
     _val_instructions
 
 import pytest

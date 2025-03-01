@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._validation. _n_jobs import (
+from pybear.preprocessing._InterceptManager._validation. _n_jobs import (
     _val_n_jobs
 )
 

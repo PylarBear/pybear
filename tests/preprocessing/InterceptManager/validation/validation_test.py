@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._validation._validation import (
+from pybear.preprocessing._InterceptManager._validation._validation import (
     _validation
 )
 

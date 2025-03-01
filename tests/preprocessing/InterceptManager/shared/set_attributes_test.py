@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._shared._set_attributes import \
+from pybear.preprocessing._InterceptManager._shared._set_attributes import \
     _set_attributes
 
 import numpy as np

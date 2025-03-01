@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.InterceptManager._validation._X import _val_X
+from pybear.preprocessing._InterceptManager._validation._X import _val_X
 
 import numpy as np
 import pandas as pd

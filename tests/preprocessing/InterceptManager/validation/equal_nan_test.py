@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._validation._equal_nan import (
+from pybear.preprocessing._InterceptManager._validation._equal_nan import (
     _val_equal_nan
 )
 
