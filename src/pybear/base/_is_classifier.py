@@ -57,13 +57,13 @@ def is_classifier(estimator_) -> bool:
 
     Examples
     --------
-    >>> from pybear.base import is_classifier as pybear_is_classifier
+    >>> from pybear.base import is_classifier
     >>> from dask_ml.linear_model import LogisticRegression, LinearRegression
     >>> dask_clf = LogisticRegression()
     >>> is_classifier(dask_clf)
     True
     >>> dask_reg = LinearRegression()
-    >>> pybear_is_classifier(dask_reg)
+    >>> is_classifier(dask_reg)
     False
 
     """
@@ -85,10 +85,10 @@ def is_classifier(estimator_) -> bool:
             return _estimator_
 
         for _module in [
-                        'blockwisevoting',
-                        'calibratedclassifier',
-                        'gradientboosting'
-            ]:
+            'blockwisevoting',
+            'calibratedclassifier',
+            'gradientboosting'
+        ]:
 
             if str(_estimator_).lower()[:len(_module)] == _module:
                 # escape when have dug deep enough that _module is the
