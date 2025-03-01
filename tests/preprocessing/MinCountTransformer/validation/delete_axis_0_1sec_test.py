@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation. \
+from pybear.preprocessing._MinCountTransformer._validation. \
     _delete_axis_0 import _val_delete_axis_0
 
 import pytest

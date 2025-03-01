@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._partial_fit._tcbc_merger import \
+from pybear.preprocessing._MinCountTransformer._partial_fit._tcbc_merger import \
     _tcbc_merger
 
 from pybear.utilities._nan_masking import nan_mask

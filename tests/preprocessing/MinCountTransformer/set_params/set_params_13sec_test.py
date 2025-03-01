@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
+from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
     MinCountTransformer as MCT
 
 from copy import deepcopy

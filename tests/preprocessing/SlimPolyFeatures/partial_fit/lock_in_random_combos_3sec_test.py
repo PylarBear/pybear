@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit. \
     _lock_in_random_combos import _lock_in_random_combos
 
 import pytest

@@ -7,10 +7,10 @@
 
 
 # use these to generate working _delete_instr
-from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
+from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
     MinCountTransformer
 
-from pybear.preprocessing.MinCountTransformer._print_instructions. \
+from pybear.preprocessing._MinCountTransformer._print_instructions. \
     _repr_instructions import _repr_instructions
 
 from sklearn.datasets import load_breast_cancer

@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._combination_builder \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit._combination_builder \
     import _combination_builder
 
 import pytest

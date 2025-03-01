@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation._validation \
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation._validation \
     import _validation
 
 import numpy as np

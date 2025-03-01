@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation. \
+from pybear.preprocessing._MinCountTransformer._validation. \
     _max_recursions import _val_max_recursions
 
 import pytest

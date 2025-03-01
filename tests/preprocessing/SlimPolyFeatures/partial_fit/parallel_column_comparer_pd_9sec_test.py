@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 

@@ -5,10 +5,10 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._transform._transform \
+from pybear.preprocessing._ColumnDeduplicateTransformer._transform._transform \
     import _transform
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 

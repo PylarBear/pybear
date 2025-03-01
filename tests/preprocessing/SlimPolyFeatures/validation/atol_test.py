@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.SlimPolyFeatures._validation._atol \
+from pybear.preprocessing._SlimPolyFeatures._validation._atol \
     import _val_atol
 
 

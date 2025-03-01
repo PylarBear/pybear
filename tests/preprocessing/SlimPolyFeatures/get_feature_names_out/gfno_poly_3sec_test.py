@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._get_feature_names_out. \
+from pybear.preprocessing._SlimPolyFeatures._get_feature_names_out. \
     _gfno_poly import _gfno_poly
 
 import numpy as np

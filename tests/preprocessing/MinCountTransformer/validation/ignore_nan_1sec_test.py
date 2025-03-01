@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation. \
+from pybear.preprocessing._MinCountTransformer._validation. \
     _ignore_nan import _val_ignore_nan
 
 import pytest

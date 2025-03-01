@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._inverse_transform. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._inverse_transform. \
     _inverse_transform import _inverse_transform
 
 from pybear.preprocessing import ColumnDeduplicateTransformer
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 import numpy as np

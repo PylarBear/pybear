@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._make_instructions. \
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
     _validation._total_counts_by_column import _val_total_counts_by_column
 
 from copy import deepcopy

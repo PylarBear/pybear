@@ -17,7 +17,7 @@ import numpy.typing as npt
 import warnings
 from pybear.utilities._nan_masking import nan_mask
 
-from pybear.preprocessing.MinCountTransformer._transform. \
+from pybear.preprocessing._MinCountTransformer._transform. \
     _parallelized_row_masks import _parallelized_row_masks
 
 

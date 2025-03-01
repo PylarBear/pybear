@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation._feature_names_in \
+from pybear.preprocessing._MinCountTransformer._validation._feature_names_in \
     import _val_feature_names_in
 
 import numpy as np

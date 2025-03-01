@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation.\
+from pybear.preprocessing._MinCountTransformer._validation.\
     _ign_cols_hab_callable import _val_ign_cols_hab_callable
 
 import numpy as np

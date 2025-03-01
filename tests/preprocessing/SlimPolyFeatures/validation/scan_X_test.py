@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._validation. \
+from pybear.preprocessing._SlimPolyFeatures._validation. \
     _scan_X import _val_scan_X
 
 

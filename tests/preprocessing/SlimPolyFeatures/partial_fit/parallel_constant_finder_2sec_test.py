@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit. \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
 from pybear.utilities import nan_mask_numerical

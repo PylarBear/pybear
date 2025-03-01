@@ -90,7 +90,7 @@ def nan_mask_numerical(
         f"such as numpy arrays, scipy sparse matrices or arrays, pandas "
         f"dataframes/series, polars dataframes/series. \nif passing a "
         f"scipy sparse object, it cannot be dok or lil. \npython built-in "
-        f"iterables, such as lists, sets, and tuples, are not allowed."
+        f"containers, such as lists, sets, and tuples, are not allowed."
     )
 
     try:

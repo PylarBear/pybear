@@ -17,7 +17,7 @@ import pytest
 
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
-from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
+from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
     MinCountTransformer as MCT
 
 

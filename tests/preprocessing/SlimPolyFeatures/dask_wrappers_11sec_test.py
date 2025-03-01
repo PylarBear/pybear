@@ -14,7 +14,7 @@ import pytest
 
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
-from pybear.preprocessing.SlimPolyFeatures.SlimPolyFeatures import \
+from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
 

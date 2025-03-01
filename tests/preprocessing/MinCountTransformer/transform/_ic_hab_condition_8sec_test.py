@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._transform._ic_hab_condition \
+from pybear.preprocessing._MinCountTransformer._transform._ic_hab_condition \
     import _ic_hab_condition
 
 import uuid

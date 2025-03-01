@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation._core_bool_val import \
+from pybear.preprocessing._MinCountTransformer._validation._core_bool_val import \
     _core_bool_val
 
 import pytest

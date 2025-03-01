@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation. \
+from pybear.preprocessing._MinCountTransformer._validation. \
     _count_threshold import _val_count_threshold
 
 import re

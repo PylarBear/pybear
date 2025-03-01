@@ -13,10 +13,10 @@ import pandas as pd
 
 import pytest
 
-from pybear.preprocessing.ColumnDeduplicateTransformer. \
+from pybear.preprocessing._ColumnDeduplicateTransformer. \
     ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 

@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._validation.\
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation.\
     _conflict import _val_conflict
 
 import pytest

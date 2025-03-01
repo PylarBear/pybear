@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._partial_fit. _column_getter \
+from pybear.preprocessing._MinCountTransformer._partial_fit. _column_getter \
     import _column_getter
 
 import uuid

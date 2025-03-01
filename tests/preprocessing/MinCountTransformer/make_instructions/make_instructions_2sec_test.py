@@ -10,7 +10,7 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing.MinCountTransformer._make_instructions. \
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
     _make_instructions import _make_instructions
 
 

@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.SlimPolyFeatures._validation. \
+from pybear.preprocessing._SlimPolyFeatures._validation. \
     _equal_nan import _val_equal_nan
 
 

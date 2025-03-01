@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._make_instructions._validation. \
+from pybear.preprocessing._MinCountTransformer._make_instructions._validation. \
     _delete_instr import _val_delete_instr
 
 import pytest

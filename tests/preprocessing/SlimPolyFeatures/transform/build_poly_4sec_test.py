@@ -11,7 +11,7 @@ import itertools
 import numpy as np
 import scipy.sparse as ss
 
-from pybear.preprocessing.SlimPolyFeatures._transform._build_poly \
+from pybear.preprocessing._SlimPolyFeatures._transform._build_poly \
     import _build_poly
 
 import pytest

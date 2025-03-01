@@ -11,7 +11,7 @@ import pytest
 import numpy as np
 import scipy.sparse as ss
 
-from pybear.preprocessing.MinCountTransformer._partial_fit. \
+from pybear.preprocessing._MinCountTransformer._partial_fit. \
     _parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
 
 

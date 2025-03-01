@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.SlimPolyFeatures._partial_fit._num_combinations import \
+from pybear.preprocessing._SlimPolyFeatures._partial_fit._num_combinations import \
     _val_num_combinations
 
 

@@ -22,7 +22,7 @@ import pytest
 
 from sklearn.preprocessing import OneHotEncoder
 
-from pybear.preprocessing.MinCountTransformer.MinCountTransformer import \
+from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
     MinCountTransformer as MCT
 
 from pybear.utilities._nan_masking import nan_mask

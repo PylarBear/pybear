@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._make_instructions. \
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
     _one_unique import _one_unique
 
 import numpy as np

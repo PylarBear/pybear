@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation._X \
+from pybear.preprocessing._MinCountTransformer._validation._X \
     import _val_X
 
 import uuid

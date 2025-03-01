@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.MinCountTransformer._validation._original_dtypes \
+from pybear.preprocessing._MinCountTransformer._validation._original_dtypes \
     import _val_original_dtypes
 
 import numpy as np

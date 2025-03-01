@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _lock_in_random_idxs import _lock_in_random_idxs
 
 import pytest

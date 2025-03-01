@@ -7,7 +7,7 @@
 
 
 
-from pybear.preprocessing.ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _find_duplicates import _find_duplicates
 
 from pybear.utilities import time_memory_benchmark as tmb

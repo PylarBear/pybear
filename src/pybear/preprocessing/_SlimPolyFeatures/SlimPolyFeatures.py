@@ -41,9 +41,9 @@ from ._shared._check_X_constants_dupls import _check_X_constants_dupls
 from ._transform._build_poly import _build_poly
 
 
-from ...preprocessing.InterceptManager.InterceptManager import \
+from ...preprocessing._InterceptManager.InterceptManager import \
     InterceptManager as IM
-from ...preprocessing.ColumnDeduplicateTransformer. \
+from ...preprocessing._ColumnDeduplicateTransformer. \
     ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
 
 from ...base import (

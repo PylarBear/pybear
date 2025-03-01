@@ -109,7 +109,6 @@ class TestAccuracy:
             )
 
         # polars 2D accepted
-        print(pl.DataFrame(list(map(list, _words))))
         out = TestCls.transform(
             pl.DataFrame(list(map(list, _words))),
             copy=True
