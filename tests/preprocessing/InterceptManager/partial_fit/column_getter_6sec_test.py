@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._partial_fit._column_getter import (
+from pybear.preprocessing._InterceptManager._partial_fit._column_getter import (
     _column_getter
 )
 

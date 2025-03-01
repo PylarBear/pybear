@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.InterceptManager._validation._atol import _val_atol
+from pybear.preprocessing._InterceptManager._validation._atol import _val_atol
 
 import numpy as np
 

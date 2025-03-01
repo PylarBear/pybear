@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._validation._keep_and_columns import \
+from pybear.preprocessing._InterceptManager._validation._keep_and_columns import \
     _val_keep_and_columns
 
 

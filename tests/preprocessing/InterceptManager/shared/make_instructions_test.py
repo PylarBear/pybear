@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._shared._make_instructions \
+from pybear.preprocessing._InterceptManager._shared._make_instructions \
     import _make_instructions
 
 import pytest

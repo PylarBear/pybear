@@ -8,7 +8,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager._partial_fit._merge_constants import (
+from pybear.preprocessing._InterceptManager._partial_fit._merge_constants import (
     _merge_constants
 )
 

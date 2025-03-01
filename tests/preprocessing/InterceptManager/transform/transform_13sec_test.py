@@ -6,16 +6,16 @@
 
 
 
-from pybear.preprocessing.InterceptManager._partial_fit. \
+from pybear.preprocessing._InterceptManager._partial_fit. \
     _column_getter import _column_getter
 
-from pybear.preprocessing.InterceptManager._partial_fit. \
+from pybear.preprocessing._InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
-from pybear.preprocessing.InterceptManager._shared._set_attributes \
+from pybear.preprocessing._InterceptManager._shared._set_attributes \
     import _set_attributes
 
-from pybear.preprocessing.InterceptManager._transform._transform import \
+from pybear.preprocessing._InterceptManager._transform._transform import \
     _transform
 
 from pybear.utilities import nan_mask

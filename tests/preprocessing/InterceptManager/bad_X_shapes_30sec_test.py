@@ -5,7 +5,7 @@
 #
 
 
-from pybear.preprocessing.InterceptManager.InterceptManager \
+from pybear.preprocessing._InterceptManager.InterceptManager \
     import InterceptManager as IM
 
 import pandas as pd

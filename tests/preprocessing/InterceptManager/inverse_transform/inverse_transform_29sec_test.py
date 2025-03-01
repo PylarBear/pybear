@@ -6,10 +6,10 @@
 
 
 
-from pybear.preprocessing.InterceptManager._inverse_transform. \
+from pybear.preprocessing._InterceptManager._inverse_transform. \
     _inverse_transform import _inverse_transform
 
-from pybear.preprocessing.InterceptManager.InterceptManager import \
+from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager
 
 from pybear.utilities import nan_mask

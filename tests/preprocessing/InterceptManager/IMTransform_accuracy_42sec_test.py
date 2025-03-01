@@ -6,10 +6,10 @@
 
 
 
-from pybear.preprocessing.InterceptManager.InterceptManager import \
+from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager as IM
 
-from pybear.preprocessing.InterceptManager._partial_fit. \
+from pybear.preprocessing._InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
