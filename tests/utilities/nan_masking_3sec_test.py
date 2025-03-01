@@ -54,21 +54,30 @@ class Fixtures:
     @pytest.fixture(scope='module')
     def truth_mask_1(_shape):
         while True:
-            _ = np.random.randint(0,2, _shape).astype(bool)
-            # make sure that there are both trues and falses
-            if 0 < np.sum(_) / _.size < 1:
-                return _
-
+            __ = np.random.randint(0,2, _shape).astype(bool)
+            # make sure that there are both trues and falses in all columns
+            for c_idx in range(_shape[1]):
+                if 0 < np.sum(__[:, c_idx]) / _shape[0] < 1:
+                    pass
+                else:
+                    break
+            else:
+                return __
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def truth_mask_2(_shape):
         while True:
-            _ = np.random.randint(0,2, _shape).astype(bool)
+            __ = np.random.randint(0,2, _shape).astype(bool)
             # make sure that there are both trues and falses
-            if 0 < np.sum(_) / _.size < 1:
-                return _
+            for c_idx in range(_shape[1]):
+                if 0 < np.sum(__[:, c_idx]) / _shape[0] < 1:
+                    pass
+                else:
+                    break
+            else:
+                return __
 
 
     @staticmethod

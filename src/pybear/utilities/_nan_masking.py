@@ -272,7 +272,7 @@ def nan_mask(
     obj:
         Union[NDArray, pandas.Series, pandas.DataFrame, polars.Series,
         polars.DataFrame, scipy.sparse], of shape (n_samples, n_features),
-        (n_samples,), or (n_non_zero_values,)- the object for which to
+        (n_samples,), or (n_non_zero_values,) - the object for which to
         locate nan-like representations.
 
 
