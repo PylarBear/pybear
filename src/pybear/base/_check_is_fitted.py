@@ -6,7 +6,6 @@
 
 
 
-
 from ..base._is_fitted import is_fitted
 from ..base.exceptions import NotFittedError
 
@@ -149,7 +148,7 @@ def check_is_fitted(
 
 
     default_msg = (
-        f"This {type(estimator).__name__} instance is not fitted yet. "
+        f"This {type(estimator).__name__} instance is not fitted yet.\n"
         f"Call 'fit' with appropriate arguments before using this "
         f"estimator."
     )
