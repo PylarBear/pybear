@@ -6,8 +6,8 @@
 
 
 
-from general_list_ops import list_select as ls
-from data_validation import validate_user_input as vui
+from ..general_list_ops import list_select as ls
+from ...data_validation import validate_user_input as vui
 
 #CALLED by read_write_file.read_file_config_run
 def package_select(filename, filetype, user_package):

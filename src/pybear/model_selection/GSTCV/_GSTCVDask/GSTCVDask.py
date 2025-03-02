@@ -487,9 +487,7 @@ class GSTCVDask(_GSTCVMixin):
 
     >>> clf = LogisticRegression(
     ...     solver='lbfgs',
-    ...     max_iter=10,
-    ...     tol=1e-4,
-    ...     fit_intercept=False
+    ...     tol=1e-4
     ... )
     >>> X, y = make_classification(
     ...     n_samples=90, n_features=5, random_state=19, chunks=(90, 5)
@@ -513,9 +511,7 @@ class GSTCVDask(_GSTCVMixin):
     ...     cache_cv=True
     ... )
     >>> gstcv.fit(X, y)
-    GSTCVDask(cv=3,
-              estimator=LogisticRegression(fit_intercept=False, max_iter=10,
-                                           solver='lbfgs'),
+    GSTCVDask(cv=3, estimator=LogisticRegression(solver='lbfgs'),
               param_grid={'C': array([0.0001, 0.001 ])}, refit=False,
               scoring='balanced_accuracy', thresholds=[0.1, 0.5, 0.9])
 

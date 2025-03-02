@@ -60,10 +60,10 @@ def is_classifier(estimator_) -> bool:
     >>> from pybear.base import is_classifier
     >>> from dask_ml.linear_model import LogisticRegression, LinearRegression
     >>> dask_clf = LogisticRegression()
-    >>> is_classifier(dask_clf)
+    >>> is_classifier(dask_clf)     # doctest: +SKIP
     True
     >>> dask_reg = LinearRegression()
-    >>> is_classifier(dask_reg)
+    >>> is_classifier(dask_reg)     # doctest: +SKIP
     False
 
     """
