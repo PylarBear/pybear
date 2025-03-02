@@ -158,7 +158,7 @@ def _core_fit(
     """
 
 
-    # rudimentarly stop-gap validation * * * * * *
+    # rudimentary stop-gap validation * * * * * *
     # this is just to force fast except on things that were exposed in
     # testing to not force except, or take a long time to except
 
