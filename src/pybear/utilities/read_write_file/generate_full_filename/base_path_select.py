@@ -7,8 +7,8 @@
 
 
 
-from general_list_ops import list_select as ls
-from data_validation import validate_user_input as vui
+from ...general_list_ops import list_select as ls
+from ....data_validation import validate_user_input as vui
 from .. import paths
 
 

@@ -432,10 +432,7 @@ class GSTCV(_GSTCVMixin):
 
     >>> clf = LogisticRegression(
     ...     solver='saga',
-    ...     penalty='elasticnet',
-    ...     max_iter=1000,
-    ...     tol=1e-6,
-    ...     fit_intercept=True
+    ...     penalty='elasticnet'
     ... )
     >>> X, y = make_classification(n_samples=1000, n_features=5, random_state=19)
     >>> param_grid = {
@@ -455,9 +452,7 @@ class GSTCV(_GSTCVMixin):
     ...     return_train_score=False
     ... )
     >>> gstcv.fit(X, y)
-    GSTCV(cv=5,
-          estimator=LogisticRegression(max_iter=1000, penalty='elasticnet',
-                                       solver='saga', tol=1e-06),
+    GSTCV(cv=5, estimator=LogisticRegression(penalty='elasticnet', solver='saga'),
           n_jobs=-1,
           param_grid={'C': array([1.e-06, 1.e-05, 1.e-04, 1.e-03]),
                       'l1_ratio': array([0.  , 0.25, 0.5 , 0.75, 1.  ])},

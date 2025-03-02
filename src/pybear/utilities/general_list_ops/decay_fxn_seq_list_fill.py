@@ -1,5 +1,5 @@
 import numpy as n
-from data_validation import validate_user_input as vui
+from ...data_validation import validate_user_input as vui
 
 
 def decay_fxn_seq_list_fill(length_number, LIST_TO_FILL):

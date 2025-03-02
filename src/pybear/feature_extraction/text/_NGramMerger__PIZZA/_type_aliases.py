@@ -7,10 +7,10 @@
 
 
 from typing import Optional, Sequence
-from typing_extensions import Union
+from typing_extensions import TypeAlias, Union
 
 
-XContainer: Union[Sequence[str], Sequence[Sequence[str]]]
+XContainer: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
 
 
 

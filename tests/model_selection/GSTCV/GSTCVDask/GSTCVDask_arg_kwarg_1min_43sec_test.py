@@ -193,7 +193,7 @@ class TestGSTCVInput:
         with pytest.raises(AttributeError):
             _GSTCVDask.set_params(estimator=dask_non_classifiers()).fit(X_da, y_da)
 
-
+    @pytest.mark.skip(reason=f"pizza dask_ml 2025.1 seems to have a glitch")
     def test_accepts_all_dask_classifiers(self, _GSTCVDask, X_da, y_da, _client):
 
         # must be an instance not the class! & be a classifier!

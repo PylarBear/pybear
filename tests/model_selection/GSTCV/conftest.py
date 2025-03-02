@@ -80,7 +80,7 @@ def _refit_false():
 @pytest.fixture(scope='session')
 def _not_fitted():
     def foo(_object):
-        return (f"This {_object} instance is not fitted yet. Call 'fit' "
+        return (f"This {_object} instance is not fitted yet.\nCall 'fit' "
             f"with appropriate arguments before using this estimator.")
 
     return foo

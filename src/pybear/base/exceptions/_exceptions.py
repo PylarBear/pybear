@@ -25,9 +25,9 @@ class NotFittedError(ValueError, AttributeError):
     >>> try:
     ...     CDT().transform(X)
     ... except NotFittedError as e:
-    ...     print(repr(e))
-    NotFittedError("This ColumnDeduplicateTransformer instance is not fitted yet. Call 'fit'
-    with appropriate arguments before using this estimator."...)
+    ...     print(e)
+    This ColumnDeduplicateTransformer instance is not fitted yet.
+    Call 'fit' with appropriate arguments before using this estimator.
 
 
     """
