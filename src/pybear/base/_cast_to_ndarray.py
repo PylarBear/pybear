@@ -6,41 +6,64 @@
 
 
 
+from typing import Optional
+
+from typing_extensions import TypeAlias, Union
+import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
+import dask.array as da
+import dask.dataframe as ddf
+
+from ._copy_X import copy_X as _copy_X
+from ..utilities._nan_masking import nan_mask
+
+
+
+PythonTypes: TypeAlias = Union[list, tuple, set]
+NumpyTypes: TypeAlias = Union[npt.NDArray, np.ma.MaskedArray]
+PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+DaskTypes: TypeAlias = Union[da.Array, ddf.Series, ddf.DataFrame]
+SparseTypes: TypeAlias = Union[
+    ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+    ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+    ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+    ss.bsr_matrix, ss.bsr_array
+]
+
+XContainer: TypeAlias = \
+    Union[
+        PythonTypes, NumpyTypes, PandasTypes,
+        PolarsTypes, DaskTypes, SparseTypes
+    ]
 
 
 
 def cast_to_ndarray(
-    X,
-    copy_X:bool=True
+    X: XContainer,
+    copy_X:Optional[bool] = True
 ):
 
     """
-    Convert the container of X to numpy.ndarray.
-
-    Does not accept python built-in containers (list, set, tuple).
-    pybear strongly encourages (even requires) you to pass your data
-    in third party containers such as numpy arrays.
-
-    Does not do any nan handling. This module uses methods that are
-    native to the containers to convert them to numpy ndarray. pybear
-    cannot handle every possible edge case when converting data to
-    numpy ndarray. Let the native handling allow or disallow nan-likes.
-    This forces the user to clean up their own data outside of pybear.
+    Convert the container of X to numpy.ndarray. Can take python lists,
+    tuples, and sets, numpy arrays and masked arrays, pandas dataframes
+    and series, polars dataframes and series, dask arrays, dataframes,
+    and series, and scipy sparse matrices/arrays. Any nan-like values
+    are standardized to numpy.nan.
 
 
     Parameters
     ----------
-    OBJECT:
+    X:
         array-like of shape (n_samples, n_features) or (n_samples,) -
         The array-like data to be converted to NDArray.
     copy_X:
-        bool, default=True - whether to copy X before casting to ndarray
-        or perform the operations directly on the passed X.
+        Optional[bool], default=True - whether to copy X before casting
+        to ndarray or perform the operations directly on the passed X.
 
 
     Return
@@ -55,83 +78,108 @@ def cast_to_ndarray(
 
 
     # block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    try:
-        # ss dok is a dict instance and is not passing isinstance(X, dict)
-        # make a short circuit
-        if isinstance(X, (ss.dok_array, ss.dok_matrix)):
-            raise UnicodeError
-        iter(X)
-        if isinstance(X, (str, dict)):
-            raise Exception
-        if isinstance(X, (set, tuple, list)):
-            raise MemoryError
-    except UnicodeError:
-        # skip out for dok
-        pass
-    except MemoryError:
+    # _suffix = (
+    #     f"\nPass X as a python built-in (list, set, tuple), numpy "
+    #     f"ndarray or masked array, pandas series or dataframe, polars "
+    #     f"series or dataframe, scipy sparse matrix/array, dask array, "
+    #     f"dataframe, or series."
+    # )
+    # do not use the typealiases while still supporting py39
+    if not isinstance(X,
+        (list, tuple, set, np.ndarray, np.ma.MaskedArray, pd.Series,
+         pd.DataFrame, pl.Series, pl.DataFrame, da.Array, ddf.Series,
+         ddf.DataFrame, ss.csc_matrix, ss.csc_array, ss.csr_matrix,
+         ss.csr_array, ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+         ss.dia_array, ss.lil_matrix, ss.lil_array, ss.dok_matrix,
+         ss.dok_array, ss.bsr_matrix, ss.bsr_array)
+    ):
         raise TypeError(
-            f"cast_to_ndarray does not currently accept python built-in "
-            f"iterables (set, list, tuple). Pass X as a container that "
-            f"has a 'shape' attribute."
-        )
-    except:
-        raise TypeError(
-            f"cast_to_ndarray: X must be a vector-like or array-like that "
-            f"can be converted to a numpy ndarray."
+            f"cast_to_ndarray(): unsupported container {type(X)}. "
         )
 
-
-    _suffix = (
-        f"\nPass X as a numpy ndarray, pandas dataframe, pandas series, "
-        f"scipy sparse matrix/array dask array, dask dataframe, or dask "
-        f"series."
-    )
     if isinstance(X, np.recarray):
-        raise TypeError(
-            f"cast_to_ndarray: OBJECT is a numpy recarray. " + _suffix
-        )
-
-    if isinstance(X, np.ma.core.MaskedArray):
-        raise TypeError(
-            f"cast_to_ndarray: OBJECT is a numpy masked array. " + _suffix
-        )
+        raise TypeError(f"copy_X(): unsupported container {type(X)}")
     # END block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
     if copy_X:
-        _X = X.copy()
+        _X = _copy_X(X)
     else:
         _X = X
 
-    # IF ss CONVERT TO np
-    try:
+    # convert to ndarray -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    if isinstance(_X, (list, tuple, set)):
+        try:
+            if isinstance(_X, set):
+                raise Exception
+            if any(map(isinstance, _X, (str for _ in _X))):
+                # dont map iterable to strings!
+                # must be 1D
+                raise Exception
+            map(list, _X)
+            # must be 2D
+            # if is ragged numpy will still make ndarray. dont let it.
+            print(list(map(len, _X)))
+            if len(set(map(len, _X))) > 1:
+                raise UnicodeError
+            _X = np.array(list(map, list(_X)))
+        except UnicodeError:
+            raise ValueError(
+                f"X is ragged. pybear does not allow this to be cast "
+                f"to ndarray."
+            )
+        except Exception as e:
+            _X = np.array(list(_X))
+    elif hasattr(_X, 'toarray'):
+        # scipy sparse
         _X = _X.toarray()
-    except:
-        pass
-
-
-    # IF dask CONVERT TO np/pd
-    if hasattr(_X, 'compute'):
+    elif hasattr(_X, 'clone'):
+        # polars
+        _X = _X.to_numpy()
+    elif hasattr(_X, 'compute'):
+        # dask
         _X = _X.compute()
 
-
-    # IF pd CONVERT TO np
-    if isinstance(_X, (pd.core.series.Series, pd.core.frame.DataFrame)):
+    # do pd separate, dask compute may output a dataframe
+    if isinstance(_X, (pd.Series, pd.DataFrame)):
+        # pandas
         _X = _X.to_numpy()
 
 
-    # # IF polars CONVERT TO np
-    if isinstance(_X, (pl.DataFrame)):
-        _X = _X.to_numpy()
+    # standardize all nans to np
+    try:
+        # will except on int dtype
+        _og_dtype = _X.dtype
+        _X = _X.astype(np.float64)
+        _X[nan_mask(_X)] = np.nan
+        _X = _X.astype(_og_dtype)
+        del _og_dtype
+    except Exception as e:
+        # can only kick out to here if non-numeric
+        try:
+            _X[nan_mask(_X)] = np.nan
+        except:
+            pass
 
+    # if is not an integer dtype, try to cast to float
+    # (it might be all numbers but as object dtype)
+    try:
+        if 'int' in str(_X.dtype).lower():
+            raise Exception
+        _X = _X.astype(np.float64)
+    except Exception as e:
+        pass
 
-    _X = np.array(_X)
+    # END convert to ndarray -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # *** _X MUST BE np ***
 
     if not isinstance(_X, np.ndarray):
-        raise TypeError(f"X is an invalid data-type {type(_X)}")
+        raise TypeError(
+            f"X is an invalid data-type {type(_X)} after trying to cast "
+            f"to ndarray."
+        )
+
 
     return _X
 

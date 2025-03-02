@@ -257,7 +257,7 @@ class TestCopyX:
     @staticmethod
     @pytest.fixture(scope='module')
     def _client():
-        client = distributed.Client(n_workers=None, threads_per_worker=1)
+        client = distributed.Client(n_workers=1, threads_per_worker=1)
         yield client
         client.close()
 

@@ -148,8 +148,8 @@ def check_is_fitted(
 
 
     default_msg = (
-        f"This {type(estimator).__name__} instance is not fitted yet.\n"
-        f"Call 'fit' with appropriate arguments before using this "
+        f"This {type(estimator).__name__} instance is not fitted yet."
+        f"\nCall 'fit' with appropriate arguments before using this "
         f"estimator."
     )
 

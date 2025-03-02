@@ -79,6 +79,10 @@ def copy_X(
     ):
         raise TypeError(f"copy_X(): unsupported container {type(X)}")
 
+    if isinstance(X, np.recarray):
+        raise TypeError(f"copy_X(): unsupported container {type(X)}")
+
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     if hasattr(X, 'clone'):
         _X = X.clone()

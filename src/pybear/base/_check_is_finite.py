@@ -35,11 +35,11 @@ SparseTypes: TypeAlias = Union[
 
 def check_is_finite(
     X: Union[npt.NDArray, pd.DataFrame, SparseTypes],
-    allow_nan: bool=True,
-    allow_inf: bool=True,
-    cast_inf_to_nan: bool=True,
-    standardize_nan: bool=True,
-    copy_X: bool=True
+    allow_nan:bool = True,
+    allow_inf:bool = True,
+    cast_inf_to_nan:bool = True,
+    standardize_nan:bool = True,
+    copy_X:bool = True
 ) -> Union[npt.NDArray, pd.DataFrame, SparseTypes]:
 
     """
@@ -101,7 +101,9 @@ def check_is_finite(
             f"'X' cannot be a python builtin iterable, got {type(X)}."
         )
 
-    for _param in (allow_nan, allow_inf, cast_inf_to_nan, standardize_nan, copy_X):
+    for _param in (
+        allow_nan, allow_inf, cast_inf_to_nan, standardize_nan, copy_X
+    ):
         if not isinstance(_param, bool):
             raise TypeError(
                 f":param: {_param} must be boolean, got {type(_param)}."
