@@ -289,6 +289,9 @@ class TestCopyX:
         # the _value number is rigged. set always sorts, so need to make _value
         # be something that will always sort to the first position
 
+        # must use _client. somehow some way the accuracy of the dask outputs
+        # is wrong when not using it.
+
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
         if _dim == 1 and _container in [pd.DataFrame, pl.DataFrame, ddf.DataFrame]:
             pytest.skip(f'impossible condition')
