@@ -86,30 +86,6 @@ class TextRemover(
     the rows in the target match the rows in the data after transform.
 
 
-    TypeAliases
-    -----------
-    XContainer:
-        Union[Sequence[str], Sequence[Sequence[str]]]
-
-    StrType:
-        Union[str, set[str]]
-    StrRemoveType:
-        Union[None, StrType, list[Union[StrType, Literal[False]]]]
-
-    RegExpType:
-        Union[str, re.Pattern]
-    RegExpRemoveType:
-        Union[None, RegExpType, list[Union[RegExpType, Literal[False]]]]
-
-    FlagType:
-        Union[None, numbers.Integral]
-    RegExpFlagsType:
-        Union[FlagType, list[Union[FlagType, Literal[False]]]]
-
-    RowSupportType:
-        numpy.typing.NDArray[bool]
-
-
     Parameters
     ----------
     str_remove:
@@ -151,6 +127,32 @@ class TextRemover(
         in the data during the transform process. Only available if a
         transform has been performed, and only reflects the results of
         the last transform done.
+
+
+    Notes
+    -----
+    Type Aliases
+
+    XContainer:
+        Union[Sequence[str], Sequence[Sequence[str]]]
+
+    StrType:
+        Union[str, set[str]]
+    StrRemoveType:
+        Union[None, StrType, list[Union[StrType, Literal[False]]]]
+
+    RegExpType:
+        Union[str, re.Pattern]
+    RegExpRemoveType:
+        Union[None, RegExpType, list[Union[RegExpType, Literal[False]]]]
+
+    FlagType:
+        Union[None, numbers.Integral]
+    RegExpFlagsType:
+        Union[FlagType, list[Union[FlagType, Literal[False]]]]
+
+    RowSupportType:
+        numpy.typing.NDArray[bool]
 
 
     See Also

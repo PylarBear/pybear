@@ -64,8 +64,21 @@ class NanStandardizer(
     fitted, the fit and partial_fit methods are no-ops.
 
 
-    TypeAliases
-    -----------
+    Parameters
+    ----------
+    new_value:
+        Optional[any], default=np.nan - the new value to put in place of
+        the nan-like values. There is no validation for this value, the
+        user is free to enter whatever they like. If there is a casting
+        problem, i.e., the receiving object, the data, will not receive
+        the given value, then any exceptions would be raised by the
+        receiving object.
+
+
+    Notes
+    -----
+    Type Aliases
+
     NumpyTypes: npt.NDArray[numbers.Real]
 
     PandasTypes: Union[pd.DataFrame, pd.Series]
@@ -78,17 +91,6 @@ class NanStandardizer(
         ss._dia.dia_array, ss._bsr.bsr_array]
 
     XContainer: Union[NumpyTypes, PandasType, PolarsType, SparseTypes]
-
-
-    Parameters
-    ----------
-    new_value:
-        Optional[any], default=np.nan - the new value to put in place of
-        the nan-like values. There is no validation for this value, the
-        user is free to enter whatever they like. If there is a casting
-        problem, i.e., the receiving object, the data, will not receive
-        the given value, then any exceptions would be raised by the
-        receiving object.
 
 
     See Also

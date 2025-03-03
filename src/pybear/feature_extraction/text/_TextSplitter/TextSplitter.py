@@ -101,39 +101,6 @@ class TextSplitter(
     of the splits for all separators.
 
 
-    Type Aliases
-    ------------
-    XContainer:
-        Sequence[str]
-
-    SepType:
-        Union[str, set[str], None]
-
-    StrSepType:
-        Union[SepType, list[Union[SepType, Literal[False]]]]
-
-    RegExpType:
-        Union[str, re.Pattern]
-
-    RegExpSepType:
-        Union[RegExpType, None, list[Union[RegExpType, Literal[False]]]]
-
-    MaxSplitType:
-        Union[numbers.Integral, None]
-
-    StrMaxSplitType:
-        Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
-
-    RegExpMaxSplitType:
-        Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
-
-    FlagType:
-        Union[numbers.Integral, None]
-
-    RegExpFlagsType:
-        Union[FlagType, list[Union[FlagType, Literal[False]]]]
-
-
     Parameters
     ----------
     str_sep:
@@ -191,6 +158,41 @@ class TextSplitter(
 
     Notes
     -----
+    Type Aliases
+
+    XContainer:
+        Sequence[str]
+
+    SepType:
+        Union[str, set[str], None]
+
+    StrSepType:
+        Union[SepType, list[Union[SepType, Literal[False]]]]
+
+    RegExpType:
+        Union[str, re.Pattern]
+
+    RegExpSepType:
+        Union[RegExpType, None, list[Union[RegExpType, Literal[False]]]]
+
+    MaxSplitType:
+        Union[numbers.Integral, None]
+
+    StrMaxSplitType:
+        Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
+
+    RegExpMaxSplitType:
+        Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
+
+    FlagType:
+        Union[numbers.Integral, None]
+
+    RegExpFlagsType:
+        Union[FlagType, list[Union[FlagType, Literal[False]]]]
+
+
+    See Also
+    --------
     str.split()
     re.split()
 
