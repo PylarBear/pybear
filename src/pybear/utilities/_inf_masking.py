@@ -8,6 +8,7 @@
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from typing_extensions import Union, TypeAlias
@@ -15,6 +16,13 @@ import numpy.typing as npt
 
 
 
+NumpyTypes: TypeAlias = npt.NDArray
+
+PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+
+PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+
+# dok & lil intentionally omitted
 SparseTypes: TypeAlias = Union[
     ss._csr.csr_matrix,
     ss._csc.csc_matrix,
@@ -28,11 +36,12 @@ SparseTypes: TypeAlias = Union[
     ss._bsr.bsr_array
 ]
 
+XContainer: TypeAlias = Union[NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
 
 
 
 def inf_mask(
-    obj: Union[npt.NDArray, pd.DataFrame, SparseTypes]
+    obj: XContainer
 ) -> npt.NDArray[bool]:
 
     """
@@ -42,20 +51,25 @@ def inf_mask(
     -math.inf, str('inf'), str('-inf'), float('inf'), 'float('-inf'),
     'decimal.Decimal('Infinity'), and 'decimal.Decimal('-Infinity').
 
-    This module accepts numpy arrays, pandas dataframes, and all scipy
-    sparse matrices/arrays except dok and lil formats. In all cases,
-    the boolean mask is generated from a numpy array representation of
-    the data. For numpy arrays, they are handled as is. For pandas
-    dataframes, the given data is converted to a numpy array via the
-    to_numpy() method for handling. For scipy sparse objects, the 'data'
+    This module accepts numpy arrays, pandas series and dataframes,
+    polars series and dataframes, and all scipy sparse matrices/arrays
+    except dok and lil formats. In all cases, the given containers are
+    ultimately coerced to a numpy representation of the data. The boolean
+    mask is then generated from the numpy container. Numpy arrays are
+    handled as is. Pandas objects are converted to a numpy array via the
+    to_numpy() method. Polars objects are coerced to a pandas dataframe
+    by the 'to_pandas' method. It is up to the user to ensure the
+    particular infinity-like values you are using in a polars container
+    are preserved when converted to a pandas dataframe by this method.
+    The new pandas container is then handled in the same way as any other
+    passed pandas container. For scipy sparse objects, the 'data'
     attribute (which is a numpy ndarray) is extracted.
 
-    In the cases of numpy arrays and pandas dataframes of shape
-    (n_samples, n_features), return an identically shaped boolean numpy
-    array. In the case of a numpy 1D vector, return an identically shaped
-    boolean numpy vector. In the cases of scipy sparse objects, return a
-    boolean numpy vector of shape equal to that of the 'data' attribute
-    of the sparse object.
+    In the cases of 1D and 2D numpy, pandas, and polars objects of shape
+    (n_samples, ) or (n_samples, n_features), return an identically
+    shaped boolean numpy array. In the cases of scipy sparse objects,
+    return a boolean numpy vector of shape equal to that of the 'data'
+    attribute of the sparse object.
 
     'dok' is the only scipy sparse format that doesnt have a 'data'
     attribute, and for that reason it is not handled by inf_mask().
@@ -67,8 +81,8 @@ def inf_mask(
     values in float dtype data. All infinity-like forms mentioned above
     are found by this function in float dtype data.
 
-    Of the containers handled by this module, none of them allow for
-    infinity-like values in integer dtype data. This makes for
+    Of the third-party containers handled by this module, none of them
+    allow for infinity-like values in integer dtype data. This makes for
     straightforward handling of these objects, in that every position in
     the returned boolean mask must be False.
 
@@ -89,7 +103,7 @@ def inf_mask(
     Parameters
     ----------
     obj:
-        NDArray, pandas.DataFrame, or scipy.sparse[float, int], of shape
+        Union[NumpyTypes, PandasTypes, PolarsTypes, SparseTypes] of shape
         (n_samples, n_features) or (n_samples, ) - the object for which
         to mask infinity-like representations.
 
@@ -97,15 +111,62 @@ def inf_mask(
     Return
     ------
     mask:
-        NDArray[bool], of shape (n_samples, n_features) or of shape
-        (n_samples, ) or of shape (n_non_zero_values, ), indicating
-        infinity-like representations in 'obj' via the value boolean
-        True. Values that are not infinity-like are False.
+        NDArray[bool], of shape (n_samples, n_features), (n_samples, ),
+        or of shape (n_non_zero_values, ), indicating infinity-like
+        representations in 'obj' via the value boolean True. Values that
+        are not infinity-like are False.
+
+
+    Notes
+    -----
+    Type Aliases
+
+    NumpyTypes:
+        npt.NDArray
+
+    PandasTypes:
+        Union[pd.Series, pd.DataFrame]
+
+    PolarsTypes:
+        Union[pl.Series, pl.DataFrame]
+
+    SparseTypes:
+        Union[
+            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
+            ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
+            ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
+            ss._bsr.bsr_array
+        ]
+
+    XContainer:
+        Union[NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+
+
+    See Also
+    --------
+    numpy.isinf, numpy.inf, numpy.PINF, numpy.NINF, math.inf, str('inf'),
+    float('inf'), 'decimal.Decimal('Infinity').
+
+
+    Examples
+    --------
+    >>> from pybear.utilities import inf_mask
+    >>> import numpy as np
+    >>> X = np.arange(5).astype(np.float64)
+    >>> X[1] = float('inf')
+    >>> X[-1] = float('-inf')
+    >>> X
+    array([  0.,  inf,   2.,   3., -inf])
+    >>> inf_mask(X)
+    array([False,  True, False, False,  True])
+
 
     """
 
+
     _err_msg = (
-        f"'obj' must be an array-like with a copy() method, such as numpy "
+        f"'obj' must be an array-like with copy() or clone() methods, "
+        f"such as numpy "
         f"array, pandas dataframe, or scipy sparse matrix or array. if "
         f"passing a scipy sparse object, it cannot be dok or lil. python "
         f"builtin iterables such as list, tuple, or set, are not allowed."
@@ -115,7 +176,7 @@ def inf_mask(
         iter(obj)
         if isinstance(obj, (str, dict, list, tuple, set)):
             raise Exception
-        if not hasattr(obj, 'copy'):
+        if not hasattr(obj, 'copy') and not hasattr(obj, 'clone'):
             raise Exception
         if hasattr(obj, 'toarray'):
             if not hasattr(obj, 'data'):  # ss dok
@@ -127,10 +188,37 @@ def inf_mask(
     except:
         raise TypeError(_err_msg)
 
-    _ = obj.copy()
+
+    # cant use pybear.base.copy_X here, circular import
+    if hasattr(obj, 'clone'):
+        # Polars uses zero-copy conversion when possible, meaning the
+        # underlying memory is still controlled by Polars and marked
+        # as read-only. NumPy and Pandas may inherit this read-only
+        # flag, preventing modifications.
+        # Tests did not expose this as a problem like it did for numerical().
+        # just to be safe though, do this the same way as numerical().
+        _ = obj.to_pandas().copy()  # polars
+    # elif isinstance(obj, (list, tuple, set)):
+    #     # we cant just map list here, if 1D it is full of strings
+    #     # if one is str, assume all entries are not list-like
+    #     # what about non-str nans
+    #     if any(map(isinstance, obj, (str for i in obj))):
+    #         _ = list(deepcopy(obj))
+    #     elif any(map(lambda x: str(x).lower() == 'nan', obj)):
+    #         _ = list(deepcopy(obj))
+    #     elif any(map(lambda x: x is None, obj)):
+    #         _ = list(deepcopy(obj))
+    #     else:
+    #         # otherwise, assume all entries are list-like
+    #         _ = list(map(list, deepcopy(obj)))
+    #
+    #     _ = np.array(_)
+    else:
+        _ = _ = obj.copy()    # obj.copy()  # numpy, pandas, and scipy
+
 
     try:
-        _ = _.to_numpy()
+        _ = _.to_numpy()   # works for pandas and polars
     except:
         pass
 
@@ -148,7 +236,7 @@ def inf_mask(
         # otherwise, if data is already float dtype, then we are good here.
         return np.isinf(_.astype(np.float64)).astype(bool)
     except:
-        # fortunately, at creation of an str np array, if there are float
+        # fortunately, at creation of a str np array, if there are float
         # or str inf-likes in it, almost all of them are coerced to
         # str('inf') or str('-inf'). the exception is decimal.Decimal('Infinity')
         # and decimal.Decimal('-Infinity'), which are coerced to str('Infinity')
