@@ -7,6 +7,7 @@
 
 
 from ._cast_to_ndarray import cast_to_ndarray
+from ._check_1D_num_sequence import check_1D_num_sequence
 from ._check_dtype import check_dtype
 from ._check_feature_names import check_feature_names
 from ._check_n_features import check_n_features
@@ -36,6 +37,7 @@ from .mixins._SetParamsMixin import SetParamsMixin
 
 __all__ = [
     'cast_to_ndarray',
+    'check_1D_num_sequence',
     'check_dtype',
     'check_feature_names',
     'check_n_features',
