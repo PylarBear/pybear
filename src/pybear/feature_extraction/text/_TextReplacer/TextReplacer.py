@@ -137,8 +137,21 @@ class TextReplacer(
     identically-shaped list of python lists is returned.
 
 
+    Parameters
+    ----------
+    str_replace:
+        StrReplaceType, default=None - the
+        character substring(s) to replace by exact text matching and
+        their replacement(s). Uses str.replace. Case-sensitive.
+    regexp_replace:
+        RegExpReplaceType, default=None - the regular expression
+        pattern(s) to substitute and their replacement(s). Uses re.sub.
+
+
+    Notes
+    -----
     Type Aliases
-    ------------
+
     XContainer:
         Union[Sequence[str], Sequence[Sequence[str]]]
 
@@ -207,17 +220,6 @@ class TextReplacer(
             list[Union[TRRegExpReplaceArgsType, Literal[False]]],
             None
         ]
-
-
-    Parameters
-    ----------
-    str_replace:
-        StrReplaceType, default=None - the
-        character substring(s) to replace by exact text matching and
-        their replacement(s). Uses str.replace. Case-sensitive.
-    regexp_replace:
-        RegExpReplaceType, default=None - the regular expression
-        pattern(s) to substitute and their replacement(s). Uses re.sub.
 
 
     See Also

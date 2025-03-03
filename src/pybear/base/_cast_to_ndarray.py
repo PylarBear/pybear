@@ -84,7 +84,7 @@ def cast_to_ndarray(
     #     f"series or dataframe, scipy sparse matrix/array, dask array, "
     #     f"dataframe, or series."
     # )
-    # do not use the typealiases while still supporting py39
+    # dont use the type aliases while still supporting py39
     if not isinstance(X,
         (list, tuple, set, np.ndarray, np.ma.MaskedArray, pd.Series,
          pd.DataFrame, pl.Series, pl.DataFrame, da.Array, ddf.Series,
