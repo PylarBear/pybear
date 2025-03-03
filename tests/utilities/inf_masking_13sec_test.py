@@ -102,6 +102,83 @@ class Fixtures:
 class TestInfMaskNumeric(Fixtures):
 
 
+    @pytest.mark.parametrize('_container', (list, tuple, set))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_python_builtins_num(
+        self, _shape, truth_mask_1, truth_mask_2, _container, _dim, _trial,
+        _inf_type
+    ):
+
+        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if _container is set:
+            if _dim == 2:
+                pytest.skip(reason=f"cant have 2D set")
+            if _trial != 'trial_3':
+                # the masks have multiple inf values and set is screwing
+                # up the count for sets, just do the empty mask trial and
+                # see that it passes thru.
+                pytest.skip(reason=f"sets mess up the inf count")
+
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        X = np.random.uniform(0, 1, _shape)
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        if _dim == 1:
+            X = _container(X[:, 0].tolist())
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+        elif _dim == 2:
+            X = _container(map(_container, X))
+        else:
+            raise Exception
+
+
+        out = inf_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+
     # the only np numerical dtype that can take inf is np.float64
     # and it can take all of the inf-like forms tested here while staying
     # in the float64 dtype.
@@ -740,9 +817,7 @@ class TestInfMaskNumeric(Fixtures):
     # preserves all of the infs in a form that is recognized by inf_mask().
     # takeaway:
     # to_numpy() keeps all of these different infs in a recognizable form
-    def numpy_via_pd_made_with_various_inf_types(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _inf_type, _columns
-    ):
+    def test_numpy_via_pd_made_with_various_inf_types(self, _shape, _columns):
 
         X = pd.DataFrame(
             data = np.random.uniform(0, 1, _shape),
@@ -771,18 +846,6 @@ class TestInfMaskNumeric(Fixtures):
             X.iloc[_row_idx, _col_idx] = np.random.choice(_pool)
             MASK[_row_idx, _col_idx] = True
 
-        _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
-        assert len(_dtypes) == 1
-        _dtype = _dtypes[0]
-
-        if _inf_type in [
-            'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
-        ]:
-            # 'strinf' and decimalinf' are changing dtype from float64 to object!
-            assert _dtype == object
-        else:
-            assert _dtype == np.float64
-
         X = X.to_numpy()
 
         out = inf_mask(X)
@@ -800,6 +863,84 @@ class TestInfMaskString(Fixtures):
     @pytest.fixture()
     def _X(_shape):
         return np.random.choice(list('abcdefghij'), _shape, replace=True)
+
+
+    @pytest.mark.parametrize('_container', (list, tuple, set))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_python_builtins_str(
+        self, _X, truth_mask_1, truth_mask_2, _container, _dim, _trial, _inf_type,
+        _shape
+    ):
+
+        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if _container is set:
+            if _dim == 2:
+                pytest.skip(reason=f"cant have 2D set")
+            if _trial != 'trial_3':
+                # the masks have multiple inf values and set is screwing
+                # up the count for sets, just do the empty mask trial and
+                # see that it passes thru.
+                pytest.skip(reason=f"sets mess up the inf count")
+
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # remember to set str dtype like '<U10' to _X
+
+        X = _X.astype('<U20')
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        if _dim == 1:
+            X = _container(X[:, 0].tolist())
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+        elif _dim == 2:
+            X = _container(map(_container, X))
+        else:
+            raise Exception
+
+        out = inf_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
 
 
     # np str arrays can take all of the inf representations being tested.

@@ -6,15 +6,20 @@
 
 
 
+from typing import Iterable
+from typing_extensions import Union, TypeAlias
+import numpy.typing as npt
+
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
-from typing_extensions import Union, TypeAlias
-import numpy.typing as npt
 
 
+PythonTypes: TypeAlias = Union[list, tuple, set]
 
 NumpyTypes: TypeAlias = npt.NDArray
 
@@ -36,7 +41,8 @@ SparseTypes: TypeAlias = Union[
     ss._bsr.bsr_array
 ]
 
-XContainer: TypeAlias = Union[NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+XContainer: TypeAlias = \
+    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
 
 
 
@@ -48,30 +54,33 @@ def inf_mask(
     Return a boolean numpy array or vector indicating the locations of
     infinity-like values in the data. "Infinity-like values" include, at
     least, numpy.inf, -numpy.inf, numpy.PINF, numpy.NINF, math.inf,
-    -math.inf, str('inf'), str('-inf'), float('inf'), 'float('-inf'),
-    'decimal.Decimal('Infinity'), and 'decimal.Decimal('-Infinity').
+    -math.inf, str('inf'), str('-inf'), float('inf'), float('-inf'),
+    decimal.Decimal('Infinity'), and 'decimal.Decimal('-Infinity').
 
-    This module accepts numpy arrays, pandas series and dataframes,
-    polars series and dataframes, and all scipy sparse matrices/arrays
-    except dok and lil formats. In all cases, the given containers are
-    ultimately coerced to a numpy representation of the data. The boolean
-    mask is then generated from the numpy container. Numpy arrays are
-    handled as is. Pandas objects are converted to a numpy array via the
-    to_numpy() method. Polars objects are coerced to a pandas dataframe
-    by the 'to_pandas' method. It is up to the user to ensure the
-    particular infinity-like values you are using in a polars container
-    are preserved when converted to a pandas dataframe by this method.
-    The new pandas container is then handled in the same way as any other
-    passed pandas container. For scipy sparse objects, the 'data'
-    attribute (which is a numpy ndarray) is extracted.
+    This module accepts python lists, tuples, and sets, numpy arrays,
+    pandas series and dataframes, polars series and dataframes, and all
+    scipy sparse matrices/arrays except dok and lil formats. In all
+    cases, the given containers are ultimately coerced to a numpy
+    representation of the data. The boolean mask is then generated from
+    the numpy container. Numpy arrays are handled as is. Pandas objects
+    are converted to a numpy array via the to_numpy() method. Polars
+    objects are cast to a pandas dataframe by the 'to_pandas' method.
+    It is up to the user to ensure the particular infinity-like values
+    you are using in a polars container are preserved when converted to
+    a pandas dataframe by this method. The new pandas container is then
+    handled in the same way as any other passed pandas container. For
+    scipy sparse objects, the 'data' attribute (which is a numpy ndarray)
+    is extracted. This module does not accept ragged python built-in
+    containers, numpy recarrays, or numpy masked arrays.
 
-    In the cases of 1D and 2D numpy, pandas, and polars objects of shape
-    (n_samples, ) or (n_samples, n_features), return an identically
-    shaped boolean numpy array. In the cases of scipy sparse objects,
-    return a boolean numpy vector of shape equal to that of the 'data'
-    attribute of the sparse object.
+    In the cases of 1D and 2D shaped objects (such as python built-in,
+    numpy, pandas, or polars objects) of shape (n_samples, ) or
+    (n_samples, n_features), return an identically shaped boolean numpy
+    array. In the cases of scipy sparse objects, return a boolean numpy
+    vector of shape equal to that of the 'data' attribute of the sparse
+    object.
 
-    'dok' is the only scipy sparse format that doesnt have a 'data'
+    'dok' is the only scipy sparse format that does not have a 'data'
     attribute, and for that reason it is not handled by inf_mask().
     scipy sparse 'lil' cannot be masked in an elegant way, and for that
     reason it is also not handled by inf_mask(). All other scipy sparse
@@ -103,9 +112,9 @@ def inf_mask(
     Parameters
     ----------
     obj:
-        Union[NumpyTypes, PandasTypes, PolarsTypes, SparseTypes] of shape
-        (n_samples, n_features) or (n_samples, ) - the object for which
-        to mask infinity-like representations.
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes,
+        SparseTypes] of shape (n_samples, n_features) or (n_samples, ) -
+        the object for which to mask infinity-like representations.
 
 
     Return
@@ -120,6 +129,9 @@ def inf_mask(
     Notes
     -----
     Type Aliases
+
+    PythonTypes:
+        Union[list, tuple, set]
 
     NumpyTypes:
         npt.NDArray
@@ -139,13 +151,16 @@ def inf_mask(
         ]
 
     XContainer:
-        Union[NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+        Union[
+            PythonTypes, NumpyTypes, PandasTypes, PolarsTypes,
+            SparseTypes
+        ]
 
 
     See Also
     --------
     numpy.isinf, numpy.inf, numpy.PINF, numpy.NINF, math.inf, str('inf'),
-    float('inf'), 'decimal.Decimal('Infinity').
+    float('inf'), 'decimal.Decimal('Infinity')
 
 
     Examples
@@ -164,33 +179,69 @@ def inf_mask(
     """
 
 
+    # validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     _err_msg = (
         f"'obj' must be an array-like with copy() or clone() methods, "
-        f"such as numpy "
-        f"array, pandas dataframe, or scipy sparse matrix or array. if "
-        f"passing a scipy sparse object, it cannot be dok or lil. python "
-        f"builtin iterables such as list, tuple, or set, are not allowed."
+        f"such as python built-ins, "
+        f"\nnumpy arrays, pandas series/dataframes, polars "
+        f"series/arrays, or scipy sparse matrices/arrays. "
+        f"\nif passing a scipy sparse object, it cannot be dok or lil. "
+        f"\nnumpy recarrays or masked arrays are not allowed."
     )
 
     try:
         iter(obj)
-        if isinstance(obj, (str, dict, list, tuple, set)):
+        if isinstance(obj, (str, dict)):
             raise Exception
-        if not hasattr(obj, 'copy') and not hasattr(obj, 'clone'):
+        if isinstance(obj, tuple):
+            pass
+            # tuple doesnt have copy()
+            # notice the elif
+        elif not hasattr(obj, 'copy') and not hasattr(obj, 'clone'):
+            raise Exception
+        if isinstance(obj, (np.recarray, np.ma.MaskedArray)):
             raise Exception
         if hasattr(obj, 'toarray'):
             if not hasattr(obj, 'data'):  # ss dok
                 raise Exception
             elif all(map(isinstance, obj.data, (list for _ in obj.data))):  # ss lil
                 raise Exception
-            else:
-                obj = obj.data
     except:
         raise TypeError(_err_msg)
 
+    if isinstance(obj, (list, tuple, set)):
+        try:
+            # if is all strings, get these iterables out of the equation
+            if all(map(isinstance, obj, (str for _ in obj))):
+                raise Exception
+            # so it cant be all strings, but there might be some strings.
+            # of those that are not strings, if any are iterable it is
+            # ragged so reject.
+            if any(map(isinstance, obj, (str for _ in obj))):
+                if any(map(
+                    lambda x: isinstance(x, Iterable),
+                    [i for i in obj if not isinstance(i, str)]
+                )):
+                    raise UnicodeError
+            # cant be strings or a mix of strings and iters, so any iters means 2D
+            map(iter, X)
+            # if 2D, check for raggedness
+            if len(set(map(len, obj))) != 1:
+                raise UnicodeError
+        except UnicodeError:
+            raise ValueError(
+                f"inf_mask does not accept ragged python built-ins"
+            )
+        except:
+            # is 1D
+            pass
+
+    # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # cant use pybear.base.copy_X here, circular import
-    if hasattr(obj, 'clone'):
+    if hasattr(obj, 'toarray'):
+        _ = obj.data.copy()
+    elif hasattr(obj, 'clone'):
         # Polars uses zero-copy conversion when possible, meaning the
         # underlying memory is still controlled by Polars and marked
         # as read-only. NumPy and Pandas may inherit this read-only
@@ -198,21 +249,25 @@ def inf_mask(
         # Tests did not expose this as a problem like it did for numerical().
         # just to be safe though, do this the same way as numerical().
         _ = obj.to_pandas().copy()  # polars
-    # elif isinstance(obj, (list, tuple, set)):
-    #     # we cant just map list here, if 1D it is full of strings
-    #     # if one is str, assume all entries are not list-like
-    #     # what about non-str nans
-    #     if any(map(isinstance, obj, (str for i in obj))):
-    #         _ = list(deepcopy(obj))
-    #     elif any(map(lambda x: str(x).lower() == 'nan', obj)):
-    #         _ = list(deepcopy(obj))
-    #     elif any(map(lambda x: x is None, obj)):
-    #         _ = list(deepcopy(obj))
-    #     else:
-    #         # otherwise, assume all entries are list-like
-    #         _ = list(map(list, deepcopy(obj)))
-    #
-    #     _ = np.array(_)
+    elif isinstance(obj, (list, tuple, set)):
+        # we cant just map list here, could have strings inside
+        # but we do know its not ragged
+        try:
+            # if any strings inside, must be 1D
+            if any(map(isinstance, obj, (str for i in obj))):
+                raise Exception
+            # so there cant be any strings inside. now if there are iterables
+            # it must be 2D
+            list(map(iter, obj))
+            raise MemoryError
+        except MemoryError:
+            # for 2D
+            _ = list(map(list, deepcopy(obj)))
+        except Exception as e:
+            # for 1D
+            _ = list(deepcopy(obj))
+
+        _ = np.array(_)
     else:
         _ = _ = obj.copy()    # obj.copy()  # numpy, pandas, and scipy
 
