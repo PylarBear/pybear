@@ -5,7 +5,10 @@
 #
 
 
+
 import scipy.sparse as ss
+
+from ._copy_X import copy_X as _copy_X
 
 
 
@@ -18,10 +21,9 @@ def ensure_2D(
     Ensure that X has 2-dimensional shape, i.e., len(X.shape) == 2.
     If X is a 1D vector, assume the vector is a single feature of
     samples, not a single sample of features. X must have a 'shape'
-    attribute. If copy_X is True and X is given as 1-dimensional (this
-    is the only time copy_X matters), then X must have a 'copy' method.
-    This module does not accept python builtin iterables like list, set,
-    and tuple.
+    attribute. The only time copy_X matters is if copy_X is True and X
+    is 1-dimensional. This module does not accept python builtin
+    iterables like list, set, and tuple.
 
 
     Parameters
@@ -81,7 +83,7 @@ def ensure_2D(
             raise ValueError(f"'X' must have a 'copy' method.")
 
         if copy_X:
-            _X = X.copy()
+            _X = _copy_X(X)
         else:
             _X = X
 
