@@ -134,8 +134,6 @@ def nan_mask_numerical(
             elif all(map(isinstance, obj.data, (list for _ in obj.data))):
                 # ss lil
                 raise Exception
-            else:
-                obj = obj.data
     except:
         raise TypeError(_err_msg)
 
@@ -187,7 +185,9 @@ def nan_mask_numerical(
 
 
     # cant use pybear.base.copy_X here, circular import
-    if hasattr(obj, 'clone'):
+    if hasattr(obj, 'toarray'):
+        _ = obj.data.copy()
+    elif hasattr(obj, 'clone'):
         # Polars uses zero-copy conversion when possible, meaning the
         # underlying memory is still controlled by Polars and marked
         # as read-only. NumPy and Pandas may inherit this read-only
