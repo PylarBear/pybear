@@ -14,6 +14,7 @@ from ._check_is_finite import check_is_finite
 from ._check_is_fitted import check_is_fitted
 from ._check_scipy_sparse import check_scipy_sparse
 from ._check_shape import check_shape
+from ._copy_X import copy_X
 from ._ensure_2D import ensure_2D
 from ._get_feature_names import get_feature_names
 from ._get_feature_names_out import get_feature_names_out
@@ -42,6 +43,7 @@ __all__ = [
     'check_is_fitted',
     'check_scipy_sparse',
     'check_shape',
+    'copy_X',
     'ensure_2D',
     'get_feature_names',
     'get_feature_names_out',
