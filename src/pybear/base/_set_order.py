@@ -11,6 +11,7 @@ import numpy.typing as npt
 
 import numpy as np
 
+from ._copy_X import copy_X as _copy_X
 
 
 
@@ -74,7 +75,7 @@ def set_order(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     if copy_X:
-        _X = X.copy()
+        _X = _copy_X(X)
     else:
         _X = X
 

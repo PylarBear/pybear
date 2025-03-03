@@ -6,15 +6,17 @@
 
 
 
-from ..utilities._nan_masking import nan_mask
-from ..utilities._inf_masking import inf_mask
+from typing_extensions import Union, TypeAlias
+import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-from typing_extensions import Union, TypeAlias
-import numpy.typing as npt
+from ..utilities._nan_masking import nan_mask
+from ..utilities._inf_masking import inf_mask
+from ._copy_X import copy_X as _copy_X
+
 
 SparseTypes: TypeAlias = Union[
     ss._csr.csr_matrix,
@@ -182,7 +184,7 @@ def check_is_finite(
     # or we have infs and are converting over to nan
 
     if ((has_nan and standardize_nan) or (has_inf and cast_inf_to_nan)) and copy_X:
-        _X = X.copy()
+        _X = _copy_X(X)
     else:
         _X = X
 
