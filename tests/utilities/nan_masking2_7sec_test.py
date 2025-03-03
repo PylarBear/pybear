@@ -19,6 +19,9 @@ import pytest
 
 class TestNanMasking:
 
+    # by using nan_mask on ('flt', 'int', 'str', 'obj', 'hybrid'), both
+    # nan_mask_numerical and nan_mask_string are tested
+
     # tests using _X_factory. _X_factory is a fixture that can introduce
     # into X a controlled amount of nan-like representations.
 
@@ -29,19 +32,87 @@ class TestNanMasking:
 
 
     @pytest.mark.parametrize('_dim', (1, 2))
-    @pytest.mark.parametrize('X_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_container', (list, tuple, set))
+    @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9)) # use numbers, need exact
+    def test_accuracy_python_builtins(
+        self, _X_factory, _master_columns, _shape, _dim, _container, X_dtype, _has_nan
+    ):
+
+        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        if _container is set:
+            if _dim == 2 :
+                pytest.skip(reason=f"cant have 2D sets")
+            # can only test this when there is only one nan-like in a set!
+            # otherwise, set will consolidate similar nans and change the count!
+            if _has_nan > 1:
+                pytest.skip(reason=f'have multiple similar nans with set')
+        if X_dtype == 'hybrid' and _dim == 1:
+            pytest.skip(reason=f'cant have hybrid when a single vector')
+
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        _X = _X_factory(
+            _dupl=None,
+            _format='np',
+            _dtype=X_dtype,
+            _has_nan=_has_nan,
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
+
+        if _dim == 1:
+            _X = _container(_X[:, 0])
+        elif _dim == 2:
+            _X = _container(map(_container, _X))
+        else:
+            raise Exception
+
+        assert isinstance(_X, _container)
+
+        OUT = nan_mask(_X)
+
+        assert isinstance(OUT, np.ndarray)
+
+        _n_columns = 1 if _dim == 1 else OUT.shape[1]
+        for _col_idx in range(_n_columns):
+
+            if _dim == 1:
+                measured_num_nans = np.sum(OUT)
+            else:
+                measured_num_nans = np.sum(OUT[:, _col_idx])
+
+            if _has_nan is False:
+                assert measured_num_nans == 0
+            else:
+                assert measured_num_nans == _has_nan
+
+
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'np_masked'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9)) # use numbers, need exact
     def test_accuracy_np_pd(
         self, _X_factory, _master_columns, _shape, _dim, X_format, X_dtype, _has_nan
     ):
 
-        # by using nan_mask on ('flt', 'int', 'str', 'obj', 'hybrid'), both
-        # nan_mask_numerical and nan_mask_string are tested
+        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if X_dtype == 'hybrid' and _dim == 1:
+            pytest.skip(reason=f'cant have hybrid when a single vector')
+
+        # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        _format_dict = {
+            'np': 'np',
+            'pd': 'pd',
+            'np_masked': 'np'
+        }
 
         _X = _X_factory(
             _dupl=None,
-            _format=X_format,
+            _format=_format_dict[X_format],
             _dtype=X_dtype,
             _has_nan=_has_nan,
             _columns=_master_columns[:_shape[1]] if X_format == 'pd' else None,
@@ -54,6 +125,12 @@ class TestNanMasking:
                 _X = _X[:, 0]
             elif X_format == 'pd':
                 _X = _X.iloc[:, 1].squeeze()
+
+        if X_format == 'np_masked':
+            _X = np.ma.masked_array(_X)
+            with pytest.raises(TypeError):
+                nan_mask(_X)
+            pytest.skip(reason=f"cant do rest of tests after except")
 
         OUT = nan_mask(_X)
 
@@ -135,7 +212,6 @@ class TestNanMasking:
     def test_accuracy_polars(
         self, _X_factory, _master_columns, _shape, _dim, X_dtype, _has_nan
     ):
-
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
