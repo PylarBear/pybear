@@ -204,7 +204,6 @@ class TestCastToNDArray:
         _X = list(map(list, _X_base_np))
         for row_idx in range(len(_X)):
             rand_len = np.random.randint(_shape[1]//2, _shape[1]+1)
-            print(f"{rand_len=}")
             _X[row_idx] = _X[row_idx][:rand_len]
 
         _X = _container(map(_container, _X))
