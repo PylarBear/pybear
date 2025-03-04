@@ -224,7 +224,7 @@ def inf_mask(
                 )):
                     raise UnicodeError
             # cant be strings or a mix of strings and iters, so any iters means 2D
-            map(iter, X)
+            map(iter, obj)
             # if 2D, check for raggedness
             if len(set(map(len, obj))) != 1:
                 raise UnicodeError
