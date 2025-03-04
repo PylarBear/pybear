@@ -75,15 +75,20 @@ def check_1D_str_sequence(
     -----
     Type Aliases
 
-    PythonTypes: Union[list, tuple, set]
+    PythonTypes:
+        Union[list, tuple, set]
 
-    NumpyTypes: npt.NDArray
+    NumpyTypes:
+        npt.NDArray
 
-    PandasTypes: pd.Series
+    PandasTypes:
+        pd.Series
 
-    PolarsTypes: pl.Series
+    PolarsTypes:
+        pl.Series
 
-    XContainer: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 
     Examples
@@ -101,7 +106,7 @@ def check_1D_str_sequence(
     """
 
 
-    _err_msg = f"Expected a 1D sequence of string values. "
+    _err_msg = f"Expected a 1D sequence of string-like values. "
     _addon = (
         f"\nAccepted containers are python lists, tuples, and sets, "
         f"numpy 1D arrays, pandas series, and polars series."
@@ -127,6 +132,8 @@ def check_1D_str_sequence(
             raise UnicodeError
         # inside cant have non-string iterables, but it may have funky
         # junk like nans
+        # dont validate if there are num/bool/whatever here, let that get
+        # picked up at the bottom of the module so it sends the correct error
         for __ in X:
             if isinstance(__, Iterable) and not isinstance(__, str):
                 raise Exception
@@ -165,12 +172,24 @@ def check_1D_str_sequence(
         )):
             raise TypeError(_err_msg)
     else:
+
         _finite = np.array(list(X))[np.logical_not(_non_finite_mask)]
-        if not all(map(isinstance, _finite, (str for i in _finite))):
+
+        if not all(map(
+            isinstance,
+            _finite,
+            (str for i in _finite)
+        )):
             raise TypeError(_err_msg)
+
         del _finite
 
     del _err_msg, _non_finite_mask
+
+
+
+
+
 
 
 

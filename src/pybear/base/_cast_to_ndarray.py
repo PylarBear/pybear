@@ -113,7 +113,6 @@ def cast_to_ndarray(
             map(list, _X)
             # must be 2D
             # if is ragged numpy will still make ndarray. dont let it.
-            print(list(map(len, _X)))
             if len(set(map(len, _X))) > 1:
                 raise UnicodeError
             _X = np.array(list(map, list(_X)))

@@ -6,7 +6,7 @@
 
 
 
-from typing import Optional
+from typing import Iterable, Optional
 import numpy.typing as npt
 from typing_extensions import TypeAlias, Union
 
@@ -77,15 +77,20 @@ def check_1D_num_sequence(
     -----
     Type Aliases
 
-    PythonTypes: Union[list, tuple, set]
+    PythonTypes:
+        Union[list, tuple, set]
 
-    NumpyTypes: npt.NDArray
+    NumpyTypes:
+        npt.NDArray
 
-    PandasTypes: pd.Series
+    PandasTypes:
+        pd.Series
 
-    PolarsTypes: pl.Series
+    PolarsTypes:
+        pl.Series
 
-    XContainer: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 
     Examples
@@ -127,15 +132,13 @@ def check_1D_num_sequence(
             if len(getattr(X, 'shape')) != 1:
                 raise Exception
             raise UnicodeError
-        # inside cant have iterables, including strings
+        # inside cant have non-string iterables, but it may have funky
+        # junk like nans
+        # dont validate if there are non-num here, let that get picked
+        # up at the bottom of the module so it sends the correct error
         for __ in X:
-            try:
-                iter(__)
-                raise UnicodeError
-            except UnicodeError:
+            if isinstance(__, Iterable) and not isinstance(__, str):
                 raise Exception
-            except Exception as e:
-                continue
     except UnicodeError:
         pass
     except Exception as e:
@@ -171,9 +174,21 @@ def check_1D_num_sequence(
         )):
             raise TypeError(_err_msg)
     else:
+
         _finite = np.array(list(X))[np.logical_not(_non_finite_mask)]
-        if not all(map(isinstance, _finite, (numbers.Number for i in _finite))):
+
+        try:
+            _finite = _finite.astype(np.float64)
+        except:
+            pass
+
+        if not all(map(
+            isinstance,
+            _finite,
+            (numbers.Number for i in _finite)
+        )):
             raise TypeError(_err_msg)
+
         del _finite
 
     del _err_msg, _non_finite_mask
