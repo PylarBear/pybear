@@ -62,7 +62,7 @@ class TestCheck1DNumSequence:
     @pytest.mark.parametrize('container',
         (list, tuple, set, np.array, pd.Series, pl.Series)
     )
-    def test_accepts_good_and_require_finite(
+    def test_accuracy(
         self, require_finite, has_non_finite, container
     ):
 

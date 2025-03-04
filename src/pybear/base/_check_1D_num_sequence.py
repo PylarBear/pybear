@@ -33,9 +33,8 @@ XContainer: TypeAlias = \
 
 
 
-
 def check_1D_num_sequence(
-    num_sequence:XContainer[numbers.Number],
+    X:XContainer[numbers.Number],
     require_all_finite:Optional[bool] = False
 ) -> None:
 
@@ -52,7 +51,7 @@ def check_1D_num_sequence(
 
     Parameters
     ----------
-    num_sequence:
+    X:
         XContainer[numbers.Number] - something that is expected to be a
         1D sequence of numbers.
     require_all_finite:
@@ -86,8 +85,6 @@ def check_1D_num_sequence(
 
     PolarsTypes: pl.Series
 
-    DaskTypes: Union[da.Array, ddf.Series]
-
     XContainer: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 
@@ -109,28 +106,29 @@ def check_1D_num_sequence(
     _err_msg = f"Expected a 1D sequence of number-like values. "
     _addon = (
         f"\nAccepted containers are python lists, tuples, and sets, "
-        f"\nnumpy 1D arrays, pandas series, polars series, dask 1D "
-        f"\narrays, and dask series."
+        f"numpy 1D arrays, pandas series, polars series."
     )
 
 
     # block disallowed containers -- -- -- -- -- -- -- -- -- -- -- -- --
-    if hasattr(num_sequence, 'toarray'):
+    if hasattr(X, 'toarray'):
         raise TypeError(_err_msg + _addon)
-    if isinstance(num_sequence, (pd.DataFrame, pl.DataFrame, ddf.DataFrame)):
+    if isinstance(X, (pd.DataFrame, pl.DataFrame, ddf.DataFrame)):
         raise TypeError(_err_msg + _addon)
 
     try:
         # must be iterable
-        iter(num_sequence)
+        iter(X)
         # cant be string or dict
-        if isinstance(num_sequence, (str, dict)):
+        if isinstance(X, (str, dict)):
             raise Exception
         # handle dask or anything with shape attr directly
-        if len(getattr(num_sequence, 'shape', [1])) != 1:
-            raise Exception
+        if hasattr(X, 'shape'):
+            if len(getattr(X, 'shape')) != 1:
+                raise Exception
+            raise UnicodeError
         # inside cant have iterables, including strings
-        for __ in num_sequence:
+        for __ in X:
             try:
                 iter(__)
                 raise UnicodeError
@@ -138,7 +136,9 @@ def check_1D_num_sequence(
                 raise Exception
             except Exception as e:
                 continue
-    except:
+    except UnicodeError:
+        pass
+    except Exception as e:
         raise TypeError(_err_msg + _addon)
 
     del _addon
@@ -149,10 +149,10 @@ def check_1D_num_sequence(
     # it may have junky values like pd.NA
 
     # need to know this whether or not disallowing non-finite
-    _non_finite_mask = nan_mask(num_sequence).astype(np.uint8)
-    _non_finite_mask += inf_mask(num_sequence).astype(np.uint8)
+    _non_finite_mask = nan_mask(X).astype(np.uint8)
+    _non_finite_mask += inf_mask(X).astype(np.uint8)
     _non_finite_mask = _non_finite_mask.astype(bool)
-    if not any(_non_finite_mask):
+    if not np.any(_non_finite_mask):
         # if its all false, save the memory
         _non_finite_mask = []
 
@@ -166,12 +166,12 @@ def check_1D_num_sequence(
     if not any(_non_finite_mask):
         if not all(map(
             isinstance,
-            num_sequence,
-            (numbers.Number for i in num_sequence)
+            X,
+            (numbers.Number for i in X)
         )):
             raise TypeError(_err_msg)
     else:
-        _finite = np.array(list(num_sequence))[np.logical_not(_non_finite_mask)]
+        _finite = np.array(list(X))[np.logical_not(_non_finite_mask)]
         if not all(map(isinstance, _finite, (numbers.Number for i in _finite))):
             raise TypeError(_err_msg)
         del _finite

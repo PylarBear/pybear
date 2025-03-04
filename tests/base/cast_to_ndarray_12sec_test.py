@@ -268,6 +268,7 @@ class TestCastToNDArray:
 
         # assertions -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         assert isinstance(out, np.ndarray)
+        assert not isinstance(out, np.ma.MaskedArray)
 
         if _dim == 1:
             assert len(out.shape) == 1
