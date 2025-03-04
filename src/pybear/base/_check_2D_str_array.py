@@ -73,15 +73,20 @@ def check_2D_str_array(
     -----
     Type Aliases
 
-    PythonTypes: Union[list[list], tuple[tuple]]
+    PythonTypes:
+        Union[list[list], tuple[tuple]]
 
-    NumpyTypes: npt.NDArray
+    NumpyTypes:
+        npt.NDArray
 
-    PandasTypes: pd.DataFrame
+    PandasTypes:
+        pd.DataFrame
 
-    PolarsTypes: pl.DataFrame
+    PolarsTypes:
+        pl.DataFrame
 
-    XContainer: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 
     Examples
@@ -113,6 +118,9 @@ def check_2D_str_array(
     if isinstance(X, (pd.Series, pl.Series, ddf.Series)):
         raise TypeError(_err_msg + _addon)
 
+    if hasattr(X, 'toarray'):   # scipy
+        raise TypeError(_err_msg + _addon)
+
     try:
         # must be iterable
         iter(X)
@@ -131,30 +139,83 @@ def check_2D_str_array(
     except UnicodeError:
         pass
     except Exception as e:
-        raise TypeError(f"'expected a 2D array of strings'")
+        raise TypeError(_err_msg + _addon)
     # END block disallowed containers -- -- -- -- -- -- -- -- -- -- --
 
+    # define function to manage error handling -- -- -- -- -- -- -- --
+    def _exception_helper(
+        _X_object,
+        _require_all_finite: Iterable[bool],
+    ) -> None:
+
+        """
+        The errors raised below come from 1D files. Override with
+        new error message for 2D. This verbiage needs to be managed to
+        handle errors correctly in check_dtype().
+        """
+
+        from . import check_1D_str_sequence
+        nonlocal _err_msg
+
+        _callable = check_1D_str_sequence
+        _fxn_name = check_1D_str_sequence.__name__
+
+        try:
+            list(map(
+                _callable,
+                _X_object,
+                (require_all_finite for _ in _X_object)
+            ))
+            # this could raise for
+            # ValueError - non-finite when not allowed
+            # TypeError - bad container or bad dtype
+        except ValueError as v:
+            raise v from None
+        except TypeError as t:
+
+            _base = f"Expected a 1D sequence of string-like values."
+            _bad_container = f"Accepted containers are python lists,"
+
+            # this should be in both
+            assert _base in str(t)
+
+            if _bad_container not in str(t):
+                # then raised for bad dtype
+                raise TypeError(_err_msg)
+            elif _bad_container in str(t):
+                # this is for bad container
+                # not expecting this to ever raise!
+                raise Exception(
+                    f"unexpected container error from {_fxn_name}"
+                )
+            else:
+                raise Exception(
+                    f"unexpected exception string from {_fxn_name}"
+                )
+
+        except Exception as e:
+            raise Exception(
+                f"{_fxn_name} raised for reason other than TypeError or "
+                f"ValueError."
+            )
+    # END helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     if isinstance(X, pd.DataFrame):   # pandas
-        list(map(
-            check_1D_str_sequence,
+        _exception_helper(
             X.values,
             (require_all_finite for _ in X.values)
-        ))
+        )
     elif isinstance(X, pl.DataFrame):   # polars
-        list(map(
-            check_1D_str_sequence,
+
+        _exception_helper(
             X.rows(),
             (require_all_finite for _ in X.rows())
-        ))
+        )
     else:
-        list(map(
-            check_1D_str_sequence,
+        _exception_helper(
             X,
             (require_all_finite for _ in X)
-        ))
-
-
+        )
 
 
 
