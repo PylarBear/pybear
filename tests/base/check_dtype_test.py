@@ -5,22 +5,35 @@
 #
 
 
+
 from pybear.base._check_dtype import check_dtype
 
-import numpy as np
-
 import pytest
+
+import numpy as np
+import scipy.sparse as ss
+import polars as pl
+
+from pybear.utilities._nan_masking import nan_mask
 
 
 
 
 class TestCheckDtype:
 
-
-    # def check_dtype(
+    # check_dtype(
     #     X,
-    #     allowed: Literal['numeric', 'any']='any'
+    #     allowed:Optional[Literal['numeric', 'str', 'any']] = 'any',
+    #     require_all_finite:Optional[bool] = False
     # ) -> None:
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _shape():
+        return (8, 5)
+
+
 
     # validation * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
@@ -32,28 +45,65 @@ class TestCheckDtype:
         with pytest.raises(TypeError):
             check_dtype(
                 np.random.randint(0, 10, (8,5)),
-                allowed=junk_allowed
+                allowed=junk_allowed,
+                require_all_finite=False
             )
 
 
     @pytest.mark.parametrize('bad_allowed',
         ('junk', 'trash', 'garbage', 'waste', 'rubbish')
     )
-    def test_blocks_junk_allowed(self, bad_allowed):
+    def test_blocks_bad_allowed(self, bad_allowed):
 
         with pytest.raises(ValueError):
             check_dtype(
                 np.random.randint(0, 10, (8,5)),
-                allowed=bad_allowed
+                allowed=bad_allowed,
+                require_all_finite=False
             )
 
 
-    @pytest.mark.parametrize('good_allowed', ('numeric', 'any'))
-    def test_blocks_junk_allowed(self, good_allowed):
+    @pytest.mark.parametrize('good_allowed', ('numeric', 'str', 'any'))
+    def test_accepts_good_allowed(self, good_allowed):
+
+        if good_allowed in ['numeric', 'any']:
+            out = check_dtype(
+                np.random.randint(0, 10, (8,5)),
+                allowed=good_allowed,
+                require_all_finite=False
+            )
+
+        if good_allowed in ['str', 'any']:
+            out = check_dtype(
+                np.random.choice(list('abcde'), (8,5), replace=True),
+                allowed=good_allowed,
+                require_all_finite=False
+            )
+
+        assert out is None
+
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    @pytest.mark.parametrize('junk_require_all_finite',
+        (-2.7, -1, 0, 1, 2.7, None, [0,1], (0,1), {'A':1}, lambda x: x)
+    )
+    def test_blocks_junk_require_all_finite(self, junk_require_all_finite):
+
+        with pytest.raises(TypeError):
+            check_dtype(
+                np.random.randint(0, 10, (8,5)),
+                allowed='any',
+                require_all_finite=junk_require_all_finite
+            )
+
+
+    @pytest.mark.parametrize('good_require_all_finite', (True, False))
+    def test_accepts_good_require_all_finite(self, good_require_all_finite):
 
         out = check_dtype(
             np.random.randint(0, 10, (8,5)),
-            allowed=good_allowed
+            allowed='any',
+            require_all_finite=good_require_all_finite
         )
 
         assert out is None
@@ -61,85 +111,372 @@ class TestCheckDtype:
     # END validation * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _format_getter():
+        return {
+            'py_list': 'np',
+            'py_tuple': 'np',
+            'py_set': 'np',
+            'np': 'np',
+            'pd': 'pd',
+            'pl': 'np',
+            'csr': 'csr',
+            'csc': 'csc',
+            'coo': 'coo'
+        }
 
-    @pytest.mark.parametrize('_allowed', ('numeric', 'any'))
+
+    @pytest.mark.parametrize('_require_all_finite', (True, False))
+    @pytest.mark.parametrize('_dim', (1, 2))
     @pytest.mark.parametrize('_format',
-        ('np', 'pd_df', 'pd_series', 'csr', 'csc', 'coo')
+        ('py_list', 'py_tuple', 'py_set', 'np', 'pd', 'pl', 'csr', 'csc', 'coo')
     )
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
-    def test_accuracy_numeric(
-        self, _X_factory, _allowed, _format, _dtype, _has_nan
+    def test_accuracy_any(
+        self, _X_factory, _shape, _format_getter, _require_all_finite, _dim,
+        _format, _dtype, _has_nan
     ):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
 
+        # scipy sparse can only be numeric
         if _format in ['csr', 'csc', 'coo'] and \
                 _dtype in ['str', 'obj', 'hybrid']:
             pytest.skip(reason=f"impossible condition")
 
-        # cant be hybrid (by the conftest meaning of hybrid) for pd_series
-        if _format == 'pd_series' and _dtype == 'hybrid':
+        # scipy sparse can only be 2D
+        if _format in ['csr', 'csc', 'coo'] and _dim == 1:
             pytest.skip(reason=f"impossible condition")
 
+        # cant be hybrid (by the conftest meaning of hybrid) for 1D
+        # each column has 1 dtype, must have multiple columns to be hybrid
+        if _dim == 1 and _dtype == 'hybrid':
+            pytest.skip(reason=f"impossible condition")
+
+        # cant be 2D sets
+        if _dim == 2 and _format == 'py_set':
+            pytest.skip(reason=f"impossible condition")
+
+        # this wont take any nans
+        if _dim == 2 and _format == 'pl' and _dtype=='hybrid':
+            pytest.skip(reason=f"this wont take any nans")
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _X_wip = _X_factory(
             _dupl=None,
             _constants=None,
-            _format=_format if 'pd' not in _format else 'pd',
+            _format=_format_getter[_format],
             _zeros=None,
             _columns=None,
             _has_nan=_has_nan,
-            _shape=(20,10),
+            _shape=_shape,  # conftest was built to take at least 2 columns
             _dtype=_dtype
         )
 
-        if _format == 'pd_series':
-            _X_wip = _X_wip.iloc[:, 0].squeeze()
+
+        if _format == 'py_list':
+            if _dim == 1:
+                _X_wip = _X_wip[:, 0].tolist()
+            elif _dim == 2:
+                _X_wip = list(map(list, _X_wip))
+        elif _format == 'py_tuple':
+            if _dim == 1:
+                _X_wip = tuple(_X_wip[:, 0].tolist())
+            elif _dim == 2:
+                _X_wip = tuple(map(tuple, _X_wip))
+        elif _format == 'py_set':
+            if _dim == 1:
+                _X_wip = set(_X_wip[:, 0].tolist())
+            elif _dim == 2:
+                raise Exception(f'this should have been skipped')
+        elif _format == 'np':
+            if _dim == 1:
+                _X_wip = _X_wip[:, 0]
+            elif _dim == 2:
+                pass
+        elif _format == 'pd':
+            if _dim == 1:
+                _X_wip = _X_wip.iloc[:, 0].squeeze()
+        elif _format == 'pl':
+            if _dim == 1:
+                _X_wip = pl.Series(_X_wip[:, 0])
+            elif _dim == 2:
+                _X_wip = pl.DataFrame(_X_wip)
+        elif _format == 'csr':
+            # can only be 2D
+            _X_wip = ss.csr_array(_X_wip)
+        elif _format == 'csc':
+            # can only be 2D
+            _X_wip = ss.csc_array(_X_wip)
+        elif _format == 'coo':
+            # can only be 2D
+            _X_wip = ss.coo_array(_X_wip)
+        else:
+            raise Exception
         # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        if _allowed == 'any':
-
+        if _require_all_finite and _has_nan:
+            with pytest.raises(ValueError):
+                check_dtype(
+                    _X_wip,
+                    allowed='any',
+                    require_all_finite=_require_all_finite
+                )
+        else:
             out = check_dtype(
                 _X_wip,
-                allowed=_allowed
+                allowed='any',
+                require_all_finite=_require_all_finite
             )
 
-            assert out is None
 
-        elif _allowed == 'numeric':
+    @pytest.mark.parametrize('_require_all_finite', (True, False))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_format',
+        ('py_list', 'py_tuple', 'py_set', 'np', 'pd', 'pl', 'csr', 'csc', 'coo')
+    )
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_has_nan', (5, False))
+    def test_accuracy_num(
+        self, _X_factory, _shape, _format_getter, _require_all_finite, _dim,
+        _format, _dtype, _has_nan
+    ):
 
-            if _dtype in ['int', 'flt']:
+        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
+
+        # scipy sparse can only be 2D
+        if _format in ['csr', 'csc', 'coo']:
+            if _dim == 1:
+                pytest.skip(reason=f"cant have 1D scipy sparse")
+            if _dtype in ['str', 'obj', 'hybrid']:
+                pytest.skip(reason=f"cant have str in scipy sparse")
+
+        # cant be hybrid (by the conftest meaning of hybrid) for 1D
+        # each column has 1 dtype, must have multiple columns to be hybrid
+        if _dim == 1 and _dtype == 'hybrid':
+            pytest.skip(reason=f"impossible condition")
+
+        # cant be 2D sets
+        if _dim == 2 and _format == 'py_set':
+            pytest.skip(reason=f"impossible condition")
+
+        # this wont take any nans
+        if _dim == 2 and _format == 'pl' and _dtype=='hybrid':
+            pytest.skip(reason=f"this wont take any nans")
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _X_wip = _X_factory(
+            _dupl=None,
+            _constants=None,
+            _format=_format_getter[_format],
+            _zeros=None,
+            _columns=None,
+            _has_nan=_has_nan,
+            _shape=_shape,  # conftest was built to take at least 2 columns
+            _dtype=_dtype
+        )
+
+
+        if _format == 'py_list':
+            if _dim == 1:
+                _X_wip = _X_wip[:, 0].tolist()
+            elif _dim == 2:
+                _X_wip = list(map(list, _X_wip))
+        elif _format == 'py_tuple':
+            if _dim == 1:
+                _X_wip = tuple(_X_wip[:, 0].tolist())
+            elif _dim == 2:
+                _X_wip = tuple(map(tuple, _X_wip))
+        elif _format == 'py_set':
+            if _dim == 1:
+                _X_wip = set(_X_wip[:, 0].tolist())
+            elif _dim == 2:
+                raise Exception(f'this should have been skipped')
+        elif _format == 'np':
+            if _dim == 1:
+                _X_wip = _X_wip[:, 0]
+            elif _dim == 2:
+                pass
+        elif _format == 'pd':
+            if _dim == 1:
+                _X_wip = _X_wip.iloc[:, 0].squeeze()
+        elif _format == 'pl':
+            if _dim == 1:
+                _X_wip = pl.Series(_X_wip[:, 0])
+            elif _dim == 2:
+                _X_wip = pl.DataFrame(_X_wip)
+        elif _format == 'csr':
+            # can only be 2D
+            _X_wip = ss.csr_array(_X_wip)
+        elif _format == 'csc':
+            # can only be 2D
+            _X_wip = ss.csc_array(_X_wip)
+        elif _format == 'coo':
+            # can only be 2D
+            _X_wip = ss.coo_array(_X_wip)
+        else:
+            raise Exception
+        # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if _dtype in ['int', 'flt']:
+
+            if _require_all_finite and _has_nan:
+                with pytest.raises(ValueError):
+                    check_dtype(
+                        _X_wip,
+                        allowed='numeric',
+                        require_all_finite=_require_all_finite
+                    )
+            else:
+
                 out = check_dtype(
                     _X_wip,
-                    allowed=_allowed
+                    allowed='numeric',
+                    require_all_finite=_require_all_finite
                 )
 
                 assert out is None
 
-            elif _dtype in ['str', 'obj', 'hybrid']:
+        else:
 
+            if _require_all_finite and _has_nan:
+                # this ValueError is for non-finite
+                _exp_error = ValueError
+            else:
+                # this TypeError would be for bad dtype, not bad container
+                # bad dtype always raises after the ValueError for non-finite
+                _exp_error = TypeError
+
+            with pytest.raises(_exp_error):
+
+                check_dtype(
+                    _X_wip,
+                    allowed='numeric',
+                    require_all_finite=_require_all_finite
+                )
+
+
+    @pytest.mark.parametrize('_require_all_finite', (True, False))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_format',
+        ('py_list', 'py_tuple', 'py_set', 'np', 'pd', 'pl')
+    )
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_has_nan', (5, False))
+    def test_accuracy_str(
+        self, _X_factory, _shape, _format_getter, _require_all_finite, _dim,
+        _format, _dtype, _has_nan
+    ):
+
+        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
+
+        # cant be hybrid (by the conftest meaning of hybrid) for 1D
+        # each column has 1 dtype, must have multiple columns to be hybrid
+        if _dim == 1 and _dtype == 'hybrid':
+            pytest.skip(reason=f"impossible condition")
+
+        # cant be 2D sets
+        if _dim == 2 and _format == 'py_set':
+            pytest.skip(reason=f"impossible condition")
+
+        # this wont take any nans
+        if _dim == 2 and _format == 'pl' and _dtype=='hybrid':
+            pytest.skip(reason=f"this wont take any nans")
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _X_wip = _X_factory(
+            _dupl=None,
+            _constants=None,
+            _format=_format_getter[_format],
+            _zeros=None,
+            _columns=None,
+            _has_nan=_has_nan,
+            _shape=_shape,  # conftest was built to take at least 2 columns
+            _dtype=_dtype
+        )
+
+
+        if _format == 'py_list':
+            if _dim == 1:
+                _X_wip = _X_wip[:, 0].tolist()
+            elif _dim == 2:
+                _X_wip = list(map(list, _X_wip))
+        elif _format == 'py_tuple':
+            if _dim == 1:
+                _X_wip = tuple(_X_wip[:, 0].tolist())
+            elif _dim == 2:
+                _X_wip = tuple(map(tuple, _X_wip))
+        elif _format == 'py_set':
+            if _dim == 1:
+                _X_wip = set(_X_wip[:, 0].tolist())
+            elif _dim == 2:
+                raise Exception(f'this should have been skipped')
+        elif _format == 'np':
+            if _dim == 1:
+                _X_wip = _X_wip[:, 0]
+            elif _dim == 2:
+                pass
+        elif _format == 'pd':
+            if _dim == 1:
+                _X_wip = _X_wip.iloc[:, 0].squeeze()
+        elif _format == 'pl':
+            if _dim == 1:
+                _X_wip = pl.Series(_X_wip[:, 0])
+            elif _dim == 2:
+                _X_wip = pl.DataFrame(_X_wip)
+        elif _format == 'csr':
+            # can only be 2D
+            _X_wip = ss.csr_array(_X_wip)
+        elif _format == 'csc':
+            # can only be 2D
+            _X_wip = ss.csc_array(_X_wip)
+        elif _format == 'coo':
+            # can only be 2D
+            _X_wip = ss.coo_array(_X_wip)
+        else:
+            raise Exception
+        # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if _dtype in ['str', 'obj']:
+
+            if _require_all_finite and _has_nan:
                 with pytest.raises(ValueError):
                     check_dtype(
                         _X_wip,
-                        allowed=_allowed
+                        allowed='str',
+                        require_all_finite=_require_all_finite
                     )
+            else:
+
+                out = check_dtype(
+                    _X_wip,
+                    allowed='str',
+                    require_all_finite=_require_all_finite
+                )
+
+                assert out is None
 
         else:
-            raise Exception
 
+            if _require_all_finite and _has_nan:
+                # this ValueError is for non-finite
+                _exp_error = ValueError
+            else:
+                # this TypeError would be for bad dtype, not bad container
+                # bad dtype always raises after the ValueError for non-finite
+                _exp_error = TypeError
 
-
-
-
-
-
-
-
-
-
+            with pytest.raises(_exp_error):
+                check_dtype(
+                    _X_wip,
+                    allowed='str',
+                    require_all_finite=_require_all_finite
+                )
 
 
 

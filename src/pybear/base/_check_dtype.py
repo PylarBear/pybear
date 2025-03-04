@@ -5,23 +5,54 @@
 #
 
 
-from typing import Literal
+
+from typing import Literal, Optional
+from typing_extensions import TypeAlias, Union
+import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
+import polars as pl
+import scipy.sparse as ss
+import dask.array as da
+import dask.dataframe as ddf
+
+from ._check_1D_num_sequence import check_1D_num_sequence
+from ._check_2D_num_array import check_2D_num_array
+from ._check_1D_str_sequence import check_1D_str_sequence
+from ._check_2D_str_array import check_2D_str_array
 
 from ..utilities._nan_masking import nan_mask
+from ..utilities._inf_masking import inf_mask
+
+
+
+PythonTypes: TypeAlias = Union[list[list], tuple[tuple], set]
+NumpyTypes: TypeAlias = npt.NDArray
+PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+SparseTypes: TypeAlias = Union[
+    ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+    ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+    ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+    ss.bsr_matrix, ss.bsr_array
+]
+DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]
+
+XContainer: TypeAlias = \
+    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
 
 
 
 def check_dtype(
     X,
-    allowed: Literal['numeric', 'any']='any'
+    allowed:Optional[Literal['numeric', 'str', 'any']] = 'any',
+    require_all_finite:Optional[bool] = False
 ) -> None:
 
     """
     Check that the passed data contains a datatype that is allowed. If
-    not, raise ValueError.
+    not, raise TypeError.
 
 
     Parameters
@@ -30,115 +61,218 @@ def check_dtype(
         array-like of shape (n_samples, n_features) or (n_samples,). The
         data to be checked for allowed datatype.
     allowed:
-        Literal['numeric', 'any'], default='any' - the allowed datatype
-        for the data.
-        If 'numeric', only allow data that can be converted to dtype
-        numpy.float64. If the data cannot be converted, raise ValueError.
-        If 'any', allow any datatype.
+        Optional[Literal['numeric', 'str', 'any']], default='any' - the
+        allowed datatype for the data. If 'numeric', only allow values
+        that are instances of numbers.Number. If not, raise TypeError.
+        If 'str', all data in X must be and instance of str or a
+        TypeError is raised. If 'any', allow any datatype.
+    require_all_finite:
+        Optional[bool], default=False - if True, raise an exception if
+        there are any nan-like or infinity-like values in the data. This
+        means that all elements in the data must be of the required
+        dtype. If False, nan-likes and infinity-likes are allowed, and
+        all other values (the finite values) must be of the required
+        dtype.
 
 
     Return
     ------
     -
-        None.
+        None
+
+
+    Notes
+    -----
+    Type Aliases
+
+    PythonTypes:
+        Union[list[list], tuple[tuple], set]
+
+    NumpyTypes:
+        npt.NDArray
+
+    PandasTypes:
+        Union[pd.Series, pd.DataFrame]
+
+    PolarsTypes:
+        Union[pl.Series, pl.DataFrame]
+
+    SparseTypes:
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+            ss.bsr_matrix, ss.bsr_array
+        ]
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+
+
+    Examples
+    --------
+    >>> from pybear.base import check_dtype
+    >>> 'pizza'
+    pizza
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    err_msg = f"'allowed' must be literal 'numeric' or 'any'."
+    err_msg = f"'allowed' must be literal 'numeric', 'str', or 'any'."
 
     if not isinstance(allowed, str):
         raise TypeError(err_msg)
 
     allowed = allowed.lower()
 
-    if allowed not in ['numeric', 'any']:
+    if allowed not in ['numeric', 'str', 'any']:
         raise ValueError(err_msg)
 
     del err_msg
 
+    if not isinstance(require_all_finite, bool):
+        raise TypeError(f"'require_all_finite' must be bool")
+
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    err_msg = f"X can only contain numeric datatypes"
 
-    if allowed == 'numeric':
+    if allowed == 'any':
 
-        # --------------
-        # block non-numeric
-
-        # any nan-likes prevent just doing astype(np.uint8) which would
-        # be the fastest & lowest memory way to check for numeric. best
-        # case scenario when nan-likes are present is they are all np.nan
-        # and astype(np.float64) could be used, which is higher memory,
-        # but faster than scanning pd dataframes like below. but nan_mask
-        # doesnt tell us what type the nan-likes are, so we cant assume
-        # they are all np.nan. the funky nan-likes in pandas are what
-        # prevent simply just doing astype(np.float64). so pybear uses
-        # a tiered system.
-        # scipy sparse must be numeric, return None
-        # try np.uint8, if pass, return None
-        # if fail, try np.float64, if pass return None, if numpy fail raise
-        # if non-numpy fail, then do the column by column search on pd
-
-        if hasattr(X, 'toarray'):
-            # scipy sparse can only be numeric dtype with nans that are
-            # recognized by numpy, so automatically good
+        if not require_all_finite:
             return
+        elif require_all_finite:
+            if np.any(nan_mask(X)) or np.any(inf_mask(X)):
+                raise ValueError(f"got non-finite values when not allowed")
 
+    elif allowed == 'numeric':
+
+        # ValueError for non-finite when disallowed
+        # TypeError for bad container and bad dtype -- these 2 raises
+        # need to be separated
         try:
-            X.astype(np.int8)
-            return
-        except:
-            pass
-
-        try:
-            X.astype(np.float64)
-            return
-        except:
-            if isinstance(X, np.ndarray):
-                raise ValueError(err_msg)
-
-        if isinstance(X, (pd.core.series.Series, pd.core.frame.DataFrame)):
-
-            # need to circumvent funky pd nan-likes.
-            # .astype(np.float64) is raising when having to convert funky
-            # pd nan-likes to float, this is the last-ditch high cost
-            # check for pandas. X[nan_mask(X)] = np.nan is back-talking
-            # to the passed X and mutating it. want to do this without
-            # mutating X or making a copy, so scan it column by column
-            # (still there will be copies, but smaller)
-
-            if isinstance(X, pd.core.series.Series):
-                try:
-                    # empiricism shows must use nan_mask not nan_mask_numerical.
-                    np.float64(X[np.logical_not(nan_mask(X))])
-                except:
-                    raise ValueError(err_msg)
-
-            elif isinstance(X, pd.core.frame.DataFrame):
-                for c_idx in range(X.shape[1]):
-                    try:
-                        _column = X.iloc[:, c_idx]
-                        # empiricism shows must use nan_mask not nan_mask_numerical.
-                        np.float64(_column[np.logical_not(nan_mask(_column))])
-                    except:
-                        raise ValueError(err_msg)
-                del _column
-
-        else:
-            raise TypeError(
-                f":function: 'check_dtype' cannot currently process this "
-                f"type of data (only np.ndarray, pd.DataFrame, and scipy). "
-                f"got {type(X)}."
+            check_2D_num_array(
+                X,
+                require_all_finite=require_all_finite
             )
+        except ValueError as v:
+            raise(v) from None
+        except TypeError as t:
 
-    elif allowed == 'any':
-        pass
+            _base = f"Expected a 2D array of number-like values."
+            _bad_container = f"Accepted containers are 2D python lists,"
 
+            # this should be in both
+            assert _base in str(t)
 
+            if _bad_container not in str(t):
+                # then raised for bad dtype
+                raise t from None
+            elif _bad_container in str(t):
+                pass  # go to 1D
+            else:
+                raise Exception(
+                    f"unexpected exception string from check_2D_num_array()"
+                )
 
-    return
+            try:
+                check_1D_num_sequence(
+                    X,
+                    require_all_finite=require_all_finite
+                )
+            except ValueError as v:
+                raise v from None
+            except TypeError as t:
+                _base = f"Expected a 1D sequence of number-like values."
+                _bad_container = f"Accepted containers are python lists,"
+
+                # this should be in both
+                assert _base in str(t)
+
+                if _bad_container not in str(t):
+                    # then raised for bad dtype
+                    raise t from None
+                elif _bad_container in str(t):
+                    # not expecting this to ever be raised
+                    # this would mean that a 2D is a valid container but
+                    # one of its 1D constituents is not
+                    raise Exception(
+                        f"unexpected container exception from check_1D_num_sequence()"
+                    )
+                else:
+                    raise Exception(
+                        f"unexpected exception string from check_2D_num_array()"
+                    )
+            except Exception as e:
+                raise Exception(f'got error other than Type or Value --- {e}')
+        except Exception as e:
+            raise Exception(f'got error other than Type or Value --- {e}')
+
+    elif allowed == 'str':
+
+        # ValueError for non-finite when disallowed
+        # TypeError for bad container and bad dtype -- these 2 raises
+        # need to be separated
+        try:
+            check_2D_str_array(
+                X,
+                require_all_finite=require_all_finite
+            )
+        except ValueError as v:
+            raise(v) from None
+        except TypeError as t:
+
+            _base = f"Expected a 2D array of string-like values."
+            _bad_container = f"Accepted containers are 2D python lists,"
+
+            # this should be in both
+            assert _base in str(t)
+
+            if _bad_container not in str(t):
+                # then raised for bad dtype
+                raise t from None
+            elif _bad_container in str(t):
+                pass  # go to 1D
+            else:
+                raise Exception(
+                    f"unexpected exception string from check_2D_str_array()"
+                )
+
+            try:
+                check_1D_str_sequence(
+                    X,
+                    require_all_finite=require_all_finite
+                )
+            except ValueError as v:
+                raise v from None
+            except TypeError as t:
+                _base = f"Expected a 1D sequence of string-like values."
+                _bad_container = f"Accepted containers are python lists,"
+
+                # this should be in both
+                assert _base in str(t)
+
+                if _bad_container not in str(t):
+                    # then raised for bad dtype
+                    raise t from None
+                elif _bad_container in str(t):
+                    # not expecting this to ever be raised
+                    # this would mean that a 2D is a valid container but
+                    # one of its 1D constituents is not
+                    raise Exception(
+                        f"unexpected container exception from check_1D_str_sequence()"
+                    )
+                else:
+                    raise Exception(
+                        f"unexpected exception string from check_2D_str_array()"
+                    )
+            except Exception as e:
+                raise Exception(f'got error other than Type or Value --- {e}')
+        except Exception as e:
+            raise Exception(f'got error other than Type or Value --- {e}')
+    else:
+        raise Exception
+
 
 
 
