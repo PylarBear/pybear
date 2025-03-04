@@ -78,12 +78,6 @@ def cast_to_ndarray(
 
 
     # block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    # _suffix = (
-    #     f"\nPass X as a python built-in (list, set, tuple), numpy "
-    #     f"ndarray or masked array, pandas series or dataframe, polars "
-    #     f"series or dataframe, scipy sparse matrix/array, dask array, "
-    #     f"dataframe, or series."
-    # )
     # dont use the type aliases while still supporting py39
     if not isinstance(X,
         (list, tuple, set, np.ndarray, np.ma.MaskedArray, pd.Series,
@@ -139,6 +133,8 @@ def cast_to_ndarray(
     elif hasattr(_X, 'compute'):
         # dask
         _X = _X.compute()
+    elif isinstance(_X, np.ma.MaskedArray):
+        _X = np.ma.getdata(_X)
 
     # do pd separate, dask compute may output a dataframe
     if isinstance(_X, (pd.Series, pd.DataFrame)):

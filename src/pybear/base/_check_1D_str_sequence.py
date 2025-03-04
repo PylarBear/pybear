@@ -10,8 +10,6 @@ from typing import Optional, Iterable
 import numpy.typing as npt
 from typing_extensions import TypeAlias, Union
 
-import numbers
-
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -33,9 +31,8 @@ XContainer: TypeAlias = \
 
 
 
-
 def check_1D_str_sequence(
-    str_sequence:XContainer[str],
+    X:XContainer[str],
     require_all_finite:Optional[bool] = False
 ) -> None:
 
@@ -52,7 +49,7 @@ def check_1D_str_sequence(
 
     Parameters
     ----------
-    str_sequence:
+    X:
         XContainer[str] - something that is expected to be a 1D sequence
         of strings.
     require_all_finite:
@@ -86,8 +83,6 @@ def check_1D_str_sequence(
 
     PolarsTypes: pl.Series
 
-    DaskTypes: Union[da.Array, ddf.Series]
-
     XContainer: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 
@@ -109,32 +104,35 @@ def check_1D_str_sequence(
     _err_msg = f"Expected a 1D sequence of string values. "
     _addon = (
         f"\nAccepted containers are python lists, tuples, and sets, "
-        f"\nnumpy 1D arrays, pandas series, polars series, dask 1D "
-        f"\narrays, and dask series."
+        f"numpy 1D arrays, pandas series, and polars series."
     )
 
 
     # block disallowed containers -- -- -- -- -- -- -- -- -- -- -- -- --
-    if hasattr(str_sequence, 'toarray'):
+    if hasattr(X, 'toarray'):
         raise TypeError(_err_msg + _addon)
-    if isinstance(str_sequence, (pd.DataFrame, pl.DataFrame, ddf.DataFrame)):
+    if isinstance(X, (pd.DataFrame, pl.DataFrame, ddf.DataFrame)):
         raise TypeError(_err_msg + _addon)
 
     try:
         # must be iterable
-        iter(str_sequence)
+        iter(X)
         # cant be string or dict
-        if isinstance(str_sequence, (str, dict)):
+        if isinstance(X, (str, dict)):
             raise Exception
         # handle dask or anything with shape attr directly
-        if len(getattr(str_sequence, 'shape', [1])) != 1:
-            raise Exception
+        if hasattr(X, 'shape'):
+            if len(getattr(X, 'shape')) != 1:
+                raise Exception
+            raise UnicodeError
         # inside cant have non-string iterables, but it may have funky
         # junk like nans
-        for __ in str_sequence:
+        for __ in X:
             if isinstance(__, Iterable) and not isinstance(__, str):
                 raise Exception
-    except:
+    except UnicodeError:
+        pass
+    except Exception as e:
         raise TypeError(_err_msg + _addon)
 
     del _addon
@@ -145,10 +143,10 @@ def check_1D_str_sequence(
     # it may have junky values like pd.NA
 
     # need to know this whether or not disallowing non-finite
-    _non_finite_mask = nan_mask(str_sequence).astype(np.uint8)
-    _non_finite_mask += inf_mask(str_sequence).astype(np.uint8)
+    _non_finite_mask = nan_mask(X).astype(np.uint8)
+    _non_finite_mask += inf_mask(X).astype(np.uint8)
     _non_finite_mask = _non_finite_mask.astype(bool)
-    if not any(_non_finite_mask):
+    if not np.any(_non_finite_mask):
         # if its all false, save the memory
         _non_finite_mask = []
 
@@ -162,12 +160,12 @@ def check_1D_str_sequence(
     if not any(_non_finite_mask):
         if not all(map(
             isinstance,
-            str_sequence,
-            (str for i in str_sequence)
+            X,
+            (str for i in X)
         )):
             raise TypeError(_err_msg)
     else:
-        _finite = np.array(list(str_sequence))[np.logical_not(_non_finite_mask)]
+        _finite = np.array(list(X))[np.logical_not(_non_finite_mask)]
         if not all(map(isinstance, _finite, (str for i in _finite))):
             raise TypeError(_err_msg)
         del _finite

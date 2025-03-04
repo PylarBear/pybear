@@ -64,6 +64,53 @@ def copy_X(
     X:
         XContainer - a deep copy of X.
 
+
+    Notes
+    -----
+    Type Aliases
+
+    PythonTypes:
+        Union[list, tuple, set]
+
+    NumpyTypes:
+        Union[npt.NDArray[Union[numbers.Number, str]], np.ma.MaskedArray]
+
+    PandasTypes:
+        Union[pd.Series, pd.DataFrame]
+
+    PolarsTypes:
+        Union[pl.Series, pl.DataFrame]
+
+    DaskTypes:
+        Union[da.Array, ddf.Series, ddf.DataFrame]
+
+    SparseTypes:
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+            ss.bsr_matrix, ss.bsr_array
+        ]
+
+
+    Examples
+    --------
+    >>> from pybear.base import copy_X
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> X = pd.DataFrame([[1, 2], [3, 4], [5, 6]])
+    >>> X
+       0  1
+    0  1  2
+    1  3  4
+    2  5  6
+    >>> new_X = copy_X(X)
+    >>> new_X
+       0  1
+    0  1  2
+    1  3  4
+    2  5  6
+
     """
 
 
