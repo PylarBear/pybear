@@ -37,7 +37,7 @@ SparseTypes: TypeAlias = Union[
     ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
     ss.bsr_matrix, ss.bsr_array
 ]
-DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]
+DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]  # not used yet
 
 XContainer: TypeAlias = \
     Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
@@ -52,13 +52,14 @@ def check_dtype(
 
     """
     Check that the passed data contains a datatype that is allowed. If
-    not, raise TypeError.
+    not, raise TypeError. Allowed dtypes are 'any', 'numeric', and 'str'.
+    If all checks pass then return None.
 
 
     Parameters
     ----------
     X:
-        array-like of shape (n_samples, n_features) or (n_samples,). The
+        XContainer of shape (n_samples, n_features) or (n_samples,). The
         data to be checked for allowed datatype.
     allowed:
         Optional[Literal['numeric', 'str', 'any']], default='any' - the
@@ -112,8 +113,20 @@ def check_dtype(
     Examples
     --------
     >>> from pybear.base import check_dtype
-    >>> 'pizza'
-    pizza
+    >>> X = [1, 3, 5, np.nan]
+    >>> check_dtype(X, allowed='numeric', require_all_finite=False)
+
+    >>> try:
+    ...     check_dtype(X, allowed='str', require_all_finite=False)
+    ... except TypeError as e:
+    ...     print(repr(e))
+    TypeError('Expected a 1D sequence of string-like values. ')
+
+    >>> try:
+    ...     check_dtype(X, allowed='numeric', require_all_finite=True)
+    ... except ValueError as e:
+    ...     print(repr(e))
+    ValueError('Got non-finite values when not allowed.')
 
     """
 
@@ -143,7 +156,7 @@ def check_dtype(
             return
         elif require_all_finite:
             if np.any(nan_mask(X)) or np.any(inf_mask(X)):
-                raise ValueError(f"got non-finite values when not allowed")
+                raise ValueError(f"Got non-finite values when not allowed.")
 
     elif allowed == 'numeric':
 

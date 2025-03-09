@@ -26,7 +26,7 @@ PythonTypes: TypeAlias = Union[list, tuple, set]
 NumpyTypes: TypeAlias = npt.NDArray
 PandasTypes: TypeAlias = pd.Series
 PolarsTypes: TypeAlias = pl.Series
-DaskTypes: TypeAlias = Union[da.Array, ddf.Series]
+DaskTypes: TypeAlias = Union[da.Array, ddf.Series]  # not used yet
 
 XContainer: TypeAlias = \
     Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -103,7 +103,7 @@ def check_1D_num_sequence(
     ...     check_1D_num_sequence(X, require_all_finite=True)
     ... except ValueError as e:
     ...     print(e)
-    got non-finite values when not allowed
+    Got non-finite values when not allowed.
 
     """
 
@@ -160,13 +160,13 @@ def check_1D_num_sequence(
         _non_finite_mask = []
 
     # check for finiteness
-    if require_all_finite and any(_non_finite_mask):
-        raise ValueError(f"got non-finite values when not allowed")
+    if require_all_finite and np.any(_non_finite_mask):
+        raise ValueError(f"Got non-finite values when not allowed.")
 
     # if we get to here, we do not have non-finite or are allowing
 
     # avoid a copy if we can
-    if not any(_non_finite_mask):
+    if not np.any(_non_finite_mask):
         if not all(map(
             isinstance,
             X,
