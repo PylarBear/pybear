@@ -19,8 +19,9 @@ from pybear.base import (
     check_is_fitted
 )
 
-from ._validation._X import _val_X
 from ._transform._transform import _transform
+
+from ....base._check_dtype import check_dtype
 
 
 
@@ -186,7 +187,8 @@ class TextStripper(
 
         check_is_fitted(self)
 
-        _val_X(X)
+        # check_dtype takes 1 or 2D
+        check_dtype(X, allowed='str', require_all_finite=True)
 
         if copy:
             if isinstance(X, (list, tuple, set)) or not hasattr(X, 'copy'):
