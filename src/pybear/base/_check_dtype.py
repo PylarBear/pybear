@@ -147,6 +147,9 @@ def check_dtype(
     if not isinstance(require_all_finite, bool):
         raise TypeError(f"'require_all_finite' must be bool")
 
+    # pizza temporary short-circuit handling of dask to get TypeError
+    if isinstance(X, (da.Array, ddf.DataFrame, ddf.Series)):
+        raise TypeError("check_dtype(): dask objects are not accepted yet")
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
