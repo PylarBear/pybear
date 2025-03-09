@@ -1495,7 +1495,13 @@ class TestTransform:
 
         TestCls = SlimPoly(**_kwargs)
 
-        out = TestCls.fit_transform(_X)
+        if _dtype == '<U10':
+            # 25_03_09 no longer coercing numbers passed as str to float
+            with pytest.raises(TypeError):
+                TestCls.fit_transform(_X)
+            pytest.skip(reason=f"cannot do more tests after except")
+        else:
+            out = TestCls.fit_transform(_X)
 
 
         if _format == 'pd':
