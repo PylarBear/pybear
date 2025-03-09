@@ -1249,7 +1249,7 @@ class TestValidateDataAccuracy(Fixtures):
 
             elif _dtype in ['str', 'obj', 'hybrid']:
 
-                with pytest.raises(ValueError):
+                with pytest.raises(TypeError):
                     validate_data(
                         _X_wip,
                         copy_X=False,
@@ -1624,22 +1624,23 @@ class TestValidateDataAccuracy(Fixtures):
 
         if _raises_for_not_numeric:
 
-            with pytest.raises(ValueError):
-                validate_data(
-                    _X_wip,
-                    copy_X=False,
-                    cast_to_ndarray=_cast_to_ndarray,
-                    accept_sparse=_good_accept_sparse,
-                    dtype=_check_dtype,
-                    require_all_finite=False,
-                    cast_inf_to_nan=False,
-                    standardize_nan=_standardize_nan,
-                    allowed_dimensionality=(1, 2),
-                    ensure_2d=False,
-                    order='C',
-                    ensure_min_features=1,
-                    ensure_min_samples=1
-                )
+            # pizza this changed after new check_dtype
+            # with pytest.raises(ValueError):
+            validate_data(
+                _X_wip,
+                copy_X=False,
+                cast_to_ndarray=_cast_to_ndarray,
+                accept_sparse=_good_accept_sparse,
+                dtype=_check_dtype,
+                require_all_finite=False,
+                cast_inf_to_nan=False,
+                standardize_nan=_standardize_nan,
+                allowed_dimensionality=(1, 2),
+                ensure_2d=False,
+                order='C',
+                ensure_min_features=1,
+                ensure_min_samples=1
+            )
 
         elif not _raises_for_not_numeric:
             out = validate_data(

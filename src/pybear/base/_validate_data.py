@@ -6,6 +6,14 @@
 
 
 
+from typing import Literal, Iterable, Optional
+from typing_extensions import Union
+
+import numbers
+from copy import deepcopy
+
+import numpy as np
+
 from ._cast_to_ndarray import cast_to_ndarray as _cast_to_ndarray
 from ._check_is_finite import check_is_finite
 from ._check_scipy_sparse import check_scipy_sparse
@@ -13,36 +21,30 @@ from ._ensure_2D import ensure_2D as _ensure_2D
 from ._check_dtype import check_dtype
 from ._check_shape import check_shape
 from ._set_order import set_order
-
-from typing import Literal, Iterable
-from typing_extensions import Union
-
-import numbers
-
-import numpy as np
+from ._copy_X import copy_X as _copy_X
 
 
 
 def validate_data(
     X,
     *,
-    copy_X:bool = True,
-    cast_to_ndarray:bool = False,
-    accept_sparse:Union[Iterable[Literal[
+    copy_X:Optional[bool] = True,
+    cast_to_ndarray:Optional[bool] = False,
+    accept_sparse:Optional[Union[Iterable[Literal[
         "csr", "csc", "coo", "dia", "lil", "dok", "bsr"
-    ]], Literal[False], None] = \
+    ]], Literal[False], None]] = \
         ("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-    dtype:Literal['numeric','any'] = 'any',
-    require_all_finite:bool = True,
-    cast_inf_to_nan:bool = True,
-    standardize_nan:bool = True,
-    allowed_dimensionality:Iterable[numbers.Integral] = (1,2),
-    ensure_2d:bool = True,
-    order:Literal['C', 'F'] = 'C',
-    ensure_min_features:numbers.Integral = 1,
-    ensure_max_features:Union[numbers.Integral, None] = None,
-    ensure_min_samples:numbers.Integral = 1,
-    sample_check:Union[numbers.Integral, None] = None
+    dtype:Optional[Literal['numeric', 'str', 'any']] = 'any',
+    require_all_finite:Optional[bool] = True,
+    cast_inf_to_nan:Optional[bool] = True,
+    standardize_nan:Optional[bool] = True,
+    allowed_dimensionality:Optional[Iterable[numbers.Integral]] = (1,2),
+    ensure_2d:Optional[bool] = True,
+    order:Optional[Literal['C', 'F']] = 'C',
+    ensure_min_features:Optional[numbers.Integral] = 1,
+    ensure_max_features:Optional[Union[numbers.Integral, None]] = None,
+    ensure_min_samples:Optional[numbers.Integral] = 1,
+    sample_check:Optional[Union[numbers.Integral, None]] = None
 ):
 
     """
@@ -70,82 +72,84 @@ def validate_data(
         array-like of shape (n_samples, n_features) or (n_samples,) -
         the data to be validated.
     copy_X:
-        bool, default=True - whether to operate directly on the passed X
-        or create a copy.
+        Optional[bool], default=True - whether to operate directly on
+        the passed X or create a copy.
     cast_to_ndarray:
-        bool, default=False - if True, convert the passed X to numpy
-        ndarray.
+        Optional[bool], default=False - if True, convert the passed X to
+        numpy ndarray.
     accept_sparse:
-        Union[Iterable[Literal["csr", "csc", "coo", "dia", "lil", "dok",
-        "bsr"]], Literal[False], None], default=("csr", "csc", "coo",
-        "dia", "lil", "dok", "bsr") - The scipy sparse matrix/array
-        formats that are allowed. If no scipy sparse are allowed, literal
-        False or None can be passed, and an exception will be raised if
-        X is a scipy sparse object. Otherwise, must be a 1D vector-like
-        (such as a python list or tuple) containing some or all of the
-        3-character acronyms shown here. Not case sensitive. Entries
-        cover both the 'matrix' and 'array' formats, e.g., ['csr',
-        'csc'] will allow csr_matrix, csr_array, csc_matrix, and
-        csc_array formats.
+        Optional[Union[Iterable[Literal["csr", "csc", "coo", "dia",
+        "lil", "dok", "bsr"]], Literal[False], None]], default=("csr",
+        "csc", "coo", "dia", "lil", "dok", "bsr") - The scipy sparse
+        matrix/array formats that are allowed. If no scipy sparse are
+        allowed, literal False or None can be passed, and an exception
+        will be raised if X is a scipy sparse object. Otherwise, must be
+        a 1D vector-like (such as a python list or tuple) containing
+        some or all of the 3-character acronyms shown here. Not case
+        sensitive. Entries cover both the 'matrix' and 'array' formats,
+        e.g., ['csr', 'csc'] will allow csr_matrix, csr_array,
+        csc_matrix, and csc_array formats.
     dtype:
-        Literal['numeric','any'], default='any' - the allowed datatype
-        of X. If 'numeric', data that cannot be coerced to a numeric
-        datatype will raise an exception. If 'any', no restrictions are
-        imposed on the datatype of X.
+        Optional[Literal['numeric','str','any']], default='any' - the
+        allowed datatype of X. If 'numeric', data that cannot be coerced
+        to a numeric datatype will raise a TypeError. If 'str', all data
+        in X is must be strings or a TypeError is raised. If 'any', no
+        restrictions are imposed on the datatype of X.
     require_all_finite:
-        bool, default=True - if True, block data that has undefined
-        values, in particular, nan-like and infinity-like values. If
-        False, nan-like and infinity like values are allowed.
+        Optional[bool], default=True - if True, block data that has
+        undefined values, in particular, nan-like and infinity-like
+        values. If False, nan-like and infinity like values are allowed.
     cast_inf_to_nan:
-        bool, default=True - If True, coerce any infinity-like values in
-        the data to numpy.nan; if False, leave any infinity-like values
-        as is.
+        Optional[bool], default=True - If True, coerce any infinity-like
+        values in the data to numpy.nan; if False, leave any infinity-like
+        values as is.
     standardize_nan:
-        bool, default=True - If True, coerce all nan-like values in the
-        data to numpy.nan; if False, leave all the nan-like values in
-        the given state.
+        Optional[bool], default=True - If True, coerce all nan-like
+        values in the data to numpy.nan; if False, leave all the nan-like
+        values in the given state.
     allowed_dimensionality:
-        Iterable[numbers.Integral] - The allowed dimensionalities of
+        Optional[Iterable[numbers.Integral]] - The allowed dimension of
         X. All entries must be greater than zero and less than or
         equal to two. Examples: (1,)  {1,2}, [2]
     ensure_2d:
-        bool, default=True - coerce the data to a 2-dimensional format.
-        For example, a 1D numpy vector would be reshaped to a 2D numpy
-        array; a 1D pandas series would be converted to a 2D pandas
+        Optional[bool], default=True - coerce the data to a 2-dimensional
+        format. For example, a 1D numpy vector would be reshaped to a 2D
+        numpy array; a 1D pandas series would be converted to a 2D pandas
         dataframe.
     order:
-        Literal['C', 'F'], default='C' - only applicable if X is a numpy
-        array or :param: cast_to_ndarray is True. Sets the memory order
-        of X. 'C' is row-major and 'F' is column-major. The default
-        for numpy arrays is 'C', and major packages like scikit-learn
+        Optional[Literal['C', 'F']], default='C' - only applicable if X
+        is a numpy array or :param: cast_to_ndarray is True. Sets the
+        memory order of X. 'C' is row-major and 'F' is column-major. The
+        default for numpy arrays is 'C', and major packages like scikit
         typically expect to see numpy arrays with 'C' order. pybear
         recommends that this parameter be used with understanding of the
         potential performance implications of changing the memory order
         of X on downstream processes that may be designed for 'C' order.
     ensure_min_features:
-        numbers.Integral, default=1 - the minimum number of features
-        (columns) that must be in X.
+        Optional[numbers.Integral], default=1 - the minimum number of
+        features (columns) that must be in X.
     ensure_max_features:
-        Union[numbers.Integral, None] - The maximum number of features
-        allowed in X; if not None, must be greater than or equal to
-        ensure_min_features. If None, then there is no restriction on
+        Optional[Union[numbers.Integral, None]] - The maximum number of
+        features allowed in X; if not None, must be greater than or equal
+        to ensure_min_features. If None, then there is no restriction on
         the maximum number of features in X.
     ensure_min_samples:
-        numbers.Integral, default=1 - the minimum number of samples
-        (rows) that must be in X. Ignored if :param: sample_check is not
-        None.
+        Optional[numbers.Integral], default=1 - the minimum number of
+        samples (rows) that must be in X. Ignored if :param: sample_check
+        is not None.
     sample_check:
-        Union[numbers.Integral, None] - The exact number of samples
-        allowed in OBJECT. If not None, must be a non-negative integer.
-        Use this to check, for example, that the number of samples in y
-        equals the number of samples in X. If None, this check is not
-        performed.
+        Optional[Union[numbers.Integral, None]] - The exact number of
+        samples allowed in X. If not None, must be a non-negative
+        integer. Use this to check, for example, that the number of
+        samples in y equals the number of samples in X. If None, this
+        check is not performed.
 
 
     Return
     ------
     -
-        X: the validated data.
+        X: array-like of shape (n_samples, n_features) or (n_samples,),
+        the validated data.
 
     """
 
@@ -255,7 +259,7 @@ def validate_data(
     # functions to True! create only one copy of X, set copy_X to False
     # for all the functions.
     if copy_X:
-        _X = X.copy()
+        _X = _copy_X(X)
     else:
         _X = X
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
