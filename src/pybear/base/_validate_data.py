@@ -10,7 +10,6 @@ from typing import Literal, Iterable, Optional
 from typing_extensions import Union
 
 import numbers
-from copy import deepcopy
 
 import numpy as np
 
