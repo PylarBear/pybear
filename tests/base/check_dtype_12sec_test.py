@@ -14,9 +14,6 @@ import numpy as np
 import scipy.sparse as ss
 import polars as pl
 
-from pybear.utilities._nan_masking import nan_mask
-
-
 
 
 class TestCheckDtype:
@@ -31,8 +28,13 @@ class TestCheckDtype:
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
-        return (8, 5)
-
+        # this is transposed after building with X_factory. need to do
+        # this so that that there arent sporadic events like, "this row
+        # wants to raise for disallowed nans but this row wants to raise
+        # for bad dtype." every row of data has at least one nan-like in
+        # it, X_factory normally controls the number of nans in every
+        # column, not by row.
+        return (10, 20)
 
 
     # validation * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -176,6 +178,7 @@ class TestCheckDtype:
             _dtype=_dtype
         )
 
+        # control of the dispersion of nans by row isnt important here.
 
         if _format == 'py_list':
             if _dim == 1:
@@ -239,7 +242,7 @@ class TestCheckDtype:
         ('py_list', 'py_tuple', 'py_set', 'np', 'pd', 'pl', 'csr', 'csc', 'coo')
     )
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_has_nan', (5, False))
+    @pytest.mark.parametrize('_has_nan', (3, False))
     def test_accuracy_num(
         self, _X_factory, _shape, _format_getter, _require_all_finite, _dim,
         _format, _dtype, _has_nan
@@ -280,6 +283,10 @@ class TestCheckDtype:
             _dtype=_dtype
         )
 
+        # need to control the dispersion of shape, so that if there are
+        # any nans, there is at least on in each row. see the notes in
+        # the 'shape' fixture.
+        _X_wip = _X_wip.transpose()    # transpose() works for np, pd, ss
 
         if _format == 'py_list':
             if _dim == 1:
@@ -344,20 +351,26 @@ class TestCheckDtype:
         else:
 
             if _require_all_finite and _has_nan:
-                # this ValueError is for non-finite
-                _exp_error = ValueError
+                # this ValueError is for non-finite. this should raise before
+                # the TypeErrors. this is why controlling the dispersion of
+                # nans is important.
+                with pytest.raises(ValueError):
+
+                    check_dtype(
+                        _X_wip,
+                        allowed='numeric',
+                        require_all_finite=_require_all_finite
+                    )
             else:
                 # this TypeError would be for bad dtype, not bad container
-                # bad dtype always raises after the ValueError for non-finite
-                _exp_error = TypeError
+                # bad dtype always raises after the ValueError for non-finite.
+                with pytest.raises(TypeError):
 
-            with pytest.raises(_exp_error):
-
-                check_dtype(
-                    _X_wip,
-                    allowed='numeric',
-                    require_all_finite=_require_all_finite
-                )
+                    check_dtype(
+                        _X_wip,
+                        allowed='numeric',
+                        require_all_finite=_require_all_finite
+                    )
 
 
     @pytest.mark.parametrize('_require_all_finite', (True, False))
@@ -366,7 +379,7 @@ class TestCheckDtype:
         ('py_list', 'py_tuple', 'py_set', 'np', 'pd', 'pl')
     )
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_has_nan', (5, False))
+    @pytest.mark.parametrize('_has_nan', (3, False))
     def test_accuracy_str(
         self, _X_factory, _shape, _format_getter, _require_all_finite, _dim,
         _format, _dtype, _has_nan
@@ -389,16 +402,32 @@ class TestCheckDtype:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _X_wip = _X_factory(
-            _dupl=None,
-            _constants=None,
-            _format=_format_getter[_format],
-            _zeros=None,
-            _columns=None,
-            _has_nan=_has_nan,
-            _shape=_shape,  # conftest was built to take at least 2 columns
-            _dtype=_dtype
-        )
+        while True:
+            # do this under a loop to control the output
+            _X_wip = _X_factory(
+                _dupl=None,
+                _constants=None,
+                _format=_format_getter[_format],
+                _zeros=None,
+                _columns=None,
+                _has_nan=_has_nan,
+                _shape=_shape,  # conftest was built to take at least 2 columns
+                _dtype=_dtype
+            )
+
+            # need to control the dispersion of shape, so that if there are
+            # any nans, there is at least on in each row. see the notes in
+            # the 'shape' fixture.
+            _X_wip = _X_wip.transpose()    # transpose() works for np & pd
+
+            # cant have all nans in a 1D
+            try:
+                __ = _X_wip.iloc[:, 0].tolist()
+            except:
+                __ = _X_wip[:, 0]
+            if not all(map(lambda x: x is np.nan, __)):
+                del __
+                break
 
 
         if _format == 'py_list':
@@ -429,15 +458,6 @@ class TestCheckDtype:
                 _X_wip = pl.Series(_X_wip[:, 0])
             elif _dim == 2:
                 _X_wip = pl.DataFrame(_X_wip)
-        elif _format == 'csr':
-            # can only be 2D
-            _X_wip = ss.csr_array(_X_wip)
-        elif _format == 'csc':
-            # can only be 2D
-            _X_wip = ss.csc_array(_X_wip)
-        elif _format == 'coo':
-            # can only be 2D
-            _X_wip = ss.coo_array(_X_wip)
         else:
             raise Exception
         # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -464,19 +484,24 @@ class TestCheckDtype:
         else:
 
             if _require_all_finite and _has_nan:
-                # this ValueError is for non-finite
-                _exp_error = ValueError
+                # this ValueError is for non-finite. this should raise before
+                # the TypeErrors. this is why controlling the dispersion of
+                # nans is important.
+                with pytest.raises(ValueError):
+                    check_dtype(
+                        _X_wip,
+                        allowed='str',
+                        require_all_finite=_require_all_finite
+                    )
             else:
                 # this TypeError would be for bad dtype, not bad container
-                # bad dtype always raises after the ValueError for non-finite
-                _exp_error = TypeError
-
-            with pytest.raises(_exp_error):
-                check_dtype(
-                    _X_wip,
-                    allowed='str',
-                    require_all_finite=_require_all_finite
-                )
+                # bad dtype always raises after the ValueError for non-finite.
+                with pytest.raises(TypeError):
+                    check_dtype(
+                        _X_wip,
+                        allowed='str',
+                        require_all_finite=_require_all_finite
+                    )
 
 
 

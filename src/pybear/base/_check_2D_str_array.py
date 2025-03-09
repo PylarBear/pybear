@@ -22,7 +22,7 @@ PythonTypes: TypeAlias = Union[list[list], tuple[tuple]]
 NumpyTypes: TypeAlias = npt.NDArray
 PandasTypes: TypeAlias = pd.DataFrame
 PolarsTypes: TypeAlias = pl.DataFrame
-DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]
+DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]  # not used yet
 
 XContainer: TypeAlias = \
     Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -102,7 +102,7 @@ def check_2D_str_array(
     ...     check_2D_str_array(X, require_all_finite=True)
     ... except ValueError as e:
     ...     print(e)
-    got non-finite values when not allowed
+    Got non-finite values when not allowed.
 
     """
 
@@ -201,15 +201,18 @@ def check_2D_str_array(
     # END helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     if isinstance(X, pd.DataFrame):   # pandas
+        # to keep sporadic problems out of test, do this in the same way
+        # as np and python-native, which is as rows.
         _exception_helper(
             X.values,
-            (require_all_finite for _ in X.values)
+            (require_all_finite for _ in range(X.shape[0]))
         )
     elif isinstance(X, pl.DataFrame):   # polars
-
+        # to keep sporadic problems out of test, do this in the same way
+        # as np and python-native, which is as rows.
         _exception_helper(
             X.rows(),
-            (require_all_finite for _ in X.rows())
+            (require_all_finite for _ in range(X.shape[0]))
         )
     else:
         _exception_helper(

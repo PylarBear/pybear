@@ -31,7 +31,7 @@ SparseTypes: TypeAlias = Union[
     ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
     ss.bsr_matrix, ss.bsr_array
 ]
-DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]
+DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]  # not used yet
 
 XContainer: TypeAlias = \
     Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
@@ -122,7 +122,7 @@ def check_2D_num_array(
     ...     check_2D_num_array(X, require_all_finite=True)
     ... except ValueError as e:
     ...     print(e)
-    got non-finite values when not allowed
+    Got non-finite values when not allowed.
 
     """
 
@@ -221,26 +221,30 @@ def check_2D_num_array(
             )
     # END helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
     if hasattr(X, 'toarray'):   # ss
-        check_1D_num_sequence(X.tocsr().data, require_all_finite)
+        _exception_helper(
+            X.tocsr().data.reshape((1, -1)),  # as 2D is important
+            (require_all_finite, )
+        )
     elif isinstance(X, pd.DataFrame):   # pandas
+        # to keep sporadic problems out of test, do this in the same way
+        # as np and python-native, which is as rows.
         _exception_helper(
             X.values,
-            (require_all_finite for _ in X.values)
+            (require_all_finite for _ in range(X.shape[0]))
         )
     elif isinstance(X, pl.DataFrame):   # polars
+        # to keep sporadic problems out of test, do this in the same way
+        # as np and python-native, which is as rows.
         _exception_helper(
             X.rows(),
-            (require_all_finite for _ in X.rows())
+            (require_all_finite for _ in range(X.shape[0]))
         )
     else:
         _exception_helper(
             X,
             (require_all_finite for _ in X)
         )
-
-
 
 
 
