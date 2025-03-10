@@ -14,7 +14,6 @@ from typing_extensions import Self, Union
 
 import numbers
 
-from ._validation._strings import _val_strings
 from ._validation._store_uniques import _val_store_uniques
 from ._validation._overall_statistics import _val_overall_statistics
 from ._validation._uniques import _val_uniques
@@ -47,7 +46,8 @@ from ._lookup._lookup_string import _lookup_string
 from ....base import (
     GetParamsMixin,
     ReprMixin,
-    check_is_fitted
+    check_is_fitted,
+    check_1D_str_sequence
 )
 
 
@@ -78,9 +78,9 @@ class TextStatistics(GetParamsMixin, ReprMixin):
 
     - shortest strings
 
-    TextStatistics (TS) has 2 scikit-style methods, partial_fit and fit.
-    It does not have a transform method because it does not mutate data,
-    it only reports information about the strings in it.
+    TextStatistics (TS) has 2 functioning scikit-style methods, fit and
+    partial_fit. The transform method is a no-op because TS does not
+    mutate data, it only reports information about the strings in it.
 
     TS can be fit on a single batch of data via :method: fit, and can be
     fit in batches via :method: partial_fit. The fit method resets the
@@ -309,8 +309,17 @@ class TextStatistics(GetParamsMixin, ReprMixin):
 
         """
 
-        _val_strings(X)
+
+        check_1D_str_sequence(X)
+
+        if len(X) == 0:
+            raise ValueError(
+                f"'strings' must be passed as a list-like vector of "
+                f"strings, cannot be empty."
+            )
+
         _val_store_uniques(self.store_uniques)
+        # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # this must be first
