@@ -15,10 +15,11 @@ from .._type_aliases import (
 
 import numpy as np
 
-from ._X import _val_X
 from ._str_remove import _val_str_remove
 from ._regexp_remove import _val_regexp_remove
 from ._regexp_flags import _val_regexp_flags
+
+from .....base._check_dtype import check_dtype
 
 
 
@@ -60,7 +61,16 @@ def _validation(
 
 
 
-    _val_X(_X)
+    try:
+        check_dtype(list(_X), allowed='str', require_all_finite=False)
+    except Exception as e:
+        try:
+            check_dtype(list(map(list, _X)), allowed='str', require_all_finite=False)
+        except Exception as f:
+            raise TypeError(
+                f"Expected a 1D sequence or (possibly ragged) 2D array "
+                f"of string-like values."
+            )
 
     _val_str_remove(_str_remove, _X)
 
@@ -101,7 +111,7 @@ def _validation(
     # lists and have Falses in them, the Falses must match up.
 
     err_msg = (
-        f"when passing lists to multiple parameters the Falses must "
+        f"when passing lists to multiple parameters, the Falses must "
         f"match against each other. \nthat is, if you are saying that "
         f"remove is turned off for a string in X (the entry is False "
         f"in one of the lists for that slot), then the corresponding "
