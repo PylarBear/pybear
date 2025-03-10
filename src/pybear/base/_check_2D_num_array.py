@@ -175,11 +175,11 @@ def check_2D_num_array(
         handle errors correctly in check_dtype().
         """
 
-        from . import check_1D_num_sequence
+
         nonlocal _err_msg
 
         _callable = check_1D_num_sequence
-        _fxn_name = check_1D_num_sequence.__name__
+        _fxn_name = _callable.__name__
 
         try:
             list(map(
