@@ -8,6 +8,9 @@
 
 from .._type_aliases import XContainer
 
+import numpy as np
+import pandas as pd
+
 from ....utilities._nan_masking import nan_mask
 
 from .._validation._X import _val_X
@@ -20,17 +23,17 @@ def _transform(
 ) -> XContainer:
 
     """
-    Map new values to the nan-like representations in X. Cannot be scipy
-    sparse dok or lil, it must have a 'data' attribute.
+    Map new values to the nan-like representations in X. If scipy sparse,
+    cannot be dok or lil, it must have a 'data' attribute.
 
 
     Parameters
     ----------
     _X:
-        Union[NDArray, pandas.Series, pandas.DataFrame, polars.Series,
-        polars.DataFrame, scipy.sparse], of shape (n_samples, n_features)
-        or (n_samples,) - the object for which to replace nan-like
-        representations.
+        Union[Sequence, Sequence[Sequence], NDArray, pandas.Series,
+        pandas.DataFrame, polars.Series, polars.DataFrame, scipy.sparse],
+        of shape (n_samples, n_features) or (n_samples,) - the object
+        for which to replace nan-like representations.
     _new_value:
         any - the new value to put in place of the nan-like values.
         There is no validation for this value, the user is free to enter
@@ -41,20 +44,35 @@ def _transform(
 
     Returns
     -------
-    -
-        _X:
-            Union[NDArray, pandas.Series, pandas.DataFrame, polars.Series,
-            polars.DataFrame, scipy.sparse] of shape (n_samples,
-            n_features), (n_samples,), or (n_non_zera_values,) - The
-            original data with new values in the locations previously
-            occupied by nan-like values.
+    _X:
+        Union[Sequence, Sequence[Sequence], NDArray, pandas.Series,
+        pandas.DataFrame, polars.Series, polars.DataFrame, scipy.sparse]
+        of shape (n_samples, n_features), (n_non_zero_values,), or
+        (n_samples,) - The original data with new values in the locations
+        previously occupied by nan-like values.
 
     """
 
 
     _val_X(_X)
 
-    if hasattr(_X, 'toarray'):
+
+    if isinstance(_X, (list, tuple)):
+        _og_format = type(_X)
+        # do nan_mask first on og_format so it will trip on ragged built-in
+        _MASK = nan_mask(_X)
+        _X = np.array(_X)
+        _dim = len(_X.shape)
+        _X[_MASK] = _new_value
+        del _MASK
+        if _dim == 1:
+            _X = _og_format(_X)
+        elif _dim == 2:
+            _X = _og_format(map(_og_format, _X))
+        del _og_format, _dim
+    elif isinstance(_X, (np.ndarray, pd.Series, pd.DataFrame)):
+        _X[nan_mask(_X)] = _new_value
+    elif hasattr(_X, 'toarray'):
         # for scipy, need to mask the 'data' attribute
         _X.data[nan_mask(_X.data)] = _new_value
     elif hasattr(_X, 'clone'):
@@ -64,7 +82,7 @@ def _transform(
         _X = _og_type(_X)
         del _og_type
     else:
-        _X[nan_mask(_X)] = _new_value
+        raise TypeError(f"unknown container {type(_X)} in transform.")
 
 
     return _X

@@ -81,7 +81,9 @@ class NanStandardizer(
     -----
     Type Aliases
 
-    NumpyTypes: npt.NDArray[numbers.Real]
+    PythonTypes: Union[Sequence, Sequence[Sequence]]
+
+    NumpyTypes: npt.NDArray
 
     PandasTypes: Union[pd.DataFrame, pd.Series]
 
@@ -92,7 +94,8 @@ class NanStandardizer(
         ss._csr.csr_array, ss._csc.csc_array, ss._coo.coo_array,
         ss._dia.dia_array, ss._bsr.bsr_array]
 
-    XContainer: Union[NumpyTypes, PandasType, PolarsType, SparseTypes]
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasType, PolarsType, SparseTypes]
 
 
     See Also

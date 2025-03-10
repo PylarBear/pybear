@@ -7,18 +7,18 @@
 
 
 import numpy.typing as npt
+from typing import Sequence
 from typing_extensions import TypeAlias, Union
 
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
-import numbers
 
 
+PythonTypes: TypeAlias = Union[Sequence, Sequence[Sequence]]
 
-
-NumpyTypes: TypeAlias = npt.NDArray[numbers.Real]
+NumpyTypes: TypeAlias = npt.NDArray
 
 PandasTypes: TypeAlias = Union[pd.DataFrame, pd.Series]
 
@@ -32,7 +32,9 @@ SparseTypes: TypeAlias = Union[
     ss._bsr.bsr_array
 ]
 
-XContainer: TypeAlias = Union[NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+XContainer: TypeAlias = Union[
+    PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes
+]
 
 
 
