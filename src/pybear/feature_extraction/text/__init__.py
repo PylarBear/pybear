@@ -7,7 +7,7 @@
 
 
 from ._Lexicon.Lexicon import Lexicon
-from ._StringToToken__PIZZA import StringToToken
+from ._TextJoiner import TextJoiner
 from ._TextCleaner._TextCleaner.TextCleaner import TextCleaner
 from ._TextNormalizer.TextNormalizer import TextNormalizer
 from ._TextPadder.TextPadder import TextPadder
@@ -20,8 +20,8 @@ from ._TextStripper.TextStripper import TextStripper
 
 __all__ = [
     'Lexicon',
-    'StringToToken',
     'TextCleaner',
+    'TextJoiner',
     'TextNormalizer',
     'TextPadder',
     'TextRemover',
