@@ -11,10 +11,9 @@ from .._type_aliases import (
     UpperType
 )
 
-import numpy as np
-
-from ._X import _val_X
 from ._upper import _val_upper
+
+from .....base._check_dtype import check_dtype
 
 
 
@@ -47,8 +46,7 @@ def _validation(
     """
 
 
-
-    _val_X(_X)
+    check_dtype(_X, allowed='str')
 
     _val_upper(_upper)
 
