@@ -16,7 +16,8 @@ from ._type_aliases import (
     RowSupportType
 )
 
-from copy import deepcopy
+from ._transform._transform import _transform
+from ._validation._validation import _validation
 
 from ....base import (
     FitTransformMixin,
@@ -26,8 +27,7 @@ from ....base import (
     check_is_fitted
 )
 
-from ._transform._transform import _transform
-from ._validation._validation import _validation
+from ....base._copy_X import copy_X
 
 
 
@@ -330,10 +330,7 @@ class TextRemover(
         )
 
         if copy:
-            if isinstance(X, (list, tuple, set)) or not hasattr(X, 'copy'):
-                _X = deepcopy(X)
-            else:
-                _X = X.copy()
+            _X = copy_X(X)
         else:
             _X = X
 

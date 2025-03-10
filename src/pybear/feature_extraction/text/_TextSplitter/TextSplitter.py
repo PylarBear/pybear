@@ -17,7 +17,10 @@ from ._type_aliases import (
     RegExpFlagsType
 )
 
-from copy import deepcopy
+from ._validation._validation import _validation
+from ._transform._str_core import _str_core
+from ._transform._regexp_core import _regexp_core
+
 
 from ....base import (
     FitTransformMixin,
@@ -26,9 +29,7 @@ from ....base import (
     SetParamsMixin
 )
 
-from ._validation._validation import _validation
-from ._transform._str_core import _str_core
-from ._transform._regexp_core import _regexp_core
+from ....base._copy_X import copy_X
 
 
 
@@ -360,10 +361,7 @@ class TextSplitter(
 
 
         if copy:
-            if isinstance(X, (list, tuple, set)) or not hasattr(X, 'copy'):
-                _X = list(deepcopy(X))
-            else:
-                _X = list(X.copy())
+            _X = copy_X(X)
         else:
             _X = list(X)
 

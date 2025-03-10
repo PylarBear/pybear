@@ -10,8 +10,6 @@ from typing import Optional
 from typing_extensions import Self, Union
 from ._type_aliases import XContainer
 
-from copy import deepcopy
-
 from ....base import (
     FitTransformMixin,
     GetParamsMixin,
@@ -20,6 +18,7 @@ from ....base import (
     check_is_fitted
 )
 
+from ....base._copy_X import copy_X
 
 
 
@@ -151,10 +150,7 @@ class NGramMerger(
         # _validation(X)
 
         if copy:
-            if isinstance(X, (list, tuple, set)) or not hasattr(X, 'copy'):
-                _X = deepcopy(X)
-            else:
-                _X = X.copy()
+            _X = copy_X(X)
         else:
             _X = X
 

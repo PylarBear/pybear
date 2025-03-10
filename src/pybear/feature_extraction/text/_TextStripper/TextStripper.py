@@ -9,7 +9,6 @@
 from typing import Optional, Sequence
 from typing_extensions import Self, Union
 
-from copy import deepcopy
 
 from pybear.base import (
     FitTransformMixin,
@@ -22,6 +21,7 @@ from pybear.base import (
 from ._transform._transform import _transform
 
 from ....base._check_dtype import check_dtype
+from ....base._copy_X import copy_X
 
 
 
@@ -191,10 +191,7 @@ class TextStripper(
         check_dtype(X, allowed='str', require_all_finite=True)
 
         if copy:
-            if isinstance(X, (list, tuple, set)) or not hasattr(X, 'copy'):
-                _X = deepcopy(X)
-            else:
-                _X = X.copy()
+            _X = copy_X(X)
         else:
             _X = X
 

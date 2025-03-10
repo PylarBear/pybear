@@ -13,6 +13,9 @@ from ._type_aliases import XContainer
 import numpy as np
 import pandas as pd
 
+from ._validation._X import _val_X
+from ._transform._transform import _transform
+
 from ...base import (
     FitTransformMixin,
     GetParamsMixin,
@@ -21,8 +24,7 @@ from ...base import (
     check_is_fitted
 )
 
-from ._validation._X import _val_X
-from ._transform._transform import _transform
+from ...base._copy_X import copy_X
 
 
 
@@ -259,13 +261,7 @@ class NanStandardizer(
         _val_X(X)
 
         if copy:
-            # python-native objects dont matter, they were caught by _val_X.
-            if hasattr(X, 'copy'):
-                _X = X.copy()
-            elif hasattr(X, 'clone'):
-                _X = X.clone()
-            else:
-                raise Exception
+            _X = copy_X(X)
         else:
             _X = X
 
