@@ -129,6 +129,7 @@ class NanStandardizer(
 
     def __init__(
         self,
+        *,
         new_value: Optional[any] = np.nan
     ):
 

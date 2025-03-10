@@ -157,6 +157,7 @@ class TextPadder(
 
     def __init__(
         self,
+        *,
         fill: Optional[str] = '',
         n_features: Optional[Union[numbers.Integral, None]] = None
     ) -> None:
