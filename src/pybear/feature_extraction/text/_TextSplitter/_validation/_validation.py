@@ -10,7 +10,6 @@ from typing import Sequence
 
 import numpy as np
 
-from ._X import _val_X
 from ._str_sep import _val_str_sep
 from ._str_maxsplit import _val_str_maxsplit
 from ._regexp_sep import _val_regexp_sep
@@ -24,6 +23,8 @@ from .._type_aliases import (
     RegExpMaxSplitType,
     RegExpFlagsType
 )
+
+from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 
@@ -74,7 +75,7 @@ def _validation(
     """
 
 
-    _val_X(_X)
+    check_1D_str_sequence(_X, require_all_finite=True)
 
     _val_str_sep(_str_sep, _X)
 

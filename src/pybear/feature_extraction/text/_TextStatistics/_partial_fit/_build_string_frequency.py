@@ -43,7 +43,7 @@ def _build_string_frequency(
     """
 
 
-    check_1D_str_sequence(STRINGS)
+    check_1D_str_sequence(STRINGS, require_all_finite=False)
 
     if len(STRINGS) == 0:
         raise ValueError(
