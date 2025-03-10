@@ -14,7 +14,7 @@ from ._fill import _val_fill
 
 from ._n_features import _val_n_features
 
-from ._X import _val_2D_str_array
+from .....base._check_2D_str_array import check_2D_str_array
 
 
 
@@ -48,7 +48,7 @@ def _validation(
     """
 
 
-    _val_2D_str_array(_X)
+    check_2D_str_array(_X)
 
     _val_fill(_fill)
 

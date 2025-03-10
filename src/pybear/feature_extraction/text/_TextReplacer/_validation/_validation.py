@@ -12,11 +12,12 @@ from .._type_aliases import (
     RegExpReplaceType
 )
 
-from pybear.feature_extraction.text._TextReplacer._validation._X import _val_X
 from pybear.feature_extraction.text._TextReplacer._validation._str_replace import \
     _val_str_replace
 from pybear.feature_extraction.text._TextReplacer._validation._regexp_replace \
     import _val_regexp_replace
+
+from .....base._check_dtype import check_dtype
 
 
 
@@ -49,8 +50,7 @@ def _validation(
     """
 
 
-
-    _val_X(_X)
+    check_dtype(_X, allowed='str', require_all_finite=False)
 
     _val_str_replace(_str_replace, _X)
 
