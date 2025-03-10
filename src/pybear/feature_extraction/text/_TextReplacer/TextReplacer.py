@@ -14,7 +14,8 @@ from ._type_aliases import (
     RegExpReplaceType
 )
 
-from copy import deepcopy
+from ._validation._validation import _validation
+from ._transform._transform import _transform
 
 from ....base import (
     FitTransformMixin,
@@ -24,8 +25,7 @@ from ....base import (
     check_is_fitted
 )
 
-from ._validation._validation import _validation
-from ._transform._transform import _transform
+from ....base._copy_X import copy_X
 
 
 
@@ -369,10 +369,7 @@ class TextReplacer(
         _validation(X, self.str_replace, self.regexp_replace)
 
         if copy:
-            if isinstance(X, (list, tuple, set)) or not hasattr(X, 'copy'):
-                _X = deepcopy(X)
-            else:
-                _X = X.copy()
+            _X = copy_X(X)
         else:
             _X = X
 
