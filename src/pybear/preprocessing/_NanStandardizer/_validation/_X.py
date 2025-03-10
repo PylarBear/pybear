@@ -34,18 +34,21 @@ def _val_X(
 
     _err_msg = (
         f"'X' must be an array-like with a copy() or clone() method, "
-        f"such as numpy arrays, scipy sparse matrices or arrays, pandas "
-        f"dataframes/series, polars dataframes/series. \nif passing a "
-        f"scipy sparse object, it cannot be dok or lil. \npython built-in "
-        f"containers, such as lists, sets, and tuples, are not allowed."
+        f"such as python built-ins, numpy arrays, scipy sparse matrices "
+        f"or arrays, pandas dataframes/series, polars dataframes/series. "
+        f"\nif passing a scipy sparse object, it cannot be dok or lil. "
+        f"\ntuples are allowed, sets are disallowed."
     )
 
     try:
         iter(_X)
-        if isinstance(_X, (str, dict, list, tuple, set)):
+        if isinstance(_X, tuple):
+            # tuple does not have copy() method, gets a free pass
+            raise UnicodeError
+        if isinstance(_X, (str, dict, set)):
             raise Exception
         if not hasattr(_X, 'copy') and not hasattr(_X, 'clone'):
-            # copy for numpy, pandas, and scipy; clone for polars
+            # copy for py, numpy, pandas, and scipy; clone for polars
             raise Exception
         if hasattr(_X, 'toarray'):
             if not hasattr(_X, 'data'): # ss dok
@@ -55,6 +58,8 @@ def _val_X(
                 raise Exception
             else:
                 _X = _X.data
+    except UnicodeError:
+        pass
     except:
         raise TypeError(_err_msg)
 

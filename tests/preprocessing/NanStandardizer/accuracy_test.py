@@ -72,13 +72,15 @@ class TestAccuracy:
 
         TestCls = NanStandardizer()
 
-        # python list rejected
-        with pytest.raises(TypeError):
-            TestCls.transform(list(_X[:, 0]), copy=True)
+        # python 1D list accepted
+        out = TestCls.transform(list(_X[:, 0]), copy=True)
+        assert isinstance(out, list)
+        assert np.array_equal(out, _X[:, 0], equal_nan=True)
 
-        # python 1D tuple rejected
-        with pytest.raises(TypeError):
-            TestCls.transform(tuple(_X[:, 0]), copy=True)
+        # python 1D tuple accepted
+        out = TestCls.transform(tuple(_X[:, 0]), copy=True)
+        assert isinstance(out, tuple)
+        assert np.array_equal(out, _X[:, 0], equal_nan=True)
 
         # python 1D set rejected
         with pytest.raises(TypeError):
@@ -98,6 +100,16 @@ class TestAccuracy:
         out = TestCls.transform(pl.Series(_X[:, 0]), copy=True)
         assert isinstance(out, pl.Series)
         assert np.array_equal(out, _X[:, 0], equal_nan=True)
+
+        # python 2D list accepted
+        out = TestCls.transform(list(map(list, _X)), copy=True)
+        assert isinstance(out, list)
+        assert np.array_equal(out, _X, equal_nan=True)
+
+        # python 2D tuple accepted
+        out = TestCls.transform(tuple(map(tuple, _X)), copy=True)
+        assert isinstance(out, tuple)
+        assert np.array_equal(out, _X, equal_nan=True)
 
         # np 2D accepted
         out = TestCls.transform(_X, copy=True)

@@ -28,10 +28,12 @@ class TestValX:
 
 
     @pytest.mark.parametrize('junk_X',
-        (-2.7, -1, 0, 1, 2.7, True, False, None, [0,1], (1,), (1,2), {1,2},
-         {'A':1}, lambda x: x)
+        (-2.7, -1, 0, 1, 2.7, True, False, None, 'garbage', {1,2,3}, {'A':1},
+         lambda x: x)
     )
     def test_rejects_junk(self, junk_X):
+
+        # includes sets
 
         with pytest.raises(TypeError):
             _val_X(junk_X)
@@ -59,23 +61,43 @@ class TestValX:
             _val_X(_X)
 
 
+    @pytest.mark.parametrize('_dim', (1,2))
     @pytest.mark.parametrize('X_format',
-        ('ndarray', 'pd_series', 'pd_df', 'pl_series', 'pl_df', 'ss_csr_mat',
-        'ss_csr_arr', 'ss_csc_mat', 'ss_csc_arr', 'ss_coo_mat', 'ss_coo_arr')
+        ('py_list', 'py_tuple', 'ndarray', 'pd', 'pl', 'ss_csr_mat',
+         'ss_csr_arr', 'ss_csc_mat', 'ss_csc_arr', 'ss_coo_mat', 'ss_coo_arr')
     )
-    def test_accepts_good_X(self, X_format, _X_np):
+    def test_accepts_good_X(self, _dim, X_format, _X_np):
 
+        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        if _dim == 1 and 'ss' in X_format:
+            pytest.skip(reason=f'cant have 1D scipy sparse')
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
-        if X_format == 'ndarray':
-            _X = _X_np
-        elif X_format == 'pd_series':
-            _X = pd.Series(_X_np[:, 0])
-        elif X_format == 'pd_df':
-            _X = pd.DataFrame(_X_np)
-        elif X_format == 'pl_series':
-            _X = pl.Series(_X_np[:, 0])
-        elif X_format == 'pl_df':
-            _X = pl.DataFrame(_X_np)
+        if X_format == 'py_list':
+            if _dim == 1:
+                _X = list(_X_np[:, 0])
+            elif _dim == 2:
+                _X = list(map(list, _X_np))
+        elif X_format == 'py_tuple':
+            if _dim == 1:
+                _X = tuple(_X_np[:, 0])
+            elif _dim == 2:
+                _X = tuple(map(tuple, _X_np))
+        elif X_format == 'ndarray':
+            if _dim == 1:
+                _X = _X_np[:, 0]
+            elif _dim == 2:
+                _X = _X_np
+        elif X_format == 'pd':
+            if _dim == 1:
+                _X = pd.Series(_X_np[:, 0])
+            elif _dim == 2:
+                _X = pd.DataFrame(_X_np)
+        elif X_format == 'pl':
+            if _dim == 1:
+                _X = pl.Series(_X_np[:, 0])
+            elif _dim == 2:
+                _X = pl.DataFrame(_X_np)
         elif X_format == 'ss_csr_mat':
             _X = ss.csr_matrix(_X_np)
         elif X_format == 'ss_csr_arr':
@@ -92,5 +114,8 @@ class TestValX:
             raise Exception
 
         assert _val_X(_X) is None
+
+
+
 
 

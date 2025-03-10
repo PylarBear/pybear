@@ -66,6 +66,42 @@ class TestTransform:
     # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
+    @pytest.mark.parametrize('_format', (list, tuple))
+    @pytest.mark.parametrize('_dtype', ('num', 'str'))
+    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN'))
+    def test_accuracy_py_builtin(self, _fill, _format, _dtype, _X_num, _X_str):
+
+
+        if _dtype == 'num':
+            _X = _X_num.tolist()
+        elif _dtype == 'str':
+            _X = _X_str.tolist()
+        else:
+            raise Exception
+
+        _X = _format(map(_format, _X))
+
+        out = _transform(_X, _fill)
+
+        assert isinstance(out, type(_X))
+        assert np.array(out).shape == np.array(_X).shape
+
+        ref = np.array(_X).copy()
+        ref[nan_mask(ref)] = _fill
+        ref = _format(map(_format, ref))
+
+        # assertions -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if _dtype == 'str':
+            for r_idx in range(len(out)):
+                assert np.array_equal(list(out[r_idx]), list(ref[r_idx]))
+        elif _dtype == 'num':
+            for r_idx in range(len(out)):
+                assert np.array_equal(
+                    list(out[r_idx]), list(ref[r_idx]), equal_nan=True
+                )
+
+
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
     @pytest.mark.parametrize('_fill', (99, None, True, 'NaN'))
     def test_accuracy_np(self, _fill, _dtype, _X_num, _X_str):
