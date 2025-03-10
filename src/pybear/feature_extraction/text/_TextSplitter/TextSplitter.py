@@ -361,7 +361,7 @@ class TextSplitter(
 
 
         if copy:
-            _X = copy_X(X)
+            _X = list(copy_X(X))
         else:
             _X = list(X)
 
