@@ -10,7 +10,7 @@ from typing import Sequence, Optional
 
 import numbers
 
-from .._validation._strings import _val_strings
+from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 
@@ -43,12 +43,18 @@ def _build_string_frequency(
     """
 
 
-    _val_strings(STRINGS)
+    check_1D_str_sequence(STRINGS)
+
+    if len(STRINGS) == 0:
+        raise ValueError(
+            f"'strings' must be passed as a list-like vector of "
+            f"strings, cannot be empty."
+        )
 
     if not isinstance(case_sensitive, bool):
         raise TypeError(f"'case_sensitive' must be boolean")
 
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     _string_frequency = {}
     if case_sensitive:
