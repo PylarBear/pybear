@@ -59,7 +59,7 @@ def _build_overall_statistics(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    check_1D_str_sequence(STRINGS)
+    check_1D_str_sequence(STRINGS, require_all_finite=False)
 
     if len(STRINGS) == 0:
         raise ValueError(

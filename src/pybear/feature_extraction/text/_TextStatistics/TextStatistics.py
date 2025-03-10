@@ -310,7 +310,7 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         """
 
 
-        check_1D_str_sequence(X)
+        check_1D_str_sequence(X, require_all_finite=False)
 
         if len(X) == 0:
             raise ValueError(
