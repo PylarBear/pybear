@@ -78,6 +78,7 @@ class TextStripper(
 
 
     def __init__(self):
+        """Initialize the TextStripper instance."""
 
         pass
 

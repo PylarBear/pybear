@@ -222,6 +222,7 @@ class TextStatistics(GetParamsMixin, ReprMixin):
 
     def __init__(
         self,
+        *,
         store_uniques: Optional[bool] = True
     ) -> None:
 

@@ -92,6 +92,7 @@ class TextNormalizer(
 
     def __init__(
         self,
+        *,
         upper: UpperType = True
     ) -> None:
 
