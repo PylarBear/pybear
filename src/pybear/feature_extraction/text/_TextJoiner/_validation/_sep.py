@@ -49,7 +49,6 @@ def _val_sep(
     err_msg = (f"'sep' must be a string or a 1D sequence of strings whose "
                f"length equals the number of rows in X, got {type(_sep)}")
 
-
     if isinstance(_sep, str):
         pass
     else:

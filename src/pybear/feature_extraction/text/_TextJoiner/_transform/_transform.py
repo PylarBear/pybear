@@ -50,7 +50,6 @@ def _transform(
 
 
     for r_idx in range(len(_X)):
-
         _X[r_idx] = _sep[r_idx].join(_X[r_idx])
 
 
