@@ -68,7 +68,7 @@ class TestCheck2DNumArray:
         if is_ragged:
             if hasattr(container, 'to_array'):
                 pytest.skip(reason=f'cant make ragged')
-            if container in (np.array, pd.DataFrame, pl.DataFrame):
+            if container in (pd.DataFrame, pl.DataFrame):
                 pytest.skip(reason=f'cant make ragged')
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -87,7 +87,7 @@ class TestCheck2DNumArray:
 
         # assertions -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        if container in [list, tuple]:
+        if container in [list, tuple, np.array]:
 
             _X = _base_np.tolist()
 
@@ -96,11 +96,14 @@ class TestCheck2DNumArray:
                 for r_idx in range(_shape[0]):
                     _X[r_idx] = _X[r_idx][:random.randint(_shape[1]//2,_shape[1])]
 
-            _X = container(map(container, _X))
-
-            assert isinstance(_X, container)
-            assert all(map(isinstance, _X, (container for _ in _X)))
-
+            if container is np.array:
+                _X = np.array(list(map(container, _X)), dtype=object)
+                assert isinstance(_X, np.ndarray)
+                assert all(map(isinstance, _X, (np.ndarray for _ in _X)))
+            else:
+                _X = container(map(container, _X))
+                assert isinstance(_X, container)
+                assert all(map(isinstance, _X, (container for _ in _X)))
 
             if require_finite and has_non_finite:
                 with pytest.raises(ValueError):
@@ -115,7 +118,7 @@ class TestCheck2DNumArray:
                 ) is None
 
         elif hasattr(container, 'toarray') or \
-                container in [np.array, pd.DataFrame, pl.DataFrame]:
+                container in [pd.DataFrame, pl.DataFrame]:
 
             _X = container(_base_np)
 
@@ -135,7 +138,6 @@ class TestCheck2DNumArray:
                     _X,
                     require_all_finite=require_finite
                 ) is None
-
 
         else:
             raise Exception
