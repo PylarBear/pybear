@@ -13,6 +13,9 @@ from ._type_aliases import (
     OutputContainer
 )
 
+import pandas as pd
+import polars as pl
+
 from ._validation._validation import _validation
 from ._transform._condition_sep import _condition_sep
 from ._transform._transform import _transform
@@ -56,20 +59,36 @@ class TextJoiner(
     functional get_params, set_params, transform, and fit_transform
     methods. It also has partial_fit, fit, and score methods, which are
     no-ops. TextJoiner technically does not need to be fit because it
-    alreay knows everything it needs to do transformation from the 'sep'
+    already knows everything it needs to do transformation from the 'sep'
     parameter. These no-op methods are available to fulfill the scikit
     transformer API and make TextJoiner suitable for incorporation into
     larger workflows, such as Pipelines and dask_ml wrappers.
 
+    Because TextJoiner doesn't need any information from partial_fit and
+    fit, it is technically always in a 'fitted' state and ready to
+    transform data. Checks for fittedness will always return True.
+
+    TextJoiner has one attribute, n_rows_, which is only available after
+    data has been passed to :method: transform. n_rows_ is the number of
+    rows of text seen in the transformed data, and must be the number of
+    strings in the returned 1D python list.
+
 
     Parameters
     ----------
-    _sep:
+    sep:
         Optional[Union[str, Sequence[str]]], default=' ' - The character
         sequence to insert between individual strings when joining the
         2D input data across rows. If a 1D sequence of strings, then the
         'sep' value in each position is used to join the corresponding
         row in X.
+
+
+    Attributes
+    ----------
+    n_rows_:
+        int - the number of rows of text seen during transform and the
+        number of strings in the returned 1D python list.
 
 
     Notes
@@ -99,11 +118,17 @@ class TextJoiner(
     ) -> None:
         """Initialize the TextJoiner instance."""
 
-        self.sep = sep
+        self.sep: str = sep
 
 
     def __pybear_is_fitted__(self):
         return True
+
+
+    def get_metadata_routing(self):
+        raise NotImplementedError(
+            f"'get_metadata_routing' is not implemented in TextJoiner"
+        )
 
 
     # def get_params
@@ -218,9 +243,16 @@ class TextJoiner(
         else:
             _X = X
 
-        _X = list(map(list, _X))
+        if isinstance(_X, pd.DataFrame):
+            _X = list(map(list, _X.values))
+        elif isinstance(_X, pl.DataFrame):
+            _X = list(map(list, _X.rows()))
+        else:
+            _X = list(map(list, _X))
 
-        _sep = _condition_sep(self.sep, len(X))
+        self.n_rows_: int = len(X)
+
+        _sep = _condition_sep(self.sep, self.n_rows_)
 
         return _transform(_X, _sep)
 
@@ -232,8 +264,7 @@ class TextJoiner(
     ) -> Self:
 
         """
-        No-op one-shot score method. Needs to be here for dask_ml
-        wrappers.
+        No-op score method. Needs to be here for dask_ml wrappers.
 
 
         Parameters

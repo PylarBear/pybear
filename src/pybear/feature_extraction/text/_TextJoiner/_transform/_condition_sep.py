@@ -43,11 +43,10 @@ def _condition_sep(
     """
 
 
-    # sep has already undergone validation in _validation.
-
     if isinstance(_sep, str):
         return [_sep for _ in range(_n_rows)]
     else:
+        # must be sequence of str
         return list(_sep)
 
 
