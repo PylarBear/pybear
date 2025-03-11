@@ -148,10 +148,9 @@ def check_2D_num_array(
         # cant be string or dict
         if isinstance(X, (str, dict)):
             raise Exception
-        # handle dask or anything with shape attr directly
-        if hasattr(X, 'shape'):
-            if len(getattr(X, 'shape')) != 2:
-                raise Exception
+        if hasattr(X, 'shape') and len(getattr(X, 'shape')) == 2:
+            # if X is already 'nice', then skip out, but there's a chance
+            # X may be a ragged ndarray dtype == object, keep testing
             raise UnicodeError
         if any(map(isinstance, X, ((str, dict) for _ in X))):
             raise Exception
