@@ -137,8 +137,6 @@ class TextNormalizer(
 
         """
 
-        check_is_fitted(self)
-
 
         return self
 
@@ -170,7 +168,6 @@ class TextNormalizer(
 
         """
 
-        check_is_fitted(self)
 
         return self.partial_fit(X, y)
 
