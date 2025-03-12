@@ -17,7 +17,7 @@ from pybear.feature_extraction.text._TextSplitter.TextSplitter import TextSplitt
 
 
 
-class TestAccuracy:
+class TestTextSplitter:
 
 
     @staticmethod

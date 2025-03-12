@@ -49,7 +49,7 @@ class TestValidation:
 
 
     @pytest.mark.parametrize('_X_dim', (1, 2))
-    @pytest.mark.parametrize('_sep', (' ', ',', {'r', ' ', 't'}))
+    @pytest.mark.parametrize('_sep', (' ', '  ', ',', {'r', ' ', 't'}))
     @pytest.mark.parametrize('_line_break', (' ', 'q', {'_', ' ', ','}))
     def test_sep_linebreak_conditional(
         self, _X_dim, _1D_X, _2D_X, _sep, _line_break
@@ -69,32 +69,27 @@ class TestValidation:
         args = (_X_wip, _n_chars, _sep, _line_break, _backfill_sep, _join_2D)
 
         _value_error = False
-        if isinstance(_sep, str):
-            if isinstance(_line_break, str):
-                if _line_break in _sep:
+        _sep = {_sep, } if isinstance(_sep, str) else _sep
+        if _line_break is None:
+            _line_break = set()
+        elif isinstance(_line_break, str):
+            _line_break = {_line_break, }
+        _union = _sep | _line_break
+
+        if len(_sep) == 0 or len(_line_break) == 0:
+            pass
+        elif len(_union) != len(_sep) + len(_line_break):
+            _value_error = True
+        else:
+            for s1 in _union:
+                if any(s1 in s2 for s2 in _union if s2 != s1):
                     _value_error = True
-            else:
-                for _lb in _line_break:
-                    if _lb in _sep:
-                        _value_error = True
-        elif isinstance(_sep, set):
-            if isinstance(_line_break, str):
-                for _s in _sep:
-                    if _line_break in _s:
-                        _value_error = True
-            else:
-                # both must be sets
-                for _lb in _line_break:
-                    for _s in _sep:
-                        if _lb in _s:
-                            _value_error = True
 
         if _value_error:
             with pytest.raises(ValueError):
                 _validation(*args)
         else:
-            out = _validation(*args)
-            assert out is None
+            assert _validation(*args) is None
 
 
     @pytest.mark.parametrize('_X_dim', (1, 2))

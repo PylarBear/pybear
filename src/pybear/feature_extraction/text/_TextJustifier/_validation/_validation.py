@@ -28,7 +28,7 @@ def _validation(
     _X: XContainer,
     _n_chars: numbers.Integral,
     _sep: Union[str, set[str]],
-    _line_break: Union[str, set[str]],
+    _line_break: Union[str, set[str], None],
     _backfill_sep: str,
     _join_2D: Union[str, Sequence[str]]
 ) -> None:
@@ -115,37 +115,40 @@ def _validation(
 
     _val_backfill_sep(_backfill_sep)
 
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     err_msg = (
         f"there is a conflict between strings for 'sep' and 'line_break'. "
         f"\nno 'sep' and 'line_break' character sequences can be identical. "
-        f"\nnor can 'line_break' be a substring of 'sep'. "
-        f"\nbut 'sep' can be a substring of 'line_break'."
+        f"\nno 'line_break' can be a substring of any 'sep'. "
+        f"\nno 'sep' can be a substring of any 'line_break'. "
+        f"\nno 'sep' can be a substring of another 'sep'. "
+        f"\nno 'line_break' can be a substring of another 'line_break'. "
     )
 
     if isinstance(_sep, str):
-        if isinstance(_line_break, str):
-            if _line_break in _sep:
-                raise ValueError(err_msg)
-        else:
-            # line_break must be a set
-            for _lb in _line_break:
-                if _lb in _sep:
-                    raise ValueError(err_msg)
-    elif isinstance(_sep, set):
-        if isinstance(_line_break, str):
-            for _s in _sep:
-                if _line_break in _s:
-                    raise ValueError(err_msg)
-        else:
-            # both must be sets
-            for _lb in _line_break:
-                for _s in _sep:
-                    if _lb in _s:
-                        raise ValueError(err_msg)
+        set1 = {_sep,}
+    else:
+        set1 = _sep.copy()
 
+    if _line_break is None:
+        set2 = set()
+    elif isinstance(_line_break, str):
+        set2 = {_line_break,}
+    else:
+        set2 = _line_break.copy()
 
+    _union = set1 | set2
 
+    if len(_union) != len(set1) + len(set2):
+        raise ValueError(err_msg)
+    # we know there are no exact duplicates
+    # now find if there are any shared substrings
+    for s1 in _union:
+        if any(s1 in s2 for s2 in _union if s2 != s1):
+            raise ValueError(err_msg)
+
+    del err_msg, set1, set2, _union
 
 
 

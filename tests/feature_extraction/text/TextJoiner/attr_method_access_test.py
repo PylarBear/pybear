@@ -106,7 +106,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
             'get_metadata_routing',
             'get_params',
             'partial_fit',
-            '_reset',
             'score',
             'set_params',
             'transform'

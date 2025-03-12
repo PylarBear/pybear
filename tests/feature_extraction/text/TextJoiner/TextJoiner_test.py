@@ -7,7 +7,6 @@
 
 
 # takes any y
-# set_output
 # fit_transform
 # set_params
 # get_params
