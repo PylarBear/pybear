@@ -109,18 +109,26 @@ pybear requires:
 - scikit-learn (|ScikitLearnVersion|)
 - typing_extensions (|TypingExtensionsVersion|)
 
-pybear 0.1 is tested via GitHub Actions to run on Linux, Windows, and 
-MacOS, with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not 
-tested on earlier versions, but some features may work.
+pybear 0.1 is tested via GitHub Actions to run on Linux, Windows, and MacOS, 
+with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not tested on 
+earlier versions, but some features may work.
 
 User installation
 ~~~~~~~~~~~~~~~~~
 
-The only way to install pybear is from PyPI using ``pip``::
+pybear has not been released to PyPI yet. (But with every passing day we get 
+closer and closer!) First publish to PyPI is anticipated to be April 2025.
+If you really want to try it out, the only way to install pybear is from 
+TestPyPI using ``pip``::
 
-    pip install pybear
+   pip install -i https://test.pypi.org/simple/ pybear
 
-Conda distributions are not available at this time.
+In the future, pip install from PyPI using ``pip``::
+
+   pip install pybear
+
+Conda distributions are expected to be made available sometime after release 
+to PyPI.
 
 =======
 
