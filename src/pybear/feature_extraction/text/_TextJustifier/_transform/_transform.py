@@ -10,8 +10,8 @@ from typing_extensions import Union
 
 import numbers
 
-from ._split_helper import _split_helper
-from ._linebreak_splitter import _linebreak_splitter
+from ._splitter import _splitter
+from ._stacker import _stacker
 
 
 
@@ -49,6 +49,11 @@ def _transform(
         empty. If None, do not force any line breaks. If the there are
         no string sequences in the data that match the given strings,
         then there are no forced line breaks.
+    _backfill_sep:
+        Optional[str], default=' ' - when justifying text and there is a
+        shortfall of characters in a line, TJ will look to the next line
+        to backfill strings. In that case, this character string will
+        divide the text from the two lines.
 
 
     Return
@@ -63,60 +68,35 @@ def _transform(
     if isinstance(_sep, str):
         _sep = {_sep, }
 
-    if isinstance(_line_break, str):
-        _line_break = {_line_break, }
     if _line_break is None:
         _line_break = set()
+    elif isinstance(_line_break, str):
+        _line_break = {_line_break, }
 
 
     # sep can be a substring of line-break, but not vice-versa.
     # split on 'line-break' first, then on 'sep'
 
-    # loop over the entire data set and split on anything that is a line_break.
-    # these user-defined line breaks will be in an 'endswith' position
+    # loop over the entire data set and split on anything that is a line_break
+    # or sep. these user-defined line seps/breaks will be in an 'endswith' position
     # on impacted lines.
     # e.g. if X is ['jibberish', 'split this, on a comma.', 'jibberish']
     # then the returned list will be:
     # ['jibberish', 'split this,', 'on a comma.', 'jibberish'] and the comma
     # at the end of 'split this,' is easily recognized with endswith.
-    if any(_line_break):
-        _X = _linebreak_splitter(_X, _line_break)
+    # there must be at least one sep/line_break
+    _X = _splitter(_X, _sep, _line_break)
 
 
-    # loop over the entire data set and split on anything that is a sep
-    # or a line_break. this way, we will have a 1D vector where everything
-    # in it ends with a sep or a line_break.
+    # we now have a 1D list (still) that has any rows with seps/breaks
+    # broken out into indivisible strings on each row.
+
+    # now we need to restack these indivisible units to fill the n_char
+    # requirement.
+    _X = _stacker(_X, _n_chars, _sep, _line_break, _backfill_sep)
 
 
-
-
-
-
-
-
-    #     NEW_TXT = []
-    #     for word_idx in range(len(CLEANED_TEXT[row_idx])):
-    #         new_word = CLEANED_TEXT[row_idx][word_idx]
-    #         if len(seed) + len(new_word) <= max_line_len:
-    #             seed += new_word + ' '
-    #         elif len(seed) + len(new_word) > max_line_len:
-    #             NEW_TXT.append(seed.strip())
-    #             seed = new_word + ' '
-    # if len(seed) > 0:
-    #     NEW_TXT.append(seed.strip())
-    #
-    # del max_line_len, seed, new_word
-
-
-    # CLEANED_TEXT = NEW_TXT
-    # del NEW_TXT
-
-
-
-
-
-
-
+    return _X
 
 
 

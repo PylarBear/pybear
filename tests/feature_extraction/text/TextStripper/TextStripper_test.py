@@ -18,7 +18,7 @@ from pybear.feature_extraction.text._TextStripper.TextStripper import \
 
 
 
-class TestAccuracy:
+class TestTextStripper:
 
 
     @staticmethod

@@ -12,131 +12,107 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from pybear.feature_extraction.text._TextReplacer.TextReplacer import TextReplacer
+from pybear.feature_extraction.text._TextNormalizer.TextNormalizer import \
+    TextNormalizer
 
 
 
-
-class TestAccuracy:
+class TestTextNormalizer:
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _words():
-        return list('abcde')
+        return list('AbCdE')
+
 
 
     def test_empty_X(self):
 
         # 1D
-        TestCls = TextReplacer(str_replace=(',', '.'))
+        TestCls = TextNormalizer()
 
         out = TestCls.transform([])
 
         assert isinstance(out, list)
         assert len(out) == 0
 
-        # 2D -- returns empty 1D
-        TestCls = TextReplacer(regexp_replace=('[n-z]', ''))
+        # 2D
+        TestCls = TextNormalizer()
 
         out = TestCls.transform([[]])
 
         assert isinstance(out, list)
         assert len(out) == 1
+        assert len(out[0]) == 0
 
 
-    def test_str_replace_1(self, _words):
+    def test_no_op(self, _words):
 
-        TestCls = TextReplacer(str_replace=('a', "c"))
+        TestCls = TextNormalizer(upper=None)
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
 
-        assert np.array_equal(out, list('cbcde'))
+        assert np.array_equal(out, list('AbCdE'))
 
 
-    def test_str_replace_2(self, _words):
+    def test_upper(self, _words):
 
-        TestCls = TextReplacer(str_replace=('a', ','))
-
-        out = TestCls.transform(list(map(list, _words)), copy=True)
-        assert isinstance(out, list)
-        for _ in out:
-            assert isinstance(_, list)
-            assert all(map(isinstance, _, (str for i in _)))
-
-        assert all(map(
-            np.array_equal,
-            out,
-            [[','], ['b'], ['c'], ['d'], ['e']]
-        ))
-
-
-    def test_re_replace_1(self, _words):
-
-        TestCls = TextReplacer(regexp_replace=("[a-c]+", ""))
+        TestCls = TextNormalizer(upper=True)
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
-        assert all(map(isinstance, out, (str for i in out)))
+        assert all(map(isinstance, out, (str for _ in out)))
 
-        assert np.array_equal(out, ['', '', '', 'd', 'e'])
+        assert np.array_equal(out, list('ABCDE'))
 
 
-    def test_re_replace_2(self, _words):
+    def test_lower(self, _words):
 
-        TestCls = TextReplacer(
-            regexp_replace=[False, (".", ""), False, False, False]
-        )
+        TestCls = TextNormalizer(upper=False)
 
-        out = TestCls.transform(list(map(list, _words)), copy=True)
+        out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
-        for _ in out:
-            assert isinstance(_, list)
-            assert all(map(isinstance, _, (str for i in _)))
 
-        assert all(map(
-            np.array_equal,
-            out,
-            [['a'], [''], ['c'], ['d'], ['e']]
-        ))
+        assert np.array_equal(out, list('abcde'))
 
 
     def test_various_input_containers(self, _words):
 
-        TestCls = TextReplacer(str_replace=("e", ""))
+        TestCls = TextNormalizer(upper=True)
 
 
         # python list accepted
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
-        assert np.array_equal(out, list('abcd') + [''])
+        assert np.array_equal(out, list('ABCDE'))
 
         # python 1D tuple accepted
         out = TestCls.transform(tuple(_words), copy=True)
         assert isinstance(out, list)
-        assert np.array_equal(out, list('abcd') + [''])
+        assert np.array_equal(out, list('ABCDE'))
 
         # python 1D set accepted
         out = TestCls.transform(set(_words), copy=True)
         assert isinstance(out, list)
-        assert np.array_equal(sorted(out), sorted(list('abcd') + ['']))
+        assert np.array_equal(sorted(out), sorted(list('ABCDE')))
 
         # np 1D accepted
         out = TestCls.transform(np.array(_words), copy=True)
         assert isinstance(out, list)
-        assert np.array_equal(out, list('abcd') + [''])
+        assert np.array_equal(out, list('ABCDE'))
 
         # pd series accepted
         out = TestCls.transform(pd.Series(_words), copy=True)
         assert isinstance(out, list)
-        assert np.array_equal(out, list('abcd') + [''])
+        assert np.array_equal(out, list('ABCDE'))
 
         # polars series accepted
         out = TestCls.transform(pl.Series(_words), copy=True)
         assert isinstance(out, list)
-        assert np.array_equal(out, list('abcd') + [''])
+        assert np.array_equal(out, list('ABCDE'))
 
         # np 2D accepted
         out = TestCls.transform(
@@ -144,7 +120,7 @@ class TestAccuracy:
             copy=True
         )
         assert isinstance(out, list)
-        assert np.array_equal(out, [['a'], ['b'], ['c'], ['d'], ['']])
+        assert np.array_equal(out, [['A'], ['B'], ['C'], ['D'], ['E']])
 
         # pd DataFrame rejected
         with pytest.raises(TypeError):
@@ -162,7 +138,7 @@ class TestAccuracy:
         assert all(map(
             np.array_equal,
             out,
-            [['a'], ['b'], ['c'], ['d'], ['']]
+            [['A'], ['B'], ['C'], ['D'], ['E']]
         ))
 
 

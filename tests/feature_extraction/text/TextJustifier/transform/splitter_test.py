@@ -10,12 +10,12 @@ import pytest
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextJustifier._transform._linebreak_splitter \
-    import _linebreak_splitter
+from pybear.feature_extraction.text._TextJustifier._transform._splitter \
+    import _splitter
 
 
 
-class TestLinebreakSplitter:
+class TestSplitter:
 
     # no validation
 
@@ -25,11 +25,19 @@ class TestLinebreakSplitter:
             'want to split. on a period here.',
             'no-op here',
             'want to split, on comma here',
-            'zebras split on z here',
+            'zebras split on z and q here',
+            'they split at the end in alcatraz',
             'last split on; a semicolon.',
         ]
 
-        _line_break = {'.', ',', ';', 'z'}
+        # it is important that in ex1 q is after z but in _sep z is after q
+        _sep = {';', 'q', 'z'}
+        _line_break = {'.', ','}
+
+        out = _splitter(ex1, _sep, _line_break)
+
+        assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
 
         exp = [
             'want to split.',
@@ -39,15 +47,12 @@ class TestLinebreakSplitter:
             ' on comma here',
             'z',
             'ebras split on z',
+            ' and q',
             ' here',
+            'they split at the end in alcatraz',
             'last split on;',
             ' a semicolon.'
         ]
-
-        out = _linebreak_splitter(ex1, _line_break)
-
-        assert isinstance(out, list)
-        assert all(map(isinstance, out, (str for _ in out)))
 
         for _idx in range(len(exp)):
             assert np.array_equal(out[_idx], exp[_idx])

@@ -17,7 +17,7 @@ from pybear.feature_extraction.text._TextRemover.TextRemover import TextRemover
 
 
 
-class TestAccuracy:
+class TestTextRemover:
 
 
     @staticmethod

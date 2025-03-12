@@ -16,14 +16,16 @@ import polars as pl
 
 
 PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
-NumpyTypes: TypeAlias = npt.NDArray
-PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
-PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
 
+NumpyTypes: TypeAlias = npt.NDArray
+
+PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+
+PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
 
 XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
-
+OutputContainer: TypeAlias = list[str]
 
 
 
