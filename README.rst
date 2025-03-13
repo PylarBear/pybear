@@ -139,48 +139,48 @@ AutoGridSearchCV
 ~~~~~~~~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with sci-kit learn 
 GridSearchCV utilizing progressively narrower search grids.
-Access via pybear.model_selection.AutoGridSearchCV.
+ | Access via pybear.model_selection.AutoGridSearchCV.
 
 AutoGridSearchCVDask
 ~~~~~~~~~~~~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with dask_ml GridSearchCV 
-and dask objects utilizing progressively narrower search grids.  
-Access via pybear.model_selection.AutoGridSearchCVDask.
+and dask objects utilizing progressively narrower search grids.
+ | Access via pybear.model_selection.AutoGridSearchCVDask.
 
 autogridsearch_wrapper
 ~~~~~~~~~~~~~~~~~~~~~~
 Create your own auto-gridsearch class. A function that wraps any scikit-learn 
 or dask_ml GridSearchCV module to create an identical GridSearch class that 
 performs multiple passes of grid search using progressively narrower search 
-grids.  
-Access via pybear.model_selection.autogridsearch_wrapper.
+grids.
+ | Access via pybear.model_selection.autogridsearch_wrapper.
 
 GSTCV (GridSearchThresholdCV)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Perform conventional grid search on a classifier with concurrent threshold 
 search. Finds the global optima for the passed parameters and thresholds. Fully
-compliant with the scikit-learn GridSearchCV API.  
-Access via pybear.model_selection.GSTCV.
+compliant with the scikit-learn GridSearchCV API.
+ | Access via pybear.model_selection.GSTCV.
 
 GSTCVDask (GridSearchThresholdCV for Dask)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Perform conventional grid search on a classifier with concurrent threshold 
 search using dask objects in parallel and distributed environments. Finds the 
 global optima for the passed parameters and thresholds. Fully compliant with 
-the dask_ml/scikit-learn GridSearchCV API.  
-Access via pybear.model_selection.GSTCVDask.
+the dask_ml/scikit-learn GridSearchCV API.
+ | Access via pybear.model_selection.GSTCVDask.
 
 AutoGSTCV
 ~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with pybear GSTCV 
-utilizing progressively narrower search grids.  
-Access via pybear.model_selection.AutoGSTCV.
+utilizing progressively narrower search grids.
+ | Access via pybear.model_selection.AutoGSTCV.
 
 AutoGSTCVDask
 ~~~~~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with pybear GSTCVDask 
-utilizing progressively narrower search grids.  
-Access via pybear.model_selection.AutoGSTCVDask.
+utilizing progressively narrower search grids.
+ | Access via pybear.model_selection.AutoGSTCVDask.
 
 MinCountTransformer
 ~~~~~~~~~~~~~~~~~~~
@@ -188,8 +188,8 @@ Perform minimum frequency thresholding on numerical or categorical data
 simultaneously across an entire array of data. Violates the scikit-learn API 
 in that datasets are modified along the example axis (examples may be deleted.)
 Otherwise is fully compliant with the sci-kit learn transformer API, with fit, 
-transform, and partial_fit methods.  
-Access via pybear.preprocessing.MinCountTransformer.
+transform, and partial_fit methods.
+ | Access via pybear.preprocessing.MinCountTransformer.
 
 ColumnDeduplicateTransformer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -197,8 +197,8 @@ Identify and selectively remove duplicate columns in numerical or categorical
 data. Fully compliant with the scikit-learn transformer API, with fit,
 transform, and partial_fit methods. Perfect for removing duplicate columns from
 one-hot encoded data in a scikit-learn pipeline. Also fits and transforms data 
-batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.  
-Access via pybear.preprocessing.ColumnDeduplicateTransformer.
+batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
+ | Access via pybear.preprocessing.ColumnDeduplicateTransformer.
 
 InterceptManager
 ~~~~~~~~~~~~~~~~
@@ -206,8 +206,8 @@ A scikit-style transformer that identifies and manages constant columns in a
 dataset. IM can remove all, selectively keep one, or append a column of 
 constants. Handles numerical & non-numerical data, and nan-like values. Does 
 batch-wise fitting via a partial_fit method, and can be wrapped with dask_ml 
-Incremental and ParallelPostFit wrappers.  
-Access via pybear.preprocessing.InterceptManager.
+Incremental and ParallelPostFit wrappers.
+ | Access via pybear.preprocessing.InterceptManager.
 
 SlimPolyFeatures
 ~~~~~~~~~~~~~~~~
@@ -215,8 +215,8 @@ Perform a polynomial feature expansion on a dataset omitting constant and
 duplicate columns. Follows the standard scikit-learn transformer API. Handles 
 scipy sparse matrices/arrays. Suitable for sklearn pipelines. Has a partial_fit 
 method for batch-wise training and can be wrapped with dask_ml Incremental and
-ParallelPostFit wrappers.  
-Access via pybear.preprocessing.SlimPolyFeatures.
+ParallelPostFit wrappers.
+ | Access via pybear.preprocessing.SlimPolyFeatures.
 
 
 The pybear Text Wrangling Suite
@@ -228,23 +228,20 @@ Most of the modules also accept data in 1D list-like format or (ragged!) 2D
 array-like format. All of these are built in scikit transformer API style and
 can be stacked in a scikit pipeline.
 
- | These modules can be found in pybear.feature_extraction.text.
-
- | The modules include:
-
+These modules can be found in pybear.feature_extraction.text.
+The modules include:
  | Lexicon - A class object holding over 68,000 words in the English lexicon
-NGramMerger - Join select adjacent tokens together to handle as a single token  
-TextJoiner - Join tokenized text into a contiguous string with separators  
-TextJustifier - Justify to a fixed margin; identify wrap points with literals  
-TextJustifierRegExp - Same as TextJustifier, but uses regular expressions  
-TextNormalizer - Normalize text to the same case  
-TextPadder - Pad ragged text into shaped containers using fill  
-TextRemover - Remove units of contiguous text  
-TextReplacer - Remove substrings from contiguous text  
-TextSplitter - Split contiguous text into tokens using literal strings or regex  
-TextStatistics - Compile statistics about a body of text  
-TextStripper - Remove extra spaces from text  
-
+ | NGramMerger - Join select adjacent tokens together to handle as a single token  
+ | TextJoiner - Join tokenized text into a contiguous string with separators  
+ | TextJustifier - Justify to a fixed margin; identify wrap points with literals  
+ | TextJustifierRegExp - Same as TextJustifier, but uses regular expressions  
+ | TextNormalizer - Normalize text to the same case  
+ | TextPadder - Pad ragged text into shaped containers using fill  
+ | TextRemover - Remove units of contiguous text  
+ | TextReplacer - Remove substrings from contiguous text  
+ | TextSplitter - Split contiguous text into tokens using literal strings or regex  
+ | TextStatistics - Compile statistics about a body of text  
+ | TextStripper - Remove extra spaces from text  
 
 =======
 
