@@ -19,7 +19,8 @@ def _val_n_chars(_n_chars: numbers.Integral) -> None:
     Parameters
     ----------
     _n_chars:
-        numbers.Integral - the number of characters per line.
+        numbers.Integral - the number of characters per line to target
+        when justifying the text.
 
 
     Return

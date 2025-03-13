@@ -35,7 +35,6 @@ from ....base._copy_X import copy_X
 
 
 
-
 class TextJustifier(
     FitTransformMixin,
     GetParamsMixin,
@@ -44,17 +43,86 @@ class TextJustifier(
 ):
 
     """
+    TextJustifier (TJ) justifies text as closely as possible to the
+    number of characters per line given by the user.
+
+    This is not designed for making final drafts of highly formatted
+    business letters. This is a tool designed to turn highly ragged
+    text into block form that is more easily ingested and manipulated by
+    humans and machines. Consider lines read in from text files or
+    scraped from the internet. Many times there is large disparity in
+    the number of characters per line, some lines may have a few
+    characters, and other lines may have thousands of characters (or
+    more.) This tool will square-up the text for you.
+
+    The cleaner your data is, the more powerful this tool is, and the
+    more predicable are the results. TJ in no way is designed to do any
+    cleaning. See the other pybear text wrangling modules for that.
+    While TJ will handle any text passed to it and blindly apply the
+    instructions given to it, results are better when this is used
+    toward the end of a text processing workflow. For best results,
+    pybear recommends that removal of junk characters (pybear
+    TextReplacer), empty strings (pybear TextRemover), and extra spaces
+    (pybear TextStripper) be done before using TJ.
+
+    There are 3 operative parameters for justifying text in this module,
+    'n_chars', 'sep', and 'line_break'. 'n_chars' is the target number
+    of characters per line. The minimum allowed value is 1, and there is
+    no maximum value. 'sep' is/are the string sequence(s) that tells TJ
+    where it is allowed to wrap text. It does not mean that TJ WILL wrap
+    that particular text, but that it can if it needs to when near the
+    n_chars limit on a line. The wrap occurs AFTER the sep. A common
+    'sep' is a single space. 'line_break' is/are the string sequence(s)
+    that tells TJ where it MUST wrap text. When TJ finds a line_break
+    sequence, it will force a new line. The break occurs AFTER the
+    line_break. A typical 'line_break' might be a period.
+
+    This tool is relatively simplistic in that it only operates on exact
+    string matching. It does not take regular expressions (see pybear
+    TextJustifierRegExp for that.) The reason is that using hard strings
+    allows for validation that prevents conflicts that could lead to
+    results where "the user may be surprised." These safeguards make for
+    a predictable tool.
+
+    But as simple as the tool is in concept, there are some nuances.
+    Here is a non-exhaustive list of some of the quirks that may help
+    the user understand some edge cases and explain why TJ returns the
+    things that it does.
+    TJ is case-sensitive and that stipulation cannot be toggled.
     TJ will not autonomously hyphenate words.
+    If a line has no separators or line-breaks in it, then TJ does
+    nothing with it. If a line is millions of characters long and there
+    are no places to wrap, TJ will return the line as given, regardless
+    of what n_chars is.
+    If the margin is set very low, perhaps lower than the length of
+    words (tokens) that may normally be encountered, then those
+    words/lines will extend beyond 'n_chars'. Cool trick: if you want an
+    itemized list of all the tokens in your text, set 'n_chars' to 1.
 
-    Say something about how if on the first 'token' of a line, and the number
-    of characters to the next split location is greater than 'n_chars',
-    TJ will allow that first token to extend beyond n_chars as much as it
-    needs to. This is to handle the edge case of small 'n_chars', where
-    'n_chars' might be lower then a typical 'token' length. This only
-    time and place where this will happen; all other circumstances after
-    the first token defined by the first instance of a 'sep' will wrap.
+    TJ accepts 1D and 2D data formats. Accepted objects include python
+    built-in lists, tuples, and sets, numpy arrays, pandas series and
+    dataframes, and polars series and dataframes. Results are always
+    returned as a 1D python list of strings. When you pass your data in
+    a 2D format, TJ uses pybear TextJoiner to convert it to a 1D list.
+    See TextJoiner for more information.
 
-    add something about no validation of the value of sep.
+    TJ is a full-fledged scikit-style transformer. It has fully
+    functional get_params, set_params, transform, and fit_transform
+    methods. It also has partial_fit, fit, and score methods, which are
+    no-ops. TJ technically does not need to be fit because it already
+    knows everything it needs to do transformations from the parameters.
+    These no-op methods are available to fulfill the scikit transformer
+    API and make TJ suitable for incorporation into larger workflows,
+    such as Pipelines and dask_ml wrappers.
+
+    Because TJ doesn't need any information from partial_fit and fit, it
+    is technically always in a 'fitted' state and ready to transform
+    data. Checks for fittedness will always return True.
+
+    TJ has one attribute, n_rows_, which is only available after data
+    has been passed to :method: transform. n_rows_ is the number of rows
+    of text seen in the original data, and must be the number of strings
+    in the returned 1D python list.
 
 
     Parameters
@@ -74,47 +142,52 @@ class TextJustifier(
     sep:
         Optional[Union[str, set[str]]], default=' ' - the character
         string sequence(s) that indicate to TextJustifier where it is
-        allowed to wrap a line. When passed as a set of strings,
-        TextJustifier will consider any of those strings as a place where
-        it can wrap a line; cannot be empty.
-        TextJustifier processes all data in 1D form (as list of strings),
-        with all data given as 2D converted to 1D. If a sep string is in
-        the middle of a 'token', or some other sequence that would
-        otherwise be expected to be contiguous, TJ will split on that
-        spot if it determines to do so. It will wrap a new line
-        immediately after the matching string indiscriminately.
+        allowed to wrap a line. When passed as a set of strings, TJ will
+        consider any of those strings as a place where it can wrap a
+        line. If a sep string is in the middle of a sequence that might
+        otherwise be expected to be contiguous, TJ will wrap a new line
+        AFTER the sep indiscriminately if proximity to the n_chars limit
+        dictates to do so. Cannot be an empty string. Cannot be an empty
+        set. No seps can be identical and one cannot be a substring of
+        another. No sep can be identical to a line_break entry and no
+        sep can be a substring of a line_break.
     line_break:
-        Optional[Union[str, set[str], None]], default=None - When passed
-        as a single string, TextJustifier will start a new line
+        Optional[Union[str, set[str], None]], default=None - When
+        passed as a single string, TextJustifier will start a new line
         immediately AFTER all occurrences of the character string
-        sequence. When passed as a set of strings, TextJustifier will
-        start a new line immediately after all occurrences of the
-        character strings given; cannot be empty. If None, do not force
-        any line breaks. If the there are no string sequences in the
-        data that match the given strings, then there are no forced line
-        breaks. If a line_break string is in the middle of a 'token', or
-        some other sequence that would otherwise be expected to be
-        contiguous, TJ will not preserve the whole token. It will start
-        a new line immediately after the matching string indiscriminately.
+        sequence regardless of the number of characters in the line.
+        When passed as a set of strings, TextJustifier will start a new
+        line immediately after all occurrences of the character strings
+        given. If None, do not force any line breaks. If the there are
+        no string sequences in the data that match the given strings,
+        then there are no forced line breaks. If a line_break string is
+        in the middle of a sequence that might otherwise be expected to
+        be contiguous, TJ will force a new line AFTER the line_break
+        indiscriminately. Cannot be an empty string. Cannot be an empty
+        set. No line_breaks can be identical and one cannot be a
+        substring of another. No line_break can be identical to a sep
+        entry and no line_break can be a substring of a sep.
     backfill_sep:
-        Optional[str], default=' ' - Some of the lines in your text may
-        not have any of the wrap separators or line breaks you have
-        specified. When justifying text and there is a shortfall of
+        Optional[str], default=' ' - Some lines in the text may not have
+        any of the given wrap separators or line breaks at the end of
+        the line. When justifying text and there is a shortfall of
         characters in a line, TJ will look to the next line to backfill
         strings. In the case where the line being backfilled onto does
-        not have a separator at the end of the string, this character
-        string will separate the otherwise separator-less strings from
-        the strings being backfilled onto them. If you do not want a
-        separator in this case, pass an empty string to this parameter.
+        not have a separator or line break at the end of the string,
+        this character string will separate the otherwise separator-less
+        strings from the strings being backfilled onto them. If you do
+        not want a separator in this case, pass an empty string to this
+        parameter.
     join_2D:
         Optional[Union[str, Sequence[str]]], default=' ' - Ignored if
-        the data is given as a 1D sequence. For 2D
-        containers of (perhaps token) strings, the character string
-        sequence(s) that are used to join the strings across rows. If a
-        single string, that value is used to join for all rows. If a
-        sequence of strings, then the number of strings in the sequence
-        must match the number of rows in the data, and each entry in the
-        sequence is applied to the corresponding entry in the data.
+        the data is given as a 1D sequence. For 2D containers of strings,
+        the character string sequence(s) that are used to join the
+        strings across rows. If a single string, that value is used to
+        join for all rows. If a sequence of strings, then the number of
+        strings in the sequence must match the number of rows in the
+        data, and each entry in the sequence is applied to the
+        corresponding entry in the data. See pybear TextJustifier for more
+        information.
 
 
     Attributes
@@ -261,7 +334,7 @@ class TextJustifier(
 
         """
         Justify the text in a 1D list-like of strings or a (possibly
-        ragged) 2D array like of strings.
+        ragged) 2D array-like of strings.
 
 
         Parameters

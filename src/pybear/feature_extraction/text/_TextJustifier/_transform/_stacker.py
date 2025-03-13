@@ -35,12 +35,28 @@ def _stacker(
 
     Parameters
     ----------
-    pizza
-    _X
-    _n_chars
-    _sep
-    _line_break
-    _backfill_sep
+    _X:
+        list[str] - the data as processed by _splitter(). Must be a list
+        of strings. Each string is an indivisible unit of text based on
+        the given separators and line-breaks.
+    _n_chars:
+        numbers.Integral - the number of characters per line to target
+        when justifying the text.
+    _sep:
+        set[str] - the character string sequence(s) that indicate to
+        TextJustifier where it is allowed to wrap a line.
+    _line_break:
+        set[str] - the character string sequence(s) that indicate to
+        TextJustifier where it must force a new line.
+    _backfill_sep:
+        str - Some lines in the text may not have any of the given wrap
+        separators or line breaks at the end of the line. When justifying
+        text and there is a shortfall of characters in a line, TJ will
+        look to the next line to backfill strings. In the case where the
+        line being backfilled onto does not have a separator or line
+        break at the end of the string, this character string will
+        separate the otherwise separator-less strings from the strings
+        being backfilled onto them.
 
 
     Returns
