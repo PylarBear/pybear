@@ -9,6 +9,7 @@
 from typing_extensions import Union
 
 import numbers
+import re
 
 from ._splitter import _splitter
 from ._stacker import _stacker
@@ -18,8 +19,10 @@ from ._stacker import _stacker
 def _transform(
     _X: list[str],
     _n_chars: numbers.Integral,
-    _sep: Union[str, set[str]],
-    _line_break: Union[str, set[str]],
+    _sep: Union[str, re.Pattern],
+    _sep_flags: Union[numbers.Integral, None],
+    _line_break: Union[str, re.Pattern, None],
+    _line_break_flags: Union[numbers.Integral, None],
     _backfill_sep: str
 ) -> list[str]:
 
@@ -36,15 +39,20 @@ def _transform(
         numbers.Integral - the number of characters per line to target
         when justifying the text.
     _sep:
-        Union[str, set[str]] - the character string sequence(s) that
-        indicate to TextJustifier where it is allowed to wrap a line.
+        Union[str, re.Pattern] - the regexp pattern that indicates to
+        TextJustifierRegExp where it is allowed to wrap a line.
+    _sep_flags:
+        Union[numbers.Integral, None] - the flags for the 'sep' parameter.
     _line_break:
-        Union[str, set[str], None] - the character string sequence(s)
-        that indicate to TextJustifier where it must force a new line.
+        Union[str, re.Pattern, None]] - the regexp pattern that indicates
+        to TextJustifierRegExp where it must force a new line.
+    _line_break_flags:
+        Union[numbers.Integral, None] - the flags for the 'line_break'
+        parameter.
     _backfill_sep:
         str - Some lines in the text may not have any of the given wrap
         separators or line breaks at the end of the line. When justifying
-        text and there is a shortfall of characters in a line, TJ will
+        text and there is a shortfall of characters in a line, TJRE will
         look to the next line to backfill strings. In the case where the
         line being backfilled onto does not have a separator or line
         break at the end of the string, this character string will
@@ -61,15 +69,6 @@ def _transform(
     """
 
 
-    if isinstance(_sep, str):
-        _sep = {_sep, }
-
-    if _line_break is None:
-        _line_break = set()
-    elif isinstance(_line_break, str):
-        _line_break = {_line_break, }
-
-
     # loop over the entire data set and split on anything that is a line_break
     # or sep. these user-defined line seps/breaks will be in an 'endswith'
     # position on impacted lines.
@@ -77,7 +76,7 @@ def _transform(
     # then the returned list will be:
     # ['jibberish', 'split this,', 'on a comma.', 'jibberish'] and the comma
     # at the end of 'split this,' is easily recognized with endswith.
-    _X = _splitter(_X, _sep, _line_break)
+    _X = _splitter(_X, _sep, _sep_flags, _line_break, _line_break_flags)
 
 
     # we now have a 1D list (still) that has any rows with seps/breaks
@@ -85,7 +84,10 @@ def _transform(
 
     # now we need to restack these indivisible units to fill the n_char
     # requirement.
-    _X = _stacker(_X, _n_chars, _sep, _line_break, _backfill_sep)
+    _X = _stacker(
+        _X, _n_chars, _sep, _sep_flags, _line_break, _line_break_flags,
+        _backfill_sep
+    )
 
 
     return _X

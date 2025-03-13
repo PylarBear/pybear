@@ -108,6 +108,19 @@ class TextJoiner(
     OutputContainer: list[str]
 
 
+    Examples
+    --------
+    >>> from pybear.feature_extraction.text import TextJoiner as TJ
+    >>> trfm = TJ(sep=' ')
+    >>> X = [['Brevity', 'is', 'wit.']]
+    >>> trfm.fit_transform(X)
+    ['Brevity is wit.']
+    >>> trfm.set_params(sep='xyz')
+    TextJoiner(sep='xyz')
+    >>> trfm.fit_transform(X)
+    ['Brevityxyzisxyzwit.']
+
+
     """
 
 
