@@ -7,8 +7,10 @@
 
 
 from ._Lexicon.Lexicon import Lexicon
-from ._TextJoiner import TextJoiner
-from ._TextCleaner._TextCleaner.TextCleaner import TextCleaner
+from ._TextCleaner._TextCleaner.TextCleaner import TextCleaner  # pizza underscore
+from ._TextJoiner.TextJoiner import TextJoiner
+from ._TextJustifier.TextJustifier import TextJustifier
+from ._TextJustifierRegExp.TextJustifierRegExp import TextJustifierRegExp
 from ._TextNormalizer.TextNormalizer import TextNormalizer
 from ._TextPadder.TextPadder import TextPadder
 from ._TextRemover.TextRemover import TextRemover
@@ -22,6 +24,8 @@ __all__ = [
     'Lexicon',
     'TextCleaner',
     'TextJoiner',
+    'TextJustifier',
+    'TextJustifierRegExp',
     'TextNormalizer',
     'TextPadder',
     'TextRemover',

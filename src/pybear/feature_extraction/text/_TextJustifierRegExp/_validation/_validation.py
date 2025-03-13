@@ -11,11 +11,13 @@ from typing_extensions import Union
 from .._type_aliases import XContainer
 
 import numbers
-
+import re
 
 from ._n_chars import _val_n_chars
 from ._sep import _val_sep
+from ._sep_flags import _val_sep_flags
 from ._line_break import _val_line_break
+from ._line_break_flags import _val_line_break_flags
 from ._join_2D import _val_join_2D
 from ._backfill_sep import _val_backfill_sep
 
@@ -27,23 +29,19 @@ from .....base._check_2D_str_array import check_2D_str_array
 def _validation(
     _X: XContainer,
     _n_chars: numbers.Integral,
-    _sep: Union[str, set[str]],
-    _line_break: Union[str, set[str], None],
+    _sep: Union[str, re.Pattern],
+    _sep_flags: Union[numbers.Integral, None],
+    _line_break: Union[str, re.Pattern, None],
+    _line_break_flags: Union[numbers.Integral, None],
     _backfill_sep: str,
     _join_2D: Union[str, Sequence[str]]
 ) -> None:
 
     """
-    Validate data and parameters for TextJustifier. This is a centralized
+    Validate data and parameters for TextJustifierRegExp. This is a centralized
     hub for validation, the brunt of the work is handled by the
     individual modules. See the docs of the individual modules for more
     details.
-
-    No seps can be identical and one cannot be a substring of another.
-    No sep can be identical to a line_break entry and no sep can be a
-    substring of a line_break. No line_breaks can be identical and one
-    cannot be a substring of another. No line_break can be identical to
-    a sep entry and no line_break can be a substring of a sep.
 
 
     Parameters
@@ -55,15 +53,22 @@ def _validation(
         numbers.Integral - the number of characters per line to target
         when justifying the text.
     _sep:
-        Union[str, set[str]] - the character string sequence(s) that
-        indicate to TextJustifier where it is allowed to wrap a line.
+        Union[str, re.Pattern] - the character string sequence(s) that
+        indicate to TextJustifierRegExp where it is allowed to wrap a
+        line.
+    _sep_flags:
+        Union[numbers.Integral, None] - the flags for the 'sep' parameter.
     _line_break:
-        Union[str, set[str], None] - the character string sequence(s)
-        that indicate to TextJustifier where it must force a new line.
+        Union[str, re.Pattern, None] - the character string sequence(s)
+        that indicate to TextJustifierRegExp where it must force a new
+        line.
+    _line_break_flags:
+        Union[numbers.Integral, None] - the flags for the 'line_break'
+        parameter.
     _backfill_sep:
         str - Some lines in the text may not have any of the given wrap
         separators or line breaks at the end of the line. When justifying
-        text and there is a shortfall of characters in a line, TJ will
+        text and there is a shortfall of characters in a line, TJRE will
         look to the next line to backfill strings. In the case where the
         line being backfilled onto does not have a separator or line
         break at the end of the string, this character string will
@@ -105,7 +110,7 @@ def _validation(
             check_1D_str_sequence(_X, require_all_finite=True)
         except:
             raise TypeError(
-                f"TextJustifier expected a 1D sequence of strings or a "
+                f"TextJustifierRegExp expected a 1D sequence of strings or a "
                 f"(possibly ragged) 2D array-like of strings. See the docs "
                 f"for clarification of accepted containers."
             )
@@ -115,44 +120,23 @@ def _validation(
 
     _val_sep(_sep)
 
+    _val_sep_flags(_sep_flags)
+
     _val_line_break(_line_break)
+
+    _val_line_break_flags(_line_break_flags)
+
+    if _line_break is None and _line_break_flags is not None:
+        raise ValueError(
+            f"cannot pass 'line_break_flags' when 'line_break' is not passed."
+        )
 
     _val_backfill_sep(_backfill_sep)
 
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    err_msg = (
-        f"there is a conflict between strings for 'sep' and 'line_break'. "
-        f"\nno 'sep' and 'line_break' character sequences can be identical. "
-        f"\nno 'line_break' can be a substring of any 'sep'. "
-        f"\nno 'sep' can be a substring of any 'line_break'. "
-        f"\nno 'sep' can be a substring of another 'sep'. "
-        f"\nno 'line_break' can be a substring of another 'line_break'. "
-    )
 
-    if isinstance(_sep, str):
-        set1 = {_sep,}
-    else:
-        set1 = _sep.copy()
 
-    if _line_break is None:
-        set2 = set()
-    elif isinstance(_line_break, str):
-        set2 = {_line_break,}
-    else:
-        set2 = _line_break.copy()
 
-    _union = set1 | set2
-
-    if len(_union) != len(set1) + len(set2):
-        raise ValueError(err_msg)
-    # we know there are no exact duplicates
-    # now find if there are any shared substrings
-    for s1 in _union:
-        if any(s1 in s2 for s2 in _union if s2 != s1):
-            raise ValueError(err_msg)
-
-    del err_msg, set1, set2, _union
 
 
 

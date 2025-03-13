@@ -22,21 +22,21 @@ def _val_line_break(
     Parameters
     ----------
     _line_break:
-        Union[str, set[str], None] - When
-        passed as a single string, TextJustifier will start a new line
-        immediately AFTER all occurrences of the character string
-        sequence regardless of the number of characters in the line.
-        When passed as a set of strings, TextJustifier will start a new
-        line immediately after all occurrences of the character strings
-        given. If None, do not force any line breaks. If the there are
-        no string sequences in the data that match the given strings,
-        then there are no forced line breaks. If a line_break string is
-        in the middle of a sequence that might otherwise be expected to
-        be contiguous, TJ will force a new line AFTER the line_break
-        indiscriminately. Cannot be an empty string. Cannot be an empty
-        set. No line_breaks can be identical and one cannot be a
-        substring of another. No line_break can be identical to a sep
-        entry and no line_break can be a substring of a sep.
+        Union[str, set[str], None] - When passed as a single string,
+        TextJustifier will start a new line immediately AFTER all
+        occurrences of the character string sequence regardless of the
+        number of characters in the line. When passed as a set of
+        strings, TextJustifier will start a new line immediately after
+        all occurrences of the character strings given. If None, do not
+        force any line breaks. If the there are no string sequences in
+        the data that match the given strings, then there are no forced
+        line breaks. If a line_break string is in the middle of a
+        sequence that might otherwise be expected to be contiguous, TJ
+        will force a new line AFTER the line_break indiscriminately.
+        Cannot be an empty string. Cannot be an empty set. No line_breaks
+        can be identical and one cannot be a substring of another. No
+        line_break can be identical to a sep entry and no line_break can
+        be a substring of a sep.
 
 
     Return

@@ -6,8 +6,8 @@
 
 
 
-from pybear.feature_extraction.text._TextJustifier._validation._validation import \
-    _validation
+from pybear.feature_extraction.text._TextJustifier._validation._validation \
+    import _validation
 
 
 import pytest
