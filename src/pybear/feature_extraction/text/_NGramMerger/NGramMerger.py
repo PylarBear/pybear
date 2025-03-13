@@ -8,7 +8,16 @@
 
 from typing import Optional
 from typing_extensions import Self, Union
-from ._type_aliases import XContainer
+from ._type_aliases import (
+    XContainer,
+    StrNGramHandlerType,
+    RegExpNGramHandlerType,
+    StrSepType,
+    RegExpSepType
+)
+
+import pandas as pd
+import polars as pl
 
 from ....base import (
     FitTransformMixin,
@@ -30,21 +39,41 @@ class NGramMerger(
 ):
 
     """
+    Join adjacent "words" into an N-gram unit, to be handle as a single
+    "word".
+
+
 
 
     Parameters
     ----------
 
 
+    Notes
+    -----
+    Type Aliases
+
+
+    Examples
+    --------
+
+
+
     """
 
+
     def __init__(
-        self
+        self,
+        regexp_mode: Optional[bool],
+        ngram_handler: Optional[Union[StrNGramHandlerType, RegExpNGramHandlerType]],
+        sep: Optional[Union[StrSepType, RegExpSepType]]
     ):
 
         """Initialize the NGramMerger instance."""
 
-        pass
+        self.regexp_mode = regexp_mode
+        self.ngram_handler = ngram_handler
+        self.sep = sep
 
 
     def __pybear_is_fitted__(self):
@@ -64,8 +93,7 @@ class NGramMerger(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - The data.
-            Always ignored.
+            XContainer - The data. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -96,8 +124,7 @@ class NGramMerger(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - The data.
-            Always ignored.
+            XContainer - The data. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -129,7 +156,7 @@ class NGramMerger(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - The data.
+            XContainer - The data.
         copy:
             Optional[bool], default=True - whether to directly operate
             on the passed X or on a copy.
@@ -152,6 +179,19 @@ class NGramMerger(
         else:
             _X = X
 
+        # we know from validation it is legit 1D or 2D, do the easy check
+        if all(map(isinstance, _X, (str for _ in _X))):
+            # then is 1D:
+            _X = list(_X)
+        else:
+            # then could only be 2D, need to convert to 1D
+            if isinstance(_X, pd.DataFrame):
+                _X = list(map(list, _X.values))
+            elif isinstance(_X, pl.DataFrame):
+                _X = list(map(list, _X.rows()))
+            else:
+                _X = list(map(list, _X))
+
         # _transform(X, ...)
 
         return _X
@@ -170,8 +210,7 @@ class NGramMerger(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - The data.
-            Always ignored.
+            XContainer - The data. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.

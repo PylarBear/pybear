@@ -15,6 +15,7 @@ from ._check_pipeline import check_pipeline
 from ._feature_name_mapper import feature_name_mapper
 from ._get_methods_out_of_class import get_methods_out_of_class
 from ._get_module_name import get_module_name
+from ._logger import logger
 from ._inf_masking import inf_mask
 from ._nan_masking import (
     nan_mask_numerical,
@@ -22,6 +23,7 @@ from ._nan_masking import (
     nan_mask
 )
 from ._permuter import permuter
+from ._print_inspect_stack import print_inspect_stack
 from ._scipy_sparse_preslice_handle import scipy_sparse_preslice_handle
 from ._serial_index_mapper import serial_index_mapper
 
@@ -49,10 +51,12 @@ __all__ = [
     "get_methods_out_of_class",
     "get_module_name",
     "inf_mask",
+    "logger",
     "nan_mask",
     "nan_mask_numerical",
     "nan_mask_string",
     "permuter",
+    "print_inspect_stack",
     "scipy_sparse_preslice_handle",
     "serial_index_mapper",
     "time_memory_benchmark",

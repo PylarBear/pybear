@@ -5,19 +5,24 @@
 # License: BSD 3 clause
 
 
+
 def print_inspect_stack(inspect_stack):
 
-    """Pass inspect.stack (not inspect.stack()) to this in the calling
+    """
+    Pass inspect.stack (not inspect.stack()) to this in the calling
     function / module to print the stack hierarchy to screen.
+
 
     Parameters
     ----------
     inspect_stack:
         inspect.stack from the calling function / module
 
+
     See Also
     --------
     inspect.stack
+
 
     """
 

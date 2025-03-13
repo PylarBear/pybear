@@ -5,8 +5,10 @@
 # License: BSD 3 clause
 
 
-from pybear.debug import logger
+
+from pybear.utilities._logger import logger
 import sys, io
+
 
 
 def test_returns_original_function():
