@@ -110,16 +110,16 @@ pybear requires:
 - typing_extensions (|TypingExtensionsVersion|)
 
 pybear 0.1 is tested via GitHub Actions to run on Linux, Windows, and MacOS, 
-with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not tested on 
-earlier versions, but some features may work.
+with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not tested on earlier
+versions, but some features may work.
 
 User installation
 ~~~~~~~~~~~~~~~~~
 
 pybear has not been released to PyPI yet. (But with every passing day we get 
-closer and closer!) First publish to PyPI is anticipated to be April 2025.
-If you really want to try it out, the only way to install pybear is from 
-TestPyPI using ``pip``::
+closer and closer!) First publish to PyPI is anticipated to be April 2025. If
+you really want to try it out, the only way to install pybear is from TestPyPI
+using ``pip``::
 
    pip install -i https://test.pypi.org/simple/ pybear
 
@@ -127,8 +127,8 @@ In the future, pip install from PyPI using ``pip``::
 
    pip install pybear
 
-Conda distributions are expected to be made available sometime after release 
-to PyPI.
+Conda distributions are expected to be made available sometime after release to
+PyPI.
 
 =======
 
@@ -157,8 +157,8 @@ grids. Access via pybear.model_selection.autogridsearch_wrapper.
 GSTCV (GridSearchThresholdCV)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Perform conventional grid search on a classifier with concurrent threshold 
-search. Finds the global optima for the passed parameters and thresholds. 
-Fully compliant with the scikit-learn GridSearchCV API. Access via 
+search. Finds the global optima for the passed parameters and thresholds. Fully
+compliant with the scikit-learn GridSearchCV API. Access via
 pybear.model_selection.GSTCV.
 
 GSTCVDask (GridSearchThresholdCV for Dask)
@@ -193,8 +193,8 @@ pybear.preprocessing.MinCountTransformer.
 ColumnDeduplicateTransformer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Identify and selectively remove duplicate columns in numerical or categorical 
-data. Fully compliant with the scikit-learn transformer API, with fit, 
-transform, and partial_fit methods. Perfect for removing duplicate columns from 
+data. Fully compliant with the scikit-learn transformer API, with fit,
+transform, and partial_fit methods. Perfect for removing duplicate columns from
 one-hot encoded data in a scikit-learn pipeline. Also fits and transforms data 
 batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
 Access via pybear.preprocessing.ColumnDeduplicateTransformer.
@@ -216,23 +216,30 @@ scipy sparse matrices/arrays. Suitable for sklearn pipelines. Has a partial_fit
 method for batch-wise training and can be wrapped with dask_ml Incremental and
 ParallelPostFit wrappers. Access via pybear.preprocessing.SlimPolyFeatures.
 
-Lexicon
-~~~~~~~
-A class object that has an attribute that is a list of the words in the English 
-lexicon, as well as other methods and attributes that have summary statistics 
-about the words. Currently has over 68,000 words, but is not 100% exhaustive 
-though attempts have been made to do so. Users are able to modify the contents  
-of the lexicon on their local installation via built-in methods.
-Access via pybear.feature_extraction.text.Lexicon.
 
-TextStatistics
-~~~~~~~~~~~~~~
-A scikit-like class that ingests 1D vectors of strings and compiles statistics 
-about the characters and strings seen during fitting. Has a partial_fit method 
-that allows it to accumulate information for multiple batches of data. Reported 
-information includes number of strings seen, average length of strings, maximum 
-and minimum length, character frequency, starts-with frequency, and others.
-Access via pybear.feature_extraction.text.TextStatistics.
+The pybear Text Wrangling Suite
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+pybear has a wide selection of text wrangling tools for those who don't have a
+PhD in NLP. Most modules have the dual capability of working with regular
+expressions or literal strings (for those who don't know regular expressions!)
+Most of the modules also accept data in 1D list-like format or (ragged!) 2D
+array-like format. All of these are built in scikit transformer API style and
+can be stacked in a scikit pipeline.
+These modules can be found in pybear.feature_extraction.text.
+The modules include:
+Lexicon - A class object holding over 68,000 words in the English lexicon
+NGramMerger - Join select adjacent tokens together to handle as a single token
+TextJoiner - Join tokenized text into a contiguous string with separators
+TextJustifier - Justify to a fixed margin; identify wrap points with literals
+TextJustifierRegExp - Same as TextJustifier, but uses regular expressions
+TextNormalizer - Normalize text to the same case
+TextPadder - Pad ragged text into shaped containers using fill
+TextRemover - Remove units of contiguous text
+TextReplacer - Remove substrings from contiguous text
+TextSplitter - Split contiguous text into tokens using literal strings or regex
+TextStatistics - Compile statistics about a body of text
+TextStripper - Remove extra spaces from text
+
 
 =======
 
