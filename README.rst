@@ -227,9 +227,9 @@ expressions or literal strings (for those who don't know regular expressions!)
 Most of the modules also accept data in 1D list-like format or (ragged!) 2D
 array-like format. All of these are built in scikit transformer API style and
 can be stacked in a scikit pipeline.
-| These modules can be found in pybear.feature_extraction.text.
-| The modules include:
-| Lexicon - A class object holding over 68,000 words in the English lexicon
+ | These modules can be found in pybear.feature_extraction.text.
+ | The modules include:
+ | Lexicon - A class object holding over 68,000 words in the English lexicon
 NGramMerger - Join select adjacent tokens together to handle as a single token  
 TextJoiner - Join tokenized text into a contiguous string with separators  
 TextJustifier - Justify to a fixed margin; identify wrap points with literals  
