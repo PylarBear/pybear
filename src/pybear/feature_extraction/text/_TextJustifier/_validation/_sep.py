@@ -22,12 +22,17 @@ def _val_sep(
     Parameters
     ----------
     _sep:
-        Union[str, set[str]] - the non-empty character string sequence(s)
-        that indicate to TextJustifier where it is allowed to wrap a
-        line. When passed as a non-empty set of strings, TextJustifier
-        will consider any of those non-empty strings as a place where it
-        can wrap a line. TextJustifier processes all data in 1D form (as
-        list of strings), with all data given as 2D converted to 1D.
+        Union[str, set[str]] - the character string sequence(s) that
+        indicate to TextJustifier where it is allowed to wrap a line.
+        When passed as a set of strings, TJ will consider any of those
+        strings as a place where it can wrap a line. If a sep string is
+        in the middle of a sequence that might otherwise be expected to
+        be contiguous, TJ will wrap a new line after the sep
+        indiscriminately if proximity to the n_chars limit dictates to
+        do so. Cannot be an empty string. Cannot be an empty set. No
+        seps can be identical and one cannot be a substring of another.
+        No sep can be identical to a line_break entry and no sep can be
+        a substring of a line_break.
 
 
     Return

@@ -13,7 +13,7 @@ def _splitter(
 ) -> list[str]:
 
     """
-    Split the text strings in X on user-defined line breaks and wrap
+    Split the text strings in X on all user-defined line breaks and wrap
     separators, so that each line has no breaks or wraps, or if they do,
     the wraps/breaks are at the very end of the string. For each string
     in X, find the first split location, if any, and keep the left side
@@ -28,11 +28,11 @@ def _splitter(
         list[str] - the data to have individual rows split on line-break
         amd wrap separator string character sequences defined by the user.
     _sep:
-        set[str] - the wrap separator string character sequence(s)
-        defined by the user.
+        set[str] - the character string sequence(s) that indicate to
+        TextJustifier where it is allowed to wrap a line.
     _line_break:
-        set[str] - the line-break string character sequence(s) defined
-        by the user.
+        set[str] - the character string sequence(s) that indicate to
+        TextJustifier where it must force a new line.
 
 
     Returns

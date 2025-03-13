@@ -24,36 +24,32 @@ def _transform(
 ) -> list[str]:
 
     """
-    Fit text as strings to user-specified number of characters per row.
-    For this module, the data must be a 1D python list of strings.
+    Fit text as strings to the user-specified number of characters per
+    row. For this module, the data must be a 1D python list of strings.
 
 
     Parameters
     ----------
     _X:
-        list[str] - The data to justify as a 1D python list of strings.
+        list[str] - The text to justify as a 1D python list of strings.
     _n_chars:
-        numbers.Integral - the number of characters per line.
+        numbers.Integral - the number of characters per line to target
+        when justifying the text.
     _sep:
         Union[str, set[str]] - the character string sequence(s) that
         indicate to TextJustifier where it is allowed to wrap a line.
-        When passed as a set of strings, TextJustifier will consider any
-        of those strings as a place where it can wrap a line; cannot be
-        empty.
     _line_break:
-        Union[str, set[str], None]] - When passed as a single string,
-        TextJustifier will start a new line immediately AFTER all
-        occurrences of the character string sequence. When passed as a
-        set of strings, TextJustifier will start a new line immediately
-        after all occurrences of the character strings given; cannot be
-        empty. If None, do not force any line breaks. If the there are
-        no string sequences in the data that match the given strings,
-        then there are no forced line breaks.
+        Union[str, set[str], None]] - the character string sequence(s)
+        that indicate to TextJustifier where it must force a new line.
     _backfill_sep:
-        Optional[str], default=' ' - when justifying text and there is a
-        shortfall of characters in a line, TJ will look to the next line
-        to backfill strings. In that case, this character string will
-        divide the text from the two lines.
+        str - Some lines in the text may not have any of the given wrap
+        separators or line breaks at the end of the line. When justifying
+        text and there is a shortfall of characters in a line, TJ will
+        look to the next line to backfill strings. In the case where the
+        line being backfilled onto does not have a separator or line
+        break at the end of the string, this character string will
+        separate the otherwise separator-less strings from the strings
+        being backfilled onto them.
 
 
     Return
