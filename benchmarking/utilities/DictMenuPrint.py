@@ -24,49 +24,49 @@ def measuring_stick(_len: int) -> None:
 
 
 # TEST DISPLAY OF MANY SMALL OPTIONS ##########################################
-name = 'DISPLAY OF MANY SMALL OPTIONS, disp_len=50'
+name = 'DISPLAY OF MANY SMALL OPTIONS, disp_width=50'
 test_start(name)
 
 VALUES = [f'Test{_}' for _ in range(0, 27)]
 DICT = dict((zip(list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), VALUES)))
 measuring_stick(50)
-DMP(DICT, disp_len=50).choose('Pick one already')
+DMP(DICT, disp_width=50).choose('Pick one already')
 # END TEST DISPLAY OF MANY SMALL OPTIONS ######################################
 
 # TEST DISPLAY OF MANY SMALL OPTIONS ##########################################
-name = 'DISPLAY OF MANY SMALL OPTIONS, disp_len=120'
+name = 'DISPLAY OF MANY SMALL OPTIONS, disp_width=120'
 test_start(name)
 
 VALUES = [f'Test{_}' for _ in range(0, 27)]
 DICT = dict((zip(list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), VALUES)))
 measuring_stick(120)
-DMP(DICT, disp_len=120).choose('Pick one already')
+DMP(DICT, disp_width=120).choose('Pick one already')
 # END TEST DISPLAY OF MANY SMALL OPTIONS ######################################
 
 # TEST DISPLAY OF MANY MEDIUM OPTIONS #########################################
-name = 'DISPLAY OF MANY MEDIUM OPTIONS, disp_len=120'
+name = 'DISPLAY OF MANY MEDIUM OPTIONS, disp_width=120'
 test_start(name)
 
 VALUES = [f'Test of many medium-sized options{_}' for _ in range(0, 27)]
 DICT = dict((zip(list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), VALUES)))
 measuring_stick(120)
-DMP(DICT, disp_len=120).choose('Pick one already')
+DMP(DICT, disp_width=120).choose('Pick one already')
 # END TEST DISPLAY OF MANY MEDIUM OPTIONS #####################################
 
 # TEST DISPLAY OF LONG OPTIONS ################################################
-name = 'DISPLAY OF EXTREMELY LONG OPTIONS, disp_len=90'
+name = 'DISPLAY OF EXTREMELY LONG OPTIONS, disp_width=90'
 test_start(name)
 
-VALUES = [(f'Test of extremely long options, so long they go past the disp_len, '
+VALUES = [(f'Test of extremely long options, so long they go past the disp_width, '
            f'so they should be truncated{_}') for _ in range(0, 27)]
 DICT = dict((zip(list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), VALUES)))
 measuring_stick(90)
-DMP(DICT, disp_len=90).choose('Pick one already')
+DMP(DICT, disp_width=90).choose('Pick one already')
 # END TEST DISPLAY OF LONG OPTIONS ############################################
 
 
 # TEST fixed_col_width DISPLAYS CORRECTLY #####################################
-name = 'TEST fixed_col_width DISPLAYS CORRECTLY, disp_len=default, fixed_col_width=40'
+name = 'TEST fixed_col_width DISPLAYS CORRECTLY, disp_width=default, fixed_col_width=40'
 test_start(name)
 SHORT_DICT = {'a': 'Test 1', 'b': 'Test 2', 'c': 'Test 3'}
 MEDIUM_DICT = {
@@ -93,7 +93,7 @@ print(f'ALL PRINTOUTS SHOULD HAVE SAME MARGINS')
 
 
 # TEST allowed DISPLAYS CORRECTLY #############################################
-name = 'TEST allowed DISPLAYS CORRECTLY, disp_len=default, fixed_col_width=default'
+name = 'TEST allowed DISPLAYS CORRECTLY, disp_width=default, fixed_col_width=default'
 test_start(name)
 print(f'Only a AND c SHOULD BE SHOWN')
 DICT = {'a': 'Test 1', 'b': 'Test 2', 'c': 'Test 3'}
@@ -102,7 +102,7 @@ DMP(DICT, allowed='ac').choose('Pick one already')
 
 
 # TEST disallowed DISPLAYS CORRECTLY ##########################################
-name = 'TEST disallowed DISPLAYS CORRECTLY, disp_len=default, fixed_col_width=default'
+name = 'TEST disallowed DISPLAYS CORRECTLY, disp_width=default, fixed_col_width=default'
 test_start(name)
 print(f'Only a AND b SHOULD BE SHOWN')
 DICT = {'a': 'Test 1', 'b': 'Test 2', 'c': 'Test 3'}
@@ -111,7 +111,7 @@ DMP(DICT, disallowed='c').choose('Pick one already')
 
 
 # TEST choose RETURNS CORRECTLY ###############################################
-name = 'TEST choose RETURNS CORRECTLY, disp_len=default, fixed_col_width=default'
+name = 'TEST choose RETURNS CORRECTLY, disp_width=default, fixed_col_width=default'
 test_start(name)
 DICT = {'a': 'Test 1', 'b': 'Test 2', 'c': 'Test 3'}
 TestClass = DMP(DICT)

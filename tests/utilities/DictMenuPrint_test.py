@@ -24,7 +24,7 @@ class TestDMPInit:
     #     def __init__(
     #         self,
     #         MENU_DICT:dict[str, str],
-    #         disp_len:numbers.Integral = 80,
+    #         disp_width:numbers.Integral = 80,
     #         fixed_col_width:Optional[Union[numbers.Integral, None]] = None,
     #         allowed:Optional[Union[str, None]] = None,
     #         disallowed:Optional[Union[str, None]] = None
@@ -70,27 +70,27 @@ class TestDMPInit:
         DMP({'A': 'Test 1', 'B': 'Test 2'})
     # END MENU_DICT -- -- -- -- -- -- -- -- -- -- -- --
 
-    # disp_len -- -- -- -- -- -- -- -- -- -- -- --
-    @pytest.mark.parametrize('junk_disp_len',
+    # disp_width -- -- -- -- -- -- -- -- -- -- -- --
+    @pytest.mark.parametrize('junk_disp_width',
         (-2.7, 2.7, True, False, None, 'trash', [0,1], (1,), {1,2}, {'A':1},
          lambda x: x)
     )
-    def test_disp_len_rejects_non_integer(self, junk_disp_len):
+    def test_disp_width_rejects_non_integer(self, junk_disp_width):
 
         with pytest.raises(TypeError):
-            DMP({'A': 'Test 1', 'B': 'Test 2'}, disp_len=junk_disp_len)
+            DMP({'A': 'Test 1', 'B': 'Test 2'}, disp_width=junk_disp_width)
 
 
-    @pytest.mark.parametrize('_disp_len', (-1, 0, 1))
-    def test_disp_len_rejects_low_integer(self, _disp_len):
+    @pytest.mark.parametrize('_disp_width', (-1, 0, 1))
+    def test_disp_width_rejects_low_integer(self, _disp_width):
         with pytest.raises(ValueError):
-            DMP({'A': 'Test 1', 'B': 'Test 2'}, disp_len=_disp_len)
+            DMP({'A': 'Test 1', 'B': 'Test 2'}, disp_width=_disp_width)
 
 
-    @pytest.mark.parametrize('_disp_len', (10, 80, 1000))
-    def test_disp_len_accepts_good_integer(self, _disp_len):
-        DMP({'A': 'Test 1', 'B': 'Test 2'}, disp_len=_disp_len)
-    # END disp_len -- -- -- -- -- -- -- -- -- -- -- --
+    @pytest.mark.parametrize('_disp_width', (10, 80, 1000))
+    def test_disp_width_accepts_good_integer(self, _disp_width):
+        DMP({'A': 'Test 1', 'B': 'Test 2'}, disp_width=_disp_width)
+    # END disp_width -- -- -- -- -- -- -- -- -- -- -- --
 
     # fixed_col_width -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_fixed_col_width',
@@ -122,7 +122,7 @@ class TestDMPInit:
     def test_fixed_col_width_accepts_good_integer_None(self, _fixed_col_width):
         DMP(
             {'A': 'Test 1', 'B': 'Test 2'},
-            disp_len=_fixed_col_width or 1000,   # must be >= fixed_col_width
+            disp_width=_fixed_col_width or 1000,   # must be >= fixed_col_width
             fixed_col_width=_fixed_col_width
         )
     # END fixed_column_width -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -329,15 +329,15 @@ class TestDMPchoose:
 class TestAccuracy:
 
 
-    @pytest.mark.parametrize('_disp_len', (50, 120))
-    def test_margin_of_many_small_options(self, capsys, _disp_len):
+    @pytest.mark.parametrize('_disp_width', (50, 120))
+    def test_margin_of_many_small_options(self, capsys, _disp_width):
 
         VALUES = [f'Test{_}' for _ in range(0, 27)]
         DICT = dict((zip(list('ABCDEFGHIJKLMNOPQURSTUVWXYZ'), VALUES)))
 
         user_inputs = "A\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            DMP(DICT, disp_len=_disp_len).choose('pick one > ')
+            DMP(DICT, disp_width=_disp_width).choose('pick one > ')
 
         captured = capsys.readouterr().out.strip().split('\n')
 
@@ -347,38 +347,38 @@ class TestAccuracy:
             if idx == len(captured) - 2:
                 assert len(line) > 0
             else:
-                assert 0.8*_disp_len <= len(line) <= _disp_len
+                assert 0.8*_disp_width <= len(line) <= _disp_width
 
 
-    @pytest.mark.parametrize('_disp_len', (90, 140))
-    def test_margin_of_many_medium_options(self, capsys, _disp_len):
+    @pytest.mark.parametrize('_disp_width', (90, 140))
+    def test_margin_of_many_medium_options(self, capsys, _disp_width):
 
         VALUES = [f'Test of many medium-sized options{_}' for _ in range(0, 27)]
         DICT = dict((zip(list('ABCDEFGHIJKLMNOPQURSTUVWXYZ'), VALUES)))
 
         user_inputs = "B\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            DMP(DICT, disp_len=_disp_len).choose('pick one > ')
+            DMP(DICT, disp_width=_disp_width).choose('pick one > ')
 
         captured = capsys.readouterr().out.strip().split('\n')
         # on this one there is a empty line between the last menu
         # row and prompt
         # skip the last row, it is the prompt
         for idx, line in enumerate(captured[:-2]):
-            assert 0.8 * _disp_len <= len(line) <= _disp_len
+            assert 0.8 * _disp_width <= len(line) <= _disp_width
 
 
-    @pytest.mark.parametrize('_disp_len', (90, 140))
-    def test_margin_of_many_long_options(self, capsys, _disp_len):
+    @pytest.mark.parametrize('_disp_width', (90, 140))
+    def test_margin_of_many_long_options(self, capsys, _disp_width):
 
         VALUES = [(f'Test of extremely long options, so long they go past the '
-                   f'disp_len, so they should be truncated{_}') for _ in
+                   f'disp_width, so they should be truncated{_}') for _ in
                   range(0, 27)]
         DICT = dict((zip(list('ABCDEFGHIJKLMNOPQURSTUVWXYZ'), VALUES)))
 
         user_inputs = "A\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            DMP(DICT, disp_len=_disp_len).choose('pick one > ')
+            DMP(DICT, disp_width=_disp_width).choose('pick one > ')
 
         captured = capsys.readouterr().out.strip().split('\n')
 
@@ -386,7 +386,7 @@ class TestAccuracy:
         # row and prompt
         # skip the last row, it is the prompt
         for idx, line in enumerate(captured[:-2]):
-            assert 0.8 * _disp_len <= len(line) <= _disp_len
+            assert 0.8 * _disp_width <= len(line) <= _disp_width
 
 
     @pytest.mark.parametrize('_len', ('short', 'medium', 'long'))

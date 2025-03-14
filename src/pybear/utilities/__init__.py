@@ -12,6 +12,7 @@ from ._benchmarking import (
     timer
 )
 from ._check_pipeline import check_pipeline
+from ._DictMenuPrint import DictMenuPrint
 from ._feature_name_mapper import feature_name_mapper
 from ._get_methods_out_of_class import get_methods_out_of_class
 from ._get_module_name import get_module_name
@@ -47,6 +48,7 @@ from ._serial_index_mapper import serial_index_mapper
 __all__ = [
     "array_sparsity",
     "check_pipeline",
+    "DictMenuPrint",
     "feature_name_mapper",
     "get_methods_out_of_class",
     "get_module_name",
