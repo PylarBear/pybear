@@ -15,7 +15,6 @@ from ..data_validation import validate_user_str_cs
 
 
 
-
 class DictMenuPrint:
 
     """
@@ -30,14 +29,14 @@ class DictMenuPrint:
         dict[str, str] - required, dictionary of unit-length alpha
         characters as keys and the descriptions of their associated
         actions as values. keys are case-sensitive.
-    disp_len:
+    disp_width:
         Optional[numbers.Integral], default=80 - the maximum number of
         characters to display per line.
     fixed_col_width:
         Optional[Union[numbers.Integral, None]], default=None - set a
         fixed width for each column of menu items in the display. DMP
         will determine a number of columns that causes the overall width
-        of the display to be less than or equal to 'disp_len'.
+        of the display to be less than or equal to 'disp_width'.
     allowed:
         Optional[Union[str, None]], default=None - can only enter this
         if 'disallowed' is not entered, cannot enter both. The action
@@ -64,8 +63,16 @@ class DictMenuPrint:
         'allowed' attribute. The menu associated the stored 'allowed'
         attribute is always available as the default menu.
     all_allowed_str:
-        str - the full set of allowed options taken from the keys of
+        str - the full set of possible options taken from the keys of
         MENU_DICT.
+    disp_width:
+        numbers.Integral - the display character length passed at
+        instantiation or the default if not passed.
+    fixed_col_width:
+        numbers.Integral - the fixed column width for each bank of
+        options passed at instantiation or the default if not passed.
+    MENU_DICT:
+        dict[str, str] - the MENU_DICT passed at instantiation.
 
 
 
@@ -76,7 +83,7 @@ class DictMenuPrint:
         self,
         MENU_DICT:dict[str, str],
         *,
-        disp_len:Optional[numbers.Integral] = 80,
+        disp_width:Optional[numbers.Integral] = 80,
         fixed_col_width:Optional[Union[numbers.Integral, None]] = None,
         allowed:Optional[Union[str, None]] = None,
         disallowed:Optional[Union[str, None]] = None
@@ -110,16 +117,16 @@ class DictMenuPrint:
         # MENU_DICT cant have duplicate keys, its a dictionary
         self.all_allowed_str = ''.join(MENU_DICT.keys())
 
-        # disp_len -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        if not isinstance(disp_len, numbers.Integral):
-            raise TypeError(f"'disp_len' must be a non-boolean integer")
-        if isinstance(disp_len, bool):
-            raise TypeError(f"'disp_len' must be a non-boolean integer")
-        if disp_len < 10:
-            raise ValueError(f"'disp_len' must be >=10")
+        # disp_width -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        if not isinstance(disp_width, numbers.Integral):
+            raise TypeError(f"'disp_width' must be a non-boolean integer")
+        if isinstance(disp_width, bool):
+            raise TypeError(f"'disp_width' must be a non-boolean integer")
+        if disp_width < 10:
+            raise ValueError(f"'disp_width' must be >=10")
 
-        self.disp_len = disp_len
-        # END disp_len -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        self.disp_width = disp_width
+        # END disp_width -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # fixed_column_width -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         if not isinstance(fixed_col_width, (numbers.Integral, type(None))):
@@ -127,9 +134,9 @@ class DictMenuPrint:
         if isinstance(fixed_col_width, bool):
             raise TypeError(f"'fixed_col_width' must be a non-boolean integer")
         if fixed_col_width is not None and fixed_col_width < 10:
-            raise ValueError(f"'disp_len' must be >=10")
-        if fixed_col_width and fixed_col_width > disp_len:
-            raise ValueError(f"'fixed_col_width' must be <= 'disp_len'")
+            raise ValueError(f"'disp_width' must be >=10")
+        if fixed_col_width and fixed_col_width > disp_width:
+            raise ValueError(f"'fixed_col_width' must be <= 'disp_width'")
 
         self.fixed_col_width = fixed_col_width
         # END fixed_column_width -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -174,7 +181,7 @@ class DictMenuPrint:
         elif _allowed is None and _disallowed is None:
             _allowed = self.all_allowed_str
 
-        elif _allowed is not None and _disallowed is None:
+        elif _allowed is not None:   #  _disallowed is None
 
             # CLEAR OUT ANY DUPLICATES THAT MAY BE IN ALLOWED
             _allowed = ''.join(list(set(_allowed)))
@@ -185,7 +192,7 @@ class DictMenuPrint:
                     f"{self.all_allowed_str}."
                 )
 
-        elif _disallowed is not None and _allowed is None:
+        elif _disallowed is not None:   # _allowed is None
 
             # CLEAR OUT ANY DUPLICATES THAT MAY BE IN disallowed
             _disallowed = ''.join(list(set(_disallowed)))
@@ -214,13 +221,13 @@ class DictMenuPrint:
         }
 
         if self.fixed_col_width is not None:
-            num_cols = self.disp_len // int(self.fixed_col_width)
+            num_cols = self.disp_width // int(self.fixed_col_width)
             ljust = int(self.fixed_col_width)
         else:  # fixed_col_width is None
             # +3 FOR '(' + <the menu option> + ')' +2 FOR BUFFER
             _max_desc_len = max(map(len, SUB_DICT.values())) + 3 + 2
-            num_cols = max(1, self.disp_len // _max_desc_len)
-            ljust = self.disp_len // num_cols
+            num_cols = max(1, self.disp_width // _max_desc_len)
+            ljust = self.disp_width // num_cols
             del _max_desc_len
 
         # attrs are MENU_DICT, SUB_DICT, all_allowed_str, fixed_column_width,
@@ -259,17 +266,18 @@ class DictMenuPrint:
         Parameters
         ----------
         allowed:
-            Optional[Union[str, None]], default=None - can only enter this
-            if 'disallowed' is not entered, cannot enter both. The action
-            keys that are allowed to be selected from the full section
-            available in MENU_DICT. case-sensitive. Enter as a contiguous
-            sequence of characters.
+            Optional[Union[str, None]], default=None - can only enter
+            this if 'disallowed' is not entered, cannot enter both. The
+            action keys that are allowed to be selected from the full
+            section available in MENU_DICT. case-sensitive. Enter as a
+            contiguous sequence of characters.
         disallowed:
-            Optional[Union[str, None]], default=None - can only enter this
-            if 'allowed' is not entered, cannot enter both. The action keys
-            that are not allowed to be selected from MENU_DICT. 'allowed'
-            becomes the space of action keys that are not disallowed.
-            case-sensitive. Enter as a contiguous sequence of characters.
+            Optional[Union[str, None]], default=None - can only enter
+            this if 'allowed' is not entered, cannot enter both. The
+            action keys that are not allowed to be selected from
+            MENU_DICT. 'allowed' becomes the space of action keys that
+            are not disallowed. case-sensitive. Enter as a contiguous
+            sequence of characters.
 
         """
 
