@@ -8,13 +8,16 @@
 
 
 import datetime as dt
+import numbers
 
 
 
 def validate_user_str(user_prompt:str, options:str) -> str:
 
-    """Validation of a single user-entered alpha character against a list of
-    allowed characters.
+    """
+    Validation of a single user-entered alpha character against a list
+    of allowed characters. Not case sensitive.
+
 
     Parameters
     ----------
@@ -22,6 +25,7 @@ def validate_user_str(user_prompt:str, options:str) -> str:
         str -  text string displayed to the user at prompt
     options:
         str - a single text string containing the allowed characters
+
 
     Returns
     -------
@@ -39,17 +43,60 @@ def validate_user_str(user_prompt:str, options:str) -> str:
 
     while True:
         user_input = input(user_prompt).upper()
-        if len(user_input) == 1 and user_input in options.upper() and \
-                user_input != '' and user_input != options:
+        if len(user_input) == 1 and user_input in options.upper():
             break
 
     return user_input
 
 
-def validate_user_mstr(user_prompt:str, options:str, max_len:int=2) -> str:
+def validate_user_str_cs(user_prompt:str, options:str) -> str:
 
-    """String _validation for multiple alpha character user entry that screens
-    by len of entry and allowed options.
+    """
+    Validation of a single user-entered alpha character against a list
+    of allowed characters. Case sensitive.
+
+
+    Parameters
+    ----------
+    user_prompt:
+        str - text string displayed to the user at prompt
+    options:
+        str - a single text string containing the allowed characters.
+        Case sensitive.
+
+
+    Returns
+    -------
+    user_input:
+        str - validated user selection
+
+    """
+
+    if not isinstance(user_prompt, str):
+        raise TypeError(f"'user_prompt' must be a string")
+
+    if not isinstance(options, str):
+        raise TypeError(f"'options' must be a string")
+
+
+    while True:
+        user_input = input(user_prompt)
+        if len(user_input) == 1 and user_input in options:
+            break
+
+    return user_input
+
+
+def validate_user_mstr(
+    user_prompt:str,
+    options:str,
+    max_len:int=2
+) -> str:
+
+    """
+    String validation for multiple alpha character user entry that
+    screens by len of entry and allowed options.
+
 
     Parameters
     ----------
@@ -73,7 +120,7 @@ def validate_user_mstr(user_prompt:str, options:str, max_len:int=2) -> str:
     if not isinstance(options, str):
         raise TypeError(f"'options' must be a string")
 
-    if 'INT' not in str(type(max_len)).upper():
+    if not isinstance(max_len, numbers.Integral):
         raise TypeError(f"'max_len' must be an integer")
 
     if max_len < 1:
@@ -92,12 +139,12 @@ def validate_user_mstr(user_prompt:str, options:str, max_len:int=2) -> str:
 
 
 def validate_user_int(
-                      user_prompt:str,
-                      min:int=float('-inf'),
-                      max:int=float('inf')
-    ) -> int:
+    user_prompt:str,
+    min:int=float('-inf'),
+    max:int=float('inf')
+) -> int:
 
-    """Integer _validation for user entry within allowed range.
+    """Integer validation for user entry within allowed range.
 
     Parameters
     ----------
@@ -146,12 +193,12 @@ def validate_user_int(
 
 
 def validate_user_float(
-                        user_prompt:str,
-                        min:float=float('-inf'),
-                        max:float=float('inf')
-    ) -> float:
+    user_prompt:str,
+    min:float=float('-inf'),
+    max:float=float('inf')
+) -> float:
 
-    """Number _validation for user float entry within allowed range.
+    """Number validation for user float entry within allowed range.
 
     Parameters
     ----------
@@ -196,7 +243,7 @@ def validate_user_float(
 
 def user_entry(prompt: str):
 
-    """String _validation for user-entered string.
+    """String validation for user-entered string.
 
     Parameters
     ----------
@@ -212,8 +259,11 @@ def user_entry(prompt: str):
 
     while True:
         user_entry = input(f'{prompt} > ')
-        if validate_user_str(f'\nUser entered "{user_entry}"... '
-                             f'accept? (y/n) > ', 'YN') == 'Y':
+        if validate_user_str(
+            f'\nUser entered "{user_entry}"... '
+            f'accept? (y/n) > ', 'YN'
+        ) == 'Y':
+
             break
 
     return user_entry
@@ -228,7 +278,7 @@ class ValidateUserDate:
     user_prompt:
         str - text string displayed to the user at prompt
     user_verify:
-        bool - default = False, perform _validation on the entry
+        bool - default = False, perform validation on the entry
     format:
         str - default = 'MM/DD/YYYY', the date format
     min:
@@ -241,7 +291,7 @@ class ValidateUserDate:
     user_prompt:
         str - text string displayed to the user at prompt
     user_verify:
-        bool - default = False, perform _validation on the entry
+        bool - default = False, perform validation on the entry
     format:
         str - the date format
     min:
@@ -275,12 +325,12 @@ class ValidateUserDate:
     """
 
     def __init__(self,
-                 user_prompt: str,
-                 user_verify: bool = False,
-                 format: str ='MM/DD/YYYY',
-                 min: [str, dt.datetime] ='01/01/1900',
-                 max: [str, dt.datetime] ='12/31/2099'
-        ):
+         user_prompt: str,
+         user_verify: bool = False,
+         format: str ='MM/DD/YYYY',
+         min: [str, dt.datetime] ='01/01/1900',
+         max: [str, dt.datetime] ='12/31/2099'
+    ):
 
         if not isinstance(user_prompt, str):
             raise TypeError(f"'user_prompt' must be a string")
@@ -319,19 +369,19 @@ class ValidateUserDate:
                     continue
 
             self.datetime_input_date = dt.date(
-                                            self._determine_YYYY(self.user_input),
-                                            self._determine_MM(self.user_input),
-                                            self._determine_DD(self.user_input)
+                self._determine_YYYY(self.user_input),
+                self._determine_MM(self.user_input),
+                self._determine_DD(self.user_input)
             )
             self.datetime_min_date = dt.date(
-                                            self._determine_YYYY(self.min),
-                                            self._determine_MM(self.min),
-                                            self._determine_DD(self.min)
+                self._determine_YYYY(self.min),
+                self._determine_MM(self.min),
+                self._determine_DD(self.min)
             )
             self.datetime_max_date = dt.date(
-                                             self._determine_YYYY(self.max),
-                                             self._determine_MM(self.max),
-                                             self._determine_DD(self.max)
+                self._determine_YYYY(self.max),
+                self._determine_MM(self.max),
+                self._determine_DD(self.max)
             )
 
             if self.datetime_input_date >= self.datetime_min_date and \
@@ -342,8 +392,10 @@ class ValidateUserDate:
                 continue
 
             if self.user_verify:
-                if validate_user_str(f'User entered {self.user_input}... '
-                                     f'Accept? (y/n)? > ', 'YN') == 'Y':
+                if validate_user_str(
+                    f'User entered {self.user_input}... '
+                    f'Accept? (y/n)? > ', 'YN'
+                ) == 'Y':
                     break
             else:
                 break
@@ -352,10 +404,10 @@ class ValidateUserDate:
 
 
     def _determine_YMD_template(
-                                self,
-                                date_object,
-                                search_char='Y',
-                                datetime_look_range=range(0,4)
+        self,
+        date_object,
+        search_char='Y',
+        datetime_look_range=range(0,4)
     ):
 
         __ = ''
@@ -377,17 +429,17 @@ class ValidateUserDate:
 
     def _determine_MM(self, date_object):
         return self._determine_YMD_template(
-                                            date_object,
-                                            search_char='M',
-                                            datetime_look_range=range(5,7)
+            date_object,
+            search_char='M',
+            datetime_look_range=range(5,7)
         )
 
 
     def _determine_DD(self, date_object):
         return self._determine_YMD_template(
-                                            date_object,
-                                            search_char='D',
-                                            datetime_look_range=range(8,10)
+            date_object,
+            search_char='D',
+            datetime_look_range=range(8,10)
         )
 
 
