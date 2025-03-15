@@ -337,15 +337,14 @@ class TestNanMaskNumeric(Fixtures):
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
-        out = nan_mask_numerical(X)
-        out_2 = nan_mask(X)
-
         if _nan_type == 'any string':
-            assert np.sum(out) == 0
-            assert np.sum(out_2) == 0
+            with pytest.raises(ValueError):
+                nan_mask_numerical(X)
+
+            assert np.sum(nan_mask(X)) == 0
         else:
-            assert np.array_equal(out, MASK)
-            assert np.array_equal(out_2, MASK)
+            assert np.array_equal(nan_mask_numerical(X), MASK)
+            assert np.array_equal(nan_mask(X), MASK)
 
 
     # pd int dfs can take any of the following representations of nan
@@ -399,16 +398,14 @@ class TestNanMaskNumeric(Fixtures):
         else:
             assert list(set(X.dtypes))[0] == np.float64
 
-
-        out = nan_mask_numerical(X)
-        out_2 = nan_mask(X)
-
         if _nan_type == 'any string':
-            assert np.sum(out) == 0
-            assert np.sum(out_2) == 0
+            with pytest.raises(ValueError):
+                nan_mask_numerical(X)
+
+            assert np.sum(nan_mask(X)) == 0
         else:
-            assert np.array_equal(out, MASK)
-            assert np.array_equal(out_2, MASK)
+            assert np.array_equal(nan_mask_numerical(X), MASK)
+            assert np.array_equal(nan_mask(X), MASK)
 
 
     # make a pandas dataframe with all the possible things that make an
