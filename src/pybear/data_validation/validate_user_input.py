@@ -140,8 +140,8 @@ def validate_user_mstr(
 
 def validate_user_int(
     user_prompt:str,
-    min:int=float('-inf'),
-    max:int=float('inf')
+    min:int = float('-inf'),
+    max:int = float('inf')
 ) -> int:
 
     """Integer validation for user entry within allowed range.
@@ -184,10 +184,13 @@ def validate_user_int(
                 raise Exception
             else:
                 user_input = int(user_input)
-            if user_input >= min and user_input <= max: break
-            else: print(err_msg)
+            if user_input >= min and user_input <= max:
+                break
+            else:
+                print(err_msg)
         except:
             print(err_msg)
+
     del err_msg
     return user_input
 
