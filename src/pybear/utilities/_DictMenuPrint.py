@@ -66,11 +66,11 @@ class DictMenuPrint:
         str - the full set of possible options taken from the keys of
         MENU_DICT.
     disp_width:
-        numbers.Integral - the display character length passed at
+        numbers.Integral - the maximum character display width passed at
         instantiation or the default if not passed.
     fixed_col_width:
-        numbers.Integral - the fixed column width for each bank of
-        options passed at instantiation or the default if not passed.
+        numbers.Integral - the fixed column width within the full display
+        width passed at instantiation or the default if not passed.
     MENU_DICT:
         dict[str, str] - the MENU_DICT passed at instantiation.
 
