@@ -54,7 +54,7 @@ class TestDMPInit:
     def test_MENU_DICT_rejects_long_keys(self):
 
         with pytest.raises(ValueError):
-            DMP({'AA': 'make pizza'})
+            DMP({'AA': 'make chicken'})
 
         with pytest.raises(ValueError):
             DMP({'BBB': 'drink beer'})

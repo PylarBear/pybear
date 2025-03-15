@@ -10,6 +10,7 @@ from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 
 from copy import deepcopy
+import numbers
 
 import numpy as np
 import pandas as pd
@@ -146,14 +147,17 @@ def nan_mask_numerical(
         )
         if any(map(isinstance, obj, (str for i in obj))):
             # cant have strings except str(nan)
-            if any(
-                map(lambda x: x.lower() != 'nan',
-                [i for i in obj if isinstance(i, str)])
-            ):
-                raise TypeError(_err_msg)
+            try:
+                pd.Series(list(obj)).astype(np.float64)
+            except:
+                if any(
+                    map(lambda x: x.lower() != 'nan',
+                    [i for i in obj if isinstance(i, str)])
+                ):
+                    raise TypeError(_err_msg)
 
         try:
-            if all(map(lambda x: x.lower() == 'nan', obj)):
+            if all(map(lambda x: str(x).lower() == 'nan', obj)):
                 raise Exception
             # above we proved obj isnt a 1D of strings
             # this will except if obj is not 2D
@@ -164,11 +168,14 @@ def nan_mask_numerical(
             # we have a non-ragged 2D of somethings
             for row in obj:
                 if any(map(isinstance, row, (str for i in row))):
-                    if any(
-                        map(lambda x: x.lower() != 'nan',
-                        [i for i in row if isinstance(i, str)])
-                    ):
-                        raise TimeoutError
+                    try:
+                        pd.Series(list(row)).astype(np.float64)
+                    except:
+                        if any(
+                            map(lambda x: x.lower() != 'nan',
+                            [i for i in row if isinstance(i, str)])
+                        ):
+                            raise TimeoutError
             # have a non-ragged 2D of non-strings
         except UnicodeError:
             raise ValueError(
@@ -196,16 +203,17 @@ def nan_mask_numerical(
         _ = obj.to_pandas().copy()  # polars
     elif isinstance(obj, (list, tuple, set)):
         try:
-            if all(map(lambda x: x.lower == 'nan', obj)):
+            if all(map(lambda x: str(x).lower == 'nan', obj)):
                 raise Exception
-            # mapping list to obj is OK, if obj is 1D it cant have strings
+            if any(map(isinstance, obj, ((numbers.Number, str) for _ in obj))):
+                raise Exception
             _ = list(map(list, deepcopy(obj)))
         except Exception as e:
             _ = list(deepcopy(obj))
 
         _ = np.array(_).astype(np.float64)
     else:
-        _ = obj.copy()  # numpy, pandas, and scipy
+        _ = obj.copy()  # numpy and pandas
 
 
     try:
@@ -215,8 +223,7 @@ def nan_mask_numerical(
 
     _[(_ == 'nan')] = np.nan
 
-    return pd.isna(_)
-
+    return pd.isna(_.astype(np.float64))
 
 
 def nan_mask_string(
@@ -462,7 +469,7 @@ def nan_mask(
 
     try:
         if isinstance(obj, (list, tuple, set)):
-            pd.Series(list(obj)).to_numpy().astype(np.float64)
+            pd.DataFrame(list(obj)).to_numpy().astype(np.float64)
             raise IndexError
         elif hasattr(obj, 'astype'):  # numpy, pandas, and scipy
             if isinstance(obj,
@@ -491,7 +498,7 @@ def nan_mask(
     except TimeoutError:
         # polars -- do this out from under the try in case this excepts
         return nan_mask_numerical(obj.cast(pl.Float64))
-    except:
+    except Exception as e:
         return nan_mask_string(obj)
 
 

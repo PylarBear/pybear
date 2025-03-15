@@ -855,6 +855,48 @@ class TestInfMaskNumeric(Fixtures):
         assert np.array_equal(out, MASK)
 
 
+    def test_inf_mask_takes_str_numbers(self):
+
+        # 1D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _X = list(map(str, list(range(10))))
+
+        assert all(map(isinstance, _X, (str for _ in _X)))
+        np.array(_X, dtype=np.float64)
+
+        _X[1] = 'inf'
+        _X[2] = np.inf
+
+        ref = np.zeros((10,)).astype(bool)
+        ref[1] = True
+        ref[2] = True
+        ref = ref.tolist()
+
+        out = inf_mask(_X)
+
+        assert np.array_equal(out, ref)
+        # END 1D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # 2D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _X = np.random.randint(0, 10, (5, 3)).astype(str)
+
+        assert all(map(isinstance, _X[0], (str for _ in _X[0])))
+        np.array(_X, dtype=np.float64)
+
+        _X[1][0] = 'inf'
+        _X[2][0] = np.inf
+
+        ref = np.zeros((5, 3)).astype(bool)
+        ref[1][0] = True
+        ref[2][0] = True
+        ref = ref.tolist()
+
+        out = inf_mask(_X)
+
+        assert np.array_equal(out, ref)
+
+        # END 2D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
 class TestInfMaskString(Fixtures):
 
     # scipy sparse cannot take non-numeric datatypes
