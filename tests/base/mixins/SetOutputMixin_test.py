@@ -285,7 +285,7 @@ class TestSetOutputMixin:
 
     # _set_output_for_transform validation -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_X', ('da', 'ddf'))
-    def test_set_output_for_transfrom_rejects_invalid_container_from_transform(
+    def test_set_output_for_transform_rejects_invalid_container_from_transform(
         self, junk_X, _mock_transformer_1, _X_np
     ):
 
