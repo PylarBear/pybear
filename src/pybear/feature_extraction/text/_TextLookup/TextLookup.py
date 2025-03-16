@@ -209,7 +209,7 @@ class TextLookup(
         }
 
         if not self.update_lexicon:
-            del _LEX_LOOK_DICT['A']
+            del _LEX_LOOK_DICT['a']
 
         self.LexLookupMenu = DictMenuPrint(
             _LEX_LOOK_DICT,
@@ -415,9 +415,11 @@ class TextLookup(
         _line.pop(_word_idx)
 
         # GO THRU _NEW_WORDS BACKWARDS
-        for _slot_idx, _new_word in range(len(_NEW_WORDS) - 1, -1, -1):
+        for _slot_idx in range(len(_NEW_WORDS) - 1, -1, -1):
 
-            _line.insert(_word_idx, _NEW_WORDS[_slot_idx])
+            _new_word = _NEW_WORDS[_slot_idx]
+
+            _line.insert(_word_idx, _new_word)
 
             if self.update_lexicon:
                 # when prompted to put a word into the lexicon, user can
@@ -567,8 +569,9 @@ class TextLookup(
                 # Manage in-situ save option if in manual edit mode.
                 # the only way that _n_edits can increment is if u get
                 # into manual mode, which means both auto_add_to_lexicon
-                # and auto_delete are False
-                if _n_edits % 10 == 0:
+                # and auto_delete are False. All of this code must stay
+                # in this scope because it needs the FileDumpMixin.
+                if _n_edits != 0 and _n_edits % 20 == 0:
                     _prompt = f'\nSave in-situ changes to file(s) or Continue(c) > '
                     if vui.validate_user_str(_prompt, 'SC') == 'S':
                         _opt = vui.validate_user_str(
@@ -576,15 +579,16 @@ class TextLookup(
                             'CTA'
                         )
                         if _opt == 'C':
-                            self.dump_to_csv()
+                            self.dump_to_csv(_X)
                         elif _opt == 'T':
-                            self.dump_to_txt()
+                            self.dump_to_txt(_X)
                         elif _opt == 'A':
                             pass
                         else:
                             raise Exception
                         del _opt
                     del _prompt
+                    _n_edits += 1
                 # END manage in-situ save -- -- -- -- -- -- -- -- -- --
 
                 _word_counter += 1
@@ -730,7 +734,7 @@ class TextLookup(
                     del _NEW_LINE
                 # END quasi-automate split recommendation -- -- -- -- --
 
-                print(_view_snippet(_X[_row_idx], _word_idx, _span=7))
+                print(f"\n{_view_snippet(_X[_row_idx], _word_idx, _span=7)}")
                 print(f"\n*{_word}* IS NOT IN LEXICON\n")
                 _opt = self.LexLookupMenu.choose('Select option')
 
@@ -743,7 +747,7 @@ class TextLookup(
                     if self.verbose:
                         print(f'\n*** ADD *{_word}* TO LEXICON ADDENDUM ***\n')
                     # and X is unchanged
-                elif _opt == 'dl':   # 'd': 'Delete', 'l': 'Delete always'
+                elif _opt in 'dl':   # 'd': 'Delete', 'l': 'Delete always'
                     _X[_row_idx].pop(_word_idx)
                     if _opt == 'd':
                         if self.verbose:
@@ -826,6 +830,25 @@ class TextLookup(
 
         if self.verbose:
             print(f'\n*** LEX LOOKUP COMPLETE ***\n')
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _prompt = f'\nSave completed text to file(s) or Skip(c) > '
+        if vui.validate_user_str(_prompt, 'SC') == 'S':
+            _opt = vui.validate_user_str(
+                f'\nSave to csv(c), Save to txt(t), Abort(a)? > ',
+                'CTA'
+            )
+            if _opt == 'C':
+                self.dump_to_csv(_X)
+            elif _opt == 'T':
+                self.dump_to_txt(_X)
+            elif _opt == 'A':
+                pass
+            else:
+                raise Exception
+            del _opt
+        del _prompt
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         if self.update_lexicon and not _abort:
             # show this to the user so they can copy-paste into Lexicon
