@@ -7,8 +7,8 @@
 
 
 from typing import Optional, Sequence
-from typing_extensions import Union
-from ._type_aliases import XContainer, WipXContainer
+from typing_extensions import Self, TypeAlias, Union
+import numpy.typing as npt
 
 from copy import deepcopy
 import numbers
@@ -32,17 +32,68 @@ from ....base._copy_X import copy_X
 
 from ....utilities._DictMenuPrint import DictMenuPrint
 
+from ....base import (
+    FileDumpMixin,
+    FitTransformMixin,
+    GetParamsMixin,
+    ReprMixin,
+    SetParamsMixin,
+    check_is_fitted
+)
+
+
+PythonTypes: TypeAlias = Sequence[Sequence[str]]
+
+NumpyTypes: TypeAlias = npt.NDArray[str]
+
+PandasTypes: TypeAlias = pd.DataFrame
+
+PolarsTypes: TypeAlias = pl.DataFrame
+
+XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+WipXContainer: TypeAlias = list[list[str]]
 
 
 
-
-class TextLookup:
+class TextLookup(
+    FileDumpMixin,
+    FitTransformMixin,
+    GetParamsMixin,
+    ReprMixin,
+    SetParamsMixin
+):
 
     """
-    Pizza
-    TO NEVER ALLOW IT TO GO INTO MANUAL MODE, SET EITHER auto_add_to_lexicon OR auto_delete
-    (BUT NOT BOTH) to True.
-    TO ALLOW ENTRY TO MANUAL MODE, BOTH auto_add_to_lexicon AND auto_delete MUST BE False.
+    TO NEVER ALLOW IT TO GO INTO MANUAL MODE, SET EITHER auto_add_to_lexicon
+    OR auto_delete (BUT NOT BOTH) to True.
+    TO ALLOW ENTRY TO MANUAL MODE, BOTH auto_add_to_lexicon AND auto_delete
+    MUST BE False.
+
+
+    TL accepts 2D data formats. Accepted objects include python built-in
+    lists and tuples, numpy arrays, pandas dataframes, and polars
+    dataframes. Results are always returned as a 2D python list of lists
+    of strings.
+
+    TL is a full-fledged scikit-style transformer. It has fully
+    functional get_params, set_params, transform, and fit_transform
+    methods. It also has partial_fit, fit, and score methods, which are
+    no-ops. TL technically does not need to be fit because it already
+    knows everything it needs to do transformations from the parameters
+    and/or the information the user puts into it during the interactive
+    session. These no-op methods are available to fulfill the scikit
+    transformer API and make TL suitable for incorporation into larger
+    workflows, such as Pipelines and dask_ml wrappers.
+
+    Because TL doesn't need any information from partial_fit and fit, it
+    is technically always in a 'fitted' state and ready to transform
+    data. Checks for fittedness will always return True.
+
+    TL has one attribute, n_rows_, which is only available after data
+    has been passed to :method: transform. n_rows_ is the number of rows
+    of text seen in the original data, and must be the number of strings
+    in the returned 1D python list.
 
 
     Parameters
@@ -68,6 +119,45 @@ class TextLookup:
         Optional[Union[dict[str, Sequence[str]], None]], default=None -
     verbose:
         Optional[bool], default=False - display helpful information
+
+
+    Attributes
+    ----------
+    n_rows_
+        int -
+    LEXICON_ADDENDUM:
+        list[str] -
+    KNOWN_WORDS:
+        list[str] -
+    DELETE_ALWAYS:
+        Union[Sequence[str], None]] -
+    REPLACE_ALWAYS:
+        Union[dict[str, str], None]] -
+    SKIP_ALWAYS:
+        Union[Sequence[str], None]] -
+    SPLIT_ALWAYS:
+        Union[dict[str, Sequence[str]], None]] -
+
+
+    Notes
+    -----
+    PythonTypes:
+        Sequence[Sequence[str]]
+
+    NumpyTypes:
+        npt.NDArray[str]
+
+    PandasTypes:
+        pd.DataFrame
+
+    PolarsTypes:
+        pl.DataFrame
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+    WipXContainer:
+        list[list[str]]
 
 
     """
@@ -126,6 +216,127 @@ class TextLookup:
             disp_width=75,
             fixed_col_width=25
         )
+    # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+
+    def __pybear_is_fitted__(self):
+        return True
+
+
+    def get_metadata_routing(self):
+        raise NotImplementedError(
+            f"'get_metadata_routing' is not implemented in TextLookup"
+        )
+
+
+    # def get_params
+    # handled by GetParamsMixin
+
+
+    # def set_params
+    # handled by SetParamsMixin
+
+
+    # def fit_transform
+    # handled by FitTransformMixin
+
+
+    def partial_fit(
+        self,
+        X: XContainer,
+        y: Optional[Union[any, None]] = None
+    ) -> Self:
+
+        """
+        No-op batch-wise fit method.
+
+
+        Parameters
+        ----------
+        X:
+            XContainer - the (possibly ragged) 2D container of text to
+            have its contents cross-referenced against the pybear Lexicon.
+            Ignored.
+        y:
+            Optional[Union[any, None]], default=None - the target for
+            the data. Always ignored.
+
+
+        Return
+        ------
+        -
+            self: the TextLookup instance.
+
+
+        """
+
+        return self
+
+
+    def fit(
+        self,
+        X: XContainer,
+        y: Optional[Union[any, None]] = None
+    ) -> Self:
+
+        """
+        No-op one-shot fit method.
+
+
+        Parameters
+        ----------
+        X:
+            XContainer - the (possibly ragged) 2D container of text to
+            have its contents cross-referenced against the pybear Lexicon.
+            Ignored.
+        y:
+            Optional[Union[any, None]], default=None - the target for
+            the data. Always ignored.
+
+
+        Return
+        ------
+        -
+            self: the TextLookup instance.
+
+
+        """
+
+        return self.partial_fit(X, y)
+
+
+    def score(
+        self,
+        X: XContainer,
+        y: Optional[Union[any, None]] = None
+    ) -> Self:
+
+        """
+        No-op score method. Needs to be here for dask_ml wrappers.
+
+
+        Parameters
+        ----------
+        X:
+            XContainer - the (possibly ragged) 2D container of text to
+            have its contents cross-referenced against the pybear Lexicon.
+            Ignored.
+        y:
+            Optional[Union[any, None]], default=None - the target for
+            the data. Always ignored.
+
+
+        Return
+        ------
+        -
+            None
+
+
+        """
+
+        check_is_fitted(self)
+
+        return
 
 
     def _display_lexicon_update(
@@ -256,7 +467,7 @@ class TextLookup:
             format.
         copy:
             Optional[bool], default=True - whether to make substitutions
-            and deletions directly on X or a deepcopy of X.
+            and deletions directly on the passed X or a deepcopy of X.
 
 
         Return
@@ -265,6 +476,8 @@ class TextLookup:
             XContainer
 
         """
+
+        check_is_fitted(self)
 
         # VALIDATION ###################################################
 
@@ -305,6 +518,8 @@ class TextLookup:
 
         _X: WipXContainer
         # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --
+
+        self.n_rows_ = len(_X)
 
         # MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- -- --
         _abort = False

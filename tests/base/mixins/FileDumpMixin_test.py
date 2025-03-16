@@ -326,6 +326,7 @@ class TestFileDumpMixin:
                 _text = []
                 for line in f:
                     _text.append(line)
+                f.close()
 
                 assert len(_text) == len(_X)
                 for _idx, _line in enumerate(_text):
