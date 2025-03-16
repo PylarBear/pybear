@@ -7,7 +7,6 @@
 
 
 from typing import Sequence
-from .._type_aliases import XContainer
 
 import numpy as np
 
@@ -27,7 +26,7 @@ from .....base._check_2D_str_array import check_2D_str_array
 
 
 def _validation(
-    _X: XContainer,
+    _X,
     _update_lexicon: bool,
     _skip_numbers: bool,
     _auto_split: bool,
@@ -53,16 +52,16 @@ def _validation(
 
     Parameters
     ----------
-    _X: XContainer,
-    _update_lexicon: bool,
-    _skip_numbers: bool,
-    _auto_split: bool,
-    _auto_add_to_lexicon: bool,
-    _auto_delete: bool,
-    _DELETE_ALWAYS: Sequence[str],
-    _REPLACE_ALWAYS:dict[str, str],
-    _SKIP_ALWAYS: Sequence[str],
-    _SPLIT_ALWAYS: dict[str, Sequence[str]],
+    _X: XContainer
+    _update_lexicon: bool
+    _skip_numbers: bool
+    _auto_split: bool
+    _auto_add_to_lexicon: bool
+    _auto_delete: bool
+    _DELETE_ALWAYS: Sequence[str]
+    _REPLACE_ALWAYS:dict[str, str]
+    _SKIP_ALWAYS: Sequence[str]
+    _SPLIT_ALWAYS: dict[str, Sequence[str]]
     _verbose: bool
 
 

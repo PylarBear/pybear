@@ -30,6 +30,7 @@ from ._set_order import set_order
 from ._validate_data import validate_data
 
 from .mixins._FeatureMixin import FeatureMixin
+from .mixins._FileDumpMixin import FileDumpMixin
 from .mixins._FitTransformMixin import FitTransformMixin
 from .mixins._GetParamsMixin import GetParamsMixin
 from .mixins._ReprMixin import ReprMixin
@@ -63,6 +64,7 @@ __all__ = [
     'validate_data',
     
     'FeatureMixin',
+    'FileDumpMixin',
     'FitTransformMixin',
     'GetParamsMixin',
     'ReprMixin',

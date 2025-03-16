@@ -14,7 +14,7 @@ def _auto_word_splitter(
     _word_idx: int,
     _line: list[str],
     _KNOWN_WORDS: list[str],
-    _verbose
+    _verbose: bool
 ) -> list[str]:
 
     """
