@@ -128,79 +128,39 @@ class TextLookup:
         )
 
 
-    def dump_to_file_wrapper(self, core_write_function, _ext, kwargs):
+    def _display_lexicon_update(
+        self,
+        n=None
+    ) -> None:
 
         """
-        Wrapper function for dumping CLEANED_TEXT object to csv or txt.
+        Prints LEXICON_ADDENDUM object for copy and paste into Lexicon.
 
+
+        Parameters
+        ----------
+        n:
+            Optional[Union[int, None]], default=None - the number of
+            entries in LEXICON_ADDENDUM to print.
+
+
+        Return
+        ------
+        -
+            None
 
         """
 
-        converted = False
-        if self.is_list_of_lists:
-            self.as_list_of_strs()
-            converted = True
-
-        while True:
-            file_name = input(f'Enter filename > ')
-            __ = vui.validate_user_str(f'User entered *{file_name}*  ---  Accept? (y) (n) (a)bort > ', 'YNA')
-            if __ == 'Y':
-                core_write_function(file_name+_ext, **kwargs)
-                print(f'\n*** Dump to {_ext} successful. ***\n')
-                break
-            elif __ == 'N': continue
-            elif __ == 'A': break
-
-        if converted:
-            self.as_list_of_lists()
-        del converted
-
-
-    def dump_to_csv(self):
-        """Dump CLEANED_TEXT object to csv."""
-
-        print(f'\nSaving CLEANED TEXT to csv...')
-
-        converted = False
-        if self.is_list_of_lists:
-            self.as_list_of_strs()
-            converted = True
-        _core_fxn = pd.DataFrame(data=self.CLEANED_TEXT.transpose(), columns=[f'CLEANED_DATA']).to_csv
-
-        self.dump_to_file_wrapper(_core_fxn, f'.csv', {'header':True, 'index':False})
-
-        if converted:
-            self.as_list_of_lists()
-        del converted
-
-
-    def dump_to_txt(self):
-        """Dump CLEANED_TEXT object to txt."""
-
-        print(f'\nSaving CLEANED TEXT to txt file...')
-
-        def _core_fxn(full_path):   # DONT PUT kwargs OR **kwargs IN ()!
-            with open(full_path, 'w') as f:
-                for line in self.CLEANED_TEXT:
-                    f.write(line + '\n')
-                f.close()
-
-        self.dump_to_file_wrapper(_core_fxn, f'.txt', {})
-
-
-
-    def _display_lexicon_update(self, n=None):
-        """Prints and returns LEXICON_ADDENDUM object for copy and paste into LEXICON."""
-        if len(self.LEXICON_ADDENDUM) != 0:
+        print(f'LEXICON ADDENDUM:')
+        if len(self.LEXICON_ADDENDUM) == 0:
+            print(f'*** EMPTY ***')
+        else:
             self.LEXICON_ADDENDUM.sort()
-            print(f'LEXICON ADDENDUM:')
             print(f'[')
             for _ in self.LEXICON_ADDENDUM[:(n or len(self.LEXICON_ADDENDUM))]:
                 print(f'    "{_}"{"" if _ == self.LEXICON_ADDENDUM[-1] else ","}')
             print(f']')
             print()
-        else:
-            print(f'*** EMPTY ***')
 
 
     def _split_or_replace_handler(
@@ -210,30 +170,62 @@ class TextLookup:
         _NEW_WORDS: list[str]
     ) -> list[str]:
 
+        """
+        Handle removing an old word from a line, substituting in the new
+        word(s), updating
+
+        This is called after split, split always, replace, replace always.
+
+
+        Parameters
+        ----------
+        _line:
+            list[str] - the full line of the data that holds the current
+            word.
+        _word_idx:
+            int - the index of the first letter of the current word in
+            _line.
+        _NEW_WORDS:
+            list[str] - the words to be inserted into line in the place
+            of the original word.
+
+
+        Returns
+        -------
+        -
+            _line: list[str] - the full line in X that held the current
+            word with that word removed and the new word(s) inserted in
+            the that word's place.
+
+        """
+
         _word = _line[_word_idx]
 
         _line.pop(_word_idx)
 
         # GO THRU _NEW_WORDS BACKWARDS
-        for slot_idx, _new_word in range(len(_NEW_WORDS) - 1, -1, -1):
-            _line.insert(_word_idx, _NEW_WORDS[slot_idx])
+        for _slot_idx, _new_word in range(len(_NEW_WORDS) - 1, -1, -1):
+
+            _line.insert(_word_idx, _NEW_WORDS[_slot_idx])
 
             if self.update_lexicon:
-                # pizza think on SKIP_ALWAYS
+                # when prompted to put a word into the lexicon, user can
+                # say 'skip always', the word goes into that list, and the
+                # user is not prompted again
                 if _new_word in self.KNOWN_WORDS or _new_word in self.SKIP_ALWAYS:
                     continue
 
+                # if new word is not KNOWN or not skipped...
                 if self.auto_add_to_lexicon:
-                    self.LEXICON_ADDENDUM.append(_NEW_WORDS[slot_idx])
-                    self.KNOWN_WORDS.append(_NEW_WORDS[slot_idx])
+                    self.LEXICON_ADDENDUM.append(_NEW_WORDS[_slot_idx])
+                    self.KNOWN_WORDS.append(_NEW_WORDS[_slot_idx])
                     continue
 
-                # if _new_words is not KNOWN or not skipped...
-                print(f"\n*{_NEW_WORDS[slot_idx]}* IS NOT IN LEXICON\n")
+                print(f"\n*** *{_NEW_WORDS[_slot_idx]}* IS NOT IN LEXICON ***\n")
                 _ = self.LexLookupMenu.choose('Select option', allowed='akw')
                 if _ == 'a':
-                    self.LEXICON_ADDENDUM.append(_NEW_WORDS[slot_idx])
-                    self.KNOWN_WORDS.append(_NEW_WORDS[slot_idx])
+                    self.LEXICON_ADDENDUM.append(_NEW_WORDS[_slot_idx])
+                    self.KNOWN_WORDS.append(_NEW_WORDS[_slot_idx])
                 elif _ == 'k':
                     pass
                 elif _ == 'w':
@@ -246,22 +238,25 @@ class TextLookup:
         return _line
 
 
-    def lex_lookup(
+    def transform(
         self,
         X: XContainer,
         copy: Optional[bool] = True
     ):
 
         """
-        Scan tokens in X and prompt for handling of tokens not in Lexicon.
+        Scan tokens in X and prompt for handling of tokens not in the
+        Lexicon.
 
 
         Parameters
         ----------
         X:
-            XContainer - The data in (possibly ragged) 2D array-like format.
+            XContainer - The data in (possibly ragged) 2D array-like
+            format.
         copy:
-            Optional[bool], default=True - whether to operate directly on X.
+            Optional[bool], default=True - whether to make substitutions
+            and deletions directly on X or a deepcopy of X.
 
 
         Return
@@ -299,7 +294,7 @@ class TextLookup:
         else:
             _X = X
 
-        # convert X to list-of-lists -- -- -- -- -- -- -- -- -- -- -- --
+        # convert X to list-of-lists -- -- -- -- -- -- -- -- -- -- --
         # we know from validation it is legit 2D
         if isinstance(_X, pd.DataFrame):
             _X = list(map(list, _X.values))
@@ -307,12 +302,11 @@ class TextLookup:
             _X = list(map(list, _X.rows()))
         else:
             _X = list(map(list, _X))
-        # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- -- --
 
         _X: WipXContainer
+        # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --
 
-
-        # MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- -- -- --
+        # MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- -- --
         _abort = False
 
         if self.update_lexicon and len(self.LEXICON_ADDENDUM) != 0:
@@ -323,100 +317,124 @@ class TextLookup:
             self._display_lexicon_update(n=10)
             print()
 
-            _ = vui.validate_user_str(
+            _opt = vui.validate_user_str(
                 f'Empty it(e), Proceed anyway(p), Abort TextLookup(a) > ',
                 'AEP'
             )
-            if _ == 'A':
+            if _opt == 'A':
                 _abort = True
-            elif _ == 'E':
+            elif _opt == 'E':
                 self.LEXICON_ADDENDUM = []
-            elif _ == 'P':
+            elif _opt == 'P':
                 pass
-            del _
-        # END MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- -- --
+            else:
+                raise Exception
+            del _opt
+        # END MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- --
 
         if self.verbose:
             print(f'\nRunning Lexicon cross-reference...')
 
         _quit = False
-        n_edits = 0
-        word_counter = 0
-        total_words = sum(map(len, _X))
-        for row_idx in [range(len(_X)) if not _abort else []][0]:
+        _n_edits = 0
+        _word_counter = 0
+        for _row_idx in [range(len(_X)) if not _abort else []][0]:
 
             if self.verbose:
-                print(f'\nStarting row {row_idx+1} of {len(_X)}')
+                print(f'\nStarting row {_row_idx+1} of {len(_X)}')
                 print(f'\nCurrent state of ')
                 self._display_lexicon_update()
 
-            # GO THRU BACKWARDS BECAUSE A SPLIT OR DELETE WILL CHANGE THE ARRAY OF WORDS
-            for word_idx in range(len(_X[row_idx]) - 1, -1, -1):
+            # GO THRU BACKWARDS BECAUSE A SPLIT OR DELETE WILL CHANGE X
+            for _word_idx in range(len(_X[_row_idx]) - 1, -1, -1):
 
-                # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-                # Manage in-situ save option if in manual edit and updating lexicon
-                if self.update_lexicon and not self.auto_add_to_lexicon and not self.auto_delete and n_edits % 10 == 0:
-
-                    _prompt = f'Save all that hard work to file(s) or continue(c) > '
+                # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+                # Manage in-situ save option if in manual edit mode.
+                # the only way that _n_edits can increment is if u get
+                # into manual mode, which means both auto_add_to_lexicon
+                # and auto_delete are False
+                if _n_edits % 10 == 0:
+                    _prompt = f'\nSave in-situ changes to file(s) or Continue(c) > '
                     if vui.validate_user_str(_prompt, 'SC') == 'S':
-                        _prompt2 = f'Save to csv(c) or txt(t)? > '
-                        if vui.validate_user_str(_prompt2, 'CT') == 'C':
+                        _opt = vui.validate_user_str(
+                            f'\nSave to csv(c), Save to txt(t), Abort(a)? > ',
+                            'CTA'
+                        )
+                        if _opt == 'C':
                             self.dump_to_csv()
-                        else:
+                        elif _opt == 'T':
                             self.dump_to_txt()
-                        del _prompt2
-
+                        elif _opt == 'A':
+                            pass
+                        else:
+                            raise Exception
+                        del _opt
                     del _prompt
-                # END manage in-situ save -- -- -- -- -- -- -- -- -- -- -- --
+                # END manage in-situ save -- -- -- -- -- -- -- -- -- --
 
-                word_counter += 1
-                if self.verbose and word_counter % 1000 == 0:
-                    print(f'Running word {word_counter:,} of {total_words:,}...')
+                _word_counter += 1
+                if self.verbose and _word_counter % 1000 == 0:
+                    print(f'\nWord {_word_counter:,} of {sum(map(len, _X)):,}...')
 
-                word = _X[row_idx][word_idx]
+                _word = _X[_row_idx][_word_idx]
 
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
                 # short-circuit for things already known or learned in-situ
-                if word in self.KNOWN_WORDS:
+                if _word in self.SKIP_ALWAYS:
+                    # this may have had words in it from the user at init
                     if self.verbose:
-                        print(f'\n*** {word} IS ALREADY IN LEXICON ***\n')
+                        print(f'\n*** ALWAYS SKIP *{_word}* ***\n')
                     continue
 
-                if word in self.DELETE_ALWAYS:
+                if _word in self.DELETE_ALWAYS:
+                    # this may have had words in it from the user at init
                     if self.verbose:
-                        print(f'\n*** DELETING {word} ***\n')
-                    _X[row_idx].pop(word_idx)
+                        print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
+                    _X[_row_idx].pop(_word_idx)
                     continue
 
-                if word in self.REPLACE_ALWAYS:
+                if _word in self.REPLACE_ALWAYS:
+                    # this may have had words in it from the user at init
                     if self.verbose:
-                        print(f'\n*** ALWAYS REPLACE {word} WITH {self.REPLACE_ALWAYS[word]} ***\n')
-                    _X[row_idx][word_idx] = self.REPLACE_ALWAYS[word]
+                        print(
+                            f'\n*** ALWAYS REPLACE *{_word}* WITH '
+                            f'*{self.REPLACE_ALWAYS[_word]}* ***\n'
+                        )
+                    _X[_row_idx] = self._split_or_replace_handler(
+                        _X[_row_idx], _word_idx, [self.REPLACE_ALWAYS[_word]]
+                    )
                     continue
 
-                if word in self.SKIP_ALWAYS:
+                if _word in self.SPLIT_ALWAYS:
+                    # this may have had words in it from the user at init
                     if self.verbose:
-                        print(f'\n*** ALWAYS SKIP {word} ***\n')
-                    continue
-
-                if word in self.SPLIT_ALWAYS:
-                    # this may have had words in it from the user at instantiation
-                    _X[row_idx].pop(word_idx)
-                    for slot_idx in range(len(self.SPLIT_ALWAYS[word]) - 1, -1, -1):
-                        # GO THRU NEW_WORDS BACKWARDS
-                        _X[row_idx].insert(word_idx, self.SPLIT_ALWAYS[word][slot_idx])
+                        print(
+                            f'\n*** ALWAYS SPLIT *{_word}* WITH '
+                            f'*{"*, *".join(self.SPLIT_ALWAYS[_word])}* ***\n'
+                        )
+                    _X[_row_idx] = self._split_or_replace_handler(
+                        _X[_row_idx], _word_idx, self.SPLIT_ALWAYS[_word]
+                    )
                     continue
 
                 # short circuit for numbers
                 if self.skip_numbers:
                     try:
-                        float(word)
+                        float(_word)
                         # if get to here its a number, go to next word
+                        if self.verbose:
+                            print(f'\n*** ALWAYS SKIP NUMBERS *{_word}* ***\n')
                         continue
                     except:
                         pass
                 # END short circuit for numbers
 
+                # PUT THIS LAST.... OTHERWISE USER WOULD NEVER BE ABLE
+                # TO DELETE, REPLACE, OR SPLIT WORDS ALREADY IN LEXICON
+                if _word in self.KNOWN_WORDS:
+                    if self.verbose:
+                        print(f'\n*** *{_word}* IS ALREADY IN LEXICON ***\n')
+                    continue
                 # END short-circuit for things already known or learned in-situ
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -424,128 +442,172 @@ class TextLookup:
                 # last ditch before auto-add & auto-delete, try to save the word
                 # LOOK IF word IS 2 KNOWN WORDS MOOSHED TOGETHER
                 # LOOK FOR FIRST VALID SPLIT IF len(word) >= 4
-                if self.auto_split and len(word) >= 4:
+                if self.auto_split and len(_word) >= 4:
                     _NEW_LINE = _auto_word_splitter(
-                        word, word_idx, _X[word_idx], self.KNOWN_WORDS, self.verbose
+                        _word_idx, _X[_word_idx], self.KNOWN_WORDS, self.verbose
                     )
                     if any(_NEW_LINE):
-                        _X[row_idx] = _NEW_LINE
-                        # since auto_word_splitter requires that both halves already
-                        # be in the Lexicon, just continue to the next word
+                        _X[_row_idx] = _NEW_LINE
+                        # since auto_word_splitter requires that both halves
+                        # already be in the Lexicon, just continue to next word
                         del _NEW_LINE
                         continue
-                    # else: if _NEW_LINE is empty, there wasnt a valid split, just
-                    # pass, if auto_delete is True, that will delete this word and
-                    # go to the next word. if auto_delete is False, it will also
-                    # pass thru quasi_auto_splitter, then the user will have to
-                    # deal with it manually.
+                    # else: if _NEW_LINE is empty, there wasnt a valid split,
+                    # just pass, if auto_delete is True, that will delete this
+                    # word and go to the next word. if auto_delete is False, it
+                    # will also pass thru quasi_auto_splitter, then the user
+                    # will have to deal with it manually.
                     del _NEW_LINE
                 # END short-circuit for auto-split -- -- -- -- -- -- -- --
 
                 # short-circuit for auto-add -- -- -- -- -- -- -- -- -- --
                 # ANYTHING that is in X that is not in Lexicon gets added
                 # and stays in X.
-                if self.update_lexicon and self.auto_add_to_lexicon:
+                if self.auto_add_to_lexicon:
+                    # auto_add_to_lexicon can only be True if update_lexicon=True
                     if self.verbose:
-                        print(f'\n*** AUTO-ADDING {word} TO LEXICON ADDENDUM ***\n')
-                    self.LEXICON_ADDENDUM.append(word)
-                    self.KNOWN_WORDS.append(word)
+                        print(f'\n*** AUTO-ADD *{_word}* TO LEXICON ADDENDUM ***\n')
+                    self.LEXICON_ADDENDUM.append(_word)
+                    self.KNOWN_WORDS.append(_word)
 
                     continue
                 # END short-circuit for auto-add -- -- -- -- -- -- -- --
 
-                # short-circuit for auto-delete -- -- -- -- -- -- -- -- -- --
+                # short-circuit for auto-delete -- -- -- -- -- -- -- --
                 if self.auto_delete:
                     if self.verbose:
-                        print(f'\n*** AUTO-DELETING {word} ***\n')
-                    _X[row_idx].pop(word_idx)
+                        print(f'\n*** AUTO-DELETE *{_word}* ***\n')
+                    _X[_row_idx].pop(_word_idx)
                     continue
                 # END short-circuit for auto-delete -- -- -- -- -- -- --
 
-                # after here it is implicit not auto_add_to_lexicon and not auto_delete
 
-                # v v v MANUAL MODE v v v v v v v v v v v v v v v v v v v v v
-                # implicit not auto_and and not auto_delete
+                # v v v MANUAL MODE v v v v v v v v v v v v v v v v v v
                 # word is not in KNOWN_WORDS or any repetitive operation holders
 
-                # an edit is guaranteed to happen after this point
-                n_edits += 1
+                # a manual edit is guaranteed to happen after this point
+                _n_edits += 1
 
-                # quasi-automate split recommendation -- -- -- -- -- -- -- -- --
-                # if we had auto_split=True and we get to here, its because there
-                # were no valid splits and just passed thru, so the word will also
-                # pass thru here. if auto_split was False and we get to here,
-                # we are about to enter manual mode. the user is forced into this
-                # as a convenience to partially automate the process of finding
-                # splits as opposed to having to manually type 2-way splits
-                # over and over.
+                # quasi-automate split recommendation -- -- -- -- -- -- --
+                # if we had auto_split=True and we get to here, its because
+                # there were no valid splits and just passed thru, so the word
+                # will also pass thru here. if auto_split was False and we get
+                # to here, we are about to enter manual mode. the user is forced
+                # into this as a convenience to partially automate the process
+                # of finding splits as opposed to having to manually type 2-way
+                # splits over and over.
 
-                _continue = False
-                if len(word) >= 4:
+                if len(_word) >= 4:
                     _NEW_LINE = _quasi_auto_word_splitter(
-                        word, word_idx, _X[row_idx], self.KNOWN_WORDS, self.verbose
+                        _word_idx, _X[_row_idx], self.KNOWN_WORDS, self.verbose
                     )
-                    # if the user did not opt to take any of splits (or if there
-                    # werent any), then _NEW_LINE is empty, and the user is
-                    # forced into the big manual menu.
+                    # if the user did not opt to take any of splits (or if
+                    # there werent any), then _NEW_LINE is empty, and the user
+                    # is forced into the manual menu.
                     if any(_NEW_LINE):
-                        _X[row_idx] = _NEW_LINE
-                        # since quasi_auto_word_splitter requires that both halves
-                        # already be in the Lexicon, just continue to the next word
+                        _X[_row_idx] = _NEW_LINE
+                        # since quasi_auto_word_splitter requires that both
+                        # halves already be in the Lexicon, just continue to
+                        # the next word
                         del _NEW_LINE
                         continue
 
                     del _NEW_LINE
-                # END quasi-automate split recommendation -- -- -- -- -- -- --
+                # END quasi-automate split recommendation -- -- -- -- --
 
-                print(_view_snippet(_X[row_idx], word_idx, _span=9))
-                print(f"\n*{word}* IS NOT IN LEXICON\n")
-                _selection = self.LexLookupMenu.choose('Select option')
+                print(_view_snippet(_X[_row_idx], _word_idx, _span=7))
+                print(f"\n*{_word}* IS NOT IN LEXICON\n")
+                _opt = self.LexLookupMenu.choose('Select option')
 
-                if _selection == 'a':    # 'a': 'Add to Lexicon'
-                    self.LEXICON_ADDENDUM.append(word)
-                    self.KNOWN_WORDS.append(word)
+                # manual menu actions -- -- -- -- -- -- -- -- -- -- -- --
+                if _opt == 'a':    # 'a': 'Add to Lexicon'
+                    # this menu option is not available in LexLookupMenu if
+                    # 'update_lexicon' is False
+                    self.LEXICON_ADDENDUM.append(_word)
+                    self.KNOWN_WORDS.append(_word)
+                    if self.verbose:
+                        print(f'\n*** ADD *{_word}* TO LEXICON ADDENDUM ***\n')
                     # and X is unchanged
-                elif _selection == 'd':   # 'd': 'Delete'
-                    _X[row_idx].pop(word_idx)
-                elif _selection in 'ef':   # 'e': 'Replace', 'f': 'Replace always',
-                    new_word = _word_editor(word, _prompt=f'Enter new word to replace *{word}*')
-
-                    if _selection == 'f':
-                        self.REPLACE_ALWAYS[word] = new_word
-
-                    _X[row_idx] = self._split_or_replace_handler(_X[row_idx], word_idx, [new_word])
-                elif _selection == 'l':   # 'l': 'Delete always'
-                    # DELETE CURRENT ENTRY IN CURRENT ROW
-                    _X[row_idx].pop(word_idx)
-                    # PUT WORD INTO DELETE_ALWAYS_LIST
-                    self.DELETE_ALWAYS.append(word)
-                elif _selection == 'k':   # 'k': 'Skip'
+                elif _opt == 'dl':   # 'd': 'Delete', 'l': 'Delete always'
+                    _X[_row_idx].pop(_word_idx)
+                    if _opt == 'd':
+                        if self.verbose:
+                            print(f'\n*** ONE-TIME DELETE OF *{_word}* ***\n')
+                    elif _opt == 'l':
+                        self.DELETE_ALWAYS.append(_word)
+                        if self.verbose:
+                            print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
+                elif _opt in 'ef':   # 'e': 'Replace', 'f': 'Replace always',
+                    _new_word = _word_editor(
+                        _word,
+                        _prompt=f'Enter new word to replace *{_word}*'
+                    )
+                    _X[_row_idx] = self._split_or_replace_handler(
+                        _X[_row_idx], _word_idx, [_new_word]
+                    )
+                    if _opt == 'e':
+                        if self.verbose:
+                            print(
+                                f'\n*** ONE-TIME REPLACE *{_word}* WITH '
+                                f'*{self.REPLACE_ALWAYS[_word]}* ***\n'
+                            )
+                    elif _opt == 'f':
+                        self.REPLACE_ALWAYS[_word] = _new_word
+                        if self.verbose:
+                            print(
+                                f'\n*** ALWAYS REPLACE *{_word}* WITH '
+                                f'*{self.REPLACE_ALWAYS[_word]}* ***\n'
+                            )
+                    del _new_word
+                elif _opt in 'kw':   # 'k': 'Skip', 'w': 'Skip always'
+                    if _opt == 'k':
+                        if self.verbose:
+                            print(f'\n*** ONE-TIME SKIP *{_word}* ***\n')
+                    elif _opt == 'w':
+                        self.SKIP_ALWAYS.append(_word)
+                        if self.verbose:
+                            print(f'\n*** ALWAYS SKIP *{_word}* ***\n')
+                    # a no-op
                     pass
-                elif _selection == 'w':   # 'w': 'Skip always'
-                    self.SKIP_ALWAYS.append(word)
-                elif _selection in 'su':   # 's': 'Split', 'u': 'Split always'
+                elif _opt in 'su':   # 's': 'Split', 'u': 'Split always'
                     # this split is different than auto and quasi... those split
                     # on both halves of the original word being in Lexicon, but
                     # here the user might pass something new, so this needs to
                     # run thru _split_or_replace_handler in case update_lexicon
                     # is True and the new words arent in the Lexicon
-                    _NEW_WORDS = _manual_word_splitter(word, word_idx, _X[row_idx], self.KNOWN_WORDS, self.verbose)
-                    if _selection == 'u':
-                        self.SPLIT_ALWAYS[word] = _NEW_WORDS
-                    if any(_NEW_WORDS):
-                        _X[row_idx] = self._split_or_replace_handler(_X[row_idx], word_idx, _NEW_WORDS)
+                    _NEW_WORDS = _manual_word_splitter(
+                        _word_idx, _X[_row_idx], self.KNOWN_WORDS, self.verbose
+                    )   # cannot be empty
+                    _X[_row_idx] = self._split_or_replace_handler(
+                        _X[_row_idx],
+                        _word_idx,
+                        _NEW_WORDS
+                    )
+                    if _opt == 's':
+                        if self.verbose:
+                            print(
+                                f'\n*** ONE-TIME SPLIT *{_word}* WITH '
+                                f'*{"*, *".join(self.SPLIT_ALWAYS[_word])}* ***\n'
+                            )
+                    elif _opt == 'u':
+                        self.SPLIT_ALWAYS[_word] = _NEW_WORDS
+                        if self.verbose:
+                            print(
+                                f'\n*** ALWAYS SPLIT *{_word}* WITH '
+                                f'*{"*, *".join(self.SPLIT_ALWAYS[_word])}* ***\n'
+                            )
                     del _NEW_WORDS
-                elif _selection == 'q':   # 'q': 'Quit'
+                elif _opt == 'q':   # 'q': 'Quit'
                     _quit = True
                     break
                 else:
                     raise Exception
+                # END manual menu actions -- -- -- -- -- -- -- -- -- -- -- --
 
             if _quit:
                 break
 
-        del n_edits, word_counter
+        del _n_edits, _word_counter
 
         if self.verbose:
             print(f'\n*** LEX LOOKUP COMPLETE ***\n')
@@ -559,7 +621,7 @@ class TextLookup:
         del _abort
 
 
-
+        return _X
 
 
 

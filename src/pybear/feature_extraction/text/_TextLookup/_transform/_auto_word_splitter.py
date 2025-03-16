@@ -11,7 +11,6 @@ from copy import deepcopy
 
 
 def _auto_word_splitter(
-    _word: str,
     _word_idx: int,
     _line: list[str],
     _KNOWN_WORDS: list[str],
@@ -29,9 +28,6 @@ def _auto_word_splitter(
 
     Parameters
     ----------
-    _word:
-        str - the current word being processed by TextLookup. We know
-        its not in the Lexicon.
     _word_idx:
         int - the index of '_word' in its line.
     _line:
@@ -56,6 +52,8 @@ def _auto_word_splitter(
     """
 
 
+    _word = _line[_word_idx]
+
     # LOOK IF word IS 2 KNOWN WORDS MOOSHED TOGETHER
 
     _NEW_LINE = []
@@ -63,15 +61,15 @@ def _auto_word_splitter(
         if _word[:split_idx] in _KNOWN_WORDS \
                 and _word[split_idx:] in _KNOWN_WORDS:
             _NEW_LINE = deepcopy(_line)
-            # insert backwards
             _NEW_LINE.pop(_word_idx)
+            # insert backwards
             _NEW_LINE.insert(_word_idx, _word[split_idx:])
             _NEW_LINE.insert(_word_idx, _word[:split_idx])
 
             if _verbose:
                 print(
-                    f'\n*** SUBSTITUTING "{_word}" WITH "{_word[:split_idx]}" '
-                    f'AND "{_word[split_idx:]}"\n'
+                    f'\n*** SUBSTITUTING *{_word}* WITH *{_word[:split_idx]}* '
+                    f'AND *{_word[split_idx:]}*\n'
                 )
             break
 

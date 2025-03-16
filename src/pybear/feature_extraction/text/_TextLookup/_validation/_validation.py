@@ -102,7 +102,7 @@ def _validation(
 
 
 
-    if not _update_lexicon and _auto_add_to_lexicon:
+    if _auto_add_to_lexicon and not _update_lexicon:
         raise ValueError(
             f"'auto_add_to_lexicon' cannot be True if 'update_lexicon' is False"
         )

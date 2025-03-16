@@ -31,12 +31,11 @@ class TestAutoWordSplitter:
     def test_accuracy(self, _verbose, capsys):
 
         # a garbage word - should not find a split
-        _word = 'WHEELZEZ'
         _word_idx = 1
         _line = ['THE', 'WHEELZEZ', 'ON', 'THE', 'BUS', 'GO', 'ROUND', 'AND', 'ROUND']
         _KNOWN_WORDS = ['THE', 'WHEELS', 'ON', 'BUS', 'GO', 'AND', 'ROUND']
 
-        out = _auto_word_splitter(_word, _word_idx, _line, _KNOWN_WORDS, _verbose)
+        out = _auto_word_splitter(_word_idx, _line, _KNOWN_WORDS, _verbose)
 
         captured = capsys.readouterr().out
 
@@ -51,11 +50,10 @@ class TestAutoWordSplitter:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # a compound word, should find a split
-        _word = 'WHEELSON'
         _word_idx = 1
         _line = ['THE', 'WHEELSON', 'THE', 'BUS', 'GO', 'ROUND', 'AND', 'ROUND']
         _KNOWN_WORDS = ['THE', 'WHEELS', 'ON', 'BUS', 'GO', 'AND', 'ROUND']
-        out = _auto_word_splitter(_word, _word_idx, _line, _KNOWN_WORDS, _verbose)
+        out = _auto_word_splitter(_word_idx, _line, _KNOWN_WORDS, _verbose)
 
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
@@ -74,12 +72,11 @@ class TestAutoWordSplitter:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # a 3-way word, should not find a split
-        _word = 'ROUNDANDROUND'
         _word_idx = 6
         _line = ['THE', 'WHEELS', 'ON', 'THE', 'BUS', 'GO', 'ROUNDANDROUND']
         _KNOWN_WORDS = ['THE', 'WHEELS', 'ON', 'BUS', 'GO', 'AND', 'ROUND']
 
-        out = _auto_word_splitter(_word, _word_idx, _line, _KNOWN_WORDS, _verbose)
+        out = _auto_word_splitter(_word_idx, _line, _KNOWN_WORDS, _verbose)
 
         captured = capsys.readouterr().out
 
@@ -94,13 +91,12 @@ class TestAutoWordSplitter:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # could be multiple splits, should only split on the first
-        _word = 'WHEELSON'
         _word_idx = 1
         _line = ['THE', 'WHEELSON', 'THE', 'BUS', 'GO', 'ROUND', 'AND', 'ROUND']
         _KNOWN_WORDS = [
             'THE', 'WHEEL', 'WHEELS', 'SON', 'ON', 'BUS', 'GO', 'AND', 'ROUND'
         ]
-        out = _auto_word_splitter(_word, _word_idx, _line, _KNOWN_WORDS, _verbose)
+        out = _auto_word_splitter(_word_idx, _line, _KNOWN_WORDS, _verbose)
 
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
@@ -118,5 +114,9 @@ class TestAutoWordSplitter:
 
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
+
+
 
 
