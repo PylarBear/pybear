@@ -57,7 +57,7 @@ def _manual_word_splitter(
         # ask user number of new words to make -- -- -- -- -- -- -- -- --
         _prompt = (
             f'Enter number of ways to split  *{_word}*  '
-            f'in  *{_view_snippet(_line, _word_idx)}* > '
+            f'in  *{_view_snippet(_line, _word_idx, _span=7)}* > '
         )
         new_word_ct = vui.validate_user_int(_prompt, min=1, max=100)
         del _prompt
