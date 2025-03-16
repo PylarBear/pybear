@@ -15,7 +15,6 @@ from .....data_validation import validate_user_input as vui
 
 
 def _quasi_auto_word_splitter(
-    _word: str,
     _word_idx: int,
     _line: list[str],
     _KNOWN_WORDS: list[str],
@@ -35,13 +34,10 @@ def _quasi_auto_word_splitter(
 
     Parameters
     ----------
-    _word:
-        str - the current word being processed by TextLookup. We know
-        its not in the Lexicon.
     _word_idx:
-        int - the index of '_word' in its line.
+        int - the index of the active word in its line.
     _line:
-        list[str] - the line that '_word' is in.
+        list[str] - the full line that the active word is in.
     _KNOWN_WORDS:
         list[str] - All the words in the Lexicon and any words that have
         been put into LEXICON_ADDENDUM in the current session.
@@ -64,13 +60,15 @@ def _quasi_auto_word_splitter(
     """
 
 
+    _word = _line[_word_idx]
+
     _NEW_LINE = []
     for split_idx in range(2, len(_word) - 1):
         if _word[:split_idx] in _KNOWN_WORDS and _word[split_idx:] in _KNOWN_WORDS:
             print(_view_snippet(_line, _word_idx, _span=9))
             print(f"\n*{_word}* IS NOT IN LEXICON\n")
-            print(f'\n*** RECOMMEND "{_word[:split_idx]}" AND '
-                  f'"{_word[split_idx:]}" ***\n')
+            print(f'\n*** RECOMMEND *{_word[:split_idx]}* AND '
+                  f'*{_word[split_idx:]}* ***\n')
             # if user does not like the suggested split, continue making
             # & recommending splits. if no more splits, return the empty _NEW_LINE.
             if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
@@ -83,8 +81,8 @@ def _quasi_auto_word_splitter(
 
                 if _verbose:
                     print(
-                        f'\n*** SUBSTITUTING "{_word}" WITH "{_word[:split_idx]}" '
-                          f'AND "{_word[split_idx:]}"\n'
+                        f'\n*** SUBSTITUTING *{_word}* WITH *{_word[:split_idx]}* '
+                          f'AND *{_word[split_idx:]}*\n'
                     )
 
                 break

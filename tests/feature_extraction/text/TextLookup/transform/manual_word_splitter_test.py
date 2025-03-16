@@ -34,16 +34,13 @@ class TestAutoWordSplitter:
     def test_accuracy(self, _verbose, capsys):
 
         # a garbage word - the user should have used replace, but there is a way out
-        _word = 'WHEELZEZ'
         _word_idx = 1
         _line = ['THE', 'WHEELZEZ', 'ON', 'THE', 'BUS', 'GO', 'ROUND', 'AND', 'ROUND']
         _KNOWN_WORDS = ['THE', 'WHEELS', 'ON', 'BUS', 'GO', 'AND', 'ROUND']
 
         user_inputs = "1\nWHEELS\nY\nY\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = _manual_word_splitter(
-                _word, _word_idx, _line, _KNOWN_WORDS, _verbose
-            )
+            out = _manual_word_splitter(_word_idx, _line, _KNOWN_WORDS, _verbose)
 
         captured = capsys.readouterr().out
 
@@ -56,16 +53,13 @@ class TestAutoWordSplitter:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # a 2-way compound word
-        _word = 'WHEELSON'
         _word_idx = 1
         _line = ['THE', 'WHEELSON', 'THE', 'BUS', 'GO', 'ROUND', 'AND', 'ROUND']
         _KNOWN_WORDS = ['THE', 'WHEELS', 'ON', 'BUS', 'GO', 'AND', 'ROUND']
 
         user_inputs = "2\nWHEELS\nY\nON\nY\nY\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = _manual_word_splitter(
-                _word, _word_idx, _line, _KNOWN_WORDS, _verbose
-            )
+            out = _manual_word_splitter(_word_idx, _line, _KNOWN_WORDS, _verbose)
 
         captured = capsys.readouterr().out
 
@@ -78,16 +72,13 @@ class TestAutoWordSplitter:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # a 3-way compound word
-        _word = 'ROUNDANDROUND'
         _word_idx = 6
         _line = ['THE', 'WHEELS', 'ON', 'THE', 'BUS', 'GO', 'ROUNDANDROUND']
         _KNOWN_WORDS = ['THE', 'WHEELS', 'ON', 'BUS', 'GO', 'AND', 'ROUND']
 
         user_inputs = "3\nROUND\nY\nAND\nY\nROUND\nY\nY\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = _manual_word_splitter(
-                _word, _word_idx, _line, _KNOWN_WORDS, _verbose
-            )
+            out = _manual_word_splitter(_word_idx, _line, _KNOWN_WORDS, _verbose)
 
         captured = capsys.readouterr().out
 
@@ -100,7 +91,6 @@ class TestAutoWordSplitter:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # could be multiple splits, should only split on the first
-        _word = 'WHEELSON'
         _word_idx = 1
         _line = ['THE', 'WHEELSON', 'THE', 'BUS', 'GO', 'ROUND', 'AND', 'ROUND']
         _KNOWN_WORDS = [
@@ -109,9 +99,7 @@ class TestAutoWordSplitter:
 
         user_inputs = "2\nWHEEL\nY\nSON\nY\nY\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = _manual_word_splitter(
-                _word, _word_idx, _line, _KNOWN_WORDS, _verbose
-            )
+            out = _manual_word_splitter(_word_idx, _line, _KNOWN_WORDS, _verbose)
 
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
