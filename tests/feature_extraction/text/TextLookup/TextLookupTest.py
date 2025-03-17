@@ -152,40 +152,40 @@ class TestTextLookup:
 
 
         assert np.array_equal(
-            TestCls.LEXICON_ADDENDUM,
+            TestCls.LEXICON_ADDENDUM_,
             ['TRIX']
         )
 
-        assert TestCls.KNOWN_WORDS[-1] == 'TRIX'
+        assert TestCls.KNOWN_WORDS_[-1] == 'TRIX'
 
         assert np.array_equal(
-            list(TestCls.SPLIT_ALWAYS.keys()),
+            list(TestCls.SPLIT_ALWAYS_.keys()),
             ['BLOOMTRIX']
         )
 
         assert np.array_equal(
-            list(TestCls.SPLIT_ALWAYS.values()),
+            list(TestCls.SPLIT_ALWAYS_.values()),
             [['BLOOM', 'TRIX']]
         )
 
         assert np.array_equal(
-            TestCls.DELETE_ALWAYS,
+            TestCls.DELETE_ALWAYS_,
             ['QUACKTIVATE', 'JUMBLYWUMP', 'ZONKING',
              'GLENSHWINK', 'TORTAGLOOM', 'SNORLUX']
         )
 
         assert np.array_equal(
-            list(TestCls.REPLACE_ALWAYS.keys()),
+            list(TestCls.REPLACE_ALWAYS_.keys()),
             ['BEAUTIFULL', 'GLOURY', 'FLEXABILITY', 'PERSISTACE']
         )
 
         assert np.array_equal(
-            list(TestCls.REPLACE_ALWAYS.values()),
+            list(TestCls.REPLACE_ALWAYS_.values()),
             ['BEAUTIFUL', 'GLORY', 'FLEXIBILITY', 'PERSISTENCE']
         )
 
         assert np.array_equal(
-            TestCls.SKIP_ALWAYS,
+            TestCls.SKIP_ALWAYS_,
             ['VALUEABLE']
         )
 

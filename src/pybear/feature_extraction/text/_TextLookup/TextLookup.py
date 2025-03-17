@@ -125,17 +125,17 @@ class TextLookup(
     ----------
     n_rows_
         int -
-    LEXICON_ADDENDUM:
+    LEXICON_ADDENDUM_:
         list[str] -
-    KNOWN_WORDS:
+    KNOWN_WORDS_:
         list[str] -
-    DELETE_ALWAYS:
+    DELETE_ALWAYS_:
         Union[Sequence[str], None]] -
-    REPLACE_ALWAYS:
+    REPLACE_ALWAYS_:
         Union[dict[str, str], None]] -
-    SKIP_ALWAYS:
+    SKIP_ALWAYS_:
         Union[Sequence[str], None]] -
-    SPLIT_ALWAYS:
+    SPLIT_ALWAYS_:
         Union[dict[str, Sequence[str]], None]] -
 
 
@@ -183,16 +183,11 @@ class TextLookup(
         self.auto_split: bool = auto_split
         self.auto_add_to_lexicon: bool = auto_add_to_lexicon
         self.auto_delete: bool = auto_delete
-
         self.SKIP_ALWAYS: Sequence[str] = SKIP_ALWAYS
         self.SPLIT_ALWAYS: dict[str, Sequence[str]] = SPLIT_ALWAYS
         self.DELETE_ALWAYS: Sequence[str] = DELETE_ALWAYS
         self.REPLACE_ALWAYS: dict[str, str] = REPLACE_ALWAYS
-
         self.verbose = verbose
-
-        self.LEXICON_ADDENDUM: list[str] = []
-        self.KNOWN_WORDS: list[str] = deepcopy(Lexicon().lexicon_)
 
 
         _LEX_LOOK_DICT = {
@@ -211,7 +206,7 @@ class TextLookup(
         if not self.update_lexicon:
             del _LEX_LOOK_DICT['a']
 
-        self.LexLookupMenu = DictMenuPrint(
+        self._LexLookupMenu = DictMenuPrint(
             _LEX_LOOK_DICT,
             disp_width=75,
             fixed_col_width=25
@@ -363,13 +358,13 @@ class TextLookup(
         """
 
         print(f'LEXICON ADDENDUM:')
-        if len(self.LEXICON_ADDENDUM) == 0:
+        if len(self.LEXICON_ADDENDUM_) == 0:
             print(f'*** EMPTY ***')
         else:
-            self.LEXICON_ADDENDUM.sort()
+            self.LEXICON_ADDENDUM_.sort()
             print(f'[')
-            for _ in self.LEXICON_ADDENDUM[:(n or len(self.LEXICON_ADDENDUM))]:
-                print(f'    "{_}"{"" if _ == self.LEXICON_ADDENDUM[-1] else ","}')
+            for _ in self.LEXICON_ADDENDUM_[:(n or len(self.LEXICON_ADDENDUM_))]:
+                print(f'    "{_}"{"" if _ == self.LEXICON_ADDENDUM_[-1] else ","}')
             print(f']')
             print()
 
@@ -425,24 +420,24 @@ class TextLookup(
                 # when prompted to put a word into the lexicon, user can
                 # say 'skip always', the word goes into that list, and the
                 # user is not prompted again
-                if _new_word in self.KNOWN_WORDS or _new_word in self.SKIP_ALWAYS:
+                if _new_word in self.KNOWN_WORDS_ or _new_word in self.SKIP_ALWAYS_:
                     continue
 
                 # if new word is not KNOWN or not skipped...
                 if self.auto_add_to_lexicon:
-                    self.LEXICON_ADDENDUM.append(_NEW_WORDS[_slot_idx])
-                    self.KNOWN_WORDS.append(_NEW_WORDS[_slot_idx])
+                    self.LEXICON_ADDENDUM_.append(_NEW_WORDS[_slot_idx])
+                    self.KNOWN_WORDS_.append(_NEW_WORDS[_slot_idx])
                     continue
 
                 print(f"\n*** *{_NEW_WORDS[_slot_idx]}* IS NOT IN LEXICON ***\n")
-                _ = self.LexLookupMenu.choose('Select option', allowed='akw')
+                _ = self._LexLookupMenu.choose('Select option', allowed='akw')
                 if _ == 'a':
-                    self.LEXICON_ADDENDUM.append(_NEW_WORDS[_slot_idx])
-                    self.KNOWN_WORDS.append(_NEW_WORDS[_slot_idx])
+                    self.LEXICON_ADDENDUM_.append(_NEW_WORDS[_slot_idx])
+                    self.KNOWN_WORDS_.append(_NEW_WORDS[_slot_idx])
                 elif _ == 'k':
                     pass
                 elif _ == 'w':
-                    self.SKIP_ALWAYS.append(_word)
+                    self.SKIP_ALWAYS_.append(_word)
                 else:
                     raise Exception
 
@@ -497,10 +492,14 @@ class TextLookup(
             self.verbose
         )
 
-        self.DELETE_ALWAYS = self.DELETE_ALWAYS or []
-        self.REPLACE_ALWAYS = self.REPLACE_ALWAYS or {}
-        self.SKIP_ALWAYS = self.SKIP_ALWAYS or []
-        self.SPLIT_ALWAYS = self.SPLIT_ALWAYS or {}
+        self.DELETE_ALWAYS_ = deepcopy(self.DELETE_ALWAYS) or []
+        self.REPLACE_ALWAYS_ = deepcopy(self.REPLACE_ALWAYS) or {}
+        self.SKIP_ALWAYS_ = deepcopy(self.SKIP_ALWAYS) or []
+        self.SPLIT_ALWAYS_ = deepcopy(self.SPLIT_ALWAYS) or {}
+
+        self.LEXICON_ADDENDUM_: list[str] = []
+        self.KNOWN_WORDS_: list[str] = deepcopy(Lexicon().lexicon_)
+
 
         # END VALIDATION ###############################################
 
@@ -526,10 +525,10 @@ class TextLookup(
         # MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- -- --
         _abort = False
 
-        if self.update_lexicon and len(self.LEXICON_ADDENDUM) != 0:
+        if self.update_lexicon and len(self.LEXICON_ADDENDUM_) != 0:
 
             print(f'\n*** LEXICON ADDENDUM IS NOT EMPTY ***\n')
-            print(f'LEXICON ADDENDUM has {len(self.LEXICON_ADDENDUM)} entries')
+            print(f'LEXICON ADDENDUM has {len(self.LEXICON_ADDENDUM_)} entries')
             print(f'First 10 in LEXICON ADDENDUM:')
             self._display_lexicon_update(n=10)
             print()
@@ -541,7 +540,7 @@ class TextLookup(
             if _opt == 'A':
                 _abort = True
             elif _opt == 'E':
-                self.LEXICON_ADDENDUM = []
+                self.LEXICON_ADDENDUM_ = []
             elif _opt == 'P':
                 pass
             else:
@@ -599,40 +598,40 @@ class TextLookup(
 
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
                 # short-circuit for things already known or learned in-situ
-                if _word in self.SKIP_ALWAYS:
+                if _word in self.SKIP_ALWAYS_:
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(f'\n*** ALWAYS SKIP *{_word}* ***\n')
                     continue
 
-                if _word in self.DELETE_ALWAYS:
+                if _word in self.DELETE_ALWAYS_:
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
                     _X[_row_idx].pop(_word_idx)
                     continue
 
-                if _word in self.REPLACE_ALWAYS:
+                if _word in self.REPLACE_ALWAYS_:
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(
                             f'\n*** ALWAYS REPLACE *{_word}* WITH '
-                            f'*{self.REPLACE_ALWAYS[_word]}* ***\n'
+                            f'*{self.REPLACE_ALWAYS_[_word]}* ***\n'
                         )
                     _X[_row_idx] = self._split_or_replace_handler(
-                        _X[_row_idx], _word_idx, [self.REPLACE_ALWAYS[_word]]
+                        _X[_row_idx], _word_idx, [self.REPLACE_ALWAYS_[_word]]
                     )
                     continue
 
-                if _word in self.SPLIT_ALWAYS:
+                if _word in self.SPLIT_ALWAYS_:
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(
                             f'\n*** ALWAYS SPLIT *{_word}* WITH '
-                            f'*{"*, *".join(self.SPLIT_ALWAYS[_word])}* ***\n'
+                            f'*{"*, *".join(self.SPLIT_ALWAYS_[_word])}* ***\n'
                         )
                     _X[_row_idx] = self._split_or_replace_handler(
-                        _X[_row_idx], _word_idx, self.SPLIT_ALWAYS[_word]
+                        _X[_row_idx], _word_idx, self.SPLIT_ALWAYS_[_word]
                     )
                     continue
 
@@ -650,7 +649,7 @@ class TextLookup(
 
                 # PUT THIS LAST.... OTHERWISE USER WOULD NEVER BE ABLE
                 # TO DELETE, REPLACE, OR SPLIT WORDS ALREADY IN LEXICON
-                if _word in self.KNOWN_WORDS:
+                if _word in self.KNOWN_WORDS_:
                     if self.verbose:
                         print(f'\n*** *{_word}* IS ALREADY IN LEXICON ***\n')
                     continue
@@ -663,7 +662,7 @@ class TextLookup(
                 # LOOK FOR FIRST VALID SPLIT IF len(word) >= 4
                 if self.auto_split and len(_word) >= 4:
                     _NEW_LINE = _auto_word_splitter(
-                        _word_idx, _X[_word_idx], self.KNOWN_WORDS, self.verbose
+                        _word_idx, _X[_word_idx], self.KNOWN_WORDS_, self.verbose
                     )
                     if any(_NEW_LINE):
                         _X[_row_idx] = _NEW_LINE
@@ -686,8 +685,8 @@ class TextLookup(
                     # auto_add_to_lexicon can only be True if update_lexicon=True
                     if self.verbose:
                         print(f'\n*** AUTO-ADD *{_word}* TO LEXICON ADDENDUM ***\n')
-                    self.LEXICON_ADDENDUM.append(_word)
-                    self.KNOWN_WORDS.append(_word)
+                    self.LEXICON_ADDENDUM_.append(_word)
+                    self.KNOWN_WORDS_.append(_word)
 
                     continue
                 # END short-circuit for auto-add -- -- -- -- -- -- -- --
@@ -718,7 +717,7 @@ class TextLookup(
 
                 if len(_word) >= 4:
                     _NEW_LINE = _quasi_auto_word_splitter(
-                        _word_idx, _X[_row_idx], self.KNOWN_WORDS, self.verbose
+                        _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
                     )
                     # if the user did not opt to take any of splits (or if
                     # there werent any), then _NEW_LINE is empty, and the user
@@ -736,14 +735,14 @@ class TextLookup(
 
                 print(f"\n{_view_snippet(_X[_row_idx], _word_idx, _span=7)}")
                 print(f"\n*{_word}* IS NOT IN LEXICON\n")
-                _opt = self.LexLookupMenu.choose('Select option')
+                _opt = self._LexLookupMenu.choose('Select option')
 
                 # manual menu actions -- -- -- -- -- -- -- -- -- -- -- --
                 if _opt == 'a':    # 'a': 'Add to Lexicon'
                     # this menu option is not available in LexLookupMenu if
                     # 'update_lexicon' is False
-                    self.LEXICON_ADDENDUM.append(_word)
-                    self.KNOWN_WORDS.append(_word)
+                    self.LEXICON_ADDENDUM_.append(_word)
+                    self.KNOWN_WORDS_.append(_word)
                     if self.verbose:
                         print(f'\n*** ADD *{_word}* TO LEXICON ADDENDUM ***\n')
                     # and X is unchanged
@@ -753,7 +752,7 @@ class TextLookup(
                         if self.verbose:
                             print(f'\n*** ONE-TIME DELETE OF *{_word}* ***\n')
                     elif _opt == 'l':
-                        self.DELETE_ALWAYS.append(_word)
+                        self.DELETE_ALWAYS_.append(_word)
                         if self.verbose:
                             print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
                 elif _opt in 'ef':   # 'e': 'Replace', 'f': 'Replace always',
@@ -768,14 +767,14 @@ class TextLookup(
                         if self.verbose:
                             print(
                                 f'\n*** ONE-TIME REPLACE *{_word}* WITH '
-                                f'*{self.REPLACE_ALWAYS[_word]}* ***\n'
+                                f'*{self.REPLACE_ALWAYS_[_word]}* ***\n'
                             )
                     elif _opt == 'f':
-                        self.REPLACE_ALWAYS[_word] = _new_word
+                        self.REPLACE_ALWAYS_[_word] = _new_word
                         if self.verbose:
                             print(
                                 f'\n*** ALWAYS REPLACE *{_word}* WITH '
-                                f'*{self.REPLACE_ALWAYS[_word]}* ***\n'
+                                f'*{self.REPLACE_ALWAYS_[_word]}* ***\n'
                             )
                     del _new_word
                 elif _opt in 'kw':   # 'k': 'Skip', 'w': 'Skip always'
@@ -783,7 +782,7 @@ class TextLookup(
                         if self.verbose:
                             print(f'\n*** ONE-TIME SKIP *{_word}* ***\n')
                     elif _opt == 'w':
-                        self.SKIP_ALWAYS.append(_word)
+                        self.SKIP_ALWAYS_.append(_word)
                         if self.verbose:
                             print(f'\n*** ALWAYS SKIP *{_word}* ***\n')
                     # a no-op
@@ -795,7 +794,7 @@ class TextLookup(
                     # run thru _split_or_replace_handler in case update_lexicon
                     # is True and the new words arent in the Lexicon
                     _NEW_WORDS = _manual_word_splitter(
-                        _word_idx, _X[_row_idx], self.KNOWN_WORDS, self.verbose
+                        _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
                     )   # cannot be empty
                     _X[_row_idx] = self._split_or_replace_handler(
                         _X[_row_idx],
@@ -806,14 +805,14 @@ class TextLookup(
                         if self.verbose:
                             print(
                                 f'\n*** ONE-TIME SPLIT *{_word}* WITH '
-                                f'*{"*, *".join(self.SPLIT_ALWAYS[_word])}* ***\n'
+                                f'*{"*, *".join(self.SPLIT_ALWAYS_[_word])}* ***\n'
                             )
                     elif _opt == 'u':
-                        self.SPLIT_ALWAYS[_word] = _NEW_WORDS
+                        self.SPLIT_ALWAYS_[_word] = _NEW_WORDS
                         if self.verbose:
                             print(
                                 f'\n*** ALWAYS SPLIT *{_word}* WITH '
-                                f'*{"*, *".join(self.SPLIT_ALWAYS[_word])}* ***\n'
+                                f'*{"*, *".join(self.SPLIT_ALWAYS_[_word])}* ***\n'
                             )
                     del _NEW_WORDS
                 elif _opt == 'q':   # 'q': 'Quit'
@@ -852,7 +851,7 @@ class TextLookup(
 
         if self.update_lexicon and not _abort:
             # show this to the user so they can copy-paste into Lexicon
-            if len(self.LEXICON_ADDENDUM) != 0:
+            if len(self.LEXICON_ADDENDUM_) != 0:
                 print(f'\n*** COPY AND PASTE THESE WORDS INTO LEXICON ***\n')
                 self._display_lexicon_update()
 
