@@ -21,7 +21,6 @@ from ....data_validation import (
 )
 from .. import (
     alphanumeric_str as ans,
-    _stop_words as sw,
     _statistics as stats
 )
 
@@ -182,7 +181,7 @@ class TextCleaner:
         self.is_list_of_lists = False
 
         self.LEXICON_ADDENDUM = np.empty((1,0), dtype='<U30')[0]
-        self.KNOWN_WORDS = None
+        self._stop_words = Lexicon().stop_words_.copy()
 
         self.LEX_LOOK_DICT = {
             'A': 'ADD TO LEXICON', 'D': 'DELETE', 'E': 'EDIT', 'F': 'EDIT ALL',
@@ -572,7 +571,7 @@ class TextCleaner:
 
         for row_idx in range(len(self.CLEANED_TEXT)):
             for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
-                if self.CLEANED_TEXT[row_idx][word_idx] in sw._stop_words():
+                if self.CLEANED_TEXT[row_idx][word_idx] in self._stop_words:
                     self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
                 if len(self.CLEANED_TEXT) == 0:
                     break

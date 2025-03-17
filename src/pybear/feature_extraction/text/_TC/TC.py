@@ -17,10 +17,7 @@ import numpy as np, pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
 
 from .._Lexicon.Lexicon import Lexicon
-from .. import (
-    alphanumeric_str as ans,
-    _stop_words as sw
-)
+from .. import alphanumeric_str as ans
 
 from ....data_validation import (
     validate_user_input as vui,
@@ -164,7 +161,9 @@ class TC:
         self.is_list_of_lists = False
 
         self.LEXICON_ADDENDUM: npt.NDArray[str] = np.empty((1,0), dtype='<U30')[0]
-        self.KNOWN_WORDS = None
+
+        self.KNOWN_WORDS = Lexicon().lexicon_.copy()
+        self._stop_words = Lexicon().stop_words_.copy()
 
         self.LEX_LOOK_DICT = {
             'A': 'ADD TO LEXICON', 'D': 'DELETE', 'E': 'EDIT',
@@ -420,7 +419,7 @@ class TC:
 
         for row_idx in range(len(self.CLEANED_TEXT)):
             for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
-                if self.CLEANED_TEXT[row_idx][word_idx] in sw._stop_words():
+                if self.CLEANED_TEXT[row_idx][word_idx] in self._stop_words:
                     self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
                 if len(self.CLEANED_TEXT) == 0:
                     break
@@ -938,7 +937,6 @@ class TC:
         elif not self.update_lexicon:
             MENU_DISPLAY, menu_allowed = self.lex_lookup_menu(allowed='desk')
 
-        self.KNOWN_WORDS = Lexicon().lexicon_.copy()
         WORDS_TO_DELETE = np.empty(0, dtype='<U30')
         SKIP_ALWAYS = np.empty(0, dtype='<U30')
         # PIZZA 2/12/23 FOR NOW, CONVERT COMMON (LOW) NUMBERS TO STRS
