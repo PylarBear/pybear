@@ -23,9 +23,9 @@ from .....data_validation import (
 )
 from ... import (
     alphanumeric_str as ans,
-    _stop_words as sw,
     _statistics as stats
 )
+from ..._Lexicon.Lexicon import Lexicon
 
 from ._view_snippet._view_snippet import _view_snippet
 
@@ -144,7 +144,7 @@ class TextCleanerMixin:
         self.LEXICON_ADDENDUM = np.empty((1, 0), dtype='<U30')[0]
         self.KNOWN_WORDS = None
 
-
+        self._lexicon = Lexicon()
 
 
 
@@ -395,7 +395,7 @@ class TextCleanerMixin:
 
         for row_idx in range(len(self.CLEANED_TEXT)):
             for word_idx in range(len(self.CLEANED_TEXT[row_idx]) - 1, -1, -1):
-                if self.CLEANED_TEXT[row_idx][word_idx] in sw._stop_words():
+                if self.CLEANED_TEXT[row_idx][word_idx] in self._lexicon.stop_words():
                     self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
                 if len(self.CLEANED_TEXT) == 0:
                     break

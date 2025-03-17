@@ -28,29 +28,50 @@ class Lexicon(TextStatistics):
 
     """
     The pybear lexicon of words in the English language. May not be
-    exhaustive, though attempts have been made.
-
-    This serves as a list of words in the English language for
-    text-cleaning purposes.
+    exhaustive, though attempts have been made. This serves as a list of
+    words in the English language for text-cleaning purposes. Lexicon
+    also has an attribute for pybear-defined stop words.
 
     The published pybear lexicon only allows the 26 letters of the
     English alphabet and all must be capitalized. Other characters, such
     as numbers, hyphens, apostrophes, etc., are not allowed. For example,
-    entries one may see in the pybear lexicon include 'APPLE', 'APRICOT',
-    'APRIL'. Entries that one will not see in the published version are
-    'AREN'T', 'ISN'T' and 'WON'T' (the entries would be 'ARENT', 'ISNT',
-    and 'WONT'.) Lexicon has validation in place to protect the integrity
+    entries one may see in the pybear lexicon include "APPLE", "APRICOT",
+    "APRIL". Entries that one will not see in the published version are
+    "AREN'T", "ISN'T" and "WON'T" (the entries would be "ARENT", "ISNT",
+    and "WONT".) Lexicon has validation in place to protect the integrity
     of the published pybear lexicon toward these rules. However, this
     validation can be turned off and local copies can be updated with
     any strings that the user likes.
+
+    pybear stores its lexicon and stop words in text files that are read
+    from the local disk when a Lexicon class is instantiated, populating
+    the attributes of the instance. The lexicon files are named by the
+    26 letters of the English alphabet, therefore there are 26 lexicon
+    files. Words are assigned to a file by their first letter.
+
+    The 'add_words' method allows users to add words to their local
+    copies of the lexicon, that is, write new words to the lexicon text
+    files. The validation protocols that are in place secure the
+    integrity of the published version of the pybear lexicon, and the
+    user must consider these when attempting to change their copy of the
+    lexicon. When making local additions to the lexicon via the
+    'add_words' method, this validation can be turned off via the
+    'character_validation', 'majuscule_validation', and 'file_validation'
+    keyword arguments. These allow your lexicon to take non-alpha
+    characters, upper or lower case, and allows Lexicon to create new
+    text files for itself.
 
 
     Attributes
     ----------
     size_:
-        int - the number of words in the pybear English language lexicon.
-    lexicon_
-        list[str] - a list of all the words in the lexicon.
+        int - The number of words in the pybear English language lexicon.
+    lexicon_:
+        list[str] - A list of all the words in the pybear Lexicon.
+    stop_words_:
+        list[str] - A list of pybear stop words. The words are the most
+        frequent words in an arbitrary multi-million-word corpus scraped
+        from the internet.
     overall_statistics_:
         dict[str: numbers.Real] - A dictionary that holds information
         about all the words in the Lexicon instance. Available statistics
@@ -71,30 +92,8 @@ class Lexicon(TextStatistics):
         dict[str, int] - A dictionary that holds all the unique single
         characters and their frequencies for all the words in the Lexicon
         instance.
-    uniques_
-        list[str] - same as lexicon_.
-
-
-    Notes
-    -----
-    pybear stores its lexicon in text files that are read from the local
-    disk when a Lexicon class is instantiated, populating the attributes
-    of the instance. The files are named by the 26 letters of the English
-    alphabet, therefore there are 26 files.
-
-    The 'add_words' method allows users who have installed pybear locally
-    to add words to their copies of the lexicon. There are several
-    validation protocols in place to secure the integrity of the
-    published version of the pybear lexicon, and the user must consider
-    these when attempting to change their copy of the lexicon.
-
-    Again, the published pybear lexicon only consists of the 26 letters
-    of the English alphabet and must be upper-case. When making local
-    additions to the lexicon via the 'add_words' method, this validation
-    can be turned off via the 'character_validation',
-    'majuscule_validation', and 'file_validation' keyword arguments.
-    These allow your lexicon to take non-alpha characters in upper or
-    lower case, and allows Lexicon to create new text files for itself.
+    uniques_:
+        list[str] - Same as lexicon_.
 
 
     Examples
@@ -102,9 +101,11 @@ class Lexicon(TextStatistics):
     >>> from pybear.feature_extraction.text import Lexicon
     >>> Lex = Lexicon()
     >>> Lex.size_
-    68370
+    68371
     >>> Lex.lexicon_[:5]
     ['A', 'AA', 'AAA', 'AARDVARK', 'AARDVARKS']
+    >>> Lex.stop_words_[:5]
+    ['A', 'ABOUT', 'ACROSS', 'AFTER', 'AGAIN']
     >>> round(Lex.overall_statistics_['average_length'], 3)
     8.431
     >>> Lex.lookup_string('MONKEY')
@@ -122,23 +123,44 @@ class Lexicon(TextStatistics):
 
         super().__init__(store_uniques=True)
 
-        self._module_dir = os.path.dirname(os.path.abspath(__file__))
-        self._lexicon_dir = os.path.join(self._module_dir, '_lexicon')
+        # build lexicon -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        self._lexicon_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '_lexicon'
+        )
 
-
-        FILES = sorted(glob.glob(os.path.join(self._lexicon_dir, '*.txt')))
-        for file in FILES:
+        for file in sorted(glob.glob(os.path.join(self._lexicon_dir, '*.txt'))):
             with open(os.path.join(self._lexicon_dir, file)) as f:
                 words = np.fromiter(f, dtype='<U40')
                 words = np.char.replace(words, '\n', '')
                 super().partial_fit(words)
+        # END build lexicon -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        del FILES, words
+        # build stop_words -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _stop_words_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '_stop_words'
+        )
+
+        self._stop_words = []
+        for file in sorted(glob.glob(os.path.join(_stop_words_dir, '*.txt'))):
+            with open(os.path.join(_stop_words_dir, file)) as f:
+                words = np.fromiter(f, dtype='<U40')
+                words = np.char.replace(words, '\n', '')
+                self._stop_words += list(map(str, words.tolist()))
+        self._stop_words = sorted(self._stop_words)
+        # END build stop_words -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     @property
     def lexicon_(self):
         return self.uniques_
+
+
+    @property
+    def stop_words_(self):
+        return self._stop_words
 
 
     def _reset(self):
@@ -149,6 +171,11 @@ class Lexicon(TextStatistics):
     def get_params(self, deep:Optional[bool] = True):
         """Blocked."""
         raise AttributeError(f"'get_params' is blocked")
+
+
+    def set_params(self, deep:Optional[bool] = True):
+        """Blocked."""
+        raise AttributeError(f"'set_params' is blocked")
 
 
     def partial_fit(self, X:any, y:Optional[any] = None):

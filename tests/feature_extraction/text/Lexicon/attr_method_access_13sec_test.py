@@ -27,6 +27,7 @@ class TestAttrAccess:
     #     return [
     #         'size_',
     #         'lexicon_',
+    #         'stop_words_',
     #         'overall_statistics_',
     #         'startswith_frequency_',
     #         'character_frequency_',
@@ -51,6 +52,12 @@ class TestAttrAccess:
         assert len(out) >= 1
         assert all(map(isinstance, out, (str for _ in out)))
         assert len(out) == TestCls.size_
+
+        # 'stop_words_',
+        out = getattr(TestCls, 'stop_words_')
+        assert isinstance(out, list)
+        assert len(out) >= 1
+        assert all(map(isinstance, out, (str for _ in out)))
 
         # 'overall_statistics_',
         out = getattr(TestCls, 'overall_statistics_')
