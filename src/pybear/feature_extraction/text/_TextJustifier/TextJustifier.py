@@ -121,8 +121,7 @@ class TextJustifier(
 
     TJ has one attribute, n_rows_, which is only available after data
     has been passed to :method: transform. n_rows_ is the number of rows
-    of text seen in the original data, and must be the number of strings
-    in the returned 1D python list.
+    of text seen in the original data.
 
 
     Parameters
