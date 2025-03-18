@@ -8,7 +8,7 @@
 
 from copy import deepcopy
 
-from .....utilities._view_text_snippet import _view_text_snippet
+from .....utilities._view_text_snippet import view_text_snippet
 from .....data_validation import validate_user_input as vui
 
 
@@ -64,7 +64,7 @@ def _quasi_auto_word_splitter(
     _NEW_LINE = []
     for split_idx in range(2, len(_word) - 1):
         if _word[:split_idx] in _KNOWN_WORDS and _word[split_idx:] in _KNOWN_WORDS:
-            print(_view_text_snippet(_line, _word_idx, _span=9))
+            print(view_text_snippet(_line, _word_idx, _span=9))
             print(f"\n*{_word}* IS NOT IN LEXICON\n")
             print(f'\n*** RECOMMEND *{_word[:split_idx]}* AND '
                   f'*{_word[split_idx:]}* ***\n')
