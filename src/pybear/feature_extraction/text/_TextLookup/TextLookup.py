@@ -92,8 +92,7 @@ class TextLookup(
 
     TL has one attribute, n_rows_, which is only available after data
     has been passed to :method: transform. n_rows_ is the number of rows
-    of text seen in the original data, and must be the number of strings
-    in the returned 1D python list.
+    of text seen in the original data.
 
 
     Parameters
@@ -192,13 +191,13 @@ class TextLookup(
 
         _LEX_LOOK_DICT = {
             'a': 'Add to Lexicon',
-            'e': 'Replace',
+            'e': 'Replace once',
             'f': 'Replace always',
-            'd': 'Delete',
+            'd': 'Delete once',
             'l': 'Delete always',
-            's': 'Split',
+            's': 'Split once',
             'u': 'Split always',
-            'k': 'Skip',
+            'k': 'Skip once',
             'w': 'Skip always',
             'q': 'Quit'
         }
@@ -216,6 +215,39 @@ class TextLookup(
 
     def __pybear_is_fitted__(self):
         return True
+
+
+    def reset(self) -> Self:
+        """
+        Reset the TextLookup instance. This will remove all attributes
+        that are exposed during transform.
+
+
+        Returns
+        -------
+        -
+            None.
+
+        """
+
+        if hasattr(self, 'n_rows_'):
+            delattr(self, 'n_rows_')
+
+        if hasattr(self, 'DELETE_ALWAYS_'):
+            delattr(self, 'DELETE_ALWAYS_')
+        if hasattr(self, 'REPLACE_ALWAYS_'):
+            delattr(self, 'REPLACE_ALWAYS_')
+        if hasattr(self, 'SKIP_ALWAYS_'):
+            delattr(self, 'SKIP_ALWAYS_')
+        if hasattr(self, 'SPLIT_ALWAYS_'):
+            delattr(self, 'SPLIT_ALWAYS_')
+
+        if hasattr(self, 'LEXICON_ADDENDUM_'):
+            delattr(self, 'LEXICON_ADDENDUM_')
+        if hasattr(self, 'KNOWN_WORDS_'):
+            delattr(self, 'KNOWN_WORDS_')
+
+        return self
 
 
     def get_metadata_routing(self):
@@ -282,8 +314,8 @@ class TextLookup(
         ----------
         X:
             XContainer - the (possibly ragged) 2D container of text to
-            have its contents cross-referenced against the pybear Lexicon.
-            Ignored.
+            have its contents cross-referenced against the pybear
+            Lexicon. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -296,6 +328,8 @@ class TextLookup(
 
 
         """
+
+        self.reset()
 
         return self.partial_fit(X, y)
 
@@ -314,8 +348,8 @@ class TextLookup(
         ----------
         X:
             XContainer - the (possibly ragged) 2D container of text to
-            have its contents cross-referenced against the pybear Lexicon.
-            Ignored.
+            have its contents cross-referenced against the pybear
+            Lexicon. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -377,10 +411,11 @@ class TextLookup(
     ) -> list[str]:
 
         """
-        Handle removing an old word from a line, substituting in the new
-        word(s), updating
+        Handle removing a user-identified word from a line, substituting
+        in new word(s), and updating the LEXICON_ADDENDUM, if applicable.
 
-        This is called after split, split always, replace, replace always.
+        This is called after split, split always, replace, and replace
+        always.
 
 
         Parameters
@@ -389,10 +424,9 @@ class TextLookup(
             list[str] - the full line of the data that holds the current
             word.
         _word_idx:
-            int - the index of the first letter of the current word in
-            _line.
+            int - the index of the current word in _line.
         _NEW_WORDS:
-            list[str] - the words to be inserted into line in the place
+            list[str] - the word(s) to be inserted into _line in place
             of the original word.
 
 
@@ -454,7 +488,7 @@ class TextLookup(
 
         """
         Scan tokens in X and prompt for handling of tokens not in the
-        Lexicon.
+        pybear Lexicon.
 
 
         Parameters
@@ -470,13 +504,12 @@ class TextLookup(
         Return
         ------
         -
-            XContainer
+            list[list[str]] - the data with user-entered or auto-replaced
+            tokens in place of tokens not in the pybear Lexicon.
 
         """
 
         check_is_fitted(self)
-
-        # VALIDATION ###################################################
 
         _validation(
             X,
@@ -491,17 +524,6 @@ class TextLookup(
             self.SPLIT_ALWAYS,
             self.verbose
         )
-
-        self.DELETE_ALWAYS_ = deepcopy(self.DELETE_ALWAYS) or []
-        self.REPLACE_ALWAYS_ = deepcopy(self.REPLACE_ALWAYS) or {}
-        self.SKIP_ALWAYS_ = deepcopy(self.SKIP_ALWAYS) or []
-        self.SPLIT_ALWAYS_ = deepcopy(self.SPLIT_ALWAYS) or {}
-
-        self.LEXICON_ADDENDUM_: list[str] = []
-        self.KNOWN_WORDS_: list[str] = deepcopy(Lexicon().lexicon_)
-
-
-        # END VALIDATION ###############################################
 
         if copy:
             _X = copy_X(X)
@@ -518,14 +540,31 @@ class TextLookup(
             _X = list(map(list, _X))
 
         _X: WipXContainer
-        # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --
 
         self.n_rows_ = len(_X)
+        # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --
+
+        # Manage attributes -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        self.DELETE_ALWAYS_ = \
+            getattr(self, 'DELETE_ALWAYS_', deepcopy(self.DELETE_ALWAYS) or [])
+        self.REPLACE_ALWAYS_ = \
+            getattr(self, 'REPLACE_ALWAYS_', deepcopy(self.REPLACE_ALWAYS) or {})
+        self.SKIP_ALWAYS_ = \
+            getattr(self, 'SKIP_ALWAYS_', deepcopy(self.SKIP_ALWAYS) or [])
+        self.SPLIT_ALWAYS_ = \
+            getattr(self, 'SPLIT_ALWAYS_', deepcopy(self.SPLIT_ALWAYS) or {})
+
+        self.LEXICON_ADDENDUM_: list[str] = \
+            getattr(self, 'LEXICON_ADDENDUM_', [])
+        self.KNOWN_WORDS_: list[str] = \
+            getattr(self, 'KNOWN_WORDS_', deepcopy(Lexicon().lexicon_))
+        # END Manage attributes -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- -- --
         _abort = False
 
-        if self.update_lexicon and len(self.LEXICON_ADDENDUM_) != 0:
+        if self.update_lexicon and not self.auto_add_to_lexicon \
+                and len(self.LEXICON_ADDENDUM_) != 0:
 
             print(f'\n*** LEXICON ADDENDUM IS NOT EMPTY ***\n')
             print(f'LEXICON ADDENDUM has {len(self.LEXICON_ADDENDUM_)} entries')
@@ -746,7 +785,7 @@ class TextLookup(
                     if self.verbose:
                         print(f'\n*** ADD *{_word}* TO LEXICON ADDENDUM ***\n')
                     # and X is unchanged
-                elif _opt in 'dl':   # 'd': 'Delete', 'l': 'Delete always'
+                elif _opt in 'dl':   # 'd': 'Delete once', 'l': 'Delete always'
                     _X[_row_idx].pop(_word_idx)
                     if _opt == 'd':
                         if self.verbose:
@@ -755,7 +794,7 @@ class TextLookup(
                         self.DELETE_ALWAYS_.append(_word)
                         if self.verbose:
                             print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
-                elif _opt in 'ef':   # 'e': 'Replace', 'f': 'Replace always',
+                elif _opt in 'ef':   # 'e': 'Replace once', 'f': 'Replace always',
                     _new_word = _word_editor(
                         _word,
                         _prompt=f'Enter new word to replace *{_word}*'
@@ -777,7 +816,7 @@ class TextLookup(
                                 f'*{self.REPLACE_ALWAYS_[_word]}* ***\n'
                             )
                     del _new_word
-                elif _opt in 'kw':   # 'k': 'Skip', 'w': 'Skip always'
+                elif _opt in 'kw':   # 'k': 'Skip once', 'w': 'Skip always'
                     if _opt == 'k':
                         if self.verbose:
                             print(f'\n*** ONE-TIME SKIP *{_word}* ***\n')
@@ -787,7 +826,7 @@ class TextLookup(
                             print(f'\n*** ALWAYS SKIP *{_word}* ***\n')
                     # a no-op
                     pass
-                elif _opt in 'su':   # 's': 'Split', 'u': 'Split always'
+                elif _opt in 'su':   # 's': 'Split once', 'u': 'Split always'
                     # this split is different than auto and quasi... those split
                     # on both halves of the original word being in Lexicon, but
                     # here the user might pass something new, so this needs to
