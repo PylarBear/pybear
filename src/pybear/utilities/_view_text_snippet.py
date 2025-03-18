@@ -11,9 +11,11 @@ from typing import Sequence
 import math
 import numbers
 
+from ..base._check_1D_str_sequence import check_1D_str_sequence
 
 
-def _view_snippet(
+
+def _view_text_snippet(
     _VECTOR: Sequence[str],
     _idx: numbers.Integral,
     _span: numbers.Integral = 9
@@ -49,23 +51,37 @@ def _view_snippet(
 
     """
 
-    # validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    if not isinstance(_VECTOR, list):
-        raise TypeError(f"expected VECTOR to be a list")
-    if not all(map(isinstance, _VECTOR, (str for _ in _VECTOR))):
-        raise TypeError(f"expected VECTOR to contain strings")
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+
+    check_1D_str_sequence(_VECTOR)
+    if len(_VECTOR) == 0:
+        raise ValueError(f"'VECTOR' cannot be empty")
+
+
+    # idx -- -- -- -- -- -- -- -- -- --
+    err_msg = f"'idx' must be a non-negative integer in range of the given vector"
     if not isinstance(_idx, numbers.Integral):
-        raise TypeError(f"expected idx to be an integer")
-    if not _idx >= 0:
-        raise TypeError(f"idx must be a positive integer")
+        raise TypeError(err_msg)
+    if isinstance(_idx, bool):
+        raise TypeError(err_msg)
+    if _idx not in range(0, len(_VECTOR)):
+        raise ValueError(err_msg)
+    del err_msg
+    # END idx -- -- -- -- -- -- -- -- --
 
+    # span -- -- -- -- -- -- -- -- -- --
+    err_msg = f"'span' must be an integer >= 3"
     if not isinstance(_span, numbers.Integral):
-        raise TypeError(f"expected span to be an integer")
-    if not _span >= 0:
-        raise TypeError(f"span must be a positive integer")
+        raise TypeError(err_msg)
+    if isinstance(_span, bool):
+        raise TypeError(err_msg)
+    if _span < 3:
+        raise ValueError(err_msg)
+    del err_msg
+    # END span -- -- -- -- -- -- -- -- --
 
-    # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _lower = math.floor(_idx - (_span - 1) / 2)

@@ -16,14 +16,6 @@ import numbers
 import numpy as np, pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
 
-from .._Lexicon.Lexicon import Lexicon
-from .. import alphanumeric_str as ans
-
-from ....data_validation import (
-    validate_user_input as vui,
-    arg_kwarg_validater
-)
-
 from ._validation._X import _val_X
 from ._validation._auto_add import _val_auto_add
 from ._validation._auto_delete import _val_auto_delete
@@ -32,10 +24,19 @@ from ._validation._update_lexicon import _val_update_lexicon
 from ._methods._strip import _strip
 from ._methods._remove_characters import _remove_characters
 from ._methods._normalize import _normalize
-from ._methods._view_snippet import _view_snippet
 
 from ._methods._validation._menu import _menu_validation
 from ._methods._validation._lex_lookup_menu import _lex_lookup_menu_validation
+
+from .._Lexicon.Lexicon import Lexicon
+from .. import alphanumeric_str as ans
+
+from ....utilities._view_text_snippet import _view_text_snippet
+from ....data_validation import (
+    validate_user_input as vui,
+    arg_kwarg_validater
+)
+
 
 
 
@@ -857,33 +858,6 @@ class TC:
             np.insert(self.KNOWN_WORDS, len(self.KNOWN_WORDS), word, axis=0)
 
 
-    def view_snippet(
-        self,
-        VECTOR: Sequence[str],
-        idx: numbers.Integral,
-        span: Optional[numbers.Integral]=9
-    ):
-
-        """
-        Highlights the word of interest in a series of words.
-
-
-        Parameters
-        ----------
-        VECTOR:
-            Sequence[str] - The sequence of strings from which to
-            highlight one string.
-        idx:
-            numbers.Integral - the index of the string to highlight.
-        span:
-            Optional[numbers.Integral], default=9 - the number of strings
-            to display around and including the highlighted string.
-
-        """
-
-        return _view_snippet(VECTOR, idx, span=span)
-
-
     def lex_lookup(self, print_notes:Optional[bool] = False):
 
         """
@@ -1040,7 +1014,7 @@ class TC:
                     if len(word) >= 4:
                         for split_idx in range(2,len(word)-1):
                             if word[:split_idx] in self.KNOWN_WORDS and word[split_idx:] in self.KNOWN_WORDS:
-                                print(self.view_snippet(self.CLEANED_TEXT[row_idx], word_idx))
+                                print(_view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx))
                                 print(f"\n*{word}* IS NOT IN LEXICON\n")
                                 print(f'\n*** RECOMMEND "{word[:split_idx]}" AND "{word[split_idx:]}" ***\n')
                                 if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
@@ -1052,7 +1026,7 @@ class TC:
                     # elif len(word) < 4: DONT DO SPLIT TEST AND not_in_lexicon STAYS True
 
                     if not_in_lexicon:
-                        print(self.view_snippet(self.CLEANED_TEXT[row_idx], word_idx))
+                        print(_view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx))
                         print(f"\n*{word}* IS NOT IN LEXICON\n")
                         _ = vui.validate_user_str(f"{MENU_DISPLAY} > ", menu_allowed)
 
@@ -1091,14 +1065,14 @@ class TC:
                     elif _ in 'SU':
                         while True:
                             new_word_ct = vui.validate_user_int(
-                                f'Enter number of ways to split  *{word.upper()}*  in  *{self.view_snippet(self.CLEANED_TEXT[row_idx], word_idx)}* > ', min=1, max=30)
+                                f'Enter number of ways to split  *{word.upper()}*  in  *{_view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx)}* > ', min=1, max=30)
 
                             NEW_WORDS = np.empty(new_word_ct, dtype='<U30')
                             for slot_idx in range(new_word_ct):
                                 NEW_WORDS[slot_idx] = \
                                     self.word_editor(word.upper(),
                                         prompt=f'Enter word for slot {slot_idx + 1} (of {new_word_ct}) replacing  *{self.CLEANED_TEXT[row_idx][word_idx]}*  '
-                                            f'in  *{self.view_snippet(self.CLEANED_TEXT[row_idx], word_idx)}*'
+                                            f'in  *{_view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx)}*'
                                     ).upper()
 
                             if vui.validate_user_str(f'User entered *{", ".join(NEW_WORDS)}* > accept? (y/n) > ', 'YN') == 'Y':

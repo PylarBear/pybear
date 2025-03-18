@@ -21,13 +21,13 @@ from ._validation._validation import _validation
 from ._transform._auto_word_splitter import _auto_word_splitter
 from ._transform._manual_word_splitter import _manual_word_splitter
 from ._transform._quasi_auto_word_splitter import _quasi_auto_word_splitter
-from ._transform._view_snippet import _view_snippet
 from ._transform._word_editor import _word_editor
 
 from .._Lexicon.Lexicon import Lexicon
 
 from ....data_validation import validate_user_input as vui
 
+from ....utilities._view_text_snippet import _view_text_snippet
 from ....base._copy_X import copy_X
 
 from ....utilities._DictMenuPrint import DictMenuPrint
@@ -772,7 +772,7 @@ class TextLookup(
                     del _NEW_LINE
                 # END quasi-automate split recommendation -- -- -- -- --
 
-                print(f"\n{_view_snippet(_X[_row_idx], _word_idx, _span=7)}")
+                print(f"\n{_view_text_snippet(_X[_row_idx], _word_idx, _span=7)}")
                 print(f"\n*{_word}* IS NOT IN LEXICON\n")
                 _opt = self._LexLookupMenu.choose('Select option')
 
