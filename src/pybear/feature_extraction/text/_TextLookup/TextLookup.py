@@ -13,6 +13,7 @@ import numpy.typing as npt
 from copy import deepcopy
 import numbers
 
+import numpy as np
 import pandas as pd
 import polars as pl
 
@@ -27,7 +28,7 @@ from .._Lexicon.Lexicon import Lexicon
 
 from ....data_validation import validate_user_input as vui
 
-from ....utilities._view_text_snippet import _view_text_snippet
+from ....utilities._view_text_snippet import view_text_snippet
 from ....base._copy_X import copy_X
 
 from ....utilities._DictMenuPrint import DictMenuPrint
@@ -53,6 +54,8 @@ PolarsTypes: TypeAlias = pl.DataFrame
 XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 WipXContainer: TypeAlias = list[list[str]]
+
+RowSupportType: TypeAlias = npt.NDArray[bool]
 
 
 
@@ -122,8 +125,10 @@ class TextLookup(
 
     Attributes
     ----------
-    n_rows_
+    n_rows_:
         int -
+    row_support_:
+        npt.NDArray[bool] -
     LEXICON_ADDENDUM_:
         list[str] -
     KNOWN_WORDS_:
@@ -158,12 +163,16 @@ class TextLookup(
     WipXContainer:
         list[list[str]]
 
+    RowSupportType:
+        npt.NDArray[bool]
+
 
     """
 
 
     def __init__(
         self,
+        *,
         update_lexicon: Optional[bool] = False,
         skip_numbers: Optional[bool] = True,
         auto_split: Optional[bool] = True,
@@ -173,6 +182,7 @@ class TextLookup(
         REPLACE_ALWAYS: Optional[Union[dict[str, str], None]] = None,
         SKIP_ALWAYS: Optional[Union[Sequence[str], None]] = None,
         SPLIT_ALWAYS: Optional[Union[dict[str, Sequence[str]], None]] = None,
+        remove_empty_rows: Optional[bool] = False,
         verbose: Optional[bool] = False
     ) -> None:
 
@@ -186,6 +196,7 @@ class TextLookup(
         self.SPLIT_ALWAYS: dict[str, Sequence[str]] = SPLIT_ALWAYS
         self.DELETE_ALWAYS: Sequence[str] = DELETE_ALWAYS
         self.REPLACE_ALWAYS: dict[str, str] = REPLACE_ALWAYS
+        self.remove_empty_rows = remove_empty_rows
         self.verbose = verbose
 
 
@@ -460,14 +471,14 @@ class TextLookup(
                 # if new word is not KNOWN or not skipped...
                 if self.auto_add_to_lexicon:
                     self.LEXICON_ADDENDUM_.append(_NEW_WORDS[_slot_idx])
-                    self.KNOWN_WORDS_.append(_NEW_WORDS[_slot_idx])
+                    self.KNOWN_WORDS_.insert(0, _NEW_WORDS[_slot_idx])
                     continue
 
                 print(f"\n*** *{_NEW_WORDS[_slot_idx]}* IS NOT IN LEXICON ***\n")
                 _ = self._LexLookupMenu.choose('Select option', allowed='akw')
                 if _ == 'a':
                     self.LEXICON_ADDENDUM_.append(_NEW_WORDS[_slot_idx])
-                    self.KNOWN_WORDS_.append(_NEW_WORDS[_slot_idx])
+                    self.KNOWN_WORDS_.insert(0, _NEW_WORDS[_slot_idx])
                 elif _ == 'k':
                     pass
                 elif _ == 'w':
@@ -504,8 +515,10 @@ class TextLookup(
         Return
         ------
         -
-            list[list[str]] - the data with user-entered or auto-replaced
-            tokens in place of tokens not in the pybear Lexicon.
+            list[list[str]] - the data with user-entered, auto-replaced,
+            or deleted tokens in place of tokens not in the pybear
+            Lexicon.
+
 
         """
 
@@ -522,6 +535,7 @@ class TextLookup(
             self.REPLACE_ALWAYS,
             self.SKIP_ALWAYS,
             self.SPLIT_ALWAYS,
+            self.remove_empty_rows,
             self.verbose
         )
 
@@ -593,15 +607,16 @@ class TextLookup(
         _quit = False
         _n_edits = 0
         _word_counter = 0
-        for _row_idx in [range(len(_X)) if not _abort else []][0]:
+        self.row_support_: npt.NDArray[bool] = np.ones((len(_X), )).astype(bool)
+        for _row_idx in range(len(_X)-1, -1, -1) if not _abort else []:
 
             if self.verbose:
-                print(f'\nStarting row {_row_idx+1} of {len(_X)}')
+                print(f'\nStarting row {_row_idx+1} of {len(_X)} working backwards')
                 print(f'\nCurrent state of ')
                 self._display_lexicon_update()
 
             # GO THRU BACKWARDS BECAUSE A SPLIT OR DELETE WILL CHANGE X
-            for _word_idx in range(len(_X[_row_idx]) - 1, -1, -1):
+            for _word_idx in range(len(_X[_row_idx])-1, -1, -1):
 
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
                 # Manage in-situ save option if in manual edit mode.
@@ -701,7 +716,7 @@ class TextLookup(
                 # LOOK FOR FIRST VALID SPLIT IF len(word) >= 4
                 if self.auto_split and len(_word) >= 4:
                     _NEW_LINE = _auto_word_splitter(
-                        _word_idx, _X[_word_idx], self.KNOWN_WORDS_, self.verbose
+                        _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
                     )
                     if any(_NEW_LINE):
                         _X[_row_idx] = _NEW_LINE
@@ -725,7 +740,7 @@ class TextLookup(
                     if self.verbose:
                         print(f'\n*** AUTO-ADD *{_word}* TO LEXICON ADDENDUM ***\n')
                     self.LEXICON_ADDENDUM_.append(_word)
-                    self.KNOWN_WORDS_.append(_word)
+                    self.KNOWN_WORDS_.insert(0, _word)
 
                     continue
                 # END short-circuit for auto-add -- -- -- -- -- -- -- --
@@ -772,7 +787,7 @@ class TextLookup(
                     del _NEW_LINE
                 # END quasi-automate split recommendation -- -- -- -- --
 
-                print(f"\n{_view_text_snippet(_X[_row_idx], _word_idx, _span=7)}")
+                print(f"\n{view_text_snippet(_X[_row_idx], _word_idx, _span=7)}")
                 print(f"\n*{_word}* IS NOT IN LEXICON\n")
                 _opt = self._LexLookupMenu.choose('Select option')
 
@@ -781,7 +796,7 @@ class TextLookup(
                     # this menu option is not available in LexLookupMenu if
                     # 'update_lexicon' is False
                     self.LEXICON_ADDENDUM_.append(_word)
-                    self.KNOWN_WORDS_.append(_word)
+                    self.KNOWN_WORDS_.insert(0, _word)
                     if self.verbose:
                         print(f'\n*** ADD *{_word}* TO LEXICON ADDENDUM ***\n')
                     # and X is unchanged
@@ -861,6 +876,10 @@ class TextLookup(
                     raise Exception
                 # END manual menu actions -- -- -- -- -- -- -- -- -- -- -- --
 
+            if self.remove_empty_rows and len(_X[_row_idx]) == 0:
+                _X.pop(_row_idx)
+                self.row_support_[_row_idx] = False
+
             if _quit:
                 break
 
@@ -870,22 +889,24 @@ class TextLookup(
             print(f'\n*** LEX LOOKUP COMPLETE ***\n')
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _prompt = f'\nSave completed text to file(s) or Skip(c) > '
-        if vui.validate_user_str(_prompt, 'SC') == 'S':
-            _opt = vui.validate_user_str(
-                f'\nSave to csv(c), Save to txt(t), Abort(a)? > ',
-                'CTA'
-            )
-            if _opt == 'C':
-                self.dump_to_csv(_X)
-            elif _opt == 'T':
-                self.dump_to_txt(_X)
-            elif _opt == 'A':
-                pass
-            else:
-                raise Exception
-            del _opt
-        del _prompt
+        # only ask to save at the end if the instance was set up for manual
+        if not self.auto_add_to_lexicon and not self.auto_delete:
+            _prompt = f'\nSave completed text to file(s) or Skip(c) > '
+            if vui.validate_user_str(_prompt, 'SC') == 'S':
+                _opt = vui.validate_user_str(
+                    f'\nSave to csv(c), Save to txt(t), Abort(a)? > ',
+                    'CTA'
+                )
+                if _opt == 'C':
+                    self.dump_to_csv(_X)
+                elif _opt == 'T':
+                    self.dump_to_txt(_X)
+                elif _opt == 'A':
+                    pass
+                else:
+                    raise Exception
+                del _opt
+            del _prompt
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         if self.update_lexicon and not _abort:
