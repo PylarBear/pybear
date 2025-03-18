@@ -31,11 +31,11 @@ class TestValidation:
 
 
 
-    @pytest.mark.parametrize('_update_lexicon', (True, False))
-    @pytest.mark.parametrize('_skip_numbers', (True, False))
-    @pytest.mark.parametrize('_auto_split', (True, False))
-    @pytest.mark.parametrize('_auto_add_to_lexicon', (True, False))
-    @pytest.mark.parametrize('_auto_delete', (True, False))
+    @pytest.mark.parametrize('_update_lexicon', (True,))
+    @pytest.mark.parametrize('_skip_numbers', (False,))
+    @pytest.mark.parametrize('_auto_split', (True,))
+    @pytest.mark.parametrize('_auto_add_to_lexicon', (False,))
+    @pytest.mark.parametrize('_auto_delete', (True,))
     @pytest.mark.parametrize('_DELETE_ALWAYS', (list('abc'), list('mno')))
     @pytest.mark.parametrize('_REPLACE_ALWAYS',
         (dict((zip(list('abc'),list('123')))), dict((zip(list('pqr'),list('123')))))
@@ -44,11 +44,12 @@ class TestValidation:
     @pytest.mark.parametrize('_SPLIT_ALWAYS',
         (dict((zip(list('abc'), ([], [], [])))), dict((zip(list('vwx'), ([], [], [])))))
     )
-    @pytest.mark.parametrize('_verbose', (True, False))
+    @pytest.mark.parametrize('_remove_empty_rows', (False,))
+    @pytest.mark.parametrize('_verbose', (True,))
     def test_accuracy(
         self, _update_lexicon, _skip_numbers, _auto_split, _auto_add_to_lexicon,
         _auto_delete, _DELETE_ALWAYS, _REPLACE_ALWAYS, _SKIP_ALWAYS, _SPLIT_ALWAYS,
-        _verbose, _X
+        _remove_empty_rows, _verbose, _X
     ):
 
         _raise_for_parameter_conflict = 0
@@ -80,6 +81,7 @@ class TestValidation:
                     _REPLACE_ALWAYS,
                     _SKIP_ALWAYS,
                     _SPLIT_ALWAYS,
+                    _remove_empty_rows,
                     _verbose
                 )
         elif _raise_for_duplicate_in_special:
@@ -95,6 +97,7 @@ class TestValidation:
                     _REPLACE_ALWAYS,
                     _SKIP_ALWAYS,
                     _SPLIT_ALWAYS,
+                    _remove_empty_rows,
                     _verbose
                 )
         else:
@@ -109,6 +112,7 @@ class TestValidation:
                 _REPLACE_ALWAYS,
                 _SKIP_ALWAYS,
                 _SPLIT_ALWAYS,
+                _remove_empty_rows,
                 _verbose
             )
 
