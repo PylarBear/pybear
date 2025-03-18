@@ -10,6 +10,8 @@ import pytest
 from unittest.mock import patch
 
 import io
+import numbers
+from copy import deepcopy
 
 import numpy as np
 
@@ -35,6 +37,7 @@ class TestTextLookup:
             'REPLACE_ALWAYS': None,
             'SKIP_ALWAYS': None,
             'SPLIT_ALWAYS': None,
+            'remove_empty_rows': False,
             'verbose': False
         }
 
@@ -90,46 +93,46 @@ class TestTextLookup:
     @pytest.fixture(scope='module')
     def exp():
         return [
-            ['ACTIVITY', 'APPRECIATE', 'ANIMAL', 'ANTICIPATE', 'BEAUTIFUL'],
-            ['BENEATH', 'BENEFIT', 'BRINGING', 'BRIGHT', 'CAREFUL'],
-            ['CARING', 'CATCHING', 'TEA', 'COMPOST', 'CELEBRATE', 'CIRCUMSTANCE'],
-            ['COMMON', 'CREATIVITY', 'CURIOUS', 'DANGER'],
-            ['DESTINY', 'DESIRE', 'DIVINE', 'DREAMING', 'EDUCATE'],
-            ['ELITE', 'ENCOURAGE', 'EXCITEMENT', 'EXPECT', 'FAITHFUL'],
-            ['FANTASTIC', 'FAVORITE', 'FRIEND', 'FRIENDLY'],
-            ['GATHERING', 'GENEROUS', 'GENERATE', 'GLORIOUS', 'HARMONY'],
-            ['HELPFUL', 'HOPEFUL', 'HONESTY', 'HUMANITY', 'INFLUENCE'],
-            ['INSIGHT', 'INTEREST', 'INFLUENCER', 'JOYFUL', 'JUDGEMENT'],
-            ['KINDNESS', 'KNOWLEDGE', 'LEADER', 'LEARNING', 'LIBERATE'],
-            ['LIFE', 'LIGHT', 'MAGNIFICENT', 'MEANING'],
-            ['MEMORIES', 'MIND', 'MOTIVATION', 'NATIONAL', 'NATURE'],
-            ['OPTIMISTIC', 'ORDERLY', 'OPPORTUNITY', 'PATIENCE', 'PASSION'],
-            ['PEACEFUL', 'PERFECT', 'PERSISTENT', 'PLEASURE', 'POSITIVE'],
-            ['POWERFUL', 'PROGRESS', 'PURPOSE', 'QUALITY', 'QUEST'],
-            ['REACHING', 'REALITY', 'RESPECTFUL', 'SINCERE', 'SKILLFUL'],
-            ['SPIRITUAL', 'STRATEGY', 'SUCCESS', 'SUPPORT', 'TALENT'],
-            ['THOUGHTFUL', 'TREMENDOUS', 'UNITY', 'USEFUL', 'VISION'],
-            ['WEALTH', 'WISDOM', 'WORTHY', 'ZENITH', 'ZESTFUL'],
-            ['ABUNDANT', 'ADVENTURE', 'AMBITION', 'ANCIENT', 'ARTIST'],
-            ['AWAKEN', 'BELIEVE', 'BLESSING', 'CALM', 'CAREER'],
-            ['CHALLENGE', 'CHARACTER', 'CLARITY', 'COMMIT', 'COURAGE'],
-            ['CREATIVE', 'CURRENT', 'DELIGHT', 'DESTROY'],
-            ['DREAMER', 'ELATION', 'EMPATHY', 'ENERGY', 'ENDEAVOR'],
-            ['ENGAGE', 'ENLIGHTEN', 'EXPLORER', 'FOCUS', 'FOREVER'],
-            ['FRIENDS', 'GAIN', 'GREATNESS', 'HEROIC', 'HOPE'],
-            ['HORIZON', 'IDEAL', 'IGNITE', 'INSPIRE', 'JOY'],
-            ['JOURNEY', 'JUSTICE', 'LEGACY', 'LIFELESS', 'LOVEABLE'],
-            ['MASTER', 'MYSTIC', 'NOBLE', 'OBSERVE', 'PEACE'],
-            ['PERSIST', 'PLEASANT', 'PROSPER', 'REFLECT', 'RELIABLE'],
-            ['REMARKABLE', 'RESOURCEFUL', 'RESTORE', 'SHARE', 'SIMPLIFY'],
-            ['SKILLED', 'SOAR', 'STRENGTH', 'SUBLIME', 'TRIUMPH'],
-            ['UNITY', 'VISIONARY', 'WEALTHY', 'WISDOM', 'YOUTHFUL'],
-            ['AMAZING', 'BEAUTIFUL', 'CREATING', 'DILIGENCE', 'BLOOM', 'TRIX'],
-            ['EXPECTATION', 'EXCITING', 'FLEXIBILITY', 'FREEDOM', 'GLORY'],
-            ['HARMONIOUS', 'HEROISM', 'INSPIRATION', 'MINDFUL', 'ZIG', 'TROPE'],
-            ['PERSISTENCE', 'PROGRESSIVE', 'TRULY', 'VALUEABLE', 'VICTORY'],
-            ['STAR', 'DUSK'],
-            ['CRUMBLE', 'WAX'],
+            ["ACTIVITY", "APPRECIATE", "ANIMAL", "ANTICIPATE", "BEAUTIFUL"],
+            ["BENEATH", "BENEFIT", "BRINGING", "BRIGHT", "CAREFUL"],
+            ["CARING", "CATCHING", "TEA", "COMPOST", "CELEBRATE", "CIRCUMSTANCE"],
+            ["COMMON", "CREATIVITY", "CURIOUS", "DANGER"],
+            ["DESTINY", "DESIRE", "DIVINE", "DREAMING", "EDUCATE"],
+            ["ELITE", "ENCOURAGE", "EXCITEMENT", "EXPECT", "FAITHFUL"],
+            ["FANTASTIC", "FAVORITE", "FRIEND", "FRIENDLY"],
+            ["GATHERING", "GENEROUS", "GENERATE", "GLORIOUS", "HARMONY"],
+            ["HELPFUL", "HOPEFUL", "HONESTY", "HUMANITY", "INFLUENCE"],
+            ["INSIGHT", "INTEREST", "INFLUENCER", "JOYFUL", "JUDGEMENT"],
+            ["KINDNESS", "KNOWLEDGE", "LEADER", "LEARNING", "LIBERATE"],
+            ["LIFE", "LIGHT", "MAGNIFICENT", "MEANING"],
+            ["MEMORIES", "MIND", "MOTIVATION", "NATIONAL", "NATURE"],
+            ["OPTIMISTIC", "ORDERLY", "OPPORTUNITY", "PATIENCE", "PASSION"],
+            ["PEACEFUL", "PERFECT", "PERSISTENT", "PLEASURE", "POSITIVE"],
+            ["POWERFUL", "PROGRESS", "PURPOSE", "QUALITY", "QUEST"],
+            ["REACHING", "REALITY", "RESPECTFUL", "SINCERE", "SKILLFUL"],
+            ["SPIRITUAL", "STRATEGY", "SUCCESS", "SUPPORT", "TALENT"],
+            ["THOUGHTFUL", "TREMENDOUS", "UNITY", "USEFUL", "VISION"],
+            ["WEALTH", "WISDOM", "WORTHY", "ZENITH", "ZESTFUL"],
+            ["ABUNDANT", "ADVENTURE", "AMBITION", "ANCIENT", "ARTIST"],
+            ["AWAKEN", "BELIEVE", "BLESSING", "CALM", "CAREER"],
+            ["CHALLENGE", "CHARACTER", "CLARITY", "COMMIT", "COURAGE"],
+            ["CREATIVE", "CURRENT", "DELIGHT", "DESTROY"],
+            ["DREAMER", "ELATION", "EMPATHY", "ENERGY", "ENDEAVOR"],
+            ["ENGAGE", "ENLIGHTEN", "EXPLORER", "FOCUS", "FOREVER"],
+            ["FRIENDS", "GAIN", "GREATNESS", "HEROIC", "HOPE"],
+            ["HORIZON", "IDEAL", "IGNITE", "INSPIRE", "JOY"],
+            ["JOURNEY", "JUSTICE", "LEGACY", "LIFELESS", "LOVEABLE"],
+            ["MASTER", "MYSTIC", "NOBLE", "OBSERVE", "PEACE"],
+            ["PERSIST", "PLEASANT", "PROSPER", "REFLECT", "RELIABLE"],
+            ["REMARKABLE", "RESOURCEFUL", "RESTORE", "SHARE", "SIMPLIFY"],
+            ["SKILLED", "SOAR", "STRENGTH", "SUBLIME", "TRIUMPH"],
+            ["UNITY", "VISIONARY", "WEALTHY", "WISDOM", "YOUTHFUL"],
+            ["AMAZING", "BEAUTIFUL", "CREATING", "DILIGENCE", "BLOOM", "TRIX"],
+            ["EXPECTATION", "EXCITING", "FLEX", "ABILITY", "FREEDOM", "GLORY"],
+            ["HARMONIOUS", "HEROISM", "INSPIRATION", "MINDFUL", "ZIG", "TROPE"],
+            ["PERSIST", "ACE", "PROGRESSIVE", "TRULY", "VALUE", "ABLE", "VICTORY"],
+            ["STAR", "DUSK", "ZONKING"],
+            ["CRUMBLE", "WAX"]
     ]
 
 
@@ -138,25 +141,36 @@ class TestTextLookup:
 
         TestCls = TextLookup(**_kwargs)
 
-        a = f"d\nl\ne\nMAGNIFICENT\ny\nd\nl\nu\n2\nBLOOM\ny\nTRIX\n"
-        b = f"y\ny\na\nf\nBEAUTIFUL\ny\ne\nAMAZING\ny\nf\nGLORY\ny\n"
-        c = f"n\nf\nFLEXIBILTY\nn\nFLEXIBILITY\ny\ny\nn\nw\nn\nf\n"
-        d = f"PERSISTENCE\ny\nl\nl\ny\nl\nd\nd\nd\nc\ny\nl\nc\n"
+        a = f"d\nd\nl\nl\nw\nl\nd\nf\nGLORY\ny\nu\n2\nBLOOM\ny\nTRIX\n"
+        b = f"y\ny\na\nf\nBEAUTIFUL\ny\ne\nAMAZING\ny\nl\ne\n"
+        c = f"MAGNIFICENT\ny\nd\nl\nd\nc\n"
 
-        user_inputs = a + b + c + d
+        user_inputs = a + b + c
         with patch('sys.stdin', io.StringIO(user_inputs)):
             out = TestCls.transform(_X)
 
+        for r_idx in range(len(exp)):
+            assert np.array_equal(out[r_idx], exp[r_idx])
 
-        assert all(map(np.array_equal, out, exp))
+        nr_ = TestCls.n_rows_
+        assert isinstance(nr_, numbers.Integral)
+        assert nr_ == len(_X)
+        del nr_
 
+        rs_ = TestCls.row_support_
+        assert isinstance(rs_, np.ndarray)
+        print(list(map(type, rs_)))
+        assert all(map(isinstance, rs_, (np.bool for _ in rs_)))
+        assert len(rs_) == len(_X)
+        assert np.array_equal(rs_, [True] * len(_X))
+        del rs_
 
         assert np.array_equal(
             TestCls.LEXICON_ADDENDUM_,
             ['TRIX']
         )
 
-        assert TestCls.KNOWN_WORDS_[-1] == 'TRIX'
+        assert TestCls.KNOWN_WORDS_[0] == 'TRIX'
 
         assert np.array_equal(
             list(TestCls.SPLIT_ALWAYS_.keys()),
@@ -170,24 +184,65 @@ class TestTextLookup:
 
         assert np.array_equal(
             TestCls.DELETE_ALWAYS_,
-            ['QUACKTIVATE', 'JUMBLYWUMP', 'ZONKING',
-             'GLENSHWINK', 'TORTAGLOOM', 'SNORLUX']
+            ['TORTAGLOOM', 'SNORLUX', 'GLENSHWINK',
+            'JUMBLYWUMP', 'QUACKTIVATE']
         )
 
         assert np.array_equal(
             list(TestCls.REPLACE_ALWAYS_.keys()),
-            ['BEAUTIFULL', 'GLOURY', 'FLEXABILITY', 'PERSISTACE']
+            ['GLOURY', 'BEAUTIFULL']
         )
 
         assert np.array_equal(
             list(TestCls.REPLACE_ALWAYS_.values()),
-            ['BEAUTIFUL', 'GLORY', 'FLEXIBILITY', 'PERSISTENCE']
+            ['GLORY', 'BEAUTIFUL']
         )
 
         assert np.array_equal(
             TestCls.SKIP_ALWAYS_,
-            ['VALUEABLE']
+            ['ZONKING']
         )
+
+
+
+    def test_array_all_str_numbers(self, _kwargs):
+
+        _new_X = np.random.randint(0, 10, (15, ))
+        _new_X = np.array(list(map(str, _new_X)))
+        _new_X = _new_X.reshape((5, 3))
+
+        # skip_numbers = True
+        # this proves that TextLookup does recognize str(numbers) as
+        # numbers and 'skip_numbers' works
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['skip_numbers'] = True
+        TL = TextLookup(**_new_kwargs)
+        user_inputs = f"c\n"
+        with patch('sys.stdin', io.StringIO(user_inputs)):
+            out = TL.transform(_new_X)
+        # should not prompt, should just return original.
+        for r_idx in range(len(out)):
+            assert np.array_equal(out[r_idx], _new_X[r_idx])
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # skip_numbers = False
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['skip_numbers'] = False
+        _new_kwargs['update_lexicon'] = False
+        TL = TextLookup(**_new_kwargs)
+
+        # just ignore all of them. we are just trying to prove out that
+        # when not ignored, TextLookup sees them and prompts to handle
+        # because they are not in the formal pybear lexicon.
+        user_inputs = 15 * f"k\n" + f"c\n"
+        with patch('sys.stdin', io.StringIO(user_inputs)):
+            out = TL.transform(_new_X)
+
+
+
+
+
 
 
 

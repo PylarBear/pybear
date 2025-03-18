@@ -27,6 +27,7 @@ from ._permuter import permuter
 from ._print_inspect_stack import print_inspect_stack
 from ._scipy_sparse_preslice_handle import scipy_sparse_preslice_handle
 from ._serial_index_mapper import serial_index_mapper
+from ._view_text_snippet import view_text_snippet
 
 
 
@@ -62,7 +63,8 @@ __all__ = [
     "scipy_sparse_preslice_handle",
     "serial_index_mapper",
     "time_memory_benchmark",
-    "timer"
+    "timer",
+    "view_text_snippet"
 ]
 
 

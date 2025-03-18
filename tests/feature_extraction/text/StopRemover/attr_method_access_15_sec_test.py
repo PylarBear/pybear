@@ -10,6 +10,8 @@ import numbers
 
 import pytest
 
+import numpy as np
+
 from pybear.feature_extraction.text._StopRemover.StopRemover import \
     StopRemover as SR
 
@@ -50,7 +52,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
     @staticmethod
     @pytest.fixture
     def _attrs():
-        return ['n_rows_']
+        return ['n_rows_', 'row_support_']
 
 
     def test_attr_access(self, _X, _kwargs, _attrs):
@@ -87,6 +89,12 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             if attr == 'n_rows_':
                 assert isinstance(out, numbers.Integral)
                 assert out == 5
+            elif attr == 'row_support_':
+                assert isinstance(out, np.ndarray)
+                assert len(out) == len(_X)
+                assert all(map(isinstance, out, (np.bool for _ in out)))
+            else:
+                raise Exception
 
         # END AFTER TRANSFORM ******************************************
 

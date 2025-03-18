@@ -8,7 +8,7 @@
 
 from ._word_editor import _word_editor
 
-from .....utilities._view_text_snippet import _view_text_snippet
+from .....utilities._view_text_snippet import view_text_snippet
 from .....data_validation import validate_user_input as vui
 
 
@@ -57,7 +57,7 @@ def _manual_word_splitter(
         # ask user number of new words to make -- -- -- -- -- -- -- -- --
         _prompt = (
             f'Enter number of ways to split  *{_word}*  '
-            f'in  *{_view_text_snippet(_line, _word_idx, _span=7)}* > '
+            f'in  *{view_text_snippet(_line, _word_idx, _span=7)}* > '
         )
         new_word_ct = vui.validate_user_int(_prompt, min=1, max=100)
         del _prompt
@@ -69,7 +69,7 @@ def _manual_word_splitter(
             _prompt = (
                 f'Enter word for slot {slot_idx + 1} '
                 f'(of {new_word_ct}) replacing  *{_word}*  '
-                f'in  *{_view_text_snippet(_line, _word_idx)}*'
+                f'in  *{view_text_snippet(_line, _word_idx)}*'
             )
             _NEW_WORDS[slot_idx] = _word_editor(_line[_word_idx], _prompt=_prompt)
         del _prompt

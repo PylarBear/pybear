@@ -16,6 +16,7 @@ from ._auto_split import _val_auto_split
 from ._auto_add_to_lexicon import _val_auto_add_to_lexicon
 from ._auto_delete import _val_auto_delete
 from ._delete_always import _val_delete_always
+from ._remove_empty_rows import _val_remove_empty_rows
 from ._replace_always import _val_replace_always
 from ._skip_always import _val_skip_always
 from ._split_always import _val_split_always
@@ -36,6 +37,7 @@ def _validation(
     _REPLACE_ALWAYS:dict[str, str],
     _SKIP_ALWAYS: Sequence[str],
     _SPLIT_ALWAYS: dict[str, Sequence[str]],
+    _remove_empty_rows: bool,
     _verbose: bool
 ) -> None:
 
@@ -62,6 +64,7 @@ def _validation(
     _REPLACE_ALWAYS:dict[str, str]
     _SKIP_ALWAYS: Sequence[str]
     _SPLIT_ALWAYS: dict[str, Sequence[str]]
+    _remove_empty_rows: bool
     _verbose: bool
 
 
@@ -87,6 +90,8 @@ def _validation(
     _val_auto_delete(_auto_delete)
 
     _val_delete_always(_DELETE_ALWAYS)
+
+    _val_remove_empty_rows(_remove_empty_rows)
 
     _val_replace_always(_REPLACE_ALWAYS)
 

@@ -31,7 +31,7 @@ from ._methods._validation._lex_lookup_menu import _lex_lookup_menu_validation
 from .._Lexicon.Lexicon import Lexicon
 from .. import alphanumeric_str as ans
 
-from ....utilities._view_text_snippet import _view_text_snippet
+from ....utilities._view_text_snippet import view_text_snippet
 from ....data_validation import (
     validate_user_input as vui,
     arg_kwarg_validater
@@ -1014,7 +1014,7 @@ class TC:
                     if len(word) >= 4:
                         for split_idx in range(2,len(word)-1):
                             if word[:split_idx] in self.KNOWN_WORDS and word[split_idx:] in self.KNOWN_WORDS:
-                                print(_view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx))
+                                print(view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx))
                                 print(f"\n*{word}* IS NOT IN LEXICON\n")
                                 print(f'\n*** RECOMMEND "{word[:split_idx]}" AND "{word[split_idx:]}" ***\n')
                                 if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
@@ -1026,7 +1026,7 @@ class TC:
                     # elif len(word) < 4: DONT DO SPLIT TEST AND not_in_lexicon STAYS True
 
                     if not_in_lexicon:
-                        print(_view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx))
+                        print(view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx))
                         print(f"\n*{word}* IS NOT IN LEXICON\n")
                         _ = vui.validate_user_str(f"{MENU_DISPLAY} > ", menu_allowed)
 
@@ -1065,14 +1065,14 @@ class TC:
                     elif _ in 'SU':
                         while True:
                             new_word_ct = vui.validate_user_int(
-                                f'Enter number of ways to split  *{word.upper()}*  in  *{_view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx)}* > ', min=1, max=30)
+                                f'Enter number of ways to split  *{word.upper()}*  in  *{view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx)}* > ', min=1, max=30)
 
                             NEW_WORDS = np.empty(new_word_ct, dtype='<U30')
                             for slot_idx in range(new_word_ct):
                                 NEW_WORDS[slot_idx] = \
                                     self.word_editor(word.upper(),
                                         prompt=f'Enter word for slot {slot_idx + 1} (of {new_word_ct}) replacing  *{self.CLEANED_TEXT[row_idx][word_idx]}*  '
-                                            f'in  *{_view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx)}*'
+                                            f'in  *{view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx)}*'
                                     ).upper()
 
                             if vui.validate_user_str(f'User entered *{", ".join(NEW_WORDS)}* > accept? (y/n) > ', 'YN') == 'Y':

@@ -22,7 +22,7 @@ from ... import (
 )
 
 from .....utilities._get_module_name import get_module_name
-from .....utilities._view_text_snippet import _view_text_snippet
+from .....utilities._view_text_snippet import view_text_snippet
 from .....data_validation import (
     validate_user_input as vui,
     arg_kwarg_validater
@@ -734,7 +734,7 @@ class TextCleanerMixin:
 
         """
 
-        _view_text_snippet(VECTOR, idx, span=span)
+        view_text_snippet(VECTOR, idx, span=span)
 
 
     def lex_lookup(self, print_notes: bool = False):
