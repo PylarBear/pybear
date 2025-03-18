@@ -1,0 +1,80 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
+from typing import Callable
+from typing_extensions import Union
+from .._type_aliases import XContainer
+
+import numbers
+
+from .....base._check_2D_str_array import check_2D_str_array
+
+from ._match_callable import _val_match_callable
+
+from ._remove_empty_rows import _val_remove_empty_rows
+
+from ._n_jobs import _val_n_jobs
+
+
+
+def _validation(
+    _X: XContainer,
+    _match_callable: Union[Callable[[str, str], bool], None],
+    _remove_empty_rows: bool,
+    _n_jobs: Union[numbers.Integral, None]
+) -> None:
+
+    """
+    Centralized hub for validating parameters for StopRemover. The
+    brunt of validation is handled by the individual validation modules.
+    See the individual modules for more details.
+
+
+    Parameters
+    ----------
+    _X:
+        XContainer - the data from which to remove stop words.
+    _match_callable:
+        Union[Callable[[str, str], bool], None] - None to use the default
+        StopRemover matching criteria, or a custom callable that defines
+        what constitutes matches of words in the text against the stop
+        words.
+    _remove_empty_rows:
+        bool - whether to remove any empty rows that may be left after
+        the stop word removal process.
+    _n_jobs:
+        Optional[Union[numbers.Integral, None]], default = -1 - the
+        number of cores/threads to use when parallelizing the search for
+        stop words in the rows of X. The default is to use processes but
+        can be set by running StopRemover under a joblib parallel_config
+        context manager. -1 uses all available cores/threads. None uses
+        joblib's default number of cores/threads.
+
+
+    Returns
+    -------
+    -
+        None
+
+    """
+
+
+    check_2D_str_array(_X, require_all_finite=False)
+
+    _val_match_callable(_match_callable)
+
+    _val_remove_empty_rows(_remove_empty_rows)
+
+    _val_n_jobs(_n_jobs)
+
+
+
+
+
+
+
