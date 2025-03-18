@@ -34,6 +34,8 @@ class TestStopRemover:
         return {
             'match_callable': lambda x, y: x.upper() == y.upper(),
             'remove_empty_rows': True,
+            'exempt': ['DOWN'],
+            'supplemental': ['BOTH'],
             'n_jobs': 1
         }
 
@@ -97,9 +99,9 @@ class TestStopRemover:
 
         exp = [
             ['roads', 'diverged', 'yellow', 'wood'],
-            ['sorry', 'travel', 'both'],
+            ['sorry', 'travel'],
             ['traveler,', 'stood'],
-            ['looked'],
+            ['looked', 'down'],
             ['bent', 'undergrowth;']
         ]
 

@@ -6,7 +6,7 @@
 
 
 
-from typing import Callable
+from typing import Callable, Sequence
 from typing_extensions import Union
 from .._type_aliases import XContainer
 
@@ -18,6 +18,10 @@ from ._match_callable import _val_match_callable
 
 from ._remove_empty_rows import _val_remove_empty_rows
 
+from ._exempt import _val_exempt
+
+from ._supplemental import _val_supplemental
+
 from ._n_jobs import _val_n_jobs
 
 
@@ -26,6 +30,8 @@ def _validation(
     _X: XContainer,
     _match_callable: Union[Callable[[str, str], bool], None],
     _remove_empty_rows: bool,
+    _exempt: Union[Sequence[str], None],
+    _supplemental: Union[Sequence[str], None],
     _n_jobs: Union[numbers.Integral, None]
 ) -> None:
 
@@ -47,6 +53,13 @@ def _validation(
     _remove_empty_rows:
         bool - whether to remove any empty rows that may be left after
         the stop word removal process.
+    _exempt:
+        Optional[Union[list[str], None]] - stop words that are exempted
+        from the search. text that matches these words will not be
+        removed.
+    _supplemental:
+        Optional[Union[list[str], None]] - words to be removed in
+        addition to the stop words.
     _n_jobs:
         Optional[Union[numbers.Integral, None]], default = -1 - the
         number of cores/threads to use when parallelizing the search for
@@ -69,6 +82,10 @@ def _validation(
     _val_match_callable(_match_callable)
 
     _val_remove_empty_rows(_remove_empty_rows)
+
+    _val_exempt(_exempt)
+
+    _val_supplemental(_supplemental)
 
     _val_n_jobs(_n_jobs)
 

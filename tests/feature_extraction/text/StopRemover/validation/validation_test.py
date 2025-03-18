@@ -27,9 +27,12 @@ class TestValidation:
     @pytest.mark.parametrize('_dtype', ('str', 'num'))
     @pytest.mark.parametrize('_match_callable', (lambda x,y: f"{x}{y}", None, 'abc'))
     @pytest.mark.parametrize('_delete_empty_rows', (True, False, 'abc'))
+    @pytest.mark.parametrize('_exempt', (list('abc'), None))
+    @pytest.mark.parametrize('_supplemental', (list('abc'), None))
     @pytest.mark.parametrize('_n_jobs', (1, None))
     def test_accuracy(
-        self, _dim, _container, _dtype, _match_callable, _delete_empty_rows, _n_jobs
+        self, _dim, _container, _dtype, _match_callable, _delete_empty_rows,
+        _exempt, _supplemental, _n_jobs
     ):
 
         if _dtype == 'str':
@@ -83,9 +86,23 @@ class TestValidation:
 
         if _will_raise:
             with pytest.raises(Exception):
-                _validation(_X, _match_callable, _delete_empty_rows, _n_jobs)
+                _validation(
+                    _X,
+                    _match_callable,
+                    _delete_empty_rows,
+                    _exempt,
+                    _supplemental,
+                    _n_jobs
+                )
         else:
-            out = _validation(_X, _match_callable, _delete_empty_rows, _n_jobs)
+            out = _validation(
+                    _X,
+                    _match_callable,
+                    _delete_empty_rows,
+                    _exempt,
+                    _supplemental,
+                    _n_jobs
+                )
             assert out is None
 
 
