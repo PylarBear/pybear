@@ -7,7 +7,7 @@
 
 
 from typing import Optional, Sequence
-from typing_extensions import Self, TypeAlias, Union
+from typing_extensions import Self, Union
 import numpy.typing as npt
 
 from copy import deepcopy
@@ -23,6 +23,11 @@ from ._transform._auto_word_splitter import _auto_word_splitter
 from ._transform._manual_word_splitter import _manual_word_splitter
 from ._transform._quasi_auto_word_splitter import _quasi_auto_word_splitter
 from ._transform._word_editor import _word_editor
+
+from ._type_aliases import (
+    XContainer,
+    WipXContainer
+)
 
 from .._Lexicon.Lexicon import Lexicon
 
@@ -41,21 +46,6 @@ from ....base import (
     SetParamsMixin,
     check_is_fitted
 )
-
-
-PythonTypes: TypeAlias = Sequence[Sequence[str]]
-
-NumpyTypes: TypeAlias = npt.NDArray[str]
-
-PandasTypes: TypeAlias = pd.DataFrame
-
-PolarsTypes: TypeAlias = pl.DataFrame
-
-XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
-
-WipXContainer: TypeAlias = list[list[str]]
-
-RowSupportType: TypeAlias = npt.NDArray[bool]
 
 
 
