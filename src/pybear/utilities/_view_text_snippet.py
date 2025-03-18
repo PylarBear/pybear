@@ -15,7 +15,7 @@ from ..base._check_1D_str_sequence import check_1D_str_sequence
 
 
 
-def _view_text_snippet(
+def view_text_snippet(
     _VECTOR: Sequence[str],
     _idx: numbers.Integral,
     _span: numbers.Integral = 9
