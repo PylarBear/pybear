@@ -89,7 +89,8 @@ class StopRemover(
     shows which rows in the data were kept (True). The only way an entry
     in this vector could become False is if the 'remove_empty_rows'
     parameter is True and a row became empty during the stop word
-    removal process.
+    removal process. row_support_ only reflects the last dataset passed
+    to transform.
 
     SR is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
@@ -161,7 +162,8 @@ class StopRemover(
         vector indicating which rows have been kept (True) after the
         stop word removal process. Entries in this vector could only
         become False if :param: 'remove_empty_rows' is True and one or
-        more rows became empty during the transform process.
+        more rows became empty during the transform process. row_support_
+        only reflects the last dataset passed to transform.
 
 
     Notes
@@ -370,7 +372,8 @@ class StopRemover(
         vector that indicates which rows in the original X were kept
         during transform (True); entries could only become False if
         parameter 'remove_empty_rows' is True and at least one row
-        became empty during the stop word removal process.
+        became empty during the stop word removal process. row_support_
+        only reflects the last dataset passed to transform.
 
 
         Parameters
