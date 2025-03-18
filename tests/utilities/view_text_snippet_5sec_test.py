@@ -10,8 +10,7 @@ import pytest
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextCleaner._TextCleanerMixin._view_snippet. \
-    _view_snippet import _view_snippet
+from pybear.utilities._view_text_snippet import _view_text_snippet
 
 
 
@@ -27,7 +26,7 @@ class TestViewSnippet:
     def test_rejects_junk_vector(self, junk_vector):
 
         with pytest.raises(TypeError):
-            _view_snippet(junk_vector, 0)
+            _view_text_snippet(junk_vector, 0)
 
 
     @pytest.mark.parametrize('junk_idx',
@@ -37,14 +36,14 @@ class TestViewSnippet:
     def test_rejects_junk_idx(self, junk_idx):
 
         with pytest.raises(TypeError):
-            _view_snippet(list('abcde'), junk_idx)
+            _view_text_snippet(list('abcde'), junk_idx)
 
 
     @pytest.mark.parametrize('bad_idx', (-1, 10, 250000))
     def test_rejects_bad_idx(self, bad_idx):
 
         with pytest.raises(ValueError):
-            _view_snippet(list('abcde'), bad_idx)
+            _view_text_snippet(list('abcde'), bad_idx)
 
 
     @pytest.mark.parametrize('junk_span',
@@ -54,14 +53,14 @@ class TestViewSnippet:
     def test_rejects_junk_span(self, junk_span):
 
         with pytest.raises(TypeError):
-            _view_snippet(list('abcde'), 0, span=junk_span)
+            _view_text_snippet(list('abcde'), 0, _span=junk_span)
 
 
     @pytest.mark.parametrize('bad_span', (-1, 0, 1, 2))
     def test_rejects_bad_span(self, bad_span):
 
         with pytest.raises(ValueError):
-            _view_snippet(list('abcde'), 0, span=bad_span)
+            _view_text_snippet(list('abcde'), 0, _span=bad_span)
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -81,10 +80,10 @@ class TestViewSnippet:
             VECTOR = list(map(str.upper, VECTOR))
 
 
-        out = _view_snippet(
+        out = _view_text_snippet(
             VECTOR,
-            idx = idx,
-            span = span
+            _idx = idx,
+            _span = span
         )
 
 

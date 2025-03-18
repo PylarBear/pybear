@@ -15,19 +15,18 @@ import numpy as np
 import pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
 
-from .....utilities._get_module_name import get_module_name
-from ..._Lexicon.Lexicon import Lexicon as lx
-from .....data_validation import (
-    validate_user_input as vui,
-    arg_kwarg_validater
-)
+from ..._Lexicon.Lexicon import Lexicon
 from ... import (
     alphanumeric_str as ans,
     _statistics as stats
 )
-from ..._Lexicon.Lexicon import Lexicon
 
-from ._view_snippet._view_snippet import _view_snippet
+from .....utilities._get_module_name import get_module_name
+from .....utilities._view_text_snippet import _view_text_snippet
+from .....data_validation import (
+    validate_user_input as vui,
+    arg_kwarg_validater
+)
 
 
 
@@ -59,7 +58,7 @@ from ._view_snippet._view_snippet import _view_snippet
 # lex_lookup_menu           Dynamic function for returning variable menu prompts and allowed commands.
 # word_editor               Validation function for single words entered by user.
 # lex_lookup_add            Append a word to the LEXICON_ADDENDUM object.
-# view_snippet              Highlights the word of interest in a series of words.
+# view_text_snippet         Highlights the word of interest in a series of words.
 # lex_lookup                Scan entire CLEANED_TEXT object and prompt for handling of words not in LEXICON.  <<<<<
 # display_lexicon_update    Prints and returns LEXICON_ADDENDUM object for copy and paste into LEXICON.
 # END STUFF FOR LEXICON LOOKUP #####################################################################################
@@ -735,7 +734,7 @@ class TextCleanerMixin:
 
         """
 
-        _view_snippet(VECTOR, idx, span=span)
+        _view_text_snippet(VECTOR, idx, span=span)
 
 
     def lex_lookup(self, print_notes: bool = False):
@@ -785,7 +784,7 @@ class TextCleanerMixin:
         elif not self.update_lexicon:
             MENU_DISPLAY, menu_allowed = self.lex_lookup_menu(allowed='desk', fxn=fxn)
 
-        self.KNOWN_WORDS = lx().LEXICON.copy()
+        self.KNOWN_WORDS = self._lexicon.lexicon_.copy()
         WORDS_TO_DELETE = np.empty(0, dtype='<U30')
         SKIP_ALWAYS = np.empty(0, dtype='<U30')
         # PIZZA 2/12/23 FOR NOW, CONVERT COMMON (LOW) NUMBERS TO STRS
@@ -890,7 +889,7 @@ class TextCleanerMixin:
                     if len(word) >= 4:
                         for split_idx in range(2, len(word) - 1):
                             if word[:split_idx] in self.KNOWN_WORDS and word[split_idx:] in self.KNOWN_WORDS:
-                                print(self.view_snippet(self.CLEANED_TEXT[row_idx], word_idx))
+                                print(self._view_snippet(self.CLEANED_TEXT[row_idx], word_idx))
                                 print(f"\n*{word}* IS NOT IN LEXICON\n")
                                 print(f'\n*** RECOMMEND "{word[:split_idx]}" AND "{word[split_idx:]}" ***\n')
                                 if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
@@ -902,7 +901,7 @@ class TextCleanerMixin:
                     # elif len(word) < 4: DONT DO SPLIT TEST AND not_in_lexicon STAYS True
 
                     if not_in_lexicon:
-                        print(self.view_snippet(self.CLEANED_TEXT[row_idx], word_idx))
+                        print(self._view_snippet(self.CLEANED_TEXT[row_idx], word_idx))
                         print(f"\n*{word}* IS NOT IN LEXICON\n")
                         _ = vui.validate_user_str(f"{MENU_DISPLAY} > ", menu_allowed)
 
@@ -941,7 +940,7 @@ class TextCleanerMixin:
                     elif _ in 'SU':
                         while True:
                             new_word_ct = vui.validate_user_int(
-                                f'Enter number of ways to split  *{word.upper()}*  in  *{self.view_snippet(self.CLEANED_TEXT[row_idx], word_idx)}* > ',
+                                f'Enter number of ways to split  *{word.upper()}*  in  *{self._view_snippet(self.CLEANED_TEXT[row_idx], word_idx)}* > ',
                                 min=1, max=30)
 
                             NEW_WORDS = np.empty(new_word_ct, dtype='<U30')
@@ -949,7 +948,7 @@ class TextCleanerMixin:
                                 NEW_WORDS[slot_idx] = \
                                     self.word_editor(word.upper(),
                                                      prompt=f'Enter word for slot {slot_idx + 1} (of {new_word_ct}) replacing  *{self.CLEANED_TEXT[row_idx][word_idx]}*  '
-                                                            f'in  *{self.view_snippet(self.CLEANED_TEXT[row_idx], word_idx)}*'
+                                                            f'in  *{self._view_snippet(self.CLEANED_TEXT[row_idx], word_idx)}*'
                                                      ).upper()
 
                             if vui.validate_user_str(f'User entered *{", ".join(NEW_WORDS)}* > accept? (y/n) > ',

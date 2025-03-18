@@ -11,7 +11,7 @@ import numpy.typing as npt
 
 import numpy as np
 
-from .._validation._2D_str_array import _val_2D_str_array
+from .....base._check_2D_str_array import check_2D_str_array
 
 from ..._TextStatistics.TextStatistics import TextStatistics as TS
 
@@ -49,7 +49,7 @@ def _return_overall_uniques(
     """
 
 
-    _val_2D_str_array(_X_as_list_of_lists)
+    check_2D_str_array(_X_as_list_of_lists)
 
     if not isinstance(_return_counts, bool):
         raise TypeError(f"'return_counts' must be boolean")
