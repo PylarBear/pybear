@@ -75,8 +75,8 @@ class StopRemover(
 
     The default text comparer in SR does a case-insensitive, exact
     character-to-character match of each token in the text body against
-    the stop words, and removes a word from the text when it matches a
-    stop word. If you want to override the default SR case-insensitive
+    the stop words, and removes a word from the text when there is a
+    match. If you want to override the default SR case-insensitive
     behavior, pass a new callable to the 'match_callable' parameter. The
     callable can take anything that you can put into a callable, as long
     as the signature is [str, str] and returns a boolean. If you would
@@ -117,22 +117,32 @@ class StopRemover(
         Optional[Union[Callable[[str, str], bool], None]], default=None -
         None to use the default StopRemover matching criteria, or a
         custom callable that defines what constitutes matches of words
-        in the text against the stop words. In pre-run validation,
-        StopRemover only checks that 'match_callable' is None or a
-        callable, no validation is done on the callable. It is a heavy
-        burden to validate that the user-defined callable takes 2 string
-        inputs and returns 1 boolean output at every call over a search
-        of the entire text body, so StopRemover does not validate any of
-        it. SR could break in unpredictable ways, or, perhaps worse,
-        SR may not break and successfully complete the search operation
-        and yield nonsensical results. It is up to the user to ensure
-        that the output of their callable is a boolean. Note
-        that StopRemover works on the data in-situ as python lists,
-        which will gladly receive without protest any type object that
-        your callable wants to put into them.
+        in the text against the stop words. In pre-run validation, SR
+        only checks that 'match_callable' is None or a callable, no
+        validation is done on the callable. It is a heavy burden to
+        validate the user-defined callable at every call over a search
+        of the entire text body for every stop word, so SR does not
+        validate any of it. If the user-defined callable is ill-formed,
+        SR could break in unpredictable ways, or, perhaps worse, SR may
+        not break and successfully complete the search operation and
+        yield nonsensical results. It is up to the user to validate the
+        accuracy of their callable and ensure that the output is a
+        boolean.
     remove_empty_rows:
         Optional[bool], default=True - whether to remove any rows that
         are left empty by the stop word removal process.
+    exempt:
+        Optional[Union[list[str], None]], default=None - stop words that
+        are exempted from the search. Text that matches these words will
+        not be removed. Ensure that the capitalization of the word(s)
+        that you enter exactly matches that of the word(s) in the
+        Lexicon. Always enter words in majuscule if working with the
+        default pybear Lexicon.
+    supplemental:
+        Optional[Union[list[str], None]], default=None - words to be
+        removed in addition to the stop words. If you intend to do a
+        case-sensitive search then the capitalization of these words
+        matters.
     n_jobs:
         Optional[Union[numbers.Integral, None]], default = -1 - the
         number of cores/threads to use when parallelizing the search for
@@ -145,16 +155,13 @@ class StopRemover(
     Attributes
     ----------
     n_rows_:
-        int - the number of rows in the data seen during transform. The
-        number of rows in the returned X must equal the number of rows
-        in the given X.
+        int - the number of rows in the data passed to transform.
     row_support_:
         NDArray[bool] of shape (n_original_rows, ) - a 1D boolean numpy
         vector indicating which rows have been kept (True) after the
         stop word removal process. Entries in this vector could only
         become False if :param: 'remove_empty_rows' is True and one or
-        more rows became empty and were removed during the transform
-        process.
+        more rows became empty during the transform process.
 
 
     Notes
@@ -203,15 +210,22 @@ class StopRemover(
         self,
         match_callable: Optional[Union[Callable[[str, str], bool], None]] = None,
         remove_empty_rows: Optional[bool] = True,
+        exempt: Optional[Union[list[str], None]] = None,
+        supplemental: Optional[Union[list[str], None]] = None,
         n_jobs: Optional[Union[numbers.Integral, None]] = -1
     ) -> None:
         """Initialize the StopRemover instance."""
 
         self.match_callable = match_callable
         self.remove_empty_rows = remove_empty_rows
+        self.exempt = exempt
+        self.supplemental = supplemental
         self.n_jobs = n_jobs
 
         self._stop_words = Lexicon().stop_words_
+        self._stop_words = set(self._stop_words) - set(self.exempt or [])
+        self._stop_words = set(self._stop_words).union(self.supplemental or [])
+        self._stop_words = list(self._stop_words)
 
 
     def __pybear_is_fitted__(self):
@@ -378,7 +392,14 @@ class StopRemover(
         """
 
 
-        _validation(X, self.match_callable, self.remove_empty_rows, self.n_jobs)
+        _validation(
+            X,
+            self.match_callable,
+            self.remove_empty_rows,
+            self.exempt,
+            self.supplemental,
+            self.n_jobs
+        )
 
         if copy:
             _X = copy_X(X)
