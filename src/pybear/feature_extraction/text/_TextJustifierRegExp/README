@@ -1,0 +1,8 @@
+DO NOT TRY TO COMBINE SHARED FROM TextJustifier AND TextJustifierRE
+THEY ONLY HAVE 4 FILES IN COMMON
+_backfill_sep
+_join_2D
+_n_chars
+_type_aliases
+
+
