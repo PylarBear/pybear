@@ -84,6 +84,7 @@ class TextRemover(
     indicates the row was kept and False indicates the row was removed.
     This mask can be applied to a target for the data (if any) so that
     the rows in the target match the rows in the data after transform.
+    row_support_ only reflects the last dataset passed to transform.
 
 
     Parameters

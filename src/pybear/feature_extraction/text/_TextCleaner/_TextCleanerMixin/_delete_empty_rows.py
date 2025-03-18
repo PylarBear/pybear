@@ -6,13 +6,18 @@
 
 
 
+from typing import Sequence
+from typing_extensions import TypeAlias, Union
+
 import numpy as np
 
-from ......base._check_1D_str_sequence import check_1D_str_sequence
-from ......base._check_2D_str_array import check_2D_str_array
+from .....base._check_1D_str_sequence import check_1D_str_sequence
+from .....base._check_2D_str_array import check_2D_str_array
 
-from ..._type_aliases import XContainer
+XContainer: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
 
+
+# pizza this needs test!
 
 
 def _delete_empty_rows(
@@ -43,6 +48,8 @@ def _delete_empty_rows(
     # only list[str], list[list[str]], NDArray[str] be passed, given
     # all the various slicing that would have to be wrote out.
 
+    # PIZZA ALSO SOMETIME WHEN U HAVE TIME CONVERT THIS TO REGEX
+    # .*[A-Za-z0-9].*
 
     _is_list_of_lists = False
     try:

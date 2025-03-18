@@ -63,6 +63,13 @@ class TextLookupRealTime(
     TO ALLOW ENTRY TO MANUAL MODE, BOTH auto_add_to_lexicon AND auto_delete
     MUST BE False.
 
+    row_support_ only reflects the last dataset passed to transform.
+
+    lexicon_update does not directly update the Lexicon with the words
+    in LEXICON_ADDENDUM (though it could via Lexicon's add_words method.)
+    This is a deliberate design choice to stage the words where they
+    could be manually directed into Lexicon.add_words().
+
 
     TL accepts 2D data formats. Accepted objects include python built-in
     lists and tuples, numpy arrays, pandas dataframes, and polars
@@ -91,7 +98,8 @@ class TextLookupRealTime(
     Parameters
     ----------
     update_lexicon:
-        Optional[bool], default=False -
+        Optional[bool], default=False - whether to store words that are
+        not in the pybear Lexicon for later entry.
     auto_add_to_lexicon:
         Optional[bool], default=False - AUTOMATICALLY ADDS AN UNKNOWN
         WORD TO LEXICON_UPDATE # W/O PROMPTING USER (JUST GOES ALL THE
@@ -109,6 +117,10 @@ class TextLookupRealTime(
         Optional[Union[Sequence[str], None]], default=None -
     SPLIT_ALWAYS:
         Optional[Union[dict[str, Sequence[str]], None]], default=None -
+    remove_empty_rows:
+        Optional[bool], default=False - whether to remove any rows that
+        mag have been made empty during the lookup/replace/delete
+        process.
     verbose:
         Optional[bool], default=False - display helpful information
 
@@ -116,9 +128,11 @@ class TextLookupRealTime(
     Attributes
     ----------
     n_rows_:
-        int -
+        int - the number of rows in the last dataset passed to transform.
     row_support_:
-        npt.NDArray[bool] -
+        npt.NDArray[bool] - A 1D boolean vector of shape (n_rows, ) that
+        indicates which rows have been kept in the data. Only reflects
+        the last dataset passed to transform.
     LEXICON_ADDENDUM_:
         list[str] -
     KNOWN_WORDS_:
@@ -211,7 +225,7 @@ class TextLookupRealTime(
             disp_width=75,
             fixed_col_width=25
         )
-    # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     def __pybear_is_fitted__(self):
@@ -455,7 +469,8 @@ class TextLookupRealTime(
                 # when prompted to put a word into the lexicon, user can
                 # say 'skip always', the word goes into that list, and the
                 # user is not prompted again
-                if _new_word in self.KNOWN_WORDS_ or _new_word in self.SKIP_ALWAYS_:
+                if _new_word in self.KNOWN_WORDS_ \
+                        or _new_word in self.SKIP_ALWAYS_:
                     continue
 
                 # if new word is not KNOWN or not skipped...
@@ -640,7 +655,7 @@ class TextLookupRealTime(
 
                 _word = _X[_row_idx][_word_idx]
 
-                # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+                # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
                 # short-circuit for things already known or learned in-situ
                 if _word in self.SKIP_ALWAYS_:
                     # this may have had words in it from the user at init
@@ -697,11 +712,12 @@ class TextLookupRealTime(
                     if self.verbose:
                         print(f'\n*** *{_word}* IS ALREADY IN LEXICON ***\n')
                     continue
-                # END short-circuit for things already known or learned in-situ
-                # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+                # END short-circuit for already known or learned in-situ
+                # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-                # short-circuit for auto-split -- -- -- -- -- -- -- -- --
-                # last ditch before auto-add & auto-delete, try to save the word
+                # short-circuit for auto-split -- -- -- -- -- -- -- --
+                # last ditch before auto-add & auto-delete, try to save
+                # the word
                 # LOOK IF word IS 2 KNOWN WORDS MOOSHED TOGETHER
                 # LOOK FOR FIRST VALID SPLIT IF len(word) >= 4
                 if self.auto_split and len(_word) >= 4:
@@ -710,23 +726,26 @@ class TextLookupRealTime(
                     )
                     if any(_NEW_LINE):
                         _X[_row_idx] = _NEW_LINE
-                        # since auto_word_splitter requires that both halves
-                        # already be in the Lexicon, just continue to next word
+                        # since auto_word_splitter requires that both
+                        # halves already be in the Lexicon, just continue
+                        # to next word
                         del _NEW_LINE
                         continue
-                    # else: if _NEW_LINE is empty, there wasnt a valid split,
-                    # just pass, if auto_delete is True, that will delete this
-                    # word and go to the next word. if auto_delete is False, it
-                    # will also pass thru quasi_auto_splitter, then the user
-                    # will have to deal with it manually.
+                    # else: if _NEW_LINE is empty, there wasnt a valid
+                    # split, just pass, if auto_delete is True, that will
+                    # delete this word and go to the next word. if
+                    # auto_delete is False, it will also pass thru
+                    # quasi_auto_splitter, then the user will have to
+                    # deal with it manually.
                     del _NEW_LINE
-                # END short-circuit for auto-split -- -- -- -- -- -- -- --
+                # END short-circuit for auto-split -- -- -- -- -- -- --
 
-                # short-circuit for auto-add -- -- -- -- -- -- -- -- -- --
+                # short-circuit for auto-add -- -- -- -- -- -- -- -- --
                 # ANYTHING that is in X that is not in Lexicon gets added
                 # and stays in X.
                 if self.auto_add_to_lexicon:
-                    # auto_add_to_lexicon can only be True if update_lexicon=True
+                    # auto_add_to_lexicon can only be True if
+                    # update_lexicon=True
                     if self.verbose:
                         print(f'\n*** AUTO-ADD *{_word}* TO LEXICON ADDENDUM ***\n')
                     self.LEXICON_ADDENDUM_.append(_word)
@@ -745,32 +764,34 @@ class TextLookupRealTime(
 
 
                 # v v v MANUAL MODE v v v v v v v v v v v v v v v v v v
-                # word is not in KNOWN_WORDS or any repetitive operation holders
+                # word is not in KNOWN_WORDS or any repetitive operation
+                # holders
 
                 # a manual edit is guaranteed to happen after this point
                 _n_edits += 1
 
-                # quasi-automate split recommendation -- -- -- -- -- -- --
-                # if we had auto_split=True and we get to here, its because
-                # there were no valid splits and just passed thru, so the word
-                # will also pass thru here. if auto_split was False and we get
-                # to here, we are about to enter manual mode. the user is forced
-                # into this as a convenience to partially automate the process
-                # of finding splits as opposed to having to manually type 2-way
-                # splits over and over.
+                # quasi-automate split recommendation -- -- -- -- -- --
+                # if we had auto_split=True and we get to here, its
+                # because there were no valid splits and just passed
+                # thru, so the word will also pass thru here. if
+                # auto_split was False and we get to here, we are about
+                # to enter manual mode. the user is forced into this as
+                # a convenience to partially automate the process of
+                # finding splits as opposed to having to manually type
+                # 2-way splits over and over.
 
                 if len(_word) >= 4:
                     _NEW_LINE = _quasi_auto_word_splitter(
                         _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
                     )
-                    # if the user did not opt to take any of splits (or if
-                    # there werent any), then _NEW_LINE is empty, and the user
-                    # is forced into the manual menu.
+                    # if the user did not opt to take any of splits (or
+                    # if there werent any), then _NEW_LINE is empty, and
+                    # the user is forced into the manual menu.
                     if any(_NEW_LINE):
                         _X[_row_idx] = _NEW_LINE
-                        # since quasi_auto_word_splitter requires that both
-                        # halves already be in the Lexicon, just continue to
-                        # the next word
+                        # since quasi_auto_word_splitter requires that
+                        # both halves already be in the Lexicon, just
+                        # continue to the next word
                         del _NEW_LINE
                         continue
 
@@ -783,8 +804,8 @@ class TextLookupRealTime(
 
                 # manual menu actions -- -- -- -- -- -- -- -- -- -- -- --
                 if _opt == 'a':    # 'a': 'Add to Lexicon'
-                    # this menu option is not available in LexLookupMenu if
-                    # 'update_lexicon' is False
+                    # this menu option is not available in LexLookupMenu
+                    # if 'update_lexicon' is False
                     self.LEXICON_ADDENDUM_.append(_word)
                     self.KNOWN_WORDS_.insert(0, _word)
                     if self.verbose:
@@ -832,11 +853,12 @@ class TextLookupRealTime(
                     # a no-op
                     pass
                 elif _opt in 'su':   # 's': 'Split once', 'u': 'Split always'
-                    # this split is different than auto and quasi... those split
-                    # on both halves of the original word being in Lexicon, but
-                    # here the user might pass something new, so this needs to
-                    # run thru _split_or_replace_handler in case update_lexicon
-                    # is True and the new words arent in the Lexicon
+                    # this split is different than auto and quasi... those
+                    # split on both halves of the original word being in
+                    # Lexicon, but here the user might pass something new,
+                    # so this needs to run thru _split_or_replace_handler
+                    # in case update_lexicon is True and the new words
+                    # arent in the Lexicon
                     _NEW_WORDS = _manual_word_splitter(
                         _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
                     )   # cannot be empty
@@ -864,7 +886,7 @@ class TextLookupRealTime(
                     break
                 else:
                     raise Exception
-                # END manual menu actions -- -- -- -- -- -- -- -- -- -- -- --
+                # END manual menu actions -- -- -- -- -- -- -- -- -- --
 
             if self.remove_empty_rows and len(_X[_row_idx]) == 0:
                 _X.pop(_row_idx)
