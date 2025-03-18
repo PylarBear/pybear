@@ -8,8 +8,8 @@
 
 import numpy as np
 
-from ..._shared._validation._1D_str_sequence import _val_1D_str_sequence
-from ..._shared._validation._2D_str_sequence import _val_2D_str_array
+from ......base._check_1D_str_sequence import check_1D_str_sequence
+from ......base._check_2D_str_array import check_2D_str_array
 
 from ..._type_aliases import XContainer
 
@@ -46,10 +46,10 @@ def _delete_empty_rows(
 
     _is_list_of_lists = False
     try:
-        _val_1D_str_sequence(X)
+        check_1D_str_sequence(X)
     except:
         try:
-            _val_2D_str_array(X)
+            check_2D_str_array(X)
             _is_list_of_lists = True
         except:
             raise TypeError(

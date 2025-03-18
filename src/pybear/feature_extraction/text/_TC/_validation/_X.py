@@ -8,7 +8,7 @@
 
 from typing import Sequence
 
-from ._1D_str_sequence import _val_1D_str_sequence
+from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 
@@ -32,7 +32,7 @@ def _val_X(_X: Sequence[str]) -> None:
     """
 
 
-    _val_1D_str_sequence(_X)
+    check_1D_str_sequence(_X)
 
 
     try:

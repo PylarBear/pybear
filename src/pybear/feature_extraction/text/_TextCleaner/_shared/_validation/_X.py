@@ -8,7 +8,7 @@
 
 from ..._type_aliases import XContainer
 
-from ._1D_str_sequence import _val_1D_str_sequence
+from ......base._check_1D_str_sequence import check_1D_str_sequence
 
 
 
@@ -34,7 +34,7 @@ def _val_X(
     """
 
 
-    _val_1D_str_sequence(X)
+    check_1D_str_sequence(X)
 
 
     # pizza this is from the original TextCleaner
