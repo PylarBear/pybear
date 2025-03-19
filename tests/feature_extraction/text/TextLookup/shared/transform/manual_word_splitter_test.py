@@ -19,14 +19,13 @@ from pybear.feature_extraction.text._TextLookup._shared._transform. \
 
 
 
-class TestAutoWordSplitter:
+class TestManualWordSplitter:
 
-    # _manual_word_splitter(
-    #     _word: str,
+    # def _manual_word_splitter(
     #     _word_idx: int,
     #     _line: list[str],
     #     _KNOWN_WORDS: list[str],
-    #     _verbose
+    #     _verbose: bool
     # ) -> list[str]:
 
 
@@ -110,11 +109,6 @@ class TestAutoWordSplitter:
         assert len(captured) > 0
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-
-
-
-
 
 
 

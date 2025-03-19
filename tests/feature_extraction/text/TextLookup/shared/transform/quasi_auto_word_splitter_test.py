@@ -19,14 +19,13 @@ from pybear.feature_extraction.text._TextLookup._shared._transform. \
 
 
 
-class TestAutoWordSplitter:
+class TestQuasiAutoWordSplitter:
 
     # def _quasi_auto_word_splitter(
-    #     _word: str,
     #     _word_idx: int,
     #     _line: list[str],
     #     _KNOWN_WORDS: list[str],
-    #     _verbose
+    #     _verbose: bool
     # ) -> list[str]:
 
 
@@ -65,10 +64,7 @@ class TestAutoWordSplitter:
 
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
-        assert np.array_equal(
-            out,
-            ['THE', 'WHEELS', 'ON', 'THE', 'BUS', 'GO', 'ROUND', 'AND', 'ROUND']
-        )
+        assert np.array_equal(out, ['WHEELS', 'ON'])
 
         captured = capsys.readouterr().out
 
@@ -109,10 +105,7 @@ class TestAutoWordSplitter:
 
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
-        assert np.array_equal(
-            out,
-            ['THE', 'WHEELS', 'ON', 'THE', 'BUS', 'GO', 'ROUND', 'AND', 'ROUND']
-        )
+        assert np.array_equal(out, ['WHEELS', 'ON'])
 
         captured = capsys.readouterr().out
 

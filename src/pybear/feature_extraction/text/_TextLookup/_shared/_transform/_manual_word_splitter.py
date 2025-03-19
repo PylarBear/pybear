@@ -71,7 +71,7 @@ def _manual_word_splitter(
                 f'(of {new_word_ct}) replacing  *{_word}*  '
                 f'in  *{view_text_snippet(_line, _word_idx)}*'
             )
-            _NEW_WORDS[slot_idx] = _word_editor(_line[_word_idx], _prompt=_prompt)
+            _NEW_WORDS[slot_idx] = _word_editor(_word, _prompt=_prompt)
         del _prompt
         # END ask user for the new words -- -- -- -- -- -- -- -- -- -- --
 
@@ -90,8 +90,6 @@ def _manual_word_splitter(
 
 
     return _NEW_WORDS
-
-
 
 
 

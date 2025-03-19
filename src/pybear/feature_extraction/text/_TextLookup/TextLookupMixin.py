@@ -8,33 +8,10 @@
 
 from typing import Optional, Sequence
 from typing_extensions import Self, Union
-import numpy.typing as npt
 
-from copy import deepcopy
 import numbers
 
-import numpy as np
-import pandas as pd
-import polars as pl
-
-from ._shared._validation._validation import _validation
-
-from ._shared._transform._auto_word_splitter import _auto_word_splitter
-from ._shared._transform._manual_word_splitter import _manual_word_splitter
-from ._shared._transform._quasi_auto_word_splitter import _quasi_auto_word_splitter
-from ._shared._transform._word_editor import _word_editor
-
-from ._shared._type_aliases import (
-    XContainer,
-    WipXContainer
-)
-
-from .._Lexicon.Lexicon import Lexicon
-
-from ....data_validation import validate_user_input as vui
-
-from ....utilities._view_text_snippet import view_text_snippet
-from ....base._copy_X import copy_X
+from ._shared._type_aliases import XContainer
 
 from ....utilities._DictMenuPrint import DictMenuPrint
 
@@ -49,7 +26,7 @@ from ....base import (
 
 
 
-class TextLookupRealTime(
+class TextLookupMixin(
     FileDumpMixin,
     FitTransformMixin,
     GetParamsMixin,
@@ -92,25 +69,12 @@ class TextLookupRealTime(
         self.remove_empty_rows = remove_empty_rows
         self.verbose = verbose
 
-
-        _LEX_LOOK_DICT = {
-            'a': 'Add to Lexicon',
-            'e': 'Replace once',
-            'f': 'Replace always',
-            'd': 'Delete once',
-            'l': 'Delete always',
-            's': 'Split once',
-            'u': 'Split always',
-            'k': 'Skip once',
-            'w': 'Skip always',
-            'q': 'Quit'
-        }
-
-        if not self.update_lexicon:
-            del _LEX_LOOK_DICT['a']
+        # needs to get self._LEX_LOOK_DICT from the child
+        if not self.update_lexicon and 'a' in self._LEX_LOOK_DICT:
+            del self._LEX_LOOK_DICT['a']
 
         self._LexLookupMenu = DictMenuPrint(
-            _LEX_LOOK_DICT,
+            self._LEX_LOOK_DICT,
             disp_width=75,
             fixed_col_width=25
         )
@@ -168,40 +132,6 @@ class TextLookupRealTime(
 
     # def fit_transform
     # handled by FitTransformMixin
-
-
-    def fit(
-        self,
-        X: XContainer,
-        y: Optional[Union[any, None]] = None
-    ) -> Self:
-
-        """
-        No-op one-shot fit method.
-
-
-        Parameters
-        ----------
-        X:
-            XContainer - the (possibly ragged) 2D container of text to
-            have its contents cross-referenced against the pybear
-            Lexicon. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
-
-        Return
-        ------
-        -
-            self: the TextLookup instance.
-
-
-        """
-
-        self.reset()
-
-        return self.partial_fit(X, y)
 
 
     def score(
@@ -324,6 +254,10 @@ class TextLookupRealTime(
                 # when prompted to put a word into the lexicon, user can
                 # say 'skip always', the word goes into that list, and the
                 # user is not prompted again
+                # conveniently for plain TextLookup, when in (partial_)fit and
+                # the user picks one of the 2 options 'a' or 'w', it causes
+                # the word to go in one of the lists which forces bypass
+                # here in transform and avoids the menu.
                 if _new_word in self.KNOWN_WORDS_ \
                         or _new_word in self.SKIP_ALWAYS_:
                     continue
@@ -335,12 +269,10 @@ class TextLookupRealTime(
                     continue
 
                 print(f"\n*** *{_NEW_WORDS[_slot_idx]}* IS NOT IN LEXICON ***\n")
-                _ = self._LexLookupMenu.choose('Select option', allowed='akw')
+                _ = self._LexLookupMenu.choose('Select option', allowed='aw')
                 if _ == 'a':
                     self.LEXICON_ADDENDUM_.append(_NEW_WORDS[_slot_idx])
                     self.KNOWN_WORDS_.insert(0, _NEW_WORDS[_slot_idx])
-                elif _ == 'k':
-                    pass
                 elif _ == 'w':
                     self.SKIP_ALWAYS_.append(_word)
                 else:

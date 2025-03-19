@@ -6,8 +6,6 @@
 
 
 
-from copy import deepcopy
-
 from ......utilities._view_text_snippet import view_text_snippet
 from ......data_validation import validate_user_input as vui
 
@@ -25,18 +23,20 @@ def _quasi_auto_word_splitter(
     erroneous compounding of two valid words that are in the Lexicon.
     Working from left to right in the word, starting after the second
     letter and stopping before the second-to-last letter, look for the
-    first valid split comprised of 2 halves each with 2 or more
+    first valid split comprised of 2 halves, each with 2 or more
     characters. Prompt the user if they want to keep the proposed split.
     If not, continue looking for and proposing valid splits until the
-    user accepts a split or all valid splits are exhausted.
+    user accepts a split or all valid splits are exhausted. If a split
+    is found and accepted, return the 2 words; otherwise return an empty
+    list.
 
 
     Parameters
     ----------
     _word_idx:
-        int - the index of the active word in its line.
+        int - the index of the current word in its line.
     _line:
-        list[str] - the full line that the active word is in.
+        list[str] - the full line that the current word is in.
     _KNOWN_WORDS:
         list[str] - All the words in the Lexicon and any words that have
         been put into LEXICON_ADDENDUM in the current session.
@@ -46,14 +46,10 @@ def _quasi_auto_word_splitter(
 
     Returns
     -------
-    _NEW_LINE:
+    _NEW_WORDS:
         list[str] - If a valid split is found and the user accepts the
-        split, a copy of _line is made, the old word is removed from the
-        copy, the word is split, and the two new words are inserted into
-        the copy starting at the position of the original word. In a
-        nutshell, if no split is found, an empty list is returned. If a
-        split is found, modify the line with the new words and return
-        the modified line.
+        split, the word is split and the two new words are returned. If
+        no split is found, an empty list is returned.
 
 
     """
@@ -61,7 +57,7 @@ def _quasi_auto_word_splitter(
 
     _word = _line[_word_idx]
 
-    _NEW_LINE = []
+    _NEW_WORDS = []
     for split_idx in range(2, len(_word) - 1):
         if _word[:split_idx] in _KNOWN_WORDS and _word[split_idx:] in _KNOWN_WORDS:
             print(view_text_snippet(_line, _word_idx, _span=9))
@@ -72,11 +68,8 @@ def _quasi_auto_word_splitter(
             # & recommending splits. if no more splits, return the empty _NEW_LINE.
             if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
 
-                _NEW_LINE = deepcopy(_line)
-                # insert backwards
-                _NEW_LINE.pop(_word_idx)
-                _NEW_LINE.insert(_word_idx, _word[split_idx:])
-                _NEW_LINE.insert(_word_idx, _word[:split_idx])
+                _NEW_WORDS.append(_word[:split_idx])
+                _NEW_WORDS.append(_word[split_idx:])
 
                 if _verbose:
                     print(
@@ -87,7 +80,7 @@ def _quasi_auto_word_splitter(
                 break
 
 
-    return _NEW_LINE
+    return _NEW_WORDS
 
 
 
