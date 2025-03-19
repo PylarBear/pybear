@@ -231,17 +231,18 @@ can be stacked in a scikit pipeline.
 These modules can be found in pybear.feature_extraction.text.
 The modules include:
  | Lexicon - A class object holding over 68,000 words in the English lexicon
- | NGramMerger - Join select adjacent tokens together to handle as a single token  
- | TextJoiner - Join tokenized text into a contiguous string with separators  
- | TextJustifier - Justify to a fixed margin; identify wrap points with literals  
- | TextJustifierRegExp - Same as TextJustifier, but uses regular expressions  
- | TextNormalizer - Normalize text to the same case  
- | TextPadder - Pad ragged text into shaped containers using fill  
- | TextRemover - Remove units of contiguous text  
- | TextReplacer - Remove substrings from contiguous text  
- | TextSplitter - Split contiguous text into tokens using literal strings or regex  
- | TextStatistics - Compile statistics about a body of text  
- | TextStripper - Remove extra spaces from text  
+ | NGramMerger - Join select adjacent tokens together to handle as a single token
+ | StopRemover - Remove pybear stop words from a body of text
+ | TextJoiner - Join tokenized text into a contiguous string with separators
+ | TextJustifier - Justify to a fixed margin; identify wrap points with literals
+ | TextJustifierRegExp - Same as TextJustifier, but uses regular expressions
+ | TextNormalizer - Normalize text to the same case
+ | TextPadder - Pad ragged text into shaped containers using fill
+ | TextRemover - Remove units of contiguous text
+ | TextReplacer - Remove substrings from contiguous text
+ | TextSplitter - Split contiguous text into tokens using literal strings or regex
+ | TextStatistics - Compile statistics about a body of text
+ | TextStripper - Remove extra spaces from text
 
 =======
 
