@@ -6,10 +6,6 @@
 
 
 
-from copy import deepcopy
-
-
-
 def _auto_word_splitter(
     _word_idx: int,
     _line: list[str],
@@ -22,16 +18,17 @@ def _auto_word_splitter(
     erroneous compounding of two valid words that are in the Lexicon.
     Working from left to right in the word, starting after the second
     letter and stopping before the second-to-last letter, look for the
-    first valid split comprised of 2 halves each with 2 or more
-    characters.
+    first valid split comprised of 2 halves, each with 2 or more
+    characters. If there is a match, return the words, otherwise return
+    an empty list.
 
 
     Parameters
     ----------
     _word_idx:
-        int - the index of '_word' in its line.
+        int - the index of the current word in its line.
     _line:
-        list[str] - the line that '_word' is in.
+        list[str] - the full line that the current word is in.
     _KNOWN_WORDS:
         list[str] - All the words in the Lexicon and any words that have
         been put into LEXICON_ADDENDUM in the current session.
@@ -41,13 +38,10 @@ def _auto_word_splitter(
 
     Returns
     -------
-    _NEW_LINE:
-        list[str] - If a valid split is found, a copy of _line is made,
-        the old word is removed from the copy, the word is split, and
-        the two new words are inserted into the copy starting at the
-        position of the original word. In a nutshell, if no split is
-        found, an empty list is returned. If a split is found, modify
-        the line with the new words and return the modified line.
+    _NEW_WORDS:
+        list[str] - If a valid split is found, the word is split and
+        the two new words are returned. If no split is found, this list
+        is empty.
 
     """
 
@@ -56,15 +50,13 @@ def _auto_word_splitter(
 
     # LOOK IF word IS 2 KNOWN WORDS MOOSHED TOGETHER
 
-    _NEW_LINE = []
+    _NEW_WORDS = []
     for split_idx in range(2, len(_word) - 1):
         if _word[:split_idx] in _KNOWN_WORDS \
                 and _word[split_idx:] in _KNOWN_WORDS:
-            _NEW_LINE = deepcopy(_line)
-            _NEW_LINE.pop(_word_idx)
-            # insert backwards
-            _NEW_LINE.insert(_word_idx, _word[split_idx:])
-            _NEW_LINE.insert(_word_idx, _word[:split_idx])
+
+            _NEW_WORDS.append(_word[:split_idx])
+            _NEW_WORDS.append(_word[split_idx:])
 
             if _verbose:
                 print(
@@ -74,7 +66,7 @@ def _auto_word_splitter(
             break
 
 
-    return _NEW_LINE
+    return _NEW_WORDS
 
 
 

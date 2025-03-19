@@ -236,6 +236,8 @@ The modules include:
  | TextJoiner - Join tokenized text into a contiguous string with separators
  | TextJustifier - Justify to a fixed margin; identify wrap points with literals
  | TextJustifierRegExp - Same as TextJustifier, but uses regular expressions
+ | TextLookup - Compare words in a body of text against pybear Lexicon and fix
+ | TextLookupRealTime - Same as TextLookup but with in-situ save capability
  | TextNormalizer - Normalize text to the same case
  | TextPadder - Pad ragged text into shaped containers using fill
  | TextRemover - Remove units of contiguous text
