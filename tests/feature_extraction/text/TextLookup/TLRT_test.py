@@ -15,8 +15,8 @@ from copy import deepcopy
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextLookup._TextLookupRealTime. \
-    TextLookupRealTime import TextLookupRealTime as TLRT
+from pybear.feature_extraction.text._TextLookup.TextLookupRealTime import \
+    TextLookupRealTime as TLRT
 
 
 

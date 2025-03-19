@@ -11,8 +11,8 @@ import numbers
 import pytest
 import numpy as np
 
-from pybear.feature_extraction.text._TextLookup._TextLookupRealTime. \
-    TextLookupRealTime import TextLookupRealTime as TJRT
+from pybear.feature_extraction.text._TextLookup.TextLookupRealTime import \
+    TextLookupRealTime as TJRT
 
 
 
