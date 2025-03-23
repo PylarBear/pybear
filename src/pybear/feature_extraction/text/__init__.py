@@ -12,6 +12,8 @@ from ._TextCleaner._TextCleaner.TextCleaner import TextCleaner  # pizza undersco
 from ._TextJoiner.TextJoiner import TextJoiner
 from ._TextJustifier.TextJustifier import TextJustifier
 from ._TextJustifierRegExp.TextJustifierRegExp import TextJustifierRegExp
+from ._TextLookup.TextLookup import TextLookup
+from ._TextLookup.TextLookupRealTime import TextLookupRealTime
 from ._TextNormalizer.TextNormalizer import TextNormalizer
 from ._TextPadder.TextPadder import TextPadder
 from ._TextRemover.TextRemover import TextRemover
@@ -28,6 +30,8 @@ __all__ = [
     'TextJoiner',
     'TextJustifier',
     'TextJustifierRegExp',
+    'TextLookup',
+    'TextLookupRealTime',
     'TextNormalizer',
     'TextPadder',
     'TextRemover',
