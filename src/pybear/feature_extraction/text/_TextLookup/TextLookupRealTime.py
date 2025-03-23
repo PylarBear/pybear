@@ -48,13 +48,13 @@ class TextLookupRealTime(TextLookupMixin):
     pybear Lexicon. Options include replacing, removing, splitting, or
     skipping the word, or staging it to add to the pybear Lexicon.
 
-    TextLookupRealTime (TLRT) is an unusual transformer because it has
-    a dual-functionality transform method. TLRT can operate autonomously
-    on your data for a completely hands-free experience, or can be driven
-    in a fully interactive transform process. The interactive mode is a
-    menu-driven process that prompts the user for a decision about a
-    word that is not in the Lexicon and makes the edits to the data in
-    real time (hence the name.)
+    TextLookupRealTime (TLRT) has a dual-functionality transform method.
+    TLRT can operate autonomously on your data for a completely
+    hands-free experience, or can be driven in a fully interactive
+    transform process. The interactive mode is a menu-driven process
+    that prompts the user for a decision about a word that is not in the
+    Lexicon and makes the edits to the data in real time (hence the
+    name.)
 
     The main benefit of having a real-time interactive mode is when you
     have data that has a lot of words that are not in the Lexicon.
@@ -76,32 +76,10 @@ class TextLookupRealTime(TextLookupMixin):
     temporal dynamic, TL is not able to save changes to your data
     in-situ. If you log a lot of changes to your data during
     (partial_)fit and then the program terminates for whatever reason,
-    you lose all your work. TLRT affords you the opportunity to save your
-    work in-situ, making your changes permanent. Another benefit of
+    you lose all your work. TLRT affords you the opportunity to save
+    your work in-situ, making your changes permanent. Another benefit of
     operating directly on the data in-situ, unlike TL, is that you can
-    perform operations 'once' on a single occurrence of a word. TL does
-    not have this ability as whatever instruction you select for one
-    occurrence of a word must be applied to all occurrences of the word,
-    because the storage mechanisms for the operation/word combinations
-    do not track the exact locations of individual words.
-
-    Your data should be in a highly processed state before using TLRT.
-    This should be one of the last steps in a text wrangling workflow
-    because the content of your text will go apples-to-apples against the
-    words in the Lexicon, and all the words in the pybear Lexicon have
-    no non-alpha characters and are all majuscule. All junk characters
-    should be removed and clear separators established. A pybear text
-    wrangling workflow might look like:
-    TextStripper > TextReplacer > TextSplitter > TextNormalizer >
-    TextRemover > TextLookup > StopRemover > TextJoiner > TextJustifier
-
-    Every operation in TLRT is case-sensitive. Remember that the formal
-    pybear Lexicon is majuscule, so you really should use pybear
-    TextNormalizer to make all your text majuscule before using TLRT.
-    Otherwise, TLRT will always flag every valid word that is not
-    majuscule because it doesn't exactly match the Lexicon. If you alter
-    your local copy of the pybear Lexicon with your own words of varying
-    capitalization, TLRT honors your capitalization scheme.
+    perform operations 'once' on specific occurrences of a word.
 
     To run TLRT in autonomous mode, set one of 'auto_add_to_lexicon' or
     'auto_delete' to True. You cannot set both to True.
@@ -109,35 +87,33 @@ class TextLookupRealTime(TextLookupMixin):
 
     When 'auto_add_to_lexicon' is True, if TLRT encounters a word that
     is not in the Lexicon it will automatically stage the word in
-    LEXICON_ADDENDUM and go to the next word until all the words in the
+    LEXICON_ADDENDUM_ and go to the next word until all the words in the
     text are exhausted. When 'auto_delete' is True, if TLRT encounters a
     word that is not in the Lexicon, it will automatically delete the
     word from the text body and go to the next word, until all the words
-    in the text are exhausted. It these cases TLRT can never proceed into
-    manual mode. To allow TLRT to go into manual mode, both 'auto_delete'
-    and 'auto_add_to_lexicon' must be False.
+    in the text are exhausted. In these cases, TLRT can never proceed
+    into manual mode. To allow TLRT to go into manual mode, both
+    'auto_delete' and 'auto_add_to_lexicon' must be False.
 
     In manual mode, when TLRT encounters a word that is not in the
     Lexicon, the user will be prompted with an interactive menu for an
-    action. Choices include, skip once, skip always, delete once, delete
+    action. Choices include: skip once, skip always, delete once, delete
     always, replace once, replace always, split once, split always, and
-    if 'update_lexicon' is True, an 'add to lexicon' option. If the user
-    opts to stage a word for addition to the Lexicon, the word is added
-    to the 'LEXICON_ADDENDUM_' attribute. Notice that the other
-    operations can be split into 2 groups, the 'once' group and the
+    if 'update_lexicon' is True, an 'add to lexicon' option. Notice that
+    the operations can be split into 2 groups, the 'once' group and the
     'always' group. The 'once' group is a one time operation on that
     word. TLRT will not remember what to do the next time it sees this
     exact word. If you choose something from the 'always' group, the
     word and its action go into a 'holder' object so that TLRT remembers
     what to do next time it sees the word. In this way, a tedious
-    interactive session can become more autonomous as the session
+    interactive session can become more automated as the session
     proceeds.
 
     The holder objects are all accessible attributes in the TLRT public
     API. See the attributes section for more details. These holder
     objects can also be passed at instantiation to give TLRT a head-start
     on words that aren't in the Lexicon and helps make a manual session
-    more autonomous. Let's say, for example, that you know that your
+    more automated. Let's say, for example, that you know that your
     text is full of some proper names that aren't in the Lexicon, and
     you don't want to add them permanently, and you don't want to have
     to always tell TLRT what to do with these words when they come up.
@@ -158,22 +134,41 @@ class TextLookupRealTime(TextLookupMixin):
     the next word automatically. Doing it in this way allows for users
     to give special instructions for words already in the Lexicon. Let's
     say there is a word in the Lexicon but you want to delete it from
-    your text. You could use pybear TextReplacer, or you could pass it
-    to DELETE_ALWAYS and TLRT will remove it regardless of what the
-    Lexicon says.
+    your text. You could pass it to DELETE_ALWAYS and TLRT will remove
+    it regardless of what the Lexicon says.
 
     'update_lexicon' does not cause TLRT to directly update the Lexicon.
-    This is a deliberate design choice to stage the words in the
-    LEXICON_ADDENDUM_ attribute. This gives the user a layer of
-    protection where they can review the words staged to go into the
-    Lexicon, make any changes needed, then manually pass them to the
-    Lexicon().add_words() method.
+    If the user opts to stage a word for addition to the Lexicon, the
+    word is added to the 'LEXICON_ADDENDUM_' attribute. This is a
+    deliberate design choice to stage the words rather than silently
+    modify the Lexicon. This gives the user a layer of protection where
+    they can review the words staged to go into the Lexicon, make any
+    changes needed, then manually pass them to the Lexicon().add_words()
+    method.
 
     TLRT requires (possibly ragged) 2D data formats. Accepted objects
     include python built-in lists and tuples, numpy arrays, pandas
-    dataframes, and polars dataframes. Results are always returned as a
-    2D python list of lists of strings. Use pybear TextSplitter to
-    convert 1D text to 2D tokens.
+    dataframes, and polars dataframes. Use pybear TextSplitter to
+    convert 1D text to 2D tokens. Results are always returned as a 2D
+    python list of lists of strings.
+
+    Your data should be in a highly processed state before using TLRT.
+    This should be one of the last steps in a text wrangling workflow
+    because the content of your text will go apples-to-apples against the
+    words in the Lexicon, and all the words in the pybear Lexicon have
+    no non-alpha characters and are all majuscule. All junk characters
+    should be removed and clear separators established. A pybear text
+    wrangling workflow might look like:
+    TextStripper > TextReplacer > TextSplitter > TextNormalizer >
+    TextRemover > TextLookup > StopRemover > TextJoiner > TextJustifier
+
+    Every operation in TLRT is case-sensitive. Remember that the formal
+    pybear Lexicon is majuscule, so you really should use pybear
+    TextNormalizer to make all your text majuscule before using TLRT.
+    Otherwise, TLRT will always flag every valid word that is not
+    majuscule because it doesn't exactly match the Lexicon. If you alter
+    your local copy of the pybear Lexicon with your own words of varying
+    capitalization, TLRT honors your capitalization scheme.
 
     TLRT is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
@@ -239,10 +234,10 @@ class TextLookupRealTime(TextLookupMixin):
         Optional[bool], default=False - 'update_lexicon' must be True to
         use this parameter. Cannot be True if 'auto_delete' is True.
         When TLRT encounters a word that is not in the Lexicon, the word
-        will silently staged in the LEXICON_ADDENDUM_ attribute
-        to be added to the Lexicon later. When this parameter is True,
-        TLRT operates in 'auto-mode', where the user will not be prompted
-        for decisions.
+        will silently be staged in the LEXICON_ADDENDUM_ attribute to be
+        added to the Lexicon later. When this parameter is True, TLRT
+        operates in 'auto-mode', where the user will not be prompted for
+        decisions.
     auto_delete:
         Optional[bool], default=False - Cannot be True if 'update_lexicon'
         or 'auto_add_to_lexicon' are True. When TLRT encounters a word
@@ -446,6 +441,18 @@ class TextLookupRealTime(TextLookupMixin):
 
     def __pybear_is_fitted__(self):
         return True
+
+
+    # def get_params
+    # handled by TextLookupMixin/GetParamsMixin
+
+
+    # def set_params
+    # handled by TextLookupMixin/SetParamsMixin
+
+
+    # def fit_transform
+    # handled by TextLookupMixin/FitTransformMixin
 
 
     def partial_fit(

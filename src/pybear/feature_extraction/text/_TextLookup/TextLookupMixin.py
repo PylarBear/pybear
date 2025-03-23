@@ -112,6 +112,8 @@ class TextLookupMixin(
             delattr(self, 'LEXICON_ADDENDUM_')
         if hasattr(self, 'KNOWN_WORDS_'):
             delattr(self, 'KNOWN_WORDS_')
+        if hasattr(self, '_OOV'):
+            delattr(self, '_OOV')
 
         return self
 

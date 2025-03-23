@@ -39,7 +39,7 @@ class NGramMerger(
 ):
 
     """
-    Join adjacent "words" into an N-gram unit, to be handle as a single
+    Join adjacent "words" into an N-gram unit, to be handled as a single
     "word".
 
 
@@ -78,6 +78,18 @@ class NGramMerger(
 
     def __pybear_is_fitted__(self):
         return True
+
+
+    # def get_params
+    # handled by GetParamsMixin
+
+
+    # def set_params
+    # handled by SetParamsMixin
+
+
+    # def fit_transform
+    # handled by FitTransformMixin
 
 
     def partial_fit(
