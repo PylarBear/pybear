@@ -13,7 +13,8 @@ from unittest.mock import patch
 
 import numpy as np
 
-from pybear.feature_extraction.text._TC.TC import TC
+from pybear.feature_extraction.text._TC. \
+    TextCleaner__BACKUP_BEFORE_BUTCHERY_24_06_22 import TextCleaner
 
 
 
@@ -398,7 +399,7 @@ class TestReturnedAsListOfStrings:
     # @classmethod
     # @pytest.fixture(scope="class", autouse=True)
     # def setup_class(self):
-    TestClass = TC(WORDS, update_lexicon=False)
+    TestClass = TextCleaner(WORDS, update_lexicon=False)
     TestClass.as_list_of_strs()
 
 
@@ -424,12 +425,12 @@ class TestReturnedAsListOfStrings:
 
     def test_strip(self, AS_STR_STRIPPED):
 
-        self.TestClass.strip()
-        for r_idx in range(len(AS_STR_STRIPPED)):
-            assert np.array_equiv(
-                self.TestClass.CLEANED_TEXT[r_idx],
-                AS_STR_STRIPPED[r_idx]
-            )
+        self.TestClass._strip()
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_STR_STRIPPED
+        ))
 
 
     def test_normalize(self, AS_STR_NORMALIZED):
@@ -445,7 +446,7 @@ class TestReturnedAsListOfStrings:
     # THIS IS INTERACTIVE
     def test_lex_lookup(self, AS_STR_LOOKEDUP):
 
-        user_inputs = "e\nGOVERNMENT\ny\ne\nDEVOTION\ny\ne\nSEVEN\ny\nc\n"
+        user_inputs = "e\nSEVEN\nY\nY\nY\ne\nDEVOTION\nY\ne\nGOVERNMENT\nY\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
             self.TestClass.lex_lookup()
 
@@ -454,6 +455,52 @@ class TestReturnedAsListOfStrings:
             self.TestClass.CLEANED_TEXT,
             AS_STR_LOOKEDUP
         ))
+
+
+    def test_return_row_uniques(
+        self, AS_STR_ROW_UNIQUES, AS_STR_ROW_UNIQUES_COUNTS
+    ):
+
+        # COMPARE ROW UNIQUES ROW BY ROW
+        for idx, ROW in enumerate(
+            self.TestClass.return_row_uniques(return_counts=False)
+        ):
+            assert np.array_equiv(ROW, AS_STR_ROW_UNIQUES[idx])
+
+
+        # COMPARE ROW UNIQUES IN TOTALITY
+        ROW_UNIQUES = self.TestClass.return_row_uniques(return_counts=False)
+
+        assert all(map(np.array_equiv, ROW_UNIQUES, AS_STR_ROW_UNIQUES))
+
+        del ROW_UNIQUES
+
+
+        ROW_UNIQUES, ROW_COUNTS = \
+            self.TestClass.return_row_uniques(return_counts=True)
+
+        assert all(map(np.array_equiv, ROW_UNIQUES, AS_STR_ROW_UNIQUES))
+        assert all(map(np.array_equiv, ROW_COUNTS, AS_STR_ROW_UNIQUES_COUNTS))
+
+        del ROW_UNIQUES, ROW_COUNTS
+
+
+    def test_return_overall_uniques(
+        self, AS_STR_ALL_UNIQUES, AS_STR_ALL_UNIQUES_COUNTS
+    ):
+
+        ALL_UNIQUES = self.TestClass.return_overall_uniques(return_counts=False)
+        assert np.array_equiv(ALL_UNIQUES, AS_STR_ALL_UNIQUES)
+
+        del ALL_UNIQUES
+
+
+        ALL_UNIQUES, ALL_COUNTS = \
+            self.TestClass.return_overall_uniques(return_counts=True)
+        assert all(map(np.array_equiv, ALL_UNIQUES, AS_STR_ALL_UNIQUES))
+        assert all(map(np.array_equiv, ALL_COUNTS, AS_STR_ALL_UNIQUES_COUNTS))
+
+        del ALL_UNIQUES, ALL_COUNTS
 
 
     def test_remove_stops(self, AS_STR_STOPS_REMOVED):
@@ -897,7 +944,7 @@ class TestReturnedAsListOfLists:
     # dump_to_txt          Dump CLEANED_TEXT object to txt.
 
 
-    TestClass = TC(WORDS, update_lexicon=False)
+    TestClass = TextCleaner(WORDS, update_lexicon=False)
     TestClass.as_list_of_lists()
 
 
@@ -914,18 +961,16 @@ class TestReturnedAsListOfLists:
     def test_remove_characters(self, AS_LISTS_CHARS_REMOVED):
 
         self.TestClass.remove_characters()
-        for r_idx in range(len(AS_LISTS_CHARS_REMOVED)):
-            print(f'{self.TestClass.CLEANED_TEXT[r_idx]=}')
-            print(f'{AS_LISTS_CHARS_REMOVED[r_idx]=}')
-            assert np.array_equiv(
-                self.TestClass.CLEANED_TEXT[r_idx],
-                AS_LISTS_CHARS_REMOVED[r_idx]
-            )
+        assert all(map(
+            np.array_equiv,
+            self.TestClass.CLEANED_TEXT,
+            AS_LISTS_CHARS_REMOVED
+        ))
 
 
     def test_strip(self, AS_LISTS_STRIPPED):
 
-        self.TestClass.strip()
+        self.TestClass._strip()
         assert all(map(
             np.array_equiv,
             self.TestClass.CLEANED_TEXT,
@@ -946,7 +991,7 @@ class TestReturnedAsListOfLists:
 
     # THIS IS INTERACTIVE
     def test_lex_lookup(self, AS_LISTS_LOOKEDUP):
-        user_inputs = "e\nGOVERNMENT\ny\ne\nDEVOTION\ny\ne\nSEVEN\ny\nc\n"
+        user_inputs = "e\nSEVEN\nY\nY\nY\ne\nDEVOTION\nY\ne\nGOVERNMENT\nY\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
             self.TestClass.lex_lookup()
             assert all(map(
@@ -954,6 +999,48 @@ class TestReturnedAsListOfLists:
                 self.TestClass.CLEANED_TEXT,
                 AS_LISTS_LOOKEDUP
             ))
+
+
+    def test_return_row_uniques(
+        self, AS_LISTS_ROW_UNIQUES, AS_LISTS_ROW_UNIQUES_COUNTS
+    ):
+
+        # COMPARE ROW UNIQUES ROW BY ROW
+        for idx, ROW in enumerate(self.TestClass.return_row_uniques()):
+            assert np.array_equiv(ROW, AS_LISTS_ROW_UNIQUES[idx])
+
+
+        ROW_UNIQUES = self.TestClass.return_row_uniques(return_counts=False)
+        assert all(map(np.array_equiv, ROW_UNIQUES, AS_LISTS_ROW_UNIQUES))
+
+        del ROW_UNIQUES
+
+
+        ROW_UNIQUES, ROW_COUNTS = \
+            self.TestClass.return_row_uniques(return_counts=True)
+
+        assert all(map(np.array_equiv, ROW_UNIQUES, AS_LISTS_ROW_UNIQUES))
+        assert all(map(np.array_equiv, ROW_COUNTS, AS_LISTS_ROW_UNIQUES_COUNTS))
+
+        del ROW_UNIQUES, ROW_COUNTS
+
+
+    def test_return_overall_uniques(
+        self, AS_LISTS_ALL_UNIQUES, AS_LISTS_ALL_UNIQUES_COUNTS
+    ):
+
+        ALL_UNIQUES = self.TestClass.return_overall_uniques(return_counts=False)
+        assert np.array_equiv(ALL_UNIQUES, AS_LISTS_ALL_UNIQUES)
+
+        del ALL_UNIQUES
+
+
+        ALL_UNIQUES, ALL_COUNTS = \
+            self.TestClass.return_overall_uniques(return_counts=True)
+        assert np.array_equiv(ALL_UNIQUES, AS_LISTS_ALL_UNIQUES)
+        assert np.array_equiv(ALL_COUNTS, AS_LISTS_ALL_UNIQUES_COUNTS)
+
+        del ALL_UNIQUES, ALL_COUNTS
 
 
     def test_remove_stops(self, AS_LISTS_STOPS_REMOVED):

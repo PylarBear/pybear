@@ -621,7 +621,7 @@ class TextLookupRealTime(TextLookupMixin):
         self.LEXICON_ADDENDUM_: list[str] = \
             getattr(self, 'LEXICON_ADDENDUM_', [])
         self.KNOWN_WORDS_: list[str] = \
-            getattr(self, 'KNOWN_WORDS_', list(deepcopy(Lexicon().lexicon_)))
+            getattr(self, 'KNOWN_WORDS_', list(Lexicon().lexicon_))
         # END Manage attributes -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- -- --

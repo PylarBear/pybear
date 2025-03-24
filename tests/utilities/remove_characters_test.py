@@ -9,24 +9,19 @@
 import pytest
 import numpy as np
 
-from pybear.feature_extraction.text._TC._methods._remove_characters import \
-    _remove_characters
+from pybear.utilities._remove_characters import remove_characters
+
+
+# def remove_characters(
+#     X: Union[list[str], list[list[str]], npt.NDArray[str]],
+#     allowed_chars: Union[str, None],
+#     disallowed_chars: Union[str, None]
+# ) -> Union[list[str], list[list[str]], npt.NDArray[str]]:
 
 
 
+class TestRemoveCharactersValidation:
 
-class TestRemoveCharacters:
-
-
-    # def _remove_characters(
-    #     _WIP_X: Union[list[str], list[list[str]], npt.NDArray[str]],
-    #     _is_2D: bool,
-    #     _allowed_chars: Union[str, None],
-    #     _disallowed_chars: Union[str, None]
-    # ) -> Union[list[str], list[list[str]], npt.NDArray[str]]:
-
-
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @pytest.mark.parametrize('junk_X',
         (-2.7, -1, 0, 1, 2.7, True, None, 'trash', [0,1], (1,), {'A':1},
@@ -36,59 +31,88 @@ class TestRemoveCharacters:
 
         with pytest.raises(TypeError):
 
-            _remove_characters(junk_X, True, None, '!@#$%^&*()')
+            remove_characters(junk_X, disallowed_chars='!@#$%^&*()')
 
 
-    @pytest.mark.parametrize('junk_is_2D',
-        (-2.7, -1, 0, 1, 2.7, None, 'trash', [0,1], (1,), {'A':1},
-         lambda x: x, [[1,2,3], [4,5,6]])
+
+    @pytest.mark.parametrize('junk_ac',
+        (-2.7, -1, 0, 1, 2.7, True, False, [0, 1], (1,), {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_is_2D(self, junk_is_2D):
+    def test_rejects_junk_allowed_chars(self, junk_ac):
 
         with pytest.raises(TypeError):
-
-            _remove_characters(list('abc'), junk_is_2D, None, '!@#$%^&*()')
-
-
-    def test_accepts_bool_is_2D(self):
-
-        _remove_characters(list('abcde'), False, None, '!@#$%^&*()')
-
-        _remove_characters([['a', 'b'], ['c', 'd']], True, None, '!@#$%^&*()')
+            remove_characters(list('abcde'), allowed_chars=junk_ac)
 
 
-    # _allowed & _disallowed validation is tested elsewhere
+    @pytest.mark.parametrize('junk_dc',
+        (-2.7, -1, 0, 1, 2.7, True, False, [0, 1], (1,), {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_disallowed_chars(self, junk_dc):
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        with pytest.raises(TypeError):
+            remove_characters(list('abcd'), disallowed_chars=junk_dc)
 
+
+    def test_rejects_empty_strings(self):
+
+        with pytest.raises(ValueError):
+            remove_characters(list('abcde'), allowed_chars='')
+
+        with pytest.raises(ValueError):
+            remove_characters(list('abcd'), disallowed_chars='')
+
+
+    @pytest.mark.parametrize('_ac', ('!@#$%^&*(', None))
+    @pytest.mark.parametrize('_dc', ('qwerty', None))
+    def test_mix_and_match_strs_and_None(self, _ac, _dc):
+
+        if (_ac is None and _dc is None) or (_ac is not None and _dc is not None):
+            with pytest.raises(ValueError):
+                remove_characters(
+                    list('!@#'),
+                    allowed_chars=_ac,
+                    disallowed_chars=_dc
+                )
+        else:
+            out = remove_characters(
+                list('!@#'),
+                allowed_chars=_ac,
+                disallowed_chars=_dc
+            )
+
+            assert np.array_equal(out, list('!@#'))
+
+
+
+class TestRemoveCharacters:
 
     # 1D -- -- -- -- -- -- -- -- -- --
 
     def test_1D_list_accuracy(self):
 
 
-        out = _remove_characters([' Sam ', ' I ', ' am '], False, None, '!@#')
+        out = remove_characters([' Sam ', ' I ', ' am '], disallowed_chars='!@#')
         assert isinstance(out, list)
         assert np.array_equal(out, [' Sam ', ' I ', ' am '])
 
-        out = _remove_characters(['!S!a!m!', '@I@', '#a#m#'], False, None, '!@#')
+        out = remove_characters(['!S!a!m!', '@I@', '#a#m#'], disallowed_chars='!@#')
         assert isinstance(out, list)
         assert np.array_equal(out, ['Sam', 'I', 'am'])
 
-        out = _remove_characters(['Sam ', ' I ', ' am '], False, 'SamI ', None)
+        out = remove_characters(['Sam ', ' I ', ' am '], allowed_chars='SamI ')
         assert isinstance(out, list)
         assert np.array_equal(out, ['Sam ', ' I ', ' am '])
 
-        out = _remove_characters(
-            [' !Sam! ', '@ I @', ' #am #'], False, 'SamI ', None
+        out = remove_characters(
+            [' !Sam! ', '@ I @', ' #am #'], allowed_chars='SamI '
         )
         assert isinstance(out, list)
         assert np.array_equal(out, [' Sam ', ' I ', ' am '])
 
 
         # removes empties
-        out = _remove_characters(
-            [' !Sam! ', '@ I @', ' #am #'], False, None, ' #am'
+        out = remove_characters(
+            [' !Sam! ', '@ I @', ' #am #'], disallowed_chars=' #am'
         )
         assert isinstance(out, list)
         assert np.array_equal(out, ['!S!', '@I@'])
@@ -96,33 +120,33 @@ class TestRemoveCharacters:
 
     def test_1D_np_accuracy(self):
 
-        out = _remove_characters(
-            np.array([' Sam ', ' I ', ' am ']), False, None, '!@#'
+        out = remove_characters(
+            np.array([' Sam ', ' I ', ' am ']), disallowed_chars='!@#'
         )
         assert isinstance(out, np.ndarray)
         assert np.array_equal(out, [' Sam ', ' I ', ' am '])
 
-        out = _remove_characters(
-            np.array(['!S!a!m!', '@I@', '#a#m#']), False, None, '!@#'
+        out = remove_characters(
+            np.array(['!S!a!m!', '@I@', '#a#m#']), disallowed_chars='!@#'
         )
         assert isinstance(out, np.ndarray)
         assert np.array_equal(out, ['Sam', 'I', 'am'])
 
-        out = _remove_characters(
-            np.array(['Sam ', ' I ', ' am ']), False, 'SamI ', None
+        out = remove_characters(
+            np.array(['Sam ', ' I ', ' am ']), allowed_chars='SamI '
         )
         assert isinstance(out, np.ndarray)
         assert np.array_equal(out, ['Sam ', ' I ', ' am '])
 
-        out = _remove_characters(
-            np.array([' !Sam! ', '@ I @', ' #am #']), False, 'SamI ', None
+        out = remove_characters(
+            np.array([' !Sam! ', '@ I @', ' #am #']), allowed_chars='SamI '
         )
         assert isinstance(out, np.ndarray)
         assert np.array_equal(out, [' Sam ', ' I ', ' am '])
 
         # removes empties
-        out = _remove_characters(
-            np.array([' !Sam! ', '@ I @', ' #am #']), False, None, ' #am'
+        out = remove_characters(
+            np.array([' !Sam! ', '@ I @', ' #am #']), disallowed_chars=' #am'
         )
         assert isinstance(out, np.ndarray)
         assert np.array_equal(out, ['!S!', '@I@'])
@@ -134,11 +158,9 @@ class TestRemoveCharacters:
 
     def test_2D_list_accuracy(self):
 
-        out = _remove_characters(
+        out = remove_characters(
             [['Sam', 'I', 'am'], ['I', 'am', 'Sam']],
-            True,
-            None,
-            '!@#'
+            disallowed_chars='!@#'
         )
         assert isinstance(out, list)
         assert all(map(
@@ -149,11 +171,9 @@ class TestRemoveCharacters:
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        out = _remove_characters(
+        out = remove_characters(
             [[' !Sam! ', 'I@  ', ' #am'], [' !I@ ', ' @am#', '@Sam']],
-            True,
-            None,
-            '!@#'
+            disallowed_chars='!@#'
         )
         assert isinstance(out, list)
         assert all(map(
@@ -164,11 +184,9 @@ class TestRemoveCharacters:
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        out = _remove_characters(
+        out = remove_characters(
             [['I   am   Sam,  Sam ,  I , am   ']],
-            True,
-            'IamS ',
-            None
+            allowed_chars='IamS '
         )
         assert isinstance(out, list)
         assert np.array_equal(out, [['I   am   Sam  Sam   I  am   ']])
@@ -176,11 +194,9 @@ class TestRemoveCharacters:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # removes empties
-        out = _remove_characters(
+        out = remove_characters(
             [[' !Sam! ', 'I@  ', ' #am'], [' !I@ ', ' @am#', '@Sam']],
-            True,
-            None,
-            '@Sam'
+            disallowed_chars='@Sam'
         )
         assert isinstance(out, list)
         assert all(map(
@@ -192,11 +208,9 @@ class TestRemoveCharacters:
 
     def test_2D_np_accuracy(self):
 
-        out = _remove_characters(
+        out = remove_characters(
             np.array([['Sam', 'I', 'am'], ['I', 'am', 'Sam']]),
-            True,
-            None,
-            '!@#'
+            disallowed_chars='!@#'
         )
         assert isinstance(out, np.ndarray)
         assert all(map(
@@ -207,11 +221,9 @@ class TestRemoveCharacters:
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        out = _remove_characters(
+        out = remove_characters(
             np.array([['!S!a!m!', '@I@', '#a#m#'], ['!I ', ' @am ', ' Sam#']]),
-            True,
-            None,
-            '!@#'
+            disallowed_chars='!@#'
         )
         assert isinstance(out, np.ndarray)
         assert all(map(
@@ -222,26 +234,22 @@ class TestRemoveCharacters:
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        out = _remove_characters(
+        out = remove_characters(
             np.array([['I   am   Sam,  Sam ,  I , am   ']]),
-            True,
-            'IamS ',
-            None
+            allowed_chars='IamS '
         )
         assert isinstance(out, np.ndarray)
         assert np.array_equal(out, [['I   am   Sam  Sam   I  am   ']])
 
 
         # removes empties
-        out = _remove_characters(
+        out = remove_characters(
             np.array(
                 (np.array([' !Sam! ', 'I@  ']),
                 np.array([' !I@ ', ' @am#', '@Sam'])),
                 dtype=object
             ),
-            True,
-            None,
-            '@Sam'
+            disallowed_chars='@Sam'
         )
         assert isinstance(out, np.ndarray)
         assert all(map(
@@ -252,11 +260,9 @@ class TestRemoveCharacters:
 
         # this is actually a full array so will skip removing the empties
         # because of casting error
-        out = _remove_characters(
+        out = remove_characters(
             np.array([[' !Sam! ', 'I@  ', ' #am'], [' !I@ ', ' @am#', '@Sam']]),
-            True,
-            None,
-            '@Sam'
+            disallowed_chars='@Sam'
         )
         assert isinstance(out, np.ndarray)
         assert all(map(

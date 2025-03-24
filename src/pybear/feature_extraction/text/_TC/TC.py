@@ -12,6 +12,7 @@ import numpy.typing as npt
 from ._type_aliases import MenuDictType
 
 import numbers
+import re
 
 import numpy as np, pandas as pd
 # PIZZA NEED PLOTLY OR MATPLOTLIB
@@ -21,17 +22,19 @@ from ._validation._auto_add import _val_auto_add
 from ._validation._auto_delete import _val_auto_delete
 from ._validation._update_lexicon import _val_update_lexicon
 
-from ._methods._strip import _strip
-from ._methods._remove_characters import _remove_characters
-from ._methods._normalize import _normalize
+from .._StopRemover.StopRemover import StopRemover
+from .._TextLookup.TextLookupRealTime import TextLookupRealTime
+from .._TextNormalizer.TextNormalizer import TextNormalizer
+from .._TextReplacer.TextReplacer import TextReplacer
+from .._TextStripper.TextStripper import TextStripper
 
-from ._methods._validation._menu import _menu_validation
-from ._methods._validation._lex_lookup_menu import _lex_lookup_menu_validation
+from ._validation._menu import _menu_validation
 
 from .._Lexicon.Lexicon import Lexicon
 from .. import alphanumeric_str as ans
 
-from ....utilities._view_text_snippet import view_text_snippet
+from ....base.mixins._FileDumpMixin import FileDumpMixin
+
 from ....data_validation import (
     validate_user_input as vui,
     arg_kwarg_validater
@@ -73,7 +76,7 @@ from ....data_validation import (
 
 
 # pizza dont forget mixins!
-class TC:
+class TC(FileDumpMixin):
 
 
     def __init__(
@@ -186,8 +189,12 @@ class TC:
             'R': {'label':'remove_characters',  'function': self.remove_characters},
             'S': {'label':'strip', 'function': self.strip},
             'N': {'label':'normalize', 'function': self.normalize},
-            'V': {'label':'view_CLEANED_TEXT', 'function': self.view_cleaned_text},
-            'Y': {'label':'view_lexicon_addendum', 'function': self.display_lexicon_update},
+            # 'A': {'label': 'statistics', 'function': self.statistics},
+            # 'K': {'label': 'word_counter', 'function': self.word_counter},
+            'V': {'label': 'view_CLEANED_TEXT', 'function': self.view_cleaned_text},
+            # 'U': {'label': 'view_row_uniques', 'function': self.view_row_uniques},
+            # 'O': {'label': 'view_overall_uniques', 'function': self.view_overall_uniques},
+            # 'Y': {'label':'view_lexicon_addendum', 'function': self.display_lexicon_update},
             'T': {'label':'remove_stops', 'function': self.remove_stops},
             'J': {'label':'justify', 'function': self.justify},
             'W': {'label':'delete_words', 'function': self.delete_words},
@@ -337,12 +344,21 @@ class TC:
         """
 
 
-        self.CLEANED_TEXT = _remove_characters(
-            self.CLEANED_TEXT,
-            self.is_list_of_lists,
-            allowed_chars,
-            disallowed_chars
-        )
+        Trfm = TextReplacer(regexp_replace=(f'[^{allowed_chars}]', ''))
+        self.CLEANED_TEXT = Trfm.fit_transform(self.CLEANED_TEXT)
+        del Trfm
+
+        from .._TextRemover.TextRemover import TextRemover
+        Trfm2 = TextRemover(str_remove='')
+        self.CLEANED_TEXT = Trfm2.fit_transform(self.CLEANED_TEXT)
+
+
+        # self.CLEANED_TEXT = _remove_characters(
+        #     self.CLEANED_TEXT,
+        #     self.is_list_of_lists,
+        #     allowed_chars,
+        #     disallowed_chars
+        # )
 
 
     def strip(self) -> None:
@@ -370,7 +386,11 @@ class TC:
 
         """
 
-        self.CLEANED_TEXT = _strip(self.CLEANED_TEXT, self.is_list_of_lists)
+        # takes 1 or 2D. returns same dim as given
+        self.CLEANED_TEXT = TextStripper().fit_transform(self.CLEANED_TEXT)
+        # takes 1 or 2D. returns same dim as given
+        _kwargs = {'regexp_replace': {(re.compile(f' +'), ' '), (f' ,', f',')}}
+        self.CLEANED_TEXT = TextReplacer(**_kwargs).fit_transform(self.CLEANED_TEXT)
 
 
     def normalize(self, upper:Optional[bool] = True) -> None:
@@ -396,12 +416,8 @@ class TC:
         """
 
 
-        self.CLEANED_TEXT = \
-            _normalize(
-                self.CLEANED_TEXT,
-                self.is_list_of_lists,
-                upper
-            )
+        # can be 1 or 2D. returned with same dim.
+        self.CLEANED_TEXT = TextNormalizer(upper=upper).fit_transform(self.CLEANED_TEXT)
 
 
     def view_cleaned_text(self) -> None:
@@ -418,12 +434,10 @@ class TC:
             self.as_list_of_lists()
             converted = True
 
-        for row_idx in range(len(self.CLEANED_TEXT)):
-            for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
-                if self.CLEANED_TEXT[row_idx][word_idx] in self._stop_words:
-                    self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
-                if len(self.CLEANED_TEXT) == 0:
-                    break
+
+        Trfm = StopRemover(remove_empty_rows=True, n_jobs=1)
+        self.CLEANED_TEXT = Trfm.fit_transform(self.CLEANED_TEXT)
+        del Trfm
 
         if converted:
             self.as_list_of_strs()
@@ -570,52 +584,59 @@ class TC:
             self.as_list_of_lists()
             converted = True
 
-        TO_SUB_DICT = {}
 
-        ctr = 0
-        while True:
-            replaced, replacement = '', ''
-            while True:
-                replaced = input(
-                    f'\nEnter word to replace '
-                    f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > '
-                ).upper()
-                if replaced in 'DZ':
-                    break
-                else:
-                    replacement = input(
-                        f'Enter word to substitute in '
-                        f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > '
-                    ).upper()
-                    if replacement in 'DZ':
-                        break
-                if vui.validate_user_str(
-                    f'Replace *{replaced}* with *{replacement}*--- Accept? (y/n) > ',
-                    'YN'
-                ) == 'Y':
-                    ctr += 1
-                    TO_SUB_DICT[replaced] = replacement
-            if replaced == 'Z' or replacement == 'Z':
-                del ctr
-                break
+        # pizza
+        from .._TextReplacer.TextReplacer import TextReplacer
 
-            print(f'\nUser entered to replace')
-            [print(f'{k} with {v}') for k,v in TO_SUB_DICT.items()]
-            if vui.validate_user_str(f'\nAccept? (y/n) > ', 'YN') == 'Y':
-                del ctr
-                break
+        # pizza this isnt impacting test
+        # do not throw away this code yet. understand it and make TR do it.
 
-        # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE, PROCEED WITH DELETE
-        if (replaced != 'Z' and replacement != 'Z') and len(TO_SUB_DICT) > 0:
-
-            for row_idx in range(len(self.CLEANED_TEXT)):
-                for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
-                    word = self.CLEANED_TEXT[row_idx][word_idx]
-                    if word in TO_SUB_DICT:
-                        self.CLEANED_TEXT[row_idx][word_idx] = TO_SUB_DICT[word]
-            del word
-
-        del TO_SUB_DICT, replaced, replacement
+        # TO_SUB_DICT = {}
+        #
+        # ctr = 0
+        # while True:
+        #     replaced, replacement = '', ''
+        #     while True:
+        #         replaced = input(
+        #             f'\nEnter word to replace '
+        #             f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > '
+        #         ).upper()
+        #         if replaced in 'DZ':
+        #             break
+        #         else:
+        #             replacement = input(
+        #                 f'Enter word to substitute in '
+        #                 f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > '
+        #             ).upper()
+        #             if replacement in 'DZ':
+        #                 break
+        #         if vui.validate_user_str(
+        #             f'Replace *{replaced}* with *{replacement}*--- Accept? (y/n) > ',
+        #             'YN'
+        #         ) == 'Y':
+        #             ctr += 1
+        #             TO_SUB_DICT[replaced] = replacement
+        #     if replaced == 'Z' or replacement == 'Z':
+        #         del ctr
+        #         break
+        #
+        #     print(f'\nUser entered to replace')
+        #     [print(f'{k} with {v}') for k,v in TO_SUB_DICT.items()]
+        #     if vui.validate_user_str(f'\nAccept? (y/n) > ', 'YN') == 'Y':
+        #         del ctr
+        #         break
+        #
+        # # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE, PROCEED WITH DELETE
+        # if (replaced != 'Z' and replacement != 'Z') and len(TO_SUB_DICT) > 0:
+        #
+        #     for row_idx in range(len(self.CLEANED_TEXT)):
+        #         for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
+        #             word = self.CLEANED_TEXT[row_idx][word_idx]
+        #             if word in TO_SUB_DICT:
+        #                 self.CLEANED_TEXT[row_idx][word_idx] = TO_SUB_DICT[word]
+        #     del word
+        #
+        # del TO_SUB_DICT, replaced, replacement
 
         if converted:
             self.as_list_of_strs()
@@ -723,141 +744,6 @@ class TC:
             self.undo_status = False
 
 
-
-    ####################################################################
-    ####################################################################
-    # STUFF FOR LEXICON LOOKUP #########################################
-
-    def lex_lookup_menu(
-        self,
-        allowed:Optional[Union[str, None]] = None,
-        disallowed:Optional[Union[str, None]] = None
-    ) -> tuple[str, str]:    # ALLOWED ARE 'adelks'
-
-        """
-        Dynamic function for returning variable menu prompts and allowed
-        commands. Both cannot simultaneously be strings. If both are
-        simultaneously None, then all keys are allowed. Both inputs are
-        case-sensitive.
-
-
-        Parameters
-        ----------
-        allowed:
-            Optional[Union[str, None]] - keys of the menu that are
-            allowed to be accessed.
-        disallowed:
-            Optional[Union[str, None]] - keys of the menu that are not
-            allowed to be accessed.
-
-
-        Return
-        ------
-        -
-            tuple[str, str] - pizza
-
-
-        """
-
-        _possible: str = self.lex_look_allowed
-
-
-        _lex_lookup_menu_validation(
-            _possible,
-            allowed,
-            disallowed
-        )
-
-        if allowed is None and disallowed is None:
-            allowed = self.lex_look_allowed
-        elif disallowed is not None:
-            allowed = "".join([_ for _ in _possible if _ not in disallowed])
-
-        WIP_DISPLAY = []
-        for k, v in self.LEX_LOOK_DICT.items():
-            if k in allowed:
-                WIP_DISPLAY.append(f'{v.upper()}({k.lower()})')
-
-        WIP_DISPLAY = ", ".join(WIP_DISPLAY)
-
-        wip_allowed = allowed
-
-
-        return WIP_DISPLAY, wip_allowed
-
-
-    def word_editor(
-        self,
-        word:str,
-        prompt:Optional[Union[str, None]] = None
-    ) -> str:
-
-        """
-        Validation function for single words entered by user.
-
-
-        Parameter
-        ---------
-        word:
-            str - the word prompting a new entry by the user.
-        prompt:
-            Optional[Union[str, None]], default=None - a special prompt.
-
-
-        Return
-        ------
-        -
-            word: str - the new word entered by the user.
-
-
-        """
-
-        if not isinstance(word, str):
-            raise TypeError(f"'word' must be a string")
-
-        if not isinstance(prompt, (str, None)):
-            raise TypeError(f"'prompt' must be a string or None")
-
-
-        while True:
-            word = input(f'{prompt} > ').upper()
-            if vui.validate_user_str(f'USER ENTERED *{word}* -- ACCEPT? (Y/N) > ', 'YN') == 'Y':
-                break
-
-        return word
-
-
-    def lex_lookup_add(self, word: str) -> None:
-
-        """
-        Append a word to the LEXICON_ADDENDUM object.
-
-
-        Parameters
-        ----------
-        word:
-            str - word to add to the LEXICON_ADDENDUM
-
-
-        Return
-        ------
-        -
-            None
-
-        """
-
-        if not isinstance(word, str):
-            raise TypeError(f"'word' must be str")
-
-        self.LEXICON_ADDENDUM: npt.NDArray[str]
-        self.KNOWN_WORDS: list[str]
-
-        self.LEXICON_ADDENDUM = \
-            np.insert(self.LEXICON_ADDENDUM, len(self.LEXICON_ADDENDUM), word, axis=0)
-        self.KNOWN_WORDS = \
-            np.insert(self.KNOWN_WORDS, len(self.KNOWN_WORDS), word, axis=0)
-
-
     def lex_lookup(self, print_notes:Optional[bool] = False):
 
         """
@@ -880,272 +766,26 @@ class TC:
             self.as_list_of_lists()
             converted = True
 
-        # VALIDATION, ETC ##############################################
-        arg_kwarg_validater(
-            print_notes,
-            'print_notes',
-            [True, False, None],
-            'TC',
-            'lex_lookup'
-        )
 
         print_notes = print_notes or False
 
-        _abort = False
-        if self.update_lexicon:
-            MENU_DISPLAY, menu_allowed = self.lex_lookup_menu()
-            if len(self.LEXICON_ADDENDUM) != 0:
-                print(f'\n*** LEXICON ADDENDUM IS NOT EMPTY ***\n')
-                print(f'PREVIEW OF LEXICON ADDENDUM:')
-                [print(_) for _ in self.LEXICON_ADDENDUM[:10]]
-                print()
-                _ = vui.validate_user_str(
-                    f'EMPTY LEXICON ADDENDUM(e), PROCEED ANYWAY(p), ABORT lex_lookup(a) > ',
-                    'AEP'
-                )
-                if _ == 'A':
-                    _abort = True
-                elif _ == 'E':
-                    self.LEXICON_ADDENDUM = np.empty((1,0), dtype='<U30')[0]
-                del _
-        elif not self.update_lexicon:
-            MENU_DISPLAY, menu_allowed = self.lex_lookup_menu(allowed='desk')
-
-        WORDS_TO_DELETE = np.empty(0, dtype='<U30')
-        SKIP_ALWAYS = np.empty(0, dtype='<U30')
-        # PIZZA 2/12/23 FOR NOW, CONVERT COMMON (LOW) NUMBERS TO STRS
-        EDIT_ALL_DICT = dict((
-            zip(
-                tuple(map(str, range(0,21))),
-                ('ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT',
-                 'NINE','TEN','ELEVEN','TWELVE','THIRTEEN','FOURTEEN','FIFTEEN',
-                 'SIXTEEN','SEVENTEEN','EIGHTEEN','NINETEEN','TWENTY')
-            )
-        ))
-        SPLIT_ALWAYS_DICT = {}
-
         if print_notes: print(f'\nRunning _lexicon cross-reference...')
 
-        number_of_edits = 0
-        total_words = sum(map(len, self.CLEANED_TEXT))
-        word_counter = 0
-        _ = None
-        for row_idx in [range(len(self.CLEANED_TEXT)) if not _abort else []][0]:
-            # GO THRU BACKWARDS BECAUSE A SPLIT OR DELETE WILL CHANGE THE ARRAY OF WORDS
+        Trfm = TextLookupRealTime(
+            update_lexicon=self.update_lexicon,
+            skip_numbers=True,
+            auto_split=True,
+            auto_add_to_lexicon=self.auto_add,
+            auto_delete=self.auto_delete,
+            remove_empty_rows=False,   # pizza gonna need to reckon with this
+            verbose=print_notes
+        )
 
-            if number_of_edits in range(10,int(1e6),10):
-                if vui.validate_user_str(f'Save all that hard work to file(s) or continue(c) > ', 'SC') == 'S':
-                    if vui.validate_user_str(f'Save to csv(c) or txt(t)? > ', 'CT') == 'C':
-                        self.dump_to_csv()
-                    else:
-                        self.dump_to_txt()
-                else:
-                    number_of_edits += 1   # SO IT DOESNT GET HUNG UP IF number_of_edits DOESNT CHANGE AS GOING THRU ROWS
-
-            for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
-                word_counter += 1
-                if print_notes and word_counter % 1000 == 0:
-                    print(f'Running word {word_counter:,} of {total_words:,}...')
-
-                word = self.CLEANED_TEXT[row_idx][word_idx].upper()
-
-
-                if self.update_lexicon and self.auto_add:
-                    if word in self.KNOWN_WORDS:
-                        if print_notes: print(f'\n*** {word} IS ALREADY IN LEXICON ***\n')
-                    if word not in self.KNOWN_WORDS: self.lex_lookup_add(word)
-                    continue
-
-
-                if self.auto_delete:
-                    if word in self.KNOWN_WORDS:
-                        if print_notes:
-                            print(f'\n*** {word} IS ALREADY IN LEXICON ***\n')
-
-                    elif word not in self.KNOWN_WORDS:
-                        # LOOK IF word IS 2 KNOWN WORDS SMOOSHED TOGETHER
-                        # word WILL BE DELETED NO MATTER WHAT AT THIS POINT, WHETHER IT HAS REPLACEMENTS OR NOT
-                        self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
-
-                        if len(word) >= 4:    # LOOK FOR REPLACEMENTS IF len(word) >= 4
-                            _splitter = lambda split_word: np.insert(self.CLEANED_TEXT[row_idx], word_idx, split_word.upper(), axis=0)
-                            for split_idx in range(2, len(word) - 1):
-                                if word[:split_idx] in self.KNOWN_WORDS and word[split_idx:] in self.KNOWN_WORDS:
-                                    if print_notes:
-                                        print(f'\n*** SUBSTITUTING "{word}" WITH "{word[:split_idx]}" AND "{word[split_idx:]}"\n')
-                                    # GO THRU word BACKWARDS TO PRESERVE ORDER
-                                    self.CLEANED_TEXT[row_idx] = _splitter(word[split_idx:])
-                                    self.CLEANED_TEXT[row_idx] = _splitter(word[:split_idx])
-                                    break
-                            # IF GET THRU for W/O FINDING A GOOD SPLIT, REPORT DELETE
-                            else:
-                                if print_notes:
-                                    print(f'\n*** DELETING {word} ***\n')
-                            del _splitter
-                        else:   # IF len(word) < 4, REPORT DELETE
-                            if print_notes:
-                                print(f'\n*** DELETING {word} ***\n')
-
-                elif word in self.KNOWN_WORDS:
-                    # IMPLICIT not self.auto_delete
-                    if print_notes:
-                        print(f'\n*** {word} IS ALREADY IN LEXICON ***\n')
-                elif word in WORDS_TO_DELETE:
-                    # IMPLICIT not self.auto_delete
-                    if print_notes:
-                        print(f'\n*** DELETING {word} ***\n')
-                    self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
-                elif word in SKIP_ALWAYS:
-                    # IMPLICIT not self.auto_delete
-                    continue
-                elif word in EDIT_ALL_DICT:
-                    # IMPLICIT not self.auto_delete
-                    self.CLEANED_TEXT[row_idx][word_idx] = EDIT_ALL_DICT[word]
-                elif word in SPLIT_ALWAYS_DICT:
-                    # IMPLICIT not self.auto_delete
-                    self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
-                    for slot_idx in range(len(SPLIT_ALWAYS_DICT[word]) - 1, -1, -1):
-                        # GO THRU NEW_WORDS BACKWARDS
-                        self.CLEANED_TEXT[row_idx] = \
-                            np.insert(self.CLEANED_TEXT[row_idx], word_idx, SPLIT_ALWAYS_DICT[word][slot_idx].upper(), axis=0)
-                else:   # IMPLICIT not self.auto_delete     word IS NOT IN KNOWN_WORDS OR ANY REPETITIVE OPERATION HOLDERS
-                    number_of_edits += 1
-                    not_in_lexicon = True
-                    if len(word) >= 4:
-                        for split_idx in range(2,len(word)-1):
-                            if word[:split_idx] in self.KNOWN_WORDS and word[split_idx:] in self.KNOWN_WORDS:
-                                print(view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx))
-                                print(f"\n*{word}* IS NOT IN LEXICON\n")
-                                print(f'\n*** RECOMMEND "{word[:split_idx]}" AND "{word[split_idx:]}" ***\n')
-                                if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
-                                    NEW_WORDS = [word[:split_idx], word[split_idx:]]
-                                    _ = 'T'
-                                    not_in_lexicon = False
-                                    break
-                        # else: not_in_lexicon STAYS True IF NO GOOD SPLIT FOUND
-                    # elif len(word) < 4: DONT DO SPLIT TEST AND not_in_lexicon STAYS True
-
-                    if not_in_lexicon:
-                        print(view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx))
-                        print(f"\n*{word}* IS NOT IN LEXICON\n")
-                        _ = vui.validate_user_str(f"{MENU_DISPLAY} > ", menu_allowed)
-
-                    if _ == 'A':
-                        self.lex_lookup_add(word)
-                    elif _ == 'D':
-                        self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
-                    elif _ in 'EF':
-                        new_word = self.word_editor(word, prompt=f'ENTER NEW WORD TO REPLACE *{word}*').upper()
-                        self.CLEANED_TEXT[row_idx][word_idx] = new_word
-
-                        if _ == 'F':
-                            EDIT_ALL_DICT[word] = new_word
-
-                        if self.update_lexicon:
-                            if new_word not in self.KNOWN_WORDS and new_word not in SKIP_ALWAYS:
-                                print(f"\n*{new_word}* IS NOT IN LEXICON\n")
-                                SUB_MENU, sub_allowed = self.lex_lookup_menu(allowed='AKW')
-                                __ = vui.validate_user_str(f"{SUB_MENU} > ", sub_allowed)
-                                if __ == 'A':
-                                    self.lex_lookup_add(new_word)
-                                elif __ == 'K':
-                                    pass
-                                elif __ == 'W':
-                                    SKIP_ALWAYS = np.insert(SKIP_ALWAYS, len(SKIP_ALWAYS), new_word, axis=0)
-                                del SUB_MENU, sub_allowed
-                    elif _ == 'L':
-                        # DELETE CURRENT ENTRY IN CURRENT ROW
-                        self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
-                        # PUT WORD INTO WORDS_TO_DELETE
-                        WORDS_TO_DELETE = np.insert(WORDS_TO_DELETE, len(WORDS_TO_DELETE), word, axis=0)
-                    elif _ == 'K':
-                        pass
-                    elif _ == 'W':
-                        SKIP_ALWAYS = np.insert(SKIP_ALWAYS, len(SKIP_ALWAYS), word, axis=0)
-                    elif _ in 'SU':
-                        while True:
-                            new_word_ct = vui.validate_user_int(
-                                f'Enter number of ways to split  *{word.upper()}*  in  *{view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx)}* > ', min=1, max=30)
-
-                            NEW_WORDS = np.empty(new_word_ct, dtype='<U30')
-                            for slot_idx in range(new_word_ct):
-                                NEW_WORDS[slot_idx] = \
-                                    self.word_editor(word.upper(),
-                                        prompt=f'Enter word for slot {slot_idx + 1} (of {new_word_ct}) replacing  *{self.CLEANED_TEXT[row_idx][word_idx]}*  '
-                                            f'in  *{view_text_snippet(self.CLEANED_TEXT[row_idx], word_idx)}*'
-                                    ).upper()
-
-                            if vui.validate_user_str(f'User entered *{", ".join(NEW_WORDS)}* > accept? (y/n) > ', 'YN') == 'Y':
-                                if _ == 'U':
-                                    SPLIT_ALWAYS_DICT[word] = NEW_WORDS
-                                _ = 'T'  # SEND IT TO UPDATE CLEANED_TEXT WHICH IS SHARED BY WORD RECOMMENDER
-                                break
-                    elif _ == 'Y':
-                        self.display_lexicon_update()
-                        word_idx -= 1
-                    elif _ == 'Z':
-                        break
-
-                    # NO elif !!!
-                    if _ == 'T':  # UPDATE CLEANED_TEXT, WHICH IS SHARED BY SPLIT AND WORD RECOMMENDER
-                        self.CLEANED_TEXT[row_idx] = np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
-                        for slot_idx in range(len(NEW_WORDS) - 1, -1, -1):  # GO THRU NEW_WORDS BACKWARDS
-                            self.CLEANED_TEXT[row_idx] = \
-                                np.insert(self.CLEANED_TEXT[row_idx], word_idx, NEW_WORDS[slot_idx].upper(), axis=0)
-
-                        if self.update_lexicon:
-                            SUB_MENU, sub_allowed = self.lex_lookup_menu(allowed='AKW')
-                            for slot_idx in range(len(NEW_WORDS)):
-                                if NEW_WORDS[slot_idx] not in self.KNOWN_WORDS and NEW_WORDS[slot_idx] not in SKIP_ALWAYS:
-                                    print(f"\n*{NEW_WORDS[slot_idx]}* IS NOT IN LEXICON\n")
-                                    _ = vui.validate_user_str(f"{SUB_MENU} > ", sub_allowed)
-                                    if _ == 'A':
-                                        self.lex_lookup_add(NEW_WORDS[slot_idx])
-                                    elif _ == 'K':
-                                        pass
-                                    elif _ == 'W':
-                                        SKIP_ALWAYS = np.insert(SKIP_ALWAYS, len(SKIP_ALWAYS), word, axis=0)
-                            del SUB_MENU, sub_allowed
-                        del NEW_WORDS
-
-            if _ == 'Z':
-                break
-
-        del MENU_DISPLAY, menu_allowed, number_of_edits, word_counter,
-        del WORDS_TO_DELETE, SKIP_ALWAYS, EDIT_ALL_DICT, SPLIT_ALWAYS_DICT
-
-        self.KNOWN_WORDS = None
+        self.CLEANED_TEXT = Trfm.transform(self.CLEANED_TEXT)
 
         if converted:
             self.as_list_of_strs()
         del converted
-
-        print(f'\n*** LEX LOOKUP COMPLETE ***\n')
-
-        if self.update_lexicon and not _abort: self.display_lexicon_update()
-        del _abort
-
-
-    def display_lexicon_update(self):
-        """Prints and returns LEXICON_ADDENDUM object for copy and paste into LEXICON."""
-        if len(self.LEXICON_ADDENDUM) != 0:
-            self.LEXICON_ADDENDUM.sort()
-            print(f'\n *** COPY AND PASTE THESE WORDS INTO LEXICON:\n')
-            print(f'[')
-            [print(f'   "{_}"{"" if _ == self.LEXICON_ADDENDUM[-1] else ","}') for _ in self.LEXICON_ADDENDUM]
-            print(f']')
-            print()
-
-            _ = f'dum' + input(f'\n*** Paused to allow copy, hit Enter to continue > '); del _
-
-            return self.LEXICON_ADDENDUM
-        else:
-            print(f'\n *** LEXICON ADDENDUM IS EMPTY *** \n')
-
-    # END STUFF FOR LEXICON LOOKUP #####################################
-    ####################################################################
-    ####################################################################
-
 
 
 
