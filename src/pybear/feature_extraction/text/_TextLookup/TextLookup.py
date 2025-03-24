@@ -63,35 +63,36 @@ class TextLookup(TextLookupMixin):
     Because of this temporal dynamic, TL is not able to save changes to
     your data in-situ. If you log a lot of changes to your data during
     (partial_)fit and then the program terminates for whatever reason,
-    you lose all your work.
+    you lose all your work. If you want to make edits to the data in
+    real time and be able to save your changes in-situ then use
+    TextLookupRealTime.
 
-    To run TL in autonomous mode, set one of 'auto_add_to_lexicon' or
-    'auto_delete' to True. You cannot set both to True.
+    To run TL in autonomous mode, set either 'auto_add_to_lexicon' or
+    'auto_delete' to True; both cannot simultaneously be True.
     'auto_add_to_lexicon' can only be True if 'update_lexicon' is True.
 
     When 'auto_add_to_lexicon' is True, if TL encounters a word that
     is not in the Lexicon it will automatically stage the word in
     LEXICON_ADDENDUM_ and go to the next word until all the words in the
     text are exhausted. When 'auto_delete' is True, if TL encounters a
-    word that is not in the Lexicon, it will automatically delete the
-    word from the text body and go to the next word, until all the words
-    in the text are exhausted. In these cases, TL can never proceed into
-    manual mode. To allow TL to go into manual mode, both 'auto_delete'
-    and 'auto_add_to_lexicon' must be False.
+    word that is not in the Lexicon, it will automatically add the word
+    to the DELETE_ALWAYS_ attribute and go to the next word, until all
+    the words in the text are exhausted. In these cases, TL can never
+    proceed into manual mode. To allow TL to go into manual mode, both
+    'auto_delete' and 'auto_add_to_lexicon' must be False.
 
     In manual mode, when TL encounters a word that is not in the
     Lexicon, the user will be prompted with an interactive menu for an
     action. Choices include: skip always, delete always, replace always,
     split always, and if 'update_lexicon' is True, an 'add to lexicon'
     option. If you choose something from the 'always' group, the word
-    and its action go into a 'holder' object so that TL remembers what
-    to do next time it sees the word. In this way, a tedious interactive
-    session can become more automated as the session proceeds. TL does
-    not have the ability to handle the same word in different ways at
-    different times. Whatever instruction you select for one occurrence
-    of a word must be applied to all occurrences of the word because the
-    storage mechanisms for the operation/word combinations do not track
-    the exact locations of individual words.
+    goes into a 'holder' object for the selected action so that TL knows
+    how to handle it during transform. TL does not have the ability to
+    handle the same word in different ways at different times. Whatever
+    instruction is selected for one occurrence of a word must be applied
+    to all occurrences of the word because the storage mechanisms for
+    the operation/word combinations do not track the exact locations of
+    individual words.
 
     The holder objects are all accessible attributes in the TL public
     API. See the attributes section for more details. These holder
@@ -103,8 +104,8 @@ class TextLookup(TextLookupMixin):
     to always tell TL what to do with these words when they come up.
     You decide that you want to leave them in the text body and have
     TL ignore them. At instantiation pass a list of these strings to
-    the SKIP_ALWAYS parameter. So you might pass ['ALICE', 'BOB', 'CARL',
-    'DIANE',...] to SKIP_ALWAYS. TL will always skip these words
+    the SKIP_ALWAYS parameter. So you might pass ['ZEKE', 'YVONNE',
+    'XAVIER', ...] to SKIP_ALWAYS. TL will always skip these words
     without asking. The passed SKIP_ALWAYS becomes the starting seed of
     the SKIP_ALWAYS_ attribute. Any other manual inputs during the
     session that say to always skip certain other words will be added to
@@ -133,26 +134,26 @@ class TextLookup(TextLookupMixin):
     TL requires (possibly ragged) 2D data formats. Accepted objects
     include python built-in lists and tuples, numpy arrays, pandas
     dataframes, and polars dataframes. Use pybear TextSplitter to
-    convert 1D text to 2D tokens. Results are always returned as a
-    2D python list of lists of strings.
+    convert 1D text to 2D tokens. Results are always returned as a 2D
+    python list of lists of strings.
 
     Your data should be in a highly processed state before using TL.
     This should be one of the last steps in a text wrangling workflow
-    because the content of your text will go apples-to-apples against the
-    words in the Lexicon, and all the words in the pybear Lexicon have
-    no non-alpha characters and are all majuscule. All junk characters
-    should be removed and clear separators established. A pybear text
-    wrangling workflow might look like:
+    because the content of your text will be compared directly against
+    the words in the Lexicon, and all the words in the pybear Lexicon
+    have no non-alpha characters and are all majuscule. All junk
+    characters should be removed and clear separators established. A
+    pybear text wrangling workflow might look like:
     TextStripper > TextReplacer > TextSplitter > TextNormalizer >
     TextRemover > TextLookup > StopRemover > TextJoiner > TextJustifier
 
     Every operation in TL is case-sensitive. Remember that the formal
-    pybear Lexicon is majuscule, so you really should use pybear
-    TextNormalizer to make all your text majuscule before using TL.
-    Otherwise, TL will always flag every valid word that is not
-    majuscule because it doesn't exactly match the Lexicon. If you alter
-    your local copy of the pybear Lexicon with your own words of varying
-    capitalization, TL honors your capitalization scheme.
+    pybear Lexicon is majuscule; use pybear TextNormalizer to make all
+    your text majuscule before using TL. Otherwise, TL will always flag
+    every valid word that is not majuscule because it doesn't exactly
+    match the Lexicon. If you alter your local copy of the pybear Lexicon
+    with your own words of varying capitalization, TL honors your
+    capitalization scheme.
 
     If TL encounters a word during transform that was not seen during
     fitting and is not in the Lexicon, the way that it is handled depends
@@ -160,8 +161,9 @@ class TextLookup(TextLookupMixin):
     the word is deleted from the text body. If False, the word is
     skipped. In both cases, the word is added to an 'OOV_' (out of
     vocabulary) dictionary. The OOV_ attribute is only available after
-    data has been passed to :method: transform. This dictionary's values
-    indicate the frequency of each unseen word.
+    data has been passed to :method: transform. The keys are the
+    out-of-vocabulary words and the values are the frequency of each
+    unseen word.
 
     TL is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, partial_fit, fit, transform, and
@@ -170,29 +172,30 @@ class TextLookup(TextLookupMixin):
     actually have text data in dask format.
 
     TL has an 'n_rows_' attribute which is only available after data has
-    been passed to :methods: (partial_)fit. 'n_rows_' is the number of
-    rows of text seen in the original data but is not necessarily the
-    number of rows in the outputted data. It also has a 'row_support_'
+    been passed to :methods: (partial_)fit. 'n_rows_' is the total number
+    of rows of text seen in the original data and is not necessarily the
+    number of rows in the outputted data. TL also has a 'row_support_'
     attribute that is a boolean vector of shape (n_rows, ) that indicates
-    the rows of the original data that were kept during the lookup
+    which rows of the original data were kept during the transform
     process (True) and which were deleted (False). The only way that an
     entry could become False is if 'remove_empty_rows' is True and a row
-    becomes empty when handling unknown words. 'row_support_' only
-    reflects the last dataset passed to transform.
+    becomes empty when handling unknown words. 'row_support_' is only
+    available after something has been passed to :method: transform, and
+    only reflects the last dataset passed to transform.
 
 
     Parameters
     ----------
     update_lexicon:
-        Optional[bool], default=False - whether to consider words that
+        Optional[bool], default=False - whether to queue words that
         are not in the pybear Lexicon for later addition to the Lexicon.
         This applies to both autonomous and interactive modes. If False,
         TL will never put a word in LEXICON_ADDENDUM_ and will never
         prompt you with the option.
     skip_numbers:
         Optional[bool], default=True - When skip numbers is True, TL
-        will try to do python float(word) on the word and if it can be
-        cast to a float TL will skip it and go to the next word. If
+        will try to do python float(word) on the word and, if it can be
+        cast to a float, TL will skip it and go to the next word. If
         False, TL will handle it like any other word. There are no
         numbers in the formal pybear Lexicon so TL will always flag
         them and handle them autonomously or prompt the user for an
@@ -217,17 +220,17 @@ class TextLookup(TextLookupMixin):
     auto_add_to_lexicon:
         Optional[bool], default=False - 'update_lexicon' must be True to
         use this parameter. Cannot be True if 'auto_delete' is True.
-        When TL encounters a word that is not in the Lexicon, the word
-        will silently staged in the LEXICON_ADDENDUM_ attribute
-        to be added to the Lexicon later. When this parameter is True,
-        TL operates in 'auto-mode', where the user will not be prompted
-        for decisions.
+        When this parameter is True, TL operates in 'auto-mode', where
+        the user will not be prompted for decisions. When TL encounters
+        a word that is not in the Lexicon, the word will silently be
+        staged in the LEXICON_ADDENDUM_ attribute to be added to the
+        Lexicon later.
     auto_delete:
         Optional[bool], default=False - Cannot be True if 'update_lexicon'
-        or 'auto_add_to_lexicon' are True. When TL encounters a word
-        that is not in the Lexicon, the word will be silently deleted
-        from the text body. When this parameter is True, TL operates
-        in 'auto-mode', where the user will not be prompted for decisions.
+        or 'auto_add_to_lexicon' are True. When this parameter is True,
+        TL operates in 'auto-mode', where the user will not be prompted
+        for decisions. When TL encounters a word that is not in the
+        Lexicon, the word will be silently deleted from the text body.
     DELETE_ALWAYS:
         Optional[Union[Sequence[str], None]], default=None - A list of
         words that will always be deleted by TL, even if they are in
@@ -254,8 +257,9 @@ class TextLookup(TextLookupMixin):
         prompt the user for any more information, it will silently skip
         the word. What is passed here becomes the seed for the
         SKIP_ALWAYS_ attribute, which may have more words added to it
-        during run-time in manual mode. Auto-mode will never add more
-        words to this list.
+        during run-time in manual mode. Auto-mode will only a add entries
+        to this list if 'ignore_numbers' is True and TL finds a number
+        during (partial_)fit.
     SPLIT_ALWAYS:
         Optional[Union[dict[str, Sequence[str]], None]], default=None -
         A dictionary with words expected to be in the text body as keys
@@ -267,14 +271,15 @@ class TextLookup(TextLookupMixin):
         the word. What is passed here becomes the seed for the
         SPLIT_ALWAYS_ attribute, which may have more word/replacement
         pairs added to it during run-time in manual mode. Auto-mode will
-        never add entries to this dictionary.
+        only add entries to this dictionary if 'auto_split' is True and
+        TL finds a valid split for an unknown word.
     remove_empty_rows:
         Optional[bool], default=False - whether to remove any rows that
-        mag have been made empty during the lookup/replace/delete
-        process. If 'remove_empty_rows' is True and rows are deleted,
-        the user can find supplemental information in the 'row_support_'
-        attribute, which indicates through booleans which rows were kept
-        (True) and which rows were removed (False).
+        may have been made empty during the lookup process. If
+        'remove_empty_rows' is True and rows are deleted, the user can
+        find supplemental information in the 'row_support_' attribute,
+        which indicates through booleans which rows were kept (True) and
+        which rows were removed (False).
     verbose:
         Optional[bool], default=False - whether to display helpful
         information during the transform process. This applies to both
@@ -296,10 +301,10 @@ class TextLookup(TextLookupMixin):
         encountered in the text that is not in the Lexicon is added to
         this list. In manual mode, if the user selects to 'add to
         lexicon' then the word is put in this list. TL does not
-        automatically add new words to the actual Lexicon directly
-        (though it could easily be made to do so.) TL stages new words
-        in LEXICON_ADDENDUM_ and at the end of a session prints them
-        to the screen. They are also available in this attribute.
+        automatically add new words to the actual Lexicon directly.
+        TL stages new words in LEXICON_ADDENDUM_ and at the end of a
+        session prints them to the screen and makes them available in
+        this attribute.
     KNOWN_WORDS_:
         list[str] - This is a WIP object used by TL to determine "what
         is in the Lexicon." At instantiation, this is just a copy of the
@@ -308,15 +313,13 @@ class TextLookup(TextLookupMixin):
         are inserted at the front of this list (in addition to also
         being put in LEXICON_ADDENDUM_.) If 'auto_add_to_lexicon' is
         True, then words are inserted into this list silently during the
-        auto-transform process. If 'auto_add_to_lexicon' is False, words
+        auto-lookup process. If 'auto_add_to_lexicon' is False, words
         are inserted into this list if the user selects 'add to lexicon'.
     DELETE_ALWAYS_:
         list[str] - A list of words that will always be deleted from the 
         text body by TL, even if they are in the Lexicon. This list is
         comprised of any words passed to 'DELETE_ALWAYS' at instantiation
-        and any words added to this list in manual mode when the user
-        selects 'delete always'. Unknown words are not added to this
-        list in auto-mode.
+        and any words added to this list during (partial_)fit.
     REPLACE_ALWAYS_:
         dict[str, str] - A dictionary with words expected to be in the
         text body as keys and their respective single-word replacements
@@ -334,29 +337,32 @@ class TextLookup(TextLookupMixin):
         words added to it when the user selects 'skip always' in
         manual mode. In manual mode, the next time TL sees a word that
         is in this list it will not prompt the user again, it will
-        silently skip the word. TL does not make additions to this
-        list in auto mode.
+        silently skip the word. TL will only make additions to this
+        list in auto mode if 'skip_numbers' is True and a number is
+        found in the training data.
     SPLIT_ALWAYS_:
-        dict[str, Sequence[str]] - Similar to REPLACE_ALWAYS_, but
-        slightly more advanced. A dictionary with words expected to be
-        in the text body as keys and their respective multi-word lists
-        of replacements as values. TL will sub these words in even
-        if the original word is in the Lexicon. This dictionary holds
-        anything passed to SPLIT_ALWAYS at instantiation and any splits
-        made when 'split always' is selected in manual mode. In manual
-        mode, the next time TL sees the old word in the text body it
-        will silently make the split. TL does not add anything to this
-        dictionary in auto mode.
+        dict[str, Sequence[str]] - Similar to REPLACE_ALWAYS_, a
+        dictionary with words expected to be in the text body as keys
+        and their respective multi-word lists of replacements as values.
+        TL will sub these words in even if the original word is in the
+        Lexicon. This dictionary holds anything passed to SPLIT_ALWAYS
+        at instantiation and any splits made when 'split always' is
+        selected in manual mode. In manual mode, the next time TL sees
+        the same word in the text body it will not prompt the user again.
+        The only way TL will add anything to this dictionary in auto
+        mode is if 'auto_split' is True and TL finds a valid split of an
+        unknown word during (partial_)fit.
     OOV_:
         dict[str, int] - "Out-of-vocabulary" words that were found during
-        transform and were not seen during fitting. If (when) data that
-        was not seen during (partial_)fit is passed to transform, there
-        is the possibility that there are strings that wre not previously
+        transform and were not seen during fitting. If data that was not
+        seen during (partial_)fit is passed to transform, there is the
+        possibility that there are strings that were not previously
         seen. In this case, TextLookup will not do any more learning and
-        will not prompt for anything from the user. In addition to other
-        actions that are clarified in the main part of the docs, TL will
-        always add all unseen strings as keys in this dictionary. The
-        values are the frequency of each respective string.
+        will not prompt for anything from the user. If 'auto_delete' is
+        True, TL will delete this new word; if False, the word is
+        skipped. In both cases, TL will always add all unseen strings as
+        keys in this dictionary. The values are the frequency of each
+        respective string.
 
 
     Notes
@@ -381,6 +387,27 @@ class TextLookup(TextLookupMixin):
 
     RowSupportType:
         npt.NDArray[bool]
+
+
+    Examples
+    --------
+    >>> from pybear.feature_extraction.text import TextLookup as TL
+    >>> trfm = TL(skip_numbers=False, auto_delete=True, auto_split=False)
+    >>> X = [
+    ...    ['FOUR', 'SKORE', '@ND', 'SEVEN', 'YEARS', 'ABO'],
+    ...    ['OUR', 'FATHERS', 'BROUGHT', 'FOTH', 'UPON', 'THIZ', 'CONTINENT'],
+    ...    ['A', 'NEW', 'NETION', 'CONCEIVED', 'IN', 'LOBERTY'],
+    ...    ['AND', 'DEDICORDED', '2', 'THE', 'PRAPISATION'],
+    ...    ['THAT', 'ALL', 'MEESES', 'ARE', 'CREATED', 'EQUEL']
+    ... ]
+    >>> out = trfm.fit_transform(X)
+    >>> for i in out:
+    ...     print(i)
+    ['FOUR', 'SEVEN', 'YEARS']
+    ['OUR', 'FATHERS', 'BROUGHT', 'UPON', 'CONTINENT']
+    ['A', 'NEW', 'CONCEIVED', 'IN']
+    ['AND', 'THE']
+    ['THAT', 'ALL', 'ARE', 'CREATED']
 
 
     """
@@ -602,6 +629,7 @@ class TextLookup(TextLookupMixin):
                         # if get to here its a number, go to next word
                         if self.verbose:
                             print(f'\n*** ALWAYS SKIP NUMBERS *{_word}* ***\n')
+                        self.SKIP_ALWAYS_.append(_word)
                         continue
                     except:
                         pass
@@ -910,19 +938,9 @@ class TextLookup(TextLookupMixin):
                     # are already in KNOWN_WORDS or SKIP_ALWAYS.
                     continue
 
-                # short circuit for numbers
-                elif self.skip_numbers:
-                    try:
-                        float(_word)
-                        # if get to here its a number, go to next word
-                        continue
-                    except:
-                        pass
-                # END short circuit for numbers
-
                 # PUT THIS LAST.... OTHERWISE USER WOULD NEVER BE ABLE
                 # TO DELETE, REPLACE, OR SPLIT WORDS ALREADY IN LEXICON
-                elif _word in self.KNOWN_WORDS_:
+                if _word in self.KNOWN_WORDS_:
                     continue
                 # END short-circuit for already known or learned in-situ
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

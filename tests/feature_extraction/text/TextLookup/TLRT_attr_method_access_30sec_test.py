@@ -74,11 +74,11 @@ class Fixtures:
     @pytest.fixture(scope='module')
     def _X():
         return [
-            ['Two', 'roads', 'diverged', 'in', 'a', 'yellow', 'wood'],
-            ['And', 'sorry', 'I', 'could', 'not', 'travel', 'both'],
-            ['And', 'be', 'one', 'traveler,', 'long', 'I', 'stood'],
-            ['And', 'looked', 'down', 'one', 'as', 'far', 'as', 'I', 'could'],
-            ['To','where', 'it', 'bent', 'in', 'the', 'undergrowth;']
+            ['TWO', 'ROADS', 'DIVERGED', 'IN', 'A', 'YELLOW', 'WOOD'],
+            ['AND', 'SORRY', 'I', 'COULD', 'NOT', 'TRAVEL', 'BOTH'],
+            ['AND', 'BE', 'ONE', 'TRAVELER,', 'LONG', 'I', 'STOOD'],
+            ['AND', 'LOOKED', 'DOWN', 'ONE', 'AS', 'FAR', 'AS', 'I', 'COULD'],
+            ['TO','WHERE', 'IT', 'BENT', 'IN', 'THE', 'UNDERGROWTH']
         ]
 
 # END fixtures
