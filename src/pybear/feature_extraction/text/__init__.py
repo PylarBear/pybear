@@ -8,7 +8,6 @@
 
 from ._Lexicon.Lexicon import Lexicon
 from ._StopRemover.StopRemover import StopRemover
-from ._TextCleaner._TextCleaner.TextCleaner import TextCleaner  # pizza underscore
 from ._TextJoiner.TextJoiner import TextJoiner
 from ._TextJustifier.TextJustifier import TextJustifier
 from ._TextJustifierRegExp.TextJustifierRegExp import TextJustifierRegExp
@@ -26,7 +25,6 @@ from ._TextStripper.TextStripper import TextStripper
 __all__ = [
     'Lexicon',
     'StopRemover',
-    'TextCleaner',
     'TextJoiner',
     'TextJustifier',
     'TextJustifierRegExp',

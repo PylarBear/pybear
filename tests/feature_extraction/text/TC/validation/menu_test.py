@@ -8,8 +8,7 @@
 
 import pytest
 
-from pybear.feature_extraction.text._TC._methods._validation._menu \
-    import _menu_validation
+from pybear.feature_extraction.text._TC._validation._menu import _menu_validation
 
 
 

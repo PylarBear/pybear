@@ -25,6 +25,7 @@ from ._nan_masking import (
 )
 from ._permuter import permuter
 from ._print_inspect_stack import print_inspect_stack
+from ._remove_characters import remove_characters
 from ._scipy_sparse_preslice_handle import scipy_sparse_preslice_handle
 from ._serial_index_mapper import serial_index_mapper
 from ._view_text_snippet import view_text_snippet
@@ -60,6 +61,7 @@ __all__ = [
     "nan_mask_string",
     "permuter",
     "print_inspect_stack",
+    "remove_characters",
     "scipy_sparse_preslice_handle",
     "serial_index_mapper",
     "time_memory_benchmark",
