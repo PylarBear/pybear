@@ -80,9 +80,9 @@ def _validation(
 
 
 
-    _a = _str_remove
-    _b = _regexp_remove
-    _c = _regexp_flags
+    _a = _str_remove is not None
+    _b = _regexp_remove is not None
+    _c = _regexp_flags is not None
 
 
     if not any((_a, _b, _c)):
