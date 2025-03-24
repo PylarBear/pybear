@@ -6,7 +6,8 @@
 
 
 
-from pybear.feature_extraction.text._TextLookup.TextLookup import TextLookup as TL
+from pybear.feature_extraction.text._TextLookup.TextLookupRealTime import \
+    TextLookupRealTime as TLRT
 
 
 
@@ -14,7 +15,7 @@ from pybear.feature_extraction.text._TextLookup.TextLookup import TextLookup as 
 
 if __name__ == '__main__':
 
-    trfm = TL(
+    trfm = TLRT(
         update_lexicon = True,
         skip_numbers = True,
         auto_split = True,

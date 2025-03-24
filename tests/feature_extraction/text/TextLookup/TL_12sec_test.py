@@ -15,8 +15,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextLookup.TextLookupRealTime import \
-    TextLookupRealTime as TLRT
+from pybear.feature_extraction.text._TextLookup.TextLookup import TextLookup as TL
 
 
 
@@ -100,7 +99,7 @@ class TestTextLookupRealTime:
             ["COMMON", "CREATIVITY", "CURIOUS", "DANGER"],
             ["DESTINY", "DESIRE", "DIVINE", "DREAMING", "EDUCATE"],
             ["ELITE", "ENCOURAGE", "EXCITEMENT", "EXPECT", "FAITHFUL"],
-            ["FANTASTIC", "FAVORITE", "FRIEND", "FRIENDLY"],
+            ["FANTASTIC", "FAVORITE", "FRIEND", "FRIENDLY", "QUACKTIVATE"],
             ["GATHERING", "GENEROUS", "GENERATE", "GLORIOUS", "HARMONY"],
             ["HELPFUL", "HOPEFUL", "HONESTY", "HUMANITY", "INFLUENCE"],
             ["INSIGHT", "INTEREST", "INFLUENCER", "JOYFUL", "JUDGEMENT"],
@@ -132,23 +131,25 @@ class TestTextLookupRealTime:
             ["EXPECTATION", "EXCITING", "FLEX", "ABILITY", "FREEDOM", "GLORY"],
             ["HARMONIOUS", "HEROISM", "INSPIRATION", "MINDFUL", "ZIG", "TROPE"],
             ["PERSIST", "ACE", "PROGRESSIVE", "TRULY", "VALUE", "ABLE", "VICTORY"],
-            ["STAR", "DUSK", "ZONKING"],
-            ["CRUMBLE", "WAX"]
+            ["STAR", "DUSK"],
+            ["SNORLUX", "CRUMBLE", "WAX"]
     ]
 
 
 
     def test_accuracy(self, _kwargs, _X, exp):
 
-        TestCls = TLRT(**_kwargs)
+        TestCls = TL(**_kwargs)
 
-        a = f"d\nd\nl\nl\nw\nl\nd\nf\nGLORY\ny\nu\n2\nBLOOM\ny\nTRIX\n"
-        b = f"y\ny\na\nf\nBEAUTIFUL\ny\ne\nAMAZING\ny\nl\ne\n"
-        c = f"MAGNIFICENT\ny\nd\nl\nd\nc\n"
+        a = f"l\nl\nl\nw\nl\nl\nl\nf\nGLORY\ny\nu\n2\nBLOOM\ny\nTRIX\n"
+        b = f"y\ny\na\nf\nBEAUTIFUL\ny\nf\nAMAZING\ny\nl\nf\n"
+        c = f"MAGNIFICENT\ny\nl\nw\nl\n"
 
         user_inputs = a + b + c
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = TestCls.transform(_X)
+            TestCls.partial_fit(_X)
+
+        out = TestCls.transform(_X)
 
         for r_idx in range(len(exp)):
             assert np.array_equal(out[r_idx], exp[r_idx])
@@ -160,7 +161,6 @@ class TestTextLookupRealTime:
 
         rs_ = TestCls.row_support_
         assert isinstance(rs_, np.ndarray)
-        print(list(map(type, rs_)))
         assert all(map(isinstance, rs_, (np.bool for _ in rs_)))
         assert len(rs_) == len(_X)
         assert np.array_equal(rs_, [True] * len(_X))
@@ -175,35 +175,37 @@ class TestTextLookupRealTime:
 
         assert np.array_equal(
             list(TestCls.SPLIT_ALWAYS_.keys()),
-            ['BLOOMTRIX']
+            ['CRUMBLEWAX', 'STARDUSK', 'VALUEABLE', 'PERSISTACE',
+             'ZIGTROPE', 'FLEXABILITY', 'BLOOMTRIX', 'TEACOMPOST']
         )
 
         assert np.array_equal(
             list(TestCls.SPLIT_ALWAYS_.values()),
-            [['BLOOM', 'TRIX']]
+            [['CRUMBLE', 'WAX'], ['STAR', 'DUSK'], ['VALUE', 'ABLE'],
+             ['PERSIST', 'ACE'], ['ZIG', 'TROPE'], ['FLEX', 'ABILITY'],
+             ['BLOOM', 'TRIX'], ['TEA', 'COMPOST']]
         )
 
         assert np.array_equal(
             TestCls.DELETE_ALWAYS_,
-            ['TORTAGLOOM', 'SNORLUX', 'GLENSHWINK',
-            'JUMBLYWUMP', 'QUACKTIVATE']
+            ['SNIRKIFY', 'GLIMPLER', 'TORTAGLOOM', 'ZONKING', 'GLENSHWINK',
+             'FLAPDOO', 'JUMBLYWUMP', 'SMORFIC', 'FLOOBASTIC']
         )
 
         assert np.array_equal(
             list(TestCls.REPLACE_ALWAYS_.keys()),
-            ['GLOURY', 'BEAUTIFULL']
+            ['GLOURY', 'BEAUTIFULL', 'AMAZIN', 'MAGNIFICIENT']
         )
 
         assert np.array_equal(
             list(TestCls.REPLACE_ALWAYS_.values()),
-            ['GLORY', 'BEAUTIFUL']
+            ['GLORY', 'BEAUTIFUL', 'AMAZING', 'MAGNIFICENT']
         )
 
         assert np.array_equal(
             TestCls.SKIP_ALWAYS_,
-            ['ZONKING']
+            ['SNORLUX', 'QUACKTIVATE']
         )
-
 
 
     def test_array_all_str_numbers(self, _kwargs):
@@ -217,10 +219,10 @@ class TestTextLookupRealTime:
         # numbers and 'skip_numbers' works
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['skip_numbers'] = True
-        TL = TLRT(**_new_kwargs)
+        TestCls = TL(**_new_kwargs)
         user_inputs = f"c\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = TL.transform(_new_X)
+            out = TestCls.fit_transform(_new_X)
         # should not prompt, should just return original.
         for r_idx in range(len(out)):
             assert np.array_equal(out[r_idx], _new_X[r_idx])
@@ -231,14 +233,14 @@ class TestTextLookupRealTime:
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['skip_numbers'] = False
         _new_kwargs['update_lexicon'] = False
-        TL = TLRT(**_new_kwargs)
+        TestCls = TL(**_new_kwargs)
 
         # just ignore all of them. we are just trying to prove out that
         # when not ignored, TextLookup sees them and prompts to handle
         # because they are not in the formal pybear lexicon.
-        user_inputs = 15 * f"k\n" + f"c\n"
+        user_inputs = 15 * f"w\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = TL.transform(_new_X)
+            out = TestCls.fit_transform(_new_X)
 
 
 
