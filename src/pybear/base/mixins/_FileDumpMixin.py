@@ -21,7 +21,6 @@ from ...data_validation import validate_user_input as vui
 from .._check_1D_str_sequence import check_1D_str_sequence
 from .._check_2D_str_array import check_2D_str_array
 
-from .._check_is_fitted import check_is_fitted
 
 
 
@@ -113,8 +112,6 @@ class FileDumpMixin:
     def dump_to_csv(self, _X: list[str], filename: str) -> None:
         """Dump X to csv."""
 
-        check_is_fitted(self)
-
         print(f'\nSaving data to csv...')
 
         pd.Series(
@@ -128,7 +125,6 @@ class FileDumpMixin:
     def dump_to_txt(self, _X: list[str], filename: str) -> None:
         """Dump X to txt."""
 
-        check_is_fitted(self)
 
         print(f'\nSaving data to txt file...')
 
