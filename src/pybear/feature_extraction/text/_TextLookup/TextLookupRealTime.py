@@ -28,8 +28,6 @@ from ._shared._type_aliases import (
     WipXContainer
 )
 
-from .._Lexicon.Lexicon import Lexicon
-
 from ....data_validation import validate_user_input as vui
 
 from ....utilities._view_text_snippet import view_text_snippet
@@ -621,7 +619,7 @@ class TextLookupRealTime(TextLookupMixin):
         self.LEXICON_ADDENDUM_: list[str] = \
             getattr(self, 'LEXICON_ADDENDUM_', [])
         self.KNOWN_WORDS_: list[str] = \
-            getattr(self, 'KNOWN_WORDS_', list(Lexicon().lexicon_))
+            getattr(self, 'KNOWN_WORDS_', list(self.get_lexicon()))
         # END Manage attributes -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # MANAGE THE CONTENTS OF LEXICON ADDENDUM -- -- -- -- -- -- --

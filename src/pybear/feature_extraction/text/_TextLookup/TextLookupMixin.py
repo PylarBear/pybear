@@ -13,6 +13,8 @@ import numbers
 
 from ._shared._type_aliases import XContainer
 
+from .._Lexicon.Lexicon import Lexicon
+
 from ....utilities._DictMenuPrint import DictMenuPrint
 
 from ....base import (
@@ -39,6 +41,10 @@ class TextLookupMixin(
     except docs, partial_fit, and transform.
 
     """
+
+
+    _lexicon_instance = None
+
 
     def __init__(
         self,
@@ -79,6 +85,16 @@ class TextLookupMixin(
             fixed_col_width=25
         )
     # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+
+    @classmethod
+    def get_lexicon(cls):
+        """Create a singleton Lexicon instance as class attribute."""
+
+        if cls._lexicon_instance is None:
+            cls._lexicon_instance = Lexicon()
+
+        return cls._lexicon_instance.lexicon_
 
 
     def reset(self) -> Self:
