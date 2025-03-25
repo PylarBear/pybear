@@ -339,47 +339,44 @@ def sk_GSCV_est_xgb_one_scorer_prefit(
     )
     return __
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_est_xgb_one_scorer_postfit_refit_false(
-#     sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         refit=False
-#     )
-#     return __.fit(X_np, y_np)
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_est_xgb_one_scorer_postfit_refit_str(
-#     sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         refit='accuracy'
-#     )
-#     return __.fit(X_np, y_np)
+@pytest.fixture(scope='session')
+def sk_GSCV_est_xgb_one_scorer_postfit_refit_false(
+    sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        refit=False
+    )
+    return __.fit(X_np, y_np)
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_est_xgb_one_scorer_postfit_refit_fxn(
-#     sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         refit=lambda x: 0
-#     )
-#     return __.fit(X_np, y_np)
+
+@pytest.fixture(scope='session')
+def sk_GSCV_est_xgb_one_scorer_postfit_refit_str(
+    sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        refit='accuracy'
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSCV_est_xgb_one_scorer_postfit_refit_fxn(
+    sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        refit=lambda x: 0
+    )
+    return __.fit(X_np, y_np)
 
 # END gscv xgb est one scorer, various refits
 
@@ -626,115 +623,108 @@ def sk_GSCV_est_xgb_two_scorers_prefit(
     )
     return __
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_est_xgb_two_scorers_postfit_refit_false(
-#     sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=False
-#     )
-#     return __.fit(X_np, y_np)
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_est_xgb_two_scorers_postfit_refit_str(
-#     sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit='accuracy'
-#     )
-#     return __.fit(X_np, y_np)
+@pytest.fixture(scope='session')
+def sk_GSCV_est_xgb_two_scorers_postfit_refit_false(
+    sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=False
+    )
+    return __.fit(X_np, y_np)
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_est_xgb_two_scorers_postfit_refit_fxn(
-#     sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=lambda x: 0
-#     )
-#     return __.fit(X_np, y_np)
+
+@pytest.fixture(scope='session')
+def sk_GSCV_est_xgb_two_scorers_postfit_refit_str(
+    sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit='accuracy'
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSCV_est_xgb_two_scorers_postfit_refit_fxn(
+    sk_gscv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=lambda x: 0
+    )
+    return __.fit(X_np, y_np)
 
 # END gscv xgb est two scorers, various refits
 
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
+
 # gstcv xgb est two scorers, various refits
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_est_xgb_two_scorers_prefit(
-#     sk_gstcv_init_params, sk_xgb_init_params, param_grid_sk_xgb
-# ):
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=False
-#     )
-#     return __
+@pytest.fixture(scope='session')
+def sk_GSTCV_est_xgb_two_scorers_prefit(
+    sk_gstcv_init_params, sk_xgb_init_params, param_grid_sk_xgb
+):
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_est_xgb_two_scorers_postfit_refit_false(
-#     sk_gstcv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=False
-#     )
-#     return __.fit(X_np, y_np)
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=False
+    )
+    return __
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_est_xgb_two_scorers_postfit_refit_str(
-#     sk_gstcv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit='accuracy'
-#     )
-#     return __.fit(X_np, y_np)
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_est_xgb_two_scorers_postfit_refit_fxn(
-#     sk_gstcv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
-# ):
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=sk_XGBClassifier(**sk_xgb_init_params),
-#         param_grid=param_grid_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=lambda x: 0
-#     )
-#     return __.fit(X_np, y_np)
+@pytest.fixture(scope='session')
+def sk_GSTCV_est_xgb_two_scorers_postfit_refit_false(
+    sk_gstcv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=False
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSTCV_est_xgb_two_scorers_postfit_refit_str(
+    sk_gstcv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit='accuracy'
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSTCV_est_xgb_two_scorers_postfit_refit_fxn(
+    sk_gstcv_init_params, sk_xgb_init_params, param_grid_sk_xgb, X_np, y_np
+):
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=sk_XGBClassifier(**sk_xgb_init_params),
+        param_grid=param_grid_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=lambda x: 0
+    )
+    return __.fit(X_np, y_np)
 
 # END gstcv xgb est two scorers, various refits
 
@@ -1063,171 +1053,162 @@ def sk_GSCV_pipe_xgb_one_scorer_prefit(
     )
     return __
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_pipe_xgb_one_scorer_postfit_refit_false(
-#     sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         refit=False
-#     )
-#     return __.fit(X_np, y_np)
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_pipe_xgb_one_scorer_postfit_refit_str(
-#     sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         refit='accuracy'
-#     )
-#     return __.fit(X_np, y_np)
+@pytest.fixture(scope='session')
+def sk_GSCV_pipe_xgb_one_scorer_postfit_refit_false(
+    sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_pipe_xgb_one_scorer_postfit_refit_fxn(
-#     sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         refit=lambda x: 0
-#     )
-#     return __.fit(X_np, y_np)
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        refit=False
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSCV_pipe_xgb_one_scorer_postfit_refit_str(
+    sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        refit='accuracy'
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSCV_pipe_xgb_one_scorer_postfit_refit_fxn(
+    sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        refit=lambda x: 0
+    )
+    return __.fit(X_np, y_np)
 
 # END gscv xgb pipe one scorer, various refits
 
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
 # gstcv xgb pipe one scorer, various refits
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_pipe_xgb_one_scorer_prefit(
-#     sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         refit=False
-#     )
-#     return __
+@pytest.fixture(scope='session')
+def sk_GSTCV_pipe_xgb_one_scorer_prefit(
+    sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        refit=False
+    )
+    return __
 
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_pipe_xgb_one_scorer_postfit_refit_false(
-#     sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         refit=False
-#     )
-#     return __.fit(X_np, y_np)
+@pytest.fixture(scope='session')
+def sk_GSTCV_pipe_xgb_one_scorer_postfit_refit_false(
+    sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_pipe_xgb_one_scorer_postfit_refit_str(
-#     sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         refit='accuracy'
-#     )
-#     return __.fit(X_np, y_np)
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_pipe_xgb_one_scorer_postfit_refit_fxn(
-#         sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#         param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         refit=lambda x: 0
-#     )
-#     return __.fit(X_np, y_np)
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        refit=False
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSTCV_pipe_xgb_one_scorer_postfit_refit_str(
+    sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        refit='accuracy'
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSTCV_pipe_xgb_one_scorer_postfit_refit_fxn(
+        sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
+        param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        refit=lambda x: 0
+    )
+    return __.fit(X_np, y_np)
 
 # END gstcv xgb pipe one scorer, various refits
 
@@ -1499,202 +1480,194 @@ def sk_GSTCV_pipe_log_two_scorers_postfit_refit_fxn_fit_on_pd(
 # END gstcv log pipe two scorers, various refits
 
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
+
 # gscv xgb pipe two scorers, various refits
-# @pytest.fixture(scope='session')
-# def sk_GSCV_pipe_xgb_two_scorers_prefit(
-#     sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=False
-#     )
-#     return __
+@pytest.fixture(scope='session')
+def sk_GSCV_pipe_xgb_two_scorers_prefit(
+    sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb
+):
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_pipe_xgb_two_scorers_postfit_refit_false(
-#     sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=False
-#     )
-#     return __.fit(X_np, y_np)
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_pipe_xgb_two_scorers_postfit_refit_str(
-#     sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit='accuracy'
-#     )
-#     return __.fit(X_np, y_np)
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=False
+    )
+    return __
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSCV_pipe_xgb_two_scorers_postfit_refit_fxn(
-#     sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSCV(**sk_gscv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=lambda x: 0
-#     )
-#     return __.fit(X_np, y_np)
+
+@pytest.fixture(scope='session')
+def sk_GSCV_pipe_xgb_two_scorers_postfit_refit_false(
+    sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=False
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSCV_pipe_xgb_two_scorers_postfit_refit_str(
+    sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit='accuracy'
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSCV_pipe_xgb_two_scorers_postfit_refit_fxn(
+    sk_gscv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSCV(**sk_gscv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=lambda x: 0
+    )
+    return __.fit(X_np, y_np)
 
 # END gscv xgb pipe two scorers, various refits
 
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
+
 # gstcv xgb pipe two scorers, various refits
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_pipe_xgb_two_scorers_prefit(
-#     sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=False
-#     )
-#     return __
+@pytest.fixture(scope='session')
+def sk_GSTCV_pipe_xgb_two_scorers_prefit(
+    sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb
+):
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_pipe_xgb_two_scorers_postfit_refit_false(
-#     sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=False
-#     )
-#     return __.fit(X_np, y_np)
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_pipe_xgb_two_scorers_postfit_refit_str(
-#     sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit='accuracy'
-#     )
-#     return __.fit(X_np, y_np)
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=False
+    )
+    return __
 
-# xfail isnt catching this
-# @pytest.mark.xfail(reason=f"pizza need xgboost update for sklearn==1.6")
-# @pytest.fixture(scope='session')
-# def sk_GSTCV_pipe_xgb_two_scorers_postfit_refit_fxn(
-#     sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
-#     param_grid_pipe_sk_xgb, X_np, y_np
-# ):
-#
-#     pipe = Pipeline(
-#         steps=[
-#             ('sk_StandardScaler', sk_standard_scaler),
-#             ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
-#         ]
-#     )
-#
-#     __ = sk_GSTCV(**sk_gstcv_init_params)
-#     __.set_params(
-#         estimator=pipe,
-#         param_grid=param_grid_pipe_sk_xgb,
-#         scoring=['accuracy', 'balanced_accuracy'],
-#         refit=lambda x: 0
-#     )
-#     return __.fit(X_np, y_np)
+
+@pytest.fixture(scope='session')
+def sk_GSTCV_pipe_xgb_two_scorers_postfit_refit_false(
+    sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=False
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSTCV_pipe_xgb_two_scorers_postfit_refit_str(
+    sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit='accuracy'
+    )
+    return __.fit(X_np, y_np)
+
+
+@pytest.fixture(scope='session')
+def sk_GSTCV_pipe_xgb_two_scorers_postfit_refit_fxn(
+    sk_gstcv_init_params, sk_xgb_init_params, sk_standard_scaler,
+    param_grid_pipe_sk_xgb, X_np, y_np
+):
+
+    pipe = Pipeline(
+        steps=[
+            ('sk_StandardScaler', sk_standard_scaler),
+            ('sk_XGB', sk_XGBClassifier(**sk_xgb_init_params))
+        ]
+    )
+
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=pipe,
+        param_grid=param_grid_pipe_sk_xgb,
+        scoring=['accuracy', 'balanced_accuracy'],
+        refit=lambda x: 0
+    )
+    return __.fit(X_np, y_np)
 
 # END gstcv xgb pipe two scorers, various refits
 
