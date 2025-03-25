@@ -15,7 +15,8 @@ from copy import deepcopy
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextLookup.TextLookup import TextLookup as TL
+from pybear.feature_extraction.text._TextLookup.TextLookupRealTime import \
+    TextLookupRealTime as TLRT
 
 
 
@@ -99,7 +100,7 @@ class TestTextLookupRealTime:
             ["COMMON", "CREATIVITY", "CURIOUS", "DANGER"],
             ["DESTINY", "DESIRE", "DIVINE", "DREAMING", "EDUCATE"],
             ["ELITE", "ENCOURAGE", "EXCITEMENT", "EXPECT", "FAITHFUL"],
-            ["FANTASTIC", "FAVORITE", "FRIEND", "FRIENDLY", "QUACKTIVATE"],
+            ["FANTASTIC", "FAVORITE", "FRIEND", "FRIENDLY"],
             ["GATHERING", "GENEROUS", "GENERATE", "GLORIOUS", "HARMONY"],
             ["HELPFUL", "HOPEFUL", "HONESTY", "HUMANITY", "INFLUENCE"],
             ["INSIGHT", "INTEREST", "INFLUENCER", "JOYFUL", "JUDGEMENT"],
@@ -131,25 +132,23 @@ class TestTextLookupRealTime:
             ["EXPECTATION", "EXCITING", "FLEX", "ABILITY", "FREEDOM", "GLORY"],
             ["HARMONIOUS", "HEROISM", "INSPIRATION", "MINDFUL", "ZIG", "TROPE"],
             ["PERSIST", "ACE", "PROGRESSIVE", "TRULY", "VALUE", "ABLE", "VICTORY"],
-            ["STAR", "DUSK"],
-            ["SNORLUX", "CRUMBLE", "WAX"]
+            ["STAR", "DUSK", "ZONKING"],
+            ["CRUMBLE", "WAX"]
     ]
 
 
 
     def test_accuracy(self, _kwargs, _X, exp):
 
-        TestCls = TL(**_kwargs)
+        TestCls = TLRT(**_kwargs)
 
-        a = f"l\nl\nl\nw\nl\nl\nl\nf\nGLORY\ny\nu\n2\nBLOOM\ny\nTRIX\n"
-        b = f"y\ny\na\nf\nBEAUTIFUL\ny\nf\nAMAZING\ny\nl\nf\n"
-        c = f"MAGNIFICENT\ny\nl\nw\nl\n"
+        a = f"d\nd\nl\nl\nw\nl\nd\nf\nGLORY\ny\nu\n2\nBLOOM\ny\nTRIX\n"
+        b = f"y\ny\na\nf\nBEAUTIFUL\ny\ne\nAMAZING\ny\nl\ne\n"
+        c = f"MAGNIFICENT\ny\nd\nl\nd\nc\n"
 
         user_inputs = a + b + c
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            TestCls.partial_fit(_X)
-
-        out = TestCls.transform(_X)
+            out = TestCls.transform(_X)
 
         for r_idx in range(len(exp)):
             assert np.array_equal(out[r_idx], exp[r_idx])
@@ -173,39 +172,42 @@ class TestTextLookupRealTime:
 
         assert TestCls.KNOWN_WORDS_[0] == 'TRIX'
 
+        # this proves that the Lexicon singleton class attribute's
+        # lexicon_ attribute is not mutated when no deepcopy and adding
+        # words to KNOWN_WORDS_ (which is just a shallow copy of lexicon_)
+        assert 'TRIX' not in TestCls.get_lexicon()
+
         assert np.array_equal(
             list(TestCls.SPLIT_ALWAYS_.keys()),
-            ['CRUMBLEWAX', 'STARDUSK', 'VALUEABLE', 'PERSISTACE',
-             'ZIGTROPE', 'FLEXABILITY', 'BLOOMTRIX', 'TEACOMPOST']
+            ['BLOOMTRIX']
         )
 
         assert np.array_equal(
             list(TestCls.SPLIT_ALWAYS_.values()),
-            [['CRUMBLE', 'WAX'], ['STAR', 'DUSK'], ['VALUE', 'ABLE'],
-             ['PERSIST', 'ACE'], ['ZIG', 'TROPE'], ['FLEX', 'ABILITY'],
-             ['BLOOM', 'TRIX'], ['TEA', 'COMPOST']]
+            [['BLOOM', 'TRIX']]
         )
 
         assert np.array_equal(
             TestCls.DELETE_ALWAYS_,
-            ['SNIRKIFY', 'GLIMPLER', 'TORTAGLOOM', 'ZONKING', 'GLENSHWINK',
-             'FLAPDOO', 'JUMBLYWUMP', 'SMORFIC', 'FLOOBASTIC']
+            ['TORTAGLOOM', 'SNORLUX', 'GLENSHWINK',
+            'JUMBLYWUMP', 'QUACKTIVATE']
         )
 
         assert np.array_equal(
             list(TestCls.REPLACE_ALWAYS_.keys()),
-            ['GLOURY', 'BEAUTIFULL', 'AMAZIN', 'MAGNIFICIENT']
+            ['GLOURY', 'BEAUTIFULL']
         )
 
         assert np.array_equal(
             list(TestCls.REPLACE_ALWAYS_.values()),
-            ['GLORY', 'BEAUTIFUL', 'AMAZING', 'MAGNIFICENT']
+            ['GLORY', 'BEAUTIFUL']
         )
 
         assert np.array_equal(
             TestCls.SKIP_ALWAYS_,
-            ['SNORLUX', 'QUACKTIVATE']
+            ['ZONKING']
         )
+
 
 
     def test_array_all_str_numbers(self, _kwargs):
@@ -219,10 +221,10 @@ class TestTextLookupRealTime:
         # numbers and 'skip_numbers' works
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['skip_numbers'] = True
-        TestCls = TL(**_new_kwargs)
+        TL = TLRT(**_new_kwargs)
         user_inputs = f"c\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = TestCls.fit_transform(_new_X)
+            out = TL.transform(_new_X)
         # should not prompt, should just return original.
         for r_idx in range(len(out)):
             assert np.array_equal(out[r_idx], _new_X[r_idx])
@@ -233,14 +235,14 @@ class TestTextLookupRealTime:
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['skip_numbers'] = False
         _new_kwargs['update_lexicon'] = False
-        TestCls = TL(**_new_kwargs)
+        TL = TLRT(**_new_kwargs)
 
         # just ignore all of them. we are just trying to prove out that
         # when not ignored, TextLookup sees them and prompts to handle
         # because they are not in the formal pybear lexicon.
-        user_inputs = 15 * f"w\n"
+        user_inputs = 15 * f"k\n" + f"c\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = TestCls.fit_transform(_new_X)
+            out = TL.transform(_new_X)
 
 
 
