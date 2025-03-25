@@ -21,7 +21,7 @@ def notepad_justifier():
 
     print(f'*** Building array ***')
     raw_text = np.fromiter(open(filename, mode='r', encoding="utf8"), dtype='<U1000')
-    raw_text = raw_text.reshape((1,-1))[0]
+    raw_text = raw_text.ravel()
 
     print(f'*** Loading text to TextCleaner ***')
     JustifierClass = tc.TextCleaner(raw_text, update_lexicon=False)

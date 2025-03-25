@@ -6,7 +6,7 @@
 
 
 
-from typing import Callable, Sequence
+from typing import Callable, Sequence, Optional
 from typing_extensions import TypeAlias, Union
 import numpy.typing as npt
 
@@ -18,28 +18,21 @@ import polars as pl
 
 
 
-PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
+PythonTypes: TypeAlias = Sequence[Sequence[str]]
 
 NumpyTypes: TypeAlias = npt.NDArray[str]
 
-PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+PandasTypes: TypeAlias = pd.DataFrame
 
-PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+PolarsTypes: TypeAlias = pl.DataFrame
 
-XContainer: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
+XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
+NGramsType: TypeAlias = Sequence[Sequence[Union[str, re.Pattern]]]
 
-StrKeysType: TypeAlias = tuple[str, ...]
-StrValuesType: TypeAlias = Union[None, str, Callable[[str, ...], str]]
-StrNGramHandlerType: TypeAlias = dict[StrKeysType, StrValuesType]
+CallableType: TypeAlias = Optional[Callable[[Sequence[str]], str]]
 
-RegExpKeysType: TypeAlias = tuple[Union[str, re.Pattern], ...]
-RegExpValuesType: TypeAlias = Union[None, str, Callable[[str, ...], str]]
-RegExpNGramHandlerType: TypeAlias = dict[RegExpKeysType, RegExpValuesType]
-
-
-StrSepType: TypeAlias = Union[str, set[str]]
-RegExpSepType: TypeAlias = Union[str, re.Pattern]
+SepType: TypeAlias = Optional[str]
 
 
 
