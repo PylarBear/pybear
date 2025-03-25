@@ -97,7 +97,7 @@ def is_classifier(estimator_) -> bool:
             'gradientboosting'
         ]:
 
-            if str(_estimator_).lower()[:len(_module)] == _module:
+            if str(_estimator_).lower().startswith(_module):
                 # escape when have dug deep enough that _module is the
                 # outermost wrapper. use hard strings, dont import any dask
                 # modules to avoid circular imports
@@ -127,7 +127,9 @@ def is_classifier(estimator_) -> bool:
         except:
             pass
 
-    if 'blockwisevoting' in str(estimator_).lower():
+    if 'calibratedclassifier' in str(estimator_).lower():
+        return True
+    elif 'blockwisevoting' in str(estimator_).lower():
         # use hard strings, dont import any dask modules to avoid circular imports
         return sk_is_classifier(estimator_)
 

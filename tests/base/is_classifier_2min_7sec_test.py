@@ -565,7 +565,6 @@ class TestGSCVSNonConformingEstimators:  # _estimator DOES NOT ACCEPT EMPTY ()
         assert is_classifier(feed_fxn) is False
 
 
-    @pytest.mark.skip(reason='pizza fail')
     @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
     def test_cccv_class(self, gscv_name, gscv):
 
