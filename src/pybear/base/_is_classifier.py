@@ -58,20 +58,26 @@ def is_classifier(estimator_) -> bool:
     Examples
     --------
     >>> from pybear.base import is_classifier
-    >>> from dask_ml.linear_model import LogisticRegression, LinearRegression
-    >>> dask_clf = LogisticRegression()
-    >>> is_classifier(dask_clf)     # doctest: +SKIP
+    >>> from sklearn.linear_model import LogisticRegression, LinearRegression
+    >>> sk_clf = LogisticRegression()
+    >>> is_classifier(sk_clf)
     True
-    >>> dask_reg = LinearRegression()
-    >>> is_classifier(dask_reg)     # doctest: +SKIP
+    >>> sk_reg = LinearRegression()
+    >>> is_classifier(sk_reg)
     False
 
     """
 
 
-
-    if sk_is_classifier(estimator_):
-        return True
+    try:
+        if sk_is_classifier(estimator_):
+            return True
+    except:
+        try:
+            if sk_is_classifier(estimator_()):
+                return True
+        except:
+            pass
 
     # USE RECURSION TO GET INNERMOST ESTIMATOR ** ** ** ** ** ** ** ** ** ** **
     recursion_ct = 0
@@ -79,7 +85,8 @@ def is_classifier(estimator_) -> bool:
     def retrieve_core_estimator_recursive(_estimator_, recursion_ct):
 
         recursion_ct += 1
-        if recursion_ct == 10: raise Exception(f"too many recursions, abort")
+        if recursion_ct == 10:
+            raise Exception(f"too many recursions, abort")
 
         if 'delayed.delayed' in str(type(_estimator_)).lower():
             return _estimator_
@@ -110,9 +117,15 @@ def is_classifier(estimator_) -> bool:
 
     # END USE RECURSION TO GET INNERMOST ESTIMATOR ** ** ** ** ** ** ** ** ** *
 
-
-    if sk_is_classifier(estimator_):
-        return True
+    try:
+        if sk_is_classifier(estimator_):
+            return True
+    except:
+        try:
+            if sk_is_classifier(estimator_()):
+                return True
+        except:
+            pass
 
     if 'blockwisevoting' in str(estimator_).lower():
         # use hard strings, dont import any dask modules to avoid circular imports
@@ -157,7 +170,6 @@ def is_classifier(estimator_) -> bool:
         return sk_is_classifier(sklearn_dummy_function)
 
     return False
-
 
 
 

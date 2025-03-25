@@ -81,9 +81,9 @@ from sklearn.pipeline import Pipeline
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
 
-# pizza need xgboost update for sklearn==1.6
-# a = XGBClassifier
-# b = XGBRegressor
+
+a = XGBClassifier
+b = XGBRegressor
 c = sklearn_LinearRegression
 d = sklearn_LogisticRegression
 e = sklearn_PoissonRegressor
@@ -110,12 +110,8 @@ y = sklearn_CalibratedClassifierCV
 
 # BUILD TRUTH TABLE FOR ALL ESTIMATORS IS/ISNT A CLASSIFIER ** ** ** ** ** ** **
 
-# pizza need xgboost update for sklearn==1.6
 ALL_ESTIMATORS = \
-    [
-        # a, b,
-        c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, x, y
-    ]
+    [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, x, y]
 
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -133,7 +129,7 @@ def get_fxn_name(_module):
     return fxn_name
 
 
-ESTIMATOR_NAMES = delayed([get_fxn_name(_) for _ in ALL_ESTIMATORS]).compute()
+ESTIMATOR_NAMES = [get_fxn_name(_) for _ in ALL_ESTIMATORS]
 
 del get_fxn_name
 
@@ -370,8 +366,7 @@ class TestGSCVSConformingEstimators:   # _estimator ACCEPTS EMPTY ()
     #          'incremental+pipeline', 'parallelpostfit+pipeline'
     #          ]
 
-    # TypeError: unbound method type.mro() needs an argument
-    @pytest.mark.skip(reason=f"pizza sklearn 1.6 failing on uninstantiated")
+
     @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
     @pytest.mark.parametrize('_est_name, _estimator', zip(NAMES, ALL_ESTIMATORS))
     def test_uninstantiated(self, _est_name, _estimator, gscv_name, gscv):
@@ -570,8 +565,7 @@ class TestGSCVSNonConformingEstimators:  # _estimator DOES NOT ACCEPT EMPTY ()
         assert is_classifier(feed_fxn) is False
 
 
-    # TypeError: unbound method type.mro() needs an argument
-    @pytest.mark.skip(reason=f"pizza sklearn 1.6 failing on uninstantiated")
+    @pytest.mark.skip(reason='pizza fail')
     @pytest.mark.parametrize('gscv_name, gscv', zip(GSCV_NAMES, GSCVS))
     def test_cccv_class(self, gscv_name, gscv):
 

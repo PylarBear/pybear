@@ -14,8 +14,7 @@ from ._type_aliases import MenuDictType
 import numbers
 import re
 
-import numpy as np, pandas as pd
-# PIZZA NEED PLOTLY OR MATPLOTLIB
+import numpy as np
 
 from ._validation._X import _val_X
 from ._validation._auto_add import _val_auto_add
@@ -25,6 +24,7 @@ from ._validation._update_lexicon import _val_update_lexicon
 from .._StopRemover.StopRemover import StopRemover
 from .._TextLookup.TextLookupRealTime import TextLookupRealTime
 from .._TextNormalizer.TextNormalizer import TextNormalizer
+from .._TextRemover.TextRemover import TextRemover
 from .._TextReplacer.TextReplacer import TextReplacer
 from .._TextStripper.TextStripper import TextStripper
 
@@ -60,19 +60,10 @@ from ....data_validation import (
 # substitute_words          Substitute all occurrences of one or more words throughout CLEANED_TEXT.
 # as_list_of_lists          Convert CLEANED_TEXT object to a possibly ragged vector of vectors, each vector containing split text.
 # as_list_of_strs           Convert CLEANED_TEXT object to a single vector of strings.
-# dump_to_file_wrapper      Wrapper function for dumping CLEANED_TEXT object to csv or txt.
 # dump_to_csv               Dump CLEANED_TEXT object to csv.
 # dump_to_txt               Dump CLEANED_TEXT object to txt.
 # toggle_undo               Turn undo capability ON or OFF to save memory (only used in menu()).
 
-# STUFF FOR LEXICON LOOKUP #########################################################################################
-# lex_lookup_menu           Dynamic function for returning variable menu prompts and allowed commands.
-# word_editor               Validation function for single words entered by user.
-# lex_lookup_add            Append a word to the LEXICON_ADDENDUM object.
-# view_snippet              Highlights the word of interest in a series of words.
-# lex_lookup                Scan entire CLEANED_TEXT object and prompt for handling of words not in LEXICON.  <<<<<
-# display_lexicon_update    Prints and returns LEXICON_ADDENDUM object for copy and paste into LEXICON.
-# END STUFF FOR LEXICON LOOKUP #####################################################################################
 
 
 # pizza dont forget mixins!
@@ -348,7 +339,7 @@ class TC(FileDumpMixin):
         self.CLEANED_TEXT = Trfm.fit_transform(self.CLEANED_TEXT)
         del Trfm
 
-        from .._TextRemover.TextRemover import TextRemover
+        # can be 1D or 2D, returns same dim as given
         Trfm2 = TextRemover(str_remove='')
         self.CLEANED_TEXT = Trfm2.fit_transform(self.CLEANED_TEXT)
 
@@ -524,47 +515,51 @@ class TC(FileDumpMixin):
 
         """Delete one or more words from the entire CLEANED_TEXT object."""
 
+        # pizza as of 25_03_25 this isnt tested
+
         converted = False
         if not self.is_list_of_lists:
             self.as_list_of_lists()
             converted = True
 
-        TO_DELETE = np.empty((1,0), dtype='<U30')[0]
+        TO_DELETE = []
 
-        ctr = 0
         while True:
             while True:
-                to_delete = input(f'\nEnter word to delete '
-                    f'({[f"type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > ').upper()
-                if to_delete in 'DZ':
+                to_delete = input(f'\nEnter word to delete (case-sensitive) > ')
+
+                _prompt = f'User entered *{to_delete}* --- Accept? (y/n) > '
+                if vui.validate_user_str(_prompt, 'YN') == 'Y':
+                    TO_DELETE.append(to_delete)
+
+                print(f'\nCurrent words to be deleted:')
+                print(", ".join(TO_DELETE))
+                if vui.validate_user_str(f'\nEnter another? > ', 'YN') == 'N':
                     break
-                if vui.validate_user_str(f'User entered *{to_delete}* --- Accept? (y/n) > ', 'YN') == 'Y':
-                    ctr += 1
-                    TO_DELETE = np.insert(TO_DELETE, len(TO_DELETE), to_delete, axis=0)
-            if to_delete in 'Z':
-                del ctr
-                break
+
             print(f'\nUser entered to delete')
             print(", ".join(TO_DELETE))
-            if vui.validate_user_str(f'\nAccept? (y/n) > ', 'YN') == 'Y':
-                del ctr
+            _opt = vui.validate_user_str(f'\nAccept? (y/n) Abort? (a) > ', 'YNA')
+            if _opt == 'Y':
+                pass
+            elif _opt == 'N':
+                TO_DELETE = []
+                continue
+            elif _opt == 'A':
                 break
             else:
-                TO_DELETE = np.empty((1,0), dtype='<U30')[0]; ctr=0
+                raise Exception
 
-        # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE, PROCEED WITH DELETE
-        if to_delete != 'Z' and len(TO_DELETE) > 0:
+            # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE
+            if len(TO_DELETE) > 0:
 
-            for row_idx in range(len(self.CLEANED_TEXT)):
-                for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
-                    if self.CLEANED_TEXT[row_idx][word_idx] in TO_DELETE:
-                        self.CLEANED_TEXT[row_idx] = \
-                            np.delete(self.CLEANED_TEXT[row_idx], word_idx, axis=0)
+                # can be 1D or 2D, returns same dim as given
+                Trfm = TextRemover(str_remove=set(TO_DELETE))
+                self.CLEANED_TEXT = Trfm.fit_transform(self.CLEANED_TEXT)
+                del Trfm
 
-                    if len(self.CLEANED_TEXT[row_idx]) == 0:
-                        break
-
-        del TO_DELETE, to_delete
+            del TO_DELETE
+            break
 
         if converted:
             self.as_list_of_strs()
@@ -576,8 +571,9 @@ class TC(FileDumpMixin):
         Substitute all occurrences of one or more words throughout
         CLEANED_TEXT.
 
-
         """
+
+        # pizza as of 25_03_25 this isnt tested
 
         converted = False
         if not self.is_list_of_lists:
@@ -585,58 +581,54 @@ class TC(FileDumpMixin):
             converted = True
 
 
-        # pizza
-        from .._TextReplacer.TextReplacer import TextReplacer
+        TO_SUB_DICT = {}
 
-        # pizza this isnt impacting test
-        # do not throw away this code yet. understand it and make TR do it.
+        while True:
+            while True:
+                replaced = input(f'\nEnter word to replace (case-sensitive) > ')
+                _prompt = f'User entered *{replaced}*, accept? (y/n)'
+                if vui.validate_user_str(_prompt, 'YN') == 'N':
+                    continue
 
-        # TO_SUB_DICT = {}
-        #
-        # ctr = 0
-        # while True:
-        #     replaced, replacement = '', ''
-        #     while True:
-        #         replaced = input(
-        #             f'\nEnter word to replace '
-        #             f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > '
-        #         ).upper()
-        #         if replaced in 'DZ':
-        #             break
-        #         else:
-        #             replacement = input(
-        #                 f'Enter word to substitute in '
-        #                 f'({["type *d* when done, " if ctr>0 else ""][0]}*z* to abort) > '
-        #             ).upper()
-        #             if replacement in 'DZ':
-        #                 break
-        #         if vui.validate_user_str(
-        #             f'Replace *{replaced}* with *{replacement}*--- Accept? (y/n) > ',
-        #             'YN'
-        #         ) == 'Y':
-        #             ctr += 1
-        #             TO_SUB_DICT[replaced] = replacement
-        #     if replaced == 'Z' or replacement == 'Z':
-        #         del ctr
-        #         break
-        #
-        #     print(f'\nUser entered to replace')
-        #     [print(f'{k} with {v}') for k,v in TO_SUB_DICT.items()]
-        #     if vui.validate_user_str(f'\nAccept? (y/n) > ', 'YN') == 'Y':
-        #         del ctr
-        #         break
-        #
-        # # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE, PROCEED WITH DELETE
-        # if (replaced != 'Z' and replacement != 'Z') and len(TO_SUB_DICT) > 0:
-        #
-        #     for row_idx in range(len(self.CLEANED_TEXT)):
-        #         for word_idx in range(len(self.CLEANED_TEXT[row_idx])-1, -1, -1):
-        #             word = self.CLEANED_TEXT[row_idx][word_idx]
-        #             if word in TO_SUB_DICT:
-        #                 self.CLEANED_TEXT[row_idx][word_idx] = TO_SUB_DICT[word]
-        #     del word
-        #
-        # del TO_SUB_DICT, replaced, replacement
+                replacement = input(f'Enter word to substitute for *{replaced}* > ')
+                _prompt = f'Replace *{replaced}* with *{replacement}*, accept? (y/n)'
+                if vui.validate_user_str(_prompt, 'YN') == 'N':
+                    continue
+
+                TO_SUB_DICT[replaced] = replacement
+
+                print(f'Current substitutions:')
+                for k, v in TO_SUB_DICT.items():
+                    print(f'{k} : {v}')
+
+                if vui.validate_user_str(f'\nEnter another? (y/n) > ', 'YN') == 'N':
+                    break
+
+            print(f'Current substitutions:')
+            for k, v in TO_SUB_DICT.items():
+                print(f'{k} : {v}')
+
+            _opt = vui.validate_user_str(f'\nAccept? (y/n) Abort? (a) > ', 'YNA')
+            if _opt == 'Y':
+                pass
+            elif _opt == 'N':
+                TO_SUB_DICT = {}
+                continue
+            elif _opt == 'A':
+                break
+            else:
+                raise Exception
+
+            # IF USER DID NOT ABORT AND THERE ARE WORDS TO DELETE
+            if len(TO_SUB_DICT) > 0:
+
+                _str_replace = set([(k, v) for k,v in TO_SUB_DICT.items()])
+
+                Trfm = TextReplacer(str_replace=_str_replace)
+                self.CLEANED_TEXT =Trfm.fit_transform(self.CLEANED_TEXT)
+                del Trfm
+
+        del TO_SUB_DICT
 
         if converted:
             self.as_list_of_strs()
@@ -675,50 +667,12 @@ class TC(FileDumpMixin):
             self.is_list_of_lists = False
 
 
-    def dump_to_file_wrapper(self, core_write_function, _ext, kwargs):
-
-        """
-        Wrapper function for dumping CLEANED_TEXT object to csv or txt.
-
-
-        """
-
-        converted = False
-        if self.is_list_of_lists:
-            self.as_list_of_strs()
-            converted = True
-
-        while True:
-            file_name = input(f'Enter filename > ')
-            __ = vui.validate_user_str(f'User entered *{file_name}*  ---  Accept? (y) (n) (a)bort > ', 'YNA')
-            if __ == 'Y':
-                core_write_function(file_name+_ext, **kwargs)
-                print(f'\n*** Dump to {_ext} successful. ***\n')
-                break
-            elif __ == 'N': continue
-            elif __ == 'A': break
-
-        if converted:
-            self.as_list_of_lists()
-        del converted
-
-
     def dump_to_csv(self):
         """Dump CLEANED_TEXT object to csv."""
 
         print(f'\nSaving CLEANED TEXT to csv...')
 
-        converted = False
-        if self.is_list_of_lists:
-            self.as_list_of_strs()
-            converted = True
-        _core_fxn = pd.DataFrame(data=self.CLEANED_TEXT.transpose(), columns=[f'CLEANED_DATA']).to_csv
-
-        self.dump_to_file_wrapper(_core_fxn, f'.csv', {'header':True, 'index':False})
-
-        if converted:
-            self.as_list_of_lists()
-        del converted
+        super().dump_to_csv(self.CLEANED_TEXT)
 
 
     def dump_to_txt(self):
@@ -726,13 +680,7 @@ class TC(FileDumpMixin):
 
         print(f'\nSaving CLEANED TEXT to txt file...')
 
-        def _core_fxn(full_path):   # DONT PUT kwargs OR **kwargs IN ()!
-            with open(full_path, 'w') as f:
-                for line in self.CLEANED_TEXT:
-                    f.write(line + '\n')
-                f.close()
-
-        self.dump_to_file_wrapper(_core_fxn, f'.txt', {})
+        super().dump_to_txt(self.CLEANED_TEXT)
 
 
     def toggle_undo(self):
