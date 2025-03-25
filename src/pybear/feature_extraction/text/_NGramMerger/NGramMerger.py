@@ -6,18 +6,17 @@
 
 
 
-from typing import Optional
+from typing import Callable, Optional, Sequence
 from typing_extensions import Self, Union
-from ._type_aliases import (
-    XContainer,
-    StrNGramHandlerType,
-    RegExpNGramHandlerType,
-    StrSepType,
-    RegExpSepType
-)
+from ._type_aliases import XContainer
+
+import re
 
 import pandas as pd
 import polars as pl
+
+from ._validation._validation import _validation
+from ._transform._transform import _transform
 
 from ....base import (
     FitTransformMixin,
@@ -64,15 +63,16 @@ class NGramMerger(
 
     def __init__(
         self,
-        regexp_mode: Optional[bool],
-        ngram_handler: Optional[Union[StrNGramHandlerType, RegExpNGramHandlerType]],
-        sep: Optional[Union[StrSepType, RegExpSepType]]
-    ):
+        *,
+        ngrams: Sequence[Sequence[Union[str, re.Pattern]]],
+        ngcallable: Optional[Callable[[Sequence[str]], str]],
+        sep: Optional[str]
+    ) -> None:
 
         """Initialize the NGramMerger instance."""
 
-        self.regexp_mode = regexp_mode
-        self.ngram_handler = ngram_handler
+        self.ngrams = ngrams
+        self.ngcallable = ngcallable
         self.sep = sep
 
 
@@ -161,8 +161,7 @@ class NGramMerger(
     ) -> XContainer:
 
         """
-        Merge N-grams in a 1D list-like of strings or a (possibly
-        ragged) 2D array like of strings.
+        Merge N-grams in a (possibly ragged) 2D array-like of strings.
 
 
         Parameters
@@ -177,14 +176,15 @@ class NGramMerger(
         Return
         ------
         -
-            self - the NGramMerger instance.
+            list[list[str]] - the data with all matching n-gram patterns
+            replaced with contiguous strings.
 
 
         """
 
         check_is_fitted(self)
 
-        # _validation(X)
+        _validation(X, self.ngrams, self.ngcallable, self.sep)
 
         if copy:
             _X = copy_X(X)
@@ -192,21 +192,20 @@ class NGramMerger(
             _X = X
 
         # we know from validation it is legit 1D or 2D, do the easy check
-        if all(map(isinstance, _X, (str for _ in _X))):
-            # then is 1D:
-            _X = list(_X)
+        # if all(map(isinstance, _X, (str for _ in _X))):
+        #     # then is 1D:
+        #     _X = list(_X)
+        # else:
+        # # then could only be 2D, need to convert to 1D
+        if isinstance(_X, pd.DataFrame):
+            _X = list(map(list, _X.values))
+        elif isinstance(_X, pl.DataFrame):
+            _X = list(map(list, _X.rows()))
         else:
-            # then could only be 2D, need to convert to 1D
-            if isinstance(_X, pd.DataFrame):
-                _X = list(map(list, _X.values))
-            elif isinstance(_X, pl.DataFrame):
-                _X = list(map(list, _X.rows()))
-            else:
-                _X = list(map(list, _X))
+            _X = list(map(list, _X))
 
-        # _transform(X, ...)
 
-        return _X
+        return _transform(_X, self.ngrams, self.ngcallable, self.sep)
 
 
     def score(
