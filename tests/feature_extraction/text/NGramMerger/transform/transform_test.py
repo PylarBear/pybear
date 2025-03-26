@@ -65,7 +65,7 @@ class TestTransform:
             _exp_sep = _sep or '_'
 
 
-        out = _transform(_text, _ngrams, _callable, _sep)
+        out = _transform(_text, _ngrams, _callable, _sep, False)
 
         # new_york_city must trump new_york
 
