@@ -29,7 +29,8 @@ def _val_ngrams(
         Sequence[Sequence[Union[str, re.Pattern]]] - A sequence of
         sequences, where each inner sequence holds a series of string
         literals and/or re.Pattern objects that specify an n-gram.
-        Cannot be empty, and cannot have any empty n-gram patterns.
+        Cannot be empty, and cannot have any n-grams with less than 2
+        entries.
 
 
     Returns
@@ -42,8 +43,9 @@ def _val_ngrams(
 
 
     err_msg = (f"'ngrams' must be a 1D sequence of sequences of string "
-               f"literals and/or re.Pattern objects. cannot be empty, "
-               f"and cannot contain any empty n-gram sequences.")
+               f"literals and/or re.Pattern objects. \ncannot be empty, "
+               f"and cannot contain any n-gram sequences with less than "
+               f"2 entries.")
 
     # this validates that the outer container is 1D iterable
     try:
@@ -64,7 +66,7 @@ def _val_ngrams(
             iter(_inner)
             if isinstance(_inner, (str, dict)):
                 raise Exception
-            if len(_inner) == 0:
+            if len(_inner) < 2:
                 raise UnicodeError
             if not all(map(isinstance, _inner, ((str, re.Pattern) for _ in _inner))):
                 raise Exception

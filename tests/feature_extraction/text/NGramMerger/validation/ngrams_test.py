@@ -36,11 +36,11 @@ class TestValNGrams:
             _val_ngrams(empty_outer)
 
 
-    def test_rejects_empty_outer(self):
+    def test_rejects_inner_less_than_2(self):
 
         with pytest.raises(ValueError):
 
-            _val_ngrams([['Sam', 'I', 'am'], [], ['I', 'am', 'Sam']])
+            _val_ngrams([['Sam', 'I', 'am'], ['Egg'], ['I', 'am', 'Sam']])
 
 
     def test_accepts_good(self):

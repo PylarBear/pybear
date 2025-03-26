@@ -64,14 +64,14 @@ class StopRemover(
     individual user preferences concerning adjoining characters and the
     impact on white space in long text strings as would be in 1D format
     is intractable. Therefore, pybear pushes back to the user to require
-    that the data be processed at least to the point that the token
-    separators are a known and measured quantity and you are able to
-    split your data into tokens. (If you have 1D data and know what your
-    separators are as either string literal or regex patterns, use pybear
-    TextSplitter to convert your data to 2D before using SR.) Accepted
-    2D objects include python list/tuple of lists/tuples of strings,
-    numpy arrays, pandas dataframes, and polars dataframes. Results are
-    always returned as a python list of lists of strings.
+    that the data be processed at least to the point where you know what
+    your separators are and you are able to split your data into tokens.
+    (If you have 1D data and know what your separators are as either
+    string literal or regex patterns, use pybear TextSplitter to convert
+    your data to 2D before using SR.) Accepted 2D objects include python
+    list/tuple of lists/tuples, numpy arrays, pandas dataframes, and
+    polars dataframes. Results are always returned as a python list of
+    lists of strings.
 
     The default text comparer in SR does a case-insensitive, exact
     character-to-character match of each token in the text body against

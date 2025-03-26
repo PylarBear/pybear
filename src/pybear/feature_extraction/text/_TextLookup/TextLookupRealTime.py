@@ -767,7 +767,7 @@ class TextLookupRealTime(TextLookupMixin):
                     _NEW_WORDS = _auto_word_splitter(
                         _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
                     )
-                    if any(_NEW_WORDS):
+                    if len(_NEW_WORDS) > 0:
                         _X[_row_idx] = self._split_or_replace_handler(
                             _X[_row_idx],
                             _word_idx,
@@ -837,7 +837,7 @@ class TextLookupRealTime(TextLookupMixin):
                     # if the user did not opt to take any of splits (or
                     # if there werent any), then _NEW_WORDS is empty, and
                     # the user is forced into the manual menu.
-                    if any(_NEW_WORDS):
+                    if len(_NEW_WORDS) > 0:
                         _X[_row_idx] = self._split_or_replace_handler(
                             _X[_row_idx],
                             _word_idx,

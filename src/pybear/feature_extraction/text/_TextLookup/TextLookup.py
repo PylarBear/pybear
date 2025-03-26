@@ -533,7 +533,7 @@ class TextLookup(TextLookupMixin):
         # get n_rows -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         if hasattr(X, 'shape'):
             _n_rows = int(X.shape[0])
-            _n_words = int(X.size)
+            _n_words = int(X.shape[0] * X.shape[1])
         else:
             _n_rows = len(X)
             _n_words = sum(map(len, X))
@@ -652,7 +652,7 @@ class TextLookup(TextLookupMixin):
                     _NEW_WORDS = _auto_word_splitter(
                         _word_idx, _line, self.KNOWN_WORDS_, _verbose=False
                     )
-                    if any(_NEW_WORDS):
+                    if len(_NEW_WORDS) > 0:
                         # need to put this in SPLIT_ALWAYS_ so that transform
                         # knows what to do with it (transform doesnt have the
                         # ability to run any of the word_splitter functions)
@@ -711,7 +711,7 @@ class TextLookup(TextLookupMixin):
                     # if the user did not opt to take any of splits (or
                     # if there werent any), then _NEW_WORDS is empty, and
                     # the user is forced into the manual menu.
-                    if any(_NEW_WORDS):
+                    if len(_NEW_WORDS) > 0:
                         # need to put this in SPLIT_ALWAYS_ so that transform
                         # knows what to do with it (transform doesnt have the
                         # ability to run any of the word_splitter functions)

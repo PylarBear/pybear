@@ -40,6 +40,7 @@ class TextPadder(
     SetOutputMixin,
     SetParamsMixin
 ):
+
     """
     Map ragged text data to a shaped array.
 

@@ -7,6 +7,7 @@
 
 
 from ._Lexicon.Lexicon import Lexicon
+from ._NGramMerger.NGramMerger import NGramMerger
 from ._StopRemover.StopRemover import StopRemover
 from ._TextJoiner.TextJoiner import TextJoiner
 from ._TextJustifier.TextJustifier import TextJustifier
@@ -24,6 +25,7 @@ from ._TextStripper.TextStripper import TextStripper
 
 __all__ = [
     'Lexicon',
+    'NGramMerger',
     'StopRemover',
     'TextJoiner',
     'TextJustifier',

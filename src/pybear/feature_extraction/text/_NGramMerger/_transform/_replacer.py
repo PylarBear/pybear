@@ -42,7 +42,7 @@ def _replacer(
     _ngram:
         Sequence[Union[str, re.Pattern]] - A single n-gram sequence
         containing string literals and/or re.Pattern objects that
-        specify an n-gram pattern. Cannot be empty.
+        specify an n-gram pattern. Cannot have less than 2 entries.
     _hits:
         Sequence[int] - the starting indices of sequences in _line that
         match the n-gram pattern.

@@ -24,9 +24,20 @@ class TestValidation:
     @pytest.mark.parametrize('_ngrams', ([['a', 'b']], [[re.compile('[.]+'), 'q']]))
     @pytest.mark.parametrize('_callable', (lambda x, y: x + y, None))
     @pytest.mark.parametrize('_sep', ('_', '', '&', None))
-    def test_passes_all_good(self, _X, _ngrams, _callable, _sep):
+    @pytest.mark.parametrize('_wrap', (True, False))
+    @pytest.mark.parametrize('_remove_empty_rows', (True, False))
+    def test_passes_all_good(
+        self, _X, _ngrams, _callable, _sep, _wrap, _remove_empty_rows
+    ):
 
-        assert _validation(_X, _ngrams, _callable, _sep) is None
+        assert _validation(
+            _X,
+            _ngrams,
+            _callable,
+            _sep,
+            _wrap,
+            _remove_empty_rows
+        ) is None
 
 
 

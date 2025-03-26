@@ -8,7 +8,10 @@
 
 from typing import Callable, Optional, Sequence
 from typing_extensions import Self, Union
-from ._type_aliases import XContainer
+from ._type_aliases import (
+    XContainer,
+    XWipContainer
+)
 
 import re
 
@@ -38,24 +41,240 @@ class NGramMerger(
 ):
 
     """
-    Join adjacent "words" into an N-gram unit, to be handled as a single
-    "word".
+    Join specified adjacent words into an N-gram unit, to be handled as
+    a single "word".
 
+    Sometimes in text analytics it makes sense to work with a block of
+    words as a single unit rather than as stand-alone words. Perhaps you
+    have a project where you need to analyze the frequency of certain
+    occupations or terms across hundreds of thousands of resumes. After
+    starting your analysis, you realize that terms like 'process' and
+    'engineer' or 'executive' and 'assistant' almost always seem to be
+    with each other. So you decide that it might be meaningful to conduct
+    your analysis as if those terms were a single unit.
 
+    That's where NGramMerger comes in. NGramMerger (NGM) is a tool that
+    will find blocks of words that you specify and join them by a
+    separator of your choosing to create a single contiguous string.
+
+    NGM works from top-to-bottom and left-to-right across the data,
+    using a forward-greedy approach to merging n-grams. For example, if
+    you passed an n-gram pattern of ['BACON', 'BACON'], and in the text
+    body there is a line that contains 'BACON', 'BACON', 'BACON', NGM
+    will apply the n-gram as 'BACON_BACON', 'BACON'. This aspect of NGM's
+    operation cannot be toggled. When using wrapped searches (read on
+    for more information about wrapping), the same forward-greedy
+    technique is applied. Consider, for example, a case where a pattern
+    match exists at the end of one line and into the next line, but in
+    the next line there is an overlapping match. NGM will apply the
+    wrapped match first and consume the words out of the overlap,
+    destroying the second matching pattern.
+
+    NGM handles all pattern matches as mutually exclusive. Overlapping
+    match patterns are not acknowledged. When NGM finds a pattern match,
+    it will immediately jump to the next word AFTER the pattern, not
+    the next word within the pattern.
+
+    N-gram patterns can be built with literal strings, regex patterns,
+    or re.compile objects. NGM always looks for full matches against
+    tokens, it does not do partial matches. Pass literal strings or regex
+    patterns that are intented to match entire words. NGM searches are
+    always case-sensitive, unless you use flags in a re.compile object
+    to tell it otherwise. String literal searches will always be
+    case-sensitive.
+
+    When you pass n-grams via the 'ngrams' parameter, NGM does not
+    necessarily run them in the given order. To prevent conflicts,
+    NGM runs the n-gram patterns in descending order of length, that is,
+    the longest n-gram is run first and the shortest n-gram is run last.
+    For n-grams that are the same length, NGM runs them in the order
+    that they were entered in the 'ngrams' parameter. If you would like
+    to impose another n-gram run order hierarchy, you can manipulate the
+    order in which NGM sees the n-grams by setting the n-grams piecemeal
+    via the 'set_params' method. Initiate with your prefered n-grams,
+    pass the data to transform, change to the lesser-preferred n-grams
+    via :method: 'set_params', then pass the processed data to transform
+    again.
+
+    NGM allows you some control over how the n-grams are merged in the
+    text body. There are two parameters that can manipulate this,
+    'ngcallable' and 'sep'. 'ngcallable' allows you to pass a function that
+    takes a variable-length list of strings and returns a single string.
+    'sep' will simply concatenate the words in the matching pattern with
+    the separator that you choose. If you pass neither, NGM will default
+    to concatenating the words in the matching pattern with a '_'
+    separator.
+    In short, NGM merges words that match ngram patterns using the
+    following hierarchy:
+    by the given callable > by the given separator > by the default separator
+
+    NGM is able to wrap across the beginnings and ends of line, if you
+    desire. This can be toggled with the 'wrap' parameter. If you do not
+    want NGM to look for and join n-grams across the end of one line into
+    the beginning of another, set this parameter to False (the default).
+    When True, NGM will look for matches as if there is no break between
+    the two lines. When allowed and an n-gram match is found across 2
+    lines, the joined n-gram is put into the line where the match began.
+    For example, if an n-gram match is found starting at the end of line
+    724 and ends in the beginning of line 725, the joined n-gram will go
+    at the end of line 724 and the words in line 725 will be removed.
+    NGM only looks for wrapped n-grams across 2 lines, no further.
+    Consider the case where you have text that is one word per line,
+    and you are looking for a pattern like ['ONE', 'TWO', 'THREE']. NGM
+    will not find a match for this across 3 lines. The way to match this
+    n-gram would be 1) put all your tokens on one line, or 2) make 2
+    passes. The first pass look for the n-gram ['ONE', 'TWO'], then on
+    the second pass look for the n-gram ['ONE_TWO', 'THREE'].
+
+    NGM should only be used on highly processed data. NGM should not be
+    the first (or even near the first) step in a complex text wrangling
+    workflow. This should be one of the last steps. An example of a
+    text wrangling workflow could be: TextReplacer > TextSplitter >
+    TextNormalizer > TextRemover > TextLookup > StopRemover > NGramMerger.
+
+    NGM requires (possibly ragged) 2D data formats. pybear wants the
+    data to be processed at least to the point that you are able to
+    split your data into tokens. (If you have 1D data and know what your
+    separators are as either string literal or regex patterns, use pybear
+    TextSplitter to convert your data to 2D before using NGM.) Accepted
+    2D objects include python list/tuple of lists/tuples, numpy arrays,
+    pandas dataframes, and polars dataframes. Results are always returned
+    as a python list of lists of strings.
+
+    NGM is a full-fledged scikit-style transformer. It has fully
+    functional get_params, set_params, transform, and fit_transform
+    methods. It also has partial_fit, fit, and score methods, which are
+    no-ops. NGM technically does not need to be fit because it already
+    knows everything it needs to do transformations from the parameters.
+    These no-op methods are available to fulfill the scikit transformer
+    API and make NGM suitable for incorporation into larger workflows,
+    such as Pipelines and dask_ml wrappers.
+
+    Because NGM doesn't need any information from partial_fit and fit,
+    it is technically always in a 'fitted' state and ready to transform
+    data. Checks for fittedness will always return True.
+
+    NGM has an n_rows_ attribute which is only available after data
+    has been passed to :method: transform. n_rows_ is the number of
+    rows of text seen in the original data, which may not be equal to
+    the number of rows in the outputted data. There is another
+    attribute that is only exposed after data is passed to :method:
+    transform, row_support_. n_rows_ must match the number of entries
+    in row_support_. row_support is a 1D boolean vector that indicates
+    which rows were kept (True) and which rows were removed (False) from
+    the data during transform. The only way for an entry to become False
+    (i.e. a row was removed) is if both 'wrap' and 'remove_empty_rows'
+    are True and all the strings on one row are merged into an n-gram
+    at the end of the line above it.
 
 
     Parameters
     ----------
+    ngrams:
+        Sequence[Sequence[Union[str, re.Pattern]]] - A sequence of
+        sequences, where each inner sequence holds a series of string
+        literals and/or re.Pattern objects that specify an n-gram.
+        Cannot be empty, and cannot have any n-gram patterns with less
+        than 2 entries.
+    ngcallable:
+        Optional[Callable[[Sequence[str]], str]], default=None - the
+        callable applied to ngram sequences to produce a contiguous
+        string sequence.
+    sep:
+        Optional[str], default='_' - the separator that joins words that
+        match an n-gram.
+    wrap:
+        Optional[bool], default=False - whether to look for pattern
+        matches across the end of the current line and beginning of the
+        next line.
+    remove_empty_rows:
+        Optional[bool], default=False - whether to delete any empty rows
+        that may occur during the merging process. A row could only
+        become empty if 'wrap' is True.
+
+
+    Attributes
+    ----------
+    n_rows_:
+        int - the number of rows in the data passed to :method: transform.
+        This reflects the data that is passed, not the data that is
+        returned, which may not necessarily have the same number of rows
+        as the original data if 'wrap' and 'remove_empty_rows' are both
+        True. Also, it only reflects the last batch of data passed; it
+        is not cumulative. This attribute is only exposed after data is
+        passed to :method: transform.
+    row_support_:
+        np.NDArray[bool] - a boolean 1D numpy vector of shape (n_rows_, )
+        indicating which rows of the data were kept (True) or removed
+        (False) during transform. The only way an entry in this vector
+        could become False (i.e. a row was removed) is if both 'wrap'
+        and 'remove_empty_rows' are both True and all strings on one
+        line were merged into an n-gram on the line above it. This
+        attribute is only exposed after data is passed to :method:
+        transform.
 
 
     Notes
     -----
     Type Aliases
 
+    PythonTypes:
+        Sequence[Sequence[str]]
+
+    NumpyTypes:
+        npt.NDArray[str]
+
+    PandasTypes:
+        pd.DataFrame
+
+    PolarsTypes:
+        pl.DataFrame
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+    XWipContainer:
+        list[list[str]]
+
+    NGramsType:
+        Sequence[Sequence[Union[str, re.Pattern]]]
+
+    CallableType:
+        Optional[Callable[[Sequence[str]], str]]
+
+    SepType:
+        Optional[str]
+
+    WrapType:
+        Optional[bool]
+
+    RemoveEmptyRowsType:
+        Optional[bool]
+
 
     Examples
     --------
-
+    >>> from pybear.feature_extraction.text import NGramMerger as NGM
+    >>> trfm = NGM(ngrams=[('NEW', 'YORK', 'CITY'), ('NEW', 'YORK')])
+    >>> X = [
+    ...   ['UNITED', 'NATIONS', 'HEADQUARTERS'],
+    ...   ['405', 'EAST', '42ND', 'STREET'],
+    ...   ['NEW', 'YORK', 'CITY', 'NEW', 'YORK', '10017', 'USA']
+    ... ]
+    >>> out = trfm.fit_transform(X)
+    >>> for line in out:
+    ...   print(line)
+    ['UNITED', 'NATIONS', 'HEADQUARTERS']
+    ['405', 'EAST', '42ND', 'STREET']
+    ['NEW_YORK_CITY', 'NEW_YORK', '10017', 'USA']
+    >>> trfm.set_params(sep='@')
+    NGramMerger(ngrams=[('NEW', 'YORK', 'CITY'), ('NEW', 'YORK')], sep='@')
+    >>> out = trfm.fit_transform(X)
+    >>> for line in out:
+    ...   print(line)
+    ['UNITED', 'NATIONS', 'HEADQUARTERS']
+    ['405', 'EAST', '42ND', 'STREET']
+    ['NEW@YORK@CITY', 'NEW@YORK', '10017', 'USA']
 
 
     """
@@ -65,8 +284,10 @@ class NGramMerger(
         self,
         *,
         ngrams: Sequence[Sequence[Union[str, re.Pattern]]],
-        ngcallable: Optional[Callable[[Sequence[str]], str]],
-        sep: Optional[str]
+        ngcallable: Optional[Callable[[Sequence[str]], str]]=None,
+        sep: Optional[str]='_',
+        wrap: Optional[bool]=False,
+        remove_empty_rows: Optional[bool]=False
     ) -> None:
 
         """Initialize the NGramMerger instance."""
@@ -74,6 +295,8 @@ class NGramMerger(
         self.ngrams = ngrams
         self.ngcallable = ngcallable
         self.sep = sep
+        self.wrap = wrap
+        self.remove_empty_rows = remove_empty_rows
 
 
     def __pybear_is_fitted__(self):
@@ -90,6 +313,17 @@ class NGramMerger(
 
     # def fit_transform
     # handled by FitTransformMixin
+
+
+    def reset(self) -> Self:
+        """No-op reset method."""
+        return self
+
+
+    def get_metadata_routing(self):
+        raise NotImplementedError(
+            f"'get_metadata_routing' is not implemented in NGramMerger"
+        )
 
 
     def partial_fit(
@@ -150,6 +384,7 @@ class NGramMerger(
 
         """
 
+        self.reset()
 
         return self.partial_fit(X, y)
 
@@ -158,7 +393,7 @@ class NGramMerger(
         self,
         X: XContainer,
         copy: Optional[bool] = True
-    ) -> XContainer:
+    ) -> XWipContainer:
 
         """
         Merge N-grams in a (possibly ragged) 2D array-like of strings.
@@ -184,19 +419,16 @@ class NGramMerger(
 
         check_is_fitted(self)
 
-        _validation(X, self.ngrams, self.ngcallable, self.sep)
+        _validation(
+            X, self.ngrams, self.ngcallable, self.sep, self.wrap,
+            self.remove_empty_rows
+        )
 
         if copy:
             _X = copy_X(X)
         else:
             _X = X
 
-        # we know from validation it is legit 1D or 2D, do the easy check
-        # if all(map(isinstance, _X, (str for _ in _X))):
-        #     # then is 1D:
-        #     _X = list(_X)
-        # else:
-        # # then could only be 2D, need to convert to 1D
         if isinstance(_X, pd.DataFrame):
             _X = list(map(list, _X.values))
         elif isinstance(_X, pl.DataFrame):
@@ -204,8 +436,14 @@ class NGramMerger(
         else:
             _X = list(map(list, _X))
 
+        self.n_rows_: int = len(_X)
 
-        return _transform(_X, self.ngrams, self.ngcallable, self.sep)
+        _X, self.row_support_ = _transform(
+            _X, self.ngrams, self.ngcallable, self.sep, self.wrap,
+            self.remove_empty_rows
+        )
+
+        return _X
 
 
     def score(
