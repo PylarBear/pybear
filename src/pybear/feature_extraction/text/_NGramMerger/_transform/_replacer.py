@@ -13,17 +13,18 @@ import re
 
 
 
-def _slider(
+def _replacer(
     _line: list[str],
     _ngram: Sequence[Union[str, re.Pattern]],
+    _hits: Sequence[int],
     _ngcallable: Union[Callable[[Sequence[str]], str], None],
     _sep: Union[str, None]
 ) -> list[str]:
 
     """
-    Slide along a sequence of strings backwards looking for matches
-    against an n-gram pattern. When one is found, replace the words with
-    the contiguous string mapped from the words.
+    Using the pattern match indices found by _match_finder, at those
+    indices in _line replace the words with the contiguous string mapped
+    from the words.
 
     Merge ngrams that match ngram patterns using the following hierarchy:
 
@@ -37,11 +38,14 @@ def _slider(
     Parameters
     ----------
     _line:
-        list[str] - A single row index from the data.
+        list[str] - A single 1D sequence of strings.
     _ngram:
         Sequence[Union[str, re.Pattern]] - A single n-gram sequence
         containing string literals and/or re.Pattern objects that
         specify an n-gram pattern. Cannot be empty.
+    _hits:
+        Sequence[int] - the starting indices of sequences in _line that
+        match the n-gram pattern.
     _ngcallable:
         Union[Callable[[Sequence[str]], str], None] - the callable
         applied to sequences that match an n-gram pattern to produce a
@@ -62,38 +66,38 @@ def _slider(
     """
 
 
-    # validation wont allow empty ngram
-    # but there may be empty lines
-    _n_len = len(_ngram)
-
-    if _n_len > len(_line):
+    if len(_hits) == 0:
         return _line
 
+    _n_len = len(_ngram)
 
     _sep = _sep or '_'
 
     if _ngcallable is None:
-        _ngcallable = lambda _matches: _sep.join(_matches)
+        _ngcallable = lambda _block: _sep.join(_block)
 
 
-    _idx = len(_line) - _n_len
-    while _idx >= 0:
+    for _idx in list(reversed(sorted(list(_hits)))):
 
         _block = _line[_idx: _idx + _n_len]
 
-        # _sp = sub_pattern
-        if all(re.fullmatch(_sp, _word) for _sp, _word in zip(_ngram, _block)):
-            del _line[_idx: _idx + _n_len]
-            _str = _ngcallable(_block)
-            if not isinstance(_str, str):
-                raise TypeError(f"'ngcallable' must return a single string")
-            _line.insert(_idx, _str)
-            _idx -= _n_len
-        else:
-            _idx -= 1
+        del _line[_idx: _idx + _n_len]
+        _str = _ngcallable(_block)
+        if not isinstance(_str, str):
+            raise TypeError(f"'ngcallable' must return a single string")
+        _line.insert(_idx, _str)
 
 
     return _line
+
+
+
+
+
+
+
+
+
 
 
 
