@@ -75,8 +75,8 @@ class TextNormalizer(
     
     Examples
     --------
-    >>> from pybear.feature_extraction.text import TextNormalizer
-    >>> trfm = TextNormalizer(upper=False)
+    >>> from pybear.feature_extraction.text import TextNormalizer as TN
+    >>> trfm = TN(upper=False)
     >>> X1 = ['ThE', 'cAt', 'In', 'ThE', 'hAt']
     >>> trfm.fit_transform(X1)
     ['the', 'cat', 'in', 'the', 'hat']

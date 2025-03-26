@@ -28,14 +28,17 @@ PolarsTypes: TypeAlias = pl.DataFrame
 
 XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
+XWipContainer: TypeAlias = list[list[str]]
+
 NGramsType: TypeAlias = Sequence[Sequence[Union[str, re.Pattern]]]
 
 CallableType: TypeAlias = Optional[Callable[[Sequence[str]], str]]
 
 SepType: TypeAlias = Optional[str]
 
+WrapType: TypeAlias = Optional[bool]
 
-
+RemoveEmptyRowsType: TypeAlias = Optional[bool]
 
 
 

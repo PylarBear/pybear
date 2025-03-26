@@ -14,6 +14,8 @@ import numbers
 from copy import deepcopy
 
 import numpy as np
+import pandas as pd
+import polars as pl
 
 from pybear.feature_extraction.text._TextLookup.TextLookupRealTime import \
     TextLookupRealTime as TLRT
@@ -92,7 +94,7 @@ class TestTextLookupRealTime:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def exp():
+    def _exp():
         return [
             ["ACTIVITY", "APPRECIATE", "ANIMAL", "ANTICIPATE", "BEAUTIFUL"],
             ["BENEATH", "BENEFIT", "BRINGING", "BRIGHT", "CAREFUL"],
@@ -138,7 +140,7 @@ class TestTextLookupRealTime:
 
 
 
-    def test_accuracy(self, _kwargs, _X, exp):
+    def test_accuracy(self, _kwargs, _X, _exp):
 
         TestCls = TLRT(**_kwargs)
 
@@ -150,8 +152,8 @@ class TestTextLookupRealTime:
         with patch('sys.stdin', io.StringIO(user_inputs)):
             out = TestCls.transform(_X)
 
-        for r_idx in range(len(exp)):
-            assert np.array_equal(out[r_idx], exp[r_idx])
+        for r_idx in range(len(_exp)):
+            assert np.array_equal(out[r_idx], _exp[r_idx])
 
         nr_ = TestCls.n_rows_
         assert isinstance(nr_, numbers.Integral)
@@ -221,10 +223,10 @@ class TestTextLookupRealTime:
         # numbers and 'skip_numbers' works
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['skip_numbers'] = True
-        TL = TLRT(**_new_kwargs)
+        _TRLT = TLRT(**_new_kwargs)
         user_inputs = f"c\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = TL.transform(_new_X)
+            out = _TRLT.transform(_new_X)
         # should not prompt, should just return original.
         for r_idx in range(len(out)):
             assert np.array_equal(out[r_idx], _new_X[r_idx])
@@ -235,17 +237,112 @@ class TestTextLookupRealTime:
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['skip_numbers'] = False
         _new_kwargs['update_lexicon'] = False
-        TL = TLRT(**_new_kwargs)
+        _TRLT = TLRT(**_new_kwargs)
 
         # just ignore all of them. we are just trying to prove out that
         # when not ignored, TextLookup sees them and prompts to handle
         # because they are not in the formal pybear lexicon.
         user_inputs = 15 * f"k\n" + f"c\n"
         with patch('sys.stdin', io.StringIO(user_inputs)):
-            out = TL.transform(_new_X)
+            out = _TRLT.transform(_new_X)
 
 
+    def test_various_1D_input_containers(self, _kwargs):
 
+        _base_text = [
+            "Fillet of a fenny snake",
+            "In the cauldron boil and bake.",
+            "Eye of newt and toe of frog,"
+        ]
+
+
+        TestCls = TLRT(**_kwargs)
+
+
+        # python 1D list rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(list(_base_text))
+
+        # python 1D tuple rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(tuple(_base_text))
+
+        # python 1D set rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(set(_base_text))
+
+        # np 1D rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(np.array(_base_text))
+
+        # pd series rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(pd.Series(_base_text))
+
+        # polars series rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(pl.Series(_base_text))
+
+
+    def test_various_2D_input_containers(self, _kwargs):
+
+        _base_text = [
+            ['FILLET', 'OF', 'A', 'FENNY', 'SNAKE'],
+            ['IN', 'THE', 'CAULDRON', 'BOIL', 'AND'],
+            ['EYE', 'OF', 'NEWT', 'AND', 'TOE']
+        ]
+
+        _exp = [
+            ['FILLET', 'OF', 'A', 'FENNY', 'SNAKE'],
+            ['IN', 'THE', 'CAULDRON', 'BOIL', 'AND'],
+            ['EYE', 'OF', 'NEWT', 'AND', 'TOE']
+        ]
+
+
+        TestCls = TLRT(**_kwargs)
+        TestCls.set_params(update_lexicon=False, auto_delete=True)
+
+        # python 2D list accepted
+        out = TestCls.fit_transform(_base_text)
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
+
+        # python 2D tuple accepted
+        out = TestCls.fit_transform(tuple(map(tuple, _base_text)))
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
+
+        # np 2D accepted
+        out = TestCls.fit_transform(np.array(_base_text))
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
+
+        # pd DataFrame accepted
+        out = TestCls.fit_transform(pd.DataFrame(np.array(_base_text)))
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
+
+        # polars 2D accepted
+        out = TestCls.fit_transform(
+            pl.DataFrame(np.array(_base_text))
+        )
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
 
 
 

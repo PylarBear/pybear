@@ -185,32 +185,32 @@ class TextStatistics(GetParamsMixin, ReprMixin):
 
     Examples
     --------
-    >>> from pybear.feature_extraction.text import TextStatistics
+    >>> from pybear.feature_extraction.text import TextStatistics as TS
     >>> STRINGS = ['I am Sam', 'Sam I am', 'That Sam-I-am!',
     ...    'That Sam-I-am!', 'I do not like that Sam-I-am!']
-    >>> TS = TextStatistics(store_uniques=True)
-    >>> TS.fit(STRINGS)
+    >>> trfm = TS(store_uniques=True)
+    >>> trfm.fit(STRINGS)
     TextStatistics()
-    >>> TS.size_
+    >>> trfm.size_
     5
-    >>> TS.overall_statistics_['max_length']
+    >>> trfm.overall_statistics_['max_length']
     28
-    >>> TS.overall_statistics_['average_length']
+    >>> trfm.overall_statistics_['average_length']
     14.4
 
     >>> STRINGS = ['a', 'a', 'b', 'c', 'c', 'c', 'd', 'd', 'e', 'f', 'f']
-    >>> TS = TextStatistics()
-    >>> TS.fit(STRINGS)
+    >>> trfm = TextStatistics()
+    >>> trfm.fit(STRINGS)
     TextStatistics()
-    >>> TS.size_
+    >>> trfm.size_
     11
-    >>> TS.string_frequency_
+    >>> trfm.string_frequency_
     {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
-    >>> TS.uniques_
+    >>> trfm.uniques_
     ['a', 'b', 'c', 'd', 'e', 'f']
-    >>> TS.overall_statistics_['max_length']
+    >>> trfm.overall_statistics_['max_length']
     1
-    >>> TS.character_frequency_
+    >>> trfm.character_frequency_
     {'a': 2, 'b': 1, 'c': 3, 'd': 2, 'e': 1, 'f': 2}
 
     """

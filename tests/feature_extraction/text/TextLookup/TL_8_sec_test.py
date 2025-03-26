@@ -14,6 +14,8 @@ import numbers
 from copy import deepcopy
 
 import numpy as np
+import pandas as pd
+import polars as pl
 
 from pybear.feature_extraction.text._TextLookup.TextLookup import TextLookup as TL
 
@@ -91,7 +93,7 @@ class TestTextLookup:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def exp():
+    def _exp():
         return [
             ["ACTIVITY", "APPRECIATE", "ANIMAL", "ANTICIPATE", "BEAUTIFUL"],
             ["BENEATH", "BENEFIT", "BRINGING", "BRIGHT", "CAREFUL"],
@@ -137,7 +139,7 @@ class TestTextLookup:
 
 
 
-    def test_accuracy(self, _kwargs, _X, exp):
+    def test_accuracy(self, _kwargs, _X, _exp):
 
         TestCls = TL(**_kwargs)
 
@@ -151,8 +153,8 @@ class TestTextLookup:
 
         out = TestCls.transform(_X)
 
-        for r_idx in range(len(exp)):
-            assert np.array_equal(out[r_idx], exp[r_idx])
+        for r_idx in range(len(_exp)):
+            assert np.array_equal(out[r_idx], _exp[r_idx])
 
         nr_ = TestCls.n_rows_
         assert isinstance(nr_, numbers.Integral)
@@ -248,6 +250,111 @@ class TestTextLookup:
             out = TestCls.fit_transform(_new_X)
 
 
+    def test_multiple_partial_fits_correct_n_rows(self, _kwargs, _X):
+
+        TestCls = TL(**_kwargs)
+        TestCls.set_params(update_lexicon=False, auto_delete=True)
+        TestCls.partial_fit(_X)
+        TestCls.partial_fit(_X)
+        assert TestCls.n_rows_ == 2 * len(_X)
+
+
+    def test_various_1D_input_containers(self, _kwargs):
+
+        _base_text = [
+            "Fillet of a fenny snake",
+            "In the cauldron boil and bake.",
+            "Eye of newt and toe of frog,"
+        ]
+
+
+        TestCls = TL(**_kwargs)
+
+
+        # python 1D list rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(list(_base_text))
+
+        # python 1D tuple rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(tuple(_base_text))
+
+        # python 1D set rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(set(_base_text))
+
+        # np 1D rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(np.array(_base_text))
+
+        # pd series rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(pd.Series(_base_text))
+
+        # polars series rejected
+        with pytest.raises(TypeError):
+            TestCls.fit_transform(pl.Series(_base_text))
+
+
+    def test_various_2D_input_containers(self, _kwargs):
+
+        _base_text = [
+            ['FILLET', 'OF', 'A', 'FENNY', 'SNAKE'],
+            ['IN', 'THE', 'CAULDRON', 'BOIL', 'AND'],
+            ['EYE', 'OF', 'NEWT', 'AND', 'TOE']
+        ]
+
+        _exp = [
+            ['FILLET', 'OF', 'A', 'FENNY', 'SNAKE'],
+            ['IN', 'THE', 'CAULDRON', 'BOIL', 'AND'],
+            ['EYE', 'OF', 'NEWT', 'AND', 'TOE']
+        ]
+
+
+        TestCls = TL(**_kwargs)
+        TestCls.set_params(update_lexicon=False, auto_delete=True)
+
+        # python 2D list accepted
+        out = TestCls.fit_transform(_base_text)
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
+
+        # python 2D tuple accepted
+        out = TestCls.fit_transform(tuple(map(tuple, _base_text)))
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
+
+        # np 2D accepted
+        out = TestCls.fit_transform(np.array(_base_text))
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
+
+        # pd DataFrame accepted
+        out = TestCls.fit_transform(pd.DataFrame(np.array(_base_text)))
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
+
+        # polars 2D accepted
+        out = TestCls.fit_transform(
+            pl.DataFrame(np.array(_base_text))
+        )
+        assert isinstance(out, list)
+        for r_idx, row in enumerate(out):
+            assert isinstance(row, list)
+            assert all(map(isinstance, row, (str for _ in row)))
+            assert np.array_equal(row, _exp[r_idx])
 
 
 

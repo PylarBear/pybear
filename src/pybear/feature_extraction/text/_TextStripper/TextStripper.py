@@ -64,8 +64,8 @@ class TextStripper(
 
     Examples
     --------
-    >>> from pybear.feature_extraction.text import TextStripper
-    >>> trfm = TextStripper()
+    >>> from pybear.feature_extraction.text import TextStripper as TS
+    >>> trfm = TS()
     >>> X = ['  a   ', 'b', '   c', 'd   ']
     >>> trfm.fit_transform(X)
     ['a', 'b', 'c', 'd']
