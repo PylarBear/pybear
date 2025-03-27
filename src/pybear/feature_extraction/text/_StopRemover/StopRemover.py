@@ -77,20 +77,21 @@ class StopRemover(
     character-to-character match of each token in the text body against
     the stop words, and removes a word from the text when there is a
     match. If you want to override the default SR case-insensitive
-    behavior, pass a new callable to the 'match_callable' parameter. The
-    callable can take anything that you can put into a callable, as long
-    as the signature is [str, str] and returns a boolean. If you would
-    like to do your stop word matching with regular expressions then
-    by all means put that in your callable.
+    behavior, pass a new callable to the :param: `match_callable`
+    parameter. The callable can take anything that you can put into a
+    callable, as long as the signature is [str, str] and returns a
+    boolean. If you would like to do your stop word matching with
+    regular expressions, then by all means put that in your callable.
 
     Optionally, you can instruct SR to remove any empty rows that may be
     left after the stop word removal process. After transform, SR
-    exposes a 'row_support_' attribute which is a boolean vector that
-    shows which rows in the data were kept (True). The only way an entry
-    in this vector could become False is if the 'remove_empty_rows'
-    parameter is True and a row became empty during the stop word
-    removal process. row_support_ only reflects the last dataset passed
-    to transform.
+    exposes the :attr: `row_support_` attribute which is a boolean vector
+    that shows which rows in the data were kept (True) and which ones
+    were removed (False). The only way an entry in this vector could
+    become False is if the :param: `remove_empty_rows` parameter is True
+    and a row became empty during the stop word removal process.
+    The :attr: `row_support_` attribute only reflects the last dataset
+    passed to transform.
 
     SR is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
@@ -106,10 +107,10 @@ class StopRemover(
     is technically always in a 'fitted' state and ready to transform
     data. Checks for fittedness will always return True.
 
-    SR has an n_rows_ attribute which is only available after data has
-    been passed to :method: transform. n_rows_ is the number of rows
-    of text seen in the original data, and must match the number of
-    entries in row_support_.
+    SR has an :attr: `n_rows_` attribute which is only available after
+    data has been passed to :meth: `transform`. :attr: `n_rows_` is the
+    number of rows of text seen in the original data, and must match the
+    number of entries in :attr: `row_support_`.
 
 
     Parameters
@@ -119,8 +120,8 @@ class StopRemover(
         None to use the default StopRemover matching criteria, or a
         custom callable that defines what constitutes matches of words
         in the text against the stop words. In pre-run validation, SR
-        only checks that 'match_callable' is None or a callable, no
-        validation is done on the callable. It is a heavy burden to
+        only checks that :param: `match_callable` is None or a callable,
+        no validation is done on the callable. It is a heavy burden to
         validate the user-defined callable at every call over a search
         of the entire text body for every stop word, so SR does not
         validate any of it. If the user-defined callable is ill-formed,
@@ -156,14 +157,15 @@ class StopRemover(
     Attributes
     ----------
     n_rows_:
-        int - the number of rows in the data passed to transform.
+        int - the number of rows in the data passed to :meth: `transform`.
     row_support_:
         NDArray[bool] of shape (n_original_rows, ) - a 1D boolean numpy
         vector indicating which rows have been kept (True) after the
         stop word removal process. Entries in this vector could only
-        become False if :param: 'remove_empty_rows' is True and one or
-        more rows became empty during the transform process. row_support_
-        only reflects the last dataset passed to transform.
+        become False if :param: `remove_empty_rows` is True and one or
+        more rows became empty during the :term: transform process.
+        The :attr: `row_support_` attribute  only reflects the last
+        dataset passed to :meth: `transform`.
 
 
     Notes
@@ -228,6 +230,26 @@ class StopRemover(
         self._stop_words = set(self._stop_words) - set(self.exempt or [])
         self._stop_words = set(self._stop_words).union(self.supplemental or [])
         self._stop_words = list(self._stop_words)
+
+
+    @property
+    def n_rows_(self):
+        """
+        Get the 'n_rows_' attribute. The number of rows in the data
+        passed to transform.
+        """
+        return self._n_rows
+
+
+    @property
+    def row_support_(self):
+        """
+        Get the row_support_ attribute. A boolean vector indicating
+        which rows were kept in the data during the transform process.
+        Only available if a transform has been performed, and only
+        reflects the results of the last transform done.
+        """
+        return self._row_support
 
 
     def __pybear_is_fitted__(self):
@@ -315,7 +337,7 @@ class StopRemover(
         self,
         X: XContainer,
         y: Optional[Union[any, None]] = None
-    ) -> Self:
+    ) -> None:
 
         """
         No-op score method. Needs to be here for dask_ml wrappers.
@@ -348,9 +370,9 @@ class StopRemover(
     def _default_callable(_str1:str, _str2:str) -> bool:
         """
         The default function for determining equality between a word
-        in the text body and a stop word. This can be supplanted by
-        passing a new callable with signature [str, str] to the
-        'match_callable' parameter.
+        in the text body and a stop word. The user can override this
+        by passing a new callable with signature [str, str] to
+        the :param: `match_callable` parameter.
         """
 
         __ = re.fullmatch(re.compile(_str1, re.I), _str2)
@@ -367,13 +389,15 @@ class StopRemover(
         """
         Scan X and remove any stop words as defined in the pybear
         Lexicon 'stop_words_' attribute. Optionally removes any empty
-        rows left by the stop word removal process. Exposes the n_rows_
-        and row_support_ attributes. row_support_ is a boolean numpy
-        vector that indicates which rows in the original X were kept
-        during transform (True); entries could only become False if
-        parameter 'remove_empty_rows' is True and at least one row
-        became empty during the stop word removal process. row_support_
-        only reflects the last dataset passed to transform.
+        rows left by the stop word removal process. Once data has been
+        passed, the :attr: `n_rows_` and :attr: `row_support_` attributes
+        are exposed. :attr: `row_support_` is a boolean numpy vector that
+        indicates which rows in the original X were kept during :term:
+        transform (True); entries could only become False if the
+        :param: `remove_empty_rows` parameter is True and at least one
+        row became empty during the stop word removal process.
+        The :attr: `row_support_` attribute only reflects the last
+        dataset passed to :meth: `transform`.
 
 
         Parameters
@@ -420,10 +444,10 @@ class StopRemover(
 
         _X: XWipContainer
 
-        self.n_rows_ = len(_X)
+        self._n_rows = len(_X)
         # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --
 
-        _X, self.row_support_ = _transform(
+        _X, self._row_support = _transform(
             _X,
             self.match_callable or self._default_callable,
             self._stop_words,

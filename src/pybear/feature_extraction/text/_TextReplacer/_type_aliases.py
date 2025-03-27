@@ -8,13 +8,27 @@
 
 from typing import Callable, Literal, Optional, Sequence
 from typing_extensions import TypeAlias, Union
+import numpy.typing as npt
 
 import numbers
 import re
 
+import pandas as pd
+import polars as pl
 
 
-XContainer: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
+
+PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
+
+NumpyTypes: TypeAlias = npt.NDArray[str]
+
+PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+
+PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+
+XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

@@ -205,20 +205,39 @@ class TestTextPadder:
         _ndarray = np.array([list('abcd'), list('abcd')])
 
         # python lists
-        TestCls.fit_transform(_base_X)
+        out = TestCls.fit_transform(_base_X)
+        assert isinstance(out, list)
+        for row in out:
+            assert isinstance(out, list)
+            assert all(map(isinstance, row, (str for _ in row)))
 
         # tuples of tuples
-        TestCls.fit_transform(tuple(map(tuple, _base_X)))
+        out = TestCls.fit_transform(tuple(map(tuple, _base_X)))
+        assert isinstance(out, list)
+        for row in out:
+            assert isinstance(out, list)
+            assert all(map(isinstance, row, (str for _ in row)))
 
         # ndarray
-        TestCls.fit_transform(_ndarray)
+        out = TestCls.fit_transform(_ndarray)
+        assert isinstance(out, list)
+        for row in out:
+            assert isinstance(out, list)
+            assert all(map(isinstance, row, (str for _ in row)))
 
         # pd dataframe
-        with pytest.raises(TypeError):
-            TestCls.fit_transform(pd.DataFrame(_ndarray))
+        out = TestCls.fit_transform(pd.DataFrame(_ndarray))
+        assert isinstance(out, list)
+        for row in out:
+            assert isinstance(out, list)
+            assert all(map(isinstance, row, (str for _ in row)))
 
         # polars dataframe
-        TestCls.fit_transform(pl.DataFrame(_ndarray))
+        out = TestCls.fit_transform(pl.from_numpy(_ndarray))
+        assert isinstance(out, list)
+        for row in out:
+            assert isinstance(out, list)
+            assert all(map(isinstance, row, (str for _ in row)))
 
 
 

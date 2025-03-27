@@ -7,16 +7,16 @@
 
 
 from .._type_aliases import (
-    XContainer,
+    XWipContainer,
     UpperType
 )
 
 
 
 def _transform(
-    _X: XContainer,
+    _X: XWipContainer,
     _upper: UpperType
-) -> XContainer:
+) -> XWipContainer:
 
     """
     Convert all string characters to upper-case, lower-case, or do a
@@ -26,7 +26,7 @@ def _transform(
     Parameters
     ----------
     _X:
-        XContainer - the data.
+        XWipContainer - the data.
     _upper:
         Union[bool, None] - what case to set the type to. If True, set
         to upper-case; if False, set to lower-case; if None, do a no-op.

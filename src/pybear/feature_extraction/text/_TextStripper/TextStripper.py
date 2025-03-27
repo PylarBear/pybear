@@ -6,8 +6,12 @@
 
 
 
-from typing import Optional, Sequence
+from typing import Optional
 from typing_extensions import Self, Union
+from ._type_aliases import (
+    XContainer,
+    XWipContainer
+)
 
 
 from pybear.base import (
@@ -17,6 +21,9 @@ from pybear.base import (
     SetParamsMixin,
     check_is_fitted
 )
+
+import pandas as pd
+import polars as pl
 
 from ._transform._transform import _transform
 
@@ -49,17 +56,37 @@ class TextStripper(
     TextStripper has no parameters and no attributes.
 
     TextStripper can transform 1D list-likes of strings and (possibly
-    ragged) 2D array-likes of strings. It cannot take pandas dataframes;
-    convert your pandas dataframes to numpy arrays or python lists of
-    lists before passing to TextStripper. Pandas and polars series give
-    expected results. Polars dataframes do not fail the validation but
-    pybear cannot guarantee sensible results. When passed a 1D list-like,
-    a single python list of strings is returned. When passed a possibly
-    ragged 2D array-like of strings, TextStripper will return an equally
-    sized and also possibly ragged python list of python lists of
-    strings.
+    ragged) 2D array-likes of strings. Accepted 1D containers include
+    python lists, tuples, and sets, numpy vectors, pandas series, and
+    polars series. Accepted 2D containers include embedded python
+    sequences, numpy arrays, pandas dataframes, and polar dataframes.
+    When passed a 1D list-like, a single python list of strings is
+    returned. When passed a possibly ragged 2D array-like of strings,
+    TextStripper will return an equally sized and also possibly ragged
+    python list of python lists of strings.
 
     TextStripper has no parameters and no attributes.
+
+
+    Notes
+    -----
+    PythonTypes:
+        Union[Sequence[str], Sequence[Sequence[str]]]
+
+    NumpyTypes:
+        npt.NDArray[str]
+
+    PandasTypes:
+        Union[pd.Series, pd.DataFrame]
+
+    PolarsTypes:
+        Union[pl.Series, pl.DataFrame]
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+    XWipContainer:
+        Union[list[str], list[list[str]]]
 
 
     Examples
@@ -95,7 +122,7 @@ class TextStripper(
 
     def partial_fit(
         self,
-        X: Union[Sequence[str], Sequence[Sequence[str]]],
+        X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> Self:
 
@@ -106,8 +133,8 @@ class TextStripper(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            whose text will be stripped of leading and trailing spaces.
+            XContainer - the data whose text will be stripped of leading
+            and trailing spaces. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -126,7 +153,7 @@ class TextStripper(
 
     def fit(
         self,
-        X: Union[Sequence[str], Sequence[Sequence[str]]],
+        X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> Self:
 
@@ -137,8 +164,8 @@ class TextStripper(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            whose text will be stripped of leading and trailing spaces.
+            XContainer - the data whose text will be stripped of leading
+            and trailing spaces. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -157,9 +184,9 @@ class TextStripper(
 
     def transform(
         self,
-        X: Union[Sequence[str], Sequence[Sequence[str]]],
+        X: XContainer,
         copy: Optional[bool] = True
-    ) -> Union[list[str], list[list[str]]]:
+    ) -> XWipContainer:
 
         """
         Remove the leading and trailing spaces from 1D or 2D text data.
@@ -168,18 +195,18 @@ class TextStripper(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            whose text will be stripped of leading and trailing spaces.
+            XContainer - the data whose text will be stripped of leading
+            and trailing spaces.
         copy:
-            Optional[bool], default=None - whether to strip the text
+            Optional[bool], default=True - whether to strip the text
             in the original X object or a copy of X.
 
 
         Returns
         -------
         -
-            Union[list[str], list[list[str]]] - the data with stripped
-            text.
+            XWipContainer - the data with stripped text.
+
 
         """
 
@@ -197,7 +224,12 @@ class TextStripper(
         if all(map(isinstance, _X, (str for _ in _X))):
             _X = list(_X)
         else:
-            _X = list(map(list, _X))
+            if isinstance(_X, pd.DataFrame):
+                _X = list(map(list, _X.values))
+            elif isinstance(_X, pl.DataFrame):
+                _X = list(map(list, _X.rows()))
+            else:
+                _X = list(map(list, _X))
 
 
         return _transform(_X)
@@ -205,9 +237,9 @@ class TextStripper(
 
     def score(
         self,
-        X: Union[Sequence[str], Sequence[Sequence[str]]],
+        X: XContainer,
         y: Optional[Union[any, None]] = None
-    ) -> Self:
+    ) -> None:
 
         """
         No-op score method.
@@ -216,7 +248,7 @@ class TextStripper(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data.
+            XContainer - the data. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.

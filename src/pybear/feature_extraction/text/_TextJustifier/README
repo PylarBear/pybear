@@ -5,4 +5,7 @@ _join_2D
 _n_chars
 _type_aliases
 
+DO NOT TRY TO MAKE TextJustifierRegExp HANDLE TextJustifier BECAUSE
+TextJustifier HAS VALIDATION IN PLACE THAT CANNOT BE DONE WITH REGEX.
+
 

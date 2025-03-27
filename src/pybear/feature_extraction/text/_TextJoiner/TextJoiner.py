@@ -41,37 +41,38 @@ class TextJoiner(
 
     """
     Join a (possibly ragged) 2D array-like of (perhaps tokenized) strings
-    across rows with the 'sep' character string(s).
+    across rows with the :param: `sep` character string(s).
 
-    When passed a 2D array-like of strings, TextJoiner joins each
-    row-wise sequence of strings on the value given by :param: 'sep' and
+    When passed a 2D array-like of strings, TextJoiner (TJ) joins each
+    row-wise sequence of strings on the value given by :param: `sep` and
     returns a 1D python list of joined strings in place of the original
     inner containers.
 
-    The 'sep' parameter can be passed as a single character string, in
-    which case all strings in the data will be joined by that string.
-    'sep' can also be passed as a 1D sequence of strings, whose length
-    must equal the number of rows of text in the data. In that case,
-    TextJoiner uses the string in each position of the 1D sequence to
+    The :param: `sep` parameter can be passed as a single character
+    string, in which case all strings in the data will be joined by that
+    string. :param: `sep` can also be passed as a 1D sequence of strings,
+    whose length must equal the number of rows of text in the data. In
+    that case, TJ uses the string in each position of the 1D sequence to
     join the corresponding row of text in the data.
 
-    TextJoiner is a full-fledged scikit-style transformer. It has fully
+    TJ is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
     methods. It also has partial_fit, fit, and score methods, which are
-    no-ops. TextJoiner technically does not need to be fit because it
-    already knows everything it needs to do transformation from the 'sep'
-    parameter. These no-op methods are available to fulfill the scikit
-    transformer API and make TextJoiner suitable for incorporation into
-    larger workflows, such as Pipelines and dask_ml wrappers.
+    no-ops. TJ technically does not need to be fit because it already
+    knows everything it needs to do transformations from :param: `sep`.
+    These no-op methods are available to fulfill the scikit transformer
+    API and make TJ suitable for incorporation into larger workflows,
+    such as Pipelines and dask_ml wrappers.
 
-    Because TextJoiner doesn't need any information from partial_fit and
-    fit, it is technically always in a 'fitted' state and ready to
-    transform data. Checks for fittedness will always return True.
+    Because TJ doesn't need any information from :meth: `partial_fit`
+    and :meth: `fit`, it is technically always in a 'fitted' state and
+    ready to transform data. Checks for fittedness will always return
+    True.
 
-    TextJoiner has one attribute, n_rows_, which is only available after
-    data has been passed to :method: transform. n_rows_ is the number of
-    rows of text seen in the original data, and must be the number of
-    strings in the returned 1D python list.
+    TJ has one attribute, :attr: `n_rows_`, which is only available after
+    data has been passed to :meth: `transform`. :attr: `n_rows_` is the
+    number of rows of text seen in the original data, and must be the
+    number of strings in the returned 1D python list.
 
 
     Parameters
@@ -79,9 +80,10 @@ class TextJoiner(
     sep:
         Optional[Union[str, Sequence[str]]], default=' ' - The character
         sequence to insert between individual strings when joining the
-        2D input data across rows. If a 1D sequence of strings, then the
-        'sep' value in each position is used to join the corresponding
-        row in X.
+        2D input data across rows. If a 1D sequence of strings, then
+        the :param: `sep` value in each position is used to join the
+        corresponding row in X. In that case, the number of entries
+        in :param: `sep` must equal the number of rows in X.
 
 
     Attributes
@@ -134,6 +136,16 @@ class TextJoiner(
         self.sep: str = sep
 
 
+    @property
+    def n_rows_(self):
+        """
+        Get the 'n_rows_' attribute. The number of rows of text seen
+        during :term: transform and the number of strings in the returned
+        1D python list.
+        """
+        return self._n_rows
+
+
     def __pybear_is_fitted__(self):
         return True
 
@@ -170,8 +182,8 @@ class TextJoiner(
         ----------
         X:
             XContainer - the (possibly ragged) 2D container of text to
-            be joined along rows using the 'sep' character string(s).
-            Ignored.
+            be joined along rows using the :param: `sep` character
+            string(s). Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -202,8 +214,8 @@ class TextJoiner(
         ----------
         X:
             XContainer - the (possibly ragged) 2D container of text
-            to be joined along rows using the 'sep' character string(s).
-            Ignored.
+            to be joined along rows using the :param: `sep` character
+            string(s). Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -228,7 +240,7 @@ class TextJoiner(
 
         """
         Convert each row of strings in X to a single string, joining on
-        the string character sequence(s) provided by the 'sep' parameter.
+        the string character sequence(s) provided by :param: `sep`.
         Returns a python list of strings.
 
 
@@ -236,7 +248,8 @@ class TextJoiner(
         ----------
         X:
             XContainer - the (possibly ragged) 2D container of text
-            to be joined along rows using the 'sep' character string(s).
+            to be joined along rows using the :param: `sep` character
+            string(s).
 
 
         Return
@@ -263,9 +276,9 @@ class TextJoiner(
         else:
             _X = list(map(list, _X))
 
-        self.n_rows_: int = len(X)
+        self._n_rows: int = len(X)
 
-        _sep = _condition_sep(self.sep, self.n_rows_)
+        _sep = _condition_sep(self.sep, self._n_rows)
 
         return _transform(_X, _sep)
 
@@ -274,7 +287,7 @@ class TextJoiner(
         self,
         X: XContainer,
         y: Optional[Union[any, None]] = None
-    ) -> Self:
+    ) -> None:
 
         """
         No-op score method. Needs to be here for dask_ml wrappers.
@@ -284,8 +297,8 @@ class TextJoiner(
         ----------
         X:
             XContainer - the (possibly ragged) 2D container of text
-            to be joined along rows using the 'sep' character string(s).
-            Ignored.
+            to be joined along rows using the :param: `sep` character
+            string(s). Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.

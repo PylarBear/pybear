@@ -178,7 +178,7 @@ class TestTextSplitter:
         # polars 2D rejected
         with pytest.raises(TypeError):
             TestCls.transform(
-                pl.DataFrame(np.array(_base_text).reshape((2, -1)))
+                pl.from_numpy(np.array(_base_text).reshape((2, -1)))
             )
 
 

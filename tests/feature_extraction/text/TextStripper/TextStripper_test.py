@@ -93,6 +93,15 @@ class TestTextStripper:
         assert isinstance(out, list)
         assert np.array_equal(out, ['AbCdE'])
 
+
+        # py 2D accepted
+        out = TestCls.transform(
+            [list(_words)],
+            copy=True
+        )
+        assert isinstance(out, list)
+        assert np.array_equal(out, [['AbCdE']])
+
         # np 2D accepted
         out = TestCls.transform(
             np.array(list(_words)).reshape((len(_words), -1)),
@@ -101,26 +110,22 @@ class TestTextStripper:
         assert isinstance(out, list)
         assert np.array_equal(out, [['AbCdE']])
 
-        # pd DataFrame rejected
-        with pytest.raises(TypeError):
-            TestCls.transform(
-                pd.DataFrame(np.array(_words).reshape((len(_words), -1))),
-                copy=True
-            )
+        # pd DataFrame accepted
+        TestCls.transform(
+            pd.DataFrame(np.array(_words).reshape((len(_words), -1))),
+            copy=True
+        )
+        assert isinstance(out, list)
+        assert np.array_equal(out, [['AbCdE']])
 
         # polars 2D accepted
         out = TestCls.transform(
-            pl.DataFrame(list(map(list, _words))),
+            pl.from_numpy(np.array(_words).reshape((len(_words), -1))),
             copy=True
         )
 
         assert isinstance(out, list)
-        assert all(map(
-            np.array_equal,
-            out,
-            [['', '', '', '', 'A', 'b', 'C', 'd', 'E', '']]
-        ))
-
+        assert np.array_equal(out, [['AbCdE']])
 
 
 

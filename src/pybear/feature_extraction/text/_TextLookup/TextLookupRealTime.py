@@ -457,6 +457,15 @@ class TextLookupRealTime(TextLookupMixin):
     # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
+    @property
+    def n_rows_(self):
+        """
+        Get the 'n_rows_' attribute. The number of rows in the data
+        passed to transform.
+        """
+        return self._n_rows
+
+
     def __pybear_is_fitted__(self):
         return True
 
@@ -603,22 +612,22 @@ class TextLookupRealTime(TextLookupMixin):
 
         _X: WipXContainer
 
-        self.n_rows_ = len(_X)
+        self._n_rows = len(_X)
         # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --
 
         # Manage attributes -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        self.DELETE_ALWAYS_ = \
+        self._DELETE_ALWAYS = \
             list(getattr(self, 'DELETE_ALWAYS_', deepcopy(self.DELETE_ALWAYS) or []))
-        self.REPLACE_ALWAYS_ = \
+        self._REPLACE_ALWAYS = \
             getattr(self, 'REPLACE_ALWAYS_', deepcopy(self.REPLACE_ALWAYS) or {})
-        self.SKIP_ALWAYS_ = \
+        self._SKIP_ALWAYS = \
             list(getattr(self, 'SKIP_ALWAYS_', deepcopy(self.SKIP_ALWAYS) or []))
-        self.SPLIT_ALWAYS_ = \
+        self._SPLIT_ALWAYS = \
             getattr(self, 'SPLIT_ALWAYS_', deepcopy(self.SPLIT_ALWAYS) or {})
 
-        self.LEXICON_ADDENDUM_: list[str] = \
+        self._LEXICON_ADDENDUM: list[str] = \
             getattr(self, 'LEXICON_ADDENDUM_', [])
-        self.KNOWN_WORDS_: list[str] = \
+        self._KNOWN_WORDS: list[str] = \
             getattr(self, 'KNOWN_WORDS_', list(self.get_lexicon()))
         # END Manage attributes -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -626,10 +635,10 @@ class TextLookupRealTime(TextLookupMixin):
         _abort = False
 
         if self.update_lexicon and not self.auto_add_to_lexicon \
-                and len(self.LEXICON_ADDENDUM_) != 0:
+                and len(self._LEXICON_ADDENDUM) != 0:
 
             print(f'\n*** LEXICON ADDENDUM IS NOT EMPTY ***\n')
-            print(f'LEXICON ADDENDUM has {len(self.LEXICON_ADDENDUM_)} entries')
+            print(f'LEXICON ADDENDUM has {len(self._LEXICON_ADDENDUM)} entries')
             print(f'First 10 in LEXICON ADDENDUM:')
             self._display_lexicon_update(n=10)
             print()
@@ -641,7 +650,7 @@ class TextLookupRealTime(TextLookupMixin):
             if _opt == 'A':
                 _abort = True
             elif _opt == 'E':
-                self.LEXICON_ADDENDUM_ = []
+                self._LEXICON_ADDENDUM = []
             elif _opt == 'P':
                 pass
             else:
@@ -655,7 +664,7 @@ class TextLookupRealTime(TextLookupMixin):
         _quit = False
         _n_edits = 0
         _word_counter = 0
-        self.row_support_: npt.NDArray[bool] = np.ones((len(_X), )).astype(bool)
+        self._row_support: npt.NDArray[bool] = np.ones((len(_X), )).astype(bool)
         for _row_idx in range(len(_X)-1, -1, -1) if not _abort else []:
 
             if self.verbose:
@@ -700,40 +709,40 @@ class TextLookupRealTime(TextLookupMixin):
 
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
                 # short-circuit for things already known or learned in-situ
-                if _word in self.SKIP_ALWAYS_:
+                if _word in self._SKIP_ALWAYS:
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(f'\n*** ALWAYS SKIP *{_word}* ***\n')
                     continue
 
-                if _word in self.DELETE_ALWAYS_:
+                if _word in self._DELETE_ALWAYS:
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
                     _X[_row_idx].pop(_word_idx)
                     continue
 
-                if _word in self.REPLACE_ALWAYS_:
+                if _word in self._REPLACE_ALWAYS:
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(
                             f'\n*** ALWAYS REPLACE *{_word}* WITH '
-                            f'*{self.REPLACE_ALWAYS_[_word]}* ***\n'
+                            f'*{self._REPLACE_ALWAYS[_word]}* ***\n'
                         )
                     _X[_row_idx] = self._split_or_replace_handler(
-                        _X[_row_idx], _word_idx, [self.REPLACE_ALWAYS_[_word]]
+                        _X[_row_idx], _word_idx, [self._REPLACE_ALWAYS[_word]]
                     )
                     continue
 
-                if _word in self.SPLIT_ALWAYS_:
+                if _word in self._SPLIT_ALWAYS:
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(
                             f'\n*** ALWAYS SPLIT *{_word}* WITH '
-                            f'*{"*, *".join(self.SPLIT_ALWAYS_[_word])}* ***\n'
+                            f'*{"*, *".join(self._SPLIT_ALWAYS[_word])}* ***\n'
                         )
                     _X[_row_idx] = self._split_or_replace_handler(
-                        _X[_row_idx], _word_idx, self.SPLIT_ALWAYS_[_word]
+                        _X[_row_idx], _word_idx, self._SPLIT_ALWAYS[_word]
                     )
                     continue
 
@@ -751,7 +760,7 @@ class TextLookupRealTime(TextLookupMixin):
 
                 # PUT THIS LAST.... OTHERWISE USER WOULD NEVER BE ABLE
                 # TO DELETE, REPLACE, OR SPLIT WORDS ALREADY IN LEXICON
-                if _word in self.KNOWN_WORDS_:
+                if _word in self._KNOWN_WORDS:
                     if self.verbose:
                         print(f'\n*** *{_word}* IS ALREADY IN LEXICON ***\n')
                     continue
@@ -765,7 +774,7 @@ class TextLookupRealTime(TextLookupMixin):
                 # LOOK FOR FIRST VALID SPLIT IF len(word) >= 4
                 if self.auto_split and len(_word) >= 4:
                     _NEW_WORDS = _auto_word_splitter(
-                        _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
+                        _word_idx, _X[_row_idx], self._KNOWN_WORDS, self.verbose
                     )
                     if len(_NEW_WORDS) > 0:
                         _X[_row_idx] = self._split_or_replace_handler(
@@ -798,8 +807,8 @@ class TextLookupRealTime(TextLookupMixin):
                     # update_lexicon=True
                     if self.verbose:
                         print(f'\n*** AUTO-ADD *{_word}* TO LEXICON ADDENDUM ***\n')
-                    self.LEXICON_ADDENDUM_.append(_word)
-                    self.KNOWN_WORDS_.insert(0, _word)
+                    self._LEXICON_ADDENDUM.append(_word)
+                    self._KNOWN_WORDS.insert(0, _word)
 
                     continue
                 # END short-circuit for auto-add -- -- -- -- -- -- -- --
@@ -832,7 +841,7 @@ class TextLookupRealTime(TextLookupMixin):
 
                 if len(_word) >= 4:
                     _NEW_WORDS = _quasi_auto_word_splitter(
-                        _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
+                        _word_idx, _X[_row_idx], self._KNOWN_WORDS, self.verbose
                     )
                     # if the user did not opt to take any of splits (or
                     # if there werent any), then _NEW_WORDS is empty, and
@@ -863,8 +872,8 @@ class TextLookupRealTime(TextLookupMixin):
                 if _opt == 'a':    # 'a': 'Add to Lexicon'
                     # this menu option is not available in LexLookupMenu
                     # if 'update_lexicon' is False
-                    self.LEXICON_ADDENDUM_.append(_word)
-                    self.KNOWN_WORDS_.insert(0, _word)
+                    self._LEXICON_ADDENDUM.append(_word)
+                    self._KNOWN_WORDS.insert(0, _word)
                     if self.verbose:
                         print(f'\n*** ADD *{_word}* TO LEXICON ADDENDUM ***\n')
                     # and X is unchanged
@@ -873,7 +882,7 @@ class TextLookupRealTime(TextLookupMixin):
                         if self.verbose:
                             print(f'\n*** ONE-TIME DELETE OF *{_word}* ***\n')
                     elif _opt == 'l':
-                        self.DELETE_ALWAYS_.append(_word)
+                        self._DELETE_ALWAYS.append(_word)
                         if self.verbose:
                             print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
                     _X[_row_idx].pop(_word_idx)
@@ -889,7 +898,7 @@ class TextLookupRealTime(TextLookupMixin):
                                 f'*{_new_word}* ***\n'
                             )
                     elif _opt == 'f':
-                        self.REPLACE_ALWAYS_[_word] = _new_word
+                        self._REPLACE_ALWAYS[_word] = _new_word
                         if self.verbose:
                             print(
                                 f'\n*** ALWAYS REPLACE *{_word}* WITH '
@@ -904,27 +913,27 @@ class TextLookupRealTime(TextLookupMixin):
                         if self.verbose:
                             print(f'\n*** ONE-TIME SKIP *{_word}* ***\n')
                     elif _opt == 'w':
-                        self.SKIP_ALWAYS_.append(_word)
+                        self._SKIP_ALWAYS.append(_word)
                         if self.verbose:
                             print(f'\n*** ALWAYS SKIP *{_word}* ***\n')
                     # a no-op
                     pass
                 elif _opt in 'su':   # 's': 'Split once', 'u': 'Split always'
                     _NEW_WORDS = _manual_word_splitter(
-                        _word_idx, _X[_row_idx], self.KNOWN_WORDS_, self.verbose
+                        _word_idx, _X[_row_idx], self._KNOWN_WORDS, self.verbose
                     )   # cannot be empty
                     if _opt == 's':
                         if self.verbose:
                             print(
                                 f'\n*** ONE-TIME SPLIT *{_word}* WITH '
-                                f'*{"*, *".join(self.SPLIT_ALWAYS_[_word])}* ***\n'
+                                f'*{"*, *".join(self._SPLIT_ALWAYS[_word])}* ***\n'
                             )
                     elif _opt == 'u':
-                        self.SPLIT_ALWAYS_[_word] = _NEW_WORDS
+                        self._SPLIT_ALWAYS[_word] = _NEW_WORDS
                         if self.verbose:
                             print(
                                 f'\n*** ALWAYS SPLIT *{_word}* WITH '
-                                f'*{"*, *".join(self.SPLIT_ALWAYS_[_word])}* ***\n'
+                                f'*{"*, *".join(self._SPLIT_ALWAYS[_word])}* ***\n'
                             )
                     _X[_row_idx] = self._split_or_replace_handler(
                         _X[_row_idx],
@@ -941,7 +950,7 @@ class TextLookupRealTime(TextLookupMixin):
 
             if self.remove_empty_rows and len(_X[_row_idx]) == 0:
                 _X.pop(_row_idx)
-                self.row_support_[_row_idx] = False
+                self._row_support[_row_idx] = False
 
             if _quit:
                 break
@@ -974,7 +983,7 @@ class TextLookupRealTime(TextLookupMixin):
 
         if self.update_lexicon and not _abort:
             # show this to the user so they can copy-paste into Lexicon
-            if len(self.LEXICON_ADDENDUM_) != 0:
+            if len(self._LEXICON_ADDENDUM) != 0:
                 print(f'\n*** COPY AND PASTE THESE WORDS INTO LEXICON ***\n')
                 self._display_lexicon_update()
 

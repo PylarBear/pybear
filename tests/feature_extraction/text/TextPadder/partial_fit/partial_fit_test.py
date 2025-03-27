@@ -10,7 +10,7 @@ import numbers
 
 import pytest
 
-import numpy as np
+import numpy as np, pandas as pd, polars as pl
 
 from pybear.feature_extraction.text._TextPadder._partial_fit._partial_fit import \
     _partial_fit
@@ -24,6 +24,20 @@ class TestPartialFit:
     def test_accuracy(self):
 
         out = _partial_fit(np.random.randint(0, 10, (37, 13)))
+
+        assert isinstance(out, numbers.Integral)
+        assert out == 13
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        out = _partial_fit(pd.DataFrame(np.random.randint(0, 10, (37, 13))))
+
+        assert isinstance(out, numbers.Integral)
+        assert out == 13
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        out = _partial_fit(pl.from_numpy(np.random.randint(0, 10, (37, 13))))
 
         assert isinstance(out, numbers.Integral)
         assert out == 13

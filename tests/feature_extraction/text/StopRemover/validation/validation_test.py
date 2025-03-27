@@ -68,7 +68,7 @@ class TestValidation:
             if _dim == 1:
                 _X = pl.Series(_base_X[:, 0])
             elif _dim == 2:
-                _X = pl.DataFrame(_base_X)
+                _X = pl.from_numpy(_base_X)
         else:
             raise Exception
 

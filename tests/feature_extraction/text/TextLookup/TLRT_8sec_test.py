@@ -336,7 +336,7 @@ class TestTextLookupRealTime:
 
         # polars 2D accepted
         out = TestCls.fit_transform(
-            pl.DataFrame(np.array(_base_text))
+            pl.from_numpy(np.array(_base_text))
         )
         assert isinstance(out, list)
         for r_idx, row in enumerate(out):

@@ -764,7 +764,11 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         return _lookup_string(char_seq, self.uniques_, case_sensitive)
 
 
-    def score(self, X: any, y: Optional[any] = None) -> None:
+    def score(
+        self,
+        X: any,
+        y: Optional[any] = None
+    ) -> None:
 
         """
         Dummy method to spoof dask Incremental and ParallelPostFit

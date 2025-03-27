@@ -66,7 +66,7 @@ class TestExempt:
                 _exempt = pl.Series(_base_exempt[:, 0])
                 assert isinstance(_exempt, pl.Series)
             elif _dim == 2:
-                _exempt = pl.DataFrame(_base_exempt)
+                _exempt = pl.from_numpy(_base_exempt)
                 assert isinstance(_exempt, pl.DataFrame)
         else:
             raise Exception

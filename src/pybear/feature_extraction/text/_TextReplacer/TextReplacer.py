@@ -25,6 +25,9 @@ from ....base import (
     check_is_fitted
 )
 
+import pandas as pd
+import polars as pl
+
 from ....base._copy_X import copy_X
 
 
@@ -65,34 +68,34 @@ class TextReplacer(
     ('[a-m]', your_callable()). If you need to use flags, they can be
     passed inside a re.compile object as a search criteria, or as an
     argument to the re.sub function (but not both!) For example, a
-    search criteria for the 'regexp_replace' parameter might be
+    search criteria for the :param: `regexp_replace` parameter might be
     (re.compile('a', re.I), '', 0). In this case, the re.I flag will
     make your search case agnostic.
 
     When building search / replace criteria for either string mode
-    (str.replace) or regexp mode (re.sub) that will be passed to the
-    'str_replace' and 'regexp_replace' parameters, respectively, build
-    the signature of the target function inside a tuple. For example,
-    the minimum arguments required for str.replace are 'old' and 'new',
-    and can take an optional 'count' argument. For the former case, pass
-    your arguments in a tuple as ('old string', 'new string'), where
-    str.replace will use its default value for count. For the latter
-    case, pass your arguments as ('old string', 'new string', count).
-    Apply the same logic to the signature of re.sub to pass tuples of
-    arguments to 'regexp_replace'. Other than the target string itself,
-    re.sub takes 2 required arguments and up to 2 other optional
-    arguments. Therefore, TR's 'regexp_replace' parameter will accept
-    tuples of 2, 3, or 4 items. The tuples must be built in the same
-    order as the signature of the target function. To pass a non-default
-    value for the last argument, you must pass all the arguments. When
-    working with 2D data, the 'count' arguments for both 'str_replace'
-    and 'regexp_replace' apply to each string in the line, not to the
-    whole line.
+    (str.replace) or regexp mode (re.sub) that will be passed to
+    the :param: `str_replace` and :param: `regexp_replace` parameters,
+    respectively, build the signature of the target function inside a
+    tuple. For example, the minimum arguments required for str.replace
+    are 'old' and 'new', and can take an optional 'count' argument. For
+    the former case, pass your arguments in a tuple as ('old string',
+    'new string'), where str.replace will use its default value for
+    count. For the latter case, pass your arguments as ('old string',
+    'new string', count). Apply the same logic to the signature of re.sub
+    to pass tuples of arguments to :param: `regexp_replace`. Other than
+    the target string itself, re.sub takes 2 required arguments and up
+    to 2 other optional arguments. Therefore, :param: `regexp_replace`
+    will accept tuples of 2, 3, or 4 items. The tuples must be built in
+    the same order as the signature of the target function. To pass a
+    non-default value for the last argument, you must pass all the
+    arguments. When working with 2D data, the 'count' arguments for
+    both :param: `str_replace` and :param: `regexp_replace` apply to
+    each string in the line, not to the whole line.
 
-    You can enter multiple tuples of arguments for both 'str_replace'
-    and 'regexp_replace' to quickly execute multiple search criteria on
-    your data. Pass the tuples described above to python sets. For
-    example, multiple search criteria for string mode might be
+    You can enter multiple tuples of arguments for :param: `str_replace`
+    and :param: `regexp_replace` to quickly execute multiple search
+    criteria on your data. Pass the tuples described above to python
+    sets. For example, multiple search criteria for string mode might be
     {(',', ''), ('.', '', 1), (';' '')}. Similarly, multiple criteria
     for regexp mode might be {('[a-m]', 'A', 0, re.I), ('@', '', 0)}.
     TR works from left to right through the set when searching and
@@ -108,8 +111,8 @@ class TextReplacer(
     literal False.
 
     TR can be instantiated with the default parameters, but this will
-    result in a no-op. To actually make replacements, the user must set
-    at least one or both of 'str_replace' or 'regexp_replace'.
+    result in a no-op. To actually make replacements, you must set at
+    least one of :param: `str_replace` or :param: `regexp_replace`.
 
     You can pass search/replace criteria to both string mode and regexp
     mode simultaneously, if you wish. TR does the regexp replacements
@@ -130,19 +133,21 @@ class TextReplacer(
     fit_transform methods are fully functional.
 
     TR accepts 1D list-like vectors of strings or (possibly ragged) 2D
-    array-likes of strings. It does not accept pandas dataframes; convert
-    your dataframes to numpy arrays or a python list of lists before
-    passing to TR. When passed a 1D list-like, a python list of the same
-    size is returned. When passed a possibly ragged 2D array-like, an
-    identically-shaped list of python lists is returned.
+    array-likes of strings. Accepted 1D containers include python lists,
+    tuples, and sets, numpy vectors, pandas series, and polar series.
+    Accepted 2D objects include python embedded sequences of sequences,
+    numpy arrays, pandas dataframes, and polars dataframe, When passed a
+    1D list-like, a python list of the same size is returned. When
+    passed a possibly ragged 2D array-like, an identically-shaped list
+    of python lists is returned.
 
 
     Parameters
     ----------
     str_replace:
-        StrReplaceType, default=None - the
-        character substring(s) to replace by exact text matching and
-        their replacement(s). Uses str.replace. Case-sensitive.
+        StrReplaceType, default=None - the character substring(s) to
+        replace by exact text matching and their replacement(s). Uses
+        str.replace. Case-sensitive.
     regexp_replace:
         RegExpReplaceType, default=None - the regular expression
         pattern(s) to substitute and their replacement(s). Uses re.sub.
@@ -152,8 +157,23 @@ class TextReplacer(
     -----
     Type Aliases
 
-    XContainer:
+    PythonTypes:
         Union[Sequence[str], Sequence[Sequence[str]]]
+
+    NumpyTypes:
+        npt.NDArray[str]
+
+    PandasTypes:
+        Union[pd.Series, pd.DataFrame]
+
+    PolarsTypes:
+        Union[pl.Series, pl.DataFrame]
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+    XWipContainer:
+        Union[list[str], list[list[str]]]
 
     ReplaceType:
         Callable[[str, str, Optional[numbers.Integral]], str]
@@ -267,6 +287,18 @@ class TextReplacer(
         )
 
 
+    # def get_params
+    # handled by GetParamsMixin
+
+
+    # def set_params
+    # handled by SetParamsMixin
+
+
+    # def fit_transform
+    # handled by FitTransformMixin
+
+
     def partial_fit(
         self,
         X: XContainer,
@@ -374,7 +406,13 @@ class TextReplacer(
         if all(map(isinstance, _X, (str for _ in _X))):
             _X = list(_X)
         else:
-            _X = list(map(list, _X))
+            if isinstance(_X, pd.DataFrame):
+                _X = list(map(list, _X.values))
+            elif isinstance(_X, pl.DataFrame):
+                _X = list(map(list, _X.rows()))
+            else:
+                _X = list(map(list, _X))
+
 
         return _transform(_X, self.str_replace, self.regexp_replace)
 

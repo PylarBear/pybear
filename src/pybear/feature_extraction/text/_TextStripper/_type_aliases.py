@@ -6,12 +6,9 @@
 
 
 
-from typing import Literal, Sequence
+from typing import Sequence
 from typing_extensions import TypeAlias, Union
 import numpy.typing as npt
-
-import re
-import numbers
 
 import pandas as pd
 import polars as pl
@@ -29,20 +26,6 @@ PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
 XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
-
-StrType: TypeAlias = Union[str, set[str]]
-StrRemoveType: TypeAlias = \
-    Union[None, StrType, list[Union[StrType, Literal[False]]]]
-
-RegExpType: TypeAlias = Union[str, re.Pattern]
-RegExpRemoveType: TypeAlias = \
-    Union[None, RegExpType, list[Union[RegExpType, Literal[False]]]]
-
-FlagType: TypeAlias = Union[None, numbers.Integral]
-RegExpFlagsType: TypeAlias = \
-    Union[FlagType, list[Union[FlagType, Literal[False]]]]
-
-RowSupportType: TypeAlias = npt.NDArray[bool]
 
 
 
