@@ -121,7 +121,7 @@ class TestTextJoiner:
         TestCls.fit_transform(pd.DataFrame(_ndarray))
 
         # polars dataframe
-        TestCls.fit_transform(pl.DataFrame(_ndarray))
+        TestCls.fit_transform(pl.from_numpy(_ndarray))
 
 
 

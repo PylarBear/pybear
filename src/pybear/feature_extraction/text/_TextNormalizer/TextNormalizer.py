@@ -8,11 +8,14 @@
 
 from typing import Optional
 from typing_extensions import Self, Union
-
 from ._type_aliases import (
     XContainer,
+    XWipContainer,
     UpperType
 )
+
+import pandas as pd
+import polars as pl
 
 from ._validation._validation import _validation
 from ._transform._transform import _transform
@@ -40,6 +43,15 @@ class TextNormalizer(
     Normalize all text in a dataset to upper-case, lower-case, or leave
     unchanged. The data can only contain strings.
 
+    TextNormalizer accepts 1D list-like vectors of strings, such as
+    python lists, tuples, and sets, numpy vectors, pandas series, and
+    polars series. TN also accepts 2D array-like containers such as
+    (possibly ragged) nested 2D python objects, numpy arrays, pandas
+    dataframes, and polars dataframes. If you pass dataframes that have
+    feature names, TN does not retain them. The returned objects are
+    always constructed with python lists, and have shape identical to
+    the shape of the inputted data.
+
     TextNormalizer (TN) is a scikit-style transformer with partial_fit,
     fit, transform, fit_transform, get_params, set_params, and score
     methods. An instance is always in a 'fitted' state, and checks for
@@ -50,23 +62,40 @@ class TextNormalizer(
     to enable TN to be incorporated into workflows such as scikit
     pipelines and dask_ml wrappers.
 
-    TextNormalizer accepts 1D list-like vectors of strings and (possibly
-    ragged) 2D array-likes of strings. It does not accept pandas
-    dataframes, convert your pandas dataframes to numpy array or python 
-    lists before using TextNormalizer. Pandas and polars series give
-    expected results. Polars dataframes pass the validation but pybear
-    cannot guarantee sensible results.  The returned objects are always
-    constructed with python lists, and have shape identical to the shape
-    of the inputted data.
-
 
     Parameters
     ----------
     upper:
-        Union[bool, None] - If True, convert all text in X to upper-case;
-        if False, convert to lower-case; if None, do a no-op.
+        Optional[Union[bool, None]] - If True, convert all text in X to
+        upper-case; if False, convert to lower-case; if None, do a no-op.
 
-    
+
+    Notes
+    -----
+    TypeAliases
+
+    PythonTypes:
+        Union[Sequence[str], Sequence[Sequence[str]]]
+
+    NumpyTypes:
+        npt.NDArray[str]
+
+    PandasTypes:
+        Union[pd.Series, pd.DataFrame]
+
+    PolarsTypes:
+        Union[pl.Series, pl.DataFrame]
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+    XWipContainer:
+        Union[list[str], list[list[str]]]
+
+    UpperType:
+        Optional[Union[bool, None]]
+
+
     See Also
     --------
     str.lower()
@@ -108,6 +137,18 @@ class TextNormalizer(
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in TextNormalizer"
         )
+
+
+    # def get_params
+    # handled by GetParamsMixin
+
+
+    # def set_params
+    # handled by SetParamsMixin
+
+
+    # def fit_transform
+    # handled by FitTransformMixin
 
 
     def partial_fit(
@@ -176,7 +217,7 @@ class TextNormalizer(
         self,
         X: XContainer,
         copy: Optional[bool] = True
-    ) -> XContainer:
+    ) -> XWipContainer:
 
         """
         Normalize the text in a dataset.
@@ -213,18 +254,22 @@ class TextNormalizer(
         if all(map(isinstance, _X, (str for _ in _X))):
             _X = list(_X)
         else:
-            _X = list(map(list, _X))
+            if isinstance(_X, pd.DataFrame):
+                _X = list(map(list, _X.values))
+            elif isinstance(_X, pl.DataFrame):
+                _X = list(map(list, _X.rows()))
+            else:
+                _X = list(map(list, _X))
 
 
         return _transform(_X, self.upper)
-
 
 
     def score(
         self,
         X: XContainer,
         y: Optional[Union[any, None]] = None
-    ) -> Self:
+    ) -> None:
 
         """
         No-op score method.

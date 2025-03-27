@@ -6,14 +6,13 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
+from .._type_aliases import XWipContainer
 
 
 
 def _transform(
-    _X: Union[Sequence[str], Sequence[Sequence[str]]]
-) -> Union[Sequence[str], Sequence[Sequence[str]]]:
+    _X: XWipContainer
+) -> XWipContainer:
 
     """
     Strip leading and trailing spaces from 1D and 2D text data.
@@ -22,15 +21,14 @@ def _transform(
     Parameters
     ----------
     _X:
-        Union[Sequence[str], Sequence[Sequence[str]]] - the data whose
-        text will be stripped.
+        XWipContainer - the data whose text will be stripped.
 
 
     Return
     ------
     _X:
-        Union[list[str], list[list[str]]] - the data with leading and
-        trailing spaces removed.
+        XWipContainer - the data with leading and trailing spaces removed.
+
 
     """
 

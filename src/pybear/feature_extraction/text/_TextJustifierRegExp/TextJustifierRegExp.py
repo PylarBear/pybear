@@ -66,17 +66,19 @@ class TextJustifierRegExp(
     TextReplacer), empty strings (pybear TextRemover), and extra spaces
     (pybear TextStripper) be done before using TJRE.
 
-    There are 3 operative parameters for justifying text in this module,
-    'n_chars', 'sep', and 'line_break'. 'n_chars' is the target number
-    of characters per line. The minimum allowed value is 1, and there is
-    no maximum value. 'sep' is the regexp pattern that tells TJRE where
-    it is allowed to wrap text. It does not mean that TJRE WILL wrap
-    that particular text, but that it can if it needs to when near the
+    There are 3 operative parameters for justifying text in this
+    module, :param: `n_chars`, :param: `sep`, and :param: `line_break`.
+    The :param: `n_chars` is the target number of characters per line.
+    The minimum allowed value is 1, and there is no maximum value.
+    The :param: `sep` is the regex pattern that tells TJRE where it is
+    allowed to wrap text. It does not mean that TJRE WILL wrap that
+    particular text, but that it can if it needs to when near the
     n_chars limit on a line. The wrap occurs AFTER the sep pattern. A
-    common 'sep' is a single space. 'line_break' is the regexp pattern
-    that tells TJRE where it MUST wrap text. When TJRE finds a line_break
-    pattern it will force a new line. The break occurs AFTER the
-    line_break pattern. A typical 'line_break' might be a period.
+    common :param: `sep` is a single space. :param: `line_break` is the
+    regex pattern that tells TJRE where it MUST wrap text. When TJRE
+    finds a line-break pattern it will force a new line. The break occurs
+    AFTER the line_break pattern. A typical :param: `line_break` might
+    be a period.
 
     This tool is more advanced than pybear TextJustifier because it
     takes regular expressions. Whereas TextJustifier has validation and
@@ -84,11 +86,11 @@ class TextJustifierRegExp(
     undesired results, these safeguards are not in place here. In TJRE,
     a conflict exists when both the sep pattern and the line_break
     pattern identify the same location in text as the first character of
-    a match. In that case, TJRE applies sep. Conflicts are impossible to
-    predict when using regexp unless you know the text it is applied to
-    beforehand. It is up to the user to assess the pitfalls and the
-    likelihood of error when using regexps on their data. The user
-    should inspect their results to ensure the desired outcome.
+    a match. In that case, TJRE applies :param: `sep`. Conflicts are
+    impossible to predict when using regex unless you know the text it
+    is applied to beforehand. It is up to the user to assess the pitfalls
+    and the likelihood of error when using regex on their data. The
+    user should inspect their results to ensure the desired outcome.
 
     But as simple as the tool is in concept, there are some nuances.
     Here is a non-exhaustive list of some of the quirks that may help
@@ -98,11 +100,12 @@ class TextJustifierRegExp(
     If a line has no separators or line-breaks in it, then TJRE does
     nothing with it. If a line is millions of characters long and there
     are no places to wrap, TJRE will return the line as given, regardless
-    of what n_chars is.
-    If the margin is set very low, perhaps lower than the length of
-    words (tokens) that may normally be encountered, then those
-    words/lines will extend beyond 'n_chars'. Cool trick: if you want an
-    itemized list of all the tokens in your text, set 'n_chars' to 1.
+    of what :param: `n_chars` is set to.
+    If :param: `n_chars` is set very low, perhaps lower than the length
+    of words (tokens) that may normally be encountered, then those
+    words/lines will extend beyond the n_chars margin. Cool trick: if
+    you want an itemized list of all the tokens in your text,
+    set :param: `n_chars` to 1.
 
     TJRE accepts 1D and 2D data formats. Accepted objects include python
     built-in lists, tuples, and sets, numpy arrays, pandas series and
@@ -120,13 +123,17 @@ class TextJustifierRegExp(
     API and make TJRE suitable for incorporation into larger workflows,
     such as Pipelines and dask_ml wrappers.
 
-    Because TJRE doesn't need any information from partial_fit and fit,
-    it is technically always in a 'fitted' state and ready to transform
-    data. Checks for fittedness will always return True.
+    Because TJRE doesn't need any information from :meth: `partial_fit`
+    and :meth: `fit`, it is technically always in a 'fitted' state and
+    ready to :term: transform data. Checks for fittedness will always
+    return True.
 
-    TJRE has one attribute, n_rows_, which is only available after data
-    has been passed to :method: transform. n_rows_ is the number of rows
-    of text seen in the original data.
+    TJRE has one attribute, :attr: `n_rows_`, which is only available
+    after data has been passed to :meth: `transform`. :attr: `n_rows_`
+    is the number of rows of text seen in the original data. The
+    outputted data may not have the same number of rows as the inputted
+    data. This number is not cumulative and only reflects that last batch
+    of data passed to :meth: `transform`.
 
 
     Parameters
@@ -144,7 +151,7 @@ class TextJustifierRegExp(
         unusually small, the output can exceed the given margins (e.g.
         the margin is set lower than an individual word's length.)
     sep:
-        Optional[Union[str, re.Pattern], default='\s' - the regexp pattern
+        Optional[Union[str, re.Pattern], default='\s' - the regex pattern
         that indicates to TJRE where it is allowed to wrap a line. If a
         pattern match is in the middle of a sequence that might otherwise
         be expected to be contiguous, TJRE will wrap a new line AFTER the
@@ -155,26 +162,26 @@ class TextJustifierRegExp(
         raised by re.search.
     sep_flags:
         Optional[Union[numbers.Integral, None]], default=None, the flags
-        for the 'sep' pattern. This parameter is only validated by TJRE
-        to be an instance of numbers.Integral or None. TJRE does not
-        assess the validity of the value. Any exceptions would be raised
-        by re.search.
+        for the :param: `sep` pattern. This parameter is only validated
+        by TJRE to be an instance of numbers.Integral or None. TJRE does
+        not assess the validity of the value. Any exceptions would be
+        raised by re.search.
     line_break:
         Optional[Union[str, re.Pattern, None]], default=None - the
-        regexp pattern that tells TJRE where it must start a new line.
+        regex pattern that tells TJRE where it must start a new line.
         A new line will be started immediately AFTER all occurrences of
         the pattern regardless of the number of characters in the line.
         If None, do not force any line breaks. If the there are
         no patterns in the data that match, then there are no forced
-        line breaks. If a line_break pattern is in the middle of a
+        line breaks. If a line-break pattern is in the middle of a
         sequence that might otherwise be expected to be contiguous, TJRE
-        will force a new line after the line_break indiscriminately.
+        will force a new line AFTER the line_break indiscriminately.
     line_break_flags:
         Optional[Union[numbers.Integral, None]], default=None, the flags
-        for the 'line_break' pattern. This parameter is only validated
-        by TJRE to be an instance of numbers.Integral or None. TJRE does
-        not assess the validity of the value. Any exceptions would be
-        raised by re.search.
+        for the :param: `line_break` pattern. This parameter is only
+        validated by TJRE to be an instance of numbers.Integral or None.
+        TJRE does not assess the validity of the value. Any exceptions
+        would be raised by re.search.
     backfill_sep:
         Optional[str], default=' ' - Some lines in the text may not have
         any of the given wrap patterns or line break patterns at the end
@@ -201,8 +208,10 @@ class TextJustifierRegExp(
     Attributes
     ----------
     n_rows_:
-        int - the number of rows of text seen during transform and the
-        number of strings in the returned 1D python list.
+        int - the number of rows in data passed to :meth: `transform`;
+        the outputted data may not have the same number of rows. This
+        number is not cumulative and only reflects the last batch of
+        data passed to :meth: `transform`.
 
 
     Notes
@@ -275,6 +284,17 @@ class TextJustifierRegExp(
         self.backfill_sep = backfill_sep
         self.join_2D = join_2D
 
+
+    @property
+    def n_rows_(self):
+        """
+        Get the 'n_rows_' attribute. The number of rows of text seen
+        in data passed to :meth: `transform`; may not be the same as the
+        number of rows in the outputted data. This number is not
+        cumulative and only reflects the last batch of data passed
+        to :meth: `transform`.
+        """
+        return self._n_rows
 
 
     def __pybear_is_fitted__(self):
@@ -376,7 +396,7 @@ class TextJustifierRegExp(
             XContainer - The data to justify.
         copy:
             Optional[bool], default=True - whether to directly operate
-            on the passed X or on a copy.
+            on the passed X or on a deepcopy.
 
 
         Return
@@ -417,7 +437,7 @@ class TextJustifierRegExp(
             _X = TextJoiner(sep=self.join_2D).fit_transform(_X)
 
         # _X must be 1D at this point
-        self.n_rows_ = len(_X)
+        self._n_rows = len(_X)
 
         _X = _transform(
             _X, self.n_chars, self.sep, self.sep_flags,

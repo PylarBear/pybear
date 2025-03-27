@@ -122,16 +122,17 @@ class TestTextNormalizer:
         assert isinstance(out, list)
         assert np.array_equal(out, [['A'], ['B'], ['C'], ['D'], ['E']])
 
-        # pd DataFrame rejected
-        with pytest.raises(TypeError):
-            TestCls.transform(
-                pd.DataFrame(np.array(_words).reshape((len(_words), -1))),
-                copy=True
-            )
+        # pd DataFrame accepted
+        TestCls.transform(
+            pd.DataFrame(np.array(_words).reshape((len(_words), -1))),
+            copy=True
+        )
+        assert isinstance(out, list)
+        assert np.array_equal(out, [['A'], ['B'], ['C'], ['D'], ['E']])
 
         # polars 2D accepted
         out = TestCls.transform(
-            pl.DataFrame(list(map(list, _words))),
+            pl.from_numpy(np.array(_words).reshape((len(_words), -1)),),
             copy=True
         )
         assert isinstance(out, list)

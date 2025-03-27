@@ -27,37 +27,39 @@ from ._methods._find_duplicates import _find_duplicates
 class Lexicon(TextStatistics):
 
     """
-    The pybear lexicon of words in the English language. May not be
-    exhaustive, though attempts have been made. This serves as a list of
-    words in the English language for text-cleaning purposes. Lexicon
-    also has an attribute for pybear-defined stop words.
+    The pybear lexicon of words in the English language. Not exhaustive,
+    though attempts have been made. This serves as a list of words in
+    the English language for text-cleaning purposes. Lexicon also has an
+    attribute for pybear-defined stop words.
 
-    The published pybear lexicon only allows the 26 letters of the
+    The published pybear Lexicon only allows the 26 letters of the
     English alphabet and all must be capitalized. Other characters, such
     as numbers, hyphens, apostrophes, etc., are not allowed. For example,
-    entries one may see in the pybear lexicon include "APPLE", "APRICOT",
+    entries one may see in the pybear Lexicon include "APPLE", "APRICOT",
     "APRIL". Entries that one will not see in the published version are
     "AREN'T", "ISN'T" and "WON'T" (the entries would be "ARENT", "ISNT",
     and "WONT".) Lexicon has validation in place to protect the integrity
-    of the published pybear lexicon toward these rules. However, this
+    of the published pybear Lexicon toward these rules. However, this
     validation can be turned off and local copies can be updated with
     any strings that the user likes.
 
     pybear stores its lexicon and stop words in text files that are read
     from the local disk when a Lexicon class is instantiated, populating
     the attributes of the instance. The lexicon files are named by the
-    26 letters of the English alphabet, therefore there are 26 lexicon
+    26 letters of the English alphabet, therefore there are 26 Lexicon
     files. Words are assigned to a file by their first letter.
 
-    The 'add_words' method allows users to add words to their local
-    copies of the lexicon, that is, write new words to the lexicon text
-    files. The validation protocols that are in place secure the
-    integrity of the published version of the pybear lexicon, and the
-    user must consider these when attempting to change their copy of the
-    lexicon. When making local additions to the lexicon via the
-    'add_words' method, this validation can be turned off via the
-    'character_validation', 'majuscule_validation', and 'file_validation'
-    keyword arguments. These allow your lexicon to take non-alpha
+    The :meth: `add_words` method allows users to add words to their
+    local copies of the Lexicon, that is, write new words to the Lexicon
+    text files. The validation protocols that are in place secure the
+    integrity of the published version of the pybear Lexicon, and the
+    user must consider these when attempting to change their local copy.
+    When making local additions to the Lexicon via :meth: `add_words`,
+    this validation can be turned off via:
+    1) :param: `file_validation`,
+    2) :param: `character_validation`, and
+    3) :param: `majuscule_validation`
+    keyword arguments. These allow your Lexicon to take non-alpha
     characters, upper or lower case, and allows Lexicon to create new
     text files for itself.
 
@@ -65,7 +67,7 @@ class Lexicon(TextStatistics):
     Attributes
     ----------
     size_:
-        int - The number of words in the pybear English language lexicon.
+        int - The number of words in the pybear English language Lexicon.
     lexicon_:
         list[str] - A list of all the words in the pybear Lexicon.
     stop_words_:
@@ -80,14 +82,14 @@ class Lexicon(TextStatistics):
         length, and minimum word length.
     string_frequency_:
         dict[str, int] - A dictionary that holds the unique words in the
-        lexicon and the respective frequency. For the pybear lexicon,
+        Lexicon and the respective frequency. For the pybear Lexicon,
         the frequency of every word should be one.
     startswith_frequency_:
         dict[str, int] - A dictionary that holds the unique first
-        characters for all the words in the lexicon (expected to be all
+        characters for all the words in the Lexicon (expected to be all
         26 letters of the English alphabet) and their frequencies in the
         first position. That is, the 'A' key will report the number of
-        words in the lexicon that start with 'A'.
+        words in the Lexicon that start with 'A'.
     character_frequency_:
         dict[str, int] - A dictionary that holds all the unique single
         characters and their frequencies for all the words in the Lexicon
@@ -100,14 +102,14 @@ class Lexicon(TextStatistics):
     --------
     >>> from pybear.feature_extraction.text import Lexicon
     >>> Lex = Lexicon()
-    >>> Lex.size_
-    68371
+    >>> round(Lex.size_, -4)
+    70000
     >>> Lex.lexicon_[:5]
     ['A', 'AA', 'AAA', 'AARDVARK', 'AARDVARKS']
     >>> Lex.stop_words_[:5]
     ['A', 'ABOUT', 'ACROSS', 'AFTER', 'AGAIN']
-    >>> round(Lex.overall_statistics_['average_length'], 3)
-    8.431
+    >>> round(Lex.overall_statistics_['average_length'], 0)
+    8.0
     >>> Lex.lookup_string('MONKEY')
     'MONKEY'
     >>> Lex.lookup_string('SUPERCALIFRAGILISTICEXPIALIDOCIOUS')
@@ -201,7 +203,7 @@ class Lexicon(TextStatistics):
     def lookup_substring(self, char_seq: str) -> list[str]:
 
         """
-        Return a list of all words in the pybear lexicon that contain
+        Return a list of all words in the pybear Lexicon that contain
         the given character substring. Case-sensitive.
 
 
@@ -209,13 +211,13 @@ class Lexicon(TextStatistics):
         ----------
         char_seq:
             str - character substring to be looked up against the words
-            in the pybear lexicon.
+            in the pybear Lexicon.
 
 
         Return
         ------
         -
-            list[str] - list of all words in the pybear lexicon that
+            list[str] - list of all words in the pybear Lexicon that
             contain the given character substring. Returns an empty list
             if there are no matches.
 
@@ -231,7 +233,7 @@ class Lexicon(TextStatistics):
     def lookup_string(self, char_seq: str) -> Union[str, None]:
 
         """
-        Look in the pybear lexicon for an identical word (not substring)
+        Look in the pybear Lexicon for an identical word (not substring)
         that exactly matches the given character sequence. If a match is
         found, return that character string. If an exact match is not
         found, return None. Case-sensitive.
@@ -241,13 +243,13 @@ class Lexicon(TextStatistics):
         ----------
         char_seq:
             str - character string to be looked up against the words in
-            the pybear lexicon.
+            the pybear Lexicon.
 
 
         Return
         ------
         -
-            Union[str, None] - if 'char_seq' is in the pybear lexicon,
+            Union[str, None] - if 'char_seq' is in the pybear Lexicon,
             return the word; if there is no match, return None.
 
 
@@ -306,39 +308,41 @@ class Lexicon(TextStatistics):
     ) -> None:
 
         """
-        Silently update the pybear lexicon text files with the given
-        words. Words that are already in the lexicon are silently
+        Silently update the pybear Lexicon text files with the given
+        words. Words that are already in the Lexicon are silently
         ignored. This is very much a case-sensitive operation.
 
         The 'validation' parameters allow you to disable the pybear
-        lexicon rules. The pybear lexicon does not allow any characters
+        Lexicon rules. The pybear Lexicon does not allow any characters
         that are not one of the 26 letters of the English alphabet.
         Numbers, spaces, and punctuation, for example, are not allowed
-        in the formal pybear lexicon. Also, the pybear lexicon requires
+        in the formal pybear Lexicon. Also, the pybear Lexicon requires
         that all entries in the lexicon be MAJUSCULE, i.e., upper-case.
-        The published pybear lexicon will always follow these rules.
-        When the validation is used it ensures the integrity of the
-        lexicon. However, the user can override this validation for
-        local copies of pybear by setting 'character_validation',
-        'majuscule_validation', and / or 'file_validation' to False. If
-        you want your lexicon to have strings that contain numbers,
-        spaces, punctuation, and have different cases, then set the
-        validation to False and add your strings to the lexicon via this
-        method.
+        The published pybear Lexicon will always follow these rules.
+        When the validation is used, it ensures the integrity of the
+        Lexicon. However, the user can override this validation for
+        local copies of Lexicon by setting:
+        1) :param: `character_validation`,
+        2) :param: `majuscule_validation`, and / or
+        3) :param: `file_validation`
+        to False. If you want your Lexicon to have strings that contain
+        numbers, spaces, punctuation, and have different cases, then set
+        the validation to False and add your strings to the lexicon via
+        this method.
 
-        pybear stores words in the lexicon text files based on the first
+        pybear stores words in the Lexicon text files based on the first
         character of the string. So a word like 'APPLE' is stored in a
         file named 'lexicon_A' (this is the default pybear way.) A word
         like 'apple' would be stored in a file named 'lexicon_a'. Keep
-        in mind that the pybear lexicon is built with all capitalized
+        in mind that the pybear Lexicon is built with all capitalized
         words and file names and these are the only ones that exist out
-        of the box. If you were to turn off the 'majuscule_validation'
-        and 'file_validation' and pass the word 'apple' to this method,
-        it will NOT append 'APPLE' to the 'lexicon_A' file, a new lexicon
+        of the box. If you were to turn off the majuscule validation
+        and file validation' and pass the word 'apple' to this method,
+        it will NOT append 'APPLE' to the 'lexicon_A' file, a new Lexicon
         file called 'lexicon_a' will be created and the word 'apple'
         will be put into it.
 
-        The Lexicon instance reloads the lexicon from disk and refills
+        The Lexicon instance reloads the Lexicon from disk and refills
         the attributes when update is complete.
 
 
@@ -346,28 +350,28 @@ class Lexicon(TextStatistics):
         ----------
         WORDS:
             Union[str, Sequence[str]] - the word or words to be added to
-            the pybear lexicon. Cannot be an empty string or an empty
-            sequence. Words that are already in the lexicon are silently
+            the pybear Lexicon. Cannot be an empty string or an empty
+            sequence. Words that are already in the Lexicon are silently
             ignored.
         character_validation:
             Optional[bool], default = True - whether to apply pybear
-            lexicon character validation to the word or sequence of
-            words. pybear lexicon allows only the 26 letters in the
+            Lexicon character validation to the word or sequence of
+            words. pybear Lexicon allows only the 26 letters in the
             English language, no others. No spaces, no hyphens, no
             apostrophes. If True, any non-alpha characters will raise
             an exception during validation. If False, any string
             character is accepted.
         majuscule_validation:
             Optional[bool], default = True - whether to apply pybear
-            lexicon majuscule validation to the word or sequence of
-            words. The pybear lexicon requires all characters be
+            Lexicon majuscule validation to the word or sequence of
+            words. The pybear Lexicon requires all characters be
             majuscule, i.e., EVERYTHING MUST BE UPPER-CASE. If True,
             any non-majuscule characters will raise an exception during
             validation. If False, any case is accepted.
         file_validation:
             Optional[bool], default = True - whether to apply pybear
-            lexicon file name validation to the word or sequence of
-            words. The formal pybear lexicon only allows words to start
+            Lexicon file name validation to the word or sequence of
+            words. The formal pybear Lexicon only allows words to start
             with the 26 upper-case letters of the English alphabet (which
             then dictates the file name in which it will be stored). If
             True, any disallowed characters in the first position will
@@ -403,8 +407,8 @@ class Lexicon(TextStatistics):
     ):
 
         """
-        Remove the given word(s) from the pybear lexicon text files.
-        Case sensitive! Any words that are not in the pybear lexicon are
+        Remove the given word(s) from the pybear Lexicon text files.
+        Case sensitive! Any words that are not in the pybear Lexicon are
         silently ignored.
 
 
@@ -412,7 +416,7 @@ class Lexicon(TextStatistics):
         ----------
         WORDS:
             Union[str, Sequence[str]] - the word or words to remove from
-            the pybear lexicon. Cannot be an empty string or an empty
+            the pybear Lexicon. Cannot be an empty string or an empty
             sequence.
 
 

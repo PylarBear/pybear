@@ -215,7 +215,7 @@ class TestTextJustifierRegExp:
 
         # polars 2D accepted
         out = TestCls.transform(
-            pl.DataFrame(np.array(_base_text))
+            pl.from_numpy(np.array(_base_text))
         )
         assert isinstance(out, list)
         assert np.array_equal(out, _exp)

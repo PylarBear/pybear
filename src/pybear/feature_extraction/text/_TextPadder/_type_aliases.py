@@ -7,17 +7,28 @@
 
 
 from typing import Sequence
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, Union
+import numpy.typing as npt
 
-import numbers
+import pandas as pd
+import polars as pl
 
 
 
-XContainer: TypeAlias = Sequence[Sequence[str]]
+PythonTypes: TypeAlias = Sequence[Sequence[str]]
 
-fill: str
+NumpyTypes: TypeAlias = npt.NDArray[str]
 
-n_features: numbers.Integral
+PandasTypes: TypeAlias = pd.DataFrame
+
+PolarsTypes: TypeAlias = pl.DataFrame
+
+XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+XWipContainer: TypeAlias = list[list[str]]
+
+
+
 
 
 

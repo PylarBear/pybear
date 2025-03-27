@@ -66,7 +66,7 @@ class TestSupplemental:
                 _supp = pl.Series(_base_supp[:, 0])
                 assert isinstance(_supp, pl.Series)
             elif _dim == 2:
-                _supp = pl.DataFrame(_base_supp)
+                _supp = pl.from_numpy(_base_supp)
                 assert isinstance(_supp, pl.DataFrame)
         else:
             raise Exception

@@ -13,6 +13,8 @@ from ._type_aliases import XContainer
 import numbers
 
 import numpy as np
+import pandas as pd
+import polars as pl
 
 from ._partial_fit._partial_fit import _partial_fit
 
@@ -47,62 +49,67 @@ class TextPadder(
     Why not just use itertools.zip_longest? TextPadder has 2 benefits
     not available with zip_longest.
 
-    First, TextPadder can be fit on multiple batches of data and keep
+    First, TextPadder can be fit on multiple batches of data and keeps
     track of which example had the most strings. TextPadder sets that
     value as the minimum possible feature axis length for the output
-    during transform, and will default to returning output with that
-    exact dimensionality unless overridden by the user to a longer
+    during :term: transform, and will default to returning output with
+    that exact dimensionality unless overridden by the user to a longer
     dimension.
 
-    Second, TextPadder can pad beyond the maximum number of strings in
-    the data through a 'n_features' parameter, whereas zip_longest will
-    always return the tightest shape possible for the data passed.
+    Second, TextPadder can pad beyond the maximum number of features
+    seen in the training data through :param: `n_features`, whereas
+    zip_longest will always return the tightest shape possible for the
+    data passed.
 
     TextPadder is a scikit-style transformer and has the following
     methods: get_params, set_params, set_output, partial_fit, fit,
     transform, fit_transform, and score.
 
     TextPadder's methods require that data be passed as (possibly ragged)
-    2D array-like containers of string data. Pandas dataframes are not
-    accepted, convert them to numpy arrays first (you may not need to use
-    this transformer if your data already fits comfortably in a pandas
-    dataframe or numpy array!)
+    2D array-like containers of string data. Accepted containers include
+    python sequences of sequences, numpy arrays, pandas dataframes, and
+    polars dataframes. You may not need to use this transformer if your
+    data already fits comfortably in shaped containers like dataframes!
+    If you pass dataframes with feature names, the original feature
+    names are not preserved.
 
-    The partial_fit and fit methods find the length of the example with
-    the most strings in it and keeps that number. This is the minimum
-    length that can be set for the feature axis of outputted arrays at
-    transform time. The partial_fit method can fit data batch-wise and
-    does not reset TextPadder when called, meaning that TextPadder can
-    remember the longest example it has seen across many batches of data.
-    The fit method does reset the TextPadder instance, causing it to
-    forget any previously seen data, and records the maximum length anew
-    with every call to it.
+    The :meth: `partial_fit` and :meth: `fit` methods find the length of
+    the example with the most strings in it and keeps that number. This
+    is the minimum length that can be set for the feature axis of the
+    output at :term: transform time. :meth: `partial_fit` method can fit
+    data batch-wise and does not reset TextPadder when called, meaning
+    that TextPadder can remember the longest example it has seen across
+    many batches of data. :meth: `fit` resets the TextPadder instance,
+    causing it to forget any previously seen data, and records the
+    maximum length anew with every call to it.
 
-    During transform, TextPadder will always force the n_features value
-    to be at least the maximum number of strings seen in a single example
-    during fitting. This is the tightest possible wrap on the data
-    without truncating, what zip_longest would do, and is what TextPadder
-    does when the 'n_features' parameter is set to the default value of
-    None. If data that is shorter than this is passed to transform, then
-    all examples will be padded with the fill value to the minimum
-    feature axis dimension. If data to be transformed has an example
-    that is longer than any example seen during fitting (which means
-    that TextPadder was not fitted on this example), and is also longer
-    than the current setting for 'n_features', then an error is raised.
+    During :term: transform, TextPadder will always force the n_features
+    value to be at least the maximum number of strings seen in a single
+    example during fitting. This is the tightest possible wrap on the
+    data without truncating, what zip_longest would do, and what
+    TextPadder does when :param: `n_features` is set to the default
+    value of None. If data that is shorter than :param: `n_features` is
+    passed to :meth: `transform`, then all examples will be padded with
+    the fill value to the :attr: `n_features` dimension. If data to be
+    transformed has an example that is longer than any example seen
+    during fitting (which means that TextPadder was not fitted on this
+    example), and is also longer than the :param: `n_features` value,
+    then an error is raised.
 
-    The 'transform' method by default returns output as a python list of
-    python lists of strings. There is some control over the output as
-    the 'set_output' method allows the user to set some common output
-    containers for the shaped array. 'set_output' can be set to None
-    which returns the default python list, 'default' which returns a
-    numpy array, 'pandas' which returns a pandas dataframe, and 'polars',
-    which returns a polars dataframe.
+    By default, :meth: `transform` returns output as a python list of
+    python lists of strings. There is some control over the output
+    container via :meth: `set_output`, which allows the user to set some
+    common output containers for the shaped array. :meth: `set_output`
+    can be set to None which returns the default python list, 'default'
+    which returns a numpy array, 'pandas' which returns a pandas
+    dataframe, and 'polars', which returns a polars dataframe.
 
-    set_params, get_params, and fit_transform behave as expected for
-    scikit-style transformers.
+    Other methods, such as :meth: `fit_transform`, :meth: `set_params`,
+    and :meth: `get_params`, behave as expected for scikit-style
+    transformers.
 
-    The score method is a no-op that allows TextPadder to be wrapped by
-    dask_ml ParallelPostFit and Incremental wrappers.
+    The score method (:meth: `score`) is a no-op that allows TextPadder
+    to be wrapped by dask_ml ParallelPostFit and Incremental wrappers.
 
 
     Parameters
@@ -126,10 +133,31 @@ class TextPadder(
     Attributes
     ----------
     n_features_:
-        int - the number of features to pad the data to during transform;
-        the number of features in the outputted array. This number is
-        the greater of the maximum number of strings seen in a single
-        example during fitting or the n_features parameter.
+        int - the number of features to pad the data to during :term:
+        transform; the number of features in the outputted array. This
+        number is the greater of :param: `n_features` or the maximum
+        number of strings seen in a single example during fitting.
+
+
+    Notes
+    -----
+    PythonTypes:
+        Sequence[Sequence[str]]
+
+    NumpyTypes:
+        npt.NDArray[str]
+
+    PandasTypes:
+        pd.DataFrame
+
+    PolarsTypes:
+        pl.DataFrame
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+    XWipContainer:
+        list[list[str]]
 
 
     See Also
@@ -346,6 +374,12 @@ class TextPadder(
         else:
             _X = X
 
+        if isinstance(_X, pd.DataFrame):
+            _X = list(map(list, _X.values))
+        elif isinstance(_X, pl.DataFrame):
+            _X = list(map(list, _X.rows()))
+        else:
+            _X = list(map(list, _X))
 
         _X = _transform(_X, self.fill, self._n_features)
 

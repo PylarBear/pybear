@@ -8,6 +8,7 @@
 
 import pytest
 
+import numbers
 import re
 
 import numpy as np
@@ -70,6 +71,14 @@ class TestAttrAccess:
         # 'row_support_' cannot be set
         with pytest.raises(AttributeError):
             setattr(TestCls, 'row_support_', any)
+
+        # 'n_rows_' needs a transform to have been done
+        with pytest.raises(AttributeError):
+            getattr(TestCls, 'n_rows_')
+
+        # 'n_rows_' cannot be set
+        with pytest.raises(AttributeError):
+            setattr(TestCls, 'n_rows_', any)
 
 
 
@@ -137,7 +146,12 @@ class TestMethodAccess:
         assert len(out) == len(_X_list)
         assert all(map(isinstance, out, (np.bool_ for _ in out)))
 
-        # create a new instance to remove row_support_
+        # 'n_rows_' should be accessible now
+        out = TestCls.n_rows_
+        assert isinstance(out, numbers.Integral)
+        assert out == len(_X_list)
+
+        # create a new instance to remove n_rows_ & row_support_
         TestCls = TextRemover(regexp_remove='[a-m]')
 
         out = getattr(TestCls, 'score')(_X_list)
@@ -152,6 +166,11 @@ class TestMethodAccess:
         out = getattr(TestCls, 'fit_transform')(_X_list)
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
+
+        # 'n_rows_' should be accessible now
+        out = TestCls.n_rows_
+        assert isinstance(out, numbers.Integral)
+        assert out == len(_X_list)
 
         # 'row_support_' should be accessible now
         out = TestCls.row_support_

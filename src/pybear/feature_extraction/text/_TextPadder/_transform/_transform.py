@@ -53,8 +53,6 @@ def _transform(
         )
 
 
-    _X = list(map(list, _X))
-
     # _fill must be a string per validation, even though fillvalue need
     # not be a string
     _X = list(map(list, zip(*itertools.zip_longest(*_X, fillvalue=_fill))))

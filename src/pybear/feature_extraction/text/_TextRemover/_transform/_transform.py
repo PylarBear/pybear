@@ -7,7 +7,7 @@
 
 
 from .._type_aliases import (
-    XContainer,
+    XWipContainer,
     StrRemoveType,
     RegExpRemoveType,
     RegExpFlagsType,
@@ -25,11 +25,11 @@ from ._regexp_2D_core import _regexp_2D_core
 
 
 def _transform(
-    _X: XContainer,
+    _X: XWipContainer,
     _str_remove: StrRemoveType,
     _regexp_remove: RegExpRemoveType,
     _regexp_flags: RegExpFlagsType
-) -> tuple[XContainer, RowSupportType]:
+) -> tuple[XWipContainer, RowSupportType]:
 
     """
     This is a router that sends the data and kwargs to the correct core
@@ -39,7 +39,7 @@ def _transform(
     Parameters
     ----------
      _X:
-        XContainer - the data
+        XWipContainer - the data
     _str_remove:
         StrRemoveType - if in string mode, the strings to match against
         full strings in the data and remove.
@@ -54,7 +54,7 @@ def _transform(
     Return
     ------
     _
-        tuple[XContainer, RowSupportType] - the data with unwanted
+        tuple[XWipContainer, RowSupportType] - the data with unwanted
         strings removed and the boolean row support vector that indicates
         which rows of the data were kept.
 

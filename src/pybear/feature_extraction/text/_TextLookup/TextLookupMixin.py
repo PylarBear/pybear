@@ -97,6 +97,108 @@ class TextLookupMixin(
         return cls._lexicon_instance.lexicon_
 
 
+    # @property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    @property
+    def row_support_(self):
+        """
+        Get the row_support_ attribute. A boolean vector indicating
+        which rows were kept in the data during the transform process.
+        Only available if a transform has been performed, and only
+        reflects the results of the last transform done.
+        """
+        return self._row_support
+
+    @property
+    def DELETE_ALWAYS_(self):
+        """
+        list[str] - A list of words that will always be deleted from the
+        text body by TL, even if they are in the Lexicon. This list is
+        comprised of any words passed to 'DELETE_ALWAYS' at instantiation
+        and any words added to this list during (partial_)fit.
+        """
+        return self._DELETE_ALWAYS
+
+    @property
+    def REPLACE_ALWAYS_(self):
+        """
+        dict[str, str] - A dictionary with words expected to be in the
+        text body as keys and their respective single-word replacements
+        as values. TL will replace these words even if they are in the
+        Lexicon. This holds anything passed to REPLACE_ALWAYS at
+        instantiation and anything added to it during run-time in manual
+        mode. In manual mode, when the user selects 'replace always',
+        the next time TL sees the word it will not prompt the user for
+        any more information, it will silently replace the word. When in
+        auto mode, TL will not add any entries to this dictionary.
+        """
+        return self._REPLACE_ALWAYS
+
+    @property
+    def SKIP_ALWAYS_(self):
+        """
+        list[str] - A list of words that are always ignored by TL,
+        even if they are not in the Lexicon. This list holds any words
+        passed to the SKIP_ALWAYS parameter at instantiation and any
+        words added to it when the user selects 'skip always' in
+        manual mode. In manual mode, the next time TL sees a word that
+        is in this list it will not prompt the user again, it will
+        silently skip the word. TL will only make additions to this
+        list in auto mode if 'skip_numbers' is True and a number is
+        found in the training data.
+        """
+        return self._SKIP_ALWAYS
+
+    @property
+    def SPLIT_ALWAYS_(self):
+        """
+        dict[str, Sequence[str]] - Similar to REPLACE_ALWAYS_, a
+        dictionary with words expected to be in the text body as keys
+        and their respective multi-word lists of replacements as values.
+        TL will sub these words in even if the original word is in the
+        Lexicon. This dictionary holds anything passed to SPLIT_ALWAYS
+        at instantiation and any splits made when 'split always' is
+        selected in manual mode. In manual mode, the next time TL sees
+        the same word in the text body it will not prompt the user again.
+        The only way TL will add anything to this dictionary in auto
+        mode is if 'auto_split' is True and TL finds a valid split of an
+        unknown word during (partial_)fit.
+        """
+        return self._SPLIT_ALWAYS
+
+    @property
+    def LEXICON_ADDENDUM_(self):
+        """
+        list[str] - can only have words in it if 'update_lexicon' is
+        True. If in auto mode ('auto_add_to_lexicon' is True), anything
+        encountered in the text that is not in the Lexicon is added to
+        this list. In manual mode, if the user selects to 'add to
+        lexicon' then the word is put in this list. TL does not
+        automatically add new words to the actual Lexicon directly.
+        TL stages new words in LEXICON_ADDENDUM_ and at the end of a
+        session prints them to the screen and makes them available in
+        this attribute.
+        """
+        return self._LEXICON_ADDENDUM
+
+    @property
+    def KNOWN_WORDS_(self):
+        """
+        list[str] - This is a WIP object used by TL to determine "what
+        is in the Lexicon." At instantiation, this is just a copy of the
+        'lexicon_' attribute of the pybear Lexicon class. If
+        'update_lexicon' is True, any words to be added to the Lexicon
+        are inserted at the front of this list (in addition to also
+        being put in LEXICON_ADDENDUM_.) If 'auto_add_to_lexicon' is
+        True, then words are inserted into this list silently during the
+        auto-lookup process. If 'auto_add_to_lexicon' is False, words
+        are inserted into this list if the user selects 'add to lexicon'.
+        """
+        return self._KNOWN_WORDS
+
+    # END @property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
     def reset(self) -> Self:
         """
         Reset the TextLookup instance. This will remove all attributes
@@ -110,24 +212,24 @@ class TextLookupMixin(
 
         """
 
-        if hasattr(self, 'n_rows_'):
-            delattr(self, 'n_rows_')
-        if hasattr(self, 'row_support_'):
-            delattr(self, 'row_support_')
+        if hasattr(self, '_n_rows'):
+            delattr(self, '_n_rows')
+        if hasattr(self, '_row_support'):
+            delattr(self, '_row_support')
 
-        if hasattr(self, 'DELETE_ALWAYS_'):
-            delattr(self, 'DELETE_ALWAYS_')
-        if hasattr(self, 'REPLACE_ALWAYS_'):
-            delattr(self, 'REPLACE_ALWAYS_')
-        if hasattr(self, 'SKIP_ALWAYS_'):
-            delattr(self, 'SKIP_ALWAYS_')
-        if hasattr(self, 'SPLIT_ALWAYS_'):
-            delattr(self, 'SPLIT_ALWAYS_')
+        if hasattr(self, '_DELETE_ALWAYS'):
+            delattr(self, '_DELETE_ALWAYS')
+        if hasattr(self, '_REPLACE_ALWAYS'):
+            delattr(self, '_REPLACE_ALWAYS')
+        if hasattr(self, '_SKIP_ALWAYS'):
+            delattr(self, '_SKIP_ALWAYS')
+        if hasattr(self, '_SPLIT_ALWAYS'):
+            delattr(self, '_SPLIT_ALWAYS')
 
-        if hasattr(self, 'LEXICON_ADDENDUM_'):
-            delattr(self, 'LEXICON_ADDENDUM_')
-        if hasattr(self, 'KNOWN_WORDS_'):
-            delattr(self, 'KNOWN_WORDS_')
+        if hasattr(self, '_LEXICON_ADDENDUM'):
+            delattr(self, '_LEXICON_ADDENDUM')
+        if hasattr(self, '_KNOWN_WORDS'):
+            delattr(self, '_KNOWN_WORDS')
         if hasattr(self, '_OOV'):
             delattr(self, '_OOV')
 
@@ -210,13 +312,13 @@ class TextLookupMixin(
         """
 
         print(f'LEXICON ADDENDUM:')
-        if len(self.LEXICON_ADDENDUM_) == 0:
+        if len(self._LEXICON_ADDENDUM) == 0:
             print(f'*** EMPTY ***')
         else:
-            self.LEXICON_ADDENDUM_.sort()
+            self._LEXICON_ADDENDUM.sort()
             print(f'[')
-            for _ in self.LEXICON_ADDENDUM_[:(n or len(self.LEXICON_ADDENDUM_))]:
-                print(f'    "{_}"{"" if _ == self.LEXICON_ADDENDUM_[-1] else ","}')
+            for _ in self._LEXICON_ADDENDUM[:(n or len(self._LEXICON_ADDENDUM))]:
+                print(f'    "{_}"{"" if _ == self._LEXICON_ADDENDUM[-1] else ","}')
             print(f']')
             print()
 
@@ -276,23 +378,23 @@ class TextLookupMixin(
                 # the user picks one of the 2 options 'a' or 'w', it causes
                 # the word to go in one of the lists which forces bypass
                 # here in transform and avoids the menu.
-                if _new_word in self.KNOWN_WORDS_ \
-                        or _new_word in self.SKIP_ALWAYS_:
+                if _new_word in self._KNOWN_WORDS \
+                        or _new_word in self._SKIP_ALWAYS:
                     continue
 
                 # if new word is not KNOWN or not skipped...
                 if self.auto_add_to_lexicon:
-                    self.LEXICON_ADDENDUM_.append(_NEW_WORDS[_slot_idx])
-                    self.KNOWN_WORDS_.insert(0, _NEW_WORDS[_slot_idx])
+                    self._LEXICON_ADDENDUM.append(_NEW_WORDS[_slot_idx])
+                    self._KNOWN_WORDS.insert(0, _NEW_WORDS[_slot_idx])
                     continue
 
                 print(f"\n*** *{_NEW_WORDS[_slot_idx]}* IS NOT IN LEXICON ***\n")
                 _ = self._LexLookupMenu.choose('Select option', allowed='aw')
                 if _ == 'a':
-                    self.LEXICON_ADDENDUM_.append(_NEW_WORDS[_slot_idx])
-                    self.KNOWN_WORDS_.insert(0, _NEW_WORDS[_slot_idx])
+                    self._LEXICON_ADDENDUM.append(_NEW_WORDS[_slot_idx])
+                    self._KNOWN_WORDS.insert(0, _NEW_WORDS[_slot_idx])
                 elif _ == 'w':
-                    self.SKIP_ALWAYS_.append(_word)
+                    self._SKIP_ALWAYS.append(_word)
                 else:
                     raise Exception
 

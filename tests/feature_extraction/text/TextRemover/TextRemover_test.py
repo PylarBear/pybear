@@ -145,24 +145,21 @@ class TestTextRemover:
         assert isinstance(out, list)
         assert np.array_equal(out, [['a'], ['b'], ['c'], ['d']])
 
-        # pd DataFrame rejected
-        with pytest.raises(TypeError):
-            TestCls.transform(
-                pd.DataFrame(np.array(_words).reshape((len(_words), -1))),
-                copy=True
-            )
-
-        # polars 2D accepted
-        out = TestCls.transform(
-            pl.DataFrame(list(map(list, _words))),
+        # pd DataFrame accepted
+        TestCls.transform(
+            pd.DataFrame(np.array(_words).reshape((len(_words), -1))),
             copy=True
         )
         assert isinstance(out, list)
-        assert all(map(
-            np.array_equal,
-            out,
-            [['a'], ['b'], ['c'], ['d']]
-        ))
+        assert np.array_equal(out, [['a'], ['b'], ['c'], ['d']])
+
+        # polars 2D accepted
+        out = TestCls.transform(
+            pl.from_numpy(np.array(_words).reshape((len(_words), -1))),
+            copy=True
+        )
+        assert isinstance(out, list)
+        assert np.array_equal(out, [['a'], ['b'], ['c'], ['d']])
 
 
 

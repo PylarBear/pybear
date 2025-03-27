@@ -12,7 +12,7 @@ import numbers
 
 
 def _partial_fit(
-    X: XContainer
+    _X: XContainer
 ) -> numbers.Integral:
 
 
@@ -34,7 +34,10 @@ def _partial_fit(
     """
 
 
-    return max(map(len, X))
+    if hasattr(_X, 'shape'):
+        return _X.shape[1]
+    else:
+        return max(map(len, _X))
 
 
 

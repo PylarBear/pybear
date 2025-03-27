@@ -19,7 +19,8 @@ from ._str_remove import _val_str_remove
 from ._regexp_remove import _val_regexp_remove
 from ._regexp_flags import _val_regexp_flags
 
-from .....base._check_dtype import check_dtype
+from .....base._check_1D_str_sequence import check_1D_str_sequence
+from .....base._check_2D_str_array import check_2D_str_array
 
 
 
@@ -62,10 +63,10 @@ def _validation(
 
 
     try:
-        check_dtype(list(_X), allowed='str', require_all_finite=False)
+        check_2D_str_array(_X, require_all_finite=False)
     except Exception as e:
         try:
-            check_dtype(list(map(list, _X)), allowed='str', require_all_finite=False)
+            check_1D_str_sequence(_X, require_all_finite=False)
         except Exception as f:
             raise TypeError(
                 f"Expected a 1D sequence or (possibly ragged) 2D array "
