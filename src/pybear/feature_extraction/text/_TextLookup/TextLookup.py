@@ -44,8 +44,8 @@ class TextLookup(TextLookupMixin):
     pybear Lexicon. Options include replacing, removing, splitting, or
     skipping the word, or staging it to add to the pybear Lexicon.
 
-    TextLookup (TL) has a dual-functionality partial_fit method. TL can
-    operate autonomously on your data for a completely hands-free
+    TextLookup (TL) has a dual-functionality :meth: `partial_fit` method.
+    TL can operate autonomously on your data for a completely hands-free
     experience, or can be driven in a fully interactive process. The
     interactive mode is a menu-driven process that prompts the user for
     a decision about a word that is not in the Lexicon and lazily stores
@@ -54,43 +54,46 @@ class TextLookup(TextLookupMixin):
     TL has a sister module called TextLookupRealTime which is not a
     typical scikit-style transformer. TL is more conventional in that
     the learning that takes place for both autonomous and manual modes
-    happens in (partial_)fit, information is stored in 'holder'
-    attributes, and then that information is applied blindly to any
-    data that is passed to transform. TL does not mutate your data during
-    fitting, so the changes to your data do not happen in 'real time'.
-    Because of this temporal dynamic, TL is not able to save changes to
-    your data in-situ. If you log a lot of changes to your data during
-    (partial_)fit and then the program terminates for whatever reason,
-    you lose all your work. If you want to make edits to the data in
-    real time and be able to save your changes in-situ then use
-    TextLookupRealTime.
+    happens in :meth: `partial_fit` and :meth: `fit`, information is
+    stored in 'holder' attributes, and then that information is applied
+    blindly to any data that is passed to transform. TL does not mutate
+    your data during fitting, so the changes to your data do not happen
+    in 'real time'. Because of this temporal dynamic, TL is not able to
+    save changes to your data in-situ. If you log a lot of changes to
+    your data during :meth: `partial_fit` or :meth: `fit` and then the
+    program terminates for whatever reason, you lose all your work. If
+    you want to make edits to the data in real time and be able to save
+    your changes in-situ then use TextLookupRealTime.
 
-    To run TL in autonomous mode, set either 'auto_add_to_lexicon' or
-    'auto_delete' to True; both cannot simultaneously be True.
-    'auto_add_to_lexicon' can only be True if 'update_lexicon' is True.
+    To run TL in autonomous mode, set either :param: `auto_delete`
+    or :param: `auto_add_to_lexicon` to True; both cannot simultaneously
+    be True. :param: `auto_add_to_lexicon` can only be True if
+    the :param: `update_lexicon` parameter is True.
 
-    When 'auto_add_to_lexicon' is True, if TL encounters a word that
-    is not in the Lexicon it will automatically stage the word in
-    LEXICON_ADDENDUM_ and go to the next word until all the words in the
-    text are exhausted. When 'auto_delete' is True, if TL encounters a
-    word that is not in the Lexicon, it will automatically add the word
-    to the DELETE_ALWAYS_ attribute and go to the next word, until all
-    the words in the text are exhausted. In these cases, TL can never
-    proceed into manual mode. To allow TL to go into manual mode, both
-    'auto_delete' and 'auto_add_to_lexicon' must be False.
+    When :param: `auto_add_to_lexicon` is True, if TL encounters a word
+    that is not in the Lexicon it will automatically stage the word in
+    the :attr: `LEXICON_ADDENDUM_` and go to the next word until all the
+    words in the text are exhausted. When :param: `auto_delete` is True,
+    if TL encounters a word that is not in the Lexicon, it will silently
+    add the word to the :attr: `DELETE_ALWAYS_` attribute  and go to the
+    next word, until all the words in the text are exhausted. In these
+    cases, TL can never proceed into manual mode. To allow TL to go into
+    manual mode, :param: `auto_delete` and :param: `auto_add_to_lexicon`
+    both must be False.
 
     In manual mode, when TL encounters a word that is not in the
     Lexicon, the user will be prompted with an interactive menu for an
-    action. Choices include: skip always, delete always, replace always,
-    split always, and if 'update_lexicon' is True, an 'add to lexicon'
-    option. If you choose something from the 'always' group, the word
-    goes into a 'holder' object for the selected action so that TL knows
-    how to handle it during transform. TL does not have the ability to
-    handle the same word in different ways at different times. Whatever
-    instruction is selected for one occurrence of a word must be applied
-    to all occurrences of the word because the storage mechanisms for
-    the operation/word combinations do not track the exact locations of
-    individual words.
+    action. Choices that are always presented include: skip always,
+    delete always, replace always, and split always. Conditionally,
+    if :param: `update_lexicon`. is True, an 'add to lexicon' option is
+    also presented. If you choose something from the 'always' group, the
+    word goes into a 'holder' object for the selected action so that TL
+    knows how to handle it during :term: transform. TL does not have the
+    ability to handle the same word in different ways at different times.
+    Whatever instruction is selected for one occurrence of a word must
+    be applied to all occurrences of the word because the storage
+    mechanisms for the operation/word combinations do not track the
+    exact locations of individual words.
 
     The holder objects are all accessible attributes in the TL public
     API. See the attributes section for more details. These holder
@@ -102,14 +105,14 @@ class TextLookup(TextLookupMixin):
     to always tell TL what to do with these words when they come up.
     You decide that you want to leave them in the text body and have
     TL ignore them. At instantiation pass a list of these strings to
-    the SKIP_ALWAYS parameter. So you might pass ['ZEKE', 'YVONNE',
-    'XAVIER', ...] to SKIP_ALWAYS. TL will always skip these words
-    without asking. The passed SKIP_ALWAYS becomes the starting seed of
-    the SKIP_ALWAYS_ attribute. Any other manual inputs during the
-    session that say to always skip certain other words will be added to
-    this list, so that at the end of the session the SKIP_ALWAYS_
-    attribute will contain your originally passed words and the words
-    added during the session.
+    the :param: `SKIP_ALWAYS` parameter. So you might pass ['ZEKE',
+    'YVONNE', 'XAVIER', ...] to :param: `SKIP_ALWAYS`. TL will always
+    skip these words without asking. The passed :param: `SKIP_ALWAYS`
+    becomes the starting seed of the :attr: `SKIP_ALWAYS_` attribute.
+    Any other manual inputs during the session that say to always skip
+    certain other words will be added to this list, so that at the end
+    of the session the :attr: `SKIP_ALWAYS_` attribute will contain your
+    originally passed words and the words added during the session.
 
     TL always looks for special instructions before looking to see if
     a word is in the Lexicon. Otherwise, if TL checked the word against
@@ -117,17 +120,17 @@ class TextLookup(TextLookupMixin):
     the next word automatically. Doing it in this way allows for users
     to give special instructions for words already in the Lexicon. Let's
     say there is a word in the Lexicon but you want to delete it from
-    your text. You could pass it to DELETE_ALWAYS and TL will remove it
-    regardless of what the Lexicon says.
+    your text. You could pass it to :param: `DELETE_ALWAYS` and TL will
+    remove it regardless of what the Lexicon says.
 
-    'update_lexicon' does not cause TL to directly update the Lexicon.
-    If the user opts to stage a word for addition to the Lexicon, the
-    word is added to the 'LEXICON_ADDENDUM_' attribute. This is a
-    deliberate design choice to stage the words rather than silently
-    modify the Lexicon. This gives the user a layer of protection where
-    they can review the words staged to go into the Lexicon, make any
-    changes needed, then manually pass them to the Lexicon().add_words()
-    method.
+    The :param: `update_lexicon` parameter does not cause TL to directly
+    update the Lexicon. If the user opts to stage a word for addition to
+    the Lexicon, the word is added to the :attr: `LEXICON_ADDENDUM_`
+    attribute. This is a deliberate design choice to stage the words
+    rather than silently modify the Lexicon. This gives the user a layer
+    of protection where they can review the words staged to go into the
+    Lexicon, make any changes needed, then manually pass them to the
+    Lexicon().add_words() method.
 
     TL requires (possibly ragged) 2D data formats. Accepted objects
     include python built-in lists and tuples, numpy arrays, pandas
@@ -153,15 +156,15 @@ class TextLookup(TextLookupMixin):
     with your own words of varying capitalization, TL honors your
     capitalization scheme.
 
-    If TL encounters a word during transform that was not seen during
-    fitting and is not in the Lexicon, the way that it is handled depends
-    on the setting of the 'auto_delete' parameter. If auto_delete True,
-    the word is deleted from the text body. If False, the word is
-    skipped. In both cases, the word is added to an 'OOV_' (out of
-    vocabulary) dictionary. The OOV_ attribute is only available after
-    data has been passed to :method: transform. The keys are the
-    out-of-vocabulary words and the values are the frequency of each
-    unseen word.
+    If TL encounters a word during :term: transform that was not seen
+    during fitting and is not in the Lexicon, the way that it is handled
+    depends on the setting of the :param: `auto_delete` parameter. If
+    the :param: `auto_delete` is True, the word is deleted from the text
+    body. If False, the word is skipped. In both cases, the word is added
+    to an :attr: `OOV_` (out of vocabulary) dictionary. :attr: `OOV_`
+    is only available after data has been passed to :meth: `transform`.
+    The keys are the out-of-vocabulary words and the values are the
+    frequency of each unseen word.
 
     TL is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, partial_fit, fit, transform, and
@@ -169,17 +172,18 @@ class TextLookup(TextLookupMixin):
     TL to wrapped by dask_ml wrappers, on the off-chance that you
     actually have text data in dask format.
 
-    TL has an 'n_rows_' attribute which is only available after data has
-    been passed to :methods: (partial_)fit. 'n_rows_' is the total number
-    of rows of text seen in the original data and is not necessarily the
-    number of rows in the outputted data. TL also has a 'row_support_'
-    attribute that is a boolean vector of shape (n_rows, ) that indicates
-    which rows of the original data were kept during the transform
-    process (True) and which were deleted (False). The only way that an
-    entry could become False is if 'remove_empty_rows' is True and a row
-    becomes empty when handling unknown words. 'row_support_' is only
-    available after something has been passed to :method: transform, and
-    only reflects the last dataset passed to transform.
+    TL has an :attr: `n_rows_` attribute which is only available after
+    data has been passed to :meth: `partial_fit` or :meth: `fit`. It is
+    the total number of rows of text seen in the original data and is
+    not necessarily the number of rows in the outputted data. TL also
+    has a :attr: `row_support_` attribute that is a boolean vector of
+    shape (n_rows, ) that indicates which rows of the original data were
+    kept during the transform process (True) and which were deleted
+    (False). The only way that an entry could become False is if
+    the :param: `remove_empty_rows` parameter is True and a row
+    becomes empty when handling unknown words. :attr: `row_support_` is
+    only available after something has been passed to :meth: `transform`,
+    and only reflects the last dataset passed to transform.
 
 
     Parameters
@@ -188,8 +192,8 @@ class TextLookup(TextLookupMixin):
         Optional[bool], default=False - whether to queue words that
         are not in the pybear Lexicon for later addition to the Lexicon.
         This applies to both autonomous and interactive modes. If False,
-        TL will never put a word in LEXICON_ADDENDUM_ and will never
-        prompt you with the option.
+        TL will never put a word in :attr: `LEXICON_ADDENDUM_` and will
+        never prompt you with the option.
     skip_numbers:
         Optional[bool], default=True - When skip numbers is True, TL
         will try to do python float(word) on the word and, if it can be
@@ -216,27 +220,28 @@ class TextLookup(TextLookupMixin):
         False, TL will skip this process and go straight to auto-add,
         auto-delete, or manual mode.
     auto_add_to_lexicon:
-        Optional[bool], default=False - 'update_lexicon' must be True to
-        use this parameter. Cannot be True if 'auto_delete' is True.
-        When this parameter is True, TL operates in 'auto-mode', where
-        the user will not be prompted for decisions. When TL encounters
-        a word that is not in the Lexicon, the word will silently be
-        staged in the LEXICON_ADDENDUM_ attribute to be added to the
-        Lexicon later.
+        Optional[bool], default=False - :param: `update_lexicon` must be
+        True to use this parameter. Cannot be True if :param: `auto_delete`
+        is True. When this parameter is True, TL operates in 'auto-mode',
+        where the user will not be prompted for decisions. When TL
+        encounters a word that is not in the Lexicon, the word will
+        silently be staged in the :attr: `LEXICON_ADDENDUM_` attribute
+        to be added to the Lexicon later.
     auto_delete:
-        Optional[bool], default=False - Cannot be True if 'update_lexicon'
-        or 'auto_add_to_lexicon' are True. When this parameter is True,
-        TL operates in 'auto-mode', where the user will not be prompted
-        for decisions. When TL encounters a word that is not in the
-        Lexicon, the word will be silently deleted from the text body.
+        Optional[bool], default=False - If :param: `update_lexicon` is
+        True, then this cannot be set to True. When this parameter is
+        True, TL operates in 'auto-mode', where the user will not be
+        prompted for decisions. When TL encounters a word that is not
+        in the Lexicon, the word will be silently deleted from the text
+        body.
     DELETE_ALWAYS:
         Optional[Union[Sequence[str], None]], default=None - A list of
         words that will always be deleted by TL, even if they are in
         the Lexicon. In both manual and auto modes, TL will silently
         delete the word(s), no questions asked. What is passed here
-        becomes the seed for the DELETE_ALWAYS_ attribute, which may
-        have more words added to it during run-time in manual mode.
-        Auto-mode will never add more words to this list.
+        becomes the seed for the :attr: `DELETE_ALWAYS_` attribute,
+        which may have more words added to it during run-time in manual
+        mode. Auto-mode will never add more words to this list.
     REPLACE_ALWAYS:
         Optional[Union[dict[str, str], None]], default=None - A
         dictionary with words expected to be in the text body as keys

@@ -40,8 +40,8 @@ def _identify_combos_to_keep(
         apply :param: keep to the group of duplicate combos in
         poly_duplicates_ to find the combo to keep. If :param: keep is
         'random', then the random tuples are selected prior to this
-        module in _lock_in_random_combos() and are passed here via
-        :param: _rand_combos.
+        module in _lock_in_random_combos() and are passed here
+        via :param: `_rand_combos`.
 
 
     Parameters

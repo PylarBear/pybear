@@ -32,8 +32,8 @@ def _val_y(
     _y:
         Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None] of
         shape (n_samples, n_features) or (n_samples,). The target for
-        the data. Ignored in :methods: partial_fit and fit, optional for
-        :method: transform.
+        the data. Ignored in :meth: `partial_fit` and :meth: `fit`,
+        optional for :meth: `transform`.
 
 
     Return

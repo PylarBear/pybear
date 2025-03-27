@@ -457,9 +457,9 @@ class MinCountTransformer(
     it in a pipeline step requires using the Pipeline class in imblearn
     that inherits from the one in sklearn.
 
-    The dask_ml wrappers (currently) do not accept a y argument to
-    :method: transform, and MCT is bound to this condition. However, the
-    need to mask y identically to the masking of X still exists.
+    The dask_ml wrappers (currently) do not accept a 'y' argument
+    to :meth: `transform`, and MCT is bound to this condition. However,
+    the need to mask 'y' identically to the masking of X still exists.
     For dask Incremental and ParallelPostFit applications, one workaround
     for the API constraint is to merge the data and the target into a
     single X object, use the ignore_columns parameter of MCT to ignore
@@ -1283,6 +1283,7 @@ class MinCountTransformer(
         self,
         X: XContainer,
         y: Optional[YContainer]=None,
+        *,
         copy: Optional[Union[bool, None]]=None
     ) -> Union[tuple[XContainer, YContainer], XContainer]:
 

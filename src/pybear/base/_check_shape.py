@@ -57,9 +57,9 @@ def check_shape(
         min_features. If None, then there is no restriction on the
         maximum number of features in OBJECT.
     min_samples:
-        numbers.Integral - The minimum number of samples required in
-        OBJECT; must be greater than or equal to zero. Ignored if
-        :param: sample_check is not None.
+        numbers.Integral - The minimum number of samples required
+        in OBJECT; must be greater than or equal to zero. Ignored
+        if :param: `sample_check` is not None.
     sample_check:
         Union[numbers.Integral, None] - The exact number of samples
         allowed in OBJECT. If not None, must be a non-negative integer.

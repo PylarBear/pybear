@@ -24,12 +24,12 @@ def _lock_in_random_idxs(
 
     """
 
-    :method: transform needs to mask the same indices for all batch-wise
-    transforms, otherwise the outputted batches will have different
-    columns. When :param: keep is set to 'random', :method: transform
-    needs a static set of random column indices to use repeatedly, rather
-    than a set of dynamic indices that are regenerated with each call to
-    :method: transform.
+    The :meth: `transform` method needs to mask the same indices for
+    all batch-wise transforms, otherwise the outputted batches will
+    have different columns. When :param: `keep` is set to
+    'random', :method: `transform` needs a static set of random column
+    indices to use repeatedly, rather than a set of dynamic indices
+    that are regenerated with each call to :meth: `transform`.
 
     Goal: Create a static set of random indices that is regenerated with
     each call to :method: partial_fit, but is unchanged when :method:

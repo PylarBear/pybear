@@ -77,12 +77,12 @@ class SlimPolyFeatures(
 
     SPF follows the standard scikit-learn transformer API, and makes the
     standard transformer methods available: fit, partial_fit, transform,
-    set_params, get_params, and get_feature_names_out. SPF also has a
-    reset method which is covered elsewhere in the docs.
+    set_params, get_params, and get_feature_names_out. SPF also has
+    a :meth: `reset` method which is covered elsewhere in the docs.
 
     Numpy arrays, pandas dataframes, and all scipy sparse objects (csr,
-    csc, coo, lil, dia, dok, bsr) are accepted by :methods: partial_fit,
-    fit, and transform.
+    csc, coo, lil, dia, dok, and bsr matrices and arrays) are accepted
+    by :meth: `partial_fit`, :meth: `fit`, and :meth: `transform`.
 
     A polynomial feature expansion generates all possible multiplicative
     combinations of the original features, typically from the zero-degree
@@ -95,7 +95,7 @@ class SlimPolyFeatures(
     non-linear relationships between the data and the target.
 
     A conventional workflow would be to perform a polynomial expansion
-    on data (that fits in memory), remove duplicate and constant columns,
+    (that fits in memory) on data, remove duplicate and constant columns,
     and perform an analysis. The memory occupied by the columns that were
     eventually removed may have prevented us from doing a higher order
     expansion, which may have provided useful information. Unfortunately,
@@ -120,16 +120,16 @@ class SlimPolyFeatures(
     further discussion in these documents about how SlimPolyFeatures
     handles these conditions in-situ during multiple partial fits, but
     ultimately SPF requires the totality of seen data have no constants
-    and no duplicates. When SPF :param: scan_X is True, SPF is able to
+    and no duplicates. When SPF :param: `scan_X` is True, SPF is able to
     find any columns in the original data that are constant/duplicate
     and prevent transform until the condition is fixed; it could only be
     fixed in-situ with more partial fits. To properly pre-condition your
     data beforehand, remove constant columns from your data with pybear
     InterceptManager, and remove duplicate columns from your data with
     pybear ColumnDeduplicateTransformer. If there are no constant or
-    duplicate columns in the data, setting :param: scan_X to False can
+    duplicate columns in the data, setting :param: `scan_X` to False can
     greatly reduce the cost of the polynomial expansion. See more
-    discussion in the 'scan_X' parameter.
+    discussion in the :param: `scan_X` parameter.
 
     During the fitting process, SPF learns what columns in the expansion
     would be constant and/or duplicate. SPF must retain all the unique
@@ -138,14 +138,14 @@ class SlimPolyFeatures(
     does the expansion out brute force (which can be large), but always
     generates this preliminary expansion as a scipy sparse array to save
     memory. This preliminary expansion is not directly returned as a
-    result at transform time. At transform, the polynomial expansion is
-    built based on what was learned about constant and duplicate columns
-    during the building of the preliminary expansion.
+    result at :term: transform time. At :term: transform, the polynomial
+    expansion is built based on what was learned about constant and
+    duplicate columns during the building of the preliminary expansion.
 
-    At transform time, SPF applies the rules it learned during fitting
-    and only builds the polynomial features that could add value to the
-    dataset. The internal construction of the polynomial expansion is
-    always as a scipy sparse csc array to minimize the memory footprint
+    At :term: transform time, SPF applies the rules it learned during
+    fitting and only builds the polynomial features that could add value
+    to the dataset. The internal construction of the polynomial expansion
+    is always as a scipy sparse csc array to minimize the RAM footprint
     of the expansion. The expansion is also always done with float64
     datatypes, regardless of datatype of the passed data, to prevent any
     overflow problems that might arise from multiplication of low bit
@@ -154,46 +154,45 @@ class SlimPolyFeatures(
     of the expansion is high. SPF HAS NO PROTECTIONS FOR OVERFLOW. IT IS
     UP TO THE USER TO AVOID OVERFLOW CONDITIONS AND VERIFY RESULTS.
 
-    Even though :method: transform always constructs the expansion as
+    Even though :meth: `transform` always constructs the expansion as
     scipy sparse csc, SPF will return the expansion in the format of the
-    data passed to :method: transform, unless instructed otherwise. If
-    dense data is passed to :method: transform, this negates the memory
+    data passed to :meth: `transform`, unless instructed otherwise. If
+    dense data is passed to :meth: `transform`, this negates the memory
     savings from building as sparse csc because the sparse format will
-    be converted to the dense format for return. But SPF has a
-    'sparse_output' parameter that instructs to return the expansion in
-    sparse csr format, preserving the lower memory footprint of the
-    internal expansion. If :param: sparse_output is set to True, the
-    expansion is returned as scipy sparse csr array. If :param:
-    sparse_output is set to False, then SPF will convert the polynomial
-    expansion from a sparse csc_array to the same format as was passed
-    to :method: transform.
+    be converted to the dense format for return. SPF can be instructed
+    to return the output in sparse format via the :param: `sparse_output`
+    parameter that preserves the lower memory footprint of the internal
+    expansion. If :param: `sparse_output` is set to True, the expansion
+    is returned as scipy sparse csr array. If :param: `sparse_output` is
+    set to False, then SPF will convert the polynomial expansion from a
+    sparse csc_array to the same format passed to :meth: `transform`.
 
-    The SPF partial_fit method allows for incremental fitting. Through
-    this method, even if the data is bigger-than-memory, SPF is able to
-    learn what columns in X are constant/duplicate and what columns
-    in the expansion are constant/duplicate, and carry out instructions
-    to build the expansion batch-wise. This partial_fit method makes
-    SPF amenable to batch-wise fitting and transforming, such as via
-    dask_ml Incremental and ParallelPostFit wrappers.
+    The SPF :meth: `partial_fit` method allows for incremental fitting.
+    Through this method, even if the data is bigger-than-memory, SPF is
+    able to learn what columns in X are constant/duplicate and what
+    columns in the expansion are constant/duplicate, and carry out
+    instructions to build the expansion batch-wise. :meth: `partial_fit`
+    makes SPF amenable to batch-wise fitting and transforming, such as
+    via dask_ml Incremental and ParallelPostFit wrappers.
 
-    SPF takes parameters to set the minimum (:param: min_degree) and
-    maximum (:param: degree) degrees of the polynomial terms produced
+    SPF takes parameters to set the minimum (:param: `min_degree`) and
+    maximum (:param: `degree`) degrees of the polynomial terms produced
     during the expansion. The edge case of returning only the 0-degree
     column of ones is disallowed. SPF never returns the 0-degree column
     of ones under any circumstance. The lowest degree SPF ever returns
     is degree one (the original data in addition to whatever other order
-    terms are required). SPF terminates if :param: min_degree is set to
-    zero (minimum allowed setting is 1). To append a zero-degree column
-    to your data, use pybear InterceptManager after using SPF. Also, SPF
-    does not allow the no-op case of :param: degree = 1, where the
-    original data would be returned unchanged without any polyomial
-    features. The minimum setting for :param: degree is 2.
+    terms are required). SPF terminates if :param: `min_degree` is set
+    to zero (minimum allowed setting is 1). To append a zero-degree
+    column to your data, use pybear InterceptManager after using SPF.
+    Also, SPF does not allow the no-op case of :param: `degree` = 1,
+    where the original data would be returned unchanged without any
+    polyomial features. The minimum setting for :param: `degree` is 2.
 
     During fitting, SPF is able to tolerate constants and duplicates in
     the data. While this condition exists, however, SPF remains in a
     state where it waits for further partial fits to remedy the situation
     and does no-ops with warnings on most other actions (such as calls
-    to attributes, the transform method, amongst others.) Only when the
+    to attributes, :meth: `transform`, amongst others.) Only when the
     internal state of SPF is satisfied that there are no constant or
     duplicate columns in the training data will SPF allow access to the
     other functionality.
@@ -205,16 +204,17 @@ class SlimPolyFeatures(
     SPF has 5 property attributes that are accessible at any point after
     fitting. These 5 property attributes only reflect information about
     the polynomial expansion portion of the output, never the original
-    data, even when min_degree == 1. They can only be accessed if there
-    are no constants or duplicates in the training data, otherwise
-    attempts to access them will result in a no-op that gives a warning
-    and returns None.
+    data, even when :param: `min_degree` == 1. They can only be accessed
+    if there are no constants or duplicates in the training data,
+    otherwise attempts to access them will result in a no-op that gives
+    a warning and returns None.
 
-    Once SPF is fit, setting of most params via :method: set_params is
+    Once SPF is fit, setting of most params via :meth: `set_params` is
     blocked. The is to prevent SPF from failing because of new learning
     states that cannot be reconciled with earlier learning states. The
-    only parameters that can be set after a fit are 'keep', 'n_jobs',
-    'sparse_output', and 'feature_name_combiner'. SPF has a 'reset'
+    only parameters that can be set after a fit are
+    1) :param: `keep`, 2) :param: `n_jobs`, 3) :param: `sparse_output`,
+    and 4) :param: `feature_name_combiner`. SPF has a :meth: `reset`
     method that resets the data-dependent state of SPF. This allows for
     re-initializing the instance and setting different learning
     parameters without forcing the user to create a new instance.
@@ -246,17 +246,17 @@ class SlimPolyFeatures(
         polynomial expansion.
     scan_X:
         bool, default=True - SPF requires that the data being fit has
-        no columns of constants and no duplicate columns. When :param:
-        scan_X is True, SPF does not assume that the analyst knows these
-        states of the data and diagnoses them during fitting, which can
-        be very expensive to do, especially finding duplicate columns.
-        If the analyst knows that there are no constant or duplicate
-        columns in the data, setting this to False can greatly reduce
-        the cost of the polynomial expansion. When in doubt, pybear
-        recommends setting this to True (the default). When this is
-        False, it is possible to pass columns of constants or duplicates,
-        but SPF will continue to operate under the assumptions of the
-        stated design requirement, and the output will be nonsensical.
+        no columns of constants and no duplicate columns. When scan_X is
+        True, SPF does not assume that the analyst knows these states of
+        the data and diagnoses them during fitting, which can be very
+        expensive to do, especially finding duplicate columns. If the
+        analyst knows that there are no constant or duplicate columns in
+        the data, setting this to False can greatly reduce the cost of
+        the polynomial expansion. When in doubt, pybear recommends
+        setting this to True (the default). When this is False, it is
+        possible to pass columns of constants or duplicates, but SPF
+        will continue to operate under the assumptions of the stated
+        design requirement, and the output will be nonsensical.
     keep:
         Literal['first', 'last', 'random'], default = 'first' -
         The strategy for keeping a single representative from a set of
@@ -275,9 +275,9 @@ class SlimPolyFeatures(
         selected feature of the set of duplicates.
     sparse_output:
         bool, default = True - If set to True, the polynomial expansion
-        is returned from :method: transform as a scipy sparse csr array.
+        is returned from :meth: `transform` as a scipy sparse csr array.
         If set to False, the polynomial expansion is returned in the
-        same format as passed to :method: transform.
+        same format as passed to :meth: `transform`.
     feature_name_combiner:
         Union[
             Callable[[Sequence[str], tuple[int, ...]], str],
@@ -311,9 +311,10 @@ class SlimPolyFeatures(
             1) a 1D vector of strings that contains the original feature
                 names of X, as is used internally in SPF,
             2) the polynomial column combination tuple, which is a tuple
-                of integers of variable length (min length is :param:
-                min_degree, max length is :param: degree) with each
-                integer falling in the range of [0, n_features_in_-1]
+                of integers of variable length. The minimum length of
+                the tuple must be :param: 'min_degree', and the maximum
+                length must be :param: 'degree', with each integer
+                falling in the range of [0, n_features_in_-1]
         B) Return a string that:
             1) is not a duplicate of any originally seen feature name
             2) is not a duplicate of any other polynomial feature name
@@ -363,8 +364,8 @@ class SlimPolyFeatures(
 
     feature_names_in_:
         NDArray[object] - The names of the features as seen during
-        fitting. Only accessible if X is passed to :methods: partial_fit
-        or fit as a pandas dataframe that has a header.
+        fitting. Only accessible if X is passed to :meth: `partial_fit`
+        or :meth: `fit` as a pandas dataframe that has a header.
 
     poly_combinations_:
         tuple[tuple[int, ...], ...] - The polynomial column combinations
@@ -547,7 +548,7 @@ class SlimPolyFeatures(
     def _check_X_constants_and_dupls(self):
 
         """
-        When SPF :param: scan_X is True, SPF uses pybear InterceptManager
+        When :param: `scan_X` is True, SPF uses pybear InterceptManager
         and pybear ColumnDeduplicateTransformer to scan X for constants
         and duplicates. If any are found, this method will raise an
         exception.
@@ -785,8 +786,8 @@ class SlimPolyFeatures(
     ):
 
         """
-        Get the feature names for the output of :method: transform. Use
-        'input_features' and SPF :param: 'feature_name_combiner' to build
+        Get the feature names for the output of :meth: `transform`. Use
+        'input_features' and SPF :param: `feature_name_combiner` to build
         the feature names for the polynomial component of the transformed
         data.
 
@@ -800,20 +801,21 @@ class SlimPolyFeatures(
 
             If input_features is None:
 
-            - if feature_names_in_ is defined, then feature_names_in_ is
+            - if :attr: `feature_names_in_` is defined, then that is
                 used as the input features.
 
-            - if feature_names_in_ is not defined, then the following
-                input feature names are generated:
+            - if :attr: `feature_names_in_` is not defined, then the
+                following input feature names are generated:
                 ["x0", "x1", ..., "x(n_features_in_ - 1)"].
 
             If input_features is not None:
 
-            - if feature_names_in_ is not defined, then input_features is
-                used as the input features.
+            - if :attr: `feature_names_in_` is not defined, then
+                input_features is used as the input features.
 
-            - if feature_names_in_ is defined, then input_features must
-                exactly match the features in feature_names_in_.
+            - if :attr: `feature_names_in_` is defined, then
+                input_features must exactly match the features in
+                feature_names_in_.
 
 
         Return
@@ -1310,17 +1312,20 @@ class SlimPolyFeatures(
         Set the parameters of the SPF instance.
 
         Pass the exact parameter name and its value as a keyword argument
-        to :method: set_params. Or use ** dictionary unpacking on a
-        dictionary keyed with exact parameter names and the new parameter
-        values as the dictionary values. Valid parameter keys can be
-        listed with get_params().
+        to set_params. Or use ** dictionary unpacking on a dictionary
+        keyed with exact parameter names and the new parameter values as
+        the dictionary values. Valid parameter keys can be listed
+        with :meth: `get_params`.
 
-        Once SPF is fitted, only SPF :params: 'sparse_output', 'keep',
-        'feature_name_combiner', and 'n_jobs' can be changed via SPF
-        :method: set_params. All other parameters are blocked. To use
-        different parameters without creating a new instance of SPF,
-        call SPF :method: reset on the instance, otherwise create a new
-        SPF instance.
+        Once SPF is fitted, only the following parameters can be changed
+        via SPF set_params:
+        1) :param: `sparse_output`,
+        2) :param: `keep`,
+        3) :param: `feature_name_combiner`, and
+        4) :param: `n_jobs`.
+        All other parameters are blocked. To use different parameters
+        without creating a new instance of SPF, call SPF :meth: `reset`
+        on the instance, otherwise create a new SPF instance.
 
 
         Parameters

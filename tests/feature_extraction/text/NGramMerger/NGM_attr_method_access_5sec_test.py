@@ -255,7 +255,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform(Fixtures):
         # fit()
         assert isinstance(TransformedTestCls.fit(_X), NGM)
 
-        TransformedTestCls.transform(_X, None)
+        TransformedTestCls.transform(_X, copy=None)
 
         # get_metadata_routing()
         with pytest.raises(NotImplementedError):

@@ -390,14 +390,14 @@ class StopRemover(
         Scan X and remove any stop words as defined in the pybear
         Lexicon 'stop_words_' attribute. Optionally removes any empty
         rows left by the stop word removal process. Once data has been
-        passed, the :attr: `n_rows_` and :attr: `row_support_` attributes
-        are exposed. :attr: `row_support_` is a boolean numpy vector that
-        indicates which rows in the original X were kept during :term:
-        transform (True); entries could only become False if the
-        :param: `remove_empty_rows` parameter is True and at least one
-        row became empty during the stop word removal process.
-        The :attr: `row_support_` attribute only reflects the last
-        dataset passed to :meth: `transform`.
+        passed, the :attr: `n_rows_` and :attr: `row_support_`
+        attributes are exposed. :attr: `row_support_` is a boolean
+        numpy vector that indicates which rows in the original X were
+        kept during :term: transform (True); entries could only become
+        False if the :param: `remove_empty_rows` parameter is True and
+        at least one row became empty during the stop word removal
+        process. The :attr: `row_support_` attribute only reflects the
+        last dataset passed to :meth: `transform`.
 
 
         Parameters

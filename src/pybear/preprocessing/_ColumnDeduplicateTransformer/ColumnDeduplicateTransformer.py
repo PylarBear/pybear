@@ -65,35 +65,40 @@ class ColumnDeduplicateTransformer(
     duplicates based on the configuration set by the user.
 
     CDT affords parameters that give some flexibility to the definition
-    of 'equal' for the sake of identifying duplicates. Namely, the
-    'rtol', 'atol', and 'equal_nan' parameters.
+    of 'equal' for the sake of identifying duplicates. Namely,
+    the :param: `rtol`, :param: `atol`, and :param: `equal_nan`
+    parameters.
 
-    The rtol and atol parameters provide a tolerance window whereby
-    numerical data that are not exactly equal are considered equal if
-    their difference falls within the tolerance. See the numpy docs for
-    clarification of the technical details. CDT requires that rtol and
-    atol be non-boolean, non-negative real numbers, in addition to any
-    other restrictions enforced by numpy.allclose.
+    The :param: `rtol` and :param: `atol` parameters provide a tolerance
+    window whereby numerical data that are not exactly equal are
+    considered equal if their difference falls within the tolerance. See
+    the numpy docs for clarification of the technical details. CDT
+    requires that :param: `rtol` and :param: `atol` be non-boolean,
+    non-negative real numbers, in addition to any other restrictions
+    enforced by numpy.allclose.
 
-    The equal_nan parameter controls how CDT handles nan-like
-    representations during comparisons. If equal_nan is True, exclude
-    from comparison any rows where one or both of the values is/are nan.
-    If one value is nan, this essentially assumes that the nan value
-    would otherwise be the same as its non-nan counterpart. When both
-    are nan, this considers the nans as equal (contrary to the default
-    numpy handling of nan, where numpy.nan does not equal numpy.nan) and
-    will not in and of itself cause a pair of columns to be marked as
-    unequal. If equal_nan is False and either one or both of the values
-    in the compared pair of values is/are nan, consider the pair to be
-    not equivalent, thus making the column pair not equal. This is in
-    line with the normal numpy handling of nan values. See the Notes
-    section below for a discussion on the handling of nan-like values.
+    The :param: `equal_nan` parameter controls how CDT handles nan-like
+    representations during comparisons. If :param: `equal_nan` is True,
+    exclude from comparison any rows where one or both of the values
+    is/are nan. If one value is nan, this essentially assumes that the
+    nan value would otherwise be the same as its non-nan counterpart.
+    When both are nan, this considers the nans as equal (contrary to the
+    default numpy handling of nan, where numpy.nan does not equal
+    numpy.nan) and will not in and of itself cause a pair of columns to
+    be marked as unequal. If :param: `equal_nan` is False and either one
+    or both of the values in the compared pair of values is/are nan,
+    consider the pair to be not equivalent, thus making the column pair
+    not equal. This is in line with the normal numpy handling of nan
+    values. See the Notes section below for a discussion on the handling
+    of nan-like values.
 
     CDT has parameters that allow the user to control which column is
-    retained out of a set of duplicates: the 'keep', 'do_not_drop', and
-    'conflict' parameters.
+    retained out of a set of duplicates:
+    1) :param: `keep`,
+    2) :param: `do_not_drop`, and
+    3) :param: `conflict` parameters.
 
-    The parameter 'keep' sets the strategy for keeping a single
+    The :param: `keep` parameter sets the strategy for keeping a single
     representative from a set of identical columns. It accepts one of
     three values: 'first', 'last', or 'random'. The default setting is
     'first'. 'first' retains the column left-most in the data; 'last'
@@ -101,82 +106,83 @@ class ColumnDeduplicateTransformer(
     randomly-selected column from the set of duplicates. All other
     columns in the set of duplicates are removed from the dataset.
 
-    The parameter 'do_not_drop' allows the user to indicate columns not
-    to be removed from the data. This is to be given as a list-like of
-    integers or strings. If fitting is done on a pandas dataframe that
-    has a header, a list of feature names may be provided; the values
-    within must match exactly the features as named in the dataframe
-    header (case sensitive.) Otherwise, a list of column indices must be
-    provided. The :param: do_not_drop instructions may conflict with
-    the :param: keep instructions. If such a conflict arises, such as
-    two columns specified in :param: do_not_drop are duplicates of each
-    other, the behavior is managed by :param: conflict.
+    The :param: `do_not_drop` parameter allows the user to indicate
+    columns not to be removed from the data. This is to be given as a
+    list-like of integers or strings. If fitting is done on a pandas
+    dataframe that has a header, a list of feature names may be provided;
+    the values within must match exactly the features as named in the
+    dataframe header (case-sensitive.) Otherwise, a list of column
+    indices must be provided. The :param: `do_not_drop` instructions may
+    conflict with the :param: `keep` instructions. If a conflict arises,
+    such as two columns specified in :param: `do_not_drop` are duplicates
+    of each other, the behavior is managed by :param: `conflict`.
 
-    The 'conflict' parameter accepts two possible values: 'raise' or
-    'ignore'. When :param: do_not_drop is not passed, :param: conflict
-    is ignored. This parameter instructs CDT how to deal with a conflict
-    between the instructions in :param: keep and :param: do_not_drop. A
-    conflict arises when the instruction in :param: keep ('first',
-    'last', 'random') is applied and a column in :param: do_not_drop is
-    found to be a member of the columns to be removed. When :param:
-    conflict is 'raise', an exception is raised in this case. When
-    :param: conflict is 'ignore', there are 2 possible scenarios:
+    The :param: `conflict` parameter accepts two possible values: 'raise'
+    or 'ignore'. :param: `conflict` is ignored when :param: `do_not_drop`
+    is not passed. This parameter instructs CDT how to deal with conflict
+    between the instructions in :param: `keep` and :param: `do_not_drop`.
+    A conflict arises when the instruction in :param: `keep` ('first',
+    'last', 'random') is applied and a column in :param: `do_not_drop`
+    is found to be a member of the columns to be removed. In this case,
+    an exception is raised when :param: `conflict` is 'raise'. But
+    when :param: `conflict` is 'ignore', there are 2 possible scenarios:
 
-        1) when only one column in :param: do_not_drop is among the
-        columns to be removed, the :param: keep instruction is overruled
-        and the do_not_drop column is kept
+        1) when only one column in :param: `do_not_drop` is among the
+        columns to be removed, the :param: `keep` instruction is
+        overruled and the do-not-drop column is kept.
 
-        2) when multiple columns in :param: do_not_drop are among the
-        columns to be removed, the :param: keep instruction ('first',
+        2) when multiple columns in :param: `do_not_drop` are among the
+        columns to be removed, the :param: `keep` instruction ('first',
         'last', 'random') is applied to that subset of do-not-drop
-        columns --- this may not give the same result as applying the
-        :param: keep instruction to the entire set of duplicate columns.
-        This also causes at least one member of the columns not to be
-        dropped to be removed.
+        columns --- this may not give the same result as applying
+        the :param: `keep` instruction to the entire set of duplicate
+        columns. This also causes at least one member of the columns not
+        to be dropped to be removed.
 
-    The partial_fit, fit, fit_transform, and inverse_transform methods
-    of CDT accept data as numpy arrays, pandas dataframes, and scipy
-    sparse matrices/arrays. CDT has a set_output method, whereby the
-    user can set the type of output container for :method: transform.
-    This behavior is managed by scikit-learn functionality adopted into
-    CDT, and is subject to change at their discretion. :method:
-    set_output can return transformed outputs as numpy arrays, pandas
-    dataframes, or polars dataframes. When :method: set_output is None,
-    the output container is the same as the input, that is, numpy array,
-    pandas dataframe, or scipy sparse matrix/array.
+    The :meth: `partial_fit`, :meth: `fit`, :meth: `fit_transform`,
+    and :meth: `inverse_transform` methods of CDT accept data as numpy
+    arrays, pandas dataframes, and scipy sparse matrices/arrays. CDT has
+    a :meth: `set_output` method, whereby the user can set the type of
+    output container for :meth: `transform`. :method: `set_output` can
+    return transformed outputs as numpy arrays, pandas dataframes, or
+    polars dataframes. When :meth: `set_output` is None, the output
+    container is the same as the input, that is, numpy array, pandas
+    dataframe, or scipy sparse matrix/array.
 
-    The partial_fit method allows for incremental fitting of data. This
-    makes CDT suitable for use with packages that do batch-wise fitting
-    and transforming, such as dask_ml via the Incremental and
-    ParallelPostFit wrappers.
+    The :meth: `partial_fit` method allows for incremental fitting of
+    data. This makes CDT suitable for use with packages that do
+    batch-wise fitting and transforming, such as dask_ml via the
+    Incremental and ParallelPostFit wrappers.
 
     There are no safeguards in place to prevent the user from changing
-    rtol, atol, or equal_nan between partial fits. These 3 parameters
-    have strong influence over whether CDT classifies two columns as
-    equal, and therefore are instrumental in dictating what CDT learns
-    during fitting. Changes to these parameters between partial fits can
+    the :param: `rtol`, :param: `atol`, or :param: `equal_nan` parameters
+    between calls to :meth: `partial_fit`. These 3 parameters have strong
+    influence over whether CDT classifies two columns as equal, and
+    therefore are instrumental in dictating what CDT learns during
+    fitting. Changes to these parameters between partial fits can
     drastically change CDT's understanding of the duplicate columns in
     the data versus what would otherwise be learned under constant
     settings. pybear recommends against this practice, however, it is
     not strictly blocked.
 
     When performing multiple batch-wise transformations of data, that is,
-    making sequential calls to :method: transform, it is critical that
+    making sequential calls to :meth: `transform`, it is critical that
     the same column indices be kept / removed at each call. This issue
-    manifests when :param: keep is set to 'random'; the random indices
-    to keep must be the same at all calls to :method: transform, and
-    cannot be dynamically randomized within :method: transform. CDT
+    manifests when :param: `keep` is set to 'random'; the random indices
+    to keep must be the same at all calls to :meth: `transform`, and
+    cannot be dynamically randomized within :meth: `transform`. CDT
     handles this by generating a static list of random indices to keep
-    at fit time, and does not mutate this list during transform time.
-    This list is dynamic with each call to :method: partial_fit, and
-    will likely change at each call. Fits performed after calls to
-    :method: transform will change the random indices away from those
+    at fit time, and does not mutate this list during :term: transform
+    time. This list is dynamic with each call to :meth: `partial_fit`,
+    and will likely change at each call. Fits performed after calls
+    to :meth: `transform` will change the random indices away from those
     used in the previous transforms, causing CDT to perform entirely
     different transformations than those previously being done. CDT
-    cannot block calls to :method: partial_fit after calls to :method:
-    transform, but pybear strongly discourages this practice because the
-    output will be nonsensical. pybear recommends doing all partial fits
-    consecutively, then doing all transformations consecutively.
+    cannot block calls to :meth: `partial_fit` after :meth: `transform`
+    has been called, but pybear strongly discourages this practice
+    because the output will be nonsensical. pybear recommends doing all
+    partial fits consecutively, then doing all transformations
+    consecutively.
 
 
     Parameters
@@ -188,32 +194,33 @@ class ColumnDeduplicateTransformer(
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
     do_not_drop:
-        Optional[Union[Sequence[int], Sequence[str], None]], default=None
-        - A list of columns not to be dropped. If fitting is done on a
-        pandas dataframe that has a header, a list of feature names may
-        be provided. Otherwise, a list of column indices must be provided.
-        If a conflict arises, such as two columns specified in :param:
-        do_not_drop are duplicates of each other, the behavior is managed
-        by :param: conflict.
+        Optional[Union[Sequence[int], Sequence[str], None]],
+        default=None -  A list of columns not to be dropped. If fitting
+        is done on a pandas dataframe that has a header, a list of
+        feature names may be provided. Otherwise, a list of column
+        indices must be given. If a conflict arises, such as when two
+        columns specified in :param: `do_not_drop` are duplicates of
+        each other, the behavior is managed by :param: `conflict`.
     conflict:
-        Literal['raise', 'ignore'] - Ignored when :param: do_not_drop is
-        not passed. Instructs CDT how to deal with a conflict between
-        the instructions in :param: keep and :param: do_not_drop. A
-        conflict arises when the instruction in :param: keep ('first',
-        'last', 'random') is applied and a column in :param: do_not_drop
-        is found to be a member of the columns to be removed. When
-        :param: conflict is 'raise', an exception is raised in this case.
-        When :param: conflict is 'ignore', there are 2 possible scenarios:
+        Literal['raise', 'ignore'] - Ignored when :param: `do_not_drop`
+        is not passed. Instructs CDT how to deal with a conflict between
+        the instructions in :param: `keep` and :param: `do_not_drop`. A
+        conflict arises when the instruction in :param: `keep` ('first',
+        'last', 'random') is applied and a column in :param: `do_not_drop`
+        is found to be a member of the columns to be removed. In this
+        case, when :param: `conflict` is 'raise', an exception is raised.
+        When :param: `conflict` is 'ignore', there are 2 possible
+        scenarios:
 
-        1) when only one column in :param: do_not_drop is among the
-        columns to be removed, the :param: keep instruction is overruled
-        and the do_not_drop column is kept
+        1) when only one column in :param: `do_not_drop` is among the
+        columns to be removed, the :param: `keep` instruction is
+        overruled and the do-not-drop column is kept.
 
-        2) when multiple columns in :param: do_not_drop are among the
-        columns to be removed, the :param: keep instruction ('first',
+        2) when multiple columns in :param: `do_not_drop` are among the
+        columns to be removed, the :param: `keep` instruction ('first',
         'last', 'random') is applied to the set of do-not-delete columns
         that are amongst the duplicates --- this may not give the same
-        result as applying the :param: keep instruction to the entire
+        result as applying the :param: `keep` instruction to the entire
         set of duplicate columns. This also causes at least one member
         of the columns not to be dropped to be removed.
     rtol:
@@ -227,17 +234,18 @@ class ColumnDeduplicateTransformer(
     equal_nan:
         bool, default = False - When comparing pairs of columns row by
         row:
-        If equal_nan is True, exclude from comparison any rows where
-        one or both of the values is/are nan. If one value is nan, this
-        essentially assumes that the nan value would otherwise be the
-        same as its non-nan counterpart. When both are nan, this
+        If :param: `equal_nan` is True, exclude from comparison any rows
+        where one or both of the values is/are nan. If one value is nan,
+        this essentially assumes that the nan value would otherwise be
+        the same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
         handling of nan, where numpy.nan does not equal numpy.nan) and
         will not in and of itself cause a pair of columns to be marked
-        as unequal. If equal_nan is False and either one or both of the
-        values in the compared pair of values is/are nan, consider the
-        pair to be not equivalent, thus making the column pair not equal.
-        This is in line with the normal numpy handling of nan values.
+        as unequal. If :param: `equal_nan` is False and either one or
+        both of the values in the compared pair of values is/are nan,
+        consider the pair to be not equivalent, thus making the column
+        pair not equal. This is in line with the normal numpy handling
+        of nan values.
     n_jobs:
         Union[int, None], default = -1 - The number of joblib Parallel
         jobs to use when comparing columns. The default is to use
@@ -254,8 +262,8 @@ class ColumnDeduplicateTransformer(
 
     feature_names_in_:
         NDArray[str] - The names of the features as seen during fitting.
-        Only accessible if X is passed to :methods: partial_fit or fit
-        as a pandas dataframe that has a header.
+        Only accessible if X is passed to :meth: `partial_fit`
+        or :meth: `fit` as a pandas dataframe that has a header.
 
     duplicates_: list[list[int]] - a list of the groups of identical
         columns, indicated by their zero-based column index positions
@@ -269,7 +277,7 @@ class ColumnDeduplicateTransformer(
 
     column_mask_: NDArray[bool], shape (n_features_,) - Indicates which
         columns of the fitted data are kept (True) and which are removed
-        (False) during transform.
+        (False) during :term: transform.
 
 
     Notes
@@ -451,10 +459,7 @@ class ColumnDeduplicateTransformer(
 
 
     def get_metadata_routing(self):
-        """
-        Get metadata routing is not implemented in ColumnDeduplicateTransformer.
-
-        """
+        """Get metadata routing is not implemented."""
         __ = type(self).__name__
         raise NotImplementedError(
             f"get_metadata_routing is not implemented in {__}"
@@ -472,8 +477,8 @@ class ColumnDeduplicateTransformer(
 
         """
         Perform incremental fitting on one or more data sets. Determine
-        the duplicate columns in the given data, subject to the criteria
-        defined in :params: rtol, atol, and equal_nan.
+        the duplicate columns in the data, subject to criteria defined
+        in :param: `rtol`, :param: `atol`, and :param: `equal_nan`.
 
 
         Parameters
@@ -611,9 +616,9 @@ class ColumnDeduplicateTransformer(
     ) -> Self:
 
         """
-        Perform a single fitting on a data set. Determine the duplicate
-        columns in the given data, subject to the criteria defined
-        in :params: rtol, atol, and equal_nan.
+        Perform a single fitting on one batch of data. Determine the
+        duplicate columns in the data, subject to criteria defined
+        in :param: `rtol`, :param: `atol`, and :param: `equal_nan`.
 
 
         Parameters
@@ -651,19 +656,19 @@ class ColumnDeduplicateTransformer(
         ) -> DataContainer:
 
         """
-        Revert deduplicated data back to its original state. :method:
-        set_output does not control the output container here, the output
-        container is always the same as passed. This operation cannot
-        restore any nan-like values that may have been in the original
-        untransformed data.
+        Revert deduplicated data back to its original state. This
+        operation cannot restore any nan-like values that may have been
+        in the original untransformed data. :meth: `set_output` does not
+        control the output container here, the output container is always
+        the same as passed.
 
         Very little validation is possible to ensure that the passed
         data is valid for the current state of CDT. It is only possible
         to ensure that the number of columns in the passed data match
-        the number of columns that are expected to be outputted by
-        :method: transform for the current state of CDT. It is up to the
-        user to ensure the state of CDT aligns with the state of the
-        data that is to undergo inverse transform. Otherwise the output
+        the number of columns that are expected to be outputted
+        by :meth: `transform` for the current state of CDT. It is up to
+        the user to ensure the state of CDT aligns with the state of the
+        data that is to undergo inverse transform. Otherwise, the output
         will be nonsensical.
 
 
@@ -675,7 +680,7 @@ class ColumnDeduplicateTransformer(
             data set.
         copy:
             Optional[Union[bool, None]], default=None - Whether to make
-            a copy of X before the inverse transform.
+            a deepcopy of X before the inverse transform.
 
 
         Returns
@@ -778,14 +783,13 @@ class ColumnDeduplicateTransformer(
     def transform(
         self,
         X: DataContainer,
-        *,
         copy: Optional[Union[bool, None]] = None
     ) -> DataContainer:
 
         """
         Remove the duplicate columns from X. Apply the criteria given
-        by :params: keep, do_not_drop, and conflict to the sets of
-        duplicate columns found during fit.
+        by :param: `keep`, :param: `do_not_drop`, and :param: `conflict`
+        to the sets of duplicate columns found during fit.
 
 
         Parameters
@@ -795,7 +799,7 @@ class ColumnDeduplicateTransformer(
             (n_samples, n_features) - The data to be deduplicated.
         copy:
             Optional[Union[bool, None]], default=None - Whether to make
-            a copy of X before the transform.
+            a deepcopy of X before the transform.
 
 
         Return
