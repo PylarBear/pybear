@@ -10,6 +10,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+import polars as pl
 
 from pybear.feature_extraction.text._TextStatistics.TextStatistics import \
     TextStatistics as TS
@@ -33,6 +34,8 @@ class TestTextStatistics:
 
         TS().fit(pd.Series(_X))
 
+        TS().fit(pl.Series(_X))
+
         _2D_X = [['I', 'like', 'green'], ['eggs', 'and', 'ham!']]
 
         with pytest.raises(TypeError):
@@ -43,6 +46,9 @@ class TestTextStatistics:
 
         with pytest.raises(TypeError):
             TS().fit(pd.DataFrame(_2D_X))
+
+        with pytest.raises(TypeError):
+            TS().fit(pl.from_numpy(np.array(_2D_X)))
 
 
     def test_rejects_numeric(self):

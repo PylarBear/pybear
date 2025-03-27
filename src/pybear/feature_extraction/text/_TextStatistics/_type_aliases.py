@@ -7,9 +7,13 @@
 
 
 from typing import TypedDict
-from typing_extensions import Required
+from typing_extensions import Required, TypeAlias, Union
+import numpy.typing as npt
 
 import numbers
+
+import pandas as pd
+import polars as pl
 
 
 
@@ -22,6 +26,20 @@ class OverallStatisticsType(TypedDict):
     max_length: Required[numbers.Integral]
     min_length: Required[numbers.Integral]
 
+
+
+PythonTypes: TypeAlias = Union[list[str], tuple[str], set[str]]
+
+NumpyTypes: TypeAlias = npt.NDArray[str]
+
+PandasTypes: TypeAlias = pd.Series
+
+PolarsTypes: TypeAlias = pl.Series
+
+XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+# pizza verify this
+XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
 
 

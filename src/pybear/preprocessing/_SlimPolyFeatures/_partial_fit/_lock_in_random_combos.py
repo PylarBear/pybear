@@ -22,10 +22,10 @@ def _lock_in_random_combos(
     """
     When SPF :param: 'keep' is set to 'random', SPF :method: transform
     needs to keep the same poly terms for all batch-wise transforms,
-    otherwise the outputted batches will have different columns. SPF
-    :method: transform needs a static set of random combo tuples to use
-    repeatedly, rather than a set of dynamic tuples that are regenerated
-    with each call to SPF :method: transform.
+    otherwise the outputted batches will have different columns.
+    SPF :meth: `transform` needs a static set of random combo tuples to
+    use repeatedly, rather than a set of dynamic tuples that are
+    regenerated with each call to SPF :meth: `transform`.
 
     _identify_combos_to_keep handles setting the combos to keep from
     sets of duplicates on every call to SPF :methods: partial_fit and
@@ -35,8 +35,8 @@ def _lock_in_random_combos(
     locks in random tuples for all SPF :method: transform calls.
 
     Goal: Create a static set of random combo tuples that is regenerated
-    with each call to :method: partial_fit, but is unchanged when SPF
-    :method: transform is called.
+    with each call to :method: partial_fit, but is unchanged when
+    SPF :method: `transform` is called.
 
     This module builds a static ordered tuple of randomly selected
     combo tuples, one tuple from each set of duplicates. For example,

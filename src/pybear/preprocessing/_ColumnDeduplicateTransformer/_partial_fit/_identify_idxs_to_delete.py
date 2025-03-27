@@ -45,43 +45,43 @@ def _identify_idxs_to_delete(
         right-most in the data; 'random' keeps a single randomly-selected
         column of the set of duplicates.
     _do_not_drop:
-        Union[Sequence[int], Sequence[str], None] - A list of columns not
-        to be dropped. If fitting is done on a pandas dataframe that has
-        a header, a list of feature names may be provided. Otherwise, a
-        list of column indices must be provided. If a conflict arises,
-        such as two columns specified in :param: do_not_drop are
-        duplicates of each other, the behavior is managed by :param:
-        conflict.
+        Union[Sequence[int], Sequence[str], None] - A list of columns
+        not to be dropped. If fitting is done on a pandas dataframe that
+        has a header, a list of feature names may be provided. Otherwise,
+        a list of column indices must be provided. If a conflict
+        arises, such as two columns specified in :param: `do_not_drop`
+        are duplicates of each other, the behavior is managed
+        by :param: `conflict`.
     _columns:
         Union[Sequence[str], None] of shape (n_features,) - if fitting
         is done on a pandas dataframe that has a header, this is a
         ndarray of strings, otherwise is None.
     _conflict:
-        Literal['raise', 'ignore'] - Ignored when :param: do_not_drop is
-        not passed. Instructs CDT how to deal with a conflict between
-        the instructions in :param: keep and :param: do_not_drop. A
-        conflict arises when the instruction in :param: keep ('first',
-        'last', 'random') is applied and column in :param: do_not_drop
-        is found to be a member of the columns to be deleted. When
-        :param: conflict is 'raise', an exception is raised in the case
-        of such a conflict. When :param: conflict is 'ignore', there are
-        2 possible scenarios:
+        Literal['raise', 'ignore'] - Ignored when :param: `do_not_drop`
+        is not passed. Instructs CDT how to deal with a conflict between
+        the instructions in :param: keep and :param: `do_not_drop`. A
+        conflict arises when the instruction in :param: `keep` ('first',
+        'last', 'random') is applied and column in :param: `do_not_drop`
+        is found to be a member of the columns to be deleted.
+        When :param: `conflict` is 'raise', an exception is raised in
+        the case of such a conflict. When :param: `conflict` is 'ignore',
+        there are 2 possible scenarios:
 
-        1) when only one column in :param: do_not_drop is among the
-        columns to be removed, the :param: keep instruction is overruled
-        and the do_not_drop column is kept
+        1) when only one column in :param: `do_not_drop` is among the
+        columns to be removed, the :param: `keep` instruction is overruled
+        and the do-not-drop column is kept
 
-        2) when multiple columns in :param: do_not_drop are among the
-        columns to be deleted, the :param: keep instruction ('first',
+        2) when multiple columns in :param: `do_not_drop` are among the
+        columns to be deleted, the :param: `keep` instruction ('first',
         'last', 'random') is applied to the set of do-not-delete columns
         that are amongst the duplicates --- this may not give the same
-        result as applying the :param: keep instruction to the entire
+        result as applying the :param: `keep` instruction to the entire
         set of duplicate columns. This also causes at least one member
         of the columns not to be dropped to be removed.
     _rand_idxs:
         tuple[int] - An ordered tuple whose values are a sequence of
         column indices, one index selected from each set of duplicates
-        in :param: duplicates. For example, if duplicates_ is
+        in :param: `duplicates`. For example, if :attr: `duplicates_` is
         [[1, 5, 9], [0, 8]], then a possible _rand_idxs might look like
         (1, 8).
 

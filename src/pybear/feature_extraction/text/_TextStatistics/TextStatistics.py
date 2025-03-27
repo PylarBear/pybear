@@ -6,15 +6,17 @@
 
 
 
-from typing import (
-    Optional,
-    Sequence,
-)
+from typing import Optional
 from typing_extensions import Self, Union
+from ._type_aliases import (
+    XContainer,
+    XWipContainer,
+    OverallStatisticsType
+)
 
 import numbers
 
-from ._validation._store_uniques import _val_store_uniques
+from ._validation._validation import _validation
 from ._validation._overall_statistics import _val_overall_statistics
 from ._validation._uniques import _val_uniques
 from ._validation._string_frequency import _val_string_frequency
@@ -44,15 +46,21 @@ from ._lookup._lookup_substring import _lookup_substring
 from ._lookup._lookup_string import _lookup_string
 
 from ....base import (
+    FitTransformMixin,
     GetParamsMixin,
     ReprMixin,
-    check_is_fitted,
-    check_1D_str_sequence
+    SetParamsMixin,
+    check_is_fitted
 )
 
 
 
-class TextStatistics(GetParamsMixin, ReprMixin):
+class TextStatistics(
+    FitTransformMixin,
+    GetParamsMixin,
+    ReprMixin,
+    SetParamsMixin
+):
 
     """
     Generate summary information about a 1D sequence, or multiple 1D
@@ -277,10 +285,14 @@ class TextStatistics(GetParamsMixin, ReprMixin):
 
     # def get_params() - inherited from GetParamsMixin
 
+    # def set_params() - inherited from SetParamsMixin
+
+    # def fit_transform() - inherited from FitTransformMixin
+
 
     def partial_fit(
         self,
-        X: Sequence[str],
+        X: XContainer,
         y: Optional[any] = None
     ) -> Self:
 
@@ -293,7 +305,7 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         Parameters
         ----------
         X:
-            Sequence[str] - a single list-like vector of strings to
+            XContainer - a single list-like vector of strings to
             report statistics for, cannot be empty. strings do not need
             to be in the pybear Lexicon. Individual strings cannot have
             spaces and must be under 30 characters in length.
@@ -311,15 +323,8 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         """
 
 
-        check_1D_str_sequence(X, require_all_finite=False)
+        _validation(X, self.store_uniques)
 
-        if len(X) == 0:
-            raise ValueError(
-                f"'strings' must be passed as a list-like vector of "
-                f"strings, cannot be empty."
-            )
-
-        _val_store_uniques(self.store_uniques)
         # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -378,7 +383,7 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         # END character_frequency -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _current_overall_statistics = \
+        _current_overall_statistics: OverallStatisticsType = \
             _build_overall_statistics(
                 X,
                 case_sensitive=False
@@ -387,7 +392,7 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         if not self.store_uniques:
             _current_overall_statistics['uniques_count'] = 0
 
-        self.overall_statistics_: dict[str, numbers.Real] = \
+        self.overall_statistics_: OverallStatisticsType = \
             _merge_overall_statistics(
                 _current_overall_statistics,
                 getattr(self, 'overall_statistics_', {}),
@@ -402,7 +407,7 @@ class TextStatistics(GetParamsMixin, ReprMixin):
 
     def fit(
         self,
-        X: Sequence[str],
+        X: XContainer,
         y: Optional[any] = None
     ) -> Self:
 
@@ -415,7 +420,7 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         Parameters
         ----------
         X:
-            Sequence[str] - a single list-like vector of strings to
+            XContainer - a single list-like vector of strings to
             report statistics for, cannot be empty. Strings do not need
             to be in the pybear Lexicon.
         y:
@@ -436,7 +441,7 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         return self.partial_fit(X)
 
 
-    def transform(self, X: Sequence[str]) -> Sequence[str]:
+    def transform(self, X: XContainer) -> XContainer:
 
         """
         A no-op transform method for data processing scenarios that may
@@ -446,13 +451,13 @@ class TextStatistics(GetParamsMixin, ReprMixin):
         Parameters
         ----------
         X:
-            Sequence[str] - the data. Ignored.
+            XContainer - the data. Ignored.
 
 
         Return
         ------
         -
-            X: Sequence[str] - the original, unchanged, data.
+            X: XContainer - the original, unchanged, data.
 
 
         """

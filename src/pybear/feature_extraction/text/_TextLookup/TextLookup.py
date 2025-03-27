@@ -228,12 +228,12 @@ class TextLookup(TextLookupMixin):
         silently be staged in the :attr: `LEXICON_ADDENDUM_` attribute
         to be added to the Lexicon later.
     auto_delete:
-        Optional[bool], default=False - Must be False if either
-        :param: `update_lexicon` or :param: `auto_add_to_lexicon` are
-        True. When this parameter is True, TL operates in 'auto-mode',
-        where the user will not be prompted for decisions. When TL
-        encounters a word that is not in the Lexicon, the word will be
-        silently deleted from the text body.
+        Optional[bool], default=False - If :param: `update_lexicon` is
+        True, then this cannot be set to True. When this parameter is
+        True, TL operates in 'auto-mode', where the user will not be
+        prompted for decisions. When TL encounters a word that is not
+        in the Lexicon, the word will be silently deleted from the text
+        body.
     DELETE_ALWAYS:
         Optional[Union[Sequence[str], None]], default=None - A list of
         words that will always be deleted by TL, even if they are in
