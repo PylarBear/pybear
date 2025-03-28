@@ -10,11 +10,14 @@ from typing import Optional
 from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
-    XWipContainer,
     OverallStatisticsType
 )
 
 import numbers
+import re
+
+import pandas as pd
+import polars as pl
 
 from ._validation._validation import _validation
 from ._validation._overall_statistics import _val_overall_statistics
@@ -44,6 +47,8 @@ from ._get._get_shortest_strings import _get_shortest_strings
 
 from ._lookup._lookup_substring import _lookup_substring
 from ._lookup._lookup_string import _lookup_string
+
+from ....base._check_1D_str_sequence import check_1D_str_sequence
 
 from ....base import (
     FitTransformMixin,
@@ -257,12 +262,75 @@ class TextStatistics(
         this will always be empty.
         """
 
+        check_is_fitted(self)
+
         uniques = list(self.string_frequency_.keys())
 
         _val_uniques(uniques)
 
         return uniques
+
+
+    @property
+    def overall_statistics_(self):
+        """
+        dict[str, numbers.Real] - A dictionary that holds information
+        about all the strings fitted on the TextStatistics instance.
+        Available statistics are size (number of strings seen during
+        fitting), uniques count, average string length, standard
+        deviation of string length, maximum string length, and minimum
+        string length. If parameter 'store_uniques' is False, the
+        'uniques_count' field will always be zero.
+        """
+
+        check_is_fitted(self)
+
+        return self._overall_statistics
+
+
+    @property
+    def string_frequency_(self):
+        """
+        dict[str, int] - A dictionary that holds the unique strings and
+        the respective number of occurrences seen during fitting. If
+        parameter 'store_uniques' is False, this will always be empty.
+        """
+
+        check_is_fitted(self)
+
+        return self._string_frequency
+
+
+    @property
+    def startswith_frequency_(self):
+        """
+        dict[str, int] - A dictionary that holds the first characters
+        and their frequencies in the first position for all the strings
+        fitted on the TextStatistics instance.
+        """
+
+        check_is_fitted(self)
+
+        return self._startswith_frequency
+
+
+    @property
+    def character_frequency_(self):
+        """
+        dict[str, int] - A dictionary that holds all the unique single
+        characters and their frequencies for all the strings fitted on
+        the TextStatistics instance.
+        """
+
+        check_is_fitted(self)
+
+        return self._character_frequency
+
     # END @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+
+    def __pybear_is_fitted__(self):
+        return hasattr(self, '_string_frequency')
 
 
     def _reset(self):
@@ -274,13 +342,14 @@ class TextStatistics(
 
         """
 
-        try:
-            del self.string_frequency_
-            del self.overall_statistics_
-            del self.startswith_frequency_
-            del self.character_frequency_
-        except:
-            pass
+        if hasattr(self, '_string_frequency'):
+            delattr(self, '_string_frequency')
+        if hasattr(self, '_overall_statistics'):
+            delattr(self, '_overall_statistics')
+        if hasattr(self, '_startswith_frequency'):
+            delattr(self, '_startswith_frequency')
+        if hasattr(self, '_character_frequency'):
+            delattr(self, '_character_frequency')
 
 
     # def get_params() - inherited from GetParamsMixin
@@ -305,10 +374,9 @@ class TextStatistics(
         Parameters
         ----------
         X:
-            XContainer - a single list-like vector of strings to
-            report statistics for, cannot be empty. strings do not need
-            to be in the pybear Lexicon. Individual strings cannot have
-            spaces and must be under 30 characters in length.
+            XContainer - a 1D list-like or 2D array-like of strings to
+            report statistics for, cannot be empty. Strings do not need
+            to be in the pybear Lexicon.
         y:
             Optional[any], default = None - a target for the data.
             Always ignored.
@@ -322,10 +390,36 @@ class TextStatistics(
 
         """
 
-
+        # pizza, X is not allowed to be empty. see if its needed
         _validation(X, self.store_uniques)
 
         # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
+        # 1D/2D redirector -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # we know X is legit 1D or 2D
+        try:
+            check_1D_str_sequence(X)
+            # just flow thru to 1D handling, which is everything below this
+            pass
+        except:
+            # must be 2D
+            # get each row out 1 by 1 and pass recursively to partial_fit
+            _n_rows = X.shape[0] if hasattr(X, 'shape') else len(X)
+            for _row_idx in range(_n_rows):
+                if isinstance(X, pd.DataFrame):
+                    _line = X.values[_row_idx]
+                elif isinstance(X, pl.DataFrame):
+                    _line = X.row(_row_idx)
+                else:
+                    _line = X[_row_idx]
+
+                self.partial_fit(_line)
+
+            # need to skip out so 2D X doesnt get send down after finishing
+            # the recursion
+            return self
+        # END 1D/2D redirector -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # this must be first
@@ -336,15 +430,15 @@ class TextStatistics(
             )
 
         if self.store_uniques:
-            self.string_frequency_: dict[str, int] = \
+            self._string_frequency: dict[str, int] = \
                 _merge_string_frequency(
                     _current_string_frequency,
                     getattr(self, 'string_frequency_', {})
                 )
         else:
-            self.string_frequency_ = {}
+            self._string_frequency = {}
 
-        _val_string_frequency(self.string_frequency_)
+        _val_string_frequency(self._string_frequency)
         # END string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # startswith_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -353,7 +447,7 @@ class TextStatistics(
                 _current_string_frequency
             )
 
-        self.startswith_frequency_: dict[str, int] = \
+        self._startswith_frequency: dict[str, int] = \
             _merge_startswith_frequency(
                 _current_startswith_frequency,
                 getattr(self, 'startswith_frequency_', {})
@@ -361,7 +455,7 @@ class TextStatistics(
 
         del _current_startswith_frequency
 
-        _val_startswith_frequency(self.startswith_frequency_)
+        _val_startswith_frequency(self._startswith_frequency)
         # END startswith_frequency -- -- -- -- -- -- -- -- -- -- -- --
 
         # character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -370,7 +464,7 @@ class TextStatistics(
                 _current_string_frequency
             )
 
-        self.character_frequency_: dict[str, int] = \
+        self._character_frequency: dict[str, int] = \
             _merge_character_frequency(
                 _current_character_frequency,
                 getattr(self, 'character_frequency_', {})
@@ -379,7 +473,7 @@ class TextStatistics(
         del _current_string_frequency
         del _current_character_frequency
 
-        _val_character_frequency(self.character_frequency_)
+        _val_character_frequency(self._character_frequency)
         # END character_frequency -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -392,14 +486,14 @@ class TextStatistics(
         if not self.store_uniques:
             _current_overall_statistics['uniques_count'] = 0
 
-        self.overall_statistics_: OverallStatisticsType = \
+        self._overall_statistics: OverallStatisticsType = \
             _merge_overall_statistics(
                 _current_overall_statistics,
                 getattr(self, 'overall_statistics_', {}),
                 _len_uniques=len(self.uniques_)
             )
 
-        _val_overall_statistics(self.overall_statistics_)
+        _val_overall_statistics(self._overall_statistics)
         # END overall_statistics_ -- -- -- -- -- -- -- -- -- -- -- -- --
 
         return self
@@ -420,7 +514,7 @@ class TextStatistics(
         Parameters
         ----------
         X:
-            XContainer - a single list-like vector of strings to
+            XContainer - a 1D list-like or 2D array-like of strings to
             report statistics for, cannot be empty. Strings do not need
             to be in the pybear Lexicon.
         y:
@@ -479,7 +573,7 @@ class TextStatistics(
 
         check_is_fitted(self)
 
-        _print_overall_statistics(self.overall_statistics_, self._lp, self._rp)
+        _print_overall_statistics(self._overall_statistics, self._lp, self._rp)
 
 
     def print_startswith_frequency(self) -> None:
@@ -489,7 +583,7 @@ class TextStatistics(
         check_is_fitted(self)
 
         _print_startswith_frequency(
-            self.startswith_frequency_, self._lp, self._rp
+            self._startswith_frequency, self._lp, self._rp
         )
 
 
@@ -499,7 +593,7 @@ class TextStatistics(
 
         check_is_fitted(self)
 
-        _print_character_frequency(self.character_frequency_, self._lp, self._rp)
+        _print_character_frequency(self._character_frequency, self._lp, self._rp)
 
 
     def print_string_frequency(
@@ -529,7 +623,7 @@ class TextStatistics(
 
         check_is_fitted(self)
 
-        _print_string_frequency(self.string_frequency_, self._lp, self._rp, n)
+        _print_string_frequency(self._string_frequency, self._lp, self._rp, n)
 
 
     # longest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -564,7 +658,7 @@ class TextStatistics(
 
         check_is_fitted(self)
 
-        __ = _get_longest_strings(self.string_frequency_, n=n)
+        __ = _get_longest_strings(self._string_frequency, n=n)
 
         # _val_string_frequency will work for this
         _val_string_frequency(__)
@@ -600,7 +694,7 @@ class TextStatistics(
 
         check_is_fitted(self)
 
-        _print_longest_strings(self.string_frequency_, self._lp, self._rp, n)
+        _print_longest_strings(self._string_frequency, self._lp, self._rp, n)
     # END longest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # shortest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -635,7 +729,7 @@ class TextStatistics(
 
         check_is_fitted(self)
 
-        __ = _get_shortest_strings(self.string_frequency_, n=n)
+        __ = _get_shortest_strings(self._string_frequency, n=n)
 
         # _val_string_frequency will work for this
         _val_string_frequency(__)
@@ -669,35 +763,49 @@ class TextStatistics(
 
         check_is_fitted(self)
 
-        _print_shortest_strings(self.string_frequency_, self._lp, self._rp, n)
+        _print_shortest_strings(self._string_frequency, self._lp, self._rp, n)
     # END shortest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     def lookup_substring(
         self,
-        char_seq: str,
+        pattern: Union[str, re.Pattern],
         case_sensitive: Optional[bool] = True
     ) -> list[str]:
 
         """
-        Return a list of all strings that have been fitted on the
-        TextStatistics instance that contain the given character
-        substring. This is only available if parameter 'store_uniques'
-        is True. If False, the unique strings that have been fitted on
-        the TextStatistics instance are not retained therefore cannot be
-        searched, so any empty list is returned.
+        Use string literals or regular expressions to look for substring
+        matches in the fitted words. 'pattern' can be a literal string,
+        regular expression, or re.Pattern object.
+
+        If re.Pattern object is passed, case_sensitive is ignored and
+        the fitted words are searched with the Pattern object as given.
+        If string is passed (which could be a regular expression) and
+        case_sensitive is True, search for an exact substring match of
+        the whole passed string; if case_sensitive is False, search
+        without regard to case.
+
+        If a substring match is not found, return an empty list. If
+        matches are found, return a 1D list of the matches in their
+        original form from the fitted data.
+
+        This is only available if :param: `store_uniques` is True. If
+        False, the unique strings that have been fitted on the TS
+        instance are not retained therefore cannot be searched, and an
+        empty list is always returned.
 
 
         Parameters
         ----------
-        char_seq:
-            str - character substring to be looked up against the strings
-            fitted on the TextStatistics instance.
+        pattern:
+            Union[str, re.Pattern] - character sequence, regular
+            expression, or re.Pattern object to be looked up against
+            the strings fitted on the TextStatistics instance.
         case_sensitive:
-            Optional[bool], default = True - If True, search for the
-            exact string in the fitted data. If False, normalize both
-            the given string and the strings fitted on the TextStatistics
-            instance, then perform the search.
+            Optional[bool], default = True - Ignored if an re.Pattern
+            object is passed to 'pattern'. If True, search for the exact
+            pattern in the fitted data. If False, ignore the case of
+            words in uniques while performing the search.
 
 
         Return
@@ -710,55 +818,60 @@ class TextStatistics(
 
         """
 
+
         check_is_fitted(self)
 
-        return _lookup_substring(char_seq, self.uniques_, case_sensitive)
+        return _lookup_substring(pattern, self.uniques_, case_sensitive)
 
 
     def lookup_string(
         self,
-        char_seq: str,
+        pattern: Union[str, re.Pattern],
         case_sensitive: Optional[bool]=True
-    ) -> Union[str, list[str], None]:
+    ) -> list[str]:
 
         """
-        Look in the fitted strings for a full character sequence (not a
-        substring) that exactly matches the given character sequence. If
-        the case_sensitive parameter is True, look for an identical match
-        to the given character sequence, and if at least one is found,
-        return that character string. If an exact match is not found,
-        return None. If the case_sensitive parameter is False, normalize
-        the strings seen by the TextStatistics instance and the given
-        character string and search for matches. If matches are found,
-        return a 1D list of the matches in their original form from the
-        fitted data (there may be different capitalizations in the
-        fitted data, so there may be multiple entries.) If no matches
-        are found, return None.
+        Use string literals or regular expressions to look for whole
+        string matches (not substrings) in the fitted words. 'pattern'
+        can be a literal string, regular expression, or re.Pattern
+        object.
 
-        This is only available if parameter 'store_uniques' is True. If
-        False, the unique strings that have been fitted on the
-        TextStatistics instance are not retained therefore cannot be
-        searched, and None is always returned.
+        If re.Pattern object is passed, case_sensitive is ignored and
+        the fitted words are searched with the Pattern object as given.
+        If string is passed (which could be a regular expression) and
+        case_sensitive is True, search for an exact match of the whole
+        passed string; if case_sensitive is False, search without regard
+        to case.
+
+        If an exact match is not found, return an empty list. If matches
+        are found, return a 1D list of the matches in their original
+        form from the fitted data.
+
+        This is only available if :param: `store_uniques` is True. If
+        False, the unique strings that have been fitted on the TS
+        instance are not retained therefore cannot be searched, and an
+        empty list is always returned.
 
 
         Parameters
         ----------
-        char_seq:
-            str - character string to be looked up against the strings
-            fitted on the TextStatistics instance.
+        pattern:
+            Union[str, re.Pattern] - character sequence, regular
+            expression, or re.Pattern object to be looked up against
+            the strings fitted on the TextStatistics instance.
         case_sensitive:
-            Optional[bool], default = True - If True, search for the
-            exact string in the fitted data. If False, normalize both
-            the given string and the strings fitted on the TextStatistics
-            instance, then perform the search.
+            Optional[bool], default = True - Ignored if an re.Pattern
+            object is passed to 'pattern'. If True, search for the exact
+            pattern in the fitted data. If False, ignore the case of
+            the words in :attr: `uniques_` while performing the search.
 
 
         Return
         ------
         -
-            Union[str, list[str], None] - if there are any matches,
-            return the matching string(s) from the originally fitted
-            data; if there are no matches, return None.
+            list[str] - if there are any matches, return the matching
+            string(s) from the originally fitted data in a 1D list; if
+            there are no matches, return an empty list.
 
 
         """
@@ -766,7 +879,7 @@ class TextStatistics(
 
         check_is_fitted(self)
 
-        return _lookup_string(char_seq, self.uniques_, case_sensitive)
+        return _lookup_string(pattern, self.uniques_, case_sensitive)
 
 
     def score(

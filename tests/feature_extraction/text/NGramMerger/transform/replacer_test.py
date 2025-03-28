@@ -89,11 +89,11 @@ class TestSlider:
         indices = _match_finder(_line2, _ngram2)
 
         def _callable2(_matches):
-            return 'BEER&PIZZA'
+            return 'BEER&BRATS'
 
         out2 = _replacer(_line2, _ngram2, indices, _callable2, None)
 
-        exp2 = ['BIG', 'MONEY__BIG', 'BEER&PIZZA', 'YES', 'WHAMMY']
+        exp2 = ['BIG', 'MONEY__BIG', 'BEER&BRATS', 'YES', 'WHAMMY']
 
         assert np.array_equal(out2, exp2)
 

@@ -7,63 +7,83 @@
 
 
 from typing import Sequence, Optional
+from typing_extensions import Union
+
+import re
 
 import numpy as np
 
 
 
 def _lookup_substring(
-    char_seq: str,
-    uniques: Sequence[str],
-    case_sensitive: Optional[bool] = True
+    _pattern: Union[str, re.Pattern],
+    _uniques: Sequence[str],
+    _case_sensitive: Optional[bool] = True
 ) -> list[str]:
 
     """
-    Return a list of all strings that have been fitted on the
-    TextStatistics instance that contain the given character substring.
-    This is only available if parameter 'store_uniques' is True. If
-    False, the unique strings that have been fitted on the TextStatistics
-    instance are not retained therefore cannot be searched and an empty
-    list is returned.
+    Use string literals or regular expressions to look for substring
+    matches in the fitted words. 'pattern' can be a literal string,
+    regular expression, or re.Pattern object.
+
+    If re.Pattern object is passed, case_sensitive is ignored and the
+    fitted words are searched with the Pattern object as given. If string
+    is passed (which could be a regular expression) and case_sensitive
+    is True, search for an exact substring match of the whole passed
+    string; if case_sensitive is False, search without regard to case.
+
+    If a substring match is not found, return an empty list. If matches
+    are found, return a 1D list of the matches in their original form
+    from the fitted data.
+
+    This is only available if parameter 'store_uniques' in the main
+    TextStatistics module is True. If False, the unique strings that
+    have been fitted on the TextStatistics instance are not retained
+    therefore cannot be searched, and an empty list is always returned.
 
 
     Parameters
     ----------
-    char_seq:
-        str - character substring to be looked up against the strings
-        fitted on the TextStatistics instance.
-    uniques:
+    _pattern:
+        Union[str, re.Pattern] - character sequence, regular expression,
+        or re.Pattern object to be looked up against the strings fitted
+        on the TextStatistics instance.
+    _uniques:
         Sequence[str] - the unique strings found by the TextStatistics
         instance during fitting.
-    case_sensitive:
-        Optional[bool], default = True - If True, search for the
-        exact string in the fitted data. If False, normalize both
-        the given string and the strings fitted on the TextStatistics
-        instance, then perform the search.
+    _case_sensitive:
+        Optional[bool], default = True - Ignored if an re.Pattern object
+        is passed to 'pattern'. If True, search for the exact pattern in
+        the fitted data. If False, ignore the case of words in uniques
+        while performing the search.
 
 
     Return
     ------
     -
-        SELECTED_STRINGS: list[str] - list of all strings in the fitted
-        data that contain the given character substring. Returns an
-        empty list if there are no matches.
+        list[str] - list of all strings in the fitted data that contain
+        the given character substring. Returns an empty list if there
+        are no matches.
 
 
     """
 
 
-    if not isinstance(char_seq, str):
-        raise TypeError(f"'char_seq' must be a string")
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    if not isinstance(_pattern, (str, re.Pattern)):
+        raise TypeError(
+            f"'pattern' must be a string (literal or regex) or a "
+            f"re.Pattern object."
+        )
 
-    if not isinstance(case_sensitive, bool):
+    if not isinstance(_case_sensitive, bool):
         raise TypeError(f"'case_sensitive' must be boolean")
 
     try:
-        iter(uniques)
-        if isinstance(uniques, (str, dict)):
+        iter(_uniques)
+        if isinstance(_uniques, (str, dict)):
             raise Exception
-        if not all(map(isinstance, uniques, (str for _ in uniques))):
+        if not all(map(isinstance, _uniques, (str for _ in _uniques))):
             raise Exception
     except:
         raise TypeError(
@@ -74,36 +94,41 @@ def _lookup_substring(
 
 
 
-    if not len(uniques):
+    if not len(_uniques):
         return []
 
 
-    def _finder(x: str) -> int:
-        nonlocal _char_seq
-        return x.find(_char_seq) + 1
-
-
-    if case_sensitive:
-        _char_seq = char_seq
-        MASK = np.fromiter(map(_finder, uniques), dtype=bool)
+    # if re.compile was passed, just use that directly.
+    # if user passed a literal string or regex, build re.Pattern from it
+    if isinstance(_pattern, re.Pattern):
+        _re_pattern = _pattern
     else:
-        _char_seq = char_seq.lower()
-        MASK = np.fromiter(
-            map(_finder, np.char.lower(list(uniques))),
-            dtype=bool
+        _re_pattern = re.compile(
+            _pattern,
+            re.I if not _case_sensitive else 0
         )
 
-
-    SELECTED_STRINGS = list(map(str, np.array(list(uniques))[MASK]))
-
-    del _finder, MASK
+    # _pattern and _case_sensitive dont matter after here, use _re_pattern
 
 
-    return SELECTED_STRINGS
+    def _finder(_x: str) -> bool:
+        """Helper function for parallel pattern search."""
+        nonlocal _re_pattern
+        _hit = re.search(_re_pattern, _x)
+        return (_hit is not None and _hit.span() != (0, 0))
 
 
+    MASK = np.fromiter(map(_finder, _uniques), dtype=bool)
 
+    del _finder
 
+    if np.any(MASK):
+        # convert to list so np.array always takes it, covert to ndarray to
+        # apply mask, convert to set to get unique strings, then
+        # convert back to list.
+        return sorted(list(set(map(str, np.array(list(_uniques))[MASK].tolist()))))
+    elif not np.any(MASK):
+        return []
 
 
 

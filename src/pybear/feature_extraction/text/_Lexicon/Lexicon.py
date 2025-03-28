@@ -9,6 +9,7 @@
 from typing import Optional, Sequence
 from typing_extensions import Union
 
+import re
 import os
 import glob
 import numbers
@@ -200,18 +201,29 @@ class Lexicon(TextStatistics):
         raise AttributeError(f"'score' is blocked")
 
 
-    def lookup_substring(self, char_seq: str) -> list[str]:
+    def lookup_substring(
+        self,
+        pattern: Union[str, re.Pattern]
+    ) -> list[str]:
 
         """
-        Return a list of all words in the pybear Lexicon that contain
-        the given character substring. Case-sensitive.
+        Use string literals or regular expressions to look for substring
+        matches in the Lexicon. 'pattern' can be a literal string,
+        regular expression, or re.Pattern object. Return a list of all
+        words in the Lexicon that contain the given substring pattern.
+        Returns an empty list if there are no matches.
+
+        pybear Lexicon forces this search to be case-sensitive. If you
+        pass a re.compile object with an IGNORECASE flag, this method
+        strips that flag and leaves the other flags intact.
 
 
         Parameters
         ----------
-        char_seq:
-            str - character substring to be looked up against the words
-            in the pybear Lexicon.
+        pattern:
+            Union[str, re.Pattern] - character sequence, regular
+            expression, or re.Pattern object to be looked up against
+            the pybear Lexicon.
 
 
         Return
@@ -224,41 +236,59 @@ class Lexicon(TextStatistics):
 
         """
 
-        if not isinstance(char_seq, str):
-            raise TypeError(f"'char_seq' must be a string")
 
-        return super().lookup_substring(char_seq, case_sensitive=True)
+        # take out any IGNORECASE flag from a re.compile
+        if isinstance(pattern, re.Pattern):
+            new_flags = pattern.flags & ~re.I
+            # Recreate the pattern with the updated flags
+            pattern = re.compile(pattern.pattern, new_flags)
+
+        return super().lookup_substring(pattern, case_sensitive=True)
 
 
-    def lookup_string(self, char_seq: str) -> Union[str, None]:
+    def lookup_string(
+        self,
+        pattern: Union[str, re.Pattern]
+    ) -> list[str]:
 
         """
-        Look in the pybear Lexicon for an identical word (not substring)
-        that exactly matches the given character sequence. If a match is
-        found, return that character string. If an exact match is not
-        found, return None. Case-sensitive.
+        Use string literals or regular expressions to look for full word
+        matches in the Lexicon. 'pattern' can be a literal string,
+        regular expression, or re.Pattern object. Return a list of all
+        words in the Lexicon that completely match the given pattern.
+        Returns an empty list if there are no matches.
+
+        pybear Lexicon forces this search to be case-sensitive. If you
+        pass a re.compile object with an IGNORECASE flag, this method
+        strips that flag and leaves the other flags intact.
 
 
         Parameters
         ----------
-        char_seq:
-            str - character string to be looked up against the words in
+        pattern:
+            Union[str, re.Pattern] - character sequence, regular
+            expression, or re.Pattern object to be looked up against
             the pybear Lexicon.
 
 
         Return
         ------
         -
-            Union[str, None] - if 'char_seq' is in the pybear Lexicon,
-            return the word; if there is no match, return None.
+            list[str] - list of all full words in the pybear Lexicon that
+            match the pattern. Returns an empty list
+            if there are no matches.
 
 
         """
 
-        if not isinstance(char_seq, str):
-            raise TypeError(f"'char_seq' must be a string")
 
-        return super().lookup_string(char_seq, case_sensitive=True)
+        # take out any IGNORECASE flag from a re.compile
+        if isinstance(pattern, re.Pattern):
+            new_flags = pattern.flags & ~re.I
+            # Recreate the pattern with the updated flags
+            pattern = re.compile(pattern.pattern, new_flags)
+
+        return super().lookup_string(pattern, case_sensitive=True)
 
 
     def find_duplicates(self) -> dict[str, numbers.Integral]:

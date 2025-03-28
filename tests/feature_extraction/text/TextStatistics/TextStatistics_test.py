@@ -27,6 +27,25 @@ class TestTextStatistics:
 
         return _read_green_eggs_and_ham()
 
+    # pizza
+    def test_empty(self):
+
+        # should fail
+
+        # 1D
+        _TS = TS(store_uniques=True)
+        with pytest.raises(ValueError):
+            _TS.fit([])
+        # assert len(_TS.uniques_) == 0
+        # assert len(_TS.character_frequency_) == 0
+
+        # 2D
+        _TS = TS(store_uniques=True)
+        with pytest.raises(ValueError):
+            _TS.fit([[]])
+        # assert len(_TS.uniques_) == 0
+        # assert len(_TS.character_frequency_) == 0
+
 
     @pytest.mark.parametrize('store_uniques', (True, False))
     def test_multiple_partial_fit_accuracy(self, STRINGS, store_uniques):

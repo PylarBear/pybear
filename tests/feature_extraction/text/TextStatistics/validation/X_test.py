@@ -16,7 +16,7 @@ import pytest
 class TestValX:
 
 
-    # validation of check_1D_str_sequence handled on its own
+    # validation of check_dtype handled on its own
 
 
     def test_rejects_empty(self):
