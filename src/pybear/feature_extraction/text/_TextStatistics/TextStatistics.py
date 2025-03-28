@@ -54,7 +54,6 @@ from ....base import (
     FitTransformMixin,
     GetParamsMixin,
     ReprMixin,
-    SetParamsMixin,
     check_is_fitted
 )
 
@@ -63,13 +62,12 @@ from ....base import (
 class TextStatistics(
     FitTransformMixin,
     GetParamsMixin,
-    ReprMixin,
-    SetParamsMixin
+    ReprMixin
 ):
 
     """
-    Generate summary information about a 1D sequence, or multiple 1D
-    sequences, of strings. Statistics include:
+    Generate summary information about the strings and characters in
+    text data. Statistics include:
 
     - size (number of strings fitted)
 
@@ -91,79 +89,86 @@ class TextStatistics(
 
     - shortest strings
 
-    TextStatistics (TS) has 2 functioning scikit-style methods, fit and
-    partial_fit. The transform method is a no-op because TS does not
-    mutate data, it only reports information about the strings in it.
+    TextStatistics (TS) has 2 functional scikit-style transformer
+    methods, :meth: `fit` and :meth: `partial_fit`. The :meth: `transform`
+    method is a no-op because TS does not mutate data, it only reports
+    information about the strings and characters in it.
 
-    TS can be fit on a single batch of data via :method: fit, and can be
-    fit in batches via :method: partial_fit. The fit method resets the
-    instance with each call, that is, all information held within the
-    instance prior is deleted and the new fit information repopulates.
-    The partial_fit method, however, does not reset and accumulates
-    information across all batches seen. This makes TS suitable for
-    streaming data and batch-wise training, such as with a dask_ml
-    Incremental wrapper.
+    TextStatistics can do one-shot training on a single batch of data
+    via :meth: `fit`, or can be trained on multiple batches
+    via :meth: `partial_fit`. The `fit` method resets the instance with
+    each call, that is, all information held within the instance prior
+    is deleted and the new fit information repopulates. The `partial_fit`
+    method, however, does not reset and accumulates information across
+    all batches seen. This makes TS suitable for streaming data and
+    batch-wise training, such as with a dask_ml Incremental wrapper.
 
     TS does have other methods that allow access to certain functionality,
     such as conveniently printing summary information from attributes to
     screen. See the methods section of the docs.
 
-    TS accepts 1D list-likes containing only strings. This includes
-    numpy arrays, python lists, sets, and tuples, and pandas series.
+    TS accepts 1D list-likes or (possibly ragged) 2D array-likes
+    containing only strings. This includes python lists, sets, and
+    tuples, numpy vectors, pandas series, polars series, 2D python
+    built-ins, numpy arrays, pandas dataframes, and polars dataframes.
 
     TS is case-sensitive during fitting, always. This is a deliberate
     design choice so that users who want to differentiate between the
     same characters in different cases can do so. If you want your
     strings to be treated in a non-case-sensitive way, normalize the
-    case of your strings prior to fitting on TS.
+    case of your strings prior to fitting on TS (hint: use pybear
+    TextNormalizer).
 
-    The TS instance takes only one parameter, 'store_uniques'. More on
-    that below. The pybear intends for the 'store_uniques' parameter to
-    be set once at instantiation and not changed thereafter for that
-    instance. This protects the integrity of the reported information.
-    As such, TS does not have a 'set_params' method, but it does have a
-    'get_params' method. Advanced users may access and set the
-    'store_uniques' parameter directly on the instance, but the impacts
-    of doing so in the midst of a series of partial fits or afterward is
-    not tested. pybear does not recommend this technique; create a new
-    instance with the desired setting and fit your data again.
+    The TS class takes only one parameter, :param: `store_uniques`. More
+    on that below. The `store_uniques` parameter is intended to be set
+    once at instantiation and not changed thereafter. This protects the
+    integrity of the reported information. As such, TS does not have
+    a :meth: 'set_params' method, but it does have a :meth: `get_params`
+    method. Advanced users may access and set the `store_uniques`
+    parameter directly on the instance, but the impacts of doing so in
+    the midst of a series of partial fits or afterward is not tested.
+    pybear does not recommend this technique; create a new instance with
+    the desired setting and fit your data again.
 
-    When the 'store_uniques' parameter is True, the TS instance retains
-    a dictionary of all the unique strings it has seen during fitting.
-    In this case, TS is able to yield all the information that it is
-    designed to collect. This is ideal for situations with a 'small'
-    number of unique strings, such as when fitting on tokens, where a
-    recurrence of a unique will simply increment the count of that
-    unique in the dictionary instead of creating a new entry.
+    When the `store_uniques` parameter is True, the TS instance retains
+    a dictionary of all the unique strings it has seen during fitting
+    and their frequencies. In this case, TS is able to yield all the
+    information that it is designed to collect. This is ideal for
+    situations with a 'small' number of unique strings, such as when
+    fitting on tokens, where a recurrence of a unique will simply
+    increment the count of that unique in the dictionary instead of
+    creating a new entry.
 
-    When the 'store_uniques' parameter is False, however, the unique
-    strings seen during fitting are not stored. In this case, the
-    memory footprint of the TS instance will not grow linearly with the
-    number of unique strings seen during fitting. This enables TS to fit
-    on practially unlimited amounts of text data. This is ideal for
+    When :param: `store_uniques` is False, however, the unique strings
+    seen during fitting are not stored. In this case, the memory
+    footprint of the TS instance will not grow linearly with the number
+    of unique strings seen during fitting. This enables TS to fit on
+    practially unlimited amounts of text data. This is ideal for
     situations where the individual strings being fit are phrases,
     sentences, or even entire books. This comes at cost, though, because
     some reporting capability is lost.
 
-    Functionality available when 'store_uniques' is False is size (the
-    number of strings seen by the TS instance), average length, standard
-    deviation of length, maximum length, minimum length, overall
+    Functionality available when :param: `store_uniques` is False is
+    size (the number of strings seen by the TS instance), average length,
+    standard deviation of length, maximum length, minimum length, overall
     character frequency, and first character frequency. Functionality
     lost includes the unique strings themselves as would otherwise be
-    available through the 'uniques_' and 'string_frequencies_' attributes,
-    longest string, shortest string, lookup substring, and lookup string
-    reporting and printing.
+    available through :attr: `uniques_` and :attr: `string_frequencies_`,
+    and information about longest string and shortest string. Methods
+    whose information reporting is impacted include :meth: `lookup_string`
+    and :meth: `lookup_substring`, as well as the associated printing
+    methods.
 
 
     Parameters
     ----------
     store_uniques:
-        Optional[bool], default = True - whether to retain the unique
+        Optional[bool], default=True - whether to retain the unique
         strings seen by the TextStatistics instance in memory. If True,
         all attributes and print methods are fully informative. If False,
-        the 'string_frequencies_' and 'uniques_' attributes are always
-        empty, and functionality that depends on these attributes have
-        reduced capability.
+        the :attr: `string_frequencies_` and :attr: `uniques_` attributes
+        are always empty, and functionality that depends on these
+        attributes have reduced capability.
 
 
     Attributes
@@ -172,7 +177,7 @@ class TextStatistics(
         int - The number of strings fitted on the TextStatistics instance.
     uniques_:
         list[str] - A 1D list of the unique strings fitted on the
-        TextStatistics instance. If parameter 'store_uniques' is False,
+        TextStatistics instance. If :param: `store_uniques` is False,
         this will always be empty.
     overall_statistics_:
         dict[str, numbers.Real] - A dictionary that holds information
@@ -180,12 +185,13 @@ class TextStatistics(
         Available statistics are size (number of strings seen during
         fitting), uniques count, average string length, standard
         deviation of string length, maximum string length, and minimum
-        string length. If parameter 'store_uniques' is False, the
+        string length. If :param: `store_uniques` is False, the
         'uniques_count' field will always be zero.
     string_frequency_:
         dict[str, int] - A dictionary that holds the unique strings and
         the respective number of occurrences seen during fitting. If
-        parameter 'store_uniques' is False, this will always be empty.
+        the :param: `store_uniques` parameter is False, this will always
+        be empty.
     startswith_frequency_:
         dict[str, int] - A dictionary that holds the first characters
         and their frequencies in the first position for all the strings
@@ -258,7 +264,7 @@ class TextStatistics(
 
         """
         list[str] - A 1D list of the unique strings fitted on the
-        TextStatistics instance. If parameter 'store_uniques' is False,
+        TextStatistics instance. If :param: `store_uniques` is False,
         this will always be empty.
         """
 
@@ -279,7 +285,7 @@ class TextStatistics(
         Available statistics are size (number of strings seen during
         fitting), uniques count, average string length, standard
         deviation of string length, maximum string length, and minimum
-        string length. If parameter 'store_uniques' is False, the
+        string length. If :param: `store_uniques` is False, the
         'uniques_count' field will always be zero.
         """
 
@@ -293,7 +299,8 @@ class TextStatistics(
         """
         dict[str, int] - A dictionary that holds the unique strings and
         the respective number of occurrences seen during fitting. If
-        parameter 'store_uniques' is False, this will always be empty.
+        the :param: `store_uniques` parameter is False, this will always
+        be empty.
         """
 
         check_is_fitted(self)
@@ -354,8 +361,6 @@ class TextStatistics(
 
     # def get_params() - inherited from GetParamsMixin
 
-    # def set_params() - inherited from SetParamsMixin
-
     # def fit_transform() - inherited from FitTransformMixin
 
 
@@ -375,7 +380,7 @@ class TextStatistics(
         ----------
         X:
             XContainer - a 1D list-like or 2D array-like of strings to
-            report statistics for, cannot be empty. Strings do not need
+            report statistics for. Can be empty. Strings do not need
             to be in the pybear Lexicon.
         y:
             Optional[any], default = None - a target for the data.
@@ -390,11 +395,10 @@ class TextStatistics(
 
         """
 
-        # pizza, X is not allowed to be empty. see if its needed
+
         _validation(X, self.store_uniques)
 
         # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
 
         # 1D/2D redirector -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # we know X is legit 1D or 2D
@@ -421,6 +425,21 @@ class TextStatistics(
             return self
         # END 1D/2D redirector -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        # SKIP OUT FOR EMPTY -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # if 1D X empty, just skip out, it has nothing to contribute
+        # to any statistics, but sure will crash a lot of stuff for
+        # zero reduction operation
+        if len(X) == 0:
+            # these assignments will make the instance fitted even if
+            # it only saw empty data
+            self._string_frequency = getattr(self, '_string_frequency', {})
+            self._startswith_frequency = getattr(self, '_startswith_frequency', {})
+            self._character_frequency = getattr(self, '_character_frequency', {})
+            self._overall_statistics = getattr(self, '_overall_statistics', {})
+
+            return self
+        # END SKIP OUT FOR EMPTY -- -- -- -- -- -- -- -- -- -- -- -- --
+
         # string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # this must be first
         _current_string_frequency: dict[str, numbers.Integral] = \
@@ -433,7 +452,7 @@ class TextStatistics(
             self._string_frequency: dict[str, int] = \
                 _merge_string_frequency(
                     _current_string_frequency,
-                    getattr(self, 'string_frequency_', {})
+                    getattr(self, '_string_frequency', {})
                 )
         else:
             self._string_frequency = {}
@@ -450,7 +469,7 @@ class TextStatistics(
         self._startswith_frequency: dict[str, int] = \
             _merge_startswith_frequency(
                 _current_startswith_frequency,
-                getattr(self, 'startswith_frequency_', {})
+                getattr(self, '_startswith_frequency', {})
             )
 
         del _current_startswith_frequency
@@ -467,7 +486,7 @@ class TextStatistics(
         self._character_frequency: dict[str, int] = \
             _merge_character_frequency(
                 _current_character_frequency,
-                getattr(self, 'character_frequency_', {})
+                getattr(self, '_character_frequency', {})
             )
 
         del _current_string_frequency
@@ -489,7 +508,7 @@ class TextStatistics(
         self._overall_statistics: OverallStatisticsType = \
             _merge_overall_statistics(
                 _current_overall_statistics,
-                getattr(self, 'overall_statistics_', {}),
+                getattr(self, '_overall_statistics', {}),
                 _len_uniques=len(self.uniques_)
             )
 
@@ -515,7 +534,7 @@ class TextStatistics(
         ----------
         X:
             XContainer - a 1D list-like or 2D array-like of strings to
-            report statistics for, cannot be empty. Strings do not need
+            report statistics for. Can be empty. Strings do not need
             to be in the pybear Lexicon.
         y:
             Optional[any], default = None - a target for the data. Always
@@ -566,9 +585,8 @@ class TextStatistics(
     def print_overall_statistics(self) -> None:
 
         """
-        Print the 'overall_statistics_' attribute to screen. If parameter
-        'store_uniques' is False, the 'uniques_count' field will always
-        be zero.
+        Print :attr: `overall_statistics_` to screen. The 'uniques_count'
+        field will always be zero if :param: `store_uniques` is False.
         """
 
         check_is_fitted(self)
@@ -577,8 +595,9 @@ class TextStatistics(
 
 
     def print_startswith_frequency(self) -> None:
-
-        """Print the 'startswith_frequency_' attribute to screen."""
+        """
+        Print the :attr: `startswith_frequency_` attribute to screen.
+        """
 
         check_is_fitted(self)
 
@@ -588,8 +607,9 @@ class TextStatistics(
 
 
     def print_character_frequency(self) -> None:
-
-        """Print the 'character_frequency_' attribute to screen."""
+        """
+        Print the :attr: `character_frequency_` attribute to screen.
+        """
 
         check_is_fitted(self)
 
@@ -602,9 +622,9 @@ class TextStatistics(
     ) -> None:
 
         """
-        Print the 'string_frequency_' attribute to screen. Only available
-        if parameter 'store_uniques' is True. If False, uniques are not
-        available for display to screen.
+        Print the :attr: `string_frequency_` attribute to screen. Only
+        available if :param: `store_uniques` is True. If False, uniques
+        are not available for display to screen.
 
 
         Parameters
@@ -634,7 +654,7 @@ class TextStatistics(
 
         """
         The longest strings seen by the TextStatistics instance during
-        fitting. Only available if parameter 'store_uniques' is True. If
+        fitting. Only available if :param: `store_uniques` is True. If
         False, the uniques seen during fitting are not available and an
         empty dictionary is always returned.
 
@@ -650,8 +670,8 @@ class TextStatistics(
         ------
         -
             dict[str, int] - the top 'n' longest strings seen by the
-            TextStatistics instance during fitting. Empty if the
-            'store_uniques' parameter is False.
+            TextStatistics instance during fitting. This will always be
+            empty if :param: `store_uniques` is False.
 
 
         """
@@ -672,8 +692,8 @@ class TextStatistics(
     ) -> None:
 
         """
-        Print the longest strings in the 'string_frequency_' attribute
-        to screen. Only available if parameter 'store_uniques' is True.
+        Print the longest strings in :attr: `string_frequency_` to
+        screen. Only available if :param: `store_uniques` is True.
         If False, uniques are not available for display to screen.
 
 
@@ -705,7 +725,7 @@ class TextStatistics(
 
         """
         The shortest strings seen by the TextStatistics instance during
-        fitting. Only available if parameter 'store_uniques' is True. If
+        fitting. Only available if :param: `store_uniques` is True. If
         False, the uniques seen during fitting are not available and an
         empty dictionary is always returned.
 
@@ -721,8 +741,8 @@ class TextStatistics(
         ------
         -
             dict[str, int] - the top 'n' shortest strings seen by the
-            TextStatistics instance during fitting. Empty if the
-            'store_uniques' parameter is False.
+            TextStatistics instance during fitting. This will always be
+            empty if :param: `store_uniques` is False.
 
 
         """
@@ -743,8 +763,8 @@ class TextStatistics(
     ) -> None:
 
         """
-        Print the shortest strings in the 'string_frequency_' attribute
-        to screen. Only available if parameter 'store_uniques' is True.
+        Print the shortest strings in :attr: `string_frequency_` to
+        screen. Only available if :param: `store_uniques` is True.
         If False, uniques are not available for display to screen.
 
 

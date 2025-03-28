@@ -22,7 +22,9 @@ class TestValidation:
     # works and passes all good.
 
 
-    @pytest.mark.parametrize('_X', (list('abc'), tuple('abcd'), set('abcde')))
+    @pytest.mark.parametrize('_X',
+        (list('abc'), tuple('abcd'), set('abcde'), [list('abc'), list('abcde')])
+    )
     @pytest.mark.parametrize('_store_uniques', (True, False))
     def test_passes(self, _X, _store_uniques):
 

@@ -16,6 +16,7 @@ from pybear.feature_extraction.text._TextStatistics.TextStatistics import \
 
 from ._read_green_eggs_and_ham import _read_green_eggs_and_ham
 
+from pybear.base._is_fitted import is_fitted
 
 
 class TestTextStatistics:
@@ -27,24 +28,46 @@ class TestTextStatistics:
 
         return _read_green_eggs_and_ham()
 
-    # pizza
+
     def test_empty(self):
 
-        # should fail
+        # and test that fit on only an empty makes it fitted
+        # and test that already fitted sees empty and doesnt change
 
         # 1D
         _TS = TS(store_uniques=True)
-        with pytest.raises(ValueError):
-            _TS.fit([])
-        # assert len(_TS.uniques_) == 0
-        # assert len(_TS.character_frequency_) == 0
+        _TS.fit([])
+        assert len(_TS.uniques_) == 0
+        assert len(_TS.character_frequency_) == 0
+        assert is_fitted(_TS)
 
         # 2D
         _TS = TS(store_uniques=True)
-        with pytest.raises(ValueError):
-            _TS.fit([[]])
-        # assert len(_TS.uniques_) == 0
-        # assert len(_TS.character_frequency_) == 0
+        _TS.fit([[]])
+        assert len(_TS.uniques_) == 0
+        assert len(_TS.character_frequency_) == 0
+        assert is_fitted(_TS)
+
+        # empty doesnt change a fitted instance
+        _TS = TS(store_uniques=True)
+        _TS.partial_fit(list('abc'))
+        assert is_fitted(_TS)
+        assert len(_TS.uniques_) == 3
+        assert len(_TS.character_frequency_) == 3
+        for letter in list('abc'):
+            assert _TS.character_frequency_[letter] == 1
+        _TS.partial_fit([])
+        assert is_fitted(_TS)
+        assert len(_TS.uniques_) == 3
+        assert len(_TS.character_frequency_) == 3
+        for letter in list('abc'):
+            assert _TS.character_frequency_[letter] == 1
+        _TS.partial_fit([[]])
+        assert is_fitted(_TS)
+        assert len(_TS.uniques_) == 3
+        assert len(_TS.character_frequency_) == 3
+        for letter in list('abc'):
+            assert _TS.character_frequency_[letter] == 1
 
 
     @pytest.mark.parametrize('store_uniques', (True, False))
