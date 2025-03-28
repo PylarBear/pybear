@@ -18,11 +18,9 @@ class TestValX:
 
     # validation of check_dtype handled on its own
 
+    pass
 
-    def test_rejects_empty(self):
 
-        with pytest.raises(ValueError):
-            _val_X([])
 
 
 

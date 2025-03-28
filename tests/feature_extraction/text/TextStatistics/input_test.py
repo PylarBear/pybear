@@ -91,8 +91,16 @@ class TestTextStatisticsInputs:
         assert TS.string_frequency_['green'] == _counter
 
 
+    def test_weird_characters(self):
 
 
+        TS = TextStatistics(store_uniques=True)
+
+        X = ['\n', '\t', '\r']
+        TS.partial_fit(X)
+
+
+        assert TS.character_frequency_ == {'\t': 1, '\n': 1, '\r': 1}
 
 
 

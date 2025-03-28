@@ -16,7 +16,8 @@ from .....base._check_dtype import check_dtype
 def _val_X(_X: XContainer) -> None:
 
     """
-    Validate X. Must be 1D list-like or 2D array-like of strings.
+    Validate X. Must be 1D list-like or 2D array-like of strings. Can
+    be empty.
 
 
     Parameters
@@ -35,8 +36,6 @@ def _val_X(_X: XContainer) -> None:
 
     check_dtype(_X, allowed='str', require_all_finite=False)
 
-    if len(_X) == 0:
-        raise ValueError(f"'X' cannot be empty.")
 
 
 
