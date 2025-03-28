@@ -6,7 +6,7 @@
 
 
 
-from typing import Callable, Literal, Sequence, Sequence
+from typing import Callable, Literal, Sequence
 from typing_extensions import Union, TypeAlias
 import numpy.typing as npt
 

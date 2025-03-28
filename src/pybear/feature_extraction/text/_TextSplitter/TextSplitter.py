@@ -10,6 +10,7 @@ from typing import Optional
 from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
+    XWipContainer,
     StrSepType,
     RegExpSepType,
     StrMaxSplitType,
@@ -102,6 +103,11 @@ class TextSplitter(
     performed 4 splits on commas and periods cumulatively counting the
     application of the splits for all separators.
 
+    TextSplitter accepts 1D list-like vectors of strings. Accepted
+    containers include python lists, tuples, and sets, numpy vectors,
+    pandas series, and polars series. Output is always returned as a
+    python list of python lists of strings.
+
 
     Parameters
     ----------
@@ -162,8 +168,20 @@ class TextSplitter(
     -----
     Type Aliases
 
+    PythonTypes:
+        Union[list[str], tuple[str], set[str]]
+
+    PandasTypes:
+        pd.Series
+
+    PolarsTypes:
+        pl.Series
+
     XContainer:
-        Sequence[str]
+        Union[PythonTypes, PandasTypes, PolarsTypes]
+
+    XWipContainer:
+        list[list[str]]
 
     SepType:
         Union[str, set[str], None]
@@ -272,7 +290,7 @@ class TextSplitter(
         Parameters
         ----------
         X:
-            list-like of shape (n_samples, ) - a 1D sequence of strings
+            XContainer - a 1D sequence of strings
             to be split.
         y:
             Optional[Union[any, None]], default=None - the target for
@@ -304,8 +322,7 @@ class TextSplitter(
         Parameters
         ----------
         X:
-            list-like of shape (n_samples, ) - a 1D sequence of strings
-            to be split.
+            XContainer - a 1D sequence of strings to be split.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data.
@@ -327,7 +344,7 @@ class TextSplitter(
         self,
         X: XContainer,
         copy: Optional[bool] = True
-    ) -> list[list[str]]:
+    ) -> XWipContainer:
 
         """
         Split the strings in X on the separator(s).
@@ -336,8 +353,7 @@ class TextSplitter(
         Parameters
         ----------
         X:
-            list-like of shape (n_samples, ) - a 1D sequence of strings
-            to be split.
+            XContainer - a 1D sequence of strings to be split.
         copy:
             Optional[bool] - whether to perform the splits directly on X
             or on a deepcopy of the original X.
@@ -346,7 +362,7 @@ class TextSplitter(
         Return
         ------
         -
-            _X: list[list[str]] - the split strings.
+            _X: XWipContainer - the split strings.
 
 
         """
@@ -411,7 +427,7 @@ class TextSplitter(
         Parameters
         ----------
         X:
-            list-like of shape (n_samples, ) - a 1D sequence of strings.
+            XContainer - a 1D sequence of strings.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data.

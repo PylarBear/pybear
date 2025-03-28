@@ -6,15 +6,26 @@
 
 
 
-from typing import Literal, Sequence
+from typing import Literal
 from typing_extensions import TypeAlias, Union
 
 import re
 import numbers
 
+import pandas as pd
+import polars as pl
 
 
-XContainer: TypeAlias = Sequence[str]
+
+PythonTypes: TypeAlias = Union[list[str], tuple[str], set[str]]
+
+PandasTypes: TypeAlias = pd.Series
+
+PolarsTypes: TypeAlias = pl.Series
+
+XContainer: TypeAlias = Union[PythonTypes, PandasTypes, PolarsTypes]
+
+XWipContainer: TypeAlias = list[list[str]]
 
 SepType: TypeAlias = Union[str, set[str], None]
 StrSepType: TypeAlias = Union[SepType, list[Union[SepType, Literal[False]]]]
