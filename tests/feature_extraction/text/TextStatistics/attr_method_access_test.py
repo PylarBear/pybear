@@ -373,7 +373,8 @@ class TestMethodAccessBeforeAndAfterFit:
                     assert all(map(isinstance, out, (str for _ in out)))
                     assert np.array_equal(out, ['I am Sam'])
                 else:
-                    assert out is None
+                    assert isinstance(out, list)
+                    assert len(out) == 0
             else:
                 raise Exception
 

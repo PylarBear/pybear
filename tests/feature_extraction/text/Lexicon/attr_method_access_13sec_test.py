@@ -240,11 +240,12 @@ class TestMethodAccess:
 
         # 'lookup_string'
         out = getattr(TestCls, 'lookup_string')('AARDVARK')
-        assert isinstance(out, str)
-        assert out == 'AARDVARK'
+        assert isinstance(out, list)
+        assert np.array_equal(out, ['AARDVARK'])
 
         out = getattr(TestCls, 'lookup_string')('pxlq')
-        assert isinstance(out, type(None))
+        assert isinstance(out, list)
+        assert len(out) == 0
 
 
 

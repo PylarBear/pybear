@@ -29,7 +29,8 @@ def _validation(
     Parameters
     ----------
     _X:
-        XContainer - The text data. Must be a 1D list-like of strings.
+        XContainer - The text data. Must be a 1D list-like or 2D
+        array-like of strings.
     _store_uniques:
         bool - If True, all attributes and print methods are fully
         informative. If False, the 'string_frequencies_' and 'uniques_'

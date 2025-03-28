@@ -8,6 +8,8 @@
 
 import pytest
 
+import re
+
 import numpy as np
 
 from pybear.feature_extraction.text._TextStatistics._lookup._lookup_string \
@@ -15,44 +17,43 @@ from pybear.feature_extraction.text._TextStatistics._lookup._lookup_string \
 
 
 
-class TestLookupSubstring:
+class TestLookupString:
 
 
     # def _lookup_string(
-    #     char_seq: str,
-    #     uniques: Sequence[str],
-    #     case_sensitive: Optional[bool] = True
-    # ) -> Sequence[str]:
+    #     _pattern: Union[str, re.Pattern],
+    #     _uniques: Sequence[str],
+    #     _case_sensitive: Optional[bool] = True
+    # ) -> Union[str, list[str], None]:
 
 
     @staticmethod
     @pytest.fixture(scope='function')
     def uniques():
         return [
-            'Do you like ',
-            'green eggs and ham?',
-            'I do not like them, Sam-I-am.',
-            'I do not like',
-            'green eggs and ham.'
+            'aardvark', 'AARDvark', 'aardVARK', 'AARDVARK',
+            'aardwolf', 'AARDwolf', 'aardWOLF', 'AARDWOLF',
         ]
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # char_seq -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @pytest.mark.parametrize('junk_char_seq',
+    # pattern -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    @pytest.mark.parametrize('junk_pattern',
         (-2.7, -1, 0, 1, 2.7, True, None, [0,1], ('a', ), {'a': 1}, lambda x: x)
     )
-    def test_blocks_non_str_char_seq(self, junk_char_seq, uniques):
+    def test_blocks_non_str_pattern(self, junk_pattern, uniques):
 
         with pytest.raises(TypeError):
-            _lookup_string(junk_char_seq, uniques, True)
+            _lookup_string(junk_pattern, uniques, True)
 
 
-    @pytest.mark.parametrize('char_seq', ('green', 'eggs', 'and', 'ham'))
-    def test_accepts_str_char_seq(self, char_seq, uniques):
+    @pytest.mark.parametrize('pattern',
+        ('green', 'eggs', re.compile('and', re.I), re.compile('ham'))
+    )
+    def test_accepts_str_compile_pattern(self, pattern, uniques):
 
-        _lookup_string('look me up', uniques, case_sensitive=True)
-    # END char_seq -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _lookup_string('look me up', uniques, _case_sensitive=True)
+    # END pattern -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_uniques',
@@ -61,11 +62,11 @@ class TestLookupSubstring:
     def test_blocks_non_sequence_str_uniques(self, junk_uniques):
 
         with pytest.raises(TypeError):
-            _lookup_string('look me up', junk_uniques, case_sensitive=False)
+            _lookup_string('look me up', junk_uniques, _case_sensitive=False)
 
 
     def test_allows_empty_uniques(self):
-        _lookup_string('look me up', [], case_sensitive=False)
+        _lookup_string('look me up', [], _case_sensitive=False)
 
 
     @pytest.mark.parametrize('container', (set, tuple, list, np.ndarray))
@@ -78,7 +79,7 @@ class TestLookupSubstring:
 
         assert isinstance(uniques, container)
 
-        _lookup_string('look me up', uniques, case_sensitive=False)
+        _lookup_string('look me up', uniques, _case_sensitive=False)
     # END uniques -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # case_sensitive -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -101,113 +102,97 @@ class TestLookupSubstring:
 
 
     def test_empty_uniques_returns_empty(self):
-        out = _lookup_string('this is only a test', [], case_sensitive=False)
-        assert out is None
+        out = _lookup_string('this is only a test', [], _case_sensitive=False)
+        assert isinstance(out, list)
+        assert len(out) == 0
+
+
+    def test_empty_char_seq_does_not_match(self):
+        out = _lookup_string('', ['A', 'AA', 'AAA', 'AARDVARK'])
+        assert len(out) == 0
+
+
+    def test_substring_does_not_match(self, uniques):
+        out = _lookup_string(re.compile('AARD', re.I), uniques)
+        assert len(out) == 0
 
 
     @pytest.mark.parametrize('case_sensitive', (True, False))
-    @pytest.mark.parametrize('test_string',
-        ('Do you like ', '-I-', '-i-', 'I do not like ',
-         'green eggs and ham.', 'GREEN EGGS AND HAM.')
+    @pytest.mark.parametrize('test_pattern',
+        ('AARDVARK', 'aardwolf', 'JACKAL',  re.compile('aard[a-z+]'),
+        re.compile('[A-Z+]WOLF', re.I), re.compile('MONGOOSE'))
     )
-    @pytest.mark.parametrize('container', (tuple, list, np.ndarray))
+    @pytest.mark.parametrize('uniques_container', (tuple, list, np.ndarray))
     def test_accuracy(
-        self, case_sensitive, test_string, container, uniques
+        self, case_sensitive, test_pattern, uniques_container, uniques
     ):
 
         # dont test sets here, it messes up the order. we did prove above
         # that sets are accepted, though.
 
-        # 'Do you like ',
-        # 'green eggs and ham?',
-        # 'I do not like them, Sam-I-am.',
-        # 'I do not like',
-        # 'green eggs and ham.'
-
-        if container is np.ndarray:
+        if uniques_container is np.ndarray:
             uniques = np.array(uniques)
+            assert isinstance(uniques, np.ndarray)
         else:
-            uniques = container(uniques)
+            uniques = uniques_container(uniques)
+            assert isinstance(uniques, uniques_container)
 
         out = _lookup_string(
-            test_string,
+            test_pattern,
             uniques,
-            case_sensitive=case_sensitive
+            _case_sensitive=case_sensitive
         )
 
-        if case_sensitive:
+        assert isinstance(out, list)
 
-            if test_string == 'Do you like ':
-                assert out == 'Do you like '
-            elif test_string == '-I-':
-                assert out is None
-            elif test_string == '-i-':
-                assert out is None
-            elif test_string == 'I do not like ':
-                # notice the extra space
-                assert out is None
-            elif test_string == 'green eggs and ham.':
-                assert out == 'green eggs and ham.'
-            elif test_string == 'GREEN EGGS AND HAM.':
-                assert out is None
+        if isinstance(test_pattern, str):
+            if test_pattern == 'AARDVARK':
+                if case_sensitive:
+                    assert np.array_equal(out, ['AARDVARK'])
+                elif not case_sensitive:
+                    assert np.array_equal(
+                        out,
+                        ['AARDVARK', 'AARDvark', 'aardVARK', 'aardvark']
+                    )
+            elif test_pattern == 'aardwolf':
+                if case_sensitive:
+                    assert np.array_equal(out, ['aardwolf'])
+                elif not case_sensitive:
+                    assert np.array_equal(
+                        out,
+                        ['AARDWOLF', 'AARDwolf', 'aardWOLF', 'aardwolf']
+                    )
+            elif test_pattern == 'JACKAL':
+                if case_sensitive:
+                    assert len(out) == 0
+                elif not case_sensitive:
+                    assert len(out) == 0
             else:
                 raise Exception
-
-        elif not case_sensitive:
-
-            if test_string == 'Do you like ':
-                assert np.array_equal(out, ['Do you like '])
-            elif test_string == '-I-':
-                assert out is None
-            elif test_string == '-i-':
-                assert out is None
-            elif test_string == 'I do not like ':
-                # notice the extra space
-                assert out is None
-            elif test_string == 'green eggs and ham.':
-                assert np.array_equal(out, ['green eggs and ham.'])
-            elif test_string == 'GREEN EGGS AND HAM.':
-                assert np.array_equal(out, ['green eggs and ham.'])
+        elif isinstance(test_pattern, re.Pattern):
+            if test_pattern.pattern == 'aard[a-z+]':
+                if test_pattern.flags == 0:
+                    assert np.array_equal(out, ['aardvark', 'aardwolf'])
+                elif test_pattern.flags == re.I:
+                    assert np.array_equal(
+                        out,
+                        ['AARDVARK', 'AARDvark', 'aardVARK', 'aardvark']
+                    )
+            elif test_pattern.pattern == '[A-Z+]WOLF':
+                if test_pattern.flags == 0:
+                    assert np.array_equal(out, ['AARDWOLF'])
+                elif test_pattern.flags == re.I:
+                    assert np.array_equal(
+                        out,
+                        ['AARDVARK', 'AARDvark', 'aardVARK', 'aardvark']
+                    )
+            elif test_pattern.pattern == 'MONGOOSE':
+                if test_pattern.flags == 0:
+                    assert len(out) == 0
+                elif test_pattern.flags == re.I:
+                    assert len(out) == 0
             else:
                 raise Exception
-
-
-    @pytest.mark.parametrize('test_string',
-        ('Do you like ', 'GREEN eggs AND ham?', 'green eggs and ham?',
-         'GREEN EGGS AND HAM?')
-    )
-    @pytest.mark.parametrize('container', (tuple, list, np.ndarray))
-    def test_accuracy_multiple_returns(self, test_string, container):
-
-        uniques = [
-            'Do you like ',
-            'green eggs and ham?',
-            'GrEeN eGgS aNd HaM?',
-            'I do not like',
-            'GREEN EGGS AND HAM?'
-        ]
-
-        if container is np.ndarray:
-            uniques = np.array(uniques)
-        else:
-            uniques = container(uniques)
-
-        out = _lookup_string(
-            test_string,
-            uniques,
-            case_sensitive=False   # <========================
-        )
-
-        exp = ['green eggs and ham?', 'GrEeN eGgS aNd HaM?', 'GREEN EGGS AND HAM?']
-
-        if test_string == 'Do you like ':
-            assert np.array_equal(out, ['Do you like '])
-        elif test_string == 'GREEN eggs AND ham?':
-            assert np.array_equal(set(out), set(exp))
-        elif test_string == 'green eggs and ham?':
-            assert np.array_equal(set(out), set(exp))
-        elif test_string == 'GREEN EGGS AND HAM?':
-            assert np.array_equal(set(out), set(exp))
         else:
             raise Exception
 

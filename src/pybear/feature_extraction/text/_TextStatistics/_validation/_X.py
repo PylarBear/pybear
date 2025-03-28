@@ -9,20 +9,20 @@
 from .._type_aliases import XContainer
 
 
-from .....base._check_1D_str_sequence import check_1D_str_sequence
+from .....base._check_dtype import check_dtype
 
 
 
 def _val_X(_X: XContainer) -> None:
 
     """
-    Validate X. Must be 1D list-like vector of strings.
+    Validate X. Must be 1D list-like or 2D array-like of strings.
 
 
     Parameters
     ----------
     _X:
-        XContainer - The text data. Must be a 1D list-like of strings.
+        XContainer - The text data.
 
 
     Returns
@@ -33,13 +33,10 @@ def _val_X(_X: XContainer) -> None:
     """
 
 
-    check_1D_str_sequence(_X, require_all_finite=False)
+    check_dtype(_X, allowed='str', require_all_finite=False)
 
     if len(_X) == 0:
-        raise ValueError(
-            f"'strings' must be passed as a list-like vector of "
-            f"strings, cannot be empty."
-        )
+        raise ValueError(f"'X' cannot be empty.")
 
 
 

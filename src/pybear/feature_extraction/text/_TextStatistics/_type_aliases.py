@@ -6,7 +6,7 @@
 
 
 
-from typing import TypedDict
+from typing import Sequence, TypedDict
 from typing_extensions import Required, TypeAlias, Union
 import numpy.typing as npt
 
@@ -28,18 +28,16 @@ class OverallStatisticsType(TypedDict):
 
 
 
-PythonTypes: TypeAlias = Union[list[str], tuple[str], set[str]]
+PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]], set[str]]
 
 NumpyTypes: TypeAlias = npt.NDArray[str]
 
-PandasTypes: TypeAlias = pd.Series
+PandasTypes: TypeAlias = [pd.Series, pd.DataFrame]
 
-PolarsTypes: TypeAlias = pl.Series
+PolarsTypes: TypeAlias = [pl.Series, pl.DataFrame]
 
 XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
-# pizza verify this
-XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
 
 
