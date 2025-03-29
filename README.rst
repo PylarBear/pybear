@@ -230,13 +230,13 @@ can be stacked in a scikit pipeline.
 
 These modules can be found in pybear.feature_extraction.text.
 The modules include:
- | Lexicon - A class object holding over 68,000 words in the English lexicon
+ | Lexicon - A class exposing 68,000+ English words and a stop words attribute
  | NGramMerger - Join select adjacent tokens together to handle as a single token
  | StopRemover - Remove pybear stop words from a body of text
  | TextJoiner - Join tokenized text into a contiguous string with separators
  | TextJustifier - Justify to a fixed margin; identify wrap points with literals
  | TextJustifierRegExp - Same as TextJustifier, but uses regular expressions
- | TextLookup - Compare words in a body of text against pybear Lexicon and fix
+ | TextLookup - Compare words in a body of text against the pybear Lexicon
  | TextLookupRealTime - Same as TextLookup but with in-situ save capability
  | TextNormalizer - Normalize text to the same case
  | TextPadder - Pad ragged text into shaped containers using fill
@@ -244,7 +244,7 @@ The modules include:
  | TextReplacer - Remove substrings from contiguous text
  | TextSplitter - Split contiguous text into tokens using literal strings or regex
  | TextStatistics - Compile statistics about a body of text
- | TextStripper - Remove extra spaces from text
+ | TextStripper - Remove leading and trailing spaces from text
 
 =======
 
@@ -263,7 +263,7 @@ Important links
 ~~~~~~~~~~~~~~~
 
 - Official source code repo: https://github.com/PylarBear/pybear
-- Download releases: https://pypi.org/project/pybear/
+- Download releases: https://test.pypi.org/project/pybear/ (pypi coming soon!)
 - Issue tracker: https://github.com/PylarBear/pybear/issues
 
 Source code
@@ -290,7 +290,7 @@ Project History
 ---------------
 
 The project originated in the early 2020's as a collection of miscellaneous 
-private modules to enhance the scikit-learn and dask_ml ecosystem. In 2024, the 
+private modules to enhance the python data analytics ecosystem. In 2025, the 
 modules were formalized and bundled together for their first release as pybear.
 
 Help and Support
@@ -299,7 +299,7 @@ Help and Support
 Documentation
 ~~~~~~~~~~~~~
 
-- HTML documentation: https://pybear.readthedocs.io/
+- HTML documentation: https://pybear.readthedocs.io/ (coming soon!)
 
 Communication
 ~~~~~~~~~~~~~
