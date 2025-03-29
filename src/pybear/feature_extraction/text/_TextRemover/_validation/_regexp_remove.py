@@ -62,7 +62,7 @@ def _val_regexp_remove(
     err_msg = (
         f"'regexp_remove' must be None, a single regular expression, a "
         f"re.Pattern object, or a list of regexp strings, re.Pattern "
-        f"objects and Falses. If passed as a list, the number of entries "
+        f"objects and Falses. \nIf passed as a list, the number of entries "
         f"must equal the number of strings in X."
     )
 

@@ -18,10 +18,6 @@ from pybear.base import is_fitted
 
 
 
-
-
-
-
 # TextRemover is always "fit"
 class TestAttrAccess:
 
@@ -58,8 +54,9 @@ class TestAttrAccess:
             TestCls.fit(_X_list)
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # before transform
 
-        # all attrs should be accessible always
+        # all params should be accessible always
         assert getattr(TestCls, 'str_remove') == {' ', ',', '.', ';'}
         assert getattr(TestCls, 'regexp_remove') is None
         assert getattr(TestCls, 'regexp_flags') is None
@@ -79,6 +76,38 @@ class TestAttrAccess:
         # 'n_rows_' cannot be set
         with pytest.raises(AttributeError):
             setattr(TestCls, 'n_rows_', any)
+        # END before transform
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        TestCls.transform(_X_list)
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # after transform
+
+        # all params should be accessible always
+        assert getattr(TestCls, 'str_remove') == {' ', ',', '.', ';'}
+        assert getattr(TestCls, 'regexp_remove') is None
+        assert getattr(TestCls, 'regexp_flags') is None
+
+        # 'row_support_' needs a transform to have been done
+        out = getattr(TestCls, 'row_support_')
+        assert isinstance(out, np.ndarray)
+        assert len(out) == len(_X_list)
+
+        # 'row_support_' cannot be set
+        with pytest.raises(AttributeError):
+            setattr(TestCls, 'row_support_', any)
+
+        # 'n_rows_' needs a transform to have been done
+        out = getattr(TestCls, 'n_rows_')
+        assert isinstance(out, numbers.Integral)
+        assert out == len(_X_list)
+
+        # 'n_rows_' cannot be set
+        with pytest.raises(AttributeError):
+            setattr(TestCls, 'n_rows_', any)
+        # END after transform
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
 
@@ -140,20 +169,6 @@ class TestMethodAccess:
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
 
-        # 'row_support_' should be accessible now
-        out = TestCls.row_support_
-        assert isinstance(out, np.ndarray)
-        assert len(out) == len(_X_list)
-        assert all(map(isinstance, out, (np.bool_ for _ in out)))
-
-        # 'n_rows_' should be accessible now
-        out = TestCls.n_rows_
-        assert isinstance(out, numbers.Integral)
-        assert out == len(_X_list)
-
-        # create a new instance to remove n_rows_ & row_support_
-        TestCls = TextRemover(regexp_remove='[a-m]')
-
         out = getattr(TestCls, 'score')(_X_list)
         assert out is None
 
@@ -166,23 +181,6 @@ class TestMethodAccess:
         out = getattr(TestCls, 'fit_transform')(_X_list)
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
-
-        # 'n_rows_' should be accessible now
-        out = TestCls.n_rows_
-        assert isinstance(out, numbers.Integral)
-        assert out == len(_X_list)
-
-        # 'row_support_' should be accessible now
-        out = TestCls.row_support_
-        assert isinstance(out, np.ndarray)
-        assert len(out) == len(_X_list)
-        assert all(map(isinstance, out, (np.bool_ for _ in out)))
-
-
-
-
-
-
 
 
 

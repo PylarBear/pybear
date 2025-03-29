@@ -162,6 +162,36 @@ class TestTextRemover:
         assert np.array_equal(out, [['a'], ['b'], ['c'], ['d']])
 
 
+    @pytest.mark.parametrize('dim', (1, 2))
+    @pytest.mark.parametrize('rer', (True, False))
+    def test_remove_empty_rows_works(self, _words, dim, rer):
+
+        TestCls = TextRemover(
+            str_remove={'b', 'e'},
+            remove_empty_rows=rer
+        )
+
+        if dim == 1:
+            _X = list(_words)
+        elif dim == 2:
+            _X = list(map(list, _words))
+        else:
+            raise Exception
+
+        out = TestCls.transform(_X, copy=True)
+
+        if dim == 1 or rer is True:
+            assert len(out) == len(_X) - 2
+            assert np.array_equal(
+                TestCls.row_support_,
+                [True, False, True, True, False]
+            )
+        else:   # dim == 2 and rer = False
+            assert len(out) == len(_X)
+            assert np.array_equal(
+                TestCls.row_support_,
+                [True, True, True, True, True]
+            )
 
 
 

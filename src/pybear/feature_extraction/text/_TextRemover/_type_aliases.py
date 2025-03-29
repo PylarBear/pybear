@@ -42,6 +42,8 @@ FlagType: TypeAlias = Union[None, numbers.Integral]
 RegExpFlagsType: TypeAlias = \
     Union[FlagType, list[Union[FlagType, Literal[False]]]]
 
+RemoveEmptyRowsType: TypeAlias = bool
+
 RowSupportType: TypeAlias = npt.NDArray[bool]
 
 

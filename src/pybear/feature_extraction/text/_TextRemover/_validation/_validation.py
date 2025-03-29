@@ -10,7 +10,8 @@ from .._type_aliases import (
     XContainer,
     StrRemoveType,
     RegExpRemoveType,
-    RegExpFlagsType
+    RegExpFlagsType,
+    RemoveEmptyRowsType
 )
 
 import numpy as np
@@ -18,6 +19,7 @@ import numpy as np
 from ._str_remove import _val_str_remove
 from ._regexp_remove import _val_regexp_remove
 from ._regexp_flags import _val_regexp_flags
+from ._remove_empty_rows import _val_remove_empty_rows
 
 from .....base._check_1D_str_sequence import check_1D_str_sequence
 from .....base._check_2D_str_array import check_2D_str_array
@@ -28,7 +30,8 @@ def _validation(
     _X: XContainer,
     _str_remove: StrRemoveType,
     _regexp_remove: RegExpRemoveType,
-    _regexp_flags: RegExpFlagsType
+    _regexp_flags: RegExpFlagsType,
+    _remove_empty_rows: RemoveEmptyRowsType
 ) -> None:
 
 
@@ -48,8 +51,12 @@ def _validation(
         RegExpRemoveType - if using regexp mode, the re patterns to look
         for and remove.
     _regexp_flags:
-        RegExpFlagsType = if using regexp mode, the flags objects for the
+        RegExpFlagsType - if using regexp mode, the flags objects for the
         re pattern.
+    _remove_empty_rows:
+        RemoveEmptyRowsType - whether to remove empty rows from 2D data.
+        This does not apply to 1D data, by definition rows will always
+        be removed from 1D data.
 
 
     Return
@@ -61,9 +68,11 @@ def _validation(
     """
 
 
-
     try:
         check_2D_str_array(_X, require_all_finite=False)
+
+        # remove_empty_rows only applies to 2D data
+        _val_remove_empty_rows(_remove_empty_rows)
     except Exception as e:
         try:
             check_1D_str_sequence(_X, require_all_finite=False)

@@ -137,7 +137,7 @@ class TextSplitter(
     regexp_sep:
         Optional[RegExpSepType], default=None - if using regular
         expressions, the regexp pattern(s) to split the strings in X on.
-        If a single regular expression or re.Patten object is passed,
+        If a single regular expression or re.Pattern object is passed,
         that split is performed on every entry in X. If passed as a list,
         the number of entries must match the number of strings in X, and
         each pattern is applied to the corresponding string in X. If any
