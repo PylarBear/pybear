@@ -412,8 +412,8 @@ class NGramMerger(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> XWipContainer:
 
         """
@@ -425,8 +425,8 @@ class NGramMerger(
         X:
             XContainer - The data.
         copy:
-            Optional[bool], default=True - whether to directly operate
-            on the passed X or on a copy.
+            Optional[bool], default=False - whether to directly operate
+            on the passed X or on a deepcopy of X.
 
 
         Return

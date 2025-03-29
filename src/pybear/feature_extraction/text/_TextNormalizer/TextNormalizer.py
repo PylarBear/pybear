@@ -215,8 +215,8 @@ class TextNormalizer(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> XWipContainer:
 
         """
@@ -229,8 +229,8 @@ class TextNormalizer(
             Union[Sequence[str], Sequence[Sequence[str]]] - the data
             whose text will be normalized.
         copy:
-            Optional[bool], default=None - whether to normalize the text
-            in the original X object or a copy of X.
+            Optional[bool], default=False - whether to normalize the text
+            in the original X object or a deepcopy of X.
 
 
         Returns

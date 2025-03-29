@@ -329,8 +329,8 @@ class TextPadder(
     @SetOutputMixin._set_output_for_transform
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ):
 
         """
@@ -343,8 +343,8 @@ class TextPadder(
             2D array-like of (possibly ragged) shape (n_samples,
             n_features) - The data to be transformed.
         copy:
-            Optional[bool], default=True - whether to make a copy of the
-            data before performing the transformation.
+            Optional[bool], default=False - whether to perform the
+            transformation directy on X or on a deepcopy of X.
 
 
         Return

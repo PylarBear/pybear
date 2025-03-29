@@ -6,11 +6,11 @@
 
 
 
-from typing import Optional, Sequence
+from typing import Optional
 from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
-    OutputContainer
+    XWipContainer
 )
 
 import numbers
@@ -20,9 +20,11 @@ import pandas as pd
 import polars as pl
 
 from ._validation._validation import _validation
+from ._transform._sep_lb_finder import _sep_lb_finder
 from ._transform._transform import _transform
 
 from .._TextJoiner.TextJoiner import TextJoiner
+from .._TextSplitter.TextSplitter import TextSplitter
 
 from ....base import (
     FitTransformMixin,
@@ -109,10 +111,14 @@ class TextJustifierRegExp(
 
     TJRE accepts 1D and 2D data formats. Accepted objects include python
     built-in lists, tuples, and sets, numpy arrays, pandas series and
-    dataframes, and polars series and dataframes. Results are always
-    returned as a 1D python list of strings. When you pass your data in
-    a 2D format, TJRE uses pybear TextJoiner to convert it to a 1D list.
-    See TextJoiner for more information.
+    dataframes, and polars series and dataframes. When data is passed in
+    a 1D container, results are always returned as a 1D python list of
+    strings. When data is passed in a 2D container, TJRE uses pybear
+    TextJoiner and the `join_2D` parameter to convert it to a 1D list
+    for processing, then uses pybear TextSplitter and the `join_2D`
+    parameter to convert it back to 2D. The results are always returned
+    in a python list of python lists of strings. See TextJoiner and
+    TextSplitter for more information.
 
     TJRE is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
@@ -194,15 +200,10 @@ class TextJustifierRegExp(
         not want a separator in this case, pass an empty string to this
         parameter.
     join_2D:
-        Optional[Union[str, Sequence[str]]], default=' ' - Ignored if
-        the data is given as a 1D sequence. For 2D containers of strings,
-        the character string sequence(s) that are used to join the
-        strings across rows. If a single string, that value is used to
-        join for all rows. If a sequence of strings, then the number of
-        strings in the sequence must match the number of rows in the
-        data, and each entry in the sequence is applied to the
-        corresponding entry in the data. See pybear TextJoiner for more
-        information.
+        Optional[str], default=' ' - Ignored if the data is given as a
+        1D sequence. For 2D containers of strings, this is the character
+        string sequence that is used to join the strings across rows.
+        The single string value is used to join for all rows.
 
 
     Attributes
@@ -233,8 +234,8 @@ class TextJustifierRegExp(
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
-    OutputContainer:
-        list[str]
+    XWipContainer:
+        Union[list[str], list[list[str]]]
 
 
     Examples
@@ -271,7 +272,7 @@ class TextJustifierRegExp(
         line_break:Optional[Union[str, re.Pattern, None]] = None,
         line_break_flags:Optional[Union[numbers.Integral, None]] = None,
         backfill_sep:Optional[str] = ' ',
-        join_2D:Optional[Union[str, Sequence[str]]] = ' '
+        join_2D:Optional[str] = ' '
     ) -> None:
 
         """Initialize the TextJustifierRegExp instance."""
@@ -381,9 +382,9 @@ class TextJustifierRegExp(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
-    ) -> OutputContainer:
+        X:XContainer,
+        copy:Optional[bool] = False
+    ) -> XWipContainer:
 
         """
         Justify the text in a 1D list-like of strings or a (possibly
@@ -395,14 +396,14 @@ class TextJustifierRegExp(
         X:
             XContainer - The data to justify.
         copy:
-            Optional[bool], default=True - whether to directly operate
-            on the passed X or on a deepcopy.
+            Optional[bool], default=False - whether to directly operate
+            on the passed X or on a deepcopy of X.
 
 
         Return
         ------
         -
-            OutputContainer - the justified data returned as a 1D python
+            XWipContainer - the justified data returned as a 1D python
             list of strings.
 
 
@@ -421,12 +422,14 @@ class TextJustifierRegExp(
         else:
             _X = X
 
+        _was_2D = False
         # we know from validation it is legit 1D or 2D, do the easy check
         if all(map(isinstance, _X, (str for _ in _X))):
             # then is 1D:
             _X = list(_X)
         else:
             # then could only be 2D, need to convert to 1D
+            _was_2D = True
             if isinstance(_X, pd.DataFrame):
                 _X = list(map(list, _X.values))
             elif isinstance(_X, pl.DataFrame):
@@ -437,12 +440,39 @@ class TextJustifierRegExp(
             _X = TextJoiner(sep=self.join_2D).fit_transform(_X)
 
         # _X must be 1D at this point
-        self._n_rows = len(_X)
+        self._n_rows: int = len(_X)
 
         _X = _transform(
             _X, self.n_chars, self.sep, self.sep_flags,
             self.line_break, self.line_break_flags, self.backfill_sep
         )
+
+        if _was_2D:
+            # when justifying (which is always in 1D), if the line ended
+            # with a sep or line_break, then that stayed on the end of
+            # the last word in the line. and if that sep or line_break
+            # coincidentally .endswith(join_2D), then TextSplitter will
+            # leave a relic '' at the end of that row. so for the case
+            # where [sep | line_break].endswith(join_2D) and
+            # line.endswith([sep | line_break), look at the last word in
+            # each line and if it ends with that sep/line_break, indicate
+            # as such so that after TextSplitter the '' and the end of
+            # those rows can be deletes. dont touch any other rows that
+            # might end with '', TJ didnt do it its the users fault.
+            # backfill_sep should never be at the end of a line.
+            _MASK = _sep_lb_finder(_X, self.join_2D, self.sep, self.backfill_sep)
+
+            _X = TextSplitter(str_sep=self.join_2D).fit_transform(_X)
+
+            if any(_MASK):
+                for _row_idx in range(len(_X)):
+                    # and _X[_row_idx][-1] == '' is just insurance, thinking
+                    # that it should always be the case that whatever was
+                    # marked as True by _sep_lb_finder must end with ''.
+                    if _MASK[_row_idx] is True and _X[_row_idx][-1] == '':
+                        _X[_row_idx].pop(-1)
+
+            del _MASK
 
 
         return _X

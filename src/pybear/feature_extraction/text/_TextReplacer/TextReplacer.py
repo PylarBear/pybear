@@ -365,8 +365,8 @@ class TextReplacer(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> XContainer:
 
         """
@@ -381,8 +381,8 @@ class TextReplacer(
             whose strings will be searched and may be replaced in whole
             or in part.
         copy:
-            Optional[bool], default = True - whether to make the
-            replacements directly on the given data or a copy of it.
+            Optional[bool], default=False - whether to make the
+            replacements directly on the given X or on a deepcopy of X.
 
 
         Returns

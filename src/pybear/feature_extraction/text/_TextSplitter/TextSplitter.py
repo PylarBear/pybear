@@ -342,8 +342,8 @@ class TextSplitter(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> XWipContainer:
 
         """
@@ -355,8 +355,8 @@ class TextSplitter(
         X:
             XContainer - a 1D sequence of strings to be split.
         copy:
-            Optional[bool] - whether to perform the splits directly on X
-            or on a deepcopy of the original X.
+            Optional[bool], default=False - whether to perform the splits
+            directly on X or on a deepcopy of X.
 
 
         Return

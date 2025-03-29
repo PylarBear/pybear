@@ -6,7 +6,6 @@
 
 
 
-from typing import Sequence
 from typing_extensions import Union
 from .._type_aliases import XContainer
 
@@ -30,7 +29,7 @@ def _validation(
     _sep: Union[str, set[str]],
     _line_break: Union[str, set[str], None],
     _backfill_sep: str,
-    _join_2D: Union[str, Sequence[str]]
+    _join_2D: str
 ) -> None:
 
     """
@@ -70,14 +69,10 @@ def _validation(
         separate the otherwise separator-less strings from the strings
         being backfilled onto them.
     _join_2D:
-        Union[str, Sequence[str]] - Ignored if the data is given as a 1D
-        sequence. For 2D containers of (perhaps token) strings, the
-        character string sequence(s) that are used to join the strings
-        across rows. If a single string, that value is used to join for
-        all rows. If a sequence of strings, then the number of strings
-        in the sequence must match the number of rows in the data, and
-        each entry in the sequence is applied to the corresponding entry
-        in the data.
+        str - Ignored if the data is given as a 1D sequence. For 2D
+        containers of strings, this is the character string sequence
+        that is used to join the strings across rows. The single string
+        value is used to join for all rows.
 
 
     Return
@@ -94,12 +89,7 @@ def _validation(
         raise UnicodeError
     except UnicodeError:
         # join_2D is ignored if data is 1D
-        # need to get rows of off _X.
-        if hasattr(_X, 'shape'):
-            _n_rows = _X.shape[0]
-        else:
-            _n_rows = len(_X)
-        _val_join_2D(_join_2D, _n_rows)
+        _val_join_2D(_join_2D)
     except:
         try:
             check_1D_str_sequence(_X, require_all_finite=True)
