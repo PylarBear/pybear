@@ -28,6 +28,7 @@ class TestValidation:
     # 1) cannot pass str & re kwargs simultaneously
     # 2) cannot pass 'regexp_flags' alone
     # 3) cannot leave all defaults
+    # 4) if lists are passed to regexp_remove & regexp_flags, any Falses must align
 
 
     @staticmethod
@@ -59,59 +60,58 @@ class TestValidation:
     def str_remove_seq_1():
         return [{' ', ',', '.'}, '', '\n', '\s', False]
 
+
     @staticmethod
     @pytest.fixture(scope='function')
     def re_remove_seq_1():
         return [False, re.compile('[n-z]'), '[n-z]', '[n-z]', '[n-z]']
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def re_remove_seq_2():
-        return [re.compile('[n-z]'), False, '[n-z]', '[n-z]', '[n-z]']
 
     @staticmethod
     @pytest.fixture(scope='function')
     def re_flags_seq_1():
         return [False, re.I, re.X, re.I | re.X, None]
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def re_flags_seq_2():
-        return [re.I, False, re.X, None, re.I | re.X]
-
 
     @pytest.mark.parametrize('dim', (1, 2))
-    @pytest.mark.parametrize('X_container', (list, set, tuple, np.ndarray))
-    @pytest.mark.parametrize('str_remove_container', (list, tuple))
-    @pytest.mark.parametrize('str_remove',
-        (None, ' ', {' ', '\n', '\s'}, 'str_remove_seq_1')
+    @pytest.mark.parametrize('X_container', (list, tuple, np.ndarray))
+    @pytest.mark.parametrize('str_remove, str_remove_container',
+        (
+            (None, None),
+            (' ', None),
+            ({' ', '\n', '\s'}, None),
+            ('str_remove_seq_1', list),
+            ('str_remove_seq_1', tuple)
+        )
     )
-    @pytest.mark.parametrize('re_remove_container', (list, tuple))
-    @pytest.mark.parametrize('re_remove',
-        (None, '[a-m]', re.compile('[A-M]'), 're_remove_seq_1', 're_remove_seq_2')
+    @pytest.mark.parametrize('re_remove, re_remove_container',
+        (
+            (None, None),
+            ('[a-m]', None),
+            (re.compile('[A-M]'), None),
+            ('re_remove_seq_1', list),
+            ('re_remove_seq_1', tuple)
+        )
     )
-    @pytest.mark.parametrize('re_flags_container', (list, tuple))
-    @pytest.mark.parametrize('re_flags',
-        (None, re.I | re.X, 're_flags_seq_1', 're_flags_seq_2')
+    @pytest.mark.parametrize('re_flags, re_flags_container',
+        (
+            (None, None),
+            (re.I | re.X, None),
+            ('re_flags_seq_1', list),
+            ('re_flags_seq_1', tuple)
+        )
     )
+    @pytest.mark.parametrize('remove_empty_rows', (True, False, 'garbage'))
     def test_accuracy(
-        self,
-        dim, X_container, str_remove, re_remove, re_flags,
-        _text_dim_1, _text_dim_2,
-        str_remove_container, re_remove_container, re_flags_container,
-        str_remove_seq_1, re_remove_seq_1, re_remove_seq_2, re_flags_seq_1,
-        re_flags_seq_2
+        self, dim, X_container, str_remove, re_remove, re_flags, remove_empty_rows,
+        _text_dim_1, _text_dim_2, str_remove_container, re_remove_container,
+        re_flags_container, str_remove_seq_1, re_remove_seq_1, re_flags_seq_1
     ):
-
-        if dim == 2 and X_container is set:
-            pytest.skip(reason=f'impossible condition')
-
-        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
 
         _type_error = False
         _value_error = False
 
+        # manage dim of X and container -- -- -- -- -- -- -- -- -- -- --
         if dim == 1:
             if X_container is np.ndarray:
                 _X = np.array(_text_dim_1)
@@ -127,38 +127,23 @@ class TestValidation:
             assert all(map(isinstance, _X, (X_container for _ in _X)))
         else:
             raise Exception
+        # manage dim of X and container -- -- -- -- -- -- -- -- -- -- --
 
+        # manage param containers, when applicable -- -- -- -- -- -- -- --
         if str_remove == 'str_remove_seq_1':
             str_remove = str_remove_container(str_remove_seq_1)
             assert isinstance(str_remove, str_remove_container)
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        if re_remove == 're_remove_seq_1' \
-                and re_flags == 're_flags_seq_2':
-            _value_error = True
-
-        if re_remove == 're_remove_seq_2' \
-                and re_flags == 're_flags_seq_1':
-            _value_error = True
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
         if re_remove == 're_remove_seq_1':
             re_remove = re_remove_container(re_remove_seq_1)
             assert isinstance(re_remove, re_remove_container)
-        elif re_remove == 're_remove_seq_2':
-            re_remove = re_remove_container(re_remove_seq_2)
-            assert isinstance(re_remove, re_remove_container)
-
 
         if re_flags == 're_flags_seq_1':
             re_flags = re_flags_container(re_flags_seq_1)
             assert isinstance(re_flags, re_flags_container)
-        elif re_flags == 're_flags_seq_2':
-            re_flags = re_flags_container(re_flags_seq_2)
-            assert isinstance(re_flags, re_flags_container)
+        # END manage param containers, when applicable -- -- -- -- -- --
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
+        # manage exceptions -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         if str_remove and any((re_remove, re_flags)):
             _value_error = True
 
@@ -177,6 +162,10 @@ class TestValidation:
         if isinstance(re_flags, (set, tuple)):
             _type_error = True
 
+        if dim == 2 and not isinstance(remove_empty_rows, bool):
+            _type_error = True
+        # END manage exceptions -- -- -- -- -- -- -- -- -- -- -- -- --
+
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         if _type_error or _value_error:
@@ -185,20 +174,39 @@ class TestValidation:
                     _X,
                     _str_remove=str_remove,
                     _regexp_remove=re_remove,
-                    _regexp_flags=re_flags
+                    _regexp_flags=re_flags,
+                    _remove_empty_rows=remove_empty_rows
                 )
         else:
             out = _validation(
                 _X,
                 _str_remove=str_remove,
                 _regexp_remove=re_remove,
-                _regexp_flags=re_flags
+                _regexp_flags=re_flags,
+                _remove_empty_rows=remove_empty_rows
             )
-
 
             assert out is None
 
 
+    @pytest.mark.parametrize('dim', (1,2))
+    def test_catches_misaligned_Falses(self, _text_dim_1, _text_dim_2, dim):
+
+        if dim == 1:
+            _X = _text_dim_1
+        elif dim == 2:
+            _X = _text_dim_2
+        else:
+            raise Exception
+
+        with pytest.raises(ValueError):
+            _validation(
+                _X,
+                _str_remove=None,
+                _regexp_remove=['[a-m]+', False, '[\s]+'],
+                _regexp_flags=[False, re.I, re.X],
+                _remove_empty_rows = False
+            )
 
 
 
