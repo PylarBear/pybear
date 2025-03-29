@@ -102,22 +102,24 @@ class TestTransform:
         assert np.array_equal(out, _text_1_exp_upper)
         # END 1D upper -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        # _transform can only take 1D. 2D is handled recursively in
+        # the main transform() method.
 
         # 2D no-op -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _transform(_text_2, None)
-        assert all(map(np.array_equal, out, _text_2))
+        with pytest.raises(ValueError):
+            _transform(_text_2, None)
         # END 2D no-op -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
         # 2D lower -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _transform(_text_2, False)
-        assert all(map(np.array_equal, out, _text_2_exp_lower))
+        with pytest.raises(ValueError):
+            _transform(_text_2, False)
         # END 2D lower -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
         # 2D upper -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        out = _transform(_text_2, True)
-        assert all(map(np.array_equal, out, _text_2_exp_upper))
+        with pytest.raises(ValueError):
+            _transform(_text_2, True)
         # END 2D upper -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 

@@ -41,26 +41,18 @@ def _transform(
     """
 
 
-    if _upper is None:
-        return _X
-
-
     if all(map(isinstance, _X, (str for _ in _X))):
+
+        if _upper is None:
+            return _X
 
         if _upper is True:
             _X = list(map(str.upper, _X))
         elif _upper is False:
             _X = list(map(str.lower, _X))
 
-    elif all(map(isinstance, _X, (list for _ in _X))):
-
-        if _upper is True:
-            _X = list(map(list, map(lambda x: map(str.upper, x), _X)))
-        elif _upper is False:
-            _X = list(map(list, map(lambda x: map(str.lower, x), _X)))
-
     else:
-        raise Exception(f'unrecognized X format in transform')
+        raise ValueError(f'unrecognized X format in transform')
 
 
     return _X
