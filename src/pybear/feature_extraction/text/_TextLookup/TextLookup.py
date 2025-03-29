@@ -851,8 +851,8 @@ class TextLookup(TextLookupMixin):
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ):
 
         """
@@ -865,7 +865,7 @@ class TextLookup(TextLookupMixin):
             XContainer - The data in (possibly ragged) 2D array-like
             format.
         copy:
-            Optional[bool], default=True - whether to make substitutions
+            Optional[bool], default=False - whether to make substitutions
             and deletions directly on the passed X or a deepcopy of X.
 
 

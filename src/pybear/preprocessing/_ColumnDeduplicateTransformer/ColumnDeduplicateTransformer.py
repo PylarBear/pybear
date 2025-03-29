@@ -650,9 +650,9 @@ class ColumnDeduplicateTransformer(
 
     def inverse_transform(
         self,
-        X: DataContainer,
+        X:DataContainer,
         *,
-        copy: Optional[Union[bool, None]] = None
+        copy:Optional[Union[bool, None]] = None
         ) -> DataContainer:
 
         """
@@ -782,8 +782,8 @@ class ColumnDeduplicateTransformer(
     @SetOutputMixin._set_output_for_transform
     def transform(
         self,
-        X: DataContainer,
-        copy: Optional[Union[bool, None]] = None
+        X:DataContainer,
+        copy:Optional[Union[bool, None]] = None
     ) -> DataContainer:
 
         """

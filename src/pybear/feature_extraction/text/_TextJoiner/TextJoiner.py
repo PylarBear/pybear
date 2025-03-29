@@ -234,8 +234,8 @@ class TextJoiner(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> OutputContainer:
 
         """
@@ -250,6 +250,9 @@ class TextJoiner(
             XContainer - the (possibly ragged) 2D container of text
             to be joined along rows using the :param: `sep` character
             string(s).
+        copy:
+            Optional[bool], default=False - whether to operate directly
+            on the original X or a deepcopy of X.
 
 
         Return

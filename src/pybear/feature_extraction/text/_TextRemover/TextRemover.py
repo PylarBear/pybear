@@ -331,8 +331,8 @@ class TextRemover(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> XWipContainer:
 
         """
@@ -345,9 +345,9 @@ class TextRemover(
             list-like 1D vector of strings or (possibly ragged) 2D
             array-like of strings - the data.
         copy:
-            Optional[bool], default=True - whether to remove the unwanted
-            strings directly from the original X or from a copy of the
-            original X.
+            Optional[bool], default=False - whether to remove unwanted
+            strings directly from the original X or from a deepcopy of
+            the original X.
 
 
         Return

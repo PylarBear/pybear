@@ -25,7 +25,7 @@ PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
 
 XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
-OutputContainer: TypeAlias = list[str]
+XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
 
 

@@ -1277,10 +1277,10 @@ class MinCountTransformer(
     @SetOutputMixin._set_output_for_transform
     def transform(
         self,
-        X: XContainer,
-        y: Optional[YContainer]=None,
+        X:XContainer,
+        y:Optional[YContainer]=None,
         *,
-        copy: Optional[Union[bool, None]]=None
+        copy:Optional[Union[bool, None]]=None
     ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
         """

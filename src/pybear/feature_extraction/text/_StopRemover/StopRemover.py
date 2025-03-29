@@ -382,8 +382,8 @@ class StopRemover(
 
     def transform(
         self,
-        X: XContainer,
-        copy:Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> list[list[str]]:
 
         """
@@ -406,7 +406,7 @@ class StopRemover(
             XContainer - the (possibly ragged) 2D container of text from
             which to remove stop words.
         copy:
-            Optional[bool], default=True - whether to remove stop words
+            Optional[bool], default=False - whether to remove stop words
             directly from the passed X or a deepcopy of X.
 
 

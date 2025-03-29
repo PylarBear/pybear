@@ -143,31 +143,37 @@ class TestTextJustifier:
         # python list accepted
         out = TestCls.transform(list(_base_text))
         assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
         assert np.array_equal(out, _exp)
 
         # python 1D tuple accepted
         out = TestCls.transform(tuple(_base_text))
         assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
         assert np.array_equal(out, _exp)
 
         # python 1D set accepted
         out = TestCls.transform(set(_base_text))
         assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
         # dont bother checking for accuracy
 
         # np 1D accepted
         out = TestCls.transform(np.array(_base_text))
         assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
         assert np.array_equal(out, _exp)
 
         # pd series accepted
         out = TestCls.transform(pd.Series(_base_text))
         assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
         assert np.array_equal(out, _exp)
 
         # polars series accepted
         out = TestCls.transform(pl.Series(_base_text))
         assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
         assert np.array_equal(out, _exp)
 
 
@@ -180,10 +186,10 @@ class TestTextJustifier:
         ]
 
         _exp = [
-            "Fillet of a fenny ",
-            "snake In the ",
-            "cauldron boil and",
-            "Eye of newt and toe"
+            ["Fillet", "of", "a", "fenny"],
+            ["snake", "In", "the"],
+            ["cauldron", "boil", "and"],
+            ["Eye", "of", "newt", "and", "toe"]
         ]
 
         TestCls = TJ(**_kwargs)
@@ -192,31 +198,47 @@ class TestTextJustifier:
         # python 2D list accepted
         out = TestCls.transform(list(map(list, _base_text)))
         assert isinstance(out, list)
-        assert np.array_equal(out, _exp)
+        for r_idx in range(len(out)):
+            assert isinstance(out[r_idx], list)
+            assert all(map(isinstance, out[r_idx], (str for _ in out[r_idx])))
+            assert np.array_equal(out[r_idx], _exp[r_idx])
 
         # python 2D tuple accepted
         out = TestCls.transform(tuple(map(tuple, _base_text)))
         assert isinstance(out, list)
-        assert np.array_equal(out, _exp)
+        for r_idx in range(len(out)):
+            assert isinstance(out[r_idx], list)
+            assert all(map(isinstance, out[r_idx], (str for _ in out[r_idx])))
+            assert np.array_equal(out[r_idx], _exp[r_idx])
 
         # np 2D accepted
         out = TestCls.transform(np.array(_base_text))
         assert isinstance(out, list)
-        assert np.array_equal(out, _exp)
+        for r_idx in range(len(out)):
+            assert isinstance(out[r_idx], list)
+            assert all(map(isinstance, out[r_idx], (str for _ in out[r_idx])))
+            assert np.array_equal(out[r_idx], _exp[r_idx])
 
         # pd DataFrame accepted
         out = TestCls.transform(
             pd.DataFrame(np.array(_base_text))
         )
         assert isinstance(out, list)
-        assert np.array_equal(out, _exp)
+        for r_idx in range(len(out)):
+            assert isinstance(out[r_idx], list)
+            assert all(map(isinstance, out[r_idx], (str for _ in out[r_idx])))
+            assert np.array_equal(out[r_idx], _exp[r_idx])
 
         # polars 2D accepted
         out = TestCls.transform(
             pl.from_numpy(np.array(_base_text))
         )
         assert isinstance(out, list)
-        assert np.array_equal(out, _exp)
+        for r_idx in range(len(out)):
+            assert isinstance(out[r_idx], list)
+            assert all(map(isinstance, out[r_idx], (str for _ in out[r_idx])))
+            assert np.array_equal(out[r_idx], _exp[r_idx])
+
 
 
 

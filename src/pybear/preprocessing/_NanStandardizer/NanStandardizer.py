@@ -227,8 +227,8 @@ class NanStandardizer(
 
     def transform(
         self,
-        X: XContainer,
-        copy:Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> XContainer:
 
         """
@@ -243,8 +243,8 @@ class NanStandardizer(
             n_features) or (n_samples,) - the object for which to replace
             nan-like representations.
         copy:
-            Optional[bool], default=True - whether to replace the values
-            directly in the original X or in a copy of X.
+            Optional[bool], default=False - whether to replace the values
+            directly in the original X or in a deepcopy of X.
 
 
         Return

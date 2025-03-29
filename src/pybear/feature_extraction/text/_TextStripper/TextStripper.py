@@ -184,8 +184,8 @@ class TextStripper(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = True
+        X:XContainer,
+        copy:Optional[bool] = False
     ) -> XWipContainer:
 
         """
@@ -198,8 +198,8 @@ class TextStripper(
             XContainer - the data whose text will be stripped of leading
             and trailing spaces.
         copy:
-            Optional[bool], default=True - whether to strip the text
-            in the original X object or a copy of X.
+            Optional[bool], default=False - whether to strip the text
+            in the original X object or a deepcopy of X.
 
 
         Returns
