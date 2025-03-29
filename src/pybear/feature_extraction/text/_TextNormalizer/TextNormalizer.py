@@ -261,7 +261,14 @@ class TextNormalizer(
             else:
                 _X = list(map(list, _X))
 
+            # USE RECURSION ON 1D TO DO 2D
+            for _row_idx in range(len(_X)):
+                _X[_row_idx] = self.transform(_X[_row_idx], copy=False)
 
+            return _X
+
+
+        # ONLY 1D CAN GET TO HERE
         return _transform(_X, self.upper)
 
 
