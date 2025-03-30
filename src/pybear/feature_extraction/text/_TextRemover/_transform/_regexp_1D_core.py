@@ -68,7 +68,12 @@ def _regexp_1D_core(
     # _regexp_remove cannot be None. The code that allows entry into this
     # module explicitly says "if _regexp_remove is not None:".
     if isinstance(_regexp_remove, (str, re.Pattern)):
-        _remove = [_regexp_remove for _ in range(len(_X))]
+        _remove = [_regexp_remove for _ in _X]
+    elif _regexp_remove is False:
+        # this is a fail-safe. rr could only be False if X is 2D, rr is
+        # a list, and we have sent one of the rows of X and its rr value
+        # into here. but in main TR.transform False is explicitly skipped
+        _remove = [_regexp_remove for _ in _X]
     elif isinstance(_regexp_remove, list):
         _remove = _regexp_remove
     else:
@@ -76,7 +81,12 @@ def _regexp_1D_core(
 
     # but _regexp_flags definitely can be None (uses re.fullmatch default flags)
     if isinstance(_regexp_flags, (type(None), numbers.Integral)):
-        _flags = [_regexp_flags for _ in range(len(_X))]
+        _flags = [_regexp_flags for _ in _X]
+    elif _regexp_flags is False:
+        # this is a fail-safe. rf could only be False if X is 2D, rf is
+        # a list, and we have sent one of the rows of X and its rf value
+        # into here. but in main TR.transform False is explicitly skipped
+        _remove = [_regexp_remove for _ in _X]
     elif isinstance(_regexp_flags, list):
         _flags = _regexp_flags
     else:

@@ -399,18 +399,19 @@ class TextRemover(
         else:
             _X = X
 
+        _sr = self.str_remove
+        _rr = self.regexp_remove
+        _rf = self.regexp_flags
 
         if all(map(isinstance, _X, (str for _ in _X))):
             _X = list(_X)
 
             self._n_rows = len(_X)
 
-            if self.str_remove is not None:
-                _X, self._row_support = _str_1D_core(_X, self.str_remove)
-            elif self.regexp_remove is not None:
-                _X, self._row_support = _regexp_1D_core(
-                    _X, self.regexp_remove, self.regexp_flags
-                )
+            if _sr is not None:
+                _X, self._row_support = _str_1D_core(_X, _sr)
+            elif _rr is not None:
+                _X, self._row_support = _regexp_1D_core(_X, _rr, _rf)
             else:
                 raise Exception
         else:
@@ -423,31 +424,30 @@ class TextRemover(
                 _X = list(map(list, _X))
 
             for _row_idx in range(len(_X)):
-                # notice the index, only need the _X part of the return
 
-                if isinstance(self.regexp_remove, list) \
-                        and self.regexp_remove[_row_idx] is False:
-                    continue
+                if _sr is not None:
 
+                    if isinstance(_sr, list) and _sr[_row_idx] is False:
+                        continue
 
-                if self.str_remove is not None:
-                    _sr = self.str_remove
                     # notice the indexer, only need the _X component
                     _X[_row_idx] = _str_1D_core(
                         _X[_row_idx],
                         _sr[_row_idx] if isinstance(_sr, list) else _sr
                     )[0]
-                    del _sr
-                elif self.regexp_remove is not None:
-                    _rr = self.regexp_remove
-                    _rf = self.regexp_flags
+
+                elif _rr is not None:
+
+                    # if rf is a list, that entry must also be False
+                    if isinstance(_rr, list) and _rr[_row_idx] is False:
+                        continue
+
                     # notice the indexer, only need the _X component
                     _X[_row_idx] = _regexp_1D_core(
                         _X[_row_idx],
                         _rr[_row_idx] if isinstance(_rr, list) else _rr,
                         _rf[_row_idx] if isinstance(_rf, list) else _rf
                     )[0]
-                    del _rr, _rf
                 else:
                     raise Exception
 
@@ -460,6 +460,8 @@ class TextRemover(
                         _X.pop(_row_idx)
                         self._row_support[_row_idx] = False
             # END recursion for 2D -- -- -- -- -- -- -- -- -- -- -- --
+
+        del _sr, _rr, _rf
 
         return _X
 
