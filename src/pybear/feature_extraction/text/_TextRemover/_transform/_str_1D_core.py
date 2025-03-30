@@ -56,9 +56,14 @@ def _str_1D_core(
     # module explicitly says "if str_remove is not None:".
 
     if isinstance(_str_remove, str):
-        _remove = [_str_remove for _ in range(len(_X))]
+        _remove = [_str_remove for _ in _X]
+    elif _str_remove is False:
+        # this is a fail-safe. sr could only be False if X is 2D, sr is
+        # a list, and we have sent one of the rows of X and its sr value
+        # into here. but in main TR.transform False is explicitly skipped
+        _remove = [_str_remove for _ in _X]
     elif isinstance(_str_remove, set):
-        _remove = [_str_remove for _ in range(len(_X))]
+        _remove = [_str_remove for _ in _X]
     elif isinstance(_str_remove, list):
         _remove = _str_remove
     else:
