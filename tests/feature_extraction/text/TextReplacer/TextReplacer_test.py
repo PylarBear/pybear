@@ -8,6 +8,8 @@
 
 import pytest
 
+import re
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -58,7 +60,7 @@ class TestTextReplacer:
 
     def test_str_replace_2(self, _words):
 
-        TestCls = TextReplacer(str_replace=('a', ','))
+        TestCls = TextReplacer(str_replace=[('a', ','), False, False, False, False])
 
         out = TestCls.transform(list(map(list, _words)), copy=True)
         assert isinstance(out, list)
@@ -87,7 +89,7 @@ class TestTextReplacer:
     def test_re_replace_2(self, _words):
 
         TestCls = TextReplacer(
-            regexp_replace=[False, (".", ""), False, False, False]
+            regexp_replace=[False, (".", ""), False, False, False],
         )
 
         out = TestCls.transform(list(map(list, _words)), copy=True)

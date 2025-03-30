@@ -54,7 +54,7 @@ class TestTransform:
         ]
 
 
-    @pytest.mark.parametrize('shape', (1, 2))
+    @pytest.mark.parametrize('shape', (1, )) # pizza transform() doesnt take 2D any more! 2))
     @pytest.mark.parametrize('mode', ('str', 'regexp', 'both'))
     def test_accuracy(self, shape, mode, _1D_text, _2D_text):
 
