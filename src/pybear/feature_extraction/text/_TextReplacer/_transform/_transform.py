@@ -8,11 +8,10 @@
 
 from .._type_aliases import (
     XContainer,
-    StrReplaceType,
-    RegExpReplaceType
+    TRStrReplaceArgsType,
+    TRRegExpReplaceArgsType
 )
 
-from ._param_conditioner import _param_conditioner
 from ._str_1D_core import _str_1D_core
 from ._str_2D_core import _str_2D_core
 from ._regexp_1D_core import _regexp_1D_core
@@ -22,8 +21,8 @@ from ._regexp_2D_core import _regexp_2D_core
 
 def _transform(
     _X: XContainer,
-    _str_replace: StrReplaceType,
-    _regexp_replace: RegExpReplaceType
+    _str_replace: TRStrReplaceArgsType,
+    _regexp_replace: TRRegExpReplaceArgsType
 ) -> XContainer:
 
     """
@@ -38,11 +37,11 @@ def _transform(
         XContainer - the data whose strings will be searched and may
         be replaced in whole or in part.
     _str_replace:
-        StrReplaceType - the search and replace conditions for string
-        mode.
+        TRStrReplaceArgsType - the search and replace conditions for
+        string mode.
     _regexp_replace:
-        RegExpReplaceType - the search and replace conditions for regexp
-        mode.
+        TRRegExpReplaceArgsType - the search and replace conditions for
+        regexp mode.
 
 
     Return
@@ -57,28 +56,29 @@ def _transform(
     assert isinstance(_X, list)
 
 
-    __str_replace, __regexp_replace = _param_conditioner(
-        _str_replace,
-        _regexp_replace,
-        _X
-    )
 
 
     if all(map(isinstance, _X, (str for _ in _X))):
 
-        _X = _regexp_1D_core(_X, __regexp_replace)
-        _X = _str_1D_core(_X, __str_replace)
+        if _regexp_replace is not None:
+            _X = _regexp_1D_core(_X, _regexp_replace)
+        if _str_replace is not None:
+            _X = _str_1D_core(_X, _str_replace)
 
     elif all(map(isinstance, _X, (list for _ in _X))):
 
-        _X = _regexp_2D_core(_X, __regexp_replace)
-        _X = _str_2D_core(_X, __str_replace)
+        raise Exception(f'pizza shouldnt be going into this oven!')
+
+        if _regexp_replace is not None:
+            _X = _regexp_2D_core(_X, _regexp_replace)
+        if _str_replace is not None:
+            _X = _str_2D_core(_X, _str_replace)
 
     else:
         raise Exception
 
 
-    del __str_replace, __regexp_replace
+    del _str_replace, _regexp_replace
 
 
     return _X

@@ -12,14 +12,12 @@ import re
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextReplacer._transform._param_conditioner \
-    import _param_conditioner
+from pybear.feature_extraction.text._TextReplacer._transform._str_param_conditioner \
+    import _str_param_conditioner
 
 
 
-
-
-class TestParamConditioner:
+class TestStrParamConditioner:
 
 
     @staticmethod
@@ -42,7 +40,7 @@ class TestParamConditioner:
     def test_rejects_junk_str_replace(self, _text, junk_sr):
         # could be None, tuple, set, list
         with pytest.raises(TypeError):
-            _param_conditioner(junk_sr, None, _text)
+            _str_param_conditioner(junk_sr, None, _text)
 
 
     @pytest.mark.parametrize('good_sr',
@@ -53,28 +51,7 @@ class TestParamConditioner:
     )
     def test_accepts_good_str_replace(self, _text, good_sr):
         # could be None, tuple, set, list
-        _param_conditioner(good_sr, None, _text)
-
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    @pytest.mark.parametrize('junk_rr',
-        (-2.7, -1, 0, 1, 2.7, True, False, 'trash', {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_regexp_replace(self, _text, junk_rr):
-        # could be None, tuple, set, list
-        with pytest.raises(TypeError):
-            _param_conditioner(None, junk_rr, _text)
-
-
-    @pytest.mark.parametrize('good_rr',
-        (
-            None, ('a', ''), ('a', '', 1), {('b', 'B'), (re.compile('c'), 'C')},
-            [(re.compile('@'), lambda x: x, 2) for _ in range(10)]
-        )
-    )
-    def test_accepts_good_regexp_replace(self, _text, good_rr):
-        # could be None, tuple, set, list
-        _param_conditioner(None, good_rr, _text)
+        _str_param_conditioner(good_sr, _text)
 
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -99,22 +76,10 @@ class TestParamConditioner:
             sr = [('b', 'B', 2) for _ in range(len(_text))]
         else: raise Exception
 
-        if rr_desc is None:
-            rr = None
-        elif rr_desc == 'tuple_1':
-            rr = ('a', '')
-        elif rr_desc == 'tuple_2':
-            rr = ('a', '', 1)
-        elif rr_desc == 'set_1':
-            rr = {('a', ''), ('a', '', 1)}
-        elif rr_desc == 'list_1':
-            rr = [('b', 'B', 2, re.I) for _ in range(len(_text))]
-        else: raise Exception
 
+        out_sr = _str_param_conditioner(sr, _text)
 
-        out_sr, out_rr = _param_conditioner(sr, rr, _text)
-
-        # str_replace & regexp_replace must always be list(set(tuple(args))))
+        # str_replace must always be list(set(tuple(args))))
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         assert isinstance(out_sr, list)
@@ -134,24 +99,6 @@ class TestParamConditioner:
         else:
             raise Exception
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-        assert isinstance(out_rr, list)
-        assert len(out_rr) == len(_text)
-        assert all(map(isinstance, out_rr, (set for _ in out_rr)))
-
-        if rr_desc is None:
-            assert all(map(lambda x: len(x) == 0, out_rr))
-        elif rr_desc == 'tuple_1':
-            assert all(map(lambda x: x == set((('a', ''),)), out_rr))
-        elif rr_desc == 'tuple_2':
-            assert all(map(lambda x: x == set((('a', '', 1),)), out_rr))
-        elif rr_desc == 'set_1':
-            assert all(map(lambda x: x == {('a', ''), ('a', '', 1)}, out_rr))
-        elif rr_desc == 'list_1':
-            assert all(map(lambda x: x == set((('b', 'B', 2, re.I),)), out_rr))
-        else:
-            raise Exception
 
 
 

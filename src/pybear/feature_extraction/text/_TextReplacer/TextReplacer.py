@@ -15,7 +15,10 @@ from ._type_aliases import (
 )
 
 from ._validation._validation import _validation
-from ._transform._transform import _transform
+# pizza
+# from ._transform._transform import _transform
+from ._transform._str_1D_core import _str_1D_core
+from ._transform._regexp_1D_core import _regexp_1D_core
 
 from ....base import (
     FitTransformMixin,
@@ -72,25 +75,25 @@ class TextReplacer(
     (re.compile('a', re.I), '', 0). In this case, the re.I flag will
     make your search case agnostic.
 
-    When building search / replace criteria for either string mode
-    (str.replace) or regexp mode (re.sub) that will be passed to
-    the :param: `str_replace` and :param: `regexp_replace` parameters,
-    respectively, build the signature of the target function inside a
-    tuple. For example, the minimum arguments required for str.replace
-    are 'old' and 'new', and can take an optional 'count' argument. For
-    the former case, pass your arguments in a tuple as ('old string',
-    'new string'), where str.replace will use its default value for
-    count. For the latter case, pass your arguments as ('old string',
-    'new string', count). Apply the same logic to the signature of re.sub
-    to pass tuples of arguments to :param: `regexp_replace`. Other than
-    the target string itself, re.sub takes 2 required arguments and up
-    to 2 other optional arguments. Therefore, :param: `regexp_replace`
-    will accept tuples of 2, 3, or 4 items. The tuples must be built in
-    the same order as the signature of the target function. To pass a
-    non-default value for the last argument, you must pass all the
-    arguments. When working with 2D data, the 'count' arguments for
-    both :param: `str_replace` and :param: `regexp_replace` apply to
-    each string in the line, not to the whole line.
+    The search / replace criteria that you enter for :param: `str_replace`
+    (string mode) and :param: `regexp_replace` (regexp mode) will be
+    passed directly to str.replace and re.sub, respectively. To construct
+    input for these parameters, build the signature of the target
+    function inside a tuple. For example, the minimum arguments required
+    for str.replace are 'old' and 'new', and can take an optional 'count'
+    argument. For the former case, pass your arguments in a tuple as
+    ('old string', 'new string'), where str.replace will use its default
+    value for count. For the latter case, pass your arguments as
+    ('old string', 'new string', count). Apply the same logic to the
+    signature of re.sub to pass arguments to :param: `regexp_replace`.
+    Other than the target string itself, re.sub takes 2 required
+    arguments and up to 2 other optional arguments. Therefore, you can
+    pass tuples of 2, 3, or 4 items to :param: `regexp_replace`. The
+    tuples must be built in the same order as the signature of the target
+    function. To pass a non-default value for the last argument, you must
+    pass all the arguments. When working with 2D data, the 'count'
+    arguments for both :param: `str_replace` and :param: `regexp_replace`
+    apply to each string in the line, not to the whole line.
 
     You can enter multiple tuples of arguments for :param: `str_replace`
     and :param: `regexp_replace` to quickly execute multiple search
@@ -127,7 +130,7 @@ class TextReplacer(
     technically always fit because it does need to learn anything from
     data to do transformations; it already knows everything it needs to
     know from the parameters. Checks for fittedness will always return
-    True, The partial_fit, fit, and score methods are no-ops that allow
+    True. The partial_fit, fit, and score methods are no-ops that allow
     TR to be incorporated into larger workflows such as scikit pipelines
     or dask_ml wrappers. The get_params, set_params, transform, and
     fit_transform methods are fully functional.
@@ -277,6 +280,9 @@ class TextReplacer(
         self.regexp_replace = regexp_replace
 
 
+    # pizza maybe put @property n_rows_ ???
+
+
     def __pybear_is_fitted__(self):
         return True
 
@@ -403,8 +409,19 @@ class TextReplacer(
         else:
             _X = X
 
+        _sr = self.str_replace
+        _rr = self.regexp_replace
+
         if all(map(isinstance, _X, (str for _ in _X))):
             _X = list(_X)
+
+            if _rr is not None:
+                _X = _regexp_1D_core(_X, _rr)
+            if _sr is not None:
+                _X = _str_1D_core(_X, _sr)
+
+            # pizza
+            # _X = _transform(list(_X), _sr, _rr)
         else:
             if isinstance(_X, pd.DataFrame):
                 _X = list(map(list, _X.values))
@@ -413,8 +430,35 @@ class TextReplacer(
             else:
                 _X = list(map(list, _X))
 
+            for _row_idx in range(len(_X)):
 
-        return _transform(_X, self.str_replace, self.regexp_replace)
+                if isinstance(_sr, list) and _sr[_row_idx] is False:
+                    continue
+
+                if isinstance(_rr, list) and _rr[_row_idx] is False:
+                    continue
+
+                if _rr is not None:
+                    _X[_row_idx] = _regexp_1D_core(
+                        _X[_row_idx],
+                        _rr[_row_idx] if isinstance(_rr, list) else _rr
+                    )
+                if _sr is not None:
+                    _X[_row_idx] = _str_1D_core(
+                        _X[_row_idx],
+                        _sr[_row_idx] if isinstance(_sr, list) else _sr
+                    )
+
+                # pizza
+                # _X[_row_idx] = _transform(
+                #     _X[_row_idx],
+                #     _sr[_row_idx] if isinstance(_sr, list) else _sr,
+                #     _rr[_row_idx] if isinstance(_rr, list) else _rr
+                # )
+
+        del _sr, _rr
+
+        return _X
 
 
     def score(
