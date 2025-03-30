@@ -21,7 +21,6 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from ._transform._str_1D_core import _str_1D_core
 from ._transform._regexp_1D_core import _regexp_1D_core
 from ._validation._validation import _validation
 
@@ -409,7 +408,7 @@ class TextRemover(
             self._n_rows = len(_X)
 
             if _sr is not None:
-                _X, self._row_support = _str_1D_core(_X, _sr)
+                _X, self._row_support = _regexp_1D_core(_X, _sr, None)
             elif _rr is not None:
                 _X, self._row_support = _regexp_1D_core(_X, _rr, _rf)
             else:
@@ -431,9 +430,10 @@ class TextRemover(
                         continue
 
                     # notice the indexer, only need the _X component
-                    _X[_row_idx] = _str_1D_core(
+                    _X[_row_idx] = _regexp_1D_core(
                         _X[_row_idx],
-                        _sr[_row_idx] if isinstance(_sr, list) else _sr
+                        _sr[_row_idx] if isinstance(_sr, list) else _sr,
+                        None
                     )[0]
 
                 elif _rr is not None:

@@ -17,8 +17,9 @@ from .._type_aliases import (
 
 import numpy as np
 
-import numbers
 import re
+
+from ._param_conditioner import _param_conditioner
 
 
 
@@ -61,38 +62,11 @@ def _regexp_1D_core(
     # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    # map the given regexp params to list, if not list already
-    # convert re.fullmatch params to lists -- -- -- -- -- -- -- -- --
-
-    # _regexp_remove must be str, re.Pattern, list[Union[str, re.Pattern, False]]
-    # _regexp_remove cannot be None. The code that allows entry into this
-    # module explicitly says "if _regexp_remove is not None:".
-    if isinstance(_regexp_remove, (str, re.Pattern)):
-        _remove = [_regexp_remove for _ in _X]
-    elif _regexp_remove is False:
-        # this is a fail-safe. rr could only be False if X is 2D, rr is
-        # a list, and we have sent one of the rows of X and its rr value
-        # into here. but in main TR.transform False is explicitly skipped
-        _remove = [_regexp_remove for _ in _X]
-    elif isinstance(_regexp_remove, list):
-        _remove = _regexp_remove
-    else:
-        raise Exception
-
-    # but _regexp_flags definitely can be None (uses re.fullmatch default flags)
-    if isinstance(_regexp_flags, (type(None), numbers.Integral)):
-        _flags = [_regexp_flags for _ in _X]
-    elif _regexp_flags is False:
-        # this is a fail-safe. rf could only be False if X is 2D, rf is
-        # a list, and we have sent one of the rows of X and its rf value
-        # into here. but in main TR.transform False is explicitly skipped
-        _remove = [_regexp_remove for _ in _X]
-    elif isinstance(_regexp_flags, list):
-        _flags = _regexp_flags
-    else:
-        raise Exception
-
-    # END convert re.fullmatch params to lists -- -- -- -- -- -- -- --
+    _remove, _flags = _param_conditioner(
+        _regexp_remove,
+        _regexp_flags,
+        _n_rows=len(_X)
+    )
 
 
     _row_support: npt.NDArray[bool] = np.ones(len(_X), dtype=bool)

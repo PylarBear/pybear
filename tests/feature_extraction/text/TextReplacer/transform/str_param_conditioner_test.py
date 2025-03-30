@@ -8,8 +8,6 @@
 
 import pytest
 
-import re
-
 import numpy as np
 
 from pybear.feature_extraction.text._TextReplacer._transform._str_param_conditioner \
