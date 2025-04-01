@@ -208,8 +208,8 @@ class Lexicon(TextStatistics):
 
         """
         Use string literals or regular expressions to look for substring
-        matches in the Lexicon. 'pattern' can be a literal string,
-        regular expression, or re.Pattern object. Return a list of all
+        matches in the Lexicon. 'pattern' can be a literal string or a
+        regular expression in a re.compile object. Return a list of all
         words in the Lexicon that contain the given substring pattern.
         Returns an empty list if there are no matches.
 
@@ -221,8 +221,8 @@ class Lexicon(TextStatistics):
         Parameters
         ----------
         pattern:
-            Union[str, re.Pattern] - character sequence, regular
-            expression, or re.Pattern object to be looked up against
+            Union[str, re.Pattern] - character sequence or regular
+            expression in a re.compile object to be looked up against
             the pybear Lexicon.
 
 
@@ -253,8 +253,8 @@ class Lexicon(TextStatistics):
 
         """
         Use string literals or regular expressions to look for full word
-        matches in the Lexicon. 'pattern' can be a literal string,
-        regular expression, or re.Pattern object. Return a list of all
+        matches in the Lexicon. 'pattern' can be a literal string or a
+        regular expression in a re.compile object. Return a list of all
         words in the Lexicon that completely match the given pattern.
         Returns an empty list if there are no matches.
 
@@ -266,17 +266,17 @@ class Lexicon(TextStatistics):
         Parameters
         ----------
         pattern:
-            Union[str, re.Pattern] - character sequence, regular
-            expression, or re.Pattern object to be looked up against
+            Union[str, re.Pattern] - character sequence or regular
+            expression in a re.compile object to be looked up against
             the pybear Lexicon.
 
 
         Return
         ------
         -
-            list[str] - list of all full words in the pybear Lexicon that
-            match the pattern. Returns an empty list
-            if there are no matches.
+            list[str] - list of all full words in the pybear Lexicon
+            that match the pattern. Returns an empty list if there are
+            no matches.
 
 
         """

@@ -23,14 +23,14 @@ def _lookup_substring(
 
     """
     Use string literals or regular expressions to look for substring
-    matches in the fitted words. 'pattern' can be a literal string,
-    regular expression, or re.Pattern object.
+    matches in the fitted words. 'pattern' can be a literal string or a
+    regular expression in a re.compile object.
 
-    If re.Pattern object is passed, case_sensitive is ignored and the
-    fitted words are searched with the Pattern object as given. If string
-    is passed (which could be a regular expression) and case_sensitive
-    is True, search for an exact substring match of the whole passed
-    string; if case_sensitive is False, search without regard to case.
+    If re.compile object is passed, 'case_sensitive' is ignored and the
+    fitted words are searched with the compile object as given. If string
+    is passed and 'case_sensitive' is True, search for an exact substring
+    match of the passed string; if 'case_sensitive' is False, search
+    without regard to case.
 
     If a substring match is not found, return an empty list. If matches
     are found, return a 1D list of the matches in their original form
@@ -45,14 +45,14 @@ def _lookup_substring(
     Parameters
     ----------
     _pattern:
-        Union[str, re.Pattern] - character sequence, regular expression,
-        or re.Pattern object to be looked up against the strings fitted
+        Union[str, re.Pattern] - character sequence or regular expression
+        in a re.compile object to be looked up against the strings fitted
         on the TextStatistics instance.
     _uniques:
         Sequence[str] - the unique strings found by the TextStatistics
         instance during fitting.
     _case_sensitive:
-        Optional[bool], default = True - Ignored if an re.Pattern object
+        Optional[bool], default = True - Ignored if an re.compile object
         is passed to 'pattern'. If True, search for the exact pattern in
         the fitted data. If False, ignore the case of words in uniques
         while performing the search.
@@ -72,8 +72,7 @@ def _lookup_substring(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     if not isinstance(_pattern, (str, re.Pattern)):
         raise TypeError(
-            f"'pattern' must be a string (literal or regex) or a "
-            f"re.Pattern object."
+            f"'pattern' must be a string literal or a re.compile object."
         )
 
     if not isinstance(_case_sensitive, bool):
@@ -104,7 +103,7 @@ def _lookup_substring(
         _re_pattern = _pattern
     else:
         _re_pattern = re.compile(
-            _pattern,
+            re.escape(_pattern),
             re.I if not _case_sensitive else 0
         )
 

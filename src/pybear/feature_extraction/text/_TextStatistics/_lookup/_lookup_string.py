@@ -24,18 +24,18 @@ def _lookup_string(
     """
     Use string literals or regular expressions to look for whole string
     matches (not substrings) in the fitted words. 'pattern' can be a
-    literal string, regular expression, or re.Pattern object.
+    literal string or a regular expression in a re.compile object.
 
-    If re.Pattern object is passed, case_sensitive is ignored and the
-    fitted words are searched with the Pattern object as given. If string
-    is passed (which could be a regular expression), build an re.Pattern
-    object and apply flags based on case_sensitive. All searches within
-    this module are d done with re.fullmatch.
+    If re.compile object is passed, 'case_sensitive' is ignored and the
+    fitted words are searched with the compile object as given. If string
+    literal is passed, build an re.compile object and apply flags based
+    on 'case_sensitive'. All searches within this module are done with
+    re.fullmatch.
 
-    When searching with string literals and the case_sensitive parameter
+    When searching with string literals and :param: 'case_sensitive'
     is True, or when searching with re.Pattern objects and case is not
     ignored, look for an identical match to the given pattern. When
-    ignoring case (case_sensitive is False for string literals or
+    ignoring case ('case_sensitive' is False for string literals or
     the re.Pattern object has an IGNORECASE flag), perform the search
     looking for any full-word matches without regard to case. If an
     exact match is not found, return an empty list. If matches are found,
@@ -51,14 +51,14 @@ def _lookup_string(
     Parameters
     ----------
     _pattern:
-        Union[str, re.Pattern] - character sequence, regular expression,
-        or re.Pattern object to be looked up against the strings fitted
+        Union[str, re.Pattern] - character sequence or regular expression
+        in a re.compile object to be looked up against the strings fitted
         on the TextStatistics instance.
     _uniques:
         Sequence[str] - the unique strings found by the TextStatistics
         instance during fitting.
     _case_sensitive:
-        Optional[bool], default = True - Ignored if an re.Pattern object
+        Optional[bool], default = True - Ignored if a re.compile object
         is passed to 'pattern'. If True, search for the exact pattern in
         the fitted data. If False, ignore the case of words in uniques
         while performing the search.
@@ -77,8 +77,7 @@ def _lookup_string(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     if not isinstance(_pattern, (str, re.Pattern)):
         raise TypeError(
-            f"'pattern' must be a string (literal or regex) or a "
-            f"re.Pattern object."
+            f"'pattern' must be a string literal or a re.compile object."
         )
 
     if not isinstance(_case_sensitive, bool):
@@ -108,7 +107,7 @@ def _lookup_string(
         _re_pattern = _pattern
     else:
         _re_pattern = re.compile(
-            _pattern,
+            re.escape(_pattern),
             re.I if not _case_sensitive else 0
         )
 

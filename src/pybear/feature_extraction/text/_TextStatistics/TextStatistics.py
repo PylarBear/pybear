@@ -795,15 +795,14 @@ class TextStatistics(
 
         """
         Use string literals or regular expressions to look for substring
-        matches in the fitted words. 'pattern' can be a literal string,
-        regular expression, or re.Pattern object.
+        matches in the fitted words. 'pattern' can be a literal string
+        or a regular expression in a re.compile object.
 
-        If re.Pattern object is passed, case_sensitive is ignored and
-        the fitted words are searched with the Pattern object as given.
-        If string is passed (which could be a regular expression) and
-        case_sensitive is True, search for an exact substring match of
-        the whole passed string; if case_sensitive is False, search
-        without regard to case.
+        If re.compile object is passed, 'case_sensitive' is ignored and
+        the fitted words are searched with the compile object as given.
+        If string is passed and 'case_sensitive' is True, search for an
+        exact substring match of the passed string; if 'case_sensitive'
+        is False, search without regard to case.
 
         If a substring match is not found, return an empty list. If
         matches are found, return a 1D list of the matches in their
@@ -818,11 +817,11 @@ class TextStatistics(
         Parameters
         ----------
         pattern:
-            Union[str, re.Pattern] - character sequence, regular
-            expression, or re.Pattern object to be looked up against
+            Union[str, re.Pattern] - character sequence or regular
+            expression in a re.compile object to be looked up against
             the strings fitted on the TextStatistics instance.
         case_sensitive:
-            Optional[bool], default = True - Ignored if an re.Pattern
+            Optional[bool], default = True - Ignored if a re.compile
             object is passed to 'pattern'. If True, search for the exact
             pattern in the fitted data. If False, ignore the case of
             words in uniques while performing the search.
@@ -853,15 +852,14 @@ class TextStatistics(
         """
         Use string literals or regular expressions to look for whole
         string matches (not substrings) in the fitted words. 'pattern'
-        can be a literal string, regular expression, or re.Pattern
+        can be a literal string or a regular expression in a re.compile
         object.
 
-        If re.Pattern object is passed, case_sensitive is ignored and
-        the fitted words are searched with the Pattern object as given.
-        If string is passed (which could be a regular expression) and
-        case_sensitive is True, search for an exact match of the whole
-        passed string; if case_sensitive is False, search without regard
-        to case.
+        If re.compile object is passed, 'case_sensitive' is ignored and
+        the fitted words are searched with the compile object as given.
+        If string literal is passed and 'case_sensitive' is True, search
+        for an exact match of the whole passed string; if 'case_sensitive'
+        is False, search without regard to case.
 
         If an exact match is not found, return an empty list. If matches
         are found, return a 1D list of the matches in their original
@@ -876,11 +874,11 @@ class TextStatistics(
         Parameters
         ----------
         pattern:
-            Union[str, re.Pattern] - character sequence, regular
-            expression, or re.Pattern object to be looked up against
+            Union[str, re.Pattern] - character sequence or regular
+            expression in a re.compile object to be looked up against
             the strings fitted on the TextStatistics instance.
         case_sensitive:
-            Optional[bool], default = True - Ignored if an re.Pattern
+            Optional[bool], default = True - Ignored if a re.compile
             object is passed to 'pattern'. If True, search for the exact
             pattern in the fitted data. If False, ignore the case of
             the words in :attr: `uniques_` while performing the search.
