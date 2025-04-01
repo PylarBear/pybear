@@ -129,7 +129,11 @@ class StopRemover(
         not break and successfully complete the search operation and
         yield nonsensical results. It is up to the user to validate the
         accuracy of their callable and ensure that the output is a
-        boolean.
+        boolean. When designing the callable, the first string in the
+        signature is the word from the text, the second string is a
+        stop word. If you have modified your local copy of the Lexicon
+        and/or the stop words and you intend to use regex in your
+        callable, remember that it may be important to use re.escape.
     remove_empty_rows:
         Optional[bool], default=True - whether to remove any rows that
         are left empty by the stop word removal process.
@@ -375,7 +379,10 @@ class StopRemover(
         the :param: `match_callable` parameter.
         """
 
-        __ = re.fullmatch(re.compile(_str1, re.I), _str2)
+        __ = re.fullmatch(
+            re.compile(re.escape(_str1), re.I),
+            _str2
+        )
 
         return (__ is not None and __.span() != (0, 0))
 

@@ -17,6 +17,14 @@ from pybear.feature_extraction.text._StopRemover._transform._transform import \
 
 class TestTransform:
 
+    # def _transform(
+    #     _X: list[list[str]],
+    #     _callable: Callable[[str, str], bool],
+    #     _stop_words: list[str],
+    #     _remove_empty_rows: bool,
+    #     _n_jobs: Union[numbers.Integral, None]
+    # ) -> tuple[list[list[str]], npt.NDArray[bool]]:
+
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -87,7 +95,7 @@ class TestTransform:
         assert np.array_equal(out_support_mask, [True] * 6 + [False])
 
 
-    def test_accuracy_do_notremove_empty_rows(self, _text, _stop_words, _exp_2):
+    def test_accuracy_do_not_remove_empty_rows(self, _text, _stop_words, _exp_2):
 
         out_data, out_support_mask = _transform(
             _text,
