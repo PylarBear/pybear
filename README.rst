@@ -139,7 +139,7 @@ AutoGridSearchCV
 ~~~~~~~~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with sci-kit learn 
 GridSearchCV utilizing progressively narrower search grids.
- | Access via pybear.model_selection.AutoGridSearchCV.
+| Access via pybear.model_selection.AutoGridSearchCV.
 
 AutoGridSearchCVDask
 ~~~~~~~~~~~~~~~~~~~~
