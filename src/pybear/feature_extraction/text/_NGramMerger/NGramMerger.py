@@ -76,16 +76,16 @@ class NGramMerger(
     it will immediately jump to the next word AFTER the pattern, not
     the next word within the pattern.
 
-    N-gram patterns can be built with literal strings, regex patterns,
-    or re.compile objects. NGM always looks for full matches against
-    tokens, it does not do partial matches. Pass literal strings or regex
-    patterns that are intended to match entire words. NGM searches are
-    always case-sensitive, unless you use flags in a re.compile object
-    to tell it otherwise. String literal searches will always be
-    case-sensitive.
+    N-gram patterns can be built with literal strings or re.compile
+    objects. NGM always looks for full matches against tokens, it does
+    not do partial matches. Pass literal strings or re.compile objects
+    that are intended to match entire words. NGM searches are always
+    case-sensitive, unless you use flags in a re.compile object to tell
+    it otherwise. String literal searches will always be case-sensitive;
+    you may want to normalize your text before using NGM.
 
-    When you pass n-grams via :param: `ngrams` parameter, NGM does not
-    necessarily run them in the given order. To prevent conflicts,
+    When you pass n-grams via the :param: `ngrams` parameter, NGM does
+    not necessarily run them in the given order. To prevent conflicts,
     NGM runs the n-gram patterns in descending order of length, that is,
     the longest n-gram is run first and the shortest n-gram is run last.
     For n-grams that are the same length, NGM runs them in the order
@@ -114,11 +114,11 @@ class NGramMerger(
     the beginning of another, set this parameter to False (the default).
     When True, NGM will look for matches as if there is no break between
     the two lines. When allowed and an n-gram match is found across 2
-    lines, the joined n-gram is put into the line where the match began.
+    lines, the joined n-gram is put into the line where the match BEGAN.
     For example, if an n-gram match is found starting at the end of line
-    724 and ends in the beginning of line 725, the joined n-gram will go
-    at the end of line 724 and the words in line 725 will be removed.
-    NGM only looks for wrapped n-grams across 2 lines, no further.
+    724 and ends in the beginning of line 725, the joined n-gram will
+    go at the end of line 724 and the relevant words in line 725 will be
+    removed. NGM only looks for wrapped n-grams across 2 lines, no more.
     Consider the case where you have text that is one word per line,
     and you are looking for a pattern like ['ONE', 'TWO', 'THREE']. NGM
     will not find a match for this across 3 lines. The way to match this
@@ -173,7 +173,7 @@ class NGramMerger(
     ngrams:
         Sequence[Sequence[Union[str, re.Pattern]]] - A sequence of
         sequences, where each inner sequence holds a series of string
-        literals and/or re.Pattern objects that specify an n-gram.
+        literals and/or re.compile objects that specify an n-gram.
         Cannot be empty, and cannot have any n-gram patterns with less
         than 2 entries.
     ngcallable:

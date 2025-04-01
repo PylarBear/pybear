@@ -30,7 +30,7 @@ def _match_finder(
         list[str] - A single 1D sequence of strings.
     _ngram:
         Sequence[Union[str, re.Pattern]] - A single n-gram sequence
-        containing string literals and/or re.Pattern objects that
+        containing string literals and/or re.compile objects that
         specify an n-gram pattern. Cannot have less than 2 entries.
 
 
@@ -59,7 +59,14 @@ def _match_finder(
         _block = _line[_idx: _idx + _n_len]
 
         # _sp = sub_pattern
-        if all(re.fullmatch(_sp, _word) for _sp, _word in zip(_ngram, _block)):
+        _ngram_matches = []
+        for _sp, _word in zip(_ngram, _block):
+
+            _ngram_matches.append(
+                re.fullmatch(re.escape(_sp) if isinstance(_sp, str) else _sp, _word)
+            )
+
+        if all(_ngram_matches):
             _hits.append(_idx)
             _idx += _n_len
         else:

@@ -9,6 +9,7 @@
 import pytest
 
 import numbers
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -16,7 +17,6 @@ import polars as pl
 
 from pybear.feature_extraction.text._NGramMerger.NGramMerger import \
     NGramMerger as NGM
-
 
 
 
@@ -97,6 +97,17 @@ class TestNGramMerger:
 
         with pytest.raises(TypeError):
             NGM(**_kwargs).transform([['THREE', 'BLIND', 'MICE']])
+
+
+    def test_escapes_literal_strings(self, _kwargs):
+
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['ngrams'] = (('^123$', '\s\t\n'),)
+        _new_kwargs['sep'] = '_@_'
+
+        out = NGM(**_new_kwargs).transform([['ONE', '^123$', '\s\t\n']])
+
+        assert np.array_equal(out, [['ONE', '^123$_@_\s\t\n']])
 
 
     def test_various_1D_input_containers(self, _kwargs):
