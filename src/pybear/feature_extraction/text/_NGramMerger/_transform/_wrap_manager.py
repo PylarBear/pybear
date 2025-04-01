@@ -57,7 +57,7 @@ def _wrap_manager(
         the normal linear n-gram search.
     _ngram:
         Sequence[Union[str, re.Pattern]] - A single n-gram sequence
-        containing string literals and/or re.Pattern objects that
+        containing string literals and/or re.compile objects that
         specify an n-gram pattern. Cannot have less than 2 entries.
     _ngcallable:
         Union[Callable[[Sequence[str]], str], None] - the callable

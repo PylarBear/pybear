@@ -41,7 +41,7 @@ def _replacer(
         list[str] - A single 1D sequence of strings.
     _ngram:
         Sequence[Union[str, re.Pattern]] - A single n-gram sequence
-        containing string literals and/or re.Pattern objects that
+        containing string literals and/or re.compile objects that
         specify an n-gram pattern. Cannot have less than 2 entries.
     _hits:
         Sequence[int] - the starting indices of sequences in _line that

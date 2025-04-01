@@ -50,7 +50,7 @@ def _transform(
     _ngrams:
         _ngrams: Sequence[Sequence[Union[str, re.Pattern]] - The n-gram
         sequences to look for in the data. Each individual n-gram must
-        be a sequence of string literals and/or re.Pattern objects that
+        be a sequence of string literals and/or re.compile objects that
         specify an n-gram pattern. Cannot be empty, and cannot have any
         ngrams that have less than 2 entries.
     _ngcallable:

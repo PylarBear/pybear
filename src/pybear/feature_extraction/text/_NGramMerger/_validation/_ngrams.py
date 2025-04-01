@@ -19,7 +19,7 @@ def _val_ngrams(
 ) -> None:
 
     """
-    Validate ngrams. The series of string literals and/or re.Pattern
+    Validate ngrams. The series of string literals and/or re.compile
     objects that specify an n-gram.
 
 
@@ -28,7 +28,7 @@ def _val_ngrams(
     _ngrams:
         Sequence[Sequence[Union[str, re.Pattern]]] - A sequence of
         sequences, where each inner sequence holds a series of string
-        literals and/or re.Pattern objects that specify an n-gram.
+        literals and/or re.compile objects that specify an n-gram.
         Cannot be empty, and cannot have any n-grams with less than 2
         entries.
 
@@ -43,7 +43,7 @@ def _val_ngrams(
 
 
     err_msg = (f"'ngrams' must be a 1D sequence of sequences of string "
-               f"literals and/or re.Pattern objects. \ncannot be empty, "
+               f"literals and/or re.compile objects. \ncannot be empty, "
                f"and cannot contain any n-gram sequences with less than "
                f"2 entries.")
 

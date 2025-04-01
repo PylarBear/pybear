@@ -47,7 +47,7 @@ def _validation(
     _ngrams:
         Sequence[Sequence[Union[str, re.Pattern]]] - A sequence of
         sequences, where each inner sequence holds a series of string
-        literals and/or re.Pattern objects that specify an n-gram.
+        literals and/or re.compile objects that specify an n-gram.
         Cannot be empty, and cannot have any n-grams with less than 2
         entries.
     _ngcallable:
