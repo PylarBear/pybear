@@ -32,25 +32,26 @@ class TestTextRemover:
     def test_empty_X(self):
 
         # 1D
-        TestCls = TextRemover(str_remove=',')
+        TestCls = TextRemover(remove=',')
 
         out = TestCls.transform([])
 
         assert isinstance(out, list)
         assert len(out) == 0
 
-        # 2D -- returns empty 1D
-        TestCls = TextRemover(regexp_remove='[n-z]')
+        # 2D -- returns empty 2D
+        TestCls = TextRemover(remove='[n-z]')
 
         out = TestCls.transform([[]])
 
         assert isinstance(out, list)
-        assert len(out) == 0
+        assert len(out) == 1
+        assert len(out[0]) == 0
 
 
     def test_str_remove_1(self, _words):
 
-        TestCls = TextRemover(str_remove={'a', "c"})
+        TestCls = TextRemover(remove=('a', "c"))
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
@@ -61,7 +62,7 @@ class TestTextRemover:
 
     def test_str_remove_2(self, _words):
 
-        TestCls = TextRemover(str_remove=['e', False, 'c', False, False])
+        TestCls = TextRemover(remove=['e', None, 'c', None, None])
 
         out = TestCls.transform(list(map(list, _words)), copy=True)
         assert isinstance(out, list)
@@ -72,13 +73,13 @@ class TestTextRemover:
         assert all(map(
             np.array_equal,
             out,
-            [['d'], ['b'], ['a']]
+            [[], ['d'], [], ['b'], ['a']]
         ))
 
 
     def test_re_remove_1(self, _words):
 
-        TestCls = TextRemover(regexp_remove="[a-c]+", regexp_flags=re.X)
+        TestCls = TextRemover(remove=re.compile("[a-c]+"), flags=re.X)
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
@@ -90,8 +91,8 @@ class TestTextRemover:
     def test_re_remove_2(self, _words):
 
         TestCls = TextRemover(
-            regexp_remove=[False, ".", False, ".", False],
-            regexp_flags=[False, None, False, None, False]
+            remove=[None, "D", None, "B", None],
+            flags=[0, re.I, 0, re.I, 0]
         )
 
         out = TestCls.transform(list(map(list, _words)), copy=True)
@@ -103,7 +104,7 @@ class TestTextRemover:
         assert all(map(
             np.array_equal,
             out,
-            [['e'], ['c'], ['a']]
+            [['e'], [], ['c'], [], ['a']]
         ))
 
 
@@ -112,7 +113,7 @@ class TestTextRemover:
     def test_remove_empty_rows_works(self, _words, dim, rer):
 
         TestCls = TextRemover(
-            str_remove={'b', 'e'},
+            remove=('b', 'e'),
             remove_empty_rows=rer
         )
 
@@ -139,9 +140,17 @@ class TestTextRemover:
             )
 
 
+    def test_escapes_literal_strings(self):
+
+        TestCls = TextRemover(remove="^\n\s\t$")
+
+        out = TestCls.transform(['a', '^\n\s\t$', 'c', 'd'], copy=True)
+        assert np.array_equal(out, ['a', 'c', 'd'])
+
+
     def test_various_input_containers(self, _words):
 
-        TestCls = TextRemover(str_remove="e")
+        TestCls = TextRemover(remove="e")
 
 
         # python list accepted
@@ -180,7 +189,11 @@ class TestTextRemover:
             copy=True
         )
         assert isinstance(out, list)
-        assert np.array_equal(out, [['d'], ['c'], ['b'], ['a']])
+        assert all(map(
+            np.array_equal,
+            out,
+            [[], ['d'], ['c'], ['b'], ['a']]
+        ))
 
         # pd DataFrame accepted
         TestCls.transform(
@@ -188,7 +201,11 @@ class TestTextRemover:
             copy=True
         )
         assert isinstance(out, list)
-        assert np.array_equal(out, [['d'], ['c'], ['b'], ['a']])
+        assert all(map(
+            np.array_equal,
+            out,
+            [[], ['d'], ['c'], ['b'], ['a']]
+        ))
 
         # polars 2D accepted
         out = TestCls.transform(
@@ -196,7 +213,11 @@ class TestTextRemover:
             copy=True
         )
         assert isinstance(out, list)
-        assert np.array_equal(out, [['d'], ['c'], ['b'], ['a']])
+        assert all(map(
+            np.array_equal,
+            out,
+            [[], ['d'], ['c'], ['b'], ['a']]
+        ))
 
 
 

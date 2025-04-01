@@ -11,9 +11,9 @@ from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
     XWipContainer,
-    StrRemoveType,
-    RegExpRemoveType,
-    RegExpFlagsType,
+    RemoveType,
+    CaseSensitiveType,
+    FlagsType,
     RowSupportType
 )
 
@@ -21,8 +21,10 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
+from ._transform._param_conditioner._param_conditioner import _param_conditioner
 from ._transform._regexp_1D_core import _regexp_1D_core
 from ._validation._validation import _validation
+from ._validation._regexp_remove import _val_regexp_remove
 
 from ....base import (
     FitTransformMixin,
@@ -55,6 +57,10 @@ class TextRemover(
     (== or list.remove) or by regular expression match (re.fullmatch).
     Remove any and all matches completely from the data.
 
+    # pizza
+    DO NOT PASS A REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE
+    CORRECT RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT.
+
     Direct string comparison mode and regular expression match mode
     are mutually exclusive, they cannot both be used at the same time.
     Parameters for only one or the other can be passed at instantiation.
@@ -62,7 +68,7 @@ class TextRemover(
     at least one mode must be indicated. For exact literal string
     matching, only enter values for :param: `str_remove`. Comparisons
     in literal string mode are always case-sensitive. To use regex, pass
-    values to only :param: `regexp_remove` and :param: `regexp_flags`.
+    values to only :param: `remove` and :param: `flags`.
 
     TextRemover is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
@@ -110,7 +116,7 @@ class TextRemover(
 
     Parameters
     ----------
-    str_remove:
+    str_remove:  # pizza
         Optional[StRemoveSepType], default=None - the strings to remove
         from X when in exact string matching mode. Always case-sensitive.
         When passed as a single character string, that is applied to
@@ -122,7 +128,7 @@ class TextRemover(
         X, and each string or set of strings in the list is applied to
         the corresponding string in X. If any entry in the list is False,
         the corresponding string in X is skipped.
-    regexp_remove:
+    remove:  # pizza
         Optional[RegExpRemoveType], default=None - if using regular
         expressions, the regex pattern(s) to remove from X. If a single
         regular expression or re.Pattern object is passed, any matching
@@ -130,24 +136,26 @@ class TextRemover(
         list, the number of entries must match the number of rows in X,
         and each pattern is applied to the corresponding string in X. If
         any entry in the list is False, that string in X is skipped.
-    regexp_flags:
-        Optional[RegExpFlagsType] - the flags parameter(s) for the regex
+    case_sensitive:
+        pizza
+    remove_empty_rows:
+        Optional[bool], default=False - whether to remove rows that become
+        empty when data is passed in a 2D container. This does not apply
+        to 1D data. If True, TR will remove any empty rows from the data
+        and that row will be indicated in the :attr: `row_support_` mask
+        by a False in that position. If False, empty rows are not removed
+        from the data.
+    flags:
+        Optional[FlagsType] - the flags parameter(s) for the regex
         pattern(s), if regular expressions are being used. Does not
         apply to string mode, only applies if a pattern is passed to
-        the :param: `regexp_remove` parameter. If None, the default flags
+        the :param: `remove` parameter. If None, the default flags
         for re.fullmatch() are used on every string in X. If a single
         flags object, that is applied to every string in X. If passed as
         a list, the number of entries must match the number of rows in X.
         Flags objects and Nones in the list follow the same rules stated
         above. If any entry in the list is False, that string in X is
         skipped.
-    remove_empty_rows:
-        Optional[bool], default=True - whether to remove rows that become
-        empty when data is passed in a 2D container. This does not apply
-        to 1D data. If True, TR will remove any empty rows from the data
-        and that row will be indicated in the :attr: `row_support_` mask
-        by a False in that position. If False, empty rows are not removed
-        from the data.
 
 
     Attributes
@@ -171,7 +179,7 @@ class TextRemover(
     Type Aliases
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]]]
+        Union[Sequence[str], Sequence[Sequence[str]], set[str]]
 
     NumpyTypes:
         npt.NDArray[str]
@@ -188,26 +196,24 @@ class TextRemover(
     XWipContainer:
         Union[list[str], list[list[str]]]
 
-    StrType:
-        Union[str, set[str]]
-    StrRemoveType:
-        Union[None, StrType, list[Union[StrType, Literal[False]]]]
+    PatternType:
+        Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
+    RemoveType:
+        Optional[Union[PatternType, list[PatternType]]]
 
-    RegExpType:
-        Union[str, re.Pattern]
-    RegExpRemoveType:
-        Union[None, RegExpType, list[Union[RegExpType, Literal[False]]]]
+    CaseSensitiveType:
+        Optional[Union[bool, list[Union[bool, None]]]]
+
+    RemoveEmptyRowsType:
+        Optional[bool]
 
     FlagType:
         Union[None, numbers.Integral]
-    RegExpFlagsType:
-        Union[FlagType, list[Union[FlagType, Literal[False]]]]
-
-    RemoveEmptyRowsType:
-        bool
+    FlagsType:
+        Optional[Union[FlagType, list[FlagType]]]
 
     RowSupportType:
-        numpy.typing.NDArray[bool]
+        npt.NDArray[bool]
 
 
     See Also
@@ -219,12 +225,12 @@ class TextRemover(
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextRemover as TR
-    >>> trfm = TR(str_remove={' ', ''})
+    >>> trfm = TR(remove=(' ', ''))
     >>> X = [' ', 'One', 'Two', '', 'Three', ' ']
     >>> trfm.fit_transform(X)
     ['One', 'Two', 'Three']
-    >>> trfm.set_params(**{'str_remove': None, 'regexp_remove': '[bcdei]'})
-    TextRemover(regexp_remove='[bcdei]')
+    >>> trfm.set_params(**{'remove': None, 'remove': '[bcdei]'})
+    TextRemover(remove='[bcdei]')
     >>> X = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']]
     >>> trfm.fit_transform(X)
     [['a'], ['f'], ['g', 'h']]
@@ -236,16 +242,16 @@ class TextRemover(
     def __init__(
         self,
         *,
-        str_remove: Optional[StrRemoveType] = None,
-        regexp_remove: Optional[RegExpRemoveType] = None,
-        regexp_flags: Optional[RegExpFlagsType] = None,
-        remove_empty_rows: Optional[bool] = True
+        remove: Optional[RemoveType] = None,
+        case_sensitive: Optional[CaseSensitiveType] = True,
+        remove_empty_rows: Optional[bool] = False,
+        flags: Optional[FlagsType] = None
     ) -> None:
 
-        self.str_remove = str_remove
-        self.regexp_remove = regexp_remove
-        self.regexp_flags = regexp_flags
+        self.remove = remove
+        self.case_sensitive = case_sensitive
         self.remove_empty_rows = remove_empty_rows
+        self.flags = flags
 
 
     def __pybear_is_fitted__(self):
@@ -387,10 +393,10 @@ class TextRemover(
 
         _validation(
             X,
-            self.str_remove,
-            self.regexp_remove,
-            self.regexp_flags,
-            self.remove_empty_rows
+            self.remove,
+            self.case_sensitive,
+            self.remove_empty_rows,
+            self.flags
         )
 
         if copy:
@@ -398,21 +404,24 @@ class TextRemover(
         else:
             _X = X
 
-        _sr = self.str_remove
-        _rr = self.regexp_remove
-        _rf = self.regexp_flags
+        _r = self.remove
+        _c = self.case_sensitive
+        _f = self.flags
+
+        # regex_remove
+        _rr = _param_conditioner(
+            _r, _c, _f,
+            _n_rows=_X.shape[0] if hasattr(_X, 'shape') else len(_X)
+        )
 
         if all(map(isinstance, _X, (str for _ in _X))):
             _X = list(_X)
 
             self._n_rows = len(_X)
 
-            if _sr is not None:
-                _X, self._row_support = _regexp_1D_core(_X, _sr, None)
-            elif _rr is not None:
-                _X, self._row_support = _regexp_1D_core(_X, _rr, _rf)
-            else:
-                raise Exception
+            _val_regexp_remove(_rr, self._n_rows)
+
+            _X, self._row_support = _regexp_1D_core(_X, _rr, _from_2D=False)
         else:
             # must be 2D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
             if isinstance(_X, pd.DataFrame):
@@ -422,36 +431,22 @@ class TextRemover(
             else:
                 _X = list(map(list, _X))
 
+            self._n_rows = len(_X)
+
+            _val_regexp_remove(_rr, self._n_rows)
+
             for _row_idx in range(len(_X)):
 
-                if _sr is not None:
+                # pizza
+                # if isinstance(_rr, list) and _rr[_row_idx] is None:
+                #     continue
 
-                    if isinstance(_sr, list) and _sr[_row_idx] is False:
-                        continue
-
-                    # notice the indexer, only need the _X component
-                    _X[_row_idx] = _regexp_1D_core(
-                        _X[_row_idx],
-                        _sr[_row_idx] if isinstance(_sr, list) else _sr,
-                        None
-                    )[0]
-
-                elif _rr is not None:
-
-                    # if rf is a list, that entry must also be False
-                    if isinstance(_rr, list) and _rr[_row_idx] is False:
-                        continue
-
-                    # notice the indexer, only need the _X component
-                    _X[_row_idx] = _regexp_1D_core(
-                        _X[_row_idx],
-                        _rr[_row_idx] if isinstance(_rr, list) else _rr,
-                        _rf[_row_idx] if isinstance(_rf, list) else _rf
-                    )[0]
-                else:
-                    raise Exception
-
-            self._n_rows = len(_X)
+                # notice the indexer, only need the _X component
+                _X[_row_idx] = _regexp_1D_core(
+                    _X[_row_idx],
+                    _rr[_row_idx] if isinstance(_rr, list) else _rr,
+                    _from_2D=True
+                )[0]
 
             self._row_support = np.ones(self._n_rows, dtype=bool)
             if self.remove_empty_rows:
@@ -461,7 +456,7 @@ class TextRemover(
                         self._row_support[_row_idx] = False
             # END recursion for 2D -- -- -- -- -- -- -- -- -- -- -- --
 
-        del _sr, _rr, _rf
+        del _rr
 
         return _X
 

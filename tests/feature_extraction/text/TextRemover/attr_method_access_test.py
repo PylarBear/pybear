@@ -46,7 +46,7 @@ class TestAttrAccess:
     @pytest.mark.parametrize('has_seen_data', (True, False))
     def test_attr_access(self, has_seen_data, _X_list):
 
-        TestCls = TextRemover(str_remove={' ', ',', '.', ';'})
+        TestCls = TextRemover(remove=(' ', ',', '.', ';'))
 
         assert is_fitted(TestCls) is True
 
@@ -57,9 +57,9 @@ class TestAttrAccess:
         # before transform
 
         # all params should be accessible always
-        assert getattr(TestCls, 'str_remove') == {' ', ',', '.', ';'}
-        assert getattr(TestCls, 'regexp_remove') is None
-        assert getattr(TestCls, 'regexp_flags') is None
+        assert getattr(TestCls, 'remove') == (' ', ',', '.', ';')
+        assert getattr(TestCls, 'case_sensitive') is True
+        assert getattr(TestCls, 'flags') is None
 
         # 'row_support_' needs a transform to have been done
         with pytest.raises(AttributeError):
@@ -85,9 +85,9 @@ class TestAttrAccess:
         # after transform
 
         # all params should be accessible always
-        assert getattr(TestCls, 'str_remove') == {' ', ',', '.', ';'}
-        assert getattr(TestCls, 'regexp_remove') is None
-        assert getattr(TestCls, 'regexp_flags') is None
+        assert getattr(TestCls, 'remove') == (' ', ',', '.', ';')
+        assert getattr(TestCls, 'case_sensitive') is True
+        assert getattr(TestCls, 'flags') is None
 
         # 'row_support_' needs a transform to have been done
         out = getattr(TestCls, 'row_support_')
@@ -140,7 +140,7 @@ class TestMethodAccess:
     def test_access_methods(self, _X_list, has_seen_data):
 
 
-        TestCls = TextRemover(regexp_remove='[a-m]')
+        TestCls = TextRemover(remove='[a-m]')
 
         assert is_fitted(TestCls) is True
 
@@ -155,13 +155,13 @@ class TestMethodAccess:
         out = getattr(TestCls, 'get_params')()
         assert isinstance(out, dict)
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
-        for param in ['str_remove', 'regexp_remove', 'regexp_flags']:
+        for param in ['remove', 'case_sensitive', 'flags']:
             assert param in out
 
 
-        out = getattr(TestCls, 'set_params')(**{'regexp_flags': re.I | re.X})
+        out = getattr(TestCls, 'set_params')(**{'flags': re.I | re.X})
         assert isinstance(out, TextRemover)
-        assert TestCls.regexp_flags == re.IGNORECASE|re.VERBOSE
+        assert TestCls.flags == re.IGNORECASE|re.VERBOSE
 
          # v v v v v must see X every time, put these last v v v v v v v
 

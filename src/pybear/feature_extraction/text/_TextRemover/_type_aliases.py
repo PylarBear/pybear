@@ -6,7 +6,7 @@
 
 
 
-from typing import Literal, Sequence
+from typing import Optional, Sequence
 from typing_extensions import TypeAlias, Union
 import numpy.typing as npt
 
@@ -18,7 +18,7 @@ import polars as pl
 
 
 
-PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]]]
+PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]], set[str]]
 
 NumpyTypes: TypeAlias = npt.NDArray[str]
 
@@ -30,19 +30,27 @@ XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
-StrType: TypeAlias = Union[str, set[str]]
-StrRemoveType: TypeAlias = \
-    Union[None, StrType, list[Union[StrType, Literal[False]]]]
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-RegExpType: TypeAlias = Union[str, re.Pattern]
-RegExpRemoveType: TypeAlias = \
-    Union[None, RegExpType, list[Union[RegExpType, Literal[False]]]]
+PatternType: TypeAlias = \
+    Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
+RemoveType: TypeAlias = \
+    Optional[Union[PatternType, list[PatternType]]]
+
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+CaseSensitiveType: TypeAlias = Optional[Union[bool, list[Union[bool, None]]]]
+
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+RemoveEmptyRowsType: TypeAlias = Optional[bool]
+
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 FlagType: TypeAlias = Union[None, numbers.Integral]
-RegExpFlagsType: TypeAlias = \
-    Union[FlagType, list[Union[FlagType, Literal[False]]]]
+FlagsType: TypeAlias = Optional[Union[FlagType, list[FlagType]]]
 
-RemoveEmptyRowsType: TypeAlias = bool
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 RowSupportType: TypeAlias = npt.NDArray[bool]
 
