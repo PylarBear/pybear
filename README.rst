@@ -146,7 +146,8 @@ AutoGridSearchCVDask
 ~~~~~~~~~~~~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with dask_ml GridSearchCV 
 and dask objects utilizing progressively narrower search grids.
- | Access via pybear.model_selection.AutoGridSearchCVDask.
+
+- Access via pybear.model_selection.AutoGridSearchCVDask.
 
 autogridsearch_wrapper
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -154,14 +155,16 @@ Create your own auto-gridsearch class. A function that wraps any scikit-learn
 or dask_ml GridSearchCV module to create an identical GridSearch class that 
 performs multiple passes of grid search using progressively narrower search 
 grids.
- | Access via pybear.model_selection.autogridsearch_wrapper.
+
+- Access via pybear.model_selection.autogridsearch_wrapper.
 
 GSTCV (GridSearchThresholdCV)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Perform conventional grid search on a classifier with concurrent threshold 
 search. Finds the global optima for the passed parameters and thresholds. Fully
 compliant with the scikit-learn GridSearchCV API.
- | Access via pybear.model_selection.GSTCV.
+
+- Access via pybear.model_selection.GSTCV.
 
 GSTCVDask (GridSearchThresholdCV for Dask)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -169,19 +172,22 @@ Perform conventional grid search on a classifier with concurrent threshold
 search using dask objects in parallel and distributed environments. Finds the 
 global optima for the passed parameters and thresholds. Fully compliant with 
 the dask_ml/scikit-learn GridSearchCV API.
- | Access via pybear.model_selection.GSTCVDask.
+
+- Access via pybear.model_selection.GSTCVDask.
 
 AutoGSTCV
 ~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with pybear GSTCV 
 utilizing progressively narrower search grids.
- | Access via pybear.model_selection.AutoGSTCV.
+
+- Access via pybear.model_selection.AutoGSTCV.
 
 AutoGSTCVDask
 ~~~~~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with pybear GSTCVDask 
 utilizing progressively narrower search grids.
- | Access via pybear.model_selection.AutoGSTCVDask.
+
+- Access via pybear.model_selection.AutoGSTCVDask.
 
 MinCountTransformer
 ~~~~~~~~~~~~~~~~~~~
@@ -190,7 +196,8 @@ simultaneously across an entire array of data. Violates the scikit-learn API
 in that datasets are modified along the example axis (examples may be deleted.)
 Otherwise is fully compliant with the sci-kit learn transformer API, with fit, 
 transform, and partial_fit methods.
- | Access via pybear.preprocessing.MinCountTransformer.
+
+- Access via pybear.preprocessing.MinCountTransformer.
 
 ColumnDeduplicateTransformer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -199,7 +206,8 @@ data. Fully compliant with the scikit-learn transformer API, with fit,
 transform, and partial_fit methods. Perfect for removing duplicate columns from
 one-hot encoded data in a scikit-learn pipeline. Also fits and transforms data 
 batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
- | Access via pybear.preprocessing.ColumnDeduplicateTransformer.
+
+- Access via pybear.preprocessing.ColumnDeduplicateTransformer.
 
 InterceptManager
 ~~~~~~~~~~~~~~~~
@@ -208,7 +216,8 @@ dataset. IM can remove all, selectively keep one, or append a column of
 constants. Handles numerical & non-numerical data, and nan-like values. Does 
 batch-wise fitting via a partial_fit method, and can be wrapped with dask_ml 
 Incremental and ParallelPostFit wrappers.
- | Access via pybear.preprocessing.InterceptManager.
+
+- Access via pybear.preprocessing.InterceptManager.
 
 SlimPolyFeatures
 ~~~~~~~~~~~~~~~~
@@ -217,7 +226,8 @@ duplicate columns. Follows the standard scikit-learn transformer API. Handles
 scipy sparse matrices/arrays. Suitable for sklearn pipelines. Has a partial_fit 
 method for batch-wise training and can be wrapped with dask_ml Incremental and
 ParallelPostFit wrappers.
- | Access via pybear.preprocessing.SlimPolyFeatures.
+
+- Access via pybear.preprocessing.SlimPolyFeatures.
 
 
 The pybear Text Wrangling Suite
@@ -231,21 +241,22 @@ can be stacked in a scikit pipeline.
 
 These modules can be found in pybear.feature_extraction.text.
 The modules include:
- | Lexicon - A class exposing 68,000+ English words and a stop words attribute
- | NGramMerger - Join select adjacent tokens together to handle as a single token
- | StopRemover - Remove pybear stop words from a body of text
- | TextJoiner - Join tokenized text into a contiguous string with separators
- | TextJustifier - Justify to a fixed margin; identify wrap points with literals
- | TextJustifierRegExp - Same as TextJustifier, but uses regular expressions
- | TextLookup - Compare words in a body of text against the pybear Lexicon
- | TextLookupRealTime - Same as TextLookup but with in-situ save capability
- | TextNormalizer - Normalize text to the same case
- | TextPadder - Pad ragged text into shaped containers using fill
- | TextRemover - Remove units of contiguous text
- | TextReplacer - Remove substrings from contiguous text
- | TextSplitter - Split contiguous text into tokens using literal strings or regex
- | TextStatistics - Compile statistics about a body of text
- | TextStripper - Remove leading and trailing spaces from text
+
+- Lexicon - A class exposing 68,000+ English words and a stop words attribute
+- NGramMerger - Join select adjacent tokens together to handle as a single token
+- StopRemover - Remove pybear stop words from a body of text
+- TextJoiner - Join tokenized text into a contiguous string with separators
+- TextJustifier - Justify to a fixed margin; identify wrap points with literals
+- TextJustifierRegExp - Same as TextJustifier, but uses regular expressions
+- TextLookup - Compare words in a body of text against the pybear Lexicon
+- TextLookupRealTime - Same as TextLookup but with in-situ save capability
+- TextNormalizer - Normalize text to the same case
+- TextPadder - Pad ragged text into shaped containers using fill
+- TextRemover - Remove units of contiguous text
+- TextReplacer - Remove substrings from contiguous text
+- TextSplitter - Split contiguous text into tokens using literal strings or regex
+- TextStatistics - Compile statistics about a body of text
+- TextStripper - Remove leading and trailing spaces from text
 
 =======
 
