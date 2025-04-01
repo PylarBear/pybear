@@ -8,18 +8,16 @@
 
 from .._type_aliases import (
     XContainer,
-    StrRemoveType,
-    RegExpRemoveType,
-    RegExpFlagsType,
-    RemoveEmptyRowsType
+    RemoveType,
+    CaseSensitiveType,
+    RemoveEmptyRowsType,
+    FlagsType
 )
 
-import numpy as np
-
-from ._str_remove import _val_str_remove
-from ._regexp_remove import _val_regexp_remove
-from ._regexp_flags import _val_regexp_flags
+from ._remove import _val_remove
+from ._case_sensitive import _val_case_sensitive
 from ._remove_empty_rows import _val_remove_empty_rows
+from ._flags import _val_flags
 
 from .....base._check_1D_str_sequence import check_1D_str_sequence
 from .....base._check_2D_str_array import check_2D_str_array
@@ -28,10 +26,10 @@ from .....base._check_2D_str_array import check_2D_str_array
 
 def _validation(
     _X: XContainer,
-    _str_remove: StrRemoveType,
-    _regexp_remove: RegExpRemoveType,
-    _regexp_flags: RegExpFlagsType,
-    _remove_empty_rows: RemoveEmptyRowsType
+    _remove: RemoveType,
+    _case_sensitive: CaseSensitiveType,
+    _remove_empty_rows: RemoveEmptyRowsType,
+    _flags: FlagsType
 ) -> None:
 
 
@@ -39,24 +37,28 @@ def _validation(
     Centralized hub for validation. See the individual modules for more
     details.
 
+    Beyond the individual modules' validation, this module also checks:
+    1) cannot pass anything to 'flags' if 'remove' is None
+    2) cannot pass a list to 'case_sensitive' if 'remove' is None
+
 
     Parameters:
     -----------
     _X:
-        XContainer - the data.
-    _str_remove:
-        StrRemoveType - if using str mode, the strings to look for and
-        remove.
-    _regexp_remove:
-        RegExpRemoveType - if using regexp mode, the re patterns to look
+        XContainer - the data. 1D or (possible ragged) 2D array of
+        strings.
+    _remove:
+        RemoveType - the string literals or re.compile patterns to look
         for and remove.
-    _regexp_flags:
-        RegExpFlagsType - if using regexp mode, the flags objects for the
-        re pattern.
+    _case_sensitive:
+        CaseSensitiveType - whether to make searches for strings to
+        remove case-sensitive.
     _remove_empty_rows:
         RemoveEmptyRowsType - whether to remove empty rows from 2D data.
         This does not apply to 1D data, by definition rows will always
         be removed from 1D data.
+    _flags:
+        FlagsType - externally provided flags if using re.compile objects.
 
 
     Return
@@ -78,63 +80,38 @@ def _validation(
             check_1D_str_sequence(_X, require_all_finite=False)
         except Exception as f:
             raise TypeError(
-                f"Expected a 1D sequence or (possibly ragged) 2D array "
-                f"of string-like values."
+                f"Expected X to be 1D sequence or (possibly ragged) 2D "
+                f"array of string-like values."
             )
 
-    _val_str_remove(_str_remove, _X)
 
-    _val_regexp_remove(_regexp_remove, _X)
+    _n_rows = _X.shape[0] if hasattr(_X, 'shape') else len(_X)
 
-    _val_regexp_flags(_regexp_flags, _X)
+    _val_remove(_remove, _n_rows)
 
+    _val_case_sensitive(_case_sensitive, _n_rows)
 
+    _val_flags(_flags, _n_rows)
 
-    _a = _str_remove is not None
-    _b = _regexp_remove is not None
-    _c = _regexp_flags is not None
+    del _n_rows
 
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    if not any((_a, _b, _c)):
+    #########
+    if _remove is None and isinstance(_case_sensitive, list):
         raise ValueError(
-            f"removal criteria must be entered for either 'str_remove' "
-            f"or 'regexp_remove'. cannot leave all the arguments at the "
-            f"default value."
+            f"cannot pass 'case_sensitive' as a list if 'remove' is not "
+            f"passed."
         )
 
-    if _a and any((_b, _c)):
-        raise ValueError(
-            f"cannot pass values for 'str' and 'regexp' parameters "
-            f"simultaneously. pass 'str_remove' only, or pass 'regexp_remove' "
-            f"and 'regexp_flags' only."
-        )
-
-    if _c and not _b:
-        raise ValueError(
-            f"if trying to use regexp mode, you must pass a pattern to "
-            f"'regexp_remove'. cannot pass values to 'regexp_flags' only."
-        )
-
-    del _a, _b, _c
-
-    # if 'regexp_remove' and 'regexp_flags' are simultaneously passed as
-    # lists and have Falses in them, the Falses must match up.
-
-    err_msg = (
-        f"when passing lists to multiple parameters, the Falses must "
-        f"match against each other. \nthat is, if you are saying that "
-        f"remove is turned off for a string in X (the entry is False "
-        f"in one of the lists for that slot), then the corresponding "
-        f"slot in all the other passed lists must also be False. "
-    )
+    #########
+    if _remove is None and _flags is not None:
+        raise ValueError(f"cannot pass 'flags' if 'remove' is not passed.")
 
 
-    if isinstance(_regexp_remove, list) and isinstance(_regexp_flags, list):
-        if not np.array_equal(
-            list(map(lambda x: x is False, _regexp_remove)),
-            list(map(lambda x: x is False, _regexp_flags))
-        ):
-            raise ValueError(err_msg)
+
+
+
 
 
 

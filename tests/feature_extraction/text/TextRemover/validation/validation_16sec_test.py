@@ -24,11 +24,8 @@ class TestValidation:
 
     # just make sure that it accepts all good parameters, and that the
     # conditionals for passing parameters are enforced.
-
-    # 1) cannot pass str & re kwargs simultaneously
-    # 2) cannot pass 'regexp_flags' alone
-    # 3) cannot leave all defaults
-    # 4) if lists are passed to regexp_remove & regexp_flags, any Falses must align
+    # 1) cannot pass 'flags' if 'remove' is not passed
+    # 2) cannot pass 'case_sensitive' as a list if 'remove' is not passed
 
 
     @staticmethod
@@ -57,40 +54,39 @@ class TestValidation:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def str_remove_seq_1():
-        return [{' ', ',', '.'}, '', '\n', '\s', False]
+    def remove_seq_1():
+        return [(' ', ',', '.'), '', '\n', '\s', None]
 
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def re_remove_seq_1():
-        return [False, re.compile('[n-z]'), '[n-z]', '[n-z]', '[n-z]']
+    def case_sensitive_seq_1():
+        return [False, True, True, True, None]
 
 
     @staticmethod
     @pytest.fixture(scope='function')
     def re_flags_seq_1():
-        return [False, re.I, re.X, re.I | re.X, None]
+        return [None, re.I, None, re.I | re.X, None]
 
 
     @pytest.mark.parametrize('dim', (1, 2))
     @pytest.mark.parametrize('X_container', (list, tuple, np.ndarray))
-    @pytest.mark.parametrize('str_remove, str_remove_container',
+    @pytest.mark.parametrize('remove, remove_container',
         (
             (None, None),
             (' ', None),
-            ({' ', '\n', '\s'}, None),
-            ('str_remove_seq_1', list),
-            ('str_remove_seq_1', tuple)
+            ((' ', '\n', '\s'), None),
+            ('remove_seq_1', list),
+            ('remove_seq_1', tuple)
         )
     )
-    @pytest.mark.parametrize('re_remove, re_remove_container',
+    @pytest.mark.parametrize('case_sensitive, case_sensitive_container',
         (
-            (None, None),
-            ('[a-m]', None),
-            (re.compile('[A-M]'), None),
-            ('re_remove_seq_1', list),
-            ('re_remove_seq_1', tuple)
+            (True, None),
+            (False, None),
+            ('case_sensitive_seq_1', list),
+            ('case_sensitive_seq_1', tuple)
         )
     )
     @pytest.mark.parametrize('re_flags, re_flags_container',
@@ -103,9 +99,9 @@ class TestValidation:
     )
     @pytest.mark.parametrize('remove_empty_rows', (True, False, 'garbage'))
     def test_accuracy(
-        self, dim, X_container, str_remove, re_remove, re_flags, remove_empty_rows,
-        _text_dim_1, _text_dim_2, str_remove_container, re_remove_container,
-        re_flags_container, str_remove_seq_1, re_remove_seq_1, re_flags_seq_1
+        self, dim, X_container, remove, case_sensitive, re_flags, remove_empty_rows,
+        _text_dim_1, _text_dim_2, remove_container, case_sensitive_container,
+        re_flags_container, remove_seq_1, case_sensitive_seq_1, re_flags_seq_1
     ):
 
         _type_error = False
@@ -130,13 +126,13 @@ class TestValidation:
         # manage dim of X and container -- -- -- -- -- -- -- -- -- -- --
 
         # manage param containers, when applicable -- -- -- -- -- -- -- --
-        if str_remove == 'str_remove_seq_1':
-            str_remove = str_remove_container(str_remove_seq_1)
-            assert isinstance(str_remove, str_remove_container)
+        if remove == 'remove_seq_1':
+            remove = remove_container(remove_seq_1)
+            assert isinstance(remove, remove_container)
 
-        if re_remove == 're_remove_seq_1':
-            re_remove = re_remove_container(re_remove_seq_1)
-            assert isinstance(re_remove, re_remove_container)
+        if case_sensitive == 'case_sensitive_seq_1':
+            case_sensitive = case_sensitive_container(case_sensitive_seq_1)
+            assert isinstance(case_sensitive, case_sensitive_container)
 
         if re_flags == 're_flags_seq_1':
             re_flags = re_flags_container(re_flags_seq_1)
@@ -144,26 +140,26 @@ class TestValidation:
         # END manage param containers, when applicable -- -- -- -- -- --
 
         # manage exceptions -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        if str_remove and any((re_remove, re_flags)):
-            _value_error = True
 
-        if not any((str_remove, re_remove, re_flags)):
-            _value_error = True
-
-        if re_flags and not re_remove:
-            _value_error = True
-
-        if isinstance(str_remove, tuple):
+        if isinstance(remove, tuple) and len(remove) == 5:
+            # need to distinguish between the valid tuple of patterns and
+            # the list of patterns wrongfully passed as a tuple
             _type_error = True
 
-        if isinstance(re_remove, (set, tuple)):
+        if isinstance(case_sensitive, list) and not remove:
+            _value_error = True
+
+        if isinstance(case_sensitive, (set, tuple)):
+            _type_error = True
+
+        if dim == 2 and not isinstance(remove_empty_rows, bool):
             _type_error = True
 
         if isinstance(re_flags, (set, tuple)):
             _type_error = True
 
-        if dim == 2 and not isinstance(remove_empty_rows, bool):
-            _type_error = True
+        if re_flags and not remove:
+            _value_error = True
         # END manage exceptions -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -172,41 +168,27 @@ class TestValidation:
             with pytest.raises((TypeError, ValueError)):
                 _validation(
                     _X,
-                    _str_remove=str_remove,
-                    _regexp_remove=re_remove,
-                    _regexp_flags=re_flags,
-                    _remove_empty_rows=remove_empty_rows
+                    _remove=remove,
+                    _case_sensitive=case_sensitive,
+                    _remove_empty_rows=remove_empty_rows,
+                    _flags=re_flags
                 )
         else:
             out = _validation(
                 _X,
-                _str_remove=str_remove,
-                _regexp_remove=re_remove,
-                _regexp_flags=re_flags,
-                _remove_empty_rows=remove_empty_rows
+                _remove=remove,
+                _case_sensitive=case_sensitive,
+                _remove_empty_rows=remove_empty_rows,
+                _flags=re_flags
             )
 
             assert out is None
 
 
-    @pytest.mark.parametrize('dim', (1,2))
-    def test_catches_misaligned_Falses(self, _text_dim_1, _text_dim_2, dim):
 
-        if dim == 1:
-            _X = _text_dim_1
-        elif dim == 2:
-            _X = _text_dim_2
-        else:
-            raise Exception
 
-        with pytest.raises(ValueError):
-            _validation(
-                _X,
-                _str_remove=None,
-                _regexp_remove=['[a-m]+', False, '[\s]+'],
-                _regexp_flags=[False, re.I, re.X],
-                _remove_empty_rows = False
-            )
+
+
 
 
 

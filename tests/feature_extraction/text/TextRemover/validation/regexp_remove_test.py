@@ -6,77 +6,71 @@
 
 
 
-import pytest
-
-import re
-
-import numpy as np
-
 from pybear.feature_extraction.text._TextRemover._validation._regexp_remove \
     import _val_regexp_remove
 
+import re
+
+import pytest
 
 
 
 class TestValRegExpRemove:
 
 
-    @pytest.mark.parametrize('junk_single_regexp',
-        (-2.7, -1, 0, 1, 2.7, True, False, {'A': 1}, lambda x: x)
+    # def _val_regexp_remove(
+    #     _rr: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
+    #             list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]],
+    #     _n_rows: numbers.Integral
+    # ) -> None:
+
+
+    @pytest.mark.parametrize('junk_bad_n_rows',
+        (-2.7, -1, 2.7, True, False, None, 'trash', [0,1], (1,),
+         {1,2}, {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_regexp_as_single(self, junk_single_regexp):
-        # could be None, str, or re.Pattern
-        with pytest.raises(TypeError):
-            _val_regexp_remove(junk_single_regexp, list('abcde'))
+    def test_rejects_junk_bad_n_rows(self, junk_bad_n_rows):
+
+        with pytest.raises(AssertionError):
+            _val_regexp_remove(None, junk_bad_n_rows)
 
 
-    @pytest.mark.parametrize('good_single_regexp',
-        (None, '[a-m]*', re.compile('[a-m]+'))
+    @pytest.mark.parametrize('good_n_rows', (0, 2, 3, 100_000_000))
+    def test_accepts_good_n_rows(self, good_n_rows):
+
+        assert _val_regexp_remove(None, good_n_rows) is None
+
+
+    @pytest.mark.parametrize('junk_rr',
+        (-2.7, -1, 0, 1, 2.7, True, False, 'trash', [0,1], (1,),
+         {1,2}, {'a':1}, lambda x: x, tuple('abc'), (list('abc')))
     )
-    def test_accepts_good_single(self, good_single_regexp):
-        # could be None, str, re.Pattern
-
-        _val_regexp_remove(good_single_regexp, list('abcde'))
-
-
-    @pytest.mark.parametrize('junk_seq_regexp', ([True, '[a-q]'], ('[1-3]', 0)))
-    def test_rejects_junk_regexp_as_seq(self, junk_seq_regexp):
-        # could be str, re.Pattern, or list[of the 2]
+    def test_rejects_junk_rr(self, junk_rr):
 
         with pytest.raises(TypeError):
-            _val_regexp_remove(junk_seq_regexp, list('ab'))
+            _val_regexp_remove(junk_rr, 5)
 
 
-    def test_rejects_bad_regexp_as_seq(self):
+    def test_rejects_bad_rr(self):
+
+        _bad_rr = [re.compile('a'), re.compile('b'), re.compile('c')]
 
         # too long
         with pytest.raises(ValueError):
-            _val_regexp_remove(['\W' for _ in range(6)], list('abcde'))
-
+            _val_regexp_remove(_bad_rr, 2)
 
         # too short
         with pytest.raises(ValueError):
-            _val_regexp_remove(['\W' for _ in range(4)], list('abcde'))
+            _val_regexp_remove(_bad_rr, 4)
 
 
-    def test_accepts_good_sequence(self):
+    @pytest.mark.parametrize('good_rr',
+        (None, re.compile('a'), (re.compile('b'), re.compile('c', re.I)),
+        [None, re.compile('a'), (re.compile('b'), re.compile('c', re.I))])
+    )
+    def test_accepts_good_rr(self, good_rr):
 
-        for trial in range(20):
-
-            _regexp = np.random.choice(
-                [re.compile('a{0, 2}'), '\W', '\d', re.compile('[a-d]*'),
-                 re.compile('[a-q]*'), False],
-                (5, ),
-                replace=True
-            ).tolist()
-
-            _val_regexp_remove(
-                _regexp,
-                _X = list('abcde')
-            )
-
-
-
+        assert _val_regexp_remove(good_rr, 3) is None
 
 
 

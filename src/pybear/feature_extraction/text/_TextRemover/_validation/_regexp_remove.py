@@ -6,95 +6,86 @@
 
 
 
-from .._type_aliases import (
-    RegExpRemoveType,
-    XContainer
-)
+from typing_extensions import Union
 
 import re
+import numbers
 
 
 
 def _val_regexp_remove(
-    _regexp_remove: RegExpRemoveType,
-    _X: XContainer
+    _rr: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
+            list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]],
+    _n_rows: numbers.Integral
 ) -> None:
 
     """
-    Validate regexp_remove. Must be None, a regexp string, a re.Pattern
-    object, or a list of regexp strings, re.Pattern objects and/or Falses.
-    The patterns are not validated here, any exception would be raised
-    by re.fullmatch. If passed as a list, the number of entries must
-    equal the number of strings in X.
+    Validate the WIP parameter 'regexp_remove'. Must be None, re.Pattern,
+    a tuple of re.Patterns, or a list of Nones, re.Patterns, and/or
+    tuples of re.Patterns.
 
 
     Parameters
     ----------
-    _regexp_remove:
-        RegExpSepType - the regexp string(s) or the re.Pattern object(s)
-        used to match patterns for removal from the data. If a single
-        expression or pattern, that is applied to all strings in X. If
-        passed as a list, the number of entries must equal the number of
-        strings in X, and the entries are applied to the corresponding
-        string in X. The regular expressions and the re.Pattern objects
-        themselves are not validated for legitimacy, any exceptions
-        would be raised by re.fullmatch().
+    _rr:
+        Union[None, re.Pattern, tuple[re.Pattern, ...],
+        list[Union[None, re.Pattern, tuple[re.Pattern, ...]]]] - the
+        regex pattern(s) to remove for a 1D list of strings.
+    _n_rows:
+        numbers.Integral - the number of rows in the data passed to
+        transform.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
-
-
-    Notes
-    -----
-    see re.fullmatch()
-
 
     """
 
 
-    if _regexp_remove is None:
-        return
+    assert isinstance(_n_rows, numbers.Integral)
+    assert not isinstance(_n_rows, bool)
+    assert _n_rows >= 0
 
-
-    err_msg = (
-        f"'regexp_remove' must be None, a single regular expression, a "
-        f"re.Pattern object, or a list of regexp strings, re.Pattern "
-        f"objects and Falses. \nIf passed as a list, the number of entries "
-        f"must equal the number of strings in X."
-    )
 
     try:
-        if isinstance(_regexp_remove, (str, re.Pattern)):
+        if isinstance(_rr, (type(None), re.Pattern)):
             raise UnicodeError
-        if isinstance(_regexp_remove, list):
-            raise TimeoutError
-        raise Exception
+        elif isinstance(_rr, tuple):
+            if not all(map(isinstance, _rr, (re.Pattern for _ in _rr))):
+                raise Exception
+            raise UnicodeError
+        elif isinstance(_rr, list):
+            for thing in _rr:
+                if isinstance(thing, (type(None), re.Pattern)):
+                    pass
+                elif isinstance(thing, tuple):
+                    if not all(map(isinstance, thing, (re.Pattern for _ in thing))):
+                        raise Exception
+                else:
+                    raise Exception
+
+            if len(_rr) != _n_rows:
+                raise TimeoutError
+
+            raise UnicodeError
+        else:
+            raise Exception
     except UnicodeError:
-        # if is a single string or re.Pattern
         pass
     except TimeoutError:
-        # if is a sequence of somethings
-        if len(_regexp_remove) != len(_X):
-            raise ValueError(err_msg)
-        _types = (str, re.Pattern, bool)
-        if not all(map(isinstance, _regexp_remove, (_types for _ in _regexp_remove))):
-            raise TypeError(err_msg)
-        if any(map(lambda x: x is True, _regexp_remove)):
-            raise TypeError(err_msg)
-        del _types
+        raise ValueError(
+            f"if 'regexp' is a list, the length must be equal to the number "
+            f"of rows in the data passed to transform. \ngot {len(_rr)}, "
+            f"expected {_n_rows}"
+        )
     except Exception as e:
-        raise TypeError(err_msg)
-
-
-
-    del err_msg
-
-
-
-
+        raise TypeError(
+            f"'regexp_remove' must None, re.Pattern, tuple[re.Pattern, ...], "
+            f"or a list of Nones, re.Patterns, and/or tuple[re.Pattern, ...]."
+            f"\ngot {type(_rr)}."
+        )
 
 
 
