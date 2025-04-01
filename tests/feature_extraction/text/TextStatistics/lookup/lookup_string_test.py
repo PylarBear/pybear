@@ -41,7 +41,7 @@ class TestLookupString:
     @pytest.mark.parametrize('junk_pattern',
         (-2.7, -1, 0, 1, 2.7, True, None, [0,1], ('a', ), {'a': 1}, lambda x: x)
     )
-    def test_blocks_non_str_pattern(self, junk_pattern, uniques):
+    def test_blocks_non_str_non_compile(self, junk_pattern, uniques):
 
         with pytest.raises(TypeError):
             _lookup_string(junk_pattern, uniques, True)
@@ -115,6 +115,12 @@ class TestLookupString:
     def test_substring_does_not_match(self, uniques):
         out = _lookup_string(re.compile('AARD', re.I), uniques)
         assert len(out) == 0
+
+
+    def test_literal_is_escaped(self):
+        out = _lookup_string('^\s\n\t$', ['green', '^\s\n\t$', 'and', 'ham'])
+        assert isinstance(out, list)
+        assert np.array_equal(out, ['^\s\n\t$'])
 
 
     @pytest.mark.parametrize('case_sensitive', (True, False))

@@ -41,7 +41,7 @@ class TestLookupSubString:
     @pytest.mark.parametrize('junk_pattern',
         (-2.7, -1, 0, 1, 2.7, True, None, [0,1], ('a', ), {'a': 1}, lambda x: x)
     )
-    def test_blocks_non_str_pattern(self, junk_pattern, uniques):
+    def test_blocks_non_str_non_pattern(self, junk_pattern, uniques):
 
         with pytest.raises(TypeError):
             _lookup_substring(junk_pattern, uniques, True)
@@ -50,7 +50,7 @@ class TestLookupSubString:
     @pytest.mark.parametrize('pattern',
         ('green', 'eggs', re.compile('and', re.I), re.compile('ham'))
     )
-    def test_accepts_str_compile_pattern(self, pattern, uniques):
+    def test_accepts_str_compile(self, pattern, uniques):
 
         _lookup_substring('look me up', uniques, _case_sensitive=True)
     # END pattern -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -110,6 +110,12 @@ class TestLookupSubString:
     def test_empty_char_seq_does_not_match(self):
         out = _lookup_substring('', ['A', 'AA', 'AAA', 'AARDVARK'])
         assert len(out) == 0
+
+
+    def test_literals_are_escaped(self):
+        out = _lookup_substring('^\n\s\t$', ['GREEN', '^\n\s\t$', 'AND', 'HAM'])
+        assert isinstance(out, list)
+        assert np.array_equal(out, ['^\n\s\t$'])
 
 
     @pytest.mark.parametrize('case_sensitive', (True, False))
