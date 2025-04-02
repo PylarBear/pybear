@@ -13,8 +13,6 @@ from ._type_aliases import XContainer
 import numbers
 
 import numpy as np
-import pandas as pd
-import polars as pl
 
 from ._partial_fit._partial_fit import _partial_fit
 

@@ -13,9 +13,6 @@ from ._type_aliases import (
     XWipContainer
 )
 
-import pandas as pd
-import polars as pl
-
 from ._validation._validation import _validation
 from ._transform._condition_sep import _condition_sep
 from ._transform._transform import _transform

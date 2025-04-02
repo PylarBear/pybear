@@ -17,9 +17,6 @@ from ._type_aliases import (
 import numbers
 import re
 
-import pandas as pd
-import polars as pl
-
 from ._transform._transform import _transform
 from ._validation._validation import _validation
 

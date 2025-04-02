@@ -27,9 +27,6 @@ from ....base import (
     check_is_fitted
 )
 
-import pandas as pd
-import polars as pl
-
 from ..__shared._transform._map_X_to_list import _map_X_to_list
 
 from ....base._copy_X import copy_X

@@ -13,8 +13,6 @@ import numpy.typing as npt
 from copy import deepcopy
 
 import numpy as np
-import pandas as pd
-import polars as pl
 
 from ._shared._validation._validation import _validation
 

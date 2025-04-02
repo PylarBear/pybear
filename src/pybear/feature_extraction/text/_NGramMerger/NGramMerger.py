@@ -15,9 +15,6 @@ from ._type_aliases import (
 
 import re
 
-import pandas as pd
-import polars as pl
-
 from ._validation._validation import _validation
 from ._transform._transform import _transform
 from ..__shared._transform._map_X_to_list import _map_X_to_list
