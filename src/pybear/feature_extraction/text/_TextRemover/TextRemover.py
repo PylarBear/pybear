@@ -17,6 +17,8 @@ from ._type_aliases import (
     RowSupportType
 )
 
+import re
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -46,29 +48,43 @@ class TextRemover(
 ):
 
     """
-    Remove full strings (not substrings) from text data.
+    Remove full strings (not substrings) from text data. Identify full
+    strings to remove by literal string equality or by regular expression
+    fullmatch. Remove any and all matches completely from the data.
 
-    One particularly useful application is to take out empty lines and
-    strings that may have been in data read in from a file, or strings
+    One particularly useful application is to take out empty or gibberish
+    strings in data read in from a file. Another is to remove strings
     that have become empty or have only non-alphanumeric characters after
     replacing values (see pybear TextReplacer).
 
-    Identify full strings to remove by literal string comparison
-    (== or list.remove) or by regular expression match (re.fullmatch).
-    Remove any and all matches completely from the data.
-
-    # pizza
-    DO NOT PASS A REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE
+    TextRemover (TR) always looks for matches against entire strings,
+    it does not do partial matches. You can tell TR what strings to
+    remove with literal strings, or regular expressions in re.compile
+    objects, passed to :param: `remove`. Pass literal strings or
+    re.compile objects that are intended to match entire words. DO
+    NOT PASS A REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE
     CORRECT RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT.
 
-    Direct string comparison mode and regular expression match mode
-    are mutually exclusive, they cannot both be used at the same time.
-    Parameters for only one or the other can be passed at instantiation.
-    TextRemover cannot be instantiated with the default parameter values,
-    at least one mode must be indicated. For exact literal string
-    matching, only enter values for :param: `str_remove`. Comparisons
-    in literal string mode are always case-sensitive. To use regex, pass
-    values to only :param: `remove` and :param: `flags`.
+    TR searches always default to case-sensitive, but can be made to
+    be case-insensitive. You can globally set this behavior via
+    the :param: `case_sensitive` parameter. For those of you that know
+    regex, you can also put flags in the re.compile objects passed
+    to :param: `remove`, or flags can be set globally via :param: `flags`.
+    Case-sensitivity is generally controlled by :param: `case_sensitive`
+    but IGNORECASE flags passed via re.compile objects or :param: `flags`
+    will always overrule `case_sensitive`.
+
+    So why not just use regular literal string matching or re.fullmatch
+    to find strings and remove them? Unlike those, TR accepts multiple
+    patterns to search for and remove. TR can remove multiple strings in
+    one call by passing a tuple of literal strings and/or re.compile
+    objects to :param: `remove`. But if you need fine-grained control on
+    certain rows of data, `remove`, `case_sensitive`, and/or `flags` can
+    be passed as lists indicating specific instructions for individual
+    rows. When any of these are passed as a list, the number of entries
+    in the list must equal the number of rows in the data. What is
+    allowed to be put in the lists is dictated by the allowed global
+    values for each respective parameter.
 
     TextRemover is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
@@ -116,28 +132,24 @@ class TextRemover(
 
     Parameters
     ----------
-    str_remove:  # pizza
-        Optional[StRemoveSepType], default=None - the strings to remove
-        from X when in exact string matching mode. Always case-sensitive.
-        When passed as a single character string, that is applied to
-        every string in X, and every full string that matches it exactly
-        will be removed. When passed as a python set of character
-        strings, each string is searched against all the strings in X,
-        and any exact matches are removed. If passed as a list of
-        strings, the number of entries must match the number of rows in
-        X, and each string or set of strings in the list is applied to
-        the corresponding string in X. If any entry in the list is False,
-        the corresponding string in X is skipped.
-    remove:  # pizza
-        Optional[RegExpRemoveType], default=None - if using regular
-        expressions, the regex pattern(s) to remove from X. If a single
-        regular expression or re.Pattern object is passed, any matching
-        full strings in X will be removed from the data. If passed as a
-        list, the number of entries must match the number of rows in X,
-        and each pattern is applied to the corresponding string in X. If
-        any entry in the list is False, that string in X is skipped.
+    remove:
+        Optional[RemoveType], default=None - the literal strings or regex
+        patterns to remove from the data. When passed as a single literal
+        string or re.compile object, that is applied to every string in
+        the data, and every full string that matches exactly will be
+        removed. When passed as a python tuple of character strings
+        and/or re.compile objects, each pattern is searched against
+        all the strings in the data and any exact matches are removed.
+        If passed as a list, the number of entries must match the number
+        of rows in X, and each string, re.compile, or tuple is applied
+        to the corresponding row in the data. If any entry in the list
+        is None, the corresponding row in the data is ignored.
     case_sensitive:
-        pizza
+        Optional[CaseSensitiveType] - global setting for case-sensitivity.
+        If True (the default) then all searches are case-sensitive. If
+        False, TR will look for matches regardless of case. This setting
+        is overriden when IGNORECASE flags are passed in re.compile
+        objects or to :param: `flags`.
     remove_empty_rows:
         Optional[bool], default=False - whether to remove rows that become
         empty when data is passed in a 2D container. This does not apply
@@ -146,16 +158,18 @@ class TextRemover(
         by a False in that position. If False, empty rows are not removed
         from the data.
     flags:
-        Optional[FlagsType] - the flags parameter(s) for the regex
-        pattern(s), if regular expressions are being used. Does not
-        apply to string mode, only applies if a pattern is passed to
-        the :param: `remove` parameter. If None, the default flags
-        for re.fullmatch() are used on every string in X. If a single
-        flags object, that is applied to every string in X. If passed as
-        a list, the number of entries must match the number of rows in X.
-        Flags objects and Nones in the list follow the same rules stated
-        above. If any entry in the list is False, that string in X is
-        skipped.
+        Optional[FlagsType] - the flags parameter(s) for the string
+        searches. Internally, TR does all its searching for strings
+        with re.fullmatch, therefore flags can be passed whether you are
+        searching for literal strings or regex patterns. If you do not
+        know regular expressions, then you do not need to worry about
+        this parameter. If None, the default flags for re.fullmatch()
+        are used globally. If a single flags object, that is applied
+        globally. If passed as a list, the number of entries must match
+        the number of rows in the data. Flags objects and Nones in the
+        list follow the same rules stated above, but at the row level.
+        If IGNORECASE is passed here as a global setting or in a list
+        it overrides the :param: `case_sensitive` 'True' setting.
 
 
     Attributes
@@ -164,14 +178,15 @@ class TextRemover(
         int - the number of rows in the data passed to :meth: `transform`.
         This reflects the data that is passed, not the data that is
         returned, which may not necessarily have the same number of
-        rows as the original data. Also, it only reflects the last batch
-        of data passed; it is not cumulative. This attribute is only
-        exposed after data is passed to :meth: `transform`.
+        rows as the original data. Only available if a transform has
+        been performed, and only reflects the results of the last
+        transform done, it is not cumulative.
     row_support_:
         RowSupportType - A boolean vector indicating which rows were
-        kept in the data during the transform process. Only available if
-        a transform has been performed, and only reflects the results of
-        the last transform done.
+        kept (True) or removed (False) during the transform process.
+        Only available if a transform has been performed, and only
+        reflects the results of the last transform done, it is not
+        cumulative.
 
 
     Notes
@@ -229,8 +244,8 @@ class TextRemover(
     >>> X = [' ', 'One', 'Two', '', 'Three', ' ']
     >>> trfm.fit_transform(X)
     ['One', 'Two', 'Three']
-    >>> trfm.set_params(**{'remove': None, 'remove': '[bcdei]'})
-    TextRemover(remove='[bcdei]')
+    >>> trfm.set_params(**{'remove': re.compile('[bcdei]')})
+    TextRemover(remove=re.compile('[bcdei]'))
     >>> X = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']]
     >>> trfm.fit_transform(X)
     [['a'], ['f'], ['g', 'h']]

@@ -340,7 +340,7 @@ class TC(FileDumpMixin):
         del Trfm
 
         # can be 1D or 2D, returns same dim as given
-        Trfm2 = TextRemover(str_remove='')
+        Trfm2 = TextRemover(remove='')
         self.CLEANED_TEXT = Trfm2.fit_transform(self.CLEANED_TEXT)
 
 
