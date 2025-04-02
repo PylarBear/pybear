@@ -6,13 +6,13 @@
 
 
 
-from .._type_aliases import OutputContainer
+from .._type_aliases import XWipContainer
 
 
 def _transform(
     _X: list[list[str]],
     _sep: list[str]
-) -> OutputContainer:
+) -> XWipContainer:
 
     """
     Convert each row of strings in X to a single string, joining on

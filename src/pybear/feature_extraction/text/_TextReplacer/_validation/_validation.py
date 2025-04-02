@@ -17,7 +17,7 @@ from pybear.feature_extraction.text._TextReplacer._validation._str_replace impor
 from pybear.feature_extraction.text._TextReplacer._validation._regexp_replace \
     import _val_regexp_replace
 
-from .....base._check_dtype import check_dtype
+from ...__shared._validation._1D_2D_X import _val_1D_2D_X
 
 
 
@@ -50,7 +50,8 @@ def _validation(
     """
 
 
-    check_dtype(_X, allowed='str', require_all_finite=False)
+    # pizza one of the oddball Falses
+    _val_1D_2D_X(_X, _require_all_finite=False)
 
     _val_str_replace(_str_replace, _X)
 

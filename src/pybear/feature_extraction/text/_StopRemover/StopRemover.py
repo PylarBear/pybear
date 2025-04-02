@@ -33,6 +33,8 @@ from ....base import (
     check_is_fitted
 )
 
+from ..__shared._transform._map_X_to_list import _map_X_to_list
+
 from ....base._copy_X import copy_X
 
 
@@ -442,14 +444,7 @@ class StopRemover(
 
         # convert X to list-of-lists -- -- -- -- -- -- -- -- -- -- --
         # we know from validation it is legit 2D
-        if isinstance(_X, pd.DataFrame):
-            _X = list(map(list, _X.values))
-        elif isinstance(_X, pl.DataFrame):
-            _X = list(map(list, _X.rows()))
-        else:
-            _X = list(map(list, _X))
-
-        _X: XWipContainer
+        _X: XWipContainer = _map_X_to_list(_X)
 
         self._n_rows = len(_X)
         # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --

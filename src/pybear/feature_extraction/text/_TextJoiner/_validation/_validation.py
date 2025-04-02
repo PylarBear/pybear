@@ -8,7 +8,7 @@
 
 from .._type_aliases import XContainer
 
-from .....base._check_2D_str_array import check_2D_str_array
+from ...__shared._validation._2D_X import _val_2D_X
 from ._sep import _val_sep
 
 
@@ -41,7 +41,7 @@ def _validation(
     """
 
 
-    check_2D_str_array(_X, require_all_finite=True)
+    _val_2D_X(_X, _require_all_finite=True)
 
     _val_sep(_sep, _X)
 

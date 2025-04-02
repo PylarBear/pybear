@@ -1,0 +1,193 @@
+# Author:
+#         Bill Sousa
+#
+# License: BSD 3 clause
+#
+
+
+
+import pytest
+
+import re
+
+import numpy as np
+
+from pybear.feature_extraction.text._TextRemover._validation import _validation
+
+
+
+class TestValidation:
+
+    # the brunt of testing validation is handled by the individual validation
+    # modules' tests
+
+    # just make sure that it accepts all good parameters, and that the
+    # conditionals for passing parameters are enforced.
+    # 1) cannot pass 'flags' if 'remove' is not passed
+    # 2) cannot pass 'case_sensitive' as a list if 'remove' is not passed
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _text_dim_1():
+        return [
+            'Despair thy charm, ',
+            'And let the angel whom thou still hast served ',
+            'Tell thee Macduff was ',
+            "from his mother’s womb",
+            "Untimely ripped."
+        ]
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _text_dim_2():
+        return [
+            ['Despair', 'thy' 'charm, '],
+            ['And', 'let', 'the', 'angel', 'whom', 'thou', 'still', 'hast' 'served '],
+            ['Tell', 'thee', 'Macduff', 'was '],
+            ['from', 'his', "mother’s", 'womb'],
+            ['Untimely', 'ripped.']
+        ]
+
+
+    @staticmethod
+    @pytest.fixture(scope='function')
+    def remove_seq_1():
+        return [(' ', ',', '.'), '', '\n', '\s', None]
+
+
+    @staticmethod
+    @pytest.fixture(scope='function')
+    def case_sensitive_seq_1():
+        return [False, True, True, True, None]
+
+
+    @staticmethod
+    @pytest.fixture(scope='function')
+    def re_flags_seq_1():
+        return [None, re.I, None, re.I | re.X, None]
+
+
+    @pytest.mark.parametrize('dim', (1, 2))
+    @pytest.mark.parametrize('X_container', (list, tuple, np.ndarray))
+    @pytest.mark.parametrize('remove, remove_container',
+        (
+            (None, None),
+            (' ', None),
+            ((' ', '\n', '\s'), None),
+            ('remove_seq_1', list),
+            ('remove_seq_1', tuple)
+        )
+    )
+    @pytest.mark.parametrize('case_sensitive, case_sensitive_container',
+        (
+            (True, None),
+            (False, None),
+            ('case_sensitive_seq_1', list),
+            ('case_sensitive_seq_1', tuple)
+        )
+    )
+    @pytest.mark.parametrize('re_flags, re_flags_container',
+        (
+            (None, None),
+            (re.I | re.X, None),
+            ('re_flags_seq_1', list),
+            ('re_flags_seq_1', tuple)
+        )
+    )
+    @pytest.mark.parametrize('remove_empty_rows', (True, False, 'garbage'))
+    def test_accuracy(
+        self, dim, X_container, remove, case_sensitive, re_flags, remove_empty_rows,
+        _text_dim_1, _text_dim_2, remove_container, case_sensitive_container,
+        re_flags_container, remove_seq_1, case_sensitive_seq_1, re_flags_seq_1
+    ):
+
+        _type_error = False
+        _value_error = False
+
+        # manage dim of X and container -- -- -- -- -- -- -- -- -- -- --
+        if dim == 1:
+            if X_container is np.ndarray:
+                _X = np.array(_text_dim_1)
+            else:
+                _X = X_container(_text_dim_1)
+            assert isinstance(_X, X_container)
+        elif dim == 2:
+            if X_container is np.ndarray:
+                _X = np.fromiter(map(lambda x: np.array(x), _text_dim_2), dtype=object)
+            else:
+                _X = X_container(map(X_container, _text_dim_2))
+            assert isinstance(_X, X_container)
+            assert all(map(isinstance, _X, (X_container for _ in _X)))
+        else:
+            raise Exception
+        # manage dim of X and container -- -- -- -- -- -- -- -- -- -- --
+
+        # manage param containers, when applicable -- -- -- -- -- -- -- --
+        if remove == 'remove_seq_1':
+            remove = remove_container(remove_seq_1)
+            assert isinstance(remove, remove_container)
+
+        if case_sensitive == 'case_sensitive_seq_1':
+            case_sensitive = case_sensitive_container(case_sensitive_seq_1)
+            assert isinstance(case_sensitive, case_sensitive_container)
+
+        if re_flags == 're_flags_seq_1':
+            re_flags = re_flags_container(re_flags_seq_1)
+            assert isinstance(re_flags, re_flags_container)
+        # END manage param containers, when applicable -- -- -- -- -- --
+
+        # manage exceptions -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if isinstance(remove, tuple) and len(remove) == 5:
+            # need to distinguish between the valid tuple of patterns and
+            # the list of patterns wrongfully passed as a tuple
+            _type_error = True
+
+        if isinstance(case_sensitive, list) and not remove:
+            _value_error = True
+
+        if isinstance(case_sensitive, (set, tuple)):
+            _type_error = True
+
+        if dim == 2 and not isinstance(remove_empty_rows, bool):
+            _type_error = True
+
+        if isinstance(re_flags, (set, tuple)):
+            _type_error = True
+
+        if re_flags and not remove:
+            _value_error = True
+        # END manage exceptions -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if _type_error or _value_error:
+            with pytest.raises((TypeError, ValueError)):
+                _validation(
+                    _X,
+                    _remove=remove,
+                    _case_sensitive=case_sensitive,
+                    _remove_empty_rows=remove_empty_rows,
+                    _flags=re_flags
+                )
+        else:
+            out = _validation(
+                _X,
+                _remove=remove,
+                _case_sensitive=case_sensitive,
+                _remove_empty_rows=remove_empty_rows,
+                _flags=re_flags
+            )
+
+            assert out is None
+
+
+
+
+
+
+
+
+

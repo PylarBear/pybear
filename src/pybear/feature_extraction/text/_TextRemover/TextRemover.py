@@ -23,10 +23,11 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from ._transform._param_conditioner._param_conditioner import _param_conditioner
-from ._transform._regexp_1D_core import _regexp_1D_core
-from ._validation._validation import _validation
-from ._validation._regexp_remove import _val_regexp_remove
+from ._regexp_1D_core import _regexp_1D_core
+from ._validation import _validation
+
+from ..__shared._transform._map_X_to_list import _map_X_to_list
+from ..__shared._param_conditioner._param_conditioner import _param_conditioner
 
 from ....base import (
     FitTransformMixin,
@@ -257,10 +258,10 @@ class TextRemover(
     def __init__(
         self,
         *,
-        remove: Optional[RemoveType] = None,
-        case_sensitive: Optional[CaseSensitiveType] = True,
+        remove: RemoveType = None,
+        case_sensitive: CaseSensitiveType = True,
         remove_empty_rows: Optional[bool] = False,
-        flags: Optional[FlagsType] = None
+        flags: FlagsType = None
     ) -> None:
 
         self.remove = remove
@@ -419,42 +420,26 @@ class TextRemover(
         else:
             _X = X
 
-        _r = self.remove
-        _c = self.case_sensitive
-        _f = self.flags
+        _X: XWipContainer = _map_X_to_list(_X)
 
-        # regex_remove
+        self._n_rows = len(_X)
+
         _rr = _param_conditioner(
-            _r, _c, _f,
-            _n_rows=_X.shape[0] if hasattr(_X, 'shape') else len(_X)
+            self.remove,
+            self.case_sensitive,
+            self.flags,
+            _order_matters=False,
+            _n_rows=self._n_rows,
+            _name='remove'
         )
 
         if all(map(isinstance, _X, (str for _ in _X))):
-            _X = list(_X)
-
-            self._n_rows = len(_X)
-
-            _val_regexp_remove(_rr, self._n_rows)
 
             _X, self._row_support = _regexp_1D_core(_X, _rr, _from_2D=False)
+
         else:
             # must be 2D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-            if isinstance(_X, pd.DataFrame):
-                _X = list(map(list, _X.values))
-            elif isinstance(_X, pl.DataFrame):
-                _X = list(map(list, _X.rows()))
-            else:
-                _X = list(map(list, _X))
-
-            self._n_rows = len(_X)
-
-            _val_regexp_remove(_rr, self._n_rows)
-
             for _row_idx in range(len(_X)):
-
-                # pizza
-                # if isinstance(_rr, list) and _rr[_row_idx] is None:
-                #     continue
 
                 # notice the indexer, only need the _X component
                 _X[_row_idx] = _regexp_1D_core(

@@ -10,7 +10,7 @@ from typing import Sequence, Optional
 from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
-    OutputContainer
+    XWipContainer
 )
 
 import pandas as pd
@@ -19,6 +19,8 @@ import polars as pl
 from ._validation._validation import _validation
 from ._transform._condition_sep import _condition_sep
 from ._transform._transform import _transform
+
+from ..__shared._transform._map_X_to_list import _map_X_to_list
 
 from ....base import (
     FitTransformMixin,
@@ -107,7 +109,7 @@ class TextJoiner(
 
     XContainer: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
-    OutputContainer: list[str]
+    XWipContainer: list[str]
 
 
     Examples
@@ -236,7 +238,7 @@ class TextJoiner(
         self,
         X:XContainer,
         copy:Optional[bool] = False
-    ) -> OutputContainer:
+    ) -> XWipContainer:
 
         """
         Convert each row of strings in X to a single string, joining on
@@ -258,7 +260,7 @@ class TextJoiner(
         Return
         ------
         -
-            OutputContainer - A single list containing strings, one
+            XWipContainer - A single list containing strings, one
             string for each row in the original X.
 
         """
@@ -272,12 +274,7 @@ class TextJoiner(
         else:
             _X = X
 
-        if isinstance(_X, pd.DataFrame):
-            _X = list(map(list, _X.values))
-        elif isinstance(_X, pl.DataFrame):
-            _X = list(map(list, _X.rows()))
-        else:
-            _X = list(map(list, _X))
+        _X: XWipContainer = _map_X_to_list(_X)
 
         self._n_rows: int = len(X)
 

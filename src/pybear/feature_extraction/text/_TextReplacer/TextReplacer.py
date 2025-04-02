@@ -10,13 +10,12 @@ from typing import Optional
 from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
+    XWipContainer,
     StrReplaceType,
     RegExpReplaceType
 )
 
 from ._validation._validation import _validation
-# pizza
-# from ._transform._transform import _transform
 from ._transform._str_1D_core import _str_1D_core
 from ._transform._regexp_1D_core import _regexp_1D_core
 
@@ -30,6 +29,8 @@ from ....base import (
 
 import pandas as pd
 import polars as pl
+
+from ..__shared._transform._map_X_to_list import _map_X_to_list
 
 from ....base._copy_X import copy_X
 
@@ -373,7 +374,7 @@ class TextReplacer(
         self,
         X:XContainer,
         copy:Optional[bool] = False
-    ) -> XContainer:
+    ) -> XWipContainer:
 
         """
         Search the data for matches against the search criteria and make
@@ -394,7 +395,7 @@ class TextReplacer(
         Returns
         -------
         -
-            XContainer: the data with replacements made.
+            XWipContainer: the data with replacements made.
 
 
         """
@@ -409,26 +410,19 @@ class TextReplacer(
         else:
             _X = X
 
+        _X: XWipContainer = _map_X_to_list(_X)
+
         _sr = self.str_replace
         _rr = self.regexp_replace
 
         if all(map(isinstance, _X, (str for _ in _X))):
-            _X = list(_X)
 
             if _rr is not None:
                 _X = _regexp_1D_core(_X, _rr)
             if _sr is not None:
                 _X = _str_1D_core(_X, _sr)
 
-            # pizza
-            # _X = _transform(list(_X), _sr, _rr)
         else:
-            if isinstance(_X, pd.DataFrame):
-                _X = list(map(list, _X.values))
-            elif isinstance(_X, pl.DataFrame):
-                _X = list(map(list, _X.rows()))
-            else:
-                _X = list(map(list, _X))
 
             for _row_idx in range(len(_X)):
 
@@ -449,12 +443,6 @@ class TextReplacer(
                         _sr[_row_idx] if isinstance(_sr, list) else _sr
                     )
 
-                # pizza
-                # _X[_row_idx] = _transform(
-                #     _X[_row_idx],
-                #     _sr[_row_idx] if isinstance(_sr, list) else _sr,
-                #     _rr[_row_idx] if isinstance(_rr, list) else _rr
-                # )
 
         del _sr, _rr
 

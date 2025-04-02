@@ -10,19 +10,13 @@ from typing import Sequence
 
 import numpy as np
 
-from ._update_lexicon import _val_update_lexicon
-from ._skip_numbers import _val_skip_numbers
-from ._auto_split import _val_auto_split
-from ._auto_add_to_lexicon import _val_auto_add_to_lexicon
-from ._auto_delete import _val_auto_delete
 from ._delete_always import _val_delete_always
-from ._remove_empty_rows import _val_remove_empty_rows
 from ._replace_always import _val_replace_always
 from ._skip_always import _val_skip_always
 from ._split_always import _val_split_always
-from ._verbose import _val_verbose
 
-from ......base._check_2D_str_array import check_2D_str_array
+from ....__shared._validation._2D_X import _val_2D_X
+from ....__shared._validation._any_bool import _val_any_bool
 
 
 
@@ -77,21 +71,21 @@ def _validation(
     """
 
 
-    check_2D_str_array(_X, require_all_finite=True)
+    _val_2D_X(_X, _require_all_finite=True)
 
-    _val_update_lexicon(_update_lexicon)
+    _val_any_bool(_update_lexicon, 'update_lexicon')
 
-    _val_skip_numbers(_skip_numbers)
+    _val_any_bool(_skip_numbers, 'skip_numbers')
 
-    _val_auto_split(_auto_split)
+    _val_any_bool(_auto_split, 'auto_split')
 
-    _val_auto_add_to_lexicon(_auto_add_to_lexicon)
+    _val_any_bool(_auto_add_to_lexicon, 'auto_add_to_lexicon')
 
-    _val_auto_delete(_auto_delete)
+    _val_any_bool(_auto_delete, 'auto_delete')
 
     _val_delete_always(_DELETE_ALWAYS)
 
-    _val_remove_empty_rows(_remove_empty_rows)
+    _val_any_bool(_remove_empty_rows, 'remove_empty_rows')
 
     _val_replace_always(_REPLACE_ALWAYS)
 
@@ -99,7 +93,7 @@ def _validation(
 
     _val_split_always(_SPLIT_ALWAYS)
 
-    _val_verbose(_verbose)
+    _val_any_bool(_verbose, 'verbose')
 
 
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
