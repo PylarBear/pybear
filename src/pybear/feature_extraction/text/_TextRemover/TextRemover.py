@@ -20,8 +20,6 @@ from ._type_aliases import (
 import re
 
 import numpy as np
-import pandas as pd
-import polars as pl
 
 from ._regexp_1D_core import _regexp_1D_core
 from ._validation import _validation
