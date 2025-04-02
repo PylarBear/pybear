@@ -12,17 +12,16 @@ from .._type_aliases import XContainer
 
 import numbers
 
-from .....base._check_2D_str_array import check_2D_str_array
-
 from ._match_callable import _val_match_callable
-
-from ._remove_empty_rows import _val_remove_empty_rows
 
 from ._exempt import _val_exempt
 
 from ._supplemental import _val_supplemental
 
 from ._n_jobs import _val_n_jobs
+
+from ...__shared._validation._2D_X import _val_2D_X
+from ...__shared._validation._any_bool import _val_any_bool
 
 
 
@@ -77,11 +76,12 @@ def _validation(
     """
 
 
-    check_2D_str_array(_X, require_all_finite=False)
+    # pizza most of these are True!
+    _val_2D_X(_X, _require_all_finite=False)
 
     _val_match_callable(_match_callable)
 
-    _val_remove_empty_rows(_remove_empty_rows)
+    _val_any_bool(_remove_empty_rows, 'remove_empty_rows')
 
     _val_exempt(_exempt)
 

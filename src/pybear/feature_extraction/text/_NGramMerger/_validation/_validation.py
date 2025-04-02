@@ -12,7 +12,7 @@ from .._type_aliases import XContainer
 
 import re
 
-from .....base._check_2D_str_array import check_2D_str_array
+from ...__shared._validation._2D_X import _val_2D_X
 
 from ._ngrams import _val_ngrams
 
@@ -20,9 +20,7 @@ from ._sep import _val_sep
 
 from ._ngcallable import _val_ngcallable
 
-from ._wrap import _val_wrap
-
-from ._remove_empty_rows import _val_remove_empty_rows
+from ...__shared._validation._any_bool import _val_any_bool
 
 
 
@@ -74,7 +72,7 @@ def _validation(
     """
 
 
-    check_2D_str_array(_X, require_all_finite=True)
+    _val_2D_X(_X, _require_all_finite=True)
 
     _val_ngrams(_ngrams)
 
@@ -82,9 +80,12 @@ def _validation(
 
     _val_sep(_sep)
 
-    _val_wrap(_wrap)
+    _val_any_bool(_wrap, 'wrap')
 
-    _val_remove_empty_rows(_remove_empty_rows)
+    _val_any_bool(_remove_empty_rows, 'remove_empty_rows')
+
+
+
 
 
 

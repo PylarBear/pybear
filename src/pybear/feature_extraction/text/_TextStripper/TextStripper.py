@@ -22,12 +22,11 @@ from pybear.base import (
     check_is_fitted
 )
 
-import pandas as pd
-import polars as pl
+from ._transform import _transform
 
-from ._transform._transform import _transform
+from ..__shared._validation._1D_2D_X import _val_1D_2D_X
+from ..__shared._transform._map_X_to_list import _map_X_to_list
 
-from ....base._check_dtype import check_dtype
 from ....base._copy_X import copy_X
 
 
@@ -212,8 +211,7 @@ class TextStripper(
 
         check_is_fitted(self)
 
-        # check_dtype takes 1 or 2D
-        check_dtype(X, allowed='str', require_all_finite=True)
+        _val_1D_2D_X(X, _require_all_finite=False)
 
         if copy:
             _X = copy_X(X)
@@ -221,15 +219,7 @@ class TextStripper(
             _X = X
 
 
-        if all(map(isinstance, _X, (str for _ in _X))):
-            _X = list(_X)
-        else:
-            if isinstance(_X, pd.DataFrame):
-                _X = list(map(list, _X.values))
-            elif isinstance(_X, pl.DataFrame):
-                _X = list(map(list, _X.rows()))
-            else:
-                _X = list(map(list, _X))
+        _X: XWipContainer = _map_X_to_list(_X)
 
 
         return _transform(_X)

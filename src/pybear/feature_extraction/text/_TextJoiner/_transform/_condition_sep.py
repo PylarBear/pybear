@@ -37,7 +37,7 @@ def _condition_sep(
     Returns
     -------
     -
-        OutputContainer - a single python list of strings.
+        XWipContainer - a single python list of strings.
 
 
     """

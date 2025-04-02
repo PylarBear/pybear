@@ -22,6 +22,8 @@ from ._transform._transform import _transform
 
 from ._validation._validation import _validation
 
+from ..__shared._transform._map_X_to_list import _map_X_to_list
+
 from ....base import (
     FitTransformMixin,
     GetParamsMixin,
@@ -374,12 +376,7 @@ class TextPadder(
         else:
             _X = X
 
-        if isinstance(_X, pd.DataFrame):
-            _X = list(map(list, _X.values))
-        elif isinstance(_X, pl.DataFrame):
-            _X = list(map(list, _X.rows()))
-        else:
-            _X = list(map(list, _X))
+        _X = _map_X_to_list(_X)
 
         _X = _transform(_X, self.fill, self._n_features)
 

@@ -18,7 +18,6 @@ from pybear.feature_extraction.text._TextRemover.TextRemover import TextRemover
 
 
 
-
 class TestTextRemover:
 
 
@@ -47,6 +46,21 @@ class TestTextRemover:
         assert isinstance(out, list)
         assert len(out) == 1
         assert len(out[0]) == 0
+
+
+    def test_empty_init_does_no_op(self):
+
+        TestCls = TextRemover()
+
+        X = [['', ' ', 'a'], [';', ' '], ['.', ' ', ',']]
+
+        # 2D
+        out = TestCls.transform(X, copy=True)
+        assert all(map(np.array_equal, out, X))
+
+        # 1D
+        out = TestCls.transform(X[0], copy=True)
+        assert np.array_equal(out, X[0])
 
 
     def test_str_remove_1(self, _words):

@@ -28,6 +28,8 @@ from ._shared._type_aliases import (
     WipXContainer
 )
 
+from ..__shared._transform._map_X_to_list import _map_X_to_list
+
 from ....utilities._view_text_snippet import view_text_snippet
 from ....base._copy_X import copy_X
 
@@ -900,17 +902,9 @@ class TextLookup(TextLookupMixin):
         else:
             _X = X
 
-        # convert X to list-of-lists -- -- -- -- -- -- -- -- -- -- --
-        # we know from validation it is legit 2D
-        if isinstance(_X, pd.DataFrame):
-            _X = list(map(list, _X.values))
-        elif isinstance(_X, pl.DataFrame):
-            _X = list(map(list, _X.rows()))
-        else:
-            _X = list(map(list, _X))
 
-        _X: WipXContainer
-        # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --
+        # we know from validation X is legit 2D
+        _X: WipXContainer = _map_X_to_list(_X)
 
 
         self._row_support: npt.NDArray[bool] = np.ones((len(_X), )).astype(bool)

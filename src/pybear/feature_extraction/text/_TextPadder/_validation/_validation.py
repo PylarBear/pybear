@@ -14,7 +14,7 @@ from ._fill import _val_fill
 
 from ._n_features import _val_n_features
 
-from .....base._check_2D_str_array import check_2D_str_array
+from ...__shared._validation._2D_X import _val_2D_X
 
 
 
@@ -26,7 +26,7 @@ def _validation(
 
     """
     Centralized hub for validating parameters and X.
-    See the individual validatio modules for more details.
+    See the individual validation modules for more details.
 
 
     Parameters
@@ -48,7 +48,8 @@ def _validation(
     """
 
 
-    check_2D_str_array(_X)
+    # pizza set this one to False 25_04_02
+    _val_2D_X(_X, _require_all_finite=False)
 
     _val_fill(_fill)
 

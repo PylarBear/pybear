@@ -14,11 +14,10 @@ from ._type_aliases import (
     UpperType
 )
 
-import pandas as pd
-import polars as pl
+from ._validation import _validation
+from ._transform import _transform
 
-from ._validation._validation import _validation
-from ._transform._transform import _transform
+from ..__shared._transform._map_X_to_list import _map_X_to_list
 
 from ....base import (
     FitTransformMixin,
@@ -250,26 +249,16 @@ class TextNormalizer(
         else:
             _X = X
 
+        _X: XWipContainer = _map_X_to_list(_X)
 
         if all(map(isinstance, _X, (str for _ in _X))):
-            _X = list(_X)
+            return _transform(_X, self.upper)
         else:
-            if isinstance(_X, pd.DataFrame):
-                _X = list(map(list, _X.values))
-            elif isinstance(_X, pl.DataFrame):
-                _X = list(map(list, _X.rows()))
-            else:
-                _X = list(map(list, _X))
-
             # USE RECURSION ON 1D TO DO 2D
             for _row_idx in range(len(_X)):
                 _X[_row_idx] = self.transform(_X[_row_idx], copy=False)
 
             return _X
-
-
-        # ONLY 1D CAN GET TO HERE
-        return _transform(_X, self.upper)
 
 
     def score(
