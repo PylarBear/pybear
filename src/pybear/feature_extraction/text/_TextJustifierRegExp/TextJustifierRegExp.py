@@ -16,15 +16,14 @@ from ._type_aliases import (
 import numbers
 import re
 
-import pandas as pd
-import polars as pl
-
 from ._validation._validation import _validation
 from ._transform._sep_lb_finder import _sep_lb_finder
 from ._transform._transform import _transform
 
 from .._TextJoiner.TextJoiner import TextJoiner
 from .._TextSplitter.TextSplitter import TextSplitter
+
+from ..__shared._transform._map_X_to_list import _map_X_to_list
 
 from ....base import (
     FitTransformMixin,
@@ -422,21 +421,17 @@ class TextJustifierRegExp(
         else:
             _X = X
 
+
+        _X: XWipContainer = _map_X_to_list(_X)
+
         _was_2D = False
         # we know from validation it is legit 1D or 2D, do the easy check
         if all(map(isinstance, _X, (str for _ in _X))):
             # then is 1D:
-            _X = list(_X)
+            pass
         else:
             # then could only be 2D, need to convert to 1D
             _was_2D = True
-            if isinstance(_X, pd.DataFrame):
-                _X = list(map(list, _X.values))
-            elif isinstance(_X, pl.DataFrame):
-                _X = list(map(list, _X.rows()))
-            else:
-                _X = list(map(list, _X))
-
             _X = TextJoiner(sep=self.join_2D).fit_transform(_X)
 
         # _X must be 1D at this point
@@ -462,7 +457,7 @@ class TextJustifierRegExp(
             # backfill_sep should never be at the end of a line.
             _MASK = _sep_lb_finder(_X, self.join_2D, self.sep, self.backfill_sep)
 
-            _X = TextSplitter(str_sep=self.join_2D).fit_transform(_X)
+            _X = TextSplitter(sep=self.join_2D).fit_transform(_X)
 
             if any(_MASK):
                 for _row_idx in range(len(_X)):

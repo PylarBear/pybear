@@ -48,7 +48,6 @@ def _validation(
     """
 
 
-    # pizza set this one to False 25_04_02
     _val_2D_X(_X, _require_all_finite=False)
 
     _val_fill(_fill)

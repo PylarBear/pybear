@@ -18,7 +18,7 @@ def _val_1D_X(
 ) -> None:
 
     """
-    Validate X. Must be 1D list-like of strings. Can be empty. <----- pizza test this!
+    Validate X. Must be 1D list-like of strings. Can be empty.
 
 
     Parameters

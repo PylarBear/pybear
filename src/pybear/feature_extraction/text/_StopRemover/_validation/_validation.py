@@ -76,7 +76,6 @@ def _validation(
     """
 
 
-    # pizza most of these are True!
     _val_2D_X(_X, _require_all_finite=False)
 
     _val_match_callable(_match_callable)
