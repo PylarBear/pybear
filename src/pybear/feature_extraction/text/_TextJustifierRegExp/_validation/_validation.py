@@ -20,8 +20,8 @@ from ._line_break_flags import _val_line_break_flags
 from ._join_2D import _val_join_2D
 from ._backfill_sep import _val_backfill_sep
 
-from .....base._check_1D_str_sequence import check_1D_str_sequence
-from .....base._check_2D_str_array import check_2D_str_array
+from ...__shared._validation._1D_X import _val_1D_X
+from ...__shared._validation._2D_X import _val_2D_X
 
 
 
@@ -90,19 +90,19 @@ def _validation(
 
 
     try:
-        check_2D_str_array(_X, require_all_finite=True)
+        _val_2D_X(_X, _require_all_finite=True)
         raise UnicodeError
     except UnicodeError:
         # join_2D is ignored if data is 1D
         _val_join_2D(_join_2D)
     except:
         try:
-            check_1D_str_sequence(_X, require_all_finite=True)
+            _val_1D_X(_X, _require_all_finite=True)
         except:
             raise TypeError(
-                f"TextJustifierRegExp expected a 1D sequence of strings or a "
-                f"(possibly ragged) 2D array-like of strings. See the docs "
-                f"for clarification of accepted containers."
+                f"TextJustifierRegExp expected a 1D sequence of strings "
+                f"or a (possibly ragged) 2D array-like of strings. \nSee "
+                f"the docs for clarification of accepted containers."
             )
 
 

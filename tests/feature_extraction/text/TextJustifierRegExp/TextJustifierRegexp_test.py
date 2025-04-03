@@ -200,6 +200,7 @@ class TestTextJustifierRegExp:
         # python 2D list accepted
         out = TestCls.transform(list(map(list, _base_text)))
         assert isinstance(out, list)
+        print(f'pizza print {out=}')
         for r_idx in range(len(out)):
             assert isinstance(out[r_idx], list)
             assert all(map(isinstance, out[r_idx], (str for _ in out[r_idx])))

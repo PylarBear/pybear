@@ -50,7 +50,6 @@ def _validation(
     """
 
 
-    # pizza one of the oddball Falses
     _val_1D_2D_X(_X, _require_all_finite=False)
 
     _val_str_replace(_str_replace, _X)

@@ -18,7 +18,7 @@ def _val_2D_X(
 ) -> None:
 
     """
-    Validate X. Must be 2D array-like of strings. Can be empty. <----- pizza validate this!
+    Validate X. Must be 2D array-like of strings. Can be empty.
 
 
     Parameters

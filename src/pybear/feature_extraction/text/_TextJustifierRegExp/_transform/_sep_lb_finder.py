@@ -65,6 +65,7 @@ def _sep_lb_finder(
 
         if _line.endswith(_join_2D):
 
+            # pizza all these endswith need to go to '[regex]$'
             _a =  isinstance(_sep, str) and _line.endswith(_sep)
 
             _b = isinstance(_sep, set) \
