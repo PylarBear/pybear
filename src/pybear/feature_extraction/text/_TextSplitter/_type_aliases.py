@@ -6,8 +6,9 @@
 
 
 
-from typing import Literal
+from typing import Optional
 from typing_extensions import TypeAlias, Union
+import numpy.typing as npt
 
 import re
 import numbers
@@ -19,30 +20,38 @@ import polars as pl
 
 PythonTypes: TypeAlias = Union[list[str], tuple[str], set[str]]
 
+NumpyTypes: TypeAlias = npt.NDArray[str]
+
 PandasTypes: TypeAlias = pd.Series
 
 PolarsTypes: TypeAlias = pl.Series
 
-XContainer: TypeAlias = Union[PythonTypes, PandasTypes, PolarsTypes]
+XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 XWipContainer: TypeAlias = list[list[str]]
 
-SepType: TypeAlias = Union[str, set[str], None]
-StrSepType: TypeAlias = Union[SepType, list[Union[SepType, Literal[False]]]]
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-RegExpType: TypeAlias = Union[str, re.Pattern]
-RegExpSepType: TypeAlias = \
-    Union[RegExpType, None, list[Union[RegExpType, Literal[False]]]]
+SepType: TypeAlias = Union[
+    None,
+    Union[str, re.Pattern[str]],
+    tuple[Union[str, re.Pattern[str]], ...]
+]
+SepsType: TypeAlias = Optional[Union[SepType, list[SepType]]]
 
-MaxSplitType: TypeAlias = Union[numbers.Integral, None]
-StrMaxSplitType: TypeAlias = \
-    Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
-RegExpMaxSplitType: TypeAlias = \
-    Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-FlagType: TypeAlias = Union[numbers.Integral, None]
-RegExpFlagsType: TypeAlias = \
-    Union[FlagType, list[Union[FlagType, Literal[False]]]]
+CaseSensitiveType: TypeAlias = Optional[Union[bool, list[None, bool]]]
+
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+MaxSplitType: TypeAlias = Union[None, numbers.Integral]
+MaxSplitsType: TypeAlias = Optional[Union[MaxSplitType, list[MaxSplitType]]]
+
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+FlagType: TypeAlias = Union[None, numbers.Integral]
+FlagsType: TypeAlias = Optional[Union[FlagType, list[FlagType]]]
 
 
 

@@ -63,6 +63,9 @@ class TextRemover(
     re.compile objects that are intended to match entire words. DO
     NOT PASS A REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE
     CORRECT RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT.
+    DO NOT ESCAPE LITERAL STRINGS, TextRemover WILL DO THAT FOR YOU. If
+    you don't know what any of that means, then you don't need to worry
+    about it.
 
     TR searches always default to case-sensitive, but can be made to
     be case-insensitive. You can globally set this behavior via

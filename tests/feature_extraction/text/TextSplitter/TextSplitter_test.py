@@ -8,6 +8,8 @@
 
 import pytest
 
+import re
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -29,20 +31,33 @@ class TestTextSplitter:
         ]
 
 
-
     def test_empty_X(self):
 
-        TestCls = TextSplitter()
+        TestCls = TextSplitter(sep=' ', maxsplit=0, case_sensitive=False)
 
         out = TestCls.transform([])
 
         assert isinstance(out, list)
-        assert len(out) == 0
+        assert len(out) == 1
+        assert isinstance(out[0], list)
+        assert len(out[0]) == 0
+
+
+    def test_no_op(self):
+
+        TestCls = TextSplitter()
+
+        out = TestCls.transform(list('abcde'))
+
+        # even tho "no-op", still goes to 2D
+        assert isinstance(out, list)
+        assert all(map(isinstance, out, (list for _ in out)))
+        assert np.array_equal(out, list(map(list, 'abcde')))
 
 
     def test_str_split_1(self, _words):
 
-        TestCls = TextSplitter(str_sep={',', "’", ' '})
+        TestCls = TextSplitter(sep=(',', "’", ' '))
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
@@ -62,7 +77,7 @@ class TestTextSplitter:
 
     def test_str_split_2(self, _words):
 
-        TestCls = TextSplitter(str_sep=[{',', "’", ' '}, False])
+        TestCls = TextSplitter(sep=[(',', "’", ' '), None])
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
@@ -82,7 +97,7 @@ class TestTextSplitter:
 
     def test_re_split_1(self, _words):
 
-        TestCls = TextSplitter(regexp_sep="[\s’,]")
+        TestCls = TextSplitter(sep=re.compile("[\s’,]"))
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
@@ -102,7 +117,7 @@ class TestTextSplitter:
 
     def test_re_split_2(self, _words):
 
-        TestCls = TextSplitter(regexp_sep=["[\s’,]", False])
+        TestCls = TextSplitter(sep=[re.compile("[\s’,]"), None])
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
@@ -132,7 +147,7 @@ class TestTextSplitter:
             ["Witch’s", "mummy"]
         ]
 
-        TestCls = TextSplitter(str_sep=" ")
+        TestCls = TextSplitter(sep=" ")
 
 
         # python list accepted
