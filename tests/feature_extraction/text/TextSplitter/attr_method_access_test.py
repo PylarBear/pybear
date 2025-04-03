@@ -33,18 +33,17 @@ class TestAttrAccess:
     # @pytest.fixture
     # def _attrs():
     #     return [
-    #           'str_sep'
-    #           'str_maxsplit'
-    #           'regexp_sep'
-    #           'regexp_maxsplit'
-    #           'regexp_flags'
+    #           'sep'
+    #           'case_sensitiive'
+    #           'maxsplit'
+    #           'flags'
     #     ]
 
 
     @pytest.mark.parametrize('has_seen_data', (True, False))
     def test_attr_access(self, has_seen_data, _X_list):
 
-        TestCls = TextSplitter(str_maxsplit=-1)
+        TestCls = TextSplitter(maxsplit=-1)
 
         assert is_fitted(TestCls) is True
 
@@ -54,11 +53,10 @@ class TestAttrAccess:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # all attrs should be accessible always
-        assert getattr(TestCls, 'str_sep') is None
-        assert getattr(TestCls, 'str_maxsplit') == -1
-        assert getattr(TestCls, 'regexp_sep') is None
-        assert getattr(TestCls, 'regexp_maxsplit') is None
-        assert getattr(TestCls, 'regexp_flags') is None
+        assert getattr(TestCls, 'sep') is None
+        assert getattr(TestCls, 'case_sensitive') is True
+        assert getattr(TestCls, 'maxsplit') == -1
+        assert getattr(TestCls, 'flags') is None
 
 
 
@@ -91,7 +89,7 @@ class TestMethodAccess:
     def test_access_methods(self, _X_list, has_seen_data):
 
 
-        TestCls = TextSplitter(str_maxsplit=-1)
+        TestCls = TextSplitter(maxsplit=-1)
 
         assert is_fitted(TestCls) is True
 
@@ -106,14 +104,13 @@ class TestMethodAccess:
         out = getattr(TestCls, 'get_params')()
         assert isinstance(out, dict)
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
-        for param in ['str_sep', 'str_maxsplit', 'regexp_sep',
-                'regexp_maxsplit', 'regexp_flags']:
+        for param in ['sep', 'case_sensitive', 'maxsplit', 'flags']:
             assert param in out
 
 
-        out = getattr(TestCls, 'set_params')(**{'str_sep': ' '})
+        out = getattr(TestCls, 'set_params')(**{'sep': ' '})
         assert isinstance(out, TextSplitter)
-        assert TestCls.str_sep == ' '
+        assert TestCls.sep == ' '
 
          # v v v v v must see X every time, put these last v v v v v v v
 

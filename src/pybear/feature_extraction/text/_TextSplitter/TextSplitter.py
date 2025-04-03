@@ -11,17 +11,19 @@ from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
     XWipContainer,
-    StrSepType,
-    RegExpSepType,
-    StrMaxSplitType,
-    RegExpMaxSplitType,
-    RegExpFlagsType
+    SepsType,
+    CaseSensitiveType,
+    MaxSplitsType,
+    FlagsType
 )
 
-from ._validation._validation import _validation
-from ._transform._str_core import _str_core
-from ._transform._regexp_core import _regexp_core
+import re
 
+from ._validation._validation import _validation
+from ._regexp_core import _regexp_core
+
+from ..__shared._param_conditioner._param_conditioner import _param_conditioner
+from ..__shared._transform._map_X_to_list import _map_X_to_list
 
 from ....base import (
     FitTransformMixin,
@@ -44,64 +46,91 @@ class TextSplitter(
     """
     Split a dataset of strings on the given separator(s).
 
-    TextSplitter has 2 independent splitting modes that use Python
-    built-in functions, one uses str.split() and the other uses
-    re.split().
-
-    The 2 modes cannot be used simultaneously. Enter values for only
-    those parameters prefixed by 'str_' to use str.split(), or enter
-    values for only those parameters prefixed by 'regexp_' to use
-    re.split(). If no parameters are passed, i.e., all parameters are
-    left to their default values of None, then TextSplitter uses the
-    default splitting for str.split() on every string in the data.
-
-    If in str.split() mode and :param: `str_maxsplit` is None, the
-    default number of splits for str.split() are used. If in re.split()
-    mode and :param: `regexp_maxsplit` or :param: `regexp_flags`  is
-    None, then the default number of splits and the default flags for
-    re.split() are used.
-
-    So why not just use str.split or re.split()? TextSplitter has some
+    So why not just use str.split or re.split? TextSplitter has some
     advantages over the built-ins.
 
-    First, in str.split() mode, multiple splitting criteria can be
-    passed to the :param: `str_sep` parameter to split on multiple
-    character sequences, which str.split() cannot do natively. For
-    example, consider the string "How, now. brown; cow?". This can be
-    split on the comma, period, and semicolon by passing a set to
-    the :param: `str_sep` parameter, such as {',', '.', ';'}. The output
-    will be ["How", " now", " brown", " cow?"].
+    First, multiple splitting criteria can be passed to the :param: `sep`
+    parameter to split on multiple character sequences, which str.split
+    and re.split cannot do natively. For example, consider the string
+    "How, now. brown; cow?". This can be split on the comma, period, and
+    semicolon by passing a tuple to the :param: `sep` parameter, such
+    as (',', '.', ';'). The output will be
+    ["How", " now", " brown", " cow?"].
 
-    Second, the splitting criteria for both splitting modes are
-    simultaneously mapped over a list of strings, performing many splits
-    in a single operation. Both str.split() and re.split() only accept
-    one string argument.
+    Second, the splitting criteria are simultaneously mapped over a list
+    of strings, performing many splits in a single operation. Both
+    str.split and re.split only accept one string argument.
 
     Third, the split criteria and supporting parameters can be tweaked
-    for individual strings in the data by passing them as lists. This
-    allows fine-grained control over splitting every string in the data.
+    for individual strings in the data by passing them in lists. This
+    allows fine-grained control over splitting every string in the data,
+    if you need it.
 
-    TextSplitter is a full-fledged scikit-style transformer. The only
-    operative method is :meth: `transform`, which accepts 1D list-likes
-    of strings. It has no-op :meth: `partial_fit`, :meth: `fit`,
-    and :meth: `score` methods, so that it integrates into larger
-    workflows like scikit pipelines and dask_ml wrappers. It also
-    has :meth: `get_params` and :meth: `set_params` methods.
+    Finally, TextSplitter is a scikit-style transformer and can be
+    integrated into larger workflows.
 
-    When passing multiple split criteria in str.split() mode, i.e., you
-    have passed a set of string characters to the :param: `str_sep`
-    parameter, the :param: `str_maxsplit` parameter is applied
-    cumulatively for all separators working from left to right across
-    the strings in the data. For example, consider the string "One, two,
+    TextSplitter (TS) performs splits by searching for the user-given
+    separators in the text and splits strings on that character sequence
+    when one is found. The matching separator sequence is NOT preserved
+    in the text when the split is made. You can tell TextSplitter what
+    separators to split with by passing None, literal strings, or regular
+    expressions in re.compile objects, to :param: `sep`. None does not
+    split. A single literal string or re.compile object will split the
+    text on all occurrences of that pattern in the text body. When using
+    regex, ALWAYS pass your regex patterns in a re.compile object. DO
+    NOT PASS A REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE
+    CORRECT RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT.
+    DO NOT ESCAPE LITERAL STRINGS, TextSplitter WILL DO THAT FOR YOU.
+    If you don't know what any of that means, then you don't need to
+    worry about it.
+
+    You can pass tuples of literal strings and/or re.compile objects
+    to :param: `sep` to split on multiple separator patterns at the same
+    time. Also, Nones, literal strings, re.compile objects, and tuples
+    of literal strings and/or re.compile objects can be passed in a
+    list. The number of entries in the list must equal the number of
+    strings in the data. Each entry in the list is applied to the
+    corresponding row in the data.
+
+    If no parameters are passed, i.e., all parameters are left to their
+    default values at instantiation, then TextSplitter does a no-op
+    split, but does change your data from 1D to 2D.
+
+    Separator searches always default to case-sensitive, but can be made
+    to be case-insensitive. You can globally set this behavior via
+    the :param: `case_sensitive` parameter. For those of you that know
+    regex, you can also put flags in the re.compile objects passed
+    to :param: `sep`, or flags can be set globally via :param: `flags`.
+    Case-sensitivity is generally controlled by :param: `case_sensitive`
+    but IGNORECASE flags passed via re.compile objects or :param: `flags`
+    will always overrule `case_sensitive`. :param: `case_sensitive` also
+    accepts lists so that you can control this behavior down to the
+    individual string.
+
+    TextSplitter mimics the 'maxsplit' behavior of re.split. See the
+    docs for re.split for more information. Therefore, when passing
+    values to :param: `maxsplit`, obey the rules for 'maxsplit' in
+    re.split. When passing multiple split criteria, i.e., you have
+    passed a tuple  of literal strings and/or re.compile objects
+    to :param: `sep`,  the :param: `maxsplit` parameter is applied
+    cumulatively for all  separators working from left to right across
+    a string in the data. For example, consider the string "One, two,
     buckle my shoe. Three, four, shut the door.". We are going to split
     on commas and periods, and perform 4 splits, working from left to
-    right. We enter :param: `str_sep` as {',', '.'} and pass the number
-    4 to :param: 'str_maxsplits'. Then we pass the string in a list to
+    right. We enter :param: `sep` as (',', '.') and pass the number
+    4 to :param: `maxsplit`. Then we pass the string in a list to
     the :meth: `transform` method of TextSplitter. The output will be
     ["One", " two", " buckle my shoe", " Three", " four, shut the door."]
-    The :param: `str_maxsplit` argument worked from left to right and
+    The :param: `maxsplit` argument worked from left to right and
     performed 4 splits on commas and periods cumulatively counting the
     application of the splits for all separators.
+
+    TextSplitter is a full-fledged scikit-style transformer. It has
+    functional :meth: `transform` and :meth: `fit_transform` methods,
+    as well as :meth: `get_params` and :meth: `set_params` methods. It
+    has no-op :meth: `partial_fit`, :meth: `fit`, and :meth: `score`
+    methods, so that it integrates into larger workflows like scikit
+    pipelines and dask_ml wrappers.
 
     TextSplitter accepts 1D list-like vectors of strings. Accepted
     containers include python lists, tuples, and sets, numpy vectors,
@@ -111,57 +140,46 @@ class TextSplitter(
 
     Parameters
     ----------
-    str_sep:
-        Optional[StrSepType], default=None - the separator(s) to split
-        the strings in X on when in str.split() mode. None applies the
-        default str.split() criteria to every string in X. When passed
-        as a single character string, that is applied to every string in
-        X. When passed as a set of character strings, each separator in
-        the set is applied to every string. If passed as a list of
-        separators, the number of entries must match the number of
-        strings in X, and each string or set of strings is applied to
-        the corresponding string in X. If any entry in the list is False,
-        no split is performed on the corresponding string in X.
-        Case-sensitive.
-    str_maxsplit:
-        Optional[StrMaxSplitType], default=None - the maximum number of
-        splits to perform when in str.split() mode. Only applies when
-        something is passed to :param: `str_sep`. If None, the default
-        number of splits for str.split() is used on every string in X.
-        If passed as an integer, that number is applied to every string
-        in X. If passed as a list, the number of entries must match the
-        number of strings in X, and each is applied correspondingly to X,
-        subject to the rules for Nones and numbers stated above.  If any
-        entry in the list is False, no split is performed on the
-        corresponding string in X.
-    regexp_sep:
-        Optional[RegExpSepType], default=None - if using regular
-        expressions, the regexp pattern(s) to split the strings in X on.
-        If a single regular expression or re.Pattern object is passed,
-        that split is performed on every entry in X. If passed as a list,
-        the number of entries must match the number of strings in X, and
-        each pattern is applied to the corresponding string in X. If any
-        entry in the list is False, no split is performed for that string
+    sep:
+        Optional[SepsType], default=None - the separator(s) to split
+        the strings in X on. None skips every string in X, performing
+        no splits. When passed as a single literal character string,
+        that is applied to every string in X. If a single regular
+        expression in a re.compile object is passed, that split is
+        performed on every entry in X. When passed as a tuple of literal
+        character strings and/or re.compile objects, each separator in
+        the tuple is applied to every string, subject to the allowance
+        set by :param: `maxsplit`. If passed as a list of separators,
+        the number of entries must match the number of strings in X,
+        and each literal, re.compile, or tuple of literals/re.compiles
+        is applied to the corresponding string in X. If any entry in the
+        list is None, no split is performed on the corresponding string
         in X.
-    regexp_maxsplit:
-        Optional[RegExpMaxSplitType], default=None - the maximum number
-        of splits to perform. Only applies if a pattern is passed
-        to :param: `regexp_sep`. If None, the default number of splits
-        for re.split() are performed. If passed as a list, the number of
-        entries must match the number of strings in X. Integers and
-        Nones in the list follow the same rules stated above. If any
-        entry in the list is False, no split is performed for that
+    case_sensitive:
+        Optional[CaseSensitiveType] - global setting for case-sensitivity.
+        If True (the default) then all searches are case-sensitive. If
+        False, TS will look for matches regardless of case. This setting
+        is overriden when IGNORECASE flags are passed in re.compile
+        objects or to :param: `flags`.
+    maxsplit:
+        Optional[MaxSplitsType], default=None - the maximum number of
+        splits to perform on a string. Only applies when something is
+        passed to :param: `sep`. If None, the default number of splits
+        for re.split() is used on every string in X. If passed as an
+        integer, that number is applied to every string in X. If passed
+        as a list, the number of entries must match the number of strings
+        in X, and each is applied correspondingly to X.  If any entry
+        in the list is None, no split is performed on the corresponding
         string in X.
-    regexp_flags:
-        Optional[RegExpFlagsType] - the flags parameter for re.split, if
-        regular expressions are being used. Only applies if a pattern is
-        passed to :param: `regexp_sep`. If None, the default flags for
-        re.split() are used on every string in X. If a single flags
-        object, that is applied to every string in X. If passed as a
-        list, the number of entries must match the number of strings in
-        X. Flags objects and Nones in the list follow the same rules
-        stated above. If any entry in the list is False, no split is
-        performed for that string in X.
+    flags:
+        Optional[FlagsType], default=None - the flags parameter for
+        the separator searches. If you do not know what this means then
+        ignore this and just use :param: `case_sensitive`. If None,
+        the default flags for re.split() are used on every string in X.
+        If a single flags object, that is applied to every string in X.
+        If passed as a list, the number of entries must match the number
+        of strings in X. Flags objects and Nones in the list follow the
+        same rules stated above.
 
 
     Notes
@@ -171,6 +189,9 @@ class TextSplitter(
     PythonTypes:
         Union[list[str], tuple[str], set[str]]
 
+    NumpyTypes:
+        npt.NDArray[str]
+
     PandasTypes:
         pd.Series
 
@@ -178,65 +199,59 @@ class TextSplitter(
         pl.Series
 
     XContainer:
-        Union[PythonTypes, PandasTypes, PolarsTypes]
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
     XWipContainer:
         list[list[str]]
 
     SepType:
-        Union[str, set[str], None]
+        Union[
+            None,
+            Union[str, re.Pattern[str]],
+            tuple[Union[str, re.Pattern[str]], ...]
+        ]
+    SepsType:
+        Optional[Union[SepType, list[SepType]]]
 
-    StrSepType:
-        Union[SepType, list[Union[SepType, Literal[False]]]]
-
-    RegExpType:
-        Union[str, re.Pattern]
-
-    RegExpSepType:
-        Union[RegExpType, None, list[Union[RegExpType, Literal[False]]]]
+    CaseSensitiveType:
+        Optional[Union[bool, list[None, bool]]]
 
     MaxSplitType:
-        Union[numbers.Integral, None]
-
-    StrMaxSplitType:
-        Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
-
-    RegExpMaxSplitType:
-        Union[MaxSplitType, list[Union[MaxSplitType, Literal[False]]]]
+        Union[None, numbers.Integral]
+    MaxSplitsType:
+        Optional[Union[MaxSplitType, list[MaxSplitType]]]
 
     FlagType:
-        Union[numbers.Integral, None]
-
-    RegExpFlagsType:
-        Union[FlagType, list[Union[FlagType, Literal[False]]]]
+        Union[None, numbers.Integral]
+    FlagsType:
+        Optional[Union[FlagType, list[FlagType]]]
 
 
     See Also
     --------
-    str.split()
     re.split()
 
 
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextSplitter as TS
-    >>> Trfm = TextSplitter(str_sep=' ', str_maxsplit=2)
+    >>> Trfm = TextSplitter(sep=' ', maxsplit=2)
     >>> X = [
     ...     'This is a test.',
     ...     'This is only a test.'
     ... ]
     >>> Trfm.fit(X)
-    TextSplitter(str_maxsplit=2, str_sep=' ')
+    TextSplitter(maxsplit=2, sep=' ')
     >>> Trfm.transform(X)
     [['This', 'is', 'a test.'], ['This', 'is', 'only a test.']]
 
-    >>> Trfm = TextSplitter(regexp_sep='s', regexp_maxsplit=2)
+    >>> Trfm = TextSplitter(sep=re.compile('s'), maxsplit=2)
     >>> X = [
     ...     'This is a test.',
     ...     'This is only a test.'
     ... ]
     >>> Trfm.fit(X)
-    TextSplitter(regexp_maxsplit=2, regexp_sep='s')
+    TextSplitter(maxsplit=2, sep=re.compile('s'))
     >>> Trfm.transform(X)
     [['Thi', ' i', ' a test.'], ['Thi', ' i', ' only a test.']]
 
@@ -247,18 +262,16 @@ class TextSplitter(
     def __init__(
         self,
         *,
-        str_sep: Optional[StrSepType] = None,
-        str_maxsplit: Optional[StrMaxSplitType] = None,
-        regexp_sep: Optional[RegExpSepType] = None,
-        regexp_maxsplit: Optional[RegExpMaxSplitType] = None,
-        regexp_flags: Optional[RegExpFlagsType] = None
+        sep: SepsType = None,
+        case_sensitive: CaseSensitiveType = True,
+        maxsplit: MaxSplitsType = None,
+        flags: FlagsType = None
     ):
 
-        self.str_sep = str_sep
-        self.str_maxsplit = str_maxsplit
-        self.regexp_sep = regexp_sep
-        self.regexp_maxsplit = regexp_maxsplit
-        self.regexp_flags = regexp_flags
+        self.sep = sep
+        self.case_sensitive = case_sensitive
+        self.maxsplit = maxsplit
+        self.flags = flags
 
 
     # handled by mixins
@@ -290,11 +303,10 @@ class TextSplitter(
         Parameters
         ----------
         X:
-            XContainer - a 1D sequence of strings
-            to be split.
+            XContainer - a 1D sequence of strings to be split. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
-            the data.
+            the data. Always ignored.
 
 
         Return
@@ -322,10 +334,10 @@ class TextSplitter(
         Parameters
         ----------
         X:
-            XContainer - a 1D sequence of strings to be split.
+            XContainer - a 1D sequence of strings to be split. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
-            the data.
+            the data. Always ignored.
 
 
         Return
@@ -367,51 +379,34 @@ class TextSplitter(
 
         """
 
+
         _validation(
             X,
-            self.str_sep,
-            self.str_maxsplit,
-            self.regexp_sep,
-            self.regexp_maxsplit,
-            self.regexp_flags
+            self.sep,
+            self.case_sensitive,
+            self.maxsplit,
+            self.flags
         )
 
 
         if copy:
-            _X = list(copy_X(X))
+            _X = copy_X(X)
         else:
-            _X = list(X)
+            _X = X
 
-        _str_mode = False
+        _X: XWipContainer = _map_X_to_list(_X)
 
-        _a = bool(self.str_sep)
-        _b = bool(self.str_maxsplit)
-        _c = bool(self.regexp_sep)
-        _d = bool(self.regexp_maxsplit)
-        _e = bool(self.regexp_flags)
-
-        if any((_a, _b)) or not any((_a, _b, _c, _d, _e)):
-            _str_mode = True
-
-        if _str_mode:
-
-            _X = _str_core(
-                _X,
-                self.str_sep,
-                self.str_maxsplit
-            )
-
-        elif not _str_mode:  # regexp
-
-            _X = _regexp_core(
-                _X,
-                self.regexp_sep,
-                self.regexp_maxsplit,
-                self.regexp_flags
-            )
+        _rr = _param_conditioner(
+            self.sep,
+            self.case_sensitive,
+            self.flags,
+            _order_matters=False,
+            _n_rows=len(_X),
+            _name='sep'
+        )
 
 
-        return _X
+        return _regexp_core(_X, _rr, self.maxsplit)
 
 
     def score(
@@ -427,10 +422,10 @@ class TextSplitter(
         Parameters
         ----------
         X:
-            XContainer - a 1D sequence of strings.
+            XContainer - a 1D sequence of strings. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
-            the data.
+            the data. Always ignored.
 
 
         Return

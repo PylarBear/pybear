@@ -12,7 +12,8 @@ import re
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextRemover._validation import _validation
+from pybear.feature_extraction.text._TextSplitter._validation._validation \
+    import _validation
 
 
 
@@ -23,8 +24,8 @@ class TestValidation:
 
     # just make sure that it accepts all good parameters, and that the
     # conditionals for passing parameters are enforced.
-    # 1) cannot pass 'flags' if 'remove' is not passed
-    # 2) cannot pass 'case_sensitive' as a list if 'remove' is not passed
+    # 1) cannot pass 'flags' if 'sep' is not passed
+    # 2) cannot pass 'case_sensitive' as a list if 'sep' is not passed
 
 
     @staticmethod
@@ -40,20 +41,8 @@ class TestValidation:
 
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_dim_2():
-        return [
-            ['Despair', 'thy' 'charm, '],
-            ['And', 'let', 'the', 'angel', 'whom', 'thou', 'still', 'hast' 'served '],
-            ['Tell', 'thee', 'Macduff', 'was '],
-            ['from', 'his', "mother’s", 'womb'],
-            ['Untimely', 'ripped.']
-        ]
-
-
-    @staticmethod
     @pytest.fixture(scope='function')
-    def remove_seq_1():
+    def sep_seq_1():
         return [
             (' ', ',', re.compile(re.escape('.'))),
             '',
@@ -71,19 +60,32 @@ class TestValidation:
 
     @staticmethod
     @pytest.fixture(scope='function')
+    def maxsplit_seq_1():
+        return [4, 0, 0, 0, 0]
+
+
+    @staticmethod
+    @pytest.fixture(scope='function')
     def flags_seq_1():
         return [None, re.I, None, re.I | re.X, None]
 
 
-    @pytest.mark.parametrize('dim', (1, 2))
     @pytest.mark.parametrize('X_container', (list, tuple, np.ndarray))
-    @pytest.mark.parametrize('remove, remove_container',
+    @pytest.mark.parametrize('sep, sep_container',
         (
             (None, None),
             (' ', None),
             ((' ', '\n', '\s'), None),
-            ('remove_seq_1', list),
-            ('remove_seq_1', tuple)
+            ('sep_seq_1', list),
+            ('sep_seq_1', tuple)
+        )
+    )
+    @pytest.mark.parametrize('maxsplit, maxsplit_container',
+        (
+            (None, None),
+            (0, None),
+            ('maxsplit_seq_1', list),
+            ('maxsplit_seq_1', tuple)
         )
     )
     @pytest.mark.parametrize('case_sensitive, case_sensitive_container',
@@ -102,42 +104,37 @@ class TestValidation:
             ('flags_seq_1', tuple)
         )
     )
-    @pytest.mark.parametrize('remove_empty_rows', (True, False, 'garbage'))
+    @pytest.mark.parametrize('sep_empty_rows', (True, False, 'garbage'))
     def test_accuracy(
-        self, dim, X_container, remove, case_sensitive, flags, remove_empty_rows,
-        _text_dim_1, _text_dim_2, remove_container, case_sensitive_container,
-        flags_container, remove_seq_1, case_sensitive_seq_1, flags_seq_1
+        self, X_container, sep, case_sensitive, maxsplit, flags, sep_empty_rows,
+        _text_dim_1, sep_container, case_sensitive_container, flags_seq_1,
+        maxsplit_container, flags_container, sep_seq_1, case_sensitive_seq_1,
+        maxsplit_seq_1
     ):
 
         _type_error = False
         _value_error = False
 
-        # manage dim of X and container -- -- -- -- -- -- -- -- -- -- --
-        if dim == 1:
-            if X_container is np.ndarray:
-                _X = np.array(_text_dim_1)
-            else:
-                _X = X_container(_text_dim_1)
-            assert isinstance(_X, X_container)
-        elif dim == 2:
-            if X_container is np.ndarray:
-                _X = np.fromiter(map(lambda x: np.array(x), _text_dim_2), dtype=object)
-            else:
-                _X = X_container(map(X_container, _text_dim_2))
-            assert isinstance(_X, X_container)
-            assert all(map(isinstance, _X, (X_container for _ in _X)))
+        # manage container -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        if X_container is np.ndarray:
+            _X = np.array(_text_dim_1)
         else:
-            raise Exception
-        # manage dim of X and container -- -- -- -- -- -- -- -- -- -- --
+            _X = X_container(_text_dim_1)
+        assert isinstance(_X, X_container)
+        # END manage container -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # manage param containers, when applicable -- -- -- -- -- -- -- --
-        if remove == 'remove_seq_1':
-            remove = remove_container(remove_seq_1)
-            assert isinstance(remove, remove_container)
+        if sep == 'sep_seq_1':
+            sep = sep_container(sep_seq_1)
+            assert isinstance(sep, sep_container)
 
         if case_sensitive == 'case_sensitive_seq_1':
             case_sensitive = case_sensitive_container(case_sensitive_seq_1)
             assert isinstance(case_sensitive, case_sensitive_container)
+
+        if maxsplit == 'maxsplit_seq_1':
+            maxsplit = maxsplit_container(maxsplit_seq_1)
+            assert isinstance(maxsplit, maxsplit_container)
 
         if flags == 'flags_seq_1':
             flags = flags_container(flags_seq_1)
@@ -145,24 +142,28 @@ class TestValidation:
         # END manage param containers, when applicable -- -- -- -- -- --
 
         # manage exceptions -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        if isinstance(remove, tuple) and len(remove) == 5:
+
+        if isinstance(sep, tuple) and len(sep) == 5:
             # need to distinguish between the valid tuple of patterns and
             # the list of patterns wrongfully passed as a tuple
             _type_error = True
 
-        if isinstance(case_sensitive, list) and not remove:
+        if isinstance(case_sensitive, list) and not sep:
             _value_error = True
 
         if isinstance(case_sensitive, (set, tuple)):
             _type_error = True
 
-        if dim == 2 and not isinstance(remove_empty_rows, bool):
+        if isinstance(maxsplit, (set, tuple)):
             _type_error = True
+
+        if maxsplit is not None and not sep:
+            _value_error = True
 
         if isinstance(flags, (set, tuple)):
             _type_error = True
 
-        if flags is not None and not remove:
+        if flags is not None and not sep:
             _value_error = True
         # END manage exceptions -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -172,17 +173,17 @@ class TestValidation:
             with pytest.raises((TypeError, ValueError)):
                 _validation(
                     _X,
-                    _remove=remove,
+                    _sep=sep,
                     _case_sensitive=case_sensitive,
-                    _remove_empty_rows=remove_empty_rows,
+                    _maxsplit=maxsplit,
                     _flags=flags
                 )
         else:
             out = _validation(
                 _X,
-                _remove=remove,
+                _sep=sep,
                 _case_sensitive=case_sensitive,
-                _remove_empty_rows=remove_empty_rows,
+                _maxsplit=maxsplit,
                 _flags=flags
             )
 
