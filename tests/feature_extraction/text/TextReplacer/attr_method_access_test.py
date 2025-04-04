@@ -33,15 +33,16 @@ class TestAttrAccess:
     # @pytest.fixture
     # def _attrs():
     #     return [
-    #         'str_replace',
-    #         'regexp_replace'
+    #         'replace',
+    #         'case_sensitive',
+    #         'flags'
     #     ]
 
 
     @pytest.mark.parametrize('has_seen_data', (True, False))
     def test_attr_access(self, has_seen_data, _X_list):
 
-        TestCls = TextReplacer(str_replace=(' ', ','))
+        TestCls = TextReplacer(replace=(' ', ','))
 
         assert is_fitted(TestCls) is True
 
@@ -51,8 +52,9 @@ class TestAttrAccess:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # all attrs should be accessible always
-        assert getattr(TestCls, 'str_replace') == (' ', ',')
-        assert getattr(TestCls, 'regexp_replace') is None
+        assert getattr(TestCls, 'replace') == (' ', ',')
+        assert getattr(TestCls, 'case_sensitive') is True
+        assert getattr(TestCls, 'flags') is None
 
 
 
@@ -85,7 +87,7 @@ class TestMethodAccess:
     def test_access_methods(self, _X_list, has_seen_data):
 
 
-        TestCls = TextReplacer(regexp_replace=('[a-m]', ''))
+        TestCls = TextReplacer(replace=('[a-m]', ''))
 
         assert is_fitted(TestCls) is True
 
@@ -100,14 +102,15 @@ class TestMethodAccess:
         out = getattr(TestCls, 'get_params')()
         assert isinstance(out, dict)
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
-        for param in ['str_replace', 'regexp_replace']:
+        for param in ['replace', 'case_sensitive', 'flags']:
             assert param in out
-        assert out['str_replace'] is None
-        assert out['regexp_replace'] == ('[a-m]', '')
+        assert out['replace'] == ('[a-m]', '')
+        assert out['case_sensitive'] is True
+        assert out['flags'] is None
 
-        out = getattr(TestCls, 'set_params')(**{'regexp_replace': ('A', '')})
+        out = getattr(TestCls, 'set_params')(**{'replace': ('A', '')})
         assert isinstance(out, TextReplacer)
-        assert TestCls.regexp_replace == ('A', '')
+        assert TestCls.replace == ('A', '')
 
          # v v v v v must see X every time, put these last v v v v v v v
 
