@@ -85,6 +85,26 @@ class TestTextReplacer:
         assert np.array_equal(out, ['!@#', 'b', 'c', 'd', '^&*'])
 
 
+    def test_str_str_callable_works(self, _words):
+
+
+        def crazy_callable(_str: str) -> str:
+
+            return 'abcdefghijklmno'.find(_str.lower()) * _str
+
+
+        TestCls = TextReplacer(
+            replace=(re.compile('.'), crazy_callable)
+        )
+
+        out = TestCls.fit_transform(_words)
+
+        assert np.array_equal(out, ['', 'b', 'cc', 'ddd', 'eeee'])
+
+
+
+
+
     def test_str_replace_1(self, _words):
 
         TestCls = TextReplacer(replace=('A', 'C'), case_sensitive=False)
@@ -158,6 +178,22 @@ class TestTextReplacer:
             out,
             [['AB'], ['!@#$%^'], ['EF'], ['GH'], ['IJ']]
         ))
+
+
+    def test_order_of_replacement(self):
+
+        _words = ['be', 'sure', 'to', 'drink', 'your', 'ovaltine']
+
+        TestCls = TextReplacer(
+            replace=(('rin', 'Q.Q'), ('.Q', 'c'), ('Q', 'i'))
+        )
+
+        out = TestCls.fit_transform(_words)
+
+        assert np.array_equal(
+            out,
+            ['be', 'sure', 'to', 'dick', 'your', 'ovaltine']
+        )
 
 
     def test_various_input_containers(self, _words):

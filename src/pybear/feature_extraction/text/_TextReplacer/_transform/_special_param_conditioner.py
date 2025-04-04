@@ -231,7 +231,7 @@ def _special_param_conditioner(
         # otherwise must be [tuple(Pattern, str), ...]
         elif isinstance(_patterns, list) and len(_patterns) == 1:
             assert isinstance(_patterns[0], re.Pattern)
-            assert isinstance(_replaces[0], str)
+            assert isinstance(_replaces[0], (str, Callable))
             _replace.append((_patterns[0], _replaces[0]))
         elif isinstance(_patterns, list): # and len(_patterns) > 1:
             # this must be a tuple of pairs

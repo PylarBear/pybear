@@ -17,6 +17,8 @@ from ._type_aliases import (
     FlagsType
 )
 
+import re
+
 from ._validation._validation import _validation
 from ._transform._special_param_conditioner import _special_param_conditioner
 from ._transform._regexp_1D_core import _regexp_1D_core
@@ -43,83 +45,104 @@ class TextReplacer(
 ):
 
     """
-    Search 1D vectors or (possibly ragged) 2D arrays for character
-    substrings and make one-to-one replacements.
+    Search 1D vectors or (possibly ragged) 2D arrays of text data for
+    character substrings and make one-to-one replacements. TextReplacer
+    (TR) can search for patterns to replace by literal strings or regex
+    patterns.
 
-    TextReplacer (TR)
-
-    The incremental benefit of TR over the 2 foundational functions is
-    that you can quickly apply multiple replacement criteria over the
-    entire text body. Also, should you need granular control of
-    replacements at the individual row level, TR allows customized
-    search and replacement criteria for each row in your data.
+    So why not just use str.replace or re.sub? TextReplacer (TR) provides
+    a few conveniences beyond the python built-ins. First, you can
+    quickly apply multiple replacement criteria over the entire text
+    body in one step. Second, you won't need to put in multiple search
+    patterns to manage case-sensitivity. TR has a :param: `case-sensitive`
+    parameter that allows you to globally toggle this behavior. Third,
+    should you need granular control of replacements at the individual
+    row level, TR allows customized search and replacement criteria for
+    each row in your data. Finally, TR is a full-blown scikit-style
+    transformer, and can be incorporated into larger workflows, like
+    pipelines.
 
     For those who don't know how to write regular expressions or don't
-    want to spend the time fine-tuning the cryptic patterns, TR's exact
-    string matching mode provides quick access to search and replace
-    functionality with multiple criteria. str.replace mode is always
-    case-sensitive.
+    want to spend the time fine-tuning the patterns, TR's exact string
+    matching provides quick access to search and replace functionality
+    with multiple criteria. For those who do know regex, TR also accepts
+    regular expressions via re.compile objects.
 
-    TR regular expression search and replace has the full functionality
-    of re.sub. You can pass your search patterns as strings or re.Pattern
-    objects. You can pass a callable as the replacement value for your
-    search. For example, a TR regexp replacement criteria might be
-    ('[a-m]', your_callable()). If you need to use flags, they can be
-    passed inside a re.compile object as a search criteria, or as an
-    argument to the re.sub function (but not both!) For example, a
-    search criteria for the :param: `regexp_replace` parameter might be
-    (re.compile('a', re.I), '', 0). In this case, the re.I flag will
-    make your search case agnostic.
+    TR accepts find/replace pairs in tuples to the :param: `replace`
+    parameter. In the first position of the tuple, specify the substring
+    pattern to be searched for in your text. Provide a literal string or
+    re.compile object containing your regex pattern intended to match
+    substrings. DO NOT PASS A REGEX PATTERN AS A LITERAL STRING. YOU
+    WILL NOT GET THE CORRECT RESULT. ALWAYS PASS REGEX PATTERNS IN A
+    re.compile OBJECT. DO NOT ESCAPE LITERAL STRINGS, TextReplacer WILL
+    DO THAT FOR YOU. If you don't know what any of that means, then you
+    don't need to worry about it.
 
-    The search / replace criteria that you enter for :param: `str_replace`
-    (string mode) and :param: `regexp_replace` (regexp mode) will be
-    passed directly to str.replace and re.sub, respectively. To construct
-    input for these parameters, build the signature of the target
-    function inside a tuple. For example, the minimum arguments required
-    for str.replace are 'old' and 'new', and can take an optional 'count'
-    argument. For the former case, pass your arguments in a tuple as
-    ('old string', 'new string'), where str.replace will use its default
-    value for count. For the latter case, pass your arguments as
-    ('old string', 'new string', count). Apply the same logic to the
-    signature of re.sub to pass arguments to :param: `regexp_replace`.
-    Other than the target string itself, re.sub takes 2 required
-    arguments and up to 2 other optional arguments. Therefore, you can
-    pass tuples of 2, 3, or 4 items to :param: `regexp_replace`. The
-    tuples must be built in the same order as the signature of the target
-    function. To pass a non-default value for the last argument, you must
-    pass all the arguments. When working with 2D data, the 'count'
-    arguments for both :param: `str_replace` and :param: `regexp_replace`
-    apply to each string in the line, not to the whole line.
+    In the second position of the tuple, specify what to substitute
+    in when a match against the corresponding pattern is found. The
+    replacement value for your search pattern can be specified as a
+    literal string or a callable that accepts the substring in your text
+    that matched the pattern, does some operation on it, and returns a
+    single string. An example regex replacement criteria might be
+    (re.compile('[a-m]'), your_callable()).
 
-    You can enter multiple tuples of arguments for :param: `str_replace`
-    and :param: `regexp_replace` to quickly execute multiple search
-    criteria on your data. Pass the tuples described above to python
-    sets. For example, multiple search criteria for string mode might be
-    {(',', ''), ('.', '', 1), (';' '')}. Similarly, multiple criteria
-    for regexp mode might be {('[a-m]', 'A', 0, re.I), ('@', '', 0)}.
-    TR works from left to right through the set when searching and
-    replacing. Knowing this, the replacements can be gamed so that later
-    searches are dependent on earlier replacements.
+    You can pass multiple find/replace tuples to :param: `replace`
+    to quickly execute multiple search criteria on your data. Pass
+    multiple find/replace tuples described above in one enveloping
+    tuple. An example might be ((',', ''), ('.', ''), (';' '')). TR
+    works from left to right through the tuple when searching and
+    replacing. Knowing this, the replacements can be gamed so that
+    later searches are dependent on earlier replacements.
 
     To make fine-grained replacements on the individual rows of your
     data, you can pass a python list of the above-described tuples and
-    sets. The length of the list must match the length of the data, for
-    both 1D and 2D data. To turn off search/replace for particular rows
-    of the data, put False in those indices in the list. So your list
-    can take tuples of arguments, sets of tuples of arguments, and
-    literal False.
+    tuples-of-tuples. The length of the list must match the length of
+    the data, for both 1D and 2D datasets. To turn off search/replace for
+    particular rows of the data, put None in those indices in the list.
+    So the list you pass to :param: `replace` can contain find/replace
+    tuples, tuples of find/replace tuples, and None.
+
+    TR searches always default to case-sensitive, but can be made to
+    be case-insensitive. You can globally set this behavior via
+    the :param: `case_sensitive` parameter. For those of you that know
+    regex, you can also put flags in the re.compile objects passed
+    to :param: `replace`, or flags can be set globally via :param: flags.
+    Case-sensitivity is generally controlled by :param: `case_sensitive`
+    but IGNORECASE flags passed via re.compile objects or :param: `flags`
+    will always overrule `case_sensitive`. :param: `case_sensitive` also
+    accepts lists so that you can control this behavior down to the
+    individual row. When passed as a list, the number of entries
+    in the list must equal the number of rows in the data. The list can
+    contain True, False, and/or None. When None, the default of True is
+    applied.
+
+    If you need to use flags, they can be passed directly to a re.compile
+    object in the search criteria. For example, a search criteria might
+    be (re.compile('a', re.I), ''). In this case, the re.I flag will make
+    that specific search case agnostic. re flags can be passed globally
+    to the :param: `flags` parameter. Any flags passed globally will be
+    joined with any flags passed to the individual compile objects by
+    bit-wise OR. You can also exercise fine-grained control on certain
+    rows of data for the `flags` parameter. When passed as a list, the
+    number of entries in the list must equal the number of rows in the
+    data. The list can contain re flags (integers) or None to not apply
+    any (new) flags to that row. Even if None is passed to a particular
+    index of the list, any flags passed to re.compile objects would
+    still take effect.
+
+    TR does not have a 'count' parameter as you would see with re.sub
+    and str.replace. When replacement is not disabled for a certain row,
+    TR always makes the specified substitution for everything that
+    matches your pattern. In a way, TR has a more basic implementation
+    of this functionality through its all-or-None behavior. You can pass
+    a list to :param: `replace` and set the value for a particular row
+    index of the data to None, in which case zero replacements will be
+    made for that row. Otherwise, all replacements will be made on that
+    row of data.
 
     TR can be instantiated with the default parameters, but this will
-    result in a no-op. To actually make replacements, you must set at
-    least one of :param: `str_replace` or :param: `regexp_replace`.
-
-    You can pass search/replace criteria to both string mode and regexp
-    mode simultaneously, if you wish. TR does the regexp replacements
-    first, so know that whatever string searches are to be done will see
-    the text as it was left after the regexp replacements.
-
-    TR does not remove any strings completely. It can leave empty
-    strings. Use pybear TextRemover to remove them, if needed.
+    result in a no-op. To actually make replacements, you must pass at
+    least 1 find/replace pair to :param: `replace`.
 
     TR is a scikit-style transformer with partial_fit, fit, transform,
     fit_transform, set_params, get_params, and score methods. TR is
@@ -135,21 +158,36 @@ class TextReplacer(
     array-likes of strings. Accepted 1D containers include python lists,
     tuples, and sets, numpy vectors, pandas series, and polar series.
     Accepted 2D objects include python embedded sequences of sequences,
-    numpy arrays, pandas dataframes, and polars dataframe, When passed a
-    1D list-like, a python list of the same size is returned. When
+    numpy arrays, pandas dataframes, and polars dataframes. When passed
+    a 1D list-like, a python list of the same size is returned. When
     passed a possibly ragged 2D array-like, an identically-shaped list
     of python lists is returned.
 
 
     Parameters
     ----------
-    str_replace:
-        StrReplaceType, default=None - the character substring(s) to
-        replace by exact text matching and their replacement(s). Uses
-        str.replace. Case-sensitive.
-    regexp_replace:
-        RegExpReplaceType, default=None - the regular expression
-        pattern(s) to substitute and their replacement(s). Uses re.sub.
+    replace:
+        ReplaceType, default=None - the literal string pattern(s) or
+        regex pattern(s) to search for and their replacement value(s).
+    case_sensitive:
+        Optional[CaseSensitiveType] - global setting for case-sensitivity.
+        If True (the default) then all searches are case-sensitive. If
+        False, TR will look for matches regardless of case. This setting
+        is overriden when IGNORECASE flags are passed in re.compile
+        objects or to :param: `flags`.
+    flags:
+        Optional[FlagsType] - the flags values(s) for the substring
+        searches. Internally, TR does all its searching for substrings
+        with re.sub, therefore flags can be passed whether you are
+        searching for literal strings or regex patterns. If you do not
+        know regular expressions, then you do not need to worry about
+        this parameter. If None, the default flags for re.sub()
+        are used globally. If a single flags object, that is applied
+        globally. If passed as a list, the number of entries must match
+        the number of rows in the data. Flags objects and Nones in the
+        list follow the same rules stated above, but at the row level.
+        If IGNORECASE is passed here as a global setting or in a list
+        it overrides the :param: `case_sensitive` 'True' setting.
 
 
     Notes
@@ -203,14 +241,13 @@ class TextReplacer(
 
     See Also
     --------
-    str.replace
     re.sub
 
 
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextReplacer as TR
-    >>> trfm = TR(str_replace={(',', ''),('.', '')})
+    >>> trfm = TR(replace=((',', ''),(re.compile('\.'), '')))
     >>> X = ['To be, or not to be, that is the question.']
     >>> trfm.fit_transform(X)
     ['To be or not to be that is the question']
