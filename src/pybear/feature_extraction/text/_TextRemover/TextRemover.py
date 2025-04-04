@@ -161,7 +161,7 @@ class TextRemover(
         by a False in that position. If False, empty rows are not removed
         from the data.
     flags:
-        Optional[FlagsType] - the flags parameter(s) for the string
+        Optional[FlagsType] - the flags value(s) for the full string
         searches. Internally, TR does all its searching for strings
         with re.fullmatch, therefore flags can be passed whether you are
         searching for literal strings or regex patterns. If you do not

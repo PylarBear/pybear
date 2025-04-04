@@ -172,14 +172,14 @@ class TextSplitter(
         in the list is None, no split is performed on the corresponding
         string in X.
     flags:
-        Optional[FlagsType], default=None - the flags parameter for
-        the separator searches. If you do not know what this means then
+        Optional[FlagsType], default=None - the flags value(s) for the
+        separator searches. If you do not know what this means then
         ignore this and just use :param: `case_sensitive`. If None,
-        the default flags for re.split() are used on every string in X.
-        If a single flags object, that is applied to every string in X.
-        If passed as a list, the number of entries must match the number
-        of strings in X. Flags objects and Nones in the list follow the
-        same rules stated above.
+        the default flags for re.split() are used on every string in
+        the data. If a single flags object, that is applied to every
+        string in the data. If passed as a list, the number of entries
+        must match the number of strings in X. Flags objects and Nones
+        in the list follow the same rules stated above.
 
 
     Notes
