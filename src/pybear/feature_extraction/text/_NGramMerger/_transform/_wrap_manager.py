@@ -18,7 +18,8 @@ from ._manage_wrap_idxs import _manage_wrap_idxs
 from ._get_wrap_match_idxs import _get_wrap_match_idxs
 
 from .._validation._ngcallable import _val_ngcallable
-from .._validation._sep import _val_sep
+
+from ...__shared._validation._any_string import _val_any_string
 
 
 
@@ -105,7 +106,7 @@ def _wrap_manager(
     assert all(map(isinstance, _ngram, ((str, re.Pattern) for _ in _ngram)))
 
     _val_ngcallable(_ngcallable)
-    _val_sep(_sep)
+    _val_any_string(_sep, 'sep', _can_be_None=True)
     # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 

@@ -15,11 +15,10 @@ import numbers
 from ._n_chars import _val_n_chars
 from ._sep import _val_sep
 from ._line_break import _val_line_break
-from ._join_2D import _val_join_2D
-from ._backfill_sep import _val_backfill_sep
 
 from ...__shared._validation._1D_X import _val_1D_X
 from ...__shared._validation._2D_X import _val_2D_X
+from ...__shared._validation._any_string import _val_any_string
 
 
 
@@ -89,7 +88,7 @@ def _validation(
         raise UnicodeError
     except UnicodeError:
         # join_2D is ignored if data is 1D
-        _val_join_2D(_join_2D)
+        _val_any_string(_join_2D, 'join_2D', _can_be_None=False)
     except:
         try:
             _val_1D_X(_X, _require_all_finite=True)
@@ -107,7 +106,7 @@ def _validation(
 
     _val_line_break(_line_break)
 
-    _val_backfill_sep(_backfill_sep)
+    _val_any_string(_backfill_sep, 'backfill_sep', _can_be_None=False)
 
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

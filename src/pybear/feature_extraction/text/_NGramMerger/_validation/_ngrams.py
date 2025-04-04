@@ -13,7 +13,6 @@ import re
 
 
 
-
 def _val_ngrams(
     _ngrams: Sequence[Sequence[Union[str, re.Pattern]]]
 ) -> None:
@@ -39,7 +38,6 @@ def _val_ngrams(
         None
 
     """
-
 
 
     err_msg = (f"'ngrams' must be a 1D sequence of sequences of string "
@@ -68,7 +66,11 @@ def _val_ngrams(
                 raise Exception
             if len(_inner) < 2:
                 raise UnicodeError
-            if not all(map(isinstance, _inner, ((str, re.Pattern) for _ in _inner))):
+            if not all(map(
+                isinstance,
+                _inner,
+                ((str, re.Pattern) for _ in _inner)
+            )):
                 raise Exception
         except UnicodeError:
             raise ValueError(err_msg)
