@@ -25,7 +25,7 @@ PatternHolderType: TypeAlias = \
     Union[PatternType, list[PatternType]]
 
 WipPatternType: TypeAlias = \
-    Union[None, re.Pattern[str], tuple[re.Pattern[str]], ...]
+    Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
 WipPatternHolderType: TypeAlias = \
     Union[WipPatternType, list[WipPatternType]]
 
