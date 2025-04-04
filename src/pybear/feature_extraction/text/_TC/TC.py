@@ -335,7 +335,7 @@ class TC(FileDumpMixin):
         """
 
 
-        Trfm = TextReplacer(regexp_replace=(f'[^{allowed_chars}]', ''))
+        Trfm = TextReplacer(replace=(re.compile(f'[^{allowed_chars}]'), ''))
         self.CLEANED_TEXT = Trfm.fit_transform(self.CLEANED_TEXT)
         del Trfm
 
@@ -380,7 +380,7 @@ class TC(FileDumpMixin):
         # takes 1 or 2D. returns same dim as given
         self.CLEANED_TEXT = TextStripper().fit_transform(self.CLEANED_TEXT)
         # takes 1 or 2D. returns same dim as given
-        _kwargs = {'regexp_replace': {(re.compile(f' +'), ' '), (f' ,', f',')}}
+        _kwargs = {'replace': ((re.compile(f' +'), ' '), (f' ,', f','))}
         self.CLEANED_TEXT = TextReplacer(**_kwargs).fit_transform(self.CLEANED_TEXT)
 
 
