@@ -37,6 +37,11 @@ PatternType: TypeAlias = \
 RemoveType: TypeAlias = \
     Optional[Union[PatternType, list[PatternType]]]
 
+WipPatternType: TypeAlias = \
+    Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+WipRemoveType: TypeAlias = \
+    Optional[Union[WipPatternType, list[WipPatternType]]]
+
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 CaseSensitiveType: TypeAlias = Optional[Union[bool, list[Union[bool, None]]]]

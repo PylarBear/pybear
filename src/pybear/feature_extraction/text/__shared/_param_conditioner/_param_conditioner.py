@@ -24,6 +24,11 @@ PatternType: TypeAlias = \
 PatternHolderType: TypeAlias = \
     Union[PatternType, list[PatternType]]
 
+WipPatternType: TypeAlias = \
+    Union[None, re.Pattern[str], tuple[re.Pattern[str]], ...]
+WipPatternHolderType: TypeAlias = \
+    Union[WipPatternType, list[WipPatternType]]
+
 CaseSensitiveType: TypeAlias = Union[bool, list[Union[bool, None]]]
 
 FlagType: TypeAlias = Union[None, numbers.Integral]
@@ -38,10 +43,7 @@ def _param_conditioner(
     _order_matters: bool,
     _n_rows: numbers.Integral,
     _name: Optional[str] = 'unnamed pattern holder'
-) -> Union[
-        None, re.Pattern[str], tuple[re.Pattern, ...],
-        list[Union[None, re.Pattern[str], tuple[re.Pattern, ...]]]
-    ]:
+) -> WipPatternHolderType:
 
     """
     Use the parameters to convert all literal strings to re.compile and
@@ -77,12 +79,10 @@ def _param_conditioner(
     Returns
     -------
     -
-        _compile_holder: Union[None, re.Pattern[str], tuple[re.Pattern, ...],
-            list[Union[None, re.Pattern[str], tuple[re.Pattern, ...]]] -
-            the search criteria for the data. Could be a single None,
-            as single re.Pattern, as single tuple of re.Patterns, or
-            a list comprised of any of those things.
-    ]
+        _compile_holder: WipPatternHolderType - the search criteria for
+            the data. Could be a single None, as single re.Pattern, a
+            single tuple of re.Patterns, or a list comprised of any of
+            those things.
 
 
     """
@@ -90,8 +90,8 @@ def _param_conditioner(
     # dont need validation. these parameters come directly from the
     # instance parameters which are validated in _validation.
 
-    # map the given params to re.Pattern objects if _pattern_holder is not None
-    # only return the output as a list if absolutely necessary
+    # map the given params to re.Pattern objects if _pattern_holder is
+    # not None. only return the output as a list if absolutely necessary.
 
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # '_pattern_holder' must be None, str, re.compile, tuple or list
@@ -111,7 +111,8 @@ def _param_conditioner(
     # '_flags' must be None, int, or list[None or int]
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-    # convert '_pattern_holder' to list, if not already, holding only None/compile.
+    # convert '_pattern_holder' to list, if not already, holding only
+    # None/compile.
     # in the process:
     #   convert any associated str into flagless re.compile (re.escape!)
     #   make everything inside the outer list be in a list (so None becomes
@@ -128,9 +129,10 @@ def _param_conditioner(
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     # set the flags for the re.compile objects
-    # '_flags' always trumps '_case_sensitive'. if user passed re.I in any way
-    # (global or to individual rows) that trumps global '_case_sensitive' == True.
-    # if '_case_sensitive' == False, everything gets re.I.
+    # '_flags' always trumps '_case_sensitive'. if user passed re.I in
+    # any way (global or to individual rows) that trumps global
+    # '_case_sensitive' == True. if '_case_sensitive' == False, everything
+    # gets re.I.
 
     _compile_holder = _flag_maker(_compile_holder, _case_sensitive, _flags)
 
@@ -155,8 +157,13 @@ def _param_conditioner(
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     # look to see if _compile_holder is unnecessarily iterable, meaning
     # all the values in _compile_holder are identical
+    # do it twice for something like [(x,), (x,)....]
+    # _compile_holder cannot have any str
+    if hasattr(_compile_holder, '__len__') and len(_compile_holder) \
+            and all(map(lambda x: x == _compile_holder[0], _compile_holder)):
+        _compile_holder = _compile_holder[0]
 
-    if len(_compile_holder) \
+    if hasattr(_compile_holder, '__len__') and len(_compile_holder) \
             and all(map(lambda x: x == _compile_holder[0], _compile_holder)):
         _compile_holder = _compile_holder[0]
 

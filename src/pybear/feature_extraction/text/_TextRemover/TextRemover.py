@@ -12,6 +12,7 @@ from ._type_aliases import (
     XContainer,
     XWipContainer,
     RemoveType,
+    WipRemoveType,
     CaseSensitiveType,
     FlagsType,
     RowSupportType
@@ -218,6 +219,11 @@ class TextRemover(
     RemoveType:
         Optional[Union[PatternType, list[PatternType]]]
 
+    WipPatternType:
+        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+    WipRemoveType:
+        Optional[Union[WipPatternType, list[WipPatternType]]]
+
     CaseSensitiveType:
         Optional[Union[bool, list[Union[bool, None]]]]
 
@@ -327,7 +333,7 @@ class TextRemover(
         ----------
         X:
             list-like 1D vector of strings or (possibly ragged) 2D
-            array-like of strings - the data.
+            array-like of strings - the data. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -359,7 +365,7 @@ class TextRemover(
         ----------
         X:
             list-like 1D vector of strings or (possibly ragged) 2D
-            array-like of strings - the data.
+            array-like of strings - the data. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
@@ -425,7 +431,7 @@ class TextRemover(
 
         self._n_rows = len(_X)
 
-        _rr = _param_conditioner(
+        _rr: WipRemoveType = _param_conditioner(
             self.remove,
             self.case_sensitive,
             self.flags,
@@ -476,7 +482,7 @@ class TextRemover(
         ----------
         X:
             list-like 1D vector of strings or (possibly ragged) 2D
-            array-like of strings - the data. Always ignored.
+            array-like of strings - the data. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.

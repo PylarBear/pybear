@@ -38,8 +38,10 @@ class TestFlagMaker:
 
         return [
             [None],
-            [re.compile('abc', re.I)],    # user passed compile
-            [re.compile('def'), re.compile('ghi')],  # user passed literal strings
+            # user passed compile
+            [re.compile('abc', re.I)],
+            # user passed literal strings
+            [re.compile(re.escape('def')), re.compile(re.escape('ghi'))],
             [None]
         ]
 
