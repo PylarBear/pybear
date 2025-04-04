@@ -8,7 +8,10 @@
 
 from typing_extensions import Union
 import numpy.typing as npt
-from ._type_aliases import RowSupportType
+from ._type_aliases import (
+    WipRemoveType,
+    RowSupportType
+)
 
 import numpy as np
 
@@ -18,8 +21,7 @@ import re
 
 def _regexp_1D_core(
     _X: list[str],
-    _rr: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
-            list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]],
+    _rr: WipRemoveType,
     _from_2D: bool
 ) -> tuple[list[str], RowSupportType]:
 
@@ -34,9 +36,8 @@ def _regexp_1D_core(
      _X:
         list[str] - a python list of tokenized strings.
     _rr:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
-        list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]] -
-        the pattern(s) by which to identify strings to be removed.
+        WipRemoveType - the pattern(s) by which to identify strings to
+        be removed.
     _from_2D:
         bool - whether this is a row from 2D data. If False, the data
         was passed as 1D and _X is the X passed to transform. If _X is a
