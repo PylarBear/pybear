@@ -28,10 +28,25 @@ class TestTextReplacer:
         return list('abcde')
 
 
+    def test_no_op(self):
+
+        # 1D
+        X = list('abcde')
+        TestCls = TextReplacer()
+        out = TestCls.fit_transform(X)
+        assert np.array_equal(out, X)
+
+        # 2D
+        X = list(map(list, 'abcde'))
+        TestCls = TextReplacer()
+        out = TestCls.fit_transform(X)
+        assert all(map(np.array_equal, out, X))
+
+
     def test_empty_X(self):
 
         # 1D
-        TestCls = TextReplacer(str_replace=(',', '.'))
+        TestCls = TextReplacer(replace=(',', '.'))
 
         out = TestCls.transform([])
 
@@ -39,7 +54,7 @@ class TestTextReplacer:
         assert len(out) == 0
 
         # 2D -- returns empty 1D
-        TestCls = TextReplacer(regexp_replace=('[n-z]', ''))
+        TestCls = TextReplacer(replace=('[n-z]', ''))
 
         out = TestCls.transform([[]])
 
@@ -47,22 +62,50 @@ class TestTextReplacer:
         assert len(out) == 1
 
 
+    def test_flags_trump_case_sensitive(self):
+
+        X = list('abcde')
+
+        # literal
+        TestCls = TextReplacer(
+            replace=(('B', '!@#'), ('D', '^&*')),
+            case_sensitive=False,
+            flags=re.I
+        )
+        out = TestCls.fit_transform(X)
+        assert np.array_equal(out, ['a', '!@#', 'c', '^&*', 'e'])
+
+        # regex
+        TestCls = TextReplacer(
+            replace=((re.compile('A'), '!@#'), (re.compile('E'), '^&*')),
+            case_sensitive=False,
+            flags=re.I
+        )
+        out = TestCls.fit_transform(X)
+        assert np.array_equal(out, ['!@#', 'b', 'c', 'd', '^&*'])
+
+
     def test_str_replace_1(self, _words):
 
-        TestCls = TextReplacer(str_replace=('a', "c"))
+        TestCls = TextReplacer(replace=('A', 'C'), case_sensitive=False)
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
 
-        assert np.array_equal(out, list('cbcde'))
+        assert np.array_equal(out, list('Cbcde'))
 
 
-    def test_str_replace_2(self, _words):
+    def test_str_replace_2(self):
 
-        TestCls = TextReplacer(str_replace=[('a', ','), False, False, False, False])
+        _words = [['ab'], ['cd'], ['ef'], ['gh'], ['ij']]
 
-        out = TestCls.transform(list(map(list, _words)), copy=True)
+        TestCls = TextReplacer(
+            replace=[(('A', ','), ('B', '.')), None, None, None, None],
+            case_sensitive=False
+        )
+
+        out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
         for _ in out:
             assert isinstance(_, list)
@@ -71,13 +114,16 @@ class TestTextReplacer:
         assert all(map(
             np.array_equal,
             out,
-            [[','], ['b'], ['c'], ['d'], ['e']]
+            [[',.'], ['cd'], ['ef'], ['gh'], ['ij']]
         ))
 
 
     def test_re_replace_1(self, _words):
 
-        TestCls = TextReplacer(regexp_replace=("[a-c]+", ""))
+        TestCls = TextReplacer(
+            replace=(re.compile("[A-C]+"), ""),
+            flags=re.I
+        )
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
@@ -86,13 +132,22 @@ class TestTextReplacer:
         assert np.array_equal(out, ['', '', '', 'd', 'e'])
 
 
-    def test_re_replace_2(self, _words):
+    def test_re_replace_2(self):
+
+        _words = [['AB'], ['CD'], ['EF'], ['GH'], ['IJ']]
 
         TestCls = TextReplacer(
-            regexp_replace=[False, (".", ""), False, False, False],
+            replace=[
+                None,
+                ((re.compile("c"), "!@#"), (re.compile("d"), "$%^")),
+                None,
+                None,
+                None
+            ],
+            flags=re.I
         )
 
-        out = TestCls.transform(list(map(list, _words)), copy=True)
+        out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
         for _ in out:
             assert isinstance(_, list)
@@ -101,13 +156,13 @@ class TestTextReplacer:
         assert all(map(
             np.array_equal,
             out,
-            [['a'], [''], ['c'], ['d'], ['e']]
+            [['AB'], ['!@#$%^'], ['EF'], ['GH'], ['IJ']]
         ))
 
 
     def test_various_input_containers(self, _words):
 
-        TestCls = TextReplacer(str_replace=("e", ""))
+        TestCls = TextReplacer(replace=("e", ""))
 
 
         # python list accepted

@@ -6,58 +6,96 @@
 
 
 
-from .._type_aliases import RegExpReplaceArgsType
-
 import re
 
-from ._regexp_param_conditioner import _regexp_param_conditioner
+from .._type_aliases import WipReplaceType
 
 
 
 def _regexp_1D_core(
     _X: list[str],
-    _regexp_replace: RegExpReplaceArgsType,
+    _rr: WipReplaceType
 ) -> list[str]:
 
     """
-    Search and replace strings in whole or in part in a 1D list-like of
-    strings using regular expressions.
+    Search and replace substrings in a 1D list of strings using re.sub.
 
 
     Parameters
     ----------
      _X:
-        list[str] - the data or a row of data.
-    _regexp_replace:
-        RegExpReplaceArgsType - the pattern(s) by which to identify
-        strings to be replaced and their replacement(s).
+        list[str] - the original 1D data or one row of 2D data.
+    _rr:
+        WipReplaceType - the pattern(s) by which to identify substrings
+        to replace and their replacement(s).
 
 
     Return
     ------
     -
-        list[str]: the 1D vector with string replacements made.
+        list[str]: the 1D vector with substring replacements made.
 
     """
 
 
+    # validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
     assert isinstance(_X, list)
     assert all(map(isinstance, _X, (str for _ in _X)))
 
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # _rr is validated immediately after it is made
 
-    __regexp_replace = _regexp_param_conditioner(_regexp_replace, _X)
+    # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    for _idx in range(len(_X)):
 
-        # if set is empty will skip (False in og list becomes empty set)
-        for _tuple in __regexp_replace[_idx]:   # set of tuples (or empty)
+    # condition a single tuple so that all tuples are in a holder tuple
+    if isinstance(_rr, tuple) and isinstance(_rr[0], re.Pattern):
+        _rr = (_rr,)
 
-            # for str_replace, the tuples are already the exact args for str.replace
-            _X[_idx] = re.sub(_tuple[0], _tuple[1], _X[_idx], *_tuple[2:])
+
+    if _rr is None:
+        return _X
+
+    elif isinstance(_rr, tuple):
+
+        for _idx, _word in enumerate(_X):
+
+            for _tuple in _rr:
+                # if the user passed a callable as the replacement, use
+                # a helper wrapper to convert the re.Match object to str,
+                # so that the user callable signature will always be
+                # str -> str. if the replacement is not a callable, it
+                # must be a literal, embed it in a lambda.
+
+                if isinstance(_tuple[1], str):
+                    _helper = lambda x: _tuple[1]
+                elif callable(_tuple[1]):
+                    _helper = lambda re_match: _tuple[1](re_match.group())
+                else:
+                    raise Exception
+
+                _X[_idx] = re.sub(_tuple[0], _helper, _X[_idx])
+
+    elif isinstance(_rr, list):
+
+        # use recursion
+        # send the one string back into this module in a list
+
+        for _idx, _row in enumerate(_X):
+
+            if isinstance(_rr[_idx], list):
+                raise TypeError
+
+            _X[_idx] = _regexp_1D_core([_X[_idx]], _rr[_idx])[0]
+
+    else:
+        raise Exception(f"invalid format for rr in _regexp_1D_core")
 
 
     return _X
+
+
+
 
 
 

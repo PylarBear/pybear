@@ -6,7 +6,6 @@
 
 
 
-from typing_extensions import Union
 import numpy.typing as npt
 from ._type_aliases import (
     WipRemoveType,
@@ -69,14 +68,13 @@ def _regexp_1D_core(
     _row_support: npt.NDArray[bool] = np.ones(len(_X), dtype=bool)
 
 
+    # condition re.Pattern so that all Patterns are in a tuple
+    if isinstance(_rr, re.Pattern):
+        _rr = (_rr, )
+
+
     if _rr is None:
         return _X, _row_support
-
-    elif isinstance(_rr, re.Pattern):
-        for _idx in range(len(_X)-1, -1, -1):
-            if re.fullmatch(_rr, _X[_idx]):
-                _X.pop(_idx)
-                _row_support[_idx] = False
 
     elif isinstance(_rr, tuple):
         for _idx in range(len(_X)-1, -1, -1):
@@ -93,7 +91,7 @@ def _regexp_1D_core(
 
         for _idx in range(len(_X)-1, -1, -1):
 
-            # use recursion!
+            # use recursion
             # send the one string back into this module in a list
             # if that list comes back empty, we know to delete
 

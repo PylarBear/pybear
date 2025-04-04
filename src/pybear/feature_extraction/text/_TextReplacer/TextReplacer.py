@@ -11,12 +11,14 @@ from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
     XWipContainer,
-    StrReplaceType,
-    RegExpReplaceType
+    ReplaceType,
+    WipReplaceType,
+    CaseSensitiveType,
+    FlagsType
 )
 
 from ._validation._validation import _validation
-from ._transform._str_1D_core import _str_1D_core
+from ._transform._special_param_conditioner import _special_param_conditioner
 from ._transform._regexp_1D_core import _regexp_1D_core
 
 from ....base import (
@@ -42,13 +44,9 @@ class TextReplacer(
 
     """
     Search 1D vectors or (possibly ragged) 2D arrays for character
-    substrings via str.replace or re.sub and make one-to-one replacements.
+    substrings and make one-to-one replacements.
 
-    TextReplacer (TR) has 2 modes for making replacements, exact string
-    matching and regular expressions. Exact string matching uses the
-    built-in str.replace method and therefore is bound to the constraints
-    of that method. Regular expression mode uses the built-in re.sub
-    function.
+    TextReplacer (TR)
 
     The incremental benefit of TR over the 2 foundational functions is
     that you can quickly apply multiple replacement criteria over the
@@ -159,7 +157,7 @@ class TextReplacer(
     Type Aliases
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]]]
+        Union[Sequence[str], Sequence[Sequence[str]], set[str]]
 
     NumpyTypes:
         npt.NDArray[str]
@@ -176,71 +174,31 @@ class TextReplacer(
     XWipContainer:
         Union[list[str], list[list[str]]]
 
+    FindType:
+        Union[str, re.Pattern[str]]
+    SubstituteType:
+        Union[str, Callable[[str], str]]
+    PairType:
+        tuple[FindType, SubstituteType]
+    ReplaceSubType:
+        Union[None, PairType, tuple[PairType, ...]]
     ReplaceType:
-        Callable[[str, str, Optional[numbers.Integral]], str]
+        Optional[Union[ReplaceSubType, list[ReplaceSubType]]]
 
-    OldType:
-        str
+    WipPairType:
+        tuple[re.Pattern[str], SubstituteType]
+    WipReplaceSubType:
+        Union[None, WipPairType, tuple[WipPairType, ...]]
+    WipReplaceType:
+        Optional[Union[WipReplaceSubType, list[WipReplaceSubType]]]
 
-    NewType:
-        str
+    CaseSensitiveType:
+        Optional[Union[bool, list[Union[bool, None]]]]
 
-    CountType:
-        numbers.Integral
-
-    StrReplaceArgsType:
-        Union[
-            tuple[OldType, NewType],
-            tuple[OldType, NewType, CountType]
-        ]
-
-    TRStrReplaceArgsType:
-        Union[StrReplaceArgsType, set[StrReplaceArgsType]]
-
-    StrReplaceType:
-        Union[
-            TRStrReplaceArgsType,
-            list[Union[TRStrReplaceArgsType, Literal[False]]],
-            None
-        ]
-
-    PatternType:
-        Callable[[str, Optional[numbers.Integral]], re.Pattern]
-
-    SearchType:
-        Union[str, PatternType]
-
-    ReplType:
-        Union[str, Callable[[re.Match], str]]
-
-    CountType:
-        numbers.Integral
-
+    FlagType:
+        Union[None, numbers.Integral]
     FlagsType:
-        numbers.Integral
-
-    ReSubType:
-        Callable[
-            [SearchType, ReplType, str, Optional[CountType], Optional[FlagsType]],
-            str
-        ]
-
-    RegExpReplaceArgsType:
-        Union[
-            tuple[SearchType, ReplType],
-            tuple[SearchType, ReplType, CountType],
-            tuple[SearchType, ReplType, CountType, FlagsType],
-        ]
-
-    TRRegExpReplaceArgsType:
-        Union[RegExpReplaceArgsType, set[RegExpReplaceArgsType]]
-
-    RegExpReplaceType:
-        Union[
-            TRRegExpReplaceArgsType,
-            list[Union[TRRegExpReplaceArgsType, Literal[False]]],
-            None
-        ]
+        Optional[Union[FlagType, list[FlagType]]]
 
 
     See Also
@@ -256,8 +214,8 @@ class TextReplacer(
     >>> X = ['To be, or not to be, that is the question.']
     >>> trfm.fit_transform(X)
     ['To be or not to be that is the question']
-    >>> trfm.set_params(str_replace=None, regexp_replace=('b', ''))
-    TextReplacer(regexp_replace=('b', ''))
+    >>> trfm.set_params(replace=('b', ''))
+    TextReplacer(replace=('b', ''))
     >>> trfm.fit_transform(X)
     ['To e, or not to e, that is the question.']
 
@@ -268,17 +226,16 @@ class TextReplacer(
     def __init__(
         self,
         *,
-        str_replace: Optional[StrReplaceType] = None,
-        regexp_replace: Optional[RegExpReplaceType] = None
+        replace: Optional[ReplaceType] = None,
+        case_sensitive: CaseSensitiveType = True,
+        flags: FlagsType = None
     ) -> None:
 
         """Initialize the TextReplacer instance."""
 
-        self.str_replace = str_replace
-        self.regexp_replace = regexp_replace
-
-
-    # pizza maybe put @property n_rows_ ???
+        self.replace = replace
+        self.case_sensitive = case_sensitive
+        self.flags = flags
 
 
     def __pybear_is_fitted__(self):
@@ -316,8 +273,7 @@ class TextReplacer(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            that is to undergo search and replace. Always ignored.
+            XContainer - 1D or 2D text data. Ignored.
         y:
             Optional[Union[any, None]], default = None - the target for
             the data. Always ignored.
@@ -348,8 +304,7 @@ class TextReplacer(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            that is to undergo search and replace. Always ignored.
+            XContainer - 1D or 2D text data. Ignored.
         y:
             Optional[Union[any, None]], default = None - the target for
             the data. Always ignored.
@@ -381,9 +336,8 @@ class TextReplacer(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            whose strings will be searched and may be replaced in whole
-            or in part.
+            XContainer - 1D or 2D text data whose strings will be
+            searched and may have substrings replaced.
         copy:
             Optional[bool], default=False - whether to make the
             replacements directly on the given X or on a deepcopy of X.
@@ -400,7 +354,12 @@ class TextReplacer(
 
         check_is_fitted(self)
 
-        _validation(X, self.str_replace, self.regexp_replace)
+        _validation(
+            X,
+            self.replace,
+            self.case_sensitive,
+            self.flags
+        )
 
         if copy:
             _X = copy_X(X)
@@ -409,39 +368,27 @@ class TextReplacer(
 
         _X: XWipContainer = _map_X_to_list(_X)
 
-        _sr = self.str_replace
-        _rr = self.regexp_replace
+        _rr: WipReplaceType = _special_param_conditioner(
+            self.replace,
+            self.case_sensitive,
+            self.flags,
+            _n_rows = len(_X)
+        )
 
         if all(map(isinstance, _X, (str for _ in _X))):
 
-            if _rr is not None:
-                _X = _regexp_1D_core(_X, _rr)
-            if _sr is not None:
-                _X = _str_1D_core(_X, _sr)
+            _X = _regexp_1D_core(_X, _rr)
 
         else:
 
             for _row_idx in range(len(_X)):
 
-                if isinstance(_sr, list) and _sr[_row_idx] is False:
-                    continue
+                _X[_row_idx] = _regexp_1D_core(
+                    _X[_row_idx],
+                    _rr[_row_idx] if isinstance(_rr, list) else _rr
+                )
 
-                if isinstance(_rr, list) and _rr[_row_idx] is False:
-                    continue
-
-                if _rr is not None:
-                    _X[_row_idx] = _regexp_1D_core(
-                        _X[_row_idx],
-                        _rr[_row_idx] if isinstance(_rr, list) else _rr
-                    )
-                if _sr is not None:
-                    _X[_row_idx] = _str_1D_core(
-                        _X[_row_idx],
-                        _sr[_row_idx] if isinstance(_sr, list) else _sr
-                    )
-
-
-        del _sr, _rr
+        del _rr
 
         return _X
 
@@ -459,8 +406,7 @@ class TextReplacer(
         Parameters
         ----------
         X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data.
-            Always ignored.
+            XContainer - 1D or 2D text data. Ignored.
         y:
             Optional[Union[any, None]], default = None - the target for
             the data. Always ignored.
