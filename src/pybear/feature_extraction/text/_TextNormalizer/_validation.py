@@ -47,10 +47,7 @@ def _validation(
 
     _val_1D_2D_X(_X, _require_all_finite=True)
 
-    if _upper is None:
-        pass
-    else:
-        _val_any_bool(_upper, 'upper')
+    _val_any_bool(_upper, _name='upper', _can_be_None=True)
 
 
 
