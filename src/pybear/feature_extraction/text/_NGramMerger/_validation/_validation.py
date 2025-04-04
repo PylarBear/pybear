@@ -12,15 +12,13 @@ from .._type_aliases import XContainer
 
 import re
 
-from ...__shared._validation._2D_X import _val_2D_X
-
 from ._ngrams import _val_ngrams
-
-from ._sep import _val_sep
 
 from ._ngcallable import _val_ngcallable
 
+from ...__shared._validation._2D_X import _val_2D_X
 from ...__shared._validation._any_bool import _val_any_bool
+from ...__shared._validation._any_string import _val_any_string
 
 
 
@@ -78,7 +76,7 @@ def _validation(
 
     _val_ngcallable(_ngcallable)
 
-    _val_sep(_sep)
+    _val_any_string(_sep, 'sep', _can_be_None=True)
 
     _val_any_bool(_wrap, 'wrap')
 
