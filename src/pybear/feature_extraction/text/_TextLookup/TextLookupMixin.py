@@ -38,7 +38,7 @@ class TextLookupMixin(
 
     """
     A mixin for TextLookup and TextLookupRealTime that provides everything
-    except docs, partial_fit, and transform.
+    except docs, :meth: `partial_fit`, and :meth: `transform`.
 
     """
 
@@ -62,6 +62,7 @@ class TextLookupMixin(
         verbose: Optional[bool] = False
     ) -> None:
 
+        """Initialize the TextLookup(RealTime) instance."""
 
         self.update_lexicon: bool = update_lexicon
         self.skip_numbers: bool = skip_numbers
@@ -103,9 +104,9 @@ class TextLookupMixin(
     def row_support_(self):
         """
         Get the row_support_ attribute. A boolean vector indicating
-        which rows were kept in the data during the transform process.
-        Only available if a transform has been performed, and only
-        reflects the results of the last transform done.
+        which rows were kept in the data during the :term: transform
+        process. Only available if a transform has been performed, and
+        only reflects the results of the last transform done.
         """
         return self._row_support
 
@@ -114,8 +115,9 @@ class TextLookupMixin(
         """
         list[str] - A list of words that will always be deleted from the
         text body by TL, even if they are in the Lexicon. This list is
-        comprised of any words passed to 'DELETE_ALWAYS' at instantiation
-        and any words added to this list during (partial_)fit.
+        comprised of any words passed to :param: `DELETE_ALWAYS` at
+        instantiation and any words added to this list during
+        (partial_)fit.
         """
         return self._DELETE_ALWAYS
 
@@ -144,36 +146,36 @@ class TextLookupMixin(
         manual mode. In manual mode, the next time TL sees a word that
         is in this list it will not prompt the user again, it will
         silently skip the word. TL will only make additions to this
-        list in auto mode if 'skip_numbers' is True and a number is
-        found in the training data.
+        list in auto mode if :param: `skip_numbers` is True and a number
+        is found in the training data.
         """
         return self._SKIP_ALWAYS
 
     @property
     def SPLIT_ALWAYS_(self):
         """
-        dict[str, Sequence[str]] - Similar to REPLACE_ALWAYS_, a
-        dictionary with words expected to be in the text body as keys
-        and their respective multi-word lists of replacements as values.
-        TL will sub these words in even if the original word is in the
-        Lexicon. This dictionary holds anything passed to SPLIT_ALWAYS
-        at instantiation and any splits made when 'split always' is
-        selected in manual mode. In manual mode, the next time TL sees
-        the same word in the text body it will not prompt the user again.
-        The only way TL will add anything to this dictionary in auto
-        mode is if 'auto_split' is True and TL finds a valid split of an
-        unknown word during (partial_)fit.
+        dict[str, Sequence[str]] - Similar to :attr: `REPLACE_ALWAYS_`,
+        a dictionary with words expected to be in the text body as
+        keys and their respective multi-word lists of replacements as
+        values. TL will sub these words in even if the original word
+        is in the Lexicon. This dictionary holds anything passed
+        to :param: `SPLIT_ALWAYS` at instantiation and any splits made
+        when 'split always' is selected in manual mode. In manual mode,
+        the next time TL sees the same word in the text body it will not
+        prompt the user again. The only way TL will add anything to this
+        dictionary in auto mode is if :param: `auto_split` is True and
+        TL finds a valid split of an unknown word during (partial_)fit.
         """
         return self._SPLIT_ALWAYS
 
     @property
     def LEXICON_ADDENDUM_(self):
         """
-        list[str] - can only have words in it if 'update_lexicon' is
-        True. If in auto mode ('auto_add_to_lexicon' is True), anything
-        encountered in the text that is not in the Lexicon is added to
-        this list. In manual mode, if the user selects to 'add to
-        lexicon' then the word is put in this list. TL does not
+        list[str] - can only have words in it if :param: `update_lexicon`
+        is True. If in auto mode (:param: `auto_add_to_lexicon` is True),
+        anything encountered in the text that is not in the Lexicon is
+        added to this list. In manual mode, if the user selects to 'add
+        to lexicon' then the word is put in this list. TL does not
         automatically add new words to the actual Lexicon directly.
         TL stages new words in LEXICON_ADDENDUM_ and at the end of a
         session prints them to the screen and makes them available in
@@ -184,15 +186,16 @@ class TextLookupMixin(
     @property
     def KNOWN_WORDS_(self):
         """
-        list[str] - This is a WIP object used by TL to determine "what
-        is in the Lexicon." At instantiation, this is just a copy of the
-        'lexicon_' attribute of the pybear Lexicon class. If
-        'update_lexicon' is True, any words to be added to the Lexicon
-        are inserted at the front of this list (in addition to also
-        being put in LEXICON_ADDENDUM_.) If 'auto_add_to_lexicon' is
-        True, then words are inserted into this list silently during the
-        auto-lookup process. If 'auto_add_to_lexicon' is False, words
-        are inserted into this list if the user selects 'add to lexicon'.
+        list[str] - This is a WIP object used by TL to determine
+        "what is in the Lexicon." At instantiation, this is just a
+        copy of the 'lexicon_' attribute of the pybear Lexicon class.
+        If :param: `update_lexicon` is True, any words to be added to
+        the Lexicon are inserted at the front of this list (in addition
+        to also being put in :attr: `LEXICON_ADDENDUM_`.)
+        If :param: `auto_add_to_lexicon` is True, then words are inserted
+        into this list silently during the auto-lookup process.
+        If :param: `auto_add_to_lexicon` is False, words are inserted
+        into this list if the user selects 'add to lexicon'.
         """
         return self._KNOWN_WORDS
 
@@ -202,7 +205,7 @@ class TextLookupMixin(
     def reset(self) -> Self:
         """
         Reset the TextLookup instance. This will remove all attributes
-        that are exposed during transform.
+        that are exposed during :term: transform.
 
 
         Returns
@@ -294,14 +297,15 @@ class TextLookupMixin(
     ) -> None:
 
         """
-        Prints LEXICON_ADDENDUM object for copy and paste into Lexicon.
+        Prints :attr: `LEXICON_ADDENDUM_` object for copy and paste into
+        Lexicon.
 
 
         Parameters
         ----------
         n:
             Optional[Union[int, None]], default=None - the number of
-            entries in LEXICON_ADDENDUM to print.
+            entries in :attr: `LEXICON_ADDENDUM_` to print.
 
 
         Return
@@ -332,7 +336,8 @@ class TextLookupMixin(
 
         """
         Handle removing a user-identified word from a line, substituting
-        in new word(s), and updating the LEXICON_ADDENDUM, if applicable.
+        in new word(s), and updating the attr: `LEXICON_ADDENDUM_`, if
+        applicable.
 
         This is called after split, split always, replace, and replace
         always.

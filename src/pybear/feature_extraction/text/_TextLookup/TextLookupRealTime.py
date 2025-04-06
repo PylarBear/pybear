@@ -46,8 +46,8 @@ class TextLookupRealTime(TextLookupMixin):
     pybear Lexicon. Options include replacing, removing, splitting, or
     skipping the word, or staging it to add to the pybear Lexicon.
 
-    TextLookupRealTime (TLRT) has a dual-functionality transform method.
-    TLRT can operate autonomously on your data for a completely
+    TextLookupRealTime (TLRT) has a dual-functionality :meth: `transform`
+    method. TLRT can operate autonomously on your data for a completely
     hands-free experience, or can be driven in a fully interactive
     transform process. The interactive mode is a menu-driven process
     that prompts the user for a decision about a word that is not in the
@@ -79,33 +79,35 @@ class TextLookupRealTime(TextLookupMixin):
     operating directly on the data in-situ, unlike TL, is that you can
     perform operations 'once' on specific occurrences of a word.
 
-    To run TLRT in autonomous mode, set either 'auto_add_to_lexicon' or
-    'auto_delete' to True; both cannot simultaneously be True.
-    'auto_add_to_lexicon' can only be True if 'update_lexicon' is True.
+    To run TLRT in autonomous mode, set either :param: `auto_delete`
+    or :param: `auto_add_to_lexicon` to True; both cannot simultaneously
+    be True. :param: `auto_add_to_lexicon` can only be True
+    if :param: `update_lexicon` is True.
 
-    When 'auto_add_to_lexicon' is True, if TLRT encounters a word that
-    is not in the Lexicon it will automatically stage the word in
-    LEXICON_ADDENDUM_ and go to the next word until all the words in the
-    text are exhausted. When 'auto_delete' is True, if TLRT encounters a
-    word that is not in the Lexicon, it will automatically delete the
-    word from the text body and go to the next word, until all the words
-    in the text are exhausted. In these cases, TLRT can never proceed
-    into manual mode. To allow TLRT to go into manual mode, both
-    'auto_delete' and 'auto_add_to_lexicon' must be False.
+    When :param: `auto_add_to_lexicon` is True, if TLRT encounters a
+    word that is not in the Lexicon it will automatically stage the word
+    in :attr: `LEXICON_ADDENDUM_` and go to the next word until all the
+    words in the text are exhausted. When :param: `auto_delete` is True,
+    if TLRT encounters a word that is not in the Lexicon, it will
+    automatically delete the word from the text body and go to the next
+    word, until all the words in the text are exhausted. In these cases,
+    TLRT can never proceed into manual mode. To allow TLRT enter manual
+    mode, both :param: `auto_delete` and :param: `auto_add_to_lexicon`
+    must be False.
 
     In manual mode, when TLRT encounters a word that is not in the
     Lexicon, the user will be prompted with an interactive menu for an
-    action. Choices include: skip once, skip always, delete once, delete
-    always, replace once, replace always, split once, split always, and
-    if 'update_lexicon' is True, an 'add to lexicon' option. Notice that
-    the operations can be split into 2 groups, the 'once' group and the
-    'always' group. The 'once' group is a one time operation on that
-    word. TLRT will not remember what to do the next time it sees this
-    exact word. If you choose something from the 'always' group, the
-    word and its action go into a 'holder' object so that TLRT remembers
-    what to do next time it sees the word. In this way, a tedious
-    interactive session can become more automated as the session
-    proceeds.
+    action. Choices include: 'skip once', 'skip always', 'delete once',
+    'delete always', 'replace once', 'replace always', 'split once',
+    'split always', and if :param: `update_lexicon` is True, an
+    'add to lexicon' option. Notice that the operations can be split
+    into 2 groups, the 'once' group and the 'always' group. The 'once'
+    group is a one time operation on that word. TLRT will not remember
+    what to do the next time it sees this exact word. If you choose
+    something from the 'always' group, the word and its action go into
+    a 'holder' object so that TLRT remembers what to do next time it
+    sees the word. In this way, a tedious interactive session can become
+    more automated as the session proceeds.
 
     The holder objects are all accessible attributes in the TLRT public
     API. See the attributes section for more details. These holder
@@ -117,14 +119,14 @@ class TextLookupRealTime(TextLookupMixin):
     to always tell TLRT what to do with these words when they come up.
     You decide that you want to leave them in the text body and have
     TLRT ignore them. At instantiation pass a list of these strings to
-    the SKIP_ALWAYS parameter. So you might pass ['ALICE', 'BOB', 'CARL',
-    'DIANE',...] to SKIP_ALWAYS. TLRT will always skip these words
-    without asking. The passed SKIP_ALWAYS becomes the starting seed of
-    the SKIP_ALWAYS_ attribute. Any other manual inputs during the
-    session that say to always skip certain other words will be added to
-    this list, so that at the end of the session the SKIP_ALWAYS_
-    attribute will contain your originally passed words and the words
-    added during the session.
+    the :param: `SKIP_ALWAYS` parameter. So you might pass ['ALICE',
+    'BOB', 'CARL', 'DIANE',...] to :param: `SKIP_ALWAYS`. TLRT will
+    always skip these words without asking. The passed SKIP_ALWAYS
+    becomes the starting seed of the :attr: `SKIP_ALWAYS_` attribute.
+    Any other manual inputs during the session that say to always skip
+    certain other words will be added to this list, so that at the end
+    of the session the :attr: `SKIP_ALWAYS_` attribute will contain your
+    originally passed words and the words added during the session.
 
     TLRT always looks for special instructions before looking to see if
     a word is in the Lexicon. Otherwise, if TLRT checked the word against
@@ -132,17 +134,17 @@ class TextLookupRealTime(TextLookupMixin):
     the next word automatically. Doing it in this way allows for users
     to give special instructions for words already in the Lexicon. Let's
     say there is a word in the Lexicon but you want to delete it from
-    your text. You could pass it to DELETE_ALWAYS and TLRT will remove
-    it regardless of what the Lexicon says.
+    your text. You could pass it to :param: `DELETE_ALWAYS` and TLRT
+    will remove it regardless of what the Lexicon says.
 
-    'update_lexicon' does not cause TLRT to directly update the Lexicon.
-    If the user opts to stage a word for addition to the Lexicon, the
-    word is added to the 'LEXICON_ADDENDUM_' attribute. This is a
-    deliberate design choice to stage the words rather than silently
-    modify the Lexicon. This gives the user a layer of protection where
-    they can review the words staged to go into the Lexicon, make any
-    changes needed, then manually pass them to the Lexicon().add_words()
-    method.
+    The :param: `update_lexicon` parameter does not cause TLRT to
+    directly update the Lexicon. If the user opts to stage a word to be
+    put in the Lexicon, the word is added to :attr: `LEXICON_ADDENDUM_`.
+    This is a deliberate design choice to stage the words rather than
+    silently modify the Lexicon. This gives the user a layer of
+    protection where they can review the words staged to go into the
+    Lexicon, make any changes needed, then manually pass them to the
+    Lexicon().add_words() method.
 
     TLRT requires (possibly ragged) 2D data formats. Accepted objects
     include python built-in lists and tuples, numpy arrays, pandas
@@ -179,20 +181,20 @@ class TextLookupRealTime(TextLookupMixin):
     scikit transformer API and make TLRT suitable for incorporation into
     larger workflows, such as Pipelines and dask_ml wrappers.
 
-    Because TLRT doesn't need any information from partial_fit and fit,
-    it is technically always in a 'fitted' state and ready to transform
+    Because TLRT doesn't need any information from (partial_)fit, it is
+    technically always in a 'fitted' state and ready to transform
     data. Checks for fittedness will always return True.
 
-    TLRT exposes 2 attributes after a call to :method: transform. First,
-    the 'n_rows_' attribute is the number of rows of text seen in the
-    original data but is not necessarily the number of rows in the
-    outputted data. TLRT also has a 'row_support_' attribute that is a
-    boolean vector of shape (n_rows, ) that indicates which rows of the
-    original data were kept during the transform process (True) and
+    TLRT exposes 2 attributes after a call to :meth: `transform`. First,
+    the :attr: `n_rows_` attribute is the number of rows of text seen in
+    the original data but is not necessarily the number of rows in the
+    outputted data. TLRT also has a :attr: `row_support_` attribute that
+    is a boolean vector of shape (n_rows, ) that indicates which rows of
+    the original data were kept during the transform process (True) and
     which were deleted (False). The only way that an entry could become
-    False is if 'remove_empty_rows' is True and a row becomes empty when
-    handling unknown words. 'row_support_' only reflects the last
-    dataset passed to transform.
+    False is if :param: `remove_empty_rows` is True and a row becomes
+    empty when handling unknown words. :attr: `row_support_` only
+    reflects the last dataset passed to transform.
 
 
     Parameters
@@ -201,18 +203,17 @@ class TextLookupRealTime(TextLookupMixin):
         Optional[bool], default=False - whether to queue words that
         are not in the pybear Lexicon for later addition to the Lexicon.
         This applies to both autonomous and interactive modes. If False,
-        TLRT will never put a word in LEXICON_ADDENDUM_ and will never
-        prompt you with the option.
+        TLRT will never put a word in :attr: `LEXICON_ADDENDUM_` and
+        will never prompt you with the option.
     skip_numbers:
-        Optional[bool], default=True - When skip numbers is True, TLRT
-        will try to do python float(word) on the word and, if it can be
-        cast to a float, TLRT will skip it and go to the next word. If
-        False, TLRT will handle it like any other word. There are no
-        numbers in the formal pybear Lexicon so TLRT will always flag
-        them and handle them autonomously or prompt the user for an
-        action. Since they are handled like any other word, it would be
-        possible to stage them for addition to your local copy of the
-        Lexicon.
+        Optional[bool], default=True - When True, TLRT will try to do
+        python float(word) on the word and, if it can be cast to a float,
+        TLRT will skip it and go to the next word. If False, TLRT will
+        handle it like any other word. There are no numbers in the formal
+        pybear Lexicon so TLRT will always flag them and handle them
+        autonomously or prompt the user for an action. Since they are
+        handled like any other word, it would be possible to stage them
+        for addition to your local copy of the Lexicon.
     auto_split:
         Optional[bool], default=True - TLRT will first look if the word
         is in any of the holder objects for special instructions, then
@@ -220,36 +221,37 @@ class TextLookupRealTime(TextLookupMixin):
         otherwise would be auto-add to Lexicon, auto-delete, or go into
         manual mode. This functionality is a last-ditch effort to see if
         a word is an erroneous compounding of 2 words that are in the
-        Lexicon. if auto_split is True, TLRT will iteratively split any
-        word of 4 or more characters from after the second character to
-        before the second to last character and see if both halves are
-        in the Lexicon. When/if the first match is found, TLRT will
-        remove the original word, split it, and insert in the original
-        place the 2 halves that were found to be in the Lexicon. If
-        False, TLRT will skip this process and go straight to auto-add,
-        auto-delete, or manual mode.
+        Lexicon. if :param: `auto_split` is True, TLRT will iteratively
+        split any word of 4 or more characters from after the second
+        character to before the second to last character and see if
+        both halves are in the Lexicon. When/if the first match is
+        found, TLRT will remove the original word, split it, and insert
+        in the original place the 2 halves that were found to be in the
+        Lexicon. If False, TLRT will skip this process and go straight
+        to auto-add, auto-delete, or manual mode.
     auto_add_to_lexicon:
-        Optional[bool], default=False - 'update_lexicon' must be True to
-        use this parameter. Cannot be True if 'auto_delete' is True.
-        When this parameter is True, TLRT operates in 'auto-mode', where
-        the user will not be prompted for decisions. When TLRT encounters
-        a word that is not in the Lexicon, the word will silently be
-        staged in the LEXICON_ADDENDUM_ attribute to be added to the
-        Lexicon later.
+        Optional[bool], default=False - :param: `update_lexicon` must be
+        True to use this. Cannot be True if :param: `auto_delete` is
+        True. When this parameter is True, TLRT operates in 'auto-mode',
+        where the user will not be prompted for decisions. When TLRT
+        encounters a word that is not in the Lexicon, the word will
+        silently be staged in the :attr: `LEXICON_ADDENDUM_` attribute
+        to be added to the Lexicon later.
     auto_delete:
-        Optional[bool], default=False - Cannot be True if 'update_lexicon'
-        or 'auto_add_to_lexicon' are True. When this parameter is True,
-        TLRT operates in 'auto-mode', where the user will not be prompted
-        for decisions. When TLRT encounters a word that is not in the
-        Lexicon, the word will be silently deleted from the text body.
+        Optional[bool], default=False - If :param: `update_lexicon`
+        or :param: `auto_add_to_lexicon` are True then this cannot be
+        True . When this parameter is True, TLRT operates in 'auto-mode',
+        where the user will not be prompted for decisions. When TLRT
+        encounters a word that is not in the Lexicon, the word will be
+        silently deleted from the text body.
     DELETE_ALWAYS:
         Optional[Union[Sequence[str], None]], default=None - A list of
         words that will always be deleted by TLRT, even if they are in
         the Lexicon. In both manual and auto modes, TLRT will silently
         delete the word(s), no questions asked. What is passed here
-        becomes the seed for the DELETE_ALWAYS_ attribute, which may
-        have more words added to it during run-time in manual mode.
-        Auto-mode will never add more words to this list.
+        becomes the seed for the :attr: `DELETE_ALWAYS_` attribute,
+        which may have more words added to it during run-time in manual
+        mode. Auto-mode will never add more words to this list.
     REPLACE_ALWAYS:
         Optional[Union[dict[str, str], None]], default=None - A
         dictionary with words expected to be in the text body as keys
@@ -257,36 +259,36 @@ class TextLookupRealTime(TextLookupMixin):
         will replace these words even if they are in the Lexicon. For
         both auto and manual mode, TLRT will not prompt the user for
         any more information, it will silently replace the word. What is
-        passed here becomes the seed for the REPLACE_ALWAYS_ attribute,
-        which may have more word/replacement pairs added to it during
-        run-time in manual mode. Auto-mode will never add more entries
-        to this dictionary.
+        passed here becomes the seed for the :attr: `REPLACE_ALWAYS_`
+        attribute, which may have more word/replacement pairs added to
+        it during run-time in manual mode. Auto-mode will never add more
+        entries to this dictionary.
     SKIP_ALWAYS:
-        Optional[Union[Sequence[str], None]], default=None - A list of
-        words that will always be ignored by TLRT, even if they are not
-        in the Lexicon. For both auto and manual mode, TLRT will not
-        prompt the user for any more information, it will silently skip
-        the word. What is passed here becomes the seed for the
-        SKIP_ALWAYS_ attribute, which may have more words added to it
-        during run-time in manual mode. Auto-mode will never add more
-        words to this list.
+        Optional[Union[Sequence[str], None]], default=None - A list
+        of words that will always be ignored by TLRT, even if they
+        are not in the Lexicon. For both auto and manual mode, TLRT
+        will not prompt the user for any more information, it will
+        silently skip the word. What is passed here becomes the seed
+        for the :attr: `SKIP_ALWAYS_` attribute, which may have more
+        words added to it during run-time in manual mode. Auto-mode
+        will never add more words to this list.
     SPLIT_ALWAYS:
         Optional[Union[dict[str, Sequence[str]], None]], default=None -
         A dictionary with words expected to be in the text body as keys
         and their respective multi-word lists of replacements as values.
         TLRT will remove the original word and insert these words into
-        the text body starting in its position even if the original word
-        is in the Lexicon. For both auto and manual mode, TLRT will not
-        prompt the user for any more information, it will silently split
-        the word. What is passed here becomes the seed for the
-        SPLIT_ALWAYS_ attribute, which may have more word/replacement
-        pairs added to it during run-time in manual mode. Auto-mode will
-        never add entries to this dictionary.
+        the text body starting in its position even if the original
+        word is in the Lexicon. For both auto and manual mode, TLRT
+        will not prompt the user for any more information, it will
+        silently split the word. What is passed here becomes the seed
+        for the :attr: `SPLIT_ALWAYS_` attribute, which may have more
+        word/replacement pairs added to it during run-time in manual
+        mode. Auto-mode will never add entries to this dictionary.
     remove_empty_rows:
-        Optional[bool], default=False - whether to remove any rows that
-        may have been made empty during the lookup process. If
-        'remove_empty_rows' is True and rows are deleted, the user can
-        find supplemental information in the 'row_support_' attribute,
+        Optional[bool], default=False - whether to remove any rows
+        that may have been made empty during the lookup process.
+        If :param: `remove_empty_rows` is True and rows are deleted, the
+        user can find supplemental information in :attr: `row_support_`,
         which indicates through booleans which rows were kept (True) and
         which rows were removed (False).
     verbose:
@@ -298,64 +300,69 @@ class TextLookupRealTime(TextLookupMixin):
     Attributes
     ----------
     n_rows_:
-        int - the number of rows in the last dataset passed to transform.
-        Not necessarily the number of rows in the outputted data.
+        int - the number of rows in the last set of data passed
+        to :meth: `transform`. Not necessarily the number of rows in the
+        outputted data.
     row_support_:
         npt.NDArray[bool] - A 1D boolean vector of shape (n_rows, ) that
         indicates which rows have been kept in the data. Only reflects
-        the last dataset passed to transform.
+        the last dataset passed to :meth: `transform`.
     LEXICON_ADDENDUM_:
-        list[str] - can only have words in it if 'update_lexicon' is
-        True. If in auto mode ('auto_add_to_lexicon' is True), anything
-        encountered in the text that is not in the Lexicon is added to
-        this list. In manual mode, if the user selects to 'add to
-        lexicon' then the word is put in this list. TLRT does not
+        list[str] - can only have words in it if :param: `update_lexicon`
+        is True. If in auto mode (:param: `auto_add_to_lexicon` is True),
+        anything encountered in the text that is not in the Lexicon is
+        added to this list. In manual mode, if the user selects to 'add
+        to lexicon' then the word is put in this list. TLRT does not
         automatically add new words to the actual Lexicon directly. TLRT
-        stages new words in LEXICON_ADDENDUM_ and at the end of a session
-        prints them to the screen and makes them available in this
-        attribute.
+        stages new words in :attr: `LEXICON_ADDENDUM_` and at the end of
+        a session prints them to the screen and makes them available in
+        this attribute.
     KNOWN_WORDS_:
         list[str] - This is a WIP object used by TLRT to determine "what
         is in the Lexicon." At instantiation, this is just a copy of the
-        'lexicon_' attribute of the pybear Lexicon class. If
-        'update_lexicon' is True, any words to be added to the Lexicon
-        are inserted at the front of this list (in addition to also
-        being put in LEXICON_ADDENDUM_.) If 'auto_add_to_lexicon' is
-        True, then words are inserted into this list silently during the
-        auto-transform process. If 'auto_add_to_lexicon' is False, words
-        are inserted into this list if the user selects 'add to lexicon'.
+        'lexicon_' attribute of the pybear Lexicon class.
+        If :param: `update_lexicon` is True, any words to be added to
+        the Lexicon are inserted at the front of this list (in addition
+        to also being put in :attr: `LEXICON_ADDENDUM_`.)
+        If :param: `auto_add_to_lexicon` is True, then words are
+        inserted into this list silently during the auto-transform
+        process.
+        If :param: `auto_add_to_lexicon` is False, words are inserted
+        into this list if the user selects 'add to lexicon'.
     DELETE_ALWAYS_:
         list[str] - A list of words that will always be deleted from the 
         text body by TLRT, even if they are in the Lexicon. This list is
-        comprised of any words passed to 'DELETE_ALWAYS' at instantiation
-        and any words added to this list in manual mode when the user
-        selects 'delete always'. Unknown words are not added to this
-        list in auto-mode.
+        comprised of any words passed to :param: `DELETE_ALWAYS` at
+        instantiation and any words added to this list in manual mode
+        when the user selects 'delete always'. Unknown words are not
+        added to this list in auto-mode.
     REPLACE_ALWAYS_:
         dict[str, str] - A dictionary with words expected to be in the
         text body as keys and their respective single-word replacements
         as values. TLRT will replace these words even if they are in the
-        Lexicon. This holds anything passed to REPLACE_ALWAYS at
-        instantiation and anything added to it during run-time in manual
-        mode. In manual mode, when the user selects 'replace always',
-        the next time TLRT sees the word it will not prompt the user for
-        any more information, it will silently replace the word. When in
-        auto mode, TLRT will not add any entries to this dictionary.
+        Lexicon. This holds anything passed to :param: `REPLACE_ALWAYS`
+        at instantiation and anything added to it during run-time in
+        manual mode. In manual mode, when the user selects 'replace
+        always', the next time TLRT sees the word it will not prompt
+        the user for any more information, it will silently replace the
+        word. When in auto mode, TLRT will not add any entries to this
+        dictionary.
     SKIP_ALWAYS_:
         list[str] - A list of words that are always ignored by TLRT,
         even if they are not in the Lexicon. This list holds any words
-        passed to the SKIP_ALWAYS parameter at instantiation and any
-        words added to it when the user selects 'skip always' in
+        passed to the :param: `SKIP_ALWAYS` parameter at instantiation
+        and any words added to it when the user selects 'skip always' in
         manual mode. In manual mode, the next time TLRT sees a word that
         is in this list it will not prompt the user again, it will
         silently skip the word. TLRT does not make additions to this
         list in auto mode.
     SPLIT_ALWAYS_:
-        dict[str, Sequence[str]] - Similar to REPLACE_ALWAYS_, a
-        dictionary with words expected to be in the text body as keys
+        dict[str, Sequence[str]] - Similar to :attr: `REPLACE_ALWAYS_`,
+        a dictionary with words expected to be in the text body as keys
         and their respective multi-word lists of replacements as values.
         TLRT will sub these words in even if the original word is in the
-        Lexicon. This dictionary holds anything passed to SPLIT_ALWAYS
+        Lexicon.
+        This dictionary holds anything passed to :param: `SPLIT_ALWAYS`
         at instantiation and any splits made when 'split always' is
         selected in manual mode. In manual mode, the next time TLRT sees
         the old word in the text body it will silently make the split.
@@ -426,6 +433,8 @@ class TextLookupRealTime(TextLookupMixin):
         verbose: Optional[bool] = False
     ) -> None:
 
+        """Initialize the TextLookupRealTime instance."""
+
         # must have a & w in it for _split_or_replace_handler (mixin)
         self._LEX_LOOK_DICT = {
             'a': 'Add to Lexicon',
@@ -461,7 +470,7 @@ class TextLookupRealTime(TextLookupMixin):
     def n_rows_(self):
         """
         Get the 'n_rows_' attribute. The number of rows in the data
-        passed to transform.
+        passed to :meth: `transform`.
         """
         return self._n_rows
 
@@ -496,8 +505,8 @@ class TextLookupRealTime(TextLookupMixin):
         ----------
         X:
             XContainer - the (possibly ragged) 2D container of text to
-            have its contents cross-referenced against the pybear Lexicon.
-            Ignored.
+            have its contents cross-referenced against the pybear
+            Lexicon. Ignored.
         y:
             Optional[Union[any, None]], default=None - the target for
             the data. Always ignored.
