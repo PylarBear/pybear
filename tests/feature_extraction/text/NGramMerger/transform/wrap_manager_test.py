@@ -46,7 +46,7 @@ class TestWrapManager:
     @staticmethod
     @pytest.fixture(scope='module')
     def _ngram():
-        return [re.compile('work', re.I), re.compile('bench', re.I)]
+        return (re.compile('work', re.I), re.compile('bench', re.I))
 
 
     @pytest.mark.parametrize('_first_hits', ([], [0], [1], [1, 3]))

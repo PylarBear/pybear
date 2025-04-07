@@ -15,9 +15,9 @@ import re
 
 def _replacer(
     _line: list[str],
-    _ngram: Sequence[Union[str, re.Pattern]],
+    _ngram: tuple[re.Pattern, ...],
     _hits: Sequence[int],
-    _ngcallable: Union[Callable[[Sequence[str]], str], None],
+    _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None]
 ) -> list[str]:
 
@@ -40,20 +40,20 @@ def _replacer(
     _line:
         list[str] - A single 1D sequence of strings.
     _ngram:
-        Sequence[Union[str, re.Pattern]] - A single n-gram sequence
-        containing string literals and/or re.compile objects that
-        specify an n-gram pattern. Cannot have less than 2 entries.
+        tuple[re.Pattern, ...] - A single n-gram sequence containing
+        re.compile objects that specify an n-gram pattern. Cannot have
+        less than 2 entries.
     _hits:
         Sequence[int] - the starting indices of sequences in _line that
         match the n-gram pattern.
     _ngcallable:
-        Union[Callable[[Sequence[str]], str], None] - the callable
-        applied to sequences that match an n-gram pattern to produce a
-        single contiguous string.
+        Union[Callable[[list[str]], str], None] - the callable applied
+        to sequences that match an n-gram pattern to produce a single
+        contiguous string.
     _sep:
         Union[str, None] - the user defined separator to join the words
-        with. If no separator is defined by the user, use the pybear
-        default separator.
+        with. If no separator is defined by the user, use the default
+        separator.
 
 
     Returns

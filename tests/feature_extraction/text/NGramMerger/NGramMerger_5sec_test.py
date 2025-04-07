@@ -66,14 +66,50 @@ class TestNGramMerger:
     ]
 
 
+    def test_no_op(self, _X):
+
+        TestCls = NGM()
+
+        out = TestCls.fit_transform(_X)
+
+        assert all(map(
+            np.array_equal,
+            out,
+            _X
+        ))
+
+
+    @pytest.mark.parametrize('_ngrams',
+        ([('rAnDoM', 'TrAsH'), ('junk', 'rubbish')], None)
+    )
+    @pytest.mark.parametrize('_wrap', (True, False))
+    @pytest.mark.parametrize('_remove_empty_rows', (True, False))
+    def test_deletes_lines_given_empty(
+        self, _kwargs, _X, _ngrams, _wrap, _remove_empty_rows
+    ):
+
+        # test always deletes empty lines in given data when r.e.r. is True,
+        # even when ngrams is None
+
+        _wip_X = deepcopy(_X)
+        _wip_X[0] = []
+
+        TestCls = NGM(**_kwargs)
+        TestCls.set_params(remove_empty_rows=True)
+
+        out = TestCls.fit_transform(_wip_X)
+
+        if _remove_empty_rows:
+            assert len(out) == len(_wip_X) - 1
+
 
     def test_accuracy(self, _kwargs, _X, exp):
 
         TestCls = NGM(**_kwargs)
         TestCls.set_params(ngrams= \
-            [['I', 'GOT', 'A', 'MAN'],
-            ["I'M", 'NOT', "TRYIN'", 'TO', 'HEAR', 'THAT'],
-            ["WHAT'S", 'YOUR', 'MAN', 'GOT', 'TO', 'DO', 'WITH', 'ME']]
+            (('I', 'GOT', 'A', 'MAN'),
+            ("I'M", 'NOT', "TRYIN'", 'TO', 'HEAR', 'THAT'),
+            ("WHAT'S", 'YOUR', 'MAN', 'GOT', 'TO', 'DO', 'WITH', 'ME'))
         )
 
 
@@ -91,12 +127,6 @@ class TestNGramMerger:
         assert all(map(isinstance, rs_, (np.bool for _ in rs_)))
         assert len(rs_) == len(_X)
         assert np.array_equal(rs_, [True] * len(_X))
-
-
-    def test_except_no_ngrams_passed(self, _kwargs):
-
-        with pytest.raises(TypeError):
-            NGM(**_kwargs).transform([['THREE', 'BLIND', 'MICE']])
 
 
     def test_escapes_literal_strings(self, _kwargs):
