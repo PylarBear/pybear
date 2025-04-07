@@ -43,10 +43,14 @@ def _transform(
     """
 
 
+    # validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
     assert isinstance(_X, list)
     assert all(map(isinstance, _X, (list for _ in _X)))
     assert isinstance(_sep, list)
     assert all(map(isinstance, _sep, (str for _ in _sep)))
+
+    # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     for r_idx in range(len(_X)):

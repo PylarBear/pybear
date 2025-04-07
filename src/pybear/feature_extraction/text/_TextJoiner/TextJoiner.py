@@ -39,8 +39,8 @@ class TextJoiner(
 ):
 
     """
-    Join a (possibly ragged) 2D array-like of (perhaps tokenized) strings
-    across rows with the :param: `sep` character string(s).
+    Join a (possibly ragged) 2D array-like of strings across rows with
+    the :param: `sep` character string(s).
 
     When passed a 2D array-like of strings, TextJoiner (TJ) joins each
     row-wise sequence of strings on the value given by :param: `sep` and
@@ -96,17 +96,26 @@ class TextJoiner(
     -----
     Type Aliases
 
-    PythonTypes: Sequence[Sequence[str]]
+    PythonTypes:
+        Sequence[Sequence[str]]
 
-    NumpyTypes: npt.NDArray[str]
+    NumpyTypes:
+        npt.NDArray[str]
 
-    PandasTypes: pd.DataFrame
+    PandasTypes:
+        pd.DataFrame
 
-    PolarsTypes: pl.DataFrame
+    PolarsTypes:
+        pl.DataFrame
 
-    XContainer: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
-    XWipContainer: list[str]
+    XWipContainer:
+        list[str]
+
+    SepType:
+        Optional[Union[str, Sequence[str]]]
 
 
     Examples
@@ -116,6 +125,7 @@ class TextJoiner(
     >>> X = [['Brevity', 'is', 'wit.']]
     >>> trfm.fit_transform(X)
     ['Brevity is wit.']
+    >>> # Change the joining separator to 'xyz'
     >>> trfm.set_params(sep='xyz')
     TextJoiner(sep='xyz')
     >>> trfm.fit_transform(X)
@@ -271,7 +281,7 @@ class TextJoiner(
         else:
             _X = X
 
-        _X: XWipContainer = _map_X_to_list(_X)
+        _X = _map_X_to_list(_X)
 
         self._n_rows: int = len(X)
 

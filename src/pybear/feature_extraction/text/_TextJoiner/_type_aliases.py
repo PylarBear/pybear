@@ -6,7 +6,7 @@
 
 
 
-from typing import Sequence
+from typing import Optional, Sequence
 import numpy.typing as npt
 from typing_extensions import Union, TypeAlias
 
@@ -23,6 +23,7 @@ XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 XWipContainer: TypeAlias = list[str]
 
+SepType: TypeAlias = Optional[Union[str, Sequence[str]]]
 
 
 

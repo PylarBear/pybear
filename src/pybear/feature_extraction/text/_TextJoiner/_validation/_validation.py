@@ -6,6 +6,8 @@
 
 
 
+from typing import Sequence
+from typing_extensions import Union
 from .._type_aliases import XContainer
 
 from ...__shared._validation._2D_X import _val_2D_X
@@ -15,7 +17,7 @@ from ._sep import _val_sep
 
 def _validation(
     _X: XContainer,
-    _sep: str
+    _sep: Union[str, Sequence[str]]
 ) -> None:
 
     """
@@ -26,11 +28,13 @@ def _validation(
     Parameters
     ----------
     _X:
-        XContainer - the (possibly ragged, perhaps tokenized) 2D text
-        data to be joined along rows into a 1D list of strings.
+        XContainer - the (possibly ragged) 2D text data to be joined
+        along rows into a 1D list of strings.
     _sep:
-        str - the string character to insert between strings in each row
-        of the given 2D text data.
+        Union[str, Sequence[str]] - the string character or 1D vector of
+        string characters to insert between strings in each row of the
+        given 2D text data. If a sequence of strings, the number of
+        entries must equal the number of rows in the data.
 
 
     Return
