@@ -14,22 +14,22 @@ import re
 
 
 def _val_ngrams(
-    _ngrams: Sequence[Sequence[Union[str, re.Pattern]]]
+    _ngrams: Union[Sequence[Sequence[Union[str, re.Pattern]]], None]
 ) -> None:
 
     """
     Validate ngrams. The series of string literals and/or re.compile
-    objects that specify an n-gram.
+    objects that specify an n-gram. Can be None.
 
 
     Parameters
     ----------
     _ngrams:
-        Sequence[Sequence[Union[str, re.Pattern]]] - A sequence of
-        sequences, where each inner sequence holds a series of string
-        literals and/or re.compile objects that specify an n-gram.
-        Cannot be empty, and cannot have any n-grams with less than 2
-        entries.
+        Union[Sequence[Sequence[Union[str, re.Pattern]]], None] - A
+        sequence of sequences, where each inner sequence holds a series
+        of string literals and/or re.compile objects that specify an
+        n-gram. Cannot be empty, and cannot have any n-grams with less
+        than 2 entries. Can be None.
 
 
     Returns
@@ -40,10 +40,15 @@ def _val_ngrams(
     """
 
 
-    err_msg = (f"'ngrams' must be a 1D sequence of sequences of string "
-               f"literals and/or re.compile objects. \ncannot be empty, "
-               f"and cannot contain any n-gram sequences with less than "
-               f"2 entries.")
+    err_msg = (f"'ngrams' must be None or a 1D sequence of sequences of "
+               f"string literals and/or re.compile objects. \ncannot be "
+               f"empty, and cannot contain any n-gram sequences with "
+               f"less than 2 entries.")
+
+
+    if _ngrams is None:
+        return
+
 
     # this validates that the outer container is 1D iterable
     try:

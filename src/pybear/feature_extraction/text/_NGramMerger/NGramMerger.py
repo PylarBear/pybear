@@ -6,17 +6,23 @@
 
 
 
-from typing import Callable, Optional, Sequence
+from typing import Optional
 from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
-    XWipContainer
+    XWipContainer,
+    NGramsType,
+    NGramsWipType,
+    NGCallableType,
+    SepType,
+    WrapType,
+    CaseSensitiveType,
+    FlagsType
 )
-
-import re
 
 from ._validation._validation import _validation
 from ._transform._transform import _transform
+from ._transform._special_param_conditioner import _special_param_conditioner
 from ..__shared._transform._map_X_to_list import _map_X_to_list
 
 from ....base import (
@@ -57,7 +63,7 @@ class NGramMerger(
 
     NGM works from top-to-bottom and left-to-right across the data,
     using a forward-greedy approach to merging n-grams. For example, if
-    you passed an n-gram pattern of ['BACON', 'BACON'], and in the text
+    you passed an n-gram pattern of [('BACON', 'BACON')], and in the text
     body there is a line that contains ...'BACON', 'BACON', 'BACON', ...
     NGM will apply the n-gram as 'BACON_BACON', 'BACON'. This aspect of
     NGM's operation cannot be changed. When using wrapped searches (read
@@ -74,26 +80,33 @@ class NGramMerger(
     it will immediately jump to the next word AFTER the pattern, not
     the next word within the pattern.
 
-    N-gram patterns can be built with literal strings or re.compile
-    objects. NGM always looks for full matches against tokens, it does
-    not do partial matches. Pass literal strings or re.compile objects
-    that are intended to match entire words. NGM searches are always
-    case-sensitive, unless you use flags in a re.compile object to tell
-    it otherwise. String literal searches will always be case-sensitive;
-    you may want to normalize your text before using NGM.
+    NGM does not necessarily run your n-grams in the given order. To
+    prevent conflicts, NGM runs the n-gram patterns in descending order
+    of length, that is, the longest n-gram is run first and the shortest
+    n-gram is run last. For n-grams that are the same length, NGM runs
+    them in the order that they were entered in :param: `ngrams`. If
+    you would like to impose another n-gram run order hierarchy, you
+    can manipulate the order in which NGM sees the n-grams by setting
+    the n-grams piecemeal via :meth: `set_params`. Instantiate with
+    your preferred n-grams, pass the data to :meth: `transform`, and
+    keep the processed data in memory. Then use :meth: `set_params` to
+    set the lesser-preferred n-grams and pass the processed data
+    to :meth: `transform` again.
 
-    When you pass n-grams via the :param: `ngrams` parameter, NGM does
-    not necessarily run them in the given order. To prevent conflicts,
-    NGM runs the n-gram patterns in descending order of length, that is,
-    the longest n-gram is run first and the shortest n-gram is run last.
-    For n-grams that are the same length, NGM runs them in the order
-    that they were entered in :param: `ngrams`. If you would like to
-    impose another n-gram run order hierarchy, you can manipulate the
-    order in which NGM sees the n-grams by setting the n-grams piecemeal
-    via :meth: `set_params`. Instantiate with your preferred n-grams,
-    pass the data to :meth: `transform`, and keep the processed data in
-    memory. Then use :meth: `set_params` to set the lesser-preferred
-    n-grams and pass the processed data to :meth: `transform` again.
+    NGM has dual functionality. N-grams can be searched using literal
+    strings or regular expressions. For those of you who do not know
+    regex, you can safely ignore any references to flags, re.compile,
+    or re.Pattern, and just use literal strings. NGM accepts n-gram
+    patterns in python sequences passed to the :param: `ngrams` parameter.
+    In each position of the sequence(s), specify the whole-string pattern
+    for each individual string to be searched for in your text. NGM
+    always looks for full matches against tokens, it does not do partial
+    matches. Provide literal strings and/or re.compile objects containing
+    your regex patterns intended to match full strings. DO NOT PASS A
+    REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE CORRECT
+    RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT. DO NOT
+    ESCAPE LITERAL STRINGS, NGM WILL  DO THAT FOR YOU. If you don't know
+    what any of that means, then you don't need to worry about it.
 
     NGM affords you some control over how the n-grams are merged in the
     text body. There are two parameters that control this, :param: `sep`
@@ -101,10 +114,11 @@ class NGramMerger(
     function that takes a variable-length list of strings and returns a
     single string. :param: `sep` will simply concatenate the words in
     the matching pattern with the separator that you choose. If you pass
-    neither, NGM will default to concatenating the words in the matching
-    pattern with a '_' separator. In short, NGM merges words that match
-    ngram patterns using the following hierarchy:
-    given callable > given separator > default separator
+    neither, i.e. the NGM default parameters are not overriden by the
+    user at instantiation, NGM will default to concatenating the words
+    in the matching pattern with a '_' separator. In short, NGM merges
+    words that match n-gram patterns using the following hierarchy:
+    given callable > given separator > default separator.
 
     NGM is able to wrap across the beginnings and ends of line, if you
     desire. This can be toggled with :param: `wrap`. If you do not want
@@ -115,14 +129,30 @@ class NGramMerger(
     lines, the joined n-gram is put into the line where the match BEGAN.
     For example, if an n-gram match is found starting at the end of line
     724 and ends in the beginning of line 725, the joined n-gram will
-    go at the end of line 724 and the relevant words in line 725 will be
-    removed. NGM only looks for wrapped n-grams across 2 lines, no more.
-    Consider the case where you have text that is one word per line,
-    and you are looking for a pattern like ['ONE', 'TWO', 'THREE']. NGM
-    will not find a match for this across 3 lines. The way to match this
-    n-gram would be 1) put all your tokens on one line, or 2) make 2
-    passes. On, the first pass look for the n-gram ['ONE', 'TWO'], then
-    on the second pass look for the n-gram ['ONE_TWO', 'THREE'].
+    go at the end of line 724 and the respective words in line 725 will
+    be removed. NGM only looks for wrapped n-grams across 2 lines, no
+    more. Consider the case where you have text that is one word per
+    line, and you are looking for a pattern like ['ONE', 'TWO', 'THREE'].
+    NGM will not find a match for this across 3 lines. The way to match
+    this n-gram would be 1) put all your tokens on one line, or 2) make
+    2 passes. On, the first pass look for the n-gram [('ONE', 'TWO')],
+    then on the second pass look for the n-gram [('ONE_TWO', 'THREE')].
+
+    N-gram searches always default to case-sensitive, but can be made
+    to be case-insensitive. You can globally set this behavior via
+    the :param: `case_sensitive` parameter. For those of you that know
+    regex, you can also put flags in the re.compile objects passed
+    to :param: `ngrams`, or flags can be set globally via :param: `flags`.
+    Case-sensitivity is generally controlled by :param: `case_sensitive`
+    but IGNORECASE flags passed via re.compile objects or :param: `flags`
+    will always overrule `case_sensitive`.
+
+    If no parameters are passed, i.e., all parameters are left to
+    their default values at instantiation, then NGM does a no-op on
+    the n-gram search. If :param: `ngrams` is left to the default value
+    of None, but :param: `remove_empty_rows` is set to True, NGM will
+    still remove any empty rows in your data if your data was passed
+    with empty rows in it.
 
     NGM should only be used on highly processed data. NGM should not be
     the first (or even near the first) step in a complex text wrangling
@@ -160,35 +190,50 @@ class NGramMerger(
     boolean vector that indicates which rows were kept (True) and which
     rows were removed (False) from the data during :term: transform.
     The only way for an entry to become False (i.e. a row was removed)
-    is if both :param: `wrap` and :param: `remove_empty_rows` are True
-    and all the strings on one row are merged into an n-gram at the end
-    of the line above it. :attr: `n_rows_` must equal the number of
-    entries in :attr: `row_support_`.
+    is if :param: `remove_empty_rows` is True and there were empty rows
+    in the data originally passed, or :param: `wrap` is also True and
+    all the strings on one row are merged into an n-gram at the end of
+    the line above it. :attr: `n_rows_` must equal the number of entries
+    in :attr: `row_support_`.
 
 
     Parameters
     ----------
     ngrams:
-        Sequence[Sequence[Union[str, re.Pattern]]] - A sequence of
-        sequences, where each inner sequence holds a series of string
-        literals and/or re.compile objects that specify an n-gram.
-        Cannot be empty, and cannot have any n-gram patterns with less
-        than 2 entries.
+        Union[Sequence[Sequence[Union[str, re.Pattern]]], None],
+        default=None - A sequence of sequences, where each inner sequence
+        holds a series of string literals and/or re.compile objects that
+        specify an n-gram. Cannot be empty, and cannot have any n-gram
+        patterns with less than 2 entries.
     ngcallable:
-        Optional[Callable[[Sequence[str]], str]], default=None - a
-        callable applied to word sequences that match an n-gram to
-        produce a contiguous string sequence.
+        Optional[Callable[[list[str]], str]], default=None - a callable
+        applied to word sequences that match an n-gram to produce a
+        single contiguous string sequence.
     sep:
         Optional[str], default='_' - the separator that joins words that
-        match an n-gram.
+        match an n-gram. This is overriden when a callable is passed
+        to :param: `ngcallable`.
     wrap:
         Optional[bool], default=False - whether to look for pattern
-        matches across the end of the current line and beginning of the
+        matches across the end of one line and into the beginning of the
         next line.
+    case_sensitive:
+        Optional[bool], default=True - global case-sensitivity setting.
+        If True (the default) then all searches are case-sensitive. If
+        False, NGM will look for matches regardless of case. This setting
+        is overriden when IGNORECASE flags are passed in re.compile
+        objects or to :param: `flags`.
     remove_empty_rows:
         Optional[bool], default=False - whether to delete any empty rows
         that may occur during the merging process. A row could only
-        become empty if :param: `wrap` is True.
+        become empty if :param: `wrap` is True or the data was passed
+        with an empty row already in it.
+    flags:
+        Union[numbers.Integral, None] - the global flags value(s) applied
+        to the n-gram search. Must be None or an integer. The values of
+        the integers are not validated for legitimacy, any exceptions
+        would be raised by re.fullmatch. An IGNORECASE flag passed here
+        will override :param: `case_sensitive`.
 
 
     Attributes
@@ -197,19 +242,24 @@ class NGramMerger(
         int - the number of rows in the data passed to :meth: `transform`.
         This reflects the data that is passed, not the data that is
         returned, which may not necessarily have the same number of
-        rows as the original data if :param: `remove_empty_rows`
-        and :param: `wrap` and are both True. Also, it only reflects the
-        last batch of data passed; it is not cumulative. This attribute
-        is only exposed after data is passed to :meth: `transform`.
+        rows as the original data. The number of rows returned could be
+        less than the number passed if :param: `remove_empty_rows` is
+        True and there was an empty row already in the data when it was
+        passed, or :param: `wrap` is also True and all the strings on
+        one line were merged into an n-gram on the previous line.
+        `n_rows_` only reflects the last batch of data passed; it is not
+        cumulative. This attribute is only exposed after data is passed
+        to :meth: `transform`.
     row_support_:
         np.NDArray[bool] - a boolean 1D numpy vector of shape (n_rows_, )
         indicating which rows of the data were kept (True) or removed
         (False) during :term: transform. The only way an entry in
         this vector could become False (i.e. a row was removed) is
-        if :param: `wrap` and :param: `remove_empty_rows` are both True
+        if :param: `remove_empty_rows` is True and an empty row was
+        already in the data when passed, or :param: `wrap` is also True
         and all strings on one line were merged into an n-gram on the
-        line above it. This attribute is exposed after data is passed
-        to :meth: `transform`.
+        line above it. This attribute is only exposed after data is
+        passed to :meth: `transform`.
 
 
     Notes
@@ -235,25 +285,34 @@ class NGramMerger(
         list[list[str]]
 
     NGramsType:
-        Sequence[Sequence[Union[str, re.Pattern]]]
+        Optional[Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]]
 
-    CallableType:
-        Optional[Callable[[Sequence[str]], str]]
+    NGramsWipType:
+        Union[None, list[tuple[re.Pattern[str], ...]]]
+
+    NGCallableType:
+        Optional[Union[None, Callable[[list[str]], str]]]
 
     SepType:
-        Optional[str]
+        Optional[Union[str, None]]
 
     WrapType:
+        Optional[bool]
+
+    CaseSensitiveType:
         Optional[bool]
 
     RemoveEmptyRowsType:
         Optional[bool]
 
+    FlagsType:
+        Optional[Union[numbers.Integral, None]]
+
 
     Examples
     --------
     >>> from pybear.feature_extraction.text import NGramMerger as NGM
-    >>> trfm = NGM(ngrams=[('NEW', 'YORK', 'CITY'), ('NEW', 'YORK')])
+    >>> trfm = NGM(ngrams=(('NEW', 'YORK', 'CITY'), ('NEW', 'YORK')))
     >>> X = [
     ...   ['UNITED', 'NATIONS', 'HEADQUARTERS'],
     ...   ['405', 'EAST', '42ND', 'STREET'],
@@ -267,7 +326,7 @@ class NGramMerger(
     ['NEW_YORK_CITY', 'NEW_YORK', '10017', 'USA']
     >>> # Change the separator to '@'
     >>> trfm.set_params(sep='@')
-    NGramMerger(ngrams=[('NEW', 'YORK', 'CITY'), ('NEW', 'YORK')], sep='@')
+    NGramMerger(ngrams=(('NEW', 'YORK', 'CITY'), ('NEW', 'YORK')), sep='@')
     >>> out = trfm.fit_transform(X)
     >>> for line in out:
     ...   print(line)
@@ -282,11 +341,13 @@ class NGramMerger(
     def __init__(
         self,
         *,
-        ngrams: Sequence[Sequence[Union[str, re.Pattern]]],
-        ngcallable: Optional[Callable[[Sequence[str]], str]]=None,
-        sep: Optional[str]='_',
-        wrap: Optional[bool]=False,
-        remove_empty_rows: Optional[bool]=False
+        ngrams:NGramsType = None,
+        ngcallable:NGCallableType = None,
+        sep:SepType = None,
+        wrap:WrapType = False,
+        case_sensitive:CaseSensitiveType = True,
+        remove_empty_rows:Optional[bool] = False,
+        flags:FlagsType = None
     ) -> None:
 
         """Initialize the NGramMerger instance."""
@@ -295,14 +356,16 @@ class NGramMerger(
         self.ngcallable = ngcallable
         self.sep = sep
         self.wrap = wrap
+        self.case_sensitive = case_sensitive
         self.remove_empty_rows = remove_empty_rows
+        self.flags = flags
 
 
     @property
     def n_rows_(self):
         """
-        Get the 'n_rows_' attribute. The number of rows in the data
-        passed to transform.
+        Get the `n_rows_` attribute. The number of rows in the data
+        passed to :meth: `transform`.
         """
         return self._n_rows
 
@@ -310,7 +373,7 @@ class NGramMerger(
     @property
     def row_support_(self):
         """
-        Get the row_support_ attribute. A boolean vector indicating
+        Get the `row_support_` attribute. A boolean vector indicating
         which rows were kept in the data during the transform process.
         Only available if a transform has been performed, and only
         reflects the results of the last transform done.
@@ -439,8 +502,14 @@ class NGramMerger(
         check_is_fitted(self)
 
         _validation(
-            X, self.ngrams, self.ngcallable, self.sep, self.wrap,
-            self.remove_empty_rows
+            X,
+            self.ngrams,
+            self.ngcallable,
+            self.sep,
+            self.wrap,
+            self.case_sensitive,
+            self.remove_empty_rows,
+            self.flags
         )
 
         if copy:
@@ -452,8 +521,24 @@ class NGramMerger(
 
         self._n_rows: int = len(_X)
 
+        _ngrams_wip: NGramsWipType = _special_param_conditioner(
+            self.ngrams,
+            self.case_sensitive,
+            self.flags
+        )
+
+        # WHAT SUBMODULES ARE CALLED AND WHERE
+        # _transform
+        #     _match_finder
+        #     _wrap_manager
+        #         _manage_wrap_idxs
+        #         _match_finder
+        #         _get_wrap_match_idxs
+        #         _replacer (only one that uses sep)
+        #     _replacer (only one that uses sep)
+
         _X, self._row_support = _transform(
-            _X, self.ngrams, self.ngcallable, self.sep, self.wrap,
+            _X, _ngrams_wip, self.ngcallable, self.sep, self.wrap,
             self.remove_empty_rows
         )
 

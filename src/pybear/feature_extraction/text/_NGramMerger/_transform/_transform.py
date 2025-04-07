@@ -6,11 +6,10 @@
 
 
 
-from typing import Callable, Sequence
+from typing import Callable
 from typing_extensions import Union
 import numpy.typing as npt
-
-import re
+from .._type_aliases import NGramsWipType
 
 import numpy as np
 
@@ -22,8 +21,8 @@ from ._wrap_manager import _wrap_manager
 
 def _transform(
     _X: list[list[str]],
-    _ngrams: Sequence[Sequence[Union[str, re.Pattern]]],
-    _ngcallable: Union[Callable[[Sequence[str]], str], None],
+    _ngrams: NGramsWipType,
+    _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None],
     _wrap: bool,
     _remove_empty_rows: bool
@@ -48,15 +47,14 @@ def _transform(
     _X:
         list[list[str]] - (possibly ragged) 2D array of strings.
     _ngrams:
-        _ngrams: Sequence[Sequence[Union[str, re.Pattern]] - The n-gram
-        sequences to look for in the data. Each individual n-gram must
-        be a sequence of string literals and/or re.compile objects that
-        specify an n-gram pattern. Cannot be empty, and cannot have any
-        ngrams that have less than 2 entries.
+        NGramsWipType - The n-gram sequences to look for in the data.
+        Each individual n-gram must be a tuple of re.compile objects
+        that specify an n-gram pattern. Cannot be empty, and cannot have
+        any ngrams that have less than 2 entries.
     _ngcallable:
-        Union[Callable[[Sequence[str]], str], None] - the callable
-        applied to sequences that match an n-gram pattern to produce a
-        single contiguous string.
+        Union[Callable[[list[str]], str], None] - the callable applied
+        to sequences that match an n-gram pattern to produce a single
+        contiguous string.
     _sep:
         Union[str, None] - the user defined separator to join the words
         with, if _ngcallable is not given. If no separator is defined by
@@ -67,7 +65,7 @@ def _transform(
     _remove_empty_rows:
         bool - whether to delete any empty rows that may occur during
         the merging process. A row could only become empty if 'wrap' is
-        True.
+        True or the original data had an empty row already in it.
 
 
     Returns
@@ -84,36 +82,38 @@ def _transform(
     """
 
 
-    # need to do ngrams from longest to shortest.
+    if _ngrams is not None:
 
-    _lens = list(reversed(list(set(map(len, _ngrams)))))
+        # need to do ngrams from longest to shortest.
+        _lens = list(reversed(list(set(map(len, _ngrams)))))
 
-    for _len in _lens:
+        for _len in _lens:
 
-        for _ngram in _ngrams:
+            for _ngram in _ngrams:
 
-            if len(_ngram) != _len:
-                continue
+                if len(_ngram) != _len:
+                    continue
 
-            for _row_idx in range(len(_X)):
+                for _row_idx in range(len(_X)):
 
-                _hits = _match_finder(_X[_row_idx], _ngram)
+                    _hits = _match_finder(_X[_row_idx], _ngram)
 
-                if _wrap and _row_idx < len(_X) - 1:
-                    _X[_row_idx], _X[_row_idx+1] = _wrap_manager(
-                        _X[_row_idx],
-                        _X[_row_idx+1],
-                        _hits,
-                        [],
-                        _ngram,
-                        _ngcallable,
-                        _sep
+                    if _wrap and _row_idx < len(_X) - 1:
+                        _X[_row_idx], _X[_row_idx+1] = _wrap_manager(
+                            _X[_row_idx],
+                            _X[_row_idx+1],
+                            _hits,
+                            [],
+                            _ngram,
+                            _ngcallable,
+                            _sep
+                        )
+
+                    _X[_row_idx] = _replacer(
+                        _X[_row_idx], _ngram, _hits, _ngcallable, _sep
                     )
 
-                _X[_row_idx] = _replacer(
-                    _X[_row_idx], _ngram, _hits, _ngcallable, _sep
-                )
-
+    # even if n_grams is None, still remove empty rows if directed
     _row_support = np.ones((len(_X), ), dtype=bool)
     if _remove_empty_rows:
         for _row_idx in range(len(_X)-1, -1, -1):

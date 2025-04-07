@@ -10,11 +10,11 @@ from typing import Callable, Sequence, Optional
 from typing_extensions import TypeAlias, Union
 import numpy.typing as npt
 
+import numbers
 import re
 
 import pandas as pd
 import polars as pl
-
 
 
 
@@ -30,15 +30,22 @@ XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 XWipContainer: TypeAlias = list[list[str]]
 
-NGramsType: TypeAlias = Sequence[Sequence[Union[str, re.Pattern]]]
+NGramsType: TypeAlias = \
+    Optional[Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]]
 
-CallableType: TypeAlias = Optional[Callable[[Sequence[str]], str]]
+NGramsWipType: TypeAlias = Union[None, list[tuple[re.Pattern[str], ...]]]
 
-SepType: TypeAlias = Optional[str]
+NGCallableType: TypeAlias = Optional[Union[None, Callable[[list[str]], str]]]
+
+SepType: TypeAlias = Optional[Union[str, None]]
 
 WrapType: TypeAlias = Optional[bool]
 
+CaseSensitiveType: TypeAlias = Optional[bool]
+
 RemoveEmptyRowsType: TypeAlias = Optional[bool]
+
+FlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]
 
 
 

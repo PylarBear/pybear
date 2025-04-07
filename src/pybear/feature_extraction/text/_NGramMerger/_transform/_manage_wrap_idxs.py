@@ -14,8 +14,8 @@ import numbers
 
 def _manage_wrap_idxs(
     _first_line: Sequence[str],
-    _first_hits: Sequence[int],
-    _second_hits: Sequence[int],
+    _first_hits: Sequence[numbers.Integral],
+    _second_hits: Sequence[numbers.Integral],
     _n_len: numbers.Integral
 ) -> tuple[int, int]:
 

@@ -28,8 +28,8 @@ def _wrap_manager(
     _second_line: list[str],
     _first_hits: Sequence[numbers.Integral],
     _second_hits: Sequence[numbers.Integral],
-    _ngram: Sequence[Union[str, re.Pattern]],
-    _ngcallable: Union[Callable[[Sequence[str]], str], None],
+    _ngram: tuple[re.Pattern, ...],
+    _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None]
 ) -> tuple[list[str], list[str]]:
 
@@ -44,10 +44,10 @@ def _wrap_manager(
     ----------
     _first_line:
         list[str] - the current line being searched for ngram patterns
-        in transform.
+        in :meth: `transform`.
     _second_line:
         list[str] - the line below the current line being searched for
-        ngram patterns in transform.
+        ngram patterns in :meth: `transform`.
     _first_hits:
         Sequence[numbers.Integral] - the first indices of any matching
         n-gram patterns found in the current line during the normal
@@ -57,13 +57,13 @@ def _wrap_manager(
         n-gram patterns found in the line below the current line during
         the normal linear n-gram search.
     _ngram:
-        Sequence[Union[str, re.Pattern]] - A single n-gram sequence
-        containing string literals and/or re.compile objects that
-        specify an n-gram pattern. Cannot have less than 2 entries.
+        tuple[re.Pattern, ...] - A single n-gram sequence containing
+        re.compile objects that specify an n-gram pattern. Cannot have
+        less than 2 entries.
     _ngcallable:
-        Union[Callable[[Sequence[str]], str], None] - the callable
-        applied to sequences that match an n-gram pattern to produce a
-        single contiguous string.
+        Union[Callable[[list[str]], str], None] - the callable applied
+        to sequences that match an n-gram pattern to produce a single
+        contiguous string.
     _sep:
         Union[str, None] - the user defined separator to join the words
         with, if _ngcallable is not given. If no separator is defined by

@@ -9,6 +9,8 @@
 from pybear.feature_extraction.text._NGramMerger._transform._transform import \
     _transform
 
+import re
+
 import numpy as np
 
 import pytest
@@ -40,11 +42,11 @@ class TestTransformNoWrap:
     @pytest.fixture(scope='function')
     def _ngrams():
         return [
-            ('AND', 'MOO'),
-            ('YORK', 'FRIED'),
-            ('NEW', 'YORK', 'CITY'),
-            ('FRIED', 'RICE'),
-            ('MOO', 'GOO', 'GAI', 'PAN')
+            tuple(map(re.compile, ('AND', 'MOO'))),
+            tuple(map(re.compile, ('YORK', 'FRIED'))),
+            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
+            tuple(map(re.compile, ('FRIED', 'RICE'))),
+            tuple(map(re.compile, ('MOO', 'GOO', 'GAI', 'PAN')))
         ]
 
 
@@ -100,10 +102,10 @@ class TestTransformWithWrap1:
     @pytest.fixture(scope='function')
     def _ngrams():
         return [
-            ('NEW', 'YORK', 'CITY'),
-            ('YORK', 'FRIED'),
-            ('PAN', 'BEWARE'),
-            ('MOO', 'GOO', 'GAI', 'PAN')
+            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
+            tuple(map(re.compile, ('YORK', 'FRIED'))),
+            tuple(map(re.compile, ('PAN', 'BEWARE'))),
+            tuple(map(re.compile, ('MOO', 'GOO', 'GAI', 'PAN')))
         ]
 
 
@@ -162,11 +164,11 @@ class TestTransformWithWrap2:
     @pytest.fixture(scope='function')
     def _ngrams():
         return [
-            ('NEW', 'YORK', 'CITY'),
-            ('NEW', 'YORK'),
-            ('YORK', 'FRIED'),
-            ('PAN', 'BEWARE'),
-            ('BEWARE', 'OF')
+            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
+            tuple(map(re.compile, ('NEW', 'YORK'))),
+            tuple(map(re.compile, ('YORK', 'FRIED'))),
+            tuple(map(re.compile, ('PAN', 'BEWARE'))),
+            tuple(map(re.compile, ('BEWARE', 'OF')))
         ]
 
 
@@ -224,8 +226,8 @@ class TestSingleWordsWithWrap:
     @pytest.fixture(scope='function')
     def _ngrams():
         return [
-            ('NEW', 'YORK', 'CITY'),
-            ('NEW', 'YORK')
+            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
+            tuple(map(re.compile, ('NEW', 'YORK')))
         ]
 
 

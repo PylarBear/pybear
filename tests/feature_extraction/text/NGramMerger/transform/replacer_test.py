@@ -38,7 +38,7 @@ class TestSlider:
 
         _line1 = ['EGG', 'SANDWICHES', 'AND', 'ICE', 'CREAM']
 
-        _ngram1 = ['EGG', re.compile('sandwich[es]+', re.I)]
+        _ngram1 = (re.compile('EGG'), re.compile('sandwich[es]+', re.I))
 
         indices = _match_finder(_line1, _ngram1)
         out = _replacer(_line1, _ngram1, indices, None, _sep)
@@ -51,7 +51,7 @@ class TestSlider:
 
         _line2 = out.copy()
 
-        _ngram2 = ['ICE', 'CREAM']
+        _ngram2 = (re.compile('ICE'), re.compile('CREAM'))
 
         indices = _match_finder(_line2, _ngram2)
 
@@ -67,7 +67,7 @@ class TestSlider:
 
         _line1 = ['BIG', 'BIG', 'MONEY', 'NO', 'WHAMMY', 'YES', 'WHAMMY']
 
-        _ngram1 = [re.compile('big', re.I), re.compile('money', re.I)]
+        _ngram1 = (re.compile('big', re.I), re.compile('money', re.I))
 
         indices = _match_finder(_line1, _ngram1)
 
@@ -84,7 +84,7 @@ class TestSlider:
 
         _line2 = out.copy()
 
-        _ngram2 = ['NO', re.compile('WHAMM.+', re.I)]
+        _ngram2 = (re.compile('NO'), re.compile('WHAMM.+', re.I))
 
         indices = _match_finder(_line2, _ngram2)
 
@@ -104,7 +104,7 @@ class TestSlider:
 
         out = _replacer(
             ['NEW', 'MEXICO', 'NEW', 'HAMPSHIRE'],
-            ['NEW', 'YORK'],
+            (re.compile('NEW'), re.compile('YORK')),
             [],
             lambda x: '_'.join(x),
             None
@@ -119,7 +119,7 @@ class TestSlider:
 
             _line = ['SILLY', 'STRING']
 
-            _replacer(_line, _line, [0], lambda x: _line, None)
+            _replacer(_line, (re.compile('SILLY'), ), [0], lambda x: _line, None)
 
 
 

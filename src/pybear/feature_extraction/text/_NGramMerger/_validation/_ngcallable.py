@@ -12,7 +12,7 @@ from typing_extensions import Union
 
 
 def _val_ngcallable(
-    _ngcallable: Union[Callable[[Sequence[str]], str], None]
+    _ngcallable: Union[Callable[[list[str]], str], None]
 ) -> None:
 
     """
@@ -23,9 +23,8 @@ def _val_ngcallable(
     Parameters
     ----------
     _ngcallable:
-        Union[Callable[[Sequence[str]], str], None] - the callable
-        applied to ngram sequences to produce a contiguous string
-        sequence.
+        Union[Callable[[list[str]], str], None] - the callable applied
+        to ngram sequences to produce a contiguous string sequence.
 
 
     Returns

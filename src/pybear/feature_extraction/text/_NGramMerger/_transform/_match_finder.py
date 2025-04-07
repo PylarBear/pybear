@@ -6,16 +6,13 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
-
 import re
 
 
 
 def _match_finder(
     _line: list[str],
-    _ngram: Sequence[Union[str, re.Pattern]],
+    _ngram: tuple[re.Pattern, ...],
 ) -> list[int]:
 
     """
@@ -29,9 +26,10 @@ def _match_finder(
     _line:
         list[str] - A single 1D sequence of strings.
     _ngram:
-        Sequence[Union[str, re.Pattern]] - A single n-gram sequence
-        containing string literals and/or re.compile objects that
-        specify an n-gram pattern. Cannot have less than 2 entries.
+        tuple[re.Pattern, ...] - A single n-gram sequence containing
+        re.compile objects that specify an n-gram pattern. The 'ngram'
+        parameter must have gone through by _special_param_conditioner.
+        Cannot have less than 2 entries.
 
 
     Returns
@@ -42,6 +40,10 @@ def _match_finder(
 
 
     """
+
+
+    assert isinstance(_ngram, tuple)
+    assert all(map(isinstance, _ngram, (re.Pattern for _ in _ngram)))
 
 
     # validation wont allow empty ngram
@@ -59,12 +61,9 @@ def _match_finder(
         _block = _line[_idx: _idx + _n_len]
 
         # _sp = sub_pattern
-        _ngram_matches = []
-        for _sp, _word in zip(_ngram, _block):
-
-            _ngram_matches.append(
-                re.fullmatch(re.escape(_sp) if isinstance(_sp, str) else _sp, _word)
-            )
+        _ngram_matches = [
+            re.fullmatch(_sp, _word) for _sp, _word in zip(_ngram, _block)
+        ]
 
         if all(_ngram_matches):
             _hits.append(_idx)

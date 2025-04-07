@@ -20,7 +20,7 @@ class TestValNGrams:
 
 
     @pytest.mark.parametrize('junk_ngrams',
-        (-2.7, -1, 0, 1, 2.7, True, None, [0,1], {1,2}, (1,), {'A':1}, lambda x: x)
+        (-2.7, -1, 0, 1, 2.7, True, [0,1], {1,2}, (1,), {'A':1}, lambda x: x)
     )
     def test_rejects_junk(self, junk_ngrams):
 
@@ -44,6 +44,8 @@ class TestValNGrams:
 
 
     def test_accepts_good(self):
+
+        assert _val_ngrams(None) is None
 
         assert _val_ngrams([['eat', 'more', 'chikn'], ['green', 'eggs']]) is None
 
