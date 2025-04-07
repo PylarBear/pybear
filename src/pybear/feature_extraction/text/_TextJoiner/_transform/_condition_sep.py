@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 
 import numbers
@@ -14,7 +14,7 @@ import numbers
 
 
 def _condition_sep(
-    _sep: Union[str, Iterable[str]],
+    _sep: Union[str, Sequence[str]],
     _n_rows: numbers.Integral
 ) -> list[str]:
 
@@ -27,7 +27,7 @@ def _condition_sep(
     Parameters
     ----------
     _sep:
-        Union[str, Iterable[str]] - the string sequence(s) to use to
+        Union[str, Sequence[str]] - the string sequence(s) to use to
         join each row of text strings in the data.
     _n_rows:
         numbers.Integral - the number of sub-containers of text in the
@@ -37,7 +37,7 @@ def _condition_sep(
     Returns
     -------
     -
-        XWipContainer - a single python list of strings.
+        list[str] - a single python list of strings.
 
 
     """
