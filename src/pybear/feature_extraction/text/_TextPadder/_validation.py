@@ -10,10 +10,10 @@ from typing import Sequence
 
 import numbers
 
-from ._n_features import _val_n_features
+from ..__shared._validation._2D_X import _val_2D_X
+from ..__shared._validation._any_integer import _val_any_integer
+from ..__shared._validation._any_string import _val_any_string
 
-from ...__shared._validation._2D_X import _val_2D_X
-from ...__shared._validation._any_string import _val_any_string
 
 
 def _validation(
@@ -50,7 +50,9 @@ def _validation(
 
     _val_any_string(_fill, 'fill', _can_be_None=False)
 
-    _val_n_features(_n_features)
+    _val_any_integer(
+        _n_features, 'n_features', _min=0, _can_be_bool=False, _can_be_None=False
+    )
 
 
 

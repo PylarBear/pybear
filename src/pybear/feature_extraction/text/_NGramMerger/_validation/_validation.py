@@ -6,7 +6,6 @@
 
 
 
-
 from typing import Callable, Sequence
 from typing_extensions import Union
 from .._type_aliases import XContainer
@@ -16,10 +15,10 @@ import re
 
 from ._ngrams import _val_ngrams
 from ._ngcallable import _val_ngcallable
-from ._flags import _val_flags
 
 from ...__shared._validation._2D_X import _val_2D_X
 from ...__shared._validation._any_bool import _val_any_bool
+from ...__shared._validation._any_integer import _val_any_integer
 from ...__shared._validation._any_string import _val_any_string
 
 
@@ -96,8 +95,11 @@ def _validation(
 
     _val_any_bool(_remove_empty_rows, 'remove_empty_rows', _can_be_None=False)
 
-    _val_flags(_flags)
-
+    _val_any_integer(_flags, 'flags', _can_be_None=True)
+    if not isinstance(_flags, (type(None), numbers.Integral)):
+        raise TypeError(
+            f"'flags' must be None or an integer. Cannot be a sequence."
+        )
 
     if _ngrams is None:
 

@@ -8,22 +8,37 @@
 
 import numbers
 
+from ...__shared._validation._any_integer import _val_any_integer
+
 
 
 def _val_n(
-    n: numbers.Integral
+    _n: numbers.Integral
 ) -> None:
 
+    """
+    Validate 'n'. Must be an integer >= 1>
 
-    err_msg = f"'n' must be an integer >= 1"
-    if not isinstance(n, numbers.Integral):
-        raise TypeError(err_msg)
-    if isinstance(n, bool):
-        raise TypeError(err_msg)
-    if n < 1:
-        raise ValueError(err_msg)
-    del err_msg
 
+    Parameters
+    ----------
+    _n:
+        numbers.Integral - something expected to be an integer that is
+        >= 1
+
+    Returns
+    -------
+    -
+        None
+
+
+    """
+
+
+    _val_any_integer(_n, 'n', _min=1, _can_be_bool=False)
+
+    if not isinstance(_n, numbers.Integral):
+        raise TypeError(f"'n' must be an integer >= 1")
 
 
 

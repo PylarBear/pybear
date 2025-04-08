@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import (
+from ._type_aliases import (
     XContainer,
     SepsType,
     CaseSensitiveType,
@@ -14,12 +14,13 @@ from .._type_aliases import (
     FlagsType
 )
 
-from ._maxsplit import _val_maxsplit
+import numbers
 
-from ...__shared._validation._1D_X import _val_1D_X
-from ...__shared._validation._pattern_holder import _val_pattern_holder
-from ...__shared._validation._case_sensitive import _val_case_sensitive
-from ...__shared._validation._flags import _val_flags
+from ..__shared._validation._1D_X import _val_1D_X
+from ..__shared._validation._any_integer import _val_any_integer
+from ..__shared._validation._pattern_holder import _val_pattern_holder
+from ..__shared._validation._case_sensitive import _val_case_sensitive
+from ..__shared._validation._flags import _val_flags
 
 
 
@@ -71,13 +72,25 @@ def _validation(
 
     _n_rows = _X.shape[0] if hasattr(_X, 'shape') else len(_X)
 
-    _val_pattern_holder(_sep, len(_X), 'sep')
+    _val_pattern_holder(_sep, _n_rows, 'sep')
 
-    _val_case_sensitive(_case_sensitive, len(_X))
+    _val_case_sensitive(_case_sensitive, _n_rows)
 
-    _val_maxsplit(_maxsplit, len(_X))
+    # maxsplit -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    err_msg = (f"'maxsplit' must be None, a single integer, or a LIST of "
+        f"Nones and/or integers, whose length equals the number of strings "
+        f"in the data.")
+    _val_any_integer(_maxsplit, _name='maxsplit', _can_be_None=True)
+    if isinstance(_maxsplit, (type(None), numbers.Integral)):
+        pass
+    elif isinstance(_maxsplit, list):
+        if len(_maxsplit) != _n_rows:
+            raise ValueError(err_msg)
+    else:
+        raise TypeError(err_msg)
+    # END maxsplit -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    _val_flags(_flags, len(_X))
+    _val_flags(_flags, _n_rows)
 
     del _n_rows
 
