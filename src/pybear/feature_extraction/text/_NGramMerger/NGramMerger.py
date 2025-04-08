@@ -120,7 +120,7 @@ class NGramMerger(
     words that match n-gram patterns using the following hierarchy:
     given callable > given separator > default separator.
 
-    NGM is able to wrap across the beginnings and ends of line, if you
+    NGM is able to wrap across the beginnings and ends of lines, if you
     desire. This can be toggled with :param: `wrap`. If you do not want
     NGM to look for and join n-grams across the end of one line into
     the beginning of another, set this parameter to False (the default).
@@ -225,9 +225,9 @@ class NGramMerger(
         objects or to :param: `flags`.
     remove_empty_rows:
         Optional[bool], default=False - whether to delete any empty rows
-        that may occur during the merging process. A row could only
-        become empty if :param: `wrap` is True or the data was passed
-        with an empty row already in it.
+        that may occur during the n-gram merging process. A row could
+        only become empty if :param: `wrap` is True or the data was
+        passed with an empty row already in it.
     flags:
         Union[numbers.Integral, None] - the global flags value(s) applied
         to the n-gram search. Must be None or an integer. The values of
