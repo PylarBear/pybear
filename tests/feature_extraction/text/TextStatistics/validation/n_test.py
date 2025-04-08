@@ -17,7 +17,7 @@ class TestValN:
 
 
     @pytest.mark.parametrize('junk_n',
-        (-2.7, 2.7, True, False, None, 'trash', [0,1], {'a': 1}, lambda x: x)
+        (-2.7, 2.7, True, False, None, 'trash', [1,2], {'a': 1}, lambda x: x)
     )
     def test_val_n_rejects_junk(self, junk_n):
 

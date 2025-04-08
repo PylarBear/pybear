@@ -18,7 +18,7 @@ from ._partial_fit._partial_fit import _partial_fit
 
 from ._transform._transform import _transform
 
-from ._validation._validation import _validation
+from ._validation import _validation
 
 from ..__shared._transform._map_X_to_list import _map_X_to_list
 

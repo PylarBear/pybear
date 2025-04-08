@@ -12,8 +12,7 @@ import re
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextSplitter._validation._validation \
-    import _validation
+from pybear.feature_extraction.text._TextSplitter._validation import _validation
 
 
 

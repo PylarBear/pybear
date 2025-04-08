@@ -10,6 +10,8 @@ from typing_extensions import TypeAlias, Union
 
 import numbers
 
+from ._any_integer import _val_any_integer
+
 
 
 FlagType: TypeAlias = Union[None, numbers.Integral]
@@ -54,19 +56,6 @@ def _val_flags(
     assert not isinstance(_n_rows, bool)
     assert _n_rows >= 0
 
-
-    def _val_helper(
-        _core_flags: Union[None, numbers.Integral]
-    ) -> bool:
-        """
-        Helper function to validate core flags objects are
-        Union[None, int].
-
-        """
-
-        return isinstance(_core_flags, (type(None), numbers.Integral)) and \
-                    not isinstance(_core_flags, bool)
-
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     _err_msg = (
@@ -75,24 +64,21 @@ def _val_flags(
         f"number of rows in the data."
     )
 
-
-    if _val_helper(_flags):
-        # means is either None or int
+    if isinstance(_flags, (type(None), numbers.Integral)) \
+            and not isinstance(_flags, bool):
         return
 
-    elif isinstance(_flags, list):
-
-        if len(_flags) != _n_rows:
-            raise ValueError(_err_msg)
-
-        if not all(map(_val_helper, _flags)):
-            raise TypeError
-
-    else:
+    if not isinstance(_flags, list):
         raise TypeError(_err_msg)
 
+    if len(_flags) != _n_rows:
+        raise ValueError(_err_msg)
 
-    del _val_helper, _err_msg
+    _val_any_integer(
+        _flags, _name='flags', _can_be_bool=False, _can_be_None=True
+    )
+
+    del _err_msg
 
 
 

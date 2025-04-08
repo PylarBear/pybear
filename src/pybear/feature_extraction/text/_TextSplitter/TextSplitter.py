@@ -19,7 +19,7 @@ from ._type_aliases import (
 
 import re
 
-from ._validation._validation import _validation
+from ._validation import _validation
 from ._regexp_core import _regexp_core
 
 from ..__shared._param_conditioner._param_conditioner import _param_conditioner

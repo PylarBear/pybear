@@ -18,10 +18,9 @@ from ._exempt import _val_exempt
 
 from ._supplemental import _val_supplemental
 
-from ._n_jobs import _val_n_jobs
-
 from ...__shared._validation._2D_X import _val_2D_X
 from ...__shared._validation._any_bool import _val_any_bool
+from ...__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -86,7 +85,9 @@ def _validation(
 
     _val_supplemental(_supplemental)
 
-    _val_n_jobs(_n_jobs)
+    _val_any_integer(
+        _n_jobs, 'n_jobs', _min=-1, _disallowed=[0], _can_be_None=True
+    )
 
 
 
