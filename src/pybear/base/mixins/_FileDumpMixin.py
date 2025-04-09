@@ -70,7 +70,7 @@ class FileDumpMixin:
         @functools.wraps(foo)
         def _writer_function(self, _X: XContainer) -> None:
 
-            is_1D = self._validation(_X)
+            is_1D = self._validate_X_container(_X)
             is_2D = bool(1 - is_1D)
 
             if is_2D:
@@ -136,7 +136,7 @@ class FileDumpMixin:
         return
 
 
-    def _validation(self, _X: XContainer):
+    def _validate_X_container(self, _X: XContainer):
 
         """
         Validate that X is an allowed container and is 1D or 2D. This

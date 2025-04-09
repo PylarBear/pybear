@@ -33,13 +33,13 @@ from ....data_validation import validate_user_input as vui
 from ....utilities._view_text_snippet import view_text_snippet
 from ....base._copy_X import copy_X
 
-from .TextLookupMixin import TextLookupMixin
+from ._TextLookupMixin import _TextLookupMixin
 
 from ....base._check_is_fitted import check_is_fitted
 
 
 
-class TextLookupRealTime(TextLookupMixin):
+class TextLookupRealTime(_TextLookupMixin):
 
     """
     Handle words in a 2D array-like body of text that are not in the

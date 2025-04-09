@@ -12,9 +12,7 @@ from typing_extensions import Union
 import numbers
 import re
 
-from ._validation import _validation
-
-from .._TextJustifierMixin import TextJustifierMixin
+from ._TextJustifierMixin import TextJustifierMixin
 
 
 
@@ -280,19 +278,6 @@ class TextJustifierRegExp(TextJustifierMixin):
             backfill_sep=backfill_sep,
             join_2D=join_2D
         )
-
-
-    def _validation(self, X):
-
-        """Validate the parameters for TextJustifierRegExp."""
-
-        _validation(
-            X, self.n_chars, self.sep, self.sep_flags, self.line_break,
-            self.line_break_flags, self.backfill_sep, self.join_2D
-        )
-
-
-
 
 
 

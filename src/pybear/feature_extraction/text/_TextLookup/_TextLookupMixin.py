@@ -28,7 +28,7 @@ from ....base import (
 
 
 
-class TextLookupMixin(
+class _TextLookupMixin(
     FileDumpMixin,
     FitTransformMixin,
     GetParamsMixin,

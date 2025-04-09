@@ -27,18 +27,14 @@ class TestValSep:
         # must be str or Sequence[str]
 
         with pytest.raises(TypeError):
-            _val_sep_or_line_break(
-                junk_sep, _name='sep', _mode='str', _can_be_None=False
-            )
+            _val_sep_or_line_break(junk_sep, _name='sep', _mode='str')
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
     def test_rejects_empty_string(self, _container):
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                '', _name='sep', _mode='str', _can_be_None=False
-            )
+            _val_sep_or_line_break('', _name='sep', _mode='str')
 
         _base_seps = ['', ' ', '_']
         if _container is np.ndarray:
@@ -49,9 +45,7 @@ class TestValSep:
         assert isinstance(_seps, _container)
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                _seps, _name='sep', _mode='str', _can_be_None=False
-            )
+            _val_sep_or_line_break(_seps, _name='sep', _mode='str')
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
@@ -66,9 +60,7 @@ class TestValSep:
         assert len(_seps) == 0
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                _seps, _name='sep', _mode='str', _can_be_None=False
-            )
+            _val_sep_or_line_break(_seps, _name='sep', _mode='str')
 
 
     @pytest.mark.parametrize('_container', (str, list, set, tuple, np.ndarray))
@@ -85,9 +77,7 @@ class TestValSep:
 
         assert isinstance(_seps, _container)
 
-        assert _val_sep_or_line_break(
-            _seps, _name='sep', _mode='str', _can_be_None=False
-        ) is None
+        assert _val_sep_or_line_break(_seps, _name='sep', _mode='str') is None
 
 
 

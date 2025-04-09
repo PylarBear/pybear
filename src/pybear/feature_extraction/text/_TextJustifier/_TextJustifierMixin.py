@@ -20,7 +20,7 @@ import re
 
 from ._shared._transform._sep_lb_finder import _sep_lb_finder
 from ._shared._transform._transform import _transform
-
+from ._shared._validation._validation import _validation
 from .._TextJoiner.TextJoiner import TextJoiner
 from .._TextSplitter.TextSplitter import TextSplitter
 
@@ -282,7 +282,21 @@ class TextJustifierMixin(
 
         check_is_fitted(self)
 
-        self._validation(X)
+        _module_name = type(self).__name__
+        if _module_name == 'TextJustifier':
+            _mode = 'str'
+        elif _module_name == 'TextJustifierRegExp':
+            _mode = 'regex'
+        else:
+            raise ValueError(f"unrecognized module name '{_module_name}'")
+        del _module_name
+
+
+        _validation(
+            _mode, X, self.n_chars, self.sep, self.sep_flags, self.line_break,
+            self.line_break_flags, self.case_sensitive, self.backfill_sep,
+            self.join_2D
+        )
 
         if copy:
             _X = copy_X(X)

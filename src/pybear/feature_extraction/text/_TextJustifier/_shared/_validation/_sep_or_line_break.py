@@ -18,13 +18,14 @@ def _val_sep_or_line_break(
         None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]
     ],
     _name:Literal['sep', 'line_break'],
-    _mode:Literal['str', 'regex'],
-    _can_be_None:bool
+    _mode:Literal['str', 'regex']
 ) -> None:
 
     """
-    Validate 'sep' or 'line_break' for EITHER TextJustifier OR
-    TextJustifierRegExp. 'sep' cannot be None, but 'line_break' can be.
+    Validate `sep` or `line_break` for EITHER TextJustifier OR
+    TextJustifierRegExp. `sep` cannot be None, but `line_break` can be.
+    That is the only difference for what can be passed to `sep` and
+    `line_break`.
 
     TextJustifier:
     Must be a non-empty string or a non-empty python sequence of
@@ -77,9 +78,6 @@ def _val_sep_or_line_break(
     _mode:
         Literal['str', 'regex'] - whether validating strings for TJ or
         re.compile objects for TJRE.
-    _can_be_None:
-        bool - whether the passed parameter can be None. 'sep' cannot be
-        None but 'line_break' can be.
 
 
     Return
@@ -96,13 +94,10 @@ def _val_sep_or_line_break(
 
     if _mode not in ['str', 'regex']:
         raise ValueError(f"'_mode' must be 'str' or 'regex'")
-
-    if not isinstance(_can_be_None, bool):
-        raise TypeError(f"'_can_be_None' must be bool")
     # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    if _can_be_None and _sep_or_line_break is None:
+    if _name == 'line_break' and _sep_or_line_break is None:
         return
 
 
