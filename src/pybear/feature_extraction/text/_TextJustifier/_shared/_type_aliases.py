@@ -11,6 +11,7 @@ from typing_extensions import TypeAlias, Union
 import numpy.typing as npt
 
 import numbers
+import re
 
 import pandas as pd
 import polars as pl
@@ -31,9 +32,28 @@ XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
 NCharsType: TypeAlias = Optional[numbers.Integral]
 
+StrSepType: TypeAlias = Optional[Union[str, Sequence[str]]]
+
+StrLineBreakType: TypeAlias = Optional[Union[str, Sequence[str], None]]
+
+CaseSensitiveType: TypeAlias = Optional[bool]
+
+RegExpSepType: TypeAlias = Optional[Union[re.Pattern[str], Sequence[re.Pattern[str]]]]
+
+SepFlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]
+
+RegExpLineBreakType: TypeAlias = \
+    Optional[Union[re.Pattern[str], Sequence[re.Pattern[str]], None]]
+
+LineBreakFlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]
+
 BackfillSepType: TypeAlias = Optional[str]
 
 Join2DType: TypeAlias = Optional[str]
+
+
+
+
 
 
 

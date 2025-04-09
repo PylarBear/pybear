@@ -8,23 +8,25 @@
 
 from typing_extensions import Union
 
-import numbers
 import re
 
 
 
 def _splitter(
     _X: list[str],
-    _sep: Union[str, re.Pattern],
-    _sep_flags: Union[numbers.Integral, None],
-    _line_break: Union[str, re.Pattern, None],
-    _line_break_flags: Union[numbers.Integral, None]
+    _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
+    _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
 ) -> list[str]:
 
     """
+    `_sep` and `_line_break` must have already been processed by
+    _param_conditioner, i.e., all literal strings must be converted to
+    re.compile and any flags passed as parameters or associated with
+    `case_sensitive` must have been put in the compile(s).
+
     Split the text strings in X on all user-defined line break and wrap
     patterns, so that each line has no breaks or wraps, or if they do,
-    the wraps/breaks are at the very end of the string. For each string
+    the wraps/breaks are at the very end of the line. For each string
     in X, find the first split location, if any, and keep the left side
     of any split in the original row. Insert the right side of the split
     into the index slot immediately after. Then proceed to that next row
@@ -38,16 +40,13 @@ def _splitter(
         list[str] - the data to have individual rows split on line-break
         and wrap separator patterns defined by the user.
     _sep:
-        Union[str, re.Pattern] - the regexp pattern that indicates to
-        TextJustifierRegExp where it is allowed to wrap a line.
-    _sep_flags:
-        Union[numbers.Integral, None] - the flags for the 'sep' parameter.
+        Union[re.Pattern[str], tuple[re.Pattern[str], ...]] - the regex
+        pattern(s) that indicate to TextJustifier(RegExp) where it is
+        allowed to wrap a line.
     _line_break:
-        Union[str, re.Pattern, None] - the regexp pattern that indicates
-        to TextJustifierRegExp where it must force a new line.
-    _line_break_flags:
-        Union[numbers.Integral, None] - the flags for the 'line_break'
-        parameter.
+        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]] - the
+        regex pattern(s) that indicates to TextJustifier(RegExp) where
+        it must force a new line.
 
 
     Returns
@@ -58,18 +57,26 @@ def _splitter(
     """
 
 
-    _sep_kwargs = {} if _sep_flags is None else {'flags': _sep_flags}
+    assert isinstance(_X, list)
+    assert isinstance(_sep, (re.Pattern, tuple))
+    assert isinstance(_line_break, (type(None), re.Pattern, tuple))
 
-    _line_break_kwargs = \
-        {} if _line_break_flags is None else {'flags': _line_break_flags}
 
-
-    def _match_dict_helper(_pattern, _line, **_kwargs) -> dict:
+    def _match_dict_helper(_pattern, _line,) -> dict:
         """Helper function to search pattern and return match dictionary."""
-        _match = re.search(_pattern, _line, **_kwargs)
-        if _match is not None and _match.span() != (0, 0):
+        _match = re.search(_pattern, _line)
+        # pizza .span() == (0, 0) was here
+        if _match is not None and _match.span()[0] != _match.span()[1]:
             return {_match.start(): _match.group()}
         return {}
+
+
+    # convert these to a tuple for easy iterating later
+    if isinstance(_sep, re.Pattern):
+        _sep = (_sep, )
+
+    if isinstance(_line_break, re.Pattern):
+        _line_break = (_line_break, )
 
 
     line_idx = 0
@@ -84,21 +91,22 @@ def _splitter(
 
         # go thru the seps & line_breaks and look for the first hit in
         # the string.
-        _sep_dict = _match_dict_helper(_sep, _line, **_sep_kwargs)
+        _sep_dict = {}
+        for _s in _sep:
+            _sep_dict |= _match_dict_helper(_s, _line)
 
-        if _line_break is None:
-            _line_break_dict = {}
-        else:
-            _line_break_dict = \
-                _match_dict_helper(_line_break, _line, **_line_break_kwargs)
+        _line_break_dict = {}
+        if _line_break is not None:
+            for _lb in _line_break:
+                _line_break_dict |= _match_dict_helper(_lb, _line)
 
         hit_dict = _line_break_dict | _sep_dict
         del _sep_dict, _line_break_dict
         # if no hits, this is zero-len dict, there are no seps or line breaks
         # in that line
         if len(hit_dict) == 0:
-            # rows that do not have seps/line_breaks will not be changed
-            # increments the line index, and back to the top
+            # rows that do not have seps/line_breaks will not be changed.
+            # increment the line index, and back to the top
             line_idx += 1
             continue
 
@@ -132,7 +140,7 @@ def _splitter(
         continue
 
 
-    del _sep_kwargs, _line_break_kwargs, _match_dict_helper
+    del _match_dict_helper
 
 
     return _X

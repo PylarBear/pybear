@@ -7,7 +7,7 @@
 
 
 from typing_extensions import Union
-from ..._shared._shared_type_aliases import XWipContainer
+from ..._shared._type_aliases import XWipContainer
 
 import re
 
@@ -16,8 +16,8 @@ import re
 def _sep_lb_finder(
     _X: XWipContainer,
     _join_2D: str,
-    _sep: Union[str, set[str]],
-    _line_break: Union[str, set[str], None]
+    _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
+    _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
 ) -> list[bool]:
 
     """
@@ -46,6 +46,23 @@ def _sep_lb_finder(
     identical for TJ and TJRE.
 
 
+    Parameters
+    ----------
+    _X:
+        XWipContainer - The data that has been justified. Need to find
+        places where `join_2D` may incidentally coincided with `sep` or
+        `line_break` at the end of a line.
+    _join_2D:
+        str - the character sequence that joined the tokens in each row
+        of the data if the data was originally passed as 2D.
+    _sep:
+        Union[re.Pattern[str], tuple[re.Pattern[str], ...]] - the
+        patterns where TextJustifier(RegExp) may have wrapped a line.
+    _line_break:
+        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]] - the
+        patterns where TextJustifier(RegExp) forced a line break.
+
+
     Returns
     -------
     -
@@ -53,6 +70,12 @@ def _sep_lb_finder(
         with a relic '' in the last position.
 
     """
+
+
+    assert isinstance(_X, list)
+    assert isinstance(_join_2D, str)
+    assert isinstance(_sep, (re.Pattern, tuple))
+    assert isinstance(_line_break, (type(None), re.Pattern, tuple))
 
 
     # join_2D must be a str. the only way this module can be accessed is
@@ -74,13 +97,13 @@ def _sep_lb_finder(
 
             _a =  isinstance(_sep, re.Pattern) and _endswith_helper(_sep, _line)
 
-            _b = isinstance(_sep, set) \
+            _b = isinstance(_sep, tuple) \
                     and any(map(lambda x: _endswith_helper(x, _line), _sep))
 
             _c = isinstance(_line_break, re.Pattern) \
                  and _endswith_helper(_line_break, _line)
 
-            _d = isinstance(_line_break, set) \
+            _d = isinstance(_line_break, tuple) \
                     and any(map(lambda x: _endswith_helper(x, _line), _line_break))
 
             if _a or _b or _c or _d:

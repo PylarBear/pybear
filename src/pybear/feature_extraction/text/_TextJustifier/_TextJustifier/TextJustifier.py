@@ -8,26 +8,12 @@
 
 from typing import Optional, Sequence
 from typing_extensions import Union
-from .._shared._shared_type_aliases import (
-    XContainer,
-    XWipContainer
-)
 
 import numbers
 
 from ._validation import _validation
-from ._transform._sep_lb_finder import _sep_lb_finder
-from ._transform._transform import _transform
 
 from .._TextJustifierMixin import TextJustifierMixin
-
-from ..._TextJoiner.TextJoiner import TextJoiner
-from ..._TextSplitter.TextSplitter import TextSplitter
-
-from ...__shared._transform._map_X_to_list import _map_X_to_list
-
-from .....base._copy_X import copy_X
-from .....base._check_is_fitted import check_is_fitted
 
 
 
@@ -273,6 +259,9 @@ class TextJustifier(TextJustifierMixin):
 
         """Initialize the TextJustifier instance."""
 
+        # must set this before super().__init__()
+        self.case_sensitive = case_sensitive
+
         super().__init__(
             n_chars=n_chars,
             sep=sep,
@@ -281,39 +270,10 @@ class TextJustifier(TextJustifierMixin):
             join_2D=join_2D
         )
 
-        self.case_sensitive = case_sensitive
 
+    def _validation(self, X):
 
-    def transform(
-        self,
-        X:XContainer,
-        copy:Optional[bool] = False
-    ) -> XWipContainer:
-
-        """
-        Justify the text in a 1D list-like of strings or a (possibly
-        ragged) 2D array-like of strings.
-
-
-        Parameters
-        ----------
-        X:
-            XContainer - The data to justify.
-        copy:
-            Optional[bool], default=False - whether to directly operate
-            on the passed X or on a deepcopy of X.
-
-
-        Return
-        ------
-        -
-            XWipContainer - the justified data returned as a 1D python
-            list of strings.
-
-
-        """
-
-        check_is_fitted(self)
+        """Validate the parameters for TextJustifier."""
 
         _validation(
             X, self.n_chars, self.sep, self.line_break,
@@ -321,61 +281,95 @@ class TextJustifier(TextJustifierMixin):
         )
 
 
-        if copy:
-            _X = copy_X(X)
-        else:
-            _X = X
-
-
-        _X: XWipContainer = _map_X_to_list(_X)
-
-        _was_2D = False
-        # we know from validation it is legit 1D or 2D, do the easy check
-        if all(map(isinstance, _X, (str for _ in _X))):
-            # then is 1D:
-            pass
-        else:
-            # then could only be 2D, need to convert to 1D
-            _was_2D = True
-            _X = TextJoiner(sep=self.join_2D).fit_transform(_X)
-
-        # _X must be 1D at this point
-        self._n_rows: int = len(_X)
-
-        _X = _transform(
-            _X, self.n_chars, self.sep,
-            self.line_break, self.backfill_sep
-        )
-
-        if _was_2D:
-            # when justifying (which is always in 1D), if the line ended
-            # with a sep or line_break, then that stayed on the end of
-            # the last word in the line. and if that sep or line_break
-            # coincidentally .endswith(join_2D), then TextSplitter will
-            # leave a relic '' at the end of that row. so for the case
-            # where [sep | line_break].endswith(join_2D) and
-            # line.endswith([sep | line_break), look at the last word in
-            # each line and if it ends with that sep/line_break, indicate
-            # as such so that after TextSplitter the '' and the end of
-            # those rows can be deletes. dont touch any other rows that
-            # might end with '', TJ didnt do it its the users fault.
-            # backfill_sep should never be at the end of a line.
-            _MASK = _sep_lb_finder(_X, self.join_2D, self.sep, self.backfill_sep)
-
-            _X = TextSplitter(sep=self.join_2D).fit_transform(_X)
-
-            if any(_MASK):
-                for _row_idx in range(len(_X)):
-                    # and _X[_row_idx][-1] == '' is just insurance, thinking
-                    # that it should always be the case that whatever was
-                    # marked as True by _sep_lb_finder must end with ''.
-                    if _MASK[_row_idx] is True and _X[_row_idx][-1] == '':
-                        _X[_row_idx].pop(-1)
-
-            del _MASK
-
-
-        return _X
+    # pizza take this out when done
+    # def transform(
+    #     self,
+    #     X:XContainer,
+    #     copy:Optional[bool] = False
+    # ) -> XWipContainer:
+    #
+    #     """
+    #     Justify the text in a 1D list-like of strings or a (possibly
+    #     ragged) 2D array-like of strings.
+    #
+    #
+    #     Parameters
+    #     ----------
+    #     X:
+    #         XContainer - The data to justify.
+    #     copy:
+    #         Optional[bool], default=False - whether to directly operate
+    #         on the passed X or on a deepcopy of X.
+    #
+    #
+    #     Return
+    #     ------
+    #     -
+    #         XWipContainer - the justified data returned as a 1D python
+    #         list of strings.
+    #
+    #
+    #     """
+    #
+    #     check_is_fitted(self)
+    #
+    #     self._validation(X)
+    #
+    #     if copy:
+    #         _X = copy_X(X)
+    #     else:
+    #         _X = X
+    #
+    #
+    #     _X: XWipContainer = _map_X_to_list(_X)
+    #
+    #     _was_2D = False
+    #     # we know from validation it is legit 1D or 2D, do the easy check
+    #     if all(map(isinstance, _X, (str for _ in _X))):
+    #         # then is 1D:
+    #         pass
+    #     else:
+    #         # then could only be 2D, need to convert to 1D
+    #         _was_2D = True
+    #         _X = TextJoiner(sep=self.join_2D).fit_transform(_X)
+    #
+    #     # _X must be 1D at this point
+    #     self._n_rows: int = len(_X)
+    #
+    #     _X = _transform(
+    #         _X, self.n_chars, self.sep,
+    #         self.line_break, self.backfill_sep
+    #     )
+    #
+    #     if _was_2D:
+    #         # when justifying (which is always in 1D), if the line ended
+    #         # with a sep or line_break, then that stayed on the end of
+    #         # the last word in the line. and if that sep or line_break
+    #         # coincidentally .endswith(join_2D), then TextSplitter will
+    #         # leave a relic '' at the end of that row. so for the case
+    #         # where [sep | line_break].endswith(join_2D) and
+    #         # line.endswith([sep | line_break), look at the last word in
+    #         # each line and if it ends with that sep/line_break, indicate
+    #         # as such so that after TextSplitter the '' and the end of
+    #         # those rows can be deletes. dont touch any other rows that
+    #         # might end with '', TJ didnt do it its the users fault.
+    #         # backfill_sep should never be at the end of a line.
+    #         _MASK = _sep_lb_finder(_X, self.join_2D, self.sep, self.backfill_sep)
+    #
+    #         _X = TextSplitter(sep=self.join_2D).fit_transform(_X)
+    #
+    #         if any(_MASK):
+    #             for _row_idx in range(len(_X)):
+    #                 # and _X[_row_idx][-1] == '' is just insurance, thinking
+    #                 # that it should always be the case that whatever was
+    #                 # marked as True by _sep_lb_finder must end with ''.
+    #                 if _MASK[_row_idx] is True and _X[_row_idx][-1] == '':
+    #                     _X[_row_idx].pop(-1)
+    #
+    #         del _MASK
+    #
+    #
+    #     return _X
 
 
 

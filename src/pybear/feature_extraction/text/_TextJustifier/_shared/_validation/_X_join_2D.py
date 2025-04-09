@@ -6,7 +6,7 @@
 
 
 
-from .._shared_type_aliases import XContainer
+from .._type_aliases import XContainer
 
 from ....__shared._validation._any_string import _val_any_string
 from ....__shared._validation._1D_X import _val_1D_X

@@ -23,8 +23,8 @@ class TestSepLbFinder:
     # def _sep_lb_finder(
     #     _X: XWipContainer,
     #     _join_2D: str,
-    #     _sep: Union[str, set[str]],
-    #     _line_break: Union[str, set[str], None]
+    #     _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
+    #     _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
     # ) -> list[bool]:
 
 
@@ -44,10 +44,10 @@ class TestSepLbFinder:
 
     @pytest.mark.parametrize('_join_2D', (' ,', ' ', '.'))
     @pytest.mark.parametrize('_sep',
-        (re.compile(','), re.compile(' '), {re.compile(','), re.compile(' ')})
+        (re.compile(','), re.compile(' '), (re.compile(','), re.compile(' ')))
     )
     @pytest.mark.parametrize('_lb',
-        (re.compile('\.'), re.compile(';'), {re.compile('\.'), re.compile(';')}, None)
+        (re.compile('\.'), re.compile(';'), (re.compile('\.'), re.compile(';')), None)
     )
     def test_accuracy(self, _text, _join_2D, _sep, _lb):
 
@@ -64,7 +64,7 @@ class TestSepLbFinder:
         else:
             # line 1
             if _join_2D == ' ' and (_sep == re.compile(' ')
-                    or (isinstance(_sep, set) and re.compile(' ') in _sep)):
+                    or (isinstance(_sep, tuple) and re.compile(' ') in _sep)):
                 _ref[0] = True
 
             # line 2
@@ -75,7 +75,7 @@ class TestSepLbFinder:
 
             # line 4
             if _join_2D == '.' and (_lb == re.compile('\.')
-                    or (isinstance(_lb, set) and re.compile('\.') in _lb)):
+                    or (isinstance(_lb, tuple) and re.compile('\.') in _lb)):
                 _ref[3] = True
 
 

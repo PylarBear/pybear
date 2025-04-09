@@ -19,16 +19,19 @@ from ._stacker import _stacker
 def _transform(
     _X: list[str],
     _n_chars: numbers.Integral,
-    _sep: Union[str, re.Pattern],
-    _sep_flags: Union[numbers.Integral, None],
-    _line_break: Union[str, re.Pattern, None],
-    _line_break_flags: Union[numbers.Integral, None],
+    _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
+    _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]],
     _backfill_sep: str
 ) -> list[str]:
 
     """
     Fit text as strings to the user-specified number of characters per
     row. For this module, the data must be a 1D python list of strings.
+
+    `_sep` and `_line_break` must have already been processed by
+    _param_conditioner, i.e., all literal strings must be converted to
+    re.compile and any flags passed as parameters or associated with
+    `case_sensitive` must have been put in the compile(s).
 
 
     Parameters
@@ -39,16 +42,13 @@ def _transform(
         numbers.Integral - the number of characters per line to target
         when justifying the text.
     _sep:
-        Union[str, re.Pattern] - the regexp pattern that indicates to
-        TextJustifierRegExp where it is allowed to wrap a line.
-    _sep_flags:
-        Union[numbers.Integral, None] - the flags for the 'sep' parameter.
+        Union[re.Pattern[str], tuple[re.Pattern[str], ...]] - the regex
+        pattern(s) that indicates to TextJustifier(RegExp) where it is
+        allowed to wrap a line.
     _line_break:
-        Union[str, re.Pattern, None]] - the regexp pattern that indicates
-        to TextJustifierRegExp where it must force a new line.
-    _line_break_flags:
-        Union[numbers.Integral, None] - the flags for the 'line_break'
-        parameter.
+        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]] - the
+        regex pattern(s) that indicates to TextJustifier(RegExp) where
+        it must force a new line.
     _backfill_sep:
         str - Some lines in the text may not have any of the given wrap
         separators or line breaks at the end of the line. When justifying
@@ -69,14 +69,21 @@ def _transform(
     """
 
 
+    assert isinstance(_X, list)
+    assert isinstance(_n_chars, numbers.Integral)
+    assert isinstance(_sep, (re.Pattern, tuple))
+    assert isinstance(_line_break, (type(None), re.Pattern, tuple))
+    assert isinstance(_backfill_sep, str)
+
+
     # loop over the entire data set and split on anything that is a line_break
-    # or sep. these user-defined line seps/breaks will be in an 'endswith'
+    # or sep. these user-defined line seps/breaks will be in an '$'
     # position on impacted lines.
     # e.g. if X is ['jibberish', 'split this, on a comma.', 'jibberish']
     # then the returned list will be:
     # ['jibberish', 'split this,', 'on a comma.', 'jibberish'] and the comma
-    # at the end of 'split this,' is easily recognized with endswith.
-    _X = _splitter(_X, _sep, _sep_flags, _line_break, _line_break_flags)
+    # at the end of 'split this,' is easily recognized with $.
+    _X:list[str] = _splitter(_X, _sep, _line_break)
 
 
     # we now have a 1D list (still) that has any rows with seps/breaks
@@ -84,10 +91,7 @@ def _transform(
 
     # now we need to restack these indivisible units to fill the n_char
     # requirement.
-    _X = _stacker(
-        _X, _n_chars, _sep, _sep_flags, _line_break, _line_break_flags,
-        _backfill_sep
-    )
+    _X:list[str] = _stacker(_X, _n_chars, _sep, _line_break, _backfill_sep)
 
 
     return _X
