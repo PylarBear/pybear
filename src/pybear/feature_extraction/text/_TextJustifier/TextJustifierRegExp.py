@@ -209,14 +209,20 @@ class TextJustifierRegExp(TextJustifierMixin):
     NCharsType:
         Optional[numbers.Integral]
 
-    RegExpSepType:
-        Optional[Union[re.Pattern[str], Sequence[re.Pattern[str]]]]
+    CoreSepBreakTypes:
+        Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+
+    SepType:
+        Optional[CoreSepBreakTypes]
+
+    LineBreakType
+        Optional[Union[None, CoreSepBreakTypes]]
+
+    CaseSensitiveType:
+        Optional[bool]
 
     SepFlagsType:
         Optional[Union[numbers.Integral, None]]
-
-    RegExpLineBreakType:
-        Optional[Union[re.Pattern[str], Sequence[re.Pattern[str]], None]]
 
     LineBreakFlagsType:
         Optional[Union[numbers.Integral, None]]

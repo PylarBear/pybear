@@ -200,14 +200,23 @@ class TextJustifier(TextJustifierMixin):
     NCharsType:
         Optional[numbers.Integral]
 
-    StrSepType:
-        Optional[Union[str, Sequence[str]]]
+    CoreSepBreakTypes:
+        Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
 
-    StrLineBreakType:
-        Optional[Union[str, Sequence[str], None]]
+    SepType:
+        Optional[CoreSepBreakTypes]
+
+    LineBreakType
+        Optional[Union[None, CoreSepBreakTypes]]
 
     CaseSensitiveType:
         Optional[bool]
+
+    SepFlagsType:
+        Optional[Union[numbers.Integral, None]]
+
+    LineBreakFlagsType:
+        Optional[Union[numbers.Integral, None]]
 
     BackfillSepType:
         Optional[str]

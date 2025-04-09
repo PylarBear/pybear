@@ -12,8 +12,8 @@ import re
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextJustifier._shared._transform. \
-    _splitter import _splitter
+from pybear.feature_extraction.text._TextJustifier._transform._splitter \
+    import _splitter
 
 
 

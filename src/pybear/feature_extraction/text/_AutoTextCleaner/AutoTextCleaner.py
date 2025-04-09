@@ -20,7 +20,7 @@ import re
 from .._NGramMerger.NGramMerger import NGramMerger
 from .._StopRemover.StopRemover import StopRemover
 from .._TextJoiner.TextJoiner import TextJoiner
-from .._TextJustifierRegExp.TextJustifierRegExp import TextJustifierRegExp
+from .._TextJustifier.TextJustifier import TextJustifier
 from .._TextLookup.TextLookup import TextLookup
 from .._TextNormalizer.TextNormalizer import TextNormalizer
 from .._TextPadder.TextPadder import TextPadder
@@ -279,7 +279,7 @@ class AutoTextCleaner(
         NGM = NGramMerger(ngrams=self.ngram_merge)
         SR = StopRemover()
         TJ = TextJoiner()
-        TJRE = TextJustifierRegExp()
+        TJRE = TextJustifier()
         TL = TextLookup()
         TN = TextNormalizer()
         TP = TextPadder()

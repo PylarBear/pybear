@@ -144,7 +144,6 @@ def _stacker(
             _hit = False
             for _lb in _new_line_break:
                 _match = re.search(_lb, _line)
-                # pizza .span() == (0, 0) was here
                 if _match is not None and _match.span()[1] != _match.span()[0]:
                     line_idx += 1
                     _hit = True
@@ -159,7 +158,6 @@ def _stacker(
         _hit = False
         for _s in _new_sep:
             _match = re.search(_s, _line)
-            # pizza .span() == (0, 0) was here
             if _match is not None and _match.span()[1] != _match.span()[0]:
                 _hit = True
                 break

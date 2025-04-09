@@ -8,19 +8,18 @@
 
 from typing import Optional, Sequence
 from typing_extensions import Self, Union
-from ._shared._type_aliases import (
+from ._type_aliases import (
     XContainer,
     XWipContainer,
-    StrLineBreakType,
-    RegExpLineBreakType,
+    LineBreakType
 )
 
 import numbers
 import re
 
-from ._shared._transform._sep_lb_finder import _sep_lb_finder
-from ._shared._transform._transform import _transform
-from ._shared._validation._validation import _validation
+from ._transform._sep_lb_finder import _sep_lb_finder
+from ._transform._transform import _transform
+from ._validation._validation import _validation
 from .._TextJoiner.TextJoiner import TextJoiner
 from .._TextSplitter.TextSplitter import TextSplitter
 
@@ -227,7 +226,7 @@ class TextJustifierMixin(
 
     @staticmethod
     def _cond_helper(
-        _obj: Union[StrLineBreakType, RegExpLineBreakType],
+        _obj: LineBreakType,
         _case_sensitive: bool,
         _flags: Union[None, numbers.Integral],
         _name: str
@@ -293,7 +292,7 @@ class TextJustifierMixin(
 
 
         _validation(
-            _mode, X, self.n_chars, self.sep, self.sep_flags, self.line_break,
+            X, self.n_chars, self.sep, self.sep_flags, self.line_break,
             self.line_break_flags, self.case_sensitive, self.backfill_sep,
             self.join_2D
         )

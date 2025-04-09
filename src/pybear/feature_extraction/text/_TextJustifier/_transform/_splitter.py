@@ -65,7 +65,6 @@ def _splitter(
     def _match_dict_helper(_pattern, _line,) -> dict:
         """Helper function to search pattern and return match dictionary."""
         _match = re.search(_pattern, _line)
-        # pizza .span() == (0, 0) was here
         if _match is not None and _match.span()[0] != _match.span()[1]:
             return {_match.start(): _match.group()}
         return {}

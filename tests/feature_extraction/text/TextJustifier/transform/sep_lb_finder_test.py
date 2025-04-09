@@ -6,8 +6,8 @@
 
 
 
-from pybear.feature_extraction.text._TextJustifier._shared._transform. \
-    _sep_lb_finder import _sep_lb_finder
+from pybear.feature_extraction.text._TextJustifier._transform._sep_lb_finder \
+    import _sep_lb_finder
 
 import pytest
 
