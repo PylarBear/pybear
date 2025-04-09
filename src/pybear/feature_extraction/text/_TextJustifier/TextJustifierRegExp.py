@@ -6,17 +6,8 @@
 
 
 
-from typing import Optional
-from typing_extensions import Union
 
-import numbers
-import re
-
-from ._TextJustifierMixin import TextJustifierMixin
-
-
-
-class TextJustifierRegExp(TextJustifierMixin):
+class TextJustifierRegExp:
 
     """
     TextJustifierRegExp (TJRE) justifies text as closely as possible to
@@ -259,31 +250,10 @@ class TextJustifierRegExp(TextJustifierMixin):
 
     """
 
-    def __init__(
-        self,
-        *,
-        n_chars:Optional[numbers.Integral] = 79,
-        sep:Optional[Union[str, re.Pattern]] = re.compile('\s'),
-        sep_flags:Optional[Union[numbers.Integral, None]] = None,
-        line_break:Optional[Union[str, re.Pattern, None]] = None,
-        line_break_flags:Optional[Union[numbers.Integral, None]] = None,
-        backfill_sep:Optional[str] = ' ',
-        join_2D:Optional[str] = ' '
-    ) -> None:
 
-        """Initialize the TextJustifierRegExp instance."""
 
-        # must set these before super().__init__()
-        self.sep_flags = sep_flags
-        self.line_break_flags = line_break_flags
 
-        super().__init__(
-            n_chars=n_chars,
-            sep=sep,
-            line_break=line_break,
-            backfill_sep=backfill_sep,
-            join_2D=join_2D
-        )
+
 
 
 

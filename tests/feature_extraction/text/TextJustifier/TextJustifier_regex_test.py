@@ -22,12 +22,12 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from pybear.feature_extraction.text._TextJustifier.TextJustifierRegExp import \
-    TextJustifierRegExp as TJRE
+from pybear.feature_extraction.text._TextJustifier.TextJustifier import \
+    TextJustifier as TJ
 
 
 
-class TestTextJustifierRegExp:
+class TestTextJustifier_Regex:
 
 
     @staticmethod
@@ -60,7 +60,7 @@ class TestTextJustifierRegExp:
     @pytest.mark.parametrize('y', ([1,2], None, {1,2}, 'junk'))
     def test_takes_any_y(self, _kwargs, _text, y):
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
 
         TestCls.partial_fit(_text, y)
 
@@ -74,7 +74,7 @@ class TestTextJustifierRegExp:
     @pytest.mark.parametrize('deep', (True, False))
     def test_get_params(self, _kwargs, deep):
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
 
         out = TestCls.get_params(deep)
 
@@ -85,9 +85,9 @@ class TestTextJustifierRegExp:
 
     def test_set_params(self, _kwargs):
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
 
-        assert isinstance(TestCls.set_params(**{'sep': ','}), TJRE)
+        assert isinstance(TestCls.set_params(**{'sep': ','}), TJ)
 
         assert TestCls.sep == ','
 
@@ -100,7 +100,7 @@ class TestTextJustifierRegExp:
 
     def test_accuracy(self, _kwargs, _text):
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
 
         out = TestCls.transform(_text, copy=True)
         assert isinstance(out, list)
@@ -141,7 +141,7 @@ class TestTextJustifierRegExp:
             "of frog,"
         ]
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
 
 
         # python list accepted
@@ -196,7 +196,7 @@ class TestTextJustifierRegExp:
             ["Eye", "of", "newt", "and", "toe"]
         ]
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
 
         # python 2D list accepted
         out = TestCls.transform(list(map(list, _base_text)))
