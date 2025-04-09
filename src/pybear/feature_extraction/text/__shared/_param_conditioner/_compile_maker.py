@@ -35,7 +35,7 @@ def _compile_maker(
     _pattern_holder:
         Union[str, re.Pattern, tuple[Union[str, re.Pattern], ...],
         list[Union[None, str, re.Pattern, tuple[Union[str, re.Pattern],
-        ...]]]] - the string search criteria as passed by the user.
+        ...]]]] - the search criteria as passed by the user.
     _order_matters:
         bool - when '_pattern_holder' is or has in it a tuple of literal
         strings and/or re.compiles, whether the order of operations and

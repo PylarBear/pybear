@@ -108,7 +108,14 @@ def _val_any_integer(
 
         nonlocal _name, _min, _max, _disallowed, _can_be_bool, _can_be_None
 
-        _err_msg = f"Got {_int} for '{_name}'. '{_name}' must be an integer"
+        # manage err_msg -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _err_msg = f"Got {_int} for '{_name}'. '{_name}' must be"
+        if _can_be_bool:
+            _err_msg += " bool /"
+        if _can_be_None:
+            _err_msg += " None /"
+        _err_msg += " integer"
+        # END manage err_msg -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         if _int is None and _can_be_None:
             return

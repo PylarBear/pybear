@@ -10,8 +10,9 @@ from ._Lexicon.Lexicon import Lexicon
 from ._NGramMerger.NGramMerger import NGramMerger
 from ._StopRemover.StopRemover import StopRemover
 from ._TextJoiner.TextJoiner import TextJoiner
-from ._TextJustifier.TextJustifier import TextJustifier
-from ._TextJustifierRegExp.TextJustifierRegExp import TextJustifierRegExp
+from ._TextJustifier._TextJustifier.TextJustifier import TextJustifier
+from ._TextJustifier._TextJustifierRegExp.TextJustifierRegExp import \
+    TextJustifierRegExp
 from ._TextLookup.TextLookup import TextLookup
 from ._TextLookup.TextLookupRealTime import TextLookupRealTime
 from ._TextNormalizer.TextNormalizer import TextNormalizer
