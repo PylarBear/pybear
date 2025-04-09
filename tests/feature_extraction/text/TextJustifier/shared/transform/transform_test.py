@@ -21,6 +21,15 @@ class TestTransform:
     # so just do basic checks
 
 
+    # def _transform(
+    #     _X: list[str],
+    #     _n_chars: numbers.Integral,
+    #     _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
+    #     _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]],
+    #     _backfill_sep: str
+    # ) -> list[str]:
+
+
     @staticmethod
     @pytest.fixture(scope='function')
     def _text():
@@ -34,38 +43,38 @@ class TestTransform:
 
 
     @pytest.mark.parametrize('_n_chars', (80, 100))
-    @pytest.mark.parametrize('_sep', (' ', re.compile('[s-t]')))
-    @pytest.mark.parametrize('_sep_flags', (None, re.I, re.I | re.X))
-    @pytest.mark.parametrize('_line_break', (None, 'l', re.compile('[a-b]')))
-    @pytest.mark.parametrize('_line_break_flags', (None, re.I, re.I | re.X))
+    @pytest.mark.parametrize('_sep',
+        (re.compile(' '), re.compile(' ', re.I), re.compile(' ', re.I | re.X),
+        (re.compile('s'), re.compile('t')),
+        (re.compile('s', re.I), re.compile('t', re.I)),
+        (re.compile('s', re.I | re.X), re.compile('t', re.I | re.X))
+        )
+    )
+    @pytest.mark.parametrize('_line_break',
+        (None,  re.compile('l'), re.compile('l', re.I), re.compile('l', re.I | re.X),
+        (re.compile('a'), re.compile('b')),
+        (re.compile('a', re.I), re.compile('b', re.I)),
+        (re.compile('a', re.I | re.X)), re.compile('b', re.I | re.X))
+    )
     @pytest.mark.parametrize('_backfill_sep', (' ', 'zzz'))
-    def test_accuracy(
-        self, _text, _n_chars, _sep, _sep_flags, _line_break, _line_break_flags,
-        _backfill_sep
-    ):
-
-        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
-
-        if isinstance(_sep, re.Pattern) and _sep_flags:
-            pytest.skip(reason=f'cant have re.compile and flags')
-        if isinstance(_line_break, re.Pattern) and _line_break_flags:
-            pytest.skip(reason=f'cant have re.compile and flags')
-
-        # END skip impossible conditions -- -- -- -- -- -- -- -- -- --
+    def test_accuracy(self, _text, _n_chars, _sep, _line_break, _backfill_sep):
 
         out = _transform(
             _text,
             _n_chars=_n_chars,
             _sep=_sep,
-            _sep_flags=_sep_flags,
             _line_break=_line_break,
-            _line_break_flags=_line_break_flags,
             _backfill_sep=_backfill_sep
         )
 
 
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
+
+
+
+
+
 
 
 

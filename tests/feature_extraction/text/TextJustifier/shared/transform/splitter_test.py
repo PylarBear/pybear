@@ -21,36 +21,30 @@ class TestSplitter:
 
     # no validation
 
+    # splitter must receive fully built compile object (that is, has gone
+    # thru _param_conditioner())
+
+    # def _splitter(
+    #     _X: list[str],
+    #     _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
+    #     _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+    # ) -> list[str]:
 
 
-    @pytest.mark.parametrize('_sep', (' ', re.compile('(?!x)')))
-    @pytest.mark.parametrize('_sep_flags', (None, re.X))
-    @pytest.mark.parametrize('_line_break', (' ', re.compile('(?!x)')))
-    @pytest.mark.parametrize('_line_break_flags', (None, re.X))
-    def test_splitter_doesnt_hang(self, _sep, _sep_flags,
-        _line_break, _line_break_flags
-    ):
-
-        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        if isinstance(_sep, re.Pattern) and _sep_flags:
-            pytest.skip(reason=f'cant have re.compile and flags')
-        if isinstance(_line_break, re.Pattern) and _line_break_flags:
-            pytest.skip(reason=f'cant have re.compile and flags')
-        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
+    @pytest.mark.parametrize('_sep', (re.compile(' '), re.compile('(?!x)')))
+    @pytest.mark.parametrize('_line_break', (re.compile(' '), re.compile('(?!x)')))
+    def test_splitter_doesnt_hang(self, _sep, _line_break):
 
         _X = ['sknaspdouralmnbpasoiruaaskdrua']
 
-        assert isinstance(
-            _splitter(_X, _sep, _sep_flags, _line_break, _line_break_flags),
-            list
-        )
+        assert isinstance(_splitter(_X, _sep, _line_break), list)
 
 
+    @staticmethod
+    @pytest.fixture(scope='function')
+    def ex1():
 
-    def test_accuracy(self):
-
-        ex1 = [
+        return [
             'want to split. on a period here.',
             'no-op here',
             'want to split, on comma here',
@@ -59,11 +53,72 @@ class TestSplitter:
             'last split on; a semicolon.',
         ]
 
+
+
+    def test_line_break_is_None(self, ex1):
+
+        _sep = re.compile('[;QZ]', re.I)
+        _line_break = None
+
+        out = _splitter(ex1, _sep, _line_break)
+
+        assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
+
+        exp = [
+            'want to split. on a period here.',
+            'no-op here',
+            'want to split, on comma here',
+            'z',
+            'ebras split on z',
+            ' and q',
+            ' here',
+            'they split at the end in alcatraz',
+            'last split on;',
+            ' a semicolon.'
+        ]
+
+        for _idx in range(len(exp)):
+            assert np.array_equal(out[_idx], exp[_idx])
+
+
+    def test_accuracy_single_compile(self, ex1):
+
         # it is important that in ex1 q is after z but in _sep z is after q
-        _sep = '[;QZ]'
+        _sep = re.compile('[;QZ]', re.I)
         _line_break = re.compile('[.,]')
 
-        out = _splitter(ex1, _sep, re.I, _line_break, None)
+        out = _splitter(ex1, _sep, _line_break)
+
+        assert isinstance(out, list)
+        assert all(map(isinstance, out, (str for _ in out)))
+
+        exp = [
+            'want to split.',
+            ' on a period here.',
+            'no-op here',
+            'want to split,',
+            ' on comma here',
+            'z',
+            'ebras split on z',
+            ' and q',
+            ' here',
+            'they split at the end in alcatraz',
+            'last split on;',
+            ' a semicolon.'
+        ]
+
+        for _idx in range(len(exp)):
+            assert np.array_equal(out[_idx], exp[_idx])
+
+
+    def test_accuracy_tuple_of_compiles(self, ex1):
+
+        # it is important that in ex1 q is after z but in _sep z is after q
+        _sep = (re.compile(';', re.I), re.compile('Q', re.I), re.compile('Z', re.I))
+        _line_break = re.compile('[.,]')
+
+        out = _splitter(ex1, _sep, _line_break)
 
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))

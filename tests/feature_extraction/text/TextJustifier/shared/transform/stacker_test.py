@@ -20,6 +20,14 @@ from pybear.feature_extraction.text._TextJustifier._shared._transform. \
 
 class TestStacker:
 
+    # def _stacker(
+    #     _X: list[str],
+    #     _n_chars: numbers.Integral,
+    #     _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
+    #     _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]],
+    #     _backfill_sep: str
+    # ) -> list[str]:
+
 
     @staticmethod
     @pytest.fixture(scope='function')
@@ -70,67 +78,47 @@ class TestStacker:
     @pytest.fixture(scope='function')
     def _text_out_of_spitter(_text):
 
-        def foo(_sep, _sep_flags, _line_break, _line_break_flags, n_lines=1000):
+        def foo(_sep, _line_break, n_lines=1000):
 
             return _splitter(
                 _text[:n_lines],
                 _sep=_sep,
-                _sep_flags=_sep_flags,
                 _line_break=_line_break,
-                _line_break_flags=_line_break_flags
             )
 
         return foo
 
 
     @pytest.mark.parametrize('_n_chars', (20, 40, 80))
-    @pytest.mark.parametrize('_sep', ('\ ', re.compile('(?!x)')))
-    @pytest.mark.parametrize('_sep_flags', (None, re.X))
-    @pytest.mark.parametrize('_line_break', (' ', re.compile('(?!x)')))
-    @pytest.mark.parametrize('_line_break_flags', (None, re.X))
+    @pytest.mark.parametrize('_sep', (re.compile(' '), re.compile('(?!x)')))
+    @pytest.mark.parametrize('_line_break', (re.compile(' '), re.compile('(?!x)')))
     def test_stacker_doesnt_hang(
-        self, _text_out_of_spitter, _n_chars, _sep, _sep_flags,
-        _line_break, _line_break_flags
+        self, _text_out_of_spitter, _n_chars, _sep, _line_break
     ):
 
-        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        if isinstance(_sep, re.Pattern) and _sep_flags:
-            pytest.skip(reason=f'cant have re.compile and flags')
-        if isinstance(_line_break, re.Pattern) and _line_break_flags:
-            pytest.skip(reason=f'cant have re.compile and flags')
-        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
         out = _stacker(
-            _text_out_of_spitter(_sep, _sep_flags, _line_break, _line_break_flags),
+            _text_out_of_spitter(_sep, _line_break),
             _n_chars=_n_chars,
             _sep=_sep,
-            _sep_flags=_sep_flags,
             _line_break=_line_break,
-            _line_break_flags=_line_break_flags,
             _backfill_sep=' '
         )
 
         assert isinstance(out, list)
 
 
-
     @pytest.mark.parametrize('_n_chars', (20, 40, 80))
-    @pytest.mark.parametrize('_sep', ('\ ', ))
-    @pytest.mark.parametrize('_sep_flags', (None, ))
+    @pytest.mark.parametrize('_sep', (re.compile(' '), ))
     @pytest.mark.parametrize('_line_break', (None, ))
-    @pytest.mark.parametrize('_line_break_flags', (None, ))
     def test_accuracy_n_chars(
-        self, _text_out_of_spitter, _n_chars, _sep, _sep_flags,
-        _line_break, _line_break_flags
+        self, _text_out_of_spitter, _n_chars, _sep, _line_break
     ):
 
         out = _stacker(
-            _text_out_of_spitter(_sep, _sep_flags, _line_break, _line_break_flags),
+            _text_out_of_spitter(_sep, _line_break),
             _n_chars=_n_chars,
             _sep=_sep,
-            _sep_flags=_sep_flags,
             _line_break=_line_break,
-            _line_break_flags=_line_break_flags,
             _backfill_sep=' '
         )
 
@@ -142,55 +130,50 @@ class TestStacker:
         assert all(map(lambda x: len(x) >= _n_chars-10, out[:-1]))
 
 
-
     @pytest.mark.parametrize('_n_chars', (80, 100))
-    @pytest.mark.parametrize('_sep', ('\ ', ))
-    @pytest.mark.parametrize('_sep_flags', (None, ))
-    @pytest.mark.parametrize('_line_break', ('t', 'e'))
-    @pytest.mark.parametrize('_line_break_flags', (re.I,))
+    @pytest.mark.parametrize('_sep', (re.compile(' '), ))
+    @pytest.mark.parametrize('_line_break',
+        (re.compile('t', re.I), re.compile('e', re.I))
+    )
     def test_accuracy_line_break(
-        self, _text_out_of_spitter, _n_chars, _sep, _sep_flags,
-        _line_break, _line_break_flags
+        self, _text_out_of_spitter, _n_chars, _sep, _line_break
     ):
 
         out = _stacker(
-            _text_out_of_spitter(_sep, _sep_flags, _line_break, _line_break_flags),
+            _text_out_of_spitter(_sep, _line_break),
             _n_chars=_n_chars,
             _sep=_sep,
-            _sep_flags=_sep_flags,
             _line_break=_line_break,
-            _line_break_flags=_line_break_flags,
             _backfill_sep=' '
         )
 
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
-        assert all(map(
-            lambda x: x.lower().endswith(list(_line_break)[0].lower()), out[:-2]
-        ))
+        _new_line_break = re.compile(
+            f'{_line_break.pattern}$',
+            flags=_line_break.flags
+        )
+        assert all(map(lambda x: re.search(_new_line_break, x), out[:-2]))
 
 
     @pytest.mark.parametrize('_n_chars', (90, 100))
-    @pytest.mark.parametrize('_sep', ('\s', ))
-    @pytest.mark.parametrize('_sep_flags', (None, ))
+    @pytest.mark.parametrize('_sep', (re.compile(' '), ))
     @pytest.mark.parametrize('_line_break', (None, ))
-    @pytest.mark.parametrize('_line_break_flags', (None, ))
     @pytest.mark.parametrize('_backfill_sep', ('zzz', 'qqq', 'pyth'))
     def test_accuracy_sep_and_backfill_sep(
-        self, _text, _text_out_of_spitter, _n_chars, _sep, _sep_flags,
-        _line_break, _line_break_flags, _backfill_sep
+        self, _text, _text_out_of_spitter, _n_chars, _sep, _line_break,
+        _backfill_sep
     ):
 
         # only use the first 5 lines
 
-        _split_text = _text_out_of_spitter(
-            _sep, _sep_flags, _line_break, _line_break_flags, n_lines=5
-        )
+        _split_text = _text_out_of_spitter(_sep, _line_break, n_lines=5)
 
         # determine which lines in the original text dont end with _sep
         _no_sep_lines = []
         for _line in _text[:5]:
-            if not _line.endswith(list(_sep)[0]):
+            _new_sep = re.compile(f'{_sep.pattern}$', flags=_sep.flags)
+            if not re.search(_new_sep, _line):
                 _no_sep_lines.append(_line)
 
 
@@ -198,9 +181,7 @@ class TestStacker:
             _split_text,
             _n_chars=_n_chars,
             _sep=_sep,
-            _sep_flags=_sep_flags,
             _line_break=_line_break,
-            _line_break_flags=_line_break_flags,
             _backfill_sep=_backfill_sep
         )
 
@@ -209,9 +190,9 @@ class TestStacker:
 
         # find the locations of the text in the lines that did not end with sep
         # (which looks to be every line)
-        # so the ending text for each line should always have _backfill_sep
-        # immediately after it.
         # turn the output into one long string
+        # so the ending text for each line should always have _backfill_sep
+        # immediately after it (originally was start of the next line).
         out = "".join(out)
 
         for _no_sep_line in _no_sep_lines:

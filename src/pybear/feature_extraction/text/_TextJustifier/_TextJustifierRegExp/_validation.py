@@ -7,7 +7,7 @@
 
 
 from typing_extensions import Union
-from .._shared._shared_type_aliases import XContainer
+from .._shared._type_aliases import XContainer
 
 import numbers
 import re
