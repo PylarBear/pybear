@@ -26,18 +26,14 @@ class TestValSep:
     )
     def test_junk_sep(self, junk_sep):
         with pytest.raises(TypeError):
-            _val_sep_or_line_break(
-                junk_sep, _name='sep', _mode='regex', _can_be_None=False
-            )
+            _val_sep_or_line_break(junk_sep, _name='sep', _mode='regex')
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
     def test_rejects_empty_pattern(self, _container):
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                re.compile(':?'), _name='sep', _mode='regex', _can_be_None=False
-            )
+            _val_sep_or_line_break(re.compile(':?'), _name='sep', _mode='regex')
 
 
         _base_seps = [re.compile(':?'), re.compile('\.')]
@@ -51,9 +47,7 @@ class TestValSep:
         assert len(_seps) == 2
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                _seps, _name='sep', _mode='regex', _can_be_None=False
-            )
+            _val_sep_or_line_break(_seps, _name='sep', _mode='regex')
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
@@ -68,16 +62,14 @@ class TestValSep:
         assert len(_seps) == 0
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                _seps, _name='sep', _mode='regex', _can_be_None=False
-            )
+            _val_sep_or_line_break(_seps, _name='sep', _mode='regex')
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
     def test_good_sep(self, _container):
 
         assert _val_sep_or_line_break(
-            re.compile('[a-d]'), _name='sep', _mode='regex', _can_be_None=False
+            re.compile('[a-d]'), _name='sep', _mode='regex'
         ) is None
 
         _base_seps = [re.compile(','), re.compile('\.')]
@@ -90,9 +82,7 @@ class TestValSep:
         assert isinstance(_seps, _container)
         assert len(_seps) == 2
 
-        assert _val_sep_or_line_break(
-            _seps, _name='sep', _mode='regex', _can_be_None=False
-        ) is None
+        assert _val_sep_or_line_break(_seps, _name='sep', _mode='regex') is None
 
 
 

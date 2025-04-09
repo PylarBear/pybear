@@ -20,8 +20,8 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from pybear.feature_extraction.text._TextJustifier._TextJustifier.TextJustifier \
-    import TextJustifier as TJ
+from pybear.feature_extraction.text._TextJustifier.TextJustifier import \
+    TextJustifier as TJ
 
 
 

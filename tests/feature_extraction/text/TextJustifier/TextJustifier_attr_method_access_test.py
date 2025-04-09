@@ -9,12 +9,13 @@
 from typing import Sequence
 
 import numbers
-import re
 
 import pytest
+import numpy as np
 
-from pybear.feature_extraction.text._TextJustifier._TextJustifierRegExp. \
-    TextJustifierRegExp import TextJustifierRegExp as TJRE
+from pybear.feature_extraction.text._TextJustifier.TextJustifier import \
+    TextJustifier as TJ
+
 
 
 
@@ -26,10 +27,8 @@ from pybear.feature_extraction.text._TextJustifier._TextJustifierRegExp. \
 def _kwargs():
     return {
         'n_chars': 80,
-        'sep': re.compile(' '),
-        'sep_flags': None,
+        'sep': ' ',
         'line_break': None,
-        'line_break_flags': None,
         'backfill_sep': ' ',
         'join_2D': ' '
     }
@@ -63,7 +62,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
     def test_attr_access(self, _X, _kwargs, _attrs):
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
 
         # BEFORE FIT ***************************************************
 
@@ -123,13 +122,13 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
     def test_access_methods_before_fit(self, _X, _kwargs):
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
 
         # **************************************************************
         # vvv BEFORE FIT vvv *******************************************
 
         # fit()
-        assert isinstance(TestCls.fit(_X, None), TJRE)
+        assert isinstance(TestCls.fit(_X, None), TJ)
 
         # fit_transform()
         assert isinstance(TestCls.fit_transform(_X, None), list)
@@ -142,26 +141,26 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         out = TestCls.get_params(True)
         assert isinstance(out, dict)
         assert 'sep' in out
-        assert isinstance(out['sep'], (re.Pattern, Sequence))
+        assert isinstance(out['sep'], (str, Sequence))
 
         # inverse_transform()
-        # TJRE should never have inverse_transform method
+        # TJ should never have inverse_transform method
         with pytest.raises(AttributeError):
             getattr(TestCls, 'inverse_transform')
 
         # partial_fit()
-        assert isinstance(TestCls.partial_fit(_X, None), TJRE)
+        assert isinstance(TestCls.partial_fit(_X, None), TJ)
 
         # score()
-        # remember TextJustifierRegExp is always fitted
+        # remember TextJustifier is always fitted
         assert TestCls.score(_X, None) is None
 
         # set_params()
-        assert isinstance(TestCls.set_params(sep=re.compile('what')), TJRE)
-        assert TestCls.sep == re.compile('what')
+        assert isinstance(TestCls.set_params(sep='what'), TJ)
+        assert TestCls.sep == 'what'
 
         # transform()
-        # remember TextJustifierRegExp is always fitted
+        # remember TextJustifier is always fitted
         assert isinstance(TestCls.transform(_X), list)
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
@@ -173,14 +172,14 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
 
-        TestCls = TJRE(**_kwargs)
+        TestCls = TJ(**_kwargs)
         TestCls.fit(_X, None)
 
         # fit_transform()
         assert isinstance(TestCls.fit_transform(_X), list)
 
         # fit()
-        assert isinstance(TestCls.fit(_X), TJRE)
+        assert isinstance(TestCls.fit(_X), TJ)
 
         # get_metadata_routing()
         with pytest.raises(NotImplementedError):
@@ -190,23 +189,23 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         out = TestCls.get_params(True)
         assert isinstance(out, dict)
         assert 'sep' in out
-        assert isinstance(out['sep'], (re.Pattern, Sequence))
+        assert isinstance(out['sep'], (str, Sequence))
 
         # inverse_transform()
-        # TJRE should never have inverse_transform
+        # TJ should never have inverse_transform
         with pytest.raises(AttributeError):
             getattr(TestCls, 'inverse_transform')
 
         # partial_fit()
-        assert isinstance(TestCls.partial_fit(_X), TJRE)
+        assert isinstance(TestCls.partial_fit(_X), TJ)
 
         # score()
-        # remember TextJustifierRegExp is always fitted
+        # remember TextJustifier is always fitted
         assert TestCls.score(_X, None) is None
 
         # set_params()
-        assert isinstance(TestCls.set_params(sep=re.compile('\s')), TJRE)
-        assert TestCls.sep == re.compile('\s')
+        assert isinstance(TestCls.set_params(sep=set(list('abcde'))), TJ)
+        assert np.array_equal(TestCls.sep, set(list('abcde')))
 
         # transform()
         assert isinstance(TestCls.transform(_X), list)
@@ -221,15 +220,15 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************
-        FittedTestCls = TJRE(**_kwargs).fit(_X, None)
-        TransformedTestCls = TJRE(**_kwargs).fit(_X, None)
+        FittedTestCls = TJ(**_kwargs).fit(_X, None)
+        TransformedTestCls = TJ(**_kwargs).fit(_X, None)
         TransformedTestCls.transform(_X)
 
         # fit_transform()
         assert isinstance(TransformedTestCls.fit_transform(_X), list)
 
         # fit()
-        assert isinstance(TransformedTestCls.fit(_X), TJRE)
+        assert isinstance(TransformedTestCls.fit(_X), TJ)
 
         TransformedTestCls.transform(_X, None)
 
@@ -243,21 +242,21 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
             f"get_params() after transform() != before transform()"
 
         # inverse_transform()
-        # TJRE should never have inverse_transform
+        # TJ should never have inverse_transform
         with pytest.raises(AttributeError):
             getattr(TransformedTestCls, 'inverse_transform')
 
         # partial_fit()
-        assert isinstance(TransformedTestCls.partial_fit(_X), TJRE)
+        assert isinstance(TransformedTestCls.partial_fit(_X), TJ)
         TransformedTestCls.transform(_X)
 
         # score()
-        # remember TextJustifierRegExp is always fitted
+        # remember TextJustifier is always fitted
         assert TransformedTestCls.score(_X, None) is None
 
         # set_params()
-        assert isinstance(TransformedTestCls.set_params(sep=re.compile('_')), TJRE)
-        assert TransformedTestCls.sep == re.compile('_')
+        assert isinstance(TransformedTestCls.set_params(sep='_'), TJ)
+        assert TransformedTestCls.sep == '_'
 
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(_X), list)

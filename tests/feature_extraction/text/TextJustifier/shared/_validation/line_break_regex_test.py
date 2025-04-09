@@ -28,7 +28,7 @@ class TestValLinebreak:
         # must be Union[
         with pytest.raises(TypeError):
             _val_sep_or_line_break(
-                junk_line_break, _name='line_break', _mode='regex', _can_be_None=True
+                junk_line_break, _name='line_break', _mode='regex'
             )
 
 
@@ -37,7 +37,7 @@ class TestValLinebreak:
 
         with pytest.raises(ValueError):
             _val_sep_or_line_break(
-                re.compile(''), _name='line_break', _mode='regex', _can_be_None=True
+                re.compile(''), _name='line_break', _mode='regex'
             )
 
         _base_line_breaks = list(map(re.compile, ('', ' ', '_')))
@@ -50,7 +50,7 @@ class TestValLinebreak:
 
         with pytest.raises(ValueError):
             _val_sep_or_line_break(
-                _line_breaks, _name='line_break', _mode='regex', _can_be_None=True
+                _line_breaks, _name='line_break', _mode='regex'
             )
 
 
@@ -67,7 +67,7 @@ class TestValLinebreak:
 
         with pytest.raises(ValueError):
             _val_sep_or_line_break(
-                _line_breaks, _name='line_break', _mode='regex', _can_be_None=True
+                _line_breaks, _name='line_break', _mode='regex'
             )
 
 
@@ -91,7 +91,7 @@ class TestValLinebreak:
             assert isinstance(_line_breaks, _container)
 
         assert _val_sep_or_line_break(
-            _line_breaks, _name='line_break', _mode='regex', _can_be_None=True
+            _line_breaks, _name='line_break', _mode='regex'
         ) is None
 
 

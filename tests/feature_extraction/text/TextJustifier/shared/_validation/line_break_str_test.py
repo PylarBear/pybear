@@ -28,7 +28,7 @@ class TestValLineBreak:
 
         with pytest.raises(TypeError):
             _val_sep_or_line_break(
-                junk_line_break, _name='line_break', _mode='str', _can_be_None=True
+                junk_line_break, _name='line_break', _mode='str'
             )
 
 
@@ -36,9 +36,7 @@ class TestValLineBreak:
     def test_rejects_empty_string(self, _container):
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                '', _name='line_break', _mode='str', _can_be_None=True
-            )
+            _val_sep_or_line_break('', _name='line_break', _mode='str')
 
         _base_line_breaks = ['', ' ', '_']
         if _container is np.ndarray:
@@ -49,9 +47,7 @@ class TestValLineBreak:
         assert isinstance(_line_breaks, _container)
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                _line_breaks, _name='line_break', _mode='str', _can_be_None=True
-            )
+            _val_sep_or_line_break(_line_breaks, _name='line_break', _mode='str')
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
@@ -66,9 +62,7 @@ class TestValLineBreak:
         assert len(_line_breaks) == 0
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(
-                _line_breaks, _name='line_break', _mode='str', _can_be_None=True
-            )
+            _val_sep_or_line_break(_line_breaks, _name='line_break', _mode='str')
 
 
     @pytest.mark.parametrize('_container',
@@ -91,7 +85,7 @@ class TestValLineBreak:
             assert isinstance(_line_breaks, _container)
 
         assert _val_sep_or_line_break(
-            _line_breaks, _name='line_break', _mode='str', _can_be_None=True
+            _line_breaks, _name='line_break', _mode='str'
         ) is None
 
 

@@ -22,8 +22,8 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from pybear.feature_extraction.text._TextJustifier._TextJustifierRegExp. \
-    TextJustifierRegExp import TextJustifierRegExp as TJRE
+from pybear.feature_extraction.text._TextJustifier.TextJustifierRegExp import \
+    TextJustifierRegExp as TJRE
 
 
 
