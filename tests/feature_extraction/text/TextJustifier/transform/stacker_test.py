@@ -10,11 +10,11 @@ import pytest
 
 import re
 
-from pybear.feature_extraction.text._TextJustifier._shared._transform. \
-    _stacker import _stacker
+from pybear.feature_extraction.text._TextJustifier._transform._stacker \
+    import _stacker
 
-from pybear.feature_extraction.text._TextJustifier._shared._transform. \
-    _splitter import _splitter
+from pybear.feature_extraction.text._TextJustifier._transform._splitter \
+    import _splitter
 
 
 

@@ -7,7 +7,7 @@
 
 
 from typing_extensions import Union
-from ..._shared._type_aliases import XWipContainer
+from .._type_aliases import XWipContainer
 
 import re
 

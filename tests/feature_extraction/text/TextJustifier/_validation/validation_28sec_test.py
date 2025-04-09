@@ -6,8 +6,8 @@
 
 
 
-from pybear.feature_extraction.text._TextJustifier._shared. _validation. \
-    _validation import _validation
+from pybear.feature_extraction.text._TextJustifier. _validation._validation \
+    import _validation
 
 
 import pytest
@@ -75,7 +75,7 @@ class TestStrValidation(Fixtures):
         _line_break_flags = None
         _join_2D = ' '
         _backfill_sep = ' '
-        args = ('str', _X_wip, _n_chars, _sep, _sep_flags, _line_break,
+        args = (_X_wip, _n_chars, _sep, _sep_flags, _line_break,
                 _line_break_flags, _case_sensitive, _backfill_sep, _join_2D)
 
         _value_error = False
@@ -124,15 +124,15 @@ class TestStrValidation(Fixtures):
             _X_wip = _1D_X
             # join_2D can be anything
 
-            out = _validation('str', _X_wip, *args)
+            out = _validation(_X_wip, *args)
             assert out is None
         elif _X_dim == 2:
             _X_wip = _2D_X
             if not isinstance(_join_2D, str):
                 with pytest.raises(TypeError):
-                    _validation('str', _X_wip, *args)
+                    _validation(_X_wip, *args)
             else:
-                out = _validation('str', _X_wip, *args)
+                out = _validation(_X_wip, *args)
                 assert out is None
         else:
             raise Exception
@@ -163,15 +163,15 @@ class TestRegexValidation(Fixtures):
             _X_wip = _1D_X
             # join_2D can be anything
 
-            out = _validation('regex', _X_wip, *args)
+            out = _validation(_X_wip, *args)
             assert out is None
         elif _X_dim == 2:
             _X_wip = _2D_X
             if not isinstance(_join_2D, str):
                 with pytest.raises(TypeError):
-                    _validation('regex', _X_wip, *args)
+                    _validation(_X_wip, *args)
             else:
-                out = _validation('regex', _X_wip, *args)
+                out = _validation(_X_wip, *args)
                 assert out is None
         else:
             raise Exception

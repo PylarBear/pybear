@@ -22,6 +22,7 @@ def _val_sep_or_line_break(
 ) -> None:
 
     """
+    pizza revisit these docs!
     Validate `sep` or `line_break` for EITHER TextJustifier OR
     TextJustifierRegExp. `sep` cannot be None, but `line_break` can be.
     That is the only difference for what can be passed to `sep` and
@@ -141,17 +142,22 @@ def _val_sep_or_line_break(
     if _mode == 'str':
         err_msg = (f"'{_name}' must be a non-empty string or a non-empty "
                    f"python sequence of non-empty strings. ")
+        if _mode == '_line_break':
+            err_msg += f"\nWhen passed, it must be of the same type as 'sep'. "
         if isinstance(_sep_or_line_break, str):
             if _can_return_empty_match(_sep_or_line_break):
-                raise ValueError(err_msg + f"Got empty string.")
+                raise ValueError(err_msg + f"\nGot empty string.")
             return
     elif _mode == 'regex':
         err_msg = (f"'{_name}' must be a re.compile object or python "
-                   f"sequence of re.compile objects. \nNo regex patterns "
-                   f"that blatantly return zero-span matches are allowed. ")
+                   f"sequence of re.compile objects. ")
+        if _mode == '_line_break':
+            err_msg += f"\nWhen passed, it must be of the same type as 'sep'. "
         if isinstance(_sep_or_line_break, re.Pattern):
             if _can_return_empty_match(_sep_or_line_break):
-                raise ValueError(err_msg + f"Got zero-span pattern.")
+                raise ValueError(f"\nGot zero-span pattern. \nNo regex "
+                    f"patterns that blatantly return zero-span matches "
+                    f"are allowed.")
             return
     else:
         raise Exception(f"algorithm failure.")
@@ -163,21 +169,23 @@ def _val_sep_or_line_break(
         if isinstance(_sep_or_line_break, (str, dict)):
             raise Exception
     except Exception as e:
-        raise TypeError(err_msg + f"Got {_sep_or_line_break}.")
+        raise TypeError(err_msg + f"\nGot {_sep_or_line_break}.")
 
     if len(_sep_or_line_break) == 0:
-        raise ValueError(err_msg + f"Got empty sequence.")
+        raise ValueError(err_msg + f"\nGot empty sequence.")
     for _item in _sep_or_line_break:
         if _mode == 'str':
             if not isinstance(_item, str):
-                raise TypeError(err_msg + f"Got {_item}.")
+                raise TypeError(err_msg + f"\nGot {_item}.")
             if _can_return_empty_match(_item):
-                raise ValueError(err_msg + f"Got empty string.")
+                raise ValueError(err_msg + f"\nGot empty string.")
         elif _mode == 'regex':
             if not isinstance(_item, re.Pattern):
-                raise TypeError(err_msg + f"Got {_item}.")
+                raise TypeError(err_msg + f"\nGot {_item}.")
             if _can_return_empty_match(_item):
-                raise ValueError(err_msg + f"Got zero-span pattern.")
+                raise ValueError(f"\nGot zero-span pattern. \nNo regex "
+                    f"patterns that blatantly return zero-span matches "
+                    f"are allowed.")
 
 
 

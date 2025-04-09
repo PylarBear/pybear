@@ -6,16 +6,18 @@
 
 
 
-from pybear.feature_extraction.text._TextJustifier._shared._validation. \
+from pybear.feature_extraction.text._TextJustifier._validation. \
     _sep_or_line_break import _val_sep_or_line_break
 
 import pytest
+
+import re
 
 import numpy as np
 
 
 
-class TestValLineBreak:
+class TestValLinebreak:
 
 
     @pytest.mark.parametrize('junk_line_break',
@@ -23,22 +25,22 @@ class TestValLineBreak:
          lambda x: x)
     )
     def test_junk_line_break(self, junk_line_break):
-
-        # must be str or Sequence[str]
-
+        # must be Union[
         with pytest.raises(TypeError):
             _val_sep_or_line_break(
-                junk_line_break, _name='line_break', _mode='str'
+                junk_line_break, _name='line_break', _mode='regex'
             )
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
-    def test_rejects_empty_string(self, _container):
+    def test_rejects_zero_len_pattern(self, _container):
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break('', _name='line_break', _mode='str')
+            _val_sep_or_line_break(
+                re.compile(''), _name='line_break', _mode='regex'
+            )
 
-        _base_line_breaks = ['', ' ', '_']
+        _base_line_breaks = list(map(re.compile, ('', ' ', '_')))
         if _container is np.ndarray:
             _line_breaks = np.array(_base_line_breaks)
         else:
@@ -47,7 +49,9 @@ class TestValLineBreak:
         assert isinstance(_line_breaks, _container)
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(_line_breaks, _name='line_break', _mode='str')
+            _val_sep_or_line_break(
+                _line_breaks, _name='line_break', _mode='regex'
+            )
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
@@ -62,32 +66,33 @@ class TestValLineBreak:
         assert len(_line_breaks) == 0
 
         with pytest.raises(ValueError):
-            _val_sep_or_line_break(_line_breaks, _name='line_break', _mode='str')
+            _val_sep_or_line_break(
+                _line_breaks, _name='line_break', _mode='regex'
+            )
 
 
     @pytest.mark.parametrize('_container',
-        (None, str, list, set, tuple, np.ndarray)
+        (None, 'compile', list, set, tuple, np.ndarray)
     )
     def test_good_line_break(self, _container):
 
-        _base_line_breaks = [' ', ';', ',', '.']
+        _base_line_breaks = list(map(re.compile, (' ', ';', ',', '.')))
 
         if _container is None:
             _line_breaks = None
-        elif _container is str:
-            _line_breaks = 'some string'
+        elif _container == 'compile':
+            _line_breaks = re.compile('some string')
         elif _container is np.ndarray:
             _line_breaks = np.array(_base_line_breaks)
         else:
             _line_breaks = _container(_base_line_breaks)
 
-        if _line_breaks is not None:
+        if not isinstance(_container, (type(None), str)):
             assert isinstance(_line_breaks, _container)
 
         assert _val_sep_or_line_break(
-            _line_breaks, _name='line_break', _mode='str'
+            _line_breaks, _name='line_break', _mode='regex'
         ) is None
-
 
 
 

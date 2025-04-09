@@ -30,20 +30,20 @@ XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 NCharsType: TypeAlias = Optional[numbers.Integral]
 
-StrSepType: TypeAlias = Optional[Union[str, Sequence[str]]]
+CoreSepBreakType: TypeAlias = \
+    Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
 
-StrLineBreakType: TypeAlias = Optional[Union[str, Sequence[str], None]]
+SepType: TypeAlias = Optional[CoreSepBreakType]
+
+LineBreakType: TypeAlias = Optional[Union[None, CoreSepBreakType]]
 
 CaseSensitiveType: TypeAlias = Optional[bool]
 
-RegExpSepType: TypeAlias = Optional[Union[re.Pattern[str], Sequence[re.Pattern[str]]]]
-
 SepFlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]
-
-RegExpLineBreakType: TypeAlias = \
-    Optional[Union[re.Pattern[str], Sequence[re.Pattern[str]], None]]
 
 LineBreakFlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]
 

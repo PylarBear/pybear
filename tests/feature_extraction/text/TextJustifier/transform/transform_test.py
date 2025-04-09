@@ -6,7 +6,7 @@
 
 
 
-from pybear.feature_extraction.text._TextJustifier._shared._transform._transform \
+from pybear.feature_extraction.text._TextJustifier._transform._transform \
     import _transform
 
 import pytest
