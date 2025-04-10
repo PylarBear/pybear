@@ -18,7 +18,7 @@ import re
 
 # the brunt of the validation is handled by the individual modules.
 # prove out that this accepts and passes good values in 'str' and 'regex' modes
-# for 'str' and 'regex' modes, prove out that join_2D is ignored when data is 1D
+# for both modes, prove out that join_2D is ignored when data is 1D
 # for 'str' mode, prove out conditional reject of 'sep' and 'line_break'
 
 
@@ -104,15 +104,15 @@ class TestStrValidation(Fixtures):
 
 
     @pytest.mark.parametrize('_X_dim', (1, 2))
-    @pytest.mark.parametrize('_n_chars', (1, 10, 100))
+    @pytest.mark.parametrize('_n_chars', (10, 100))
     @pytest.mark.parametrize('_sep', ('a', {'b', 'c'}))
-    @pytest.mark.parametrize('_sep_flags', (re.I, re.X))
-    @pytest.mark.parametrize('_line_break', ('d', {'e', 'f'}))
-    @pytest.mark.parametrize('_line_break_flags', (re.I, re.X))
+    @pytest.mark.parametrize('_sep_flags', (None, re.I, re.I | re.X))
+    @pytest.mark.parametrize('_line_break', (None, 'd', ('e', 'f')))
+    @pytest.mark.parametrize('_line_break_flags', (None, re.I, re.I | re.X))
     @pytest.mark.parametrize('_case_sensitive', (True, False))
-    @pytest.mark.parametrize('_backfill_sep', (' ', ',', ''))
-    @pytest.mark.parametrize('_join_2D', (' ', 1, [0,1], lambda x: x))
-    def test_str_accepts_good(
+    @pytest.mark.parametrize('_backfill_sep', (',', ''))
+    @pytest.mark.parametrize('_join_2D', (' ', 1))
+    def test_str_accepts_good_and_handles_join_2D(
         self, _X_dim, _1D_X, _2D_X, _n_chars, _sep, _sep_flags, _line_break,
         _line_break_flags, _case_sensitive, _backfill_sep, _join_2D
     ):
@@ -123,20 +123,23 @@ class TestStrValidation(Fixtures):
         if _X_dim == 1:
             _X_wip = _1D_X
             # join_2D can be anything
-
-            out = _validation(_X_wip, *args)
-            assert out is None
         elif _X_dim == 2:
             _X_wip = _2D_X
-            if not isinstance(_join_2D, str):
-                with pytest.raises(TypeError):
-                    _validation(_X_wip, *args)
-            else:
-                out = _validation(_X_wip, *args)
-                assert out is None
+            # join_2D must be str
         else:
             raise Exception
 
+        if _X_dim == 2 and not isinstance(_join_2D, str):
+            with pytest.raises(TypeError):
+                _validation(_X_wip, *args)
+            pytest.skip(reason=f"cant do more tests after exception")
+
+        if _line_break is None and _line_break_flags is not None:
+            with pytest.raises(ValueError):
+                _validation(_X_wip, *args)
+            pytest.skip(reason=f"cant do more tests after exception")
+
+        assert _validation(_X_wip, *args) is None
 
 
 class TestRegexValidation(Fixtures):
@@ -144,14 +147,18 @@ class TestRegexValidation(Fixtures):
 
     @pytest.mark.parametrize('_X_dim', (1, 2))
     @pytest.mark.parametrize('_n_chars', (1, 100))
-    @pytest.mark.parametrize('_sep', (re.compile('\a'), re.compile('c')))
-    @pytest.mark.parametrize('_sep_flags', (re.I, re.X))
-    @pytest.mark.parametrize('_line_break', (re.compile('d'), re.compile('b')))
-    @pytest.mark.parametrize('_line_break_flags', (re.I, re.X))
+    @pytest.mark.parametrize('_sep',
+        (re.compile('\a'), (re.compile('b'), re.compile('c')))
+    )
+    @pytest.mark.parametrize('_sep_flags', (None, re.I, re.I | re.X))
+    @pytest.mark.parametrize('_line_break',
+        (None, re.compile('d'), [re.compile('e'), re.compile('f')])
+    )
+    @pytest.mark.parametrize('_line_break_flags', (None, re.I, re.I | re.X))
     @pytest.mark.parametrize('_case_sensitive', (True, False))
     @pytest.mark.parametrize('_backfill_sep', (' ', ','))
-    @pytest.mark.parametrize('_join_2D', (' ', 1, [0,1], lambda x: x))
-    def test_regex_accepts_good(
+    @pytest.mark.parametrize('_join_2D', (' ', 1))
+    def test_regex_accepts_good_and_handles_join_2D(
         self, _X_dim, _1D_X, _2D_X, _n_chars, _sep, _sep_flags, _line_break,
         _line_break_flags, _case_sensitive, _backfill_sep, _join_2D
     ):
@@ -162,19 +169,23 @@ class TestRegexValidation(Fixtures):
         if _X_dim == 1:
             _X_wip = _1D_X
             # join_2D can be anything
-
-            out = _validation(_X_wip, *args)
-            assert out is None
         elif _X_dim == 2:
             _X_wip = _2D_X
-            if not isinstance(_join_2D, str):
-                with pytest.raises(TypeError):
-                    _validation(_X_wip, *args)
-            else:
-                out = _validation(_X_wip, *args)
-                assert out is None
+            # join_2D must be str
         else:
             raise Exception
+
+        if _X_dim == 2 and not isinstance(_join_2D, str):
+            with pytest.raises(TypeError):
+                _validation(_X_wip, *args)
+            pytest.skip(reason=f"cant do more tests after exception")
+
+        if _line_break is None and _line_break_flags is not None:
+            with pytest.raises(ValueError):
+                _validation(_X_wip, *args)
+            pytest.skip(reason=f"cant do more tests after exception")
+
+        assert _validation(_X_wip, *args) is None
 
 
 

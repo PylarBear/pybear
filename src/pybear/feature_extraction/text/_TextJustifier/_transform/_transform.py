@@ -6,7 +6,10 @@
 
 
 
-from typing_extensions import Union
+from .._type_aliases import (
+    SepWipType,
+    LineBreakWipType
+)
 
 import numbers
 import re
@@ -19,8 +22,8 @@ from ._stacker import _stacker
 def _transform(
     _X: list[str],
     _n_chars: numbers.Integral,
-    _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
-    _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]],
+    _sep: SepWipType,
+    _line_break: LineBreakWipType,
     _backfill_sep: str
 ) -> list[str]:
 
@@ -42,28 +45,26 @@ def _transform(
         numbers.Integral - the number of characters per line to target
         when justifying the text.
     _sep:
-        Union[re.Pattern[str], tuple[re.Pattern[str], ...]] - the regex
-        pattern(s) that indicates to TextJustifier(RegExp) where it is
-        allowed to wrap a line.
+        SepWipType - the regex pattern(s) that indicate to TJ where it
+        is allowed to wrap a line.
     _line_break:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]] - the
-        regex pattern(s) that indicates to TextJustifier(RegExp) where
+        LineBreakWipType - the regex pattern(s) that indicate to TJ where
         it must force a new line.
     _backfill_sep:
         str - Some lines in the text may not have any of the given wrap
         separators or line breaks at the end of the line. When justifying
-        text and there is a shortfall of characters in a line, TJRE will
+        text and there is a shortfall of characters in a line, TJ will
         look to the next line to backfill strings. In the case where the
         line being backfilled onto does not have a separator or line
         break at the end of the string, this character string will
-        separate the otherwise separator-less strings from the strings
-        being backfilled onto them.
+        separate the otherwise separator-less string from the string
+        being backfilled onto it.
 
 
     Return
     ------
     _X:
-        list[str] - the justified text in python list of strings.
+        list[str] - the justified text in a python list of strings.
 
 
     """
@@ -77,12 +78,12 @@ def _transform(
 
 
     # loop over the entire data set and split on anything that is a line_break
-    # or sep. these user-defined line seps/breaks will be in an '$'
+    # or sep. these user-defined line seps/breaks will end up in an '$'
     # position on impacted lines.
     # e.g. if X is ['jibberish', 'split this, on a comma.', 'jibberish']
     # then the returned list will be:
-    # ['jibberish', 'split this,', 'on a comma.', 'jibberish'] and the comma
-    # at the end of 'split this,' is easily recognized with $.
+    # ['jibberish', 'split this,', 'on a comma.', 'jibberish'] and the
+    # comma at the end of 'split this,' is easily recognized with $.
     _X:list[str] = _splitter(_X, _sep, _line_break)
 
 

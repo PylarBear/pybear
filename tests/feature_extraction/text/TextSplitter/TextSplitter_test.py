@@ -37,10 +37,12 @@ class TestTextSplitter:
 
         out = TestCls.transform([])
 
+        # should return [[]]
         assert isinstance(out, list)
         assert len(out) == 1
         assert isinstance(out[0], list)
         assert len(out[0]) == 0
+        assert np.array_equal(out, [[]])
 
 
     def test_no_op(self):

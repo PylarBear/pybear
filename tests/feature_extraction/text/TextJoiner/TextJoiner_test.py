@@ -79,6 +79,15 @@ class TestTextJoiner:
         assert out['sep'] == 'no'
 
 
+    def test_empty(self):
+
+        TestCls = TJ()
+
+        assert np.array_equal(TestCls.fit_transform([]), [])
+
+        assert np.array_equal(TestCls.fit_transform([[]]), [''])
+
+
     def test_accuracy(self, _text):
 
         TestCls = TJ(sep='_')

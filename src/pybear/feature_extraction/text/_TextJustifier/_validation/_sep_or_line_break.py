@@ -22,17 +22,15 @@ def _val_sep_or_line_break(
 ) -> None:
 
     """
-    pizza revisit these docs!
-    Validate `sep` or `line_break` for EITHER TextJustifier OR
-    TextJustifierRegExp. `sep` cannot be None, but `line_break` can be.
-    That is the only difference for what can be passed to `sep` and
-    `line_break`.
+    Validate `sep` or `line_break`. `sep` cannot be None, but `line_break`
+    can be. That is the only difference for what can be passed to `sep`
+    and `line_break`.
 
-    TextJustifier:
+    For string mode:
     Must be a non-empty string or a non-empty python sequence of
     non-empty strings.
 
-    TextJustifierRegExp:
+    For regex mode:
     Must be a re.compile object that does not blatantly return zero-span
     matches or a non-empty python sequence of such objects. re.Pattern
     objects are only validated to be an instance of re.Pattern and to
@@ -47,38 +45,40 @@ def _val_sep_or_line_break(
         Union[Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]],
         str, None] -
 
-        sep: Union[str, Sequence[str]] - the pattern(s) that indicate to
-        TJ/TJRE where it is allowed to wrap a line if n_chars dictates
-        to do so. A new line would be wrapped immediately AFTER the
-        given pattern. When passed as a sequence of patterns, TJ/TJRE
-        will consider any of those patterns as a place where it can
-        wrap a line. If the there are no patterns in the data that
-        match the given pattern(s), then there are no wraps. If a 'sep'
-        pattern match is in the middle of a text sequence that might
-        otherwise be expected to be contiguous, TJ/TJRE will wrap a new
-        line after the match indiscriminately if proximity to the
-        n_chars limit dictates to do so.
+        Cannot pass an empty string or a regex pattern that blatantly
+        returns a zero-span match. Cannot be an empty sequence.
+
+        sep: Union[str, re.Pattern[str], Sequence[re.Pattern[str]],
+        Sequence[str]]- the pattern(s) that indicate to TJ where it
+        is allowed to wrap a line if n_chars dictates to do so. A new
+        line would be wrapped immediately AFTER the given pattern.
+        When passed as a sequence of patterns, TJ will consider any
+        of those patterns as a place where it can wrap a line. If
+        the there are no patterns in a line that match the given
+        pattern(s), then there are no wraps. If a `sep` pattern match
+        is in the middle of a text sequence that might otherwise be
+        expected to be contiguous, TJ will wrap a new line after the
+        match indiscriminately if proximity to the n_chars limit
+        dictates to do so.
 
         line_break:
-        Union[None, re.Pattern[str], Sequence[re.Pattern[str]]] - Tells
-        TJ/TJRE where it must start a new line. A new line will be
-        started immediately AFTER the given pattern regardless of the
-        number of characters in the line. When passed as a sequence of
-        patterns, TJ/TJRE will force a new line immediately AFTER any
-        occurrences of the patterns given. If None, do not force any
-        line breaks. If the there are no patterns in the data that match
-        the given pattern(s), then there are no forced line breaks. If
-        a line_break pattern is in the middle of a sequence that might
-        otherwise be expected to be contiguous, TJ/TJRE will force a new
-        line AFTER the line_break indiscriminately. Cannot pass an empty
-        string or a regex pattern that blatantly returns a zero-span
-        match. Cannot be an empty sequence.
+        Union[Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]],
+        str, None] - Tells TJ where it must start a new line. A new
+        line will be started immediately AFTER the given pattern
+        regardless of the number of characters in the line. When
+        passed as a sequence of patterns, TJ will force a new line
+        immediately AFTER any occurrences of the patterns given. If
+        None, do not force any line breaks. If the there are no patterns
+        in the data that match the given pattern(s), then there are no
+        forced line breaks. If a line_break pattern is in the middle
+        of a sequence that might otherwise be expected to be contiguous,
+        TJ will force a new line AFTER the line_break indiscriminately.
     _name:
         Literal['sep', 'line_break'] - the name of the parameter being
         validated. Must be 'sep' or 'line_break'.
     _mode:
-        Literal['str', 'regex'] - whether validating strings for TJ or
-        re.compile objects for TJRE.
+        Literal['str', 'regex'] - whether validating strings for 'str'
+        mode or re.compile objects for 'regex' mode.
 
 
     Return
@@ -116,7 +116,7 @@ def _val_sep_or_line_break(
         ----------
         _pat:
             Union[str, re.Pattern] - a string or re.compile object
-            passed to TJ/TJRE at init.
+            passed to TJ at init.
 
 
         """

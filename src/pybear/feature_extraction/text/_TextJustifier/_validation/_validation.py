@@ -38,24 +38,19 @@ def _validation(
 ) -> None:
 
     """
-    # pizza revisit these docs!
+    Validate data and parameters for TJ. This is a centralized hub for
+    validation, the brunt of the work is handled by the individual
+    modules. See the docs of the individual modules for more details.
 
-    STR
-    Validate data and parameters for TJ/TJRE. This is a centralized
-    hub for validation, the brunt of the work is handled by the
-    individual modules. See the docs of the individual modules for more
-    details.
-
-    When `sep` (and `line_breaks`, if passed) are pased with literal
+    When `sep` (and `line_breaks`, if passed) are passed as literal
     strings, there is validation in place that is not in place for
-    regular expressions. No seps can be identical and one cannot be a
-    substring of another. No sep can be identical to a line_break entry
-    and no sep can be a substring of a line_break. No line_breaks can be
-    identical and one cannot be a substring of another. No line_break
-    can be identical to a sep entry and no line_break can be a substring
-    of a sep.
+    regular expressions. No sep can be a substring of another sep. No
+    sep can be identical to a line_break entry and no sep can be a
+    substring of a line_break. No line_break can be a substring of
+    another line_break. No line_break can be identical to a sep entry
+    and no line_break can be a substring of a sep.
 
-    `line_break_flags` cannot be passed if 'line_break' is not passed.
+    `line_break_flags` cannot be passed if `line_break` is not passed.
 
 
     Parameters
@@ -70,39 +65,42 @@ def _validation(
         STR
         Union[str, Sequence[str]] - the literal string character
         sequence(s) that indicate to TJ where it is allowed to wrap a
-        line.
+        line. Cannot be an empty string, cannot be an empty list-like.
         REGEX
-        Union[str, re.Pattern] - the regex pattern(s) in re.compile
-        object(s) that indicate to TextJustifierRegExp where it is
-        allowed to wrap a line.
+        Union[None, re.Pattern[str], Sequence[re.Pattern[str]]] - the
+        re.compile object(s) that indicate to TJ where it is allowed
+        to wrap a line. Cannot be a regex pattern that blatantly returns
+        zero-span matches, cannot be an empty list-like.
     _sep_flags:
-        REGEX
-        Union[numbers.Integral, None] - the flags for the 'sep' parameter.
+        Union[numbers.Integral, None] - the flags for the `sep` parameter.
     _line_break:
         STR
-        Union[str, Sequence[str], None] - the character string sequence(s)
-        that indicate to TextJustifier where it must force a new line.
+        Union[None, str, Sequence[str]] - the character string sequence(s)
+        that indicate to TJ where it must force a new line. Can be None.
+        Cannot be an empty string, cannot be an empty list-like.
         REGEX
-        Union[str, re.Pattern, None] - the character string sequence(s)
-        that indicate to TextJustifierRegExp where it must force a new
-        line.
+        Union[None, re.Pattern[str], Sequence[re.Pattern[str]]] - the
+        re.compile object(s) that indicate to TJ where it must force a
+        new line. Can be None. Cannot be a regex pattern that blatantly
+        returns zero-span matches, cannot be an empty list-like.
     _line_break_flags:
-        Union[numbers.Integral, None] - the flags for the 'line_break'
+        Union[numbers.Integral, None] - the flags for the `line_break`
         parameter.
     _backfill_sep:
-        str - Some lines in the text may not have any of the given wrap
-        separators or line breaks at the end of the line. When justifying
-        text and there is a shortfall of characters in a line, TJ/TJRE
-        will look to the next line to backfill strings. In the case where
-        the line being backfilled onto does not have a separator or line
-        break at the end of the string, this character string will
-        separate the otherwise separator-less strings from the strings
-        being backfilled onto them.
+        str - Some lines in the text may not have any of the given
+        wrap separators or line breaks at the end of the line. When
+        justifying text and there is a shortfall of characters in a
+        line, TJ will look to the next line to backfill strings. In
+        the case where the line being backfilled onto does not have a
+        separator or line break at the end of the string, this character
+        string will separate the otherwise separator-less string from
+        the string being backfilled onto it.
     _join_2D:
         str - Ignored if the data is given as a 1D sequence. For 2D
         containers of strings, this is the character string sequence
-        that is used to join the strings across rows. The single string
-        value is used to join for all rows.
+        that is used to join the strings across rows to convert the data
+        to 1D for processing. The single string value is used to join
+        for all rows.
 
 
     Return
@@ -159,8 +157,8 @@ def _validation(
         except:
             raise TypeError(
                 f"TextJustifier expected a 1D sequence of strings or a "
-                f"(possibly ragged) 2D array-like of strings. See the docs "
-                f"for clarification of accepted containers."
+                f"(possibly ragged) 2D array-like of strings. See the "
+                f"docs for clarification of accepted containers."
             )
 
     # n_chars
@@ -197,25 +195,27 @@ def _validation(
     # string-mode sep/line_break conflict
     if _mode == 'str':
         err_msg = (
-            f"there is a conflict between strings for 'sep' and 'line_break'. "
-            f"\nno 'sep' and 'line_break' character sequences can be identical. "
-            f"\nno 'line_break' can be a substring of any 'sep'. "
-            f"\nno 'sep' can be a substring of any 'line_break'. "
+            f"there is a conflict between strings for 'sep' and/or "
+            f"'line_break'. "
             f"\nno 'sep' can be a substring of another 'sep'. "
             f"\nno 'line_break' can be a substring of another 'line_break'. "
+            f"\nno 'sep' and 'line_break' character sequences can be "
+            f"identical. "
+            f"\nno 'sep' can be a substring of any 'line_break'. "
+            f"\nno 'line_break' can be a substring of any 'sep'. "
         )
 
         if isinstance(_sep, str):
             set1 = {_sep, }
         else:
-            set1 = set(_sep.copy())
+            set1 = set(_sep)
 
         if _line_break is None:
             set2 = set()
         elif isinstance(_line_break, str):
             set2 = {_line_break, }
         else:
-            set2 = set(_line_break.copy())
+            set2 = set(_line_break)
 
         _union = set1 | set2
 

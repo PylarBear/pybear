@@ -109,7 +109,7 @@ class TextReplacer(
     to :param: `replace`, or flags can be set globally via :param: flags.
     Case-sensitivity is generally controlled by :param: `case_sensitive`
     but IGNORECASE flags passed via re.compile objects or :param: `flags`
-    will always overrule `case_sensitive`. :param: `case_sensitive` also
+    will ALWAYS overrule `case_sensitive`. :param: `case_sensitive` also
     accepts lists so that you can control this behavior down to the
     individual row. When passed as a list, the number of entries
     in the list must equal the number of rows in the data. The list can

@@ -41,6 +41,12 @@ SepType: TypeAlias = Optional[CoreSepBreakType]
 
 LineBreakType: TypeAlias = Optional[Union[None, CoreSepBreakType]]
 
+CoreSepBreakWipType: TypeAlias = Union[re.Pattern[str], tuple[re.Pattern[str], ...]]
+
+SepWipType: TypeAlias = CoreSepBreakWipType
+
+LineBreakWipType: TypeAlias = Union[None, CoreSepBreakWipType]
+
 CaseSensitiveType: TypeAlias = Optional[bool]
 
 SepFlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]

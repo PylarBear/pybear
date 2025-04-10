@@ -7,13 +7,17 @@
 
 
 from typing import Optional
+
+import numpy as np
 from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
     XWipContainer,
     SepType,
+    SepWipType,
     SepFlagsType,
     LineBreakType,
+    LineBreakWipType,
     LineBreakFlagsType
 )
 
@@ -67,45 +71,110 @@ class TextJustifier(
     instructions given to it, results are better when this is used
     toward the end of a text processing workflow. For best results,
     pybear recommends that removal of junk characters (pybear
-    TextReplacer), empty strings (pybear TextRemover), and extra spaces
-    (pybear TextStripper) be done before using TJ.
+    TextReplacer), empty strings (pybear TextRemover), and leading and
+    trailing spaces (pybear TextStripper) be done before using TJ.
 
     There are 3 operative parameters for justifying text in this
     module, :param: `n_chars`, :param: `sep`, and :param: `line_break`.
     The :param: `n_chars` is the target number of characters per line.
     The minimum allowed value is 1, and there is no maximum value.
-    The :param: `sep` is/are the string sequence(s) that tells TJ where
-    it is allowed to wrap text. It does not mean that TJ WILL wrap that
-    particular text, but that it can if it needs to when near the
-    n_chars limit on a line. The wrap occurs AFTER the sep sequence. A
-    common :param: `sep` is a single space. :param: `line_break` is/are
-    the string sequence(s) that tells TJ where it MUST wrap text. When
-    TJ finds a line_break sequence, it will force a new line. The break
-    occurs AFTER the line_break sequence. A typical :param: `line_break`
-    might be a period.
+    The :param: `sep` parameter is the string sequence(s) or regex
+    pattern(s) that tell TJ where it is allowed to wrap text. It does
+    not mean that TJ WILL wrap that particular text, but that it can if
+    it needs to when near the n_chars limit on a line. The wrap occurs
+    AFTER the sep sequence. A common :param: `sep` is a single space.
+    The :param: `line_break` parameter is the string sequence(s) or
+    regex pattern(s) that tell TJ where it MUST wrap text. When TJ finds
+    a line_break sequence, it will force a new line. The break occurs
+    AFTER the line_break sequence. A typical :param: `line_break` might
+    be a period.
 
-    This tool is relatively simplistic in that it only operates on exact
-    string matching. It does not take regular expressions (see pybear
-    TextJustifierRegExp for that.) The reason is that using hard strings
-    allows for validation that prevents conflicts that could lead to
-    results where "the user may be surprised." These safeguards make for
-    a predictable tool.
+    When TJ is instantiated, there must be at least one sep for TJ
+    to wrap on but there do not need to be any specified line breaks.
+    This means that :param: `sep` must be passed but :param: `line_break`
+    can be left to the default value of None. Both :param: `sep`
+    and :param: `line_break` can accept patterns as literal strings or
+    regular expressions. Also, both parameters can accept multiple
+    patterns to wrap/break on via 1D list-likes of patterns.
 
-    But as simple as the tool is in concept, there are some nuances.
-    Here is a non-exhaustive list of some of the quirks that may help
-    the user understand some edge cases and explain why TJ returns the
-    things that it does.
-    TJ is case-sensitive and that stipulation cannot be toggled.
-    TJ will not autonomously hyphenate words.
-    If a line has no separators or line-breaks in it, then TJ does
-    nothing with it. If a line is millions of characters long and there
-    are no places to wrap, TJ will return the line as given, regardless
-    of what :param: `n_chars` is set to.
-    If :param: `n_chars` is set very low, perhaps lower than the length
-    of words (tokens) that may normally be encountered, then those
-    words/lines will extend beyond the n_chars margin. Cool trick: if
-    you want an itemized list of all the tokens in your text,
-    set :param: `n_chars` to 1.
+    To identify wrap points and line breaks using literal strings,
+    pass a string or 1D list-likes of strings to :param: `sep`
+    and :param: `line_break`. You can mix containers to the different
+    parameters, i.e., one could be a list-like and the other could be a
+    single string. To identify wrap points and line breaks using regex
+    patterns, pass a re.compile object with the regex pattern (and flags,
+    if desired) or pass a 1D list-like of such objects. DO NOT PASS A
+    REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE CORRECT
+    RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT. DO NOT
+    ESCAPE LITERAL STRINGS, TextJustifier WILL DO THAT FOR YOU. If you
+    don't know what any of that means, then you don't need to worry
+    about it, just use literal strings.
+
+    Literal strings and re.compile objects cannot be mixed. You must
+    go all-in on literals or all-in on regex. This means that you
+    cannot pass 1D lists containing a mix of literals and re.compile
+    objects to :param: `sep` and :param: `line_break`. Additionally,
+    whatever wrap-point identification method is used in :param: `sep`
+    must be also be used for :param: `line_break`. Meaning, if you used
+    re.compile objects to indicate wrap points for :param: `sep`, then
+    you must also use re.compile objects to indicate break points
+    for :param: `line_break`.
+
+    Literal string mode has validation and protections in place that
+    prevent conflicts that could lead to undesired results. These
+    safeguards make for a predictable tool. But these safeguards are
+    not in place in regex mode. The reason is that the exact behavior
+    of literal strings, as opposed to regex, can be predicted before
+    ever seeing any text. Conflicts are impossible to predict when using
+    regex unless you know the text it is applied to beforehand. No sep
+    can be a substring of another sep. No sep can be identical to a
+    line_break entry and no sep can be a substring of a line_break. No
+    line_breaks can be a substring of another line_break. No line_break
+    can be identical to a sep entry and no line_break can be a substring
+    of a sep. But these rules do not apply when using regex. In regex
+    mode, a conflict exists when both the sep pattern and the line_break
+    pattern identify the same location in text as the first character of
+    a match. In that case, TJ applies :param: `sep`. It is up to the
+    user to assess the pitfalls and the likelihood of error when using
+    regex on their data. The user should inspect their results to ensure
+    the desired outcome.
+
+    TJ searches always default to case-sensitive, but can be made
+    to be case-insensitive. You can globally set this behavior via
+    the :param: `case_sensitive` parameter. For those of you that know
+    regex, you can also put flags in the re.compile objects passed
+    to :param: `sep` and :param: `line_break`. Also, flags can be set
+    globally for each of those parameters via :param: `sep_flags`
+    and :param: `line_break_flags`, respectfully. Case-sensitivity is
+    generally controlled by :param: `case_sensitive` but IGNORECASE
+    flags passed via re.compile objects or to the 'flags' parameters
+    will ALWAYS overrule :param: `case_sensitive`.
+
+    Some lines in the text may not have any of the given wrap separators
+    or line breaks at the end of the line. When justifying text and
+    there is a shortfall of characters in a line, TJ will look to the
+    next line to backfill strings. In the case where the line being
+    backfilled onto does not have a separator at the end of the string,
+    the character string given by :param: `backfill_sep` will separate
+    the otherwise separator-less string from the string being backfilled
+    onto it.
+
+    As simple as the tool is in concept, there are some nuances. Here is
+    a non-exhaustive list of some of the quirks that may help the user
+    understand some edge cases and explain why TJ returns the things
+    that it does.
+    1) TJ will not autonomously hyphenate words.
+    2) If a line has no wraps or line-breaks in it, then TJ can only do
+    2 things with it. If a line is given as longer than :param: `n_chars`
+    and there are no places to wrap, TJ will return the line as given,
+    regardless of what :param: `n_chars` is set to. But if the line is
+    shorter than :param: `n_chars`, it may have text from the next
+    line(s) backfilled onto it.
+    3) If :param: `n_chars` is set very low, perhaps lower than the
+    length of words (tokens) that may normally be encountered, then
+    those words/lines will extend beyond the n_chars margin. Cool
+    trick: if you want an itemized list of all the tokens in your
+    text, set :param: `n_chars` to 1.
 
     TJ accepts 1D and 2D data formats. Accepted objects include python
     built-in lists, tuples, and sets, numpy arrays, pandas series and
@@ -113,10 +182,10 @@ class TextJustifier(
     a 1D container, results are always returned as a 1D python list of
     strings. When data is passed in a 2D container, TJ uses pybear
     TextJoiner and the `join_2D` parameter to convert it to a 1D list
-    for processing, then uses pybear TextSplitter and the `join_2D`
-    parameter to convert it back to 2D. The results are always returned
-    in a python list of python lists of strings. See TextJoiner and
-    TextSplitter for more information.
+    for processing. Then, once the processing is done, TJ uses pybear
+    TextSplitter and the `join_2D` parameter again to convert it back to
+    2D. The 2D results are always returned in a python list of python
+    lists of strings. See TextJoiner and TextSplitter.
 
     TJ is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
@@ -151,49 +220,74 @@ class TextJustifier(
         unusually small, the output can exceed the given margins (e.g.
         the margin is set lower than an individual word's length.)
     sep:
-        Optional[Union[str, set[str]]], default=' ' - the character
-        string sequence(s) that indicate to TextJustifier where it is
-        allowed to wrap a line. When passed as a set of strings, TJ will
-        consider any of those strings as a place where it can wrap a
-        line. If a sep string is in the middle of a sequence that might
-        otherwise be expected to be contiguous, TJ will wrap a new line
-        AFTER the sep indiscriminately if proximity to the n_chars limit
-        dictates to do so. Cannot be an empty string. Cannot be an empty
-        set. No seps can be identical and one cannot be a substring of
-        another. No sep can be identical to a line_break entry and no
-        sep can be a substring of a line_break.
+        Optional[Union[str, Sequence[str], re.Pattern[str],
+        Sequence[re.Pattern[str]]]], default=' ' - the literal string(s)
+        or re.compile object(s) that indicate to TextJustifier where it
+        is allowed to wrap a line. When passed as a 1D list-like, TJ
+        will consider any of those patterns as a place where it can wrap
+        a line. If a sep pattern is in the middle of a sequence that
+        might otherwise be expected to be contiguous, TJ will wrap a new
+        line AFTER the sep indiscriminately if proximity to the n_chars
+        limit dictates to do so. Cannot be an empty string or a regex
+        pattern that blatantly returns zero-span matches. Cannot be an
+        empty list-like. When passed as re.compile object(s), it is only
+        validated to be an instance of re.Pattern and that it is not
+        likely to return zero-span matches. TJ does not assess the
+        validity of the expression itself. Any exceptions would be
+        raised by re.search. See the main docs for more discussion about
+        limitations on what can be passed here.
+    sep_flags:
+        Optional[Union[numbers.Integral, None]], default=None, the flags
+        for the :param: `sep` parameter. THIS WILL APPLY EVEN IF YOU PASS
+        LITERAL STRINGS TO :param: `sep`. IGNORECASE flags passed to
+        this will overrule :param: `case_sensitive` for :param: `sep`.
+        This parameter is only validated by TJ to be an instance of
+        numbers.Integral or None. TJ does not assess the validity of
+        the value. Any exceptions would be raised by re.search.
     line_break:
-        Optional[Union[str, set[str], None]], default=None - When
-        passed as a single string, TextJustifier will start a new line
-        immediately AFTER all occurrences of the character string
-        sequence regardless of the number of characters in the line.
-        When passed as a set of strings, TextJustifier will start a new
-        line immediately after all occurrences of the character strings
-        given. If None, do not force any line breaks. If the there are
-        no string sequences in the data that match the given strings,
-        then there are no forced line breaks. If a line_break string is
-        in the middle of a sequence that might otherwise be expected to
-        be contiguous, TJ will force a new line AFTER the line_break
-        indiscriminately. Cannot be an empty string. Cannot be an empty
-        set. No line_breaks can be identical and one cannot be a
-        substring of another. No line_break can be identical to a sep
-        entry and no line_break can be a substring of a sep.
+        Optional[Union[None, str, Sequence[str], re.Pattern[str],
+        Sequence[re.Pattern[str]]]], default=None - Literal string(s)
+        or re.compile object(s) that indicate to TJ where it MUST
+        end a line. TJ will start a new line immediately AFTER the
+        occurrence of the pattern regardless of the number of characters
+        in the line. When passed as a 1D list-like of literals or
+        re.compile objects, TJ will start a new line immediately after
+        all occurrences of the patterns given. If None, do not force any
+        line breaks. If the there are no patterns in the data that match
+        the given strings, then there are no forced line breaks. If a
+        line_break pattern is in the middle of a sequence that might
+        otherwise be expected to be contiguous, TJ will force a new line
+        after the line_break indiscriminately. Cannot be an empty string
+        or a regex pattern that blatantly returns zero-span matches.
+        Cannot be an empty 1D list-like. When passed as re.compile
+        object(s), it is only validated to be an instance of re.Pattern
+        and that it is not likely to return zero-span matches. TJ does
+        not assess the validity of the expression itself. Any exceptions
+        would be raised by re.search. See the main docs for more
+        discussion about limitations on what can be passed here.
+    line_break_flags:
+        Optional[Union[numbers.Integral, None]], default=None, the flags
+        for the :param: `line_break` parameter. THIS WILL APPLY EVEN IF
+        YOU PASS LITERAL STRINGS TO :param: `line_break`. IGNORECASE
+        flags passed to this will overrule :param: `case_sensitive`
+        for :param: `line_break`. This parameter is only validated by
+        TJ to be an instance of numbers.Integral or None. TJ does not
+        assess the validity of the value. Any exceptions would be raised
+        by re.search.
     backfill_sep:
-        Optional[str], default=' ' - Some lines in the text may not have
-        any of the given wrap separators or line breaks at the end of
-        the line. When justifying text and there is a shortfall of
-        characters in a line, TJ will look to the next line to backfill
-        strings. In the case where the line being backfilled onto does
-        not have a separator or line break at the end of the string,
-        this character string will separate the otherwise separator-less
-        strings from the strings being backfilled onto them. If you do
-        not want a separator in this case, pass an empty string to this
-        parameter.
+        Optional[str], default=' ' - In the case where a line is shorter
+        than :param: `n_chars`, DOES NOT END WITH A WRAP SEPARATOR, and
+        the following line is short enough to be merged with it, this
+        character string will separate the two strings when merged.
+        If you do not want a separator in this case, pass an empty string
+        to this parameter.
     join_2D:
         Optional[str], default=' ' - Ignored if the data is given as a
-        1D sequence. For 2D containers of strings, this is the character
-        string sequence that is used to join the strings across rows.
-        The single string value is used to join for all rows.
+        1D list-like. For 2D containers of strings, this is the character
+        string sequence that is used to join the strings within rows to
+        convert the data to 1D for processing. The single string value
+        is used to join the strings within the rows for all rows in the
+        data.
 
 
     Attributes
@@ -236,8 +330,17 @@ class TextJustifier(
     SepType:
         Optional[CoreSepBreakTypes]
 
-    LineBreakType
+    LineBreakType:
         Optional[Union[None, CoreSepBreakTypes]]
+
+    CoreSepBreakWipType:
+        Union[re.Pattern[str], tuple[re.Pattern[str], ...]]
+
+    SepWipType:
+        CoreSepBreakWipType
+
+    LineBreakWipType:
+        Union[None, CoreSepBreakWipType]
 
     CaseSensitiveType:
         Optional[bool]
@@ -280,6 +383,20 @@ class TextJustifier(
     had none. She went to the baker’s To buy him some bread; And when she
     came back, The poor dog was dead.
 
+    >>> # Demonstrate regex and do a different justify on the same data
+    >>> trfm.set_params(n_chars=45, sep=[re.compile(' '), re.compile(',')])
+    TextJustifier(n_chars=45, sep=[re.compile(' '), re.compile(',')])
+    >>> out = trfm.fit_transform(X)
+    >>> out = list(map(str.strip, out))
+    >>> for _ in out:
+    ...     print(_)
+    Old Mother Hubbard Went to the cupboard To
+    get her poor dog a bone; But when she got
+    there,The cupboard was bare,And so the poor
+    dog had none. She went to the baker’s To buy
+    him some bread; And when she came back,The
+    poor dog was dead.
+
 
     """
 
@@ -287,7 +404,7 @@ class TextJustifier(
         self,
         *,
         n_chars:Optional[numbers.Integral] = 79,
-        sep:SepType = re.compile('\s'),
+        sep:SepType = ' ',
         sep_flags:SepFlagsType = None,
         line_break:LineBreakType = None,
         line_break_flags:LineBreakFlagsType = None,
@@ -326,7 +443,7 @@ class TextJustifier(
 
     def get_metadata_routing(self):
         raise NotImplementedError(
-            f"'get_metadata_routing' is not implemented in TextJustifier(RegExp)"
+            f"'get_metadata_routing' is not implemented in TextJustifier"
         )
 
 
@@ -364,7 +481,7 @@ class TextJustifier(
         Return
         ------
         -
-            self - the TextJustifier(RegExp) instance.
+            self - the TextJustifier instance.
 
 
         """
@@ -394,7 +511,7 @@ class TextJustifier(
         Return
         ------
         -
-            self - the TextJustifier(RegExp) instance.
+            self - the TextJustifier instance.
 
 
         """
@@ -505,6 +622,12 @@ class TextJustifier(
 
         _X: XWipContainer = _map_X_to_list(_X)
 
+        # when the 2D _X == [[]], the trip thru TextJoiner and TextSplitter
+        # is causing [['']] to be returned. When this is the case, just
+        # return the original [[]]. 1D [] is returning as []
+        if np.array_equal(_X, [[]]):
+            return _X
+
         _was_2D = False
         # we know from validation it is legit 1D or 2D, do the easy check
         if all(map(isinstance, _X, (str for _ in _X))):
@@ -519,11 +642,11 @@ class TextJustifier(
         self._n_rows: int = len(_X)
 
         # condition sep and line_break parameters -- -- -- -- -- -- --
-        _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]] = \
+        _sep: SepWipType = \
             self._cond_helper(
                 self.sep, self.case_sensitive, self.sep_flags, 'sep'
             )
-        _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]] = \
+        _line_break: LineBreakWipType = \
             self._cond_helper(
                 self.line_break, self.case_sensitive, self.line_break_flags,
                 'line_break'
@@ -544,7 +667,7 @@ class TextJustifier(
             # line.endswith([sep | line_break), look at the last word in
             # each line and if it ends with that sep/line_break, indicate
             # as such so that after TextSplitter the '' and the end of
-            # those rows can be deletes. dont touch any other rows that
+            # those rows can be deleted. dont touch any other rows that
             # might end with '', TJ didnt do it its the users fault.
             # backfill_sep should never be at the end of a line.
             _MASK = _sep_lb_finder(_X, self.join_2D, _sep, _line_break)
