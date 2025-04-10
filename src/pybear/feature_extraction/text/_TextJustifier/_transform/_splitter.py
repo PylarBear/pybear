@@ -6,7 +6,10 @@
 
 
 
-from typing_extensions import Union
+from .._type_aliases import (
+    SepWipType,
+    LineBreakWipType
+)
 
 import re
 
@@ -14,14 +17,14 @@ import re
 
 def _splitter(
     _X: list[str],
-    _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
-    _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+    _sep: SepWipType,
+    _line_break: LineBreakWipType
 ) -> list[str]:
 
     """
     `_sep` and `_line_break` must have already been processed by
     _param_conditioner, i.e., all literal strings must be converted to
-    re.compile and any flags passed as parameters or associated with
+    re.compile(s) and any flags passed as parameters or associated with
     `case_sensitive` must have been put in the compile(s).
 
     Split the text strings in X on all user-defined line break and wrap
@@ -31,7 +34,7 @@ def _splitter(
     of any split in the original row. Insert the right side of the split
     into the index slot immediately after. Then proceed to that next row
     and repeat the procedure until all lines in X are exhausted. In the
-    event of a conflict, apply 'sep'.
+    event of a conflict, apply `sep`.
 
 
     Parameters
@@ -40,13 +43,11 @@ def _splitter(
         list[str] - the data to have individual rows split on line-break
         and wrap separator patterns defined by the user.
     _sep:
-        Union[re.Pattern[str], tuple[re.Pattern[str], ...]] - the regex
-        pattern(s) that indicate to TextJustifier(RegExp) where it is
-        allowed to wrap a line.
+        SepWipType - the regex pattern(s) that indicate to TJ where it
+        is allowed to wrap a line.
     _line_break:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]] - the
-        regex pattern(s) that indicates to TextJustifier(RegExp) where
-        it must force a new line.
+        LineBreakWipType - the regex pattern(s) that indicate to TJ
+        where it must force a new line.
 
 
     Returns

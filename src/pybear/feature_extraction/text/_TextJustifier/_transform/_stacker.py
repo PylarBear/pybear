@@ -7,6 +7,10 @@
 
 
 from typing_extensions import Union
+from .._type_aliases import (
+    SepWipType,
+    LineBreakWipType
+)
 
 import numbers
 import re
@@ -16,8 +20,8 @@ import re
 def _stacker(
     _X: list[str],
     _n_chars: numbers.Integral,
-    _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
-    _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]],
+    _sep: SepWipType,
+    _line_break: LineBreakWipType,
     _backfill_sep: str
 ) -> list[str]:
 
@@ -51,22 +55,20 @@ def _stacker(
         numbers.Integral - the number of characters per line to target
         when justifying the text.
     _sep:
-        Union[re.Pattern[str], tuple[re.Pattern[str], ...]] - the regex
-        pattern that indicates to TextJustifier(RegExp) where it is
-        allowed to wrap a line.
+        SepWipType - the regex pattern(s) that indicate to TJ where it
+        is allowed to wrap a line.
     _line_break:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]] - the
-        regex pattern that indicates to TextJustifier(RegExp) where it
-        must force a new line.
+        LineBreakWipType - the regex pattern(s) that indicate to TJ where
+        it must force a new line.
     _backfill_sep:
         str - Some lines in the text may not have any of the given wrap
         separators or line breaks at the end of the line. When justifying
-        text and there is a shortfall of characters in a line, TJRE will
+        text and there is a shortfall of characters in a line, TJ will
         look to the next line to backfill strings. In the case where the
         line being backfilled onto does not have a separator or line
         break at the end of the string, this character string will
-        separate the otherwise separator-less strings from the strings
-        being backfilled onto them.
+        separate the otherwise separator-less string from the string
+        being backfilled onto it.
 
 
     Returns
@@ -88,8 +90,10 @@ def _stacker(
     # each string is immutable.
 
     # condition _sep and _line_break to only look at the end -- -- -- --
+    # that means put $ at the end of all the patterns in the compiles.
+    # and convert single compile to iterable.
     def _precondition_helper(
-        _obj: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+        _obj: LineBreakWipType
     ) -> Union[None, tuple[re.Pattern[str], ...]]:
 
         if _obj is None:
@@ -120,7 +124,13 @@ def _stacker(
     line_idx = 0
     while True:
 
-        _line = _X[line_idx]
+        # if _X is empty this will raise. make empty flow thru.
+        try:
+            _line = _X[line_idx]
+        except IndexError:
+            break
+        except Exception as e:
+            raise e
 
         # if the next line doesnt exist we cant do anymore
         try:
@@ -156,14 +166,19 @@ def _stacker(
         # if it ends with a separator, do not use a backfill_sep
         _needs_backfill_sep = False
         _hit = False
-        for _s in _new_sep:
-            _match = re.search(_s, _line)
-            if _match is not None and _match.span()[1] != _match.span()[0]:
-                _hit = True
-                break
+        if re.search(re.compile(f'{re.escape(_backfill_sep)}$'), _line):
+            # if there already is a backfill sep dont put another
+            _hit = True
+        else:
+            for _s in _new_sep:
+                _match = re.search(_s, _line)
+                if _match is not None and _match.span()[1] != _match.span()[0]:
+                    _hit = True
+                    break
+            del _match
         if not _hit:
             _needs_backfill_sep = True
-        del _hit, _match
+        del _hit
 
         _addon_len = len(_X[line_idx + 1])
         # if the current line has no sep at the end, append backfill_sep

@@ -145,7 +145,7 @@ class NGramMerger(
     to :param: `ngrams`, or flags can be set globally via :param: `flags`.
     Case-sensitivity is generally controlled by :param: `case_sensitive`
     but IGNORECASE flags passed via re.compile objects or :param: `flags`
-    will always overrule `case_sensitive`.
+    will ALWAYS overrule `case_sensitive`.
 
     If no parameters are passed, i.e., all parameters are left to
     their default values at instantiation, then NGM does a no-op on

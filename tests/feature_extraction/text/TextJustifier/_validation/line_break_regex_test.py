@@ -25,7 +25,9 @@ class TestValLinebreak:
          lambda x: x)
     )
     def test_junk_line_break(self, junk_line_break):
-        # must be Union[
+
+        # must be Union[None, re.compile, Sequence[re.compile]]
+
         with pytest.raises(TypeError):
             _val_sep_or_line_break(
                 junk_line_break, _name='line_break', _mode='regex'

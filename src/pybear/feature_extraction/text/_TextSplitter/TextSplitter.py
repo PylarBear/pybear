@@ -103,7 +103,7 @@ class TextSplitter(
     to :param: `sep`, or flags can be set globally via :param: `flags`.
     Case-sensitivity is generally controlled by :param: `case_sensitive`
     but IGNORECASE flags passed via re.compile objects or :param: `flags`
-    will always overrule `case_sensitive`. :param: `case_sensitive` also
+    will ALWAYS overrule `case_sensitive`. :param: `case_sensitive` also
     accepts lists so that you can control this behavior down to the
     individual string.
 
