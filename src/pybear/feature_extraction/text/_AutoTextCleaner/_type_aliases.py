@@ -10,11 +10,10 @@ from typing import (
     Callable,
     Literal,
     Optional,
-    Required,
     Sequence,
     TypedDict
 )
-from typing_extensions import TypeAlias, Union
+from typing_extensions import Required, TypeAlias, Union
 import numpy.typing as npt
 
 import re
