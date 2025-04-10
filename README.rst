@@ -246,8 +246,7 @@ The modules include:
 - NGramMerger - Join select adjacent tokens together to handle as a single token
 - StopRemover - Remove pybear stop words from a body of text
 - TextJoiner - Join tokenized text into a contiguous string with separators
-- TextJustifier - Justify to a fixed margin; identify wrap points with literals
-- TextJustifierRegExp - Same as TextJustifier, but uses regular expressions
+- TextJustifier - Justify to a fixed margin; wrap on literals or regex patterns
 - TextLookup - Compare words in a body of text against the pybear Lexicon
 - TextLookupRealTime - Same as TextLookup but with in-situ save capability
 - TextNormalizer - Normalize text to the same case
