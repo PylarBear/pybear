@@ -125,7 +125,7 @@ class TestRegExp1DCore:
             [
                 (re.compile('a'), re.compile('b'), re.compile('c')),
                 None,
-                re.compile('\w'),
+                re.compile(r'\w'),
                 re.compile('A|E', re.I),
                 None
             ],

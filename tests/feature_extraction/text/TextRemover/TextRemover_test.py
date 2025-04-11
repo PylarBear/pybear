@@ -156,9 +156,9 @@ class TestTextRemover:
 
     def test_escapes_literal_strings(self):
 
-        TestCls = TextRemover(remove="^\n\s\t$")
+        TestCls = TextRemover(remove=r"^\n\s\t$")
 
-        out = TestCls.transform(['a', '^\n\s\t$', 'c', 'd'], copy=True)
+        out = TestCls.transform(['a', r'^\n\s\t$', 'c', 'd'], copy=True)
         assert np.array_equal(out, ['a', 'c', 'd'])
 
 

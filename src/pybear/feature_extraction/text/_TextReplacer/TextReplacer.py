@@ -247,7 +247,7 @@ class TextReplacer(
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextReplacer as TR
-    >>> trfm = TR(replace=((',', ''),(re.compile('\.'), '')))
+    >>> trfm = TR(replace=((',', ''),(re.compile(r'\.'), '')))
     >>> X = ['To be, or not to be, that is the question.']
     >>> trfm.fit_transform(X)
     ['To be or not to be that is the question']
