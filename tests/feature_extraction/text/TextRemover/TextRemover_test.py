@@ -105,7 +105,7 @@ class TestTextRemover:
     def test_re_remove_2(self, _words):
 
         TestCls = TextRemover(
-            remove=[None, "D", None, "B", None],
+            remove=[None, re.compile("D"), None, re.compile("B"), None],
             flags=[0, re.I, 0, re.I, 0]
         )
 

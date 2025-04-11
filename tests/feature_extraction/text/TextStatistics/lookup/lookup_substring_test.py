@@ -113,7 +113,7 @@ class TestLookupSubString:
 
 
     def test_literals_are_escaped(self):
-        out = _lookup_substring(r'^\n\s\t$', ['GREEN', '^\n\s\t$', 'AND', 'HAM'])
+        out = _lookup_substring('^\n\s\t$', ['GREEN', '^\n\s\t$', 'AND', 'HAM'])
         assert isinstance(out, list)
         assert np.array_equal(out, ['^\n\s\t$'])
 
