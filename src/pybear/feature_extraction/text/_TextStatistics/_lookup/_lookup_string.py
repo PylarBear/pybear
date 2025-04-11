@@ -16,7 +16,7 @@ import re
 
 
 def _lookup_string(
-    _pattern: Union[str, re.Pattern],
+    _pattern: Union[str, re.Pattern[str]],
     _uniques: Sequence[str],
     _case_sensitive: Optional[bool] = True
 ) -> list[str]:
@@ -51,9 +51,9 @@ def _lookup_string(
     Parameters
     ----------
     _pattern:
-        Union[str, re.Pattern] - character sequence or regular expression
-        in a re.compile object to be looked up against the strings fitted
-        on the TextStatistics instance.
+        Union[str, re.Pattern[str]] - character sequence or regular
+        expression in a re.compile object to be looked up against the
+        strings fitted on the TextStatistics instance.
     _uniques:
         Sequence[str] - the unique strings found by the TextStatistics
         instance during fitting.

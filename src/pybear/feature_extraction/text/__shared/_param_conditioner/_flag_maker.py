@@ -22,10 +22,10 @@ FlagsType: TypeAlias = Union[FlagType, list[FlagType]]
 
 
 def _flag_maker(
-    _compile_holder: list[Union[list[None], list[re.Pattern]]],
+    _compile_holder: list[Union[list[None], list[re.Pattern[str]]]],
     _case_sensitive: CaseSensitiveType,
     _flags: FlagsType
-) -> list[Union[list[None], list[re.Pattern]]]:
+) -> list[Union[list[None], list[re.Pattern[str]]]]:
 
     """
     Use flags inferred from _case_sensitive and any user-passed flags
@@ -51,7 +51,7 @@ def _flag_maker(
     Returns
     -------
     -
-        list[Union[list[None], list[re.Pattern]]] - the _compile_holder
+        list[Union[list[None], list[re.Pattern[str]]]] - _compile_holder
         object with the appropriate flags now in every re.compile object.
 
 

@@ -789,7 +789,7 @@ class TextStatistics(
 
     def lookup_substring(
         self,
-        pattern: Union[str, re.Pattern],
+        pattern: Union[str, re.Pattern[str]],
         case_sensitive: Optional[bool] = True
     ) -> list[str]:
 
@@ -817,7 +817,7 @@ class TextStatistics(
         Parameters
         ----------
         pattern:
-            Union[str, re.Pattern] - character sequence or regular
+            Union[str, re.Pattern[str]] - character sequence or regular
             expression in a re.compile object to be looked up against
             the strings fitted on the TextStatistics instance.
         case_sensitive:
@@ -845,7 +845,7 @@ class TextStatistics(
 
     def lookup_string(
         self,
-        pattern: Union[str, re.Pattern],
+        pattern: Union[str, re.Pattern[str]],
         case_sensitive: Optional[bool]=True
     ) -> list[str]:
 
@@ -874,7 +874,7 @@ class TextStatistics(
         Parameters
         ----------
         pattern:
-            Union[str, re.Pattern] - character sequence or regular
+            Union[str, re.Pattern[str]] - character sequence or regular
             expression in a re.compile object to be looked up against
             the strings fitted on the TextStatistics instance.
         case_sensitive:

@@ -27,10 +27,9 @@ def _val_replace(
     Parameters
     ----------
     _replace:
-        ReplaceType - None, the find/replace pairs, a tuple of
-        find/replace pairs, or a list of those things. If a list, the
-        number of entries in the list must equal the number of rows in
-        the data.
+        ReplaceType - None, a find/replace pair, a tuple of find/replace
+        pairs, or a list of those things. If a list, the number of
+        entries in the list must equal the number of rows in the data.
     _n_rows:
         numbers.Integral - the number of rows of text in the data.
 
@@ -55,11 +54,11 @@ def _val_replace(
     # helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def _core_pair_validator(
         _tuple: tuple[
-            Union[str, re.Pattern],
+            Union[str, re.Pattern[str]],
             Union[str, Callable[[str], str]]
         ]
     ):
-        # must 2 entries Union[str, re.Pattern] and Union[str, Callable]
+        # must 2 entries Union[str, re.Pattern[str]] and Union[str, Callable]
 
         """
         Validate the core find/replace pairs.

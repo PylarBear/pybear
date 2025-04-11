@@ -203,7 +203,7 @@ class Lexicon(TextStatistics):
 
     def lookup_substring(
         self,
-        pattern: Union[str, re.Pattern]
+        pattern: Union[str, re.Pattern[str]]
     ) -> list[str]:
 
         """
@@ -221,7 +221,7 @@ class Lexicon(TextStatistics):
         Parameters
         ----------
         pattern:
-            Union[str, re.Pattern] - character sequence or regular
+            Union[str, re.Pattern[str]] - character sequence or regular
             expression in a re.compile object to be looked up against
             the pybear Lexicon.
 
@@ -248,7 +248,7 @@ class Lexicon(TextStatistics):
 
     def lookup_string(
         self,
-        pattern: Union[str, re.Pattern]
+        pattern: Union[str, re.Pattern[str]]
     ) -> list[str]:
 
         """
@@ -266,7 +266,7 @@ class Lexicon(TextStatistics):
         Parameters
         ----------
         pattern:
-            Union[str, re.Pattern] - character sequence or regular
+            Union[str, re.Pattern[str]] - character sequence or regular
             expression in a re.compile object to be looked up against
             the pybear Lexicon.
 

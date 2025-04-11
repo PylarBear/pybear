@@ -90,7 +90,7 @@ def _val_pattern_holder(
     ) -> bool:
         """
         Helper function to validate the core 'pattern_holder' objects
-        are Union[None, str, re.Pattern].
+        are Union[None, str, re.Pattern[str]].
         """
 
         return isinstance(_core_pattern_holder, (type(None), str, re.Pattern))
