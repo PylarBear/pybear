@@ -8,6 +8,8 @@
 
 import pytest
 
+import re
+
 import numpy as np
 
 from pybear.feature_extraction.text._TextReplacer.TextReplacer import TextReplacer
@@ -87,7 +89,7 @@ class TestMethodAccess:
     def test_access_methods(self, _X_list, has_seen_data):
 
 
-        TestCls = TextReplacer(replace=('[a-m]', ''))
+        TestCls = TextReplacer(replace=(re.compile('[a-m]'), ''))
 
         assert is_fitted(TestCls) is True
 
@@ -104,7 +106,7 @@ class TestMethodAccess:
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
         for param in ['replace', 'case_sensitive', 'flags']:
             assert param in out
-        assert out['replace'] == ('[a-m]', '')
+        assert out['replace'] == (re.compile('[a-m]'), '')
         assert out['case_sensitive'] is True
         assert out['flags'] is None
 

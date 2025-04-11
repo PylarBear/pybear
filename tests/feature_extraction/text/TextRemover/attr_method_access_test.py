@@ -18,18 +18,18 @@ from pybear.base import is_fitted
 
 
 
+@pytest.fixture(scope='module')
+def _X_list():
+    return np.random.choice(
+        list('abcdefghijklmnop'),
+        (10,),
+        replace=True
+    ).tolist()
+
+
+
 # TextRemover is always "fit"
 class TestAttrAccess:
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_list():
-        return np.random.choice(
-            list('abcdefghijklmnop'),
-            (10,),
-            replace=True
-        ).tolist()
 
 
     # @staticmethod
@@ -115,13 +115,6 @@ class TestAttrAccess:
 class TestMethodAccess:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_list():
-
-        return np.random.choice(list('abcdefghijklmnop'), (10,), replace=True).tolist()
-
-
     # @staticmethod
     # @pytest.fixture(scope='function')
     # def _methods():
@@ -140,7 +133,7 @@ class TestMethodAccess:
     def test_access_methods(self, _X_list, has_seen_data):
 
 
-        TestCls = TextRemover(remove='[a-m]')
+        TestCls = TextRemover(remove=re.compile('[a-m]'))
 
         assert is_fitted(TestCls) is True
 

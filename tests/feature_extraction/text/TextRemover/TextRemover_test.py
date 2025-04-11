@@ -39,7 +39,7 @@ class TestTextRemover:
         assert len(out) == 0
 
         # 2D -- returns empty 2D
-        TestCls = TextRemover(remove='[n-z]')
+        TestCls = TextRemover(remove=re.compile('[n-z]'))
 
         out = TestCls.transform([[]])
 
@@ -156,9 +156,9 @@ class TestTextRemover:
 
     def test_escapes_literal_strings(self):
 
-        TestCls = TextRemover(remove=r"^\n\s\t$")
+        TestCls = TextRemover(remove='\n\s\t')
 
-        out = TestCls.transform(['a', r'^\n\s\t$', 'c', 'd'], copy=True)
+        out = TestCls.transform(['a', '\n\s\t', 'c', 'd'], copy=True)
         assert np.array_equal(out, ['a', 'c', 'd'])
 
 
