@@ -183,7 +183,7 @@ class TestTextJustifier:
             TestCls.fit_transform(_text)
 
 
-        TestCls = TJ(sep=' ', line_break=re.compile('\.'))
+        TestCls = TJ(sep=' ', line_break=re.compile(r'\.'))
         with pytest.raises(TypeError):
             TestCls.fit_transform(_text)
 

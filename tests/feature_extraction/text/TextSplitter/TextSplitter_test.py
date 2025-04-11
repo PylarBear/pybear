@@ -99,7 +99,7 @@ class TestTextSplitter:
 
     def test_re_split_1(self, _words):
 
-        TestCls = TextSplitter(sep=re.compile("[\s’,]"))
+        TestCls = TextSplitter(sep=re.compile(r"[\s’,]"))
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)
@@ -119,7 +119,7 @@ class TestTextSplitter:
 
     def test_re_split_2(self, _words):
 
-        TestCls = TextSplitter(sep=[re.compile("[\s’,]"), None])
+        TestCls = TextSplitter(sep=[re.compile(r"[\s’,]"), None])
 
         out = TestCls.transform(_words, copy=True)
         assert isinstance(out, list)

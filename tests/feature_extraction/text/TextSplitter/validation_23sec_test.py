@@ -46,7 +46,7 @@ class TestValidation:
             (' ', ',', re.compile(re.escape('.'))),
             '',
             re.compile(re.escape('\n')),
-            '\s',
+            r'\s',
             None
         ]
 
@@ -74,7 +74,7 @@ class TestValidation:
         (
             (None, None),
             (' ', None),
-            ((' ', '\n', '\s'), None),
+            ((' ', '\n', r'\s'), None),
             ('sep_seq_1', list),
             ('sep_seq_1', tuple)
         )

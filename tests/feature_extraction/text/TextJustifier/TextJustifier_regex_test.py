@@ -29,7 +29,7 @@ class TestTextJustifier_Regex:
             'n_chars': 20,
             'sep': re.compile(' '),
             'sep_flags': None,
-            'line_break': re.compile('\.'),
+            'line_break': re.compile(r'\.'),
             'line_break_flags': None,
             'backfill_sep': ' ',
             'join_2D': ' '
@@ -140,7 +140,7 @@ class TestTextJustifier_Regex:
         TestCls = TJ(
             n_chars=40,
             sep=(re.compile(' '), re.compile(','), re.compile(' '), re.compile(',')),
-            line_break=(re.compile('\.'), re.compile('\.')),
+            line_break=(re.compile(r'\.'), re.compile(r'\.')),
             case_sensitive=True
         )
 
@@ -188,7 +188,7 @@ class TestTextJustifier_Regex:
             TestCls.fit_transform(_text)
 
 
-        TestCls = TJ(sep=' ', line_break=re.compile('\.'))
+        TestCls = TJ(sep=' ', line_break=re.compile(r'\.'))
         with pytest.raises(TypeError):
             TestCls.fit_transform(_text)
 

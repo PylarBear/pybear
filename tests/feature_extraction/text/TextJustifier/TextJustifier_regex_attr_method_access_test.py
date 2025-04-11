@@ -205,8 +205,8 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         assert TestCls.score(_X, None) is None
 
         # set_params()
-        assert isinstance(TestCls.set_params(sep=re.compile('\s')), TJ)
-        assert TestCls.sep == re.compile('\s')
+        assert isinstance(TestCls.set_params(sep=re.compile(r'\s')), TJ)
+        assert TestCls.sep == re.compile(r'\s')
 
         # transform()
         assert isinstance(TestCls.transform(_X), list)

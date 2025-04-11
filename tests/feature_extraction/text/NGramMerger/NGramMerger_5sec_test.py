@@ -132,12 +132,12 @@ class TestNGramMerger:
     def test_escapes_literal_strings(self, _kwargs):
 
         _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['ngrams'] = (('^123$', '\s\t\n'),)
+        _new_kwargs['ngrams'] = (('^123$', r'\s\t\n'),)
         _new_kwargs['sep'] = '_@_'
 
-        out = NGM(**_new_kwargs).transform([['ONE', '^123$', '\s\t\n']])
+        out = NGM(**_new_kwargs).transform([['ONE', '^123$', r'\s\t\n']])
 
-        assert np.array_equal(out, [['ONE', '^123$_@_\s\t\n']])
+        assert np.array_equal(out, [['ONE', r'^123$_@_\s\t\n']])
 
 
     def test_various_1D_input_containers(self, _kwargs):

@@ -19,13 +19,13 @@ class TestDefaultCallable:
     def test_default_callable_escapes_words_from_text(self):
 
         assert StopRemover._default_callable(
-            '^\n\t\s$',
-            '^\n\t\s$'
+            r'^\n\t\s$',
+            r'^\n\t\s$'
         ) is True
 
         assert StopRemover._default_callable(
-            '^\n\t\s$',
-            '^\n\t\s%'
+            r'^\n\t\s$',
+            r'^\n\t\s%'
         ) is False
 
 

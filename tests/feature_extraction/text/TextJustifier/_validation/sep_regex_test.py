@@ -39,7 +39,7 @@ class TestValSep:
             _val_sep_or_line_break(re.compile(':?'), _name='sep', _mode='regex')
 
 
-        _base_seps = [re.compile(':?'), re.compile('\.')]
+        _base_seps = [re.compile(':?'), re.compile(r'\.')]
 
         if _container is np.ndarray:
             _seps = np.array(_base_seps)
@@ -75,7 +75,7 @@ class TestValSep:
             re.compile('[a-d]'), _name='sep', _mode='regex'
         ) is None
 
-        _base_seps = [re.compile(','), re.compile('\.')]
+        _base_seps = [re.compile(','), re.compile(r'\.')]
 
         if _container is  np.ndarray:
             _seps = np.array(_base_seps)
