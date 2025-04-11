@@ -28,7 +28,7 @@ def _wrap_manager(
     _second_line: list[str],
     _first_hits: Sequence[numbers.Integral],
     _second_hits: Sequence[numbers.Integral],
-    _ngram: tuple[re.Pattern, ...],
+    _ngram: tuple[re.Pattern[str], ...],
     _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None]
 ) -> tuple[list[str], list[str]]:
@@ -57,7 +57,7 @@ def _wrap_manager(
         n-gram patterns found in the line below the current line during
         the normal linear n-gram search.
     _ngram:
-        tuple[re.Pattern, ...] - A single n-gram sequence containing
+        tuple[re.Pattern[str], ...] - A single n-gram sequence containing
         re.compile objects that specify an n-gram pattern. Cannot have
         less than 2 entries.
     _ngcallable:

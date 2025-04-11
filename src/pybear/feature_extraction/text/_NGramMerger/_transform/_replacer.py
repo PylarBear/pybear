@@ -15,7 +15,7 @@ import re
 
 def _replacer(
     _line: list[str],
-    _ngram: tuple[re.Pattern, ...],
+    _ngram: tuple[re.Pattern[str], ...],
     _hits: Sequence[int],
     _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None]
@@ -40,7 +40,7 @@ def _replacer(
     _line:
         list[str] - A single 1D sequence of strings.
     _ngram:
-        tuple[re.Pattern, ...] - A single n-gram sequence containing
+        tuple[re.Pattern[str], ...] - A single n-gram sequence containing
         re.compile objects that specify an n-gram pattern. Cannot have
         less than 2 entries.
     _hits:

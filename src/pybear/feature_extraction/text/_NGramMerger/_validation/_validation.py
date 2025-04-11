@@ -25,7 +25,7 @@ from ...__shared._validation._any_string import _val_any_string
 
 def _validation(
     _X: XContainer,
-    _ngrams: Union[Sequence[Sequence[Union[str, re.Pattern]]], None],
+    _ngrams: Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None],
     _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None],
     _wrap: bool,
@@ -46,7 +46,7 @@ def _validation(
     _X:
         XContainer - (possibly ragged) 2D array of strings.
     _ngrams:
-        Union[Sequence[Sequence[Union[str, re.Pattern]]], None] - A
+        Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None] - A
         sequence of sequences, where each inner sequence holds a series
         of string literals and/or re.compile objects that specify an
         n-gram. Cannot be empty, and cannot have any n-grams with less

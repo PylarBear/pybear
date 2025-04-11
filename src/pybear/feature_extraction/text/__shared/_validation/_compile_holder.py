@@ -32,9 +32,9 @@ def _val_compile_holder(
     Parameters
     ----------
     _ch:
-        Union[None, re.Pattern, tuple[re.Pattern, ...],
-        list[Union[None, re.Pattern, tuple[re.Pattern, ...]]]] - the
-        regex pattern(s) to search for in text data.
+        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
+        list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]] -
+        the regex pattern(s) to search for in text data.
     _n_rows:
         numbers.Integral - the number of rows in the data passed to
         transform.

@@ -7,7 +7,7 @@
 
 
 from typing import Optional
-from typing_extensions import Union
+from typing_extensions import TypeAlias, Union
 
 import numbers
 import re
@@ -15,15 +15,19 @@ from copy import deepcopy
 
 
 
+FindType: TypeAlias = Union[str, re.Pattern[str]]
+
+
+
 def _compile_maker(
     _pattern_holder: Union[
-        str, re.Pattern, tuple[Union[str, re.Pattern], ...],
-        list[Union[None, str, re.Pattern, tuple[Union[str, re.Pattern], ...]]]
+        FindType, tuple[FindType, ...],
+        list[Union[None, FindType, tuple[FindType, ...]]]
     ],
     _order_matters: bool,
     _n_rows: numbers.Integral,
     _name:Optional[str] = 'unnamed pattern holder'
-) -> list[Union[list[None], list[re.Pattern]]]:
+) -> list[Union[list[None], list[re.Pattern[str]]]]:
 
     """
     Convert any string literals to re.compile and map '_pattern_holder'
@@ -33,9 +37,10 @@ def _compile_maker(
     Parameters
     ----------
     _pattern_holder:
-        Union[str, re.Pattern, tuple[Union[str, re.Pattern], ...],
-        list[Union[None, str, re.Pattern, tuple[Union[str, re.Pattern],
-        ...]]]] - the search criteria as passed by the user.
+        Union[FindType, tuple[FindType, ...],
+        list[Union[None, FindType, tuple[FindType, ...]]]] - the search
+        criteria as passed by the user.
+        FindType: TypeAlias = Union[str, re.Pattern[str]]
     _order_matters:
         bool - when '_pattern_holder' is or has in it a tuple of literal
         strings and/or re.compiles, whether the order of operations and
@@ -54,9 +59,10 @@ def _compile_maker(
     Returns
     -------
     -
-        _compile_holder: list[Union[list[None], list[re.Pattern]]] - the
-        search criteria mapped to [None] or [re.Pattern, ...] for every
-        row in whatever data '_pattern_holder' is associated with.
+        _compile_holder: list[Union[list[None], list[re.Pattern[str]]]] -
+        the search criteria mapped to [None] or [re.Pattern[str], ...]
+        for every row in whatever data '_pattern_holder' is associated
+        with.
 
 
     """

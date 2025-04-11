@@ -104,7 +104,7 @@ def _val_sep_or_line_break(
 
     # HELPER FUNCTION -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def _can_return_empty_match(
-        _pat: Union[str, re.Pattern]
+        _pat: Union[str, re.Pattern[str]]
     ) -> bool:
 
         """
@@ -115,7 +115,7 @@ def _val_sep_or_line_break(
         Parameters
         ----------
         _pat:
-            Union[str, re.Pattern] - a string or re.compile object
+            Union[str, re.Pattern[str]] - a string or re.compile object
             passed to TJ at init.
 
 

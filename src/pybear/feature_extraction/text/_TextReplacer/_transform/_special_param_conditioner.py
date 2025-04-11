@@ -23,7 +23,7 @@ from .._validation._replace import _val_replace
 from ...__shared._param_conditioner._flag_maker import _flag_maker
 
 
-ModFindType: TypeAlias = list[list[Union[None, re.Pattern]]]
+ModFindType: TypeAlias = list[list[Union[None, re.Pattern[str]]]]
 ModReplaceType: TypeAlias = list[list[Union[str, Callable]]]
 
 
@@ -209,7 +209,7 @@ def _special_param_conditioner(
 
     # put the re.compiles back into the original params -- -- -- -- -- --
 
-    # _mod_find should be list[Union[list[None], list[re.Pattern]]]
+    # _mod_find should be list[Union[list[None], list[re.Pattern[str]]]]
     assert isinstance(_mod_find, list)
     assert all(map(isinstance, _mod_find, (list for _ in _mod_find)))
 

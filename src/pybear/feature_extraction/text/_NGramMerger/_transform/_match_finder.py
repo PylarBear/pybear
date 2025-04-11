@@ -12,7 +12,7 @@ import re
 
 def _match_finder(
     _line: list[str],
-    _ngram: tuple[re.Pattern, ...],
+    _ngram: tuple[re.Pattern[str], ...],
 ) -> list[int]:
 
     """
@@ -26,7 +26,7 @@ def _match_finder(
     _line:
         list[str] - A single 1D sequence of strings.
     _ngram:
-        tuple[re.Pattern, ...] - A single n-gram sequence containing
+        tuple[re.Pattern[str], ...] - A single n-gram sequence containing
         re.compile objects that specify an n-gram pattern. The 'ngram'
         parameter must have gone through by _special_param_conditioner.
         Cannot have less than 2 entries.
