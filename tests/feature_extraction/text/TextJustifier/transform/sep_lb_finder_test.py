@@ -47,7 +47,7 @@ class TestSepLbFinder:
         (re.compile(','), re.compile(' '), (re.compile(','), re.compile(' ')))
     )
     @pytest.mark.parametrize('_lb',
-        (re.compile('\.'), re.compile(';'), (re.compile('\.'), re.compile(';')), None)
+        (re.compile(r'\.'), re.compile(';'), (re.compile(r'\.'), re.compile(';')), None)
     )
     def test_accuracy(self, _text, _join_2D, _sep, _lb):
 
@@ -74,8 +74,8 @@ class TestSepLbFinder:
             # join_2D never == ',', so can never be True
 
             # line 4
-            if _join_2D == '.' and (_lb == re.compile('\.')
-                    or (isinstance(_lb, tuple) and re.compile('\.') in _lb)):
+            if _join_2D == '.' and (_lb == re.compile(r'\.')
+                    or (isinstance(_lb, tuple) and re.compile(r'\.') in _lb)):
                 _ref[3] = True
 
 

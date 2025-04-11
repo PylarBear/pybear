@@ -73,17 +73,17 @@ class TestValPatternHolder:
 
         # too long
         with pytest.raises(ValueError):
-            _val_pattern_holder(['\W' for _ in range(6)], 5)
+            _val_pattern_holder([r'\W' for _ in range(6)], 5)
 
         # too short
         with pytest.raises(ValueError):
-            _val_pattern_holder(['\W' for _ in range(4)], 5)
+            _val_pattern_holder([r'\W' for _ in range(4)], 5)
 
 
     def test_accepts_good_list(self):
 
         _pool = [None, 'some string', '^[a-zA-Z0-9]+$', re.compile('a{0, 2}'),
-                 (re.compile('[a-d]*'), '\W', '\d')]
+                 (re.compile('[a-d]*'), r'\W', r'\d')]
 
         for trial in range(20):
 

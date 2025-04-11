@@ -91,7 +91,7 @@ class TestStrCore:
         # -- -- -- -- -- -- -- -- -- --
 
         # maxsplit is 2
-        out = _regexp_core(_text[:2], re.compile('[\s,]'), 2)
+        out = _regexp_core(_text[:2], re.compile(r'[\s,]'), 2)
         assert isinstance(out, list)
         for __ in out:
             assert all(map(isinstance, __, (str for _ in __)))
@@ -175,7 +175,7 @@ class TestStrCore:
 
         # also tests Nones apply correctly
 
-        _seps = [None, None, re.compile('\s'), re.compile('[bl]')]
+        _seps = [None, None, re.compile(r'\s'), re.compile('[bl]')]
 
         # maxsplit is default (all)
 
@@ -225,11 +225,11 @@ class TestStrCore:
         if sep_format == 'none':
             _sep = None
         elif sep_format == 'compile':
-            _sep = re.compile('\s')
+            _sep = re.compile(r'\s')
         elif sep_format == 'tuple':
-            _sep = (re.compile('\s'), re.compile('\.'))
+            _sep = (re.compile(r'\s'), re.compile(r'\.'))
         elif sep_format == 'list':
-            _sep = [re.compile('\s'), (re.compile('\s'), re.compile('\.'))]
+            _sep = [re.compile(r'\s'), (re.compile(r'\s'), re.compile(r'\.'))]
         else:
             raise Exception
 
@@ -245,7 +245,7 @@ class TestStrCore:
                 # _sep = None
                 assert np.array_equal(out, [[_text[0]], [_text[1]]])
             elif sep_format == 'compile':
-                # _sep = re.compile('\s')
+                # _sep = re.compile(r'\s')
                 assert all(map(
                     np.array_equal,
                     out,
@@ -253,7 +253,7 @@ class TestStrCore:
                     ["Fire", "burn,", "and", "cauldron", "bubble."]]
                 ))
             elif sep_format == 'tuple':
-                # _sep = (re.compile('\s'), re.compile('\.'))
+                # _sep = (re.compile(r'\s'), re.compile(r'\.'))
                 assert all(map(
                     np.array_equal,
                     out,
@@ -261,7 +261,7 @@ class TestStrCore:
                     ["Fire", "burn,", "and", "cauldron", "bubble", ""]]
                 ))
             elif sep_format == 'list':
-                # _sep = [re.compile('\s'), (re.compile('\s'), re.compile('\.'))]
+                # _sep = [re.compile(r'\s'), (re.compile(r'\s'), re.compile(r'\.'))]
                 assert all(map(
                     np.array_equal,
                     out,
@@ -272,7 +272,7 @@ class TestStrCore:
             if sep_format == 'none':
                 assert np.array_equal(out, [[_text[0]], [_text[1]]])
             elif sep_format == 'compile':
-                # _sep = re.compile('\s')
+                # _sep = re.compile(r'\s')
                 assert all(map(
                     np.array_equal,
                     out,
@@ -280,7 +280,7 @@ class TestStrCore:
                      ["Fire", "burn, and cauldron bubble."]]
                 ))
             elif sep_format == 'tuple':
-                # _sep = (re.compile('\s'), re.compile('\.'))
+                # _sep = (re.compile(r'\s'), re.compile(r'\.'))
                 assert all(map(
                     np.array_equal,
                     out,
@@ -288,7 +288,7 @@ class TestStrCore:
                     ["Fire", "burn, and cauldron bubble."]]
                 ))
             elif sep_format == 'list':
-                # _sep = [re.compile('\s'), (re.compile('\s'), re.compile('\.'))]
+                # _sep = [re.compile(r'\s'), (re.compile(r'\s'), re.compile(r'\.'))]
                 assert all(map(
                     np.array_equal,
                     out,

@@ -118,9 +118,9 @@ class TestLookupString:
 
 
     def test_literal_is_escaped(self):
-        out = _lookup_string('^\s\n\t$', ['green', '^\s\n\t$', 'and', 'ham'])
+        out = _lookup_string(r'^\s\n\t$', ['green', r'^\s\n\t$', 'and', 'ham'])
         assert isinstance(out, list)
-        assert np.array_equal(out, ['^\s\n\t$'])
+        assert np.array_equal(out, [r'^\s\n\t$'])
 
 
     @pytest.mark.parametrize('case_sensitive', (True, False))

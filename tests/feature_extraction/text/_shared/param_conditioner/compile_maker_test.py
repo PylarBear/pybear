@@ -66,9 +66,9 @@ class TestCompileMaker:
             assert all(x.pattern == 'abc' for x in row)
 
         # str is escaped -- 'order_matters' still wont matter!
-        out = _compile_maker('^\n\s\t$', order_matters, n_rows)
+        out = _compile_maker(r'^\n\s\t$', order_matters, n_rows)
         for row in out:
-            assert row[0].pattern == re.escape('^\n\s\t$')
+            assert row[0].pattern == re.escape(r'^\n\s\t$')
 
         ##################################################################
 
@@ -102,7 +102,7 @@ class TestCompileMaker:
         # if 'order_matters', the order must be correct, otherwise doesnt matter
         _len = int(np.random.randint(2, 5))
         _pattern_holder = [
-            '^\n\s\t$', re.compile('def'), 'ghi', re.compile('jkl'), 'mno'
+            r'^\n\s\t$', re.compile('def'), 'ghi', re.compile('jkl'), 'mno'
         ][:_len]
         _pattern_holder = tuple(_pattern_holder)
         assert isinstance(_pattern_holder, tuple)
@@ -174,7 +174,7 @@ class TestCompileMaker:
         # 'list'
 
         _pattern_holder = [
-            '^\n\s\t$',
+            r'^\n\s\t$',
             re.compile('def'),
             ('ghi', re.compile('ghi')),
             None,
