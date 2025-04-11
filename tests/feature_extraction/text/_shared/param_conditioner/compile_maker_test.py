@@ -66,7 +66,7 @@ class TestCompileMaker:
             assert all(x.pattern == 'abc' for x in row)
 
         # str is escaped -- 'order_matters' still wont matter!
-        out = _compile_maker(r'^\n\s\t$', order_matters, n_rows)
+        out = _compile_maker('^\n\s\t$', order_matters, n_rows)
         for row in out:
             assert row[0].pattern == re.escape(r'^\n\s\t$')
 

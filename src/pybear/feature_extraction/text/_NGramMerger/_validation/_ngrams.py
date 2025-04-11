@@ -40,8 +40,9 @@ def _val_ngrams(
     """
 
 
-    err_msg = (f"'ngrams' must be None or a 1D sequence of sequences of "
-               f"string literals and/or re.compile objects. \ncannot be "
+    err_msg = (f"'ngrams' must be None or a sequence of sequences of "
+               f"string literals and/or re.compile objects. \nE.g. "
+               f"(('one', 'two'), ('three', 'four')). \ncannot be "
                f"empty, and cannot contain any n-gram sequences with "
                f"less than 2 entries.")
 

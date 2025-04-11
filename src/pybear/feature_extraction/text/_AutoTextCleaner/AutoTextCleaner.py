@@ -6,18 +6,26 @@
 
 
 
-from typing import Literal, Optional, Sequence
-from typing_extensions import Self, TypeAlias, Union
+from typing import Optional
+from typing_extensions import Self, Union
 from ._type_aliases import (
     XContainer,
     XWipContainer,
-    MatchType,
+    ReturnDimType,
     ReplaceType,
+    RemoveType,
+    LexiconLookupType,
+    NGramsType,
     GetStatisticsType
 )
 
 import numbers
 import re
+import warnings
+
+import numpy as np
+
+from ._validation._validation import _validation
 
 from .._NGramMerger.NGramMerger import NGramMerger
 from .._StopRemover.StopRemover import StopRemover
@@ -83,17 +91,18 @@ class AutoTextCleaner(
         *,
         universal_sep:Optional[str] = ' ',
         case_sensitive:Optional[bool] = True,
+        global_flags:Optional[Union[numbers.Integral, None]] = None,
         remove_empty_rows:Optional[bool] = False,
         join_2D:Optional[str] = ' ',
-        return_dim:Optional[Union[Literal['1D', '2D'], None]] = None,
+        return_dim:Optional[ReturnDimType] = None,
         ############
-        strip:Optional[bool] = True,
-        replace:Optional[Union[tuple[MatchType, ReplaceType], None]] = (re.compile('[^a-z0-9]', re.I), ''),
-        remove:Optional[Union[MatchType, list[MatchType], None]] = re.compile('^[^a-z0-9]+$', re.I),
-        normalize:Optional[Union[bool, None]] = True,
-        lexicon_lookup:Optional[Union[Literal['auto_add', 'auto_delete', 'manual'], None]] = 'auto_delete',
-        remove_stops:Optional[bool] = True,
-        ngram_merge:Optional[Union[Sequence[tuple[MatchType, ...]], None]] = None,
+        strip:Optional[bool] = False,
+        replace:Optional[ReplaceType] = None,
+        remove:Optional[RemoveType] = None,
+        normalize:Optional[Union[bool, None]] = False,
+        lexicon_lookup:Optional[LexiconLookupType] = None,
+        remove_stops:Optional[bool] = False,
+        ngram_merge:Optional[NGramsType] = None,
         justify:Optional[Union[numbers.Integral, None]] = None,
         get_statistics:Optional[Union[None, GetStatisticsType]] = None
     ):
@@ -102,6 +111,7 @@ class AutoTextCleaner(
 
         self.universal_sep = universal_sep
         self.case_sensitive = case_sensitive
+        self.global_flags = global_flags
         self.remove_empty_rows = remove_empty_rows
         self.join_2D = join_2D
         self.strip = strip
@@ -124,7 +134,7 @@ class AutoTextCleaner(
             sep=self.universal_sep,
             case_sensitive=self.case_sensitive,
             maxsplit=None,
-            flags=None
+            flags=self.global_flags
         )
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -144,7 +154,7 @@ class AutoTextCleaner(
             self._TREP = TextReplacer(
                 replace=self.replace,
                 case_sensitive=self.case_sensitive,
-                flags=None
+                flags=self.global_flags
             )
 
 
@@ -153,7 +163,7 @@ class AutoTextCleaner(
                 remove=self.remove,
                 case_sensitive=self.case_sensitive,
                 remove_empty_rows=self.remove_empty_rows,
-                flags=None
+                flags=self.global_flags
             )
 
 
@@ -195,18 +205,24 @@ class AutoTextCleaner(
                 ngrams=self.ngram_merge,
                 ngcallable=None,
                 sep='_',   # do not use universal_sep here!
-                wrap=False,
+                wrap=True,
                 case_sensitive=self.case_sensitive,
                 remove_empty_rows=self.remove_empty_rows,
-                flags=None
+                flags=self.global_flags
             )
 
 
         if self.justify:
+
+            warnings.warn(
+                f"You have selected to justify your data. \nAutoTextCleaner "
+                f"will not expose the :attr: `row_support_` attribute."
+            )
+
             self._TJU = TextJustifier(
                 n_chars=self.justify,
                 sep=self.universal_sep,
-                sep_flags=None,
+                sep_flags=self.global_flags,
                 line_break=None,
                 line_break_flags=None,
                 case_sensitive=self.case_sensitive,
@@ -236,7 +252,7 @@ class AutoTextCleaner(
         last batch of data passed to :meth: `transform`.
 
         """
-        return
+        return getattr(self, '_n_rows')
 
 
     @property
@@ -251,9 +267,25 @@ class AutoTextCleaner(
         row that remains is indicated by True.
 
         """
-        # pizza
-        # return self._row_support
+        return getattr(self, '_row_support')
 
+
+    def get_metadata_routing(self):
+        raise NotImplementedError(
+            f"metadata routing is not implemented in TextRemover"
+        )
+
+
+    # def get_params
+    # from GetParamsMixin
+
+
+    # def set_params
+    # from SetParamsMixin
+
+
+    # def fit_transform
+    # from FitTransformMixin
 
 
     def partial_fit(
@@ -383,7 +415,24 @@ class AutoTextCleaner(
 
         """
 
-        # pizza _validation
+        _validation(
+            X,
+            self.universal_sep,
+            self.case_sensitive,
+            self.global_flags,
+            self.remove_empty_rows,
+            self.join_2D,
+            self.return_dim,
+            self.strip,
+            self.replace,
+            self.remove,
+            self.normalize,
+            self.lexicon_lookup,
+            self.remove_stops,
+            self.ngram_merge,
+            self.justify,
+            self.get_statistics
+        )
 
         if copy:
             _X = _copy_X(X)
@@ -393,30 +442,40 @@ class AutoTextCleaner(
 
         _X = _map_X_to_list(_X)
 
+        self._n_rows = len(_X)
+
+
+        # do this before shape-shift
+        if self.strip:
+            # example axis cannot change
+            _X = self._TSTR.transform(_X, copy=False)
+
+
         # pre-processing shaping -- -- -- -- -- -- -- -- -- -- -- -- --
         # if there are inputs for lexicon_lookup, remove_stops, or ngram_merge,
         # those MUST have 2D inputs (and outputs) so if _X is passed as 1D,
         # must convert to 2D. (Then later deal with whatever return_dim is.)
-        _is_1D = False
+        _was_1D, _is_1D = False, False
         if all(map(isinstance, _X, (str for _ in _X))):
-            _is_1D = True
+            _was_1D, _is_1D = True, True
 
         if any((self.lexicon_lookup, self.remove_stops, self.ngram_merge)) \
                 and _is_1D:
 
-            _X = self._TJO.transform(_X)
+            _X = self._TSPL.transform(_X)
+            # do not change _was_1D
             _is_1D = False
         # END pre-processing shaping -- -- -- -- -- -- -- -- -- -- -- --
 
+
+        self._row_support = np.ones(self._n_rows, dtype=bool)
 
 
         if (self.get_statistics or {}).get('before', None) is not None:
             self._TStatStart.partial_fit(_X)
 
 
-        if self.strip:
-            # example axis cannot change
-            _X = self._TSTR.transform(_X, copy=False)
+        # this is where strip was before moving it to the top
 
 
         if self.replace:
@@ -427,7 +486,11 @@ class AutoTextCleaner(
         if self.remove:
             # has remove_empty_rows, example axis can change
             _X = self._TREM.transform(_X)
-            self._row_support = self._TREM.row_support_
+            # the length of TL.row_support must == number of Trues in self._row_support
+            assert len(self._TREM.row_support_) == sum(self._row_support)
+            # whatever changed in the currently outputted row_support_ only
+            # impacts the entries in self._row_support that are True
+            self._row_support[self._row_support] = self._TREM.row_support_
 
 
         if self.normalize is not None:
@@ -465,9 +528,13 @@ class AutoTextCleaner(
             self._row_support[self._row_support] = self._NGM.row_support_
 
 
-        # pizza, if this is true it blows away the meaning of row_support_
         if self.justify:
             _X = self._TJU.transform(_X)
+            warnings.warn(
+                f"AutoTextCleaner will not expose the :attr: `row_support_` "
+                f"attribute because 'justify' is active."
+            )
+            self._row_support = None
 
 
         if (self.get_statistics or {}).get('after', None) is not None:
@@ -476,16 +543,26 @@ class AutoTextCleaner(
             )
 
         # final shaping -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        _need_1D, _need_2D = False, False
         if self.return_dim is None:
-            pass
-        elif _is_1D and self.return_dim == '1D':
-            pass
-        elif not _is_1D and self.return_dim == '2D':
-            pass
-        elif _is_1D and self.return_dim == '2D':
-            _X = self._TSPL.transform(_X)
-        elif not _is_1D and self.return_dim == '1D':
+            # need to return in same dim as given
+            if _was_1D and not _is_1D:
+                _need_1D = True
+            elif not _was_1D and _is_1D:
+                _need_2D = True
+        elif self.return_dim == '1D' and not _is_1D:
+            _need_1D = True
+        elif self.return_dim == '2D' and _is_1D:
+            _need_2D = True
+
+        assert not (_need_1D and _need_2D)
+
+        if _need_1D:
             _X = self._TJO.transform(_X)
+        elif _need_2D:
+            _X = self._TSPL.transform(_X)
+
         # END final shaping -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 

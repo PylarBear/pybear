@@ -13,8 +13,10 @@ import re
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextRemover.TextRemover import TextRemover
+from pybear.feature_extraction.text._AutoTextCleaner.AutoTextCleaner import \
+    AutoTextCleaner as ATC
 from pybear.base import is_fitted
+
 
 
 
@@ -28,7 +30,7 @@ def _X_list():
 
 
 
-# TextRemover is always "fit"
+# AutoTextCleaner is always "fit"
 class TestAttrAccess:
 
 
@@ -36,9 +38,7 @@ class TestAttrAccess:
     # @pytest.fixture
     # def _attrs():
     #     return [
-    #         'str_remove',
-    #         'regexp_remove',
-    #         'regexp_flags',
+    #         'n_rows_'
     #         'row_support_'
     #     ]
 
@@ -46,7 +46,7 @@ class TestAttrAccess:
     @pytest.mark.parametrize('has_seen_data', (True, False))
     def test_attr_access(self, has_seen_data, _X_list):
 
-        TestCls = TextRemover(remove=(' ', ',', '.', ';'))
+        TestCls = ATC(remove=(' ', ',', '.', ';'))
 
         assert is_fitted(TestCls) is True
 
@@ -59,7 +59,6 @@ class TestAttrAccess:
         # all params should be accessible always
         assert getattr(TestCls, 'remove') == (' ', ',', '.', ';')
         assert getattr(TestCls, 'case_sensitive') is True
-        assert getattr(TestCls, 'flags') is None
 
         # 'row_support_' needs a transform to have been done
         with pytest.raises(AttributeError):
@@ -87,7 +86,7 @@ class TestAttrAccess:
         # all params should be accessible always
         assert getattr(TestCls, 'remove') == (' ', ',', '.', ';')
         assert getattr(TestCls, 'case_sensitive') is True
-        assert getattr(TestCls, 'flags') is None
+        assert getattr(TestCls, 'global_flags') is None
 
         # 'row_support_' needs a transform to have been done
         out = getattr(TestCls, 'row_support_')
@@ -111,7 +110,7 @@ class TestAttrAccess:
 
 
 
-# TextRemover is always "fit"
+# AutoTextCleaner is always "fit"
 class TestMethodAccess:
 
 
@@ -133,7 +132,7 @@ class TestMethodAccess:
     def test_access_methods(self, _X_list, has_seen_data):
 
 
-        TestCls = TextRemover(remove=re.compile('[a-m]'))
+        TestCls = ATC(replace=(re.compile('[a-m]'), ''))
 
         assert is_fitted(TestCls) is True
 
@@ -148,13 +147,13 @@ class TestMethodAccess:
         out = getattr(TestCls, 'get_params')()
         assert isinstance(out, dict)
         assert all(map(isinstance, out.keys(), (str for _ in out.keys())))
-        for param in ['remove', 'case_sensitive', 'flags']:
+        for param in ['replace', 'case_sensitive', 'global_flags']:
             assert param in out
 
 
-        out = getattr(TestCls, 'set_params')(**{'flags': re.I | re.X})
-        assert isinstance(out, TextRemover)
-        assert TestCls.flags == re.IGNORECASE|re.VERBOSE
+        out = getattr(TestCls, 'set_params')(**{'global_flags': re.I | re.X})
+        assert isinstance(out, ATC)
+        assert TestCls.global_flags == re.IGNORECASE|re.VERBOSE
 
          # v v v v v must see X every time, put these last v v v v v v v
 
@@ -166,10 +165,10 @@ class TestMethodAccess:
         assert out is None
 
         out = getattr(TestCls, 'fit')(_X_list)
-        assert isinstance(out, TextRemover)
+        assert isinstance(out, ATC)
 
         out = getattr(TestCls, 'partial_fit')(_X_list)
-        assert isinstance(out, TextRemover)
+        assert isinstance(out, ATC)
 
         out = getattr(TestCls, 'fit_transform')(_X_list)
         assert isinstance(out, list)

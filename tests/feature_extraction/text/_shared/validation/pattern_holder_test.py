@@ -29,7 +29,7 @@ class TestValPatternHolder:
 
 
     @pytest.mark.parametrize('good_single_remove',
-        (None, 'something', '[a-m]*', re.compile('[a-m]+'))
+        (None, 'something', re.compile('[a-m]*'), re.compile('[a-m]+'))
     )
     def test_accepts_good_single_remove(self, good_single_remove):
         # could be None, str, re.Pattern
@@ -49,8 +49,8 @@ class TestValPatternHolder:
 
 
     @pytest.mark.parametrize('good_tuple_remove',
-        (('something', '[a-m]*'), (re.compile('[a-m]+'), 'one', 'two'),
-         ('abc', '^[0-9]+$', re.compile('xyz')))
+        (('something', re.compile('[a-m]*')), (re.compile('[a-m]+'), 'one', 'two'),
+         ('abc', re.compile('^[0-9]+$'), re.compile('xyz')))
     )
     def test_accepts_good_tuple_remove(self, good_tuple_remove):
         # could be tuple[Union[str, re.Pattern]]
@@ -60,7 +60,8 @@ class TestValPatternHolder:
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     @pytest.mark.parametrize('junk_list_remove',
-        ([True, '[a-q]'], ['[1-3]', 0], [0,1], [re.compile('a'), False])
+        ([True, re.compile('[a-q]')], [re.compile('[1-3]'), 0], [0,1],
+         [re.compile('a'), False])
     )
     def test_rejects_junk_regexp_as_list(self, junk_list_remove):
         # could be str, re.Pattern, or list[of the 2]
@@ -82,8 +83,8 @@ class TestValPatternHolder:
 
     def test_accepts_good_list(self):
 
-        _pool = [None, 'some string', '^[a-zA-Z0-9]+$', re.compile('a{0, 2}'),
-                 (re.compile('[a-d]*'), r'\W', r'\d')]
+        _pool = [None, 'some string', re.compile('^[a-zA-Z0-9]+$'),
+                 re.compile('a{0, 2}'), (re.compile('[a-d]*'), r'\W', r'\d')]
 
         for trial in range(20):
 

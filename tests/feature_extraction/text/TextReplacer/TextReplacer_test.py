@@ -54,7 +54,7 @@ class TestTextReplacer:
         assert len(out) == 0
 
         # 2D -- returns empty 1D
-        TestCls = TextReplacer(replace=('[n-z]', ''))
+        TestCls = TextReplacer(replace=(re.compile('[n-z]'), ''))
 
         out = TestCls.transform([[]])
 
