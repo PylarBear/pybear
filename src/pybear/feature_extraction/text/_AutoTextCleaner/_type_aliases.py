@@ -9,7 +9,6 @@
 from typing import (
     Callable,
     Literal,
-    Optional,
     Sequence,
     TypedDict
 )
@@ -38,14 +37,19 @@ XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-MatchType: TypeAlias = Union[str, re.Pattern]
+ReturnDimType: TypeAlias = Union[None, Literal['1D', '2D']]
 
-ReplaceType: TypeAlias = Union[str, Callable[[str], str]]
+FindType: TypeAlias = Union[str, re.Pattern[str]]
+SubstituteType: TypeAlias = Union[str, Callable[[str], str]]
+PairType: TypeAlias = tuple[FindType, SubstituteType]
+ReplaceType: TypeAlias = Union[None, PairType, tuple[PairType, ...]]
+
+RemoveType: TypeAlias = Union[None, FindType, tuple[FindType, ...]]
 
 LexiconLookupType: TypeAlias = \
     Union[None, Literal['auto_add', 'auto_delete', 'manual']]
 
-ReturnDimType: TypeAlias = Union[None, Literal['1D', '2D']]
+NGramsType: TypeAlias = Union[Sequence[Sequence[FindType]], None]
 
 
 class GetStatisticsType(TypedDict):
