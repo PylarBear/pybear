@@ -445,6 +445,11 @@ class AutoTextCleaner(
         self._n_rows = len(_X)
 
 
+
+        if (self.get_statistics or {}).get('before', None) is not None:
+            self._TStatStart.partial_fit(_X)
+
+
         # do this before shape-shift
         if self.strip:
             # example axis cannot change
@@ -469,10 +474,6 @@ class AutoTextCleaner(
 
 
         self._row_support = np.ones(self._n_rows, dtype=bool)
-
-
-        if (self.get_statistics or {}).get('before', None) is not None:
-            self._TStatStart.partial_fit(_X)
 
 
         # this is where strip was before moving it to the top
@@ -538,9 +539,7 @@ class AutoTextCleaner(
 
 
         if (self.get_statistics or {}).get('after', None) is not None:
-            self._TStatEnd = TextStatistics(
-                store_uniques=self.get_statistics['after']
-            )
+            self._TStatEnd.partial_fit(_X)
 
         # final shaping -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

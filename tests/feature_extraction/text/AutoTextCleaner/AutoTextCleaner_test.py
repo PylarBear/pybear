@@ -105,7 +105,7 @@ class TestAutoTextCleaner:
     def test_re_remove_2(self, _words):
 
         TestCls = ATC(
-            remove=("D", "B"),
+            remove=(re.compile("D"), re.compile("B")),
             global_flags=re.I
         )
 
