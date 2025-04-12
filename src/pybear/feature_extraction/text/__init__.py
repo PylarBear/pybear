@@ -6,6 +6,7 @@
 
 
 
+from ._AutoTextCleaner.AutoTextCleaner import AutoTextCleaner
 from ._Lexicon.Lexicon import Lexicon
 from ._NGramMerger.NGramMerger import NGramMerger
 from ._StopRemover.StopRemover import StopRemover
@@ -23,6 +24,7 @@ from ._TextStripper.TextStripper import TextStripper
 
 
 __all__ = [
+    'AutoTextCleaner',
     'Lexicon',
     'NGramMerger',
     'StopRemover',

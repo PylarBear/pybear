@@ -340,12 +340,12 @@ class TextStatistics(
         return hasattr(self, '_string_frequency')
 
 
-    def _reset(self):
+    def _reset(self) -> Self:
 
         """
-        Reset the TextStatistics instance to the not-fitted state,
-        i.e., remove all objects that hold information from any fits that
-        may have been performed on the instance.
+        Reset the TextStatistics instance to the not-fitted state, i.e.,
+        remove all objects that hold information from any fits that may
+        have been performed on the instance.
 
         """
 
@@ -357,6 +357,8 @@ class TextStatistics(
             delattr(self, '_startswith_frequency')
         if hasattr(self, '_character_frequency'):
             delattr(self, '_character_frequency')
+
+        return self
 
 
     # def get_params() - inherited from GetParamsMixin

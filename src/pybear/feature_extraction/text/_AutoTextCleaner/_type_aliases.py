@@ -22,7 +22,6 @@ import polars as pl
 
 
 
-
 PythonTypes: TypeAlias = Union[Sequence[str], set[str], Sequence[Sequence[str]]]
 
 NumpyTypes: TypeAlias = npt.NDArray[str]
@@ -51,9 +50,7 @@ LexiconLookupType: TypeAlias = \
 
 NGramsType: TypeAlias = Union[Sequence[Sequence[FindType]], None]
 
-
 class GetStatisticsType(TypedDict):
-
     before: Required[Union[None, bool]]
     after: Required[Union[None, bool]]
 
