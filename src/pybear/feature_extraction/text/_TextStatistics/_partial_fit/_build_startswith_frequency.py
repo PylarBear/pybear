@@ -48,6 +48,10 @@ def _build_startswith_frequency(
     _startswith_frequency: dict[str: numbers.Integral] = {}
 
     for _string, _ct in _string_frequency.items():
+
+        if len(_string) == 0:
+            continue
+
         _startswith_frequency[str(_string[0])] = \
             int(_startswith_frequency.get(str(_string[0]), 0) + _ct)
 
