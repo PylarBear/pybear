@@ -145,49 +145,37 @@ def nan_mask_numerical(
             f"nan_mask_numerical expected all number-like values. "
             f"\ngot at least one non-nan string."
         )
-        if any(map(isinstance, obj, (str for i in obj))):
-            # cant have strings except str(nan)
+
+        # cant have strings except str(nan)
+
+        # find out if it is 1D
+        _is_1D = False
+        try:
+            assert np.array(list(obj)).shape == np.array(list(obj)).ravel().shape
+            _is_1D = True
+        except:
+            pass
+
+        if _is_1D:
             try:
                 pd.Series(list(obj)).astype(np.float64)
+                # we have a 1D that has no strings, at least.
+                # could have junky nans or None, or whatever else
             except:
-                if any(
-                    map(lambda x: x.lower() != 'nan',
-                    [i for i in obj if isinstance(i, str)])
-                ):
-                    raise TypeError(_err_msg)
-
-        try:
-            if all(map(lambda x: str(x).lower() == 'nan', obj)):
-                raise Exception
-            # above we proved obj isnt a 1D of strings
-            # this will except if obj is not 2D
-            map(iter, obj)
+                raise TypeError(_err_msg)
+        elif not _is_1D:
             # prove not ragged
             if len(set(map(len, obj))) != 1:
-                raise UnicodeError
+                raise ValueError(
+                    f"nan_mask_numerical does not accept ragged arrays"
+                )
             # we have a non-ragged 2D of somethings
-            for row in obj:
-                if any(map(isinstance, row, (str for i in row))):
-                    try:
-                        pd.Series(list(row)).astype(np.float64)
-                    except:
-                        if any(
-                            map(lambda x: x.lower() != 'nan',
-                            [i for i in row if isinstance(i, str)])
-                        ):
-                            raise TimeoutError
-            # have a non-ragged 2D of non-strings
-        except UnicodeError:
-            raise ValueError(
-                f"nan_mask_numerical does not accept ragged arrays"
-            )
-        except TimeoutError:
-            raise TypeError(_err_msg)
-        except Exception as e:
-            # we have a 1D that has no strings, at least.
-            # could have junky nans or None, or whatever else
-            pass
-        del _err_msg
+            try:
+                pd.DataFrame(list(map(list, obj))).astype(np.float64)
+            except:
+                raise TypeError(_err_msg)
+            # we have a non-ragged 2D of things that can cast to float
+        del _err_msg, _is_1D
     # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
