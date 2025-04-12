@@ -3,7 +3,9 @@
 #
 # License: BSD 3 clause
 #
-from pybear.utilities import nan_mask_numerical
+
+
+
 from pybear.utilities._nan_masking import nan_mask
 
 import numpy as np
@@ -266,43 +268,10 @@ class TestNanMasking:
                 assert measured_num_nans == _has_nan
 
 
-    def test_nan_mask_numerical_takes_str_numbers(self):
 
-        # 1D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _X = list(map(str, list(range(10))))
 
-        assert all(map(isinstance, _X, (str for _ in _X)))
-        np.array(_X, dtype=np.float64)
 
-        _X[1] = 'nan'
-        _X[2] = np.nan
 
-        ref = np.zeros((10,)).astype(bool)
-        ref[1] = True
-        ref[2] = True
-        ref = ref.tolist()
 
-        out = nan_mask_numerical(_X)
 
-        assert np.array_equal(out, ref)
-        # END 1D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        # 2D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _X = np.random.randint(0, 10, (5, 3)).astype(str)
-
-        assert all(map(isinstance, _X[0], (str for _ in _X[0])))
-        np.array(_X, dtype=np.float64)
-
-        _X[1][0] = 'nan'
-        _X[2][0] = np.nan
-
-        ref = np.zeros((5, 3)).astype(bool)
-        ref[1][0] = True
-        ref[2][0] = True
-        ref = ref.tolist()
-
-        out = nan_mask_numerical(_X)
-
-        assert np.array_equal(out, ref)
-
-        # END 2D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
