@@ -40,34 +40,34 @@ class TestValidation:
 
 
     @pytest.mark.parametrize('_X_dim', (1, 2))
-    @pytest.mark.parametrize('universal_sep', (' ', ','))
+    @pytest.mark.parametrize('global_sep', (' ', ','))
     @pytest.mark.parametrize('case_sensitive', (True, )) # False))
     @pytest.mark.parametrize('global_flags', (None, re.I))
     @pytest.mark.parametrize('remove_empty_rows', (True, )) #False))
-    @pytest.mark.parametrize('join_2D', (' ',))
-    @pytest.mark.parametrize('return_dim', ('1D', '2D', None))
+    @pytest.mark.parametrize('return_dim', (1, 2, None))
     @pytest.mark.parametrize('strip', (True, )) # False))
     @pytest.mark.parametrize('replace', (None, ((re.compile(r'\d'), ''),)))
     @pytest.mark.parametrize('remove', (None, ('\n', '\r', '\t')))
-    @pytest.mark.parametrize('normalize', (True, None))  # , False
+    @pytest.mark.parametrize('normalize', (True, False, None))
     @pytest.mark.parametrize('lexicon_lookup', (None, 'auto_delete'))  # partial
     @pytest.mark.parametrize('remove_stops', (True, )) # False))
-    @pytest.mark.parametrize('ngram_merge', (None, [['buffalo', 'chicken']]))
+    @pytest.mark.parametrize('ngram_merge',
+        (None, {'ngrams': [['buffalo', 'chicken']], 'wrap':False})
+    )
     @pytest.mark.parametrize('justify', (None, 79))
     @pytest.mark.parametrize('get_statistics', (None, {'before':None, 'after':True}))
     def test_passes_all_good(
-        self, _X1, _X2, _X_dim, universal_sep, case_sensitive, global_flags,
-        remove_empty_rows, join_2D, return_dim, strip, replace, remove, normalize,
+        self, _X1, _X2, _X_dim, global_sep, case_sensitive, global_flags,
+        remove_empty_rows, return_dim, strip, replace, remove, normalize,
         lexicon_lookup, remove_stops, ngram_merge, justify, get_statistics
     ):
 
         assert _validation(
             _X1 if _X_dim == 1 else _X2,
-            universal_sep,
+            global_sep,
             case_sensitive,
             global_flags,
             remove_empty_rows,
-            join_2D,
             return_dim,
             strip,
             replace,

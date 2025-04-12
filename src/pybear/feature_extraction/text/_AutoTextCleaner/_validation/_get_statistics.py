@@ -6,12 +6,13 @@
 
 
 
+from typing_extensions import Union
 from .._type_aliases import GetStatisticsType
 
 
 
 def _val_get_statistics(
-    _get_statistics: GetStatisticsType
+    _get_statistics: Union[None, GetStatisticsType]
 ) -> None:
 
     """
@@ -22,11 +23,11 @@ def _val_get_statistics(
     Parameters
     ----------
     _get_statistics:
-        GetStatisticsType - a dictionary indicating if TextStatistics is
-        to accumulate statistics on the incoming and/or outgoing data,
-        and if so, whether to store uniques. When 'store_uniques' is
-        True there is risk of memory explosion, especially for the
-        incoming TextStatistics.
+        Union[None, GetStatisticsType] - a dictionary indicating if
+        TextStatistics is to accumulate statistics on the incoming
+        and/or outgoing data, and if so, whether to store uniques. When
+        'store_uniques' is True there is risk of memory explosion,
+        especially for the incoming TextStatistics.
 
 
     Returns

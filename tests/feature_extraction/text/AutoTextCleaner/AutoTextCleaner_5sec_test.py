@@ -163,14 +163,48 @@ class TestAutoTextCleaner:
         assert np.array_equal(out, ['a', 'c', 'd'])
 
 
+    @pytest.mark.parametrize('justify', (None, 99))
+    def test_justify_removes_row_support(self, justify):
+
+        if justify is None:
+            TestCls = ATC(normalize=True, justify=justify)
+        elif justify is not None:
+            with pytest.warns():
+                TestCls = ATC(normalize=True, justify=justify)
+
+        _text = [
+            "We're off to see the Wizard",
+            "The Wonderful Wizard of Oz",
+            "We hear he is a Whiz of a Wiz",
+            "If ever a Wiz there was",
+            "If ever oh ever a Wiz there was",
+            "The Wizard of Oz is one because",
+            "Because because because because because",
+            "Because of the wonderful things he does",
+            "We're off to see the wizard",
+            "The Wonderful Wizard of Oz"
+        ]
+
+        if justify is None:
+            out = TestCls.fit_transform(_text)
+            assert isinstance(out, list)
+            assert isinstance(TestCls.row_support_, np.ndarray)
+        elif justify is not None:
+            with pytest.warns():
+                out = TestCls.fit_transform(_text)
+            assert isinstance(out, list)
+            with pytest.raises(AttributeError):
+                getattr(TestCls, 'row_support_')
+
+
     @pytest.mark.parametrize('in_dim', (1, 2))
-    @pytest.mark.parametrize('out_dim', (None, '1D', '2D'))
+    @pytest.mark.parametrize('out_dim', (None, 1, 2))
     def test_input_output_dim(self, _words, in_dim, out_dim):
 
         TestCls = ATC(
             global_flags=re.I, strip=True, normalize=True,
-            ngram_merge=(('B', 'A'),), remove_empty_rows=True,
-            return_dim=out_dim
+            ngram_merge={'ngrams':(('B', 'A'),), 'wrap':True},
+            remove_empty_rows=True, return_dim=out_dim
         )
 
         if in_dim == 1:
@@ -196,18 +230,18 @@ class TestAutoTextCleaner:
         if in_dim == 1:
             if out_dim is None:
                 assert np.array_equal(out, _exp_1D_X)
-            elif out_dim == '1D':
+            elif out_dim == 1:
                 assert np.array_equal(out, _exp_1D_X)
-            elif out_dim == '2D':
+            elif out_dim == 2:
                 assert np.array_equal(out, _exp_2D_X)
             else:
                 raise Exception
         elif in_dim == 2:
             if out_dim is None:
                 assert np.array_equal(out, _exp_2D_X)
-            elif out_dim == '1D':
+            elif out_dim == 1:
                 assert np.array_equal(out, _exp_1D_X)
-            elif out_dim == '2D':
+            elif out_dim == 2:
                 assert np.array_equal(out, _exp_2D_X)
             else:
                 raise Exception

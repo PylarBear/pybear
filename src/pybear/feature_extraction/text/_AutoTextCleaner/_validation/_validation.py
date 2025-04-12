@@ -36,11 +36,10 @@ from ._ngram_merge import _val_ngram_merge
 
 def _validation(
     _X: XContainer,
-    _universal_sep: str,
+    _global_sep: str,
     _case_sensitive: bool,
     _global_flags: Union[numbers.Integral, None],
     _remove_empty_rows: bool,
-    _join_2D: str,
     _return_dim: ReturnDimType,
     _strip: bool,
     _replace: ReplaceType,
@@ -48,9 +47,9 @@ def _validation(
     _normalize: Union[bool, None],
     _lexicon_lookup: LexiconLookupType,
     _remove_stops: bool,
-    _ngram_merge: NGramsType,
-    _justify: Union[numbers.Integral, None],
-    _get_statistics: GetStatisticsType
+    _ngram_merge: Union[None, NGramsType],
+    _justify: Union[None, numbers.Integral],
+    _get_statistics: Union[None, GetStatisticsType]
 ) -> None:
 
 
@@ -64,7 +63,7 @@ def _validation(
     ----------
     _X:
         XContainer
-    _universal_sep:
+    _global_sep:
         str
     _case_sensitive:
         bool
@@ -72,8 +71,6 @@ def _validation(
         Union[numbers.Integral, None]
     _remove_empty_rows:
         bool
-    _join_2D:
-        str
     _return_dim:
         ReturnDimType
     _strip:
@@ -89,11 +86,11 @@ def _validation(
     _remove_stops:
         bool
     _ngram_merge:
-        NGramsType
+        Union[None, NGramsType]
     _justify:
-        Union[numbers.Integral, None]
+        Union[None, numbers.Integral]
     _get_statistics:
-        GetStatisticsType
+        Union[None, GetStatisticsType]
 
 
     Returns
@@ -107,15 +104,13 @@ def _validation(
 
     _val_1D_2D_X(_X)
 
-    _val_any_string(_universal_sep, 'universal_sep', _can_be_None=False)
+    _val_any_string(_global_sep, 'global_sep', _can_be_None=False)
 
     _val_any_bool(_case_sensitive, 'case_sensitive', _can_be_None=False)
 
     _val_any_integer(_global_flags, 'global_flags', _can_be_None=True)
 
     _val_any_bool(_remove_empty_rows, 'remove_empty_rows', _can_be_None=False)
-
-    _val_any_string(_join_2D, 'join_2D', _can_be_None=False)
 
     _val_return_dim(_return_dim)
 

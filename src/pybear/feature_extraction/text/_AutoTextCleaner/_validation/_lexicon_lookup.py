@@ -24,7 +24,7 @@ def _val_lexicon_lookup(
     ----------
     _lexicon_lookup:
         LexiconLookupType - If None, do not lookup the words in the text
-        against the lexicon. Otherwise, self-explanatory literals that
+        against the Lexicon. Otherwise, self-explanatory literals that
         indicate how TextLookupRealTime should handle the lookup. For
         a human-less lookup experience, use 'auto_add' or 'auto_delete'.
 
