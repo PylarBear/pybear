@@ -119,11 +119,10 @@ text = [
 
 
 Trfm = AutoTextCleaner(
-    universal_sep=' ',
+    global_sep=' ',
     case_sensitive=True,
     global_flags=None,
     remove_empty_rows=True,
-    join_2D=' ',
     return_dim=None,
     strip=True,
     replace=((re.compile('[^a-zA-Z0-9]'), ''), ),
@@ -132,12 +131,17 @@ Trfm = AutoTextCleaner(
     lexicon_lookup='auto_delete',
     remove_stops=False,
     ngram_merge=None,
-    justify=79,
+    justify=99,
     get_statistics={'before':True, 'after':True}
 )
 
 
 out = Trfm.transform(text)
+
+for line in Trfm.lexicon_lookup_.LEXICON_ADDENDUM_:
+    print(line)
+
+print()
 
 for line in out:
     print(line)

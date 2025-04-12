@@ -28,7 +28,7 @@ class TestValReturnDim:
             _val_return_dim(_junk_rd)
 
 
-    @pytest.mark.parametrize('_rd', (None, '1D', '2D'))
+    @pytest.mark.parametrize('_rd', (None, 1, 2))
     def test_rejects_junk(self, _rd):
 
         assert _val_return_dim(_rd) is None

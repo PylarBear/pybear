@@ -15,7 +15,7 @@ def _val_return_dim(
 ) -> None:
 
     """
-    Validate 'return_dim', must be None or literal '1D' or '2D'.
+    Validate 'return_dim', must be None, 1, or 2.
 
 
     Parameters
@@ -34,17 +34,17 @@ def _val_return_dim(
 
     """
 
-    # return_dim:Optional[Union[Literal['1D', '2D'], None]] = None,
+    # return_dim:Optional[Union[Literal[1, 2], None]] = None,
 
 
     if _return_dim is None:
         return
 
 
-    err_msg = "'return_dim' must be None or literal '1D' or '2D'."
+    err_msg = "'return_dim' must be None, 1, or 2."
 
 
-    if _return_dim not in ['1D', '2D']:
+    if _return_dim not in [1, 2]:
         raise ValueError(err_msg)
 
 

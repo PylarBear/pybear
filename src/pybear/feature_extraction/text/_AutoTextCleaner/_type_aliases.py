@@ -15,6 +15,7 @@ from typing import (
 from typing_extensions import Required, TypeAlias, Union
 import numpy.typing as npt
 
+import numbers
 import re
 
 import pandas as pd
@@ -36,7 +37,7 @@ XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-ReturnDimType: TypeAlias = Union[None, Literal['1D', '2D']]
+ReturnDimType: TypeAlias = Union[None, Literal[1, 2]]
 
 FindType: TypeAlias = Union[str, re.Pattern[str]]
 SubstituteType: TypeAlias = Union[str, Callable[[str], str]]
@@ -48,7 +49,9 @@ RemoveType: TypeAlias = Union[None, FindType, tuple[FindType, ...]]
 LexiconLookupType: TypeAlias = \
     Union[None, Literal['auto_add', 'auto_delete', 'manual']]
 
-NGramsType: TypeAlias = Union[Sequence[Sequence[FindType]], None]
+class NGramsType(TypedDict):
+    ngrams: Required[Sequence[Sequence[FindType]]]
+    wrap: Required[bool]
 
 class GetStatisticsType(TypedDict):
     before: Required[Union[None, bool]]

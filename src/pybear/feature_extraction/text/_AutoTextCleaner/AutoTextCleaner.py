@@ -60,24 +60,14 @@ class AutoTextCleaner(
 ):
 
     """
-    This class is a convenience for streamlining basic everyday data
-    cleaning needs. It is not meant to do highly specialized text
-    cleaning operations (A transformer designed to do that using the
-    same underling pybear sub-transformers might have 50 parameters; 15
-    is enough.) If you cannot accomplish what you are trying to do with
-    this module out of the box, then you will need to construct your own
-    workflow piece by piece with the individual pybear text modules.
-
-    AutoTextCleaner adds no new functionality beyond what is in the
-    other pybear text transformers; it simply lines them up and runs
-    them all at once with one call to :meth: `transform`. All the
-    information about the inner workings of this module is available in
-    the docs for the submodules.
-
-    This methods does have parameters and attributes that are unique
-    to it. The documentation here mostly highlights these unique
-    characteristics and points the reader to other documentation for
-    more information.
+    This module is intended to be a quick, convenient transformer for
+    streamlining basic everyday data cleaning needs. It is not meant
+    to do highly specialized text cleaning operations (A transformer
+    designed to do that using the same underling pybear sub-transformers
+    might have 50 parameters; 14 is enough.) If you cannot accomplish
+    what you are trying to do with this module out of the box, then you
+    will need to construct your own workflow piece by piece with the
+    individual pybear text modules.
 
     AutoTextCleaner (ATC) combines the functionality of the pybear
     text transformers into one module. In one shot you can strip,
@@ -86,6 +76,33 @@ class AutoTextCleaner(
     words, remove stops, and merge n-grams. All the while, ATC is
     capable of compiling statistics about the incoming and outgoing
     text.
+
+    AutoTextCleaner adds no new functionality beyond what is in the
+    other pybear text transformers; it simply lines them up and runs
+    them all at once with one call to :meth: `transform`. All the
+    information about the inner workings of this module is available in
+    the docs for the submodules.
+
+    This method does have parameters and attributes that are unique
+    to it. The documentation here mostly highlights these unique
+    characteristics and points the reader to other documentation for
+    more information.
+
+    Parameters that require information about text patterns to search,
+    such as `remove`, `replace`, and `ngram_merge`, can take literal
+    strings or regular expression patterns in re.compile objects. If
+    you don't know regex, don't worry about the references to it in
+    these docs, you can still use all the functionality of ATC. For
+    the super-users, you can get more control over ATC's operations
+    with regex patterns in re.compile objects and :param: `global_flags`.
+    All users should know that flags passed to `global_flags` will
+    also apply to any literal strings used as search criteria. When
+    using regex, ALWAYS pass your regex patterns in a re.compile object.
+    DO NOT PASS A REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET
+    THE CORRECT RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile
+    OBJECT. DO NOT ESCAPE LITERAL STRINGS, ATC WILL DO THAT FOR YOU.
+    If you don't know what any of that means, then you don't need to
+    worry about it.
 
     IMPORTANT: if you want to use the :param: `lexicon_lookup` parameter
     and check your text against the pybear Lexicon, remember that the
@@ -103,50 +120,134 @@ class AutoTextCleaner(
     data from the parameters. It also has a no-op :meth: `score` method
     to allow dask_ml wrappers.
 
+    When using :param: `set_params` to change the ATC instance's
+    parameters away from those passed at instantiation, always make a
+    call to no-op :meth: `fit` to reset the instance. The submodules are
+    instantiated when ATC is instantiated, so when the parameters that
+    impact the submodules change, the submodules need to be instantiated
+    again.
+
     ATC accepts 1D list-like and (possibly ragged) 2D array-likes of
     strings. Accepted 1D containers include python lists, tuples, and
     sets, numpy vectors, pandas series, and polars series. Accepted 2D
     containers include embedded python sequences, numpy arrays, pandas
-    dataframes, and polars dataframes. When passed a 1D list-like,
-    returns a python list of strings. When passed a 2D array-like,
-    returns a python list of python lists of strings. If you pass your
-    data as a dataframe with feature names, the feature names are not
-    preserved.
+    dataframes, and polars dataframes. The dimensionality of the output
+    can be controlled by the :param: `return_dim`. When data is returned
+    in 1D format, the output is a python list of strings. When the data
+    is returned in 2D format, the output is a python list of python lists
+    of strings. If you pass your data as a dataframe with feature names,
+    the feature names are not preserved.
 
 
     Parameters
     ----------
-    # pizza
-    universal_sep:
-        Optional[str] -
+    global_sep:
+        Optional[str], default=' ' - The single literal character
+        sequence that is used throughout the text cleaning process for
+        joining 1D data, splitting 2D data, and identifying wrap points
+        when justifying. A common separator (and the default) is ' '.
     case_sensitive:
-        Optional[bool] -
+        Optional[bool], default=True - Whether searches for the things
+        to replace, things to remove, etc., are case-sensitive. This
+        generally controls case-senstivity globally, but for those of
+        you that know regex, an IGNORECASE flag passed to `global_flags`
+        will always overrule this parameter.
     global_flags:
-        Optional[Union[numbers.Integral, None]] -
+        Optional[Union[numbers.Integral, None]], default=None - The
+        regex flags for operations that do searches within the text,
+        like replace and remove. If you do not know regex, then you
+        don't need to worry about this, just pass literal strings to
+        the other parameters. While :param: `case-sensitive` generally
+        controls case-sensitivity, an IGNORECASE flag passed here will
+        always overrule.
     remove_empty_rows:
-        Optional[bool] -
-    join_2D:
-        Optional[str] -
+        Optional[bool], default=False - Some operations during the
+        cleaning process, such as remove character patterns and/or stop
+        words, ngram merge, and Lexicon lookup may leave some rows with
+        no strings in them. If this happens and this parameter is True,
+        then that empty row is removed from the data.
     return_dim:
-        Optional[ReturnDimType] -
+        Optional[ReturnDimType], default=None - The desired dimension of
+        the outputted data. If None (the default), then the outputted
+        container has the same dimenstionality as the given container.
+        If 1 or 2, then that is the dimensionality of the outputted
+        container.
     strip:
-        Optional[bool] -
+        Optional[bool], default=False - Whether to remove leading and
+        trailing spaces from strings in the text.
     replace:
-        Optional[ReplaceType] -
+        Optional[ReplaceType], default=None - the search and replace
+        strategy. Pass search and replace pairs in tuples, with a literal
+        string or re.compile object as the search criteria, and a literal
+        string or callable as the replace criteria. Pass multiple search
+        and replace tuples in a single enveloping tuple. See the docs
+        for pybear TextReplacer for more information about this parameter.
     remove:
-        Optional[RemoveType] -
+        Optional[RemoveType], default=None - the literal strings or regex
+        patterns to remove from the data. When passed as a single literal
+        string or re.compile object, that is applied to every string in
+        the data, and every full string that matches exactly will be
+        removed. When passed as a python tuple of character strings
+        and/or re.compile objects, each pattern is searched against
+        all the strings in the data and any exact matches are removed.
+        See the docs for pybear TextRemover for more information.
     normalize:
-        Optional[Union[bool, None]] -
+        Optional[Union[bool, None]], default=None - If True, convert all
+        text in X to upper-case; if False, convert to lower-case; if None,
+        do a no-op.
     lexicon_lookup:
-        Optional[LexiconLookupType] -
+        Optional[LexiconLookupType], default=None - Remember that the
+        pybear Lexicon is majuscule, so your text should be also if
+        you choose to use this. When None, skip the Lexicon lookup
+        process. When literal 'auto_delete', scan the text against the
+        pybear Lexicon and silently remove any strings that are not
+        in the Lexicon. When literal 'auto_add', leave any words that
+        are not in the Lexicon in the text body, and queue the words
+        for addition to the pybear Lexicon. When literal 'manual', the
+        lookup session is interactive, and the user will be prompted
+        for an action for every string in the text that is not in the
+        Lexicon. See :attr: `lexicon_lookup_` for more information. Also
+        see the docs for pybear TextLookupRealTime for information about
+        the Lexicon lookup process.
     remove_stops:
-        Optional[bool] -
+        Optional[bool], default=False - whether to remove pybear-defined
+        stop words from the text.
     ngram_merge:
-        Optional[NGramsType] -
+        Optional[Union[None, NGramsType]], default=None - When None, do
+        not merge ngrams. To pass parameters to this, pass a dictionary
+        with the keys 'ngrams' and 'wrap'. Set the value of 'ngrams'
+        with a sequence of sequences, where each inner sequence holds a
+        series of string literals and/or re.compile objects that specify
+        an n-gram. Cannot be empty, and cannot have any n-gram patterns
+        with less than 2 entries. The 'wrap' key takes a boolean value.
+        True will look for ngram merges around the beginnings and ends
+        of adjacent lines, False will only look for ngrams within the
+        contiguous text of one line. See pybear NGramMerger for more
+        information.
     justify:
-        Optional[Union[numbers.Integral, None]] -
+        Optional[Union[numbers.Integral, None]], default=None - When None
+        do not justify the text. Otherwise, pass an integer to indicate
+        to ATC to justify the data to that character width. When this is
+        not None, i.e., the instruction to justify is given by passing
+        an integer value, ATC does not expose the :attr: `row_support_`
+        attribute.
     get_statistics:
-        Optional[Union[None, GetStatisticsType]] -
+        Optional[Union[None, GetStatisticsType]] - None or a dictionary
+        keyed with 'before' and 'after'. When None, do not accumulate
+        statistics about the incoming and outgoing text. When passed
+        as a dictionary, both keys must be present. With these keys, you
+        are able to enable or disable statistics logging for both
+        incoming and outgoing text. To disable either of the statistics,
+        pass None to that key. Otherwise, pass a boolean. False does not
+        disable the statistics! The boolean indicates to the respective
+        TextStatistics instance whether to retain unique strings seen
+        within itself to provide the full statistics it is capable of.
+        If True, retain uniques seen by that respective TextStatistics
+        instance. This may lead to a RAM limiting situation, especially
+        for dirty incoming text. To not retain the uniques seen within
+        the TextStatistics instance, set this to False, and some, but
+        not all, statistics will still be tracked.
+        See pybear TextStatistics for more information.
 
 
     Attributes
@@ -188,16 +289,16 @@ class AutoTextCleaner(
         by calls to :meth: `fit`.
     after_statistics_:
         instance TextStatistics - Get the `after_statistics_` attribute.
-        If the 'after' key of the :param: `get_statistics` parameter has
-        a value of True or False, then statistics about the transformed
-        data were compiled in a TextStatistics instance after the
-        transformation. This exposes that TextStatistics class (which
-        is different from the :attr: `before_statistics_` TextStatistics
-        class.) The exposed class has attributes that contain information
-        about the transformed data. See the documentation for
-        TextStatistics to learn about what attributes are exposed. The
-        statistics in this attribute are reset when the AutoTextCleaner
-        instance is reset by calls to :meth: `fit`.
+        If the 'after' key of the :param: `get_statistics` parameter
+        has a value of True or False, then statistics about the
+        transformed data were compiled in a TextStatistics instance
+        after the transformation. This exposes that TextStatistics
+        class (which is different from the :attr: `before_statistics_`
+        TextStatistics class.) The exposed class has attributes
+        that contain information about the transformed data. See the
+        documentation for TextStatistics to learn about what attributes
+        are exposed. The statistics in this attribute are reset when
+        the AutoTextCleaner instance is reset by calls to :meth: `fit`.
     lexicon_lookup_:
         instance TextLookupRealTime - Get the `lexicon_lookup_`
         attribute. If :param: `lexicon_lookup` has a non-None value,
@@ -238,7 +339,7 @@ class AutoTextCleaner(
         Union[list[str], list[list[str]]]
     
     ReturnDimType:
-        Union[None, Literal['1D', '2D']]
+        Union[None, Literal[1, 2]]
     
     FindType:
         Union[str, re.Pattern[str]]
@@ -258,8 +359,9 @@ class AutoTextCleaner(
     LexiconLookupType:
         Union[None, Literal['auto_add', 'auto_delete', 'manual']]
     
-    NGramsType:
-        Union[Sequence[Sequence[FindType]], None]
+    class NGramsType(TypedDict):
+        ngrams: Required[Sequence[Sequence[FindType]]]
+        wrap: Required[bool]
     
     class GetStatisticsType(TypedDict):
         before: Required[Union[None, bool]]
@@ -271,7 +373,7 @@ class AutoTextCleaner(
     >>> from pybear.feature_extraction.text import AutoTextCleaner as ATC
     >>> Trfm = ATC(case_sensitive=False, strip=True, remove_empty_rows=True,
     ...     replace=(re.compile('[^a-z]'), ''), remove='', normalize=True,
-    ...     universal_sep=' ', get_statistics={'before': None, 'after':False},
+    ...     global_sep=' ', get_statistics={'before': None, 'after':False},
     ...     lexicon_lookup='auto_delete', justify=30)
     >>> X = [
     ...       r' /033[91](tHis)i@s# S@o#/033[0m$e$tERR#I>B<Le te.X@t###dAtA. ',
@@ -293,31 +395,29 @@ class AutoTextCleaner(
     def __init__(
         self,
         *,
-        universal_sep:Optional[str] = ' ',
+        global_sep:Optional[str] = ' ',
         case_sensitive:Optional[bool] = True,
         global_flags:Optional[Union[numbers.Integral, None]] = None,
         remove_empty_rows:Optional[bool] = False,
-        join_2D:Optional[str] = ' ',
         return_dim:Optional[ReturnDimType] = None,
         ############
         strip:Optional[bool] = False,
         replace:Optional[ReplaceType] = None,
         remove:Optional[RemoveType] = None,
-        normalize:Optional[Union[bool, None]] = False,
+        normalize:Optional[Union[bool, None]] = None,
         lexicon_lookup:Optional[LexiconLookupType] = None,
         remove_stops:Optional[bool] = False,
-        ngram_merge:Optional[NGramsType] = None,
+        ngram_merge:Optional[Union[None, NGramsType]] = None,
         justify:Optional[Union[numbers.Integral, None]] = None,
         get_statistics:Optional[Union[None, GetStatisticsType]] = None
     ):
 
         """Initialize the AutoTextCleaner instance."""
 
-        self.universal_sep = universal_sep
+        self.global_sep = global_sep
         self.case_sensitive = case_sensitive
         self.global_flags = global_flags
         self.remove_empty_rows = remove_empty_rows
-        self.join_2D = join_2D
         self.strip = strip
         self.replace = replace
         self.remove = remove
@@ -333,10 +433,10 @@ class AutoTextCleaner(
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # always initialize these
 
-        self._TJO = TextJoiner(sep=self.join_2D)
+        self._TJO = TextJoiner(sep=self.global_sep)
 
         self._TSPL = TextSplitter(
-            sep=self.universal_sep,
+            sep=self.global_sep,
             case_sensitive=self.case_sensitive,
             maxsplit=None,
             flags=self.global_flags
@@ -407,15 +507,15 @@ class AutoTextCleaner(
                 remove_empty_rows=self.remove_empty_rows,
                 exempt=None,
                 supplemental=None,
-                n_jobs=-1    # pizza think on this
+                n_jobs=-1
             )
 
         if self.ngram_merge:
             self._NGM = NGramMerger(
-                ngrams=self.ngram_merge,
+                ngrams=self.ngram_merge['ngrams'],
                 ngcallable=None,
-                sep='_',   # do not use universal_sep here!
-                wrap=True,
+                sep='_',   # do not use global_sep here!
+                wrap=self.ngram_merge['wrap'],
                 case_sensitive=self.case_sensitive,
                 remove_empty_rows=self.remove_empty_rows,
                 flags=self.global_flags
@@ -428,13 +528,13 @@ class AutoTextCleaner(
             )
             self._TJU = TextJustifier(
                 n_chars=self.justify,
-                sep=self.universal_sep,
+                sep=self.global_sep,
                 sep_flags=self.global_flags,
                 line_break=None,
                 line_break_flags=None,
                 case_sensitive=self.case_sensitive,
-                backfill_sep=self.join_2D,
-                join_2D=self.join_2D
+                backfill_sep=self.global_sep,
+                join_2D=self.global_sep
             )
 
         # END conditionally initialize these -- -- -- -- -- -- -- -- --
@@ -473,7 +573,8 @@ class AutoTextCleaner(
         that was removed is indicated by a False in the corresponding
         position in the vector, and a row that remains is indicated by
         True. This attribute only reflects the last batch of data passed
-        to :meth: `transform`; it is not cumulative.
+        to :meth: `transform`; it is not cumulative. This attribute is
+        not available if :param: `justify` is enabled.
         """
         return getattr(self, '_row_support')
 
@@ -715,11 +816,10 @@ class AutoTextCleaner(
 
         _validation(
             X,
-            self.universal_sep,
+            self.global_sep,
             self.case_sensitive,
             self.global_flags,
             self.remove_empty_rows,
-            self.join_2D,
             self.return_dim,
             self.strip,
             self.replace,
@@ -848,7 +948,7 @@ class AutoTextCleaner(
                 f"\nAutoTextCleaner will not expose the :attr: `row_support_` "
                 f"attribute because 'justify' is enabled."
             )
-            self._row_support = None
+            delattr(self, '_row_support')
 
 
         if (self.get_statistics or {}).get('after', None) is not None:
@@ -872,9 +972,9 @@ class AutoTextCleaner(
                 _need_1D = True
             elif not _was_1D and _is_1D:
                 _need_2D = True
-        elif self.return_dim == '1D' and not _is_1D:
+        elif self.return_dim == 1 and not _is_1D:
             _need_1D = True
-        elif self.return_dim == '2D' and _is_1D:
+        elif self.return_dim == 2 and _is_1D:
             _need_2D = True
 
         assert not (_need_1D and _need_2D)
