@@ -178,8 +178,26 @@ class TestTextStatistics:
             assert scd_character_frequency[k] == 2 * fst_character_frequency[k]
 
 
+    def test_ignores_empty_strings(self):
 
-    # input tests have their own test module
+        TestCls = TS(store_uniques=True)
+
+        _text = ['a', '', 'be', 'see', '', 'dee']
+
+        TestCls.fit_transform(_text)
+
+        _freq = TestCls.character_frequency_
+
+        assert isinstance(_freq, dict)
+        assert _freq['a'] == 1
+        assert _freq['b'] == 1
+        assert _freq['d'] == 1
+        assert _freq['e'] == 5
+        assert _freq['s'] == 1
+
+
+
+    # container input tests have their own test module
 
 
 
