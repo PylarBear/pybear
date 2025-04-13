@@ -17,63 +17,71 @@ import scipy.sparse as ss
 
 from pybear.base import is_classifier
 
-from xgboost import XGBClassifier
-from xgboost import XGBRegressor
+# from xgboost import (
+#     XGBClassifier,
+#     XGBRegressor
+# )
 
-from sklearn.linear_model import LogisticRegression as sklearn_LogisticRegression
-from sklearn.linear_model import LinearRegression as sklearn_LinearRegression
-from sklearn.linear_model import PoissonRegressor as sklearn_PoissonRegressor
-from sklearn.linear_model import SGDClassifier as sklearn_SGDClassifier
-from sklearn.linear_model import SGDRegressor as sklearn_SGDRegressor
+from sklearn.linear_model import (
+    LogisticRegression as sklearn_LogisticRegression,
+    LinearRegression as sklearn_LinearRegression,
+    PoissonRegressor as sklearn_PoissonRegressor,
+    SGDClassifier as sklearn_SGDClassifier,
+    SGDRegressor as sklearn_SGDRegressor
+)
 from sklearn.svm import SVC as sklearn_SVC
-from sklearn.neural_network import MLPClassifier as sklearn_MLPClassifier
-from sklearn.neural_network import MLPRegressor as sklearn_MLPRegressor
+from sklearn.neural_network import (
+    MLPClassifier as sklearn_MLPClassifier,
+    MLPRegressor as sklearn_MLPRegressor
+)
 from sklearn.naive_bayes import GaussianNB as sklearn_GaussianNB
 from sklearn.calibration import (
     CalibratedClassifierCV as sklearn_CalibratedClassifierCV
 )
 
 
-from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
-from dask_ml.linear_model import LinearRegression as dask_LinearRegression
-from dask_ml.linear_model import PoissonRegression as dask_PoissonRegression
-from dask_ml.ensemble import BlockwiseVotingClassifier as BlockwiseVotingClassifier
-from dask_ml.ensemble import BlockwiseVotingRegressor as BlockwiseVotingRegressor
+from dask_ml.linear_model import (
+    LogisticRegression as dask_LogisticRegression,
+    LinearRegression as dask_LinearRegression,
+    PoissonRegression as dask_PoissonRegression
+)
+from dask_ml.ensemble import (
+    BlockwiseVotingClassifier as BlockwiseVotingClassifier,
+    BlockwiseVotingRegressor as BlockwiseVotingRegressor
+)
 from dask_ml.naive_bayes import GaussianNB as dask_GaussianNB
 
-from lightgbm import LGBMClassifier
-from lightgbm import LGBMRegressor
-from lightgbm import LGBMRanker
-from lightgbm import DaskLGBMClassifier
-from lightgbm import DaskLGBMRegressor
-from lightgbm import DaskLGBMRanker
+# from lightgbm import (
+#     LGBMClassifier,
+#     LGBMRegressor,
+#     LGBMRanker,
+#     DaskLGBMClassifier,
+#     DaskLGBMRegressor,
+#     DaskLGBMRanker
+# )
 
+from sklearn.feature_extraction.text import (
+    CountVectorizer as sklearn_CountVectorizer,
+    CountVectorizer as dask_CountVectorizer
+)
 
-from sklearn.feature_extraction.text import CountVectorizer as sklearn_CountVectorizer
-from dask_ml.feature_extraction.text import CountVectorizer as dask_CountVectorizer
-
-
-from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
 from sklearn.model_selection import (
+    GridSearchCV as sklearn_GridSearchCV,
     RandomizedSearchCV as sklearn_RandomizedSearchCV
 )
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import (
-    HalvingGridSearchCV as sklearn_HalvingGridSearchCV
-)
-from sklearn.model_selection import (
+    HalvingGridSearchCV as sklearn_HalvingGridSearchCV,
     HalvingRandomSearchCV as sklearn_HalvingRandomSearchCV
 )
 
 
-from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
-from dask_ml.model_selection import RandomizedSearchCV as dask_RandomizedSearchCV
-from dask_ml.model_selection import IncrementalSearchCV as dask_IncrementalSearchCV
-from dask_ml.model_selection import HyperbandSearchCV as dask_HyperbandSearchCV
 from dask_ml.model_selection import (
-    SuccessiveHalvingSearchCV as dask_SuccessiveHalvingSearchCV
-)
-from dask_ml.model_selection import (
+    GridSearchCV as dask_GridSearchCV,
+    RandomizedSearchCV as dask_RandomizedSearchCV,
+    IncrementalSearchCV as dask_IncrementalSearchCV,
+    HyperbandSearchCV as dask_HyperbandSearchCV,
+    SuccessiveHalvingSearchCV as dask_SuccessiveHalvingSearchCV,
     InverseDecaySearchCV as dask_InverseDecaySearchCV
 )
 
@@ -82,8 +90,8 @@ from dask_ml.wrappers import Incremental, ParallelPostFit
 
 
 
-a = XGBClassifier
-b = XGBRegressor
+# a = XGBClassifier
+# b = XGBRegressor
 c = sklearn_LinearRegression
 d = sklearn_LogisticRegression
 e = sklearn_PoissonRegressor
@@ -99,19 +107,19 @@ n = dask_PoissonRegression
 o = BlockwiseVotingClassifier
 p = BlockwiseVotingRegressor
 q = dask_GaussianNB
-r = LGBMClassifier
-s = LGBMRegressor
-t = LGBMRanker
-u = DaskLGBMClassifier
-v = DaskLGBMRegressor
-x = DaskLGBMRanker
+# r = LGBMClassifier
+# s = LGBMRegressor
+# t = LGBMRanker
+# u = DaskLGBMClassifier
+# v = DaskLGBMRegressor
+# x = DaskLGBMRanker
 y = sklearn_CalibratedClassifierCV
 
 
 # BUILD TRUTH TABLE FOR ALL ESTIMATORS IS/ISNT A CLASSIFIER ** ** ** ** ** ** **
 
 ALL_ESTIMATORS = \
-    [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, x, y]
+    [c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, y]
 
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -163,10 +171,10 @@ KEYS = np.empty(len(ESTIMATOR_NAMES))
 for idx, (str_estimator_path, estimator_name) in \
         enumerate(zip(STR_ESTIMATOR_PATHS, ESTIMATOR_NAMES)):
 
-    if 'lightgbm' in str_estimator_path or \
-        'xgb' in str_estimator_path or \
-        'blockwisevotingclassifier' in str_estimator_path or \
-        'blockwisevotingregressor' in str_estimator_path:
+    if any(
+        [x in str_estimator_path for x in \
+        ['lightgbm', 'xgb', 'blockwisevotingclassifier', 'blockwisevotingregressor']]
+    ):
         prefix = ''
     elif 'sklearn' in str_estimator_path:
         if f'dask_{estimator_name}' in NAMES:

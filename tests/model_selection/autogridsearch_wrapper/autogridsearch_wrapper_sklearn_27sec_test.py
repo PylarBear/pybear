@@ -5,7 +5,7 @@
 #
 
 # demo_test incidentally handles testing of all autogridsearch_wrapper
-# functionality except fit() (because demo bypasses fit().) This tests
+# functionality except fit() (because demo bypasses fit().) This test
 # module handles fit() for all sklearn gridsearch modules.
 
 
