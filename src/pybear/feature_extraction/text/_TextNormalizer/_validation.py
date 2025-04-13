@@ -45,7 +45,7 @@ def _validation(
     """
 
 
-    _val_1D_2D_X(_X, _require_all_finite=True)
+    _val_1D_2D_X(_X, _require_all_finite=False)
 
     _val_any_bool(_upper, _name='upper', _can_be_None=True)
 

@@ -157,7 +157,7 @@ def _validation(
         except:
             raise TypeError(
                 f"TextJustifier expected a 1D sequence of strings or a "
-                f"(possibly ragged) 2D array-like of strings. See the "
+                f"(possibly ragged) 2D array-like of strings. \nSee the "
                 f"docs for clarification of accepted containers."
             )
 

@@ -881,7 +881,9 @@ class AutoTextCleaner(
         # END pre-processing shaping -- -- -- -- -- -- -- -- -- -- -- --
 
 
-        # this is where strip was before moving it to the top
+        if self.strip:
+            # example axis cannot change
+            _X = self._TSTR.transform(_X, copy=False)
 
 
         if self.replace:
