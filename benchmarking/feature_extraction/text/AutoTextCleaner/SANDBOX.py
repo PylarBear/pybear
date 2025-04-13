@@ -5,92 +5,55 @@
 #
 
 
-from pybear.feature_extraction.text._Lexicon.Lexicon import Lexicon
+
+from pybear.feature_extraction.text import AutoTextCleaner as ATC
+
+import os
+import re
 
 
 
-_words = [
-    "ARMANI",
-    "ARMANIS",
-    "BENNY",
-    "BENNYS",
-    "BLANCO",
-    "BROCK",
-    "BROCKS",
-    "CASA",
-    "CASAS",
-    "DONALD",
-    "DONALDS",
-    "ERIKA",
-    "ERIKAS",
-    "FALLON",
-    "FALLONS",
-    "FRANKLIN",
-    "FRANKLINS",
-    "FRIGIDAIRE",
-    "FRIGIDAIRES",
-    "GETTY",
-    "GETTYS",
-    "GOMEZ",
-    "HELENE",
-    "HELENES",
-    "HIMALAYAS",
-    "JASON",
-    "JASONS",
-    "JENNY",
-    "JENNYS",
-    "JILLIAN",
-    "JILLIANS",
-    "JIM",
-    "JIMS",
-    "KELLY",
-    "KELLYS",
-    "KEVIN",
-    "KEVINS",
-    "KRISTI",
-    "KRISTIS",
-    "LAGUNA",
-    "LAUREN",
-    "LAURENS",
-    "MANOSPHERE",
-    "MEGYN",
-    "MEGYNS",
-    "MEYERS",
-    "MUSTAFA",
-    "OLEARY",
-    "PITUFFIK",
-    "PODIATRIST",
-    "PODIATRISTS",
-    "SCOTT",
-    "SCOTTS",
-    "SELENA",
-    "SELENAS",
-    "SHRINER",
-    "SHRINERS",
-    "STANTON",
-    "STUART",
-    "STUARTS",
-    "SULEYMAN",
-    "SUSANNAH",
-    "SUSANNAHS",
-    "TRADWIFE",
-    "TRADWIVES",
-    "VIRGIL",
-    "VIRGILS",
-    "WATSON",
-    "WATSONS",
-    "WEEZER",
-    "WILSHIRE",
-    "XI",
-    "XIS",
-    "YASMIN",
-    "YASMINS"
-]
+if __name__ == '__main__':
 
 
-LEX = Lexicon()
+    _files = ['notepad.txt']
 
-LEX.add_words(_words)
+    Trfm = ATC(
+        global_sep=' ',
+        case_sensitive=False,
+        global_flags=None,
+        remove_empty_rows=True,
+        return_dim=1,
+        strip=True,
+        replace=(re.compile('[^a-zA-Z]'), ''),
+        remove=(''),
+        normalize=True,
+        lexicon_lookup='auto_delete',
+        remove_stops=False,
+        ngram_merge=None,
+        justify=99,
+        get_statistics=None
+    )
+
+
+    for file in _files:
+
+        print(f'running {file}...')
+        print(f'    building _words...')
+        _words = []
+        with open(os.path.join(os.curdir, rf'{file}'), 'r') as f:
+            for line in f:
+                _words.append(line)
+
+        print(f'    running ATC...')
+        out = Trfm.transform(_words)
+
+
+    # print(Trfm.lexicon_lookup_.LEXICON_ADDENDUM_)
+    for line in out:
+        print(line)
+
+
 
 
 

@@ -102,7 +102,7 @@ def _validation(
     """
 
 
-    _val_1D_2D_X(_X)
+    _val_1D_2D_X(_X, _require_all_finite=False)
 
     _val_any_string(_global_sep, 'global_sep', _can_be_None=False)
 
