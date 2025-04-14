@@ -9,10 +9,8 @@ import pytest
 
 import numpy as np
 import pandas as pd
-
-from sklearn.pipeline import Pipeline
-from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
 from dask_ml.model_selection import GridSearchCV as dask_GSCV
+from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
 from sklearn.metrics import (
     make_scorer,
     precision_score,
@@ -21,19 +19,17 @@ from sklearn.metrics import (
     balanced_accuracy_score
 )
 
+from pybear.model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
 from pybear.model_selection.GSTCV._fit_shared._cv_results._cv_results_builder \
     import _cv_results_builder
 
-from pybear.model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
 
-pytest.skip(reason=f'pipes take too long', allow_module_level=True)
+class TestCoreFitAccuracy:
 
-class TestCoreFitPipelineAccuracy:
-
-    # 24_07_14 this module tests the equality of GSTCVDask's cv_results_ with
-    # 0.5 threshold against dask_ml GSCV cv_results_ when using sk Pipeline
-    # there is a benchmarking file that passes the dask tests in freeform
+    # 24_07_10 this module tests the equality of GSTCVDask's cv_results_
+    # with 0.5 threshold against dask GSCV cv_results_.
+    # there is a benchmarking file that passes the tests in freeform
 
     # def _core_fit(
     #     _X: XDaskWIPType,
@@ -52,17 +48,18 @@ class TestCoreFitPipelineAccuracy:
     #     **params
     #     ) -> CVResultsType
 
+
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     # create tight log init params to supersede session params for this test.
     # need tighter params on logistic to get _core_fit & sk_GSCV to agree.
     @staticmethod
-    @pytest.fixture
+    @pytest.fixture()
     def special_dask_log_init_params():
         return {
             'C': 1e-3,
-            'tol': 1e-6, # need 1e-6 here to pass est/pipe accuracy tests
-            'max_iter': 10000, # need 10000 here to pass est/pipe accuracy tests
+            'tol': 1e-6, # need 1e-6 here to pass est accuracy tests
+            'max_iter': 10000, # need 10000 here to pass est accuracy tests
             'fit_intercept': False,
             'solver': 'lbfgs'
         }
@@ -75,26 +72,15 @@ class TestCoreFitPipelineAccuracy:
 
 
     @staticmethod
-    @pytest.fixture
-    def special_dask_pipe_log(dask_standard_scaler, special_dask_est_log):
-        return Pipeline(
-            steps=[
-                ('dask_StandardScaler', dask_standard_scaler),
-                ('dask_logistic', special_dask_est_log)
-            ]
-        )
-
-
-    @staticmethod
     @pytest.fixture()
-    def special_dask_GSCV_pipe_log_one_scorer_prefit(dask_gscv_init_params,
-        special_dask_pipe_log, param_grid_pipe_dask_log
+    def special_dask_GSCV_est_log_one_scorer_prefit(
+        dask_gscv_init_params, special_dask_est_log, param_grid_dask_log
     ):
 
         __ = dask_GSCV(**dask_gscv_init_params)
         __.set_params(
-            estimator=special_dask_pipe_log,
-            param_grid=param_grid_pipe_dask_log,
+            estimator=special_dask_est_log,
+            param_grid=param_grid_dask_log,
             refit=False
         )
         return __
@@ -115,36 +101,29 @@ class TestCoreFitPipelineAccuracy:
 
     # dont use _client, too slow 24_08_26
 
-    # as of 24_08_26, the only way to get repeatable results with dask
-    # StandardScaler is with_mean & with_std both False. under circum-
-    # stances when not both False, not getting the exact same output
-    # given the same data. this compromises _core_fit accuracy tests.
     @pytest.mark.parametrize('_param_grid',
         (
             [
-                {'dask_StandardScaler__with_mean': [False],
-                 'dask_StandardScaler__with_std': [False],
-                 'dask_logistic__C': [.001, .01]}
+                {'C': [1e-1, 1e0], 'fit_intercept': [True, False]}
             ],
             [
-                {'dask_logistic__C': [.0001, .001]},
-                {'dask_StandardScaler__with_mean': [False],
-                 'dask_StandardScaler__with_std': [False],
-                 'dask_logistic__C': [.01, .1]}
+                {'C': [1]},
+                {'C': [1], 'fit_intercept': [False], 'solver': ['lbfgs']}
             ],
         )
     )
     @pytest.mark.parametrize('_return_train_score', (True, False))
     def test_accuracy_vs_dask_gscv(self, _param_grid, standard_cv_int,
-        standard_error_score, standard_cache_cv, standard_iid, _scorer,
-        _return_train_score, X_da, y_da, special_dask_pipe_log,
-        special_dask_GSCV_pipe_log_one_scorer_prefit): #, _client):
+        standard_error_score, _scorer, standard_cache_cv, standard_iid,
+        _return_train_score, X_da, y_da, special_dask_est_log,
+        special_dask_GSCV_est_log_one_scorer_prefit,
+        # _client
+    ):
 
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         good_cv_results, PARAM_GRID_KEY = _cv_results_builder(
-            # DO NOT PUT 'thresholds' IN PARAM GRIDS!
             param_grid=_param_grid,
             cv=standard_cv_int,
             scorer=_scorer,
@@ -154,7 +133,7 @@ class TestCoreFitPipelineAccuracy:
         gstcv_cv_results = _core_fit(
             X_da,
             y_da,
-            special_dask_pipe_log,
+            special_dask_est_log,
             good_cv_results,
             standard_cv_int,
             standard_error_score,
@@ -172,10 +151,10 @@ class TestCoreFitPipelineAccuracy:
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        out_dask_gscv = special_dask_GSCV_pipe_log_one_scorer_prefit
+        out_dask_gscv = special_dask_GSCV_est_log_one_scorer_prefit
         out_dask_gscv.set_params(
             param_grid=_param_grid,
-            scoring={k: make_scorer(v) for k, v in _scorer.items()},
+            scoring={k: make_scorer(v) for k,v in _scorer.items()},
             return_train_score=_return_train_score
         )
 
@@ -204,7 +183,7 @@ class TestCoreFitPipelineAccuracy:
 
             if 'threshold' not in column and 'time' not in column:
                 assert column in pd_dask_cv_results, \
-                    print(f'\033[91mcolumn {column} not in!\033[0m')
+                    f'\033[91mcolumn {column} not in!\033[0m'
 
             if 'threshold' in column:
                 assert (pd_gstcv_cv_results[column] == 0.5).all()

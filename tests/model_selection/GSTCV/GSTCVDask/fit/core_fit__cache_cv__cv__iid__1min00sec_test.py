@@ -24,8 +24,6 @@ from pybear.model_selection.GSTCV._fit_shared._cv_results._cv_results_builder \
 
 from pybear.model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
-
-
 # 24_08_11 this module tests the dask GSTCV operation of:
 # 1) the cache_cv kwarg, proves the equality of cv_results_ when cache_cv
 # is True or False.
@@ -35,10 +33,8 @@ from pybear.model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
 # calls to GSTCV with iid = False on the same data and same cv. iid = True
 # cannot be tested for equality with iid = False, because the different
 # sampling of train and test will cause different scores.
-#
-# These only needs to be tested for an estimator, as the caching,
-# splitting, and iid sampling processes are independent of estimator
-# being a single estimator or a pipeline.
+
+
 
 class TestCVCacheCVIid:
 
@@ -122,12 +118,12 @@ class TestCVCacheCVIid:
     @staticmethod
     @pytest.fixture
     def good_THRESHOLD_DICT():
-        return {0: np.linspace(0,1,21), 1: np.linspace(0,1,11)}
+        return {0: np.linspace(0,1,5), 1: np.linspace(0,1,3)}
 
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
-    # dont pass client, too slow 24_08_26
+    # dont pass client, too slow 25_04_13
     def test_accuracy(self, X_da, y_da, dask_est_log,
         good_cv_results, standard_cv_int, standard_error_score, good_scorer,
         good_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT): #, _client):

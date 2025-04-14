@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import dask.array as da
@@ -35,7 +36,11 @@ from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 # session fixture with sklearn
 
 
-class TestCoreFit_FitParams_NotPipe:
+# with Client is faster
+
+
+
+class TestCoreFit_FitParams:
 
 
     @staticmethod
@@ -54,7 +59,7 @@ class TestCoreFit_FitParams_NotPipe:
 
     def test_rejects_sample_weight_too_short(
         self, dask_GSTCV_est_log_one_scorer_prefit, sk_est_log,
-        X_da, y_da, _rows
+        X_da, y_da, _rows, _client
     ):
 
         # make a copy of dask_GSTCV_, because it is session fixture
@@ -71,7 +76,7 @@ class TestCoreFit_FitParams_NotPipe:
 
     def test_rejects_sample_weight_too_long(
         self, dask_GSTCV_est_log_one_scorer_prefit, sk_est_log,
-        X_da, y_da, _rows
+        X_da, y_da, _rows, _client
     ):
 
         # make a copy of dask_GSTCV_, because it is session fixture
@@ -88,7 +93,7 @@ class TestCoreFit_FitParams_NotPipe:
 
     def test_correct_sample_weight_works(
         self, dask_GSTCV_est_log_one_scorer_prefit, sk_est_log,
-        X_da, y_da, _rows
+        X_da, y_da, _rows, _client
     ):
 
         # make a copy of dask_GSTCV_, because it is session fixture
@@ -101,80 +106,6 @@ class TestCoreFit_FitParams_NotPipe:
         out = _GSTCV_prefit.fit(X_da, y_da, sample_weight=correct_sample_weight)
 
         assert isinstance(out, type(_GSTCV_prefit))
-
-
-@pytest.mark.skip(reason=f'pipe takes too long, last passed on 24_08_31')
-class TestCoreFit_FitParams_Pipe:
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def sk_est_log():
-
-        return sk_LogisticRegression(
-            C=1e-5,
-            solver='lbfgs',
-            n_jobs=1,    # leave this set a 1 because of confliction
-            max_iter=100,
-            fit_intercept=False
-        )
-
-
-    def test_rejects_sample_weight_too_short(
-        self, dask_GSTCV_pipe_log_one_scorer_prefit, sk_est_log,
-        X_da, y_da, _rows
-    ):
-
-        # make a copy of est, because sk_GSCV_ is session fixture
-        __ = dask_GSTCV_pipe_log_one_scorer_prefit
-        _GSTCV_PIPE_prefit = type(__)(**__.get_params(deep=False))
-        _GSTCV_PIPE_prefit.set_params(estimator__dask_logistic=sk_est_log)
-
-        short_sample_weight = da.random.uniform(0, 1, _rows//2)
-
-        # ValueError should raise inside _parallel_fit ('error_score'=='raise')
-        with pytest.raises(ValueError):
-            _GSTCV_PIPE_prefit.fit(
-                X_da, y_da, dask_logistic__sample_weight=short_sample_weight
-            )
-
-
-    def test_rejects_sample_weight_too_long(
-        self, dask_GSTCV_pipe_log_one_scorer_prefit, sk_est_log,
-        X_da, y_da, _rows
-    ):
-
-        # make a copy of est, because sk_GSCV_ is session fixture
-        __ = dask_GSTCV_pipe_log_one_scorer_prefit
-        _GSTCV_PIPE_prefit = type(__)(**__.get_params(deep=False))
-        _GSTCV_PIPE_prefit.set_params(estimator__dask_logistic=sk_est_log)
-
-        long_sample_weight = da.random.uniform(0, 1, _rows*2)
-
-        # ValueError should raise inside _parallel_fit ('error_score'=='raise')
-        with pytest.raises(ValueError):
-            _GSTCV_PIPE_prefit.fit(
-                X_da, y_da, dask_logistic__sample_weight=long_sample_weight
-            )
-
-
-    def test_correct_sample_weight_works(
-            self, dask_GSTCV_pipe_log_one_scorer_prefit, sk_est_log,
-            X_da, y_da, _rows
-    ):
-
-        # make a copy of dask_GSTCV_, because it is session fixture
-        __ = dask_GSTCV_pipe_log_one_scorer_prefit
-        _GSTCV_PIPE_prefit = type(__)(**__.get_params(deep=False))
-        _GSTCV_PIPE_prefit.set_params(estimator__dask_logistic=sk_est_log)
-
-        correct_sample_weight = da.random.uniform(0, 1, _rows)
-
-        out = _GSTCV_PIPE_prefit.fit(
-            X_da, y_da, dask_logistic__sample_weight=correct_sample_weight
-        )
-
-        assert isinstance(out, type(_GSTCV_PIPE_prefit))
 
 
 

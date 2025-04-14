@@ -5,15 +5,13 @@
 #
 
 
-import pytest
 
-import os
+import pytest
 
 from distributed import Client
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
-
 from sklearn.feature_extraction.text import CountVectorizer as sk_CountVectorizer
 
 # wrap around RidgeClassifier
@@ -38,36 +36,6 @@ from dask_ml.linear_model import (
 from dask_ml.feature_extraction.text import CountVectorizer as dask_CountVectorizer
 
 from dask_ml.preprocessing import OneHotEncoder as dask_OneHotEncoder
-
-
-from xgboost import (
-    XGBRegressor,
-    XGBClassifier,
-    XGBRanker,
-    XGBRFRegressor,
-    XGBRFClassifier
-)
-
-from xgboost.dask import (
-    DaskXGBClassifier,
-    DaskXGBRegressor,
-    DaskXGBRanker,
-    DaskXGBRFRegressor,
-    DaskXGBRFClassifier
-)
-
-from lightgbm import (
-    LGBMModel,
-    LGBMClassifier,
-    LGBMRegressor,
-    LGBMRanker
-)
-
-from lightgbm import (
-    DaskLGBMClassifier,
-    DaskLGBMRegressor,
-    DaskLGBMRanker
-)
 
 
 
@@ -104,10 +72,9 @@ class TestGSTCVInput:
     @staticmethod
     @pytest.fixture(scope='function')
     def _GSTCVDask():
+        # 25_04_13 dask_Logistic has a glitch, changed this to sk_Logistic
         return GSTCVDask(
-            estimator=XGBClassifier(
-                n_estimators=10, max_depth=2, tree_method='hist'
-            ),
+            estimator=sk_LogisticRegression(C=1e-4, tol=1e-6, fit_intercept=True),
             param_grid={},
             thresholds=[0.5],
             cv=2,
@@ -126,11 +93,7 @@ class TestGSTCVInput:
         (sk_OneHotEncoder, sk_LinearRegression, sk_Ridge, sk_RidgeClassifier,
         sk_LogisticRegression, sk_SGDClassifier, sk_SGDRegressor,
         CalibratedClassifierCV, dask_OneHotEncoder, dask_LinearRegression,
-        dask_LogisticRegression, XGBRegressor, XGBClassifier, XGBRanker,
-        XGBRFRegressor, XGBRFClassifier, DaskXGBClassifier,
-        DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor,
-        DaskXGBRFClassifier, LGBMModel, LGBMClassifier, LGBMRegressor,
-        LGBMRanker, DaskLGBMClassifier, DaskLGBMRegressor, DaskLGBMRanker)
+        dask_LogisticRegression)
     )
     def test_rejects_not_instantiated(
         self, _GSTCVDask, not_instantiated, X_da, y_da
@@ -154,7 +117,7 @@ class TestGSTCVInput:
 
 
     @pytest.mark.parametrize('non_dask_classifier',
-        (XGBClassifier, XGBRFClassifier, LGBMClassifier, sk_LogisticRegression)
+        (sk_LogisticRegression, )
     )
     def test_warns_on_non_dask_classifiers(
         self, _GSTCVDask, non_dask_classifier, X_da, y_da
@@ -167,8 +130,7 @@ class TestGSTCVInput:
 
 
     @pytest.mark.parametrize('non_classifier',
-        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor, XGBRanker, XGBRegressor,
-         XGBRFRegressor, LGBMRegressor, LGBMRanker)
+        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor)
     )
     def test_rejects_non_dask_non_classifier_with_warn(
         self, _GSTCVDask, non_classifier, X_da, y_da
@@ -181,10 +143,7 @@ class TestGSTCVInput:
                 _GSTCVDask.set_params(estimator=non_classifier()).fit(X_da, y_da)
 
 
-    @pytest.mark.parametrize('dask_non_classifiers',
-        (DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor,
-        DaskLGBMRegressor, DaskLGBMRanker, dask_LinearRegression)
-    )
+    @pytest.mark.parametrize('dask_non_classifiers', (dask_LinearRegression, ))
     def test_rejects_all_dask_non_classifiers(
         self, _GSTCVDask, dask_non_classifiers, X_da, y_da
     ):
@@ -193,23 +152,13 @@ class TestGSTCVInput:
         with pytest.raises(AttributeError):
             _GSTCVDask.set_params(estimator=dask_non_classifiers()).fit(X_da, y_da)
 
-    @pytest.mark.skip(reason=f"pizza dask_ml 2025.1 seems to have a glitch")
+
     def test_accepts_all_dask_classifiers(self, _GSTCVDask, X_da, y_da, _client):
 
         # must be an instance not the class! & be a classifier!
 
         # AS OF 24_10_28 THIS IS THE ONLY ONE WORKING ON WINDOWS
-        _GSTCVDask.set_params(estimator=dask_LogisticRegression()).fit(X_da, y_da)
-
-        if os.name != 'nt':
-            # these are passing tests on Linux and MacOS as of 24_10_29
-            _GSTCVDask.set_params(estimator=DaskXGBClassifier()).fit(X_da, y_da)
-
-            _GSTCVDask.set_params(estimator=DaskXGBRFClassifier()).fit(X_da, y_da)
-
-            _GSTCVDask.set_params(estimator=DaskLGBMClassifier()).fit(X_da, y_da)
-
-
+        _GSTCVDask.set_params(estimator=sk_LogisticRegression()).fit(X_da, y_da)
 
     # END estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 

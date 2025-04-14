@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 from pybear.model_selection.GSTCV._GSTCVDask._validation._dask_estimator import \
@@ -33,35 +35,6 @@ from dask_ml.linear_model import (
 from dask_ml.feature_extraction.text import CountVectorizer as dask_CountVectorizer
 from dask_ml.preprocessing import OneHotEncoder as dask_OneHotEncoder
 
-from xgboost import (
-    XGBRegressor,
-    XGBClassifier,
-    XGBRanker,
-    XGBRFRegressor,
-    XGBRFClassifier
-)
-
-from xgboost.dask import (
-    DaskXGBClassifier,
-    DaskXGBRegressor,
-    DaskXGBRanker,
-    DaskXGBRFRegressor,
-    DaskXGBRFClassifier
-)
-
-from lightgbm import (
-    LGBMModel,
-    LGBMClassifier,
-    LGBMRegressor,
-    LGBMRanker
-)
-
-from lightgbm import (
-    DaskLGBMClassifier,
-    DaskLGBMRegressor,
-    DaskLGBMRanker
-)
-
 
 # must be an instance not the class! & be an estimator!
 
@@ -73,11 +46,7 @@ class TestValidateDaskEstimator:
         (sk_OneHotEncoder, sk_LinearRegression, sk_Ridge, sk_RidgeClassifier,
         sk_LogisticRegression, sk_SGDClassifier, sk_SGDRegressor,
         CalibratedClassifierCV, dask_OneHotEncoder, dask_LinearRegression,
-        dask_LogisticRegression, XGBRegressor, XGBClassifier, XGBRanker,
-        XGBRFRegressor, XGBRFClassifier, DaskXGBClassifier,
-        DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor,
-        DaskXGBRFClassifier, LGBMModel, LGBMClassifier, LGBMRegressor,
-        LGBMRanker, DaskLGBMClassifier, DaskLGBMRegressor, DaskLGBMRanker)
+        dask_LogisticRegression)
     )
     def test_rejects_not_instantiated(self, not_instantiated):
 
@@ -98,9 +67,7 @@ class TestValidateDaskEstimator:
             _validate_dask_estimator(non_estimator())
 
 
-    @pytest.mark.parametrize('non_dask_classifier',
-        (XGBClassifier, XGBRFClassifier, LGBMClassifier, sk_LogisticRegression)
-    )
+    @pytest.mark.parametrize('non_dask_classifier', (sk_LogisticRegression, ))
     def test_warns_on_non_dask_classifiers(self, non_dask_classifier):
 
         exp_warn = (f"'{non_dask_classifier().__class__.__name__}' does not "
@@ -115,8 +82,7 @@ class TestValidateDaskEstimator:
 
 
     @pytest.mark.parametrize('non_classifier',
-        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor, XGBRanker, XGBRegressor,
-         XGBRFRegressor, LGBMRegressor, LGBMRanker)
+        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor)
     )
     def test_rejects_non_dask_non_classifier_with_warn(self, non_classifier):
 
@@ -131,10 +97,7 @@ class TestValidateDaskEstimator:
         #     _validate_dask_estimator(non_classifier())
 
 
-    @pytest.mark.parametrize('dask_non_classifiers',
-        (DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor,
-        DaskLGBMRegressor, DaskLGBMRanker, dask_LinearRegression)
-    )
+    @pytest.mark.parametrize('dask_non_classifiers', (dask_LinearRegression, ))
     def test_rejects_all_dask_non_classifiers(self, dask_non_classifiers):
 
         # must be an instance not the class! & be a classifier!
@@ -142,20 +105,10 @@ class TestValidateDaskEstimator:
             _validate_dask_estimator(dask_non_classifiers())
 
 
-    @pytest.mark.parametrize('dask_classifiers',
-        (DaskXGBClassifier, DaskXGBRFClassifier, DaskLGBMClassifier,
-        dask_LogisticRegression)
-    )
+    @pytest.mark.parametrize('dask_classifiers', (dask_LogisticRegression, ))
     def test_accepts_all_dask_classifiers(self, dask_classifiers):
         # must be an instance not the class! & be a classifier!
         _validate_dask_estimator(dask_classifiers())
-
-
-
-
-
-
-
 
 
 

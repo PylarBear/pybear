@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import time
@@ -17,7 +18,8 @@ from sklearn.metrics import accuracy_score as sk_accuracy_score
 
 from dask_ml.metrics import accuracy_score as dask_accuracy_score
 
-import xgboost as xgb
+from sklearn.linear_model import LogisticRegression as sk_logistic
+
 
 
 class TestParallelizedScorer:
@@ -40,20 +42,20 @@ class TestParallelizedScorer:
     @pytest.fixture
     def _fit_output_excepted():
 
-        xgb_clf = xgb.XGBClassifier()
+        sk_clf = sk_logistic()
         # [ClassifierProtocol, fit time, fit excepted]
-        return (xgb_clf, 0.1, True)
+        return (sk_clf, 0.1, True)
 
 
     @staticmethod
     @pytest.fixture
     def _fit_output_good(X_da, y_da):
 
-        xgb_clf = xgb.XGBClassifier()
+        sk_clf = sk_logistic()
 
         t0 = time.perf_counter()
 
-        xgb_clf.fit(
+        sk_clf.fit(
             X_da[:int(0.8 * X_da.shape[0])],
             y_da[:int(0.8 * y_da.shape[0])]
         )
@@ -61,8 +63,7 @@ class TestParallelizedScorer:
         tf = time.perf_counter()
 
         # [ClassifierProtocol, fit time, fit excepted]
-        return (xgb_clf, tf-t0, False)
-
+        return (sk_clf, tf-t0, False)
 
 
     @pytest.mark.parametrize('sk_dask_metrics',

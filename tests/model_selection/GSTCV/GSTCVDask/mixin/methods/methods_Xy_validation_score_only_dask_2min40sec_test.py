@@ -21,10 +21,8 @@ import dask.dataframe as ddf
 # test array with column number mismatch with 'raises Exception' as
 # opposed to specific errors, because this is the only condition that
 # is not caught by GSTCVDask, but is raised inside the estimator passed to
-# GSTCVDask (dask_ml, xgb, whatever) and those exceptions might
+# GSTCVDask (dask_ml, whatever) and those exceptions might
 # change. All other excepts are caught by GSTCVDask.
-
-# no need to test pipe
 
 
 
