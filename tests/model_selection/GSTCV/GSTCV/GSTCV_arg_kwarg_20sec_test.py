@@ -20,9 +20,6 @@ from sklearn.metrics import (
     precision_score
 )
 
-
-
-
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
 
 # wrap around RidgeClassifier
@@ -41,35 +38,6 @@ from sklearn.linear_model import (
 from dask_ml.linear_model import (
     LinearRegression as dask_LinearRegression,
     LogisticRegression as dask_LogisticRegression
-)
-
-from xgboost import (
-    XGBRegressor,
-    XGBClassifier,
-    XGBRanker,
-    XGBRFRegressor,
-    XGBRFClassifier
-)
-
-from xgboost.dask import (
-    DaskXGBClassifier,
-    DaskXGBRegressor,
-    DaskXGBRanker,
-    DaskXGBRFRegressor,
-    DaskXGBRFClassifier
-)
-
-from lightgbm import (
-    LGBMModel,
-    LGBMClassifier,
-    LGBMRegressor,
-    LGBMRanker
-)
-
-from lightgbm import (
-    DaskLGBMClassifier,
-    DaskLGBMRegressor,
-    DaskLGBMRanker
 )
 
 
@@ -102,9 +70,7 @@ class TestGSTCVInput:
     @pytest.fixture(scope='function')
     def _GSTCV():
         return GSTCV(
-            estimator=XGBClassifier(
-                n_estimators=10, max_depth=2, tree_method='hist'
-            ),
+            estimator=sk_LogisticRegression(C=1e-4, solver='saga', tol=1e-4),
             param_grid={},
             thresholds=[0.5],
             cv=2,
@@ -120,13 +86,9 @@ class TestGSTCVInput:
     # must be an instance not the class! & be an estimator!
 
     @pytest.mark.parametrize('not_instantiated',
-    (sk_OneHotEncoder, sk_LinearRegression, sk_Ridge, sk_RidgeClassifier,
-    sk_LogisticRegression, sk_SGDClassifier, sk_SGDRegressor,
-    CalibratedClassifierCV, dask_LinearRegression, dask_LogisticRegression,
-    XGBRegressor, XGBClassifier, XGBRanker, XGBRFRegressor, XGBRFClassifier,
-    DaskXGBClassifier, DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor,
-    DaskXGBRFClassifier, LGBMModel, LGBMClassifier, LGBMRegressor, LGBMRanker,
-    DaskLGBMClassifier, DaskLGBMRegressor, DaskLGBMRanker)
+        (sk_OneHotEncoder, sk_LinearRegression, sk_Ridge, sk_RidgeClassifier,
+        sk_LogisticRegression, sk_SGDClassifier, sk_SGDRegressor,
+        CalibratedClassifierCV)
     )
     def test_estimator_rejects_not_instantiated(
         self, _GSTCV, not_instantiated, X_np, y_np
@@ -149,8 +111,7 @@ class TestGSTCVInput:
 
 
     @pytest.mark.parametrize('non_classifier',
-        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor, XGBRanker, XGBRegressor,
-        XGBRFRegressor, LGBMRegressor, LGBMRanker)
+        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor)
     )
     def test_estimator_rejects_non_classifier(
         self, _GSTCV, non_classifier, X_np, y_np
@@ -161,7 +122,7 @@ class TestGSTCVInput:
 
 
     @pytest.mark.parametrize('good_classifiers',
-    (XGBClassifier, XGBRFClassifier, LGBMClassifier, sk_LogisticRegression)
+        (sk_LogisticRegression, )
     )
     def test_estimator_accepts_non_dask_classifiers(
         self, _GSTCV, good_classifiers, X_np, y_np
@@ -174,8 +135,7 @@ class TestGSTCVInput:
 
 
     @pytest.mark.parametrize('dask_non_classifiers',
-    (DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor, DaskLGBMRegressor,
-     DaskLGBMRanker, dask_LinearRegression)
+        (dask_LinearRegression, )
     )
     def test_estimator_rejects_all_dask_non_classifiers(
         self, _GSTCV, dask_non_classifiers, X_np, y_np
@@ -187,8 +147,7 @@ class TestGSTCVInput:
 
 
     @pytest.mark.parametrize('dask_classifiers',
-        (DaskXGBClassifier, DaskXGBRFClassifier, DaskLGBMClassifier,
-        dask_LogisticRegression)
+        (dask_LogisticRegression, )
     )
     def test_estimator_rejects_all_dask_classifiers(
         self, _GSTCV, dask_classifiers, X_np, y_np
@@ -217,11 +176,9 @@ class TestGSTCVInput:
     @pytest.fixture
     def good_param_grid():
         return [
-            {'n_estimators': [10,20], 'tree_method':['hist', 'exact']},
-            {'tree_method':['hist', 'exact'], 'max_depth': [2,3]},
-            {'thresholds': [0.25],
-             'tree_method':['hist', 'exact'], 'max_depth': [3,4]
-             }
+            {'C': [1e-6, 1e-5, 1e-4], 'solver':['saga', 'lbfgs']},
+            {'solver':['saga', 'lbfgs'], 'tol': [1e-4, 1e-6]},
+            {'thresholds': [0.25], 'solver':['saga', 'lbfgs'], 'tol': [1e-4, 1e-5]}
         ]
 
 

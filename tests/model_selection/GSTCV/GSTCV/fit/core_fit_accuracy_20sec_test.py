@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -56,8 +57,8 @@ class TestCoreFitAccuracy:
     def special_sk_log_init_params():
         return {
             'C': 1e-3,
-            'tol': 1e-6, # need 1e-6 here to pass est/pipe accuracy tests
-            'max_iter': 10000, # need 10000 here to pass est/pipe accuracy tests
+            'tol': 1e-6, # need 1e-6 here to pass est accuracy tests
+            'max_iter': 10000, # need 10000 here to pass est accuracy tests
             'fit_intercept': False,
             'solver': 'lbfgs'
         }

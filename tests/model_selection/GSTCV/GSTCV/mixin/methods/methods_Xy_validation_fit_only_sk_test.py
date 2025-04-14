@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 from copy import deepcopy
 import numpy as np
@@ -14,7 +16,6 @@ import pandas as pd
 # (the only possible bad condition is non-num data, all other 'bad' things
 # like num rows and num columns cant be bad first time passed)
 
-# no need to test pipe
 
 
 class TestSKFit_XyValidation:

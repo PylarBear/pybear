@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 from uuid import uuid4
@@ -19,10 +21,8 @@ import pandas as pd
 # test array with column number mismatch with 'raises Exception' as
 # opposed to specific errors, because this is the only condition that
 # is not caught by GSTCV, but is raised inside the estimator passed to
-# GSTCV (sklearn, xgb, whatever) and those exceptions might
-# change. All other excepts are caught by GSTCV.
-
-# no need to test pipe
+# GSTCV (sklearn, whatever) and those exceptions might change. All other
+# excepts are caught by GSTCV.
 
 
 

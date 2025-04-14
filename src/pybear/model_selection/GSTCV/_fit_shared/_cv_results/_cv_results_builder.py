@@ -347,7 +347,7 @@ def _cv_results_builder(
     cv_results_ = {}
     for column_name, _dtype in zip(COLUMNS, DTYPES):
 
-        # 24_07_11, emperically verified that sk cv_results_ columns are
+        # 24_07_11, empirically verified that sk cv_results_ columns are
         # masked empty for str params and masked zeros otherwise
         if any([i in str(_dtype).lower() for i in ('int', 'float')]):
             __ = np.ma.zeros(total_rows, dtype=_dtype)
