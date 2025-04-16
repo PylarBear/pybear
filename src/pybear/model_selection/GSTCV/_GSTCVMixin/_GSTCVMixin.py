@@ -742,7 +742,7 @@ class _GSTCVMixin(
             return self.best_estimator_.score_samples(_X)
 
 
-    def set_params(self, **params: dict[str, any]):
+    def set_params(self, **params):
 
         """
         Set the parameters of the GSTCV(Dask) instance or the embedded

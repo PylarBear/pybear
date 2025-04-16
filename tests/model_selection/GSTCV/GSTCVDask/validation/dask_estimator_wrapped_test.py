@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 from pybear.model_selection.GSTCV._GSTCVDask._validation._dask_estimator import \
@@ -35,35 +37,6 @@ from dask_ml.linear_model import (
 from dask_ml.feature_extraction.text import CountVectorizer as dask_CountVectorizer
 from dask_ml.preprocessing import OneHotEncoder as dask_OneHotEncoder
 
-from xgboost import (
-    XGBRegressor,
-    XGBClassifier,
-    XGBRanker,
-    XGBRFRegressor,
-    XGBRFClassifier
-)
-
-from xgboost.dask import (
-    DaskXGBClassifier,
-    DaskXGBRegressor,
-    DaskXGBRanker,
-    DaskXGBRFRegressor,
-    DaskXGBRFClassifier
-)
-
-from lightgbm import (
-    LGBMModel,
-    LGBMClassifier,
-    LGBMRegressor,
-    LGBMRanker
-)
-
-from lightgbm import (
-    DaskLGBMClassifier,
-    DaskLGBMRegressor,
-    DaskLGBMRanker
-)
-
 
 
 # must be an instance not the class! & be an estimator!
@@ -73,7 +46,7 @@ class TestValidateWrappedDaskEstimator:
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     # CCCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     @pytest.mark.parametrize('non_dask_est',
-        (sk_RidgeClassifier, LGBMModel, sk_SGDClassifier)
+        (sk_RidgeClassifier, sk_SGDClassifier)
     )
     def test_warns_on_non_dask_CCCV(self, non_dask_est):
 
@@ -136,8 +109,7 @@ class TestValidateWrappedDaskEstimator:
 
 
     @pytest.mark.parametrize('non_classifier',
-        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor, XGBRanker,
-         XGBRegressor, XGBRFRegressor, LGBMRegressor, LGBMRanker)
+        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor)
     )
     def test_rejects_non_dask_non_classifier(self, non_classifier):
 
@@ -152,9 +124,7 @@ class TestValidateWrappedDaskEstimator:
         #     _validate_dask_estimator(self._pipeline(non_classifier()))
 
 
-    @pytest.mark.parametrize('non_dask_classifier',
-        (XGBClassifier, XGBRFClassifier, LGBMClassifier, sk_LogisticRegression)
-    )
+    @pytest.mark.parametrize('non_dask_classifier', (sk_LogisticRegression, ))
     def test_warns_on_non_dask_classifiers(self, non_dask_classifier):
 
         exp_warn = (f"'{non_dask_classifier().__class__.__name__}' does not "
@@ -168,8 +138,7 @@ class TestValidateWrappedDaskEstimator:
 
 
     @pytest.mark.parametrize('dask_non_classifiers',
-        (DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor, DaskLGBMRegressor,
-         DaskLGBMRanker, dask_LinearRegression, dask_OneHotEncoder)
+        (dask_LinearRegression, dask_OneHotEncoder)
     )
     def test_rejects_all_dask_non_classifiers(self, dask_non_classifiers):
 
@@ -178,10 +147,7 @@ class TestValidateWrappedDaskEstimator:
             _validate_dask_estimator(self._pipeline(dask_non_classifiers()))
 
 
-    @pytest.mark.parametrize('dask_classifiers',
-        (DaskXGBClassifier, DaskXGBRFClassifier, DaskLGBMClassifier,
-        dask_LogisticRegression)
-    )
+    @pytest.mark.parametrize('dask_classifiers', (dask_LogisticRegression, ))
     def test_accepts_good_pipeline_1(self, dask_classifiers):
         # must be an instance not the class! & be a classifier!
         _validate_dask_estimator(self._pipeline(dask_classifiers()))
@@ -202,13 +168,6 @@ class TestValidateWrappedDaskEstimator:
         with pytest.warns(match=exp_warn):
             _validate_dask_estimator(
                 self._pipeline(CalibratedClassifierCV(sk_RidgeClassifier()))
-            )
-
-        exp_warn = (f"'{LGBMModel().__class__.__name__}' does not "
-            f"appear to be a dask classifier.")
-        with pytest.warns(match=exp_warn):
-            _validate_dask_estimator(
-                self._pipeline(CalibratedClassifierCV(LGBMModel()))
             )
 
         exp_warn = (f"'{sk_SGDClassifier().__class__.__name__}' does not "

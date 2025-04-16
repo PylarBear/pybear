@@ -14,7 +14,6 @@ import dask.dataframe as ddf
 # (the only possible bad condition is non-num data, all other 'bad' things
 # like num rows and num columns cant be bad first time passed)
 
-# no need to test pipe
 
 
 class TestDaskFit_XyValidation:

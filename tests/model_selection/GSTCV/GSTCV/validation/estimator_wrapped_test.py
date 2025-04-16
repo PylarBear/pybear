@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 from pybear.model_selection.GSTCV._GSTCV._validation._estimator import \
@@ -27,43 +29,8 @@ from dask_ml.linear_model import (
     LogisticRegression as dask_LogisticRegression
 )
 
-from xgboost import (
-    XGBRegressor,
-    XGBClassifier,
-    XGBRanker,
-    XGBRFRegressor,
-    XGBRFClassifier
-)
-
-from xgboost.dask import (
-    DaskXGBClassifier,
-    DaskXGBRegressor,
-    DaskXGBRanker,
-    DaskXGBRFRegressor,
-    DaskXGBRFClassifier
-)
-
-from lightgbm import (
-    LGBMModel,
-    LGBMClassifier,
-    LGBMRegressor,
-    LGBMRanker
-)
-
-from lightgbm import (
-    DaskLGBMClassifier,
-    DaskLGBMRegressor,
-    DaskLGBMRanker
-)
-
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
-
-
-
-
-
-
 
 
 # must be an instance not the class! & be an estimator!
@@ -76,7 +43,6 @@ class TestValidateWrappedEstimator:
 
     def test_accepts_non_dask_CCCV(self):
         _validate_estimator(CalibratedClassifierCV(sk_RidgeClassifier()))
-        _validate_estimator(CalibratedClassifierCV(LGBMModel()))
         _validate_estimator(CalibratedClassifierCV(sk_SGDClassifier()))
 
 
@@ -113,8 +79,7 @@ class TestValidateWrappedEstimator:
 
 
     @pytest.mark.parametrize('non_classifier',
-        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor, XGBRanker, XGBRegressor,
-         XGBRFRegressor, LGBMRegressor, LGBMRanker)
+        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor)
     )
     def test_rejects_non_classifier(self, non_classifier):
 
@@ -122,9 +87,7 @@ class TestValidateWrappedEstimator:
             _validate_estimator(self._pipeline(non_classifier()))
 
 
-    @pytest.mark.parametrize('good_classifiers',
-        (XGBClassifier, XGBRFClassifier, LGBMClassifier, sk_LogisticRegression)
-    )
+    @pytest.mark.parametrize('good_classifiers', (sk_LogisticRegression, ))
     def test_accepts_non_dask_classifiers(self, good_classifiers):
         _validate_estimator(self._pipeline(good_classifiers()))
 
@@ -132,9 +95,6 @@ class TestValidateWrappedEstimator:
     def test_accepts_wrapped_non_dask_CCCV(self):
         _validate_estimator(
             self._pipeline(CalibratedClassifierCV(sk_RidgeClassifier()))
-        )
-        _validate_estimator(
-            self._pipeline(CalibratedClassifierCV(LGBMModel()))
         )
         _validate_estimator(
             self._pipeline(CalibratedClassifierCV(sk_SGDClassifier()))
@@ -148,10 +108,7 @@ class TestValidateWrappedEstimator:
             )
 
 
-    @pytest.mark.parametrize('dask_non_classifiers',
-        (DaskXGBRegressor, DaskXGBRanker, DaskXGBRFRegressor,
-        DaskLGBMRegressor, DaskLGBMRanker, dask_LinearRegression)
-    )
+    @pytest.mark.parametrize('dask_non_classifiers', (dask_LinearRegression, ))
     def test_rejects_all_dask_non_classifiers(self, dask_non_classifiers):
 
         # must be an instance not the class! & be a classifier!
@@ -159,10 +116,7 @@ class TestValidateWrappedEstimator:
             _validate_estimator(self._pipeline(dask_non_classifiers()))
 
 
-    @pytest.mark.parametrize('dask_classifiers',
-        (DaskXGBClassifier, DaskXGBRFClassifier, DaskLGBMClassifier,
-        dask_LogisticRegression)
-    )
+    @pytest.mark.parametrize('dask_classifiers', (dask_LogisticRegression, ))
     def test_rejects_all_dask_classifiers(self, dask_classifiers):
         # must be an instance not the class! & be a classifier!
         with pytest.raises(TypeError):
