@@ -463,7 +463,7 @@ class AutoTextCleaner(
         self._TL = TextLookupRealTime(
             update_lexicon=(self.lexicon_lookup in ['auto_add', 'manual']),
             skip_numbers=True,
-            auto_split=True,
+            auto_split=False,  # pizza
             auto_add_to_lexicon=(self.lexicon_lookup == 'auto_add'),
             auto_delete=(self.lexicon_lookup == 'auto_delete'),
             DELETE_ALWAYS=None,

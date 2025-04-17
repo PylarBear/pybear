@@ -22,16 +22,16 @@ if __name__ == '__main__':
         global_sep=' ',
         case_sensitive=False,
         global_flags=None,
-        remove_empty_rows=True,
+        remove_empty_rows=False,
         return_dim=1,
         strip=True,
-        replace=(re.compile('[^a-zA-Z]'), ''),
-        remove=(''),
+        replace=(re.compile('[^0-9a-zA-Z]'), ''),
+        remove=None,
         normalize=True,
-        lexicon_lookup='auto_delete',
+        lexicon_lookup='manual',
         remove_stops=False,
         ngram_merge=None,
-        justify=99,
+        justify=None,
         get_statistics=None
     )
 
