@@ -43,7 +43,7 @@ def _word_editor(
 
     while True:
 
-        _word = input(f'{_prompt} > ').upper()
+        _word = input(f'{_prompt} > ')
 
         if vui.validate_user_str(
             f'User entered *{_word}* -- accept? (y/n) > ', 'YN'
