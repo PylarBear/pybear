@@ -60,7 +60,7 @@ class TestAttrAccess:
 
         TestCls = ATC(
             remove=(' ', ',', '.', ';'),
-            lexicon_lookup='auto_delete',
+            lexicon_lookup={'auto_delete': True},
             get_statistics={'before': False, 'after': False}
 
         )
@@ -185,7 +185,13 @@ class TestAttrAccess:
                 getattr(TestCls, 'after_statistics_')
 
 
-    @pytest.mark.parametrize('_lex_look', (None, 'auto_add', 'auto_delete'))
+    @pytest.mark.parametrize('_lex_look',
+        (
+            None,
+            {'update_lexicon': True, 'auto_add_to_lexicon': True},
+            {'auto_delete': True}
+        )
+    )
     def test_conditional_access_to_text_lookup(self, _X_list, _lex_look):
 
         TestCls = ATC(
