@@ -28,7 +28,15 @@ if __name__ == '__main__':
         replace=(re.compile('[^0-9a-zA-Z]'), ''),
         remove=None,
         normalize=True,
-        lexicon_lookup='manual',
+        lexicon_lookup={
+            'update_lexicon': True,
+            'skip_numbers': True,
+            'auto_split': False,
+            'auto_add_to_lexicon': False,
+            'auto_delete': False,
+            'remove_empty_rows': False,
+            'verbose': False
+        },
         remove_stops=False,
         ngram_merge=None,
         justify=None,
