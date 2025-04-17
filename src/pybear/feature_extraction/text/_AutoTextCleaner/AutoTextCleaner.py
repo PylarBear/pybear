@@ -109,7 +109,13 @@ class AutoTextCleaner(
     and check your text against the pybear Lexicon, remember that the
     Lexicon is majuscule and has no non-alpha characters. You MUST
     set :param: `normalize` to True to get meaningful results, or you
-    risk losing content that is not the correct case.
+    risk losing content that is not the correct case. Also, when you
+    are in the manual text lookup process and are entering words at the
+    prompts to replace unknown words in your text, whatever is entered
+    is inserted into your text exactly as entered by you. You must enter
+    the text exactly as you want it in the cleaned output. If normalizing
+    the text is important to you, you must enter the text in the case
+    that you want in the output, ATC will not do it for you.
 
     ATC is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform

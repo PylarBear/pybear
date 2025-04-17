@@ -170,6 +170,13 @@ class TextLookupRealTime(_TextLookupMixin):
     Lexicon with your own words of varying capitalization, TLRT honors
     your capitalization scheme.
 
+    When you are in the manual text lookup process and are entering words
+    at the prompts to replace unknown words in your text, whatever is
+    entered is inserted into your text exactly as entered by you. You
+    must enter the text exactly as you want it in the cleaned output. If
+    normalizing the text is important to you, you must enter the text in
+    the case that you want in the output, TLRT will not do it for you.
+
     TLRT is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
     methods. It also has partial_fit, fit, and score methods, which are
