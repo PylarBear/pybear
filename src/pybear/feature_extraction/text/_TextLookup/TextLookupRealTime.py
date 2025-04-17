@@ -958,12 +958,12 @@ class TextLookupRealTime(_TextLookupMixin):
 
         del _n_edits, _word_counter
 
-        if self.verbose:
-            print(f'\n*** LEX LOOKUP COMPLETE ***\n')
+        print(f'\n*** LEX LOOKUP COMPLETE ***\n')
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # only ask to save at the end if the instance was set up for manual
         if not self.auto_add_to_lexicon and not self.auto_delete:
+            print(f'\n*** LAST CHANCE TO SAVE ***\n')
             _prompt = f'\nSave completed text to file(s) or Skip(c) > '
             if vui.validate_user_str(_prompt, 'SC') == 'S':
                 _opt = vui.validate_user_str(
