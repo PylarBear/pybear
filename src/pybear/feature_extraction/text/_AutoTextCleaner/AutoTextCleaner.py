@@ -19,6 +19,7 @@ from ._type_aliases import (
     GetStatisticsType
 )
 
+from copy import deepcopy
 import numbers
 import re
 import warnings
@@ -196,19 +197,16 @@ class AutoTextCleaner(
         text in X to upper-case; if False, convert to lower-case; if None,
         do a no-op.
     lexicon_lookup:
-        Optional[LexiconLookupType], default=None - Remember that the
-        pybear Lexicon is majuscule, so your text should be also if
-        you choose to use this. When None, skip the Lexicon lookup
-        process. When literal 'auto_delete', scan the text against the
-        pybear Lexicon and silently remove any strings that are not
-        in the Lexicon. When literal 'auto_add', leave any words that
-        are not in the Lexicon in the text body, and queue the words
-        for addition to the pybear Lexicon. When literal 'manual', the
-        lookup session is interactive, and the user will be prompted
-        for an action for every string in the text that is not in the
-        Lexicon. See :attr: `lexicon_lookup_` for more information. Also
+        Optional[Union[LexiconLookupType, None]], default=None -
+        Remember that the pybear Lexicon is majuscule, so your text
+        should be also if you choose to use this. When None, skip the
+        Lexicon lookup process. Otherwise, must be a dictionary of
+        parameters for TextLookupRealTime. If 'remove_empty_rows' is
+        passed here, it will override :param: `remove_empty_rows`,
+        otherwise what is passed to ATC for `remove_empty_rows` will be
+        used.  See :attr: `lexicon_lookup_` for more information. Also
         see the docs for pybear TextLookupRealTime for information about
-        the Lexicon lookup process.
+        the parameters and the Lexicon lookup process.
     remove_stops:
         Optional[bool], default=False - whether to remove pybear-defined
         stop words from the text.
@@ -306,10 +304,10 @@ class AutoTextCleaner(
         TextLookupRealTime (TLRT) instance within ATC. This attribute
         exposes that TLRT class, which has attributes that contain
         information about the handling of words not in the pybear
-        Lexicon. If you ran `lexicon_lookup` in 'manual' mode, you
+        Lexicon. If you ran `lexicon_lookup` in manual mode, you
         may have put a lot of effort into handing the unknown words
         and you want access to the information. You may have instructed
-        TLRT to hold words that you want to add to the Lexicon so that
+        TLRT to queue words that you want to add to the Lexicon so that
         you can access them later and put them in the Lexicon. See the
         documentation for TextLookupRealTime to learn about what
         attributes are exposed. The information in TLRT is reset when
@@ -356,8 +354,18 @@ class AutoTextCleaner(
     RemoveType:
         Union[None, FindType, tuple[FindType, ...]]
     
-    LexiconLookupType:
-        Union[None, Literal['auto_add', 'auto_delete', 'manual']]
+    class LexiconLookupType(TypedDict):
+        update_lexicon: Optional[bool]
+        skip_numbers: Optional[bool]
+        auto_split: Optional[bool]
+        auto_add_to_lexicon: Optional[bool]
+        auto_delete: Optional[bool]
+        DELETE_ALWAYS: Optional[Union[Sequence[str], None]]
+        REPLACE_ALWAYS: Optional[Union[dict[str, str], None]]
+        SKIP_ALWAYS: Optional[Union[Sequence[str], None]]
+        SPLIT_ALWAYS: Optional[Union[dict[str, Sequence[str]], None]]
+        remove_empty_rows: Optional[bool]
+        verbose: Optional[bool]
     
     class NGramsType(TypedDict):
         ngrams: Required[Sequence[Sequence[FindType]]]
@@ -374,7 +382,7 @@ class AutoTextCleaner(
     >>> Trfm = ATC(case_sensitive=False, strip=True, remove_empty_rows=True,
     ...     replace=(re.compile('[^a-z]'), ''), remove='', normalize=True,
     ...     global_sep=' ', get_statistics={'before': None, 'after':False},
-    ...     lexicon_lookup='auto_delete', justify=30)
+    ...     lexicon_lookup={'auto_delete':True}, justify=30)
     >>> X = [
     ...       r' /033[91](tHis)i@s# S@o#/033[0m$e$tERR#I>B<Le te.X@t###dAtA. ',
     ...       r'@c.lE1123,AnIt up R3eal33nIcE-|-|-|- sEewHat it$S$a$ys$>>>>>>',
@@ -405,7 +413,7 @@ class AutoTextCleaner(
         replace:Optional[ReplaceType] = None,
         remove:Optional[RemoveType] = None,
         normalize:Optional[Union[bool, None]] = None,
-        lexicon_lookup:Optional[LexiconLookupType] = None,
+        lexicon_lookup:Optional[Union[LexiconLookupType, None]] = None,
         remove_stops:Optional[bool] = False,
         ngram_merge:Optional[Union[None, NGramsType]] = None,
         justify:Optional[Union[numbers.Integral, None]] = None,
@@ -430,6 +438,24 @@ class AutoTextCleaner(
         self.get_statistics = get_statistics
 
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _validation(
+            [],  # dummy X, only want to validate parameters here
+            self.global_sep,
+            self.case_sensitive,
+            self.global_flags,
+            self.remove_empty_rows,
+            self.return_dim,
+            self.strip,
+            self.replace,
+            self.remove,
+            self.normalize,
+            self.lexicon_lookup,
+            self.remove_stops,
+            self.ngram_merge,
+            self.justify,
+            self.get_statistics
+        )
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # always initialize these
 
@@ -460,19 +486,11 @@ class AutoTextCleaner(
             store_uniques=(self.get_statistics or {}).get('after', False) or False
         )
 
-        self._TL = TextLookupRealTime(
-            update_lexicon=(self.lexicon_lookup in ['auto_add', 'manual']),
-            skip_numbers=True,
-            auto_split=False,  # pizza
-            auto_add_to_lexicon=(self.lexicon_lookup == 'auto_add'),
-            auto_delete=(self.lexicon_lookup == 'auto_delete'),
-            DELETE_ALWAYS=None,
-            REPLACE_ALWAYS=None,
-            SKIP_ALWAYS=None,
-            SPLIT_ALWAYS=None,
-            remove_empty_rows=self.remove_empty_rows,
-            verbose=False
-        )
+        _ll = deepcopy(self.lexicon_lookup) or {}
+        _ll['remove_empty_rows'] = \
+            (_ll.get('remove_empty_rows', None) or self.remove_empty_rows)
+        self._TL = TextLookupRealTime(**_ll)
+        del _ll
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -624,7 +642,7 @@ class AutoTextCleaner(
         within ATC. This attribute exposes that TLRT class, which has
         attributes that contain information about the handling of
         words not in the pybear Lexicon. If you ran `lexicon_lookup`
-        in 'manual' mode, you may have put a lot of effort into handing
+        in manual mode, you may have put a lot of effort into handing
         the unknown words and you want access to the information. You
         may have instructed TLRT to hold words that you want to add to
         the Lexicon so that you can access them later and put them in
@@ -639,9 +657,9 @@ class AutoTextCleaner(
 
         """
         Reset the AutoTextCleaner instance. This clears any state
-        information that is retained during transformations. This
-        includes the :attr: `row_support_` attribute, which holds
-        transient state information from the last call to transform.
+        information that is retained during transform. This includes
+        the :attr: `row_support_` attribute, which holds transient
+        state information from the last call to :meth: `transform`.
         This also resets attributes that hold cumulative state
         information, i.e., compiled over many transforms. These
         attributes are the :attr: `n_rows_` counter, and the statistics
@@ -909,9 +927,9 @@ class AutoTextCleaner(
         if self.lexicon_lookup:
             # has remove_empty_rows, example axis can change
             _X = self._TL.transform(_X)
-            # this class is always available, only transforms if it is turned on
-            # declaring this dummy controls access via @property. The
-            # TextLookupRealTime instance is ALWAYS (not conditionally)
+            # this class is always available, only transforms if it is turned on.
+            # declaring the _lexicon_lookup dummy controls access via @property.
+            # The TextLookupRealTime instance is ALWAYS (not conditionally)
             # instantiated in init to guarantee exposure whenever reset()
             # is called. It is only actually USED when the 'lexicon_lookup'
             # parameter is not None. So grant access to them via @property

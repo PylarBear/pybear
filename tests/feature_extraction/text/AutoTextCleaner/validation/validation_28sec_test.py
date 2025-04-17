@@ -49,7 +49,7 @@ class TestValidation:
     @pytest.mark.parametrize('replace', (None, ((re.compile(r'\d'), ''),)))
     @pytest.mark.parametrize('remove', (None, ('\n', '\r', '\t')))
     @pytest.mark.parametrize('normalize', (True, False, None))
-    @pytest.mark.parametrize('lexicon_lookup', (None, 'auto_delete'))  # partial
+    @pytest.mark.parametrize('lexicon_lookup', (None, {'auto_delete': True}))
     @pytest.mark.parametrize('remove_stops', (True, )) # False))
     @pytest.mark.parametrize('ngram_merge',
         (None, {'ngrams': [['buffalo', 'chicken']], 'wrap':False})

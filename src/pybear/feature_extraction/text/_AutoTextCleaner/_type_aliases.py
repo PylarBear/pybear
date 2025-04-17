@@ -9,13 +9,13 @@
 from typing import (
     Callable,
     Literal,
+    Optional,
     Sequence,
     TypedDict
 )
 from typing_extensions import Required, TypeAlias, Union
 import numpy.typing as npt
 
-import numbers
 import re
 
 import pandas as pd
@@ -46,8 +46,19 @@ ReplaceType: TypeAlias = Union[None, PairType, tuple[PairType, ...]]
 
 RemoveType: TypeAlias = Union[None, FindType, tuple[FindType, ...]]
 
-LexiconLookupType: TypeAlias = \
-    Union[None, Literal['auto_add', 'auto_delete', 'manual']]
+class LexiconLookupType(TypedDict):
+    update_lexicon: Optional[bool]
+    skip_numbers: Optional[bool]
+    skip_numbers: Optional[bool]
+    auto_split: Optional[bool]
+    auto_add_to_lexicon: Optional[bool]
+    auto_delete: Optional[bool]
+    DELETE_ALWAYS: Optional[Union[Sequence[str], None]]
+    REPLACE_ALWAYS: Optional[Union[dict[str, str], None]]
+    SKIP_ALWAYS: Optional[Union[Sequence[str], None]]
+    SPLIT_ALWAYS: Optional[Union[dict[str, Sequence[str]], None]]
+    remove_empty_rows: Optional[bool]
+    verbose: Optional[bool]
 
 class NGramsType(TypedDict):
     ngrams: Required[Sequence[Sequence[FindType]]]

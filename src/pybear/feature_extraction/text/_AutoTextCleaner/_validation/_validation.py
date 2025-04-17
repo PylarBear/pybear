@@ -45,7 +45,7 @@ def _validation(
     _replace: ReplaceType,
     _remove: RemoveType,
     _normalize: Union[bool, None],
-    _lexicon_lookup: LexiconLookupType,
+    _lexicon_lookup: Union[LexiconLookupType, None],
     _remove_stops: bool,
     _ngram_merge: Union[None, NGramsType],
     _justify: Union[None, numbers.Integral],
@@ -82,7 +82,7 @@ def _validation(
     _normalize:
         Union[bool, None]
     _lexicon_lookup:
-        LexiconLookupType
+        Union[LexiconLookupType, None]
     _remove_stops:
         bool
     _ngram_merge:
