@@ -22,11 +22,11 @@ if __name__ == '__main__':
         global_sep=' ',
         case_sensitive=False,
         global_flags=None,
-        remove_empty_rows=False,
+        remove_empty_rows=True,
         return_dim=1,
         strip=True,
         replace=(re.compile('[^0-9a-zA-Z]'), ''),
-        remove=None,
+        remove='',
         normalize=True,
         lexicon_lookup={
             'update_lexicon': True,
@@ -34,12 +34,12 @@ if __name__ == '__main__':
             'auto_split': False,
             'auto_add_to_lexicon': False,
             'auto_delete': False,
-            'remove_empty_rows': False,
+            'remove_empty_rows': True,
             'verbose': False
         },
         remove_stops=False,
         ngram_merge=None,
-        justify=None,
+        justify=79,
         get_statistics=None
     )
 

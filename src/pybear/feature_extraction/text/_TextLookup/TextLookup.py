@@ -97,6 +97,13 @@ class TextLookup(_TextLookupMixin):
     mechanisms for the operation/word combinations do not track the
     exact locations of individual words.
 
+    When you are in the manual text lookup process and are entering words
+    at the prompts to replace unknown words in your text, whatever is
+    entered is inserted into your text exactly as entered by you. You
+    must enter the text exactly as you want it in the cleaned output. If
+    normalizing the text is important to you, you must enter the text in
+    the case that you want in the output, TL will not do it for you.
+
     The holder objects are all accessible attributes in the TL public
     API. See the attributes section for more details. These holder
     objects can also be passed at instantiation to give TL a head-start
