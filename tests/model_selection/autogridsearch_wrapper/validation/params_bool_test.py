@@ -5,31 +5,31 @@
 #
 
 
+
 import pytest
 import numpy as np
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
-    _string_params import _string_param_value
+    _params_bool import _bool_param_value
 
 
 
-
-class TestStringParamKey:
+class TestBoolParamKey:
 
     @pytest.mark.parametrize('non_str',
     (0, 1, np.pi, True, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
     )
     def test_reject_non_str(self, non_str):
         with pytest.raises(TypeError):
-            _string_param_value(non_str, [['a','b'], 4, 'string'])
+            _bool_param_value(non_str, [[True, False], 4, 'bool'])
 
     def test_accepts_str(self):
-        assert _string_param_value('some_string', [['a','b'], 8, 'string']) == \
-                [['a', 'b'], 8, 'string']
+        assert _bool_param_value('some_string', [[True, False], 8, 'bool']) == \
+                [[True, False], 8, 'bool']
 
 
 
 
-class TestStringParamValueOuterContainer:
+class TestBoolParamValueOuterContainer:
 
 
     @pytest.mark.parametrize('non_list_like',
@@ -37,19 +37,19 @@ class TestStringParamValueOuterContainer:
     )
     def test_rejects_non_list_like(self, non_list_like):
         with pytest.raises(TypeError):
-            _string_param_value('good_key', non_list_like)
+            _bool_param_value('good_key', non_list_like)
 
 
     @pytest.mark.parametrize('list_like',
     (
-     [['a', 'b'], 10, 'string'],
-     (['a', 'b'], 10, 'string'),
-     np.array([('a', 'b'), 10, 'string'], dtype=object)
+     [[True, False], 10, 'bool'],
+     ([True, False], 10, 'bool'),
+     np.array([(True, False), 10, 'bool'], dtype=object)
      )
     )
     def test_accepts_list_like(self, list_like):
-        assert _string_param_value('good_key', list_like) == \
-               [['a', 'b'], 10, 'string']
+        assert _bool_param_value('good_key', list_like) == \
+               [[True, False], 10, 'bool']
 
 
 
@@ -60,30 +60,29 @@ class TestListOfArgs:
     )
     def test_rejects_non_list_like(self, non_list_like):
         with pytest.raises(TypeError):
-            _string_param_value('good_key', [non_list_like, None, 'string'])
+            _bool_param_value('good_key', [non_list_like, None, 'bool'])
 
 
     @pytest.mark.parametrize('list_like',
-         (['a', 'b'], ('a', 'b'), np.array(['a', 'b'], dtype=object))
+         ([True, False], (True, False), np.array([True, False], dtype=object))
     )
     def test_accepts_list_like(self, list_like):
-        assert _string_param_value('good_key', [list_like, 10, 'string']) == \
-               [['a', 'b'], 10, 'string']
+        assert _bool_param_value('good_key', [list_like, 10, 'bool']) == \
+               [[True, False], 10, 'bool']
 
 
-    @pytest.mark.parametrize('non_str_non_none',
-    (0, np.pi, True, min, lambda x: x, {'a': 1}, [1,2], (1,2), {1,2})
+    @pytest.mark.parametrize('non_bool',
+    (0, np.pi, None, min, lambda x: x, {'a': 1}, [1,2], (1,2), {1,2})
     )
-    def test_rejects_non_strings_non_none_inside(self, non_str_non_none):
+    def test_rejects_non_bool_inside(self, non_bool):
         with pytest.raises(TypeError):
-            _string_param_value('good_key',
-                                [[non_str_non_none, 'b'], None, 'string'])
+            _bool_param_value('good_key', [[non_bool, False], None, 'bool'])
 
 
-    @pytest.mark.parametrize('str_or_none', ('a', None))
-    def test_accept_strings_or_none_inside(self, str_or_none):
-        assert _string_param_value('good_key', ([str_or_none, 'b'], 5, 'string')) == \
-               [[str_or_none, 'b'], 5, 'string']
+    @pytest.mark.parametrize('_bool', (True, False))
+    def test_accepts_bool_inside(self, _bool):
+        assert _bool_param_value('good_key', ([_bool, False], 5, 'bool')) == \
+               [[_bool, False], 5, 'bool']
 
 
 
@@ -94,22 +93,22 @@ class TestPasses:
     )
     def test_rejects_non_none_non_integer(self, non_none_non_integer):
         with pytest.raises(TypeError):
-            _string_param_value('good_key',
-                        [['a','b'], non_none_non_integer, 'string'])
+            _bool_param_value('good_key',
+                    [[True, False], non_none_non_integer, 'bool'])
 
 
     @pytest.mark.parametrize('int_or_none', (3, None))
     def test_accepts_none_and_integer_gte_one(self, int_or_none):
         # THIS ALSO VALIDATES THAT SETTING passes TO None SETS PASSES TO
         # ONE MILLION
-        assert _string_param_value('good_key', [['a','b'], int_or_none, 'string']) == \
-            [['a', 'b'], int_or_none or 1_000_000, 'string']
+        assert _bool_param_value('good_key', [[True,False], int_or_none, 'bool']) == \
+            [[True, False], int_or_none or 1_000_000, 'bool']
 
 
     @pytest.mark.parametrize('bad_pass', (-1, 0, 1))
     def test_rejects_integer_less_than_two(self, bad_pass):
         with pytest.raises(ValueError):
-            _string_param_value('good_key', [['a','b'], bad_pass, 'string'])
+            _bool_param_value('good_key', [[True, False], bad_pass, 'bool'])
 
 
 class TestArgType:
@@ -119,18 +118,21 @@ class TestArgType:
     )
     def test_rejects_anything_not_the_word_string(self, bad_param_type):
         with pytest.raises(TypeError):
-            _string_param_value('good_key', [['a','b'], None, bad_param_type])
+            _bool_param_value('good_key', [[True, False], None, bad_param_type])
 
 
     @pytest.mark.parametrize('bad_string', ('junk', 'and', 'more_junk'))
     def test_rejects_bad_strings(self, bad_string):
         with pytest.raises(ValueError):
-            _string_param_value('good_key', [['a','b'], None, bad_string])
+            _bool_param_value('good_key', [[True, False], None, bad_string])
 
 
-    def test_accepts_the_word_string(self):
-        assert _string_param_value('good_key', [['a','b'], 3, 'string']) == \
-                        [['a','b'], 3, 'string']
+    def test_accepts_the_word_bool(self):
+        assert _bool_param_value('good_key', [[True, False], 3, 'bool']) == \
+                        [[True, False], 3, 'bool']
+
+
+
 
 
 

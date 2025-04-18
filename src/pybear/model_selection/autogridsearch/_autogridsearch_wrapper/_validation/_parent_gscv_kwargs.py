@@ -4,6 +4,10 @@
 # License: BSD 3 clause
 #
 
+
+
+from typing_extensions import Any
+
 import inspect
 from copy import deepcopy
 
@@ -16,12 +20,10 @@ from dask_ml.model_selection import (
 
 
 
-
-
 def _val_parent_gscv_kwargs(
-        _GSCV_parent,
-        _parent_gscv_kwargs: dict[str, any]
-    ) -> None:
+    _GSCV_parent,
+    _parent_gscv_kwargs: dict[str, Any]
+) -> None:
 
     """
 

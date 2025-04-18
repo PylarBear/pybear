@@ -5,23 +5,26 @@
 #
 
 
+
 import numpy as np
 
-from ._numerical_params import _numerical_param_value
-from ._string_params import _string_param_value
-from ._bool_params import _bool_param_value
+from ._params_numerical import _numerical_param_value
+from ._params_string import _string_param_value
+from ._params_bool import _bool_param_value
 
 from .._type_aliases import ParamsType
 
 
 
 def _params__total_passes(
-        _params: ParamsType,
-        _total_passes: int
-    ) -> tuple[ParamsType, int]:
+    _params: ParamsType,
+    _total_passes: int
+) -> tuple[ParamsType, int]:
 
-    """Validate numerical, string, and bool params within _params, and
+    """
+    Validate numerical, string, and bool params within _params, and
     standardize the format of _params, vis-à-vis total_passes.
+
 
     Parameters
     ----------
@@ -194,8 +197,9 @@ def _params__total_passes(
         elif _params[_key][-1] == 'bool':
             _params[_key] = _bool_param_value(_key, _params[_key])
         else:
-            _params[_key] = \
-                _numerical_param_value(_key, _params[_key], _total_passes)
+            _params[_key] = _numerical_param_value(
+                _key, _params[_key], _total_passes
+            )
     # END params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 

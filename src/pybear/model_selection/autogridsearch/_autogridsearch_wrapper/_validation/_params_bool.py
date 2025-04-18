@@ -6,16 +6,19 @@
 
 
 
+from typing import Sequence
 from typing_extensions import Union, TypeAlias
 
+import numbers
+
+
+
 # see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
-BoolDataType: TypeAlias = bool
-InBoolGridType: TypeAlias = \
-    Union[list[BoolDataType], tuple[BoolDataType], set[BoolDataType]]
-InBoolPointsType: TypeAlias = Union[None, int]
-InBoolParamType: TypeAlias = Union[list[InBoolGridType, InBoolPointsType, str],
-                                tuple[InBoolGridType, InBoolPointsType, str]]
-OutBoolGridType: TypeAlias = list[BoolDataType]
+DataType: TypeAlias = bool
+InBoolGridType: TypeAlias = Sequence[DataType]
+InBoolPointsType: TypeAlias = Union[None, numbers.Integral]
+InBoolParamType: TypeAlias = Sequence[InBoolGridType, InBoolPointsType, str]
+OutBoolGridType: TypeAlias = list[DataType]
 OutBoolPointsType: TypeAlias = int
 OutBoolParamType: TypeAlias = list[OutBoolGridType, OutBoolPointsType, str]
 
@@ -31,9 +34,9 @@ def _bool_param_value(
 
     COMES IN AS
     list-like(
-                list-like('grid_value1', etc.),
-                None or integer > 0,
-                'bool'
+        list-like('grid_value1', etc.),
+        None or integer > 0,
+        'bool'
     )
 
     validate bool_params' dict value is a list-like that contains
