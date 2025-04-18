@@ -5,51 +5,15 @@
 #
 
 
+
 import pytest
 import numpy as np
 
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
 from sklearn.linear_model import Ridge
 
-from dask_ml.model_selection import GridSearchCV as dask_GridSearchCV
-from dask_ml.linear_model import LogisticRegression
-
 from pybear.model_selection.autogridsearch.autogridsearch_wrapper import \
     autogridsearch_wrapper
-
-
-
-
-sklearn_estimator = Ridge(
-    # alpha=1.0,  use this in AGSCV
-    # fit_intercept=True, use this in AGSCV
-    copy_X=True,
-    # max_iter=None, use this in AGSCV
-    tol=0.0001,
-    # solver='auto',  use this in AGSCV
-    positive=False,
-    random_state=None
-)
-
-
-
-dask_estimator = LogisticRegression(
-    penalty='l2',
-    dual=False,
-    tol=0.0001,
-    # C=1.0,   use this in AGSCV
-    # fit_intercept=True,   use this in AGSCVs
-    intercept_scaling=1.0,
-    class_weight=None,
-    random_state=None,
-    # solver='admm',  use this in AGSCV [lbfgs, admm]
-    # max_iter=100,   use this in AGSCV
-    multi_class='ovr',
-    verbose=0,
-    warm_start=False,
-    n_jobs=1,
-    solver_kwargs=None
-)
 
 
 
@@ -59,12 +23,28 @@ class TestDemo:
     # tests RESULTS_ & GRIDS_
     # shift_ctr
 
-    @pytest.mark.parametrize('_package', ('sklearn', 'dask'))
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def sklearn_estimator():
+        return Ridge(
+            # alpha=1.0,  use this in AGSCV
+            # fit_intercept=True, use this in AGSCV
+            copy_X=True,
+            # max_iter=None, use this in AGSCV
+            tol=0.0001,
+            # solver='auto',  use this in AGSCV
+            positive=False,
+            random_state=None
+        )
+
+
+
     @pytest.mark.parametrize('_space, _gap',
         (
-         ('linspace', 'na'),
-         ('logspace', 1.0),
-         ('logspace', 2.0),
+            ('linspace', 'na'),
+            ('logspace', 1.0),
+            ('logspace', 2.0),
         )
     )
     @pytest.mark.parametrize('_type', ('fixed', 'soft', 'hard'))
@@ -75,13 +55,12 @@ class TestDemo:
     @pytest.mark.parametrize('_max_shifts', (1, 3))
     @pytest.mark.parametrize(f'_tpih', (True, False))
     @pytest.mark.parametrize('_pass_best', (True, False))
-    def test_sklearn(self, _package, _space, _gap, _type, _univ_min_bound,
-         _points, _total_passes, _shrink_pass, _max_shifts, _tpih, _pass_best):
+    def test_sklearn(
+        self, _space, _gap, _type, _univ_min_bound, _points, _total_passes,
+        _shrink_pass, _max_shifts, _tpih, _pass_best, sklearn_estimator
+    ):
 
-        if _package == 'sklearn':
-            SKLearnAutoGridSearch = autogridsearch_wrapper(sklearn_GridSearchCV)
-        elif _package == 'dask':
-            DaskAutoGridSearch = autogridsearch_wrapper(dask_GridSearchCV)
+        SKLearnAutoGridSearch = autogridsearch_wrapper(sklearn_GridSearchCV)
 
         _POINTS = [_points for _ in range(_total_passes)]
         _POINTS[_shrink_pass-1:] = [1 for _ in _POINTS[_shrink_pass-1:]]
@@ -119,103 +98,53 @@ class TestDemo:
         elif _space == 'logspace':
             _alpha_grid = np.power(10, _alpha_log_range)
             _max_iter_grid = np.power(10, _alpha_log_range)
+        else:
+            raise Exception
 
+        _params['alpha'][0] = list(map(float, _alpha_grid))
 
-        try:
-            _params['alpha'][0] = list(map(float, _alpha_grid))
-        except:
-            pass
+        _params['max_iter'][0] = list(map(int, _max_iter_grid))
 
-        try:
-            _params['max_iter'][0] = list(map(int, _max_iter_grid))
-        except:
-            pass
         # END build first grids ** * ** * ** * ** * ** * ** * ** * ** *
 
-        if _package == 'sklearn':
-            test_cls = SKLearnAutoGridSearch(
-                sklearn_estimator,
-                params=_params,
-                total_passes=_total_passes,
-                total_passes_is_hard=_tpih,
-                max_shifts=_max_shifts
-            )
-        elif _package == 'dask':
-            # 24_05_32 params was originally built for sklearn Ridge, but
-            # in trying to expand tests to dask, dask doesnt have Ridge and
-            # dask logistic takes 'C' instead of 'alpha'. Swap 'C' into
-            # params in place of 'alpha' for dask tests.
-            _params['C'] = _params['alpha']
-            del _params['alpha']
 
-            # also swap the engines in solver, the only engine that matches
-            # between sklearn and dask is 'lbfgs'
-            _params['solver'][0] = ['lbfgs', 'admm']
-
-            test_cls = DaskAutoGridSearch(
-                dask_estimator,
-                params=_params,
-                total_passes=_total_passes,
-                total_passes_is_hard=_tpih,
-                max_shifts=_max_shifts
-            )
-
+        test_cls = SKLearnAutoGridSearch(
+            sklearn_estimator,
+            params=_params,
+            total_passes=_total_passes,
+            total_passes_is_hard=_tpih,
+            max_shifts=_max_shifts
+        )
 
         # build _true_best_params ** * ** * ** * ** * ** * ** * ** * **
         # arbitrary values in _true_best_params ** * ** * ** * ** * ** *
         __ = {}
-        try:
-            _params['alpha']    # for sklearn ridge, may have been swapped out
-            if _type == 'soft':
-                __['alpha'] = 53_827
-            elif _type == 'hard':
-                x =  _params['alpha'][0]
-                __['alpha'] = float(np.mean((x[-2], x[-1])))
-                del x
-            elif _type == 'fixed':
-                __['alpha'] = _params['alpha'][0][-2]
 
-        except:
-            pass
+        if _type == 'soft':
+            __['alpha'] = 53_827
+        elif _type == 'hard':
+            x =  _params['alpha'][0]
+            __['alpha'] = float(np.mean((x[-2], x[-1])))
+            del x
+        elif _type == 'fixed':
+            __['alpha'] = _params['alpha'][0][-2]
+        else:
+            raise Exception
 
-        try:
-            _params['C']   # for dask logistic, may have been swapped in
-            if _type == 'soft':
-                __['C'] = 53_827
-            elif _type == 'hard':
-                x =  _params['C'][0]
-                __['C'] = float(np.mean((x[-2], x[-1])))
-                del x
-            elif _type == 'fixed':
-                __['C'] = _params['C'][0][-2]
+        __['fit_intercept'] = True
 
-        except:
-            pass
+        if _type == 'soft':
+            __['max_iter'] = 8_607
+        elif _type == 'hard':
+            x =  _params['max_iter'][0]
+            __['max_iter'] = float(np.floor(np.mean((x[-2], x[-1]))))
+            del x
+        elif _type == 'fixed':
+            __['max_iter'] = _params['max_iter'][0][-2]
+        else:
+            raise Exception
 
-        try:
-            _params['fit_intercept']
-            __['fit_intercept'] = True
-        except:
-            pass
-
-        try:
-            _params['max_iter']
-            if _type == 'soft':
-                __['max_iter'] = 8_607
-            elif _type == 'hard':
-                x =  _params['max_iter'][0]
-                __['max_iter'] = float(np.floor(np.mean((x[-2], x[-1]))))
-                del x
-            elif _type == 'fixed':
-                __['max_iter'] = _params['max_iter'][0][-2]
-        except:
-            pass
-
-        try:
-            _params['solver']
-            __['solver'] = np.random.choice(_params['solver'][0], 1)[0]
-        except:
-            pass
+        __['solver'] = np.random.choice(_params['solver'][0], 1)[0]
 
         _true_best_params = __
         # END arbitrary values in _true_best_params ** * ** * ** * ** *
@@ -302,32 +231,6 @@ class TestDemo:
                             _true_best_params[_param] <= max(_last_grid)
 
         del _last_param_grid, _last_best, _param, _last_grid
-
-
-    @pytest.mark.skip(reason=f"not done yet")
-    def test_dask_w_true_best_params(self):
-
-        DaskAutoGridSearch = autogridsearch_wrapper(dask_GridSearchCV)
-
-        test_cls = DaskAutoGridSearch(
-            estimator=dask_estimator,
-            params=params,
-            total_passes=2,
-            total_passes_is_hard=True,
-            max_shifts=2,
-        )
-
-        _true_best_params = {
-
-        }
-
-        out = test_cls.demo(
-            true_best_params=_true_best_params,
-            mock_gscv_pause_time=0
-        )
-
-
-
 
 
 

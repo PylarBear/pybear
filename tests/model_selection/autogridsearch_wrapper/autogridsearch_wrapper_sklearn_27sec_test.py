@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 # demo_test incidentally handles testing of all autogridsearch_wrapper
 # functionality except fit() (because demo bypasses fit().) This test
 # module handles fit() for all sklearn gridsearch modules.
@@ -64,6 +66,7 @@ class TestSklearnGSCVS:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
+
     @pytest.mark.parametrize('SKLEARN_GSCV',
         (
             SklearnGridSearchCV,
@@ -98,7 +101,7 @@ class TestSklearnGSCVS:
             'max_shifts': _max_shifts,
             'agscv_verbose': False,
             'scoring': _scorer,
-            'n_jobs': -1,
+            'n_jobs': -1,    # -1 is fastest 25_04_18_10_00_00
             'cv': 4,
             'verbose': 0,
             'error_score': 'raise',

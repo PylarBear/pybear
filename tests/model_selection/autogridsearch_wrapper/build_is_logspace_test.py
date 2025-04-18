@@ -4,14 +4,14 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 import numpy as np
 
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper.\
     _build_is_logspace import _build_is_logspace
-
-
 
 
 
@@ -34,12 +34,14 @@ class TestBuildIsLogspace:
 
         assert _build_is_logspace(_params_1) == _expected_is_logspace
 
+
     def test_accuracy_2(self):
         _params_2 = {'b': [[1, 2, 3, 4], [4, 4, 4], 'fixed_integer']}
 
         _expected_is_logspace = {'b': False}
 
         assert _build_is_logspace(_params_2) == _expected_is_logspace
+
 
     def test_accuracy_3(self):
         _params_3 = {'c': [np.logspace(-4,4,9), [9,9,9], 'soft_float']}
@@ -48,12 +50,14 @@ class TestBuildIsLogspace:
 
         assert _build_is_logspace(_params_3) == _expected_is_logspace
 
+
     def test_accuracy_4(self):
         _params_4 = {'d': [[1, 10, 100], [3, 3, 3], 'hard_integer']}
 
         _expected_is_logspace = {'d': 1.0}
 
         assert _build_is_logspace(_params_4) == _expected_is_logspace
+
 
     def test_accuracy_5(self):
         _params_5 = {'e': [[0, 1, 10, 100], [4, 4, 4], 'soft_float']}
@@ -62,6 +66,7 @@ class TestBuildIsLogspace:
 
         assert _build_is_logspace(_params_5) == _expected_is_logspace
 
+
     def test_accuracy_6(self):
 
         _params_6 = {'f': [[1, 10], [2,2,3], 'soft_integer']}
@@ -69,7 +74,6 @@ class TestBuildIsLogspace:
         _expected_is_logspace = {'f': False}
 
         assert _build_is_logspace(_params_6) == _expected_is_logspace
-
 
 
     def test_accuracy_7(self):
