@@ -4,30 +4,32 @@
 # License: BSD 3 clause
 #
 
-import sys
+
+
 from typing_extensions import Union
-from typing_extensions import TypeAlias
+from ..._type_aliases_float import (
+    FloatDataType,
+    FloatGridType
+)
+
+import sys
+
 import numpy as np
-from pybear.utilities._get_module_name import get_module_name
+
 from .._validation._validate_int_float_linlogspace import _validate_int_float_linlogspace
-
-
-# see _type_aliases; subtypes for DataType & GridType
-FloatDataType: TypeAlias = float
-FloatGridType: TypeAlias = \
-    Union[list[FloatDataType], tuple[FloatDataType], set[FloatDataType]]
+from ......utilities._get_module_name import get_module_name
 
 
 
 def _float_logspace(
-                    _SINGLE_GRID: FloatGridType,
-                    _posn: int,
-                    _is_logspace: Union[bool, float],
-                    _is_hard: bool,
-                    _hard_min: FloatDataType,
-                    _hard_max: FloatDataType,
-                    _points: int
-    ) -> list[FloatDataType]:
+    _SINGLE_GRID: FloatGridType,
+    _posn: int,
+    _is_logspace: Union[bool, float],
+    _is_hard: bool,
+    _hard_min: FloatDataType,
+    _hard_max: FloatDataType,
+    _points: int
+) -> list[FloatDataType]:
 
 
     """

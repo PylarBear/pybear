@@ -5,17 +5,12 @@
 #
 
 
-from typing import Sequence
-from typing_extensions import TypeAlias
 
-
-# see _type_aliases
-
-# subtypes for bool only
-BoolDataType: TypeAlias = bool  # DataType sub
-BoolGridType: TypeAlias = Sequence[BoolDataType]  # GridType sub
-BoolPointsType: TypeAlias = int  # PointsType sub
-BoolParamType: TypeAlias = list[BoolGridType, BoolPointsType, str] # ParamType sub
+from ..._type_aliases_bool import (
+    BoolDataType,
+    BoolParamType,
+    BoolGridType
+)
 
 
 

@@ -5,27 +5,27 @@
 #
 
 
+
 from typing_extensions import Union
-from typing_extensions import TypeAlias
+from ..._type_aliases_float import (
+    FloatDataType,
+    FloatGridType
+)
+
 from ._float_linspace import _float_linspace
 from ._float_logspace import _float_logspace
 
 
-# see _type_aliases; subtypes for DataType & GridType
-FloatDataType: TypeAlias = float
-FloatGridType: TypeAlias = \
-    Union[list[FloatDataType], tuple[FloatDataType], set[FloatDataType]]
-
 
 def _float(
-            _SINGLE_GRID: FloatGridType,
-            _is_logspace: Union[bool, float],
-            _posn: int,
-            _is_hard: bool,
-            _hard_min: FloatDataType,
-            _hard_max: FloatDataType,
-            _points: int
-    ) -> tuple[list[FloatDataType], Union[bool, float]]:
+    _SINGLE_GRID: FloatGridType,
+    _is_logspace: Union[bool, float],
+    _posn: int,
+    _is_hard: bool,
+    _hard_min: FloatDataType,
+    _hard_max: FloatDataType,
+    _points: int
+) -> tuple[list[FloatDataType], Union[bool, float]]:
 
     """
     Take in a float's grid from the last round of GridSearch along with

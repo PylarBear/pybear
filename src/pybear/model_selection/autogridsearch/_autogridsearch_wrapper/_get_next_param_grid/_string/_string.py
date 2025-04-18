@@ -6,20 +6,13 @@
 
 
 
-from typing import Sequence
-from typing_extensions import TypeAlias
+from ..._type_aliases_str import (
+    StrDataType,
+    StrParamType,
+    StrGridType
+)
 
 import numbers
-
-
-# see _type_aliases
-
-# subtypes for str only
-StrDataType: TypeAlias = str  # DataType sub
-StrGridType: TypeAlias = Sequence[StrDataType] # GridType sub
-StrPointsType: TypeAlias = numbers.Integral # PointsType sub
-StrParamType: TypeAlias = list[StrGridType, StrPointsType, str] # ParamType sub
-
 
 
 

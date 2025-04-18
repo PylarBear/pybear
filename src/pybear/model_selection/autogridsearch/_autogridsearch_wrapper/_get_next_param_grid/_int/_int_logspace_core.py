@@ -6,14 +6,18 @@
 
 
 
-
+from typing_extensions import Union
+from ..._type_aliases_int import (
+    IntDataType,
+    IntGridType
+)
 
 import numpy as np
-from typing_extensions import Union
-from typing_extensions import TypeAlias
+
+from ._int_grid_mapper import _int_grid_mapper
 from .._int._int_logspace_gap_gt_1_soft import _int_logspace_gap_gt_1_soft
 from .._int._int_logspace_gap_gt_1_hard import _int_logspace_gap_gt_1_hard
-from ._int_grid_mapper import _int_grid_mapper
+
 
 
 # 24_05_18_18_39_00 _int_logspace_gap_gt_1 was written and tested in
@@ -30,22 +34,16 @@ from ._int_grid_mapper import _int_grid_mapper
 # for each of the modules.
 
 
-# see _type_aliases, subtyes of DataType and GridType
-IntDataType: TypeAlias = int
-IntGridType: TypeAlias = \
-    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
-
-
 
 def _int_logspace_core(
-                        _SINGLE_GRID: IntGridType,
-                        _is_logspace: Union[bool, float],
-                        _posn: int,
-                        _is_hard: bool,
-                        _hard_min: IntDataType,
-                        _hard_max: IntDataType,
-                        _points: int
-    ) -> list[IntDataType]:
+    _SINGLE_GRID: IntGridType,
+    _is_logspace: Union[bool, float],
+    _posn: int,
+    _is_hard: bool,
+    _hard_min: IntDataType,
+    _hard_max: IntDataType,
+    _points: int
+) -> list[IntDataType]:
 
 
     """

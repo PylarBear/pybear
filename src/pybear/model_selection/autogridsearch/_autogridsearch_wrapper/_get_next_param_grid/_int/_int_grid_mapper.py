@@ -5,17 +5,18 @@
 #
 
 
-import numpy as np
-from typing_extensions import TypeAlias
 
-# see _type_aliases; subtype for DataType
-IntDataType: TypeAlias = int
+from ..._type_aliases_int import IntDataType
+
+import numpy as np
+
+
 
 def _int_grid_mapper(
-        _left: IntDataType,
-        _right: IntDataType,
-        _points: int
-    ) -> list[IntDataType]:
+    _left: IntDataType,
+    _right: IntDataType,
+    _points: int
+) -> list[IntDataType]:
 
     """
     Given a left and right (minimum and maximum) value for a range,

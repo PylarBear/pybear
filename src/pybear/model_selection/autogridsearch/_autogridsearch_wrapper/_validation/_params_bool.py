@@ -6,28 +6,16 @@
 
 
 
-from typing import Sequence, Tuple
-from typing_extensions import Union, TypeAlias
-
-import numbers
-
-
-
-# see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
-DataType: TypeAlias = bool
-InBoolGridType: TypeAlias = Sequence[DataType]
-InBoolPointsType: TypeAlias = Union[None, numbers.Integral]
-InBoolParamType: TypeAlias = Sequence[Tuple[InBoolGridType, InBoolPointsType, str]]
-OutBoolGridType: TypeAlias = list[DataType]
-OutBoolPointsType: TypeAlias = int
-OutBoolParamType: TypeAlias = list[OutBoolGridType, OutBoolPointsType, str]
-
+from .._type_aliases_bool import (
+    InBoolParamType,
+    BoolParamType
+)
 
 
 def _bool_param_value(
     _bool_param_key: str,
     _bool_param_value: InBoolParamType
-) -> OutBoolParamType:
+) -> BoolParamType:
 
     """
     Validate _bool_param_value --- standardize format
@@ -46,9 +34,9 @@ def _bool_param_value(
 
     GOES OUT AS
     [
-    ['grid_value1', etc.],
-    1_000_000 or integer > 0,
-    'bool'
+        ['grid_value1', etc.],
+        1_000_000 or integer > 0,
+        'bool'
     ]
 
 

@@ -8,16 +8,15 @@
 
 import numpy as np
 from typing_extensions import Union
-from typing_extensions import TypeAlias
+from ..._type_aliases_int import IntDataType
 
-# see _type_aliases, subtype of DataType
-IntDataType: TypeAlias = int
+
 
 def _int_logspace_gap_gt_1_soft(
-        _LOG_SINGLE_GRID: np.ndarray[IntDataType],
-        _is_logspace: Union[bool, float],
-        _posn: int
-    ) -> tuple[IntDataType, IntDataType]:
+    _LOG_SINGLE_GRID: np.ndarray[IntDataType],
+    _is_logspace: Union[bool, float],
+    _posn: int
+) -> tuple[IntDataType, IntDataType]:
 
 
     """
