@@ -9,11 +9,16 @@
 from typing import (
     Callable,
     Literal,
-    Optional,
     Sequence,
     TypedDict
 )
-from typing_extensions import Required, TypeAlias, Union
+from typing_extensions import (
+    NotRequired,
+    Required,
+    TypeAlias,
+    Union
+)
+
 import numpy.typing as npt
 
 import re
@@ -47,18 +52,18 @@ ReplaceType: TypeAlias = Union[None, PairType, tuple[PairType, ...]]
 RemoveType: TypeAlias = Union[None, FindType, tuple[FindType, ...]]
 
 class LexiconLookupType(TypedDict):
-    update_lexicon: Optional[bool]
-    skip_numbers: Optional[bool]
-    skip_numbers: Optional[bool]
-    auto_split: Optional[bool]
-    auto_add_to_lexicon: Optional[bool]
-    auto_delete: Optional[bool]
-    DELETE_ALWAYS: Optional[Union[Sequence[str], None]]
-    REPLACE_ALWAYS: Optional[Union[dict[str, str], None]]
-    SKIP_ALWAYS: Optional[Union[Sequence[str], None]]
-    SPLIT_ALWAYS: Optional[Union[dict[str, Sequence[str]], None]]
-    remove_empty_rows: Optional[bool]
-    verbose: Optional[bool]
+    update_lexicon: NotRequired[bool]
+    skip_numbers: NotRequired[bool]
+    skip_numbers: NotRequired[bool]
+    auto_split: NotRequired[bool]
+    auto_add_to_lexicon: NotRequired[bool]
+    auto_delete: NotRequired[bool]
+    DELETE_ALWAYS: NotRequired[Union[Sequence[str], None]]
+    REPLACE_ALWAYS: NotRequired[Union[dict[str, str], None]]
+    SKIP_ALWAYS: NotRequired[Union[Sequence[str], None]]
+    SPLIT_ALWAYS: NotRequired[Union[dict[str, Sequence[str]], None]]
+    remove_empty_rows: NotRequired[bool]
+    verbose: NotRequired[bool]
 
 class NGramsType(TypedDict):
     ngrams: Required[Sequence[Sequence[FindType]]]

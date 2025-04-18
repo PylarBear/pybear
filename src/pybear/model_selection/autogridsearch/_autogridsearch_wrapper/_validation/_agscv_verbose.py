@@ -6,13 +6,33 @@
 
 
 
-def _agscv_verbose(_agscv_verbose: bool) -> bool:
+def _val_agscv_verbose(
+    _agscv_verbose: bool
+) -> None:
+
+
     """
-    Validate _agscv_verbose --- force to boolean.
+    Validate :param: `agscv_verbose`. Must be boolean.
+
+
+    Parameters
+    ----------
+    _agscv_verbose:
+        bool - whether to display additional helpful information during
+        an agscv session.
+
+
+    Returns
+    -------
+    -
+        None
 
     """
 
-    return bool(_agscv_verbose)
+
+    if not isinstance(_agscv_verbose, bool):
+        raise TypeError(f"'agscv_verbose' must be boolean")
+
 
 
 

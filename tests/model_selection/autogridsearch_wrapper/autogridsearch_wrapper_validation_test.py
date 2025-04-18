@@ -118,27 +118,31 @@ class TestAGSCV_Generic:
 
     # tpih ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # takes bool() of input... anything not None, False, 0 is True
+    # must be bool
     @pytest.mark.parametrize('_tpih',
-        (1, 2, np.pi, True, 'junk', min, [1,], (1,), {1,2}, lambda x: x)
+        (1, 2, np.pi, None, 'junk', min, [1,], (1,), {1,2}, lambda x: x)
     )
-    def test_tpih_returns_true(self, _tpih, AutoGridSearch,
-                                       good_sk_logistic_params):
+    def test_tpih_rejects_non_bool(
+        self, _tpih, AutoGridSearch, good_sk_logistic_params
+    ):
+
+        with pytest.raises(TypeError):
+            AutoGridSearch(
+                skl_logistic(),
+                good_sk_logistic_params,
+                total_passes_is_hard=_tpih
+            )
+
+
+    @pytest.mark.parametrize('_tpih', (True, False))
+    def test_tpih_accepts_bool(
+        self, _tpih, AutoGridSearch, good_sk_logistic_params
+    ):
         assert AutoGridSearch(
             skl_logistic(),
             good_sk_logistic_params,
             total_passes_is_hard=_tpih
-        ).total_passes_is_hard is True
-
-
-    @pytest.mark.parametrize('_tpih', (0, None, False))
-    def test_tpih_returns_false(self, _tpih, AutoGridSearch,
-                                      good_sk_logistic_params):
-        assert AutoGridSearch(
-            skl_logistic(),
-            good_sk_logistic_params,
-            agscv_verbose=_tpih
-        ).total_passes_is_hard is False
+        ).total_passes_is_hard is _tpih
 
     # END tpih ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -181,28 +185,32 @@ class TestAGSCV_Generic:
 
     # agscv_verbose ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # takes bool() of input... anything not None, False, 0 is True
+    # must be bool
 
     @pytest.mark.parametrize('_verbose',
-        (1, 2, np.pi, True, 'junk', min, [1,], (1,), {1,2}, lambda x: x)
+        (1, 2, np.pi, None, 'junk', min, [1,], (1,), {1,2}, lambda x: x)
     )
-    def test_verbose_returns_true(self, _verbose, AutoGridSearch,
-                                       good_sk_logistic_params):
+    def test_verbose_rejects_non_bool(
+        self, _verbose, AutoGridSearch, good_sk_logistic_params
+    ):
+
+        with pytest.raises(TypeError):
+            assert AutoGridSearch(
+                skl_logistic(),
+                good_sk_logistic_params,
+                agscv_verbose=_verbose
+            )
+
+
+    @pytest.mark.parametrize('_verbose', (True, False))
+    def test_verbose_accepts_bool(
+        self, _verbose, AutoGridSearch, good_sk_logistic_params
+    ):
         assert AutoGridSearch(
             skl_logistic(),
             good_sk_logistic_params,
             agscv_verbose=_verbose
-        ).agscv_verbose is True
-
-
-    @pytest.mark.parametrize('_verbose', (0, None, False))
-    def test_verbose_returns_false(self, _verbose, AutoGridSearch,
-                                      good_sk_logistic_params):
-        assert AutoGridSearch(
-            skl_logistic(),
-            good_sk_logistic_params,
-            agscv_verbose=_verbose
-        ).agscv_verbose is False
+        ).agscv_verbose is _verbose
 
 
     # END agscv_verbose ** * ** * ** * ** * ** * ** * ** * ** * ** * **

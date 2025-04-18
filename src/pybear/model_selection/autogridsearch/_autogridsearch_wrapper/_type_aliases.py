@@ -6,10 +6,20 @@
 
 
 
-from typing import TypeVar, Sequence
-from typing_extensions import Union, TypeAlias
+from typing import (
+    Protocol,
+    Sequence,
+    TypeVar
+)
+from typing_extensions import (
+    Any,
+    Self,
+    TypeAlias,
+    Union
+)
 
 import numbers
+
 
 
 DataType = TypeVar('DataType', numbers.Real, str)
@@ -31,9 +41,18 @@ ResultsType: TypeAlias = dict[int, BestParamsType]
 
 
 
+class EstimatorProtocol(Protocol):
 
+    def fit(self, X: any, y: any) -> Self:
+        ...
 
+    def get_params(self, *args, **kwargs) -> dict[str, Any]:
+        ...
 
+    def set_params(self, *args, **kwargs) -> Self:
+        ...
+
+    # pizza what about score?
 
 
 

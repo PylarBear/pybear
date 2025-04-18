@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 from typing_extensions import Union, TypeAlias
 
 # see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
@@ -18,10 +20,11 @@ OutBoolPointsType: TypeAlias = int
 OutBoolParamType: TypeAlias = list[OutBoolGridType, OutBoolPointsType, str]
 
 
+
 def _bool_param_value(
-        _bool_param_key: str,
-        _bool_param_value: InBoolParamType
-    ) -> OutBoolParamType:
+    _bool_param_key: str,
+    _bool_param_value: InBoolParamType
+) -> OutBoolParamType:
 
     """
     Validate _bool_param_value --- standardize format

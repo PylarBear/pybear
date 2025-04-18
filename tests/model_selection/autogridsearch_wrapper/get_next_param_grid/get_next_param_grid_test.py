@@ -106,7 +106,8 @@ def good_shift_ctr():
 
 @pytest.fixture
 def good_max_shifts():
-    return None
+    # this can never be None going into _get_next_param_grid
+    return 100
 
 
 
@@ -247,7 +248,7 @@ class TestOutputFormats:
                 _total_passes=_total_passes,
                 _total_passes_is_hard=_tpih,
                 _shift_ctr=0,
-                _max_shifts=None
+                _max_shifts=3
             )
 
         assert isinstance(_out_params, dict)
@@ -310,10 +311,10 @@ class TestFixedBoolAndStringGrids:
     @pytest.mark.parametrize('_pass, _total_passes', ((1, 3), (2, 3), (1, 2)))
     @pytest.mark.parametrize('_tpih', (True, False))
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
-    @pytest.mark.parametrize('_max_shifts', (None, 1, 3))
+    @pytest.mark.parametrize('_max_shifts', (1, 3))
     def test_fixed_str_bool_grids_unchanged(
-            self, _type, _best, _pass, _total_passes, _tpih, _shift_ctr, _max_shifts,
-        ):
+        self, _type, _best, _pass, _total_passes, _tpih, _shift_ctr, _max_shifts,
+    ):
 
         # total_passes unchanged
         # shift_ctr never incremented
@@ -389,7 +390,7 @@ class TestFixedBoolAndStringGrids:
                 _total_passes=_total_passes,
                 _total_passes_is_hard=False,
                 _shift_ctr=0,
-                _max_shifts=None
+                _max_shifts=3
             )
 
         if _shrink_pass != 10:
@@ -414,7 +415,7 @@ class TestSoftShifts:
     @pytest.mark.parametrize('_posn', ('left', 'middle', 'right'))
     @pytest.mark.parametrize('_pass, _total_passes', ((1, 3), (2, 3), (1, 2)))
     @pytest.mark.parametrize('_tpih', (True, False))
-    @pytest.mark.parametrize('_max_shifts', (None, 3))
+    @pytest.mark.parametrize('_max_shifts', (100, 3))
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
     def test_soft_grid_shifts(self, _space, _type, _posn, _pass,
             _total_passes, _tpih, _max_shifts, _shift_ctr,
@@ -507,7 +508,7 @@ class TestHardShiftsLinspace:
     @pytest.mark.parametrize('_posn', ('left', 'middle', 'right'))
     @pytest.mark.parametrize('_pass, _total_passes', ((1, 4), (2, 4), (3, 4)))
     @pytest.mark.parametrize('_tpih', (True, False))
-    @pytest.mark.parametrize('_max_shifts', (None, 3))
+    @pytest.mark.parametrize('_max_shifts', (1, 3))
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
     def test_hard_grid_shifts_linspace(self, _type, _hard_min, _hard_max, _posn,
         _pass, _total_passes, _tpih, _max_shifts, _shift_ctr
@@ -599,7 +600,7 @@ class TestHardShiftsLogspace:
     @pytest.mark.parametrize('_hard_max', ('right', 'gt_right'))
     @pytest.mark.parametrize('_pass, _total_passes', ((1, 4), (2, 4), (3, 4)))
     @pytest.mark.parametrize('_tpih', (True, False))
-    @pytest.mark.parametrize('_max_shifts', (None, 3))
+    @pytest.mark.parametrize('_max_shifts', (1, 3))
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
     def test_hard_grid_shifts_logspace(self, _type, _posn, _hard_min, _hard_max,
         _pass, _total_passes, _tpih, _max_shifts, _shift_ctr
@@ -701,8 +702,9 @@ class TestLogspaceRegap:
         )
     )
     @pytest.mark.parametrize('_tpih', (True, False))
-    def test_logspace_regap_float(self, _type, _gap, _posn, _pass, _total_passes,
-          _tpih, _max_shifts, _shift_ctr):
+    def test_logspace_regap_float(self, _type, _gap, _posn, _pass,
+        _total_passes, _tpih, _max_shifts, _shift_ctr
+    ):
 
         _grid = np.logspace(0, 3 * _gap, 4).tolist()
 
@@ -1090,8 +1092,10 @@ class TestDrill:
     @pytest.mark.parametrize('_shift_ctr', (0, 1, 2, 3))
     @pytest.mark.parametrize('_max_shifts', (3, ))
     @pytest.mark.parametrize('_tpih', (True, False))
-    def test_hard_drill(self, _type, _space, _posn, _pass, _total_passes,
-                        _shift_ctr, _max_shifts, _tpih):
+    def test_hard_drill(
+        self, _type, _space, _posn, _pass, _total_passes,
+        _shift_ctr, _max_shifts, _tpih
+    ):
 
         # hard always drills
 
@@ -1296,8 +1300,9 @@ class TestMultiPass:
     @pytest.mark.parametrize('_total_passes', (2, 4))
     @pytest.mark.parametrize('_tpih', (True, False))
     @pytest.mark.parametrize('_max_shifts', (1, 3))
-    def test_hard(self, _shrink_pass, _best_posn, _total_passes, _tpih,
-                  _max_shifts):
+    def test_hard(
+        self, _shrink_pass, _best_posn, _total_passes, _tpih, _max_shifts
+    ):
 
         # hard never increments total_passes or shift_ctr
 
@@ -1450,8 +1455,10 @@ class TestMultiPass:
     @pytest.mark.parametrize('_tpih', (True, False))
     @pytest.mark.parametrize('_shift_ctr', (0,))
     @pytest.mark.parametrize('_max_shifts', (1, 3)) # dont do none, runaway condition
-    def test_soft(self, _shrink_pass, _best_posn, _total_passes, _tpih,
-                  _shift_ctr, _max_shifts):
+    def test_soft(
+        self, _shrink_pass, _best_posn, _total_passes, _tpih, _shift_ctr,
+        _max_shifts
+    ):
 
         # soft can shift and increment total_passes and shift_ctr!
 
