@@ -4,8 +4,10 @@
 # License: BSD 3 clause
 #
 
+
+
 # demo_test incidentally handles testing of all autogridsearch_wrapper
-# functionality except fit() (because demo bypasses fit().) This tests
+# functionality except fit() (because demo bypasses fit().) This test
 # module handles arg/kwarg _validation at the highest level.
 
 

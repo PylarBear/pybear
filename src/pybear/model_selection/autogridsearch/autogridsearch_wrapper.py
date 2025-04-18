@@ -379,25 +379,27 @@ def autogridsearch_wrapper(
         ):
 
             """
-            Supersedes sklearn / dask GridSearchCV fit() method. Run
-            underlying fit() method with all sets of parameters at least
-            'total_passes' number of times.
+            Supersedes sklearn / dask GridSearchCV fit method. Run
+            underlying fit method with all sets of parameters at
+            least :param: `total_passes` number of times.
+
 
             Parameters
             ----------
             X:
-                array-like Iterable[int | float] - training data
+                array-like - training data
             y:
-                array-like Iterable[int | float], default None - target
-                for training data
+                array-like, default=None - target for training data
             groups:
-                default None - Group labels for the samples used while
+                default=None - Group labels for the samples used while
                 splitting the dataset into train/tests set
+
 
             Return
             ------
             -
                 self: AutoGridSearch instance.
+
 
             See Also
             --------
@@ -530,16 +532,6 @@ def autogridsearch_wrapper(
 
 
             return self
-
-
-        # def get_params(self):
-        # if ever needed, hard code that can be substituted for the
-        # BaseEstimator get/set_params can be found in GSTCV_Mixin
-
-
-        # def set_params(self):
-        # if ever needed, hard code that can be substituted for the
-        # BaseEstimator get/set_params can be found in GSTCV_Mixin
 
 
     # pizza this is likely being correctly assigned but pycharm tool tip

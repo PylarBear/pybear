@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 # this module tests compatibility of autogridsearch_wrapper with GSTCV
 # simply by running wrapped GSTCV to completion and asserting a few of
 # the GSTCV attributes are exposed by the wrapper.
@@ -78,7 +80,7 @@ class TestGSTCV:
             'agscv_verbose': False,
             'thresholds': [0.4, 0.6],
             'scoring': _scorer,
-            'n_jobs': None,
+            'n_jobs': 1,     # leave a 1, confliction
             'cv': 4,
             'verbose': 0,
             'error_score': 'raise',

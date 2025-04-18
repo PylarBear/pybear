@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 # this module tests compatibility of autogridsearch_wrapper with GSTCVDask
 # simply by running wrapped GSTCVDask to completion and asserting a few of
 # the GSTCVDask attributes are exposed by the wrapper.
@@ -28,6 +30,7 @@ from pybear.model_selection import GSTCVDask
 
 
 pytest.skip(reason=f'2.5 minute test', allow_module_level=True)
+
 
 
 class TestGSTCVDask:
