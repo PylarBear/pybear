@@ -8,26 +8,30 @@
 
 import numpy as np
 
+from typing import Sequence, Tuple
 from typing_extensions import Union, TypeAlias
+
+import numbers
+
 
 
 # see _type_aliases, these are subtypes of
 # DataType, GridType, PointsType, ParamType
-NumDataType: TypeAlias = Union[int, float]
-InNumGridType: TypeAlias = \
-    Union[list[NumDataType], tuple[NumDataType], set[NumDataType]]
-InNumPointsType: TypeAlias = Union[int, Union[list[int], tuple[int]]]
-InNumParamType: TypeAlias = list[InNumGridType, InNumPointsType, str]
-OutNumGridType: TypeAlias = list[NumDataType]
+DataType: TypeAlias = numbers.Number
+InNumGridType: TypeAlias = Sequence[DataType]
+InNumPointsType: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral]]
+InNumParamType: TypeAlias = Sequence[Tuple[InNumGridType, InNumPointsType, str]]
+OutNumGridType: TypeAlias = list[DataType]
 OutNumPointsType: TypeAlias = list[int]
 OutNumParamType: TypeAlias = list[OutNumGridType, OutNumPointsType, str]
 
 
+
 def _numerical_param_value(
-                            _numerical_param_key: str,
-                            _numerical_param_value: InNumParamType,
-                            total_passes: int
-    ) -> OutNumParamType:
+    _numerical_param_key: str,
+    _numerical_param_value: InNumParamType,
+    total_passes: int
+) -> OutNumParamType:
 
 
     """

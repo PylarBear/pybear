@@ -26,7 +26,7 @@ DataType = TypeVar('DataType', numbers.Real, str)
 
 GridType: TypeAlias = Sequence[DataType]
 
-PointsType: TypeAlias = Union[int, Sequence[int]]
+PointsType: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral]]
 
 ParamType: TypeAlias = list[GridType, PointsType, str]
 
