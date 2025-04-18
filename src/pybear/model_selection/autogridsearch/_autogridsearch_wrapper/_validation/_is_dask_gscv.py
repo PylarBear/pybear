@@ -5,17 +5,17 @@
 #
 
 
+
 import sys
 
-
+# pizza make a decision whether to move this to pybear.base
 
 def _is_dask_gscv(_GridSearchParent) -> bool:
 
     """
-
-    Validate that the parent grid search class is or is not a dask_ml
-    grid search. Must pass the class, not an instance. Look at the path
-    of the class's module, and if the term 'dask' is in it, assume this
+    Check if the parent grid search class is or is not a dask_ml grid
+    search. Must pass the class, not an instance. Look at the path of
+    the class's module, and if the term 'dask' is in it, assume this
     is a dask grid search.
 
 
@@ -29,9 +29,8 @@ def _is_dask_gscv(_GridSearchParent) -> bool:
     Return
     ------
     -
-        _is_dask_gscv:
-            bool - whether or not the parent grid search is a dask grid
-            search.
+        _is_dask_gscv: bool - whether the parent grid search is a dask
+        grid search.
 
 
     """

@@ -5,10 +5,11 @@
 #
 
 
+
 import pytest
 import numpy as np
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
-    _numerical_params import _numerical_param_value
+    _params_numerical import _numerical_param_value
 
 
 

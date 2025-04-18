@@ -5,11 +5,11 @@
 #
 
 
+
 import pytest
 
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
     _is_dask_gscv import _is_dask_gscv as val_dask_gscv
-
 
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import (
@@ -35,9 +35,17 @@ from pybear.model_selection import (
 
 
 
-
-
 class TestIsDaskGSCV:
+
+
+    @pytest.mark.parametrize('junk_gscv',
+        (0, 1, 'junk', [0,1], None)
+    )
+    def test_raises_on_non_module(self, junk_gscv):
+
+        with pytest.raises(AttributeError):
+            val_dask_gscv(junk_gscv)
+
 
     def test_false_for_sklearn_gscvs(self):
 
@@ -56,17 +64,6 @@ class TestIsDaskGSCV:
         ):
 
             assert val_dask_gscv(dask_gscv_parent)
-
-
-    @pytest.mark.parametrize('junk_gscv',
-        (0, 1, 'junk', [0,1], None)
-    )
-    def test_raises_on_non_module(self, junk_gscv):
-
-        with pytest.raises(AttributeError):
-            val_dask_gscv(junk_gscv)
-
-
 
 
 

@@ -4,34 +4,35 @@
 # License: BSD 3 clause
 #
 
+
+
+from typing import Sequence
 from typing_extensions import Union, TypeAlias
 
 
 # see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
-StrDataType: TypeAlias = Union[None, str]
-InStrGridType: TypeAlias = \
-    Union[list[StrDataType], tuple[StrDataType], set[StrDataType]]
+DataType: TypeAlias = Union[None, str]
+InStrGridType: TypeAlias = Sequence[DataType]
 InStrPointsType: TypeAlias = Union[None, int]
-InStrParamType: TypeAlias = Union[list[InStrGridType, InStrPointsType, str],
-                                tuple[InStrGridType, InStrPointsType, str]]
-OutStrGridType: TypeAlias = list[StrDataType]
+InStrParamType: TypeAlias = Sequence[InStrGridType, InStrPointsType, str]
+OutStrGridType: TypeAlias = list[DataType]
 OutStrPointsType: TypeAlias = int
 OutStrParamType: TypeAlias = list[OutStrGridType, OutStrPointsType, str]
 
 
 def _string_param_value(
-        _string_param_key: str,
-        _string_param_value: InStrParamType
-    ) -> OutStrParamType:
+    _string_param_key: str,
+    _string_param_value: InStrParamType
+) -> OutStrParamType:
 
     """
     Validate _string_param_value --- standardize format
 
     COMES IN AS
     list-like(
-                list-like('grid_value1', 'grid_value2', etc.),
-                None or integer > 0,
-                'string'
+        list-like('grid_value1', 'grid_value2', etc.),
+        None or integer > 0,
+        'string'
     )
 
     validate string_params' dict value is a list-like that contains
