@@ -6,28 +6,17 @@
 
 
 
-from typing import Sequence, Tuple
-from typing_extensions import Union, TypeAlias
-
-import numbers
-
-
-
-# see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
-DataType: TypeAlias = Union[None, str]
-InStrGridType: TypeAlias = Sequence[DataType]
-InStrPointsType: TypeAlias = Union[None, numbers.Integral]
-InStrParamType: TypeAlias = Sequence[Tuple[InStrGridType, InStrPointsType, str]]
-OutStrGridType: TypeAlias = list[DataType]
-OutStrPointsType: TypeAlias = int
-OutStrParamType: TypeAlias = list[OutStrGridType, OutStrPointsType, str]
+from .._type_aliases_str import (
+    InStrParamType,
+    StrParamType
+)
 
 
 
 def _string_param_value(
     _string_param_key: str,
     _string_param_value: InStrParamType
-) -> OutStrParamType:
+) -> StrParamType:
 
     """
     Validate _string_param_value --- standardize format
@@ -46,9 +35,9 @@ def _string_param_value(
 
     GOES OUT AS
     [
-    ['grid_value1', 'grid_value2', etc.],
-    1_000_000 or integer > 0,
-    'string'
+        ['grid_value1', 'grid_value2', etc.],
+        1_000_000 or integer > 0,
+        'string'
     ]
 
 

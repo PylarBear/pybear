@@ -3,10 +3,14 @@
 #
 # License: BSD 3 clause
 #
-import numbers
+
+
+
 from typing import Sequence
 from typing_extensions import Union
 import numpy.typing as npt
+
+import numbers
 
 from ..autogridsearch.autogridsearch_wrapper import \
     autogridsearch_wrapper

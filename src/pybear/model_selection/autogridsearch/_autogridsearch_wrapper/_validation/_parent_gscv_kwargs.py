@@ -32,7 +32,7 @@ def _val_parent_gscv_kwargs(
     2) block dask_ml refit==False - dask GridSearchCV does not expose
         best_params_ whenever refit==False
     3) block dask_ml when multiple scorers are used and refit is callable
-    4) block all parents when multiple scorers are used and refit=False"
+    4) block all parents when multiple scorers are used and refit=False
 
 
     Parameters

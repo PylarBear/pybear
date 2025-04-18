@@ -20,7 +20,7 @@ from .._type_aliases import (
 
 from contextlib import nullcontext
 from copy import deepcopy
-
+import numbers
 
 from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
@@ -73,7 +73,7 @@ class GSTCV(_GSTCVMixin):
         searching over any sequence of parameter settings.
 
     thresholds:
-        Optional[Union[None, numbers.Real, Sequence[Union[numbers.Real]]] -
+        Optional[Union[None, numbers.Real, Sequence[numbers.Real]] -
         The decision threshold search grid to use when performing hyper-
         parameter search. Other GridSearchCV modules only allow for
         search at the conventional decision threshold for binary class-
@@ -473,9 +473,7 @@ class GSTCV(_GSTCVMixin):
         estimator: any,
         param_grid: Union[dict[str, Sequence[any]], list[dict[str, Sequence[any]]]],
         *,
-        thresholds: Optional[
-            Union[Iterable[Union[int, float]], int, float, None]
-        ]=None,
+        thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
         scoring: Optional[
             Union[list[str], dict[str, callable], str, callable]
         ]='accuracy',

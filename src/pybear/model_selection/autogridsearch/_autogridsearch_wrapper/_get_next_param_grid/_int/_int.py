@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import numpy as np
 
 
@@ -18,28 +20,28 @@ import numpy as np
 
 
 from typing_extensions import Union
-from typing_extensions import TypeAlias
+from ..._type_aliases_int import (
+    IntDataType,
+    IntGridType
+
+)
+
 from ._int_linspace_unit_gap import _int_linspace_unit_gap
 from ._int_linspace_gap_gt_1 import _int_linspace_gap_gt_1
 from ._int_logspace_unit_gap import _int_logspace_unit_gap
 from ._int_logspace_gap_gt_1 import _int_logspace_gap_gt_1
 
 
-# see _type_aliases; subtypes for DataType, GridType
-IntDataType: TypeAlias = int
-IntGridType: TypeAlias = \
-    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
-
 
 def _int(
-            _SINGLE_GRID: IntGridType,
-            _is_logspace: Union[bool, float],
-            _posn: int,
-            _is_hard: bool,
-            _hard_min: IntDataType,
-            _hard_max: IntDataType,
-            _points: int
-    ) -> tuple[list[IntDataType], Union[bool, float]]:
+    _SINGLE_GRID: IntGridType,
+    _is_logspace: Union[bool, float],
+    _posn: int,
+    _is_hard: bool,
+    _hard_min: IntDataType,   # pizza verify if this is validated to be int or can it be float
+    _hard_max: IntDataType,   # ditto
+    _points: int
+) -> tuple[list[IntDataType], Union[bool, float]]:
 
 
     """

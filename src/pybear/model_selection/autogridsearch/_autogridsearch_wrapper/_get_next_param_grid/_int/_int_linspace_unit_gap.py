@@ -4,29 +4,31 @@
 # License: BSD 3 clause
 #
 
+
+
+from ..._type_aliases_int import (
+    IntDataType,
+    IntGridType
+)
+
 import sys
-from typing_extensions import Union
-from typing_extensions import TypeAlias
+
 import numpy as np
-from pybear.utilities._get_module_name import get_module_name
+
 from .._validation._validate_int_float_linlogspace import \
     _validate_int_float_linlogspace
+from ......utilities._get_module_name import get_module_name
 
-
-# see _type_aliases, subtypes of DataType, GridType
-IntDataType: TypeAlias = int
-IntGridType: TypeAlias = \
-    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
 
 
 def _int_linspace_unit_gap(
-        _SINGLE_GRID: IntGridType,
-        _posn: int,
-        _is_hard: bool,
-        _hard_min: IntDataType,
-        _hard_max: IntDataType,
-        _points: int
-    ) -> list[IntDataType]:
+    _SINGLE_GRID: IntGridType,
+    _posn: int,
+    _is_hard: bool,
+    _hard_min: IntDataType,
+    _hard_max: IntDataType,
+    _points: int
+) -> list[IntDataType]:
 
 
     """

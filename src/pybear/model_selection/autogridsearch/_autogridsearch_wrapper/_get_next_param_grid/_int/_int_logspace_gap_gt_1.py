@@ -6,31 +6,30 @@
 
 
 
+from typing_extensions import Union
+from ..._type_aliases_int import (
+    IntDataType,
+    IntGridType
+)
 
 import sys
-from typing_extensions import Union
-from typing_extensions import TypeAlias
-from pybear.utilities._get_module_name import get_module_name
+
+from .._int._int_logspace_core import _int_logspace_core
 from ..._get_next_param_grid._validation._validate_int_float_linlogspace import \
     _validate_int_float_linlogspace
-from .._int._int_logspace_core import _int_logspace_core
+from ......utilities._get_module_name import get_module_name
 
-
-# see _type_aliases, subtypes of DataType and GridType
-IntDataType: TypeAlias = int
-IntGridType: TypeAlias = \
-    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
 
 
 def _int_logspace_gap_gt_1(
-                            _SINGLE_GRID: IntGridType,
-                            _is_logspace: Union[bool, float],
-                            _posn: int,
-                            _is_hard: bool,
-                            _hard_min: IntDataType,
-                            _hard_max: IntDataType,
-                            _points: int
-    ) -> list[IntDataType]:
+    _SINGLE_GRID: IntGridType,
+    _is_logspace: Union[bool, float],
+    _posn: int,
+    _is_hard: bool,
+    _hard_min: IntDataType,
+    _hard_max: IntDataType,
+    _points: int
+) -> list[IntDataType]:
 
 
     """

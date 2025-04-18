@@ -4,25 +4,26 @@
 # License: BSD 3 clause
 #
 
+
+
 import time
-from typing_extensions import TypeAlias, Union
+from typing_extensions import Union
 
 import numpy as np
 
-from .._type_aliases import DataType, GridsType, ParamsType, BestParamsType
+from .._type_aliases import GridsType, ParamsType, BestParamsType
 
-ParamType: TypeAlias = list[DataType]
 
 
 def _mock_gscv(
-        _GRIDS: GridsType,
-        _params: ParamsType,
-        _true_best: BestParamsType,
-        _best_params: Union[None, BestParamsType],
-        _pass: int,
-        *,
-        _pause_time: [int, float] = 5
-    ) -> BestParamsType:
+    _GRIDS: GridsType,
+    _params: ParamsType,
+    _true_best: BestParamsType,
+    _best_params: Union[None, BestParamsType],
+    _pass: int,
+    *,
+    _pause_time: [int, float] = 5
+) -> BestParamsType:
 
 
     """

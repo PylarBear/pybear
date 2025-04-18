@@ -4,32 +4,32 @@
 # License: BSD 3 clause
 #
 
+
+
+from ..._type_aliases_int import (
+    IntDataType,
+    IntGridType
+)
+
 import sys
-from typing_extensions import Union
-from typing_extensions import TypeAlias
-from pybear.utilities._get_module_name import get_module_name
-from ..._get_next_param_grid. _validation._validate_int_float_linlogspace import \
-    _validate_int_float_linlogspace
+
+from ._int_grid_mapper import _int_grid_mapper
 from .._int._int_linspace_gap_gt_1_soft import _int_linspace_gap_gt_1_soft
 from .._int._int_linspace_gap_gt_1_hard import _int_linspace_gap_gt_1_hard
-from ._int_grid_mapper import _int_grid_mapper
-
-
-# see _type_aliases; subtypes fo DataType, GridType
-IntDataType: TypeAlias = int
-IntGridType: TypeAlias = \
-    Union[list[IntDataType], tuple[IntDataType], set[IntDataType]]
+from ..._get_next_param_grid. _validation._validate_int_float_linlogspace import \
+    _validate_int_float_linlogspace
+from ......utilities._get_module_name import get_module_name
 
 
 
 def _int_linspace_gap_gt_1(
-                            _SINGLE_GRID: IntGridType,
-                            _posn: int,
-                            _is_hard: bool,
-                            _hard_min: IntDataType,
-                            _hard_max: IntDataType,
-                            _points: int
-    ) -> list[IntDataType]:
+    _SINGLE_GRID: IntGridType,
+    _posn: int,
+    _is_hard: bool,
+    _hard_min: IntDataType,
+    _hard_max: IntDataType,
+    _points: int
+) -> list[IntDataType]:
 
 
     """

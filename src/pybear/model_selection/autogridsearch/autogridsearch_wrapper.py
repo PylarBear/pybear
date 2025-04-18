@@ -7,7 +7,7 @@
 
 
 from typing import Iterable, Sequence
-from typing_extensions import Union, TypeAlias
+from typing_extensions import Any, TypeAlias, Union
 
 import numbers
 from copy import deepcopy
@@ -134,10 +134,7 @@ def autogridsearch_wrapper(
         def __init__(
             self,
             estimator,
-            params: dict[
-                str,
-                list[Sequence[any], Union[int, Sequence[int]], str]
-            ],
+            params: dict[str, list[Sequence[any], Union[int, Sequence[int]], str]],
             *,
             total_passes: int=5,
             total_passes_is_hard: bool=False,
@@ -157,7 +154,7 @@ def autogridsearch_wrapper(
 
             parent_gscv_kwargs = _val_parent_gscv_kwargs(
                 GridSearchParent, parent_gscv_kwargs
-        )
+            )
 
             # super() instantiated in init() for access to GridSearchCV's
             # pre-run attrs and methods
@@ -190,6 +187,8 @@ def autogridsearch_wrapper(
 
             _val_total_passes_is_hard(self.total_passes_is_hard)
 
+            # pizza change this validation to take a _can_be_None param,
+            # because all validation for this after here cannot be None!
             _val_max_shifts(self.max_shifts)
             # pizza u need to address this assignment!
             self.max_shifts = self.max_shifts or 100
@@ -289,7 +288,7 @@ def autogridsearch_wrapper(
         def demo(
             self,
             *,
-            true_best_params: dict[str, any]=None,
+            true_best_params: dict[str, Any]=None,
             mock_gscv_pause_time: numbers.Real=5
         ):
 
@@ -365,6 +364,7 @@ def autogridsearch_wrapper(
 
             # CHECK IF fit() WAS RUN YET, IF NOT,
             # THROW GridSearch's "not fitted yet" ERROR
+            # pizza use a pybear is fitted in place of this
             self.best_score_
             _print_results(self.GRIDS_, self.RESULTS_)
 
@@ -408,8 +408,7 @@ def autogridsearch_wrapper(
 
             """
 
-            # this must be here because allowing attrs of AutoGridSearch
-            # instance to be set directly
+
             self._validation()
 
             self.reset()
