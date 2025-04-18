@@ -24,7 +24,7 @@ from ._validation._validate_phlite import _validate_phlite
 from ._validation._validate_is_logspace import _validate_is_logspace
 from .._validation._params__total_passes import _params__total_passes
 from .._validation._total_passes_is_hard import _total_passes_is_hard as _val_tpih
-from .._validation._max_shifts import _max_shifts as _val_max_shifts
+from .._validation._max_shifts import _val_max_shifts
 
 from .._type_aliases import GridsType, ParamsType, BestParamsType
 

@@ -9,7 +9,7 @@
 import pytest
 
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation.\
-    _agscv_verbose import _agscv_verbose
+    _agscv_verbose import _val_agscv_verbose
 
 
 
@@ -22,12 +22,12 @@ class TestAgscvVerbose:
     def test_rejects_non_bool(self, non_bool):
 
         with pytest.raises(TypeError):
-            _agscv_verbose(non_bool)
+            _val_agscv_verbose(non_bool)
 
 
     @pytest.mark.parametrize('_bool', (True, False))
     def test_accepts_bool(self, _bool):
-        assert _agscv_verbose(_bool) is None
+        assert _val_agscv_verbose(_bool) is None
 
 
 
