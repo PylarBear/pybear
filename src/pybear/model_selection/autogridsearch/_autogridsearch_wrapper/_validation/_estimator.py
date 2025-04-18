@@ -5,18 +5,38 @@
 #
 
 
-from .._type_aliases import ParamsType
+
+from .._type_aliases import (
+    EstimatorProtocol,
+    ParamsType
+)
 
 
 
-
-def _estimator(_params: ParamsType, _estimator_instance) -> None:
+def _val_estimator(
+    _params: ParamsType,
+    _estimator_instance: EstimatorProtocol
+) -> None:
 
     """
-
     Validate estimator is a class instance that has fit, get_params,
-    and set_params methods. Also serendipitously check if the parameter
+    and set_params methods. Pizza what about score? Also, check if the parameter
     names in params are an attr of the estimator instance, if not, raise.
+
+
+    Parameters
+    ----------
+    _params:
+        ParamsType - the parameters to be varied during the grid search
+        process.
+    _estimator_instance:
+        EstimatorProtocol - the estimator for the grid searches.
+
+
+    Returns
+    -------
+    -
+        None
 
     """
 
@@ -24,6 +44,7 @@ def _estimator(_params: ParamsType, _estimator_instance) -> None:
     if not hasattr(_estimator_instance, 'fit'):
         raise TypeError(f"'estimator' must have a 'fit' method")
 
+    # pizza, finalize the decision on score
     # GSTCV does not require estimator have score() method. if GSCV
     # 'scoring' is not None, then the estimator need not have a scoring
     # method.

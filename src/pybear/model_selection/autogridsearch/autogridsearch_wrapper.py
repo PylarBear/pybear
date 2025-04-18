@@ -20,19 +20,17 @@ from ._autogridsearch_wrapper._type_aliases import BestParamsType
 from ._autogridsearch_wrapper._print_results import _print_results
 
 from ._autogridsearch_wrapper._validation._agscv_verbose import \
-    _agscv_verbose as val_agscv_verbose
-from ._autogridsearch_wrapper._validation._estimator import _estimator \
-    as val_estimator
+    _val_agscv_verbose
+from ._autogridsearch_wrapper._validation._estimator import _val_estimator
 from ._autogridsearch_wrapper._validation._is_dask_gscv import _is_dask_gscv \
     as val_dask_gscv
-from ._autogridsearch_wrapper._validation._max_shifts import _max_shifts \
-    as val_max_shifts
+from ._autogridsearch_wrapper._validation._max_shifts import _val_max_shifts
 from ._autogridsearch_wrapper._validation._parent_gscv_kwargs import \
     _val_parent_gscv_kwargs
 from ._autogridsearch_wrapper._validation._params__total_passes import \
     _params__total_passes as val_params_total_passes
 from ._autogridsearch_wrapper._validation._total_passes_is_hard import \
-    _total_passes_is_hard as val_total_passes_is_hard
+    _val_total_passes_is_hard
 from ._autogridsearch_wrapper._build_first_grid_from_params import _build
 from ._autogridsearch_wrapper._build_is_logspace import _build_is_logspace
 
@@ -188,14 +186,15 @@ def autogridsearch_wrapper(
             self.params, self.total_passes = \
                 val_params_total_passes(self.params, self.total_passes)
 
-            val_estimator(self.params, self.estimator)
+            _val_estimator(self.params, self.estimator)
 
-            self.total_passes_is_hard = \
-                val_total_passes_is_hard(self.total_passes_is_hard)
+            _val_total_passes_is_hard(self.total_passes_is_hard)
 
-            self.max_shifts = val_max_shifts(self.max_shifts)
+            _val_max_shifts(self.max_shifts)
+            # pizza u need to address this assignment!
+            self.max_shifts = self.max_shifts or 100
 
-            self.agscv_verbose = val_agscv_verbose(self.agscv_verbose)
+            _val_agscv_verbose(self.agscv_verbose)
 
         # END _validation() ############################################
 
