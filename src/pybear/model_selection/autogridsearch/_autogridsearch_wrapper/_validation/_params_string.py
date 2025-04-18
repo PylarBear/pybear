@@ -6,18 +6,22 @@
 
 
 
-from typing import Sequence
+from typing import Sequence, Tuple
 from typing_extensions import Union, TypeAlias
+
+import numbers
+
 
 
 # see _type_aliases, subtypes for DataType, GridType, PointsType, ParamType
 DataType: TypeAlias = Union[None, str]
 InStrGridType: TypeAlias = Sequence[DataType]
-InStrPointsType: TypeAlias = Union[None, int]
-InStrParamType: TypeAlias = Sequence[InStrGridType, InStrPointsType, str]
+InStrPointsType: TypeAlias = Union[None, numbers.Integral]
+InStrParamType: TypeAlias = Sequence[Tuple[InStrGridType, InStrPointsType, str]]
 OutStrGridType: TypeAlias = list[DataType]
 OutStrPointsType: TypeAlias = int
 OutStrParamType: TypeAlias = list[OutStrGridType, OutStrPointsType, str]
+
 
 
 def _string_param_value(
