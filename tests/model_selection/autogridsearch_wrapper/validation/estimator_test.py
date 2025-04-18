@@ -33,6 +33,9 @@ class TestEstimator:
 
     def test_invalid_estimator(self):
 
+        # pizza a decision still needs to be made about whether _estimator
+        # needs to check for 'score' method
+
         class weird_estimator:
 
             def __init__(cls, crazy_param):

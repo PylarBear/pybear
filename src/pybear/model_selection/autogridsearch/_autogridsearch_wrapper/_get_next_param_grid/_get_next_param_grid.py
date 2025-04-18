@@ -196,9 +196,9 @@ def _get_next_param_grid(
     del err_msg
 
     # the rest
-    _max_shifts = _val_max_shifts(_max_shifts)
+    _val_max_shifts(_max_shifts)
 
-    _total_passes_is_hard = _val_total_passes_is_hard(_total_passes_is_hard)
+    _val_total_passes_is_hard(_total_passes_is_hard)
 
     # END _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
