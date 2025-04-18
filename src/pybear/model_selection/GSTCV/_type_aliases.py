@@ -15,6 +15,8 @@ from typing import (
     Protocol
 )
 from typing_extensions import (
+    Any,
+    Self,
     TypeAlias,
     Union,
     NotRequired
@@ -106,7 +108,7 @@ SchedulerType: TypeAlias = Union[
 
 class ClassifierProtocol(Protocol):
 
-    def fit(self, X: any, y: any) -> any:
+    def fit(self, X: any, y: any) -> Self:
         ...
 
     # The default 'score' method of the estimator can never be used, as
@@ -115,10 +117,10 @@ class ClassifierProtocol(Protocol):
     # def score(self, y_pred: any, y_act: any) -> any:
     #     ...
 
-    def get_params(self, *args, **kwargs) -> any:
+    def get_params(self, *args, **kwargs) -> dict[str, Any]:
         ...
 
-    def set_params(self, *args, **kwargs) -> any:
+    def set_params(self, *args, **kwargs) -> Self:
         ...
 
     def predict_proba(self, *args, **kwargs) -> any:
