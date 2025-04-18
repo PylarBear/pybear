@@ -18,14 +18,13 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
 from pybear.utilities import nan_mask
 
 from copy import deepcopy
+import uuid
+
 import numpy as np
 import pandas as pd
 
 
 import pytest
-
-
-
 
 
 
@@ -598,13 +597,15 @@ class TestAccuracy:
                     _equal_nan=True
                 )
             else:
-                assert _parallel_constant_finder(
+                out = _parallel_constant_finder(
                     _column=_og_col,
                     _equal_nan=equal_nan,
                     _rtol=1e-5,
                     _atol=1e-8
                 )
 
+                # a uuid would be return if the column is not constant
+                assert not isinstance(out, uuid.UUID)
 
         # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
