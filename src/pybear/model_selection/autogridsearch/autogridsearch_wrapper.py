@@ -30,6 +30,8 @@ from ._autogridsearch_wrapper._validation._total_passes_is_hard import \
 from ._autogridsearch_wrapper._build_first_grid_from_params import _build
 from ._autogridsearch_wrapper._build_is_logspace import _build_is_logspace
 
+from ._autogridsearch_wrapper._param_conditioning._max_shifts import _cond_max_shifts
+
 from ._autogridsearch_wrapper._get_next_param_grid._get_next_param_grid \
     import _get_next_param_grid
 from ._autogridsearch_wrapper._demo._demo import _demo
@@ -150,39 +152,14 @@ def autogridsearch_wrapper(
             self.max_shifts = max_shifts
             self.agscv_verbose = agscv_verbose
 
-            self._validation()
-
-            # this must be after _validation()
-            # pizza u need to address this assignment!
-            self.max_shifts = self.max_shifts or 100
-
-            # pizza 'scoring' handling was pulled out of _val_parent_gscv_kwargs
-            # there is an anomaly in sklearn and dask_ml GridSearchCV that
-            # 'scoring' passed as a list sets the GSCV attr 'multimetric_'
-            # to True, even if there is only one string inside the list. The
-            # problem it that when multimetric_ is True and refit is False,
-            # they block exposing best_params_. This does not happen when
-            # 'scoring' is a str. To get around this, if 'scoring' is a
-            # list-like and the length is 1, take out what is in it.
-            if 'scoring' in parent_gscv_kwargs:
-                _value = parent_gscv_kwargs['scoring']
-                try:
-                    iter(_value)
-                    if isinstance(_value, str):
-                        raise
-                    if len(_value) > 1:
-                        raise
-                    parent_gscv_kwargs['scoring'] = _value[0]
-                except:
-                    pass
-
 
             # super() instantiated in init() for access to GridSearchCV's
             # pre-run attrs and methods
             super().__init__(self.estimator, {}, **parent_gscv_kwargs)
 
+            # pizza try to remove this!
             # THIS MUST STAY HERE FOR demo TO WORK
-            self.reset()
+            self._reset()
 
         # END __init__() ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -215,8 +192,8 @@ def autogridsearch_wrapper(
         # END _validation() ############################################
 
 
-        # reset() ######################################################
-        def reset(self) -> None:
+        # _reset() ######################################################
+        def _reset(self) -> None:
 
             """
             Restore AutoGridSearch to pre-run state. Runs at the end of
@@ -248,7 +225,6 @@ def autogridsearch_wrapper(
             self._IS_LOGSPACE = _build_is_logspace(self.params)
 
 
-
             # ONLY POPULATE WITH numerical_params WITH "soft" BOUNDARY
             # AND START AS FALSE
             self._PHLITE = {}
@@ -256,7 +232,7 @@ def autogridsearch_wrapper(
                 if 'soft' in self.params[hprmtr][-1]:
                     self._PHLITE[hprmtr] = False
 
-        # END reset() ##################################################
+        # END _reset() ##################################################
 
 
         def _get_next_param_grid(
@@ -348,12 +324,16 @@ def autogridsearch_wrapper(
             """
 
 
+            self._validation()
+
+            # pizza what about conditioning params?
+
             _DemoCls = AutoGridSearch(
                 self.estimator,  # must pass est to satisfy val even tho not used
                 params=self.params,
                 total_passes= self.total_passes,
                 total_passes_is_hard=self.total_passes_is_hard,
-                max_shifts=self.max_shifts,
+                max_shifts=_cond_max_shifts(self.max_shifts),
                 agscv_verbose=False
             )
 
@@ -426,7 +406,13 @@ def autogridsearch_wrapper(
 
             self._validation()
 
-            self.reset()
+            # this must be after _validation()
+            # pizza u need to address these assignments!
+            self.max_shifts = _cond_max_shifts(self.max_shifts)
+
+            # pizza what about conditioning params?
+
+            self._reset()
 
             _pass = 0
             while _pass < self.total_passes:
@@ -458,6 +444,7 @@ def autogridsearch_wrapper(
                 # pass attrs and methods of GSCV are exposed by the
                 # AutoGridSearch instance.
 
+                # pizza, wanna use set_params() here? think on it.
                 self.param_grid = _ADAPTED_GRIDS[_pass]
                 self.param_distributions = _ADAPTED_GRIDS[_pass]
                 self.parameters = _ADAPTED_GRIDS[_pass]
@@ -513,7 +500,12 @@ def autogridsearch_wrapper(
                 if self.agscv_verbose:
                     print(f'Done.')
 
-                # pizza added this 25_04_19
+                # added 25_04_19. no longer conditioning gscv params to coddle the
+                # gscvs into exposing best_params_. the user gets the exact output
+                # that the gscv gives for the given inputs. no longer using custom
+                # code for sk/dask_ml gscvs to block settings that (at one point in
+                # time) did not expose best_params_. just ask the horse itself if
+                # best_params_ was exposed for the given params and raise if not.
                 if not hasattr(self, 'best_params_'):
                     raise ValueError(
                         f"The parent gridsearch did not expose a 'best_params_' "
@@ -521,7 +513,7 @@ def autogridsearch_wrapper(
                         f"exposed for agscv to calculate search grids. \nConfigure "
                         f"the parent gridsearch to expose 'best_params_'. \nSee the "
                         f"documentation for {GridSearchParent.__name__} to configure "
-                        f"your gridsearch."
+                        f"your gridsearch settings to expose 'best_params_."
                     )
 
                 _best_params = self.best_params_

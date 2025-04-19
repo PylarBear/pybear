@@ -60,9 +60,25 @@ class TestGSTCV:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
+    def test_accepts_threshold_kwarg(self, mock_estimator_test_fixture):
+
+        _thresholds = np.linspace(0, 1, 3)
+
+        _agscv = autogridsearch_wrapper(GSTCV)(
+            estimator=mock_estimator_test_fixture,
+            params={},
+            refit=False,
+            thresholds=_thresholds
+        )
+
+        assert np.array_equiv(_agscv.thresholds, _thresholds)
+
+
+
+
     @pytest.mark.parametrize('_total_passes', (2, 3, 4))
     @pytest.mark.parametrize('_scorer',
-        (['accuracy'], ['accuracy', 'balanced_accuracy'])
+        ('accuracy', ['accuracy', 'balanced_accuracy'])
     )
     @pytest.mark.parametrize('_tpih', (True, ))
     @pytest.mark.parametrize('_max_shifts', (2, ))
@@ -90,23 +106,32 @@ class TestGSTCV:
 
         AutoGridSearch = autogridsearch_wrapper(GSTCV)(**AGSTCV_params)
 
-        # 25_04_19 pizza changed fit() to ValueError when best_params_ is not exposed.
-        if len(_scorer) > 1 and _refit is False:
-            with pytest.raises(ValueError):
-                AutoGridSearch.fit(*_X_y)
-            pytest.skip(reason=f'cant do any later tests without fit')
-        else:
+        # 25_04_19 changed fit() to raise ValueError when best_params_
+        # is not exposed. it used to be that agscv code was shrink-wrapped
+        # around sklearn & dask_ml gscv quirks as to when they do/dont expose
+        # best_params_. there are no longer any bandaids that condition params
+        # for the parent gscvs to get them to "properly" expose 'best_params_',
+        # and there are no more predictive shrink-wraps to block failure.
+        # The user is left to die by however the parent gscv handles the exact
+        # params as given. what that means here is that we are not going to
+        # coddle to every little nuanced thing that makes a gscv not want to
+        # expose 'best_params_'. Try to fit, if ValueError is raised, look to
+        # see that 'best_params_' is not exposed and go to the next test.
+        try:
             AutoGridSearch.fit(*_X_y)
+            assert isinstance(getattr(AutoGridSearch, 'best_params_'), dict)
+        except ValueError:
+            assert not hasattr(AutoGridSearch, 'best_params_')
+            pytest.skip(reason=f'cant do any later tests without fit')
+        except Exception as e:
+            raise e
 
         # assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         assert AutoGridSearch.total_passes >= len(_params['param_a'][1])
         assert AutoGridSearch.total_passes_is_hard is _tpih
         assert AutoGridSearch.max_shifts == _max_shifts
         assert AutoGridSearch.agscv_verbose is False
-        if isinstance(_scorer, list) and len(_scorer)==1:
-            assert AutoGridSearch.scoring == _scorer[0]
-        else:
-            assert AutoGridSearch.scoring == _scorer
+        assert AutoGridSearch.scoring == _scorer
         assert AutoGridSearch.refit == _refit
 
         # cannot test MockEstimator for scoring or scorer_

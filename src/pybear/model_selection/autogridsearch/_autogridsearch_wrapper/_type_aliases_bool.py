@@ -6,7 +6,7 @@
 
 
 
-from typing import Sequence, Tuple
+from typing import Literal, Sequence, Tuple
 from typing_extensions import TypeAlias, Union
 
 import numbers
@@ -17,10 +17,11 @@ import numbers
 BoolDataType: TypeAlias = bool  # DataType sub
 InBoolGridType: TypeAlias = Sequence[BoolDataType]
 InBoolPointsType: TypeAlias = Union[None, numbers.Integral]
-InBoolParamType: TypeAlias = Sequence[Tuple[InBoolGridType, InBoolPointsType, str]]
-BoolGridType: TypeAlias = Sequence[BoolDataType]   # pizza finalize this, Sequence or list[BoolDataType]  # GridType sub
+InBoolParamType: TypeAlias = \
+    Sequence[Tuple[InBoolGridType, InBoolPointsType, Literal['bool']]]
+BoolGridType: TypeAlias = list[BoolDataType]
 BoolPointsType: TypeAlias = int  # PointsType sub
-BoolParamType: TypeAlias = list[BoolGridType, BoolPointsType, str] # ParamType sub
+BoolParamType: TypeAlias = list[BoolGridType, BoolPointsType, Literal['bool']] # ParamType sub
 
 
 

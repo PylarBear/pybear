@@ -6,7 +6,7 @@
 
 
 
-from typing import Sequence, Tuple
+from typing import Literal, Sequence, Tuple
 from typing_extensions import TypeAlias, Union
 
 import numbers
@@ -17,10 +17,10 @@ import numbers
 StrDataType: TypeAlias = Union[None, str]  # DataType sub --- pizza verify about the None
 InStrGridType: TypeAlias = Sequence[StrDataType]
 InStrPointsType: TypeAlias = Union[None, numbers.Integral]
-InStrParamType: TypeAlias = Sequence[Tuple[InStrGridType, InStrPointsType, str]]
-StrGridType: TypeAlias = Sequence[StrDataType] # GridType sub --- pizza do we want list[StrDataType]?
+InStrParamType: TypeAlias = Sequence[Tuple[InStrGridType, InStrPointsType, Literal['string']]]
+StrGridType: TypeAlias = list[StrDataType] # GridType sub
 StrPointsType: TypeAlias = numbers.Integral # PointsType sub
-StrParamType: TypeAlias = list[StrGridType, StrPointsType, str] # ParamType sub
+StrParamType: TypeAlias = list[StrGridType, StrPointsType, Literal['string']] # ParamType sub
 
 
 

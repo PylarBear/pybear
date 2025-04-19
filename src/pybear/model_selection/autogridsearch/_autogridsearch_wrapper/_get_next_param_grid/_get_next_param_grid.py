@@ -208,7 +208,7 @@ def _get_next_param_grid(
 
 
     # self.PARAM_HAS_LANDED_INSIDE_THE_EDGES is first defined in
-    # autogridsearch_wrapper.reset()
+    # autogridsearch_wrapper._reset()
 
     # must establish if a soft num param has fallen inside the edges of
     # its grid. string_parameters, bool_parameters, AND hard/fixed
