@@ -12,13 +12,19 @@
 
 import pytest
 import numpy as np
-from pybear.model_selection import autogridsearch_wrapper
+
+from pybear.model_selection.autogridsearch.autogridsearch_wrapper import \
+    autogridsearch_wrapper
+
 from sklearn.model_selection import GridSearchCV as skl_GridSearchCV
 from sklearn.linear_model import LogisticRegression as sk_Logistic
 
+from sklearn.datasets import make_classification
 
 
-class TestAGSCV_Generic:
+
+
+class TestAGSCVValidation:
 
     #         estimator,
     #         params: ParamsType,
@@ -29,8 +35,9 @@ class TestAGSCV_Generic:
     #         **parent_gscv_kwargs
 
 
+    @staticmethod
     @pytest.fixture
-    def good_sk_logistic_params(self):
+    def good_sk_logistic_params():
         return {
             'C': [np.logspace(-5,5,6), [6,6,6], 'soft_float'],
             'l1_ratio': [np.linspace(0,1,6), [6,6,6], 'hard_float'],
@@ -38,9 +45,23 @@ class TestAGSCV_Generic:
             'fit_intercept': [[True, False], 2, 'bool']
         }
 
+
+    @staticmethod
     @pytest.fixture
-    def AutoGridSearch(self):
+    def AutoGridSearch():
         return autogridsearch_wrapper(skl_GridSearchCV)
+
+
+    @staticmethod
+    @pytest.fixture
+    def _X():
+        return np.random.uniform(0, 1, (20, 4))
+
+
+    @staticmethod
+    @pytest.fixture
+    def _y():
+        return np.random.randint(0, 2, (20,))
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -51,7 +72,7 @@ class TestAGSCV_Generic:
         (0, 1, 3.14, [1,2], (1,2), {1,2}, {'a':1}, 'junk', lambda x: x)
     )
     def test_rejects_anything_not_an_estimator(
-        self, AutoGridSearch, good_sk_logistic_params, non_class
+        self, AutoGridSearch, good_sk_logistic_params, _X, _y, non_class
     ):
         # this is raised by the parent GSCV, let it raise whatever
         # the parent GSCV wont check inputs until u try to fit
@@ -59,11 +80,11 @@ class TestAGSCV_Generic:
             AutoGridSearch(
                 estimator=non_class,
                 params=good_sk_logistic_params
-            ).fit(np.random.uniform(0,1,(20,10)), np.random.randint(0,2,(20,)))
+            ).fit(_X, _y)
 
 
     def test_invalid_estimator(
-        self, AutoGridSearch, good_sk_logistic_params
+        self, AutoGridSearch, good_sk_logistic_params, _X, _y
     ):
 
         class weird_estimator:
@@ -84,13 +105,13 @@ class TestAGSCV_Generic:
             AutoGridSearch(
                 estimator=weird_estimator(crazy_param=float('inf')),
                 params={'crazy_param': [[True, False], 2, 'bool']}
-            ).fit(np.random.uniform(0,1,(20,10)), np.random.randint(0,2,(20,)))
+            ).fit(_X, _y)
 
         del weird_estimator
 
 
     def test_rejects_bad_sklearn_GSCV_kwargs(
-        self, AutoGridSearch, good_sk_logistic_params
+        self, AutoGridSearch, good_sk_logistic_params, _X, _y
     ):
 
         # this is raised by the parent GSCV, let it raise whatever
@@ -101,21 +122,7 @@ class TestAGSCV_Generic:
                 params=good_sk_logistic_params,
                 aaa=True,
                 bbb=1.5
-            ).fit(np.random.uniform(0,1,(20,10)), np.random.randint(0,2,(20,)))
-
-
-    def test_accepts_good_estimator_and_sklearn_GSCV_kwargs(
-        self, AutoGridSearch, good_sk_logistic_params
-    ):
-
-        # the parent GSCV wont check inputs until u try to fit
-        AutoGridSearch(
-            estimator=sk_Logistic(),
-            params=good_sk_logistic_params,
-            scoring='accuracy',
-            n_jobs=-1,
-            cv=5
-        ).fit(np.random.uniform(0,1,(20,10)), np.random.randint(0,2,(20,)))
+            ).fit(_X, _y)
 
     # END parent GSCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -125,32 +132,26 @@ class TestAGSCV_Generic:
     @pytest.mark.parametrize('junk_params',
         (2, np.pi, False, None, [1,2], (1,2), {1,2}, min, lambda x: x, 'junk')
     )
-    def test_rejects_junk_params(self, AutoGridSearch, junk_params):
+    def test_rejects_junk_params(self, AutoGridSearch, junk_params, _X, _y):
         with pytest.raises(TypeError):
             AutoGridSearch(
                 sk_Logistic(),
                 junk_params
-            )
+            ).fit(_X, _y)
+
 
     @pytest.mark.parametrize('bad_params',
         ({'a': ['more_junk']}, {0: [1,2,3,4]}, {'junk': [1, 2, 'what?!']},
          {'b': {1,2,3,4}}, {'qqq': {'rrr': [[1,2,3], 3, 'string']}})
     )
-    def test_rejects_bad_params(self, AutoGridSearch, bad_params):
+    def test_rejects_bad_params(self, AutoGridSearch, bad_params, _X, _y):
         with pytest.raises(Exception):
             AutoGridSearch(
                 sk_Logistic(),
                 bad_params
-            )
-
-    def test_accepts_good_params(self, AutoGridSearch, good_sk_logistic_params):
-        AutoGridSearch(
-            sk_Logistic(),
-            good_sk_logistic_params
-        )
+            ).fit(_X, _y)
 
     # END params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
 
     # total_passes ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -158,36 +159,29 @@ class TestAGSCV_Generic:
     @pytest.mark.parametrize('junk_passes',
         (True, None, np.pi, 'junk', min, [1,], (1,), {1,2}, lambda x: x)
     )
-    def test_rejects_junk_total_passes(self, junk_passes, AutoGridSearch,
-                                       good_sk_logistic_params):
+    def test_rejects_junk_total_passes(
+        self, junk_passes, AutoGridSearch, good_sk_logistic_params, _X, _y
+    ):
         with pytest.raises(TypeError):
             AutoGridSearch(
                 sk_Logistic(),
                 good_sk_logistic_params,
                 total_passes=junk_passes
-            )
+            ).fit(_X, _y)
+
 
     @pytest.mark.parametrize('bad_tp', (-1, 0))
-    def test_rejects_bad_total_passes(self, bad_tp, AutoGridSearch,
-                                      good_sk_logistic_params):
+    def test_rejects_bad_total_passes(
+        self, bad_tp, AutoGridSearch, good_sk_logistic_params, _X, _y
+    ):
         with pytest.raises(ValueError):
             AutoGridSearch(
                 sk_Logistic(),
                 good_sk_logistic_params,
                 total_passes=bad_tp
-            )
-
-    @pytest.mark.parametrize('good_tp', (3,))  # must match good_sk_params
-    def test_accepts_good_total_passes(self, good_tp, AutoGridSearch,
-                                      good_sk_logistic_params):
-        assert AutoGridSearch(
-            sk_Logistic(),
-            good_sk_logistic_params,
-            total_passes=good_tp
-        ).total_passes == good_tp
+            ).fit(_X, _y)
 
     # END total_passes ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
 
     # tpih ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -197,7 +191,7 @@ class TestAGSCV_Generic:
         (1, 2, np.pi, None, 'junk', min, [1,], (1,), {1,2}, lambda x: x)
     )
     def test_tpih_rejects_non_bool(
-        self, _tpih, AutoGridSearch, good_sk_logistic_params
+        self, _tpih, AutoGridSearch, good_sk_logistic_params, _X, _y
     ):
 
         with pytest.raises(TypeError):
@@ -205,54 +199,36 @@ class TestAGSCV_Generic:
                 sk_Logistic(),
                 good_sk_logistic_params,
                 total_passes_is_hard=_tpih
-            )
-
-
-    @pytest.mark.parametrize('_tpih', (True, False))
-    def test_tpih_accepts_bool(
-        self, _tpih, AutoGridSearch, good_sk_logistic_params
-    ):
-        assert AutoGridSearch(
-            sk_Logistic(),
-            good_sk_logistic_params,
-            total_passes_is_hard=_tpih
-        ).total_passes_is_hard is _tpih
+            ).fit(_X, _y)
 
     # END tpih ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
 
 
     # max_shifts ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_max_shifts',
         (np.pi, 'junk', min, [1,], (1,), {1,2}, lambda x: x)
     )
-    def test_rejects_junk_max_shifts(self, junk_max_shifts, AutoGridSearch,
-                                       good_sk_logistic_params):
+    def test_rejects_junk_max_shifts(
+        self, junk_max_shifts, AutoGridSearch, good_sk_logistic_params, _X, _y
+    ):
         with pytest.raises(TypeError):
             AutoGridSearch(
                 sk_Logistic(),
                 good_sk_logistic_params,
                 max_shifts=junk_max_shifts
-            )
+            ).fit(_X, _y)
+
 
     @pytest.mark.parametrize('bad_max_shifts', (-1, 0))
-    def test_rejects_bad_max_shifts(self, bad_max_shifts, AutoGridSearch,
-                                      good_sk_logistic_params):
+    def test_rejects_bad_max_shifts(
+        self, bad_max_shifts, AutoGridSearch, good_sk_logistic_params, _X, _y
+    ):
         with pytest.raises(ValueError):
             AutoGridSearch(
                 sk_Logistic(),
                 good_sk_logistic_params,
                 max_shifts=bad_max_shifts
-            )
-
-    @pytest.mark.parametrize('good_max_shifts', (None, 1, 3))
-    def test_accepts_good_max_shifts(self, good_max_shifts, AutoGridSearch,
-                                      good_sk_logistic_params):
-        assert AutoGridSearch(
-            sk_Logistic(),
-            good_sk_logistic_params,
-            max_shifts=good_max_shifts
-        ).max_shifts == (good_max_shifts or 100)
+            ).fit(_X, _y)
 
     # END max_shifts ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -265,37 +241,109 @@ class TestAGSCV_Generic:
         (1, 2, np.pi, None, 'junk', min, [1,], (1,), {1,2}, lambda x: x)
     )
     def test_verbose_rejects_non_bool(
-        self, _verbose, AutoGridSearch, good_sk_logistic_params
+        self, _verbose, AutoGridSearch, good_sk_logistic_params, _X, _y
     ):
 
         with pytest.raises(TypeError):
-            assert AutoGridSearch(
+            AutoGridSearch(
                 sk_Logistic(),
                 good_sk_logistic_params,
                 agscv_verbose=_verbose
-            )
-
-
-    @pytest.mark.parametrize('_verbose', (True, False))
-    def test_verbose_accepts_bool(
-        self, _verbose, AutoGridSearch, good_sk_logistic_params
-    ):
-        assert AutoGridSearch(
-            sk_Logistic(),
-            good_sk_logistic_params,
-            agscv_verbose=_verbose
-        ).agscv_verbose is _verbose
-
+            ).fit(_X, _y)
 
     # END agscv_verbose ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
+    # good_tp must match good_sk_params
+    @pytest.mark.parametrize('agscv_verbose,good_max_shifts,tpih,good_tp',
+        (
+            (True, None, True, 3),
+            (False, 3, False, 3)
+        )
+    )
+    def test_accepts_good_everything(
+        self, AutoGridSearch, good_sk_logistic_params, _X, _y,
+        agscv_verbose, good_max_shifts, tpih, good_tp,
+    ):
+
+        # sklearn_GSCV_kwargs, estimator, params, total_passes,
+        # total_passes_is_hard, max_shifts, agscv_verbose
+
+        # the parent GSCV wont check inputs until u try to fit
+        _gscv = AutoGridSearch(
+            estimator=sk_Logistic(),
+            params=good_sk_logistic_params,
+            total_passes=good_tp,
+            total_passes_is_hard=tpih,
+            max_shifts=good_max_shifts,
+            agscv_verbose=agscv_verbose,
+            scoring='accuracy',
+            n_jobs=1,
+            cv=5
+        )
+
+        _gscv.fit(_X, _y)
+
+
+        assert _gscv.total_passes_is_hard is tpih
+        if _gscv.total_passes_is_hard:
+            assert _gscv.total_passes == good_tp
+        elif not _gscv.total_passes_is_hard:
+            assert _gscv.total_passes >= good_tp
+        assert _gscv.max_shifts == (good_max_shifts or 1_000)
+        assert _gscv.agscv_verbose is agscv_verbose
 
 
 
+class TestBoolInFixedIntegerFixedFloat:
 
 
+    def test_bool_in_fixed_integer(self):
 
+        AutoGridSearch = autogridsearch_wrapper(skl_GridSearchCV)
+
+        X, y = make_classification(n_samples=50, n_features=5)
+
+        _params = {
+            'C': [np.logspace(-4, 4, 3), [3, 3, 3], 'soft_float'],
+            'fit_intercept': [[True, False], [2, 1, 1], 'fixed_integer']
+        }
+
+        with pytest.raises(TypeError):
+            _test_cls = AutoGridSearch(
+                sk_Logistic(),
+                _params,
+                total_passes=3,
+                total_passes_is_hard=True,
+                max_shifts=2,
+                agscv_verbose=False
+            )
+
+            _test_cls.fit(X, y)
+
+
+    def test_bool_in_fixed_float(self):
+
+        AutoGridSearch = autogridsearch_wrapper(skl_GridSearchCV)
+
+        X, y = make_classification(n_samples=50, n_features=5)
+
+        _params = {
+            'C': [np.logspace(-4, 4, 3), [3, 3, 3], 'soft_float'],
+            'fit_intercept': [[True, False], [2, 1, 1], 'fixed_float']
+        }
+
+        with pytest.raises(TypeError):
+            _test_cls = AutoGridSearch(
+                sk_Logistic(),
+                _params,
+                total_passes=3,
+                total_passes_is_hard=True,
+                max_shifts=2,
+                agscv_verbose=False
+            )
+
+            _test_cls.fit(X, y)
 
 
 
