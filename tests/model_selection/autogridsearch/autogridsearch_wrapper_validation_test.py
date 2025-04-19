@@ -6,9 +6,7 @@
 
 
 
-# demo_test incidentally handles testing of all autogridsearch_wrapper
-# functionality except fit() (because demo bypasses fit().) This test
-# module handles arg/kwarg _validation at the highest level.
+# This test module handles arg/kwarg _validation at the highest level.
 
 
 
@@ -16,7 +14,7 @@ import pytest
 import numpy as np
 from pybear.model_selection import autogridsearch_wrapper
 from sklearn.model_selection import GridSearchCV as skl_GridSearchCV
-from sklearn.linear_model import LogisticRegression as skl_logistic
+from sklearn.linear_model import LogisticRegression as sk_Logistic
 
 
 
@@ -44,9 +42,85 @@ class TestAGSCV_Generic:
     def AutoGridSearch(self):
         return autogridsearch_wrapper(skl_GridSearchCV)
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    # parent GSCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    @pytest.mark.parametrize('non_class',
+        (0, 1, 3.14, [1,2], (1,2), {1,2}, {'a':1}, 'junk', lambda x: x)
+    )
+    def test_rejects_anything_not_an_estimator(
+        self, AutoGridSearch, good_sk_logistic_params, non_class
+    ):
+        # this is raised by the parent GSCV, let it raise whatever
+        # the parent GSCV wont check inputs until u try to fit
+        with pytest.raises(Exception):
+            AutoGridSearch(
+                estimator=non_class,
+                params=good_sk_logistic_params
+            ).fit(np.random.uniform(0,1,(20,10)), np.random.randint(0,2,(20,)))
+
+
+    def test_invalid_estimator(
+        self, AutoGridSearch, good_sk_logistic_params
+    ):
+
+        class weird_estimator:
+
+            def __init__(cls, crazy_param):
+                cls.crazy_param = crazy_param
+
+            def train(cls):
+                return cls
+
+            def run(cls):
+                return cls.crazy_param
+
+
+        # this is raised by the parent GSCV, let it raise whatever
+        # the parent GSCV wont check inputs until u try to fit
+        with pytest.raises(Exception):
+            AutoGridSearch(
+                estimator=weird_estimator(crazy_param=float('inf')),
+                params={'crazy_param': [[True, False], 2, 'bool']}
+            ).fit(np.random.uniform(0,1,(20,10)), np.random.randint(0,2,(20,)))
+
+        del weird_estimator
+
+
+    def test_rejects_bad_sklearn_GSCV_kwargs(
+        self, AutoGridSearch, good_sk_logistic_params
+    ):
+
+        # this is raised by the parent GSCV, let it raise whatever
+        # the parent GSCV wont check inputs until u try to fit
+        with pytest.raises(Exception):
+            AutoGridSearch(
+                estimator=sk_Logistic(),
+                params=good_sk_logistic_params,
+                aaa=True,
+                bbb=1.5
+            ).fit(np.random.uniform(0,1,(20,10)), np.random.randint(0,2,(20,)))
+
+
+    def test_accepts_good_estimator_and_sklearn_GSCV_kwargs(
+        self, AutoGridSearch, good_sk_logistic_params
+    ):
+
+        # the parent GSCV wont check inputs until u try to fit
+        AutoGridSearch(
+            estimator=sk_Logistic(),
+            params=good_sk_logistic_params,
+            scoring='accuracy',
+            n_jobs=-1,
+            cv=5
+        ).fit(np.random.uniform(0,1,(20,10)), np.random.randint(0,2,(20,)))
+
+    # END parent GSCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
 
     # params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
     @pytest.mark.parametrize('junk_params',
         (2, np.pi, False, None, [1,2], (1,2), {1,2}, min, lambda x: x, 'junk')
@@ -54,7 +128,7 @@ class TestAGSCV_Generic:
     def test_rejects_junk_params(self, AutoGridSearch, junk_params):
         with pytest.raises(TypeError):
             AutoGridSearch(
-                skl_logistic(),
+                sk_Logistic(),
                 junk_params
             )
 
@@ -65,13 +139,13 @@ class TestAGSCV_Generic:
     def test_rejects_bad_params(self, AutoGridSearch, bad_params):
         with pytest.raises(Exception):
             AutoGridSearch(
-                skl_logistic(),
+                sk_Logistic(),
                 bad_params
             )
 
     def test_accepts_good_params(self, AutoGridSearch, good_sk_logistic_params):
         AutoGridSearch(
-            skl_logistic(),
+            sk_Logistic(),
             good_sk_logistic_params
         )
 
@@ -88,7 +162,7 @@ class TestAGSCV_Generic:
                                        good_sk_logistic_params):
         with pytest.raises(TypeError):
             AutoGridSearch(
-                skl_logistic(),
+                sk_Logistic(),
                 good_sk_logistic_params,
                 total_passes=junk_passes
             )
@@ -98,7 +172,7 @@ class TestAGSCV_Generic:
                                       good_sk_logistic_params):
         with pytest.raises(ValueError):
             AutoGridSearch(
-                skl_logistic(),
+                sk_Logistic(),
                 good_sk_logistic_params,
                 total_passes=bad_tp
             )
@@ -107,7 +181,7 @@ class TestAGSCV_Generic:
     def test_accepts_good_total_passes(self, good_tp, AutoGridSearch,
                                       good_sk_logistic_params):
         assert AutoGridSearch(
-            skl_logistic(),
+            sk_Logistic(),
             good_sk_logistic_params,
             total_passes=good_tp
         ).total_passes == good_tp
@@ -128,7 +202,7 @@ class TestAGSCV_Generic:
 
         with pytest.raises(TypeError):
             AutoGridSearch(
-                skl_logistic(),
+                sk_Logistic(),
                 good_sk_logistic_params,
                 total_passes_is_hard=_tpih
             )
@@ -139,7 +213,7 @@ class TestAGSCV_Generic:
         self, _tpih, AutoGridSearch, good_sk_logistic_params
     ):
         assert AutoGridSearch(
-            skl_logistic(),
+            sk_Logistic(),
             good_sk_logistic_params,
             total_passes_is_hard=_tpih
         ).total_passes_is_hard is _tpih
@@ -156,7 +230,7 @@ class TestAGSCV_Generic:
                                        good_sk_logistic_params):
         with pytest.raises(TypeError):
             AutoGridSearch(
-                skl_logistic(),
+                sk_Logistic(),
                 good_sk_logistic_params,
                 max_shifts=junk_max_shifts
             )
@@ -166,7 +240,7 @@ class TestAGSCV_Generic:
                                       good_sk_logistic_params):
         with pytest.raises(ValueError):
             AutoGridSearch(
-                skl_logistic(),
+                sk_Logistic(),
                 good_sk_logistic_params,
                 max_shifts=bad_max_shifts
             )
@@ -175,7 +249,7 @@ class TestAGSCV_Generic:
     def test_accepts_good_max_shifts(self, good_max_shifts, AutoGridSearch,
                                       good_sk_logistic_params):
         assert AutoGridSearch(
-            skl_logistic(),
+            sk_Logistic(),
             good_sk_logistic_params,
             max_shifts=good_max_shifts
         ).max_shifts == (good_max_shifts or 100)
@@ -196,7 +270,7 @@ class TestAGSCV_Generic:
 
         with pytest.raises(TypeError):
             assert AutoGridSearch(
-                skl_logistic(),
+                sk_Logistic(),
                 good_sk_logistic_params,
                 agscv_verbose=_verbose
             )
@@ -207,7 +281,7 @@ class TestAGSCV_Generic:
         self, _verbose, AutoGridSearch, good_sk_logistic_params
     ):
         assert AutoGridSearch(
-            skl_logistic(),
+            sk_Logistic(),
             good_sk_logistic_params,
             agscv_verbose=_verbose
         ).agscv_verbose is _verbose

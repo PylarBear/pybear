@@ -6,32 +6,31 @@
 
 
 
+# this module tests compatibility of autogridsearch_wrapper with GSTCV
+# simply by running wrapped GSTCV to completion and asserting a few of
+# the GSTCV attributes are exposed by the wrapper.
+
+
+
 # demo_test incidentally handles testing of all autogridsearch_wrapper
 # functionality except fit() (because demo bypasses fit().) This test
-# module handles fit() for all sklearn gridsearch modules.
+# module handles fit() for the GSTCV module.
 
 
 
 import pytest
-
 import numpy as np
-
-from pybear.model_selection import autogridsearch_wrapper
 
 from sklearn.datasets import make_classification as sk_make
 
-from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
+from pybear.model_selection import autogridsearch_wrapper
 
-from sklearn.experimental import enable_halving_search_cv
-from sklearn.model_selection import (
-    GridSearchCV as SklearnGridSearchCV,
-    RandomizedSearchCV as SklearnRandomizedSearchCV,
-    HalvingGridSearchCV,
-    HalvingRandomSearchCV
-)
+from pybear.model_selection import GSTCV
 
 
-class TestSklearnGSCVS:
+
+
+class TestGSTCV:
 
     #         estimator,
     #         params: ParamsType,
@@ -46,16 +45,10 @@ class TestSklearnGSCVS:
 
     @staticmethod
     @pytest.fixture
-    def _estimator():
-        return sk_LogisticRegression()
-
-
-    @staticmethod
-    @pytest.fixture
     def _params():
         return {
-            'C': [np.logspace(-5, 5, 3), [3, 3, 3], 'soft_float'],
-            'fit_intercept': [[True, False], 2, 'bool']
+            'param_a': [np.logspace(-5, -3, 3), [3, 3, 3], 'soft_float'],
+            'param_b': [[1, 2], [2, 2, 2], 'fixed_integer']
         }
 
 
@@ -67,14 +60,6 @@ class TestSklearnGSCVS:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    @pytest.mark.parametrize('SKLEARN_GSCV',
-        (
-            SklearnGridSearchCV,
-            SklearnRandomizedSearchCV,
-            HalvingGridSearchCV,
-            HalvingRandomSearchCV
-        )
-    )
     @pytest.mark.parametrize('_total_passes', (2, 3, 4))
     @pytest.mark.parametrize('_scorer',
         (['accuracy'], ['accuracy', 'balanced_accuracy'])
@@ -82,26 +67,20 @@ class TestSklearnGSCVS:
     @pytest.mark.parametrize('_tpih', (True, ))
     @pytest.mark.parametrize('_max_shifts', (2, ))
     @pytest.mark.parametrize('_refit', ('accuracy', False, lambda x: 0))
-    def test_sklearn_gscvs(self, _estimator, _params, SKLEARN_GSCV,
-        _total_passes, _scorer, _tpih, _max_shifts, _refit, _X_y
+    def test_GSTCV(self, mock_estimator_test_fixture, _params, _total_passes,
+        _scorer, _tpih, _max_shifts, _refit, _X_y
     ):
 
-        # the 'halving' grid searches cannot take multiple scorers
-        if SKLEARN_GSCV in (HalvingGridSearchCV, HalvingRandomSearchCV) \
-                and len(_scorer) > 1:
-            pytest.skip(
-                reason=f"the 'halving' grid searches cannot take multiple scorers"
-            )
-
-        AGSCV_params = {
-            'estimator': _estimator,
+        AGSTCV_params = {
+            'estimator': mock_estimator_test_fixture,
             'params': _params,
             'total_passes': _total_passes,
             'total_passes_is_hard': _tpih,
             'max_shifts': _max_shifts,
             'agscv_verbose': False,
+            'thresholds': [0.4, 0.6],
             'scoring': _scorer,
-            'n_jobs': -1,    # -1 is fastest 25_04_18_10_00_00
+            'n_jobs': 1,     # leave a 1, confliction
             'cv': 4,
             'verbose': 0,
             'error_score': 'raise',
@@ -109,21 +88,18 @@ class TestSklearnGSCVS:
             'refit': _refit
         }
 
-        # autogridsearch_wrapper __init__ does validation... should
-        # raise for blocked conditions (when a gscv parent would not
-        # expose best_params_)
+        AutoGridSearch = autogridsearch_wrapper(GSTCV)(**AGSTCV_params)
+
+        # 25_04_19 pizza changed fit() to ValueError when best_params_ is not exposed.
         if len(_scorer) > 1 and _refit is False:
-            with pytest.raises(AttributeError):
-                autogridsearch_wrapper(SKLEARN_GSCV)(**AGSCV_params)
-            pytest.skip(reason=f'cant do any later tests without init')
+            with pytest.raises(ValueError):
+                AutoGridSearch.fit(*_X_y)
+            pytest.skip(reason=f'cant do any later tests without fit')
         else:
-            AutoGridSearch = autogridsearch_wrapper(SKLEARN_GSCV)(**AGSCV_params)
-
-
-        AutoGridSearch.fit(*_X_y)
+            AutoGridSearch.fit(*_X_y)
 
         # assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-        assert AutoGridSearch.total_passes >= len(_params['C'][1])
+        assert AutoGridSearch.total_passes >= len(_params['param_a'][1])
         assert AutoGridSearch.total_passes_is_hard is _tpih
         assert AutoGridSearch.max_shifts == _max_shifts
         assert AutoGridSearch.agscv_verbose is False
@@ -133,9 +109,14 @@ class TestSklearnGSCVS:
             assert AutoGridSearch.scoring == _scorer
         assert AutoGridSearch.refit == _refit
 
+        # cannot test MockEstimator for scoring or scorer_
+
         if _refit:
-            assert isinstance(AutoGridSearch.best_estimator_, type(_estimator))
-        elif not _refit:
+            assert isinstance(
+                AutoGridSearch.best_estimator_,
+                type(mock_estimator_test_fixture)
+            )
+        else:
             with pytest.raises(AttributeError):
                 AutoGridSearch.best_estimator_
 
@@ -146,10 +127,26 @@ class TestSklearnGSCVS:
         assert all(map(
             isinstance,
             best_params_.values(),
-            ((int, float, bool, str) for _ in _params)
+            ((int, float, bool, str, np.int64) for _ in _params)
         ))
 
+        # best_threshold_ should always be exposed with one scorer
+        if isinstance(_refit, str) or callable(_scorer) or \
+                isinstance(_scorer, str) or len(_scorer) == 1:
+            best_threshold_ = AutoGridSearch.best_threshold_
+            assert isinstance(best_threshold_, float)
+            assert 0 <= best_threshold_ <= 1
+
         # END assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+
+
+
+
+
+
+
 
 
 
