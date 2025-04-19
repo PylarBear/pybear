@@ -6,6 +6,7 @@
 
 
 
+from typing import Optional
 from typing_extensions import Union
 
 import numbers
@@ -13,12 +14,14 @@ import numbers
 
 
 def _val_max_shifts(
-    _max_shifts: Union[None, numbers.Integral]
+    _max_shifts: Union[None, numbers.Integral],
+    _can_be_None: Optional[bool] = False
 ) -> None:
 
 
     """
-    Validate _max_shifts. Can be None or an integer >= 1.
+    Validate _max_shifts. Must be an integer >= 1. Can conditionally be
+    None.
 
 
     Parameters
@@ -37,11 +40,14 @@ def _val_max_shifts(
     """
 
 
-    if _max_shifts is None:
+    if _can_be_None and _max_shifts is None:
         return
 
-
-    err_msg = f"if passed, 'max_shifts'  must be an integer >= 1. \ngot {_max_shifts}."
+    if _can_be_None:
+        err_msg = \
+            f"'max_shifts'  must be None or an integer >= 1. \ngot {_max_shifts}."
+    elif not _can_be_None:
+        err_msg = f"'max_shifts'  must be an integer >= 1. \ngot {_max_shifts}."
 
     if not isinstance(_max_shifts, numbers.Integral) or isinstance(_max_shifts, bool):
         raise TypeError(err_msg)

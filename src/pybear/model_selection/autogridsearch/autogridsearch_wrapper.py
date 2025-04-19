@@ -21,12 +21,8 @@ from ._autogridsearch_wrapper._print_results import _print_results
 
 from ._autogridsearch_wrapper._validation._agscv_verbose import \
     _val_agscv_verbose
-from ._autogridsearch_wrapper._validation._estimator import _val_estimator
-from ._autogridsearch_wrapper._validation._is_dask_gscv import _is_dask_gscv \
-    as val_dask_gscv
+from ._autogridsearch_wrapper._validation._is_dask_gscv import _is_dask_gscv
 from ._autogridsearch_wrapper._validation._max_shifts import _val_max_shifts
-from ._autogridsearch_wrapper._validation._parent_gscv_kwargs import \
-    _val_parent_gscv_kwargs
 from ._autogridsearch_wrapper._validation._params__total_passes import \
     _params__total_passes as val_params_total_passes
 from ._autogridsearch_wrapper._validation._total_passes_is_hard import \
@@ -37,6 +33,8 @@ from ._autogridsearch_wrapper._build_is_logspace import _build_is_logspace
 from ._autogridsearch_wrapper._get_next_param_grid._get_next_param_grid \
     import _get_next_param_grid
 from ._autogridsearch_wrapper._demo._demo import _demo
+
+from ...base._check_is_fitted import check_is_fitted
 
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import (
@@ -143,6 +141,8 @@ def autogridsearch_wrapper(
             **parent_gscv_kwargs
             ) -> None:
 
+            """Initialize the autogridsearch instance."""
+
             self.estimator = estimator
             self.params = params
             self.total_passes = total_passes
@@ -152,9 +152,30 @@ def autogridsearch_wrapper(
 
             self._validation()
 
-            parent_gscv_kwargs = _val_parent_gscv_kwargs(
-                GridSearchParent, parent_gscv_kwargs
-            )
+            # this must be after _validation()
+            # pizza u need to address this assignment!
+            self.max_shifts = self.max_shifts or 100
+
+            # pizza 'scoring' handling was pulled out of _val_parent_gscv_kwargs
+            # there is an anomaly in sklearn and dask_ml GridSearchCV that
+            # 'scoring' passed as a list sets the GSCV attr 'multimetric_'
+            # to True, even if there is only one string inside the list. The
+            # problem it that when multimetric_ is True and refit is False,
+            # they block exposing best_params_. This does not happen when
+            # 'scoring' is a str. To get around this, if 'scoring' is a
+            # list-like and the length is 1, take out what is in it.
+            if 'scoring' in parent_gscv_kwargs:
+                _value = parent_gscv_kwargs['scoring']
+                try:
+                    iter(_value)
+                    if isinstance(_value, str):
+                        raise
+                    if len(_value) > 1:
+                        raise
+                    parent_gscv_kwargs['scoring'] = _value[0]
+                except:
+                    pass
+
 
             # super() instantiated in init() for access to GridSearchCV's
             # pre-run attrs and methods
@@ -163,10 +184,12 @@ def autogridsearch_wrapper(
             # THIS MUST STAY HERE FOR demo TO WORK
             self.reset()
 
-
-
         # END __init__() ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+        def __pybear_is_fitted__(self):
+            return hasattr(self, 'best_score_')
 
 
         # _validation() ################################################
@@ -183,15 +206,9 @@ def autogridsearch_wrapper(
             self.params, self.total_passes = \
                 val_params_total_passes(self.params, self.total_passes)
 
-            _val_estimator(self.params, self.estimator)
-
             _val_total_passes_is_hard(self.total_passes_is_hard)
 
-            # pizza change this validation to take a _can_be_None param,
-            # because all validation for this after here cannot be None!
-            _val_max_shifts(self.max_shifts)
-            # pizza u need to address this assignment!
-            self.max_shifts = self.max_shifts or 100
+            _val_max_shifts(self.max_shifts, _can_be_None=True)
 
             _val_agscv_verbose(self.agscv_verbose)
 
@@ -362,10 +379,8 @@ def autogridsearch_wrapper(
 
             """
 
-            # CHECK IF fit() WAS RUN YET, IF NOT,
-            # THROW GridSearch's "not fitted yet" ERROR
-            # pizza use a pybear is fitted in place of this
-            self.best_score_
+            check_is_fitted(self)
+
             _print_results(self.GRIDS_, self.RESULTS_)
 
 
@@ -477,7 +492,7 @@ def autogridsearch_wrapper(
 
                 if hasattr(self, 'refit') \
                     and not self.total_passes == 1 \
-                    and not val_dask_gscv(GridSearchParent) \
+                    and not _is_dask_gscv(GridSearchParent) \
                     and not _multimetric:
                     if _pass == 0:
                         original_refit = self.refit
@@ -497,6 +512,17 @@ def autogridsearch_wrapper(
 
                 if self.agscv_verbose:
                     print(f'Done.')
+
+                # pizza added this 25_04_19
+                if not hasattr(self, 'best_params_'):
+                    raise ValueError(
+                        f"The parent gridsearch did not expose a 'best_params_' "
+                        f"attribute after the first fit. \n'best_params_' must be "
+                        f"exposed for agscv to calculate search grids. \nConfigure "
+                        f"the parent gridsearch to expose 'best_params_'. \nSee the "
+                        f"documentation for {GridSearchParent.__name__} to configure "
+                        f"your gridsearch."
+                    )
 
                 _best_params = self.best_params_
 

@@ -135,7 +135,7 @@ def _params__total_passes(
         except:
             continue
 
-    del _points
+        del _points
 
     _unq_points = np.unique(_POINTS_LENS)
     del _POINTS_LENS
