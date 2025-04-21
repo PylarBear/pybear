@@ -8,136 +8,173 @@
 
 import pytest
 import numpy as np
+
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
-    _params_string import _string_param_value
+    _params_string import _val_string_param_value
 
 
 
 class TestStringParamKey:
 
     @pytest.mark.parametrize('non_str',
-    (0, 1, np.pi, True, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
+        (0, 1, np.pi, True, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
     )
     def test_reject_non_str(self, non_str):
         with pytest.raises(TypeError):
-            _string_param_value(non_str, [['a','b'], 4, 'string'])
+            _val_string_param_value(non_str, [['a','b'], 4, 'string'])
+
 
     def test_accepts_str(self):
-        assert _string_param_value('some_string', [['a','b'], 8, 'string']) == \
-                [['a', 'b'], 8, 'string']
-
-
+        assert _val_string_param_value(
+            'some_string', [['a','b'], 8, 'string']
+        ) is None
 
 
 class TestStringParamValueOuterContainer:
 
 
     @pytest.mark.parametrize('non_list_like',
-    (0, np.pi, True, None, min, 'junk', lambda x: x, {'a': 1})
+        (0, np.pi, True, None, min, 'junk', lambda x: x, {'a': 1})
     )
     def test_rejects_non_list_like(self, non_list_like):
         with pytest.raises(TypeError):
-            _string_param_value('good_key', non_list_like)
+            _val_string_param_value('good_key', non_list_like)
 
 
-    @pytest.mark.parametrize('list_like',
-    (
-     [['a', 'b'], 10, 'string'],
-     (['a', 'b'], 10, 'string'),
-     np.array([('a', 'b'), 10, 'string'], dtype=object)
-     )
-    )
-    def test_accepts_list_like(self, list_like):
-        assert _string_param_value('good_key', list_like) == \
-               [['a', 'b'], 10, 'string']
+    @pytest.mark.parametrize('_container', (list, tuple, np.ndarray))
+    def test_accepts_list_like(self, _container):
+        _base = [['a', 'b'], 10, 'string']
+        if _container in [list, tuple]:
+            list_like = _container(_base)
+        elif _container is np.ndarray:
+            list_like = np.array(_base, dtype=object)
+        else:
+            raise Exception
+
+        assert isinstance(list_like, _container)
+        assert _val_string_param_value('good_key', list_like) is None
 
 
 
-class TestListOfArgs:
+class TestStringListOfSearchPoints:
 
     @pytest.mark.parametrize('non_list_like',
-    (0, np.pi, True, None, min, 'junk', lambda x: x, {'a': 1})
+        (0, np.pi, True, None, min, 'junk', lambda x: x, {'a': 1})
     )
     def test_rejects_non_list_like(self, non_list_like):
         with pytest.raises(TypeError):
-            _string_param_value('good_key', [non_list_like, None, 'string'])
+            _val_string_param_value(
+                'good_key',
+                [non_list_like, None, 'string'],
+                _shrink_pass_can_be_None=True
+            )
 
 
-    @pytest.mark.parametrize('list_like',
-         (['a', 'b'], ('a', 'b'), np.array(['a', 'b'], dtype=object))
-    )
-    def test_accepts_list_like(self, list_like):
-        assert _string_param_value('good_key', [list_like, 10, 'string']) == \
-               [['a', 'b'], 10, 'string']
+    @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
+    def test_accepts_list_like(self, _container):
+        _base = ['a', 'b']
+        if _container in [list, tuple, set]:
+            _grid = _container(_base)
+        elif _container is np.ndarray:
+            _grid = np.array(_base, dtype=object)
+        else:
+            raise Exception
+
+        _value = [_grid, 10, 'string']
+        assert _val_string_param_value('good_key', [_grid, 10, 'string']) is None
 
 
     @pytest.mark.parametrize('non_str_non_none',
-    (0, np.pi, True, min, lambda x: x, {'a': 1}, [1,2], (1,2), {1,2})
+        (0, np.pi, True, min, lambda x: x, {'a': 1}, [1,2], (1,2), {1,2})
     )
-    def test_rejects_non_strings_non_none_inside(self, non_str_non_none):
+    def test_rejects_non_strings_non_none_in_grid(self, non_str_non_none):
         with pytest.raises(TypeError):
-            _string_param_value('good_key',
-                                [[non_str_non_none, 'b'], None, 'string'])
+            _val_string_param_value(
+                'good_key',
+                [[non_str_non_none, 'b'], None, 'string'],
+                _shrink_pass_can_be_None=True
+            )
 
 
     @pytest.mark.parametrize('str_or_none', ('a', None))
     def test_accept_strings_or_none_inside(self, str_or_none):
-        assert _string_param_value('good_key', ([str_or_none, 'b'], 5, 'string')) == \
-               [[str_or_none, 'b'], 5, 'string']
+        assert _val_string_param_value(
+            'good_key', ((str_or_none, 'b'), 5, 'string')
+        ) is None
 
 
+class TestShrinkPass:
 
-class TestPasses:
-
-    @pytest.mark.parametrize('non_none_non_integer',
-    (np.pi, True, min, 'junk', lambda x: x, {'a': 1}, [1,], (1,), {1,2})
+    @pytest.mark.parametrize('non_integer',
+        (np.pi, True, min, 'junk', lambda x: x, {'a': 1}, [1,], (1,), {1,2})
     )
-    def test_rejects_non_none_non_integer(self, non_none_non_integer):
+    def test_rejects_non_none_non_integer(self, non_integer):
         with pytest.raises(TypeError):
-            _string_param_value('good_key',
-                        [['a','b'], non_none_non_integer, 'string'])
+            _val_string_param_value(
+                'good_key',
+                [['a','b'], non_integer, 'string']
+            )
 
 
     @pytest.mark.parametrize('int_or_none', (3, None))
-    def test_accepts_none_and_integer_gte_one(self, int_or_none):
-        # THIS ALSO VALIDATES THAT SETTING passes TO None SETS PASSES TO
-        # ONE MILLION
-        assert _string_param_value('good_key', [['a','b'], int_or_none, 'string']) == \
-            [['a', 'b'], int_or_none or 1_000_000, 'string']
+    @pytest.mark.parametrize('can_be_None', (True, False))
+    def test_accepts_none_and_integer_gte_one(
+        self, int_or_none, can_be_None
+    ):
+
+        if int_or_none is None and not can_be_None:
+            with pytest.raises(TypeError):
+                _val_string_param_value(
+                    'good_key',
+                    [['y', 'z'], int_or_none, 'string'],
+                    _shrink_pass_can_be_None=can_be_None
+                )
+        else:
+            assert _val_string_param_value(
+                'good_key',
+                [['y','z'], int_or_none, 'string'],
+                _shrink_pass_can_be_None=can_be_None
+            ) is None
 
 
     @pytest.mark.parametrize('bad_pass', (-1, 0, 1))
     def test_rejects_integer_less_than_two(self, bad_pass):
         with pytest.raises(ValueError):
-            _string_param_value('good_key', [['a','b'], bad_pass, 'string'])
+            _val_string_param_value(
+                'good_key',
+                [['a','b'], bad_pass, 'string']
+            )
 
 
-class TestArgType:
+class TestParamType:
 
     @pytest.mark.parametrize('bad_param_type',
-    (0, np.pi, True, None, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
+        (0, np.pi, True, None, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
     )
     def test_rejects_anything_not_the_word_string(self, bad_param_type):
         with pytest.raises(TypeError):
-            _string_param_value('good_key', [['a','b'], None, bad_param_type])
+            _val_string_param_value(
+                'good_key',
+                [['q','r'], None, bad_param_type],
+                _shrink_pass_can_be_None=True
+            )
 
 
     @pytest.mark.parametrize('bad_string', ('junk', 'and', 'more_junk'))
     def test_rejects_bad_strings(self, bad_string):
         with pytest.raises(ValueError):
-            _string_param_value('good_key', [['a','b'], None, bad_string])
+            _val_string_param_value(
+                'good_key',
+                [['a','b'], None, bad_string],
+                _shrink_pass_can_be_None=True
+            )
 
 
     def test_accepts_the_word_string(self):
-        assert _string_param_value('good_key', [['a','b'], 3, 'string']) == \
-                        [['a','b'], 3, 'string']
-
-
-
-
-
-
-
+        assert _val_string_param_value(
+            'good_key',
+            [['a','b'], 3, 'string']
+        ) is None
 
 
 

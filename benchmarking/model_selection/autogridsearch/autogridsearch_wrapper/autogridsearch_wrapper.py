@@ -5,7 +5,8 @@
 #
 
 
-from model_selection.autogridsearch.autogridsearch_wrapper import \
+
+from pybear.model_selection.autogridsearch.autogridsearch_wrapper import \
     autogridsearch_wrapper
 
 from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV

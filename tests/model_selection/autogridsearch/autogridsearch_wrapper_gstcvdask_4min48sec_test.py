@@ -29,7 +29,7 @@ from pybear.model_selection import GSTCVDask
 
 
 # pizza
-pytest.skip(reason=f'5 minute test', allow_module_level=True)
+# pytest.skip(reason=f'5 minute test', allow_module_level=True)
 
 
 
@@ -51,8 +51,8 @@ class TestGSTCVDask:
     def _params():
         # using a mock estimator to significantly reduce fit() time
         return {
-            'param_a': [np.logspace(-5, 5, 3), [3, 3], 'soft_float'],
-            'param_b': [[1, 2], [2, 2], 'fixed_integer']
+            'param_a': [np.logspace(-5, 5, 3), 3, 'soft_float'],
+            'param_b': [[1, 2], 2, 'fixed_integer']
         }
 
 

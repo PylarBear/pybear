@@ -7,7 +7,7 @@
 
 # this checks the functionality of the AutoGridSearchCV (SK) module.
 
-from model_selection import AutoGridSearchCV
+from pybear.model_selection import AutoGridSearchCV
 
 import time
 import numpy as np

@@ -14,7 +14,7 @@ import numbers
 
 
 # see _type_aliases, bool subtypes of DataType, GridType, PointsType, ParamType
-BoolDataType: TypeAlias = bool  # DataType sub
+BoolDataType: TypeAlias = Union[bool, None]  # DataType sub
 InBoolGridType: TypeAlias = Sequence[BoolDataType]
 InBoolPointsType: TypeAlias = Union[None, numbers.Integral]
 InBoolParamType: TypeAlias = \

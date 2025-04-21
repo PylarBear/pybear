@@ -22,7 +22,7 @@ from ._validation._validate_best_params import _validate_best_params
 from ._validation._validate_grids import _validate_grids
 from ._validation._validate_phlite import _validate_phlite
 from ._validation._validate_is_logspace import _validate_is_logspace
-from .._validation._params__total_passes import _params__total_passes
+from .._validation._params__total_passes import _val_params__total_passes
 from .._validation._total_passes_is_hard import _val_total_passes_is_hard
 from .._validation._max_shifts import _val_max_shifts
 
@@ -142,8 +142,8 @@ def _get_next_param_grid(
     # 5) if all in PHLITE True, drill and return
 
 
-
-    # _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # * ** * ** * ** * ** * ** * ** ** ** * ** * ** * ** * ** * ** * **
+    # _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if _pass == 0:
         ValueError(f"accessing _get_next_param_grid on pass 0")
@@ -155,15 +155,19 @@ def _get_next_param_grid(
     # there must be at least one grid (_pass zero's) in _GRIDS; the last
     # round in _GRIDS must be full
     if len(_GRIDS) == 0 or len(_GRIDS[max(_GRIDS.keys())]) == 0:
-        raise ValueError(f"an empty GRIDS has been passed to get_next_param_grid()")
+        raise ValueError(
+            f"an empty GRIDS has been passed to get_next_param_grid()"
+        )
 
     if _pass - 1 not in _GRIDS:
-        raise ValueError(f"attempting to operate on pass {_pass} when pass "
-                         f"{_pass-1} is not in GRIDS")
+        raise ValueError(
+            f"attempting to operate on pass {_pass} when pass {_pass-1} "
+            f"is not in GRIDS"
+        )
 
 
     #     _params & _total_passes
-    _params, _total_passes = _params__total_passes(_params, _total_passes)
+    _val_params__total_passes(_params, _total_passes)
 
 
     #     _PHLITE
@@ -201,7 +205,7 @@ def _get_next_param_grid(
     _val_total_passes_is_hard(_total_passes_is_hard)
 
     # END _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
+    # * ** * ** * ** * ** * ** * ** ** ** * ** * ** * ** * ** * ** * **
 
 
     _GRIDS[_pass] = dict()
@@ -304,14 +308,14 @@ def _get_next_param_grid(
 
                 _grid, _param_value, _is_logspace = \
                     _regap_logspace(
-                                    _param,
-                                    _GRIDS[_pass - 1][_param],
-                                    _IS_LOGSPACE[_param],
-                                    _params[_param],
-                                    _pass,
-                                    _best_params_from_previous_pass[_param],
-                                    _GRIDS[0][_param][0],  # hard min
-                                    _GRIDS[0][_param][-1]  # hard max
+                        _param,
+                        _GRIDS[_pass - 1][_param],
+                        _IS_LOGSPACE[_param],
+                        _params[_param],
+                        _pass,
+                        _best_params_from_previous_pass[_param],
+                        _GRIDS[0][_param][0],  # hard min
+                        _GRIDS[0][_param][-1]  # hard max
                     )
 
                 # update GRIDS for the current param & pass

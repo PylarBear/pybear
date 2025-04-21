@@ -9,6 +9,7 @@
 from typing import (
     Protocol,
     Sequence,
+    Tuple,
     TypeVar
 )
 from typing_extensions import (
@@ -24,13 +25,19 @@ import numbers
 
 DataType = TypeVar('DataType', numbers.Real, str)
 
-GridType: TypeAlias = Sequence[DataType]
+InGridType: TypeAlias = Sequence[DataType]
+GridType: TypeAlias = list[DataType]
 
-PointsType: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral]]
+InPointsType: TypeAlias = Union[None, numbers.Integral, Sequence[numbers.Integral]]
+PointsType: TypeAlias = Union[None, numbers.Integral, list[numbers.Integral]]
 
+InParamType: TypeAlias = Sequence[Tuple[InGridType, InPointsType, str]]
 ParamType: TypeAlias = list[GridType, PointsType, str]
 
+InParamsType: TypeAlias = dict[str, InParamType]
 ParamsType: TypeAlias = dict[str, ParamType]
+
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 GridsType: TypeAlias = dict[int, dict[str, GridType]]
 
