@@ -14,14 +14,15 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. 
 
 
 
-class TestStringParamKey:
 
-    @pytest.mark.parametrize('non_str',
-        (0, 1, np.pi, True, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
-    )
-    def test_reject_non_str(self, non_str):
-        with pytest.raises(TypeError):
-            _val_string_param_value(non_str, [['a','b'], 4, 'string'])
+
+
+
+
+
+
+
+class TestStringParamKey:
 
 
     def test_accepts_str(self):
@@ -31,14 +32,6 @@ class TestStringParamKey:
 
 
 class TestStringParamValueOuterContainer:
-
-
-    @pytest.mark.parametrize('non_list_like',
-        (0, np.pi, True, None, min, 'junk', lambda x: x, {'a': 1})
-    )
-    def test_rejects_non_list_like(self, non_list_like):
-        with pytest.raises(TypeError):
-            _val_string_param_value('good_key', non_list_like)
 
 
     @pytest.mark.parametrize('_container', (list, tuple, np.ndarray))
@@ -55,33 +48,7 @@ class TestStringParamValueOuterContainer:
         assert _val_string_param_value('good_key', list_like) is None
 
 
-
 class TestStringListOfSearchPoints:
-
-    @pytest.mark.parametrize('non_list_like',
-        (0, np.pi, True, None, min, 'junk', lambda x: x, {'a': 1})
-    )
-    def test_rejects_non_list_like(self, non_list_like):
-        with pytest.raises(TypeError):
-            _val_string_param_value(
-                'good_key',
-                [non_list_like, None, 'string'],
-                _shrink_pass_can_be_None=True
-            )
-
-
-    @pytest.mark.parametrize('_container', (list, tuple, set, np.ndarray))
-    def test_accepts_list_like(self, _container):
-        _base = ['a', 'b']
-        if _container in [list, tuple, set]:
-            _grid = _container(_base)
-        elif _container is np.ndarray:
-            _grid = np.array(_base, dtype=object)
-        else:
-            raise Exception
-
-        _value = [_grid, 10, 'string']
-        assert _val_string_param_value('good_key', [_grid, 10, 'string']) is None
 
 
     @pytest.mark.parametrize('non_str_non_none',
@@ -145,36 +112,6 @@ class TestShrinkPass:
                 [['a','b'], bad_pass, 'string']
             )
 
-
-class TestParamType:
-
-    @pytest.mark.parametrize('bad_param_type',
-        (0, np.pi, True, None, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
-    )
-    def test_rejects_anything_not_the_word_string(self, bad_param_type):
-        with pytest.raises(TypeError):
-            _val_string_param_value(
-                'good_key',
-                [['q','r'], None, bad_param_type],
-                _shrink_pass_can_be_None=True
-            )
-
-
-    @pytest.mark.parametrize('bad_string', ('junk', 'and', 'more_junk'))
-    def test_rejects_bad_strings(self, bad_string):
-        with pytest.raises(ValueError):
-            _val_string_param_value(
-                'good_key',
-                [['a','b'], None, bad_string],
-                _shrink_pass_can_be_None=True
-            )
-
-
-    def test_accepts_the_word_string(self):
-        assert _val_string_param_value(
-            'good_key',
-            [['a','b'], 3, 'string']
-        ) is None
 
 
 

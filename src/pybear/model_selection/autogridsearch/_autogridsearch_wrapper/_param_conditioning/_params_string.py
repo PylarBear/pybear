@@ -57,14 +57,6 @@ def _cond_string_param_value(
     """
 
 
-    _string_param_value = list(_string_param_value)
-
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    _string_param_value[0] = list(_string_param_value[0])
-
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
     if _string_param_value[1] is None:
         # A LARGE NUMBER OF PASSES THAT WILL NEVER BE REACHED
         # this cannot be set to float('inf') because validated to be int
@@ -75,8 +67,6 @@ def _cond_string_param_value(
     _string_param_value[1] = int(_string_param_value[1])
 
     # -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    _string_param_value[2] = _string_param_value[2].lower()
 
 
     return _string_param_value

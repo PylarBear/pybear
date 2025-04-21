@@ -254,22 +254,6 @@ def autogridsearch_wrapper(
 
             """
 
-            _validation(
-                getattr(self, '_params', self.params),
-                getattr(self, '_total_passes', self.total_passes),
-                self.total_passes_is_hard,
-                getattr(self, '_max_shifts', self.max_shifts),
-                self.agscv_verbose,
-            )
-
-            self._params, self._total_passes, self._max_shifts = _conditioning(
-                getattr(self, '_params', self.params),
-                getattr(self, '_total_passes', self.total_passes),
-                getattr(self, '_max_shifts', self.max_shifts),
-                _inf_shrink_pass=1_000_000,
-                _inf_max_shifts=1_000_000
-            )
-
             self.GRIDS_, self._params, self._PHLITE, self._IS_LOGSPACE, \
                 self._shift_ctr, self._total_passes = \
                     _get_next_param_grid(
@@ -333,22 +317,6 @@ def autogridsearch_wrapper(
 
             """
 
-
-            _validation(
-                getattr(self, '_params', self.params),
-                getattr(self, '_total_passes', self.total_passes),
-                self.total_passes_is_hard,
-                getattr(self, '_max_shifts', self.max_shifts),
-                self.agscv_verbose,
-            )
-
-            self._params, self._total_passes, self._max_shifts = _conditioning(
-                getattr(self, '_params', self.params),
-                getattr(self, '_total_passes', self.total_passes),
-                getattr(self, '_max_shifts', self.max_shifts),
-                _inf_shrink_pass=1_000_000,
-                _inf_max_shifts=1_000_000
-            )
 
             _DemoCls = AutoGridSearch(
                 self.estimator,  # must pass est to satisfy val even tho not used

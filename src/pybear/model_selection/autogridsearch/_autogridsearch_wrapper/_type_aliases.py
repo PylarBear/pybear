@@ -48,31 +48,5 @@ ResultsType: TypeAlias = dict[int, BestParamsType]
 
 
 
-class EstimatorProtocol(Protocol):
-
-    def fit(self, X: any, y: any) -> Self:
-        ...
-
-    def get_params(self, *args, **kwargs) -> dict[str, Any]:
-        ...
-
-    def set_params(self, *args, **kwargs) -> Self:
-        ...
-
-    # pizza what about score?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

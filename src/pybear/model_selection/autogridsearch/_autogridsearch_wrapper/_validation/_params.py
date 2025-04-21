@@ -18,10 +18,10 @@ from .._type_aliases import InParamsType
 
 
 
-def _val_params__total_passes(
+def _val_params(
     _params: InParamsType,
     _total_passes: numbers.Integral
-) -> tuple[InParamsType, int]:
+) -> None:
 
     """
     Validate numerical, string, and bool params within _params vis-à-vis
@@ -74,39 +74,18 @@ def _val_params__total_passes(
 
     """
 
-    # _total_passes must be int >= 1 ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # this number may not be needed if _params contains 'points' that are
-    # list-type (where the length of the list of points is the number of
-    # passes.) If points are passed as lists to multiple parameters, the
-    # lengths must all be equal. String and bool params do not take points
-    # internally; this must be set with the total_passes arg or inferred
-    # from other params that have list-like 'points'. Numerical params
-    # can take a list-type or a single integer for 'points'. If no params
-    # are passed with a list-type for points, or all string / bool
-    # parameters are passed, the total_passes arg is used.
+    # _total_passes number may not be needed if _params contains 'points'
+    # that are list-type (where the length of the list of points is the
+    # number of passes.) If points are passed as lists to multiple
+    # parameters, the lengths must all be equal. String and bool params
+    # do not take points internally; this must be set with the total_passes
+    # arg or inferred from other params that have list-like 'points'.
+    # Numerical params can take a list-type or a single integer for
+    # 'points'. If no params are passed with a list-type for points, or
+    # all string / bool parameters are passed, the total_passes arg is
+    # used.
 
-
-    # validate this even though it may not be needed
-    err_msg = f"'total_passes' must be an integer >= 1"
-    try:
-        float(_total_passes)
-        if isinstance(_total_passes, bool):
-            raise Exception
-        if int(_total_passes) != _total_passes:
-            raise Exception
-        if _total_passes < 1:
-            raise UnicodeError
-    except UnicodeError:
-        raise ValueError(err_msg)
-    except:
-        raise TypeError(err_msg)
-
-
-
-
-    del err_msg
-    # END total_passes must be int >= 1 ** * ** * ** * ** * ** * ** * ** * ** *
 
     # params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     if not isinstance(_params, dict):
@@ -143,9 +122,10 @@ def _val_params__total_passes(
         # there were no list-likes for points, so use the total_passes kwarg
         pass
     elif len(_unq_points) > 1:
-        raise ValueError(f"when 'points' are passed to parameters as lists, "
-            f"all points lists must be the same length, the total number "
-            f"of passes")
+        raise ValueError(
+            f"when 'points' are passed to parameters as lists, all points "
+            f"lists must be the same length, the total number of passes"
+        )
     elif len(_unq_points) == 1:
         # must be an integer, because it came from len()
         pass
@@ -156,41 +136,73 @@ def _val_params__total_passes(
 
     for _key in _params:
 
+        _base_err_msg = f"param '{str(_key)}' in :param: 'params' "
+
         # keys are strings
         if not isinstance(_key, str):
             raise TypeError(
-                f"parameter keys must be strings corresponding to "
-                f"args/kwargs of an estimator"
-        )
+                f"{_base_err_msg} --- \ndict key must be a string corresponding to a parameter of an estimator"
+            )
 
-        # values are list-like
+        # validate outer container ** * ** * ** * ** * ** * ** * ** * ** *
         try:
             iter(_params[_key])
-            if isinstance(_params[_key], (dict, set, str)):
+            if isinstance(_params[_key], (dict, str, set)):
                 raise Exception
-        except:
-            raise TypeError(f"parameter values must be list-like")
-
-
-        # last posn of value must be a string of dtype / search type
-
-        allowed = ['string', 'hard_float', 'hard_integer', 'soft_float',
-                   'soft_integer', 'fixed_float', 'fixed_integer', 'bool']
-
-        err_msg = (f"{_key} -- last position must be a string in \n"
-                   f"[{', '.join(allowed)}]")
-        try:
-            _params[_key][-1].lower()
-        except AttributeError:
-            raise TypeError(err_msg)
+            if len(_params[_key]) != 3:
+                raise UnicodeError
+        except UnicodeError:
+            raise ValueError(_base_err_msg + "--- \ndict value must be list-like, len==3")
         except Exception as e:
-            raise Exception(f"{_key} -- dtype/search string failed for "
-                            f"uncontrolled reason -- {e}")
+            raise TypeError(_base_err_msg + "--- \ndict value must be list-like, len==3")
+        # END validate outer container ** * ** * ** * ** * ** * ** * ** * **
 
-        if _params[_key][-1] not in allowed:
+        # first grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        _err_msg = (f"{_base_err_msg} -- "
+            f"\nfirst position of the value must be a non-empty list-like that "
+            f"\ncontains the first pass grid-search values. "
+        )
+        try:
+            iter(_params[_key][0])
+            if isinstance(_params[_key][0], (dict, str)):
+                raise Exception
+            if len(_params[_key][0]) == 0:
+                raise UnicodeError
+        except UnicodeError:
+            raise ValueError(_err_msg + f"got empty.")
+        except Exception as e:
+            raise TypeError(_err_msg)
+
+        # END first grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # last posn of value must be a string of dtype / search type ** * ** *
+
+        allowed = [
+            'string', 'hard_float', 'hard_integer', 'soft_float',
+            'soft_integer', 'fixed_float', 'fixed_integer', 'bool'
+        ]
+
+        err_msg = (
+            f"{_base_err_msg} --- "
+            f"\nthird position in value must be a string in \n[{', '.join(allowed)}]"
+        )
+
+        if not isinstance(_params[_key][2], str):
+            raise TypeError(err_msg)
+
+        if _params[_key][2].lower() not in allowed:
             raise ValueError(err_msg)
 
-        del err_msg
+        del allowed, err_msg
+
+        # END last posn of value must be a string of dtype / search type ** *
+
+
+
+
+
+
 
         if _params[_key][-1] == 'string':
             _val_string_param_value(
@@ -204,7 +216,7 @@ def _val_params__total_passes(
             _val_numerical_param_value(
                 _key, _params[_key], _total_passes
             )
-    # END params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 

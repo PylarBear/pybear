@@ -21,20 +21,22 @@ class TestCondNumericalParamValueAccuracy:
 
     # there is no validation going into this module
 
+    # out container and grid container must be lists already
+    # last slot must be lower-case already
 
 
-    @pytest.mark.parametrize('outer_container', (list, tuple, np.ndarray))
+    @pytest.mark.parametrize('outer_container', (list, ))
     @pytest.mark.parametrize('base_grid',
         (np.logspace(-5, 5, 11), np.linspace(100, 1000, 11), [1,2,3])
     )
-    @pytest.mark.parametrize('grid_container', (list, tuple, set, np.ndarray))
+    @pytest.mark.parametrize('grid_container', (list, ))
     @pytest.mark.parametrize('base_points, total_passes',
         ([[3,1,1], 3], [4, 3], [[3,3,3], 3])
     )
     @pytest.mark.parametrize('points_container', (list, tuple, np.ndarray))
     @pytest.mark.parametrize('paramtype',
-        ('SOFT_FLOAT', 'hard_FLOAT', 'fixed_float', 'SoFt_InTeGer',
-         'hard_integer', 'FIXED_integer')
+        ('soft_float', 'hard_float', 'fixed_float', 'soft_integer',
+         'hard_integer', 'fixed_integer')
     )
     def test_accepts_list_like(
         self, outer_container, base_grid, grid_container, base_points,
@@ -45,7 +47,7 @@ class TestCondNumericalParamValueAccuracy:
         # skip impossible conditions
         # in this particular case, we have integer with logspace < 1,
         # which would be blocked by validation
-        if min(base_grid) < 1 and 'integer' in paramtype.lower():
+        if min(base_grid) < 1 and 'integer' in paramtype:
             pytest.skip(reason=f"impossible condition")
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -114,7 +116,7 @@ class TestCondNumericalParamValueAccuracy:
         _ref_base_points[0] = len(base_grid)
         assert np.array_equal(out[1], _ref_base_points)
         # * * * * * * * * * * * * * *
-        assert out[2] == paramtype.lower()
+        assert out[2] == paramtype
 
 
 
