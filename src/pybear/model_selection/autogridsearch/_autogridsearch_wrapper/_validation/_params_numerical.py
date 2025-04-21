@@ -6,322 +6,256 @@
 
 
 
-from .._type_aliases_num import (
-    InNumParamType,
-    NumParamType
-)
+from .._type_aliases_num import InNumParamType
+
+import numbers
 
 import numpy as np
 
 
 
-def _numerical_param_value(
-    _numerical_param_key: str,
-    _numerical_param_value: InNumParamType,
-    total_passes: int
-) -> NumParamType:
+def _val_numerical_param_value(
+    _num_param_key: str,
+    _num_param_value: InNumParamType,
+    _total_passes: numbers.Integral
+) -> None:
 
 
     """
-    Validate _numerical_param_value --- standardize format
+    Validate _num_param_value.
 
-    Integer spaces must be > 1, float spaces must be > 0.
+    Integer spaces must be >= 1, float spaces must be >= 0.
 
-    Regardless of what is entered for the first round number of points,
-    that value is overwritten with the actual length of the first grid.
-
-    For fixed float or integer, points must be either the length of the
-    first search grid or 1 then 1 thereafter.
+    For fixed float or integer, the 'points' values must be either the
+    length of the first search grid or 1 then 1 thereafter. E.g., [3,3,3,1,1].
 
     For any case where 1 is entered as points, all points thereafter must
     be 1.
 
-    validate numerical_params' dict value is a list-like that contains
-    either:
-    (i) a list-like of first-round grid-search points
-    (ii) an int or list-like of number of grid points for each pass of
-        autogridsearch
+    validate numerical_params' dict value is a list-like that contains:
+    (i) a list-like of first-round grid-search values
+    (ii) an int or list-like of ints indicating the number of grid points
+        for each pass of autogridsearch
     (iii) a string indicating the data type and the search type
 
-    -- or --
 
-    (i) 'linspace' or 'logspace'
-    (ii) numerical lower bound of the space
-    (iii) numerical upper bound of the space
-    (iv) an int or list-like of number of grid points for each pass of
-        autogridsearch
-    (v) a string indicating the data type and the search type
+    Parameters
+    ----------
+    _num_param_key:
+        str - the estimator parameter name to be grid-searched.
+    _num_param_value:
+        InNumParamType - the list-like of instructions for the multi-pass
+        grid search of this numerical parameter.
+    _total_passes:
+        numbers.Integral - the total number of rounds of gridsearch
+        entered by the user at init.
 
 
-    GOES OUT AS
-    (i) a list-like of first-round grid-search points
-    (ii) a list-like of number of grid points for each pass of
-        autogridsearch
-    (iii) a string indicating the data type and the search type
+    Returns
+    -------
+    -
+        None
 
 
     """
 
 
-    _ = _numerical_param_key
-    __ = _numerical_param_value
+    _value = _num_param_value
+
+    _base_err_msg = f"numerical param '{str(_num_param_key)}' in :param: 'params' "
+
+    if not isinstance(_num_param_key, str):
+        raise TypeError(f"{_base_err_msg} --- param key must be a string")
 
 
-    if not isinstance(_, str):
-        raise TypeError(f"_numerical_param_key must be a string")
-
-
-    # validate container object ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    err_msg = (f"param {_} -- numerical_param_value must be a list-like of len 3 "
-        f"or 5 --- \n[[*first_grid_values], [*number_of_points_for_each_grid], "
-        f"soft/hard/fixed_int/float] - or - \n[search space type, start value, "
-        f"end value, [*number of points for each grid], soft/hard/fixed_int/float]")
-
-
+    # validate outer container ** * ** * ** * ** * ** * ** * ** * ** * **
+    err_msg = (
+        _base_err_msg + "--- \nvalue must be a list-like that contain 3 things: "
+        "\nfirst search grid, \nint or list[int] indicating number of points "
+        "for each search, \n'{soft|hard|fixed}_{int|float}'"
+    )
     try:
-        iter(__)
-        if isinstance(__, (set, dict, str)):
+        iter(_value)
+        if isinstance(_value, (dict, str, set)):
             raise Exception
-        __ = list(__)
-    except:
-        raise TypeError(err_msg)
-
-
-    if len(__) not in [3, 5]:
+        if len(_value) != 3:
+            raise UnicodeError
+    except UnicodeError:
         raise ValueError(err_msg)
-
+    except Exception as e:
+        raise TypeError(err_msg)
     del err_msg
-    # END validate container object ** * ** * ** * ** * ** * ** * ** *
+    # END validate outer container ** * ** * ** * ** * ** * ** * ** * **
 
 
-    # validate soft/hard/fixed_int/float PART 1 ** * ** * ** * ** * ** *
-
-    try:
-        __[-1] = __[-1].lower()
-    except:
-        raise TypeError(f"{_} -- last position must be a string indicating "
-                        f"soft/hard/fixed_int/float")
-
+    # validate soft/hard/fixed_int/float ** * ** * ** * ** * ** * ** *
     allowed = [
-               "hard_integer", "soft_integer", "fixed_integer", "hard_float",
-               "soft_float", "fixed_float"
+        "hard_integer", "soft_integer", "fixed_integer", "hard_float",
+        "soft_float", "fixed_float"
     ]
-
-    if not __[-1] in allowed:
-        raise ValueError(f'{_} -- type must be in {", ".join(allowed)}')
-
-    del allowed
-
-    # END validate soft/hard/fixed_int/float PART 1 ** * ** * ** * ** *
-
-    # validate points part 1 ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    err_msg = (f'{_} -- "points" must be (i) a non-bool integer >= 1 or '
-        f'(ii) a list-type of non-bool integers >=1 with len==passes'
-        f'\n\npoints:\n{__[-2]}'
+    err_msg = (
+        f"{_base_err_msg} --- \nthird position of value must be a string "
+        f"in {', '.join(allowed)}"
     )
 
-    try:
-        iter(__[-2])  # IF IS A SINGLE NON-SEQUENCE, CONVERT TO LIST
-        if isinstance(__[-2], (dict, set, str)):
-            raise UnicodeError
-        __[-2] = list(__[-2])
-    except TypeError:
-        __[-2] = [__[-2] for _ in range(total_passes)]
-    except UnicodeError:
-        raise TypeError(err_msg)
-    except Exception as e:
-        raise Exception(f"'points' sequence check failed for uncontrolled "
-                        f"reason --- {e}")
-
-
-    # NUMBER OF POINTS IN points MUST MATCH NUMBER OF PASSES
-    if len(__[-2]) != total_passes:
-        raise ValueError(err_msg + f"\n\ntotal_passes: \n{total_passes}")
-
-    # IF A NON-NUMERIC IS IN POINTS
-    try:
-        if any(map(isinstance, __[-2], (bool for _ in __[-2]))):
-            raise Exception
-        _float_test = list(map(float, __[-2]))
-    except:
+    if not isinstance(_value[2], str):
         raise TypeError(err_msg)
 
-
-    # IF A FLOAT IS IN points
-    if any([int(i) != i for i in _float_test]):
-        raise TypeError(err_msg)
-
-    del _float_test
-
-    __[-2] = list(map(int, __[-2]))
-
-    # IF ANY NUMBER IN points IS LESS THAN 1
-    if min(__[-2]) < 1:
+    if _value[2].lower() not in allowed:
         raise ValueError(err_msg)
 
-    if 'soft' in __[-1] and 2 in __[-2]:
-        raise ValueError(f'{_} -- Grids of size 2 are not allowed for "soft" '
-                        f'numerical params')
+    del allowed, err_msg
+    # END validate soft/hard/fixed_int/float  ** * ** * ** * ** * ** *
 
-    # IF NUMBER OF POINTS IS EVER SET TO 1, ALL SUBSEQUENT POINTS MUST BE 1
-    if len(__[-2]) > 1:
-        for idx in range(len(__[-2][:-1])):
-            if __[-2][idx] == 1 and __[-2][idx + 1] > 1:
-                raise ValueError(f"{_} -- once number of points is set to 1, all "
-                     f"subsequent points must be 1 \n\npoints={__[-2]}")
-
-    del err_msg
-    # END validate points part 1 ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    # validate first grid when len == 5 ** * ** * ** * ** * ** * ** * **
-
-    if len(__) == 5:
-        # validate list contains 'linspace/logspace', start_value, end_value ##
-
-        err_msg = (f'{_} -- for numerical_params "5" format, first position must '
-                f'be a string: "linspace" or "logspace"')
-
-        try:
-            __[0] = __[0].lower()
-        except:
-            raise TypeError(err_msg)
-
-        if not __[0] in ['linspace', 'logspace']:
-            raise ValueError(err_msg)
-
-        del err_msg
-
-        # start_value / end_value MUST BE NUMERIC
-        err_msg = f"{_} -- for '5' format, start_value & end_value must be numeric"
-        for idx in [1, 2]:
-            try:
-                if isinstance(__[idx], bool):
-                    raise Exception
-                float(__[idx])
-                if 'integer' in __[-1] and (int(__[idx]) != __[idx]):
-                    raise Exception
-            except:
-                raise TypeError(err_msg)
-
-        del err_msg
-
-        # END validate list contains 'linspace/logspace', start_value, end_value
-
-        if __[0] == 'logspace':
-            _grid = np.sort(np.logspace(__[1], __[2], __[3][0])).tolist()
-        elif __[0] == 'linspace':
-            _grid = np.sort(np.linspace(__[1], __[2], __[3][0])).tolist()
-
-        __ = [_grid, __[-2], __[-1]]
-        del _grid
-
-    # END validate first grid when len == 5 ** * ** * ** * ** * ** * **
-
-    # LEN MUST BE 3
-
-    # validate list contains [first_grid] in 0 slot ** * ** * ** * ** *
-
-    err_msg = f"{_} -- for '3' format, first element of list must be a list-type"
+    # validate contains [first_grid] in 0 slot ** * ** * ** * ** * ** *
+    err_msg = (f"{_base_err_msg} -- first position of value must be a "
+        f"non-empty list-type that contains the first pass grid-search "
+        f"values (numbers). ")
     try:
-        iter(__[0])
-        if isinstance(__[0], (dict, str)):
+        iter(_value[0])
+        if isinstance(_value[0], (dict, str)):
             raise Exception
-    except:
+        if len(_value[0]) == 0:
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(err_msg + f"got empty.")
+    except Exception as e:
         raise TypeError(err_msg)
 
     try:
-        if any(map(isinstance, __[0], (bool for _ in __[0]))):
+        if any(map(isinstance, _value[0], (bool for _ in _value[0]))):
             raise Exception
-        list(map(float, __[0]))
+        list(map(float, _value[0]))
     except:
-        raise TypeError(f"{_} -- search values must be numeric")
+        raise TypeError(err_msg)
 
-    __[0] = list(np.sort(list(__[0])))
+    del err_msg
 
-    # END validate list contains [first_grid] in 0 slot ** * ** * ** *
+    if 'integer' in _value[2]:
 
-    # validate points part 2 ** * ** * ** * ** * ** * ** * ** * ** * **
+        if not all(int(i) == i for i in _value[0]):
+            raise ValueError(
+                f"{_base_err_msg} -- \nwhen numerical is integer (soft, "
+                f"hard, or fixed), \nall search values must be integers. "
+                f"\ngrid = {_value[0]}"
+            )
 
-    # in part 1, first grid was not built yet, but validated that points
-    #  - is a list
-    #  - len==(total_passes)
-    #  - has integers > 0
-    #  - 'soft' points always > 2
-    #  - observes shrink rule
+        if _value[2] in ['hard_integer', 'soft_integer'] and min(_value[0]) < 1:
+            raise ValueError(
+                f"{_base_err_msg} -- \nwhen numerical is hard/soft integer, "
+                f"\nall search values must be >= 1. \ngrid = {_value[0]}"
+            )
 
-    # need to validate
-    #   - fixed points in [1 or len(first grid)]
+    elif 'float' in _value[2]:
 
-    # the desired behavior is that if a user enters this [[1,2,3], 1, ...]
-    # then the first points is automatically set to len grid, and all
-    # passes after just run the single best value: points = [3, 1, 1, ... ]
-    # to do this, pinned into making that if all values in points are
-    # equal (whether 1 or otherwise), assume that points was entered as
-    # int and set all points after first to that value. after some thought
-    # simply overwrite whatever user put in 0 slot for points, without
-    # notifying if original entry was erroneous
+        if _value[2] in ['hard_float', 'soft_float'] \
+                and (np.array(list(_value[0])) < 0).any():
+            raise ValueError(
+                f"{_base_err_msg} -- \nwhen numerical is hard/soft float, "
+                f"\nall search values must be >= 0. \ngrid = {_value[0]}")
 
-    __[-2][0] = len(__[0])
-
-    # fixed points in [1 or len(first grid)]
-    if 'fixed' in __[-1]:
-        if any([_points not in [1, __[-2][0]] for _points in __[-2]]):
-            raise ValueError(f"{_} -- if fixed int/float, number of points "
-                f"must be len(first grid) or 1 \n\npoints = {__[-2]}")
-
-    # END validate points part 2 ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    # validate soft/hard/fixed_int/float PART 2 ** * ** * ** * ** * ** * ** *
-    if 'integer' in __[-1]:
-
-        if not all([int(i) == i for i in __[0]]):
-            raise TypeError(f"{_} -- when numerical is integer (soft, hard, or "
-                f"fixed), all search values must be integers: \n\ngrid = {__[0]}")
-
-        if __[-1] in ['hard_integer', 'soft_integer'] and (np.array(__[0]) < 1).any():
-            raise ValueError(f"{_}: when numerical is hard/soft integer, "
-                f"all search values must be >= 1: \n\ngrid = {__[0]}")
-
-        __[0] = list(map(int, __[0]))
-
-    elif 'float' in __[-1]:
-
-        if __[-1] in ['hard_float', 'soft_float'] and (np.array(__[0]) < 0).any():
-            raise ValueError(f"{_} -- when numerical is hard/soft float, "
-                f"all search values must be >= 0: \n\ngrid = {__[0]}")
-
-        __[0] = list(map(float, __[0]))
+    else:
+        raise Exception
 
     # LOGSPACE
-    if len(__[0]) >= 3 and 0 not in __[0]:
-        log_grid = np.log10(__[0])
+    if 'fixed' not in _value[2] and len(_value[0]) >= 3 and 0 not in _value[0]:
+        log_grid = np.log10(list(_value[0]))
         log_gaps = log_grid[1:] - log_grid[:-1]
         _unq_log_gap = np.unique(np.round(log_gaps, 14))
 
         if len(_unq_log_gap) == 1:  # else is not a logspace
             # CURRENTLY ONLY HANDLES LOGSPACE BASE 10 OR GREATER
-            err_msg = f"{_} -- only handles logspaces with base 10 or greater"
             if _unq_log_gap[0] < 1:
-                raise ValueError(err_msg)
-            del err_msg
+                raise ValueError(
+                    f"{_base_err_msg} -- \nonly handles logspaces with "
+                    f"base 10 or greater"
+                )
 
             # 24_05_14_07_53_00 ENFORCING INTEGER FOR LOGSPACE MAKES MANAGING
             # GAPS IN DRILL SECTION A LOT EASIER
             if int(_unq_log_gap[0]) != _unq_log_gap[0]:
-                raise ValueError(f'{_}: logspaces must have integer intervals')
+                raise ValueError(
+                    f'{_base_err_msg} -- \nlogspaces must have integer intervals'
+                )
 
         del log_grid, log_gaps, _unq_log_gap
-    # END validate soft/hard/fixed_int/float PART 2 ###############
 
-    _numerical_param_value = __
+    # END validate contains [first_grid] in 0 slot ** * ** * ** * ** *
 
-    del __
+    # validate points part 1 ** * ** * ** * ** * ** * ** * ** * ** * **
+    err_msg = (
+        f"{_base_err_msg} -- \n'points' must be "
+        f"\n(i) a non-bool integer >= 1 or "
+        f"\n(ii) a list-type of non-bool integers >=1 with len==passes"
+        f"\ngot {_value[1]}, total_passes={_total_passes}"
+    )
 
-    return _numerical_param_value
+    # this is a helper only for easier validation! this is not returned
+    if isinstance(_value[1], numbers.Number):
+        _helper_list = [_value[1] for _ in range(_total_passes)]
+    else:
+        _helper_list = _value[1]
 
+    try:
+        iter(_helper_list)
+        if isinstance(_helper_list, (dict, str)):
+            raise Exception
+        # NUMBER OF POINTS IN points MUST MATCH NUMBER OF PASSES
+        if len(_helper_list) != _total_passes:
+            raise UnicodeError
+        # IF A NON-NUMERIC IS IN POINTS
+        map(float, _helper_list)
+        # IF A BOOL IS IN POINTS
+        if any(map(isinstance, _helper_list, (bool for _ in _helper_list))):
+            raise Exception
+        # IF A FLOAT IS IN points
+        if any(int(i) != i for i in map(float, _helper_list)):
+            raise Exception
+        # IF ANY INT IN points IS LESS THAN 1
+        if min(_helper_list) < 1:
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(err_msg)
+    except Exception as e:
+        raise TypeError(err_msg)
+
+    del err_msg
+
+    _helper_list = list(map(int, _helper_list))
+
+    # IF NUMBER OF POINTS IS EVER SET TO 1, ALL SUBSEQUENT POINTS MUST BE 1
+    for idx, points in enumerate(_helper_list[:-1]):
+        if points == 1 and _helper_list[idx + 1] > 1:
+            raise ValueError(
+                f"{_base_err_msg} -- \nonce number of points is set to 1, all "
+                f"subsequent points must be 1. \ngot {_value[1]}"
+            )
+
+    if 'soft' in _value[2] and 2 in _helper_list:
+        raise ValueError(
+            f'{_base_err_msg} -- \nGrids of size 2 are not allowed for '
+            f'"soft" numerical params'
+        )
+
+    # the desired behavior is that if a user enters this [[1,2,3], 1, ...]
+    # then the first points is automatically set to len grid, and all
+    # passes after just run the single best value: points = [3, 1, 1, ... ]
+    # simply overwrite whatever user put in 0 slot for points, without
+    # notifying if original entry was erroneous
+
+    # fixed points in [1 or len(first grid)] (the first points will be
+    # automatically set to len(_value[0]) by conditioning, so only check
+    # the values in [1:]
+    if 'fixed' in _value[2]:
+        if any(_points not in [1, len(_value[0])] for _points in _helper_list[1:]):
+            raise ValueError(
+                f"{_base_err_msg} -- \nif fixed int/float, number of points "
+                f"must be len(first grid) or 1 \npoints = {_value[1]}"
+            )
+
+    del _helper_list
+
+    # END validate points part 1 ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 

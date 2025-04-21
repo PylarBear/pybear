@@ -4,7 +4,9 @@
 # License: BSD 3 clause
 #
 
-from model_selection.autogridsearch._autogridsearch_wrapper._demo.\
+
+
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper._demo.\
     _mock_gscv import _mock_gscv
 
 
@@ -49,12 +51,12 @@ _best_params_round_one = {
 _pass = 0
 
 _best_params_ = _mock_gscv(
-                            _GRIDS,
-                            _params,
-                            _true_best,
-                            _best_params_round_zero,
-                            _pass,
-                            _pause_time=1
+    _GRIDS,
+    _params,
+    _true_best,
+    _best_params_round_zero,
+    _pass,
+    _pause_time=1
 )
 
 print(f"best_params round 0:")
@@ -65,12 +67,12 @@ print()
 _pass = 1
 
 _best_params_ = _mock_gscv(
-                            _GRIDS,
-                            _params,
-                            _true_best,
-                            _best_params_round_one,
-                            _pass,
-                            _pause_time=1
+    _GRIDS,
+    _params,
+    _true_best,
+    _best_params_round_one,
+    _pass,
+    _pause_time=1
 )
 
 print(f"best_params round 1:")

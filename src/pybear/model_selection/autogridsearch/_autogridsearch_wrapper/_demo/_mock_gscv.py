@@ -142,9 +142,9 @@ def _mock_gscv(
             # use min lsq to find best for numerical
             # dont let best value get out of here as an np float or int!
             _LSQ = np.power(
-                            np.array(_grid) - _true_best[_param],
-                            2,
-                            dtype=np.float64
+                np.array(_grid) - _true_best[_param],
+                2,
+                dtype=np.float64
             )
             _best_idx = np.arange(len(_grid))[_LSQ == np.min(_LSQ)][0]
             _best_params_[_param] = _grid[_best_idx]

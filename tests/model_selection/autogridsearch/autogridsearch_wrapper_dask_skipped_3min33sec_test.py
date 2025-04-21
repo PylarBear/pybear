@@ -37,7 +37,7 @@ from distributed import Client
 
 
 # pizza
-pytest.skip(f"test takes 3.5+ minutes", allow_module_level=True)
+# pytest.skip(f"test takes 3.5+ minutes", allow_module_level=True)
 
 
 
@@ -95,7 +95,7 @@ class TestDaskGSCVSThatDontNeedPartialFit:
     @pytest.fixture
     def _dask_params_1():
         return {
-            'C': [np.logspace(-5, 5, 3), [3, 3, 3], 'soft_float'],
+            'C': [np.logspace(-5, 5, 3), 3, 'soft_float'],
             'solver': [['lbfgs', 'admm'], 2, 'string']
         }
 

@@ -4,7 +4,9 @@
 # License: BSD 3 clause
 #
 
-from model_selection.autogridsearch._autogridsearch_wrapper._demo. \
+
+
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper._demo. \
     _display_true_best import _display_true_best
 
 

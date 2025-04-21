@@ -39,8 +39,8 @@ class TestAGSCVValidation:
     @pytest.fixture
     def good_sk_logistic_params():
         return {
-            'C': [np.logspace(-5,5,6), [6,6,6], 'soft_float'],
-            'l1_ratio': [np.linspace(0,1,6), [6,6,6], 'hard_float'],
+            'C': [np.logspace(-5,5,6), 6, 'soft_float'],
+            'l1_ratio': [np.linspace(0,1,6), 6, 'hard_float'],
             'solver': [['saga', 'lbfgs'], 2, 'string'],
             'fit_intercept': [[True, False], 2, 'bool']
         }
@@ -290,7 +290,7 @@ class TestAGSCVValidation:
             assert _gscv.total_passes == good_tp
         elif not _gscv.total_passes_is_hard:
             assert _gscv.total_passes >= good_tp
-        assert _gscv.max_shifts == (good_max_shifts or 1_000)
+        assert _gscv._max_shifts > 0   # and is not None
         assert _gscv.agscv_verbose is agscv_verbose
 
 

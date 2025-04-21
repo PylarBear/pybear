@@ -184,20 +184,22 @@ class TestDemo:
         assert list(_test_cls.GRIDS_.keys()) == list(range(_test_cls.total_passes))
         for _pass_ in _test_cls.GRIDS_:
             assert _test_cls.GRIDS_[_pass_].keys() == _params.keys()
-            assert all(map(isinstance,
-                           _test_cls.GRIDS_[_pass_].values(),
-                           (list for _ in _test_cls.GRIDS_[_pass_]))
-                       )
+            assert all(map(
+                isinstance,
+                _test_cls.GRIDS_[_pass_].values(),
+                (list for _ in _test_cls.GRIDS_[_pass_])
+            ))
+
             for _param_ in _params:
                 __ = _test_cls.GRIDS_[_pass_][_param_]
                 if _params[_param_][-1] in ['string', 'bool']:
                     # 'shrink pass' may have been incremented by shifts,
                     # which would show in _test_cls.params, but not the
                     # _params in this scope
-                    if _pass_ >= _test_cls.params[_param_][-2] - 1:
+                    if _pass_ >= _test_cls._params[_param_][-2] - 1:
                         assert len(__) == 1
                 else:
-                    assert len(__) == _test_cls.params[_param_][1][_pass_]
+                    assert len(__) == _test_cls._params[_param_][1][_pass_]
             del _param_, __
         del _pass_
 

@@ -6,8 +6,10 @@
 
 
 
-from typing import Iterable, Sequence
 from typing_extensions import Any, TypeAlias, Union
+from ._autogridsearch_wrapper._type_aliases import (
+    ParamsType
+)
 
 import numbers
 from copy import deepcopy
@@ -19,18 +21,12 @@ from ._autogridsearch_wrapper._type_aliases import BestParamsType
 
 from ._autogridsearch_wrapper._print_results import _print_results
 
-from ._autogridsearch_wrapper._validation._agscv_verbose import \
-    _val_agscv_verbose
 from ._autogridsearch_wrapper._validation._is_dask_gscv import _is_dask_gscv
-from ._autogridsearch_wrapper._validation._max_shifts import _val_max_shifts
-from ._autogridsearch_wrapper._validation._params__total_passes import \
-    _params__total_passes as val_params_total_passes
-from ._autogridsearch_wrapper._validation._total_passes_is_hard import \
-    _val_total_passes_is_hard
+from ._autogridsearch_wrapper._validation._validation import _validation
+from ._autogridsearch_wrapper._param_conditioning._conditioning import _conditioning
+
 from ._autogridsearch_wrapper._build_first_grid_from_params import _build
 from ._autogridsearch_wrapper._build_is_logspace import _build_is_logspace
-
-from ._autogridsearch_wrapper._param_conditioning._max_shifts import _cond_max_shifts
 
 from ._autogridsearch_wrapper._get_next_param_grid._get_next_param_grid \
     import _get_next_param_grid
@@ -134,9 +130,9 @@ def autogridsearch_wrapper(
         def __init__(
             self,
             estimator,
-            params: dict[str, list[Sequence[any], Union[int, Sequence[int]], str]],
+            params: ParamsType,
             *,
-            total_passes: int=5,
+            total_passes: numbers.Integral=5,
             total_passes_is_hard: bool=False,
             max_shifts: Union[None, numbers.Integral]=None,
             agscv_verbose: bool=False,
@@ -169,29 +165,6 @@ def autogridsearch_wrapper(
             return hasattr(self, 'best_score_')
 
 
-        # _validation() ################################################
-
-        def _validation(self):
-
-            """
-            Validate the args and kwargs of the AutoGridSearch wrapper.
-            Validation of the args and kwargs for the underlying GridSearch
-            is handled by itself.
-
-            """
-
-            self.params, self.total_passes = \
-                val_params_total_passes(self.params, self.total_passes)
-
-            _val_total_passes_is_hard(self.total_passes_is_hard)
-
-            _val_max_shifts(self.max_shifts, _can_be_None=True)
-
-            _val_agscv_verbose(self.agscv_verbose)
-
-        # END _validation() ############################################
-
-
         # _reset() ######################################################
         def _reset(self) -> None:
 
@@ -208,6 +181,25 @@ def autogridsearch_wrapper(
 
             """
 
+
+            _validation(
+                self.params,
+                self.total_passes,
+                self.total_passes_is_hard,
+                self.max_shifts,
+                self.agscv_verbose
+            )
+
+            self._params, self._total_passes, self._max_shifts = _conditioning(
+                self.params,
+                self.total_passes,
+                self.max_shifts,
+                _inf_shrink_pass=1_000_000,
+                _inf_max_shifts=1_000_000
+            )
+
+            # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
             self._shift_ctr = 0
 
             # Create 2 dictionaries that hold information about starting /
@@ -222,14 +214,14 @@ def autogridsearch_wrapper(
             # IS_LOGSPACE IS DYNAMIC, WILL CHANGE WHEN A PARAM'S SEARCH
             # GRID INTERVAL IS UNITIZED OR TRANSITIONS FROM LOGSPACE TO
             # LINSPACE
-            self._IS_LOGSPACE = _build_is_logspace(self.params)
+            self._IS_LOGSPACE = _build_is_logspace(self._params)
 
 
             # ONLY POPULATE WITH numerical_params WITH "soft" BOUNDARY
             # AND START AS FALSE
             self._PHLITE = {}
-            for hprmtr in self.params:
-                if 'soft' in self.params[hprmtr][-1]:
+            for hprmtr in self._params:
+                if 'soft' in self._params[hprmtr][-1]:
                     self._PHLITE[hprmtr] = False
 
         # END _reset() ##################################################
@@ -262,19 +254,35 @@ def autogridsearch_wrapper(
 
             """
 
-            self.GRIDS_, self.params, self._PHLITE, self._IS_LOGSPACE, \
-                self._shift_ctr, self.total_passes = \
+            _validation(
+                getattr(self, '_params', self.params),
+                getattr(self, '_total_passes', self.total_passes),
+                self.total_passes_is_hard,
+                getattr(self, '_max_shifts', self.max_shifts),
+                self.agscv_verbose,
+            )
+
+            self._params, self._total_passes, self._max_shifts = _conditioning(
+                getattr(self, '_params', self.params),
+                getattr(self, '_total_passes', self.total_passes),
+                getattr(self, '_max_shifts', self.max_shifts),
+                _inf_shrink_pass=1_000_000,
+                _inf_max_shifts=1_000_000
+            )
+
+            self.GRIDS_, self._params, self._PHLITE, self._IS_LOGSPACE, \
+                self._shift_ctr, self._total_passes = \
                     _get_next_param_grid(
                         self.GRIDS_,
-                        self.params,
+                        self._params,
                         self._PHLITE,
                         self._IS_LOGSPACE,
                         _best_params_from_previous_pass,
                         _pass,
-                        self.total_passes,
+                        self._total_passes,
                         self.total_passes_is_hard,
                         self._shift_ctr,
-                        self.max_shifts
+                        self._max_shifts
                     )
 
 
@@ -298,6 +306,7 @@ def autogridsearch_wrapper(
             best values are generated from the set of first search grids
             provided in params.
 
+
             Parameters
             ----------
 
@@ -312,28 +321,41 @@ def autogridsearch_wrapper(
                 numbers.Real - time in seconds to pause, simulating a
                 trial of GridSearch
 
+
             Return
             ------
             -
-                _DemoCls:
-                    AutoGridSearchCV instance - The AutoGridSearch instance
-                    created to run simulations, not the active instance of
-                    AutoGridSearch. This return is integral for tests of
-                    the demo functionality, but has no other internal use.
+                _DemoCls: AutoGridSearchCV instance - The AutoGridSearch
+                instance created to run simulations, not the active
+                instance of AutoGridSearch. This return is integral
+                for tests of the demo functionality, but has no other
+                internal use.
 
             """
 
 
-            self._validation()
+            _validation(
+                getattr(self, '_params', self.params),
+                getattr(self, '_total_passes', self.total_passes),
+                self.total_passes_is_hard,
+                getattr(self, '_max_shifts', self.max_shifts),
+                self.agscv_verbose,
+            )
 
-            # pizza what about conditioning params?
+            self._params, self._total_passes, self._max_shifts = _conditioning(
+                getattr(self, '_params', self.params),
+                getattr(self, '_total_passes', self.total_passes),
+                getattr(self, '_max_shifts', self.max_shifts),
+                _inf_shrink_pass=1_000_000,
+                _inf_max_shifts=1_000_000
+            )
 
             _DemoCls = AutoGridSearch(
                 self.estimator,  # must pass est to satisfy val even tho not used
                 params=self.params,
-                total_passes= self.total_passes,
+                total_passes=self.total_passes,
                 total_passes_is_hard=self.total_passes_is_hard,
-                max_shifts=_cond_max_shifts(self.max_shifts),
+                max_shifts=self.max_shifts,
                 agscv_verbose=False
             )
 
@@ -344,7 +366,6 @@ def autogridsearch_wrapper(
             )
 
             return _DemoCls   # for tests purposes only
-
 
 
         def print_results(self) -> None:
@@ -366,8 +387,8 @@ def autogridsearch_wrapper(
 
         def fit(
             self,
-            X: Iterable[Union[int, float]],
-            y: Iterable[Union[int, float]]=None,
+            X,
+            y=None,
             groups=None,
             **fit_params
         ):
@@ -404,21 +425,33 @@ def autogridsearch_wrapper(
             """
 
 
-            self._validation()
+            _validation(
+                self.params,
+                self.total_passes,
+                self.total_passes_is_hard,
+                self.max_shifts,
+                self.agscv_verbose
+            )
 
-            # this must be after _validation()
-            # pizza u need to address these assignments!
-            self.max_shifts = _cond_max_shifts(self.max_shifts)
-
-            # pizza what about conditioning params?
+            # pizza this is a big mess. need to use leading underscore self
+            # here because _get_next_param_grid needs access. cant just put
+            # _gnpg directly under here because _demo() also calls that
+            # method directly. pizza straigten this spagetti out.
+            self._params, self._total_passes, self._max_shifts = _conditioning(
+                self.params,
+                self.total_passes,
+                self.max_shifts,
+                _inf_shrink_pass=1_000_000,
+                _inf_max_shifts=1_000_000
+            )
 
             self._reset()
 
             _pass = 0
-            while _pass < self.total_passes:
+            while _pass < self._total_passes:
 
                 if _pass == 0:
-                    self.GRIDS_ = _build(self.params)
+                    self.GRIDS_ = _build(self._params)
                 else:
                     self._get_next_param_grid(
                         _pass,
@@ -478,13 +511,13 @@ def autogridsearch_wrapper(
                     # everytime, if refit not False
 
                 if hasattr(self, 'refit') \
-                    and not self.total_passes == 1 \
+                    and not self._total_passes == 1 \
                     and not _is_dask_gscv(GridSearchParent) \
                     and not _multimetric:
                     if _pass == 0:
                         original_refit = self.refit
                         self.refit = False
-                    elif _pass == self.total_passes - 1:
+                    elif _pass == self._total_passes - 1:
                         self.refit = original_refit
                         del original_refit
                 # *** END ONLY REFIT ON THE LAST PASS TO SAVE TIME ********
@@ -543,7 +576,7 @@ def autogridsearch_wrapper(
             del _best_params_from_previous_pass
 
             if self.agscv_verbose:
-                print(f"\nfit successfully completed {self.total_passes} "
+                print(f"\nfit successfully completed {self._total_passes} "
                       f"pass(es) with {self._shift_ctr} shift pass(es).")
 
 

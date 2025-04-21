@@ -47,8 +47,8 @@ class TestGSTCV:
     @pytest.fixture
     def _params():
         return {
-            'param_a': [np.logspace(-5, -3, 3), [3, 3, 3], 'soft_float'],
-            'param_b': [[1, 2], [2, 2, 2], 'fixed_integer']
+            'param_a': [np.logspace(-5, -3, 3), 3, 'soft_float'],
+            'param_b': [[1, 2], 2, 'fixed_integer']
         }
 
 

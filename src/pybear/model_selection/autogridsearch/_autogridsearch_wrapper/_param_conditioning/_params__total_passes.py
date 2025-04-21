@@ -10,22 +10,25 @@ import numbers
 
 import numpy as np
 
-from ._params_numerical import _val_numerical_param_value
-from ._params_string import _val_string_param_value
-from ._params_bool import _val_bool_param_value
+from ._params_numerical import _cond_numerical_param_value
+from ._params_string import _cond_string_param_value
+from ._params_bool import _cond_bool_param_value
 
-from .._type_aliases import InParamsType
+from .._type_aliases import (
+    InParamsType,
+    ParamsType
+)
 
 
 
-def _val_params__total_passes(
+def _cond_params__total_passes(
     _params: InParamsType,
-    _total_passes: numbers.Integral
-) -> tuple[InParamsType, int]:
+    _total_passes: numbers.Integral,
+    _inf_shrink_pass: numbers.Integral
+) -> tuple[ParamsType, int]:
 
     """
-    Validate numerical, string, and bool params within _params vis-à-vis
-    total_passes.
+    Standardize the format of _params, vis-à-vis total_passes.
 
 
     Parameters
@@ -36,7 +39,6 @@ def _val_params__total_passes(
         bool, and numerical parameters as values. AutoGridSearch does
         not accept lists of multiple params dictionaries in the same way
         that Scikit-Learn and Dask accept multiple param_grids.
-
     _total_passes:
         numbers.Integral - the number of grid searches to perform. The
         actual number of passes run can be different from this number
@@ -48,12 +50,17 @@ def _val_params__total_passes(
         causing shift passes to not count toward the total number of
         passes. Read elsewhere in the docs for more information about
         'shifting' and 'drilling'.
+    _inf_shrink_pass:
+        numbers.Integral - the larger integer to substitute in the shrink
+        pass  position if the user passed None for shrink pass
 
 
     Returns
     -------
     -
-        None
+        _params: ParamsType - dictionary of grid-building instructions
+        for all parameters.
+        _total_passes: int - the total number of GridSearches to perform.
 
 
     Examples
@@ -86,32 +93,11 @@ def _val_params__total_passes(
     # are passed with a list-type for points, or all string / bool
     # parameters are passed, the total_passes arg is used.
 
+    _total_passes = int(_total_passes)
 
-    # validate this even though it may not be needed
-    err_msg = f"'total_passes' must be an integer >= 1"
-    try:
-        float(_total_passes)
-        if isinstance(_total_passes, bool):
-            raise Exception
-        if int(_total_passes) != _total_passes:
-            raise Exception
-        if _total_passes < 1:
-            raise UnicodeError
-    except UnicodeError:
-        raise ValueError(err_msg)
-    except:
-        raise TypeError(err_msg)
-
-
-
-
-    del err_msg
     # END total_passes must be int >= 1 ** * ** * ** * ** * ** * ** * ** * ** *
 
     # params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    if not isinstance(_params, dict):
-        raise TypeError(f"'_params' must be a dictionary")
-
 
     # must get a finalized number for total_passes before looping over
     # _params because _{string/numerical/bool}_param_value standardize
@@ -129,7 +115,7 @@ def _val_params__total_passes(
         _points = _params[_param][1]
         try:
             iter(_points)
-            if isinstance(_points, (str, dict)):
+            if isinstance(_points, (str, dict, set)):
                 continue  # except on this later in _string _bool or _numerical
             _POINTS_LENS.append(len(_points))
         except:
@@ -139,16 +125,10 @@ def _val_params__total_passes(
 
     _unq_points = np.unique(_POINTS_LENS)
     del _POINTS_LENS
-    if len(_unq_points) == 0:
-        # there were no list-likes for points, so use the total_passes kwarg
-        pass
-    elif len(_unq_points) > 1:
-        raise ValueError(f"when 'points' are passed to parameters as lists, "
-            f"all points lists must be the same length, the total number "
-            f"of passes")
-    elif len(_unq_points) == 1:
+
+    if len(_unq_points) == 1:
         # must be an integer, because it came from len()
-        pass
+        _total_passes = int(_unq_points[0])
 
     del _unq_points
 
@@ -156,60 +136,21 @@ def _val_params__total_passes(
 
     for _key in _params:
 
-        # keys are strings
-        if not isinstance(_key, str):
-            raise TypeError(
-                f"parameter keys must be strings corresponding to "
-                f"args/kwargs of an estimator"
-        )
+        _params[_key] = list(_params[_key])
 
-        # values are list-like
-        try:
-            iter(_params[_key])
-            if isinstance(_params[_key], (dict, set, str)):
-                raise Exception
-        except:
-            raise TypeError(f"parameter values must be list-like")
-
-
-        # last posn of value must be a string of dtype / search type
-
-        allowed = ['string', 'hard_float', 'hard_integer', 'soft_float',
-                   'soft_integer', 'fixed_float', 'fixed_integer', 'bool']
-
-        err_msg = (f"{_key} -- last position must be a string in \n"
-                   f"[{', '.join(allowed)}]")
-        try:
-            _params[_key][-1].lower()
-        except AttributeError:
-            raise TypeError(err_msg)
-        except Exception as e:
-            raise Exception(f"{_key} -- dtype/search string failed for "
-                            f"uncontrolled reason -- {e}")
-
-        if _params[_key][-1] not in allowed:
-            raise ValueError(err_msg)
-
-        del err_msg
+        # pizza this is probably redundant
+        _params[_key][-1] = _params[_key][-1].lower()
 
         if _params[_key][-1] == 'string':
-            _val_string_param_value(
-                _key, _params[_key], _shrink_pass_can_be_None=True
-            )
+            _params[_key] = _cond_string_param_value(_params[_key], _inf_shrink_pass)
         elif _params[_key][-1] == 'bool':
-            _val_bool_param_value(
-                _key, _params[_key], _shrink_pass_can_be_None=True
-            )
+            _params[_key] = _cond_bool_param_value(_params[_key], _inf_shrink_pass)
         else:
-            _val_numerical_param_value(
-                _key, _params[_key], _total_passes
-            )
+            _params[_key] = _cond_numerical_param_value(_params[_key], _total_passes)
     # END params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-
-
-
+    return _params, _total_passes
 
 
 

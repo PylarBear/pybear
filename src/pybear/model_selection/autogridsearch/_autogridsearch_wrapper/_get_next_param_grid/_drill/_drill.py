@@ -110,6 +110,7 @@ def _drill(
 
     # bool ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     if 'BOOL' in _type:
+
         _grid = _bool(
             _param_value,
             _grid,

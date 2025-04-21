@@ -87,14 +87,14 @@ def _demo(
 
     # STUFF FOR MIMICKING GridSearchCV.best_params_ ** * ** * ** * ** *
     if _true_best is None:
-        _true_best = _make_true_best(_DemoCls.params)
+        _true_best = _make_true_best(_DemoCls._params)
 
-    _validate_true_best(_DemoCls.params, _DemoCls._IS_LOGSPACE, _true_best)
+    _validate_true_best(_DemoCls._params, _DemoCls._IS_LOGSPACE, _true_best)
 
     _true_best_header = f'\nTrue best params'
     print(_true_best_header)
     print(f'-' * len(_true_best_header))
-    _display_true_best(_DemoCls.params, _true_best)
+    _display_true_best(_DemoCls._params, _true_best)
     # END STUFF FOR MIMICKING GridSearchCV.best_params_ ** * ** * ** *
 
 
@@ -120,19 +120,26 @@ def _demo(
         # 1a) get_next_param_grid()
         print(f'Building param grid... ', end='')
         if _pass == 0:
-            _DemoCls.GRIDS_ = _build(_DemoCls.params)
+            _DemoCls.GRIDS_ = _build(_DemoCls._params)
             # points must match what is in params
         else:
             # _DemoCls.total_passes would be updated by gnpg
+            print('pizza print going into _DemoCls._get_next_param_grid')
+            print('pizza print GRIDS IN _DemoCls before _get_next_param_grid')
+            for idx, pizza in _DemoCls.GRIDS_.items():
+                print(f'{idx}: \n{pizza}')
             _DemoCls._get_next_param_grid(
                 _pass,
                 _RESULTS[_pass-1]
             )
+            print('pizza print GRIDS IN _DemoCls after _get_next_param_grid')
+            for idx, pizza in _DemoCls.GRIDS_.items():
+                print(f'{idx}: \n{pizza}')
             # update points in params with possibly different points from gnpg
             for _param in _DemoCls.GRIDS_[_pass]:
-                if _DemoCls.params[_param][-1] not in ['string', 'bool']:
-                    _DemoCls.params[_param][1][_pass] = \
-                                    len(_DemoCls.GRIDS_[_pass][_param])
+                if _DemoCls._params[_param][-1] not in ['string', 'bool']:
+                    _DemoCls._params[_param][1][_pass] = \
+                        len(_DemoCls.GRIDS_[_pass][_param])
 
         print(f'Done.')
 
@@ -140,7 +147,7 @@ def _demo(
         # 1b) fit GridSearchCV with next_param_grid
         _RESULTS[_pass] = _mock_gscv(
             _DemoCls.GRIDS_,
-            _DemoCls.params,
+            _DemoCls._params,
             _true_best,
             None if _pass == 0 else _RESULTS[_pass - 1],
             _pass,
@@ -167,7 +174,7 @@ def _demo(
     # DISPLAY THE GENERATED true_best_params AGAIN #####################
     print(_true_best_header)
     print(f'-' * len(_true_best_header))
-    _display_true_best(_DemoCls.params, _true_best)
+    _display_true_best(_DemoCls._params, _true_best)
     del _true_best_header
     # END DISPLAY THE GENERATED true_best_params AGAIN #################
 
