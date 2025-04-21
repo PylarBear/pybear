@@ -21,11 +21,12 @@ class TestCondBoolParamValueAccuracy:
 
     # there is no validation going into this module
 
+    # out container and grid container must be lists already
+    # last slot must be lower-case already
 
-
-    @pytest.mark.parametrize('outer_container', (list, tuple, np.ndarray))
+    @pytest.mark.parametrize('outer_container', (list, ))
     @pytest.mark.parametrize('base_grid', ([True, False], [True, None]))
-    @pytest.mark.parametrize('grid_container', (list, tuple, set, np.ndarray))
+    @pytest.mark.parametrize('grid_container', (list, ))
     @pytest.mark.parametrize('shrink_pass,inf_value',
         (
             (3, None),
@@ -34,7 +35,7 @@ class TestCondBoolParamValueAccuracy:
             (None, 576_789)
         )
     )
-    @pytest.mark.parametrize('paramtype', ('bool', 'BOOL'))
+    @pytest.mark.parametrize('paramtype', ('bool', ))
     def test_accepts_list_like(
         self, outer_container, base_grid, grid_container, shrink_pass, inf_value,
         paramtype
@@ -77,7 +78,7 @@ class TestCondBoolParamValueAccuracy:
             assert np.array_equal(out[0], base_grid)
         assert isinstance(out[1], numbers.Integral)
         assert out[1] == (shrink_pass or inf_value)
-        assert out[2] == paramtype.lower()
+        assert out[2] == paramtype
 
 
 

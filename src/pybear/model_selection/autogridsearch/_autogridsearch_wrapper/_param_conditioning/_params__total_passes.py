@@ -138,8 +138,9 @@ def _cond_params__total_passes(
 
         _params[_key] = list(_params[_key])
 
-        # pizza this is probably redundant
-        _params[_key][-1] = _params[_key][-1].lower()
+        _params[_key][2] = _params[_key][2].lower()
+
+        _params[_key][0] = list(_params[_key][0])
 
         if _params[_key][-1] == 'string':
             _params[_key] = _cond_string_param_value(_params[_key], _inf_shrink_pass)

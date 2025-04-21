@@ -8,7 +8,6 @@
 
 import pytest
 import numpy as np
-from polars.datatypes.convert import NoneType
 
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
     _params_numerical import _val_numerical_param_value
@@ -26,16 +25,6 @@ allowed_types = [
 class TestNumericalParamKey:
 
 
-    @pytest.mark.parametrize('non_str',
-        (0, 1, np.pi, True, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
-    )
-    def test_reject_non_str(self, non_str, total_passes):
-        with pytest.raises(TypeError):
-            _val_numerical_param_value(
-                non_str, [['a','b'], 4, 'fixed_float'], total_passes
-            )
-
-
     def test_accepts_str(self, total_passes):
 
         value = [[1, 2, 3, 4], [4, 4, 4], 'hard_integer']
@@ -48,14 +37,6 @@ class TestNumericalParamKey:
 
 @pytest.mark.parametrize('total_passes', (1, 3))
 class TestNumericalParamValueOuterContainer:
-
-
-    @pytest.mark.parametrize('non_list_like',
-        (0, np.pi, True, None, min, 'junk', lambda x: x, {'a': 1})
-    )
-    def test_rejects_non_list_like(self, non_list_like, total_passes):
-        with pytest.raises(TypeError):
-            _val_numerical_param_value('good_key', non_list_like, total_passes)
 
 
     @pytest.mark.parametrize('list_like', ('list', 'tuple', 'np.array'))
@@ -77,45 +58,9 @@ class TestNumericalParamValueOuterContainer:
         ) is None
 
 
-    def test_rejects_bad_len(self, total_passes):
-
-        with pytest.raises(ValueError):
-            _val_numerical_param_value(
-                'good_key', [[1, 2, 3], [3, 3, 3]], total_passes
-            )
-
-
 @pytest.mark.parametrize('_type', allowed_types)
 @pytest.mark.parametrize('total_passes', (1, 3))
 class TestGridAsListOfValues:
-
-
-    @pytest.mark.parametrize('non_list_like',
-        (0, np.pi, True, None, min, 'junk', lambda x: x, {'a': 1})
-    )
-    def test_rejects_non_list_like(
-        self, non_list_like, total_passes, _type
-    ):
-        with pytest.raises(TypeError):
-            _val_numerical_param_value(
-                'good_key',
-                [non_list_like, [1 for _ in range(total_passes)], _type],
-                total_passes
-            )
-
-
-    @pytest.mark.parametrize('list_like',
-         ([1,2,3], (1,2,3), {1,2,3}, np.array([1,2,3], dtype=object))
-    )
-    def test_accepts_list_like(self, list_like, total_passes, _type):
-
-        points = [3 for _ in range(total_passes)]
-
-        assert _val_numerical_param_value(
-            'good_key',
-            [list_like, points, _type],
-            total_passes
-        ) is None
 
 
     @pytest.mark.parametrize('non_num',
@@ -131,14 +76,21 @@ class TestGridAsListOfValues:
             )
 
 
-    def test_rejects_empty(self, total_passes, _type):
+    @pytest.mark.parametrize('_points', (4, 6))
+    def test_rejects_non_int_log_gaps(self, total_passes, _type, _points):
+
+        # also implies log gaps less than 1 are rejected
+
+        _params = {
+            'a': [
+                np.logspace(-4, 4, _points),
+                [_points for _ in range(total_passes)],
+                _type
+            ]
+        }
 
         with pytest.raises(ValueError):
-            _val_numerical_param_value(
-                'good_key',
-                [[], [2 for _ in range(total_passes)], _type],
-                total_passes
-            )
+            _val_numerical_param_value('a', _params['a'], 4)
 
 
 @pytest.mark.parametrize('total_passes', (1, 3))
@@ -434,41 +386,6 @@ class TestPointsAsListType:
             assert _val_numerical_param_value(
                 'good_key', [[11, 12, 13], [v1, v2, v3], _type], 3
             ) is None
-
-
-class TestArgType:
-
-    @pytest.mark.parametrize('bad_param_type',
-        (0, np.pi, True, None, min, lambda x: x, {'a': 1}, [1,], (1,), {1,2})
-    )
-    def test_rejects_any_non_string(self, bad_param_type):
-
-        with pytest.raises(TypeError):
-            _val_numerical_param_value(
-                'good_key', [['a','b'], None, bad_param_type], 2
-            )
-
-
-    @pytest.mark.parametrize('bad_string', ('junk', 'and', 'more_junk'))
-    def test_rejects_bad_strings(self, bad_string):
-
-        with pytest.raises(ValueError):
-            _val_numerical_param_value(
-                'good_key', [['a','b'], None, bad_string], 2
-            )
-
-
-    @pytest.mark.parametrize('good_type', allowed_types)
-    def test_accepts_valid_strings(self, good_type):
-
-        assert _val_numerical_param_value(
-            'good_key', [[1, 2, 3], 3, good_type], 1
-        ) is None
-
-
-
-
-
 
 
 

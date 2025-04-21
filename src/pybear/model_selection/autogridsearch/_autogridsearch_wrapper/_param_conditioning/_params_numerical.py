@@ -55,43 +55,36 @@ def _cond_numerical_param_value(
         NumParamType: the conditioned numerical parameter 'params' dict
         value.
 
-
     """
 
 
-    _value = _num_param_value
-
-    _value = list(_value)
-
-    _value[2] = _value[2].lower()
-
     # standardize first_grid in 0 slot ** * ** * ** * ** * ** * ** * **
 
-    if 'integer' in _value[-1]:
-        _value[0] = list(map(int, np.sort(list(_value[0]))))
-    elif 'float' in _value[-1]:
-        _value[0] = list(map(float, np.sort(list(_value[0]))))
+    if 'integer' in _num_param_value[-1]:
+        _num_param_value[0] = list(map(int, np.sort(list(_num_param_value[0]))))
+    elif 'float' in _num_param_value[-1]:
+        _num_param_value[0] = list(map(float, np.sort(list(_num_param_value[0]))))
 
     # END standardize first_grid in 0 slot ** * ** * ** * ** * ** * ** *
 
 
     # standardize points part 1 ** * ** * ** * ** * ** * ** * ** * ** * **
     try:
-        iter(_value[1])  # IF IS A SINGLE NON-SEQUENCE, CONVERT TO LIST
-        _value[1] = list(_value[1])
+        iter(_num_param_value[1])  # IF IS A SINGLE NON-SEQUENCE, CONVERT TO LIST
+        _num_param_value[1] = list(_num_param_value[1])
     except Exception as e:
-        _value[1] = [int(_value[1]) for _ in range(_total_passes)]
+        _num_param_value[1] = [int(_num_param_value[1]) for _ in range(_total_passes)]
 
     # the desired behavior is that if a user enters this [[1,2,3], 1, ...]
     # then the first points is automatically set to len grid, and all
     # passes after just run the single best value: points = [3, 1, 1, ... ]
     # simply overwrite whatever user put in 0 slot for points, without
     # notifying if original entry was erroneous
-    _value[-2][0] = len(_value[0])
+    _num_param_value[-2][0] = len(_num_param_value[0])
     # END standardize points part 1 ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    return _value
+    return _num_param_value
 
 
 

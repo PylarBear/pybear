@@ -57,14 +57,6 @@ def _cond_bool_param_value(
     """
 
 
-    _bool_param_value = list(_bool_param_value)
-
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    _bool_param_value[0] = list(_bool_param_value[0])
-
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
     if _bool_param_value[1] is None:
         # A LARGE NUMBER OF PASSES THAT WILL NEVER BE REACHED
         # this cannot be set to float('inf') because validated to be int
@@ -75,8 +67,6 @@ def _cond_bool_param_value(
     _bool_param_value[1] = int(_bool_param_value[1])
 
     # -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    _bool_param_value[2] = _bool_param_value[2].lower()
 
 
     return _bool_param_value

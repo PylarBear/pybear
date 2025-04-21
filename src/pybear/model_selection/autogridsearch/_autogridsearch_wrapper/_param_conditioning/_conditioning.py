@@ -56,7 +56,7 @@ def _conditioning(
         if we want this.
 
         _max_shifts: numbers.Integral - the conditioned max_shifts; set
-        to a large integer if passes as None. pizza maybe we just leave
+        to a large integer if passed as None. pizza maybe we just leave
         the Nones. think on it.
 
 

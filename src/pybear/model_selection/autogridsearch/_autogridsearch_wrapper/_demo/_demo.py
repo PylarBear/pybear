@@ -124,17 +124,11 @@ def _demo(
             # points must match what is in params
         else:
             # _DemoCls.total_passes would be updated by gnpg
-            print('pizza print going into _DemoCls._get_next_param_grid')
-            print('pizza print GRIDS IN _DemoCls before _get_next_param_grid')
-            for idx, pizza in _DemoCls.GRIDS_.items():
-                print(f'{idx}: \n{pizza}')
             _DemoCls._get_next_param_grid(
                 _pass,
                 _RESULTS[_pass-1]
             )
-            print('pizza print GRIDS IN _DemoCls after _get_next_param_grid')
-            for idx, pizza in _DemoCls.GRIDS_.items():
-                print(f'{idx}: \n{pizza}')
+
             # update points in params with possibly different points from gnpg
             for _param in _DemoCls.GRIDS_[_pass]:
                 if _DemoCls._params[_param][-1] not in ['string', 'bool']:

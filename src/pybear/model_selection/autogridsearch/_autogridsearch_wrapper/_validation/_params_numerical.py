@@ -32,6 +32,10 @@ def _val_numerical_param_value(
     For any case where 1 is entered as points, all points thereafter must
     be 1.
 
+    Logspace intervals must be integer >= 1. Meaning you cannot have
+    powers that are like 10^0.5, 10^0.6, ..., but you can have powers
+    like 10^2, 10^4, ...
+
     validate numerical_params' dict value is a list-like that contains:
     (i) a list-like of first-round grid-search values
     (ii) an int or list-like of ints indicating the number of grid points
@@ -60,106 +64,53 @@ def _val_numerical_param_value(
     """
 
 
-    _value = _num_param_value
-
     _base_err_msg = f"numerical param '{str(_num_param_key)}' in :param: 'params' "
 
-    if not isinstance(_num_param_key, str):
-        raise TypeError(f"{_base_err_msg} --- param key must be a string")
-
-
-    # validate outer container ** * ** * ** * ** * ** * ** * ** * ** * **
-    err_msg = (
-        _base_err_msg + "--- \nvalue must be a list-like that contain 3 things: "
-        "\nfirst search grid, \nint or list[int] indicating number of points "
-        "for each search, \n'{soft|hard|fixed}_{int|float}'"
-    )
-    try:
-        iter(_value)
-        if isinstance(_value, (dict, str, set)):
-            raise Exception
-        if len(_value) != 3:
-            raise UnicodeError
-    except UnicodeError:
-        raise ValueError(err_msg)
-    except Exception as e:
-        raise TypeError(err_msg)
-    del err_msg
-    # END validate outer container ** * ** * ** * ** * ** * ** * ** * **
-
-
-    # validate soft/hard/fixed_int/float ** * ** * ** * ** * ** * ** *
-    allowed = [
-        "hard_integer", "soft_integer", "fixed_integer", "hard_float",
-        "soft_float", "fixed_float"
-    ]
-    err_msg = (
-        f"{_base_err_msg} --- \nthird position of value must be a string "
-        f"in {', '.join(allowed)}"
-    )
-
-    if not isinstance(_value[2], str):
-        raise TypeError(err_msg)
-
-    if _value[2].lower() not in allowed:
-        raise ValueError(err_msg)
-
-    del allowed, err_msg
-    # END validate soft/hard/fixed_int/float  ** * ** * ** * ** * ** *
 
     # validate contains [first_grid] in 0 slot ** * ** * ** * ** * ** *
-    err_msg = (f"{_base_err_msg} -- first position of value must be a "
-        f"non-empty list-type that contains the first pass grid-search "
-        f"values (numbers). ")
-    try:
-        iter(_value[0])
-        if isinstance(_value[0], (dict, str)):
-            raise Exception
-        if len(_value[0]) == 0:
-            raise UnicodeError
-    except UnicodeError:
-        raise ValueError(err_msg + f"got empty.")
-    except Exception as e:
-        raise TypeError(err_msg)
+    _err_msg = (f"{_base_err_msg} -- "
+        f"\nfirst position of the value must be a non-empty list-like that "
+        f"\ncontains the first pass grid-search values. "
+    )
 
     try:
-        if any(map(isinstance, _value[0], (bool for _ in _value[0]))):
+        if any(map(isinstance, _num_param_value[0], (bool for _ in _num_param_value[0]))):
             raise Exception
-        list(map(float, _value[0]))
+        list(map(float, _num_param_value[0]))
     except:
-        raise TypeError(err_msg)
+        raise TypeError(_err_msg)
 
-    del err_msg
+    del _err_msg
 
-    if 'integer' in _value[2]:
+    if 'integer' in _num_param_value[2]:
 
-        if not all(int(i) == i for i in _value[0]):
+        if not all(int(i) == i for i in _num_param_value[0]):
             raise ValueError(
                 f"{_base_err_msg} -- \nwhen numerical is integer (soft, "
                 f"hard, or fixed), \nall search values must be integers. "
-                f"\ngrid = {_value[0]}"
+                f"\ngrid = {_num_param_value[0]}"
             )
 
-        if _value[2] in ['hard_integer', 'soft_integer'] and min(_value[0]) < 1:
+        if _num_param_value[2] in ['hard_integer', 'soft_integer'] and min(_num_param_value[0]) < 1:
             raise ValueError(
                 f"{_base_err_msg} -- \nwhen numerical is hard/soft integer, "
-                f"\nall search values must be >= 1. \ngrid = {_value[0]}"
+                f"\nall search values must be >= 1. \ngrid = {_num_param_value[0]}"
             )
 
-    elif 'float' in _value[2]:
+    elif 'float' in _num_param_value[2]:
 
-        if _value[2] in ['hard_float', 'soft_float'] \
-                and (np.array(list(_value[0])) < 0).any():
+        if _num_param_value[2] in ['hard_float', 'soft_float'] \
+                and (np.array(list(_num_param_value[0])) < 0).any():
             raise ValueError(
                 f"{_base_err_msg} -- \nwhen numerical is hard/soft float, "
-                f"\nall search values must be >= 0. \ngrid = {_value[0]}")
+                f"\nall search values must be >= 0. \ngrid = {_num_param_value[0]}")
 
     else:
         raise Exception
 
     # LOGSPACE
-    if 'fixed' not in _value[2] and len(_value[0]) >= 3 and 0 not in _value[0]:
-        log_grid = np.log10(list(_value[0]))
+    if 'fixed' not in _num_param_value[2] and len(_num_param_value[0]) >= 3 and 0 not in _num_param_value[0]:
+        log_grid = np.log10(list(_num_param_value[0]))
         log_gaps = log_grid[1:] - log_grid[:-1]
         _unq_log_gap = np.unique(np.round(log_gaps, 14))
 
@@ -187,14 +138,14 @@ def _val_numerical_param_value(
         f"{_base_err_msg} -- \n'points' must be "
         f"\n(i) a non-bool integer >= 1 or "
         f"\n(ii) a list-type of non-bool integers >=1 with len==passes"
-        f"\ngot {_value[1]}, total_passes={_total_passes}"
+        f"\ngot {_num_param_value[1]}, total_passes={_total_passes}"
     )
 
     # this is a helper only for easier validation! this is not returned
-    if isinstance(_value[1], numbers.Number):
-        _helper_list = [_value[1] for _ in range(_total_passes)]
+    if isinstance(_num_param_value[1], numbers.Number):
+        _helper_list = [_num_param_value[1] for _ in range(_total_passes)]
     else:
-        _helper_list = _value[1]
+        _helper_list = _num_param_value[1]
 
     try:
         iter(_helper_list)
@@ -228,10 +179,10 @@ def _val_numerical_param_value(
         if points == 1 and _helper_list[idx + 1] > 1:
             raise ValueError(
                 f"{_base_err_msg} -- \nonce number of points is set to 1, all "
-                f"subsequent points must be 1. \ngot {_value[1]}"
+                f"subsequent points must be 1. \ngot {_num_param_value[1]}"
             )
 
-    if 'soft' in _value[2] and 2 in _helper_list:
+    if 'soft' in _num_param_value[2] and 2 in _helper_list:
         raise ValueError(
             f'{_base_err_msg} -- \nGrids of size 2 are not allowed for '
             f'"soft" numerical params'
@@ -244,13 +195,13 @@ def _val_numerical_param_value(
     # notifying if original entry was erroneous
 
     # fixed points in [1 or len(first grid)] (the first points will be
-    # automatically set to len(_value[0]) by conditioning, so only check
+    # automatically set to len(_num_param_value[0]) by conditioning, so only check
     # the values in [1:]
-    if 'fixed' in _value[2]:
-        if any(_points not in [1, len(_value[0])] for _points in _helper_list[1:]):
+    if 'fixed' in _num_param_value[2]:
+        if any(_points not in [1, len(_num_param_value[0])] for _points in _helper_list[1:]):
             raise ValueError(
                 f"{_base_err_msg} -- \nif fixed int/float, number of points "
-                f"must be len(first grid) or 1 \npoints = {_value[1]}"
+                f"must be len(first grid) or 1 \npoints = {_num_param_value[1]}"
             )
 
     del _helper_list

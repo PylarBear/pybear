@@ -22,7 +22,8 @@ from ._validation._validate_best_params import _validate_best_params
 from ._validation._validate_grids import _validate_grids
 from ._validation._validate_phlite import _validate_phlite
 from ._validation._validate_is_logspace import _validate_is_logspace
-from .._validation._params__total_passes import _val_params__total_passes
+from .._validation._total_passes import _val_total_passes
+from .._validation._params import _val_params
 from .._validation._total_passes_is_hard import _val_total_passes_is_hard
 from .._validation._max_shifts import _val_max_shifts
 
@@ -165,9 +166,11 @@ def _get_next_param_grid(
             f"is not in GRIDS"
         )
 
+    # _total_passes
+    _val_total_passes(_total_passes)
 
-    #     _params & _total_passes
-    _val_params__total_passes(_params, _total_passes)
+    #     _params
+    _val_params(_params, _total_passes)
 
 
     #     _PHLITE
