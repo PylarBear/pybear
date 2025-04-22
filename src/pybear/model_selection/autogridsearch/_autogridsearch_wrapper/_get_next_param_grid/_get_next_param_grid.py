@@ -61,13 +61,11 @@ def _get_next_param_grid(
     Parameters
     ----------
     _GRIDS:
-        dict[int, dict[str, list[Union[str, int, float]]]] - search
-        grids for completed GridSearchCV passes and an incomplete search
-        grid for the upcoming pass
+        GridsType - search grids for completed GridSearchCV passes and
+        an incomplete search grid for the upcoming pass
     _params:
-        dict[str, list[list[...], Union[int, list[int]], str]] - full
-        list of all params to be searched with grid construction
-        instructions
+        ParamsType - full list of all params to be searched with grid
+        construction instructions
     _PHLITE:
         dict[str, bool] - param has landed inside the edges. Boolean
         indicating if a parameter has or has not landed off the extremes
@@ -265,7 +263,7 @@ def _get_next_param_grid(
     # END SHIFT ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # not elif!
-    if any([(v > 1 and _PHLITE.get(k, True)) for k, v in _IS_LOGSPACE.items()]):
+    if any((v > 1 and _PHLITE.get(k, True)) for k, v in _IS_LOGSPACE.items()):
         # must let 'fixed' and 'bool' in here also if they get a shrink
 
         # REGAP LOG > 1 ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -287,15 +285,11 @@ def _get_next_param_grid(
             # doing shrink here is easier than making a regap pass bump
             # points like a shift.
             for _param in _GRIDS[_pass]:
-                if _params[_param][-1] in ['string', 'bool']:
-                    if _params[_param][1] == _pass + 1:
-                        _GRIDS[_pass][_param] = \
-                            [_best_params_from_previous_pass[_param]]
-                else:
-                    if _params[_param][1][_pass] == 1:
-                        _GRIDS[_pass][_param] = \
-                            [_best_params_from_previous_pass[_param]]
-                        _IS_LOGSPACE[_param] = False # may have already been False
+
+                if _params[_param][1][_pass] == 1:
+                    _GRIDS[_pass][_param] = \
+                        [_best_params_from_previous_pass[_param]]
+                    _IS_LOGSPACE[_param] = False # may have already been False
 
         for _param in _params:
 
@@ -356,7 +350,7 @@ def _get_next_param_grid(
 
         if _param not in _GRIDS[max(_GRIDS.keys()) - 1]:
             raise ValueError(f"attempting to insert a param key that is "
-                             f"not in GRIDS")
+                 f"not in GRIDS")
 
         _grid, _param_value, _is_logspace = _drill(
              _param,
@@ -371,31 +365,16 @@ def _get_next_param_grid(
         _params[_param] = _param_value
         _IS_LOGSPACE[_param] = _is_logspace
 
-        if 'string' not in _param_value[-1] and 'bool' not in _param_value[-1]:
+        if 'fixed_string' not in _param_value[-1] \
+                and 'fixed_bool' not in _param_value[-1]:
             _params[_param][-2][_pass] = len(_grid)
 
         del _grid, _param_value, _is_logspace
 
     del _param
 
+
     return _GRIDS, _params, _PHLITE, _IS_LOGSPACE, _shift_ctr, _total_passes
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

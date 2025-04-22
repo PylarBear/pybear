@@ -36,7 +36,7 @@ class TestIsLogspace:
         with pytest.raises(TypeError):
             _validate_is_logspace(
                 non_dict,
-                {'a': [['a','b','c'], [3,3,3], 'string']}
+                {'a': [['a','b','c'], [3,3,3], 'fixed_string']}
             )
 
 
@@ -80,7 +80,7 @@ class TestIsLogspace:
 
         _params = {
             'a': [[1e1, 1e2, 1e3], [3,3,3], 'soft_float'],
-            'b': [['q', 'r'], [2,2], 'string']
+            'b': [['q', 'r'], [2,2], 'fixed_string']
         }
 
         with pytest.raises(ValueError):
@@ -93,7 +93,7 @@ class TestIsLogspace:
 
         _params = {
             'a': [[1e1, 1e2, 1e3], [3,3,3], 'soft_float'],
-            'b': [['q', 'r'], [2,2], 'string'],
+            'b': [['q', 'r'], [2,2], 'fixed_string'],
             'c': [[1e0, 1e2, 1e4], [3,3,3], 'soft_float']
         }
 

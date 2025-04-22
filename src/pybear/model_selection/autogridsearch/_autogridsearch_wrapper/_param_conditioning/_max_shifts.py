@@ -15,7 +15,7 @@ import numbers
 def _cond_max_shifts(
     _max_shifts: Union[None, numbers.Integral],
     _inf_max_shifts: numbers.Integral
-) -> numbers.Integral:
+) -> int:
 
     """
     When 'max_shifts' is passed as None to agscv, this indicates
@@ -36,13 +36,14 @@ def _cond_max_shifts(
     Returns
     -------
     -
-        numbers.Integral: a large number that should never be attainable.
+        int: a large number that should never be attainable.
 
 
     """
 
+
     # cannot use float('inf') here, validation wants numbers.Integral
-    return _max_shifts or _inf_max_shifts
+    return int(_max_shifts or _inf_max_shifts)
 
 
 

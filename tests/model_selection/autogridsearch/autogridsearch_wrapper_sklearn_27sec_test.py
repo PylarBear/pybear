@@ -55,7 +55,7 @@ class TestSklearnGSCVS:
     def _params():
         return {
             'C': [np.logspace(-5, 5, 3), 3, 'soft_float'],
-            'fit_intercept': [[True, False], 2, 'bool']
+            'fit_intercept': [[True, False], 2, 'fixed_bool']
         }
 
 

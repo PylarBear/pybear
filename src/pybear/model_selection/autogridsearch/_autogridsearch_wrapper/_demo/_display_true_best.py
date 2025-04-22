@@ -41,9 +41,9 @@ def _display_true_best(
     NUM_TYPES, STRING_TYPES, BOOL_TYPES = [], [], []
     for _ in _true_best:
         _type = _demo_cls_params[_][-1]
-        if 'string' in _type:
+        if 'fixed_string' in _type:
             STRING_TYPES.append(_)
-        elif 'bool' in _type:
+        elif 'fixed_bool' in _type:
             BOOL_TYPES.append(_)
         else:
             NUM_TYPES.append(_)

@@ -54,10 +54,10 @@ def good_grids():
 @pytest.fixture
 def good_params():
     return {
-        'a': [['x', 'y', 'z'], 3, 'string'],
+        'a': [['x', 'y', 'z'], [3, 3, 1], 'fixed_string'],
         'b': [[1, 2, 3], [3, 3, 3], 'fixed_integer'],
         'c': [[1e1, 1e2, 1e3], [3, 11, 11], 'soft_float'],
-        'd': [[True, False], 3, 'bool']
+        'd': [[True, False], [2, 2, 1], 'fixed_bool']
     }
 
 @pytest.fixture
@@ -174,17 +174,17 @@ class TestOutputFormats:
 
         _keys = 'abcdefghijklmnpqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
         _types = ('soft_integer', 'soft_float', 'hard_integer',
-                  'hard_float', 'string', 'bool')
+                  'hard_float', 'fixed_string', 'fixed_bool')
 
         _params = {}
         ctr = 0
         for _type in _types:
-            if 'string' in _type:
+            if 'fixed_string' in _type:
                 _grid = ['mmm', 'nnn', 'ooo', 'ppp']
-                _params[_keys[ctr]] = [_grid, 10, _type]
-            elif 'bool' in _type:
+                _params[_keys[ctr]] = [_grid, [4]*_total_passes, _type]
+            elif 'fixed_bool' in _type:
                 _grid = [True, False]
-                _params[_keys[ctr]] = [_grid, 10, _type]
+                _params[_keys[ctr]] = [_grid, [2]*_total_passes, _type]
             else:
                 _grid = [2,3,4,5]
 
@@ -217,7 +217,7 @@ class TestOutputFormats:
         # this is a snapshot of the state after the last pass
         _IS_LOGSPACE = {}
         for _param in _params:
-            if _params[_param][-1] in ['string', 'bool']:
+            if _params[_param][-1] in ['fixed_string', 'fixed_bool']:
                 _IS_LOGSPACE[_param] = False
             else:
                 _log_grid = np.log10(_GRIDS[_pass-1][_param])
@@ -267,9 +267,11 @@ class TestOutputFormats:
             assert all(map(isinstance, _OUT_GRIDS[_pass_].keys(), (str for _ in _OUT_GRIDS)))
             assert _OUT_GRIDS[_pass_].keys() == _params.keys()
             assert _OUT_GRIDS[_pass_].keys() == _GRIDS[_pass_].keys()
-            assert all(map(isinstance, _OUT_GRIDS[_pass_].values(),
-                           (list for _ in _OUT_GRIDS))
-                       )
+            assert all(map(
+                isinstance,
+                _OUT_GRIDS[_pass_].values(),
+                (list for _ in _OUT_GRIDS)
+            ))
 
             for _param in _OUT_GRIDS[_pass]:
                 _type = _params[_param][-1]
@@ -278,9 +280,9 @@ class TestOutputFormats:
                     assert all(map(isinstance, _out_grid, (int for _ in _out_grid)))
                 elif 'float' in _type:
                     assert all(map(isinstance, _out_grid, (float for _ in _out_grid)))
-                elif _type == 'string':
+                elif _type == 'fixed_string':
                     assert all(map(isinstance, _out_grid, (str for _ in _out_grid)))
-                elif _type == 'bool':
+                elif _type == 'fixed_bool':
                     assert all(map(isinstance, _out_grid, (bool for _ in _out_grid)))
 
 
@@ -305,7 +307,7 @@ class TestFixedBoolAndStringGrids:
     # never increments total_passes (no shift)
 
     @pytest.mark.parametrize('_type',
-        ('fixed_integer', 'fixed_float', 'string', 'bool')
+        ('fixed_integer', 'fixed_float', 'fixed_string', 'fixed_bool')
     )
     @pytest.mark.parametrize('_best', (1,2,3,4))
     @pytest.mark.parametrize('_pass, _total_passes', ((1, 3), (2, 3), (1, 2)))
@@ -320,21 +322,21 @@ class TestFixedBoolAndStringGrids:
         # shift_ctr never incremented
 
         _grid = [1,2,3,4]
-        if _type == 'string':
+        if _type == 'fixed_string':
             _grid = list(map(str, _grid))
             _best = str(_best)
-            _points_or_shrink_pass = _total_passes + 10
-        elif _type == 'bool':
+            _points = [4]*_total_passes
+        elif _type == 'fixed_bool':
             _grid = [True, False]
             _best = True if _best in [1, 2] else False
-            _points_or_shrink_pass = _total_passes + 10
+            _points = [2]*_total_passes
         else:
-            _points_or_shrink_pass = [4 for _ in range(_total_passes)]
+            _points = [4]*_total_passes
 
         _GRIDS, _params, _PHLITE, _IS_LOGSPACE, _shift_ctr, _total_passes_end = \
             _get_next_param_grid(
                 _GRIDS={i: {'a': _grid} for i in range(_pass)},
-                _params={'a': [_grid, _points_or_shrink_pass, _type]},
+                _params={'a': [_grid, _points, _type]},
                 _PHLITE={'a': True},
                 _IS_LOGSPACE={'a': False},
                 _best_params_from_previous_pass={'a': _best},
@@ -347,7 +349,7 @@ class TestFixedBoolAndStringGrids:
 
 
         assert _GRIDS == {i: {'a': _grid} for i in range(_pass + 1)}
-        assert _params == {'a': [_grid, _points_or_shrink_pass, _type]}
+        assert _params == {'a': [_grid, _points, _type]}
         assert _PHLITE == {'a': True}
         assert _IS_LOGSPACE == {'a': False}
         assert _shift_ctr == 0
@@ -356,33 +358,36 @@ class TestFixedBoolAndStringGrids:
 
 
 
-    @pytest.mark.parametrize('_type', ('string', 'bool'))
+    @pytest.mark.parametrize('_type', ('fixed_string', 'fixed_bool'))
     @pytest.mark.parametrize('_best_posn', (0, 1))
     @pytest.mark.parametrize('_pass, _total_passes', ((1, 2), (1, 3), (2, 3)))
     @pytest.mark.parametrize('_shrink_pass', (True, False))
     def test_string_bool_shrink_pass(
-            self, _type, _best_posn, _pass, _total_passes, _shrink_pass
+        self, _type, _best_posn, _pass, _total_passes, _shrink_pass
     ):
 
         # total_passes unchanged
         # shift_ctr never incremented
-        if _type == 'string':
+        if _type == 'fixed_string':
             _grid = ['a', 'b']
-        elif _type == 'bool':
+            _points = [2]*_total_passes
+        elif _type == 'fixed_bool':
             _grid = [True, False]
+            _points = [2] * _total_passes
+        else:
+            raise Exception
 
         if _shrink_pass:
-            # logic is if internal _pass >= _param_value[1] - 1 then shrink
-            _shrink_pass = _pass + 1
-        else:
-            _shrink_pass = 10
+            for _idx in range(len(_points)):
+                if _idx >= _pass:
+                    _points[_idx] = 1
 
         _best = _grid[_best_posn]
 
         _GRIDS, _params, _PHLITE, _IS_LOGSPACE, _shift_ctr, _total_passes_end = \
             _get_next_param_grid(
                 _GRIDS={i: {'a': _grid} for i in range(_pass)},
-                _params={'a': [_grid, _shrink_pass, _type]},
+                _params={'a': [_grid, _points, _type]},
                 _PHLITE={'a': True},
                 _IS_LOGSPACE={'a': False},
                 _best_params_from_previous_pass={'a': _best},
@@ -393,19 +398,18 @@ class TestFixedBoolAndStringGrids:
                 _max_shifts=3
             )
 
-        if _shrink_pass != 10:
-            EXP_GRIDS = {i: {'a': _grid} for i in range(_shrink_pass - 1)} | \
-               {j: {'a': [_best]} for j in range(_shrink_pass - 1, _pass + 1)}
+        if _shrink_pass is True:
+            EXP_GRIDS = {i: {'a': _grid} for i in range(_pass)} | \
+               {j: {'a': [_best]} for j in range(_pass, _pass + 1)}
         else:
             EXP_GRIDS = {i: {'a': _grid} for i in range(_pass + 1)}
 
         assert _GRIDS == EXP_GRIDS
-        assert _params == {'a': [_grid, _shrink_pass, _type]}
+        assert _params == {'a': [_grid, _points, _type]}
         assert _PHLITE == {'a': True}
         assert _IS_LOGSPACE == {'a': False}
         assert _shift_ctr == 0
         assert _total_passes_end == _total_passes
-
 
 
 class TestSoftShifts:
@@ -1202,8 +1206,8 @@ class TestMultiPass:
                     'fixed_float_lin': [[],[], 'fixed_float'],
                     'fixed_float_log1': [[], [], 'fixed_float'],
                     'fixed_float_log2': [[], [], 'fixed_float'],
-                    'string': [[], None, 'string'],
-                    'bool': [[], None, 'bool']
+                    'string': [[], None, 'fixed_string'],
+                    'bool': [[], None, 'fixed_bool']
         }
 
         for _param in _params:
@@ -1225,7 +1229,7 @@ class TestMultiPass:
 
             _params[_param][0] = _grid
 
-            if _param in ['string', 'bool']:
+            if _param in ['fixed_string', 'fixed_bool']:
                 _params[_param][1] = _shrink_pass
             else:
                 _shrink_pass = _shrink_pass or 1_000_000
@@ -1281,7 +1285,7 @@ class TestMultiPass:
 
             for _param in _params:
                 _param_value = _params[_param]
-                if _params[_param][-1] not in ['string', 'bool']:
+                if _params[_param][-1] not in ['fixed_string', 'fixed_bool']:
                     assert _param_value == _start_params[_param]
                 else:
                     assert _param_value[0] == _start_params[_param][0]

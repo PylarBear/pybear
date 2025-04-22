@@ -19,57 +19,48 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 
-@pytest.fixture
-def good_grid():
-
-    return {0:
-                {
-                    'a': [20, 30, 40],
-                    'b': ['a', 'b', 'c']
-                },
-            1:
-                {
-                    'a': [10, 20, 30],
-                    'b': ['a', 'b', 'c']
-                },
-            2:
-                {}
-    }
-
-
-@pytest.fixture
-def good_phlite():
-    return {
-            'a': False
-    }
-
-
-@pytest.fixture
-def good_is_logspace():
-
-    return {
-            'a': False,
-            'b': False
-    }
-
-
-@pytest.fixture
-def good_params():
-    return {
-        'a': [[1,2,3], [3,3,3], 'soft_integer'],
-        'b': [['a','b','c'], [3,3,3], 'string']
-    }
-
-
-@pytest.fixture
-def good_best_params():
-    return {
-            'a': [40],
-            'b': ['a']
-    }
-
-
 class TestShift:
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_grid():
+
+        return {
+            0: {'a': [20, 30, 40], 'b': ['a', 'b', 'c']},
+            1: {'a': [10, 20, 30], 'b': ['a', 'b', 'c']},
+            2: {}
+        }
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_phlite():
+        return {'a': False}
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_is_logspace():
+
+        return {'a': False, 'b': False}
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_params():
+        return {
+            'a': [[1, 2, 3], [3, 3, 3], 'soft_integer'],
+            'b': [['a', 'b', 'c'], [3, 3, 3], 'fixed_string']
+        }
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_best_params():
+        return {'a': [40], 'b': ['a']}
+
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     def test_rejects_non_empty_param_grid(self, good_grid, good_phlite,
@@ -77,13 +68,13 @@ class TestShift:
 
         with pytest.raises(ValueError):
             _shift(
-                    good_grid,
-                    good_phlite,
-                    good_is_logspace,
-                    good_params,
-                    1,
-                    good_best_params,
-                    _total_passes_is_hard=False
+                good_grid,
+                good_phlite,
+                good_is_logspace,
+                good_params,
+                1,
+                good_best_params,
+                _total_passes_is_hard=False
             )
 
 
@@ -92,19 +83,19 @@ class TestShift:
 
         with pytest.raises(ValueError):
             _shift(
-                    good_grid,
-                    good_phlite,
-                    good_is_logspace,
-                    good_params,
-                    10,
-                    good_best_params,
-                    _total_passes_is_hard=False
+                good_grid,
+                good_phlite,
+                good_is_logspace,
+                good_params,
+                10,
+                good_best_params,
+                _total_passes_is_hard=False
             )
 
 
     @pytest.mark.parametrize('_space', ('linspace', 'logspace'))
     @pytest.mark.parametrize('_dtype',
-    ('string', 'hard_integer, hard_float', 'fixed_integer', 'fixed_float')
+    ('fixed_string', 'hard_integer, hard_float', 'fixed_integer', 'fixed_float')
     )
     @pytest.mark.parametrize('_total_passes_is_hard', (True, False))
     @pytest.mark.parametrize('_landing_spot', ('left', 'middle', 'right'))
@@ -116,7 +107,7 @@ class TestShift:
 
         _grid_size = 4
 
-        if 'string' in _dtype:
+        if 'fixed_string' in _dtype:
             _grid = list('abcdefghijklmnop'[:_grid_size])
         else:
             if _space == 'linspace':
@@ -131,10 +122,7 @@ class TestShift:
 
         _GRIDS = {0: {'a': _grid}, 1: {}}
 
-        if 'string' in _dtype:
-            _params = {'a': [_grid, 3, _dtype]}
-        else:
-            _params = {'a': [_grid, [_grid_size for _ in range(3)], _dtype]}
+        _params = {'a': [_grid, [_grid_size for _ in range(3)], _dtype]}
 
 
         _phlite = {}
@@ -160,19 +148,15 @@ class TestShift:
         assert grids_out[1] == _GRIDS[0]
         assert grids_out[1] == grids_out[0]
 
-        if 'string' in _dtype:
-            assert params_out['a'][0] == _params['a'][0]
-            assert params_out['a'][1] == (_params['a'][1] + 1)
-            assert params_out['a'][2] == _params['a'][2]
+
+        assert params_out['a'][0] == _params['a'][0]
+
+        if _total_passes_is_hard:
+            assert len(params_out['a'][1]) == len(_params['a'][1])
         else:
-            assert params_out['a'][0] == _params['a'][0]
+            assert len(params_out['a'][1]) == (len(_params['a'][1]) + 1)
 
-            if _total_passes_is_hard:
-                assert len(params_out['a'][1]) == len(_params['a'][1])
-            else:
-                assert len(params_out['a'][1]) == (len(_params['a'][1]) + 1)
-
-            assert params_out['a'][2] == _params['a'][2]
+        assert params_out['a'][2] == _params['a'][2]
 
 
 

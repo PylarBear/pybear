@@ -41,7 +41,7 @@ class TestMiscellaneousStuff:
 
         _agscv = autogridsearch_wrapper(sk_GridSearchCV)(
             estimator=sk_Logistic(),
-            params={'solver': [['saga', 'lbfgs'], 2, 'string']},
+            params={'solver': [['saga', 'lbfgs'], 2, 'fixed_string']},
             refit=_refit
         )
 

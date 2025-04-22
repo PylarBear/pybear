@@ -89,8 +89,17 @@ class TestGridAsListOfValues:
             ]
         }
 
-        with pytest.raises(ValueError):
-            _val_numerical_param_value('a', _params['a'], 4)
+        # the order of if/elif is important
+        if 'fixed_integer' in _type:
+            # for not being an integer
+            with pytest.raises(ValueError):
+                _val_numerical_param_value('a', _params['a'], 4)
+        elif 'fixed_float' in _type:
+            # is OK
+            assert _val_numerical_param_value('a', _params['a'], 4) is None
+        else:
+            with pytest.raises(ValueError):
+                _val_numerical_param_value('a', _params['a'], 4)
 
 
 @pytest.mark.parametrize('total_passes', (1, 3))
@@ -184,176 +193,30 @@ class TestFloatGridAsListOfValues:
 
 @pytest.mark.parametrize('_type', allowed_types)
 @pytest.mark.parametrize('total_passes', (1, 3))
-class TestPoints:
-
-
-    @pytest.mark.parametrize('non_list_type',
-        (np.pi, True, min, 'junk', lambda x: x, {'a': 1})
-    )
-    def test_rejects_non_int_non_list_type(
-        self, total_passes, _type, non_list_type
-    ):
-
-        with pytest.raises(TypeError):
-            _val_numerical_param_value(
-                'good_key', [[1,2,3], non_list_type, _type], total_passes
-            )
-
-
-    @pytest.mark.parametrize('list_type', (list, tuple, np.array))
-    def test_accepts_list_type(self, total_passes, list_type, _type):
-
-        assert _val_numerical_param_value(
-            'good_key',
-            [[1,2,3], list_type([3 for _ in range(total_passes)]), _type],
-            total_passes
-        ) is None
-
-
-    def test_accepts_integer_gte_one(self, total_passes, _type):
-
-        assert _val_numerical_param_value(
-            'good_key',
-            [[1, 2, 3], 3, _type],
-            total_passes
-        ) is None
-
-
-    def test_rejects_none(self, total_passes, _type):
-
-        with pytest.raises(TypeError):
-            _val_numerical_param_value(
-                'good_key',
-                [[1, 2], [None, 2, 2][:total_passes], _type],
-                total_passes
-            )
-
-
-    @pytest.mark.parametrize('bad_points', (-1, 0))
-    def test_rejects_integer_less_than_one(
-        self, _type, total_passes, bad_points
-    ):
-
-        with pytest.raises(ValueError):
-            _val_numerical_param_value(
-                'good_key', [[1,2], bad_points, _type], total_passes
-            )
-
-        with pytest.raises(ValueError):
-            _val_numerical_param_value(
-                'good_key', [[1,2], [2, bad_points], _type], total_passes
-            )
-
-        with pytest.raises(ValueError):
-            _val_numerical_param_value(
-                'good_key', [[1,2], [bad_points, 2], _type], total_passes
-            )
-
-
-@pytest.mark.parametrize('_type', ('fixed_integer', 'fixed_float'))
-class TestPointsWhenFixed:
-
-
-    @pytest.mark.parametrize('_points, total_passes',
-         (
-             (3, 1),
-             (3, 3),
-             ([3], 1),
-             ([3,3,3], 3)
-         )
-    )
-    def test_fixed_accepts_points_equals_len_grid(
-        self, _type, _points, total_passes
-    ):
-
-        assert _val_numerical_param_value(
-            'good_key', [[1, 2, 3], _points, _type], total_passes
-        ) is None
-
-
-    @pytest.mark.parametrize('pass_num, _points, total_passes',
-         (
-             (1, 1, 1),
-             (2, 1, 3),
-             (3, [1], 1),
-             (4, [3,1,1], 3),
-             (5, [3,3,1], 3),
-             (6, [3,1,3], 3),
-             (7, [1,1,1], 3)
-         )
-    )
-    def test_fixed_accepts_points_equals_1_after_first_pass(
-        self, pass_num, _type, _points, total_passes
-    ):
-
-        if pass_num in [6]:
-            with pytest.raises(ValueError):
-                _val_numerical_param_value(
-                    'good_key', [[1, 2, 3], _points, _type], total_passes
-                )
-        elif pass_num in [1, 2, 3, 4, 5, 7]:
-            assert _val_numerical_param_value(
-                'good_key', [[1, 2, 3], _points, _type], total_passes
-            ) is None
-
-
-    @pytest.mark.parametrize('v1', (3, 4))
-    @pytest.mark.parametrize('v2', (3, 4))
-    @pytest.mark.parametrize('v3', (3, 4))
-    def test_fixed_rejects_points_not_equal_len_grid_or_1(
-        self, _type, v1, v2, v3
-    ):
-
-        # for points after first pass (first pass points is overwritten by
-        # actual points in first grid)
-
-        if v2 == 3 and v3 == 3:   # v1 can equal anything > 0
-            # v1 will always be set to 3
-            pytest.skip(reason=f"this combination will pass")
-
-        with pytest.raises(ValueError):
-            _val_numerical_param_value(
-                'good_key', [[1 ,2, 3], 4, _type], 3)
-
-        with pytest.raises(ValueError):
-            _val_numerical_param_value(
-                'good_key', [[1, 2, 3], [v1, v2, v3], _type], 3)
-
-
-@pytest.mark.parametrize('_type',
-    ('hard_integer', 'hard_float', 'soft_integer', 'soft_float')
-)
 class TestPointsAsInteger:
 
 
-    def test_hard_soft_accepts_points_equals_len_grid(self, _type):
-
-        # accepts first points == len(grid) and any other points elsewhere
-
-        assert _val_numerical_param_value(
-            'good_key', [[11, 21, 31], 3, _type], 3
-        ) is None
-
-
     @pytest.mark.parametrize('v1', (2, 4, 5))
-    def test_hard_soft_accepts_points_not_equal_len_grid(self, _type, v1):
+    def test_hard_soft_accepts_points_equal_len_grid(
+        self, _type, total_passes, v1
+    ):
 
         # but rejects soft # points <= 2
 
-        if 'hard' in _type:
+        if 'hard' in _type or 'fixed' in _type:
             assert _val_numerical_param_value(
-                'good_key', [[11 ,21, 13], v1, _type], 3
+                'good_key', [[11, 21, 13], v1, _type], total_passes
             ) is None
         elif 'soft' in _type:
-            if v1 >= 3:
+            if v1 != 2:
                 assert _val_numerical_param_value(
-                    'good_key', [[11 ,21, 13], v1, _type], 3
+                    'good_key', [[11, 21, 13], v1, _type], total_passes
                 ) is None
 
-            elif v1 < 3:
+            elif v1 == 2:
                 with pytest.raises(ValueError):
                     _val_numerical_param_value(
-                        'good_key', [[11, 21, 13], v1, _type], 3
+                        'good_key', [[11, 21, 13], v1, _type], total_passes
                     )
         else:
             raise Exception
@@ -367,7 +230,7 @@ class TestPointsAsListType:
     @pytest.mark.parametrize('v2', (2, 3, 4, 5))
     @pytest.mark.parametrize('v3', (2, 3, 4, 5))
     def test_hard_soft_conditionally_accepts_any_points(
-        self, v1, v2, v3, _type
+            self, v1, v2, v3, _type
     ):
 
         # soft rejects anywhere points == 2 but otherwise accepts any
@@ -388,6 +251,17 @@ class TestPointsAsListType:
             ) is None
 
 
+class TestType:
+
+
+    @pytest.mark.parametrize('_type', allowed_types)
+    def test_rejects_bad_accepts_good_type(self, _type):
+
+        assert _val_numerical_param_value(
+            'param_a',
+            [[2,4,6,8], [4,4,4], _type],
+            3
+        ) is None
 
 
 

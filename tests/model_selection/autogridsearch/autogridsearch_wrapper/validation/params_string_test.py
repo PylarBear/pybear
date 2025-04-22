@@ -27,7 +27,7 @@ class TestStringParamKey:
 
     def test_accepts_str(self):
         assert _val_string_param_value(
-            'some_string', [['a','b'], 8, 'string']
+            'some_string', [['a','b'], 8, 'fixed_string']
         ) is None
 
 
@@ -36,7 +36,7 @@ class TestStringParamValueOuterContainer:
 
     @pytest.mark.parametrize('_container', (list, tuple, np.ndarray))
     def test_accepts_list_like(self, _container):
-        _base = [['a', 'b'], 10, 'string']
+        _base = [['a', 'b'], 10, 'fixed_string']
         if _container in [list, tuple]:
             list_like = _container(_base)
         elif _container is np.ndarray:
@@ -58,62 +58,46 @@ class TestStringListOfSearchPoints:
         with pytest.raises(TypeError):
             _val_string_param_value(
                 'good_key',
-                [[non_str_non_none, 'b'], None, 'string'],
-                _shrink_pass_can_be_None=True
+                [[non_str_non_none, 'b'], None, 'fixed_string']
             )
 
 
     @pytest.mark.parametrize('str_or_none', ('a', None))
     def test_accept_strings_or_none_inside(self, str_or_none):
         assert _val_string_param_value(
-            'good_key', ((str_or_none, 'b'), 5, 'string')
+            'good_key', ((str_or_none, 'b'), 5, 'fixed_string')
         ) is None
 
 
-class TestShrinkPass:
-
-    @pytest.mark.parametrize('non_integer',
-        (np.pi, True, min, 'junk', lambda x: x, {'a': 1}, [1,], (1,), {1,2})
-    )
-    def test_rejects_non_none_non_integer(self, non_integer):
-        with pytest.raises(TypeError):
-            _val_string_param_value(
-                'good_key',
-                [['a','b'], non_integer, 'string']
-            )
+class TestPoints:
 
 
-    @pytest.mark.parametrize('int_or_none', (3, None))
-    @pytest.mark.parametrize('can_be_None', (True, False))
-    def test_accepts_none_and_integer_gte_one(
-        self, int_or_none, can_be_None
-    ):
+    @pytest.mark.parametrize('int_or_seq', (3, [3,3,3]))
+    def test_accepts_integer_or_sequence(self, int_or_seq):
 
-        if int_or_none is None and not can_be_None:
-            with pytest.raises(TypeError):
-                _val_string_param_value(
-                    'good_key',
-                    [['y', 'z'], int_or_none, 'string'],
-                    _shrink_pass_can_be_None=can_be_None
-                )
-        else:
+        assert _val_string_param_value(
+            'good_key',
+            [['y','z'], int_or_seq, 'fixed_string']
+        ) is None
+
+
+class TestType:
+
+
+    @pytest.mark.parametrize('_type', ('fixed_bool', 'fixed_string', 'soft_float'))
+    def test_rejects_bad_accepts_good_type(self, _type):
+
+        _value = [list('abcde'), [5,5,5], _type]
+
+        if _type == 'fixed_string':
             assert _val_string_param_value(
-                'good_key',
-                [['y','z'], int_or_none, 'string'],
-                _shrink_pass_can_be_None=can_be_None
+                'param_a',
+                _value
             ) is None
-
-
-    @pytest.mark.parametrize('bad_pass', (-1, 0, 1))
-    def test_rejects_integer_less_than_two(self, bad_pass):
-        with pytest.raises(ValueError):
-            _val_string_param_value(
-                'good_key',
-                [['a','b'], bad_pass, 'string']
-            )
-
-
-
-
-
+        else:
+            with pytest.raises(AssertionError):
+                _val_string_param_value(
+                    'param_a',
+                    _value
+                )
 

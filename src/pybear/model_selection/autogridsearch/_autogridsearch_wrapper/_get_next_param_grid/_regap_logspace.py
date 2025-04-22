@@ -12,15 +12,15 @@ from .._type_aliases import DataType, GridType, ParamType
 
 
 def _regap_logspace(
-                    _param_name: str,
-                    _grid: GridType,
-                    _is_logspace: float,
-                    _param_value: ParamType,
-                    _pass: int,
-                    _best_param_from_previous_pass: DataType,
-                    _hard_min: Union[int, float],
-                    _hard_max: Union[int, float]
-    ) -> tuple[GridType, ParamType, float]:
+    _param_name: str,
+    _grid: GridType,
+    _is_logspace: float,
+    _param_value: ParamType,
+    _pass: int,
+    _best_param_from_previous_pass: DataType,
+    _hard_min: Union[int, float],
+    _hard_max: Union[int, float]
+) -> tuple[GridType, ParamType, float]:
 
     """
 

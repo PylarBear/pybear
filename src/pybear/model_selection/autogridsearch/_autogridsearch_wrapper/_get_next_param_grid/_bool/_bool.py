@@ -14,7 +14,6 @@ from ..._type_aliases_bool import (
 
 
 
-
 def _bool(
     _param_value: BoolParamType,
     _grid: BoolGridType,
@@ -30,10 +29,9 @@ def _bool(
     Parameters
     ----------
     _param_value:
-        list[Sequence[bool], int, str] - boolean parameter grid
-        instructions
+        BoolParamType - boolean parameter grid instructions
     _grid:
-        Sequence[bool] - previous round's gridsearch values for boolean
+        BoolGridType - previous round's gridsearch values for boolean
         parameter
     _pass:
         numbers.Integral - zero-indexed count of passes to this point,
@@ -51,8 +49,8 @@ def _bool(
     """
 
 
-    # pass is zero-indexed, _param_value[1] is not
-    if _pass >= _param_value[1] - 1:
+    # pass is zero-indexed
+    if _param_value[1][_pass] == 1:
         # _best_param_from_previous_pass] is a single value, wrap with []
         _grid = [_best_param_from_previous_pass]
     else:
@@ -60,3 +58,7 @@ def _bool(
 
 
     return _grid
+
+
+
+

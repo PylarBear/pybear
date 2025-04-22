@@ -16,8 +16,7 @@ from .._type_aliases_str import InStrParamType
 
 def _val_string_param_value(
     _string_param_key: str,
-    _string_param_value: InStrParamType,
-    _shrink_pass_can_be_None=False
+    _string_param_value: InStrParamType
 ) -> None:
 
     """
@@ -26,14 +25,14 @@ def _val_string_param_value(
     COMES IN AS
     list-like(
         list-like('grid_value1', 'grid_value2', etc.),
-        None or integer > 0,
-        'string'
+        Union[int, Sequence[int]],
+        'fixed_string'
     )
 
     validate string_params' dict value is a list-like that contains
     (i) a list-like of str/None values
-    (ii) a positive integer or None
-    (iii) 'string' (literal string 'string')
+    (ii) 'points' not validated here anymore
+    (iii) 'fixed_string' (literal string 'fixed_string')
 
 
     Parameters
@@ -42,10 +41,7 @@ def _val_string_param_value(
         str - the estimator parameter name to be grid-searched.
     _string_param_value:
         InStrParamType - the list-like of instructions for the multi-pass
-        grid search of this string-values parameter.
-    _shrink_pass_can_be_None:
-        bool, default=False - whether the second position is allowed to
-        take the value None.
+        grid search of this string-valued parameter.
 
 
     Returns
@@ -57,6 +53,9 @@ def _val_string_param_value(
     """
 
 
+    assert _string_param_value[2].lower() == 'fixed_string'
+
+
     _base_err_msg = f"string param '{str(_string_param_key)}' in :param: 'params' "
 
 
@@ -64,7 +63,7 @@ def _val_string_param_value(
     # (i) a list of str values
     _err_msg = (f"{_base_err_msg} --- "
         f"\nfirst position of the value must be a non-empty list-like that "
-        f"\ncontains the first pass grid-search values. "
+        f"\ncontains the first pass grid-search values (strings or None). "
     )
 
     if not all(map(
@@ -77,35 +76,6 @@ def _val_string_param_value(
     del _err_msg
     # END validate first position ** * ** * ** * ** * ** * ** * ** * **
 
-    # validate second position ** * ** * ** * ** * ** * ** * ** * ** * *
-    err_msg = (f"{_base_err_msg} --- "
-        f"\nsecond position of the value must be None or an integer > 1 "
-        f"\nindicating the pass on which to reduce a param's grid to "
-        f"\nonly a single search value."
-    )
-
-    try:
-        if _string_param_value[1] is None:
-            if _shrink_pass_can_be_None:
-                raise UnicodeError
-            else:
-                raise Exception
-        float(_string_param_value[1])
-        if isinstance(_string_param_value[1], bool):
-            raise Exception
-        if int(_string_param_value[1]) != _string_param_value[1]:
-            raise Exception
-        if _string_param_value[1] < 2:
-            raise TimeoutError
-    except UnicodeError:
-        pass
-    except TimeoutError:
-        raise ValueError(err_msg)
-    except Exception as e:
-        raise TypeError(err_msg)
-
-    del err_msg
-    # END validate second position ** * ** * ** * ** * ** * ** * ** * **
 
     del _base_err_msg
 

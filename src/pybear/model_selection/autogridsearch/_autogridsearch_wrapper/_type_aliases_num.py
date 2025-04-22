@@ -9,21 +9,39 @@
 from typing import Sequence, Tuple
 from typing_extensions import (
     TypeAlias,
+    TypeVar,
     Union
 )
-from ._type_aliases import PointsType
-from ._type_aliases_float import FloatDataType
-from ._type_aliases_int import IntDataType
+from ._type_aliases_float import (
+    FloatDataType,
+    InFloatGridType,
+    FloatGridType,
+    FloatTypeType
+)
+from ._type_aliases_int import (
+    IntDataType,
+    InIntGridType,
+    IntGridType,
+    IntTypeType
+)
+
+import numbers
 
 
 
 # see _type_aliases, general num subtypes of DataType, GridType, PointsType, ParamType
-NumDataType: TypeAlias = Union[IntDataType, FloatDataType]
-InNumGridType: TypeAlias = Sequence[NumDataType]
-InNumParamType: TypeAlias = Sequence[Tuple[InNumGridType, PointsType, str]]
-NumGridType: TypeAlias = list[NumDataType]
-NumPointsType: TypeAlias = list[int]
-NumParamType: TypeAlias = list[NumGridType, PointsType, str]
+NumDataType: TypeAlias = TypeVar('NumDataType', IntDataType, FloatDataType)
+
+InNumGridType: TypeAlias = Union[InIntGridType, InFloatGridType]
+NumGridType: TypeAlias = Union[IntGridType, FloatGridType]
+
+InPointsType: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral]]
+PointsType: TypeAlias = list[numbers.Integral]
+
+NumTypeType: TypeAlias = Union[IntTypeType, FloatTypeType]
+
+InNumParamType: TypeAlias = Sequence[Tuple[InNumGridType, InPointsType, NumTypeType]]
+NumParamType: TypeAlias = list[NumGridType, PointsType, NumTypeType]
 
 
 

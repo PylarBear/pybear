@@ -28,7 +28,7 @@ class TestBuildIsLogspace:
 
     def test_accuracy_1(self):
 
-        _params_1 = {'a': [['x','y','z'], 3, 'string']}
+        _params_1 = {'a': [['x','y','z'], 3, 'fixed_string']}
 
         _expected_is_logspace = {'a': False}
 
@@ -110,7 +110,7 @@ class TestBuildIsLogspace:
 
 
     def test_accuracy_11(self):
-        _params_11 = {'l': [['1', '10', '100'], 3, 'string']}
+        _params_11 = {'l': [['1', '10', '100'], 3, 'fixed_string']}
 
         _expected_is_logspace = {'l': False}
 

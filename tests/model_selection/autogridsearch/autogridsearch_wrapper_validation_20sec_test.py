@@ -41,8 +41,8 @@ class TestAGSCVValidation:
         return {
             'C': [np.logspace(-5,5,6), 6, 'soft_float'],
             'l1_ratio': [np.linspace(0,1,6), 6, 'hard_float'],
-            'solver': [['saga', 'lbfgs'], 2, 'string'],
-            'fit_intercept': [[True, False], 2, 'bool']
+            'solver': [['saga', 'lbfgs'], 2, 'fixed_string'],
+            'fit_intercept': [[True, False], 2, 'fixed_bool']
         }
 
 
@@ -104,7 +104,7 @@ class TestAGSCVValidation:
         with pytest.raises(Exception):
             AutoGridSearch(
                 estimator=weird_estimator(crazy_param=float('inf')),
-                params={'crazy_param': [[True, False], 2, 'bool']}
+                params={'crazy_param': [[True, False], 2, 'fixed_bool']}
             ).fit(_X, _y)
 
         del weird_estimator
@@ -142,7 +142,7 @@ class TestAGSCVValidation:
 
     @pytest.mark.parametrize('bad_params',
         ({'a': ['more_junk']}, {0: [1,2,3,4]}, {'junk': [1, 2, 'what?!']},
-         {'b': {1,2,3,4}}, {'qqq': {'rrr': [[1,2,3], 3, 'string']}})
+         {'b': {1,2,3,4}}, {'qqq': {'rrr': [[1,2,3], 3, 'fixed_string']}})
     )
     def test_rejects_bad_params(self, AutoGridSearch, bad_params, _X, _y):
         with pytest.raises(Exception):
