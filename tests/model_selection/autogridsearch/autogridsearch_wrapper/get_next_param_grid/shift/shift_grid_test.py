@@ -73,7 +73,7 @@ class TestShiftGrid:
 
         with pytest.raises(ValueError):
             _shift_grid(
-                        [['a' 'b', 'c', 'c'], 3, 'string'],
+                        [['a' 'b', 'c', 'c'], 3, 'fixed_string'],
                         ['a', 'b', 'c', 'd'],
                         False,
                         'b'

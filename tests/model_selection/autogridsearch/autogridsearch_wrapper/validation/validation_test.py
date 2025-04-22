@@ -41,8 +41,8 @@ class TestValidation:
     ):
 
         _params = {
-            'param_a': [('a', 'b', 'c', 'd'), None, 'string'],
-            'param_b': ({True, False}, 2, 'bool'),
+            'param_a': [('a', 'b', 'c', 'd'), 4, 'fixed_string'],
+            'param_b': ({True, False}, 2, 'fixed_bool'),
             'param_c': [
                 np.logspace(-5,5,11),
                 [11] + [6 for i in range(_total_passes-1)],

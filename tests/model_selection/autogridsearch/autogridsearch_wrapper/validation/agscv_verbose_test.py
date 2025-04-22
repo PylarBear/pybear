@@ -17,7 +17,7 @@ class TestAgscvVerbose:
 
 
     @pytest.mark.parametrize('non_bool',
-        (-2.7, -1, 0, 1, 2.7, None, 'string', (1,2), {1,2}, {'a':1}, lambda x: x)
+        (-2.7, -1, 0, 1, 2.7, None, 'trash', (1,2), {1,2}, {'a':1}, lambda x: x)
     )
     def test_rejects_non_bool(self, non_bool):
 

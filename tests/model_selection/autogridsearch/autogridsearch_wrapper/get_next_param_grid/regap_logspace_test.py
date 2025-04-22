@@ -14,7 +14,7 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 @pytest.fixture
 def good_params():
     return {
-                'a': [['a','b','c','d'], 3, 'string'],
+                'a': [['a','b','c','d'], 3, 'fixed_string'],
                 'b': [[1,2,3,4], [4,4,4], 'fixed_integer'],
                 'c': [[10,20,30,40], [4,4,4], 'fixed_float'],
                 'd': [[1,100,10000], [3,3,3], 'soft_integer'],
@@ -83,7 +83,7 @@ def good_grids():
 @pytest.fixture
 def best_params():
     return {
-            'a': 'a',   # [0], 'string'
+            'a': 'a',   # [0], 'fixed_string'
             'b': 2,     # [1], 'fixed_integer'
             'c': 20,    # [1], 'fixed_float'
             'd': 100,   # [1], 'soft_integer'
@@ -102,7 +102,7 @@ def best_params():
 @pytest.fixture
 def new_params():
     return {
-        'a': [['a', 'b', 'c', 'd'], 3, 'string'],
+        'a': [['a', 'b', 'c', 'd'], 3, 'fixed_string'],
         'b': [[1, 2, 3, 4], [4, 4, 4], 'fixed_integer'],
         'c': [[10, 20, 30, 40], [4, 4, 4], 'fixed_float'],
         'd': [[1,100,10000], [3, 5, 3], 'soft_integer'],

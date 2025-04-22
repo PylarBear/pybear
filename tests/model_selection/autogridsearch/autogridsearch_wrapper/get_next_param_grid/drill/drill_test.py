@@ -50,15 +50,15 @@ class TestStrBoolFixedIntFixedFloatReturnsEverythingUnchanged:
     @pytest.fixture
     def good_params(self):
         return {
-            'a': [['a', 'b', 'c', 'd'], 3, 'string'],
+            'a': [['a', 'b', 'c', 'd'], [4, 4, 1], 'fixed_string'],
             'b': [[1, 2, 3, 4], [4, 4, 4], 'fixed_integer'],
             'c': [[1e1, 1e2, 1e3, 1e4], [4, 4, 4], 'fixed_integer'],
             'd': [[1e1, 1e3, 1e5, 1e7], [4, 4, 4], 'fixed_integer'],
             'e': [[10.1, 10.2, 10.3, 10.4], [4, 4, 4], 'fixed_float'],
             'f': [[1e3, 1e4, 1e5, 1e6], [4, 4, 4], 'fixed_float'],
             'g': [[1e3, 1e5, 1e7, 1e9], [4, 4, 4], 'fixed_float'],
-            'h': [[True, False], 2, 'bool'],
-            'i': [[True], 2, 'bool']
+            'h': [[True, False], [2, 1, 1], 'fixed_bool'],
+            'i': [[True], [1, 1, 1], 'fixed_bool']
         }
 
     @pytest.fixture

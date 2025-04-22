@@ -6,36 +6,63 @@
 
 
 
-from typing import (
-    Protocol,
-    Sequence,
-    Tuple,
-    TypeVar
-)
+from typing import Sequence
 from typing_extensions import (
-    Any,
-    Self,
     TypeAlias,
     Union
+)
+from ._type_aliases_float import (
+    FloatDataType,
+    InFloatGridType,
+    FloatGridType,
+    InFloatParamType,
+    FloatParamType,
+    FloatTypeType
+)
+from ._type_aliases_int import (
+    IntDataType,
+    InIntGridType,
+    IntGridType,
+    InIntParamType,
+    IntParamType
+)
+from ._type_aliases_str import (
+    StrDataType,
+    InStrGridType,
+    StrGridType,
+    InStrParamType,
+    StrParamType
+)
+from ._type_aliases_bool import (
+    BoolDataType,
+    InBoolGridType,
+    BoolGridType,
+    InBoolParamType,
+    BoolParamType
 )
 
 import numbers
 
 
 
-DataType = TypeVar('DataType', numbers.Real, str)
+DataType: TypeAlias = Union[BoolDataType, StrDataType, IntDataType, FloatDataType]
 
-InGridType: TypeAlias = Sequence[DataType]
-GridType: TypeAlias = list[DataType]
+InGridType: TypeAlias = \
+    Union[InBoolGridType, InStrGridType, InIntGridType, InFloatGridType]
+GridType: TypeAlias = Union[BoolGridType, StrGridType, IntGridType, FloatGridType]
 
-InPointsType: TypeAlias = Union[None, numbers.Integral, Sequence[numbers.Integral]]
-PointsType: TypeAlias = Union[None, numbers.Integral, list[numbers.Integral]]
+InPointsType: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral]]
+PointsType: TypeAlias = list[numbers.Integral]
 
-InParamType: TypeAlias = Sequence[Tuple[InGridType, InPointsType, str]]
-ParamType: TypeAlias = list[GridType, PointsType, str]
+InParamType: TypeAlias = \
+    Union[InBoolParamType, InStrParamType, InIntParamType, InFloatParamType]
+ParamType: TypeAlias = \
+    Union[BoolParamType, StrParamType, IntParamType, FloatParamType]
 
-InParamsType: TypeAlias = dict[str, InParamType]
-ParamsType: TypeAlias = dict[str, ParamType]
+InParamsType: TypeAlias = \
+    Union[InBoolParamType, InStrParamType, InIntParamType, InFloatParamType]
+ParamsType: TypeAlias = \
+    Union[BoolParamType, StrParamType, IntParamType, FloatParamType]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

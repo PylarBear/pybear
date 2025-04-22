@@ -131,9 +131,8 @@ def _demo(
 
             # update points in params with possibly different points from gnpg
             for _param in _DemoCls.GRIDS_[_pass]:
-                if _DemoCls._params[_param][-1] not in ['string', 'bool']:
-                    _DemoCls._params[_param][1][_pass] = \
-                        len(_DemoCls.GRIDS_[_pass][_param])
+                _DemoCls._params[_param][1][_pass] = \
+                    len(_DemoCls.GRIDS_[_pass][_param])
 
         print(f'Done.')
 
@@ -178,7 +177,7 @@ def _demo(
           f"with {_DemoCls._shift_ctr} shift pass(es).")
 
 
-    return _DemoCls   # for tests purposes only
+    return _DemoCls   # for test purposes only
 
 
 

@@ -19,13 +19,12 @@ class TestValTotalPasses:
 
 
     #   when no param in params has points that are list-type, total_passes
-    #   must be determined externally. 'string' and 'bool' never allows a
-    #   list-type for points, all other numerics' points could be passed
+    #   must be used. all points could be passed
     #   as single int or a list-like[int].
 
 
     @pytest.mark.parametrize('non_numeric',
-        (True, False, None, 'string', [1, 2], (1, 2), {1, 2}, lambda x: x, {'a': 1})
+        (True, False, None, 'trash', [1, 2], (1, 2), {1, 2}, lambda x: x, {'a': 1})
     )
     def test_rejects_non_numeric(self, non_numeric):
         with pytest.raises(TypeError):

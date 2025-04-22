@@ -37,7 +37,7 @@ class TestMockGscv:
     @pytest.fixture
     def good_params():
         return {
-            'a': [['x', 'y', 'z'], [3, 3, 3], 'string'],
+            'a': [['x', 'y', 'z'], [3, 3, 3], 'fixed_string'],
             'b': [[1, 2, 3, 4], [4, 4, 4], 'fixed_integer'],
             'c': [[25, 30, 35], [3, 3, 6], 'soft_float']
         }

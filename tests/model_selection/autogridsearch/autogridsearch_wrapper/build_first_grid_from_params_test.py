@@ -18,7 +18,7 @@ class TestBuild:
     def test_accuracy(self):
 
         _params = {
-            'string' : [['a','b','c'], 3, 'string'],
+            'string' : [['a','b','c'], 3, 'fixed_string'],
             'num': [[1,2,3,4], [4,4,4,4,4], 'fixed_integer']
         }
 

@@ -128,7 +128,7 @@ def _mock_gscv(
         _grid = _GRIDS[_pass][_param]
         if len(_grid) == 1:
             _best_params_[_param] = _grid[0]
-        elif _params[_param][-1] in ['string', 'bool']:
+        elif _params[_param][-1] in ['fixed_string', 'fixed_bool']:
             # for a str or bool param, make it 10% chance that the returned
             # "best" is non-best option
             _p_best = 0.9

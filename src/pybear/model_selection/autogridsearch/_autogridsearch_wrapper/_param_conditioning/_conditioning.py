@@ -13,7 +13,8 @@ from .._type_aliases import (
 
 import numbers
 
-from ._params__total_passes import _cond_params__total_passes
+from ._total_passes import _cond_total_passes
+from ._params import _cond_params
 from ._max_shifts import _cond_max_shifts
 
 
@@ -22,14 +23,13 @@ def _conditioning(
     _params: InParamsType,
     _total_passes: numbers.Integral,
     _max_shifts: numbers.Integral,
-    _inf_shrink_pass: numbers.Integral,
     _inf_max_shifts: numbers.Integral
-) -> tuple[ParamsType, numbers.Integral, numbers.Integral]:
+) -> tuple[ParamsType, int, int]:
 
     """
     Centralized hub for conditioning parameters. Condition given
     `max_shifts`, `params`, and `total_passes` into internal processing
-    containers and values.
+    containers, types, and values.
 
 
     Parameters
@@ -37,7 +37,6 @@ def _conditioning(
     _params
     _total_passes
     _max_shifts
-    _inf_shrink_pass
     _inf_max_shifts
 
 
@@ -50,10 +49,8 @@ def _conditioning(
         integers in the points slots for numeric params converted to
         lists.
 
-        _total_passes: numbers.Integral - the conditioned total_passes.
-        Pizza as of 25_04_21 this number is changed to match the length
-        of any list-like 'points' passed to numerical params. think on
-        if we want this.
+        _total_passes: numbers.Integral - the conditioned total_passes,
+        a python integer.
 
         _max_shifts: numbers.Integral - the conditioned max_shifts; set
         to a large integer if passed as None. pizza maybe we just leave
@@ -63,11 +60,9 @@ def _conditioning(
     """
 
 
-    _params, _total_passes = _cond_params__total_passes(
-        _params,
-        _total_passes,
-        _inf_shrink_pass
-    )
+    _total_passes = _cond_total_passes(_total_passes)
+
+    _params = _cond_params(_params, _total_passes)
 
     _max_shifts = _cond_max_shifts(_max_shifts, _inf_max_shifts)
 

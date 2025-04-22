@@ -140,7 +140,7 @@ In the one case of 'fixed_integer', a zero may be passed to the
 integer search grid, breaking the universal minimum bound for
 integers, whereas all other integer search spaces observe the univ-
 ersal lower bound of 1.
-'String' and 'bool' parameters are also forms of fixed parameters.
+'fixed_string' and 'fixed_bool' parameters are also forms of fixed parameters.
 
 'hard' parameter - A parameter whose search is bounded to a conti-
 guous subset of real numbers, observant of the universal hard bounds.
@@ -198,7 +198,7 @@ reached.
 
 'drill' - The act of narrowing a search space based on the best value
 returned from the last round of GridSearchCV and the grid used for
-that search. Not applicable to 'fixed', 'bool', or 'string'
+that search. Not applicable to 'fixed', 'fixed_bool', or 'fixed_string'
 parameters. Briefly and simplistically, the next search grid is a
 'zoom-in' on the last round's (sorted) grid in the region created by
 the search values that are adjacent to the best value. For float
@@ -216,7 +216,7 @@ space, e.g. [1,2,3]. See numpy.linspace.
 'logspace' - a search space whose log10 intervals are equal, e.g.
 [1, 10, 100]. See numpy.logspace.
 
-'boolean' (or 'bool') - True or False
+'boolean' (or 'fixed_bool') - True or False
 
 'regap' - Technically a drill, the points in a logspace with log10
 interval greater than 1 are repartitioned to unit interval after
@@ -400,11 +400,11 @@ For string and boolean parameters, the list field is constructed as:
     [
     first search grid: list-like,
     shrink pass: int | None,
-    'string' or 'bool' : str
+    'fixed_string' or 'fixed_bool' : str
     ]
 E.g.:
-    [['a', 'b', 'c'], 3, 'string']
-    [[True, False], 2, 'bool']
+    [['a', 'b', 'c'], 3, 'fixed_string']
+    [[True, False], 2, 'fixed_bool']
 
 The list-like in the first position is the grid that will be used for
 all grid searches for this parameter, with the one exception of
@@ -415,7 +415,7 @@ one or None; if None, autogridsearch sets it to an arbitrary large
 integer. This value indicates the pass number on which to only select
 the single best value for that parameter out of best_params_ and
 proceed with grid searches using only that single value. Consider the
-following instructions [['a', 'b', 'c'], 4, 'string'], with
+following instructions [['a', 'b', 'c'], 4, 'fixed_string'], with
 total_passes = 5 and a true best value of 'c' that is correctly
 discovered by GridSearchCV.
 This will generate the following search grids:
@@ -430,7 +430,7 @@ redundant searches.
 The text field in the final position is required for all entries in
 the 'params' parameter. This informs AutoGridSearch on how to handle
 the grids and their values. For the two cases discussed here,
-'string' is required for string types and 'bool' for boolean types.
+'fixed_string' is required for string types and 'fixed_bool' for boolean types.
 
 ** * ** * **
 
@@ -522,7 +522,7 @@ parameters:
 All together, a fictitious but valid params argument for
 total_passes == 3 might look like:
 {
-    'solver': [['lbfgs', 'saga'], 2, 'string'],
+    'solver': [['lbfgs', 'saga'], 2, 'fixed_string'],
     'max_depth': [[1, 2, 3, 4], [4, 4, 1], 'fixed_integer'],
     'C': [[1e1, 1e2, 1e3], [3, 11, 11], 'soft_float],
     'n_estimators': [[8, 16, 32, 64], [4, 8, 4], 'soft_integer'],
@@ -569,21 +569,6 @@ agscv_verbose:
 
 Attributes
 ----------
-estimator:
-    estimator whose hyperparameters are to be optimized
-params:
-    instructions for building param_grids
-total_passes:
-    Minimum number of grid search passes to perform
-total_passes_is_hard:
-    If True, total_passes is the actual number of grid searches
-    performed. If False, total_passes is the minimum number of grid
-    searches performed.
-max_shifts:
-    The maximum allowed shifting passes to perform.
-agscv_verbose:
-    Boolean setting that toggles the run-time display of helpful
-    information by AutoGridSearch.
 GRIDS_:
     Dictionary of param_grids run on each pass. As AutoGridSearch
     builds param_grids for each pass, they are stored in this
@@ -606,8 +591,8 @@ Examples
 >>> estimator = LogisticRegression()
 >>> params = {
 ...     'C': [[0.1, 0.01, 0.001], [3, 3, 3], 'soft_Float'],
-...     'fit_intercept': [[True, False], 2, 'bool'],
-...     'solver': [['lbfgs', 'saga'], 2, 'string']
+...     'fit_intercept': [[True, False], 2, 'fixed_bool'],
+...     'solver': [['lbfgs', 'saga'], 2, 'fixed_string']
 ... }
 >>> agscv = AutoGridSearchCV(
 ...     estimator,

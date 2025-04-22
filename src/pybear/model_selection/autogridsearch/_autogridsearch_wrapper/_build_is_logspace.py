@@ -52,10 +52,10 @@ def _build_is_logspace(
 
         __ = _params[_param]
 
-        if __[-1] == 'string':
+        if __[-1] == 'fixed_string':
             _IS_LOGSPACE[_param] = False
 
-        elif __[-1] == 'bool':
+        elif __[-1] == 'fixed_bool':
             _IS_LOGSPACE[_param] = False
 
         else:

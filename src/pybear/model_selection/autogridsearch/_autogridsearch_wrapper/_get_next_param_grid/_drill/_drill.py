@@ -91,10 +91,10 @@ def _drill(
 
     """
 
-    _type = _param_value[-1].upper()
+    _type = _param_value[-1]
 
     # string ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    if 'STRING' in _type:
+    if 'fixed_string' in _type:
         _grid = _string(
             _param_value,
             _grid,
@@ -109,7 +109,7 @@ def _drill(
 
 
     # bool ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    if 'BOOL' in _type:
+    if 'fixed_bool' in _type:
 
         _grid = _bool(
             _param_value,
@@ -159,7 +159,7 @@ def _drill(
         _is_logspace = False  # MAY HAVE ALREADY BEEN FALSE
         return _grid, _param_value, _is_logspace
 
-    elif 'FIXED' in _type:
+    elif 'fixed' in _type:
         # THIS MUST BE AFTER _points == 1
         _grid = _param_value[0]
         # no change to len(_grid)
@@ -167,9 +167,9 @@ def _drill(
         return _grid, _param_value, _is_logspace
 
 
-    if 'HARD' in _type:
+    if 'hard' in _type:
         _is_hard = True
-    elif 'SOFT' in _type:
+    elif 'soft' in _type:
         _is_hard = False
     else:
         raise ValueError(f"{_param_name}: param type str must contain "
@@ -179,7 +179,7 @@ def _drill(
     _hard_min = _param_value[0][0]
     _hard_max = _param_value[0][-1]
 
-    if 'INTEGER' in _type:
+    if 'integer' in _type:
 
         _grid, _is_logspace = _int(
             _grid,
@@ -191,7 +191,7 @@ def _drill(
             _points
         )
 
-    elif 'FLOAT' in _type:
+    elif 'float' in _type:
 
         _grid, _is_logspace = _float(
             _grid,
@@ -205,7 +205,7 @@ def _drill(
 
     else:
         raise ValueError(f"{_param_name}: param type str must contain "
-             f"'float' or 'integer' if not 'string' ({_type.lower()})")
+             f"'float' or 'integer' if not 'fixed_string' ({_type.lower()})")
 
     # IF ANY ADJUSTMENTS WERE MADE TO _points, CAPTURE IN numerical_params
     _param_value[1][_pass] = len(_grid)

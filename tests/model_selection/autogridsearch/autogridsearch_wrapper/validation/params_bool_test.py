@@ -27,7 +27,7 @@ class TestBoolParamKey:
 
     def test_accepts_str(self):
         assert _val_bool_param_value(
-            'some_string', [[True, False], 8, 'bool']
+            'some_string', [[True, False], 8, 'fixed_bool']
         ) is None
 
 
@@ -36,7 +36,7 @@ class TestBoolParamValueOuterContainer:
 
     @pytest.mark.parametrize('_container', (list, tuple, np.ndarray))
     def test_accepts_list_like(self, _container):
-        _base = [[True, False, None], 10, 'bool']
+        _base = [[True, False, None], 10, 'fixed_bool']
         if _container in [list, tuple]:
             list_like = _container(_base)
         elif _container is np.ndarray:
@@ -58,60 +58,48 @@ class TestBoolListOfSearchPoints:
         with pytest.raises(TypeError):
             _val_bool_param_value(
                 'good_key',
-                [[non_bool, False], None, 'bool'],
-                _shrink_pass_can_be_None=True
+                [[non_bool, False], None, 'fixed_bool']
             )
 
 
     @pytest.mark.parametrize('_bool', (True, False, None))
     def test_accepts_bool_None_inside(self, _bool):
         assert _val_bool_param_value(
-            'good_key', ([_bool, False], 5, 'bool')
+            'good_key', ([_bool, False], 5, 'fixed_bool')
         ) is None
 
 
-class TestShrinkPass:
+class TestPoints:
 
-    @pytest.mark.parametrize('non_integer',
-        (np.pi, True, min, 'junk', lambda x: x, {'a': 1}, [1,], (1,), {1,2})
+
+    @pytest.mark.parametrize('int_or_seq', (3, [3,3,3]))
+    def test_accepts_integer_or_sequence(self, int_or_seq):
+
+        assert _val_bool_param_value(
+            'good_key',
+            [[True,False], int_or_seq, 'fixed_bool']
+        ) is None
+
+
+class TestType:
+
+
+    @pytest.mark.parametrize('_type',
+        ('fixed_bool', 'fixed_string', 'soft_float')
     )
-    def test_rejects_non_none_non_integer(self, non_integer):
-        with pytest.raises(TypeError):
-            _val_bool_param_value(
-                'good_key',
-                [[True, False], non_integer, 'bool']
-            )
+    def test_rejects_bad_accepts_good_type(self, _type):
 
+        _value = [[True, False], [2,2,2], _type]
 
-    @pytest.mark.parametrize('int_or_none', (3, None))
-    @pytest.mark.parametrize('can_be_None', (True, False))
-    def test_accepts_none_and_integer_gte_one(
-        self, int_or_none, can_be_None
-    ):
-
-        if int_or_none is None and not can_be_None:
-            with pytest.raises(TypeError):
-                _val_bool_param_value(
-                    'good_key',
-                    [[True, False], int_or_none, 'bool'],
-                    _shrink_pass_can_be_None=can_be_None
-                )
-        else:
+        if _type == 'fixed_bool':
             assert _val_bool_param_value(
-                'good_key',
-                [[True,False], int_or_none, 'bool'],
-                _shrink_pass_can_be_None=can_be_None
+                'param_a',
+                _value
             ) is None
-
-
-    @pytest.mark.parametrize('bad_pass', (-1, 0, 1))
-    def test_rejects_integer_less_than_two(self, bad_pass):
-        with pytest.raises(ValueError):
-            _val_bool_param_value(
-                'good_key',
-                [[True, False], bad_pass, 'bool']
-            )
-
-
-
+        else:
+            with pytest.raises(AssertionError):
+                _val_bool_param_value(
+                    'param_a',
+                    _value
+                )
 

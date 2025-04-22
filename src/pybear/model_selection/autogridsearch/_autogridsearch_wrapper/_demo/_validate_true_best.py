@@ -66,7 +66,7 @@ def _validate_true_best(
         _grid = _params[_param][0]
         _best = _true_best[_param]
 
-        if 'string' in _type:
+        if 'fixed_string' in _type:
             err_msg = (f"{_param}: true_best string params must "
                         f"be a single string that is in the search grid")
             if not isinstance(_best, str):

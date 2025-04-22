@@ -13,11 +13,11 @@ from ..._type_aliases import DataType, GridType, ParamType
 
 
 def _shift_grid(
-                _single_param: ParamType,
-                _single_old_grid: GridType,
-                _single_is_logspace: Union[bool, float],
-                _single_best: DataType
-    ) -> list[DataType]:
+    _single_param: ParamType,
+    _single_old_grid: GridType,
+    _single_is_logspace: Union[bool, float],
+    _single_best: DataType
+) -> list[DataType]:
 
     """
     Left-shift or right-shift a single linear-space or log-space search
@@ -57,20 +57,24 @@ def _shift_grid(
     # ALREADY KNOW IF linspace/logspace FROM IS_LOGSPACE
 
     if len(_single_param) != 3:
-        raise ValueError(f"_single_param is not a proper param value, "
-                         f"must be [[grid], [points], 'data/search type']")
+        raise ValueError(
+            f"_single_param is not a proper param value, must be [[grid], "
+            f"[points], 'data/search type']"
+        )
 
     try:
         list(map(float, _single_old_grid))
     except:
         raise ValueError(f"attempting to shift a non-numeric search grid")
 
-    if _single_param[-1] == 'string':
+    if _single_param[-1] == 'fixed_string':
         raise ValueError(f"_single_param is non-numeric")
 
     if 'soft' not in _single_param[-1]:
-        raise ValueError(f"parameter must be 'soft', cannot be 'hard', 'fixed', "
-                        f"or 'string'")
+        raise ValueError(
+            f"parameter must be 'soft', cannot be 'hard', 'fixed', "
+            f"or 'fixed_string'"
+        )
 
 
 
@@ -81,8 +85,10 @@ def _shift_grid(
     _right = np.isclose(_single_best, max(_NEW_GRID), rtol=1e-6)
 
     if not _left and not _right:
-        raise ValueError(f"_shift_grid(): a param got into _shift_grid "
-                         f"but _best did not fall on a left or right edge")
+        raise ValueError(
+            f"_shift_grid(): a param got into _shift_grid but _best did "
+            f"not fall on a left or right edge"
+        )
 
     if _single_is_logspace:
         _NEW_GRID = np.log10(_NEW_GRID)
@@ -128,6 +134,7 @@ def _shift_grid(
             _NEW_GRID += (np.abs(min(_NEW_GRID)) + 1)
 
         _NEW_GRID = list(map(int, _NEW_GRID.tolist()))
+
 
     return _NEW_GRID
 

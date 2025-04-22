@@ -64,15 +64,18 @@ class TestDemo:
 
         _POINTS = [_points for _ in range(_total_passes)]
         _POINTS[_shrink_pass-1:] = [1 for _ in _POINTS[_shrink_pass-1:]]
+        _BIN_POINTS = [2 for _ in range(_total_passes)]
+        _BIN_POINTS[_shrink_pass - 1:] = [1 for _ in _BIN_POINTS[_shrink_pass - 1:]]
 
+        # the empty grids are overwritten later
         _params = {
             'alpha': [[], _POINTS, _type + '_float'],
-            'fit_intercept': [[True, False], _shrink_pass, 'bool'],
+            'fit_intercept': [[True, False], _BIN_POINTS, 'fixed_bool'],
             'max_iter': [[], _POINTS, _type + '_integer'],
-            'solver': [['lbfgs', 'saga'], _shrink_pass, 'string']
+            'solver': [['lbfgs', 'saga'], _BIN_POINTS, 'fixed_string']
         }
 
-        del _POINTS
+        del _POINTS, _BIN_POINTS
 
         # build first grids ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # make lin univ min bound and log gap 1, then adjust as needed
@@ -162,11 +165,11 @@ class TestDemo:
         assert _test_cls.params.keys() == _params.keys()
         for _param in _params:
             assert _test_cls.params[_param][0] == _params[_param][0]
-            if _params[_param][-1] in ['string', 'bool']:
+            if _params[_param][-1] in ['fixed_string', 'fixed_bool']:
                 assert _test_cls.params[_param][2] == _params[_param][2]
             else:
                 assert len(_test_cls.params[_param][0]) == \
-                                    _test_cls.params[_param][1][0]
+                    _test_cls.params[_param][1][0]
                 assert len(_test_cls.params[_param][1]) == _test_cls.total_passes
 
         del _param
@@ -183,6 +186,7 @@ class TestDemo:
         # 'GRIDS_'
         assert list(_test_cls.GRIDS_.keys()) == list(range(_test_cls.total_passes))
         for _pass_ in _test_cls.GRIDS_:
+
             assert _test_cls.GRIDS_[_pass_].keys() == _params.keys()
             assert all(map(
                 isinstance,
@@ -192,14 +196,7 @@ class TestDemo:
 
             for _param_ in _params:
                 __ = _test_cls.GRIDS_[_pass_][_param_]
-                if _params[_param_][-1] in ['string', 'bool']:
-                    # 'shrink pass' may have been incremented by shifts,
-                    # which would show in _test_cls.params, but not the
-                    # _params in this scope
-                    if _pass_ >= _test_cls._params[_param_][-2] - 1:
-                        assert len(__) == 1
-                else:
-                    assert len(__) == _test_cls._params[_param_][1][_pass_]
+                assert len(__) == _test_cls._params[_param_][1][_pass_]
             del _param_, __
         del _pass_
 
@@ -220,7 +217,7 @@ class TestDemo:
         _last_best = _test_cls.RESULTS_[max(_test_cls.RESULTS_.keys())]
         for _param in _params:
             _last_grid = _last_param_grid[_param]
-            if any([_ in _params[_param][-1] for _ in ['string', 'fixed']]):
+            if 'fixed' in _params[_param][-1]:
                 assert _last_best[_param] in _params[_param][0]
                 assert _last_best[_param] in _last_grid
                 # remember demo has 10% chance that these could be non-best

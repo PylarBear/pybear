@@ -17,7 +17,7 @@ class TestMaxShifts:
 
 
     @pytest.mark.parametrize('non_numeric',
-    (True, False, 'string', [1,2], (1,2), {1,2}, {'a':1}, lambda x: x)
+    (True, False, 'trash', [1,2], (1,2), {1,2}, {'a':1}, lambda x: x)
     )
     @pytest.mark.parametrize('can_be_None', (True, False))
     def test_rejects_non_numeric(self, non_numeric, can_be_None):
