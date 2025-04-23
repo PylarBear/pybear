@@ -4,16 +4,45 @@
 # License: BSD 3 clause
 #
 
-from ._type_aliases import GridsType, ResultsType
 
 
-# no pytest
+from ._type_aliases import (
+    GridsType,
+    ResultsType
+)
+
+
+# no pytest, but there is a benchmarking sandbox
 
 
 def _print_results(
-        _GRIDS: GridsType,
-        _RESULTS: ResultsType
-    ) -> None:
+    _GRIDS: GridsType,
+    _RESULTS: ResultsType
+) -> None:
+
+    """
+    Print the contents of GRIDS_ and RESULTS_. GRIDS_ are the search
+    grids used for every pass of a real or demo agscv session. RESULTS_
+    are the best_params_ outputs for every pass of a real or demo agscv
+    session.
+
+
+    Parameters
+    ----------
+    _GRIDS:
+        GridsType - the grids used in each pass of a real or demo agscv
+        session.
+    _RESULTS:
+        ResultsType - the best_params_ outputs for each pass of a real
+        or demo agscv session.
+
+
+    Returns
+    -------
+    -
+        None
+
+    """
 
 
     for _pass in _RESULTS:
@@ -36,10 +65,6 @@ def _print_results(
                     f'Result = {_RESULTS[_pass][_param]}'
                 )
         print()
-
-
-
-
 
 
 

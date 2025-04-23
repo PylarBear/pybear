@@ -6,10 +6,12 @@
 
 
 
-from typing_extensions import Union
 from ..._type_aliases_int import (
     IntDataType,
     IntGridType
+)
+from ..._type_aliases import (
+    LogspaceType
 )
 
 import sys
@@ -23,34 +25,35 @@ from ......utilities._get_module_name import get_module_name
 
 def _int_logspace_gap_gt_1(
     _SINGLE_GRID: IntGridType,
-    _is_logspace: Union[bool, float],
+    _is_logspace: LogspaceType,
     _posn: int,
     _is_hard: bool,
     _hard_min: IntDataType,
     _hard_max: IntDataType,
     _points: int
-) -> list[IntDataType]:
+) -> IntGridType:
 
 
     """
-    This should only be accessed on the first pass after shifts.
+    This should only be accessed on the first regular pass after shifts.
     Logspaces convert to linspace.
 
     Build a new grid in linspace for a single integer parameter based on
-    the previous search round's logspace grid and the best value
-    discovered by GridSearch, subject to constraints imposed by 'hard',
-    universal lower bound on integers, etc. With additional _validation for
-    log intervals greater than 1.
+    the previous round's logspace grid and the best value discovered by
+    the parent GridSearch, subject to constraints imposed by 'hard',
+    universal lower bound on integers, etc. With additional _validation
+    for log intervals greater than 1.
+
 
     Parameters
     ----------
     _SINGLE_GRID:
-        Union[list[int], tuple[int], set[int]] - The last round's logspace
-        search grid for a single parameter, with log gaps greater than one.
+        IntGridType - The last round's logspace search grid for a single
+        parameter, with log gaps greater than one.
         _SINGLE_GRID must be sorted ascending, and is presumed to be by
-        _validation._numerical_params (at least initially).
+        _param_conditioning._params (at least initially).
     _is_logspace:
-        Union[bool, float] - For numerical params, if the space is linear,
+        LogspaceType - For numerical params, if the space is linear,
         or some other non-standard interval, it is False. If it is
         logspace, the 'truth' of being a logspace is represented by a
         number indicating the interval of the logspace. E.g.,
@@ -64,35 +67,38 @@ def _int_logspace_gap_gt_1(
         This field is read from the dtype/search field in _params. If
         hard, the left and right bounds are set from the lowest and
         highest values in the first round's search grid (the grid that
-        is in _params.)
+        was passed to `params` at init.)
     _hard_min:
-        int - The minimum value in the first round's search grid. Ignored
-        if not hard.
+        IntDataType - The minimum value in the first round's search grid.
+        Ignored if not hard.
     _hard_max:
-        int - The maximum value in the first round's search grid. Ignored
-        if not hard.
+        IntDataType - The maximum value in the first round's search grid.
+        Ignored if not hard.
     _points:
         int - The target number of points for the next search grid. This
         number may not be achieved exactly on ranges that are not evenly
         divisible.
 
+
     Return
     ------
     -
         _OUT_GRID:
-            list[int] - new linspace search grid for the current pass'
+            IntGridType - new linspace search grid for the current pass'
             upcoming search.
+
 
     See Also
     --------
     _int_logspace_core
+
 
     """
 
 
     # 24_05_18_09_07_00 _validation must stay here to get the module name,
     # cannot put in _int
-    _SINGLE_GRID =  _validate_int_float_linlogspace(
+    _validate_int_float_linlogspace(
         _SINGLE_GRID,
         _is_logspace,
         _posn,

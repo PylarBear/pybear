@@ -10,10 +10,6 @@ from .._type_aliases_str import InStrParamType
 
 
 
-
-
-
-
 def _val_string_param_value(
     _string_param_key: str,
     _string_param_value: InStrParamType
@@ -56,7 +52,8 @@ def _val_string_param_value(
     assert _string_param_value[2].lower() == 'fixed_string'
 
 
-    _base_err_msg = f"string param '{str(_string_param_key)}' in :param: 'params' "
+    _base_err_msg = \
+        f"string param '{str(_string_param_key)}' in :param: 'params' "
 
 
     # validate first position ** * ** * ** * ** * ** * ** * ** * ** * **

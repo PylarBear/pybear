@@ -6,16 +6,14 @@
 
 
 
-import numbers
-
-import numpy as np
-
-
-
 from .._type_aliases import (
     InParamsType,
     ParamsType
 )
+
+import numbers
+
+import numpy as np
 
 
 
@@ -25,7 +23,7 @@ def _cond_params(
 ) -> ParamsType:
 
     """
-    Standardize the format of _params, vis-à-vis total_passes.
+    Standardize the format of `params`, vis-à-vis total_passes.
 
 
     Parameters
@@ -37,16 +35,16 @@ def _cond_params(
         not accept lists of multiple params dictionaries in the same way
         that scikit-Learn and dask_ml accept multiple param_grids.
     _total_passes:
-        numbers.Integral - the number of grid searches to perform. The
-        actual number of passes run can be different from this number
-        based on the setting for :param: `total_passes_is_hard`. If
-        `total_passes_is_hard` is True, then the maximum number of total
-        passes will always be the value assigned to `total_passes`. If
-        `total_passes_is_hard` is False, a round that performs a 'shift'
-        operation will increment the total number of passes, essentially
-        causing shift passes to not count toward the total number of
-        passes. Read elsewhere in the docs for more information about
-        'shifting' and 'drilling'.
+        numbers.Integral - the number of grid searches to perform.
+        The actual number of passes run can be different from this
+        number based on the setting for :param: `total_passes_is_hard`.
+        If `total_passes_is_hard` is True, then the maximum number of
+        total passes will always be the value assigned to `total_passes`.
+        If `total_passes_is_hard` is False, a round that performs a
+        'shift' operation will increment the allowed total number of
+        passes, essentially causing shift passes to not count toward the
+        original-entered total number of passes. Read elsewhere in the
+        docs for more information about 'shifting' and 'drilling'.
 
 
     Returns
@@ -67,7 +65,7 @@ def _cond_params(
     a full parameter dictionary:
         {
             'C': [np.logspace(-5, 5, 11), [11, 11, 11], 'soft_float'],
-            'l1_ratio': [np.linspace(0, 1, 21), [21, 6, 6], 'fixed_float'],
+            'l1_ratio': [np.linspace(0, 1, 21), [21, 6, 6], 'hard_float'],
             'solver': [['saga', 'lbfgs'], 2, 'fixed_string']
         }
 
@@ -102,6 +100,8 @@ def _cond_params(
             _value[0] = list(map(int, np.sort(list(_value[0]))))
         elif 'float' in _value[-1]:
             _value[0] = list(map(float, np.sort(list(_value[0]))))
+        elif 'string' in _value[-1]:
+            _value[0] = list(map(str, list(_value[0])))
 
         # END standardize first_grid in 0 slot ** * ** * ** * ** * ** *
 
@@ -109,7 +109,7 @@ def _cond_params(
         # standardize points ** * ** * ** * ** * ** * ** * ** * ** * **
         try:
             iter(_value[1])  # IF IS A SINGLE NON-SEQUENCE, CONVERT TO LIST
-            _value[1] = list(_value[1])
+            _value[1] = list(map(int, _value[1]))
         except Exception as e:
             _value[1] = [int(_value[1]) for _ in range(_total_passes)]
 

@@ -4,11 +4,13 @@
 # License: BSD 3 clause
 #
 
+
 # see _shift_points_and_passes and points_and_passes_test for proving out
-# shifting of points arrays, incrementing shrink_pass, and _total_passes_is_hard
+# shifting of points arrays, and _total_passes_is_hard
 
 # see _shift_grid and shift_grid_test for proving out accuracy of shifted
 # search grids for left/right shift, for linspace/logspace
+
 
 import pytest
 
@@ -63,8 +65,10 @@ class TestShift:
     # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    def test_rejects_non_empty_param_grid(self, good_grid, good_phlite,
-        good_is_logspace, good_params, good_best_params):
+    def test_rejects_non_empty_param_grid(
+        self, good_grid, good_phlite, good_is_logspace, good_params,
+        good_best_params
+    ):
 
         with pytest.raises(ValueError):
             _shift(
@@ -78,8 +82,10 @@ class TestShift:
             )
 
 
-    def test_rejects_pass_not_in_grid(self, good_grid, good_phlite,
-        good_is_logspace, good_params, good_best_params):
+    def test_rejects_pass_not_in_grid(
+        self, good_grid, good_phlite, good_is_logspace, good_params,
+        good_best_params
+    ):
 
         with pytest.raises(ValueError):
             _shift(
@@ -99,8 +105,9 @@ class TestShift:
     )
     @pytest.mark.parametrize('_total_passes_is_hard', (True, False))
     @pytest.mark.parametrize('_landing_spot', ('left', 'middle', 'right'))
-    def test_non_soft_grid_is_unaltered_by_shift(self, _dtype, _space,
-                 _total_passes_is_hard, _landing_spot):
+    def test_non_soft_grid_is_unaltered_by_shift(
+        self, _dtype, _space, _total_passes_is_hard, _landing_spot
+    ):
         # but points/shrink_pass will change!
 
         # _is_logspace shouldnt matter, so passing it shouldnt matter
@@ -164,8 +171,9 @@ class TestShift:
     @pytest.mark.parametrize('_dtype', ('soft_integer', 'soft_float'))
     @pytest.mark.parametrize('_total_passes_is_hard', (True, False))
     @pytest.mark.parametrize('_landing_spot', ('left', 'middle', 'right'))
-    def test_soft_grid_is_altered_by_shift(self, _dtype, _space,
-                                    _total_passes_is_hard, _landing_spot):
+    def test_soft_grid_is_altered_by_shift(
+        self, _dtype, _space, _total_passes_is_hard, _landing_spot
+    ):
 
         _grid_size = 4
 
@@ -218,10 +226,6 @@ class TestShift:
             assert len(params_out['a'][1]) == (len(_params['a'][1]) + 1)
 
         assert params_out['a'][2] == _params['a'][2]
-
-
-
-
 
 
 

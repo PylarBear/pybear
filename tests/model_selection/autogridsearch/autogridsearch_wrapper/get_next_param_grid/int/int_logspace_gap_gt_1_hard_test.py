@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 import numpy as np
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
@@ -16,13 +17,13 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 class TestIntLogspaceGapGT1Hard:
 
 
-    # _int_logspace_gap_gt_1_hard(
-    #         _LOG_SINGLE_GRID: np.ndarray[int],
-    #         _is_logspace: Union[bool, float],
-    #         _posn: int,
-    #         _log_hard_min: int,
-    #         _log_hard_max: int
-    # ) -> tuple[int, int]:
+    # def _int_logspace_gap_gt_1_hard(
+    #     _LOG_SINGLE_GRID: npt.NDArray[np.float64],
+    #     _is_logspace: LogspaceType,
+    #     _posn: int,
+    #     _log_hard_min: np.float64,
+    #     _log_hard_max: np.float64
+    # ) -> tuple[np.float64, np.float64]:
 
 
     @pytest.mark.parametrize('non_ndarray, gap',
@@ -35,8 +36,8 @@ class TestIntLogspaceGapGT1Hard:
 
     def test_rejects_negative_log_search_values(self):
         with pytest.raises(ValueError):
-            _int_logspace_gap_gt_1_hard(np.array([-4,-3,-2]).astype(int),
-                                        1, 1, -10, 10
+            _int_logspace_gap_gt_1_hard(
+                np.array([-4,-3,-2]).astype(int), 1, 1, -10, 10
             )
 
 
@@ -44,26 +45,30 @@ class TestIntLogspaceGapGT1Hard:
     @pytest.mark.parametrize('_posn', (0, 1, 2))
     def test_reject_log_gap_and_is_logspace_not_equal(self, _gap, _posn):
         with pytest.raises(ValueError):
-            _int_logspace_gap_gt_1_hard(np.array([0,2,4], dtype=int),
-                                        _gap, _posn, 0, 4)
+            _int_logspace_gap_gt_1_hard(
+                np.array([0,2,4], dtype=int), _gap, _posn, 0, 4
+            )
 
 
     def test_rejects_grid_lt_hard_min(self):
         with pytest.raises(ValueError):
-            _int_logspace_gap_gt_1_hard(np.array([2,4,6], dtype=int),
-                                        2.0, 1, 3, 20)
+            _int_logspace_gap_gt_1_hard(
+                np.array([2,4,6], dtype=int), 2.0, 1, 3, 20
+            )
 
 
     def test_rejects_grid_gt_hard_max(self):
         with pytest.raises(ValueError):
-            _int_logspace_gap_gt_1_hard(np.array([2,4,6], dtype=int),
-                                        2.0, 1, 0, 5)
+            _int_logspace_gap_gt_1_hard(
+                np.array([2,4,6], dtype=int), 2.0, 1, 0, 5
+            )
 
 
     def test_rejects_log_hard_min_lt_0(self):
         with pytest.raises(ValueError):
-            _int_logspace_gap_gt_1_hard(np.array([2,4,6], dtype=int),
-                                        2.0, 1, -1, 10)
+            _int_logspace_gap_gt_1_hard(
+                np.array([2,4,6], dtype=int), 2.0, 1, -1, 10
+            )
 
 
     # remember search grids are in logspace!
@@ -108,15 +113,6 @@ class TestIntLogspaceGapGT1Hard:
         elif posn == 'middle':
             assert _left == max(hard_min, 0)
             assert _right == min(hard_max, max(grid[2], grid[1] + 1))
-
-
-
-
-
-
-
-
-
 
 
 

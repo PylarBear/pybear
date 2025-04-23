@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 import numpy as np
 
@@ -12,12 +14,11 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 
-
-
 class TestFloatLinspace:
 
 
-    # _validation is handled by get_next_param_grid.validate_int_float_linlogspace_test
+    # _validation is handled by
+    # get_next_param_grid.validate_int_float_linlogspace_test
 
 
     @pytest.mark.parametrize('_GRID',
@@ -41,12 +42,12 @@ class TestFloatLinspace:
         # ** * ** * ** * ** * ** * ** *
 
         out_grid = _float_linspace(
-                                    _GRID,
-                                    _posn,
-                                    _is_hard,
-                                    _hard_min,
-                                    _hard_max,
-                                    _points
+            _GRID,
+            _posn,
+            _is_hard,
+            _hard_min,
+            _hard_max,
+            _points
         )
 
         # ** * ** * ** * ** * ** * ** *
@@ -89,24 +90,6 @@ class TestFloatLinspace:
         # if soft & right, new max > original max
         if not _is_hard and _posn == 'right':
             assert max(out_grid) > max(_GRID)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -6,8 +6,6 @@
 
 
 
-
-
 import pytest
 import numpy as np
 
@@ -15,17 +13,18 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
     _get_next_param_grid._int._int import _int
 
 
+
 class TestInt:
 
     # def _int(
-    #         _SINGLE_GRID: Union[list[int], tuple[int], set[int]],
-    #         _is_logspace: Union[bool, float],
-    #         _posn: int,
-    #         _is_hard: bool,
-    #         _hard_min: int,
-    #         _hard_max: int,
-    #         _points: int
-    # ) -> tuple[list[int], Union[bool, float]]
+    #     _SINGLE_GRID: IntGridType,
+    #     _is_logspace: LogspaceType,
+    #     _posn: int,
+    #     _is_hard: bool,
+    #     _hard_min: IntDataType,
+    #     _hard_max: IntDataType,
+    #     _points: int
+    # ) -> tuple[IntGridType, LogspaceType]:
 
     # all _validation is handled in the individual modules. verify all the
     # calls work and are accurate.
@@ -46,8 +45,10 @@ class TestInt:
     @pytest.mark.parametrize('_is_hard', (True, False))
     @pytest.mark.parametrize('_hard_min', (1, 2))
     @pytest.mark.parametrize('_hard_max', (12, 16))
-    def test_accuracy(self, _space, _gap, _low, _high, _points, _is_logspace,
-                      _posn, _is_hard, _hard_min, _hard_max):
+    def test_accuracy(
+        self, _space, _gap, _low, _high, _points, _is_logspace, _posn,
+        _is_hard, _hard_min, _hard_max
+    ):
 
         if _space == 'linspace':
             _SINGLE_GRID = np.linspace(_low, _high, _points).tolist()
@@ -92,21 +93,6 @@ class TestInt:
             assert min(_grid_out) >= _hard_min
 
         assert _is_logspace is False
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

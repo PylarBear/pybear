@@ -35,8 +35,8 @@ class TestBool:
         return {'a': True, 'b': 2}
 
 
-    # (zero-indexed) pass must be >= 1... on pass 0 param_grid is built by _build,
-    # only sees _get after that
+    # (zero-indexed) pass must be >= 1... on pass 0 param_grid is built
+    # by _build, _get builds them after that
 
     def test_accuracy_1(self, _param_value, _grids, _best_params):
 
@@ -68,16 +68,6 @@ class TestBool:
         )
 
         assert out == [True]
-
-
-
-
-
-
-
-
-
-
 
 
 

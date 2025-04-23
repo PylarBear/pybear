@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 from copy import deepcopy
 import numpy as np
@@ -13,42 +15,38 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 
-
 # every logspace in here should be unit gap because _regap_logspace would
 # have run before _drill, but some places like 'fixed' can handle it
 
 
 # def _drill(
-#         _param_name: str,
-#         _grid: Sequence[Union[numbers.real, str]],
-#         _param_value: list[Sequence[Union[str, numbers.Real]]],
-#                                       Union[int, Sequence[int]], str],
-#         _is_logspace: Union[Literal[False], numbers.Real],
-#         _pass: numbers.Integral,
-#         _best: Union[numbers.Real, str]
-# ) -> tuple[
-#     list[Union[str, int, bool, float]],
-#     list[list[Union[str, int, bool, float]], Union[int, list[int]], str],
-#     bool
-# ]
+#     _param_name: str,
+#     _grid: GridType,
+#     _param_value: ParamType,
+#     _is_logspace: LogspaceType,
+#     _pass: numbers.Integral,
+#     _best: DataType
+# ) -> tuple[GridType, ParamType, Literal[False]]:
 
 
 def test_catches_best_not_in_grid():
     with pytest.raises(ValueError):
         _drill(
-                _param_name='whatever',
-                _grid=[1, 3, 5, 7],
-                _param_value=[[1, 3, 5, 7], [4, 4, 4], 'hard_integer'],
-                _is_logspace=False,
-                _pass=1,
-                _best=2
+            _param_name='whatever',
+            _grid=[1, 3, 5, 7],
+            _param_value=[[1, 3, 5, 7], [4, 4, 4], 'hard_integer'],
+            _is_logspace=False,
+            _pass=1,
+            _best=2
         )
 
 
 class TestStrBoolFixedIntFixedFloatReturnsEverythingUnchanged:
 
+
+    @staticmethod
     @pytest.fixture
-    def good_params(self):
+    def good_params():
         return {
             'a': [['a', 'b', 'c', 'd'], [4, 4, 1], 'fixed_string'],
             'b': [[1, 2, 3, 4], [4, 4, 4], 'fixed_integer'],
@@ -61,8 +59,10 @@ class TestStrBoolFixedIntFixedFloatReturnsEverythingUnchanged:
             'i': [[True], [1, 1, 1], 'fixed_bool']
         }
 
+
+    @staticmethod
     @pytest.fixture
-    def good_is_logspace(self):
+    def good_is_logspace():
         return {
             'a': False,
             'b': False,
@@ -75,8 +75,10 @@ class TestStrBoolFixedIntFixedFloatReturnsEverythingUnchanged:
             'i': False
         }
 
+
+    @staticmethod
     @pytest.fixture
-    def good_grids(self):
+    def good_grids():
         return {
             0: {
                 'a': ['a', 'b', 'c', 'd'],
@@ -92,11 +94,13 @@ class TestStrBoolFixedIntFixedFloatReturnsEverythingUnchanged:
             1: {}
         }
 
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     @pytest.mark.parametrize('key', list('abcdefg'))
     @pytest.mark.parametrize('posn', [0,1,2,3])
-    def test_accuracy(self, good_grids, good_is_logspace, good_params,
-                      key, posn):
+    def test_accuracy(
+        selfs, good_grids, good_is_logspace, good_params, key, posn
+    ):
 
         out_grid, out_param, out_is_logspace = \
             _drill(
@@ -114,13 +118,12 @@ class TestStrBoolFixedIntFixedFloatReturnsEverythingUnchanged:
 
 
 
-
-
 class TestHardSoftFloat:
 
 
+    @staticmethod
     @pytest.fixture
-    def good_params(self):
+    def good_params():
         return {
             'a': [[0, 0.5, 1.0], [4, 4, 4], 'hard_float'],
             'b': [[1e1, 1e2, 1e3], [4, 4, 4], 'hard_float'],
@@ -131,8 +134,9 @@ class TestHardSoftFloat:
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_is_logspace(self):
+    def good_is_logspace():
         return {
             'a': False,
             'b': 1.0,
@@ -143,8 +147,9 @@ class TestHardSoftFloat:
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_grids(self):
+    def good_grids():
         return {
             0: {
                 'a': [0, 0.5, 1.0],
@@ -157,11 +162,13 @@ class TestHardSoftFloat:
             1: {}
         }
 
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     @pytest.mark.parametrize('key', list('abcdef'))
     @pytest.mark.parametrize('posn', [0, 1, 2])
-    def test_accuracy(self, good_grids, good_is_logspace, good_params,
-                      key, posn):
+    def test_accuracy(
+        self, good_grids, good_is_logspace, good_params, key, posn
+    ):
 
         _pass = 1
 
@@ -201,52 +208,58 @@ class TestHardSoftFloat:
 class TestIntUnitGap:
 
 
+    @staticmethod
     @pytest.fixture
-    def good_params(self):
+    def good_params():
         return {
-                'a': [[1, 2, 3, 4], [4, 4, 4], 'hard_integer'],
-                'b': [[2, 3, 4, 5], [4, 4, 4], 'hard_integer'],
-                'c': [[1, 2, 3, 4], [4, 4, 4], 'soft_integer'],
-                'd': [[2, 3, 4, 5], [4, 4, 4], 'soft_integer']
+            'a': [[1, 2, 3, 4], [4, 4, 4], 'hard_integer'],
+            'b': [[2, 3, 4, 5], [4, 4, 4], 'hard_integer'],
+            'c': [[1, 2, 3, 4], [4, 4, 4], 'soft_integer'],
+            'd': [[2, 3, 4, 5], [4, 4, 4], 'soft_integer']
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_is_logspace(self):
+    def good_is_logspace():
         return {
-                'a': False,
-                'b': False,
-                'c': False,
-                'd': False
+            'a': False,
+            'b': False,
+            'c': False,
+            'd': False
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_grids(self):
+    def good_grids():
         return {
-                0: {
-                    'a': [1, 2, 3, 4],
-                    'b': [2, 3, 4, 5],
-                    'c': [1, 2, 3, 4],
-                    'd': [2, 3, 4, 5]
-                },
-                1: {}
+            0: {
+                'a': [1, 2, 3, 4],
+                'b': [2, 3, 4, 5],
+                'c': [1, 2, 3, 4],
+                'd': [2, 3, 4, 5]
+            },
+            1: {}
         }
+
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     @pytest.mark.parametrize('key', list('abcd'))
     @pytest.mark.parametrize('posn', [0, 1, 2, 3])
-    def test_accuracy(self, good_grids, good_is_logspace, good_params,
-                      key, posn):
+    def test_accuracy(
+        self, good_grids, good_is_logspace, good_params, key, posn
+    ):
 
         out_grid, out_param, out_is_logspace = \
             _drill(
-                    _param_name=key,
-                    _grid=good_grids[0][key],
-                    _param_value=good_params[key],
-                    _is_logspace=good_is_logspace[key],
-                    _pass=1,
-                    _best=good_grids[0][key][posn]
+                _param_name=key,
+                _grid=good_grids[0][key],
+                _param_value=good_params[key],
+                _is_logspace=good_is_logspace[key],
+                _pass=1,
+                _best=good_grids[0][key][posn]
             )
 
         if 'hard' in good_params[key][-1]:
@@ -274,118 +287,126 @@ class TestIntUnitGap:
 
 
 
-
 class TestIntNonUnitGapGT3:
 
 
+    @staticmethod
     @pytest.fixture
-    def good_params(self):
+    def good_params():
         return {
-                'a': [[1, 10, 19], [3, 3, 3], 'soft_integer'],
-                'b': [[1, 10, 19], [3, 3, 3], 'hard_integer'],
-                'c': [[25, 50, 75], [3, 3, 3], 'soft_integer'],
-                'd': [[25, 50, 75], [3, 3, 3], 'hard_integer'],
-                'e': [[1, 10, 100], [3, 3, 3], 'soft_integer'],
-                'f': [[1, 10, 100], [3, 3, 3], 'hard_integer'],
-                'g': [[100, 1000, 10000], [3, 3, 3], 'soft_integer'],
-                'h': [[100, 1000, 10000], [3, 3, 3], 'hard_integer'],
-                'i': [[1e0, 1e2, 1e4], [3, 3, 3], 'soft_integer'],
-                'j': [[1e0, 1e2, 1e4], [3, 3, 3], 'hard_integer'],
-                'k': [[1e2, 1e4, 1e6], [3, 3, 3], 'soft_integer'],
-                'l': [[1e2, 1e4, 1e6], [3, 3, 3], 'hard_integer']
+            'a': [[1, 10, 19], [3, 3, 3], 'soft_integer'],
+            'b': [[1, 10, 19], [3, 3, 3], 'hard_integer'],
+            'c': [[25, 50, 75], [3, 3, 3], 'soft_integer'],
+            'd': [[25, 50, 75], [3, 3, 3], 'hard_integer'],
+            'e': [[1, 10, 100], [3, 3, 3], 'soft_integer'],
+            'f': [[1, 10, 100], [3, 3, 3], 'hard_integer'],
+            'g': [[100, 1000, 10000], [3, 3, 3], 'soft_integer'],
+            'h': [[100, 1000, 10000], [3, 3, 3], 'hard_integer'],
+            'i': [[1e0, 1e2, 1e4], [3, 3, 3], 'soft_integer'],
+            'j': [[1e0, 1e2, 1e4], [3, 3, 3], 'hard_integer'],
+            'k': [[1e2, 1e4, 1e6], [3, 3, 3], 'soft_integer'],
+            'l': [[1e2, 1e4, 1e6], [3, 3, 3], 'hard_integer']
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_is_logspace(self):
+    def good_is_logspace():
         return {
-                'a': False,
-                'b': False,
-                'c': False,
-                'd': False,
-                'e': 1.0,
-                'f': 1.0,
-                'g': 1.0,
-                'h': 1.0,
-                'i': 2.0,
-                'j': 2.0,
-                'k': 2.0,
-                'l': 2.0
+            'a': False,
+            'b': False,
+            'c': False,
+            'd': False,
+            'e': 1.0,
+            'f': 1.0,
+            'g': 1.0,
+            'h': 1.0,
+            'i': 2.0,
+            'j': 2.0,
+            'k': 2.0,
+            'l': 2.0
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_grids(self):
+    def good_grids():
         return {
-                0: {
-                    'a': [1, 10, 19],
-                    'b': [1, 10, 19],
-                    'c': [25, 50, 75],
-                    'd': [25, 50, 75],
-                    'e': [1, 10, 100],
-                    'f': [1, 10, 100],
-                    'g': [100, 1000, 10000],
-                    'h': [100, 1000, 10000],
-                    'i': [1e0, 1e2, 1e4],
-                    'j': [1e0, 1e2, 1e4],
-                    'k': [1e2, 1e4, 1e6],
-                    'l': [1e2, 1e4, 1e6]
-                },
-                1: {}
+            0: {
+                'a': [1, 10, 19],
+                'b': [1, 10, 19],
+                'c': [25, 50, 75],
+                'd': [25, 50, 75],
+                'e': [1, 10, 100],
+                'f': [1, 10, 100],
+                'g': [100, 1000, 10000],
+                'h': [100, 1000, 10000],
+                'i': [1e0, 1e2, 1e4],
+                'j': [1e0, 1e2, 1e4],
+                'k': [1e2, 1e4, 1e6],
+                'l': [1e2, 1e4, 1e6]
+            },
+            1: {}
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def new_params(self):
+    def new_params():
         return {
-                'a': [[1, 10, 19], [3, 3, 3], 'soft_integer'],
-                'b': [[1, 10, 19], [3, 3, 3], 'hard_integer'],
-                'c': [[25, 50, 75], [3, 3, 3], 'soft_integer'],
-                'd': [[25, 50, 75], [3, 3, 3], 'hard_integer'],
-                'e': [[1, 10, 100], [3, 3, 3], 'soft_integer'],
-                'f': [[1, 10, 100], [3, 3, 3], 'hard_integer'],
-                'g': [[100, 1000, 10000], [3, 3, 3], 'soft_integer'],
-                'h': [[100, 1000, 10000], [3, 3, 3], 'hard_integer'],
-                'i': [[1e0, 1e2, 1e4], [3, 3, 3], 'soft_integer'],
-                'j': [[1e0, 1e2, 1e4], [3, 3, 3], 'hard_integer'],
-                'k': [[1e2, 1e4, 1e6], [3, 3, 3], 'soft_integer'],
-                'l': [[1e2, 1e4, 1e6], [3, 3, 3], 'hard_integer']
+            'a': [[1, 10, 19], [3, 3, 3], 'soft_integer'],
+            'b': [[1, 10, 19], [3, 3, 3], 'hard_integer'],
+            'c': [[25, 50, 75], [3, 3, 3], 'soft_integer'],
+            'd': [[25, 50, 75], [3, 3, 3], 'hard_integer'],
+            'e': [[1, 10, 100], [3, 3, 3], 'soft_integer'],
+            'f': [[1, 10, 100], [3, 3, 3], 'hard_integer'],
+            'g': [[100, 1000, 10000], [3, 3, 3], 'soft_integer'],
+            'h': [[100, 1000, 10000], [3, 3, 3], 'hard_integer'],
+            'i': [[1e0, 1e2, 1e4], [3, 3, 3], 'soft_integer'],
+            'j': [[1e0, 1e2, 1e4], [3, 3, 3], 'hard_integer'],
+            'k': [[1e2, 1e4, 1e6], [3, 3, 3], 'soft_integer'],
+            'l': [[1e2, 1e4, 1e6], [3, 3, 3], 'hard_integer']
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def new_is_logspace(self):
+    def new_is_logspace():
         return {
-                'a': False,
-                'b': False,
-                'c': False,
-                'd': False,
-                'e': False,
-                'f': False,
-                'g': False,
-                'h': False,
-                'i': False,
-                'j': False,
-                'k': False,
-                'l': False
+            'a': False,
+            'b': False,
+            'c': False,
+            'd': False,
+            'e': False,
+            'f': False,
+            'g': False,
+            'h': False,
+            'i': False,
+            'j': False,
+            'k': False,
+            'l': False
         }
+
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     @pytest.mark.parametrize('key', list('abcdefghijkl'))
     @pytest.mark.parametrize('posn', [0, 1, 2])
-    def test_accuracy(self, good_grids, good_is_logspace, good_params,
-                      new_is_logspace, new_params, key, posn):
+    def test_accuracy(
+        self, good_grids, good_is_logspace, good_params, new_is_logspace,
+        new_params, key, posn
+    ):
 
         _pass = 1
 
         out_grid, out_param, out_is_logspace = \
             _drill(
-                    _param_name=key,
-                    _grid=good_grids[0][key],
-                    _param_value=good_params[key],
-                    _is_logspace=good_is_logspace[key],
-                    _pass=_pass,
-                    _best=good_grids[0][key][posn]
+                _param_name=key,
+                _grid=good_grids[0][key],
+                _param_value=good_params[key],
+                _is_logspace=good_is_logspace[key],
+                _pass=_pass,
+                _best=good_grids[0][key][posn]
             )
 
         # min ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -433,80 +454,86 @@ class TestIntNonUnitGapGT3:
 
 
 
-
-
 class TestIntNonUnitGapEquals3:
 
 
+    @staticmethod
     @pytest.fixture
-    def good_params(self):
+    def good_params():
         return {
-                'a': [[1, 4, 7], [3, 3, 3], 'soft_integer'],
-                'b': [[1, 4, 7], [3, 3, 3], 'hard_integer'],
-                'c': [[11, 14, 17], [3, 3, 3], 'soft_integer'],
-                'd': [[11, 14, 17], [3, 3, 3], 'hard_integer'],
+            'a': [[1, 4, 7], [3, 3, 3], 'soft_integer'],
+            'b': [[1, 4, 7], [3, 3, 3], 'hard_integer'],
+            'c': [[11, 14, 17], [3, 3, 3], 'soft_integer'],
+            'd': [[11, 14, 17], [3, 3, 3], 'hard_integer'],
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_is_logspace(self):
+    def good_is_logspace():
         return {
-                'a': False,
-                'b': False,
-                'c': False,
-                'd': False
+            'a': False,
+            'b': False,
+            'c': False,
+            'd': False
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_grids(self):
+    def good_grids():
         return {
-                0: {
-                    'a': [1, 4, 7],
-                    'b': [1, 4, 7],
-                    'c': [11, 14, 17],
-                    'd': [11, 14, 17]
-                },
-                1: {}
+            0: {
+                'a': [1, 4, 7],
+                'b': [1, 4, 7],
+                'c': [11, 14, 17],
+                'd': [11, 14, 17]
+            },
+            1: {}
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def new_params(self):
+    def new_params():
         return {
-                'a': [[1, 4, 7], [3, 3, 3], 'soft_integer'],
-                'b': [[1, 4, 7], [3, 3, 3], 'hard_integer'],
-                'c': [[11, 14, 17], [3, 3, 3], 'soft_integer'],
-                'd': [[11, 14, 17], [3, 3, 3], 'hard_integer']
+            'a': [[1, 4, 7], [3, 3, 3], 'soft_integer'],
+            'b': [[1, 4, 7], [3, 3, 3], 'hard_integer'],
+            'c': [[11, 14, 17], [3, 3, 3], 'soft_integer'],
+            'd': [[11, 14, 17], [3, 3, 3], 'hard_integer']
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def new_is_logspace(self):
+    def new_is_logspace():
         return {
-                'a': False,
-                'b': False,
-                'c': False,
-                'd': False
+            'a': False,
+            'b': False,
+            'c': False,
+            'd': False
         }
 
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     @pytest.mark.parametrize('key', list('abcd'))
     @pytest.mark.parametrize('posn', [0, 1, 2])
-    def test_accuracy(self, good_grids, good_is_logspace, good_params,
-                      new_is_logspace, new_params, key, posn):
+    def test_accuracy(
+        self, good_grids, good_is_logspace, good_params, new_is_logspace,
+        new_params, key, posn
+    ):
 
         _pass = 1
 
         out_grid, out_param, out_is_logspace = \
             _drill(
-                    _param_name=key,
-                    _grid=good_grids[0][key],
-                    _param_value=good_params[key],
-                    _is_logspace=good_is_logspace[key],
-                    _pass=_pass,
-                    _best=good_grids[0][key][posn]
+                _param_name=key,
+                _grid=good_grids[0][key],
+                _param_value=good_params[key],
+                _is_logspace=good_is_logspace[key],
+                _pass=_pass,
+                _best=good_grids[0][key][posn]
             )
 
         # min ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -542,74 +569,84 @@ class TestIntNonUnitGapEquals3:
 
 class TestIntNonUnitGapEquals2:
 
+
+    @staticmethod
     @pytest.fixture
-    def good_params(self):
+    def good_params():
         return {
-                'a': [[1, 3, 5, 7], [3, 3, 3], 'soft_integer'],
-                'b': [[1, 3, 5, 7], [3, 3, 3], 'hard_integer'],
-                'c': [[11, 13, 15, 17], [3, 3, 3], 'soft_integer'],
-                'd': [[11, 13, 15, 17], [3, 3, 3], 'hard_integer'],
+            'a': [[1, 3, 5, 7], [3, 3, 3], 'soft_integer'],
+            'b': [[1, 3, 5, 7], [3, 3, 3], 'hard_integer'],
+            'c': [[11, 13, 15, 17], [3, 3, 3], 'soft_integer'],
+            'd': [[11, 13, 15, 17], [3, 3, 3], 'hard_integer'],
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_is_logspace(self):
+    def good_is_logspace():
         return {
-                'a': False,
-                'b': False,
-                'c': False,
-                'd': False
+            'a': False,
+            'b': False,
+            'c': False,
+            'd': False
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def good_grids(self):
+    def good_grids():
         return {
-                0: {
-                    'a': [1, 3, 5, 7],
-                    'b': [1, 3, 5, 7],
-                    'c': [11, 13, 15, 17],
-                    'd': [11, 13, 15, 17]
-                },
-                1: {}
+            0: {
+                'a': [1, 3, 5, 7],
+                'b': [1, 3, 5, 7],
+                'c': [11, 13, 15, 17],
+                'd': [11, 13, 15, 17]
+            },
+            1: {}
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def new_params(self):
+    def new_params():
         return {
-                'a': [[1, 3, 5, 7], [3, 3, 3], 'soft_integer'],
-                'b': [[1, 3, 5, 7], [3, 3, 3], 'hard_integer'],
-                'c': [[11, 13, 15, 17], [3, 3, 3], 'soft_integer'],
-                'd': [[11, 13, 15, 17], [3, 3, 3], 'hard_integer']
+            'a': [[1, 3, 5, 7], [3, 3, 3], 'soft_integer'],
+            'b': [[1, 3, 5, 7], [3, 3, 3], 'hard_integer'],
+            'c': [[11, 13, 15, 17], [3, 3, 3], 'soft_integer'],
+            'd': [[11, 13, 15, 17], [3, 3, 3], 'hard_integer']
         }
 
 
+    @staticmethod
     @pytest.fixture
-    def new_is_logspace(self):
+    def new_is_logspace():
         return {
-                'a': False,
-                'b': False,
-                'c': False,
-                'd': False
+            'a': False,
+            'b': False,
+            'c': False,
+            'd': False
         }
+
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     @pytest.mark.parametrize('key', list('abcd'))
     @pytest.mark.parametrize('posn', [0, 1, 2, 3])
-    def test_accuracy(self, good_grids, good_is_logspace, good_params,
-                      new_is_logspace, new_params, key, posn):
+    def test_accuracy(
+        self, good_grids, good_is_logspace, good_params, new_is_logspace,
+        new_params, key, posn
+    ):
 
         _pass = 1
 
         out_grid, out_param, out_is_logspace = \
             _drill(
-                    _param_name=key,
-                    _grid=good_grids[0][key],
-                    _param_value=good_params[key],
-                    _is_logspace=good_is_logspace[key],
-                    _pass=_pass,
-                    _best=good_grids[0][key][posn]
+                _param_name=key,
+                _grid=good_grids[0][key],
+                _param_value=good_params[key],
+                _is_logspace=good_is_logspace[key],
+                _pass=_pass,
+                _best=good_grids[0][key][posn]
             )
 
         # min ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -659,10 +696,6 @@ class TestIntNonUnitGapEquals2:
             assert out_param == new_params[key]
 
         assert out_is_logspace == new_is_logspace[key]
-
-
-
-
 
 
 

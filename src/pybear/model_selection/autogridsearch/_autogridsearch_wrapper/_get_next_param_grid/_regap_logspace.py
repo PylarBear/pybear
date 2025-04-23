@@ -4,80 +4,85 @@
 # License: BSD 3 clause
 #
 
-from typing_extensions import Union
-from copy import deepcopy
+
+
 import numpy as np
-from .._type_aliases import DataType, GridType, ParamType
+from .._type_aliases_num import (
+    NumDataType,
+    NumGridType,
+    NumParamType
+)
 
 
 
 def _regap_logspace(
     _param_name: str,
-    _grid: GridType,
+    _grid: NumGridType,
     _is_logspace: float,
-    _param_value: ParamType,
+    _param_value: NumParamType,
     _pass: int,
-    _best_param_from_previous_pass: DataType,
-    _hard_min: Union[int, float],
-    _hard_max: Union[int, float]
-) -> tuple[GridType, ParamType, float]:
+    _best_param_from_previous_pass: NumDataType,
+    _hard_min: NumDataType,
+    _hard_max: NumDataType
+) -> tuple[NumGridType, NumParamType, float]:
 
     """
-
     If a logspace numerical parameter has log gap > 1 and has landed
     inside the edges of its grid (or is forced into here due to
     max_shifts), re-gap the logspace to 1.
 
+
     Parameters
     ----------
     _param_name:
-        str - parameter's key in _params
+        str - parameter's key in `params`
     _grid:
-        list[Union[int, float]] - the previous search grid for a single
-        logspace param which will be regapped here for the current round
+        NumGridType - the previous search grid for a single logspace
+        param which will be regapped here for the current round
     _is_logspace:
-        float - the log interval of the parameters search space
+        float - the log interval of the parameter's search space
     _param_value:
-        list[list[Union[int, float]], list[int], str] - search instructions
-        and dtypes for this single logspace parameter
+        NumParamType - agscv instructions this single logspace parameter
     _pass:
         int - the index of the current pass (upcoming gridsearch)
     _best_param_from_previous_pass:
-        Union[int, float] - best result for this param from best_params_
-        returned by dask or sklearn GridsearchCV
-    _hard_min :
-        [int, float] - if hard, the minimum value in the first round's
-        search grid.
+        NumDataType - best result for this param from best_params_
+        returned by the parent GridsearchCV
+    _hard_min:
+        NumDataType - if hard, the minimum value in the first round's
+        search grid. Ignored otherwise.
     _hard_max:
-        [int, float] - if hard, the maximum value in the first round's
-        search grid.
+        NumDataType - if hard, the maximum value in the first round's
+        search grid. Ignored otherwise.
+
 
     Return
     ------
     -
-        __grid: list[Union[int, float]] - _grid updated with logspace
-        intervals reduced to 1
+        _NEW_GRID: NumGridType - _grid updated with logspace intervals
+        reduced to 1
 
-        __param_value: list[list[Union[int, float]], list[int], str] -
-        _param updated with points reflective of new points for
-        logspace interval == 1
+        _param_value: NumParamType - _param updated with points
+        reflective of new points for logspace interval == 1
 
-        __is_logspace: float - updated with the unitized gaps, should be 1.0
+        _is_logspace: float - updated with the unitized gaps, should
+        be 1.0
 
     """
 
-    __param_value = deepcopy(_param_value)
+    # _param_value = deepcopy(_param_value)
 
     if not _is_logspace > 1:
         # 24_05_20_11_09_00
-        # raise ValueError(f"{_param_name}: a logspace == 1 in _regap_logspace")
+        # raise ValueError(f"{_param_name}: logspace==1 in _regap_logspace")
         # this should not happen due to conditions in _get_next_param_grid
         # but if it does, simply return the inputs
-        return _grid, __param_value, _is_logspace
+        return _grid, _param_value, _is_logspace
 
     # validate hard_min hard_max ** * ** * ** * ** * ** * ** * ** * ** *
     if 'hard' in _param_value[-1]:
-        err_msg = f"_regap_logspace non-int log10(_hard_min), _hard_min = {_hard_min}"
+        err_msg = (f"_regap_logspace non-int log10(_hard_min), "
+                   f"\n_hard_min = {_hard_min}")
         try:
             _log_hard_min = float(np.log10(_hard_min))
         except:
@@ -87,7 +92,8 @@ def _regap_logspace(
             raise ValueError(err_msg)
         del err_msg
 
-        err_msg = f"_regap_logspace non-int log10(_hard_max), _hard_max = {_hard_max}"
+        err_msg = (f"_regap_logspace non-int log10(_hard_max), "
+                   f"\n_hard_max = {_hard_max}")
         try:
             _log_hard_max = float(np.log10(_hard_max))
         except:
@@ -113,8 +119,10 @@ def _regap_logspace(
     _log_gap = np.unique(_LOG_OLD_GRID[1:] - _LOG_OLD_GRID[:-1])
 
     if len(np.unique(_log_gap)) != 1:
-        raise ValueError(f"{_param_name}: a logspace with a non-uniform gap in "
-                         f"_regap_logspace")
+        raise ValueError(
+            f"{_param_name}: a logspace with a non-uniform gap in "
+            f"_regap_logspace"
+        )
 
     # this should equal _is_logspace
     _log_gap = abs(_log_gap[0])
@@ -130,8 +138,10 @@ def _regap_logspace(
     elif any(_POSN[1:-1]):
         _posn = int(np.arange(len(_LOG_OLD_GRID))[_POSN][0])
     else:
-        raise ValueError(f"{_param_name}: _regap_logspace cannot locate "
-                         f"position of best value within _LOG_OLD_GRID")
+        raise ValueError(
+            f"{_param_name}: _regap_logspace cannot locate position of "
+            f"best value within _LOG_OLD_GRID"
+        )
 
     del _POSN
 
@@ -167,23 +177,18 @@ def _regap_logspace(
     elif 'float' in _param_value[-1]:
         _NEW_GRID = list(map(float, _NEW_GRID.tolist()))
     else:
-        raise ValueError(f"{_param_name}: _regap_logspace not finding param "
-                         f"dtype in _param_value")
+        raise ValueError(
+            f"{_param_name}: _regap_logspace not finding param dtype in "
+            f"_param_value"
+        )
 
     del _LOG_OLD_GRID, _new_left, _new_right
 
     # OVERWRITE PARAM'S COMING PASS'S _points WITH POINTS FOR GAP==1
-    __param_value[1][_pass] = len(_NEW_GRID)
-
-    return _NEW_GRID, __param_value, 1.0
+    _param_value[1][_pass] = len(_NEW_GRID)
 
 
-
-
-
-
-
-
+    return _NEW_GRID, _param_value, 1.0
 
 
 

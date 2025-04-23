@@ -23,16 +23,15 @@ def _make_true_best(
     Parameters
     ----------
     _params:
-        dict[str, list[...]] - grid-building instruction for all
-        parameters
+        ParamsType - grid-building instruction for all parameters
 
 
     Return
     ------
     -
         _true_best_params:
-            dict[str, [int, float, str]] - mock best GridSearchCV results
-            in format identical to sklearn / dask GridSearchCV.best_params_
+            BestParamsType - mock best GridSearchCV results in format
+            identical to sklearn / dask GridSearchCV.best_params_
 
     """
 

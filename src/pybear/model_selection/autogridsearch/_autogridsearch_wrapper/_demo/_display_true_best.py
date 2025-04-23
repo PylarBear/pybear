@@ -23,15 +23,16 @@ def _display_true_best(
     Parameters
     ----------
     _demo_cls_params:
-        dict[str, list[...]] - full set of grid-building instructions for
-        all parameters
+        ParamsType - full set of grid-building instructions for all
+        parameters
     _true_best:
-        dict[str, [int, float, str]] - True best values for estimator's
-        hyperparameters, as provided by the user or generated randomly.
+        BestParamsType - True best values for estimator's hyperparameters,
+        as provided by the user or generated randomly.
 
     Return
     ------
-    None
+    -
+        None
 
 
     """

@@ -27,20 +27,20 @@ def _val_params(
 
     dict key must be a string. dict value must be list-like with len==3.
 
-    First position must be a non-empty list-like that contains the search
-    grid for the first pass. The contents of the first search grid are
-    validated within the submodules for the different datatypes.
+    First position of value must be a non-empty list-like that contains
+    the search grid for the first pass. The contents of the first search
+    grid are validated within the submodules for the different datatypes.
 
-    Second position, 'points', must be a single integer >= 1 or a
-    list-type of such integers. If passed as list, the length must
-    equal 'total_passes'. If no points are passed as lists, later in
-    conditioning points are converted to lists with len==total_passes.
-    For any case where 1 is entered as points, all points thereafter
-    must be 1. For fixed float or integer, the 'points' values must be
-    either the length of the first search grid or 1 then 1 thereafter,
-    e.g., [3,3,3,1,1].
+    Second position of value, 'points', must be a single integer >= 1 or
+    a list-type of such integers. If passed as list, the length must
+    equal 'total_passes'. If points are passed as integer, later in
+    conditioning points are converted to list with len==total_passes.
+    For any pass where 1 is entered as points, all points thereafter
+    must be 1. For fixed float, integer, string or bool, the 'points'
+    values must be either the length of the first search grid or 1 (then
+    1 thereafter), e.g., [3,3,3,1,1].
 
-    Third position must be a string in 'soft_float', 'hard_float',
+    Third position of value must be a string in 'soft_float', 'hard_float',
     'fixed_float', 'soft_integer', 'hard_integer', 'fixed_integer',
     'fixed_string', 'fixed_bool'.
 
@@ -52,19 +52,19 @@ def _val_params(
         as keys and list-likes that follow the format rules for string,
         bool, and numerical parameters as values. AutoGridSearch does
         not accept lists of multiple params dictionaries in the same way
-        that Scikit-Learn and Dask accept multiple param_grids.
+        that scikit-Learn and dask_ml accept multiple param_grids.
 
     _total_passes:
         numbers.Integral - the number of grid searches to perform. The
         actual number of passes run can be different from this number
         based on the setting for :param: `total_passes_is_hard`. If
-        `total_passes_is_hard` is True, then the maximum number of total
-        passes will always be the value assigned to `total_passes`. If
-        `total_passes_is_hard` is False, a round that performs a 'shift'
-        operation will increment the total number of passes, essentially
-        causing shift passes to not count toward the total number of
-        passes. Read elsewhere in the docs for more information about
-        'shifting' and 'drilling'.
+        `total_passes_is_hard` is True, then the maximum number of
+        total passes will always be the value assigned to `total_passes`.
+        If `total_passes_is_hard` is False, a round that performs a
+        'shift' operation will increment the allowed total number of
+        passes, essentially causing shift passes to not count toward the
+        originally-specified total number of passes. Read elsewhere in
+        the docs for more information about 'shifting' and 'drilling'.
 
 
     Returns
@@ -257,33 +257,6 @@ def _val_params(
             _val_numerical_param_value(
                 _key, _value, _total_passes
             )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

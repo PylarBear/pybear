@@ -32,7 +32,7 @@ class TestParamsValidation:
         }
 
 
-    # _params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # _params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @pytest.mark.parametrize('non_iterable',
         (0, 1, True, None, np.pi, min, lambda x: x)
@@ -102,7 +102,7 @@ class TestFirstGrid:
     ):
         with pytest.raises(TypeError):
             _val_params(
-                {'good_key': [non_list_like, [1 for _ in range(total_passes)], _type]},
+                {'good_key': [non_list_like, [1]*total_passes, _type]},
                 total_passes
             )
 
@@ -161,7 +161,7 @@ class TestPoints:
             _grid = [2, 4, 6]
 
         assert _val_params(
-            {'good_key': [_grid, list_type([3 for _ in range(total_passes)]), _type]},
+            {'good_key': [_grid, list_type([3]*total_passes), _type]},
             total_passes
         ) is None
 

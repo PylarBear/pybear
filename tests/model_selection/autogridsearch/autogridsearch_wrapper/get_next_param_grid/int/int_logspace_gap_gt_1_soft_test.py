@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 import numpy as np
 
@@ -16,11 +17,11 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 class TestIntLogspaceGapGT1Soft:
 
-    # _int_logspace_gap_gt_1_soft(
-    #     _LOG_SINGLE_GRID: np.ndarray[int],
-    #     _is_logspace: Union[bool, float],
+    # def _int_logspace_gap_gt_1_soft(
+    #     _LOG_SINGLE_GRID: npt.NDArray[np.float64],
+    #     _is_logspace: LogspaceType,
     #     _posn: int
-    # ) -> tuple[int, int]
+    # ) -> tuple[np.float64, np.float64]:
 
 
     @pytest.mark.parametrize('non_ndarray, gap',
@@ -33,9 +34,8 @@ class TestIntLogspaceGapGT1Soft:
 
     def test_rejects_negative_log_search_values(self):
         with pytest.raises(ValueError):
-            _int_logspace_gap_gt_1_soft(np.array([-4,-3,-2]).astype(int),
-                                        1.0,
-                                        1
+            _int_logspace_gap_gt_1_soft(
+                np.array([-4,-3,-2]).astype(int), 1.0, 1
             )
 
 
@@ -43,7 +43,9 @@ class TestIntLogspaceGapGT1Soft:
     @pytest.mark.parametrize('_posn', (0, 1, 2))
     def test_reject_log_gap_and_is_logspace_not_equal(self, _gap, _posn):
         with pytest.raises(ValueError):
-            _int_logspace_gap_gt_1_soft(np.array([0,2,4], dtype=int), _gap, _posn)
+            _int_logspace_gap_gt_1_soft(
+                np.array([0,2,4], dtype=int), _gap, _posn
+            )
 
 
     @pytest.mark.parametrize('grid, is_logspace',
@@ -83,19 +85,6 @@ class TestIntLogspaceGapGT1Soft:
         elif posn == 'middle':
 
             assert _right == max(grid[_posn + 1], grid[_posn] + 1)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

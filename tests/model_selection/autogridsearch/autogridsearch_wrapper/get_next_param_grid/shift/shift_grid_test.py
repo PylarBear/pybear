@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 import numpy as np
@@ -12,35 +14,43 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
     _get_next_param_grid._shift._shift_grid import _shift_grid
 
 
-@pytest.fixture
-def good_single_param():
-    return [[10,20,30,40], [4,4,4], 'soft_float']
-
-@pytest.fixture
-def good_single_old_grid():
-    return [20, 30, 40, 50]
-
-@pytest.fixture
-def good_single_is_logspace_True():
-    return 1.0
-
-@pytest.fixture
-def good_single_is_logspace_False():
-    return False
-
-
-
-
 
 class TestShiftGrid:
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_single_param():
+        return [[10, 20, 30, 40], [4, 4, 4], 'soft_float']
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_single_old_grid():
+        return [20, 30, 40, 50]
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_single_is_logspace_True():
+        return 1.0
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_single_is_logspace_False():
+        return False
+
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 
     def test_rejects_bad_numeric_param_format(self):
         with pytest.raises(ValueError):
             _shift_grid(
-                        [[1,2,3,4], [4,4,4]],
-                        ['a,', 'b', 'c', 'd'],
-                        False,
-                        4
+                [[1,2,3,4], [4,4,4]],
+                ['a,', 'b', 'c', 'd'],
+                False,
+                4
             )
 
         with pytest.raises(ValueError):
@@ -59,44 +69,45 @@ class TestShiftGrid:
                 4
             )
 
+
     def test_reject_non_numeric_last_grid(self):
 
         with pytest.raises(ValueError):
             _shift_grid(
-                        [[1,2,3,4], [4,4,4], 'soft_integer'],
-                        ['a,', 'b', 'c', 'd'],
-                        False,
-                        4
+                [[1,2,3,4], [4,4,4], 'soft_integer'],
+                ['a,', 'b', 'c', 'd'],
+                False,
+                4
             )
 
     def test_reject_non_numeric_param(self):
 
         with pytest.raises(ValueError):
             _shift_grid(
-                        [['a' 'b', 'c', 'c'], 3, 'fixed_string'],
-                        ['a', 'b', 'c', 'd'],
-                        False,
-                        'b'
+                [['a' 'b', 'c', 'c'], 3, 'fixed_string'],
+                ['a', 'b', 'c', 'd'],
+                False,
+                'b'
             )
 
 
     def test_rejects_num_not_on_an_edge(self):
         with pytest.raises(ValueError):
             _shift_grid(
-                        [[10, 20, 30], [3,3,3], 'soft_float'],
-                        [20, 30, 40],
-                        False,
-                        30
+                [[10, 20, 30], [3,3,3], 'soft_float'],
+                [20, 30, 40],
+                False,
+                30
             )
 
 
     def test_rejects_any_non_soft_param(self):
         with pytest.raises(ValueError):
             _shift_grid(
-                        [[1,2,3,4], [4,4,4], 'fixed_integer'],
-                        [1,2,3,4],
-                        False,
-                        4
+                [[1,2,3,4], [4,4,4], 'fixed_integer'],
+                [1,2,3,4],
+                False,
+                4
             )
 
 
@@ -120,22 +131,24 @@ class TestShiftGrid:
 
         if _edge == 'left':
             _best = _latest_grid[0]
-            _new_grid_params = (_grid_low + 1 - (_points - 2) * _gap,
-                                _grid_low + 1 + _gap,
-                                _points
-                                )
+            _new_grid_params = (
+                _grid_low + 1 - (_points - 2) * _gap,
+                _grid_low + 1 + _gap,
+                _points
+            )
         elif _edge == 'right':
             _best = _latest_grid[-1]
-            _new_grid_params = (_grid_high + 1 - _gap,
-                                _grid_high + 1 + (_points - 2) * _gap,
-                                _points
-                                )
+            _new_grid_params = (
+                _grid_high + 1 - _gap,
+                _grid_high + 1 + (_points - 2) * _gap,
+                _points
+            )
 
         out = _shift_grid(
-                            [_first_grid, [4, 4, 4], 'soft_integer'],
-                            _latest_grid,
-                            _gap if _space=='logspace' else False,
-                            _best
+            [_first_grid, [4, 4, 4], 'soft_integer'],
+            _latest_grid,
+            _gap if _space=='logspace' else False,
+            _best
         )
 
         if _space == 'linspace':
@@ -174,22 +187,24 @@ class TestShiftGrid:
 
         if _edge == 'left':
             _best = _latest_grid[0]
-            _new_grid_params = (_grid_low + 1 - (_points - 2) * _gap,
-                                _grid_low + 1 + _gap,
-                                _points
-                                )
+            _new_grid_params = (
+                _grid_low + 1 - (_points - 2) * _gap,
+                _grid_low + 1 + _gap,
+                _points
+            )
         elif _edge == 'right':
             _best = _latest_grid[-1]
-            _new_grid_params = (_grid_high + 1 - _gap,
-                                _grid_high + 1 + (_points - 2) * _gap,
-                                _points
-                                )
+            _new_grid_params = (
+                _grid_high + 1 - _gap,
+                _grid_high + 1 + (_points - 2) * _gap,
+                _points
+            )
 
         out = _shift_grid(
-                            [_first_grid, [4, 4, 4], 'soft_integer'],
-                            _latest_grid,
-                            _gap if _space=='logspace' else False,
-                            _best
+            [_first_grid, [4, 4, 4], 'soft_integer'],
+            _latest_grid,
+            _gap if _space=='logspace' else False,
+            _best
         )
 
         if _space == 'linspace':
@@ -244,22 +259,24 @@ class TestShiftGrid:
 
         if _edge == 'left':
             _best = _latest_grid[0]
-            _new_grid_params = (_grid_low + 1 - (_points - 2) * _gap,
-                                _grid_low + 1 + _gap,
-                                _points
-                                )
+            _new_grid_params = (
+                _grid_low + 1 - (_points - 2) * _gap,
+                _grid_low + 1 + _gap,
+                _points
+            )
         elif _edge == 'right':
             _best = _latest_grid[-1]
-            _new_grid_params = (_grid_high + 1 - _gap,
-                                _grid_high + 1 + (_points - 2) * _gap,
-                                _points
-                                )
+            _new_grid_params = (
+                _grid_high + 1 - _gap,
+                _grid_high + 1 + (_points - 2) * _gap,
+                _points
+            )
 
         out = _shift_grid(
-                            [_first_grid, [4, 4, 4], 'soft_float'],
-                            _latest_grid,
-                            _gap if _space=='logspace' else False,
-                            _best
+            [_first_grid, [4, 4, 4], 'soft_float'],
+            _latest_grid,
+            _gap if _space=='logspace' else False,
+            _best
         )
 
         if _space == 'linspace':
@@ -300,23 +317,23 @@ class TestShiftGrid:
         if _edge == 'left':
             _best = _latest_grid[0]
             _new_grid_params = (
-                                _grid_low + 1 - (_points - 2) * _gap,
-                                _grid_low + 1 + _gap,
-                                _points
-                                )
+                _grid_low + 1 - (_points - 2) * _gap,
+                _grid_low + 1 + _gap,
+                _points
+            )
         elif _edge == 'right':
             _best = _latest_grid[-1]
             _new_grid_params = (
-                                _grid_high + 1 - _gap,
-                                _grid_high + 1 + (_points - 2) * _gap,
-                                _points
-                                )
+                _grid_high + 1 - _gap,
+                _grid_high + 1 + (_points - 2) * _gap,
+                _points
+            )
 
         out = _shift_grid(
-                            [_first_grid, [4, 4, 4], 'soft_float'],
-                            _latest_grid,
-                            _gap if _space=='logspace' else False,
-                            _best
+            [_first_grid, [4, 4, 4], 'soft_float'],
+            _latest_grid,
+            _gap if _space=='logspace' else False,
+            _best
         )
 
         if _space == 'linspace':
@@ -339,19 +356,6 @@ class TestShiftGrid:
         assert len(np.unique(list(map(str, map(type, out))))) == 1
 
         assert isinstance(out[0], float)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

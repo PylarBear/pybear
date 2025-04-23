@@ -5,61 +5,69 @@
 #
 
 
+
+from ..._type_aliases import (
+    DataType,
+    GridType,
+    ParamType,
+    LogspaceType
+)
+
 from copy import deepcopy
-from typing_extensions import Union
+
 import numpy as np
-from ..._type_aliases import DataType, GridType, ParamType
 
 
 
 def _shift_grid(
     _single_param: ParamType,
     _single_old_grid: GridType,
-    _single_is_logspace: Union[bool, float],
+    _single_is_logspace: LogspaceType,
     _single_best: DataType
-) -> list[DataType]:
+) -> GridType:
 
     """
     Left-shift or right-shift a single linear-space or log-space search
     grid.
 
     Remember: _single_old_grid is the grid out of the last grid search,
-    and is not necessarily the same as the grid in _single_param which is
-    the first round search grid. Cannot simply take the grid out ofa
-    _single_param and call it _single_old_grid.
+    and is not necessarily the same as the grid in _single_param which
+    is the first round search grid. Cannot simply take the grid out of
+    a _single_param and call it _single_old_grid.
 
 
     Parameters
     ----------
     _single_param:
-        list - instruction set out of _params for a single parameter
+        ParamType - instruction set out of `params` for a single
+        parameter
     _single_old_grid:
-        list - most recent search grid for a single parameter
+        GridType - most recent search grid for a single parameter
     _single_is_logspace:
-        [bool, float] - IS_LOGSPACE value for a single parameter
+        LogspaceType - IS_LOGSPACE value for a single parameter
     _single_best:
-        [int, float] - best value returned in best_params_ for a single
-            parameter
+        DataType - best value returned in best_params_ for a single
+        parameter
 
 
     Return
     ------
     -
-        NEW_GRID: list[int, float] - left-shifted or right-shifted grid
+        NEW_GRID: GridType - left-shifted or right-shifted grid
 
 
     """
 
     # linspace/logspace, which edge it landed on (if any), number
-    # of points, log gap matters here ** * ** * ** * ** * ** *
+    # of points, log gap matters here
 
 
     # ALREADY KNOW IF linspace/logspace FROM IS_LOGSPACE
 
     if len(_single_param) != 3:
         raise ValueError(
-            f"_single_param is not a proper param value, must be [[grid], "
-            f"[points], 'data/search type']"
+            f"_single_param is not a proper param value, must be \n"
+            f"[[grid], [points], 'data/search type']"
         )
 
     try:
@@ -67,15 +75,14 @@ def _shift_grid(
     except:
         raise ValueError(f"attempting to shift a non-numeric search grid")
 
-    if _single_param[-1] == 'fixed_string':
+    if _single_param[-1].lower() == 'fixed_string':
         raise ValueError(f"_single_param is non-numeric")
 
-    if 'soft' not in _single_param[-1]:
+    if 'soft' not in _single_param[-1].lower():
         raise ValueError(
-            f"parameter must be 'soft', cannot be 'hard', 'fixed', "
-            f"or 'fixed_string'"
+            f"parameter must be 'soft' to do a shift, cannot be 'hard' "
+            f"or 'fixed'"
         )
-
 
 
     _NEW_GRID = np.array(deepcopy(_single_old_grid))
@@ -112,11 +119,11 @@ def _shift_grid(
         # 0 is the universal hard lower bound for floats. if shift
         # caused any float to fall below 0, bump the entire grid up
         # so that the lowest value in the grid is 0.
-        if not _single_is_logspace:
+        if _single_is_logspace:
+            _NEW_GRID = 10 ** _NEW_GRID
+        else:
             if any(_NEW_GRID < 0):
                 _NEW_GRID += np.abs(min(_NEW_GRID))
-        else:
-            _NEW_GRID = 10 ** _NEW_GRID
 
         _NEW_GRID = list(map(float, _NEW_GRID.tolist()))
 
@@ -126,7 +133,7 @@ def _shift_grid(
         # that the lowest value in the grid is 1
 
         if _single_is_logspace:
-            if any(_NEW_GRID < 0):
+            if any(_NEW_GRID < 0):   # meaning 10^0
                 _NEW_GRID += np.abs(min(_NEW_GRID))
             _NEW_GRID = 10 ** _NEW_GRID
 
@@ -137,10 +144,6 @@ def _shift_grid(
 
 
     return _NEW_GRID
-
-
-
-
 
 
 

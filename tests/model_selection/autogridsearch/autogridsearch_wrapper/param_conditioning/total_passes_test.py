@@ -15,7 +15,6 @@ import numpy as np
 
 
 
-
 class TestCondTotalPasses:
 
 
@@ -25,16 +24,6 @@ class TestCondTotalPasses:
     def test_accuracy(self, _int):
 
         assert _cond_total_passes(_int) == int(_int)
-
-
-
-
-
-
-
-
-
-
 
 
 

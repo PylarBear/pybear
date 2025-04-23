@@ -6,11 +6,11 @@
 
 
 
-from typing import Literal
 from typing_extensions import Union
 from .._type_aliases import (
     ParamType,
     ParamsType,
+    IsLogspaceType,
     BestParamsType,
     ResultsType
 )
@@ -29,7 +29,7 @@ from .._build_is_logspace import _build_is_logspace
 
 # pizza clean this mess up!
 _params: ParamsType
-_IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]]
+_IS_LOGSPACE: IsLogspaceType
 _RESULTS: ResultsType
 _pass: int
 _param_grid: ParamType
@@ -38,7 +38,7 @@ _param_grid: ParamType
 
 def _demo(
     _DemoCls,
-    _true_best: [None, BestParamsType] = None,
+    _true_best: Union[None, BestParamsType] = None,
     _mock_gscv_pause_time: numbers.Real = 5
 ):
 
@@ -46,14 +46,13 @@ def _demo(
     Simulated trials of this AutoGridSearch instance.
 
     Demonstrate and assess AutoGridSearch's ability to generate
-    appropriate grids with the given parameters in this
-    AutoGridSearch instance (params, etc.) against mocked true
-    best values. Visually inspect the generated grids and
-    performance of the AutoGridSearch instance in converging to
-    the mock targets provided in true_best_params. If no true
-    best values are provided to true_best_params, random true
-    best values are generated from the set of first search grids
-    provided in params.
+    appropriate grids with the given parameters in this AutoGridSearch
+    instance (params, etc.) against mocked true best values. Visually
+    inspect the generated grids and performance of the AutoGridSearch
+    instance in converging to the mock targets provided in
+    true_best_params. If no true best values are provided to
+    true_best_params, random true best values are generated from
+    the set of first search grids provided in params.
 
 
     Parameters
@@ -62,14 +61,14 @@ def _demo(
         Instance of AutoGridSearch created for demo purposes,
         not "self".
     _true_best:
-        dict[str, Union[numbers.Real, str]] - dict of mocked true best
-        values for an estimator's hyperparameters, as provided by the
-        user or generated randomly. If not passed, random true best
+        Union[None, BestParamsType], default=None - dict of mocked true
+        best values for an estimator's hyperparameters, as provided by
+        the user or generated randomly. If not passed, random true best
         values are generated based on the first round grids made from
         the instructions in params.
     _mock_gscv_pause_time:
-        int, float - time in seconds to pause, simulating a trial
-        of GridSearch
+        numbers.Real, default=5 - time in seconds to pause, simulating
+        a trial of GridSearch.
 
 
     Return
@@ -89,7 +88,9 @@ def _demo(
         if _mock_gscv_pause_time < 0:
             raise Exception
     except:
-        raise ValueError(f"'_mock_gscv_pause_time' must be a non-negative number")
+        raise ValueError(
+            f"'_mock_gscv_pause_time' must be a non-negative number"
+        )
 
 
     # STUFF FOR MIMICKING GridSearchCV.best_params_ ** * ** * ** * ** *

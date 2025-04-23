@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 import numpy as np
 
@@ -12,11 +14,10 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 
-
-
 class TestFloatLogspace:
 
-    # _validation handled by get_next_param_grid._validate_int_float_linlogspace
+    # _validation handled by
+    # get_next_param_grid._validate_int_float_linlogspace
 
     @pytest.mark.parametrize('_GRID',
          (
@@ -44,13 +45,13 @@ class TestFloatLogspace:
         # ** * ** * ** * ** * ** * ** *
 
         out_grid = _float_logspace(
-                                    _GRID,
-                                    _posn,
-                                    _is_logspace,
-                                    _is_hard,
-                                    _hard_min,
-                                    _hard_max,
-                                    _points
+            _GRID,
+            _posn,
+            _is_logspace,
+            _is_hard,
+            _hard_min,
+            _hard_max,
+            _points
         )
 
         # ** * ** * ** * ** * ** * ** *
@@ -107,25 +108,6 @@ class TestFloatLogspace:
             elif _posn == 'middle':
                 assert min(out_grid) > _GRID[_posn-1]
                 assert max(out_grid) < _GRID[_posn+1]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

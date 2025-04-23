@@ -34,10 +34,14 @@ def _conditioning(
 
     Parameters
     ----------
-    _params
-    _total_passes
-    _max_shifts
-    _inf_max_shifts
+    _params:
+        InParamsType
+    _total_passes:
+        numbers.Integral
+    _max_shifts:
+        numbers.Integral
+    _inf_max_shifts:
+        numbers.Integral
 
 
     Returns
@@ -53,8 +57,7 @@ def _conditioning(
         a python integer.
 
         _max_shifts: numbers.Integral - the conditioned max_shifts; set
-        to a large integer if passed as None. pizza maybe we just leave
-        the Nones. think on it.
+        to a large integer if passed as None.
 
 
     """

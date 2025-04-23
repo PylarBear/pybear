@@ -19,7 +19,7 @@ def _bool(
     _grid: BoolGridType,
     _pass: int,
     _best_param_from_previous_pass: BoolDataType
-) -> list[BoolDataType]:
+) -> BoolGridType:
 
     """
     Create the current round's search grid for a boolean parameter based
@@ -34,16 +34,17 @@ def _bool(
         BoolGridType - previous round's gridsearch values for boolean
         parameter
     _pass:
-        numbers.Integral - zero-indexed count of passes to this point,
-        inclusive; the current pass
+        int - zero-indexed count of passes to this point, inclusive; the
+        current pass
     _best_param_from_previous_pass:
-        bool - best value returned from sklearn / dask best_params_
+        BoolDataType - best value returned from sklearn / dask
+        best_params_
 
 
     Return
     ------
     -
-        _grid: list[bool] - new search grid for the current pass
+        _grid: BoolGridType - new search grid for the current pass
 
 
     """

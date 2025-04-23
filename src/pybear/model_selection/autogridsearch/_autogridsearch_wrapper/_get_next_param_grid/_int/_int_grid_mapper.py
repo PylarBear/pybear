@@ -6,7 +6,10 @@
 
 
 
-from ..._type_aliases_int import IntDataType
+from ..._type_aliases_int import (
+    IntDataType,
+    IntGridType
+)
 
 import numpy as np
 
@@ -16,28 +19,31 @@ def _int_grid_mapper(
     _left: IntDataType,
     _right: IntDataType,
     _points: int
-) -> list[IntDataType]:
+) -> IntGridType:
 
     """
     Given a left and right (minimum and maximum) value for a range,
     populate that range inclusive of _left and _right with the number
     of _points (approximately).
 
+
     Parameters
     ----------
     _left:
-        int - left bound of the range
+        IntDataType - left bound of the range
     _right:
-        int - right bound of the range
+        IntDataType - right bound of the range
     _points:
         int - number of points to put in the range; this algorithm will
         attempt to come as close as possible to this number and also
         preserve equal intervals as much as possible.
 
+
     Return
     ------
     -
-        _OUT_GRID: list[int] - list of integers fulfilling the input criteria
+        _OUT_GRID: IntGridType - list of integers fulfilling the input
+        criteria
 
 
     """
@@ -82,30 +88,23 @@ def _int_grid_mapper(
             if _right not in _OUT_GRID:
                 if _right - 1 in _OUT_GRID:
                     _OUT_GRID = np.insert(
-                                            _OUT_GRID[:-1],
-                                            len(_OUT_GRID[:-1]),
-                                            _right,
-                                            axis=0
+                        _OUT_GRID[:-1],
+                        len(_OUT_GRID[:-1]),
+                        _right,
+                        axis=0
                     )
                 else:
                     _OUT_GRID = np.insert(
-                                            _OUT_GRID,
-                                            len(_OUT_GRID),
-                                            _right,
-                                            axis=0
+                        _OUT_GRID,
+                        len(_OUT_GRID),
+                        _right,
+                        axis=0
                     )
 
     _OUT_GRID = list(map(int, _OUT_GRID.tolist()))
 
+
     return _OUT_GRID
-
-
-
-
-
-
-
-
 
 
 

@@ -18,9 +18,9 @@ import pytest
 class TestValTotalPasses:
 
 
-    #   when no param in params has points that are list-type, total_passes
-    #   must be used. all points could be passed
-    #   as single int or a list-like[int].
+    #   points could be passed as single int or a list-like[int].
+    #   when a param in params has points that are int, total_passes
+    #   must be used to convert to list.
 
 
     @pytest.mark.parametrize('non_numeric',

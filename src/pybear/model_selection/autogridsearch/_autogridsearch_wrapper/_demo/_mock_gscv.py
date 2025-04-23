@@ -34,31 +34,34 @@ def _mock_gscv(
     the other parameters hone in on their true best.) For numerical, use
     min lsq to find best value.
 
+
     Parameters
     ----------
         _GRIDS:
-            dict[int, dict[str, list[...]]] - full set of search grids
-            for every parameter in every pass
+            GridsType - full set of search grids for every parameter in
+            every pass
         _params:
-            dict[str, list[...]] - full set of grid-building instructions
+            ParamsType - full set of grid-building instructions
         _true_best:
-            dict[str, [int, float, str]] - the "true best" value for every
-            parameter as entered by the user or generated randomly
+            BestParamsType - the "true best" value for every parameter
+            as entered by the user or generated randomly
         _best_params:
-            dict[str, [int, float, str] - best results from the previous
-            GridSearch pass. "NA" if on pass 0.
+            BestParamsType - best results from the previous GridSearch
+            pass. "NA" if on pass 0.
         _pass:
             int - the zero-indexed count of GridSearches performed
         _pause_time:
             int - seconds to pause to simulate work by GridSearchCV
 
+
     Return
     ------
     -
-        _best_params_: dict[str, [int, float, str]] - The values in each
-            search grid closest to the true best value.
+        _best_params_: BestParamsType - The values in each search grid
+        closest to the true best value.
 
     """
+
 
     err_msg = f"_pause_time must be a number >= 0"
     try:
@@ -70,7 +73,7 @@ def _mock_gscv(
     except ValueError:
         raise ValueError(err_msg)
     except Exception as e:
-        raise Exception(f"_pause_time validation excepted for uncontrolled reason")
+        raise Exception
 
 
     # display info about parameters ** * ** * ** * ** * ** * ** * ** * **
