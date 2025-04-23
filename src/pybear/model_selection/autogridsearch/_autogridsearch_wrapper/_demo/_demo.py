@@ -7,13 +7,7 @@
 
 
 from typing_extensions import Union
-from .._type_aliases import (
-    ParamType,
-    ParamsType,
-    IsLogspaceType,
-    BestParamsType,
-    ResultsType
-)
+from .._type_aliases import BestParamsType
 
 import numbers
 
@@ -27,14 +21,6 @@ from .._print_results import _print_results
 from .._build_is_logspace import _build_is_logspace
 
 
-# pizza clean this mess up!
-_params: ParamsType
-_IS_LOGSPACE: IsLogspaceType
-_RESULTS: ResultsType
-_pass: int
-_param_grid: ParamType
-
-
 
 def _demo(
     _DemoCls,
@@ -45,40 +31,36 @@ def _demo(
     """
     Simulated trials of this AutoGridSearch instance.
 
-    Demonstrate and assess AutoGridSearch's ability to generate
-    appropriate grids with the given parameters in this AutoGridSearch
-    instance (params, etc.) against mocked true best values. Visually
-    inspect the generated grids and performance of the AutoGridSearch
-    instance in converging to the mock targets provided in
-    true_best_params. If no true best values are provided to
+    Assess AutoGridSearch's ability to generate appropriate grids with
+    the given parameters (`params`) against mocked true best values.
+    Visually inspect the generated grids and performance of the
+    AutoGridSearch instance in converging to the mock targets provided
+    in true_best_params. If no true best values are provided via
     true_best_params, random true best values are generated from
-    the set of first search grids provided in params.
+    the set of first search grids provided in `params`.
 
 
     Parameters
     ----------
     _DemoCls:
-        Instance of AutoGridSearch created for demo purposes,
-        not "self".
+        Instance of AutoGridSearch created for demo purposes, not "self".
     _true_best:
         Union[None, BestParamsType], default=None - dict of mocked true
         best values for an estimator's hyperparameters, as provided by
-        the user or generated randomly. If not passed, random true best
-        values are generated based on the first round grids made from
-        the instructions in params.
+        the user. If not passed, random true best values are generated
+        based on the first round grids made from the instructions in
+        `params`.
     _mock_gscv_pause_time:
         numbers.Real, default=5 - time in seconds to pause, simulating
-        a trial of GridSearch.
+        work being done by the parent GridSearch.
 
 
     Return
     ------
     -
-        _DemoCls:
-            AutoGridSearchCV instance - The AutoGridSearch instance
-            created to run simulations, not the active instance of
-            AutoGridSearch. This return is integral for tests of
-            the demo functionality, but has no other internal use.
+        _DemoCls: AutoGridSearchCV instance - The AutoGridSearch instance
+        created to run simulations, not "self". This return is integral
+        for testing demo functionality, but has no other internal use.
 
     """
 
@@ -93,15 +75,14 @@ def _demo(
         )
 
 
+    _IS_LOGSPACE = _build_is_logspace(_DemoCls.params)
+
+
     # STUFF FOR MIMICKING GridSearchCV.best_params_ ** * ** * ** * ** *
     if _true_best is None:
         _true_best = _make_true_best(_DemoCls.params)
 
-    _validate_true_best(
-        _DemoCls.params,
-        _build_is_logspace(_DemoCls.params),  # pizza maybe make one declaration
-        _true_best
-    )
+    _validate_true_best(_DemoCls.params, _IS_LOGSPACE, _true_best)
 
     _true_best_header = f'\nTrue best params'
     print(_true_best_header)
@@ -112,11 +93,10 @@ def _demo(
 
     # MIMIC GridSearchCV.fit() FLOW AND OUTPUT
     # fit():
-    #             1) run passes of GridSearchCV
-    #               - 1a) get_next_param_grid()
-    #               - 1b) fit GridSearchCV with next_param_grid
-    #               - 1c) update self.RESULTS
-    #             2) return best_estimator_
+    #     1) run passes of GridSearchCV
+    #       - 1a) get_next_param_grid()
+    #       - 1b) fit GridSearchCV with next_param_grid
+    #       - 1c) update self.RESULTS
 
     # 1) run passes of GridSearchCV
     _PHLITE = {}
@@ -134,8 +114,6 @@ def _demo(
         # param_grids and update RESULTS) must be replicated separately.
 
 
-        # pizza can we just pass _mock_gscv to DemoCls?
-
         # 1a) get_next_param_grid()
         print(f'Building param grid... ', end='')
         if _pass == 0:
@@ -143,23 +121,23 @@ def _demo(
             # points must match what is in params
         else:
 
-            _DemoCls.GRIDS_, _DemoCls.params, _DemoCls._PHLITE, _DemoCls._IS_LOGSPACE, \
-                _DemoCls._shift_ctr, _DemoCls.total_passes = \
-                    _get_next_param_grid(
-                        getattr(_DemoCls, 'GRIDS_', {}),
-                        _DemoCls.params,
-                        getattr(_DemoCls, '_PHLITE', _PHLITE),
-                        getattr(_DemoCls, '_IS_LOGSPACE', _build_is_logspace(_DemoCls.params)),
-                        _RESULTS[_pass-1],
-                        _pass,
-                        _DemoCls.total_passes,
-                        _DemoCls.total_passes_is_hard,
-                        getattr(_DemoCls, '_shift_ctr', 0),
-                        _DemoCls.max_shifts
-                    )
+            _DemoCls.GRIDS_, _DemoCls.params, _DemoCls._PHLITE, \
+            _DemoCls._IS_LOGSPACE, _DemoCls._shift_ctr, _DemoCls.total_passes = \
+                _get_next_param_grid(
+                    getattr(_DemoCls, 'GRIDS_', {}),
+                    _DemoCls.params,
+                    getattr(_DemoCls, '_PHLITE', _PHLITE),
+                    getattr(_DemoCls, '_IS_LOGSPACE', _IS_LOGSPACE),
+                    _RESULTS[_pass-1],
+                    _pass,
+                    _DemoCls.total_passes,
+                    _DemoCls.total_passes_is_hard,
+                    getattr(_DemoCls, '_shift_ctr', 0),
+                    _DemoCls.max_shifts
+                )
 
 
-            # update points in params with possibly different points from gnpg
+            # update params with possibly different points from gnpg
             for _param in _DemoCls.GRIDS_[_pass]:
                 _DemoCls.params[_param][1][_pass] = \
                     len(_DemoCls.GRIDS_[_pass][_param])
@@ -190,7 +168,7 @@ def _demo(
 
 
     print(f'\nRESULTS:')
-    print(f'--------')
+    print(f'-'*len(f'\nRESULTS:'))
     _print_results(_DemoCls.GRIDS_, _DemoCls.RESULTS_)
 
 
@@ -201,7 +179,6 @@ def _demo(
     del _true_best_header
     # END DISPLAY THE GENERATED true_best_params AGAIN #################
 
-    # 2) return best_estimator_ --- DONT HAVE AN ESTIMATOR TO RETURN
 
     print(f"demo fit successfully completed {_DemoCls.total_passes} pass(es) "
           f"with {_DemoCls._shift_ctr} shift pass(es).")

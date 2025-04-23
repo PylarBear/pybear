@@ -18,8 +18,8 @@ def _validate_best_params(
 
     """
     Check that:
-    - _best_params_from_previous_pass is (still) dict (this is a sklearn
-        / dask output and is beyond the control of pybear.)
+    - _best_params_from_previous_pass is (still) dict (this is a parent
+        GridSearch output and is beyond the control of pybear.)
     - params (keys) returned in _best_params_from_previous_pass match
         those passed by GRIDS in quantity and values
     - values returned in best_params were in the allowed search space
@@ -32,7 +32,7 @@ def _validate_best_params(
     _pass:
         int - zero-indexed pass of GridSearchCV
     _best_params_from_previous_pass:
-        BestParamsType - best_params_ as returned b parent GridSearchCV
+        BestParamsType - best_params_ as returned by parent GridSearchCV
 
 
     Return
@@ -44,7 +44,7 @@ def _validate_best_params(
     """
 
 
-    # best_params_ from dask/sklearn.GridSearchCV looks like
+    # best_params_ from dask/sklearn GridSearchCV looks like
     # {'C': 1, 'l1_ratio': 0.9}
 
     if not isinstance(_best_params_from_previous_pass, dict):

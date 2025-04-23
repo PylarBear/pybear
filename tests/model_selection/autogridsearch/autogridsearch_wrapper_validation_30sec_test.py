@@ -278,7 +278,7 @@ class TestAGSCVValidation:
             max_shifts=good_max_shifts,
             agscv_verbose=agscv_verbose,
             scoring='accuracy',
-            n_jobs=1,
+            n_jobs=None,
             cv=5
         )
 

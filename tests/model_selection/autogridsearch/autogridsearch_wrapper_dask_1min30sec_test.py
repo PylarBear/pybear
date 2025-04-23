@@ -36,14 +36,14 @@ from dask_ml.model_selection import (
 from distributed import Client
 
 
-# pizza
-pytest.skip(f"test takes 3.5+ minutes", allow_module_level=True)
+
+# pytest.skip(f"test takes too long", allow_module_level=True)
 
 
 
 @pytest.fixture
 def dask_client():
-    client = Client(n_workers=1, threads_per_worker=1)
+    client = Client(n_workers=1, threads_per_worker=1, asynchronous=False)
     yield client
     client.close()
 
@@ -228,7 +228,7 @@ def _dask_estimator_2():
 @pytest.fixture
 def _dask_params_2():
     return {
-        'alpha': [np.logspace(-5, 5, 3), [3,3,3], 'soft_float'],
+        'alpha': [np.logspace(-5, 5, 3), [3,3], 'soft_float'],
         'learning_rate': [['constant', 'optimal'], 2, 'fixed_string'],
     }
 
@@ -393,27 +393,6 @@ class TestDaskSuccessiveHalving:
 
 # END dask gscvs that need a partial_fit exposed ** * ** * ** * ** * ** *
 # ** * ** * ** * ** * ** ** * ** * ** * ** * ** ** * ** * ** * ** * **
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

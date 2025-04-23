@@ -395,7 +395,6 @@ def autogridsearch_wrapper(
                 # pass attrs and methods of GSCV are exposed by the
                 # AutoGridSearch instance.
 
-                # pizza, wanna use set_params() here? think on it.
                 self.param_grid = _ADAPTED_GRIDS[_pass]
                 self.param_distributions = _ADAPTED_GRIDS[_pass]
                 self.parameters = _ADAPTED_GRIDS[_pass]
@@ -460,11 +459,13 @@ def autogridsearch_wrapper(
                 if not hasattr(self, 'best_params_'):
                     raise ValueError(
                         f"The parent gridsearch did not expose a 'best_params_' "
-                        f"attribute after the first fit. \n'best_params_' must be "
-                        f"exposed for agscv to calculate search grids. \nConfigure "
-                        f"the parent gridsearch to expose 'best_params_'. \nSee the "
-                        f"documentation for {GridSearchParent.__name__} to configure "
-                        f"your gridsearch settings to expose 'best_params_."
+                        f"attribute after the first fit. \n'best_params_' "
+                        f"must be exposed for agscv to calculate search "
+                        f"grids. \nConfigure the parent gridsearch to expose "
+                        f"'best_params_'. "
+                        f"\nSee the documentation for {GridSearchParent.__name__} "
+                        f"to configure your gridsearch settings to expose "
+                        f"'best_params_."
                     )
 
                 _best_params = self.best_params_

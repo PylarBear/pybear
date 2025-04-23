@@ -94,8 +94,10 @@ def _val_params(
 
     # params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     if not isinstance(_params, dict):
-        raise TypeError(f"'_params' must be a dictionary")
+        raise TypeError(f"'params' must be a dictionary")
 
+    if len(_params) == 0:
+        raise ValueError(f"'params' is empty. Pass at least one parameter.")
 
     for _key, _value in _params.items():
 

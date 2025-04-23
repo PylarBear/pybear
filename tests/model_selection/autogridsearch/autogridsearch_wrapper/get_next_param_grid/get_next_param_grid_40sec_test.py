@@ -15,111 +15,18 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 
-
-
 # def _get_next_param_grid(
-#      _GRIDS: GridsType,
-#      _params: ParamsType,
-#      _PHLITE: PhliteType,
-#      _IS_LOGSPACE: IsLogspaceType,
-#      _best_params_from_previous_pass: BestParamsType,
-#      _pass: int,
-#      _total_passes: int,
-#      _total_passes_is_hard: bool,
-#      _shift_ctr: int,
-#      _max_shifts: int
-#     ) -> tuple[GridsType, ParamsType, IsLogspaceType, int]:
-
-
-@pytest.fixture
-def good_grids():
-    # not used
-    return {
-            0: {
-                'a': ['x', 'y', 'z'],
-                'b': [1, 2, 3],
-                'c': [1e1, 1e2, 1e3],
-                'd': [True, False]
-            }
-    }
-
-
-@pytest.fixture
-def good_params():
-    return {
-        'a': [['x', 'y', 'z'], [3, 3, 1], 'fixed_string'],
-        'b': [[1, 2, 3], [3, 3, 3], 'fixed_integer'],
-        'c': [[1e1, 1e2, 1e3], [3, 11, 11], 'soft_float'],
-        'd': [[True, False], [2, 2, 1], 'fixed_bool']
-    }
-
-@pytest.fixture
-def good_phlite():
-    return {
-        # 'a': True,
-        # 'b': True,
-        'c': False
-        # not bool!
-    }
-
-
-@pytest.fixture
-def good_is_logspace():
-    return {
-        'a': False,
-        'b': False,
-        'c': 1.0,
-        'd': False
-    }
-
-@pytest.fixture
-def good_best_params():
-    return {
-        'a': 'y',
-        'b': 3,
-        'c': 1e3,
-        'd': False
-    }
-
-@pytest.fixture
-def good_pass():
-    return 1
-
-@pytest.fixture
-def good_total_passes():
-    return 3
-
-@pytest.fixture
-def good_total_passes_is_hard():
-    return False
-
-@pytest.fixture
-def good_shift_ctr():
-    return 0
-
-@pytest.fixture
-def good_max_shifts():
-    # this can never be None going into _get_next_param_grid
-    return 100
-
-
-
-
-# _GRIDS, _params, _IS_LOGSPACE, _shift_ctr
-# good_grids, good_params, good_phlite, good_is_logspace, good_best_params,
-# good_pass, good_total_passes, good_total_passes_is_hard, good_shift_ctr,
-# good_max_shifts
-
-# good_grids,
-# good_params,
-# good_phlite,
-# good_is_logspace,
-# good_best_params,
-# good_pass,
-# good_total_passes,
-# good_total_passes_is_hard,
-# good_shift_ctr,
-# good_max_shifts
+#     _GRIDS: GridsType,
+#     _params: ParamsType,
+#     _PHLITE: PhliteType,
+#     _IS_LOGSPACE: IsLogspaceType,
+#     _best_params_from_previous_pass: BestParamsType,
+#     _pass: int,
+#     _total_passes: int,
+#     _total_passes_is_hard: bool,
+#     _shift_ctr: int,
+#     _max_shifts: int
+# ) -> tuple[GridsType, ParamsType, PhliteType, IsLogspaceType, int, int]:
 
 
 
@@ -130,7 +37,32 @@ class TestValidation:
     #   _GRIDS
     # core _GRIDS _validation handled by _validate_grid / validate_grids_test
 
+    @staticmethod
+    @pytest.fixture
+    def good_params():
+        return {
+            'a': [['x', 'y', 'z'], [3, 3, 1], 'fixed_string'],
+            'b': [[1, 2, 3], [3, 3, 3], 'fixed_integer'],
+            'c': [[1e1, 1e2, 1e3], [3, 11, 11], 'soft_float'],
+            'd': [[True, False], [2, 2, 1], 'fixed_bool']
+        }
+
+
     # special _GRIDS _validation
+    # 'max_shifts' can never be None going into _get_next_param_grid
+
+    @pytest.mark.parametrize('good_phlite', ({'c': False}, ))
+    @pytest.mark.parametrize('good_is_logspace',
+        ({'a': False, 'b': False, 'c': 1.0, 'd': False}, )
+    )
+    @pytest.mark.parametrize('good_best_params',
+        ({'a': 'y', 'b': 3, 'c': 1e3, 'd': False}, )
+    )
+    @pytest.mark.parametrize('good_pass', (1, ))
+    @pytest.mark.parametrize('good_total_passes', (3, ))
+    @pytest.mark.parametrize('good_total_passes_is_hard', (False, ))
+    @pytest.mark.parametrize('good_shift_ctr', (0, ))
+    @pytest.mark.parametrize('good_max_shifts', (100, ))
     @pytest.mark.parametrize('bad_GRIDS',
         ({}, {0: {'a': [1, 2, 3], 'b': [3, 4, 5]}, 1: {}})
     )
@@ -154,8 +86,8 @@ class TestValidation:
     # remaining _validation handed in dedicated modules
 
 
-
 class TestOutputFormats:
+
 
     @pytest.mark.parametrize('_total_passes', (4,))
     @pytest.mark.parametrize('_tpih', (True, False))
@@ -229,8 +161,8 @@ class TestOutputFormats:
 
         _best = {_param: _GRIDS[_pass-1][_param][idx] for _param in _params}
 
-        _OUT_GRIDS, _out_params, _OUT_PHLITE, _OUT_IS_LOGSPACE, _OUT_shift_ctr_end, \
-            _out_total_passes_end = \
+        _OUT_GRIDS, _out_params, _OUT_PHLITE, _OUT_IS_LOGSPACE, \
+        _OUT_shift_ctr_end, _out_total_passes_end = \
             _get_next_param_grid(
                 _GRIDS=_GRIDS,
                 _params=_params,
@@ -252,12 +184,18 @@ class TestOutputFormats:
         del _lens
 
         assert isinstance(_OUT_GRIDS, dict)
-        assert all(map(isinstance, _OUT_GRIDS.keys(), (int for _ in _OUT_GRIDS)))
+        assert all(map(
+            isinstance, _OUT_GRIDS.keys(), (int for _ in _OUT_GRIDS)
+        ))
         assert list(_OUT_GRIDS.keys()) == list(range(_pass + 1))
-        assert all(map(isinstance, _OUT_GRIDS.values(), (dict for _ in _OUT_GRIDS)))
+        assert all(map(
+            isinstance, _OUT_GRIDS.values(), (dict for _ in _OUT_GRIDS)
+        ))
 
         for _pass_ in _OUT_GRIDS:
-            assert all(map(isinstance, _OUT_GRIDS[_pass_].keys(), (str for _ in _OUT_GRIDS)))
+            assert all(map(
+                isinstance, _OUT_GRIDS[_pass_].keys(), (str for _ in _OUT_GRIDS)
+            ))
             assert _OUT_GRIDS[_pass_].keys() == _params.keys()
             assert _OUT_GRIDS[_pass_].keys() == _GRIDS[_pass_].keys()
             assert all(map(
@@ -270,13 +208,21 @@ class TestOutputFormats:
                 _type = _params[_param][-1]
                 _out_grid = _OUT_GRIDS[_pass_][_param]
                 if 'int' in _type:
-                    assert all(map(isinstance, _out_grid, (int for _ in _out_grid)))
+                    assert all(map(
+                        isinstance, _out_grid, (int for _ in _out_grid)
+                    ))
                 elif 'float' in _type:
-                    assert all(map(isinstance, _out_grid, (float for _ in _out_grid)))
+                    assert all(map(
+                        isinstance, _out_grid, (float for _ in _out_grid)
+                    ))
                 elif _type == 'fixed_string':
-                    assert all(map(isinstance, _out_grid, (str for _ in _out_grid)))
+                    assert all(map(
+                        isinstance, _out_grid, (str for _ in _out_grid)
+                    ))
                 elif _type == 'fixed_bool':
-                    assert all(map(isinstance, _out_grid, (bool for _ in _out_grid)))
+                    assert all(map(
+                        isinstance, _out_grid, (bool for _ in _out_grid)
+                    ))
 
 
         assert isinstance(_OUT_PHLITE, dict)
@@ -308,7 +254,8 @@ class TestFixedBoolAndStringGrids:
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
     @pytest.mark.parametrize('_max_shifts', (1, 3))
     def test_fixed_str_bool_grids_unchanged(
-        self, _type, _best, _pass, _total_passes, _tpih, _shift_ctr, _max_shifts,
+        self, _type, _best, _pass, _total_passes, _tpih, _shift_ctr,
+        _max_shifts,
     ):
 
         # total_passes unchanged
@@ -347,7 +294,6 @@ class TestFixedBoolAndStringGrids:
         assert _IS_LOGSPACE == {'a': False}
         assert _shift_ctr == 0
         assert _total_passes_end == _total_passes
-
 
 
 
@@ -414,9 +360,10 @@ class TestSoftShifts:
     @pytest.mark.parametrize('_tpih', (True, False))
     @pytest.mark.parametrize('_max_shifts', (100, 3))
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
-    def test_soft_grid_shifts(self, _space, _type, _posn, _pass,
-            _total_passes, _tpih, _max_shifts, _shift_ctr,
-        ):
+    def test_soft_grid_shifts(
+        self, _space, _type, _posn, _pass, _total_passes, _tpih,
+        _max_shifts, _shift_ctr,
+    ):
 
         if _space == 'linspace':
             _grid = [40, 50, 60, 70]
@@ -488,7 +435,9 @@ class TestSoftShifts:
 
         assert _PHLITE == {'a': True if _posn == 'middle' else False}
 
-        assert _IS_LOGSPACE == {'a': 1.0 if _space == 'logspace' and _posn != 'middle' else False}
+        assert _IS_LOGSPACE == {
+            'a': 1.0 if _space == 'logspace' and _posn != 'middle' else False
+        }
 
         if _posn == 'middle':
             assert _shift_ctr_end == _shift_ctr
@@ -507,9 +456,10 @@ class TestHardShiftsLinspace:
     @pytest.mark.parametrize('_tpih', (True, False))
     @pytest.mark.parametrize('_max_shifts', (1, 3))
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
-    def test_hard_grid_shifts_linspace(self, _type, _hard_min, _hard_max, _posn,
-        _pass, _total_passes, _tpih, _max_shifts, _shift_ctr
-        ):
+    def test_hard_grid_shifts_linspace(
+        self, _type, _hard_min, _hard_max, _posn, _pass, _total_passes,
+        _tpih, _max_shifts, _shift_ctr
+    ):
 
         _grid = [40, 50, 60, 70]
 
@@ -599,9 +549,10 @@ class TestHardShiftsLogspace:
     @pytest.mark.parametrize('_tpih', (True, False))
     @pytest.mark.parametrize('_max_shifts', (1, 3))
     @pytest.mark.parametrize('_shift_ctr', (0, 1))
-    def test_hard_grid_shifts_logspace(self, _type, _posn, _hard_min, _hard_max,
-        _pass, _total_passes, _tpih, _max_shifts, _shift_ctr
-        ):
+    def test_hard_grid_shifts_logspace(
+        self, _type, _posn, _hard_min, _hard_max, _pass, _total_passes,
+        _tpih, _max_shifts, _shift_ctr
+    ):
 
         _grid = [1e2, 1e3, 1e4, 1e5]
 
@@ -689,18 +640,12 @@ class TestLogspaceRegap:
     @pytest.mark.parametrize('_posn', ('left', 'middle', 'right'))
     @pytest.mark.parametrize('_total_passes', (3,))
     @pytest.mark.parametrize('_pass, _shift_ctr, _max_shifts',
-        (
-        (1, 0, 1),
-        (1, 0, 2),
-        (2, 0, 1),
-        (2, 0, 2),
-        (2, 1, 1),
-        (2, 1, 2)
-        )
+        ((1, 0, 1),(1, 0, 2), (2, 0, 1), (2, 0, 2),(2, 1, 1), (2, 1, 2))
     )
     @pytest.mark.parametrize('_tpih', (True, False))
-    def test_logspace_regap_float(self, _type, _gap, _posn, _pass,
-        _total_passes, _tpih, _max_shifts, _shift_ctr
+    def test_logspace_regap_float(
+        self, _type, _gap, _posn, _pass, _total_passes, _tpih, _max_shifts,
+        _shift_ctr
     ):
 
         _grid = np.logspace(0, 3 * _gap, 4).tolist()
@@ -777,18 +722,13 @@ class TestLogspaceRegap:
     @pytest.mark.parametrize('_posn', ('left', 'middle', 'right'))
     @pytest.mark.parametrize('_total_passes', (3,))
     @pytest.mark.parametrize('_pass, _shift_ctr, _max_shifts',
-        (
-        (1, 0, 1),
-        (1, 0, 2),
-        (2, 0, 1),
-        (2, 0, 2),
-        (2, 1, 1),
-        (2, 1, 2)
-        )
+        ((1, 0, 1), (1, 0, 2), (2, 0, 1), (2, 0, 2), (2, 1, 1), (2, 1, 2))
     )
     @pytest.mark.parametrize('_tpih', (True, False))
-    def test_logspace_regap_integer(self, _type, _gap, _posn, _pass, _total_passes,
-          _tpih, _max_shifts, _shift_ctr):
+    def test_logspace_regap_integer(
+        self, _type, _gap, _posn, _pass, _total_passes, _tpih, _max_shifts,
+        _shift_ctr
+    ):
 
         _grid = np.logspace(0, 3 * _gap, 4).tolist()
 
@@ -868,11 +808,7 @@ class TestHardSoftFixedShrinkPass:
     # verify hard, soft, & fixed shrink pass
 
     @pytest.mark.parametrize('_space, _gap',
-        (
-            ('linspace', 'na'),
-            ('logspace', 1.0),
-            ('logspace', 2.0)
-        )
+        (('linspace', 'na'), ('logspace', 1.0), ('logspace', 2.0))
     )
     @pytest.mark.parametrize('_type',
         ('hard_float', 'hard_integer', 'soft_integer', 'soft_float',
@@ -881,21 +817,15 @@ class TestHardSoftFixedShrinkPass:
     @pytest.mark.parametrize('_posn', ('left', 'middle', 'right'))
     @pytest.mark.parametrize('_pass, _total_passes, _shrink_pass',
         (
-         (1, 4, 1),
-         (1, 4, 2),
-         (1, 4, 3),
-         (2, 4, 1),
-         (2, 4, 2),
-         (2, 4, 3),
-         (3, 4, 1),
-         (3, 4, 2),
-         (3, 4, 3)
-        )
+         (1, 4, 1), (1, 4, 2), (1, 4, 3), (2, 4, 1), (2, 4, 2),
+         (2, 4, 3), (3, 4, 1), (3, 4, 2), (3, 4, 3))
     )
     @pytest.mark.parametrize('_shift_ctr', (0,))
     @pytest.mark.parametrize('_tpih', (True, False))
-    def test_hard_soft_fixed_shrink_pass(self, _space, _gap, _type, _posn, _pass,
-        _total_passes, _shrink_pass, _shift_ctr, _tpih):
+    def test_hard_soft_fixed_shrink_pass(
+        self, _space, _gap, _type, _posn, _pass, _total_passes,
+        _shrink_pass, _shift_ctr, _tpih
+    ):
 
 
         if 'soft' in _type and _posn in ['left', 'right']:
@@ -987,8 +917,10 @@ class TestDrill:
     @pytest.mark.parametrize('_shift_ctr', (0, 1, 2, 3))
     @pytest.mark.parametrize('_max_shifts', (3, ))
     @pytest.mark.parametrize('_tpih', (True, False))
-    def test_soft_drill(self, _type, _space, _posn, _pass, _total_passes,
-                        _shift_ctr, _max_shifts, _tpih):
+    def test_soft_drill(
+        self, _type, _space, _posn, _pass, _total_passes, _shift_ctr,
+        _max_shifts, _tpih
+    ):
 
         # soft only drills if landed in the middle or reached max shifts
 
@@ -1179,7 +1111,6 @@ class TestDrill:
 
 
 
-
 class TestMultiPass:
 
     @pytest.mark.parametrize('_shrink_pass', (2, 3, 4, None))
@@ -1187,20 +1118,21 @@ class TestMultiPass:
     @pytest.mark.parametrize('_total_passes', (2, 4))
     @pytest.mark.parametrize('_tpih', (True, False))
     @pytest.mark.parametrize('_max_shifts', (1, 3))
-    def test_fixed_and_string(self, _shrink_pass, _best_posn, _total_passes,
-        _tpih, _max_shifts):
+    def test_fixed_and_string(
+        self, _shrink_pass, _best_posn, _total_passes, _tpih, _max_shifts
+    ):
 
         # fixed & string never increment total_passes or shift_ctr
 
         _params = {
-                    'fixed_integer_lin': [[],[], 'fixed_integer'],
-                    'fixed_integer_log1': [[], [], 'fixed_integer'],
-                    'fixed_integer_log2': [[], [], 'fixed_integer'],
-                    'fixed_float_lin': [[],[], 'fixed_float'],
-                    'fixed_float_log1': [[], [], 'fixed_float'],
-                    'fixed_float_log2': [[], [], 'fixed_float'],
-                    'string': [[], None, 'fixed_string'],
-                    'bool': [[], None, 'fixed_bool']
+            'fixed_integer_lin': [[],[], 'fixed_integer'],
+            'fixed_integer_log1': [[], [], 'fixed_integer'],
+            'fixed_integer_log2': [[], [], 'fixed_integer'],
+            'fixed_float_lin': [[],[], 'fixed_float'],
+            'fixed_float_log1': [[], [], 'fixed_float'],
+            'fixed_float_log2': [[], [], 'fixed_float'],
+            'string': [[], None, 'fixed_string'],
+            'bool': [[], None, 'fixed_bool']
         }
 
         for _param in _params:
@@ -1304,12 +1236,12 @@ class TestMultiPass:
         # hard never increments total_passes or shift_ctr
 
         _params = {
-                    'hard_integer_lin': [[], [], 'hard_integer'],
-                    'hard_integer_log1': [[], [], 'hard_integer'],
-                    'hard_integer_log2': [[], [], 'hard_integer'],
-                    'hard_float_lin': [[], [], 'hard_float'],
-                    'hard_float_log1': [[], [], 'hard_float'],
-                    'hard_float_log2': [[], [], 'hard_float']
+            'hard_integer_lin': [[], [], 'hard_integer'],
+            'hard_integer_log1': [[], [], 'hard_integer'],
+            'hard_integer_log2': [[], [], 'hard_integer'],
+            'hard_float_lin': [[], [], 'hard_float'],
+            'hard_float_log1': [[], [], 'hard_float'],
+            'hard_float_log2': [[], [], 'hard_float']
         }
 
         _shrink_pass = _shrink_pass or 1_000_000
@@ -1352,7 +1284,7 @@ class TestMultiPass:
         _start_IS_LOGSPACE = deepcopy(_IS_LOGSPACE)
         _start_total_passes = _total_passes
 
-        _best_params = {_param: _params[_param][0][_best_posn] for _param in _params}
+        _best_params = {i: _params[i][0][_best_posn] for i in _params}
 
         for _pass in range(1, _total_passes):
 
@@ -1460,14 +1392,14 @@ class TestMultiPass:
         # soft can shift and increment total_passes and shift_ctr!
 
         _params = {
-                    'soft_integer_lin': [[40, 50, 60, 70], [], 'soft_integer'],
-                    'soft_integer_lin_0': [[1, 11, 21, 31], [], 'soft_integer'],
-                    'soft_integer_log1': [np.logspace(0, 3, 4).tolist(), [], 'soft_integer'],
-                    'soft_integer_log2': [np.logspace(0, 4, 3).tolist(), [], 'soft_integer'],
-                    'soft_float_lin': [[40, 50, 60, 70], [], 'soft_float'],
-                    'soft_float_lin_0': [[0, 10, 20, 30], [], 'soft_float'],
-                    'soft_float_log1': [np.logspace(-2, 2, 5).tolist(), [], 'soft_float'],
-                    'soft_float_log2': [np.logspace(-16, -8, 5).tolist(), [], 'soft_float']
+            'soft_integer_lin': [[40, 50, 60, 70], [], 'soft_integer'],
+            'soft_integer_lin_0': [[1, 11, 21, 31], [], 'soft_integer'],
+            'soft_integer_log1': [np.logspace(0, 3, 4).tolist(), [], 'soft_integer'],
+            'soft_integer_log2': [np.logspace(0, 4, 3).tolist(), [], 'soft_integer'],
+            'soft_float_lin': [[40, 50, 60, 70], [], 'soft_float'],
+            'soft_float_lin_0': [[0, 10, 20, 30], [], 'soft_float'],
+            'soft_float_log1': [np.logspace(-2, 2, 5).tolist(), [], 'soft_float'],
+            'soft_float_log2': [np.logspace(-16, -8, 5).tolist(), [], 'soft_float']
         }
 
         _shrink_pass = _shrink_pass or 1_000_000
@@ -1506,7 +1438,7 @@ class TestMultiPass:
         _start_IS_LOGSPACE = deepcopy(_IS_LOGSPACE)
         _start_total_passes = _total_passes
 
-        _best_params = {_param: _params[_param][0][_best_posn] for _param in _params}
+        _best_params = {i: _params[i][0][_best_posn] for i in _params}
 
         _pass = 1
         while _pass < _total_passes:
@@ -1621,7 +1553,7 @@ class TestMultiPass:
                 _exp = {_param: False for _param in _params}
             elif _start_shift_ctr == _max_shifts:
                 if _pass == _max_shifts + 1:
-                    _exp = {_param: bool(_start_IS_LOGSPACE[_param]) for _param in _params}
+                    _exp = {i: bool(_start_IS_LOGSPACE[i]) for i in _params}
                 elif _pass > _max_shifts + 1:
                     _exp = {_param: False for _param in _params}
             elif _start_shift_ctr > _max_shifts:
@@ -1630,7 +1562,7 @@ class TestMultiPass:
                 _exp = {_param: _start_IS_LOGSPACE[_param] for _param in _params}
             elif _best_posn == 1:
                 if _pass == 1:
-                    _exp = {_param: bool(_start_IS_LOGSPACE[_param]) for _param in _params}
+                    _exp = {i: bool(_start_IS_LOGSPACE[i]) for i in _params}
                 elif _pass > 1:
                     _exp = {_param: False for _param in _params}
             elif _best_posn == 0:
@@ -1690,16 +1622,12 @@ class TestMultiPass:
                     if _GRIDS[_pass - 1][_param][0] != _univ_bound:
                         _was_shifted += 1
                 if _was_shifted:
-                    assert _total_passes == (_start_total_passes + min(_pass, _max_shifts))
+                    assert _total_passes == \
+                           (_start_total_passes + min(_pass, _max_shifts))
                 else:
                     assert _total_passes == _start_total_passes
 
 
             _pass += 1
-
-
-
-
-
 
 

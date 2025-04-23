@@ -38,7 +38,7 @@ def _validate_true_best(
         gap is.
     _true_best:
         BestParamsType - mocked best GridSearchCV results in format
-        identical to sklearn / dask_ml GridSearchCV.best_params_
+        identical to sklearn GridSearchCV.best_params_
 
 
     Return
@@ -46,9 +46,8 @@ def _validate_true_best(
     -
         None
 
-
-
     """
+
 
     for _param in _true_best:
         if _param not in _params:
@@ -66,26 +65,31 @@ def _validate_true_best(
         _best = _true_best[_param]
 
         if 'fixed_string' in _type:
-            err_msg = (f"{_param}: true_best string params must "
-                        f"be a single string that is in the search grid")
+            err_msg = (f"{_param}: 'fixed_string' true_best must be a "
+                f"single string that is in the search grid")
             if not isinstance(_best, str):
                 raise TypeError(err_msg)
             if _best not in _grid:
                 raise ValueError(err_msg)
             del err_msg
-
+        elif 'fixed_bool' in _type:
+            err_msg = (f"{_param}: 'fixed_bool' true_best must be a "
+                f"single bool that is in the search grid")
+            if not isinstance(_best, bool):
+                raise TypeError(err_msg)
+            if _best not in _grid:
+                raise ValueError(err_msg)
         else:
-
+            # must be numeric types
             try:
                 float(_best)
             except:
-                raise TypeError(f"{_param}: true_best num params must be "
-                                 f"a single number")
+                raise TypeError(
+                    f"{_param}: true_best num params must be a single number"
+                )
 
             if _IS_LOGSPACE[_param] and _best < 0:
-                raise ValueError(
-                    f"{_param}: true_best must be > 0 for logspace"
-                )
+                raise ValueError(f"{_param}: true_best must be > 0 for logspace")
 
             if 'fixed' in _type and _best not in _grid:
                 raise ValueError(
@@ -113,10 +117,6 @@ def _validate_true_best(
 
 
     del _type, _grid, _best
-
-
-
-
 
 
 
