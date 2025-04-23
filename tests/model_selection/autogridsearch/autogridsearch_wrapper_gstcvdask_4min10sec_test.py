@@ -28,8 +28,8 @@ from pybear.model_selection import autogridsearch_wrapper
 from pybear.model_selection import GSTCVDask
 
 
-# pizza
-pytest.skip(reason=f'5 minute test', allow_module_level=True)
+
+# pytest.skip(reason=f'takes too long', allow_module_level=True)
 
 
 
@@ -65,7 +65,7 @@ class TestGSTCVDask:
     @staticmethod
     @pytest.fixture(scope='module')
     def _client():
-        client = Client(n_workers=None, threads_per_worker=1)
+        client = Client(n_workers=1, threads_per_worker=1, asynchronous=False)
         yield client
         client.close()
 
@@ -180,28 +180,6 @@ class TestGSTCVDask:
             assert 0 <= best_threshold_ <= 1
 
         # END assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

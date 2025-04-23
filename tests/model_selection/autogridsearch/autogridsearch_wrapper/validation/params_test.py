@@ -80,6 +80,11 @@ class TestParamsValidation:
         assert _val_params(good_dict_params, 3) is None
 
 
+    def test_rejects_empty(self):
+        with pytest.raises(ValueError):
+            _val_params({}, 3)
+
+
     @pytest.mark.parametrize('total_passes', (2, 4))
     def test_rejects_bad_len(self, total_passes):
 

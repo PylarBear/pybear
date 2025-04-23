@@ -6,7 +6,6 @@
 
 
 
-from typing_extensions import Union
 from .._type_aliases import (
     GridsType,
     ParamsType,
@@ -44,22 +43,17 @@ def _get_next_param_grid(
     _total_passes: int,
     _total_passes_is_hard: bool,
     _shift_ctr: int,
-    _max_shifts: Union[None, int]
-    ) -> tuple[
-        GridsType,
-        ParamsType,
-        PhliteType,
-        IsLogspaceType,
-        int,
-        int
-    ]:
+    _max_shifts: int
+) -> tuple[GridsType, ParamsType, PhliteType, IsLogspaceType, int, int]:
 
     """
     Core functional method. This should not be reached on the first pass
-    (pass zero). For subsequent passes, generate new grids based on the
+    (pass zero). First pass grids should be built by '_build_first_grid'.
+    For subsequent passes, this module generates new grids based on the
     previous grid (as held in GRIDS[_pass-1]) and its associated
-    best_params_ (as held in best_params_from_previous_pass) returned
-    from GridSearchCV.
+    `best_params_` (as held in best_params_from_previous_pass) returned
+    from the GridSearchCV parent.
+
 
     Parameters
     ----------
@@ -67,11 +61,11 @@ def _get_next_param_grid(
         GridsType - search grids for completed GridSearchCV passes and
         an incomplete search grid for the upcoming pass
     _params:
-        ParamsType - full list of all params to be searched with grid
-        construction instructions
+        ParamsType - full list of all params to be searched with their
+        respective grid construction instructions
     _PHLITE:
-        PhliteType - param has landed inside the edges. Boolean that
-        indicates sif a parameter has or has not landed off the extremes
+        PhliteType - param-has-landed-inside-the-edges. Boolean that
+        indicates if a parameter has or has not landed off the extremes
         of its search grid. Comes in with the results from pass n-2 and
         is updated with the results from the last pass, n-1, to inform
         on building the grids for the current pass, n. String params and
@@ -89,45 +83,49 @@ def _get_next_param_grid(
         E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
         np.logspace(-20, 20, 9) would be represented by 5.0.
     _best_params_from_previous_pass:
-        BestParamsType - best_params_ returned by the parent GridsearchCV
-        for the previous pass
+        BestParamsType - `best_params_` returned by the parent Gridsearch
+        on the previous pass
     _pass:
         int - zero-indexed counter indicating the number of the current
         pass
     _total_passes:
         int - the number of GridSearchCV passes to perform
     _total_passes_is_hard:
-        bool - If True, "shift" rounds do not add another pass to total
+        bool - If True, 'shift' rounds do not add another pass to total
         passes; if False, shift rounds add another round to total passes,
         preserving the number of rounds where soft search grids are
-        narrowed
+        narrowed.
     _shift_ctr:
         int - number of GridSearchCV passes where search grids have
         shifted
     _max_shifts:
-        Union[None, int] - maximum number of GridSearchCV passes allowed
-        that only shift grids
+        int - maximum number of GridSearchCV passes allowed that only
+        shift grids
+
 
     Return
     ------
     -
         _GRIDS: GridsType - search grids for completed GridSearchCV
-        passes and the completed grid for the upcoming pass
+        passes and the filled grid for the upcoming search
 
         _params: ParamsType - full list of grid construction instructions
         for all params to be searched updated with any modifications
-        made during build of the next pass's grids.
+        made during build of the next search's grids (i.e., the current
+        call to _get_next_param_grid).
 
-        _PHLITE: PhliteType - Updated with the results from the previous
-        round.
+        _PHLITE: PhliteType - Param-has-landed-inside-the-edges updated
+        with the results from the previous round.
 
-        _IS_LOGSPACE: IsLogspaceType - updated _IS_LOGSPACE
+        _IS_LOGSPACE: IsLogspaceType - updated for any parameters that
+        may have converted from logspace to linspace on the last pass.
 
-        _shift_ctr: int - incremented _shift_ctr if shifts are needed
+        _shift_ctr: int - _shift_ctr incremented if the currently
+        constructed grid requires a shift for the upcoming search.
 
         _total_passes: int - the number of GridSearchCV passes to perform.
-        Was incremented by one if a shift is going to be performed and
-        total_passes_is_hard is False.
+        Incremented by one if a shift is going to be performed and
+        `total_passes_is_hard` is False.
 
     """
 
@@ -205,7 +203,7 @@ def _get_next_param_grid(
 
     _val_total_passes_is_hard(_total_passes_is_hard)
 
-    # END _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # * ** * ** * ** * ** * ** * ** ** ** * ** * ** * ** * ** * ** * **
 
 

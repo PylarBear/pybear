@@ -82,8 +82,9 @@ class TestSklearnGSCVS:
     @pytest.mark.parametrize('_tpih', (True, ))
     @pytest.mark.parametrize('_max_shifts', (2, ))
     @pytest.mark.parametrize('_refit', ('accuracy', False, lambda x: 0))
-    def test_sklearn_gscvs(self, _estimator, _params, SKLEARN_GSCV,
-        _total_passes, _scorer, _tpih, _max_shifts, _refit, _X_y
+    def test_sklearn_gscvs(
+        self, _estimator, _params, SKLEARN_GSCV, _total_passes, _scorer,
+        _tpih, _max_shifts, _refit, _X_y
     ):
 
         # the 'halving' grid searches cannot take multiple scorers

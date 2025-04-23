@@ -6,12 +6,13 @@
 
 
 
-import time
 from typing_extensions import Union
+from .._type_aliases import GridsType, ParamsType, BestParamsType
+
+import numbers
+import time
 
 import numpy as np
-
-from .._type_aliases import GridsType, ParamsType, BestParamsType
 
 
 
@@ -22,7 +23,7 @@ def _mock_gscv(
     _best_params: Union[None, BestParamsType],
     _pass: int,
     *,
-    _pause_time: [int, float] = 5
+    _pause_time: numbers.Real = 5
 ) -> BestParamsType:
 
 
@@ -32,7 +33,7 @@ def _mock_gscv(
     For a string parameter, make it 10% chance that the returned "best"
     is non-best option (simulate a discrete parameter moving around while
     the other parameters hone in on their true best.) For numerical, use
-    min lsq to find best value.
+    min lsq to find the closest grid value.
 
 
     Parameters
@@ -46,12 +47,13 @@ def _mock_gscv(
             BestParamsType - the "true best" value for every parameter
             as entered by the user or generated randomly
         _best_params:
-            BestParamsType - best results from the previous GridSearch
-            pass. "NA" if on pass 0.
+            Union[None, BestParamsType] - best results from the previous
+            GridSearch pass. None if on pass 0.
         _pass:
             int - the zero-indexed count of GridSearches performed
         _pause_time:
-            int - seconds to pause to simulate work by GridSearchCV
+            numbers.Real - seconds to pause to simulate work by
+            GridSearchCV
 
 
     Return
@@ -68,12 +70,10 @@ def _mock_gscv(
         float(_pause_time)
         if not _pause_time >= 0:
             raise ValueError
-    except TypeError:
-        raise TypeError(err_msg)
     except ValueError:
         raise ValueError(err_msg)
     except Exception as e:
-        raise Exception
+        raise TypeError(err_msg)
 
 
     # display info about parameters ** * ** * ** * ** * ** * ** * ** * **
@@ -95,20 +95,21 @@ def _mock_gscv(
     )
 
     # fill data below header
-    for _ in _GRIDS[_pass]:
+    for _param in _GRIDS[_pass]:
 
         print(
-            padder(_),
-            padder(_params[_][-1]),
-            padder(_true_best[_]),
-            padder('NA' if _pass == 0 else _best_params[_]),
-            padder(len(_GRIDS[_pass][_])),
+            padder(_param),
+            padder(_params[_param][-1]),
+            padder(_true_best[_param]),
+            padder('NA' if _pass == 0 else _best_params[_param]),
+            padder(len(_GRIDS[_pass][_param])),
             end=' '  # to allow add on for grids below
         )
 
-        _grid = _GRIDS[_pass][_]
+        _grid = _GRIDS[_pass][_param]
         try:
-            print(f'{list(map(round, _grid, (3 for _ in _grid)))}')  # dont format this!
+            # dont format this!
+            print(f'{list(map(round, _grid, (3 for i in _grid)))}')
         except:
             print(f'{_grid}')  # dont format this!
         del _grid
@@ -121,7 +122,7 @@ def _mock_gscv(
     combinations = np.prod(list(map(len, _GRIDS[_pass].values())))
     print(f'\nThere are {combinations:,.0f} combinations to run')
     print(f"Simulating GridSearchCV running on pass {_pass + 1}...")
-    time.sleep(_pause_time)  # (combinations)
+    time.sleep(float(_pause_time))
     del combinations
 
 
@@ -138,8 +139,7 @@ def _mock_gscv(
             _p_not_best = (1 - _p_best) / (len(_grid) - 1)
             _p = [0.9 if i == _true_best[_param] else _p_not_best for i in _grid]
 
-            _best_params_[_param] = \
-                type(_grid[0])(np.random.choice(_grid, 1, False, p=_p)[0])
+            _best_params_[_param] = type(_grid[0])(np.random.choice(_grid, p=_p))
             del _p_best, _p_not_best, _p
         else:
             # use min lsq to find best for numerical
