@@ -290,7 +290,7 @@ class TestAGSCVValidation:
             assert _gscv.total_passes == good_tp
         elif not _gscv.total_passes_is_hard:
             assert _gscv.total_passes >= good_tp
-        assert _gscv._max_shifts > 0   # and is not None
+        assert _gscv.max_shifts == good_max_shifts
         assert _gscv.agscv_verbose is agscv_verbose
 
 

@@ -37,7 +37,7 @@ from distributed import Client
 
 
 # pizza
-pytest.skip(f"test takes 3.5+ minutes", allow_module_level=True)
+# pytest.skip(f"test takes 3.5+ minutes", allow_module_level=True)
 
 
 
