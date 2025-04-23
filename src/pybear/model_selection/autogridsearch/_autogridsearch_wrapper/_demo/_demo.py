@@ -8,6 +8,12 @@
 
 from typing import Literal
 from typing_extensions import Union
+from .._type_aliases import (
+    ParamType,
+    ParamsType,
+    BestParamsType,
+    ResultsType
+)
 
 import numbers
 
@@ -15,18 +21,19 @@ from ._make_true_best import _make_true_best
 from ._validate_true_best import _validate_true_best
 from ._display_true_best import  _display_true_best
 from ._mock_gscv import _mock_gscv
+from .._get_next_param_grid._get_next_param_grid import _get_next_param_grid
 from .._build_first_grid_from_params import _build
-from .._type_aliases import ParamType, ParamsType, BestParamsType, ResultsType
 from .._print_results import _print_results
+from .._build_is_logspace import _build_is_logspace
 
 
-
+# pizza clean this mess up!
 _params: ParamsType
 _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]]
 _RESULTS: ResultsType
 _pass: int
 _param_grid: ParamType
-_RESULTS: ResultsType
+
 
 
 def _demo(
@@ -87,14 +94,18 @@ def _demo(
 
     # STUFF FOR MIMICKING GridSearchCV.best_params_ ** * ** * ** * ** *
     if _true_best is None:
-        _true_best = _make_true_best(_DemoCls._params)
+        _true_best = _make_true_best(_DemoCls.params)
 
-    _validate_true_best(_DemoCls._params, _DemoCls._IS_LOGSPACE, _true_best)
+    _validate_true_best(
+        _DemoCls.params,
+        _build_is_logspace(_DemoCls.params),  # pizza maybe make one declaration
+        _true_best
+    )
 
     _true_best_header = f'\nTrue best params'
     print(_true_best_header)
     print(f'-' * len(_true_best_header))
-    _display_true_best(_DemoCls._params, _true_best)
+    _display_true_best(_DemoCls.params, _true_best)
     # END STUFF FOR MIMICKING GridSearchCV.best_params_ ** * ** * ** *
 
 
@@ -107,6 +118,10 @@ def _demo(
     #             2) return best_estimator_
 
     # 1) run passes of GridSearchCV
+    _PHLITE = {}
+    for hprmtr in _DemoCls.params:
+        if 'soft' in _DemoCls.params[hprmtr][-1].lower():
+            _PHLITE[hprmtr] = False
     _RESULTS = dict()
     _pass = 0
     while _pass < _DemoCls.total_passes:
@@ -117,21 +132,35 @@ def _demo(
         # must be circumvented. Other functionality in fit() (like build
         # param_grids and update RESULTS) must be replicated separately.
 
+
+        # pizza can we just pass _mock_gscv to DemoCls?
+
         # 1a) get_next_param_grid()
         print(f'Building param grid... ', end='')
         if _pass == 0:
-            _DemoCls.GRIDS_ = _build(_DemoCls._params)
+            _DemoCls.GRIDS_ = _build(_DemoCls.params)
             # points must match what is in params
         else:
-            # _DemoCls.total_passes would be updated by gnpg
-            _DemoCls._get_next_param_grid(
-                _pass,
-                _RESULTS[_pass-1]
-            )
+
+            _DemoCls.GRIDS_, _DemoCls.params, _DemoCls._PHLITE, _DemoCls._IS_LOGSPACE, \
+                _DemoCls._shift_ctr, _DemoCls.total_passes = \
+                    _get_next_param_grid(
+                        getattr(_DemoCls, 'GRIDS_', {}),
+                        _DemoCls.params,
+                        getattr(_DemoCls, '_PHLITE', _PHLITE),
+                        getattr(_DemoCls, '_IS_LOGSPACE', _build_is_logspace(_DemoCls.params)),
+                        _RESULTS[_pass-1],
+                        _pass,
+                        _DemoCls.total_passes,
+                        _DemoCls.total_passes_is_hard,
+                        getattr(_DemoCls, '_shift_ctr', 0),
+                        _DemoCls.max_shifts
+                    )
+
 
             # update points in params with possibly different points from gnpg
             for _param in _DemoCls.GRIDS_[_pass]:
-                _DemoCls._params[_param][1][_pass] = \
+                _DemoCls.params[_param][1][_pass] = \
                     len(_DemoCls.GRIDS_[_pass][_param])
 
         print(f'Done.')
@@ -140,7 +169,7 @@ def _demo(
         # 1b) fit GridSearchCV with next_param_grid
         _RESULTS[_pass] = _mock_gscv(
             _DemoCls.GRIDS_,
-            _DemoCls._params,
+            _DemoCls.params,
             _true_best,
             None if _pass == 0 else _RESULTS[_pass - 1],
             _pass,
@@ -167,7 +196,7 @@ def _demo(
     # DISPLAY THE GENERATED true_best_params AGAIN #####################
     print(_true_best_header)
     print(f'-' * len(_true_best_header))
-    _display_true_best(_DemoCls._params, _true_best)
+    _display_true_best(_DemoCls.params, _true_best)
     del _true_best_header
     # END DISPLAY THE GENERATED true_best_params AGAIN #################
 

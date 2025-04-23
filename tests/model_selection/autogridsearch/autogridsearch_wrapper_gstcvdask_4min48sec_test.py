@@ -29,7 +29,7 @@ from pybear.model_selection import GSTCVDask
 
 
 # pizza
-pytest.skip(reason=f'5 minute test', allow_module_level=True)
+# pytest.skip(reason=f'5 minute test', allow_module_level=True)
 
 
 

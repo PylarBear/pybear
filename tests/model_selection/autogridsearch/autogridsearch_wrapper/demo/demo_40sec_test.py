@@ -196,7 +196,7 @@ class TestDemo:
 
             for _param_ in _params:
                 __ = _test_cls.GRIDS_[_pass_][_param_]
-                assert len(__) == _test_cls._params[_param_][1][_pass_]
+                assert len(__) == _test_cls.params[_param_][1][_pass_]
             del _param_, __
         del _pass_
 
