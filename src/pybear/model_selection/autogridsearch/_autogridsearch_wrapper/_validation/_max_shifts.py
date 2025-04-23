@@ -30,6 +30,9 @@ def _val_max_shifts(
         Union[None, numbers.Integral] - the maximum number of grid shifts
         allowed when trying to center parameters within their search
         grids.
+    _can_be_None:
+        Optional[bool], default=False - whether 'max_shifts' can be
+        None-valued.
 
 
     Returns
@@ -49,7 +52,8 @@ def _val_max_shifts(
     elif not _can_be_None:
         err_msg = f"'max_shifts'  must be an integer >= 1. \ngot {_max_shifts}."
 
-    if not isinstance(_max_shifts, numbers.Integral) or isinstance(_max_shifts, bool):
+    if not isinstance(_max_shifts, numbers.Integral) \
+            or isinstance(_max_shifts, bool):
         raise TypeError(err_msg)
 
     if _max_shifts < 1:

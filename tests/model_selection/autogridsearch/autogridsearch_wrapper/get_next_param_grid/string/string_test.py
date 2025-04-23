@@ -7,6 +7,7 @@
 
 
 import pytest
+
 from copy import deepcopy
 
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
@@ -14,8 +15,8 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 
-# (zero-indexed) pass must be >= 1... on pass 0 param_grid is built by _build,
-# only sees _get after that
+# (zero-indexed) pass must be >= 1... on pass 0 param_grid is built by
+# _build, only sees _get after that
 
 
 class TestString:
@@ -59,19 +60,6 @@ class TestString:
         out = _string(_param_value, _grids[0]['a'], _pass, _best_params['a'])
 
         assert out == ['saga']
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

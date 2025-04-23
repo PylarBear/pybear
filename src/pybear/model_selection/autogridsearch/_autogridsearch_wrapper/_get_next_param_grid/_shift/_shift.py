@@ -6,14 +6,17 @@
 
 
 
-from typing import Literal
-from typing_extensions import Union
+from ..._type_aliases import (
+    GridsType,
+    ParamsType,
+    BestParamsType,
+    IsLogspaceType,
+    PhliteType
+)
 
-import numbers
 from copy import deepcopy
-import numpy as np
 
-from ..._type_aliases import GridsType, ParamsType, BestParamsType
+import numpy as np
 
 from ._shift_points_and_passes import _shift_points_and_passes
 
@@ -23,8 +26,8 @@ from ._shift_grid import _shift_grid
 
 def _shift(
     _GRIDS: GridsType,
-    _PHLITE : dict[str, bool],
-    _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]],
+    _PHLITE : PhliteType,
+    _IS_LOGSPACE: IsLogspaceType,
     _params: ParamsType,
     _pass: int,
     _best_params_from_previous_pass: BestParamsType,
@@ -33,9 +36,9 @@ def _shift(
 
     """
 
-    When prompted by False value(s) for any param(s) in PHLITE, shift the
-    respective params' grids based on whether their best value fell on a
-    left or right edge of their search grid.
+    When prompted by False value(s) for any param(s) in PHLITE, shift
+    the respective params' grids based on whether the best value fell
+    on a left or right edge of the search grid.
 
     When there is a shift, update the 'points' field in _params to
     replicate the last round's number of points into the current round.
@@ -44,7 +47,7 @@ def _shift(
     Essentially, the last gridsearch is to be repeated identically except
     that any params landing on the edges of their ranges are shifted.
 
-    If _total_passes_is_hard is False, inserting a shift pass into the
+    If `total_passes_is_hard` is False, inserting a shift pass into the
     search increases the total number of passes by 1. If True, the shift
     pass is inserted and what previously would have been the final pass
     is truncated, preserving the original number of total passes.
@@ -53,36 +56,38 @@ def _shift(
     Parameters
     ----------
     _GRIDS:
-        dict[int, dict[str, [int, float, str]] - holds all of the
-        param_grids run so far, and an empty dict for the current pass,
-        to be filled here.
+        GridsType - holds all of the param_grids run so far, and an
+        empty dict for the current pass, to be filled here.
     _PHLITE:
-        dict - holds bools for soft params indicating if it is to be
-        shifted
+        PhliteType - holds bools for soft params indicating if it is to
+        be shifted
     _IS_LOGSPACE:
-        dict - _IS_LOGSPACE is a dictionary keyed by all param names,
-        including string params. String params are always False. For
-        numerical params, if the space is linear, or some other non-
-        standard interval, it is False. If it is logspace, The 'truth'
-        of being a logspace is represented by a number indicating the
-        interval of the logspace. E.g., np.logspace(-5, 5, 11) would be
-        represented by 1.0, and np.logspace(-20, 20, 9) would be
+        IsLogspaceType - _IS_LOGSPACE is a dictionary keyed by all param
+        names, including string params. String params are always False.
+        For numerical params, if the space is linear, or some other
+        non-standard interval, it is False. If it is logspace, The
+        'truth' of being a logspace is represented by a number indicating
+        the interval of the logspace. E.g., np.logspace(-5, 5, 11) would
+        be represented by 1.0, and np.logspace(-20, 20, 9) would be
         represented by 5.0.
     _params:
-        dict - search instructions and dtypes for each param
+        ParamsType - search instructions for each param
     _pass:
-        int - the index of the upcoming gridsearch
+        int - the index of the current gridsearch we are preparing to
+        do by being in here
     _best_params_from_previous_pass:
-        dict - best_params_ from dask or sklearn GridsearchCV
+        BestParamsType - best_params_ from the parent GridsearchCV
     _total_passes_is_hard:
-        bool - whether or not to increment total_passes when doing a shift
+        bool - whether to increment total_passes when a shift is needed
+
 
     Returns
     -------
     -
-        _GRIDS: dict - _GRIDS filled with new grids for the current pass
+        _GRIDS: GridsType - _GRIDS filled with new grids for the current
+        pass
 
-        _params: dict - _params with updated points field
+        _params: ParamsType - _params with updated points field
 
 
     """
@@ -137,10 +142,10 @@ def _shift(
 
     # This must remain separate from grid shift because all points/passes
     # are always shifted even if only one param's grid is actually shifted.
-    # 24_05_10_18_02_00 code moved into its own module for easier testing.
+
 
     _params = _shift_points_and_passes(
-        deepcopy(_params),
+        deepcopy(_params),   # 25_04_23 verified deepcopy needs to be here
         _pass,
         _total_passes_is_hard
     )

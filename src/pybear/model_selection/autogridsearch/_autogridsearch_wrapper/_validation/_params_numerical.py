@@ -31,17 +31,18 @@ def _val_numerical_param_value(
         '{soft|hard|fixed}_{float|integer}'
     )
 
-    Integer spaces must be >= 1 (10^0), float spaces must be >= 0.
+    validate numerical_params' dict value is a list-like that contains:
+    (i) a list-like of first-round grid-search values (numbers)
+    (ii) 'points' indicating search grids of len 2 are not allowed for
+        'soft' numerical params
+    (iii) literal string in 'soft_float', 'hard_float', 'fixed_float',
+    'soft_integer', 'hard_integer', or 'fixed_integer'.
+
+    Integer spaces must be >= 1 , float spaces must be >= 0.
 
     Logspace intervals must be integer >= 1. Meaning you cannot have
     powers that are like 10^0.5, 10^0.6, ..., but you can have powers
     like 10^2, 10^4, ...
-
-    validate numerical_params' dict value is a list-like that contains:
-    (i) a list-like of first-round grid-search values (numbers)
-    (ii) 'points' indicating search grids of len 2 are not allowed for '
-        'soft' numerical params
-    (iii) literal string containing 'integer' or 'float'
 
 
     Parameters

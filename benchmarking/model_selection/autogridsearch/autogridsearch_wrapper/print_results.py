@@ -5,8 +5,10 @@
 #
 
 
-from model_selection.autogridsearch._autogridsearch_wrapper._print_results \
-    import _print_results
+
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
+    _print_results import _print_results
+
 
 
 _params = {
@@ -71,16 +73,7 @@ _RESULTS = {
 }
 
 
-
-
-
-
 _print_results(_GRIDS, _RESULTS)
-
-
-
-
-
 
 
 

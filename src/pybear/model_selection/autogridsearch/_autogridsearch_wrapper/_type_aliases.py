@@ -6,7 +6,7 @@
 
 
 
-from typing import Sequence
+from typing import Literal, Sequence
 from typing_extensions import (
     TypeAlias,
     Union
@@ -17,7 +17,6 @@ from ._type_aliases_float import (
     FloatGridType,
     InFloatParamType,
     FloatParamType,
-    FloatTypeType
 )
 from ._type_aliases_int import (
     IntDataType,
@@ -59,14 +58,25 @@ InParamType: TypeAlias = \
 ParamType: TypeAlias = \
     Union[BoolParamType, StrParamType, IntParamType, FloatParamType]
 
-InParamsType: TypeAlias = \
+InParamsType: TypeAlias = dict[
+    str,
     Union[InBoolParamType, InStrParamType, InIntParamType, InFloatParamType]
-ParamsType: TypeAlias = \
+]
+ParamsType: TypeAlias = dict[
+    str,
     Union[BoolParamType, StrParamType, IntParamType, FloatParamType]
+]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-GridsType: TypeAlias = dict[int, dict[str, GridType]]
+LogspaceType: TypeAlias = Union[Literal[False], numbers.Integral]
+IsLogspaceType: TypeAlias = dict[str, LogspaceType]
+
+PhliteType: TypeAlias = dict[str, bool]
+
+ParamGridType: TypeAlias = dict[str, GridType]
+
+GridsType: TypeAlias = dict[int, ParamGridType]
 
 BestParamsType: TypeAlias = dict[str, DataType]
 

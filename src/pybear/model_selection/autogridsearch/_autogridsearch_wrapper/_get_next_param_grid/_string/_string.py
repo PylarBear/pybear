@@ -12,16 +12,14 @@ from ..._type_aliases_str import (
     StrGridType
 )
 
-import numbers
-
 
 
 def _string(
     _param_value: StrParamType,
     _grid: StrGridType,
-    _pass: numbers.Integral,
+    _pass: int,
     _best_param_from_previous_pass: StrDataType
-) -> list[StrDataType]:
+) -> StrGridType:
 
     """
     Create the current round's search grid for a string parameter based
@@ -36,16 +34,16 @@ def _string(
         StrGridType - previous round's gridsearch values for string
         parameter
     _pass:
-        numbers.Integral - zero-indexed count of passes to this point,
-        inclusive; the current pass
+        int - zero-indexed count of passes to this point, inclusive; the
+        current pass
     _best_param_from_previous_pass:
-        str - best value returned from sklearn / dask best_params_
+        str - best value returned from parent GridSearch's best_params_
 
 
     Return
     ------
     -
-        _grid: list[str] - new search grid for the current pass
+        _grid: StrGridType - new search grid for the current pass
 
     """
 

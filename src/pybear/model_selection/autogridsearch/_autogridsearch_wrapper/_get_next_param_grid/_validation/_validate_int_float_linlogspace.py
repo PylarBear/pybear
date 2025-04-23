@@ -5,72 +5,85 @@
 #
 
 
-from typing_extensions import Union
+
+from ..._type_aliases_num import (
+    NumDataType,
+    NumGridType
+)
+from ..._type_aliases import LogspaceType
+
 from copy import deepcopy
 import warnings
+
 import numpy as np
-from ..._type_aliases import DataType, GridType
-
-
 
 
 
 def _validate_int_float_linlogspace(
-        _SINGLE_GRID: GridType,
-        _is_logspace: Union[bool, float],
-        _posn: int,
-        _is_hard: bool,
-        _hard_min: DataType,
-        _hard_max: DataType,
-        _points: int,
-        _module_name: str
-    ) -> list[DataType]:
+    _SINGLE_GRID: NumGridType,
+    _is_logspace: LogspaceType,
+    _posn: int,
+    _is_hard: bool,
+    _hard_min: NumDataType,
+    _hard_max: NumDataType,
+    _points: int,
+    _module_name: str
+) -> None:
 
     """
-    Validate params for _float_linspace, _float_logspace, _int_linspace_unit_gap,
-    _int_linspace_gap_gt1, _int_logspace_unit_gap, _int_logspace_gap_gt1
+    Validate params for:
+    _float_linspace,
+    _float_logspace,
+    _int_linspace_unit_gap,
+    _int_linspace_gap_gt1,
+    _int_logspace_unit_gap,
+    _int_logspace_gap_gt1
+
 
     Parameters
     ----------
     _SINGLE_GRID:
-        list, tuple, set, or other list-like of integers  - search grid
-        from the previous round
+        NumGridType - numerical parameter search grid from the previous
+        round
     _posn:
         int - index in _SINGLE_GRID where best value found by GridSearch
         fell
     _is_logspace:
-        [bool, float] - whether _SINGLE_GRID is in lin or logspace, and
+        LogspaceType - whether _SINGLE_GRID is in lin or logspace, and
         if in logspace, what the log interval is
     _is_hard:
         bool - whether the parameter has hard left and right boundaries.
         This field is read from the dtype/search field in _params. If
         hard, the left and right bounds are set from the lowest and
         highest values in the first round's search grid (the grid that
-        is in _params.)
+        was passed to `params` at init.)
     _hard_min:
-        int - if hard, the minimum value in the first round's search grid.
+        NumDataType - if hard, the minimum value in the first round's
+        search grid.
     _hard_max:
-        int - if hard, the maximum value in the first round's search grid.
+        NumDataType - if hard, the maximum value in the first round's
+        search grid.
     _points:
-        int - number of points to use in the next search grid, subject to
-        constraints of hard_min, hard_max, universal lower bound, etc.
+        int - number of points to use in the next search grid, subject
+        to constraints of hard_min, hard_max, universal lower bound, etc.
     _module_name:
         str - the name of the module calling this module
-    _univeral_lower_bound:
-        int - [0, 1], default = 0; 0 for float, 1 for int
+
 
     Return
     ------
     -
         _SINGLE_GRID:
-        list[int] - search grid converted to a list
+        NumGridType - search grid converted to a list
 
 
     """
 
-    # module_name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # module_name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     if not isinstance(_module_name, str):
-        raise TypeError(f"_module_name must be a string of the calling module's name")
+        raise TypeError(
+            f"_module_name must be a string of the calling module's name"
+        )
 
     _module_name = _module_name.upper()
 
@@ -78,34 +91,40 @@ def _validate_int_float_linlogspace(
     if 'FLOAT' in _module_name:
         _valid_module_name = True
     elif 'INT' not in _module_name:
-        raise ValueError(f"'_module_name' must contain 'FLOAT' OR 'INT' "
-                         f"to correctly set '_universal_lower_bound'")
+        raise ValueError(
+            f"'_module_name' must contain 'FLOAT' OR 'INT' to correctly "
+            f"set '_universal_lower_bound'"
+        )
     else:
         for _gap_type in ['UNIT', 'GT_1']:
             if _gap_type in _module_name:
                 _valid_module_name = True
 
     if not _valid_module_name:
-        raise ValueError(f"for 'int' modules, _module_name must contain either "
-            f"('unit' or 'gt_1') to indicate which gap validation and "
-            f"universal lower bound to use")
+        raise ValueError(
+            f"for 'int' modules, _module_name must contain either ('unit' "
+            f"or 'gt_1') \nto indicate which gap validation and universal "
+            f"lower bound to use"
+        )
 
-    if 'LINSPACE' not in _module_name and 'LOGSPACE' not in _module_name:
-        raise ValueError(f"'_module_name' must contain either 'linspace' or 'logspace")
+    if not any(map(lambda x: x in _module_name, ('LINSPACE', 'LOGSPACE'))):
+        raise ValueError(
+            f"'_module_name' must contain either 'linspace' or 'logspace"
+        )
 
     del _valid_module_name
-    # END module_name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END module_name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # universal lower bound ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # universal lower bound ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if 'INT' in _module_name:
         _univeral_lower_bound = 1
     elif 'FLOAT' in _module_name:
         _univeral_lower_bound = 0
 
-    # END universal lower bound ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END universal lower bound ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # search grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # search grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *s
 
     try:
         iter(_SINGLE_GRID)
@@ -115,14 +134,16 @@ def _validate_int_float_linlogspace(
     except TypeError:
         raise TypeError(f"_SINGLE_GRID must be a list-like")
     except Exception as e:
-        raise Exception(f"grid validation excepted for uncontrolled reason -- {e}")
+        raise Exception(
+            f"grid validation excepted for uncontrolled reason -- {e}"
+        )
 
     try:
         list(map(float, _SINGLE_GRID))
     except:
         raise TypeError(f"GRID must contain numerics")
 
-    if 'INT' in _module_name and 'LINSPACE' in _module_name:
+    if all(map(lambda x: x in _module_name, ('INT', 'LINSPACE'))):
         try:
             if not np.array_equiv(_SINGLE_GRID, list(map(int, _SINGLE_GRID))):
                 raise Exception
@@ -153,33 +174,35 @@ def _validate_int_float_linlogspace(
     if min(_SINGLE_GRID) < _univeral_lower_bound:
         raise ValueError(f"min(_SINGLE_GRID) < {_univeral_lower_bound}")
 
-    # END search grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END search grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # _posn ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # _posn ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     err_msg = f"'_posn' must be an integer >= 0"
     try:
         float(_posn)
         if isinstance(_posn, bool):
             raise Exception
+        if int(_posn) != _posn:
+            raise Exception
+        if _posn < 0:
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(err_msg)
     except:
         raise TypeError(err_msg)
 
-    if int(_posn) != _posn:
-        raise TypeError(err_msg)
-
-    if _posn < 0:
-        raise ValueError(err_msg)
-
     del err_msg
 
-    if not _posn in range(len(_SINGLE_GRID)):
-        raise ValueError(f"'_posn' ({_posn}) out of range for grid of len "
-                         f"({len(_SINGLE_GRID)})")
+    if _posn not in range(len(_SINGLE_GRID)):
+        raise ValueError(
+            f"'_posn' ({_posn}) out of range for grid of len "
+            f"({len(_SINGLE_GRID)})"
+        )
 
-    # END _posn ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END _posn ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # _is_logspace ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # _is_logspace ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     if not isinstance(_is_logspace, (bool, float)):
         raise TypeError(f"'_is_logspace' must be False or a float > 0")
 
@@ -241,21 +264,13 @@ def _validate_int_float_linlogspace(
         raise TypeError(f"_points must be an integer")
 
     if _points < 3:
-        raise ValueError(f"_points must be >= 3 (_points == 1 should not be able "
-                         f"to reach these modules, _points == 2 for softs should "
-                         f"be caught in initial validation and blocked thereafter)")
+        raise ValueError(
+            f"_points must be >= 3 (_points == 1 should not be able to "
+            f"reach these modules, _points == 2 for softs should be "
+            f"caught in initial validation and blocked thereafter)"
+        )
 
     # _points ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    return _SINGLE_GRID
-
-
-
-
-
-
-
 
 
 

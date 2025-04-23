@@ -8,7 +8,6 @@
 
 import pytest
 
-from copy import deepcopy
 import numpy as np
 
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper.\
@@ -21,11 +20,6 @@ class TestShiftPoints:
 
     # no _validation
 
-
-    # since handling is different for 'fixed_string' and ('soft_float',
-    # 'hard_float', 'fixed_float', 'soft_integer', 'hard_integer',
-    # 'fixed_integer'), and the ones in parentheses are all handled the
-    # same, just test 'fixed_string' and one of the others.
 
     @pytest.mark.parametrize('total_passes', (2, 3, 4))
     @pytest.mark.parametrize('number_of_params', (1, 3, 10))
@@ -84,7 +78,7 @@ class TestShiftPoints:
         # ** * ** *
 
         out_params = _shift_points_and_passes(
-            deepcopy(_params),
+            _params,
             _pass,
             total_passes_is_hard
         )
@@ -109,20 +103,6 @@ class TestShiftPoints:
 
 
         assert out_params == expected_params
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

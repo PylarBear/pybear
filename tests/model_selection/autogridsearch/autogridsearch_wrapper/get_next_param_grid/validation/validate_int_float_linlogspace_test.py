@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 import numpy as np
 
@@ -12,22 +14,27 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
     _validate_int_float_linlogspace as vifl
 
 
-@pytest.fixture
-def float_module_names():
-    return ['float_linspace', '_float_logspace']
 
-@pytest.fixture
-def int_module_names():
-    return [
+
+class TestValidateIntFloatLinLogspace:
+
+
+    @staticmethod
+    @pytest.fixture
+    def float_module_names():
+        return ['float_linspace', '_float_logspace']
+
+
+    @staticmethod
+    @pytest.fixture
+    def int_module_names():
+        return [
             '_int_linspace_unit_gap',
             '_int_logspace_unit_gap',
             '_int_linspace_gap_gt_1',
             '_int_logspace_gap_gt_1'
-    ]
+        ]
 
-
-
-class TestValidateIntFloatLinLogspace:
 
 
     # module_name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
@@ -370,22 +377,6 @@ class TestValidateIntFloatLinLogspace:
 
 
     # END _hard_min, _hard_max, _points ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

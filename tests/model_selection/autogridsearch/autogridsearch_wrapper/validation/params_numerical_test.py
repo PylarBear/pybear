@@ -103,7 +103,9 @@ class TestGridAsListOfValues:
 
 
 @pytest.mark.parametrize('total_passes', (1, 3))
-@pytest.mark.parametrize('_type', ('soft_integer', 'hard_integer', 'fixed_integer'))
+@pytest.mark.parametrize('_type',
+    ('soft_integer', 'hard_integer', 'fixed_integer')
+)
 class TestIntGridAsListOfValues:
 
 

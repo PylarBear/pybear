@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
     _get_next_param_grid. _int._int_linspace_gap_gt_1_soft import \
@@ -20,7 +21,7 @@ class TestIntLinspaceGapGT1Soft:
 
     # unit gap only to tests for robustness against span falling below 2
     @pytest.mark.parametrize('grid',
-                 ([1,3,5], [10,20,30], [10, 15, 25], [3,4,5])
+        ([1,3,5], [10,20,30], [10, 15, 25], [3,4,5])
     )
     @pytest.mark.parametrize('posn', ('left', 'right', 'middle'))
     def test_accuracy(self, grid, posn):
@@ -51,15 +52,6 @@ class TestIntLinspaceGapGT1Soft:
             assert _left == min(grid[0] + 1, grid[1] - 1)
 
             assert _right == max(grid[-1] - 1, grid[1] + 1)
-
-
-
-
-
-
-
-
-
 
 
 

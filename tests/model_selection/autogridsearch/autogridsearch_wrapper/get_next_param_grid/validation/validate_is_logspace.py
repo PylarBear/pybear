@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -12,16 +13,6 @@ import numpy as np
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
     _get_next_param_grid._validation._validate_is_logspace import \
     _validate_is_logspace
-
-
-
-@pytest.fixture
-def good_params():
-    return {
-
-    }
-
-
 
 
 
@@ -112,10 +103,6 @@ class TestIsLogspace:
 
         with pytest.raises(ValueError):
             _validate_is_logspace({'a': -1.5}, _params)
-
-
-
-
 
 
 

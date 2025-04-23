@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
     _get_next_param_grid._int._int_linspace_gap_gt_1_hard import \
@@ -46,10 +47,10 @@ class TestIntLinspaceGapGT1Hard:
         _best = grid[_posn]
 
         _left, _right = _int_linspace_gap_gt_1_hard(
-                                                    grid,
-                                                    _posn,
-                                                    hard_min,
-                                                    hard_max
+            grid,
+            _posn,
+            hard_min,
+            hard_max
         )
 
         # _left always above hard min
@@ -72,15 +73,6 @@ class TestIntLinspaceGapGT1Hard:
             assert _left == max(hard_min, min(grid[0] + 1, grid[1] - 1))
 
             assert _right == min(hard_max, max(grid[-1] - 1, grid[1] + 1))
-
-
-
-
-
-
-
-
-
 
 
 

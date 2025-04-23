@@ -6,18 +6,17 @@
 
 
 
-from typing import Literal
-from typing_extensions import Union
-
-from .._type_aliases import ParamsType, BestParamsType
-
-import numbers
+from .._type_aliases import (
+    ParamsType,
+    BestParamsType,
+    IsLogspaceType
+)
 
 
 
 def _validate_true_best(
     _params: ParamsType,
-    _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]],
+    _IS_LOGSPACE: IsLogspaceType,
     _true_best: BestParamsType
 ) -> None:
 
@@ -31,15 +30,15 @@ def _validate_true_best(
     Parameters
     ----------
     _params:
-        dict[str, list[...]] - full set of grid-building instructions
-        for all params
+        ParamsType - full set of grid-building instructions for all
+        params
     _IS_LOGSPACE:
-        dict[str, Union[Literal[False], numbers.Real]] - False | float
-        for the full set of parameters indicating if is not logspace or
-        if logspace, what the logspace gap is.
+        IsLogspaceType - False | float for the full set of parameters
+        indicating if is not logspace or if logspace, what the logspace
+        gap is.
     _true_best:
-        dict[str, [int, float, str]] - mocked best GridSearchCV results
-        in format identical to sklearn / dask_ml GridSearchCV.best_params_
+        BestParamsType - mocked best GridSearchCV results in format
+        identical to sklearn / dask_ml GridSearchCV.best_params_
 
 
     Return

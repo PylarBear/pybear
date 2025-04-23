@@ -6,10 +6,8 @@
 
 
 
-from typing_extensions import Any, TypeAlias, Union
-from ._autogridsearch_wrapper._type_aliases import (
-    ParamsType
-)
+from typing_extensions import TypeAlias, Union
+from ._autogridsearch_wrapper._type_aliases import ParamsType
 
 import numbers
 from copy import deepcopy
@@ -70,8 +68,6 @@ GridSearchType: TypeAlias = Union[
     type(GSTCV),
     type(GSTCVDask)
 ]
-
-
 
 
 
@@ -188,7 +184,7 @@ def autogridsearch_wrapper(
         def demo(
             self,
             *,
-            true_best_params: dict[str, Any]=None,
+            true_best_params: BestParamsType=None,
             mock_gscv_pause_time: numbers.Real=5
         ):
 
@@ -210,12 +206,11 @@ def autogridsearch_wrapper(
             ----------
 
             true_best_params:
-                dict[str, Union[numbers.Real, str]] - dict of mocked
-                true best values for an estimator's hyperparameters, as
-                provided by the user or generated randomly. If not passed,
-                random true best values are generated based on the first
-                round grids made from the instructions in params.
-
+                BestParamsType - dict of mocked true best values for an
+                estimator's hyperparameters, as provided by the user or
+                generated randomly. If not passed, random true best
+                values are generated based on the first round grids made
+                from the instructions in params.
             mock_gscv_pause_time:
                 numbers.Real - time in seconds to pause, simulating a
                 trial of GridSearch

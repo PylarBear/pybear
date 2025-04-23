@@ -14,16 +14,7 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. 
 
 
 
-
-
-
-
-
-
-
-
 class TestBoolParamKey:
-
 
     def test_accepts_str(self):
         assert _val_bool_param_value(
@@ -32,7 +23,6 @@ class TestBoolParamKey:
 
 
 class TestBoolParamValueOuterContainer:
-
 
     @pytest.mark.parametrize('_container', (list, tuple, np.ndarray))
     def test_accepts_list_like(self, _container):
@@ -49,7 +39,6 @@ class TestBoolParamValueOuterContainer:
 
 
 class TestBoolListOfSearchPoints:
-
 
     @pytest.mark.parametrize('non_bool',
         (0, 2.7, np.pi, min, 'trash', lambda x: x, {'a': 1}, [1,2], (1,2), {1,2})
@@ -71,7 +60,6 @@ class TestBoolListOfSearchPoints:
 
 class TestPoints:
 
-
     @pytest.mark.parametrize('int_or_seq', (3, [3,3,3]))
     def test_accepts_integer_or_sequence(self, int_or_seq):
 
@@ -82,7 +70,6 @@ class TestPoints:
 
 
 class TestType:
-
 
     @pytest.mark.parametrize('_type',
         ('fixed_bool', 'fixed_string', 'soft_float')
@@ -102,4 +89,7 @@ class TestType:
                     'param_a',
                     _value
                 )
+
+
+
 

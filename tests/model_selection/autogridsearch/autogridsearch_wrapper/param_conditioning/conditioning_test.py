@@ -45,7 +45,8 @@ class TestConditioning:
 
         key_key = {0: 'param_a', 1:'param_b', 2:'param_c', 3:'param_d'}
         type_key = {
-            0: 'fixed_string', 1: 'fixed_bool', 2: 'fixed_integer', 3: 'soft_float'
+            0: 'fixed_string', 1: 'fixed_bool', 2: 'fixed_integer',
+            3: 'soft_float'
         }
 
         # assertions -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

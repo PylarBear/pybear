@@ -12,7 +12,7 @@ def _val_total_passes_is_hard(
 
 
     """
-    Validate _total_passes_is_hard. Must be boolean.
+    Validate `_total_passes_is_hard`. Must be boolean.
 
 
     Parameters

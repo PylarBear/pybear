@@ -4,13 +4,14 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 import numpy as np
 
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
     _get_next_param_grid._validation._validate_phlite import _validate_phlite
-
 
 
 
@@ -45,7 +46,6 @@ class TestPHLITE:
             _validate_phlite(bad_PHLITE)
 
 
-
     @pytest.mark.parametrize('bad_dict_1',
         (0, np.pi, True, False, None, min, (1,), {1, 2}, {'a': True},
          lambda x: x, 'junk')
@@ -68,31 +68,6 @@ class TestPHLITE:
     def test_accepts_good_phlite(self):
 
         _validate_phlite({'a': True, 'b': False})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

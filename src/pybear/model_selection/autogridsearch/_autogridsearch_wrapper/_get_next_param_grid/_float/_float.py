@@ -6,11 +6,12 @@
 
 
 
-from typing_extensions import Union
+from typing import Literal
 from ..._type_aliases_float import (
     FloatDataType,
     FloatGridType
 )
+from ..._type_aliases import LogspaceType
 
 from ._float_linspace import _float_linspace
 from ._float_logspace import _float_logspace
@@ -19,13 +20,13 @@ from ._float_logspace import _float_logspace
 
 def _float(
     _SINGLE_GRID: FloatGridType,
-    _is_logspace: Union[bool, float],
+    _is_logspace: LogspaceType,
     _posn: int,
     _is_hard: bool,
     _hard_min: FloatDataType,
     _hard_max: FloatDataType,
     _points: int
-) -> tuple[list[FloatDataType], Union[bool, float]]:
+) -> tuple[FloatGridType, Literal[False]]:
 
     """
     Take in a float's grid from the last round of GridSearch along with
@@ -34,15 +35,15 @@ def _float(
     factors in building the next grid: hard/soft, linspace/logspace,
     number of points.
 
+
     Parameters
     ----------
     _SINGLE_GRID:
-        Union[list[int], tuple[int], set[int]] - The last round's search
-        grid for a single param. _SINGLE_GRID must be sorted ascending,
-        and is presumed to be by _validation._numerical_params (at least
-        initially).
+        FloatGridType - The last round's search grid for a single param.
+        _SINGLE_GRID must be sorted ascending, and is presumed to be by
+        _validation._numerical_params (at least initially).
     _is_logspace:
-        Union[bool, float] - For numerical params, if the space is linear,
+        LogspaceType - For numerical params, if the space is linear,
         or some other non-standard interval, it is False. If it is
         logspace, the 'truth' of being a logspace is represented by a
         number indicating the interval of the logspace. E.g.,
@@ -64,16 +65,18 @@ def _float(
     _points:
         int - the number of points for the current grid as read from _params.
 
+
     Return
     ------
     -
          _NEW_GRID:
-            list[int] - new search grid for the current pass' upcoming search.
+            FloatGridType - new search grid for the current pass'
+            upcoming search.
 
          _is_logspace:
-            Union[bool, float] - current float parameter grid space is /
-            is not logspace. All params leaving this module should be
-            linspace and the return value should always be False.
+            Literal[False] - current float parameter grid space is/is not
+            logspace. All params leaving this module should be linspace
+            and the return value should always be False.
 
 
     """
@@ -91,8 +94,6 @@ def _float(
             _hard_max,
             _points
         )
-
-
 
     elif _is_logspace:  # CAN ONLY HAPPEN ON FIRST PASS AFTER SHIFTER
 

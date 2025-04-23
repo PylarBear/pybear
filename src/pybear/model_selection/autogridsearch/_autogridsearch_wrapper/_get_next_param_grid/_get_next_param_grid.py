@@ -6,11 +6,16 @@
 
 
 
-from typing import Literal
 from typing_extensions import Union
+from .._type_aliases import (
+    GridsType,
+    ParamsType,
+    BestParamsType,
+    IsLogspaceType,
+    PhliteType
+)
 
 from copy import deepcopy
-import numbers
 import numpy as np
 
 from ._update_phlite import _update_phlite
@@ -27,15 +32,13 @@ from .._validation._params import _val_params
 from .._validation._total_passes_is_hard import _val_total_passes_is_hard
 from .._validation._max_shifts import _val_max_shifts
 
-from .._type_aliases import GridsType, ParamsType, BestParamsType
-
 
 
 def _get_next_param_grid(
     _GRIDS: GridsType,
     _params: ParamsType,
-    _PHLITE: dict[str, bool],
-    _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]],
+    _PHLITE: PhliteType,
+    _IS_LOGSPACE: IsLogspaceType,
     _best_params_from_previous_pass: BestParamsType,
     _pass: int,
     _total_passes: int,
@@ -45,8 +48,8 @@ def _get_next_param_grid(
     ) -> tuple[
         GridsType,
         ParamsType,
-        dict[str, bool],
-        dict[str, Union[Literal[False], numbers.Real]],
+        PhliteType,
+        IsLogspaceType,
         int,
         int
     ]:
@@ -67,8 +70,8 @@ def _get_next_param_grid(
         ParamsType - full list of all params to be searched with grid
         construction instructions
     _PHLITE:
-        dict[str, bool] - param has landed inside the edges. Boolean
-        indicating if a parameter has or has not landed off the extremes
+        PhliteType - param has landed inside the edges. Boolean that
+        indicates sif a parameter has or has not landed off the extremes
         of its search grid. Comes in with the results from pass n-2 and
         is updated with the results from the last pass, n-1, to inform
         on building the grids for the current pass, n. String params and
@@ -79,16 +82,15 @@ def _get_next_param_grid(
         the edges, that parameter's grid is shifted, otherwise the search
         window is narrowed.
     _IS_LOGSPACE:
-        dict[str, Union[Literal[False], numbers.Real]] - for all
-        numerical parameters, if the space is linear, or some other
-        non-standard interval, it is False. If it is logspace, the
-        'truth' of being a logspace is represented by a number indicating
-        the interval of the logspace. E.g., np.logspace(-5, 5, 11) would
-        be represented by 1.0, and np.logspace(-20, 20, 9) would be
-        represented by 5.0.
+        IsLogspaceType - for all numerical parameters, if the space is
+        linear, or some other non-standard interval, it is False. If it
+        is logspace, the 'truth' of being a logspace is represented by
+        a number indicating the interval of the logspace.
+        E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
+        np.logspace(-20, 20, 9) would be represented by 5.0.
     _best_params_from_previous_pass:
-        dict[str, [str, int, float]] - best_params_ returned by
-        sklearn / dask GridsearchCV for the previous pass
+        BestParamsType - best_params_ returned by the parent GridsearchCV
+        for the previous pass
     _pass:
         int - zero-indexed counter indicating the number of the current
         pass
@@ -109,19 +111,17 @@ def _get_next_param_grid(
     Return
     ------
     -
-        _GRIDS: dict[int, dict[str, list[Union[str, int, float]]]] -
-        search grids for completed GridSearchCV passes and the completed
-        grid for the upcoming pass
+        _GRIDS: GridsType - search grids for completed GridSearchCV
+        passes and the completed grid for the upcoming pass
 
-        _params: dict[str, list[...]] - full list of grid construction
-        instructions for all params to be searched updated with any
-        modifications made during build of the next pass's grids.
+        _params: ParamsType - full list of grid construction instructions
+        for all params to be searched updated with any modifications
+        made during build of the next pass's grids.
 
-        _PHLITE: dict[str, bool] - Updated with the results from the
-        previous round.
+        _PHLITE: PhliteType - Updated with the results from the previous
+        round.
 
-        _IS_LOGSPACE: dict[str, Union[Literal[False], numbers.Real]] -
-        updated _IS_LOGSPACE
+        _IS_LOGSPACE: IsLogspaceType - updated _IS_LOGSPACE
 
         _shift_ctr: int - incremented _shift_ctr if shifts are needed
 

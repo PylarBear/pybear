@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 import numpy as np
@@ -40,6 +42,7 @@ class TestIntLinspaceGap_GT_1:
         with pytest.raises(TypeError):
             _int_linspace_gap_gt_1([4,8,12], 1.98, False, 4, 12, 4)
 
+
     def test_rejects_bad_hard_min(self):
         with pytest.raises(ValueError):
             _int_linspace_gap_gt_1([3,15,27,39], 3, True, 10, 39, 4)
@@ -47,12 +50,14 @@ class TestIntLinspaceGap_GT_1:
         with pytest.raises(TypeError):
             _int_linspace_gap_gt_1([3, 15, 27, 39], 3, False, 3.14, 39, 4)
 
+
     def test_rejects_bad_hard_max(self):
         with pytest.raises(ValueError):
             _int_linspace_gap_gt_1([3,15,27,39], 3, True, 3, 31, 4)
 
         with pytest.raises(TypeError):
             _int_linspace_gap_gt_1([3,15,27,39], 3, False, 3, 39.77, 4)
+
 
     def test_rejects_points_lte_1(self):
         with pytest.raises(ValueError):
@@ -82,8 +87,9 @@ class TestIntLinspaceGap_GT_1:
     @pytest.mark.parametrize('_is_hard', (True, False))
     @pytest.mark.parametrize('_hard_min', (1, 3))
     @pytest.mark.parametrize('_hard_max', (24, 30))
-    def test_accuracy(self, _low, _high, _points, _posn, _is_hard,
-         _hard_min, _hard_max):
+    def test_accuracy(
+        self, _low, _high, _points, _posn, _is_hard, _hard_min, _hard_max
+    ):
 
         _SINGLE_GRID = np.linspace(_low, _high, _points).tolist()
 
@@ -149,47 +155,6 @@ class TestIntLinspaceGap_GT_1:
             elif _posn == 'middle':
                 assert min(_grid_out) == _SINGLE_GRID[_posn_ - 1] + 1
                 assert max(_grid_out) == _SINGLE_GRID[_posn_ + 1] - 1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

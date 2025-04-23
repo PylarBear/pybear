@@ -10,10 +10,6 @@ from .._type_aliases_bool import InBoolParamType
 
 
 
-
-
-
-
 def _val_bool_param_value(
     _bool_param_key: str,
     _bool_param_value: InBoolParamType

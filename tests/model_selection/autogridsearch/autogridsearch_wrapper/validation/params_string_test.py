@@ -14,14 +14,6 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. 
 
 
 
-
-
-
-
-
-
-
-
 class TestStringParamKey:
 
 
@@ -84,7 +76,9 @@ class TestPoints:
 class TestType:
 
 
-    @pytest.mark.parametrize('_type', ('fixed_bool', 'fixed_string', 'soft_float'))
+    @pytest.mark.parametrize('_type',
+        ('fixed_bool', 'fixed_string', 'soft_float')
+    )
     def test_rejects_bad_accepts_good_type(self, _type):
 
         _value = [list('abcde'), [5,5,5], _type]

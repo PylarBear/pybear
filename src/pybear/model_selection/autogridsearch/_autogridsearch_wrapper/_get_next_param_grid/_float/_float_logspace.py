@@ -6,17 +6,20 @@
 
 
 
-from typing_extensions import Union
 from ..._type_aliases_float import (
     FloatDataType,
     FloatGridType
+)
+from ..._type_aliases import (
+    LogspaceType
 )
 
 import sys
 
 import numpy as np
 
-from .._validation._validate_int_float_linlogspace import _validate_int_float_linlogspace
+from .._validation._validate_int_float_linlogspace import \
+    _validate_int_float_linlogspace
 from ......utilities._get_module_name import get_module_name
 
 
@@ -24,37 +27,36 @@ from ......utilities._get_module_name import get_module_name
 def _float_logspace(
     _SINGLE_GRID: FloatGridType,
     _posn: int,
-    _is_logspace: Union[bool, float],
+    _is_logspace: LogspaceType,
     _is_hard: bool,
     _hard_min: FloatDataType,
     _hard_max: FloatDataType,
     _points: int
-) -> list[FloatDataType]:
+) -> FloatGridType:
 
 
     """
-    This should only be accessed on the first pass after shifts.
+    This should only be accessed on the first regular pass after shifts.
     Logspaces convert to linspace.
 
-    Build a new grid for a single numerical parameter based on the
-    previous search round's grid and the best value discovered by
-    GridSearch, subject to constraints imposed by 'hard', universal
-    minimum, etc.
+    Build a new grid for a single float parameter based on the previous
+    round's grid and the best value discovered by GridSearch, subject to
+    constraints imposed by 'hard', universal minimum, etc.
+
 
     Parameters
     ----------
     _SINGLE_GRID:
-        Union[list[int], tuple[int], set[int] - The last round's search
-        grid for a single param.
+        FloatGridType - The last round's search grid for a single param.
         _SINGLE_GRID must be sorted ascending, and is presumed to be by
-        _validation._numerical_params (at least initially).
+        _param_conditioning._params (at least initially).
     _posn:
-        int - the index position in the previous round's grid where
-        the best value fell
+        int - the index position in the previous round's grid where the
+        best value fell
     _is_logspace:
-        Union[bool, float] - For numerical params, if the space is
-        linear, or some other non-standard interval, it is False. If it
-        is logspace, the 'truth' of being a logspace is represented by a
+        LogspaceType - For numerical params, if the space is linear,
+        or some other non-standard interval, it is False. If it is
+        logspace, the 'truth' of being a logspace is represented by a
         number indicating the interval of the logspace. E.g.,
         np.logspace(-5, 5, 11) would be represented by 1.0, and
         np.logspace(-20, 20, 9) would be represented by 5.0.
@@ -63,28 +65,31 @@ def _float_logspace(
         This field is read from the dtype/search field in _params. If
         hard, the left and right bounds are set from the lowest and
         highest values in the first round's search grid (the grid that
-        is in _params.)
+        was passed in `params` at init.)
     _hard_min:
-        float - if hard, the minimum value in the first round's search grid.
+        float - if hard, the minimum value in the first round's search
+        grid.
     _hard_max:
-        float - if hard, the maximum value in the first round's search grid.
+        float - if hard, the maximum value in the first round's search
+        grid.
     _points:
         int - number of points to use in the next search grid, subject
         to constraints of hard_min, hard_max, universal lower bound, etc.
+
 
     Return
     ------
     -
         _OUT_GRID:
-            list[int] - new search grid for the current pass' upcoming
-            search.
+            FloatGridType - new search grid for the current pass'
+            upcoming search.
 
 
     """
 
     # 24_05_17_09_13_00 this must stay here to get correct module name,
     # cannot be put in _float
-    _SINGLE_GRID = _validate_int_float_linlogspace(
+    _validate_int_float_linlogspace(
         _SINGLE_GRID,
         _is_logspace,
         _posn,
@@ -104,7 +109,9 @@ def _float_logspace(
 
     _ = np.subtract(*_LOG_SINGLE_GRID[[1,0]])
     if _ != _is_logspace:
-        raise ValueError(f"log gap in grid ({_}) != _is_logspace ({_is_logspace})")
+        raise ValueError(
+            f"log gap in grid ({_}) != _is_logspace ({_is_logspace})"
+        )
     del _
 
     # CONVERT THE LOGSPACE GRID BACK TO LOGS, THIS SHOULD
@@ -161,6 +168,7 @@ def _float_logspace(
     del _left, _right
 
     _OUT_GRID = list(map(float, _OUT_GRID.tolist()))
+
 
     return _OUT_GRID
 

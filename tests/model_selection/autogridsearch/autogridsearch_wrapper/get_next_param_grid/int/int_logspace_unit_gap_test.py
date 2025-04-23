@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import numpy as np
 import pytest
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
@@ -12,18 +14,17 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 
-
 class TestIntLogspaceUnitGap:
 
-    # _int_logspace_unit_gap(
-    #                    _SINGLE_GRID: list[int] | tuple[int] | set[int],
-    #                    _posn: int,
-    #                    _is_logspace: bool | float,
-    #                    _is_hard: bool,
-    #                    _hard_min: int,
-    #                    _hard_max: int,
-    #                    _points: int
-    # ) -> list[int]
+    # def _int_logspace_unit_gap(
+    #     _SINGLE_GRID: IntGridType,
+    #     _is_logspace: LogspaceType,
+    #     _posn: int,
+    #     _is_hard: bool,
+    #     _hard_min: IntDataType,
+    #     _hard_max: IntDataType,
+    #     _points: int
+    # ) -> IntGridType:
 
 
     # _validation handled by get_next_param_grid._validate_int_float_linlogspace
@@ -32,71 +33,74 @@ class TestIntLogspaceUnitGap:
     def test_rejects_floats(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
-                                    [10**1.1,10**1.2,10**1.3],
-                                    1.0, 1, False, 1, 10, 3
+                [10**1.1,10**1.2,10**1.3],
+                1.0, 1, False, 1, 10, 3
             )
 
 
     def test_rejects_search_values_lt_1(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
-                                    [1e-1,1e0,1e1],
-                                    1.0, 1, False, -1, 3, 3
+                [1e-1,1e0,1e1],
+                1.0, 1, False, -1, 3, 3
             )
 
 
     def test_rejects_reversed_grid(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
-                                    [1e8,1e7,1e6],
-                                    1.0, 1, False, -1, 3, 3
+                [1e8,1e7,1e6],
+                1.0, 1, False, -1, 3, 3
             )
+
 
     def test_rejects_duplicate_search_points(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
-                                    [1e9,1e10,1e11,1e11],
-                                    1.0, 0, True, 1e8, 1e18, 3
+                [1e9,1e10,1e11,1e11],
+                1.0, 0, True, 1e8, 1e18, 3
             )
 
 
     def test_rejects_invalid_posn_index(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
-                                    [1e1,1e2,1e3,1e4],
-                                    1.0, 4, False, 1e1, 1e4, 4
+                [1e1,1e2,1e3,1e4],
+                1.0, 4, False, 1e1, 1e4, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_unit_gap(
-                                    [1e1,1e2,1e3,1e4],
-                                    1.0, 1.98, False, 1e1, 1e4, 4
+                [1e1,1e2,1e3,1e4],
+                1.0, 1.98, False, 1e1, 1e4, 4
             )
+
 
     def test_rejects_bad_hard_min(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
-                                    [1e3,1e4,1e5,1e6],
-                                    1.0, 3, True, 1e4, 1e18, 4
+                [1e3,1e4,1e5,1e6],
+                1.0, 3, True, 1e4, 1e18, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_unit_gap(
-                                    [1e9,1e10,1e11,1e12],
-                                    1.0, 3, True, 10**2.14, 1e18, 4
+                [1e9,1e10,1e11,1e12],
+                1.0, 3, True, 10**2.14, 1e18, 4
             )
+
 
     def test_rejects_bad_hard_max(self):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
-                                    [1e3,1e4,1e5,1e6],
-                                    1.0, 3, True, 1e3, 1e5, 4
+                [1e3,1e4,1e5,1e6],
+                1.0, 3, True, 1e3, 1e5, 4
             )
 
         with pytest.raises(TypeError):
             _int_logspace_unit_gap(
-                                    [1e2,1e3,1e4,1e5],
-                                    1.0, 3, True, 1e1, 10**13.77, 4
+                [1e2,1e3,1e4,1e5],
+                1.0, 3, True, 1e1, 10**13.77, 4
             )
 
 
@@ -104,10 +108,9 @@ class TestIntLogspaceUnitGap:
     def test_rejects_points_lte_2(self, points):
         with pytest.raises(ValueError):
             _int_logspace_unit_gap(
-                                    [1e2,1e3,1e4,1e5],
-                                     1.0, 0, False, 1e2, 1e10, points
+                [1e2,1e3,1e4,1e5],
+                 1.0, 0, False, 1e2, 1e10, points
             )
-
 
     # END relic val from before _validate_int_float_linlogspace ** * **
 
@@ -129,8 +132,10 @@ class TestIntLogspaceUnitGap:
     @pytest.mark.parametrize('_is_hard', (True, False))
     @pytest.mark.parametrize('_hard_min', (1e1, 1e2))
     @pytest.mark.parametrize('_hard_max', (1e12, 1e16))
-    def test_accuracy(self, _low, _high, _points, _is_logspace, _posn,
-                      _is_hard, _hard_min, _hard_max):
+    def test_accuracy(
+        self, _low, _high, _points, _is_logspace, _posn, _is_hard,
+        _hard_min, _hard_max
+    ):
 
         _SINGLE_GRID = np.logspace(_low, _high, _points).tolist()
 
@@ -171,7 +176,8 @@ class TestIntLogspaceUnitGap:
             elif _posn == 'right':
                 _gap = np.subtract(*np.log10(_SINGLE_GRID)[[-1, -2]])
                 assert min(_grid_out) == max(_hard_min, 1)
-                assert max(_grid_out) == min(_hard_max, 10**(np.log10(_SINGLE_GRID[-1]) + _gap))
+                assert max(_grid_out) == \
+                       min(_hard_max, 10**(np.log10(_SINGLE_GRID[-1]) + _gap))
                 del _gap
 
             elif _posn == 'middle':
@@ -196,37 +202,6 @@ class TestIntLogspaceUnitGap:
             elif _posn == 'middle':
                 assert min(_grid_out) == 1
                 assert max(_grid_out) == _SINGLE_GRID[_posn_ + 1]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

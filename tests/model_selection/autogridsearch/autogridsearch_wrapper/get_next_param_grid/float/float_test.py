@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 import numpy as np
 
@@ -14,7 +15,6 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 class TestFloat:
-
 
 
     @pytest.mark.parametrize('_GRID',
@@ -47,20 +47,19 @@ class TestFloat:
 
 
         out_grid, logspace_out =  _float(
-                                            _GRID,
-                                            _is_logspace,
-                                            _posn,
-                                            _is_hard,
-                                            _hard_min,
-                                            _hard_max,
-                                            _points
+            _GRID,
+            _is_logspace,
+            _posn,
+            _is_hard,
+            _hard_min,
+            _hard_max,
+            _points
         )
 
 
         assert isinstance(out_grid, list)
 
         assert isinstance(out_grid[0], float)
-
 
 
         # gives correct len (== number of points)
@@ -100,10 +99,6 @@ class TestFloat:
 
 
         assert logspace_out is False
-
-
-
-
 
 
 

@@ -7,7 +7,7 @@
 
 
 from typing import Literal
-from typing_extensions import Union
+from ..._type_aliases import LogspaceType
 
 import numbers
 import numpy as np
@@ -25,36 +25,36 @@ def _drill(
     _param_name: str,
     _grid: GridType,
     _param_value: ParamType,
-    _is_logspace: Union[Literal[False], numbers.Real],
+    _is_logspace: LogspaceType,
     _pass: numbers.Integral,
     _best: DataType
-) -> tuple[GridType, ParamType, bool]:
+) -> tuple[GridType, ParamType, Literal[False]]:
 
 
     """
     Produce the next gridsearch's param_grid for individual parameters.
-    All types (str, int, float) are handled here. Update _params with new
-    _points if any of the individual type's algorithms override the user-
-    entered number of points. Update _is_logspace for any parameters
+    All types (str, int, float) are handled here. Update _params with
+    new _points if any of the individual type's algorithms override the
+    user-entered number of points. Update _is_logspace for any parameters
     converted from logspace to linspace.
 
 
     Parameters
     ----------
     _param_name:
-        str - a parameter's key in _params (the gridsearch arg/kwarg)
+        str - a parameter's key in _params
     _grid:
-        list[Union[int, float, str]] - a parameter's search grid from the
-        last round of GridSearchCV
+        GridType - a parameter's search grid from the last round of
+        GridSearchCV
     _param_value:
-        list[list[Union[str, int, float]], Union[int, list[int]], str] -
-        the parameter's grid construction instructions from _params
+        ParamType - the parameter's grid construction instructions from
+        _params
     _is_logspace:
-        Union[Literal[False], numbers.Real] - False for all string, hard
-        numerics, and fixed numerics. For soft numerical params, if the
-        space is linear, or some other non-standard interval, it is
-        False. If it is logspace, the 'truth' of being a logspace is
-        represented by a number indicating the interval of the logspace.
+        LogspaceType - False for all string, hard numerics, and fixed
+        numerics. For soft numerical params, if the space is linear,
+        or some other non-standard interval, it is False. If it is
+        logspace, the 'truth' of being a logspace is represented by a
+        number indicating the interval of the logspace.
         E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
         np.logspace(-20, 20, 9) would be represented by 5.0
     _pass:
@@ -62,31 +62,23 @@ def _drill(
         performed inclusive of this round. If this is the second
         gridsearch, _pass == 1.
     _best:
-        Union[numbers.Real, str] - the best value for this parameter from
-        the previous round as returned by best_params_ from sklearn /
-        dask GridSearchCV
+        DataType - the best value for this parameter from the previous
+        round as returned by best_params_ from the parent GridSearchCV
     )
 
 
     Return
     ------
     -
-        _grid: list[Union[str, numbers.Real]] - the new param_grid for
-        this parameter
+        _grid: GridType - the new param_grid for this parameter
 
-        _param_value:
-            list[
-                Sequence[Union[str, numbers.Real]],
-                Union[int, Sequence[int]],
-                str
-            ] - Grid construction instructions from _params for this
-            parameter with any update to _points
+        _param_value: ParamType - Grid construction instructions from
+        _params for this parameter with any update to _points
 
-        _is_logspace:
-            Union[Literal[False], numbers.Real] - Updated _is_logspace
-            for this parameter; everything entering here that is logspace
-            should always be converted to linspace, so this should always
-            return False.
+        _is_logspace: Literal[False] - Updated _is_logspace for this
+        parameter; everything entering here that is logspace should
+        always be converted to linspace, so this should always return
+        False.
 
 
     """
@@ -204,8 +196,8 @@ def _drill(
         )
 
     else:
-        raise ValueError(f"{_param_name}: param type str must contain "
-             f"'float' or 'integer' if not 'fixed_string' ({_type.lower()})")
+        raise ValueError(f"{_param_name}: param type must contain "
+             f"'float' or 'integer' if not 'fixed' ({_type.lower()})")
 
     # IF ANY ADJUSTMENTS WERE MADE TO _points, CAPTURE IN numerical_params
     _param_value[1][_pass] = len(_grid)
@@ -214,10 +206,6 @@ def _drill(
 
 
     return _grid, _param_value, _is_logspace
-
-
-
-
 
 
 

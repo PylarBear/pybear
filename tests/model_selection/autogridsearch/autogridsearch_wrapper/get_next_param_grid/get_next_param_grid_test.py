@@ -18,24 +18,17 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 # def _get_next_param_grid(
-#      _GRIDS: dict[int, dict[str, list[Union[str, numbers.Real]]]],
-#      _params: dict[str, list[Sequence[Union[str, numbers.Real]],
-#         Union[int, Sequence[int]], str]],
-#      _PHLITE: dict[str, bool],
-#      _IS_LOGSPACE: dict[str, Union[bool, float]],
-#      _best_params_from_previous_pass: dict[str,
-#         Union[str, int, bool, float]],
+#      _GRIDS: GridsType,
+#      _params: ParamsType,
+#      _PHLITE: PhliteType,
+#      _IS_LOGSPACE: IsLogspaceType,
+#      _best_params_from_previous_pass: BestParamsType,
 #      _pass: int,
 #      _total_passes: int,
 #      _total_passes_is_hard: bool,
 #      _shift_ctr: int,
 #      _max_shifts: int
-#     ) -> tuple[
-#         dict[int, dict[str, list[Union[str, int, bool, float]]]],   # GRIDS
-#         dict[str, list[list[Union[str, int, bool, float]], Union[int, list[int]], str]],   # params
-#         dict[str, Union[bool, float]],  # IS_LOGSPACE
-#         int
-#     ]:
+#     ) -> tuple[GridsType, ParamsType, IsLogspaceType, int]:
 
 
 @pytest.fixture
@@ -1703,34 +1696,6 @@ class TestMultiPass:
 
 
             _pass += 1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

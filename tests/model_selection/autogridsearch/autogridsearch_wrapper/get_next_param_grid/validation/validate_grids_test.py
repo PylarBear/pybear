@@ -5,11 +5,13 @@
 #
 
 
+
 import pytest
 import numpy as np
 
 from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
     _get_next_param_grid._validation._validate_grids import _validate_grids
+
 
 
 class TestValidateGrids:
@@ -94,66 +96,6 @@ class TestValidateGrids:
 
         with pytest.raises(TypeError):
             _validate_grids(bad_GRIDS)
-
-
-    ### 1
-    _values = (0, np.pi, True, False, None, min, (1,), [1, ], {1, 2},
-               {'a': 1}, lambda x: x, 'junk')
-    @pytest.mark.skip(reason=f'24_09_02 no more val of grids, see _validate_grids')
-    @pytest.mark.parametrize('value_1', _values)
-    def test_rejects_grid_values_not_int(self, value_1):
-
-        if isinstance(value_1, int):
-            pytest.skip(reason=f"this is expected to pass")
-
-        bad_GRIDS = {0: {'a': [0, 1, value_1]}}
-
-        with pytest.raises(TypeError):
-            _validate_grids(bad_GRIDS)
-    ###
-
-    ### 2
-    @pytest.mark.skip(reason=f'24_09_02 no more val of grids, see _validate_grids')
-    @pytest.mark.parametrize('value_2', _values)
-    def test_rejects_grid_values_not_float(self, value_2):
-
-        if isinstance(value_2, float):
-            pytest.skip(reason=f"this is expected to pass")
-
-        bad_GRIDS = {0: {'b': [1.1, 2.2, value_2]}}
-
-        with pytest.raises(TypeError):
-            _validate_grids(bad_GRIDS)
-    ###
-
-    ### 3
-    @pytest.mark.skip(reason=f'24_09_02 no more val of grids, see _validate_grids')
-    @pytest.mark.parametrize('value_3', _values)
-    def test_rejects_grid_values_not_bool(self, value_3):
-
-        if isinstance(value_3, bool) or value_3 in [0, 1]:
-            pytest.skip(reason=f"this is expected to pass")
-
-        bad_GRIDS = {0: {'c': [True, False, value_3]}}
-
-        with pytest.raises(TypeError):
-            _validate_grids(bad_GRIDS)
-    ####
-
-    #### 4
-    @pytest.mark.skip(reason=f'24_09_02 no more val of grids, see _validate_grids')
-    @pytest.mark.parametrize('value_4', _values)
-    def test_rejects_grid_values_not_str(self, value_4):
-
-        if isinstance(value_4, str):
-            pytest.skip(reason=f"this is expected to pass")
-
-        bad_GRIDS = {0: {'d': ['a', 'b', value_4]}}
-
-        with pytest.raises(TypeError):
-            _validate_grids(bad_GRIDS)
-    ###
-
 
 
     def test_accepts_good_grids(self):

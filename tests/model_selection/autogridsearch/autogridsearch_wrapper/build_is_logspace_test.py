@@ -149,10 +149,3 @@ class TestBuildIsLogspace:
 
 
 
-
-
-
-
-
-
-
