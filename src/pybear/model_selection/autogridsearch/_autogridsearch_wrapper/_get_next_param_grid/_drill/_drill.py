@@ -127,9 +127,7 @@ def _drill(
         # jupyter notebook with various atols. In this case, attempt to
         # find a single match by slicing.
 
-        __ = np.array(_grid)
-        _is_close = (__==_best)
-        del __
+        _is_close = (np.array(_grid)==_best)
 
         if _is_close.sum() != 1:
             raise ValueError(f"{_param_name}: uniquely locating best_param "

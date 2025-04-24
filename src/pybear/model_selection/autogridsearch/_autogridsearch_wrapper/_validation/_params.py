@@ -138,12 +138,13 @@ def _val_params(
             f"{_base_err_msg} --- "
             f"\nthird position in value must be a string in "
             f"\n[{', '.join(allowed)}]"
+            f"\ncase sensitive!"
         )
 
         if not isinstance(_value[2], str):
             raise TypeError(err_msg)
 
-        if _value[2].lower() not in allowed:
+        if _value[2] not in allowed:
             raise ValueError(err_msg)
 
         del allowed, err_msg
@@ -156,15 +157,20 @@ def _val_params(
         _err_msg = (f"{_base_err_msg} -- "
             f"\nfirst position in value must be a non-empty list-like "
             f"\nthat contains the search grid for the first pass. "
+            f"\nDuplicate grid points are not allowed. "
         )
         try:
             iter(_value[0])
             if isinstance(_value[0], (dict, str)):
                 raise Exception
             if len(_value[0]) == 0:
+                _addon = f"got empty."
+                raise UnicodeError
+            if len(set(_value[0])) != len(_value[0]):
+                _addon = f"got duplicates."
                 raise UnicodeError
         except UnicodeError:
-            raise ValueError(_err_msg + f"got empty.")
+            raise ValueError(_err_msg + _addon)
         except Exception as e:
             raise TypeError(_err_msg)
 
@@ -238,7 +244,7 @@ def _val_params(
         # 'fixed' points must be in [1 or len(first grid)] (the first points
         # will be automatically set to len(_value[0]) by conditioning,
         # so only check the values in [1:]
-        if 'fixed' in _value[2].lower():
+        if 'fixed' in _value[2]:
             if any(map(lambda x: x not in [1, len(_value[0])], _helper_list[1:])):
                 raise ValueError(
                     f"{_base_err_msg} -- \nif fixed int/float/str/bool, number "
@@ -251,9 +257,9 @@ def _val_params(
         # END validate points ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-        if _value[2].lower() == 'fixed_string':
+        if _value[2] == 'fixed_string':
             _val_string_param_value(_key, _value)
-        elif _value[2].lower() == 'fixed_bool':
+        elif _value[2] == 'fixed_bool':
             _val_bool_param_value(_key, _value)
         else:
             _val_numerical_param_value(

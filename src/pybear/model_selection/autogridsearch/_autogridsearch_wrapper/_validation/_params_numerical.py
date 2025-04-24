@@ -67,7 +67,7 @@ def _val_numerical_param_value(
 
 
     assert any(
-        map(lambda x: x in _num_param_value[2].lower(), ('float', 'integer'))
+        map(lambda x: x in _num_param_value[2], ('float', 'integer'))
     )
 
 
@@ -129,7 +129,8 @@ def _val_numerical_param_value(
             and len(_num_param_value[0]) >= 3 \
             and 0 not in _num_param_value[0]:
 
-        log_grid = np.log10(list(_num_param_value[0]))
+        # this sort is important, or the sign could come out negative
+        log_grid = np.log10(sorted(list(_num_param_value[0])))
         log_gaps = log_grid[1:] - log_grid[:-1]
         _unq_log_gap = np.unique(np.round(log_gaps, 14))
 

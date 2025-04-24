@@ -117,14 +117,14 @@ def _demo(
         # 1a) get_next_param_grid()
         print(f'Building param grid... ', end='')
         if _pass == 0:
-            _DemoCls.GRIDS_ = _build(_DemoCls.params)
+            _DemoCls._GRIDS = _build(_DemoCls.params)
             # points must match what is in params
         else:
 
-            _DemoCls.GRIDS_, _DemoCls.params, _DemoCls._PHLITE, \
+            _DemoCls._GRIDS, _DemoCls.params, _DemoCls._PHLITE, \
             _DemoCls._IS_LOGSPACE, _DemoCls._shift_ctr, _DemoCls.total_passes = \
                 _get_next_param_grid(
-                    getattr(_DemoCls, 'GRIDS_', {}),
+                    _DemoCls._GRIDS,
                     _DemoCls.params,
                     getattr(_DemoCls, '_PHLITE', _PHLITE),
                     getattr(_DemoCls, '_IS_LOGSPACE', _IS_LOGSPACE),
@@ -138,9 +138,9 @@ def _demo(
 
 
             # update params with possibly different points from gnpg
-            for _param in _DemoCls.GRIDS_[_pass]:
+            for _param in _DemoCls._GRIDS[_pass]:
                 _DemoCls.params[_param][1][_pass] = \
-                    len(_DemoCls.GRIDS_[_pass][_param])
+                    len(_DemoCls._GRIDS[_pass][_param])
 
         print(f'Done.')
 
@@ -162,7 +162,7 @@ def _demo(
 
     # 1c) update self.RESULTS - this must be set to the DemoCls attribute
     # so that DemoCls knows how to build the next param grid
-    _DemoCls.RESULTS_ = _RESULTS
+    _DemoCls._RESULTS = _RESULTS
 
     del _RESULTS, _pass
 

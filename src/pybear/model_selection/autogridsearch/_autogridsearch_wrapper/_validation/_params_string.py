@@ -49,7 +49,7 @@ def _val_string_param_value(
     """
 
 
-    assert _string_param_value[2].lower() == 'fixed_string'
+    assert _string_param_value[2] == 'fixed_string'
 
 
     _base_err_msg = \

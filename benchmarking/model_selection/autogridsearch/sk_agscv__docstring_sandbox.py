@@ -14,7 +14,7 @@
 
 
 
-from pybear.model_selection import SklearnAutoGridSearch
+from pybear.model_selection import AutoGridSearchCV
 
 from sklearn.linear_model import LogisticRegression
 
@@ -26,7 +26,7 @@ import numpy as np
 
 # hover over to see if docs are visible in tool tip
 
-gscv = SklearnAutoGridSearch(
+gscv = AutoGridSearchCV(
     estimator=LogisticRegression(),
     params={'C':[np.logspace(0, 6, 7),[7, 11, 11],'soft_float']}
 )

@@ -9,77 +9,73 @@
 
 
 
-# pizza
-# def autogridsearch_docs():
-
 """
-
 Run multiple passes of grid search with progressively more precise
-search spaces to find the most precise estimate of the best value
-for each hyperparameter. 'Best' values are those hyperparameter
-values within the given search space that minimize loss or maximize
-score for the particular data set and estimator being fit.
+search spaces to find the most precise estimate of the best value for
+each hyperparameter. 'Best' values are those hyperparameter values
+within the given search space that minimize loss or maximize score for
+the particular data set and estimator being fit.
 
-The best_params_ attribute of sklearn / dask / pybear grid search
-modules is a dictionary with parameter names as keys and respective
-best values as values that is (sometimes) exposed by the fit() method
-of the parent GridSearch upon completion of a search over a set of
-grids. autogridsearch_wrapper requires that the best_params_ attri-
-bute be exposed by every call to the parent grid search's fit method.
-Therefore, grid search configurations that do not expose the
-best_params_ attribute of the parent grid search are explicitly
-blocked by autogridsearch_wrapper. The conditions where a grid search
-module do not expose the best_params_ attribute are determined by the
-number of scorers used and the 'refit' setting of the parent grid
-search. See the documentation for your parent grid search module for
-information about when then the best_params_ attribute is or is not
-exposed.
+The `best_params_` attribute of sklearn / dask_ml / pybear grid search
+modules is a dictionary with parameter names as keys and respective best
+values as values that is (sometimes) exposed by the fit method upon
+completion of a search over a set of grids. autogridsearch_wrapper wraps
+these foundational GridSearch classes and the superseding :meth: `fit`
+repeatedly makes calls to the parent's fit method to generate this
+`best_params_` attribute. Once the `best_params_` attribute is retrieved,
+information provided in :param: `params` is used in conjunction with the
+best params to calculate refined grids for the next search round.
 
-The fit() method of this wrapper class calls the parent GridSearch's
-fit() method to generate the best_params_ dictionary and uses the
-information provided in :param: params to calculate refined grids for
-the next search round.
+autogridsearch_wrapper requires that the parent exposes the `best_params_`
+attribute on every call to its fit method. Therefore, grid search
+configurations that do not cause the parent to expose the `best_params_`
+attribute are detected and rejected by autogridsearch_wrapper. The
+conditions where a parent grid search module does not expose the
+`best_params_` attribute are determined by things such as the number of
+scorers used and the 'refit' setting. See the docs for your parent grid
+search module for information about when then the `best_params_`
+attribute is or is not exposed.
 
-On the first pass, search grids are constructed as instructed in the
-'params' argument. On subsequent passes, calculated grids are
-constructed based on:
+On the first pass of an autogridsearch session, the search grid is
+constructed as instructed in the :param: `params` parameter. On
+subsequent passes, new search grids are constructed based on:
     • the preceding search grid,
-    • the results within 'best_params_',
-    • the parameters' datatypes as specified in 'params', and
-    • the number of points as specified in 'params'.
+    • the results within `best_params_`,
+    • the parameters' datatypes as specified in :param: `params`, and
+    • the number of points as specified in :param: `params`.
 
 The new refined grids are then passed to another dictionary that
-satisfies the 'param_grid' argument of GridSearchCV (or a different
-argument such as 'parameters' for other GridSearch modules.) The new
-param_grid is then passed to another round of GridSearchCV,
-best_params_ is retrieved, and another param_grid is created. This
-process is repeated at least total_passes number of times, with each
+satisfies the `param_grid` parameter of the parent GridSearchCV (or a
+different parameter such as `parameters` for other GridSearch modules.)
+The new param_grid is then passed to another round of GridSearchCV,
+`best_params_` is retrieved, and another param_grid is created. This
+process is repeated at least `total_passes` number of times, with each
 successive pass returning increasingly precise estimates of the true
 best hyperparameter values for the given estimator, data set, and
-restrictions imposed in the params parameter.
+restrictions imposed in the :param: `params` parameter.
 
-Example param_grid:
+Example `param_grid` for a parent GridSearch module:
     {
     'C': [0,5,10],
     'l1_ratio': [0, 0.5, 1],
     'solver': ['lbfgs', 'saga']
     }
 
-Example best_params:
+Example `best_params` for a parent GridSearch module:
     {
     'C': 10,
     'l1_ratio': 0.5,
     'solver': 'lbfgs']
     }
 
-AutoGridSearch leaves the API of the parent GridSearchCV module
-intact, and all of the parent module's methods and attributes are
-accessible via the AutoGridSearch instance. This, however, precludes
-AutoGridSearch from using the same API itself (doing so would over-
-write the underlying's.) So methods like set_params, get_params,
-etc., access the parent GridSearchCV and not the child AutoGridSearch
-wrapper. The attributes of an AutoGridSearch instance (max_shifts,
-total_passes, etc.) can be accessed and set directly:
+AutoGridSearch leaves the API of the parent GridSearchCV module intact,
+and all the parent module's attributes and methods (except fit) are
+accessible via the AutoGridSearch instance. AutoGridSearch is in fact an
+instance of the parent GridSearch, just with a new fit method. So
+methods like set_params, get_params, etc., are accessible just as they
+would be in a stand-alone instance of the parent GridSearch.. The
+attributes of an AutoGridSearch instance (max_shifts, total_passes,
+etc.) can be accessed and set directly:
 
 >>> from pybear.model_selection import autogridsearch_wrapper
 >>> from sklearn.model_selection import GridSearchCV
@@ -94,6 +90,8 @@ True
 >>> agscv.total_passes_is_hard = False
 >>> agscv.total_passes_is_hard
 False
+
+However this practice
 
 After a session of AutoGridSearch, all the attributes of the
 parent GridSearch are exposed through the AutoGridSearch
@@ -140,7 +138,8 @@ In the one case of 'fixed_integer', a zero may be passed to the
 integer search grid, breaking the universal minimum bound for
 integers, whereas all other integer search spaces observe the univ-
 ersal lower bound of 1.
-'fixed_string' and 'fixed_bool' parameters are also forms of fixed parameters.
+'fixed_string' and 'fixed_bool' parameters are also forms of fixed
+parameters.
 
 'hard' parameter - A parameter whose search is bounded to a conti-
 guous subset of real numbers, observant of the universal hard bounds.
@@ -430,7 +429,8 @@ redundant searches.
 The text field in the final position is required for all entries in
 the 'params' parameter. This informs AutoGridSearch on how to handle
 the grids and their values. For the two cases discussed here,
-'fixed_string' is required for string types and 'fixed_bool' for boolean types.
+'fixed_string' is required for string types and 'fixed_bool' for
+boolean types.
 
 ** * ** * **
 
@@ -541,7 +541,7 @@ params:
     See the "Params Argument" section of the AutoGridSearch docs for
     a lengthy, detailed, discussion.
 total_passes:
-    int, default 5 - the number of grid searches to perform. The
+    Optional[numbers.Integral], default 5 - the number of grid searches to perform. The
     actual number of passes run can be different from this number
     based on the setting for the total_passes_is_hard argument. If
     total_passes_is_hard is True, then the maximum number of total
@@ -552,17 +552,17 @@ total_passes:
     passes. Read elsewhere in the docs for more information about
     'shifting' and 'drilling'.
 total_passes_is_hard:
-    bool, default False - If True, total_passes is the exact number
+    Optional[bool], default False - If True, total_passes is the exact number
     of grid searches that will be performed. If False, rounds in
     which a 'shift' takes place will increment the total passes,
     essentially causing 'shift' passes to be ignored against the
     total count of grid searches.
 max_shifts:
-    [None, int], default None - The maximum number of 'shifting'
+    Optional[Union[None, numbers.Integral]], default None - The maximum number of 'shifting'
     searches allowed. If None, there is no limit to the number of
     shifts that AutoGridSearch will perform.
 agscv_verbose:
-    bool, default False - display the status of AutoGridSearch and
+    Optional[bool], default False - display the status of AutoGridSearch and
     other helpful information during the AutoGridSearch session, in
     addition to any verbosity displayed by the underlying
     GridsearchCV module.
@@ -581,29 +581,51 @@ RESULTS_:
     most precise estimates of the best hyperparameter values for the
     given estimator and data.
 
+
+Notes
+-----
+Type Aliases
+
+ParamsType:
+    dict[str, Sequence[Sequence[Any], Union[int, Sequence[int]], str]]
+
+GridsType:
+    dict[int, dict[str, list[Any]]]
+
+ResultsType:
+    dict[int, dict[str, Any]]
+
+
 Examples
 --------
->>> from pybear.model_selection import autogridsearch_wrapper
->>> from sklearn.model_selection import GridSearchCV
+>>> from pybear.model_selection import AutoGridSearchCV
 >>> from sklearn.linear_model import LogisticRegression
 >>> from sklearn.datasets import make_classification
->>> AutoGridSearchCV = autogridsearch_wrapper(GridSearchCV)
->>> estimator = LogisticRegression()
+
 >>> params = {
-...     'C': [[0.1, 0.01, 0.001], [3, 3, 3], 'soft_Float'],
-...     'fit_intercept': [[True, False], 2, 'fixed_bool'],
-...     'solver': [['lbfgs', 'saga'], 2, 'fixed_string']
+...     'C': [[0.1, 0.01, 0.001], [3, 3, 3], 'soft_float'],
+...     'fit_intercept': [[True, False], [2, 1, 1], 'fixed_bool'],
+...     'solver': [['lbfgs', 'saga'], [2, 1, 1], 'fixed_string']
 ... }
->>> agscv = AutoGridSearchCV(
-...     estimator,
-...     params,
-...     total_passes=4,
+>>> sk_agscv = AutoGridSearchCV(
+...     estimator=LogisticRegression(),
+...     params=params,
+...     total_passes=3,
 ...     total_passes_is_hard=True,
-...     max_shifts=3,
+...     max_shifts=None,
 ...     agscv_verbose=False,
 ... )
->>> X, y = make_classification(n_samples=10_000, n_features=100)
->>> agscv.fit(X, y)  #doctest:+SKIP
+>>> X, y = make_classification(n_samples=1000, n_features=10)
+>>> sk_agscv.fit(X, y)
+AutoGridSearchCV(estimator=LogisticRegression(),
+                 params={'C': [[0.001, 0.01, 0.1], [3, 3, 3], 'soft_float'],
+                         'fit_intercept': [[True, False], [2, 1, 1],
+                                           'fixed_bool'],
+                         'solver': [['lbfgs', 'saga'], [2, 1, 1],
+                                    'fixed_string']},
+                 total_passes=3, total_passes_is_hard=True)
+>>> print(sk_agscv.best_params_)   #doctest:+SKIP
+{'C': 0.0025, 'fit_intercept': True, 'solver': 'lbfgs'}
 
 """
 
