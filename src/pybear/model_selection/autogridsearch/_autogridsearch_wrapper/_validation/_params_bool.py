@@ -49,7 +49,7 @@ def _val_bool_param_value(
     """
 
 
-    assert _bool_param_value[2].lower() == 'fixed_bool'
+    assert _bool_param_value[2] == 'fixed_bool'
 
 
     _base_err_msg = f"bool param '{str(_bool_param_key)}' in :param: 'params' "

@@ -207,10 +207,19 @@ def _validate_int_float_linlogspace(
         raise TypeError(f"'_is_logspace' must be False or a float > 0")
 
     if len(_log_gaps) > 1 and _is_logspace:
-        raise ValueError(f"_is_logspace not False for non-log search space")
+        raise ValueError(
+            f"a log-space search grid has unexpectedly become not "
+            f"log-space. \nyou may have a runaway condition that has "
+            f"caused floating point round-off error. \nconsider using a "
+            f"linear search space or setting `total_passes_is_hard` to "
+            f"True."
+        )
 
     if len(_log_gaps) == 1 and not _is_logspace:
-        raise ValueError(f"_is_logspace False for log search space")
+        raise ValueError(
+            f"_is_logspace False for log search space."
+            f"\n{_SINGLE_GRID=}"
+        )
 
     del _log_gaps
 

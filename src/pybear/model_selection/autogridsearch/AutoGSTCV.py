@@ -6,8 +6,8 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
+from typing import Optional, Sequence, Tuple
+from typing_extensions import Any, Union
 
 import numbers
 
@@ -18,9 +18,8 @@ from ..GSTCV._GSTCV.GSTCV import GSTCV
 
 
 
-
-
 class AutoGSTCV(autogridsearch_wrapper(GSTCV)):
+
 
     #     AutoGridSearchCV = type(
     #         'SklearnAutoGridSearch',
@@ -38,17 +37,22 @@ class AutoGSTCV(autogridsearch_wrapper(GSTCV)):
         estimator,
         params: dict[
             str,
-            list[Sequence[any], Union[int, Sequence[int]], str]
+            Sequence[Tuple[
+                Sequence[Any],
+                Union[numbers.Integral, Sequence[numbers.Integral]],
+                str
+            ]]
         ],
         *,
-        total_passes: int = 5,
-        total_passes_is_hard: bool = False,
-        max_shifts: Union[None, numbers.Integral] = None,
-        agscv_verbose: bool = False,
+        total_passes:Optional[numbers.Integral] = 5,
+        total_passes_is_hard:Optional[bool] = False,
+        max_shifts:Optional[Union[None, numbers.Integral]] = None,
+        agscv_verbose:Optional[bool] = False,
         **parent_gscv_kwargs
     ):
 
-        __doc__ = autogridsearch_docs.__doc__
+        """Initialize the AutoGSTCV instance."""
+
 
         super().__init__(
             estimator,
@@ -59,7 +63,6 @@ class AutoGSTCV(autogridsearch_wrapper(GSTCV)):
             agscv_verbose=agscv_verbose,
             **parent_gscv_kwargs
         )
-
 
 
 

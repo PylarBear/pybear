@@ -137,6 +137,26 @@ class TestFirstGrid:
             )
 
 
+    def test_rejects_duplicate(self, total_passes, _type):
+
+        if 'string' in _type:
+            _bad_grid = list('aabc')
+        elif 'bool' in _type:
+            _bad_grid = [True, False, False, None]
+        elif 'float' in _type:
+            _bad_grid = [-np.e, np.e, np.e, np.pi]
+        elif 'integer' in _type:
+            _bad_grid = [0, 0, 1, 2]
+        else:
+            raise Exception
+
+        with pytest.raises(ValueError):
+            _val_params(
+                {'good_key': [_bad_grid, [4 for _ in range(total_passes)], _type]},
+                total_passes
+            )
+
+
 @pytest.mark.parametrize('_type', allowed_types)
 @pytest.mark.parametrize('total_passes', (1, 3))
 class TestPoints:
@@ -422,6 +442,17 @@ class TestType:
         with pytest.raises(ValueError):
             _val_params(
                 {'good_key': [['a', 'b'], None, bad_string]}, 2
+            )
+
+
+    @pytest.mark.parametrize('bad_case',
+        ('FIXED_INTEGER', 'FIXED_float', 'hard_INTEGER', 'HaRd_FlOaT',
+         'sOfT_iNtEgEr', 'sofT_Float')
+    )
+    def test_rejects_bad_case(self, bad_case):
+        with pytest.raises(ValueError):
+            _val_params(
+                {'good_key': [['a', 'b'], None, bad_case]}, 2
             )
 
 

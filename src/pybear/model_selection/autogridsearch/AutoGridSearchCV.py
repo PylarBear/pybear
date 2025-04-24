@@ -6,21 +6,20 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
-import numpy.typing as npt
+from typing import Optional, Sequence, Tuple
+from typing_extensions import Any, Union
 
 import numbers
 
-from ..autogridsearch.autogridsearch_wrapper import \
-    autogridsearch_wrapper
-from ..autogridsearch import autogridsearch_docs
+from .autogridsearch_wrapper import autogridsearch_wrapper
+from . import autogridsearch_docs
 
 from sklearn.model_selection import GridSearchCV
 
 
 
 class AutoGridSearchCV(autogridsearch_wrapper(GridSearchCV)):
+
 
     #     AutoGridSearchCV = type(
     #         'SklearnAutoGridSearch',
@@ -38,17 +37,22 @@ class AutoGridSearchCV(autogridsearch_wrapper(GridSearchCV)):
         estimator,
         params: dict[
             str,
-            list[Union[Sequence[any]], Union[int, Sequence[int]], str]
+            Sequence[Tuple[
+                Sequence[Any],
+                Union[numbers.Integral, Sequence[numbers.Integral]],
+                str
+            ]]
         ],
         *,
-        total_passes: numbers.Integral = 5,
-        total_passes_is_hard: bool = False,
-        max_shifts: Union[None, numbers.Integral] = None,
-        agscv_verbose: bool = False,
+        total_passes:Optional[numbers.Integral] = 5,
+        total_passes_is_hard:Optional[bool] = False,
+        max_shifts:Optional[Union[None, numbers.Integral]] = None,
+        agscv_verbose:Optional[bool] = False,
         **parent_gscv_kwargs
     ):
 
-        __doc__ = autogridsearch_docs.__doc__
+        """Initialize the AutoGridSearchCV instance."""
+
 
         super().__init__(
             estimator,
@@ -59,7 +63,6 @@ class AutoGridSearchCV(autogridsearch_wrapper(GridSearchCV)):
             agscv_verbose=agscv_verbose,
             **parent_gscv_kwargs
         )
-
 
 
 
