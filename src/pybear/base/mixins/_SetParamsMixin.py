@@ -16,7 +16,7 @@ class SetParamsMixin:
     def set_params(self, **params) -> Self:
 
         """
-        Set the parameters of an instance or an embedded instance. This
+        Set the parameters of an instance or a nested instance. This
         method works on simple estimator and transformer instances as
         well as on nested objects (such as GridSearch instances).
 
@@ -28,8 +28,8 @@ class SetParamsMixin:
         values. Valid parameter keys can be listed with get_params().
 
         Setting the parameters of a GridSearch instance (but not the
-        embedded instances) can be done in the same way as above. The
-        parameters of embedded instances can be updated using prefixes
+        nested instance) can be done in the same way as above. The
+        parameters of nested instances can be updated using prefixes
         on the parameter names.
 
         Simple estimators in a GridSearch instance can be updated by
@@ -39,25 +39,26 @@ class SetParamsMixin:
         estimator__depth=3 as a keyword argument to the set_params method
         call.
 
-        The parameters of a pipeline embedded in a GridSearch instance
+        The parameters of a pipeline nested in a GridSearch instance
         can be updated using the form estimator__<pipe_parameter>.
         The parameters of the steps of a pipeline have the form
-        <step>__<parameter> so that it’s also possible to update a step's
-        parameters through the set_params method interface. The
-        parameters of steps in the pipeline can be updated using
+        <step>__<parameter> so that it’s also possible to update a
+        step's parameters through the set_params method interface.
+        The parameters of steps in the pipeline can be updated using
         'estimator__<step>__<parameter>'.
 
 
         Parameters
         ----------
         **params:
-            dict[str: any] - estimator parameters and their new values.
+            dict[str: any] - the parameters to be updated and their new
+            values.
 
 
         Return
         ------
         -
-            self - the estimator instance with new parameter values.
+            self - the instance with new parameter values.
 
         """
 
@@ -86,7 +87,7 @@ class SetParamsMixin:
         # make lists of what parameters are valid
         # use shallow get_params to get valid params for top level instance
         ALLOWED_TOP_LEVEL_PARAMS = list(self.get_params(deep=False).keys())
-        # use deep get_params to get valid sub params for embedded
+        # use deep get_params to get valid sub params for nested
         # estimator/pipe (if applicable, ALLOWED_SUB_PARAMS could stay empty)
         ALLOWED_SUB_PARAMS = []
         for k in self.get_params(deep=True):
@@ -146,7 +147,7 @@ class SetParamsMixin:
 
             return self
 
-        # v v v v v EVERYTHING BELOW IS FOR AN EMBEDDED v v v v v v v v
+        # v v v v v EVERYTHING BELOW IS FOR A NESTED v v v v v v v v v
 
         # set sub params ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -162,7 +163,7 @@ class SetParamsMixin:
         self.estimator.set_params(**GIVEN_SUB_PARAMS)
 
         # BUT IN CASE IS DOESNT....
-        # this is stop-gap validation in case an embedded estimator
+        # this is stop-gap validation in case a nested estimator
         # (of a makeshift sort, perhaps) does not block setting invalid
         # params.
         for sub_param in GIVEN_SUB_PARAMS:
