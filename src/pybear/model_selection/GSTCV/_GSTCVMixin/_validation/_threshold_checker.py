@@ -5,21 +5,24 @@
 #
 
 
+
 from typing import Iterable
 from typing_extensions import Union
-import numpy as np
 import numpy.typing as npt
+
+import numbers
+
+import numpy as np
 
 
 
 def _threshold_checker(
-        __thresholds: Union[None, Iterable[Union[int, float]], Union[int, float]],
-        is_from_kwargs: bool,
-        idx: int
-    ) -> npt.NDArray[np.float64]:
+    __thresholds: Union[None, numbers.Real, Iterable[numbers.Real]],
+    is_from_kwargs: bool,
+    idx: int
+) -> npt.NDArray[np.float64]:
 
     """
-
     This is a support function for _thresholds__param_grid().
 
     Validate __thresholds is
@@ -31,26 +34,24 @@ def _threshold_checker(
 
     Parameters
     ----------
-        __thresholds:
-            Union[None, Iterable[Union[int, float]], Union[int, float]] -
-            user-defined threshold(s)
-        is_from_kwargs:
-            bool - whether __thresholds was passed via the __init__ kwarg
-            or inside a param grid.
-        idx:
-            int - the index of the param grid associated with
-            __thresholds. If __thresholds was not passed in param grid,
-            a dummy idx value of 0 is used, and cannot be accessed
-            because the code routes through 'is_from_kwargs'.
+    __thresholds:
+        Union[None, numbers.Real, Iterable[numbers.Real]] -
+        user-defined threshold(s)
+    is_from_kwargs:
+        bool - whether __thresholds was passed via the __init__ kwarg
+        or inside a param grid.
+    idx:
+        int - the index of the param grid associated with
+        __thresholds. If __thresholds was not passed in param grid,
+        a dummy idx value of 0 is used, and cannot be accessed
+        because the code routes through 'is_from_kwargs'.
 
 
     Return
     ------
     -
-        __thresholds:
-            NDArray[np.float64] - user-defined or default floats sorted
-            ascending
-
+        __thresholds: NDArray[np.float64] - user-defined or default
+        floats sorted ascending
 
     """
 
@@ -122,29 +123,8 @@ def _threshold_checker(
     __thresholds.sort()
 
     del err_msg
+
     return __thresholds
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

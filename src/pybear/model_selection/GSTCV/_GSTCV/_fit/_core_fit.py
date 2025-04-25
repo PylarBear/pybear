@@ -18,8 +18,9 @@ from ..._type_aliases import (
     GenericKFoldType
 )
 
-import time
 from copy import deepcopy
+import numbers
+import time
 
 import joblib
 import numpy as np
@@ -46,7 +47,7 @@ def _core_fit(
     _estimator: ClassifierProtocol,
     _cv_results: CVResultsType,
     _cv: Union[int, Iterable[GenericKFoldType]],
-    _error_score: Union[int, float, Literal['raise']],
+    _error_score: Union[numbers.Real, Literal['raise']],
     _verbose: int,
     _scorer: ScorerWIPType,
     _n_jobs: Union[int, None],
@@ -96,7 +97,7 @@ def _core_fit(
         As iterable (generator, vector-like), a sequence of tuples of
         vectors to be used as indices in making the train/test splits.
     _error_score:
-        Union[int, float, Literal['raise']] - if a training fold excepts
+        Union[numbers.Real, Literal['raise']] - if a training fold excepts
         during fitting, the exception can be allowed to raise by passing
         the 'raise' literal. Otherwise, passing a number or number-like
         will cause the exception to be handled, allowing the grid search

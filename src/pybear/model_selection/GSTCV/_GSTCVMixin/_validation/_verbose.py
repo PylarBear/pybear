@@ -5,69 +5,62 @@
 #
 
 
-from typing_extensions import Union
 
-import numpy as np
+from typing import Optional
+
+import numbers
 
 
-def _validate_verbose(
-        _verbose: Union[bool, int, float]
-    ) -> int:
+
+def _val_verbose(
+    _verbose: numbers.Real,
+    _can_be_raw_value:Optional[bool] = False
+) -> None:
 
     """
-    Validate _verbose, the amount of verbosity to display to screen
+    Validate `verbose`, the amount of verbosity to display to screen
     during the grid search.
 
-    Take in a bool, int, or float, and return an integer in the range of
-    0 to 10, inclusive. Non-numbers are rejected. Bool False is converted
-    to zero, bool True is converted to 10. Floats are rounded to integers.
-    Negative numbers are rejected. Numbers greater than 10 are set to 10.
+    Must be number-like >= 0 , non-numbers are rejected.
+
 
     Parameters
     ---------
     _verbose:
-        bool, int, float - the amount of verbosity to display to screen
+        numbers.Real - the amount of verbosity to display to screen
         during the grid search.
+
 
     Return
     ------
     -
-        _verbose: int - scaled from 0 to 10
+        None
 
     """
 
 
-    err_msg = f"verbose must be a bool or a numeric > 0"
+    _err_msg = f"verbose must be a number-like >= 0. "
+
+    _addon = ''
 
     try:
-        if isinstance(_verbose, bool):
-            if _verbose is True:
-                _verbose = 10
-            elif _verbose is False:
-                _verbose = 0
         float(_verbose)
-        if _verbose is np.nan:
-            _verbose = 0
-        _verbose = min(int(round(_verbose, 0)), 10)
-    except:
-        raise TypeError(err_msg)
-
-    if _verbose < 0:
-        raise ValueError(err_msg)
-
-    del err_msg
-
-    return _verbose
-
-
-
+        if _verbose < 0:
+            raise UnicodeError
+        # -- -- for _can_be_raw_value -- -- -- --
+        if not _can_be_raw_value:
+            _addon = f'got {_verbose} but raw value is disallowed'
+            if not isinstance(_verbose, int) or isinstance(_verbose, bool):
+                raise Exception
+            if _verbose > 10:
+                raise UnicodeError
+    except UnicodeError:
+        raise ValueError(_err_msg + _addon)
+    except Exception as e:
+        raise TypeError(_err_msg + _addon)
 
 
-
-
-
-
-
+    del _err_msg
 
 
 

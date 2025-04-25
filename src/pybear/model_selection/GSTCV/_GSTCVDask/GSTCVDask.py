@@ -626,13 +626,14 @@ class GSTCVDask(_GSTCVMixin):
             y,
             self._estimator,
             self.cv_results_,
-            self._cv,
-            self._error_score,
+            self._cv,   # pizza, in GSTCVMixin, this is turned to list(tuple, tuple,...)
+            # do we want that for dasK?
+            self.error_score,
             self._verbose,
             self.scorer_,
             self._cache_cv,
             self._iid,
-            self._return_train_score,
+            self.return_train_score,
             self._PARAM_GRID_KEY,
             self._THRESHOLD_DICT,
             **params
@@ -680,7 +681,7 @@ class GSTCVDask(_GSTCVMixin):
 
         self._iid = _validate_iid(self.iid)
 
-        self._scheduler = _validate_scheduler(self.scheduler, self._n_jobs)
+        self._scheduler = _validate_scheduler(self.scheduler, self.n_jobs)
 
         self._cache_cv = _validate_cache_cv(self.cache_cv)
 

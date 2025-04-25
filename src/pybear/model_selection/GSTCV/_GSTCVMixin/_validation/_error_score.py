@@ -5,53 +5,62 @@
 #
 
 
+
 from typing import Literal
 from typing_extensions import Union
 
+import numbers
 
 
 
-def _validate_error_score(
-        _error_score: Union[Literal['raise'], float, int]
-    ) -> Union[Literal['raise'], float, int]:
+def _val_error_score(
+    _error_score: Union[Literal['raise'], numbers.Real]
+) -> None:
 
     """
+    Validate that `error_score` is a non-boolean numeric value or literal
+    'raise'.
 
-    Validate that error_score is a numeric value or literal 'raise'.
 
     Parameters
     ----------
     _error_score:
-        Union[int, float, Literal['raise']] -
-        Score to assign if an error occurs in estimator fitting.
+        Union[Literal['raise'], numbers.Real] - Score to assign if an
+        error occurs in estimator fitting.
+
 
     Returns
     -------
     -
-        _error_score: Union[int, float, Literal['raise']] - the validated
-            error_score
+        None
 
     """
 
 
-    err_msg = (f"kwarg 'error_score' must be 1) literal string 'raise', "
-               f"or 2) any number including np.nan")
+    _err_msg = (
+        f"'error_score' must be 1) literal string 'raise', or 2) any "
+        f"non-boolean number-like including np.nan"
+    )
+
 
     if isinstance(_error_score, str):
-        _error_score = _error_score.lower()
         if _error_score != 'raise':
-            raise ValueError(err_msg)
-    else:
-        try:
-            float(_error_score)
-            if isinstance(_error_score, bool):
-                raise Exception
-        except:
-            raise TypeError(err_msg)
+            raise ValueError(_err_msg)
+        return
 
-    del err_msg
 
-    return _error_score
+    try:
+        float(_error_score)
+        if isinstance(_error_score, bool):
+            raise Exception
+    except:
+        raise TypeError(_err_msg)
+
+
+    del _err_msg
+
+
+
 
 
 

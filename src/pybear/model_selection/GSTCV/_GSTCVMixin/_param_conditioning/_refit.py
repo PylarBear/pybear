@@ -18,7 +18,7 @@ import warnings
 def _val_refit(
     _refit: RefitType,
     _scorer: ScorerWIPType
-) -> None:
+) -> RefitType:
 
     """
     Validate the `refit` parameter with respect to the number of scorers.
@@ -49,10 +49,12 @@ def _val_refit(
     Return
     ------
     -
-        None
+        _refit: Union[bool, str, callable], default=True - validated
+        refit.
 
 
     """
+
 
 
     err_msg = (

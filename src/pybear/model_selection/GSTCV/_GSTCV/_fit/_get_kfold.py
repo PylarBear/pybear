@@ -22,11 +22,11 @@ from sklearn.model_selection import StratifiedKFold
 
 
 def _get_kfold(
-        _X: XSKWIPType,
-        _y: YSKWIPType,
-        _n_splits: int,
-        _verbose: int
-    ) -> Generator[SKKFoldType, None, None]:
+    _X: XSKWIPType,
+    _y: YSKWIPType,
+    _n_splits: int,
+    _verbose: int
+) -> Generator[SKKFoldType, None, None]:
 
 
     """

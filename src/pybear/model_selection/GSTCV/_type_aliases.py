@@ -73,15 +73,16 @@ ScorerNameTypes: TypeAlias = Literal[
     'recall'
 ]
 
-ScorerCallableType: TypeAlias = Callable[[YInputType, YInputType, ...], float]
+ScorerCallableType: TypeAlias = Callable[[XInputType, YInputType, ...], float]
 
 
 ScorerInputType: TypeAlias = Union[
     ScorerNameTypes,
+    Sequence[ScorerNameTypes],
     ScorerCallableType,
-    list[ScorerNameTypes],
     dict[str, ScorerCallableType]
 ]
+
 
 
 class ScorerWIPType(TypedDict):
@@ -93,6 +94,7 @@ class ScorerWIPType(TypedDict):
     precision: NotRequired[ScorerCallableType]
     recall: NotRequired[ScorerCallableType]
     score: NotRequired[ScorerCallableType]
+
 # END scoring / scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 
 

@@ -13,6 +13,7 @@ from ..._type_aliases import (
     ClassifierProtocol
 )
 
+import numbers
 import time
 import warnings
 
@@ -59,7 +60,7 @@ def _parallelized_fit(
         values to be used during this fit. One permutation of all the
         grid search permutations.
     _error_score:
-        Union[int, float, Literal['raise']] - if a training fold excepts
+        Union[numbers.Real, Literal['raise']] - if a training fold excepts
         during fitting, the exception can be allowed to raise by passing
         the 'raise' literal. Otherwise, passing a number or number-like
         will cause the exception to be handled, allowing the grid search
@@ -92,7 +93,7 @@ def _parallelized_fit(
     assert isinstance(_X_train, np.ndarray)
     assert isinstance(_y_train, np.ndarray)
     assert isinstance(_grid, dict)
-    assert isinstance(_error_score, (str, float, int))
+    assert isinstance(_error_score, (str, numbers.Real))
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 

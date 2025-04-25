@@ -8,6 +8,7 @@
 
 from typing_extensions import Union
 
+import numbers
 import time
 
 import numpy as np
@@ -30,7 +31,7 @@ def _parallelized_scorer(
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
     _THRESHOLDS: npt.NDArray[np.float64],
-    _error_score: Union[int, float, None],
+    _error_score: Union[numbers.Real, None],
     _verbose: int,
     **scorer_params
 ) -> tuple[np.ma.masked_array, np.ma.masked_array]:
@@ -73,7 +74,7 @@ def _parallelized_scorer(
         cv_results. This is the vector of thresholds from the mother that
         also mothered this search permutation.
     _error_score:
-        Union[int, float, Literal['raise']] - if the training fold
+        Union[numbers.Real, Literal['raise']] - if the training fold
         complementing this test fold excepted during fitting and
         error_score was set to the 'raise' literal, this module cannot
         be reached. Otherwise, a number or number-like was passed to

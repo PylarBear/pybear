@@ -6,112 +6,105 @@
 
 
 
-from typing import Iterable
+from typing import Iterable, Optional
 from typing_extensions import Union
-
 from ..._type_aliases import GenericKFoldType
 
+import numbers
 
 
-def _validate_cv(
-        _cv: Union[None, int, Iterable[GenericKFoldType]]
-    ) -> Union[int, Iterable[GenericKFoldType]]:
+
+def _val_cv(
+    _cv: Union[None, numbers.Integral, Iterable[GenericKFoldType]],
+    _can_be_None:Optional[bool] = False,
+    _can_be_int:Optional[bool] = False
+) -> None:
 
     """
-
     Validate that _cv is:
     1) None,
-    2) an integer > 1, or
-    3) an iterable of tuples, with each tuple holding a pair of iterables;
-    the outer iterable cannot be empty, and must contain than one pair.
+    2) an integer >= 2, or
+    3) an iterable of tuples, with each tuple holding a pair of
+        sequences; the outer iterable cannot be empty, and must
+        contain more than one pair.
 
 
     Parameters
     ----------
     _cv:
-        int, Iterable, None -
+        Union[None, numbers.Integral, Iterable[GenericKFoldType]]] -
+
         Possible inputs for cv are:
-        1) None, to use the default 5-fold cross validation,
-        2) integer, must be 2 or greater, to specify the number of folds
-        in a (Stratified)KFold,
+
+        1) None, to use the default n-fold cross validation,
+
+        2) integer >= 2 to specify the number of folds in a
+            (Stratified)KFold,
+
         3) An iterable yielding (train, test) split indices as arrays.
 
 
     Return
     ------
     -
-        _cv: int, Iterable - validated cv input
+        None
 
 
     """
 
 
-    _cv = 5 if _cv is None else _cv
+    assert isinstance(_can_be_None, bool)
+    assert isinstance(_can_be_int, bool)
 
 
     err_msg = (
         "Possible inputs for cv are: "
-        "\n1) None, to use the default 5-fold cross validation, "
-        "\n2) integer > 1, to specify the number of folds in a (Stratified)KFold, "
-        "\n3) An iterable yielding a sequence of (train, test) split pairs "
-        "as arrays of indices, with at least 2 pairs."
+        "\n1) None, to use the default n-fold cross validation, "
+        "\n2) integer >= 2, to specify the number of folds in a (Stratified)KFold, "
+        "\n3) An iterable yielding at least 2 (train, test) split pairs "
+        "with each pair being 2 vectors of indices."
     )
 
 
-    _is_iter = False
-    _is_int = False
+    _addon = ''
+
     try:
+        if _cv is None:
+            if _can_be_None:
+                raise TimeoutError
+            elif not _can_be_None:
+                _addon = f"\ngot None but None is disallowed."
+                raise UnicodeError
+
+        # DONT ITER THE ITERABLE HERE. IF IT IS A GENERATOR IT WILL BE
+        # SPENT. HAVE TO WAIT UNTIL CONDITIONING WHERE GENERATOR WOULD
+        # BE CACHED AS LIST.
         iter(_cv)
         if isinstance(_cv, (dict, str)):
-            raise Exception
-        _is_iter = True
-        _cv = list(_cv)
-    except:
+            _addon = f"\ngot {type(_cv)}"
+            raise UnicodeError
+    except TimeoutError:
+        pass
+    except UnicodeError:
+        raise TypeError(err_msg + _addon)
+    except Exception as e:
+        # to handle a non-iterable
         try:
+            _addon = f"\nGot {_cv}"
             float(_cv)
             if isinstance(_cv, bool):
                 raise Exception
             if int(_cv) != _cv:
                 raise Exception
-            _cv = int(_cv)
-            _is_int = True
-        except:
-            raise TypeError(err_msg)
-
-
-    assert _is_iter is not _is_int
-
-
-    if _is_iter:
-        ctr = 0
-        for thing in _cv:
-            ctr += 1
-            try:
-                iter(thing)
-                if not len(thing) == 2:
-                    raise Exception
-                for array in thing:
-                    iter(array)
-            except:
-                raise TypeError(err_msg)
-
-        if ctr == 0:
-            raise ValueError(f"'cv' is an empty iterable")
-
-        elif ctr == 1:
-            raise ValueError(err_msg)
-
-
-    elif _is_int:
-        if _cv < 2:
-            raise ValueError(err_msg + f"\nGot {_cv} instead.")
-
-
-    return _cv
-
-
-
-
+            if not _can_be_int:
+                _addon = f"\ngot int but int is disallowed."
+                raise Exception
+            if _cv < 2:
+                raise MemoryError
+        except MemoryError:
+            raise ValueError(err_msg + _addon)
+        except Exception as e:
+            raise TypeError(err_msg + _addon)
 
 
 
