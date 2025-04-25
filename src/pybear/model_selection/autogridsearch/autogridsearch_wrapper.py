@@ -362,7 +362,8 @@ def autogridsearch_wrapper(
             Return
             ------
             -
-                params: dict - Parameter names mapped to their values.
+                params: dict[str, Any] - Parameter names mapped to their
+                values.
 
             """
 
@@ -411,7 +412,7 @@ def autogridsearch_wrapper(
             Parameters
             ----------
             **params:
-                dict[str: any] - the parameters to be updated and their
+                dict[str: Any] - the parameters to be updated and their
                 new values.
 
 
