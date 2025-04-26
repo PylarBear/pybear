@@ -53,7 +53,7 @@ def _core_fit(
     _n_jobs: Union[int, None],
     _return_train_score: bool,
     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
-    _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
+    _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]], # pizza list[float]
     **fit_params
     ) -> CVResultsType:
 
@@ -447,7 +447,7 @@ def _core_fit(
 
         if _return_train_score:
 
-            _BEST_THRESHOLDS_BY_SCORER = _THRESHOLDS[
+            _BEST_THRESHOLDS_BY_SCORER = np.array(_THRESHOLDS)[
                 TEST_BEST_THRESHOLD_IDXS_BY_SCORER
             ]
 

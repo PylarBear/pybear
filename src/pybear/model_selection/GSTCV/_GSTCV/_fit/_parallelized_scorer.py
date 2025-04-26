@@ -28,7 +28,7 @@ def _parallelized_scorer(
     _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
-    _THRESHOLDS: npt.NDArray[np.float64],
+    _THRESHOLDS: npt.NDArray[np.float64],  # pizza list[float]
     _error_score: Union[numbers.Real, None],
     _verbose: int,
     **scorer_params
@@ -112,7 +112,7 @@ def _parallelized_scorer(
     assert isinstance(_f_idx, int)
     assert isinstance(_SCORER_DICT, dict)
     assert all(map(callable, _SCORER_DICT.values()))
-    assert isinstance(_THRESHOLDS, np.ndarray)
+    assert isinstance(_THRESHOLDS, (list, np.ndarray)) # pizza
     assert isinstance(_verbose, (int, float))
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 

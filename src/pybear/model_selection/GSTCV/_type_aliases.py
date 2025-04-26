@@ -49,6 +49,7 @@ IntermediateHolderType: TypeAlias = Union[
     npt.NDArray[Union[int, float]]
 ]
 
+# pizza this should probably be split up!
 ParamGridType: TypeAlias = Union[
     dict[str, Union[list[any], npt.NDArray[any]]],
     list[dict[str, Union[list[any], npt.NDArray[any]]]]
@@ -99,7 +100,9 @@ class ScorerWIPType(TypedDict):
 
 
 RefitCallableType: TypeAlias = Callable[[CVResultsType], int]
-RefitType: TypeAlias = Union[bool, ScorerNameTypes, RefitCallableType, None]
+RefitType: TypeAlias = Union[bool, ScorerNameTypes, RefitCallableType]
+
+# pizza what about a ThresholdsType?
 
 
 SchedulerType: TypeAlias = Union[

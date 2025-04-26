@@ -8,6 +8,8 @@
 
 import pytest
 
+import numbers
+
 import numpy as np
 
 from sklearn.metrics import (
@@ -30,12 +32,14 @@ class TestCondScoring:
     )
     def test_accepts_good_strs(self, good_scoring):
 
+        # because len(out)==1, actual scorer name is changed to 'score'
+
         out = _cond_scoring(good_scoring)
         assert isinstance(out, dict)
         assert len(out) == 1
-        assert good_scoring in out
-        assert callable(out[good_scoring])
-        assert float(out[good_scoring]([1, 0, 1, 1], [1, 0, 0, 1]))
+        assert 'score' in out
+        assert callable(out['score'])
+        assert isinstance(out['score']([1, 0, 1, 1], [1, 0, 0, 1]), float)
 
 
     def test_accepts_good_callable(self):
@@ -47,7 +51,7 @@ class TestCondScoring:
         assert len(out) == 1
         assert 'score' in out
         assert callable(out['score'])
-        assert float(out['score']([1, 0, 1, 1], [1, 0, 0, 1]))
+        assert isinstance(out['score']([1, 0, 1, 1], [1, 0, 0, 1]), numbers.Real)
 
 
     @pytest.mark.parametrize('good_lists',
@@ -61,7 +65,7 @@ class TestCondScoring:
         for metric in good_lists:
             assert metric in out
             assert callable(out[metric])
-            assert float(out[metric]([1,0,1,1], [1,0,0,1]))
+            assert isinstance(out[metric]([1,0,1,1], [1,0,0,1]), float)
 
 
     @pytest.mark.parametrize('good_dict',
@@ -76,7 +80,7 @@ class TestCondScoring:
         for metric in good_dict:
             assert metric in out
             assert callable(out[metric])
-            assert float(out[metric]([0,1,0,1],[1,0,0,1]))
+            assert isinstance(out[metric]([0,1,0,1],[1,0,0,1]), float)
 
 
 

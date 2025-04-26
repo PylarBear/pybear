@@ -7,20 +7,23 @@
 
 
 from typing import Iterable, Optional
-from typing_extensions import Union
+from typing_extensions import Self, Union
 import numpy.typing as npt
 
+from contextlib import nullcontext
 from copy import deepcopy
+import numbers
 import time
 
 import numpy as np
 import dask.array as da
 
-from ._validation._refit import _val_refit
-from ._validation._thresholds__param_grid import _validate_thresholds__param_grid
 from ._validation._validation import _validation
 
+from ._param_conditioning._thresholds import _cond_thresholds
+from ._param_conditioning._param_grid import _cond_param_grid
 from ._param_conditioning._scoring import _cond_scoring
+from ._param_conditioning._refit import _cond_refit
 from ._param_conditioning._cv import _cond_cv
 from ._param_conditioning._verbose import _cond_verbose
 
@@ -105,6 +108,27 @@ class _GSTCVMixin(
     ####################################################################
     # SKLEARN / DASK GSTCV Methods #####################################
 
+
+    def _reset(self) -> Self:
+
+        # pizza see what else need to be deleted...
+        # what about multimetric_ & n_splits_?
+        try:
+            del self.best_estimator_
+        except:
+            pass
+        try:
+            del  self.refit_time_
+        except:
+            pass
+        try:
+            del self.feature_names_in_
+        except:
+            pass
+
+        return self
+
+
     def fit(
         self,
         X: Iterable[Iterable[Union[int, float]]],
@@ -160,8 +184,53 @@ class _GSTCVMixin(
 
         """
 
+        self._reset()
 
-        self._validate_and_reset()
+        _validation(
+            self.param_grid,
+            self.thresholds,
+            self.scoring,
+            self.n_jobs,
+            self.refit,
+            self.cv,
+            self.verbose,
+            self.error_score,
+            self.return_train_score
+        )
+
+        # pizza, pizza, pizza = _conditioning(
+        #
+        # )
+
+        self._param_grid = _cond_param_grid(
+            self.param_grid,
+            self.thresholds  # this is init thresh, needs cond
+        )
+
+        # by sklearn/dask design, name convention changes from 'scoring' to
+        # 'scorer_' after conversion to dictionary
+        self.scorer_ = _cond_scoring(self.scoring)
+
+        self._refit = _cond_refit(self.refit, self.scorer_)
+
+        self._cv = _cond_cv(self.cv, _cv_default=5)
+
+        self._verbose = _cond_verbose(self.verbose)
+
+        self.multimetric_ = len(self.scorer_) > 1
+
+        # n_splits_ is only available after fit(). n_splits_ is always
+        # returned as a number
+        self.n_splits_ = \
+            self._cv if isinstance(self._cv, numbers.Real) else len(self._cv)
+
+
+        # this is needed for GSTCV for compatibility with GSTCVMixin
+        # GSTCVDask will overwrite this
+        self._scheduler = nullcontext()
+
+        # END validate_and_reset ###########################################
+
 
         # feature_names_in_: ndarray of shape (n_features_in_,)
         # Names of features seen during fit. Only defined if
@@ -889,95 +958,6 @@ class _GSTCVMixin(
 
     ####################################################################
     # SUPPORT METHODS ##################################################
-
-    def _validate_and_reset(self) -> None:
-
-        """
-
-        Validate common __init__ args/kwargs for GSTCV and GSTCVDask.
-
-
-        Return
-        ------
-        -
-            None
-
-        """
-
-
-        _validation(
-            self.scoring,
-            self.n_jobs,
-            self.cv,
-            self.verbose,
-            self.error_score,
-            self.return_train_score
-        )
-
-        # pizza, pizza, pizza = _conditioning(
-        #
-        # )
-
-
-        self._param_grid = _validate_thresholds__param_grid(
-            self.thresholds,
-            self.param_grid
-        )
-
-        self.scorer_ = _cond_scoring(self.scoring)
-        self.multimetric_ = len(self.scorer_) > 1
-
-        # VALIDATE refit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        self._refit = _val_refit(self.refit, self.scorer_)
-
-        # IF AN INSTANCE HAS ALREADY BEEN fit() WITH refit != False,
-        # POST-REFIT ATTRS WILL BE AVAILABLE. BUT IF SUBSEQUENTLY refit
-        # IS SET TO FALSE VIA set_params, THE POST-REFIT ATTRS NEED TO BE
-        # REMOVED. IN THIS CONFIGURATION (i) THE REMOVE WILL HAPPEN AFTER
-        # fit() IS CALLED AGAIN WHERE THIS METHOD (val&reset) IS CALLED
-        # NEAR THE TOP OF fit() (ii) SETTING NEW PARAMS VIA set_params()
-        # WILL LEAVE POST-REFIT ATTRS AVAILABLE ON AN INSTANCE THAT SHOWS
-        # CHANGED PARAM SETTINGS (AS VIEWED VIA get_params()) UNTIL fit()
-        # IS RUN.
-        if self._refit is False:
-            try:
-                del self.best_estimator_
-            except:
-                pass
-            try:
-                del  self.refit_time_
-            except:
-                pass
-            try:
-                del self.feature_names_in_
-            except:
-                pass
-
-        # END VALIDATE refit ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
-
-
-
-
-
-        # NOW THAT refit IS VALIDATED, IF ONE THING IN SCORING, CHANGE
-        # THE KEY TO 'score'
-        if len(self.scorer_)==1:
-            self.scorer_ = {'score':v for k,v in self.scorer_.items()}
-
-        # n_splits_ is only available after fit(). n_splits_ is always
-        # returned as a number
-        # pizza this is wack!
-        self._cv = _cond_cv(self.cv, _cv_default=5)
-        try:
-            float(self._cv)
-            self.n_splits_ = self._cv
-        except:
-            self.n_splits_ = len(self._cv)
-
-        self._verbose = _cond_verbose(self.verbose)
-
-
-    # END validate_and_reset ###########################################
 
 
     def estimator_hasattr(self, attr_or_method_name: str) -> None:

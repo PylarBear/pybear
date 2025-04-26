@@ -5,17 +5,19 @@
 #
 
 
+
 import pytest
 
 import numpy as np
 
-from pybear.model_selection.GSTCV._GSTCVMixin._validation._thresholds__param_grid \
-    import _validate_thresholds__param_grid
+from pybear.model_selection.GSTCV._GSTCVMixin._param_conditioning._param_grid \
+    import _cond_param_grid
 
 
-class TestValidateThresholdsParamGrid:
 
-    # def _validate_thresholds__param_grid(
+class TestCondParamGrid:
+
+    # def _cond_param_grid(
     #   _thresholds: Union[Iterable[Union[int, float]], Union[int, float], None],
     #   _param_grid: ParamGridType
     # ) -> ParamGridType:
@@ -24,7 +26,7 @@ class TestValidateThresholdsParamGrid:
     @staticmethod
     @pytest.fixture
     def good_threshes():
-        return np.linspace(0, 1, 21)
+        return list(map(float, np.linspace(0, 1, 21)))
 
 
     @staticmethod
@@ -39,85 +41,76 @@ class TestValidateThresholdsParamGrid:
 
 
     # param_grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    @pytest.mark.parametrize('junk_param_grid',
-        (0, 1, 3.14, True, False, 'trash', min, lambda x: x)
-    )
-    def test_rejects_junk_param_grid(self, good_threshes, junk_param_grid):
-        with pytest.raises(TypeError):
-            _validate_thresholds__param_grid(good_threshes, junk_param_grid)
 
+    def test_accepts_good_param_grids(self, good_param_grid, good_threshes):
 
-    @pytest.mark.parametrize('junk_param_grid',
-        ({0:1, 1:2}, {'a': 1, 'b': 2}, {0: False, 1: True}, {0:[1,2,3]})
-    )
-    def test_rejects_junk_dicts(self, good_threshes, junk_param_grid):
-        with pytest.raises(TypeError):
-            _validate_thresholds__param_grid(good_threshes, junk_param_grid)
+        out = _cond_param_grid(None, good_threshes)
+        assert isinstance(out, list)
+        assert len(out) == 1   # should be [{}]
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    @pytest.mark.parametrize('junk_param_grid',
-        ([{0:1, 1:2}], (('a', 1), ('b', 2)), [1,2,3], ['a', 'b', 'c'])
-    )
-    def test_rejects_junk_lists(self, good_threshes, junk_param_grid):
-        with pytest.raises(TypeError):
-            _validate_thresholds__param_grid(good_threshes, junk_param_grid)
+        out = _cond_param_grid(good_param_grid, good_threshes)
+        assert isinstance(out, list)
+        assert len(out) == len(good_param_grid)
+        assert all(map(isinstance, out, (dict for i in out)))
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    def test_accepts_good_param_grids(self, good_threshes, good_param_grid):
-
-        _validate_thresholds__param_grid(good_threshes, None)
-
-        _validate_thresholds__param_grid(good_threshes, good_param_grid)
-
-        out = _validate_thresholds__param_grid(
-            good_threshes,
-            [good_param_grid[0]]
+        out = _cond_param_grid([good_param_grid[0]], good_threshes)
+        assert isinstance(out, list)
+        assert len(out) == 1
+        # verify thresholds passed via param grid supersede thresholds passed
+        # via kwarg
+        assert np.array_equiv(
+            out[0]['thresholds'],
+            # the thresholds in good_param_grid[0]
+            list(map(float, np.linspace(0,1,11)))
         )
+        # that means the param_grid threshs were not overwritten by init threshs
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        out = _cond_param_grid(
+            [good_param_grid[0], good_param_grid[1]],
+            good_threshes
+        )
+        assert isinstance(out, list)
+        assert all(map(isinstance, out, (dict for i in out)))
         # verify thresholds passed via param grid supersede thresholds passed
         # via kwarg (which would land in the first position in the function)
-        assert np.array_equiv(out[0]['thresholds'], np.linspace(0,1,11))
-
-
-        out = _validate_thresholds__param_grid(good_threshes,
-            [good_param_grid[0], good_param_grid[1]]
+        assert np.array_equiv(
+            out[0]['thresholds'],
+            # the thresholds in good_param_grid[0]
+            list(map(float, np.linspace(0,1,11)))
         )
-        # verify thresholds passed via param grid supersede thresholds passed
-        # via kwarg (which would land in the first position in the function)
-        assert np.array_equiv(out[0]['thresholds'], np.linspace(0,1,11))
         # grid #2 doesnt have thresholds passed, so should be the default
-        assert np.array_equiv(out[1]['thresholds'], np.linspace(0,1,21))
+        assert np.array_equiv(
+            out[1]['thresholds'],
+            list(map(float, np.linspace(0,1,21)))
+        )
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
-    @pytest.mark.parametrize('valid_empties',
-        ({}, [], [{}], [{}, {}])
-    )
+    @pytest.mark.parametrize('valid_empties', ({}, [], [{}], [{}, {}]))
     def test_accepts_valid_empties(self, valid_empties):
 
         _thresholds = {0, 0.25, 0.5, 0.75, 1}
 
-        out = _validate_thresholds__param_grid(
-            _thresholds,
-            valid_empties
+        out = _cond_param_grid(
+            valid_empties,
+            _thresholds
         )
-
+        assert isinstance(out, list)
         # remember validation always returns a list of dicts
         for _grid in out:
             assert len(_grid) == 1
             assert 'thresholds' in _grid
-            __ = _grid['thresholds']
-            assert isinstance(__, np.ndarray)
-            assert np.array_equiv(__, np.array(sorted(list(_thresholds))))
-
-
-    @pytest.mark.parametrize('bad_empties',
-        (((),), ([{}],), [[]], [(), ()])
-    )
-    def test_rejects_invalid_empties(self, bad_empties):
-
-        with pytest.raises(TypeError):
-            _validate_thresholds__param_grid(None, bad_empties)
-
+            assert isinstance(_grid['thresholds'], list)
+            assert np.array_equiv(
+                _grid['thresholds'],
+                sorted(list(_thresholds))
+            )
 
     # END param_grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -125,19 +118,11 @@ class TestValidateThresholdsParamGrid:
 
     # _thresholds ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.parametrize('junk_thresh',
-        (-1, 3.14, True, False, 'trash', min, [-1,2], (-2,1), lambda x: x)
-    )
-    def test_rejects_junk_thresh(self, good_param_grid, junk_thresh):
-        with pytest.raises((TypeError, ValueError)):
-            _validate_thresholds__param_grid(junk_thresh, good_param_grid)
-
-
     @pytest.mark.parametrize('_good_thresh',
         (0, 0.5, 1, [0, 0.1, 0.2], (0.8, 0.9, 1.0), None)
     )
     def test_accepts_good_thresh(self, good_param_grid, _good_thresh):
-        _validate_thresholds__param_grid(_good_thresh, good_param_grid)
+        _cond_param_grid(good_param_grid, _good_thresh)
 
     # END _thresholds ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -152,23 +137,23 @@ class TestValidateThresholdsParamGrid:
     # param grid with default thresholds
 
     # if param_grid was passed and did not have thresholds, should be the
-    # same except have given thresholds in it. If thresholds was not
-    # passed, default thresholds should be in it. (dict 2)
+    # same except have init thresholds in it. If thresholds was not
+    # passed, GSTCV default thresholds should be in it. (dict 2)
 
     # * * * *
 
 
     # conditionals between param_grid and thresholds ** * ** * ** * ** *
 
-    def test_accuracy_1(self, good_threshes, good_param_grid):
+    def test_accuracy_1(self, good_param_grid, good_threshes):
 
         # if param_grid had valid thresholds in it, it comes out the same as
         # it went in, regardless of what is passed to threshold kwarg
         # (dicts 1 & 3)
 
-        out = _validate_thresholds__param_grid(
-            np.linspace(0,1,5),
-            good_param_grid[0]
+        out = _cond_param_grid(
+            good_param_grid[0],
+            np.linspace(0,1,5)
         )
 
         assert isinstance(out, list)
@@ -180,7 +165,7 @@ class TestValidateThresholdsParamGrid:
         # thresholds passed via param grid supersede those passed via kwarg
         assert np.array_equiv(out[0]['thresholds'], np.linspace(0,1,11))
 
-        out = _validate_thresholds__param_grid(good_threshes, good_param_grid[2])
+        out = _cond_param_grid(good_param_grid[2], good_threshes)
 
         assert isinstance(out, list)
         assert len(out) == 1
@@ -197,7 +182,7 @@ class TestValidateThresholdsParamGrid:
         # grid with only the thresholds in it
 
         # notice testing pass as set
-        out = _validate_thresholds__param_grid({0, 0.25, 0.5, 0.75, 1}, None)
+        out = _cond_param_grid(None, {0, 0.25, 0.5, 0.75, 1})
 
         assert isinstance(out, list)
         assert len(out) == 1
@@ -206,7 +191,7 @@ class TestValidateThresholdsParamGrid:
         assert np.array_equiv(out[0]['thresholds'], np.linspace(0,1,5))
 
         # notice testing pass as list
-        out = _validate_thresholds__param_grid([0, 0.25, 0.5, 0.75, 1], {})
+        out = _cond_param_grid({}, [0, 0.25, 0.5, 0.75, 1])
 
         assert isinstance(out, list)
         assert len(out) == 1
@@ -220,7 +205,7 @@ class TestValidateThresholdsParamGrid:
         # if both param_grid and thresholds were not passed, should be one
         # param grid with default thresholds
 
-        out = _validate_thresholds__param_grid(None, None)
+        out = _cond_param_grid(None, None)
 
         assert isinstance(out, list)
         assert len(out) == 1
@@ -237,9 +222,9 @@ class TestValidateThresholdsParamGrid:
         # passed, default thresholds should be in it. (dict 2)
 
         # notice testing pass as set
-        out = _validate_thresholds__param_grid(
-            {0, 0.25, 0.5, 0.75, 1},
-            good_param_grid
+        out = _cond_param_grid(
+            good_param_grid,
+            {0, 0.25, 0.5, 0.75, 1}
         )
 
         assert isinstance(out, list)
@@ -264,9 +249,9 @@ class TestValidateThresholdsParamGrid:
                 for k,v in out[_idx].items():
                     assert np.array_equiv(v, good_param_grid[_idx][k])
 
-        # ** * ** *
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        out = _validate_thresholds__param_grid(None, good_param_grid)
+        out = _cond_param_grid(good_param_grid, None)
 
         assert isinstance(out, list)
         assert len(out) == 3
@@ -289,60 +274,6 @@ class TestValidateThresholdsParamGrid:
                 )
                 for k,v in out[_idx].items():
                     assert np.array_equiv(v, good_param_grid[_idx][k])
-
-
-    @pytest.mark.parametrize('thresholds', (None, 0.75, [0.25, 0.5, 0.75]))
-    def test_when_thresholds_passed_via_param_grid(self, thresholds):
-        # None, single number, cannot be passed as a value for
-        # 'thresholds' inside a param_grid, must be passed as a vector-
-        # like as usual for param grids.
-
-        if thresholds in [None, 0.75]:
-            with pytest.raises(TypeError):
-                _validate_thresholds__param_grid(
-                    None,
-                    {'thresholds': thresholds}
-                )
-
-
-        elif np.array_equiv(thresholds, [0.25, 0.5, 0.75]):
-
-            out = _validate_thresholds__param_grid(
-                None,
-                {'thresholds': thresholds}
-            )
-
-            assert np.array_equiv(
-                out[0]['thresholds'],
-                [0.25, 0.5, 0.75]
-            )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

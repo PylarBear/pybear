@@ -114,7 +114,7 @@ def _parallelized_scorer(
     assert isinstance(_f_idx, int)
     assert isinstance(_SCORER_DICT, dict)
     assert all(map(callable, _SCORER_DICT.values()))
-    assert isinstance(_THRESHOLDS, np.ndarray)
+    assert isinstance(_THRESHOLDS, (list, np.ndarray))  # pizza want to go to list
     assert isinstance(_verbose, (int, float))
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 

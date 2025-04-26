@@ -15,16 +15,20 @@ from pybear.model_selection.GSTCV._GSTCVMixin._validation._refit import \
 
 
 
-class TestValidateRefit:
+class TestValRefit:
 
     # def _val_refit(
     #     _refit: RefitType,
     #     _scorer: ScorerWIPType
-    #     ) -> RefitType:
-
-    one_scorer = {'accuracy': accuracy_score}
+    # ) -> None:
 
 
+
+    # 'scoring' comes into _val_refit in validated but pre-conditioned
+    # state. could be str, callable, list-like, dict.
+    one_scorer = {
+        'bear_score': lambda x, y: 0.8394239847
+    }
     two_scorers = {
         'accuracy': accuracy_score,
         'balanced_accuracy': balanced_accuracy_score
@@ -33,7 +37,7 @@ class TestValidateRefit:
 
     @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
     @pytest.mark.parametrize('junk_refit',
-        (0, 1, 3.14, [0,1], (0,1), {0,1}, {'a':1})
+        (0, 1, 3.14, None, [0,1], (0,1), {0,1}, {'a':1})
     )
     def test_reject_junk_refit(self, n_scorers, junk_refit):
         with pytest.raises(TypeError):
@@ -45,35 +49,23 @@ class TestValidateRefit:
         (lambda X: 0, lambda X: len(X['params'])-1, lambda X: 'trash')
     )
     def test_accepts_callable(self, n_scorers, _callable):
-        assert _val_refit(_callable, n_scorers) == _callable
+        assert _val_refit(_callable, n_scorers) is None
 
 
     @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
-    @pytest.mark.parametrize('_refit', (None, False))
-    def test_accepts_None_and_False(self, n_scorers, _refit):
+    def test_accepts_False(self, n_scorers):
 
         if len(n_scorers) == 1:
-            assert _val_refit(_refit, n_scorers) is False
+            assert _val_refit(False, n_scorers) is None
 
         elif len(n_scorers) == 2:
-            exp_warn = (
-                f"WHEN MULTIPLE SCORERS ARE USED:\n"
-                f"Cannot return a best threshold if refit is False or callable.\n"
-                f"If refit is False: best_index_, best_estimator_, best_score_, "
-                f"and best_threshold_ are not available.\n"
-                f"if refit is callable: best_score_ and best_threshold_ "
-                f"are not available.\n"
-                f"In either case, access score and threshold info via the "
-                f"cv_results_ attribute."
-            )
-
-            with pytest.warns(match=exp_warn):
-                assert _val_refit(_refit, n_scorers) is False
+            with pytest.warns():
+                assert _val_refit(False, n_scorers) is None
 
 
     @pytest.mark.parametrize('n_scorers', (one_scorer,))
     def test_single_accepts_true(self, n_scorers):
-        assert _val_refit(True, n_scorers) == 'score'
+        assert _val_refit(True, n_scorers) is None
 
 
     @pytest.mark.parametrize('n_scorers', (two_scorers,))
@@ -92,10 +84,9 @@ class TestValidateRefit:
     @pytest.mark.parametrize('n_scorers', (two_scorers,))
     def test_accepts_good_strings(self, n_scorers):
         if len(n_scorers) == 1:
-            assert _val_refit('ACCURACY', n_scorers) == 'score'
+            assert _val_refit('ACCURACY', n_scorers) is None
         if len(n_scorers) == 2:
-            assert _val_refit('BALANCED_ACCURACY', n_scorers) == \
-                'balanced_accuracy'
+            assert _val_refit('BALANCED_ACCURACY', n_scorers) is None
 
 
 
