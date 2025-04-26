@@ -540,8 +540,8 @@ class TestGSTCVInput:
 
 
     @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
-    @pytest.mark.parametrize('_refit', (None, False))
-    def test_refit_accepts_None_and_False(
+    @pytest.mark.parametrize('_refit', (False, ))
+    def test_refit_accepts_False(
         self, _GSTCV, n_scorers, _refit, X_np, y_np
     ):
 
@@ -554,27 +554,14 @@ class TestGSTCVInput:
             )
 
         elif len(n_scorers) == 2:
-            exp_warn = (
-                f"WHEN MULTIPLE SCORERS ARE USED:\n"
-                f"Cannot return a best threshold if refit is False or callable.\n"
-                f"If refit is False: best_index_, best_estimator_, best_score_, "
-                f"and best_threshold_ are not available.\n"
-                f"if refit is callable: best_score_ and best_threshold_ "
-                f"are not available.\n"
-                f"In either case, access score and threshold info via the "
-                f"cv_results_ attribute."
-            )
 
-            with pytest.warns(match=exp_warn):
+            with pytest.warns():
                 assert isinstance(
                     _GSTCV.set_params(**kwargs).fit(X_np, y_np),
                     type(_GSTCV)
                 )
 
-        if _refit is False:
-            assert _GSTCV.get_params(deep=True)['refit'] is False
-        elif _refit is None:
-            assert _GSTCV.get_params(deep=True)['refit'] is None
+        assert _GSTCV.get_params(deep=True)['refit'] is False
 
 
     @pytest.mark.parametrize('n_scorers', (one_scorer,))

@@ -17,8 +17,8 @@ the given search space that minimize loss or maximize score for the
 particular data set and estimator being fit.
 
 The `best_params_` attribute of sklearn / dask_ml / pybear grid search
-modules is a dictionary with parameter names as keys and respective best
-values as values that is (sometimes) exposed by the fit method upon
+modules is a dictionary with hyperparameter names as keys and respective
+best values as values that is (sometimes) exposed by the fit method upon
 completion of a search over a set of grids. autogridsearch_wrapper wraps
 these foundational GridSearch classes and the superseding :meth: `fit`
 repeatedly makes calls to the parent's fit method to generate this
@@ -28,12 +28,12 @@ best params to calculate refined grids for the next search round.
 
 autogridsearch_wrapper requires that the parent exposes the `best_params_`
 attribute on every call to its fit method. Grid search configurations
-that do not cause the parent to expose the `best_params_` attribute are
+where the parent does not expose the `best_params_` attribute are
 detected and rejected by autogridsearch_wrapper. The conditions where a
 parent grid search module does not expose the `best_params_` attribute
 are determined by things such as the number of scorers used and the
 `refit` setting. See the docs for your parent grid search module for
-information about when then the `best_params_` attribute is or is not
+information about when the `best_params_` attribute is or is not
 exposed.
 
 On the first pass of an autogridsearch session, the first search grid
@@ -41,8 +41,8 @@ is constructed as instructed in the :param: `params` parameter. On
 subsequent passes, new search grids are constructed based on:
     • the preceding search grid,
     • the results within `best_params_`,
-    • the parameters' datatypes as specified in :param: `params`, and
-    • the number of points as specified in :param: `params`.
+    • the hyperparameters' datatypes as specified in :param: `params`,
+    • and the number of points as specified in :param: `params`.
 
 The new refined grids are then passed to another dictionary that
 satisfies the `param_grid` parameter of the parent GridSearchCV (or a
@@ -95,15 +95,14 @@ False
 
 However, this practice is generally discouraged in favor of using
 the :meth: `get_params` and :meth: `set_params` methods, which have
-protections against in place to protect against setting invalid
-parameters.
+protections against in place to prevent invalid parameters being set.
 
 After a session of AutoGridSearch, all the attributes of the parent
 GridSearch are exposed through the AutoGridSearch instance. The parent
-exposes familiar attributes such as `best_estimator_`,`best_params_`,
-`best_score_`, etc.) In addition to those, AutoGridSearch exposes other
-attributes that capture all the grids and best parameters for each pass,
-the :attr: `GRIDS_` and :attr: `RESULTS_` attributes.
+exposes familiar attributes such as `best_estimator_`, `best_params_`,
+`best_score_`, etc. In addition to those, AutoGridSearch exposes other
+attributes that capture all the grids and best hyperparameters for each
+pass, the :attr: `GRIDS_` and :attr: `RESULTS_` attributes.
 
 The `GRIDS_` attribute is a dictionary of all the search grids used
 during the AutoGridSearch session. It is a collection of every
@@ -130,33 +129,34 @@ parameter that violate the universal bounds. There is no logical upper
 bound for integers or floats. Universal bounds do not apply to 'fixed'
 search spaces.
 
-'fixed' parameter - A parameter whose search space is static. The search
-space will not be 'shifted' or 'drilled'. The search grid provided at
-the start is the only search grid for every pass with one exception:
-the user can specify to reduce the full set of points (which must run
-in full on at least the first pass) to a single value on later passes
-to speed up grid searches. Consider a search space over depth of a
-decision tree. A search space might be [3, 4, 5], where no other values
-are allowed to be searched (the grid cannot be 'shifted'). This would
-be a 'fixed_integer' search space. In the case of 'fixed_integer', a
-zero or negative numbers may be passed to the search grid, breaking
+'fixed' hyperparameter - A hyperparameter whose search space is static.
+The search space will not be 'shifted' or 'drilled'. The search grid
+provided at the start is the only search grid for every pass with one
+exception. The user can specify to reduce the full set of points (which
+must run in full on at least the first pass) to a single value on later
+passes to speed up grid searches. Consider a search space over depth of
+a decision tree. A search space might be [3, 4, 5], where no other
+values are allowed to be searched (the grid cannot be 'shifted'). This
+would be a 'fixed_integer' search space. In the case of 'fixed_integer',
+a zero or negative numbers may be passed to the search grid, breaking
 the universal minimum bound for integers, whereas all other integer
 search spaces observe the universal lower bound of 1. 'fixed_float',
-'fixed_string' and 'fixed_bool' parameters are other fixed parameters.
+'fixed_string' and 'fixed_bool' are other fixed hyperparameters.
 
-'hard' parameter - A parameter whose search is bounded to a contiguous
-subset of real numbers, observant of the universal hard bounds. The
-space will be drilled but cannot be shifted. The search space can be
-shrunk to a single value (i.e., the best value from the preceding
-round is the only value searched for all remaining rounds) by setting
-the 'points' for the appropriate round(s) to 1. Consider searching
-over `l1_ratio` for a sci-kit learn LogisticRegression classifier. Any
-real number in the interval [0, 1] is allowed, but not outside of it.
-This is a 'hard_float' search space.
+'hard' hyperparameter - A hyperparameter whose search is bounded to a
+contiguous subset of real numbers, observant of the universal hard
+bounds. The space will be drilled but cannot be shifted. The search
+space can be shrunk to a single value (i.e., the best value from the
+preceding round is the only value searched for all remaining rounds) by
+setting the 'points' for the appropriate round(s) to 1. Consider
+searching over `l1_ratio` for a sci-kit learn LogisticRegression
+classifier. Any real number in the interval [0, 1] is allowed, but not
+outside of it. This is a 'hard_float' search space. 'hard_integer' is
+the only other 'hard' search space.
 
-'soft' parameter - A parameter whose search space can be 'shifted'
-and 'drilled', and is only bounded by the universal bounds. The
-search space can be shrunk to a single value (i.e., the best value
+'soft' hyperparameter - A hyperparameter whose search space can be
+'shifted' and 'drilled', and is only bounded by the universal bounds.
+The search space can be shrunk to a single value (i.e., the best value
 from the preceding round is the only value searched for all remaining
 rounds) by setting the 'points' for the appropriate round(s) to 1.
 Consider searching over regularization constant `alpha` in a sci-kit
@@ -164,58 +164,60 @@ learn RidgeClassifier estimator. `alpha` can be any non-negative real
 number. A starting search space might be [1000, 2000, 3000], which
 AutoGridSearch can 'shift' and 'drill' to find the most precise estimate
 of the best value for `alpha`. This a 'soft_float' search space.
+'soft_integer' is the only other 'soft' search space.
 
-'shift' - The act of incrementing or decrementing all the values in
-a search grid by a fixed amount if GridSearchCV returns a best value
-that is on one of the edges of a given grid. This can only be done on
-'soft_integer' and 'soft_float' search spaces; 'fixed' and 'hard' spaces
-are not shifted. This is best explained with an example. Consider a soft
-integer search space: grid = [20, 21, 22, 23, 24]. If the best value
-returned by GridSearchCV is 20, then a 'left-shift' is affected by
-decrementing every value in the grid by max(grid) - grid[1] -> 3. The
-search grid for the next round is [17, 18, 19, 20, 21]. Similarly, if
-the best value returned by GridSearchCV is 24, then a 'right-shift' is
-affected by incrementing every value in the grid by grid[-2] - min(grid)
--> 3. The search grid for the next round is [23, 24, 25, 26, 27].  If
-passed any 'soft' spaces, AutoGridSearch will perform shifting passes
-until 1) it reaches a pass in which all soft parameters' best values
-simultaneously fall off the edges of their search grids, 2) `max_shifts`
-is reached, or 3) `total_passes_is_hard` is True and `total_passes` is
-reached.
+'shift' - The act of incrementing or decrementing all the values in a
+search grid by a fixed amount if GridSearchCV returns a best value that
+falls on one of the edges of the most-recently used grid. This can only
+be done on 'soft_integer' and 'soft_float' search spaces; 'fixed'  and
+'hard' spaces are not shifted. This is best explained with an example.
+Consider a soft integer search space: grid = [20, 21, 22, 23, 24].
+If the best value returned by GridSearchCV is 20, then a 'left-shift' is
+affected by decrementing every value in the grid by max(grid) - grid[1]
+-> 3. The search grid for the next round is [17, 18, 19, 20, 21].
+Similarly, if the best value returned by GridSearchCV is 24, then a
+'right-shift' is affected by incrementing every value in the grid by
+grid[-2] - min(grid) -> 3. The search grid for the next round is
+[23, 24, 25, 26, 27].  If passed any 'soft' spaces, AutoGridSearch will
+perform shifting passes until 1) it reaches a pass in which all soft
+hyperparameters' best values simultaneously fall off the edges of their
+search grids, 2) `max_shifts` is reached, or 3) `total_passes_is_hard`
+is True and `total_passes` is reached.
 
 'drill' - The act of narrowing a search space based on the best value
 returned from the last round of GridSearchCV and the grid used for
-that search. Not applicable to 'fixed' parameters. Briefly and simply,
-the next search grid is a 'zoom-in' on the last round's (sorted) grid
-in the region bounded by the search values that are adjacent to the
-best value. For float search spaces, all intervals are infinitely
+that search. Not applicable to 'fixed' hyperparameters. Briefly and
+simply, the next search grid is a 'zoom-in' on the last round's (sorted)
+grid in the region bounded by the search values that are adjacent to
+the best value. For float search spaces, all intervals are infinitely
 divisible and will be divided according to the number of points
 provided in :param: `params`. For integer search spaces, when the
 limit of unit intervals is approached, the search space is divided
 with unit intervals and the number of points to search is adjusted
 accordingly, regardless of the number of search points stated
-in :param: `params`, and `params` is overwritten withthe new number
+in :param: `params`, and `params` is overwritten with the new number
 of points.
 
-'shrink' -- Reduce a parameter's search grid to a single value, and on
-that specified pass and all passes thereafter only use that single value
-during searches. This saves time by minimizing repetitive and redundant
-searches. A 'shrink' pass cannot happen on the first pass, i.e., you
-cannot pass a grid with more than one point and then indicate only 1
-point for the first pass; AutoGridSearch will overwrite that first
-number of points with the actual number of points in the first grid.
-The full grid passed at instantiation must run at least once for all
-parameters. Consider, for example, the `fit_intercept` parameter for
-sci-kit LogisticRegression. One might anticipate that this value is
-impactful and non-volatile, meaning that one option will likely be
-clearly better than the other in a particular situation, and once that
-value is determined on the first pass, it is very unlikely to change on
-subsequent passes. Instead of performing the same searches repeatedly,
-the user can set the number of points for a later pass (and all
-thereafter) to 1, which will cause the best value from the previous
-round to be the only value searched over in all remaining rounds, while
-other parameters' grids continue to 'drill'. This technique can be used
-for all parameters: 'soft', 'hard', and 'fixed'.
+'shrink' -- Reduce a hyperparameter's search grid to a single value, and
+on that specified pass and all passes thereafter only use that single
+value during searches. This saves time by minimizing repetitive and
+redundant searches. A 'shrink' pass cannot happen on the first pass,
+i.e., you cannot pass a grid with more than one point and then indicate
+only 1 point for the first pass; AutoGridSearch will overwrite that
+first number of points with the actual number of points in the first
+grid. The full grid passed to :param: `params` at instantiation must run
+at least once for all hyperparameters. Consider, for example, the
+`fit_intercept` parameter for sci-kit LogisticRegression. One might
+anticipate that this value is impactful and non-volatile, meaning that
+one option will likely be clearly better than the other in a particular
+situation, and once that value is determined on the first pass, it is
+very unlikely to change on subsequent passes. Instead of performing the
+same searches repeatedly, the user can set the number of points for a
+later pass (and all thereafter) to 1, which will cause the best value
+from the previous round to be the only value searched over in all
+remaining rounds, while other hyperparameters' grids continue to 'drill'.
+This technique can be used for all hyperparameters: 'soft', 'hard', and
+'fixed'.
 
 'linspace' - a search space with intervals that are equal in linear
 space, e.g. [1,2,3]. See numpy.linspace.
@@ -243,34 +245,48 @@ There are two distinct regimes in an AutoGridSearch session,
 
 Shift / Regap:
 First, the default behavior of AutoGridSearch, when allowed, is to shift
-the grids passed in :param: `params` for 'soft' parameters to the state
-where a search round returns best values that are not on the edges
+the grids passed in :param: `params` for 'soft' hyperparameters to the
+state where a search round returns best values that are not on the edges
 of any search grids. This eliminates the possibility that their true
 best values are beyond the ranges of their grids. The consequences of
 that condition are two-fold:
 
-1) the optimal estimate of best value for the offending parameter
+1) the optimal estimate of best value for the offending hyperparameter
 is not found
 
-2) the optimal estimates for the other parameters are not globally
+2) the optimal estimates for the other hyperparameters are not globally
 correct. See more detail about the mechanics of 'shifting' in the
 'Terminology' section.
 
 During the 'shifting' process, 'shrink' is not performed on any spaces,
 and 'drilling' is not performed on any 'hard' spaces nor on 'soft'
-spaces that have already landed inside the edges of their ranges. The
-grids for parameters that are already 'good to go' are just replicated
-into the next round each time a 'shift' pass needs to be performed, and
-keep replicating until the non-centered 'soft' parameters center
-themselves and are also 'good to go'.
+spaces that have already landed inside the edges of their grids. The
+grids for hyperparameters that are already 'good to go' are just
+replicated into the next round each time a 'shift' pass needs to
+be performed, and keep replicating until the non-centered 'soft'
+hyperparameters center themselves and are also 'good to go'.
 
-However, regapping of a single parameter (if logspaces with log10
-intervals greater than 1 are involved) will take place if that parameter
-lands off the edges of its grid even if other parameters are still
-shifting. This is to free up any other parameters that may be constrained
-by another parameter's restrictive search space. Then, only when all
-soft parameters have landed off their edges, AutoGridSearch will 'regap'
-any remaining logspaces that may need it, and proceeds to 'drilling'.
+AutoGridSearch accepts log10 intervals greater than one, allowing for
+search over astronomically large spaces. Once shifting requirements for
+all hyperparameters are fulfilled (best value is framed or `max_shifts`
+is reached), if that hyperparameter has a log10 interval greater than 1
+AutoGridSearch regaps that logspace to unit interval in log10 space.
+This is to allow sufficient fidelity in the search grid for other
+hyperparameters to be able to more freely toward their true global
+optima. All hyperparameters with log10 interval greater than 1 will be
+regapped before entering the drilling section of AutoGridSearch.
+
+Consider a search space of np.logspace(-15, 15, 7). The corresponding
+search grid is [1e-15, 1e-10, 1e-5, 0, 1e5, 1e10, 1e15]. The log10
+interval in this space is 5. Imagine the true best value is framed
+within the grid range and the grid point closest to it is 1e5, which
+is what GridSearch returns. AutoGridSearch will regap that space to
+[1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10] for the next
+search round and proceed with shifting other hyperparameters until they
+are off the edges of their search grids. If a regap happens on a pass
+where all other hyperparameters' shifting requirements were already
+satisfied, another round of GridSearch is run with the regapped grid(s)
+before proceeding to the drilling section after that round.
 
 Once the shifting processes is deemed complete by AutoGridSearch, the
 algorithm does not allow re-entry into the shifting process where
@@ -282,85 +298,59 @@ large-scale shifting first.
 
 By default, AutoGridSearch ignores shift passes against the count of
 total passes. When a shift is performed, the net effect is to do
-nothing more than shift the grids of violating parameters, leaving
+nothing more than shift the grids of violating hyperparameters, leaving
 all other grids exactly as they were. In essence, AutoGridSearch
 inserts an exact copy of the last round as the next round, moving
 what was previously the next round out by 1 pass, with only the grids
-of violating parameters having been shifted. Shrink passes are also
-pushed out.
+of violating hyperparameters having been shifted. Shrink passes are
+also pushed out.
 
-The behavior of shifting with respect to total passes can be modified
-with the :param: `max_shifts` and :param: `total_passes_is_hard`
-parameters.
-
-When :param: `total_passes_is_hard` is set to True, :param: `total_passes`
-is the true number of passes run by AutoGridSearch. This may cause
+The user has some control over how total passes are counted with
+the :param: `total_passes_is_hard` parameter. :param: `total_passes`
+is always the actual number of passes run by AutoGridSearch
+when :param: `total_passes_is_hard` is True. This may cause
 AutoGridSearch to fulfill `total_passes` number of passes, terminate,
-and return results while still in the 'shifting' process (which may or
-may not be desired depending on the user's goals.)
-
+and return results while still in the 'shifting' process (which
+may or may not be desired depending on the user's goals.)
 When :param: `total_passes_is_hard` is False, AutoGridSearch will
 increment :param: `total_passes` for each shifting pass. For example,
-consider a situation where we set :param: `total_passes` to 3 and we
+consider a situation where :param: `total_passes` is set to 3 and we
 know beforehand that AutoGridSearch will need two shifting passes to
 center its search grids (this is likely impossible to know, but just
-for example.) On the first pass, AutoGridSearch will peform a shift,
+for example.) On the first pass, AutoGridSearch will peform a shift and
 increment `total_passes` by 1 to 4. On the second pass, another shift
 will be done, and `total_passes` will be incrememnted by 1 to 5.
 Now that all best values are off the edges of their search grids,
 AutoGridSearch will proceed to complete the initially desired 3
 total passes, making 5 actual total passes.
 
-The :param: `max_shifts` parameter is an integer that instructs
-AutoGridSearch to stop shifting after a certain number of tries and
-proceed to regapping / drilling regardless of the state of the search
-grids, to fulfill the remaining total passes. The :param: `max_shifts`
-parameter is useful in cases of asymptotic behavior. Consider a case
-where the user has elected to use a soft logarthmic search space
-for a hyperparameter whose true best value is zero. The logarithmic
-search space will never get there, causing AutoGridSearch to
-repeatedly shift unabated to the limits of floating point precision.
-The :param: `max_shifts` parameter is designed to prevent such a
-condition, giving some forgiveness for poor search design. But, in case
-this does happen, AutoGridSearch does have fail-safe that will catch
-floating point precision failures in logarithmic space, and inform the
-user with an error message.
-
-AutoGridSearch accepts log10 intervals greater than one, allowing for
-search over astronomically large spaces. Once shifting requirements for
-all parameters are fulfilled (best value is framed or `max_shifts` is
-reached), if that parameter has a log10 interval greater than 1
-AutoGridSearch regaps that logspace to unit interval in log10 space.
-This is to allow sufficient fidelity in the search grid for other
-parameters to be able to more freely toward their true global optima.
-All parameters with log10 interval greater than 1 will be regapped
-before entering the drilling section of AutoGridSearch.
-
-Consider a search space of np.logspace(-15, 15, 7). The corresponding
-search grid is [1e-15, 1e-10, 1e-5, 0, 1e5, 1e10, 1e15]. The log10
-interval in this space is 5. Imagine the true best value is framed
-within the grid range and the grid point closest to it is 1e5, which
-is what GridSearch returns. AutoGridSearch will regap that space to
-[1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10] for the next
-search round and proceed with shifting other parameters until they are
-off the edges of their search grids. If a regap happens on a pass where
-all other parameters' shifting requirements were already satisfied,
-another round of GridSearch is run with the regapped grid(s) before
-proceeding to the drilling section after that round.
+Shifting behavior can be modified with the :param: `max_shifts`
+parameter. This is an integer that instructs AutoGridSearch to stop
+shifting after a certain number of tries and proceed to regapping /
+drilling regardless of the state of the search grids, to fulfill the
+remaining total passes. The :param: `max_shifts` parameter is useful
+in cases of asymptotic behavior. Consider a case where the user has
+elected to use a soft logarthmic search space for a hyperparameter
+whose true best value is zero. The logarithmic search space will never
+get there, causing AutoGridSearch to repeatedly shift unabated to the
+limits of floating point precision. The :param: `max_shifts` parameter
+is designed to prevent such a condition, giving some forgiveness for
+poor search design. But, in case this does happen, AutoGridSearch does
+have fail-safe that will catch floating point precision failures in
+logarithmic space, and inform the user with an error message.
 
 Drill:
 Once true best values are framed within their grids (or stopped short)
 and large logspace intervals are regapped, AutoGridSearch proceeds to
 further refine 'soft' and 'hard' search spaces by narrowing (drilling)
 the search area around the returned best values. 'Fixed' search spaces
-cannot be drilled. First, any 'soft' or 'hard' logarithmic search
-spaces (which must have unit gaps in log10 space at this point because
-of the regap process) are simultaneously drilled and transitioned
-to a linear search space. All 'soft' and 'hard' search spaces are
-concurrently drilled, meaning all linear spaces are also drilled
-concurrently with any logspaces that are drilled and transitioned.
-
-The drilling process continues until `total_passes` is satisfied.
+cannot be drilled. Any 'soft' or 'hard' logarithmic search spaces (which
+must have unit gaps in log10 space at this point because of the regap
+process) are simultaneously drilled and transitioned to a linear search
+space. All 'soft' and 'hard' search spaces are concurrently drilled.
+All linear spaces are also drilled concurrently with any logspaces
+that are drilled and transitioned. The drilling process continues
+until `total_passes` is satisfied.
 
 In the case where all search grids are 'fixed' (either fixed numerics,
 string, or boolean), no drilling takes place. However,AutoGridSearch
@@ -369,16 +359,18 @@ over and over) until `total_passes` is satisfied. It is up to the user
 to avoid this condition. The most likely best practice in this case is
 to set :param: `total_passes` to 1.
 
+
 Refit
 -----
-When possible, if the parent is a sci-kit learn GridSearch that accepts
-a `refit` parameter and that value is not False, refit is deferred
-until the final pass to save time. In this way, AutoGridSearch avoids
-unnecessary refits during intermediate passes and only performs the
-refit on the final best values. Note that AutoGridSearch will not do
-this with dask_ml GridSearches, those are always run with the `refit`
-setting as passed by the user. Some of the dask_ml GridSearches require
-that `refit` be True to expose the `best_params_` attribute.
+If the parent is a sci-kit learn GridSearch that accepts a `refit`
+parameter and that value is not False, AutoGridSearch will defer
+refit until the final pass to save time, when possible. In this way,
+AutoGridSearch avoids unnecessary refits during intermediate passes
+and only performs the refit on the final best values. Note that
+AutoGridSearch will not do this with dask_ml GridSearches, those are
+always run with the `refit` setting as passed by the user. Some of
+the  dask_ml GridSearches require that `refit` be True to expose
+the `best_params_` attribute.
 
 
 Restrictions
@@ -400,17 +392,17 @@ that sci-kit learn GridSearchCV can accomodate multiple param_grids.
 
 The required parameter `params` must be of the following form:
 dict(
-    'estimator parameter name as string': list-like(...),
-    'another estimator parameter name as string': list-like(...),
+    'estimator hyperparameter name as string': list-like(...),
+    'another estimator hyperparameter name as string': list-like(...),
     ...
 )
 
 The list-like field is identical in construction for string, boolean,
-and numerical parameters.
+and numerical hyperparameters.
 
 ** * ** * **
 
-For all parameters, the list field is constructed as:
+For all hyperparameters, the list field is constructed as:
     [
     first search grid: list-like,
     number of points for each pass: int or list-like of ints,
@@ -419,20 +411,19 @@ For all parameters, the list field is constructed as:
 E.g.:
     [['a', 'b', 'c'], 3, 'fixed_string']
     - or -
-    [[True, False], 2, 'fixed_bool']
+    [[True, False], [2, 1, 1], 'fixed_bool']
     - or -
     [[1, 2, 3], 3, 'fixed_integer']
     - or -
-    [[1, 2, 3], [3, 3, 3, 3], 'fixed_integer']
+    [np.logspace(-5, 5, 3), [3, 3, 3, 3], 'soft_float']
 
 The list-like in the first position is the grid that will be used
-as the first search grid for this parameter. Create this in exactly the
-same way that you would create a search grid for single parameter in
-sci-kit learn GridSearchCV. For 'fixed'
-parameters, this grid will also be used for all subsequent searches unless a
-shink pass is specified, e.g. points is set as something like
-[3, 3, 1, 1]. More on that below. Also see 'shrink' in the 'Terminology'
-section of the docs.
+as the first search grid for this hyperparameter. Create this in the
+same way that you would create a search grid for single hyperparameter
+in sci-kit learn GridSearchCV. For 'fixed' hyperparameters, this grid
+will also be used for all subsequent searches unless a 'shrink' pass is
+specified, e.g. points is set as something like [3, 3, 1, 1]. More on
+that below. Also see 'shrink' in the 'Terminology' section of the docs.
 
 The second position, 'number of points for each pass' must be an integer
 greater than zero or a list-like of such integers. If a single integer,
@@ -442,17 +433,18 @@ list-like must equal `total_passes`. The number of points for the first
 pass, although required to fulfill the length requirement, is effectively
 ignored and overwritten by the actual length of the first grid. Each
 subsequent value in the list-like dictates the number of points to put
-in the new grid for that respective pass. If any value in the list-like
-is entered as 1, all subsequent values must also be 1. In that  case,
-the best value from the previous pass is used as the single search value
-in all subsequent search grids. See 'shrink' elsewhere in the docs. This
-reduces the total searching time by minimizing the number of redundant
-searches. For fixed spaces, the only acceptable entries are 1 or the
-length of the first (and only) grid. For integer spaces, the entered
-points are overwritten as necessary to maintain an integer space.
+in the new grid for that respective pass. For integer spaces, the entered
+points are overwritten as necessary to maintain an integer space. If any
+value in the list-like is entered as 1, all subsequent values must also
+be 1. In that case, the best value from the previous pass is used as the
+single search value in all subsequent search grids. This reduces the
+total searching time by minimizing the number of redundant searches. For
+fixed spaces, the only acceptable entries are 1 or the length of the
+first (and only) grid.
 
-Consider the following instructions:
-[['a', 'b', 'c'], 3, 'fixed_string']
+Consider the following instructions that demonstrate how 'shrink' works
+on a 'fixed' space.
+Without shrink: [['a', 'b', 'c'], 3, 'fixed_string']
 with `total_passes` = 3 and a true best value of 'c' that is correctly
 discovered by GridSearchCV.
 This will generate the following search grids:
@@ -460,14 +452,14 @@ pass 1: ['a', 'b', 'c']; best value = 'c'
 pass 2: ['a', 'b', 'c']; best value = 'c'
 pass 3: ['a', 'b', 'c']; best value = 'c'
 
-Now consider the following instructions
-[['a', 'b', 'c'], [3, 1, 1], 'fixed_string']
+Now consider these instructions
+With shrink: [['a', 'b', 'c'], [3, 1, 1], 'fixed_string']
 with `total_passes` = 3 and a true best value of 'c' that is correctly
 discovered by GridSearchCV.
 This will generate the following search grids:
 pass 1: ['a', 'b', 'c']; best value = 'c'
-pass 2: ['c']
-pass 3: ['c']
+pass 2: ['c']; best value = 'c'
+pass 3: ['c']; best value = 'c'
 This reduces the total searching time by minimizing the number of
 redundant searches.
 
@@ -505,18 +497,18 @@ Parameters
 ----------
 estimator:
     Required. Any estimator that follows the scikit-learn estimator API.
-    Includes, at least, scikit-learn, dask, lightGBM, and xgboost
+    Includes, at least, scikit-learn, dask_ml, lightGBM, and xgboost
     estimators.
 params:
     ParamsType - Required. Instructions for building search grids for
-    all parameters. See the 'Params Parameter' section of the docs for
-    a lengthy, detailed, discussion on constructing this and how it
+    all hyperparameters. See the 'Params Parameter' section of the docs
+    for a lengthy, detailed, discussion on constructing this and how it
     works.
 total_passes:
     Optional[numbers.Integral], default=5 - the number of grid searches
     to perform. The actual number of passes can be different from this
     number based on the setting for the `total_passes_is_hard` argument.
-    If `total_passes_is_hard` is True, then the maximum number of total
+    If `total_passes_is_hard` is True, then the actual number of total
     passes will always be the value assigned to `total_passes`. If
     `total_passes_is_hard` is False, a round that performs a 'shift'
     operation will increment the total number of passes, essentially

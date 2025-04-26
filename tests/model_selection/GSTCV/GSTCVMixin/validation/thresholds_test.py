@@ -4,22 +4,24 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 import numpy as np
 
-from pybear.model_selection.GSTCV._GSTCVMixin._validation._threshold_checker \
-    import _threshold_checker
+from pybear.model_selection.GSTCV._GSTCVMixin._validation._thresholds \
+    import _val_thresholds
 
 
 
-class TestThresholdChecker:
+class TestValThresholds:
 
-# def _threshold_checker(
-#         __thresholds: Union[None, Iterable[Union[int, float]], Union[int, float]],
-#         is_from_kwargs: bool,
-#         idx: int
-#     ) -> npt.NDArray[np.float64]:
+# def _val_thresholds(
+#     _thresholds: Union[None, numbers.Real, Sequence[numbers.Real]],
+#     _is_from_kwargs: bool,
+#     _idx: int
+# ) -> None:
 
 
     @staticmethod
@@ -35,14 +37,13 @@ class TestThresholdChecker:
     def test_rejects_non_bool(self, good_threshes, junk_ifk):
 
         with pytest.raises(TypeError):
-            _threshold_checker(good_threshes, junk_ifk, 0)
+            _val_thresholds(good_threshes, junk_ifk, 0)
 
 
     @pytest.mark.parametrize('good_ifk', (True, False))
     def test_accepts_bool(self, good_threshes, good_ifk):
         # 'is_from_kwargs'
-        out = _threshold_checker(good_threshes, good_ifk, 0)
-        assert np.array_equiv(out, good_threshes)
+        assert _val_thresholds(good_threshes, good_ifk, 0) is None
 
     # END 'is_from_kwargs' ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -52,14 +53,13 @@ class TestThresholdChecker:
     )
     def test_idx_rejects_junk(self, good_threshes, junk_idx):
         # 'is_from_kwargs'
-        with pytest.raises(TypeError):
-            _threshold_checker(good_threshes, True, junk_idx)
+        with pytest.raises((TypeError, ValueError)):
+            _val_thresholds(good_threshes, True, junk_idx)
 
 
     @pytest.mark.parametrize('good_idx', (0, 1, 100))
     def test_idx_accepts_int(self, good_threshes, good_idx):
-        out = _threshold_checker(good_threshes, True, good_idx)
-        assert np.array_equiv(out, good_threshes)
+        assert _val_thresholds(good_threshes, True, good_idx) is None
 
     # END 'idx' ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 
@@ -71,16 +71,15 @@ class TestThresholdChecker:
     )
     def test_rejects_non_num_none_iter(self, junk_thresh, _ifk, _idx):
         with pytest.raises(TypeError):
-            _threshold_checker(junk_thresh, _ifk, _idx)
+            _val_thresholds(junk_thresh, _ifk, _idx)
 
 
     @pytest.mark.parametrize('_ifk', (True, False))
     @pytest.mark.parametrize('_idx', (0, 5, 10))
-    def test_none_returns_linspace(self, good_threshes, _ifk, _idx):
-        assert np.array_equiv(
-            _threshold_checker(None, _ifk, _idx),
-            good_threshes
-        )
+    def test_None(self, good_threshes, _ifk, _idx):
+        assert _val_thresholds(
+            None, _ifk, _idx, _must_be_list_like=False
+        ) is None
 
 
     @pytest.mark.parametrize('_ifk', (True, False))
@@ -88,7 +87,18 @@ class TestThresholdChecker:
     @pytest.mark.parametrize('bad_thresh', (-1, 2, 10))
     def test_rejects_thresh_out_of_range(self, bad_thresh, _ifk, _idx):
         with pytest.raises(ValueError):
-            _threshold_checker(bad_thresh, _ifk, _idx)
+            _val_thresholds(bad_thresh, _ifk, _idx, _must_be_list_like=False)
+
+
+    @pytest.mark.parametrize('_ifk', (True, False))
+    @pytest.mark.parametrize('_idx', (0, 5, 10))
+    def test_junk_in_list(self, _ifk, _idx):
+
+        with pytest.raises(TypeError):
+            _val_thresholds(['a','b','c'], _ifk, _idx)
+
+        with pytest.raises(ValueError):
+            _val_thresholds([-3.14, 3.14], _ifk, _idx)
 
 
     @pytest.mark.parametrize('_ifk', (True, False))
@@ -98,60 +108,9 @@ class TestThresholdChecker:
     )
     def test_accepts_good_thresh(self, good_thresh, _ifk, _idx):
 
-        try:
-            good_thresh = list(good_thresh)
-        except:
-            good_thresh = [good_thresh]
-
-        assert np.array_equiv(
-            _threshold_checker(good_thresh, _ifk, _idx),
-            np.array(list(good_thresh))
-        )
-
-
-    @pytest.mark.parametrize('_ifk', (True, False))
-    @pytest.mark.parametrize('_idx', (0, 5, 10))
-    def test_junk_in_list(self, _ifk, _idx):
-
-        with pytest.raises(TypeError):
-            _threshold_checker(['a','b','c'], _ifk, _idx)
-
-        with pytest.raises(ValueError):
-            _threshold_checker([-3.14, 3.14], _ifk, _idx)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        assert _val_thresholds(
+            good_thresh, _ifk, _idx, _must_be_list_like=False
+        ) is None
 
 
 

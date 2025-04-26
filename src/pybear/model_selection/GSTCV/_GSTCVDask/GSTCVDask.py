@@ -536,7 +536,7 @@ class GSTCVDask(_GSTCVMixin):
             Union[Sequence[str], dict[str, Callable], str, Callable]
         ]='accuracy',
         iid: Optional[bool]=True,
-        refit: Optional[Union[bool, str, Callable, None]] = True,
+        refit: Optional[Union[bool, str, Callable]] = True,
         cv: Optional[Union[int, Iterable, None]]=None,
         verbose: Optional[numbers.Real]=0,
         error_score: Optional[Union[Literal['raise'], int, float]]='raise',
@@ -621,6 +621,24 @@ class GSTCVDask(_GSTCVMixin):
         """
 
 
+        _validate_dask_estimator(self.estimator)
+
+        self._estimator = type(self.estimator)(
+            **deepcopy(self.estimator.get_params(deep=False))
+        )
+        self._estimator.set_params(
+            **deepcopy(self.estimator.get_params(deep=True))
+        )
+
+        # pizza these need to be split into _val & _cond
+        self._iid = _validate_iid(self.iid)
+
+        self._scheduler = _validate_scheduler(self.scheduler, self.n_jobs)
+
+        self._cache_cv = _validate_cache_cv(self.cache_cv)
+
+
+
         self.cv_results_ = _core_fit(
             X,
             y,
@@ -658,32 +676,6 @@ class GSTCVDask(_GSTCVMixin):
             f"visualize is not implemented in {__}."
         )
 
-
-    def _validate_and_reset(self):
-
-        """
-
-        Perform initialization and validation for GSTCVDask-specific and
-        shared parameters.
-
-        """
-
-        super()._validate_and_reset()
-
-        _validate_dask_estimator(self.estimator)
-
-        self._estimator = type(self.estimator)(
-            **deepcopy(self.estimator.get_params(deep=False))
-        )
-        self._estimator.set_params(
-            **deepcopy(self.estimator.get_params(deep=True))
-        )
-
-        self._iid = _validate_iid(self.iid)
-
-        self._scheduler = _validate_scheduler(self.scheduler, self.n_jobs)
-
-        self._cache_cv = _validate_cache_cv(self.cache_cv)
 
     # END SUPPORT METHODS ##############################################
     ####################################################################

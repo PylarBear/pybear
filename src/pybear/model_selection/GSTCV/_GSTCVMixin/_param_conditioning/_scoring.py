@@ -40,7 +40,8 @@ def _cond_scoring(
     -
         _scoring: dict[str, callable] - dictionary of format
             {scorer_name: scorer callable}, when one or multiple metrics
-            are used.
+            are used. When one metric is used, change the actual scorer
+            name to 'score'.
 
     """
 
@@ -64,13 +65,7 @@ def _cond_scoring(
 
     elif _is_list_like:
 
-        _scoring = list(_scoring)
-
-        for _idx, _string in enumerate(_scoring):
-            _scoring[_idx] = _string.lower()
-        del _idx, _string
-
-        _scoring = list(set(_scoring))
+        _scoring = list(set(map(str.lower, _scoring)))
 
         _scoring = {k: v for k, v in master_scorer_dict.items() if k in _scoring}
 
@@ -85,15 +80,14 @@ def _cond_scoring(
 
     del _is_list_like
 
+    # IF ONE THING IN SCORING, CHANGE THE KEY TO 'score'
+    if len(_scoring) == 1:
+        _scoring = {'score': v for k, v in _scoring.items()}
+
 
     # dict of functions - Scorer functions used on the held out data to
     # choose the best parameters for the model, in a dictionary of format
     # {scorer_name: scorer}, when one or multiple metrics are used.
-
-    # by sklearn/dask design, name convention changes from 'scoring' to
-    # 'scorer_' after conversion to dictionary
-
-
     return _scoring
 
 

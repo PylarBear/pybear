@@ -93,7 +93,7 @@ def _get_best_thresholds(
         BEST_SCORE_IDX_MASK = (_SCORER_THRESH_MEANS == _SCORER_THRESH_MEANS.max())
         del _SCORER_THRESH_MEANS
 
-        MASKED_LSQ = (1 - np.power(_THRESHOLDS - 0.50, 2, dtype=np.float64))
+        MASKED_LSQ = (1 - np.power(np.array(_THRESHOLDS) - 0.50, 2, dtype=np.float64))
         MASKED_LSQ = MASKED_LSQ * BEST_SCORE_IDX_MASK
         del BEST_SCORE_IDX_MASK
 

@@ -18,7 +18,6 @@ from .._type_aliases import (
     YInputType
 )
 
-from contextlib import nullcontext
 from copy import deepcopy
 import numbers
 
@@ -478,7 +477,7 @@ class GSTCV(_GSTCVMixin):
             Union[list[str], dict[str, callable], str, callable]
         ]='accuracy',
         n_jobs: Optional[Union[int, None]]=None,
-        refit: Optional[Union[bool, str, callable, None]]=True,
+        refit: Optional[Union[bool, str, callable]]=True,
         cv: Optional[Union[int, Iterable, None]]=None,
         verbose: Optional[Union[int, float, bool]]=0,
         # pizza! finally figured out about 'pre_dispatch'! it gets passed to joblib.Parallel() !!!!
@@ -553,6 +552,14 @@ class GSTCV(_GSTCVMixin):
 
         """
 
+        _validate_estimator(self.estimator)
+
+        self._estimator = type(self.estimator)(
+            **deepcopy(self.estimator.get_params(deep=False))
+        )
+        self._estimator.set_params(
+            **deepcopy(self.estimator.get_params(deep=True))
+        )
 
         self.cv_results_ = _core_fit(
             X,
@@ -571,29 +578,6 @@ class GSTCV(_GSTCVMixin):
         )
 
         return
-
-
-    def _validate_and_reset(self):
-
-        """
-        Perform initialization and validation for GSTCV-specific and
-        shared parameters.
-
-        """
-
-        super()._validate_and_reset()
-
-        _validate_estimator(self.estimator)
-
-        self._estimator = type(self.estimator)(
-            **deepcopy(self.estimator.get_params(deep=False))
-        )
-        self._estimator.set_params(
-            **deepcopy(self.estimator.get_params(deep=True))
-        )
-
-        # this is needed for GSTCV for compatibility with GSTCVMixin
-        self._scheduler = nullcontext()
 
 
     # END SUPPORT METHODS ##############################################
