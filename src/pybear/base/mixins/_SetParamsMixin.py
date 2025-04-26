@@ -51,7 +51,7 @@ class SetParamsMixin:
         Parameters
         ----------
         **params:
-            dict[str: any] - the parameters to be updated and their new
+            dict[str: Any] - the parameters to be updated and their new
             values.
 
 

@@ -8,18 +8,18 @@
 
 from typing import Iterable
 from typing_extensions import Union
-
-import numpy as np
-
 from ..._type_aliases import ParamGridType
 
+import numbers
+
+import numpy as np
 
 from ._threshold_checker import _threshold_checker
 
 
 
 def _validate_thresholds__param_grid(
-    _thresholds: Union[Iterable[Union[int, float]], Union[int, float], None],
+    _thresholds: Union[None, numbers.Real, Iterable[numbers.Real]],
     _param_grid: Union[ParamGridType, Iterable[ParamGridType], None]
     ) -> list[ParamGridType]:
 
@@ -47,7 +47,7 @@ def _validate_thresholds__param_grid(
     ----------
 
     _thresholds:
-        Union[Iterable[Union[int, float]], Union[int, float], None] -
+        Union[None, numbers.Real, Iterable[numbers.Real]] -
 
     _param_grid:
         Union[ParamGridType, Iterable[ParamGridType], None] -

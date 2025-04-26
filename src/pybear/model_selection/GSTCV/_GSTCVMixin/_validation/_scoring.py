@@ -7,29 +7,24 @@
 
 
 from typing import Callable
+from ..._type_aliases import ScorerInputType
 
 import numpy as np
 
 from ....GSTCV._master_scorer_dict import master_scorer_dict
 
-from ..._type_aliases import (
-    ScorerInputType,
-    ScorerWIPType,
-)
 
 
-
-def _validate_scoring(
-        _scoring: ScorerInputType
-    ) -> ScorerWIPType:
+def _val_scoring(
+    _scoring: ScorerInputType
+) -> None:
 
     """
+    Validate `scoring`, the scoring metric(s) used to evaluate the
+    predictions on the test (and possibly train) sets.
 
-    Validate scoring, the scoring metric(s) used to evaluate the
-    predictions on the test (and possibly train) sets. Convert any of
-    the valid input formats to an output format of dict[str, callable].
-
-    For any number of scorers, can be dict[str, callable].
+    Can be dict[str, callable] for any number of scorers, singular or
+    plural.
 
     For a single scoring metric, can be a single string or a single
     callable. Valid strings that can be passed are 'accuracy',
@@ -43,154 +38,126 @@ def _validate_scoring(
     Parameters
     ----------
     _scoring:
-        Union[str, callable, vector-like[str], dict[str, callable]],
-        default = 'accuracy' - The scoring metric(s) used to evaluate
-        the predictions on the test (and possibly train) sets.
+        Union[str, callable, Sequence[str], dict[str, callable]] - The
+        scoring metric(s) used to evaluate the predictions on the test
+        (and possibly train) sets.
 
 
     Return
     ------
     -
-        _scoring: dict[str, callable] - dictionary of format
-            {scorer_name: scorer}, when one or multiple metrics are used.
-
+        None
 
     """
 
 
-    def string_validation(_string: str):
-        _string = _string.lower()
-        if _string not in master_scorer_dict:
+    # helper functions -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    def string_validation(_string: str) -> None:
+
+        """Check scorer name is valid."""
+
+        if _string.lower() not in master_scorer_dict:
             if 'roc_auc' in _string or 'average_precision' in _string:
                 raise ValueError(
                     f"Don't need to use GridSearchThreshold when scoring "
                     f"is roc_auc or average_precision (auc_pr). \nUse "
-                    f"regular dask/sklearn GridSearch and use max(tpr-fpr) "
+                    f"regular sklearn/dask GridSearch and use max(tpr-fpr) "
                     f"to find best threshold for roc_auc, \nor use max(f1) "
                     f"to find the best threshold for average_precision."
                 )
             else:
                 raise ValueError(
                     f"When specifying scoring by scorer name, must be "
-                    f"in {', '.join(list(master_scorer_dict))} ('{_string}')"
+                    f"in \n{', '.join(list(master_scorer_dict))} ('{_string}')"
                 )
 
-        return _string
 
+    def check_callable_is_valid_metric(
+        fxn_name: str,
+        _callable: Callable
+    ) -> None:
 
-    def check_callable_is_valid_metric(fxn_name: str, _callable: Callable):
+        """Check user scorer callable works and returns a number."""
+
         _truth = np.random.randint(0, 2, (100,))
         _pred = np.random.randint(0, 2, (100,))
+
         try:
             _value = _callable(_truth, _pred)
         except:
-            raise ValueError(f"scoring function '{fxn_name}' excepted "
-                             f"during validation")
+            raise ValueError(
+                f"scoring function '{fxn_name}' excepted during validation"
+            )
 
         try:
             float(_value)
+            # pizza do we want to ensure in 0-1?
         except:
-            raise ValueError(f"scoring function '{fxn_name}' returned a "
-            f"non-numeric ({_value})")
+            raise ValueError(
+                f"scoring function '{fxn_name}' returned a non-numeric ({_value})"
+            )
 
         del _truth, _pred, _value
+    # END helper functions -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    err_msg = (f"scoring must be "
-            f"\n1) a single metric name as string, or "
-            f"\n2) a callable(y_true, y_pred) that returns a single "
-                f"numeric value, or "
-            f"\n3) a list-type of metric names as strings, or "
-            f"\n4) a dict of: (metric name: callable(y_true, y_pred), ...)."
-            f"\nCannot pass None or bool. Cannot use estimator's default "
-                f"scorer."
+    _err_msg = (
+        f"scoring must be "
+        f"\n1) a single metric name as string, or "
+        f"\n2) a callable(y_true, y_pred) that returns a single "
+            f"numeric value, or "
+        f"\n3) a list-type of metric names as strings, or "
+        f"\n4) a dict of: (metric name: callable(y_true, y_pred), ...)."
+        f"\nCannot pass None or bool. Cannot use estimator's default scorer."
     )
 
     try:
-        iter(_scoring)
-        if isinstance(_scoring, (dict, str)):
+        if isinstance(_scoring, Callable):
             raise Exception
-        _is_iter = True
-    except:
-        _is_iter = False
+        iter(_scoring)
+        if isinstance(_scoring, (str, dict)):
+            raise Exception
+        _is_list_like = True
+    except Exception as e:
+        _is_list_like = False
 
 
     if isinstance(_scoring, str):
-        _scoring = string_validation(_scoring)
-        _scoring = {_scoring: master_scorer_dict[_scoring]}
-
-    elif _is_iter:
+        string_validation(_scoring)
+    elif callable(_scoring):
+        check_callable_is_valid_metric(f'score', _scoring)
+    elif _is_list_like:
         try:
             _scoring = list(np.array(list(_scoring)).ravel())
-        except:
-            raise TypeError(err_msg)
+            if len(_scoring) == 0:
+                raise UnicodeError
+        except UnicodeError:
+            raise ValueError(f"'scoring' is and empty list-like --- " + _err_msg)
+        except Exception as e:
+            raise TypeError(_err_msg)
 
-        if len(_scoring) == 0:
-            raise ValueError(f'scoring is empty --- ' + err_msg)
-
-        for idx, string_thing in enumerate(_scoring):
-            if not isinstance(string_thing, str):
-                raise TypeError(err_msg)
-            _scoring[idx] = string_validation(string_thing)
-        del idx, string_thing
-
-        _scoring = list(set(_scoring))
-
-        _scoring = {k: v for k, v in master_scorer_dict.items() if k in _scoring}
-
+        for _scorer_name in _scoring:
+            if not isinstance(_scorer_name, str ):
+                raise TypeError(_err_msg)
+            string_validation(_scorer_name)
 
     elif isinstance(_scoring, dict):
         if len(_scoring) == 0:
-            raise ValueError(f'scoring is empty --- ' + err_msg)
+            raise ValueError(f'scoring is empty --- ' + _err_msg)
 
         if not all(map(isinstance, _scoring, (str for _ in _scoring))):
-            raise ValueError(err_msg)
+            raise ValueError(_err_msg)
 
         for key in list(_scoring.keys()):
             # DONT USE string_validation() HERE, USER-DEFINED CALLABLES
             # CAN HAVE USER-DEFINED NAMES
-            new_key = key.lower()
-            _scoring[new_key] = _scoring.pop(key)
-            check_callable_is_valid_metric(new_key, _scoring[new_key])
-        del key, new_key
-
-    elif callable(_scoring):
-        check_callable_is_valid_metric(f'score', _scoring)
-        _scoring = {f'score': _scoring}
+            check_callable_is_valid_metric(key.lower(), _scoring[key])
 
     else:
-        raise TypeError(err_msg)
+        raise TypeError(_err_msg)
 
-    del err_msg, _is_iter
+    del _err_msg, _is_list_like
     del string_validation, check_callable_is_valid_metric
-
-
-    # dict of functions - Scorer functions used on the held out data to
-    # choose the best parameters for the model, in a dictionary of format
-    # {scorer_name: scorer}, when one or multiple metrics are used.
-
-    # by sklearn/dask design, name convention changes from 'scoring' to
-    # 'scorer_' after conversion to dictionary
-
-    return _scoring
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

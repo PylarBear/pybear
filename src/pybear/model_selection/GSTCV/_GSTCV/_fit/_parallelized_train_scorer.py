@@ -15,6 +15,7 @@ from ..._type_aliases import (
     YSKWIPType
 )
 
+import numbers
 import time
 
 import numpy as np
@@ -28,7 +29,7 @@ def _parallelized_train_scorer(
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
     _BEST_THRESHOLDS_BY_SCORER: npt.NDArray[np.float64],
-    _error_score: Union[int, float, None],
+    _error_score: Union[numbers.Real, None],
     _verbose: int,
     **scorer_params
     ) -> np.ma.masked_array:
@@ -70,7 +71,7 @@ def _parallelized_train_scorer(
         length n_scorers and in each position holds a float indicating
         the threshold value that is the best threshold for that scorer.
     _error_score:
-        Union[int, float, Literal['raise']] - if this training fold
+        Union[numbers.Real, Literal['raise']] - if this training fold
         excepted during fitting and error_score was set to the 'raise'
         literal, this module cannot be reached. Otherwise, a number or
         number-like was passed to 'error_score'. If 'fit_excepted' is

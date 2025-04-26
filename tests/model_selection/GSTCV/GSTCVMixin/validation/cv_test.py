@@ -5,98 +5,88 @@
 #
 
 
+
 import pytest
-import inspect
+
+import numbers
+
 import numpy as np
 
 from sklearn.model_selection import KFold
 
-from pybear.model_selection.GSTCV._GSTCVMixin._validation._cv import _validate_cv
+from pybear.model_selection.GSTCV._GSTCVMixin._validation._cv import _val_cv
 
 
 
-class TestValidateCV:
+class TestValCV:
 
 
     @pytest.mark.parametrize('junk_cv',
         (2.718, 3.1416, True, False, 'trash', min, {'a': 1}, lambda x: x)
     )
-    def test_rejects_non_None_iter_int(self, junk_cv):
+    def test_rejects_not_None_iter_int(self, junk_cv):
         with pytest.raises(TypeError):
-            _validate_cv(junk_cv)
-
-
-    def test_None_returns_default(self):
-        assert _validate_cv(None) == 5
+            _val_cv(junk_cv)
 
 
     @pytest.mark.parametrize('bad_cv', (-1, 0, 1))
-    def test_value_error_less_than_2(self, bad_cv):
+    def test_value_error_int_less_than_2(self, bad_cv):
         with pytest.raises(ValueError):
-            _validate_cv(bad_cv)
+            _val_cv(bad_cv, _can_be_int=True)
+
+    # rejects ^ ^ ^ ^
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # accepts v v v v
+
+    @pytest.mark.parametrize('None_or_int', (None, 2,3,4,5))
+    @pytest.mark.parametrize('_can_be_None', (True, False))
+    @pytest.mark.parametrize('_can_be_int', (True, False))
+    def test_None_and_good_int(
+        self, None_or_int, _can_be_None, _can_be_int
+    ):
+
+        if isinstance(None_or_int, numbers.Integral) and not _can_be_int:
+            with pytest.raises(TypeError):
+                _val_cv(
+                    None_or_int,
+                    _can_be_None=_can_be_None,
+                    _can_be_int=_can_be_int
+                )
+        elif None_or_int is None and not _can_be_None:
+            with pytest.raises(TypeError):
+                _val_cv(
+                    None_or_int,
+                    _can_be_None=_can_be_None,
+                    _can_be_int=_can_be_int
+                )
+        else:
+            assert _val_cv(
+                    None_or_int,
+                    _can_be_None=_can_be_None,
+                    _can_be_int=_can_be_int
+            ) is None
 
 
-    @pytest.mark.parametrize(f'good_int', (2,3,4,5))
-    def test_good_int(self, good_int):
-        assert _validate_cv(good_int) == good_int
-
-
-    @pytest.mark.parametrize(f'junk_iter',
-        ([1,2,3], [[1,2,3], [1,2,3], [2,3,4]], (True, False), list('abcde'))
-    )
-    def test_rejects_junk_iter(self, junk_iter):
-        with pytest.raises(TypeError):
-            _validate_cv(junk_iter)
-
-
-    def test_accepts_good_iter(self):
-
-        _n_splits = 3
+    @pytest.mark.parametrize('_n_splits', (3,4,5))
+    @pytest.mark.parametrize('_container', (tuple, list, np.ndarray))
+    def test_accepts_good_iter(self, _n_splits, _container):
 
         X = np.random.randint(0, 10, (20, 5))
         y = np.random.randint(0, 2, 20)
         good_iter = KFold(n_splits=_n_splits).split(X,y)
-        good_iter2 = KFold(n_splits=_n_splits).split(X,y)
 
-        out = _validate_cv(good_iter)
-        assert isinstance(out, list)
-        assert inspect.isgenerator(good_iter2)
-        iter_as_list = list(good_iter2)
-        assert isinstance(iter_as_list, list)
-
-        for idx in range(_n_splits):
-            for X_y_idx in range(2):
-                assert np.array_equiv(
-                    out[idx][X_y_idx],
-                    iter_as_list[idx][X_y_idx]
-                )
+        if _container in [tuple, list]:
+            good_iter2 = _container(KFold(n_splits=_n_splits).split(X,y))
+        elif _container is np.ndarray:
+            good_iter2 = np.array(
+                list(KFold(n_splits=_n_splits).split(X,y)), dtype=object
+            )
+        else:
+            raise Exception
 
 
-    def test_rejects_empties(self):
-
-        with pytest.raises(TypeError):
-            _validate_cv([()])
-
-
-        with pytest.raises(ValueError):
-            _validate_cv((_ for _ in range(0)))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        assert _val_cv(good_iter) is None
+        assert _val_cv(good_iter2) is None
 
 
 

@@ -462,15 +462,16 @@ class TestGSTCVInput:
     # n_jobs: Optional[Union[int,None]]=None,
 
     @pytest.mark.parametrize('junk_njobs',
-        (True, False, 'trash', min, [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
+        (float('inf'), True, False, 'trash', min, [0,1], (0,1), {0,1}, {'a':1},
+         lambda x: x)
     )
     def test_n_jobs_rejects_non_int_non_None(self, _GSTCV, junk_njobs, X_np, y_np):
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _GSTCV.set_params(n_jobs=junk_njobs).fit(X_np, y_np)
 
 
-    @pytest.mark.parametrize('bad_njobs', (-2, 0, 3.14, float('inf')))
+    @pytest.mark.parametrize('bad_njobs', (-2, 0, 3.14))
     def test_n_jobs_rejects_bad_int(self, _GSTCV, bad_njobs, X_np, y_np):
 
         with pytest.raises(ValueError):
@@ -673,13 +674,22 @@ class TestGSTCVInput:
         assert _GSTCV.get_params(deep=True)['cv'] == good_int
 
 
-    @pytest.mark.parametrize(f'junk_iter',
-        ([1, 2, 3], [[1, 2, 3], [1, 2, 3], [2, 3, 4]], (True, False), list('abcde'))
-    )
-    def test_cv_rejects_junk_iter(self, _GSTCV, junk_iter, X_np, y_np):
+    @pytest.mark.parametrize(f'junk_iter', ([1, 2, 3], (True, False)))
+    def test_cv_rejects_junk_iter_1(self, _GSTCV, junk_iter, X_np, y_np):
 
         with pytest.raises(TypeError):
             assert _GSTCV.set_params(cv=junk_iter).fit(X_np, y_np)
+
+
+    @pytest.mark.parametrize(f'junk_iter',
+        ([[1, 2, 3], [1, 2, 3], [2, 3, 4]], list('abcde'))
+    )
+    def test_cv_rejects_junk_iter_2(self, _GSTCV, junk_iter, X_np, y_np):
+
+        with pytest.raises(ValueError):
+            assert _GSTCV.set_params(
+                cv=[[1, 2, 3], [1, 2, 3], [2, 3, 4]]
+            ).fit(X_np, y_np)
 
 
     def test_cv_accepts_good_iter(self, _GSTCV, X_np, y_np):
@@ -691,7 +701,7 @@ class TestGSTCVInput:
 
     def test_cv_rejects_empties(self, _GSTCV, X_np, y_np):
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             _GSTCV.set_params(cv=[()]).fit(X_np, y_np)
 
         with pytest.raises(ValueError):

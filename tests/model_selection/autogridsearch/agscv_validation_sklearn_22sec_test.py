@@ -16,7 +16,7 @@ import numpy as np
 from pybear.model_selection.autogridsearch.autogridsearch_wrapper import \
     autogridsearch_wrapper
 
-from sklearn.model_selection import GridSearchCV as skl_GridSearchCV
+from sklearn.model_selection import GridSearchCV as sk_GridSearchCV
 from sklearn.linear_model import LogisticRegression as sk_Logistic
 
 from sklearn.datasets import make_classification
@@ -49,7 +49,7 @@ class TestAGSCVValidation:
     @staticmethod
     @pytest.fixture
     def AutoGridSearch():
-        return autogridsearch_wrapper(skl_GridSearchCV)
+        return autogridsearch_wrapper(sk_GridSearchCV)
 
 
     @staticmethod
@@ -141,15 +141,26 @@ class TestAGSCVValidation:
 
 
     @pytest.mark.parametrize('bad_params',
-        ({'a': ['more_junk']}, {0: [1,2,3,4]}, {'junk': [1, 2, 'what?!']},
-         {'b': {1,2,3,4}}, {'qqq': {'rrr': [[1,2,3], 3, 'fixed_string']}})
+        (
+            {'a': ['more_junk']},
+            {0: [1,2,3,4]},
+            {'junk': [1, 2, 'what?!']},
+            {'b': {1,2,3,4}},
+            {'qqq': {'rrr': [[1,2,3], 3, 'fixed_string']}}
+        )
     )
     def test_rejects_bad_params(self, AutoGridSearch, bad_params, _X, _y):
+        # this would be raised by agscv or the estimator, let is raise
+        # whatever
         with pytest.raises(Exception):
             AutoGridSearch(
                 sk_Logistic(),
                 bad_params
             ).fit(_X, _y)
+
+
+    # cant have duplicate params because 'params' is a dict
+
 
     # END params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -257,8 +268,8 @@ class TestAGSCVValidation:
     # good_tp must match good_sk_params
     @pytest.mark.parametrize('agscv_verbose,good_max_shifts,tpih,good_tp',
         (
-            (True, None, True, 3),
-            (False, 3, False, 3)
+            (True, None, True, 2),
+            (False, 3, False, 2)
         )
     )
     def test_accepts_good_everything(
@@ -279,7 +290,7 @@ class TestAGSCVValidation:
             agscv_verbose=agscv_verbose,
             scoring='accuracy',
             n_jobs=None,
-            cv=5
+            cv=3
         )
 
         _gscv.fit(_X, _y)
@@ -300,7 +311,7 @@ class TestBoolInFixedIntegerFixedFloat:
 
     def test_bool_in_fixed_integer(self):
 
-        AutoGridSearch = autogridsearch_wrapper(skl_GridSearchCV)
+        AutoGridSearch = autogridsearch_wrapper(sk_GridSearchCV)
 
         X, y = make_classification(n_samples=50, n_features=5)
 
@@ -324,7 +335,7 @@ class TestBoolInFixedIntegerFixedFloat:
 
     def test_bool_in_fixed_float(self):
 
-        AutoGridSearch = autogridsearch_wrapper(skl_GridSearchCV)
+        AutoGridSearch = autogridsearch_wrapper(sk_GridSearchCV)
 
         X, y = make_classification(n_samples=50, n_features=5)
 
@@ -344,6 +355,110 @@ class TestBoolInFixedIntegerFixedFloat:
             )
 
             _test_cls.fit(X, y)
+
+
+
+class TestZeroAndNegativeGrid:
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _MockEstimator():
+
+        class Foo:
+
+            def __init__(
+                self,
+                crazy_float: float = np.e,
+                crazy_int: int = 1
+            ) -> None:
+
+                self.crazy_float = crazy_float
+                self.crazy_int = crazy_int
+
+            def get_params(self, deep=True):
+                return {
+                    'crazy_float': self.crazy_float,
+                    'crazy_int': self.crazy_int
+                }
+
+            def set_params(self, **params):
+                if 'crazy_float' in params:
+                    self.crazy_float = params['crazy_float']
+                if 'crazy_int' in params:
+                    self.crazy_int = params['crazy_int']
+                return self
+
+            def fit(self, X, y):
+                return self
+
+            def predict(self, X):
+                return np.random.uniform(0, 1, (X.shape[0],))
+
+            def score(self, X, y):
+                return float(np.random.uniform(0, 1))
+
+        return Foo
+
+    # END MockEstimator -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
+
+    def test_fixed_accepts_zero_and_negative(self, _MockEstimator):
+
+        # should be allowed by agscv
+
+        AGSCV = autogridsearch_wrapper(sk_GridSearchCV)
+
+        agscv = AGSCV(
+            estimator=_MockEstimator(),
+            params={
+                'crazy_float': [[-1e-6, -1e-5, -1e-4], 3, 'fixed_float'],
+                'crazy_int': [[-1, 0, 1], 3, 'fixed_integer']
+            },
+            total_passes=2,
+            total_passes_is_hard=True,
+            agscv_verbose=False
+        )
+
+        agscv.fit(
+            np.random.uniform(0, 1, (20, 5)),
+            np.random.randint(0, 2, (20,))
+        )
+
+
+    @pytest.mark.parametrize('type1',
+        ('soft_float', 'hard_float', 'soft_integer', 'hard_integer')
+    )
+    @pytest.mark.parametrize('type2',
+        ('soft_float', 'hard_float', 'soft_integer', 'hard_integer')
+    )
+    def test_soft_hard_rejects_zero_and_negative(
+        self, _MockEstimator, type1, type2
+    ):
+
+        # should be allowed by agscv
+
+        AGSCV = autogridsearch_wrapper(sk_GridSearchCV)
+
+
+        agscv = AGSCV(
+            estimator=_MockEstimator(),
+            params={
+                'crazy_float': [[-1e-6, -1e-5, -1e-4], 3, type1],
+                'crazy_int': [[-1, 0, 1], 3, type2]
+            },
+            total_passes=2,
+            total_passes_is_hard=True,
+            agscv_verbose=False
+        )
+
+        with pytest.raises(ValueError):
+            agscv.fit(
+                np.random.uniform(0, 1, (20, 5)),
+                np.random.randint(0, 2, (20,))
+            )
+
 
 
 

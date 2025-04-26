@@ -173,7 +173,7 @@ class GSTCV(_GSTCVMixin):
         def your_metric_wrapper(y_true, y_pred):
             return your_metric(y_true, y_pred, **hard_coded_kwargs)
 
-    _n_jobs:
+    n_jobs:
         Optional[Union[int, None]], default=None - Number of jobs to run
         in parallel. -1 means using all processors.
 
@@ -481,6 +481,7 @@ class GSTCV(_GSTCVMixin):
         refit: Optional[Union[bool, str, callable, None]]=True,
         cv: Optional[Union[int, Iterable, None]]=None,
         verbose: Optional[Union[int, float, bool]]=0,
+        # pizza! finally figured out about 'pre_dispatch'! it gets passed to joblib.Parallel() !!!!
         error_score: Optional[Union[Literal['raise'], int, float]]='raise',
         return_train_score: Optional[bool]=False
     ):
@@ -559,11 +560,11 @@ class GSTCV(_GSTCVMixin):
             self._estimator,
             self.cv_results_,
             self._cv,
-            self._error_score,
+            self.error_score,
             self._verbose,
             self.scorer_,
-            self._n_jobs,
-            self._return_train_score,
+            self.n_jobs,
+            self.return_train_score,
             self._PARAM_GRID_KEY,
             self._THRESHOLD_DICT,
             **params

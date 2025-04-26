@@ -16,14 +16,13 @@ import time
 import numpy as np
 import dask.array as da
 
-from ._validation._cv import _validate_cv
-from ._validation._error_score import _validate_error_score
-from ._validation._verbose import _validate_verbose
-from ._validation._n_jobs import _validate_n_jobs
-from ._validation._refit import _validate_refit
-from ._validation._return_train_score import _validate_return_train_score
-from ._validation._scoring import _validate_scoring
+from ._validation._refit import _val_refit
 from ._validation._thresholds__param_grid import _validate_thresholds__param_grid
+from ._validation._validation import _validation
+
+from ._param_conditioning._scoring import _cond_scoring
+from ._param_conditioning._cv import _cond_cv
+from ._param_conditioning._verbose import _cond_verbose
 
 from .._fit_shared._cv_results._cv_results_builder import \
     _cv_results_builder
@@ -204,7 +203,7 @@ class _GSTCVMixin(
                 self._param_grid,
                 self.n_splits_,
                 self.scorer_,
-                self._return_train_score
+                self.return_train_score
         )
 
         # USE A DUMMIED-UP cv_results TO TEST IF THE refit CALLABLE RETURNS
@@ -905,16 +904,31 @@ class _GSTCVMixin(
 
         """
 
+
+        _validation(
+            self.scoring,
+            self.n_jobs,
+            self.cv,
+            self.verbose,
+            self.error_score,
+            self.return_train_score
+        )
+
+        # pizza, pizza, pizza = _conditioning(
+        #
+        # )
+
+
         self._param_grid = _validate_thresholds__param_grid(
             self.thresholds,
             self.param_grid
         )
 
-        self.scorer_ = _validate_scoring(self.scoring)
+        self.scorer_ = _cond_scoring(self.scoring)
         self.multimetric_ = len(self.scorer_) > 1
 
         # VALIDATE refit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        self._refit = _validate_refit(self.refit, self.scorer_)
+        self._refit = _val_refit(self.refit, self.scorer_)
 
         # IF AN INSTANCE HAS ALREADY BEEN fit() WITH refit != False,
         # POST-REFIT ATTRS WILL BE AVAILABLE. BUT IF SUBSEQUENTLY refit
@@ -941,6 +955,10 @@ class _GSTCVMixin(
 
         # END VALIDATE refit ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
 
+
+
+
+
         # NOW THAT refit IS VALIDATED, IF ONE THING IN SCORING, CHANGE
         # THE KEY TO 'score'
         if len(self.scorer_)==1:
@@ -948,21 +966,16 @@ class _GSTCVMixin(
 
         # n_splits_ is only available after fit(). n_splits_ is always
         # returned as a number
-        self._cv = _validate_cv(self.cv)
+        # pizza this is wack!
+        self._cv = _cond_cv(self.cv, _cv_default=5)
         try:
             float(self._cv)
             self.n_splits_ = self._cv
         except:
             self.n_splits_ = len(self._cv)
 
-        self._error_score = _validate_error_score(self.error_score)
+        self._verbose = _cond_verbose(self.verbose)
 
-        self._verbose = _validate_verbose(self.verbose)
-
-        self._return_train_score = \
-            _validate_return_train_score(self.return_train_score)
-
-        self._n_jobs = _validate_n_jobs(self.n_jobs)
 
     # END validate_and_reset ###########################################
 

@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -17,11 +18,11 @@ from sklearn.metrics import (
 )
 
 from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring import \
-    _validate_scoring
+    _val_scoring
 
 
 
-class TestValidateScoring:
+class TestValScoring:
 
 
     @pytest.mark.parametrize('junk_scoring',
@@ -30,7 +31,7 @@ class TestValidateScoring:
     def test_rejects_anything_not_str_callable_dict_iterable(self, junk_scoring):
 
         with pytest.raises(TypeError):
-            _validate_scoring(junk_scoring)
+            _val_scoring(junk_scoring)
 
 
     @pytest.mark.parametrize('junk_scoring',
@@ -39,7 +40,7 @@ class TestValidateScoring:
     def test_rejects_bad_strs(self, junk_scoring):
 
         with pytest.raises(ValueError):
-            _validate_scoring(junk_scoring)
+            _val_scoring(junk_scoring)
 
 
     @pytest.mark.parametrize('good_scoring',
@@ -47,12 +48,7 @@ class TestValidateScoring:
     )
     def test_accepts_good_strs(self, good_scoring):
 
-        out = _validate_scoring(good_scoring)
-        assert isinstance(out, dict)
-        assert len(out) == 1
-        assert good_scoring in out
-        assert callable(out[good_scoring])
-        assert float(out[good_scoring]([1, 0, 1, 1], [1, 0, 0, 1]))
+        assert _val_scoring(good_scoring) is None
 
 
     @pytest.mark.parametrize('junk_scoring',
@@ -61,26 +57,21 @@ class TestValidateScoring:
     def test_rejects_non_num_callables(self, junk_scoring):
 
         with pytest.raises(ValueError):
-            _validate_scoring(junk_scoring)
+            _val_scoring(junk_scoring)
 
 
     def test_accepts_good_callable(self):
 
         good_callable = lambda y1, y2: np.sum(np.array(y2)-np.array(y1))
 
-        out = _validate_scoring(good_callable)
-        assert isinstance(out, dict)
-        assert len(out) == 1
-        assert 'score' in out
-        assert callable(out['score'])
-        assert float(out['score']([1, 0, 1, 1], [1, 0, 0, 1]))
+        out = _val_scoring(good_callable) is None
 
 
     @pytest.mark.parametrize('junk_scoring', ([], (), {}))
     def test_rejects_empty(self, junk_scoring):
 
         with pytest.raises(ValueError):
-            _validate_scoring(junk_scoring)
+            _val_scoring(junk_scoring)
 
 
     @pytest.mark.parametrize('junk_lists',
@@ -89,21 +80,15 @@ class TestValidateScoring:
     def test_rejects_junk_lists(self, junk_lists):
 
         with pytest.raises((TypeError, ValueError)):
-            _validate_scoring(junk_lists)
+            _val_scoring(junk_lists)
 
 
     @pytest.mark.parametrize('good_lists',
         (['precision', 'recall'], ('accuracy','balanced_accuracy'),
          {'f1', 'balanced_accuracy', 'recall', 'precision'})
     )
-    def test_accepts_good_lists(self, good_lists):
-        out = _validate_scoring(good_lists)
-        assert isinstance(out, dict)
-        assert len(out) == len(good_lists)
-        for metric in good_lists:
-            assert metric in out
-            assert callable(out[metric])
-            assert float(out[metric]([1,0,1,1], [1,0,0,1]))
+    def test_accepts_good_list_likes(self, good_lists):
+        assert _val_scoring(good_lists) is None
 
 
     @pytest.mark.parametrize('junk_dicts',
@@ -113,8 +98,7 @@ class TestValidateScoring:
     def test_rejects_junk_dicts(self, junk_dicts):
 
         with pytest.raises(ValueError):
-            _validate_scoring(junk_dicts)
-
+            _val_scoring(junk_dicts)
 
 
     @pytest.mark.parametrize('good_dict',
@@ -123,28 +107,7 @@ class TestValidateScoring:
     )
     def test_accepts_good_dicts(self, good_dict):
 
-        out = _validate_scoring(good_dict)
-        assert isinstance(out, dict)
-        assert len(out) == len(good_dict)
-        for metric in good_dict:
-            assert metric in out
-            assert callable(out[metric])
-            assert float(out[metric]([0,1,0,1],[1,0,0,1]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        assert _val_scoring(good_dict) is None
 
 
 

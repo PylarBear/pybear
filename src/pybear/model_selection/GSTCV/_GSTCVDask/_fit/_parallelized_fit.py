@@ -26,7 +26,7 @@ def _parallelized_fit(
     _y_train: YDaskWIPType,
     _estimator_: ClassifierProtocol,
     _grid: dict[str, Union[str, int, float, bool]],
-    _error_score,
+    _error_score,  # pizza what's the type here?
     **fit_params
 ) -> tuple[ClassifierProtocol, float, bool]:
 
@@ -57,7 +57,7 @@ def _parallelized_fit(
         values to be used during this fit. One permutation of all the
         grid search permutations.
     _error_score:
-        Union[int, float, Literal['raise']] - if a training fold excepts
+        Union[numbers.Real, Literal['raise']] - if a training fold excepts
         during fitting, the exception can be allowed to raise by passing
         the 'raise' literal. Otherwise, passing a number or number-like
         will cause the exception to be handled, allowing the grid search

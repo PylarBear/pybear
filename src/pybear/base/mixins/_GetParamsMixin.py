@@ -56,7 +56,8 @@ class GetParamsMixin:
         Return
         ------
         -
-            params: dict - Parameter names mapped to their values.
+            params: dict[str, Any] - Parameter names mapped to their
+            values.
 
         """
 
