@@ -20,7 +20,6 @@ from sklearn.metrics import (
     recall_score
 )
 
-from MinCountTransformer.make_instructions.make_instructions_2sec_test import good_og_dtypes
 from pybear.model_selection.GSTCV._GSTCVMixin._param_conditioning._scoring \
     import _cond_scoring
 
