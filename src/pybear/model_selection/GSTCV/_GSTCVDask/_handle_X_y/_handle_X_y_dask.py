@@ -26,7 +26,7 @@ import dask.dataframe as ddf
 
 def _handle_X_y_dask(
     X: XInputType,
-    y: YInputType = None,
+    y: YInputType = None
 ) -> tuple[XSKWIPType, YSKWIPType, FeatureNamesInType, int]:
 
     """
@@ -221,43 +221,6 @@ def _handle_X_y_dask(
 
 
     return _X, _y, _feature_names_in, _n_features_in
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
