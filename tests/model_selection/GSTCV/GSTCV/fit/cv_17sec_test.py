@@ -115,9 +115,11 @@ class TestCV:
 
 
     @pytest.mark.parametrize('_n_jobs', (-1, 1))  # 1 is important
-    def test_accuracy_cv_int_vs_cv_iter(self, X_np, y_np, sk_est_log,
-        good_cv_results, standard_cv_int, standard_error_score, good_scorer,
-        good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _n_jobs):
+    def test_accuracy_cv_int_vs_cv_iter(
+        self, X_np, y_np, sk_est_log, good_cv_results, standard_cv_int,
+        standard_error_score, good_scorer, good_PARAM_GRID_KEY,
+        good_THRESHOLD_DICT, _n_jobs
+    ):
 
         # test equivalent cv as int or iterable give same output
 
@@ -131,10 +133,11 @@ class TestCV:
             0, # good_verbose,
             good_scorer,
             _n_jobs,
+            '2*n_jobs',
             True, # good_return_train_score,
             good_PARAM_GRID_KEY,
             good_THRESHOLD_DICT
-            )
+        )
 
         out_iter = _core_fit(
             X_np,
@@ -146,10 +149,11 @@ class TestCV:
             0, # good_verbose,
             good_scorer,
             _n_jobs,
+            '2*n_jobs',
             True, # good_return_train_score,
             good_PARAM_GRID_KEY,
             good_THRESHOLD_DICT
-            )
+        )
 
         assert pd.DataFrame(data=out_int).equals(pd.DataFrame(data=out_iter))
 

@@ -111,11 +111,13 @@ class TestCoreFitAccuracy:
         )
     )
     @pytest.mark.parametrize('_n_jobs', (-1, 1))  # <==== 1 is important
+    @pytest.mark.parametrize('_pre_dispatch', ('all', '2*n_jobs'))
     @pytest.mark.parametrize('_return_train_score', (True, False))
-    def test_accuracy_vs_sk_gscv(self, _param_grid, standard_cv_int,
-        standard_error_score, _scorer,  _n_jobs, _return_train_score,
-        X_np, y_np, special_sk_est_log, special_sk_GSCV_est_log_one_scorer_prefit):
-
+    def test_accuracy_vs_sk_gscv(
+        self, _param_grid, standard_cv_int, standard_error_score, _scorer,
+        _n_jobs, _pre_dispatch, _return_train_score, X_np, y_np,
+        special_sk_est_log, special_sk_GSCV_est_log_one_scorer_prefit
+    ):
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
@@ -136,6 +138,7 @@ class TestCoreFitAccuracy:
             0, # good_verbose,
             _scorer,
             _n_jobs,
+            _pre_dispatch,
             _return_train_score,
             PARAM_GRID_KEY,
             {i: np.array([0.5]) for i in range(len(_param_grid))} # THRESHOLD_DICT

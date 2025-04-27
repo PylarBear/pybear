@@ -7,12 +7,16 @@
 
 
 from typing import (
+    Callable,
     Literal,
     Iterable,
     Sequence,
     Optional
 )
-from typing_extensions import Union
+from typing_extensions import (
+    Any,
+    Union
+)
 from .._type_aliases import (
     XInputType,
     YInputType
@@ -23,7 +27,7 @@ import numbers
 
 from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
-from .._GSTCV._validation._estimator import _validate_estimator
+from .._GSTCV._validation._validation import _validation
 
 from ._handle_X_y._handle_X_y_sklearn import _handle_X_y_sklearn
 
@@ -49,7 +53,6 @@ class GSTCV(_GSTCVMixin):
 
     Parameters
     ----------
-
     estimator:
         estimator object - Must be a binary classifier that conforms to
         the sci-kit learn estimator API interface. The classifier must
@@ -173,8 +176,8 @@ class GSTCV(_GSTCVMixin):
             return your_metric(y_true, y_pred, **hard_coded_kwargs)
 
     n_jobs:
-        Optional[Union[int, None]], default=None - Number of jobs to run
-        in parallel. -1 means using all processors.
+        Optional[Union[numbers.Integral, None]], default=None - Number
+        of jobs to run in parallel. -1 means using all processors.
 
         For best speed benefit, pybear recommends setting n_jobs in both
         GSTCV and the wrapped estimator to None, whether under a joblib
@@ -216,8 +219,8 @@ class GSTCV(_GSTCVMixin):
         evaluation.
 
     cv:
-        Optional[Union[int, Iterable, None]], default=None - Sets the
-        cross-validation splitting strategy.
+        Optional[Union[numbers.Integral, Iterable, None]], default=None -
+        Sets the cross-validation splitting strategy.
 
         Possible inputs for cv are:
         1) None, to use the default 5-fold cross validation,
@@ -242,8 +245,14 @@ class GSTCV(_GSTCVMixin):
         Numbers greater than 10 are set to 10. Floats are rounded to
         integers.
 
+    pre_dispatch:
+        Optional[Union[Literal['all'], str, numbers.Integral]],
+        default='2*n_jobs' - The number of batches (of tasks) to be
+        pre-dispatched. Default is '2*n_jobs'. See the joblib.Parallel
+        docs for more information.
+
     error_score:
-        Optional[Union[int, float, Literal['raise']]], default='raise' -
+        Optional[Union[Literal['raise'], numbers.Real]], default='raise' -
         Score to assign if an error occurs in estimator fitting. If set
         to ‘raise’, the error is raised. If a numeric value is given, a
         warning is raised and the error score value is inserted into the
@@ -447,6 +456,7 @@ class GSTCV(_GSTCVMixin):
     ...     refit=False,
     ...     cv=5,
     ...     verbose=0,
+    ...     pre_dispatch='2*n_jobs',
     ...     error_score='raise',
     ...     return_train_score=False
     ... )
@@ -469,21 +479,25 @@ class GSTCV(_GSTCVMixin):
 
     def __init__(
         self,
-        estimator: any,
-        param_grid: Union[dict[str, Sequence[any]], list[dict[str, Sequence[any]]]],
+        estimator: Any,
+        param_grid: Union[dict[str, Sequence[Any]], list[dict[str, Sequence[Any]]]],
         *,
         thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
         scoring: Optional[
-            Union[list[str], dict[str, callable], str, callable]
+            Union[list[str], dict[str, Callable], str, Callable]
         ]='accuracy',
-        n_jobs: Optional[Union[int, None]]=None,
-        refit: Optional[Union[bool, str, callable]]=True,
-        cv: Optional[Union[int, Iterable, None]]=None,
-        verbose: Optional[Union[int, float, bool]]=0,
-        # pizza! finally figured out about 'pre_dispatch'! it gets passed to joblib.Parallel() !!!!
-        error_score: Optional[Union[Literal['raise'], int, float]]='raise',
+        n_jobs: Optional[Union[numbers.Integral, None]]=None,
+        refit: Optional[Union[bool, str, Callable]]=True,
+        cv: Optional[Union[numbers.Integral, Iterable, None]]=None,
+        verbose: Optional[numbers.Real]=0,
+        pre_dispatch: Optional[
+            Union[Literal['all'], str, numbers.Integral]
+        ]='2*n_jobs',
+        error_score: Optional[Union[Literal['raise'], numbers.Real]]='raise',
         return_train_score: Optional[bool]=False
-    ):
+    ) -> None:
+
+        """Initialize the GSTCV instance."""
 
         self.estimator = estimator
         self.param_grid = param_grid
@@ -493,6 +507,7 @@ class GSTCV(_GSTCVMixin):
         self.cv = cv
         self.refit = refit
         self.verbose = verbose
+        self.pre_dispatch = pre_dispatch
         self.error_score = error_score
         self.return_train_score = return_train_score
 
@@ -516,7 +531,7 @@ class GSTCV(_GSTCVMixin):
         X: XInputType,
         y: YInputType=None,
         **params
-    ):
+    ) -> None:
 
         """
 
@@ -534,6 +549,7 @@ class GSTCV(_GSTCVMixin):
 
         Parameters
         ----------
+        # pizza fix these wack type hints
         X:
             NDArray[Union[int, float]] - the data to be fit by GSTCV
             against the target.
@@ -552,7 +568,10 @@ class GSTCV(_GSTCVMixin):
 
         """
 
-        _validate_estimator(self.estimator)
+        _validation(
+            self.estimator,
+            self.pre_dispatch
+        )
 
         self._estimator = type(self.estimator)(
             **deepcopy(self.estimator.get_params(deep=False))
@@ -571,6 +590,7 @@ class GSTCV(_GSTCVMixin):
             self._verbose,
             self.scorer_,
             self.n_jobs,
+            self.pre_dispatch,
             self.return_train_score,
             self._PARAM_GRID_KEY,
             self._THRESHOLD_DICT,

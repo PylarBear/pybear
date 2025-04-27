@@ -142,7 +142,7 @@ class TestGSTCVInput:
     ):
 
         # must be an instance not the class! & be a classifier!
-        with pytest.raises(TypeError):
+        with pytest.raises(AttributeError):
             _GSTCV.set_params(estimator=dask_non_classifiers()).fit(X_np, y_np)
 
 
