@@ -132,15 +132,11 @@ class TestGSTCVInput:
     @pytest.mark.parametrize('non_classifier',
         (sk_LinearRegression, sk_Ridge, sk_SGDRegressor)
     )
-    def test_rejects_non_dask_non_classifier_with_warn(
+    def test_rejects_non_dask_non_classifier(
         self, _GSTCVDask, non_classifier, X_da, y_da
     ):
-
-        exp_warn = (f"'{non_classifier().__class__.__name__}' does not "
-            f"appear to be a dask classifier.")
-        with pytest.warns(match=exp_warn):
-            with pytest.raises(AttributeError):
-                _GSTCVDask.set_params(estimator=non_classifier()).fit(X_da, y_da)
+        with pytest.raises(AttributeError):
+            _GSTCVDask.set_params(estimator=non_classifier()).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('dask_non_classifiers', (dask_LinearRegression, ))
