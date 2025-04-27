@@ -14,6 +14,11 @@ from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask as \
     dask_GSTCV
 
 
+pytest.skip(
+    reason=f"only test fixtures if they are changed",
+    allow_module_level=True
+)
+
 
 class TestDaskGridSearchFixtures:
 
