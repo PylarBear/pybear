@@ -8,6 +8,8 @@
 
 import pytest
 
+from copy import deepcopy
+
 import numpy as np
 
 from pybear.model_selection.GSTCV._GSTCVMixin._param_conditioning._thresholds \
@@ -35,6 +37,9 @@ class TestCondThresholds:
         assert np.array_equiv(_cond_thresholds(None), good_threshes)
 
 
+    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
     @pytest.mark.parametrize('_ifk', (True, False))
     @pytest.mark.parametrize('_idx', (0, 5, 10))
     @pytest.mark.parametrize('good_thresh',
@@ -47,6 +52,8 @@ class TestCondThresholds:
         except:
             good_thresh = [good_thresh]
 
+        _og_good_thresh = deepcopy(good_thresh)
+
         out = _cond_thresholds(good_thresh)
 
         assert isinstance(out, list)
@@ -54,7 +61,7 @@ class TestCondThresholds:
 
         assert np.array_equiv(out, list(good_thresh))
 
-
+        assert good_thresh == _og_good_thresh
 
 
 

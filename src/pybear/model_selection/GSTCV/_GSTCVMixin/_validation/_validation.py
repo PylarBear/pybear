@@ -10,11 +10,13 @@ from typing import Iterable, Literal, Sequence
 from typing_extensions import Any, Union
 from ..._type_aliases import (
     GenericKFoldType,
-    ScorerInputType
+    ScorerInputType,
+    ClassifierProtocol
 )
 
 import numbers
 
+from ._estimator import _val_estimator
 from ._param_grid import _val_param_grid
 from ._thresholds import _val_thresholds
 from ._scoring import _val_scoring
@@ -28,6 +30,7 @@ from ._return_train_score import _val_return_train_score
 
 
 def _validation(
+    _estimator: ClassifierProtocol,
     _param_grid: Union[dict[str, Sequence[Any]], list[dict[str, Sequence[Any]]]],
     _thresholds: Union[None, numbers.Real, Sequence[numbers.Real]],  # pizza global ThresholdsType?
     _scoring: ScorerInputType,
@@ -46,6 +49,8 @@ def _validation(
     
     Parameters
     ----------
+    _estimator:
+        ClassifierProtocol - the estimator to be validated
     _param_grid:
         # pizza the None issue still needs to be resolved!
         Union[dict[str, Sequence[Any]], list[dict[str, Sequence[Any]]]]
@@ -74,6 +79,8 @@ def _validation(
 
     """
 
+
+    _val_estimator(_estimator)
 
     _val_param_grid(_param_grid)
 

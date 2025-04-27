@@ -8,6 +8,8 @@
 
 import pytest
 
+from copy import deepcopy
+
 import numpy as np
 
 from pybear.model_selection.GSTCV._GSTCVMixin._param_conditioning._param_grid \
@@ -44,20 +46,34 @@ class TestCondParamGrid:
 
     def test_accepts_good_param_grids(self, good_param_grid, good_threshes):
 
-        out = _cond_param_grid(None, good_threshes)
+        _gpg = None
+        _og_gpg = deepcopy(_gpg)
+        _og_threshes = deepcopy(good_threshes)
+        out = _cond_param_grid(_gpg, good_threshes)
         assert isinstance(out, list)
         assert len(out) == 1   # should be [{}]
+        assert _gpg is _og_gpg
+        assert good_threshes == _og_threshes
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        _og_gpg = deepcopy(good_param_grid)
+        _og_good_threshes = deepcopy(good_threshes)
         out = _cond_param_grid(good_param_grid, good_threshes)
         assert isinstance(out, list)
         assert len(out) == len(good_param_grid)
         assert all(map(isinstance, out, (dict for i in out)))
+        for idx in range(len(_og_gpg)):
+            for key in _og_gpg[idx]:
+                assert np.array_equal(good_param_grid[idx][key], _og_gpg[idx][key])
+        assert good_threshes == _og_threshes
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        out = _cond_param_grid([good_param_grid[0]], good_threshes)
+        _gpg = [good_param_grid[0]]
+        _og_gpg = deepcopy(_gpg)
+        _og_good_threshes = deepcopy(good_threshes)
+        out = _cond_param_grid(_gpg, good_threshes)
         assert isinstance(out, list)
         assert len(out) == 1
         # verify thresholds passed via param grid supersede thresholds passed
@@ -67,40 +83,44 @@ class TestCondParamGrid:
             # the thresholds in good_param_grid[0]
             list(map(float, np.linspace(0,1,11)))
         )
+        for key in _gpg[0]:
+            assert np.array_equal(_gpg[0][key], _og_gpg[0][key])
+        assert good_threshes == _og_good_threshes
         # that means the param_grid threshs were not overwritten by init threshs
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        out = _cond_param_grid(
-            [good_param_grid[0], good_param_grid[1]],
-            good_threshes
-        )
+        _gpg = [good_param_grid[0], good_param_grid[1]]
+        _og_gpg = deepcopy(_gpg)
+        _og_good_threshes = deepcopy(good_threshes)
+        out = _cond_param_grid(_gpg, good_threshes)
         assert isinstance(out, list)
         assert all(map(isinstance, out, (dict for i in out)))
         # verify thresholds passed via param grid supersede thresholds passed
         # via kwarg (which would land in the first position in the function)
         assert np.array_equiv(
-            out[0]['thresholds'],
+            _gpg[0]['thresholds'],
             # the thresholds in good_param_grid[0]
             list(map(float, np.linspace(0,1,11)))
         )
         # grid #2 doesnt have thresholds passed, so should be the default
         assert np.array_equiv(
             out[1]['thresholds'],
-            list(map(float, np.linspace(0,1,21)))
+            good_threshes
         )
-
+        for idx in range(len(_og_gpg)):
+            for key in _og_gpg[idx]:
+                assert np.array_equal(_gpg[idx][key], _og_gpg[idx][key])
+        assert good_threshes == _og_threshes
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     @pytest.mark.parametrize('valid_empties', ({}, [], [{}], [{}, {}]))
     def test_accepts_valid_empties(self, valid_empties):
 
+        _og_valid_empties = deepcopy(valid_empties)
         _thresholds = {0, 0.25, 0.5, 0.75, 1}
-
-        out = _cond_param_grid(
-            valid_empties,
-            _thresholds
-        )
+        _og_thresholds = deepcopy(_thresholds)
+        out = _cond_param_grid(valid_empties, _thresholds)
         assert isinstance(out, list)
         # remember validation always returns a list of dicts
         for _grid in out:
@@ -111,7 +131,8 @@ class TestCondParamGrid:
                 _grid['thresholds'],
                 sorted(list(_thresholds))
             )
-
+        assert valid_empties == _og_valid_empties
+        assert _thresholds == _og_thresholds
     # END param_grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -122,7 +143,19 @@ class TestCondParamGrid:
         (0, 0.5, 1, [0, 0.1, 0.2], (0.8, 0.9, 1.0), None)
     )
     def test_accepts_good_thresh(self, good_param_grid, _good_thresh):
-        _cond_param_grid(good_param_grid, _good_thresh)
+
+        _gpg = good_param_grid
+        _og_gpg = deepcopy(_gpg)
+        _og_good_thresh = deepcopy(_good_thresh)
+
+        out = _cond_param_grid(_gpg, _good_thresh)
+        assert isinstance(out, list)
+        assert all(map(isinstance, _gpg, (dict for i in _gpg)))
+
+        for idx in range(len(_og_gpg)):
+            for key in _og_gpg[idx]:
+                assert np.array_equal(good_param_grid[idx][key], _og_gpg[idx][key])
+        assert np.array_equal(_good_thresh, _og_good_thresh)
 
     # END _thresholds ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -151,10 +184,12 @@ class TestCondParamGrid:
         # it went in, regardless of what is passed to threshold kwarg
         # (dicts 1 & 3)
 
-        out = _cond_param_grid(
-            good_param_grid[0],
-            np.linspace(0,1,5)
-        )
+        _gpg = good_param_grid[0]
+        _og_gpg = deepcopy(_gpg)
+        _threshes = np.linspace(0,1,5)
+        _og_threshes = deepcopy(_threshes)
+
+        out = _cond_param_grid(_gpg, _threshes)
 
         assert isinstance(out, list)
         assert len(out) == 1
@@ -164,8 +199,18 @@ class TestCondParamGrid:
             assert np.array_equiv(out[0][k], good_param_grid[0][k])
         # thresholds passed via param grid supersede those passed via kwarg
         assert np.array_equiv(out[0]['thresholds'], np.linspace(0,1,11))
+        for key in _og_gpg:
+            assert np.array_equal(_gpg[key], _og_gpg[key])
+        assert np.array_equal(_threshes, _og_threshes)
 
-        out = _cond_param_grid(good_param_grid[2], good_threshes)
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        _gpg = good_param_grid[2]
+        _og_gpg = deepcopy(_gpg)
+        _threshes = good_threshes
+        _og_threshes = deepcopy(_threshes)
+
+        out = _cond_param_grid(_gpg, _threshes)
 
         assert isinstance(out, list)
         assert len(out) == 1
@@ -174,6 +219,8 @@ class TestCondParamGrid:
         for k, v in out[0].items():
             assert np.array_equiv(out[0][k], good_param_grid[2][k])
         assert np.array_equiv(out[0]['thresholds'], [0.25])
+        assert _gpg == _og_gpg
+        assert _threshes == _og_threshes
 
 
     def test_accuracy_2(self):
@@ -182,22 +229,34 @@ class TestCondParamGrid:
         # grid with only the thresholds in it
 
         # notice testing pass as set
-        out = _cond_param_grid(None, {0, 0.25, 0.5, 0.75, 1})
+        _gpg = None
+        _og_gpg = deepcopy(_gpg)
+        _threshes = {0, 0.25, 0.5, 0.75, 1}
+        _og_threshes = deepcopy(_threshes)
+        out = _cond_param_grid(_gpg, _threshes)
 
         assert isinstance(out, list)
         assert len(out) == 1
         assert isinstance(out[0], dict)
         assert np.array_equiv(list(out[0].keys()), ['thresholds'])
         assert np.array_equiv(out[0]['thresholds'], np.linspace(0,1,5))
+        assert _gpg == _og_gpg
+        assert _threshes == _og_threshes
 
         # notice testing pass as list
-        out = _cond_param_grid({}, [0, 0.25, 0.5, 0.75, 1])
+        _gpg = {}
+        _og_gpg = deepcopy(_gpg)
+        _threshes = [0, 0.25, 0.5, 0.75, 1]
+        _og_threshes = deepcopy(_threshes)
+        out = _cond_param_grid(_gpg, _threshes)
 
         assert isinstance(out, list)
         assert len(out) == 1
         assert isinstance(out[0], dict)
         assert np.array_equiv(list(out[0].keys()), ['thresholds'])
         assert np.array_equiv(out[0]['thresholds'], np.linspace(0,1,5))
+        assert _gpg == _og_gpg
+        assert _threshes == _og_threshes
 
 
     def test_accuracy_3(self, good_threshes):
@@ -205,14 +264,20 @@ class TestCondParamGrid:
         # if both param_grid and thresholds were not passed, should be one
         # param grid with default thresholds
 
-        out = _cond_param_grid(None, None)
+        _gpg = None
+        _og_gpg = deepcopy(_gpg)
+        _threshes = None
+        _og_threshes = deepcopy(_threshes)
+
+        out = _cond_param_grid(_gpg, _threshes)
 
         assert isinstance(out, list)
         assert len(out) == 1
         assert isinstance(out[0], dict)
         assert np.array_equiv(list(out[0].keys()), ['thresholds'])
         assert np.array_equiv(out[0]['thresholds'], good_threshes)
-
+        assert _gpg == _og_gpg
+        assert _threshes == _og_threshes
 
 
     def test_accuracy_4(self, good_param_grid, good_threshes):
@@ -221,11 +286,11 @@ class TestCondParamGrid:
         # same except have given thresholds in it. If thresholds was not
         # passed, default thresholds should be in it. (dict 2)
 
+        _og_gpg = deepcopy(good_param_grid)
         # notice testing pass as set
-        out = _cond_param_grid(
-            good_param_grid,
-            {0, 0.25, 0.5, 0.75, 1}
-        )
+        _threshes = {0, 0.25, 0.5, 0.75, 1}
+        _og_threshes = deepcopy(_threshes)
+        out = _cond_param_grid(good_param_grid, _threshes)
 
         assert isinstance(out, list)
         assert len(out) == 3
@@ -249,9 +314,18 @@ class TestCondParamGrid:
                 for k,v in out[_idx].items():
                     assert np.array_equiv(v, good_param_grid[_idx][k])
 
+        for idx in range(len(_og_gpg)):
+            for key in _og_gpg[idx]:
+                assert np.array_equal(good_param_grid[idx][key], _og_gpg[idx][key])
+        assert np.array_equal(_threshes, _og_threshes)
+
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        out = _cond_param_grid(good_param_grid, None)
+        _og_gpg = deepcopy(good_param_grid)
+        _threshes = None
+        _og_threshes = deepcopy(_threshes)
+
+        out = _cond_param_grid(good_param_grid, _threshes)
 
         assert isinstance(out, list)
         assert len(out) == 3
@@ -275,6 +349,10 @@ class TestCondParamGrid:
                 for k,v in out[_idx].items():
                     assert np.array_equiv(v, good_param_grid[_idx][k])
 
+        for idx in range(len(_og_gpg)):
+            for key in _og_gpg[idx]:
+                assert np.array_equal(good_param_grid[idx][key], _og_gpg[idx][key])
+        assert _threshes == _og_threshes
 
 
 

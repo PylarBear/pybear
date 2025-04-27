@@ -10,6 +10,7 @@ from typing_extensions import Union
 from ..._type_aliases import SchedulerType
 
 import contextlib
+import numbers
 
 from distributed import (
     Client,
@@ -18,9 +19,9 @@ from distributed import (
 
 
 
-def _validate_scheduler(
+def _cond_scheduler(
     _scheduler: SchedulerType,
-    _n_jobs: Union[int, None]
+    _n_jobs: Union[numbers.Integral, None]
 ) -> SchedulerType:
 
     """
@@ -57,9 +58,7 @@ def _validate_scheduler(
     Return
     ------
     -
-        _scheduler:
-            validated, instantiated scheduler
-
+        _scheduler: validated, instantiated scheduler
 
     """
 
@@ -78,7 +77,6 @@ def _validate_scheduler(
             # ...if no external client and no hard scheduler (client),
             # create a new one
             _scheduler = Client(n_workers=_n_jobs, threads_per_worker=1)
-
 
     else:
     # if there is a hard scheduler, that supersedes all.
