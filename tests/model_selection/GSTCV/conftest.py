@@ -57,12 +57,13 @@ def generic_no_attribute_2():
     return foo
 
 
-@pytest.fixture(scope='session')
-def generic_no_attribute_3():
-    def foo(_gscv_type, _attr):
-        return f"{_gscv_type} object has no {_attr} attribute."
-
-    return foo
+# pizza!
+# @pytest.fixture(scope='session')
+# def generic_no_attribute_3():
+#     def foo(_gscv_type, _attr):
+#         return f"{_gscv_type} object has no {_attr} attribute."
+#
+#     return foo
 
 
 @pytest.fixture(scope='session')

@@ -54,10 +54,10 @@ def _handle_X_y_sklearn(
             NDArray[Union[int, float]] - the given y vector / array
             converted to a numpy ndarray vector.
         _feature_names_in:
-            Union[NDArray[str], None] - if an object that has column names,
-            such as a pandas dataframe or series, is passed, the column
-            names are extracted and returned as a numpy vector. Otherwise,
-            None is returned.
+            Union[NDArray[str], None] - if an object that has column
+            names, such as a pandas dataframe or series, is passed, the
+            column names are extracted and returned as a numpy vector.
+            Otherwise, None is returned.
         _n_features_in:
             int - the number of columns in X.
 
@@ -154,15 +154,19 @@ def _handle_X_y_sklearn(
                 _y = _y.ravel()
                 # dont need to get new shape
             else:
-                raise ValueError(f"Classification metrics can't handle a mix of "
-                    f"multilabel-indicator and binary targets")
+                raise ValueError(
+                    f"Classification metrics can't handle a mix of "
+                    f"multilabel-indicator and binary targets"
+                )
         else:
             raise ValueError(f"'y' must be a 1 or 2 dimensional object")
 
         if not set(np.unique(_y)).issubset({0, 1}):
-            raise ValueError(f"GSTCV can only perform thresholding on binary "
-                f"targets with values in [0,1]. Pass 'y' as a vector of "
-                f"0's and 1's.")
+            raise ValueError(
+                f"GSTCV can only perform thresholding on binary targets "
+                f"with values in [0,1]. Pass 'y' as a vector of 0's and "
+                f"1's."
+            )
 
 
     return _X, _y, _feature_names_in, _n_features_in

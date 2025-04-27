@@ -42,7 +42,7 @@ YSKWIPType: TypeAlias = Union[npt.NDArray[DataType], None]
 YDaskWIPType: TypeAlias = Union[dask.array.core.Array, None]
 
 CVResultsType: TypeAlias = \
-    dict[str, np.ma.masked_array[Union[float, dict[str, any]]]]
+    dict[str, np.ma.masked_array[Union[float, dict[str, Any]]]]
 
 IntermediateHolderType: TypeAlias = Union[
     np.ma.masked_array[float],
@@ -51,8 +51,8 @@ IntermediateHolderType: TypeAlias = Union[
 
 # pizza this should probably be split up!
 ParamGridType: TypeAlias = Union[
-    dict[str, Union[list[any], npt.NDArray[any]]],
-    list[dict[str, Union[list[any], npt.NDArray[any]]]]
+    dict[str, Union[list[Any], npt.NDArray[Any]]],
+    list[dict[str, Union[list[Any], npt.NDArray[Any]]]]
 ]
 SKSlicerType: TypeAlias = npt.NDArray[int]
 DaskSlicerType: TypeAlias = dask.array.core.Array
@@ -113,13 +113,13 @@ SchedulerType: TypeAlias = Union[
 
 class ClassifierProtocol(Protocol):
 
-    def fit(self, X: any, y: any) -> Self:
+    def fit(self, X: Any, y: Any) -> Self:
         ...
 
     # The default 'score' method of the estimator can never be used, as
     # the decision threshold cannot be manipulated. Therefore, it is not
     # necessary for the estimator to have a 'score' method.
-    # def score(self, y_pred: any, y_act: any) -> any:
+    # def score(self, y_pred: Any, y_act: Any) -> Any:
     #     ...
 
     def get_params(self, *args, **kwargs) -> dict[str, Any]:
@@ -128,7 +128,7 @@ class ClassifierProtocol(Protocol):
     def set_params(self, *args, **kwargs) -> Self:
         ...
 
-    def predict_proba(self, *args, **kwargs) -> any:
+    def predict_proba(self, *args, **kwargs) -> Any:
         ...
 
 
