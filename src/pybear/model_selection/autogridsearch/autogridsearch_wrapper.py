@@ -213,8 +213,7 @@ def autogridsearch_wrapper(
             return hasattr(self, '_GRIDS')
 
 
-        # _reset() ######################################################
-        def _reset(self) -> Self:
+        def _agscv_reset(self) -> Self:
 
             """
             Restore AutoGridSearch to pre-run state. Objects populated
@@ -229,6 +228,10 @@ def autogridsearch_wrapper(
 
             """
 
+            # this cannot be called _reset(). a parent that has a _reset()
+            # method (like most pybear modules do) near the top of fit()
+            # will call _reset(), but will get the _reset of the child,
+            # which is this, and delete needed objects mid-run.
 
             if hasattr(self, '_GRIDS'):
                 delattr(self, '_GRIDS')
@@ -476,7 +479,7 @@ def autogridsearch_wrapper(
             """
 
 
-            self._reset()
+            self._agscv_reset()
 
             _validation(
                 self.params,

@@ -63,7 +63,7 @@ class Fixtures:
         return [
             'fit',
             'get_params',
-            '_reset',
+            '_agscv_reset',
             'set_params'
         ]
 
@@ -211,8 +211,8 @@ class TestMethodAccessBeforeAndAfterFit(Fixtures):
         assert isinstance(TestCls.fit(_X, _y), _agscv)
         assert is_fitted(TestCls)
 
-        # _reset()
-        assert isinstance(TestCls._reset(), _agscv)
+        # _agscv_reset()
+        assert isinstance(TestCls._agscv_reset(), _agscv)
         assert not is_fitted(TestCls)
 
         # get_params()
@@ -248,7 +248,7 @@ class TestMethodAccessBeforeAndAfterFit(Fixtures):
 
         FittedTestCls = _agscv(**_kwargs)
 
-        # here is a good place to test _reset()
+        # here is a good place to test _agscv_reset()
         assert not hasattr(FittedTestCls, 'GRIDS_')
         assert not hasattr(FittedTestCls, 'RESULTS_')
 
@@ -257,7 +257,7 @@ class TestMethodAccessBeforeAndAfterFit(Fixtures):
         assert hasattr(FittedTestCls, 'GRIDS_')
         assert hasattr(FittedTestCls, 'RESULTS_')
 
-        FittedTestCls._reset()
+        FittedTestCls._agscv_reset()
 
         assert not hasattr(FittedTestCls, 'GRIDS_')
         assert not hasattr(FittedTestCls, 'RESULTS_')

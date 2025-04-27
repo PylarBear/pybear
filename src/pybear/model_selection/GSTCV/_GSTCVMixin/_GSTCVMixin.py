@@ -20,7 +20,6 @@ import dask.array as da
 
 from ._validation._validation import _validation
 
-from ._param_conditioning._thresholds import _cond_thresholds
 from ._param_conditioning._param_grid import _cond_param_grid
 from ._param_conditioning._scoring import _cond_scoring
 from ._param_conditioning._refit import _cond_refit
@@ -110,6 +109,16 @@ class _GSTCVMixin(
 
 
     def _reset(self) -> Self:
+        # pizza... u were thinking about maybe some other way to
+        # get the best_estimator_ methods exposed instead of all the
+        # methods in here calling self.best_estimator_.whatever().
+        # remember that if u do this that if best_estimator_ has a
+        # _reset method then this will supersede and if best_estimator_
+        # calls _reset it will run this instead. remember the lesson
+        # 24_04_26 with agscv when GSTCV first got its own _reset method.
+        # top of fit() in GSTCV has _reset() and so did agscv, so when
+        # GSTCV as parent called _reset() in fit() it got the child's
+        # _reset().
 
         # pizza see what else need to be deleted...
         # what about multimetric_ & n_splits_?
