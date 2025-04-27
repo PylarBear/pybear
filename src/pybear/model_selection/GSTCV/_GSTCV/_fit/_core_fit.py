@@ -51,16 +51,15 @@ def _core_fit(
     _verbose: int,
     _scorer: ScorerWIPType,
     _n_jobs: Union[int, None],
+    _pre_dispatch: Union[Literal['all'], str, numbers.Integral],
     _return_train_score: bool,
     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]], # pizza list[float]
     **fit_params
-    ) -> CVResultsType:
-
+) -> CVResultsType:
 
 
     """
-
     Perform all fit, scoring, and tabulation activities for every search
     performed in finding the hyperparameter values that maximize score
     (or minimize loss) for the given dataset (X) against the given target
@@ -116,6 +115,10 @@ def _core_fit(
         Union[int, None] - number of processes (or threads) to use in
         joblib parallelism. Processes or threads can be managed by a
         joblib context manager. Default is processes.
+    _pre_dispatch:
+        Union[Literal['all'], str, numbers.Integral] - The number of
+        batches (of tasks) to be pre-dispatched. See the joblib.Parallel
+        docs for more information.
     _return_train_score:
         bool - If True, calculate scores for the train data in addition
         to the test data. There is a (perhaps appreciable) time and
@@ -148,10 +151,6 @@ def _core_fit(
         _cv_results: dict[str: np.ma.masked_array] - dictionary populated
             with all the times, scores, thresholds, parameter values, and
             search grids for every permutation of grid search.
-
-
-
-
 
 
     """
@@ -190,11 +189,11 @@ def _core_fit(
     assert not isinstance(_verbose, bool) and 0 <= _verbose <= 10, \
         f"_verbose must be an int between 0 and 10 inclusive"
 
-    assert (isinstance(_n_jobs, int) and not isinstance(_n_jobs, bool) and \
-           _n_jobs >= -1 and _n_jobs != 0) or _n_jobs is None, \
+    assert (isinstance(_n_jobs, int)
+            and not isinstance(_n_jobs, bool)
+            and _n_jobs >= -1 and _n_jobs != 0) \
+            or _n_jobs is None, \
         f"_n_jobs must be int >= -1 but not 0"
-
-
 
     assert isinstance(_return_train_score, bool)
 
@@ -287,7 +286,9 @@ def _core_fit(
         d_p = _estimator.get_params(deep=True) # deep_params
 
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-            FIT_OUTPUT = joblib.Parallel(return_as='list')(
+            FIT_OUTPUT = joblib.Parallel(
+                return_as='list', pre_dispatch=_pre_dispatch
+            )(
                 joblib.delayed(_parallelized_fit)(
                     f_idx,
                     # train only!
@@ -337,7 +338,9 @@ def _core_fit(
         # TEST_THRESHOLD_x_SCORER__SCORE_LAYER,
         # TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-            TEST_SCORER_OUT = joblib.Parallel(return_as='list')(
+            TEST_SCORER_OUT = joblib.Parallel(
+                return_as='list', pre_dispatch=_pre_dispatch
+            )(
                 joblib.delayed(_parallelized_scorer)(
                     # test only!
                     *_fold_splitter(train_idxs, test_idxs, _X, _y)[1::2],
@@ -461,7 +464,9 @@ def _core_fit(
             # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
 
             with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-                TRAIN_SCORER_OUT = joblib.Parallel(return_as='list')(
+                TRAIN_SCORER_OUT = joblib.Parallel(
+                    return_as='list', pre_dispatch=_pre_dispatch
+                )(
                     joblib.delayed(_parallelized_train_scorer)(
                         # train only!
                         *_fold_splitter(train_idxs, test_idxs, _X, _y)[0::2],

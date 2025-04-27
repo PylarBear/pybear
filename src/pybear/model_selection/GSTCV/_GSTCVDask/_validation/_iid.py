@@ -6,10 +6,12 @@
 
 
 
-def _validate_iid(_iid: bool) -> bool:
+def _val_iid(
+    _iid: bool
+) -> None:
 
     """
-    iid can only be boolean. Indicates whether the data is believed to
+    `iid` can only be boolean. Indicates whether the data is believed to
     have random distribution of examples (True) or if the data is
     organized non-randomly in some way (False).
 
@@ -22,17 +24,14 @@ def _validate_iid(_iid: bool) -> bool:
     Return
     ------
     -
-        _iid - validated boolean _iid
-
+        _iid: bool - validated boolean _iid
 
     """
 
 
     if not isinstance(_iid, bool):
-        raise TypeError(f'iid must be a bool')
+        raise TypeError(f"'iid' must be a bool")
 
-
-    return _iid
 
 
 

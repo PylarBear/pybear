@@ -9,29 +9,28 @@
 from ..._type_aliases import ClassifierProtocol
 
 import sys
-import warnings
 
 from sklearn.pipeline import Pipeline
 
 
 
-def _val_dask_estimator(
+def _val_sk_estimator(
     _estimator: ClassifierProtocol
 ) -> None:
 
     """
-    The GSTCVDask module is expected to most likely encounter dask_ml,
-    xgboost, and lightgbm dask estimators. The estimator must be passed
-    as an instance, not the class itself.
+    The GSTCV module is expected to most likely encounter sklearn,
+    xgboost, and lightgbm estimators, and maybe some other pybear modules.
+    The estimator must be passed as an instance, not the class itself.
 
-    Warn if the estimator is not a dask classifier, either from dask
-    itself, or from XGBoost or LightGBM.
+    Validate that the estimator is not a dask estimator, either from
+    dask itself, or from XGBoost or LightGBM.
 
 
     Parameters
     ----------
     _estimator:
-        the estimator to be validated
+        ClassifierProtocol - the estimator to be validated
 
 
     Return
@@ -63,17 +62,9 @@ def _val_dask_estimator(
         raise AttributeError(f"'{__estimator.__class__.__name__}' is not "
             f"a valid classifier")
 
-    # 24_08_04_07_28_00 change raise to warn
-    # to allow XGBClassifier, reference errors associated with
-    # DaskXGBClassifier and dask GridSearch CV
-    __ = str(_module).lower()
-    if 'dask' not in __:  # allow pytest with mock clf
-        warnings.warn(f"'{__estimator.__class__.__name__}' does not "
-            f"appear to be a dask classifier.")
-    # if 'dask' not in __ and 'conftest' not in __:  # allow pytest with mock clf
-        # raise TypeError(f"'{__estimator.__class__.__name__}' is not a dask "
-        #     f"classifier. GSTCVDask can only accept dask classifiers. "
-        #     f"\nTo use non-dask classifiers, use the GSTCV package.")
+    if 'dask' in str(_module).lower():
+        raise TypeError(f"{__estimator.__class__.__name__}: GSTCV cannot "
+            f"accept dask classifiers. To use dask classifiers, use GSTCVDask.")
 
     del get_inner_most_estimator, __estimator, _module
 

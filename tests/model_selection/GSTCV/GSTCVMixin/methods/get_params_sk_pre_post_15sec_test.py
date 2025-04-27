@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -95,10 +96,10 @@ class TestSKGetParams:
 
         assert 'thresholds' in gstcv_shallow
 
-        assert len(gstcv_shallow) == len(skgscv_shallow)
+        # +1 for thresholds
+        assert len(gstcv_shallow) == len(skgscv_shallow) + 1
 
         gstcv_shallow.remove('thresholds')
-        skgscv_shallow.remove('pre_dispatch')
 
         assert np.array_equiv(skgscv_shallow, gstcv_shallow)
 
@@ -114,10 +115,9 @@ class TestSKGetParams:
 
         assert 'thresholds' in gstcv_deep
 
-        assert len(gstcv_deep) == len(skgscv_deep)
+        assert len(gstcv_deep) == len(skgscv_deep) + 1
 
         gstcv_deep.remove('thresholds')
-        skgscv_deep.remove('pre_dispatch')
 
         assert np.array_equiv(skgscv_deep, gstcv_deep)
 
@@ -174,13 +174,12 @@ class TestSKGetParams:
         assert 'thresholds' in gstcv_shallow
 
         # +1 for thresholds
-        assert len(gstcv_shallow) == len(skgscv_shallow)
+        assert len(gstcv_shallow) == len(skgscv_shallow) + 1
 
         assert len(skgscv_shallow) == 10
-        assert len(gstcv_shallow) == 10
+        assert len(gstcv_shallow) == 11
 
         gstcv_shallow.remove('thresholds')
-        skgscv_shallow.remove('pre_dispatch')
 
         assert np.array_equiv(skgscv_shallow, gstcv_shallow)
 
@@ -205,35 +204,16 @@ class TestSKGetParams:
         assert 'thresholds' in gstcv_deep
 
 
-        assert len(gstcv_deep) == len(skgscv_deep)
+        assert len(gstcv_deep) == len(skgscv_deep) + 1
 
         assert len(skgscv_deep) == 34
-        assert len(gstcv_deep) == 34
+        assert len(gstcv_deep) == 35
 
         gstcv_deep.remove('thresholds')
-        skgscv_deep.remove('pre_dispatch')
 
         assert np.array_equiv(skgscv_deep, gstcv_deep)
 
         # END test deep pipe ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

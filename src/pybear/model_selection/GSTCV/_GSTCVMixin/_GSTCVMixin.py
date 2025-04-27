@@ -34,6 +34,7 @@ from .._fit_shared._verify_refit_callable import \
 
 from ....base import (
     check_is_fitted,
+    FeatureMixin,
     GetParamsMixin,
     ReprMixin,
     SetParamsMixin
@@ -42,6 +43,7 @@ from ....base import (
 
 
 class _GSTCVMixin(
+    FeatureMixin,
     GetParamsMixin,
     ReprMixin,
     SetParamsMixin
@@ -78,30 +80,31 @@ class _GSTCVMixin(
         return self._classes
 
 
-    @property
-    def n_features_in_(self) -> int:
-
-        """
-        n_features_in_: Number of features seen during fit. Only
-        available when refit is not False.
-
-        """
-
-        __ = type(self).__name__
-
-        try:
-            check_is_fitted(self, attributes='_refit')
-        except:
-            raise AttributeError(f"{__} object has no n_features_in_ attribute.")
-
-        # self._n_features_in_ IS X.shape[1] AND MUST BE int (DASK WAS COMPUTED)
-        if self._refit is False:
-            raise AttributeError(f"'{__}' object has no attribute 'n_features_in_'")
-        else:
-            if hasattr(self.best_estimator_, 'n_features_in_'):
-                return self.best_estimator_.n_features_in_
-            else:
-                return self._n_features_in
+    # pizza
+    # @property
+    # def n_features_in_(self) -> int:
+    #
+    #     """
+    #     n_features_in_: Number of features seen during fit. Only
+    #     available when refit is not False.
+    #
+    #     """
+    #
+    #     __ = type(self).__name__
+    #
+    #     try:
+    #         check_is_fitted(self, attributes='_refit')
+    #     except:
+    #         raise AttributeError(f"{__} object has no n_features_in_ attribute.")
+    #
+    #     # self._n_features_in_ IS X.shape[1] AND MUST BE int (DASK WAS COMPUTED)
+    #     if self._refit is False:
+    #         raise AttributeError(f"'{__}' object has no attribute 'n_features_in_'")
+    #     else:
+    #         if hasattr(self.best_estimator_, 'n_features_in_'):
+    #             return self.best_estimator_.n_features_in_
+    #         else:
+    #             return self._n_features_in
 
 
     ####################################################################
@@ -140,7 +143,7 @@ class _GSTCVMixin(
 
     def fit(
         self,
-        X: Iterable[Iterable[Union[int, float]]],
+        X: Iterable[Iterable[Union[int, float]]],  # pizza fix it!
         y: Iterable[int],
         **params
     ):
@@ -196,6 +199,7 @@ class _GSTCVMixin(
         self._reset()
 
         _validation(
+            self.estimator,
             self.param_grid,
             self.thresholds,
             self.scoring,
@@ -248,8 +252,14 @@ class _GSTCVMixin(
         # try:
         _X, _y, _feature_names_in, self._n_features_in = self._handle_X_y(X, y)
 
-        if _feature_names_in is not None and self._refit is not False:
-            self.feature_names_in_ = _feature_names_in
+        # pizza from FeatureMixin pizza put this in 25_04_27
+        if self._refit is not False:
+            # pizza see if we can get rid of this conditional
+            self._check_n_features(X, reset=True)
+            self._check_feature_names(X, reset=True)
+        # and hashed this..... pizza delete!
+        # if _feature_names_in is not None and self._refit is not False:
+        #     self.feature_names_in_ = _feature_names_in
 
         # DONT unique().compute() HERE, JUST RETAIN THE VECTOR & ONLY DO
         # THE PROCESSING IF classes_ IS CALLED
@@ -434,8 +444,6 @@ class _GSTCVMixin(
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
 
-        self._validate_features(passed_feature_names)
-
         with self._scheduler as scheduler:
             return self.best_estimator_.decision_function(_X)
 
@@ -456,81 +464,84 @@ class _GSTCVMixin(
         )
 
 
-    # do not use pybear.base.GetParamsMixin
-    def get_params(self, deep: Optional[bool]=True):
+    # 25_04_27 this code worked. prior to GetParamsMixin.
+    # def get_params(self, deep: Optional[bool]=True):
+    #
+    #     """
+    #     Get parameters for this GSTCV(Dask) instance.
+    #
+    #
+    #     Parameters
+    #     ----------
+    #     deep:
+    #         bool, optional, default=True - 'False' only returns the
+    #         parameters of the GSTCV(Dask) instance. 'True' returns the
+    #         parameters of the GSTCV(Dask) instance as well as the
+    #         parameters of the estimator and anything embedded in the
+    #         estimator. When the estimator is a single estimator, the
+    #         parameters of the single estimator are returned. If the
+    #         estimator is a pipeline, the parameters of the pipeline and
+    #         the parameters of each of the steps in the pipeline are
+    #         returned.
+    #
+    #
+    #     Return
+    #     ------
+    #     -
+    #         params: dict - Parameter names mapped to their values.
+    #
+    #     """
+    #
+    #     # sklearn / dask -- this is always available, before & after fit
+    #
+    #     if not isinstance(deep, bool):
+    #         raise ValueError(f"'deep' must be boolean")
+    #
+    #     paramsdict = {}
+    #     for attr in vars(self):
+    #         # after fit, take out all the attrs with leading or trailing '_'
+    #         if attr[0] == '_' or attr[-1] == '_':
+    #             continue
+    #
+    #         if attr == 'scheduler': # cant pickle asyncio object
+    #             paramsdict[attr] = self.scheduler
+    #         else:
+    #             paramsdict[attr] = deepcopy(vars(self)[attr])
+    #
+    #
+    #     # gymnastics to get GSTCV param order the same as sk/dask GSCV
+    #     paramsdict1 = {}
+    #     paramsdict2 = {}
+    #     key = 0
+    #     for k in sorted(paramsdict):
+    #         if k == 'estimator':
+    #             key = 1
+    #         if key == 0:
+    #             paramsdict1[k] = paramsdict.pop(k)
+    #         else:
+    #             paramsdict2[k] = paramsdict.pop(k)
+    #     del key
+    #
+    #
+    #     if deep:
+    #         estimator_params = {}
+    #         for k, v in deepcopy(paramsdict2['estimator'].get_params()).items():
+    #             estimator_params[f'estimator__{k}'] = v
+    #
+    #         paramsdict1 = paramsdict1 | estimator_params
+    #
+    #
+    #     paramsdict = paramsdict1 | paramsdict2
+    #
+    #     del paramsdict1, paramsdict2
+    #
+    #     return paramsdict
 
-        """
-        Get parameters for this GSTCV(Dask) instance.
 
-
-        Parameters
-        ----------
-        deep:
-            bool, optional, default=True - 'False' only returns the
-            parameters of the GSTCV(Dask) instance. 'True' returns the
-            parameters of the GSTCV(Dask) instance as well as the
-            parameters of the estimator and anything embedded in the
-            estimator. When the estimator is a single estimator, the
-            parameters of the single estimator are returned. If the
-            estimator is a pipeline, the parameters of the pipeline and
-            the parameters of each of the steps in the pipeline are
-            returned.
-
-
-        Return
-        ------
-        -
-            params: dict - Parameter names mapped to their values.
-
-        """
-
-        # sklearn / dask -- this is always available, before & after fit
-
-        if not isinstance(deep, bool):
-            raise ValueError(f"'deep' must be boolean")
-
-        paramsdict = {}
-        for attr in vars(self):
-            # after fit, take out all the attrs with leading or trailing '_'
-            if attr[0] == '_' or attr[-1] == '_':
-                continue
-
-            if attr == 'scheduler': # cant pickle asyncio object
-                paramsdict[attr] = self.scheduler
-            else:
-                paramsdict[attr] = deepcopy(vars(self)[attr])
-
-
-        # gymnastics to get GSTCV param order the same as sk/dask GSCV
-        paramsdict1 = {}
-        paramsdict2 = {}
-        key = 0
-        for k in sorted(paramsdict):
-            if k == 'estimator':
-                key = 1
-            if key == 0:
-                paramsdict1[k] = paramsdict.pop(k)
-            else:
-                paramsdict2[k] = paramsdict.pop(k)
-        del key
-
-
-        if deep:
-            estimator_params = {}
-            for k, v in deepcopy(paramsdict2['estimator'].get_params()).items():
-                estimator_params[f'estimator__{k}'] = v
-
-            paramsdict1 = paramsdict1 | estimator_params
-
-
-        paramsdict = paramsdict1 | paramsdict2
-
-        del paramsdict1, paramsdict2
-
-        return paramsdict
-
-
-    def inverse_transform(self, X: Iterable[Iterable[Union[int, float]]]):
+    def inverse_transform(
+        self,
+        X: Iterable[Iterable[Union[int, float]]]
+    ):
 
         """
 
@@ -566,7 +577,10 @@ class _GSTCVMixin(
             return self.best_estimator_.inverse_transform(X)
 
 
-    def predict(self, X: Iterable[Iterable[Union[int, float]]]):
+    def predict(
+        self,
+        X: Iterable[Iterable[Union[int, float]]]
+    ):
 
         """
 
@@ -609,8 +623,6 @@ class _GSTCVMixin(
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
 
-        self._validate_features(passed_feature_names)
-
         with self._scheduler as scheduler:
 
             y_pred = self.best_estimator_.predict_proba(_X)[:, -1] >= \
@@ -619,7 +631,10 @@ class _GSTCVMixin(
             return y_pred.astype(np.uint8)
 
 
-    def predict_log_proba(self, X: Iterable[Iterable[Union[int, float]]]):
+    def predict_log_proba(
+        self,
+        X: Iterable[Iterable[Union[int, float]]]
+    ):
 
         """
 
@@ -653,13 +668,14 @@ class _GSTCVMixin(
 
         _X , passed_feature_names = self._handle_X_y(X, y=None)[0::2]
 
-        self._validate_features(passed_feature_names)
-
         with self._scheduler as scheduler:
             return self.best_estimator_.predict_log_proba(_X)
 
 
-    def predict_proba(self, X: Iterable[Iterable[Union[int, float]]]):
+    def predict_proba(
+        self,
+        X: Iterable[Iterable[Union[int, float]]]
+    ):
 
         """
 
@@ -693,8 +709,6 @@ class _GSTCVMixin(
         check_is_fitted(self, attributes='_refit')
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
-
-        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
 
@@ -748,9 +762,8 @@ class _GSTCVMixin(
         Return
         ------
         -
-            score:
-                float - The score for X and y on the best estimator and
-                best threshold using the defined scorer.
+            score: float - The score for X and y on the best estimator
+            and best threshold using the defined scorer.
 
         """
 
@@ -765,8 +778,6 @@ class _GSTCVMixin(
 
         _X, _y, passed_feature_names = self._handle_X_y(X, y=y)[:3]
 
-        self._validate_features(passed_feature_names)
-
         y_pred = self.predict(_X)
 
         # if refit is False, score() is not would be accessible
@@ -780,7 +791,10 @@ class _GSTCVMixin(
                 return self.scorer_[self._refit](_y, y_pred)
 
 
-    def score_samples(self, X: Iterable[Iterable[Union[int, float]]]):
+    def score_samples(
+        self,
+        X: Iterable[Iterable[Union[int, float]]]
+    ):
 
         """
 
@@ -812,8 +826,6 @@ class _GSTCVMixin(
         check_is_fitted(self, attributes='_refit')
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
-
-        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
             return self.best_estimator_.score_samples(_X)
@@ -920,7 +932,10 @@ class _GSTCVMixin(
         return self
 
 
-    def transform(self, X: Iterable[Iterable[Union[int, float]]]):
+    def transform(
+        self,
+        X: Iterable[Iterable[Union[int, float]]]
+    ):
 
         """
 
@@ -954,8 +969,6 @@ class _GSTCVMixin(
         check_is_fitted(self, attributes='_refit')
 
         _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
-
-        self._validate_features(passed_feature_names)
 
         with self._scheduler as scheduler:
             return self.best_estimator_.transform(_X)
@@ -1034,94 +1047,6 @@ class _GSTCVMixin(
             )
         else:
             return
-
-
-    def _validate_features(
-        self,
-        passed_feature_names: npt.NDArray[str]
-    ) -> None:
-
-        """
-        Validate that feature names passed to a method via a dataframe
-        have the exact names and order as those seen during fit, if fit
-        was done with a dataframe. If not, raise ValueError. Return None
-        if fit was done with an array or if the object passed to a
-        method is an array.
-
-
-        Parameters
-        ----------
-        passed_feature_names:
-            NDArray[str] - shape (n_features, ), the column header from
-            a dataframe passed to a method.
-
-
-        Return
-        ------
-        -
-            None
-
-
-
-        """
-
-        # pizza, this will probably be replaced by a module
-        # from pybear.base.  whenever that's done.
-        # reconcile with sklearn.BaseEstimator._check_feature_names,
-        # MinCountTransformer._val_feature_names(), and whatever crack
-        # module pybear comes up with.
-
-        if passed_feature_names is None:
-            return
-
-        if not hasattr(self, 'feature_names_in_'):
-            return
-
-        pfn = passed_feature_names
-        fni = self.feature_names_in_
-
-        if np.array_equiv(pfn, fni):
-            return
-        else:
-
-            base_err_msg = (f"The feature names should match those that "
-                            f"were passed during fit. ")
-
-            if len(pfn) == len(fni) and np.array_equiv(sorted(pfn), sorted(fni)):
-
-                # when out of order
-                # ValueError: base_err_msg
-                # Feature names must be in the same order as they were in fit.
-                addon = (f"\nFeature names must be in the same order as they "
-                         f"were in fit.")
-
-            else:
-
-                addon = ''
-
-                UNSEEN = []
-                for col in pfn:
-                    if col not in fni:
-                        UNSEEN.append(col)
-                if len(UNSEEN) > 0:
-                    addon += f"\nFeature names unseen at fit time:"
-                    for col in UNSEEN:
-                        addon += f"\n- {col}"
-                del UNSEEN
-
-                SEEN = []
-                for col in fni:
-                    if col not in pfn:
-                        SEEN.append(col)
-                if len(SEEN) > 0:
-                    addon += f"\nFeature names seen at fit time, yet now missing:"
-                    for col in SEEN:
-                        addon += f"\n- {col}"
-                del SEEN
-
-            message = base_err_msg + addon
-
-            raise ValueError(message)
 
     # END SUPPORT METHODS ##############################################
     ####################################################################

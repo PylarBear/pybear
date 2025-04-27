@@ -115,7 +115,7 @@ class TestSKSetParams:
 
         # rejects_invalid_params ** * ** * ** * ** * ** * ** * ** * ** *
         # just check param names
-        # invalid values for params should be caught at fit() by _validate()
+        # invalid values for params should be caught at fit() by _validate()  # pizza fix this!
         bad_params = sk_LinearRegression().get_params(deep=True)
 
         with pytest.raises(ValueError):

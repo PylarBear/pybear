@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -123,6 +124,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -150,6 +152,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -176,6 +179,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -199,6 +203,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -226,6 +231,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -250,6 +256,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -260,9 +267,10 @@ class TestCoreFitValidation:
         (-1, 0, 1, 3.14, [0, 1], (0, 1), {0, 1}, True, False, None, 'trash', min,
          {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_cv(self, X_np, y_np, sk_est_log,
-        good_cv_results, junk_cv_int, standard_error_score, good_SCORER,
-        good_PARAM_GRID_KEY, good_THRESHOLD_DICT
+    def test_rejects_junk_cv(
+        self, X_np, y_np, sk_est_log, good_cv_results, junk_cv_int,
+        standard_error_score, good_SCORER, good_PARAM_GRID_KEY,
+        good_THRESHOLD_DICT
     ):
 
         with pytest.raises((ValueError, TypeError, AssertionError)):
@@ -276,6 +284,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -302,6 +311,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -328,6 +338,7 @@ class TestCoreFitValidation:
                 junk_verbose,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -354,6 +365,7 @@ class TestCoreFitValidation:
                 10,
                 junk_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -380,10 +392,14 @@ class TestCoreFitValidation:
                 0,
                 good_SCORER,
                 junk_n_jobs,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
             )
+
+
+    # no GSTCV validation of 'pre_dispatch'. Any errors raises by joblib.Parallel.
 
 
     @pytest.mark.parametrize('junk_return_train_score',
@@ -407,6 +423,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 junk_return_train_score,
                 good_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -433,6 +450,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 junk_PARAM_GRID_KEY,
                 good_THRESHOLD_DICT
@@ -459,6 +477,7 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 junk_THRESHOLD_DICT
@@ -482,20 +501,14 @@ class TestCoreFitValidation:
                 10,
                 good_SCORER,
                 -1,
+                '2*n_jobs',
                 True,
                 good_PARAM_GRID_KEY,
                 bad_THRESHOLD_DICT
             )
 
 
-
     # END test validation * * ** * * ** * * ** * * ** * * ** * * ** * *
-
-
-
-
-
-
 
 
 

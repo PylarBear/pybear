@@ -13,29 +13,27 @@ from typing import (
     Callable,
     Optional
 )
-from typing_extensions import Union
+from typing_extensions import (
+    Any,
+    Union
+)
 from .._type_aliases import (
     XInputType,
     YInputType,
 )
 
-import numbers
 from copy import deepcopy
+import numbers
 
 import distributed
 
+from ._validation._validation import _validation
+
 from ...GSTCV._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
-from ...GSTCV._GSTCVDask._validation._cache_cv import \
-    _validate_cache_cv
-from ...GSTCV._GSTCVDask._validation._scheduler import \
-    _validate_scheduler
-from ...GSTCV._GSTCVDask._validation._iid import _validate_iid
-from ...GSTCV._GSTCVDask._validation._dask_estimator import \
-    _validate_dask_estimator
+from ...GSTCV._GSTCVDask._param_conditioning._scheduler import _cond_scheduler
 
-from ...GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import \
-    _handle_X_y_dask
+from ...GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import _handle_X_y_dask
 
 from ...GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
@@ -537,17 +535,18 @@ class GSTCVDask(_GSTCVMixin):
         ]='accuracy',
         iid: Optional[bool]=True,
         refit: Optional[Union[bool, str, Callable]] = True,
-        cv: Optional[Union[int, Iterable, None]]=None,
+        cv: Optional[Union[numbers.Integral, Iterable, None]]=None,
         verbose: Optional[numbers.Real]=0,
-        error_score: Optional[Union[Literal['raise'], int, float]]='raise',
+        error_score: Optional[Union[Literal['raise'], numbers.Real]]='raise',
         return_train_score: Optional[bool]=False,
         scheduler: Optional[
             Union[distributed.Client, distributed.scheduler.Scheduler, None]
         ]=None,
-        n_jobs: Optional[Union[int, None]]=None,
+        n_jobs: Optional[Union[numbers.Integral, None]]=None,
         cache_cv: Optional[bool]=True
-        ):
+    ) -> None:
 
+        """Initialize the GSTCVDask instance."""
 
         self.estimator = estimator
         self.param_grid = param_grid
@@ -580,11 +579,11 @@ class GSTCVDask(_GSTCVMixin):
 
 
     def _core_fit(
-            self,
-            X: XInputType,
-            y: YInputType=None,
-            **params
-        ):
+        self,
+        X: XInputType,
+        y: YInputType=None,
+        **params
+    ) -> None:
 
         """
 
@@ -614,14 +613,17 @@ class GSTCVDask(_GSTCVMixin):
         ------
         -
             _cv_results: dict[str: np.ma.masked_array] - dictionary
-                populated with all the times, scores, thresholds,
-                parameter values, and search grids for every permutation
-                of grid search.
+            populated with all the times, scores, thresholds, parameter
+            values, and search grids for every permutation of grid
+            search.
 
         """
 
+        _validation(self.estimator, self.iid, self.cache_cv)
 
-        _validate_dask_estimator(self.estimator)
+        # val n_jobs is handled by GSTCVMixin
+
+        self._scheduler = _cond_scheduler(self.scheduler, self.n_jobs)
 
         self._estimator = type(self.estimator)(
             **deepcopy(self.estimator.get_params(deep=False))
@@ -629,14 +631,6 @@ class GSTCVDask(_GSTCVMixin):
         self._estimator.set_params(
             **deepcopy(self.estimator.get_params(deep=True))
         )
-
-        # pizza these need to be split into _val & _cond
-        self._iid = _validate_iid(self.iid)
-
-        self._scheduler = _validate_scheduler(self.scheduler, self.n_jobs)
-
-        self._cache_cv = _validate_cache_cv(self.cache_cv)
-
 
 
         self.cv_results_ = _core_fit(
@@ -649,8 +643,8 @@ class GSTCVDask(_GSTCVMixin):
             self.error_score,
             self._verbose,
             self.scorer_,
-            self._cache_cv,
-            self._iid,
+            self.cache_cv,
+            self.iid,
             self.return_train_score,
             self._PARAM_GRID_KEY,
             self._THRESHOLD_DICT,

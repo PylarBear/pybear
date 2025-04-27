@@ -8,26 +8,20 @@
 
 import pytest
 
-from pybear.model_selection.GSTCV._GSTCV._validation._estimator import \
-    _validate_estimator
+from pybear.model_selection.GSTCV._GSTCV._validation._sk_estimator import \
+    _val_sk_estimator
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
 
 from sklearn.linear_model import (
-    LinearRegression as sk_LinearRegression,
-    Ridge as sk_Ridge,
     RidgeClassifier as sk_RidgeClassifier, # wrap with CCCV
     LogisticRegression as sk_LogisticRegression,
-    SGDClassifier as sk_SGDClassifier,
-    SGDRegressor as sk_SGDRegressor
+    SGDClassifier as sk_SGDClassifier
 )
 
 from sklearn.calibration import CalibratedClassifierCV # wrap around RidgeClassifier
 
-from dask_ml.linear_model import (
-    LinearRegression as dask_LinearRegression,
-    LogisticRegression as dask_LogisticRegression
-)
+from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
@@ -36,19 +30,19 @@ from sklearn.pipeline import Pipeline
 # must be an instance not the class! & be an estimator!
 
 
-class TestValidateWrappedEstimator:
+class TestValWrappedEstimator:
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     # CCCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    def test_accepts_non_dask_CCCV(self):
-        _validate_estimator(CalibratedClassifierCV(sk_RidgeClassifier()))
-        _validate_estimator(CalibratedClassifierCV(sk_SGDClassifier()))
+    def test_accepts_sk_CCCV(self):
+        assert _val_sk_estimator(CalibratedClassifierCV(sk_RidgeClassifier())) is None
+        assert _val_sk_estimator(CalibratedClassifierCV(sk_SGDClassifier())) is None
 
 
     def test_rejects_dask_CCCV(self):
         with pytest.raises(TypeError):
-            _validate_estimator(CalibratedClassifierCV(dask_LogisticRegression()))
+            _val_sk_estimator(CalibratedClassifierCV(dask_LogisticRegression()))
 
     # END CCCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -57,105 +51,38 @@ class TestValidateWrappedEstimator:
     def _pipeline(self, _estimator_instance):
         return Pipeline(
             steps=[
-                      ('ct_vect', CountVectorizer()),
-                      ('clf', _estimator_instance)
+                ('ct_vect', CountVectorizer()),
+                ('clf', _estimator_instance)
             ]
         )
 
 
-    def test_rejects_not_instantiated(self):
-
-        with pytest.raises(TypeError):
-            _validate_estimator(Pipeline)
-
-
-    @pytest.mark.parametrize('non_estimator',
-        (int, str, list, object, sk_OneHotEncoder)
-    )
-    def test_rejects_non_estimator(self, non_estimator):
-
-        with pytest.raises((AttributeError, ValueError)):
-            _validate_estimator(self._pipeline(non_estimator()))
-
-
-    @pytest.mark.parametrize('non_classifier',
-        (sk_LinearRegression, sk_Ridge, sk_SGDRegressor)
-    )
-    def test_rejects_non_classifier(self, non_classifier):
-
-        with pytest.raises(AttributeError):
-            _validate_estimator(self._pipeline(non_classifier()))
-
-
     @pytest.mark.parametrize('good_classifiers', (sk_LogisticRegression, ))
-    def test_accepts_non_dask_classifiers(self, good_classifiers):
-        _validate_estimator(self._pipeline(good_classifiers()))
+    def test_accepts_sk_classifiers(self, good_classifiers):
+        assert _val_sk_estimator(self._pipeline(good_classifiers())) is None
 
 
-    def test_accepts_wrapped_non_dask_CCCV(self):
-        _validate_estimator(
+    def test_accepts_wrapped_sk_CCCV(self):
+        assert _val_sk_estimator(
             self._pipeline(CalibratedClassifierCV(sk_RidgeClassifier()))
-        )
-        _validate_estimator(
+        ) is None
+        assert _val_sk_estimator(
             self._pipeline(CalibratedClassifierCV(sk_SGDClassifier()))
-        )
+        ) is None
 
 
     def test_rejects_wrapped_dask_CCCV(self):
         with pytest.raises(TypeError):
-            _validate_estimator(
+            assert _val_sk_estimator(
                 self._pipeline(CalibratedClassifierCV(dask_LogisticRegression()))
-            )
-
-
-    @pytest.mark.parametrize('dask_non_classifiers', (dask_LinearRegression, ))
-    def test_rejects_all_dask_non_classifiers(self, dask_non_classifiers):
-
-        # must be an instance not the class! & be a classifier!
-        with pytest.raises(TypeError):
-            _validate_estimator(self._pipeline(dask_non_classifiers()))
+            ) is None
 
 
     @pytest.mark.parametrize('dask_classifiers', (dask_LogisticRegression, ))
     def test_rejects_all_dask_classifiers(self, dask_classifiers):
         # must be an instance not the class! & be a classifier!
         with pytest.raises(TypeError):
-            _validate_estimator(self._pipeline(dask_classifiers()))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @pytest.mark.parametrize('junk_pipeline_steps',
-        (
-        [sk_OneHotEncoder(), sk_LogisticRegression()],
-        [(4, sk_OneHotEncoder()), (3.14, sk_LogisticRegression())],
-        [('onehot', 4), ('logistic', 3.14)]
-        )
-    )
-    def test_rejects_pipeline_with_bad_steps(self, junk_pipeline_steps):
-        # 24_07_27, unfortunately, sk pipeline does not do this, it will
-        # allow bad steps (not in (str, cls()) format) and proceed and
-        # return nonsensical results
-
-        with pytest.raises(ValueError):
-            _validate_estimator(Pipeline(steps=junk_pipeline_steps))
-
+            _val_sk_estimator(self._pipeline(dask_classifiers()))
 
 
     @pytest.mark.parametrize('good_pipeline_steps',
@@ -163,10 +90,7 @@ class TestValidateWrappedEstimator:
     )
     def test_accepts_good_pipeline(self, good_pipeline_steps):
 
-        _validate_estimator(Pipeline(steps=good_pipeline_steps))
-
-
-
+        assert _val_sk_estimator(Pipeline(steps=good_pipeline_steps)) is None
 
 
 

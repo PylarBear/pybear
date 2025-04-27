@@ -13,6 +13,8 @@ import numpy as np
 
 import pytest
 
+from sklearn.linear_model import LogisticRegression as sk_logistic
+
 
 
 class TestValidation:
@@ -39,9 +41,10 @@ class TestValidation:
             [{'C': np.logspace(-5,5,11)}, {'thresholds': [0, 0.5, 1]}]
         )
     )
+    @pytest.mark.parametrize('_estimator', (sk_logistic(), ))
     def test_accuracy(
-        self, _param_grid, _thresholds, _scoring, _n_jobs, _refit, _cv,
-        _verbose, _error_score, _return_train_score
+        self, _estimator, _param_grid, _thresholds, _scoring, _n_jobs,
+        _refit, _cv, _verbose, _error_score, _return_train_score
     ):
 
         _will_raise = False
@@ -56,6 +59,7 @@ class TestValidation:
         if _will_raise:
             with pytest.raises(ValueError):
                 _validation(
+                    _estimator,
                     _param_grid,
                     _thresholds,
                     _scoring,
@@ -68,6 +72,7 @@ class TestValidation:
                 )
         else:
             assert _validation(
+                _estimator,
                 _param_grid,
                 _thresholds,
                 _scoring,
