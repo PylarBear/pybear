@@ -12,8 +12,7 @@ from .._type_aliases import InternalDataContainer
 
 import numbers
 
-from joblib import Parallel, delayed
-
+import joblib
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -123,9 +122,6 @@ def _get_dupls_for_combo_in_X_and_poly(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    joblib_kwargs = {
-        'prefer': 'processes', 'n_jobs': _n_jobs, 'return_as': 'list'
-    }
     args = (_COLUMN, _rtol, _atol, _equal_nan)
 
     # def _parallel_column_comparer(
@@ -140,17 +136,23 @@ def _get_dupls_for_combo_in_X_and_poly(
     # look for duplicates in X
     # can use _parallel_column_comparer since _columns_getter turns ss to dense
     # there can be more than one hit for duplicates in X
-    _X_dupls = Parallel(**joblib_kwargs)(delayed(_parallel_column_comparer)(
-        _columns_getter(_X, c_idx).ravel(), *args) for c_idx in range(_X.shape[1])
-    )
+    with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+        _X_dupls = joblib.Parallel(return_as='list')(
+            joblib.delayed(_parallel_column_comparer)(
+            _columns_getter(_X, c_idx).ravel(), *args
+            ) for c_idx in range(_X.shape[1])
+        )
 
     # look for duplicates in POLY
     # can use _parallel_column_comparer since _columns_getter turns ss to dense
     # there *cannot* be more than one hit for duplicates in POLY
     POLY_RANGE = range(_POLY_CSC.shape[1])
-    _poly_dupls = Parallel(**joblib_kwargs)(delayed(_parallel_column_comparer)(
-        _columns_getter(_POLY_CSC, c_idx).ravel(), *args) for c_idx in POLY_RANGE
-    )
+    with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+        _poly_dupls = joblib.Parallel(return_as='list')(
+            joblib.delayed(_parallel_column_comparer)(
+                _columns_getter(_POLY_CSC, c_idx).ravel(), *args
+            ) for c_idx in POLY_RANGE
+        )
     del POLY_RANGE
 
     # there cannot be a hit in both X and POLY, if so, this is a serious

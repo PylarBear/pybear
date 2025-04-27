@@ -7,6 +7,8 @@
 
 
 from typing import Literal
+
+import joblib
 from typing_extensions import Union
 from .._type_aliases import (
     DataType,
@@ -106,16 +108,15 @@ def _make_row_and_column_masks(
 
     # old joblib that worked
     # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-    # joblib_kwargs = {'prefer': 'processes', 'return_as': 'list',
-    #                  'n_jobs': _n_jobs}
-    # ROW_MASKS = joblib.Parallel(**joblib_kwargs)(
-    #     joblib.delayed(_parallelized_row_masks)(
-    #         _column_getter_to_dense(X, _idx),
-    #         _total_counts_by_column[_idx],
-    #         _delete_instr[_idx],
-    #         _reject_unseen_values,
-    #         _idx
-    #     ) for _idx in _ACTIVE_COL_IDXS)
+    # with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+    #     ROW_MASKS = joblib.Parallel(return_as='list')(
+    #         joblib.delayed(_parallelized_row_masks)(
+    #             _column_getter_to_dense(X, _idx),
+    #             _total_counts_by_column[_idx],
+    #             _delete_instr[_idx],
+    #             _reject_unseen_values,
+    #             _idx
+    #         ) for _idx in _ACTIVE_COL_IDXS)
     #
     # del joblib_kwargs
 

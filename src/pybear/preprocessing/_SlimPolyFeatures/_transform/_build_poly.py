@@ -3,8 +3,7 @@
 #
 # License: BSD 3 clause
 #
-
-
+import joblib
 
 from .._type_aliases import InternalDataContainer
 
@@ -88,12 +87,12 @@ def _build_poly(
     # @wrap_non_picklable_objects
     # def _poly_stacker(_columns):
     #     return ss.csc_array(_columns.prod(1).reshape((-1,1)))
-    # joblib_kwargs = {
-    #     'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs
-    # }
-    # POLY = Parallel(**joblib_kwargs)(delayed(_poly_stacker)(
-    #     _columns_getter(_X, combo)) for combo in _active_combos
-    # )
+    # with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+    #     POLY = joblib.Parallel(return_as='list')(
+    #         joblib.delayed(_poly_stacker)(
+    #             _columns_getter(_X, combo)
+    #         ) for combo in _active_combos
+    #     )
     #
     # POLY = ss.hstack(POLY).astype(np.float64)
     # assert POLY.shape == (_X.shape[0], len(_active_combos))

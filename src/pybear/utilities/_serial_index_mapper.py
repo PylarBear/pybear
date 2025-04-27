@@ -5,18 +5,22 @@
 # License: BSD 3 clause
 
 
+
 import numpy as np
 import joblib
 
 
-def serial_index_mapper(
-        shape:tuple,
-        positions:[list,tuple],
-        n_jobs:int=None
-    ) -> list:
 
-    """Map serial index positions to their zero-based Cartesian coordinates in
-    an object of the given shape.
+def serial_index_mapper(
+    shape:tuple,
+    positions:[list,tuple],
+    n_jobs:int=None
+) -> list:
+
+    """
+    Map serial index positions to their zero-based Cartesian coordinates
+    in an object of the given shape.
+
 
     Parameters
     ----------
@@ -32,8 +36,9 @@ def serial_index_mapper(
     Return
     ------
     -
-        coordinates: list of tuples containing zero-based Cartesian coordinates
-                    for each given serialized index position.
+        coordinates: list of tuples containing zero-based Cartesian
+        coordinates for each given serialized index position.
+
 
     Example
     ------
@@ -64,7 +69,9 @@ def serial_index_mapper(
     if not np.array_equiv(shape, shape.ravel()):
         raise ValueError(err_msg)
 
-    if not all(['INT' in _ for _ in np.char.upper(list(map(str, (map(type, shape)))))]):
+    if not all(
+        ['INT' in _ for _ in np.char.upper(list(map(str, (map(type, shape)))))]
+    ):
         raise ValueError(err_msg)
 
     if any([i < 0 for i in shape]):
@@ -75,8 +82,8 @@ def serial_index_mapper(
     # END shape ** * ** * ** * ** * **
 
     # positions ** * ** * ** * ** * ** * **
-    err_msg = (f"'positions' must be non-empty one-dimensional array-like containing "
-               f"integers")
+    err_msg = (f"'positions' must be non-empty one-dimensional array-like "
+               f"containing integers")
 
     if isinstance(positions, (dict, str, type(None))):
         raise TypeError(err_msg)
@@ -92,10 +99,9 @@ def serial_index_mapper(
     if not np.array_equiv(positions, positions.ravel()):
         raise ValueError(err_msg)
 
-    if not all(['INT' in _ for _ in np.char.upper(
-                                    list(map(str, (map(type, positions))))
-                                    )]
-               ):
+    if not all(
+        ['INT' in _ for _ in np.char.upper(list(map(str, (map(type, positions)))))]
+    ):
         raise ValueError(err_msg)
 
     _size = np.prod(shape)
@@ -156,18 +162,13 @@ def serial_index_mapper(
 
 
     # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-    coordinates = joblib.Parallel(return_as='list', prefer='processes',
-        n_jobs=n_jobs)(joblib.delayed(_recursive)(POSN, [], 1) for POSN in positions)
+    with joblib.parallel_config(prefer='processes', n_jobs=n_jobs):
+        coordinates = joblib.Parallel(return_as='list')(
+            joblib.delayed(_recursive)(POSN, [], 1) for POSN in positions
+        )
 
 
     return coordinates
-
-
-
-
-
-
-
 
 
 

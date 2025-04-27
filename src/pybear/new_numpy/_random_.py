@@ -168,9 +168,10 @@ def choice(
     ARGS = [a.size, pick_qty, replace]
 
     # 'a' MUST BE 1-D
-    PULLED = joblib.Parallel(return_as='list', prefer='processes', n_jobs=n_jobs)(
-        joblib.delayed(_puller)(a[psi:psi+partition_size], *ARGS) for psi in psis
-    )
+    with joblib.parallel_config(prefer='processes', n_jobs=n_jobs):
+        PULLED = joblib.Parallel(return_as='list')(
+            joblib.delayed(_puller)(a[psi:psi+partition_size], *ARGS) for psi in psis
+        )
 
     PICKED = hstack((PULLED))
 

@@ -18,7 +18,7 @@ from ._column_getter import _column_getter
 from ._parallel_column_comparer import _parallel_column_comparer
 from ._parallel_ss_comparer import _parallel_ss_comparer
 
-from joblib import Parallel, delayed
+import joblib
 
 
 
@@ -106,7 +106,6 @@ def _find_duplicates(
 
     _all_duplicates = []  # not used later, just a helper to track duplicates
 
-    kwargs = {'return_as':'list', 'prefer':'processes', 'n_jobs':_n_jobs}
     args = (_rtol, _atol, _equal_nan)
 
     # the comparison of columns needs to be handled differently for pd/np
@@ -129,10 +128,12 @@ def _find_duplicates(
         RANGE = range(col_idx1 + 1, _X.shape[1])
         IDXS = [i for i in RANGE if i not in _all_duplicates]
 
-        hits = Parallel(**kwargs)(
-            delayed(_comparer_function)(
-                _column1, _column_getter(_X, col_idx2), *args) for col_idx2 in IDXS
-        )
+        with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+            hits = joblib.Parallel(return_as='list')(
+                joblib.delayed(_comparer_function)(
+                    _column1, _column_getter(_X, col_idx2), *args
+                ) for col_idx2 in IDXS
+            )
 
         if any(hits):
             _all_duplicates.append(col_idx1)
@@ -158,7 +159,7 @@ def _find_duplicates(
                 _all_duplicates.append(col_idx2)
         """
 
-    del _all_duplicates, kwargs, RANGE, IDXS, col_idx1, _column1, hits
+    del _all_duplicates, RANGE, IDXS, col_idx1, _column1, hits
 
     # ONLY RETAIN INFO FOR COLUMNS THAT ARE DUPLICATE
     duplicates_ = {int(k): v for k, v in duplicates_.items() if len(v) > 0}

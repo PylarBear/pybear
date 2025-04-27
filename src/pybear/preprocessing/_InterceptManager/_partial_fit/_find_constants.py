@@ -14,7 +14,7 @@ import uuid
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-from joblib import Parallel, delayed
+import joblib
 
 from ._column_getter import _column_getter
 from ._parallel_constant_finder import _parallel_constant_finder
@@ -115,12 +115,12 @@ def _find_constants(
     # the idxs of the list match the idxs of the data
 
     args = (_equal_nan, _rtol, _atol)
-    joblib_kwargs = {
-        'prefer': 'processes', 'return_as': 'list', 'n_jobs': _n_jobs
-    }
-    out = Parallel(**joblib_kwargs)(delayed(_parallel_constant_finder)(
-        _column_getter(_X, _col_idx), *args) for _col_idx in range(_X.shape[1])
-    )
+    with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+        out = joblib.Parallel(return_as='list')(
+            joblib.delayed(_parallel_constant_finder)(
+            _column_getter(_X, _col_idx), *args
+            ) for _col_idx in range(_X.shape[1])
+        )
 
     # convert 'out' to dict[idx, value] for only the columns of constants
     _new_constants = {}

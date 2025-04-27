@@ -687,17 +687,15 @@ class MinCountTransformer(
         # partial fits have appropriate data.
 
         # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-        joblib_kwargs = {
-            'prefer': 'processes', 'return_as':'list', 'n_jobs':self.n_jobs
-        }
-        DTYPE_UNQS_CTS_TUPLES = \
-            joblib.Parallel(**joblib_kwargs)(
-                joblib.delayed(_parallel_dtypes_unqs_cts)(
-                    _column_getter(X,_idx),
-                    X.shape[0],
-                    _idx
-                ) for _idx in range(self.n_features_in_)
-            )
+        with joblib.parallel_config(prefer='processes', n_jobs=self.n_jobs):
+            DTYPE_UNQS_CTS_TUPLES = \
+                joblib.Parallel(return_as='list')(
+                    joblib.delayed(_parallel_dtypes_unqs_cts)(
+                        _column_getter(X,_idx),
+                        X.shape[0],
+                        _idx
+                    ) for _idx in range(self.n_features_in_)
+                )
 
         # if scipy sparse, change back to the original format. do this
         # before going into the ic/hab callables below, possible that the

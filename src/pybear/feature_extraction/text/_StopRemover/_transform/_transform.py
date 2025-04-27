@@ -13,7 +13,7 @@ import numpy.typing as npt
 import numbers
 
 import numpy as np
-from joblib import Parallel, delayed, wrap_non_picklable_objects
+import joblib
 
 
 
@@ -61,7 +61,7 @@ def _transform(
 
 
     # parallel helper function -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @wrap_non_picklable_objects
+    @joblib.wrap_non_picklable_objects
     def _parallel_matcher(
         _callable: Callable[[str, str], bool],
         _line: list[str],
@@ -106,10 +106,13 @@ def _transform(
     # END _parallel_matcher -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    _joblib_kwargs = {'n_jobs': _n_jobs, 'return_as': 'list', 'prefer': 'processes'}
-    _X = Parallel(**_joblib_kwargs)(
-        delayed(_parallel_matcher)(_callable, _line, _stop_words) for _line in _X
-    )
+    _joblib_kwargs = {}
+    with joblib.parallel_config(n_jobs=_n_jobs, prefer='processes'):
+        _X = joblib.Parallel(return_as='list')(
+            joblib.delayed(_parallel_matcher)(
+                _callable, _line, _stop_words
+            ) for _line in _X
+        )
 
 
     _row_support: npt.NDArray[bool] = np.ones((len(_X),)).astype(bool)
