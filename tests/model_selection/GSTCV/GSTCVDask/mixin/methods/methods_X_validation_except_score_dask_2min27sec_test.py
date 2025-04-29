@@ -92,7 +92,7 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
 
             X_dask = ddf.from_dask_array(X_dask, columns=columns)
 
-
+        # pizza reorganize this... dont forget sklearn
         # inverse_transform, score_samples, transform ** ** ** ** ** **
 
         # for all states of data, and np or pd
@@ -106,9 +106,9 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
 
         # predict_log_proba ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        exc_info = generic_no_attribute_2('GSTCVDask', 'predict_log_proba')
-        with pytest.raises(AttributeError, match=exc_info):
-            getattr(dask_GSTCV, 'predict_log_proba')(X_dask)
+        # exc_info = generic_no_attribute_2('GSTCVDask', 'predict_log_proba')
+        # with pytest.raises(AttributeError, match=exc_info):
+        #     getattr(dask_GSTCV, 'predict_log_proba')(X_dask)
 
         # END predict_log_proba ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
@@ -116,8 +116,8 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
         # decision_function, predict_proba, predict ** ** ** ** ** ** **
 
         for attr in (
-            'decision_function', 'predict_proba', 'predict', 'score_samples',
-            'transform'
+            'decision_function', 'predict_log_proba', 'predict_proba',
+            'predict', 'score_samples', 'transform'
         ):
 
             if _X_state == 'good':  # np or pd
