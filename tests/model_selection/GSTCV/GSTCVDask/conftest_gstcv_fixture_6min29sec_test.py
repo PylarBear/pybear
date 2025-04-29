@@ -14,10 +14,11 @@ from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask as \
     dask_GSTCV
 
 
-pytest.skip(
-    reason=f"only test fixtures if they are changed",
-    allow_module_level=True
-)
+# 25_04_28 pizza opened this test up after changing dask clf from dask_logistic to sk_logistic
+# pytest.skip(
+#     reason=f"only test fixtures if they are changed",
+#     allow_module_level=True
+# )
 
 
 class TestDaskGridSearchFixtures:
@@ -38,9 +39,9 @@ class TestDaskGridSearchFixtures:
         dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_da,
         dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da,
         dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_da,
-        dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_ddf,
-        dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf,
-        dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf,
+        # dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_ddf,
+        # dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf,
+        # dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf,
         dask_GSCV_est_log_two_scorers_prefit,
         dask_GSCV_est_log_two_scorers_postfit_refit_false,
         dask_GSCV_est_log_two_scorers_postfit_refit_str,
@@ -49,13 +50,15 @@ class TestDaskGridSearchFixtures:
         dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_da,
         dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da,
         dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_da,
-        dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_ddf,
-        dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf,
-        dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_ddf,
+        # dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_ddf,
+        # dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf,
+        # dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_ddf,
         # _client
     ):
 
         # 25_04_13 time is same w/ & w/o client
+
+        # 25_04_29 GSTCVDask now only accepts dask array
 
         name_gscv_tuples = [
             (f'dask_GSCV_est_log_one_scorer_prefit',
@@ -74,12 +77,12 @@ class TestDaskGridSearchFixtures:
              dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da),
             (f'dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_da',
              dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_da),
-            (f'dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_ddf',
-             dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_ddf),
-            (f'dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf',
-             dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf),
-            (f'dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf',
-             dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf),
+            # (f'dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_ddf',
+            #  dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_ddf),
+            # (f'dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf',
+            #  dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf),
+            # (f'dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf',
+            #  dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf),
             (f'dask_GSCV_est_log_two_scorers_prefit',
              dask_GSCV_est_log_two_scorers_prefit),
             (f'dask_GSCV_est_log_two_scorers_postfit_refit_false',
@@ -97,12 +100,12 @@ class TestDaskGridSearchFixtures:
              dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da),
             (f'dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_da',
              dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_da),
-            (f'dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_ddf',
-             dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_ddf),
-            (f'dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf',
-             dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf),
-            (f'dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_ddf',
-             dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_ddf)
+            # (f'dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_ddf',
+            #  dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_ddf),
+            # (f'dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf',
+            #  dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf),
+            # (f'dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_ddf',
+            #  dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_ddf)
         ]
 
         for idx, (_name, _gscv_or_gstcv) in enumerate(name_gscv_tuples):

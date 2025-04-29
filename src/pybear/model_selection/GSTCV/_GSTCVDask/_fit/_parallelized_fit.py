@@ -7,10 +7,10 @@
 
 
 from typing_extensions import Union
-from ..._type_aliases import (
+from ..._type_aliases import ClassifierProtocol
+from .._type_aliases import (
     XDaskWIPType,
-    YDaskWIPType,
-    ClassifierProtocol
+    YDaskWIPType
 )
 
 import time
@@ -87,8 +87,9 @@ def _parallelized_fit(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(f_idx, int)
-    assert isinstance(_X_train, dask.array.core.Array)
-    assert isinstance(_y_train, dask.array.core.Array)
+    # pizza
+    # assert isinstance(_X_train, dask.array.core.Array)
+    # assert isinstance(_y_train, dask.array.core.Array)
     assert isinstance(_grid, dict)
     assert isinstance(_error_score, (str, float, int))
 

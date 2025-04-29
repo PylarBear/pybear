@@ -16,10 +16,13 @@ from uuid import uuid4
 from distributed import Client
 
 from dask_ml.preprocessing import StandardScaler as dask_StandardScaler
+from sklearn.preprocessing import StandardScaler as sk_StandardScaler
 
 from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
+from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 
 from dask_ml.model_selection import GridSearchCV as dask_GSCV
+# from sklearn.model_selection import GridSearchCV as dask_GSCV
 
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import \
     GSTCVDask as dask_GSTCV
@@ -43,8 +46,9 @@ def standard_iid():
     return True
 
 
-#
+
 # data objects ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
 @pytest.fixture(scope='session')
 def _rows():
     return 100
@@ -117,32 +121,35 @@ def dask_log_init_params():
         'tol': 1e-1, # need 1e-6 here to pass accuracy est accuracy tests
         'max_iter': 2, # need 10000 here to pass accuracy est accuracy tests
         'fit_intercept': False,
-        'solver': 'newton',
+        'solver': 'lbfgs',
         'random_state': 69
     }
-    #         return dask_LogisticRegression(
-    #             max_iter=10_000,
-    #             solver='newton',
-    #             random_state=69,
-    #             tol=1e-6
 
 
 # END estimator init params ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 # transformers / estimators ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
 @pytest.fixture(scope='session')
 def dask_standard_scaler():
     # as of 24_08_26, the only way to get repeatable results with dask
     # StandardScaler is with_mean & with_std both False. under circum-
     # stances when not both False, not getting the exact same output
     # given the same data. this compromises _core_fit accuracy tests.
-    return dask_StandardScaler(with_mean=False, with_std=False)
+    # return dask_StandardScaler(with_mean=False, with_std=False)
+    # 25_04_29 converted this to sklearn because...
+    # 1) to speed up tests
+    # 2) dask_ml is always breaking
+    return sk_StandardScaler(with_mean=False, with_std=False)
 
 
 @pytest.fixture(scope='session')
-def dask_est_log(dask_log_init_params):
-    return dask_LogisticRegression(**dask_log_init_params)
-
+def dask_est_log(sk_log_init_params):
+    # 25_04_29 converted this to sklearn because...
+    # 1) to speed up tests
+    # 2) dask_ml KFold & LogisticRegression expressly block ddfs
+    # 3) dask_ml is always breaking
+    return sk_LogisticRegression(**sk_log_init_params)
 
 # END transformers / estimators ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -159,12 +166,12 @@ def param_grid_dask_log():
 
 @pytest.fixture(scope='session')
 def dask_gscv_init_params(
-    dask_log_init_params, param_grid_dask_log, standard_cv_int, standard_error_score
+    dask_est_log, param_grid_dask_log, standard_cv_int, standard_error_score
 ):
 
     return {
-        'estimator': dask_LogisticRegression(),
-        'param_grid': {},
+        'estimator': dask_est_log,
+        'param_grid': param_grid_dask_log,
         'scoring': 'accuracy',
         'n_jobs': 1,
         'refit': False,
@@ -179,11 +186,11 @@ def dask_gscv_init_params(
 
 @pytest.fixture(scope='session')
 def dask_gstcv_init_params(
-    dask_log_init_params, param_grid_dask_log, standard_cv_int, standard_error_score
+    dask_est_log, param_grid_dask_log, standard_cv_int, standard_error_score
 ):
     return {
-        'estimator': dask_LogisticRegression(),
-        'param_grid': {},
+        'estimator': dask_est_log,
+        'param_grid': param_grid_dask_log,
         'thresholds': [0.4,0.5,0.6],
         'scoring': 'accuracy',
         'n_jobs': 1,
@@ -215,11 +222,11 @@ def dask_gstcv_init_params(
 # gscv log est one scorer, various refits
 @pytest.fixture(scope='session')
 def dask_GSCV_est_log_one_scorer_prefit(
-    dask_gscv_init_params, dask_log_init_params, param_grid_dask_log
+    dask_gscv_init_params, dask_est_log, param_grid_dask_log
 ):
     __ = dask_GSCV(**dask_gscv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         refit=False
     )
@@ -228,12 +235,12 @@ def dask_GSCV_est_log_one_scorer_prefit(
 
 @pytest.fixture(scope='session')
 def dask_GSCV_est_log_one_scorer_postfit_refit_false(
-    dask_gscv_init_params, dask_log_init_params, param_grid_dask_log, X_da, y_da,
+    dask_gscv_init_params, dask_est_log, param_grid_dask_log, X_da, y_da,
     # _client
 ):
     __ = dask_GSCV(**dask_gscv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         refit=False
     )
@@ -242,12 +249,12 @@ def dask_GSCV_est_log_one_scorer_postfit_refit_false(
 
 @pytest.fixture(scope='session')
 def dask_GSCV_est_log_one_scorer_postfit_refit_str(
-    dask_gscv_init_params, dask_log_init_params, param_grid_dask_log, X_da, y_da,
+    dask_gscv_init_params, dask_est_log, param_grid_dask_log, X_da, y_da,
     # _client
 ):
     __ = dask_GSCV(**dask_gscv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         refit='accuracy'
     )
@@ -256,12 +263,12 @@ def dask_GSCV_est_log_one_scorer_postfit_refit_str(
 
 @pytest.fixture(scope='session')
 def dask_GSCV_est_log_one_scorer_postfit_refit_fxn(
-    dask_gscv_init_params, dask_log_init_params, param_grid_dask_log, X_da, y_da,
+    dask_gscv_init_params, dask_est_log, param_grid_dask_log, X_da, y_da,
     # _client
 ):
     __ = dask_GSCV(**dask_gscv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         refit=lambda x: 0
     )
@@ -274,11 +281,11 @@ def dask_GSCV_est_log_one_scorer_postfit_refit_fxn(
 # gstcv log est one scorer, various refits
 @pytest.fixture(scope='session')
 def dask_GSTCV_est_log_one_scorer_prefit(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log
+    dask_gstcv_init_params, dask_est_log, param_grid_dask_log
 ):
     __ = dask_GSTCV(**dask_gstcv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         refit=False
     )
@@ -287,86 +294,89 @@ def dask_GSTCV_est_log_one_scorer_prefit(
 
 @pytest.fixture(scope='session')
 def dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_da(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_da, y_da,
+    dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_da, y_da,
     # _client
 ):
     __ = dask_GSTCV(**dask_gstcv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         refit=False
     )
     return __.fit(X_da, y_da)
 
 
-@pytest.fixture(scope='session')
-def dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_ddf(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_ddf,
-    y_ddf#, _client
-):
-    __ = dask_GSTCV(**dask_gstcv_init_params)
-    __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
-        param_grid=param_grid_dask_log,
-        refit=False
-    )
-    return __.fit(X_ddf, y_ddf)
+# @pytest.fixture(scope='session')
+# def dask_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_ddf(
+#     dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_ddf,
+#     y_ddf#, _client
+# ):
+#     25_04_29 GSTCVDask now only accepts dask array
+#     __ = dask_GSTCV(**dask_gstcv_init_params)
+#     __.set_params(
+#         estimator=dask_est_log,
+#         param_grid=param_grid_dask_log,
+#         refit=False
+#     )
+#     return __.fit(X_ddf, y_ddf)
 
 
 @pytest.fixture(scope='session')
 def dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_da,
+    dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_da,
     y_da#, _client
 ):
     __ = dask_GSTCV(**dask_gstcv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         refit='accuracy'
     )
     return __.fit(X_da, y_da)
 
 
-@pytest.fixture(scope='session')
-def dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_ddf,
-    y_ddf#, _client
-):
-    __ = dask_GSTCV(**dask_gstcv_init_params)
-    __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
-        param_grid=param_grid_dask_log,
-        refit='accuracy'
-    )
-    return __.fit(X_ddf, y_ddf)
+# @pytest.fixture(scope='session')
+# def dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf(
+#     dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_ddf,
+#     y_ddf#, _client
+# ):
+#     25_04_29 GSTCVDask now only accepts dask array
+#     __ = dask_GSTCV(**dask_gstcv_init_params)
+#     __.set_params(
+#         estimator=dask_est_log,
+#         param_grid=param_grid_dask_log,
+#         refit='accuracy'
+#     )
+#     return __.fit(X_ddf, y_ddf)
 
 
 @pytest.fixture(scope='session')
 def dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_da(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_da,
+    dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_da,
     y_da#, _client
 ):
     __ = dask_GSTCV(**dask_gstcv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         refit=lambda x: 0
     )
     return __.fit(X_da, y_da)
 
 
-@pytest.fixture(scope='session')
-def dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_ddf,
-    y_ddf#, _client
-):
-    __ = dask_GSTCV(**dask_gstcv_init_params)
-    __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
-        param_grid=param_grid_dask_log,
-        refit=lambda x: 0
-    )
-    return __.fit(X_ddf, y_ddf)
+# @pytest.fixture(scope='session')
+# def dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf(
+#     dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_ddf,
+#     y_ddf#, _client
+# ):
+#     25_04_29 GSTCVDask now only accepts dask array
+#     __ = dask_GSTCV(**dask_gstcv_init_params)
+#     __.set_params(
+#         estimator=dask_est_log,
+#         param_grid=param_grid_dask_log,
+#         refit=lambda x: 0
+#     )
+#     return __.fit(X_ddf, y_ddf)
 
 # END gstcv log est one scorer, various refits
 
@@ -382,11 +392,11 @@ def dask_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_ddf(
 # gscv log est two scorers, various refits
 @pytest.fixture(scope='session')
 def dask_GSCV_est_log_two_scorers_prefit(
-    dask_gscv_init_params, dask_log_init_params, param_grid_dask_log
+    dask_gscv_init_params, dask_est_log, param_grid_dask_log
 ):
     __ = dask_GSCV(**dask_gscv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -396,12 +406,12 @@ def dask_GSCV_est_log_two_scorers_prefit(
 
 @pytest.fixture(scope='session')
 def dask_GSCV_est_log_two_scorers_postfit_refit_false(
-    dask_gscv_init_params, dask_log_init_params, param_grid_dask_log, X_da,
+    dask_gscv_init_params, dask_est_log, param_grid_dask_log, X_da,
     y_da#, _client
 ):
     __ = dask_GSCV(**dask_gscv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -411,12 +421,12 @@ def dask_GSCV_est_log_two_scorers_postfit_refit_false(
 
 @pytest.fixture(scope='session')
 def dask_GSCV_est_log_two_scorers_postfit_refit_str(
-    dask_gscv_init_params, dask_log_init_params, param_grid_dask_log, X_da,
+    dask_gscv_init_params, dask_est_log, param_grid_dask_log, X_da,
     y_da#, _client
 ):
     __ = dask_GSCV(**dask_gscv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit='accuracy'
@@ -426,12 +436,12 @@ def dask_GSCV_est_log_two_scorers_postfit_refit_str(
 
 @pytest.fixture(scope='session')
 def dask_GSCV_est_log_two_scorers_postfit_refit_fxn(
-    dask_gscv_init_params, dask_log_init_params, param_grid_dask_log, X_da,
+    dask_gscv_init_params, dask_est_log, param_grid_dask_log, X_da,
     y_da#, _client
 ):
     __ = dask_GSCV(**dask_gscv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=lambda x: 0
@@ -445,12 +455,12 @@ def dask_GSCV_est_log_two_scorers_postfit_refit_fxn(
 # gstcv log est two scorers, various refits
 @pytest.fixture(scope='session')
 def dask_GSTCV_est_log_two_scorers_prefit(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log
+    dask_gstcv_init_params, dask_est_log, param_grid_dask_log
 ):
 
     __ = dask_GSTCV(**dask_gstcv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -460,12 +470,12 @@ def dask_GSTCV_est_log_two_scorers_prefit(
 
 @pytest.fixture(scope='session')
 def dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_da(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_da,
+    dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_da,
     y_da#, _client
 ):
     __ = dask_GSTCV(**dask_gstcv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -473,29 +483,30 @@ def dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_da(
     return __.fit(X_da, y_da)
 
 
-@pytest.fixture(scope='session')
-def dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_ddf(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_ddf,
-    y_ddf#, _client
-):
-    __ = dask_GSTCV(**dask_gstcv_init_params)
-    __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
-        param_grid=param_grid_dask_log,
-        scoring=['accuracy', 'balanced_accuracy'],
-        refit=False
-    )
-    return __.fit(X_ddf, y_ddf)
+# @pytest.fixture(scope='session')
+# def dask_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_ddf(
+#     dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_ddf,
+#     y_ddf#, _client
+# ):
+#     25_04_29 GSTCVDask now only accepts dask array
+#     __ = dask_GSTCV(**dask_gstcv_init_params)
+#     __.set_params(
+#         estimator=dask_est_log,
+#         param_grid=param_grid_dask_log,
+#         scoring=['accuracy', 'balanced_accuracy'],
+#         refit=False
+#     )
+#     return __.fit(X_ddf, y_ddf)
 
 
 @pytest.fixture(scope='session')
 def dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_da,
+    dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_da,
     y_da#, _client
 ):
     __ = dask_GSTCV(**dask_gstcv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit='accuracy'
@@ -503,29 +514,30 @@ def dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da(
     return __.fit(X_da, y_da)
 
 
-@pytest.fixture(scope='session')
-def dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_ddf,
-    y_ddf#, _client
-):
-    __ = dask_GSTCV(**dask_gstcv_init_params)
-    __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
-        param_grid=param_grid_dask_log,
-        scoring=['accuracy', 'balanced_accuracy'],
-        refit='accuracy'
-    )
-    return __.fit(X_ddf, y_ddf)
+# @pytest.fixture(scope='session')
+# def dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf(
+#     dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_ddf,
+#     y_ddf#, _client
+# ):
+#     25_04_29 GSTCVDask now only accepts dask array
+#     __ = dask_GSTCV(**dask_gstcv_init_params)
+#     __.set_params(
+#         estimator=dask_est_log,
+#         param_grid=param_grid_dask_log,
+#         scoring=['accuracy', 'balanced_accuracy'],
+#         refit='accuracy'
+#     )
+#     return __.fit(X_ddf, y_ddf)
 
 
 @pytest.fixture(scope='session')
 def dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_da(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_da,
+    dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_da,
     y_da#, _client
 ):
     __ = dask_GSTCV(**dask_gstcv_init_params)
     __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
+        estimator=dask_est_log,
         param_grid=param_grid_dask_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=lambda x: 0
@@ -533,33 +545,25 @@ def dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_da(
     return __.fit(X_da, y_da)
 
 
-@pytest.fixture(scope='session')
-def dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_ddf(
-    dask_gstcv_init_params, dask_log_init_params, param_grid_dask_log, X_ddf,
-    y_ddf#, _client
-):
-    __ = dask_GSTCV(**dask_gstcv_init_params)
-    __.set_params(
-        estimator=dask_LogisticRegression(**dask_log_init_params),
-        param_grid=param_grid_dask_log,
-        scoring=['accuracy', 'balanced_accuracy'],
-        refit=lambda x: 0
-    )
-    return __.fit(X_ddf, y_ddf)
+# @pytest.fixture(scope='session')
+# def dask_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_ddf(
+#     dask_gstcv_init_params, dask_est_log, param_grid_dask_log, X_ddf,
+#     y_ddf#, _client
+# ):
+#     25_04_29 GSTCVDask now only accepts dask array
+#     __ = dask_GSTCV(**dask_gstcv_init_params)
+#     __.set_params(
+#         estimator=dask_est_log,
+#         param_grid=param_grid_dask_log,
+#         scoring=['accuracy', 'balanced_accuracy'],
+#         refit=lambda x: 0
+#     )
+#     return __.fit(X_ddf, y_ddf)
 
 # END gstcv log est two scorers, various refits
 
 # END ESTIMATORS - TWO SCORERS ** * ** * ** * ** * ** * ** * ** * ** *
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-
-
-
-
-
-
 
 
 

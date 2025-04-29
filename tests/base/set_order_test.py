@@ -11,7 +11,6 @@ from pybear.base._set_order import set_order
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-import dask.array as da
 
 import pytest
 
@@ -29,7 +28,7 @@ class TestSetOrder:
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.parametrize('non_ndarray', ('pd', 'csr', 'csc', 'da'))
+    @pytest.mark.parametrize('non_ndarray', ('pd', 'csr', 'csc'))
     def test_rejects_non_ndarray(self, non_ndarray):
 
         _shape = (20, 5)
@@ -42,8 +41,6 @@ class TestSetOrder:
             bad_X = ss.csr_array(_base_X)
         elif non_ndarray == 'csc':
             bad_X = ss.csc_array(_base_X)
-        elif non_ndarray == 'da':
-            bad_X = da.random.randint(0, 10, _shape)
         else:
             raise Exception
 

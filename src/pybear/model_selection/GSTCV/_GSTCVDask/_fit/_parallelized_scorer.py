@@ -17,11 +17,12 @@ import dask
 
 from ..._type_aliases import (
     ScorerWIPType,
-    ClassifierProtocol,
+    ClassifierProtocol
+)
+from .._type_aliases import (
     XDaskWIPType,
     YDaskWIPType
 )
-
 
 
 def _parallelized_scorer(

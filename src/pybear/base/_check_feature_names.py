@@ -74,7 +74,7 @@ def check_feature_names(
         names are pandas dataframes, dask dataframes, and polars
         dataframes. If X does not have a valid header then None is
         returned. Objects that are known to not yield feature names are
-        numpy arrays, dask array, and scipy sparse matrices/arrays.                  .
+        numpy arrays, dask arrays, and scipy sparse matrices/arrays.                  .
     feature_names_in_:
         NDArray[object] - shape (n_features, ), the feature names seen
         on the first fit, if an object with a valid header was passed on
@@ -106,17 +106,14 @@ def check_feature_names(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # currently no validation of X is being done.
-    # anticipate that this module might see
+    # anticipate that this module might see...
     # python list of objects (low probability, but possible)
-    # numpy 2D array
-    # numpy 1D vector
-    # pandas dataframe
-    # pandas series
-    # dask 2D array
-    # dask 1D vector
-    # dask dataframe
-    # dask series
+    # numpy-like 2D array
+    # numpy-like 1D vector
+    # pandas-like dataframe
+    # pandas-like series
     # polars dataframe
+    # polars series
     # any of the scipy sparse matrices / arrays (always 2D)
 
 

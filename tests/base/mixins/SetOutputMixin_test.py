@@ -15,8 +15,6 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
 
 import pytest
 
@@ -284,17 +282,11 @@ class TestSetOutputMixin:
 
 
     # _set_output_for_transform validation -- -- -- -- -- -- -- -- -- -- -- -- --
-    @pytest.mark.parametrize('junk_X', ('da', 'ddf'))
     def test_set_output_for_transform_rejects_invalid_container_from_transform(
-        self, junk_X, _mock_transformer_1, _X_np
+        self, _mock_transformer_1, _X_np
     ):
 
-        if junk_X == 'da':
-            _X = da.from_array(_X_np, chunks=_X_np.shape)
-        elif junk_X == 'ddf':
-            _X = ddf.from_array(_X_np, chunksize=_X_np.shape[0])
-        else:
-            raise Exception
+        _X = list(map(list, _X_np))
 
         trfm = _mock_transformer_1()
         trfm.fit(_X_np)

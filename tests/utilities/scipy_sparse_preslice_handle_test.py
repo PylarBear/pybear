@@ -14,8 +14,6 @@ import uuid
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-import dask.array as da
-import dask.dataframe as ddf
 
 import pytest
 
@@ -34,10 +32,9 @@ class TestSSColumnSlice:
 
     @pytest.mark.parametrize('X_format',
         (
-        'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-        'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-        'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
-        'dask_array', 'dask_dataframe'
+            'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
         )
     )
     def test_accuracy(self, X_format, _shape):
@@ -79,13 +76,6 @@ class TestSSColumnSlice:
             _X_wip = ss._dok.dok_array(_base_X)
         elif X_format == 'bsr_array':
             _X_wip = ss._bsr.bsr_array(_base_X)
-        elif X_format == 'dask_array':
-            _X_wip = da.array(_base_X)
-        elif X_format == 'dask_dataframe':
-            _X_wip = ddf.from_dask_array(
-                da.array(_base_X),
-                columns=[str(uuid.uuid4)[:4] for _ in range(_shape[1])]
-            )
         else:
             raise Exception
 

@@ -15,8 +15,6 @@ import numbers
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
-import dask.array as da
-import dask.dataframe as ddf
 
 from ._check_1D_num_sequence import check_1D_num_sequence
 
@@ -31,7 +29,6 @@ SparseTypes: TypeAlias = Union[
     ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
     ss.bsr_matrix, ss.bsr_array
 ]
-DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]  # not used yet
 
 XContainer: TypeAlias = \
     Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
@@ -136,7 +133,7 @@ def check_2D_num_array(
 
 
     # block disallowed containers -- -- -- -- -- -- -- -- -- -- -- -- --
-    if isinstance(X, (pd.Series, pl.Series, ddf.Series)):
+    if isinstance(X, (pd.Series, pl.Series)):
         raise TypeError(_err_msg + _addon)
 
     try:

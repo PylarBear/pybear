@@ -37,8 +37,8 @@ def get_feature_names(X):
         dataframe contains non-string feature names, None is returned.
 
         All other array containers will return 'None'. Examples of
-        containers known to not yield feature names: numpy array, dask
-        array, scipy sparse matrices / arrays.
+        containers known to not yield feature names: numpy arrays, dask
+        arrays, scipy sparse matrices / arrays.
 
 
     Returns

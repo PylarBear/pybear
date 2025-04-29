@@ -6,7 +6,7 @@
 
 
 
-from ..._type_aliases import ParamGridType # pizza as of 25_04_26 this is technically incorrect
+from ..._type_aliases import ParamGridType
 
 import numbers
 

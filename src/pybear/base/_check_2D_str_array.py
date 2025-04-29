@@ -12,8 +12,6 @@ from typing_extensions import TypeAlias, Union
 
 import pandas as pd
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
 
 from ._check_1D_str_sequence import check_1D_str_sequence
 
@@ -22,7 +20,6 @@ PythonTypes: TypeAlias = Union[list[list], tuple[tuple]]
 NumpyTypes: TypeAlias = npt.NDArray
 PandasTypes: TypeAlias = pd.DataFrame
 PolarsTypes: TypeAlias = pl.DataFrame
-DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]  # not used yet
 
 XContainer: TypeAlias = \
     Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -115,7 +112,7 @@ def check_2D_str_array(
 
 
     # block disallowed containers -- -- -- -- -- -- -- -- -- -- -- -- --
-    if isinstance(X, (pd.Series, pl.Series, ddf.Series)):
+    if isinstance(X, (pd.Series, pl.Series)):
         raise TypeError(_err_msg + _addon)
 
     if hasattr(X, 'toarray'):   # scipy

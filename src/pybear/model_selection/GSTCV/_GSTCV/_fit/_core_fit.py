@@ -13,9 +13,11 @@ from ..._type_aliases import (
     CVResultsType,
     ClassifierProtocol,
     ScorerWIPType,
-    XSKWIPType,
-    YSKWIPType,
     GenericKFoldType
+)
+from .._type_aliases import (
+    XSKWIPType,
+    YSKWIPType
 )
 
 from copy import deepcopy
@@ -292,7 +294,7 @@ def _core_fit(
                 joblib.delayed(_parallelized_fit)(
                     f_idx,
                     # train only!
-                    *_fold_splitter(train_idxs, test_idxs, _X, _y)[::2],
+                    *list(zip(*_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
                     type(_estimator)(**s_p).set_params(**deepcopy(d_p)),
                     _grid,
                     _error_score,
@@ -343,7 +345,7 @@ def _core_fit(
             )(
                 joblib.delayed(_parallelized_scorer)(
                     # test only!
-                    *_fold_splitter(train_idxs, test_idxs, _X, _y)[1::2],
+                    *list(zip(*_fold_splitter(train_idxs, test_idxs, _X, _y)))[1],
                     FIT_OUTPUT[f_idx],
                     f_idx,
                     _scorer,
@@ -469,7 +471,7 @@ def _core_fit(
                 )(
                     joblib.delayed(_parallelized_train_scorer)(
                         # train only!
-                        *_fold_splitter(train_idxs, test_idxs, _X, _y)[0::2],
+                        *list(zip(*_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
                         FIT_OUTPUT[f_idx],
                         f_idx,
                         _scorer,

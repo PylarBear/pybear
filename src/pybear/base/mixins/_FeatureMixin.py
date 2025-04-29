@@ -124,7 +124,7 @@ class FeatureMixin:
             to yield feature names are pandas dataframes, dask dataframes,
             and polars dataframes. If X does not have a valid header then
             None is returned. Objects that are known to not yield feature
-            names are numpy arrays, dask array, and scipy sparse
+            names are numpy arrays, dask arrays, and scipy sparse
             matrices/arrays.                  .
         feature_names_in_:
             NDArray[object] - shape (n_features, ), the feature names

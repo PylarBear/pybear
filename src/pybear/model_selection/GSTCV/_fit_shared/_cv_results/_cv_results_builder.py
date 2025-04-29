@@ -15,7 +15,7 @@ from numpy.typing import NDArray
 from .....utilities._permuter import permuter
 
 from ..._type_aliases import (
-    ParamGridType,
+    ParamGridsType,
     ScorerWIPType,
     CVResultsType
 )
@@ -23,11 +23,11 @@ from ..._type_aliases import (
 
 
 def _cv_results_builder(
-        param_grid: list[ParamGridType],
-        cv: int,
-        scorer: ScorerWIPType,
-        return_train_score: bool
-    ) -> tuple[CVResultsType, NDArray[np.uint8]]:
+    param_grid: list[ParamGridsType],
+    cv: int,
+    scorer: ScorerWIPType,
+    return_train_score: bool
+) -> tuple[CVResultsType, NDArray[np.uint8]]:
 
     """
 

@@ -14,8 +14,6 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
-import dask.array as da
-import dask.dataframe as ddf
 
 from ._check_1D_num_sequence import check_1D_num_sequence
 from ._check_2D_num_array import check_2D_num_array
@@ -37,7 +35,6 @@ SparseTypes: TypeAlias = Union[
     ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
     ss.bsr_matrix, ss.bsr_array
 ]
-DaskTypes: TypeAlias = Union[da.Array, ddf.DataFrame]  # not used yet
 
 XContainer: TypeAlias = \
     Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
@@ -147,9 +144,6 @@ def check_dtype(
     if not isinstance(require_all_finite, bool):
         raise TypeError(f"'require_all_finite' must be bool")
 
-    # *temporary* short-circuit handling of dask to get TypeError
-    if isinstance(X, (da.Array, ddf.DataFrame, ddf.Series)):
-        raise TypeError("check_dtype(): dask objects are not accepted yet")
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 

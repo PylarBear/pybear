@@ -17,21 +17,16 @@ from typing_extensions import (
     Any,
     Union
 )
-from .._type_aliases import (
-    XInputType,
-    YInputType
-)
 
 from copy import deepcopy
 import numbers
 
+from ._validation._validation import _validation
+from ._validation._X_y import _val_X_y
+
+from ._fit._core_fit import _core_fit
+
 from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
-
-from .._GSTCV._validation._validation import _validation
-
-from ._handle_X_y._handle_X_y_sklearn import _handle_X_y_sklearn
-
-from .._GSTCV._fit._core_fit import _core_fit
 
 
 
@@ -348,7 +343,7 @@ class GSTCV(_GSTCVMixin):
         or when refit is specified as a string for 2+ scorers.
 
     best_params_:
-        dict[str, any] - Exposes the dictionary found at
+        dict[str, Any] - Exposes the dictionary found at
         cv_results_['params'][best_index_], which gives the parameter
         settings that resulted in the highest mean score (best_score_)
         on the hold out (test) data.
@@ -515,21 +510,21 @@ class GSTCV(_GSTCVMixin):
     ####################################################################
     # SUPPORT METHODS ##################################################
 
-    def _handle_X_y(self, X, y: Optional[any] = None):
+    def _val_X_y(self, X, y:Optional[Any] = None):
 
         """
-        Implements GSTCV _handle_X_y_sklearn in methods in _GSTCVMixin.
-        See the docs for GSTCV _handle_X_y_sklearn.
+        Implements GSTCV _val_X_y in methods in _GSTCVMixin.
+        See the docs for GSTCV _val_X_y.
 
         """
 
-        return _handle_X_y_sklearn(X, y=y)
+        return _val_X_y(X, _y=y)
 
 
     def _core_fit(
         self,
-        X: XInputType,
-        y: YInputType=None,
+        X,    # pizza type hints here
+        y=None,  # pizza type hints here
         **params
     ) -> None:
 
@@ -568,10 +563,7 @@ class GSTCV(_GSTCVMixin):
 
         """
 
-        _validation(
-            self.estimator,
-            self.pre_dispatch
-        )
+        _validation(self.estimator, self.pre_dispatch)
 
         self._estimator = type(self.estimator)(
             **deepcopy(self.estimator.get_params(deep=False))

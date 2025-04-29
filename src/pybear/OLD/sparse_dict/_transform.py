@@ -634,10 +634,10 @@ def unzip_to_list(DICT:dict, dtype=float) -> list:
 
 
 def unzip_to_dask_array(
-                        DICT:dict,
-                        dtype=np.float64,
-                        chunks=None
-    ) -> da.array:
+    DICT:dict,
+    dtype=np.float64,
+    chunks=None
+) -> da.array:
 
     """Convert sparse dictionary to a dask array.
 

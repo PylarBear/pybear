@@ -15,21 +15,28 @@ def is_classifier(estimator_) -> bool:
 
     """
     Return True if the given estimator is a classifier, False otherwise.
-    Works with scikit-learn, dask_ml, xgboost, and lightgbm estimators.
-    Also works for wrapped estimators. This module is intended to extend
-    the functionality of scikit-learns's is_classifier function to work
-    on dask estimators as well.
+    Works on stand-alone and nested scikit-style estimators. This module
+    was originally intended to extend the functionality of scikit-learn's
+    is_classifier function to work on dask_ml estimators, but it also
+    works on xgboost and lightgbm estimators.
 
     Support for scikit-learn wrappers includes, but may not be limited to:
-        CalibratedClassifierCV\\\n
-        GridSearchCV\\\n
-        Pipeline\\\n
+        CalibratedClassifierCV
+
+        GridSearchCV
+
+        Pipeline
+
     Support for dask_ml wrappers includes, but may not be limited to:
-        GridSearchCV\\\n
-        Incremental\\\n
-        ParallelPostFit\\\n
-        BlockwiseVotingClassifier\\\n
-        BlockwiseVotingRegressor\\\n
+        GridSearchCV
+
+        Incremental
+
+        ParallelPostFit
+
+        BlockwiseVotingClassifier
+
+        BlockwiseVotingRegressor
 
 
     Parameters
@@ -99,8 +106,8 @@ def is_classifier(estimator_) -> bool:
 
             if str(_estimator_).lower().startswith(_module):
                 # escape when have dug deep enough that _module is the
-                # outermost wrapper. use hard strings, dont import any dask
-                # modules to avoid circular imports
+                # outermost wrapper. use hard strings, dont import the
+                # actual modules to avoid circular imports
                 return _estimator_
 
         try:
@@ -130,7 +137,8 @@ def is_classifier(estimator_) -> bool:
     if 'calibratedclassifier' in str(estimator_).lower():
         return True
     elif 'blockwisevoting' in str(estimator_).lower():
-        # use hard strings, dont import any dask modules to avoid circular imports
+        # use hard strings, dont import the actual modules to avoid
+        # circular imports
         return sk_is_classifier(estimator_)
 
     try:
@@ -144,7 +152,8 @@ def is_classifier(estimator_) -> bool:
     ]
 
     if 'dask' in _path and all([x not in _path for x in dask_supported]):
-        # use hard strings, dont import any dask modules to avoid circular imports
+        # use hard strings, dont import the actual modules to avoid
+        # circular imports
         _path = _path[_path.find("'", 0, -1) + 1:_path.find("'", -1, 0) - 1]
 
         _split = _path.split(sep='.')

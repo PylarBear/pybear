@@ -9,9 +9,7 @@
 from pybear.base._ensure_2D import ensure_2D
 
 import numpy as np
-import dask.array as da
 import pandas as pd
-import dask.dataframe as ddf
 import scipy.sparse as ss
 
 import pytest
@@ -91,8 +89,7 @@ class TestEnsure2D:
     @pytest.mark.parametrize('X_format',
         ('np', 'pd', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
          'coo_array', 'coo_matrix', 'dia_array', 'dia_matrix', 'lil_array',
-         'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix',
-         'da', 'ddf')
+         'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix')
     )
     def test_accepts_array_like(self, build_scipy_sparse, X_format):
 
@@ -104,10 +101,6 @@ class TestEnsure2D:
             _X = pd.DataFrame(data=_base_X)
         elif 'array' in X_format or 'matrix' in X_format:
             _X = build_scipy_sparse(_base_X, X_format)
-        elif X_format == 'da':
-            _X = da.array(_base_X)
-        elif X_format == 'ddf':
-            _X = ddf.from_dask_array(da.array(_base_X))
         else:
             raise Exception
 
@@ -150,14 +143,13 @@ class TestEnsure2D:
     @pytest.mark.parametrize('X_format',
         ('np', 'pd', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
          'coo_array', 'coo_matrix', 'dia_array', 'dia_matrix', 'lil_array',
-         'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix',
-         'da', 'ddf')
+         'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix')
     )
     @pytest.mark.parametrize('dim', (1, 2))
     def test_accuracy(self, X_format, dim, build_scipy_sparse):
 
         # skip impossible conditions - - - - - - - - - - - - - - - - - -
-        if X_format not in ['np', 'pd', 'da', 'ddf'] and dim == 1:
+        if X_format not in ['np', 'pd'] and dim == 1:
             pytest.skip(f"scipy sparse can only be 2D")
         # END skip impossible conditions - - - - - - - - - - - - - - - -
 
@@ -181,10 +173,6 @@ class TestEnsure2D:
                 _X = pd.DataFrame(data=_base_X)
         elif 'array' in X_format or 'matrix' in X_format:
             _X = build_scipy_sparse(_base_X, X_format)
-        elif X_format == 'da':
-            _X = da.array(_base_X)
-        elif X_format == 'ddf':
-            _X = ddf.from_dask_array(da.array(_base_X))
             if dim == 1:
                 X = _X.squeeze()
         else:
@@ -196,9 +184,6 @@ class TestEnsure2D:
         if X_format == 'pd':
             # anything 2D in pandas is always DF
             assert isinstance(out, pd.core.frame.DataFrame)
-        elif X_format == 'ddf':
-            # anything 2D in dask dataframe is always DF
-            assert isinstance(out, ddf.DataFrame)
         else:
             assert type(out) == type(_X)
 
@@ -213,10 +198,8 @@ class TestEnsure2D:
             out = out.to_numpy()
         elif hasattr(out, 'toarray'):   # scipy sparse
             out = out.toarray()
-        elif X_format == 'da':
-            out = out.compute()
-        elif X_format == 'ddf':
-            out = out.compute().to_numpy()
+        else:
+            raise Exception
 
         assert isinstance(out, np.ndarray)
 

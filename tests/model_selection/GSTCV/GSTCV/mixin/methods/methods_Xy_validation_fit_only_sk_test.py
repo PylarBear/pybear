@@ -68,23 +68,15 @@ class TestSKFit_XyValidation:
             if _y_state == 'good':
                 pass  # skipped above
             elif _y_state == 'bad_data':
-                with pytest.raises(ValueError, match=non_binary_y('GSTCV')):
+                # GSTCV should raise for not in [0,1]
+                with pytest.raises(ValueError):
                     getattr(sk_GSTCV, 'fit')(X_sk, y_sk)
 
         elif _X_state == 'bad_data':
             # for all states of y
-            with pytest.raises(ValueError, match=non_num_X):
+            # this is raised by estimator, let it raise whatever
+            with pytest.raises(Exception):
                 getattr(sk_GSTCV, 'fit')(X_sk, y_sk)
-
-
-
-
-
-
-
-
-
-
 
 
 

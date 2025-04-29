@@ -37,8 +37,7 @@ class TestSKAttrsPreFit:
         (['accuracy'], ['accuracy', 'balanced_accuracy'])
     )
     def test_classes__n_features_in(self, _scoring, _refit_false, _not_fitted,
-        generic_no_attribute_1, # pizza! generic_no_attribute_3,
-        sk_GSTCV_est_log_one_scorer_prefit,
+        generic_no_attribute_1, sk_GSTCV_est_log_one_scorer_prefit,
         sk_GSTCV_est_log_two_scorers_prefit,
     ):
 
@@ -52,9 +51,8 @@ class TestSKAttrsPreFit:
         with pytest.raises(AttributeError, match=_refit_false('GSTCV')):
             sk_GSTCV_prefit.classes_
 
-        # pizza!
-        # exp_match = generic_no_attribute_3("GSTCV", 'n_features_in_')
-        with pytest.raises(AttributeError):  # pizza!, match=exp_match):
+
+        with pytest.raises(AttributeError):
             sk_GSTCV_prefit.n_features_in_
 
 

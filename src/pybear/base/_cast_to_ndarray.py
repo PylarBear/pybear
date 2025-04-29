@@ -135,7 +135,7 @@ def cast_to_ndarray(
     elif isinstance(_X, np.ma.MaskedArray):
         _X = np.ma.getdata(_X)
 
-    # do pd separate, dask compute may output a dataframe
+    # do pd separate, compute may output a dataframe
     if isinstance(_X, (pd.Series, pd.DataFrame)):
         # pandas
         _X = _X.to_numpy()

@@ -119,7 +119,7 @@ class GetParamsMixin:
                 paramsdict[attr] = deepcopy(vars(self)[attr])
 
 
-        # gymnastics to get param order the same as sk/dask. this splits
+        # gymnastics to get param order the same as sklearn. this splits
         # paramsdict into 2 separate dictionaries. The first holds
         # everything in paramsdict up until estimator. The second
         # holds estimator and every param after that. this requires that

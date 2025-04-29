@@ -7,10 +7,10 @@
 
 
 from typing_extensions import Union
-from ..._type_aliases import (
+from ..._type_aliases import ClassifierProtocol
+from .._type_aliases import (
     XSKWIPType,
-    YSKWIPType,
-    ClassifierProtocol
+    YSKWIPType
 )
 
 import numbers
@@ -24,14 +24,14 @@ import numpy as np
 
 @joblib.wrap_non_picklable_objects
 def _parallelized_fit(
-        f_idx: int,
-        _X_train: XSKWIPType,
-        _y_train: YSKWIPType,
-        _estimator_: ClassifierProtocol,
-        _grid: dict[str, Union[str, int, float, bool]],
-        _error_score,
-        **fit_params
-    ) -> tuple[ClassifierProtocol, float, bool]:
+    f_idx: int,
+    _X_train: XSKWIPType,
+    _y_train: YSKWIPType,
+    _estimator_: ClassifierProtocol,
+    _grid: dict[str, Union[str, int, float, bool]],
+    _error_score,
+    **fit_params
+) -> tuple[ClassifierProtocol, float, bool]:
 
     """
     Wrapped estimator fit method designed for joblib parallelism. Special
@@ -90,8 +90,9 @@ def _parallelized_fit(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(f_idx, int)
-    assert isinstance(_X_train, np.ndarray)
-    assert isinstance(_y_train, np.ndarray)
+    # pizza
+    # assert isinstance(_X_train, np.ndarray)
+    # assert isinstance(_y_train, np.ndarray)
     assert isinstance(_grid, dict)
     assert isinstance(_error_score, (str, numbers.Real))
 

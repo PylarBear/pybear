@@ -7,7 +7,7 @@
 
 
 from typing import Generator, Optional
-from ..._type_aliases import (
+from .._type_aliases import (
     XDaskWIPType,
     YDaskWIPType,
     DaskKFoldType
@@ -15,7 +15,8 @@ from ..._type_aliases import (
 
 import time
 
-import dask.array as da
+import dask.array as da   # pizza
+import dask.dataframe as ddf
 from dask_ml.model_selection import KFold as dask_KFold
 
 
@@ -84,17 +85,13 @@ def _get_kfold(
 
     """
 
-
-    err_msg = (f"_X ({type(_X)}) and _y ({type(_y)}) must both be dask "
-               f"arrays.")
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if not isinstance(_X, da.core.Array):
-        raise TypeError(err_msg)
+        raise TypeError(f"'_X' must be a dask array. dask_ml KFold requires it.")
 
-    if not isinstance(_y, (da.core.Array, type(None))):
-        raise TypeError(err_msg)
-
-    del err_msg
+    if not isinstance(_y, (da.core.Array, ddf.DataFrame, ddf.Series, type(None))):
+        raise TypeError(f"'_y' must be None or a dask object")
 
     assert isinstance(_n_splits, int)
     assert _n_splits > 1
@@ -104,10 +101,12 @@ def _get_kfold(
     except:
         raise AssertionError(f"'_verbose' must be an int, float, or bool")
     assert _verbose >= 0
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     split_t0 = time.perf_counter()
     # KFold keeps the same chunks ax X
+    # 25_04_29 dask_KFold only accepts da array for X
     KFOLD = dask_KFold(
         n_splits=_n_splits,
         shuffle=not _iid,
@@ -116,31 +115,13 @@ def _get_kfold(
         # calls for train score get same splits.
     ).split(_X, _y)
 
+
     if _verbose >= 5:
         print(f'split time = {time.perf_counter() - split_t0: ,.3g} s')
 
     del split_t0
 
     return KFOLD
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
