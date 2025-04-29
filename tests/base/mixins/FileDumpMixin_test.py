@@ -16,8 +16,7 @@ import uuid
 import numpy as np
 import pandas as pd
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
+import scipy.sparse as ss
 
 import pytest
 from unittest.mock import patch
@@ -204,15 +203,15 @@ class TestFileDumpMixin:
             trfm.dump_to_csv(junk_X)
 
 
-    @pytest.mark.parametrize('bad_X', ('da', 'ddf'))
+    @pytest.mark.parametrize('bad_X', ('csr', 'csc'))
     def test_rejects_bad_X(self, bad_X, MockTransformer, _shape):
 
-        _X_np = np.random.choice(list('abcdef'), _shape, replace=True)
+        _X_np = np.random.randint(0, 10, _shape)
 
-        if bad_X == 'da':
-            bad_X = da.from_array(_X_np, chunks=_X_np.shape)
-        elif bad_X == 'ddf':
-            bad_X = ddf.from_array(_X_np, chunksize=_X_np.shape[0])
+        if bad_X == 'csr':
+            bad_X = ss.csr_array(_X_np)
+        elif bad_X == 'csc':
+            bad_X = ss.csc_matrix(_X_np)
         else:
             raise Exception
 

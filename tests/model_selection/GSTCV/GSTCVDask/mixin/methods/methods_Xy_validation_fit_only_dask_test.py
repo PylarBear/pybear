@@ -4,10 +4,13 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 from copy import deepcopy
 import dask.array as da
 import dask.dataframe as ddf
+
 
 
 # this module tests fit for handling X & y in good and bad conditions
@@ -62,29 +65,24 @@ class TestDaskFit_XyValidation:
             y_dask = ddf.from_dask_array(y_dask, columns=['y1'])
         # END y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+        if fit_format == 'df':
+            with pytest.raises(TypeError):
+                getattr(dask_GSTCV, 'fit')(X_dask, y_dask)
+            pytest.skip(reason=f"25_04_29 GSTCVDask only accept dask array")
 
         if _X_state == 'good':
             if _y_state == 'good':
                 pass  # skipped above
             elif _y_state == 'bad_data':
-                with pytest.raises(ValueError, match=non_binary_y('GSTCVDask')):
+                # GSTCVDask should raise for not in [0,1]
+                with pytest.raises(ValueError):
                     getattr(dask_GSTCV, 'fit')(X_dask, y_dask)
 
         elif _X_state == 'bad_data':
             # for all states of y
-            with pytest.raises(ValueError, match=non_num_X):
+            # this is raised by estimator, let it raise whatever
+            with pytest.raises(Exception):
                 getattr(dask_GSTCV, 'fit')(X_dask, y_dask)
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -117,7 +117,7 @@ User installation
 ~~~~~~~~~~~~~~~~~
 
 pybear has not been released to PyPI yet. (But with every passing day we get 
-closer and closer!) First publish to PyPI is anticipated to be April 2025. If
+closer and closer!) First publish to PyPI is anticipated to be May 2025. If
 you really want to try it out, the only way to install pybear is from TestPyPI
 using ``pip``::
 
@@ -151,10 +151,10 @@ and dask objects utilizing progressively narrower search grids.
 
 autogridsearch_wrapper
 ~~~~~~~~~~~~~~~~~~~~~~
-Create your own auto-gridsearch class. A function that wraps any scikit-learn 
-or dask_ml GridSearchCV module to create an identical GridSearch class that 
-performs multiple passes of grid search using progressively narrower search 
-grids.
+Create your own auto-gridsearch class. A function that wraps any scikit-learn,
+pybear, or dask_ml GridSearchCV module to create an identical GridSearch class
+that performs multiple passes of grid search using progressively narrower
+search grids.
 
 - Access via pybear.model_selection.autogridsearch_wrapper.
 

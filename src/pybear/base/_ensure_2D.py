@@ -74,8 +74,7 @@ def ensure_2D(
 
     if _dim == 0:
         raise ValueError(
-            f"ensure_2D: 'X' is zero dimensional. Cannot convert 0D "
-            f"to 2D."
+            f"ensure_2D: 'X' is zero dimensional. Cannot convert 0D to 2D."
         )
     elif _dim == 1:
 
@@ -94,9 +93,7 @@ def ensure_2D(
             try:
                 return _X.to_frame()
             except:
-                raise ValueError(
-                    f"ensure_2D: unable to cast X to 2D"
-                )
+                raise ValueError(f"ensure_2D: unable to cast X to 2D")
     elif _dim == 2:
         return X
     elif _dim > 2:

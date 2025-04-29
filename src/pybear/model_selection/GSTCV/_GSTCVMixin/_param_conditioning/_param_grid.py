@@ -6,9 +6,11 @@
 
 
 
-from typing import Sequence
 from typing_extensions import Union
-from ..._type_aliases import ParamGridType
+from ..._type_aliases import (
+    ParamGridType,
+    ParamGridsType
+)
 
 from ._thresholds import _cond_thresholds
 
@@ -16,9 +18,9 @@ from ._thresholds import _cond_thresholds
 
 
 def _cond_param_grid(
-    _param_grid: Union[ParamGridType, Sequence[ParamGridType], None],  # pizza y is this allowed to be None
+    _param_grid: Union[ParamGridType, ParamGridsType, None],  # pizza y is this allowed to be None
     _thresholds: list[float]    # this is init self.thresholds
-) -> list[ParamGridType]:  # pizza! fix _type_aliases!
+) -> ParamGridsType:
 
     """
     Condition `param_grid` and any thresholds that may be passed inside.
@@ -33,7 +35,7 @@ def _cond_param_grid(
     ----------
     _param_grid:
         # pizza resolve the None issue!
-        Union[ParamGridType, Sequence[ParamGridType], None] - A
+        Union[ParamGridType, ParamGridsType, None] - A
         param_grid is a dictionary with hyperparameter names (str) as
         keys and list-likes of hyperparameter settings to test as values.
         `_param_grid` can be None, one of the described param_grids, or
@@ -46,8 +48,8 @@ def _cond_param_grid(
 
     Return
     ------
-        list[dict[str, list[Any]]] - returns param grid(s) inside a list
-        with thresholds inside every param_grid, no matter how (or if)
+        ParamGridsType - returns param grid(s) inside a list with
+        thresholds inside every param_grid, no matter how (or if)
         thresholds was passed in the param_grid.
 
     """

@@ -13,9 +13,11 @@ from ..._type_aliases import (
     CVResultsType,
     ClassifierProtocol,
     ScorerWIPType,
-    XDaskWIPType,
-    YDaskWIPType,
     GenericKFoldType
+)
+from .._type_aliases import (
+    XDaskWIPType,
+    YDaskWIPType
 )
 
 from copy import deepcopy
@@ -271,7 +273,7 @@ def _core_fit(
         FIT_OUTPUT = list()
         if _cache_cv:
 
-            for f_idx, (_X_train, _, _y_train, _) in enumerate(CACHE_CV):
+            for f_idx, ((_X_train, _), (_y_train, _)) in enumerate(CACHE_CV):
 
                 FIT_OUTPUT.append(
                     _parallelized_fit(
@@ -291,7 +293,7 @@ def _core_fit(
                 FIT_OUTPUT.append(
                     _parallelized_fit(
                         f_idx,
-                        *_fold_splitter(train_idxs, test_idxs, _X, _y)[0::2],
+                        *list(zip(*_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
                         type(_estimator)(**s_p).set_params(**d_p),
                         _grid,
                         _error_score,
@@ -339,7 +341,7 @@ def _core_fit(
         TEST_SCORER_OUT = list()
         if _cache_cv:
 
-            for f_idx, (_, X_test, _, y_test) in enumerate(CACHE_CV):
+            for f_idx, ((_, X_test), (_, y_test)) in enumerate(CACHE_CV):
 
                 TEST_SCORER_OUT.append(
                     _parallelized_scorer(
@@ -362,7 +364,7 @@ def _core_fit(
                 TEST_SCORER_OUT.append(
                     _parallelized_scorer(
                         # test only!
-                        *_fold_splitter(train_idxs, test_idxs, _X, _y)[1::2],
+                        *list(zip(*_fold_splitter(train_idxs, test_idxs, _X, _y)))[1],
                         FIT_OUTPUT[f_idx],
                         f_idx,
                         _scorer,
@@ -464,7 +466,7 @@ def _core_fit(
 
             TRAIN_SCORER_OUT = []
             if _cache_cv:
-                for f_idx, (X_train, _, y_train, _) in enumerate(CACHE_CV):
+                for f_idx, ((X_train, _), (y_train, _)) in enumerate(CACHE_CV):
                     TRAIN_SCORER_OUT.append(
                         _parallelized_train_scorer(
                             # train only!
@@ -485,7 +487,7 @@ def _core_fit(
                     TRAIN_SCORER_OUT.append(
                         _parallelized_train_scorer(
                             # train only!
-                            *_fold_splitter(train_idxs, test_idxs, _X, _y)[0::2],
+                            *list(zip(*_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
                             FIT_OUTPUT[f_idx],
                             f_idx,
                             _scorer,

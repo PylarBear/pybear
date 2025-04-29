@@ -73,6 +73,7 @@ class _GSTCVMixin(
             except:
                 with self._scheduler:
                     # da.unique WORKS ON np AND dask arrays
+                    # pizza this is the only place dask is used, see if we can get rid of it
                     self._classes = da.unique(self._y).compute()
                     del self._y
 
@@ -211,6 +212,8 @@ class _GSTCVMixin(
             self.return_train_score
         )
 
+        self._val_X_y(X, y)
+
         # pizza, pizza, pizza = _conditioning(
         #
         # )
@@ -244,26 +247,20 @@ class _GSTCVMixin(
 
         # END validate_and_reset ###########################################
 
-
         # feature_names_in_: ndarray of shape (n_features_in_,)
         # Names of features seen during fit. Only defined if
         # best_estimator_ is defined and if best_estimator_ exposes
         # feature_names_in_ when fit.
-        # try:
-        _X, _y, _feature_names_in, self._n_features_in = self._handle_X_y(X, y)
 
-        # pizza from FeatureMixin pizza put this in 25_04_27
         if self._refit is not False:
             # pizza see if we can get rid of this conditional
             self._check_n_features(X, reset=True)
             self._check_feature_names(X, reset=True)
         # and hashed this..... pizza delete!
-        # if _feature_names_in is not None and self._refit is not False:
-        #     self.feature_names_in_ = _feature_names_in
 
         # DONT unique().compute() HERE, JUST RETAIN THE VECTOR & ONLY DO
         # THE PROCESSING IF classes_ IS CALLED
-        self._y = _y.copy()
+        self._y = y.copy()
 
         # THIS IS A HOLDER THAT IS FILLED ONE TIME WHEN THE unique().compute()
         # IS DONE ON self._y WHEN @property classes_ IS CALLED
@@ -303,7 +300,7 @@ class _GSTCVMixin(
         # CORE FIT v v v v v v v v v v v v v v v v v v v v v v v v v v v
 
         with self._scheduler as scheduler:
-            self._core_fit(_X, _y, **params)
+            self._core_fit(X, y, **params)
 
         # END CORE FIT ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
@@ -393,7 +390,7 @@ class _GSTCVMixin(
             t0 = time.perf_counter()
 
             with self._scheduler as scheduler:
-                self.best_estimator_.fit(_X, _y, **params)
+                self.best_estimator_.fit(X, y, **params)
 
             self.refit_time_ = time.perf_counter() - t0
             del t0
@@ -442,10 +439,10 @@ class _GSTCVMixin(
 
         check_is_fitted(self, attributes='_refit')
 
-        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+        self._val_X_y(X, y=None)
 
         with self._scheduler as scheduler:
-            return self.best_estimator_.decision_function(_X)
+            return self.best_estimator_.decision_function(X)
 
 
     def get_metadata_routing(self):
@@ -621,11 +618,11 @@ class _GSTCVMixin(
                 f"are multiple scorers and refit is a callable because "
                 f"best_threshold_ cannot be determined.")
 
-        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+        self._val_X_y(X, y=None)
 
         with self._scheduler as scheduler:
 
-            y_pred = self.best_estimator_.predict_proba(_X)[:, -1] >= \
+            y_pred = self.best_estimator_.predict_proba(X)[:, -1] >= \
                         self.best_threshold_
 
             return y_pred.astype(np.uint8)
@@ -666,10 +663,10 @@ class _GSTCVMixin(
 
         check_is_fitted(self, attributes='_refit')
 
-        _X , passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+        self._val_X_y(X, y=None)
 
         with self._scheduler as scheduler:
-            return self.best_estimator_.predict_log_proba(_X)
+            return self.best_estimator_.predict_log_proba(X)
 
 
     def predict_proba(
@@ -708,11 +705,11 @@ class _GSTCVMixin(
 
         check_is_fitted(self, attributes='_refit')
 
-        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+        self._val_X_y(X, y=None)
 
         with self._scheduler as scheduler:
 
-            __ = self.best_estimator_.predict_proba(_X)
+            __ = self.best_estimator_.predict_proba(X)
 
             _shape = __.shape
             if len(_shape) != 2 or _shape[1] != 2:
@@ -776,19 +773,19 @@ class _GSTCVMixin(
         if callable(self._refit) and len(self.scorer_) > 1:
             return self._refit
 
-        _X, _y, passed_feature_names = self._handle_X_y(X, y=y)[:3]
+        self._val_X_y(X, y=y)
 
-        y_pred = self.predict(_X)
+        y_pred = self.predict(X)
 
-        # if refit is False, score() is not would be accessible
+        # if refit is False, score() is not would be accessible  (what pizza???)
         with self._scheduler as scheduler:
 
             if callable(self._refit) and len(self.scorer_) == 1:
-                return self.scorer_['score'](_y, y_pred)
+                return self.scorer_['score'](y, y_pred)
             # elif callable(self._refit) and len(self.scorer_) > 1:
             #   handled above
             else:
-                return self.scorer_[self._refit](_y, y_pred)
+                return self.scorer_[self._refit](y, y_pred)
 
 
     def score_samples(
@@ -825,10 +822,10 @@ class _GSTCVMixin(
 
         check_is_fitted(self, attributes='_refit')
 
-        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+        self._val_X_y(X, y=None)
 
         with self._scheduler as scheduler:
-            return self.best_estimator_.score_samples(_X)
+            return self.best_estimator_.score_samples(X)
 
 
     def set_params(self, **params):
@@ -968,10 +965,10 @@ class _GSTCVMixin(
 
         check_is_fitted(self, attributes='_refit')
 
-        _X, passed_feature_names = self._handle_X_y(X, y=None)[0::2]
+        self._val_X_y(X, y=None)
 
         with self._scheduler as scheduler:
-            return self.best_estimator_.transform(_X)
+            return self.best_estimator_.transform(X)
 
 
     # END SKLEARN / DASK GSTCV Methods #################################

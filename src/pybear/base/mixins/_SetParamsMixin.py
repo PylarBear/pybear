@@ -157,7 +157,7 @@ class SetParamsMixin:
         # self.get_params(deep=True). remember that if using the
         # SetParamsMixin then the GetParamsMixin must also be used!
 
-        # IF self.estimator is dask/sklearn/pybear est/pipe, IT SHOULD
+        # IF self.estimator is sklearn-like est/pipe, IT SHOULD
         # HANDLE EXCEPTIONS FOR INVALID PASSED PARAMS..... <continued>....
 
         self.estimator.set_params(**GIVEN_SUB_PARAMS)

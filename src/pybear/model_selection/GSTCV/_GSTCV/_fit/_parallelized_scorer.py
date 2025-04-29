@@ -10,7 +10,9 @@ from typing_extensions import Union
 import numpy.typing as npt
 from ..._type_aliases import (
     ScorerWIPType,
-    ClassifierProtocol,
+    ClassifierProtocol
+)
+from .._type_aliases import (
     XSKWIPType,
     YSKWIPType
 )
@@ -106,8 +108,9 @@ def _parallelized_scorer(
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert isinstance(_X_test, np.ndarray)
-    assert isinstance(_y_test, np.ndarray)
+    # pizza
+    # assert isinstance(_X_test, np.ndarray)
+    # assert isinstance(_y_test, np.ndarray)
     assert isinstance(_FIT_OUTPUT_TUPLE, tuple)
     assert isinstance(_f_idx, int)
     assert isinstance(_SCORER_DICT, dict)

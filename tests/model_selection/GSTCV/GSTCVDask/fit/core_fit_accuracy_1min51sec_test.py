@@ -198,51 +198,20 @@ class TestCoreFitAccuracy:
             MASK = np.logical_not(pd_gstcv_cv_results[column].isna())
 
             try:
-                _gstcv_out = pd_gstcv_cv_results[column][MASK].to_numpy(
-                    dtype=np.float64
-                )
-                _dask_out = pd_dask_cv_results[column][MASK].to_numpy(
-                    dtype=np.float64
-                )
-
+                _gstcv_out = pd_gstcv_cv_results[column][MASK]
+                _gstcv_out = _gstcv_out.to_numpy(dtype=np.float64)
+                _dask_out = pd_dask_cv_results[column][MASK]
+                _dask_out = _dask_out.to_numpy(dtype=np.float64)
                 raise UnicodeError
-
             except UnicodeError:
                 # check floats
                 assert np.allclose(_gstcv_out, _dask_out, atol=0.00001)
-
             except:
                 # check param columns
                 assert np.array_equiv(
                     pd_gstcv_cv_results[column][MASK].to_numpy(),
                     pd_dask_cv_results[column][MASK].to_numpy()
                 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

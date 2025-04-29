@@ -13,8 +13,6 @@ from typing_extensions import TypeAlias, Union
 import numpy as np
 import pandas as pd
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
 
 from ..utilities._nan_masking import nan_mask
 from ..utilities._inf_masking import inf_mask
@@ -24,7 +22,6 @@ PythonTypes: TypeAlias = Union[list, tuple, set]
 NumpyTypes: TypeAlias = npt.NDArray
 PandasTypes: TypeAlias = pd.Series
 PolarsTypes: TypeAlias = pl.Series
-DaskTypes: TypeAlias = Union[da.Array, ddf.Series]  # not used yet
 
 XContainer: TypeAlias = \
     Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -116,7 +113,7 @@ def check_1D_str_sequence(
     # block disallowed containers -- -- -- -- -- -- -- -- -- -- -- -- --
     if hasattr(X, 'toarray'):
         raise TypeError(_err_msg + _addon)
-    if isinstance(X, (pd.DataFrame, pl.DataFrame, ddf.DataFrame)):
+    if isinstance(X, (pd.DataFrame, pl.DataFrame)):
         raise TypeError(_err_msg + _addon)
 
     try:
@@ -125,7 +122,7 @@ def check_1D_str_sequence(
         # cant be string or dict
         if isinstance(X, (str, dict)):
             raise Exception
-        # handle dask or anything with shape attr directly
+        # handle anything with shape attr directly
         if hasattr(X, 'shape'):
             if len(getattr(X, 'shape')) != 1:
                 raise Exception

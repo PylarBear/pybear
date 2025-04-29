@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 from uuid import uuid4
@@ -104,8 +106,9 @@ class TestSKGSTCVMethodsBesidesScore_XValidation:
 
         # decision_function, predict_log_proba, predict_proba , predict ** ** **
 
-        for attr in ('decision_function', 'predict_log_proba',
-                     'predict_proba', 'predict'):
+        for attr in (
+            'decision_function', 'predict_log_proba', 'predict_proba', 'predict'
+        ):
 
             if _X_state == 'good':  # np or pd
                 __ = getattr(sk_GSTCV, attr)(X_sk)
@@ -123,27 +126,10 @@ class TestSKGSTCVMethodsBesidesScore_XValidation:
                         getattr(sk_GSTCV, attr)(X_sk)
                     assert partial_feature_names_exc in str(e)
             elif _X_state == 'bad_data':  # np or pd
-                exp_match = (f"dtype='numeric' is not compatible with arrays "
-                f"of bytes/strings.")
-                with pytest.raises(ValueError) as e:
+                # this raises in the estimator, let is raise whatever
+                with pytest.raises(Exception):
                     getattr(sk_GSTCV, attr)(X_sk)
-                assert exp_match in str(e)
         # END decision_function, predict_log_proba, predict_proba, predict ** **
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -7,19 +7,19 @@
 
 
 from typing import (
+    Callable,
     Literal,
     Iterable,
     Sequence,
-    Callable,
     Optional
 )
 from typing_extensions import (
     Any,
     Union
 )
-from .._type_aliases import (
-    XInputType,
-    YInputType,
+from ._type_aliases import (
+    XDaskInputType,
+    YDaskInputType
 )
 
 from copy import deepcopy
@@ -28,14 +28,13 @@ import numbers
 import distributed
 
 from ._validation._validation import _validation
+from ._validation._X_y import _val_X_y
 
-from ...GSTCV._GSTCVMixin._GSTCVMixin import _GSTCVMixin
+from ._param_conditioning._scheduler import _cond_scheduler
 
-from ...GSTCV._GSTCVDask._param_conditioning._scheduler import _cond_scheduler
+from ._fit._core_fit import _core_fit
 
-from ...GSTCV._GSTCVDask._handle_X_y._handle_X_y_dask import _handle_X_y_dask
-
-from ...GSTCV._GSTCVDask._fit._core_fit import _core_fit
+from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
 from ....base import check_is_fitted
 
@@ -56,11 +55,9 @@ class GSTCVDask(_GSTCVMixin):
     “transform” and “inverse_transform” if they are exposed by the
     classifier used.
 
-    ********************************************************************
 
     Parameters
     ----------
-
     estimator:
         estimator object - Must be a binary classifier that conforms to
         the sci-kit learn estimator API interface. The classifier must
@@ -76,7 +73,7 @@ class GSTCVDask(_GSTCVMixin):
         recommended for non-dask classifiers.
 
     param_grid:
-        Union[dict[str, Sequence[any], list[dict[str, Sequency[any]]]]] -
+        Union[dict[str, Sequence[Any], list[dict[str, Sequency[Any]]]]] -
         Dictionary with keys as parameters names (str) and values as
         lists of parameter settings to try as values, or a list of such
         dictionaries. When multiple param grids are passed in a list,
@@ -391,7 +388,7 @@ class GSTCVDask(_GSTCVMixin):
         or when refit is specified as a string for 2+ scorers.
 
     best_params_:
-        dict[str, any] - Exposes the dictionary found at
+        dict[str, Any] - Exposes the dictionary found at
         cv_results_['params'][best_index_], which gives the parameter
         settings that resulted in the highest mean score (best_score_)
         on the hold out (test) data.
@@ -525,7 +522,7 @@ class GSTCVDask(_GSTCVMixin):
     def __init__(self,
         estimator,
         param_grid: Union[
-            dict[str, Sequence[any]], Sequence[dict[str, Sequence[any]]]
+            dict[str, Sequence[Any]], Sequence[dict[str, Sequence[Any]]]
         ],
         *,
         thresholds:
@@ -566,22 +563,22 @@ class GSTCVDask(_GSTCVMixin):
     ####################################################################
     # SUPPORT METHODS ##################################################
 
-    def _handle_X_y(self, X, y=None):
+    def _val_X_y(self, X, y=None):
 
         """
 
-        Implements _handle_X_y_dask in methods in _GSTCVMixin.
-        See the docs for _handle_X_y_dask.
+        Implements _val_X_y in methods in _GSTCVMixin.
+        See the docs for _val_X_y.
 
         """
 
-        return _handle_X_y_dask(X, y=y)
+        return _val_X_y(X, _y=y)
 
 
     def _core_fit(
         self,
-        X: XInputType,
-        y: YInputType=None,
+        X: XDaskInputType,
+        y: YDaskInputType=None,
         **params
     ) -> None:
 
@@ -601,6 +598,7 @@ class GSTCVDask(_GSTCVMixin):
 
         Parameters
         ----------
+        # pizza fix these wack type hints
         X:
             dask.array.core.Array[Union[int, float]] - the data to be fit
             by GSTCVDask against the target.

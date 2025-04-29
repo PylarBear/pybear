@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -112,7 +113,8 @@ class TestCoreFitValidation:
         standard_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client
     ):
 
-        with pytest.raises(TypeError):
+        # this is raised by dask_ml.KFold, let it raise whatever
+        with pytest.raises(Exception):
             _core_fit(
                 junk_X,
                 y_da,
@@ -139,6 +141,7 @@ class TestCoreFitValidation:
         standard_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client
     ):
 
+        # this is raised by _get_kfold validation
         with pytest.raises(TypeError):
             _core_fit(
                 X_da,

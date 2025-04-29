@@ -44,7 +44,7 @@ def _validate_best_params(
     """
 
 
-    # best_params_ from dask/sklearn GridSearchCV looks like
+    # best_params_ from sklearn/dask GridSearchCV looks like
     # {'C': 1, 'l1_ratio': 0.9}
 
     if not isinstance(_best_params_from_previous_pass, dict):

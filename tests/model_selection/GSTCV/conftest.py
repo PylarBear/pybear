@@ -57,7 +57,7 @@ def generic_no_attribute_2():
     return foo
 
 
-# pizza!
+# pizza! on the block to go!
 # @pytest.fixture(scope='session')
 # def generic_no_attribute_3():
 #     def foo(_gscv_type, _attr):
@@ -123,13 +123,12 @@ def multilabel_y():
         f"multilabel-indicator and binary targets")
 
 
-
 @pytest.fixture(scope='session')
 def non_binary_y():
 
     def foo(_gstcv_type):
         return re.escape(f"{_gstcv_type} can only perform thresholding on binary "
-            f"targets with values in [0,1]. Pass 'y' as a vector of 0's and 1's.")
+            f"targets with values in [0,1]. \nPass 'y' as a vector of 0's and 1's.")
 
     return foo
 
@@ -233,12 +232,12 @@ def param_grid_sk_log():
 
 @pytest.fixture(scope='session')
 def sk_gscv_init_params(
-    sk_log_init_params, param_grid_sk_log, standard_cv_int, standard_error_score
+    sk_est_log, param_grid_sk_log, standard_cv_int, standard_error_score
 ):
 
     return {
-        'estimator': sk_LogisticRegression(),
-        'param_grid': {},
+        'estimator': sk_est_log,
+        'param_grid': param_grid_sk_log,
         'scoring': 'accuracy',
         'n_jobs': 1,
         'refit': False,
@@ -252,11 +251,11 @@ def sk_gscv_init_params(
 
 @pytest.fixture(scope='session')
 def sk_gstcv_init_params(
-    sk_log_init_params, param_grid_sk_log, standard_cv_int, standard_error_score
+    sk_est_log, param_grid_sk_log, standard_cv_int, standard_error_score
 ):
     return {
-        'estimator': sk_LogisticRegression(),
-        'param_grid': {},
+        'estimator': sk_est_log,
+        'param_grid': param_grid_sk_log,
         'thresholds': [0.4,0.5,0.6],
         'scoring': 'accuracy',
         'n_jobs': 1,
@@ -285,11 +284,11 @@ def sk_gstcv_init_params(
 # gscv log est one scorer, various refits
 @pytest.fixture(scope='session')
 def sk_GSCV_est_log_one_scorer_prefit(
-    sk_gscv_init_params, sk_log_init_params, param_grid_sk_log
+    sk_gscv_init_params, sk_est_log, param_grid_sk_log
 ):
     __ = sk_GSCV(**sk_gscv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit=False
     )
@@ -298,11 +297,11 @@ def sk_GSCV_est_log_one_scorer_prefit(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_est_log_one_scorer_postfit_refit_false(
-    sk_gscv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gscv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSCV(**sk_gscv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit=False
     )
@@ -311,11 +310,11 @@ def sk_GSCV_est_log_one_scorer_postfit_refit_false(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_est_log_one_scorer_postfit_refit_str(
-    sk_gscv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gscv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSCV(**sk_gscv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit='accuracy'
     )
@@ -324,11 +323,11 @@ def sk_GSCV_est_log_one_scorer_postfit_refit_str(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_est_log_one_scorer_postfit_refit_fxn(
-    sk_gscv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gscv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSCV(**sk_gscv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit=lambda x: 0
     )
@@ -341,11 +340,11 @@ def sk_GSCV_est_log_one_scorer_postfit_refit_fxn(
 # gstcv log est one scorer, various refits
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_one_scorer_prefit(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit=False
     )
@@ -354,11 +353,11 @@ def sk_GSTCV_est_log_one_scorer_prefit(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit=False
     )
@@ -367,11 +366,11 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_pd(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_pd, y_pd
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_pd, y_pd
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit=False
     )
@@ -380,11 +379,11 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_pd(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit='accuracy'
     )
@@ -392,25 +391,12 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np(
 
 
 @pytest.fixture(scope='session')
-def sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_pd, y_pd
-):
-    __ = sk_GSTCV(**sk_gstcv_init_params)
-    __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
-        param_grid=param_grid_sk_log,
-        refit='accuracy'
-    )
-    return __.fit(X_pd, y_pd)
-
-
-@pytest.fixture(scope='session')
 def sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit=lambda x: 0
     )
@@ -418,12 +404,25 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np(
 
 
 @pytest.fixture(scope='session')
-def sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_pd, y_pd
+def sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd(
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_pd, y_pd
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
+        param_grid=param_grid_sk_log,
+        refit='accuracy'
+    )
+    return __.fit(X_pd, y_pd)
+
+
+@pytest.fixture(scope='session')
+def sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd(
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_pd, y_pd
+):
+    __ = sk_GSTCV(**sk_gstcv_init_params)
+    __.set_params(
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         refit=lambda x: 0
     )
@@ -443,11 +442,11 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd(
 # gscv log est two scorers, various refits
 @pytest.fixture(scope='session')
 def sk_GSCV_est_log_two_scorers_prefit(
-    sk_gscv_init_params, sk_log_init_params, param_grid_sk_log
+    sk_gscv_init_params, sk_est_log, param_grid_sk_log
 ):
     __ = sk_GSCV(**sk_gscv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -457,11 +456,11 @@ def sk_GSCV_est_log_two_scorers_prefit(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_est_log_two_scorers_postfit_refit_false(
-    sk_gscv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gscv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSCV(**sk_gscv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -471,11 +470,11 @@ def sk_GSCV_est_log_two_scorers_postfit_refit_false(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_est_log_two_scorers_postfit_refit_str(
-    sk_gscv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gscv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSCV(**sk_gscv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit='accuracy'
@@ -485,11 +484,11 @@ def sk_GSCV_est_log_two_scorers_postfit_refit_str(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_est_log_two_scorers_postfit_refit_fxn(
-    sk_gscv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gscv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSCV(**sk_gscv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=lambda x: 0
@@ -503,12 +502,12 @@ def sk_GSCV_est_log_two_scorers_postfit_refit_fxn(
 # gstcv log est two scorers, various refits
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_two_scorers_prefit(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log
 ):
 
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -518,11 +517,11 @@ def sk_GSTCV_est_log_two_scorers_prefit(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -532,11 +531,11 @@ def sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_pd(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_pd, y_pd
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_pd, y_pd
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=False
@@ -546,11 +545,11 @@ def sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_pd(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit='accuracy'
@@ -560,11 +559,11 @@ def sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_pd, y_pd
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_pd, y_pd
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit='accuracy'
@@ -574,11 +573,11 @@ def sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_np, y_np
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_np, y_np
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=lambda x: 0
@@ -588,11 +587,11 @@ def sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_np(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_pd(
-    sk_gstcv_init_params, sk_log_init_params, param_grid_sk_log, X_pd, y_pd
+    sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_pd, y_pd
 ):
     __ = sk_GSTCV(**sk_gstcv_init_params)
     __.set_params(
-        estimator=sk_LogisticRegression(**sk_log_init_params),
+        estimator=sk_est_log,
         param_grid=param_grid_sk_log,
         scoring=['accuracy', 'balanced_accuracy'],
         refit=lambda x: 0
@@ -642,14 +641,14 @@ def param_grid_pipe_sk_log():
 # gscv log pipe one scorer, various refits
 @pytest.fixture(scope='session')
 def sk_GSCV_pipe_log_one_scorer_prefit(
-    sk_gscv_init_params, sk_log_init_params, sk_standard_scaler,
+    sk_gscv_init_params, sk_est_log, sk_standard_scaler,
     param_grid_pipe_sk_log
 ):
 
     pipe = Pipeline(
         steps=[
             ('sk_StandardScaler', sk_standard_scaler),
-            ('sk_logistic', sk_LogisticRegression(**sk_log_init_params))
+            ('sk_logistic', sk_est_log)
         ]
     )
 
@@ -664,13 +663,13 @@ def sk_GSCV_pipe_log_one_scorer_prefit(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_pipe_log_one_scorer_postfit_refit_false(
-    sk_gscv_init_params, sk_log_init_params, sk_standard_scaler,
+    sk_gscv_init_params, sk_est_log, sk_standard_scaler,
     param_grid_pipe_sk_log, X_np, y_np):
 
     pipe = Pipeline(
         steps=[
             ('sk_StandardScaler', sk_standard_scaler),
-            ('sk_logistic', sk_LogisticRegression(**sk_log_init_params))
+            ('sk_logistic', sk_est_log)
         ]
     )
 
@@ -685,14 +684,14 @@ def sk_GSCV_pipe_log_one_scorer_postfit_refit_false(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_pipe_log_one_scorer_postfit_refit_str(
-    sk_gscv_init_params, sk_log_init_params, sk_standard_scaler,
+    sk_gscv_init_params, sk_est_log, sk_standard_scaler,
     param_grid_pipe_sk_log, X_np, y_np
 ):
 
     pipe = Pipeline(
         steps=[
             ('sk_StandardScaler', sk_standard_scaler),
-            ('sk_logistic', sk_LogisticRegression(**sk_log_init_params))
+            ('sk_logistic', sk_est_log)
         ]
     )
 
@@ -707,14 +706,14 @@ def sk_GSCV_pipe_log_one_scorer_postfit_refit_str(
 
 @pytest.fixture(scope='session')
 def sk_GSCV_pipe_log_one_scorer_postfit_refit_fxn(
-    sk_gscv_init_params, sk_log_init_params, sk_standard_scaler,
+    sk_gscv_init_params, sk_est_log, sk_standard_scaler,
     param_grid_pipe_sk_log, X_np, y_np
 ):
 
     pipe = Pipeline(
         steps=[
             ('sk_StandardScaler', sk_standard_scaler),
-            ('sk_logistic', sk_LogisticRegression(**sk_log_init_params))
+            ('sk_logistic', sk_est_log)
         ]
     )
 
@@ -733,14 +732,14 @@ def sk_GSCV_pipe_log_one_scorer_postfit_refit_fxn(
 # gstcv log pipe one scorer, various refits
 @pytest.fixture(scope='session')
 def sk_GSTCV_pipe_log_one_scorer_prefit(
-    sk_gstcv_init_params, sk_log_init_params, sk_standard_scaler,
+    sk_gstcv_init_params, sk_est_log, sk_standard_scaler,
         param_grid_pipe_sk_log
 ):
 
     pipe = Pipeline(
         steps=[
             ('sk_StandardScaler', sk_standard_scaler),
-            ('sk_logistic', sk_LogisticRegression(**sk_log_init_params))
+            ('sk_logistic', sk_est_log)
         ]
     )
 
@@ -755,14 +754,14 @@ def sk_GSTCV_pipe_log_one_scorer_prefit(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, sk_standard_scaler,
+    sk_gstcv_init_params, sk_est_log, sk_standard_scaler,
     param_grid_pipe_sk_log, X_np, y_np
 ):
 
     pipe = Pipeline(
         steps=[
             ('sk_StandardScaler', sk_standard_scaler),
-            ('sk_logistic', sk_LogisticRegression(**sk_log_init_params))
+            ('sk_logistic', sk_est_log)
         ]
     )
 
@@ -777,14 +776,14 @@ def sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, sk_standard_scaler,
+    sk_gstcv_init_params, sk_est_log, sk_standard_scaler,
     param_grid_pipe_sk_log, X_np, y_np
 ):
 
     pipe = Pipeline(
         steps=[
             ('sk_StandardScaler', sk_standard_scaler),
-            ('sk_logistic', sk_LogisticRegression(**sk_log_init_params))
+            ('sk_logistic', sk_est_log)
         ]
     )
 
@@ -799,14 +798,14 @@ def sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np(
 
 @pytest.fixture(scope='session')
 def sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np(
-    sk_gstcv_init_params, sk_log_init_params, sk_standard_scaler,
+    sk_gstcv_init_params, sk_est_log, sk_standard_scaler,
     param_grid_pipe_sk_log, X_np, y_np
 ):
 
     pipe = Pipeline(
         steps=[
             ('sk_StandardScaler', sk_standard_scaler),
-            ('sk_logistic', sk_LogisticRegression(**sk_log_init_params))
+            ('sk_logistic', sk_est_log)
         ]
     )
 
@@ -823,53 +822,6 @@ def sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np(
 
 # END PIPELINES - ONE SCORER ** * ** * ** * ** * ** * ** * ** * ** * **
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

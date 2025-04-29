@@ -44,19 +44,19 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
     # score_samples(X)
     # transform(X)
 
-
-    @pytest.mark.parametrize('_fit_format', ('array', 'df'))
+    # dask KFold cant take df
+    @pytest.mark.parametrize('_fit_format', ('array', )) # 'df'))
     @pytest.mark.parametrize('_scoring',
         (['accuracy'], ['accuracy', 'balanced_accuracy'])
     )
-    @pytest.mark.parametrize('_X_format', ('array', 'df'))
+    @pytest.mark.parametrize('_X_format', ('array', )) # 'df'))
     @pytest.mark.parametrize('_X_state', ('good', 'bad_features', 'bad_data'))
     def test_methods(self, _fit_format, _scoring, _X_format, _X_state,
         _rows, _cols, COLUMNS, generic_no_attribute_2, partial_feature_names_exc,
         dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da,
         dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da,
-        dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf,
-        dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf
+        # dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf,
+        # dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf
     ):
 
         if _fit_format == 'array':
@@ -96,7 +96,7 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
         # inverse_transform, score_samples, transform ** ** ** ** ** **
 
         # for all states of data, and np or pd
-        for attr in ('inverse_transform', 'score_samples', 'transform'):
+        for attr in ('inverse_transform', ):
 
             with pytest.raises(AttributeError):
                 getattr(dask_GSTCV, attr)(X_dask)
@@ -115,7 +115,10 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
 
         # decision_function, predict_proba, predict ** ** ** ** ** ** **
 
-        for attr in ('decision_function', 'predict_proba', 'predict'):
+        for attr in (
+            'decision_function', 'predict_proba', 'predict', 'score_samples',
+            'transform'
+        ):
 
             if _X_state == 'good':  # np or pd
                 __ = getattr(dask_GSTCV, attr)(X_dask)
@@ -133,25 +136,10 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
                         getattr(dask_GSTCV, attr)(X_dask)
                     assert partial_feature_names_exc in str(e)
             elif _X_state == 'bad_data':  # np or pd
-                exp_match = (f"dtype='numeric' is not compatible with arrays "
-                f"of bytes/strings.")
-                with pytest.raises(ValueError) as e:
+                # this raises in the estimator, let is raise whatever
+                with pytest.raises(ValueError):
                     getattr(dask_GSTCV, attr)(X_dask)
-                assert exp_match in str(e)
         # END decision_function , predict_proba, predict ** ** ** ** **
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

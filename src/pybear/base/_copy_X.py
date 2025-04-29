@@ -117,12 +117,12 @@ def copy_X(
     # dont use type aliases as long as supporting py39
     if not isinstance(
         X,
-            (list, tuple, set, np.ndarray, np.ma.MaskedArray, pd.Series,
-             pd.DataFrame, pl.Series, pl.DataFrame, da.Array, ddf.Series,
-             ddf.DataFrame, ss.csc_matrix, ss.csc_array, ss.csr_matrix,
-             ss.csr_array, ss.coo_matrix, ss.coo_array, ss.dia_matrix,
-             ss.dia_array, ss.lil_matrix, ss.lil_array, ss.dok_matrix,
-             ss.dok_array, ss.bsr_matrix, ss.bsr_array)
+        (list, tuple, set, np.ndarray, np.ma.MaskedArray, pd.Series,
+         pd.DataFrame, pl.Series, pl.DataFrame, da.Array, ddf.Series,
+         ddf.DataFrame, ss.csc_matrix, ss.csc_array, ss.csr_matrix,
+         ss.csr_array, ss.coo_matrix, ss.coo_array, ss.dia_matrix,
+         ss.dia_array, ss.lil_matrix, ss.lil_array, ss.dok_matrix,
+         ss.dok_array, ss.bsr_matrix, ss.bsr_array)
     ):
         raise TypeError(f"copy_X(): unsupported container {type(X)}")
 

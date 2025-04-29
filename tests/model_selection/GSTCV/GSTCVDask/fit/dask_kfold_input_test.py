@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 
 import inspect
@@ -22,23 +24,12 @@ pytest.skip(reason=f'for edification purposes only', allow_module_level=True)
 
 class TestDaskKFold:
 
+
     # AS OF 24_02_24_17_05_00 ONLY DASK ARRAYS CAN BE PASSED TO
-    # dask_KFOLD (NOT np, pd.DF, dask.DF)
+    # dask_KFOLD FOR X (NOT np, pd.DF, dask.DF)
     # VERIFIED AGAIN 24_06_27_09_08_00
-
-    # X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture
-    def X_dask_series(X_ddf):
-        return X_ddf.iloc[:, 0]
-
-
-    @staticmethod
-    @pytest.fixture
-    def X_pd_series(X_pd):
-        return X_pd.iloc[:, 0]
-
+    # VERIFIED AGAIN 25_04_28_11_24_00
+    # BUT SUBSEQUENT TESTS 25_04_29_11_04_00 SHOW y CAN TAKE ddf DF & SERIES
 
     # tests ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -69,7 +60,7 @@ class TestDaskKFold:
                 pass
 
 
-    def test_pd_series(self, X_pd_series, _client):
+    def test_pd_series(self, X_pd, _client):
 
         # ValueError: Expected a 2-dimensional container but got <class
         # 'pandas.core.series.Series'> instead. Pass a DataFrame containing
@@ -78,7 +69,7 @@ class TestDaskKFold:
 
         with pytest.raises(ValueError):
             _n_splits = 10
-            out = dask_KFold(n_splits=_n_splits).split(X_pd_series, y=None)
+            out = dask_KFold(n_splits=_n_splits).split(X_pd.iloc[:, 0], y=None)
             assert inspect.isgenerator(out)
 
             for train_idxs, test_idxs in out:
@@ -118,7 +109,7 @@ class TestDaskKFold:
                 pass
 
 
-    def test_dask_series(self, X_dask_series, _client):
+    def test_dask_series(self, X_ddf, _client):
 
         # ValueError: Expected a 2-dimensional container but got <class
         # 'pandas.core.series.Series'> instead. Pass a DataFrame containing
@@ -127,29 +118,12 @@ class TestDaskKFold:
 
         with pytest.raises(ValueError):
             _n_splits = 10
-            out = dask_KFold(n_splits=_n_splits).split(X_dask_series, y=None)
+            out = dask_KFold(n_splits=_n_splits).split(X_ddf.iloc[:, 0], y=None)
             assert inspect.isgenerator(out)
 
             for train_idxs, test_idxs in out:
                 # accessing the generator is when the error happens
                 pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

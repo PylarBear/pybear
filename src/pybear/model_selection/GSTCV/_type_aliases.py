@@ -26,40 +26,23 @@ import numpy.typing as npt
 import numbers
 
 import numpy as np
-import dask
-import distributed
 
 
-
-DataType: TypeAlias = Union[numbers.Real]
-
-XInputType: TypeAlias = Iterable[Iterable[DataType]]
-XSKWIPType: TypeAlias = npt.NDArray[DataType]
-XDaskWIPType: TypeAlias = dask.array.core.Array
-
-YInputType: TypeAlias = Union[Iterable[Iterable[DataType]], Iterable[DataType], None]
-YSKWIPType: TypeAlias = Union[npt.NDArray[DataType], None]
-YDaskWIPType: TypeAlias = Union[dask.array.core.Array, None]
 
 CVResultsType: TypeAlias = \
     dict[str, np.ma.masked_array[Union[float, dict[str, Any]]]]
 
 IntermediateHolderType: TypeAlias = Union[
     np.ma.masked_array[float],
-    npt.NDArray[Union[int, float]]
+    npt.NDArray[numbers.Real]
 ]
 
-# pizza this should probably be split up!
-ParamGridType: TypeAlias = Union[
-    dict[str, Union[list[Any], npt.NDArray[Any]]],
-    list[dict[str, Union[list[Any], npt.NDArray[Any]]]]
-]
-SKSlicerType: TypeAlias = npt.NDArray[int]
-DaskSlicerType: TypeAlias = dask.array.core.Array
-GenericSlicerType: TypeAlias = Sequence[int]
+ParamGridType: TypeAlias = dict[str, Sequence[Any]]
 
-SKKFoldType: TypeAlias = tuple[SKSlicerType, SKSlicerType]
-DaskKFoldType: TypeAlias = tuple[DaskSlicerType, DaskSlicerType]
+ParamGridsType: TypeAlias = Sequence[ParamGridType]
+
+GenericSlicerType: TypeAlias = Sequence[numbers.Integral]
+
 GenericKFoldType: TypeAlias = tuple[GenericSlicerType, GenericSlicerType]
 
 FeatureNamesInType: TypeAlias = Union[npt.NDArray[str], None]
@@ -74,7 +57,8 @@ ScorerNameTypes: TypeAlias = Literal[
     'recall'
 ]
 
-ScorerCallableType: TypeAlias = Callable[[XInputType, YInputType, ...], float]
+# pizza finalize this
+ScorerCallableType: TypeAlias = Callable[[Iterable, Iterable, ...], numbers.Real]
 
 
 ScorerInputType: TypeAlias = Union[
@@ -83,7 +67,6 @@ ScorerInputType: TypeAlias = Union[
     ScorerCallableType,
     dict[str, ScorerCallableType]
 ]
-
 
 
 class ScorerWIPType(TypedDict):
@@ -99,16 +82,11 @@ class ScorerWIPType(TypedDict):
 # END scoring / scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 
 
-RefitCallableType: TypeAlias = Callable[[CVResultsType], int]
+RefitCallableType: TypeAlias = Callable[[CVResultsType], numbers.Integral]
 RefitType: TypeAlias = Union[bool, ScorerNameTypes, RefitCallableType]
 
+
 # pizza what about a ThresholdsType?
-
-
-SchedulerType: TypeAlias = Union[
-    distributed.scheduler.Scheduler,
-    distributed.client.Client
-]
 
 
 class ClassifierProtocol(Protocol):
