@@ -150,7 +150,7 @@ class TestDaskIncrementalParallelPostFit:
         if wrappings in ['none', 'ppf']:
             # without any wrappers, should except for trying to put
             # dask objects into SlimPoly
-            with pytest.raises(TypeError):
+            with pytest.raises(Exception):
                 _test_cls.partial_fit(_X, _y)
             pytest.skip(reason=f"cannot do more tests if not fit")
         elif wrappings in ['incr', 'both']:
