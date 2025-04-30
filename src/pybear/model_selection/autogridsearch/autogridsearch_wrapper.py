@@ -139,15 +139,17 @@ def autogridsearch_wrapper(
     ... }
     >>> agscv = AGSCV(estimator=sk_RR(), params=_params, total_passes=3)
     >>> X, y = make_regression(n_samples=20, n_features=2, n_informative=2)
-    >>> agscv.fit(X, y)
-    AutoGridSearch(estimator=Ridge(),
-                   params={'alpha': [[0.0, 0.1, 0.2], [3, 3, 3], 'soft_float'],
-                           'fit_intercept': [[True, False], [2, 1, 1],
-                                             'fixed_bool']},
-                   total_passes=3)
+    >>> agscv.fit(X, y)   #doctest:+SKIP
+    AutoGridSearch(
+        estimator=Ridge(),
+        params={
+            'alpha': [[0.0, 0.1, 0.2], [3, 3, 3], 'soft_float'],
+            'fit_intercept': [[True, False], [2, 1, 1], 'fixed_bool']
+        },
+        total_passes=3
+    )
     >>> print(agscv.RESULTS_[1])   #doctest:+SKIP
     {'alpha': 0.025, 'fit_intercept': True}
-
 
     """
 

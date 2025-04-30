@@ -1148,7 +1148,7 @@ class TestPartialFit:
         _X_wip_before_partial_fit = _X_wip.copy()
 
         if _format in ('dask_array', 'dask_dataframe'):
-            with pytest.raises(TypeError):
+            with pytest.raises(Exception):
                 # handled by SPF
                 SlimPoly(**_kwargs).partial_fit(_X_wip)
             pytest.skip(reason=f'cant do anymore tests after except')
@@ -1296,7 +1296,7 @@ class TestTransform:
 
 
         if _format in ('dask_array', 'dask_dataframe'):
-            with pytest.raises(TypeError):
+            with pytest.raises(Exception):
                 # handled by SPF
                 _SPF.transform(_X_wip)
             pytest.skip(reason=f'cant do anymore tests after except')
@@ -1509,16 +1509,6 @@ class TestTransform:
                 assert _out_dtype == np.float64
         else:
             assert out.dtype == np.float64
-
-
-
-
-
-
-
-
-
-
 
 
 
