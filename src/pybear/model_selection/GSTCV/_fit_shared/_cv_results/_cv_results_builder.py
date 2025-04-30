@@ -15,7 +15,7 @@ from numpy.typing import NDArray
 from .....utilities._permuter import permuter
 
 from ..._type_aliases import (
-    ParamGridsType,
+    ParamGridsWIPType,
     ScorerWIPType,
     CVResultsType
 )
@@ -23,7 +23,7 @@ from ..._type_aliases import (
 
 
 def _cv_results_builder(
-    param_grid: list[ParamGridsType],
+    param_grid: list[ParamGridsWIPType],
     cv: int,
     scorer: ScorerWIPType,
     return_train_score: bool
@@ -174,9 +174,9 @@ def _cv_results_builder(
     Parameters
     ----------
     param_grid:
-        list[dict[str, Iterable], ...] - list of dictionaries
-        keyed with parameter names and values as iterables of their
-        respective values to be searched.
+        ParamGridsWIPType - list of dictionaries keyed with parameter
+        names and values as iterables of their respective values to be
+        searched.
     cv:
         int - number of folds (splits) to use for cross validation
     scorer:
@@ -193,14 +193,14 @@ def _cv_results_builder(
     -------
     -
         cv_results_: dict[str, np.ma.masked_array] - an empty cv_results
-            dictionary other than the individual 'param' columns and the
-            'params' column.
+        dictionary other than the individual 'param' columns and the
+        'params' column.
 
         PARAM_GRID_KEY: NDArray[np.uint8]] - a vector of integers with
-            length equal to the number of searches in the grid search,
-            i.e., the length of the masked arrays in cv_results. Indicates
-            the index of the param grid in param_grid that the search
-            trial is associated with.
+        length equal to the number of searches in the grid search, i.e.,
+        the length of the masked arrays in cv_results. Indicates the
+        index of the param grid in param_grid that the search trial is
+        associated with.
 
     """
 

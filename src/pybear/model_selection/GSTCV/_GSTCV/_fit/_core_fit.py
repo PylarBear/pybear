@@ -154,11 +154,10 @@ def _core_fit(
             with all the times, scores, thresholds, parameter values, and
             search grids for every permutation of grid search.
 
-
     """
 
 
-    # rudimentarly stop-gap validation * * * * * *
+    # rudimentary stop-gap validation * * * * * *
     # this is just to force fast except on things that were exposed in
     # testing to not force except, or take a long time to except
 
@@ -409,7 +408,7 @@ def _core_fit(
             _get_best_thresholds(
                 TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
                 _THRESHOLDS
-            )
+        )
         # END NEED TO GET BEST THRESHOLDS BEFORE IDENTIFYING BEST SCORES ##
 
         # PICK THE COLUMNS FROM TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX

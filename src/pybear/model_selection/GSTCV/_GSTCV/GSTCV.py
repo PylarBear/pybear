@@ -18,6 +18,8 @@ from typing_extensions import (
     Union
 )
 
+from .._type_aliases import ClassifierProtocol
+
 from copy import deepcopy
 import numbers
 
@@ -474,7 +476,7 @@ class GSTCV(_GSTCVMixin):
 
     def __init__(
         self,
-        estimator: Any,
+        estimator: ClassifierProtocol,
         param_grid: Union[dict[str, Sequence[Any]], list[dict[str, Sequence[Any]]]],
         *,
         thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
@@ -557,20 +559,13 @@ class GSTCV(_GSTCVMixin):
         ------
         -
             _cv_results: dict[str: np.ma.masked_array] - dictionary
-                populated with all the times, scores, thresholds,
-                parameter values, and search grids for every permutation
-                of grid search.
+            populated with all the times, scores, thresholds, parameter
+            values, and search grids for every permutation of grid
+            search.
 
         """
 
         _validation(self.estimator, self.pre_dispatch)
-
-        self._estimator = type(self.estimator)(
-            **deepcopy(self.estimator.get_params(deep=False))
-        )
-        self._estimator.set_params(
-            **deepcopy(self.estimator.get_params(deep=True))
-        )
 
         self.cv_results_ = _core_fit(
             X,
@@ -594,20 +589,6 @@ class GSTCV(_GSTCVMixin):
 
     # END SUPPORT METHODS ##############################################
     ####################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

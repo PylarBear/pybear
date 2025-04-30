@@ -5,17 +5,20 @@
 #
 
 
-import numpy as np
+
+from typing_extensions import Any
 import numpy.typing as npt
+
+import numpy as np
 
 
 
 
 def _estimator_fit_params_helper(
     data_len: int,
-    fit_params: dict[str, any],
+    fit_params: dict[str, Any],
     KFOLD: list[tuple[npt.NDArray, npt.NDArray]]
-) -> dict[int, dict[str, any]]:
+) -> dict[int, dict[str, Any]]:
 
     """
     This module customizes the estimator's fit params for each pass of
@@ -34,17 +37,17 @@ def _estimator_fit_params_helper(
     data_len:
         int - the number of examples in the full data set.
     fit_params:
-        dict[str, any] - all the fit params passed to GSTCV(Dask) fit for
+        dict[str, Any] - all the fit params passed to GSTCV(Dask) fit for
         the estimator.
     KFOLD:
-        list[tuple[npt.NDArray[int], npt.NDArray[int]]] - The KFold
+        list[tuple[npt.NDArray[int], npt.NDArray[int]], ...] - The KFold
         indices that were used to create the train / test splits of data.
 
 
     Return
     ------
     -
-        _fit_params_helper: dict[int, dict[str, any]] - a dictionary of
+        _fit_params_helper: dict[int, dict[str, Any]] - a dictionary of
         customized fit params for each pass of cv.
 
     """

@@ -6,12 +6,15 @@
 
 
 
-from typing import Iterable, Literal, Sequence
-from typing_extensions import Any, Union
+from typing import Iterable, Literal
+from typing_extensions import Union
 from ..._type_aliases import (
     GenericKFoldType,
     ScorerInputType,
-    ClassifierProtocol
+    ClassifierProtocol,
+    ThresholdsInputType,
+    ParamGridInputType,
+    ParamGridsInputType
 )
 
 import numbers
@@ -31,8 +34,8 @@ from ._return_train_score import _val_return_train_score
 
 def _validation(
     _estimator: ClassifierProtocol,
-    _param_grid: Union[dict[str, Sequence[Any]], list[dict[str, Sequence[Any]]]],
-    _thresholds: Union[None, numbers.Real, Sequence[numbers.Real]],  # pizza global ThresholdsType?
+    _param_grid: Union[ParamGridInputType, ParamGridsInputType, None],
+    _thresholds: ThresholdsInputType,
     _scoring: ScorerInputType,
     _n_jobs: Union[numbers.Integral, None],
     _refit: Union[bool, str, callable],
@@ -50,12 +53,12 @@ def _validation(
     Parameters
     ----------
     _estimator:
-        ClassifierProtocol - the estimator to be validated
+        ClassifierProtocol
     _param_grid:
         # pizza the None issue still needs to be resolved!
-        Union[dict[str, Sequence[Any]], list[dict[str, Sequence[Any]]]]
+        Union[ParamGridInputType, ParamGridsInputType, None]
     _thresholds:
-        Union[None, numbers.Real, Sequence[numbers.Real]] pizza type hint
+        ThresholdsInputType
     _scoring:
         ScorerInputType
     _n_jobs:

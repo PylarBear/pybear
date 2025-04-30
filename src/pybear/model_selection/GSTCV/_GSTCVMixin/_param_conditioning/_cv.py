@@ -17,12 +17,12 @@ import numbers
 def _cond_cv(
     _cv:Union[None, numbers.Integral, Iterable[GenericKFoldType]],
     _cv_default:Optional[numbers.Integral] = 5
-) -> Union[numbers.Integral, list[GenericKFoldType]]:
+) -> Union[int, list[GenericKFoldType]]:
 
     # pizza, maybe wherever the int is turned into KFold move that into
     # here. consider what is being done in the dask version.
 
-    # pizza maybe make this for both sk and dask.
+    # pizza maybe specialize this module for both sk and dask.
 
 
     """

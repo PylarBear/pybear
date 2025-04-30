@@ -4,11 +4,13 @@
 # License: BSD 3 clause
 #
 
+
+
 import pytest
 from copy import deepcopy
 
-from pybear.model_selection.GSTCV._fit_shared._verify_refit_callable import \
-    _verify_refit_callable
+from pybear.model_selection.GSTCV._fit_shared._verify_refit_callable \
+    import _verify_refit_callable
 
 
 
@@ -69,45 +71,6 @@ class TestVerifyRefitCallable:
                 bad_callable,
                 deepcopy(_cv_results_template)
             )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

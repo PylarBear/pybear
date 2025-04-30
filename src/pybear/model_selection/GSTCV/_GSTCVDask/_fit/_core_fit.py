@@ -34,14 +34,13 @@ from ._parallelized_fit import _parallelized_fit
 from ._parallelized_scorer import _parallelized_scorer
 from ._parallelized_train_scorer import _parallelized_train_scorer
 
-from ....GSTCV._fit_shared._get_best_thresholds import \
-    _get_best_thresholds
+from ....GSTCV._fit_shared._get_best_thresholds import _get_best_thresholds
 
 from ....GSTCV._fit_shared._cv_results._cv_results_update import \
     _cv_results_update
 
-from ....GSTCV._fit_shared._cv_results. \
-    _cv_results_rank_update import _cv_results_rank_update
+from ....GSTCV._fit_shared._cv_results._cv_results_rank_update import \
+    _cv_results_rank_update
 
 
 
@@ -62,9 +61,7 @@ def _core_fit(
     **fit_params
 ) -> CVResultsType:
 
-
     """
-
     Perform all fit, scoring, and tabulation activities for every search
     performed in finding the hyperparameter values that maximize score
     (or minimize loss) for the given dataset (X) against the given target
@@ -407,7 +404,7 @@ def _core_fit(
         TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
             _get_best_thresholds(
                 TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
-                _THRESHOLDS,
+                _THRESHOLDS
         )
         # END NEED TO GET BEST THRESHOLDS BEFORE IDENTIFYING BEST SCORES ##
 

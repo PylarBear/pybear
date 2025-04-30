@@ -6,18 +6,18 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
-
-import numbers
+from ..._type_aliases import (
+    ThresholdsInputType,
+    ThresholdsWIPType
+)
 
 import numpy as np
 
 
 
 def _cond_thresholds(
-    _thresholds: Union[None, numbers.Real, Sequence[numbers.Real]],  # pizza global ThresholdsType?
-) -> list[float]:
+    _thresholds: ThresholdsInputType,
+) -> ThresholdsWIPType:
 
     """
     This is a support function for _thresholds__param_grid().
@@ -28,14 +28,13 @@ def _cond_thresholds(
     Parameters
     ----------
     _thresholds:
-        Union[None, numbers.Real, Sequence[numbers.Real]] - user-defined
-        threshold(s)
+        ThresholdsInputType - user-defined threshold(s)
 
 
     Return
     ------
     -
-        __thresholds: list[float] - user-defined or default floats
+        __thresholds: ThresholdsWIPType - user-defined or default floats
         sorted ascending
 
     """

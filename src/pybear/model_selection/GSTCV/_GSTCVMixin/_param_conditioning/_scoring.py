@@ -30,18 +30,17 @@ def _cond_scoring(
     Parameters
     ----------
     _scoring:
-        Union[str, Sequence[str], callable, dict[str, callable]] - The
-        scoring metric(s) used to evaluate the predictions on the test
-        (and possibly train) sets.
+        ScorerInputType - The scoring metric(s) used to evaluate the
+        predictions on the test (and possibly train) sets.
 
 
     Return
     ------
     -
-        _scoring: dict[str, callable] - dictionary of format
-            {scorer_name: scorer callable}, when one or multiple metrics
-            are used. When one metric is used, change the actual scorer
-            name to 'score'.
+        _scoring: ScorerWIPType - dictionary of format
+        {scorer_name: scorer callable}, when one or multiple metrics are
+        used. When one metric is used, change the actual scorer name to
+        'score'.
 
     """
 

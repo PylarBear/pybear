@@ -21,8 +21,8 @@ from ._type_aliases import (
     XDaskInputType,
     YDaskInputType
 )
+from .._type_aliases import ClassifierProtocol
 
-from copy import deepcopy
 import numbers
 
 import distributed
@@ -520,7 +520,7 @@ class GSTCVDask(_GSTCVMixin):
 
 
     def __init__(self,
-        estimator,
+        estimator: ClassifierProtocol,
         param_grid: Union[
             dict[str, Sequence[Any]], Sequence[dict[str, Sequence[Any]]]
         ],
@@ -622,14 +622,6 @@ class GSTCVDask(_GSTCVMixin):
         # val n_jobs is handled by GSTCVMixin
 
         self._scheduler = _cond_scheduler(self.scheduler, self.n_jobs)
-
-        self._estimator = type(self.estimator)(
-            **deepcopy(self.estimator.get_params(deep=False))
-        )
-        self._estimator.set_params(
-            **deepcopy(self.estimator.get_params(deep=True))
-        )
-
 
         self.cv_results_ = _core_fit(
             X,

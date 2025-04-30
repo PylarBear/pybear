@@ -8,8 +8,10 @@
 
 from typing_extensions import Union
 from ..._type_aliases import (
-    ParamGridType,
-    ParamGridsType
+    ParamGridInputType,
+    ParamGridsInputType,
+    ParamGridsWIPType,
+    ThresholdsInputType
 )
 
 from ._thresholds import _cond_thresholds
@@ -18,9 +20,9 @@ from ._thresholds import _cond_thresholds
 
 
 def _cond_param_grid(
-    _param_grid: Union[ParamGridType, ParamGridsType, None],  # pizza y is this allowed to be None
-    _thresholds: list[float]    # this is init self.thresholds
-) -> ParamGridsType:
+    _param_grid: Union[ParamGridInputType, ParamGridsInputType, None],  # pizza y is this allowed to be None
+    _thresholds: ThresholdsInputType    # this is init self.thresholds
+) -> ParamGridsWIPType:
 
     """
     Condition `param_grid` and any thresholds that may be passed inside.
@@ -35,20 +37,20 @@ def _cond_param_grid(
     ----------
     _param_grid:
         # pizza resolve the None issue!
-        Union[ParamGridType, ParamGridsType, None] - A
+        Union[ParamGridInputType, ParamGridsInputType, None] - A
         param_grid is a dictionary with hyperparameter names (str) as
         keys and list-likes of hyperparameter settings to test as values.
         `_param_grid` can be None, one of the described param_grids, or
         a list-like of such param_grids.
     _thresholds:
-        list[float] - The global decision threshold strategy to use when
-        performing hyperparameter search, for those param_grids that did
-        not have thresholds passed inside.
+        ThresholdsInputType - The global decision threshold strategy to
+        use when performing hyperparameter search, for those param_grids
+        that did not have thresholds passed inside.
 
 
     Return
     ------
-        ParamGridsType - returns param grid(s) inside a list with
+        ParamGridsWIPType - returns param grid(s) inside a list with
         thresholds inside every param_grid, no matter how (or if)
         thresholds was passed in the param_grid.
 
@@ -72,8 +74,7 @@ def _cond_param_grid(
         _new_grid = {}
         for _k, _v in _grid.items():
             if _k.lower() == 'thresholds':
-                _new_grid['thresholds'] = \
-                    _cond_thresholds(_grid['thresholds'])
+                _new_grid['thresholds'] = _cond_thresholds(_grid['thresholds'])
             else:
                 _new_grid[_k] = list(_v)
         else:
