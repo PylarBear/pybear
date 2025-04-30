@@ -20,7 +20,7 @@ The `best_params_` attribute of sklearn / dask_ml / pybear grid search
 modules is a dictionary with hyperparameter names as keys and respective
 best values as values that is (sometimes) exposed by the fit method
 upon completion of a search over a set of grids. autogridsearch_wrapper
-wraps these foundational GridSearch classes creating a AutoGridSearch
+wraps these foundational GridSearch classes creating an AutoGridSearch
 class, and the superseding :meth: `fit` repeatedly makes calls to the
 parent's fit method to generate this `best_params_` attribute. Once
 the  `best_params_` attribute is retrieved, information provided
@@ -95,14 +95,14 @@ False
 
 However, this practice is generally discouraged in favor of using
 the :meth: `get_params` and :meth: `set_params` methods, which have
-protections against in place to prevent invalid parameters being set.
+protections in place to prevent against invalid parameters being set.
 
-After a session of AutoGridSearch, all the attributes of the parent
-GridSearch are exposed through the AutoGridSearch instance. The parent
-exposes familiar attributes such as `best_estimator_`, `best_params_`,
-`best_score_`, etc. In addition to those, AutoGridSearch exposes other
-attributes that capture all the grids and best hyperparameter values
-for each pass, the :attr: `GRIDS_` and :attr: `RESULTS_` attributes.
+After a session of AutoGridSearch, all the familiar attributes of the
+parent GridSearch, like :attr: `best_estimator_`, :attr: `best_params_`,
+and :attr: `best_score_`, etc., are exposed through the AutoGridSearch
+instance. In addition to those, AutoGridSearch exposes other attributes
+that capture all the grids and best hyperparameter values for each pass,
+the :attr: `GRIDS_` and :attr: `RESULTS_` attributes.
 
 The `GRIDS_` attribute is a dictionary of all the search grids used
 during the AutoGridSearch session. It is a collection of every
@@ -216,6 +216,37 @@ remaining rounds, while other hyperparameters' grids continue to 'drill'.
 This technique can be used for all hyperparameters: 'soft', 'hard', and
 'fixed'.
 
+Consider the following instructions that demonstrate how 'shrink' works
+on a 'fixed' space. The 'Params Parameter' section of the docs explains
+how to construct these instructions, but for now focus on the second
+position of the following list, which tells AutoGridSearch how many
+points to use for each pass.
+Without shrink: [['a', 'b', 'c'], 3, 'fixed_string']
+with `total_passes` = 3 and a true best value of 'c' that is correctly
+discovered by AutoGridSearchCV.
+This will generate the following search grids:
+
+pass 1: ['a', 'b', 'c']; best value = 'c'
+
+pass 2: ['a', 'b', 'c']; best value = 'c'
+
+pass 3: ['a', 'b', 'c']; best value = 'c'
+
+Now consider these instructions.
+With shrink: [['a', 'b', 'c'], [3, 1, 1], 'fixed_string']
+with `total_passes` = 3 and a true best value of 'c' that is correctly
+discovered by AutoGridSearchCV.
+This will generate the following search grids:
+
+pass 1: ['a', 'b', 'c']; best value = 'c'
+
+pass 2: ['c']; best value = 'c'
+
+pass 3: ['c']; best value = 'c'
+
+This reduces the total searching time by minimizing the number of
+redundant searches.
+
 'linspace' - a search space with intervals that are equal in linear
 space, e.g. [1,2,3]. See numpy.linspace.
 
@@ -225,14 +256,13 @@ space, e.g. [1,2,3]. See numpy.linspace.
 'boolean' (or 'fixed_bool') - True or False
 
 'regap' - Technically a 'drill', the points in a logspace with log10
-interval greater than 1 are repartitioned to unit interval after
-'shifting' is finished. For example, a logspace of 1e0, 1e2, 1e4, 1e6
-with a best value of 1e2 is 'regapped' with unit log10 intervals as
-1e0, 1e1, 1e2, 1e3, 1e4. In AutoGridSearch, this operation is handled
-separately and distinctly from `drilling`. Only unit logspace intervals
-can enter the drilling process, and any logspaces that enter the
-drilling process must be unit log10 interval and are immediately
-converted to linear spaces.
+interval greater than 1 are repartitioned to unit interval. For example,
+a logspace of 1e0, 1e2, 1e4, 1e6 with a best value of 1e2 is 'regapped'
+with unit log10 intervals as 1e0, 1e1, 1e2, 1e3, 1e4. In AutoGridSearch,
+this operation is handled separately and distinctly from `drilling`.
+Only unit logspace intervals can enter the drilling process, and any
+logspaces that enter the drilling process must be unit log10 interval
+and are immediately converted to linear spaces.
 
 
 Operation
@@ -252,8 +282,9 @@ that condition are two-fold:
 is not found
 
 2) the optimal estimates for the other hyperparameters are not globally
-correct. See more detail about the mechanics of 'shifting' in the
-'Terminology' section.
+correct.
+
+Read more about the mechanics of 'shifting' in the 'Terminology' section.
 
 During the 'shifting' process, 'shrink' is not performed on any spaces,
 and 'drilling' is not performed on any 'hard' spaces nor on 'soft'
@@ -334,7 +365,7 @@ get there, causing AutoGridSearch to repeatedly shift unabated to the
 limits of floating point precision. The :param: `max_shifts` parameter
 is designed to prevent such a condition, giving some forgiveness for
 poor search design. But, in case this does happen, AutoGridSearch does
-have fail-safe that will catch floating point precision failures in
+have a fail-safe that will catch floating point precision failures in
 logarithmic space, and inform the user with an error message.
 
 Drill:
@@ -391,14 +422,14 @@ that sci-kit learn GridSearchCV can accomodate multiple param_grids.
 The required parameter `params` must be of the following form:
 dict(
     'estimator hyperparameter name as string': list-like(...),
+
     'another estimator hyperparameter name as string': list-like(...),
+
     ...
 )
 
 The list-like field is identical in construction for string, boolean,
 and numerical hyperparameters.
-
-** * ** * **
 
 For all hyperparameters, the list-like field is constructed as:
     [
@@ -408,12 +439,18 @@ For all hyperparameters, the list-like field is constructed as:
     ]
 E.g.:
     [['a', 'b', 'c'], 3, 'fixed_string']
+
     - or -
+
     [[True, False], [2, 1, 1], 'fixed_bool']
+
     - or -
+
     [[1, 2, 3], 3, 'fixed_integer']
+
     - or -
     [np.logspace(-5, 5, 3), [3, 3, 3, 3], 'soft_float']
+
 
 The list-like in the first position is the grid that will be used as the
 first search grid for the respective hyperparameter. Create this in the
@@ -423,7 +460,7 @@ will also be used for all subsequent searches unless a 'shrink' pass is
 specified, e.g. points is set as something like [3, 3, 1, 1]. More on
 that below. Also see 'shrink' in the 'Terminology' section of the docs.
 
-The second position, 'number of points for each pass' must be an integer
+The second position, 'number of points for each pass', must be an integer
 greater than zero or a list-like of such integers. If a single integer,
 this number will be the number of points in each grid for all searches
 after the first pass. If a list-like of integers, the length of the
@@ -440,34 +477,6 @@ total searching time by minimizing the number of redundant searches. For
 fixed spaces, the only acceptable entries are 1 or the length of the
 first (and only possible) grid.
 
-Consider the following instructions that demonstrate how 'shrink' works
-on a 'fixed' space.
-Without shrink: [['a', 'b', 'c'], 3, 'fixed_string']
-with `total_passes` = 3 and a true best value of 'c' that is correctly
-discovered by AutoGridSearchCV.
-This will generate the following search grids:
-
-pass 1: ['a', 'b', 'c']; best value = 'c'
-
-pass 2: ['a', 'b', 'c']; best value = 'c'
-
-pass 3: ['a', 'b', 'c']; best value = 'c'
-
-Now consider these instructions.
-With shrink: [['a', 'b', 'c'], [3, 1, 1], 'fixed_string']
-with `total_passes` = 3 and a true best value of 'c' that is correctly
-discovered by AutoGridSearchCV.
-This will generate the following search grids:
-
-pass 1: ['a', 'b', 'c']; best value = 'c'
-
-pass 2: ['c']; best value = 'c'
-
-pass 3: ['c']; best value = 'c'
-
-This reduces the total searching time by minimizing the number of
-redundant searches.
-
 The text field in the final position is required for all entries in
 the :param: `params` parameter. This informs AutoGridSearch on how to
 handle the grids and their values. There are eight allowed entries:
@@ -478,7 +487,7 @@ minimum for floats
 'hard_float' - continuous search space where the minimum and maximum
 values of the first grid serve as hard bounds for all searches
 
-'fixed_float' - static grid of floats
+'fixed_float' - static grid of float values
 
 'soft_integer' - integer search space only bounded by the universal
 minimum for integers
@@ -486,11 +495,11 @@ minimum for integers
 'hard_integer' - integer search space where the minimum and maximum
 values of the first grid serve as hard bounds for all searches
 
-'fixed_integer' - static grid of integers
+'fixed_integer' - static grid of integer values
 
-'fixed_string' - static list of strings
+'fixed_string' - static grid of string values
 
-'fixed_bool' - static list of booleans
+'fixed_bool' - static list of boolean values
 
 
 ** * ** * **
@@ -505,9 +514,9 @@ total_passes == 3 might look like:
 
     'C': [np.logspace(1, 3, 3), [3, 11, 11], 'soft_float'],
 
-    'n_estimators': [[8, 16, 32, 64], [4, 8, 4], 'soft_integer'],
+    'n_estimators': [[20, 40, 60, 80], 4, 'soft_integer'],
 
-    'tol': [np.logspace(-6, -1, 6), [6, 6, 6], 'hard_float']
+    'tol': [np.logspace(-6, -1, 6), 6, 'hard_float']
 }
 
 
@@ -603,14 +612,17 @@ Examples
 ...     agscv_verbose=False,
 ... )
 >>> X, y = make_classification(n_samples=1000, n_features=10)
->>> sk_agscv.fit(X, y)
-AutoGridSearchCV(estimator=LogisticRegression(),
-                 params={'C': [[0.001, 0.01, 0.1], [3, 3, 3], 'soft_float'],
-                         'fit_intercept': [[True, False], [2, 1, 1],
-                                           'fixed_bool'],
-                         'solver': [['lbfgs', 'saga'], [2, 1, 1],
-                                    'fixed_string']},
-                 total_passes=3, total_passes_is_hard=True)
+>>> sk_agscv.fit(X, y)   #doctest:+SKIP
+AutoGridSearchCV(
+    estimator=LogisticRegression(),
+    params={
+        'C': [[0.001, 0.01, 0.1], [3, 3, 3], 'soft_float'],
+        'fit_intercept': [[True, False], [2, 1, 1], 'fixed_bool'],
+        'solver': [['lbfgs', 'saga'], [2, 1, 1], 'fixed_string']
+    },
+    total_passes=3,
+    total_passes_is_hard=True
+)
 >>> print(sk_agscv.best_params_)   #doctest:+SKIP
 {'C': 0.0025, 'fit_intercept': True, 'solver': 'lbfgs'}
 
