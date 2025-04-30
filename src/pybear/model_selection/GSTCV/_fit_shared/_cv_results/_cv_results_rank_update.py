@@ -18,7 +18,7 @@ from ..._type_aliases import (
 def _cv_results_rank_update(
     _scorer: ScorerWIPType,
     _cv_results: CVResultsType
-    ) -> CVResultsType:
+) -> CVResultsType:
 
     """
 

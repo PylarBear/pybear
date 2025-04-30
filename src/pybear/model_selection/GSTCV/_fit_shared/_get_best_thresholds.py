@@ -18,10 +18,9 @@ from .._type_aliases import IntermediateHolderType
 def _get_best_thresholds(
     _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX: IntermediateHolderType,
     _THRESHOLDS: npt.NDArray[Union[float, int]]
-    ) -> npt.NDArray[np.uint16]:
+) -> npt.NDArray[np.uint16]:
 
     """
-
     After collecting the scores for every fold / threshold / scorer
     combination, average the scores across the folds for each scorer to
     give the mean scores of fits in vectors of shape (n_thresholds, ).
@@ -55,16 +54,14 @@ def _get_best_thresholds(
     ------
     -
         TEST_BEST_THRESHOLD_IDXS_BY_SCORER: npt.NDArray[np.uint16] -
-            A vector of shape (n_scorers, ) that holds the index in the
-            'thresholds' vector of the threshold that had the highest
-            score (or lowest loss) for each scorer.
-
+        A vector of shape (n_scorers, ) that holds the index in the
+        'thresholds' vector of the threshold that had the highest score
+        (or lowest loss) for each scorer.
 
     """
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
     assert isinstance(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
                       np.ma.masked_array)
     assert len(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX.shape) == 3, \

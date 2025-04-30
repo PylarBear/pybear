@@ -6,19 +6,21 @@
 
 
 from typing import TypeVar
+from typing_extensions import Any
+
 import numpy as np
 import dask.array as da
 from dask import compute
 
-
+# pizza do something about this
 T = TypeVar('T', np.ndarray[int], da.core.Array)
 
 
 def _estimator_fit_params_helper(
         data_len: int,
-        fit_params: dict[str, any],
+        fit_params: dict[str, Any],
         KFOLD: list[tuple[T, T]]
-) -> dict[int, dict[str, any]]:
+) -> dict[int, dict[str, Any]]:
 
     """
     This module customizes the estimator's fit params for each pass of
@@ -37,17 +39,17 @@ def _estimator_fit_params_helper(
     data_len:
         int - the number of examples in the full data set.
     fit_params:
-        dict[str, any] - all the fit params passed to GSTCV(Dask) fit for
+        dict[str, Any] - all the fit params passed to GSTCV(Dask) fit for
         the estimator.
     KFOLD:
-        list[tuple[da.core.Array, da.core.Array]] - The KFold
+        list[tuple[da.core.Array, da.core.Array], ...] - The KFold
         indices that were used to create the train / test splits of data.
 
 
     Return
     ------
     -
-        _fit_params_helper: dict[int, dict[str, any]] - a dictionary of
+        _fit_params_helper: dict[int, dict[str, Any]] - a dictionary of
         customized fit params for each pass of cv.
 
     """
@@ -112,10 +114,6 @@ def _estimator_fit_params_helper(
 
 
     return _fit_params_helper
-
-
-
-
 
 
 

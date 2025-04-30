@@ -37,9 +37,14 @@ IntermediateHolderType: TypeAlias = Union[
     npt.NDArray[numbers.Real]
 ]
 
-ParamGridType: TypeAlias = dict[str, Sequence[Any]]
+ParamGridInputType: TypeAlias = dict[str, Sequence[Any]]
+ParamGridWIPType: TypeAlias = dict[str, list[Any]]
 
-ParamGridsType: TypeAlias = Sequence[ParamGridType]
+ParamGridsInputType: TypeAlias = Sequence[ParamGridInputType]
+ParamGridsWIPType: TypeAlias = list[ParamGridWIPType]
+
+ThresholdsInputType: TypeAlias = Union[None, numbers.Real, Sequence[numbers.Real]]
+ThresholdsWIPType: TypeAlias = list[float]
 
 GenericSlicerType: TypeAlias = Sequence[numbers.Integral]
 
@@ -84,9 +89,6 @@ class ScorerWIPType(TypedDict):
 
 RefitCallableType: TypeAlias = Callable[[CVResultsType], numbers.Integral]
 RefitType: TypeAlias = Union[bool, ScorerNameTypes, RefitCallableType]
-
-
-# pizza what about a ThresholdsType?
 
 
 class ClassifierProtocol(Protocol):

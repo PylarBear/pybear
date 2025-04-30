@@ -6,7 +6,7 @@
 
 
 
-from ..._type_aliases import ParamGridType
+from ..._type_aliases import ParamGridInputType
 
 import numbers
 
@@ -17,7 +17,7 @@ from ._thresholds import _val_thresholds
 
 
 def _val_param_grid_helper(
-    _param_grid: ParamGridType,
+    _param_grid: ParamGridInputType,
     _grid_idx: int
 ) -> None:
 
@@ -31,8 +31,9 @@ def _val_param_grid_helper(
     Parameters
     ----------
     _param_grid:
-        ParamGridType - Dictionary with hyperparameters names (str) as
-        keys and list-likes of hyperparameter settings to try as values.
+        ParamGridInputType - Dictionary with hyperparameters names (str)
+        as keys and list-likes of hyperparameter settings to try as
+        values.
     _grid_idx:
         int - the index of this grid in the sequence of grids if multiple
         grids were passed to GSTCV.

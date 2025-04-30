@@ -6,17 +6,15 @@
 
 
 
-from typing import Optional, Sequence
-from typing_extensions import Union
-
-import numbers
+from typing import Optional
+from ..._type_aliases import ThresholdsInputType
 
 import numpy as np
 
 
 
 def _val_thresholds(
-    _thresholds: Union[None, numbers.Real, Sequence[numbers.Real]],  # pizza what about a global ThresholdsType?
+    _thresholds: ThresholdsInputType,
     _is_from_kwargs: bool,
     _idx: int,
     _must_be_list_like:Optional[bool]=True
@@ -35,8 +33,7 @@ def _val_thresholds(
     Parameters
     ----------
     _thresholds:
-        Union[None, numbers.Real, Sequence[numbers.Real]] - user-defined
-        threshold(s)
+        ThresholdsInputType - user-defined threshold(s)
     _is_from_kwargs:
         bool - whether _thresholds was passed via the __init__ kwarg
         or inside a param grid.

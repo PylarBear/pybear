@@ -20,7 +20,7 @@ from distributed import (
 
 
 def _cond_scheduler(
-    _scheduler: SchedulerType,
+    _scheduler: Union[SchedulerType, None],
     _n_jobs: Union[numbers.Integral, None]
 ) -> SchedulerType:
 
@@ -53,7 +53,9 @@ def _cond_scheduler(
     Parameters
     ----------
     _scheduler:
-        _scheduler to be validated and used for compute
+        Union[SchedulerType, None] - _scheduler to be validated and used
+        for compute
+
 
     Return
     ------

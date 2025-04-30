@@ -5,34 +5,32 @@
 #
 
 
-import sys
-
-import numpy as np
 
 from .._type_aliases import (
     CVResultsType,
     RefitCallableType
 )
 
+import sys
+
+import numpy as np
 
 
 
 def _verify_refit_callable(
     refit_callable: RefitCallableType,
     DUMMY_CV_RESULTS: CVResultsType
-    ) -> None:
-
+) -> None:
 
     """
-
     If refit is a callable, fill the just-built and mostly empty
     cv_results arrays with dummy data (all empties should take floats.)
     Pass the dummy cv_results to the callable to see if it returns an
     integer within range of cv_results, before running the entirety of
-    GSTCV which could be hours or days just to have the whole thing crash
-    because of a bad refit function. Remember that the refit callable
-    finds best_idx_, which is the row whose search grid params are deemed
-    "best".
+    GSTCV which could be hours or days just to have the whole thing
+    crash because of a bad refit function. Remember that the refit
+    callable finds best_idx_, which is the row whose search grid params
+    are deemed "best".
 
 
     Parameters
@@ -104,27 +102,6 @@ def _verify_refit_callable(
 
 
     return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

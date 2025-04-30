@@ -32,7 +32,7 @@ def _cv_results_update(
     _scorer: ScorerWIPType,
     _cv_results: CVResultsType,
     _return_train_score: bool
-    ) -> CVResultsType:
+) -> CVResultsType:
 
     """
 

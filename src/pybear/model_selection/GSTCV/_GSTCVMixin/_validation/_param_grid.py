@@ -8,8 +8,8 @@
 
 from typing_extensions import Union
 from ..._type_aliases import (
-    ParamGridType,
-    ParamGridsType
+    ParamGridInputType,
+    ParamGridsInputType
 )
 
 from ._param_grid_helper import _val_param_grid_helper
@@ -17,7 +17,7 @@ from ._param_grid_helper import _val_param_grid_helper
 # pizza the type hints in here need work
 
 def _val_param_grid(
-    _param_grid: Union[ParamGridType, ParamGridsType, None]  # pizza y is this allowed to be None
+    _param_grid: Union[ParamGridInputType, ParamGridsInputType, None]  # pizza y is this allowed to be None
 ) -> None:
 
     """
@@ -32,7 +32,7 @@ def _val_param_grid(
     Parameters
     ----------
     _param_grid:
-        Union[ParamGridType, ParamGridsType, None] - A
+        Union[ParamGridInputType, ParamGridsInputType, None] - A
         param_grid is a dictionary with hyperparameter names (str) as
         keys and list-likes of hyperparameter settings to test as values.
         `_param_grid` can be None, one of the described param_grids, or

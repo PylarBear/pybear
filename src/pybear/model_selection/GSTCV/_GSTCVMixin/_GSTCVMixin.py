@@ -6,7 +6,11 @@
 
 
 
-from typing import Iterable, Optional
+from typing import (
+    ContextManager,
+    Iterable,
+    Optional
+)
 from typing_extensions import Self, Union
 import numpy.typing as npt
 
@@ -26,12 +30,11 @@ from ._param_conditioning._refit import _cond_refit
 from ._param_conditioning._cv import _cond_cv
 from ._param_conditioning._verbose import _cond_verbose
 
-from .._fit_shared._cv_results._cv_results_builder import \
-    _cv_results_builder
+from .._fit_shared._cv_results._cv_results_builder import _cv_results_builder
 
-from .._fit_shared._verify_refit_callable import \
-    _verify_refit_callable
+from .._fit_shared._verify_refit_callable import _verify_refit_callable
 
+from ....base.exceptions import NotFittedError
 from ....base import (
     check_is_fitted,
     FeatureMixin,
@@ -81,6 +84,44 @@ class _GSTCVMixin(
         return self._classes
 
 
+    # # pizza directly from sklearn
+    # @property
+    # def n_features_in_(self):
+    #     """Number of features seen during :term: `fit`.
+    #
+    #     Only available when `refit=True`.
+    #     """
+    #     # For consistency with other estimators we raise a AttributeError so
+    #     # that hasattr() fails if the search estimator isn't fitted.
+    #     try:
+    #         check_is_fitted(self)
+    #     except NotFittedError as nfe:
+    #         raise AttributeError(
+    #             f"{self.__class__.__name__} object has no n_features_in_ attribute."
+    #         ) from nfe
+    #
+    #     return self.best_estimator_.n_features_in_
+    #
+    #
+    # this is not from sklearn, they didnt set up feature_names_in_ like this
+    # @property
+    # def feature_names_in_(self):
+    #     """Feature names seen during :term: `fit`.
+    #
+    #     Only available when `refit=True`.
+    #     """
+    #     # For consistency with other estimators we raise a AttributeError so
+    #     # that hasattr() fails if the search estimator isn't fitted.
+    #     try:
+    #         check_is_fitted(self)
+    #     except NotFittedError as nfe:
+    #         raise AttributeError(
+    #             f"{self.__class__.__name__} object has no feature_names_in_ attribute."
+    #         ) from nfe
+    #
+    #     return self.best_estimator_.features_names_in_
+
+
     # pizza
     # @property
     # def n_features_in_(self) -> int:
@@ -126,18 +167,12 @@ class _GSTCVMixin(
 
         # pizza see what else need to be deleted...
         # what about multimetric_ & n_splits_?
-        try:
-            del self.best_estimator_
-        except:
-            pass
-        try:
-            del  self.refit_time_
-        except:
-            pass
-        try:
-            del self.feature_names_in_
-        except:
-            pass
+        if hasattr(self, 'best_estimator_'):
+            delattr(self, 'best_estimator_')
+        if hasattr(self, 'refit_time_'):
+            delattr(self, 'refit_time_')
+        if hasattr(self, 'feature_names_in_'):
+            delattr(self, 'feature_names_in_')
 
         return self
 
@@ -214,14 +249,15 @@ class _GSTCVMixin(
 
         self._val_X_y(X, y)
 
-        # pizza, pizza, pizza = _conditioning(
-        #
-        # )
-
-        self._param_grid = _cond_param_grid(
-            self.param_grid,
-            self.thresholds  # this is init thresh, needs cond
+        self._estimator = type(self.estimator)(
+            **deepcopy(self.estimator.get_params(deep=False))
         )
+        self._estimator.set_params(
+            **deepcopy(self.estimator.get_params(deep=True))
+        )
+
+        # this is init thresh, needs cond
+        self._param_grid = _cond_param_grid(self.param_grid, self.thresholds)
 
         # by sklearn/dask design, name convention changes from 'scoring' to
         # 'scorer_' after conversion to dictionary
@@ -233,30 +269,62 @@ class _GSTCVMixin(
 
         self._verbose = _cond_verbose(self.verbose)
 
-        self.multimetric_ = len(self.scorer_) > 1
+        self.multimetric_:bool = len(self.scorer_) > 1
 
         # n_splits_ is only available after fit(). n_splits_ is always
         # returned as a number
         self.n_splits_ = \
             self._cv if isinstance(self._cv, numbers.Real) else len(self._cv)
 
-
         # this is needed for GSTCV for compatibility with GSTCVMixin
         # GSTCVDask will overwrite this
-        self._scheduler = nullcontext()
-
+        self._scheduler: ContextManager = nullcontext()
         # END validate_and_reset ###########################################
 
-        # feature_names_in_: ndarray of shape (n_features_in_,)
+        # declare types after conditioning v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # THIS IS JUST TO HAVE A REFERENCE TO LOOK AT
+        # self.estimator: ClassifierProtocol
+        # self._estimator: ClassifierProtocol
+        # self.param_grid: Union[ParamGridInputType, ParamGridsInputType, None]   # pizza resolve the None issue!
+        # self._param_grid: ParamGridsWIPType
+        # self.thresholds: ThresholdsInputType
+        # self._THRESHOLD_DICT: dict[int, ThresholdsWIPType]
+        # self.scoring: ScorerInputType
+        # self.scorer_: ScorerWIPType
+        # self.multimetric_: bool
+        # self.n_jobs: Union[numbers.Integral, None]
+        # self.refit: RefitType
+        # self._refit: RefitType
+        # self.cv: Union[None, numbers.Integral, Iterable[GenericKFoldType]]
+        # self._cv: Union[int, list[GenericKFoldType]]
+        # self.n_splits_: int
+        # self.verbose: numbers.Real
+        # self._verbose: int
+        # self.error_score: Optional[Union[Literal['raise'], numbers.Real]]='raise',
+        # self.return_train_score: Optional[bool]=False
+
+        # IF GSTCV:
+        # self.pre_dispatch: Union[Literal['all'], str, numbers.Integral]
+        # self._scheduler: ContextManager
+
+        # IF GSTCVDASK:
+        # self.cache_cv: bool
+        # self.iid: bool
+        # self.scheduler = Union[SchedulerType, None]
+        # self._scheduler = SchedulerType
+        # END declare types after conditioning v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+
+        # feature_names_in_: npt.NDArray[str] (n_features_in_,)
         # Names of features seen during fit. Only defined if
         # best_estimator_ is defined and if best_estimator_ exposes
         # feature_names_in_ when fit.
 
         if self._refit is not False:
             # pizza see if we can get rid of this conditional
+            # should be able to get this off best_estimator_ if refit not False
             self._check_n_features(X, reset=True)
             self._check_feature_names(X, reset=True)
-        # and hashed this..... pizza delete!
 
         # DONT unique().compute() HERE, JUST RETAIN THE VECTOR & ONLY DO
         # THE PROCESSING IF classes_ IS CALLED
