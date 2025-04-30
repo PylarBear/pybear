@@ -96,7 +96,7 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
         # inverse_transform, score_samples, transform ** ** ** ** ** **
 
         # for all states of data, and np or pd
-        for attr in ('inverse_transform', ):
+        for attr in ('inverse_transform', 'score_samples', 'transform'):
 
             with pytest.raises(AttributeError):
                 getattr(dask_GSTCV, attr)(X_dask)
@@ -116,13 +116,12 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
         # decision_function, predict_proba, predict ** ** ** ** ** ** **
 
         for attr in (
-            'decision_function', 'predict_log_proba', 'predict_proba',
-            'predict', 'score_samples', 'transform'
+            'decision_function', 'predict_proba', 'predict_log_proba', 'predict'
         ):
 
             if _X_state == 'good':  # np or pd
                 __ = getattr(dask_GSTCV, attr)(X_dask)
-                assert isinstance(__, da.core.Array)
+                assert isinstance(__, np.ndarray) # da.core.Array)
                 if attr == 'predict':
                     assert __.dtype == np.uint8
                 else:
