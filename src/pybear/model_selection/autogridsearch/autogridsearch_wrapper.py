@@ -195,6 +195,7 @@ def autogridsearch_wrapper(
             keys of the dictionary are the zero-indexed pass number,
             i.e., external pass number 2 is key 1 in this dictionary.
             """
+            check_is_fitted(self)
             return self._GRIDS
 
 
@@ -208,40 +209,12 @@ def autogridsearch_wrapper(
             precise estimates of the best hyperparameter values for
             the given estimator and data.
             """
+            check_is_fitted(self)
             return self._RESULTS
 
 
         def __pybear_is_fitted__(self) -> bool:
             return hasattr(self, '_GRIDS')
-
-
-        def _agscv_reset(self) -> Self:
-
-            """
-            Restore AutoGridSearch to pre-run state. Objects populated
-            while AutoGridSearch runs are reset to pre-run condition.
-
-
-            Return
-            ------
-            -
-                None
-
-
-            """
-
-            # this cannot be called _reset(). a parent that has a _reset()
-            # method (like most pybear modules do) near the top of fit()
-            # will call _reset(), but will get the _reset of the child,
-            # which is this, and delete needed objects mid-run.
-
-            if hasattr(self, '_GRIDS'):
-                delattr(self, '_GRIDS')
-
-            if hasattr(self, '_RESULTS'):
-                delattr(self, '_RESULTS')
-
-            return self
 
 
         def demo(
@@ -481,8 +454,6 @@ def autogridsearch_wrapper(
             """
 
 
-            self._agscv_reset()
-
             _validation(
                 self.params,
                 self.total_passes,
@@ -659,12 +630,6 @@ def autogridsearch_wrapper(
 
 
     return AutoGridSearch
-
-
-
-
-
-
 
 
 

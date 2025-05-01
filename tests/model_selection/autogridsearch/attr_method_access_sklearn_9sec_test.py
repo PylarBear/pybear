@@ -211,10 +211,6 @@ class TestMethodAccessBeforeAndAfterFit(Fixtures):
         assert isinstance(TestCls.fit(_X, _y), _agscv)
         assert is_fitted(TestCls)
 
-        # _agscv_reset()
-        assert isinstance(TestCls._agscv_reset(), _agscv)
-        assert not is_fitted(TestCls)
-
         # get_params()
         out = TestCls.get_params(True)
         assert isinstance(out, dict)
@@ -247,20 +243,6 @@ class TestMethodAccessBeforeAndAfterFit(Fixtures):
         # vvv AFTER FIT vvv ********************************************
 
         FittedTestCls = _agscv(**_kwargs)
-
-        # here is a good place to test _agscv_reset()
-        assert not hasattr(FittedTestCls, 'GRIDS_')
-        assert not hasattr(FittedTestCls, 'RESULTS_')
-
-        FittedTestCls.fit(_X, _y)
-
-        assert hasattr(FittedTestCls, 'GRIDS_')
-        assert hasattr(FittedTestCls, 'RESULTS_')
-
-        FittedTestCls._agscv_reset()
-
-        assert not hasattr(FittedTestCls, 'GRIDS_')
-        assert not hasattr(FittedTestCls, 'RESULTS_')
 
         # fit()
         assert isinstance(FittedTestCls.fit(_X, _y), _agscv)
