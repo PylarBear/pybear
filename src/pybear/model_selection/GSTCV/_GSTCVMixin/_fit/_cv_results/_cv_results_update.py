@@ -6,15 +6,14 @@
 
 
 
-from typing_extensions import Union
-
 import numpy as np
 import numpy.typing as npt
 
-from ..._type_aliases import (
+from ...._type_aliases import (
     CVResultsType,
     IntermediateHolderType,
-    ScorerWIPType
+    ScorerWIPType,
+    ThresholdsWIPType
 )
 
 from ._cv_results_score_updater import _cv_results_score_updater
@@ -23,7 +22,7 @@ from ._cv_results_score_updater import _cv_results_score_updater
 
 def _cv_results_update(
     _trial_idx: int,
-    _THRESHOLDS: npt.NDArray[Union[int, float]],
+    _THRESHOLDS: ThresholdsWIPType,
     _FOLD_FIT_TIMES_VECTOR: IntermediateHolderType,
     _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX: IntermediateHolderType,
     _TEST_BEST_THRESHOLD_IDXS_BY_SCORER: npt.NDArray[np.uint16],
@@ -44,10 +43,9 @@ def _cv_results_update(
     _trial_idx:
         int - the row index of cv_results to update
     _THRESHOLDS:
-        np.NDArray[Union[int, float]] - vector of thresholds for the
-        'param grid' associated with this permutation of search.
-        'param grid' being a single dict from the param_grid list of
-        param grids.
+        ThresholdsWIPType - vector of thresholds for the 'param grid'
+        associated with this permutation of search. 'param grid' being
+        a single dict from the param_grid list of param grids.
     _FOLD_FIT_TIMES_VECTOR:
         np.ma.masked_array[float] - the times to fit each of the folds
         for this permutation. If a fit excepted, the corresponding

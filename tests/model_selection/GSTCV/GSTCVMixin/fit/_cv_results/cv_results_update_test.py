@@ -5,11 +5,12 @@
 #
 
 
+
 import pytest
 
 import numpy as np
 
-from pybear.model_selection.GSTCV._fit_shared._cv_results._cv_results_update \
+from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_update \
     import _cv_results_update
 
 from sklearn.metrics import accuracy_score, balanced_accuracy_score

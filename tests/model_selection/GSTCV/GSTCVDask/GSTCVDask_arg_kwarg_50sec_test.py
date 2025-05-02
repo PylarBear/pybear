@@ -125,8 +125,10 @@ class TestGSTCVInput:
         (sk_LogisticRegression, )
     )
     def test_warns_on_non_dask_classifiers(
-        self, _GSTCVDask, non_dask_classifier, X_da, y_da
+        self, _GSTCVDask, non_dask_classifier, X_da, y_da, _client
     ):
+
+        # pizza client must stay here or fail for scheduler closed
 
         exp_warn = (f"'{non_dask_classifier().__class__.__name__}' does not "
             f"appear to be a dask classifier.")
@@ -240,8 +242,12 @@ class TestGSTCVInput:
 
 
     def test_original_scheduler_is_returned(
-        self, _GSTCVDask, marked_client_class, X_da, y_da
+        self, _GSTCVDask, marked_client_class, X_da, y_da, _client
     ):
+
+        # pizza client must stay here or fail for scheduler closed
+        # it's still failing, even tho putting client in fixed
+        # test_warns_on_non_dask_classifiers
 
         assert isinstance(
             _GSTCVDask.set_params(

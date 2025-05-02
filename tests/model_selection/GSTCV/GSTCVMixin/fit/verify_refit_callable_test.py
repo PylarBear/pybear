@@ -9,7 +9,7 @@
 import pytest
 from copy import deepcopy
 
-from pybear.model_selection.GSTCV._fit_shared._verify_refit_callable \
+from pybear.model_selection.GSTCV._GSTCVMixin._fit._verify_refit_callable \
     import _verify_refit_callable
 
 

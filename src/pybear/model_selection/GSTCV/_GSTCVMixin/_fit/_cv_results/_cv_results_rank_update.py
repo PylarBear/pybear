@@ -8,7 +8,7 @@
 
 import numpy as np
 
-from ..._type_aliases import (
+from ...._type_aliases import (
     CVResultsType,
     ScorerWIPType
 )

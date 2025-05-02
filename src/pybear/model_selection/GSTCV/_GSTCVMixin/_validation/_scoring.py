@@ -11,7 +11,27 @@ from ..._type_aliases import ScorerInputType
 
 import numpy as np
 
-from ....GSTCV._master_scorer_dict import master_scorer_dict
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    average_precision_score,
+    f1_score,
+    precision_score,
+    recall_score
+)
+
+
+
+# **** IMPORTANT ****
+# THIS IS THE DECLARATION THAT DICTATES WHAT SCORERS GSTCV CAN USE
+master_scorer_dict = {
+    'accuracy': accuracy_score,
+    'balanced_accuracy': balanced_accuracy_score,
+    'average_precision': average_precision_score,
+    'f1': f1_score,
+    'precision': precision_score,
+    'recall': recall_score
+}
 
 
 

@@ -6,7 +6,6 @@
 
 
 
-from typing import ContextManager
 from typing_extensions import (
     Any,
     Self
@@ -16,7 +15,6 @@ from .._type_aliases import (
     ThresholdsWIPType
 )
 
-from contextlib import nullcontext
 from copy import deepcopy
 import numbers
 import time
@@ -31,12 +29,11 @@ from ._param_conditioning._refit import _cond_refit
 from ._param_conditioning._cv import _cond_cv
 from ._param_conditioning._verbose import _cond_verbose
 
-from .._fit_shared._cv_results._cv_results_builder import _cv_results_builder
-
-from .._fit_shared._verify_refit_callable import _verify_refit_callable
-
-from .._fit_shared._cv_results._cv_results_rank_update import \
-    _cv_results_rank_update
+from ._fit._cv_results._cv_results_builder import _cv_results_builder
+from ._fit._verify_refit_callable import _verify_refit_callable
+from ._fit._get_best_thresholds import _get_best_thresholds
+from ._fit._cv_results._cv_results_update import _cv_results_update
+from ._fit._cv_results._cv_results_rank_update import _cv_results_rank_update
 
 from ....base import (
     check_is_fitted,
@@ -132,7 +129,7 @@ class _GSTCVMixin(
         refit is False. If refit is False, raise AttributeError.
         """
 
-        if not self.refit:
+        if not self._refit:
             raise AttributeError(
                 f"This {type(self).__name__} instance was initialized "
                 f"with `refit=False`. \n{attr_or_method_name} is "
@@ -180,7 +177,7 @@ class _GSTCVMixin(
         )
 
 
-    def fit(self, X, y, **params) -> Self:
+    def fit(self, X, y, **fit_params) -> Self:
 
         """
         Perform the grid search with the hyperparameter settings in
@@ -197,7 +194,7 @@ class _GSTCVMixin(
             vector-like, shape (n_samples,) or (n_samples, 1) - The
             target relative to X. Must be binary in [0, 1]. Must fulfill
             the input assumptions of the underlying estimator.
-        **params:
+        **fit_params:
             dict[str, any] - Parameters passed to the fit method of the
             estimator. If a fit parameter is an array-like whose length
             is equal to num_samples, then it will be split across CV
@@ -220,6 +217,9 @@ class _GSTCVMixin(
 
         """
 
+        self._val_X_y(X, y)
+
+        # for params that serve both GSTCV & GSTCVDask
         _validation(
             self.estimator,
             self.param_grid,
@@ -233,7 +233,8 @@ class _GSTCVMixin(
             self.return_train_score
         )
 
-        self._val_X_y(X, y)
+        # for either GSTCV or GSTCVDask params
+        self._val_params()
 
         self._estimator = type(self.estimator)(
             **deepcopy(self.estimator.get_params(deep=False))
@@ -251,6 +252,7 @@ class _GSTCVMixin(
 
         self._refit = _cond_refit(self.refit, self.scorer_)
 
+        # pizza this may go to be redid & go in both SK & DASK due to cache_cv....
         self._cv = _cond_cv(self.cv, _cv_default=5)
 
         self._verbose = _cond_verbose(self.verbose)
@@ -262,10 +264,8 @@ class _GSTCVMixin(
         self.n_splits_ = \
             self._cv if isinstance(self._cv, numbers.Real) else len(self._cv)
 
-        # this is needed for GSTCV for compatibility with GSTCVMixin
-        # GSTCVDask will overwrite this
-        self._scheduler: ContextManager = nullcontext()
-
+        # for params that serve either GSTCV or GSTCVDask
+        self._condition_params(X, y, fit_params)
 
         # declare types after conditioning v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # THIS IS JUST TO HAVE A REFERENCE TO LOOK AT
@@ -308,15 +308,15 @@ class _GSTCVMixin(
         # 'thresholds' MUST BE REMOVED FROM PARAM GRIDS BEFORE GOING
         # TO _cv_results_builder OR THRESHOLDS WILL BECOME PART OF THE
         # GRID SEARCH, AND ALSO CANT BE PASSED TO estimator.
-        self._THRESHOLD_DICT:dict[int, ThresholdsWIPType] = {}
+        _THRESHOLD_DICT: dict[int, ThresholdsWIPType] = {}
         for i in range(len(self._param_grid)):
-            self._THRESHOLD_DICT[i] = self._param_grid[i].pop('thresholds')
+            _THRESHOLD_DICT[i] = self._param_grid[i].pop('thresholds')
 
 
         # this could have been at the top of _core_fit but is outside
         # because cv_results is used to validate the refit callable
         # before starting the fit.
-        self.cv_results_, self._PARAM_GRID_KEY = \
+        self.cv_results_, _PARAM_GRID_KEY = \
             _cv_results_builder(
                 self._param_grid,
                 self.n_splits_,
@@ -332,8 +332,252 @@ class _GSTCVMixin(
 
         # CORE FIT v v v v v v v v v v v v v v v v v v v v v v v v v v v
 
-        with self._scheduler as scheduler:
-            self._core_fit(X, y, **params)
+        original_params = self._estimator.get_params(deep=True)
+
+        for trial_idx, _grid in enumerate(self.cv_results_['params']):
+
+            if self._verbose >= 3:
+                print(f'\nparam grid {trial_idx + 1} of '
+                      f'{len(self.cv_results_["params"])}: {_grid}')
+
+            _THRESHOLDS: list[float] = _THRESHOLD_DICT[int(_PARAM_GRID_KEY[trial_idx])]
+
+            # reset the estimator to the first-seen params at every transition
+            # to a new param grid, and then set the new params as called out
+            # in cv_results_. in that way, the user can assume that params
+            # not explicitly declared in a param grid are running at their
+            # defaults (or whatever values they were hard-coded in when the
+            # estimator was instantiated.)
+            if trial_idx != 0:
+                # at transition to the next param grid...
+                if _PARAM_GRID_KEY[trial_idx] != _PARAM_GRID_KEY[trial_idx - 1]:
+                    # ...put in the first-seen params...
+                    self._estimator.set_params(**original_params)
+
+            # ...then set the new params for the first search on the new grid
+            self._estimator.set_params(**_grid)
+
+            ###################################################################
+            # CORE GRID SEARCH ################################################
+
+            FIT_OUTPUT = self._fit_all_folds(
+                X,
+                y,
+                _grid
+            )
+
+            # terminate if all folds excepted, display & compile fit times ** * **
+            FOLD_FIT_TIMES_VECTOR = np.ma.empty(self.n_splits_, dtype=np.float64)
+            FOLD_FIT_TIMES_VECTOR.mask = True
+            num_failed_fits = 0
+
+            # FIT_OUTPUT _estimator_, _fit_time, fit_excepted
+            for idx, (_, _fit_time, _fit_excepted) in enumerate(FIT_OUTPUT):
+                num_failed_fits += _fit_excepted
+
+                if _fit_excepted:
+                    FOLD_FIT_TIMES_VECTOR[idx] = np.ma.masked
+                else:
+                    FOLD_FIT_TIMES_VECTOR[idx] = _fit_time
+
+                if self._verbose >= 5:
+                    print(f'fold {idx + 1} train fit time = {_fit_time: ,.3g} s')
+
+            if num_failed_fits == self.n_splits_:
+                raise ValueError(f"all {self.n_splits_} folds failed during fit.")
+
+            del idx, _, _fit_time, _fit_excepted, num_failed_fits
+            # END terminate if all folds excepted, display & compile fit times ** *
+
+            # SCORE ALL FOLDS & THRESHOLDS ########################################
+
+            if self._verbose >= 5:
+                print(f'\nStart scoring test with different thresholds and scorers')
+
+            test_predict_and_score_t0 = time.perf_counter()
+
+            # TEST_SCORER_OUT IS:
+            # TEST_THRESHOLD_x_SCORER__SCORE_LAYER,
+            # TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER
+
+            # SCORE ALL FOLDS & THRESHOLDS ########################################
+
+            TEST_SCORER_OUT = self._score_all_folds_and_thresholds(
+                X,
+                y,
+                FIT_OUTPUT,
+                _THRESHOLDS
+            )
+
+            test_predict_and_score_tf = time.perf_counter()
+            tpast = test_predict_and_score_tf - test_predict_and_score_t0
+            del test_predict_and_score_tf, test_predict_and_score_t0
+
+            if self._verbose >= 5:
+                print(f'End scoring test with different thresholds and scorers')
+                print(f'total test predict & score wall time = {tpast: ,.3g} s')
+
+            del tpast
+
+            # END SCORE ALL FOLDS & THRESHOLDS #################################
+
+            # 3D-ify scores and times from parallel scorer ** * ** * ** *
+            TSS = np.ma.masked_array(np.dstack([_[0] for _ in TEST_SCORER_OUT]))
+            TSST = np.ma.masked_array(np.dstack([_[1] for _ in TEST_SCORER_OUT]))
+            del TEST_SCORER_OUT
+
+            TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX = TSS.transpose((2, 0, 1))
+            TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = \
+                TSST.transpose((2, 0, 1))
+            del TSS, TSST
+            # END 3D-ify scores and times from parallel scorer ** * ** * ** *
+
+            # END CORE GRID SEARCH ############################################
+            ###################################################################
+
+            # NEED TO GET BEST THRESHOLDS BEFORE IDENTIFYING BEST SCORES ######
+
+            # THIS CANNOT BE MELDED INTO ANYTHING ABOVE BECAUSE ALL FOLDS MUST
+            # BE COMPLETED TO DO THIS
+            TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
+                _get_best_thresholds(
+                    TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
+                    _THRESHOLDS
+                )
+            # END NEED TO GET BEST THRESHOLDS BEFORE IDENTIFYING BEST SCORES ##
+
+            # PICK THE COLUMNS FROM TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
+            # THAT MATCH RESPECTIVE TEST_BEST_THRESHOLD_IDXS_BY_SCORER
+            # THIS NEEDS TO BE ma TO PRESERVE ANY MASKING DONE TO
+            # TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
+
+            assert TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX.shape == \
+                   (self.n_splits_, len(_THRESHOLDS), len(self.scorer_)), \
+                "TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX is misshapen"
+
+            TEST_FOLD_x_SCORER__SCORE_MATRIX = \
+                np.ma.empty((self.n_splits_, len(self.scorer_)))
+            TEST_FOLD_x_SCORER__SCORE_MATRIX.mask = True
+
+            for s_idx, t_idx in enumerate(TEST_BEST_THRESHOLD_IDXS_BY_SCORER):
+                TEST_FOLD_x_SCORER__SCORE_MATRIX[:, s_idx] = \
+                    TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX[:, t_idx, s_idx]
+
+            del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
+
+            # SCORE TRAIN FOR THE BEST THRESHOLDS ##########################
+
+            # 24_02_21_13_57_00 ORIGINAL CONFIGURATION WAS TO DO BOTH TEST
+            # SCORING AND TRAIN SCORING UNDER THE SAME FOLD LOOP FROM A
+            # SINGLE FIT. BECAUSE FINAL THRESHOLD(S) CANT BE KNOWN YET,
+            # IT IS IMPOSSIBLE TO SELECTIVELY GET BEST SCORES JUST FOR TRAIN
+            # @ THRESHOLD, SO ALL OF TRAIN'S SCORES MUST BE GENERATED. AFTER
+            # FILLING TEST AND FINDING THE BEST THRESHOLDS, THEN TRAIN SCORES
+            # CAN BE PICKED OUT. CALCULATING TRAIN SCORE TAKES A LONG TIME
+            # FOR MANY THRESHOLDS, ESPECIALLY WITH DASK.
+            # PERFORMANCE TESTS 24_02_21 INDICATE IT IS BETTER TO FIT AND
+            # SCORE TEST ALONE, GET THE BEST THRESHOLD(S), THEN DO ANOTHER
+            # LOOP FOR TRAIN WITH RETAINED COEFS FROM THE EARLIER FITS
+            # TO ONLY GENERATE SCORES FOR THE SINGLE THRESHOLD(S).
+
+            TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
+                np.ma.zeros((self.n_splits_, len(self.scorer_)), dtype=np.float64)
+            TRAIN_FOLD_x_SCORER__SCORE_MATRIX.mask = True
+
+            if self.return_train_score:
+
+                _BEST_THRESHOLDS_BY_SCORER = \
+                    np.array(_THRESHOLDS)[TEST_BEST_THRESHOLD_IDXS_BY_SCORER]
+
+                # SCORE ALL FOLDS ###########################################
+
+                if self._verbose >= 5:
+                    print(f'\nStart scoring train with different scorers')
+
+                train_predict_and_score_t0 = time.perf_counter()
+
+                # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
+
+                TRAIN_SCORER_OUT = self._score_train(
+                    X,
+                    y,
+                    FIT_OUTPUT,
+                    _BEST_THRESHOLDS_BY_SCORER
+                )
+
+                train_predict_and_score_tf = time.perf_counter()
+                tpast = train_predict_and_score_tf - train_predict_and_score_t0
+                del train_predict_and_score_tf, train_predict_and_score_t0
+
+                if self._verbose >= 5:
+                    print(f'End scoring train with different scorers')
+                    print(f'total train predict & score wall time = {tpast: ,.3g} s')
+
+                del tpast
+
+                # END SCORE ALL FOLDS #########################################
+
+                del _BEST_THRESHOLDS_BY_SCORER
+
+                TRAIN_FOLD_x_SCORER__SCORE_MATRIX = (
+                    np.ma.masked_array(np.vstack(TRAIN_SCORER_OUT))
+                )
+
+                del TRAIN_SCORER_OUT
+
+            # END SCORE TRAIN FOR THE BEST THRESHOLDS #########################
+
+            # UPDATE cv_results_ WITH RESULTS #################################
+            if self._verbose >= 5:
+                print(f'\nStart filling cv_results_')
+                cv_t0 = time.perf_counter()
+
+            # validate shape of holder objects before cv_results update ** * **
+            assert FOLD_FIT_TIMES_VECTOR.shape == (self.n_splits_,), \
+                "FOLD_FIT_TIMES_VECTOR is misshapen"
+            assert TEST_FOLD_x_SCORER__SCORE_MATRIX.shape == \
+                   (self.n_splits_, len(self.scorer_)), \
+                f"TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX is misshapen"
+            assert TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX.shape == \
+                   (self.n_splits_, len(_THRESHOLDS), len(self.scorer_)), \
+                "TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX is misshapen"
+            assert TRAIN_FOLD_x_SCORER__SCORE_MATRIX.shape == \
+                   (self.n_splits_, len(self.scorer_)), \
+                "TRAIN_FOLD_x_SCORER__SCORE_MATRIX is misshapen"
+            # END validate shape of holder objects before cv_results update **
+
+            self.cv_results_ = _cv_results_update(
+                trial_idx,
+                _THRESHOLDS,
+                FOLD_FIT_TIMES_VECTOR,
+                TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX,
+                TEST_BEST_THRESHOLD_IDXS_BY_SCORER,
+                TEST_FOLD_x_SCORER__SCORE_MATRIX,
+                TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+                self.scorer_,
+                self.cv_results_,
+                self.return_train_score
+            )
+
+            if self._verbose >= 5:
+                cv_tf = time.perf_counter()
+                print(f'End filling cv_results_ = {cv_tf - cv_t0: ,.3g} s')
+                del cv_t0, cv_tf
+
+            del TEST_FOLD_x_SCORER__SCORE_MATRIX
+            del TRAIN_FOLD_x_SCORER__SCORE_MATRIX
+            del FOLD_FIT_TIMES_VECTOR
+            del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
+
+        # 24_07_16, when testing against SK GSCV, this module is altering
+        # the params of the in-scope estimator (estimator used inside this
+        # module) and is altering the estimator that is out-of-scope (the
+        # one that is passed to this module) even though this scope's estimator
+        # is not being returned. to prevent any future problems, set estimator's
+        # params back to the way they started
+        self._estimator.set_params(**original_params)
+
+        del original_params, self._fold_fit_params
 
         # FINISH RANK COLUMNS HERE #####################################
         # pizza when _core_fits are streamlined put this at the end of it
@@ -427,7 +671,7 @@ class _GSTCVMixin(
             t0 = time.perf_counter()
 
             with self._scheduler as scheduler:
-                self.best_estimator_.fit(X, y, **params)
+                self.best_estimator_.fit(X, y, **fit_params)
 
             self.refit_time_ = time.perf_counter() - t0
             del t0

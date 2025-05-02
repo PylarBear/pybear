@@ -12,16 +12,16 @@ from typing_extensions import Union
 import numpy as np
 from numpy.typing import NDArray
 
-from ..._GSTCVMixin._validation._param_grid import _val_param_grid
-from ..._GSTCVMixin._validation._scoring import _val_scoring
+from ..._validation._param_grid import _val_param_grid
+from ..._validation._scoring import _val_scoring
 
-from ..._type_aliases import (
+from ...._type_aliases import (
     ParamGridsWIPType,
     ScorerWIPType,
     CVResultsType
 )
 
-from .....utilities._permuter import permuter
+from ......utilities._permuter import permuter
 
 
 
