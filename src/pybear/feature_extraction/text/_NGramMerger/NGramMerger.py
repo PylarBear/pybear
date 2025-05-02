@@ -381,7 +381,7 @@ class NGramMerger(
         return self._row_support
 
 
-    def __pybear_is_fitted__(self):
+    def __pybear_is_fitted__(self) -> bool:
         return True
 
 

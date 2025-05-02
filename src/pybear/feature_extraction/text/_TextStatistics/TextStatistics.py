@@ -336,7 +336,7 @@ class TextStatistics(
     # END @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-    def __pybear_is_fitted__(self):
+    def __pybear_is_fitted__(self) -> bool:
         return hasattr(self, '_string_frequency')
 
 

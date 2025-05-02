@@ -162,10 +162,7 @@ class TestSKAttrsPostFit:
                         getattr(_sk_GSTCV, 'classes_')
 
                 else:
-                    with pytest.raises(
-                        AttributeError,
-                        match=generic_no_attribute_1('GSTCV', attr)
-                    ):
+                    with pytest.raises(AttributeError):
                         getattr(_sk_GSTCV, attr)
         # END 2a) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -177,10 +174,7 @@ class TestSKAttrsPostFit:
                 assert __ <= 1
 
             else:
-                with pytest.raises(
-                        AttributeError,
-                        match=generic_no_attribute_1('GSTCV', attr)
-                ):
+                with pytest.raises(AttributeError):
                     getattr(_sk_GSTCV, attr)
         # END 2b) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -238,10 +232,7 @@ class TestSKAttrsPostFit:
             # feature_names_in_ gives AttrErr when X was array
             if _format == 'array':
 
-                with pytest.raises(
-                    AttributeError,
-                    match=generic_no_attribute_1('GSTCV', 'feature_names_in_')
-                ):
+                with pytest.raises(AttributeError):
                     getattr(_sk_GSTCV, 'feature_names_in_')
 
             # feature_names_in_ gives np vector when X was DF

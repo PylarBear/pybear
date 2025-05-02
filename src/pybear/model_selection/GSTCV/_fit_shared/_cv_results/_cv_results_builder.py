@@ -12,7 +12,8 @@ from typing_extensions import Union
 import numpy as np
 from numpy.typing import NDArray
 
-from .....utilities._permuter import permuter
+from ..._GSTCVMixin._validation._param_grid import _val_param_grid
+from ..._GSTCVMixin._validation._scoring import _val_scoring
 
 from ..._type_aliases import (
     ParamGridsWIPType,
@@ -20,17 +21,18 @@ from ..._type_aliases import (
     CVResultsType
 )
 
+from .....utilities._permuter import permuter
+
 
 
 def _cv_results_builder(
-    param_grid: list[ParamGridsWIPType],
-    cv: int,
-    scorer: ScorerWIPType,
-    return_train_score: bool
+    _param_grid: ParamGridsWIPType,
+    _cv: int,
+    _scorer: ScorerWIPType,
+    _return_train_score: bool
 ) -> tuple[CVResultsType, NDArray[np.uint8]]:
 
     """
-
     cv_results_ is a python dictionary that represents the columns of
     a data table that contains times, scores, and other pertinent
     information gathered during the grid search trials. The dictionary
@@ -173,18 +175,18 @@ def _cv_results_builder(
 
     Parameters
     ----------
-    param_grid:
+    _param_grid:
         ParamGridsWIPType - list of dictionaries keyed with parameter
         names and values as iterables of their respective values to be
         searched.
-    cv:
+    _cv:
         int - number of folds (splits) to use for cross validation
-    scorer:
+    _scorer:
         dict[str, Callable[[Iterable, Iterable], float] - a dictionary
         keyed by scorer name with the scorer callables as values. Note
         that these callables are sklearn metrics and not sklearn
         make_scorer.
-    return_train_score:
+    _return_train_score:
         bool - when True, calculate the scores for the train folds in
         addition to the test folds.
 
@@ -205,49 +207,17 @@ def _cv_results_builder(
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
-    err_msg = f"'param_grid' must be passed as a list of dictionaries"
-    if isinstance(param_grid, dict):
-        raise TypeError(err_msg)
-    if not all(map(isinstance, param_grid, (dict for _ in param_grid))):
-        raise TypeError(err_msg)
 
-    err_msg = (f"'cv' must be and integer >= 2 or an iterable of pairs of "
-               f"train / test split indices (an iterable of iterables of arrays)")
-    try:
-        float(cv)
-        if isinstance(cv, bool):
-            raise Exception
-        if int(cv) != cv:
-            raise Exception
-        cv = int(cv)
-        if cv < 2:
-            raise Exception
-    except:
-        try:
-            iter(cv)
-        except:
-            raise TypeError(err_msg)
+    _val_param_grid(_param_grid, _must_be_list_dict=True)
 
-    if not isinstance(cv, int):
-        for pair in cv:
-            try:
-                iter(pair)
-                if len(pair) != 2:
-                    raise Exception
-            except:
-                raise TypeError(err_msg)
+    if int(_cv) != _cv:
+        raise TypeError(f"'cv' must be int >= 2")
+    if _cv < 2:
+        raise ValueError(f"'cv' must be int >= 2")
 
-    err_msg = f"'scorer' must be an iterable of scorer names"
-    try:
-        iter(scorer)
-        if isinstance(scorer, str):
-            raise Exception
-    except:
-        raise TypeError(err_msg)
-    if not all(map(isinstance, scorer, (str for _ in scorer))):
-        raise TypeError(err_msg)
+    _val_scoring(_scorer, _must_be_dict=True)
 
-    if not isinstance(return_train_score, bool):
+    if not isinstance(_return_train_score, bool):
         raise TypeError("'return_train_score' must be bool")
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -272,7 +242,7 @@ def _cv_results_builder(
 
     # PARAM NAMES
     _unq = []
-    for _grid in param_grid:
+    for _grid in _param_grid:
         _unq += sorted([f'param_{_}'for _ in _grid.keys() if _ not in _unq])
 
     COLUMNS, DTYPES = c_d_a(
@@ -290,9 +260,9 @@ def _cv_results_builder(
     COLUMNS, DTYPES = c_d_a(COLUMNS, DTYPES, ['params'], [object])
 
     # SCORES
-    for metric in scorer:
+    for metric in _scorer:
 
-        if len(scorer) == 1:
+        if len(_scorer) == 1:
             metric = 'score'
             COLUMNS, DTYPES = \
                 c_d_a(COLUMNS, DTYPES, [f'best_threshold'], [np.float64])
@@ -300,7 +270,7 @@ def _cv_results_builder(
             COLUMNS, DTYPES = \
                 c_d_a(COLUMNS, DTYPES, [f'best_threshold_{metric}'], [np.float64])
 
-        for split in range(cv):
+        for split in range(_cv):
             COLUMNS, DTYPES = c_d_a(
                 COLUMNS,
                 DTYPES,
@@ -312,8 +282,8 @@ def _cv_results_builder(
             COLUMNS, DTYPES = \
                 c_d_a(COLUMNS, DTYPES, [f'{_type}_test_{metric}'], [np.float64])
 
-        if return_train_score:
-            for split in range(cv):
+        if _return_train_score:
+            for split in range(_cv):
                 COLUMNS, DTYPES = c_d_a(
                     COLUMNS,
                     DTYPES,
@@ -335,7 +305,7 @@ def _cv_results_builder(
 
     # GET FULL COUNT OF ROWS FOR ALL PERMUTATIONS ACROSS ALL GRIDS
     total_rows = 0
-    for _grid in param_grid:
+    for _grid in _param_grid:
         if _grid == {}:
             total_rows += 1
         else:
@@ -367,7 +337,7 @@ def _cv_results_builder(
     # with params) #################################################
 
     ctr = 0
-    for grid_idx, _grid in enumerate(param_grid):
+    for grid_idx, _grid in enumerate(_param_grid):
 
         # sort grid keys to get same fill as sk GSCV
         _grid = {k:_grid[k] for k in sorted(list(_grid.keys()))}
@@ -432,25 +402,6 @@ def _cv_results_builder(
     # with params) #################################################
 
     return cv_results_, PARAM_GRID_KEY
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -6,7 +6,7 @@
 
 
 
-from typing import Callable
+from typing import Callable, Optional
 from ..._type_aliases import ScorerInputType
 
 import numpy as np
@@ -16,7 +16,8 @@ from ....GSTCV._master_scorer_dict import master_scorer_dict
 
 
 def _val_scoring(
-    _scoring: ScorerInputType
+    _scoring: ScorerInputType,
+    _must_be_dict:Optional[bool] = True
 ) -> None:
 
     """
@@ -41,6 +42,9 @@ def _val_scoring(
         Union[str, callable, Sequence[str], dict[str, callable]] - The
         scoring metric(s) used to evaluate the predictions on the test
         (and possibly train) sets.
+    _must_be_dict:
+        Optional[bool], default=True - whether 'scoring' must have
+        already been conditioned into dict[str, callable].
 
 
     Return
@@ -99,6 +103,13 @@ def _val_scoring(
 
         del _truth, _pred, _value
     # END helper functions -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
+    if _must_be_dict and not isinstance(_scoring, dict):
+        raise TypeError(
+            f"'scoring'/'scorer_' must be a dict of: "
+            f"\n(metric name: callable(y_true, y_pred), ...)."
+        )
 
 
     _err_msg = (

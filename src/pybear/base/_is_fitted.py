@@ -17,7 +17,7 @@ def is_fitted(
     estimator,
     attributes: Union[str, Iterable[str], None]=None,
     all_or_any: Union[AllFunc, AnyFunc]=all
-):
+) -> bool:
 
     """
     Determine if an estimator/transformer is fitted and return a boolean.
@@ -69,7 +69,6 @@ def is_fitted(
     >>> is_fitted(trf)
     True
 
-
     """
 
 
@@ -118,13 +117,6 @@ def is_fitted(
     ]
 
     return len(fitted_attrs) > 0
-
-
-
-
-
-
-
 
 
 

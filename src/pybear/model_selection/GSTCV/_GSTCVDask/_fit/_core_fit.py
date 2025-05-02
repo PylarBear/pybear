@@ -39,9 +39,6 @@ from ....GSTCV._fit_shared._get_best_thresholds import _get_best_thresholds
 from ....GSTCV._fit_shared._cv_results._cv_results_update import \
     _cv_results_update
 
-from ....GSTCV._fit_shared._cv_results._cv_results_rank_update import \
-    _cv_results_rank_update
-
 
 
 def _core_fit(
@@ -559,14 +556,6 @@ def _core_fit(
             del FOLD_FIT_TIMES_VECTOR
             del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
 
-
-    # FINISH RANK COLUMNS HERE #####################################
-    # ONLY DO TEST COLUMNS, DONT DO TRAIN RANK
-    _cv_results_ = _cv_results_rank_update(
-        _scorer,
-        _cv_results
-    )
-    # END FINISH RANK COLUMNS HERE #################################
 
     # 24_07_16, when testing against dask GSCV, this module is altering
     # the params of the in-scope estimator (estimator used inside this

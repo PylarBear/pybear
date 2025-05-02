@@ -566,9 +566,8 @@ class GSTCVDask(_GSTCVMixin):
     def _val_X_y(self, X, y=None):
 
         """
-
-        Implements _val_X_y in methods in _GSTCVMixin.
-        See the docs for _val_X_y.
+        Implements GSTCVDask _val_X_y in methods in _GSTCVMixin.
+        See the docs for GSTCVDask _val_X_y.
 
         """
 
@@ -663,19 +662,6 @@ class GSTCVDask(_GSTCVMixin):
 
     # END SUPPORT METHODS ##############################################
     ####################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

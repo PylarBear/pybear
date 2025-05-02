@@ -113,7 +113,7 @@ class GetParamsMixin:
             if attr[0] == '_' or attr[-1] == '_':
                 continue
 
-            if attr == 'scheduler': # dask scheduler, cant pickle asyncio object
+            if attr == 'scheduler': # cant pickle asyncio object
                 paramsdict[attr] = vars(self)[attr]
             else:
                 paramsdict[attr] = deepcopy(vars(self)[attr])

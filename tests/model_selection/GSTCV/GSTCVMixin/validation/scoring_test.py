@@ -24,6 +24,18 @@ from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring import \
 
 class TestValScoring:
 
+    # def _val_scoring(
+    #     _scoring: ScorerInputType,
+    #     _must_be_dict:Optional[bool] = True
+    # ) -> None:
+
+    # ScorerInputType: TypeAlias = Union[
+    #     ScorerNameTypes,
+    #     Sequence[ScorerNameTypes],
+    #     ScorerCallableType,
+    #     dict[str, ScorerCallableType]
+    # ]
+
 
     @pytest.mark.parametrize('junk_scoring',
         (0, 1, True, False, None, np.nan)
@@ -31,7 +43,7 @@ class TestValScoring:
     def test_rejects_anything_not_str_callable_dict_iterable(self, junk_scoring):
 
         with pytest.raises(TypeError):
-            _val_scoring(junk_scoring)
+            _val_scoring(junk_scoring, _must_be_dict=False)
 
 
     @pytest.mark.parametrize('junk_scoring',
@@ -40,7 +52,7 @@ class TestValScoring:
     def test_rejects_bad_strs(self, junk_scoring):
 
         with pytest.raises(ValueError):
-            _val_scoring(junk_scoring)
+            _val_scoring(junk_scoring, _must_be_dict=False)
 
 
     @pytest.mark.parametrize('good_scoring',
@@ -48,7 +60,7 @@ class TestValScoring:
     )
     def test_accepts_good_strs(self, good_scoring):
 
-        assert _val_scoring(good_scoring) is None
+        assert _val_scoring(good_scoring, _must_be_dict=False) is None
 
 
     @pytest.mark.parametrize('junk_scoring',
@@ -57,21 +69,21 @@ class TestValScoring:
     def test_rejects_non_num_callables(self, junk_scoring):
 
         with pytest.raises(ValueError):
-            _val_scoring(junk_scoring)
+            _val_scoring(junk_scoring, _must_be_dict=False)
 
 
     def test_accepts_good_callable(self):
 
         good_callable = lambda y1, y2: np.sum(np.array(y2)-np.array(y1))
 
-        out = _val_scoring(good_callable) is None
+        out = _val_scoring(good_callable, _must_be_dict=False) is None
 
 
     @pytest.mark.parametrize('junk_scoring', ([], (), {}))
     def test_rejects_empty(self, junk_scoring):
 
         with pytest.raises(ValueError):
-            _val_scoring(junk_scoring)
+            _val_scoring(junk_scoring, _must_be_dict=False)
 
 
     @pytest.mark.parametrize('junk_lists',
@@ -80,7 +92,7 @@ class TestValScoring:
     def test_rejects_junk_lists(self, junk_lists):
 
         with pytest.raises((TypeError, ValueError)):
-            _val_scoring(junk_lists)
+            _val_scoring(junk_lists, _must_be_dict=False)
 
 
     @pytest.mark.parametrize('good_lists',
@@ -88,7 +100,7 @@ class TestValScoring:
          {'f1', 'balanced_accuracy', 'recall', 'precision'})
     )
     def test_accepts_good_list_likes(self, good_lists):
-        assert _val_scoring(good_lists) is None
+        assert _val_scoring(good_lists, _must_be_dict=False) is None
 
 
     @pytest.mark.parametrize('junk_dicts',
@@ -98,7 +110,7 @@ class TestValScoring:
     def test_rejects_junk_dicts(self, junk_dicts):
 
         with pytest.raises(ValueError):
-            _val_scoring(junk_dicts)
+            _val_scoring(junk_dicts, _must_be_dict=False)
 
 
     @pytest.mark.parametrize('good_dict',
@@ -107,7 +119,32 @@ class TestValScoring:
     )
     def test_accepts_good_dicts(self, good_dict):
 
-        assert _val_scoring(good_dict) is None
+        assert _val_scoring(good_dict, _must_be_dict=False) is None
+
+
+    @pytest.mark.parametrize('_scoring',
+        ('str', 'list_str', 'callable', 'dict_callable')
+    )
+    @pytest.mark.parametrize('_must_be_dict', (True, False))
+    def test_must_be_dict_works(self, _scoring, _must_be_dict):
+
+        _will_raise = False
+        if _must_be_dict and _scoring != 'dict_callable':
+            _will_raise = True
+
+
+        if _scoring == 'str':
+            _scoring = 'accuracy'
+        elif _scoring == 'list_str':
+            _scoring = ['precision', 'recall']
+        elif _scoring == 'callable':
+            _scoring = lambda y1, y2: 0.5
+        elif _scoring == 'dict_callable':
+            _scoring = {'scorer1': lambda y1, y2: 0, 'scorer2': lambda y1, y2: 1}
+        else:
+            raise Exception
+
+
 
 
 

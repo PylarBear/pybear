@@ -19,9 +19,9 @@ class TestValParamGrid:
 
 
     # def _val_param_grid(
-    #     _param_grid: Union[ParamGridType, Sequence[ParamGridType], None]
+    #     _param_grid: Union[ParamGridInputType, ParamGridsInputType, None],
+    #     _must_be_list_dict:Optional[bool] = True
     # ) -> None:
-
 
 
     @staticmethod
@@ -41,7 +41,10 @@ class TestValParamGrid:
     )
     def test_rejects_junk_param_grid(self, junk_param_grid):
         with pytest.raises(TypeError):
-            _val_param_grid(junk_param_grid)
+            _val_param_grid(
+                junk_param_grid,
+                _must_be_list_dict=False
+            )
 
 
     @pytest.mark.parametrize('junk_param_grid',
@@ -49,7 +52,10 @@ class TestValParamGrid:
     )
     def test_rejects_junk_dicts(self, junk_param_grid):
         with pytest.raises(TypeError):
-            _val_param_grid(junk_param_grid)
+            _val_param_grid(
+                junk_param_grid,
+                _must_be_list_dict=False
+            )
 
 
     @pytest.mark.parametrize('junk_param_grid',
@@ -57,17 +63,32 @@ class TestValParamGrid:
     )
     def test_rejects_junk_lists(self, junk_param_grid):
         with pytest.raises(TypeError):
-            _val_param_grid(junk_param_grid)
+            _val_param_grid(
+                junk_param_grid,
+                _must_be_list_dict=False
+            )
+
+
+    @pytest.mark.parametrize('junk_must_be_list_dict',
+        (-2,7, -1, 0, 1, 2.7, None, 'junk', [0,1], (0,1), {0,1}, lambda x: x)
+    )
+    def test_rejects_non_bool_must_be_list_dict(
+        self, good_param_grid, junk_must_be_list_dict
+    ):
+        with pytest.raises(AssertionError):
+            _val_param_grid(
+                good_param_grid,
+                _must_be_list_dict=junk_must_be_list_dict
+            )
 
 
     def test_accepts_good_param_grids(self, good_param_grid):
 
-        assert _val_param_grid(None) is None
-
-        assert _val_param_grid(good_param_grid) is None
-
-        assert _val_param_grid([good_param_grid[0]]) is None
-
+        assert _val_param_grid(None, _must_be_list_dict=False) is None
+        assert _val_param_grid(good_param_grid, _must_be_list_dict=False) is None
+        assert _val_param_grid(
+            [good_param_grid[0]], _must_be_list_dict=False
+        ) is None
 
 
     @pytest.mark.parametrize('valid_empties',
@@ -75,7 +96,7 @@ class TestValParamGrid:
     )
     def test_accepts_valid_empties(self, valid_empties):
 
-        assert _val_param_grid(valid_empties) is None
+        assert _val_param_grid(valid_empties, _must_be_list_dict=False) is None
 
 
     @pytest.mark.parametrize('bad_empties',
@@ -84,11 +105,41 @@ class TestValParamGrid:
     def test_rejects_invalid_empties(self, bad_empties):
 
         with pytest.raises(TypeError):
-            _val_param_grid(bad_empties)
+            _val_param_grid(bad_empties, _must_be_list_dict=False)
 
+
+    @pytest.mark.parametrize('_param_grid', ('none', 'dict', 'list'))
+    @pytest.mark.parametrize('_must_be_list_dict', (True, False))
+    def test_must_be_list_dict(
+        self, good_param_grid, _param_grid, _must_be_list_dict
+    ):
+
+        _will_raise = False
+        if _must_be_list_dict and _param_grid != 'list':
+            _will_raise = True
+
+        if _param_grid == 'none':
+            _param_grid = None
+        elif _param_grid == 'dict':
+            _param_grid = good_param_grid[0]
+        elif _param_grid == 'list':
+            _param_grid = good_param_grid
+        else:
+            raise Exception
+
+        if _will_raise:
+            with pytest.raises(TypeError):
+                _val_param_grid(
+                    _param_grid=_param_grid,
+                    _must_be_list_dict=_must_be_list_dict
+                )
+        else:
+            assert _val_param_grid(
+                _param_grid=_param_grid,
+                _must_be_list_dict=_must_be_list_dict
+            ) is None
 
     # END param_grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
 
     # _thresholds ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -102,7 +153,7 @@ class TestValParamGrid:
         good_param_grid[grid_idx]['thresholds'] = junk_thresh
 
         with pytest.raises((TypeError, ValueError)):
-            _val_param_grid(good_param_grid)
+            _val_param_grid(good_param_grid, _must_be_list_dict=False)
 
 
     @pytest.mark.parametrize('good_thresh', ([0, 0.1, 0.2], (0.8, 0.9, 1.0)))
@@ -111,8 +162,7 @@ class TestValParamGrid:
 
         good_param_grid[grid_idx]['thresholds'] = good_thresh
 
-        _val_param_grid(good_param_grid)
-
+        assert _val_param_grid(good_param_grid, _must_be_list_dict=False) is None
 
 
     @pytest.mark.parametrize('thresholds', (None, 0.75, [0.25, 0.5, 0.75]))
@@ -123,11 +173,15 @@ class TestValParamGrid:
 
         if thresholds in [None, 0.75]:
             with pytest.raises(TypeError):
-                _val_param_grid({'thresholds': thresholds})
+                _val_param_grid(
+                    {'thresholds': thresholds}, _must_be_list_dict=False
+                )
 
         elif np.array_equiv(thresholds, [0.25, 0.5, 0.75]):
 
-            assert _val_param_grid({'thresholds': thresholds}) is None
+            assert _val_param_grid(
+                {'thresholds': thresholds}, _must_be_list_dict=False
+            ) is None
 
     # END _thresholds ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

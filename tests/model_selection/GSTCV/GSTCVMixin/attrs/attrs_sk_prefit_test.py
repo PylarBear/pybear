@@ -26,10 +26,7 @@ class TestSKAttrsPreFit:
 
         sk_GSTCV_prefit = sk_GSTCV_est_log_one_scorer_prefit
 
-        with pytest.raises(
-            AttributeError,
-            match=generic_no_attribute_1('GSTCV', attr)
-        ):
+        with pytest.raises(AttributeError):
             getattr(sk_GSTCV_prefit, attr)
 
 

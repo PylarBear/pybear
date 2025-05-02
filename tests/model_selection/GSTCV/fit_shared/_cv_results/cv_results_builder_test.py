@@ -51,8 +51,11 @@ class TestCVResultsBuilderTest:
     def _scorer():
         return {'balanced_accuracy': master_scorer_dict['balanced_accuracy']}
 
-
+    # END fixtures
     # *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @pytest.mark.parametrize('_junk_param_grid',
         (-1, 0, 1, np.pi, True, False, 'trash', None, min,
@@ -61,10 +64,10 @@ class TestCVResultsBuilderTest:
     def test_rejects_junk_param_grid(self, _junk_param_grid, _scorer):
         with pytest.raises(TypeError):
             cv_results_output, _ = _cv_results_builder(
-                param_grid=_junk_param_grid,
-                cv=3,
-                scorer=_scorer,
-                return_train_score=True
+                _param_grid=_junk_param_grid,
+                _cv=3,
+                _scorer=_scorer,
+                _return_train_score=True
             )
 
     @pytest.mark.parametrize('_junk_cv',
@@ -72,12 +75,12 @@ class TestCVResultsBuilderTest:
         [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_cv(self, param_grid, _junk_cv, _scorer):
-        with pytest.raises(TypeError):
+        with pytest.raises((TypeError, ValueError)):
             cv_results_output, _ = _cv_results_builder(
-                param_grid=param_grid,
-                cv=_junk_cv,
-                scorer=_scorer,
-                return_train_score=True
+                _param_grid=param_grid,
+                _cv=_junk_cv,
+                _scorer=_scorer,
+                _return_train_score=True
             )
 
     @pytest.mark.parametrize('_junk_scorer',
@@ -87,10 +90,10 @@ class TestCVResultsBuilderTest:
     def test_rejects_junk_scorer(self, param_grid, _junk_scorer):
         with pytest.raises(TypeError):
             cv_results_output, _ = _cv_results_builder(
-                param_grid=param_grid,
-                cv=3,
-                scorer=_junk_scorer,
-                return_train_score=True
+                _param_grid=param_grid,
+                _cv=3,
+                _scorer=_junk_scorer,
+                _return_train_score=True
             )
 
     @pytest.mark.parametrize('_junk_return_train_score',
@@ -101,22 +104,24 @@ class TestCVResultsBuilderTest:
                                       param_grid, _scorer):
         with pytest.raises(TypeError):
             cv_results_output, _ = _cv_results_builder(
-                param_grid=param_grid,
-                cv=3,
-                scorer=_scorer,
-                return_train_score=_junk_return_train_score
+                _param_grid=param_grid,
+                _cv=3,
+                _scorer=_scorer,
+                _return_train_score=_junk_return_train_score
             )
 
-
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     @pytest.mark.parametrize('_cv', (3, 4, 5))
     @pytest.mark.parametrize('_scoring',
-        (['accuracy'], ['accuracy', 'balanced_accuracy'])
+        ({'accuracy': lambda y1, y2: 0.1231},
+        {'precision': lambda y1, y2: 0.8987, 'recall': lambda y1, y2: 0.2342})
     )
     @pytest.mark.parametrize('return_train', (True, False))
-    def test_cv_results_builder(self, _cv, _scoring, return_train, param_grid,
-                                correct_cv_results_len):
+    def test_cv_results_builder(
+        self, _cv, _scoring, return_train, param_grid, correct_cv_results_len
+    ):
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # BUILD VERIFICATION STUFF ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -155,10 +160,10 @@ class TestCVResultsBuilderTest:
 
         # RUN cv_results_builder AND GET CHARACTERISTICS ######################
         cv_results_output, PARAM_GRID_KEY = _cv_results_builder(
-            param_grid,
-            _cv,
-            _scoring,
-            return_train
+            _param_grid=param_grid,
+            _cv=_cv,
+            _scorer=_scoring,
+            _return_train_score=return_train
         )
 
         OUTPUT_COLUMNS = list(cv_results_output.keys())
@@ -214,10 +219,10 @@ class TestCVResultsBuilderTest:
                 _scorer[k] = v
 
         cv_results_output, _ = _cv_results_builder(
-            param_grid=[{'param_1':[1,2,3], 'param_2':[True, False]}],
-            cv=3,
-            scorer=_scorer,
-            return_train_score=True
+            _param_grid=[{'param_1':[1,2,3], 'param_2':[True, False]}],
+            _cv=3,
+            _scorer=_scorer,
+            _return_train_score=True
         )
 
         del _
@@ -252,10 +257,10 @@ class TestCVResultsBuilderTest:
         _scorer = {'balanced_accuracy': master_scorer_dict['balanced_accuracy']}
 
         cv_results_output, _ = _cv_results_builder(
-            param_grid=[{'abc': [1, 2]}, {'xyz': ['a', 'b']}],
-            cv=5,
-            scorer=_scorer,
-            return_train_score=False
+            _param_grid=[{'abc': [1, 2]}, {'xyz': ['a', 'b']}],
+            _cv=5,
+            _scorer=_scorer,
+            _return_train_score=False
         )
 
         del _

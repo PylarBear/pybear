@@ -275,7 +275,7 @@ class TextReplacer(
         self.flags = flags
 
 
-    def __pybear_is_fitted__(self):
+    def __pybear_is_fitted__(self) -> bool:
         return True
 
 

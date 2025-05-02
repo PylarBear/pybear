@@ -58,10 +58,10 @@ class TestCoreFitValidation:
 
         out_cv_results, out_key = _cv_results_builder(
             # DO NOT PUT 'thresholds' IN PARAM GRIDS!
-            param_grid=param_grid,
-            cv=standard_cv_int,
-            scorer=good_SCORER,
-            return_train_score=True
+            _param_grid=param_grid,
+            _cv=standard_cv_int,
+            _scorer=good_SCORER,
+            _return_train_score=True
         )
 
         return out_cv_results, out_key

@@ -75,10 +75,10 @@ class TestCVCacheCVIid:
 
         out_cv_results, out_key = _cv_results_builder(
             # DO NOT PUT 'thresholds' IN PARAM GRIDS!
-            param_grid=good_param_grid,
-            cv=standard_cv_int,
-            scorer=good_scorer,
-            return_train_score=True
+            _param_grid=good_param_grid,
+            _cv=standard_cv_int,
+            _scorer=good_scorer,
+            _return_train_score=True
         )
 
         return out_cv_results, out_key

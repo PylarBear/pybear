@@ -155,7 +155,7 @@ class TextJoiner(
         return self._n_rows
 
 
-    def __pybear_is_fitted__(self):
+    def __pybear_is_fitted__(self) -> bool:
         return True
 
 
