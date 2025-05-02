@@ -12,7 +12,7 @@ from ..._type_aliases import (
     ScorerWIPType,
 )
 
-from ....GSTCV._master_scorer_dict import master_scorer_dict
+from ....GSTCV._GSTCVMixin._validation._scoring import master_scorer_dict
 
 
 

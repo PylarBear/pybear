@@ -98,7 +98,7 @@
         or when refit is specified as a string for 2+ scorers.
 
     best_params_:
-        dict[str, any] - Exposes the dictionary found at
+        dict[str, Any] - Exposes the dictionary found at
         cv_results_['params'][best_index_], which gives the parameter
         settings that resulted in the highest mean score (best_score_)
         on the hold out (test) data.

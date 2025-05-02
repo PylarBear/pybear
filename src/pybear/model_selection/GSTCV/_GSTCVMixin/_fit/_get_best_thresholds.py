@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import (
+from ..._type_aliases import (
     IntermediateHolderType,
     ThresholdsWIPType
 )

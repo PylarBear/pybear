@@ -9,7 +9,8 @@
 import pytest
 import numpy as np
 
-from pybear.model_selection.GSTCV._master_scorer_dict import master_scorer_dict
+from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring \
+    import master_scorer_dict
 from sklearn.model_selection import ParameterGrid
 
 

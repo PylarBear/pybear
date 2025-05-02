@@ -23,8 +23,10 @@ from ._type_aliases import (
 )
 from .._type_aliases import ClassifierProtocol
 
+from copy import deepcopy
 import numbers
 
+from dask import compute
 import distributed
 
 from ._validation._validation import _validation
@@ -34,6 +36,12 @@ from ._param_conditioning._scheduler import _cond_scheduler
 
 from ._fit._core_fit import _core_fit
 
+from .._GSTCVDask._fit._get_kfold import _get_kfold as _dask_get_kfold
+from .._GSTCVDask._fit._fold_splitter import _fold_splitter as _dask_fold_splitter
+from .._GSTCVDask._fit._estimator_fit_params_helper import _estimator_fit_params_helper as _dask_estimator_fit_params_helper
+from .._GSTCVDask._fit._parallelized_fit import _parallelized_fit
+from .._GSTCVDask._fit._parallelized_scorer import _parallelized_scorer
+from .._GSTCVDask._fit._parallelized_train_scorer import _parallelized_train_scorer
 from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
 from ....base import check_is_fitted
@@ -563,15 +571,44 @@ class GSTCVDask(_GSTCVMixin):
     ####################################################################
     # SUPPORT METHODS ##################################################
 
-    def _val_X_y(self, X, y=None):
+    def _val_X_y(self, _X, _y=None) -> None:
 
         """
         Implements GSTCVDask _val_X_y in methods in _GSTCVMixin.
         See the docs for GSTCVDask _val_X_y.
 
         """
+        # KEEP val of X & y separate, the all methods need X & y everytime
+        _val_X_y(_X, _y=_y)
 
-        return _val_X_y(X, _y=y)
+
+    def _val_params(self) -> None:
+
+        # KEEP val of X & y separate, the all methods need X & y everytime
+        _validation(self.estimator, self.iid, self.cache_cv)
+
+
+    def _condition_params(self, _X, _y, _fit_params) -> None:
+
+        self._scheduler = _cond_scheduler(self.scheduler, self.n_jobs)
+
+        if isinstance(self._cv, int):
+            self._KFOLD = list(_dask_get_kfold(_X, self.n_splits_, self.iid, self._verbose, _y=_y))
+        else:  # _cv is an iterable
+            self._KFOLD = self._cv
+
+        self._fold_fit_params = _dask_estimator_fit_params_helper(
+            [*compute(len(_y))][0],
+            _fit_params,
+            self._KFOLD
+        )
+
+        self._CACHE_CV = None
+        if self.cache_cv:
+            self._CACHE_CV = []
+            for (train_idxs, test_idxs) in self._KFOLD:
+                self._CACHE_CV.append(_dask_fold_splitter(train_idxs, test_idxs, _X, _y))
+            self._KFOLD = None
 
 
     def _core_fit(
@@ -641,6 +678,188 @@ class GSTCVDask(_GSTCVMixin):
         )
 
         return
+
+
+    def _fit_all_folds(
+        self,
+        _X,
+        _y,
+        _grid: dict[str, Any]
+    ):  # pizza type hint
+
+        """
+
+        Returns
+        -------
+
+        """
+
+        # **** IMPORTANT NOTES ABOUT estimator & n_jobs ****
+        # there was a (sometimes large, >> 0.10) anomaly in scores
+        # when n_jobs was set to (1, None) vs. (-1, 2, 3, 4) when using
+        # SK Logistic. While running the fits under a regular for-loop,
+        # the SK estimator itself was found to be the cause, from being
+        # fit on repeatedly without reconstruct. There appears be some
+        # form of state information being retained in the estimator that
+        # is altered with fit and alters subsequent fits slightly. there
+        # is very little on google and ChatGPT about this (ChatGPT also
+        # thinks that 'state' is the problem.) Locking random_state made
+        # no difference, and locking other things with randomness (KFold,
+        # etc.) made no difference. There was no experimentation done to
+        # see if that problem extends beyond SK Logistic or SK. joblib
+        # with n_jobs (1, None) behaves exactly the same as a regular
+        # for-loop. The solution is to reconstruct the estimator with each
+        # fit and fit it once - then the results agree exactly with the
+        # results when n_jobs > 1 and with SK gscv. 'estimator' is being
+        # rebuilt at each call with the class constructor
+        # type(_estimator)(**_estimator.get_params(deep=True)).
+
+        # must use shallow params to construct estimator
+        s_p = self._estimator.get_params(deep=False)  # shallow_params
+        # must use deep params for pipeline to set GSCV params (depth
+        # doesnt matter for an estimator when not pipeline.)
+        d_p = self._estimator.get_params(deep=True)  # deep_params
+
+        FIT_OUTPUT = list()
+        with self._scheduler as scheduler:
+            if self.cache_cv:
+
+                for f_idx, ((_X_train, _), (_y_train, _)) in enumerate(self._CACHE_CV):
+
+                    FIT_OUTPUT.append(_parallelized_fit(
+                            f_idx,
+                            # train only!
+                            *(_X_train, _y_train),
+                            type(self._estimator)(**s_p).set_params(**deepcopy(d_p)),
+                            _grid,
+                            self.error_score,
+                            **self._fold_fit_params[f_idx]
+                        )
+                    )
+
+            elif not self.cache_cv:
+                for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
+
+                    FIT_OUTPUT.append(
+                        _parallelized_fit(
+                            f_idx,
+                            # train only!
+                            *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
+                            type(self._estimator)(**s_p).set_params(**d_p),
+                            _grid,
+                            self.error_score,
+                            **self._fold_fit_params[f_idx]
+                        )
+                    )
+
+        del s_p, d_p
+
+        return FIT_OUTPUT
+
+        # END FIT ALL FOLDS ###############################################
+
+
+    def _score_all_folds_and_thresholds(
+        self,
+        _X,
+        _y,
+        _FIT_OUTPUT,
+        _THRESHOLDS
+    ): # pizza type hint
+
+        """
+
+        Returns
+        -------
+
+        """
+
+        TEST_SCORER_OUT = list()
+        with self._scheduler as scheduler:
+            if self.cache_cv:
+
+                for f_idx, ((_, X_test), (_, y_test)) in enumerate(self._CACHE_CV):
+
+                    TEST_SCORER_OUT.append(
+                        _parallelized_scorer(
+                            # test only!
+                            *(X_test, y_test),
+                            _FIT_OUTPUT[f_idx],
+                            f_idx,
+                            self.scorer_,
+                            _THRESHOLDS,
+                            self.error_score,
+                            self.verbose
+                        )
+                    )
+
+            elif not self.cache_cv:
+
+                for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
+
+                    TEST_SCORER_OUT.append(
+                        _parallelized_scorer(
+                            # test only!
+                            *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[1],
+                            _FIT_OUTPUT[f_idx],
+                            f_idx,
+                            self.scorer_,
+                            _THRESHOLDS,
+                            self.error_score,
+                            self.verbose
+                        )
+                    )
+
+        return TEST_SCORER_OUT
+        # END SCORE ALL FOLDS & THRESHOLDS #################################
+
+
+    def _score_train(
+        self,
+        _X,
+        _y,
+        _FIT_OUTPUT,
+        _BEST_THRESHOLDS_BY_SCORER
+    ): # pizza type hint
+        # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
+
+        TRAIN_SCORER_OUT = []
+        with self._scheduler as scheduler:
+            if self.cache_cv:
+                for f_idx, ((X_train, _), (y_train, _)) in enumerate(self.CACHE_CV):
+                    TRAIN_SCORER_OUT.append(
+                        _parallelized_train_scorer(
+                            # train only!
+                            X_train,
+                            y_train,
+                            _FIT_OUTPUT[f_idx],
+                            f_idx,
+                            self.scorer_,
+                            _BEST_THRESHOLDS_BY_SCORER,
+                            self.error_score,
+                            self.verbose
+                        )
+                    )
+
+            elif not self.cache_cv:
+
+                for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
+                    TRAIN_SCORER_OUT.append(
+                        _parallelized_train_scorer(
+                            # train only!
+                            *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
+                            _FIT_OUTPUT[f_idx],
+                            f_idx,
+                            self.scorer_,
+                            _BEST_THRESHOLDS_BY_SCORER,
+                            self.error_score,
+                            self.verbose
+                        )
+                    )
+
+        return TRAIN_SCORER_OUT
+
+
 
 
     def visualize(self, filename="mydask", format=None, **kwargs):

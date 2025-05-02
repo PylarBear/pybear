@@ -8,7 +8,7 @@
 
 import numpy as np
 from typing import Literal
-from ..._type_aliases import CVResultsType, ScorerWIPType
+from ...._type_aliases import CVResultsType, ScorerWIPType
 
 
 

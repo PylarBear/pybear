@@ -8,6 +8,7 @@
 
 from typing import (
     Callable,
+    ContextManager,
     Literal,
     Iterable,
     Sequence,
@@ -17,17 +18,25 @@ from typing_extensions import (
     Any,
     Union
 )
-
 from .._type_aliases import ClassifierProtocol
 
+from contextlib import nullcontext
 from copy import deepcopy
 import numbers
+
+import joblib
 
 from ._validation._validation import _validation
 from ._validation._X_y import _val_X_y
 
 from ._fit._core_fit import _core_fit
 
+from .._GSTCV._fit._get_kfold import _get_kfold as _sk_get_kfold
+from .._GSTCV._fit._fold_splitter import _fold_splitter as _sk_fold_splitter
+from .._GSTCV._fit._estimator_fit_params_helper import _estimator_fit_params_helper as _sk_estimator_fit_params_helper
+from .._GSTCV._fit._parallelized_fit import _parallelized_fit
+from .._GSTCV._fit._parallelized_scorer import _parallelized_scorer
+from .._GSTCV._fit._parallelized_train_scorer import _parallelized_train_scorer
 from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 
 
@@ -512,7 +521,7 @@ class GSTCV(_GSTCVMixin):
     ####################################################################
     # SUPPORT METHODS ##################################################
 
-    def _val_X_y(self, X, y:Optional[Any] = None):
+    def _val_X_y(self, _X, _y=None) -> None:
 
         """
         Implements GSTCV _val_X_y in methods in _GSTCVMixin.
@@ -520,7 +529,50 @@ class GSTCV(_GSTCVMixin):
 
         """
 
-        return _val_X_y(X, _y=y)
+        # KEEP val of X & y separate, the all methods need X & y everytime
+
+        return _val_X_y(_X, _y=_y)
+
+
+    def _val_params(self) -> None:
+
+        """
+
+
+        Returns
+        -------
+
+        """
+
+        # KEEP val of X & y separate, the all methods need X & y everytime
+        _validation(self.estimator, self.pre_dispatch)
+
+
+    def _condition_params(self, _X, _y, _fit_params) -> None:
+
+        """
+
+
+        Returns
+        -------
+
+        """
+
+        # this is needed for GSTCV for compatibility with GSTCVMixin
+        # nullcontext needs to stay. In _GSTCVMixin.fit (which serves both
+        # GSTCV & GSTCVDask) refit,  is undera scheduler context manager.
+        self._scheduler: ContextManager = nullcontext()
+
+        if isinstance(self._cv, int):
+            self._KFOLD = list(_sk_get_kfold(_X, _y, self.n_splits_, self._verbose))
+        else:  # _cv is an iterable
+            self._KFOLD = self._cv
+
+        self._fold_fit_params = _sk_estimator_fit_params_helper(
+            len(_y),
+            _fit_params,
+            self._KFOLD
+        )
 
 
     def _core_fit(
@@ -548,10 +600,10 @@ class GSTCV(_GSTCVMixin):
         ----------
         # pizza fix these wack type hints
         X:
-            NDArray[Union[int, float]] - the data to be fit by GSTCV
-            against the target.
+            array-like of shape (n_samples, n_features) - the data to be
+            fit by GSTCV against the target.
         y:
-            NDArray[Union[int, float]] - the target to train the data
+            vector-like of shape (n_samples, ) pizza can it take 2D? - the target to train the data
             against.
 
 
@@ -591,6 +643,132 @@ class GSTCV(_GSTCVMixin):
     ####################################################################
 
 
+
+
+    def _fit_all_folds(
+        self,
+        _X,
+        _y,
+        _grid: dict[str, Any]
+    ): # pizza type hint
+
+        """
+
+        Returns
+        -------
+
+        """
+
+        # **** IMPORTANT NOTES ABOUT estimator & n_jobs ****
+        # there was a (sometimes large, >> 0.10) anomaly in scores
+        # when n_jobs was set to (1, None) vs. (-1, 2, 3, 4) when using
+        # SK Logistic. While running the fits under a regular for-loop,
+        # the SK estimator itself was found to be the cause, from being
+        # fit on repeatedly without reconstruct. There appears be some
+        # form of state information being retained in the estimator that
+        # is altered with fit and alters subsequent fits slightly. there
+        # is very little on google and ChatGPT about this (ChatGPT also
+        # thinks that 'state' is the problem.) Locking random_state made
+        # no difference, and locking other things with randomness (KFold,
+        # etc.) made no difference. There was no experimentation done to
+        # see if that problem extends beyond SK Logistic or SK. joblib
+        # with n_jobs (1, None) behaves exactly the same as a regular
+        # for-loop. The solution is to reconstruct the estimator with each
+        # fit and fit it once - then the results agree exactly with the
+        # results when n_jobs > 1 and with SK gscv. 'estimator' is being
+        # rebuilt at each call with the class constructor
+        # type(_estimator)(**_estimator.get_params(deep=True)).
+
+        # must use shallow params to construct estimator
+        s_p = self._estimator.get_params(deep=False)  # shallow_params
+        # must use deep params for pipeline to set GSCV params (depth
+        # doesnt matter for an estimator when not pipeline.)
+        d_p = self._estimator.get_params(deep=True)  # deep_params
+
+        with joblib.parallel_config(prefer='processes', n_jobs=self.n_jobs):
+            FIT_OUTPUT = joblib.Parallel(
+                return_as='list', pre_dispatch=self.pre_dispatch
+            )(
+                joblib.delayed(_parallelized_fit)(
+                    f_idx,
+                    # train only!
+                    *list(zip(*_sk_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
+                    type(self._estimator)(**s_p).set_params(**deepcopy(d_p)),
+                    _grid,
+                    self.error_score,
+                    **self._fold_fit_params[f_idx]
+                ) for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD)
+            )
+
+        del s_p, d_p
+
+        return FIT_OUTPUT
+
+        # END FIT ALL FOLDS ###############################################
+
+
+    def _score_all_folds_and_thresholds(
+        self,
+        _X,
+        _y,
+        _FIT_OUTPUT,
+        _THRESHOLDS
+    ): # pizza type hint
+
+        """
+
+        Returns
+        -------
+
+        """
+
+        with joblib.parallel_config(prefer='processes', n_jobs=self.n_jobs):
+            TEST_SCORER_OUT = joblib.Parallel(
+                return_as='list', pre_dispatch=self.pre_dispatch
+            )(
+                joblib.delayed(_parallelized_scorer)(
+                    # test only!
+                    *list(zip(*_sk_fold_splitter(train_idxs, test_idxs, _X, _y)))[1],
+                    _FIT_OUTPUT[f_idx],
+                    f_idx,
+                    self.scorer_,
+                    _THRESHOLDS,
+                    self.error_score,
+                    self.verbose
+                ) for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD)
+            )
+
+
+        return TEST_SCORER_OUT
+        # END SCORE ALL FOLDS & THRESHOLDS #################################
+
+
+    def _score_train(
+        self,
+        _X,
+        _y,
+        _FIT_OUTPUT,
+        _BEST_THRESHOLDS_BY_SCORER
+    ): # pizza type hint
+        # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
+
+        with joblib.parallel_config(prefer='processes', n_jobs=self.n_jobs):
+            TRAIN_SCORER_OUT = joblib.Parallel(
+                return_as='list', pre_dispatch=self.pre_dispatch
+            )(
+                joblib.delayed(_parallelized_train_scorer)(
+                    # train only!
+                    *list(zip(*_sk_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
+                    _FIT_OUTPUT[f_idx],
+                    f_idx,
+                    self.scorer_,
+                    _BEST_THRESHOLDS_BY_SCORER,
+                    self.error_score,
+                    self.verbose
+                ) for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD)
+            )
+
+        return TRAIN_SCORER_OUT
 
 
 

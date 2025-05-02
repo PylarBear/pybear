@@ -6,17 +6,20 @@
 
 
 
-from typing_extensions import Union
-from ..._type_aliases import ClassifierProtocol
+from typing import Literal
+from typing_extensions import (
+    Any,
+    Union
+)
 from .._type_aliases import (
     XDaskWIPType,
     YDaskWIPType
 )
+from ..._type_aliases import ClassifierProtocol
 
+import numbers
 import time
 import warnings
-
-import dask
 
 
 
@@ -25,8 +28,8 @@ def _parallelized_fit(
     _X_train: XDaskWIPType,
     _y_train: YDaskWIPType,
     _estimator_: ClassifierProtocol,
-    _grid: dict[str, Union[str, int, float, bool]],
-    _error_score,  # pizza what's the type here?
+    _grid: dict[str, Any],
+    _error_score: Union[numbers.Real, Literal['raise']],
     **fit_params
 ) -> tuple[ClassifierProtocol, float, bool]:
 
@@ -53,9 +56,8 @@ def _parallelized_fit(
         never calls it.) This includes, but is not limited to, dask_ml,
         XGBoost, and LGBM classifiers.
     _grid:
-        dict[str, Union[str, int, float, bool]] - the hyperparameter
-        values to be used during this fit. One permutation of all the
-        grid search permutations.
+        dict[str, Any] - the hyperparameter values to be used during
+        this fit. One permutation of all the grid search permutations.
     _error_score:
         Union[numbers.Real, Literal['raise']] - if a training fold excepts
         during fitting, the exception can be allowed to raise by passing

@@ -6,12 +6,10 @@
 
 
 
-from typing_extensions import Union
-
 import numpy as np
 import numpy.typing as npt
 
-from ..._type_aliases import (
+from ...._type_aliases import (
     CVResultsType,
     IntermediateHolderType,
     ScorerWIPType,

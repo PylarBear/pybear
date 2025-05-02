@@ -6,7 +6,7 @@
 
 
 
-from typing import Literal, Iterable, TypedDict
+from typing import Literal, Iterable
 from typing_extensions import Union
 import numpy.typing as npt
 from ..._type_aliases import (
@@ -35,9 +35,8 @@ from ._parallelized_fit import _parallelized_fit
 from ._parallelized_scorer import _parallelized_scorer
 from ._parallelized_train_scorer import _parallelized_train_scorer
 
-from ..._fit_shared._get_best_thresholds import _get_best_thresholds
-
-from ..._fit_shared._cv_results._cv_results_update import _cv_results_update
+from ..._GSTCVMixin._fit._cv_results._cv_results_update import _cv_results_update
+from ..._GSTCVMixin._fit._get_best_thresholds import _get_best_thresholds
 
 
 
@@ -194,7 +193,7 @@ def _core_fit(
 
     assert isinstance(_return_train_score, bool)
 
-    assert isinstance(_scorer, TypedDict)
+    assert isinstance(_scorer, dict)
     assert all(map(isinstance, _scorer, (str for _ in _scorer)))
     assert all(map(callable, _scorer.values()))
 
