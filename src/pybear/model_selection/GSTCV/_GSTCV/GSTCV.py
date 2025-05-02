@@ -518,9 +518,6 @@ class GSTCV(_GSTCVMixin):
         self.return_train_score = return_train_score
 
 
-    ####################################################################
-    # SUPPORT METHODS ##################################################
-
     def _val_X_y(self, _X, _y=None) -> None:
 
         """
@@ -637,12 +634,6 @@ class GSTCV(_GSTCVMixin):
         )
 
         return
-
-
-    # END SUPPORT METHODS ##############################################
-    ####################################################################
-
-
 
 
     def _fit_all_folds(

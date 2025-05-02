@@ -99,7 +99,7 @@ class TestGSTCVInput:
         dask_LogisticRegression)
     )
     def test_rejects_not_instantiated(
-        self, _GSTCVDask, not_instantiated, X_da, y_da
+        self, _GSTCVDask, not_instantiated, X_da, y_da, _client
     ):
 
         with pytest.raises(
@@ -115,7 +115,9 @@ class TestGSTCVInput:
         (int, str, list, object, sk_OneHotEncoder, dask_OneHotEncoder,
          sk_CountVectorizer, dask_CountVectorizer)
     )
-    def test_rejects_non_estimator(self, _GSTCVDask, non_estimator, X_da, y_da):
+    def test_rejects_non_estimator(
+        self, _GSTCVDask, non_estimator, X_da, y_da, _client
+    ):
 
         with pytest.raises(AttributeError):
             _GSTCVDask.set_params(estimator=non_estimator()).fit(X_da, y_da)
@@ -128,8 +130,6 @@ class TestGSTCVInput:
         self, _GSTCVDask, non_dask_classifier, X_da, y_da, _client
     ):
 
-        # pizza client must stay here or fail for scheduler closed
-
         exp_warn = (f"'{non_dask_classifier().__class__.__name__}' does not "
             f"appear to be a dask classifier.")
         with pytest.warns(match=exp_warn):
@@ -140,7 +140,7 @@ class TestGSTCVInput:
         (sk_LinearRegression, sk_Ridge, sk_SGDRegressor)
     )
     def test_rejects_non_dask_non_classifier(
-        self, _GSTCVDask, non_classifier, X_da, y_da
+        self, _GSTCVDask, non_classifier, X_da, y_da, _client
     ):
         with pytest.raises(AttributeError):
             _GSTCVDask.set_params(estimator=non_classifier()).fit(X_da, y_da)
@@ -148,7 +148,7 @@ class TestGSTCVInput:
 
     @pytest.mark.parametrize('dask_non_classifiers', (dask_LinearRegression, ))
     def test_rejects_all_dask_non_classifiers(
-        self, _GSTCVDask, dask_non_classifiers, X_da, y_da
+        self, _GSTCVDask, dask_non_classifiers, X_da, y_da, _client
     ):
 
         # must be an instance not the class! & be a classifier!
@@ -156,7 +156,9 @@ class TestGSTCVInput:
             _GSTCVDask.set_params(estimator=dask_non_classifiers()).fit(X_da, y_da)
 
 
-    def test_accepts_all_dask_classifiers(self, _GSTCVDask, X_da, y_da, _client):
+    def test_accepts_all_dask_classifiers(
+        self, _GSTCVDask, X_da, y_da, _client
+    ):
 
         # must be an instance not the class! & be a classifier!
 
@@ -173,13 +175,17 @@ class TestGSTCVInput:
     @pytest.mark.parametrize('junk_iid',
         (0, 1, 3.14, None, min, 'junk', [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
     )
-    def test_rejects_all_non_bool(self, _GSTCVDask, junk_iid, X_da, y_da):
+    def test_rejects_all_non_bool(
+        self, _GSTCVDask, junk_iid, X_da, y_da, _client
+    ):
         with pytest.raises(TypeError):
             _GSTCVDask.set_params(iid=junk_iid).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('good_iid', (True, False))
-    def test_accepts_bool(self, _GSTCVDask, good_iid, X_da, y_da, _client):
+    def test_accepts_bool(
+        self, _GSTCVDask, good_iid, X_da, y_da, _client
+    ):
 
         assert isinstance(
             _GSTCVDask.set_params(iid=good_iid).fit(X_da, y_da),
@@ -198,13 +204,17 @@ class TestGSTCVInput:
     @pytest.mark.parametrize('junk_cachecv',
         (0, 1, 3.14, None, min, 'junk', [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
     )
-    def test_rejects_all_non_bool(self, _GSTCVDask, junk_cachecv, X_da, y_da):
+    def test_rejects_all_non_bool(
+        self, _GSTCVDask, junk_cachecv, X_da, y_da, _client
+    ):
         with pytest.raises(TypeError):
             _GSTCVDask.set_params(cache_cv=junk_cachecv).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('good_cachecv', (True, False))
-    def test_accepts_bool(self, _GSTCVDask, good_cachecv, X_da, y_da, _client):
+    def test_accepts_bool(
+        self, _GSTCVDask, good_cachecv, X_da, y_da, _client
+    ):
 
         assert isinstance(
             _GSTCVDask.set_params(cache_cv=good_cachecv).fit(X_da, y_da),
@@ -245,14 +255,10 @@ class TestGSTCVInput:
         self, _GSTCVDask, marked_client_class, X_da, y_da, _client
     ):
 
-        # pizza client must stay here or fail for scheduler closed
-        # it's still failing, even tho putting client in fixed
-        # test_warns_on_non_dask_classifiers
-
         assert isinstance(
             _GSTCVDask.set_params(
-                scheduler=marked_client_class(),
-                n_jobs=1
+                scheduler=marked_client_class(n_workers=1),
+                n_jobs=None
             ).fit(X_da, y_da),
             type(_GSTCVDask)
         )

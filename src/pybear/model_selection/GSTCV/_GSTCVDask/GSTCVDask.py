@@ -695,6 +695,7 @@ class GSTCVDask(_GSTCVMixin):
         """
 
         # **** IMPORTANT NOTES ABOUT estimator & n_jobs ****
+        # this is from sklearn notes, where the problem was discovered
         # there was a (sometimes large, >> 0.10) anomaly in scores
         # when n_jobs was set to (1, None) vs. (-1, 2, 3, 4) when using
         # SK Logistic. While running the fits under a regular for-loop,
@@ -721,36 +722,37 @@ class GSTCVDask(_GSTCVMixin):
         d_p = self._estimator.get_params(deep=True)  # deep_params
 
         FIT_OUTPUT = list()
-        with self._scheduler as scheduler:
-            if self.cache_cv:
+        # with self._scheduler as scheduler:   # pizza
+        if self.cache_cv:
 
-                for f_idx, ((_X_train, _), (_y_train, _)) in enumerate(self._CACHE_CV):
+            for f_idx, ((_X_train, _), (_y_train, _)) in enumerate(self._CACHE_CV):
 
-                    FIT_OUTPUT.append(_parallelized_fit(
-                            f_idx,
-                            # train only!
-                            *(_X_train, _y_train),
-                            type(self._estimator)(**s_p).set_params(**deepcopy(d_p)),
-                            _grid,
-                            self.error_score,
-                            **self._fold_fit_params[f_idx]
-                        )
+                FIT_OUTPUT.append(
+                    _parallelized_fit(
+                        f_idx,
+                        # train only!
+                        *(_X_train, _y_train),
+                        type(self._estimator)(**s_p).set_params(**deepcopy(d_p)),
+                        _grid,
+                        self.error_score,
+                        **self._fold_fit_params[f_idx]
                     )
+                )
 
-            elif not self.cache_cv:
-                for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
+        elif not self.cache_cv:
+            for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
 
-                    FIT_OUTPUT.append(
-                        _parallelized_fit(
-                            f_idx,
-                            # train only!
-                            *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
-                            type(self._estimator)(**s_p).set_params(**d_p),
-                            _grid,
-                            self.error_score,
-                            **self._fold_fit_params[f_idx]
-                        )
+                FIT_OUTPUT.append(
+                    _parallelized_fit(
+                        f_idx,
+                        # train only!
+                        *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
+                        type(self._estimator)(**s_p).set_params(**d_p),
+                        _grid,
+                        self.error_score,
+                        **self._fold_fit_params[f_idx]
                     )
+                )
 
         del s_p, d_p
 
@@ -775,40 +777,39 @@ class GSTCVDask(_GSTCVMixin):
         """
 
         TEST_SCORER_OUT = list()
-        with self._scheduler as scheduler:
-            if self.cache_cv:
+        # with self._scheduler as scheduler:   # pizza
+        if self.cache_cv:
+            for f_idx, ((_, X_test), (_, y_test)) in enumerate(self._CACHE_CV):
 
-                for f_idx, ((_, X_test), (_, y_test)) in enumerate(self._CACHE_CV):
-
-                    TEST_SCORER_OUT.append(
-                        _parallelized_scorer(
-                            # test only!
-                            *(X_test, y_test),
-                            _FIT_OUTPUT[f_idx],
-                            f_idx,
-                            self.scorer_,
-                            _THRESHOLDS,
-                            self.error_score,
-                            self.verbose
-                        )
+                TEST_SCORER_OUT.append(
+                    _parallelized_scorer(
+                        # test only!
+                        *(X_test, y_test),
+                        _FIT_OUTPUT[f_idx],
+                        f_idx,
+                        self.scorer_,
+                        _THRESHOLDS,
+                        self.error_score,
+                        self.verbose
                     )
+                )
 
-            elif not self.cache_cv:
+        elif not self.cache_cv:
 
-                for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
+            for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
 
-                    TEST_SCORER_OUT.append(
-                        _parallelized_scorer(
-                            # test only!
-                            *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[1],
-                            _FIT_OUTPUT[f_idx],
-                            f_idx,
-                            self.scorer_,
-                            _THRESHOLDS,
-                            self.error_score,
-                            self.verbose
-                        )
+                TEST_SCORER_OUT.append(
+                    _parallelized_scorer(
+                        # test only!
+                        *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[1],
+                        _FIT_OUTPUT[f_idx],
+                        f_idx,
+                        self.scorer_,
+                        _THRESHOLDS,
+                        self.error_score,
+                        self.verbose
                     )
+                )
 
         return TEST_SCORER_OUT
         # END SCORE ALL FOLDS & THRESHOLDS #################################
@@ -824,42 +825,40 @@ class GSTCVDask(_GSTCVMixin):
         # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
 
         TRAIN_SCORER_OUT = []
-        with self._scheduler as scheduler:
-            if self.cache_cv:
-                for f_idx, ((X_train, _), (y_train, _)) in enumerate(self.CACHE_CV):
-                    TRAIN_SCORER_OUT.append(
-                        _parallelized_train_scorer(
-                            # train only!
-                            X_train,
-                            y_train,
-                            _FIT_OUTPUT[f_idx],
-                            f_idx,
-                            self.scorer_,
-                            _BEST_THRESHOLDS_BY_SCORER,
-                            self.error_score,
-                            self.verbose
-                        )
+        # with self._scheduler as scheduler:   # pizza
+        if self.cache_cv:
+            for f_idx, ((X_train, _), (y_train, _)) in enumerate(self.CACHE_CV):
+                TRAIN_SCORER_OUT.append(
+                    _parallelized_train_scorer(
+                        # train only!
+                        X_train,
+                        y_train,
+                        _FIT_OUTPUT[f_idx],
+                        f_idx,
+                        self.scorer_,
+                        _BEST_THRESHOLDS_BY_SCORER,
+                        self.error_score,
+                        self.verbose
                     )
+                )
 
-            elif not self.cache_cv:
+        elif not self.cache_cv:
 
-                for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
-                    TRAIN_SCORER_OUT.append(
-                        _parallelized_train_scorer(
-                            # train only!
-                            *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
-                            _FIT_OUTPUT[f_idx],
-                            f_idx,
-                            self.scorer_,
-                            _BEST_THRESHOLDS_BY_SCORER,
-                            self.error_score,
-                            self.verbose
-                        )
+            for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD):
+                TRAIN_SCORER_OUT.append(
+                    _parallelized_train_scorer(
+                        # train only!
+                        *list(zip(*_dask_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
+                        _FIT_OUTPUT[f_idx],
+                        f_idx,
+                        self.scorer_,
+                        _BEST_THRESHOLDS_BY_SCORER,
+                        self.error_score,
+                        self.verbose
                     )
+                )
 
         return TRAIN_SCORER_OUT
-
-
 
 
     def visualize(self, filename="mydask", format=None, **kwargs):
@@ -877,12 +876,6 @@ class GSTCVDask(_GSTCVMixin):
         raise NotImplementedError(
             f"visualize is not implemented in {__}."
         )
-
-
-    # END SUPPORT METHODS ##############################################
-    ####################################################################
-
-
 
 
 
