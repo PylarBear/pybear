@@ -129,7 +129,9 @@ class _GSTCVMixin(
         refit is False. If refit is False, raise AttributeError.
         """
 
-        if not self._refit:
+        if not self.refit:
+            # must be the init refit, not _refit. otherwise leads to
+            # "has no '_refit' attribute" errors.
             raise AttributeError(
                 f"This {type(self).__name__} instance was initialized "
                 f"with `refit=False`. \n{attr_or_method_name} is "
