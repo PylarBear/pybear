@@ -34,7 +34,7 @@ def _parallelized_scorer(
     _error_score: Union[numbers.Real, None],
     _verbose: int,
     **scorer_params
-    ) -> tuple[np.ma.masked_array, np.ma.masked_array]:
+) -> tuple[np.ma.masked_array, np.ma.masked_array]:
 
     # dont adjust the spacing, is congruent with train scorer
 
@@ -99,10 +99,12 @@ def _parallelized_scorer(
     -
         TEST_THRESHOLD_x_SCORER__SCORE_LAYER:
             np.ma.masked_array - masked array of shape (n_thresholds,
-            n_scorers
+            n_scorers) holding the scores for each scorer over all the
+            thresholds.
         TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER:
             np.ma.masked_array - masked array of shape (n_thresholds,
-            n_scorers
+            n_scorers) holding the times to score each scorer over
+            all the thresholds. .... pizza check this is it an average
 
 
     """

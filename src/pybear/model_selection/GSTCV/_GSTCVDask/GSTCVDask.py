@@ -21,11 +21,16 @@ from ._type_aliases import (
     XDaskInputType,
     YDaskInputType
 )
-from .._type_aliases import ClassifierProtocol
+from .._type_aliases import (
+    ClassifierProtocol,
+    ThresholdsWIPType
+)
+import numpy.typing as npt
 
 from copy import deepcopy
 import numbers
 
+import numpy as np
 from dask import compute
 import distributed
 
@@ -634,13 +639,11 @@ class GSTCVDask(_GSTCVMixin):
 
         Parameters
         ----------
-        # pizza fix these wack type hints
         X:
-            dask.array.core.Array[Union[int, float]] - the data to be fit
-            by GSTCVDask against the target.
+            XDaskInputType - the data to be fit by GSTCVDask against the
+            target.
         y:
-            dask.array.core.Array[Union[int, float]] - the target to
-            train the data against.
+            YDaskInputType - the target to train the data against.
 
 
         Return
@@ -664,8 +667,7 @@ class GSTCVDask(_GSTCVMixin):
             y,
             self._estimator,
             self.cv_results_,
-            self._cv,   # pizza, in GSTCVMixin, this is turned to list(tuple, tuple,...)
-            # do we want that for dasK?
+            self._cv,
             self.error_score,
             self._verbose,
             self.scorer_,
@@ -682,17 +684,38 @@ class GSTCVDask(_GSTCVMixin):
 
     def _fit_all_folds(
         self,
-        _X,
-        _y,
-        _grid: dict[str, Any]
-    ):  # pizza type hint
+        _X:XDaskInputType,
+        _y:YDaskInputType,
+        _grid:dict[str, Any]
+    ) -> list[tuple[ClassifierProtocol, float, bool], ...]:
 
         """
+        Fit on each train/test split for one single set of hyperparameter
+        values (one permutation of GSCV).
+
+
+        Parameters
+        ----------
+        _X:
+            XDaskInputType - the data.
+        _y:
+            YDaskInputType - the target for the data.
+        _grid:
+            dict[str, Any] - the values for the hyperparameters for this
+            permutation of grid search.
+
 
         Returns
         -------
+        -
+            list[tuple[ClassifierProtocol, float, bool], ...] - a list
+            of tuples, one tuple for each fold, with each tuple holding
+            the respective fitted estimator for that fold of train/test
+            data, the fit time, and a bool indicating whether the fit
+            raised an error.
 
         """
+
 
         # **** IMPORTANT NOTES ABOUT estimator & n_jobs ****
         # this is from sklearn notes, where the problem was discovered
@@ -722,7 +745,6 @@ class GSTCVDask(_GSTCVMixin):
         d_p = self._estimator.get_params(deep=True)  # deep_params
 
         FIT_OUTPUT = list()
-        # with self._scheduler as scheduler:   # pizza
         if self.cache_cv:
 
             for f_idx, ((_X_train, _), (_y_train, _)) in enumerate(self._CACHE_CV):
@@ -763,21 +785,51 @@ class GSTCVDask(_GSTCVMixin):
 
     def _score_all_folds_and_thresholds(
         self,
-        _X,
-        _y,
-        _FIT_OUTPUT,
-        _THRESHOLDS
-    ): # pizza type hint
+        _X:XDaskInputType,
+        _y:YDaskInputType,
+        _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
+        _THRESHOLDS:ThresholdsWIPType
+    ) -> list[tuple[np.ma.masked_array, np.ma.masked_array], ...]:
 
         """
+        For each fitted estimator associated with each fold, produce the
+        y_pred vector for that fold's test data and score it against the
+        actual y.
+
+
+        Parameters
+        ----------
+        _X:
+            XDaskInputType - the data.
+        _y:
+            YDaskInputType - the target for the data.
+        _FIT_OUTPUT:
+            list[tuple[ClassifierProtocol, float, bool], ...] - a list
+            of tuples, one tuple for each fold, with each tuple holding
+            the respective fitted estimator for that fold of train/test
+            data, the fit time, and a bool indicating whether the fit
+            raised an error.
+        _THRESHOLDS:
+            ThresholdsWIPType - the thresholds for which to calculate
+            scores.
+
 
         Returns
         -------
+        -
+            list[tuple[np.ma.masked_array, np.ma.masked_array], ...] -
+            TEST_THRESHOLD_x_SCORER__SCORE_LAYER:
+                np.ma.masked_array - masked array of shape (n_thresholds,
+                n_scorers) holding the scores for each scorer over all of
+                the thresholds.
+            TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER:
+                np.ma.masked_array - masked array of shape (n_thresholds,
+                n_scorers) holding the times to score each scorer over
+                all of the thresholds. .... pizza check this is it an average
 
         """
 
         TEST_SCORER_OUT = list()
-        # with self._scheduler as scheduler:   # pizza
         if self.cache_cv:
             for f_idx, ((_, X_test), (_, y_test)) in enumerate(self._CACHE_CV):
 
@@ -817,15 +869,50 @@ class GSTCVDask(_GSTCVMixin):
 
     def _score_train(
         self,
-        _X,
-        _y,
-        _FIT_OUTPUT,
-        _BEST_THRESHOLDS_BY_SCORER
-    ): # pizza type hint
+        _X:XDaskInputType,
+        _y:YDaskInputType,
+        _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
+        _BEST_THRESHOLDS_BY_SCORER:npt.NDArray[np.float64]
+    ) -> list[np.ma.masked_array]:
         # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
 
+        """
+        Using the fitted estimator for each fold, all the scorers, and
+        the best thresholds for each scorer, score the train data for
+        each fold using all the scorers and the single best threshold
+        for the respective scorer.
+
+
+        Parameters
+        ----------
+        _X:
+            XDaskInputType - the data.
+        _y:
+            YDaskInputType - the target for the data.
+        _FIT_OUTPUT:
+            list[tuple[ClassifierProtocol, float, bool], ...] - a list
+            of tuples, one tuple for each fold, with each tuple holding
+            the respective fitted estimator for that fold of train/test
+            data, the fit time, and a bool indicating whether the fit
+            raised an error.
+        _BEST_THRESHOLDS_BY_SCORER:
+            npt.NDArray[np.float64] - the best thresholds found for each
+            scorer as found by averaging the best thresholds across each
+            fold of test data for each scorer ---- pizza verify this!
+
+
+        Returns
+        -------
+        -
+            list[np.ma.masked_array] - list of masked arrays where each
+            masked array holds the scores for a fold of train data using
+            every scorer and the best threshold associated with that
+            scorer.
+
+        """
+
         TRAIN_SCORER_OUT = []
-        # with self._scheduler as scheduler:   # pizza
+
         if self.cache_cv:
             for f_idx, ((X_train, _), (y_train, _)) in enumerate(self.CACHE_CV):
                 TRAIN_SCORER_OUT.append(
@@ -863,11 +950,7 @@ class GSTCVDask(_GSTCVMixin):
 
     def visualize(self, filename="mydask", format=None, **kwargs):
 
-        """
-
-        'visualize' is not implemented in GSTCVDask.
-
-        """
+        """'visualize' is not implemented in GSTCVDask."""
 
 
         check_is_fitted(self, attributes='_refit')

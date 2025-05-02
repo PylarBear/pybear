@@ -34,7 +34,7 @@ def _parallelized_train_scorer(
     _error_score: Union[numbers.Real, None],
     _verbose: int,
     **scorer_params
-    ) -> np.ma.masked_array:
+) -> np.ma.masked_array:
 
     # dont adjust the spacing, is congruent with test scorer
 
@@ -93,7 +93,10 @@ def _parallelized_train_scorer(
     ------
     -
         TRAIN_SCORER__SCORE_LAYER:
-            np.ma.masked_array - masked array of shape (n_scorers, ).
+            np.ma.masked_array - masked array of shape (n_scorers, ) -
+            the score for this fold of train data using every scorer and
+            the best threshold associated with that scorer.
+
 
 
 
