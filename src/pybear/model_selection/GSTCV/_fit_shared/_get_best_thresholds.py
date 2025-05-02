@@ -6,18 +6,19 @@
 
 
 
-from typing_extensions import Union
+from .._type_aliases import (
+    IntermediateHolderType,
+    ThresholdsWIPType
+)
 
 import numpy as np
 import numpy.typing as npt
-
-from .._type_aliases import IntermediateHolderType
 
 
 
 def _get_best_thresholds(
     _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX: IntermediateHolderType,
-    _THRESHOLDS: npt.NDArray[Union[float, int]]
+    _THRESHOLDS: ThresholdsWIPType
 ) -> npt.NDArray[np.uint16]:
 
     """
@@ -43,8 +44,7 @@ def _get_best_thresholds(
         plane in axis 0 holds the 'error_score' value in every position.
         Otherwise, holds scores for every fold / threshold / scorer
         permutation.
-    _THRESHOLDS: npt.NDArray[Union[float, int]]
-        np.NDArray[Union[int, float]] - vector of thresholds for the
+    _THRESHOLDS: ThresholdsWIPType - vector of thresholds for the
         'param grid' associated with this permutation of search.
         'param grid' being a single dict from the param_grid list of
         param grids.

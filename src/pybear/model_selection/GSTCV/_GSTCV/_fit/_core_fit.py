@@ -6,14 +6,15 @@
 
 
 
-from typing import Literal, Iterable
+from typing import Literal, Iterable, TypedDict
 from typing_extensions import Union
 import numpy.typing as npt
 from ..._type_aliases import (
     CVResultsType,
     ClassifierProtocol,
     ScorerWIPType,
-    GenericKFoldType
+    GenericKFoldType,
+    ThresholdsWIPType
 )
 from .._type_aliases import (
     XSKWIPType,
@@ -53,7 +54,7 @@ def _core_fit(
     _pre_dispatch: Union[Literal['all'], str, numbers.Integral],
     _return_train_score: bool,
     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
-    _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]], # pizza list[float]
+    _THRESHOLD_DICT: dict[int, ThresholdsWIPType],
     **fit_params
 ) -> CVResultsType:
 
@@ -73,10 +74,10 @@ def _core_fit(
     Parameters
     ----------
     _X:
-        NDArray[Union[int, float]] - the data to be fit by GSTCV against
-        the target.
+        array-like of shape (n_samples, n_features) - the data to be fit
+        by GSTCV against the target.
     _y:
-        NDArray[Union[int, float]] - the target to train the data against.
+        vector-like - the target to train the data against.
     _estimator:
         Any classifier that fulfills the scikit-learn API for classifiers,
         having fit, predict_proba, get_params, and set_params methods
@@ -105,10 +106,9 @@ def _core_fit(
         information to display to the screen during the grid search
         process. 0 means no output, 10 means maximum output.
     _scorer:
-        dict[str: Callable[[Iterable[int], Iterable[int]], float] -
-        a dictionary with scorer name as keys and the scorer callables
-        as values. The scorer callables are sklearn metrics (or similar),
-        not make_scorer.
+        ScorerWIPType - a dictionary with scorer name as keys and the
+        scorer callables as values. The scorer callables are sklearn
+        metrics (or similar), not make_scorer.
     _n_jobs:
         Union[int, None] - number of processes (or threads) to use in
         joblib parallelism. Processes or threads can be managed by a
@@ -194,7 +194,7 @@ def _core_fit(
 
     assert isinstance(_return_train_score, bool)
 
-    assert isinstance(_scorer, dict)
+    assert isinstance(_scorer, TypedDict)
     assert all(map(isinstance, _scorer, (str for _ in _scorer)))
     assert all(map(callable, _scorer.values()))
 
@@ -233,7 +233,7 @@ def _core_fit(
                   f'{len(_cv_results["params"])}: {_grid}')
 
 
-        _THRESHOLDS = _THRESHOLD_DICT[_PARAM_GRID_KEY[trial_idx]]
+        _THRESHOLDS: list[float] = _THRESHOLD_DICT[int(_PARAM_GRID_KEY[trial_idx])]
 
 
         # reset the estimator to the first-seen params at every transition
@@ -277,10 +277,10 @@ def _core_fit(
         # type(_estimator)(**_estimator.get_params(deep=True)).
 
         # must use shallow params to construct estimator
-        s_p = _estimator.get_params(deep=False) # shallow_params
+        s_p = _estimator.get_params(deep=False)  # shallow_params
         # must use deep params for pipeline to set GSCV params (depth
         # doesnt matter for an estimator when not pipeline.)
-        d_p = _estimator.get_params(deep=True) # deep_params
+        d_p = _estimator.get_params(deep=True)  # deep_params
 
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             FIT_OUTPUT = joblib.Parallel(
@@ -426,20 +426,20 @@ def _core_fit(
 
         del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
 
-        # SCORE TRAIN FOR THE BEST THRESHOLDS ######################
+        # SCORE TRAIN FOR THE BEST THRESHOLDS ##########################
 
         # 24_02_21_13_57_00 ORIGINAL CONFIGURATION WAS TO DO BOTH TEST
         # SCORING AND TRAIN SCORING UNDER THE SAME FOLD LOOP FROM A
         # SINGLE FIT. BECAUSE FINAL THRESHOLD(S) CANT BE KNOWN YET,
-        # IT IS IMPOSSIBLE TO SELECTIVELY GET BEST SCORES FOR TRAIN @
-        # THRESHOLD, SO ALL OF TRAIN'S SCORES MUST BE GENERATED. AFTER
-        # FILLING TEST AND FINDING THE BEST THRESHOLDS, THEN TRAIN
-        # SCORES CAN BE PICKED OUT. CALCULATING TRAIN SCORE TAKES A
-        # LONG TIME FOR MANY THRESHOLDS, ESPECIALLY WITH DASK.
+        # IT IS IMPOSSIBLE TO SELECTIVELY GET BEST SCORES JUST FOR TRAIN
+        # @ THRESHOLD, SO ALL OF TRAIN'S SCORES MUST BE GENERATED. AFTER
+        # FILLING TEST AND FINDING THE BEST THRESHOLDS, THEN TRAIN SCORES
+        # CAN BE PICKED OUT. CALCULATING TRAIN SCORE TAKES A LONG TIME
+        # FOR MANY THRESHOLDS, ESPECIALLY WITH DASK.
         # PERFORMANCE TESTS 24_02_21 INDICATE IT IS BETTER TO FIT AND
         # SCORE TEST ALONE, GET THE BEST THRESHOLD(S), THEN DO ANOTHER
-        # LOOP FOR TRAIN WITH RETAINED ESTIMATORS FROM THE EARLIER FITS
-        # TO ONLY GENERATE SCORES FOR THE SINGLE THRESHOLDS.
+        # LOOP FOR TRAIN WITH RETAINED COEFS FROM THE EARLIER FITS
+        # TO ONLY GENERATE SCORES FOR THE SINGLE THRESHOLD(S).
 
         TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
             np.ma.zeros((_n_splits, len(_scorer)), dtype=np.float64)
@@ -447,9 +447,8 @@ def _core_fit(
 
         if _return_train_score:
 
-            _BEST_THRESHOLDS_BY_SCORER = np.array(_THRESHOLDS)[
-                TEST_BEST_THRESHOLD_IDXS_BY_SCORER
-            ]
+            _BEST_THRESHOLDS_BY_SCORER = \
+                np.array(_THRESHOLDS)[TEST_BEST_THRESHOLD_IDXS_BY_SCORER]
 
             # SCORE ALL FOLDS ###########################################
 

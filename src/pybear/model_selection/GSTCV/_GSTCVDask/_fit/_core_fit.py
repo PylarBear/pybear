@@ -6,14 +6,15 @@
 
 
 
-from typing import Literal, Iterable
+from typing import Literal, Iterable, TypedDict
 from typing_extensions import Union
 import numpy.typing as npt
 from ..._type_aliases import (
     CVResultsType,
     ClassifierProtocol,
     ScorerWIPType,
-    GenericKFoldType
+    GenericKFoldType,
+    ThresholdsWIPType
 )
 from .._type_aliases import (
     XDaskWIPType,
@@ -24,8 +25,8 @@ from copy import deepcopy
 import numbers
 import time
 
-import numpy as np
 from dask import compute
+import numpy as np
 
 from ._get_kfold import _get_kfold
 from ._fold_splitter import _fold_splitter
@@ -34,10 +35,9 @@ from ._parallelized_fit import _parallelized_fit
 from ._parallelized_scorer import _parallelized_scorer
 from ._parallelized_train_scorer import _parallelized_train_scorer
 
-from ....GSTCV._fit_shared._get_best_thresholds import _get_best_thresholds
+from ..._fit_shared._get_best_thresholds import _get_best_thresholds
 
-from ....GSTCV._fit_shared._cv_results._cv_results_update import \
-    _cv_results_update
+from ..._fit_shared._cv_results._cv_results_update import _cv_results_update
 
 
 
@@ -54,7 +54,7 @@ def _core_fit(
     _iid: bool,
     _return_train_score: bool,
     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
-    _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
+    _THRESHOLD_DICT: dict[int, ThresholdsWIPType],
     **fit_params
 ) -> CVResultsType:
 
@@ -71,15 +71,14 @@ def _core_fit(
     Parameters
     ----------
     _X:
-        dask.array.core.Array[Union[int, float]] - the data to be fit by
-        GSTCVDask against the target.
+        dask.array.core.Array - the data to be fit by GSTCVDask against
+        the target.
     _y:
-        dask.array.core.Array[Union[int, float]] - the target to train
-        the data against.
+        dask.array.core.Array - the target to train the data against.
     _estimator:
-        Any classifier that fulfills the dask_ml API for classifiers,
+        Any classifier that fulfills the scikit-learn API for classifiers,
         having fit, predict_proba, get_params, and set_params methods
-        (the score method is not necessary, as GSTCVDask never calls it.)
+        (the score method is not necessary, as GSTCV never calls it.)
         This includes, but is not limited to, dask_ml, XGBoost, and LGBM
         classifiers. Non-dask classifiers are allowed.
     _cv_results:
@@ -88,8 +87,8 @@ def _core_fit(
         grid search process.
     _cv:
         Union[int, Iterable[tuple[Iterable, Iterable]] - as integer, the
-        number of train/test splits to make using dask_ml KFold. As
-        iterable (generator, vector-like), a sequence of tuples of
+        number of train/test splits to make using dask_ml KFold.
+        As iterable (generator, vector-like), a sequence of tuples of
         vectors to be used as indices in making the train/test splits.
     _error_score:
         Union[numbers.Real, Literal['raise']] - if a training fold excepts
@@ -103,10 +102,9 @@ def _core_fit(
         information to display to the screen during the grid search
         process. 0 means no output, 10 means maximum output.
     _scorer:
-        dict[str: Callable[[Iterable[int], Iterable[int]], float] -
-        a dictionary with scorer name as keys and the scorer callables
-        as values. The scorer callables are sklearn metrics (or similar),
-        not make_scorer.
+        ScorerWIPType - a dictionary with scorer name as keys and the
+        scorer callables as values. The scorer callables are sklearn
+        metrics (or similar), not make_scorer.
     _cache_cv:
         bool - Indicates if the train/test folds are to be stored once
         first generated, or if the folds are generated from X and y with
@@ -172,7 +170,7 @@ def _core_fit(
         assert isinstance(_cv, int), err_msg
         _n_splits = _cv
 
-    assert _n_splits  >= 2, err_msg
+    assert _n_splits >= 2, err_msg
 
     del err_msg
 
@@ -196,12 +194,12 @@ def _core_fit(
 
     assert isinstance(_return_train_score, bool)
 
-    assert isinstance(_scorer, dict)
+    assert isinstance(_scorer, TypedDict)
     assert all(map(isinstance, _scorer, (str for _ in _scorer)))
     assert all(map(callable, _scorer.values()))
 
     assert all([int(_) == _ for _ in _PARAM_GRID_KEY])
-    assert max(_PARAM_GRID_KEY) < len(_THRESHOLD_DICT)
+    assert max(_PARAM_GRID_KEY) == len(_THRESHOLD_DICT) - 1
 
     assert isinstance(_THRESHOLD_DICT, dict)
     assert all(map(isinstance, _THRESHOLD_DICT, (int for _ in _THRESHOLD_DICT)))
@@ -235,7 +233,7 @@ def _core_fit(
                   f'{len(_cv_results["params"])}: {_grid}')
 
 
-        _THRESHOLDS = _THRESHOLD_DICT[_PARAM_GRID_KEY[trial_idx]]
+        _THRESHOLDS: list[float] = _THRESHOLD_DICT[int(_PARAM_GRID_KEY[trial_idx])]
 
 
         # reset the estimator to the first-seen params at every transition
@@ -258,10 +256,30 @@ def _core_fit(
 
         # FIT ALL FOLDS ###################################################
 
+        # **** IMPORTANT NOTES ABOUT estimator & n_jobs ****
+        # there was a (sometimes large, >> 0.10) anomaly in scores
+        # when n_jobs was set to (1, None) vs. (-1, 2, 3, 4) when using
+        # SK Logistic. While running the fits under a regular for-loop,
+        # the SK estimator itself was found to be the cause, from being
+        # fit on repeatedly without reconstruct. There appears be some
+        # form of state information being retained in the estimator that
+        # is altered with fit and alters subsequent fits slightly. there
+        # is very little on google and ChatGPT about this (ChatGPT also
+        # thinks that 'state' is the problem.) Locking random_state made
+        # no difference, and locking other things with randomness (KFold,
+        # etc.) made no difference. There was no experimentation done to
+        # see if that problem extends beyond SK Logistic or SK. joblib
+        # with n_jobs (1, None) behaves exactly the same as a regular
+        # for-loop. The solution is to reconstruct the estimator with each
+        # fit and fit it once - then the results agree exactly with the
+        # results when n_jobs > 1 and with SK gscv. 'estimator' is being
+        # rebuilt at each call with the class constructor
+        # type(_estimator)(**_estimator.get_params(deep=True)).
+
         # must use shallow params to construct estimator
         s_p = _estimator.get_params(deep=False)  # shallow_params
         # must use deep params for pipeline to set GSCV params (depth
-        # doesnt matter for an estimator.)
+        # doesnt matter for an estimator when not pipeline.)
         d_p = _estimator.get_params(deep=True)  # deep_params
 
         FIT_OUTPUT = list()
@@ -269,11 +287,10 @@ def _core_fit(
 
             for f_idx, ((_X_train, _), (_y_train, _)) in enumerate(CACHE_CV):
 
-                FIT_OUTPUT.append(
-                    _parallelized_fit(
+                FIT_OUTPUT.append(_parallelized_fit(
                         f_idx,
-                        _X_train,
-                        _y_train,
+                        # train only!
+                        *(_X_train, _y_train),
                         type(_estimator)(**s_p).set_params(**deepcopy(d_p)),
                         _grid,
                         _error_score,
@@ -287,6 +304,7 @@ def _core_fit(
                 FIT_OUTPUT.append(
                     _parallelized_fit(
                         f_idx,
+                        # train only!
                         *list(zip(*_fold_splitter(train_idxs, test_idxs, _X, _y)))[0],
                         type(_estimator)(**s_p).set_params(**d_p),
                         _grid,
@@ -340,8 +358,7 @@ def _core_fit(
                 TEST_SCORER_OUT.append(
                     _parallelized_scorer(
                         # test only!
-                        X_test,
-                        y_test,
+                        *(X_test, y_test),
                         FIT_OUTPUT[f_idx],
                         f_idx,
                         _scorer,
@@ -406,7 +423,7 @@ def _core_fit(
         # END NEED TO GET BEST THRESHOLDS BEFORE IDENTIFYING BEST SCORES ##
 
         # PICK THE COLUMNS FROM TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
-        # THAT MATCH RESPECTIVE BEST_THRESHOLDS_BY_SCORER
+        # THAT MATCH RESPECTIVE TEST_BEST_THRESHOLD_IDXS_BY_SCORER
         # THIS NEEDS TO BE ma TO PRESERVE ANY MASKING DONE TO
         # TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
 
@@ -424,19 +441,19 @@ def _core_fit(
 
         del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
 
-        # SCORE TRAIN FOR THE BEST THRESHOLDS #############################
+        # SCORE TRAIN FOR THE BEST THRESHOLDS ##########################
 
         # 24_02_21_13_57_00 ORIGINAL CONFIGURATION WAS TO DO BOTH TEST
         # SCORING AND TRAIN SCORING UNDER THE SAME FOLD LOOP FROM A
-        # SINGLE FIT. BECAUSE FINAL THRESHOLD(S) CANT BE KNOWN YET, IT IS
-        # IMPOSSIBLE TO SELECTIVELY GET BEST SCORES
-        # FOR TRAIN @ THRESHOLD, SO ALL OF TRAIN'S SCORES MUST BE GENERATED.
-        # AFTER FILLING TEST AND FINDING THE BEST THRESHOLDS,
-        # THEN TRAIN SCORES CAN BE PICKED OUT. CALCULATING TRAIN SCORE TAKES
-        # A LONG TIME FOR MANY THRESHOLDS, ESPECIALLY WITH
-        # DASK. PERFORMANCE TESTS 24_02_21 INDICATE IT IS BETTER TO FIT
-        # AND SCORE TEST ALONE, GET THE BEST THRESHOLD(S), THEN DO
-        # ANOTHER LOOP FOR TRAIN WITH RETAINED COEFS FROM THE EARLIER FITS
+        # SINGLE FIT. BECAUSE FINAL THRESHOLD(S) CANT BE KNOWN YET,
+        # IT IS IMPOSSIBLE TO SELECTIVELY GET BEST SCORES JUST FOR TRAIN
+        # @ THRESHOLD, SO ALL OF TRAIN'S SCORES MUST BE GENERATED. AFTER
+        # FILLING TEST AND FINDING THE BEST THRESHOLDS, THEN TRAIN SCORES
+        # CAN BE PICKED OUT. CALCULATING TRAIN SCORE TAKES A LONG TIME
+        # FOR MANY THRESHOLDS, ESPECIALLY WITH DASK.
+        # PERFORMANCE TESTS 24_02_21 INDICATE IT IS BETTER TO FIT AND
+        # SCORE TEST ALONE, GET THE BEST THRESHOLD(S), THEN DO ANOTHER
+        # LOOP FOR TRAIN WITH RETAINED COEFS FROM THE EARLIER FITS
         # TO ONLY GENERATE SCORES FOR THE SINGLE THRESHOLD(S).
 
         TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
@@ -445,9 +462,8 @@ def _core_fit(
 
         if _return_train_score:
 
-            _BEST_THRESHOLDS_BY_SCORER = _THRESHOLDS[
-                TEST_BEST_THRESHOLD_IDXS_BY_SCORER
-            ]
+            _BEST_THRESHOLDS_BY_SCORER = \
+                np.array(_THRESHOLDS)[TEST_BEST_THRESHOLD_IDXS_BY_SCORER]
 
             # SCORE ALL FOLDS ###########################################
 
@@ -551,10 +567,10 @@ def _core_fit(
             print(f'End filling cv_results_ = {cv_tf - cv_t0: ,.3g} s')
             del cv_t0, cv_tf
 
-            del TEST_FOLD_x_SCORER__SCORE_MATRIX
-            del TRAIN_FOLD_x_SCORER__SCORE_MATRIX
-            del FOLD_FIT_TIMES_VECTOR
-            del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
+        del TEST_FOLD_x_SCORER__SCORE_MATRIX
+        del TRAIN_FOLD_x_SCORER__SCORE_MATRIX
+        del FOLD_FIT_TIMES_VECTOR
+        del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
 
 
     # 24_07_16, when testing against dask GSCV, this module is altering
