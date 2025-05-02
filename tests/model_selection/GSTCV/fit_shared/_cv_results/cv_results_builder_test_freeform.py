@@ -29,7 +29,10 @@ correct_cv_results_len = np.sum(list(map(
 
 CV = [3, 4, 5]
 
-SCORING = [['accuracy'], ['accuracy', 'balanced_accuracy']]
+SCORING = [
+    {'accuracy': lambda y1, y2: 0.32},
+    {'accuracy': lambda y1, y2: 0, 'balanced_accuracy': lambda y1, y2: 1}
+]
 
 RETURN_TRAIN = [True, False]
 
@@ -74,10 +77,10 @@ for _cv in CV:
 
             # RUN cv_results_builder AND GET CHARACTERISTICS ###########
             cv_results_output = _cv_results_builder(
-                param_grid,
-                _cv,
-                _scoring,
-                return_train
+                _param_grid=param_grid,
+                _cv=_cv,
+                _scorer=_scoring,
+                _return_train_score=return_train
             )[0]
             OUTPUT_COLUMNS = list(cv_results_output.keys())
             OUTPUT_LEN = len(cv_results_output['mean_fit_time'])

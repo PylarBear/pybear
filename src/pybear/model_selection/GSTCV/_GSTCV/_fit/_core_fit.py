@@ -38,9 +38,6 @@ from ..._fit_shared._get_best_thresholds import _get_best_thresholds
 
 from ..._fit_shared._cv_results._cv_results_update import _cv_results_update
 
-from ..._fit_shared._cv_results._cv_results_rank_update import \
-    _cv_results_rank_update
-
 
 
 def _core_fit(
@@ -59,7 +56,6 @@ def _core_fit(
     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]], # pizza list[float]
     **fit_params
 ) -> CVResultsType:
-
 
     """
     Perform all fit, scoring, and tabulation activities for every search
@@ -559,19 +555,11 @@ def _core_fit(
             print(f'End filling cv_results_ = {cv_tf - cv_t0: ,.3g} s')
             del cv_t0, cv_tf
 
-        del TEST_FOLD_x_SCORER__SCORE_MATRIX, TRAIN_FOLD_x_SCORER__SCORE_MATRIX
-        del FOLD_FIT_TIMES_VECTOR, TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
+        del TEST_FOLD_x_SCORER__SCORE_MATRIX
+        del TRAIN_FOLD_x_SCORER__SCORE_MATRIX
+        del FOLD_FIT_TIMES_VECTOR
+        del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
 
-
-
-
-    # FINISH RANK COLUMNS HERE #####################################
-    # ONLY DO TEST COLUMNS, DONT DO TRAIN RANK
-    _cv_results = _cv_results_rank_update(
-        _scorer,
-        _cv_results
-    )
-    # END FINISH RANK COLUMNS HERE #################################
 
     # 24_07_16, when testing against SK GSCV, this module is altering
     # the params of the in-scope estimator (estimator used inside this

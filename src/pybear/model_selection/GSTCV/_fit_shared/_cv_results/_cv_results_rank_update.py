@@ -61,7 +61,6 @@ def _cv_results_rank_update(
                 f"that doesnt exist but should (rank_test_{scorer_suffix})"
             )
 
-
         # in ties, like [.8, .8, .3, .8] sklearn does [1,1,4,1], not [1,2,4,3]
         og_col = _cv_results[f'mean_test_{scorer_suffix}']
         # unique sorts ascending
@@ -82,14 +81,8 @@ def _cv_results_rank_update(
 
         del og_col, _means, offset, rank_dict
 
+
     return _cv_results
-
-
-
-
-
-
-
 
 
 

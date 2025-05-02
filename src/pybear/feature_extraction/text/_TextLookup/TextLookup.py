@@ -472,7 +472,7 @@ class TextLookup(_TextLookupMixin):
     # END init ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
-    def __pybear_is_fitted__(self):
+    def __pybear_is_fitted__(self) -> bool:
         return hasattr(self, 'KNOWN_WORDS_')
 
 

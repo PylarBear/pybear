@@ -8,7 +8,10 @@
 
 import pytest
 
+import re
+
 from distributed import Client
+
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
@@ -101,7 +104,9 @@ class TestGSTCVInput:
 
         with pytest.raises(
             TypeError,
-            match=f"estimator must be an instance, not the class"
+            match=re.escape(
+                "set_params() missing 1 required positional argument: 'self'"
+            )
         ):
             _GSTCVDask.set_params(estimator=not_instantiated).fit(X_da, y_da)
 

@@ -124,10 +124,10 @@ class TestCoreFitAccuracy:
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         good_cv_results, PARAM_GRID_KEY = _cv_results_builder(
-            param_grid=_param_grid,
-            cv=standard_cv_int,
-            scorer=_scorer,
-            return_train_score=_return_train_score
+            _param_grid=_param_grid,
+            _cv=standard_cv_int,
+            _scorer=_scorer,
+            _return_train_score=_return_train_score
         )
 
         gstcv_cv_results = _core_fit(

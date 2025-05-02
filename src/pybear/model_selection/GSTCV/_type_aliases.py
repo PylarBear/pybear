@@ -63,7 +63,7 @@ ScorerNameTypes: TypeAlias = Literal[
 ]
 
 # pizza finalize this
-ScorerCallableType: TypeAlias = Callable[[Iterable, Iterable, ...], numbers.Real]
+ScorerCallableType: TypeAlias = Callable[[Iterable, Iterable], numbers.Real]
 
 
 ScorerInputType: TypeAlias = Union[

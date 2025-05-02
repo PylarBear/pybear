@@ -8,6 +8,8 @@
 
 import pytest
 
+import re
+
 import numpy as np
 
 from sklearn.model_selection import KFold as sk_KFold
@@ -96,7 +98,9 @@ class TestGSTCVInput:
 
         with pytest.raises(
             TypeError,
-            match=f"estimator must be an instance, not the class"
+            match=re.escape(
+                "set_params() missing 1 required positional argument: 'self'"
+            )
         ):
             _GSTCV.set_params(estimator=not_instantiated).fit(X_np, y_np)
 

@@ -26,7 +26,7 @@ def check_is_fitted(
     *,
     msg: Union[str, None]=None,
     all_or_any: Union[AllFunc, AnyFunc]=all
-):
+) -> None:
 
     """
     Perform _is_fitted validation on an estimator/transformer.
@@ -155,14 +155,6 @@ def check_is_fitted(
 
     if not is_fitted(estimator, attributes, all_or_any):
         raise NotFittedError(msg or default_msg)
-
-
-
-
-
-
-
-
 
 
 

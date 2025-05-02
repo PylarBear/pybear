@@ -6,6 +6,7 @@
 
 
 
+from typing import Optional
 from typing_extensions import Union
 from ..._type_aliases import (
     ParamGridInputType,
@@ -17,7 +18,8 @@ from ._param_grid_helper import _val_param_grid_helper
 # pizza the type hints in here need work
 
 def _val_param_grid(
-    _param_grid: Union[ParamGridInputType, ParamGridsInputType, None]  # pizza y is this allowed to be None
+    _param_grid: Union[ParamGridInputType, ParamGridsInputType, None],  # pizza y is this allowed to be None
+    _must_be_list_dict:Optional[bool] = True
 ) -> None:
 
     """
@@ -37,6 +39,9 @@ def _val_param_grid(
         keys and list-likes of hyperparameter settings to test as values.
         `_param_grid` can be None, one of the described param_grids, or
         a list-like of such param_grids.
+    _must_be_list_dict:
+        Optional[bool], default=True - whether `_param_grid` must have
+        already been conditioned into a list of dictionaries.
 
 
     Return
@@ -48,14 +53,13 @@ def _val_param_grid(
     """
 
 
-    # pizza finalize the None issue
-    _err_msg = (
-        f"param_grid must be None, a (1 - dictionary) or (2 - a list-like "
-        f"of dictionaries). \nthe dictionary keys must be strings and the "
-        f"dictionary values must be list-like."
-    )
+    assert isinstance(_must_be_list_dict, bool)
 
+
+    # pizza finalize the None issue
     if _param_grid is None:
+        if _must_be_list_dict:
+            raise TypeError(f"'param_grid' must be a list of dictionaries.")
         return
 
     try:
@@ -63,10 +67,16 @@ def _val_param_grid(
         if isinstance(_param_grid, str):
             raise Exception
     except Exception as e:
-        raise TypeError(_err_msg)
+        raise TypeError(
+            f"'param_grid' must be None, a (1 - dictionary) or (2 - a "
+            f"list-like of dictionaries). \nthe dictionary keys must be "
+            f"strings and the dictionary values must be list-like."
+        )
 
     # _param_grid must be iter
     if isinstance(_param_grid, dict):
+        if _must_be_list_dict:
+            raise TypeError(f"'param_grid' must be a list of dictionaries.")
         if len(_param_grid) == 0:
             return
         _dpg = [_param_grid]   # _dpg = dum_param_grid

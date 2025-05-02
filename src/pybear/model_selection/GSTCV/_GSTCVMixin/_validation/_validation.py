@@ -85,7 +85,7 @@ def _validation(
 
     _val_estimator(_estimator)
 
-    _val_param_grid(_param_grid)
+    _val_param_grid(_param_grid, _must_be_list_dict=False)
 
     _val_thresholds(
         _thresholds,
@@ -94,7 +94,7 @@ def _validation(
         _must_be_list_like=False
     )
 
-    _val_scoring(_scoring)
+    _val_scoring(_scoring, _must_be_dict=False)
 
     _val_n_jobs(_n_jobs)
 

@@ -6,8 +6,10 @@
 
 
 
-from copy import deepcopy
 from typing_extensions import Self
+
+from copy import deepcopy
+
 
 
 class SetParamsMixin:
@@ -67,7 +69,6 @@ class SetParamsMixin:
 
         # this catches if trying to make set_params calls on a top-level
         # that isnt instantiated.
-
         if not hasattr(self, 'set_params'):
             raise TypeError(
                 f":method: set_params is being called on the class, not an "

@@ -75,9 +75,8 @@ def _no_refit():
             __ = "refit=False"
 
         return (f"This {_object} instance was initialized with {__}. "
-            f"{_method} is available only after refitting on the best "
-            f"parameters. You can refit an estimator manually using the "
-            f"`best_params_` attribute")
+            f"\n{_method} is available only after refitting on the best "
+            f"parameters.")
 
     return foo
 
@@ -87,7 +86,7 @@ def _refit_false():
 
     def foo(_gstcv_type):
         return (f"This {_gstcv_type} instance was initialized "
-            f"with `refit=False`. classes_ is available only after "
+            f"with `refit=False`. \nclasses_ is available only after "
             "refitting on the best parameters."
         )
 

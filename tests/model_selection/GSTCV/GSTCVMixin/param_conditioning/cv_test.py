@@ -68,19 +68,22 @@ class TestCondCV:
         y = np.random.randint(0, 2, 20)
         good_iter = KFold(n_splits=_n_splits).split(X,y)
         # TypeError: cannot pickle 'generator' object
-        # cant test that og good_iter is not mutated by _cond_cv
-        good_iter2 = KFold(n_splits=_n_splits).split(X,y)
+        ref_iter = KFold(n_splits=_n_splits).split(X,y)
 
         out = _cond_cv(good_iter)
         assert isinstance(out, list)
+        assert inspect.isgenerator(good_iter)
 
-        assert inspect.isgenerator(good_iter2)
-        iter_as_list = list(good_iter2)
-        assert isinstance(iter_as_list, list)
+        assert inspect.isgenerator(ref_iter)
+        ref_iter_as_list = list(ref_iter)
+        assert isinstance(ref_iter_as_list, list)
 
         for idx in range(_n_splits):
             for X_y_idx in range(2):
-                assert np.array_equiv(out[idx][X_y_idx], iter_as_list[idx][X_y_idx])
+                assert np.array_equiv(
+                    out[idx][X_y_idx],
+                    ref_iter_as_list[idx][X_y_idx]
+                )
 
 
 

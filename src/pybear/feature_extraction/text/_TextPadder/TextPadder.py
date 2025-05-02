@@ -211,7 +211,7 @@ class TextPadder(
     # )
 
 
-    def __pybear_is_fitted__(self):
+    def __pybear_is_fitted__(self) -> bool:
         return hasattr(self, '_n_features')
 
 
