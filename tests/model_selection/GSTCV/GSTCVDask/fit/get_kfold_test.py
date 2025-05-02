@@ -61,7 +61,7 @@ class TestGetDaskKFold:
 
     # pizza 25_04_29 the reason this doesnt have a _format_helper
     # is because dask_ml KFold can only take da.array. but if _format_helper
-    # ends up in conftest then it may be helpful to use to standardize this
+    # ends up in conftest then it may be helpful to standardize this
     # with sk get_kfold
 
     # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

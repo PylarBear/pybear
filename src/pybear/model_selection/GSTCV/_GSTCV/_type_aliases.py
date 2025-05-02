@@ -6,20 +6,23 @@
 
 
 
-from typing import Iterable
+from typing import Iterable, Sequence
 from typing_extensions import (
     TypeAlias,
     Union
 )
 import numpy.typing as npt
 
+import numbers
+
+
 
 # pizza figure out how to duck type these
-XInputType: TypeAlias = Iterable
+XSKInputType: TypeAlias = Iterable
 XSKWIPType: TypeAlias = Iterable
 # pizza figure out how to duck type these
-YInputType: TypeAlias = Union[Iterable, None]
-YSKWIPType: TypeAlias = Union[Iterable, None]
+YSKInputType: TypeAlias = Union[Sequence[numbers.Integral], None]
+YSKWIPType: TypeAlias = Union[Sequence[numbers.Integral], None]
 
 SKSlicerType: TypeAlias = npt.NDArray[int]
 

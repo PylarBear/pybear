@@ -18,13 +18,23 @@ from typing_extensions import (
     Any,
     Union
 )
-from .._type_aliases import ClassifierProtocol
+import numpy.typing as npt
+from ._type_aliases import (
+    XSKInputType,
+    YSKInputType
+)
+from .._type_aliases import (
+    ClassifierProtocol,
+    ThresholdsWIPType
+)
+
 
 from contextlib import nullcontext
 from copy import deepcopy
 import numbers
 
 import joblib
+import numpy as np
 
 from ._validation._validation import _validation
 from ._validation._X_y import _val_X_y
@@ -574,8 +584,8 @@ class GSTCV(_GSTCVMixin):
 
     def _core_fit(
         self,
-        X,    # pizza type hints here
-        y=None,  # pizza type hints here
+        X:XSKInputType,
+        y:YSKInputType = None,
         **params
     ) -> None:
 
@@ -595,13 +605,12 @@ class GSTCV(_GSTCVMixin):
 
         Parameters
         ----------
-        # pizza fix these wack type hints
         X:
-            array-like of shape (n_samples, n_features) - the data to be
-            fit by GSTCV against the target.
+            XSKInputType of shape (n_samples, n_features) - the data to
+            be fit by GSTCV against the target.
         y:
-            vector-like of shape (n_samples, ) pizza can it take 2D? - the target to train the data
-            against.
+            YSKInputType of shape (n_samples, ) - the target to train the
+            data against.
 
 
         Return
@@ -636,17 +645,39 @@ class GSTCV(_GSTCVMixin):
         return
 
 
+    #  pizza can any of these take 2D?
+
     def _fit_all_folds(
         self,
-        _X,
-        _y,
+        _X: XSKInputType,
+        _y: YSKInputType,
         _grid: dict[str, Any]
-    ): # pizza type hint
+    ) -> list[tuple[ClassifierProtocol, float, bool], ...]:
 
         """
+        Fit on each train/test split for one single set of hyperparameter
+        values (one permutation of GSCV).
+
+
+        Parameters
+        ----------
+        _X:
+            XSKInputType - the data.
+        _y:
+            YSKInputType - the target for the data.
+        _grid:
+            dict[str, Any] - the values for the hyperparameters for this
+            permutation of grid search.
+
 
         Returns
         -------
+        -
+            list[tuple[ClassifierProtocol, float, bool], ...] - a list
+            of tuples, one tuple for each fold, with each tuple holding
+            the respective fitted estimator for that fold of train/test
+            data, the fit time, and a bool indicating whether the fit
+            raised an error.
 
         """
 
@@ -693,23 +724,53 @@ class GSTCV(_GSTCVMixin):
 
         del s_p, d_p
 
-        return FIT_OUTPUT
 
-        # END FIT ALL FOLDS ###############################################
+        return FIT_OUTPUT
 
 
     def _score_all_folds_and_thresholds(
         self,
-        _X,
-        _y,
-        _FIT_OUTPUT,
-        _THRESHOLDS
-    ): # pizza type hint
+        _X:XSKInputType,
+        _y:YSKInputType,
+        _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
+        _THRESHOLDS:ThresholdsWIPType
+    ) -> list[tuple[np.ma.masked_array, np.ma.masked_array], ...]:
 
         """
+        For each fitted estimator associated with each fold, produce the
+        y_pred vector for that fold's test data and score it against the
+        actual y.
+
+
+        Parameters
+        ----------
+        _X:
+            XSKInputType - the data.
+        _y:
+            YSKInputType - the target for the data.
+        _FIT_OUTPUT:
+            list[tuple[ClassifierProtocol, float, bool], ...] - a list
+            of tuples, one tuple for each fold, with each tuple holding
+            the respective fitted estimator for that fold of train/test
+            data, the fit time, and a bool indicating whether the fit
+            raised an error.
+        _THRESHOLDS:
+            ThresholdsWIPType - the thresholds for which to calculate
+            scores.
+
 
         Returns
         -------
+        -
+            list[tuple[np.ma.masked_array, np.ma.masked_array], ...] -
+            TEST_THRESHOLD_x_SCORER__SCORE_LAYER:
+                np.ma.masked_array - masked array of shape (n_thresholds,
+                n_scorers) holding the scores for each scorer over all of
+                the thresholds.
+            TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER:
+                np.ma.masked_array - masked array of shape (n_thresholds,
+                n_scorers) holding the times to score each scorer over
+                all of the thresholds. .... pizza check this is it an average
 
         """
 
@@ -736,12 +797,47 @@ class GSTCV(_GSTCVMixin):
 
     def _score_train(
         self,
-        _X,
-        _y,
-        _FIT_OUTPUT,
-        _BEST_THRESHOLDS_BY_SCORER
-    ): # pizza type hint
+        _X:XSKInputType,
+        _y:YSKInputType,
+        _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
+        _BEST_THRESHOLDS_BY_SCORER:npt.NDArray[np.float64]
+    ) -> list[np.ma.masked_array]:
         # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
+
+        """
+        Using the fitted estimator for each fold, all the scorers, and
+        the best thresholds for each scorer, score the train data for
+        each fold using all the scorers and the single best threshold
+        for the respective scorer.
+
+
+        Parameters
+        ----------
+        _X:
+            XSKInputType - the data.
+        _y:
+            YSKInputType - the target for the data.
+        _FIT_OUTPUT:
+            list[tuple[ClassifierProtocol, float, bool], ...] - a list
+            of tuples, one tuple for each fold, with each tuple holding
+            the respective fitted estimator for that fold of train/test
+            data, the fit time, and a bool indicating whether the fit
+            raised an error.
+        _BEST_THRESHOLDS_BY_SCORER:
+            npt.NDArray[np.float64] - the best thresholds found for each
+            scorer as found by averaging the best thresholds across each
+            fold of test data for each scorer ---- pizza verify this!
+
+
+        Returns
+        -------
+        -
+            list[np.ma.masked_array] - list of masked arrays where each
+            masked array holds the scores for a fold of train data using
+            every scorer and the best threshold associated with that
+            scorer.
+
+        """
 
         with joblib.parallel_config(prefer='processes', n_jobs=self.n_jobs):
             TRAIN_SCORER_OUT = joblib.Parallel(
@@ -758,6 +854,7 @@ class GSTCV(_GSTCVMixin):
                     self.verbose
                 ) for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD)
             )
+
 
         return TRAIN_SCORER_OUT
 

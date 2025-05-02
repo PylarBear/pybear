@@ -25,7 +25,6 @@ import dask
 
 
 
-
 def _parallelized_train_scorer(
     _X_train: XDaskWIPType,
     _y_train: YDaskWIPType,
@@ -36,7 +35,7 @@ def _parallelized_train_scorer(
     _error_score: Union[numbers.Real, None],
     _verbose: int,
     **scorer_params
-    ) -> np.ma.masked_array:
+) -> np.ma.masked_array:
 
     # dont adjust the spacing, is congruent with test scorer
 

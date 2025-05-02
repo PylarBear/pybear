@@ -12,6 +12,7 @@ from typing_extensions import (
 )
 import numpy.typing as npt
 from .._type_aliases import (
+    ClassifierProtocol,
     ThresholdsWIPType
 )
 
@@ -254,6 +255,8 @@ class _GSTCVMixin(
 
         self._refit = _cond_refit(self.refit, self.scorer_)
 
+        # pizza, in GSTCVMixin, this is turned to list(tuple, tuple,...)
+        # do we want that for dasK?
         # pizza this may go to be redid & go in both SK & DASK due to cache_cv....
         self._cv = _cond_cv(self.cv, _cv_default=5)
 
@@ -364,6 +367,7 @@ class _GSTCVMixin(
                 ###################################################################
                 # CORE GRID SEARCH ################################################
 
+                FIT_OUTPUT: list[tuple[ClassifierProtocol, float, bool], ...]
                 FIT_OUTPUT = self._fit_all_folds(X, y, _grid)
 
                 # terminate if all folds excepted, display & compile fit times ** * **
@@ -402,6 +406,9 @@ class _GSTCVMixin(
 
                 # SCORE ALL FOLDS & THRESHOLDS ########################################
 
+                TEST_SCORER_OUT: list[
+                    tuple[np.ma.masked_array, np.ma.masked_array], ...
+                ]
                 TEST_SCORER_OUT = self._score_all_folds_and_thresholds(
                     X, y, FIT_OUTPUT, _THRESHOLDS
                 )
@@ -494,10 +501,10 @@ class _GSTCVMixin(
                     train_predict_and_score_t0 = time.perf_counter()
 
                     # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
-
-                    TRAIN_SCORER_OUT = self._score_train(
-                        X, y, FIT_OUTPUT, _BEST_THRESHOLDS_BY_SCORER
-                    )
+                    TRAIN_SCORER_OUT: list[np.ma.masked_array] = \
+                        self._score_train(
+                            X, y, FIT_OUTPUT, _BEST_THRESHOLDS_BY_SCORER
+                        )
 
                     train_predict_and_score_tf = time.perf_counter()
                     tpast = train_predict_and_score_tf - train_predict_and_score_t0
@@ -573,14 +580,12 @@ class _GSTCVMixin(
 
             del _original_params, self._fold_fit_params
 
-            # FINISH RANK COLUMNS HERE #####################################
-            # pizza when _core_fits are streamlined put this at the end of it
+
             # ONLY DO TEST COLUMNS, DONT DO TRAIN RANK
             self.cv_results_ = _cv_results_rank_update(
                 self.scorer_,
                 self.cv_results_
             )
-            # END FINISH RANK COLUMNS HERE #################################
 
             # END CORE FIT ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
@@ -664,7 +669,6 @@ class _GSTCVMixin(
 
                 t0 = time.perf_counter()
 
-                # with self._scheduler as scheduler:   # pizza
                 self.best_estimator_.fit(X, y, **fit_params)
 
                 self.refit_time_ = time.perf_counter() - t0
