@@ -32,8 +32,8 @@ def _cond_refit(
         if so, which scoring metric to use to determine the 'best'
         parameters.
     _scorer:
-        dict[str, callable] - previously conditioned scorer object, must
-        be dict[str, callable]. used to determine the number of scorers,
+        dict[str, Callable] - previously conditioned scorer object, must
+        be dict[str, Callable]. used to determine the number of scorers,
         which impacts the final value for the `refit` param.
 
 

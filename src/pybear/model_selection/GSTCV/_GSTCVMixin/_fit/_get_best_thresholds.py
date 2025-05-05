@@ -7,19 +7,20 @@
 
 
 from ..._type_aliases import (
-    IntermediateHolderType,
+    MaskedHolderType,
     ThresholdsWIPType
 )
 
 import numpy as np
-import numpy.typing as npt
+
+from .._validation._holders._f_t_s import _val_f_t_s
 
 
 
 def _get_best_thresholds(
-    _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX: IntermediateHolderType,
+    _TEST_FOLD_x_THRESH_x_SCORER__SCORE: MaskedHolderType,
     _THRESHOLDS: ThresholdsWIPType
-) -> npt.NDArray[np.uint16]:
+) -> MaskedHolderType:
 
     """
     After collecting the scores for every fold / threshold / scorer
@@ -32,14 +33,14 @@ def _get_best_thresholds(
     mean scores, apply an algorithm that finds the index position of the
     maximum mean score, and if there are multiple positions with that
     value, finds the position that is closest to 0.5. Repeat this for all
-    scorers to populate a TEST_BEST_THRESHOLD_IDXS_BY_SCORER vector with
+    scorers to populate a TEST_BEST_THRESH_IDXS_BY_SCORER vector with
     the index position of the best threshold for each scorer.
 
 
     Parameters
     ----------
-    _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX:
-        np.ma.masked_array[float] - A 3D object of shape (n_splits,
+    _TEST_FOLD_x_THRESH_x_SCORER__SCORE:
+        MaskedHolderType - A 3D object of shape (n_splits,
         n_thresholds, n_scorers). If a fit excepted, the corresponding
         plane in axis 0 holds the 'error_score' value in every position.
         Otherwise, holds scores for every fold / threshold / scorer
@@ -53,7 +54,7 @@ def _get_best_thresholds(
     Return
     ------
     -
-        TEST_BEST_THRESHOLD_IDXS_BY_SCORER: npt.NDArray[np.uint16] -
+        TEST_BEST_THRESH_IDXS_BY_SCORER: MaskedHolderType -
         A vector of shape (n_scorers, ) that holds the index in the
         'thresholds' vector of the threshold that had the highest score
         (or lowest loss) for each scorer.
@@ -62,23 +63,27 @@ def _get_best_thresholds(
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert isinstance(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
-                      np.ma.masked_array)
-    assert len(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX.shape) == 3, \
-        f"'_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX' must be 3D"
+    _val_f_t_s(
+        _TEST_FOLD_x_THRESH_x_SCORER__SCORE,
+        '_TEST_FOLD_x_THRESH_x_SCORER__SCORE',
+        # deliberate fudge
+        _TEST_FOLD_x_THRESH_x_SCORER__SCORE.shape[0],
+        len(_THRESHOLDS),
+        _TEST_FOLD_x_THRESH_x_SCORER__SCORE.shape[2]
+    )
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 
-    TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
-        np.ma.zeros(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX.shape[2],
+    TEST_BEST_THRESH_IDXS_BY_SCORER: MaskedHolderType = \
+        np.ma.zeros(_TEST_FOLD_x_THRESH_x_SCORER__SCORE.shape[2],
         dtype=np.uint16
     )
 
-    for s_idx, scorer in enumerate(TEST_BEST_THRESHOLD_IDXS_BY_SCORER):
+    for s_idx, scorer in enumerate(TEST_BEST_THRESH_IDXS_BY_SCORER):
 
         _SCORER_THRESH_MEANS = \
-            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX[:, :, s_idx].mean(axis=0)
+            _TEST_FOLD_x_THRESH_x_SCORER__SCORE[:, :, s_idx].mean(axis=0)
 
         _SCORER_THRESH_MEANS = _SCORER_THRESH_MEANS.ravel()
 
@@ -102,12 +107,12 @@ def _get_best_thresholds(
         assert best_idx in range(len(_THRESHOLDS)), \
             f"best_idx not in range(len(THRESHOLDS))"
 
-        TEST_BEST_THRESHOLD_IDXS_BY_SCORER[s_idx] = best_idx
+        TEST_BEST_THRESH_IDXS_BY_SCORER[s_idx] = best_idx
 
     del best_idx
 
 
-    return TEST_BEST_THRESHOLD_IDXS_BY_SCORER
+    return TEST_BEST_THRESH_IDXS_BY_SCORER
 
 
 

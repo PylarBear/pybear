@@ -6,6 +6,7 @@
 
 
 
+from typing import Iterable
 from typing_extensions import (
     TypeAlias,
     Union
@@ -24,7 +25,7 @@ XDaskWIPType: TypeAlias = dask.array.core.Array
 YDaskInputType: TypeAlias = Union[dask.array.core.Array, None]
 YDaskWIPType: TypeAlias = Union[dask.array.core.Array, None]
 
-DaskSlicerType: TypeAlias = dask.array.core.Array
+DaskSlicerType: TypeAlias = Iterable[numbers.Integral]
 
 DaskKFoldType: TypeAlias = tuple[DaskSlicerType, DaskSlicerType]
 

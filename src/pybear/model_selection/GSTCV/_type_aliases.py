@@ -29,13 +29,26 @@ import numpy as np
 
 
 
-CVResultsType: TypeAlias = \
-    dict[str, np.ma.masked_array[Union[float, dict[str, Any]]]]
+class ClassifierProtocol(Protocol):
 
-IntermediateHolderType: TypeAlias = Union[
-    np.ma.masked_array[float],
-    npt.NDArray[numbers.Real]
-]
+    def fit(self, X: Any, y: Any) -> Self:
+        ...
+
+    # The default 'score' method of the estimator can never be used, as
+    # the decision threshold cannot be manipulated. Therefore, it is not
+    # necessary for the estimator to have a 'score' method.
+    # def score(self, y_pred: Any, y_act: Any) -> Any:
+    #     ...
+
+    def get_params(self, *args, **kwargs) -> dict[str, Any]:
+        ...
+
+    def set_params(self, *args, **kwargs) -> Self:
+        ...
+
+    def predict_proba(self, *args, **kwargs) -> Any:
+        ...
+
 
 ParamGridInputType: TypeAlias = dict[str, Sequence[Any]]
 ParamGridWIPType: TypeAlias = dict[str, list[Any]]
@@ -49,8 +62,6 @@ ThresholdsWIPType: TypeAlias = list[float]
 GenericSlicerType: TypeAlias = Sequence[numbers.Integral]
 
 GenericKFoldType: TypeAlias = tuple[GenericSlicerType, GenericSlicerType]
-
-FeatureNamesInType: TypeAlias = Union[npt.NDArray[str], None]
 
 # scoring / scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 ScorerNameTypes: TypeAlias = Literal[
@@ -87,29 +98,18 @@ class ScorerWIPType(TypedDict):
 # END scoring / scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 
 
+CVResultsType: TypeAlias = \
+    dict[str, np.ma.masked_array[Union[float, dict[str, Any]]]]
+
+
 RefitCallableType: TypeAlias = Callable[[CVResultsType], numbers.Integral]
 RefitType: TypeAlias = Union[bool, ScorerNameTypes, RefitCallableType]
 
 
-class ClassifierProtocol(Protocol):
+MaskedHolderType: TypeAlias = np.ma.masked_array[float]
+NDArrayHolderType: TypeAlias = npt.NDArray[numbers.Real]
 
-    def fit(self, X: Any, y: Any) -> Self:
-        ...
 
-    # The default 'score' method of the estimator can never be used, as
-    # the decision threshold cannot be manipulated. Therefore, it is not
-    # necessary for the estimator to have a 'score' method.
-    # def score(self, y_pred: Any, y_act: Any) -> Any:
-    #     ...
-
-    def get_params(self, *args, **kwargs) -> dict[str, Any]:
-        ...
-
-    def set_params(self, *args, **kwargs) -> Self:
-        ...
-
-    def predict_proba(self, *args, **kwargs) -> Any:
-        ...
-
+FeatureNamesInType: TypeAlias = npt.NDArray[str]
 
 

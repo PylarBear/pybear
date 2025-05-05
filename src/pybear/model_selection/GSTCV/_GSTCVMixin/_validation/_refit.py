@@ -43,7 +43,7 @@ def _val_refit(
         if so, which scoring metric to use to determine the 'best'
         parameters.
     _scoring:
-        Union[str, callable, Sequence[str], dict[str, callable]] -
+        Union[str, Callable, Sequence[str], dict[str, Callable]] -
         previously validated `scoring` parameter, the scoring metric(s)
         used to evaluate the predictions on the test (and possibly
         train) sets. Used to determine the number of scorers and

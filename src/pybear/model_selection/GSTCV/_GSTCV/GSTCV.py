@@ -18,14 +18,16 @@ from typing_extensions import (
     Any,
     Union
 )
-import numpy.typing as npt
+
 from ._type_aliases import (
     XSKInputType,
     YSKInputType
 )
 from .._type_aliases import (
     ClassifierProtocol,
-    ThresholdsWIPType
+    ThresholdsWIPType,
+    MaskedHolderType,
+    NDArrayHolderType
 )
 
 
@@ -291,9 +293,9 @@ class GSTCV(_GSTCVMixin):
     ----------
 
     cv_results_:
-        dict[str, np.ma.maskedarray] - A dictionary with column headers
-        as keys and results as values, that can be conveniently converted
-        into a pandas DataFrame.
+        CVResultsType - A dictionary with column headers as keys and
+        results as values, that can be conveniently converted into a
+        pandas DataFrame.
 
         Always exposed after fit.
 
@@ -558,7 +560,7 @@ class GSTCV(_GSTCVMixin):
     def _condition_params(self, _X, _y, _fit_params) -> None:
 
         """
-
+        pizza
 
         Returns
         -------
@@ -616,10 +618,9 @@ class GSTCV(_GSTCVMixin):
         Return
         ------
         -
-            _cv_results: dict[str: np.ma.masked_array] - dictionary
-            populated with all the times, scores, thresholds, parameter
-            values, and search grids for every permutation of grid
-            search.
+            _cv_results: CVResultsType - dictionary populated with all
+            the times, scores, thresholds, parameter values, and search
+            grids for every permutation of grid search.
 
         """
 
@@ -734,7 +735,7 @@ class GSTCV(_GSTCVMixin):
         _y:YSKInputType,
         _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
         _THRESHOLDS:ThresholdsWIPType
-    ) -> list[tuple[np.ma.masked_array, np.ma.masked_array], ...]:
+    ) -> list[tuple[MaskedHolderType, MaskedHolderType], ...]:
 
         """
         For each fitted estimator associated with each fold, produce the
@@ -762,13 +763,13 @@ class GSTCV(_GSTCVMixin):
         Returns
         -------
         -
-            list[tuple[np.ma.masked_array, np.ma.masked_array], ...] -
+            list[tuple[MaskedHolderType, MaskedHolderType], ...] -
             TEST_THRESHOLD_x_SCORER__SCORE_LAYER:
-                np.ma.masked_array - masked array of shape (n_thresholds,
+                MaskedHolderType - masked array of shape (n_thresholds,
                 n_scorers) holding the scores for each scorer over all of
                 the thresholds.
             TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER:
-                np.ma.masked_array - masked array of shape (n_thresholds,
+                MaskedHolderType - masked array of shape (n_thresholds,
                 n_scorers) holding the times to score each scorer over
                 all of the thresholds. .... pizza check this is it an average
 
@@ -786,7 +787,7 @@ class GSTCV(_GSTCVMixin):
                     self.scorer_,
                     _THRESHOLDS,
                     self.error_score,
-                    self.verbose
+                    self._verbose
                 ) for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD)
             )
 
@@ -800,8 +801,8 @@ class GSTCV(_GSTCVMixin):
         _X:XSKInputType,
         _y:YSKInputType,
         _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
-        _BEST_THRESHOLDS_BY_SCORER:npt.NDArray[np.float64]
-    ) -> list[np.ma.masked_array]:
+        _BEST_THRESHOLDS_BY_SCORER:NDArrayHolderType
+    ) -> list[MaskedHolderType]:
         # TRAIN_SCORER_OUT is TRAIN_SCORER__SCORE_LAYER
 
         """
@@ -824,7 +825,7 @@ class GSTCV(_GSTCVMixin):
             data, the fit time, and a bool indicating whether the fit
             raised an error.
         _BEST_THRESHOLDS_BY_SCORER:
-            npt.NDArray[np.float64] - the best thresholds found for each
+            NDArrayHolderType - the best thresholds found for each
             scorer as found by averaging the best thresholds across each
             fold of test data for each scorer ---- pizza verify this!
 
@@ -832,7 +833,7 @@ class GSTCV(_GSTCVMixin):
         Returns
         -------
         -
-            list[np.ma.masked_array] - list of masked arrays where each
+            list[MaskedHolderType] - list of masked arrays where each
             masked array holds the scores for a fold of train data using
             every scorer and the best threshold associated with that
             scorer.
@@ -851,7 +852,7 @@ class GSTCV(_GSTCVMixin):
                     self.scorer_,
                     _BEST_THRESHOLDS_BY_SCORER,
                     self.error_score,
-                    self.verbose
+                    self._verbose
                 ) for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD)
             )
 

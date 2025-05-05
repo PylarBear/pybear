@@ -22,14 +22,14 @@ class TestCVResultsScoreUpdater:
 
 
     # def _cv_results_score_updater(
-    #         _FOLD_x_SCORER__SCORE_MATRIX: np.ma.masked_array[np.float64],
+    #         _FOLD_x_SCORER__SCORE: np.ma.masked_array[np.float64],
     #         _type: Literal['train', 'test'],
     #         _trial_idx: int,
     #         _scorer: ScorerWIPType,
     #         _cv_results: CVResultsType
     #     ) -> CVResultsType:
 
-    # _FOLD_x_SCORER__SCORE_MATRIX must have shape (_n_splits, _n_scorers)
+    # _FOLD_x_SCORER__SCORE must have shape (_n_splits, _n_scorers)
     # _trial_idx must be in range(len(cv_results[0]))  ... total permutations
     #       _trial_idx dictates row of cv_results_ to fill
 
@@ -62,8 +62,9 @@ class TestCVResultsScoreUpdater:
     )
     @pytest.mark.parametrize('_trial_idx', (0, 2, 5))
     @pytest.mark.parametrize('_type', ('test', 'train', ))
-    def test_accuracy_1(self, _cv_results_template, rigged_score_matrix_1, _type,
-                        _trial_idx):
+    def test_accuracy_1(
+        self, _cv_results_template, rigged_score_matrix_1, _type, _trial_idx
+    ):
 
         # 2 scorers, 1 param grid
 
@@ -71,7 +72,7 @@ class TestCVResultsScoreUpdater:
         _scorers = ['accuracy', 'balanced_accuracy']
 
         out_cv_results = _cv_results_score_updater(
-            _FOLD_x_SCORER__SCORE_MATRIX = rigged_score_matrix_1,
+            _FOLD_x_SCORER__SCORE = rigged_score_matrix_1,
             _type=_type,
             _trial_idx=_trial_idx,
             _scorer={k:v for k,v in master_scorer_dict.items() if k in _scorers},
@@ -132,8 +133,9 @@ class TestCVResultsScoreUpdater:
     )
     @pytest.mark.parametrize('_trial_idx', (0, 2, 5))
     @pytest.mark.parametrize('_type', ('test',))
-    def test_accuracy_2(self, _cv_results_template, rigged_score_matrix_2, _type,
-                      _trial_idx):
+    def test_accuracy_2(
+        self, _cv_results_template, rigged_score_matrix_2, _type, _trial_idx
+    ):
 
         # 1 scorer, 2 param grids
 
@@ -141,7 +143,7 @@ class TestCVResultsScoreUpdater:
         _scorers = ['balanced_accuracy']
 
         out_cv_results = _cv_results_score_updater(
-            _FOLD_x_SCORER__SCORE_MATRIX = rigged_score_matrix_2,
+            _FOLD_x_SCORER__SCORE = rigged_score_matrix_2,
             _type=_type,
             _trial_idx=_trial_idx,
             _scorer={k:v for k,v in master_scorer_dict.items() if k in _scorers},

@@ -7,27 +7,28 @@
 
 
 import numpy as np
-import numpy.typing as npt
 
 from ...._type_aliases import (
     CVResultsType,
-    IntermediateHolderType,
+    MaskedHolderType,
     ScorerWIPType,
     ThresholdsWIPType
 )
 
 from ._cv_results_score_updater import _cv_results_score_updater
-
+from ..._validation._holders._f_t_s import _val_f_t_s
+from ..._validation._holders._f_s import _val_f_s
+from ..._validation._scoring import _val_scoring
 
 
 def _cv_results_update(
     _trial_idx: int,
     _THRESHOLDS: ThresholdsWIPType,
-    _FOLD_FIT_TIMES_VECTOR: IntermediateHolderType,
-    _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX: IntermediateHolderType,
-    _TEST_BEST_THRESHOLD_IDXS_BY_SCORER: npt.NDArray[np.uint16],
-    _TEST_FOLD_x_SCORER__SCORE_MATRIX: IntermediateHolderType,
-    _TRAIN_FOLD_x_SCORER__SCORE_MATRIX: IntermediateHolderType,
+    _FOLD_FIT_TIMES_VECTOR: MaskedHolderType,
+    _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME: MaskedHolderType,
+    _TEST_BEST_THRESH_IDXS_BY_SCORER: MaskedHolderType,
+    _TEST_FOLD_x_SCORER__SCORE: MaskedHolderType,
+    _TRAIN_FOLD_x_SCORER__SCORE: MaskedHolderType,
     _scorer: ScorerWIPType,
     _cv_results: CVResultsType,
     _return_train_score: bool
@@ -47,41 +48,40 @@ def _cv_results_update(
         associated with this permutation of search. 'param grid' being
         a single dict from the param_grid list of param grids.
     _FOLD_FIT_TIMES_VECTOR:
-        np.ma.masked_array[float] - the times to fit each of the folds
+        MaskedHolderType - the times to fit each of the folds
         for this permutation. If a fit excepted, the corresponding
         position is masked and excluded from aggregate calculations.
-    _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX:
-        np.ma.masked_array[float] - A 3D object of shape (n_splits,
+    _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME:
+        MaskedHolderType - A 3D object of shape (n_splits,
         n_thresholds, n_scorers). If a fit excepted, the corresponding
         plane in axis 0 is masked, and is excluded from aggregate
         calculations. Otherwise, holds score times for every fold /
         threshold / scorer permutation.
-    _TEST_BEST_THRESHOLD_IDXS_BY_SCORER:
-        np.NDArray[np.uint16] - vector of shape (n_scorers,) that matches
-        position-for-position against the scorers in scorer_. It holds
-        the index location in the original threshold vector of the best
-        threshold for each scorer.
-    _TEST_FOLD_x_SCORER__SCORE_MATRIX:
-        np.ma.masked_array[float] - masked array of shape (n_splits,
+    _TEST_BEST_THRESH_IDXS_BY_SCORER:
+        MaskedHolderType - vector of shape (n_scorers,) that
+        matches position-for-position against the scorers in scorer_. It
+        holds the index location in the original threshold vector of the
+        best threshold for each scorer.
+    _TEST_FOLD_x_SCORER__SCORE:
+        MaskedHolderType - masked array of shape (n_splits,
         n_scorers) that holds the test scores for the set of folds
         corresponding to the best threshold for that scorer. If a fit
         excepted, the corresponding layer in axis 0 holds 'error_score'
         value in every position.
-    _TRAIN_FOLD_x_SCORER__SCORE_MATRIX:
-        np.ma.masked_array[float] - masked array of shape (n_splits,
+    _TRAIN_FOLD_x_SCORER__SCORE:
+        MaskedHolderType - masked array of shape (n_splits,
         n_scorers) that holds the train scores for the set of folds
         corresponding to the best threshold for that scorer. If a fit
         excepted, the corresponding layer in axis 0 holds 'error_score'
         value in every position.
     _scorer:
-        dict[str, Callable[[Iterable, Iterable], float] -
-        dictionary of scorer names and scorer functions. Note that the
-        scorer functions are sklearn metrics (or similar), not
-        make_scorer. Used to know what column names to look for in
+        ScorerWIPType - dictionary of scorer names and scorer functions.
+        Note that the scorer functions are sklearn metrics (or similar),
+        not make_scorer. Used to know what column names to look for in
         cv_results and nothing more.
     _cv_results:
-        dict[str, np.ma.masked_array] - empty cv_results dictionary other
-        than the 'param_' columns and the 'params' column.
+        CVResultsType - empty cv_results dictionary other than the
+        'param_' columns and the 'params' column.
     _return_train_score:
         bool - when True, calculate the scores for the train folds in
         addition to the test folds.
@@ -90,40 +90,45 @@ def _cv_results_update(
     Return
     ------
     -
-        _cv_results: dict[str, np.ma.masked_array] - cv_results updated
-            with scores, thresholds, and times.
+        _cv_results: CVResultsType - cv_results updated with scores,
+        thresholds, and times.
 
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert _trial_idx >= 0, f"'_trial_idx' must be >= 0"
-    assert len(_THRESHOLDS) >= 1, f"'_THRESHOLDS must be >= 1 "
-    assert isinstance(_scorer, dict), f"'_scorer' must be a dictionary"
-    assert all(map(isinstance, _scorer, (str for _ in _scorer))), \
-        f"'_scorer' keys must be strings"
-    assert all(map(callable, _scorer.values())), \
-        f"'_scorer' values must be callables"
+    assert len(_THRESHOLDS) >= 1, f"'len(_THRESHOLDS) must be >= 1 "
+    _val_scoring(_scorer, _must_be_dict=True)
     _n_scorers = len(_scorer)
-    assert len(_TEST_BEST_THRESHOLD_IDXS_BY_SCORER) == _n_scorers
+    assert len(_TEST_BEST_THRESH_IDXS_BY_SCORER) == _n_scorers
 
     assert len(_FOLD_FIT_TIMES_VECTOR) == \
-            _TEST_FOLD_x_SCORER__SCORE_MATRIX.shape[0] == \
-            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX.shape[0] == \
-            _TRAIN_FOLD_x_SCORER__SCORE_MATRIX.shape[0], \
+            _TEST_FOLD_x_SCORER__SCORE.shape[0] == \
+            _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME.shape[0] == \
+            _TRAIN_FOLD_x_SCORER__SCORE.shape[0], \
             f"disagreement of number of splits"
 
     _n_splits = len(_FOLD_FIT_TIMES_VECTOR)
 
-    assert _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX.shape == \
-           (_n_splits, len(_THRESHOLDS), _n_scorers), \
-            f"bad shape _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX"
+    _val_f_t_s(
+        _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME,
+        '_TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME',
+        _n_splits, len(_THRESHOLDS), _n_scorers
+    )
 
-    assert _TEST_FOLD_x_SCORER__SCORE_MATRIX.shape == (_n_splits, _n_scorers), \
-        f"bad _TEST_FOLD_x_SCORER__SCORE_MATRIX shape"
-    assert _TRAIN_FOLD_x_SCORER__SCORE_MATRIX.shape == (_n_splits, _n_scorers), \
-        f"bad _TRAIN_FOLD_x_SCORER__SCORE_MATRIX shape"
-
+    _val_f_s(
+        _TEST_FOLD_x_SCORER__SCORE,
+        '_TEST_FOLD_x_SCORER__SCORE',
+        _n_splits,
+        len(_scorer)
+    )
+    _val_f_s(
+        _TRAIN_FOLD_x_SCORER__SCORE,
+        '_TRAIN_FOLD_x_SCORER__SCORE',
+        _n_splits,
+        len(_scorer)
+    )
 
     assert isinstance(_cv_results, dict), f"'_cv_results' must be a dictionary"
     assert isinstance(_return_train_score, bool), \
@@ -137,7 +142,7 @@ def _cv_results_update(
 
     for s_idx, scorer in enumerate(_scorer):
 
-        best_threshold_idx = _TEST_BEST_THRESHOLD_IDXS_BY_SCORER[s_idx]
+        best_threshold_idx = int(_TEST_BEST_THRESH_IDXS_BY_SCORER[s_idx])
         best_threshold = _THRESHOLDS[best_threshold_idx]
 
         scorer = '' if len(_scorer) == 1 else f'_{scorer}'
@@ -152,7 +157,7 @@ def _cv_results_update(
 
     # UPDATE cv_results_ WITH SCORES ###################################
     _cv_results = _cv_results_score_updater(
-        _TEST_FOLD_x_SCORER__SCORE_MATRIX,
+        _TEST_FOLD_x_SCORER__SCORE,
         'test',
         _trial_idx,
         _scorer,
@@ -161,7 +166,7 @@ def _cv_results_update(
 
     if _return_train_score:
         _cv_results = _cv_results_score_updater(
-            _TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+            _TRAIN_FOLD_x_SCORER__SCORE,
             'train',
             _trial_idx,
             _scorer,
@@ -184,9 +189,9 @@ def _cv_results_update(
     _cv_results['std_fit_time'][_trial_idx] = np.std(_FOLD_FIT_TIMES_VECTOR)
 
     _cv_results['mean_score_time'][_trial_idx] = \
-        np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
+        np.mean(_TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME)
     _cv_results['std_score_time'][_trial_idx] = \
-        np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
+        np.std(_TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME)
     # END UPDATE cv_results_ WITH TIMES ################################
 
 

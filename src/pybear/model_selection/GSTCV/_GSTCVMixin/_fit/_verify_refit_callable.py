@@ -36,14 +36,13 @@ def _verify_refit_callable(
     Parameters
     ----------
     refit_callable:
-        Callable[[dict[str, np.ma.masked_array]], int] - A callable that
+        Callable[[CVResultsType], int] - A callable that
         takes cv_results as an argument and returns an integer that is
         best_index_, that indicates the row of cv_results that is "best".
 
     DUMMY_CV_RESULTS:
-        dict[str, np.ma.masked_array] - A deepcopy of the just-built
-        cv_results dictionary to be filled with dummy floats and used to
-        test the output of the refit callable.
+        CVResultsType - A deepcopy of the just-built cv_results
+        dictionary to be filled with dummy floats and used to test the output of the refit callable.
 
 
     Return

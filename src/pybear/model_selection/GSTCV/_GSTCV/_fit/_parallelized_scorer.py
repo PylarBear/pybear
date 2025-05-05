@@ -7,10 +7,11 @@
 
 
 from typing_extensions import Union
-import numpy.typing as npt
 from ..._type_aliases import (
     ScorerWIPType,
-    ClassifierProtocol
+    ClassifierProtocol,
+    ThresholdsWIPType,
+    MaskedHolderType
 )
 from .._type_aliases import (
     XSKWIPType,
@@ -30,11 +31,11 @@ def _parallelized_scorer(
     _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
-    _THRESHOLDS: npt.NDArray[np.float64],  # pizza list[float]
+    _THRESHOLDS: ThresholdsWIPType,
     _error_score: Union[numbers.Real, None],
     _verbose: int,
     **scorer_params
-) -> tuple[np.ma.masked_array, np.ma.masked_array]:
+) -> tuple[MaskedHolderType, MaskedHolderType]:
 
     # dont adjust the spacing, is congruent with train scorer
 
@@ -49,12 +50,12 @@ def _parallelized_scorer(
     Parameters
     ----------
     _X_test:
-        NDArray[Union[int,float]] - A test partition of the data, matched
-        up with the estimator that was trained on the complementary train
-        set. Must be 2D ndarray.
+        XSKWIPType - A test partition of the data, matched up with the
+        estimator that was trained on the complementary train set. Must
+        be 2D ndarray.
     _y_test:
-        NDArray[int] - The corresponding test partition of the target
-        for the X test partition. Must be 1D ndarray.
+        YSKWIPType - The corresponding test partition of the target for
+        the X test partition. Must be 1D ndarray.
     _FIT_OUTPUT_TUPLE:
         tuple[ClassifierProtocol, float, bool] - A tuple holding the
         fitted estimator, the fit time (not needed here), and the
@@ -63,16 +64,15 @@ def _parallelized_scorer(
         int - the zero-based split index of the test partition used here;
         parallelism occurs over the different splits.
     _SCORER_DICT:
-        dict[str: Callable[[Iterable[int], Iterable[int]], float] -
-        a dictionary with scorer name as keys and the scorer callables
-        as values. The scorer callables are sklearn metrics (or similar),
-        not make_scorer.
+        ScorerWIPType - a dictionary with scorer name as keys and the
+        scorer callables as values. The scorer callables are sklearn
+        metrics (or similar), not make_scorer.
     _THRESHOLDS:
-        npt.NDArray[np.float64] - for the current search permutation,
-        there was a mother param grid that contained a 'thresholds'
-        parameter, that was separated from the mother before building
-        cv_results. This is the vector of thresholds from the mother that
-        also mothered this search permutation.
+        ThresholdsWIPType - for the current search permutation, there
+        was a mother param grid that contained a 'thresholds' parameter,
+        that was separated from the mother before building cv_results.
+        This is the vector of thresholds from the mother that also
+        mothered this search permutation.
     _error_score:
         Union[numbers.Real, Literal['raise']] - if the training fold
         complementing this test fold excepted during fitting and
@@ -90,7 +90,7 @@ def _parallelized_scorer(
         process. 0 means no output, 10 means maximum output.
         process. 0 means no output, 10 means maximum output.
     **scorer_params:
-        **dict[str: any] - dictionary of kwargs to be passed to the scorer
+        **dict[str, Any] - dictionary of kwargs to be passed to the scorer
         metrics. 24_07_13 not used by the calling _core_fit module.
 
 
@@ -98,11 +98,11 @@ def _parallelized_scorer(
     ------
     -
         TEST_THRESHOLD_x_SCORER__SCORE_LAYER:
-            np.ma.masked_array - masked array of shape (n_thresholds,
+            MaskedHolderType - masked array of shape (n_thresholds,
             n_scorers) holding the scores for each scorer over all the
             thresholds.
         TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER:
-            np.ma.masked_array - masked array of shape (n_thresholds,
+            MaskedHolderType - masked array of shape (n_thresholds,
             n_scorers) holding the times to score each scorer over
             all the thresholds. .... pizza check this is it an average
 
@@ -127,11 +127,11 @@ def _parallelized_scorer(
 
     _estimator_, _fit_time, _fit_excepted = _FIT_OUTPUT_TUPLE
 
-    TEST_THRESHOLD_x_SCORER__SCORE_LAYER = \
+    TEST_THRESHOLD_x_SCORER__SCORE_LAYER: MaskedHolderType = \
         np.ma.zeros((len(_THRESHOLDS), len(_SCORER_DICT)), dtype=np.float64)
     TEST_THRESHOLD_x_SCORER__SCORE_LAYER.mask = True
 
-    TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER = \
+    TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER: MaskedHolderType = \
         np.ma.zeros((len(_THRESHOLDS), len(_SCORER_DICT)), dtype=np.float64)
     TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER.mask = True
 

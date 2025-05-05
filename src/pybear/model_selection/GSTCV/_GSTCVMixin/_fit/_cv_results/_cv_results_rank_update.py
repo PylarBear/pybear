@@ -36,18 +36,18 @@ def _cv_results_rank_update(
     Parameters
     ----------
     _scorer:
-        dict[str, callable[[Iterable, Iterable], float] - the dictionary
-        of scorers keyed by the names of the scorers, used for locating
-        columns in cv_results. The callables are not used here.
+        ScorerWIPType - the dictionary of scorers keyed by the names of
+        the scorers, used for locating columns in cv_results. The
+        callables are not used here.
     _cv_results:
-        dict[str, np.ma.masked_array] - summary of results
+        CVResultsType - summary of results
 
 
     Returns
     -------
     -
-        _cv_results: dict[str, np.ma.masked_array] - cv_results dictionary
-            with updated rank columns.
+        _cv_results: CVResultsType - cv_results dictionary with updated
+        rank columns.
 
 
     """
