@@ -47,11 +47,11 @@ def _parallelized_fit(
         int - the zero-based split index of the train partition used in
         this fit; parallelism occurs over the different splits.
     _X_train:
-        NDArray[Union[int,float]] - A train partition of the data being
-        fit. Must be 2D ndarray.
+        XSKWIPType - A train partition of the data being fit. Must be 2D
+        ndarray.
     _y_train:
-        NDArray[int] - The corresponding train partition of the target
-        for the X train partition. Must be 1D ndarray.
+        YSKWIPType - The corresponding train partition of the target for
+        the X train partition. Must be 1D ndarray.
     _estimator_:
         ClassifierProtocol - Any classifier that fulfills the scikit-learn
         API for classifiers, having fit, predict_proba, get_params, and

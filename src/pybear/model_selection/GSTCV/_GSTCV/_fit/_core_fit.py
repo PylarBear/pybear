@@ -8,13 +8,14 @@
 
 from typing import Literal, Iterable
 from typing_extensions import Union
-import numpy.typing as npt
 from ..._type_aliases import (
     CVResultsType,
     ClassifierProtocol,
     ScorerWIPType,
     GenericKFoldType,
-    ThresholdsWIPType
+    ThresholdsWIPType,
+    MaskedHolderType,
+    NDArrayHolderType
 )
 from .._type_aliases import (
     XSKWIPType,
@@ -35,6 +36,9 @@ from ._parallelized_fit import _parallelized_fit
 from ._parallelized_scorer import _parallelized_scorer
 from ._parallelized_train_scorer import _parallelized_train_scorer
 
+from ..._GSTCVMixin._validation._holders._f_t_s import _val_f_t_s
+from ..._GSTCVMixin._validation._holders._f_s import _val_f_s
+
 from ..._GSTCVMixin._fit._cv_results._cv_results_update import _cv_results_update
 from ..._GSTCVMixin._fit._get_best_thresholds import _get_best_thresholds
 
@@ -52,7 +56,7 @@ def _core_fit(
     _n_jobs: Union[int, None],
     _pre_dispatch: Union[Literal['all'], str, numbers.Integral],
     _return_train_score: bool,
-    _PARAM_GRID_KEY: npt.NDArray[np.uint8],
+    _PARAM_GRID_KEY: NDArrayHolderType,
     _THRESHOLD_DICT: dict[int, ThresholdsWIPType],
     **fit_params
 ) -> CVResultsType:
@@ -85,9 +89,9 @@ def _core_fit(
         and LGBM classifiers. Dask classifiers are blocked prior to this
         in estimator validation.
     _cv_results:
-        dict[str, np.ma.masked_array] - an unfilled cv_results dictionary,
-        to store the times, scores, and thresholds found during the
-        grid search process.
+        CVResultsType - an unfilled cv_results dictionary, to store the
+        times, scores, and thresholds found during the grid search
+        process.
     _cv:
         Union[int, Iterable[tuple[Iterable, Iterable]] - as integer, the
         number of train/test splits to make using sklearn StratifiedKFold.
@@ -122,21 +126,21 @@ def _core_fit(
         compute cost to this, as train sets are typically much bigger
         than test sets.
     _PARAM_GRID_KEY:
-        npt.NDArray[np.uint8] - a vector of integers whose length is
+        NDArrayHolderType - a vector of integers whose length is
         equal to the number of search permutations (also the number of
         rows in cv_results.) The integers indicate the index of the param
         grid in the param_grid kwarg that provided the search points for
         the corresponding row in cv_results.
     _THRESHOLD_DICT:
-        dict[int, npt.NDArray[np.float64]] - A dictionary whose values
-        are the threshold vectors from each param grid in the param_grid
-        list. Keyed by the index of the source param grid in the param
-        grid list. The threshold vector is separated from its source
-        param grid and put into this dictionary before building
-        cv_results (if thresholds were left in param_grid and passed to
-        the cv_results builder, they would be itemized out just like any
-        other parameter; instead, each threshold vector must be separated
-        out and run in full for every search permutation.)
+        dict[int, ThresholdsWIPType] - A dictionary whose values are the
+        threshold vectors from each param grid in the param_grid list.
+        Keyed by the index of the source param grid in the param grid
+        list. The threshold vector is separated from its source param
+        grid and put into this dictionary before building cv_results (if
+        thresholds were left in param_grid and passed to the cv_results
+        builder, they would be itemized out just like any other parameter;
+        instead, each threshold vector must be separated out and run in
+        full for every search permutation.)
     **params:
         **dict[str, any] - dictionary of kwarg: value pairs to be passed
         to the estimator's fit method.
@@ -145,9 +149,9 @@ def _core_fit(
     Return
     ------
     -
-        _cv_results: dict[str: np.ma.masked_array] - dictionary populated
-            with all the times, scores, thresholds, parameter values, and
-            search grids for every permutation of grid search.
+        _cv_results: CVResultsType - dictionary populated with all the
+        times, scores, thresholds, parameter values, and search grids
+        for every permutation of grid search.
 
     """
 
@@ -301,7 +305,8 @@ def _core_fit(
         # END FIT ALL FOLDS ###############################################
 
         # terminate if all folds excepted, display & compile fit times ** * **
-        FOLD_FIT_TIMES_VECTOR = np.ma.empty(_n_splits, dtype=np.float64)
+        FOLD_FIT_TIMES_VECTOR: MaskedHolderType = \
+            np.ma.empty(_n_splits, dtype=np.float64)
         FOLD_FIT_TIMES_VECTOR.mask = True
         num_failed_fits = 0
 
@@ -386,8 +391,8 @@ def _core_fit(
         TSST = np.ma.masked_array(np.dstack([_[1] for _ in TEST_SCORER_OUT]))
         del TEST_SCORER_OUT
 
-        TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX = TSS.transpose((2, 0, 1))
-        TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = \
+        _TEST_FOLD_x_THRESH_x_SCORER__SCORE = TSS.transpose((2, 0, 1))
+        _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME = \
             TSST.transpose((2, 0, 1))
         del TSS, TSST
         # END 3D-ify scores and times from parallel scorer ** * ** * ** *
@@ -399,31 +404,33 @@ def _core_fit(
 
         # THIS CANNOT BE MELDED INTO ANYTHING ABOVE BECAUSE ALL FOLDS MUST
         # BE COMPLETED TO DO THIS
-        TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
+        TEST_BEST_THRESH_IDXS_BY_SCORER: MaskedHolderType = \
             _get_best_thresholds(
-                TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX,
+                _TEST_FOLD_x_THRESH_x_SCORER__SCORE,
                 _THRESHOLDS
         )
         # END NEED TO GET BEST THRESHOLDS BEFORE IDENTIFYING BEST SCORES ##
 
-        # PICK THE COLUMNS FROM TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
-        # THAT MATCH RESPECTIVE TEST_BEST_THRESHOLD_IDXS_BY_SCORER
+        # PICK THE COLUMNS FROM _TEST_FOLD_x_THRESH_x_SCORER__SCORE
+        # THAT MATCH RESPECTIVE TEST_BEST_THRESH_IDXS_BY_SCORER
         # THIS NEEDS TO BE ma TO PRESERVE ANY MASKING DONE TO
-        # TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
+        # _TEST_FOLD_x_THRESH_x_SCORER__SCORE
 
-        assert TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX.shape == \
-               (_n_splits, len(_THRESHOLDS), len(_scorer)), \
-            "TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX is misshapen"
+        _val_f_t_s(
+            _TEST_FOLD_x_THRESH_x_SCORER__SCORE,
+            '_TEST_FOLD_x_THRESH_x_SCORER__SCORE',
+            _n_splits, len(_THRESHOLDS), len(_scorer)
+        )
 
-        TEST_FOLD_x_SCORER__SCORE_MATRIX = \
+        TEST_FOLD_x_SCORER__SCORE: MaskedHolderType = \
             np.ma.empty((_n_splits, len(_scorer)))
-        TEST_FOLD_x_SCORER__SCORE_MATRIX.mask = True
+        TEST_FOLD_x_SCORER__SCORE.mask = True
 
-        for s_idx, t_idx in enumerate(TEST_BEST_THRESHOLD_IDXS_BY_SCORER):
-            TEST_FOLD_x_SCORER__SCORE_MATRIX[:, s_idx] = \
-                TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX[:, t_idx, s_idx]
+        for s_idx, t_idx in enumerate(TEST_BEST_THRESH_IDXS_BY_SCORER):
+            TEST_FOLD_x_SCORER__SCORE[:, s_idx] = \
+                _TEST_FOLD_x_THRESH_x_SCORER__SCORE[:, t_idx, s_idx]
 
-        del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX
+        del _TEST_FOLD_x_THRESH_x_SCORER__SCORE
 
         # SCORE TRAIN FOR THE BEST THRESHOLDS ##########################
 
@@ -440,14 +447,14 @@ def _core_fit(
         # LOOP FOR TRAIN WITH RETAINED COEFS FROM THE EARLIER FITS
         # TO ONLY GENERATE SCORES FOR THE SINGLE THRESHOLD(S).
 
-        TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
+        TRAIN_FOLD_x_SCORER__SCORE: MaskedHolderType = \
             np.ma.zeros((_n_splits, len(_scorer)), dtype=np.float64)
-        TRAIN_FOLD_x_SCORER__SCORE_MATRIX.mask = True
+        TRAIN_FOLD_x_SCORER__SCORE.mask = True
 
         if _return_train_score:
 
             _BEST_THRESHOLDS_BY_SCORER = \
-                np.array(_THRESHOLDS)[TEST_BEST_THRESHOLD_IDXS_BY_SCORER]
+                np.array(_THRESHOLDS)[TEST_BEST_THRESH_IDXS_BY_SCORER]
 
             # SCORE ALL FOLDS ###########################################
 
@@ -507,7 +514,7 @@ def _core_fit(
 
             del _BEST_THRESHOLDS_BY_SCORER
 
-            TRAIN_FOLD_x_SCORER__SCORE_MATRIX = (
+            TRAIN_FOLD_x_SCORER__SCORE: MaskedHolderType = (
                 np.ma.masked_array(np.vstack(TRAIN_SCORER_OUT))
             )
 
@@ -524,25 +531,31 @@ def _core_fit(
         # validate shape of holder objects before cv_results update ** * **
         assert FOLD_FIT_TIMES_VECTOR.shape == (_n_splits,), \
             "FOLD_FIT_TIMES_VECTOR is misshapen"
-        assert TEST_FOLD_x_SCORER__SCORE_MATRIX.shape == \
-               (_n_splits, len(_scorer)), \
-            f"TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_MATRIX is misshapen"
-        assert TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX.shape == \
-               (_n_splits, len(_THRESHOLDS), len(_scorer)), \
-            "TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX is misshapen"
-        assert TRAIN_FOLD_x_SCORER__SCORE_MATRIX.shape == \
-               (_n_splits, len(_scorer)), \
-            "TRAIN_FOLD_x_SCORER__SCORE_MATRIX is misshapen"
+        _val_f_s(
+            TEST_FOLD_x_SCORER__SCORE,
+            'TEST_FOLD_x_SCORER__SCORE',
+            _n_splits, len(_scorer)
+        )
+        _val_f_t_s(
+            _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME,
+            '_TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME',
+            _n_splits, len(_THRESHOLDS), len(_scorer)
+        )
+        _val_f_s(
+            TRAIN_FOLD_x_SCORER__SCORE,
+            'TRAIN_FOLD_x_SCORER__SCORE',
+            _n_splits, len(_scorer)
+        )
         # END validate shape of holder objects before cv_results update **
 
         _cv_results = _cv_results_update(
             trial_idx,
             _THRESHOLDS,
             FOLD_FIT_TIMES_VECTOR,
-            TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX,
-            TEST_BEST_THRESHOLD_IDXS_BY_SCORER,
-            TEST_FOLD_x_SCORER__SCORE_MATRIX,
-            TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+            _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME,
+            TEST_BEST_THRESH_IDXS_BY_SCORER,
+            TEST_FOLD_x_SCORER__SCORE,
+            TRAIN_FOLD_x_SCORER__SCORE,
             _scorer,
             _cv_results,
             _return_train_score
@@ -553,10 +566,10 @@ def _core_fit(
             print(f'End filling cv_results_ = {cv_tf - cv_t0: ,.3g} s')
             del cv_t0, cv_tf
 
-        del TEST_FOLD_x_SCORER__SCORE_MATRIX
-        del TRAIN_FOLD_x_SCORER__SCORE_MATRIX
+        del TEST_FOLD_x_SCORER__SCORE
+        del TRAIN_FOLD_x_SCORER__SCORE
         del FOLD_FIT_TIMES_VECTOR
-        del TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX
+        del _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME
 
 
     # 24_07_16, when testing against SK GSCV, this module is altering

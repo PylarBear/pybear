@@ -57,6 +57,7 @@ def _fold_splitter(
     Return
     ------
     -
+        pizza
         SPLITS: tuple[tuple[npt.NDArray, npt.NDArray], ...] - return
         the train / test splits for the given data objects in the order
         passed in a tuple of tuples, each inner tuple containing a

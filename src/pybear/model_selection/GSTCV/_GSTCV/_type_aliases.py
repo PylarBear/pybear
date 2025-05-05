@@ -11,7 +11,6 @@ from typing_extensions import (
     TypeAlias,
     Union
 )
-import numpy.typing as npt
 
 import numbers
 
@@ -24,7 +23,7 @@ XSKWIPType: TypeAlias = Iterable
 YSKInputType: TypeAlias = Union[Sequence[numbers.Integral], None]
 YSKWIPType: TypeAlias = Union[Sequence[numbers.Integral], None]
 
-SKSlicerType: TypeAlias = npt.NDArray[int]
+SKSlicerType: TypeAlias = Iterable[numbers.Integral]
 
 SKKFoldType: TypeAlias = tuple[SKSlicerType, SKSlicerType]
 

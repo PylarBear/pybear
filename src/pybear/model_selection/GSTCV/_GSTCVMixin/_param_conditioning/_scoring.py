@@ -23,8 +23,8 @@ def _cond_scoring(
     """
     Condition `scoring`, the scoring metric(s) used to evaluate the
     predictions on the test (and possibly train) sets. Convert any of
-    the valid input formats to an output format of dict[str, callable].
-    Can come in here as str, Sequence[str], callable, dict[str, callable].
+    the valid input formats to an output format of dict[str, Callable].
+    Can come in here as str, Sequence[str], Callable, dict[str, Callable].
 
 
     Parameters

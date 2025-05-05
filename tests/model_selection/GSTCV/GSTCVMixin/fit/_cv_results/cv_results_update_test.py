@@ -23,12 +23,12 @@ class TestCVResultsUpdate:
 
     # def _cv_results(
     #     _trial_idx: int,
-    #     _THRESHOLDS: Iterable[Union[int, float]],
-    #     _FOLD_FIT_TIMES_VECTOR: IntermediateHolderType,
-    #     _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX: IntermediateHolderType,
-    #     _TEST_BEST_THRESHOLD_IDXS_BY_SCORER: IntermediateHolderType,
-    #     _TEST_FOLD_x_SCORER__SCORE_MATRIX: IntermediateHolderType,
-    #     _TRAIN_FOLD_x_SCORER__SCORE_MATRIX: IntermediateHolderType,
+    #     _THRESHOLDS: list[float],
+    #     _FOLD_FIT_TIMES_VECTOR: MaskedHolderType,
+    #     _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME: MaskedHolderType,
+    #     _TEST_BEST_THRESHOLD_IDXS_BY_SCORER: NDArrayHolderType,
+    #     _TEST_FOLD_x_SCORER__SCORE: MaskedHolderType,
+    #     _TRAIN_FOLD_x_SCORER__SCORE: MaskedHolderType,
     #     _scorer: ScorerWIPType,
     #     _cv_results: CVResultsType,
     #     _return_train_score: bool
@@ -88,18 +88,18 @@ class TestCVResultsUpdate:
         _thresholds = 11
         _n_scorers = 2
 
-        _THRESHOLDS = np.linspace(0, 1, _thresholds)
+        _THRESHOLDS = np.linspace(0, 1, _thresholds).tolist()
         _make_holder = lambda low, high, shape: np.ma.masked_array(
-            np.random.randint(low, high, shape)
+            np.random.randint(low, high, shape), dtype=np.float64
         )
         _FOLD_FIT_TIMES_VECTOR = _make_holder(20, 30, (_n_splits,))
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = \
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME = \
             _make_holder(1, 2, (_n_splits, _thresholds, _n_scorers))
         _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
             _make_holder(0, _thresholds, _n_scorers)
-        _TEST_FOLD_x_SCORER__SCORE_MATRIX = \
+        _TEST_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
-        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
+        _TRAIN_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
         del _make_holder
 
@@ -113,10 +113,10 @@ class TestCVResultsUpdate:
             _trial_idx,
             _THRESHOLDS,
             _FOLD_FIT_TIMES_VECTOR,
-            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX,
+            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME,
             _TEST_BEST_THRESHOLD_IDXS_BY_SCORER,
-            _TEST_FOLD_x_SCORER__SCORE_MATRIX,
-            _TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+            _TEST_FOLD_x_SCORER__SCORE,
+            _TRAIN_FOLD_x_SCORER__SCORE,
             _scorers,
             _cv_results_template,
             _return_train_score
@@ -169,9 +169,9 @@ class TestCVResultsUpdate:
         assert out['std_fit_time'][_trial_idx] == np.std(_FOLD_FIT_TIMES_VECTOR)
 
         assert out['mean_score_time'][_trial_idx] == \
-               np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
+               np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME)
         assert out['std_score_time'][_trial_idx] == \
-               np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
+               np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME)
 
         assert np.array_equiv(out['params'], ref_permuter)
         assert out['param_param_1'][_trial_idx] == \
@@ -183,26 +183,26 @@ class TestCVResultsUpdate:
 
 
             assert out[f'best_threshold_{_scorer}'][_trial_idx] == \
-                _THRESHOLDS[_TEST_BEST_THRESHOLD_IDXS_BY_SCORER[_s_idx]]
+                _THRESHOLDS[int(_TEST_BEST_THRESHOLD_IDXS_BY_SCORER[_s_idx])]
 
-            # _TEST_FOLD_x_SCORER__SCORE_MATRIX,
-            # _TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+            # _TEST_FOLD_x_SCORER__SCORE,
+            # _TRAIN_FOLD_x_SCORER__SCORE,
             assert out[f'mean_test_{_scorer}'][_trial_idx] == \
-                   np.mean(_TEST_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.mean(_TEST_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'std_test_{_scorer}'][_trial_idx] == \
-                   np.std(_TEST_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.std(_TEST_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'mean_train_{_scorer}'][_trial_idx] == \
-                   np.mean(_TRAIN_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.mean(_TRAIN_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'std_train_{_scorer}'][_trial_idx] == \
-                   np.std(_TRAIN_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.std(_TRAIN_FOLD_x_SCORER__SCORE[:, _s_idx])
 
             for _split in range(3):   # _n_splits
                 assert out[f'split{_split}_test_{_scorer}'][_trial_idx] == \
-                   _TEST_FOLD_x_SCORER__SCORE_MATRIX[_split, _s_idx]
+                   _TEST_FOLD_x_SCORER__SCORE[_split, _s_idx]
 
             for _split in range(3):   # _n_splits
                 assert out[f'split{_split}_train_{_scorer}'][_trial_idx] == \
-                   _TRAIN_FOLD_x_SCORER__SCORE_MATRIX[_split, _s_idx]
+                   _TRAIN_FOLD_x_SCORER__SCORE[_split, _s_idx]
 
 
         # cant test rank!
@@ -236,16 +236,16 @@ class TestCVResultsUpdate:
 
         _THRESHOLDS = np.linspace(0, 1, _thresholds)
         _make_holder = lambda low, high, shape: np.ma.masked_array(
-            np.random.randint(low, high, shape)
+            np.random.randint(low, high, shape), dtype=np.float64
         )
         _FOLD_FIT_TIMES_VECTOR = _make_holder(50, 90, (_n_splits,))
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = \
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME = \
             _make_holder(1, 2, (_n_splits, _thresholds, _n_scorers))
         _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
             _make_holder(0, _thresholds, _n_scorers)
-        _TEST_FOLD_x_SCORER__SCORE_MATRIX = \
+        _TEST_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
-        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
+        _TRAIN_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
         del _make_holder
 
@@ -258,10 +258,10 @@ class TestCVResultsUpdate:
             _trial_idx,
             _THRESHOLDS,
             _FOLD_FIT_TIMES_VECTOR,
-            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX,
+            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME,
             _TEST_BEST_THRESHOLD_IDXS_BY_SCORER,
-            _TEST_FOLD_x_SCORER__SCORE_MATRIX,
-            _TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+            _TEST_FOLD_x_SCORER__SCORE,
+            _TRAIN_FOLD_x_SCORER__SCORE,
             _scorers,
             _cv_results_template,
             _return_train_score
@@ -316,9 +316,9 @@ class TestCVResultsUpdate:
         assert out['std_fit_time'][_trial_idx] == np.std(_FOLD_FIT_TIMES_VECTOR)
 
         assert out['mean_score_time'][_trial_idx] == \
-               np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
+               np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME)
         assert out['std_score_time'][_trial_idx] == \
-               np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
+               np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME)
 
         assert np.array_equiv(out['params'], ref_permuter)
         assert out['param_param_1'][_trial_idx] == \
@@ -330,24 +330,24 @@ class TestCVResultsUpdate:
                 _scorer = 'score'
 
             assert out[f'best_threshold'][_trial_idx] == \
-                _THRESHOLDS[_TEST_BEST_THRESHOLD_IDXS_BY_SCORER[_s_idx]]
+                _THRESHOLDS[int(_TEST_BEST_THRESHOLD_IDXS_BY_SCORER[_s_idx])]
 
             assert out[f'mean_test_{_scorer}'][_trial_idx] == \
-                   np.mean(_TEST_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.mean(_TEST_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'std_test_{_scorer}'][_trial_idx] == \
-                   np.std(_TEST_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.std(_TEST_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'mean_train_{_scorer}'][_trial_idx] == \
-                   np.mean(_TRAIN_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.mean(_TRAIN_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'std_train_{_scorer}'][_trial_idx] == \
-                   np.std(_TRAIN_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.std(_TRAIN_FOLD_x_SCORER__SCORE[:, _s_idx])
 
             for _split in range(5):   # _n_splits
                 assert out[f'split{_split}_test_{_scorer}'][_trial_idx] == \
-                   _TEST_FOLD_x_SCORER__SCORE_MATRIX[_split, _s_idx]
+                   _TEST_FOLD_x_SCORER__SCORE[_split, _s_idx]
 
             for _split in range(5):   # _n_splits
                 assert out[f'split{_split}_train_{_scorer}'][_trial_idx] == \
-                   _TRAIN_FOLD_x_SCORER__SCORE_MATRIX[_split, _s_idx]
+                   _TRAIN_FOLD_x_SCORER__SCORE[_split, _s_idx]
 
 
         # cant test rank!
@@ -386,25 +386,25 @@ class TestCVResultsUpdate:
         _THRESHOLDS = np.ma.masked_array(np.linspace(0, 1, _thresholds))
         _THRESHOLDS[1] = np.ma.masked
         _make_holder = lambda low, high, shape: np.ma.masked_array(
-            np.random.randint(low, high, shape)
+            np.random.randint(low, high, shape), dtype=np.float64
         )
         _FOLD_FIT_TIMES_VECTOR = _make_holder(10, 15, (_n_splits,))
         _FOLD_FIT_TIMES_VECTOR[1] = np.ma.masked
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX = \
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME = \
             _make_holder(1, 2, (_n_splits, _thresholds, _n_scorers))
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX[1, :, :] = np.ma.masked
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME[1, :, :] = np.ma.masked
         # best threshold idx cannot be 1, 1 is masked to mock except during fit
         while True:
             _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
                 _make_holder(0, _thresholds, _n_scorers)
             if 1 not in _TEST_BEST_THRESHOLD_IDXS_BY_SCORER:
                 break
-        _TEST_FOLD_x_SCORER__SCORE_MATRIX = \
+        _TEST_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
-        _TEST_FOLD_x_SCORER__SCORE_MATRIX[1, :] = np.ma.masked
-        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX = \
+        _TEST_FOLD_x_SCORER__SCORE[1, :] = np.ma.masked
+        _TRAIN_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
-        _TRAIN_FOLD_x_SCORER__SCORE_MATRIX[1, :] = np.ma.masked
+        _TRAIN_FOLD_x_SCORER__SCORE[1, :] = np.ma.masked
         del _make_holder
 
         _scorers = {
@@ -417,10 +417,10 @@ class TestCVResultsUpdate:
             _trial_idx,
             _THRESHOLDS,
             _FOLD_FIT_TIMES_VECTOR,
-            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX,
+            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME,
             _TEST_BEST_THRESHOLD_IDXS_BY_SCORER,
-            _TEST_FOLD_x_SCORER__SCORE_MATRIX,
-            _TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+            _TEST_FOLD_x_SCORER__SCORE,
+            _TRAIN_FOLD_x_SCORER__SCORE,
             _scorers,
             _cv_results_template,
             _return_train_score
@@ -473,9 +473,9 @@ class TestCVResultsUpdate:
         assert out['std_fit_time'][_trial_idx] == np.std(_FOLD_FIT_TIMES_VECTOR)
 
         assert out['mean_score_time'][_trial_idx] == \
-               np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
+               np.mean(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME)
         assert out['std_score_time'][_trial_idx] == \
-               np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME_MATRIX)
+               np.std(_TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME)
 
         assert np.array_equiv(out['params'], ref_permuter)
         assert out['param_param_1'][_trial_idx] == \
@@ -487,26 +487,26 @@ class TestCVResultsUpdate:
 
 
             assert out[f'best_threshold_{_scorer}'][_trial_idx] == \
-                _THRESHOLDS[_TEST_BEST_THRESHOLD_IDXS_BY_SCORER[_s_idx]]
+                _THRESHOLDS[int(_TEST_BEST_THRESHOLD_IDXS_BY_SCORER[_s_idx])]
 
-            # _TEST_FOLD_x_SCORER__SCORE_MATRIX,
-            # _TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+            # _TEST_FOLD_x_SCORER__SCORE,
+            # _TRAIN_FOLD_x_SCORER__SCORE,
             assert out[f'mean_test_{_scorer}'][_trial_idx] == \
-                   np.mean(_TEST_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.mean(_TEST_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'std_test_{_scorer}'][_trial_idx] == \
-                   np.std(_TEST_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.std(_TEST_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'mean_train_{_scorer}'][_trial_idx] == \
-                   np.mean(_TRAIN_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.mean(_TRAIN_FOLD_x_SCORER__SCORE[:, _s_idx])
             assert out[f'std_train_{_scorer}'][_trial_idx] == \
-                   np.std(_TRAIN_FOLD_x_SCORER__SCORE_MATRIX[:, _s_idx])
+                   np.std(_TRAIN_FOLD_x_SCORER__SCORE[:, _s_idx])
 
             for _split in [0,2]:   # _n_splits, but idx 1 is masked
                 assert out[f'split{_split}_test_{_scorer}'][_trial_idx] == \
-                   _TEST_FOLD_x_SCORER__SCORE_MATRIX[_split, _s_idx]
+                   _TEST_FOLD_x_SCORER__SCORE[_split, _s_idx]
 
             for _split in [0,2]:   # _n_splits, but idx 1 is masked
                 assert out[f'split{_split}_train_{_scorer}'][_trial_idx] == \
-                   _TRAIN_FOLD_x_SCORER__SCORE_MATRIX[_split, _s_idx]
+                   _TRAIN_FOLD_x_SCORER__SCORE[_split, _s_idx]
 
 
         # cant test rank!

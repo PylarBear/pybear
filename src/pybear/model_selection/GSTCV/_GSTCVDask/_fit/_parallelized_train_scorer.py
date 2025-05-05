@@ -7,10 +7,11 @@
 
 
 from typing_extensions import Union
-import numpy.typing as npt
 from ..._type_aliases import (
     ScorerWIPType,
-    ClassifierProtocol
+    ClassifierProtocol,
+    MaskedHolderType,
+    NDArrayHolderType
 )
 from .._type_aliases import (
     XDaskWIPType,
@@ -31,11 +32,11 @@ def _parallelized_train_scorer(
     _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
-    _BEST_THRESHOLDS_BY_SCORER: npt.NDArray[np.float64],
+    _BEST_THRESHOLDS_BY_SCORER: NDArrayHolderType,
     _error_score: Union[numbers.Real, None],
     _verbose: int,
     **scorer_params
-) -> np.ma.masked_array:
+) -> MaskedHolderType:
 
     # dont adjust the spacing, is congruent with test scorer
 
@@ -43,18 +44,18 @@ def _parallelized_train_scorer(
     Using the estimators fit for each train fold, use predict_proba and
     _X_trains to generate _y_preds and score against the corresponding
     _y_trains using all of the scorers.
-    Fill one layer of the TRAIN_FOLD_x_SCORER__SCORE_MATRIX.
+    Fill one layer of the TRAIN_FOLD_x_SCORER__SCORE.
 
 
 
     Parameters
     ----------
     _X_train:
-        dask.array.core.Array[Union[int,float]] - A train partition of
-        the data that was fit. Must be 2D ndarray.
+        XDaskWIPType - A train partition of the data that was fit. Must
+        be 2D ndarray.
     _y_train:
-        dask.array.core.Array[int] - The corresponding train partition of
-        the target for the X train partition. Must be 1D da.core.Array.
+        YDaskWIPType - The corresponding train partition of the target
+        for the X train partition. Must be 1D da.core.Array.
     _FIT_OUTPUT_TUPLE:
         tuple[ClassifierProtocol, float, bool] - A tuple holding the
         fitted estimator, the fit time (not needed here), and the
@@ -63,12 +64,11 @@ def _parallelized_train_scorer(
         int - the zero-based split index of the train partition used here;
         parallelism occurs over the different splits.
     _SCORER_DICT:
-        dict[str: Callable[[Iterable[int], Iterable[int]], float] -
-        a dictionary with scorer name as keys and the scorer callables
-        as values. The scorer callables are (or resemble) sklearn
-        metrics, not make_scorer.
+        ScorerWIPType - a dictionary with scorer name as keys and the
+        scorer callables as values. The scorer callables are (or resemble)
+        sklearn metrics, not make_scorer.
     _BEST_THRESHOLDS_BY_SCORER:
-        npt.NDArray[np.float64]: after all of the fold / threshold / scorer
+        NDArrayHolderType: after all of the fold / threshold / scorer
         combinations are scored, the folds are averaged and the threshold
         with the maximum score for each scorer is found. This vector has
         length n_scorers and in each position holds a float indicating
@@ -86,15 +86,17 @@ def _parallelized_train_scorer(
         information to display to the screen during the grid search
         process. 0 means no output, 10 means maximum output.
     **scorer_params:
-        **dict[str: any] - dictionary of kwargs to be passed to the scorer
+        **dict[str, Any] - dictionary of kwargs to be passed to the scorer
         metrics. 24_07_13 not used by the calling _core_fit module.
 
 
     Return
     ------
     -
-        TRAIN_SCORER__SCORE_LAYER:
-            np.ma.masked_array - masked array of shape (n_scorers, ).
+        TRAIN_SCORER__SCORE_LAYER: MaskedHolderType - masked
+        array of shape (n_scorers, ). The score for this fold of train
+        data using every scorer and the best threshold associated with
+        that scorer.
 
 
 
@@ -109,6 +111,7 @@ def _parallelized_train_scorer(
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # pizza
     assert isinstance(_X_train, dask.array.core.Array)
     assert isinstance(_y_train, dask.array.core.Array)
     assert isinstance(_FIT_OUTPUT_TUPLE, tuple)
@@ -125,7 +128,7 @@ def _parallelized_train_scorer(
 
     _estimator_, _fit_time, _fit_excepted = _FIT_OUTPUT_TUPLE
 
-    TRAIN_SCORER__SCORE_LAYER = \
+    TRAIN_SCORER__SCORE_LAYER: MaskedHolderType = \
         np.ma.zeros(len(_SCORER_DICT), dtype=np.float64)
     TRAIN_SCORER__SCORE_LAYER.mask = True
 
@@ -134,7 +137,7 @@ def _parallelized_train_scorer(
 
 
     # IF A FOLD EXCEPTED DURING FIT, PUT IN error_score IF error_score!=np.nan,
-    # elif is np.nan ALSO MASK THIS FOLD IN TRAIN_FOLD_x_SCORER__SCORE_MATRIX,
+    # elif is np.nan ALSO MASK THIS FOLD IN TRAIN_FOLD_x_SCORER__SCORE,
     # AND SKIP TO NEXT FOLD
     if _fit_excepted:
         TRAIN_SCORER__SCORE_LAYER[:] = _error_score

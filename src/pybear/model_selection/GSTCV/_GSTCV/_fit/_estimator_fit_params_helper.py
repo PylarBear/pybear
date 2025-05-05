@@ -7,7 +7,7 @@
 
 
 from typing_extensions import Any
-import numpy.typing as npt
+from .._type_aliases import SKKFoldType
 
 import numpy as np
 
@@ -17,7 +17,7 @@ import numpy as np
 def _estimator_fit_params_helper(
     data_len: int,
     fit_params: dict[str, Any],
-    KFOLD: list[tuple[npt.NDArray, npt.NDArray]]
+    KFOLD: SKKFoldType
 ) -> dict[int, dict[str, Any]]:
 
     """
@@ -40,8 +40,8 @@ def _estimator_fit_params_helper(
         dict[str, Any] - all the fit params passed to GSTCV(Dask) fit for
         the estimator.
     KFOLD:
-        list[tuple[npt.NDArray[int], npt.NDArray[int]], ...] - The KFold
-        indices that were used to create the train / test splits of data.
+        SKKFoldType - The KFold indices that were used to create the
+        train / test splits of data.
 
 
     Return

@@ -5,21 +5,19 @@
 #
 
 
-from typing import TypeVar
-from typing_extensions import Any
 
-import numpy as np
+from typing_extensions import Any
+from .._type_aliases import DaskKFoldType
+
 import dask.array as da
 from dask import compute
 
-# pizza do something about this
-T = TypeVar('T', np.ndarray[int], da.core.Array)
 
 
 def _estimator_fit_params_helper(
-        data_len: int,
-        fit_params: dict[str, Any],
-        KFOLD: list[tuple[T, T]]
+    data_len: int,
+    fit_params: dict[str, Any],
+    KFOLD: DaskKFoldType
 ) -> dict[int, dict[str, Any]]:
 
     """
@@ -42,8 +40,8 @@ def _estimator_fit_params_helper(
         dict[str, Any] - all the fit params passed to GSTCV(Dask) fit for
         the estimator.
     KFOLD:
-        list[tuple[da.core.Array, da.core.Array], ...] - The KFold
-        indices that were used to create the train / test splits of data.
+        DaskKFoldType - The KFold indices that were used to create the
+        train / test splits of data.
 
 
     Return

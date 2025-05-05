@@ -49,10 +49,9 @@ def _get_kfold(
     Parameters
     ----------
     _X:
-        NDArray[Union[int,float]] - The data to be split. Must be 2D
-        ndarray.
+        XSKWIPType - The data to be split. Must be 2D ndarray.
     _y:
-        NDArray[int] - The target the data is being fit against, to be
+        YSKWIPType - The target the data is being fit against, to be
         split in the same way as the data. Must be 1D ndarray.
     _n_splits:
         int - the number of splits to produce; the number of split pairs
@@ -66,14 +65,15 @@ def _get_kfold(
     Return
     ------
     -
-        KFOLD:
-            Generator[tuple[NDArray[int], NDArray[int]] - A generator
-            object yielding pairs of train test indices as NDArray[int].
+        pizza
+        KFOLD: Generator[tuple[NDArray[int], NDArray[int]] - A generator
+        object yielding pairs of train test indices as NDArray[int].
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    # pizza
     # AS OF 25_04_29 NOT VALIDATING X & y
     # err_msg = (f"_X ({type(_X)}) and _y ({type(_y)}) must both be numpy "
     #            f"arrays.")

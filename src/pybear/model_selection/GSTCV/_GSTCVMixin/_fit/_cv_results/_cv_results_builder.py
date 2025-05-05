@@ -182,10 +182,9 @@ def _cv_results_builder(
     _cv:
         int - number of folds (splits) to use for cross validation
     _scorer:
-        dict[str, Callable[[Iterable, Iterable], float] - a dictionary
-        keyed by scorer name with the scorer callables as values. Note
-        that these callables are sklearn metrics and not sklearn
-        make_scorer.
+        ScorerWIPType - a dictionary keyed by scorer name with the
+        scorer callables as values. Note that these callables are
+        sklearn metrics and not sklearn make_scorer.
     _return_train_score:
         bool - when True, calculate the scores for the train folds in
         addition to the test folds.
@@ -194,15 +193,14 @@ def _cv_results_builder(
     Returns
     -------
     -
-        cv_results_: dict[str, np.ma.masked_array] - an empty cv_results
-        dictionary other than the individual 'param' columns and the
-        'params' column.
+        cv_results_: CVResults - an empty cv_results dictionary other
+        than the individual 'param' columns and the 'params' column.
 
-        PARAM_GRID_KEY: NDArray[np.uint8]] - a vector of integers with
-        length equal to the number of searches in the grid search, i.e.,
-        the length of the masked arrays in cv_results. Indicates the
-        index of the param grid in param_grid that the search trial is
-        associated with.
+        PARAM_GRID_KEY: NDArrayHolderType - a vector of integers
+        with length equal to the number of searches in the grid search,
+        i.e., the length of the masked arrays in cv_results. Indicates
+        the index of the param grid in param_grid that the search trial
+        is associated with.
 
     """
 

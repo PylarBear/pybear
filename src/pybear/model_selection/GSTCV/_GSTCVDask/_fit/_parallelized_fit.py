@@ -66,7 +66,7 @@ def _parallelized_fit(
         to proceed, and the given number carries through scoring
         tabulations in place of the missing scores.
     **fit_params:
-        **dict[str, any] - dictionary of kwarg: value pairs to be passed
+        **dict[str, Any] - dictionary of kwarg: value pairs to be passed
         to the estimator's fit method.
 
 

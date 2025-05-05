@@ -44,7 +44,7 @@ def _val_scoring(
     Validate `scoring`, the scoring metric(s) used to evaluate the
     predictions on the test (and possibly train) sets.
 
-    Can be dict[str, callable] for any number of scorers, singular or
+    Can be dict[str, Callable] for any number of scorers, singular or
     plural.
 
     For a single scoring metric, can be a single string or a single
@@ -59,12 +59,12 @@ def _val_scoring(
     Parameters
     ----------
     _scoring:
-        Union[str, callable, Sequence[str], dict[str, callable]] - The
+        Union[str, Callable, Sequence[str], dict[str, Callable]] - The
         scoring metric(s) used to evaluate the predictions on the test
         (and possibly train) sets.
     _must_be_dict:
         Optional[bool], default=True - whether 'scoring' must have
-        already been conditioned into dict[str, callable].
+        already been conditioned into dict[str, Callable].
 
 
     Return
