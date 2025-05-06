@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -24,7 +25,7 @@ from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_build
 
 from pybear.model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
-# 24_08_11 this module tests the dask GSTCV operation of:
+# this module tests the dask GSTCV operation of:
 # 1) the cache_cv kwarg, proves the equality of cv_results_ when cache_cv
 # is True or False.
 # 2) the cv kwarg, proves the equality of cv_results_ when cv as int and
@@ -38,22 +39,6 @@ from pybear.model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
 
 class TestCVCacheCVIid:
 
-    # def _core_fit(
-    #     _X: XDaskWIPType,
-    #     _y: YDaskWIPType,
-    #     _estimator: ClassifierProtocol,
-    #     _cv_results: CVResultsType,
-    #     _cv: Union[int, Iterable[GenericKFoldType]],
-    #     _error_score: Union[int, float, Literal['raise']],
-    #     _verbose: int,
-    #     _scorer: ScorerWIPType,
-    #     _cache_cv: bool,
-    #     _iid: bool,
-    #     _return_train_score: bool,
-    #     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
-    #     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
-    #     **params
-    #     ) -> CVResultsType
 
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -169,30 +154,6 @@ class TestCVCacheCVIid:
         # cv as int & cv as iterator give same output, cache_cv True and
         # False give the same output, and successive independent calls
         # on the same data & splits with iid = False give the same output
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

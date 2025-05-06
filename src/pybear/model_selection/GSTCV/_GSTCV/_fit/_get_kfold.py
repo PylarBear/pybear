@@ -26,7 +26,7 @@ def _get_kfold(
     _y: YSKWIPType,
     _n_splits: int,
     _verbose: int
-) -> Generator[SKKFoldType, None, None]:
+) -> Generator[SKKFoldType, None, None]:   # pizza why None None
 
     """
     Use sklearn StratifiedKFold to get train / test splits when cv is
@@ -65,26 +65,13 @@ def _get_kfold(
     Return
     ------
     -
-        pizza
-        KFOLD: Generator[tuple[NDArray[int], NDArray[int]] - A generator
-        object yielding pairs of train test indices as NDArray[int].
+        KFOLD: Generator[SKKFoldType] - A generator object yielding
+        pairs of train test indices as NDArray[int].
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    # pizza
-    # AS OF 25_04_29 NOT VALIDATING X & y
-    # err_msg = (f"_X ({type(_X)}) and _y ({type(_y)}) must both be numpy "
-    #            f"arrays.")
-    #
-    # if not isinstance(_X, np.ndarray):
-    #     raise TypeError(err_msg)
-    #
-    # if not isinstance(_y, (np.ndarray, type(None))):
-    #     raise TypeError(err_msg)
-    #
-    # del err_msg
+    # 25_04_29 NOT VALIDATING X & y HERE ANYMORE. LET StratifiedKFold RAISE.
 
     assert isinstance(_n_splits, int)
     assert _n_splits > 1

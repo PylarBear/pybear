@@ -37,7 +37,7 @@ def _estimator_fit_params_helper(
     data_len:
         int - the number of examples in the full data set.
     fit_params:
-        dict[str, Any] - all the fit params passed to GSTCV(Dask) fit for
+        dict[str, Any] - all the fit params passed to GSTCV fit for
         the estimator.
     KFOLD:
         SKKFoldType - The KFold indices that were used to create the
@@ -67,7 +67,7 @@ def _estimator_fit_params_helper(
     assert isinstance(fit_params, dict)
     assert all(map(isinstance, list(fit_params), (str for _ in fit_params)))
 
-    assert isinstance(KFOLD, list)
+    assert isinstance(KFOLD, list), f"{type(KFOLD)=}"
     assert all(map(isinstance, KFOLD, (tuple for _ in KFOLD)))
 
 

@@ -6,13 +6,10 @@
 
 
 
-from typing import Iterable
 from typing_extensions import (
     TypeAlias,
     Union
 )
-
-import numbers
 
 import dask
 import distributed
@@ -25,9 +22,11 @@ XDaskWIPType: TypeAlias = dask.array.core.Array
 YDaskInputType: TypeAlias = Union[dask.array.core.Array, None]
 YDaskWIPType: TypeAlias = Union[dask.array.core.Array, None]
 
-DaskSlicerType: TypeAlias = Iterable[numbers.Integral]
+DaskSlicerType: TypeAlias = dask.array.core.Array
 
 DaskKFoldType: TypeAlias = tuple[DaskSlicerType, DaskSlicerType]
+
+DaskSplitType: TypeAlias = tuple[XDaskWIPType, YDaskWIPType]
 
 SchedulerType: TypeAlias = Union[
     distributed.scheduler.Scheduler,

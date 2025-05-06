@@ -25,6 +25,7 @@ from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_build
     import _cv_results_builder
 
 
+
 class TestCoreFitAccuracy:
 
     # 24_07_10 this module tests the equality of SK GSTCV's cv_results_ with

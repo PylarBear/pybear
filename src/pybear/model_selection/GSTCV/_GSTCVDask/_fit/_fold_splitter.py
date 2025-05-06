@@ -7,7 +7,6 @@
 
 
 from typing_extensions import Union
-from ..._type_aliases import GenericSlicerType
 from .._type_aliases import (
     DaskSlicerType,
     XDaskWIPType,
@@ -21,10 +20,10 @@ import dask.dataframe as ddf
 
 
 def _fold_splitter(
-    train_idxs: Union[GenericSlicerType, DaskSlicerType],
-    test_idxs: Union[GenericSlicerType, DaskSlicerType],
+    train_idxs: DaskSlicerType,
+    test_idxs: DaskSlicerType,
     *data_objects: Union[XDaskWIPType, YDaskWIPType]
-) -> tuple[tuple[XDaskWIPType, YDaskWIPType, ...]]:
+) -> tuple[tuple[XDaskWIPType, YDaskWIPType], ...]:
 
 
     """
@@ -40,13 +39,12 @@ def _fold_splitter(
 
     Parameters
     ----------
-    # pizza fix these type hints!
     train_idxs:
-        Iterable[int] - 1D vector of row indices used to slice train sets
-        out ouf every given data object.
+        DaskSlicerType - 1D vector of row indices used to slice train
+        sets out of every given data object.
     test_idxs:
-        Iterable[int] - 1D vector of row indices used to slice test sets
-        out ouf every given data object.
+        DaskSlicerType - 1D vector of row indices used to slice test
+        sets out of every given data object.
     *data_objects:
         Union[XDaskWIPType, YDaskWIPType] - The data objects to slice.
         Need not be of equal size, and need not be completely consumed
@@ -57,7 +55,7 @@ def _fold_splitter(
     Return
     ------
     -
-        SPLITS: tuple[tuple[da.core.Array, da.core.Array], ...] - return
+        SPLITS: tuple[tuple[XDaskWIPType, YDaskWIPType], ...] - return
         the train / test splits for the given data objects in the order
         passed in a tuple of tuples, each inner tuple containing a
         train/test pair.

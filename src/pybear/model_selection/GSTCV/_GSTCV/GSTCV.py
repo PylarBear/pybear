@@ -557,7 +557,11 @@ class GSTCV(_GSTCVMixin):
         _validation(self.estimator, self.pre_dispatch)
 
 
-    def _condition_params(self, _X, _y, _fit_params) -> None:
+    def _condition_params(
+        self,
+        _X,
+        _y
+    ) -> None:
 
         """
         pizza
@@ -568,20 +572,14 @@ class GSTCV(_GSTCVMixin):
         """
 
         # this is needed for GSTCV for compatibility with GSTCVMixin
-        # nullcontext needs to stay. In _GSTCVMixin.fit (which serves both
-        # GSTCV & GSTCVDask) refit,  is undera scheduler context manager.
+        # nullcontext needs to stay. _GSTCVMixin.fit, which serves both
+        # GSTCV & GSTCVDask, is mostly under a scheduler context manager.
         self._scheduler: ContextManager = nullcontext()
 
-        if isinstance(self._cv, int):
+        if isinstance(self._cv, numbers.Integral):
             self._KFOLD = list(_sk_get_kfold(_X, _y, self.n_splits_, self._verbose))
-        else:  # _cv is an iterable
+        else:  # _cv is an iterable, _cond_cv should have made list[tuple]
             self._KFOLD = self._cv
-
-        self._fold_fit_params = _sk_estimator_fit_params_helper(
-            len(_y),
-            _fit_params,
-            self._KFOLD
-        )
 
 
     def _core_fit(
@@ -646,13 +644,12 @@ class GSTCV(_GSTCVMixin):
         return
 
 
-    #  pizza can any of these take 2D?
-
     def _fit_all_folds(
         self,
-        _X: XSKInputType,
-        _y: YSKInputType,
-        _grid: dict[str, Any]
+        _X:XSKInputType,
+        _y:YSKInputType,
+        _grid:dict[str, Any],
+        _fit_params
     ) -> list[tuple[ClassifierProtocol, float, bool], ...]:
 
         """
@@ -708,6 +705,12 @@ class GSTCV(_GSTCVMixin):
         # doesnt matter for an estimator when not pipeline.)
         d_p = self._estimator.get_params(deep=True)  # deep_params
 
+        _fold_fit_params = _sk_estimator_fit_params_helper(
+            len(_y),
+            _fit_params,
+            self._KFOLD
+        )
+
         with joblib.parallel_config(prefer='processes', n_jobs=self.n_jobs):
             FIT_OUTPUT = joblib.Parallel(
                 return_as='list', pre_dispatch=self.pre_dispatch
@@ -719,11 +722,11 @@ class GSTCV(_GSTCVMixin):
                     type(self._estimator)(**s_p).set_params(**deepcopy(d_p)),
                     _grid,
                     self.error_score,
-                    **self._fold_fit_params[f_idx]
+                    **_fold_fit_params[f_idx]
                 ) for f_idx, (train_idxs, test_idxs) in enumerate(self._KFOLD)
             )
 
-        del s_p, d_p
+        del s_p, d_p, _fold_fit_params
 
 
         return FIT_OUTPUT
