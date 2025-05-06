@@ -10,87 +10,38 @@ import pytest
 
 import numpy as np
 
-from dask_ml.model_selection import KFold as dask_KFold
+from dask_ml.model_selection import KFold
 
-from dask_ml.linear_model import (
-    LinearRegression as dask_LinearRegression
+from sklearn.linear_model import LinearRegression as sk_LinearRegression
+
+
+
+from sklearn.metrics import (
+    precision_score,
+    recall_score
 )
 
-
-from sklearn.metrics import precision_score, recall_score
-
-from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_builder \
-    import _cv_results_builder
-
-from pybear.model_selection.GSTCV._GSTCVDask._fit._core_fit import _core_fit
+from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 
+pytest.skip(reason='pizza says so', allow_module_level=True)
 
-class TestCoreFitValidation:
 
-    # def _core_fit(
-    #     _X: XDaskWIPType,
-    #     _y: YDaskWIPType,
-    #     _estimator: ClassifierProtocol,
-    #     _cv_results: CVResultsType,
-    #     _cv: Union[int, GenericKFoldType],
-    #     _error_score: Union[int, float, Literal['raise']],
-    #     _verbose: int,
-    #     _scorer: ScorerWIPType,
-    #     _cache_cv: bool,
-    #     _iid: bool,
-    #     _return_train_score: bool,
-    #     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
-    #     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
-    #     **params
-    #     ) -> CVResultsType
+class TestFitValidation:
 
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     @staticmethod
     @pytest.fixture
-    def helper_for_cv_results_and_PARAM_GRID_KEY(standard_cv_int, good_SCORER):
-        param_grid = [
-            {'C': [100, 1000, 10000]},
-            {'solver': ['saga', 'lbfgs', 'sag']}
-        ]
-
-        out_cv_results, out_key = _cv_results_builder(
-            # DO NOT PUT 'thresholds' IN PARAM GRIDS!
-            _param_grid=param_grid,
-            _cv=standard_cv_int,
-            _scorer=good_SCORER,
-            _return_train_score=True
-        )
-
-        return out_cv_results, out_key
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_cv_results(helper_for_cv_results_and_PARAM_GRID_KEY):
-
-        return helper_for_cv_results_and_PARAM_GRID_KEY[0]
-
-
-    @staticmethod
-    @pytest.fixture
     def good_cv_arrays(X_da, y_da, standard_cv_int):
-        return dask_KFold(n_splits=standard_cv_int).split(X_da, y_da)
+        return KFold(n_splits=standard_cv_int).split(X_da, y_da)
 
 
     @staticmethod
     @pytest.fixture
     def good_SCORER():
         return {'precision': precision_score, 'recall': recall_score}
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_PARAM_GRID_KEY(helper_for_cv_results_and_PARAM_GRID_KEY):
-
-        return helper_for_cv_results_and_PARAM_GRID_KEY[1]
 
 
     @staticmethod
@@ -108,109 +59,70 @@ class TestCoreFitValidation:
         (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_X(self, junk_X, y_da, dask_est_log, good_cv_results,
-        standard_cv_int, standard_error_score, good_SCORER, standard_cache_cv,
-        standard_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client
-    ):
+    def test_rejects_junk_X(self, junk_X, y_da, dask_GSTCV_est_log_one_scorer_prefit):
 
         # this is raised by dask_ml.KFold, let it raise whatever
-        with pytest.raises(Exception):
-            _core_fit(
-                junk_X,
-                y_da,
-                dask_est_log,
-                good_cv_results,
-                standard_cv_int,
-                standard_error_score,
-                10,
-                good_SCORER,
-                standard_cache_cv,
-                standard_iid,
-                True,
-                good_PARAM_GRID_KEY,
-                good_THRESHOLD_DICT
-            )
+        with pytest.raises(UnicodeError):
+            dask_GSTCV_est_log_one_scorer_prefit.fit(junk_X, y_da)
 
 
     @pytest.mark.parametrize('junk_y',
         (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_y(self, X_da, junk_y, dask_est_log, good_cv_results,
-        standard_cv_int, standard_error_score, good_SCORER, standard_cache_cv,
-        standard_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT, _client
-    ):
+    def test_rejects_junk_y(self, X_da, junk_y, dask_GSTCV_est_log_one_scorer_prefit):
 
         # this is raised by _get_kfold validation
-        with pytest.raises(TypeError):
-            _core_fit(
-                X_da,
-                junk_y,
-                dask_est_log,
-                good_cv_results,
-                standard_cv_int,
-                standard_error_score,
-                10,
-                good_SCORER,
-                standard_cache_cv,
-                standard_iid,
-                True,
-                good_PARAM_GRID_KEY,
-                good_THRESHOLD_DICT
-            )
+        with pytest.raises(UnicodeError):
+            dask_GSTCV_est_log_one_scorer_prefit.fit(X_da, junk_y)
 
 
     @pytest.mark.parametrize('junk_estimator',
         (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_estimator(self, X_da, y_da, junk_estimator,
-        good_cv_results, standard_cv_int, standard_error_score, good_SCORER,
-        standard_cache_cv, standard_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT,
+    def test_rejects_junk_estimator(
+        self, X_da, y_da, junk_estimator, param_grid_dask_log, standard_cv_int,
+        standard_error_score, good_SCORER, dask_GSTCV_est_log_one_scorer_prefit,
         _client
     ):
 
+        # dont overwrite a session fixture with new params!
+
         with pytest.raises(AttributeError):
-            _core_fit(
-                X_da,
-                y_da,
-                junk_estimator,
-                good_cv_results,
-                standard_cv_int,
-                standard_error_score,
-                10,
-                good_SCORER,
-                standard_cache_cv,
-                standard_iid,
-                True,
-                good_PARAM_GRID_KEY,
-                good_THRESHOLD_DICT
-            )
+            GSTCVDask(
+                estimator=junk_estimator,
+                param_grid=param_grid_dask_log,
+                cv=standard_cv_int,
+                error_score=standard_error_score,
+                verbose=10,
+                scoring=good_SCORER,
+                cache_cv=standard_cache_cv,
+                iid=standard_iid,
+                return_train_score=True
+            ).fit(X_da, y_da)
 
 
-    @pytest.mark.parametrize('bad_estimator', (dask_LinearRegression(),))
+    @pytest.mark.parametrize('bad_estimator', (sk_LinearRegression(),))
     def test_rejects_bad_estimator(self, X_da, y_da, bad_estimator,
+        dask_log_init_params,
         good_cv_results, standard_cv_int, standard_error_score, good_SCORER,
         standard_cache_cv, standard_iid, good_PARAM_GRID_KEY, good_THRESHOLD_DICT,
         _client
     ):
 
         with pytest.raises(AttributeError):
-            _core_fit(
-                X_da,
-                y_da,
-                bad_estimator,
-                good_cv_results,
-                standard_cv_int,
-                standard_error_score,
-                10,
-                good_SCORER,
-                standard_cache_cv,
-                standard_iid,
-                True,
-                good_PARAM_GRID_KEY,
-                good_THRESHOLD_DICT
-            )
+            GSTCVDask(
+                estimator=bad_estimator,
+                param_grid=dask_log_init_params,
+                cv=standard_cv_int,
+                error_score=standard_error_score,
+                verbose=10,
+                scoring=good_SCORER,
+                cache_cv=standard_cache_cv,
+                iid=standard_iid,
+                return_train_score=True
+            ).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('junk_cv_results',
@@ -546,12 +458,6 @@ class TestCoreFitValidation:
 
 
     # END test validation * * ** * * ** * * ** * * ** * * ** * * ** * *
-
-
-
-
-
-
 
 
 

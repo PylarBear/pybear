@@ -20,39 +20,20 @@ from sklearn.metrics import (
     balanced_accuracy_score
 )
 
-from pybear.model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
-from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_builder \
-    import _cv_results_builder
+from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 
 
-class TestCoreFitAccuracy:
+class TestFitAccuracy:
 
-    # 24_07_10 this module tests the equality of SK GSTCV's cv_results_ with
-    # 0.5 threshold against sklearn GSCV cv_results_.
-
-
-    # def _core_fit(
-    #     _X: XSKWIPType,
-    #     _y: YSKWIPType,
-    #     _estimator: ClassifierProtocol,
-    #     _cv_results: CVResultsType,
-    #     _cv: Union[int, GenericKFoldType],
-    #     _error_score: Union[int, float, Literal['raise']],
-    #     _verbose: int,
-    #     _scorer: ScorerWIPType,
-    #     _n_jobs: Union[int, None],
-    #     _return_train_score: bool,
-    #     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
-    #     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
-    #     **params
-    #     ) -> CVResultsType
+    # 24_07_10 this module tests the equality of SK GSTCV's cv_results_
+    # with 0.5 threshold against sklearn GSCV cv_results_.
 
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     # create tight log init params to supersede session params for this test.
-    # need tighter params on logistic to get _core_fit & sk_GSCV to agree.
+    # need tighter params on logistic to get GSTCV & sk_GSCV to agree.
     @staticmethod
     @pytest.fixture()
     def special_sk_log_init_params():
@@ -74,16 +55,16 @@ class TestCoreFitAccuracy:
     @staticmethod
     @pytest.fixture()
     def special_sk_GSCV_est_log_one_scorer_prefit(
-            sk_gscv_init_params, special_sk_est_log, param_grid_sk_log
+        sk_gscv_init_params, special_sk_est_log, param_grid_sk_log
     ):
 
-        __ = sk_GSCV(**sk_gscv_init_params)
-        __.set_params(
+        _sk_GSCV = sk_GSCV(**sk_gscv_init_params)
+        _sk_GSCV.set_params(
             estimator=special_sk_est_log,
             param_grid=param_grid_sk_log,
             refit=False
         )
-        return __
+        return _sk_GSCV
 
 
     @staticmethod
@@ -122,30 +103,23 @@ class TestCoreFitAccuracy:
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        good_cv_results, PARAM_GRID_KEY = _cv_results_builder(
-            _param_grid=_param_grid,
-            _cv=standard_cv_int,
-            _scorer=_scorer,
-            _return_train_score=_return_train_score
+        TestCls = GSTCV(
+            estimator=special_sk_est_log,
+            param_grid=_param_grid,
+            thresholds=[0.5],
+            cv=standard_cv_int,
+            error_score=standard_error_score,
+            refit=False,
+            verbose=0,
+            scoring=_scorer,
+            n_jobs=_n_jobs,
+            pre_dispatch=_pre_dispatch,
+            return_train_score=_return_train_score
         )
 
-        gstcv_cv_results = _core_fit(
-            X_np,
-            y_np,
-            special_sk_est_log,
-            good_cv_results,
-            standard_cv_int,
-            standard_error_score,
-            0, # good_verbose,
-            _scorer,
-            _n_jobs,
-            _pre_dispatch,
-            _return_train_score,
-            PARAM_GRID_KEY,
-            {i: np.array([0.5]) for i in range(len(_param_grid))} # THRESHOLD_DICT
-        )
+        TestCls.fit(X_np, y_np)
 
-        pd_gstcv_cv_results = pd.DataFrame(gstcv_cv_results)
+        gstcv_cv_results = pd.DataFrame(TestCls.cv_results_)
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -155,93 +129,60 @@ class TestCoreFitAccuracy:
             param_grid=_param_grid,
             scoring={k: make_scorer(v) for k,v in _scorer.items()},
             n_jobs=_n_jobs,
+            pre_dispatch=_pre_dispatch,
             return_train_score=_return_train_score
         )
 
         out_sk_gscv.fit(X_np, y_np)
 
-        sk_cv_results = out_sk_gscv.cv_results_
-
-        pd_sk_cv_results = pd.DataFrame(sk_cv_results)
+        sk_cv_results = pd.DataFrame(out_sk_gscv.cv_results_)
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
-        assert len(pd_gstcv_cv_results) == len(pd_sk_cv_results), \
+        assert gstcv_cv_results.shape[0] == sk_cv_results.shape[0], \
             f"different rows in cv_results_"
 
-
-        _ = pd_gstcv_cv_results.to_numpy()
-        MASK = list(map(lambda x: 'threshold' in x, pd_gstcv_cv_results.columns))
-        _drop = pd_gstcv_cv_results.columns[MASK]
-        __ = pd_gstcv_cv_results.drop(columns=_drop).columns.to_numpy()
-
-        assert np.array_equiv(__, pd_sk_cv_results.columns), \
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _gscv_cols = sk_cv_results.columns.to_numpy()
+        _drop = [i for i in gstcv_cv_results.columns if 'threshold' in i]
+        _gstcv_cols = gstcv_cv_results.drop(columns=_drop).columns.to_numpy()
+        del _drop
+        assert np.array_equiv(_gscv_cols, _gstcv_cols), \
             f'columns not equal / out of order'
-        del MASK, __
+        del _gscv_cols, _gstcv_cols
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        for column in pd_gstcv_cv_results:
-
-            if 'threshold' not in column and 'time' not in column:
-                assert column in pd_sk_cv_results, \
-                    f'\033[91mcolumn {column} not in!\033[0m'
+        for column in gstcv_cv_results:
 
             if 'threshold' in column:
-                assert (pd_gstcv_cv_results[column] == 0.5).all()
-                continue
-
-            if 'time' in column:
-                assert (pd_gstcv_cv_results[column] > 0).all()
+                assert (gstcv_cv_results[column] == 0.5).all()
+                continue  # notice continuing here
+            elif 'time' in column:
                 assert (gstcv_cv_results[column] > 0).all()
-                continue
+                assert (sk_cv_results[column] > 0).all()
+                continue  # notice continuing here
+            else:
+                assert column in sk_cv_results, \
+                    f'\033[91mcolumn {column} not in!\033[0m'
+                # notice we flow thru to more tests
 
-
-            MASK = np.logical_not(pd_gstcv_cv_results[column].isna())
+            MASK = np.logical_not(gstcv_cv_results[column].isna())
 
             try:
-                _gstcv_out = pd_gstcv_cv_results[column][MASK].to_numpy(
-                    dtype=np.float64
-                )
-                _sk_out = pd_sk_cv_results[column][MASK].to_numpy(
-                    dtype=np.float64
-                )
-
+                _gstcv_out = gstcv_cv_results[column][MASK]
+                _gstcv_out = _gstcv_out.to_numpy(dtype=np.float64)
+                _sk_out = sk_cv_results[column][MASK]
+                _sk_out = _sk_out.to_numpy(dtype=np.float64)
                 raise UnicodeError
-
             except UnicodeError:
                 # check floats
                 assert np.allclose(_gstcv_out, _sk_out, atol=0.00001)
-
             except:
                 # check param columns
                 assert np.array_equiv(
-                    pd_gstcv_cv_results[column][MASK].to_numpy(),
-                    pd_sk_cv_results[column][MASK].to_numpy()
+                    gstcv_cv_results[column][MASK].to_numpy(),
+                    sk_cv_results[column][MASK].to_numpy()
                 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

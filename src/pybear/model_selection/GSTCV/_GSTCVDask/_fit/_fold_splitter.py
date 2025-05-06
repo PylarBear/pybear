@@ -104,7 +104,8 @@ def _fold_splitter(
         elif isinstance(_data, ddf.Series):
             _data_train = _data[train_idxs.compute()]
             _data_test = _data[test_idxs.compute()]
-
+        else:
+            raise Exception
 
         SPLITS.append(tuple((_data_train, _data_test)))
 

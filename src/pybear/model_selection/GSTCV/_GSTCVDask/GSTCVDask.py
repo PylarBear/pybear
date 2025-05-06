@@ -910,22 +910,21 @@ class GSTCVDask(_GSTCVMixin):
 
             # train only!
             if self.cache_cv:
-                _X_y_train = list(zip(*self._CACHE_CV[f_idx]))
+                _X_y_train = list(zip(*self._CACHE_CV[f_idx]))[0]
             elif not self.cache_cv:
-                _X_y_train = list(zip(*_dask_fold_splitter(*self._KFold[f_idx], _X, _y)))[0]
+                _X_y_train = list(zip(*_dask_fold_splitter(*self._KFOLD[f_idx], _X, _y)))[0]
 
-            for f_idx, ((X_train, _), (y_train, _)) in enumerate(self.CACHE_CV):
-                TRAIN_SCORER_OUT.append(
-                    _parallelized_train_scorer(
-                        *_X_y_train,
-                        _FIT_OUTPUT[f_idx],
-                        f_idx,
-                        self.scorer_,
-                        _BEST_THRESHOLDS_BY_SCORER,
-                        self.error_score,
-                        self._verbose
-                    )
+            TRAIN_SCORER_OUT.append(
+                _parallelized_train_scorer(
+                    *_X_y_train,
+                    _FIT_OUTPUT[f_idx],
+                    f_idx,
+                    self.scorer_,
+                    _BEST_THRESHOLDS_BY_SCORER,
+                    self.error_score,
+                    self._verbose
                 )
+            )
 
         del _X_y_train
 
