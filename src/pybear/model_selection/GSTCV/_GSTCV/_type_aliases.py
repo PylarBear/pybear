@@ -23,9 +23,11 @@ XSKWIPType: TypeAlias = Iterable
 YSKInputType: TypeAlias = Union[Sequence[numbers.Integral], None]
 YSKWIPType: TypeAlias = Union[Sequence[numbers.Integral], None]
 
-SKSlicerType: TypeAlias = Iterable[numbers.Integral]
+SKSlicerType: TypeAlias = Sequence[numbers.Integral]
 
 SKKFoldType: TypeAlias = tuple[SKSlicerType, SKSlicerType]
+
+SKSplitType: TypeAlias = tuple[XSKWIPType, YSKWIPType]
 
 
 

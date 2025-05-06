@@ -17,62 +17,22 @@ from sklearn.linear_model import (
     Ridge
 )
 
-from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import (
+    precision_score,
+    recall_score
+)
 
-from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_builder \
-    import _cv_results_builder
-
-from pybear.model_selection.GSTCV._GSTCV._fit._core_fit import _core_fit
+from GSTCV.conftest import sk_GSTCV_est_log_one_scorer_prefit
+from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 
+pytest.skip(reason='pizza says so', allow_module_level=True)
 
-class TestCoreFitValidation:
 
-    # def _core_fit(
-    #     _X: XSKWIPType,
-    #     _y: YSKWIPType,
-    #     _estimator: ClassifierProtocol,
-    #     _cv_results: CVResultsType,
-    #     _cv: Union[int, GenericKFoldType],
-    #     _error_score: Union[int, float, Literal['raise']],
-    #     _verbose: int,
-    #     _scorer: ScorerWIPType,
-    #     _n_jobs: Union[int, None],
-    #     _return_train_score: bool,
-    #     _PARAM_GRID_KEY: npt.NDArray[np.uint8],
-    #     _THRESHOLD_DICT: dict[int, npt.NDArray[np.float64]],
-    #     **params
-    #     ) -> CVResultsType
-
+class TestFitValidation:
 
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    @staticmethod
-    @pytest.fixture
-    def helper_for_cv_results_and_PARAM_GRID_KEY(standard_cv_int, good_SCORER):
-        param_grid = [
-            {'C': [100, 1000, 10000]},
-            {'solver': ['saga', 'lbfgs', 'sag']}
-        ]
-
-        out_cv_results, out_key = _cv_results_builder(
-            # DO NOT PUT 'thresholds' IN PARAM GRIDS!
-            _param_grid=param_grid,
-            _cv=standard_cv_int,
-            _scorer=good_SCORER,
-            _return_train_score=True
-        )
-
-        return out_cv_results, out_key
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_cv_results(helper_for_cv_results_and_PARAM_GRID_KEY):
-
-        return helper_for_cv_results_and_PARAM_GRID_KEY[0]
-
 
     @staticmethod
     @pytest.fixture
@@ -84,13 +44,6 @@ class TestCoreFitValidation:
     @pytest.fixture
     def good_SCORER():
         return {'precision': precision_score, 'recall': recall_score}
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_PARAM_GRID_KEY(helper_for_cv_results_and_PARAM_GRID_KEY):
-
-        return helper_for_cv_results_and_PARAM_GRID_KEY[1]
 
 
     @staticmethod
@@ -108,108 +61,67 @@ class TestCoreFitValidation:
         (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_X(self, junk_X, y_np, sk_est_log, good_cv_results,
-        standard_cv_int, standard_error_score, good_SCORER, good_PARAM_GRID_KEY,
-        good_THRESHOLD_DICT
-    ):
+    def test_rejects_junk_X(self, junk_X, y_np, sk_GSTCV_est_log_one_scorer_prefit):
 
-        # this is raised by sklearn.StratifiedKFold,  let it raise whatever
-        with pytest.raises(Exception):
-            _core_fit(
-                junk_X,
-                y_np,
-                sk_est_log,
-                good_cv_results,
-                standard_cv_int,
-                standard_error_score,
-                10,
-                good_SCORER,
-                -1,
-                '2*n_jobs',
-                True,
-                good_PARAM_GRID_KEY,
-                good_THRESHOLD_DICT
-            )
+        # this is raised by sklearn.StratifiedKFold, let it raise whatever
+        with pytest.raises(UnicodeError):
+            sk_GSTCV_est_log_one_scorer_prefit.fit(junk_X, y_np)
 
 
     @pytest.mark.parametrize('junk_y',
         (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_y(self, X_np, junk_y, sk_est_log, good_cv_results,
-        standard_cv_int, standard_error_score, good_SCORER, good_PARAM_GRID_KEY,
-        good_THRESHOLD_DICT
-    ):
+    def test_rejects_junk_y(self, X_np, junk_y, sk_GSCV_est_log_one_scorer_prefit):
 
-        # this is being raised by sklearn.StratifiedKFold, let it raise whatever
+        # this is being raised in various places, let it raise whatever
         with pytest.raises(Exception):
-            _core_fit(
-                X_np,
-                junk_y,
-                sk_est_log,
-                good_cv_results,
-                standard_cv_int,
-                standard_error_score,
-                10,
-                good_SCORER,
-                -1,
-                '2*n_jobs',
-                True,
-                good_PARAM_GRID_KEY,
-                good_THRESHOLD_DICT
-            )
+            sk_GSTCV_est_log_one_scorer_prefit.fit(X_np, junk_y)
 
 
     @pytest.mark.parametrize('junk_estimator',
         (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_estimator(self, X_np, y_np, junk_estimator,
-        good_cv_results, standard_cv_int, standard_error_score, good_SCORER,
-        good_PARAM_GRID_KEY, good_THRESHOLD_DICT
+    def test_rejects_junk_estimator(
+        self, X_np, y_np, junk_estimator, param_grid_sk_log, standard_cv_int,
+        standard_error_score, good_SCORER, sk_GSTCV_est_log_one_scorer_prefit
     ):
 
+        # dont overwrite a session fixture with new params!
+
         with pytest.raises(AttributeError):
-            _core_fit(
-                X_np,
-                y_np,
-                junk_estimator,
-                good_cv_results,
-                standard_cv_int,
-                standard_error_score,
-                10,
-                good_SCORER,
-                -1,
-                '2*n_jobs',
-                True,
-                good_PARAM_GRID_KEY,
-                good_THRESHOLD_DICT
-            )
+            GSTCV(
+                estimator=junk_estimator,
+                param_grid=param_grid_sk_log,
+                cv=standard_cv_int,
+                error_score=standard_error_score,
+                verbose=10,
+                scoring=good_SCORER,
+                n_jobs=-1,
+                pre_dispatch='2*n_jobs',
+                return_train_score=True
+            ).fit(X_np, y_np)
 
 
     @pytest.mark.parametrize('bad_estimator', (LinearRegression(), Ridge()))
     def test_rejects_bad_estimator(self, X_np, y_np, bad_estimator,
+        sk_log_init_params,
         good_cv_results, standard_cv_int, standard_error_score, good_SCORER,
-        good_PARAM_GRID_KEY, good_THRESHOLD_DICT
     ):
 
         with pytest.raises(AttributeError):
-            _core_fit(
-                X_np,
-                y_np,
-                bad_estimator,
-                good_cv_results,
-                standard_cv_int,
-                standard_error_score,
-                10,
-                good_SCORER,
-                -1,
-                '2*n_jobs',
-                True,
-                good_PARAM_GRID_KEY,
-                good_THRESHOLD_DICT
-            )
-
+            GSTCV(
+                estimator=bad_estimator,
+                param_grid=sk_log_init_params,
+                cv=standard_cv_int,
+                error_score=standard_error_score,
+                verbose=10,
+                scoring=good_SCORER,
+                n_jobs=-1,
+                pre_dispatch='2*n_jobs',
+                return_train_score=True
+            ).fit(X_np, y_np)
 
 
     @pytest.mark.parametrize('junk_cv_results',

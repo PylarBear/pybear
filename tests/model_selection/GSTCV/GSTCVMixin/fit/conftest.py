@@ -80,7 +80,8 @@ def _cv_results_template(request):
         row_idx = 0
         for _grid in _grids:
             for _permutation in ParameterGrid(_grid):
-                # ParameterGrid lays out permutations in the same order as pybear.permuter
+                # ParameterGrid lays out permutations in the same order
+                # as pybear.permuter
 
                 b['params'][row_idx] = _permutation
 
@@ -123,34 +124,6 @@ def _cv_results_template(request):
 
 
     return a | b | c
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

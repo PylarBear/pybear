@@ -7,7 +7,6 @@
 
 
 from typing_extensions import Union
-from ..._type_aliases import GenericSlicerType
 
 from .._type_aliases import (
     SKSlicerType,
@@ -22,8 +21,8 @@ import scipy.sparse as ss
 
 
 def _fold_splitter(
-    train_idxs: Union[GenericSlicerType, SKSlicerType],
-    test_idxs: Union[GenericSlicerType, SKSlicerType],
+    train_idxs: SKSlicerType,
+    test_idxs: SKSlicerType,
     *data_objects: Union[XSKWIPType, YSKWIPType],
 ) -> tuple[tuple[XSKWIPType, YSKWIPType], ...]:
 
@@ -40,13 +39,12 @@ def _fold_splitter(
 
     Parameters
     ----------
-    # pizza fix these type hints!
     train_idxs:
-        Iterable[int] - 1D vector of row indices used to slice train sets
-        out ouf every given data object.
+        SKSlicerType - 1D vector of row indices used to slice train sets
+        out of every given data object.
     test_idxs:
-        Iterable[int] - 1D vector of row indices used to slice test sets
-        out ouf every given data object.
+        SKSlicerType - 1D vector of row indices used to slice test sets
+        out of every given data object.
     *data_objects:
         Union[XSKWIPType, YSKWIPType] - The data objects to slice.
         Need not be of equal size, and need not be completely consumed
@@ -57,9 +55,8 @@ def _fold_splitter(
     Return
     ------
     -
-        pizza
-        SPLITS: tuple[tuple[npt.NDArray, npt.NDArray], ...] - return
-        the train / test splits for the given data objects in the order
+        SPLITS: tuple[tuple[XSKWIPType, YSKWIPType], ...] - return the
+        train / test splits for the given data objects in the order
         passed in a tuple of tuples, each inner tuple containing a
         train/test pair.
 

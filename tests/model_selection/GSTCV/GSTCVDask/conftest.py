@@ -135,7 +135,7 @@ def dask_standard_scaler():
     # as of 24_08_26, the only way to get repeatable results with dask
     # StandardScaler is with_mean & with_std both False. under circum-
     # stances when not both False, not getting the exact same output
-    # given the same data. this compromises _core_fit accuracy tests.
+    # given the same data. this compromises fit() accuracy tests.
     # return dask_StandardScaler(with_mean=False, with_std=False)
     # 25_04_29 converted this to sklearn because...
     # 1) to speed up tests

@@ -19,9 +19,6 @@ def _cond_cv(
     _cv_default:Optional[numbers.Integral] = 5
 ) -> Union[int, list[GenericKFoldType]]:
 
-    # pizza, maybe wherever the int is turned into KFold move that into
-    # here. consider what is being done in the dask version.
-
     # pizza maybe specialize this module for both sk and dask.
 
 
@@ -118,6 +115,7 @@ def _cond_cv(
         # show that the constituents of each tuple are iterable
         _addon1 = f"\ngot a non-iterable inside at least one of the pairs."
         list(map(lambda x: list(map(iter, x)), _cv))
+        _cv = list(map(tuple, _cv))
     except UnicodeError:
         raise ValueError(err_msg + _addon2)
     except Exception as e:

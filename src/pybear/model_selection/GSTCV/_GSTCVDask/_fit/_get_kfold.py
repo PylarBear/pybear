@@ -15,7 +15,7 @@ from .._type_aliases import (
 
 import time
 
-import dask.array as da   # pizza
+import dask.array as da
 import dask.dataframe as ddf
 from dask_ml.model_selection import KFold as dask_KFold
 
@@ -27,7 +27,7 @@ def _get_kfold(
     _iid: bool,
     _verbose: int,
     _y: Optional[YDaskWIPType] = None
-) -> Generator[DaskKFoldType, None, None]:
+) -> Generator[DaskKFoldType, None, None]:   # pizza why None None
 
     """
     Use dask_ml KFold to get train / test splits when cv is passed as an
@@ -57,36 +57,33 @@ def _get_kfold(
     Parameters
     ----------
     _X:
-        dask.array.core.Array[Union[int,float]] - The data to be split.
-        Must be 2D dask.array.core.Array.
-    _y:
-        dask.array.core.Array[int] - optional - The target the data is
-        being fit against, to be split in the same way as the data. Must
-        be 1D dask.array.core.Array.
-    _iid:
-        bool - True, the examples in X are distributed randomly; False,
-        there is some kind of non-random ordering of the examples in X.
+        XDaskWIPType - The data to be split. Must be 2D
+        dask.array.core.Array.
     _n_splits:
         int - the number of splits to produce; the number of split pairs
         yielded by the returned generator object.
+    _iid:
+        bool - True, the examples in X are distributed randomly; False,
+        there is some kind of non-random ordering of the examples in X.
     _verbose:
         int - a number from 0 to 10 indicating the amount of information
         to display to screen during the grid search trials. 0 means no
         output, 10 means full output.
-
+    _y:
+        Optional[YDaskWIPType] - The target the data is being fit
+        against, to be split in the same way as the data. Must
+        be 1D dask.array.core.Array.
 
     Return
     ------
     -
         KFOLD:
-            Generator[tuple[da.core.Array[int], da.core.Array[int]] - A
-            generator object yielding pairs of train test indices as
-            da.core.Array[int].
+            Generator[DaskKFoldType] - A generator object yielding
+            pairs of train test indices as da.core.Array[int].
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
     if not isinstance(_X, da.core.Array):
         raise TypeError(f"'_X' must be a dask array. dask_ml KFold requires it.")
 

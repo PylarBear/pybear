@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -16,14 +17,13 @@ from sklearn.model_selection import ParameterGrid
 
 class TestCVResultsFixture:
 
-    # _cv_results_fixture(
-    #        _n_splits,
-    #        _n_rows,
-    #        _scorer_names,
-    #        _grid,
-    #        _return_train_score,
-    #       _fill_param_columns
-    #        )
+    #     _n_splits = request.param['_n_splits']
+    #     _n_rows = request.param['_n_rows']
+    #     _scorer_names = request.param['_scorer_names']
+    #     _grids = request.param['_grids']
+    #     _return_train_score = request.param['_return_train_score']
+    #     _fill_param_columns = request.param['_fill_param_columns']
+
 
     @pytest.mark.parametrize(
         '_cv_results_template',
@@ -41,7 +41,7 @@ class TestCVResultsFixture:
 
         # accuracy with 2 scorers, 1 param grid
 
-        # 1) turn to dataframe
+        # 1) turn cv_results to dataframe
         out = pd.DataFrame(_cv_results_template)
 
         # 2) get rows
@@ -115,7 +115,7 @@ class TestCVResultsFixture:
 
         # accuracy with 1 scorer, 2 param grids
 
-        # 1) turn to dataframe
+        # 1) turn cv_results to dataframe
         out = pd.DataFrame(_cv_results_template)
 
         # 2) get rows
@@ -160,11 +160,6 @@ class TestCVResultsFixture:
         # correct number of columns
         assert _col_ctr == out.shape[1] == len(__)
         # ** * ** *
-
-
-
-
-
 
 
 
@@ -217,14 +212,6 @@ class TestCVResultsFixture:
         assert np.array_equiv(out['param_xyz'], param_2_check)
 
         # ** * ** *
-
-
-
-
-
-
-
-
 
 
 

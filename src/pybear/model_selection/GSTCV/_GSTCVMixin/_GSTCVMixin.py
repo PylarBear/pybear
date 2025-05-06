@@ -251,7 +251,6 @@ class _GSTCVMixin(
             **deepcopy(self.estimator.get_params(deep=True))
         )
 
-        # this is init thresh, needs cond
         _param_grid = _cond_param_grid(self.param_grid, self.thresholds)
 
         # by sklearn design, name convention changes from 'scoring' to
@@ -260,22 +259,21 @@ class _GSTCVMixin(
 
         self._refit = _cond_refit(self.refit, self.scorer_)
 
-        # pizza, in GSTCVMixin, this is turned to list(tuple, tuple,...)
-        # do we want that for dasK?
-        # pizza this may go to be redid & go in both SK & DASK due to cache_cv....
+        # an iterable _cv is turned to list(tuple, tuple,...)
+        # int stays int
         self._cv = _cond_cv(self.cv, _cv_default=5)
 
         self._verbose = _cond_verbose(self.verbose)
 
         self.multimetric_:bool = len(self.scorer_) > 1
 
-        # n_splits_ is only available after fit(). n_splits_ is always
+        # n_splits_ is only available after fit. n_splits_ is always
         # returned as a number
         self.n_splits_ = \
             self._cv if isinstance(self._cv, numbers.Real) else len(self._cv)
 
-        # for params that serve either GSTCV or GSTCVDask
-        self._condition_params(X, y, fit_params)
+        # for either GSTCV or GSTCVDask params
+        self._condition_params(X, y)
 
         # declare types after conditioning v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # THIS IS JUST TO HAVE A REFERENCE TO LOOK AT
@@ -375,7 +373,7 @@ class _GSTCVMixin(
                 # CORE GRID SEARCH ############################################
 
                 _FIT_OUTPUT: list[tuple[ClassifierProtocol, float, bool], ...]
-                _FIT_OUTPUT = self._fit_all_folds(X, y, _grid)
+                _FIT_OUTPUT = self._fit_all_folds(X, y, _grid, fit_params)
 
                 # terminate if all folds excepted, display & compile fit times ** * **
                 _FOLD_FIT_TIMES_VECTOR: MaskedHolderType = \
@@ -584,15 +582,8 @@ class _GSTCVMixin(
                 del _FOLD_FIT_TIMES_VECTOR
                 del _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME
 
-            # 24_07_16, when testing against SK GSCV, this module is altering
-            # the params of the in-scope estimator (estimator used inside this
-            # module) and is altering the estimator that is out-of-scope (the
-            # one that is passed to this module) even though this scope's estimator
-            # is not being returned. to prevent any future problems, set estimator's
-            # params back to the way they started
-            # self._estimator.set_params(**_original_params)
 
-            del _original_params, self._fold_fit_params
+            del _original_params
 
 
             # ONLY DO TEST COLUMNS, DONT DO TRAIN RANK
