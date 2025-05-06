@@ -22,7 +22,6 @@ from sklearn.metrics import (
     recall_score
 )
 
-from GSTCV.conftest import sk_GSTCV_est_log_one_scorer_prefit
 from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 
