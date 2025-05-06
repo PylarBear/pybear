@@ -14,8 +14,6 @@ from dask_ml.model_selection import KFold
 
 from sklearn.linear_model import LinearRegression as sk_LinearRegression
 
-
-
 from sklearn.metrics import (
     precision_score,
     recall_score
