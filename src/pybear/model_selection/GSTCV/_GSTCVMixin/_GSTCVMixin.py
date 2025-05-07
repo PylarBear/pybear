@@ -926,6 +926,41 @@ class _GSTCVMixin(
         return self._method_caller('transform', 'transform', X)
 
 
+    def visualize(self, *args, **kwargs):
+
+        """
+        Call visualize on the estimator with the best parameters. Only
+        available if refit is not False and the underlying estimator
+        supports visualize.
+
+
+        Parameters
+        ----------
+        *args:
+            list[Any] - positional arguments for the best estimator's
+            visualize method.
+        **kwargs:
+            dict[str: Any] - keyword arguments for the best estimator's
+            visualize method.
+
+
+        Return
+        ------
+        -
+            The best_estimator_ transform method result for X.
+
+
+        """
+
+
+        if not hasattr(self.estimator, 'visualize'):
+            __ = type(self).__name__
+            raise AttributeError(f"This '{__}' has no attribute 'visualize'")
+        self._check_refit__if_false_block_attr('visualize')
+        check_is_fitted(self)
+
+        return getattr(self.best_estimator_, 'visualize')(*args, **kwargs)
+
 
 
 

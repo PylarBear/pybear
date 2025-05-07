@@ -67,7 +67,7 @@ def _val_dask_estimator(
     # to allow XGBClassifier, reference errors associated with
     # DaskXGBClassifier and dask GridSearch CV
     __ = str(_module).lower()
-    if 'dask' not in __:  # allow pytest with mock clf
+    if 'dask' not in __:
         warnings.warn(f"'{__estimator.__class__.__name__}' does not "
             f"appear to be a dask classifier.")
     # if 'dask' not in __ and 'conftest' not in __:  # allow pytest with mock clf

@@ -863,20 +863,6 @@ class GSTCVDask(_GSTCVMixin):
         return TRAIN_SCORER_OUT
 
 
-    def visualize(self, filename="mydask", format=None, **kwargs):
-
-        """'visualize' is not implemented in GSTCVDask."""
-
-
-        check_is_fitted(self, attributes='_refit')
-
-        __ = type(self).__name__
-        raise NotImplementedError(
-            f"visualize is not implemented in {__}."
-        )
-
-
-
 
 
 

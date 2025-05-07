@@ -21,6 +21,31 @@ import pandas as pd
 class TestSKFit_XyValidation:
 
 
+    # pizza this was hiding in validation_init_test
+    # @pytest.mark.parametrize('junk_X',
+    #     (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+    #      {'a': 1}, lambda x: x)
+    # )
+    # def test_rejects_junk_X(self, junk_X, y_np, base_gstcv):
+    #
+    #     # this is raised by GSTCV for no shape attr
+    #     with pytest.raises(TypeError):
+    #         base_gstcv.fit(junk_X, y_np)
+    #
+    #
+    # @pytest.mark.parametrize('junk_y',
+    #     (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+    #      {'a': 1}, lambda x: x)
+    # )
+    # def test_rejects_junk_y(self, X_np, junk_y, base_gstcv):
+    #
+    #     # this is raised by GSTCV for no shape attr
+    #     with pytest.raises(TypeError):
+    #         base_gstcv.fit(X_np, junk_y)
+
+
+
+
     @pytest.mark.parametrize('fit_format', ('array', 'df'))
     @pytest.mark.parametrize('_X_state', ('good', 'bad_data'))
     @pytest.mark.parametrize('_y_state', ('good', 'bad_data'))

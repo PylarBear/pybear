@@ -22,6 +22,29 @@ import dask.dataframe as ddf
 class TestDaskFit_XyValidation:
 
 
+    # pizza this was hiding in validation_init_test
+    # @pytest.mark.parametrize('junk_X',
+    #     (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+    #      {'a': 1}, lambda x: x)
+    # )
+    # def test_rejects_junk_X(self, junk_X, y_da, base_gstcv_dask, _client):
+    #
+    #     # this is raised by GSTCV for no shape attr
+    #     with pytest.raises(TypeError):
+    #         base_gstcv_dask.fit(junk_X, y_da)
+    #
+    #
+    # @pytest.mark.parametrize('junk_y',
+    #     (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+    #      {'a': 1}, lambda x: x)
+    # )
+    # def test_rejects_junk_y(self, X_da, junk_y, base_gstcv_dask, _client):
+    #
+    #     # this is raised by GSTCV for no shape attr
+    #     with pytest.raises(TypeError):
+    #         base_gstcv_dask.fit(X_da, junk_y)
+
+
     @pytest.mark.parametrize('fit_format', ('array', 'df'))
     @pytest.mark.parametrize('_X_state', ('good', 'bad_data'))
     @pytest.mark.parametrize('_y_state', ('good', 'bad_data'))
