@@ -6,17 +6,15 @@
 
 
 # 25_05_06_16_34_00 pizza this is on the block for permanent skip. this
-# is almost
-# completely redundant with the GSTCV test except for the accuracy of
-# the numbers returned by the DaskGSTCV parallel modules. The GSTCV
-# test confirms the GSTCV cv_results layout (except threshold columns)
-# is identical to sk gscv layout (correct number of rows, correct column
-# names in the correct order) and that the GSTCV parallel modules get
-# numbers identical to sk. IF WE CAN INDEPENDENTLY CONFIRM THE ACCURACY
-# OF THE GSTCVDASK PARALLEL MODULES RESULTS IN OTHER TESTS THEN THIS
-# TEST CAN BE SKIPPED PERMANENTLY BUT KEEP THE FILE FOR THIS EXPLANATION.
-
-
+# is almost completely redundant with the GSTCV test except for the
+# accuracy of the numbers returned by the DaskGSTCV parallel modules.
+# The GSTCV test confirms the GSTCV cv_results layout (except threshold
+# columns) is identical to sk gscv layout (correct number of rows,
+# correct column names in the correct order) and that the GSTCV parallel
+# modules get numbers identical to sk. IF WE CAN INDEPENDENTLY CONFIRM
+# THE ACCURACY OF THE GSTCVDASK PARALLEL MODULES RESULTS IN OTHER TESTS
+# THEN THIS TEST CAN BE SKIPPED PERMANENTLY BUT KEEP THE FILE FOR THIS
+# EXPLANATION.
 
 
 
@@ -25,6 +23,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import GridSearchCV as sk_GSCV
+from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 from sklearn.metrics import (
     make_scorer,
@@ -36,17 +35,15 @@ from sklearn.metrics import (
 
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
-pytest.skip(
-    reason=f'pizza this test is on the block for permanent skip',
-    allow_module_level=True
-)
+# pytest.skip(
+#     reason=f'pizza this test is on the block for permanent skip',
+#     allow_module_level=True
+# )
 
 class TestFitAccuracy:
 
-    # 24_07_10 this module tests the equality of GSTCVDask's cv_results_
+    # this module tests the equality of GSTCVDask's cv_results_
     # with 0.5 threshold against sklearn GSCV cv_results_.
-    # pizza decide what to do with the benchmarking file
-    # there is a benchmarking file that passes the tests in freeform
 
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -96,10 +93,23 @@ class TestFitAccuracy:
             'balanced_accuracy': balanced_accuracy_score
         }
 
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _cv_iter(standard_cv_int, X_da, y_da):
+        # using sklearn modules to stay off dask_ml. but sklearn uses
+        # StratifiedKfold to do splits and GSTCVDask uses dask_ml KFold.
+        # so to get fair comparison, use this same splits in GSTCVDask
+        # and sk_GSCV by passing the same splits to both.
+        # convert to tuple because it needs to be used 2X (iter will spend)
+        return list(tuple(
+            KFold(
+                n_splits=standard_cv_int,
+                shuffle=False
+            ).split(X_da.compute(), y_da.compute())
+        ))
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-
-    # dont use _client, too slow 24_08_26
 
     @pytest.mark.parametrize('_param_grid',
         (
@@ -114,11 +124,16 @@ class TestFitAccuracy:
     )
     @pytest.mark.parametrize('_return_train_score', (True, False))
     def test_accuracy_vs_sk_gscv(
-        self, _param_grid, standard_cv_int, standard_error_score, _scorer,
+        self, _param_grid, _cv_iter, standard_error_score, _scorer,
         standard_cache_cv, standard_iid, _return_train_score, X_da, y_da,
         special_sk_est_log, special_sk_GSCV_est_log_one_scorer_prefit,
-        _client  # 25_05_06 slightly faster with client
+        # _client  # 25_05_06 indifferent to client
     ):
+
+        # using sklearn modules to stay off dask_ml. but sklearn uses
+        # StratifiedKfold to do splits and GSTCVDask uses dask_ml KFold.
+        # so to get fair comparison, use this same splits in GSTCVDask
+        # and sk_GSCV by passing the same splits to both.
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
@@ -126,7 +141,7 @@ class TestFitAccuracy:
             estimator=special_sk_est_log,
             param_grid=_param_grid,
             thresholds=[0.5],
-            cv=standard_cv_int,
+            cv=_cv_iter,
             error_score=standard_error_score,
             refit=False,
             verbose=0,
@@ -146,6 +161,7 @@ class TestFitAccuracy:
         out_sk_gscv = special_sk_GSCV_est_log_one_scorer_prefit
         out_sk_gscv.set_params(
             param_grid=_param_grid,
+            cv=_cv_iter,
             scoring={k: make_scorer(v) for k,v in _scorer.items()},
             return_train_score=_return_train_score
         )
@@ -183,27 +199,23 @@ class TestFitAccuracy:
                     f'\033[91mcolumn {column} not in!\033[0m'
                 # notice we flow thru to more tests
 
-            # DONT CHECK GSTCVDask NUMBERS AGAINST sk_gscv. SK USES
-            # StratifiedKFold & GSTCVDask USES dask KFold, WHICH GIVE
-            # DIFFERENT SPLITS AND THEREFORE SLIGHTLY DIFFERENT SCORES
+            MASK = np.logical_not(gstcv_cv_results[column].isna())
 
-            # MASK = np.logical_not(gstcv_cv_results[column].isna())
-            #
-            # try:
-            #     _gstcv_out = gstcv_cv_results[column][MASK]
-            #     _gstcv_out = _gstcv_out.to_numpy(dtype=np.float64)
-            #     _sk_out = sk_cv_results[column][MASK]
-            #     _sk_out = _sk_out.to_numpy(dtype=np.float64)
-            #     raise UnicodeError
-            # except UnicodeError:
-            #     # check floats
-            #     assert np.allclose(_gstcv_out, _sk_out, atol=0.00001)
-            # except:
-            #     # check param columns
-            #     assert np.array_equiv(
-            #         gstcv_cv_results[column][MASK].to_numpy(),
-            #         sk_cv_results[column][MASK].to_numpy()
-            #     )
+            try:
+                _gstcv_out = gstcv_cv_results[column][MASK]
+                _gstcv_out = _gstcv_out.to_numpy(dtype=np.float64)
+                _sk_out = sk_cv_results[column][MASK]
+                _sk_out = _sk_out.to_numpy(dtype=np.float64)
+                raise UnicodeError
+            except UnicodeError:
+                # check floats
+                assert np.allclose(_gstcv_out, _sk_out, atol=0.00001)
+            except:
+                # check param columns
+                assert np.array_equiv(
+                    gstcv_cv_results[column][MASK].to_numpy(),
+                    sk_cv_results[column][MASK].to_numpy()
+                )
 
 
 

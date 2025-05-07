@@ -21,8 +21,6 @@ def _val_thresholds(
 ) -> None:
 
     """
-    This is a support function for _thresholds__param_grid().
-
     Validate _thresholds is
     1) None
     2) a single number

@@ -91,7 +91,7 @@ def _parallelized_scorer(
         process. 0 means no output, 10 means maximum output.
     **scorer_params:
         **dict[str, Any] - dictionary of kwargs to be passed to the scorer
-        metrics. 24_07_13 not used by the calling _core_fit module.
+        metrics. pizza 24_07_13 not used by the calling fit module.
 
 
     Return

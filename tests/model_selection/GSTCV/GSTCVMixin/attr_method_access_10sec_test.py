@@ -11,19 +11,49 @@ import pytest
 import numpy as np
 from sklearn.utils.validation import check_is_fitted
 
-# post-fit, all attrs should or should not be available based on whether
-# data was passed as DF, refit is callable, etc. Lots of ifs, ands, and
-# buts
 
-class TestSKAttrsPostFit:
+# pizza if this can be streamlined
 
 
-    @pytest.mark.parametrize('_format', ('array', 'DF'))
+
+class TestGSTCVMixinAttrs:
+
+
+    # pre-fit, all attrs should not be available and should except
+
+
+    @pytest.mark.parametrize('_scoring',
+        (['accuracy'], ['accuracy', 'balanced_accuracy'])
+    )
+    @pytest.mark.parametrize('attr',
+        ('cv_results_', 'best_estimator_', 'best_index_', 'scorer_',
+         'n_splits_', 'refit_time_', 'multimetric_', 'feature_names_in_',
+         'best_threshold_', 'best_score_', 'best_params_', 'classes_',
+         'n_features_in_')
+    )
+    def test_prefit(
+        self, attr, _scoring,
+        sk_GSTCV_est_log_one_scorer_prefit,
+        sk_GSTCV_est_log_two_scorers_prefit
+    ):
+
+        if _scoring == ['accuracy']:
+            sk_GSTCV_prefit = sk_GSTCV_est_log_one_scorer_prefit
+
+        elif _scoring == ['accuracy', 'balanced_accuracy']:
+            sk_GSTCV_prefit = sk_GSTCV_est_log_two_scorers_prefit
+
+
+        with pytest.raises(AttributeError):
+            getattr(sk_GSTCV_prefit, attr)
+
+
+    @pytest.mark.parametrize('_format', ('np', 'pd'))
     @pytest.mark.parametrize('_scoring',
         (['accuracy'], ['accuracy', 'balanced_accuracy'])
     )
     @pytest.mark.parametrize('_refit',(False, 'accuracy', lambda x: 0))
-    def test_sk(self, _refit, _format, _scoring, param_grid_sk_log,
+    def test_postfit(self, _refit, _format, _scoring, param_grid_sk_log,
         sk_est_log, standard_cv_int, _refit_false, generic_no_attribute_1, X_np,
         X_pd, y_np, y_pd, _cols, COLUMNS,
         sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np,
@@ -40,49 +70,40 @@ class TestSKAttrsPostFit:
         sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_pd
     ):
 
-        if _format == 'array':
-            if _scoring == ['accuracy']:
-                if _refit is False:
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np
-                elif _refit == 'accuracy':
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
-                elif callable(_refit):
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np
-            elif _scoring == ['accuracy', 'balanced_accuracy']:
-                if _refit is False:
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np
-                elif _refit == 'accuracy':
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np
-                elif callable(_refit):
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_np
-        elif _format == 'DF':
-            if _scoring == ['accuracy']:
-                if _refit is False:
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_pd
-                elif _refit == 'accuracy':
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd
-                elif callable(_refit):
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd
-            elif _scoring == ['accuracy', 'balanced_accuracy']:
-                if _refit is False:
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_pd
-                elif _refit == 'accuracy':
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd
-                elif callable(_refit):
-                    _sk_GSTCV = \
-                        sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_pd
+        # post-fit, all attrs should or should not be available based on
+        # whether data was passed as DF, refit is callable, etc. Lots of
+        # ifs, ands, and buts.
 
+        if _format == 'np' and _scoring == ['accuracy']:
+            if _refit is False:
+                _sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np
+            elif _refit == 'accuracy':
+                _sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
+            elif callable(_refit):
+                _sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np
+        elif _format == 'np' and _scoring == ['accuracy', 'balanced_accuracy']:
+            if _refit is False:
+                _sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np
+            elif _refit == 'accuracy':
+                _sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np
+            elif callable(_refit):
+                _sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_np
+        elif _format == 'pd' and _scoring == ['accuracy']:
+            if _refit is False:
+                _sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_pd
+            elif _refit == 'accuracy':
+                _sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd
+            elif callable(_refit):
+                _sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd
+        elif _format == 'pd' and _scoring == ['accuracy', 'balanced_accuracy']:
+            if _refit is False:
+                _sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_pd
+            elif _refit == 'accuracy':
+                _sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd
+            elif callable(_refit):
+                _sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_pd
+        else:
+            raise Exception
 
         # 1a) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # these are returned no matter what data format is passed or what
@@ -230,13 +251,13 @@ class TestSKAttrsPostFit:
         # when refit not False, and it matters what the data format is,
         # returns array-like that needs np.array_equiv ** * ** * ** * ** * **
             # feature_names_in_ gives AttrErr when X was array
-            if _format == 'array':
+            if _format == 'np':
 
                 with pytest.raises(AttributeError):
                     getattr(_sk_GSTCV, 'feature_names_in_')
 
             # feature_names_in_ gives np vector when X was DF
-            elif _format == 'DF':
+            elif _format == 'pd':
                 __ = getattr(_sk_GSTCV, 'feature_names_in_')
                 assert isinstance(__, np.ndarray)
                 assert np.array_equiv(__, COLUMNS)
@@ -322,14 +343,226 @@ class TestSKAttrsPostFit:
 
 
 
+class TestGSTCVMixinMethods:
+
+    # methods & signatures (besides fit)
+    # --------------------------
+    # decision_function(X)
+    # inverse_transform(Xt)
+    # predict(X)
+    # predict_log_proba(X)
+    # predict_proba(X)
+    # score(X, y=None, **params)
+    # score_samples(X)
+    # transform(X)
+    # visualize(filename=None, format=None)
 
 
 
+    # '_refit' mark must have False last! set_params(refit=xxx) is mutating
+    # session fixtures. we need to leave the session fixtures at the starting
+    # value for 'refit' in the 'sk_gscv_init_params', which is False.
+    @pytest.mark.parametrize('_scoring',
+        (['accuracy'], ['accuracy', 'balanced_accuracy'])
+    )
+    @pytest.mark.parametrize('_refit', ('accuracy', lambda x: 0, False))
+    def test_prefit(
+        self, _refit, _scoring, X_np, y_np,
+        sk_GSTCV_est_log_one_scorer_prefit,
+        sk_GSTCV_est_log_two_scorers_prefit,
+    ):
+
+        if _scoring == ['accuracy']:
+            _GSTCV = sk_GSTCV_est_log_one_scorer_prefit
+
+        elif _scoring == ['accuracy', 'balanced_accuracy']:
+            _GSTCV = sk_GSTCV_est_log_two_scorers_prefit
 
 
+        _GSTCV.set_params(refit=_refit)
 
 
+        # decision_function
+        with pytest.raises(AttributeError):
+                getattr(_GSTCV, 'decision_function')(X_np)
 
+
+        # get_metadata_routing
+        with pytest.raises(NotImplementedError):
+            getattr(_GSTCV, 'get_metadata_routing')()
+
+
+        # inverse_transform_test
+        with pytest.raises(AttributeError):
+            getattr(_GSTCV, 'inverse_transform')(X_np)
+
+
+        # predict
+        with pytest.raises(AttributeError):
+            getattr(_GSTCV, 'predict')(X_np)
+
+
+        # predict_log_proba
+        with pytest.raises(AttributeError):
+            getattr(_GSTCV, 'predict_log_proba')(X_np)
+
+
+        # predict_proba
+        with pytest.raises(AttributeError):
+            getattr(_GSTCV, 'predict_proba')(X_np)
+
+
+        # score
+        with pytest.raises(AttributeError):
+            getattr(_GSTCV, 'score')(X_np, y_np)
+
+
+        # score_samples
+        with pytest.raises(AttributeError):
+            getattr(_GSTCV, 'score_samples')(X_np)
+
+
+        # transform
+        with pytest.raises(AttributeError):
+            getattr(_GSTCV, 'transform')(X_np)
+
+
+        # visualize
+        with pytest.raises(AttributeError):
+            getattr(_GSTCV, 'visualize')(filename=None, format=None)
+
+
+    @pytest.mark.parametrize('_scoring',
+        (['accuracy'], ['accuracy', 'balanced_accuracy'])
+    )
+    @pytest.mark.parametrize('_refit', ('accuracy', lambda x: 0, False))
+    def test_postfit(
+        self, _refit, _scoring, X_np, y_np, generic_no_attribute_2,
+        _no_refit,
+        sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np,
+        sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
+        sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np,
+        sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np,
+        sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np,
+        sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_np
+    ):
+
+        # these can only be exposed if refit is not False
+
+        if _scoring == ['accuracy']:
+            if _refit is False:
+                GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np
+            elif _refit == 'accuracy':
+                GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
+            elif callable(_refit):
+                GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np
+        elif _scoring == ['accuracy', 'balanced_accuracy']:
+            if _refit is False:
+                GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np
+            elif _refit == 'accuracy':
+                GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np
+            elif callable(_refit):
+                GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_np
+
+
+        # decision_function
+        if _refit is False:
+            with pytest.raises(AttributeError):
+                getattr(GSTCV, 'decision_function')(X_np)
+        elif _refit == 'accuracy' or callable(_refit):
+            __ = getattr(GSTCV, 'decision_function')(X_np)
+            assert isinstance(__, np.ndarray)
+            assert __.dtype == np.float64
+
+
+        # get_metadata_routing
+        with pytest.raises(NotImplementedError):
+            getattr(GSTCV, 'get_metadata_routing')()
+
+
+        # inverse_transform_test
+        with pytest.raises(AttributeError):
+            getattr(GSTCV, 'inverse_transform')(X_np)
+
+
+        # predict
+        if _refit is False:
+            with pytest.raises(AttributeError):
+                getattr(GSTCV, 'predict')(X_np)
+        elif _refit == 'accuracy':
+            __ = getattr(GSTCV, 'predict')(X_np)
+            assert isinstance(__, np.ndarray)
+            assert __.dtype == np.uint8
+        elif callable(_refit):
+            # this is to accommodate lack of threshold when > 1 scorer
+            if isinstance(_scoring, list) and len(_scoring) > 1:
+                with pytest.raises(AttributeError):
+                    getattr(GSTCV, 'predict')(X_np)
+            else:
+                __ = getattr(GSTCV, 'predict')(X_np)
+                assert isinstance(__, np.ndarray)
+                assert __.dtype == np.uint8
+
+
+        # predict_log_proba
+        if _refit is False:
+            with pytest.raises(AttributeError):
+                getattr(GSTCV, 'predict_log_proba')(X_np)
+        elif _refit == 'accuracy' or callable(_refit):
+            __ = getattr(GSTCV, 'predict_log_proba')(X_np)
+            assert isinstance(__, np.ndarray)
+            assert __.dtype == np.float64
+
+
+        # predict_proba
+        if _refit is False:
+            with pytest.raises(AttributeError):
+                getattr(GSTCV, 'predict_proba')(X_np)
+        elif _refit == 'accuracy' or callable(_refit):
+            __ = getattr(GSTCV, 'predict_proba')(X_np)
+            assert isinstance(__, np.ndarray)
+            assert __.dtype == np.float64
+
+
+        # score
+        if _refit is False:
+            with pytest.raises(AttributeError):
+                getattr(GSTCV, 'score')(X_np, y_np)
+        elif _refit == 'accuracy':
+            __ = getattr(GSTCV, 'score')(X_np, y_np)
+            assert isinstance(__, float)
+            assert __ >= 0
+            assert __ <= 1
+        elif callable(_refit):
+            __ = getattr(GSTCV, 'score')(X_np, y_np)
+            if not isinstance(_scoring, list) or len(_scoring) == 1:
+                # if refit fxn & one scorer, score is always returned
+                assert isinstance(__, float)
+                assert __ >= 0
+                assert __ <= 1
+            else:
+                # if refit fxn & >1 scorer, refit fxn is returned
+                assert callable(__)
+                cvr = GSTCV.cv_results_
+                assert isinstance(__(cvr), int) # refit(cvr) returns best_index_
+                # best_index_ must be in range of the rows in cvr
+                assert __(cvr) >= 0
+                assert __(cvr) < len(cvr[list(cvr)[0]])
+
+
+        # score_samples
+        with pytest.raises(AttributeError):
+            getattr(GSTCV, 'score_samples')(X_np)
+
+
+        # transform
+        with pytest.raises(AttributeError):
+            getattr(GSTCV, 'transform')(X_np)
+
+
+        # visualize
+        with pytest.raises(AttributeError):
+            getattr(GSTCV, 'visualize')(filename=None, format=None)
 
 
 

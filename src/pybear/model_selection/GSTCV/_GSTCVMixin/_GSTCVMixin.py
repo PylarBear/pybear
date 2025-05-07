@@ -279,7 +279,7 @@ class _GSTCVMixin(
         # THIS IS JUST TO HAVE A REFERENCE TO LOOK AT
         # self.estimator: ClassifierProtocol
         # self._estimator: ClassifierProtocol
-        # self.param_grid: Union[ParamGridInputType, ParamGridsInputType, None]   # pizza resolve the None issue!
+        # self.param_grid: Union[ParamGridInputType, ParamGridsInputType]
         # _param_grid: ParamGridsWIPType
         # self.thresholds: ThresholdsInputType
         # self._THRESHOLD_DICT: dict[int, ThresholdsWIPType]
@@ -321,9 +321,7 @@ class _GSTCVMixin(
             _THRESHOLD_DICT[i] = _param_grid[i].pop('thresholds')
 
 
-        # this could have been at the top of _core_fit but is outside
-        # because cv_results is used to validate the refit callable
-        # before starting the fit.
+        # this needs to be before validate the refit callable
         self.cv_results_, _PARAM_GRID_KEY = \
             _cv_results_builder(
                 _param_grid,
@@ -927,6 +925,41 @@ class _GSTCVMixin(
 
         return self._method_caller('transform', 'transform', X)
 
+
+    def visualize(self, *args, **kwargs):
+
+        """
+        Call visualize on the estimator with the best parameters. Only
+        available if refit is not False and the underlying estimator
+        supports visualize.
+
+
+        Parameters
+        ----------
+        *args:
+            list[Any] - positional arguments for the best estimator's
+            visualize method.
+        **kwargs:
+            dict[str: Any] - keyword arguments for the best estimator's
+            visualize method.
+
+
+        Return
+        ------
+        -
+            The best_estimator_ transform method result for X.
+
+
+        """
+
+
+        if not hasattr(self.estimator, 'visualize'):
+            __ = type(self).__name__
+            raise AttributeError(f"This '{__}' has no attribute 'visualize'")
+        self._check_refit__if_false_block_attr('visualize')
+        check_is_fitted(self)
+
+        return getattr(self.best_estimator_, 'visualize')(*args, **kwargs)
 
 
 

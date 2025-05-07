@@ -26,7 +26,7 @@ from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 class TestFitAccuracy:
 
-    # 24_07_10 this module tests the equality of SK GSTCV's cv_results_
+    # this module tests the equality of SK GSTCV's cv_results_
     # with 0.5 threshold against sklearn GSCV cv_results_.
 
 

@@ -19,7 +19,7 @@ import numbers
 # pizza figure out how to duck type these
 XSKInputType: TypeAlias = Iterable
 XSKWIPType: TypeAlias = Iterable
-# pizza figure out how to duck type these
+
 YSKInputType: TypeAlias = Union[Sequence[numbers.Integral], None]
 YSKWIPType: TypeAlias = Union[Sequence[numbers.Integral], None]
 
