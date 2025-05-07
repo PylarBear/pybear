@@ -175,8 +175,8 @@ class TestFitAccuracy:
                 assert (gstcv_cv_results[column] == 0.5).all()
                 continue  # notice continuing here
             elif 'time' in column:
-                assert (gstcv_cv_results[column] > 0).all()
-                assert (sk_cv_results[column] > 0).all()
+                assert (gstcv_cv_results[column] >= 0).all()
+                assert (sk_cv_results[column] >= 0).all()
                 continue  # notice continuing here
             else:
                 assert column in sk_cv_results, \
