@@ -241,14 +241,14 @@ class TestGSTCVInput:
 
         # notice testing pass as set
         out = _GSTCV.set_params(
-            param_grid=None,
+            param_grid=[],
             thresholds={0, 0.25, 0.5, 0.75, 1}
         ).fit(X_np, y_np)
 
         assert isinstance(out, type(_GSTCV))
 
         _param_grid = out.get_params(deep=True)['param_grid']
-        assert isinstance(_param_grid, type(None))
+        assert isinstance(_param_grid, list)
 
         # notice testing pass as list
         out = _GSTCV.set_params(
@@ -269,14 +269,14 @@ class TestGSTCVInput:
         # param grid with default thresholds
 
         out = _GSTCV.set_params(
-            param_grid=None,
+            param_grid=[],
             thresholds=None
         ).fit(X_np, y_np)
 
         assert isinstance(out, type(_GSTCV))
 
         _param_grid = out.get_params(deep=True)['param_grid']
-        assert isinstance(_param_grid, type(None))
+        assert isinstance(_param_grid, list)
 
 
     def test_pg_thresh_accuracy_4(

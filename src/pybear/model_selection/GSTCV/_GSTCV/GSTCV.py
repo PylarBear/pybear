@@ -41,8 +41,6 @@ import numpy as np
 from ._validation._validation import _validation
 from ._validation._X_y import _val_X_y
 
-from ._fit._core_fit import _core_fit
-
 from .._GSTCV._fit._get_kfold import _get_kfold as _sk_get_kfold
 from .._GSTCV._fit._fold_splitter import _fold_splitter as _sk_fold_splitter
 from .._GSTCV._fit._estimator_fit_params_helper import _estimator_fit_params_helper as _sk_estimator_fit_params_helper
@@ -85,12 +83,12 @@ class GSTCV(_GSTCVMixin):
         use dask classifiers, use GSTCVDask.
 
     param_grid:
-        dict[str, list-like] or list[dict[str, list-like]] - Dictionary
-        with keys as parameters names (str) and values as lists of para-
-        meter settings to try as values, or a list of such dictionaries.
-        When multiple param grids are passed in a list, the grids spanned
-        by each dictionary in the list are explored. This enables
-        searching over any sequence of parameter settings.
+        dict[str, list-like] or Sequence[dict[str, list-like]] -
+        Dictionary with keys as parameters names (str) and values as
+        lists of parameter settings to try as values, or a list of such
+        dictionaries. When multiple param grids are passed in a list,
+        the grids spanned by each dictionary in the list are explored.
+        This enables searching over any sequence of parameter settings.
 
     thresholds:
         Optional[Union[None, numbers.Real, Sequence[numbers.Real]] -
@@ -498,7 +496,7 @@ class GSTCV(_GSTCVMixin):
     def __init__(
         self,
         estimator: ClassifierProtocol,
-        param_grid: Union[dict[str, Sequence[Any]], list[dict[str, Sequence[Any]]]],
+        param_grid: Union[dict[str, Sequence[Any]], Sequence[dict[str, Sequence[Any]]]],
         *,
         thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
         scoring: Optional[
@@ -564,10 +562,20 @@ class GSTCV(_GSTCVMixin):
     ) -> None:
 
         """
-        pizza
+        Condition init params into format for internal processing.
+
+
+        Parameters
+        ----------
+        _X:
+            XSKInputType: The data.
+        _y:
+            YSKInputType: The target for the data.
 
         Returns
         -------
+        -
+            None
 
         """
 
@@ -580,68 +588,6 @@ class GSTCV(_GSTCVMixin):
             self._KFOLD = list(_sk_get_kfold(_X, _y, self.n_splits_, self._verbose))
         else:  # _cv is an iterable, _cond_cv should have made list[tuple]
             self._KFOLD = self._cv
-
-
-    def _core_fit(
-        self,
-        X:XSKInputType,
-        y:YSKInputType = None,
-        **params
-    ) -> None:
-
-        """
-
-        GSTCV-specific function supporting fit(); called by
-        _GSTCVMixin.fit()
-
-        Perform all fit, scoring, and tabulation activities for every
-        search performed in finding the hyperparameter values that
-        maximize score (or minimize loss) for the given dataset (X)
-        against the given target (y.)
-
-        Returns all search results (times, scores, thresholds) in the
-        cv_results dictionary.
-
-
-        Parameters
-        ----------
-        X:
-            XSKInputType of shape (n_samples, n_features) - the data to
-            be fit by GSTCV against the target.
-        y:
-            YSKInputType of shape (n_samples, ) - the target to train the
-            data against.
-
-
-        Return
-        ------
-        -
-            _cv_results: CVResultsType - dictionary populated with all
-            the times, scores, thresholds, parameter values, and search
-            grids for every permutation of grid search.
-
-        """
-
-        _validation(self.estimator, self.pre_dispatch)
-
-        self.cv_results_ = _core_fit(
-            X,
-            y,
-            self._estimator,
-            self.cv_results_,
-            self._cv,
-            self.error_score,
-            self._verbose,
-            self.scorer_,
-            self.n_jobs,
-            self.pre_dispatch,
-            self.return_train_score,
-            self._PARAM_GRID_KEY,
-            self._THRESHOLD_DICT,
-            **params
-        )
-
-        return
 
 
     def _fit_all_folds(

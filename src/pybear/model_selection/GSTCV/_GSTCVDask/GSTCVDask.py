@@ -31,7 +31,6 @@ from .._type_aliases import (
 from copy import deepcopy
 import numbers
 
-import numpy as np
 from dask import compute
 import distributed
 
@@ -39,8 +38,6 @@ from ._validation._validation import _validation
 from ._validation._X_y import _val_X_y
 
 from ._param_conditioning._scheduler import _cond_scheduler
-
-from ._fit._core_fit import _core_fit
 
 from .._GSTCVDask._fit._get_kfold import _get_kfold as _dask_get_kfold
 from .._GSTCVDask._fit._fold_splitter import _fold_splitter as _dask_fold_splitter
@@ -87,10 +84,10 @@ class GSTCVDask(_GSTCVMixin):
         recommended for non-dask classifiers.
 
     param_grid:
-        Union[dict[str, Sequence[Any], list[dict[str, Sequency[Any]]]]] -
+        dict[str, Sequence[Any] or Sequence[dict[str, Sequency[Any]]] -
         Dictionary with keys as parameters names (str) and values as
         lists of parameter settings to try as values, or a list of such
-        dictionaries. When multiple param grids are passed in a list,
+        dictionaries. When multiple param grids are passed in a list-like,
         the grids spanned by each dictionary in the list are explored.
         This enables searching over any sequence of parameter settings.
 
@@ -626,71 +623,6 @@ class GSTCVDask(_GSTCVMixin):
                 self._CACHE_CV.append(_dask_fold_splitter(train_idxs, test_idxs, _X, _y))
         # pizza at some point think on scattering _CACHE_CV
         # deal with the persists in the parallelized files
-
-
-    def _core_fit(
-        self,
-        X: XDaskInputType,
-        y: YDaskInputType=None,
-        **params
-    ) -> None:
-
-        """
-
-        GSTCVDask-specific function supporting fit(); called by
-        _GSTCVMixin.fit()
-
-        Perform all fit, scoring, and tabulation activities for every
-        search performed in finding the hyperparameter values that
-        maximize score (or minimize loss) for the given dataset (X)
-        against the given target (y.)
-
-        Returns all search results (times, scores, thresholds) in the
-        cv_results dictionary.
-
-
-        Parameters
-        ----------
-        X:
-            XDaskInputType - the data to be fit by GSTCVDask against the
-            target.
-        y:
-            YDaskInputType - the target to train the data against.
-
-
-        Return
-        ------
-        -
-            _cv_results: CVResults - dictionary populated with all the
-            times, scores, thresholds, parameter values, and search
-            grids for every permutation of grid search.
-
-        """
-
-        _validation(self.estimator, self.iid, self.cache_cv)
-
-        # val n_jobs is handled by GSTCVMixin
-
-        self._scheduler = _cond_scheduler(self.scheduler, self.n_jobs)
-
-        self.cv_results_ = _core_fit(
-            X,
-            y,
-            self._estimator,
-            self.cv_results_,
-            self._cv,
-            self.error_score,
-            self._verbose,
-            self.scorer_,
-            self.cache_cv,
-            self.iid,
-            self.return_train_score,
-            self._PARAM_GRID_KEY,
-            self._THRESHOLD_DICT,
-            **params
-        )
-
-        return
 
 
     def _fit_all_folds(

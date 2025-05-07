@@ -34,7 +34,7 @@ from ._return_train_score import _val_return_train_score
 
 def _validation(
     _estimator: ClassifierProtocol,
-    _param_grid: Union[ParamGridInputType, ParamGridsInputType, None],
+    _param_grid: Union[ParamGridInputType, ParamGridsInputType],
     _thresholds: ThresholdsInputType,
     _scoring: ScorerInputType,
     _n_jobs: Union[numbers.Integral, None],
@@ -55,8 +55,7 @@ def _validation(
     _estimator:
         ClassifierProtocol
     _param_grid:
-        # pizza the None issue still needs to be resolved!
-        Union[ParamGridInputType, ParamGridsInputType, None]
+        Union[ParamGridInputType, ParamGridsInputType]
     _thresholds:
         ThresholdsInputType
     _scoring:

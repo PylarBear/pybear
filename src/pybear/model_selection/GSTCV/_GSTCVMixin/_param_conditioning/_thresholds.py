@@ -20,8 +20,6 @@ def _cond_thresholds(
 ) -> ThresholdsWIPType:
 
     """
-    This is a support function for _thresholds__param_grid().
-
     Condition _thresholds into a 1D list of 1 or more floats.
 
 

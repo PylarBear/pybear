@@ -279,7 +279,7 @@ class _GSTCVMixin(
         # THIS IS JUST TO HAVE A REFERENCE TO LOOK AT
         # self.estimator: ClassifierProtocol
         # self._estimator: ClassifierProtocol
-        # self.param_grid: Union[ParamGridInputType, ParamGridsInputType, None]   # pizza resolve the None issue!
+        # self.param_grid: Union[ParamGridInputType, ParamGridsInputType]
         # _param_grid: ParamGridsWIPType
         # self.thresholds: ThresholdsInputType
         # self._THRESHOLD_DICT: dict[int, ThresholdsWIPType]
@@ -321,9 +321,7 @@ class _GSTCVMixin(
             _THRESHOLD_DICT[i] = _param_grid[i].pop('thresholds')
 
 
-        # this could have been at the top of _core_fit but is outside
-        # because cv_results is used to validate the refit callable
-        # before starting the fit.
+        # this needs to be before validate the refit callable
         self.cv_results_, _PARAM_GRID_KEY = \
             _cv_results_builder(
                 _param_grid,

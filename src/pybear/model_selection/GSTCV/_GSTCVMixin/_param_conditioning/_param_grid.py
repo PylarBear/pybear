@@ -16,19 +16,17 @@ from ..._type_aliases import (
 
 from ._thresholds import _cond_thresholds
 
-# pizza the type hints in here need work
 
 
 def _cond_param_grid(
-    _param_grid: Union[ParamGridInputType, ParamGridsInputType, None],  # pizza y is this allowed to be None
+    _param_grid: Union[ParamGridInputType, ParamGridsInputType],
     _thresholds: ThresholdsInputType    # this is init self.thresholds
 ) -> ParamGridsWIPType:
 
     """
     Condition `param_grid` and any thresholds that may be passed inside.
-    If `param_grid`s are passed (pizza resolve the None issue!), get
-    it/them into list(dict[str, list[Any]]) format. If any grid does not
-    have thresholds in it, put the init `thresholds` in it. Condition
+    Get it/them into list(dict[str, list[Any]]) format. If any grid does
+    not have thresholds in it, put the init `thresholds` in it. Condition
     any thresholds that were passed in a param_grid into a py list of
     floats.
 
@@ -36,12 +34,11 @@ def _cond_param_grid(
     Parameters
     ----------
     _param_grid:
-        # pizza resolve the None issue!
-        Union[ParamGridInputType, ParamGridsInputType, None] - A
-        param_grid is a dictionary with hyperparameter names (str) as
-        keys and list-likes of hyperparameter settings to test as values.
-        `_param_grid` can be None, one of the described param_grids, or
-        a list-like of such param_grids.
+        Union[ParamGridInputType, ParamGridsInputType] - A param_grid
+        is a dictionary with hyperparameter names (str) as keys and
+        list-likes of hyperparameter settings to test as values.
+        `_param_grid` can be one of the described param_grids, or a
+        list-like of such param_grids.
     _thresholds:
         ThresholdsInputType - The global decision threshold strategy to
         use when performing hyperparameter search, for those param_grids
@@ -57,15 +54,12 @@ def _cond_param_grid(
     """
 
 
-    if _param_grid is None:
+    if len(_param_grid) == 0:
         _out_param_grid = [{}]
+    elif isinstance(_param_grid, dict):
+        _out_param_grid = [_param_grid]
     else:
-        if len(_param_grid) == 0:
-            _out_param_grid = [{}]
-        elif isinstance(_param_grid, dict):
-            _out_param_grid = [_param_grid]
-        else:
-            _out_param_grid = list(_param_grid)
+        _out_param_grid = list(_param_grid)
 
 
     # param_grid must be list at this point

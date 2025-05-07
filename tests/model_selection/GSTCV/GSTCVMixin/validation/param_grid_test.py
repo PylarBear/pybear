@@ -84,7 +84,6 @@ class TestValParamGrid:
 
     def test_accepts_good_param_grids(self, good_param_grid):
 
-        assert _val_param_grid(None, _must_be_list_dict=False) is None
         assert _val_param_grid(good_param_grid, _must_be_list_dict=False) is None
         assert _val_param_grid(
             [good_param_grid[0]], _must_be_list_dict=False
@@ -108,7 +107,7 @@ class TestValParamGrid:
             _val_param_grid(bad_empties, _must_be_list_dict=False)
 
 
-    @pytest.mark.parametrize('_param_grid', ('none', 'dict', 'list'))
+    @pytest.mark.parametrize('_param_grid', ('dict', 'list'))
     @pytest.mark.parametrize('_must_be_list_dict', (True, False))
     def test_must_be_list_dict(
         self, good_param_grid, _param_grid, _must_be_list_dict
@@ -118,9 +117,7 @@ class TestValParamGrid:
         if _must_be_list_dict and _param_grid != 'list':
             _will_raise = True
 
-        if _param_grid == 'none':
-            _param_grid = None
-        elif _param_grid == 'dict':
+        if _param_grid == 'dict':
             _param_grid = good_param_grid[0]
         elif _param_grid == 'list':
             _param_grid = good_param_grid

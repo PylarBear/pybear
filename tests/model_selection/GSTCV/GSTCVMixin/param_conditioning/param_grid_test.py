@@ -46,15 +46,6 @@ class TestCondParamGrid:
 
     def test_accepts_good_param_grids(self, good_param_grid, good_threshes):
 
-        _gpg = None
-        _og_gpg = deepcopy(_gpg)
-        _og_threshes = deepcopy(good_threshes)
-        out = _cond_param_grid(_gpg, good_threshes)
-        assert isinstance(out, list)
-        assert len(out) == 1   # should be [{}]
-        assert _gpg is _og_gpg
-        assert good_threshes == _og_threshes
-
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         _og_gpg = deepcopy(good_param_grid)
@@ -66,7 +57,7 @@ class TestCondParamGrid:
         for idx in range(len(_og_gpg)):
             for key in _og_gpg[idx]:
                 assert np.array_equal(good_param_grid[idx][key], _og_gpg[idx][key])
-        assert good_threshes == _og_threshes
+        assert good_threshes == _og_good_threshes
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -111,7 +102,7 @@ class TestCondParamGrid:
         for idx in range(len(_og_gpg)):
             for key in _og_gpg[idx]:
                 assert np.array_equal(_gpg[idx][key], _og_gpg[idx][key])
-        assert good_threshes == _og_threshes
+        assert good_threshes == _og_good_threshes
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     @pytest.mark.parametrize('valid_empties', ({}, [], [{}], [{}, {}]))
@@ -229,7 +220,7 @@ class TestCondParamGrid:
         # grid with only the thresholds in it
 
         # notice testing pass as set
-        _gpg = None
+        _gpg = []
         _og_gpg = deepcopy(_gpg)
         _threshes = {0, 0.25, 0.5, 0.75, 1}
         _og_threshes = deepcopy(_threshes)
@@ -264,7 +255,7 @@ class TestCondParamGrid:
         # if both param_grid and thresholds were not passed, should be one
         # param grid with default thresholds
 
-        _gpg = None
+        _gpg = []
         _og_gpg = deepcopy(_gpg)
         _threshes = None
         _og_threshes = deepcopy(_threshes)
