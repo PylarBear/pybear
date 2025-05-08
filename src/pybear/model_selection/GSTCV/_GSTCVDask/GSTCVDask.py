@@ -574,7 +574,7 @@ class GSTCVDask(_GSTCVMixin):
     ####################################################################
     # SUPPORT METHODS ##################################################
 
-    def _val_X_y(self, _X, _y=None) -> None:
+    def _val_X_y(self, _X, _y) -> None:
 
         """
         Implements GSTCVDask _val_X_y in methods in _GSTCVMixin.
@@ -582,7 +582,7 @@ class GSTCVDask(_GSTCVMixin):
 
         """
         # KEEP val of X & y separate, the all methods need X & y everytime
-        _val_X_y(_X, _y=_y)
+        _val_X_y(_X, _y)
 
 
     def _val_params(self) -> None:

@@ -12,7 +12,6 @@ import dask.array as da
 import dask.dataframe as ddf
 
 
-
 # this module tests fit for handling X & y in good and bad conditions
 # (the only possible bad condition is non-num data, all other 'bad' things
 # like num rows and num columns cant be bad first time passed)
@@ -22,36 +21,38 @@ import dask.dataframe as ddf
 class TestDaskFit_XyValidation:
 
 
-    # pizza this was hiding in validation_init_test
-    # @pytest.mark.parametrize('junk_X',
-    #     (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
-    #      {'a': 1}, lambda x: x)
-    # )
-    # def test_rejects_junk_X(self, junk_X, y_da, base_gstcv_dask, _client):
-    #
-    #     # this is raised by GSTCV for no shape attr
-    #     with pytest.raises(TypeError):
-    #         base_gstcv_dask.fit(junk_X, y_da)
-    #
-    #
-    # @pytest.mark.parametrize('junk_y',
-    #     (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
-    #      {'a': 1}, lambda x: x)
-    # )
-    # def test_rejects_junk_y(self, X_da, junk_y, base_gstcv_dask, _client):
-    #
-    #     # this is raised by GSTCV for no shape attr
-    #     with pytest.raises(TypeError):
-    #         base_gstcv_dask.fit(X_da, junk_y)
+    @pytest.mark.parametrize('junk_X',
+        (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(
+        self, junk_X, y_da, dask_GSTCV_est_log_one_scorer_prefit, _client
+    ):
+
+        # this is raised by GSTCV for no shape attr
+        with pytest.raises(TypeError):
+            dask_GSTCV_est_log_one_scorer_prefit.fit(junk_X, y_da)
 
 
-    @pytest.mark.parametrize('fit_format', ('array', 'df'))
+    @pytest.mark.parametrize('junk_y',
+        (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_y(
+        self, X_da, junk_y, dask_GSTCV_est_log_one_scorer_prefit, _client
+    ):
+
+        # this is raised by GSTCV for no shape attr
+        with pytest.raises(TypeError):
+            dask_GSTCV_est_log_one_scorer_prefit.fit(X_da, junk_y)
+
+
+    @pytest.mark.parametrize('_container', ('da', 'df'))
     @pytest.mark.parametrize('_X_state', ('good', 'bad_data'))
     @pytest.mark.parametrize('_y_state', ('good', 'bad_data'))
-    def test_fit(self, dask_est_log, fit_format, _X_state, _y_state,
-        X_da, _rows, _cols, COLUMNS,  non_binary_y, non_num_X,
-        dask_GSTCV_est_log_one_scorer_prefit,
-        # _client
+    def test_data(
+        self, _container, _X_state, _y_state, X_da, _rows, _cols,
+        COLUMNS, dask_GSTCV_est_log_one_scorer_prefit, #_client
     ):
 
         if _X_state == 'good' and _y_state == 'good':
@@ -74,7 +75,7 @@ class TestDaskFit_XyValidation:
         elif _X_state == 'bad_data':
             X_dask = da.random.choice(list('abcd'), (_rows, _cols), replace=True)
 
-        if fit_format == 'df':
+        if _container == 'df':
             X_dask = ddf.from_dask_array(X_dask, columns=COLUMNS)
         # END X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -84,11 +85,11 @@ class TestDaskFit_XyValidation:
         elif _y_state == 'bad_data':
             y_dask = da.random.choice(list('abcd'), (_rows, 1), replace=True)
 
-        if fit_format == 'df':
+        if _container == 'df':
             y_dask = ddf.from_dask_array(y_dask, columns=['y1'])
         # END y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        if fit_format == 'df':
+        if _container == 'df':
             with pytest.raises(TypeError):
                 getattr(dask_GSTCV, 'fit')(X_dask, y_dask)
             pytest.skip(reason=f"25_04_29 GSTCVDask only accept dask array")
@@ -106,8 +107,6 @@ class TestDaskFit_XyValidation:
             # this is raised by estimator, let it raise whatever
             with pytest.raises(Exception):
                 getattr(dask_GSTCV, 'fit')(X_dask, y_dask)
-
-
 
 
 

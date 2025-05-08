@@ -95,56 +95,54 @@ def _val_X_y(
 
     # y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    if _y is not None:
+    if not isinstance(_y, da.core.Array):
+        raise TypeError(err_msg('y', _y))
 
-        if not isinstance(_y, da.core.Array):
-            raise TypeError(err_msg('y', _y))
+    y_shape = compute(*_y.shape)
 
-        y_shape = compute(*_y.shape)
+    # v v v v pizza keep ur finger on this v v v v
+    # under certain circumstances (e.g. using ddf.to_dask_array() without
+    # specifying 'lengths') array chunk sizes can become np.nan along the
+    # row dimension. This causes an error in ravel(). Ensure chunks are
+    # specified.
+    # if isinstance(_y, da.core.Array):
+    #     y_block_dims = list(compute(*itertools.chain(*map(da.shape, _y.blocks))))
+    #     try:
+    #         list(map(int, y_block_dims))
+    #     except:
+    #         raise ValueError(f"y chunks are not defined. rechunk y.")
+    #     del y_block_dims
 
-        # v v v v pizza keep ur finger on this v v v v
-        # under certain circumstances (e.g. using ddf.to_dask_array() without
-        # specifying 'lengths') array chunk sizes can become np.nan along the
-        # row dimension. This causes an error in ravel(). Ensure chunks are
-        # specified.
-        # if isinstance(_y, da.core.Array):
-        #     y_block_dims = list(compute(*itertools.chain(*map(da.shape, _y.blocks))))
-        #     try:
-        #         list(map(int, y_block_dims))
-        #     except:
-        #         raise ValueError(f"y chunks are not defined. rechunk y.")
-        #     del y_block_dims
+    if X_shape[0] != y_shape[0]:
+        raise ValueError(
+            f"Found input variables with inconsistent numbers of samples: "
+            f"[{y_shape[0]}, {X_shape[0]}]"
+        )
 
-        if X_shape[0] != y_shape[0]:
+    if len(y_shape) == 1:
+        pass
+    elif len(y_shape) == 2:
+        if y_shape[1] != 1:
             raise ValueError(
-                f"Found input variables with inconsistent numbers of samples: "
-                f"[{y_shape[0]}, {X_shape[0]}]"
+                f"Classification metrics can't handle a mix of "
+                f"multilabel-indicator and binary targets"
             )
+    else:
+        raise ValueError(f"'y' must be a 1 or 2 dimensional object")
 
-        if len(y_shape) == 1:
-            pass
-        elif len(y_shape) == 2:
-            if y_shape[1] != 1:
-                raise ValueError(
-                    f"Classification metrics can't handle a mix of "
-                    f"multilabel-indicator and binary targets"
-                )
-        else:
-            raise ValueError(f"'y' must be a 1 or 2 dimensional object")
+    if isinstance(_y, da.core.Array):
+        _unique = set(da.unique(_y).compute())
+    elif isinstance(_y, (ddf.DataFrame, ddf.Series)):
+        _unique = set(da.unique(_y.to_dask_array(lengths=True)).compute())
 
-        if isinstance(_y, da.core.Array):
-            _unique = set(da.unique(_y).compute())
-        elif isinstance(_y, (ddf.DataFrame, ddf.Series)):
-            _unique = set(da.unique(_y.to_dask_array(lengths=True)).compute())
+    if not _unique.issubset({0, 1}):
 
-        if not _unique.issubset({0, 1}):
+        raise ValueError(
+            f"GSTCVDask can only perform thresholding on binary targets "
+            f"with values in [0,1]. \nPass 'y' as a vector of 0's and "
+            f"1's."
+        )
 
-            raise ValueError(
-                f"GSTCVDask can only perform thresholding on binary targets "
-                f"with values in [0,1]. \nPass 'y' as a vector of 0's and "
-                f"1's."
-            )
-
-        del _unique
+    del _unique
 
 

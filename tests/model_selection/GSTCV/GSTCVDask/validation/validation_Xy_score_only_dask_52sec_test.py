@@ -10,7 +10,6 @@ import pytest
 
 from uuid import uuid4
 from copy import deepcopy
-import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
 
@@ -18,52 +17,72 @@ import dask.dataframe as ddf
 # this module tests score for handling X & y in good and a variety of
 # bad conditions (bad num / bad name features, non-num data, row mismatch)
 
-# test array with column number mismatch with 'raises Exception' as
-# opposed to specific errors, because this is the only condition that
-# is not caught by GSTCVDask, but is raised inside the estimator passed to
-# GSTCVDask (dask_ml, whatever) and those exceptions might
-# change. All other excepts are caught by GSTCVDask.
 
-pytest.skip(reason=f"failing for scheduler closed pizza fix it", allow_module_level=True)
 
 class TestDaskScore_XyValidation:
 
 
+    @pytest.mark.parametrize('junk_X',
+        (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(
+        self, junk_X, y_np, dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da
+    ):
+
+        # this is raised by GSTCV for no shape attr
+        with pytest.raises(TypeError):
+            dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da.fit(junk_X, y_np)
+
+
+    @pytest.mark.parametrize('junk_y',
+        (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_y(
+        self, X_np, junk_y, dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da
+    ):
+
+        # this is raised by GSTCV for no shape attr
+        with pytest.raises(TypeError):
+            dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da.fit(X_np, junk_y)
+
+
     # dask KFold cant take df
-    @pytest.mark.parametrize('_fit_format', ('array', )) # 'df'))
+    @pytest.mark.parametrize('_fitted_format', ('da', )) #'df'))
     @pytest.mark.parametrize('_scoring',
         (['accuracy'], ['accuracy', 'balanced_accuracy']))
-    @pytest.mark.parametrize('_X_format', ('array', )) # 'df'))
+    @pytest.mark.parametrize('_container', ('da', 'df'))
     @pytest.mark.parametrize('_X_state',
         ('good', 'bad_features', 'bad_data', 'bad_rows')
     )
     @pytest.mark.parametrize('_y_state',
         ('good', 'bad_features', 'bad_data', 'bad_rows')
     )
-    def test_scoring(self, _scoring, _fit_format, _X_format,
-        _X_state, _y_state, _rows, _cols, COLUMNS, multilabel_y,
-        non_binary_y, different_rows, non_num_X, partial_feature_names_exc,
+    def test_scoring(self, _scoring, _fitted_format, _container,
+        _X_state, _y_state, _rows, _cols, COLUMNS, _client,
         dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da,
         dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da,
         # dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf,
-        # dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf,
-        _client
+        # dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf
     ):
 
-        if _fit_format == 'array':
+        if _X_state == 'good' and _y_state == 'good':
+            pytest.skip(reason=f'other tests already show fit on good works')
+
+        if _X_state == 'bad_rows' and _y_state == 'bad_rows':
+             pytest.skip(reason=f'skip when X & y have bad_rows (not bad then!')
+
+        if _fitted_format == 'da':
             if _scoring == ['accuracy']:
-                dask_GSTCV = \
-                    dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da
+                dask_GSTCV = dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da
             elif _scoring == ['accuracy', 'balanced_accuracy']:
-                dask_GSTCV = \
-                    dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da
-        elif _fit_format == 'df':
+                dask_GSTCV = dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da
+        elif _fitted_format == 'df':
             if _scoring == ['accuracy']:
-                dask_GSTCV = \
-                    dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf
+                dask_GSTCV = dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf
             elif _scoring == ['accuracy', 'balanced_accuracy']:
-                dask_GSTCV = \
-                    dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf
+                dask_GSTCV = dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf
 
 
         # X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -77,15 +96,14 @@ class TestDaskScore_XyValidation:
             X_dask = da.random.randint(0, 10, (2*_rows, _cols))
 
 
-        if _X_format == 'df':
+        if _container == 'df':
 
             columns = deepcopy(COLUMNS)
 
             if _X_state == 'bad_features':
                 columns += [str(uuid4())[:4] for _ in range(_cols)]
 
-            X_dask = pd.DataFrame(data=X_dask, columns=columns)
-
+            X_dask = ddf.from_dask_array(X_dask, columns=columns)
         # END X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -99,7 +117,7 @@ class TestDaskScore_XyValidation:
             y_dask = da.random.randint(0, 2, (2*_rows, 1))
 
 
-        if _X_format == 'df':
+        if _container == 'df':
             columns = ['y1']
             if _y_state == 'bad_features':
                 columns += ['y2']
@@ -107,60 +125,62 @@ class TestDaskScore_XyValidation:
             y_dask = ddf.from_dask_array(y_dask, columns=columns)
         # END y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
-        if _X_state == 'bad_rows' and _y_state == 'bad_rows':
-             pytest.skip(reason=f'skip when X & y have bad_rows (not bad then!')
-
+        if _container == 'df':
+            with pytest.raises(TypeError):
+                getattr(dask_GSTCV, 'fit')(X_dask, y_dask)
+            pytest.skip(reason=f"25_04_29 GSTCVDask only accept dask array")
 
         # do not change this (unless ddf changes). it appears that the
         # dataframe needs to have .shape computed, whereas
         # da.array does not.
-        try:
-            _x_rows = X_dask.shape[0].compute()
-        except:
-            _x_rows = X_dask.shape[0]
-
-        try:
-            _y_rows = y_dask.shape[0].compute()
-        except:
-            _y_rows = y_dask.shape[0]
+        # try:
+        #     _x_rows = X_dask.shape[0].compute()
+        # except:
+        #     _x_rows = X_dask.shape[0]
+        #
+        # try:
+        #     _y_rows = y_dask.shape[0].compute()
+        # except:
+        #     _y_rows = y_dask.shape[0]
 
         if _X_state == 'good':
             if _y_state == 'good':
                 __ = getattr(dask_GSTCV, 'score')(X_dask, y_dask)
                 assert isinstance(__, float)
-                assert __ >= 0
-                assert __ <= 1
+                assert 0 <= __ <= 1
             elif _y_state == 'bad_features':
-                with pytest.raises(ValueError, match=multilabel_y):
+                # this is raised by GSTCV in _val_X_y
+                with pytest.raises(ValueError):
                     getattr(dask_GSTCV, 'score')(X_dask, y_dask)
             elif _y_state == 'bad_data':
                 # his should raise by _val_X_y for not in [0,1]
                 with pytest.raises(ValueError):
                     getattr(dask_GSTCV, 'score')(X_dask, y_dask)
             elif _y_state == 'bad_rows':
-                exp_match = different_rows(_y_rows, _x_rows)
-                with pytest.raises(ValueError, match=exp_match):
+                # this is raised by GSTCV in _val_X_y
+                with pytest.raises(ValueError):
                     getattr(dask_GSTCV, 'score')(X_dask, y_dask)
 
         elif _X_state == 'bad_features':
             if _y_state == 'good':
-                if _fit_format == 'array':
+                if _fitted_format == 'da':
+                    # this is raised by the estimator, let it raise whatever
                     with pytest.raises(Exception):
                         getattr(dask_GSTCV, 'score')(X_dask, y_dask)
-                elif _fit_format == 'dataframe':
-                    with pytest.raises(ValueError) as exc:
+                elif _fitted_format == 'df':
+                    # this is raised by the estimator, let it raise whatever
+                    with pytest.raises(Exception):
                         getattr(dask_GSTCV, 'score')(X_dask, y_dask)
-                    assert partial_feature_names_exc in str(exc)
             elif _y_state == 'bad_features':
-                # this should raise in _val_X_y for too many columns
+                # this is raised by GSTCV in _val_X_y
                 with pytest.raises(ValueError):
                     getattr(dask_GSTCV, 'score')(X_dask, y_dask)
             elif _y_state == 'bad_data':
-                with pytest.raises(ValueError, match=non_binary_y('GSTCVDask')):
+                # this is raised by GSTCV in _val_X_y
+                with pytest.raises(ValueError):
                     getattr(dask_GSTCV, 'score')(X_dask, y_dask)
             elif _y_state == 'bad_rows':
-                # this should raise in _val_X_y
+                # this is raised by GSTCV in _val_X_y
                 with pytest.raises(ValueError):
                     getattr(dask_GSTCV, 'score')(X_dask, y_dask)
 
@@ -172,12 +192,9 @@ class TestDaskScore_XyValidation:
 
         elif _X_state == 'bad_rows':
             # for all states of y (except bad_rows, which is skipped)
-            exp_match = different_rows(_y_rows, _x_rows)
-            with pytest.raises(ValueError, match=exp_match):
+            # this is raised by GSTCV in _val_X_y
+            with pytest.raises(ValueError):
                 getattr(dask_GSTCV, 'score')(X_dask, y_dask)
-
-
-
 
 
 

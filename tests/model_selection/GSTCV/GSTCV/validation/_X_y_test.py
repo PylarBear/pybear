@@ -83,7 +83,7 @@ class TestValXy:
 
     # @pytest.mark.skip(reason=f"pizza keep ur finger on this")
     @pytest.mark.parametrize('X', (X_np_bad_array, X_pd_bad_df, X_pd_bad_series))
-    @pytest.mark.parametrize('y', (y_np_array, None))
+    @pytest.mark.parametrize('y', (y_np_array, ))
     def test_rejects_non_numerical_X(self, X, y, non_num_X):
 
         # with pytest.raises(ValueError, match=non_num_X):
@@ -107,7 +107,7 @@ class TestValXy:
 
     @pytest.mark.parametrize('X_COLUMNS', (X_COLUMNS,))
     @pytest.mark.parametrize('X', (X_np_array, X_pd_df, X_pd_series))
-    @pytest.mark.parametrize('y', (y_np_array, y_pd_df, y_pd_series, None))
+    @pytest.mark.parametrize('y', (y_np_array, y_pd_df, y_pd_series))
     def test_accuracy(self, X, y, X_COLUMNS):
 
         assert _val_X_y(X, y) is None

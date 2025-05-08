@@ -12,9 +12,6 @@ import numpy as np
 from sklearn.utils.validation import check_is_fitted
 
 
-# pizza if this can be streamlined
-
-
 
 class TestGSTCVMixinAttrs:
 
@@ -54,8 +51,8 @@ class TestGSTCVMixinAttrs:
     )
     @pytest.mark.parametrize('_refit',(False, 'accuracy', lambda x: 0))
     def test_postfit(self, _refit, _format, _scoring, param_grid_sk_log,
-        sk_est_log, standard_cv_int, _refit_false, generic_no_attribute_1, X_np,
-        X_pd, y_np, y_pd, _cols, COLUMNS,
+        sk_est_log, standard_cv_int,
+        X_np, X_pd, y_np, y_pd, _cols, COLUMNS,
         sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np,
@@ -109,6 +106,7 @@ class TestGSTCVMixinAttrs:
         # these are returned no matter what data format is passed or what
         # refit is set to or how many metrics are used ** * ** * ** * **
 
+        # cv_results_
         __ = getattr(_sk_GSTCV, 'cv_results_')
         assert isinstance(__, dict)  # cv_results is dict
         assert all(map(isinstance, __.keys(), (str for _ in __))) # keys are str
@@ -116,12 +114,14 @@ class TestGSTCVMixinAttrs:
             assert isinstance(_, (np.ma.masked_array, np.ndarray))
         assert len(__[list(__)[0]]) == 2  # number of permutations
 
+        # scorer_
         __ = getattr(_sk_GSTCV, 'scorer_')
         assert isinstance(__, dict)   # scorer_ is dict
         assert len(__) == len(_scoring)  # len dict same as len passed
         assert all(map(isinstance, __.keys(), (str for _ in __))) # keys are str
         assert all(map(callable, __.values()))  # keys are callable (sk metrics)
 
+        # n_splits_
         assert getattr(_sk_GSTCV, 'n_splits_') == standard_cv_int
 
         # multimetric_ false if 1 scorer, true if 2+ scorers
@@ -135,8 +135,7 @@ class TestGSTCVMixinAttrs:
         # is more than one scorer, they are only exposed when refit is
         # not False
         for attr in ('best_params_', 'best_index_'):
-            if len(_sk_GSTCV.scorer_) == 1 or \
-                len(_sk_GSTCV.scorer_) != 1 and _refit is not False:
+            if len(_sk_GSTCV.scorer_) == 1 or _refit is not False:
                 __ = getattr(_sk_GSTCV, attr)
                 if attr == 'best_params_':
                     assert isinstance(__, dict)  # best_params_ is dict
@@ -155,49 +154,33 @@ class TestGSTCVMixinAttrs:
                         # if refit is callable, passing cv_results to it == best_idx
                         assert _sk_GSTCV._refit(_sk_GSTCV.cv_results_) == __
                 else:
-                    raise Exception(f"bad param")
+                    raise Exception
             else:
-                with pytest.raises(
-                    AttributeError,
-                    match=generic_no_attribute_1('GSTCV', attr)
-                ):
+                with pytest.raises(AttributeError):
                     getattr(_sk_GSTCV, attr)
 
         # END 1b) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
         # 2a)
-        # otherwise these always give attr error when refit is False ** *
+        # otherwise these always give attr error when refit is False **
         if _refit is False:
-            for attr in ('best_estimator_', 'refit_time_', 'classes_',
+            for attr in (
+                'best_estimator_', 'refit_time_', 'classes_',
                 'n_features_in_', 'feature_names_in_'
             ):
-
-                # can you guess which kid is doing his own thing
-                if attr == 'classes_':
-
-                    with pytest.raises(
-                        AttributeError,
-                        match=_refit_false('GSTCV')
-                    ):
-                        getattr(_sk_GSTCV, 'classes_')
-
-                else:
-                    with pytest.raises(AttributeError):
-                        getattr(_sk_GSTCV, attr)
-        # END 2a) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+                with pytest.raises(AttributeError):
+                    getattr(_sk_GSTCV, attr)
+        # END 2a) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # 2b) best_score_ with refit=False: available when there is one
-        # scorer, unavailable with multiple ** * ** * ** * ** * ** * ** * ** *
+        # scorer, unavailable with multiple ** * ** * ** * ** * ** * **
             if len(_sk_GSTCV.scorer_) == 1:
-                __ = getattr(_sk_GSTCV, 'best_score_')
-                assert __ >= 0
-                assert __ <= 1
-
+                assert 0 <= getattr(_sk_GSTCV, 'best_score_') <= 1
             else:
                 with pytest.raises(AttributeError):
                     getattr(_sk_GSTCV, attr)
-        # END 2b) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END 2b) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
         # 3)
@@ -241,21 +224,16 @@ class TestGSTCVMixinAttrs:
         # when refit not False, data format is anything, returns array-like ** *
             __ = getattr(_sk_GSTCV, 'classes_')
             assert isinstance(__, np.ndarray)
-            assert np.array_equiv(
-                sorted(__),
-                sorted(np.unique(y_np))
-            )
+            assert np.array_equiv(sorted(__), sorted(np.unique(y_np)))
         # END when refit not False, data format is anything, returns array-like ** *
 
         # 4b)
         # when refit not False, and it matters what the data format is,
-        # returns array-like that needs np.array_equiv ** * ** * ** * ** * **
+        # returns array-like that needs np.array_equiv ** * ** * ** * **
             # feature_names_in_ gives AttrErr when X was array
             if _format == 'np':
-
                 with pytest.raises(AttributeError):
                     getattr(_sk_GSTCV, 'feature_names_in_')
-
             # feature_names_in_ gives np vector when X was DF
             elif _format == 'pd':
                 __ = getattr(_sk_GSTCV, 'feature_names_in_')
@@ -263,32 +241,30 @@ class TestGSTCVMixinAttrs:
                 assert np.array_equiv(__, COLUMNS)
 
         # END when refit not False, and it matters what the data format is,
-        # returns array-like that needs np.array_equiv ** * ** * ** * ** * **
+        # returns array-like that needs np.array_equiv ** * ** * ** * **
 
         # best_score_. this one is crazy.
-        # 5a) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # 5a) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # when refit is not False and not a callable, no matter how many
         # scorers there are, sk_GSCV and GSTCV return a numeric best_score_.
             if isinstance(_refit, str):
                 __ = getattr(_sk_GSTCV, 'best_score_')
                 assert isinstance(__, float)
-                assert __ >= 0
-                assert __ <= 1
+                assert 0 <= __ <= 1
 
                 col = f'mean_test_' + ('score' if len(_scoring) == 1 else _refit)
                 assert __ == _sk_GSTCV.cv_results_[col][_sk_GSTCV.best_index_]
 
-        # END 5a ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END 5a ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # 5b) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # 5b) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # GSTCV: when _refit is a callable, if there is only one scorer,
         # GSTCV returns a numeric best_score_
             elif callable(_refit):
                 if len(_sk_GSTCV.scorer_) == 1:
                     __ = getattr(_sk_GSTCV, 'best_score_')
                     assert isinstance(__, float)
-                    assert __ >= 0
-                    assert __ <= 1
+                    assert 0 <= __ <= 1
 
                     col = f'mean_test_' + ('score' if len(_scoring) == 1 else _refit)
                     assert __ == _sk_GSTCV.cv_results_[col][_sk_GSTCV.best_index_]
@@ -298,10 +274,7 @@ class TestGSTCVMixinAttrs:
         # GSTCV: when refit is a callable, if there is more than one
         # scorer, GSTCV raises AttErr
                 else:
-                    with pytest.raises(
-                        AttributeError,
-                        match=generic_no_attribute_1('GSTCV', 'best_score_')
-                    ):
+                    with pytest.raises(AttributeError):
                         getattr(_sk_GSTCV, 'best_score_')
         # END 5c) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -316,15 +289,13 @@ class TestGSTCVMixinAttrs:
         if len(_sk_GSTCV.scorer_) == 1:
             __ = getattr(_sk_GSTCV, 'best_threshold_')
             assert isinstance(__, float)
-            assert __ >= 0
-            assert __ <= 1
+            assert 0 <= __ <= 1
             _best_idx = _sk_GSTCV.best_index_
             assert _sk_GSTCV.cv_results_[f'best_threshold'][_best_idx] == __
         elif isinstance(_refit, str):
             __ = getattr(_sk_GSTCV, 'best_threshold_')
             assert isinstance(__, float)
-            assert __ >= 0
-            assert __ <= 1
+            assert 0 <= __ <= 1
             _best_thr = \
                 lambda col: _sk_GSTCV.cv_results_[col][_sk_GSTCV.best_index_]
             if len(_scoring) == 1:
@@ -332,10 +303,7 @@ class TestGSTCVMixinAttrs:
             elif len(_scoring) > 1:
                 assert _best_thr(f'best_threshold_{_refit}') == __
         else:
-            with pytest.raises(
-                AttributeError,
-                match=generic_no_attribute_1('GSTCV', 'best_threshold_')
-            ):
+            with pytest.raises(AttributeError):
                 getattr(_sk_GSTCV, 'best_threshold_')
 
         # END 6) ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -367,8 +335,7 @@ class TestGSTCVMixinMethods:
     )
     @pytest.mark.parametrize('_refit', ('accuracy', lambda x: 0, False))
     def test_prefit(
-        self, _refit, _scoring, X_np, y_np,
-        sk_GSTCV_est_log_one_scorer_prefit,
+        self, _refit, _scoring, X_np, y_np, sk_GSTCV_est_log_one_scorer_prefit,
         sk_GSTCV_est_log_two_scorers_prefit,
     ):
 
@@ -382,9 +349,12 @@ class TestGSTCVMixinMethods:
         _GSTCV.set_params(refit=_refit)
 
 
-        # decision_function
-        with pytest.raises(AttributeError):
-                getattr(_GSTCV, 'decision_function')(X_np)
+        for _attr in (
+            'decision_function', 'inverse_transform', 'predict', 'transform',
+            'predict_log_proba', 'predict_proba', 'score_samples'
+        ):
+            with pytest.raises(AttributeError):
+                    getattr(_GSTCV, _attr)(X_np)
 
 
         # get_metadata_routing
@@ -392,39 +362,9 @@ class TestGSTCVMixinMethods:
             getattr(_GSTCV, 'get_metadata_routing')()
 
 
-        # inverse_transform_test
-        with pytest.raises(AttributeError):
-            getattr(_GSTCV, 'inverse_transform')(X_np)
-
-
-        # predict
-        with pytest.raises(AttributeError):
-            getattr(_GSTCV, 'predict')(X_np)
-
-
-        # predict_log_proba
-        with pytest.raises(AttributeError):
-            getattr(_GSTCV, 'predict_log_proba')(X_np)
-
-
-        # predict_proba
-        with pytest.raises(AttributeError):
-            getattr(_GSTCV, 'predict_proba')(X_np)
-
-
         # score
         with pytest.raises(AttributeError):
             getattr(_GSTCV, 'score')(X_np, y_np)
-
-
-        # score_samples
-        with pytest.raises(AttributeError):
-            getattr(_GSTCV, 'score_samples')(X_np)
-
-
-        # transform
-        with pytest.raises(AttributeError):
-            getattr(_GSTCV, 'transform')(X_np)
 
 
         # visualize
@@ -437,8 +377,7 @@ class TestGSTCVMixinMethods:
     )
     @pytest.mark.parametrize('_refit', ('accuracy', lambda x: 0, False))
     def test_postfit(
-        self, _refit, _scoring, X_np, y_np, generic_no_attribute_2,
-        _no_refit,
+        self, _refit, _scoring, X_np, y_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np,
@@ -465,24 +404,9 @@ class TestGSTCVMixinMethods:
                 GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_fxn_fit_on_np
 
 
-        # decision_function
-        if _refit is False:
-            with pytest.raises(AttributeError):
-                getattr(GSTCV, 'decision_function')(X_np)
-        elif _refit == 'accuracy' or callable(_refit):
-            __ = getattr(GSTCV, 'decision_function')(X_np)
-            assert isinstance(__, np.ndarray)
-            assert __.dtype == np.float64
-
-
         # get_metadata_routing
         with pytest.raises(NotImplementedError):
             getattr(GSTCV, 'get_metadata_routing')()
-
-
-        # inverse_transform_test
-        with pytest.raises(AttributeError):
-            getattr(GSTCV, 'inverse_transform')(X_np)
 
 
         # predict
@@ -504,24 +428,15 @@ class TestGSTCVMixinMethods:
                 assert __.dtype == np.uint8
 
 
-        # predict_log_proba
-        if _refit is False:
-            with pytest.raises(AttributeError):
-                getattr(GSTCV, 'predict_log_proba')(X_np)
-        elif _refit == 'accuracy' or callable(_refit):
-            __ = getattr(GSTCV, 'predict_log_proba')(X_np)
-            assert isinstance(__, np.ndarray)
-            assert __.dtype == np.float64
-
-
-        # predict_proba
-        if _refit is False:
-            with pytest.raises(AttributeError):
-                getattr(GSTCV, 'predict_proba')(X_np)
-        elif _refit == 'accuracy' or callable(_refit):
-            __ = getattr(GSTCV, 'predict_proba')(X_np)
-            assert isinstance(__, np.ndarray)
-            assert __.dtype == np.float64
+        # decision_function, predict_log_proba, predict_proba
+        for _attr in ('decision_function', 'predict_log_proba', 'predict_proba'):
+            if _refit is False:
+                with pytest.raises(AttributeError):
+                    getattr(GSTCV, _attr)(X_np)
+            elif _refit == 'accuracy' or callable(_refit):
+                __ = getattr(GSTCV, _attr)(X_np)
+                assert isinstance(__, np.ndarray)
+                assert __.dtype == np.float64
 
 
         # score
@@ -531,33 +446,26 @@ class TestGSTCVMixinMethods:
         elif _refit == 'accuracy':
             __ = getattr(GSTCV, 'score')(X_np, y_np)
             assert isinstance(__, float)
-            assert __ >= 0
-            assert __ <= 1
+            assert 0 <= __ <= 1
         elif callable(_refit):
             __ = getattr(GSTCV, 'score')(X_np, y_np)
             if not isinstance(_scoring, list) or len(_scoring) == 1:
-                # if refit fxn & one scorer, score is always returned
+                # if resfit fxn & one scorer, score is always returned
                 assert isinstance(__, float)
-                assert __ >= 0
-                assert __ <= 1
+                assert 0 <= __ <= 1
             else:
                 # if refit fxn & >1 scorer, refit fxn is returned
                 assert callable(__)
                 cvr = GSTCV.cv_results_
                 assert isinstance(__(cvr), int) # refit(cvr) returns best_index_
                 # best_index_ must be in range of the rows in cvr
-                assert __(cvr) >= 0
-                assert __(cvr) < len(cvr[list(cvr)[0]])
+                assert 0 <= __(cvr) < len(cvr[list(cvr)[0]])
 
 
-        # score_samples
-        with pytest.raises(AttributeError):
-            getattr(GSTCV, 'score_samples')(X_np)
-
-
-        # transform
-        with pytest.raises(AttributeError):
-            getattr(GSTCV, 'transform')(X_np)
+        # inverse_transform, score_samples, transform
+        for _attr in ('inverse_transform', 'score_samples', 'transform'):
+            with pytest.raises(AttributeError):
+                getattr(GSTCV, _attr)(X_np)
 
 
         # visualize

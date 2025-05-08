@@ -160,6 +160,7 @@ def _parallelized_train_scorer(
 
     pp0_time = time.perf_counter()
     _predict_proba = _estimator_.predict_proba(_X_train)[:, -1].ravel()
+    # pizza maybe some validation here on _predict_proba, len, shape, 0<=x<=1 ???
     pp_time = time.perf_counter() - pp0_time
     del pp0_time
 
