@@ -166,7 +166,11 @@ class _GSTCVMixin(
                 return getattr(self.best_estimator_, method_to_call)(X, y)
             else:  # if y is not passed
                 # pizza this is a temporary stopgap to fool _val_X_y
-                y = np.random.randint(0, 1, (X.shape[0],))
+                import dask.array as da
+                if isinstance(X, da.core.Array):
+                    y = da.random.randint(0, 1, (X.shape[0],))
+                else:
+                    y = np.random.randint(0, 1, (X.shape[0],))
                 self._val_X_y(X, y)
                 return getattr(self.best_estimator_, method_to_call)(X)
 
