@@ -15,20 +15,10 @@ from copy import deepcopy
 
 
 
+
 # this module tests all methods except score that accept a single X
 # argument for handling X in good and a variety of bad conditions
 # (non-numeric data, column count mismatch, feature name mismatch)
-
-# test 'bad_features' on arrays with 'raises Exception' as opposed to
-# specific errors, because this condition (array / column number mismatch)
-# is not caught by GSTCV, but raised inside the estimator passed to GSTCV
-# (sklearn, whatever) and those exceptions might change. Otherwise, GSTCV
-# is fixed in testing for:
-# 1) non-numeric values in X and will raise
-# 2) y is binary in [0,1] or will raise
-# 3) when fit on a DF, will check a DF passed to a method for column
-# equality, and will raise (the third party estimators do this in
-# divergent ways.)
 
 
 
@@ -45,35 +35,32 @@ class TestSKGSTCVMethodsBesidesScore_XValidation:
     # transform(X)
 
 
-    @pytest.mark.parametrize('_fit_format', ('array', 'df'))
+
+    @pytest.mark.parametrize('_fitted_format', ('np', 'df'))
     @pytest.mark.parametrize('_scoring',
         (['accuracy'], ['accuracy', 'balanced_accuracy'])
     )
-    @pytest.mark.parametrize('_X_format', ('array', 'df'))
+    @pytest.mark.parametrize('_X_format', ('np', 'df'))
     @pytest.mark.parametrize('_X_state', ('good', 'bad_features', 'bad_data'))
-    def test_methods(self, _fit_format, _scoring, _X_format, _X_state,
-        _rows, _cols, COLUMNS, partial_feature_names_exc,
+    def test_methods(self, _fitted_format, _scoring, _X_format, _X_state,
+        _rows, _cols, COLUMNS,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
         sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd,
         sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd
     ):
 
-        if _fit_format == 'array':
+        if _fitted_format == 'np':
             if _scoring == ['accuracy']:
-                sk_GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
+                sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
             elif _scoring == ['accuracy', 'balanced_accuracy']:
-                sk_GSTCV = \
-                    sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np
+                sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np
 
-        elif _fit_format == 'df':
+        elif _fitted_format == 'df':
             if _scoring == ['accuracy']:
-                sk_GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd
+                sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd
             elif _scoring == ['accuracy', 'balanced_accuracy']:
-                sk_GSTCV = \
-                    sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd
+                sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd
 
         if _X_state == 'good':
             X_sk = np.random.randint(0, 10, (_rows, _cols))
@@ -104,7 +91,7 @@ class TestSKGSTCVMethodsBesidesScore_XValidation:
         # END inverse_transform, score_samples, transform test ** ** **
 
 
-        # decision_function, predict_log_proba, predict_proba , predict ** ** **
+        # decision_function, predict_log_proba, predict_proba, predict ** ** **
 
         for attr in (
             'decision_function', 'predict_log_proba', 'predict_proba', 'predict'
@@ -118,19 +105,19 @@ class TestSKGSTCVMethodsBesidesScore_XValidation:
                 else:
                     assert __.dtype == np.float64
             elif _X_state == 'bad_features':
-                if _X_format == 'array':
+                if _X_format == 'np':
+                    # this raises in the estimator, let is raise whatever
                     with pytest.raises(Exception):
                         getattr(sk_GSTCV, attr)(X_sk)
-                elif _X_format == 'dataframe':
-                    with pytest.raises(ValueError) as e:
+                elif _X_format == 'df':
+                    # this raises in the estimator, let is raise whatever
+                    with pytest.raises(Exception):
                         getattr(sk_GSTCV, attr)(X_sk)
-                    assert partial_feature_names_exc in str(e)
             elif _X_state == 'bad_data':  # np or pd
                 # this raises in the estimator, let is raise whatever
                 with pytest.raises(Exception):
                     getattr(sk_GSTCV, attr)(X_sk)
         # END decision_function, predict_log_proba, predict_proba, predict ** **
-
 
 
 

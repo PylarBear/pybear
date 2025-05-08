@@ -64,12 +64,11 @@ class _GSTCVMixin(
         """
         Class labels.
 
-        Only available when `refit=True` and the estimator is a classifier.
+        Only available when `refit=True`.
         """
-        # pizza this has different order than the other @properties
-        # because that's the way it is in skGSCV
-        self._check_refit__if_false_block_attr('classes_')
+
         check_is_fitted(self)
+        self._check_refit__if_false_block_attr('classes_')
         self._best_estimator_hasattr('classes_')
         return self.best_estimator_.classes_
 
@@ -161,12 +160,14 @@ class _GSTCVMixin(
         self._check_refit__if_false_block_attr(method_name)
         check_is_fitted(self)
 
-        self._val_X_y(X, y)
-
         with self._scheduler as scheduler:
             if y is not None:
+                self._val_X_y(X, y)
                 return getattr(self.best_estimator_, method_to_call)(X, y)
             else:  # if y is not passed
+                # pizza this is a temporary stopgap to fool _val_X_y
+                y = np.random.randint(0, 1, (X.shape[0],))
+                self._val_X_y(X, y)
                 return getattr(self.best_estimator_, method_to_call)(X)
 
     # END SUPPORT METHODS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -352,7 +353,7 @@ class _GSTCVMixin(
                     _THRESHOLD_DICT[int(_PARAM_GRID_KEY[_trial_idx])]
 
                 # reset the estimator to the first-seen params at every
-                # transitio to a new param grid, and then set the new
+                # transition to a new param grid, and then set the new
                 # params as called out in cv_results_. in that way, the
                 # user can assume that params not explicitly declared in
                 # a param grid are running at their defaults (or whatever

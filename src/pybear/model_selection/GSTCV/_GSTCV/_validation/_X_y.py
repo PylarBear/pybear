@@ -65,51 +65,49 @@ def _val_X_y(_X, _y) -> None:
 
     # y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    if _y is not None:
-
-        try:
-            y_shape = _y.shape
-        except:
-            raise TypeError(f"'y' must have a 'shape' attribute")
+    try:
+        y_shape = _y.shape
+    except:
+        raise TypeError(f"'y' must have a 'shape' attribute")
 
 
-        # v v v v pizza keep ur finger on this v v v v
-        # under certain circumstances (e.g. using ddf.to_dask_array() without
-        # specifying 'lengths') array chunk sizes can become np.nan along the
-        # row dimension. This causes an error in ravel(). Ensure chunks are
-        # specified.
-        # if isinstance(_y, da.core.Array):
-        #     y_block_dims = list(compute(*itertools.chain(*map(da.shape, _y.blocks))))
-        #     try:
-        #         list(map(int, y_block_dims))
-        #     except:
-        #         raise ValueError(f"y chunks are not defined. rechunk y.")
-        #     del y_block_dims
+    # v v v v pizza keep ur finger on this v v v v
+    # under certain circumstances (e.g. using ddf.to_dask_array() without
+    # specifying 'lengths') array chunk sizes can become np.nan along the
+    # row dimension. This causes an error in ravel(). Ensure chunks are
+    # specified.
+    # if isinstance(_y, da.core.Array):
+    #     y_block_dims = list(compute(*itertools.chain(*map(da.shape, _y.blocks))))
+    #     try:
+    #         list(map(int, y_block_dims))
+    #     except:
+    #         raise ValueError(f"y chunks are not defined. rechunk y.")
+    #     del y_block_dims
 
 
-        if X_shape[0] != y_shape[0]:
+    if X_shape[0] != y_shape[0]:
+        raise ValueError(
+            f"Found input variables with inconsistent numbers of samples: "
+            f"[{y_shape[0]}, {X_shape[0]}]"
+        )
+
+    if len(y_shape) == 1:
+        pass
+    elif len(y_shape) == 2:
+        if y_shape[1] != 1:
             raise ValueError(
-                f"Found input variables with inconsistent numbers of samples: "
-                f"[{y_shape[0]}, {X_shape[0]}]"
+                f"Classification metrics can't handle a mix of "
+                f"multilabel-indicator and binary targets"
             )
+    else:
+        raise ValueError(f"'y' must be a 1 or 2 dimensional object")
 
-        if len(y_shape) == 1:
-            pass
-        elif len(y_shape) == 2:
-            if y_shape[1] != 1:
-                raise ValueError(
-                    f"Classification metrics can't handle a mix of "
-                    f"multilabel-indicator and binary targets"
-                )
-        else:
-            raise ValueError(f"'y' must be a 1 or 2 dimensional object")
-
-        if not set(np.unique(_y)).issubset({0, 1}):
-            raise ValueError(
-                f"GSTCV can only perform thresholding on binary targets "
-                f"with values in [0,1]. \nPass 'y' as a vector of 0's and "
-                f"1's."
-            )
+    if not set(np.unique(_y)).issubset({0, 1}):
+        raise ValueError(
+            f"GSTCV can only perform thresholding on binary targets "
+            f"with values in [0,1]. \nPass 'y' as a vector of 0's and "
+            f"1's."
+        )
 
 
 

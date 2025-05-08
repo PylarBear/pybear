@@ -21,37 +21,38 @@ import pandas as pd
 class TestSKFit_XyValidation:
 
 
-    # pizza this was hiding in validation_init_test
-    # @pytest.mark.parametrize('junk_X',
-    #     (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
-    #      {'a': 1}, lambda x: x)
-    # )
-    # def test_rejects_junk_X(self, junk_X, y_np, base_gstcv):
-    #
-    #     # this is raised by GSTCV for no shape attr
-    #     with pytest.raises(TypeError):
-    #         base_gstcv.fit(junk_X, y_np)
-    #
-    #
-    # @pytest.mark.parametrize('junk_y',
-    #     (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
-    #      {'a': 1}, lambda x: x)
-    # )
-    # def test_rejects_junk_y(self, X_np, junk_y, base_gstcv):
-    #
-    #     # this is raised by GSTCV for no shape attr
-    #     with pytest.raises(TypeError):
-    #         base_gstcv.fit(X_np, junk_y)
+    @pytest.mark.parametrize('junk_X',
+        (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(
+        self, junk_X, y_np, sk_GSTCV_est_log_one_scorer_prefit
+    ):
+
+        # this is raised by GSTCV for no shape attr
+        with pytest.raises(TypeError):
+            sk_GSTCV_est_log_one_scorer_prefit.fit(junk_X, y_np)
 
 
+    @pytest.mark.parametrize('junk_y',
+        (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_y(
+        self, X_np, junk_y, sk_GSTCV_est_log_one_scorer_prefit
+    ):
+
+        # this is raised by GSTCV for no shape attr
+        with pytest.raises(TypeError):
+            sk_GSTCV_est_log_one_scorer_prefit.fit(X_np, junk_y)
 
 
-    @pytest.mark.parametrize('fit_format', ('array', 'df'))
+    @pytest.mark.parametrize('_container', ('np', 'df'))
     @pytest.mark.parametrize('_X_state', ('good', 'bad_data'))
     @pytest.mark.parametrize('_y_state', ('good', 'bad_data'))
-    def test_fit(self, sk_est_log, fit_format, _X_state, _y_state,
-        X_np, _rows, _cols, COLUMNS, non_binary_y, non_num_X,
-        sk_GSTCV_est_log_one_scorer_prefit
+    def test_data(
+        self, _container, _X_state, _y_state, X_np, _rows, _cols,
+        COLUMNS, non_num_X, sk_GSTCV_est_log_one_scorer_prefit
     ):
 
         if _X_state == 'good' and _y_state == 'good':
@@ -74,7 +75,7 @@ class TestSKFit_XyValidation:
         elif _X_state == 'bad_data':
             X_sk = np.random.choice(list('abcd'), (_rows, _cols), replace=True)
 
-        if fit_format == 'df':
+        if _container == 'df':
             X_sk = pd.DataFrame(data=X_sk, columns=COLUMNS)
         # END X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -84,9 +85,13 @@ class TestSKFit_XyValidation:
         elif _y_state == 'bad_data':
             y_sk = np.random.choice(list('abcd'), (_rows, 1), replace=True)
 
-        if fit_format == 'df':
+        if _container == 'df':
             y_sk = pd.DataFrame(data=y_sk, columns=['y1'])
         # END y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+
+
 
 
         if _X_state == 'good':
@@ -102,9 +107,6 @@ class TestSKFit_XyValidation:
             # this is raised by estimator, let it raise whatever
             with pytest.raises(Exception):
                 getattr(sk_GSTCV, 'fit')(X_sk, y_sk)
-
-
-
 
 
 

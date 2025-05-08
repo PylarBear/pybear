@@ -528,7 +528,7 @@ class GSTCV(_GSTCVMixin):
         self.return_train_score = return_train_score
 
 
-    def _val_X_y(self, _X, _y=None) -> None:
+    def _val_X_y(self, _X, _y) -> None:
 
         """
         Implements GSTCV _val_X_y in methods in _GSTCVMixin.
@@ -538,7 +538,7 @@ class GSTCV(_GSTCVMixin):
 
         # KEEP val of X & y separate, the all methods need X & y everytime
 
-        return _val_X_y(_X, _y=_y)
+        return _val_X_y(_X, _y)
 
 
     def _val_params(self) -> None:

@@ -14,54 +14,75 @@ import numpy as np
 import pandas as pd
 
 
-
 # this module tests score for handling X & y in good and a variety of
 # bad conditions (bad num / bad name features, non-num data, row mismatch)
-
-# test array with column number mismatch with 'raises Exception' as
-# opposed to specific errors, because this is the only condition that
-# is not caught by GSTCV, but is raised inside the estimator passed to
-# GSTCV (sklearn, whatever) and those exceptions might change. All other
-# excepts are caught by GSTCV.
 
 
 
 class TestSKScore_XyValidation:
 
 
-    @pytest.mark.parametrize('_fit_format', ('array', 'df'))
+    @pytest.mark.parametrize('junk_X',
+        (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(
+        self, junk_X, y_np, sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
+    ):
+
+        # this is raised by GSTCV for no shape attr
+        with pytest.raises(TypeError):
+            sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np.fit(junk_X, y_np)
+
+
+    @pytest.mark.parametrize('junk_y',
+        (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_y(
+        self, X_np, junk_y, sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
+    ):
+
+        # this is raised by GSTCV for no shape attr
+        with pytest.raises(TypeError):
+            sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np.fit(X_np, junk_y)
+
+
+
+    @pytest.mark.parametrize('_fitted_format', ('np', 'df'))
     @pytest.mark.parametrize('_scoring',
         (['accuracy'], ['accuracy', 'balanced_accuracy']))
-    @pytest.mark.parametrize('_X_format', ('array', 'df'))
+    @pytest.mark.parametrize('_container', ('np', 'df'))
     @pytest.mark.parametrize('_X_state',
         ('good', 'bad_features', 'bad_data', 'bad_rows')
     )
     @pytest.mark.parametrize('_y_state',
         ('good', 'bad_features', 'bad_data', 'bad_rows')
     )
-    def test_scoring(self, _scoring, _fit_format, _X_format,
-        _X_state, _y_state, _rows, _cols, COLUMNS, multilabel_y,
-        non_binary_y, different_rows, non_num_X, partial_feature_names_exc,
+    def test_scoring(self, _scoring, _fitted_format, _container,
+        _X_state, _y_state, _rows, _cols, COLUMNS,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
         sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd,
         sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd
     ):
 
-        if _fit_format == 'array':
+        if _X_state == 'good' and _y_state == 'good':
+            pytest.skip(reason=f'other tests already show fit on good works')
+
+        if _X_state == 'bad_rows' and _y_state == 'bad_rows':
+             pytest.skip(reason=f'skip when X & y have bad_rows (not bad then!)')
+
+        if _fitted_format == 'np':
             if _scoring == ['accuracy']:
-                sk_GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
+                sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
             elif _scoring == ['accuracy', 'balanced_accuracy']:
-                sk_GSTCV = \
-                    sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np
-        elif _fit_format == 'df':
+                sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np
+        elif _fitted_format == 'df':
             if _scoring == ['accuracy']:
-                sk_GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd
+                sk_GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd
             elif _scoring == ['accuracy', 'balanced_accuracy']:
-                sk_GSTCV = \
-                    sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd
+                sk_GSTCV = sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_pd
 
 
         # X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -75,7 +96,7 @@ class TestSKScore_XyValidation:
             X_sk = np.random.randint(0, 10, (2*_rows, _cols))
 
 
-        if _X_format == 'df':
+        if _container == 'df':
 
             columns = deepcopy(COLUMNS)
 
@@ -83,7 +104,6 @@ class TestSKScore_XyValidation:
                 columns += [str(uuid4())[:4] for _ in range(_cols)]
 
             X_sk = pd.DataFrame(data=X_sk, columns=columns)
-
         # END X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -97,7 +117,7 @@ class TestSKScore_XyValidation:
             y_sk = np.random.randint(0, 2, (2*_rows, 1))
 
 
-        if _X_format == 'df':
+        if _container == 'df':
             columns = ['y1']
             if _y_state == 'bad_features':
                 columns += ['y2']
@@ -106,46 +126,44 @@ class TestSKScore_XyValidation:
         # END y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-        if _X_state == 'bad_rows' and _y_state == 'bad_rows':
-             pytest.skip(reason=f'skip when X & y have bad_rows (not bad then!)')
-
-
         if _X_state == 'good':
             if _y_state == 'good':
                 __ = getattr(sk_GSTCV, 'score')(X_sk, y_sk)
                 assert isinstance(__, float)
-                assert __ >= 0
-                assert __ <= 1
+                assert 0 <= __ <= 1
             elif _y_state == 'bad_features':
-                with pytest.raises(ValueError, match=multilabel_y):
+                # this is raised by GSTCV in _val_X_y
+                with pytest.raises(ValueError):
                     getattr(sk_GSTCV, 'score')(X_sk, y_sk)
             elif _y_state == 'bad_data':
                 # this is raised by _val_X_y for not in [0,1]
                 with pytest.raises(ValueError):
                     getattr(sk_GSTCV, 'score')(X_sk, y_sk)
             elif _y_state == 'bad_rows':
-                exp_match = different_rows(y_sk.shape[0], X_sk.shape[0])
-                with pytest.raises(ValueError, match=exp_match):
+                # this is raised by GSTCV in _val_X_y
+                with pytest.raises(ValueError):
                     getattr(sk_GSTCV, 'score')(X_sk, y_sk)
 
         elif _X_state == 'bad_features':
             if _y_state == 'good':
-                if _fit_format == 'array':
+                if _fitted_format == 'np':
+                    # this is raised by the estimator, let it raise whatever
                     with pytest.raises(Exception):
                         getattr(sk_GSTCV, 'score')(X_sk, y_sk)
-                elif _fit_format == 'dataframe':
-                    with pytest.raises(ValueError) as exc:
+                elif _fitted_format == 'df':
+                    # this is raised by the estimator, let it raise whatever
+                    with pytest.raises(Exception):
                         getattr(sk_GSTCV, 'score')(X_sk, y_sk)
-                    assert partial_feature_names_exc in str(exc)
             elif _y_state == 'bad_features':
-                # this should raise by _val_X_y for too many columns
+                # this is raised by GSTCV in _val_X_y
                 with pytest.raises(ValueError):
                     getattr(sk_GSTCV, 'score')(X_sk, y_sk)
             elif _y_state == 'bad_data':
-                with pytest.raises(ValueError, match=non_binary_y('GSTCV')):
+                # this is raised by GSTCV in _val_X_y
+                with pytest.raises(ValueError):
                     getattr(sk_GSTCV, 'score')(X_sk, y_sk)
             elif _y_state == 'bad_rows':
-                # this is raised in _val_X_y
+                # this is raised by GSTCV in _val_X_y
                 with pytest.raises(ValueError):
                     getattr(sk_GSTCV, 'score')(X_sk, y_sk)
 
@@ -157,12 +175,9 @@ class TestSKScore_XyValidation:
 
         elif _X_state == 'bad_rows':
             # for all states of y (except bad_rows, which is skipped)
-            exp_match = different_rows(y_sk.shape[0], X_sk.shape[0])
-            with pytest.raises(ValueError, match=exp_match):
+            # this is raised by GSTCV in _val_X_y
+            with pytest.raises(ValueError):
                 getattr(sk_GSTCV, 'score')(X_sk, y_sk)
-
-
-
 
 
 

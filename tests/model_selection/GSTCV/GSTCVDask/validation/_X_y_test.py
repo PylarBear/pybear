@@ -79,9 +79,7 @@ class TestValXy:
     # @pytest.mark.skip(reason=f"pizza keep ur finger on this")
     @pytest.mark.parametrize('X',
         (X_dask_bad_array, X_dask_bad_df, X_dask_bad_series))
-    @pytest.mark.parametrize('y',
-        (y_dask_array, None)
-    )
+    @pytest.mark.parametrize('y', (y_dask_array, ))
     def test_rejects_non_numerical_X(self, X, y, _rows, _cols, non_num_X):
 
         if isinstance(X, da.core.Array):
@@ -120,7 +118,7 @@ class TestValXy:
         (X_dask_array, X_dask_df, X_dask_series)
     )
     @pytest.mark.parametrize('y',
-        (y_dask_array, y_dask_df, y_dask_series, None)
+        (y_dask_array, y_dask_df, y_dask_series)
     )
     def test_accuracy(self, X, y, X_COLUMNS):
 

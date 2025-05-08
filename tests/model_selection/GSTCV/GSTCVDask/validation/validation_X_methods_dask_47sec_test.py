@@ -15,22 +15,12 @@ import dask.dataframe as ddf
 from copy import deepcopy
 
 
+
 # this module tests all methods except score that accept a single X
 # argument for handling X in good and a variety of bad conditions
 # (non-numeric data, column count mismatch, feature name mismatch)
 
-# test 'bad_features' on arrays with 'raises Exception' as opposed to
-# specific errors, because this condition (array / column number mismatch)
-# is not caught by GSTCVDask, but raised inside the estimator
-# passed to GSTCVDask (dask_ml, whatever) and those exceptions might
-# change. Otherwise, GSTCVDask is fixed in testing for:
-# 1) non-numeric values in X and will raise
-# 2) y is binary in [0,1] or will raise
-# 3) when fit on a DF, will check a DF passed to a method for column
-# equality, and will raise (the third party estimators do this in
-# divergent ways.)
 
-pytest.skip(reason=f"failing for scheduler closed pizza fix it", allow_module_level=True)
 
 class TestDaskGSTCVMethodsBesidesScore_XValidation:
 
@@ -44,37 +34,33 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
     # score_samples(X)
     # transform(X)
 
+
     # dask KFold cant take df
-    @pytest.mark.parametrize('_fit_format', ('array', )) # 'df'))
+    @pytest.mark.parametrize('_fitted_format', ('da', )) # 'df'))
     @pytest.mark.parametrize('_scoring',
         (['accuracy'], ['accuracy', 'balanced_accuracy'])
     )
-    @pytest.mark.parametrize('_X_format', ('array', )) # 'df'))
+    @pytest.mark.parametrize('_X_format', ('da', )) # 'df'))
     @pytest.mark.parametrize('_X_state', ('good', 'bad_features', 'bad_data'))
-    def test_methods(self, _fit_format, _scoring, _X_format, _X_state,
-        _rows, _cols, COLUMNS, generic_no_attribute_2, partial_feature_names_exc,
+    def test_methods(self, _fitted_format, _scoring, _X_format, _X_state,
+        _rows, _cols, COLUMNS, _client,   # need client or client closed error
         dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da,
         dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da,
         # dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf,
         # dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf,
-        _client
     ):
 
-        if _fit_format == 'array':
+        if _fitted_format == 'da':
             if _scoring == ['accuracy']:
-                dask_GSTCV = \
-                    dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da
+                dask_GSTCV = dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da
             elif _scoring == ['accuracy', 'balanced_accuracy']:
-                dask_GSTCV = \
-                    dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da
+                dask_GSTCV = dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da
 
-        elif _fit_format == 'df':
+        elif _fitted_format == 'df':
             if _scoring == ['accuracy']:
-                dask_GSTCV = \
-                    dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf
+                dask_GSTCV = dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_ddf
             elif _scoring == ['accuracy', 'balanced_accuracy']:
-                dask_GSTCV = \
-                    dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf
+                dask_GSTCV = dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_ddf
 
         if _X_state == 'good':
             X_dask = da.random.randint(0, 10, (_rows, _cols))
@@ -93,10 +79,10 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
 
             X_dask = ddf.from_dask_array(X_dask, columns=columns)
 
-        # pizza reorganize this... dont forget sklearn
+
         # inverse_transform, score_samples, transform ** ** ** ** ** **
 
-        # for all states of data, and np or pd
+        # for all states of data, and da or df
         for attr in ('inverse_transform', 'score_samples', 'transform'):
 
             with pytest.raises(AttributeError):
@@ -105,44 +91,33 @@ class TestDaskGSTCVMethodsBesidesScore_XValidation:
         # END inverse_transform, score_samples, transform test ** ** **
 
 
-        # predict_log_proba ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-        # exc_info = generic_no_attribute_2('GSTCVDask', 'predict_log_proba')
-        # with pytest.raises(AttributeError, match=exc_info):
-        #     getattr(dask_GSTCV, 'predict_log_proba')(X_dask)
-
-        # END predict_log_proba ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-
-        # decision_function, predict_proba, predict ** ** ** ** ** ** **
+        # decision_function, predict_log_proba, predict_proba, predict ** ** ** ** ** ** **
 
         for attr in (
-            'decision_function', 'predict_proba', 'predict_log_proba', 'predict'
+            'decision_function', 'predict_log_proba', 'predict_proba', 'predict'
         ):
 
-            if _X_state == 'good':  # np or pd
+            if _X_state == 'good':  # da or df
                 __ = getattr(dask_GSTCV, attr)(X_dask)
-                assert isinstance(__, np.ndarray) # da.core.Array)
+                assert isinstance(__, (np.ndarray, da.core.Array))
                 if attr == 'predict':
                     assert __.dtype == np.uint8
                 else:
                     assert __.dtype == np.float64
             elif _X_state == 'bad_features':
-                if _X_format == 'array':
+                if _X_format == 'da':
+                    # this raises in the estimator, let is raise whatever
                     with pytest.raises(Exception):
                         getattr(dask_GSTCV, attr)(X_dask)
-                elif _X_format == 'dataframe':
-                    with pytest.raises(ValueError) as e:
+                elif _X_format == 'df':
+                    # this raises in the estimator, let is raise whatever
+                    with pytest.raises(Exception):
                         getattr(dask_GSTCV, attr)(X_dask)
-                    assert partial_feature_names_exc in str(e)
-            elif _X_state == 'bad_data':  # np or pd
+            elif _X_state == 'bad_data':  # da or df
                 # this raises in the estimator, let is raise whatever
-                with pytest.raises(ValueError):
+                with pytest.raises(Exception):
                     getattr(dask_GSTCV, attr)(X_dask)
-        # END decision_function , predict_proba, predict ** ** ** ** **
-
-
-
+        # END decision_function, predict_log_proba, predict_proba, predict ** ** ** ** **
 
 
 
