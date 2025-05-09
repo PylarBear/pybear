@@ -80,7 +80,7 @@ class TestParallelizedScorer:
                 'accuracy': accuracy_score,
                 'balanced_accuracy': balanced_accuracy_score
             },
-            _THRESHOLDS=np.linspace(0,1,21),
+            _THRESHOLDS=np.linspace(0,1,21).tolist(),
             _error_score=np.nan,
             _verbose=10
         )
@@ -99,7 +99,7 @@ class TestParallelizedScorer:
                 'accuracy': accuracy_score,
                 'balanced_accuracy': balanced_accuracy_score
             },
-            _THRESHOLDS=np.linspace(0,1,21),
+            _THRESHOLDS=np.linspace(0,1,21).tolist(),
             _error_score=0.4,
             _verbose=10
         )
@@ -124,7 +124,7 @@ class TestParallelizedScorer:
                 'accuracy': accuracy_score,
                 'balanced_accuracy': balanced_accuracy_score
             },
-            _THRESHOLDS=np.linspace(0, 1, 21),
+            _THRESHOLDS=np.linspace(0, 1, 21).tolist(),
             _error_score=np.nan,
             _verbose=10
         )
@@ -139,10 +139,6 @@ class TestParallelizedScorer:
         assert not out_times.mask.any()
         assert out_times.min() > 0
         assert out_times.mean() > 0
-
-
-
-
 
 
 

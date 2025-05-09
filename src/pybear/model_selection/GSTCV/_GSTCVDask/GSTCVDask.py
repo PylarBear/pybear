@@ -35,7 +35,7 @@ from dask import compute
 import distributed
 
 from ._validation._validation import _validation
-from ._validation._X_y import _val_X_y
+from ._validation._y import _val_y
 
 from ._param_conditioning._scheduler import _cond_scheduler
 
@@ -571,18 +571,15 @@ class GSTCVDask(_GSTCVMixin):
         self.cache_cv = cache_cv
 
 
-    ####################################################################
-    # SUPPORT METHODS ##################################################
-
-    def _val_X_y(self, _X, _y) -> None:
+    def _val_y(self, _X) -> None:
 
         """
-        Implements GSTCVDask _val_X_y in methods in _GSTCVMixin.
-        See the docs for GSTCVDask _val_X_y.
+        Implements GSTCVDask _val_y in methods in _GSTCVMixin.
+        See the docs for GSTCVDask _val_y.
 
         """
         # KEEP val of X & y separate, the all methods need X & y everytime
-        _val_X_y(_X, _y)
+        _val_y(_X)
 
 
     def _val_params(self) -> None:

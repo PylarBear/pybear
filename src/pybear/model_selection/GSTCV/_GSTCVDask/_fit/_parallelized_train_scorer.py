@@ -111,9 +111,6 @@ def _parallelized_train_scorer(
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # pizza
-    assert isinstance(_X_train, dask.array.core.Array), f"{type(_X_train)=}"
-    assert isinstance(_y_train, dask.array.core.Array)
     assert isinstance(_FIT_OUTPUT_TUPLE, tuple)
     assert isinstance(_f_idx, int)
     assert isinstance(_SCORER_DICT, dict)

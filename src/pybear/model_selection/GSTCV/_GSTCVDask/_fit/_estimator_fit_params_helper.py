@@ -52,7 +52,7 @@ def _estimator_fit_params_helper(
 
     """
 
-    # data will always be dask array because of _validate_X_y
+    # data will always be dask array because of _val_y  ...... pizza come back to this!
     # aim for worst case, KFold and stuff in fit_params was passed with non-dask
 
     try:

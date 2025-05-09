@@ -20,10 +20,10 @@ from sklearn.pipeline import Pipeline
 class TestSKSetParams:
 
 
-    @pytest.mark.parametrize('_refit',
-        (False, 'accuracy', lambda x: 0), scope='class'
+    @pytest.mark.parametrize('_state,_refit',
+        (('prefit', False), ('postfit', 'accuracy'), ('postfit', False)),
+        scope='class'
     )
-    @pytest.mark.parametrize('_state', ('prefit', 'postfit'))
     @pytest.mark.parametrize('junk_param',
         (0, 1, 3.14, None, True, 'trash', [0,1], (0, 1), min, lambda x: x)
     )
@@ -32,11 +32,9 @@ class TestSKSetParams:
         sk_GSTCV_est_log_one_scorer_prefit,
         sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
-        sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np,
         sk_GSTCV_pipe_log_one_scorer_prefit,
         sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np,
-        sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np,
-        sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np
+        sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np
     ):
 
         if _state == 'prefit':
@@ -44,20 +42,11 @@ class TestSKSetParams:
             _GSTCV_PIPE = sk_GSTCV_pipe_log_one_scorer_prefit
         elif _state == 'postfit':
             if _refit is False:
-                _GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np
-                _GSTCV_PIPE = \
-                    sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np
+                _GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np
+                _GSTCV_PIPE = sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np
             elif _refit == 'accuracy':
-                _GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
-                _GSTCV_PIPE = \
-                    sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np
-            elif callable(_refit):
-                _GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np
-                _GSTCV_PIPE = \
-                    sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np
+                _GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
+                _GSTCV_PIPE = sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np
 
 
         with pytest.raises(TypeError):
@@ -68,20 +57,18 @@ class TestSKSetParams:
 
 
 
-    @pytest.mark.parametrize('_refit',
-        (False, 'accuracy', lambda x: 0), scope='class'
+    @pytest.mark.parametrize('_state,_refit',
+        (('prefit', False), ('postfit', 'accuracy'), ('postfit', False)),
+        scope='class'
     )
-    @pytest.mark.parametrize('_state', ('prefit', 'postfit'))
     def test_accuracy(
         self, _state, _refit,
         sk_GSTCV_est_log_one_scorer_prefit,
         sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
-        sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np,
         sk_GSTCV_pipe_log_one_scorer_prefit,
         sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np,
         sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np,
-        sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np,
         sk_est_log
     ):
 
@@ -90,20 +77,11 @@ class TestSKSetParams:
             _GSTCV_PIPE = sk_GSTCV_pipe_log_one_scorer_prefit
         elif _state == 'postfit':
             if _refit is False:
-                _GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np
-                _GSTCV_PIPE = \
-                    sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np
+                _GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np
+                _GSTCV_PIPE = sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np
             elif _refit == 'accuracy':
-                _GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
-                _GSTCV_PIPE = \
-                    sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np
-            elif callable(_refit):
-                _GSTCV = \
-                    sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np
-                _GSTCV_PIPE = \
-                    sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np
+                _GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
+                _GSTCV_PIPE = sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np
 
 
         # use this to reset the params to original state between tests and

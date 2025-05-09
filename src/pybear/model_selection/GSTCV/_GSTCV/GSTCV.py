@@ -39,7 +39,7 @@ import joblib
 import numpy as np
 
 from ._validation._validation import _validation
-from ._validation._X_y import _val_X_y
+from ._validation._y import _val_y
 
 from .._GSTCV._fit._get_kfold import _get_kfold as _sk_get_kfold
 from .._GSTCV._fit._fold_splitter import _fold_splitter as _sk_fold_splitter
@@ -528,17 +528,17 @@ class GSTCV(_GSTCVMixin):
         self.return_train_score = return_train_score
 
 
-    def _val_X_y(self, _X, _y) -> None:
+    def _val_y(self, _X) -> None:
 
         """
-        Implements GSTCV _val_X_y in methods in _GSTCVMixin.
-        See the docs for GSTCV _val_X_y.
+        Implements GSTCV _val_y in methods in _GSTCVMixin.
+        See the docs for GSTCV _val_y.
 
         """
 
         # KEEP val of X & y separate, the all methods need X & y everytime
 
-        return _val_X_y(_X, _y)
+        return _val_y(_X)
 
 
     def _val_params(self) -> None:

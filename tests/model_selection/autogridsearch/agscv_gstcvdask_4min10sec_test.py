@@ -27,10 +27,6 @@ from pybear.model_selection.autogridsearch.AutoGSTCVDask import AutoGSTCVDask
 
 
 
-# pytest.skip(reason=f'takes too long', allow_module_level=True)
-
-
-
 class TestGSTCVDask:
 
     #         estimator,

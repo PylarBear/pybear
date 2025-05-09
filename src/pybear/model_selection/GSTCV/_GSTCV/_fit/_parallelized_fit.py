@@ -92,9 +92,6 @@ def _parallelized_fit(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(f_idx, int)
-    # pizza
-    # assert isinstance(_X_train, np.ndarray)
-    # assert isinstance(_y_train, np.ndarray)
     assert isinstance(_grid, dict)
     assert isinstance(_error_score, (str, numbers.Real))
 

@@ -22,7 +22,6 @@ class TestSKGridSearchFixtures:
         sk_GSCV_est_log_one_scorer_prefit,
         sk_GSCV_est_log_one_scorer_postfit_refit_false,
         sk_GSCV_est_log_one_scorer_postfit_refit_str,
-        sk_GSCV_est_log_one_scorer_postfit_refit_fxn,
         sk_GSTCV_est_log_one_scorer_prefit,
         sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
@@ -30,10 +29,6 @@ class TestSKGridSearchFixtures:
         sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_pd,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd,
         sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd,
-        sk_GSCV_est_log_two_scorers_prefit,
-        sk_GSCV_est_log_two_scorers_postfit_refit_false,
-        sk_GSCV_est_log_two_scorers_postfit_refit_str,
-        sk_GSCV_est_log_two_scorers_postfit_refit_fxn,
         sk_GSTCV_est_log_two_scorers_prefit,
         sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np,
         sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np,
@@ -50,8 +45,6 @@ class TestSKGridSearchFixtures:
              sk_GSCV_est_log_one_scorer_postfit_refit_false),
             (f'sk_GSCV_est_log_one_scorer_postfit_refit_str',
              sk_GSCV_est_log_one_scorer_postfit_refit_str),
-            (f'sk_GSCV_est_log_one_scorer_postfit_refit_fxn',
-             sk_GSCV_est_log_one_scorer_postfit_refit_fxn),
             (f'sk_GSTCV_est_log_one_scorer_prefit',
              sk_GSTCV_est_log_one_scorer_prefit),
             (f'sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np',
@@ -66,14 +59,6 @@ class TestSKGridSearchFixtures:
              sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd),
             (f'sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd',
              sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd),
-            (f'sk_GSCV_est_log_two_scorers_prefit',
-             sk_GSCV_est_log_two_scorers_prefit),
-            (f'sk_GSCV_est_log_two_scorers_postfit_refit_false',
-             sk_GSCV_est_log_two_scorers_postfit_refit_false),
-            (f'sk_GSCV_est_log_two_scorers_postfit_refit_str',
-             sk_GSCV_est_log_two_scorers_postfit_refit_str),
-            (f'sk_GSCV_est_log_two_scorers_postfit_refit_fxn',
-             sk_GSCV_est_log_two_scorers_postfit_refit_fxn),
             (f'sk_GSTCV_est_log_two_scorers_prefit',
              sk_GSTCV_est_log_two_scorers_prefit),
             (f'sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np',
@@ -140,11 +125,9 @@ class TestSKGridSearchFixtures:
         sk_GSCV_pipe_log_one_scorer_prefit,
         sk_GSCV_pipe_log_one_scorer_postfit_refit_false,
         sk_GSCV_pipe_log_one_scorer_postfit_refit_str,
-        sk_GSCV_pipe_log_one_scorer_postfit_refit_fxn,
         sk_GSTCV_pipe_log_one_scorer_prefit,
         sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np,
-        sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np,
-        sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np
+        sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np
     ):
 
         name_pipeline_tuples = [
@@ -154,16 +137,12 @@ class TestSKGridSearchFixtures:
              sk_GSCV_pipe_log_one_scorer_postfit_refit_false),
             (f'sk_GSCV_pipe_log_one_scorer_postfit_refit_str',
              sk_GSCV_pipe_log_one_scorer_postfit_refit_str),
-            (f'sk_GSCV_pipe_log_one_scorer_postfit_refit_fxn',
-             sk_GSCV_pipe_log_one_scorer_postfit_refit_fxn),
             (f'sk_GSTCV_pipe_log_one_scorer_prefit',
              sk_GSTCV_pipe_log_one_scorer_prefit),
             ('sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np',
              sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np),
             ('sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np',
-             sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np),
-            ('sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np',
-             sk_GSTCV_pipe_log_one_scorer_postfit_refit_fxn_fit_on_np)
+             sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np)
         ]
 
         for idx, (_name, _gscv_or_gstcv) in enumerate(name_pipeline_tuples):
@@ -214,30 +193,6 @@ class TestSKGridSearchFixtures:
                     assert not hasattr(__, 'best_estimator_')
                 elif 'refit_str' in _name or 'refit_fxn' in _name:
                     assert hasattr(__, 'best_estimator_')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

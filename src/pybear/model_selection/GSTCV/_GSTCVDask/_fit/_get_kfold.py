@@ -84,12 +84,6 @@ def _get_kfold(
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    if not isinstance(_X, da.core.Array):
-        raise TypeError(f"'_X' must be a dask array. dask_ml KFold requires it.")
-
-    if not isinstance(_y, (da.core.Array, ddf.DataFrame, ddf.Series, type(None))):
-        raise TypeError(f"'_y' must be None or a dask object")
-
     assert isinstance(_n_splits, int)
     assert _n_splits > 1
     assert isinstance(_iid, bool)
