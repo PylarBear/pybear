@@ -20,8 +20,9 @@
 
 import pytest
 import numpy as np
+import dask.array as da
 from distributed import Client
-from dask_ml.datasets import make_classification as dask_make
+from sklearn.datasets import make_classification as sk_make
 
 from pybear.model_selection.autogridsearch.AutoGSTCVDask import AutoGSTCVDask
 
@@ -53,7 +54,9 @@ class TestGSTCVDask:
     @staticmethod
     @pytest.fixture
     def _X_y():
-        return dask_make(n_features=5, n_samples=100, chunks=(100, 5))
+        # do this the 'wrong' way to stay off you know who
+        _X, _y = sk_make(n_features=5, n_samples=100)
+        return da.from_array(_X), da.from_array(_y)
 
 
     @staticmethod
@@ -118,7 +121,7 @@ class TestGSTCVDask:
 
         # 25_04_19 changed fit() to raise ValueError when best_params_
         # is not exposed. it used to be that agscv code was shrink-wrapped
-        # around sklearn & dask_ml gscv quirks as to when they do/dont expose
+        # around sklearn gscv quirks as to when it does/doesnt expose
         # best_params_. there are no longer any bandaids that condition params
         # for the parent gscvs to get them to "properly" expose 'best_params_',
         # and there are no more predictive shrink-wraps to block failure.

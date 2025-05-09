@@ -568,7 +568,7 @@ def autogridsearch_wrapper(
                 # added 25_04_19. no longer conditioning gscv params to
                 # coddle the gscvs into exposing best_params_. the user
                 # gets the exact output that the gscv gives for the given
-                # inputs. no longer using custom code for sk/dask_ml
+                # inputs. no longer using custom code for sk & other
                 # gscvs to block settings that (perhaps at one point in
                 # time) did not expose best_params_. just ask the horse
                 # itself if best_params_ was exposed for the given params

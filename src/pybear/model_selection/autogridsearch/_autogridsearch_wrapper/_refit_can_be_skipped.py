@@ -28,11 +28,10 @@ def _refit_can_be_skipped(
     """
     Determine if the parent GridSearch, the scoring strategy, and the
     total number of passes allow for refits to be skipped until the
-    final pass. Some GridSearch parents (like dask_ml as of this writing)
-    require that `refit` be True to expose `best_params_`. All require
-    that `refit` be specified if `scoring` is multiple scorers to expose
-    `best_params_`. Refit cannot be skipped if agscv is only running one
-    pass.
+    final pass. Some GridSearch parents require that `refit` be True to
+    expose `best_params_`. All require that `refit` be specified if
+    `scoring` is multiple scorers to expose `best_params_`. Refit cannot
+    be skipped if agscv is only running one pass.
 
     This ignores whether `refit` was originally passed as False. If it
     was, then this module will still allow agscv to overwrite pre-final
@@ -80,8 +79,8 @@ def _refit_can_be_skipped(
     # not take a refit kwarg.
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     # dask_ml is the fly in the ointment. Always leave refit
-    # as the user passed it for dask_ml. So apply the rules
-    # for managing refits to sklearn/pybear only.
+    # as the user passed it. So apply the rules for managing
+    # refits to sklearn/pybear only.
 
     # all of these have refit
     _is_candidate_gscv = _GridSearchParent in (
@@ -95,7 +94,7 @@ def _refit_can_be_skipped(
     _is_multimetric = 1
     _is_multimetric -= callable(_scoring)
     _is_multimetric -= isinstance(_scoring, (str, type(None)))
-    # sklearn/dask_ml anomaly that list scoring is always multimetric,
+    # sklearn anomaly that list scoring is always multimetric,
     # even if len(list)==1.
     _is_not_multimetric = not bool(_is_multimetric)
 

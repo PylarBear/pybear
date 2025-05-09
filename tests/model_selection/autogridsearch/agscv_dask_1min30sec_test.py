@@ -15,12 +15,13 @@
 import pytest
 
 import numpy as np
+import dask.array as da
 
 from pybear.model_selection import autogridsearch_wrapper
 
-from dask_ml.datasets import make_classification as dask_make
+from sklearn.datasets import make_classification as sk_make
 
-from dask_ml.linear_model import LogisticRegression as dask_logistic
+from sklearn.linear_model import LogisticRegression as sk_logistic
 # this estimator needs to have partial_fit() for Incremental
 from sklearn.linear_model import SGDClassifier
 
@@ -48,7 +49,11 @@ def dask_client():
 
 @pytest.fixture
 def _X_y():
-    return dask_make(n_features=5, n_samples=100, chunks=(100,5), n_classes=2)
+    # do this the 'wrong' way to stay off you-know-who
+
+    _X, _y = sk_make(n_features=5, n_samples=100, n_classes=2) #, chunks=(100,5))
+
+    return da.from_array(_X), da.from_array(_y)
 
 
 # ** * ** * ** * ** * ** ** * ** * ** * ** * ** ** * ** * ** * ** * **
@@ -69,8 +74,8 @@ class TestDaskGSCVSThatDontNeedPartialFit:
     @staticmethod
     @pytest.fixture
     def _dask_estimator_1():
-
-        return dask_logistic(
+        # use sklearn to stay off you-know-who
+        return sk_logistic(
             penalty='l2',
             dual=False,
             tol=0.0001,
@@ -79,13 +84,13 @@ class TestDaskGSCVSThatDontNeedPartialFit:
             intercept_scaling=1.0,
             class_weight=None,
             random_state=None,
-            solver='newton',
+            solver='lbfgs',
             max_iter=100,
             multi_class='ovr',
             verbose=0,
             warm_start=False,
             n_jobs=None,
-            solver_kwargs=None
+            # solver_kwargs=None
         )
 
     @staticmethod
@@ -93,7 +98,7 @@ class TestDaskGSCVSThatDontNeedPartialFit:
     def _dask_params_1():
         return {
             'C': [np.logspace(-5, 5, 3), 3, 'soft_float'],
-            'solver': [['lbfgs', 'admm'], 2, 'fixed_string']
+            'solver': [['lbfgs', 'saga'], 2, 'fixed_string']
         }
 
 
@@ -137,7 +142,7 @@ class TestDaskGSCVSThatDontNeedPartialFit:
 
         # 25_04_19 changed fit() to raise ValueError when best_params_
         # is not exposed. it used to be that agscv code was shrink-wrapped
-        # around sklearn & dask_ml gscv quirks as to when they do/dont expose
+        # around sklearn  gscv quirks as to when it does/doesnt expose
         # best_params_. there are no longer any bandaids that condition params
         # for the parent gscvs to get them to "properly" expose 'best_params_',
         # and there are no more predictive shrink-wraps to block failure.
@@ -146,6 +151,7 @@ class TestDaskGSCVSThatDontNeedPartialFit:
         # coddle to every little nuanced thing that makes a gscv not want to
         # expose 'best_params_'. Try to fit, if ValueError is raised, look to
         # see that 'best_params_' is not exposed and go to the next test.
+
         try:
             AutoGridSearch.fit(*_X_y)
             assert isinstance(getattr(AutoGridSearch, 'best_params_'), dict)
@@ -192,6 +198,7 @@ class TestDaskGSCVSThatDontNeedPartialFit:
 
 # ** * ** * ** * ** * ** ** * ** * ** * ** * ** ** * ** * ** * ** * **
 # dask gscvs that need a partial_fit exposed ** * ** * ** * ** * ** * ** *
+
 
 
 @pytest.fixture

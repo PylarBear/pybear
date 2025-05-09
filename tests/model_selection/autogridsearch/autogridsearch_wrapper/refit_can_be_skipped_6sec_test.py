@@ -21,14 +21,7 @@ from sklearn.model_selection import (
     HalvingRandomSearchCV
 )
 
-from dask_ml.model_selection import (
-    GridSearchCV as DaskGridSearchCV,
-    RandomizedSearchCV as DaskRandomizedSearchCV,
-    IncrementalSearchCV,
-    HyperbandSearchCV,
-    SuccessiveHalvingSearchCV,
-    InverseDecaySearchCV
-)
+from dask_ml.model_selection import GridSearchCV as DaskGridSearchCV
 
 from pybear.model_selection.GSTCV._GSTCV import GSTCV
 from pybear.model_selection.GSTCV._GSTCVDask import GSTCVDask
@@ -40,16 +33,8 @@ class TestRefitCanBeSkipped:
 
     _parent_gscvs = (
         SklearnGridSearchCV, SklearnRandomizedSearchCV, HalvingGridSearchCV,
-        HalvingRandomSearchCV, DaskGridSearchCV, DaskRandomizedSearchCV,
-        IncrementalSearchCV, HyperbandSearchCV, SuccessiveHalvingSearchCV,
-        InverseDecaySearchCV, GSTCV, GSTCVDask
+        HalvingRandomSearchCV, DaskGridSearchCV, GSTCV, GSTCVDask
     )
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _scorer_dict():
-        return
 
 
     @pytest.mark.parametrize('_GridSearchParent', _parent_gscvs)
@@ -69,7 +54,7 @@ class TestRefitCanBeSkipped:
 
         # can only return True if:
         #   sklearn or pybear GSCV (must have refit param, these are guaranteed
-        #   to have it, dask_ml is a crap-shoot)
+        #   to have it)
         #   not multimetric
         #   total_passes > 1
 
