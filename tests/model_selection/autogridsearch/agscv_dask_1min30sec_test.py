@@ -37,9 +37,6 @@ from distributed import Client
 
 
 
-# pytest.skip(f"test takes too long", allow_module_level=True)
-
-
 
 @pytest.fixture
 def dask_client():

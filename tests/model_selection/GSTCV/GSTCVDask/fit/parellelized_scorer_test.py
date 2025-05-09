@@ -87,7 +87,7 @@ class TestParallelizedScorer:
             _FIT_OUTPUT_TUPLE=_fit_output_excepted,
             _f_idx=0,
             _SCORER_DICT=sk_dask_metrics,
-            _THRESHOLDS=np.linspace(0,1,21),
+            _THRESHOLDS=np.linspace(0,1,21).tolist(),
             _error_score=np.nan,
             _verbose=10
         )
@@ -105,7 +105,7 @@ class TestParallelizedScorer:
             _SCORER_DICT={
                 'accuracy': dask_accuracy_score
             },
-            _THRESHOLDS=np.linspace(0,1,21),
+            _THRESHOLDS=np.linspace(0,1,21).tolist(),
             _error_score=0.4,
             _verbose=10
         )
@@ -136,7 +136,7 @@ class TestParallelizedScorer:
             _FIT_OUTPUT_TUPLE=_fit_output_good,
             _f_idx=0,
             _SCORER_DICT=sk_dask_metrics,
-            _THRESHOLDS=np.linspace(0, 1, 21),
+            _THRESHOLDS=np.linspace(0, 1, 21).tolist(),
             _error_score=np.nan,
             _verbose=10
         )

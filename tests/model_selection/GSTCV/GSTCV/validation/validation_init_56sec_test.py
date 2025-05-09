@@ -911,24 +911,6 @@ class TestInitValidation:
     # END n_jobs v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-    # pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    @pytest.mark.parametrize('junk_pre_dispatch',
-        (-2, 0, False, 'trash', min, [0, 1], (0, 1), {0, 1},
-         {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_pre_dispatch(
-        self, X_np, y_np, base_gstcv, junk_pre_dispatch
-    ):
-
-        base_gstcv.set_params(pre_dispatch=junk_pre_dispatch)
-
-        # this is raised by joblib, let it raise whatever
-        with pytest.raises(Exception):
-            base_gstcv.fit(X_np, y_np)
-
-    # END pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
-
     # return_train_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
     # return_train_score: Optional[bool]=False
 
@@ -958,6 +940,25 @@ class TestInitValidation:
                good_train_score
 
     # END return_train_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+
+    # pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+    @pytest.mark.parametrize('junk_pre_dispatch',
+        (-2, 0, False, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_pre_dispatch(
+        self, X_np, y_np, base_gstcv, junk_pre_dispatch
+    ):
+
+        base_gstcv.set_params(pre_dispatch=junk_pre_dispatch)
+
+        # this is raised by joblib, let it raise whatever
+        with pytest.raises(Exception):
+            base_gstcv.fit(X_np, y_np)
+
+    # END pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
 
 
 

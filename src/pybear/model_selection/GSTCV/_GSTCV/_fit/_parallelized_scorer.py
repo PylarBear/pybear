@@ -110,14 +110,11 @@ def _parallelized_scorer(
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # pizza
-    # assert isinstance(_X_test, np.ndarray)
-    # assert isinstance(_y_test, np.ndarray)
     assert isinstance(_FIT_OUTPUT_TUPLE, tuple)
     assert isinstance(_f_idx, int)
     assert isinstance(_SCORER_DICT, dict)
     assert all(map(callable, _SCORER_DICT.values()))
-    assert isinstance(_THRESHOLDS, (list, np.ndarray)) # pizza
+    assert isinstance(_THRESHOLDS, list)
     assert isinstance(_verbose, (int, float))
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 

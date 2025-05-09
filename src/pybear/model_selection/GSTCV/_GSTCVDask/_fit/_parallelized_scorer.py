@@ -109,13 +109,11 @@ def _parallelized_scorer(
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert isinstance(_X_test, dask.array.core.Array)
-    assert isinstance(_y_test, dask.array.core.Array)
     assert isinstance(_FIT_OUTPUT_TUPLE, tuple)
     assert isinstance(_f_idx, int)
     assert isinstance(_SCORER_DICT, dict)
     assert all(map(callable, _SCORER_DICT.values()))
-    assert isinstance(_THRESHOLDS, (list, np.ndarray))  # pizza want to go to list
+    assert isinstance(_THRESHOLDS, list)
     assert isinstance(_verbose, (int, float))
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 

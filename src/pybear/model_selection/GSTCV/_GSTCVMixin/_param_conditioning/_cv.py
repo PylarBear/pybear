@@ -19,9 +19,6 @@ def _cond_cv(
     _cv_default:Optional[numbers.Integral] = 5
 ) -> Union[int, list[GenericKFoldType]]:
 
-    # pizza maybe specialize this module for both sk and dask.
-
-
     """
     Condition `cv`. There was some validation that was forgone in the
     validation section. `cv` might be a generator, and it was not

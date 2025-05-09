@@ -145,7 +145,7 @@ class _GSTCVMixin(
 
 
     def _method_caller(
-        self, method_name: str, method_to_call: str, X, y=None
+        self, method_name: str, method_to_call: str, X
     ):
 
         """
@@ -161,18 +161,7 @@ class _GSTCVMixin(
         check_is_fitted(self)
 
         with self._scheduler as scheduler:
-            if y is not None:
-                self._val_X_y(X, y)
-                return getattr(self.best_estimator_, method_to_call)(X, y)
-            else:  # if y is not passed
-                # pizza this is a temporary stopgap to fool _val_X_y
-                import dask.array as da
-                if isinstance(X, da.core.Array):
-                    y = da.random.randint(0, 1, (X.shape[0],))
-                else:
-                    y = np.random.randint(0, 1, (X.shape[0],))
-                self._val_X_y(X, y)
-                return getattr(self.best_estimator_, method_to_call)(X)
+            return getattr(self.best_estimator_, method_to_call)(X)
 
     # END SUPPORT METHODS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
@@ -230,7 +219,7 @@ class _GSTCVMixin(
 
         """
 
-        self._val_X_y(X, y)
+        self._val_y(y)
 
         # for params that serve both GSTCV & GSTCVDask
         _validation(
@@ -873,7 +862,7 @@ class _GSTCVMixin(
             # f"scorers and refit is a callable because best_threshold_ "
             # f"cannot be determined."
 
-        self._val_X_y(X, y)   # to validate y
+        self._val_y(y)
         y_pred = self._method_caller('score', 'predict', X)
         if len(self.scorer_) == 1 and callable(self._refit):
             return self.scorer_['score'](y, y_pred)

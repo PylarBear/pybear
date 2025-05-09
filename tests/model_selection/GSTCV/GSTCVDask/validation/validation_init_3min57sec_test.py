@@ -911,70 +911,6 @@ class TestInitValidation:
     # END n_jobs v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-    # cache_cv v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # cache_cv: Optional[bool]=True
-
-    @pytest.mark.parametrize('junk_cache_cv',
-        (-2, 0, 3.14, None, 'trash', min, [0, 1], (0, 1), {0, 1},
-         {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_cache_cv(
-        self, X_da, y_da, base_gstcv_dask, junk_cache_cv, _client
-    ):
-
-        base_gstcv_dask.set_params(cache_cv=junk_cache_cv)
-
-        with pytest.raises(TypeError):
-            base_gstcv_dask.fit(X_da, y_da)
-
-
-    @pytest.mark.parametrize('good_cachecv', (True, ))# False))  save time
-    def test_cache_cv_accepts_bool(
-        self, base_gstcv_dask, good_cachecv, X_da, y_da, _client
-    ):
-
-        assert isinstance(
-            base_gstcv_dask.set_params(cache_cv=good_cachecv).fit(X_da, y_da),
-            type(base_gstcv_dask)
-        )
-
-        assert base_gstcv_dask.get_params(deep=True)['cache_cv'] is good_cachecv
-
-    # END cache_cv v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
-
-    # iid v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # iid: Optional[bool]=True
-
-    @pytest.mark.parametrize('junk_iid',
-        (-2, 0, 3.14, None, 'trash', min, [0, 1], (0, 1), {0, 1},
-        {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_iid(
-        self, X_da, y_da, base_gstcv_dask, junk_iid, _client
-    ):
-
-        base_gstcv_dask.set_params(iid=junk_iid)
-
-        with pytest.raises(TypeError):
-            base_gstcv_dask.fit(X_da, y_da)
-
-
-    @pytest.mark.parametrize('good_iid', (True, )) # False)) save time
-    def test_iid_accepts_bool(
-        self, base_gstcv_dask, good_iid, X_da, y_da, _client
-    ):
-
-        assert isinstance(
-            base_gstcv_dask.set_params(iid=good_iid).fit(X_da, y_da),
-            type(base_gstcv_dask)
-        )
-
-        assert base_gstcv_dask.get_params(deep=True)['iid'] is good_iid
-
-    # END iid v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
     # return_train_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
     # return_train_score: Optional[bool]=False
 
@@ -1006,8 +942,11 @@ class TestInitValidation:
     # END return_train_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-    # scheduler ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # cache_cv / iid / scheduler v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+    # cache_cv: Optional[bool]=True
+    # iid: Optional[bool]=True
     # scheduler: Optional[Union[SchedulerType, None]]=None
+
 
     @staticmethod
     @pytest.fixture
@@ -1018,30 +957,72 @@ class TestInitValidation:
         return PyBearClient
 
 
-    def test_none_returns_None(
-        self, base_gstcv_dask, X_da, y_da, _client
+    @pytest.mark.parametrize('junk_cache_cv',
+        (-2, 0, 3.14, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_cache_cv(
+        self, X_da, y_da, base_gstcv_dask, junk_cache_cv, _client
     ):
 
-        base_gstcv_dask.set_params(scheduler=None, n_jobs=1)
-        assert isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
-        assert base_gstcv_dask.get_params(deep=True)['scheduler'] is None
+        base_gstcv_dask.set_params(cache_cv=junk_cache_cv)
+
+        with pytest.raises(TypeError):
+            base_gstcv_dask.fit(X_da, y_da)
 
 
-    def test_original_scheduler_is_returned(
-        self, base_gstcv_dask, marked_client_class, X_da, y_da, _client
+    @pytest.mark.parametrize('junk_iid',
+        (-2, 0, 3.14, None, 'trash', min, [0, 1], (0, 1), {0, 1},
+        {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_iid(
+        self, X_da, y_da, base_gstcv_dask, junk_iid, _client
     ):
+
+        base_gstcv_dask.set_params(iid=junk_iid)
+
+        with pytest.raises(TypeError):
+            base_gstcv_dask.fit(X_da, y_da)
+
+
+    # pizza does it make sense to check junk scheduler.... look at val
+
+
+    @pytest.mark.parametrize(
+        'good_cachecv,good_iid,good_scheduler,good_n_jobs',
+        (
+            (True, False, None, 1),
+            (False, True, 'marked_client_class', None)
+        )
+    )
+    def test_cache_cv_iid_sheduler_accepts_good(
+        self, base_gstcv_dask, good_cachecv, good_iid, good_scheduler,
+        marked_client_class, good_n_jobs, X_da, y_da, _client
+    ):
+
+        if good_scheduler == 'marked_client_class':
+            good_scheduler = marked_client_class(n_workers=1)
 
         base_gstcv_dask.set_params(
-            scheduler=marked_client_class(n_workers=1), n_jobs=None
+            cache_cv=good_cachecv,
+            iid=good_iid,
+            scheduler=good_scheduler,
+            n_jobs=good_n_jobs
         )
+
         assert isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
 
-        assert isinstance(
-            base_gstcv_dask.get_params(deep=True)['scheduler'],
-            marked_client_class
-        )
+        assert base_gstcv_dask.get_params(deep=True)['cache_cv'] is good_cachecv
+        assert base_gstcv_dask.get_params(deep=True)['iid'] is good_iid
+        if good_scheduler is None:
+            assert base_gstcv_dask.get_params(deep=True)['scheduler'] is None
+        elif isinstance(good_scheduler, marked_client_class):
+            assert isinstance(
+                base_gstcv_dask.get_params(deep=True)['scheduler'],
+                marked_client_class
+            )
 
-    # END scheduler ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END cache_cv / iid / scheduler v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
 
