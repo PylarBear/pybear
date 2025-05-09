@@ -10,8 +10,6 @@ import pytest
 
 import numpy as np
 
-from GSTCV.conftest import param_grid_sk_log
-
 
 class TestSKGetParams:
 
