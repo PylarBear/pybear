@@ -67,7 +67,7 @@ def _fold_splitter(
     def _val_cond_idxs(_name, _idxs):
         """Helper for validating and conditioning slicers."""
         _err_msg = f"'{_name}' must be a 1D vector of integers, not bools."
-        _idxs = da.array(_idxs)
+        _idxs = da.array(_idxs)   # pizza can this go to da.from_array?
         if _idxs.dtype == bool:
             raise TypeError(_err_msg)
         if len(_idxs.shape) != 1:

@@ -14,19 +14,8 @@ from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask as \
     dask_GSTCV
 
 
-# 25_04_28 pizza opened this test up after changing dask clf from dask_logistic to sk_logistic
-# pytest.skip(
-#     reason=f"only test fixtures if they are changed",
-#     allow_module_level=True
-# )
-
 
 class TestDaskGridSearchFixtures:
-
-
-    # 24_08_24 dask GSCV doesnt allow refit fxn w 2+ scorers (but does w 1)
-    # hash them out here, but keep the fixtures in the conftest file in
-    # case someday
 
 
     def test_single_estimators(self,

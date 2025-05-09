@@ -86,7 +86,7 @@ def _estimator_fit_params_helper(
                 iter(_fit_param_value)
                 if isinstance(_fit_param_value, (dict, str)):
                     raise
-                da.array(_fit_param_value)
+                da.array(_fit_param_value)   # pizza can this go to da.from_array?
             except:
                 _fit_params_helper[f_idx][_fit_param_key] = _fit_param_value
                 continue
@@ -100,7 +100,7 @@ def _estimator_fit_params_helper(
             # to X, which always must be dask. dont want to risk
             # trying to operate on a dask with a non-dask.
             if not isinstance(_fit_param_value, da.core.Array):
-                _fit_param_value = da.array(_fit_param_value)
+                _fit_param_value = da.array(_fit_param_value)   # pizza can this go to da.from_array?
 
             __ = _fit_param_value.ravel()
 

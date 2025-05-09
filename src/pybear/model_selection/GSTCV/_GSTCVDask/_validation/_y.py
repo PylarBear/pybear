@@ -44,7 +44,7 @@ def _val_y(_y) -> None:
         y_shape = compute(*_y.shape)
     except:
         try:
-            y_shape = compute(*da.array(_y).shape)
+            y_shape = compute(*da.array(_y).shape)   # pizza can this go to da.from_array?
         except:
             raise TypeError(f"'y' must have a 'shape' attribute pizza fix this")
 

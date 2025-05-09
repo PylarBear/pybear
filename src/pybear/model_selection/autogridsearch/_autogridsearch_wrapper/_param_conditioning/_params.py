@@ -33,7 +33,7 @@ def _cond_params(
         as keys and list-likes that follow the format rules for string,
         bool, and numerical parameters as values. AutoGridSearch does
         not accept lists of multiple params dictionaries in the same way
-        that scikit-Learn and dask_ml accept multiple param_grids.
+        that scikit-Learn accepts multiple param_grids.
     _total_passes:
         numbers.Integral - the number of grid searches to perform.
         The actual number of passes run can be different from this

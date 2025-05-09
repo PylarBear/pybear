@@ -114,7 +114,7 @@ class TestSklearnGSCVS:
 
         # 25_04_19 changed fit() to raise ValueError when best_params_
         # is not exposed. it used to be that agscv code was shrink-wrapped
-        # around sklearn & dask_ml gscv quirks as to when they do/dont expose
+        # around sklearn gscv quirks as to when it does/doesnt expose
         # best_params_. there are no longer any bandaids that condition params
         # for the parent gscvs to get them to "properly" expose 'best_params_',
         # and there are no more predictive shrink-wraps to block failure.
