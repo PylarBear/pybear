@@ -28,12 +28,6 @@ class TestMakeInstructions:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (200, 10)   # arbitrary shape
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _empty_constant_columns():
         return {}
 

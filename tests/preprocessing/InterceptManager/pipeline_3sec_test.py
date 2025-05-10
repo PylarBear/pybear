@@ -29,12 +29,6 @@ class TestPipeline:
 
     @staticmethod
     @pytest.fixture()
-    def _shape():
-        return (20, 10)
-
-
-    @staticmethod
-    @pytest.fixture()
     def _kwargs():
         return {
             'keep': 'first',

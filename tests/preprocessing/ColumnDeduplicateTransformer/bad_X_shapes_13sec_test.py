@@ -23,12 +23,6 @@ class TestExceptsOnBadXShapes:
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-       return (20, 10)
-
-
-    @staticmethod
     @pytest.fixture(scope='function')
     def _kwargs():
         return {

@@ -69,17 +69,15 @@ class TestValCV:
 
     @pytest.mark.parametrize('_n_splits', (3,4,5))
     @pytest.mark.parametrize('_container', (tuple, list, np.ndarray))
-    def test_accepts_good_iter(self, _n_splits, _container):
+    def test_accepts_good_iter(self, _n_splits, _container, X_np, y_np):
 
-        X = np.random.randint(0, 10, (20, 5))
-        y = np.random.randint(0, 2, 20)
-        good_iter = KFold(n_splits=_n_splits).split(X,y)
+        good_iter = KFold(n_splits=_n_splits).split(X_np, y_np)
 
         if _container in [tuple, list]:
-            good_iter2 = _container(KFold(n_splits=_n_splits).split(X,y))
+            good_iter2 = _container(KFold(n_splits=_n_splits).split(X_np,y_np))
         elif _container is np.ndarray:
             good_iter2 = np.array(
-                list(KFold(n_splits=_n_splits).split(X,y)), dtype=object
+                list(KFold(n_splits=_n_splits).split(X_np,y_np)), dtype=object
             )
         else:
             raise Exception

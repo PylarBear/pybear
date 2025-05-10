@@ -28,6 +28,7 @@ class TestColumnGetter:
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
+        # this is smaller than the conftest fixture
         return (5, 3)
 
 

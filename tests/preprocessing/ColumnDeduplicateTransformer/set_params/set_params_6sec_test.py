@@ -21,12 +21,6 @@ class TestSetParams:
 
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (8, 5)
-
-
-    @staticmethod
     @pytest.fixture(scope='function')
     def X(_X_factory, _shape):
         return _X_factory(
@@ -38,12 +32,6 @@ class TestSetParams:
             _zeros=None,
             _shape=_shape
         )
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def y(_shape):
-        return np.random.randint(0, 2, (_shape[0], 1), dtype=np.uint8)
 
 
     @staticmethod
@@ -77,7 +65,7 @@ class TestSetParams:
 
 
     def test_equality_set_params_before_and_after_fit(
-        self, X, y, _kwargs, _alt_kwargs
+        self, X, _y_np, _kwargs, _alt_kwargs
     ):
 
         # test the equality of the data output under:
@@ -88,7 +76,7 @@ class TestSetParams:
         FirstTestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FirstTestClass.fit(X.copy(), y.copy())
+        FirstTestClass.fit(X.copy(), _y_np.copy())
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
         FIRST_TRFM_X = FirstTestClass.transform(X.copy())
@@ -102,7 +90,7 @@ class TestSetParams:
         SecondTestClass = CDT(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SecondTestClass.fit(X.copy(), y.copy())
+        SecondTestClass.fit(X.copy(), _y_np.copy())
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
         SECOND_TRFM_X = SecondTestClass.transform(X.copy())
@@ -125,14 +113,14 @@ class TestSetParams:
 
 
     def test_set_params_between_fit_transforms(
-        self, X, y, _kwargs, _alt_kwargs
+        self, X, _y_np, _kwargs, _alt_kwargs
     ):
 
         # fit_transform
         FirstTestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FIRST_TRFM_X = FirstTestClass.fit_transform(X.copy(), y.copy())
+        FIRST_TRFM_X = FirstTestClass.fit_transform(X.copy(), _y_np.copy())
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
 
@@ -143,7 +131,7 @@ class TestSetParams:
         SecondTestClass.set_params(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SECOND_TRFM_X = SecondTestClass.fit_transform(X.copy(), y.copy())
+        SECOND_TRFM_X = SecondTestClass.fit_transform(X.copy(), _y_np.copy())
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -154,7 +142,7 @@ class TestSetParams:
         SecondTestClass.set_params(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        THIRD_TRFM_X = SecondTestClass.fit_transform(X.copy(), y.copy())
+        THIRD_TRFM_X = SecondTestClass.fit_transform(X.copy(), _y_np.copy())
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -163,7 +151,7 @@ class TestSetParams:
 
 
     def test_set_params_output_repeatability(
-        self, X, y, _kwargs, _alt_kwargs
+        self, X, _y_np, _kwargs, _alt_kwargs
     ):
 
         # changing and changing back on the same class gives same result
@@ -175,7 +163,7 @@ class TestSetParams:
         TestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        TestClass.fit(X.copy(), y.copy())
+        TestClass.fit(X.copy(), _y_np.copy())
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
         FIRST_TRFM_X = TestClass.transform(X.copy())

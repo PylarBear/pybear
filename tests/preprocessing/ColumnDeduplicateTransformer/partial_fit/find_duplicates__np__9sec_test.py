@@ -17,12 +17,8 @@ import pytest
 
 class TestNpFindDuplicates:
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (50, 10)
 
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @staticmethod
     @pytest.fixture(scope='module')

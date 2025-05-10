@@ -41,12 +41,6 @@ class TestManageKeep:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (20, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _X_np(_shape):
         return np.random.randint(0, 10, _shape)
 
@@ -55,12 +49,6 @@ class TestManageKeep:
     @pytest.fixture(scope='module')
     def _X_pd(_X_np, _columns):
         return pd.DataFrame(data=_X_np, columns=_columns)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
 
 
     # dict v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^

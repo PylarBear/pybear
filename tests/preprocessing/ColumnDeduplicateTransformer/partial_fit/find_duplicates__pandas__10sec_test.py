@@ -19,11 +19,6 @@ import pytest
 class TestPdFindDuplicates:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (50, 10)
-
 
     @staticmethod
     @pytest.fixture(scope='module')

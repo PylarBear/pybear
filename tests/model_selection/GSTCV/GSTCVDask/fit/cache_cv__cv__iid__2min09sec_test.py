@@ -30,22 +30,9 @@ from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 class TestCVCacheCVIid:
 
 
-    # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    @staticmethod
-    @pytest.fixture
-    def good_param_grid():
-        return [
-            {'C': [1e-5], 'fit_intercept': [True]},
-            {'C': [1e-1], 'fit_intercept': [False]}
-        ]
-
-    # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-
     # indifferent to client
     def test_accuracy(
-        self, X_da, y_da, dask_est_log, good_param_grid, standard_WIP_scorer#, _client
+        self, X_da, y_da, dask_est_log, standard_WIP_scorer#, _client
     ):
 
         # test equivalent cv as int or iterable give same output
@@ -53,10 +40,14 @@ class TestCVCacheCVIid:
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
+        # dont use session fixture!
         TestCls1 = GSTCVDask(
             estimator=dask_est_log,
-            param_grid=good_param_grid,
-            cv=_cv_int,     # <===========
+            param_grid=[
+                {'C': [1e-5], 'fit_intercept': [True]},
+                {'C': [1e-1], 'fit_intercept': [False]}
+            ],
+            cv=_cv_int,       # <===========
             error_score='raise',
             refit=False,
             verbose=0,
@@ -77,9 +68,13 @@ class TestCVCacheCVIid:
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # must use dask KFold with shuffle off to pass this test
+        # dont use session fixture!
         TestCls2 = GSTCVDask(
             estimator=dask_est_log,
-            param_grid=good_param_grid,
+            param_grid=[
+                {'C': [1e-5], 'fit_intercept': [True]},
+                {'C': [1e-1], 'fit_intercept': [False]}
+            ],
             cv=dask_KFold(
                 n_splits=_cv_int, shuffle=True, random_state=7
             ).split(X_da, y_da), # <===========

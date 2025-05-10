@@ -35,10 +35,11 @@ class TestParallelizedScorer:
     #     **scorer_params
     #     ) -> np.ma.masked_array:
 
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture
-    def _fit_output_excepted(X_np, y_np):
+    def _fit_output_excepted():
 
         # [ClassifierProtocol, fit time, fit excepted]
         return (sk_logistic(), 0.1, True)
@@ -62,6 +63,7 @@ class TestParallelizedScorer:
         # [ClassifierProtocol, fit time, fit excepted]
         return (sk_clf, tf-t0, False)
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     def test_fit_excepted_accuracy(self, X_np, y_np, _fit_output_excepted):

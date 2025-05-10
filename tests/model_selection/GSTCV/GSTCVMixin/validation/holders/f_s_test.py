@@ -9,6 +9,7 @@
 import pytest
 
 import numpy as np
+import pandas as pd
 import scipy.sparse as ss
 
 from pybear.model_selection.GSTCV._GSTCVMixin._validation._holders._f_s \
@@ -42,7 +43,7 @@ class TestValFS:
         if _bad_fs == 'np':
             _bad_fs = _base_X
         elif _bad_fs == 'pd':
-            _bad_fs = np.random.randint(0, 10, _shape)
+            _bad_fs = pd.DataFrame(np.random.randint(0, 10, _shape))
         elif _bad_fs == 'csr':
             _bad_fs = ss.csr_array(_base_X)
         elif _bad_fs == 'csc':

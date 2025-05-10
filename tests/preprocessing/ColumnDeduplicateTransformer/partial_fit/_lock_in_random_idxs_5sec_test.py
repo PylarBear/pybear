@@ -42,13 +42,6 @@ class Fixtures:
         return [0, 1]
 
 
-    @staticmethod
-    @pytest.fixture()
-    def _columns(_master_columns, _cols):
-        return _master_columns.copy()[:_cols]
-
-
-
 class TestLIRIValidation(Fixtures):
 
     # test validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **

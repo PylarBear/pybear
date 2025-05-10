@@ -21,6 +21,9 @@ import scipy.sparse as ss
 
 
 
+@pytest.fixture(scope='session')
+def _shape():
+    return (20, 10)
 
 
 @pytest.fixture(scope='session')
@@ -32,8 +35,12 @@ def _master_columns():
             return np.array(_, dtype='<U4')
 
 
+@pytest.fixture(scope='session')
+def _columns(_master_columns, _shape):
+    return _master_columns.copy()[:_shape[1]]
 
-@pytest.fixture(scope='module')
+
+@pytest.fixture(scope='session')
 def _X_factory():
 
 
@@ -207,7 +214,9 @@ def _X_factory():
     return foo
 
 
-
+@pytest.fixture(scope='session')
+def _y_np(_shape):
+    return np.random.randint(0, 2, _shape[0])
 
 
 

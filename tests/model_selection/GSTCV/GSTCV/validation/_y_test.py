@@ -15,7 +15,6 @@ from pybear.model_selection.GSTCV._GSTCV._validation._y import _val_y
 
 
 
-
 class TestValY:
 
 
@@ -33,31 +32,27 @@ class TestValY:
             _val_y(np.random.randint(0,2,(_rows,2)))
 
 
-    _rows, _cols = 100, 30
-
-
-
-    y_np_array = np.random.randint(0,2,(_rows, 1))
-    y_np_bad_array = np.random.choice(list('abcde'), (_rows, 1), replace=True)
-    y_pd_df = pd.DataFrame(data=y_np_array, columns=['y'])
-    y_pd_bad_df = pd.DataFrame(data=y_np_bad_array, columns=['y'])
-    y_pd_series = pd.Series(y_pd_df.iloc[:, 0], name='y')
-    y_pd_bad_series = pd.Series(y_pd_bad_df.iloc[:, 0], name='y')
-
-
-    @pytest.mark.parametrize('y', (y_np_bad_array, y_pd_bad_df, y_pd_bad_series))
-    def test_rejects_non_binary_y(self, y):
+    def test_rejects_non_binary_y(self, _rows):
+        y_np_bad_array = np.random.choice(list('abcde'), (_rows, 1), replace=True)
+        y_pd_bad_df = pd.DataFrame(data=y_np_bad_array, columns=['y'])
+        y_pd_bad_series = pd.Series(y_pd_bad_df.iloc[:, 0], name='y')
 
         with pytest.raises(ValueError):
-            _val_y(y)
+            _val_y(y_np_bad_array)
+
+        with pytest.raises(ValueError):
+            _val_y(y_pd_bad_df)
+
+        with pytest.raises(ValueError):
+            _val_y(y_pd_bad_series)
 
 
-    @pytest.mark.parametrize('y', (y_np_array, y_pd_df, y_pd_series))
-    def test_accuracy(self, y):
+    def test_accuracy(self, y_np, y_pd):
 
-        assert _val_y(y) is None
+        assert _val_y(y_np) is None
 
+        assert _val_y(y_pd) is None
 
-
+        assert _val_y(y_pd.iloc[:, 0]) is None
 
 

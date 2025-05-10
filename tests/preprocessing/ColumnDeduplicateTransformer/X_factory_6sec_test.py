@@ -37,6 +37,7 @@ class TestXFactory:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    # need this to get fidelity on the rows for more accurate fractions
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():

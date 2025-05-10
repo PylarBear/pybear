@@ -60,15 +60,11 @@ class TestCondCV:
             _cond_cv((_ for _ in range(0)))
 
 
-    def test_accepts_good_iter(self):
+    def test_accepts_good_iter(self, standard_cv_int, X_np, y_np):
 
-        _n_splits = 3
-
-        X = np.random.randint(0, 10, (20, 5))
-        y = np.random.randint(0, 2, 20)
-        good_iter = KFold(n_splits=_n_splits).split(X,y)
+        good_iter = KFold(n_splits=standard_cv_int).split(X_np, y_np)
         # TypeError: cannot pickle 'generator' object
-        ref_iter = KFold(n_splits=_n_splits).split(X,y)
+        ref_iter = KFold(n_splits=standard_cv_int).split(X_np, y_np)
 
         out = _cond_cv(good_iter)
         assert isinstance(out, list)
@@ -78,7 +74,7 @@ class TestCondCV:
         ref_iter_as_list = list(ref_iter)
         assert isinstance(ref_iter_as_list, list)
 
-        for idx in range(_n_splits):
+        for idx in range(standard_cv_int):
             for X_y_idx in range(2):
                 assert np.array_equiv(
                     out[idx][X_y_idx],

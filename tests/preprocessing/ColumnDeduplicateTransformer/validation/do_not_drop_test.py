@@ -18,15 +18,6 @@ import pytest
 
 class Fixtures:
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (20, 5)
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
 
     @staticmethod
     @pytest.fixture(scope='module')

@@ -22,13 +22,7 @@ from pybear.preprocessing import InterceptManager as IM
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 class TestDaskIncrementalParallelPostFit:
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # FIXTURES
-
-    @staticmethod
-    @pytest.fixture(scope='session')
-    def _shape():
-        return (200, 10)
+    # fixtures ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -46,10 +40,6 @@ class TestDaskIncrementalParallelPostFit:
     def _X_np(_X_factory, _shape):
         return _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -86,8 +76,7 @@ class TestDaskIncrementalParallelPostFit:
         yield client
         client.close()
 
-    # END fixtures
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # END fixtures ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])
     @pytest.mark.parametrize('y_format', ['da_vector', None])

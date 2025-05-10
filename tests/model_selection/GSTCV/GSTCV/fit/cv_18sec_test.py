@@ -26,23 +26,9 @@ from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 class TestCV:
 
 
-    # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    @staticmethod
-    @pytest.fixture
-    def good_param_grid():
-        return [
-            {'C': [1e-5], 'fit_intercept': [True]},
-            {'C': [1e-1], 'fit_intercept': [False]}
-        ]
-
-    # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-
     @pytest.mark.parametrize('_n_jobs', (-1, 1))  # 1 is important
     def test_accuracy_cv_int_vs_cv_iter(
-        self, X_np, y_np, sk_est_log, good_param_grid, standard_WIP_scorer,
-        _n_jobs
+        self, X_np, y_np, sk_est_log, standard_WIP_scorer, _n_jobs
     ):
 
         # test equivalent cv as int or iterable give same output
@@ -50,9 +36,13 @@ class TestCV:
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
+        # dont use session fixture!
         TestCls1 = GSTCV(
             estimator=sk_est_log,
-            param_grid=good_param_grid,
+            param_grid=[
+                {'C': [1e-5], 'fit_intercept': [True]},
+                {'C': [1e-1], 'fit_intercept': [False]}
+            ],
             cv=_cv_int,     # <===========
             error_score='raise',
             refit=False,
@@ -74,9 +64,13 @@ class TestCV:
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # must use StratifiedKFold to pass this test
+        # dont use session fixture!
         TestCls2 = GSTCV(
             estimator=sk_est_log,
-            param_grid=good_param_grid,
+            param_grid=[
+                {'C': [1e-5], 'fit_intercept': [True]},
+                {'C': [1e-1], 'fit_intercept': [False]}
+            ],
             cv=StratifiedKFold(n_splits=_cv_int).split(X_np, y_np), # <===
             error_score='raise',
             refit=False,

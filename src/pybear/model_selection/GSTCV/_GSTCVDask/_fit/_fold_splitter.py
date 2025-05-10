@@ -87,6 +87,7 @@ def _fold_splitter(
     SPLITS = []
     for _data in data_objects:
 
+        # this block is here because of the if/elifs below
         if not isinstance(_data, (da.core.Array, ddf.DataFrame, ddf.Series)):
             raise TypeError(f"object of disallowed dtype '{type(_data)}' "
                 f"is in fold_splitter()")
