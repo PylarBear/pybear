@@ -12,13 +12,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import GridSearchCV as sk_GSCV
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
-from sklearn.metrics import (
-    make_scorer,
-    precision_score,
-    recall_score,
-    accuracy_score,
-    balanced_accuracy_score
-)
+from sklearn.metrics import make_scorer
 
 from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
@@ -66,17 +60,6 @@ class TestFitAccuracy:
         )
         return _sk_GSCV
 
-
-    @staticmethod
-    @pytest.fixture
-    def _scorer():
-        return {
-            'precision': precision_score,
-            'recall': recall_score,
-            'accuracy': accuracy_score,
-            'balanced_accuracy': balanced_accuracy_score
-        }
-
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
@@ -96,7 +79,7 @@ class TestFitAccuracy:
     @pytest.mark.parametrize('_pre_dispatch', ('all', '2*n_jobs'))
     @pytest.mark.parametrize('_return_train_score', (True, False))
     def test_accuracy_vs_sk_gscv(
-        self, _param_grid, standard_cv_int, standard_error_score, _scorer,
+        self, _param_grid, standard_cv_int, standard_error_score, standard_WIP_scorer,
         _n_jobs, _pre_dispatch, _return_train_score, X_np, y_np,
         special_sk_est_log, special_sk_GSCV_est_log_one_scorer_prefit
     ):
@@ -111,7 +94,7 @@ class TestFitAccuracy:
             error_score=standard_error_score,
             refit=False,
             verbose=0,
-            scoring=_scorer,
+            scoring=standard_WIP_scorer,
             n_jobs=_n_jobs,
             pre_dispatch=_pre_dispatch,
             return_train_score=_return_train_score
@@ -127,7 +110,7 @@ class TestFitAccuracy:
         out_sk_gscv = special_sk_GSCV_est_log_one_scorer_prefit
         out_sk_gscv.set_params(
             param_grid=_param_grid,
-            scoring={k: make_scorer(v) for k,v in _scorer.items()},
+            scoring={k: make_scorer(v) for k,v in standard_WIP_scorer.items()},
             n_jobs=_n_jobs,
             pre_dispatch=_pre_dispatch,
             return_train_score=_return_train_score

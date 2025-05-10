@@ -47,18 +47,6 @@ class TestGetDaskKFold:
 
     # fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _base_X():
-        return da.random.randint(0, 10, (100, 30))
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _base_y():
-        return da.random.randint(0, 10, (100, 1))
-
-
     # pizza 25_04_29 the reason this doesnt have a _format_helper
     # is because dask_ml KFold can only take da.array. but if _format_helper
     # ends up in conftest then it may be helpful to standardize this
@@ -90,14 +78,14 @@ class TestGetDaskKFold:
         (-1, 0, 1, 3.14, None, min, 'junk', [0, 1], (0, 1), {0, 1},
          {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_n_splits(self, _base_X, _base_y, junk_n_splits):
+    def test_rejects_junk_n_splits(self, X_da, y_da, junk_n_splits):
         with pytest.raises(AssertionError):
             _get_kfold(
-                _base_X,
+                X_da,
                 _n_splits=junk_n_splits,
                 _iid=True,
                 _verbose=0,
-                _y=_base_y
+                _y=y_da
             )
 
 
@@ -105,42 +93,42 @@ class TestGetDaskKFold:
         (0, 1, 3.14, None, min, 'junk', [0, 1], (0, 1), {0, 1}, {'a': 1},
          lambda x: x)
     )
-    def test_rejects_non_bool_iid(self, _base_X, _base_y, junk_iid):
+    def test_rejects_non_bool_iid(self, X_da, y_da, junk_iid):
         with pytest.raises(AssertionError):
             _get_kfold(
-                _base_X,
+                X_da,
                 _n_splits=3,
                 _iid=junk_iid,
                 _verbose=0,
-                _y=_base_y
+                _y=y_da
             )
 
 
     @pytest.mark.parametrize(f'junk_verbose',
         (-1, None, min, 'junk', [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_verbose(self, _base_X, _base_y, junk_verbose):
+    def test_rejects_junk_verbose(self, X_da, y_da, junk_verbose):
         with pytest.raises(AssertionError):
             _get_kfold(
-                _base_X,
+                X_da,
                 _n_splits=3,
                 _iid=True,
                 _verbose=junk_verbose,
-                _y=_base_y
+                _y=y_da
             )
 
     # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    def test_da_returns_gen_of_das(self, _base_X, _base_y):
+    def test_da_returns_gen_of_das(self, X_da, y_da):
 
         # and second call returns same thing as the first
         out1 = _get_kfold(
-            _base_X,
+            X_da,
             _n_splits=3,
             _iid=True,
             _verbose=0,
-            _y=_base_y
+            _y=y_da
         )
 
         assert inspect.isgenerator(out1)
@@ -153,19 +141,19 @@ class TestGetDaskKFold:
             assert isinstance(test_idxs, da.core.Array)
 
             assert train_idxs.min() >= 0
-            assert train_idxs.max() < _base_X.shape[0]
+            assert train_idxs.max() < X_da.shape[0]
 
             assert test_idxs.min() >= 0
-            assert test_idxs.max() < _base_X.shape[0]
+            assert test_idxs.max() < X_da.shape[0]
 
 
         # and second call returns same as the first
         out2 = _get_kfold(
-            _base_X,
+            X_da,
             _n_splits=3,
             _iid=True,
             _verbose=0,
-            _y=_base_y
+            _y=y_da
         )
 
 
@@ -175,10 +163,10 @@ class TestGetDaskKFold:
             assert isinstance(test_idxs2, da.core.Array)
 
             assert train_idxs2.min() >= 0
-            assert train_idxs2.max() < _base_X.shape[0]
+            assert train_idxs2.max() < X_da.shape[0]
 
             assert test_idxs2.min() >= 0
-            assert test_idxs2.max() < _base_X.shape[0]
+            assert test_idxs2.max() < X_da.shape[0]
 
             assert np.array_equiv(out1_list[idx][0], train_idxs2)
             assert np.array_equiv(out1_list[idx][1], test_idxs2)

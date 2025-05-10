@@ -26,7 +26,7 @@ class TestDaskGridSearchFixtures:
         # _client
     ):
 
-        # 25_04_13 time is same w/ & w/o client... pizza revist this
+        # 25_05_09 time is same w/ & w/o client
 
         name_gscv_tuples = [
             (f'dask_GSTCV_est_log_one_scorer_prefit',

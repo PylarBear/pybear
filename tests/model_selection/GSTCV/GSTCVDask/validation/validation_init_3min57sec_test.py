@@ -72,17 +72,13 @@ class TestInitValidation:
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-    @staticmethod
-    @pytest.fixture
-    def good_SCORER():
-        return {'precision': precision_score, 'recall': recall_score}
-
+    # pizza there are a lot of WIP scorer dicts in here see if can streamline
 
     @staticmethod
     @pytest.fixture(scope='function')
     def base_gstcv_dask(
         sk_est_log, param_grid_sk_log, standard_cv_int,
-        standard_error_score, good_SCORER, standard_cache_cv, standard_iid
+        standard_error_score, standard_WIP_scorer, standard_cache_cv, standard_iid
     ):
         # dont overwrite a session fixture with new params!
 
@@ -93,7 +89,7 @@ class TestInitValidation:
             cv=standard_cv_int,
             error_score=standard_error_score,
             verbose=10,
-            scoring=good_SCORER,
+            scoring=standard_WIP_scorer,
             refit=False,
             cache_cv=standard_cache_cv,
             iid=standard_iid,
@@ -248,12 +244,6 @@ class TestInitValidation:
 
     @staticmethod
     @pytest.fixture
-    def good_threshes():
-        return np.linspace(0, 1, 5)
-
-
-    @staticmethod
-    @pytest.fixture
     def good_param_grid():
         return [
             {'C': [1e-6, 1e-5, 1e-4], 'solver':['saga', 'lbfgs']},
@@ -263,7 +253,7 @@ class TestInitValidation:
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     def test_pg_thresh_accuracy_1(
-        self, base_gstcv_dask, good_threshes, good_param_grid, X_da, y_da, _client
+        self, base_gstcv_dask, standard_thresholds, good_param_grid, X_da, y_da, _client
     ):
 
         # if param_grid had valid thresholds in it, it comes out the same as
@@ -286,7 +276,7 @@ class TestInitValidation:
 
         out = base_gstcv_dask.set_params(
             param_grid=good_param_grid[2],   # <==============
-            thresholds=good_threshes
+            thresholds=standard_thresholds
         ).fit(X_da, y_da)
 
         assert isinstance(out, type(base_gstcv_dask))
@@ -329,7 +319,7 @@ class TestInitValidation:
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     def test_pg_thresh_accuracy_3(
-        self, base_gstcv_dask, good_threshes, X_da, y_da, _client
+        self, base_gstcv_dask, standard_thresholds, X_da, y_da, _client
     ):
 
         # if both param_grid and thresholds were not passed, should be one
@@ -347,7 +337,7 @@ class TestInitValidation:
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     def test_pg_thresh_accuracy_4(
-        self, base_gstcv_dask, good_param_grid, good_threshes, X_da, y_da, _client
+        self, base_gstcv_dask, good_param_grid, standard_thresholds, X_da, y_da, _client
     ):
 
         # if param_grid was passed and did not have thresholds, should be the
@@ -985,7 +975,7 @@ class TestInitValidation:
             base_gstcv_dask.fit(X_da, y_da)
 
 
-    # pizza does it make sense to check junk scheduler.... look at val
+    # there is no validation for scheduler
 
 
     @pytest.mark.parametrize(

@@ -25,13 +25,7 @@ import pandas as pd
 from sklearn.model_selection import GridSearchCV as sk_GSCV
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
-from sklearn.metrics import (
-    make_scorer,
-    precision_score,
-    recall_score,
-    accuracy_score,
-    balanced_accuracy_score
-)
+from sklearn.metrics import make_scorer
 
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
@@ -84,17 +78,6 @@ class TestFitAccuracy:
 
 
     @staticmethod
-    @pytest.fixture
-    def _scorer():
-        return {
-            'precision': precision_score,
-            'recall': recall_score,
-            'accuracy': accuracy_score,
-            'balanced_accuracy': balanced_accuracy_score
-        }
-
-
-    @staticmethod
     @pytest.fixture(scope='module')
     def _cv_iter(standard_cv_int, X_da, y_da):
         # using sklearn modules to stay off dask_ml. but sklearn uses
@@ -124,7 +107,7 @@ class TestFitAccuracy:
     )
     @pytest.mark.parametrize('_return_train_score', (True, False))
     def test_accuracy_vs_sk_gscv(
-        self, _param_grid, _cv_iter, standard_error_score, _scorer,
+        self, _param_grid, _cv_iter, standard_error_score, standard_WIP_scorer,
         standard_cache_cv, standard_iid, _return_train_score, X_da, y_da,
         special_sk_est_log, special_sk_GSCV_est_log_one_scorer_prefit,
         # _client  # 25_05_06 indifferent to client
@@ -145,7 +128,7 @@ class TestFitAccuracy:
             error_score=standard_error_score,
             refit=False,
             verbose=0,
-            scoring=_scorer,
+            scoring=standard_WIP_scorer,
             cache_cv=standard_cache_cv,
             iid=standard_iid,
             return_train_score=_return_train_score
@@ -162,7 +145,7 @@ class TestFitAccuracy:
         out_sk_gscv.set_params(
             param_grid=_param_grid,
             cv=_cv_iter,
-            scoring={k: make_scorer(v) for k,v in _scorer.items()},
+            scoring={k: make_scorer(v) for k,v in standard_WIP_scorer.items()},
             return_train_score=_return_train_score
         )
 

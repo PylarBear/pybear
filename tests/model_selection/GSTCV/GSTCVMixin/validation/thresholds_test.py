@@ -8,8 +8,6 @@
 
 import pytest
 
-import numpy as np
-
 from pybear.model_selection.GSTCV._GSTCVMixin._validation._thresholds \
     import _val_thresholds
 
@@ -24,26 +22,20 @@ class TestValThresholds:
 # ) -> None:
 
 
-    @staticmethod
-    @pytest.fixture
-    def good_threshes():
-        return np.linspace(0,1,21)
-
-
     # 'is_from_kwargs' ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_ifk',
         (0, 1, 3.14, None, min, 'junk', [0,1], {'a':1}, lambda x: x)
     )
-    def test_rejects_non_bool(self, good_threshes, junk_ifk):
+    def test_rejects_non_bool(self, standard_thresholds, junk_ifk):
 
         with pytest.raises(TypeError):
-            _val_thresholds(good_threshes, junk_ifk, 0)
+            _val_thresholds(standard_thresholds, junk_ifk, 0)
 
 
     @pytest.mark.parametrize('good_ifk', (True, False))
-    def test_accepts_bool(self, good_threshes, good_ifk):
+    def test_accepts_bool(self, standard_thresholds, good_ifk):
         # 'is_from_kwargs'
-        assert _val_thresholds(good_threshes, good_ifk, 0) is None
+        assert _val_thresholds(standard_thresholds, good_ifk, 0) is None
 
     # END 'is_from_kwargs' ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -51,15 +43,15 @@ class TestValThresholds:
     @pytest.mark.parametrize('junk_idx',
         (-1, True, False, 3.14, None, min, 'junk', [0,1], {'a':1}, lambda x: x)
     )
-    def test_idx_rejects_junk(self, good_threshes, junk_idx):
+    def test_idx_rejects_junk(self, standard_thresholds, junk_idx):
         # 'is_from_kwargs'
         with pytest.raises((TypeError, ValueError)):
-            _val_thresholds(good_threshes, True, junk_idx)
+            _val_thresholds(standard_thresholds, True, junk_idx)
 
 
     @pytest.mark.parametrize('good_idx', (0, 1, 100))
-    def test_idx_accepts_int(self, good_threshes, good_idx):
-        assert _val_thresholds(good_threshes, True, good_idx) is None
+    def test_idx_accepts_int(self, standard_thresholds, good_idx):
+        assert _val_thresholds(standard_thresholds, True, good_idx) is None
 
     # END 'idx' ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 
@@ -76,7 +68,7 @@ class TestValThresholds:
 
     @pytest.mark.parametrize('_ifk', (True, False))
     @pytest.mark.parametrize('_idx', (0, 5, 10))
-    def test_None(self, good_threshes, _ifk, _idx):
+    def test_None(self, _ifk, _idx):
         assert _val_thresholds(
             None, _ifk, _idx, _must_be_list_like=False
         ) is None

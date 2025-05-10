@@ -71,7 +71,7 @@ class SetParamsMixin:
         # that isnt instantiated.
         if not hasattr(self, 'set_params'):
             raise TypeError(
-                f":method: set_params is being called on the class, not an "
+                f":meth: set_params is being called on the class, not an "
                 f"instance. Instantiate the class, then call set_params."
             )
         # END catch invalid estimator/transformer or class (not instance)
@@ -129,8 +129,9 @@ class SetParamsMixin:
 
         def _invalid_param(parameter: str, ALLOWED: list) -> None:
             raise ValueError(
-                f"Invalid parameter '{parameter}' for {self}"
-                f"\nValid parameters are: {', '.join(ALLOWED)}"
+                f"Invalid parameter '{parameter}' for estimator "
+                f"{type(self).__name__}(). \nValid parameters are: "
+                f"{ALLOWED}."
             )
 
 

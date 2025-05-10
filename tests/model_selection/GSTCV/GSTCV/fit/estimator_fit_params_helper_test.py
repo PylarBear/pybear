@@ -27,12 +27,8 @@ class TestEstimatorFitParamsHelper:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @staticmethod
-    @pytest.fixture
-    def good_cv():
-        return 3
 
-
+    # pizza see if u can convert everything in here to X_np & y_np
     @staticmethod
     @pytest.fixture
     def good_data_len():
@@ -53,9 +49,9 @@ class TestEstimatorFitParamsHelper:
 
     @staticmethod
     @pytest.fixture
-    def good_sk_kfold(good_cv, good_data_len):
+    def good_sk_kfold(standard_cv_int, good_data_len):
         return list(
-            sk_KFold(n_splits=good_cv).split(
+            sk_KFold(n_splits=standard_cv_int).split(
                 np.random.randint(0,10,(good_data_len, 5)),
                 np.random.randint(0,2,(good_data_len,))
             )
