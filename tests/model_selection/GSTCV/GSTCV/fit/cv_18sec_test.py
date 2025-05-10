@@ -13,13 +13,6 @@ import pandas as pd
 
 from sklearn.model_selection import StratifiedKFold
 
-from sklearn.metrics import (
-    precision_score,
-    recall_score,
-    accuracy_score,
-    balanced_accuracy_score
-)
-
 from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 # 24_08_11 this module tests the operation of the cv kwarg in sk GSTCV,
@@ -43,23 +36,13 @@ class TestCV:
             {'C': [1e-1], 'fit_intercept': [False]}
         ]
 
-
-    @staticmethod
-    @pytest.fixture
-    def good_scorer():
-        return {
-            'precision': precision_score,
-            'recall': recall_score,
-            'accuracy': accuracy_score,
-            'balanced_accuracy': balanced_accuracy_score
-        }
-
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     @pytest.mark.parametrize('_n_jobs', (-1, 1))  # 1 is important
     def test_accuracy_cv_int_vs_cv_iter(
-        self, X_np, y_np, sk_est_log, good_param_grid, good_scorer, _n_jobs
+        self, X_np, y_np, sk_est_log, good_param_grid, standard_WIP_scorer,
+        _n_jobs
     ):
 
         # test equivalent cv as int or iterable give same output
@@ -74,7 +57,7 @@ class TestCV:
             error_score='raise',
             refit=False,
             verbose=0,
-            scoring=good_scorer,
+            scoring=standard_WIP_scorer,
             n_jobs=_n_jobs,
             pre_dispatch='2*n_jobs',
             return_train_score=True
@@ -98,7 +81,7 @@ class TestCV:
             error_score='raise',
             refit=False,
             verbose=0,
-            scoring=good_scorer,
+            scoring=standard_WIP_scorer,
             n_jobs=_n_jobs,
             pre_dispatch='2*n_jobs',
             return_train_score=True

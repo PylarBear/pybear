@@ -8,8 +8,15 @@
 
 import pytest
 
+from typing_extensions import Union
+import numpy.typing as npt
+
+import time
+
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
+import polars as pl
 import dask.array as da
 import dask.dataframe as ddf
 from distributed import Client
@@ -23,6 +30,13 @@ from sklearn.pipeline import Pipeline
 
 from sklearn.model_selection import GridSearchCV as sk_GSCV
 from sklearn.model_selection import ParameterGrid
+
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+    accuracy_score,
+    balanced_accuracy_score
+)
 
 from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV as sk_GSTCV
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask as dask_GSTCV
@@ -102,6 +116,21 @@ def y_ddf(y_da):
     return ddf.from_dask_array(y_da, columns=['y'])
 
 # END data objects ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+# WIP init param objects ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+@pytest.fixture(scope='session')
+def standard_WIP_scorer():
+    return {
+        'precision': precision_score,
+        'recall': recall_score,
+        'accuracy': accuracy_score,
+        'balanced_accuracy': balanced_accuracy_score
+    }
+
+
+# END WIP init param objects ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 # estimator init params ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -274,7 +303,7 @@ def dask_gstcv_init_params(
 
 
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# ESTIMATORS - ONE SCORER ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+# ESTIMATORS - ONE SCORER ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 # gscv log est one scorer, various refits
 @pytest.fixture(scope='session')
@@ -296,7 +325,9 @@ def sk_GSCV_est_log_one_scorer_postfit_refit_str(
     sk_gscv_init_params, one_scorer, X_np, y_np
 ):
 
-    return sk_GSCV(**sk_gscv_init_params).set_params(refit=one_scorer).fit(X_np, y_np)
+    return sk_GSCV(
+        **sk_gscv_init_params
+    ).set_params(refit=one_scorer).fit(X_np, y_np)
 
 # END gscv log est one scorer, various refits
 
@@ -335,7 +366,9 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_pd(
 def sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np(
     sk_gstcv_init_params, one_scorer, X_np, y_np
 ):
-    return sk_GSTCV(**sk_gstcv_init_params).set_params(refit=one_scorer).fit(X_np, y_np)
+    return sk_GSTCV(
+        **sk_gstcv_init_params
+    ).set_params(refit=one_scorer).fit(X_np, y_np)
 
 
 @pytest.fixture(scope='session')
@@ -343,7 +376,9 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd(
     sk_gstcv_init_params,one_scorer, X_pd, y_pd
 ):
 
-    return sk_GSTCV(**sk_gstcv_init_params).set_params(refit=one_scorer).fit(X_pd, y_pd)
+    return sk_GSTCV(
+        **sk_gstcv_init_params
+    ).set_params(refit=one_scorer).fit(X_pd, y_pd)
 
 
 @pytest.fixture(scope='session')
@@ -351,7 +386,9 @@ def dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da(
     dask_gstcv_init_params, one_scorer, X_da, y_da, _client
 ):
 
-    return dask_GSTCV(**dask_gstcv_init_params).set_params(refit=one_scorer).fit(X_da, y_da)
+    return dask_GSTCV(
+        **dask_gstcv_init_params
+    ).set_params(refit=one_scorer).fit(X_da, y_da)
 
 
 @pytest.fixture(scope='session')
@@ -359,7 +396,9 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_np(
     sk_gstcv_init_params, X_np, y_np
 ):
 
-    return sk_GSTCV(**sk_gstcv_init_params).set_params(refit=lambda x: 0).fit(X_np, y_np)
+    return sk_GSTCV(
+        **sk_gstcv_init_params
+    ).set_params(refit=lambda x: 0).fit(X_np, y_np)
 
 
 @pytest.fixture(scope='session')
@@ -367,7 +406,9 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_fxn_fit_on_pd(
     sk_gstcv_init_params, sk_est_log, param_grid_sk_log, X_pd, y_pd
 ):
 
-    return sk_GSTCV(**sk_gstcv_init_params).set_params(refit=lambda x: 0).fit(X_pd, y_pd)
+    return sk_GSTCV(
+        **sk_gstcv_init_params
+    ).set_params(refit=lambda x: 0).fit(X_pd, y_pd)
 
 # END gstcv log est one scorer, various refits
 
@@ -394,7 +435,9 @@ def sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_np(
     sk_gstcv_init_params, two_scorers, X_np, y_np
 ):
 
-    return sk_GSTCV(**sk_gstcv_init_params).set_params(scoring=two_scorers).fit(X_np, y_np)
+    return sk_GSTCV(
+        **sk_gstcv_init_params
+    ).set_params(scoring=two_scorers).fit(X_np, y_np)
 
 
 @pytest.fixture(scope='session')
@@ -402,7 +445,9 @@ def sk_GSTCV_est_log_two_scorers_postfit_refit_false_fit_on_pd(
     sk_gstcv_init_params, two_scorers, X_pd, y_pd
 ):
 
-    return sk_GSTCV(**sk_gstcv_init_params).set_params(scoring=two_scorers).fit(X_pd, y_pd)
+    return sk_GSTCV(
+        **sk_gstcv_init_params
+    ).set_params(scoring=two_scorers).fit(X_pd, y_pd)
 
 
 @pytest.fixture(scope='session')
@@ -588,7 +633,7 @@ def _cv_results_template(request):
     _return_train_score = request.param['_return_train_score']
     _fill_param_columns = request.param['_fill_param_columns']
 
-    # build _scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # build _scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     try:
         iter(_scorer_names)
         if isinstance(_scorer_names, (str, dict)):
@@ -604,7 +649,7 @@ def _cv_results_template(request):
 
         _scorer[_name] = master_scorer_dict[_name]
 
-    # END build _scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END build _scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     col_template = lambda _dtype: np.ma.masked_array(
@@ -687,6 +732,134 @@ def _cv_results_template(request):
 
 
     return a | b | c
+
+
+@pytest.fixture(scope='session')
+def _format_helper():
+
+
+    def foo(
+        _base: Union[npt.NDArray, da.core.Array],
+        _format: str,
+        _dim: int
+    ):
+
+        """Cast dummy numpy or dask array to desired container."""
+
+        # _new_X can be X or y in the tests
+
+        if _format in ['da', 'ddf'] and not isinstance(_base, da.core.Array):
+            raise ValueError(
+                f"must pass '_base' as dask array to cast to 'da' or 'ddf'"
+            )
+
+        if _format == 'ss' and _dim == 1:
+            raise ValueError(f"cant have 1D scipy sparse")
+
+        if _format == 'py_set' and _dim == 2:
+            raise ValueError(f"cant have 2D set")
+
+        if _dim == 1 and len(_base.shape)==1:
+            _intrmdt_X = _base.copy()
+        elif _dim == 2 and len(_base.shape)==2:
+            _intrmdt_X = _base.copy()
+        elif _dim == 1 and len(_base.shape)==2:
+            _intrmdt_X = _base[:, 0].copy().ravel()
+        elif _dim == 2 and len(_base.shape)==1:
+            _intrmdt_X = _base.copy().reshape((-1, 1))
+        else:
+            raise Exception
+
+        if _format == 'py_list':
+            if _dim == 1:
+                _new_X = list(_intrmdt_X)
+            elif _dim == 2:
+                _new_X = list(map(list, _intrmdt_X))
+        elif _format == 'py_tup':
+            if _dim == 1:
+                _new_X = tuple(_intrmdt_X)
+            elif _dim == 2:
+                _new_X = tuple(map(tuple, _intrmdt_X))
+        elif _format == 'py_set':
+            if _dim == 1:
+                _new_X = set(_intrmdt_X)
+            elif _dim == 2:
+                # should have raised above
+                raise Exception
+        elif _format == 'np':
+            _new_X = _intrmdt_X.copy()
+        elif _format == 'pd':
+            if _dim == 1:
+                _new_X = pd.Series(_intrmdt_X)
+            elif _dim == 2:
+                _new_X = pd.DataFrame(_intrmdt_X)
+        elif _format == 'ss':
+            if _dim == 1:
+                # should have raised above
+                raise Exception
+            elif _dim == 2:
+                _new_X = ss.csr_array(_intrmdt_X)
+        elif _format == 'pl':
+            if _dim == 1:
+                _new_X = pl.Series(_intrmdt_X)
+            elif _dim == 2:
+                _new_X = pl.from_numpy(_intrmdt_X)
+        elif _format == 'da':
+            _new_X = _intrmdt_X.copy()
+        elif _format == 'ddf':
+            if _dim == 1:
+                _new_X = ddf.from_dask_array(_intrmdt_X).squeeze()
+            elif _dim == 2:
+                _new_X = ddf.from_dask_array(_intrmdt_X)
+        else:
+            raise ValueError(f"_format_helper invalid format '{_format}'")
+
+        del _intrmdt_X
+
+        return _new_X
+
+    return foo
+
+
+@pytest.fixture
+def _mock_classifier():
+
+    class MockClassifier:
+
+        def __init__(self, command='run'):
+
+            self.command = command
+            self.is_fitted = False
+            # command can be 'type_error', 'other_error_raise',
+            # 'other_error_not_raise', 'run'
+
+        def fit(self, X, y, **fit_params):
+
+            time.sleep(0.5)
+
+            if len(fit_params) and fit_params['kill'] is True:
+                raise BrokenPipeError     # an obscure error
+
+            if self.command == 'run':
+                self.score_ = self.score(X, y)
+                self.is_fitted = True
+            elif self.command == 'type_error':
+                raise TypeError
+            elif self.command == 'other_error_with_raise':
+                raise TabError # an obscure error
+            elif self.command == 'other_error_not_raise':
+                self.score_ = np.nan
+                raise TabError # an obscure error
+
+            return self
+
+
+        def score(self, X, y):
+
+            return float(np.random.uniform(0, 1))
+
+
+    return MockClassifier
 
 
 

@@ -25,19 +25,10 @@ class TestCondThresholds:
 # ) -> list[float]:
 
 
-    @staticmethod
-    @pytest.fixture
-    def good_threshes():
-        return np.linspace(0,1,21)
-
-
     @pytest.mark.parametrize('_ifk', (True, False))
     @pytest.mark.parametrize('_idx', (0, 5, 10))
-    def test_none_returns_linspace(self, good_threshes, _ifk, _idx):
-        assert np.array_equiv(_cond_thresholds(None), good_threshes)
-
-
-    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    def test_none_returns_linspace(self, _ifk, _idx):
+        assert np.array_equiv(_cond_thresholds(None), np.linspace(0, 1, 21))
 
 
     @pytest.mark.parametrize('_ifk', (True, False))

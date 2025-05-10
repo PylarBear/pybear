@@ -13,13 +13,6 @@ import pandas as pd
 
 from dask_ml.model_selection import KFold as dask_KFold
 
-from sklearn.metrics import (
-    precision_score,
-    recall_score,
-    accuracy_score,
-    balanced_accuracy_score
-)
-
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 # this module tests the dask GSTCV operation of:
@@ -47,23 +40,12 @@ class TestCVCacheCVIid:
             {'C': [1e-1], 'fit_intercept': [False]}
         ]
 
-
-    @staticmethod
-    @pytest.fixture
-    def good_scorer():
-        return {
-            'precision': precision_score,
-            'recall': recall_score,
-            'accuracy': accuracy_score,
-            'balanced_accuracy': balanced_accuracy_score
-        }
-
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     # indifferent to client
     def test_accuracy(
-        self, X_da, y_da, dask_est_log, good_param_grid, good_scorer#, _client
+        self, X_da, y_da, dask_est_log, good_param_grid, standard_WIP_scorer#, _client
     ):
 
         # test equivalent cv as int or iterable give same output
@@ -78,7 +60,7 @@ class TestCVCacheCVIid:
             error_score='raise',
             refit=False,
             verbose=0,
-            scoring=good_scorer,
+            scoring=standard_WIP_scorer,
             cache_cv=True,     # <===========
             iid=False,         # <===========
             return_train_score=True
@@ -104,7 +86,7 @@ class TestCVCacheCVIid:
             error_score='raise',
             refit=False,
             verbose=0,
-            scoring=good_scorer,
+            scoring=standard_WIP_scorer,
             cache_cv=False,     # <===========
             iid=False,          # <===========
             return_train_score=True

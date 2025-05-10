@@ -62,7 +62,8 @@ sk_GSTCV_pipe_log_one_scorer_prefit
 sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np
 sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np
 _cv_results_template
-
+_format_helper
+_mock_classifier
 
 
 

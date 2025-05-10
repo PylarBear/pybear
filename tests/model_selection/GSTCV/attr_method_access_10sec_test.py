@@ -13,7 +13,7 @@ from sklearn.utils.validation import check_is_fitted
 
 
 
-class TestGSTCVMixinAttrs:
+class TestGSTCVAttrs:
 
 
     # pre-fit, all attrs should not be available and should except
@@ -311,7 +311,7 @@ class TestGSTCVMixinAttrs:
 
 
 
-class TestGSTCVMixinMethods:
+class TestGSTCVMethods:
 
     # methods & signatures (besides fit)
     # --------------------------

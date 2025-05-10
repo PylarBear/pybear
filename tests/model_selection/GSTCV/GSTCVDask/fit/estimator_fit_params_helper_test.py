@@ -30,12 +30,7 @@ class TestEstimatorFitParamsHelper:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @staticmethod
-    @pytest.fixture
-    def good_cv():
-        return 3
-
-
+    # pizza see if u can get everything in this module over to X_da & y_da
     @staticmethod
     @pytest.fixture
     def good_data_len():
@@ -72,9 +67,9 @@ class TestEstimatorFitParamsHelper:
 
     @staticmethod
     @pytest.fixture
-    def good_sk_kfold(good_cv, good_data_len):
+    def good_sk_kfold(standard_cv_int, good_data_len):
         return list(
-            sk_KFold(n_splits=good_cv).split(
+            sk_KFold(n_splits=standard_cv_int).split(
                 np.empty((good_data_len, 5)),
                 np.empty((good_data_len,))
             )
@@ -83,9 +78,9 @@ class TestEstimatorFitParamsHelper:
 
     @staticmethod
     @pytest.fixture
-    def good_dask_kfold(good_cv, good_data_len):
+    def good_dask_kfold(standard_cv_int, good_data_len):
         return list(
-            dask_KFold(n_splits=good_cv).split(
+            dask_KFold(n_splits=standard_cv_int).split(
                 da.empty((good_data_len, 5)),
                 da.empty((good_data_len,))
             )

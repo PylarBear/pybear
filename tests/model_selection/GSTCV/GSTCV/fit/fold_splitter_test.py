@@ -9,106 +9,19 @@
 import pytest
 
 import numpy as np
-import pandas as pd
-import scipy.sparse as ss
-import polars as pl
 
-
-from pybear.model_selection.GSTCV._GSTCV._fit._fold_splitter import \
-    _fold_splitter
+from pybear.model_selection.GSTCV._GSTCV._fit._fold_splitter import _fold_splitter
 
 
 
 class TestSKFoldSplitter:
+
 
     # def _fold_splitter(
     #     train_idxs: Union[GenericSlicerType, SKSlicerType],
     #     test_idxs: Union[GenericSlicerType, SKSlicerType],
     #     *data_objects: Union[XSKWIPType, YSKWIPType],
     # ) -> tuple[tuple[XSKWIPType, YSKWIPType], ...]:
-
-
-    # fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _base_X(_rows, _cols):
-        return np.random.randint(0, 10, (_rows, _cols))
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _format_helper():
-
-        # pizza would this be better off in conftest? (is something similar
-        # used in other test modules?)   look in get_kfold_test
-
-        def foo(_base, _format: str, _dim: int):
-
-            """Cast dummy numpy array to desired container."""
-
-            # _X can be X or y in the tests
-
-            if _format == 'ss' and _dim == 1:
-                raise ValueError(f"cant have 1D scipy sparse")
-
-            if _format == 'py_set' and _dim == 2:
-                raise ValueError(f"cant have 2D set")
-
-            if _dim == 1 and len(_base.shape)==1:
-                _X = _base.copy()
-            elif _dim == 2 and len(_base.shape)==2:
-                _X = _base.copy()
-            elif _dim == 1 and len(_base.shape)==2:
-                _X = _base[:, 0].copy().ravel()
-            elif _dim == 2 and len(_base.shape)==1:
-                _X = _base.copy().reshape((-1, 1))
-            else:
-                raise Exception
-
-
-            if _format == 'py_list':
-                if _dim == 1:
-                    _X = list(_X)
-                elif _dim == 2:
-                    _X = list(map(list, _X))
-            elif _format == 'py_tup':
-                if _dim == 1:
-                    _X = tuple(_X)
-                elif _dim == 2:
-                    _X = tuple(map(tuple, _X))
-            elif _format == 'py_set':
-                if _dim == 1:
-                    _X = set(_X)
-                elif _dim == 2:
-                    # should have raised above
-                    raise Exception
-            elif _format == 'np':
-                pass
-            elif _format == 'pd':
-                if _dim == 1:
-                    _X = pd.Series(_X)
-                elif _dim == 2:
-                    _X = pd.DataFrame(_X)
-            elif _format == 'ss':
-                if _dim == 1:
-                    # should have raised above
-                    raise Exception
-                elif _dim == 2:
-                    _X = ss.csr_array(_X)
-            elif _format == 'pl':
-                if _dim == 1:
-                    _X = pl.Series(_X)
-                elif _dim == 2:
-                    _X = pl.from_numpy(_X)
-            else:
-                raise Exception
-
-            return _X
-
-        return foo
-
-    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     @pytest.mark.parametrize('bad_data_object',
@@ -150,7 +63,7 @@ class TestSKFoldSplitter:
     )
     @pytest.mark.parametrize('_X2_dim', (1, 2))
     def test_accuracy(
-        self, _rows, _base_X, _format_helper, _X1_format, _X1_dim, _X2_format,
+        self, _rows, X_np, _format_helper, _X1_format, _X1_dim, _X2_format,
         _X2_dim
     ):
 
@@ -163,8 +76,8 @@ class TestSKFoldSplitter:
 
         # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        _X1 = _format_helper(_base_X, _X1_format, _X1_dim)
-        _X2 = _format_helper(_base_X, _X2_format, _X2_dim)
+        _X1 = _format_helper(X_np, _X1_format, _X1_dim)
+        _X2 = _format_helper(X_np, _X2_format, _X2_dim)
 
 
         _helper_mask = np.random.randint(0, 2, (_rows,)).astype(bool)
@@ -173,20 +86,20 @@ class TestSKFoldSplitter:
         del _helper_mask
 
         if _X1_dim == 1:
-            _X1_ref_train = _base_X[:, 0][mask_train]
-            _X1_ref_test = _base_X[:, 0][mask_test]
+            _X1_ref_train = X_np[:, 0][mask_train]
+            _X1_ref_test = X_np[:, 0][mask_test]
         elif _X1_dim == 2:
-            _X1_ref_train = _base_X[mask_train]
-            _X1_ref_test = _base_X[mask_test]
+            _X1_ref_train = X_np[mask_train]
+            _X1_ref_test = X_np[mask_test]
         else:
             raise Exception
 
         if _X2_dim == 1:
-            _X2_ref_train = _base_X[:, 0][mask_train]
-            _X2_ref_test = _base_X[:, 0][mask_test]
+            _X2_ref_train = X_np[:, 0][mask_train]
+            _X2_ref_test = X_np[:, 0][mask_test]
         elif _X2_dim == 2:
-            _X2_ref_train = _base_X[mask_train]
-            _X2_ref_test = _base_X[mask_test]
+            _X2_ref_train = X_np[mask_train]
+            _X2_ref_test = X_np[mask_test]
         else:
             raise Exception
 
