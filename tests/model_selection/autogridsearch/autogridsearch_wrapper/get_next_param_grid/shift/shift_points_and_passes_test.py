@@ -38,11 +38,11 @@ class TestShiftPoints:
                 ['fixed_string', 'fixed_integer', 'soft_float', 'fixed_bool'],
                 size=1
             )[0]
-            _random_grid_size = np.random.randint(1,10)
+            _random_grid_size = int(np.random.randint(1,10))
 
             if _random_dtype == 'fixed_string':
                 _grid = list('abcdefghijklmn'[:_random_grid_size])
-                _shrink_pass = np.random.randint(1,5)
+                _shrink_pass = int(np.random.randint(1,5))
                 _points = []
                 for _idx in range(total_passes):
                     if _idx >= (_shrink_pass - 1):
@@ -53,7 +53,7 @@ class TestShiftPoints:
                 _params[_key] = [_grid, _points, _random_dtype]
             elif _random_dtype == 'fixed_bool':
                 _grid = [True, False]
-                _shrink_pass = np.random.randint(1,5)
+                _shrink_pass = int(np.random.randint(1,5))
                 _points = []
                 for _idx in range(total_passes):
                     if _idx >= (_shrink_pass - 1):
@@ -64,7 +64,7 @@ class TestShiftPoints:
                 _params[_key] = [_grid, _points, _random_dtype]
             else:
                 _grid = np.arange(1, _random_grid_size+1).tolist()
-                _points = np.random.randint(2, 11, total_passes).tolist()
+                _points = list(map(int, np.random.randint(2, 11, total_passes)))
                 _params[_key] = [_grid, _points, _random_dtype]
 
 
@@ -72,7 +72,7 @@ class TestShiftPoints:
 
         # END build params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        _pass = np.random.randint(1, total_passes)   # cannot be pass 0
+        _pass = int(np.random.randint(1, total_passes))   # cannot be pass 0
 
 
         # ** * ** *

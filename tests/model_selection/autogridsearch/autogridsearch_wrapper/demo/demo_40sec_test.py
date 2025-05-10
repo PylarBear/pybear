@@ -9,12 +9,6 @@
 import pytest
 import numpy as np
 
-from sklearn.model_selection import GridSearchCV as sklearn_GridSearchCV
-from sklearn.linear_model import Ridge
-
-from pybear.model_selection.autogridsearch.autogridsearch_wrapper import \
-    autogridsearch_wrapper
-
 
 
 class TestDemo:
@@ -22,22 +16,6 @@ class TestDemo:
     # prove out it does correct passes wrt total_passes/shifts/tpih
     # tests RESULTS_ & GRIDS_
     # shift_ctr
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def sklearn_estimator():
-        return Ridge(
-            # alpha=1.0,  use this in AGSCV
-            # fit_intercept=True, use this in AGSCV
-            copy_X=True,
-            # max_iter=None, use this in AGSCV
-            tol=0.0001,
-            # solver='auto',  use this in AGSCV
-            positive=False,
-            random_state=None
-        )
-
 
 
     @pytest.mark.parametrize('_space, _gap',
@@ -57,10 +35,9 @@ class TestDemo:
     @pytest.mark.parametrize('_pass_best', (True, False))
     def test_sklearn(
         self, _space, _gap, _type, _univ_min_bound, _points, _total_passes,
-        _shrink_pass, _max_shifts, _tpih, _pass_best, sklearn_estimator
+        _shrink_pass, _max_shifts, _tpih, _pass_best, sk_estimator_2,
+        SKAutoGridSearch
     ):
-
-        SKLearnAutoGridSearch = autogridsearch_wrapper(sklearn_GridSearchCV)
 
         _POINTS = [_points for _ in range(_total_passes)]
         _POINTS[_shrink_pass-1:] = [1 for _ in _POINTS[_shrink_pass-1:]]
@@ -111,8 +88,8 @@ class TestDemo:
         # END build first grids ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-        test_cls = SKLearnAutoGridSearch(
-            sklearn_estimator,
+        test_cls = SKAutoGridSearch(
+            sk_estimator_2,
             params=_params,
             total_passes=_total_passes,
             total_passes_is_hard=_tpih,

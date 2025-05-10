@@ -13,25 +13,26 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper._demo. \
 
 
 
-@pytest.fixture
-def good_params():
-    return {
-        'a': [['a', 'b', 'c'], 3, 'fixed_string'],
-        'b': [[2.718, 3.1415, 8.834], [3, 3, 3], 'fixed_float'],
-        'c': [[4, 5, 6], [3, 3, 3], 'fixed_integer'],
-        'd': [[50, 100], [2, 3, 3], 'hard_float'],
-        'e': [[4, 5, 6], [3, 3, 3], 'hard_integer'],
-        'f': [[40, 50, 60], [3, 3, 3], 'hard_integer'],
-        'g': [[1, 10, 100], [3, 3, 3], 'soft_float'],
-        'h': [[40, 50, 60], [3, 3, 3], 'soft_float'],
-        'i': [[4, 5, 6], [3, 3, 3], 'soft_integer'],
-        'j': [[40, 50, 60], [3, 3, 3], 'soft_integer'],
-        'k': [['apple', 'banana', 'cherry'], 3, 'fixed_string'],
-    }
-
-
-
 class TestMakeTrueBestParams:
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_params():
+        return {
+            'a': [['a', 'b', 'c'], 3, 'fixed_string'],
+            'b': [[2.718, 3.1415, 8.834], [3, 3, 3], 'fixed_float'],
+            'c': [[4, 5, 6], [3, 3, 3], 'fixed_integer'],
+            'd': [[50, 100], [2, 3, 3], 'hard_float'],
+            'e': [[4, 5, 6], [3, 3, 3], 'hard_integer'],
+            'f': [[40, 50, 60], [3, 3, 3], 'hard_integer'],
+            'g': [[1, 10, 100], [3, 3, 3], 'soft_float'],
+            'h': [[40, 50, 60], [3, 3, 3], 'soft_float'],
+            'i': [[4, 5, 6], [3, 3, 3], 'soft_integer'],
+            'j': [[40, 50, 60], [3, 3, 3], 'soft_integer'],
+            'k': [['apple', 'banana', 'cherry'], 3, 'fixed_string'],
+        }
+
 
     # no _validation
 

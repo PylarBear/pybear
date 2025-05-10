@@ -260,7 +260,7 @@ class TestType:
     def test_rejects_bad_accepts_good_type(self, _type):
 
         assert _val_numerical_param_value(
-            'param_a',
+            'good_key',
             [[2,4,6,8], [4,4,4], _type],
             3
         ) is None

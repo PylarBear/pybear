@@ -6,29 +6,26 @@
 
 
 
-# this module tests compatibility of autogridsearch_wrapper with GSTCVDask
-# simply by running wrapped GSTCVDask to completion and asserting a few of
-# the GSTCVDask attributes are exposed by the wrapper.
+# this module tests compatibility of autogridsearch_wrapper with GSTCV
+# simply by running wrapped GSTCV to completion and asserting a few of
+# the GSTCV attributes are exposed by the wrapper.
 
 
 
 # demo_test incidentally handles testing of all autogridsearch_wrapper
 # functionality except fit() (because demo bypasses fit().) This test
-# module handles fit() for the GSTCVDask module.
+# module handles fit() for the GSTCV module.
 
 
 
 import pytest
 import numpy as np
-import dask.array as da
-from distributed import Client
-from sklearn.datasets import make_classification as sk_make
 
-from pybear.model_selection.autogridsearch.AutoGSTCVDask import AutoGSTCVDask
+from pybear.model_selection.autogridsearch.AutoGSTCV import AutoGSTCV
 
 
 
-class TestGSTCVDask:
+class TestAutoGSTCV:
 
     #         estimator,
     #         params: ParamsType,
@@ -39,43 +36,12 @@ class TestGSTCVDask:
     #         **parent_gscv_kwargs
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    @staticmethod
-    @pytest.fixture
-    def _params():
-        # using a mock estimator to significantly reduce fit() time
-        return {
-            'param_a': [np.logspace(-5, 5, 3), 3, 'soft_float'],
-            'param_b': [[1, 2], 2, 'fixed_integer']
-        }
-
-
-    @staticmethod
-    @pytest.fixture
-    def _X_y():
-        # do this the 'wrong' way to stay off you know who
-        _X, _y = sk_make(n_features=5, n_samples=100)
-        return da.from_array(_X), da.from_array(_y)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _client():
-        client = Client(n_workers=1, threads_per_worker=1, asynchronous=False)
-        yield client
-        client.close()
-
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-
-    def test_accepts_threshold_kwarg(self, mock_estimator_test_fixture):
+    def test_accepts_threshold_kwarg(self, mock_estimator):
 
         _thresholds = np.linspace(0, 1, 3)
 
-        _agscv = AutoGSTCVDask(
-            estimator=mock_estimator_test_fixture,
+        _agscv = AutoGSTCV(
+            estimator=mock_estimator,
             params={},
             refit=False,
             thresholds=_thresholds
@@ -84,40 +50,35 @@ class TestGSTCVDask:
         assert np.array_equiv(_agscv.thresholds, _thresholds)
 
 
-    @pytest.mark.parametrize('_total_passes', (2, ))
+    @pytest.mark.parametrize('_total_passes', (2, 3, 4))
     @pytest.mark.parametrize('_scorer',
         ('accuracy', ['accuracy', 'balanced_accuracy'])
     )
     @pytest.mark.parametrize('_tpih', (True, ))
     @pytest.mark.parametrize('_max_shifts', (2, ))
     @pytest.mark.parametrize('_refit', ('accuracy', False, lambda x: 0))
-    def test_GSTCV(self,mock_estimator_test_fixture, _params, _total_passes,
-        _scorer, _tpih, _max_shifts, _refit, _X_y, _client
+    def test_GSTCV(self, mock_estimator, mock_estimator_params,
+        _total_passes, _scorer, _tpih, _max_shifts, _refit, X_np, y_np
     ):
 
-        # faster with _client
-
         AGSTCV_params = {
-            'estimator': mock_estimator_test_fixture,
-            'params': _params,
+            'estimator': mock_estimator,
+            'params': mock_estimator_params,
             'total_passes': _total_passes,
             'total_passes_is_hard': _tpih,
             'max_shifts': _max_shifts,
             'agscv_verbose': False,
             'thresholds': [0.4, 0.6],
             'scoring': _scorer,
-            'n_jobs': None,
+            'n_jobs': 1,     # leave a 1, confliction
             'cv': 4,
             'verbose': 0,
             'error_score': 'raise',
             'return_train_score': False,
-            'refit': _refit,
-            'iid': True,
-            'cache_cv': True,
-            'scheduler': None
+            'refit': _refit
         }
 
-        AutoGridSearch = AutoGSTCVDask(**AGSTCV_params)
+        AutoGridSearch = AutoGSTCV(**AGSTCV_params)
 
         # 25_04_19 changed fit() to raise ValueError when best_params_
         # is not exposed. it used to be that agscv code was shrink-wrapped
@@ -131,7 +92,7 @@ class TestGSTCVDask:
         # expose 'best_params_'. Try to fit, if ValueError is raised, look to
         # see that 'best_params_' is not exposed and go to the next test.
         try:
-            AutoGridSearch.fit(*_X_y)
+            AutoGridSearch.fit(X_np, y_np)
             assert isinstance(getattr(AutoGridSearch, 'best_params_'), dict)
         except ValueError:
             assert not hasattr(AutoGridSearch, 'best_params_')
@@ -140,7 +101,7 @@ class TestGSTCVDask:
             raise e
 
         # assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-        assert AutoGridSearch.total_passes >= len(_params['param_a'][1])
+        assert AutoGridSearch.total_passes >= _total_passes
         assert AutoGridSearch.total_passes_is_hard is _tpih
         assert AutoGridSearch.max_shifts == _max_shifts
         assert AutoGridSearch.agscv_verbose is False
@@ -152,7 +113,7 @@ class TestGSTCVDask:
         if _refit:
             assert isinstance(
                 AutoGridSearch.best_estimator_,
-                type(mock_estimator_test_fixture)
+                type(mock_estimator)
             )
         else:
             with pytest.raises(AttributeError):
@@ -161,11 +122,11 @@ class TestGSTCVDask:
 
         best_params_ = AutoGridSearch.best_params_
         assert isinstance(best_params_, dict)
-        assert sorted(list(best_params_)) == sorted(list(_params))
+        assert sorted(list(best_params_)) == sorted(list(mock_estimator_params))
         assert all(map(
             isinstance,
             best_params_.values(),
-            ((int, float, bool, str, np.int64) for _ in _params)
+            ((int, float, bool, str, np.int64) for _ in mock_estimator_params)
         ))
 
         # best_threshold_ should always be exposed with one scorer

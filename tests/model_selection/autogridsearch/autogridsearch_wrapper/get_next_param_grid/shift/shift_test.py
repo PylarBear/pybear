@@ -44,7 +44,6 @@ class TestShift:
     @staticmethod
     @pytest.fixture
     def good_is_logspace():
-
         return {'a': False, 'b': False}
 
 

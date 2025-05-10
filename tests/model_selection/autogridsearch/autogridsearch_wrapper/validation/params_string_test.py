@@ -84,14 +84,8 @@ class TestType:
         _value = [list('abcde'), [5,5,5], _type]
 
         if _type == 'fixed_string':
-            assert _val_string_param_value(
-                'param_a',
-                _value
-            ) is None
+            assert _val_string_param_value('param_1', _value) is None
         else:
             with pytest.raises(AssertionError):
-                _val_string_param_value(
-                    'param_a',
-                    _value
-                )
+                _val_string_param_value('param_1', _value)
 

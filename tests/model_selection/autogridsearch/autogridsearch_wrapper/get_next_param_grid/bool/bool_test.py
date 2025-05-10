@@ -42,12 +42,7 @@ class TestBool:
 
         # _pass (zero-indexed) is still full set of bools
 
-        out = _bool(
-            _param_value,
-            _grids[0]['a'],
-            1,
-            _best_params['a']
-        )
+        out = _bool(_param_value, _grids[0]['a'], 1, _best_params['a'])
 
         assert out == [True, False]
 
@@ -60,18 +55,9 @@ class TestBool:
         _grids[1] = deepcopy(_grids[0])
         _grids[2] = {}
 
-        out = _bool(
-            _param_value,
-            _grids[0]['a'],
-            _pass,
-            _best_params['a']
-        )
+        out = _bool(_param_value, _grids[0]['a'], _pass, _best_params['a'])
 
         assert out == [True]
-
-
-
-
 
 
 

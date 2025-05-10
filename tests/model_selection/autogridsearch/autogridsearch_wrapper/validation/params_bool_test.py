@@ -79,16 +79,10 @@ class TestType:
         _value = [[True, False], [2,2,2], _type]
 
         if _type == 'fixed_bool':
-            assert _val_bool_param_value(
-                'param_a',
-                _value
-            ) is None
+            assert _val_bool_param_value('param_1', _value) is None
         else:
             with pytest.raises(AssertionError):
-                _val_bool_param_value(
-                    'param_a',
-                    _value
-                )
+                _val_bool_param_value('param_1', _value)
 
 
 
