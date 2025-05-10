@@ -20,21 +20,9 @@ class TestValidation:
 
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (50, 10)
-
-
-    @staticmethod
     @pytest.fixture(scope='function')
     def _X(_X_factory, _format, _shape):
         return _X_factory(_format=_format, _shape=_shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
 
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))

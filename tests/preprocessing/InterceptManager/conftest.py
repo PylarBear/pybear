@@ -5,8 +5,8 @@
 #
 
 
-import pytest
 
+import pytest
 
 from typing import Literal, Sequence
 from typing_extensions import Union
@@ -20,6 +20,9 @@ import scipy.sparse as ss
 
 
 
+@pytest.fixture(scope='session')
+def _shape():
+    return (20, 10)
 
 
 @pytest.fixture(scope='session')
@@ -28,11 +31,15 @@ def _master_columns():
     while True:
         _ = [str(uuid4())[:4] for _ in range(_cols)]
         if len(np.unique(_)) == len(_):
-            return np.array(_, dtype='<U4')
-
+            return np.array(_, dtype='<U30')
 
 
 @pytest.fixture(scope='module')
+def _columns(_master_columns, _shape):
+    return _master_columns.copy()[:_shape[1]]
+
+
+@pytest.fixture(scope='session')
 def _X_factory():
 
 
@@ -247,19 +254,9 @@ def _X_factory():
     return foo
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+@pytest.fixture(scope='session')
+def y_np(_shape):
+    return np.random.randint(0, 2, _shape[0])
 
 
 

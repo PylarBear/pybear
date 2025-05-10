@@ -15,11 +15,6 @@ import pytest
 
 class TestValInstructions:
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 20)
-
 
     def test_instructions_validation(self, _shape):
 
@@ -47,12 +42,12 @@ class TestValInstructions:
             _val_instructions(_instructions, _shape[1])
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # rejects col idx used more that once
-        _instructions = {'keep':[1], 'delete':[0,1,3,10], 'add':None}
+        _instructions = {'keep':[1], 'delete':[0,1,3,9], 'add':None}
         with pytest.raises(AssertionError):
             _val_instructions(_instructions, _shape[1])
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # accepts a dict for 'add', and no other
-        _instructions = {'keep':None, 'delete':[0,1,3,10], 'add': {'Intercept': 1}}
+        _instructions = {'keep':None, 'delete':[0,1,3,9], 'add': {'Intercept': 1}}
         _val_instructions(_instructions, _shape[1])
         _instructions = {'keep':None, 'delete':{'Intercept': 1}, 'add': None}
         with pytest.raises(AssertionError):

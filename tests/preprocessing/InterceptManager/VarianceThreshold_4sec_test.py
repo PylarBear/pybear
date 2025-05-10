@@ -42,6 +42,7 @@ bypass = False
 
 @pytest.fixture(scope='module')
 def _shape():
+    # this is smaller than the conftest fixture
     return (10, 3)
 
 

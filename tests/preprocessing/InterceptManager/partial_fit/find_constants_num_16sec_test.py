@@ -53,19 +53,13 @@ class TestFindConstants_Num:
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
-        return (100, 20)
+        return (50, 20)
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _noise():
         return 1e-9
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns[:_shape[1]]
 
 
     @staticmethod

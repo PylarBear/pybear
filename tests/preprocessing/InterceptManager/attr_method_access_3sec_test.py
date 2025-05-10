@@ -29,11 +29,6 @@ bypass = False
 # FIXTURES
 
 @pytest.fixture(scope='module')
-def _shape():
-    return (20, 10)
-
-
-@pytest.fixture(scope='module')
 def _const(_shape):
     return {3:0, 5:1, _shape[1]-1:2}
 
@@ -60,21 +55,11 @@ def _X_np(_X_factory, _const, _shape):
 
 
 @pytest.fixture(scope='module')
-def _columns(_master_columns, _shape):
-    return _master_columns.copy()[:_shape[1]]
-
-
-@pytest.fixture(scope='module')
 def _X_pd(_X_np, _columns):
     return pd.DataFrame(
         data=_X_np,
         columns=_columns
 )
-
-
-@pytest.fixture(scope='module')
-def _y_np(_shape):
-    return np.random.randint(0, 2, _shape[0])
 
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -86,10 +71,12 @@ def _y_np(_shape):
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @staticmethod
-    @pytest.fixture
-    def _attrs():
-        return [
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
+    def test_attr_access(
+        self, _X_np, _X_pd, y_np, _columns, _kwargs, _shape, x_format
+    ):
+
+        _attrs = [
             'n_features_in_',
             'feature_names_in_',
             'constant_columns_',
@@ -98,29 +85,23 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             'column_mask_'
         ]
 
-
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
-    def test_attr_access(
-        self, _X_np, _X_pd, _y_np, _columns, _kwargs, _shape, _attrs, x_format
-    ):
-
         if x_format == 'np':
             NEW_X = _X_np.copy()
-            NEW_Y = np.random.randint(0, 2, _shape[0])
+            NEW_Y = y_np
         elif x_format == 'pd':
             NEW_X = _X_pd
             NEW_Y = pd.DataFrame(
-                data=np.random.randint(0, 2, _shape[0]), columns=['y']
+                data=y_np, columns=['y']
             )
         elif x_format == 'csc':
             NEW_X = ss.csc_array(_X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
+            NEW_Y = y_np
         elif x_format == 'csr':
             NEW_X = ss.csr_array(_X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
+            NEW_Y = y_np
         elif x_format == 'coo':
             NEW_X = ss.coo_array(_X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
+            NEW_Y = y_np
         else:
             raise Exception
 
@@ -233,7 +214,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         ]
 
 
-    def test_access_methods_before_fit(self, _X_np, _y_np, _kwargs):
+    def test_access_methods_before_fit(self, _X_np, y_np, _kwargs):
 
         TestCls = IM(**_kwargs)
 
@@ -241,7 +222,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # vvv BEFORE FIT vvv *******************************************
 
         # fit()
-        assert isinstance(TestCls.fit(_X_np, _y_np), IM)
+        assert isinstance(TestCls.fit(_X_np, y_np), IM)
 
         # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v^v^v^v
         # Reset Changes is_fitted To False:
@@ -255,7 +236,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v^v^v^v
 
         # fit_transform()
-        assert isinstance(TestCls.fit_transform(_X_np, _y_np), np.ndarray)
+        assert isinstance(TestCls.fit_transform(_X_np, y_np), np.ndarray)
 
         TestCls._reset()
 
@@ -275,14 +256,14 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
             TestCls.inverse_transform(_X_np)
 
         # partial_fit()
-        assert isinstance(TestCls.partial_fit(_X_np, _y_np), IM)
+        assert isinstance(TestCls.partial_fit(_X_np, y_np), IM)
 
         # ** _reset()
         assert isinstance(TestCls._reset(), IM)
 
         # score()
         with pytest.raises(NotFittedError):
-            TestCls.score(_X_np, _y_np)
+            TestCls.score(_X_np, y_np)
 
         # set_output()
         assert isinstance(TestCls.set_output(transform='pandas'), IM)
@@ -300,14 +281,14 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
     def test_access_methods_after_fit(
-        self, _X_np, _y_np, _columns, _kwargs, _shape
+        self, _X_np, y_np, _columns, _kwargs, _shape
     ):
 
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
 
         TestCls = IM(**_kwargs)
-        TestCls.fit(_X_np, _y_np)
+        TestCls.fit(_X_np, y_np)
 
         # fit_transform()
         assert isinstance(TestCls.fit_transform(_X_np), np.ndarray)
@@ -341,10 +322,10 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # ** _reset()
         assert isinstance(TestCls._reset(), IM)
 
-        TestCls.fit(_X_np, _y_np)
+        TestCls.fit(_X_np, y_np)
 
         # score()
-        assert TestCls.score(_X_np, _y_np) is None
+        assert TestCls.score(_X_np, y_np) is None
 
         # set_output()
         assert isinstance(TestCls.set_output(transform='default'), IM)
@@ -362,13 +343,13 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
     def test_access_methods_after_transform(
-        self, _X_np, _y_np, _columns, _kwargs, _shape
+        self, _X_np, y_np, _columns, _kwargs, _shape
     ):
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************
-        FittedTestCls = IM(**_kwargs).fit(_X_np, _y_np)
-        TransformedTestCls = IM(**_kwargs).fit(_X_np, _y_np)
+        FittedTestCls = IM(**_kwargs).fit(_X_np, y_np)
+        TransformedTestCls = IM(**_kwargs).fit(_X_np, y_np)
         TransformedTestCls.transform(_X_np)
 
         # fit_transform()
@@ -426,15 +407,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
 
 # END ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM
-
-
-
-
-
-
-
-
-
 
 
 

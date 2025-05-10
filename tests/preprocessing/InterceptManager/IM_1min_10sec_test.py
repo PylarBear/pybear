@@ -29,11 +29,6 @@ bypass = False
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
 
-@pytest.fixture(scope='module')
-def _shape():
-    return (20, 10)
-
-
 @pytest.fixture(scope='function')
 def _kwargs():
     return {
@@ -58,11 +53,6 @@ def _X_np(_X_factory, _constants, _shape):
         _constants=_constants,
         _shape=_shape
     )
-
-
-@pytest.fixture(scope='module')
-def _columns(_master_columns, _shape):
-    return _master_columns.copy()[:_shape[1]]
 
 
 @pytest.fixture(scope='function')
@@ -809,7 +799,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
     @pytest.mark.parametrize('_dtype', ('int', 'flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 5))
     def test_accuracy(
-        self, _kwargs, _X, _format, _dtype, _has_nan, _start_constants
+        self, _kwargs, _X, y_np, _format, _dtype, _has_nan, _start_constants
     ):
 
         if _format not in ('np', 'pd') and _dtype not in ('flt', 'int'):
@@ -836,9 +826,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
 
         _wip_X = _X(_format, _dtype, _has_nan, _start_constants, _noise=1e-9)
 
-        _y = np.random.randint(0, 2, _wip_X.shape[0])
-
-        out = TestCls.partial_fit(_wip_X, _y).constant_columns_
+        out = TestCls.partial_fit(_wip_X, y_np).constant_columns_
         assert len(out) == len(_start_constants)
         for idx, v in _start_constants.items():
             if str(v) == 'nan':
@@ -877,7 +865,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
             X_HOLDER.append(_wip_X)
 
             # verify correctly reported constants after this partial_fit!
-            out = TestCls.partial_fit(_wip_X, _y).constant_columns_
+            out = TestCls.partial_fit(_wip_X, y_np).constant_columns_
             assert len(out) == len(_start_constants)
             for idx, v in _start_constants.items():
                 if str(v) == 'nan':
@@ -893,7 +881,7 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
         # stack all the _wip_Xs
         _final_X = np.vstack(X_HOLDER)
 
-        out = IM(**_new_kwargs).fit(_final_X, _y).constant_columns_
+        out = IM(**_new_kwargs).fit(_final_X, y_np).constant_columns_
         assert len(out) == len(_start_constants)
         for idx, v in _start_constants.items():
             if str(v) == 'nan':

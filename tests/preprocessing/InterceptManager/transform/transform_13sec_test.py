@@ -57,12 +57,6 @@ class TestTransform:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 20)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _rtol_atol():
         return (1e-5, 1e-8)
 

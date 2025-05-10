@@ -37,12 +37,6 @@ class TestGetFeatureNamesOutRejects:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (50, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _X(_X_factory, _format, _master_columns, _shape):
 
         return _X_factory(
@@ -139,18 +133,6 @@ class TestGetFeatureNamesOut:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (50, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
-
 
     @staticmethod
     @pytest.fixture(scope='function')

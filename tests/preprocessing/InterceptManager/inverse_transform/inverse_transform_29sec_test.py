@@ -37,20 +37,8 @@ class TestInverseTransform:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (20, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _rtol_atol():
         return (1e-5, 1e-8)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
 
 
     @staticmethod

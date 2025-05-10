@@ -19,33 +19,6 @@ import pytest
 
 
 
-
-
-@pytest.fixture(scope='module')
-def _shape():
-    return (20, 3)
-
-
-@pytest.fixture(scope='module')
-def _good_columns(_shape):
-    return [str(uuid4())[:4] for _ in range(_shape[1])]
-
-
-@pytest.fixture(scope='module')
-def _X(_X_factory, _shape):
-    return _X_factory(
-        _dupl=[[0, _shape[1]-1]],
-        _has_nan=False,
-        _constants={1: 1},
-        _format='np',
-        _columns=None,
-        _dtype='flt',
-        _zeros=None,
-        _noise=float(0),
-        _shape=_shape
-    )
-
-
 class TestValKeepAndColumns:
 
     # def _val_keep_and_columns(
@@ -53,6 +26,33 @@ class TestValKeepAndColumns:
     #     _columns:Union[Sequence[str], None],
     #     _X: DataContainer
     # ) -> None:
+
+
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _shape():
+        # this is smaller than the conftest fixture
+        return (20, 3)
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _X(_X_factory, _shape):
+        return _X_factory(
+            _dupl=[[0, _shape[1] - 1]],
+            _has_nan=False,
+            _constants={1: 1},
+            _format='np',
+            _columns=None,
+            _dtype='flt',
+            _zeros=None,
+            _noise=float(0),
+            _shape=_shape
+        )
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize(f'_junk_columns',
@@ -84,44 +84,43 @@ class TestValKeepAndColumns:
     @pytest.mark.parametrize('junk_keep',
         (3.14, True, False, None, [0,1], {0,1})
     )
-    def test_keep_rejects_junk(self, junk_keep, _good_columns, _X):
+    def test_keep_rejects_junk(self, junk_keep, _columns, _X):
         # not int, str, dict[str, any], callable
         with pytest.raises(ValueError):
-            _val_keep_and_columns(junk_keep, _good_columns, _X)
+            _val_keep_and_columns(junk_keep, _columns, _X)
 
 
     @pytest.mark.parametrize('bad_keep',
         (-1, 999, {0:1}, {0:'junk'}, lambda x: 'trash', lambda x: -1)
     )
-    def test_keep_rejects_bad(self, bad_keep, _good_columns, _X):
+    def test_keep_rejects_bad(self, bad_keep, _columns, _X):
         # not int, str, dict[str, any], callable
         # negative int, int out of range, dict with non-str key,
         # callable returns bad index
         with pytest.raises(ValueError):
-            _val_keep_and_columns(bad_keep, _good_columns, _X)
+            _val_keep_and_columns(bad_keep, _columns, _X)
 
 
     @pytest.mark.parametrize('good_keep',
         (0, 1, 'first', 'last', 'random', 'none', {'Intercept': 1}, lambda x: 0)
     )
-    def test_keep_accepts_good(self, good_keep, _good_columns, _X):
+    def test_keep_accepts_good(self, good_keep, _columns, _X):
         # int, str, dict[str, any], callable that returns int >= 0
-        _val_keep_and_columns(good_keep, _good_columns, _X)
+        _val_keep_and_columns(good_keep, _columns, _X)
 
 
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none'))
     @pytest.mark.parametrize('conflict', (True, False))
     def test_raise_on_header_conflict_with_keep_literal(
-        self, _keep, conflict, _good_columns, _X
+        self, _keep, conflict, _columns, _X
     ):
 
-        _columns = deepcopy(_good_columns)
-
         if conflict:
-            _columns[np.random.randint(0, _X.shape[1])] = _keep
+            _conflict_columns = deepcopy(_columns)
+            _conflict_columns[np.random.randint(0, _X.shape[1])] = _keep
 
             with pytest.raises(ValueError):
-                _val_keep_and_columns(_keep, _columns, _X)
+                _val_keep_and_columns(_keep, _conflict_columns, _X)
         else:
             _val_keep_and_columns(_keep, _columns, _X)
 
@@ -131,9 +130,9 @@ class TestValKeepAndColumns:
             _val_keep_and_columns('Some Column', None, _X)
 
 
-    def test_keep_rejects_non_literal_str_not_in_header(self, _X, _good_columns):
+    def test_keep_rejects_non_literal_str_not_in_header(self, _X, _columns):
         with pytest.raises(ValueError):
-            _val_keep_and_columns('Some Column', _good_columns, _X)
+            _val_keep_and_columns('Some Column', _columns, _X)
 
 
     def test_warns_if_keep_dict_key_in_columns(self):
