@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -27,20 +28,12 @@ class TestEstimatorFitParamsHelper:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-
-    # pizza see if u can convert everything in here to X_np & y_np
     @staticmethod
     @pytest.fixture
-    def good_data_len():
-        return 10
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_sk_fit_params(good_data_len):
+    def good_sk_fit_params(_rows):
         return {
-            'sample_weight': np.random.uniform(0, 1, good_data_len),
-            'fake_sample_weight': np.random.uniform(0, 1, good_data_len//2),
+            'sample_weight': np.random.uniform(0, 1, _rows),
+            'fake_sample_weight': np.random.uniform(0, 1, _rows//2),
             'made_up_param_1':  'something',
             'made_up_param_2': True,
             'some_other_param_1': {'abc': 123}
@@ -49,18 +42,13 @@ class TestEstimatorFitParamsHelper:
 
     @staticmethod
     @pytest.fixture
-    def good_sk_kfold(standard_cv_int, good_data_len):
-        return list(
-            sk_KFold(n_splits=standard_cv_int).split(
-                np.random.randint(0,10,(good_data_len, 5)),
-                np.random.randint(0,2,(good_data_len,))
-            )
-        )
+    def good_sk_kfold(standard_cv_int, X_np, y_np):
+        return list(sk_KFold(n_splits=standard_cv_int).split(X_np, y_np))
 
 
     @staticmethod
     @pytest.fixture
-    def exp_sk_helper_output(good_data_len, good_sk_fit_params, good_sk_kfold):
+    def exp_sk_helper_output(_rows, good_sk_fit_params, good_sk_kfold):
 
         sk_helper = {}
 
@@ -75,7 +63,7 @@ class TestEstimatorFitParamsHelper:
                     if isinstance(v, (dict, str)):
                         raise
 
-                    if len(v) != good_data_len:
+                    if len(v) != _rows:
                         raise
 
                     np.array(list(v))
@@ -111,12 +99,12 @@ class TestEstimatorFitParamsHelper:
         (-3.14, -1, 0, True, None, 'junk', [0,1], (1,2), min, lambda x: x)
     )
     def test_fit_params_rejects_not_dict(
-        self, good_data_len, bad_fit_params, good_sk_kfold
+        self, _rows, bad_fit_params, good_sk_kfold
     ):
 
         with pytest.raises(AssertionError):
             _estimator_fit_params_helper(
-                good_data_len, bad_fit_params, good_sk_kfold
+                _rows, bad_fit_params, good_sk_kfold
             )
 
 
@@ -125,12 +113,12 @@ class TestEstimatorFitParamsHelper:
          lambda x: x)
     )
     def test_kfold_rejects_not_list_of_tuples(
-        self, good_data_len, good_sk_fit_params, bad_kfold
+        self, _rows, good_sk_fit_params, bad_kfold
     ):
 
         with pytest.raises(AssertionError):
             _estimator_fit_params_helper(
-                good_data_len, good_sk_fit_params, bad_kfold
+                _rows, good_sk_fit_params, bad_kfold
             )
 
 
@@ -142,11 +130,11 @@ class TestEstimatorFitParamsHelper:
     # test accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     def test_sk_accuracy(
-        self, good_data_len, good_sk_fit_params, good_sk_kfold, exp_sk_helper_output
+        self, _rows, good_sk_fit_params, good_sk_kfold, exp_sk_helper_output
     ):
 
         out = _estimator_fit_params_helper(
-            good_data_len, good_sk_fit_params, good_sk_kfold
+            _rows, good_sk_fit_params, good_sk_kfold
         )
 
         for f_idx, exp_fold_fit_param_dict in exp_sk_helper_output.items():
@@ -155,17 +143,17 @@ class TestEstimatorFitParamsHelper:
                 _ = out[f_idx][param]
                 __ = exp_value
                 if isinstance(exp_value, np.ndarray):
-                    assert len(_) < good_data_len
-                    assert len(__) < good_data_len
+                    assert len(_) < _rows
+                    assert len(__) < _rows
                     assert np.array_equiv(_, __)
                 else:
                     assert _ == exp_value
 
 
-    def test_accuracy_empty(self, good_data_len, good_sk_kfold):
+    def test_accuracy_empty(self, _rows, good_sk_kfold):
 
         out = _estimator_fit_params_helper(
-            good_data_len,
+            _rows,
             {},
             good_sk_kfold
         )

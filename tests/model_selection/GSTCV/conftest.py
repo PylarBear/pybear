@@ -56,12 +56,12 @@ def _client():
 # data objects ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 @pytest.fixture(scope='session')
 def _rows():
-    return 100
+    return int(np.random.randint(1, 200))
 
 
 @pytest.fixture(scope='session')
 def _cols():
-    return 3
+    return int(np.random.randint(1, 10))
 
 
 @pytest.fixture(scope='session')
@@ -73,10 +73,9 @@ def X_np(_rows, _cols):
 @pytest.fixture(scope='session')
 def X_da(_rows, _cols):
     da.random.seed(19)
-    __ = da.random.randint(
+    return da.random.randint(
         0, 10, (_rows, _cols)
-    ).rechunk((_rows//10, _cols)).astype(np.float64)
-    return __
+    ).rechunk((int(_rows//10), _cols)).astype(np.float64)
 
 
 @pytest.fixture(scope='session')
@@ -103,7 +102,7 @@ def y_np(_rows):
 @pytest.fixture(scope='session')
 def y_da(_rows):
     np.random.seed(19)
-    return da.random.randint(0, 2, (_rows,)).rechunk((_rows/10,))
+    return da.random.randint(0, 2, (_rows,)).rechunk((int(_rows/10),))
 
 
 @pytest.fixture(scope='session')

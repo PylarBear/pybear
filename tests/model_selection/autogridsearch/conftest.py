@@ -37,7 +37,7 @@ def _client():
 
 @pytest.fixture(scope='session')
 def _shape():
-    return (20, 3)
+    return (int(np.random.randint(1, 100)), int(np.random.randint(1, 20)))
 
 
 @pytest.fixture(scope='session')

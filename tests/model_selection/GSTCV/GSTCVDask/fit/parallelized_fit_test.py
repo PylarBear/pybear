@@ -21,7 +21,7 @@ class TestParallelizedFit:
         # returns fitted est, time, fit_excepted == False
         out_fitted_estimator, out_time, out_fit_excepted = \
             _parallelized_fit(
-                np.random.randint(0,10),  # f_idx
+                int(np.random.randint(0,10)),  # f_idx
                 X_da,
                 y_da,
                 _estimator_=_mock_classifier(),
@@ -45,7 +45,7 @@ class TestParallelizedFit:
         # if error_score == 'raise', raise Exception
         with pytest.raises(ValueError):
             _parallelized_fit(
-                np.random.randint(0,10),  # f_idx
+                int(np.random.randint(0,10)),  # f_idx
                 X_da,
                 y_da,
                 _estimator_=_mock_classifier(command='other_error_with_raise'),
@@ -61,7 +61,7 @@ class TestParallelizedFit:
 
         out_fitted_estimator, out_time, out_fit_excepted = \
             _parallelized_fit(
-                np.random.randint(0,10),  # f_idx
+                int(np.random.randint(0,10)),  # f_idx
                 X_da,
                 y_da,
                 _estimator_=_mock_classifier(command='other_error_not_raise'),
@@ -84,7 +84,7 @@ class TestParallelizedFit:
 
         with pytest.raises(BrokenPipeError):
             _parallelized_fit(
-                np.random.randint(0,10),  # f_idx
+                int(np.random.randint(0,10)),  # f_idx
                 X_da,
                 y_da,
                 _estimator_=_mock_classifier(),

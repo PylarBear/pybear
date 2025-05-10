@@ -76,7 +76,7 @@ class TestInitValidation:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def base_gstcv_dask(
+    def special_gstcv_dask(
         sk_est_log, param_grid_sk_log, standard_cv_int,
         standard_error_score, standard_WIP_scorer, standard_cache_cv, standard_iid
     ):
@@ -110,72 +110,72 @@ class TestInitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_estimator(
-        self, X_da, y_da, junk_estimator, base_gstcv_dask, _client
+        self, X_da, y_da, junk_estimator, special_gstcv_dask, _client
     ):
         # dont use set_params here
-        base_gstcv_dask.estimator=junk_estimator
+        special_gstcv_dask.estimator=junk_estimator
 
         with pytest.raises(AttributeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('non_estimator',
         (int, str, list, object, sk_OneHotEncoder)
     )
     def test_rejects_non_estimator(
-        self, base_gstcv_dask, non_estimator, X_da, y_da, _client
+        self, special_gstcv_dask, non_estimator, X_da, y_da, _client
     ):
 
-        base_gstcv_dask.estimator=non_estimator()
+        special_gstcv_dask.estimator=non_estimator()
 
         with pytest.raises(AttributeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('non_classifier',
         (sk_LinearRegression(), sk_Ridge(), sk_RidgeClassifier())
     )
     def test_rejects_non_classifier(
-        self, X_da, y_da, non_classifier, base_gstcv_dask, _client
+        self, X_da, y_da, non_classifier, special_gstcv_dask, _client
     ):
 
-        base_gstcv_dask.set_params(estimator=non_classifier)
+        special_gstcv_dask.set_params(estimator=non_classifier)
 
         with pytest.raises(AttributeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('not_instantiated',
         (sk_LogisticRegression, sk_SGDClassifier, CalibratedClassifierCV)
     )
     def test_rejects_classifier_not_instantiated(
-        self, base_gstcv_dask, not_instantiated, X_da, y_da, _client
+        self, special_gstcv_dask, not_instantiated, X_da, y_da, _client
     ):
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.set_params(estimator=not_instantiated)
+            special_gstcv_dask.set_params(estimator=not_instantiated)
 
 
     @pytest.mark.parametrize('non_dask_classifier',
         (sk_LogisticRegression, ) # for some reason sk_SGDClassifier not warning)
     )
     def test_warns_on_non_dask_classifiers(
-        self, base_gstcv_dask, non_dask_classifier, X_da, y_da, _client
+        self, special_gstcv_dask, non_dask_classifier, X_da, y_da, _client
     ):
 
         exp_warn = (f"'{non_dask_classifier().__class__.__name__}' does not "
             f"appear to be a dask classifier.")
 
         with pytest.warns(match=exp_warn):
-            base_gstcv_dask.set_params(estimator=non_dask_classifier())
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.set_params(estimator=non_dask_classifier())
+            special_gstcv_dask.fit(X_da, y_da)
 
 
-    def test_accepts_classifiers(self, base_gstcv_dask, X_da, y_da, _client):
+    def test_accepts_classifiers(self, special_gstcv_dask, X_da, y_da, _client):
 
-        base_gstcv_dask.set_params(estimator=sk_LogisticRegression())
+        special_gstcv_dask.set_params(estimator=sk_LogisticRegression())
 
-        isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
+        isinstance(special_gstcv_dask.fit(X_da, y_da), type(special_gstcv_dask))
 
 
     # END estimator v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -187,23 +187,26 @@ class TestInitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_param_grid(
-        self, X_da, y_da, junk_param_grid, base_gstcv_dask, _client
+        self, X_da, y_da, junk_param_grid, special_gstcv_dask, _client
     ):
 
-        base_gstcv_dask.set_params(param_grid=junk_param_grid)
+        special_gstcv_dask.set_params(param_grid=junk_param_grid)
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('empty_p_g', ({}, [], [{}], [{}, {}]))
     def test_handling_of_empties(
-        self, base_gstcv_dask, empty_p_g, X_da, y_da, _client
+        self, special_gstcv_dask, empty_p_g, X_da, y_da, _client
     ):
 
-        base_gstcv_dask.set_params(param_grid=empty_p_g)
+        special_gstcv_dask.set_params(param_grid=empty_p_g)
 
-        assert isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
+        assert isinstance(
+            special_gstcv_dask.fit(X_da, y_da),
+            type(special_gstcv_dask)
+        )
 
     # END param_grid v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -214,24 +217,24 @@ class TestInitValidation:
          {'a', 'b'}, lambda x: x)
     )
     def test_rejects_junk_thresholds(
-        self, X_da, y_da, base_gstcv_dask, junk_thresholds, _client
+        self, X_da, y_da, special_gstcv_dask, junk_thresholds, _client
     ):
 
-        base_gstcv_dask.set_params(thresholds=junk_thresholds)
+        special_gstcv_dask.set_params(thresholds=junk_thresholds)
 
         with pytest.raises((TypeError, ValueError)):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('bad_thresholds', ({'a': 1}, {0: 1}, {0: 'b'}))
     def test_rejects_bad_thresholds(
-        self, X_da, y_da, base_gstcv_dask, bad_thresholds, _client
+        self, X_da, y_da, special_gstcv_dask, bad_thresholds, _client
     ):
 
-        base_gstcv_dask.set_params(thresholds=bad_thresholds)
+        special_gstcv_dask.set_params(thresholds=bad_thresholds)
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
     # END thresholds v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -244,7 +247,7 @@ class TestInitValidation:
 
     @staticmethod
     @pytest.fixture
-    def good_param_grid():
+    def special_param_grid():
         return [
             {'C': [1e-6, 1e-5, 1e-4], 'solver':['saga', 'lbfgs']},
             {'solver':['saga', 'lbfgs'], 'tol': [1e-4, 1e-6]},
@@ -253,65 +256,66 @@ class TestInitValidation:
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     def test_pg_thresh_accuracy_1(
-        self, base_gstcv_dask, standard_thresholds, good_param_grid, X_da, y_da, _client
+        self, special_gstcv_dask, standard_thresholds, special_param_grid,
+        X_da, y_da, _client
     ):
 
         # if param_grid had valid thresholds in it, it comes out the same as
         # it went in, regardless of passed threshes (dicts 1 & 3)
 
-        out = base_gstcv_dask.set_params(
-            param_grid=good_param_grid[0],   # <==============
+        out = special_gstcv_dask.set_params(
+            param_grid=special_param_grid[0],   # <==============
             thresholds=np.linspace(0,1,5)
         ).fit(X_da, y_da)
 
-        assert isinstance(out, type(base_gstcv_dask))
+        assert isinstance(out, type(special_gstcv_dask))
 
         _param_grid = out.get_params(deep=True)['param_grid']
         assert isinstance(_param_grid, dict)
         assert len(_param_grid) == 2
-        assert np.array_equiv(_param_grid.keys(), good_param_grid[0].keys())
+        assert np.array_equiv(_param_grid.keys(), special_param_grid[0].keys())
         for k, v in _param_grid.items():
-            assert np.array_equiv(_param_grid[k], good_param_grid[0][k])
+            assert np.array_equiv(_param_grid[k], special_param_grid[0][k])
 
 
-        out = base_gstcv_dask.set_params(
-            param_grid=good_param_grid[2],   # <==============
+        out = special_gstcv_dask.set_params(
+            param_grid=special_param_grid[2],   # <==============
             thresholds=standard_thresholds
         ).fit(X_da, y_da)
 
-        assert isinstance(out, type(base_gstcv_dask))
+        assert isinstance(out, type(special_gstcv_dask))
 
         _param_grid = out.get_params(deep=True)['param_grid']
         assert isinstance(_param_grid, dict)
         assert len(_param_grid) == 3
-        assert np.array_equiv(_param_grid.keys(), good_param_grid[2].keys())
+        assert np.array_equiv(_param_grid.keys(), special_param_grid[2].keys())
         for k, v in _param_grid.items():
-            assert np.array_equiv(_param_grid[k], good_param_grid[2][k])
+            assert np.array_equiv(_param_grid[k], special_param_grid[2][k])
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
-    def test_pg_thresh_accuracy_2(self, base_gstcv_dask, X_da, y_da, _client):
+    def test_pg_thresh_accuracy_2(self, special_gstcv_dask, X_da, y_da, _client):
 
         # if param_grid was not passed, but thresholds was, should be a param
         # grid with only the thresholds in it
 
         # notice testing pass as set
-        out = base_gstcv_dask.set_params(
+        out = special_gstcv_dask.set_params(
             param_grid=[],
             thresholds={0, 0.25, 0.5, 0.75, 1}
         ).fit(X_da, y_da)
 
-        assert isinstance(out, type(base_gstcv_dask))
+        assert isinstance(out, type(special_gstcv_dask))
 
         _param_grid = out.get_params(deep=True)['param_grid']
         assert isinstance(_param_grid, list)
 
         # notice testing pass as list
-        out = base_gstcv_dask.set_params(
+        out = special_gstcv_dask.set_params(
             param_grid={},
             thresholds=[0, 0.25, 0.5, 0.75, 1]
         ).fit(X_da, y_da)
 
-        assert isinstance(out, type(base_gstcv_dask))
+        assert isinstance(out, type(special_gstcv_dask))
 
         _param_grid = out.get_params(deep=True)['param_grid']
         assert isinstance(_param_grid, dict)
@@ -319,25 +323,26 @@ class TestInitValidation:
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     def test_pg_thresh_accuracy_3(
-        self, base_gstcv_dask, standard_thresholds, X_da, y_da, _client
+        self, special_gstcv_dask, standard_thresholds, X_da, y_da, _client
     ):
 
         # if both param_grid and thresholds were not passed, should be one
         # param grid with default thresholds
 
-        out = base_gstcv_dask.set_params(
+        out = special_gstcv_dask.set_params(
             param_grid=[],
             thresholds=None
         ).fit(X_da, y_da)
 
-        assert isinstance(out, type(base_gstcv_dask))
+        assert isinstance(out, type(special_gstcv_dask))
 
         _param_grid = out.get_params(deep=True)['param_grid']
         assert isinstance(_param_grid, list)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     def test_pg_thresh_accuracy_4(
-        self, base_gstcv_dask, good_param_grid, standard_thresholds, X_da, y_da, _client
+        self, special_gstcv_dask, special_param_grid, standard_thresholds,
+        X_da, y_da, _client
     ):
 
         # if param_grid was passed and did not have thresholds, should be the
@@ -345,12 +350,12 @@ class TestInitValidation:
         # passed, default thresholds should be in it. (dict 2)
 
         # notice testing pass as set
-        out = base_gstcv_dask.set_params(
-            param_grid=good_param_grid,
+        out = special_gstcv_dask.set_params(
+            param_grid=special_param_grid,
             thresholds={0, 0.25, 0.5, 0.75, 1}
         ).fit(X_da, y_da)
 
-        assert isinstance(out, type(base_gstcv_dask))
+        assert isinstance(out, type(special_gstcv_dask))
 
         _param_grid = out.get_params(deep=True)['param_grid']
         assert isinstance(_param_grid, list)
@@ -360,20 +365,20 @@ class TestInitValidation:
 
             assert np.array_equiv(
                 list(_grid.keys()),
-                list(good_param_grid[_idx].keys())
+                list(special_param_grid[_idx].keys())
             )
             for k,v in _grid.items():
-                assert np.array_equiv(v, good_param_grid[_idx][k])
+                assert np.array_equiv(v, special_param_grid[_idx][k])
 
         # ** * ** *
 
 
-        out = base_gstcv_dask.set_params(
-            param_grid=good_param_grid,
+        out = special_gstcv_dask.set_params(
+            param_grid=special_param_grid,
             thresholds=None
         ).fit(X_da, y_da)
 
-        assert isinstance(out, type(base_gstcv_dask))
+        assert isinstance(out, type(special_gstcv_dask))
 
         _param_grid = out.get_params(deep=True)['param_grid']
         assert isinstance(_param_grid, list)
@@ -383,10 +388,10 @@ class TestInitValidation:
 
             assert np.array_equiv(
                 list(_grid.keys()),
-                list(good_param_grid[_idx].keys())
+                list(special_param_grid[_idx].keys())
             )
             for k,v in _grid.items():
-                assert np.array_equiv(v, good_param_grid[_idx][k])
+                assert np.array_equiv(v, special_param_grid[_idx][k])
 
     # END joint param_grid & thresholds v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
@@ -399,80 +404,80 @@ class TestInitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_cv(
-        self, X_da, y_da, base_gstcv_dask, junk_cv, _client
+        self, X_da, y_da, special_gstcv_dask, junk_cv, _client
     ):
 
-        base_gstcv_dask.set_params(cv=junk_cv)
+        special_gstcv_dask.set_params(cv=junk_cv)
 
         with pytest.raises((ValueError, TypeError)):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
-    def test_cv_accepts_None(self, base_gstcv_dask, X_da, y_da, _client):
+    def test_cv_accepts_None(self, special_gstcv_dask, X_da, y_da, _client):
 
         assert isinstance(
-            base_gstcv_dask.set_params(cv=None).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(cv=None).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
-        assert base_gstcv_dask.get_params(deep=True)['cv'] is None
+        assert special_gstcv_dask.get_params(deep=True)['cv'] is None
 
 
     @pytest.mark.parametrize('bad_cv', (-1, 0, 1))
     def test_cv_value_error_less_than_2(
-        self, base_gstcv_dask, bad_cv, X_da, y_da, _client
+        self, special_gstcv_dask, bad_cv, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(cv=bad_cv).fit(X_da, y_da)
+            special_gstcv_dask.set_params(cv=bad_cv).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize(f'good_int', (2, 3, 4, 5))
     def test_cv_accepts_good_int(
-        self, base_gstcv_dask, good_int, X_da, y_da, _client
+        self, special_gstcv_dask, good_int, X_da, y_da, _client
     ):
         assert isinstance(
-            base_gstcv_dask.set_params(cv=good_int).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(cv=good_int).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
-        assert base_gstcv_dask.get_params(deep=True)['cv'] == good_int
+        assert special_gstcv_dask.get_params(deep=True)['cv'] == good_int
 
 
     @pytest.mark.parametrize(f'junk_iter', ([1, 2, 3], (True, False)))
     def test_cv_rejects_junk_iter_1(
-        self, base_gstcv_dask, junk_iter, X_da, y_da, _client
+        self, special_gstcv_dask, junk_iter, X_da, y_da, _client
     ):
 
         with pytest.raises(TypeError):
-            assert base_gstcv_dask.set_params(cv=junk_iter).fit(X_da, y_da)
+            assert special_gstcv_dask.set_params(cv=junk_iter).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize(f'junk_iter',
         ([[1, 2, 3], [1, 2, 3], [2, 3, 4]], list('abcde'))
     )
     def test_cv_rejects_junk_iter_2(
-        self, base_gstcv_dask, junk_iter, X_da, y_da, _client
+        self, special_gstcv_dask, junk_iter, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            assert base_gstcv_dask.set_params(
+            assert special_gstcv_dask.set_params(
                 cv=[[1, 2, 3], [1, 2, 3], [2, 3, 4]]
             ).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
-    def test_cv_accepts_good_iter(self, base_gstcv_dask, X_da, y_da, _client):
+    def test_cv_accepts_good_iter(self, special_gstcv_dask, X_da, y_da, _client):
 
         good_iter = sk_KFold(n_splits=3).split(X_da, y_da)
 
-        base_gstcv_dask.set_params(cv=good_iter).fit(X_da, y_da)
+        special_gstcv_dask.set_params(cv=good_iter).fit(X_da, y_da)
 
 
-    def test_cv_rejects_empties(self, base_gstcv_dask, X_da, y_da, _client):
-
-        with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(cv=[()]).fit(X_da, y_da)
+    def test_cv_rejects_empties(self, special_gstcv_dask, X_da, y_da, _client):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(cv=(_ for _ in range(0))).fit(X_da, y_da)
+            special_gstcv_dask.set_params(cv=[()]).fit(X_da, y_da)
+
+        with pytest.raises(ValueError):
+            special_gstcv_dask.set_params(cv=(_ for _ in range(0))).fit(X_da, y_da)
 
     # END cv v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -485,32 +490,35 @@ class TestInitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_error_score(
-        self, X_da, y_da, base_gstcv_dask, junk_error_score, _client
+        self, X_da, y_da, special_gstcv_dask, junk_error_score, _client
     ):
 
-        base_gstcv_dask.set_params(error_score=junk_error_score)
+        special_gstcv_dask.set_params(error_score=junk_error_score)
 
         with pytest.raises((TypeError, ValueError)):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     def test_error_score_rejects_bad_str(
-        self, base_gstcv_dask, X_da, y_da, _client
+        self, special_gstcv_dask, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(error_score='garbage').fit(X_da, y_da)
+            special_gstcv_dask.set_params(error_score='garbage').fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('good_error_score', (-1, 0, 1, 3.14, np.nan, 'raise'))
     def test_error_score_accepts_any_num_or_literal_raise(
-        self, base_gstcv_dask, good_error_score, X_da, y_da, _client
+        self, special_gstcv_dask, good_error_score, X_da, y_da, _client
     ):
 
-        base_gstcv_dask.set_params(error_score=good_error_score)
-        assert isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
+        special_gstcv_dask.set_params(error_score=good_error_score)
+        assert isinstance(
+            special_gstcv_dask.fit(X_da, y_da),
+            type(special_gstcv_dask)
+        )
 
-        _error_score = base_gstcv_dask.get_params(deep=True)['error_score']
+        _error_score = special_gstcv_dask.get_params(deep=True)['error_score']
         if _error_score is np.nan:
             assert good_error_score is np.nan
         else:
@@ -526,46 +534,46 @@ class TestInitValidation:
         (-10, -1, None, 'trash', min, [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_verbose(
-        self, X_da, y_da, base_gstcv_dask, junk_verbose, _client
+        self, X_da, y_da, special_gstcv_dask, junk_verbose, _client
     ):
 
-        base_gstcv_dask.set_params(verbose=junk_verbose)
+        special_gstcv_dask.set_params(verbose=junk_verbose)
 
         with pytest.raises((TypeError, ValueError)):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('junk_verbose',
         (None, 'trash', [0, 1], (0, 1), {0, 1}, {'a': 1}, min, lambda x: x)
     )
     def test_verbose_rejects_non_num(
-        self, base_gstcv_dask, junk_verbose, X_da, y_da, _client
+        self, special_gstcv_dask, junk_verbose, X_da, y_da, _client
     ):
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.set_params(verbose=junk_verbose).fit(X_da, y_da)
+            special_gstcv_dask.set_params(verbose=junk_verbose).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('bad_verbose', (-4, -3.14, -1))
     def test_verbose_rejects_negative(
-        self, base_gstcv_dask, bad_verbose, X_da, y_da, _client
+        self, special_gstcv_dask, bad_verbose, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(verbose=bad_verbose).fit(X_da, y_da)
+            special_gstcv_dask.set_params(verbose=bad_verbose).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('good_verbose',(0, 1, 3.14, 1000))
     def test_verbose_accepts_any_pos_num(
-        self, base_gstcv_dask, good_verbose, X_da, y_da, _client
+        self, special_gstcv_dask, good_verbose, X_da, y_da, _client
     ):
 
         assert isinstance(
-            base_gstcv_dask.set_params(verbose=good_verbose).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(verbose=good_verbose).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
 
-        assert base_gstcv_dask.get_params(deep=True)['verbose'] == good_verbose
+        assert special_gstcv_dask.get_params(deep=True)['verbose'] == good_verbose
 
     # END verbose v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
@@ -586,13 +594,13 @@ class TestInitValidation:
         (0, 1, 3.14, [0, 1], (0, 1), {0, 1}, {'a': 1})
     )
     def test_refit_rejects_junk(
-        self, base_gstcv_dask, n_scorers, junk_refit, X_da, y_da, _client
+        self, special_gstcv_dask, n_scorers, junk_refit, X_da, y_da, _client
     ):
 
-        base_gstcv_dask.set_params(refit=junk_refit, scoring=n_scorers)
+        special_gstcv_dask.set_params(refit=junk_refit, scoring=n_scorers)
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
@@ -600,84 +608,84 @@ class TestInitValidation:
     (lambda X: 0, lambda X: len(X['params']) - 1)
     )
     def test_refit_accepts_callable(
-        self, base_gstcv_dask, n_scorers, _callable, X_da, y_da, _client
+        self, special_gstcv_dask, n_scorers, _callable, X_da, y_da, _client
     ):
 
         kwargs = {'refit': _callable, 'scoring': n_scorers}
 
         assert isinstance(
-            base_gstcv_dask.set_params(**kwargs).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(**kwargs).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
-        assert base_gstcv_dask.get_params(deep=True)['refit'] == _callable
+        assert special_gstcv_dask.get_params(deep=True)['refit'] == _callable
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
     @pytest.mark.parametrize('_refit', (False,))
     def test_refit_accepts_False(
-        self, base_gstcv_dask, n_scorers, _refit, X_da, y_da, _client
+        self, special_gstcv_dask, n_scorers, _refit, X_da, y_da, _client
     ):
 
         kwargs = {'refit': _refit, 'scoring': n_scorers}
 
         if len(n_scorers) == 1:
             assert isinstance(
-                base_gstcv_dask.set_params(**kwargs).fit(X_da, y_da),
-                type(base_gstcv_dask)
+                special_gstcv_dask.set_params(**kwargs).fit(X_da, y_da),
+                type(special_gstcv_dask)
             )
 
         elif len(n_scorers) == 2:
 
             with pytest.warns():
                 assert isinstance(
-                    base_gstcv_dask.set_params(**kwargs).fit(X_da, y_da),
-                    type(base_gstcv_dask)
+                    special_gstcv_dask.set_params(**kwargs).fit(X_da, y_da),
+                    type(special_gstcv_dask)
                 )
 
-        assert base_gstcv_dask.get_params(deep=True)['refit'] is False
+        assert special_gstcv_dask.get_params(deep=True)['refit'] is False
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('n_scorers', (one_scorer,))
     def test_refit_single_accepts_true(
-        self, base_gstcv_dask, n_scorers, X_da, y_da, _client
+        self, special_gstcv_dask, n_scorers, X_da, y_da, _client
     ):
 
         kwargs = {'refit': True, 'scoring': n_scorers}
 
         assert isinstance(
-            base_gstcv_dask.set_params(**kwargs).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(**kwargs).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
 
-        assert base_gstcv_dask.get_params(deep=True)['refit'] is True
+        assert special_gstcv_dask.get_params(deep=True)['refit'] is True
 
 
     @pytest.mark.parametrize('n_scorers', (two_scorers,))
     def test_refit_multi_rejects_true(
-        self, base_gstcv_dask, n_scorers, X_da, y_da, _client
+        self, special_gstcv_dask, n_scorers, X_da, y_da, _client
     ):
 
         kwargs = {'refit': True, 'scoring': n_scorers}
 
         with pytest.raises(ValueError):
-            assert base_gstcv_dask.set_params(**kwargs).fit(X_da, y_da)
+            assert special_gstcv_dask.set_params(**kwargs).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('n_scorers', (one_scorer, two_scorers))
     @pytest.mark.parametrize('junk_string', ('trash', 'garbage', 'junk'))
     def test_refit_rejects_junk_strings(
-        self, base_gstcv_dask, n_scorers, junk_string, X_da, y_da, _client
+        self, special_gstcv_dask, n_scorers, junk_string, X_da, y_da, _client
     ):
 
         kwargs = {'refit': junk_string, 'scoring': n_scorers}
 
         with pytest.raises(ValueError):
-            assert base_gstcv_dask.set_params(**kwargs).fit(X_da, y_da)
+            assert special_gstcv_dask.set_params(**kwargs).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('n_scorers', (two_scorers,))
     def test_refit_accepts_good_strings(
-        self, base_gstcv_dask, n_scorers, X_da, y_da, _client
+        self, special_gstcv_dask, n_scorers, X_da, y_da, _client
     ):
 
         data = (X_da, y_da)
@@ -685,16 +693,16 @@ class TestInitValidation:
 
         if len(n_scorers) == 1:
             assert isinstance(
-                base_gstcv_dask.set_params(**kwargs('accuracy')).fit(*data),
-                type(base_gstcv_dask)
+                special_gstcv_dask.set_params(**kwargs('accuracy')).fit(*data),
+                type(special_gstcv_dask)
             )
 
-            assert base_gstcv_dask.get_params(deep=True)['refit'] == 'accuracy'
+            assert special_gstcv_dask.get_params(deep=True)['refit'] == 'accuracy'
 
         if len(n_scorers) == 2:
-            base_gstcv_dask.set_params(**kwargs('balanced_accuracy'))
-            assert isinstance(base_gstcv_dask.fit(*data), type(base_gstcv_dask))
-            assert base_gstcv_dask.get_params(deep=True)['refit'] == \
+            special_gstcv_dask.set_params(**kwargs('balanced_accuracy'))
+            assert isinstance(special_gstcv_dask.fit(*data), type(special_gstcv_dask))
+            assert special_gstcv_dask.get_params(deep=True)['refit'] == \
                    'balanced_accuracy'
 
     # END refit v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -708,46 +716,49 @@ class TestInitValidation:
          {'a': 1}, {0: 1}, {'trash': 'junk'}, lambda x: x)
     )
     def test_rejects_junk_scoring(
-        self, X_da, y_da, base_gstcv_dask, junk_scoring, _client
+        self, X_da, y_da, special_gstcv_dask, junk_scoring, _client
     ):
 
-        base_gstcv_dask.set_params(scoring=junk_scoring)
+        special_gstcv_dask.set_params(scoring=junk_scoring)
 
         with pytest.raises((TypeError, ValueError)):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('junk_scoring', (0, 1, True, False, None, np.nan))
     def test_scoring_rejects_anything_not_str_callable_dict_iterable(
-        self, base_gstcv_dask, junk_scoring, X_da, y_da, _client
+        self, special_gstcv_dask, junk_scoring, X_da, y_da, _client
     ):
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.set_params(scoring=junk_scoring).fit(X_da, y_da)
+            special_gstcv_dask.set_params(scoring=junk_scoring).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('junk_scoring',
         ('junk', 'garbage', 'trash', 'rubbish', 'waste', 'refuse')
     )
     def test_scoring_rejects_bad_strs(
-        self, base_gstcv_dask, junk_scoring, X_da, y_da, _client
+        self, special_gstcv_dask, junk_scoring, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(scoring=junk_scoring).fit(X_da, y_da)
+            special_gstcv_dask.set_params(scoring=junk_scoring).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('good_scoring',
         ('accuracy', 'balanced_accuracy', 'precision', 'recall')
     )
     def test_scoring_accepts_good_strs(
-        self, base_gstcv_dask, good_scoring, X_da, y_da, _client
+        self, special_gstcv_dask, good_scoring, X_da, y_da, _client
     ):
 
-        base_gstcv_dask.set_params(scoring=good_scoring)
-        assert isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
+        special_gstcv_dask.set_params(scoring=good_scoring)
+        assert isinstance(
+            special_gstcv_dask.fit(X_da, y_da),
+            type(special_gstcv_dask)
+        )
 
-        _scoring = base_gstcv_dask.get_params(deep=True)['scoring']
+        _scoring = special_gstcv_dask.get_params(deep=True)['scoring']
         assert isinstance(_scoring, str)
         assert _scoring == good_scoring
 
@@ -756,45 +767,48 @@ class TestInitValidation:
         (lambda x: 'junk', lambda x: [0,1], lambda x,y: min, lambda x,y: x)
     )
     def test_scoring_rejects_non_num_callables(
-        self, base_gstcv_dask, junk_scoring, X_da, y_da, _client
+        self, special_gstcv_dask, junk_scoring, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(scoring=junk_scoring).fit(X_da, y_da)
+            special_gstcv_dask.set_params(scoring=junk_scoring).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     def test_scoring_accepts_good_callable(
-        self, base_gstcv_dask, X_da, y_da, _client
+        self, special_gstcv_dask, X_da, y_da, _client
     ):
 
         good_callable = lambda y1, y2: np.sum(np.array(y2)-np.array(y1))
 
-        base_gstcv_dask.set_params(scoring=good_callable)
-        assert isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
+        special_gstcv_dask.set_params(scoring=good_callable)
+        assert isinstance(
+            special_gstcv_dask.fit(X_da, y_da),
+            type(special_gstcv_dask)
+        )
 
-        _scoring = base_gstcv_dask.get_params(deep=True)['scoring']
+        _scoring = special_gstcv_dask.get_params(deep=True)['scoring']
         assert callable(_scoring)
         assert float(_scoring([1, 0, 1, 1], [1, 0, 0, 1]))
 
 
     @pytest.mark.parametrize('junk_scoring', ([], (), {}))
     def test_scoring_rejects_empty(
-        self, base_gstcv_dask, junk_scoring, X_da, y_da, _client
+        self, special_gstcv_dask, junk_scoring, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(scoring=junk_scoring).fit(X_da, y_da)
+            special_gstcv_dask.set_params(scoring=junk_scoring).fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('junk_lists',
         ([1,2,3], ('a','b','c'), {0,1,2}, ['trash', 'garbage', 'junk'])
     )
     def test_scoring_rejects_junk_lists(
-        self, base_gstcv_dask, junk_lists, X_da, y_da, _client
+        self, special_gstcv_dask, junk_lists, X_da, y_da, _client
     ):
 
         with pytest.raises((TypeError, ValueError)):
-            base_gstcv_dask.set_params(scoring=junk_lists).fit(X_da, y_da)
+            special_gstcv_dask.set_params(scoring=junk_lists).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('good_lists',
@@ -802,15 +816,15 @@ class TestInitValidation:
          {'f1', 'balanced_accuracy', 'recall', 'precision'})
     )
     def test_scoring_accepts_good_lists(
-        self, base_gstcv_dask, good_lists, X_da, y_da, _client
+        self, special_gstcv_dask, good_lists, X_da, y_da, _client
     ):
 
         assert isinstance(
-            base_gstcv_dask.set_params(scoring=good_lists).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(scoring=good_lists).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
 
-        _scoring = base_gstcv_dask.get_params(deep=True)['scoring']
+        _scoring = special_gstcv_dask.get_params(deep=True)['scoring']
         assert isinstance(_scoring, (list, tuple, set))
         assert np.array_equiv(sorted(_scoring), sorted(good_lists))
 
@@ -820,11 +834,11 @@ class TestInitValidation:
          {'metric1': lambda y1, y2: 'trash', 'metric2': lambda x: 1})
     )
     def test_scoring_rejects_junk_dicts(
-        self, base_gstcv_dask, junk_dicts, X_da, y_da, _client
+        self, special_gstcv_dask, junk_dicts, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(scoring=junk_dicts).fit(X_da, y_da)
+            special_gstcv_dask.set_params(scoring=junk_dicts).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('good_dict',
@@ -832,15 +846,15 @@ class TestInitValidation:
          {'metric1': precision_score, 'metric2': recall_score})
     )
     def test_scoring_accepts_good_dicts(
-        self, base_gstcv_dask, good_dict, X_da, y_da, _client
+        self, special_gstcv_dask, good_dict, X_da, y_da, _client
     ):
 
         assert isinstance(
-            base_gstcv_dask.set_params(scoring=good_dict).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(scoring=good_dict).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
 
-        _scoring = base_gstcv_dask.get_params(deep=True)['scoring']
+        _scoring = special_gstcv_dask.get_params(deep=True)['scoring']
         assert isinstance(_scoring, dict)
         assert len(_scoring) == len(good_dict)
         for metric in good_dict:
@@ -859,44 +873,44 @@ class TestInitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_n_jobs(
-        self, X_da, y_da, base_gstcv_dask, junk_n_jobs, _client
+        self, X_da, y_da, special_gstcv_dask, junk_n_jobs, _client
     ):
 
-        base_gstcv_dask.set_params(n_jobs=junk_n_jobs)
+        special_gstcv_dask.set_params(n_jobs=junk_n_jobs)
 
         with pytest.raises((TypeError, ValueError)):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('bad_njobs', (-2, 0, 3.14))
     def test_n_jobs_rejects_bad_int(
-        self, base_gstcv_dask, bad_njobs, X_da, y_da, _client
+        self, special_gstcv_dask, bad_njobs, X_da, y_da, _client
     ):
 
         with pytest.raises(ValueError):
-            base_gstcv_dask.set_params(n_jobs=bad_njobs).fit(X_da, y_da)
+            special_gstcv_dask.set_params(n_jobs=bad_njobs).fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
-    def test_n_jobs_None_returns_None(self, base_gstcv_dask, X_da, y_da, _client):
+    def test_n_jobs_None_returns_None(self, special_gstcv_dask, X_da, y_da, _client):
 
         assert isinstance(
-            base_gstcv_dask.set_params(n_jobs=None).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(n_jobs=None).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
 
-        assert base_gstcv_dask.get_params(deep=True)['n_jobs'] is None
+        assert special_gstcv_dask.get_params(deep=True)['n_jobs'] is None
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('good_njobs', (-1, 2))
     def test_n_jobs_otherwise_returns_given(
-        self, base_gstcv_dask, good_njobs, X_da, y_da, _client
+        self, special_gstcv_dask, good_njobs, X_da, y_da, _client
     ):
         assert isinstance(
-            base_gstcv_dask.set_params(n_jobs=good_njobs).fit(X_da, y_da),
-            type(base_gstcv_dask)
+            special_gstcv_dask.set_params(n_jobs=good_njobs).fit(X_da, y_da),
+            type(special_gstcv_dask)
         )
 
-        assert base_gstcv_dask.get_params(deep=True)['n_jobs'] == good_njobs
+        assert special_gstcv_dask.get_params(deep=True)['n_jobs'] == good_njobs
 
     # END n_jobs v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -909,24 +923,27 @@ class TestInitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_return_train_score(
-        self, X_da, y_da, base_gstcv_dask, junk_return_train_score, _client
+        self, X_da, y_da, special_gstcv_dask, junk_return_train_score, _client
     ):
 
-        base_gstcv_dask.set_params(return_train_score=junk_return_train_score)
+        special_gstcv_dask.set_params(return_train_score=junk_return_train_score)
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
     @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
     @pytest.mark.parametrize('good_train_score', (True, False))
     def test_train_score_accepts_bool(
-        self, base_gstcv_dask, good_train_score, X_da, y_da, _client
+        self, special_gstcv_dask, good_train_score, X_da, y_da, _client
     ):
 
-        base_gstcv_dask.set_params(return_train_score=good_train_score)
-        assert isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
+        special_gstcv_dask.set_params(return_train_score=good_train_score)
+        assert isinstance(
+            special_gstcv_dask.fit(X_da, y_da),
+            type(special_gstcv_dask)
+        )
 
-        assert base_gstcv_dask.get_params(deep=True)['return_train_score'] == \
+        assert special_gstcv_dask.get_params(deep=True)['return_train_score'] == \
                good_train_score
 
     # END return_train_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
@@ -952,13 +969,13 @@ class TestInitValidation:
          {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_cache_cv(
-        self, X_da, y_da, base_gstcv_dask, junk_cache_cv, _client
+        self, X_da, y_da, special_gstcv_dask, junk_cache_cv, _client
     ):
 
-        base_gstcv_dask.set_params(cache_cv=junk_cache_cv)
+        special_gstcv_dask.set_params(cache_cv=junk_cache_cv)
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     @pytest.mark.parametrize('junk_iid',
@@ -966,13 +983,13 @@ class TestInitValidation:
         {'a': 1}, lambda x: x)
     )
     def test_rejects_junk_iid(
-        self, X_da, y_da, base_gstcv_dask, junk_iid, _client
+        self, X_da, y_da, special_gstcv_dask, junk_iid, _client
     ):
 
-        base_gstcv_dask.set_params(iid=junk_iid)
+        special_gstcv_dask.set_params(iid=junk_iid)
 
         with pytest.raises(TypeError):
-            base_gstcv_dask.fit(X_da, y_da)
+            special_gstcv_dask.fit(X_da, y_da)
 
 
     # there is no validation for scheduler
@@ -986,29 +1003,32 @@ class TestInitValidation:
         )
     )
     def test_cache_cv_iid_sheduler_accepts_good(
-        self, base_gstcv_dask, good_cachecv, good_iid, good_scheduler,
+        self, special_gstcv_dask, good_cachecv, good_iid, good_scheduler,
         marked_client_class, good_n_jobs, X_da, y_da, _client
     ):
 
         if good_scheduler == 'marked_client_class':
             good_scheduler = marked_client_class(n_workers=1)
 
-        base_gstcv_dask.set_params(
+        special_gstcv_dask.set_params(
             cache_cv=good_cachecv,
             iid=good_iid,
             scheduler=good_scheduler,
             n_jobs=good_n_jobs
         )
 
-        assert isinstance(base_gstcv_dask.fit(X_da, y_da), type(base_gstcv_dask))
+        assert isinstance(
+            special_gstcv_dask.fit(X_da, y_da),
+            type(special_gstcv_dask)
+        )
 
-        assert base_gstcv_dask.get_params(deep=True)['cache_cv'] is good_cachecv
-        assert base_gstcv_dask.get_params(deep=True)['iid'] is good_iid
+        assert special_gstcv_dask.get_params(deep=True)['cache_cv'] is good_cachecv
+        assert special_gstcv_dask.get_params(deep=True)['iid'] is good_iid
         if good_scheduler is None:
-            assert base_gstcv_dask.get_params(deep=True)['scheduler'] is None
+            assert special_gstcv_dask.get_params(deep=True)['scheduler'] is None
         elif isinstance(good_scheduler, marked_client_class):
             assert isinstance(
-                base_gstcv_dask.get_params(deep=True)['scheduler'],
+                special_gstcv_dask.get_params(deep=True)['scheduler'],
                 marked_client_class
             )
 

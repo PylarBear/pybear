@@ -32,7 +32,8 @@ class TestFoldSplitter:
         {'a':1}, lambda x: x, np.random.randint(0,10,(5,3)))
     )
     def test_rejects_everything_not_dask(self, bad_data_object):
-
+        # this block is in place because of the limited if/elifs that
+        # manage the slicing for different containers in _fold_splitter
         with pytest.raises(TypeError):
             _fold_splitter(
                 [0,2,4],

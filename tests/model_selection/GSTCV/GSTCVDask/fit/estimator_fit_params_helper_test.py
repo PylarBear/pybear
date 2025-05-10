@@ -5,6 +5,7 @@
 #
 
 
+
 import pytest
 
 import numpy as np
@@ -14,8 +15,6 @@ from dask_ml.model_selection import KFold as dask_KFold
 
 from pybear.model_selection.GSTCV._GSTCVDask._fit._estimator_fit_params_helper \
     import _estimator_fit_params_helper
-
-
 
 
 
@@ -30,19 +29,12 @@ class TestEstimatorFitParamsHelper:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # pizza see if u can get everything in this module over to X_da & y_da
     @staticmethod
     @pytest.fixture
-    def good_data_len():
-        return 10
-
-
-    @staticmethod
-    @pytest.fixture
-    def good_dask_fit_params(good_data_len):
+    def good_dask_fit_params(_rows):
         return {
-            'sample_weight': da.random.uniform(0, 1, good_data_len),
-            'fake_sample_weight': da.random.uniform(0, 1, good_data_len // 2),
+            'sample_weight': da.random.uniform(0, 1, _rows),
+            'fake_sample_weight': da.random.uniform(0, 1, _rows // 2),
             'made_up_param_1':  'something_else',
             'made_up_param_2': False,
             'some_other_param_1': {'abc': 123}
@@ -56,7 +48,6 @@ class TestEstimatorFitParamsHelper:
         # vectors in fit params must be equal
         __ = {}
         for param, value in good_dask_fit_params.items():
-
             try:
                 __[param] = value.compute()
             except:
@@ -67,29 +58,19 @@ class TestEstimatorFitParamsHelper:
 
     @staticmethod
     @pytest.fixture
-    def good_sk_kfold(standard_cv_int, good_data_len):
-        return list(
-            sk_KFold(n_splits=standard_cv_int).split(
-                np.empty((good_data_len, 5)),
-                np.empty((good_data_len,))
-            )
-        )
+    def good_sk_kfold(standard_cv_int, X_da, y_da):
+        return list(sk_KFold(n_splits=standard_cv_int).split(X_da, y_da))
 
 
     @staticmethod
     @pytest.fixture
-    def good_dask_kfold(standard_cv_int, good_data_len):
-        return list(
-            dask_KFold(n_splits=standard_cv_int).split(
-                da.empty((good_data_len, 5)),
-                da.empty((good_data_len,))
-            )
-        )
+    def good_dask_kfold(standard_cv_int, X_da, y_da):
+        return list(dask_KFold(n_splits=standard_cv_int).split(X_da, y_da))
 
 
     @staticmethod
     @pytest.fixture
-    def exp_dask_helper_output(good_data_len, good_dask_fit_params, good_dask_kfold):
+    def exp_dask_helper_output(_rows, good_dask_fit_params, good_dask_kfold):
 
         dask_helper = {}
 
@@ -104,7 +85,7 @@ class TestEstimatorFitParamsHelper:
                     if isinstance(v, (dict, str)):
                         raise
 
-                    if len(v) != good_data_len:
+                    if len(v) != _rows:
                         raise
 
                 except:
@@ -114,8 +95,6 @@ class TestEstimatorFitParamsHelper:
                 dask_helper[idx][k] = v.copy()[train_idxs]
 
         return dask_helper
-
-
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -146,17 +125,17 @@ class TestEstimatorFitParamsHelper:
         (-3.14, -1, 0, True, None, 'junk', [0,1], (1,2), min, lambda x: x)
     )
     def test_fit_params_rejects_not_dict(
-        self, good_data_len, bad_fit_params, good_sk_kfold, good_dask_kfold
+        self, _rows, bad_fit_params, good_sk_kfold, good_dask_kfold
     ):
 
         with pytest.raises(AssertionError):
             _estimator_fit_params_helper(
-                good_data_len, bad_fit_params, good_sk_kfold
+                _rows, bad_fit_params, good_sk_kfold
             )
 
         with pytest.raises(AssertionError):
             _estimator_fit_params_helper(
-                good_data_len, bad_fit_params, good_dask_kfold
+                _rows, bad_fit_params, good_dask_kfold
             )
 
 
@@ -166,17 +145,17 @@ class TestEstimatorFitParamsHelper:
          lambda x: x)
     )
     def test_kfold_rejects_not_list_of_tuples(
-        self, good_data_len, good_sk_fit_params, good_dask_fit_params, bad_kfold
+        self, _rows, good_sk_fit_params, good_dask_fit_params, bad_kfold
     ):
 
         with pytest.raises(AssertionError):
             _estimator_fit_params_helper(
-                good_data_len, good_sk_fit_params, bad_kfold
+                _rows, good_sk_fit_params, bad_kfold
             )
 
         with pytest.raises(AssertionError):
             _estimator_fit_params_helper(
-                good_data_len, good_dask_fit_params, bad_kfold
+                _rows, good_dask_fit_params, bad_kfold
             )
 
     # END test validation of args ** * ** * ** * ** * ** * ** * ** * ** *
@@ -190,7 +169,7 @@ class TestEstimatorFitParamsHelper:
     @pytest.mark.parametrize('kfold_type', ('dask', 'sklearn'))
     @pytest.mark.parametrize('fit_params_type', ('dask', 'sklearn'))
     def test_accuracy(
-        self, good_data_len, good_sk_fit_params, good_sk_kfold,
+        self, _rows, good_sk_fit_params, good_sk_kfold,
         good_dask_fit_params, good_dask_kfold, exp_dask_helper_output,
         kfold_type, fit_params_type
     ):
@@ -205,7 +184,7 @@ class TestEstimatorFitParamsHelper:
         elif kfold_type=='sklearn':
             _kfold = good_sk_kfold
 
-        out = _estimator_fit_params_helper(good_data_len, _fit_params, _kfold)
+        out = _estimator_fit_params_helper(_rows, _fit_params, _kfold)
 
         for f_idx, exp_fold_fit_param_dict in exp_dask_helper_output.items():
 
@@ -232,17 +211,17 @@ class TestEstimatorFitParamsHelper:
                     __ = exp_value
 
                 if isinstance(_, np.ndarray): # if was any array, must be np now
-                    assert len(_) < good_data_len
-                    assert len(__) < good_data_len
+                    assert len(_) < _rows
+                    assert len(__) < _rows
                     assert np.array_equiv(_, __)
                 else:
                     assert _ == __
 
 
-    def test_accuracy_empty(self, good_data_len, good_dask_kfold):
+    def test_accuracy_empty(self, _rows, good_dask_kfold):
 
         out = _estimator_fit_params_helper(
-            good_data_len,
+            _rows,
             {},
             good_dask_kfold
         )
@@ -251,7 +230,5 @@ class TestEstimatorFitParamsHelper:
 
         for idx, fit_params in out.items():
             assert fit_params == {}
-
-
 
 
