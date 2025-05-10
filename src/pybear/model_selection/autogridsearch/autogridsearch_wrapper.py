@@ -213,6 +213,22 @@ def autogridsearch_wrapper(
             return self._RESULTS
 
 
+        @property
+        def params_(self) -> ParamsType:
+            """
+            Access the `params_` attribute. If the :attr: `params`
+            attribute is modified during the AutoGridSearch session,
+            the changes are captured in this work-in-process object.
+            This is the version of `params` that was actually used
+            during the AutoGridSearch session. Events that alter the
+            originally-passed `params` include the initial conversion
+            of integer 'points' to a list of points, and shift passes,
+            which always extend the list of points.
+            """
+            check_is_fitted(self)
+            return self._params
+
+
         def __pybear_is_fitted__(self) -> bool:
             return hasattr(self, '_GRIDS')
 
@@ -462,7 +478,7 @@ def autogridsearch_wrapper(
                 self.agscv_verbose
             )
 
-            _params, _total_passes, _max_shifts = _conditioning(
+            self._params, _total_passes, _max_shifts = _conditioning(
                 self.params,
                 self.total_passes,
                 self.max_shifts,
@@ -474,13 +490,13 @@ def autogridsearch_wrapper(
             # IS_LOGSPACE IS DYNAMIC, WILL CHANGE WHEN A PARAM'S LOGSPACE
             # SEARCH GRID INTERVAL IS REGAPPED TO 1 OR TRANSITIONS FROM
             # LOGSPACE TO LINSPACE
-            _IS_LOGSPACE = _build_is_logspace(_params)
+            _IS_LOGSPACE = _build_is_logspace(self._params)
 
             # ONLY POPULATE PHLITE WITH numerical_params WITH "soft"
             # BOUNDARY AND START AS FALSE
             _PHLITE = {}
-            for hprmtr in _params:
-                if 'soft' in _params[hprmtr][-1].lower():
+            for hprmtr in self._params:
+                if 'soft' in self._params[hprmtr][-1].lower():
                     _PHLITE[hprmtr] = False
 
             # skip refits before the last pass if possible to save time.
@@ -498,13 +514,13 @@ def autogridsearch_wrapper(
                 # _get_next_param_grid()
                 if _pass == 0:
                     # build the first search grid here
-                    self._GRIDS = _build(_params)
+                    self._GRIDS = _build(self._params)
                 else:
                     # build all other search grids here
-                    self._GRIDS, _params, _PHLITE, _IS_LOGSPACE, _shift_ctr, \
+                    self._GRIDS, self._params, _PHLITE, _IS_LOGSPACE, _shift_ctr, \
                     _total_passes = _get_next_param_grid(
                         self._GRIDS,   #  should have been made on pass 0
-                        _params,
+                        self._params,
                         _PHLITE,
                         _IS_LOGSPACE,
                         _best_params_from_previous_pass,

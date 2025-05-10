@@ -11,43 +11,45 @@ Run multiple passes of grid search with progressively narrower search
 spaces to find the most precise estimate of the best value for each
 hyperparameter. 'Best' values are those hyperparameter values within
 the given search space that minimize loss or maximize score for the
-particular data set and estimator being fit.
+particular dataset and estimator being fit.
 
-The :attr: `best_params_` attribute of sklearn / dask_ml / pybear grid
-search modules is a dictionary with hyperparameter names as keys and
-respective best values as values that is (sometimes) exposed upon
-completion of a search over a set of grids. autogridsearch_wrapper
-wraps these foundational GridSearch classes creating an AutoGridSearch
-class, and the superseding :meth: `fit` repeatedly makes calls to the
-parent's fit method to generate this `best_params_` attribute.
+The sklearn / dask_ml / pybear grid search modules expose these values
+through a :attr: `best_params_` attribute. It is a dictionary with
+hyperparameter names as keys and respective best values as values
+that is (sometimes) exposed after a search over a set of grids.
+autogridsearch_wrapper wraps these foundational GridSearch classes
+creating an AutoGridSearch class, and the superseding :meth: `fit`
+repeatedly makes calls to the parent's fit method to generate this
+`best_params_` attribute.
 
-autogridsearch_wrapper requires that the parent exposes the `best_params_`
+AutoGridSearch requires that the parent exposes the `best_params_`
 attribute on every call to its fit method. Grid search configurations
 where the parent does not expose the `best_params_` attribute are
-detected and rejected by autogridsearch_wrapper. The conditions where a
-parent grid search module does not expose the `best_params_` attribute
-are determined by things such as the number of scorers used and the
-`refit` setting. See the docs for your parent grid search module for
-information about when the `best_params_` attribute is or is not exposed.
+detected and rejected by AutoGridSearch. The conditions where a parent
+grid search module does not expose the `best_params_` attribute are
+determined by things such as the number of scorers used and the `refit`
+setting. See the docs for your parent grid search module for information
+about when the `best_params_` attribute is or is not exposed.
 
-On the first pass of an autogridsearch session, the first search grid
-is constructed as instructed in the :param: `params` parameter.
-Once the first search is completed and the `best_params_` attribute
-is retrieved, new search grids for the next pass are constructed based
-on:
+On the first pass of an AutoGridSearch session, the first search grids
+are constructed from the instructions in the :param: `params` parameter.
+The first grids are then passed to the parent GridSearch's `param_grid`
+parameter (or a different parameter such as `parameters` for some
+GridSearch modules) and fit is called on the parent. Once the first
+search is completed and the `best_params_` attribute is retrieved, new
+search grids for the next pass are constructed based on:
     • the preceding search grid,
     • the results within `best_params_`,
     • the hyperparameters' datatypes as specified in :param: `params`,
     • and the number of points as specified in :param: `params`.
 
-The new refined grids are then passed to the `param_grid` parameter of
-the parent GridSearchCV (or a different parameter such as `parameters`
-for other GridSearch modules.) Another round of GridSearchCV is run,
-`best_params_` is retrieved, and another `param_grid` is created. This
-process is repeated at least `total_passes` number of times, with each
-successive pass returning increasingly precise estimates of the true
-best hyperparameter values for the given estimator, data set, and
-restrictions imposed in the :param: `params` parameter.
+The new refined grids are then passed to the parent GridSearch again,
+another call to fit is made, `best_params_` is retrieved, and
+AutoGridSearch creates another `param_grid`. This process is repeated
+at least `total_passes` number of times, with each successive pass
+returning increasingly precise estimates of the true best hyperparameter
+values for the given estimator, dataset, and restrictions imposed in
+the :param: `params` parameter.
 
 Example `param_grid` for a parent GridSearch module:
     {
@@ -68,7 +70,7 @@ parent GridSearch, like :attr: `best_estimator_`, :attr: `best_params_`,
 and :attr: `best_score_`, etc., are exposed through the AutoGridSearch
 instance. In addition to those, AutoGridSearch exposes other attributes
 that capture all the grids and best hyperparameter values for each pass,
-the :attr: `GRIDS_` and :attr: `RESULTS_` attributes.
+the :attr: `GRIDS_` :attr: `RESULTS_`, and :attr: `params_` attributes.
 
 The `GRIDS_` attribute is a dictionary of all the search grids used
 during the AutoGridSearch session. It is a collection of every
@@ -79,15 +81,22 @@ GridSearch during the AutoGridSearch session. It is a collection of
 every `best_params_` returned for every `param_grid` passed, keyed by
 the zero-indexed pass number when that `best_params_` was generated.
 
+The `params_` attribute is the version of `params` that was actually
+used during the AutoGridSearch session. If the `params` attribute is
+modified during the AutoGridSearch session, the changes are captured in
+this work-in-process object. Events that alter the originally-passed
+`params` include the initial conversion of integer 'points' to a list
+of points, and shift passes, which always extend the list of points.
+
 AutoGridSearch leaves the API of the parent GridSearchCV module intact,
 and all the parent module's attributes and methods (except fit) are
 accessible via the AutoGridSearch instance. AutoGridSearch is in fact
-an instance of the parent GridSearch, just with a new fit method. So
-methods like :meth: `set_params`, :meth: `get_params`, etc., are
-accessible just as they would be in a stand-alone instance of the parent
-GridSearch.
+an instance of the parent GridSearch, just with a new fit method and some
+new parameters. So methods like :meth: `set_params`, :meth: `get_params`,
+etc., are accessible just as they would be in a stand-alone instance of
+the parent GridSearch.
 
-The parameters of the autogridsearch_wrapper itself (`total_passes`,
+The parameters of the AutoGridSearch instance (`total_passes`,
 `max_shifts`, etc.) can be accessed and set directly:
 
 >>> from pybear.model_selection import autogridsearch_wrapper
@@ -169,7 +178,7 @@ a 'fixed' hyperparameter.
 
 'shift' - The act of incrementing or decrementing all the values in a
 search grid by a fixed amount if GridSearchCV returns a best value that
-falls on one of the edges of the most-recently used grid. This can only
+falls on one of the ends of the most-recently used grid. This can only
 be done on 'soft_integer' and 'soft_float' search spaces; 'fixed'  and
 'hard' spaces are not shifted. This is best explained with an example.
 Consider a soft integer search space: grid = [20, 21, 22, 23, 24].
@@ -181,7 +190,7 @@ Similarly, if the best value returned by GridSearchCV is 24, then a
 grid[-2] - min(grid) -> 3. The search grid for the next round is
 [23, 24, 25, 26, 27].  If passed any 'soft' spaces, AutoGridSearch will
 perform shifting passes until 1) it reaches a pass in which all soft
-hyperparameters' best values simultaneously fall off the edges of their
+hyperparameters' best values simultaneously fall off the ends of their
 search grids, 2) `max_shifts` is reached, or 3) `total_passes_is_hard`
 is True and `total_passes` is reached.
 
@@ -235,7 +244,7 @@ points to use for each pass.
 
 Without shrink: [['a', 'b', 'c'], 3, 'fixed_string']
 with `total_passes` = 3 and a true best value of 'c' that is correctly
-discovered by AutoGridSearchCV.
+discovered by AutoGridSearch.
 This will generate the following search grids:
 
 pass 1: ['a', 'b', 'c']; best value = 'c'
@@ -247,7 +256,7 @@ pass 3: ['a', 'b', 'c']; best value = 'c'
 Now consider these instructions.
 With shrink: [['a', 'b', 'c'], [3, 1, 1], 'fixed_string']
 with `total_passes` = 3 and a true best value of 'c' that is correctly
-discovered by AutoGridSearchCV.
+discovered by AutoGridSearch.
 This will generate the following search grids:
 
 pass 1: ['a', 'b', 'c']; best value = 'c'
@@ -268,7 +277,7 @@ There are two distinct regimes in an AutoGridSearch session,
 Shift / Regap:
 First, the default behavior of AutoGridSearch, when allowed, is to shift
 the grids passed in :param: `params` for 'soft' hyperparameters to the
-state where a search round returns best values that are not on the edges
+state where a search round returns best values that are not on the ends
 of those search grids. This eliminates the possibility that their true
 best values are beyond the ranges of their grids. The consequences of
 that condition are two-fold:
@@ -282,23 +291,24 @@ correct.
 Read more about the mechanics of 'shifting' in the 'Terminology' section.
 
 During the 'shifting' process, 'shrink' is not performed on any spaces,
-and 'drilling' is not performed on any 'hard' spaces nor on 'soft'
-spaces that have already landed inside the edges of their grids.
-(AutoGridSearch will regap logspaces, if necessary, while shifing is
-still taking place, more on that later.) The grids for hyperparameters
-that are already 'good to go' during the shifting process are just
-replicated into the next round each time a 'shift' pass needs to
-be performed, and keep replicating until the non-centered 'soft'
-hyperparameters center themselves and are also 'good to go'.
+'drilling' is not performed on any 'hard' spaces, nor is any drilling
+done on any 'soft' spaces that have already landed inside the ends of
+their grids. (AutoGridSearch will regap logspaces, if necessary, while
+shifing is still taking place, more on that later.) The grids for
+hyperparameters that are already 'good to go' during the shifting
+process are just replicated into the next round each time a 'shift'
+pass needs to be performed, and keep replicating until all non-centered
+'soft' hyperparameters center themselves and are ready to go to drilling.
 
 AutoGridSearch accepts log10 intervals greater than one, allowing for
-search over astronomically large spaces. Once shifting requirements for
-that hyperparameter are fulfilled (best value is framed or `max_shifts`
-is reached), AutoGridSearch regaps that logspace to unit interval in
-log10 space. This is to allow sufficient fidelity in the search grid for
-other hyperparameters to be able to more freely toward their true global
-optima. All hyperparameters with log10 interval greater than 1 will be
-regapped before entering the drilling section of AutoGridSearch.
+search over astronomically large spaces. Once shifting requirements
+for that hyperparameter are fulfilled (best value is centered or
+`max_shifts` is reached), AutoGridSearch regaps that logspace to unit
+interval in log10 space. This is to allow sufficient fidelity in the
+search grid for other hyperparameters to be able to more freely toward
+their true global optima. All hyperparameters with log10 interval
+greater than 1 will be regapped before entering the drilling section of
+AutoGridSearch.
 
 Consider a search space of np.logspace(-15, 15, 7). The corresponding
 search grid is [1e-15, 1e-10, 1e-5, 0, 1e5, 1e10, 1e15]. The log10
@@ -307,7 +317,7 @@ within the grid range and the grid point closest to it is 1e5, which
 is what GridSearch returns. AutoGridSearch will regap that space to
 [1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10] for the next
 search round and proceed with shifting other hyperparameters until they
-are off the edges of their search grids. If a regap happens on a pass
+are off the ends of their search grids. If a regap happens on a pass
 where all other hyperparameters' shifting requirements were already
 satisfied, another round of GridSearch is run with the regapped grid(s)
 before proceeding to the drilling section after that round.
@@ -327,7 +337,7 @@ all other grids exactly as they were. In essence, AutoGridSearch
 inserts an exact copy of the last round as the next round, moving
 what was previously the next round out by 1 pass, with only the grids
 of violating hyperparameters having been shifted. Shrink passes are
-also pushed out.
+also pushed out by 1 pass.
 
 The user has some control over how total passes are counted with
 the :param: `total_passes_is_hard` parameter. :param: `total_passes`
@@ -341,12 +351,12 @@ increment :param: `total_passes` for each shifting pass. For example,
 consider a situation where :param: `total_passes` is set to 3 and we
 know beforehand that AutoGridSearch will need two shifting passes to
 center its search grids (this is likely impossible to know, but just
-for example.) On the first pass, AutoGridSearch will peform a shift and
-increment `total_passes` by 1 to 4. On the second pass, another shift
-will be done, and `total_passes` will be incrememnted by 1 to 5.
-Now that all best values are off the edges of their search grids,
-AutoGridSearch will proceed to complete the initially desired 3
-total passes, making 5 actual total passes.
+for example.) On the first pass, AutoGridSearch will peform a shift
+and increment `total_passes` by 1 to 4. On the second pass, another
+shift will be done, and `total_passes` will be incrememnted by 1 to
+5. Now that all best values are off the ends of their search grids,
+AutoGridSearch will proceed to complete the initially desired 3 total
+passes, making 5 actual total passes.
 
 Shifting behavior can be modified with the :param: `max_shifts`
 parameter. This is an integer that instructs AutoGridSearch to stop
@@ -363,9 +373,9 @@ poor search design. But, in case this does happen, AutoGridSearch does
 have a fail-safe that will catch floating point precision failures in
 logarithmic space, and inform the user with an error message.
 
-Once true best values are framed within their grids (or stopped short)
-and large logspace intervals are regapped, AutoGridSearch proceeds to
-further refine 'soft' and 'hard' search spaces by narrowing (drilling)
+Drill: Once true best values are framed within their grids (or stopped
+short) and large logspace intervals are regapped, AutoGridSearch proceeds
+to further refine 'soft' and 'hard' search spaces by narrowing (drilling)
 the search area around the returned best values. 'Fixed' search spaces
 cannot be drilled. All 'soft' and 'hard' search spaces are concurrently
 drilled. Any 'soft' or 'hard' logarithmic search spaces (which must have
@@ -543,23 +553,26 @@ total_passes:
     passes. Read elsewhere in the docs for more information about
     'shifting' and 'drilling'.
 total_passes_is_hard:
-    Optional[bool], default False - If True, `total_passes` is the exact
+    Optional[bool], default=False - If True, `total_passes` is the exact
     number of grid searches that will be performed. If False, rounds in
     which a 'shift' takes place will increment the total passes,
     essentially causing 'shift' passes to be ignored against the total
     count of grid searches.
 max_shifts:
-    Optional[Union[None, numbers.Integral]], default None - The maximum
+    Optional[Union[None, numbers.Integral]], default=None - The maximum
     number of 'shifting' searches allowed. If None, there is no limit to
     the number of shifts that AutoGridSearch will perform when trying
     to center search grids.
 agscv_verbose:
-    Optional[bool], default False - display the status of AutoGridSearch
+    Optional[bool], default=False - display the status of AutoGridSearch
     and other helpful information during the AutoGridSearch session, in
     addition to any verbosity displayed by the underlying GridsearchCV
     module. This parameter is separate from any 'verbose' parameter that
     the parent GridSearch may have, and any setting for that parent
     parameter needs to be manually entered by the user separately.
+**parent_gscv_kwargs
+    Optional[dict[str, Any]] - any keyword arguments to be passed to the
+    parent grid search module.
 
 
 Attributes
@@ -576,6 +589,14 @@ RESULTS_:
     i.e., external pass number 2 is key 1 in this dictionary. The final
     key holds the most precise estimates of the best hyperparameter
     values for the given estimator and data.
+params_:
+    ParamsType - Access the `params_` attribute. If the :attr: `params`
+    attribute is modified during the AutoGridSearch session, the changes
+    are captured in this work-in-process object. This is the version of
+    `params` that was actually used during the AutoGridSearch session.
+    Events that alter the originally-passed `params` include the initial
+    conversion of integer 'points' to a list of points, and shift passes,
+    which always extend the list of points.
 
 
 Notes

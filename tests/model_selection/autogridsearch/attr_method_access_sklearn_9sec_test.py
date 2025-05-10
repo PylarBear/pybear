@@ -53,7 +53,8 @@ class TestAttrAccessBeforeAndAfterFit(Fixtures):
             'best_score_'
             'best_params_',
             'GRIDS_',
-            'RESULTS_'
+            'RESULTS_',
+            'params_'
         ]
 
         # SHOULD GIVE AttributeError
@@ -73,7 +74,8 @@ class TestAttrAccessBeforeAndAfterFit(Fixtures):
         # 'best_score_',
         # 'best_params_',
         # 'GRIDS_',
-        # 'RESULTS_'
+        # 'RESULTS_',
+        # 'params_',
 
         # after fit, should have access to everything
 
@@ -128,6 +130,23 @@ class TestAttrAccessBeforeAndAfterFit(Fixtures):
         # RESULTS_ cannot be set
         with pytest.raises(AttributeError):
             setattr(TestCls, 'RESULTS_', {})
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _params = getattr(TestCls, 'params_')
+        assert isinstance(_params, dict)
+        assert len(_params) == len(TestCls.params)
+        for _key, _value in _params.items():
+            assert isinstance(_key, str)
+            assert isinstance(_value[0], list)
+            assert isinstance(_value[1], list)
+            assert all(map(
+                isinstance, _value[1], (numbers.Integral for i in _value[1])
+            ))
+            assert isinstance(_value[2], str)
+        # param_ cannot be set
+        with pytest.raises(AttributeError):
+            setattr(TestCls, 'params_', {})
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # END AFTER FIT ************************************************
