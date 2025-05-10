@@ -19,20 +19,9 @@ allowed_types = [
 ]
 
 
+
 class TestParamsValidation:
 
-
-    @staticmethod
-    @pytest.fixture
-    def good_dict_params():
-        return {
-            'param_a': [['a', 'b', 'c'], 3, 'fixed_string'],
-            'param_b': [np.logspace(1, 3, 3), [3, 11, 6], 'soft_float'],
-            'param_c': [[True, False], 2, 'fixed_bool']
-        }
-
-
-    # _params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @pytest.mark.parametrize('non_iterable',
         (0, 1, True, None, np.pi, min, lambda x: x)
@@ -76,8 +65,8 @@ class TestParamsValidation:
             _val_params(junk_dict, 3)
 
 
-    def test_accepts_dict(self, good_dict_params):
-        assert _val_params(good_dict_params, 3) is None
+    def test_accepts_dict(self, mock_estimator_params):
+        assert _val_params(mock_estimator_params, 3) is None
 
 
     def test_rejects_empty(self):

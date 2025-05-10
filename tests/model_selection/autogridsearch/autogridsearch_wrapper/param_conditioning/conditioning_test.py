@@ -29,10 +29,10 @@ class TestConditioning:
     def test_accuracy(self, _total_passes, _max_shifts, _inf_max_shifts):
 
         _params = {
-            'param_a': [{'a', 'b', 'c'}, 1, 'fixed_StRiNg'],
-            'param_b': ({True, False}, [2,2,1][:_total_passes], 'FiXeD_BOOL'),
-            'param_c': [(1,2,3,4), [4,1,1][:_total_passes], 'fixed_inTEGER'],
-            'param_d': (np.logspace(-5, 5, 11), 11, 'SOFT_float')
+            'param_1': [{'a', 'b', 'c'}, 1, 'fixed_StRiNg'],
+            'param_2': ({True, False}, [2,2,1][:_total_passes], 'FiXeD_BOOL'),
+            'param_3': [(1,2,3,4), [4,1,1][:_total_passes], 'fixed_inTEGER'],
+            'param_4': (np.logspace(-5, 5, 11), 11, 'SOFT_float')
         }
 
         out_params, out_total_passes, out_max_shifts = \
@@ -43,7 +43,7 @@ class TestConditioning:
                 _inf_max_shifts
             )
 
-        key_key = {0: 'param_a', 1:'param_b', 2:'param_c', 3:'param_d'}
+        key_key = {0: 'param_1', 1:'param_2', 2:'param_3', 3:'param_4'}
         type_key = {
             0: 'fixed_string', 1: 'fixed_bool', 2: 'fixed_integer',
             3: 'soft_float'

@@ -6,14 +6,14 @@
 
 
 
-from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
-    _validation import _validation
+import pytest
 
 from copy import deepcopy
 
 import numpy as np
 
-import pytest
+from pybear.model_selection.autogridsearch._autogridsearch_wrapper._validation. \
+    _validation import _validation
 
 
 
@@ -37,29 +37,19 @@ class TestValidation:
     @pytest.mark.parametrize('_max_shifts', (None, 3))
     @pytest.mark.parametrize('_agscv_verbose', (True, False))
     def test_accuracy(
-        self, _total_passes, _total_passes_is_hard, _max_shifts, _agscv_verbose
+        self, _total_passes, _total_passes_is_hard, _max_shifts, _agscv_verbose,
+        mock_estimator_params
     ):
 
-        _params = {
-            'param_a': [('a', 'b', 'c', 'd'), 4, 'fixed_string'],
-            'param_b': ({True, False}, 2, 'fixed_bool'),
-            'param_c': [
-                np.logspace(-5,5,11),
-                [11] + [6 for i in range(_total_passes-1)],
-                'soft_float'
-            ],
-            'param_d': [{1,2,3}, 3, 'fixed_integer']
-        }
-
         # save the og arguments to prove nothing is mutated
-        _og_params = deepcopy(_params)
+        _og_params = deepcopy(mock_estimator_params)
         _og_total_passes = deepcopy(_total_passes)
         _og_total_passes_is_hard = deepcopy(_total_passes_is_hard)
         _og_max_shifts = deepcopy(_max_shifts)
         _og_agscv_verbose = deepcopy(_agscv_verbose)
 
         assert _validation(
-            _params,
+            mock_estimator_params,
             _total_passes,
             _total_passes_is_hard,
             _max_shifts,
@@ -67,7 +57,7 @@ class TestValidation:
         ) is None
 
         # prove nothing is mutated
-        for _key, _value in _params.items():
+        for _key, _value in mock_estimator_params.items():
             assert _key in _og_params
             assert len(_value) == 3
             assert len(_og_params[_key]) == 3

@@ -14,13 +14,7 @@
 
 import pytest
 
-import numpy as np
-
 from pybear.model_selection import autogridsearch_wrapper
-
-from sklearn.datasets import make_classification as sk_make
-
-from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import (
@@ -29,6 +23,7 @@ from sklearn.model_selection import (
     HalvingGridSearchCV,
     HalvingRandomSearchCV
 )
+
 
 
 class TestSklearnGSCVS:
@@ -40,31 +35,6 @@ class TestSklearnGSCVS:
     #         max_shifts: Union[None, int] = None,
     #         agscv_verbose: bool = False,
     #         **parent_gscv_kwargs
-
-
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    @staticmethod
-    @pytest.fixture
-    def _estimator():
-        return sk_LogisticRegression()
-
-
-    @staticmethod
-    @pytest.fixture
-    def _params():
-        return {
-            'C': [np.logspace(-5, 5, 3), 3, 'soft_float'],
-            'fit_intercept': [[True, False], 2, 'fixed_bool']
-        }
-
-
-    @staticmethod
-    @pytest.fixture
-    def _X_y():
-        return sk_make(n_features=5, n_samples=100)
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('SKLEARN_GSCV',
@@ -83,8 +53,8 @@ class TestSklearnGSCVS:
     @pytest.mark.parametrize('_max_shifts', (2, ))
     @pytest.mark.parametrize('_refit', ('accuracy', False, lambda x: 0))
     def test_sklearn_gscvs(
-        self, _estimator, _params, SKLEARN_GSCV, _total_passes, _scorer,
-        _tpih, _max_shifts, _refit, _X_y
+        self, sk_estimator_1, sk_params_1, SKLEARN_GSCV, _total_passes, _scorer,
+        _tpih, _max_shifts, _refit, X_np, y_np
     ):
 
         # the 'halving' grid searches cannot take multiple scorers
@@ -95,8 +65,8 @@ class TestSklearnGSCVS:
             )
 
         AGSCV_params = {
-            'estimator': _estimator,
-            'params': _params,
+            'estimator': sk_estimator_1,
+            'params': sk_params_1,
             'total_passes': _total_passes,
             'total_passes_is_hard': _tpih,
             'max_shifts': _max_shifts,
@@ -104,10 +74,11 @@ class TestSklearnGSCVS:
             'scoring': _scorer,
             'n_jobs': -1,    # -1 is fastest 25_04_18_10_00_00
             'cv': 4,
-            'verbose': 0,
             'error_score': 'raise',
             'return_train_score': False,
-            'refit': _refit
+            'refit': _refit,
+            'pre_dispatch': '2*n_jobs',
+            'verbose': 0
         }
 
         AutoGridSearch = autogridsearch_wrapper(SKLEARN_GSCV)(**AGSCV_params)
@@ -124,7 +95,7 @@ class TestSklearnGSCVS:
         # expose 'best_params_'. Try to fit, if ValueError is raised, look to
         # see that 'best_params_' is not exposed and go to the next test.
         try:
-            AutoGridSearch.fit(*_X_y)
+            AutoGridSearch.fit(X_np, y_np)
             assert isinstance(getattr(AutoGridSearch, 'best_params_'), dict)
         except ValueError:
             assert not hasattr(AutoGridSearch, 'best_params_')
@@ -133,7 +104,7 @@ class TestSklearnGSCVS:
             raise hell
 
         # assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-        assert AutoGridSearch.total_passes >= len(_params['C'][1])
+        assert AutoGridSearch.total_passes >= _total_passes
         assert AutoGridSearch.total_passes_is_hard is _tpih
         assert AutoGridSearch.max_shifts == _max_shifts
         assert AutoGridSearch.agscv_verbose is False
@@ -141,7 +112,9 @@ class TestSklearnGSCVS:
         assert AutoGridSearch.refit == _refit
 
         if _refit:
-            assert isinstance(AutoGridSearch.best_estimator_, type(_estimator))
+            assert isinstance(
+                AutoGridSearch.best_estimator_, type(sk_estimator_1)
+            )
         elif not _refit:
             with pytest.raises(AttributeError):
                 AutoGridSearch.best_estimator_
@@ -149,11 +122,11 @@ class TestSklearnGSCVS:
 
         best_params_ = AutoGridSearch.best_params_
         assert isinstance(best_params_, dict)
-        assert sorted(list(best_params_)) == sorted(list(_params))
+        assert sorted(list(best_params_)) == sorted(list(sk_params_1))
         assert all(map(
             isinstance,
             best_params_.values(),
-            ((int, float, bool, str) for _ in _params)
+            ((int, float, bool, str) for _ in sk_params_1)
         ))
 
         # END assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * **

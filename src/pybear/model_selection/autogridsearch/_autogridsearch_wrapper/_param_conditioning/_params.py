@@ -83,6 +83,10 @@ def _cond_params(
 
     assert isinstance(_params, dict)
 
+    # 25_05_10 pytest session fixtures for params are showing that params
+    # is mutated somewhere. create a new copy of params, and do the
+    # conditioning on that, not the original self.params
+    _cond_params = {}
 
     for _key, _value in _params.items():
 
@@ -121,14 +125,10 @@ def _cond_params(
         _value[1][0] = len(_value[0])
         # END standardize points part 1 ** * ** * ** * ** * ** * ** * **
 
-
-        _params[_key] = _value
-
-
-    return _params
+        _cond_params[_key] = _value
 
 
-
+    return _cond_params
 
 
 

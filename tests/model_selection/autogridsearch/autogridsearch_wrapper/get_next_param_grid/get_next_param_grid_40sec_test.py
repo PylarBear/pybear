@@ -30,57 +30,33 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 
 
 
-
-
 class TestValidation:
 
     #   _GRIDS
     # core _GRIDS _validation handled by _validate_grid / validate_grids_test
 
-    @staticmethod
-    @pytest.fixture
-    def good_params():
-        return {
-            'a': [['x', 'y', 'z'], [3, 3, 1], 'fixed_string'],
-            'b': [[1, 2, 3], [3, 3, 3], 'fixed_integer'],
-            'c': [[1e1, 1e2, 1e3], [3, 11, 11], 'soft_float'],
-            'd': [[True, False], [2, 2, 1], 'fixed_bool']
-        }
-
 
     # special _GRIDS _validation
     # 'max_shifts' can never be None going into _get_next_param_grid
 
-    @pytest.mark.parametrize('good_phlite', ({'c': False}, ))
-    @pytest.mark.parametrize('good_is_logspace',
-        ({'a': False, 'b': False, 'c': 1.0, 'd': False}, )
-    )
-    @pytest.mark.parametrize('good_best_params',
-        ({'a': 'y', 'b': 3, 'c': 1e3, 'd': False}, )
-    )
-    @pytest.mark.parametrize('good_pass', (1, ))
-    @pytest.mark.parametrize('good_total_passes', (3, ))
-    @pytest.mark.parametrize('good_total_passes_is_hard', (False, ))
-    @pytest.mark.parametrize('good_shift_ctr', (0, ))
-    @pytest.mark.parametrize('good_max_shifts', (100, ))
     @pytest.mark.parametrize('bad_GRIDS',
         ({}, {0: {'a': [1, 2, 3], 'b': [3, 4, 5]}, 1: {}})
     )
-    def test_rejects_empty_grids(self, bad_GRIDS,  good_params, good_phlite,
-         good_is_logspace, good_best_params, good_pass, good_total_passes,
-         good_total_passes_is_hard, good_shift_ctr, good_max_shifts):
+    def test_rejects_empty_grids(self, bad_GRIDS, mock_estimator_params):
+
         with pytest.raises(ValueError):
             _get_next_param_grid(
                 bad_GRIDS,
-                good_params,
-                good_phlite,
-                good_is_logspace,
-                good_best_params,
-                good_pass,
-                good_total_passes,
-                good_total_passes_is_hard,
-                good_shift_ctr,
-                good_max_shifts
+                mock_estimator_params,
+                _PHLITE={'c': False},
+                _IS_LOGSPACE={'a': False, 'b': False, 'c': 1.0, 'd': False},
+                _best_params_from_previous_pass = \
+                    {'a': 'y', 'b': 3, 'c': 1e3, 'd': False},
+                _pass=1,
+                _total_passes=3,
+                _total_passes_is_hard=False,
+                _shift_ctr=0,
+                _max_shifts=100
             )
 
     # remaining _validation handed in dedicated modules

@@ -9,18 +9,12 @@
 import numbers
 
 import pytest
-import numpy as np
-from sklearn.linear_model import LogisticRegression as sk_logistic
-from sklearn.model_selection import GridSearchCV as sk_GridSearchCV
-
-from pybear.model_selection.autogridsearch.autogridsearch_wrapper import \
-    autogridsearch_wrapper
 
 from pybear.base._is_fitted import is_fitted
 
 
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-# FIXTURES
+
+# FIXTURES ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 class Fixtures:
 
 
@@ -32,69 +26,18 @@ class Fixtures:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _kwargs(_total_passes):
-        return {
-            'estimator': sk_logistic(),
-            'params': {
-                'C': [np.logspace(-2, 2, 5), 5, 'soft_float'],
-                'fit_intercept': [[True, False], 2, 'fixed_bool']
-            },
-            'total_passes': _total_passes,
-            'total_passes_is_hard': True,
-            'max_shifts': 2,
-            'agscv_verbose': False
-        }
+    def TestCls(SKAutoGridSearch, sk_estimator_1, sk_params_1, _total_passes):
 
+        return SKAutoGridSearch(
+            estimator=sk_estimator_1,
+            params=sk_params_1,
+            total_passes=_total_passes,
+            total_passes_is_hard=True,
+            max_shifts=2,
+            agscv_verbose=False
+        )
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _attrs():
-        return [
-            'best_score_'
-            'best_params_',
-            'GRIDS_',
-            'RESULTS_'
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _methods():
-        return [
-            'fit',
-            'get_params',
-            '_agscv_reset',
-            'set_params'
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100,5)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(_shape):
-        return np.random.uniform(0, 1, _shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _y(_shape):
-        return np.random.randint(0, 2, (_shape[0],))
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _agscv():
-        return autogridsearch_wrapper(sk_GridSearchCV)
-
-
-
-# END fixtures
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+# END fixtures ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
 
@@ -102,13 +45,16 @@ class Fixtures:
 class TestAttrAccessBeforeAndAfterFit(Fixtures):
 
 
-    def test_attr_access_before_fit(
-        self, _X, _y, _agscv, _kwargs, _total_passes, _attrs
-    ):
-
-        TestCls = _agscv(**_kwargs)
+    def test_attr_access_before_fit(self, X_np, y_np, TestCls):
 
         # BEFORE FIT ***************************************************
+
+        _attrs = [
+            'best_score_'
+            'best_params_',
+            'GRIDS_',
+            'RESULTS_'
+        ]
 
         # SHOULD GIVE AttributeError
         for attr in _attrs:
@@ -118,15 +64,11 @@ class TestAttrAccessBeforeAndAfterFit(Fixtures):
         # END BEFORE FIT ***********************************************
 
 
-    def test_attr_access_after_fit(
-        self, _X, _y, _agscv, _kwargs, _total_passes, _attrs
-    ):
-
-        TestCls = _agscv(**_kwargs)
+    def test_attr_access_after_fit(self, X_np, y_np, TestCls, _total_passes):
 
         # AFTER FIT ****************************************************
 
-        TestCls.fit(_X, _y)
+        TestCls.fit(X_np, y_np)
 
         # 'best_score_',
         # 'best_params_',
@@ -190,7 +132,6 @@ class TestAttrAccessBeforeAndAfterFit(Fixtures):
 
         # END AFTER FIT ************************************************
 
-        del TestCls
 
 # END ACCESS ATTR BEFORE AND AFTER FIT
 
@@ -199,16 +140,14 @@ class TestAttrAccessBeforeAndAfterFit(Fixtures):
 class TestMethodAccessBeforeAndAfterFit(Fixtures):
 
 
-    def test_access_methods_before_fit(self, _X, _y, _agscv, _kwargs, _attrs):
-
-        TestCls = _agscv(**_kwargs)
+    def test_access_methods_before_fit(self, X_np, y_np, TestCls):
 
         # **************************************************************
         # vvv BEFORE FIT vvv *******************************************
 
         # fit()
         assert not is_fitted(TestCls)
-        assert isinstance(TestCls.fit(_X, _y), _agscv)
+        assert isinstance(TestCls.fit(X_np, y_np), type(TestCls))
         assert is_fitted(TestCls)
 
         # get_params()
@@ -223,29 +162,35 @@ class TestMethodAccessBeforeAndAfterFit(Fixtures):
 
         # set_params()
         # the wrapper
-        assert isinstance(TestCls.set_params(agscv_verbose=True), _agscv)
+        assert isinstance(
+            TestCls.set_params(agscv_verbose=True), type(TestCls)
+        )
         assert TestCls.agscv_verbose is True
-        assert isinstance(TestCls.set_params(agscv_verbose=False), _agscv)
+        assert isinstance(
+            TestCls.set_params(agscv_verbose=False), type(TestCls)
+        )
         assert TestCls.agscv_verbose is False
         # the parent
-        assert isinstance(TestCls.set_params(scoring='balanced_accuracy'), _agscv)
+        assert isinstance(
+            TestCls.set_params(scoring='balanced_accuracy'), type(TestCls)
+        )
         assert TestCls.scoring == 'balanced_accuracy'
-        assert isinstance(TestCls.set_params(scoring='accuracy'), _agscv)
+        assert isinstance(TestCls.set_params(scoring='accuracy'), type(TestCls))
         assert TestCls.scoring == 'accuracy'
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
         # **************************************************************
 
 
-    def test_access_methods_after_fit(self, _X, _y, _agscv, _kwargs):
+    def test_access_methods_after_fit(self, X_np, y_np, TestCls):
 
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
 
-        FittedTestCls = _agscv(**_kwargs)
+        FittedTestCls = TestCls
 
         # fit()
-        assert isinstance(FittedTestCls.fit(_X, _y), _agscv)
+        assert isinstance(FittedTestCls.fit(X_np, y_np), type(TestCls))
 
         assert hasattr(FittedTestCls, 'GRIDS_')
         assert hasattr(FittedTestCls, 'RESULTS_')
@@ -261,14 +206,18 @@ class TestMethodAccessBeforeAndAfterFit(Fixtures):
 
         # set_params()
         # the wrapper
-        assert isinstance(FittedTestCls.set_params(agscv_verbose=True), _agscv)
+        assert isinstance(
+            FittedTestCls.set_params(agscv_verbose=True), type(TestCls)
+        )
         assert FittedTestCls.agscv_verbose is True
-        assert isinstance(FittedTestCls.set_params(agscv_verbose=False), _agscv)
+        assert isinstance(
+            FittedTestCls.set_params(agscv_verbose=False), type(TestCls)
+        )
         assert FittedTestCls.agscv_verbose is False
         # the parent
-        assert isinstance(FittedTestCls.set_params(refit=True), _agscv)
+        assert isinstance(FittedTestCls.set_params(refit=True), type(TestCls))
         assert FittedTestCls.refit is True
-        assert isinstance(FittedTestCls.set_params(refit=None), _agscv)
+        assert isinstance(FittedTestCls.set_params(refit=None), type(TestCls))
         assert FittedTestCls.refit is None
 
         del FittedTestCls

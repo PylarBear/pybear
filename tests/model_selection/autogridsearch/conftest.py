@@ -8,60 +8,89 @@
 
 import pytest
 
-from typing_extensions import Union
+import numbers
+
 import numpy as np
 import dask.array as da
+from distributed import Client
+
+from sklearn.linear_model import LogisticRegression as sk_logistic
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import SGDClassifier as sk_SGDClassifier
+
+from sklearn.model_selection import GridSearchCV as sk_GridSearchCV
+
+from pybear.model_selection.autogridsearch.autogridsearch_wrapper import \
+    autogridsearch_wrapper
+
+from pybear.base.mixins._GetParamsMixin import GetParamsMixin
+from pybear.base.mixins._SetParamsMixin import SetParamsMixin
 
 
 
-@pytest.fixture(scope='module')
-def mock_estimator_test_fixture():
+@pytest.fixture(scope='session')
+def _client():
+    client = Client(n_workers=1, threads_per_worker=1, asynchronous=False)
+    yield client
+    client.close()
 
-    class MockEstimator:
 
-        param_a: Union[int, float]
-        param_b: Union[int, float]
+@pytest.fixture(scope='session')
+def _shape():
+    return (20, 3)
+
+
+@pytest.fixture(scope='session')
+def X_np(_shape):
+    return np.random.randint(0, 10, _shape)
+
+
+@pytest.fixture(scope='session')
+def y_np(_shape):
+    return np.random.randint(0, 2, (_shape[0], ))
+
+
+@pytest.fixture(scope='session')
+def X_da(_shape):
+    return da.random.randint(0, 10, _shape)
+
+
+@pytest.fixture(scope='session')
+def y_da(_shape):
+    return da.random.randint(0, 2, (_shape[0], ))
+
+
+@pytest.fixture(scope='session')
+def SKAutoGridSearch():
+    # dont use AutoGridSearchCV, under some circumstance it may not exist
+    return autogridsearch_wrapper(sk_GridSearchCV)
+
+
+@pytest.fixture(scope='session')
+def mock_estimator():
+
+
+    class MockEstimator(GetParamsMixin, SetParamsMixin):
 
         def __init__(
-                self,
-                param_a=5,
-                param_b=np.pi
-            ):
+            self,
+            param_a:numbers.Real = 5,
+            param_b:numbers.Real = np.pi
+        ) -> None:
 
             self.param_a = param_a
             self.param_b = param_b
 
 
-        def get_params(self, deep=True):
-            return {
-                'param_a': self.param_a,
-                'param_b': self.param_b
-            }
-
-
-        def set_params(self, **params):
-
-            if 'param_a' in params:
-                self.param_a = params['param_a']
-
-            if 'param_b' in params:
-                self.param_b = params['param_b']
-
-            return self
-
-
         def partial_fit(self, X):
-
             if isinstance(X, da.core.Array):
-
                 _min_dim = min(X.shape)
-                X += self.param_a
+                X += float(self.param_a)
                 _square_matrix = X[:_min_dim, :_min_dim]
-
             else:
                 X = np.array(X)
                 _min_dim = min(X.shape)
-                X += self.param_a
+                X += float(self.param_a)
                 _square_matrix = X[:_min_dim, :_min_dim]
 
             _square_matrix -= self.param_b
@@ -71,24 +100,27 @@ def mock_estimator_test_fixture():
             else:
                 self._square_matrix = _square_matrix
 
+            return self
+
 
         def fit(self, X, y):
 
             if isinstance(X, da.core.Array):
-
+                X = X.astype(np.float64)
                 _min_dim = min(X.shape)
-                X += self.param_a
+                X += float(self.param_a)
                 _square_matrix = X[:_min_dim, :_min_dim]
-
             else:
-                X = np.array(X)
+                X = np.array(X).astype(np.float64)
                 _min_dim = min(X.shape)
-                X += self.param_a
+                X += float(self.param_a)
                 _square_matrix = X[:_min_dim, :_min_dim]
 
             _square_matrix -= self.param_b
 
             self._square_matrix = _square_matrix
+
+            return self
 
 
         def predict_proba(self, X):
@@ -112,31 +144,124 @@ def mock_estimator_test_fixture():
     return MockEstimator()
 
 
+@pytest.fixture(scope='session')
+def mock_estimator_params():
+    # using a mock estimator to significantly reduce fit() time
+    return {
+        'param_a': [np.logspace(-5, 5, 3), 3, 'soft_float'],
+        'param_b': [[1, 2], 2, 'fixed_integer']
+    }
 
 
+@pytest.fixture(scope='session')
+def sk_estimator_1():
+
+    return sk_logistic(
+        penalty='l2',
+        dual=False,
+        tol=0.0001,
+        C=1e-5,
+        fit_intercept=False,
+        intercept_scaling=1.0,
+        class_weight=None,
+        random_state=None,
+        solver='lbfgs',
+        max_iter=100,
+        multi_class='deprecated',
+        verbose=0,
+        warm_start=False,
+        n_jobs=None,
+        # solver_kwargs=None
+    )
 
 
+@pytest.fixture(scope='session')
+def sk_params_1():
+    return {
+        'C': [np.logspace(-5, 5, 3), 3, 'soft_float'],
+        'fit_intercept': [[True, False], 2, 'fixed_bool']
+    }
 
 
+@pytest.fixture(scope='session')
+def sk_estimator_2():
+    return Ridge(
+        # alpha=1.0,  use this in AGSCV
+        # fit_intercept=True, use this in AGSCV
+        copy_X=True,
+        # max_iter=None, use this in AGSCV
+        tol=0.0001,
+        # solver='auto',  use this in AGSCV
+        positive=False,
+        random_state=None
+    )
 
 
+@pytest.fixture(scope='session')
+def dask_estimator_1():
+    # use sklearn to stay off you-know-who
+    return sk_logistic(
+        penalty='l2',
+        dual=False,
+        tol=0.0001,
+        C=1e-5,
+        fit_intercept=False,
+        intercept_scaling=1.0,
+        class_weight=None,
+        random_state=None,
+        solver='lbfgs',
+        max_iter=100,
+        multi_class='deprecated',
+        verbose=0,
+        warm_start=False,
+        n_jobs=None,
+        # solver_kwargs=None
+    )
 
 
+@pytest.fixture(scope='session')
+def dask_params_1():
+    return {
+        'C': [np.logspace(-5, 5, 3), 3, 'soft_float'],
+        'solver': [['lbfgs', 'saga'], 2, 'fixed_string']
+    }
 
 
+@pytest.fixture(scope='session')
+def dask_estimator_2():
+    # has partial_fit method
+    # some dask GSCVs (like Incremental) need estimator with partial_fit
+    return sk_SGDClassifier(
+        loss='hinge',
+        penalty='l2',
+        # alpha=0.0001,
+        l1_ratio=0.15,
+        # fit_intercept=True,
+        max_iter=1000,
+        tol=0.001,
+        shuffle=True,
+        verbose=0,
+        epsilon=0.1,
+        n_jobs=None,
+        random_state=None,
+        # learning_rate='optimal',
+        eta0=0.1,
+        power_t=0.5,
+        early_stopping=False,
+        validation_fraction=0.1,
+        n_iter_no_change=5,
+        class_weight=None,
+        warm_start=False,
+        average=False
+    )
 
 
-
-
-
-
-
-
-
-
-
-
-
+@pytest.fixture(scope='session')
+def dask_params_2():
+    return {
+        'alpha': [np.logspace(-5, 5, 3), [3,3], 'soft_float'],
+        'learning_rate': [['constant', 'optimal'], 2, 'fixed_string'],
+    }
 
 
 

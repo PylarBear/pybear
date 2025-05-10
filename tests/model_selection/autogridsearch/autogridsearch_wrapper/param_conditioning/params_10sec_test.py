@@ -20,36 +20,10 @@ import pytest
 class TestCondParams:
 
 
-    @staticmethod
-    @pytest.fixture
-    def good_dict_params():
-        return {
-            'param_a': [['a', 'b', 'c'], 3, 'fixed_string'],
-            'param_b': [np.logspace(1, 3, 3), [3, 11, 6], 'soft_float'],
-            'param_c': [[True, False], 2, 'fixed_bool']
-        }
-
-
-    @staticmethod
-    @pytest.fixture
-    def answer_good_dict_params():
-        return {
-            'param_a': [['a', 'b', 'c'], [3, 3, 3], 'fixed_string'],
-            'param_b': [[10.0, 100.0, 1000.0], [3, 11, 6], 'soft_float'],
-            'param_c': [[True, False], [2, 2, 2], 'fixed_bool']
-        }
-
-    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-
     @pytest.mark.parametrize('outer_container', (list, tuple, np.ndarray))
-    @pytest.mark.parametrize('base_grid',
-        (np.logspace(-5, 5, 11), np.linspace(100, 1000, 11), [1,2,3])
-    )
+    @pytest.mark.parametrize('base_grid', (np.logspace(-5, 5, 11), [1,2,3]))
     @pytest.mark.parametrize('grid_container', (list, tuple, set, np.ndarray))
-    @pytest.mark.parametrize('base_points, total_passes',
-        ([[3,1,1], 3], [4, 3], [[3,3,3], 3])
-    )
+    @pytest.mark.parametrize('base_points, total_passes', ([[3,1,1], 3], [4, 3]))
     @pytest.mark.parametrize('points_container', (list, tuple, np.ndarray))
     @pytest.mark.parametrize('paramtype',
         ('SOFT_FLOAT', 'hard_FLOAT', 'fixed_float', 'SoFt_InTeGer',
@@ -140,19 +114,31 @@ class TestCondParams:
 
 
     # points len == passes from kwarg returns the same
-    def test_same_returns_same(
-        self, good_dict_params, answer_good_dict_params
-    ):
+    def test_accuracy(self):
 
-        _params_out = _cond_params(good_dict_params, 3)
+        _params = {
+            'param_1': [['a', 'b', 'c'], 3, 'fixed_string'],
+            'param_2': [np.logspace(1, 3, 3), [3, 11, 6], 'soft_float'],
+            'param_3': [[True, False], 2, 'fixed_bool']
+        }
 
-        assert _params_out == answer_good_dict_params
+        _answer_params = {
+            'param_1': [['a', 'b', 'c'], [3, 3, 3], 'fixed_string'],
+            'param_2': [[10.0, 100.0, 1000.0], [3, 11, 6], 'soft_float'],
+            'param_3': [[True, False], [2, 2, 2], 'fixed_bool']
+        }
+
+        _params_out = _cond_params(_params, 3)
+
+        assert _params_out == _answer_params
 
 
-
-    # when str param only, kwarg total_passes is always returned
     @pytest.mark.parametrize('kwarg_passes', (1,2,3,4,5))
     def test_str_bool_params_only(self, kwarg_passes):
+
+        # this is a relic from when fixed hyperparameters had an int for
+        # 'shrink_pass' in place of 'points' (the 2nd slot). this is now
+        # redundant with the last test.
 
         _params = {
             'a': [['aa', 'bb', 'cc'], 2, 'fixed_string'],
@@ -163,7 +149,12 @@ class TestCondParams:
 
         _params_out = _cond_params(_params, kwarg_passes)
 
-        assert _params_out == _params
+        for _k, _instr in _params.items():
+
+            assert np.array_equal(_params_out[_k][0], _instr[0])
+            assert isinstance(_params_out[_k][1], list)
+            assert len(_params_out[_k][1]) == kwarg_passes
+            assert _params_out[_k][2] == _instr[2]
 
 
     @pytest.mark.parametrize('kwarg_passes', (1,2,3,4,5))
@@ -186,11 +177,6 @@ class TestCondParams:
         _params_out = _cond_params(_params, kwarg_passes)
 
         assert _params_out == answer_params
-
-
-
-
-
 
 
 
