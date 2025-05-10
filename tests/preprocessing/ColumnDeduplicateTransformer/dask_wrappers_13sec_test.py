@@ -26,11 +26,6 @@ class TestDaskIncrementalParallelPostFit:
     # FIXTURES
 
     @staticmethod
-    @pytest.fixture(scope='session')
-    def _shape():
-        return (200, 10)
-
-    @staticmethod
     @pytest.fixture(scope='module')
     def _kwargs():
         return {
@@ -52,11 +47,6 @@ class TestDaskIncrementalParallelPostFit:
     @pytest.fixture(scope='module')
     def _dum_X(_X_factory, _dupl, _shape):
         return _X_factory(_dupl=_dupl, _has_nan=False, _dtype='flt', _shape=_shape)
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
 
     @staticmethod
     @pytest.fixture(scope='module')

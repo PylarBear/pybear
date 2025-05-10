@@ -30,18 +30,6 @@ class TestTransform:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _rtol_atol():
-        return (1e-5, 1e-8)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _dupl_equal_nan_is_True():
         return [
             [0, 3],
@@ -106,7 +94,7 @@ class TestTransform:
     def test_output(
         self, _dtype, _base_X, _format, _shape, _master_columns, _equal_nan,
         _has_nan, _column_mask_equal_nan_is_True, _column_mask_equal_nan_is_False,
-        _dupl_equal_nan_is_True, _dupl_equal_nan_is_False, _rtol_atol
+        _dupl_equal_nan_is_True, _dupl_equal_nan_is_False
     ):
 
         # rejects everything except np.ndarray, pd.DataFrame,
@@ -215,11 +203,11 @@ class TestTransform:
 
             if not _has_nan or (_has_nan and _equal_nan):
                 assert _parallel_column_comparer(
-                    _out_col, _og_col, *_rtol_atol, _equal_nan
+                    _out_col, _og_col, 1e-5, 1e-8, _equal_nan
                 )
             else:
                 assert not _parallel_column_comparer(
-                    _out_col, _og_col, *_rtol_atol, _equal_nan
+                    _out_col, _og_col, 1e-5, 1e-8, _equal_nan
                 )
 
         # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **

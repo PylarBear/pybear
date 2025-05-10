@@ -29,11 +29,6 @@ bypass = False
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
 
-@pytest.fixture(scope='module')
-def _shape():
-    return (20, 10)
-
-
 @pytest.fixture(scope='function')
 def _kwargs():
     return {
@@ -60,11 +55,6 @@ def _X_np(_X_factory, _shape):
     )
 
 
-@pytest.fixture(scope='module')
-def _columns(_master_columns, _shape):
-    return _master_columns.copy()[:_shape[1]]
-
-
 @pytest.fixture(scope='function')
 def _bad_columns(_master_columns, _shape):
     return _master_columns.copy()[-_shape[1]:]
@@ -76,7 +66,6 @@ def _X_pd(_X_np, _columns):
         data=_X_np,
         columns=_columns
 )
-
 
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -452,25 +441,21 @@ class TestRejectsXAsSingleColumnOrSeries:
 
     # y is ignored
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def VECTOR_X(_X_np):
-        return _X_np[:, 0].copy()
-
-
     @pytest.mark.parametrize('_fst_fit_x_format',
         ('numpy', 'pandas_dataframe', 'pandas_series')
     )
     @pytest.mark.parametrize('_fst_fit_x_hdr', [True, None])
     def test_X_as_single_column(
-        self, _kwargs, _columns, VECTOR_X, _fst_fit_x_format, _fst_fit_x_hdr
+        self, _kwargs, _columns, _X_np, _fst_fit_x_format, _fst_fit_x_hdr
     ):
+
+        VECTOR_X = _X_np[:, 0].copy()
 
         if _fst_fit_x_format == 'numpy':
             if _fst_fit_x_hdr:
                 pytest.skip(reason=f"numpy cannot have header")
             else:
-                _fst_fit_X = VECTOR_X.copy()
+                _fst_fit_X = VECTOR_X
 
         if 'pandas' in _fst_fit_x_format:
             if _fst_fit_x_hdr:
@@ -937,7 +922,7 @@ class TestDuplAccuracyOverManyPartialFits:
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (0, 5))
     def test_accuracy(
-        self, _kwargs, _X, _start_dupl, _has_nan, _dtype
+        self, _kwargs, _X, _y_np, _start_dupl, _has_nan, _dtype
     ):
 
         _new_kwargs = deepcopy(_kwargs)
@@ -961,9 +946,7 @@ class TestDuplAccuracyOverManyPartialFits:
 
         _wip_X = _X(_start_dupl, _has_nan, _dtype)
 
-        _y = np.random.randint(0, 2, _wip_X.shape[0])
-
-        out = TestCls.partial_fit(_wip_X, _y).duplicates_
+        out = TestCls.partial_fit(_wip_X, _y_np).duplicates_
         assert len(out) == len(_start_dupl)
         for idx in range(len(_start_dupl)):
             assert np.array_equal(out[idx], _start_dupl[idx])
@@ -1017,7 +1000,7 @@ class TestDuplAccuracyOverManyPartialFits:
             X_HOLDER.append(_wip_X)
 
             # verify correctly reported dupls after this partial_fit!
-            out = TestCls.partial_fit(_wip_X, _y).duplicates_
+            out = TestCls.partial_fit(_wip_X, _y_np).duplicates_
             assert len(out) == len(_start_dupl)
             for idx in range(len(_start_dupl)):
                 assert np.array_equal(out[idx], _start_dupl[idx]), \
@@ -1031,7 +1014,7 @@ class TestDuplAccuracyOverManyPartialFits:
         # stack all the _wip_Xs
         _final_X = np.vstack(X_HOLDER)
 
-        out = CDT(**_new_kwargs).fit(_final_X, _y).duplicates_
+        out = CDT(**_new_kwargs).fit(_final_X, _y_np).duplicates_
         assert len(out) == len(_start_dupl)
         for idx in range(len(_start_dupl)):
             assert np.array_equal(out[idx], _start_dupl[idx])

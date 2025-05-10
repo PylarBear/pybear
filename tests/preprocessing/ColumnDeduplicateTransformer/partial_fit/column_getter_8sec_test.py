@@ -25,11 +25,6 @@ class TestColumnGetter:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 3)
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _X_num(_X_factory, _shape, _has_nan):
 
         return _X_factory(

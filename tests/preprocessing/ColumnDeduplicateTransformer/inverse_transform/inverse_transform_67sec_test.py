@@ -42,29 +42,11 @@ class TestInverseTransform:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (20, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _rtol_atol():
-        return (1e-5, 1e-8)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _dupl():
         return [
             [0, 9],
             [2, 4, 7]
         ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
 
 
     @staticmethod
@@ -91,7 +73,7 @@ class TestInverseTransform:
     )
     def test_rejects_all_ss_that_are_not_csc(
         self, _dupl_X, _format, _keep, _do_not_drop, _equal_nan, _dtype,
-        _has_nan, _shape, _columns, _rtol_atol
+        _has_nan, _shape, _columns
     ):
 
         # everything except ndarray, pd dataframe, & scipy csc matrix/array
@@ -138,8 +120,8 @@ class TestInverseTransform:
             keep=_keep,
             do_not_drop=_do_not_drop,
             conflict='ignore',
-            rtol=_rtol_atol[0],
-            atol=_rtol_atol[1],
+            rtol=1e-5,
+            atol=1e-8,
             equal_nan=_equal_nan,
             n_jobs=1  # leave set at 1 because of confliction
         )
@@ -159,7 +141,7 @@ class TestInverseTransform:
     )
     def test_accuracy(
         self, _dupl_X, _format, _keep, _do_not_drop, _equal_nan, _dtype,
-        _has_nan, _shape, _columns, _rtol_atol
+        _has_nan, _shape, _columns
     ):
 
         # Methodology: transform data, then transform back using
@@ -199,8 +181,8 @@ class TestInverseTransform:
             keep=_keep,
             do_not_drop=_do_not_drop,
             conflict='ignore',
-            rtol=_rtol_atol[0],
-            atol=_rtol_atol[1],
+            rtol=1e-5,
+            atol=1e-8,
             equal_nan=_equal_nan,
             n_jobs=1  # leave set at 1 because of confliction
         )
@@ -247,7 +229,7 @@ class TestInverseTransform:
                 raise Exception
 
             assert _parallel_column_comparer(
-                _out_col, _og_col, *_rtol_atol, _equal_nan=True
+                _out_col, _og_col, 1e-5, 1e-8, _equal_nan=True
             )
 
 

@@ -33,12 +33,6 @@ class Fixtures:
 
     @staticmethod
     @pytest.fixture()
-    def _cols():
-        return 5
-
-
-    @staticmethod
-    @pytest.fixture()
     def _duplicates():
         return [[0,1], [2,3]]
 
@@ -60,12 +54,6 @@ class Fixtures:
     @pytest.fixture()
     def _do_not_drop():
         return [0, 1]
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _columns(_master_columns, _cols):
-        return _master_columns.copy()[:_cols]
 
 
     @staticmethod

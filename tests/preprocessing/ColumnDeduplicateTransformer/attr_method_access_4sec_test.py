@@ -29,11 +29,6 @@ bypass = False
 # FIXTURES
 
 @pytest.fixture(scope='module')
-def _shape():
-    return (20, 10)
-
-
-@pytest.fixture(scope='module')
 def _dupl(_shape):
     return [[3, 5, _shape[1]-1]]
 
@@ -62,21 +57,11 @@ def _X_np(_X_factory, _dupl, _shape):
 
 
 @pytest.fixture(scope='module')
-def _columns(_master_columns, _shape):
-    return _master_columns.copy()[:_shape[1]]
-
-
-@pytest.fixture(scope='module')
 def _X_pd(_X_np, _columns):
     return pd.DataFrame(
         data=_X_np,
         columns=_columns
 )
-
-
-@pytest.fixture(scope='module')
-def _y_np(_shape):
-    return np.random.randint(0, 2, _shape[0])
 
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -88,10 +73,12 @@ def _y_np(_shape):
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @staticmethod
-    @pytest.fixture
-    def _attrs():
-        return [
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
+    def test_attr_access(
+        self, _X_np, _X_pd, _y_np, _columns, _kwargs, _shape, x_format
+    ):
+
+        _attrs = [
             'n_features_in_',
             'feature_names_in_',
             'duplicates_',
@@ -99,29 +86,23 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             'column_mask_'
         ]
 
-
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
-    def test_attr_access(
-        self, _X_np, _X_pd, _y_np, _columns, _kwargs, _shape, _attrs, x_format
-    ):
-
         if x_format == 'np':
-            NEW_X = _X_np.copy()
-            NEW_Y = np.random.randint(0, 2, _shape[0])
+            NEW_X = _X_np
+            NEW_Y = _y_np
         elif x_format == 'pd':
             NEW_X = _X_pd
             NEW_Y = pd.DataFrame(
-                data=np.random.randint(0, 2, _shape[0]), columns=['y']
+                data=_y_np, columns=['y']
             )
         elif x_format == 'csc':
-            NEW_X = ss.csc_array(_X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
+            NEW_X = ss.csc_array(_X_np)
+            NEW_Y = _y_np
         elif x_format == 'csr':
-            NEW_X = ss.csr_array(_X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
+            NEW_X = ss.csr_array(_X_np)
+            NEW_Y = _y_np
         elif x_format == 'coo':
-            NEW_X = ss.coo_array(_X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
+            NEW_X = ss.coo_array(_X_np)
+            NEW_Y = _y_np
         else:
             raise Exception
 
