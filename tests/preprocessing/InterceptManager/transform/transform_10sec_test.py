@@ -6,6 +6,13 @@
 
 
 
+import pytest
+
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
+from copy import deepcopy
+
 from pybear.preprocessing._InterceptManager._partial_fit. \
     _column_getter import _column_getter
 
@@ -19,15 +26,6 @@ from pybear.preprocessing._InterceptManager._transform._transform import \
     _transform
 
 from pybear.utilities import nan_mask
-
-import numpy as np
-import pandas as pd
-import scipy.sparse as ss
-from copy import deepcopy
-
-import pytest
-
-
 
 
 
@@ -57,12 +55,6 @@ class TestTransform:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _rtol_atol():
-        return (1e-5, 1e-8)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _const_col_flt():
         # must be in range of shape
         # must match columns in _instructions!
@@ -76,30 +68,8 @@ class TestTransform:
         # must match columns in _instructions!
         return {0:'a', 1:'b', 3:'c', 4:'d', 8:'e'}
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _base_X(
-        _X_factory, _dtype, _has_nan, _shape, _const_col_flt, _const_col_str
-    ):
-
-        def foo(_noise:float):
-
-            return _X_factory(
-                _dupl=None,
-                _has_nan=_has_nan,
-                _format='np',
-                _dtype=_dtype,
-                _constants=_const_col_flt if _dtype=='flt' else _const_col_str,
-                _noise=_noise,
-                _zeros=None,
-                _shape=_shape
-            )
-
-        return foo
-
-
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
 
     @pytest.mark.parametrize('_equal_nan', (True, False), scope='function')
     @pytest.mark.parametrize('_instructions',
@@ -120,8 +90,8 @@ class TestTransform:
         ), scope='function'
     )
     def test_output(
-        self, _dtype, _base_X, _format, _shape, _master_columns, _equal_nan,
-        _has_nan, _rtol_atol, _instructions, _const_col_str, _const_col_flt
+        self, _X_factory, _dtype, _format, _shape, _columns, _equal_nan,
+        _has_nan, _instructions, _const_col_str, _const_col_flt
     ):
 
         # Methodology:
@@ -160,15 +130,24 @@ class TestTransform:
             raise Exception
 
 
-        # if has_nan and not equal_nan, _base_X puts nans in every column,
-        # therefore there can be no constant columns
+        # if has_nan, _X_factory puts nans in every column.
+        # therefore when not equal_nan there can be no constant columns.
         if _has_nan and not _equal_nan:
             _wip_instr['keep'] = None
             _wip_instr['delete'] = None
             _constant_columns = {}
 
 
-        _X = _base_X(_noise=1e-9)
+        _X = _X_factory(
+            _dupl=None,
+            _has_nan=_has_nan,
+            _format='np',
+            _dtype=_dtype,
+            _constants=_const_col_flt if _dtype=='flt' else _const_col_str,
+            _noise=1e-9,
+            _zeros=None,
+            _shape=_shape
+        )
 
 
         # data format conversion v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -177,7 +156,7 @@ class TestTransform:
         elif _format == 'df':
             _X_wip = pd.DataFrame(
                 data=_X,
-                columns=_master_columns.copy()[:_shape[1]]
+                columns=_columns
             )
         elif _format == 'csr_matrix':
             _X_wip = ss._csr.csr_matrix(_X)
@@ -263,7 +242,7 @@ class TestTransform:
             # check header for og columns
             assert np.array_equal(
                 out.columns[:_shape[1]],
-                _master_columns.copy()[:_shape[1]][_ref_column_mask]
+                _columns[_ref_column_mask]
             )
 
             # check the dtype & header for the appended column separately
@@ -364,7 +343,8 @@ class TestTransform:
                 assert _parallel_constant_finder(
                     _og_col,
                     _equal_nan,
-                    *_rtol_atol
+                    1e-5,
+                    1e-8
                 )
 
         # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **

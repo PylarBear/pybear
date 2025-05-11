@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
-from distributed import Client
 import pytest
 
 from dask_ml.wrappers import Incremental, ParallelPostFit
@@ -22,32 +21,8 @@ from pybear.preprocessing import InterceptManager as IM
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 class TestDaskIncrementalParallelPostFit:
 
+
     # fixtures ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs():
-        return {
-            'keep': 'random',
-            'equal_nan': False,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1  # leave this at 1 because of confliction
-        }
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np(_X_factory, _shape):
-        return _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_pd(_X_np, _columns):
-        return pd.DataFrame(
-            data=_X_np,
-            columns=_columns
-        )
 
     @staticmethod
     @pytest.fixture
@@ -69,25 +44,24 @@ class TestDaskIncrementalParallelPostFit:
     def IM_wrapped_both(_kwargs):
         return ParallelPostFit(Incremental(IM(**_kwargs)))
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _client():
-        client = Client(n_workers=1, threads_per_worker=1)
-        yield client
-        client.close()
-
     # END fixtures ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
 
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])
     @pytest.mark.parametrize('y_format', ['da_vector', None])
     @pytest.mark.parametrize('row_chunk', (10, 20))
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
     def test_fit_and_transform_accuracy(self, wrappings, IM_wrapped_parallel,
-        IM_wrapped_incremental, IM_not_wrapped, IM_wrapped_both, _X_np,
-        _columns, x_format, y_format, _kwargs, _shape, row_chunk, # _client
+        IM_wrapped_incremental, IM_not_wrapped, IM_wrapped_both, _X_factory,
+        y_np, _columns, x_format, y_format, _kwargs, _shape, row_chunk
     ):
 
-        # faster without client, verified 24_11_27 (11 sec vs 32 sec)
+        # faster without client, verified 24_11_27 25_05_11
+
+        _X_np = _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
+
+        _X_pd = pd.DataFrame(data=_X_np, columns=_columns)
+
 
         if wrappings == 'incr':
             _test_cls = IM_wrapped_incremental
@@ -99,7 +73,7 @@ class TestDaskIncrementalParallelPostFit:
             _test_cls = IM_not_wrapped
 
         _X_chunks = (row_chunk, _shape[1])
-        _X = da.array(_X_np.copy()).rechunk(_X_chunks)
+        _X = da.from_array(_X_np).rechunk(_X_chunks)
         _X_np = _X_np.copy()
         if x_format == 'da_array':
             pass
@@ -112,13 +86,11 @@ class TestDaskIncrementalParallelPostFit:
         _X.shape
 
 
-        _y_chunks = (row_chunk,)
         if y_format is None:
             _y = None
-            _y_np = None
+            y_np = None
         elif y_format == 'da_vector':
-            _y = da.random.randint(0, 2, _shape[0], chunks=_y_chunks)
-            _y_np = _y.compute()
+            _y = da.from_array(y_np).rechunk((row_chunk,))
         else:
             raise Exception
 
@@ -179,7 +151,7 @@ class TestDaskIncrementalParallelPostFit:
 
         RefTestCls = IM(**_kwargs)
 
-        REF_X = RefTestCls.fit_transform(_X_np, _y_np)
+        REF_X = RefTestCls.fit_transform(_X_np, y_np)
 
         assert isinstance(TRFM_X, np.ndarray)
         assert isinstance(REF_X, np.ndarray)
@@ -188,11 +160,6 @@ class TestDaskIncrementalParallelPostFit:
 
 
 # END TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
-
-
-
-
-
 
 
 

@@ -6,6 +6,12 @@
 
 
 
+import pytest
+
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
+
 from pybear.preprocessing._InterceptManager._inverse_transform. \
     _inverse_transform import _inverse_transform
 
@@ -13,16 +19,6 @@ from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager
 
 from pybear.utilities import nan_mask
-
-import numpy as np
-import pandas as pd
-import scipy.sparse as ss
-
-import pytest
-
-
-
-
 
 
 
@@ -33,34 +29,6 @@ class TestInverseTransform:
     # validated), use inverse_transform to reconstruct back to the
     # original X.
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _rtol_atol():
-        return (1e-5, 1e-8)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _const_X(_X_factory, _shape):
-
-        def foo(_has_nan, _format, _dtype, _constants):
-
-            return _X_factory(
-                _dupl=None,
-                _has_nan=_has_nan,
-                _format=_format,
-                _dtype=_dtype,
-                _constants=_constants,
-                _shape=_shape
-            )
-
-        return foo
-
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
     @pytest.mark.parametrize('_format',
         (
@@ -69,13 +37,17 @@ class TestInverseTransform:
             'lil_array', 'dok_array', 'bsr_array'
         )
     )
-    def test_rejects_all_ss_that_are_not_csc(self, _const_X, _shape, _format):
+    def test_rejects_all_ss_that_are_not_csc(
+        self, _X_factory, _shape, _format
+    ):
 
-        _base_X = _const_X(
+        _base_X = _X_factory(
+            _dupl=None,
             _has_nan=False,
             _format='np',
             _dtype='flt',
-            _constants={0:1, _shape[1]-1: 1}
+            _constants={0:1, _shape[1]-1: 1},
+            _shape=_shape
         )
 
         if _format == 'csr_matrix':
@@ -142,8 +114,8 @@ class TestInverseTransform:
         )
     )
     def test_accuracy(
-        self, _const_X, _dtype, _keep, _has_nan, _equal_nan, _constants,
-        _format, _columns, _rtol_atol, _shape
+        self, _X_factory, _dtype, _keep, _has_nan, _equal_nan, _constants,
+        _format, _columns, _shape
     ):
 
         # Methodology: transform data, then transform back using
@@ -177,13 +149,14 @@ class TestInverseTransform:
         else:
             raise Exception
 
-        _base_X = _const_X(
+        _base_X = _X_factory(
+            _dupl=None,
             _has_nan=_has_nan,
             _format='np',
             _dtype=_dtype,
-            _constants=_constants
+            _constants=_constants,
+            _shape=_shape
         )
-
 
         if _keep == 'good_string':
             if _format == 'pd_with_header':
@@ -337,24 +310,6 @@ class TestInverseTransform:
                     _out_col[MASK] = 'nan'
 
                 assert np.array_equal(_out_col, _og_col)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

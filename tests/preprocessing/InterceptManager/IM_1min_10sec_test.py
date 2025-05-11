@@ -29,17 +29,6 @@ bypass = False
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
 
-@pytest.fixture(scope='function')
-def _kwargs():
-    return {
-        'keep': 'first',
-        'equal_nan': False,
-        'rtol': 1e-5,
-        'atol': 1e-8,
-        'n_jobs': 1     # leave this set at 1 because of confliction
-    }
-
-
 @pytest.fixture(scope='module')
 def _constants(_shape):
     return {0: 0, _shape[1]-2: np.nan, _shape[1]-1: 1}
@@ -54,27 +43,8 @@ def _X_np(_X_factory, _constants, _shape):
         _shape=_shape
     )
 
-
-@pytest.fixture(scope='function')
-def _bad_columns(_master_columns, _shape):
-    return _master_columns.copy()[-_shape[1]:]
-
-
-@pytest.fixture(scope='module')
-def _X_pd(_X_np, _columns):
-    return pd.DataFrame(
-        data=_X_np,
-        columns=_columns
-)
-
-
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 # test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -109,14 +79,14 @@ class TestInitValidation:
         ('first', 'last', 'random', 'none', 0, {'Intercept': 1},
          lambda x: 0, 'string')
     )
-    def test_good_keep(self, _X_pd, _columns, _kwargs, good_keep):
+    def test_good_keep(self, _columns, _kwargs, good_keep, _X_np):
 
         if good_keep == 'string':
             good_keep = _columns[0]
 
         _kwargs['keep'] = good_keep
 
-        IM(**_kwargs).fit_transform(_X_pd)
+        IM(**_kwargs).fit_transform(pd.DataFrame(_X_np, columns=_columns))
     # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -264,29 +234,23 @@ class TestExceptsAnytimeXisNone:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAcceptsSingle2DColumn:
 
+
     # y is ignored
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def SINGLE_X(_X_np):
-        return _X_np[:, 0].copy().reshape((-1, 1))
-
-
-    @pytest.mark.parametrize('_fst_fit_x_format',
-        ('numpy', 'pandas')
-    )
+    @pytest.mark.parametrize('_fst_fit_x_format', ('numpy', 'pandas'))
     @pytest.mark.parametrize('_fst_fit_x_hdr', [True, None])
     def test_X_as_single_column(
-        self, _kwargs, _columns, SINGLE_X, _fst_fit_x_format, _fst_fit_x_hdr
+        self, _X_np, _kwargs, _columns, _fst_fit_x_format, _fst_fit_x_hdr
     ):
+
+        SINGLE_X = _X_np[:, 0].copy().reshape((-1, 1))
 
         if _fst_fit_x_format == 'numpy':
             if _fst_fit_x_hdr:
                 pytest.skip(reason=f"numpy cannot have header")
             else:
-                _fst_fit_X = SINGLE_X.copy()
-
-        if _fst_fit_x_format == 'pandas':
+                _fst_fit_X = SINGLE_X
+        elif _fst_fit_x_format == 'pandas':
             if _fst_fit_x_hdr:
                 _fst_fit_X = pd.DataFrame(data=SINGLE_X, columns=_columns[:1])
             else:
@@ -308,10 +272,11 @@ class TestExceptWarnOnDifferentHeader:
     @pytest.mark.parametrize('scd_fit_name', NAMES)
     @pytest.mark.parametrize('trfm_name', NAMES)
     def test_except_or_warn_on_different_headers(self, _X_factory, _kwargs,
-        _columns, _bad_columns, fst_fit_name, scd_fit_name, trfm_name, _shape
+        _columns, fst_fit_name, scd_fit_name, trfm_name, _shape
     ):
 
-        _col_dict = {'DF1': _columns, 'DF2': _bad_columns, 'NO_HDR_DF': None}
+        # np.flip(_columns) is bad columns
+        _col_dict = {'DF1': _columns, 'DF2': np.flip(_columns), 'NO_HDR_DF': None}
 
         TestCls = IM(**_kwargs)
 
@@ -761,50 +726,21 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
     # rig a set of arrays that have progressively decreasing constants
 
 
-    @staticmethod
-    @pytest.fixture()
-    def _chunk_shape():
-        return (50,20)
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _X(_X_factory, _chunk_shape):
-
-        def foo(_format, _dtype, _has_nan, _constants, _noise):
-
-            return _X_factory(
-                _dupl=None,
-                _has_nan=_has_nan,
-                _format=_format,
-                _dtype=_dtype,
-                _columns=None,
-                _constants=_constants,
-                _noise=_noise,
-                _zeros=None,
-                _shape=_chunk_shape
-            )
-
-        return foo
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _start_constants(_chunk_shape):
-        # first indices of a set must be ascending
-        return {3:1, 5:1, _chunk_shape[1]-2:1}
-
-
     @pytest.mark.parametrize('_format', ('np', ))
     @pytest.mark.parametrize('_dtype', ('int', 'flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 5))
     def test_accuracy(
-        self, _kwargs, _X, y_np, _format, _dtype, _has_nan, _start_constants
+        self, _kwargs, _X_factory, _format, _dtype, _has_nan
     ):
 
         if _format not in ('np', 'pd') and _dtype not in ('flt', 'int'):
             pytest.skip(reason=f"cant put non-num in scipy sparse")
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+
+        _chunk_shape = (50, 20)
+
+        _start_constants = {3: 1, 5: 1, _chunk_shape[1] - 2: 1}
 
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['equal_nan'] = True
@@ -822,9 +758,31 @@ class TestConstantColumnsAccuracyOverManyPartialFits:
         #   assert reported constants - should be one less (the randomly chosen)
         # at the very end, stack all the _wip_Xs, do one big fit, verify constants
 
-        _pool_X = _X(_format, _dtype, _has_nan, None, _noise=1e-9)
+        _pool_X = _X_factory(
+            _dupl=None,
+            _has_nan=_has_nan,
+            _format=_format,
+            _dtype=_dtype,
+            _columns=None,
+            _constants=None,
+            _noise=1e-9,
+            _zeros=None,
+            _shape=_chunk_shape
+        )
 
-        _wip_X = _X(_format, _dtype, _has_nan, _start_constants, _noise=1e-9)
+        _wip_X = _X_factory(
+            _dupl=None,
+            _has_nan=_has_nan,
+            _format=_format,
+            _dtype=_dtype,
+            _columns=None,
+            _constants=_start_constants,
+            _noise=1e-9,
+            _zeros=None,
+            _shape=_chunk_shape
+        )
+
+        y_np = np.random.randint(0, 2, (_chunk_shape[0]))
 
         out = TestCls.partial_fit(_wip_X, y_np).constant_columns_
         assert len(out) == len(_start_constants)

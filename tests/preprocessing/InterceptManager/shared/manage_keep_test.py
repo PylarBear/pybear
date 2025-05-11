@@ -6,14 +6,15 @@
 
 
 
+import pytest
+
+import random
+
+import numpy as np
+
 from pybear.preprocessing._InterceptManager._shared._manage_keep import (
     _manage_keep
 )
-
-import numpy as np
-import pandas as pd
-
-import pytest
 
 
 # no scipy sparse are tested here, should be comparable to numpy
@@ -39,45 +40,33 @@ class TestManageKeep:
     # isinstance(_keep, dict), passes through
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np(_shape):
-        return np.random.randint(0, 10, _shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_pd(_X_np, _columns):
-        return pd.DataFrame(data=_X_np, columns=_columns)
-
-
     # dict v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     @pytest.mark.parametrize('_format', ('np', 'pd'))
     @pytest.mark.parametrize('_keep',
         ({'Intercept': 1}, {'innards': 'not validated'})
     )
-    @pytest.mark.parametrize('_constant_columns', ({}, {0:1, 1:np.nan, 2:0}))
+    @pytest.mark.parametrize('_const_cols', ({}, {0:1, 1:np.nan, 2:0}))
     def test_dict_passes_thru(
-        self, _X_np, _X_pd, _format, _keep, _constant_columns, _shape
+        self, _X_factory, _columns, _format, _keep, _const_cols, _shape
     ):
 
         # dict passes thru. len==1 & key is str validated in _keep_and_columns
-        if _format == 'pd':
-            _X = _X_pd
-            _columns = _X_pd.columns.to_numpy()
-        else:
-            _X = _X_np
-            _columns = None
 
-        if len(_constant_columns):
-            _rand_idx = int(np.random.choice(list(_constant_columns)))
-        else:
-            _rand_idx = None
+        _X = _X_factory(
+            _format=_format,
+            _dtype='int',
+            _columns=_columns,
+            _constants=_const_cols,
+            _shape=_shape
+        )
+
+        _columns = _X.columns.to_numpy() if _format == 'pd' else None
+        _rand_idx = None if not len(_const_cols) else random.choice(list(_const_cols))
 
         out = _manage_keep(
             _keep=_keep,
             _X=_X,
-            constant_columns_=_constant_columns,
+            constant_columns_=_const_cols,
             _n_features_in=_shape[1],
             _feature_names_in=_columns,
             _rand_idx=_rand_idx
@@ -91,32 +80,31 @@ class TestManageKeep:
     # callable v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     @pytest.mark.parametrize('_format', ('np', 'pd'))
     @pytest.mark.parametrize('_keep', (lambda x: 0, lambda x: 100))
-    @pytest.mark.parametrize('_constant_columns', ({}, {0:1, 1:np.nan, 2:0}))
+    @pytest.mark.parametrize('_const_cols', ({}, {0:1, 1:np.nan, 2:0}))
     def test_callable(
-        self, _X_np, _X_pd, _format, _keep, _constant_columns, _shape
+        self, _X_factory, _columns, _format, _keep, _const_cols, _shape
     ):
 
         # from _keep_and_columns, we already know that keep callable returns an
         # integer within range of X.shape[1]. just needs to verify the
         # returned idx is actually a column of constants.
 
-        if _format == 'pd':
-            _X = _X_pd
-            _columns = _X.columns.to_numpy()
-        else:
-            _X = _X_np
-            _columns = None
+        _X = _X_factory(
+            _format=_format,
+            _dtype='int',
+            _columns=_columns,
+            _constants=_const_cols,
+            _shape=_shape
+        )
 
-        if len(_constant_columns):
-            _rand_idx = int(np.random.choice(list(_constant_columns)))
-        else:
-            _rand_idx = None
+        _columns = _X.columns.to_numpy() if _format == 'pd' else None
+        _rand_idx = None if not len(_const_cols) else random.choice(list(_const_cols))
 
-        if _keep(_X) in _constant_columns:
+        if _keep(_X) in _const_cols:
             out = _manage_keep(
                 _keep=_keep,
                 _X=_X,
-                constant_columns_=_constant_columns,
+                constant_columns_=_const_cols,
                 _n_features_in=_shape[1],
                 _feature_names_in=_columns,
                 _rand_idx=_rand_idx
@@ -128,12 +116,12 @@ class TestManageKeep:
                 (f"_manage_keep did not return expected keep callable output. "
                  f"exp {_keep(_X)}, got {out}")
 
-        elif _keep(_X) not in _constant_columns:
+        elif _keep(_X) not in _const_cols:
             with pytest.raises(ValueError):
                 _manage_keep(
                     _keep=_keep,
                     _X=_X,
-                    constant_columns_=_constant_columns,
+                    constant_columns_=_const_cols,
                     _n_features_in=_shape[1],
                     _feature_names_in=_columns,
                     _rand_idx=_rand_idx
@@ -142,9 +130,9 @@ class TestManageKeep:
 
     # feature name str v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     @pytest.mark.parametrize('_keep', ('column_1', 'column_2', 'column_3'))
-    @pytest.mark.parametrize('_constant_columns', ({}, {0: 1, 1: np.nan}))
+    @pytest.mark.parametrize('_const_cols', ({}, {0: 1, 1: np.nan}))
     def test_feature_name_str(
-        self, _X_pd, _keep, _columns, _constant_columns, _shape
+        self, _X_factory, _columns, _keep, _const_cols, _shape
     ):
 
         # _keep_and_columns caught if keep feature name:
@@ -152,7 +140,15 @@ class TestManageKeep:
         #       dont need to test np, impossible condition.
         # - is not in the header - dont need to test, impossible condition
 
-        # _manage_keep only validates if __keep not in _constant_columns
+        # _manage_keep only validates if __keep not in _const_cols
+
+        X_pd = _X_factory(
+            _format='pd',
+            _dtype='int',
+            _columns=_columns,
+            _constants=_const_cols,
+            _shape=_shape
+        )
 
         exp = {'column_1': 0, 'column_2': 1, 'column_3': 2}[_keep]
 
@@ -165,18 +161,18 @@ class TestManageKeep:
         else:
             raise Exception
 
-        if len(_constant_columns):
-            _rand_idx = int(np.random.choice(list(_constant_columns)))
+        if len(_const_cols):
+            _rand_idx = int(np.random.choice(list(_const_cols)))
         else:
             _rand_idx = None
 
-        if exp in _constant_columns:
+        if exp in _const_cols:
             out = _manage_keep(
                 _keep=_keep,
-                _X=_X_pd,
-                constant_columns_=_constant_columns,
+                _X=X_pd,
+                constant_columns_=_const_cols,
                 _n_features_in=_shape[1],
-                _feature_names_in=_X_pd.columns.to_numpy(),
+                _feature_names_in=X_pd.columns.to_numpy(),
                 _rand_idx=_rand_idx
             )
 
@@ -186,14 +182,14 @@ class TestManageKeep:
                 (f"_manage_keep did not return expected keep feature name index "
                  f"exp {exp}, got {out}")
 
-        elif exp not in _constant_columns:
+        elif exp not in _const_cols:
             with pytest.raises(ValueError):
                 _manage_keep(
                     _keep=_keep,
-                    _X=_X_pd,
-                    constant_columns_=_constant_columns,
+                    _X=X_pd,
+                    constant_columns_=_const_cols,
                     _n_features_in=_shape[1],
-                    _feature_names_in=_X_pd.columns.to_numpy(),
+                    _feature_names_in=X_pd.columns.to_numpy(),
                     _rand_idx=_rand_idx
                 )
     # END feature name str v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -202,11 +198,11 @@ class TestManageKeep:
     # literal str v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
     @pytest.mark.parametrize('_format', ('np', 'pd'))
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none'))
-    @pytest.mark.parametrize('_constant_columns',
+    @pytest.mark.parametrize('_const_cols',
         ({}, {0: 1, 1: np.nan, 2: 0}, {7:1, 8:0, 9:np.e}, {4:-1, 3:2})
     )
     def test_literal_str(
-        self, _X_np, _X_pd, _columns, _format, _keep, _constant_columns, _shape
+        self, _X_factory, _columns, _format, _keep, _const_cols, _shape
     ):
 
         # what we know:
@@ -218,28 +214,27 @@ class TestManageKeep:
         # returned value must be in constant_columns_. if constant_columns_
         # is empty, returns 'none'
 
-        if _format == 'pd':
-            _X = _X_pd
-            _columns = _X.columns.to_numpy()
-        else:
-            _X = _X_np
-            _columns = None
+        _X = _X_factory(
+            _format=_format,
+            _dtype='int',
+            _columns=_columns,
+            _constants=_const_cols,
+            _shape=_shape
+        )
 
-        if len(_constant_columns):
-            _rand_idx = int(np.random.choice(list(_constant_columns)))
-        else:
-            _rand_idx = None
+        _columns = _X.columns.to_numpy() if _format == 'pd' else None
+        _rand_idx = None if not len(_const_cols) else random.choice(list(_const_cols))
 
         out = _manage_keep(
             _keep=_keep,
             _X=_X,
-            constant_columns_=_constant_columns,
+            constant_columns_=_const_cols,
             _n_features_in=_shape[1],
             _feature_names_in=_columns,
             _rand_idx=_rand_idx
         )
 
-        _sorted_const_cols = sorted(list(_constant_columns.keys()))
+        _sorted_const_cols = sorted(list(_const_cols.keys()))
         if len(_sorted_const_cols) == 0:
             exp = 'none'
         elif _keep == 'first':
@@ -253,7 +248,7 @@ class TestManageKeep:
         else:
             raise Exception
 
-        if len(_constant_columns) == 0:
+        if len(_const_cols) == 0:
             assert isinstance(out, str), \
                 f"_manage_keep literal did not return str: {out}"
         elif _keep in ('first', 'last', 'random'):
@@ -265,7 +260,7 @@ class TestManageKeep:
         else:
             raise Exception
 
-        if _keep in ('first', 'last', 'none') or len(_constant_columns) == 0:
+        if _keep in ('first', 'last', 'none') or len(_const_cols) == 0:
             assert out == exp, \
                 (f"_manage_keep did not return expected keep literal "
                  f"index, exp {exp}, got {out}")
@@ -277,32 +272,31 @@ class TestManageKeep:
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))
     @pytest.mark.parametrize('_keep', (0, 10, 2000, 1_000_000_000))
-    @pytest.mark.parametrize('_constant_columns', ({}, {0:1, 1:np.nan, 9:0}))
+    @pytest.mark.parametrize('_const_cols', ({}, {0:1, 1:np.nan, 9:0}))
     def test_integer(
-        self, _X_np, _X_pd, _format, _keep, _constant_columns, _shape
+        self, _X_factory, _columns, _format, _keep, _const_cols, _shape
     ):
 
         # from _keep_and_columns, we already know that keep integer is in
-        # range(X.shape[1]. just need to verify the idx is actually a
+        # range(X.shape[1]). just need to verify the idx is actually a
         # column of constants.
 
-        if _format == 'pd':
-            _X = _X_pd
-            _columns = _X.columns.to_numpy()
-        else:
-            _X = _X_np
-            _columns = None
+        _X = _X_factory(
+            _format=_format,
+            _dtype='int',
+            _columns=_columns,
+            _constants=_const_cols,
+            _shape=_shape
+        )
 
-        if len(_constant_columns):
-            _rand_idx = int(np.random.choice(list(_constant_columns)))
-        else:
-            _rand_idx = None
+        _columns = _X.columns.to_numpy() if _format == 'pd' else None
+        _rand_idx = None if not len(_const_cols) else random.choice(list(_const_cols))
 
-        if _keep in _constant_columns:
+        if _keep in _const_cols:
             out = _manage_keep(
                 _keep=_keep,
                 _X=_X,
-                constant_columns_=_constant_columns,
+                constant_columns_=_const_cols,
                 _n_features_in=_shape[1],
                 _feature_names_in=_columns,
                 _rand_idx=_rand_idx
@@ -314,29 +308,17 @@ class TestManageKeep:
                 (f"_manage_keep integer did not return expected integer. "
                  f"exp {_keep}, got {out}")
 
-        elif _keep not in _constant_columns:
+        elif _keep not in _const_cols:
             with pytest.raises(ValueError):
                 _manage_keep(
                     _keep=_keep,
                     _X=_X,
-                    constant_columns_=_constant_columns,
+                    constant_columns_=_const_cols,
                     _n_features_in=_shape[1],
                     _feature_names_in=_columns,
                     _rand_idx=_rand_idx
                 )
     # END int v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

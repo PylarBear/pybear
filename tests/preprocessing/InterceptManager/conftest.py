@@ -259,5 +259,15 @@ def y_np(_shape):
     return np.random.randint(0, 2, _shape[0])
 
 
+@pytest.fixture(scope='function')
+def _kwargs():
+    return {
+        'keep': 'first',
+        'equal_nan': False,   # must be False
+        'rtol': 1e-5,
+        'atol': 1e-8,
+        'n_jobs': 1
+    }
+
 
 

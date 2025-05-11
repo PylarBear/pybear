@@ -27,18 +27,6 @@ from sklearn.linear_model import LinearRegression
 class TestPipeline:
 
 
-    @staticmethod
-    @pytest.fixture()
-    def _kwargs():
-        return {
-            'keep': 'first',
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1
-        }
-
-
     @pytest.mark.parametrize('_format', ('np', 'pd'))
     def test_accuracy_in_pipe_vs_out_of_pipe(
         self, _X_factory, _shape, _kwargs, _format

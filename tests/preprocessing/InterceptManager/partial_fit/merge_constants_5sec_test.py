@@ -6,34 +6,17 @@
 
 
 
+import pytest
 
+import numpy as np
 
 from pybear.preprocessing._InterceptManager._partial_fit._merge_constants import (
     _merge_constants
 )
 
-import numpy as np
-
-import pytest
 
 
-
-
-class Fixtures:
-
-
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _rtol_atol():
-        return (1e-5, 1e-8)
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-class TestMergeConstantsValidation(Fixtures):
+class TestMergeConstantsValidation:
 
     # old_constants ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('_old_constants',
@@ -77,7 +60,7 @@ class TestMergeConstantsValidation(Fixtures):
     @pytest.mark.parametrize('_new_constants',
         (-np.e, -1, 0, 1, np.e, True, False, 'trash', [0,1], (0,1), lambda x: x)
     )
-    def test_new_constants_rejects_junk(self, _rtol_atol, _new_constants):
+    def test_new_constants_rejects_junk(self, _new_constants):
         with pytest.raises(AssertionError):
             _merge_constants(
                 {0:0, 1:1, 10:np.e},
@@ -153,6 +136,7 @@ class TestMergeConstantsValidation(Fixtures):
                 _atol=1e-8
             )
 
+
     @pytest.mark.parametrize('_atol',
         (None, 'trash', [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
     )
@@ -176,6 +160,7 @@ class TestMergeConstantsValidation(Fixtures):
             _atol=1e-8
         )
 
+
     @pytest.mark.parametrize('_atol', (0, 1e-5, 1, np.e))
     def test_atol_accepts_good(self, _atol):
 
@@ -189,24 +174,20 @@ class TestMergeConstantsValidation(Fixtures):
     # END rtol atol  ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-
-class TestMergeConstantsAccuracy(Fixtures):
+class TestMergeConstantsAccuracy:
 
     @pytest.mark.parametrize('_new_constants',
         ({}, {0:1, 4: 0, 5: 0}, {0: 1, 2: np.nan})
     )
-    def test_accuracy_first_pass(self, _rtol_atol, _new_constants):
+    def test_accuracy_first_pass(self, _new_constants):
 
         # first pass (_old_constants is None)
-
-        _rtol = _rtol_atol[0]
-        _atol = _rtol_atol[1]
 
         out = _merge_constants(
             _old_constants=None,
             _new_constants=_new_constants,
-            _rtol=_rtol,
-            _atol=_atol
+            _rtol=1e-5,
+            _atol=1e-8
         )
 
         # always just returns _new_constants
@@ -216,18 +197,15 @@ class TestMergeConstantsAccuracy(Fixtures):
     @pytest.mark.parametrize('_new_constants',
         ({}, {0:1, 4: 0, 5: 0}, {0: 1, 2: np.nan})
     )
-    def test_old_constants_is_empty(self, _rtol_atol, _new_constants):
+    def test_old_constants_is_empty(self, _new_constants):
 
         # _old_constants == {}
-
-        _rtol = _rtol_atol[0]
-        _atol = _rtol_atol[1]
 
         out = _merge_constants(
             _old_constants={},
             _new_constants=_new_constants,
-            _rtol=_rtol,
-            _atol=_atol
+            _rtol=1e-5,
+            _atol=1e-8
         )
 
         # always just returns {}
@@ -235,9 +213,11 @@ class TestMergeConstantsAccuracy(Fixtures):
 
 
 
-    def test_accuracy(self, _rtol_atol):
+    def test_accuracy(self):
 
         _old_constants = {0:1, 4: 0, 5: 0}
+
+        _rtol_atol = (1e-5, 1e-8)
 
         # one column dropped out
         _new_constants = {0:1, 5: 0}
@@ -304,11 +284,6 @@ class TestMergeConstantsAccuracy(Fixtures):
                         exp_out_dict[int(_key)] = _new_constants[_key]
 
                 assert out == exp_out_dict
-
-
-
-
-
 
 
 

@@ -30,20 +30,6 @@ import pytest
 
 class TestAccuracy:
 
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _kwargs():
-        return {
-            'keep': 'random',
-            'equal_nan': False,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1     # leave at 1 because of confliction
-        }
-
-
-
     @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'csc', 'coo'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))

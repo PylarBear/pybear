@@ -6,20 +6,20 @@
 
 
 
-from pybear.preprocessing._InterceptManager._partial_fit._find_constants \
-    import _find_constants
+import pytest
+
+from typing_extensions import Any
 
 import numpy as np
 import scipy.sparse as ss
 
-import pytest
-
-
-
+from pybear.preprocessing._InterceptManager._partial_fit._find_constants \
+    import _find_constants
 
 
 
 class TestFindConstants_Num:
+
 
     # def _find_constants(
     #     _X: InternalDataContainer,
@@ -28,21 +28,10 @@ class TestFindConstants_Num:
     #     _rtol: Real,
     #     _atol: Real,
     #     _n_jobs: Union[Integral, None]
-    # ) -> dict[int, any]:
+    # ) -> dict[int, Any]:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _rtol():
-        return 1e-6
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _atol():
-        return 1e-6
-
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -54,33 +43,6 @@ class TestFindConstants_Num:
     @pytest.fixture(scope='module')
     def _shape():
         return (50, 20)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _noise():
-        return 1e-9
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_base(_X_factory, _columns, _shape, _noise):
-
-        def foo(_format, _dtype, _has_nan, _constants):
-
-            return _X_factory(
-                _dupl=None,
-                _has_nan=_has_nan,
-                _format=_format,
-                _dtype=_dtype,
-                _columns=_columns,
-                _constants=_constants,
-                _noise=_noise,
-                _zeros=None,
-                _shape=_shape
-            )
-
-        return foo
 
 
     @staticmethod
@@ -97,24 +59,24 @@ class TestFindConstants_Num:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _no_constants():
-        return {}
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _less_constants():
         return {1:2, 3:2, 12:2, 15:1}
 
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
 
     @pytest.mark.parametrize('_format', 
         ('coo_matrix', 'coo_array', 'dia_matrix', 
-         'dia_array', 'bsr_matrix', 'bsr_array')
+        'dia_array', 'bsr_matrix', 'bsr_array')
     )
-    def test_blocks_coo_dia_bsr(self, _X_base, _format, _rtol, _atol, _n_jobs):
+    def test_blocks_coo_dia_bsr(
+        self, _X_factory, _format, _n_jobs, _columns, _shape
+    ):
 
-        _X = _X_base('np', 'flt', _has_nan=False, _constants=None)
+        _X = _X_factory(
+            _format='np', _dtype='flt', _columns=_columns,
+            _has_nan=False, _constants=None, _shape=_shape
+        )
 
         if _format == 'coo_matrix':
             _X_wip = ss.coo_matrix(_X)
@@ -130,14 +92,14 @@ class TestFindConstants_Num:
             _X_wip = ss.bsr_array(_X)
         else:
             raise Exception
-        
+
         with pytest.raises(AssertionError):
             _find_constants(
                 _X_wip,
                 _old_constant_columns=None,
                 _equal_nan=True,
-                _rtol=_rtol,
-                _atol=_atol,
+                _rtol=1e-6,
+                _atol=1e-6,
                 _n_jobs=_n_jobs
             )
 
@@ -148,9 +110,9 @@ class TestFindConstants_Num:
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_first_pass(
-        self, _X_base, _format, _dtype, _constants_set, _has_nan, _equal_nan,
-        _init_constants, _no_constants, _more_constants, _less_constants,
-        _rtol, _atol, _shape, _n_jobs
+        self, _X_factory, _format, _dtype, _constants_set, _has_nan, _equal_nan,
+        _init_constants, _more_constants, _less_constants, _n_jobs,
+        _columns, _shape
     ):
 
         # verifies accuracy of _find_constants on a single pass
@@ -164,7 +126,7 @@ class TestFindConstants_Num:
         if _constants_set == 'init':
             _constants = _init_constants
         elif _constants_set == 'no':
-            _constants = _no_constants
+            _constants = {}
         elif _constants_set == 'more':
             _constants = _more_constants
         elif _constants_set == 'less':
@@ -173,20 +135,18 @@ class TestFindConstants_Num:
             raise Exception
 
         # build X
-        _X_wip = _X_base(
-            _format=_format,
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _constants=_constants
+        _X_wip = _X_factory(
+            _format=_format, _dtype=_dtype, _columns=_columns,
+            _has_nan=_has_nan, _constants=_constants, _shape=_shape
         )
 
         # get constant idxs and their values
-        out: dict[int, any] = _find_constants(
+        out: dict[int, Any] = _find_constants(
             _X_wip,
             _old_constant_columns=None,   # first pass! occ must be None!
             _equal_nan=_equal_nan,
-            _rtol=_rtol,
-            _atol=_atol,
+            _rtol=1e-6,
+            _atol=1e-6,
             _n_jobs=_n_jobs
         )
 
@@ -209,10 +169,7 @@ class TestFindConstants_Num:
                     assert str(_init_constants[_idx]) == 'nan'
                 else:
                     assert np.isclose(
-                        _value,
-                        _init_constants[_idx],
-                        rtol=_rtol,
-                        atol=_atol
+                        _value, _init_constants[_idx], rtol=1e-6, atol=1e-6
                     )
         elif _constants_set == 'more':
             # num out constant columns == num given constant columns
@@ -228,10 +185,7 @@ class TestFindConstants_Num:
                     assert str(_more_constants[_idx]) == 'nan'
                 else:
                     assert np.isclose(
-                        _value,
-                        _more_constants[_idx],
-                        rtol=_rtol,
-                        atol=_atol
+                        _value, _more_constants[_idx], rtol=1e-6, atol=1e-6
                     )
         elif _constants_set == 'less':
             # num out constant columns == num given constant columns
@@ -247,10 +201,7 @@ class TestFindConstants_Num:
                     assert str(_less_constants[_idx]) == 'nan'
                 else:
                     assert np.isclose(
-                        _value,
-                        _less_constants[_idx],
-                        rtol=_rtol,
-                        atol=_atol
+                        _value, _less_constants[_idx], rtol=1e-6, atol=1e-6
                     )
         else:
             raise Exception
@@ -261,8 +212,8 @@ class TestFindConstants_Num:
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_less_constants_found(
-        self, _X_base, _format, _dtype, _has_nan, _equal_nan, _init_constants,
-        _less_constants, _rtol, _atol, _shape, _n_jobs
+        self, _X_factory, _format, _dtype, _has_nan, _equal_nan, _init_constants,
+        _less_constants, _n_jobs, _columns, _shape
     ):
 
         # verifies accuracy of _find_constants when second partial fit
@@ -272,38 +223,34 @@ class TestFindConstants_Num:
         # indexable, dont test with coo, dia, bsr
 
         # build first X
-        _first_X_wip = _X_base(
-            _format=_format,
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _constants=_init_constants
+        _first_X_wip = _X_factory(
+            _format=_format, _dtype=_dtype, _columns=_columns,
+            _has_nan=_has_nan, _constants=_init_constants, _shape=_shape
         )
 
         # get first partial fit constants
-        _first_fit_constants: dict[int, any] = _find_constants(
+        _first_fit_constants: dict[int, Any] = _find_constants(
             _first_X_wip,
             _old_constant_columns=None,   # first pass! occ must be None!
             _equal_nan=_equal_nan,
-            _rtol=_rtol,
-            _atol=_atol,
+            _rtol=1e-6,
+            _atol=1e-6,
             _n_jobs=_n_jobs
         )
 
         # build second X - less constant columns
-        _scd_X_wip = _X_base(
-            _format=_format,
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _constants=_less_constants
+        _scd_X_wip = _X_factory(
+            _format=_format, _dtype=_dtype, _columns=_columns,
+            _has_nan=_has_nan, _constants=_less_constants, _shape=_shape
         )
 
         # get second partial fit constants
-        _scd_fit_constants: dict[int, any] = _find_constants(
+        _scd_fit_constants: dict[int, Any] = _find_constants(
             _scd_X_wip,
             _old_constant_columns=_first_fit_constants, # <=========
             _equal_nan=_equal_nan,
-            _rtol=_rtol,
-            _atol=_atol,
+            _rtol=1e-6,
+            _atol=1e-6,
             _n_jobs=_n_jobs
         )
 
@@ -321,10 +268,7 @@ class TestFindConstants_Num:
                     assert str(_less_constants[_col_idx]) == 'nan'
                 else:
                     assert np.isclose(
-                        _value,
-                        _less_constants[_col_idx],
-                        rtol=_rtol,
-                        atol=_atol
+                        _value, _less_constants[_col_idx], rtol=1e-6, atol=1e-6
                     )
 
 
@@ -333,8 +277,8 @@ class TestFindConstants_Num:
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_more_constants_found(
-        self, _X_base, _format, _dtype, _has_nan, _equal_nan, _init_constants,
-        _more_constants, _rtol, _atol, _shape, _n_jobs
+        self, _X_factory, _format, _dtype, _has_nan, _equal_nan, _init_constants,
+        _more_constants, _n_jobs, _columns, _shape
     ):
 
         # verifies accuracy of _find_constants when second partial fit
@@ -344,38 +288,34 @@ class TestFindConstants_Num:
         # indexable, dont test with coo, dia, bsr
 
         # build first X
-        _first_X_wip = _X_base(
-            _format=_format,
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _constants=_init_constants
+        _first_X_wip = _X_factory(
+            _format=_format, _dtype=_dtype, _columns=_columns,
+            _has_nan=_has_nan, _constants=_init_constants, _shape=_shape
         )
 
         # get first partial fit constants
-        _first_fit_constants: dict[int, any] = _find_constants(
+        _first_fit_constants: dict[int, Any] = _find_constants(
             _first_X_wip,
             _old_constant_columns=None,   # first pass! occ must be None
             _equal_nan=_equal_nan,
-            _rtol=_rtol,
-            _atol=_atol,
+            _rtol=1e-6,
+            _atol=1e-6,
             _n_jobs=_n_jobs
         )
 
         # build second X - more constant columns
-        _scd_X_wip = _X_base(
-            _format=_format,
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _constants=_more_constants
+        _scd_X_wip = _X_factory(
+            _format=_format, _dtype=_dtype, _columns=_columns,
+            _has_nan=_has_nan, _constants=_more_constants, _shape=_shape
         )
 
         # get second partial fit constants
-        _scd_fit_constants: dict[int, any] = _find_constants(
+        _scd_fit_constants: dict[int, Any] = _find_constants(
             _scd_X_wip,
             _old_constant_columns=_first_fit_constants, # <=========
             _equal_nan=_equal_nan,
-            _rtol=_rtol,
-            _atol=_atol,
+            _rtol=1e-6,
+            _atol=1e-6,
             _n_jobs=_n_jobs
         )
 
@@ -393,10 +333,7 @@ class TestFindConstants_Num:
                     assert str(_init_constants[_col_idx]) == 'nan'
                 else:
                     assert np.isclose(
-                        _value,
-                        _init_constants[_col_idx],
-                        rtol=_rtol,
-                        atol=_atol
+                        _value, _init_constants[_col_idx], rtol=1e-6, atol=1e-6
                     )
 
 
@@ -405,8 +342,8 @@ class TestFindConstants_Num:
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_more_and_less_constants_found(
-        self, _X_base, _format, _dtype, _has_nan, _equal_nan, _init_constants,
-        _less_constants, _more_constants, _rtol, _atol, _shape, _n_jobs
+        self, _X_factory, _format, _dtype, _has_nan, _equal_nan, _init_constants,
+        _less_constants, _more_constants, _n_jobs, _columns, _shape
     ):
 
         # verifies accuracy of _find_constants when partial fits after the
@@ -416,56 +353,50 @@ class TestFindConstants_Num:
         # indexable, dont test with coo, dia, bsr
 
         # build first X
-        _first_X_wip = _X_base(
-            _format=_format,
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _constants=_init_constants
+        _first_X_wip = _X_factory(
+            _format=_format, _dtype=_dtype, _columns=_columns,
+            _has_nan=_has_nan, _constants=_init_constants, _shape=_shape
         )
 
         # get first partial fit constants
-        _first_fit_constants: dict[int, any] = _find_constants(
+        _first_fit_constants: dict[int, Any] = _find_constants(
             _first_X_wip,
             _old_constant_columns=None,  # first pass!  occ must be None!
             _equal_nan=_equal_nan,
-            _rtol=_rtol,
-            _atol=_atol,
+            _rtol=1e-6,
+            _atol=1e-6,
             _n_jobs=_n_jobs
         )
 
         # build second X - more constant columns
-        _scd_X_wip = _X_base(
-            _format=_format,
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _constants=_more_constants
+        _scd_X_wip = _X_factory(
+            _format=_format, _dtype=_dtype, _columns=_columns,
+            _has_nan=_has_nan, _constants=_more_constants, _shape=_shape
         )
 
         # get second partial fit constants
-        _scd_fit_constants: dict[int, any] = _find_constants(
+        _scd_fit_constants: dict[int, Any] = _find_constants(
             _scd_X_wip,
             _old_constant_columns=_first_fit_constants,  # <=========
             _equal_nan=_equal_nan,
-            _rtol=_rtol,
-            _atol=_atol,
+            _rtol=1e-6,
+            _atol=1e-6,
             _n_jobs=_n_jobs
         )
 
         # build third X - less constant columns
-        _third_X_wip = _X_base(
-            _format=_format,
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _constants=_less_constants
+        _third_X_wip = _X_factory(
+            _format=_format, _dtype=_dtype, _columns=_columns,
+            _has_nan=_has_nan, _constants=_less_constants, _shape=_shape
         )
 
         # get third partial fit constants
-        _third_fit_constants: dict[int, any] = _find_constants(
+        _third_fit_constants: dict[int, Any] = _find_constants(
             _third_X_wip,
             _old_constant_columns=_scd_fit_constants,  # <=========
             _equal_nan=_equal_nan,
-            _rtol=_rtol,
-            _atol=_atol,
+            _rtol=1e-6,
+            _atol=1e-6,
             _n_jobs=_n_jobs
         )
 
@@ -486,10 +417,7 @@ class TestFindConstants_Num:
                     assert str(_less_constants[_col_idx]) == 'nan'
                 else:
                     assert np.isclose(
-                        _value,
-                        _less_constants[_col_idx],
-                        rtol=_rtol,
-                        atol=_atol
+                        _value, _less_constants[_col_idx], rtol=1e-6, atol=1e-6
                     )
 
 
@@ -501,7 +429,7 @@ class TestFindConstants_Num:
         _X_wip = np.zeros(_shape).astype(np.uint8)
 
         # get constant idxs and their values
-        out: dict[int, any] = _find_constants(
+        out: dict[int, Any] = _find_constants(
             _X_wip,
             _old_constant_columns=None,   # first pass! occ must be None!
             _equal_nan=True,
