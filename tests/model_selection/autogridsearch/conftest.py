@@ -37,7 +37,9 @@ def _client():
 
 @pytest.fixture(scope='session')
 def _shape():
-    return (int(np.random.randint(1, 100)), int(np.random.randint(1, 20)))
+    # must have enough rows to avoid error in StratifiedKFold for more
+    # splits than number of members in each class in y.
+    return (int(np.random.randint(20, 100)), int(np.random.randint(1, 20)))
 
 
 @pytest.fixture(scope='session')
