@@ -7,11 +7,15 @@
 
 
 """
+For a quick start to using AutoGridSearch, skip to the 'Params Parameter'
+section of the docs.
+
 Run multiple passes of grid search with progressively narrower search
-spaces to find the most precise estimate of the best value for each
+spaces to find increasingly precise estimates of the best value for each
 hyperparameter. 'Best' values are those hyperparameter values within
-the given search space that minimize loss or maximize score for the
-particular dataset and estimator being fit.
+the given search space that minimize the average loss or maximize the
+average score across all validation folds for the particular dataset
+and estimator being trained.
 
 The sklearn / dask_ml / pybear grid search modules expose these values
 through a :attr: `best_params_` attribute. It is a dictionary with
@@ -36,7 +40,7 @@ are constructed from the instructions in the :param: `params` parameter.
 The first grids are then passed to the parent GridSearch's `param_grid`
 parameter (or a different parameter such as `parameters` for some
 GridSearch modules) and fit is called on the parent. Once the first
-search is completed and the `best_params_` attribute is retrieved, new
+search is complete and the `best_params_` attribute is retrieved, new
 search grids for the next pass are constructed based on:
     • the preceding search grid,
     • the results within `best_params_`,
@@ -62,15 +66,16 @@ Example `best_params_` for a parent GridSearch module:
     {
     'C': 10,
     'l1_ratio': 0.5,
-    'solver': 'lbfgs']
+    'solver': 'lbfgs'
     }
 
 After a session of AutoGridSearch, all the familiar attributes of the
 parent GridSearch, like :attr: `best_estimator_`, :attr: `best_params_`,
 and :attr: `best_score_`, etc., are exposed through the AutoGridSearch
 instance. In addition to those, AutoGridSearch exposes other attributes
-that capture all the grids and best hyperparameter values for each pass,
-the :attr: `GRIDS_` :attr: `RESULTS_`, and :attr: `params_` attributes.
+that capture all the grids and best hyperparameter values for each
+pass, the :attr: `GRIDS_` and :attr: `RESULTS_` attributes, as well
+as the :attr: `params_` attribute.
 
 The `GRIDS_` attribute is a dictionary of all the search grids used
 during the AutoGridSearch session. It is a collection of every
@@ -80,13 +85,12 @@ attribute is a dictionary of all the best values returned by the parent
 GridSearch during the AutoGridSearch session. It is a collection of
 every `best_params_` returned for every `param_grid` passed, keyed by
 the zero-indexed pass number when that `best_params_` was generated.
-
-The `params_` attribute is the version of `params` that was actually
-used during the AutoGridSearch session. If the `params` attribute is
-modified during the AutoGridSearch session, the changes are captured in
-this work-in-process object. Events that alter the originally-passed
-`params` include the initial conversion of integer 'points' to a list
-of points, and shift passes, which always extend the list of points.
+The `params_` attribute is the version of `params` that was  actually
+used during the AutoGridSearch session. Any changes to the `params`
+attribute during the AutoGridSearch session are captured in this
+work-in-process object. Events that alter the originally-passed `params`
+include the initial conditioning to the form needed by AutoGridSearch
+internally, and 'shift passes', which is explained later in the docs.
 
 AutoGridSearch leaves the API of the parent GridSearchCV module intact,
 and all the parent module's attributes and methods (except fit) are
@@ -198,46 +202,47 @@ is True and `total_passes` is reached.
 hyperparameters. Briefly and simply, the next search grid is a 'zoom-in'
 on the last round's (sorted) grid in the region bounded by the search
 values that are adjacent to the best value. For float search spaces,
-all intervals are infinitely divisible and will be divided according to
-the number of points provided in :param: `params`. For integer search
-spaces, when the limit of unit intervals is approached, the search space
-is divided with unit intervals and the number of points to search is
-adjusted accordingly, regardless of the number of search points stated
-in :param: `params`, and `params` is overwritten with the new number
-of points.
+all intervals are infinitely divisible and the zoom-in region will
+be divided evenly according to the number of points for the next round
+provided in :param: `params`. For integer search spaces, when the limit
+of unit intervals is approached, the search space is divided with unit
+intervals and the number of points to search is adjusted accordingly,
+regardless of the number of search points stated in :param: `params`,
+and `params` is overwritten with the new number of points.
 
 'regap' - Technically a 'drill', the points in a logspace with log10
 interval greater than 1 are repartitioned to unit interval. For example,
 a logspace of 1e0, 1e2, 1e4, 1e6 with a best value of 1e2 is 'regapped'
 with unit log10 intervals as 1e0, 1e1, 1e2, 1e3, 1e4. In AutoGridSearch,
-this operation is handled separately and distinctly from `drilling`.
-Only unit logspace intervals can enter the drilling process, and any
-logspaces that enter the drilling process must be unit log10 interval
-and are immediately converted to linear spaces.
+this operation is compulsory for these types of spaces before entering
+'drilling', and is handled separately from `drilling`. Any logspaces
+that enter the drilling process must be unit log10 interval. All
+logspaces are ultimately converted to linear search spaces after their
+first drilling pass.
 
-'shrink' -- Reduce a hyperparameter's search grid to a single value, and
-on that specified pass and all passes thereafter only use that single
-value during searches. This saves time by minimizing repetitive and
-redundant searches. Consider, for example, the `fit_intercept` parameter
-for sci-kit LogisticRegression. One might anticipate that this value
-is impactful and non-volatile, meaning that one option will likely be
-clearly better than the other in a particular situation, and once that
-value is determined on the first pass, it is very unlikely to change on
-subsequent passes. Instead of performing the same searches repeatedly,
-the user can set the number of points for a later pass (and all
-thereafter) to 1, which will cause the best value from the previous
-round to be the only value searched over in all remaining rounds, while
-other hyperparameters' grids continue to 'drill'. This technique can be
-used for all hyperparameters: 'soft', 'hard', and 'fixed'. A 'shrink'
-pass cannot happen on the first pass, i.e., you cannot pass a grid
-with more than one point and then indicate only 1 point for the first
-pass; AutoGridSearch will overwrite that first number of points with
-the actual number of points in the first grid. The full grid passed
-to :param: `params` at instantiation must run at least once for every
-hyperparameter.
+'shrink' -- Reduce a hyperparameter's search grid to a single value (the
+best value from the last round), and on that specified pass and all
+passes thereafter only use that single value during searches. This saves
+time by minimizing repetitive and redundant searches. Consider, for
+example, the `fit_intercept` parameter for sci-kit LogisticRegression.
+One might anticipate that this value is impactful and non-volatile,
+meaning that one option will likely be clearly better than the other in
+a particular situation, and once that value is determined on the first
+pass, it is very unlikely to change on subsequent passes. Instead of
+performing the same searches repeatedly, the user can set the number of
+points for a later pass (and all thereafter) to 1, which will cause the
+best value from the previous round to be the only value searched over
+in all remaining rounds, while other hyperparameters' grids continue to
+'drill'. This technique can be used for all hyperparameters: 'soft',
+'hard', and 'fixed'. A 'shrink' pass cannot happen on the first pass,
+i.e., you cannot pass a grid with more than one point and then indicate
+only 1 point for the first pass; AutoGridSearch will overwrite that
+first number of points with the actual number of points in the first
+grid. The full grid passed to :param: `params` at instantiation must
+run at least once for every hyperparameter.
 
 Consider the following instructions that demonstrate how 'shrink' works
-on a 'fixed' space. The 'Params Parameter' section of the docs explains
+on a 'fixed' space. The 'params Parameter' section of the docs explains
 how to construct these instructions, but for now focus on the second
 position of the following list, which tells AutoGridSearch how many
 points to use for each pass.
@@ -422,7 +427,7 @@ Booleans cannot be passed to an 'integer' or 'float' space.
 Integers and floats cannot be passed to a boolean space.
 
 
-Params Parameter
+params Parameter
 ----------------
 The :param: `params` parameter must be a dictionary. AutoGridSearch
 cannot accommodate multiple `params` entries in a list in the same way
@@ -538,7 +543,7 @@ estimator:
     estimators.
 params:
     ParamsType - Required. Instructions for building search grids for
-    all hyperparameters. See the 'Params Parameter' section of the docs
+    all hyperparameters. See the 'params Parameter' section of the docs
     for a lengthy, detailed, discussion on constructing this and how it
     works.
 total_passes:
