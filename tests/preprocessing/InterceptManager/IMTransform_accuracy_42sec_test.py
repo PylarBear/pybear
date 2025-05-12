@@ -6,6 +6,15 @@
 
 
 
+import pytest
+
+from copy import deepcopy
+import os
+import uuid
+
+import numpy as np
+import pandas as pd
+
 from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager as IM
 
@@ -16,15 +25,6 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.utilities import nan_mask
-
-from copy import deepcopy
-import uuid
-
-import numpy as np
-import pandas as pd
-
-
-import pytest
 
 
 
@@ -135,10 +135,10 @@ class TestAccuracy:
                 # column for pd is float64, if not num dtype is object.
                 # this constructs the appended column, puts it on the df,
                 # then gets all the dtypes.
-                from uuid import uuid4
+
                 _key = list(keep.keys())[0]
                 _value = keep[_key]
-                _vector = pd.DataFrame({uuid4(): np.full(X.shape[0], _value)})
+                _vector = pd.DataFrame({uuid.uuid4(): np.full(X.shape[0], _value)})
                 # -----------------
                 try:
                     float(_value)
@@ -219,7 +219,6 @@ class TestAccuracy:
         assert isinstance(TRFM_X, _og_format)
 
         # returned dtypes are same as given dtypes ** * ** * ** * ** * **
-        import os
         if isinstance(TRFM_X, pd.core.frame.DataFrame):
             MASK = TestCls.column_mask_
             if isinstance(keep, dict):

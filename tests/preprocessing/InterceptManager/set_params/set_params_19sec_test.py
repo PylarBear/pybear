@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing._InterceptManager.InterceptManager import \
-    InterceptManager as IM
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._InterceptManager.InterceptManager import \
+    InterceptManager as IM
 
 
 
@@ -46,7 +46,7 @@ class TestSetParams:
 
 
     def test_equality_set_params_before_and_after_fit(
-        self, _shape, _X_factory, y_np, _kwargs, _alt_kwargs
+        self, _X_factory, y_np, _kwargs, _alt_kwargs, _shape
     ):
 
         # test the equality of the data output under:
@@ -75,6 +75,7 @@ class TestSetParams:
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
         del FirstTestClass
+
 
         # fit -> set_params -> transform
         # all different params to start
@@ -105,7 +106,7 @@ class TestSetParams:
 
 
     def test_set_params_between_fit_transforms(
-        self, _shape, _X_factory, y_np, _kwargs, _alt_kwargs
+        self, _X_factory, y_np, _kwargs, _alt_kwargs, _shape
     ):
 
         _X = _X_factory(
@@ -153,7 +154,7 @@ class TestSetParams:
 
 
     def test_set_params_output_repeatability(
-        self, _shape, _X_factory, y_np, _kwargs, _alt_kwargs
+        self, _X_factory, y_np, _kwargs, _alt_kwargs, _shape
     ):
 
         # changing and changing back on the same class gives same result

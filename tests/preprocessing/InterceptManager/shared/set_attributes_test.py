@@ -6,14 +6,12 @@
 
 
 
-from pybear.preprocessing._InterceptManager._shared._set_attributes import \
-    _set_attributes
+import pytest
 
 import numpy as np
 
-import pytest
-
-
+from pybear.preprocessing._InterceptManager._shared._set_attributes import \
+    _set_attributes
 
 
 

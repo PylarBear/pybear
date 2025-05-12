@@ -8,10 +8,6 @@
 
 import pytest
 
-from pybear.preprocessing import InterceptManager as IM
-
-from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
-
 from copy import deepcopy
 
 import numpy as np
@@ -20,6 +16,10 @@ import scipy.sparse as ss
 import polars as pl
 import dask.array as da
 import dask.dataframe as ddf
+
+from pybear.preprocessing import InterceptManager as IM
+
+from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
 
 
 
@@ -345,7 +345,6 @@ class TestOutputTypes:
 
         NEW_X = _X_np.copy()
         NEW_COLUMNS = _columns.copy()
-
 
         if x_input_type == 'np_array':
             TEST_X = NEW_X
@@ -1797,10 +1796,6 @@ class TestInverseTransform:
                 )
             else:
                 raise Exception
-
-
-
-
 
 
 

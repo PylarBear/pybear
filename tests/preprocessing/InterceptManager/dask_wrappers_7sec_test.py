@@ -6,11 +6,11 @@
 
 
 
+import pytest
+
 import numpy as np
-import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
-import pytest
 
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
@@ -22,59 +22,32 @@ from pybear.preprocessing import InterceptManager as IM
 class TestDaskIncrementalParallelPostFit:
 
 
-    # fixtures ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-    @staticmethod
-    @pytest.fixture
-    def IM_not_wrapped(_kwargs):
-        return IM(**_kwargs)
-
-    @staticmethod
-    @pytest.fixture
-    def IM_wrapped_parallel(_kwargs):
-        return ParallelPostFit(IM(**_kwargs))
-
-    @staticmethod
-    @pytest.fixture
-    def IM_wrapped_incremental(_kwargs):
-        return Incremental(IM(**_kwargs))
-
-    @staticmethod
-    @pytest.fixture
-    def IM_wrapped_both(_kwargs):
-        return ParallelPostFit(Incremental(IM(**_kwargs)))
-
-    # END fixtures ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])
     @pytest.mark.parametrize('y_format', ['da_vector', None])
     @pytest.mark.parametrize('row_chunk', (10, 20))
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
-    def test_fit_and_transform_accuracy(self, wrappings, IM_wrapped_parallel,
-        IM_wrapped_incremental, IM_not_wrapped, IM_wrapped_both, _X_factory,
-        y_np, _columns, x_format, y_format, _kwargs, _shape, row_chunk
+    def test_fit_and_transform_accuracy(
+        self, wrappings, _X_factory, y_np, _columns, x_format, y_format,
+        _kwargs, _shape, row_chunk
     ):
 
         # faster without client, verified 24_11_27 25_05_11
 
-        _X_np = _X_factory(_dupl=None, _has_nan=False, _dtype='flt', _shape=_shape)
-
-        _X_pd = pd.DataFrame(data=_X_np, columns=_columns)
-
+        _X_np = _X_factory(
+            _dupl=None, _has_nan=False, _dtype='flt', _shape=_shape
+        )
 
         if wrappings == 'incr':
-            _test_cls = IM_wrapped_incremental
+            _test_cls = Incremental(IM(**_kwargs))
         elif wrappings == 'ppf':
-            _test_cls = IM_wrapped_parallel
+            _test_cls = ParallelPostFit(IM(**_kwargs))
         elif wrappings == 'both':
-            _test_cls = IM_wrapped_both
+            _test_cls = ParallelPostFit(Incremental(IM(**_kwargs)))
         elif wrappings == 'none':
-            _test_cls = IM_not_wrapped
+            _test_cls = IM(**_kwargs)
 
         _X_chunks = (row_chunk, _shape[1])
         _X = da.from_array(_X_np).rechunk(_X_chunks)
-        _X_np = _X_np.copy()
         if x_format == 'da_array':
             pass
         elif x_format == 'ddf':

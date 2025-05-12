@@ -41,6 +41,7 @@ class TestInverseTransform:
         self, _X_factory, _shape, _format
     ):
 
+        # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         _base_X = _X_factory(
             _dupl=None,
             _has_nan=False,
@@ -76,6 +77,7 @@ class TestInverseTransform:
             _X_wip = ss._bsr.bsr_array(_base_X)
         else:
             raise Exception
+        # END build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # _IM is only being used here to get the legit TRFM_X. only test
         # the core _inverse_transform module, not _IM.inverse_transform.

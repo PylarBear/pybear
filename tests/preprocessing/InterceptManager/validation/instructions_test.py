@@ -60,16 +60,3 @@ class TestValInstructions:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-

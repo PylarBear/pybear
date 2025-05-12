@@ -8,19 +8,17 @@
 
 import pytest
 
-from pybear.preprocessing import InterceptManager as IM
-
 import sys
+
 import numpy as np
 import pandas as pd
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
-
+from pybear.preprocessing import InterceptManager as IM
 
 
 bypass = False
-
 
 
 # ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
@@ -53,9 +51,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
         )
 
         if x_format == 'pd':
-            NEW_Y = pd.DataFrame(
-                data=y_np, columns=['y']
-            )
+            NEW_Y = pd.DataFrame(data=y_np, columns=['y'])
         else:
             NEW_Y = y_np
 
@@ -311,7 +307,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
     def test_access_methods_after_transform(
         self, _X_factory, y_np, _kwargs, _shape
-    ):
+):
 
         X_np = _X_factory(
             _format='np',

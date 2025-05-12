@@ -35,32 +35,30 @@ class TestFindConstants_Str:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _n_jobs():
-        return 1   # leave this at 1 because of contention
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (50, 20)
+    def _fc_args():
+        return {
+            '_rtol': 1e-6,
+            '_atol': 1e-6,
+            '_n_jobs': 1   # leave this at 1 because of contention
+        }
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _init_constants():
-        return {1:'a', 3:'b', 8:'c', 12:'d', 15:'e'}
+        return {1:'a', 2:'b', 4:'c', 6:'d', 7:'e'}
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _more_constants():
-        return {1:'a', 3:'b', 4:'z', 8:'c', 12:'d', 15:'e'}
+        return {1:'a', 2:'b', 3:'z', 4:'c', 6:'d', 7:'e'}
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _less_constants():
-        return {1:'a', 3:'b', 12:'d', 15:'e'}
+        return {1:'a', 2:'b', 6:'d', 7:'e'}
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -70,7 +68,7 @@ class TestFindConstants_Str:
         'dia_array', 'bsr_matrix', 'bsr_array')
     )
     def test_blocks_coo_dia_bsr(
-        self, _X_factory, _format, _n_jobs, _columns, _shape
+        self, _X_factory, _format, _fc_args, _columns, _shape
     ):
 
         _X = _X_factory(
@@ -98,9 +96,7 @@ class TestFindConstants_Str:
                 _X_wip,
                 _old_constant_columns=None,
                 _equal_nan=True,
-                _rtol=1e-6,
-                _atol=1e-6,
-                _n_jobs=_n_jobs
+                **_fc_args
             )
 
 
@@ -111,11 +107,14 @@ class TestFindConstants_Str:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_first_pass(
         self, _X_factory, _format, _dtype, _constants_set, _has_nan, _equal_nan,
-        _init_constants, _more_constants, _less_constants, _n_jobs,
-        _columns, _shape
+        _init_constants, _more_constants, _less_constants, _fc_args, _columns,
+        _shape
     ):
 
         # verifies accuracy of _find_constants on a single pass
+
+
+
 
         # using these just to run more tests, the fact that they are
         # 'more' or less compared to each other is not important, theyre
@@ -142,9 +141,7 @@ class TestFindConstants_Str:
             _X_wip,
             _old_constant_columns=None,   # first pass! occ must be None!
             _equal_nan=_equal_nan,
-            _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         # on first pass, the output of _find_constants is returned directly.
@@ -205,11 +202,14 @@ class TestFindConstants_Str:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_less_constants_found(
         self, _X_factory, _format, _dtype, _has_nan, _equal_nan, _init_constants,
-        _less_constants, _n_jobs, _columns, _shape
+        _less_constants, _fc_args, _columns, _shape
     ):
 
         # verifies accuracy of _find_constants when second partial fit
         # has less constants than the first
+
+
+
 
         # build first X
         _first_X_wip = _X_factory(
@@ -222,9 +222,7 @@ class TestFindConstants_Str:
             _first_X_wip,
             _old_constant_columns=None,   # first pass! occ must be None!
             _equal_nan=_equal_nan,
-            _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         # build second X - less constant columns
@@ -238,9 +236,7 @@ class TestFindConstants_Str:
             _scd_X_wip,
             _old_constant_columns=_first_fit_constants, # <=========
             _equal_nan=_equal_nan,
-            _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         # on a partial fit where less duplicates are found, outputted melded
@@ -265,11 +261,14 @@ class TestFindConstants_Str:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_more_constants_found(
         self, _X_factory, _format, _dtype, _has_nan, _equal_nan, _init_constants,
-        _more_constants, _n_jobs, _columns, _shape
+        _more_constants, _fc_args, _columns, _shape
     ):
 
         # verifies accuracy of _find_constants when second partial fit
         # has more constants than the first
+
+
+
 
         # build first X
         _first_X_wip = _X_factory(
@@ -282,9 +281,7 @@ class TestFindConstants_Str:
             _first_X_wip,
             _old_constant_columns=None,   # first pass! occ must be None
             _equal_nan=_equal_nan,
-            _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         # build second X - more constant columns
@@ -298,9 +295,7 @@ class TestFindConstants_Str:
             _scd_X_wip,
             _old_constant_columns=_first_fit_constants, # <=========
             _equal_nan=_equal_nan,
-            _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         # on a partial fit where more duplicates are found, outputted melded
@@ -325,11 +320,14 @@ class TestFindConstants_Str:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_more_and_less_constants_found(
         self, _X_factory, _format, _dtype, _has_nan, _equal_nan, _init_constants,
-        _less_constants, _more_constants, _n_jobs, _columns, _shape
+        _less_constants, _more_constants, _fc_args, _columns, _shape
     ):
 
         # verifies accuracy of _find_constants when partial fits after the
         # first have both more and less constants
+
+
+
 
         # build first X
         _first_X_wip = _X_factory(
@@ -342,9 +340,7 @@ class TestFindConstants_Str:
             _first_X_wip,
             _old_constant_columns=None,  # first pass!  occ must be None!
             _equal_nan=_equal_nan,
-            _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         # build second X - more constant columns
@@ -358,9 +354,7 @@ class TestFindConstants_Str:
             _scd_X_wip,
             _old_constant_columns=_first_fit_constants,  # <=========
             _equal_nan=_equal_nan,
-            _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         # build third X - less constant columns
@@ -374,9 +368,7 @@ class TestFindConstants_Str:
             _third_X_wip,
             _old_constant_columns=_scd_fit_constants,  # <=========
             _equal_nan=_equal_nan,
-            _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         # on a partial fit where more duplicates are found, outputted melded
@@ -400,7 +392,7 @@ class TestFindConstants_Str:
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))
     @pytest.mark.parametrize('_dtype', ('str', 'obj', 'hybrid'))
-    def test_ss_all_zeros(self, _format, _dtype, _shape, _n_jobs):
+    def test_ss_all_zeros(self, _format, _dtype, _shape, _fc_args):
 
         # build X
         _X_wip = np.zeros(_shape).astype(np.uint8)
@@ -410,9 +402,7 @@ class TestFindConstants_Str:
             _X_wip,
             _old_constant_columns=None,   # first pass! occ must be None!
             _equal_nan=True,
-            _rtol=1e-5,
-            _atol=1e-8,
-            _n_jobs=_n_jobs
+            **_fc_args
         )
 
         assert np.array_equal(list(out.keys()), list(range(_shape[1])))

@@ -8,10 +8,11 @@
 
 import pytest
 
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-from copy import deepcopy
 
 from pybear.preprocessing._InterceptManager._partial_fit. \
     _column_getter import _column_getter

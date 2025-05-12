@@ -6,9 +6,7 @@
 
 
 
-from pybear.preprocessing._InterceptManager._validation._keep_and_columns import \
-    _val_keep_and_columns
-
+import pytest
 
 from copy import deepcopy
 import random
@@ -16,7 +14,8 @@ import random
 import numpy as np
 import pandas as pd
 
-import pytest
+from pybear.preprocessing._InterceptManager._validation._keep_and_columns import \
+    _val_keep_and_columns
 
 
 

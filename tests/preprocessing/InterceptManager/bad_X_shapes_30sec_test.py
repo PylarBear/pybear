@@ -5,17 +5,14 @@
 #
 
 
-from pybear.preprocessing._InterceptManager.InterceptManager \
-    import InterceptManager as IM
+
+import pytest
 
 import pandas as pd
 import scipy.sparse as ss
 
-import pytest
-
-
-
-
+from pybear.preprocessing._InterceptManager.InterceptManager \
+    import InterceptManager as IM
 
 
 

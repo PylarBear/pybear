@@ -6,13 +6,12 @@
 
 
 
-from pybear.preprocessing._InterceptManager._validation._validation import (
-    _validation
-)
+import pytest
 
 import pandas as pd
 
-import pytest
+from pybear.preprocessing._InterceptManager._validation._validation import \
+    _validation
 
 
 

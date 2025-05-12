@@ -107,12 +107,7 @@ class TestGetFeatureNamesOutRejects:
 
 
 @pytest.mark.parametrize('_format, _pd_columns_is_passed',
-    (
-        ('np', False),
-        ('pd', True),
-        ('pd', False),
-    ),
-    scope='module'
+    (('np', False), ('pd', True), ('pd', False)), scope='module'
 )
 @pytest.mark.parametrize('_dtype',
     ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module'
@@ -280,9 +275,6 @@ class TestGetFeatureNamesOut:
                         f"array of generic headers")
         else:
             raise Exception
-
-
-
 
 
 
