@@ -6,19 +6,17 @@
 
 
 
-from pybear.utilities._inf_masking import inf_mask
-
+import pytest
 
 import math
 import decimal
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
 
-
-import pytest
-
+from pybear.utilities._inf_masking import inf_mask
 
 
 

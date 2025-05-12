@@ -6,14 +6,12 @@
 
 
 
-from pybear.utilities._nan_masking import nan_mask
+import pytest
 
 import numpy as np
 import polars as pl
 
-import pytest
-
-
+from pybear.utilities._nan_masking import nan_mask
 
 
 
