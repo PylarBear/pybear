@@ -8,22 +8,15 @@
 # IMPORTANT!
 # this is not sparse so this uses _parallel_column_comparer!
 
+
+import pytest
+
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 
-import pytest
-
-
-
 
 class TestPdColumnComparer:
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (1000, 2)
 
 
     @pytest.mark.parametrize('_dtype1', ('flt', 'int', 'str', 'obj'))
@@ -31,13 +24,15 @@ class TestPdColumnComparer:
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_accuracy(
-        self, _X_factory, _dtype1, _dtype2, _has_nan, _equal_nan, _shape
+        self, _X_factory, _dtype1, _dtype2, _has_nan, _equal_nan
     ):
 
         # a sneaky trick here. _X_factory peppers nans after propagating
         # duplicates. which means nans are likely to be different on every
         # column. so if create a 2 column array and both columns are the
         # same, then both will be identical except for the nans.
+
+        _shape = (1000, 2)
 
         _X_flt = _X_factory(
             _dupl=[[0,1]],
@@ -113,24 +108,6 @@ class TestPdColumnComparer:
                 assert not _are_equal
         else:
             assert not _are_equal
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

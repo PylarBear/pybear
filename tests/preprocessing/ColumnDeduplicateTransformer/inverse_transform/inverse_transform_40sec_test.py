@@ -6,6 +6,12 @@
 
 
 
+import pytest
+
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
+
 from pybear.preprocessing._ColumnDeduplicateTransformer._inverse_transform. \
     _inverse_transform import _inverse_transform
 
@@ -13,15 +19,6 @@ from pybear.preprocessing import ColumnDeduplicateTransformer
 
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
-
-import numpy as np
-import pandas as pd
-import scipy.sparse as ss
-
-import pytest
-
-
-
 
 
 
@@ -38,31 +35,6 @@ class TestInverseTransform:
     # validated), use inverse_transform to reconstruct back to the
     # original X.
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _dupl():
-        return [
-            [0, 9],
-            [2, 4, 7]
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _dupl_X(_X_factory, _shape, _dupl, _dtype, _has_nan):
-
-        return _X_factory(
-            _dupl=_dupl,
-            _has_nan=_has_nan,
-            _format='np',
-            _dtype=_dtype,
-            _shape=_shape
-        )
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
     @pytest.mark.parametrize('_format',
         (
@@ -72,7 +44,7 @@ class TestInverseTransform:
         )
     )
     def test_rejects_all_ss_that_are_not_csc(
-        self, _dupl_X, _format, _keep, _do_not_drop, _equal_nan, _dtype,
+        self, _X_factory, _format, _keep, _do_not_drop, _equal_nan, _dtype,
         _has_nan, _shape, _columns
     ):
 
@@ -83,7 +55,13 @@ class TestInverseTransform:
             pytest.skip(reason=f"scipy sparse cannot take strings")
 
         # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        _base_X = _dupl_X.copy()
+        _base_X = _X_factory(
+            _dupl=[[0, 9], [2, 4, 7]],
+            _has_nan=_has_nan,
+            _format='np',
+            _dtype=_dtype,
+            _shape=_shape
+        )
 
         if _format == 'csr_matrix':
             _X_wip = ss._csr.csr_matrix(_base_X)
@@ -140,7 +118,7 @@ class TestInverseTransform:
         ('ndarray', 'df', 'csc_matrix', 'csc_array')
     )
     def test_accuracy(
-        self, _dupl_X, _format, _keep, _do_not_drop, _equal_nan, _dtype,
+        self, _X_factory, _format, _keep, _do_not_drop, _equal_nan, _dtype,
         _has_nan, _shape, _columns
     ):
 
@@ -158,7 +136,13 @@ class TestInverseTransform:
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        _base_X = _dupl_X.copy()
+        _base_X = _X_factory(
+            _dupl=[[0, 9], [2, 4, 7]],
+            _has_nan=_has_nan,
+            _format='np',
+            _dtype=_dtype,
+            _shape=_shape
+        )
 
         if _format == 'ndarray':
             _X_wip = _base_X
@@ -231,16 +215,6 @@ class TestInverseTransform:
             assert _parallel_column_comparer(
                 _out_col, _og_col, 1e-5, 1e-8, _equal_nan=True
             )
-
-
-
-
-
-
-
-
-
-
 
 
 

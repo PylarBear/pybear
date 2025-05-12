@@ -5,28 +5,17 @@
 #
 
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation._validation \
-    import _validation
+
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation._validation \
+    import _validation
 
 
 
 class TestValidation:
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(_X_factory, _shape):
-        return _X_factory(_format='np', _shape=_shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _do_not_drop(_shape):
-        return list(np.random.choice(range(_shape[1]), _shape[1]//10, replace=False))
 
 
     @pytest.mark.parametrize('_conflict', ('raise', 'ignore'))
@@ -36,21 +25,22 @@ class TestValidation:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_n_jobs', (None, -1, 1))
     def test_accepts_good(
-        self, _X, _columns, _conflict, _do_not_drop, _keep, _rtol, _atol,
+        self, _X_factory, _columns, _conflict, _keep, _rtol, _atol,
         _equal_nan, _n_jobs, _shape
     ):
 
-
         _validation(
-            _X,
-            _columns,
-            _conflict,
-            _do_not_drop,
-            _keep,
-            _rtol,
-            _atol,
-            _equal_nan,
-            _n_jobs
+            _X=_X_factory(_format='np', _shape=_shape),
+            _columns=_columns,
+            _conflict=_conflict,
+            _do_not_drop=list(
+                np.random.choice(range(_shape[1]), _shape[1]//10, replace=False)
+            ),
+            _keep=_keep,
+            _rtol=_rtol,
+            _atol=_atol,
+            _equal_nan=_equal_nan,
+            _n_jobs=_n_jobs
         )
 
 

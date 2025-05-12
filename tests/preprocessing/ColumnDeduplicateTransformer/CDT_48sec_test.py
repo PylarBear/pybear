@@ -8,18 +8,19 @@
 
 import pytest
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
-
-from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
-
 from copy import deepcopy
 import itertools
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
 import dask.array as da
 import dask.dataframe as ddf
+
+from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+
+from pybear.utilities import nan_mask, nan_mask_numerical, nan_mask_string
 
 
 
@@ -28,19 +29,6 @@ bypass = False
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
-
-@pytest.fixture(scope='function')
-def _kwargs():
-    return {
-        'keep': 'first',
-        'do_not_drop': None,
-        'conflict': 'raise',
-        'rtol': 1e-5,
-        'atol': 1e-8,
-        'equal_nan': False,
-        'n_jobs': 1   # leave set to 1 because of confliction
-    }
-
 
 @pytest.fixture(scope='module')
 def _X_np(_X_factory, _shape):
@@ -54,26 +42,8 @@ def _X_np(_X_factory, _shape):
         _shape=_shape
     )
 
-
-@pytest.fixture(scope='function')
-def _bad_columns(_master_columns, _shape):
-    return _master_columns.copy()[-_shape[1]:]
-
-
-@pytest.fixture(scope='module')
-def _X_pd(_X_np, _columns):
-    return pd.DataFrame(
-        data=_X_np,
-        columns=_columns
-)
-
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 # test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -207,13 +177,15 @@ class TestInitValidation:
         CDT(**_kwargs).fit_transform(_X_np)
 
 
-    def test_df_str_handling(self, _X_pd, _kwargs, _columns):
+    def test_df_str_handling(self, _X_np, _kwargs, _columns):
 
         _kwargs['conflict'] = 'ignore'
 
         # accepts good str always
         _kwargs['do_not_drop'] = \
             [v for i, v in enumerate(_columns) if i % 2 == 0]
+
+        _X_pd = pd.DataFrame(data=_X_np, columns=_columns)
 
         CDT(**_kwargs).fit_transform(_X_pd)
         # excepted for this 24_11_29_06_30_00
@@ -228,9 +200,11 @@ class TestInitValidation:
             CDT(**_kwargs).fit_transform(_X_pd)
 
 
-    def test_df_int_and_none_handling(self, _X_pd, _kwargs, _columns):
+    def test_df_int_and_none_handling(self, _X_np, _kwargs, _columns):
         # accepts good int always
         _kwargs['do_not_drop'] = [0, 1]
+
+        _X_pd = pd.DataFrame(data=_X_np, columns=_columns)
 
         CDT(**_kwargs).fit_transform(_X_pd)
 
@@ -486,10 +460,11 @@ class TestExceptWarnOnDifferentHeader:
     @pytest.mark.parametrize('scd_fit_name', NAMES)
     @pytest.mark.parametrize('trfm_name', NAMES)
     def test_except_or_warn_on_different_headers(self, _X_factory, _kwargs,
-        _columns, _bad_columns, fst_fit_name, scd_fit_name, trfm_name, _shape
+        _columns, fst_fit_name, scd_fit_name, trfm_name, _shape
     ):
 
-        _col_dict = {'DF1': _columns, 'DF2': _bad_columns, 'NO_HDR_DF': None}
+        # np.flip(_columns) is bad columns
+        _col_dict = {'DF1': _columns, 'DF2': np.flip(_columns), 'NO_HDR_DF': None}
 
         TestCls = CDT(**_kwargs)
 
@@ -710,25 +685,6 @@ class TestManyPartialFitsEqualOneBigFit:
         # keep=='random'
         # **** **** **** **** **** **** **** **** **** **** **** **** ****
 
-         # def _kwargs():
-         #     return {
-         #         'keep': 'first',
-         #         'do_not_drop': None,
-         #         'conflict': 'raise',
-         #         'rtol': 1e-5,
-         #         'atol': 1e-8,
-         #         'equal_nan': False,
-         #         'n_jobs': 1   # leave set to 1 because of confliction
-         #     }
-
-         # def _X_np(_X_factory, _shape):
-         #     return _X_factory(
-         #         _dupl=[[0,_shape[1]-2], [1, _shape[1]-1]],
-         #         _has_nan=False,
-         #         _dtype='flt',
-         #         _shape=_shape
-         #     )
-
          # _X_np has no nans
 
         _kwargs['keep'] = _keep
@@ -881,49 +837,15 @@ class TestDuplAccuracyOverManyPartialFits:
     # verify correct progression of reported duplicates as partial fits are done
     # rig a set of arrays that have progressively decreasing duplicates
 
-
-    @staticmethod
-    @pytest.fixture()
-    def _chunk_shape():
-        return (50,20)   # must have at least 10 columns for dupls to work
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _X(_X_factory, _chunk_shape):
-
-        def foo(_dupl, _has_nan, _dtype):
-
-            return _X_factory(
-                _dupl=_dupl,
-                _has_nan=_has_nan,
-                _format='np',
-                _dtype=_dtype,
-                _columns=None,
-                _zeros=None,
-                _shape=_chunk_shape
-            )
-
-        return foo
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _start_dupl(_chunk_shape):
-        # first indices of a set must be ascending
-        return [
-            [0, 7],
-            [2, 4, _chunk_shape[1]-1],
-            [3, 5, _chunk_shape[1]-2]
-        ]
-
-
-
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (0, 5))
     def test_accuracy(
-        self, _kwargs, _X, _y_np, _start_dupl, _has_nan, _dtype
+        self, _kwargs, _X_factory, _dtype, _has_nan
     ):
+
+        _chunk_shape = (50, 20)  # must have at least 10 columns for dupls to work
+
+        _start_dupl = [[0, 7], [2, 4, _chunk_shape[1] - 1], [3, 5, _chunk_shape[1] - 2]]
 
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['equal_nan'] = True
@@ -942,11 +864,29 @@ class TestDuplAccuracyOverManyPartialFits:
         #   assert reported dupls - should be one less (the randomly chosen column)
         # at the very end, stack all the _wip_Xs, do one big fit, verify dupls
 
-        _pool_X = _X(None , _has_nan, _dtype)
+        _pool_X = _X_factory(
+            _dupl=None,
+            _has_nan=_has_nan,
+            _format='np',
+            _dtype=_dtype,
+            _columns=None,
+            _zeros=None,
+            _shape=_chunk_shape
+        )
 
-        _wip_X = _X(_start_dupl, _has_nan, _dtype)
+        _wip_X = _X_factory(
+            _dupl=_start_dupl,
+            _has_nan=_has_nan,
+            _format='np',
+            _dtype=_dtype,
+            _columns=None,
+            _zeros=None,
+            _shape=_chunk_shape
+        )
 
-        out = TestCls.partial_fit(_wip_X, _y_np).duplicates_
+        y_np = np.random.randint(0, 2, (_chunk_shape[0]))
+
+        out = TestCls.partial_fit(_wip_X, y_np).duplicates_
         assert len(out) == len(_start_dupl)
         for idx in range(len(_start_dupl)):
             assert np.array_equal(out[idx], _start_dupl[idx])
@@ -1000,7 +940,7 @@ class TestDuplAccuracyOverManyPartialFits:
             X_HOLDER.append(_wip_X)
 
             # verify correctly reported dupls after this partial_fit!
-            out = TestCls.partial_fit(_wip_X, _y_np).duplicates_
+            out = TestCls.partial_fit(_wip_X, y_np).duplicates_
             assert len(out) == len(_start_dupl)
             for idx in range(len(_start_dupl)):
                 assert np.array_equal(out[idx], _start_dupl[idx]), \
@@ -1014,7 +954,7 @@ class TestDuplAccuracyOverManyPartialFits:
         # stack all the _wip_Xs
         _final_X = np.vstack(X_HOLDER)
 
-        out = CDT(**_new_kwargs).fit(_final_X, _y_np).duplicates_
+        out = CDT(**_new_kwargs).fit(_final_X, y_np).duplicates_
         assert len(out) == len(_start_dupl)
         for idx in range(len(_start_dupl)):
             assert np.array_equal(out[idx], _start_dupl[idx])
@@ -1841,10 +1781,6 @@ class TestInverseTransform:
                 )
             else:
                 raise Exception
-
-
-
-
 
 
 
