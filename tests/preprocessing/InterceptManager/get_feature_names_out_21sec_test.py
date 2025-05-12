@@ -12,8 +12,9 @@ from copy import deepcopy
 
 import numpy as np
 
-from pybear.preprocessing import InterceptManager as IM
 from pybear.base.exceptions import NotFittedError
+
+from pybear.preprocessing import InterceptManager as IM
 
 
 
@@ -32,7 +33,7 @@ class TestAlwaysExceptsBeforeFit:
 @pytest.mark.parametrize('_instance_state',
     ('after_fit', 'after_transform'), scope='module'
 )
-class TestGetFeatureNamesOutRejects:
+class TestInputFeaturesRejects:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
