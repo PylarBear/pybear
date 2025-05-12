@@ -6,14 +6,14 @@
 
 
 
-from pybear.feature_extraction.text._TextJustifier._transform._sep_lb_finder \
-    import _sep_lb_finder
-
 import pytest
 
 import re
 
 import numpy as np
+
+from pybear.feature_extraction.text._TextJustifier._transform._sep_lb_finder \
+    import _sep_lb_finder
 
 
 
@@ -28,20 +28,6 @@ class TestSepLbFinder:
     # ) -> list[bool]:
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _text():
-
-        # _sep_lb_finder will only ever see 1D data
-
-        return [
-            "THESE are the times that try men’s souls: The summer ",
-            "soldier and the sunshine patriot will, in this crisis, shrink",
-            "from the service of his country; but he that stands it now,",
-            "deserves the love and thanks of man and woman."
-        ]
-
-
     @pytest.mark.parametrize('_join_2D', (' ,', ' ', '.'))
     @pytest.mark.parametrize('_sep',
         (re.compile(','), re.compile(' '), (re.compile(','), re.compile(' ')))
@@ -49,12 +35,21 @@ class TestSepLbFinder:
     @pytest.mark.parametrize('_lb',
         (re.compile(r'\.'), re.compile(';'), (re.compile(r'\.'), re.compile(';')), None)
     )
-    def test_accuracy(self, _text, _join_2D, _sep, _lb):
+    def test_accuracy(self, _join_2D, _sep, _lb):
+
+
+        _text = [
+            "THESE are the times that try men’s souls: The summer ",
+            "soldier and the sunshine patriot will, in this crisis, shrink",
+            "from the service of his country; but he that stands it now,",
+            "deserves the love and thanks of man and woman."
+        ]
 
         # line 1 ends with " "
         # line 2 ends with "k"
         # line 3 ends with ","
         # line 4 ends with "."
+
 
         _ref = [False] * len(_text)
 

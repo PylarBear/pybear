@@ -112,7 +112,7 @@ class TestSetParams:
     ):
 
         _X = _X_factory(
-            _dupl=[[0, 1, _shape[1]-1]],   # <===== important
+            _dupl=[[0, 1, _shape[1] - 1]],   # <===== important
             _format='np',
             _dtype='int',
             _has_nan=False,
@@ -164,7 +164,7 @@ class TestSetParams:
         # set back to the old params and transform, compare with the first output
 
         _X = _X_factory(
-            _dupl=[[0, 1, _shape[1]-1]],   # <===== important
+            _dupl=[[0, 1, _shape[1] - 1]],   # <===== important
             _format='np',
             _dtype='int',
             _has_nan=False,

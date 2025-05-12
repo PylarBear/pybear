@@ -5,8 +5,8 @@
 #
 
 
-import pytest
 
+import pytest
 
 from typing import Literal, Sequence
 from typing_extensions import Union
@@ -14,14 +14,16 @@ import numpy.typing as npt
 
 from uuid import uuid4
 import warnings
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
 
 
-
-
+@pytest.fixture(scope='module')
+def _shape():
+    return (6, 4)
 
 
 @pytest.fixture(scope='session')
@@ -33,9 +35,13 @@ def _master_columns():
             return np.array(_, dtype='<U4')
 
 
+@pytest.fixture(scope='module')
+def _columns(_master_columns, _shape):
+    return _master_columns.copy()[:_shape[1]]
+
 
 @pytest.fixture(scope='module')
-def _X_factory():
+def _X_factory(_shape):
 
 
     def _idx_getter(_rows, _zeros):
@@ -50,7 +56,7 @@ def _X_factory():
         _columns:Union[Sequence[str], None]=None,
         _constants:Union[Sequence[int], None]=None,
         _zeros:Union[float,None]=0,
-        _shape:tuple[int,int]=(20,5)
+        _shape:tuple[int,int]=_shape
     ) -> npt.NDArray[any]:
 
         # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -218,20 +224,43 @@ def _X_factory():
     return foo
 
 
+@pytest.fixture(scope='module')
+def X_np(_X_factory, _shape):
+    # make be float64 so scipy sparse can take it
+    return _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _dtype='int',
+            _shape=_shape
+        ).astype(np.float64)
 
 
+@pytest.fixture(scope='module')
+def X_pd(X_np, _columns):
+    return pd.DataFrame(data=X_np, columns=_columns)
 
 
+@pytest.fixture(scope='module')
+def y_np(_shape):
+    return np.random.randint(0, 2, (_shape[0],))
 
 
+@pytest.fixture(scope='function')
+def _kwargs():
 
-
-
-
-
-
-
-
+    return {
+        'degree': 2,
+        'min_degree': 1,
+        'interaction_only': True,
+        'scan_X': False,
+        'keep': 'first',
+        'sparse_output': False,
+        'feature_name_combiner': "as_indices",
+        'equal_nan': True,
+        'rtol': 1e-5,
+        'atol': 1e-8,
+        'n_jobs': 1  # leave this at 1 because of confliction
+    }
 
 
 

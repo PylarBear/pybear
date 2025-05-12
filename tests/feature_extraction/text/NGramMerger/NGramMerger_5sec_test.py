@@ -65,6 +65,8 @@ class TestNGramMerger:
             ["I'M_NOT_TRYIN'_TO_HEAR_THAT"]
     ]
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
 
     def test_no_op(self, _X):
 
@@ -236,20 +238,6 @@ class TestNGramMerger:
             assert isinstance(row, list)
             assert all(map(isinstance, row, (str for _ in row)))
             assert np.array_equal(row, _exp[r_idx])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

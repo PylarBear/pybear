@@ -48,6 +48,8 @@ class TestTextJustifier_Regex:
             "Boil thou first i’ th’ charmèd pot."
         ]
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
 
     @pytest.mark.parametrize('y', ([1,2], None, {1,2}, 'junk'))
     def test_takes_any_y(self, _kwargs, _text, y):
@@ -341,13 +343,6 @@ class TestTextJustifier_Regex:
             assert isinstance(out[r_idx], list)
             assert all(map(isinstance, out[r_idx], (str for _ in out[r_idx])))
             assert np.array_equal(out[r_idx], _exp[r_idx])
-
-
-
-
-
-
-
 
 
 

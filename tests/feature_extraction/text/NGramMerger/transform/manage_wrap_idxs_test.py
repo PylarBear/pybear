@@ -6,32 +6,19 @@
 
 
 
-from pybear.feature_extraction.text._NGramMerger._transform._manage_wrap_idxs \
-    import _manage_wrap_idxs
-
 import pytest
 
 import numbers
+
+from pybear.feature_extraction.text._NGramMerger._transform._manage_wrap_idxs \
+    import _manage_wrap_idxs
 
 
 
 class TestManageWrapIdxs:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _first_line():
-        return ['CHALLENGER', 'DEEP', 'FRIED']
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _second_line():
-        return ['EGG', 'SALAD', 'SHOOTER']
-
-
-
-    def test_accuracy(self, _first_line, _second_line):
+    def test_accuracy(self):
 
         # def _manage_wrap_idxs(
         #     _first_line: Sequence[str],
@@ -40,6 +27,10 @@ class TestManageWrapIdxs:
         #     _n_len: numbers.Integral
         # ) -> tuple[int, int]:
 
+
+        _first_line = ['CHALLENGER', 'DEEP', 'FRIED']
+
+        _second_line = ['EGG', 'SALAD', 'SHOOTER']
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _ngram = ['CHALLENGER', 'DEEP']

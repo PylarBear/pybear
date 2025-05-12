@@ -5,8 +5,8 @@
 #
 
 
-import pytest
 
+import pytest
 
 from typing import Literal, Iterable
 from typing_extensions import Union, TypeAlias
@@ -14,9 +14,11 @@ import numpy.typing as npt
 
 from uuid import uuid4
 import warnings
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
+
 
 FormatType: TypeAlias = Literal[
     'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
@@ -246,17 +248,6 @@ def _X_factory(_shape):
 
 
     return foo
-
-
-
-
-
-
-
-
-
-
-
 
 
 

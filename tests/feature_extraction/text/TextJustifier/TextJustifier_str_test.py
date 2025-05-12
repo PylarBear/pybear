@@ -22,6 +22,8 @@ from pybear.feature_extraction.text._TextJustifier.TextJustifier import \
 class TestTextJustifier:
 
 
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
     @staticmethod
     @pytest.fixture(scope='function')
     def _kwargs():
@@ -45,6 +47,8 @@ class TestTextJustifier:
             "Sweltered venom sleeping got,",
             "Boil thou first i’ th’ charmèd pot."
         ]
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('y', ([1,2], None, {1,2}, 'junk'))
@@ -337,16 +341,6 @@ class TestTextJustifier:
             assert isinstance(out[r_idx], list)
             assert all(map(isinstance, out[r_idx], (str for _ in out[r_idx])))
             assert np.array_equal(out[r_idx], _exp[r_idx])
-
-
-
-
-
-
-
-
-
-
 
 
 

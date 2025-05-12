@@ -6,14 +6,14 @@
 
 
 
-from pybear.feature_extraction.text._NGramMerger._transform._transform import \
-    _transform
+import pytest
 
 import re
 
 import numpy as np
 
-import pytest
+from pybear.feature_extraction.text._NGramMerger._transform._transform import \
+    _transform
 
 
 
@@ -28,28 +28,6 @@ class TestTransformNoWrap:
     # ) -> list[list[str]]:
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _text():
-        return [
-            ['NEW', 'YORK', 'CITY', 'NEW', 'YORK'],
-            ['FRIED', 'RICE', 'AND', 'MOO', 'GOO', 'GAI', 'PAN'],
-            ['BEWARE', 'OF', 'DOG']
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _ngrams():
-        return [
-            tuple(map(re.compile, ('AND', 'MOO'))),
-            tuple(map(re.compile, ('YORK', 'FRIED'))),
-            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
-            tuple(map(re.compile, ('FRIED', 'RICE'))),
-            tuple(map(re.compile, ('MOO', 'GOO', 'GAI', 'PAN')))
-        ]
-
-
     @pytest.mark.parametrize('_callable, _sep', (
         (None, None),
         (lambda x: "%".join(x), None),
@@ -57,7 +35,24 @@ class TestTransformNoWrap:
         (None, '&'),
         (None, '__')
     ))
-    def test_accuracy_no_wrap(self, _text, _ngrams, _callable, _sep):
+    def test_accuracy_no_wrap(self, _callable, _sep):
+
+
+        _text = [
+            ['NEW', 'YORK', 'CITY', 'NEW', 'YORK'],
+            ['FRIED', 'RICE', 'AND', 'MOO', 'GOO', 'GAI', 'PAN'],
+            ['BEWARE', 'OF', 'DOG']
+        ]
+
+
+        _ngrams = [
+            tuple(map(re.compile, ('AND', 'MOO'))),
+            tuple(map(re.compile, ('YORK', 'FRIED'))),
+            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
+            tuple(map(re.compile, ('FRIED', 'RICE'))),
+            tuple(map(re.compile, ('MOO', 'GOO', 'GAI', 'PAN')))
+        ]
+
 
         if _callable is not None:
             _exp_sep = '%'
@@ -88,27 +83,6 @@ class TestTransformNoWrap:
 class TestTransformWithWrap1:
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _text():
-        return [
-            ['NEW', 'YORK', 'CITY', 'NEW', 'YORK'],
-            ['FRIED', 'RICE', 'AND', 'MOO', 'GOO', 'GAI', 'PAN'],
-            ['BEWARE', 'OF', 'DOG']
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _ngrams():
-        return [
-            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
-            tuple(map(re.compile, ('YORK', 'FRIED'))),
-            tuple(map(re.compile, ('PAN', 'BEWARE'))),
-            tuple(map(re.compile, ('MOO', 'GOO', 'GAI', 'PAN')))
-        ]
-
-
     @pytest.mark.parametrize('_callable, _sep', (
         (None, None),
         (lambda x: "%".join(x), None),
@@ -116,7 +90,22 @@ class TestTransformWithWrap1:
         (None, '&'),
         (None, '__')
     ))
-    def test_accuracy_with_wrap_1(self, _text, _ngrams, _callable, _sep):
+    def test_accuracy_with_wrap_1(self, _callable, _sep):
+
+
+        _text = [
+            ['NEW', 'YORK', 'CITY', 'NEW', 'YORK'],
+            ['FRIED', 'RICE', 'AND', 'MOO', 'GOO', 'GAI', 'PAN'],
+            ['BEWARE', 'OF', 'DOG']
+        ]
+
+        _ngrams = [
+            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
+            tuple(map(re.compile, ('YORK', 'FRIED'))),
+            tuple(map(re.compile, ('PAN', 'BEWARE'))),
+            tuple(map(re.compile, ('MOO', 'GOO', 'GAI', 'PAN')))
+        ]
+
 
         # LONGEST NGRAMS RUN FIRST. MOO GOO GAI PAN WILL ALWAYS MERGE
         # BEFORE IT TRIES TO WRAP ON ('PAN', 'BEWARE'), SO THE WRAP SHOULD
@@ -151,27 +140,6 @@ class TestTransformWithWrap1:
 class TestTransformWithWrap2:
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _text():
-        return [
-            ['NEW', 'YORK', 'CITY', 'NEW', 'YORK'],
-            ['FRIED', 'RICE', 'AND', 'MOO', 'GOO', 'GAI', 'PAN'],
-            ['BEWARE', 'OF', 'DOG']
-        ]
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _ngrams():
-        return [
-            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
-            tuple(map(re.compile, ('NEW', 'YORK'))),
-            tuple(map(re.compile, ('YORK', 'FRIED'))),
-            tuple(map(re.compile, ('PAN', 'BEWARE'))),
-            tuple(map(re.compile, ('BEWARE', 'OF')))
-        ]
-
-
     @pytest.mark.parametrize('_callable, _sep', (
         (None, None),
         (lambda x: "%".join(x), None),
@@ -179,12 +147,26 @@ class TestTransformWithWrap2:
         (None, '&'),
         (None, '__')
     ))
-    def test_accuracy_with_wrap_2(self, _text, _ngrams, _callable, _sep):
+    def test_accuracy_with_wrap_2(self, _callable, _sep):
 
         # LONGEST NGRAMS RUN FIRST, THEN IN ORDER FOR EQUAL LENGTH NGRAMS.
         # 'NEW' 'YORK' WILL TRUMP 'YORK' 'FRIED' BECAUSE IT IS FIRST
         # 'PAN' 'BEWARE' WILL DO THE WRAP BEFORE 'BEWARE' 'OF' BECAUSE
         # IT IS FIRST
+
+        _text = [
+            ['NEW', 'YORK', 'CITY', 'NEW', 'YORK'],
+            ['FRIED', 'RICE', 'AND', 'MOO', 'GOO', 'GAI', 'PAN'],
+            ['BEWARE', 'OF', 'DOG']
+        ]
+
+        _ngrams = [
+            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
+            tuple(map(re.compile, ('NEW', 'YORK'))),
+            tuple(map(re.compile, ('YORK', 'FRIED'))),
+            tuple(map(re.compile, ('PAN', 'BEWARE'))),
+            tuple(map(re.compile, ('BEWARE', 'OF')))
+        ]
 
 
         if _callable is not None:
@@ -215,22 +197,6 @@ class TestTransformWithWrap2:
 class TestSingleWordsWithWrap:
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _text():
-        return [
-            ['NEW'], ['YORK'], ['CITY'], ['NEW'], ['YORK']
-        ]
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _ngrams():
-        return [
-            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
-            tuple(map(re.compile, ('NEW', 'YORK')))
-        ]
-
-
     @pytest.mark.parametrize('_remove_empty_rows', (True, False))
     @pytest.mark.parametrize('_callable, _sep', (
         (None, None),
@@ -239,7 +205,17 @@ class TestSingleWordsWithWrap:
         (None, '&'),
         (None, '__')
     ))
-    def test_accuracy(self, _text, _ngrams, _callable, _sep, _remove_empty_rows):
+    def test_accuracy(self, _callable, _sep, _remove_empty_rows):
+
+
+        _text = [
+            ['NEW'], ['YORK'], ['CITY'], ['NEW'], ['YORK']
+        ]
+
+        _ngrams = [
+            tuple(map(re.compile, ('NEW', 'YORK', 'CITY'))),
+            tuple(map(re.compile, ('NEW', 'YORK')))
+        ]
 
 
         if _callable is not None:

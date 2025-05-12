@@ -46,36 +46,10 @@ class TestTransform:
             ["A", "Is", "aNd"]
         ]
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _exp_1():
-        # delete empty rows
-        return [
-            ["this", "real", "life?"],
-            ["this", "just", "fantasy?"],
-            ["Caught", "landside"],
-            ["No", "escape", "from", "reality"],
-            ["Open", "your", "eyes"],
-            ["Look", "up", "skies", "see"]
-        ]
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _exp_2():
-        # do not delete empty rows
-        return [
-            ["this", "real", "life?"],
-            ["this", "just", "fantasy?"],
-            ["Caught", "landside"],
-            ["No", "escape", "from", "reality"],
-            ["Open", "your", "eyes"],
-            ["Look", "up", "skies", "see"],
-            []
-        ]
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    def test_accuracy_remove_empty_rows(self, _text, _stop_words, _exp_1):
+    def test_accuracy_remove_empty_rows(self, _text, _stop_words):
 
         out_data, out_support_mask = _transform(
             _text,
@@ -90,12 +64,21 @@ class TestTransform:
             assert isinstance(row, list)
             assert all(map(isinstance, row, (str for _ in row)))
 
+        _exp_1 = [
+            ["this", "real", "life?"],
+            ["this", "just", "fantasy?"],
+            ["Caught", "landside"],
+            ["No", "escape", "from", "reality"],
+            ["Open", "your", "eyes"],
+            ["Look", "up", "skies", "see"]
+        ]
+
         assert all(map(np.array_equal, out_data, _exp_1))
 
         assert np.array_equal(out_support_mask, [True] * 6 + [False])
 
 
-    def test_accuracy_do_not_remove_empty_rows(self, _text, _stop_words, _exp_2):
+    def test_accuracy_do_not_remove_empty_rows(self, _text, _stop_words):
 
         out_data, out_support_mask = _transform(
             _text,
@@ -109,6 +92,16 @@ class TestTransform:
         for row in out_data:
             assert isinstance(row, list)
             assert all(map(isinstance, row, (str for _ in row)))
+
+        _exp_2 = [
+            ["this", "real", "life?"],
+            ["this", "just", "fantasy?"],
+            ["Caught", "landside"],
+            ["No", "escape", "from", "reality"],
+            ["Open", "your", "eyes"],
+            ["Look", "up", "skies", "see"],
+            []
+        ]
 
         assert all(map(np.array_equal, out_data, _exp_2))
 

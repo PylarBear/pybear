@@ -70,11 +70,7 @@ def _X_pd(_X_np, _columns):
 
 @pytest.fixture(scope='module')
 def _y_np(_shape):
-    return np.random.randint(
-        0,
-        2,
-        (_shape[0], 2)
-    )
+    return np.random.randint(0, 2, (_shape[0], 2))
 
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^

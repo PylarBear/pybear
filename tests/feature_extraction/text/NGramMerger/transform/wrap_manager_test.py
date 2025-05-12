@@ -6,14 +6,14 @@
 
 
 
-from pybear.feature_extraction.text._NGramMerger._transform._wrap_manager \
-    import _wrap_manager
+import pytest
 
 import re
 
 import numpy as np
 
-import pytest
+from pybear.feature_extraction.text._NGramMerger._transform._wrap_manager \
+    import _wrap_manager
 
 
 
@@ -31,24 +31,6 @@ class TestWrapManager:
     # ) -> tuple[list[str], list[str]]:
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _first_line():
-        return ['BLACK', 'HOLE', 'SHOT', 'CLOCK', 'WORK']
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _second_line():
-        return ['BENCH', 'PRESS', 'BOARD', 'ROOM', 'MATE']
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _ngram():
-        return (re.compile('work', re.I), re.compile('bench', re.I))
-
-
     @pytest.mark.parametrize('_first_hits', ([], [0], [1], [1, 3]))
     @pytest.mark.parametrize('_second_hits', ([], [0], [3], [1, 3]))
     @pytest.mark.parametrize('_ngcallable, _sep', (
@@ -57,10 +39,13 @@ class TestWrapManager:
         (None, '__'),
         (None, '@')
     ))
-    def test_accuracy(
-        self, _first_line, _second_line, _first_hits, _second_hits, _ngram,
-        _ngcallable, _sep
-    ):
+    def test_accuracy(self, _first_hits, _second_hits, _ngcallable, _sep):
+
+        _first_line = ['BLACK', 'HOLE', 'SHOT', 'CLOCK', 'WORK']
+
+        _second_line = ['BENCH', 'PRESS', 'BOARD', 'ROOM', 'MATE']
+
+        _ngram = (re.compile('work', re.I), re.compile('bench', re.I))
 
         _sep = _sep or '_'
 
@@ -105,15 +90,6 @@ class TestWrapManager:
             assert np.array_equal(
                 second_line, ['BENCH', 'PRESS', 'BOARD', 'ROOM', 'MATE']
             )
-
-
-
-
-
-
-
-
-
 
 
 

@@ -5,16 +5,14 @@
 #
 
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures \
-    import SlimPolyFeatures as SlimPoly
+
+import pytest
 
 import pandas as pd
 import scipy.sparse as ss
 
-import pytest
-
-
-
+from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures \
+    import SlimPolyFeatures as SlimPoly
 
 
 
@@ -26,30 +24,6 @@ class TestExceptsOnBadXShapes:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-       return (10, 4)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _kwargs():
-        return {
-            'degree': 2,
-            'min_degree': 1,
-            'scan_X': False,
-            'keep': 'first',
-            'interaction_only': True,
-            'sparse_output': False,
-            'feature_name_combiner': "as_indices",
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1    # leave this at 1 because of confliction
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _columns_dict(_master_columns, _shape):
         return {
             'good':_master_columns.copy()[:_shape[1]],
@@ -58,30 +32,23 @@ class TestExceptsOnBadXShapes:
             None:None
         }
 
+
     @staticmethod
     @pytest.fixture(scope='module')
     def _X_np_good_col(_X_factory, _shape):
-        return _X_factory(
-            _format='np', _dtype='flt',
-            _shape=(_shape[0], _shape[1])
-        )
+        return _X_factory(_format='np', _dtype='flt', _shape=(_shape[0], _shape[1]))
 
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _X_np_less_col(_X_factory, _shape):
-        return _X_factory(
-            _format='np', _dtype='flt',
-            _shape=(_shape[0], _shape[1]//2)
-        )
+        return _X_factory(_format='np', _dtype='flt', _shape=(_shape[0], _shape[1]//2))
+
 
     @staticmethod
     @pytest.fixture(scope='module')
     def _X_np_more_col(_X_factory, _shape):
-        return _X_factory(
-            _format='np', _dtype='flt',
-            _shape=(_shape[0], _shape[1]*2)
-        )
+        return _X_factory(_format='np', _dtype='flt', _shape=(_shape[0], _shape[1]*2))
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -95,12 +62,11 @@ class TestExceptsOnBadXShapes:
     @pytest.mark.parametrize('scd_fit_x_cols', SAME_DIFF_COLUMNS)
     @pytest.mark.parametrize('trfm_x_format', X_FORMAT)
     @pytest.mark.parametrize('trfm_x_cols', SAME_DIFF_COLUMNS)
-    def test_excepts_on_bad_x_shapes(self, _X_factory, _master_columns, _kwargs,
+    def test_excepts_on_bad_x_shapes(self, _kwargs,
         fst_fit_x_format, scd_fit_x_format, scd_fit_x_cols, trfm_x_format,
-        trfm_x_cols, _shape, _columns_dict, _X_np_good_col, _X_np_more_col,
+        trfm_x_cols, _columns_dict, _X_np_good_col, _X_np_more_col,
         _X_np_less_col
     ):
-
 
         TestCls = SlimPoly(**_kwargs)
 
@@ -108,35 +74,36 @@ class TestExceptsOnBadXShapes:
         def _obj_selector(_format, _cols):
 
             if _cols == 'good':
-                _ = _X_np_good_col
+                _X_wip = _X_np_good_col
             elif _cols == 'less_col':
-                _ = _X_np_less_col
+                _X_wip = _X_np_less_col
             elif _cols == 'more_col':
-                _ = _X_np_more_col
+                _X_wip = _X_np_more_col
             else:
                 raise Exception
 
             if _format == 'np':
                 pass
             elif _format == 'pd':
-                _ = pd.DataFrame(data=_, columns=_columns_dict[_cols])
+                _X_wip = pd.DataFrame(data=_X_wip, columns=_columns_dict[_cols])
             elif _format == 'csc':
-                _ = ss.csc_array(_)
+                _X_wip = ss.csc_array(_X_wip)
             elif _format == 'csr':
-                _ = ss.csr_array(_)
+                _X_wip = ss.csr_array(_X_wip)
             elif _format == 'coo':
-                _ = ss.coo_array(_)
+                _X_wip = ss.coo_array(_X_wip)
             elif _format == 'lil':
-                _ = ss.lil_array(_)
+                _X_wip = ss.lil_array(_X_wip)
             elif _format == 'dok':
-                _ = ss.dok_array(_)
+                _X_wip = ss.dok_array(_X_wip)
             elif _format == 'dia':
-                _ = ss.dia_array(_)
+                _X_wip = ss.dia_array(_X_wip)
             elif _format == 'bsr':
-                _ = ss.bsr_array(_)
+                _X_wip = ss.bsr_array(_X_wip)
             else:
                 raise Exception
-            return _
+
+            return _X_wip
         # END object selection ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 

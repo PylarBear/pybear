@@ -19,12 +19,6 @@ import pytest
 class TestNpColumnComparer:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (1000, 2)
-
-
     # np cant be int if using nans
     @pytest.mark.parametrize('_dtype1', ('flt', 'str', 'obj'))
     @pytest.mark.parametrize('_dtype2', ('flt', 'str', 'obj'))
@@ -39,6 +33,7 @@ class TestNpColumnComparer:
         # column. so if create a 2 column array and both columns are the
         # same, then both will be identical except for the nans.
 
+        _shape = (1000, 2)
 
         _X_flt = _X_factory(
             _dupl=[[0,1]],
@@ -100,25 +95,6 @@ class TestNpColumnComparer:
                 assert not _are_equal
         else:
             assert not _are_equal
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

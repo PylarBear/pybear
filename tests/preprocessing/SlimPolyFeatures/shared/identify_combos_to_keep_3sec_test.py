@@ -6,14 +6,10 @@
 
 
 
-from pybear.preprocessing._SlimPolyFeatures._shared._identify_combos_to_keep \
-    import _identify_combos_to_keep
-
-
 import pytest
 
-
-
+from pybear.preprocessing._SlimPolyFeatures._shared._identify_combos_to_keep \
+    import _identify_combos_to_keep
 
 
 

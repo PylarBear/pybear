@@ -27,54 +27,6 @@ class TestValidation:
     # 2) cannot pass 'case_sensitive' as a list if 'remove' is not passed
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_dim_1():
-        return [
-            'Despair thy charm, ',
-            'And let the angel whom thou still hast served ',
-            'Tell thee Macduff was ',
-            "from his mother’s womb",
-            "Untimely ripped."
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_dim_2():
-        return [
-            ['Despair', 'thy' 'charm, '],
-            ['And', 'let', 'the', 'angel', 'whom', 'thou', 'still', 'hast' 'served '],
-            ['Tell', 'thee', 'Macduff', 'was '],
-            ['from', 'his', "mother’s", 'womb'],
-            ['Untimely', 'ripped.']
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def remove_seq_1():
-        return [
-            (' ', ',', re.compile(re.escape('.'))),
-            '',
-            re.compile(re.escape('\n')),
-            r'\s',
-            None
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def case_sensitive_seq_1():
-        return [False, True, True, True, None]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def flags_seq_1():
-        return [None, re.I, None, re.I | re.X, None]
-
-
     @pytest.mark.parametrize('dim', (1, 2))
     @pytest.mark.parametrize('X_container', (list, tuple, np.ndarray))
     @pytest.mark.parametrize('remove, remove_container',
@@ -105,21 +57,48 @@ class TestValidation:
     @pytest.mark.parametrize('remove_empty_rows', (True, False, 'garbage'))
     def test_accuracy(
         self, dim, X_container, remove, case_sensitive, flags, remove_empty_rows,
-        _text_dim_1, _text_dim_2, remove_container, case_sensitive_container,
-        flags_container, remove_seq_1, case_sensitive_seq_1, flags_seq_1
+        remove_container, case_sensitive_container, flags_container
     ):
 
         _type_error = False
         _value_error = False
 
+
+        remove_seq_1 = [
+            (' ', ',', re.compile(re.escape('.'))),
+            '',
+            re.compile(re.escape('\n')),
+            r'\s',
+            None
+        ]
+
+        case_sensitive_seq_1 = [False, True, True, True, None]
+
+        flags_seq_1 = [None, re.I, None, re.I | re.X, None]
+
+
         # manage dim of X and container -- -- -- -- -- -- -- -- -- -- --
         if dim == 1:
+            _text_dim_1 = [
+                'Despair thy charm, ',
+                'And let the angel whom thou still hast served ',
+                'Tell thee Macduff was ',
+                "from his mother’s womb",
+                "Untimely ripped."
+            ]
             if X_container is np.ndarray:
                 _X = np.array(_text_dim_1)
             else:
                 _X = X_container(_text_dim_1)
             assert isinstance(_X, X_container)
         elif dim == 2:
+            _text_dim_2 = [
+                ['Despair', 'thy' 'charm, '],
+                ['And', 'let', 'the', 'angel', 'whom', 'thou', 'still', 'hast' 'served '],
+                ['Tell', 'thee', 'Macduff', 'was '],
+                ['from', 'his', "mother’s", 'womb'],
+                ['Untimely', 'ripped.']
+            ]
             if X_container is np.ndarray:
                 _X = np.fromiter(map(lambda x: np.array(x), _text_dim_2), dtype=object)
             else:
@@ -187,10 +166,6 @@ class TestValidation:
             )
 
             assert out is None
-
-
-
-
 
 
 

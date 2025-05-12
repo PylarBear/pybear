@@ -27,47 +27,6 @@ class TestValidation:
     # 2) cannot pass 'case_sensitive' as a list if 'sep' is not passed
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_dim_1():
-        return [
-            'Despair thy charm, ',
-            'And let the angel whom thou still hast served ',
-            'Tell thee Macduff was ',
-            "from his mother’s womb",
-            "Untimely ripped."
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def sep_seq_1():
-        return [
-            (' ', ',', re.compile(re.escape('.'))),
-            '',
-            re.compile(re.escape('\n')),
-            r'\s',
-            None
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def case_sensitive_seq_1():
-        return [False, True, True, True, None]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def maxsplit_seq_1():
-        return [4, 0, 0, 0, 0]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def flags_seq_1():
-        return [None, re.I, None, re.I | re.X, None]
-
 
     @pytest.mark.parametrize('X_container', (list, tuple, np.ndarray))
     @pytest.mark.parametrize('sep, sep_container',
@@ -106,13 +65,35 @@ class TestValidation:
     @pytest.mark.parametrize('sep_empty_rows', (True, False, 'garbage'))
     def test_accuracy(
         self, X_container, sep, case_sensitive, maxsplit, flags, sep_empty_rows,
-        _text_dim_1, sep_container, case_sensitive_container, flags_seq_1,
-        maxsplit_container, flags_container, sep_seq_1, case_sensitive_seq_1,
-        maxsplit_seq_1
+        sep_container, case_sensitive_container, maxsplit_container, flags_container
     ):
 
         _type_error = False
         _value_error = False
+
+
+        _text_dim_1 = [
+            'Despair thy charm, ',
+            'And let the angel whom thou still hast served ',
+            'Tell thee Macduff was ',
+            "from his mother’s womb",
+            "Untimely ripped."
+        ]
+
+        sep_seq_1 = [
+            (' ', ',', re.compile(re.escape('.'))),
+            '',
+            re.compile(re.escape('\n')),
+            r'\s',
+            None
+        ]
+
+        case_sensitive_seq_1 = [False, True, True, True, None]
+
+        maxsplit_seq_1 = [4, 0, 0, 0, 0]
+
+        flags_seq_1 = [None, re.I, None, re.I | re.X, None]
+
 
         # manage container -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         if X_container is np.ndarray:
@@ -187,10 +168,6 @@ class TestValidation:
             )
 
             assert out is None
-
-
-
-
 
 
 

@@ -16,18 +16,6 @@ import pytest
 class TestValidation:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (50, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(_X_factory, _shape):
-        return _X_factory(_format='np', _shape=_shape)
-
-
     @pytest.mark.parametrize('_degree', (3, 4))
     @pytest.mark.parametrize('_min_degree', (2, 3))
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
@@ -41,9 +29,12 @@ class TestValidation:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_n_jobs', (-1, 1))
     def test_accepts_good(
-        self, _X, _degree, _min_degree, _keep, _interaction_only, _sparse_output,
-        _feature_name_combiner, _rtol, _atol, _scan_X, _equal_nan, _n_jobs, _shape
+        self, _X_factory, _degree, _min_degree, _keep, _interaction_only,
+        _sparse_output, _feature_name_combiner, _rtol, _atol, _scan_X,
+        _equal_nan, _n_jobs, _shape
     ):
+
+        _X = _X_factory(_format='np', _shape=_shape)
 
         _validation(
             _X,
@@ -59,10 +50,6 @@ class TestValidation:
             _equal_nan,
             _n_jobs
         )
-
-
-
-
 
 
 

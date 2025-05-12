@@ -17,71 +17,48 @@ from pybear.feature_extraction.text._TextNormalizer._transform import _transform
 class TestTransform:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_1():
-        return [
+    def test_accuracy(self):
+
+        _text_1 = [
             "A world of dew,",
             "And within every dewdrop",
             "A world of struggle."
         ]
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_1_exp_lower():
-        return [
+        _text_1_exp_lower = [
             "a world of dew,",
             "and within every dewdrop",
             "a world of struggle."
         ]
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_1_exp_upper():
-        return [
+        _text_1_exp_upper=  [
             "A WORLD OF DEW,",
             "AND WITHIN EVERY DEWDROP",
             "A WORLD OF STRUGGLE."
         ]
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_2():
-        return [
+        _text_2 = [
             ["Even", "more" "so"],
             ["Because", "of", "being", "alone"],
             ["The", "moon", "is", "a", "friend."]
         ]
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_2_exp_lower():
-        return [
+        _text_2_exp_lower = [
             ["even", "more" "so"],
             ["because", "of", "being", "alone"],
             ["the", "moon", "is", "a", "friend."]
         ]
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _text_2_exp_upper():
-        return [
+        _text_2_exp_upper = [
             ["EVEN", "MORE" "SO"],
             ["BECAUSE", "OF", "BEING", "ALONE"],
             ["THE", "MOON", "IS", "A", "FRIEND."]
         ]
 
-
-    def test_accuracy(
-        self,
-        _text_1, _text_1_exp_lower, _text_1_exp_upper,
-        _text_2, _text_2_exp_lower, _text_2_exp_upper
-    ):
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
         # 1D no-op -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

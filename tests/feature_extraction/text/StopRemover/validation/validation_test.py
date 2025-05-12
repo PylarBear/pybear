@@ -32,13 +32,13 @@ class TestValidation:
     @pytest.mark.parametrize('_n_jobs', (1, None))
     def test_accuracy(
         self, _dim, _container, _dtype, _match_callable, _delete_empty_rows,
-        _exempt, _supplemental, _n_jobs
+        _exempt, _supplemental, _n_jobs, X_np, _shape
     ):
 
         if _dtype == 'str':
-            _base_X = np.random.choice(list('abcde'), (20, 13), replace=True)
+            _base_X = np.random.choice(list('abcde'), _shape, replace=True)
         elif _dtype == 'num':
-            _base_X = np.random.randint(0, 10, (20, 13))
+            _base_X = X_np
         else:
             raise Exception
 

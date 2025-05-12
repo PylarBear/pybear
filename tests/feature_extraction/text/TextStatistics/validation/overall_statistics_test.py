@@ -6,9 +6,9 @@
 
 
 
-from copy import deepcopy
-
 import pytest
+
+from copy import deepcopy
 
 from pybear.feature_extraction.text._TextStatistics._validation. \
     _overall_statistics import _val_overall_statistics
@@ -20,20 +20,13 @@ class TestValOverallStatistics:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _allowed_keys():
-        return [
-            'size',
-            'uniques_count',
-            'max_length',
-            'min_length',
-            'average_length',
-            'std_length'
+    def _good_osd():
+
+        _allowed_keys = [
+            'size', 'uniques_count', 'max_length',
+            'min_length', 'average_length', 'std_length'
         ]
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _good_osd(_allowed_keys):
         return dict((zip(_allowed_keys, [10, 9, 6, 4, 4.925738, 1.237356])))
 
 

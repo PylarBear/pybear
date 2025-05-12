@@ -22,50 +22,6 @@ from pybear.utilities._nan_masking import nan_mask
 class TestTransform:
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _X_num():
-
-        _shape = (5,3)
-
-        while True:
-            # make sure all columns get at least one nan
-            __ = np.random.randint(0, 3, _shape).astype(np.float64)
-            for _ in range(5):
-                _rand_r_idx = np.random.choice(_shape[0])
-                _rand_c_idx = np.random.choice(_shape[1])
-                __[_rand_r_idx, _rand_c_idx] = np.nan
-
-            for c_idx in range(_shape[1]):
-                if not any(nan_mask(__[:, c_idx])):
-                    break
-            else:
-                return __
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _X_str():
-
-        _shape = (5,3)
-
-        while True:
-            # make sure all columns get at least one nan
-            __ = np.random.choice(list('abcde'), _shape, replace=True).astype('<U3')
-            for _ in range(5):
-                _rand_r_idx = np.random.choice(_shape[0])
-                _rand_c_idx = np.random.choice(_shape[1])
-                __[_rand_r_idx, _rand_c_idx] = 'nan'
-
-            for c_idx in range(_shape[1]):
-                if not any(nan_mask(__[:, c_idx])):
-                    break
-            else:
-                return __
-
-    # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
     @pytest.mark.parametrize('_format', (list, tuple))
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
     @pytest.mark.parametrize('_fill', (99, None, True, 'NaN'))
@@ -200,20 +156,18 @@ class TestTransform:
 
         # no strings!
 
-        _X = _X_num
-
         if X_format == 'ss_csr_mat':
-            _X = ss.csr_matrix(_X)
+            _X = ss.csr_matrix(_X_num)
         elif X_format == 'ss_csr_arr':
-            _X = ss.csr_array(_X)
+            _X = ss.csr_array(_X_num)
         elif X_format == 'ss_csc_mat':
-            _X = ss.csc_matrix(_X)
+            _X = ss.csc_matrix(_X_num)
         elif X_format == 'ss_csc_arr':
-            _X = ss.csc_array(_X)
+            _X = ss.csc_array(_X_num)
         elif X_format == 'ss_coo_mat':
-            _X = ss.coo_matrix(_X)
+            _X = ss.coo_matrix(_X_num)
         elif X_format == 'ss_coo_arr':
-            _X = ss.coo_array(_X)
+            _X = ss.coo_array(_X_num)
         else:
             raise Exception
 

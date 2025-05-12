@@ -6,12 +6,14 @@
 
 
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+import pytest
+
+from copy import deepcopy
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
 
 
@@ -34,19 +36,18 @@ class TestDuplsAndConstantsInX:
     # fit, set_params, & get_params, reset, n_features_in_, and feature_names_in_
 
 
-
     @staticmethod
     @pytest.fixture(scope='module')
+    # need to have enough rows so there is *no* chance
+    # that higher order polynomial terms end up going to all nan, which
+    # will ruin the tests. 10 rows was too few. When multiplying columns
+    # with nans, the nans replicate, and if there are too many amongst
+    # the columns involved, eventually you end up with a column of all
+    # nans.
+    # also need to have enough columns that the tests can be done with
+    # various mixes of constants and dupl columns without overlap, i.e.,
+    # no columns that are both constant and duplicate.
     def _shape():
-        # need to have enough rows here so that there is *no* chance that
-        # higher order polynomial terms end up going to all nan, which
-        # will ruin the tests. 10 rows was too few. When multiplying
-        # columns with nans, the nans replicate, and if there are too many
-        # amongst the columns involved, eventually you end up with a column
-        # of all nans.
-        # also need to have enough columns that the tests can be done with
-        # various mixes of constants and dupl columns without overlap, i.e.,
-        # no columns that are both constant and duplicate.
         return (20, 6)
 
 
@@ -54,25 +55,14 @@ class TestDuplsAndConstantsInX:
     @pytest.mark.parametrize('dupls', ('none', 'dupls1', 'dupls2'))
     @pytest.mark.parametrize('constants', ('none', 'constants1', 'constants2'))
     def test_dupls_and_constants(
-        self, _X_factory, X_format, dupls, _master_columns, constants, _shape
+        self, _X_factory, _kwargs, X_format, dupls, _columns, constants, _shape
     ):
 
         # scan_X must be True to find dupls and constants
 
-        _kwargs = {
-            'degree': 3,
-            'min_degree': 1,
-            'interaction_only': True,
-            'scan_X': True,   # <+===== MUST BE True FOR no-ops TO HAPPEN
-            'keep': 'first',
-            'sparse_output': False,
-            'feature_name_combiner': 'as_indices',
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1
-        }
-
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['degree'] = 3
+        _new_kwargs['scan_X'] = True   # <+===== MUST BE True FOR no-ops TO HAPPEN
 
         # make sure there is no overlap of dupl & constant idxs or
         # it will screw up X_factory
@@ -108,12 +98,12 @@ class TestDuplsAndConstantsInX:
             _dtype='flt',
             _has_nan=True,
             _constants=constants,
-            _columns=_master_columns.copy()[:_shape[1]],
+            _columns=_columns,
             _zeros=None,
             _shape=_shape
         )
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SlimPoly(**_new_kwargs)
 
         # if any dupls or any constants, should be no-ops on almost everything.
         # should still have access to feature_names_in_, n_features_in_,

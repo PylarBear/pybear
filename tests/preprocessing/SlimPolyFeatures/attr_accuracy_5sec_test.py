@@ -6,16 +6,17 @@
 
 
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+import pytest
 
+from copy import deepcopy
 import itertools
-import numpy as np
 
+import numpy as np
 
 from sklearn.preprocessing import OneHotEncoder as OHE
 
-import pytest
+from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
 
 
@@ -28,59 +29,7 @@ import pytest
 
 
 
-class FixtureMixin:
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (9, 3)   # DO NOT CHANGE THIS
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _kwargs():
-
-        return {
-            'degree': 3,
-            'min_degree': 1,
-            'interaction_only': True,
-            'scan_X': False,
-            'keep': 'first',
-            'sparse_output': True,
-            'feature_name_combiner': 'as_indices',
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np(_X_factory, _shape):
-
-        return _X_factory(
-            _dupl=None,
-            _format='np',
-            _dtype='flt',
-            _has_nan=False,
-            _constants=None,
-            _columns=None,
-            _zeros=None,
-            _shape=_shape
-        )
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
-
-
-
-
-class TestNFeaturesInFeatureNamesIn(FixtureMixin):
+class TestNFeaturesInFeatureNamesIn:
 
     # TEST ATTRS THAT ARE INDEPENDENT OF THE DEGREES OF EXPANSION
 
@@ -127,21 +76,24 @@ class TestNFeaturesInFeatureNamesIn(FixtureMixin):
 
 
 
-class TestBasicCaseNoDuplsNoConstantsInPoly(FixtureMixin):
+class TestBasicCaseNoDuplsNoConstantsInPoly:
 
     # TEST THE @PROPERTY ATTRIBUTES THAT DEPEND ON DEGREES OF EXPANSION
 
     @pytest.mark.parametrize('min_degree', (2,3))
     @pytest.mark.parametrize('intx_only', (True, False))
     def test_basic_case(
-        self, _X_np, _columns, _kwargs, _shape, min_degree, intx_only
+        self, X_np, _columns, _kwargs, _shape, min_degree, intx_only
     ):
 
-        _kwargs['min_degree'] = min_degree
-        _kwargs['interaction_only'] = intx_only
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['degree'] = 3
+        _new_kwargs['min_degree'] = min_degree
+        _new_kwargs['interaction_only'] = intx_only
+        _new_kwargs['sparse_output'] = True
 
-        TestCls = SlimPoly(**_kwargs)
-        TestCls.fit(_X_np)
+        TestCls = SlimPoly(**_new_kwargs)
+        TestCls.fit(X_np)
 
         # poly_combinations_ - - - - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.poly_combinations_
@@ -204,7 +156,7 @@ class TestBasicCaseNoDuplsNoConstantsInPoly(FixtureMixin):
 
 
 
-class TestRiggedCasePolyHasConstantsAndDupls(FixtureMixin):
+class TestRiggedCasePolyHasConstantsAndDupls:
 
     # A POLY EXPANSION ON A ONE HOT ENCODED COLUMN, ALL INTERACTION FEATURES
     # ARE COLUMNS OF ZEROS OR DUPLICATE
@@ -217,11 +169,13 @@ class TestRiggedCasePolyHasConstantsAndDupls(FixtureMixin):
 
         # remember that min_degree == 1 shouldnt affect these
 
-        _kwargs['degree'] = 2
-        _kwargs['min_degree'] = min_degree
-        _kwargs['interaction_only'] = intx_only
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['degree'] = 2
+        _new_kwargs['min_degree'] = min_degree
+        _new_kwargs['interaction_only'] = intx_only
+        _new_kwargs['sparse_output'] = True
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SlimPoly(**_new_kwargs)
 
         while True:
             _X = np.random.choice(
@@ -307,7 +261,7 @@ class TestRiggedCasePolyHasConstantsAndDupls(FixtureMixin):
         # END poly_constants_ - - - - - - - - - - - - - - - - - - - - -
 
 
-class TestRiggedCaseAllIntxAreDupl(FixtureMixin):
+class TestRiggedCaseAllIntxAreDupl:
 
     @pytest.mark.parametrize('min_degree', (1,2))
     @pytest.mark.parametrize('intx_only', (True, False))
@@ -317,10 +271,11 @@ class TestRiggedCaseAllIntxAreDupl(FixtureMixin):
 
         # remember that min_degree == 1 shouldnt affect these
 
-        _kwargs['degree'] = 2
-        _kwargs['min_degree'] = min_degree
-        _kwargs['interaction_only'] = intx_only
-
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['degree'] = 2
+        _new_kwargs['min_degree'] = min_degree
+        _new_kwargs['interaction_only'] = intx_only
+        _new_kwargs['sparse_output'] = True
 
         # with this rigging:
         # - all squared columns != original column.
@@ -341,7 +296,7 @@ class TestRiggedCaseAllIntxAreDupl(FixtureMixin):
             dtype=np.uint8
         )
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SlimPoly(**_new_kwargs)
         TestCls.fit(_X)
 
 

@@ -984,10 +984,9 @@ class TestPartialFit:
         elif _format == 'bsr_array':
             _X_wip = ss._bsr.bsr_array(_X)
         elif _format == 'dask_array':
-            _X_wip = da.array(_X)
+            _X_wip = da.from_array(_X)
         elif _format == 'dask_dataframe':
-            _ = da.array(_X)
-            _X_wip = ddf.from_dask_array(_, columns=_columns)
+            _X_wip = ddf.from_array(_X, columns=_columns)
         else:
             raise Exception
 
@@ -1216,10 +1215,9 @@ class TestTransform:
         elif _format == 'bsr_array':
             _X_wip = ss._bsr.bsr_array(_X)
         elif _format == 'dask_array':
-            _X_wip = da.array(_X)
+            _X_wip = da.from_array(_X)
         elif _format == 'dask_dataframe':
-            _ = da.array(_X)
-            _X_wip = ddf.from_dask_array(_, columns=_columns)
+            _X_wip = ddf.from_array(_X, columns=_columns)
         else:
             raise Exception
 
@@ -1388,10 +1386,9 @@ class TestInverseTransform:
         _X = _X_np.copy()
 
         if _format == 'dask_array':
-            _X_wip = da.array(_X)
+            _X_wip = da.from_array(_X)
         elif _format == 'dask_dataframe':
-            _ = da.array(_X)
-            _X_wip = ddf.from_dask_array(_, columns=_columns)
+            _X_wip = ddf.from_array(_X, columns=_columns)
         else:
             raise Exception
 

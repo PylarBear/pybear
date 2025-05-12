@@ -6,6 +6,8 @@
 
 
 
+import pytest
+
 import itertools
 
 import numpy as np
@@ -13,10 +15,6 @@ import scipy.sparse as ss
 
 from pybear.preprocessing._SlimPolyFeatures._transform._build_poly \
     import _build_poly
-
-import pytest
-
-
 
 
 
@@ -31,12 +29,6 @@ class TestBuildPoly:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (10,5)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _good_active_combos(_shape):
         # draw must be >= 2, SPF doesnt allow _degree < 2 in poly
         return tuple(itertools.combinations_with_replacement(range(_shape[1]), 2))
@@ -44,8 +36,10 @@ class TestBuildPoly:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _good_X(_shape):
+    def _csc_X(_shape):
         return ss.csc_array(np.random.randint(0, 3, _shape))
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('junk_inputs',
@@ -53,7 +47,7 @@ class TestBuildPoly:
          {0,1}, {'a': 1}, lambda x: x)
     )
     def test_minimalist_validation(
-        self, junk_inputs, _good_active_combos, _good_X, _shape
+        self, junk_inputs, _good_active_combos, _csc_X, _shape
     ):
 
         # X
@@ -66,7 +60,7 @@ class TestBuildPoly:
         # active_combos
         with pytest.raises(AssertionError):
             _build_poly(
-                _X=_good_X,
+                _X=_csc_X,
                 _active_combos=junk_inputs
             )
 
@@ -78,21 +72,21 @@ class TestBuildPoly:
          'dia_array', 'bsr_matrix', 'bsr_array')
     )
     def test_X_rejects_coo_dia_bsr(
-        self, _format, _good_active_combos, _good_X
+        self, _format, _good_active_combos, _csc_X
     ):
 
         if _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_good_X)
+            _X_wip = ss._coo.coo_matrix(_csc_X)
         elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_good_X)
+            _X_wip = ss._dia.dia_matrix(_csc_X)
         elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_good_X)
+            _X_wip = ss._bsr.bsr_matrix(_csc_X)
         elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_good_X)
+            _X_wip = ss._coo.coo_array(_csc_X)
         elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_good_X)
+            _X_wip = ss._dia.dia_array(_csc_X)
         elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_good_X)
+            _X_wip = ss._bsr.bsr_array(_csc_X)
         else:
             raise Exception
 
@@ -103,10 +97,10 @@ class TestBuildPoly:
             )
 
 
-    def test_build_poly(self, _good_X, _good_active_combos, _shape):
+    def test_build_poly(self, _csc_X, _good_active_combos, _shape):
 
         out =  _build_poly(
-            _good_X,
+            _csc_X,
             _good_active_combos
         )
 
@@ -117,7 +111,7 @@ class TestBuildPoly:
         # build a referee output - - - - - - - - - - - -
         ref = np.empty((_shape[0], 0))
 
-        _column_pool = _good_X.toarray()
+        _column_pool = _csc_X.toarray()
 
         for _combo in _good_active_combos:
             ref = np.hstack((
@@ -130,15 +124,6 @@ class TestBuildPoly:
         assert out.shape == ref.shape
 
         assert np.array_equal(out, ref)
-
-
-
-
-
-
-
-
-
 
 
 

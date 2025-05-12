@@ -5,15 +5,14 @@
 #
 
 
-from pybear.preprocessing._InterceptManager._validation._X import _val_X
+
+import pytest
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-import pytest
-
-
+from pybear.preprocessing._InterceptManager._validation._X import _val_X
 
 
 
@@ -43,11 +42,6 @@ def test_accepts_np_pd_ss(X_format):
 
 
     _val_X(_X)
-
-
-
-
-
 
 
 

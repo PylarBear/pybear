@@ -19,29 +19,18 @@ from pybear.base import is_fitted
 class TestAttrAccess:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np():
-        return np.random.randint(0, 10, (5,3))
-
-
-    # @staticmethod
-    # @pytest.fixture
-    # def _attrs():
-    #     return [
-    #         'new_value'
-    #     ]
-
-
     @pytest.mark.parametrize('has_seen_data', (True, False))
-    def test_attr_access(self, has_seen_data, _X_np):
+    def test_attr_access(self, has_seen_data, X_np):
+
+        # _attrs
+        #     [ 'new_value' ]
 
         TestCls = NanStandardizer(new_value=99)
 
         assert is_fitted(TestCls) is True
 
         if has_seen_data:
-            TestCls.fit(_X_np)
+            TestCls.fit(X_np)
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -54,36 +43,26 @@ class TestAttrAccess:
 class TestMethodAccess:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np():
-        return np.random.randint(0, 10, (5,3))
-
-
-    # @staticmethod
-    # @pytest.fixture(scope='function')
-    # def _methods():
-    #     return [
-    #         'partial_fit',
-    #         'fit',
-    #         'fit_transform',
-    #         'get_params',
-    #         'set_params',
-    #         'transform',
-    #         'score'
-    #     ]
-
-
     @pytest.mark.parametrize('has_seen_data', (True, False))
-    def test_access_methods(self, _X_np, has_seen_data):
+    def test_access_methods(self, X_np, has_seen_data):
 
+        # methods
+        # [
+        #     'partial_fit',
+        #     'fit',
+        #     'fit_transform',
+        #     'get_params',
+        #     'set_params',
+        #     'transform',
+        #     'score'
+        # ]
 
         TestCls = NanStandardizer(new_value=-1)
 
         assert is_fitted(TestCls) is True
 
         if has_seen_data:
-            TestCls.fit(_X_np)
+            TestCls.fit(X_np)
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -104,32 +83,23 @@ class TestMethodAccess:
 
          # v v v v v must see X every time, put these last v v v v v v v
 
-        out = getattr(TestCls, 'transform')(_X_np)
+        out = getattr(TestCls, 'transform')(X_np)
         assert isinstance(out, np.ndarray)
         assert all(map(isinstance, out, (np.ndarray for _ in out)))
 
 
-        out = getattr(TestCls, 'score')(_X_np)
+        out = getattr(TestCls, 'score')(X_np)
         assert out is None
 
-        out = getattr(TestCls, 'fit')(_X_np)
+        out = getattr(TestCls, 'fit')(X_np)
         assert isinstance(out, NanStandardizer)
 
-        out = getattr(TestCls, 'partial_fit')(_X_np)
+        out = getattr(TestCls, 'partial_fit')(X_np)
         assert isinstance(out, NanStandardizer)
 
-        out = getattr(TestCls, 'fit_transform')(_X_np)
+        out = getattr(TestCls, 'fit_transform')(X_np)
         assert isinstance(out, np.ndarray)
         assert all(map(isinstance, out, (np.ndarray for _ in out)))
-
-
-
-
-
-
-
-
-
 
 
 

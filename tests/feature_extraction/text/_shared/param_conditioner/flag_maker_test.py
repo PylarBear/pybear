@@ -6,12 +6,12 @@
 
 
 
-from pybear.feature_extraction.text.__shared._param_conditioner. \
-    _flag_maker import _flag_maker
-
 import pytest
 
 import re
+
+from pybear.feature_extraction.text.__shared._param_conditioner. \
+    _flag_maker import _flag_maker
 
 
 
@@ -32,11 +32,13 @@ class TestFlagMaker:
     # minimal validation
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _remove():
+    # _case_sensitive can be Union[bool, list[Union[None, bool]]]
+    # _flags can be Union[None, int, list[Union[None, int]]]
+    @pytest.mark.parametrize('_cs', (True, False, [True, None, False, None]))
+    @pytest.mark.parametrize('_flags', (None, re.I, [None, re.M, None, None]))
+    def test_accuracy(self, _cs, _flags):
 
-        return [
+        _remove = [
             [None],
             # user passed compile
             [re.compile('abc', re.I)],
@@ -44,13 +46,6 @@ class TestFlagMaker:
             [re.compile(re.escape('def')), re.compile(re.escape('ghi'))],
             [None]
         ]
-
-
-    # _case_sensitive can be Union[bool, list[Union[None, bool]]]
-    # _flags can be Union[None, int, list[Union[None, int]]]
-    @pytest.mark.parametrize('_cs', (True, False, [True, None, False, None]))
-    @pytest.mark.parametrize('_flags', (None, re.I, [None, re.M, None, None]))
-    def test_accuracy(self, _remove, _cs, _flags):
 
         out = _flag_maker(_remove, _cs, _flags)
 
@@ -111,14 +106,6 @@ class TestFlagMaker:
                 _new_flags = _og_flags | _ref_flags[idx]
                 assert re_compile.pattern == _og_pattern
                 assert re_compile.flags == _new_flags
-
-
-
-
-
-
-
-
 
 
 

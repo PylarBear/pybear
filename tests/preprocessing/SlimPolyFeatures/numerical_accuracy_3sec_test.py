@@ -6,73 +6,43 @@
 
 
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+import pytest
+
+from copy import deepcopy
+import itertools
 
 import numpy as np
 
 from sklearn.preprocessing import OneHotEncoder as OHE
 
-import pytest
+from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
 
 
+# this has to stay because of all the hard-coded assertions
+@pytest.fixture(scope='module')
+def _shape():
+    return (9, 3)
 
 
+# that means that this fixture also must stay
+@pytest.fixture(scope='module')
+def _X_np(_X_factory, _shape):
+
+    return _X_factory(
+        _dupl=None,
+        _format='np',
+        _dtype='flt',
+        _has_nan=False,
+        _constants=None,
+        _columns=None,
+        _zeros=None,
+        _shape=_shape
+    )
 
 
-class FixtureMixin:
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (9, 3)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _kwargs():
-
-        return {
-            'degree': 2,
-            'min_degree': 1,
-            'interaction_only': True,
-            'scan_X': False,
-            'keep': 'first',
-            'sparse_output': False,
-            'feature_name_combiner': 'as_indices',
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np(_X_factory, _shape):
-
-        return _X_factory(
-            _dupl=None,
-            _format='np',
-            _dtype='flt',
-            _has_nan=False,
-            _constants=None,
-            _columns=None,
-            _zeros=None,
-            _shape=_shape
-        )
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
-
-
-
-class TestBasicCaseNoDuplsNoConstantsInPoly(FixtureMixin):
+class TestBasicCaseNoDuplsNoConstantsInPoly:
 
     @pytest.mark.parametrize('min_degree', (1,2))
     @pytest.mark.parametrize('intx_only', (True, False))
@@ -80,15 +50,17 @@ class TestBasicCaseNoDuplsNoConstantsInPoly(FixtureMixin):
         self, _X_np, _columns, _kwargs, _shape, min_degree, intx_only
     ):
 
-        _kwargs['min_degree'] = min_degree
-        _kwargs['interaction_only'] = intx_only
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['min_degree'] = min_degree
+        _new_kwargs['interaction_only'] = intx_only
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SlimPoly(**_new_kwargs)
         out = TestCls.fit_transform(_X_np)
 
         if min_degree == 1:
             if intx_only:
-                assert out.shape[1] == 6
+                assert out.shape[1] == \
+                    _shape[1] + len(list(itertools.combinations(range(_shape[1]), 2)))
                 assert np.array_equal(out[:, 0], _X_np[:, 0])
                 assert np.array_equal(out[:, 1], _X_np[:, 1])
                 assert np.array_equal(out[:, 2], _X_np[:, 2])
@@ -96,7 +68,9 @@ class TestBasicCaseNoDuplsNoConstantsInPoly(FixtureMixin):
                 assert np.array_equal(out[:, 4], _X_np[:, (0, 2)].prod(1))
                 assert np.array_equal(out[:, 5], _X_np[:, (1, 2)].prod(1))
             elif not intx_only:
-                assert out.shape[1] == 9
+                assert out.shape[1] == \
+                   _shape[1] + \
+                   len(list(itertools.combinations_with_replacement(range(_shape[1]), 2)))
                 assert np.array_equal(out[:, 0], _X_np[:, 0])
                 assert np.array_equal(out[:, 1], _X_np[:, 1])
                 assert np.array_equal(out[:, 2], _X_np[:, 2])
@@ -109,12 +83,14 @@ class TestBasicCaseNoDuplsNoConstantsInPoly(FixtureMixin):
 
         elif min_degree == 2:
             if intx_only:
-                assert out.shape[1] == 3
+                assert out.shape[1] == \
+                   len(list(itertools.combinations(range(_shape[1]), 2)))
                 assert np.array_equal(out[:, 0], _X_np[:, (0, 1)].prod(1))
                 assert np.array_equal(out[:, 1], _X_np[:, (0, 2)].prod(1))
                 assert np.array_equal(out[:, 2], _X_np[:, (1, 2)].prod(1))
             elif not intx_only:
-                assert out.shape[1] == 6
+                assert out.shape[1] == \
+                   len(list(itertools.combinations_with_replacement(range(_shape[1]), 2)))
                 assert np.array_equal(out[:, 0], _X_np[:, (0, 0)].prod(1))
                 assert np.array_equal(out[:, 1], _X_np[:, (0, 1)].prod(1))
                 assert np.array_equal(out[:, 2], _X_np[:, (0, 2)].prod(1))
@@ -123,7 +99,7 @@ class TestBasicCaseNoDuplsNoConstantsInPoly(FixtureMixin):
                 assert np.array_equal(out[:, 5], _X_np[:, (2, 2)].prod(1))
 
 
-class TestRiggedCasePolyHasConstantsAndDupls(FixtureMixin):
+class TestRiggedCasePolyHasConstantsAndDupls:
 
     # A POLY EXPANSION ON A ONE HOT ENCODED COLUMN, ALL INTERACTION FEATURES
     # ARE COLUMNS OF ZEROS OR DUPLICATE
@@ -136,11 +112,12 @@ class TestRiggedCasePolyHasConstantsAndDupls(FixtureMixin):
         self, _kwargs, _shape, min_degree, intx_only
     ):
 
-        _kwargs['degree'] = 2
-        _kwargs['min_degree'] = min_degree
-        _kwargs['interaction_only'] = intx_only
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['degree'] = 2
+        _new_kwargs['min_degree'] = min_degree
+        _new_kwargs['interaction_only'] = intx_only
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SlimPoly(**_new_kwargs)
 
         partial_fits = 5
         BATCH_XS = []
@@ -183,7 +160,7 @@ class TestRiggedCasePolyHasConstantsAndDupls(FixtureMixin):
                     assert out.shape[1] == 0
 
 
-class TestRiggedCaseAllIntxAreDupl(FixtureMixin):
+class TestRiggedCaseAllIntxAreDupl:
 
     @pytest.mark.parametrize('min_degree', (1,2))
     @pytest.mark.parametrize('intx_only', (True, False))
@@ -191,9 +168,10 @@ class TestRiggedCaseAllIntxAreDupl(FixtureMixin):
         self, _X_factory, _columns, _kwargs, _shape, min_degree, intx_only
     ):
 
-        _kwargs['degree'] = 2
-        _kwargs['min_degree'] = min_degree
-        _kwargs['interaction_only'] = intx_only
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['degree'] = 2
+        _new_kwargs['min_degree'] = min_degree
+        _new_kwargs['interaction_only'] = intx_only
 
 
         # with this rigging:
@@ -215,7 +193,7 @@ class TestRiggedCaseAllIntxAreDupl(FixtureMixin):
             dtype=np.uint8
         )
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SlimPoly(**_new_kwargs)
         out = TestCls.fit_transform(_X_np)
 
         if min_degree == 1:
@@ -247,18 +225,19 @@ class TestRiggedCaseAllIntxAreDupl(FixtureMixin):
                 assert np.array_equal(out[:, 3], _X_np[:, (2, 2)].prod(1))
 
 
-class TestOneColumnX(FixtureMixin):
+class TestOneColumnX:
 
     @pytest.mark.parametrize('min_degree', (1,3))
     def test_one_column(self, _kwargs, _shape, min_degree):
 
         # interaction_only must always be False for single column
 
-        _kwargs['degree'] = 3
-        _kwargs['min_degree'] = min_degree
-        _kwargs['interaction_only'] = False
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['degree'] = 3
+        _new_kwargs['min_degree'] = min_degree
+        _new_kwargs['interaction_only'] = False
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SlimPoly(**_new_kwargs)
 
         _X_np = np.random.uniform(0, 1, (_shape[0], 1))
 
