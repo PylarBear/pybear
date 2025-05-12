@@ -5,15 +5,15 @@
 #
 
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation._X \
-    import _val_X
+
+import pytest
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-import pytest
-
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation._X \
+    import _val_X
 
 
 
@@ -21,7 +21,6 @@ def test_X_cannot_be_none():
 
     with pytest.raises(TypeError):
         _val_X(None)
-
 
 
 @pytest.mark.parametrize('X_format',

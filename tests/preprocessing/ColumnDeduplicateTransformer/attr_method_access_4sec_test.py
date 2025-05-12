@@ -166,7 +166,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
         X_np = _X_factory(
             _format='np',
-            _dupl=None,   # pizza [[3, 5, _shape[1]-1]],
+            _dupl=None,
             _has_nan=False,
             _dtype='flt',
             _shape=_shape
@@ -238,7 +238,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
         X_np = _X_factory(
             _format='np',
-            _dupl=None,   # pizza [[3, 5, _shape[1]-1]],
+            _dupl=None,
             _has_nan=False,
             _dtype='flt',
             _shape=_shape
@@ -308,7 +308,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
         X_np = _X_factory(
             _format='np',
-            _dupl=None,   # pizza [[3, 5, _shape[1]-1]],
+            _dupl=None,
             _has_nan=False,
             _dtype='flt',
             _shape=_shape
