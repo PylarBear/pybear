@@ -5,21 +5,24 @@
 #
 
 
+
 import pytest
 
-import numpy as np
-
+from typing_extensions import Union, Sequence, Callable
 import numpy.typing as npt
+
+import numpy as np
 import joblib
 from joblib import Parallel, delayed
-
-from typing_extensions import Union, Sequence, Callable
 
 from pybear.utilities._nan_masking import (
     nan_mask_numerical,
     nan_mask_string,
     nan_mask
 )
+
+
+
 
 
 # at the bottom are fixtures used for testing mmct in

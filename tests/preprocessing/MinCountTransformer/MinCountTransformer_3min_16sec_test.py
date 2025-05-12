@@ -6,10 +6,13 @@
 
 
 
+import pytest
+
 from typing import Literal
 
 from copy import deepcopy
 import uuid
+
 import numpy as np
 np.random.seed(0)
 import pandas as pd
@@ -17,8 +20,6 @@ import scipy.sparse as ss
 import polars as pl
 import dask.array as da
 import dask.dataframe as ddf
-import pytest
-
 
 from sklearn.preprocessing import OneHotEncoder
 
