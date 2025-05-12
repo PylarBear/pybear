@@ -8,10 +8,6 @@
 
 import pytest
 
-from pybear.preprocessing import InterceptManager as IM
-
-from pybear.utilities import check_pipeline
-
 from uuid import uuid4
 
 import numpy as np
@@ -19,24 +15,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.linear_model import LinearRegression
 
+from pybear.preprocessing import InterceptManager as IM
 
-
+from pybear.utilities import check_pipeline
 
 
 
 class TestPipeline:
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _kwargs():
-        return {
-            'keep': 'first',
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1
-        }
 
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))
@@ -64,6 +49,7 @@ class TestPipeline:
         _y = np.random.uniform(0,1, _shape[0])
 
         # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # n_jobs confliction doesnt seem to matter
         pipe = Pipeline(
             steps = [
                 ('onehot', OneHotEncoder(sparse_output=True)),
@@ -82,7 +68,7 @@ class TestPipeline:
 
 
         # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
+        # n_jobs confliction doesnt seem to matter
         encoded_X = OneHotEncoder(sparse_output=True).fit_transform(_X)
         deconstanted_X = IM(**_kwargs).fit_transform(encoded_X)
         mlr = LinearRegression(fit_intercept = True, n_jobs = -1)
@@ -94,17 +80,6 @@ class TestPipeline:
         # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         assert np.allclose(_coef_pipe, _coef_separate)
-
-
-
-
-
-
-
-
-
-
-
 
 
 

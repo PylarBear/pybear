@@ -5,10 +5,11 @@
 #
 
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation._keep \
-    import _val_keep
 
 import pytest
+
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation._keep \
+    import _val_keep
 
 
 

@@ -6,7 +6,6 @@
 
 
 
-
 import pytest
 
 import numpy as np
@@ -16,26 +15,11 @@ from pybear.preprocessing._ColumnDeduplicateTransformer. \
 
 
 
-
 class TestSetParams:
 
 
     @staticmethod
-    @pytest.fixture(scope='function')
-    def X(_X_factory, _shape):
-        return _X_factory(
-            _dupl=[[0, 1, _shape[1]-1]],   # <===== important
-            _format='np',
-            _dtype='int',
-            _has_nan=False,
-            _columns=None,
-            _zeros=None,
-            _shape=_shape
-        )
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
+    @pytest.fixture(scope='module')
     def _kwargs():
         return {
             'keep': 'first',
@@ -44,7 +28,7 @@ class TestSetParams:
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': False,
-            'n_jobs': 1  # confliction isnt a problem, 1 or -1 is fine
+            'n_jobs': 1  # leave set at 1 because of confliction
         }
 
 
@@ -65,21 +49,31 @@ class TestSetParams:
 
 
     def test_equality_set_params_before_and_after_fit(
-        self, X, _y_np, _kwargs, _alt_kwargs
+        self, _X_factory, y_np, _kwargs, _alt_kwargs, _shape
     ):
 
         # test the equality of the data output under:
         # 1) set_params(via init) -> fit -> transform
         # 2) fit -> set_params -> transform
 
+        _X = _X_factory(
+            _dupl=[[0, 1, _shape[1] - 1]],  # <===== important
+            _format='np',
+            _dtype='int',
+            _has_nan=False,
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
+
         # set_params(via init) -> fit -> transform
         FirstTestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FirstTestClass.fit(X.copy(), _y_np.copy())
+        FirstTestClass.fit(_X, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FIRST_TRFM_X = FirstTestClass.transform(X.copy())
+        FIRST_TRFM_X = FirstTestClass.transform(_X)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
         del FirstTestClass
@@ -90,12 +84,13 @@ class TestSetParams:
         SecondTestClass = CDT(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SecondTestClass.fit(X.copy(), _y_np.copy())
+        SecondTestClass.fit(_X, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SECOND_TRFM_X = SecondTestClass.transform(X.copy())
+        SECOND_TRFM_X = SecondTestClass.transform(_X)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
+
         # should not be equal to first transform
         assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
 
@@ -103,7 +98,7 @@ class TestSetParams:
         SecondTestClass.set_params(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        THIRD_TRFM_X = SecondTestClass.transform(X.copy())
+        THIRD_TRFM_X = SecondTestClass.transform(_X)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
         del SecondTestClass
@@ -113,14 +108,24 @@ class TestSetParams:
 
 
     def test_set_params_between_fit_transforms(
-        self, X, _y_np, _kwargs, _alt_kwargs
+        self, _X_factory, y_np, _kwargs, _alt_kwargs, _shape
     ):
+
+        _X = _X_factory(
+            _dupl=[[0, 1, _shape[1]-1]],   # <===== important
+            _format='np',
+            _dtype='int',
+            _has_nan=False,
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
 
         # fit_transform
         FirstTestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FIRST_TRFM_X = FirstTestClass.fit_transform(X.copy(), _y_np.copy())
+        FIRST_TRFM_X = FirstTestClass.fit_transform(_X, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
 
@@ -131,7 +136,7 @@ class TestSetParams:
         SecondTestClass.set_params(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SECOND_TRFM_X = SecondTestClass.fit_transform(X.copy(), _y_np.copy())
+        SECOND_TRFM_X = SecondTestClass.fit_transform(_X, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -142,16 +147,15 @@ class TestSetParams:
         SecondTestClass.set_params(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        THIRD_TRFM_X = SecondTestClass.fit_transform(X.copy(), _y_np.copy())
+        THIRD_TRFM_X = SecondTestClass.fit_transform(_X, y_np)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
-
 
         assert np.array_equiv(FIRST_TRFM_X, THIRD_TRFM_X)
 
 
     def test_set_params_output_repeatability(
-        self, X, _y_np, _kwargs, _alt_kwargs
+        self, _X_factory, y_np, _kwargs, _alt_kwargs, _shape
     ):
 
         # changing and changing back on the same class gives same result
@@ -159,23 +163,34 @@ class TestSetParams:
         # set all new params and transform
         # set back to the old params and transform, compare with the first output
 
+        _X = _X_factory(
+            _dupl=[[0, 1, _shape[1]-1]],   # <===== important
+            _format='np',
+            _dtype='int',
+            _has_nan=False,
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
+
         # initialize, fit, transform, and keep result
         TestClass = CDT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        TestClass.fit(X.copy(), _y_np.copy())
+        TestClass.fit(_X, y_np)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        FIRST_TRFM_X = TestClass.transform(X.copy())
+        FIRST_TRFM_X = TestClass.transform(_X)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
         # use set_params to change all params.  DO NOT FIT!
         TestClass.set_params(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(TestClass, param) == value
-        SECOND_TRFM_X = TestClass.transform(X.copy())
+        SECOND_TRFM_X = TestClass.transform(_X)
         for param, value in _alt_kwargs.items():
             assert getattr(TestClass, param) == value
+
         # should not be equal to first transform
         assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
 
@@ -184,18 +199,11 @@ class TestSetParams:
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
         # transform again, and compare with the first output
-        THIRD_TRFM_X = TestClass.transform(X.copy())
+        THIRD_TRFM_X = TestClass.transform(_X)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
 
-
         assert np.array_equal(FIRST_TRFM_X, THIRD_TRFM_X)
-
-
-
-
-
-
 
 
 

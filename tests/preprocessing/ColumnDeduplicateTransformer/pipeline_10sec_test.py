@@ -27,32 +27,9 @@ from sklearn.linear_model import LinearRegression
 class TestPipeline:
 
 
-    @staticmethod
-    @pytest.fixture()
-    def _dupls():
-        return [
-            [0, 2],
-            [5, 7, 9]
-        ]
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _kwargs():
-        return {
-            'keep': 'first',
-            'conflict': 'ignore',
-            'do_not_drop': None,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'equal_nan': True,
-            'n_jobs': 1    # leave set at 1 because of confliction
-        }
-
-
     @pytest.mark.parametrize('_format', ('np', 'pd'))
     def test_accuracy_in_pipe_vs_out_of_pipe(
-        self, _X_factory, _dupls, _shape, _kwargs, _format
+        self, _X_factory, _shape, _kwargs, _format
     ):
 
         # this also incidentally tests functionality in a pipe
@@ -64,7 +41,7 @@ class TestPipeline:
 
 
         _X = _X_factory(
-            _dupl=_dupls,
+            _dupl=[[0, 2], [5, 7, 9]],
             _format=_format,
             _has_nan=False,
             _columns=[str(uuid4())[:5] for _ in range(_shape[1])],
@@ -106,17 +83,6 @@ class TestPipeline:
         # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         assert np.allclose(_coef_pipe, _coef_separate)
-
-
-
-
-
-
-
-
-
-
-
 
 
 

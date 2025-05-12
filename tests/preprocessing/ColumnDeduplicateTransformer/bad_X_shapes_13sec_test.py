@@ -22,21 +22,6 @@ class TestExceptsOnBadXShapes:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _kwargs():
-        return {
-            'keep': 'first',
-            'do_not_drop': None,
-            'conflict': 'raise',
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'equal_nan': False,
-            'n_jobs': 1  # leave this a 1 because of confliction
-        }
-
-
-
     # all of these to try to get some more speed... didnt help that much
 
     @staticmethod

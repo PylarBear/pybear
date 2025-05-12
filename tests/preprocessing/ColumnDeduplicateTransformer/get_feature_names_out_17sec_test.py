@@ -6,12 +6,14 @@
 
 
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+import pytest
+
+from copy import deepcopy
 
 import numpy as np
-from pybear.base.exceptions import NotFittedError
 
-import pytest
+from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.base.exceptions import NotFittedError
 
 
 
@@ -36,23 +38,18 @@ class TestGetFeatureNamesOutRejects:
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(_X_factory, _format, _columns, _shape):
-
-        return _X_factory(
-            _dupl=None,
-            _format=_format,
-            _dtype='flt',
-            _columns=_columns if _format == 'pd' else None,
-            _shape=_shape
-        )
-
-
-    @staticmethod
     @pytest.fixture(scope='function')
-    def _TestCls(_instance_state, _X):
+    def _TestCls(_instance_state, _X_factory, _format, _columns, _shape):
 
         _TestCls = CDT()
+
+        _X = _X_factory(
+                _dupl=None,
+                _format=_format,
+                _dtype='flt',
+                _columns=_columns if _format == 'pd' else None,
+                _shape=_shape
+            )
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
@@ -69,9 +66,7 @@ class TestGetFeatureNamesOutRejects:
     @pytest.mark.parametrize('junk_input_features',
         (float('inf'), np.pi, 'garbage', {'junk': 3}, list(range(10)))
     )
-    def test_input_features_rejects_junk(
-        self, _TestCls, junk_input_features
-    ):
+    def test_input_features_rejects_junk(self, _TestCls, junk_input_features):
 
         # **** CAN ONLY TAKE LIST-TYPE OF STRS OR None
 
@@ -79,9 +74,7 @@ class TestGetFeatureNamesOutRejects:
             _TestCls.get_feature_names_out(junk_input_features)
 
 
-    def test_input_features_rejects_bad(
-        self, _format, _TestCls, _shape
-    ):
+    def test_input_features_rejects_bad(self, _format, _TestCls, _shape):
 
         # -------------
         # SHOULD RAISE ValueError IF
@@ -108,12 +101,7 @@ class TestGetFeatureNamesOutRejects:
 
 
 @pytest.mark.parametrize('_format, _pd_columns_is_passed',
-    (
-        ('np', False),
-        ('pd', True),
-        ('pd', False),
-    ),
-    scope='module'
+    (('np', False), ('pd', True), ('pd', False)), scope='module'
 )
 @pytest.mark.parametrize('_dtype',
     ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module'
@@ -121,89 +109,56 @@ class TestGetFeatureNamesOutRejects:
 @pytest.mark.parametrize('_instance_state',
     ('after_fit', 'after_transform'), scope='module'
 )
-@pytest.mark.parametrize('_keep',
-    ('first', 'last'), scope='module'
-)
-@pytest.mark.parametrize('_dupls',
-    ('none', 'dupls1', 'dupls2'), scope='module'
-)
+@pytest.mark.parametrize('_keep', ('first', 'last'), scope='module')
+@pytest.mark.parametrize('_dupls', ('none', 'dupls1', 'dupls2'), scope='module')
 class TestGetFeatureNamesOut:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    @pytest.mark.parametrize('_input_features_is_passed', (True, False))
+    def test_accuracy(
+        self, _X_factory, _instance_state, _kwargs, _dupls, _format,
+        _dtype, _columns, _keep, _shape, _input_features_is_passed,
+        _pd_columns_is_passed
+    ):
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _wip_kwargs(_keep):
-        return {
-            'keep': _keep,
-            'do_not_drop': None,
-            'conflict': 'raise',
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'equal_nan': True,
-            'n_jobs': 1     # leave this at 1 because of confliction
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _wip_dupls(_dupls, _dtype, _shape):
+        # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         if _dupls == 'none':
-            return []
+            _wip_dupls =  []
         elif _dupls == 'dupls1':
-            return [[1, _shape[1] - 2]]
+            _wip_dupls =  [[1, _shape[1] - 2]]
         elif _dupls == 'dupls2':
-            return [
+            _wip_dupls =  [
                 [0, _shape[1] - 1],
                 [1, _shape[1] - 2]
             ]
         else:
             raise Exception
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(
-        _X_factory, _format, _dtype,  _pd_columns_is_passed,
-        _columns, _wip_dupls, _shape
-    ):
-
-        __ = _columns if (_format == 'pd' and _pd_columns_is_passed) else None
-
-        return _X_factory(
+        _X = _X_factory(
             _dupl=_wip_dupls,
             _format=_format,
             _dtype=_dtype,
-            _columns=__,
+            _columns=_columns if (_format == 'pd' and _pd_columns_is_passed) else None,
             _shape=_shape
         )
 
+        # END build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _TestCls(_instance_state, _wip_kwargs, _X):
+        # prepare the CDT instance ** * ** * ** * ** * ** * ** * ** * **
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['keep'] = _keep
+        _new_kwargs['equal_nan'] = True
 
-        _TestCls = CDT(**_wip_kwargs)
+        _TestCls = CDT(**_new_kwargs)
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
-            return _TestCls
         elif _instance_state == 'after_transform':
             _TestCls.fit_transform(_X)
-            return _TestCls
         else:
             raise Exception
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    @pytest.mark.parametrize('_input_features_is_passed', (True, False))
-    def test_accuracy(
-        self, _X, _wip_kwargs, _wip_dupls, _format, _columns, _TestCls,
-        _keep, _shape, _input_features_is_passed, _pd_columns_is_passed
-    ):
+        # END prepare the CDT instance ** * ** * ** * ** * ** * ** * **
 
         # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         if _input_features_is_passed:

@@ -5,47 +5,31 @@
 #
 
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation. \
-    _do_not_drop import _val_do_not_drop
-
-import numpy as np
-import pandas as pd
-
 
 import pytest
 
-
-
-class Fixtures:
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def X_np(_X_factory, _shape):
-        return _X_factory(_format='np', _shape=_shape)
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def X_pd(X_np, _columns):
-        return pd.DataFrame(data=X_np, columns=_columns)
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation. \
+    _do_not_drop import _val_do_not_drop
 
 
 
-@pytest.mark.parametrize('_type', ('np', 'pd'), scope='module')
+@pytest.mark.parametrize('_format', ('np', 'pd'), scope='module')
 @pytest.mark.parametrize('_columns_is_passed', (True, False), scope='module')
-class TestDoNotDropJunk(Fixtures):
+class TestDoNotDropJunk:
 
 
     @pytest.mark.parametrize('junk_dnd',
         (-1, 0, 1, 3.14, True, 'trash', {'a':1}, max, lambda x: x)
     )
     def test_rejects_not_list_like_or_none(
-        self, X_np, X_pd, _type, _columns, _columns_is_passed, junk_dnd):
+        self, _X_factory, _format, _shape, _columns, _columns_is_passed,
+        junk_dnd
+    ):
 
-        _X = X_np if _type == 'np' else X_pd
-
-        if isinstance(_X, pd.core.frame.DataFrame) and not _columns_is_passed:
+        if _format == 'pd' and not _columns_is_passed:
             pytest.skip(reason=f"algorithmic impossibility")
+
+        _X = _X_factory(_format=_format, _shape=_shape)
 
         with pytest.raises(TypeError):
             _val_do_not_drop(
@@ -64,12 +48,12 @@ class TestDoNotDropJunk(Fixtures):
         )
     )
     def test_rejects_bad_list(
-        self, X_np, X_pd, _type, _columns, _columns_is_passed, bad_dnd
+        self, _X_factory, _format, _shape, _columns, _columns_is_passed, bad_dnd
     ):
 
-        _X = X_np if _type == 'np' else X_pd
+        _X = _X_factory(_format=_format, _shape=_shape)
 
-        if isinstance(_X, pd.core.frame.DataFrame) and not _columns_is_passed:
+        if _format == 'pd' and not _columns_is_passed:
             pytest.skip(reason=f"algorithmic impossibility")
 
         with pytest.raises(TypeError):
@@ -80,9 +64,12 @@ class TestDoNotDropJunk(Fixtures):
             )
 
 
-class TestDoNotDropArray(Fixtures):
+class TestDoNotDropArray:
 
-    def test_array_str_handing(self, X_np, _columns):
+    def test_array_str_handing(self, _X_factory, _shape, _columns):
+
+
+        X_np = _X_factory(_format='np', _shape=_shape)
 
         # rejects str when columns is none
         with pytest.raises(TypeError):
@@ -110,8 +97,10 @@ class TestDoNotDropArray(Fixtures):
 
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
     def test_array_int_and_none_handling(
-        self, X_np, _columns_is_passed, _columns
+        self, _X_factory, _columns_is_passed, _columns, _shape
     ):
+
+        X_np = _X_factory(_format='np', _shape=_shape)
 
         # accepts good int always
         _val_do_not_drop(
@@ -144,11 +133,13 @@ class TestDoNotDropArray(Fixtures):
         )
 
 
-class TestDoNotDropDF(Fixtures):
+class TestDoNotDropDF:
 
     # _columns IS ALWAYS PASSED IF X IS DF!
 
-    def test_df_str_handling(self, X_pd, _columns):
+    def test_df_str_handling(self, _X_factory, _columns, _shape):
+
+        X_pd = _X_factory(_format='pd', _shape=_shape)
 
         # accepts good str always
         _val_do_not_drop(
@@ -166,7 +157,9 @@ class TestDoNotDropDF(Fixtures):
             )
 
 
-    def test_df_int_and_none_handling(self, X_pd, _columns):
+    def test_df_int_and_none_handling(self, _X_factory, _columns, _shape):
+
+        X_pd = _X_factory(_format='pd', _shape=_shape)
 
         # accepts good int always
         _val_do_not_drop(
@@ -198,11 +191,6 @@ class TestDoNotDropDF(Fixtures):
             X_pd,
             None
         )
-
-
-
-
-
 
 
 

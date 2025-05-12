@@ -5,12 +5,14 @@
 #
 
 
+
 import pytest
 
-import warnings
 from typing import Literal
 from typing_extensions import Union
+
 from uuid import uuid4
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -39,12 +41,7 @@ from pybear.utilities import nan_mask
 bypass = False
 
 
-
-@pytest.fixture(scope='module')
-def _shape():
-    # this is smaller than the conftest fixture
-    return (10, 3)
-
+# fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 @pytest.fixture(scope='module')
 def _constant_col(_shape):
@@ -52,16 +49,7 @@ def _constant_col(_shape):
 
 
 @pytest.fixture(scope='module')
-def _base_X(_shape, _constant_col):
-
-    _ = np.random.randint(0,10,_shape)
-    _[:, _constant_col] = 1
-
-    return _
-
-
-@pytest.fixture(scope='module')
-def _nan_factory(_base_X, _shape):
+def _nan_factory(_X_factory, _shape, _constant_col):
 
     # this is a fixture for poking at VarianceThreshold
 
@@ -71,55 +59,46 @@ def _nan_factory(_base_X, _shape):
         _nan_type: Union[Literal['np', 'pd', 'str', 'None'], None]
     ):
 
+        # block impossible ** * ** * ** * ** * ** * ** * ** * ** * ** *
         if _format != 'pd' and _dtype in ['flt', 'int'] and _nan_type == 'pd':
             raise ValueError('numpy numeric array cannot take pd.NA')
 
+        if _dtype in ['str', 'obj'] and _format in ['csr', 'csc', 'coo']:
+            pytest.skip(reason=f"cant put non-num dtype in sparse array")
+        # END block impossible ** * ** * ** * ** * ** * ** * ** * ** *
 
-        X = _base_X.copy()
+        # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        assert _format in ['np', 'pd', 'coo', 'csc', 'csr']
+        assert _dtype in ['flt', 'int', 'str', 'obj']
+        assert _nan_type in ['np', 'pd', 'str', 'None', None]
+        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
         columns = [str(uuid4())[:4] for _ in range(_shape[1])]
 
-        if _dtype == 'flt':
-            if _format == 'pd':
-                X = pd.DataFrame(data=X, columns=columns).astype(np.float64)
-            else:
-                X = X.astype(np.float64)
-        elif _dtype == 'int':
-            if _format == 'pd':
-                X = pd.DataFrame(data=X, columns=columns).astype(np.int32)
-            else:
-                X = X.astype(np.int32)
-        elif _dtype == 'str':
-            if _format == 'pd':
-                X = pd.DataFrame(data=X, columns=columns).astype(str)
-            else:
-                X = X.astype(str)
-        elif _dtype == 'obj':
-            if _format == 'pd':
-                X = pd.DataFrame(data=X, columns=columns).astype(object)
-            else:
-                X = X.astype(object)
-        else:
-            raise Exception
+        # always build as 'int', then cast to dtype
+        X = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            # Literal['np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'] = 'np',
+            _format=_format if _format in ['np','pd'] else 'np',
+            # Literal['flt', 'int', 'str', 'obj', 'hybrid'] = 'flt',
+            _dtype='int',
+            _columns=columns,
+            _constants=dict((zip(_constant_col, [1 for i in _constant_col]))),
+            _noise=0,
+            _zeros=0,
+            _shape=_shape
+        )
 
-        # _base_choices = [np.nan, None, 'nan', 'NaN', 'NAN']
-        # pd df cant take any nan
-        # np flt/int can only take the base choices
-        # np str/obj can take the base choices and pd.NA
+        X = X.astype(
+            {'flt':np.float64, 'int':np.int32, 'str':str, 'obj':object}[_dtype]
+        )
 
         # _nan_type:Union[Literal['np','pd','str','None'], None]
-        if _nan_type == 'np':
-            _nan_value = np.nan
-        elif _nan_type == 'pd':
-            _nan_value = pd.NA
-        elif _nan_type == 'str':
-            _nan_value = 'nan'
-        elif _nan_type == 'None':
-            _nan_value = None
-        elif _nan_type == None:
-            pass  # shouldnt need to declare _nan_value, is bypassed
-        else:
-            raise Exception
-
+        _nan_dict = {'np':np.nan, 'pd': pd.NA, 'str': 'nan', 'None': None}
+        # when _nan_type is None (not str 'None'), shouldnt need to
+        # declare _nan_value, is bypassed
+        _nan_value = _nan_dict.get(_nan_type, None)
 
         if _nan_type is not None:
 
@@ -130,24 +109,12 @@ def _nan_factory(_base_X, _shape):
                 )
                 X = X.astype(np.float64)
 
-            # if _format == 'pd':
-            #     _choices = _base_choices + [pd.NA, '<NA>']
-            # else:
-            #     if _dtype == 'flt':
-            #         _choices = _base_choices
-            #     el
-            #         X = X.astype(np.float64)
-            #         _choices = _base_choices
-            #     else:
-            #         _choices = _base_choices + [pd.NA]
 
-            # determine how many nans to sprinkle based on _shape and _has_nan
+            # determine how many nans to sprinkle based on _shape
             _sprinkles = max(3, _shape[0] // 10)
 
             for _c_idx in range(_shape[1]):
-                _r_idxs = np.random.choice(
-                    range(_shape[0]), _sprinkles, replace=False
-                )
+                _r_idxs = np.random.choice(range(_shape[0]), _sprinkles, replace=False)
                 for _r_idx in _r_idxs:
                     if isinstance(X, np.ndarray):
                         X[_r_idx, _c_idx] = _nan_value
@@ -159,22 +126,18 @@ def _nan_factory(_base_X, _shape):
             del _sprinkles
 
         # do this after sprinkling the nans
-        if _format == 'np':
-            pass
-        elif _format == 'pd':
-            pass
-        elif _format == 'csc':
+        if _format == 'csc':
             X = ss.csc_array(X)
         elif _format == 'csr':
             X = ss.csr_array(X)
         elif _format == 'coo':
             X = ss.coo_array(X)
-        else:
-            raise Exception
 
         return X
 
     return foo
+
+# END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 @pytest.mark.skipif(bypass is True, reason='bypass')
@@ -221,21 +184,6 @@ class TestNanFactory:
         else:
             raise Exception
 
-        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        # these arent set here, this is just to referee output
-        if _nan_type == 'np':
-            _nan_value = np.nan
-        elif _nan_type == 'pd':
-            _nan_value = pd.NA
-        elif _nan_type == 'str':
-            _nan_value = np.str_('nan')
-        elif _nan_type == 'None':
-            _nan_value = None
-        elif _nan_type == None:
-            pass  # shouldnt need to declare _nan_value, is bypassed
-        else:
-            raise Exception
-        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         if _format in ['csc', 'csr', 'coo']:
             out = out.toarray()
@@ -364,8 +312,6 @@ class TestNanFactory:
             raise Exception
 
 
-
-
 class TestVarianceThreshold:
 
     @pytest.mark.skipif(bypass is True, reason='bypass')
@@ -437,13 +383,6 @@ class TestVarianceThreshold:
                     )
 
                 new_c_idx += 1
-
-
-
-
-
-
-
 
 
 

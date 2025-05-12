@@ -6,16 +6,16 @@
 
 
 
-from pybear.preprocessing._InterceptManager._validation._keep_and_columns import \
-    _val_keep_and_columns
-
+import pytest
 
 from copy import deepcopy
-from uuid import uuid4
+import random
+
 import numpy as np
 import pandas as pd
 
-import pytest
+from pybear.preprocessing._InterceptManager._validation._keep_and_columns import \
+    _val_keep_and_columns
 
 
 
@@ -32,25 +32,8 @@ class TestValKeepAndColumns:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        # this is smaller than the conftest fixture
-        return (20, 3)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(_X_factory, _shape):
-        return _X_factory(
-            _dupl=[[0, _shape[1] - 1]],
-            _has_nan=False,
-            _constants={1: 1},
-            _format='np',
-            _columns=None,
-            _dtype='flt',
-            _zeros=None,
-            _noise=float(0),
-            _shape=_shape
-        )
+    def _X(_shape):
+        return np.random.randint(0, 10, _shape)
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -78,7 +61,7 @@ class TestValKeepAndColumns:
     )
     def test_columns_accepts_good(self, good_columns, _X):
         # None, or list like of strings with correct shape
-        _val_keep_and_columns('first', good_columns, _X)
+        _val_keep_and_columns('first', good_columns, _X[:, :3])
 
 
     @pytest.mark.parametrize('junk_keep',
@@ -112,12 +95,12 @@ class TestValKeepAndColumns:
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none'))
     @pytest.mark.parametrize('conflict', (True, False))
     def test_raise_on_header_conflict_with_keep_literal(
-        self, _keep, conflict, _columns, _X
+        self, _keep, conflict, _columns, _X, _shape
     ):
 
         if conflict:
             _conflict_columns = deepcopy(_columns)
-            _conflict_columns[np.random.randint(0, _X.shape[1])] = _keep
+            _conflict_columns[random.choice(range(_shape[1]))] = _keep
 
             with pytest.raises(ValueError):
                 _val_keep_and_columns(_keep, _conflict_columns, _X)
@@ -135,10 +118,10 @@ class TestValKeepAndColumns:
             _val_keep_and_columns('Some Column', _columns, _X)
 
 
-    def test_warns_if_keep_dict_key_in_columns(self):
+    def test_warns_if_keep_dict_key_in_columns(self, _X):
 
         X = pd.DataFrame(
-            data=np.random.randint(0, 10, (5,3)),
+            data=_X[:, :3],
             columns=['x1', 'x2', 'Intercept']
         )
 
@@ -150,47 +133,40 @@ class TestValKeepAndColumns:
             )
 
 
-    @pytest.mark.parametrize(f'keep_value',
-        ([0, 1], {0,1}, (0,1), {'a':1}, np.random.randint(0,2,(10,)))
-    )
-    def test_rejects_keep_dict_value_is_nonstr_sequence(self, keep_value):
+    @pytest.mark.parametrize(f'keep_value', ([0, 1], {0,1}, (0,1), {'a':1}))
+    def test_rejects_keep_dict_value_is_nonstr_sequence(self, _X, keep_value):
         # {'Intercept': value}, value cannot be list-like sequence
-        X = np.random.randint(0, 10, (5,3))
 
         with pytest.raises(ValueError):
             _val_keep_and_columns(
                 _keep={'Intercept': keep_value},
                 _columns=None,
-                _X=X
+                _X=_X
             )
 
 
-    @pytest.mark.parametrize(f'keep_value',
-        (min, max, lambda x: x, np.random.randint)
-    )
-    def test_reject_keep_dict_value_is_callable(self, keep_value):
+    @pytest.mark.parametrize(f'keep_value', (min, max, lambda x: x, list))
+    def test_reject_keep_dict_value_is_callable(self, _X, keep_value):
         # {'Intercept': value}, value cannot be callable
-        X = np.random.randint(0, 10, (5,3))
 
         with pytest.raises(ValueError):
             _val_keep_and_columns(
                 _keep={'Intercept': keep_value},
                 _columns=None,
-                _X=X
+                _X=_X
             )
 
 
     @pytest.mark.parametrize(f'keep_value',
         (-np.e, -1, 0, 1, np.e, True, False, np.nan, pd.NA, 'strings')
     )
-    def test_accept_keep_dict_value(self, keep_value):
+    def test_accept_keep_dict_value(self, _X, keep_value):
         # {'Intercept': value}, value can be int, float, bool, str
-        X = np.random.randint(0, 10, (5,3))
 
         _val_keep_and_columns(
             _keep={'Intercept': keep_value},
             _columns=None,
-            _X=X
+            _X=_X
         )
 
 

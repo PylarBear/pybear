@@ -10,8 +10,6 @@ import numbers
 
 import pytest
 
-import numpy as np
-
 from pybear.base._is_fitted import is_fitted
 
 
@@ -24,27 +22,6 @@ class Fixtures:
     @pytest.fixture(scope='module')
     def _total_passes():
         return 3
-
-
-    # need to overwrite conftest X_np & y_np to make them longer.
-    # to avoid error in StratifiedKFold for more splits than number of
-    # members in each class in y.
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def X_np(_shape):
-        return np.random.randint(0, 10, _shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def y_np(_shape):
-        return np.random.randint(0, 2, _shape[0])
 
 
     @staticmethod

@@ -5,17 +5,14 @@
 #
 
 
-from pybear.preprocessing._InterceptManager.InterceptManager \
-    import InterceptManager as IM
+
+import pytest
 
 import pandas as pd
 import scipy.sparse as ss
 
-import pytest
-
-
-
-
+from pybear.preprocessing._InterceptManager.InterceptManager \
+    import InterceptManager as IM
 
 
 
@@ -24,19 +21,6 @@ class TestExceptsOnBadXShapes:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _kwargs():
-        return {
-            'keep': 'first',
-            'equal_nan': False,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1  # leave this a 1 because of confliction
-        }
-
-
 
     # all of these to try to get some more speed... didnt help that much
 

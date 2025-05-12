@@ -6,23 +6,16 @@
 
 
 
-from pybear.preprocessing._InterceptManager._validation._validation import (
-    _validation
-)
+import pytest
 
 import pandas as pd
 
-import pytest
+from pybear.preprocessing._InterceptManager._validation._validation import \
+    _validation
 
 
 
 class TestValidation:
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _X(_X_factory, _format, _shape):
-        return _X_factory(_format=_format, _shape=_shape)
 
 
     @pytest.mark.parametrize('_format', ('np', 'pd'))
@@ -38,8 +31,8 @@ class TestValidation:
     @pytest.mark.parametrize('_n_jobs', (None, -1, 1))
     @pytest.mark.parametrize('columns_is_passed', (True, False))
     def test_accepts_good(
-        self, _X, _columns, _format, _keep, _rtol, _atol, _equal_nan, _n_jobs,
-        columns_is_passed
+        self, _X_factory, _columns, _shape, _format, _keep, _rtol, _atol,
+        _equal_nan, _n_jobs, columns_is_passed
     ):
 
         # test the following degenerate conditions are blocked
@@ -50,6 +43,8 @@ class TestValidation:
         # should be good
 
         # bad conditions are handled in tests for the individual modules
+
+        _X = _X_factory(_format='np', _shape=_shape)
 
         if _format == 'pd':
             if columns_is_passed:

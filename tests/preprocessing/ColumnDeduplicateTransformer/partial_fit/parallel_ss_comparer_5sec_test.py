@@ -8,26 +8,20 @@
 # IMPORTANT!
 # this is sparse so this uses _parallel_ss_comparer!
 
+
+import pytest
+
+import numpy as np
+import scipy.sparse as ss
+
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit import (
     _parallel_ss_comparer as pssc,
     _column_getter as cg
 )
 
-import numpy as np
-import scipy.sparse as ss
-
-import pytest
-
-
 
 
 class TestSSColumnComparer:
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (1000, 2)
 
 
     # np cant be int if using nans
@@ -36,7 +30,7 @@ class TestSSColumnComparer:
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_accuracy(
-        self, _X_factory, _format, _has_nan, _equal_nan, _shape
+        self, _X_factory, _format, _has_nan, _equal_nan
     ):
 
         # a sneaky trick here. _X_factory peppers nans after propagating
@@ -44,6 +38,7 @@ class TestSSColumnComparer:
         # column. so if create a 2 column array and both columns are the
         # same, then both will be identical except for the nans.
 
+        _shape = (1000, 2)
 
         _X_flt = _X_factory(
             _dupl=[[0,1]],
@@ -86,26 +81,6 @@ class TestSSColumnComparer:
             assert not _are_equal
         else:
             raise Exception
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

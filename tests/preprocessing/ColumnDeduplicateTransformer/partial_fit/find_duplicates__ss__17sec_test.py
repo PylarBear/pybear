@@ -5,52 +5,18 @@
 #
 
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-    _find_duplicates import _find_duplicates
+
+import pytest
 
 import numpy as np
 import scipy.sparse as ss
 
-import pytest
-
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _find_duplicates import _find_duplicates
 
 
 
 class TestNpFindDuplicates:
-
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _dupl1():
-        return [
-            [0, 7],
-            [1, 5, 8]
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _dupl2():
-        return []
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _dupl3():
-        return [
-            [0, 7, 9],
-            [1, 5, 6, 8]
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _dupl4():
-        return [[0, 4, 7]]
-
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('_format',
@@ -217,14 +183,6 @@ class TestNpFindDuplicates:
         )
 
         assert np.array_equal(out[0], list(range(_shape[1])))
-
-
-
-
-
-
-
-
 
 
 

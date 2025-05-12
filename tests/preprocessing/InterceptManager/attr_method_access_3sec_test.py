@@ -8,62 +8,17 @@
 
 import pytest
 
-from pybear.preprocessing import InterceptManager as IM
-
 import sys
+
 import numpy as np
 import pandas as pd
-import scipy.sparse as ss
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
-
-
+from pybear.preprocessing import InterceptManager as IM
 
 
 bypass = False
-
-
-
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-# FIXTURES
-
-@pytest.fixture(scope='module')
-def _const(_shape):
-    return {3:0, 5:1, _shape[1]-1:2}
-
-
-@pytest.fixture(scope='function')
-def _kwargs():
-    return {
-        'keep': 'last',
-        'rtol': 1e-5,
-        'atol': 1e-8,
-        'equal_nan': False,
-        'n_jobs': 1  # leave this at 1 because of confliction
-    }
-
-
-@pytest.fixture(scope='module')
-def _X_np(_X_factory, _const, _shape):
-    return _X_factory(
-        _constants=_const,
-        _has_nan=False,
-        _dtype='flt',
-        _shape=_shape
-    )
-
-
-@pytest.fixture(scope='module')
-def _X_pd(_X_np, _columns):
-    return pd.DataFrame(
-        data=_X_np,
-        columns=_columns
-)
-
-# END fixtures
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
 
 
 # ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
@@ -73,7 +28,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
     @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
     def test_attr_access(
-        self, _X_np, _X_pd, y_np, _columns, _kwargs, _shape, x_format
+        self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
     ):
 
         _attrs = [
@@ -85,25 +40,20 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             'column_mask_'
         ]
 
-        if x_format == 'np':
-            NEW_X = _X_np.copy()
-            NEW_Y = y_np
-        elif x_format == 'pd':
-            NEW_X = _X_pd
-            NEW_Y = pd.DataFrame(
-                data=y_np, columns=['y']
-            )
-        elif x_format == 'csc':
-            NEW_X = ss.csc_array(_X_np.copy())
-            NEW_Y = y_np
-        elif x_format == 'csr':
-            NEW_X = ss.csr_array(_X_np.copy())
-            NEW_Y = y_np
-        elif x_format == 'coo':
-            NEW_X = ss.coo_array(_X_np.copy())
-            NEW_Y = y_np
+
+        NEW_X = _X_factory(
+            _format=x_format,
+            _columns=_columns,
+            _constants={3:0, 5:1, _shape[1]-1:2},
+            _has_nan=False,
+            _dtype='flt',
+            _shape=_shape
+        )
+
+        if x_format == 'pd':
+            NEW_Y = pd.DataFrame(data=y_np, columns=['y'])
         else:
-            raise Exception
+            NEW_Y = y_np
 
 
         TestCls = IM(**_kwargs)
@@ -197,32 +147,39 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
-    @staticmethod
-    def _methods():
-        return [
-            'fit',
-            'fit_transform',
-            'get_feature_names_out',
-            'get_metadata_routing',
-            'get_params',
-            'inverse_transform',
-            'partial_fit',
-            'score',
-            'set_output',
-            'set_params',
-            'transform'
-        ]
+    # methods
+    # [
+    #     'fit',
+    #     'fit_transform',
+    #     'get_feature_names_out',
+    #     'get_metadata_routing',
+    #     'get_params',
+    #     'inverse_transform',
+    #     'partial_fit',
+    #     'score',
+    #     'set_output',
+    #     'set_params',
+    #     'transform'
+    # ]
 
 
-    def test_access_methods_before_fit(self, _X_np, y_np, _kwargs):
+    def test_access_methods_before_fit(self, _X_factory, y_np, _kwargs, _shape):
 
         TestCls = IM(**_kwargs)
+
+        X_np = _X_factory(
+            _format='np',
+            _constants=None,
+            _has_nan=False,
+            _dtype='flt',
+            _shape=_shape
+        )
 
         # **************************************************************
         # vvv BEFORE FIT vvv *******************************************
 
         # fit()
-        assert isinstance(TestCls.fit(_X_np, y_np), IM)
+        assert isinstance(TestCls.fit(X_np, y_np), IM)
 
         # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v^v^v^v
         # Reset Changes is_fitted To False:
@@ -236,7 +193,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v^v^v^v
 
         # fit_transform()
-        assert isinstance(TestCls.fit_transform(_X_np, y_np), np.ndarray)
+        assert isinstance(TestCls.fit_transform(X_np, y_np), np.ndarray)
 
         TestCls._reset()
 
@@ -253,17 +210,17 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
         # inverse_transform()
         with pytest.raises(NotFittedError):
-            TestCls.inverse_transform(_X_np)
+            TestCls.inverse_transform(X_np)
 
         # partial_fit()
-        assert isinstance(TestCls.partial_fit(_X_np, y_np), IM)
+        assert isinstance(TestCls.partial_fit(X_np, y_np), IM)
 
         # ** _reset()
         assert isinstance(TestCls._reset(), IM)
 
         # score()
         with pytest.raises(NotFittedError):
-            TestCls.score(_X_np, y_np)
+            TestCls.score(X_np, y_np)
 
         # set_output()
         assert isinstance(TestCls.set_output(transform='pandas'), IM)
@@ -274,29 +231,35 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
         # transform()
         with pytest.raises(NotFittedError):
-            TestCls.transform(_X_np)
+            TestCls.transform(X_np)
 
         # END ^^^ BEFORE FIT ^^^ ***************************************
         # **************************************************************
 
 
-    def test_access_methods_after_fit(
-        self, _X_np, y_np, _columns, _kwargs, _shape
-    ):
+    def test_access_methods_after_fit(self, _X_factory, y_np, _kwargs, _shape):
+
+        X_np = _X_factory(
+            _format='np',
+            _constants=None,
+            _has_nan=False,
+            _dtype='flt',
+            _shape=_shape
+        )
 
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
 
         TestCls = IM(**_kwargs)
-        TestCls.fit(_X_np, y_np)
+        TestCls.fit(X_np, y_np)
 
         # fit_transform()
-        assert isinstance(TestCls.fit_transform(_X_np), np.ndarray)
+        assert isinstance(TestCls.fit_transform(X_np), np.ndarray)
 
         TestCls._reset()
 
         # fit()
-        assert isinstance(TestCls.fit(_X_np), IM)
+        assert isinstance(TestCls.fit(X_np), IM)
 
         # get_feature_names_out()
         assert isinstance(TestCls.get_feature_names_out(None), np.ndarray)
@@ -309,23 +272,23 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         assert isinstance(TestCls.get_params(True), dict)
 
         # inverse_transform()
-        TRFM_X = TestCls.transform(_X_np)
+        TRFM_X = TestCls.transform(X_np)
         out = TestCls.inverse_transform(TRFM_X)
         assert isinstance(out, np.ndarray)
-        assert np.array_equal(out, _X_np)
+        assert np.array_equal(out, X_np)
 
         TestCls = IM(**_kwargs)
 
         # partial_fit()
-        assert isinstance(TestCls.partial_fit(_X_np), IM)
+        assert isinstance(TestCls.partial_fit(X_np), IM)
 
         # ** _reset()
         assert isinstance(TestCls._reset(), IM)
 
-        TestCls.fit(_X_np, y_np)
+        TestCls.fit(X_np, y_np)
 
         # score()
-        assert TestCls.score(_X_np, y_np) is None
+        assert TestCls.score(X_np, y_np) is None
 
         # set_output()
         assert isinstance(TestCls.set_output(transform='default'), IM)
@@ -334,7 +297,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         assert isinstance(TestCls.set_params(keep='random'), IM)
 
         # transform()
-        assert isinstance(TestCls.transform(_X_np), np.ndarray)
+        assert isinstance(TestCls.transform(X_np), np.ndarray)
 
         del TestCls
 
@@ -343,22 +306,30 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
     def test_access_methods_after_transform(
-        self, _X_np, y_np, _columns, _kwargs, _shape
-    ):
+        self, _X_factory, y_np, _kwargs, _shape
+):
+
+        X_np = _X_factory(
+            _format='np',
+            _constants=None,
+            _has_nan=False,
+            _dtype='flt',
+            _shape=_shape
+        )
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************
-        FittedTestCls = IM(**_kwargs).fit(_X_np, y_np)
-        TransformedTestCls = IM(**_kwargs).fit(_X_np, y_np)
-        TransformedTestCls.transform(_X_np)
+        FittedTestCls = IM(**_kwargs).fit(X_np, y_np)
+        TransformedTestCls = IM(**_kwargs).fit(X_np, y_np)
+        TransformedTestCls.transform(X_np)
 
         # fit_transform()
-        assert isinstance(TransformedTestCls.fit_transform(_X_np), np.ndarray)
+        assert isinstance(TransformedTestCls.fit_transform(X_np), np.ndarray)
 
         # fit()
-        assert isinstance(TransformedTestCls.fit(_X_np), IM)
+        assert isinstance(TransformedTestCls.fit(X_np), IM)
 
-        TRFM_X = TransformedTestCls.transform(_X_np)
+        TRFM_X = TransformedTestCls.transform(X_np)
 
         # get_feature_names_out()
         assert isinstance(
@@ -383,11 +354,11 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
              f"inverse_transform(TRFM_X) before transform()")
 
         # partial_fit()
-        assert isinstance(TransformedTestCls.partial_fit(_X_np), IM)
+        assert isinstance(TransformedTestCls.partial_fit(X_np), IM)
 
         # ** _reset()
         assert isinstance(TransformedTestCls._reset(), IM)
-        TransformedTestCls.fit_transform(_X_np)
+        TransformedTestCls.fit_transform(X_np)
 
         # set_output()
         assert isinstance(TransformedTestCls.set_output(transform='default'), IM)
@@ -399,7 +370,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         )
 
         # transform()
-        assert isinstance(TransformedTestCls.fit_transform(_X_np), np.ndarray)
+        assert isinstance(TransformedTestCls.fit_transform(X_np), np.ndarray)
 
         del FittedTestCls, TransformedTestCls, TRFM_X
 

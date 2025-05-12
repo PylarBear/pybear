@@ -5,18 +5,18 @@
 #
 
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._transform._transform \
-    import _transform
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-    _parallel_column_comparer import _parallel_column_comparer
-
+import pytest
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-import pytest
+from pybear.preprocessing._ColumnDeduplicateTransformer._transform._transform \
+    import _transform
+
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _parallel_column_comparer import _parallel_column_comparer
 
 
 
@@ -36,51 +36,6 @@ class TestTransform:
             [2, 6, 8]
         ]
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _dupl_equal_nan_is_False():
-        return []
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _base_X(_X_factory, _dtype, _has_nan, _shape, _dupl_equal_nan_is_True):
-
-        return _X_factory(
-            _dupl=_dupl_equal_nan_is_True,
-            _format='np',
-            _dtype=_dtype,
-            _has_nan=_has_nan,
-            _shape=_shape
-        )
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _column_mask_equal_nan_is_True(_shape, _dupl_equal_nan_is_True, _keep):
-
-        _del = []
-        for _set in _dupl_equal_nan_is_True:
-            if _keep == 'first':
-                _del += _set[1:]
-            elif _keep == 'last':
-                _del += _set[:-1]
-            elif _keep == 'random':
-                __ = _set.copy()
-                __.remove(np.random.choice(__))
-                _del += __
-
-        _del.sort()
-
-        return np.array([i not in _del for i in range(_shape[1])]).astype(bool)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _column_mask_equal_nan_is_False(_shape, _keep):
-        return np.array([True for i in range(_shape[1])]).astype(bool)
-
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
@@ -92,9 +47,8 @@ class TestTransform:
         )
     )
     def test_output(
-        self, _dtype, _base_X, _format, _shape, _master_columns, _equal_nan,
-        _has_nan, _column_mask_equal_nan_is_True, _column_mask_equal_nan_is_False,
-        _dupl_equal_nan_is_True, _dupl_equal_nan_is_False
+        self, _X_factory, _dtype, _format, _shape, _master_columns, _equal_nan,
+        _has_nan, _keep, _dupl_equal_nan_is_True
     ):
 
         # rejects everything except np.ndarray, pd.DataFrame,
@@ -104,37 +58,46 @@ class TestTransform:
             pytest.skip(reason=f"scipy sparse cant take strings")
 
         # data format conversion v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        _X = _X_factory(
+            _dupl=_dupl_equal_nan_is_True,
+            _format='np',
+            _dtype=_dtype,
+            _has_nan=_has_nan,
+            _shape=_shape
+        )
+
         if _format == 'ndarray':
-            _X_wip = _base_X
+            _X_wip = _X
         elif _format == 'df':
             _X_wip = pd.DataFrame(
-                data=_base_X,
+                data=_X,
                 columns=_master_columns.copy()[:_shape[1]]
             )
         elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_base_X)
+            _X_wip = ss._csr.csr_matrix(_X)
         elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_base_X)
+            _X_wip = ss._csc.csc_matrix(_X)
         elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_base_X)
+            _X_wip = ss._coo.coo_matrix(_X)
         elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_base_X)
+            _X_wip = ss._dia.dia_matrix(_X)
         elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_base_X)
+            _X_wip = ss._lil.lil_matrix(_X)
         elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_base_X)
+            _X_wip = ss._dok.dok_matrix(_X)
         elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_base_X)
+            _X_wip = ss._csr.csr_array(_X)
         elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_base_X)
+            _X_wip = ss._csc.csc_array(_X)
         elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_base_X)
+            _X_wip = ss._coo.coo_array(_X)
         elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_base_X)
+            _X_wip = ss._dia.dia_array(_X)
         elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_base_X)
+            _X_wip = ss._lil.lil_array(_X)
         elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_base_X)
+            _X_wip = ss._dok.dok_array(_X)
         else:
             raise Exception
         # END data format conversion v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -143,9 +106,23 @@ class TestTransform:
         # when not equal_nan, all columns must be unequal (full mask, all
         # columns are kept) because every column in X gets some nans
         if _equal_nan:
-            _column_mask = _column_mask_equal_nan_is_True
+            _del = []
+            for _set in _dupl_equal_nan_is_True:
+                if _keep == 'first':
+                    _del += _set[1:]
+                elif _keep == 'last':
+                    _del += _set[:-1]
+                elif _keep == 'random':
+                    __ = _set.copy()
+                    __.remove(np.random.choice(__))
+                    _del += __
+
+            _del.sort()
+
+            _column_mask = \
+                np.array([i not in _del for i in range(_shape[1])]).astype(bool)
         elif not _equal_nan:
-            _column_mask = _column_mask_equal_nan_is_False
+            _column_mask = np.array([True for i in range(_shape[1])]).astype(bool)
             assert np.sum(_column_mask) == _shape[1]
         else:
             raise Exception

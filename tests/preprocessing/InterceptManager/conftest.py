@@ -14,6 +14,7 @@ import numpy.typing as npt
 
 from uuid import uuid4
 import warnings
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -258,6 +259,16 @@ def _X_factory():
 def y_np(_shape):
     return np.random.randint(0, 2, _shape[0])
 
+
+@pytest.fixture(scope='function')
+def _kwargs():
+    return {
+        'keep': 'first',
+        'equal_nan': False,   # must be False
+        'rtol': 1e-5,
+        'atol': 1e-8,
+        'n_jobs': 1
+    }
 
 
 

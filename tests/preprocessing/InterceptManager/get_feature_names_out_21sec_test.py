@@ -6,9 +6,11 @@
 
 
 
-import numpy as np
-
 import pytest
+
+from copy import deepcopy
+
+import numpy as np
 
 from pybear.preprocessing import InterceptManager as IM
 from pybear.base.exceptions import NotFittedError
@@ -36,25 +38,20 @@ class TestGetFeatureNamesOutRejects:
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(_X_factory, _format, _master_columns, _shape):
+    @pytest.fixture(scope='function')
+    def _TestCls(_instance_state, _X_factory, _format, _columns, _shape):
 
-        return _X_factory(
+        _TestCls = IM()
+
+        _X = _X_factory(
             _dupl=None,
             _format=_format,
             _dtype='flt',
-            _columns=_master_columns.copy()[:_shape[1]] if _format == 'pd' else None,
+            _columns=_columns.copy() if _format == 'pd' else None,
             _constants=None,
             _noise=1e-9,
             _shape=_shape
         )
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _TestCls(_instance_state, _X):
-
-        _TestCls = IM()
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
@@ -110,12 +107,7 @@ class TestGetFeatureNamesOutRejects:
 
 
 @pytest.mark.parametrize('_format, _pd_columns_is_passed',
-    (
-        ('np', False),
-        ('pd', True),
-        ('pd', False),
-    ),
-    scope='module'
+    (('np', False), ('pd', True), ('pd', False)), scope='module'
 )
 @pytest.mark.parametrize('_dtype',
     ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module'
@@ -132,92 +124,65 @@ class TestGetFeatureNamesOutRejects:
 class TestGetFeatureNamesOut:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    @pytest.mark.parametrize('_input_features_is_passed', (True, False))
+    def test_accuracy(
+        self, _X_factory, _instance_state, _kwargs, _constants, _format,
+        _dtype, _columns, _keep, _shape, _input_features_is_passed,
+        _pd_columns_is_passed
+    ):
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _wip_kwargs(_keep):
-        return {
-            'keep': _keep,
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1     # leave this at 1 because of confliction
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _wip_constants(_constants, _dtype, _shape):
+        # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         if _constants == 'none':
-            return {}
+            _wip_constants = {}
         elif _constants == 'constants1':
             if _dtype in ('flt', 'int'):
-                return {1: 1, _shape[1]-2: 1}
+                _wip_constants = {1: 1, _shape[1]-2: 1}
             else:
-                return {1: 'a', _shape[1]-2: 'b'}
+                _wip_constants = {1: 'a', _shape[1]-2: 'b'}
         elif _constants == 'constants2':
             if _dtype in ('flt', 'int'):
-                return {0: 0, _shape[1]-1: np.nan}
+                _wip_constants = {0: 0, _shape[1]-1: np.nan}
             else:
-                return {1: 'a', _shape[1]-1: 'nan'}
+                _wip_constants = {1: 'a', _shape[1]-1: 'nan'}
         else:
             raise Exception
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(
-        _X_factory, _format, _dtype, _pd_columns_is_passed,
-        _columns, _wip_constants, _shape
-    ):
-
-        __ = _columns if (_format == 'pd' and _pd_columns_is_passed) else None
-
-        return _X_factory(
+        _X = _X_factory(
             _dupl=None,
             _format=_format,
             _dtype=_dtype,
-            _columns=__,
+            _columns=_columns if (_format == 'pd' and _pd_columns_is_passed) else None,
             _constants=_wip_constants,
             _noise=1e-9,
             _shape=_shape
         )
 
+        # END build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _TestCls(_instance_state, _wip_kwargs, _X):
+        # prepare the IM instance ** * ** * ** * ** * ** * ** * ** * ** *
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['keep'] = _keep
+        _new_kwargs['equal_nan'] = True
 
-        _TestCls = IM(**_wip_kwargs)
+        _TestCls = IM(**_new_kwargs)
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
-            return _TestCls
         elif _instance_state == 'after_transform':
             _TestCls.fit_transform(_X)
-            return _TestCls
         else:
             raise Exception
+        # END prepare the IM instance ** * ** * ** * ** * ** * ** * ** *
 
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    @pytest.mark.parametrize('_input_features_is_passed', (True, False))
-    def test_accuracy(
-        self, _X, _wip_kwargs, _wip_constants, _format, _columns, _TestCls,
-        _keep, _shape, _input_features_is_passed, _pd_columns_is_passed
-    ):
-
-        # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         if _input_features_is_passed:
             out = _TestCls.get_feature_names_out(_columns)
         else:
             out = _TestCls.get_feature_names_out(None)
-        # END get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        # determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # WITH NO HEADER PASSED AND input_features=None, SHOULD RETURN
         # ['x0', ..., 'x(n-1)][column_mask_]
         _GENERIC_HEADER = np.array(
@@ -310,9 +275,6 @@ class TestGetFeatureNamesOut:
                         f"array of generic headers")
         else:
             raise Exception
-
-
-
 
 
 

@@ -6,10 +6,12 @@
 
 
 
+import pytest
+
+from copy import deepcopy
+
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _lock_in_random_idxs import _lock_in_random_idxs
-
-import pytest
 
 
 
@@ -24,22 +26,15 @@ import pytest
 
 class Fixtures:
 
-    @staticmethod
-    @pytest.fixture()
-    def _cols():
-        return 5
-
 
     @staticmethod
-    @pytest.fixture()
-    def _duplicates():
-        return [[0,1], [2,3]]
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _do_not_drop():
-        return [0, 1]
+    @pytest.fixture(scope='module')
+    def _liri_args(_columns):
+        return {
+            '_duplicates': [[0, 1], [2, 3]],
+            '_do_not_drop': [0, 1],
+            '_columns': _columns
+        }
 
 
 class TestLIRIValidation(Fixtures):
@@ -47,133 +42,106 @@ class TestLIRIValidation(Fixtures):
     # test validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # ------------------------------
+
     @pytest.mark.parametrize('junk_duplicates',
         (-1,0,1,3.14,None,True,False,[0,1],(0,1),(0,),{'a':1}, min, lambda x: x)
     )
-    def test_rejects_junk_duplicates(
-        self, junk_duplicates, _do_not_drop, _columns
-    ):
+    def test_rejects_junk_duplicates(self, junk_duplicates, _liri_args):
+
+        _new_args = deepcopy(_liri_args)
+        _new_args['_duplicates'] = junk_duplicates
 
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
-                junk_duplicates,
-                _do_not_drop,
-                _columns
-            )
+            _lock_in_random_idxs(**_new_args)
 
 
     @pytest.mark.parametrize('bad_duplicates',
         ([['a','b'], ['c','d']], [[2,2],[2,2]])
     )
-    def test_rejects_bad_duplicates(
-        self, bad_duplicates, _do_not_drop, _columns
-    ):
+    def test_rejects_bad_duplicates(self, bad_duplicates, _liri_args):
+
+        _new_args = deepcopy(_liri_args)
+        _new_args['_duplicates'] = bad_duplicates
+
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
-                bad_duplicates,
-                _do_not_drop,
-                _columns,
-            )
-
-
-    def test_accepts_good_duplicates(self, _do_not_drop, _columns):
-
-        _lock_in_random_idxs(
-            [[0,1],[2,3]],
-            _do_not_drop,
-            _columns
-        )
-    # ------------------------------
-
+            _lock_in_random_idxs(**_new_args)
 
     # ------------------------------
+
     @pytest.mark.parametrize('junk_do_not_drop',
         (-1,0,1,3.14,True,False,{'a':1}, min, lambda x: x)
     )
-    def test_rejects_junk_do_not_drop(
-        self, _duplicates, junk_do_not_drop, _columns
-    ):
+    def test_rejects_junk_do_not_drop(self, junk_do_not_drop, _liri_args):
+
+        _new_args = deepcopy(_liri_args)
+        _new_args['_do_not_drop'] = junk_do_not_drop
+
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
-                _duplicates,
-                junk_do_not_drop,
-                _columns
-            )
+            _lock_in_random_idxs(**_new_args)
 
 
     @pytest.mark.parametrize('bad_do_not_drop',
         ([min, max], [True, False], [[], []])
 )
-    def test_rejects_bad_do_not_drop(
-        self, _duplicates, bad_do_not_drop, _columns
-    ):
+    def test_rejects_bad_do_not_drop(self, bad_do_not_drop, _liri_args):
+
+        _new_args = deepcopy(_liri_args)
+        _new_args['_do_not_drop'] = bad_do_not_drop
+
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
-                _duplicates,
-                bad_do_not_drop,
-                _columns
-            )
+            _lock_in_random_idxs(**_new_args)
 
 
-    @pytest.mark.parametrize('_do_not_drop',
-        ([0,1,2], 'str', None))
-    def test_accepts_good_do_not_drop(self, _duplicates, _do_not_drop, _columns):
-        if _do_not_drop == 'str':
-            _do_not_drop = [_columns[0], _columns[1], _columns[-1]]
+    def test_rejects_str_do_not_drop_if_no_columns(self, _columns, _liri_args):
 
-        _lock_in_random_idxs(
-            _duplicates,
-            _do_not_drop,
-            _columns
-        )
-    # ------------------------------
+        _new_args = deepcopy(_liri_args)
+        _new_args['_do_not_drop'] = [_columns[0], _columns[-1]]
+        _new_args['_columns'] = None
+
+        with pytest.raises(AssertionError):
+            _lock_in_random_idxs(**_new_args)
 
     # ------------------------------
+
     @pytest.mark.parametrize('junk_columns',
         (-1,0,1,3.14,True,False,[0,1],(0,1),(0,),{'a':1}, min, lambda x: x)
     )
-    def test_rejects_junk_columns(self, _duplicates, _do_not_drop, junk_columns):
+    def test_rejects_junk_columns(self, junk_columns, _liri_args):
+
+        _new_args = deepcopy(_liri_args)
+        _new_args['_columns'] = junk_columns
 
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
-                _duplicates,
-                _do_not_drop,
-                junk_columns
-            )
+            _lock_in_random_idxs(**_new_args)
 
 
     @pytest.mark.parametrize('bad_columns', ([0,1,2,3,4], [True, False]))
-    def test_rejects_bad_columns(self, _duplicates, _do_not_drop, bad_columns):
+    def test_rejects_bad_columns(self, bad_columns, _liri_args):
+
+        _new_args = deepcopy(_liri_args)
+        _new_args['_columns'] = bad_columns
 
         with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
-                _duplicates,
-                _do_not_drop,
-                bad_columns
-            )
+            _lock_in_random_idxs(**_new_args)
 
+    # ------------------------------
 
+    @pytest.mark.parametrize('_do_not_drop', ([0,1,2], 'str', None))
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
     def test_accepts_good_columns(
-        self, _duplicates, _do_not_drop, _columns, _columns_is_passed
+        self, _do_not_drop, _columns, _columns_is_passed, _liri_args
     ):
-        _lock_in_random_idxs(
-            _duplicates,
-            _do_not_drop,
-            _columns if _columns_is_passed else None
-        )
-    # ------------------------------
 
-    # ------------------------------
-    def test_rejects_str_do_not_drop_if_no_columns(self, _duplicates, _columns):
+        _new_args = deepcopy(_liri_args)
+        _new_args['_columns'] = _columns if _columns_is_passed else None
+        if _do_not_drop == 'str':
+            _new_args['_do_not_drop'] = [_columns[0], _columns[1], _columns[-1]]
 
-        with pytest.raises(AssertionError):
-            _lock_in_random_idxs(
-                _duplicates=_duplicates,
-                _do_not_drop=[_columns[0], _columns[-1]],
-                _columns=None
-            )
-    # ------------------------------
+        if _do_not_drop == 'str' and not _columns_is_passed:
+            with pytest.raises(AssertionError):
+                _lock_in_random_idxs(**_new_args)
+        else:
+            _lock_in_random_idxs(**_new_args)
 
     # END test validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -185,9 +153,7 @@ class TestLIRIAccuracy(Fixtures):
 
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
     @pytest.mark.parametrize('_do_not_drop', (None, [0], [0,1], [0,2]))
-    def test_no_duplicates(
-        self, _columns, _do_not_drop, _columns_is_passed
-    ):
+    def test_no_duplicates(self, _columns, _do_not_drop, _columns_is_passed):
 
         # no duplicates, so _rand_idxs should be empty
 
@@ -202,40 +168,34 @@ class TestLIRIAccuracy(Fixtures):
 
 
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
-    def test_do_not_drop_is_none(
-        self, _duplicates, _columns, _columns_is_passed
-    ):
+    def test_do_not_drop_is_none(self, _columns, _columns_is_passed, _liri_args):
 
         # without any restrictions from do_not_drop, any idx could be
         # pulled from each set of duplicates
 
-        rand_idxs_out = _lock_in_random_idxs(
-            _duplicates,
-            _do_not_drop=None,
-            _columns=_columns if _columns_is_passed else None,
-        )
+        _new_args = deepcopy(_liri_args)
+        _new_args['_columns'] = _columns if _columns_is_passed else None
+        _new_args['_do_not_drop'] = None
+
+        rand_idxs_out = _lock_in_random_idxs(**_new_args)
 
         assert isinstance(rand_idxs_out, tuple)
 
-        for _idx, _set in enumerate(_duplicates):
+        for _idx, _set in enumerate(_new_args['_duplicates']):
             assert list(rand_idxs_out)[_idx] in _set
 
 
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
     @pytest.mark.parametrize('_do_not_drop', ([0], [0, 2], [0, 1]))
     def test_with_do_not_drop(
-        self, _duplicates, _do_not_drop, _columns, _columns_is_passed
+        self, _do_not_drop, _columns, _columns_is_passed, _liri_args
     ):
 
-        #     def _duplicates():
-        #         return [[0,1], [2,3]]
+        _new_args = deepcopy(_liri_args)
+        _new_args['_columns'] = _columns if _columns_is_passed else None
+        _new_args['_do_not_drop'] = _do_not_drop
 
-
-        rand_idxs_out = _lock_in_random_idxs(
-            _duplicates,
-            _do_not_drop=_do_not_drop,
-            _columns=_columns if _columns_is_passed else None
-        )
+        rand_idxs_out = _lock_in_random_idxs(**_new_args)
 
         assert isinstance(rand_idxs_out, tuple)
 
@@ -246,7 +206,8 @@ class TestLIRIAccuracy(Fixtures):
         # the same set of duplicates). in that case, all we can validate
         # is that that position in rand_idxs_out contains one of the
         # do_not_drop idxs
-        for _idx, _set in enumerate(_duplicates):
+
+        for _idx, _set in enumerate(_new_args['_duplicates']):
             dnd_in_set = list(set(_do_not_drop).intersection(_set))
             num_dnd = len(dnd_in_set)
             if num_dnd == 0:

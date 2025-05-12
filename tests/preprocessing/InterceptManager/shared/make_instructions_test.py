@@ -28,12 +28,6 @@ class TestMakeInstructions:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _empty_constant_columns():
-        return {}
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _constant_columns_1(_shape):
         _ = {0: 1, 8: 1}  # must have index 8 in it
         assert max(_) < _shape[1]
@@ -61,14 +55,14 @@ class TestMakeInstructions:
 
 
     def test_accuracy(
-        self, _empty_constant_columns, _constant_columns_1, _constant_columns_2,
+        self, _constant_columns_1, _constant_columns_2,
         _keep_dict, _keep_int, _shape
     ):
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # keep is int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # if no constant columns, returns all Nones
-        out = _make_instructions(_keep_int, _empty_constant_columns, _shape[1])
+        out = _make_instructions(_keep_int, {}, _shape[1])
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # keep _keep_int idx, delete all others
@@ -90,7 +84,7 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # 'none' ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones
-        out = _make_instructions('none', _empty_constant_columns, _shape[1])
+        out = _make_instructions('none', {}, _shape[1])
         assert out == {'keep': None, 'delete': None, 'add': None}
 
         # delete all constant columns
@@ -114,7 +108,7 @@ class TestMakeInstructions:
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # dict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # if no constant columns, returns all Nones except 'add'
-        out = _make_instructions(_keep_dict, _empty_constant_columns, _shape[1])
+        out = _make_instructions(_keep_dict, {}, _shape[1])
         assert out == {'keep': None, 'delete': None, 'add': _keep_dict}
 
         # delete all constant columns, append contents of keep dict

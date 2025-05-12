@@ -24,20 +24,6 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
 class TestAccuracy:
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _kwargs():
-        return {
-            'keep': 'first',
-            'do_not_drop': None,
-            'conflict': 'raise',
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'equal_nan': False,
-            'n_jobs': 1     # leave set at 1 because of confliction
-        }
-
-
     # save yourself 50 seconds of life. test only one scipy sparse.
 
     @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr')) # , 'csc', 'coo'))
