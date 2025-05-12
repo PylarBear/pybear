@@ -7,6 +7,7 @@
 
 
 import pytest
+
 import numbers
 import uuid
 
@@ -16,24 +17,21 @@ from pybear.feature_extraction.text._Lexicon.Lexicon import Lexicon
 
 
 
-
 # there is no 'fit', everything should be accessible at initialization
 class TestAttrAccess:
 
 
-    # @staticmethod
-    # @pytest.fixture
-    # def _attrs():
-    #     return [
-    #         'size_',
-    #         'lexicon_',
-    #         'stop_words_',
-    #         'overall_statistics_',
-    #         'startswith_frequency_',
-    #         'character_frequency_',
-    #         'string_frequency_',
-    #         'uniques_'
-    #     ]
+    # _attrs
+    # [
+    #     'size_',
+    #     'lexicon_',
+    #     'stop_words_',
+    #     'overall_statistics_',
+    #     'startswith_frequency_',
+    #     'character_frequency_',
+    #     'string_frequency_',
+    #     'uniques_'
+    # ]
 
 
     def test_attr_access(self):
@@ -113,38 +111,34 @@ class TestAttrAccess:
 class TestMethodAccess:
 
 
-    # @staticmethod
-    # @pytest.fixture(scope='function')
-    # def _methods():
-    #     return [
-    #         '_reset',   # blocked
-    #         'get_params',  # blocked
-    #         'partial_fit',  # blocked
-    #         'fit',   # blocked
-    #         'transform'   # blocked
-    #         'score'   # blocked
-    #         'print_overall_statistics',
-    #         'print_startswith_frequency',
-    #         'print_character_frequency',
-    #         'print_string_frequency',
-    #         'get_longest_strings',
-    #         'print_longest_strings',
-    #         'get_shortest_strings',
-    #         'print_shortest_strings',
-    #         'lookup_substring',
-    #         'lookup_string',
-    #     ]
+    # methods
+    # [
+    #     '_reset',   # blocked
+    #     'get_params',  # blocked
+    #     'partial_fit',  # blocked
+    #     'fit',   # blocked
+    #     'transform'   # blocked
+    #     'score'   # blocked
+    #     'print_overall_statistics',
+    #     'print_startswith_frequency',
+    #     'print_character_frequency',
+    #     'print_string_frequency',
+    #     'get_longest_strings',
+    #     'print_longest_strings',
+    #     'get_shortest_strings',
+    #     'print_shortest_strings',
+    #     'lookup_substring',
+    #     'lookup_string',
+    # ]
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X():
-        return [str(uuid.uuid4())[:5] for _ in range(100)]
 
+    def test_method_access(self):
 
-    def test_method_access(self, _X):
 
         TestCls = Lexicon()
+
+        _X = [str(uuid.uuid4())[:5] for _ in range(100)]
 
         # blocked ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -246,15 +240,6 @@ class TestMethodAccess:
         out = getattr(TestCls, 'lookup_string')('pxlq')
         assert isinstance(out, list)
         assert len(out) == 0
-
-
-
-
-
-
-
-
-
 
 
 

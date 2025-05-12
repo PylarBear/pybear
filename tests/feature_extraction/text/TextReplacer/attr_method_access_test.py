@@ -31,14 +31,12 @@ class TestAttrAccess:
         ).tolist()
 
 
-    # @staticmethod
-    # @pytest.fixture
-    # def _attrs():
-    #     return [
-    #         'replace',
-    #         'case_sensitive',
-    #         'flags'
-    #     ]
+    # attrs
+    # [
+    #     'replace',
+    #     'case_sensitive',
+    #     'flags'
+    # ]
 
 
     @pytest.mark.parametrize('has_seen_data', (True, False))
@@ -67,22 +65,19 @@ class TestMethodAccess:
     @staticmethod
     @pytest.fixture(scope='module')
     def _X_list():
-
         return np.random.choice(list('abcdefghijklmnop'), (10,), replace=True).tolist()
 
 
-    # @staticmethod
-    # @pytest.fixture(scope='function')
-    # def _methods():
-    #     return [
-    #         'partial_fit',
-    #         'fit',
-    #         'fit_transform',
-    #         'get_params',
-    #         'set_params',
-    #         'transform',
-    #         'score'
-    #     ]
+    # methods
+    # [
+    #     'partial_fit',
+    #     'fit',
+    #     'fit_transform',
+    #     'get_params',
+    #     'set_params',
+    #     'transform',
+    #     'score'
+    # ]
 
 
     @pytest.mark.parametrize('has_seen_data', (True, False))
@@ -132,16 +127,6 @@ class TestMethodAccess:
         out = getattr(TestCls, 'fit_transform')(_X_list)
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -26,6 +26,7 @@ class TestTextRemover:
     def _words():
         return list('edcba')
 
+    # -- -- -- -- -- -- -- -- -- -- -- --
 
 
     def test_empty_X(self):

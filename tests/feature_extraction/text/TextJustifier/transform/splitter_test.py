@@ -31,15 +31,6 @@ class TestSplitter:
     # ) -> list[str]:
 
 
-    @pytest.mark.parametrize('_sep', (re.compile(' '), re.compile('(?!x)')))
-    @pytest.mark.parametrize('_line_break', (re.compile(' '), re.compile('(?!x)')))
-    def test_splitter_doesnt_hang(self, _sep, _line_break):
-
-        _X = ['sknaspdouralmnbpasoiruaaskdrua']
-
-        assert isinstance(_splitter(_X, _sep, _line_break), list)
-
-
     @staticmethod
     @pytest.fixture(scope='function')
     def ex1():
@@ -53,6 +44,16 @@ class TestSplitter:
             'last split on; a semicolon.',
         ]
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+    @pytest.mark.parametrize('_sep', (re.compile(' '), re.compile('(?!x)')))
+    @pytest.mark.parametrize('_line_break', (re.compile(' '), re.compile('(?!x)')))
+    def test_splitter_doesnt_hang(self, _sep, _line_break):
+
+        _X = ['sknaspdouralmnbpasoiruaaskdrua']
+
+        assert isinstance(_splitter(_X, _sep, _line_break), list)
 
 
     def test_line_break_is_None(self, ex1):

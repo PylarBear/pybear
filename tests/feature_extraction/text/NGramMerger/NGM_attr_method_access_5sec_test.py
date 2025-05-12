@@ -6,9 +6,10 @@
 
 
 
+import pytest
+
 import numbers
 
-import pytest
 import numpy as np
 
 from pybear.feature_extraction.text._NGramMerger.NGramMerger import \
@@ -18,63 +19,34 @@ from pybear.feature_extraction.text._NGramMerger.NGramMerger import \
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
-class Fixtures:
+
+@pytest.fixture(scope='module')
+def _kwargs():
+    return {
+        'ngrams': [['GREEN', 'EGGS', 'AND', 'HAM']],
+        'ngcallable': None,
+        'sep': '@',
+        'wrap': False,
+        'remove_empty_rows': False
+    }
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs():
-        return {
-            'ngrams': [['GREEN', 'EGGS', 'AND', 'HAM']],
-            'ngcallable': None,
-            'sep': '@',
-            'wrap': False,
-            'remove_empty_rows': False
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _attrs():
-        return [
-            'n_rows_',
-            'row_support_'
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _methods():
-        return [
-            'fit',
-            'fit_transform',
-            'get_metadata_routing',
-            'get_params',
-            'partial_fit',
-            'reset',
-            'score',
-            'set_params',
-            'transform'
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X():
-        return [
-            ['I', 'AM', 'SAM'],
-            ['SAM', 'I', 'AM'],
-            ['THAT', 'SAM-I-AM'],
-            ['THAT', 'SAM-I-AM'],
-            ['I', 'DO', 'NOT', 'LIKE'],
-            ['THAT', 'SAM-I-AM'],
-            ['DO', 'YOU', 'LIKE'],
-            ['GREEN', 'EGGS', 'AND', 'HAM'],
-            ['I', 'DO', 'NOT', 'LIKE', 'THEM'],
-            ['SAM-I-AM'],
-            ['I', 'DO', 'NOT', 'LIKE'],
-            ['GREEN', 'EGGS', 'AND', 'HAM']
-        ]
+@pytest.fixture(scope='module')
+def _X():
+    return [
+        ['I', 'AM', 'SAM'],
+        ['SAM', 'I', 'AM'],
+        ['THAT', 'SAM-I-AM'],
+        ['THAT', 'SAM-I-AM'],
+        ['I', 'DO', 'NOT', 'LIKE'],
+        ['THAT', 'SAM-I-AM'],
+        ['DO', 'YOU', 'LIKE'],
+        ['GREEN', 'EGGS', 'AND', 'HAM'],
+        ['I', 'DO', 'NOT', 'LIKE', 'THEM'],
+        ['SAM-I-AM'],
+        ['I', 'DO', 'NOT', 'LIKE'],
+        ['GREEN', 'EGGS', 'AND', 'HAM']
+    ]
 
 # END fixtures
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -82,10 +54,16 @@ class Fixtures:
 
 
 # ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
-class TestAttrAccessBeforeAndAfterFitAndTransform(Fixtures):
+class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    def test_attr_access(self, _X, _kwargs, _attrs):
+    def test_attr_access(self, _X, _kwargs):
+
+
+        _attrs = [
+            'n_rows_',
+            'row_support_'
+        ]
 
         TestCls = NGM(**_kwargs)
 
@@ -130,10 +108,24 @@ class TestAttrAccessBeforeAndAfterFitAndTransform(Fixtures):
 
 
 # ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM ***
-class TestMethodAccessBeforeAndAfterFitAndAfterTransform(Fixtures):
+class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
-    def test_access_methods_before_fit(self, _X, _attrs, _kwargs):
+    # methods
+    # [
+    #     'fit',
+    #     'fit_transform',
+    #     'get_metadata_routing',
+    #     'get_params',
+    #     'partial_fit',
+    #     'reset',
+    #     'score',
+    #     'set_params',
+    #     'transform'
+    # ]
+
+
+    def test_access_methods_before_fit(self, _X, _kwargs):
 
         TestCls = NGM(**_kwargs)
 
@@ -293,13 +285,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform(Fixtures):
         # **************************************************************
 
 # END ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM
-
-
-
-
-
-
-
 
 
 

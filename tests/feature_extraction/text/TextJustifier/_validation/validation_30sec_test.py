@@ -6,13 +6,12 @@
 
 
 
-from pybear.feature_extraction.text._TextJustifier. _validation._validation \
-    import _validation
-
-
 import pytest
 
 import re
+
+from pybear.feature_extraction.text._TextJustifier. _validation._validation \
+    import _validation
 
 
 
@@ -186,8 +185,6 @@ class TestRegexValidation(Fixtures):
             pytest.skip(reason=f"cant do more tests after exception")
 
         assert _validation(_X_wip, *args) is None
-
-
 
 
 

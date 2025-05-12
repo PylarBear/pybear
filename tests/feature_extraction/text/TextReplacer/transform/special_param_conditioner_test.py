@@ -24,15 +24,9 @@ class TestSpecialParamConditioner:
 
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return 10
-
-
-    @staticmethod
     @pytest.fixture(scope='function')
-    def _text(_shape):
-        return np.random.choice(list('abcde'), (_shape, ), replace=True)
+    def _text():
+        return np.random.choice(list('abcde'), (10, ), replace=True)
 
 
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -92,7 +86,7 @@ class TestSpecialParamConditioner:
     @pytest.mark.parametrize('_cs', (True, False))
     @pytest.mark.parametrize('_f', (None, re.I))
     @pytest.mark.parametrize('_nr', (10, ))
-    def test_accepts_all_good(self, _text, _shape, _rr, _cs, _f, _nr):
+    def test_accepts_all_good(self, _text, _rr, _cs, _f, _nr):
         _special_param_conditioner(_rr, _cs, _f, _nr)
 
 

@@ -21,15 +21,9 @@ class TestValReplace:
 
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return 10
-
-
-    @staticmethod
     @pytest.fixture(scope='function')
-    def _text(_shape):
-        return np.random.choice(list('abcde'), (_shape, ), replace=True)
+    def _text():
+        return np.random.choice(list('abcde'), (10, ), replace=True)
 
 
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -77,11 +71,6 @@ class TestValReplace:
     def test_accepts_good_replace(self, _text, good_replace):
         # could be None, tuple, list
         _val_replace(good_replace, len(_text))
-
-
-
-
-
 
 
 

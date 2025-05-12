@@ -22,20 +22,16 @@ from ._read_green_eggs_and_ham import _read_green_eggs_and_ham
 
 
 
-
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
 
-
 @pytest.fixture(scope='module')
 def _X_list():
-
     return _read_green_eggs_and_ham()
 
 
 @pytest.fixture(scope='module')
 def _X_np(_X_list):
-
     return np.array(_X_list)
 
 
@@ -52,10 +48,13 @@ def _X_pd(_X_np):
 class TestAttrAccessBeforeAndAfterFit:
 
 
-    @staticmethod
-    @pytest.fixture
-    def _attrs():
-        return [
+    @pytest.mark.parametrize('store_uniques', (True, False))
+    @pytest.mark.parametrize('x_format', ('list', 'np', 'pd'))
+    def test_attr_access(
+        self, _X_list, _X_np, _X_pd, store_uniques, x_format
+    ):
+
+        _attrs = [
             'size_',
             'overall_statistics_',
             'uniques_',
@@ -63,13 +62,6 @@ class TestAttrAccessBeforeAndAfterFit:
             'character_frequency_',
             'string_frequency_'
         ]
-
-
-    @pytest.mark.parametrize('store_uniques', (True, False))
-    @pytest.mark.parametrize('x_format', ('list', 'np', 'pd'))
-    def test_attr_access(
-        self, _X_list, _X_np, _X_pd, _attrs, store_uniques, x_format
-    ):
 
         if x_format == 'list':
             _X = _X_list.copy()
@@ -382,16 +374,6 @@ class TestMethodAccessBeforeAndAfterFit:
         # **************************************************************
 
 # END ACCESS METHODS BEFORE AND AFTER FIT
-
-
-
-
-
-
-
-
-
-
 
 
 

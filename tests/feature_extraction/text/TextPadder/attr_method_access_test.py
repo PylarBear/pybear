@@ -6,17 +6,16 @@
 
 
 
+import pytest
+
 import numbers
 
-import pytest
 import numpy as np
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
 
 from pybear.feature_extraction.text._TextPadder.TextPadder import TextPadder as TP
-
-
 
 
 
@@ -50,15 +49,11 @@ def _X():
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @staticmethod
-    @pytest.fixture
-    def _attrs():
-        return ['n_features_']
-
-
-    def test_attr_access(self, _X, _kwargs, _attrs):
+    def test_attr_access(self, _X, _kwargs):
 
         TestCls = TP(**_kwargs)
+
+        _attrs = ['n_features_']
 
         # BEFORE FIT ***************************************************
 
@@ -121,20 +116,20 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
-    @staticmethod
-    def _methods():
-        return [
-            'fit',
-            'fit_transform',
-            'get_metadata_routing',
-            'get_params',
-            'partial_fit',
-            '_reset',
-            'score',
-            'set_output',
-            'set_params',
-            'transform'
-        ]
+
+    # methods
+    # [
+    #     'fit',
+    #     'fit_transform',
+    #     'get_metadata_routing',
+    #     'get_params',
+    #     'partial_fit',
+    #     '_reset',
+    #     'score',
+    #     'set_output',
+    #     'set_params',
+    #     'transform'
+    # ]
 
 
     def test_access_methods_before_fit(self, _X, _kwargs):
@@ -322,13 +317,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
 
 # END ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM
-
-
-
-
-
-
-
 
 
 

@@ -24,12 +24,6 @@ class TestValidation:
     # and correctly handles the interdependency of parameters and the
     # specially handled words.
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X():
-        return np.random.choice(list('abcde'), (5,3), replace=True)
-
-
 
     @pytest.mark.parametrize('_update_lexicon', (True,))
     @pytest.mark.parametrize('_skip_numbers', (False,))
@@ -49,8 +43,10 @@ class TestValidation:
     def test_accuracy(
         self, _update_lexicon, _skip_numbers, _auto_split, _auto_add_to_lexicon,
         _auto_delete, _DELETE_ALWAYS, _REPLACE_ALWAYS, _SKIP_ALWAYS, _SPLIT_ALWAYS,
-        _remove_empty_rows, _verbose, _X
+        _remove_empty_rows, _verbose
     ):
+
+        _X = np.random.choice(list('abcde'), (5, 3), replace=True)
 
         _raise_for_parameter_conflict = 0
         if _auto_add_to_lexicon and not _update_lexicon:

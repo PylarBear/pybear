@@ -6,14 +6,14 @@
 
 
 
-from pybear.feature_extraction.text.__shared._param_conditioner. \
-    _param_conditioner import _param_conditioner
-
 import pytest
 
 import re
 
 import numpy as np
+
+from pybear.feature_extraction.text.__shared._param_conditioner. \
+    _param_conditioner import _param_conditioner
 
 
 
@@ -36,22 +36,6 @@ class TestParamConditioner:
     # we know the submodules that comprise _param_conditioner work because
     # of their own tests. just test that this gives the expected output.
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _holder_as_list():
-        return [
-            None,
-            'remove_me',
-            re.compile('take_me_out', re.I),
-            ('im_a_gonner', re.compile('go_bye_bye'))
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _n_rows(_holder_as_list):
-        return len(_holder_as_list)
-
 
     @pytest.mark.parametrize('_holder_format',
         ('None', 'str', 'compile', 'tuple', 'list')
@@ -59,9 +43,17 @@ class TestParamConditioner:
     @pytest.mark.parametrize('_cs', (True, False, [None, True, False, None]))
     @pytest.mark.parametrize('_order_matters', (True, False))
     @pytest.mark.parametrize('_flags', (None, re.I, [re.I, None, re.M, None]))
-    def test_accuracy(
-        self, _holder_as_list, _n_rows, _holder_format, _cs, _order_matters, _flags
-    ):
+    def test_accuracy(self, _holder_format, _cs, _order_matters, _flags):
+
+        _holder_as_list = [
+            None,
+            'remove_me',
+            re.compile('take_me_out', re.I),
+            ('im_a_gonner', re.compile('go_bye_bye'))
+        ]
+
+        _n_rows = len(_holder_as_list)
+
 
         if _holder_format == 'None':
             _holder = None

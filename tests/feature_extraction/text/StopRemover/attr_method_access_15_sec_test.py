@@ -29,7 +29,6 @@ def _kwargs():
     }
 
 
-
 @pytest.fixture(scope='function')
 def _X():
     return [
@@ -49,15 +48,11 @@ def _X():
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @staticmethod
-    @pytest.fixture
-    def _attrs():
-        return ['n_rows_', 'row_support_']
-
-
-    def test_attr_access(self, _X, _kwargs, _attrs):
+    def test_attr_access(self, _X, _kwargs):
 
         TestCls = SR(**_kwargs)
+
+        _attrs = ['n_rows_', 'row_support_']
 
         # BEFORE FIT ***************************************************
 
@@ -107,18 +102,17 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
-    @staticmethod
-    def _methods():
-        return [
-            'fit',
-            'fit_transform',
-            'get_metadata_routing',
-            'get_params',
-            'partial_fit',
-            'score',
-            'set_params',
-            'transform'
-        ]
+    # methods
+    # [
+    #     'fit',
+    #     'fit_transform',
+    #     'get_metadata_routing',
+    #     'get_params',
+    #     'partial_fit',
+    #     'score',
+    #     'set_params',
+    #     'transform'
+    # ]
 
 
     def test_access_methods_before_fit(self, _X, _kwargs):
@@ -272,15 +266,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
 
 # END ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM
-
-
-
-
-
-
-
-
-
 
 
 

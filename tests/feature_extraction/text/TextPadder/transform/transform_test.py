@@ -27,7 +27,6 @@ class TestTransform:
     # ) -> list[list[str]]:
 
 
-
     @staticmethod
     @pytest.fixture(scope='module')
     def _text():

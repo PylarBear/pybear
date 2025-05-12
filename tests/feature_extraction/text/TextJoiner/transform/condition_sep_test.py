@@ -23,17 +23,13 @@ class TestConditionSep:
     # if given a string value, a list of that string value is returned.
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_shape():
-        # this determines n_rows
-        return (4, 200)
-
-
     @pytest.mark.parametrize('_sep',
         (' ', ', ', '', list('abcd'), tuple('abcd'), set('abcd'))
     )
-    def test_accuracy(self, _X_shape, _sep):
+    def test_accuracy(self, _sep):
+
+
+        _X_shape = (4, 200)
 
         out = _condition_sep(_sep, _X_shape[0])
 
@@ -45,12 +41,6 @@ class TestConditionSep:
             assert np.array_equal(out, [_sep for _ in range(_X_shape[0])])
         else:
             assert np.array_equal(out, list(_sep))
-
-
-
-
-
-
 
 
 

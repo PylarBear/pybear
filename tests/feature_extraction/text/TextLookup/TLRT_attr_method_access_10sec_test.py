@@ -18,31 +18,48 @@ from pybear.feature_extraction.text._TextLookup.TextLookupRealTime import \
 
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
-class Fixtures:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs():
-        return {
-            'update_lexicon': False,
-            'skip_numbers': True,
-            'auto_split': True,
-            'auto_add_to_lexicon': False,
-            'auto_delete': True,   # <===== make it so it doesnt prompt
-            'DELETE_ALWAYS': None,
-            'REPLACE_ALWAYS': None,
-            'SKIP_ALWAYS': None,
-            'SPLIT_ALWAYS': None,
-            'remove_empty_rows': False,
-            'verbose': False
-        }
+@pytest.fixture(scope='module')
+def _kwargs():
+    return {
+        'update_lexicon': False,
+        'skip_numbers': True,
+        'auto_split': True,
+        'auto_add_to_lexicon': False,
+        'auto_delete': True,   # <===== make it so it doesnt prompt
+        'DELETE_ALWAYS': None,
+        'REPLACE_ALWAYS': None,
+        'SKIP_ALWAYS': None,
+        'SPLIT_ALWAYS': None,
+        'remove_empty_rows': False,
+        'verbose': False
+    }
+
+@pytest.fixture(scope='module')
+def _X():
+    return [
+        ['TWO', 'ROADS', 'DIVERGED', 'IN', 'A', 'YELLOW', 'WOOD'],
+        ['AND', 'SORRY', 'I', 'COULD', 'NOT', 'TRAVEL', 'BOTH'],
+        ['AND', 'BE', 'ONE', 'TRAVELER,', 'LONG', 'I', 'STOOD'],
+        ['AND', 'LOOKED', 'DOWN', 'ONE', 'AS', 'FAR', 'AS', 'I', 'COULD'],
+        ['TO','WHERE', 'IT', 'BENT', 'IN', 'THE', 'UNDERGROWTH']
+    ]
+
+# END fixtures
+# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _attrs():
-        return [
+
+# ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
+class TestAttrAccessBeforeAndAfterFitAndTransform:
+
+
+    def test_attr_access(self, _X, _kwargs):
+
+        TestCls = TJRT(**_kwargs)
+
+        _attrs = [
             'n_rows_',
             'row_support_',
             'DELETE_ALWAYS_',
@@ -52,47 +69,6 @@ class Fixtures:
             'KNOWN_WORDS',
             'LEXICON_ADDENDUM_'
         ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _methods():
-        return [
-            'fit',
-            'fit_transform',
-            'get_metadata_routing',
-            'get_params',
-            'partial_fit',
-            'reset',
-            'score',
-            'set_params',
-            'transform'
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X():
-        return [
-            ['TWO', 'ROADS', 'DIVERGED', 'IN', 'A', 'YELLOW', 'WOOD'],
-            ['AND', 'SORRY', 'I', 'COULD', 'NOT', 'TRAVEL', 'BOTH'],
-            ['AND', 'BE', 'ONE', 'TRAVELER,', 'LONG', 'I', 'STOOD'],
-            ['AND', 'LOOKED', 'DOWN', 'ONE', 'AS', 'FAR', 'AS', 'I', 'COULD'],
-            ['TO','WHERE', 'IT', 'BENT', 'IN', 'THE', 'UNDERGROWTH']
-        ]
-
-# END fixtures
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
-
-# ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
-class TestAttrAccessBeforeAndAfterFitAndTransform(Fixtures):
-
-
-    def test_attr_access(self, _X, _kwargs, _attrs):
-
-        TestCls = TJRT(**_kwargs)
 
         # BEFORE FIT ***************************************************
 
@@ -169,10 +145,24 @@ class TestAttrAccessBeforeAndAfterFitAndTransform(Fixtures):
 
 
 # ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM ***
-class TestMethodAccessBeforeAndAfterFitAndAfterTransform(Fixtures):
+class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
-    def test_access_methods_before_fit(self, _X, _attrs, _kwargs):
+    # methods
+    # [
+    #     'fit',
+    #     'fit_transform',
+    #     'get_metadata_routing',
+    #     'get_params',
+    #     'partial_fit',
+    #     'reset',
+    #     'score',
+    #     'set_params',
+    #     'transform'
+    # ]
+
+
+    def test_access_methods_before_fit(self, _X, _kwargs):
 
         TestCls = TJRT(**_kwargs)
 
@@ -369,15 +359,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform(Fixtures):
         # **************************************************************
 
 # END ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM
-
-
-
-
-
-
-
-
-
 
 
 

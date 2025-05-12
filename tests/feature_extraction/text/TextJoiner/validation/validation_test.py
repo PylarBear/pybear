@@ -23,25 +23,14 @@ class TestValidation:
     # test that this accepts and passes good parameters.
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-
-        return (37, 13)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _np_base(_shape):
-
-        return np.random.choice(list('abcdefg'), _shape, replace=True)
-
-
     @pytest.mark.parametrize('_X_format',
         ('list_of_lists', 'tuple_of_tuples', 'np', 'pd', 'pl')
     )
     @pytest.mark.parametrize('_sep', (-2, 2.7, True, [0,1], ' ', '', 'help'))
-    def test_passes_good(self, _np_base, _X_format, _sep):
+    def test_passes_good(self, _X_format, _sep):
+
+
+        _np_base = np.random.choice(list('abcdefg'), (37, 13), replace=True)
 
         if _X_format == 'list_of_lists':
             _X_wip = list(map(list, _np_base))
@@ -62,10 +51,6 @@ class TestValidation:
         else:
             with pytest.raises(TypeError):
                 _validation(_X_wip, _sep)
-
-
-
-
 
 
 

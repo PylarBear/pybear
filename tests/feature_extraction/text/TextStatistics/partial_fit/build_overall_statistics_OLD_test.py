@@ -27,18 +27,6 @@ class TestBuildOverallStatisticsOLD:
     # ) -> OverallStatisticsType:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _must_have_keys():
-        return [
-            'size',
-            'uniques_count',
-            'average_length',
-            'std_length',
-            'max_length',
-            'min_length'
-        ]
-
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @pytest.mark.parametrize('junk_DICT',

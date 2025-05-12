@@ -22,12 +22,6 @@ from pybear.base._is_fitted import is_fitted
 class TestTextStatistics:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def STRINGS():
-
-        return _read_green_eggs_and_ham()
-
 
     def test_empty(self):
 
@@ -71,7 +65,7 @@ class TestTextStatistics:
 
 
     @pytest.mark.parametrize('store_uniques', (True, False))
-    def test_multiple_partial_fit_accuracy(self, STRINGS, store_uniques):
+    def test_multiple_partial_fit_accuracy(self, store_uniques):
 
         # fit data with partial_fit
         # store the attributes
@@ -94,6 +88,9 @@ class TestTextStatistics:
 
 
         TestCls = TS(store_uniques=store_uniques)
+
+
+        STRINGS = _read_green_eggs_and_ham()
 
         TestCls.partial_fit(STRINGS)
 

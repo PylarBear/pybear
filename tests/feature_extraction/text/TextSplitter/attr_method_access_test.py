@@ -16,6 +16,9 @@ from pybear.base import is_fitted
 
 
 
+@pytest.fixture(scope='module')
+def _X_list():
+    return np.random.choice(list('abcdefghijklmnop'), (10,), replace=True).tolist()
 
 
 
@@ -23,21 +26,13 @@ from pybear.base import is_fitted
 class TestAttrAccess:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_list():
-        return np.random.choice(list('abcdefghijklmnop'), (10,), replace=True).tolist()
-
-
-    # @staticmethod
-    # @pytest.fixture
-    # def _attrs():
-    #     return [
-    #           'sep'
-    #           'case_sensitiive'
-    #           'maxsplit'
-    #           'flags'
-    #     ]
+    # _attrs
+    # [
+    #     'sep'
+    #     'case_sensitiive'
+    #     'maxsplit'
+    #     'flags'
+    # ]
 
 
     @pytest.mark.parametrize('has_seen_data', (True, False))
@@ -64,25 +59,16 @@ class TestAttrAccess:
 class TestMethodAccess:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_list():
-
-        return np.random.choice(list('abcdefghijklmnop'), (10,), replace=True).tolist()
-
-
-    # @staticmethod
-    # @pytest.fixture(scope='function')
-    # def _methods():
-    #     return [
-    #         'partial_fit',
-    #         'fit',
-    #         'fit_transform',
-    #         'get_params',
-    #         'set_params',
-    #         'transform',
-    #         'score'
-    #     ]
+    # methods
+    # [
+    #     'partial_fit',
+    #     'fit',
+    #     'fit_transform',
+    #     'get_params',
+    #     'set_params',
+    #     'transform',
+    #     'score'
+    # ]
 
 
     @pytest.mark.parametrize('has_seen_data', (True, False))
@@ -131,16 +117,6 @@ class TestMethodAccess:
         out = getattr(TestCls, 'fit_transform')(_X_list)
         assert isinstance(out, list)
         assert all(map(isinstance, out, (list for _ in out)))
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -6,6 +6,8 @@
 
 
 
+import pytest
+
 from typing import Sequence
 
 import numbers
@@ -14,10 +16,6 @@ import numpy as np
 
 from pybear.feature_extraction.text._NGramMerger._transform._get_wrap_match_idxs \
     import _get_wrap_match_idxs
-
-
-import pytest
-
 
 
 
@@ -31,20 +29,13 @@ class TestGetWrapMatchIdxs:
     #     _n_len: numbers.Integral
     # ) -> tuple[list[int], list[int]]:
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _first_line():
-        return ['CHALLENGER', 'DEEP', 'FRIED']
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _second_line():
-        return ['EGG', 'SALAD', 'SHOOTER']
-
     
-    def test_accuracy(self, _first_line, _second_line):
+    def test_accuracy(self):
+
+        _first_line = ['CHALLENGER', 'DEEP', 'FRIED']
+
+        _second_line = ['EGG', 'SALAD', 'SHOOTER']
+
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _ngram = ['DEEP', 'FRIED', 'EGG']

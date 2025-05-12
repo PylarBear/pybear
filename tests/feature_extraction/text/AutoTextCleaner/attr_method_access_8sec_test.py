@@ -40,16 +40,14 @@ def _X_list():
 class TestAttrAccess:
 
 
-    # @staticmethod
-    # @pytest.fixture
-    # def _attrs():
-    #     return [
-    #         'n_rows_'
-    #         'row_support_',
-    #         'before_statistics_',
-    #         'after_statistics_',
-    #         'lexicon_lookup_'
-    #     ]
+    # attrs
+    # [
+    #     'n_rows_'
+    #     'row_support_',
+    #     'before_statistics_',
+    #     'after_statistics_',
+    #     'lexicon_lookup_'
+    # ]
 
 
     @pytest.mark.parametrize('has_seen_data', (True, False))
@@ -219,18 +217,16 @@ class TestAttrAccess:
 class TestMethodAccess:
 
 
-    # @staticmethod
-    # @pytest.fixture(scope='function')
-    # def _methods():
-    #     return [
-    #         'partial_fit',
-    #         'fit',
-    #         'fit_transform',
-    #         'get_params',
-    #         'set_params',
-    #         'transform',
-    #         'score'
-    #     ]
+    # methods
+    # [
+    #     'partial_fit',
+    #     'fit',
+    #     'fit_transform',
+    #     'get_params',
+    #     'set_params',
+    #     'transform',
+    #     'score'
+    # ]
 
 
     @pytest.mark.parametrize('has_seen_data', (True, False))
@@ -278,9 +274,6 @@ class TestMethodAccess:
         out = getattr(TestCls, 'fit_transform')(_X_list)
         assert isinstance(out, list)
         assert all(map(isinstance, out, (str for _ in out)))
-
-
-
 
 
 
