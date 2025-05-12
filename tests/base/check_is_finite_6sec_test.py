@@ -32,66 +32,61 @@ import pytest
 
 
 
-class Fixtures:
+# fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture()
-    def _shape():
-        return (20, 13)
+@pytest.fixture()
+def _shape():
+    return (20, 13)
 
 
-    @staticmethod
-    @pytest.fixture()
-    def _X_np_clean(_shape):
+@pytest.fixture()
+def _X_np_clean(_shape):
 
-        return np.random.randint(0, 10, _shape)
+    return np.random.randint(0, 10, _shape)
 
 
-    @staticmethod
-    @pytest.fixture()
-    def _X_np_nan_and_inf(_X_factory, _shape):
+@pytest.fixture()
+def _X_np_nan_and_inf(_X_factory, _shape):
 
-        _X_np_loaded = _X_factory(
-            _dupl=None,
-            _constants=None,
-            _format='np',
-            _columns=None,
-            _dtype='flt',
-            _zeros=None,
-            _shape=_shape,
-            _has_nan=_shape[0]//5,
+    _X_np_loaded = _X_factory(
+        _dupl=None,
+        _constants=None,
+        _format='np',
+        _columns=None,
+        _dtype='flt',
+        _zeros=None,
+        _shape=_shape,
+        _has_nan=_shape[0]//5,
+    )
+
+    for c_idx in range(_shape[1]):
+
+        r_idxs = np.random.choice(
+            list(range(_shape[0])),
+            _shape[0]//5,
+            replace=False
         )
 
-        for c_idx in range(_shape[1]):
+        values = np.random.choice(
+            [np.inf, -np.inf, math.inf, -math.inf, float('inf'), float('-inf')],
+            len(r_idxs),
+            replace=True
+        )
 
-            r_idxs = np.random.choice(
-                list(range(_shape[0])),
-                _shape[0]//5,
-                replace=False
-            )
-
-            values = np.random.choice(
-                [np.inf, -np.inf, math.inf, -math.inf, float('inf'), float('-inf')],
-                len(r_idxs),
-                replace=True
-            )
-
-            _X_np_loaded[r_idxs, c_idx] = values
+        _X_np_loaded[r_idxs, c_idx] = values
 
 
-        #  verify this thing is loaded before sending it out
-        assert np.any(nan_mask(_X_np_loaded))
-        assert np.any(inf_mask(_X_np_loaded))
+    #  verify this thing is loaded before sending it out
+    assert np.any(nan_mask(_X_np_loaded))
+    assert np.any(inf_mask(_X_np_loaded))
 
-        return _X_np_loaded
-
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    return _X_np_loaded
 
 
-class TestCheckIsFiniteValidation(Fixtures):
+# END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+class TestCheckIsFiniteValidation:
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -208,7 +203,7 @@ class TestCheckIsFiniteValidation(Fixtures):
 
 
 @pytest.mark.parametrize('X_format', ('np', 'pd', 'csc', 'csr', 'dia'))
-class TestCheckIsFiniteAccuracy(Fixtures):
+class TestCheckIsFiniteAccuracy:
 
 
     @staticmethod
@@ -479,18 +474,6 @@ class TestCheckIsFiniteAccuracy(Fixtures):
         ))
         # np.nan when converted to str should repr as 'nan'
         assert all(map(lambda x: x=='nan', list(map(str, outputted_infs))))
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

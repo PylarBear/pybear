@@ -6,12 +6,11 @@
 
 
 
-from pybear.base.mixins._GetParamsMixin import GetParamsMixin
+import pytest
 
 import re
-import numpy as np
 
-import pytest
+import numpy as np
 
 
 
@@ -115,156 +114,17 @@ deep = True
 
 
 
-class Fixtures:
+@pytest.fixture(scope='function')
+def _X_np():
+
+    _shape = (10, 5)
+
+    return np.random.randint(0, 10, _shape)
+
+# END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _shape():
-        return (10, 5)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _X_np(_shape):
-        return np.random.randint(0, 10, _shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def DummyEstimator():
-
-        class Foo(GetParamsMixin):
-
-            def __init__(self):
-                self._is_fitted = False   # <===== leading under
-                self.dum_attr_ = 1      # <===== trailing under
-                self.bananas = 7
-                self.fries = 9
-                self.ethanol = 5
-                self.apples = 4
-
-
-            def reset(self):
-
-                self._is_fitted = False
-
-
-            def fit(self, X, y=None):
-                self.reset()
-                self._is_fitted = True
-                return self
-
-
-            def score(self, X, y=None):
-                return np.random.uniform(0, 1)
-
-
-            def predict(self, X):
-
-                assert self._is_fitted
-
-                return np.random.randint(0, 2, X.shape[0])
-
-
-        return Foo  # <====== not initialized
-
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def DummyTransformer():
-
-        class Bar(GetParamsMixin):
-
-            def __init__(self):
-                self._is_fitted = False   #  <==== leading under
-                self.this_attr_ = 1    # <====== tralling under
-                self.tbone = 3
-                self.wings = 7
-                self.bacon = 9
-                self.sausage = 5
-                self.hambone = 4
-
-
-            def reset(self):
-                try:
-                    delattr(self, '_fill_value')
-                except:
-                    pass
-                self._is_fitted = False
-
-
-            def fit(self, X):
-                self.reset()
-                self._fill_value = np.random.uniform(0, 1)
-                self._is_fitted = True
-                return self
-
-
-            def transform(self, X):
-
-                assert self._is_fitted
-
-                return np.full(X.shape, self._fill_value)
-
-
-            def fit_transform(self, X, y=None):
-                return self.fit(X).transform(X)
-
-
-        return Bar  # <====== not initialized
-
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def DummyGridSearch():
-
-        class Baz(GetParamsMixin):
-
-            def __init__(
-                self,
-                estimator,
-                param_grid,
-                *,
-                scoring='balanced_accuracy',
-                refit=False
-            ):
-                self._is_fitted = False   #  <==== leading under
-                self.some_attr_ = 1    # <====== tralling under
-                self.estimator = estimator
-                self.param_grid = param_grid
-                self.scoring = scoring
-                self.refit = refit
-                self.apricots = False
-
-
-            def reset(self):
-                self._is_fitted = False
-
-
-            def fit(self, X, y=None):
-
-                self.reset()
-
-                self.best_params_ = {}
-
-                for _param in self.param_grid:
-                    self.best_params_[_param] = \
-                        np.random.choice(self.param_grid[_param])
-
-                self._is_fitted = True
-
-
-            def score(self, X, y):
-                return np.random.uniform(0, 1)
-
-
-        return Baz  # <====== not initialized
-
-
-class TestVarsDoesNotReturnAlphabetical(Fixtures):
+class TestVarsDoesNotReturnAlphabetical:
 
     # originally this test intended to prove that the 'vars' builtin
     # sorts attributes asc alphabetical.... but it turns out that it doesnt.
@@ -294,7 +154,7 @@ class TestVarsDoesNotReturnAlphabetical(Fixtures):
 
 
 @pytest.mark.parametrize('deep', (True, False))
-class TestGetParams__NotInstantiated(Fixtures):
+class TestGetParams__NotInstantiated:
 
     # single_est not instantiated
     # single_trfm not instantiated
@@ -412,7 +272,7 @@ class TestGetParams__NotInstantiated(Fixtures):
     (0, 1, True, None, 'junk', [0,1], min, lambda x: x)
 )
 @pytest.mark.parametrize('deep', (True, False))
-class TestGetParams__Embedded__JunkEstimator(Fixtures):
+class TestGetParams__Embedded__JunkEstimator:
 
 
     def test_gscv_junk_estimator(
@@ -461,7 +321,7 @@ class TestGetParams__Embedded__JunkEstimator(Fixtures):
     ('single_est', 'single_trfm', 'GSCV_est')
 )
 @pytest.mark.parametrize('state', ('prefit', 'postfit'))
-class TestGetParams__Embedded__NonEmbedded(Fixtures):
+class TestGetParams__Embedded__NonEmbedded:
 
     # fortunately it is easy to test simple est/trfm and nested gscv under
     # the same test for get_params. in set_params, the tests are split up.
@@ -540,7 +400,7 @@ class TestGetParams__Embedded__NonEmbedded(Fixtures):
                 # should be just the gscv params
                 assert np.array_equal(
                     list(out.keys()),
-                    ['apricots', 'estimator', 'param_grid', 'refit', 'scoring']
+                    ['estimator', 'param_grid', 'refit', 'scoring']
                 )
 
             elif _deep is True:
@@ -548,7 +408,6 @@ class TestGetParams__Embedded__NonEmbedded(Fixtures):
                 # all of the alphabetized outer object shallow params up
                 # to but not including 'estimator'
                 exp_params = []
-                exp_params += ['apricots']
                 # all of the deep params for the estimator. for a pipe,
                 # it would be the deep params for the pipe, but in this
                 # case we are only testing a single estimator, so it is
@@ -572,10 +431,6 @@ class TestGetParams__Embedded__NonEmbedded(Fixtures):
 
         else:
             raise Exception
-
-
-
-
 
 
 

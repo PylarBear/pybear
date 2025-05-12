@@ -6,15 +6,13 @@
 
 
 
-from pybear.base.mixins._SetParamsMixin import SetParamsMixin
-from pybear.base.mixins._GetParamsMixin import GetParamsMixin
+import pytest
 
 import re
 from copy import deepcopy
+
 import numpy as np
 import inspect
-
-import pytest
 
 
 
@@ -37,204 +35,52 @@ import pytest
 
 
 
-class Fixtures:
+@pytest.fixture(scope='function')
+def _X_np():
+
+    _shape = (10, 5)
+
+    return np.random.randint(0, 10, _shape)
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _shape():
-        return (10, 5)
+@pytest.fixture(scope='function')
+def _est_kwargs():
+    return {
+        'bananas': True,
+        'fries': 'yes',
+        'ethanol': 1,
+        'apples': [0, 1]
+    }
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _X_np(_shape):
-        return np.random.randint(0, 10, _shape)
+@pytest.fixture(scope='function')
+def _gscv_kwargs(DummyEstimator):
+    return {
+        'estimator': DummyEstimator(),
+        'param_grid': {
+            'fries': [7, 8, 9],
+            'ethanol': [5, 6, 7],
+            'apples': [3, 4, 5]
+        },
+        'refit': True,
+        'scoring': 'balanced_accuracy'
+    }
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def DummyEstimator():
+@pytest.fixture(scope='function')
+def _trfm_kwargs():
+    return {
+        'tbone': False,
+        'wings': 'yes',
+        'bacon': 0,
+        'sausage': [4, 4],
+        'hambone': False
+    }
 
-        class Foo(SetParamsMixin, GetParamsMixin):
-
-            def __init__(
-                self,
-                bananas=True,
-                fries='yes',
-                ethanol=1,
-                apples=[0,1]
-            ):
-
-                self._is_fitted = False   # <===== leading under
-                self.bananas = bananas
-                self.fries = fries
-                self.ethanol = ethanol
-                self.apples = apples
+# END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-            def reset(self):
-
-                self._is_fitted = False
-
-
-            def fit(self, X, y=None):
-                self.reset()
-                self._is_fitted = True   # <===== leading under
-                return self
-
-
-            def score(self, X, y=None):
-                return np.random.uniform(0, 1)
-
-
-            def predict(self, X):
-
-                assert self._is_fitted
-
-                return np.random.randint(0, 2, X.shape[0])
-
-
-        return Foo  # <====== not initialized
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _est_kwargs():
-        return {
-            'bananas': True,
-            'fries': 'yes',
-            'ethanol': 1,
-            'apples': [0, 1]
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def DummyTransformer():
-
-        class Bar(SetParamsMixin, GetParamsMixin):
-
-            def __init__(
-                self,
-                tbone=False,
-                wings='yes',
-                bacon=0,
-                sausage=[4, 4],
-                hambone=False
-            ):
-
-                self._is_fitted = False   #  <==== leading under
-                self.tbone = tbone
-                self.wings = wings
-                self.bacon = bacon
-                self.sausage = sausage
-                self.hambone = hambone
-
-
-            def reset(self):
-                try:
-                    delattr(self, '_fill_value')
-                except:
-                    pass
-                self._is_fitted = False
-
-
-            def fit(self, X):
-                self.reset()
-                self._fill_value = np.random.uniform(0, 1)
-                self._is_fitted = True
-                return self
-
-
-            def transform(self, X):
-
-                assert self._is_fitted
-
-                return np.full(X.shape, self._fill_value)
-
-
-            def fit_transform(self, X):
-                return self.fit(X).transform(X)
-
-
-        return Bar  # <====== not initialized
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _trfm_kwargs():
-        return {
-            'tbone': False,
-            'wings': 'yes',
-            'bacon': 0,
-            'sausage': [4, 4],
-            'hambone': False
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def DummyGridSearch():
-
-        class Baz(SetParamsMixin, GetParamsMixin):
-
-            def __init__(
-                self,
-                estimator,
-                param_grid,
-                *,
-                scoring='balanced_accuracy',
-                refit=False
-            ):
-                self._is_fitted = False   #  <==== leading under
-                self.some_attr_ = 1    # <====== tralling under
-                self.estimator = estimator
-                self.param_grid = param_grid
-                self.scoring = scoring
-                self.refit = refit
-
-
-            def reset(self):
-                self._is_fitted = False
-
-
-            def fit(self, X, y=None):
-
-                self.reset()
-
-                self.best_params_ = {}
-
-                for _param in self.param_grid:
-                    self.best_params_[_param] = \
-                        np.random.choice(self.param_grid[_param])
-
-                self._is_fitted = True
-
-
-            def score(self, X, y):
-                return np.random.uniform(0, 1)
-
-
-        return Baz  # <====== not initialized
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _gscv_kwargs(DummyEstimator):
-        return {
-            'estimator': DummyEstimator(),
-            'param_grid': {
-                'fries': [7, 8, 9],
-                'ethanol': [5, 6, 7],
-                'apples': [3, 4, 5]
-            },
-            'refit': True,
-            'scoring': 'balanced_accuracy'
-        }
-
-
-class TestSetParams__NotInstantiated(Fixtures):
+class TestSetParams__NotInstantiated:
 
     # test a bad estimator:
     # - is class not instance  (wont be able to do post-fit, cant be fitted)
@@ -371,7 +217,7 @@ class TestSetParams__NotInstantiated(Fixtures):
 
 @pytest.mark.parametrize('top_level_object', ('single_est', 'single_trfm'))
 @pytest.mark.parametrize('state', ('pre-fit', 'post-fit'))
-class TestSetParams__NonEmbedded(Fixtures):
+class TestSetParams__NonEmbedded:
 
     # simple est/trfms should be straightforward to test. verify that
     # bad params bounce off. verify that good params are set correctly.
@@ -466,7 +312,7 @@ class TestSetParams__NonEmbedded(Fixtures):
 @pytest.mark.parametrize('junk_estimator',
     (0, 1, True, None, 'junk', [0,1], min, lambda x: x)
 )
-class TestGetParams__Embedded__JunkEstimator(Fixtures):
+class TestGetParams__Embedded__JunkEstimator:
 
 
     def test_gscv_junk_estimator(self, DummyGridSearch, junk_estimator, _gscv_kwargs):
@@ -503,7 +349,7 @@ class TestGetParams__Embedded__JunkEstimator(Fixtures):
 
 
 @pytest.mark.parametrize('state', ('pre-fit', 'post-fit'))
-class TestSetParams__Embedded(Fixtures):
+class TestSetParams__Embedded:
 
 
     @staticmethod
@@ -589,7 +435,7 @@ class TestSetParams__Embedded(Fixtures):
     ('single_est', 'single_trfm', 'GSCV_est')
 )
 @pytest.mark.parametrize('state', ('prefit', 'postfit'))
-class TestDisallowedSetUnderscoreParams(Fixtures):
+class TestDisallowedSetUnderscoreParams:
 
 
     @staticmethod

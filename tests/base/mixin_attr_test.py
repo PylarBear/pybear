@@ -6,9 +6,11 @@
 
 
 
+import pytest
+
 from sklearn.base import BaseEstimator, TransformerMixin, OneToOneFeatureMixin
 
-import pytest
+
 
 
 
@@ -45,106 +47,92 @@ import pytest
 # OneToOneFeatureMixin.
 
 
+@pytest.fixture(scope='module')
+def X_pd(_X_factory, _master_columns):
+
+    _shape = (20, 5)
+
+    return _X_factory(
+        _dupl=None,
+        _has_nan=False,
+        _format='pd',
+        _dtype='flt',
+        _columns=_master_columns.copy()[:_shape[1]]
+    )
 
 
+# create dummy classes that take the mixin and have a fit method
+# BaseEstimator & TransformerMixin do not have fit method.
 
 
-class Fixtures:
+@pytest.fixture()
+def MockWithBaseEstimator():
+
+    class MockBaseEstimator(BaseEstimator):
+
+        def __init__(cls):
+            cls.is_fitted = False
+
+        def _reset(cls):
+            del cls.is_fitted
+
+        def fit(cls, X, y=None):
+            cls._reset()
+            # this exposes n_features_in_ and feature_names_in_
+            X = cls._validate_data(
+                X,
+                accept_sparse=("csr", "csc", "coo"),
+                dtype=None,
+                force_all_finite="allow-nan",
+                reset=True,
+            )
+            cls.is_fitted = True
+            return cls
+
+    return MockBaseEstimator
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (20, 5)
+@pytest.fixture()
+def MockWithTransformerMixin():
+
+    class MockTransformerMixin(TransformerMixin):
+
+        def __init__(cls):
+            cls.is_fitted = False
+
+        def _reset(cls):
+            del cls.is_fitted
+
+        def fit(cls, X, y=None):
+            cls._reset()
+            cls.is_fitted = True
+            return cls
+
+    return MockTransformerMixin
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def X_pd(_X_factory, _master_columns, _shape):
+@pytest.fixture()
+def MockWithOneToOneFeatureMixin():
 
-        return _X_factory(
-            _dupl=None,
-            _has_nan=False,
-            _format='pd',
-            _dtype='flt',
-            _columns=_master_columns.copy()[:_shape[1]]
-        )
+    class MockOneToOneFeatureMixin(OneToOneFeatureMixin):
 
+        def __init__(cls):
+            cls.is_fitted = False
 
-    # create dummy classes that take the mixin and have a fit method
-    # BaseEstimator & TransformerMixin do not have fit method.
+        def _reset(cls):
+            del cls.is_fitted
 
-    @staticmethod
-    @pytest.fixture()
-    def MockWithBaseEstimator():
+        def fit(cls, X, y=None):
+            cls._reset()
+            cls.is_fitted = True
+            return cls
 
-        class MockBaseEstimator(BaseEstimator):
+    return MockOneToOneFeatureMixin
 
-            def __init__(cls):
-                cls.is_fitted = False
-
-            def _reset(cls):
-                del cls.is_fitted
-
-            def fit(cls, X, y=None):
-                cls._reset()
-                # this exposes n_features_in_ and feature_names_in_
-                X = cls._validate_data(
-                    X,
-                    accept_sparse=("csr", "csc", "coo"),
-                    dtype=None,
-                    force_all_finite="allow-nan",
-                    reset=True,
-                )
-                cls.is_fitted = True
-                return cls
-
-        return MockBaseEstimator
+# END FIXTURES v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
-    @staticmethod
-    @pytest.fixture()
-    def MockWithTransformerMixin():
-
-        class MockTransformerMixin(TransformerMixin):
-
-            def __init__(cls):
-                cls.is_fitted = False
-
-            def _reset(cls):
-                del cls.is_fitted
-
-            def fit(cls, X, y=None):
-                cls._reset()
-                cls.is_fitted = True
-                return cls
-
-        return MockTransformerMixin
-
-
-    @staticmethod
-    @pytest.fixture()
-    def MockWithOneToOneFeatureMixin():
-
-        class MockOneToOneFeatureMixin(OneToOneFeatureMixin):
-
-            def __init__(cls):
-                cls.is_fitted = False
-
-            def _reset(cls):
-                del cls.is_fitted
-
-            def fit(cls, X, y=None):
-                cls._reset()
-                cls.is_fitted = True
-                return cls
-
-        return MockOneToOneFeatureMixin
-
-    # END FIXTURES v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
-class TestBaseEstimator(Fixtures):
+class TestBaseEstimator:
 
     @pytest.mark.parametrize('attr',
         ('n_features_in_', 'feature_names_in_', 'n_samples_seen_', '__repr__',
@@ -175,7 +163,7 @@ class TestBaseEstimator(Fixtures):
             assert not hasattr(Fitted, attr)
 
 
-class TestTransformerMixin(Fixtures):
+class TestTransformerMixin:
 
     @pytest.mark.parametrize('attr',
         ('n_features_in_', 'feature_names_in_', 'n_samples_seen_',
@@ -199,7 +187,7 @@ class TestTransformerMixin(Fixtures):
     )
     def test_after_fit(self, attr, MockWithTransformerMixin, X_pd):
 
-        Fitted = MockWithTransformerMixin().fit(X_pd)
+        MockWithTransformerMixin().fit(X_pd)
 
         if attr in ['fit_transform', 'set_output']:
             assert hasattr(MockWithTransformerMixin, attr)
@@ -207,11 +195,7 @@ class TestTransformerMixin(Fixtures):
             assert not hasattr(MockWithTransformerMixin, attr)
 
 
-
-
-
-
-class TestOneToOneFeatureMixin(Fixtures):
+class TestOneToOneFeatureMixin:
 
     @pytest.mark.parametrize('attr',
         ('n_features_in_', 'feature_names_in_', 'n_samples_seen_',
