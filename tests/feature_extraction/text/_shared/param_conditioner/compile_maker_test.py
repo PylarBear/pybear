@@ -11,6 +11,7 @@ from pybear.feature_extraction.text.__shared._param_conditioner. \
 
 import pytest
 
+import random
 import re
 
 import numpy as np
@@ -100,7 +101,7 @@ class TestCompileMaker:
 
         # no duplicates --- should return all str/patterns in _pattern_holder,
         # if 'order_matters', the order must be correct, otherwise doesnt matter
-        _len = int(np.random.randint(2, 5))
+        _len = random.choice(range(2, 5))
         _pattern_holder = [
             r'^\n\s\t$', re.compile('def'), 'ghi', re.compile('jkl'), 'mno'
         ][:_len]
@@ -135,7 +136,7 @@ class TestCompileMaker:
 
         # duplicates --- should reduce down to 1 unique when 'order_matters' is
         # False, but when True should not be changed
-        _len = int(np.random.randint(2, 5))
+        _len = random.choice(range(2, 5))
         _pattern_holder = [
             'abc', re.compile('abc'), 'abc', re.compile('abc'), 'abc'
         ][:_len]

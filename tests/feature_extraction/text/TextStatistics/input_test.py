@@ -21,11 +21,11 @@ from pybear.feature_extraction.text._TextStatistics.TextStatistics import \
 class TestTextStatisticsInputs:
 
 
-    def test_rejects_numeric(self):
+    def test_rejects_numeric(self, X_np):
 
-        _X = np.random.randint(0,10,(5,5))
+
         with pytest.raises(TypeError):
-            TextStatistics().fit(_X)
+            TextStatistics().fit(X_np)
 
 
         _X = [['I', 'like', 'green'], ['eggs', 'and', 13]]

@@ -45,17 +45,11 @@ class TestValFlags:
 
         # too long
         with pytest.raises(ValueError):
-            _val_flags(
-                np.random.randint(0,100, (6,)).tolist(),
-                5
-            )
+            _val_flags(np.random.randint(0,100, (6,)).tolist(), 5)
 
         # too short
         with pytest.raises(ValueError):
-            _val_flags(
-                np.random.randint(0,100, (4,)).tolist(),
-                5
-            )
+            _val_flags(np.random.randint(0,100, (4,)).tolist(), 5)
 
 
     def test_accepts_single_None_single_int(self):

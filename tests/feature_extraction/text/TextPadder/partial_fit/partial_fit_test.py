@@ -21,23 +21,23 @@ class TestPartialFit:
 
     # no validation
 
-    def test_accuracy(self):
+    def test_accuracy(self, X_np):
 
-        out = _partial_fit(np.random.randint(0, 10, (37, 13)))
-
-        assert isinstance(out, numbers.Integral)
-        assert out == 13
-
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-        out = _partial_fit(pd.DataFrame(np.random.randint(0, 10, (37, 13))))
+        out = _partial_fit(X_np)
 
         assert isinstance(out, numbers.Integral)
         assert out == 13
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        out = _partial_fit(pl.from_numpy(np.random.randint(0, 10, (37, 13))))
+        out = _partial_fit(pd.DataFrame(X_np))
+
+        assert isinstance(out, numbers.Integral)
+        assert out == 13
+
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        out = _partial_fit(pl.from_numpy(X_np))
 
         assert isinstance(out, numbers.Integral)
         assert out == 13

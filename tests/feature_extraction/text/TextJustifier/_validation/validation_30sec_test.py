@@ -22,35 +22,28 @@ from pybear.feature_extraction.text._TextJustifier. _validation._validation \
 
 
 
-class Fixtures:
+@pytest.fixture(scope='function')
+def _1D_X():
+    return [
+        'Make that cat go away!',
+        'Tell that Cat in the Hat',
+        'You do not want to play.',
+        'He should not be here.'
+    ]
 
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _1D_X():
-        return [
-            'Make that cat go away!',
-            'Tell that Cat in the Hat',
-            'You do not want to play.',
-            'He should not be here.'
-        ]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _2D_X():
-        return [
-            ['Make', 'that', 'cat', 'go', 'away!'],
-            ['Tell', 'that', 'Cat', 'in', 'the', 'Hat'],
-            ['You', 'do', 'not', 'want', 'to', 'play.'],
-            ['He', 'should', 'not', 'be', 'here.']
-        ]
-
-    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+@pytest.fixture(scope='function')
+def _2D_X():
+    return [
+        ['Make', 'that', 'cat', 'go', 'away!'],
+        ['Tell', 'that', 'Cat', 'in', 'the', 'Hat'],
+        ['You', 'do', 'not', 'want', 'to', 'play.'],
+        ['He', 'should', 'not', 'be', 'here.']
+    ]
 
 
 
-class TestStrValidation(Fixtures):
+class TestStrValidation:
 
 
     @pytest.mark.parametrize('_X_dim', (1, 2))
@@ -141,7 +134,7 @@ class TestStrValidation(Fixtures):
         assert _validation(_X_wip, *args) is None
 
 
-class TestRegexValidation(Fixtures):
+class TestRegexValidation:
 
 
     @pytest.mark.parametrize('_X_dim', (1, 2))

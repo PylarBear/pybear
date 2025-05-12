@@ -25,7 +25,7 @@ class TestSupplemental:
     @pytest.mark.parametrize('_container',
         (list, tuple, set, np.array, pd.DataFrame, pl.DataFrame)
     )
-    def test_accuracy(self, _dim, _dtype, _container):
+    def test_accuracy(self, _dim, _dtype, _container, X_np, _shape):
 
 
         assert _dim in [1, 2]
@@ -34,9 +34,9 @@ class TestSupplemental:
             pytest.skip(reason=f"cannot have 2D set")
 
         if _dtype == 'str':
-            _base_supp = np.random.choice(list('abcdef'), (8, 5))
+            _base_supp = np.random.choice(list('abcdef'), _shape)
         elif _dtype == 'num':
-            _base_supp = np.random.randint(0, 10, (8, 5))
+            _base_supp = X_np
         else:
             raise Exception
 
