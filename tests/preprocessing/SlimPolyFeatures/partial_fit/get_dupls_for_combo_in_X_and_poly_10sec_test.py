@@ -27,42 +27,17 @@ class Fixtures:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (6, 5)
+    def _gdfc_args():
 
+        _args = {}
+        _args['_equal_nan'] = True
+        _args['_rtol'] = 1e-5
+        _args['_atol'] = 1e-8
+        _args['_n_jobs'] = 1  # leave this at 1 because of contention
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _equal_nan():
-        return True
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _rtol_atol():
-        return (1e-5, 1e-8)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _n_jobs():
-        return 1       # leave this at 1 because of contention
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np(_X_factory, _shape):
-
-        return _X_factory(
-            _dupl=None,
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _shape=_shape
-        )
+        return _args
 
 
     @staticmethod
@@ -73,18 +48,18 @@ class Fixtures:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _good_COLUMN(_X_np, _combos):
+    def _good_COLUMN(X_np, _combos):
         # must be ndarray!
         # make _COLUMN from the last combo in _combos
         # when building _good_CSC_ARRAY fixture, build it with all the combos
         # except the last one. So it's like were doing the last scan of a
         # partial fit with the last combo across all the other polys.
-        return _X_np[:, _combos[-1]].prod(1)
+        return X_np[:, _combos[-1]].prod(1)
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _good_POLY_CSC(_X_np, _shape, _combos):
+    def _good_POLY_CSC(X_np, _shape, _combos):
 
         # cant have any duplicates in this
         # make _COLUMN from the last combo in _combos
@@ -93,7 +68,7 @@ class Fixtures:
 
         _POLY = np.empty((_shape[0], 0))
         for _combo in _combos[:-1]:
-            _COLUMN =  _X_np[:, _combo].prod(1).reshape((-1,1))
+            _COLUMN =  X_np[:, _combo].prod(1).reshape((-1,1))
             for _poly_idx in range(_POLY.shape[1]):
                 if np.array_equal(_COLUMN, _POLY[:, _poly_idx]):
                     break
@@ -124,35 +99,27 @@ class TestDuplsForComboValidation(Fixtures):
         (-np.e, -1, 0, 1, np.e, True, False, 'trash', [0,1], (0,1), lambda x: x)
     )
     def test_COLUMN_rejects_junk(
-        self, junk_COLUMN, _X_np, _good_POLY_CSC, _equal_nan, _rtol_atol,
-        _n_jobs
+        self, junk_COLUMN, X_np, _good_POLY_CSC, _gdfc_args
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 junk_COLUMN,
-                _X=_X_np,
+                _X=X_np,
                 _POLY_CSC=_good_POLY_CSC,
-                _equal_nan=_equal_nan,
-                _rtol=_rtol_atol[0],
-                _atol=_rtol_atol[1],
-                _n_jobs=_n_jobs
+                **_gdfc_args
             )
 
 
     @pytest.mark.parametrize('bad_COLUMN', ('pd_series', 'ss_csr', 'ss_coo'))
-    def test_COLUMN_rejects_bad(
-        self, bad_COLUMN, _X_np, _good_POLY_CSC, _equal_nan, _rtol_atol, _n_jobs
-    ):
+    def test_COLUMN_rejects_bad(self, bad_COLUMN, X_np, _good_POLY_CSC, _gdfc_args):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 bad_COLUMN,
-                _X_np,
+                X_np,
                 _good_POLY_CSC,
-                _equal_nan,
-                *_rtol_atol,
-                _n_jobs=_n_jobs
+                **_gdfc_args
             )
 
 
@@ -164,35 +131,28 @@ class TestDuplsForComboValidation(Fixtures):
     @pytest.mark.parametrize('junk_X',
         (-np.e, -1, 0, 1, np.e, True, False, 'trash', [0,1], (0,1), lambda x: x)
     )
-    def test_X_rejects_junk(
-        self, _good_COLUMN, junk_X, _good_POLY_CSC, _equal_nan, _rtol_atol,
-        _n_jobs
-    ):
+    def test_X_rejects_junk(self, _good_COLUMN, junk_X, _good_POLY_CSC, _gdfc_args):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
                 junk_X,
                 _good_POLY_CSC,
-                _equal_nan,
-                *_rtol_atol,
-                _n_jobs=_n_jobs
+                **_gdfc_args
             )
 
 
     @pytest.mark.parametrize('bad_X', (None, 'dask_df', 'dask_array'))
     def test_X_rejects_bad(
-        self, _good_COLUMN, _X_np, bad_X, _good_POLY_CSC, _equal_nan,
-        _rtol_atol, _n_jobs, _shape
+        self, _good_COLUMN, X_np, bad_X, _good_POLY_CSC, _gdfc_args, _shape
     ):
 
         if bad_X is None:
             pass
         elif bad_X == 'dask_df':
-            _ = da.array(_X_np).rechunk((_shape[0]//2, _shape[1]))
-            bad_X = ddf.from_dask_array(_)
+            bad_X = ddf.from_array(X_np).repartition((_shape[0]//2, ))
         elif bad_X == 'dask_array':
-            bad_X = da.array(_X_np).rechunk((_shape[0]//2, _shape[1]))
+            bad_X = da.from_array(X_np).rechunk((_shape[0]//2, _shape[1]))
         else:
             raise Exception
 
@@ -202,9 +162,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 bad_X,
                 _good_POLY_CSC,
-                _equal_nan,
-                *_rtol_atol,
-                _n_jobs=_n_jobs
+                **_gdfc_args
             )
 
 
@@ -213,22 +171,21 @@ class TestDuplsForComboValidation(Fixtures):
          'dia_array', 'bsr_matrix', 'bsr_array')
     )
     def test_X_rejects_coo_dia_bsr(
-        self, _format, _good_COLUMN, _X_np, _good_POLY_CSC, _equal_nan,
-        _rtol_atol, _n_jobs
+        self, _format, _good_COLUMN, X_np, _good_POLY_CSC, _gdfc_args
     ):
 
         if _format == 'coo_matrix':
-            _bad_X = ss._coo.coo_matrix(_X_np)
+            _bad_X = ss._coo.coo_matrix(X_np)
         elif _format == 'dia_matrix':
-            _bad_X = ss._dia.dia_matrix(_X_np)
+            _bad_X = ss._dia.dia_matrix(X_np)
         elif _format == 'bsr_matrix':
-            _bad_X = ss._bsr.bsr_matrix(_X_np)
+            _bad_X = ss._bsr.bsr_matrix(X_np)
         elif _format == 'coo_array':
-            _bad_X = ss._coo.coo_array(_X_np)
+            _bad_X = ss._coo.coo_array(X_np)
         elif _format == 'dia_array':
-            _bad_X = ss._dia.dia_array(_X_np)
+            _bad_X = ss._dia.dia_array(X_np)
         elif _format == 'bsr_array':
-            _bad_X = ss._bsr.bsr_array(_X_np)
+            _bad_X = ss._bsr.bsr_array(X_np)
         else:
             raise Exception
 
@@ -237,9 +194,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 _bad_X,
                 _good_POLY_CSC,
-                _equal_nan,
-                *_rtol_atol,
-                _n_jobs=_n_jobs
+                **_gdfc_args
             )
 
     # END _X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -251,17 +206,15 @@ class TestDuplsForComboValidation(Fixtures):
         (-np.e, -1, 0, 1, np.e, True, False, 'trash', [0,1], (0,1), lambda x: x)
     )
     def test_POLY_CSC_rejects_junk(
-        self, _good_COLUMN, _X_np, junk_POLY_CSC, _equal_nan, _rtol_atol, _n_jobs
+        self, _good_COLUMN, X_np, junk_POLY_CSC, _gdfc_args
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 junk_POLY_CSC,
-                _equal_nan,
-                *_rtol_atol,
-                _n_jobs=_n_jobs
+                **_gdfc_args
             )
 
 
@@ -269,7 +222,7 @@ class TestDuplsForComboValidation(Fixtures):
         (None, 'pd_df', 'ndarray', 'ss_csr', 'ss_coo')
     )
     def test_POLY_CSC_rejects_bad(
-        self, _good_COLUMN, _X_np, bad_POLY_CSC, _equal_nan, _rtol_atol, _n_jobs
+        self, _good_COLUMN, X_np, bad_POLY_CSC, _gdfc_args
     ):
 
         # must be ss csc
@@ -277,24 +230,22 @@ class TestDuplsForComboValidation(Fixtures):
         if bad_POLY_CSC is None:
             pass
         elif bad_POLY_CSC == 'pd_df':
-            bad_POLY_CSC = pd.DataFrame(data=_X_np)
+            bad_POLY_CSC = pd.DataFrame(data=X_np)
         elif bad_POLY_CSC == 'ndarray':
-            bad_POLY_CSC = _X_np
+            bad_POLY_CSC = X_np
         elif bad_POLY_CSC == 'ss_csr':
-            bad_POLY_CSC = ss.csr_array(_X_np)
+            bad_POLY_CSC = ss.csr_array(X_np)
         elif bad_POLY_CSC == 'ss_coo':
-            bad_POLY_CSC = ss.coo_array(_X_np)
+            bad_POLY_CSC = ss.coo_array(X_np)
         else:
             raise Exception
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 bad_POLY_CSC,
-                _equal_nan,
-                *_rtol_atol,
-                _n_jobs=_n_jobs
+                **_gdfc_args
             )
 
     # END _POLY_CSC ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -305,18 +256,18 @@ class TestDuplsForComboValidation(Fixtures):
         (-1,0,1,3.14,None,min,'trash',[0,1],{0,1}, (1,), {'a':1}, lambda x: x)
     )
     def test_rejects_junk(
-        self, junk_equal_nan, _good_COLUMN, _X_np, _good_POLY_CSC,
-        _rtol_atol, _n_jobs
+        self, junk_equal_nan, _good_COLUMN, X_np, _good_POLY_CSC, _gdfc_args
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 _good_POLY_CSC,
                 junk_equal_nan,
-                *_rtol_atol,
-                _n_jobs=_n_jobs
+                _gdfc_args['_rtol'],
+                _gdfc_args['_atol'],
+                _gdfc_args['_n_jobs']
             )
 
     # END equal_nan  ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -327,18 +278,18 @@ class TestDuplsForComboValidation(Fixtures):
         (None, 'trash', [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
     )
     def test_rtol_rejects_junk(
-        self, _good_COLUMN, _X_np, _good_POLY_CSC, _equal_nan, junk_rtol, _n_jobs
+        self, _good_COLUMN, X_np, _good_POLY_CSC, junk_rtol, _gdfc_args
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 _good_POLY_CSC,
-                _equal_nan,
-                _rtol=junk_rtol,
-                _atol=1e-8,
-                _n_jobs=_n_jobs
+                _gdfc_args['_equal_nan'],
+                junk_rtol,
+                _gdfc_args['_atol'],
+                _gdfc_args['_n_jobs']
             )
 
 
@@ -346,35 +297,35 @@ class TestDuplsForComboValidation(Fixtures):
         (None, 'trash', [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
     )
     def test_atol_rejects_junk(
-        self, _good_COLUMN, _X_np, _good_POLY_CSC, _equal_nan, junk_atol, _n_jobs
+        self, _good_COLUMN, X_np, _good_POLY_CSC, junk_atol, _gdfc_args
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 _good_POLY_CSC,
-                _equal_nan,
-                _rtol=1e-5,
-                _atol=junk_atol,
-                _n_jobs=_n_jobs
+                _gdfc_args['_equal_nan'],
+                _gdfc_args['_rtol'],
+                junk_atol,
+                _gdfc_args['_n_jobs']
             )
 
 
     @pytest.mark.parametrize('bad_rtol', (-np.e, -1, True, False))
     def test_rtol_rejects_bad(
-        self, _good_COLUMN, _X_np, _good_POLY_CSC, _equal_nan, bad_rtol, _n_jobs
+        self, _good_COLUMN, X_np, _good_POLY_CSC, bad_rtol, _gdfc_args
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 _good_POLY_CSC,
-                _equal_nan,
-                _rtol=bad_rtol,
-                _atol=1e-8,
-                _n_jobs=_n_jobs
+                _gdfc_args['_equal_nan'],
+                bad_rtol,
+                _gdfc_args['_atol'],
+                _gdfc_args['_n_jobs']
             )
 
 
@@ -382,18 +333,18 @@ class TestDuplsForComboValidation(Fixtures):
         (None, 'trash', [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
     )
     def test_atol_rejects_bad(
-        self, _good_COLUMN, _X_np, _good_POLY_CSC, _equal_nan, bad_atol, _n_jobs
+        self, _good_COLUMN, X_np, _good_POLY_CSC, bad_atol, _gdfc_args
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 _good_POLY_CSC,
-                _equal_nan,
-                _rtol=1e-5,
-                _atol=bad_atol,
-                _n_jobs=_n_jobs
+                _gdfc_args['_equal_nan'],
+                _gdfc_args['_rtol'],
+                bad_atol,
+                _gdfc_args['_n_jobs']
             )
 
     # END rtol atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -404,34 +355,34 @@ class TestDuplsForComboValidation(Fixtures):
         (True, False, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
     )
     def test_junk_n_jobs(
-        self, _good_COLUMN, _X_np, _good_POLY_CSC, _equal_nan, _rtol_atol,
-        junk_n_jobs
+        self, _good_COLUMN, X_np, _good_POLY_CSC, _gdfc_args, junk_n_jobs
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 _good_POLY_CSC,
-                _equal_nan,
-                *_rtol_atol,
-                _n_jobs=junk_n_jobs
+                _gdfc_args['_equal_nan'],
+                _gdfc_args['_rtol'],
+                _gdfc_args['_atol'],
+                junk_n_jobs
             )
 
     @pytest.mark.parametrize('bad_n_jobs', [-2, 0])
     def test_bad_n_jobs(
-        self, _good_COLUMN, _X_np, _good_POLY_CSC, _equal_nan, _rtol_atol,
-        bad_n_jobs
+        self, _good_COLUMN, X_np, _good_POLY_CSC, _gdfc_args, bad_n_jobs
     ):
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
-                _X_np,
+                X_np,
                 _good_POLY_CSC,
-                _equal_nan,
-                *_rtol_atol,
-                _n_jobs=bad_n_jobs
+                _gdfc_args['_equal_nan'],
+                _gdfc_args['_rtol'],
+                _gdfc_args['_atol'],
+                bad_n_jobs
             )
 
     # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -443,8 +394,8 @@ class TestDuplsForComboValidation(Fixtures):
     @pytest.mark.parametrize(f'_equal_nan', (True, False))
     @pytest.mark.parametrize(f'_n_jobs', (-1, 1))
     def test_accepts_all_good(
-        self, _good_COLUMN, _good_POLY_CSC, _X_np, _good_X, _equal_nan,
-        _rtol_atol, _n_jobs
+        self, _good_COLUMN, _good_POLY_CSC, X_np, _good_X, _equal_nan,
+        _gdfc_args, _n_jobs
     ):
 
         # X in original form as np, pd, ss is carried throughout partial_fit,
@@ -455,13 +406,13 @@ class TestDuplsForComboValidation(Fixtures):
         # coo, dia, bsr
 
         if _good_X == 'pd_df':
-            _good_X = pd.DataFrame(data=_X_np)
+            _good_X = pd.DataFrame(data=X_np)
         elif _good_X == 'ndarray':
-            _good_X = _X_np
+            _good_X = X_np
         elif _good_X == 'ss_csr':
-            _good_X = ss.csr_array(_X_np)
+            _good_X = ss.csr_array(X_np)
         elif _good_X == 'ss_csc':
-            _good_X = ss.csc_array(_X_np)
+            _good_X = ss.csc_array(X_np)
         else:
             raise Exception
 
@@ -470,12 +421,13 @@ class TestDuplsForComboValidation(Fixtures):
             _good_X,
             _good_POLY_CSC,
             _equal_nan,
-            *_rtol_atol,
-            _n_jobs=_n_jobs
+            _gdfc_args['_rtol'],
+            _gdfc_args['_atol'],
+            _n_jobs
         )
 
         assert isinstance(out, list)
-        assert len(out) == (_X_np.shape[1] + _good_POLY_CSC.shape[1])
+        assert len(out) == (X_np.shape[1] + _good_POLY_CSC.shape[1])
         assert all(map(isinstance, out, (bool for _ in out)))
 
 
@@ -483,54 +435,48 @@ class TestGetDuplsForComboAccuracy(Fixtures):
 
 
     def test_accuracy_no_dupls(
-        self, _good_COLUMN, _X_np, _good_POLY_CSC, _rtol_atol
+        self, _good_COLUMN, X_np, _good_POLY_CSC, _gdfc_args
     ):
         # with the fixtures, there should be no dupls in X or dupls
 
         out = _get_dupls_for_combo_in_X_and_poly(
             _good_COLUMN,
-            _X_np,
+            X_np,
             _good_POLY_CSC,
-            _equal_nan=True,
-            _rtol=_rtol_atol[0],
-            _atol=_rtol_atol[1],
-            _n_jobs=1
+            **_gdfc_args
         )
 
         assert isinstance(out, list)
-        assert len(out) == (_X_np.shape[1] + _good_POLY_CSC.shape[1])
+        assert len(out) == (X_np.shape[1] + _good_POLY_CSC.shape[1])
         assert all(map(isinstance, out, (bool for _ in out)))
         assert sum(out) == 0
 
 
-
     def test_accuracy_dupls_in_X(
-        self, _X_np, _rtol_atol, _shape, _combos, _good_COLUMN, _good_POLY_CSC):
+        self, X_np, _shape, _combos, _good_COLUMN, _good_POLY_CSC, _gdfc_args
+    ):
 
         # rig X to have some dupls to see if this finds them
 
         # simulate running the last combo (POLY IS ALMOST FULLY BUILT)
 
-        _X_np[:, 0] = _good_COLUMN
-        _X_np[:, 1] = _good_COLUMN
-        _X_np[:, _shape[1] - 1] = _good_COLUMN
+        X_np[:, 0] = _good_COLUMN
+        X_np[:, 1] = _good_COLUMN
+        X_np[:, _shape[1] - 1] = _good_COLUMN
         # duplicates of _COLUMN in the 0, 1, and -1 positions of X
 
         out = _get_dupls_for_combo_in_X_and_poly(
             _good_COLUMN,
-            _X_np,
-            _good_POLY_CSC,  # this doesnt actually match against modified _X_np
-            _equal_nan=True,
-            _rtol=_rtol_atol[0],
-            _atol=_rtol_atol[1],
-            _n_jobs=1
+            X_np,
+            _good_POLY_CSC,  # this doesnt actually match against modified X_np
+            **_gdfc_args
         )
 
         # in this contrived arrangement, _COLUMN should have 3 hits against X
         # and zero against _POLY
 
         assert isinstance(out, list)
-        assert len(out) == (_X_np.shape[1] + _good_POLY_CSC.shape[1])
+        assert len(out) == (X_np.shape[1] + _good_POLY_CSC.shape[1])
         assert all(map(isinstance, out, (bool for _ in out)))
         assert sum(out) == 3
         assert out[0] is True
@@ -539,7 +485,7 @@ class TestGetDuplsForComboAccuracy(Fixtures):
         assert sum(out[_shape[1]:]) == 0
 
 
-    def test_accuracy_dupls_in_poly(self, _X_np, _rtol_atol):
+    def test_accuracy_dupls_in_poly(self, _gdfc_args):
 
         # rig a dataset to cause poly terms to be dupls.
         # this is conveniently done by doing poly on a dummied
@@ -611,10 +557,7 @@ class TestGetDuplsForComboAccuracy(Fixtures):
             _POLY_COLUMN,
             _X_np,
             _POLY,
-            _equal_nan=True,
-            _rtol=_rtol_atol[0],
-            _atol=_rtol_atol[1],
-            _n_jobs=1
+            **_gdfc_args
         )
 
         assert isinstance(out, list)
@@ -626,10 +569,6 @@ class TestGetDuplsForComboAccuracy(Fixtures):
 
         # all values for the poly part of 'out' should be True
         assert sum(out[_shape[1]:]) == len(_combos) - 1 # last combo not in POLY
-
-
-
-
 
 
 

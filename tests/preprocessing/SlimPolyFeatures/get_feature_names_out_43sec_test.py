@@ -6,14 +6,23 @@
 
 
 
+import pytest
+
+from copy import deepcopy
+import itertools
+
+import numpy as np
+
+from pybear.base.exceptions import NotFittedError
+
 from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
-import itertools
-import numpy as np
-from pybear.base.exceptions import NotFittedError
 
-import pytest
+
+@pytest.fixture(scope='module')
+def _shape():
+    return (8, 4)
 
 
 
@@ -38,30 +47,19 @@ class TestInputFeaturesRejects:
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (8, 4)
+    @pytest.fixture(scope='function')
+    def _TestCls(_instance_state, _X_factory, _format, _columns, _shape):
 
+        _TestCls = SlimPoly()
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(_X_factory, _format, _master_columns, _shape):
-
-        return _X_factory(
+        _X = _X_factory(
             _dupl=None,
             _format=_format,
             _dtype='flt',
-            _columns=_master_columns.copy()[:_shape[1]] if _format == 'pd' else None,
+            _columns=_columns.copy() if _format == 'pd' else None,
             _constants=None,
             _shape=_shape
         )
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _TestCls(_instance_state, _X):
-
-        _TestCls = SlimPoly()
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
@@ -117,12 +115,7 @@ class TestInputFeaturesRejects:
 
 
 @pytest.mark.parametrize('_format, _pd_columns_is_passed',
-    (
-        ('np', False),
-        ('pd', True),
-        ('pd', False),
-    ),
-    scope='module'
+    (('np', False), ('pd', True), ('pd', False)), scope='module'
 )
 @pytest.mark.parametrize('_dtype', ('flt', 'int'), scope='module')
 @pytest.mark.parametrize('_instance_state',
@@ -133,80 +126,42 @@ class TestInputFeaturesRejects:
 class TestGetFeatureNamesOut:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (8, 4)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _wip_kwargs(_min_degree, _interaction_only):
-        return {
-            'degree': 3,
-            'min_degree': _min_degree,
-            'interaction_only': _interaction_only,
-            'scan_X': False,
-            'keep': 'first',
-            'sparse_output': False,
-            'feature_name_combiner': 'as_indices',
-            'equal_nan': False,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1  # leave this at 1 because of confliction
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X(
-        _X_factory, _format, _dtype, _pd_columns_is_passed,
-        _columns, _shape
+    @pytest.mark.parametrize('_input_features_is_passed', (True, False))
+    def test_accuracy(
+        self, _X_factory, _kwargs, _instance_state, _format, _columns,
+        _min_degree, _dtype, _shape, _interaction_only, _input_features_is_passed,
+        _pd_columns_is_passed
     ):
 
-        __ = _columns if (_format == 'pd' and _pd_columns_is_passed) else None
+        # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        return _X_factory(
+        _X = _X_factory(
             _dupl=None,
             _format=_format,
             _dtype=_dtype,
-            _columns=__,
+            _columns=_columns if (_format == 'pd' and _pd_columns_is_passed) else None,
             _constants=None,
             _shape=_shape
         )
 
+        # prepare the IM instance ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _TestCls(_instance_state, _wip_kwargs, _X):
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['degree'] = 3
+        _new_kwargs['min_degree'] = _min_degree
+        _new_kwargs['interaction_only'] = _interaction_only
+        _new_kwargs['equal_nan'] = False
+        _new_kwargs['n_jobs'] = 1
 
-        _TestCls = SlimPoly(**_wip_kwargs)
+        _TestCls = SlimPoly(**_new_kwargs)
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
-            return _TestCls
         elif _instance_state == 'after_transform':
             _TestCls.fit_transform(_X)
-            return _TestCls
         else:
             raise Exception
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    @pytest.mark.parametrize('_input_features_is_passed', (True, False))
-    def test_accuracy(
-        self, _X, _wip_kwargs, _format, _columns, _TestCls, _min_degree, _shape,
-        _interaction_only, _input_features_is_passed, _pd_columns_is_passed
-    ):
+        # END prepare the IM instance ** * ** * ** * ** * ** * ** * ** *
 
         # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         if _input_features_is_passed:
@@ -247,19 +202,19 @@ class TestGetFeatureNamesOut:
             # self.feature_names_in_ is being passed here to input_features
 
             if _format == 'np':
-                _X_HEADER = _columns if _input_features_is_passed else _GENERIC_HEADER
+                _EXP_HEADER = _columns if _input_features_is_passed else _GENERIC_HEADER
             elif _format == 'pd':
                 if _pd_columns_is_passed:
-                    _X_HEADER = _columns
+                    _EXP_HEADER = _columns
                 elif not _pd_columns_is_passed:
                     if _input_features_is_passed:
-                        _X_HEADER = _columns
+                        _EXP_HEADER = _columns
                     else:
-                        _X_HEADER = _GENERIC_HEADER
+                        _EXP_HEADER = _GENERIC_HEADER
             else:
                 raise Exception
 
-            _EXP_HEADER = np.hstack((_X_HEADER, _POLY_HEADER)).astype(object)
+            _EXP_HEADER = np.hstack((_EXP_HEADER, _POLY_HEADER)).astype(object)
 
 
         # END determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * s
@@ -299,9 +254,6 @@ class TestGetFeatureNamesOut:
                         f"array of generic headers")
         else:
             raise Exception
-
-
-
 
 
 

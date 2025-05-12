@@ -6,61 +6,33 @@
 
 
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+import pytest
+
+from copy import deepcopy
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
 
 
 class TestSetParams:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (8, 5)
-
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def X(_X_factory, _shape):
-        return _X_factory(
-            _dupl=None,
-            _format='np',
-            _dtype='flt',
-            _has_nan=False,
-            _columns=None,
-            _constants=None,
-            _zeros=None,
-            _shape=_shape
-        )
+    def _kwargs(_kwargs):
 
+        # overwrite the conftest fixture
 
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def y(_shape):
-        return np.random.randint(0, 2, (_shape[0], 1), dtype=np.uint8)
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['interaction_only'] = False
+        _new_kwargs['feature_name_combiner'] = lambda _columns, _x: 'abc'
+        _new_kwargs['equal_nan'] = False
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs():
-        return {
-            'degree': 2,
-            'min_degree': 1,
-            'keep': 'first',
-            'interaction_only': False,
-            'scan_X': False,
-            'sparse_output': False,
-            'feature_name_combiner': lambda _columns, _x: 'abc',
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'equal_nan': False,
-            'n_jobs': 1
-        }
+        return _new_kwargs
 
 
     @staticmethod
@@ -105,7 +77,7 @@ class TestSetParams:
     # END Fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    def test_blocks_some_params_after_fit(self, X, y, _kwargs):
+    def test_blocks_some_params_after_fit(self, X_np, y_np, _kwargs):
 
         # INITIALIZE
         TestCls = SlimPoly(**_kwargs)
@@ -115,7 +87,7 @@ class TestSetParams:
 
         # 'keep', 'sparse_output', 'feature_name_combiner',
         # and 'n_jobs' not blocked after fit()
-        TestCls.fit(X, y)
+        TestCls.fit(X_np, y_np)
 
         allowed_kwargs = {
             'keep': 'last',
@@ -182,7 +154,7 @@ class TestSetParams:
 
 
     def test_equality_set_params_before_and_after_fit(
-        self, X, y, _kwargs, _kwargs_allowed, _alt_kwargs_not_blocked,
+        self, X_np, y_np, _kwargs, _kwargs_allowed, _alt_kwargs_not_blocked,
         _alt_kwargs_allowed
     ):
 
@@ -194,10 +166,10 @@ class TestSetParams:
         FirstTestClass = SlimPoly(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FirstTestClass.fit(X.copy(), y.copy())
+        FirstTestClass.fit(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FIRST_TRFM_X = FirstTestClass.transform(X.copy())
+        FIRST_TRFM_X = FirstTestClass.transform(X_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
 
@@ -208,10 +180,10 @@ class TestSetParams:
         SecondTestClass = SlimPoly(**_alt_kwargs_not_blocked)
         for param, value in _alt_kwargs_not_blocked.items():
             assert getattr(SecondTestClass, param) == value
-        SecondTestClass.fit(X.copy(), y.copy())
+        SecondTestClass.fit(X_np, y_np)
         for param, value in _alt_kwargs_not_blocked.items():
             assert getattr(SecondTestClass, param) == value
-        SECOND_TRFM_X = SecondTestClass.transform(X.copy())
+        SECOND_TRFM_X = SecondTestClass.transform(X_np)
         for param, value in _alt_kwargs_not_blocked.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -232,7 +204,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-7
         assert SecondTestClass.equal_nan is True
         assert SecondTestClass.n_jobs == 1  # <==== allowed
-        THIRD_TRFM_X = SecondTestClass.transform(X.copy())
+        THIRD_TRFM_X = SecondTestClass.transform(X_np)
         assert SecondTestClass.degree == 3
         assert SecondTestClass.min_degree == 2
         assert SecondTestClass.keep == 'first'  # <==== allowed
@@ -252,7 +224,7 @@ class TestSetParams:
 
 
     def test_set_params_between_fit_transforms(
-        self, X, y, _kwargs, _kwargs_allowed, _alt_kwargs_not_blocked,
+        self, X_np, y_np, _kwargs, _kwargs_allowed, _alt_kwargs_not_blocked,
         _alt_kwargs_allowed
     ):
 
@@ -260,7 +232,7 @@ class TestSetParams:
         FirstTestClass = SlimPoly(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FIRST_TRFM_X = FirstTestClass.fit_transform(X.copy(), y.copy())
+        FIRST_TRFM_X = FirstTestClass.fit_transform(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
 
@@ -281,7 +253,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-8
         assert SecondTestClass.equal_nan is False
         assert SecondTestClass.n_jobs == 2   # <==== allowed
-        SECOND_TRFM_X = SecondTestClass.fit_transform(X.copy(), y.copy())
+        SECOND_TRFM_X = SecondTestClass.fit_transform(X_np, y_np)
         assert SecondTestClass.degree == 2
         assert SecondTestClass.min_degree == 1
         assert SecondTestClass.keep == 'last'   # <==== allowed
@@ -313,7 +285,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-8
         assert SecondTestClass.equal_nan is False
         assert SecondTestClass.n_jobs == 1   # <==== allowed
-        THIRD_TRFM_X = SecondTestClass.fit_transform(X.copy(), y.copy())
+        THIRD_TRFM_X = SecondTestClass.fit_transform(X_np, y_np)
         assert SecondTestClass.degree == 2
         assert SecondTestClass.min_degree == 1
         assert SecondTestClass.keep == 'first'   # <==== allowed
@@ -332,7 +304,7 @@ class TestSetParams:
 
 
     def test_set_params_output_repeatability(
-        self, X, y, _kwargs, _kwargs_allowed, _alt_kwargs_allowed
+        self, X_np, y_np, _kwargs, _kwargs_allowed, _alt_kwargs_allowed
     ):
 
         # changing and changing back on the same class gives same result
@@ -345,10 +317,10 @@ class TestSetParams:
         TestClass = SlimPoly(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        TestClass.fit(X.copy(), y.copy())
+        TestClass.fit(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        FIRST_TRFM_X = TestClass.transform(X.copy())
+        FIRST_TRFM_X = TestClass.transform(X_np)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
 
@@ -366,7 +338,7 @@ class TestSetParams:
         assert TestClass.atol == 1e-8
         assert TestClass.equal_nan is False
         assert TestClass.n_jobs == 2  # <==== allowed
-        SECOND_TRFM_X = TestClass.transform(X.copy())
+        SECOND_TRFM_X = TestClass.transform(X_np)
         assert TestClass.degree == 2
         assert TestClass.min_degree == 1
         assert TestClass.keep == 'last'  # <==== allowed
@@ -397,7 +369,7 @@ class TestSetParams:
         assert TestClass.equal_nan is False
         assert TestClass.n_jobs == 1  # <==== allowed
         # transform again, and compare with the first output
-        THIRD_TRFM_X = TestClass.transform(X.copy())
+        THIRD_TRFM_X = TestClass.transform(X_np)
         assert TestClass.degree == 2
         assert TestClass.min_degree == 1
         assert TestClass.keep == 'first'  # <==== allowed

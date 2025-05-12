@@ -19,23 +19,7 @@ import pytest
 
 
 
-
-class Fixtures:
-
-    @staticmethod
-    @pytest.fixture()
-    def _cols():
-        return 6
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _poly_duplicates():
-        return [[(2,3),(4,5)]]
-
-
-
-class TestLIRCValidation(Fixtures):
+class TestLIRCValidation:
 
     # test validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -66,9 +50,9 @@ class TestLIRCValidation(Fixtures):
             _lock_in_random_combos(bad_poly_duplicates)
 
 
-    def test_accepts_good_poly_duplicates(self, _poly_duplicates):
+    def test_accepts_good_poly_duplicates(self):
 
-        out = _lock_in_random_combos(_poly_duplicates)
+        out = _lock_in_random_combos([[(2, 3), (4, 5)]])
 
         assert isinstance(out, tuple)
         assert all(map(isinstance, out, (tuple for _ in out)))
@@ -79,7 +63,7 @@ class TestLIRCValidation(Fixtures):
 
 
 
-class TestLIRCAccuracy(Fixtures):
+class TestLIRCAccuracy:
 
     # accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

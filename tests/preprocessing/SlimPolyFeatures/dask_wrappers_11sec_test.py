@@ -6,11 +6,11 @@
 
 
 
+import pytest
+
 import numpy as np
 import dask.array as da
 import dask.dataframe as ddf
-from distributed import Client
-import pytest
 
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
@@ -22,101 +22,30 @@ from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 class TestDaskIncrementalParallelPostFit:
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # FIXTURES
-
-    @staticmethod
-    @pytest.fixture(scope='session')
-    def _shape():
-        return (40, 4)
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs():
-        return {
-            'degree': 2,
-            'min_degree': 1,
-            'scan_X': False,
-            'keep': 'first',
-            'interaction_only': False,
-            'sparse_output': False,
-            'feature_name_combiner': "as_indices",
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1    # leave at 1, confliction
-        }
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np(_X_factory, _shape):
-
-        return _X_factory(
-            _dupl=None,
-            _has_nan=False,
-            _dtype='flt',
-            _shape=_shape
-        )
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
-
-    @staticmethod
-    @pytest.fixture
-    def SlimPoly_not_wrapped(_kwargs):
-        return SlimPoly(**_kwargs)
-
-    @staticmethod
-    @pytest.fixture
-    def SlimPoly_wrapped_parallel(_kwargs):
-        return ParallelPostFit(SlimPoly(**_kwargs))
-
-    @staticmethod
-    @pytest.fixture
-    def SlimPoly_wrapped_incremental(_kwargs):
-        return Incremental(SlimPoly(**_kwargs))
-
-    @staticmethod
-    @pytest.fixture
-    def SlimPoly_wrapped_both(_kwargs):
-        return ParallelPostFit(Incremental(SlimPoly(**_kwargs)))
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _client():
-        client = Client(n_workers=1, threads_per_worker=1) # 0:42
-        yield client
-        client.close()
-
-    # END fixtures
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
 
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])
     @pytest.mark.parametrize('y_format', ['da_vector', None])
     @pytest.mark.parametrize('row_chunk', (10, 20))
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
-    def test_fit_and_transform_accuracy(self, wrappings, SlimPoly_wrapped_parallel,
-        SlimPoly_wrapped_incremental, SlimPoly_not_wrapped, SlimPoly_wrapped_both,
-        _X_np, _columns, x_format, y_format, _kwargs, _shape, row_chunk, #_client
+    def test_fit_and_transform_accuracy(
+        self, wrappings, X_np, y_np, _columns, x_format, y_format, _kwargs,
+        _shape, row_chunk
     ):
 
         # faster without client
 
         if wrappings == 'incr':
-            _test_cls = SlimPoly_wrapped_incremental
+            _test_cls = Incremental(SlimPoly(**_kwargs))
         elif wrappings == 'ppf':
-            _test_cls = SlimPoly_wrapped_parallel
+            _test_cls = ParallelPostFit(SlimPoly(**_kwargs))
         elif wrappings == 'both':
-            _test_cls = SlimPoly_wrapped_both
+            _test_cls = ParallelPostFit(Incremental(SlimPoly(**_kwargs)))
         elif wrappings == 'none':
-            _test_cls = SlimPoly_not_wrapped
+            _test_cls = SlimPoly(**_kwargs)
 
         _X_chunks = (row_chunk, _shape[1])
-        _X = da.array(_X_np.copy()).rechunk(_X_chunks)
-        _X_np = _X_np.copy()
+        _X = da.from_array(X_np).rechunk(_X_chunks)
+
         if x_format == 'da_array':
             pass
         elif x_format == 'ddf':
@@ -128,13 +57,10 @@ class TestDaskIncrementalParallelPostFit:
         _X.shape
 
 
-        _y_chunks = (row_chunk,)
         if y_format is None:
             _y = None
-            _y_np = None
         elif y_format == 'da_vector':
-            _y = da.random.randint(0, 2, _shape[0], chunks=_y_chunks)
-            _y_np = _y.compute()
+            _y = da.from_array(y_np, chunks=(row_chunk,))
         else:
             raise Exception
 
@@ -195,7 +121,7 @@ class TestDaskIncrementalParallelPostFit:
 
         RefTestCls = SlimPoly(**_kwargs)
 
-        REF_X = RefTestCls.fit_transform(_X_np, _y_np)
+        REF_X = RefTestCls.fit_transform(X_np, _y)
 
         assert isinstance(TRFM_X, np.ndarray)
         assert isinstance(REF_X, np.ndarray)

@@ -6,6 +6,10 @@
 
 
 
+import pytest
+
+import re
+
 from pybear.preprocessing import SlimPolyFeatures as SlimPoly
 
 from sklearn.utils.estimator_checks import (
@@ -15,10 +19,6 @@ from sklearn.utils.estimator_checks import (
     check_transformer_get_feature_names_out,
     check_transformer_get_feature_names_out_pandas
 )
-
-import re
-
-import pytest
 
 
 

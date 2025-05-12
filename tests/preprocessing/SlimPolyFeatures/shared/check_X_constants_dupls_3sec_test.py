@@ -6,12 +6,10 @@
 
 
 
-from pybear.preprocessing._SlimPolyFeatures._shared._check_X_constants_dupls \
-    import _check_X_constants_dupls
-
-
 import pytest
 
+from pybear.preprocessing._SlimPolyFeatures._shared._check_X_constants_dupls \
+    import _check_X_constants_dupls
 
 
 

@@ -14,14 +14,7 @@ import pytest
 
 
 
-
-class Fixtures:
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 20)
+class TestDuplCombos:
 
 
     @staticmethod
@@ -54,11 +47,6 @@ class Fixtures:
         ]
 
 
-
-
-class TestDuplCombos(Fixtures):
-
-
     def test_first_pass(self, _init_duplicates):
 
         # on first pass, the output of _new_duplicates is returned directly.
@@ -70,9 +58,7 @@ class TestDuplCombos(Fixtures):
             assert out[idx] == _init_duplicates[idx]
 
 
-    def test_less_dupl_found(
-        self, _init_duplicates, _less_duplicates
-    ):
+    def test_less_dupl_found(self, _init_duplicates, _less_duplicates):
 
         # on a partial fit where less duplicates are found, outputted melded
         # duplicates should reflect the lesser columns
@@ -84,9 +70,7 @@ class TestDuplCombos(Fixtures):
             assert out[idx] == _less_duplicates[idx]
 
 
-    def test_more_dupl_found(
-        self, _init_duplicates, _more_duplicates
-    ):
+    def test_more_dupl_found(self, _init_duplicates, _more_duplicates):
 
         # on a partial fit where more duplicates are found, outputted melded
         # duplicates should not add the newly found columns

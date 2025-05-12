@@ -6,10 +6,10 @@
 
 
 
-
 import pytest
 
 from uuid import uuid4
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -42,6 +42,7 @@ class TestXFactory:
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
+        # need to use long data for enough fidelity to get accurate fractions
         return (200, 10)
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

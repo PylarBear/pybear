@@ -6,10 +6,7 @@
 
 
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
-
-from pybear.utilities import check_pipeline
+import pytest
 
 from uuid import uuid4
 
@@ -24,37 +21,14 @@ from sklearn.preprocessing import (
 )
 from sklearn.linear_model import LinearRegression
 
-import pytest
+from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
+    SlimPolyFeatures as SlimPoly
 
-
+from pybear.utilities import check_pipeline
 
 
 
 class TestPipeline:
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _shape():
-        return (5, 4)
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _kwargs():
-        return {
-            'degree': 2,
-            'min_degree': 1,
-            'scan_X': False,
-            'keep': 'first',
-            'interaction_only': False,
-            'sparse_output': False,
-            'feature_name_combiner': "as_indices",
-            'equal_nan': True,
-            'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': 1
-        }
 
 
     @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'bsr'))
@@ -149,15 +123,6 @@ class TestPipeline:
         # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         assert np.allclose(_coef_pipe, _coef_separate)
-
-
-
-
-
-
-
-
-
 
 
 
