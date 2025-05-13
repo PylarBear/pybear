@@ -24,7 +24,7 @@ class TestGetDaskKFold:
     #     _iid: bool,
     #     _verbose: int,
     #     _y: Optional[YDaskWIPType] = None
-    # ) -> Generator[DaskKFoldType, None, None]:
+    # ) -> Iterator[DaskKFoldType]:
 
     # X, y must both be da.array
     # AS OF 25_04_28 ONLY DASK ARRAYS CAN BE PASSED TO

@@ -19,7 +19,7 @@ class TestValParamGrid:
 
 
     # def _val_param_grid(
-    #     _param_grid: Union[ParamGridInputType, ParamGridsInputType, None],
+    #     _param_grid:Union[ParamGridInputType, ParamGridsInputType],
     #     _must_be_list_dict:Optional[bool] = True
     # ) -> None:
 

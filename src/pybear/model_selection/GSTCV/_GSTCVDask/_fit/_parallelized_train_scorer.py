@@ -14,8 +14,8 @@ from ..._type_aliases import (
     NDArrayHolderType
 )
 from .._type_aliases import (
-    XDaskWIPType,
-    YDaskWIPType
+    DaskXType,
+    DaskYType
 )
 
 import numbers
@@ -27,8 +27,8 @@ import dask
 
 
 def _parallelized_train_scorer(
-    _X_train: XDaskWIPType,
-    _y_train: YDaskWIPType,
+    _X_train: DaskXType,
+    _y_train: DaskYType,
     _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
@@ -51,11 +51,10 @@ def _parallelized_train_scorer(
     Parameters
     ----------
     _X_train:
-        XDaskWIPType - A train partition of the data that was fit. Must
-        be 2D ndarray.
+        DaskXType - A train partition of the data that was fit.
     _y_train:
-        YDaskWIPType - The corresponding train partition of the target
-        for the X train partition. Must be 1D da.core.Array.
+        DaskYType - The corresponding train partition of the target
+        for the X train partition.
     _FIT_OUTPUT_TUPLE:
         tuple[ClassifierProtocol, float, bool] - A tuple holding the
         fitted estimator, the fit time (not needed here), and the

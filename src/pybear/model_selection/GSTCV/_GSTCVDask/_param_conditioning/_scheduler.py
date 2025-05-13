@@ -7,7 +7,7 @@
 
 
 from typing_extensions import Union
-from .._type_aliases import SchedulerType
+from .._type_aliases import DaskSchedulerType
 
 import contextlib
 import numbers
@@ -20,12 +20,11 @@ from distributed import (
 
 
 def _cond_scheduler(
-    _scheduler: Union[SchedulerType, None],
+    _scheduler: Union[DaskSchedulerType, None],
     _n_jobs: Union[numbers.Integral, None]
-) -> SchedulerType:
+) -> DaskSchedulerType:
 
     """
-
     The passed scheduler supersedes all other external schedulers. If
     "None" was passed to the scheduler kwarg of GSTCVDask (the default),
     look for an external context manager or global scheduler using
@@ -43,7 +42,6 @@ def _cond_scheduler(
     This module intentionally deviates from the dask_ml API, and disallows
     any shorthand methods for setting up a scheduler (such as strings
     like 'threading' and 'multiprocessing', which are ultimately passed
-    like 'threading' and 'multiprocessing', which are ultimately passed
     to dask.base.get_scheduler.) All of these types of configurations
     should be handled by the user external to the GSTCVDask module. As
     much as possible, dask and distributed objects are allowed to flow
@@ -60,7 +58,7 @@ def _cond_scheduler(
     Return
     ------
     -
-        _scheduler: validated, instantiated scheduler
+        _scheduler: DaskSchedulerType - validated, instantiated scheduler
 
     """
 
@@ -86,21 +84,6 @@ def _cond_scheduler(
 
 
     return _scheduler
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

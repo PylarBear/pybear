@@ -14,8 +14,8 @@ from ..._type_aliases import (
     NDArrayHolderType
 )
 from .._type_aliases import (
-    XSKWIPType,
-    YSKWIPType
+    SKXType,
+    SKYType
 )
 
 import numbers
@@ -26,8 +26,8 @@ import numpy as np
 
 
 def _parallelized_train_scorer(
-    _X_train: XSKWIPType,
-    _y_train: YSKWIPType,
+    _X_train: SKXType,
+    _y_train: SKYType,
     _FIT_OUTPUT_TUPLE: [ClassifierProtocol, float, bool],
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
@@ -50,10 +50,10 @@ def _parallelized_train_scorer(
     Parameters
     ----------
     _X_train:
-        XSKWIPType - A train partition of the data that was fit.
+        SKXType - A train partition of the data that was fit.
     _y_train:
-        YSKWIPType - The corresponding train partition of the target for
-        the X train partition. Must be 1D ndarray.
+        SKYType - The corresponding train partition of the target for
+        the X train partition.
     _FIT_OUTPUT_TUPLE:
         tuple[ClassifierProtocol, float, bool] - A tuple holding the
         fitted estimator, the fit time (not needed here), and the

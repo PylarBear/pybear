@@ -37,10 +37,9 @@ def _cond_scoring(
     Return
     ------
     -
-        _scoring: ScorerWIPType - dictionary of format
-        {scorer_name: scorer callable}, when one or multiple metrics are
-        used. When one metric is used, change the actual scorer name to
-        'score'.
+        _scoring: ScorerWIPType - dictionary of format {scorer_name:
+        scorer callable} no matter how many metrics are used. When one
+        metric is used, change the actual scorer name to 'score'.
 
     """
 

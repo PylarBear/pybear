@@ -8,18 +8,17 @@
 
 from typing import Type
 from typing_extensions import Union
-
-import numpy as np
-from numpy.typing import NDArray
-
-from ..._validation._param_grid import _val_param_grid
-from ..._validation._scoring import _val_scoring
-
 from ...._type_aliases import (
     ParamGridsWIPType,
     ScorerWIPType,
-    CVResultsType
+    CVResultsType,
+    NDArrayHolderType
 )
+
+import numpy as np
+
+from ..._validation._param_grid import _val_param_grid
+from ..._validation._scoring import _val_scoring
 
 from ......utilities._permuter import permuter
 
@@ -27,10 +26,10 @@ from ......utilities._permuter import permuter
 
 def _cv_results_builder(
     _param_grid: ParamGridsWIPType,
-    _cv: int,
+    _n_splits: int,
     _scorer: ScorerWIPType,
     _return_train_score: bool
-) -> tuple[CVResultsType, NDArray[np.uint8]]:
+) -> tuple[CVResultsType, NDArrayHolderType]:
 
     """
     cv_results_ is a python dictionary that represents the columns of
@@ -40,7 +39,8 @@ def _cv_results_builder(
     the dictionary values are numpy masked arrays. The dictionary format
     can be quickly converted into a pandas DataFrame.
 
-    Consider the following param_grid passed to GSTCV for an SVC classifier:
+    Consider the following param_grids passed to GSTCV for an SVC
+    classifier:
     [
         {'kernel': ['poly'], 'degree': [2,3], 'thresholds': np.linspace(0,1,21)},
         {'kernel': ['rbf'], 'gamma': [0.1, 0.2], 'thresholds': np.linspace(0,1,21)}
@@ -70,7 +70,7 @@ def _cv_results_builder(
         'best_threshold'     : [0.45, 0.55, 0.50, 0,50],
         'split0_test_score'  : [0.8, 0.7, 0.8, 0.9],
         'split1_test_score'  : [0.82, 0.5, 0.7, 0.78],
-        'mean_test_score'    : [0.81, 0.60, 0.75, 0.82],
+        'mean_test_score'    : [0.81, 0.60, 0.75, 0.84],
         'std_test_score'     : [0.02, 0.01, 0.03, 0.03],
         'rank_test_score'    : [2, 4, 3, 1],
         'split0_train_score' : [0.8, 0.7, 0.8, 0.9],
@@ -106,6 +106,7 @@ def _cv_results_builder(
             if param not in cv_results:
                 cv_results[f'param_{param}'] = empty
 
+    In our example
     'param_gamma': []
     'param_kernel': []
     'param_degree': []
@@ -113,10 +114,11 @@ def _cv_results_builder(
     ** **** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     THEN ALWAYS params, WHICH FILLS WITH DICTS FOR EVERY POSSIBLE
     PERMUTATION FOR THE PARAM GRIDS IN param_grid.
-    Note that 'params' stores a vector of dictionaries that are the parameter
-    settings for every search permutation. PASS THESE DICTS TO set_params
-    FOR THE ESTIMATOR.
+    Note that cv_results_ dict key 'params' stores a vector of dictionaries
+    that are the parameter settings for every search permutation.
+    PASS THESE DICTS TO set_params FOR THE ESTIMATOR.
 
+    In our example:
     'params': [{'kernel': 'poly', 'degree': 2}, ...]
     ** **** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
@@ -148,7 +150,7 @@ def _cv_results_builder(
         f'std_test_accuracy': [],
         f'rank_test_accuracy': [],
 
-        ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         # CONDITIONALLY:
         if return_train_score is True:
 
@@ -176,10 +178,10 @@ def _cv_results_builder(
     Parameters
     ----------
     _param_grid:
-        ParamGridsWIPType - list of dictionaries keyed with parameter
-        names and values as iterables of their respective values to be
-        searched.
-    _cv:
+        ParamGridsWIPType - list of dictionaries, each dictionary being
+        keyed with parameter names and the values are iterables of their
+        respective values to be searched.
+    _n_splits:
         int - number of folds (splits) to use for cross validation
     _scorer:
         ScorerWIPType - a dictionary keyed by scorer name with the
@@ -193,13 +195,15 @@ def _cv_results_builder(
     Returns
     -------
     -
-        cv_results_: CVResults - an empty cv_results dictionary other
-        than the individual 'param' columns and the 'params' column.
+        cv_results_: CVResults - a cv_results dictionary, empty other
+        than the individual 'param' columns and the 'params' column,
+        which are pre-filled with the hyperparameter values to be run
+        on the corresponding search permutation.
 
-        PARAM_GRID_KEY: NDArrayHolderType - a vector of integers
-        with length equal to the number of searches in the grid search,
-        i.e., the length of the masked arrays in cv_results. Indicates
-        the index of the param grid in param_grid that the search trial
+        PARAM_GRID_KEY: NDArrayHolderType - a vector of integers with
+        length equal to the number of trials in the grid search, i.e.,
+        the length of the masked arrays in cv_results. Indicates the
+        index of the param grid in 'param_grid' that the search trial
         is associated with.
 
     """
@@ -208,9 +212,9 @@ def _cv_results_builder(
 
     _val_param_grid(_param_grid, _must_be_list_dict=True)
 
-    if int(_cv) != _cv:
+    if int(_n_splits) != _n_splits:
         raise TypeError(f"'cv' must be int >= 2")
-    if _cv < 2:
+    if _n_splits < 2:
         raise ValueError(f"'cv' must be int >= 2")
 
     _val_scoring(_scorer, _must_be_dict=True)
@@ -220,91 +224,71 @@ def _cv_results_builder(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    # BUILD VECTOR OF COLUMN NAMES ** ** ** ** ** ** ** ** ** ** **
-    # columns_dtypes_appender
-    def c_d_a(COLUMNS, DTYPES, NEW_COLUMNS_AS_LIST, NEW_DTYPES_AS_LIST):
-        COLUMNS += NEW_COLUMNS_AS_LIST
-        DTYPES += NEW_DTYPES_AS_LIST
-        return COLUMNS, DTYPES
+    # BUILD VECTOR OF COLUMN NAMES ** ** ** ** ** ** ** ** ** ** ** ** **
 
     COLUMNS: list[str] = []
     DTYPES: list[Type[Union[np.float64, object]]] = []
 
-    # FIXED HEADERS
-    COLUMNS, DTYPES = c_d_a(
-        COLUMNS,
-        DTYPES,
-        ['mean_fit_time', 'std_fit_time', 'mean_score_time', 'std_score_time'],
-        [np.float64 for _ in range(4)]
-    )
+    COLUMNS += ['mean_fit_time', 'std_fit_time', 'mean_score_time', 'std_score_time']
+    DTYPES += [np.float64 for _ in range(4)]
 
     # PARAM NAMES
     _unq = []
     for _grid in _param_grid:
-        _unq += sorted([f'param_{_}'for _ in _grid.keys() if _ not in _unq])
+        _unq += sorted([f'param_{i}' for i in _grid.keys() if i not in _unq])
 
-    COLUMNS, DTYPES = c_d_a(
-        COLUMNS,
-        DTYPES,
-        _unq,
-        [object for _ in _unq]
-    )
+    COLUMNS += _unq
+    DTYPES += [object for _ in _unq]
+
     del _unq
     assert len(COLUMNS) == len(DTYPES), "len(COLUMNS) != len(DTYPES)"
 
 
     # PARAM DICTS
+    COLUMNS += ['params']
+    DTYPES += [object]
 
-    COLUMNS, DTYPES = c_d_a(COLUMNS, DTYPES, ['params'], [object])
 
     # SCORES
     for metric in _scorer:
 
         if len(_scorer) == 1:
-            metric = 'score'
-            COLUMNS, DTYPES = \
-                c_d_a(COLUMNS, DTYPES, [f'best_threshold'], [np.float64])
+            metric = 'score'   # sneaky, this sets the name for everything below
+            COLUMNS += [f'best_threshold']
+            DTYPES += [np.float64]
         else:
-            COLUMNS, DTYPES = \
-                c_d_a(COLUMNS, DTYPES, [f'best_threshold_{metric}'], [np.float64])
+            COLUMNS += [f'best_threshold_{metric}']
+            DTYPES += [np.float64]
 
-        for split in range(_cv):
-            COLUMNS, DTYPES = c_d_a(
-                COLUMNS,
-                DTYPES,
-                [f'split{split}_test_{metric}'],
-                [np.float64]
-            )
+        for split in range(_n_splits):
+            COLUMNS += [f'split{split}_test_{metric}']
+            DTYPES += [np.float64]
+
 
         for _type in ['mean', 'std', 'rank']:
-            COLUMNS, DTYPES = \
-                c_d_a(COLUMNS, DTYPES, [f'{_type}_test_{metric}'], [np.float64])
+            COLUMNS += [f'{_type}_test_{metric}']
+            DTYPES += [np.float64]
 
         if _return_train_score:
-            for split in range(_cv):
-                COLUMNS, DTYPES = c_d_a(
-                    COLUMNS,
-                    DTYPES,
-                    [f'split{split}_train_{metric}'],
-                    [np.float64]
-                )
+            for split in range(_n_splits):
+                COLUMNS += [f'split{split}_train_{metric}']
+                DTYPES += [np.float64]
 
             for _type in ['mean', 'std']:
-                COLUMNS, DTYPES = \
-                    c_d_a(
-                        COLUMNS,
-                        DTYPES,
-                        [f'{_type}_train_{metric}'],
-                        [np.float64]
-                    )
+                COLUMNS += [f'{_type}_train_{metric}']
+                DTYPES += [np.float64]
 
-    del c_d_a
     # END BUILD VECTOR OF COLUMN NAMES ** ** ** ** ** ** ** ** ** ** **
 
+    # ABOVE WE SET THE WIDTH OF CV RESULTS, NOW GET THE LENGTH
     # GET FULL COUNT OF ROWS FOR ALL PERMUTATIONS ACROSS ALL GRIDS
     total_rows = 0
     for _grid in _param_grid:
         if _grid == {}:
+            # if an empty grid is passed one permutation will be run with
+            # the default parameters for the estimator. (set_params() will
+            # apply {} and no parameters will be set, the parameters will
+            # not be changed away from the default for the estimator.)
             total_rows += 1
         else:
             total_rows += np.prod(list(map(len, _grid.values())))
@@ -316,23 +300,22 @@ def _cv_results_builder(
     for column_name, _dtype in zip(COLUMNS, DTYPES):
 
         # 24_07_11, empirically verified that sk cv_results_ columns are
-        # masked empty for str params and masked zeros otherwise
-        if any([i in str(_dtype).lower() for i in ('int', 'float')]):
-            __ = np.ma.zeros(total_rows, dtype=_dtype)
+        # masked empty for str (object) params and masked zeros otherwise
+        if 'float' in str(_dtype).lower():
+            cv_results_[column_name] = np.ma.zeros(total_rows, dtype=_dtype)
         else:
-            __ = np.ma.empty(total_rows, dtype=_dtype)
+            cv_results_[column_name] = np.ma.empty(total_rows, dtype=_dtype)
 
-        __.mask = True
-        __ = __.filled(fill_value=np.nan)
+        cv_results_[column_name].mask = True
+        cv_results_[column_name] = cv_results_[column_name].filled(fill_value=np.nan)
 
-        cv_results_[column_name] = __
 
-    PARAM_GRID_KEY: NDArray[np.uint8] = np.empty(total_rows, dtype=np.uint8)
+    PARAM_GRID_KEY: NDArrayHolderType = np.empty(total_rows, dtype=np.uint8)
 
     del COLUMNS, DTYPES, total_rows
 
-    # POPULATE KNOWN FIELDS IN cv_results_ (only columns associated
-    # with params) #################################################
+    # ##################################################################
+    # POPULATE KNOWN FIELDS IN cv_results_ (only columns associated with params)
 
     ctr = 0
     for grid_idx, _grid in enumerate(_param_grid):
@@ -343,12 +326,12 @@ def _cv_results_builder(
         PARAMS = list(_grid.keys())
         VALUES = list(_grid.values())
 
+        # if an empty grid, put in an empty grid for 'params'
         if len(VALUES) == 0:
             PARAM_GRID_KEY[ctr] = grid_idx
             cv_results_['params'][ctr] = _grid
             ctr += 1
             continue
-
 
         # a permutation IN permuter(VALUES) LOOKS LIKE (grid_idx_param_0,
         # grid_idx_param_1, grid_idx_param_2,....)
@@ -358,16 +341,16 @@ def _cv_results_builder(
             trial_param_grid = dict()
             for param_idx, value_idx in enumerate(TRIAL):
 
-                # added this 24_08_31 to convert np ints to py ints, np bool to
-                # py bool (and why not do floats too) to get GSTCV to pass an
+                # 24_08_31 convert np ints to py ints, np bool to py bool
+                # (and why not do floats too) to get GSTCV to pass an
                 # autogridsearch test that sk_GSCV was passing.
-                # 24_09_01 this is (was) a must because these values will be
-                # transferred to best_params_, then in autogridsearch those
-                # values will be transferred into the next param grid, and
-                # cannot have np.True_ or np.int because of 'params' grid
-                # validation in autogridsearch --- 24_09_02 the validation of
-                # contents of 'params' grids has been disabled, but keep this
-                # anyway.
+                # 24_09_01 this is (was) a must because these values will
+                # be transferred to best_params_, then in autogridsearch
+                # those values will be transferred into the next param
+                # grid, and cannot have np.True_ or np.int because of
+                # 'params' grid validation in autogridsearch
+                # 24_09_02 the validation of contents of 'params' grids
+                # has been disabled, but keep this anyway.
                 value = VALUES[param_idx][value_idx]
                 _type = str(type(value))
                 if 'int' in _type:
@@ -378,7 +361,7 @@ def _cv_results_builder(
                     value = bool(value)
                 else:
                     pass
-                # end added this 24_08_31 ** * **
+                # end added this 24_08_31 ** * ** * ** * ** * ** * ** *
 
                 cv_results_[f'param_{PARAMS[param_idx]}'][ctr] = value
                 trial_param_grid[PARAMS[param_idx]] = value
@@ -395,9 +378,9 @@ def _cv_results_builder(
     except:
         pass
 
-
     # END POPULATE KNOWN FIELDS IN cv_results_ (only columns associated
-    # with params) #################################################
+    # with params) #####################################################
+
 
     return cv_results_, PARAM_GRID_KEY
 

@@ -11,9 +11,9 @@ def _val_cache_cv(
 ) -> None:
 
     """
-    'cache_cv' can only be boolean. Indicates if the train/test folds are
-    to be stored once first generated, or if the folds are generated from
-    X and y with the KFold indices at each point of use.
+    'cache_cv' can only be boolean. Indicates if the train/test folds
+    are to be stored once first generated, or if the folds are generated
+    from X and y with the KFold indices at each point of use.
 
 
     Parameters

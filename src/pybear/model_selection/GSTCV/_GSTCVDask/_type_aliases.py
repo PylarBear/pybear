@@ -6,6 +6,7 @@
 
 
 
+from typing import ContextManager
 from typing_extensions import (
     TypeAlias,
     Union
@@ -16,21 +17,20 @@ import distributed
 
 
 
-XDaskInputType: TypeAlias = dask.array.core.Array
-XDaskWIPType: TypeAlias = dask.array.core.Array
-
-YDaskInputType: TypeAlias = Union[dask.array.core.Array, None]
-YDaskWIPType: TypeAlias = Union[dask.array.core.Array, None]
+# pizza figure out how to duck type these
+DaskXType: TypeAlias = dask.array.core.Array
+DaskYType: TypeAlias = Union[dask.array.core.Array, None]
 
 DaskSlicerType: TypeAlias = dask.array.core.Array
 
 DaskKFoldType: TypeAlias = tuple[DaskSlicerType, DaskSlicerType]
 
-DaskSplitType: TypeAlias = tuple[XDaskWIPType, YDaskWIPType]
+DaskSplitType: TypeAlias = tuple[DaskXType, DaskYType]
 
-SchedulerType: TypeAlias = Union[
+DaskSchedulerType: TypeAlias = Union[
     distributed.scheduler.Scheduler,
-    distributed.client.Client
+    distributed.client.Client,
+    ContextManager  # nullcontext
 ]
 
 

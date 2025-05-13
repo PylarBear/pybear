@@ -10,8 +10,8 @@ from typing_extensions import Union
 
 from .._type_aliases import (
     SKSlicerType,
-    XSKWIPType,
-    YSKWIPType
+    SKXType,
+    SKYType
 )
 
 import numpy as np
@@ -23,8 +23,8 @@ import scipy.sparse as ss
 def _fold_splitter(
     train_idxs: SKSlicerType,
     test_idxs: SKSlicerType,
-    *data_objects: Union[XSKWIPType, YSKWIPType],
-) -> tuple[tuple[XSKWIPType, YSKWIPType], ...]:
+    *data_objects: Union[SKXType, SKYType],
+) -> tuple[tuple[SKXType, SKYType], ...]:
 
     """
     Split given data objects into train / test pairs using the given
@@ -46,7 +46,7 @@ def _fold_splitter(
         SKSlicerType - 1D vector of row indices used to slice test sets
         out of every given data object.
     *data_objects:
-        Union[XSKWIPType, YSKWIPType] - The data objects to slice.
+        Union[SKXType, SKYType] - The data objects to slice.
         Need not be of equal size, and need not be completely consumed
         in the train / test splits. However, standard indexing rules
         apply when slicing by train_idxs and test_idxs.
@@ -55,7 +55,7 @@ def _fold_splitter(
     Return
     ------
     -
-        SPLITS: tuple[tuple[XSKWIPType, YSKWIPType], ...] - return the
+        SPLITS: tuple[tuple[SKXType, SKYType], ...] - return the
         train / test splits for the given data objects in the order
         passed in a tuple of tuples, each inner tuple containing a
         train/test pair.

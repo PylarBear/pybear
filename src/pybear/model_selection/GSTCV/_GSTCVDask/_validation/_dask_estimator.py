@@ -42,7 +42,7 @@ def _val_dask_estimator(
     """
 
 
-    # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     def get_inner_most_estimator(__estimator):
 
@@ -70,14 +70,15 @@ def _val_dask_estimator(
     if 'dask' not in __:
         warnings.warn(f"'{__estimator.__class__.__name__}' does not "
             f"appear to be a dask classifier.")
-    # if 'dask' not in __ and 'conftest' not in __:  # allow pytest with mock clf
-        # raise TypeError(f"'{__estimator.__class__.__name__}' is not a dask "
-        #     f"classifier. GSTCVDask can only accept dask classifiers. "
+    # if 'dask' not in __ and 'conftest' not in __:  # allow pytest with
+    # mock clf
+        # raise TypeError(f"'{__estimator.__class__.__name__}' is not a
+        #     f"dask classifier. GSTCVDask can only accept dask classifiers. "
         #     f"\nTo use non-dask classifiers, use the GSTCV package.")
 
     del get_inner_most_estimator, __estimator, _module
 
-    # END validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validate estimator ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 

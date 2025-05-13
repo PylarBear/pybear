@@ -31,10 +31,16 @@ class TestCondScheduler:
         return PyBearClient
 
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
     def test_none_w_no_global_returns_a_scheduler(self):
         # for some reason, when running the full tests, this sees an
         # external client and creates a nullcontext. but creates a
-        # nullcontext when run alone.
+        # Client when run alone. maybe it is the conftest client,
+        # even though it isnt passed to this test? maybe the conftest
+        # client isnt spooled up when these tests are run alone?
+
         has_external = False
         try:
             distributed.get_client()
@@ -50,6 +56,7 @@ class TestCondScheduler:
         else:
             assert isinstance(_cond_scheduler(_scheduler, _n_jobs=1), Client)
 
+        # passed None is not mutated
         assert _scheduler is _og_scheduler
 
 
@@ -64,6 +71,7 @@ class TestCondScheduler:
 
         # when a scheduler is passed
         _scheduler = marked_client_class()
+
         # cant do a deepcopy on _scheduler,
         # TypeError: cannot pickle '_asyncio.Task' object
         # so we cant prove out that _cond_scheduler does not mutate

@@ -90,7 +90,7 @@ def _cond_cv(
         "\n1) None, to use the default n-fold cross validation, "
         "\n2) integer >= 2, to specify the number of folds in a (Stratified)KFold, "
         "\n3) An iterable yielding at least 2 (train, test) split pairs "
-        "with each pair being 2 vectors of indices."
+        "with each pair being 2 1D vectors of indices."
     )
 
 
@@ -112,7 +112,6 @@ def _cond_cv(
         # show that the constituents of each tuple are iterable
         _addon1 = f"\ngot a non-iterable inside at least one of the pairs."
         list(map(lambda x: list(map(iter, x)), _cv))
-        _cv = list(map(tuple, _cv))
     except UnicodeError:
         raise ValueError(err_msg + _addon2)
     except Exception as e:

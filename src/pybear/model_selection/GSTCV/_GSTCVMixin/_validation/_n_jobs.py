@@ -14,7 +14,7 @@ import numbers
 
 def _val_n_jobs(
     _n_jobs: Union[numbers.Integral, None]
-) -> Union[None, None]:
+) -> None:
 
     """
     Validate that `n_jobs` is None or an integer in [-1, 1, 2, 3,...].
@@ -33,7 +33,7 @@ def _val_n_jobs(
     Return
     ------
     -
-        _n_jobs: Union[numbers.Integral, None] - Validated n_jobs
+        None
 
 
     """

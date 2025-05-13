@@ -22,8 +22,8 @@ def _val_f_s(
 ) -> None:
 
     """
-    Validate the dimensions of _FOLD_x_SCORER, either the
-    score holder or the time holder.
+    Validate the dimensions of _FOLD_x_SCORER, either the score holder
+    or the time holder.
 
 
     Parameters

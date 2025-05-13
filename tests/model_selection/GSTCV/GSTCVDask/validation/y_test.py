@@ -48,12 +48,26 @@ class TestValY:
             _val_y(y_dask_bad_series)
 
 
-    def test_accuracy(self, y_da, y_ddf):
+    def test_accuracy(self, y_np, y_pd, y_da, y_ddf):
+
+        assert _val_y(list(y_np)) is None
+
+        assert _val_y(tuple(y_np)) is None
+
+        assert _val_y(set(list(y_np))) is None
+
+        assert _val_y(y_np) is None
+
+        assert _val_y(y_pd) is None
+
+        assert _val_y(y_pd.iloc[:, 0]) is None
 
         assert _val_y(y_da) is None
 
         assert _val_y(y_ddf) is None
 
         assert _val_y(y_ddf.iloc[:, 0]) is None
+
+
 
 

@@ -13,7 +13,8 @@ import inspect
 
 import numpy as np
 
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold as sk_KFold
+from dask_ml.model_selection import KFold as dask_KFold
 
 from pybear.model_selection.GSTCV._GSTCVMixin._param_conditioning._cv \
     import _cond_cv
@@ -60,11 +61,11 @@ class TestCondCV:
             _cond_cv((_ for _ in range(0)))
 
 
-    def test_accepts_good_iter(self, standard_cv_int, X_np, y_np):
+    def test_accepts_good_sk_iter(self, standard_cv_int, X_np, y_np):
 
-        good_iter = KFold(n_splits=standard_cv_int).split(X_np, y_np)
+        good_iter = sk_KFold(n_splits=standard_cv_int).split(X_np, y_np)
         # TypeError: cannot pickle 'generator' object
-        ref_iter = KFold(n_splits=standard_cv_int).split(X_np, y_np)
+        ref_iter = sk_KFold(n_splits=standard_cv_int).split(X_np, y_np)
 
         out = _cond_cv(good_iter)
         assert isinstance(out, list)
@@ -82,6 +83,25 @@ class TestCondCV:
                 )
 
 
+    def test_accepts_good_dask_iter(self, standard_cv_int, X_da, y_da):
 
+        good_iter = dask_KFold(n_splits=standard_cv_int).split(X_da, y_da)
+        # TypeError: cannot pickle 'generator' object
+        ref_iter = dask_KFold(n_splits=standard_cv_int).split(X_da, y_da)
+
+        out = _cond_cv(good_iter)
+        assert isinstance(out, list)
+        assert inspect.isgenerator(good_iter)
+
+        assert inspect.isgenerator(ref_iter)
+        ref_iter_as_list = list(ref_iter)
+        assert isinstance(ref_iter_as_list, list)
+
+        for idx in range(standard_cv_int):
+            for X_y_idx in range(2):
+                assert np.array_equiv(
+                    out[idx][X_y_idx],
+                    ref_iter_as_list[idx][X_y_idx]
+                )
 
 

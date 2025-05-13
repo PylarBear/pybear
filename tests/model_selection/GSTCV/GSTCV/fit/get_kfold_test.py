@@ -22,7 +22,7 @@ class TestSKGetKFold:
     #     _y: YSKWIPType,
     #     _n_splits: int,
     #     _verbose: int
-    # ) -> Generator[SKKFoldType, None, None]:
+    # ) -> Iterator[SKKFoldType:
 
     # important!!! this function can be called multiple times within a
     # single param grid permutation, first to fit and get test score,

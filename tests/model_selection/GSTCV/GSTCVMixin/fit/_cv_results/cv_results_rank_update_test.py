@@ -133,15 +133,3 @@ class TestCVResultsRankUpdateTest:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-

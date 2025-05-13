@@ -51,9 +51,8 @@ class ClassifierProtocol(Protocol):
 
 
 ParamGridInputType: TypeAlias = dict[str, Sequence[Any]]
-ParamGridWIPType: TypeAlias = dict[str, list[Any]]
-
 ParamGridsInputType: TypeAlias = Sequence[ParamGridInputType]
+ParamGridWIPType: TypeAlias = dict[str, list[Any]]
 ParamGridsWIPType: TypeAlias = list[ParamGridWIPType]
 
 ThresholdsInputType: TypeAlias = Union[None, numbers.Real, Sequence[numbers.Real]]

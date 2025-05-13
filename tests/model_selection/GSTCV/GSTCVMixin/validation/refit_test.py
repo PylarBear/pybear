@@ -19,7 +19,7 @@ class TestValRefit:
 
     # def _val_refit(
     #     _refit: RefitType,
-    #     _scorer: ScorerWIPType
+    #     _scoring: ScorerInputType
     # ) -> None:
 
 

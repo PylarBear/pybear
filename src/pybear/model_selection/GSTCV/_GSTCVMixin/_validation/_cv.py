@@ -6,7 +6,10 @@
 
 
 
-from typing import Iterable, Optional
+from typing import (
+    Iterable,
+    Optional
+)
 from typing_extensions import Union
 from ..._type_aliases import GenericKFoldType
 
@@ -24,9 +27,8 @@ def _val_cv(
     Validate that _cv is:
     1) None,
     2) an integer >= 2, or
-    3) an iterable of tuples, with each tuple holding a pair of
-        sequences; the outer iterable cannot be empty, and must
-        contain more than one pair.
+    3) an iterable; the contents of the iterable are not validated, to
+        not spend the iterable here.
 
 
     Parameters

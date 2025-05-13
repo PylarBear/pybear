@@ -59,9 +59,8 @@ def _val_scoring(
     Parameters
     ----------
     _scoring:
-        Union[str, Callable, Sequence[str], dict[str, Callable]] - The
-        scoring metric(s) used to evaluate the predictions on the test
-        (and possibly train) sets.
+        ScorerInputType - The scoring metric(s) used to evaluate the
+        predictions on the test (and possibly train) sets.
     _must_be_dict:
         Optional[bool], default=True - whether 'scoring' must have
         already been conditioned into dict[str, Callable].
@@ -115,7 +114,6 @@ def _val_scoring(
 
         try:
             float(_value)
-            # pizza do we want to ensure in 0-1?
         except:
             raise ValueError(
                 f"scoring function '{fxn_name}' returned a non-numeric ({_value})"

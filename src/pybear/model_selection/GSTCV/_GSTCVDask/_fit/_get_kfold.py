@@ -6,10 +6,13 @@
 
 
 
-from typing import Generator, Optional
+from typing import (
+    Iterator,
+    Optional
+)
 from .._type_aliases import (
-    XDaskWIPType,
-    YDaskWIPType,
+    DaskXType,
+    DaskYType,
     DaskKFoldType
 )
 
@@ -22,12 +25,12 @@ from dask_ml.model_selection import KFold as dask_KFold
 
 
 def _get_kfold(
-    _X: XDaskWIPType,
+    _X: DaskXType,
     _n_splits: int,
     _iid: bool,
     _verbose: int,
-    _y: Optional[YDaskWIPType] = None
-) -> Generator[DaskKFoldType, None, None]:   # pizza why None None
+    _y: Optional[DaskYType] = None
+) -> Iterator[DaskKFoldType]:
 
     """
     Use dask_ml KFold to get train / test splits when cv is passed as an
@@ -57,8 +60,7 @@ def _get_kfold(
     Parameters
     ----------
     _X:
-        XDaskWIPType - The data to be split. Must be 2D
-        dask.array.core.Array.
+        DaskXType - The data to be split.
     _n_splits:
         int - the number of splits to produce; the number of split pairs
         yielded by the returned generator object.
@@ -70,15 +72,15 @@ def _get_kfold(
         to display to screen during the grid search trials. 0 means no
         output, 10 means full output.
     _y:
-        Optional[YDaskWIPType] - The target the data is being fit
-        against, to be split in the same way as the data. Must
-        be 1D dask.array.core.Array.
+        Optional[DaskYType] - The target the data is being fit
+        against, to be split in the same way as the data.
+
 
     Return
     ------
     -
         KFOLD:
-            Generator[DaskKFoldType] - A generator object yielding
+            Iterator[DaskKFoldType] - A generator object yielding
             pairs of train test indices as da.core.Array[int].
 
     """

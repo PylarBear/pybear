@@ -6,10 +6,10 @@
 
 
 
-from typing import Generator
+from typing import Iterator
 from .._type_aliases import (
-    XSKWIPType,
-    YSKWIPType,
+    SKXType,
+    SKYType,
     SKKFoldType
 )
 
@@ -22,18 +22,18 @@ from sklearn.model_selection import StratifiedKFold
 
 
 def _get_kfold(
-    _X: XSKWIPType,
-    _y: YSKWIPType,
+    _X: SKXType,
+    _y: SKYType,
     _n_splits: int,
     _verbose: int
-) -> Generator[SKKFoldType, None, None]:   # pizza why None None
+) -> Iterator[SKKFoldType]:
 
     """
     Use sklearn StratifiedKFold to get train / test splits when cv is
     passed as an integer. StratifiedKFold uses the number of rows in
     _X and _y, _n_splits, and the distribution of values in _y to
-    determine the indices in each train / test split. _X and _y must both
-    be ndarray. The number of rows in _X and _y must be equal.
+    determine the indices in each train / test split. The number of rows
+    in _X and _y must be equal.
 
     *** IMPORTANT!!!
     This function can be called multiple times within a single param grid
@@ -49,10 +49,10 @@ def _get_kfold(
     Parameters
     ----------
     _X:
-        XSKWIPType - The data to be split. Must be 2D ndarray.
+        SKXType - The data to be split.
     _y:
-        YSKWIPType - The target the data is being fit against, to be
-        split in the same way as the data. Must be 1D ndarray.
+        SKYType - The target the data is being fit against, to be
+        split in the same way as the data.
     _n_splits:
         int - the number of splits to produce; the number of split pairs
         yielded by the returned generator object.
@@ -65,7 +65,7 @@ def _get_kfold(
     Return
     ------
     -
-        KFOLD: Generator[SKKFoldType] - A generator object yielding
+        KFOLD: Iterator[SKKFoldType] - A generator object yielding
         pairs of train test indices as NDArray[int].
 
     """

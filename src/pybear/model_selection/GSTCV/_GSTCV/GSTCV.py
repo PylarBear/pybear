@@ -8,7 +8,6 @@
 
 from typing import (
     Callable,
-    ContextManager,
     Literal,
     Iterable,
     Sequence,
@@ -20,11 +19,16 @@ from typing_extensions import (
 )
 
 from ._type_aliases import (
-    XSKInputType,
-    YSKInputType
+    SKXType,
+    SKYType,
+    SKKFoldType,
+    SKSchedulerType
 )
 from .._type_aliases import (
     ClassifierProtocol,
+    ParamGridInputType,
+    ParamGridsInputType,
+    ParamGridsWIPType,
     ThresholdsWIPType,
     MaskedHolderType,
     NDArrayHolderType
@@ -43,7 +47,8 @@ from ._validation._y import _val_y
 
 from .._GSTCV._fit._get_kfold import _get_kfold as _sk_get_kfold
 from .._GSTCV._fit._fold_splitter import _fold_splitter as _sk_fold_splitter
-from .._GSTCV._fit._estimator_fit_params_helper import _estimator_fit_params_helper as _sk_estimator_fit_params_helper
+from .._GSTCV._fit._estimator_fit_params_helper import \
+    _estimator_fit_params_helper as _sk_estimator_fit_params_helper
 from .._GSTCV._fit._parallelized_fit import _parallelized_fit
 from .._GSTCV._fit._parallelized_scorer import _parallelized_scorer
 from .._GSTCV._fit._parallelized_train_scorer import _parallelized_train_scorer
@@ -54,7 +59,6 @@ from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
 class GSTCV(_GSTCVMixin):
 
     """
-
     Exhaustive cross-validated search over a grid of parameter values
     and decision thresholds for a binary classifier. The optimal
     parameters and decision threshold selected are those that maximize
@@ -172,10 +176,10 @@ class GSTCV(_GSTCVMixin):
         make_scorer functions, e.g. sklearn.metrics.make_scorer, but
         this module cannot accept this. make_scorer implicitly assumes a
         decision threshold of 0.5, but this module needs to be able to
-        calculate predictions based on any user-entered threshold. There-
-        fore, in place of make_scorer functions, this module uses scoring
-        metrics directly (whereas they would otherwise be passed to
-        make_scorer.)
+        calculate predictions based on any user-entered threshold.
+        Therefore, in place of make_scorer functions, this module uses
+        scoring metrics directly (whereas they would otherwise be passed
+        to make_scorer.)
 
         Additionally, this module can accept any scoring function that
         has signature (y_true, y_pred) and returns a single number. Note
@@ -496,11 +500,11 @@ class GSTCV(_GSTCVMixin):
     def __init__(
         self,
         estimator: ClassifierProtocol,
-        param_grid: Union[dict[str, Sequence[Any]], Sequence[dict[str, Sequence[Any]]]],
+        param_grid: Union[ParamGridInputType, ParamGridsInputType],
         *,
         thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
         scoring: Optional[
-            Union[list[str], dict[str, Callable], str, Callable]
+            Union[str, Sequence[str], Callable, dict[str, Callable]]
         ]='accuracy',
         n_jobs: Optional[Union[numbers.Integral, None]]=None,
         refit: Optional[Union[bool, str, Callable]]=True,
@@ -528,49 +532,65 @@ class GSTCV(_GSTCVMixin):
         self.return_train_score = return_train_score
 
 
-    def _val_y(self, _X) -> None:
+    def _val_y(self, _y: SKYType) -> None:
 
         """
-        Implements GSTCV _val_y in methods in _GSTCVMixin.
-        See the docs for GSTCV _val_y.
+        Implements GSTCV _val_y in methods in _GSTCVMixin. See the docs
+        for GSTCV _val_y.
+
+
+        Parameters
+        -----------
+        _y:
+            SKYType - the target for the data.
+
+
+        Returns
+        -------
+        -
+            None
 
         """
 
-        # KEEP val of X & y separate, the all methods need X & y everytime
-
-        return _val_y(_X)
+        # KEEP val of y separate
+        _val_y(_y)
 
 
     def _val_params(self) -> None:
 
         """
+        Validate init params that are unique to GSTCV.
 
 
         Returns
         -------
+        -
+            None
 
         """
 
-        # KEEP val of X & y separate, the all methods need X & y everytime
+        # KEEP val of y separate
         _validation(self.estimator, self.pre_dispatch)
 
 
     def _condition_params(
         self,
-        _X,
-        _y
+        _X: SKXType,
+        _y: SKYType
     ) -> None:
 
         """
-        Condition init params into format for internal processing.
+        Condition GSTCV-only init params into format for internal
+        processing.
 
 
         Parameters
         ----------
         _X:
-            XSKInputType: The data.
+            SKXType: The data.
         _y:
-            YSKInputType: The target for the data.
+            SKYType: The target for the data.
+
 
         Returns
         -------
@@ -582,8 +602,9 @@ class GSTCV(_GSTCVMixin):
         # this is needed for GSTCV for compatibility with GSTCVMixin
         # nullcontext needs to stay. _GSTCVMixin.fit, which serves both
         # GSTCV & GSTCVDask, is mostly under a scheduler context manager.
-        self._scheduler: ContextManager = nullcontext()
+        self._scheduler: SKSchedulerType = nullcontext()
 
+        self._KFOLD: list[SKKFoldType]
         if isinstance(self._cv, numbers.Integral):
             self._KFOLD = list(_sk_get_kfold(_X, _y, self.n_splits_, self._verbose))
         else:  # _cv is an iterable, _cond_cv should have made list[tuple]
@@ -592,8 +613,8 @@ class GSTCV(_GSTCVMixin):
 
     def _fit_all_folds(
         self,
-        _X:XSKInputType,
-        _y:YSKInputType,
+        _X:SKXType,
+        _y:SKYType,
         _grid:dict[str, Any],
         _fit_params
     ) -> list[tuple[ClassifierProtocol, float, bool], ...]:
@@ -606,9 +627,9 @@ class GSTCV(_GSTCVMixin):
         Parameters
         ----------
         _X:
-            XSKInputType - the data.
+            SKXType - the data.
         _y:
-            YSKInputType - the target for the data.
+            SKYType - the target for the data.
         _grid:
             dict[str, Any] - the values for the hyperparameters for this
             permutation of grid search.
@@ -643,7 +664,7 @@ class GSTCV(_GSTCVMixin):
         # fit and fit it once - then the results agree exactly with the
         # results when n_jobs > 1 and with SK gscv. 'estimator' is being
         # rebuilt at each call with the class constructor
-        # type(_estimator)(**_estimator.get_params(deep=True)).
+        # type(_estimator)(**_estimator.get_params(deep=False)).
 
         # must use shallow params to construct estimator
         s_p = self._estimator.get_params(deep=False)  # shallow_params
@@ -651,6 +672,10 @@ class GSTCV(_GSTCVMixin):
         # doesnt matter for an estimator when not pipeline.)
         d_p = self._estimator.get_params(deep=True)  # deep_params
 
+        # # pizza verify this
+        # For pipelines, fit parameters can be passed to the fit method
+        # of any of the steps. Prefix the parameter name with the name
+        # of the step, such that parameter p for step s has key s__p.
         _fold_fit_params = _sk_estimator_fit_params_helper(
             len(_y),
             _fit_params,
@@ -680,8 +705,8 @@ class GSTCV(_GSTCVMixin):
 
     def _score_all_folds_and_thresholds(
         self,
-        _X:XSKInputType,
-        _y:YSKInputType,
+        _X:SKXType,
+        _y:SKYType,
         _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
         _THRESHOLDS:ThresholdsWIPType
     ) -> list[tuple[MaskedHolderType, MaskedHolderType], ...]:
@@ -695,9 +720,9 @@ class GSTCV(_GSTCVMixin):
         Parameters
         ----------
         _X:
-            XSKInputType - the data.
+            SKXType - the data.
         _y:
-            YSKInputType - the target for the data.
+            SKYType - the target for the data.
         _FIT_OUTPUT:
             list[tuple[ClassifierProtocol, float, bool], ...] - a list
             of tuples, one tuple for each fold, with each tuple holding
@@ -747,8 +772,8 @@ class GSTCV(_GSTCVMixin):
 
     def _score_train(
         self,
-        _X:XSKInputType,
-        _y:YSKInputType,
+        _X:SKXType,
+        _y:SKYType,
         _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
         _BEST_THRESHOLDS_BY_SCORER:NDArrayHolderType
     ) -> list[MaskedHolderType]:
@@ -764,9 +789,9 @@ class GSTCV(_GSTCVMixin):
         Parameters
         ----------
         _X:
-            XSKInputType - the data.
+            SKXType - the data.
         _y:
-            YSKInputType - the target for the data.
+            SKYType - the target for the data.
         _FIT_OUTPUT:
             list[tuple[ClassifierProtocol, float, bool], ...] - a list
             of tuples, one tuple for each fold, with each tuple holding
