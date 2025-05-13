@@ -38,17 +38,15 @@ def _val_refit(
     Parameters
     ----------
     _refit:
-        Union[bool, str, callable] - Whether to refit the estimator
-        on the 'best' parameters after completing the grid searches, and
-        if so, which scoring metric to use to determine the 'best'
-        parameters.
+        RefitType - Whether to refit the estimator on the 'best'
+        parameters after completing the grid search, and if so, which
+        scoring metric to use to determine the 'best' parameters.
     _scoring:
-        Union[str, Callable, Sequence[str], dict[str, Callable]] -
-        previously validated `scoring` parameter, the scoring metric(s)
-        used to evaluate the predictions on the test (and possibly
-        train) sets. Used to determine the number of scorers and
-        valid scorer names, which impacts what values are allowed for
-        the `refit` param.
+        ScorerInputType - previously validated `scoring` parameter, the
+        scoring metric(s) used to evaluate the predictions on the test
+        (and possibly train) sets. Used to determine the number of
+        scorers and valid scorer names, which impacts what values are
+        allowed for the `refit` param.
 
 
     Return

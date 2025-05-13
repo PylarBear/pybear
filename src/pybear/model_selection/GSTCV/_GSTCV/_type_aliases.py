@@ -6,7 +6,11 @@
 
 
 
-from typing import Iterable, Sequence
+from typing import (
+    ContextManager,
+    Iterable,
+    Sequence
+)
 from typing_extensions import (
     TypeAlias,
     Union
@@ -17,17 +21,16 @@ import numbers
 
 
 # pizza figure out how to duck type these
-XSKInputType: TypeAlias = Iterable
-XSKWIPType: TypeAlias = Iterable
-
-YSKInputType: TypeAlias = Union[Sequence[numbers.Integral], None]
-YSKWIPType: TypeAlias = Union[Sequence[numbers.Integral], None]
+SKXType: TypeAlias = Iterable
+SKYType: TypeAlias = Union[Sequence[numbers.Integral], None]
 
 SKSlicerType: TypeAlias = Sequence[numbers.Integral]
 
 SKKFoldType: TypeAlias = tuple[SKSlicerType, SKSlicerType]
 
-SKSplitType: TypeAlias = tuple[XSKWIPType, YSKWIPType]
+SKSplitType: TypeAlias = tuple[SKXType, SKYType]
+
+SKSchedulerType: TypeAlias = ContextManager    # nullcontext
 
 
 

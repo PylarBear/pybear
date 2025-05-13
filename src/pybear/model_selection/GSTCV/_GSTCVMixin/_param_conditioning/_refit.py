@@ -27,10 +27,9 @@ def _cond_refit(
     Parameters
     ----------
     _refit:
-        Union[bool, str, callable] - Whether to refit the estimator
-        on the 'best' parameters after completing the grid searches, and
-        if so, which scoring metric to use to determine the 'best'
-        parameters.
+        RefitType - Whether to refit the estimator on the 'best'
+        parameters after completing the grid searches, and if so, which
+        scoring metric to use to determine the 'best' parameters.
     _scorer:
         dict[str, Callable] - previously conditioned scorer object, must
         be dict[str, Callable]. used to determine the number of scorers,
@@ -40,8 +39,7 @@ def _cond_refit(
     Return
     ------
     -
-        _refit: Union[bool, str, callable], default=True - validated
-        refit.
+        _refit: RefitType, default=True - conditioned refit.
 
 
     """

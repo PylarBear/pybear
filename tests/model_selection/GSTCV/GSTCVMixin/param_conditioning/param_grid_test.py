@@ -20,9 +20,9 @@ from pybear.model_selection.GSTCV._GSTCVMixin._param_conditioning._param_grid \
 class TestCondParamGrid:
 
     # def _cond_param_grid(
-    #   _thresholds: Union[Iterable[Union[int, float]], Union[int, float], None],
-    #   _param_grid: ParamGridType
-    # ) -> ParamGridType:
+    #     _param_grid: Union[ParamGridInputType, ParamGridsInputType],
+    #     _thresholds: ThresholdsInputType    # this is init self.thresholds
+    # ) -> ParamGridsWIPType:
 
 
     @staticmethod

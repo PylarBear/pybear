@@ -19,7 +19,7 @@ class TestValParamGridHelper:
 
 
     # def _val_param_grid_helper(
-    #     _param_grid: ParamGridType,
+    #     _param_grid: ParamGridInputType,
     #     _grid_idx: int
     # ) -> None:
 

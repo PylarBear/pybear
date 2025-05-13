@@ -14,8 +14,8 @@ from ..._type_aliases import (
     MaskedHolderType
 )
 from .._type_aliases import (
-    XSKWIPType,
-    YSKWIPType
+    SKXType,
+    SKYType
 )
 
 import numbers
@@ -26,8 +26,8 @@ import numpy as np
 
 
 def _parallelized_scorer(
-    _X_test: XSKWIPType,
-    _y_test: YSKWIPType,
+    _X_test: SKXType,
+    _y_test: SKYType,
     _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
@@ -50,12 +50,11 @@ def _parallelized_scorer(
     Parameters
     ----------
     _X_test:
-        XSKWIPType - A test partition of the data, matched up with the
-        estimator that was trained on the complementary train set. Must
-        be 2D ndarray.
+        SKXType - A test partition of the data, matched up with the
+        estimator that was trained on the complementary train set.
     _y_test:
-        YSKWIPType - The corresponding test partition of the target for
-        the X test partition. Must be 1D ndarray.
+        SKYType - The corresponding test partition of the target for
+        the X test partition.
     _FIT_OUTPUT_TUPLE:
         tuple[ClassifierProtocol, float, bool] - A tuple holding the
         fitted estimator, the fit time (not needed here), and the

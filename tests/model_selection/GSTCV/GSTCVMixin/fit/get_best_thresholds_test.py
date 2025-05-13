@@ -18,58 +18,15 @@ from pybear.model_selection.GSTCV._GSTCVMixin._fit._get_best_thresholds import \
 class TestGetBestThresholds:
 
     # def _get_best_thresholds(
-    #         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE: MaskedHolderType,
-    #         _THRESHOLDS: npt.NDArray[Union[float, int]],
-    # ) -> NDArrayHolderType:
-
-
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    # 5 splits
-    # 3 thresholds
-    # 4 scorers
-
-    @staticmethod
-    @pytest.fixture(scope='class')
-    def _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE():
-
-        return np.ma.masked_array(
-            np.random.uniform(0, 1, (5, 3, 4)),
-            dtype=np.float64
-        )
-
-
-    @staticmethod
-    @pytest.fixture(scope='class')
-    def _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_partially_masked():
-        data = np.ma.masked_array(
-            np.random.uniform(0, 1, (5, 3, 4)),
-            dtype=np.float64
-        )
-        for _fold in range(5):
-            data[[1,3], :, :] = np.ma.masked
-        return data
-
-
-    @staticmethod
-    @pytest.fixture(scope='class')
-    def _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_fully_masked():
-        data = np.ma.masked_array(
-            np.random.uniform(0, 1, (5, 3, 4)),
-            dtype=np.float64
-        )
-        for _fold in range(5):
-            data[:, :, :] = np.ma.masked
-        return data
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    #     _TEST_FOLD_x_THRESH_x_SCORER__SCORE: MaskedHolderType,
+    #     _THRESHOLDS: ThresholdsWIPType
+    # ) -> MaskedHolderType:
 
 
     @pytest.mark.parametrize('junk_holder',
         (-1, 3.14, True, min, 'junk', [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
     )
-    def test_rejects_junk_holder(self, junk_holder,
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE, standard_thresholds):
+    def test_rejects_junk_holder(self, junk_holder, standard_thresholds):
 
         with pytest.raises(Exception):
             _get_best_thresholds(
@@ -78,12 +35,16 @@ class TestGetBestThresholds:
             )
 
 
-    def test_accuracy_not_masked(self,
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE, standard_thresholds
-    ):
+    def test_accuracy_not_masked(self, standard_thresholds):
+
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE = np.ma.masked_array(
+            np.random.uniform(0, 1, (5, 3, 4)),
+            dtype=np.float64
+        )
 
         out = _get_best_thresholds(
-            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE, standard_thresholds
+            _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE,
+            standard_thresholds
         )
 
 
@@ -98,7 +59,7 @@ class TestGetBestThresholds:
         _MEAN_THRESH_x_SCORER = _MEAN_THRESH_x_SCORER.transpose()
 
         BEST_THRESH_IDXS = []
-        for scorer_idx, scores  in enumerate(_MEAN_THRESH_x_SCORER):
+        for scorer_idx, scores in enumerate(_MEAN_THRESH_x_SCORER):
 
             BEST_THRESH_IDXS.append(np.argmax(scores))
 
@@ -106,9 +67,17 @@ class TestGetBestThresholds:
         assert np.array_equiv(out, BEST_THRESH_IDXS)
 
 
-    def test_accuracy_partially_masked(self,
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_partially_masked,
-        standard_thresholds):
+    def test_accuracy_partially_masked(self, standard_thresholds):
+
+
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_partially_masked = \
+            np.ma.masked_array(
+                np.random.uniform(0, 1, (5, 3, 4)),
+                dtype=np.float64
+            )
+
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_partially_masked[[1,3], :, :] = np.ma.masked
+
 
         out = _get_best_thresholds(
             _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_partially_masked,
@@ -139,10 +108,15 @@ class TestGetBestThresholds:
         assert np.array_equiv(out, BEST_THRESH_IDXS)
 
 
-    def test_accuracy_fully_masked(self,
-        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_fully_masked,
-        standard_thresholds
-    ):
+    def test_accuracy_fully_masked(self, standard_thresholds):
+
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_fully_masked = \
+            np.ma.masked_array(
+                np.random.uniform(0, 1, (5, 3, 4)),
+                dtype=np.float64
+            )
+
+        _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_fully_masked[:, :, :] = np.ma.masked
 
         out = _get_best_thresholds(
                 _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_fully_masked,

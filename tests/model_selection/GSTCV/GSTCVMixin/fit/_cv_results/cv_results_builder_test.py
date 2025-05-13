@@ -57,23 +57,27 @@ class TestCVResultsBuilderTest:
         with pytest.raises(TypeError):
             cv_results_output, _ = _cv_results_builder(
                 _param_grid=_junk_param_grid,
-                _cv=3,
+                _n_splits=3,
                 _scorer=standard_WIP_scorer,
                 _return_train_score=True
             )
 
-    @pytest.mark.parametrize('_junk_cv',
+
+    @pytest.mark.parametrize('_junk_n_splits',
         (-1, 0, 1, np.pi, True, False, 'trash', None, min,
         [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_cv(self, good_param_grid, _junk_cv, standard_WIP_scorer):
+    def test_rejects_junk_n_splits(
+        self, good_param_grid, _junk_n_splits, standard_WIP_scorer
+    ):
         with pytest.raises((TypeError, ValueError)):
             cv_results_output, _ = _cv_results_builder(
                 _param_grid=good_param_grid,
-                _cv=_junk_cv,
+                _n_splits=_junk_n_splits,
                 _scorer=standard_WIP_scorer,
                 _return_train_score=True
             )
+
 
     @pytest.mark.parametrize('_junk_scorer',
         (-1, 0, 1, np.pi, True, False, 'trash', None, min,
@@ -83,10 +87,11 @@ class TestCVResultsBuilderTest:
         with pytest.raises(TypeError):
             cv_results_output, _ = _cv_results_builder(
                 _param_grid=good_param_grid,
-                _cv=3,
+                _n_splits=3,
                 _scorer=_junk_scorer,
                 _return_train_score=True
             )
+
 
     @pytest.mark.parametrize('_junk_return_train_score',
          (-1, 0, 1, np.pi, 'trash', None, min,
@@ -98,7 +103,7 @@ class TestCVResultsBuilderTest:
         with pytest.raises(TypeError):
             cv_results_output, _ = _cv_results_builder(
                 _param_grid=good_param_grid,
-                _cv=3,
+                _n_splits=3,
                 _scorer=standard_WIP_scorer,
                 _return_train_score=_junk_return_train_score
             )
@@ -106,14 +111,15 @@ class TestCVResultsBuilderTest:
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    @pytest.mark.parametrize('_cv', (3, 4, 5))
+    @pytest.mark.parametrize('_n_splits', (3, 4, 5))
     @pytest.mark.parametrize('_scoring',
         ({'accuracy': lambda y1, y2: 0.1231},
         {'precision': lambda y1, y2: 0.8987, 'recall': lambda y1, y2: 0.2342})
     )
     @pytest.mark.parametrize('return_train', (True, False))
     def test_cv_results_builder(
-        self, _cv, _scoring, return_train, good_param_grid, correct_cv_results_len
+        self, _n_splits, _scoring, return_train, good_param_grid,
+        correct_cv_results_len
     ):
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -137,13 +143,13 @@ class TestCVResultsBuilderTest:
                 COLUMN_CHECK += [f'best_threshold_{sub_scoring}']
 
             suffix = 'score' if len(_scoring) == 1 else sub_scoring
-            for split in range(_cv):
+            for split in range(_n_splits):
                 COLUMN_CHECK += [f'split{split}_test_{suffix}']
             COLUMN_CHECK += [f'mean_test_{suffix}']
             COLUMN_CHECK += [f'std_test_{suffix}']
             COLUMN_CHECK += [f'rank_test_{suffix}']
             if return_train:
-                for split in range(_cv):
+                for split in range(_n_splits):
                     COLUMN_CHECK += [f'split{split}_train_{suffix}']
                 COLUMN_CHECK += [f'mean_train_{suffix}']
                 COLUMN_CHECK += [f'std_train_{suffix}']
@@ -154,7 +160,7 @@ class TestCVResultsBuilderTest:
         # RUN cv_results_builder AND GET CHARACTERISTICS ######################
         cv_results_output, PARAM_GRID_KEY = _cv_results_builder(
             _param_grid=good_param_grid,
-            _cv=_cv,
+            _n_splits=_n_splits,
             _scorer=_scoring,
             _return_train_score=return_train
         )
@@ -206,7 +212,7 @@ class TestCVResultsBuilderTest:
 
         cv_results_output, _ = _cv_results_builder(
             _param_grid=[{'param_1':[1,2,3], 'param_2':[True, False]}],
-            _cv=3,
+            _n_splits=3,
             _scorer=standard_WIP_scorer,
             _return_train_score=True
         )
@@ -242,7 +248,7 @@ class TestCVResultsBuilderTest:
 
         cv_results_output, _ = _cv_results_builder(
             _param_grid=[{'abc': [1, 2]}, {'xyz': ['a', 'b']}],
-            _cv=5,
+            _n_splits=5,
             _scorer=standard_WIP_scorer,
             _return_train_score=False
         )

@@ -29,20 +29,21 @@ def _verify_refit_callable(
     integer within range of cv_results, before running the entirety of
     GSTCV which could be hours or days just to have the whole thing
     crash because of a bad refit function. Remember that the refit
-    callable finds best_idx_, which is the row whose search grid params
-    are deemed "best".
+    callable finds best_idx_, which is the row of cv_results whose search
+    grid params are deemed "best".
 
 
     Parameters
     ----------
     refit_callable:
-        Callable[[CVResultsType], int] - A callable that
-        takes cv_results as an argument and returns an integer that is
-        best_index_, that indicates the row of cv_results that is "best".
+        RefitCallableType - A callable that takes cv_results as an
+        argument and returns an integer that is best_index_, that
+        indicates the row of cv_results that is "best".
 
     DUMMY_CV_RESULTS:
         CVResultsType - A deepcopy of the just-built cv_results
-        dictionary to be filled with dummy floats and used to test the output of the refit callable.
+        dictionary to be filled with dummy floats and used to test the
+        output of the refit callable.
 
 
     Return
@@ -61,6 +62,7 @@ def _verify_refit_callable(
             DUMMY_CV_RESULTS[column] = \
                 np.ma.masked_array(np.arange(1, param_permutations+1))
         else:
+            # time, threshold, score, mean, std, etc.
             DUMMY_CV_RESULTS[column] = \
                 np.ma.masked_array(np.random.uniform(0, 1, param_permutations))
 
@@ -79,9 +81,8 @@ def _verify_refit_callable(
         f"integer, and it must be within range of cv_results_ rows. \nThe "
         f"failure has occurred on a randomly filled copy of cv_results "
         f"\nthat allows testing of the refit function before running the "
-        f"entire grid search. The failure may not necessarily occur when\n "
-        f"cv_results is filled with real results.  refit function output = "
-        f"{output}, cv_results rows = {param_permutations}"
+        f"entire grid search.\nrefit function output = {output}, "
+        f"cv_results rows = {param_permutations}"
     )
 
     try:
@@ -91,10 +92,7 @@ def _verify_refit_callable(
         raise ValueError(_msg(refit_fxn_test_output))
 
 
-    if refit_fxn_test_output < 0:
-        raise ValueError(_msg(refit_fxn_test_output))
-
-    if refit_fxn_test_output > param_permutations:
+    if refit_fxn_test_output < 0 or refit_fxn_test_output > param_permutations:
         raise ValueError(_msg(refit_fxn_test_output))
 
     del refit_fxn_test_output, _msg

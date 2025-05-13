@@ -18,11 +18,17 @@ from typing_extensions import (
     Union
 )
 from ._type_aliases import (
-    XDaskInputType,
-    YDaskInputType
+    DaskXType,
+    DaskYType,
+    DaskKFoldType,
+    DaskSplitType,
+    DaskSchedulerType
 )
 from .._type_aliases import (
     ClassifierProtocol,
+    ParamGridInputType,
+    ParamGridsInputType,
+    ParamGridsWIPType,
     ThresholdsWIPType,
     MaskedHolderType,
     NDArrayHolderType
@@ -46,8 +52,6 @@ from .._GSTCVDask._fit._parallelized_fit import _parallelized_fit
 from .._GSTCVDask._fit._parallelized_scorer import _parallelized_scorer
 from .._GSTCVDask._fit._parallelized_train_scorer import _parallelized_train_scorer
 from .._GSTCVMixin._GSTCVMixin import _GSTCVMixin
-
-from ....base import check_is_fitted
 
 
 
@@ -203,7 +207,7 @@ class GSTCVDask(_GSTCVMixin):
         chunks which is much more efficient.
 
     refit:
-        Optional[bool, str, Callable], default=True - After completion
+        Optional[Union[bool, str, Callable]], default=True - After completion
         of the grid search, fit the estimator on the whole dataset using
         the best found parameters, and expose this fitted estimator via
         the best_estimator_ attribute. Also, when the estimator is refit
@@ -530,14 +534,12 @@ class GSTCVDask(_GSTCVMixin):
     """
 
 
-    def __init__(self,
+    def __init__(
+        self,
         estimator: ClassifierProtocol,
-        param_grid: Union[
-            dict[str, Sequence[Any]], Sequence[dict[str, Sequence[Any]]]
-        ],
+        param_grid: Union[ParamGridInputType, ParamGridsInputType],
         *,
-        thresholds:
-            Optional[Union[numbers.Real, Sequence[numbers.Real], None]]=None,
+        thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
         scoring: Optional[
             Union[str, Sequence[str], Callable, dict[str, Callable]]
         ]='accuracy',
@@ -571,49 +573,86 @@ class GSTCVDask(_GSTCVMixin):
         self.cache_cv = cache_cv
 
 
-    def _val_y(self, _X) -> None:
+    def _val_y(self, _y: DaskYType) -> None:
 
         """
-        Implements GSTCVDask _val_y in methods in _GSTCVMixin.
-        See the docs for GSTCVDask _val_y.
+        Implements GSTCVDask _val_y in methods in _GSTCVMixin. See the
+        docs for GSTCVDask _val_y.
+
+
+        Parameters
+        ----------
+        _y:
+            DaskYType - the target for the data.
+
+
+        Returns
+        -------
+        -
+            None
 
         """
+
         # KEEP val of X & y separate, the all methods need X & y everytime
-        _val_y(_X)
+        _val_y(_y)
 
 
     def _val_params(self) -> None:
 
-        # KEEP val of X & y separate, the all methods need X & y everytime
+        """
+        Validate init params that are unique to GSTCVDask.
+
+
+        Returns
+        -------
+        -
+            None
+
+        """
+
+        # KEEP val of y separate
         _validation(self.estimator, self.iid, self.cache_cv)
 
 
     def _condition_params(
         self,
-        _X,
-        _y
+        _X: DaskXType,
+        _y: DaskYType
     ) -> None:
 
         """
+        Condition GSTCVDask-only init params into format for internal
+        processing.
+
 
         Parameters
         ----------
-        _X
-        _y
+        _X:
+            DaskXType: The data.
+        _y:
+            DaskYType: The target for the data.
+
 
         Returns
         -------
+        -
+            None
 
         """
 
-        self._scheduler = _cond_scheduler(self.scheduler, self.n_jobs)
 
+        self._scheduler: DaskSchedulerType = \
+            _cond_scheduler(self.scheduler, self.n_jobs)
+
+        self._KFOLD: list[DaskKFoldType]
         if isinstance(self._cv, numbers.Integral):
-            self._KFOLD = list(_dask_get_kfold(_X, self.n_splits_, self.iid, self._verbose, _y=_y))
+            self._KFOLD = list(_dask_get_kfold(
+                _X, self.n_splits_, self.iid, self._verbose, _y=_y
+            ))
         else:  # _cv is an iterable, _cond_cv should have made list[tuple]
             self._KFOLD = self._cv
 
-        self._CACHE_CV = None
+        self._CACHE_CV: Union[None, list[DaskSplitType]] = None
         if self.cache_cv:
             self._CACHE_CV = []
             for (train_idxs, test_idxs) in self._KFOLD:
@@ -624,8 +663,8 @@ class GSTCVDask(_GSTCVMixin):
 
     def _fit_all_folds(
         self,
-        _X:XDaskInputType,
-        _y:YDaskInputType,
+        _X:DaskXType,
+        _y:DaskYType,
         _grid:dict[str, Any],
         _fit_params
     ) -> list[tuple[ClassifierProtocol, float, bool], ...]:
@@ -638,9 +677,9 @@ class GSTCVDask(_GSTCVMixin):
         Parameters
         ----------
         _X:
-            XDaskInputType - the data.
+            DaskXType - the data.
         _y:
-            YDaskInputType - the target for the data.
+            DaskYType - the target for the data.
         _grid:
             dict[str, Any] - the values for the hyperparameters for this
             permutation of grid search.
@@ -719,8 +758,8 @@ class GSTCVDask(_GSTCVMixin):
 
     def _score_all_folds_and_thresholds(
         self,
-        _X:XDaskInputType,
-        _y:YDaskInputType,
+        _X:DaskXType,
+        _y:DaskYType,
         _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
         _THRESHOLDS:ThresholdsWIPType
     ) -> list[tuple[MaskedHolderType, MaskedHolderType], ...]:
@@ -734,9 +773,9 @@ class GSTCVDask(_GSTCVMixin):
         Parameters
         ----------
         _X:
-            XDaskInputType - the data.
+            DaskXType - the data.
         _y:
-            YDaskInputType - the target for the data.
+            DaskYType - the target for the data.
         _FIT_OUTPUT:
             list[tuple[ClassifierProtocol, float, bool], ...] - a list
             of tuples, one tuple for each fold, with each tuple holding
@@ -792,8 +831,8 @@ class GSTCVDask(_GSTCVMixin):
 
     def _score_train(
         self,
-        _X:XDaskInputType,
-        _y:YDaskInputType,
+        _X:DaskXType,
+        _y:DaskYType,
         _FIT_OUTPUT:list[tuple[ClassifierProtocol, float, bool], ...],
         _BEST_THRESHOLDS_BY_SCORER:NDArrayHolderType
     ) -> list[MaskedHolderType]:
@@ -809,9 +848,9 @@ class GSTCVDask(_GSTCVMixin):
         Parameters
         ----------
         _X:
-            XDaskInputType - the data.
+            DaskXType - the data.
         _y:
-            YDaskInputType - the target for the data.
+            DaskYType - the target for the data.
         _FIT_OUTPUT:
             list[tuple[ClassifierProtocol, float, bool], ...] - a list
             of tuples, one tuple for each fold, with each tuple holding

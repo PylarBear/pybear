@@ -397,7 +397,7 @@ class TestInitValidation:
 
 
     # cv v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # cv: Optional[Union[int, Iterable, Generator, None]] = None
+    # cv: Optional[Union[int, Iterable, None]] = None
 
     @pytest.mark.parametrize('junk_cv',
         (-1, 0, 1, 3.14, [0, 1], (0, 1), {0, 1}, True, False, 'trash', min,

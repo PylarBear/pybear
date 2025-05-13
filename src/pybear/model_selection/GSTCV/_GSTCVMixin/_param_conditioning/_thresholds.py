@@ -20,7 +20,7 @@ def _cond_thresholds(
 ) -> ThresholdsWIPType:
 
     """
-    Condition _thresholds into a 1D list of 1 or more floats.
+    Condition _thresholds into a sorted 1D list of 1 or more floats.
 
 
     Parameters

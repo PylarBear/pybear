@@ -12,8 +12,8 @@ from typing_extensions import (
     Union
 )
 from .._type_aliases import (
-    XSKWIPType,
-    YSKWIPType
+    SKXType,
+    SKYType
 )
 from ..._type_aliases import ClassifierProtocol
 
@@ -28,8 +28,8 @@ import joblib
 @joblib.wrap_non_picklable_objects
 def _parallelized_fit(
     f_idx: int,
-    _X_train: XSKWIPType,
-    _y_train: YSKWIPType,
+    _X_train: SKXType,
+    _y_train: SKYType,
     _estimator_: ClassifierProtocol,
     _grid: dict[str, Any],
     _error_score: Union[numbers.Real, Literal['raise']],
@@ -47,11 +47,10 @@ def _parallelized_fit(
         int - the zero-based split index of the train partition used in
         this fit; parallelism occurs over the different splits.
     _X_train:
-        XSKWIPType - A train partition of the data being fit. Must be 2D
-        ndarray.
+        SKXType - A train partition of the data being fit.
     _y_train:
-        YSKWIPType - The corresponding train partition of the target for
-        the X train partition. Must be 1D ndarray.
+        SKYType - The corresponding train partition of the target for
+        the X train partition.
     _estimator_:
         ClassifierProtocol - Any classifier that fulfills the scikit-learn
         API for classifiers, having fit, predict_proba, get_params, and

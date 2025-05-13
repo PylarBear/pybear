@@ -6,25 +6,31 @@
 
 
 
+from typing import Iterable
+
+import numbers
+
 import numpy as np
 
 
 
-def _val_y(_y) -> None:
+def _val_y(
+    _y: Iterable[numbers.Integral]  # not SKYType... see the notes.
+) -> None:
 
     """
     Validate y.
 
-    v v v v pizza keep ur finger on this v v v v
-    y must be numeric.
-
-    y must be a single label and binary in 0,1.
+    y must be single label and binary in [0, 1]. This validation is
+    fairly loose in that it allows *any* 1D container that is binary in
+    0 and 1. If there is a problem with the container let the estimator
+    raise it.
 
 
     Parameters
     ----------
     _y:
-        vector-like of shape (n_samples, 1) or (n_samples,) - The target
+        vector-like of shape (n_samples,) or (n_samples, 1) - The target
         for the data.
 
 
@@ -44,9 +50,9 @@ def _val_y(_y) -> None:
         try:
             y_shape = np.array(list(_y)).shape
         except:
-            raise TypeError(f"'y' must have a 'shape' attribute pizza fix this")
+            raise TypeError(f"'y' must have a 'shape' attribute.")
 
-    # pizza make be any 2 uniques
+
     _err_msg = (
         f"GSTCV can only perform thresholding on vector-like binary targets "
         f"with values in [0,1]. \nPass 'y' as a vector of 0's and 1's."
@@ -60,9 +66,15 @@ def _val_y(_y) -> None:
     else:
         raise ValueError(_err_msg)
 
-    # pizza make be any 2 uniques
-    if not set(np.unique(_y)).issubset({0, 1}):
+    if hasattr(_y, 'shape'):
+        _unique = set(np.unique(_y))
+    else:
+        _unique = set(np.unique(list(_y)))
+
+    if not _unique.issubset({0, 1}):
         raise ValueError(_err_msg)
+
+    del _unique
 
 
 

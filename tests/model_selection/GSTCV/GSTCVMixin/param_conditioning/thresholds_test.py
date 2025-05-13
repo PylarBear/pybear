@@ -21,8 +21,8 @@ class TestCondThresholds:
 
 
 # def _cond_thresholds(
-#     _thresholds: Union[None, numbers.Real, Sequence[numbers.Real]],
-# ) -> list[float]:
+#     _thresholds: ThresholdsInputType,
+# ) -> ThresholdsWIPType:
 
 
     @pytest.mark.parametrize('_ifk', (True, False))

@@ -19,11 +19,10 @@ def _val_estimator(
 ) -> None:
 
     """
-    General validation for sklearn-like or dask_ml-like estimators.
-    The GSTCV modules are expected to most likely encounter sklearn,
-    dask_ml, xgboost, and lightgbm estimators, and maybe some other
-    pybear modules. The estimator must be passed as an instance, not
-    the class itself.
+    General validation for sklearn-like estimators. The GSTCV modules
+    are expected to most likely encounter sklearn, dask_ml, xgboost,
+    and lightgbm estimators, and maybe some other pybear modules. The
+    estimator must be passed as an instance, not the class itself.
 
     Validate that an estimator:
 

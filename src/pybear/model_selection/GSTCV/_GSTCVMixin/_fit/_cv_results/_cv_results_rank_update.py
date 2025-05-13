@@ -21,7 +21,6 @@ def _cv_results_rank_update(
 ) -> CVResultsType:
 
     """
-
     Within each parameter search trial, every cv split has a test set
     that is scored using all the given scorers. The scores populate
     columns created for each split/scorer combination, in the row

@@ -14,7 +14,8 @@ from ..._type_aliases import (
     ClassifierProtocol,
     ThresholdsInputType,
     ParamGridInputType,
-    ParamGridsInputType
+    ParamGridsInputType,
+    RefitType
 )
 
 import numbers
@@ -38,7 +39,7 @@ def _validation(
     _thresholds: ThresholdsInputType,
     _scoring: ScorerInputType,
     _n_jobs: Union[numbers.Integral, None],
-    _refit: Union[bool, str, callable],
+    _refit: RefitType,
     _cv: Union[None, numbers.Integral, Iterable[GenericKFoldType]],
     _verbose: numbers.Real,
     _error_score: Union[Literal['raise'], numbers.Real],
@@ -63,7 +64,7 @@ def _validation(
     _n_jobs:
         Union[numbers.Integral, None]
     _refit:
-        Union[bool, str, callable]
+        RefitType
     _cv:
         Union[None, numbers.Integral, Iterable[GenericKFoldType]]
     _verbose:

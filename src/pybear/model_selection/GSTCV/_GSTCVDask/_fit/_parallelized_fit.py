@@ -12,8 +12,8 @@ from typing_extensions import (
     Union
 )
 from .._type_aliases import (
-    XDaskWIPType,
-    YDaskWIPType
+    DaskXType,
+    DaskYType
 )
 from ..._type_aliases import ClassifierProtocol
 
@@ -25,8 +25,8 @@ import warnings
 
 def _parallelized_fit(
     f_idx: int,
-    _X_train: XDaskWIPType,
-    _y_train: YDaskWIPType,
+    _X_train: DaskXType,
+    _y_train: DaskYType,
     _estimator_: ClassifierProtocol,
     _grid: dict[str, Any],
     _error_score: Union[numbers.Real, Literal['raise']],

@@ -17,6 +17,10 @@ from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 
 class TestValidation:
 
+    # def _validation(
+    #     _estimator: ClassifierProtocol,
+    #     _pre_dispatch: Union[Literal['all'], str, numbers.Integral]
+    # ) -> None:
 
 
     @pytest.mark.parametrize('_estimator', (sk_LogisticRegression(), ))
@@ -27,8 +31,6 @@ class TestValidation:
             _estimator,
             _pre_dispatch
         )
-
-
 
 
 

@@ -33,6 +33,7 @@ class TestValY:
 
 
     def test_rejects_non_binary_y(self, _rows):
+
         y_np_bad_array = np.random.choice(list('abcde'), (_rows, 1), replace=True)
         y_pd_bad_df = pd.DataFrame(data=y_np_bad_array, columns=['y'])
         y_pd_bad_series = pd.Series(y_pd_bad_df.iloc[:, 0], name='y')
@@ -47,7 +48,13 @@ class TestValY:
             _val_y(y_pd_bad_series)
 
 
-    def test_accuracy(self, y_np, y_pd):
+    def test_accepts_good(self, y_np, y_pd):
+
+        assert _val_y(list(y_np)) is None
+
+        assert _val_y(tuple(y_np)) is None
+
+        assert _val_y(set(list(y_np))) is None
 
         assert _val_y(y_np) is None
 

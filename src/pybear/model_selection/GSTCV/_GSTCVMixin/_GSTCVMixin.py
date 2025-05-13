@@ -8,15 +8,28 @@
 
 from typing_extensions import (
     Any,
-    Self
+    Self,
+    Union
 )
 import numpy.typing as npt
 from .._type_aliases import (
     ClassifierProtocol,
+    ParamGridsWIPType,
     ThresholdsWIPType,
+    ScorerWIPType,
+    RefitType,
+    GenericKFoldType,
     MaskedHolderType,
     NDArrayHolderType,
     FeatureNamesInType
+)
+from .._GSTCV._type_aliases import (
+    SKXType,
+    SKYType,
+)
+from .._GSTCVDask._type_aliases import (
+    DaskXType,
+    DaskYType
 )
 
 from copy import deepcopy
@@ -67,10 +80,7 @@ class _GSTCVMixin(
         Only available when `refit=True`.
         """
 
-        check_is_fitted(self)
-        self._check_refit__if_false_block_attr('classes_')
-        self._best_estimator_hasattr('classes_')
-        return self.best_estimator_.classes_
+        return self._best_estimator_getattr('classes_')
 
 
     @property
@@ -83,10 +93,7 @@ class _GSTCVMixin(
         exposes feature names.
         """
 
-        check_is_fitted(self)
-        self._check_refit__if_false_block_attr('feature_names_in_')
-        self._best_estimator_hasattr('feature_names_in_')
-        return self.best_estimator_.feature_names_in_
+        return self._best_estimator_getattr('feature_names_in_')
 
 
     @property
@@ -98,10 +105,43 @@ class _GSTCVMixin(
         Only available when `refit=True`.
         """
 
+        return self._best_estimator_getattr('n_features_in_')
+
+
+    def _best_estimator_getattr(self, _attr: str) -> Any:
+
+        """
+        Get an attribute from best_estimator_. Check if GSTCV is fitted.
+        Check if 'refit' is not False. Check if the best estimator has
+        the attribute. If all checks pass, return the attribute.
+
+
+        Parameters
+        ----------
+        _attr:
+            str - the attribute to be looked for in the best estimator.
+
+
+        Returns
+        -------
+        -
+            Any: the attribute from the best estimator.
+
+        """
+
         check_is_fitted(self)
-        self._check_refit__if_false_block_attr('n_features_in_')
-        self._best_estimator_hasattr('n_features_in_')
-        return self.best_estimator_.n_features_in_
+        if not self.refit:   # must be the init refit, not _refit.
+            raise AttributeError(
+                f"This {type(self).__name__} instance was initialized "
+                f"with `refit=False`. \n{_attr} is available only after "
+                f"refitting on the best parameters."
+            )
+        if not hasattr(self.best_estimator_, _attr):
+            raise AttributeError(
+                f"This '{type(self).__name__}' has no attribute '{_attr}'"
+            )
+
+        return getattr(self.best_estimator_, _attr)
 
     # END PROPERTIES v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -111,56 +151,49 @@ class _GSTCVMixin(
         return hasattr(self, '_refit')
 
 
-    def _best_estimator_hasattr(self, attr_or_method_name: str) -> None:
-
-        """
-        Check if in estimator has an attribute or method. If not, raise
-        AttributeError.
-        """
-
-        if not hasattr(self.best_estimator_, attr_or_method_name):
-            raise AttributeError(
-                f"This '{type(self).__name__}' has no attribute"
-                f" '{attr_or_method_name}'"
-            )
-
-
-    def _check_refit__if_false_block_attr(
-        self, attr_or_method_name: str
-    ) -> None:
-
-        """
-        Block attributes and methods that are not to be accessed if
-        refit is False. If refit is False, raise AttributeError.
-        """
-
-        if not self.refit:
-            # must be the init refit, not _refit. otherwise leads to
-            # "has no '_refit' attribute" errors.
-            raise AttributeError(
-                f"This {type(self).__name__} instance was initialized "
-                f"with `refit=False`. \n{attr_or_method_name} is "
-                f"available only after refitting on the best parameters."
-            )
-
-
     def _method_caller(
-        self, method_name: str, method_to_call: str, X
-    ):
+        self,
+        method_name: str,
+        method_to_call: str,
+        X: Union[SKXType, DaskXType]
+    ) -> Any:
 
         """
         Check whether the estimator has the method, check that 'refit'
         is not False, and check that GSTCV is fitted. Then call the
-        method on 'best_estimator_' and return the output.
+        method on 'best_estimator_', pass X to it, and return the output.
+
+
+        Parameters
+        ----------
+        method_name:
+            str - the GSTCV method being called
+        method_to_call:
+            str - the actual method to call on the best estimator
+        X:
+            array-like of shape (n_samples, n_features) - the data passed
+            to the method
+
+
+        Returns
+        -------
+        -
+            Any: the best estimator method result for X.
+
         """
 
         if not hasattr(self.estimator, method_name):
             __ = type(self).__name__
             raise AttributeError(f"This '{__}' has no attribute '{method_name}'")
-        self._check_refit__if_false_block_attr(method_name)
+        if not self.refit:   # must be the init refit, not _refit.
+            raise AttributeError(
+                f"This {type(self).__name__} instance was initialized "
+                f"with `refit=False`. \n{method_name} is available only "
+                f"after refitting on the best parameters."
+            )
         check_is_fitted(self)
 
-        with self._scheduler as scheduler:
+        with self._scheduler:  # could be Sk or Dask SchedulerType
             return getattr(self.best_estimator_, method_to_call)(X)
 
     # END SUPPORT METHODS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -179,7 +212,8 @@ class _GSTCVMixin(
         )
 
 
-    def fit(self, X, y, **fit_params) -> Self:
+    def fit(self, X, y, **fit_params
+    ) -> Self:
 
         """
         Perform the grid search with the hyperparameter settings in
@@ -199,7 +233,7 @@ class _GSTCVMixin(
         **fit_params:
             dict[str, Any] - Parameters passed to the fit method of the
             estimator. If a fit parameter is an array-like whose length
-            is equal to num_samples, then it will be split across CV
+            is equal to n_samples, then it will be split across CV
             groups along with X and y. For example, the sample_weight
             parameter is split because len(sample_weights) = len(X). For
             array-likes intended to be subject to CV splits, care must
@@ -207,6 +241,7 @@ class _GSTCVMixin(
             (n_samples, ) or (n_samples, 1), otherwise it will not
             be split.
 
+            # pizza verify this
             For pipelines, fit parameters can be passed to the fit method
             of any of the steps. Prefix the parameter name with the name
             of the step, such that parameter p for step s has key s__p.
@@ -215,11 +250,12 @@ class _GSTCVMixin(
         Return
         ------
         -
-            self: fitted estimator instance - GSTCV instance.
+            self: the fitted GSTCV instance.
 
         """
 
-        self._val_y(y)
+
+        # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # for params that serve both GSTCV & GSTCVDask
         _validation(
@@ -238,38 +274,49 @@ class _GSTCVMixin(
         # for either GSTCV or GSTCVDask params
         self._val_params()
 
-        self._estimator = type(self.estimator)(
+        self._val_y(y)
+
+        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+        # conditioning ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        self._estimator: ClassifierProtocol = type(self.estimator)(
             **deepcopy(self.estimator.get_params(deep=False))
         )
         self._estimator.set_params(
             **deepcopy(self.estimator.get_params(deep=True))
         )
 
-        _param_grid = _cond_param_grid(self.param_grid, self.thresholds)
+        _param_grid: ParamGridsWIPType = \
+            _cond_param_grid(self.param_grid, self.thresholds)
 
         # by sklearn design, name convention changes from 'scoring' to
         # 'scorer_' after conversion to dictionary
-        self.scorer_ = _cond_scoring(self.scoring)
+        self.scorer_: ScorerWIPType = _cond_scoring(self.scoring)
 
-        self._refit = _cond_refit(self.refit, self.scorer_)
+        self._refit: RefitType = _cond_refit(self.refit, self.scorer_)
 
         # an iterable _cv is turned to list(tuple, tuple,...)
         # int stays int
-        self._cv = _cond_cv(self.cv, _cv_default=5)
+        self._cv: Union[int, list[GenericKFoldType]] = \
+            _cond_cv(self.cv, _cv_default=5)
 
-        self._verbose = _cond_verbose(self.verbose)
+        self._verbose: int = _cond_verbose(self.verbose)
 
-        self.multimetric_:bool = len(self.scorer_) > 1
+        self.multimetric_: bool = len(self.scorer_) > 1
 
         # n_splits_ is only available after fit. n_splits_ is always
         # returned as a number
-        self.n_splits_ = \
+        self.n_splits_: int = \
             self._cv if isinstance(self._cv, numbers.Real) else len(self._cv)
 
         # for either GSTCV or GSTCVDask params
         self._condition_params(X, y)
 
-        # declare types after conditioning v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END conditioning ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # declare types after conditioning
         # THIS IS JUST TO HAVE A REFERENCE TO LOOK AT
         # self.estimator: ClassifierProtocol
         # self._estimator: ClassifierProtocol
@@ -288,19 +335,20 @@ class _GSTCVMixin(
         # self.n_splits_: int
         # self.verbose: numbers.Real
         # self._verbose: int
-        # self.error_score: Optional[Union[Literal['raise'], numbers.Real]]='raise',
-        # self.return_train_score: Optional[bool]=False
+        # self.error_score: Union[Literal['raise'], numbers.Real]
+        # self.return_train_score: bool
 
         # IF GSTCV:
         # self.pre_dispatch: Union[Literal['all'], str, numbers.Integral]
-        # self._scheduler: ContextManager
+        # self._scheduler: SKSchedulerType (ContextManager)
 
-        # IF GSTCVDASK:
+        # IF GSTCVDask:
         # self.cache_cv: bool
         # self.iid: bool
-        # self.scheduler = Union[SchedulerType, None]
-        # self._scheduler = SchedulerType
-        # END declare types after conditioning v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # self.scheduler = Union[DaskSchedulerType, None]
+        # self._scheduler = DaskSchedulerType (Client, Scheduler, ContextManager)
+        # END declare types after conditioning
+        # # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # BEFORE RUNNING cv_results_builder, THE THRESHOLDS MUST BE
         # REMOVED FROM EACH PARAM GRID IN _param_grid BUT THEY NEED TO
@@ -332,7 +380,7 @@ class _GSTCVMixin(
 
         _original_params = self._estimator.get_params(deep=True)
 
-        with self._scheduler:
+        with self._scheduler:     # could be Sk or Dask SchedulerType
 
             # CORE FIT v v v v v v v v v v v v v v v v v v v v v v v v v
 
@@ -749,8 +797,7 @@ class _GSTCVMixin(
         ------
         -
             A vector in [0,1] indicating the class label for the examples
-            in X. A numpy.ndarray (GSTCV) or dask.array.core.Array
-            (GSTCVDask) is returned.
+            in X.
 
         """
 
@@ -895,7 +942,7 @@ class _GSTCVMixin(
         return self._method_caller('score_samples', 'score_samples', X)
 
 
-    def transform(self, X):
+    def transform(self, X) :
 
         """
         Call transform on the estimator with the best parameters.
@@ -941,19 +988,25 @@ class _GSTCVMixin(
         Return
         ------
         -
-            The best_estimator_ transform method result for X.
+            The best_estimator_ visualize output.
 
 
         """
 
-
-        if not hasattr(self.estimator, 'visualize'):
-            __ = type(self).__name__
-            raise AttributeError(f"This '{__}' has no attribute 'visualize'")
-        self._check_refit__if_false_block_attr('visualize')
+        _attr = 'visualize'
+        if not hasattr(self.estimator, _attr):
+            raise AttributeError(
+                f"This '{type(self).__name__}' has no attribute '{_attr}'"
+            )
+        if not self.refit:   # must be the init refit, not _refit
+            raise AttributeError(
+                f"This {type(self).__name__} instance was initialized "
+                f"with `refit=False`. \n{_attr} is available only after "
+                f"refitting on the best parameters."
+            )
         check_is_fitted(self)
 
-        return getattr(self.best_estimator_, 'visualize')(*args, **kwargs)
+        return getattr(self.best_estimator_, _attr)(*args, **kwargs)
 
 
 
