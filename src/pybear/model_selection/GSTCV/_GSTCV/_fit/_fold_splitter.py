@@ -10,6 +10,7 @@ from typing_extensions import Union
 
 from .._type_aliases import (
     SKSlicerType,
+    SKSplitType,
     SKXType,
     SKYType
 )
@@ -23,8 +24,8 @@ import scipy.sparse as ss
 def _fold_splitter(
     train_idxs: SKSlicerType,
     test_idxs: SKSlicerType,
-    *data_objects: Union[SKXType, SKYType],
-) -> tuple[tuple[SKXType, SKYType], ...]:
+    *data_objects: Union[SKXType, SKYType]
+) -> tuple[SKSplitType, ...]:
 
     """
     Split given data objects into train / test pairs using the given
@@ -40,22 +41,22 @@ def _fold_splitter(
     Parameters
     ----------
     train_idxs:
-        SKSlicerType - 1D vector of row indices used to slice train sets
-        out of every given data object.
+        SKSlicerType - 1D vector of row indices used to slice train
+        sets out of every given data object.
     test_idxs:
-        SKSlicerType - 1D vector of row indices used to slice test sets
-        out of every given data object.
+        SKSlicerType - 1D vector of row indices used to slice test
+        sets out of every given data object.
     *data_objects:
-        Union[SKXType, SKYType] - The data objects to slice.
-        Need not be of equal size, and need not be completely consumed
-        in the train / test splits. However, standard indexing rules
-        apply when slicing by train_idxs and test_idxs.
+        Union[SKXType, SKYType] - The data objects to slice. Need
+        not be of equal size, and need not be completely consumed in the
+        train / test splits. However, standard indexing rules apply when
+        slicing by train_idxs and test_idxs.
 
 
     Return
     ------
     -
-        SPLITS: tuple[tuple[SKXType, SKYType], ...] - return the
+        SPLITS: tuple[SKSplitType, ...] - return the
         train / test splits for the given data objects in the order
         passed in a tuple of tuples, each inner tuple containing a
         train/test pair.
@@ -63,35 +64,10 @@ def _fold_splitter(
     """
 
 
-    # helper ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    def _val_cond_idxs(_name, _idxs):
-        """Helper for validating and conditioning slicers."""
-        _err_msg = f"'{_name}' must be a 1D vector of integers, not bools."
-        _idxs = np.array(_idxs)
-        if _idxs.dtype == bool:
-            raise TypeError(_err_msg)
-        if len(_idxs.shape) != 1:
-            raise ValueError(_err_msg)
-        del _err_msg
-        return _idxs
-    # END helper ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    train_idxs = _val_cond_idxs('train_idxs', train_idxs)
-
-    test_idxs = _val_cond_idxs('test_idxs', test_idxs)
-
-    del _val_cond_idxs
-
-
     SPLITS = []
     for _data in data_objects:
 
-        # pizza u will be coming back to here to deal with what containers are allowed.
-        # if 'shape' is required then this precludes py containers
-        assert len(_data.shape) in [1, 2], f"data objects must be 1-D or 2-D"
-
-        if isinstance(_data, np.ndarray):
+        if isinstance(_data, (np.ndarray, pd.Series)):
             _data_train = _data[train_idxs]
             _data_test = _data[test_idxs]
         elif isinstance(_data, pd.DataFrame):
@@ -114,17 +90,22 @@ def _fold_splitter(
             _data_test = _data.filter(_bool_test_idxs)
             del _bool_test_idxs
         else:
-            _data_train = _data[train_idxs]
-            _data_test = _data[test_idxs]
+            _og_container = type(_data)
+            _data_train = np.array(list(_data))[train_idxs]
+            _data_test = np.array(list(_data))[test_idxs]
+            try:
+                _data_train = _og_container(map(_og_container, _data_train))
+                _data_test = _og_container(map(_og_container, _data_test))
+            except:
+                _data_train = _og_container(_data_train)
+                _data_test = _og_container(_data_test)
+            del _og_container
 
 
         SPLITS.append(tuple((_data_train, _data_test)))
 
 
     return tuple(SPLITS)
-
-
-
 
 
 

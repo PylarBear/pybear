@@ -11,13 +11,14 @@ from .._type_aliases import SKKFoldType
 
 import numpy as np
 
+from ._fold_splitter import _fold_splitter
 
 
 
 def _estimator_fit_params_helper(
-    data_len: int,
-    fit_params: dict[str, Any],
-    KFOLD: SKKFoldType
+    _data_len: int,
+    _fit_params: dict[str, Any],
+    _KFOLD: SKKFoldType
 ) -> dict[int, dict[str, Any]]:
 
     """
@@ -27,19 +28,19 @@ def _estimator_fit_params_helper(
     dictionaries holding the respective fit params for that fold. In
     particular, this is designed to perform splitting on any fit param
     whose length matches the number of examples in the data, so that the
-    contents of that fit param are matched correctly to the train fold of
-    data concurrently being passed to fit. Other params that are not split
-    are simply replicated into each dictionary inside the helper.
+    contents of that fit param are matched correctly to the train fold
+    of data concurrently being passed to fit. Other params that are not
+    split are simply replicated into each dictionary inside the helper.
 
 
     Parameters
     ----------
-    data_len:
+    _data_len:
         int - the number of examples in the full data set.
-    fit_params:
+    _fit_params:
         dict[str, Any] - all the fit params passed to GSTCV fit for
         the estimator.
-    KFOLD:
+    _KFOLD:
         SKKFoldType - The KFold indices that were used to create the
         train / test splits of data.
 
@@ -52,51 +53,46 @@ def _estimator_fit_params_helper(
 
     """
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     try:
-        float(data_len)
-        if isinstance(data_len, bool):
-            raise
-        if not int(data_len) == data_len:
-            raise
-        data_len = int(data_len)
-        if not data_len > 0:
-            raise
+        float(_data_len)
+        if isinstance(_data_len, bool):
+            raise Exception
+        if not int(_data_len) == _data_len:
+            raise Exception
+        _data_len = int(_data_len)
+        if not _data_len > 0:
+            raise Exception
     except:
         raise TypeError(f"'data_len' must be an integer greater than 0")
 
-    assert isinstance(fit_params, dict)
-    assert all(map(isinstance, list(fit_params), (str for _ in fit_params)))
+    assert isinstance(_fit_params, dict)
+    assert all(map(isinstance, list(_fit_params), (str for i in _fit_params)))
 
-    assert isinstance(KFOLD, list), f"{type(KFOLD)=}"
-    assert all(map(isinstance, KFOLD, (tuple for _ in KFOLD)))
+    assert isinstance(_KFOLD, list), f"{type(_KFOLD)=}"
+    assert all(map(isinstance, _KFOLD, (tuple for _ in _KFOLD)))
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _fit_params_helper = {}
 
-    for f_idx, (train_idxs, test_idxs) in enumerate(KFOLD):
+    for f_idx, (train_idxs, test_idxs) in enumerate(_KFOLD):
 
         _fit_params_helper[f_idx] = {}
 
-        for _fit_param_key, _fit_param_value in fit_params.items():
+        for _fit_param_key, _fit_param_value in _fit_params.items():
 
             try:
                 iter(_fit_param_value)
                 if isinstance(_fit_param_value, (dict, str)):
-                    raise
-                np.array(list(_fit_param_value))
+                    raise Exception
+                if np.array(list(_fit_param_value)).shape[0] != _data_len:
+                    raise Exception
+                # remember we only care about the train fold.
+                _fit_params_helper[f_idx][_fit_param_key] = \
+                    _fold_splitter(train_idxs, test_idxs, _fit_param_value)[0][0]
             except:
                 _fit_params_helper[f_idx][_fit_param_key] = _fit_param_value
-                continue
-
-            # only get here if try did not except
-
-            __ = np.array(list(_fit_param_value)).ravel()
-
-            if len(__) == data_len:
-                _fit_params_helper[f_idx][_fit_param_key] = __[train_idxs]
-            else:
-                _fit_params_helper[f_idx][_fit_param_key] = _fit_param_value
-            del __
 
 
     return _fit_params_helper

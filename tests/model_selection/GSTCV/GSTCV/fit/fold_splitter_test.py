@@ -18,48 +18,52 @@ class TestSKFoldSplitter:
 
 
     # def _fold_splitter(
-    #     train_idxs: Union[GenericSlicerType, SKSlicerType],
-    #     test_idxs: Union[GenericSlicerType, SKSlicerType],
-    #     *data_objects: Union[XSKWIPType, YSKWIPType],
-    # ) -> tuple[tuple[XSKWIPType, YSKWIPType], ...]:
+    #     train_idxs: SKSlicerType,
+    #     test_idxs: SKSlicerType,
+    #     *data_objects: Union[SKXType, SKYType]
+    # ) -> tuple[SKSplitType, ...]:
 
 
-    @pytest.mark.parametrize('bad_data_object',
-        (1, 3.14, True, False, None, 'junk', min, [0,1], (0,1), {0,1},
-        {'a':1}, lambda x: x)
-    )
-    def test_rejects_everything_without_shape_attr(self, bad_data_object):
+    # 25_05_14 no longer explicity blocking containers w/o shape attr
+    # @pytest.mark.parametrize('bad_data_object',
+    #     (1, 3.14, True, False, None, 'junk', min, [0,1], (0,1), {0,1},
+    #     {'a':1}, lambda x: x)
+    # )
+    # def test_rejects_everything_without_shape_attr(self, bad_data_object):
+    #
+    #     with pytest.raises(AttributeError):
+    #         _fold_splitter(
+    #             [0,2,4],
+    #             [1,3],
+    #             bad_data_object
+    #         )
 
-        with pytest.raises(AttributeError):
-            _fold_splitter(
-                [0,2,4],
-                [1,3],
-                bad_data_object
-            )
 
-
+    # 25_05_14 no longer explicitly enforcing 1D or 2D
     @pytest.mark.parametrize('bad_data_object',
         (
-            np.random.randint(0, 10, (3, 3, 3)),
-            np.random.randint(0, 10, (3, 3, 3, 3)),
+            np.random.randint(0, 10, (5, 5, 5)),
+            np.random.randint(0, 10, (5, 5, 5, 5)),
         )
     )
     def test_rejects_bad_shape(self, bad_data_object):
 
-        with pytest.raises(AssertionError):
-            _fold_splitter(
-                [0,2,4],
-                [1,3],
-                bad_data_object
-            )
+        # with pytest.raises(AssertionError):
+        _fold_splitter(
+            [0,2,4],
+            [1,3],
+            bad_data_object
+        )
+
+
 
 
     @pytest.mark.parametrize('_X1_format',
-        ('py_list', 'py_tup', 'py_set', 'np', 'pd', 'ss', 'pl')
+        ('np', 'pd', 'ss', 'pl', 'py_list', 'py_tup')
     )
     @pytest.mark.parametrize('_X1_dim', (1, 2))
     @pytest.mark.parametrize('_X2_format',
-        ('py_list', 'py_tup', 'py_set', 'np', 'pd', 'ss', 'pl')
+        ('np', 'pd', 'ss', 'pl', 'py_list', 'py_tup')
     )
     @pytest.mark.parametrize('_X2_dim', (1, 2))
     def test_accuracy(
@@ -70,9 +74,6 @@ class TestSKFoldSplitter:
         if (_X1_dim == 1 and _X1_format == 'ss') \
                 or (_X2_dim == 1 and _X2_format == 'ss'):
             pytest.skip(reason=f"cant have 1D scipy sparse")
-        if (_X1_dim == 2 and _X1_format == 'py_set') \
-                or (_X2_dim == 2 and _X2_format == 'py_set'):
-            pytest.skip(reason=f"cant have 2D set")
 
         # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -103,20 +104,12 @@ class TestSKFoldSplitter:
         else:
             raise Exception
 
-        # 25_04_28 only takes objects that have 'shape' attr
-        if _X1_format in ('py_list', 'py_tup', 'py_set') \
-                or _X2_format in ('py_list', 'py_tup', 'py_set'):
-            with pytest.raises(AttributeError):
-                _fold_splitter(mask_train, mask_test, _X1, _X2)
-            pytest.skip(reason=f"cant do more tests")
-        else:
-            out = _fold_splitter(mask_train, mask_test, _X1, _X2)
+
+        out = _fold_splitter(mask_train, mask_test, _X1, _X2)
 
         assert isinstance(out, tuple)
         assert all(map(isinstance, out, (tuple for i in out)))
 
-
-        # shouldnt get to here for py_list, py_tup, py_set
 
         assert type(out[0][0]) == type(_X1)
         if _X1_format == 'np':
@@ -128,7 +121,9 @@ class TestSKFoldSplitter:
         elif _X1_format == 'pl':
             assert np.array_equiv(out[0][0].to_numpy(), _X1_ref_train)
         else:
-            raise Exception
+            # py_list, py_tup
+            assert np.array_equiv(out[0][0], _X1_ref_train)
+
 
         assert type(out[0][1]) == type(_X1)
         if _X1_format == 'np':
@@ -140,7 +135,8 @@ class TestSKFoldSplitter:
         elif _X1_format == 'pl':
             assert np.array_equiv(out[0][1].to_numpy(), _X1_ref_test)
         else:
-            raise Exception
+            # py_list, py_tup
+            assert np.array_equiv(out[0][1], _X1_ref_test)
 
 
         assert type(out[1][0]) == type(_X2)
@@ -153,7 +149,9 @@ class TestSKFoldSplitter:
         elif _X2_format == 'pl':
             assert np.array_equiv(out[1][0].to_numpy(), _X2_ref_train)
         else:
-            raise Exception
+            # py_list, py_tup
+            assert np.array_equiv(out[1][0], _X2_ref_train)
+
 
         assert type(out[1][1]) == type(_X2)
         if _X2_format == 'np':
@@ -165,8 +163,8 @@ class TestSKFoldSplitter:
         elif _X2_format == 'pl':
             assert np.array_equiv(out[1][1].to_numpy(), _X2_ref_test)
         else:
-            raise Exception
-
+            # py_list, py_tup
+            assert np.array_equiv(out[1][1], _X2_ref_test)
 
 
 

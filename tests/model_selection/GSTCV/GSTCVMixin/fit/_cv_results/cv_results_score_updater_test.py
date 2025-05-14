@@ -10,8 +10,8 @@ import pytest
 
 import numpy as np
 
-from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_score_updater \
-    import _cv_results_score_updater
+from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results. \
+    _cv_results_score_updater import _cv_results_score_updater
 
 from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring import \
     master_scorer_dict
@@ -22,30 +22,22 @@ class TestCVResultsScoreUpdater:
 
 
     # def _cv_results_score_updater(
-    #         _FOLD_x_SCORER__SCORE: np.ma.masked_array[np.float64],
-    #         _type: Literal['train', 'test'],
-    #         _trial_idx: int,
-    #         _scorer: ScorerWIPType,
-    #         _cv_results: CVResultsType
-    #     ) -> CVResultsType:
+    #     _FOLD_x_SCORER__SCORE: MaskedHolderType,
+    #     _type: Literal['train', 'test'],
+    #     _trial_idx: int,
+    #     _scorer: ScorerWIPType,
+    #     _cv_results: CVResultsType
+    # ) -> CVResultsType:
 
     # _FOLD_x_SCORER__SCORE must have shape (_n_splits, _n_scorers)
-    # _trial_idx must be in range(len(cv_results[0]))  ... total permutations
-    #       _trial_idx dictates row of cv_results_ to fill
+
+    # _trial_idx must be in range(len(cv_results_))  ... total permutations
+    # _trial_idx dictates row of cv_results_ to fill
 
     # TEST PLAN:
     # build a rigged grid of scores. use _cv_results_score_updater to fill
     # cv_results_.  Verify correct columns are filled with correct values.
     # Using rigged grid for both test scores and train scores.
-
-
-
-    @staticmethod
-    @pytest.fixture(scope='class')
-    def rigged_score_matrix_1():
-        # (n_splits, n_scorers)
-        data = np.random.uniform(0, 1, (3, 2))
-        return np.ma.masked_array(data=data, mask=False)
 
 
     @pytest.mark.parametrize(
@@ -61,13 +53,15 @@ class TestCVResultsScoreUpdater:
         indirect=True
     )
     @pytest.mark.parametrize('_trial_idx', (0, 2, 5))
-    @pytest.mark.parametrize('_type', ('test', 'train', ))
-    def test_accuracy_1(
-        self, _cv_results_template, rigged_score_matrix_1, _type, _trial_idx
-    ):
+    @pytest.mark.parametrize('_type', ('test', 'train'))
+    def test_accuracy_1(self, _cv_results_template, _type, _trial_idx):
 
         # 2 scorers, 1 param grid
 
+        rigged_score_matrix_1 = \
+            np.ma.masked_array(
+                data=np.random.uniform(0, 1, (3, 2)), mask=False
+            )
 
         _scorers = ['accuracy', 'balanced_accuracy']
 
@@ -108,17 +102,6 @@ class TestCVResultsScoreUpdater:
             # ** * ** *
 
 
-
-
-
-    @staticmethod
-    @pytest.fixture(scope='class')
-    def rigged_score_matrix_2():
-        # (n_splits, n_scorers)
-        data = np.random.uniform(0, 1, (5, 1))
-        return np.ma.masked_array(data=data, mask=False)
-
-
     @pytest.mark.parametrize(
         '_cv_results_template',
         [{
@@ -131,14 +114,16 @@ class TestCVResultsScoreUpdater:
         }],
         indirect=True
     )
-    @pytest.mark.parametrize('_trial_idx', (0, 2, 5))
-    @pytest.mark.parametrize('_type', ('test',))
-    def test_accuracy_2(
-        self, _cv_results_template, rigged_score_matrix_2, _type, _trial_idx
-    ):
+    @pytest.mark.parametrize('_trial_idx', (1, 3, 4))
+    @pytest.mark.parametrize('_type', ('test', ))
+    def test_accuracy_2(self, _cv_results_template, _type, _trial_idx):
 
         # 1 scorer, 2 param grids
 
+        rigged_score_matrix_2 = \
+            np.ma.masked_array(
+                data=np.random.uniform(0, 1, (5, 1)), mask=False
+            )
 
         _scorers = ['balanced_accuracy']
 
@@ -176,16 +161,6 @@ class TestCVResultsScoreUpdater:
                 assert out_cv_results[_header][_trial_idx] == \
                        rigged_score_matrix_2[_split, _scorer_idx]
             # ** * ** *
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -7,6 +7,7 @@
 
 
 from typing_extensions import Union
+
 from .._type_aliases import (
     DaskSlicerType,
     DaskSplitType,
@@ -14,7 +15,6 @@ from .._type_aliases import (
     DaskYType
 )
 
-from dask import compute
 import dask.array as da
 import dask.dataframe as ddf
 
@@ -25,7 +25,6 @@ def _fold_splitter(
     test_idxs: DaskSlicerType,
     *data_objects: Union[DaskXType, DaskYType]
 ) -> tuple[DaskSplitType, ...]:
-
 
     """
     Split given data objects into train / test pairs using the given
@@ -47,56 +46,27 @@ def _fold_splitter(
         DaskSlicerType - 1D vector of row indices used to slice test
         sets out of every given data object.
     *data_objects:
-        Union[DaskXType, DaskYType] - The data objects to slice.
-        Need not be of equal size, and need not be completely consumed
-        in the train / test splits. However, standard indexing rules
-        apply when slicing by train_idxs and test_idxs.
+        Union[DaskXType, DaskYType] - The data objects to slice. Need
+        not be of equal size, and need not be completely consumed in the
+        train / test splits. However, standard indexing rules apply when
+        slicing by train_idxs and test_idxs.
 
 
     Return
     ------
     -
-        SPLITS: tuple[tuple[DaskXType, DaskYType], ...] - return
-        the train / test splits for the given data objects in the order
+        SPLITS: tuple[DaskSplitType, ...] - return the train / test
+        splits for the given data objects in the order
         passed in a tuple of tuples, each inner tuple containing a
         train/test pair.
 
     """
 
 
-    # helper ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    def _val_cond_idxs(_name, _idxs):
-        """Helper for validating and conditioning slicers."""
-        _err_msg = f"'{_name}' must be a 1D vector of integers, not bools."
-        _idxs = da.array(_idxs)   # pizza can this go to da.from_array?
-        if _idxs.dtype == bool:
-            raise TypeError(_err_msg)
-        if len(_idxs.shape) != 1:
-            raise ValueError(_err_msg)
-        del _err_msg
-        return _idxs
-    # END helper ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    train_idxs = _val_cond_idxs('train_idxs', train_idxs)
-
-    test_idxs = _val_cond_idxs('test_idxs', test_idxs)
-
-    del _val_cond_idxs
-
-
     SPLITS = []
     for _data in data_objects:
 
-        # this block is here because of the if/elifs below
-        if not isinstance(_data, (da.core.Array, ddf.DataFrame, ddf.Series)):
-            raise TypeError(f"object of disallowed dtype '{type(_data)}' "
-                f"is in fold_splitter()")
-
-        assert len(compute(_data.shape)[0]) in [1, 2], \
-            f"data objects must be 1-D or 2-D"
-
-        #  25_04_28 the compute()s need to be here for ddf slicing to work
+        # the compute()s need to be here for ddf slicing to work
         if isinstance(_data, da.core.Array):
             _data_train = _data[train_idxs]
             _data_test = _data[test_idxs]
@@ -107,15 +77,12 @@ def _fold_splitter(
             _data_train = _data[train_idxs.compute()]
             _data_test = _data[test_idxs.compute()]
         else:
-            raise Exception
+             raise TypeError(f"disallowed container '{type(_data)}'")
 
         SPLITS.append(tuple((_data_train, _data_test)))
 
 
     return tuple(SPLITS)
-
-
-
 
 
 

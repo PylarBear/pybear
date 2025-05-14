@@ -98,13 +98,12 @@ def _parallelized_scorer(
     -
         TEST_THRESHOLD_x_SCORER__SCORE_LAYER:
             MaskedHolderType - masked array of shape (n_thresholds,
-            n_scorers) holding the scores for each scorer over all the
-            thresholds.
+            n_scorers) holding the scores for each scorer on each
+            threshold for one fold of test data.
         TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER:
             MaskedHolderType - masked array of shape (n_thresholds,
-            n_scorers) holding the times to score each scorer over
-            all the thresholds. .... pizza check this is it an average
-
+            n_scorers) holding the times to score each scorer on each
+            threshold for one fold of test data.
 
     """
 

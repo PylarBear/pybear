@@ -12,23 +12,6 @@ import numpy as np
 
 
 
-# def __init__(
-#     self,
-#     estimator,
-#     param_grid: ParamGridType,
-#     *,
-#     thresholds: Optional[Union[Iterable[Union[int, float]], int, float, None]]=None,
-#     scoring: Optional[ScorerInputType]='accuracy',
-#     n_jobs: Optional[Union[int, None]]=None,
-#     refit: Optional[RefitType]=True,
-#     cv: Optional[Union[int, Iterable, None]]=None,
-#     verbose: Optional[Union[int, float, bool]]=0,
-#     error_score: Optional[Union[Literal['raise'], int, float]]='raise',
-#     return_train_score: Optional[bool]=False
-# ):
-
-
-
 class TestCoreFit_FitParams_NotPipe:
 
 

@@ -44,15 +44,12 @@ from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
 class TestInitValidation:
 
-    # pizza update this or delete
-    # def __init__(self,
+    # def __init__(
+    #         self,
     #         estimator: ClassifierProtocol,
-    #         param_grid: Union[
-    #             dict[str, Sequence[Any]], Sequence[dict[str, Sequence[Any]]]
-    #         ],
+    #         param_grid: Union[ParamGridInputType, ParamGridsInputType],
     #         *,
-    #         thresholds:
-    #             Optional[Union[numbers.Real, Sequence[numbers.Real], None]]=None,
+    #         thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
     #         scoring: Optional[
     #             Union[str, Sequence[str], Callable, dict[str, Callable]]
     #         ]='accuracy',
@@ -71,8 +68,6 @@ class TestInitValidation:
 
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    # pizza there are a lot of WIP scorer dicts in here see if can streamline
 
     @staticmethod
     @pytest.fixture(scope='function')
@@ -931,7 +926,7 @@ class TestInitValidation:
         with pytest.raises(TypeError):
             special_gstcv_dask.fit(X_da, y_da)
 
-    @pytest.mark.skip(reason=f"takes too long, alrdady handled by GSTCV")
+    @pytest.mark.skip(reason=f"takes too long, already handled by GSTCV")
     @pytest.mark.parametrize('good_train_score', (True, False))
     def test_train_score_accepts_bool(
         self, special_gstcv_dask, good_train_score, X_da, y_da, _client
