@@ -21,6 +21,7 @@ from ..._validation._holders._f_s import _val_f_s
 from ..._validation._scoring import _val_scoring
 
 
+
 def _cv_results_update(
     _trial_idx: int,
     _THRESHOLDS: ThresholdsWIPType,
@@ -35,9 +36,9 @@ def _cv_results_update(
 ) -> CVResultsType:
 
     """
-
     Fills a row of cv_results with thresholds, scores, and times, but
     not ranks. (Ranks must be done after cv_results is full.)
+
 
     Parameters
     ----------
@@ -48,32 +49,29 @@ def _cv_results_update(
         associated with this permutation of search. 'param grid' being
         a single dict from the param_grid list of param grids.
     _FOLD_FIT_TIMES_VECTOR:
-        MaskedHolderType - the times to fit each of the folds
-        for this permutation. If a fit excepted, the corresponding
-        position is masked and excluded from aggregate calculations.
+        MaskedHolderType - the times to fit each of the folds for this
+        permutation. If a fit excepted, the corresponding position is
+        masked and excluded from aggregate calculations.
     _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME:
-        MaskedHolderType - A 3D object of shape (n_splits,
-        n_thresholds, n_scorers). If a fit excepted, the corresponding
-        plane in axis 0 is masked, and is excluded from aggregate
-        calculations. Otherwise, holds score times for every fold /
-        threshold / scorer permutation.
+        MaskedHolderType - A 3D object of shape (n_splits, n_thresholds,
+        n_scorers). If a fit excepted, the corresponding plane in axis 0
+        is masked, and is excluded from aggregate calculations. Otherwise
+        holds score times for every fold / threshold / scorer permutation.
     _TEST_BEST_THRESH_IDXS_BY_SCORER:
-        MaskedHolderType - vector of shape (n_scorers,) that
-        matches position-for-position against the scorers in scorer_. It
-        holds the index location in the original threshold vector of the
-        best threshold for each scorer.
+        MaskedHolderType - vector of shape (n_scorers,) that matches
+        position-for-position against the scorers in scorer_. It holds
+        the index location in the original threshold vector of the best
+        threshold for each scorer.
     _TEST_FOLD_x_SCORER__SCORE:
-        MaskedHolderType - masked array of shape (n_splits,
-        n_scorers) that holds the test scores for the set of folds
-        corresponding to the best threshold for that scorer. If a fit
-        excepted, the corresponding layer in axis 0 holds 'error_score'
-        value in every position.
+        MaskedHolderType - masked array of shape (n_splits, n_scorers)
+        that holds the test scores corresponding to the best threshold
+        for that fold and scorer. If a fit excepted, the corresponding
+        row in axis 0 holds the 'error_score' value in every position.
     _TRAIN_FOLD_x_SCORER__SCORE:
-        MaskedHolderType - masked array of shape (n_splits,
-        n_scorers) that holds the train scores for the set of folds
-        corresponding to the best threshold for that scorer. If a fit
-        excepted, the corresponding layer in axis 0 holds 'error_score'
-        value in every position.
+        MaskedHolderType - masked array of shape (n_splits, n_scorers)
+        that holds the train scores corresponding to the best threshold
+        for that fold and scorer. If a fit excepted, the corresponding
+        row in axis 0 holds the 'error_score' value in every position.
     _scorer:
         ScorerWIPType - dictionary of scorer names and scorer functions.
         Note that the scorer functions are sklearn metrics (or similar),
@@ -81,7 +79,7 @@ def _cv_results_update(
         cv_results and nothing more.
     _cv_results:
         CVResultsType - empty cv_results dictionary other than the
-        'param_' columns and the 'params' column.
+        'param_{}' columns and the 'params' column.
     _return_train_score:
         bool - when True, calculate the scores for the train folds in
         addition to the test folds.
@@ -100,8 +98,7 @@ def _cv_results_update(
     assert _trial_idx >= 0, f"'_trial_idx' must be >= 0"
     assert len(_THRESHOLDS) >= 1, f"'len(_THRESHOLDS) must be >= 1 "
     _val_scoring(_scorer, _must_be_dict=True)
-    _n_scorers = len(_scorer)
-    assert len(_TEST_BEST_THRESH_IDXS_BY_SCORER) == _n_scorers
+    assert len(_TEST_BEST_THRESH_IDXS_BY_SCORER) == len(_scorer)
 
     assert len(_FOLD_FIT_TIMES_VECTOR) == \
             _TEST_FOLD_x_SCORER__SCORE.shape[0] == \
@@ -109,32 +106,28 @@ def _cv_results_update(
             _TRAIN_FOLD_x_SCORER__SCORE.shape[0], \
             f"disagreement of number of splits"
 
-    _n_splits = len(_FOLD_FIT_TIMES_VECTOR)
-
     _val_f_t_s(
         _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME,
         '_TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME',
-        _n_splits, len(_THRESHOLDS), _n_scorers
+        len(_FOLD_FIT_TIMES_VECTOR), len(_THRESHOLDS), len(_scorer)
     )
 
     _val_f_s(
         _TEST_FOLD_x_SCORER__SCORE,
         '_TEST_FOLD_x_SCORER__SCORE',
-        _n_splits,
-        len(_scorer)
+        len(_FOLD_FIT_TIMES_VECTOR), len(_scorer)
     )
+
     _val_f_s(
         _TRAIN_FOLD_x_SCORER__SCORE,
         '_TRAIN_FOLD_x_SCORER__SCORE',
-        _n_splits,
-        len(_scorer)
+        len(_FOLD_FIT_TIMES_VECTOR), len(_scorer)
     )
 
-    assert isinstance(_cv_results, dict), f"'_cv_results' must be a dictionary"
+    assert isinstance(_cv_results, dict), \
+        f"'_cv_results' must be a dictionary"
     assert isinstance(_return_train_score, bool), \
         f"'_return_train_score' must be bool"
-
-    del _n_scorers, _n_splits
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 
 
@@ -175,10 +168,9 @@ def _cv_results_update(
     # END UPDATE cv_results_ WITH SCORES ###############################
 
 
-
     # UPDATE cv_results_ WITH TIMES ####################################
-    for cv_results_column_name in ['mean_fit_time', 'std_fit_time',
-                                   'mean_score_time', 'std_score_time']:
+    for cv_results_column_name in \
+        ['mean_fit_time', 'std_fit_time', 'mean_score_time', 'std_score_time']:
         if cv_results_column_name not in _cv_results:
             raise ValueError(
                 f"appending time results to a column in cv_results_ that "
@@ -196,20 +188,6 @@ def _cv_results_update(
 
 
     return _cv_results
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -69,6 +69,9 @@ class _GSTCVMixin(
     SetParamsMixin
 ):
 
+    """Mixin for GSTCV and GSTCVDask."""
+
+
     # PROPERTIES v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
     @property
@@ -119,7 +122,7 @@ class _GSTCVMixin(
         Parameters
         ----------
         _attr:
-            str - the attribute to be looked for in the best estimator.
+            str - the attribute to look for in the best estimator.
 
 
         Returns
@@ -217,7 +220,9 @@ class _GSTCVMixin(
 
         """
         Perform the grid search with the hyperparameter settings in
-        param grid to generate scores for the given X and y.
+        :param: `param_grid` to find the unique hyperparameter values
+        that maximize score (minimize loss) for the estimator and data
+        being used.
 
 
         Parameters
@@ -235,13 +240,12 @@ class _GSTCVMixin(
             estimator. If a fit parameter is an array-like whose length
             is equal to n_samples, then it will be split across CV
             groups along with X and y. For example, the sample_weight
-            parameter is split because len(sample_weights) = len(X). For
-            array-likes intended to be subject to CV splits, care must
-            be taken to ensure that any such vector is shaped
-            (n_samples, ) or (n_samples, 1), otherwise it will not
-            be split.
+            parameter is split because len(sample_weights) = len(X).
+            For array-likes intended to be subject to CV splits, care
+            must be taken to ensure that any such vector is shaped
+            (n_samples, ) or (n_samples, 1), otherwise it will not be
+            split.
 
-            # pizza verify this
             For pipelines, fit parameters can be passed to the fit method
             of any of the steps. Prefix the parameter name with the name
             of the step, such that parameter p for step s has key s__p.
@@ -728,8 +732,8 @@ class _GSTCVMixin(
 
         """
         Call decision_function on the estimator with the best parameters.
-        Only available if refit is not False and the underlying estimator
-        supports decision_function.
+        Only available if :param: `refit` is not False and the underlying
+        estimator supports decision_function.
 
 
         Parameters
@@ -752,9 +756,8 @@ class _GSTCVMixin(
     def inverse_transform(self, X):
 
         """
-
         Call inverse_transform on the estimator with the best parameters.
-        Only available if `refit` is not False and the underlying
+        Only available if :param: `refit` is not False and the underlying
         estimator supports inverse_transform.
 
 
@@ -779,11 +782,11 @@ class _GSTCVMixin(
     def predict(self, X):
 
         """
-        Call the best estimator's predict_proba method on the passed X
-        and apply the best_threshold_ to predict the classes for X. When
-        only one scorer is used, predict is available if refit is not
-        False. When more than one scorer is used, predict is only
-        available if refit is set to a string.
+        Pass X to predict_proba on the estimator with the best parameters
+        and apply the best threshold to predict the classes for X. When
+        only one scorer is used, predict is available if :param: `refit`
+        is not False. When more than one scorer is used, predict is only
+        available if `refit` is set to a string.
 
 
         Parameters
@@ -818,9 +821,9 @@ class _GSTCVMixin(
     def predict_log_proba(self, X):
 
         """
-        Call predict_log_proba on the estimator with the best
-        parameters. Only available if refit is not False and the
-        underlying estimator supports predict_log_proba.
+        Call predict_log_proba on the estimator with the best parameters.
+        Only available if :param: `refit` is not False and the underlying
+        estimator supports predict_log_proba.
 
 
         Parameters
@@ -843,10 +846,10 @@ class _GSTCVMixin(
     def predict_proba(self, X):
 
         """
-        Call predict_proba on the estimator with the best
-        parameters. Only available if refit is not False. The underlying
-        estimator must support this method, as it is a characteristic
-        that is validated.
+        Call predict_proba on the estimator with the best parameters.
+        Only available if `refit` is not False. The underlying estimator
+        must support this method, as it is a characteristic that is
+        validated.
 
 
         Parameters
@@ -871,13 +874,13 @@ class _GSTCVMixin(
         """
         Score the given X and y using the best estimator, best threshold,
         and the defined scorer. When there is only one scorer, that is
-        the defined scorer, and score is available if refit is not False.
-        When there are multiple scorers, the defined scorer is the scorer
-        specified by 'refit', and score is available only if refit is
-        set to a string.
+        the defined scorer, and if :param: `refit` is not False, then
+        the score method is available. When there are multiple scorers,
+        the defined scorer is the scorer specified by :param: `refit`
+        only if `refit` is set to a string value.
 
-        See the documentation for the 'scoring' parameter for information
-        about passing kwargs to the scorer.
+        See the documentation for the :param: `scoring` parameter for
+        information about passing kwargs to the scorer.
 
 
         Parameters
@@ -904,10 +907,6 @@ class _GSTCVMixin(
         elif len(self.scorer_) > 1 and callable(self._refit):
             # a relic of nonsense in sk GSCV?
             return self._refit
-            # pizza maybe raise AttributeError like predict() ?
-            # f"'score' is not available when there are multiple "
-            # f"scorers and refit is a callable because best_threshold_ "
-            # f"cannot be determined."
 
         self._val_y(y)
         y_pred = self._method_caller('score', 'predict', X)
@@ -920,9 +919,9 @@ class _GSTCVMixin(
     def score_samples(self, X):
 
         """
-        Call score_samples on the estimator with the best
-        parameters. Only available if refit is not False and the
-        underlying estimator supports score_samples.
+        Call score_samples on the estimator with the best parameters.
+        Only available if :param: `refit` is not False and the underlying
+        estimator supports score_samples.
 
 
         Parameters
@@ -945,9 +944,9 @@ class _GSTCVMixin(
     def transform(self, X) :
 
         """
-        Call transform on the estimator with the best parameters.
-        Only available if refit is not False and the underlying estimator
-        supports transform.
+        Call transform on the estimator with the best parameters. Only
+        available if :param: `refit` is not False and the underlying
+        estimator supports transform.
 
 
         Parameters
@@ -971,8 +970,8 @@ class _GSTCVMixin(
 
         """
         Call visualize on the estimator with the best parameters. Only
-        available if refit is not False and the underlying estimator
-        supports visualize.
+        available if :param: `refit` is not False and the underlying
+        estimator supports visualize.
 
 
         Parameters
@@ -989,7 +988,6 @@ class _GSTCVMixin(
         ------
         -
             The best_estimator_ visualize output.
-
 
         """
 

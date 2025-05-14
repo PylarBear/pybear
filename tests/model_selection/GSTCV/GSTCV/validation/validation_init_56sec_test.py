@@ -44,15 +44,15 @@ from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
 class TestInitValidation:
 
-    # pizza update this or delete it
+
     #     def __init__(
     #         self,
     #         estimator: ClassifierProtocol,
-    #         param_grid: Union[dict[str, Sequence[Any]], Sequence[dict[str, Sequence[Any]]]],
+    #         param_grid: Union[ParamGridInputType, ParamGridsInputType],
     #         *,
     #         thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
     #         scoring: Optional[
-    #             Union[list[str], dict[str, Callable], str, Callable]
+    #             Union[str, Sequence[str], Callable, dict[str, Callable]]
     #         ]='accuracy',
     #         n_jobs: Optional[Union[numbers.Integral, None]]=None,
     #         refit: Optional[Union[bool, str, Callable]]=True,
@@ -71,8 +71,6 @@ class TestInitValidation:
 
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    # pizza there are a lot of WIP scorer dicts in here see if can streamline
 
     @staticmethod
     @pytest.fixture(scope='function')

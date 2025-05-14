@@ -18,8 +18,6 @@ from .._type_aliases import (
 
 import time
 
-import dask.array as da
-import dask.dataframe as ddf
 from dask_ml.model_selection import KFold as dask_KFold
 
 
@@ -35,12 +33,9 @@ def _get_kfold(
     """
     Use dask_ml KFold to get train / test splits when cv is passed as an
     integer. KFold uses the number of rows in _X and _n_splits to
-    determine the indices in each train / test split.
-    _X must be a 2D dask.array.core.Array. y is optional in dask_ml KFold.
-    If passed, it must be a 1D da.core.Array vector and the number of
-    rows in _X and _y must be equal. As of 24_06_27, only dask arrays can
-    be passed to dask_ml.KFold (not np, pd.DF, nor dask.DF). See
-    dask_kfold_input_test in functional_tests folder for details.
+    determine the indices in each train / test split. y is optional in
+    dask_ml KFold. If passed, the number of rows in _X and _y must be
+    equal.
 
     *** IMPORTANT!!!
     This function can be called multiple times within a single param grid
@@ -79,27 +74,27 @@ def _get_kfold(
     Return
     ------
     -
-        KFOLD:
-            Iterator[DaskKFoldType] - A generator object yielding
-            pairs of train test indices as da.core.Array[int].
+        KFOLD: Iterator[DaskKFoldType] - A generator object yielding
+        pairs of train test indices as da.core.Array[int].
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # 25_04_29 NOT VALIDATING X & y HERE ANYMORE. LET KFold RAISE.
     assert isinstance(_n_splits, int)
     assert _n_splits > 1
     assert isinstance(_iid, bool)
     try:
         float(_verbose)
     except:
-        raise AssertionError(f"'_verbose' must be an int, float, or bool")
+        raise AssertionError(f"'_verbose' must be numeric")
     assert _verbose >= 0
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     split_t0 = time.perf_counter()
     # KFold keeps the same chunks ax X
-    # 25_04_29 dask_KFold only accepts da array for X
+    # as of 25_04_29 dask_KFold only accepts da array for X
     KFOLD = dask_KFold(
         n_splits=_n_splits,
         shuffle=not _iid,

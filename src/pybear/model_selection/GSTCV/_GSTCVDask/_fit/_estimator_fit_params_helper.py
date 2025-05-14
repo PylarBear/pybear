@@ -9,15 +9,17 @@
 from typing_extensions import Any
 from .._type_aliases import DaskKFoldType
 
-import dask.array as da
 from dask import compute
+
+from ._fold_splitter import _fold_splitter as _dask_fold_splitter
+from ..._GSTCV._fit._fold_splitter import _fold_splitter as _sk_fold_splitter
 
 
 
 def _estimator_fit_params_helper(
-    data_len: int,
-    fit_params: dict[str, Any],
-    KFOLD: DaskKFoldType
+    _data_len: int,
+    _fit_params: dict[str, Any],
+    _KFOLD: DaskKFoldType
 ) -> dict[int, dict[str, Any]]:
 
     """
@@ -27,19 +29,19 @@ def _estimator_fit_params_helper(
     dictionaries holding the respective fit params for that fold. In
     particular, this is designed to perform splitting on any fit param
     whose length matches the number of examples in the data, so that the
-    contents of that fit param are matched correctly to the train fold of
-    data concurrently being passed to fit. Other params that are not split
-    are simply replicated into each dictionary inside the helper.
+    contents of that fit param are matched correctly to the train fold
+    of data concurrently being passed to fit. Other params that are not
+    split are simply replicated into each dictionary inside the helper.
 
 
     Parameters
     ----------
-    data_len:
+    _data_len:
         int - the number of examples in the full data set.
-    fit_params:
+    _fit_params:
         dict[str, Any] - all the fit params passed to GSTCVDask fit for
         the estimator.
-    KFOLD:
+    _KFOLD:
         DaskKFoldType - The KFold indices that were used to create the
         train / test splits of data.
 
@@ -52,63 +54,52 @@ def _estimator_fit_params_helper(
 
     """
 
-    # data will always be dask array because of _val_y  ...... pizza come back to this!
-    # aim for worst case, KFold and stuff in fit_params was passed with non-dask
-
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     try:
-        float(data_len)
-        if isinstance(data_len, bool):
-            raise
-        if not int(data_len) == data_len:
-            raise
-        data_len = int(data_len)
-        if not data_len > 0:
-            raise
+        float(_data_len)
+        if isinstance(_data_len, bool):
+            raise Exception
+        if not int(_data_len) == _data_len:
+            raise Exception
+        _data_len = int(_data_len)
+        if not _data_len > 0:
+            raise Exception
     except:
         raise TypeError(f"'data_len' must be an integer greater than 0")
 
-    assert isinstance(fit_params, dict)
-    assert all(map(isinstance, list(fit_params), (str for _ in fit_params)))
+    assert isinstance(_fit_params, dict)
+    assert all(map(isinstance, list(_fit_params), (str for i in _fit_params)))
 
-    assert isinstance(KFOLD, list), f"{type(KFOLD)=}"
-    assert all(map(isinstance, KFOLD, (tuple for _ in KFOLD)))
+    assert isinstance(_KFOLD, list), f"{type(_KFOLD)=}"
+    assert all(map(isinstance, _KFOLD, (tuple for _ in _KFOLD)))
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _fit_params_helper = {}
 
-    for f_idx, (train_idxs, test_idxs) in enumerate(KFOLD):
+    for f_idx, (train_idxs, test_idxs) in enumerate(_KFOLD):
 
         _fit_params_helper[f_idx] = {}
 
-        for _fit_param_key, _fit_param_value in fit_params.items():
+        for _fit_param_key, _fit_param_value in _fit_params.items():
 
             try:
                 iter(_fit_param_value)
                 if isinstance(_fit_param_value, (dict, str)):
-                    raise
-                da.array(_fit_param_value)   # pizza can this go to da.from_array?
+                    raise Exception
+                if [*compute(len(_fit_param_value))][0] != _data_len:
+                    raise Exception
+                # remember we only care about the train fold.
+                # the fit_param may not be a dask object. try with
+                # dask _fold_splitter, if that fails, try sk _fold_splitter
+                try:
+                    _fit_params_helper[f_idx][_fit_param_key] = \
+                        _dask_fold_splitter(train_idxs, test_idxs, _fit_param_value)[0][0]
+                except:
+                    _fit_params_helper[f_idx][_fit_param_key] = \
+                        _sk_fold_splitter(train_idxs, test_idxs, _fit_param_value)[0][0]
             except:
                 _fit_params_helper[f_idx][_fit_param_key] = _fit_param_value
-                continue
-
-            # only get here if try did not except
-
-
-            # make the output of helper if array always be dask, no
-            # matter what was given. later on, that vector would be
-            # applied, in some way, (consider logistic 'sample_weight')
-            # to X, which always must be dask. dont want to risk
-            # trying to operate on a dask with a non-dask.
-            if not isinstance(_fit_param_value, da.core.Array):
-                _fit_param_value = da.array(_fit_param_value)   # pizza can this go to da.from_array?
-
-            __ = _fit_param_value.ravel()
-
-            if [*compute(len(__))][0] == data_len:
-                _fit_params_helper[f_idx][_fit_param_key] = __[train_idxs]
-            else:
-                _fit_params_helper[f_idx][_fit_param_key] = _fit_param_value
-            del __
 
 
     return _fit_params_helper

@@ -17,18 +17,19 @@ from pybear.model_selection.GSTCV._GSTCV._fit._get_kfold import _get_kfold
 
 class TestSKGetKFold:
 
-    # ddef _get_kfold(
-    #     _X: XSKWIPType,
-    #     _y: YSKWIPType,
+    # def _get_kfold(
+    #     _X: SKXType,
+    #     _y: SKYType,
     #     _n_splits: int,
     #     _verbose: int
-    # ) -> Iterator[SKKFoldType:
+    # ) -> Iterator[SKKFoldType]:
 
-    # important!!! this function can be called multiple times within a
-    # single param grid permutation, first to fit and get test score,
-    # then again if return_train_score. Therefore, it must return the
-    # same indices for each call. The only things that should cause
-    # indices to be different are n_splits and the number of rows in X.
+    # *** IMPORTANT!!!
+    # This function can be called multiple times within a single param
+    # grid permutation, first to fit, again to get test score, then again
+    # if return_train_score. Therefore, it must return the same indices
+    # for each call. The only things that should cause indices to be
+    # different are n_splits and the number of rows in X.
     # Since this is stratified KFold and examples are pulled based on the
     # distribution of y, set random_state state to a constant.
 
@@ -43,12 +44,12 @@ class TestSKGetKFold:
 
         # this is raised by sklearn StratifiedKFold let it raise whatever
         with pytest.raises(Exception):
-            _get_kfold(
+            list(_get_kfold(
                 _junk_X,
                 _junk_y,
                 _n_splits=3,
                 _verbose=0
-            )
+            ))
 
 
     @pytest.mark.parametrize(f'junk_n_splits',
@@ -103,8 +104,6 @@ class TestSKGetKFold:
             pytest.skip(reason=f"sklearn.StratifedKFold cant take set for X")
         if _y_format == 'py_set':
             pytest.skip(reason=f"sklearn.StratifedKFold cant take set for y")
-
-
         # END skip impossible conditions ** * ** * ** * ** * ** * ** *
 
         _X = _format_helper(X_np, _X_format, _X_dim)

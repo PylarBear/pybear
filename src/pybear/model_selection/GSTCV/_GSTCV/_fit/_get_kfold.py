@@ -7,6 +7,7 @@
 
 
 from typing import Iterator
+
 from .._type_aliases import (
     SKXType,
     SKYType,
@@ -15,9 +16,9 @@ from .._type_aliases import (
 
 import time
 
-
-
 from sklearn.model_selection import StratifiedKFold
+
+
 
 
 
@@ -72,14 +73,13 @@ def _get_kfold(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # 25_04_29 NOT VALIDATING X & y HERE ANYMORE. LET StratifiedKFold RAISE.
-
     assert isinstance(_n_splits, int)
     assert _n_splits > 1
 
     try:
         float(_verbose)
     except:
-        raise AssertionError(f"'_verbose' must be an int, float, or bool")
+        raise AssertionError(f"'_verbose' must be numeric")
     assert _verbose >= 0
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

@@ -19,11 +19,11 @@ from pybear.model_selection.GSTCV._GSTCVDask._fit._get_kfold import _get_kfold
 class TestGetDaskKFold:
 
     # def _get_kfold(
-    #     _X: XDaskWIPType,
+    #     _X: DaskXType,
     #     _n_splits: int,
     #     _iid: bool,
     #     _verbose: int,
-    #     _y: Optional[YDaskWIPType] = None
+    #     _y: Optional[DaskYType] = None
     # ) -> Iterator[DaskKFoldType]:
 
     # X, y must both be da.array
@@ -32,27 +32,18 @@ class TestGetDaskKFold:
     # see dask_kfold_input_test in functional_tests folder
 
     # *** IMPORTANT!!!
-    # This function can be called multiple times within a single param grid
-    # permutation, first to fit, again to get test score, then again if
-    # return_train_score. Therefore, it must return the same indices for
-    # each call. The only things that should cause indices to be different
-    # are n_splits and the number of rows in _X. Since this is dask KFold,
-    # there is the wildcard of the 'iid' setting. If iid is False -- meaning
-    # the data is known to have some non-random grouping along axis 0 --
-    # via the 'shuffle' argument KFold will generate indices that sample
-    # across chunks to randomize the data in the splits. In that case, fix
-    # the random_state parameter to make selection repeatable. If iid is
-    # True, shuffle is False, random_state can be None, and the splits
-    # should be repeatable.
-
-    # fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # pizza 25_04_29 the reason this doesnt have a _format_helper
-    # is because dask_ml KFold can only take da.array. but if _format_helper
-    # ends up in conftest then it may be helpful to standardize this
-    # with sk get_kfold
-
-    # END fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # This function can be called multiple times within a single param
+    # grid permutation, first to fit, again to get test score, then again
+    # if return_train_score. Therefore, it must return the same indices
+    # for each call. The only things that should cause indices to be
+    # different are n_splits and the number of rows in X.
+    # Since this is dask KFold, there is the wildcard of the 'iid' setting.
+    # If iid is False -- meaning the data is known to have some non-random
+    # grouping along axis 0 -- via the 'shuffle' argument KFold will
+    # generate indices that sample across chunks to randomize the data
+    # in the splits. In that case, fix the random_state parameter to make
+    # selection repeatable. If iid is True, shuffle is False, random_state
+    # can be None, and the splits should be repeatable.
 
 
     @pytest.mark.parametrize('_junk_X',
@@ -120,9 +111,22 @@ class TestGetDaskKFold:
     # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    def test_da_returns_gen_of_das(self, X_da, y_da):
+    @pytest.mark.parametrize('_X_dim', (1, 2))
+    @pytest.mark.parametrize('_X_format',
+        ('da', )
+    )
+    @pytest.mark.parametrize('_y_dim', (1, 2))
+    @pytest.mark.parametrize('_y_format',
+        ('da', )
+    )
+    def test_da_returns_gen_of_das(
+        self, X_da, y_da, _format_helper, _X_format, _y_format,
+        _X_dim, _y_dim
+    ):
 
-        # and second call returns same thing as the first
+        _X = _format_helper(X_da, _X_format, _X_dim)
+        _y = _format_helper(y_da, _y_format, _y_dim)
+
         out1 = _get_kfold(
             X_da,
             _n_splits=3,

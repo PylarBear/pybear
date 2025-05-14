@@ -20,11 +20,11 @@ from pybear.model_selection.GSTCV._GSTCVDask._fit._estimator_fit_params_helper \
 
 class TestEstimatorFitParamsHelper:
 
-    #      def _estimator_fit_params_helper(
-    #         data_len: int,
-    #         fit_params: dict[str, any],
-    #         KFOLD: list[tuple[T, T]]
-    # ) -> dict[int, dict[str, any]]:
+    # def _estimator_fit_params_helper(
+    #     _data_len: int,
+    #     _fit_params: dict[str, Any],
+    #     _KFOLD: DaskKFoldType
+    # ) -> dict[int, dict[str, Any]]:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **

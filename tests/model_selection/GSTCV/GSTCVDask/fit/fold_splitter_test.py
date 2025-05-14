@@ -20,10 +20,10 @@ class TestFoldSplitter:
 
 
     # def _fold_splitter(
-    #     train_idxs: Union[GenericSlicerType, DaskSlicerType],
-    #     test_idxs: Union[GenericSlicerType, DaskSlicerType],
-    #     *data_objects: Union[XDaskWIPType, YDaskWIPType]
-    # ) -> tuple[tuple[XDaskWIPType, YDaskWIPType, ...]]:
+    #     train_idxs: DaskSlicerType,
+    #     test_idxs: DaskSlicerType,
+    #     *data_objects: Union[DaskXType, DaskYType]
+    # ) -> tuple[DaskSplitType, ...]:
 
 
 
@@ -42,20 +42,21 @@ class TestFoldSplitter:
             )
 
 
+    # 25_05_14 no longer explicitly enforcing 1 or 2D
     @pytest.mark.parametrize('bad_data_object',
         (
-            da.random.randint(0, 10, (3, 3, 3)),
-            da.random.randint(0, 10, (3, 3, 3, 3)),
+            da.random.randint(0, 10, (5, 5, 5)),
+            da.random.randint(0, 10, (5, 5, 5, 5)),
         )
     )
     def test_rejects_bad_shape(self, bad_data_object):
 
-        with pytest.raises(AssertionError):
-            _fold_splitter(
-                [0,2,4],
-                [1,3],
-                bad_data_object
-            )
+        # with pytest.raises(AssertionError):
+        _fold_splitter(
+            [0,2,4],
+            [1,3],
+            bad_data_object
+        )
 
 
     @pytest.mark.parametrize('_X1_format', ('da', 'ddf'))
@@ -66,6 +67,15 @@ class TestFoldSplitter:
         self, _rows, X_da, _format_helper, _X1_format, _X1_dim, _X2_format,
         _X2_dim
     ):
+
+
+
+
+
+
+
+
+
 
         _X1 = _format_helper(X_da, _X1_format, _X1_dim)
         _X2 = _format_helper(X_da, _X2_format, _X2_dim)
@@ -97,6 +107,9 @@ class TestFoldSplitter:
 
         assert isinstance(out, tuple)
         assert all(map(isinstance, out, (tuple for i in out)))
+
+
+
 
         assert type(out[0][0]) == type(_X1)
         if _X1_format == 'da':

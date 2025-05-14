@@ -738,7 +738,6 @@ description = "Parallel PyData with Task Scheduling"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version == \"3.9\""
 files = [
     {file = "dask-2024.8.0-py3-none-any.whl", hash = "sha256:250ea3df30d4a25958290eec4f252850091c6cfaed82d098179c3b25bba18309"},
     {file = "dask-2024.8.0.tar.gz", hash = "sha256:f1fec39373d2f101bc045529ad4e9b30e34e6eb33b7aa0fa7073aec7b1bf9eee"},
@@ -766,47 +765,12 @@ distributed = ["distributed (==2024.8.0)"]
 test = ["pandas[test]", "pre-commit", "pytest", "pytest-cov", "pytest-rerunfailures", "pytest-timeout", "pytest-xdist"]
 
 [[package]]
-name = "dask"
-version = "2025.4.1"
-description = "Parallel PyData with Task Scheduling"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "dask-2025.4.1-py3-none-any.whl", hash = "sha256:aacbb0a9667856fe58385015efd64aca22f0c0b2c5e1b5e633531060303bb4be"},
-    {file = "dask-2025.4.1.tar.gz", hash = "sha256:3b4b5d6e29d858c48339a5b9a99c39f11cb44111d3836d77ff32da51e0f51243"},
-]
-
-[package.dependencies]
-click = ">=8.1"
-cloudpickle = ">=3.0.0"
-fsspec = ">=2021.09.0"
-importlib_metadata = {version = ">=4.13.0", markers = "python_version < \"3.12\""}
-numpy = {version = ">=1.24", optional = true, markers = "extra == \"array\""}
-packaging = ">=20.0"
-pandas = {version = ">=2.0", optional = true, markers = "extra == \"dataframe\""}
-partd = ">=1.4.0"
-pyarrow = {version = ">=14.0.1", optional = true, markers = "extra == \"dataframe\""}
-pyyaml = ">=5.3.1"
-toolz = ">=0.10.0"
-
-[package.extras]
-array = ["numpy (>=1.24)"]
-complete = ["dask[array,dataframe,diagnostics,distributed]", "lz4 (>=4.3.2)", "pyarrow (>=14.0.1)"]
-dataframe = ["dask[array]", "pandas (>=2.0)", "pyarrow (>=14.0.1)"]
-diagnostics = ["bokeh (>=3.1.0)", "jinja2 (>=2.10.3)"]
-distributed = ["distributed (==2025.4.1)"]
-test = ["pandas[test]", "pre-commit", "pytest", "pytest-cov", "pytest-mock", "pytest-rerunfailures", "pytest-timeout", "pytest-xdist"]
-
-[[package]]
 name = "dask-expr"
 version = "1.1.10"
 description = "High Level Expressions for Dask"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version == \"3.9\""
 files = [
     {file = "dask_expr-1.1.10-py3-none-any.whl", hash = "sha256:c6365c6fa6d3e386c5ee79bd20d4c89e566c0cf78fb6c762f74b2f04028935c6"},
     {file = "dask_expr-1.1.10.tar.gz", hash = "sha256:3d9ac7231f41ce7a109faaf855a60d89bd4f90d304452894178a114470164014"},
@@ -851,7 +815,6 @@ description = "A library for distributed and parallel machine learning"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_version == \"3.9\""
 files = [
     {file = "dask_ml-2024.4.4-py3-none-any.whl", hash = "sha256:7fabb925ff7ac864bbd944ea7a15a35b68d4a3ffc43c54ae6041993b1d7d2a6e"},
     {file = "dask_ml-2024.4.4.tar.gz", hash = "sha256:7956910a49e1e31944280fdb311adf245da11ef410d67deb7a05c67c7d0c4498"},
@@ -867,38 +830,6 @@ numpy = ">=1.20.0"
 packaging = "*"
 pandas = ">=0.24.2"
 scikit-learn = ">=1.2.0"
-scipy = "*"
-
-[package.extras]
-complete = ["dask-xgboost", "xgboost"]
-dev = ["black", "coverage", "flake8", "isort", "nbsphinx", "numpydoc", "pytest", "pytest-cov", "pytest-mock", "sphinx", "sphinx-gallery", "sphinx-rtd-theme"]
-docs = ["nbsphinx", "numpydoc", "sphinx", "sphinx-gallery", "sphinx-rtd-theme"]
-test = ["black", "coverage", "flake8", "isort", "pytest", "pytest-cov", "pytest-mock"]
-xgboost = ["dask-xgboost", "xgboost"]
-
-[[package]]
-name = "dask-ml"
-version = "2025.1.0"
-description = "A library for distributed and parallel machine learning"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "dask_ml-2025.1.0-py3-none-any.whl", hash = "sha256:475c542b342d915934fbbbca6395798a22cf50283b1626fc0924abe40d0b3558"},
-    {file = "dask_ml-2025.1.0.tar.gz", hash = "sha256:b31caeb5f603f9537ffa34bd247e0e1fcefda7c007631260f8abdee49f89b1e1"},
-]
-
-[package.dependencies]
-dask = {version = ">=2025.1.0", extras = ["array", "dataframe"]}
-dask-glm = ">=0.2.0"
-distributed = ">=2025.1.0"
-multipledispatch = ">=0.4.9"
-numba = ">=0.51.0"
-numpy = ">=1.24.0"
-packaging = "*"
-pandas = ">=2.0"
-scikit-learn = ">=1.6.1"
 scipy = "*"
 
 [package.extras]
@@ -975,7 +906,6 @@ description = "Distributed scheduler for Dask"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version == \"3.9\""
 files = [
     {file = "distributed-2024.8.0-py3-none-any.whl", hash = "sha256:11af55d22dd6e04eb868b87f166b8f59ef1b300f659f87c016643b7f98280ec6"},
     {file = "distributed-2024.8.0.tar.gz", hash = "sha256:b99caf0a7f257f59477a70a334e081c1241f7cd9860211cc669742e6450e1310"},
@@ -996,36 +926,6 @@ tblib = ">=1.6.0"
 toolz = ">=0.10.0"
 tornado = ">=6.0.4"
 urllib3 = ">=1.24.3"
-zict = ">=3.0.0"
-
-[[package]]
-name = "distributed"
-version = "2025.4.1"
-description = "Distributed scheduler for Dask"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "distributed-2025.4.1-py3-none-any.whl", hash = "sha256:3a7834451b04ef059928045eab6ff6d88ad7bcfd48adc99403127d9a6818b5fa"},
-    {file = "distributed-2025.4.1.tar.gz", hash = "sha256:d5c76d8d407c8c9529f3a205754536099479013e29c198f492c46f2d9dcecfb9"},
-]
-
-[package.dependencies]
-click = ">=8.0"
-cloudpickle = ">=3.0.0"
-dask = "2025.4.1"
-jinja2 = ">=2.10.3"
-locket = ">=1.0.0"
-msgpack = ">=1.0.2"
-packaging = ">=20.0"
-psutil = ">=5.8.0"
-pyyaml = ">=5.4.1"
-sortedcontainers = ">=2.0.5"
-tblib = ">=1.6.0"
-toolz = ">=0.11.2"
-tornado = ">=6.2.0"
-urllib3 = ">=1.26.5"
 zict = ">=3.0.0"
 
 [[package]]
@@ -4748,4 +4648,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9, <3.14"
-content-hash = "107a7b9aa19655ea238ec380fbdb9927d71d174b6138a6a7ffe917dc3b2490d4"
+content-hash = "d27f8cb68eda2bb9bb90a5f1cd7f0a2510200056bc71911bb9e4f2c9d1284e63"

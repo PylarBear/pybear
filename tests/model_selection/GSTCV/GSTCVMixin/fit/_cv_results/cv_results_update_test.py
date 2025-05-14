@@ -10,29 +10,29 @@ import pytest
 
 import numpy as np
 
-from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_update \
-    import _cv_results_update
-
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
 from sklearn.model_selection import ParameterGrid
+
+from pybear.model_selection.GSTCV._GSTCVMixin._fit._cv_results._cv_results_update \
+    import _cv_results_update
 
 
 
 class TestCVResultsUpdate:
 
-    # def _cv_results(
+    # def _cv_results_update(
     #     _trial_idx: int,
-    #     _THRESHOLDS: list[float],
+    #     _THRESHOLDS: ThresholdsWIPType,
     #     _FOLD_FIT_TIMES_VECTOR: MaskedHolderType,
-    #     _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME: MaskedHolderType,
-    #     _TEST_BEST_THRESHOLD_IDXS_BY_SCORER: NDArrayHolderType,
+    #     _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME: MaskedHolderType,
+    #     _TEST_BEST_THRESH_IDXS_BY_SCORER: MaskedHolderType,
     #     _TEST_FOLD_x_SCORER__SCORE: MaskedHolderType,
     #     _TRAIN_FOLD_x_SCORER__SCORE: MaskedHolderType,
     #     _scorer: ScorerWIPType,
     #     _cv_results: CVResultsType,
     #     _return_train_score: bool
-    #     ) -> CVResultsType:
+    # ) -> CVResultsType:
 
     # test correct row of cv_results gets filled with thresholds,
     # scores, and times, but not ranks. (Ranks must be done after
@@ -67,6 +67,15 @@ class TestCVResultsUpdate:
     # 'std_train_balanced_accuracy'
 
 
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _make_holder():
+        """Helper for making random masked array holder objects."""
+        return lambda low, high, shape: np.ma.masked_array(
+            np.random.uniform(low, high, shape), dtype=np.float64
+        )
+
+
     @pytest.mark.parametrize('_n_splits', (3,))
     @pytest.mark.parametrize('_trial_idx', (0,))
     @pytest.mark.parametrize(
@@ -81,7 +90,9 @@ class TestCVResultsUpdate:
         }],
         indirect=True
     )
-    def test_accuracy_1(self, _cv_results_template, _trial_idx, _n_splits):
+    def test_accuracy_1(
+        self, _cv_results_template, _trial_idx, _n_splits, _make_holder
+    ):
 
         # 2 scorers, 1 param grid
 
@@ -89,19 +100,16 @@ class TestCVResultsUpdate:
         _n_scorers = 2
 
         _THRESHOLDS = np.linspace(0, 1, _thresholds).tolist()
-        _make_holder = lambda low, high, shape: np.ma.masked_array(
-            np.random.randint(low, high, shape), dtype=np.float64
-        )
-        _FOLD_FIT_TIMES_VECTOR = _make_holder(20, 30, (_n_splits,))
+        _FOLD_FIT_TIMES_VECTOR = _make_holder(5, 20, (_n_splits,))
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME = \
-            _make_holder(1, 2, (_n_splits, _thresholds, _n_scorers))
+            _make_holder(0, 2, (_n_splits, _thresholds, _n_scorers))
         _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
-            _make_holder(0, _thresholds, _n_scorers)
-        _TEST_FOLD_x_SCORER__SCORE = \
-            _make_holder(0, 1, (_n_splits, _n_scorers))
-        _TRAIN_FOLD_x_SCORER__SCORE = \
-            _make_holder(0, 1, (_n_splits, _n_scorers))
-        del _make_holder
+            np.ma.masked_array(
+                np.random.randint(0, _thresholds, (_n_scorers,)),
+                dtype=np.uint16
+            )
+        _TEST_FOLD_x_SCORER__SCORE = _make_holder(0, 1, (_n_splits, _n_scorers))
+        _TRAIN_FOLD_x_SCORER__SCORE = _make_holder(0, 1, (_n_splits, _n_scorers))
 
         _scorers = {
             'accuracy': accuracy_score,
@@ -160,7 +168,6 @@ class TestCVResultsUpdate:
 
 
         # check accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
         ref_permuter = ParameterGrid(
             [{'param_1': [1, 2, 3], 'param_2': [True, False]}]
         )
@@ -180,7 +187,6 @@ class TestCVResultsUpdate:
                [ref_permuter[_trial_idx]['param_2']]
 
         for _s_idx, _scorer in enumerate(_scorers):
-
 
             assert out[f'best_threshold_{_scorer}'][_trial_idx] == \
                 _THRESHOLDS[int(_TEST_BEST_THRESHOLD_IDXS_BY_SCORER[_s_idx])]
@@ -207,10 +213,7 @@ class TestCVResultsUpdate:
 
         # cant test rank!
 
-
-
         # end check accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
 
     @pytest.mark.parametrize('_n_splits', (5,))
@@ -227,7 +230,9 @@ class TestCVResultsUpdate:
         }],
         indirect=True
     )
-    def test_accuracy_2(self, _cv_results_template, _trial_idx, _n_splits):
+    def test_accuracy_2(
+        self, _cv_results_template, _trial_idx, _n_splits, _make_holder
+    ):
 
         # 1 scorer, 2 param grids
 
@@ -235,23 +240,20 @@ class TestCVResultsUpdate:
         _n_scorers = 1
 
         _THRESHOLDS = np.linspace(0, 1, _thresholds)
-        _make_holder = lambda low, high, shape: np.ma.masked_array(
-            np.random.randint(low, high, shape), dtype=np.float64
-        )
         _FOLD_FIT_TIMES_VECTOR = _make_holder(50, 90, (_n_splits,))
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME = \
             _make_holder(1, 2, (_n_splits, _thresholds, _n_scorers))
         _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
-            _make_holder(0, _thresholds, _n_scorers)
+            np.ma.masked_array(
+                np.random.randint(0, _thresholds, (_n_scorers,)),
+                dtype=np.uint16
+            )
         _TEST_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
         _TRAIN_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
-        del _make_holder
 
-        _scorers = {
-            'balanced_accuracy': balanced_accuracy_score
-        }
+        _scorers = {'balanced_accuracy': balanced_accuracy_score}
         _return_train_score = True
 
         out = _cv_results_update(
@@ -352,12 +354,7 @@ class TestCVResultsUpdate:
 
         # cant test rank!
 
-
-
         # end check accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
 
 
     @pytest.mark.parametrize('_n_splits', (3,))
@@ -375,7 +372,7 @@ class TestCVResultsUpdate:
         indirect=True
     )
     def test_accuracy_partial_mask(
-            self, _cv_results_template, _trial_idx, _n_splits
+            self, _cv_results_template, _trial_idx, _n_splits, _make_holder
     ):
 
         # 2 scorers, 1 param grid
@@ -385,18 +382,18 @@ class TestCVResultsUpdate:
 
         _THRESHOLDS = np.ma.masked_array(np.linspace(0, 1, _thresholds))
         _THRESHOLDS[1] = np.ma.masked
-        _make_holder = lambda low, high, shape: np.ma.masked_array(
-            np.random.randint(low, high, shape), dtype=np.float64
-        )
-        _FOLD_FIT_TIMES_VECTOR = _make_holder(10, 15, (_n_splits,))
+        _FOLD_FIT_TIMES_VECTOR = _make_holder(5, 15, (_n_splits,))
         _FOLD_FIT_TIMES_VECTOR[1] = np.ma.masked
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME = \
-            _make_holder(1, 2, (_n_splits, _thresholds, _n_scorers))
+            _make_holder(0, 2, (_n_splits, _thresholds, _n_scorers))
         _TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME[1, :, :] = np.ma.masked
         # best threshold idx cannot be 1, 1 is masked to mock except during fit
         while True:
             _TEST_BEST_THRESHOLD_IDXS_BY_SCORER = \
-                _make_holder(0, _thresholds, _n_scorers)
+                np.ma.masked_array(
+                    np.random.randint(0, _thresholds, (_n_scorers,)),
+                    dtype=np.uint16
+                )
             if 1 not in _TEST_BEST_THRESHOLD_IDXS_BY_SCORER:
                 break
         _TEST_FOLD_x_SCORER__SCORE = \
@@ -405,7 +402,6 @@ class TestCVResultsUpdate:
         _TRAIN_FOLD_x_SCORER__SCORE = \
             _make_holder(0, 1, (_n_splits, _n_scorers))
         _TRAIN_FOLD_x_SCORER__SCORE[1, :] = np.ma.masked
-        del _make_holder
 
         _scorers = {
             'accuracy': accuracy_score,
@@ -485,7 +481,6 @@ class TestCVResultsUpdate:
 
         for _s_idx, _scorer in enumerate(_scorers):
 
-
             assert out[f'best_threshold_{_scorer}'][_trial_idx] == \
                 _THRESHOLDS[int(_TEST_BEST_THRESHOLD_IDXS_BY_SCORER[_s_idx])]
 
@@ -511,30 +506,7 @@ class TestCVResultsUpdate:
 
         # cant test rank!
 
-
-
         # end check accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

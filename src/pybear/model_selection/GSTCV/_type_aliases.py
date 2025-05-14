@@ -40,13 +40,13 @@ class ClassifierProtocol(Protocol):
     # def score(self, y_pred: Any, y_act: Any) -> Any:
     #     ...
 
-    def get_params(self, *args, **kwargs) -> dict[str, Any]:
+    def get_params(self, **kwargs) -> dict[str, Any]:
         ...
 
-    def set_params(self, *args, **kwargs) -> Self:
+    def set_params(self, **kwargs) -> Self:
         ...
 
-    def predict_proba(self, *args, **kwargs) -> Any:
+    def predict_proba(self, X: Any) -> Any:
         ...
 
 
@@ -72,7 +72,7 @@ ScorerNameTypes: TypeAlias = Literal[
     'recall'
 ]
 
-# pizza finalize this
+
 ScorerCallableType: TypeAlias = Callable[[Iterable, Iterable], numbers.Real]
 
 
@@ -97,8 +97,7 @@ class ScorerWIPType(TypedDict):
 # END scoring / scorer ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
 
 
-CVResultsType: TypeAlias = \
-    dict[str, np.ma.masked_array[Union[float, dict[str, Any]]]]
+CVResultsType: TypeAlias = dict[str, np.ma.masked_array[Any]]
 
 
 RefitCallableType: TypeAlias = Callable[[CVResultsType], numbers.Integral]

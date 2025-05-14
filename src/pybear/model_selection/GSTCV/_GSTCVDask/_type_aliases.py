@@ -6,20 +6,25 @@
 
 
 
-from typing import ContextManager
+from typing import (
+    ContextManager,
+    Iterable,
+    Sequence
+)
 from typing_extensions import (
     TypeAlias,
     Union
 )
+
+import numbers
 
 import dask
 import distributed
 
 
 
-# pizza figure out how to duck type these
-DaskXType: TypeAlias = dask.array.core.Array
-DaskYType: TypeAlias = Union[dask.array.core.Array, None]
+DaskXType: TypeAlias = Iterable
+DaskYType: TypeAlias = Union[Sequence[numbers.Integral], None]
 
 DaskSlicerType: TypeAlias = dask.array.core.Array
 

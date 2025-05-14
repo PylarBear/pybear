@@ -62,9 +62,7 @@ def _cv_results_score_updater(
     -
         _cv_results: CVResultsType - cv_results updated with scores.
 
-
     """
-
 
     # _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     _val_f_s(
@@ -83,7 +81,7 @@ def _cv_results_score_updater(
             f"cv_results with {_n_permutes} permutations")
     del _n_permutes
 
-    # to allow for any user-defined scorer name
+    # do not validate this, to allow for any user-defined scorer name
     # for _scorer_name in _scorer:
     #     if _scorer_name != 'score' and _scorer_name not in master_scorer_dict:
     #         raise ValueError(f"scorer names in '_scorer' ({_scorer_name}) must "
@@ -91,60 +89,49 @@ def _cv_results_score_updater(
 
     assert isinstance(_cv_results, dict)
 
-    # - - - - - - - -
-    def no_column_err(_header: str) -> None:
+    # END _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        raise ValueError(
-            f"appending scores to a column in cv_results_ that doesnt "
-            f"exist ({_header})"
-        )
-    # - - - - - - - -
+    _err_msg = lambda _header: (f"appending scores to a column in "
+        f"cv_results_ that doesnt exist ({_header})")
 
     for scorer_idx, scorer_suffix in enumerate(_scorer):
 
         if len(_scorer) == 1:
             scorer_suffix = 'score'
 
-        # individual splits
+        # individual splits -- -- -- -- -- -- -- -- -- -- -- -- -- --
         for _split in range(_FOLD_x_SCORER__SCORE.shape[0]):
 
             _header = f'split{_split}_{_type}_{scorer_suffix}'
+
             if _header not in _cv_results:
-                no_column_err(_header)
+                raise ValueError(_err_msg(_header))
 
-        # mean of all splits
-        _header = f'mean_{_type}_{scorer_suffix}'
-        if _header not in _cv_results:
-            no_column_err(_header)
-
-        # stdev of all splits
-        _header = f'std_{_type}_{scorer_suffix}'
-        if _header not in _cv_results:
-            no_column_err(_header)
-
-    del no_column_err, _header
-    # END _validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-    for scorer_idx, scorer_suffix in enumerate(_scorer):
-
-        if len(_scorer) == 1:
-            scorer_suffix = 'score'
-
-        # individual splits
-        for _split in range(_FOLD_x_SCORER__SCORE.shape[0]):
-
-            _cv_results[f'split{_split}_{_type}_{scorer_suffix}'][_trial_idx] = \
+            _cv_results[_header][_trial_idx] = \
                 _FOLD_x_SCORER__SCORE[_split, scorer_idx]
 
-        # mean of all splits
-        _cv_results[f'mean_{_type}_{scorer_suffix}'][_trial_idx] = \
+
+        # mean of all splits -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _header = f'mean_{_type}_{scorer_suffix}'
+
+        if _header not in _cv_results:
+            raise ValueError(_err_msg(_header))
+
+        _cv_results[_header][_trial_idx] = \
             np.mean(_FOLD_x_SCORER__SCORE[:, scorer_idx])
 
-        # stdev of all splits
-        _cv_results[f'std_{_type}_{scorer_suffix}'][_trial_idx] = \
+
+        # stdev of all splits -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _header = f'std_{_type}_{scorer_suffix}'
+
+        if _header not in _cv_results:
+            raise ValueError(_err_msg(_header))
+
+        _cv_results[_header][_trial_idx] = \
             np.std(_FOLD_x_SCORER__SCORE[:, scorer_idx])
+
+
+    del _err_msg
 
 
     return _cv_results

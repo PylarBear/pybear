@@ -20,7 +20,6 @@ import numbers
 
 
 
-# pizza figure out how to duck type these
 SKXType: TypeAlias = Iterable
 SKYType: TypeAlias = Union[Sequence[numbers.Integral], None]
 
