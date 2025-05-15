@@ -22,7 +22,8 @@ import numbers
 import time
 
 import numpy as np
-import dask
+
+from ..._GSTCVMixin._validation._predict_proba import _val_predict_proba
 
 
 
@@ -34,14 +35,13 @@ def _parallelized_train_scorer(
     _SCORER_DICT: ScorerWIPType,
     _BEST_THRESHOLDS_BY_SCORER: NDArrayHolderType,
     _error_score: Union[numbers.Real, None],
-    _verbose: int,
-    **scorer_params
+    _verbose: int
 ) -> MaskedHolderType:
 
     # dont adjust the spacing, is congruent with test scorer
 
     """
-    Using the estimators fit for each train fold, use predict_proba and
+    Using the estimators fit on each train fold, use predict_proba and
     _X_trains to generate _y_preds and score against the corresponding
     _y_trains using all of the scorers.
     Fill one layer of the TRAIN_FOLD_x_SCORER__SCORE.
@@ -53,8 +53,8 @@ def _parallelized_train_scorer(
     _X_train:
         DaskXType - A train partition of the data that was fit.
     _y_train:
-        DaskYType - The corresponding train partition of the target
-        for the X train partition.
+        DaskYType - The corresponding train partition of the target for
+        the X train partition.
     _FIT_OUTPUT_TUPLE:
         tuple[ClassifierProtocol, float, bool] - A tuple holding the
         fitted estimator, the fit time (not needed here), and the
@@ -64,8 +64,8 @@ def _parallelized_train_scorer(
         parallelism occurs over the different splits.
     _SCORER_DICT:
         ScorerWIPType - a dictionary with scorer name as keys and the
-        scorer callables as values. The scorer callables are (or resemble)
-        sklearn metrics, not make_scorer.
+        scorer callables as values. The scorer callables are scoring
+        metrics (or similar), not make_scorer.
     _BEST_THRESHOLDS_BY_SCORER:
         NDArrayHolderType: after all of the fold / threshold / scorer
         combinations are scored, the folds are averaged and the threshold
@@ -84,19 +84,14 @@ def _parallelized_train_scorer(
         int - a number from 0 to 10 that indicates the amount of
         information to display to the screen during the grid search
         process. 0 means no output, 10 means maximum output.
-    **scorer_params:
-        **dict[str, Any] - dictionary of kwargs to be passed to the scorer
-        metrics. pizza 24_07_13 not used by the calling fit module.
 
 
     Return
     ------
     -
-        TRAIN_SCORER__SCORE_LAYER: MaskedHolderType - masked
-        array of shape (n_scorers, ). The score for this fold of train
-        data using every scorer and the best threshold associated with
-        that scorer.
-
+        TRAIN_SCORER__SCORE_LAYER: MaskedHolderType - masked array of
+        shape (n_scorers, ). The score for this fold of train data using
+        every scorer and the best threshold associated with that scorer.
 
 
 
@@ -132,9 +127,9 @@ def _parallelized_train_scorer(
 
 
 
-    # IF A FOLD EXCEPTED DURING FIT, PUT IN error_score IF error_score!=np.nan,
-    # elif is np.nan ALSO MASK THIS FOLD IN TRAIN_FOLD_x_SCORER__SCORE,
-    # AND SKIP TO NEXT FOLD
+
+    # IF A FOLD EXCEPTED DURING FIT, PUT IN error_score.
+    # IF error_score==np.nan, ALSO MASK THIS LAYER
     if _fit_excepted:
         TRAIN_SCORER__SCORE_LAYER[:] = _error_score
         if _error_score is np.nan:
@@ -156,7 +151,10 @@ def _parallelized_train_scorer(
 
     pp0_time = time.perf_counter()
     _predict_proba = _estimator_.predict_proba(_X_train)[:, -1].ravel()
-    # pizza maybe some validation here on _predict_proba, len, shape, 0<=x<=1 ???
+    _val_predict_proba(
+        _predict_proba,
+        _X_train.shape[0] if hasattr(_X_train, 'shape') else len(_X_train)
+    )
     pp_time = time.perf_counter() - pp0_time
     del pp0_time
 
@@ -167,6 +165,9 @@ def _parallelized_train_scorer(
     # GET SCORES FOR ALL SCORERS #######################################
 
     _train_fold_score_t0 = time.perf_counter()
+
+
+
 
 
 
@@ -185,7 +186,7 @@ def _parallelized_train_scorer(
         del _ypt
 
         train_scorer_t0 = time.perf_counter()
-        _score = _SCORER_DICT[scorer_key](_y_train, _y_train_pred, **scorer_params)
+        _score = _SCORER_DICT[scorer_key](_y_train, _y_train_pred)
         train_scorer_score_time = time.perf_counter() - train_scorer_t0
         del train_scorer_t0
 

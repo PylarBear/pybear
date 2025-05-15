@@ -24,7 +24,7 @@ class TestParallelizedFit:
                 int(np.random.randint(0,10)),  # f_idx
                 X_np,
                 y_np,
-                _estimator_=_mock_classifier(),
+                _estimator=_mock_classifier(),
                 _grid = {'param_1': True, 'param_2': [3,4,5]},
                 _error_score=np.nan,
                 # **fit_params
@@ -48,7 +48,7 @@ class TestParallelizedFit:
                 int(np.random.randint(0,10)),  # f_idx
                 X_np,
                 y_np,
-                _estimator_=_mock_classifier(command='other_error_with_raise'),
+                _estimator=_mock_classifier(command='other_error_with_raise'),
                 _grid = {'param_1': True, 'param_2': [3,4,5]},
                 _error_score='raise',  # ineffectual
                 # **fit_params
@@ -64,7 +64,7 @@ class TestParallelizedFit:
                 int(np.random.randint(0,10)),  # f_idx
                 X_np,
                 y_np,
-                _estimator_=_mock_classifier(command='other_error_not_raise'),
+                _estimator=_mock_classifier(command='other_error_not_raise'),
                 _grid = {'param_1': True, 'param_2': [3,4,5]},
                 _error_score=np.nan,
                 # **fit_params
@@ -87,29 +87,11 @@ class TestParallelizedFit:
                 int(np.random.randint(0,10)),  # f_idx
                 X_np,
                 y_np,
-                _estimator_=_mock_classifier(),
+                _estimator=_mock_classifier(),
                 _grid = {'param_1': True, 'param_2': [3,4,5]},
                 _error_score=np.nan,
                 kill=True
             )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

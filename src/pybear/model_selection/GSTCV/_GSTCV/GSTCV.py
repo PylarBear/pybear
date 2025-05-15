@@ -65,12 +65,36 @@ class GSTCV(_GSTCVMixin):
     maximize the average score (and minimize the average loss) of the
     held-out data (test sets).
 
-
     GSTCV implements 'fit', 'predict_proba', 'predict', 'score',
     'get_params', and 'set_params' methods. It also implements
     'decision_function', 'predict_log_proba', 'score_samples',
     'transform' and 'inverse_transform' if they are exposed by the
     classifier used.
+
+    pybear GSTCV is intended to closely parallel the interface and
+    user-experience of sci-kit learn GridSearchCV. Users who are 
+    familiar with that GridSearch implementation should find that 
+    GSTCV differs with respect to 4 things:
+
+    1) the init parameter `thresholds` (which can also be passed as a
+    parameter to `param_grid`)
+
+    2) additional columns in the `cv_results_` attribute to report the
+    best thresholds for each scorer
+
+    3) one post-run attribute,'best_threshold_`, which informs about
+    the overall best threshold
+
+    # pizza revisit this
+    4) callables passed to `scoring` SHOULD NOT be wrapped in
+    'make_scorer' as would be done with GridSearchCV. Pass scoring
+    callables in raw metric form. See the sci-kit learn docs and the
+    'Parameter' section of the GSTCV docs for more information about
+    'make_scorer' and 'metrics'.
+
+    Users who are familiar with the sci-kit implementation of GridSearch
+    should focus on these areas of the GSTCV 'Parameters' docs for
+    mastery of GSTCV.
 
 
     Parameters
@@ -759,7 +783,7 @@ class GSTCV(_GSTCVMixin):
         d_p = self._estimator.get_params(deep=True)  # deep_params
 
         _fold_fit_params = _sk_estimator_fit_params_helper(
-            np.array(list(_y)).ravel().shape[0],
+            np.array(list(_y)).ravel().shape[0],  # n_samples
             _fit_params,
             self._KFOLD
         )

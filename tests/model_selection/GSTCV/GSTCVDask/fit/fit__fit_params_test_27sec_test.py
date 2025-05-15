@@ -10,7 +10,7 @@ import pytest
 
 import dask.array as da
 
-# with Client is faster
+
 
 class TestCoreFit_FitParams:
 
@@ -25,7 +25,7 @@ class TestCoreFit_FitParams:
 
 
     def test_rejects_sample_weight_too_short(
-        self, special_GSTCVDask, X_da, y_da, _rows, _client
+        self, special_GSTCVDask, X_da, y_da, _rows#, _client
     ):
 
         short_sample_weight = da.random.uniform(0, 1, _rows//2)
@@ -36,7 +36,7 @@ class TestCoreFit_FitParams:
 
 
     def test_rejects_sample_weight_too_long(
-        self, special_GSTCVDask, X_da, y_da, _rows, _client
+        self, special_GSTCVDask, X_da, y_da, _rows#, _client
     ):
 
         long_sample_weight = da.random.uniform(0, 1, _rows*2)
@@ -49,6 +49,8 @@ class TestCoreFit_FitParams:
     def test_correct_sample_weight_works(
         self, special_GSTCVDask, dask_est_log, X_da, y_da, _rows, _client
     ):
+
+        # with Client is faster
 
         correct_sample_weight = da.random.uniform(0, 1, _rows)
 

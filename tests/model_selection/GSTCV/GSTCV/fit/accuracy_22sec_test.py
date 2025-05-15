@@ -33,8 +33,8 @@ class TestFitAccuracy:
     def special_sk_log_init_params():
         return {
             'C': 1e-3,
-            'tol': 1e-6, # need 1e-6 here to pass est accuracy tests
-            'max_iter': 10000, # need 10000 here to pass est accuracy tests
+            'tol': 1e-7, # need 1e-7 here to pass est accuracy tests
+            'max_iter': 12000, # need 12000 here to pass est accuracy tests
             'fit_intercept': False,
             'solver': 'lbfgs'
         }
