@@ -56,7 +56,8 @@ def _client():
 # data objects ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 @pytest.fixture(scope='session')
 def _rows():
-    return int(np.random.randint(1, 200))
+    # must have at least 5 rows for dask chunk //5 division
+    return int(np.random.randint(5, 200))
 
 
 @pytest.fixture(scope='session')
@@ -75,7 +76,7 @@ def X_da(_rows, _cols):
     da.random.seed(19)
     return da.random.randint(
         0, 10, (_rows, _cols)
-    ).rechunk((int(_rows//10), _cols)).astype(np.float64)
+    ).rechunk((int(_rows//5), _cols)).astype(np.float64)
 
 
 @pytest.fixture(scope='session')

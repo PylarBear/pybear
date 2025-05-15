@@ -22,7 +22,8 @@ import numbers
 import time
 
 import numpy as np
-import dask
+
+from ..._GSTCVMixin._validation._predict_proba import _val_predict_proba
 
 
 
@@ -34,18 +35,17 @@ def _parallelized_scorer(
     _SCORER_DICT: ScorerWIPType,
     _THRESHOLDS: ThresholdsWIPType,
     _error_score: Union[numbers.Real, None],
-    _verbose: int,
-    **scorer_params
+    _verbose: int
 ) -> tuple[MaskedHolderType, MaskedHolderType]:
 
     # dont adjust the spacing, is congruent with train scorer
 
     """
-    Using the estimators fit for each train fold, use predict_proba and
+    Using the estimators fit on each train fold, use predict_proba and
     _X_tests to generate _y_preds and score against the corresponding
-    _y_tests using all of the scorers.
-    Build one fold layer of the TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE and
-    TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME cubes.
+    _y_tests using all of the scorers and thresholds.
+    Builds one fold layer of the TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE
+    and TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME cubes.
 
 
     Parameters
@@ -65,7 +65,7 @@ def _parallelized_scorer(
         parallelism occurs over the different splits.
     _SCORER_DICT:
         ScorerWIPType - a dictionary with scorer name as keys and the
-        scorer callables as values. The scorer callables are sklearn
+        scorer callables as values. The scorer callables are scoring
         metrics (or similar), not make_scorer.
     _THRESHOLDS:
         ThresholdsWIPType - for the current search permutation, there
@@ -88,22 +88,19 @@ def _parallelized_scorer(
         int - a number from 0 to 10 that indicates the amount of
         information to display to the screen during the grid search
         process. 0 means no output, 10 means maximum output.
-        process. 0 means no output, 10 means maximum output.
-    **scorer_params:
-        **dict[str, Any] - dictionary of kwargs to be passed to the scorer
-        metrics. pizza 24_07_13 not used by the calling fit module.
 
 
     Return
     ------
     -
-        TEST_THRESHOLD_x_SCORER__SCORE_LAYER:
-            MaskedHolderType - masked array of shape (n_thresholds,
-            n_scorers
-        TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER:
-            MaskedHolderType - masked array of shape (n_thresholds,
-            n_scorers
+        TEST_THRESHOLD_x_SCORER__SCORE_LAYER: MaskedHolderType - masked
+        array of shape (n_thresholds, n_scorers) holding the scores for
+        each scorer on each threshold for one fold of test data.
 
+        TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER: MaskedHolderType -
+        masked array of shape (n_thresholds, n_scorers) holding the
+        times to score each scorer on each threshold for one fold of
+        test data.
 
     """
 
@@ -154,7 +151,10 @@ def _parallelized_scorer(
 
     pp0_time = time.perf_counter()
     _predict_proba = _estimator_.predict_proba(_X_test)[:, -1].ravel()
-    # pizza maybe some validation here on _predict_proba, len, shape, 0<=x<=1 ???
+    _val_predict_proba(
+        _predict_proba,
+        _X_test.shape[0] if hasattr(_X_test, 'shape') else len(_X_test)
+    )
     pp_time = time.perf_counter() - pp0_time
     del pp0_time
 
@@ -182,8 +182,11 @@ def _parallelized_scorer(
 
 
 
+
+
+
             test_scorer_t0 = time.perf_counter()
-            _score = _SCORER_DICT[scorer_key](_y_test, _y_test_pred, **scorer_params)
+            _score = _SCORER_DICT[scorer_key](_y_test, _y_test_pred)
             test_scorer_score_time = time.perf_counter() - test_scorer_t0
             del test_scorer_t0
             TEST_THRESHOLD_x_SCORER__SCORE_LAYER[thresh_idx, s_idx] = _score
@@ -200,7 +203,7 @@ def _parallelized_scorer(
     tfst = time.perf_counter() - _test_fold_score_t0
     del _test_fold_score_t0
 
-    # END GET SCORE FOR ALL SCORERS & THRESHOLDS ##############################
+    # END GET SCORE FOR ALL SCORERS & THRESHOLDS #######################
 
     if _verbose >= 5:
         print(f'End scoring fold {_f_idx + 1} test with different thresholds and '

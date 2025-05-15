@@ -20,21 +20,23 @@ from sklearn.linear_model import LogisticRegression as sk_Logistic
 
 
 
+
+
 class TestParallelizedScorer:
 
 
     # def _parallelized_scorer(
-    #     _X_test: XSKWIPType,
-    #     _y_test: YSKWIPType,
-    #     _FIT_OUTPUT_TUPLE: [ClassifierProtocol, float, bool],
+    #     _X_test: SKXType,
+    #     _y_test: SKYType,
+    #     _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
     #     _f_idx: int,
     #     _SCORER_DICT: ScorerWIPType,
-    #     _THRESHOLDS: npt.NDArray[int, float],
-    #     _error_score: Union[int, float, None],
-    #     _verbose: int,
-    #     **scorer_params
-    #     ) -> tuple[np.ma.masked_array, np.ma.masked_array]:
+    #     _THRESHOLDS: ThresholdsWIPType,
+    #     _error_score: Union[numbers.Real, None],
+    #     _verbose: int
+    # ) -> tuple[MaskedHolderType, MaskedHolderType]:
 
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture
@@ -62,9 +64,17 @@ class TestParallelizedScorer:
         # [ClassifierProtocol, fit time, fit excepted]
         return (sk_clf, tf-t0, False)
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    def test_fit_excepted_accuracy(self, X_np, y_np, _fit_output_excepted):
+
+
+
+
+
+    def test_fit_excepted_accuracy(
+        self, X_np, y_np, _fit_output_excepted
+    ):
 
         # 5 folds
         _X_test = X_np[int(0.8 * X_np.shape[0]):, :]
@@ -108,7 +118,16 @@ class TestParallelizedScorer:
         assert out_times.mask.all()
 
 
-    def test_fit_good_accuracy(self, X_np, y_np, _fit_output_good):
+
+
+
+
+
+
+
+    def test_fit_good_accuracy(
+        self, X_np, y_np, _fit_output_good
+    ):
 
         # 5 folds
         _X_test = X_np[int(0.8 * X_np.shape[0]):, :]

@@ -71,6 +71,31 @@ class GSTCVDask(_GSTCVMixin):
     'transform' and 'inverse_transform' if they are exposed by the
     classifier used.
 
+    pybear GSTCVDask is intended to closely parallel the interface and
+    user-experience of dask_ml and sci-kit learn GridSearchCV. Users who
+    are familiar with those GridSearch implementations should find that
+    GSTCVDask differs with respect to 4 things:
+
+    1) the init parameter `thresholds` (which can also be passed as a
+    parameter to `param_grid`)
+
+    2) additional columns in the `cv_results_` attribute to report the
+    best thresholds for each scorer
+
+    3) one post-run attribute,'best_threshold_`, which informs about
+    the overall best threshold
+
+    # pizza revisit this
+    4) callables passed to `scoring` SHOULD NOT be wrapped in
+    'make_scorer' as would be done with GridSearchCV. Pass scoring
+    callables in raw metric form. See the dask_ml, sci-kit learn, and
+    the 'Parameter' section of the GSTCVDask docs for more information
+    about 'make_scorer' and 'metrics'.
+
+    Users who are familiar with the sci-kit implementation of GridSearch
+    should focus on these areas of the GSTCV 'Parameters' docs for
+    mastery of GSTCV.
+
 
     Parameters
     ----------
@@ -746,8 +771,6 @@ class GSTCVDask(_GSTCVMixin):
             self._CACHE_CV = []
             for (train_idxs, test_idxs) in self._KFOLD:
                 self._CACHE_CV.append(_dask_fold_splitter(train_idxs, test_idxs, _X, _y))
-        # pizza at some point think on scattering _CACHE_CV
-        # deal with the persists in the parallelized files
 
 
     def _fit_all_folds(
@@ -813,7 +836,7 @@ class GSTCVDask(_GSTCVMixin):
         d_p = self._estimator.get_params(deep=True)  # deep_params
 
         _fold_fit_params = _dask_estimator_fit_params_helper(
-            [*compute(len(_y))][0],
+            [*compute(len(_y))][0],   # n_samples
             _fit_params,
             self._KFOLD
         )

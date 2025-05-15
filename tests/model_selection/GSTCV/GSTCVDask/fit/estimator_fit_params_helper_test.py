@@ -10,6 +10,7 @@ import pytest
 
 import numpy as np
 import dask.array as da
+from dask import compute
 from sklearn.model_selection import KFold as sk_KFold
 from dask_ml.model_selection import KFold as dask_KFold
 
@@ -75,24 +76,39 @@ class TestEstimatorFitParamsHelper:
         dask_helper = {}
 
         for idx, (train_idxs, test_idxs) in enumerate(good_dask_kfold):
-
             dask_helper[idx] = {}
-
             for k, v in good_dask_fit_params.items():
-
                 try:
                     iter(v)
                     if isinstance(v, (dict, str)):
-                        raise
-
+                        raise Exception
                     if len(v) != _rows:
-                        raise
-
+                        raise Exception
+                    dask_helper[idx][k] = v.copy()[train_idxs]
                 except:
                     dask_helper[idx][k] = v
-                    continue
 
-                dask_helper[idx][k] = v.copy()[train_idxs]
+        return dask_helper
+
+
+    @staticmethod
+    @pytest.fixture
+    def exp_sk_helper_output(_rows, good_sk_fit_params, good_sk_kfold):
+
+        dask_helper = {}
+
+        for idx, (train_idxs, test_idxs) in enumerate(good_sk_kfold):
+            dask_helper[idx] = {}
+            for k, v in good_sk_fit_params.items():
+                try:
+                    iter(v)
+                    if isinstance(v, (dict, str)):
+                        raise Exception
+                    if len(v) != _rows:
+                        raise Exception
+                    dask_helper[idx][k] = v.copy()[train_idxs]
+                except:
+                    dask_helper[idx][k] = v
 
         return dask_helper
 
@@ -165,19 +181,20 @@ class TestEstimatorFitParamsHelper:
 
     # test accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-
     @pytest.mark.parametrize('kfold_type', ('dask', 'sklearn'))
     @pytest.mark.parametrize('fit_params_type', ('dask', 'sklearn'))
     def test_accuracy(
-        self, _rows, good_sk_fit_params, good_sk_kfold,
-        good_dask_fit_params, good_dask_kfold, exp_dask_helper_output,
+        self, good_sk_fit_params, good_sk_kfold, exp_sk_helper_output,
+        _rows, good_dask_fit_params, good_dask_kfold, exp_dask_helper_output,
         kfold_type, fit_params_type
     ):
 
         if fit_params_type=='dask':
             _fit_params = good_dask_fit_params
+            _exp_helper_output = exp_dask_helper_output
         elif fit_params_type=='sklearn':
             _fit_params = good_sk_fit_params
+            _exp_helper_output = exp_sk_helper_output
 
         if kfold_type=='dask':
             _kfold = good_dask_kfold
@@ -186,37 +203,22 @@ class TestEstimatorFitParamsHelper:
 
         out = _estimator_fit_params_helper(_rows, _fit_params, _kfold)
 
-        for f_idx, exp_fold_fit_param_dict in exp_dask_helper_output.items():
+
+        for f_idx, exp_fold_fit_param_dict in _exp_helper_output.items():
 
             for param, exp_value in exp_fold_fit_param_dict.items():
-
-                # make the output of helper if array always be dask, no
-                # matter what was given. later on, that vector would be
-                # applied, in some way, (consider logistic 'sample_weight')
-                # to X, which always must be dask. dont want to risk
-                # trying to operate on a dask with a non-dask.
-                if isinstance(exp_value, da.core.Array):  # edho - if array, always dask
-                    # if exp_value is an array, out must always be a dask array
-                    # assert isinstance(out[f_idx][param], da.core.Array)
-                    pass     # pizza fix it
-
-                # convert everything to numpy for easy len & array_equiv
-                try:
-                    _ = out[f_idx][param].compute()
-                except:
-                    _ = out[f_idx][param]
-
-                try:
-                    __ = exp_value.compute()
-                except:
-                    __ = exp_value
-
-                if isinstance(_, np.ndarray): # if was any array, must be np now
-                    assert len(_) < _rows
-                    assert len(__) < _rows
-                    assert np.array_equiv(_, __)
+                _act = out[f_idx][param]
+                if isinstance(exp_value, da.core.Array):
+                    assert isinstance(_act, da.core.Array)
+                    assert compute(len(_act))[0] < _rows
+                    assert np.array_equiv(_act.compute(), exp_value.compute())
+                elif isinstance(exp_value, np.ndarray):
+                    assert isinstance(out[f_idx][param], np.ndarray)
+                    assert len(_act) < _rows
+                    assert len(exp_value) < _rows
+                    assert np.array_equiv(_act, exp_value)
                 else:
-                    assert _ == __
+                    assert _act == exp_value
 
 
     def test_accuracy_empty(self, _rows, good_dask_kfold):

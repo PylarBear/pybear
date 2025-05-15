@@ -67,8 +67,8 @@ class TestValWrappedDaskEstimator:
     def _pipeline(self, _estimator_instance):
         return Pipeline(
             steps=[
-                      ('ct_vect', sk_CountVectorizer()),
-                      ('clf', _estimator_instance)
+                ('ct_vect', sk_CountVectorizer()),
+                ('clf', _estimator_instance)
             ]
         )
 

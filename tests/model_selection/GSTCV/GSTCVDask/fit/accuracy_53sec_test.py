@@ -5,18 +5,6 @@
 #
 
 
-# 25_05_06_16_34_00 pizza this is on the block for permanent skip. this
-# is almost completely redundant with the GSTCV test except for the
-# accuracy of the numbers returned by the DaskGSTCV parallel modules.
-# The GSTCV test confirms the GSTCV cv_results layout (except threshold
-# columns) is identical to sk gscv layout (correct number of rows,
-# correct column names in the correct order) and that the GSTCV parallel
-# modules get numbers identical to sk. IF WE CAN INDEPENDENTLY CONFIRM
-# THE ACCURACY OF THE GSTCVDASK PARALLEL MODULES RESULTS IN OTHER TESTS
-# THEN THIS TEST CAN BE SKIPPED PERMANENTLY BUT KEEP THE FILE FOR THIS
-# EXPLANATION.
-
-
 
 import pytest
 
@@ -29,10 +17,7 @@ from sklearn.metrics import make_scorer
 
 from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask
 
-# pytest.skip(
-#     reason=f'pizza this test is on the block for permanent skip',
-#     allow_module_level=True
-# )
+
 
 class TestFitAccuracy:
 
@@ -49,8 +34,8 @@ class TestFitAccuracy:
     def special_sk_log_init_params():
         return {
             'C': 1e-3,
-            'tol': 1e-6, # need 1e-6 here to pass est accuracy tests
-            'max_iter': 10000, # need 10000 here to pass est accuracy tests
+            'tol': 1e-7,  # need 1e-7 here to pass est accuracy tests
+            'max_iter': 12000,  # need 12000 here to pass est accuracy tests
             'fit_intercept': False,
             'solver': 'lbfgs'
         }
@@ -79,43 +64,44 @@ class TestFitAccuracy:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _cv_iter(standard_cv_int, X_da, y_da):
+    def _cv_iter(X_da, y_da):
         # using sklearn modules to stay off dask_ml. but sklearn uses
         # StratifiedKfold to do splits and GSTCVDask uses dask_ml KFold.
-        # so to get fair comparison, use this same splits in GSTCVDask
+        # so to get equal comparison, use the same splits in GSTCVDask
         # and sk_GSCV by passing the same splits to both.
         # convert to tuple because it needs to be used 2X (iter will spend)
         return list(tuple(
             KFold(
-                n_splits=standard_cv_int,
+                n_splits=2,    # only using 2 here to save some time
                 shuffle=False
             ).split(X_da.compute(), y_da.compute())
         ))
+
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     @pytest.mark.parametrize('_param_grid',
         (
-            [
-                {'C': [1e-1, 1e0], 'fit_intercept': [True, False]}
-            ],
-            [
-                {'C': [1]},
-                {'C': [1], 'fit_intercept': [False], 'solver': ['lbfgs']}
-            ],
+             [
+                 {'C': [1e-1, 1e0], 'fit_intercept': [True, False]}
+             ],
+             [
+                 {'C': [1]},
+                 {'C': [1], 'fit_intercept': [False], 'solver': ['lbfgs']}
+             ],
         )
     )
     @pytest.mark.parametrize('_return_train_score', (True, False))
     def test_accuracy_vs_sk_gscv(
-        self, _param_grid, _cv_iter, standard_error_score, standard_WIP_scorer,
-        standard_cache_cv, standard_iid, _return_train_score, X_da, y_da,
-        special_sk_est_log, special_sk_GSCV_est_log_one_scorer_prefit,
-        # _client  # 25_05_06 indifferent to client
+            self, _param_grid, _cv_iter, standard_error_score, standard_WIP_scorer,
+            standard_cache_cv, standard_iid, _return_train_score, X_da, y_da,
+            special_sk_est_log, special_sk_GSCV_est_log_one_scorer_prefit,
+            # _client  # 25_05_06 indifferent to client
     ):
 
         # using sklearn modules to stay off dask_ml. but sklearn uses
         # StratifiedKfold to do splits and GSTCVDask uses dask_ml KFold.
-        # so to get fair comparison, use this same splits in GSTCVDask
+        # so to get equal comparison, use the same splits in GSTCVDask
         # and sk_GSCV by passing the same splits to both.
 
         # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -145,7 +131,7 @@ class TestFitAccuracy:
         out_sk_gscv.set_params(
             param_grid=_param_grid,
             cv=_cv_iter,
-            scoring={k: make_scorer(v) for k,v in standard_WIP_scorer.items()},
+            scoring={k: make_scorer(v) for k, v in standard_WIP_scorer.items()},
             return_train_score=_return_train_score
         )
 

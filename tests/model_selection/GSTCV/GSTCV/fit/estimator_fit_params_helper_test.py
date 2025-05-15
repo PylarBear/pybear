@@ -53,26 +53,18 @@ class TestEstimatorFitParamsHelper:
         sk_helper = {}
 
         for idx, (train_idxs, test_idxs) in enumerate(good_sk_kfold):
-
             sk_helper[idx] = {}
-
             for k, v in good_sk_fit_params.items():
-
                 try:
                     iter(v)
                     if isinstance(v, (dict, str)):
-                        raise
-
+                        raise Exception
                     if len(v) != _rows:
-                        raise
-
+                        raise Exception
                     np.array(list(v))
-
+                    sk_helper[idx][k] = v.copy()[train_idxs]
                 except:
                     sk_helper[idx][k] = v
-                    continue
-
-                sk_helper[idx][k] = v.copy()[train_idxs]
 
         return sk_helper
 
@@ -129,25 +121,24 @@ class TestEstimatorFitParamsHelper:
 
     # test accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    def test_sk_accuracy(
+    def test_saccuracy(
         self, _rows, good_sk_fit_params, good_sk_kfold, exp_sk_helper_output
     ):
 
-        out = _estimator_fit_params_helper(
-            _rows, good_sk_fit_params, good_sk_kfold
-        )
+        _fit_params = good_sk_fit_params
+
+        out = _estimator_fit_params_helper(_rows, _fit_params, good_sk_kfold)
 
         for f_idx, exp_fold_fit_param_dict in exp_sk_helper_output.items():
 
             for param, exp_value in exp_fold_fit_param_dict.items():
-                _ = out[f_idx][param]
-                __ = exp_value
+                _act = out[f_idx][param]
                 if isinstance(exp_value, np.ndarray):
-                    assert len(_) < _rows
-                    assert len(__) < _rows
-                    assert np.array_equiv(_, __)
+                    assert len(_act) < _rows
+                    assert len(exp_value) < _rows
+                    assert np.array_equiv(_act, exp_value)
                 else:
-                    assert _ == exp_value
+                    assert _act == exp_value
 
 
     def test_accuracy_empty(self, _rows, good_sk_kfold):

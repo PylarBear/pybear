@@ -20,20 +20,21 @@ from sklearn.linear_model import LogisticRegression as sk_logistic
 
 
 
+
+
 class TestParallelizedScorer:
 
 
     # def _parallelized_train_scorer(
-    #     _X_train: XSKWIPType,
-    #     _y_train: YSKWIPType,
-    #     _FIT_OUTPUT_TUPLE: [ClassifierProtocol, float, bool],
+    #     _X_train: SKXType,
+    #     _y_train: SKYType,
+    #     _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
     #     _f_idx: int,
     #     _SCORER_DICT: ScorerWIPType,
-    #     _best_threshold: Union[int, float],
-    #     _error_score: Union[int, float, None],
-    #     _verbose: int,
-    #     **scorer_params
-    #     ) -> np.ma.masked_array:
+    #     _BEST_THRESHOLDS_BY_SCORER: NDArrayHolderType,
+    #     _error_score: Union[numbers.Real, None],
+    #     _verbose: int
+    # ) -> MaskedHolderType:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -66,12 +67,18 @@ class TestParallelizedScorer:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    def test_fit_excepted_accuracy(self, X_np, y_np, _fit_output_excepted):
+
+
+
+
+
+    def test_fit_excepted_accuracy(
+        self, X_np, y_np, _fit_output_excepted
+    ):
 
         # 5 folds
         _X_train = X_np[:int(0.8 * X_np.shape[0]), :]
         _y_train = y_np[:int(0.8 * y_np.shape[0])]
-
 
         # error_score == np.nan
         out_scores = _parallelized_train_scorer(
@@ -89,6 +96,7 @@ class TestParallelizedScorer:
         )
 
         assert out_scores.mask.all()
+
 
 
         # error_score == 0.5 (any arbitrary number)
@@ -109,7 +117,17 @@ class TestParallelizedScorer:
         assert out_scores.mean() == 0.5
 
 
-    def test_fit_good_accuracy(self, X_np, y_np, _fit_output_good):
+
+
+
+
+
+
+
+
+    def test_fit_good_accuracy(
+        self, X_np, y_np, _fit_output_good
+    ):
 
         # 5 folds
         _X_train = X_np[:int(0.8 * X_np.shape[0]), :]
@@ -130,12 +148,13 @@ class TestParallelizedScorer:
             _verbose=10
         )
 
-
         assert out_scores.shape == (2,)
         assert not out_scores.mask.any()
         assert out_scores.min() >= 0
         assert out_scores.max() <= 1
         assert out_scores.mean() > 0
+
+
 
 
 

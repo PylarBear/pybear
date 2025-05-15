@@ -79,6 +79,7 @@ class TestCoreFit_FitParams_Pipe:
 
         # ValueError should raise inside _parallel_fit ('error_score'=='raise')
         with pytest.raises(ValueError):
+            # have to use s__p param format
             special_GSTCV_pipe.fit(
                 X_np, y_np, sk_logistic__sample_weight=short_sample_weight
             )
@@ -92,6 +93,7 @@ class TestCoreFit_FitParams_Pipe:
 
         # ValueError should raise inside _parallel_fit ('error_score'=='raise')
         with pytest.raises(ValueError):
+            # have to use s__p param format
             special_GSTCV_pipe.fit(
                 X_np, y_np, sk_logistic__sample_weight=long_sample_weight
             )
@@ -103,6 +105,7 @@ class TestCoreFit_FitParams_Pipe:
 
         correct_sample_weight = np.random.uniform(0, 1, _rows)
 
+        # have to use s__p param format
         out = special_GSTCV_pipe.fit(
             X_np, y_np, sk_logistic__sample_weight=correct_sample_weight
         )

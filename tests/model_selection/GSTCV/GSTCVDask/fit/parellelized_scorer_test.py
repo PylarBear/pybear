@@ -26,25 +26,24 @@ class TestParallelizedScorer:
 
 
     # def _parallelized_scorer(
-    #     _X_test: XDaskWIPType,
-    #     _y_test: YDaskWIPType,
+    #     _X_test: DaskXType,
+    #     _y_test: DaskYType,
     #     _FIT_OUTPUT_TUPLE: tuple[ClassifierProtocol, float, bool],
     #     _f_idx: int,
     #     _SCORER_DICT: ScorerWIPType,
-    #     _THRESHOLDS: npt.NDArray[int, float],
-    #     _error_score: Union[int, float, None],
-    #     _verbose: int,
-    #     **scorer_params
-    #     ) -> tuple[np.ma.masked_array, np.ma.masked_array]:
+    #     _THRESHOLDS: ThresholdsWIPType,
+    #     _error_score: Union[numbers.Real, None],
+    #     _verbose: int
+    # ) -> tuple[MaskedHolderType, MaskedHolderType]:
 
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture
     def _fit_output_excepted():
 
-        sk_clf = sk_logistic()
         # [ClassifierProtocol, fit time, fit excepted]
-        return (sk_clf, 0.1, True)
+        return (sk_logistic(), 0.1, True)
 
 
     @staticmethod
@@ -65,6 +64,7 @@ class TestParallelizedScorer:
         # [ClassifierProtocol, fit time, fit excepted]
         return (sk_clf, tf-t0, False)
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @pytest.mark.parametrize('sk_dask_metrics',
         (
@@ -92,6 +92,9 @@ class TestParallelizedScorer:
             _verbose=10
         )
 
+
+
+
         assert out_scores.mask.all()
         assert out_times.mask.all()
 
@@ -110,6 +113,7 @@ class TestParallelizedScorer:
             _verbose=10
         )
 
+
         assert round(out_scores.mean(), 8) == 0.4
         assert out_times.mask.all()
 
@@ -121,8 +125,8 @@ class TestParallelizedScorer:
             {'dask_accuracy': dask_accuracy_score}
         )
     )
-    def test_fit_good_accuracy(self, X_da, y_da, _fit_output_good,
-        sk_dask_metrics
+    def test_fit_good_accuracy(
+        self, X_da, y_da, _fit_output_good, sk_dask_metrics
     ):
 
         # 5 folds
@@ -141,6 +145,9 @@ class TestParallelizedScorer:
             _verbose=10
         )
 
+
+
+
         assert out_scores.shape == (21, 1)
         assert not out_scores.mask.any()
         assert out_scores.min() >= 0
@@ -151,10 +158,6 @@ class TestParallelizedScorer:
         assert not out_times.mask.any()
         assert out_times.min() > 0
         assert out_times.mean() > 0
-
-
-
-
 
 
 
