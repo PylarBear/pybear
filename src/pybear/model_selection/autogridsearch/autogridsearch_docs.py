@@ -44,8 +44,8 @@ search is complete and the `best_params_` attribute is retrieved, new
 search grids for the next pass are constructed based on:
     • the preceding search grid,
     • the results within `best_params_`,
-    • the hyperparameters' datatypes as specified in :param: `params`,
-    • and the number of points as specified in :param: `params`.
+    • the hyperparameters' datatypes as specified in `params`,
+    • and the number of points as specified in `params`.
 
 The new refined grids are then passed to the parent GridSearch again,
 another call to fit is made, `best_params_` is retrieved, and
@@ -140,10 +140,9 @@ integers, the universal lower bound is 1; zero and negative numbers
 can never be included in a soft/hard integer search space. For 'soft'
 and 'hard' floats, the universal lower bound is zero; negative numbers
 can never be included in a soft/hard float search space. AutoGridSearch
-will terminate if instructions are passed to the :param: `params`
-parameter that violate the universal bounds. There is no logical upper
-bound for integers and floats. Universal bounds do not apply to 'fixed'
-search spaces.
+will terminate if instructions are passed to `params` that violate the
+universal bounds. There is no logical upper bound for integers and
+floats. Universal bounds do not apply to 'fixed' search spaces.
 
 'fixed' hyperparameter - A hyperparameter whose search space is static.
 The search space will not be 'shifted' or 'drilled'. The search grid
@@ -204,11 +203,11 @@ on the last round's (sorted) grid in the region bounded by the search
 values that are adjacent to the best value. For float search spaces,
 all intervals are infinitely divisible and the zoom-in region will
 be divided evenly according to the number of points for the next round
-provided in :param: `params`. For integer search spaces, when the limit
-of unit intervals is approached, the search space is divided with unit
-intervals and the number of points to search is adjusted accordingly,
-regardless of the number of search points stated in :param: `params`,
-and `params` is overwritten with the new number of points.
+provided in `params`. For integer search spaces, when the limit of unit
+intervals is approached, the search space is divided with unit intervals
+and the number of points to search is adjusted accordingly, regardless
+of the number of search points stated in `params`, and `params` is
+overwritten with the new number of points.
 
 'regap' - Technically a 'drill', the points in a logspace with log10
 interval greater than 1 are repartitioned to unit interval. For example,
@@ -238,8 +237,8 @@ in all remaining rounds, while other hyperparameters' grids continue to
 i.e., you cannot pass a grid with more than one point and then indicate
 only 1 point for the first pass; AutoGridSearch will overwrite that
 first number of points with the actual number of points in the first
-grid. The full grid passed to :param: `params` at instantiation must
-run at least once for every hyperparameter.
+grid. The full grid passed to `params` at instantiation must run at
+least once for every hyperparameter.
 
 Consider the following instructions that demonstrate how 'shrink' works
 on a 'fixed' space. The 'params Parameter' section of the docs explains
@@ -281,11 +280,11 @@ There are two distinct regimes in an AutoGridSearch session,
 
 Shift / Regap:
 First, the default behavior of AutoGridSearch, when allowed, is to shift
-the grids passed in :param: `params` for 'soft' hyperparameters to the
-state where a search round returns best values that are not on the ends
-of those search grids. This eliminates the possibility that their true
-best values are beyond the ranges of their grids. The consequences of
-that condition are two-fold:
+the grids passed in `params` for 'soft' hyperparameters to the state
+where a search round returns best values that are not on the ends of
+those search grids. This eliminates the possibility that their true best
+values are beyond the ranges of their grids. The consequences of that
+condition are two-fold:
 
 1) the optimal estimate of best value for the offending hyperparameter
 is not found
@@ -310,7 +309,7 @@ search over astronomically large spaces. Once shifting requirements
 for that hyperparameter are fulfilled (best value is centered or
 `max_shifts` is reached), AutoGridSearch regaps that logspace to unit
 interval in log10 space. This is to allow sufficient fidelity in the
-search grid for other hyperparameters to be able to more freely toward
+search grid for other hyperparameters to be able to move freely toward
 their true global optima. All hyperparameters with log10 interval
 greater than 1 will be regapped before entering the drilling section of
 AutoGridSearch.
@@ -346,15 +345,14 @@ also pushed out by 1 pass.
 
 The user has some control over how total passes are counted with
 the :param: `total_passes_is_hard` parameter. :param: `total_passes`
-is always the actual number of passes run by AutoGridSearch
-when :param: `total_passes_is_hard` is True. This may cause
-AutoGridSearch to fulfill `total_passes` number of passes, terminate,
-and return results while still in the 'shifting' process (which
-may or may not be desired depending on the user's goals.)
-When :param: `total_passes_is_hard` is False, AutoGridSearch will
-increment :param: `total_passes` for each shifting pass. For example,
-consider a situation where :param: `total_passes` is set to 3 and we
-know beforehand that AutoGridSearch will need two shifting passes to
+is always the actual number of passes run by AutoGridSearch when
+`total_passes_is_hard` is True. This may cause AutoGridSearch to fulfill
+`total_passes` number of passes, terminate, and return results while
+still in the 'shifting' process (which may or may not be desired
+depending on the user's goals.) When `total_passes_is_hard` is False,
+AutoGridSearch will increment `total_passes` for each shifting pass.
+For example, consider a situation where `total_passes` is set to 3 and
+we know beforehand that AutoGridSearch will need two shifting passes to
 center its search grids (this is likely impossible to know, but just
 for example.) On the first pass, AutoGridSearch will peform a shift
 and increment `total_passes` by 1 to 4. On the second pass, another
@@ -367,16 +365,16 @@ Shifting behavior can be modified with the :param: `max_shifts`
 parameter. This is an integer that instructs AutoGridSearch to stop
 shifting after a certain number of tries and proceed to regapping /
 drilling regardless of the state of the search grids, to fulfill the
-remaining total passes. The :param: `max_shifts` parameter is useful
-in cases of asymptotic behavior. Consider a case where the user has
-elected to use a soft logarthmic search space for a hyperparameter
-whose true best value is zero. The logarithmic search space will never
-get there, causing AutoGridSearch to repeatedly shift unabated to the
-limits of floating point precision. The :param: `max_shifts` parameter
-is designed to prevent such a condition, giving some forgiveness for
-poor search design. But, in case this does happen, AutoGridSearch does
-have a fail-safe that will catch floating point precision failures in
-logarithmic space, and inform the user with an error message.
+remaining total passes. The `max_shifts` parameter is useful in cases
+of asymptotic behavior. Consider a case where the user has elected to
+use a soft logarthmic search space for a hyperparameter whose true
+best value is zero. The logarithmic search space will never get there,
+causing AutoGridSearch to repeatedly shift unabated to the limits of
+floating point precision. The `max_shifts` parameter is designed to
+prevent such a condition, giving some forgiveness for poor search design.
+But, in case this does happen, AutoGridSearch does have a fail-safe that
+will catch floating point precision failures in logarithmic space, and
+inform the user with an error message.
 
 Drill: Once true best values are framed within their grids (or stopped
 short) and large logspace intervals are regapped, AutoGridSearch proceeds
@@ -393,7 +391,7 @@ string, or boolean), no drilling takes place. However,AutoGridSearch
 will continue to perform searches (and likely return the same values
 over and over) until `total_passes` is satisfied. It is up to the user
 to avoid this condition. The most likely best practice in this case is
-to set :param: `total_passes` to 1.
+to set `total_passes` to 1.
 
 
 Refit
@@ -429,9 +427,9 @@ Integers and floats cannot be passed to a boolean space.
 
 params Parameter
 ----------------
-The :param: `params` parameter must be a dictionary. AutoGridSearch
-cannot accommodate multiple `params` entries in a list in the same way
-that sci-kit learn GridSearchCV can accomodate multiple param_grids.
+The `params` parameter must be a dictionary. AutoGridSearch cannot
+accommodate multiple `params` entries in a list in the same way that
+sci-kit learn GridSearchCV can accomodate multiple param_grids.
 
 The required parameter `params` must be of the following form:
 dict(
@@ -493,8 +491,8 @@ fixed spaces, the only acceptable entries are 1 or the length of the
 first (and only possible) grid.
 
 The text field in the final position is required for all entries in
-the :param: `params` parameter. This informs AutoGridSearch on how to
-handle the grids and their values. There are eight allowed entries:
+the `params` parameter. This informs AutoGridSearch on how to handle
+the grids and their values. There are eight allowed entries:
 
 'soft_float' - continous search space only bounded by the universal
 minimum for floats
@@ -514,13 +512,10 @@ values of the first grid serve as hard bounds for all searches
 
 'fixed_string' - static grid of string values
 
-'fixed_bool' - static list of boolean values
+'fixed_bool' - static grid of boolean values
 
-
-** * ** * **
-
-All together, a fictitious but valid :param: `params` entry for
-total_passes == 3 might look like:
+All together, a fictitious but valid `params` entry for total_passes ==
+3 might look like:
 
 {
     'solver': [['lbfgs', 'saga'], [2, 1, 1], 'fixed_string'],
@@ -549,14 +544,14 @@ params:
 total_passes:
     Optional[numbers.Integral], default=5 - the number of grid searches
     to perform. The actual number of passes can be different from this
-    number based on the setting for the `total_passes_is_hard` argument.
+    number based on the setting for the `total_passes_is_hard` parameter.
     If `total_passes_is_hard` is True, then the actual number of total
     passes will always be the value assigned to `total_passes`. If
     `total_passes_is_hard` is False, a round that performs a 'shift'
     operation will increment the total number of passes, essentially
     causing shift passes to not count toward the total number of
-    passes. Read elsewhere in the docs for more information about
-    'shifting' and 'drilling'.
+    passes. More information about 'shifting' can be found in the
+    'Terminology' and 'Operation' sections of the docs.
 total_passes_is_hard:
     Optional[bool], default=False - If True, `total_passes` is the exact
     number of grid searches that will be performed. If False, rounds in
