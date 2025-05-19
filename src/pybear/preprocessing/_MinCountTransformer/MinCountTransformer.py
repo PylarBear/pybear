@@ -1378,16 +1378,10 @@ class MinCountTransformer(
             #             break
             # del _module
 
-            _is_garbage_y_from_dask_ml = False
-            if isinstance(y, tuple) \
-                    and isinstance(y[0], str) \
+            if isinstance(y, tuple) and isinstance(y[0], str) \
                     and isinstance(y[1], int):
-                _is_garbage_y_from_dask_ml = True
-
-            if _is_garbage_y_from_dask_ml:
                 y = None
 
-            del _is_garbage_y_from_dask_ml
             # END accommodate dask_ml junk y ** * ** * ** * ** * ** * ** * *
 
             y_tr = validate_data(

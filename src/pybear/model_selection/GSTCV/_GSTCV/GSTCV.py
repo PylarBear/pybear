@@ -65,36 +65,35 @@ class GSTCV(_GSTCVMixin):
     maximize the average score (and minimize the average loss) of the
     held-out data (test sets).
 
-    GSTCV implements 'fit', 'predict_proba', 'predict', 'score',
-    'get_params', and 'set_params' methods. It also implements
-    'decision_function', 'predict_log_proba', 'score_samples',
-    'transform' and 'inverse_transform' if they are exposed by the
-    classifier used.
-
     pybear GSTCV is intended to closely parallel the interface and
-    user-experience of sci-kit learn GridSearchCV. Users who are 
-    familiar with that GridSearch implementation should find that 
-    GSTCV differs with respect to 4 things:
+    user-experience of sci-kit learn GridSearchCV. Users who are
+    familiar with that GridSearch implementation should find that GSTCV
+    differs with respect to 4 things:
 
-    1) the init parameter `thresholds` (which can also be passed as a
-    parameter to `param_grid`)
+    1) the init parameter :param: `thresholds` (which can also be passed
+    as a parameter to :param: `param_grid`)
 
-    2) additional columns in the `cv_results_` attribute to report the
-    best thresholds for each scorer
+    2) additional columns in the :attr: `cv_results_` attribute to
+    report the best thresholds for each scorer
 
-    3) one post-run attribute,'best_threshold_`, which informs about
-    the overall best threshold
+    3) one post-run attribute, :attr: `best_threshold_`, which informs
+    about the overall best threshold
 
-    # pizza revisit this
-    4) callables passed to `scoring` SHOULD NOT be wrapped in
+    4) callables passed to :param: `scoring` SHOULD NOT be wrapped in
     'make_scorer' as would be done with GridSearchCV. Pass scoring
     callables in raw metric form. See the sci-kit learn docs and the
-    'Parameter' section of the GSTCV docs for more information about
+    'Parameters' section of the GSTCV docs for more information about
     'make_scorer' and 'metrics'.
 
     Users who are familiar with the sci-kit implementation of GridSearch
-    should focus on these areas of the GSTCV 'Parameters' docs for
-    mastery of GSTCV.
+    should focus on the above 4 areas in the GSTCV 'Parameters' and
+    'Attributes' sections of the docs for mastery of GSTCV.
+
+    GSTCV implements `fit`, `predict_proba`, `predict`, `score`,
+    `get_params`, and `set_params` methods. It also implements
+    `decision_function`, `predict_log_proba`, `score_samples`,
+    `transform` and `inverse_transform` if they are exposed by the
+    classifier passed to :param: `estimator`.
 
 
     Parameters
@@ -102,12 +101,12 @@ class GSTCV(_GSTCVMixin):
     estimator:
         estimator object - Required. Must be a binary classifier that
         conforms to the sci-kit learn estimator API interface. The
-        classifier must have the 'fit', 'set_params', 'get_params', and
-        'predict_proba' methods. If the classifier does not have
-        predict_proba, try to wrap with CalibratedClassifierCV. The
-        classifier does not need a 'score' method, as GSTCV never
-        accesses the estimator score method because it always uses a 0.5
-        threshold.
+        classifier must have the `fit`, `set_params`, `get_params`, and
+        `predict_proba` methods. If the classifier does not have
+        `predict_proba`, try to wrap with CalibratedClassifierCV. The
+        classifier does not need a `score` method, as GSTCV never
+        accesses the estimator `score` method because it always uses a
+        0.5 threshold.
 
         GSTCV deliberately blocks dask classifiers (including, but not
         limited to, dask_ml, xgboost, and lightGBM dask classifiers.) To
@@ -146,7 +145,7 @@ class GSTCV(_GSTCVMixin):
         is a hierarchy that dictates which thresholds are used during
         searching and scoring. Any threshold values passed directly
         within a param grid always supersede any passed (or not passed)
-        to the 'thresholds' init parameter. When no thresholds are passed
+        to the `thresholds` init parameter. When no thresholds are passed
         inside a param grid, the value passed as an init parameter is
         used -- if no values were passed to the init parameter, then the
         GSTCV default values are used. For example, if all passed
@@ -156,34 +155,34 @@ class GSTCV(_GSTCVMixin):
         threshold grid is used for all the grids.
 
         When one scorer is used, the best threshold is always exposed
-        and is accessible via the :attr: `best_threshold_` attribute.
-        When multiple scorers are used, the `best_threshold_` attribute
-        is only exposed when a string value is passed to :param: `refit`.
-        The best threshold is never reported in the :attr: `best_params_`
-        attribute, even if thresholds were passed via a param grid; the
-        best threshold is only available via the `best_threshold_`
-        attribute. Another way to discover the best threshold for each
-        scorer is by inspection of the :attr: `cv_results_`  attribute.
+        and is accessible via the `best_threshold_` attribute. When
+        multiple scorers are used, the `best_threshold_` attribute is
+        only exposed when a string value is passed to `refit`. The best
+        threshold is never reported in the `best_params_` attribute,
+        even if thresholds were passed via a param grid; the best
+        threshold is only available via the `best_threshold_` attribute.
+        Another way to discover the best threshold for each scorer is
+        by inspection of the `cv_results_` attribute.
 
-        The scores reported for test data in cv_results_ are those for
-        the best threshold. Also note that when return_train_score is
+        The scores reported for test data in `cv_results_` are those for
+        the best threshold. Also note that when `return_train_score` is
         True, the scores returned for the train data are only for the
         best threshold found for the test data. That is, every threshold
         is scored on the test data, the best score is found, and the
         best threshold is the threshold corresponding to the best score.
         That best score and best threshold is reported for the test data.
         Then when scoring train data, only the best threshold is scored
-        and reported in cv_results_.
+        and reported in `cv_results_`.
 
     scoring:
         Optional[Union[str, Sequence[str], Callable, dict[str, Callable]]],
         default='accuracy' - Strategy to evaluate the performance of the
         cross-validated model on the test set (and also train set, if
-        return_train_score is True.)
+        `return_train_score` is True.)
 
-        For any number of scorers, scoring can be a dictionary with user-
-        assigned scorer names as keys and callables as values. See below
-        for clarification on allowed callables.
+        For any number of scorers, scoring can be a dictionary with
+        user-assigned scorer names as keys and callables as values. See
+        below for clarification on allowed callables.
 
         For a single scoring metric, a single string or a single callable
         is also allowed. Valid strings that can be passed are 'accuracy',
@@ -195,7 +194,7 @@ class GSTCV(_GSTCVMixin):
 
         The default scorer of the estimator cannot used by this module
         because the decision threshold cannot be manipulated. Therefore,
-        'scoring' cannot accept a None argument.
+        `scoring` cannot accept a None argument.
 
         About the scorer callable:
         This module's scorers differ from other GSCV implementations
@@ -237,35 +236,35 @@ class GSTCV(_GSTCVMixin):
         grid search is done, fit the whole dataset on the estimator
         using the best found hyperparameters and expose this fitted
         estimator via the :attr: `best_estimator_` attribute. Also,
-        when the estimator is refit on the best hyperparamters the
+        when the estimator is refit on the best hyperparameters, the
         GSTCV instance itself becomes the best estimator, exposing
         the :meth: `predict_proba`, :meth: `predict`, and :meth: `score`
-        methods (and possibly others.) When refit is not performed, the
-        search simply finds the best parameters and exposes them via
-        the :attr: `best_params_` attribute (unless there are multiple
-        scorers and refit is False, in which case information about the
-        grid search is only available via the :attr: `cv_results_`
+        methods (and possibly others.) When refit is not performed,
+        the search simply finds the best hyperparameters and exposes
+        them via the `best_params_` attribute (unless there are multiple
+        scorers and `refit` is False, in which case information about
+        the grid search is only available via the :attr: `cv_results_`
         attribute.)
 
-        The values accepted by refit depend on the scoring scheme, that
+        The values accepted by `refit` depend on the scoring scheme, that
         is, whether a single or multiple scorers are used. In all cases,
-        refit can be boolean False (to disable refit), a string that
+        `refit` can be boolean False (to disable refit), a string that
         indicates the name of the scorer to use (when there is only one
         scorer there is only one possible string value), or a callable.
         See below for more information about the refit callable. When
-        one scorer is used, refit can be boolean True or False, but
+        one scorer is used, `refit` can be boolean True or False, but
         boolean True cannot be used when there is more than one scorer.
 
         Where there are considerations other than maximum score in
-        choosing a best estimator, refit can be set to a function that
+        choosing a best estimator, `refit` can be set to a function that
         takes in :attr: `cv_results_` and returns :attr: `best_index_`
         (an integer). In that case, the returned `best_index_` sets both
         the :attr: `best_estimator_` and :attr: `best_params_` attributes.
         When more than one scorer is used, the :attr: `best_score_`
-        and :attr: `best_threshold_` attributes will not be available
+        and :attr: `best_threshold_` attributes will not be available,
         but are available if there is only one scorer.
 
-        See :param: the `scoring` parameter to know more about multiple
+        See the :param: `scoring` parameter to know more about multiple
         metric evaluation.
 
     cv:
@@ -315,12 +314,13 @@ class GSTCV(_GSTCVMixin):
 
     return_train_score:
         Optional[bool] - If False, the :attr: `cv_results_` attribute
-        will not include training scores. Computing training scores is
-        used to get insights on how different parameter settings impact
-        the overfitting/underfitting trade-off. However, computing the
-        scores on the training set can be computationally expensive and
-        is not strictly required to select the parameters that yield the
-        best generalization performance.
+        will not include training scores. If True, the train data is
+        scored using all the scorers at the best respective threshold(s)
+        found for the test data. Computing training scores is used to
+        assess conditions of under- or over-fittedness. However,
+        computing the scores on the training set can be computationally
+        expensive and is not required to select the hyperparameters that
+        yield the best performance.
 
 
     Attributes
@@ -328,9 +328,7 @@ class GSTCV(_GSTCVMixin):
     cv_results_:
         CVResultsType - A dictionary with column headers as keys and
         results as values, that can be conveniently converted into a
-        pandas DataFrame.
-
-        Always exposed after fit.
+        pandas DataFrame. Always exposed after fit.
 
         Below is an example of cv_results_ for a logistic classifier,
         with:
@@ -388,19 +386,19 @@ class GSTCV(_GSTCVMixin):
             'rank_test_balanced_accuracy':                    [2, 1]
         }
 
-        Slicing across the dictionary values yields the results for a
-        single set of grid search points. That is, indexing into all of
-        the masked arrays at position zero yields the result for the
-        first set of search points, index 1 contains the results for the
-        second set of points, and so forth.
+        Slicing across the dictionary values gives the results for a
+        single permutation of grid search. That is, indexing into all of
+        the masked arrays at position zero gives the result for the
+        first permutation of the grid search, index 1 contains the
+        results for the second permutation, and so forth.
 
         The key 'params' is used to store a list of parameter settings
-        dicts for all the parameter candidates. That is, the 'params'
-        key holds all the possible permutations of parameters for the
-        given search grid(s).
+        dictionaries for all the hyperparameter candidates. That is,
+        the 'params' key holds all the possible permutations of
+        hyperparameters for the given search grid(s).
 
-        The mean_fit_time, std_fit_time, mean_score_time and
-        std_score_time are all in seconds.
+        'mean_fit_time', 'std_fit_time', 'mean_score_time' and
+        'std_score_time' are all in seconds.
 
         For single-metric evaluation, the scores for the single scorer
         are available in the cv_results_ dict at the keys ending with
@@ -412,38 +410,38 @@ class GSTCV(_GSTCVMixin):
     best_estimator_:
         estimator - The estimator that was chosen by the search, i.e.
         the estimator which gave the highest score (or smallest loss)
-        on the held-out (test) data. Only exposed when :param: `refit`
-        is not False; see refit parameter for more information on
-        allowed values.
+        on the held-out (test) data. Only exposed when `refit` is not
+        False; see the `refit` parameter for more information on allowed
+        values.
 
     best_score_:
         float - The mean of the scores of the hold out (test) cv folds
         for the best estimator with the best threshold applied. Always
-        exposed when there is one scorer, or when :param: `refit` is
-        specified as a string for 2+ scorers.
+        exposed when there is one scorer, or when `refit` is specified
+        as a string for 2+ scorers.
 
     best_params_:
-        dict[str, Any] - Exposes the dictionary found at
-        cv_results_['params'][best_index_], which gives the parameter
-        settings that resulted in the highest mean score (best_score_)
-        on the hold out (test) data with the best threshold applied.
+        dict[str, Any] - The dictionary found in the `cv_results_`
+        'params' column in the `best_index_` position, which gives the
+        hyperparameter settings that resulted in the highest mean score
+        (best_score_) on the hold out (test) data with the best threshold
+        applied.
 
-        best_params_ never holds the best threshold. Access the best
-        threshold via the :attr: `best_threshold_` attribute (if
-        available) or the :attr: `cv_results_` attribute.
+        `best_params_` never holds the best threshold. Access the best
+        threshold via the `best_threshold_` attribute (if available) or
+        the `cv_results_` attribute.
 
-        best_params_ is always exposed when there is one scorer, or
-        when :param: `refit` is not False for 2+ scorers.
+        `best_params_` is always exposed when there is one scorer, or
+        when `refit` is not False for 2+ scorers.
 
     best_index_:
-        int - The index of the :attr: `cv_results_` arrays which
-        corresponds to the best parameter settings. Always exposed when
-        there is one scorer, or when :param: `refit` is not False for
-        2+ scorers.
+        int - The index of the `cv_results_` arrays which corresponds to
+        the best hyperparameter settings. Always exposed when there is
+        one scorer, or when `refit` is not False for 2+ scorers.
 
     scorer_:
         dict - Scorer metric(s) used on the held out data to choose the
-        best parameters for the model. Always exposed after fit.
+        best hyperparameters for the model. Always exposed after fit.
 
         This attribute holds the validated scoring dictionary which maps
         the scorer key to the scorer metric callable, i.e., a dictionary
@@ -455,7 +453,7 @@ class GSTCV(_GSTCVMixin):
 
     refit_time_:
         float - Seconds elapsed when refitting the best model on the
-        whole dataset. Only exposed when :param: `refit` is not False.
+        whole dataset. Only exposed when `refit` is not False.
 
     multimetric_:
         bool - Whether several scoring metrics were used. False if one
@@ -463,28 +461,26 @@ class GSTCV(_GSTCVMixin):
 
     classes_:
         ndarray of shape (n_classes,) - Class labels. Only exposed
-        when :param: `refit` is not False. Because GSTCV imposes a
-        restriction that y must be binary in [0, 1], this must always
-        return [0, 1].
+        when `refit` is not False. Because GSTCV imposes a restriction
+        that y must be binary in [0, 1], this must always return [0, 1].
 
     feature_names_in_:
         ndarray of shape (n_features_in_,) - Names of features seen
-        during fit. Only exposed when :param: `refit` is not False (see
-        the documentation for the refit parameter for more details) and
-        a container that has feature names was passed to fit.
+        during fit. Only exposed when `refit` is not False and a
+        container that has feature names was passed to :meth: `fit`.
 
     best_threshold_:
-        float - The threshold that, when used along with the parameter
-        values found in :attr: `best_params_`, yields the highest score
-        for the given estimator and data.
+        float - The threshold that, along with the hyperparameter values
+        found in `best_params_`, yields the highest score for the given
+        estimator and data.
 
         The best threshold is only available conditionally via the
-        best_threshold_ attribute.  When one scorer is used, the best
-        threshold found is always exposed via the best_threshold_
-        attribute. When multiple scorers are used, the best_threshold_
-        attribute is only exposed when a string value is passed
-        to :param: `refit`. Another way to find the best threshold for
-        each scorer and overall is by inspection of :attr:  `cv_results_`.
+        `best_threshold_` attribute. When one scorer is used, the best
+        threshold found is always exposed. When multiple scorers are
+        used, the `best_threshold_` attribute is only exposed when a
+        string value is passed to `refit`. Another way to find the best
+        threshold for each scorer and overall is by inspection of
+        `cv_results_`.
 
 
     Notes
@@ -509,11 +505,11 @@ class GSTCV(_GSTCVMixin):
     ThresholdsInputType:
         Union[None, numbers.Real, Sequence[numbers.Real]]
 
-    GenericSlicerType:
+    SKSlicerType:
         Sequence[numbers.Integral]
 
-    GenericKFoldType:
-        tuple[GenericSlicerType, GenericSlicerType]
+    SKKFoldType:
+        tuple[SKSlicerType, SKSlicerType]
 
     ScorerNameTypes:
         Literal[
@@ -536,29 +532,23 @@ class GSTCV(_GSTCVMixin):
             dict[str, ScorerCallableType]
         ]
 
-    CVResultsType:
-        dict[str, np.ma.masked_array[Any]]
-
     RefitCallableType:
         Callable[[CVResultsType], numbers.Integral]
 
     RefitType:
         Union[bool, ScorerNameTypes, RefitCallableType]
 
-    FeatureNamesInType:
-        npt.NDArray[str]
-
     SKXType:
         Iterable
 
     SKYType:
-        Union[Sequence[numbers.Integral], None]
-
-    SKSlicerType:
         Sequence[numbers.Integral]
 
-    SKKFoldType:
-        tuple[SKSlicerType, SKSlicerType]
+    CVResultsType:
+        dict[str, np.ma.masked_array[Any]]
+
+    FeatureNamesInType:
+        npt.NDArray[str]
 
 
     Examples
