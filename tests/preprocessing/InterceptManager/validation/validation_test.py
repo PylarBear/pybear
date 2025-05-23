@@ -8,8 +8,6 @@
 
 import pytest
 
-import pandas as pd
-
 from pybear.preprocessing._InterceptManager._validation._validation import \
     _validation
 
@@ -18,12 +16,9 @@ from pybear.preprocessing._InterceptManager._validation._validation import \
 class TestValidation:
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_keep',
-        (
-            'first', 'last', 'random', 'none', {'Intercept': 1}, 0, 'string',
-            lambda x: 1
-         )
+        ('first', 'last', 'random', 'none', {'Intr': 1}, 0, 'string', lambda x: 1)
     )
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_rtol', (1e-6, 1e-1))
@@ -44,13 +39,14 @@ class TestValidation:
 
         # bad conditions are handled in tests for the individual modules
 
-        _X = _X_factory(_format='np', _shape=_shape)
 
-        if _format == 'pd':
-            if columns_is_passed:
-                _X = pd.DataFrame(data=_X, columns=_columns)
-            elif not columns_is_passed:
-                _X = pd.DataFrame(data=_X)
+        _X = _X_factory(
+            _format=_format,
+            _dtype='flt',
+            _columns=list(_columns) if columns_is_passed else None,
+            _shape=_shape
+        )
+
 
         if columns_is_passed and _format == 'np':
             # At first glance it would seem that this is an impossible condition,
@@ -84,7 +80,7 @@ class TestValidation:
                         reason=f"cannot have str _keep when columns are not passed"
                     )
 
-                elif _format == 'pd':
+                elif _format in ['pd', 'pl']:
 
                     with pytest.raises(ValueError):
                         _validation(
@@ -111,11 +107,6 @@ class TestValidation:
             _atol,
             _n_jobs
         )
-
-
-
-
-
 
 
 

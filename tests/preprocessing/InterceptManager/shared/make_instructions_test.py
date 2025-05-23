@@ -6,10 +6,10 @@
 
 
 
+import pytest
+
 from pybear.preprocessing._InterceptManager._shared._make_instructions \
     import _make_instructions
-
-import pytest
 
 
 
@@ -17,13 +17,9 @@ class TestMakeInstructions:
 
     # def _make_instructions(
     #     _keep: KeepType,
-    #     constant_columns_: dict[int, any],
+    #     constant_columns_: ConstantColumnsType,
     #     _n_features_in: int
-    # ) -> dict[
-    #   Literal['keep']: Union[None, list[int]],
-    #   Literal['delete']: Union[None, list[int]],
-    #   Literal['add']: Union[None, list[int]]
-    # ]
+    # ) -> InstructionType:
 
 
     @staticmethod
@@ -151,11 +147,6 @@ class TestMakeInstructions:
         assert out['keep'] == None
         assert out['delete'] == list(range(5))
         assert out['add'] == {'Intercept': 1}
-
-
-
-
-
 
 
 

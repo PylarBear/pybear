@@ -6,27 +6,35 @@
 
 
 
-from .._type_aliases import KeepType, InternalDataContainer
 from typing import Literal
 from typing_extensions import Union
-import numpy.typing as npt
-import numpy as np
+from .._type_aliases import (
+    KeepType,
+    DataContainer,
+    ConstantColumnsType,
+    FeatureNamesInType
+)
+
 import warnings
+
+import numpy as np
+import pandas as pd
+import polars as pl
 
 
 
 def _manage_keep(
     _keep: KeepType,
-    _X: InternalDataContainer,
-    constant_columns_: dict[int, any],
+    _X: DataContainer,
+    _constant_columns: ConstantColumnsType,
     _n_features_in: int,
-    _feature_names_in: Union[npt.NDArray[str], None],
+    _feature_names_in: FeatureNamesInType,
     _rand_idx: int
 ) -> Union[Literal['none'], dict[str, any], int]:
 
     """
     Before going into _make_instructions, process some of the mapping of
-    'keep' to a column index and validate against constant_columns_.
+    'keep' to a column index and validate against _constant_columns.
 
     Helps to simplify _make_instructions and makes for easier testing.
 
@@ -93,39 +101,37 @@ def _manage_keep(
     Parameters
     ----------
     _keep:
-        Literal['first', 'last', 'random', 'none'], dict[str, any], int,
-        str, Callable[[_X], int] - The strategy for handling the constant
-        columns. See 'The keep Parameter' section for a lengthy
-        explanation of the 'keep' parameter.
+        KeepType - The strategy for handling the constant columns. See
+        'The keep Parameter' section for a lengthy explanation of the
+        'keep' parameter.
     _X:
-        {array-like, scipy sparse} of shape (n_samples, n_features) -
-        the data that was searched for constant columns.
-    constant_columns_:
-        dict[int, any] - constant column indices and their values found
-        in all partial fits.
+        array-like of shape (n_samples, n_features) - the data that was
+        searched for constant columns.
+    _constant_columns:
+        ConstantColumnsType - constant column indices and their values
+        found in all partial fits.
     _n_features_in:
         int - number of features in the fitted data before transform.
     _feature_names_in:
         Union[npt.NDArray[str], None] - The names of the features as seen
-        during fitting. Only accessible if X is passed to :methods:
-        partial_fit or fit as a pandas dataframe that has a header.
+        during fitting. Only accessible if X is passed to :meth: fit
+        or :meth: partial_fit in a container that has a header.
     _rand_idx:
         int - Instance attribute that specifies the random column index
         to keep when :param: 'keep' is 'random'. This value must be
-        static on calls to :method: transform.
+        static on calls to :meth: transform.
 
 
     Return
     ------
     -
-        __keep:
-            Union[dict[int, any], int, Literal['none']] - _keep converted
-            to integer for callable, 'first', 'last', 'random', or
-            feature name. __keep can only return as an integer, dict,
-            or Literal['none']
-
+        __keep: Union[dict[int, any], int, Literal['none']] - _keep
+        converted to integer for callable, 'first', 'last', 'random', or
+        feature name. __keep can only return as an integer, dict, or
+        Literal['none']
 
     """
+
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -133,7 +139,8 @@ def _manage_keep(
     # _validate in both partial_fit and transform (the only places where
     # this is called)
 
-    assert hasattr(_X, 'shape')
+    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) \
+        or hasattr(_X, 'toarray')
 
     assert isinstance(_n_features_in, int)
     assert _n_features_in > 0
@@ -141,13 +148,13 @@ def _manage_keep(
     if isinstance(_feature_names_in, np.ndarray):
         assert len(_feature_names_in) == _n_features_in
 
-    assert isinstance(constant_columns_, dict)
-    if len(constant_columns_):
+    assert isinstance(_constant_columns, dict)
+    if len(_constant_columns):
         assert all(map(
-            isinstance, constant_columns_, (int for _ in constant_columns_)
+            isinstance, _constant_columns, (int for _ in _constant_columns)
         ))
-        assert min(constant_columns_) >= 0
-        assert max(constant_columns_) < _n_features_in
+        assert min(_constant_columns) >= 0
+        assert max(_constant_columns) < _n_features_in
 
     if _rand_idx is not None:
         assert _rand_idx in range(_n_features_in)
@@ -160,11 +167,11 @@ def _manage_keep(
         __keep = _keep
     elif callable(_keep):
         __keep = _keep(_X)
-        if __keep not in constant_columns_:
+        if __keep not in _constant_columns:
             raise ValueError(
                 f"'keep' callable has returned an integer column index ({_keep}) "
                 f"that is not a column of constants. \nconstant columns: "
-                f"{constant_columns_}"
+                f"{_constant_columns}"
             )
     elif isinstance(_keep, str) and _feature_names_in is not None and \
             _keep in _feature_names_in:
@@ -174,14 +181,14 @@ def _manage_keep(
         __keep = int(np.arange(_n_features_in)[_feature_names_in == _keep][0])
         # this is the first place where we can validate whether the _keep
         # feature str is actually a constant column in the data
-        if __keep not in constant_columns_:
+        if __keep not in _constant_columns:
             raise ValueError(
                 f"'keep' was passed as '{_keep}' corresponding to column "
                 f"index ({_keep}) which is not a column of constants. "
-                f"\nconstant columns: {constant_columns_}"
+                f"\nconstant columns: {_constant_columns}"
             )
     elif _keep in ('first', 'last', 'random', 'none'):
-        _sorted_constant_column_idxs = sorted(list(constant_columns_))
+        _sorted_constant_column_idxs = sorted(list(_constant_columns))
         if len(_sorted_constant_column_idxs) == 0:
             warnings.warn(
                 f"ignoring :param: keep literal '{_keep}', there are no "
@@ -200,10 +207,10 @@ def _manage_keep(
         # this is the first place where we can validate whether the
         # _keep int is actually a constant column in the data
         __keep = _keep
-        if __keep not in constant_columns_:
+        if __keep not in _constant_columns:
             raise ValueError(
                 f"'keep' was passed as column index ({_keep}) which is not a "
-                f"column of constants. \nconstant columns: {constant_columns_}"
+                f"column of constants. \nconstant columns: {_constant_columns}"
             )
     else:
         raise AssertionError(f"algorithm failure. invalid 'keep': {_keep}")
@@ -211,12 +218,6 @@ def _manage_keep(
 
     # __keep could be dict[str, any], int, or 'none'
     return __keep
-
-
-
-
-
-
 
 
 

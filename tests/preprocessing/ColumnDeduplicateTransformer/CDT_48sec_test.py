@@ -15,8 +15,6 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
 
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
@@ -31,12 +29,17 @@ bypass = False
 # FIXTURES
 
 @pytest.fixture(scope='module')
-def _X_np(_X_factory, _shape):
+def _dupls(_shape):
+    return [[0,_shape[1]-2], [1, _shape[1]-1]]
+
+
+@pytest.fixture(scope='module')
+def _X_np(_X_factory, _dupls, _shape):
     return _X_factory(
         # _dupl must be intermingled like [[0,8],[1,9]], not [[0,1],[8,9]]
         # for TestManyPartialFitsEqualOneBigFit to catch 'random' putting
         # out different columns over a sequence of transforms
-        _dupl=[[0,_shape[1]-2], [1, _shape[1]-1]],
+        _dupl=_dupls,
         _has_nan=False,
         _dtype='flt',
         _shape=_shape
@@ -337,7 +340,7 @@ class TestInitValidation:
             CDT(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('good_n_jobs', [-1, 1, 10, None])
+    @pytest.mark.parametrize('good_n_jobs', [-1, 1, 3, None])
     def test_good_n_jobs(self, _X_np, _kwargs, good_n_jobs):
 
         _kwargs['n_jobs'] = good_n_jobs
@@ -527,37 +530,36 @@ class TestExceptWarnOnDifferentHeader:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestOutputTypes:
 
-    _base_objects = ('np_array', 'pandas', 'scipy_sparse_csc')
 
-
-    @pytest.mark.parametrize('x_input_type', _base_objects)
+    @pytest.mark.parametrize('x_input_type', ('np', 'pd', 'csc_array'))
     @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
     def test_output_types(
-        self, _X_np, _columns, _kwargs, x_input_type, output_type
+        self, _X_factory, _columns, _shape, _kwargs, _dupls, x_input_type,
+        output_type
     ):
 
-        NEW_X = _X_np.copy()
-        NEW_COLUMNS = _columns.copy()
-
-        if x_input_type == 'np_array':
-            TEST_X = NEW_X
-        elif x_input_type == 'pandas':
-            TEST_X = pd.DataFrame(data=NEW_X, columns=NEW_COLUMNS)
-        elif x_input_type == 'scipy_sparse_csc':
-            TEST_X = ss.csc_array(NEW_X)
-        else:
-            raise Exception
+        _X_wip = _X_factory(
+            _dupl=_dupls,
+            _has_nan=False,
+            _format=x_input_type,
+            _dtype='flt',
+            _columns=None,
+            _constants=None,
+            _noise=1e-9,
+            _zeros=None,
+            _shape=_shape
+        )
 
         TestCls = CDT(**_kwargs)
         TestCls.set_output(transform=output_type)
 
-        TRFM_X = TestCls.fit_transform(TEST_X)
+        TRFM_X = TestCls.fit_transform(_X_wip)
 
         # if output_type is None, should return same type as given
         if output_type is None:
-            assert type(TRFM_X) == type(TEST_X), \
+            assert type(TRFM_X) == type(_X_wip), \
                 (f"output_type is None, X output type ({type(TRFM_X)}) != "
-                 f"X input type ({type(TEST_X)})")
+                 f"X input type ({type(_X_wip)})")
         # if output_type 'default', should return np array no matter what given
         elif output_type == 'default':
             assert isinstance(TRFM_X, np.ndarray), \
@@ -634,31 +636,18 @@ class TestConditionalAccessToPartialFitAndFit:
 class TestAllColumnsTheSameorDifferent:
 
     @pytest.mark.parametrize('same_or_diff', ('_same', '_diff'))
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'coo'))
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'coo_array'))
     def test_all_columns_the_same_or_different(
         self, _X_factory, _kwargs, same_or_diff, x_format, _columns, _shape
     ):
 
         TEST_X = _X_factory(
-            _dupl=None,
+            _dupl=[list(range(_shape[1]))] if same_or_diff=='_same' else None,
             _has_nan=False,
-            _format='np',
+            _format=x_format,
             _dtype='flt',
             _shape=_shape
         )
-
-        if same_or_diff == '_same':
-            for col_idx in range(1, TEST_X.shape[1]):
-                TEST_X[:, col_idx] = TEST_X[:, 0]
-
-        if x_format == 'np':
-            pass
-        elif x_format == 'pd':
-            TEST_X = pd.DataFrame(data=TEST_X, columns=_columns)
-        elif x_format == 'coo':
-            TEST_X = ss.coo_matrix(TEST_X)
-        else:
-            raise Exception
 
         out = CDT(**_kwargs).fit_transform(TEST_X)
 
@@ -1039,82 +1028,65 @@ class TestPartialFit:
     )
     def test_rejects_junk_X(self, _junk_X, _kwargs):
 
-        _CDT = CDT(**_kwargs)
-
         # this is being caught by _val_X at the top of partial_fit.
         # in particular,
         # if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
         #      hasattr(_X, 'toarray'):
         with pytest.raises(ValueError):
-            _CDT.partial_fit(_junk_X)
+            CDT(**_kwargs).partial_fit(_junk_X)
+
+
+    @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
+    def test_rejects_invalid_container(self, _X_np, _columns, _kwargs, _format):
+
+        _CDT = CDT(**_kwargs)
+
+        if _format == 'py_list':
+            _X_wip = list(map(list, _X_np.copy()))
+        elif _format == 'py_tuple':
+            _X_wip = tuple(map(tuple, _X_np.copy()))
+        else:
+            raise Exception
+
+        if _format == 'py_list':
+            with pytest.raises(ValueError):
+                _CDT.partial_fit(_X_wip)
+        elif _format == 'py_tuple':
+            with pytest.raises(ValueError):
+                _CDT.partial_fit(_X_wip)
+        else:
+            raise Exception
 
 
     @pytest.mark.parametrize('_format',
         (
              'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
              'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
-             'dask_array', 'dask_dataframe'
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
         )
     )
-    def test_X_container(self, _X_np, _columns, _kwargs, _format):
+    def test_X_container(
+            self, _X_factory, _columns, _shape, _kwargs, _dupls, _format
+    ):
 
-        _X = _X_np.copy()
+        _X_wip = _X_factory(
+            _dupl=_dupls,
+            _has_nan=False,
+            _format=_format,
+            _dtype='flt',
+            _columns=_columns,
+            _constants=None,
+            _noise=0,
+            _zeros=None,
+            _shape=_shape
+        )
 
         if _format == 'np':
-            _X_wip = _X
             assert _X_wip.flags['C_CONTIGUOUS'] is True
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(
-                data=_X,
-                columns=_columns
-            )
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        elif _format == 'dask_array':
-            _X_wip = da.from_array(_X)
-        elif _format == 'dask_dataframe':
-            _X_wip = ddf.from_array(_X, columns=_columns)
-        else:
-            raise Exception
 
         _X_wip_before_partial_fit = _X_wip.copy()
 
-        _CDT = CDT(**_kwargs)
-
-        if _format in ('dask_array', 'dask_dataframe'):
-            with pytest.raises(TypeError):
-                # handled by CDT
-                _CDT.partial_fit(_X_wip)
-            pytest.skip(reason=f'cant do anymore tests after except')
-        else:
-            _CDT.partial_fit(_X_wip)
+        _CDT = CDT(**_kwargs).partial_fit(_X_wip)
 
         # verify _X_wip does not mutate in partial_fit()
         assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
@@ -1244,72 +1216,59 @@ class TestTransform:
             _CDT.transform(_junk_X)
 
 
-    @pytest.mark.parametrize('_format',
-    (
-         'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-         'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-         'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
-         'dask_array', 'dask_dataframe'
-    )
-    )
-    def test_X_container(self, _X_np, _columns, _kwargs, _format):
+    @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
+    def test_rejects_invalid_container(self, _X_np, _columns, _kwargs, _format):
 
-        _X = _X_np.copy()
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_X_np)  # fit on numpy, not the converted data
 
-        if _format == 'np':
-            _X_wip = _X
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(
-                data=_X,
-                columns=_columns
-            )
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'dask_array':
-            _X_wip = da.from_array(_X)
-        elif _format == 'dask_dataframe':
-            _X_wip = ddf.from_array(_X, columns=_columns)
+        if _format == 'py_list':
+            _X_wip = list(map(list, _X_np.copy()))
+        elif _format == 'py_tuple':
+            _X_wip = tuple(map(tuple, _X_np.copy()))
         else:
             raise Exception
+
+        if _format == 'py_list':
+            with pytest.raises(ValueError):
+                _CDT.transform(_X_wip)
+        elif _format == 'py_tuple':
+            with pytest.raises(ValueError):
+                _CDT.transform(_X_wip)
+        else:
+            raise Exception
+
+
+    @pytest.mark.parametrize('_format',
+        (
+        'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+        'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+        'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
+        )
+    )
+    def test_X_container(
+        self, _X_factory, _columns, _shape, _kwargs, _dupls, _format
+    ):
+
+        _X_wip = _X_factory(
+            _dupl=_dupls,
+            _has_nan=False,
+            _format=_format,
+            _dtype='flt',
+            _columns=_columns if _format in ['pd', 'pl'] else None,
+            _constants=None,
+            _zeros=0,
+            _shape=_shape
+        )
 
         _X_wip_before_transform = _X_wip.copy()
 
         _CDT = CDT(**_kwargs)
-        _CDT.fit(_X)    # fit on numpy, not the converted data
+        _CDT.fit(_X_wip)
 
-        if _format in ('dask_array', 'dask_dataframe'):
-            with pytest.raises(TypeError):
-                # handled by CDT
-                _CDT.transform(_X_wip)
-            pytest.skip(reason=f'cant do anymore tests after except')
-        else:
-            _CDT.transform(_X_wip, copy=True)
+        out = _CDT.transform(_X_wip, copy=True)
+        assert isinstance(out, type(_X_wip))
+
 
         # verify _X_wip does not mutate in transform() when copy=True
         # when copy=False anything goes
@@ -1455,27 +1414,25 @@ class TestInverseTransform:
             _CDT.inverse_transform(_junk_X)
 
 
-    @pytest.mark.parametrize('_format', ('dask_array', 'dask_dataframe'))
+    @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
     def test_rejects_invalid_container(self, _X_np, _columns, _kwargs, _format):
 
-        _X = _X_np.copy()
+        _CDT = CDT(**_kwargs)
+        _CDT.fit(_X_np)  # fit on numpy, not the converted data
 
-        if _format == 'dask_array':
-            _X_wip = da.from_array(_X)
-        elif _format == 'dask_dataframe':
-            _X_wip = ddf.from_array(_X, columns=_columns)
+        if _format == 'py_list':
+            _X_wip = list(map(list, _X_np.copy()[:, _CDT.column_mask_]))
+        elif _format == 'py_tuple':
+            _X_wip = tuple(map(tuple, _X_np.copy()[:, _CDT.column_mask_]))
         else:
             raise Exception
 
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_X)  # fit on numpy, not the converted data
-
-        if _format == 'dask_array':
-            with pytest.raises(TypeError):
-                _CDT.inverse_transform(_X_wip[:, _CDT.column_mask_])
-        elif _format == 'dask_dataframe':
-            with pytest.raises(TypeError):
-                _CDT.inverse_transform(_X_wip.iloc[:, _CDT.column_mask_])
+        if _format == 'py_list':
+            with pytest.raises(ValueError):
+                _CDT.inverse_transform(_X_wip)
+        elif _format == 'py_tuple':
+            with pytest.raises(ValueError):
+                _CDT.inverse_transform(_X_wip)
         else:
             raise Exception
 
@@ -1598,7 +1555,7 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_copy', (True, False))
     def test_accuracy(
         self, _X_factory, _columns, _kwargs, _shape, _format, _dtype,
-        _has_nan, _keep, _copy
+        _has_nan, _keep, _dupls, _copy
     ):
 
         # may not need to test accuracy here, see _inverse_transform,
@@ -1615,51 +1572,28 @@ class TestInverseTransform:
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        _base_X = _X_factory(
-            _dupl=None,
+        _X_wip = _X_factory(
+            _dupl=_dupls,
             _has_nan=_has_nan,
-            _format='np',
+            _format=_format,
             _dtype=_dtype,
             _columns=_columns,
+            _constants=None,
             _zeros=0,
             _shape=_shape
         )
 
+        # funky pd nans are making equality tests difficult
+        # pizza see if u can fix the root cause. IM doesnt need this.
+        if _format == 'pd':
+            _X_wip[nan_mask(_X_wip)] = np.nan
+
         if _format == 'np':
-            _X_wip = _base_X
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(
-                data=_base_X,
-                columns=_columns
-            )
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_base_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_base_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_base_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_base_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_base_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_base_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_base_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_base_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_base_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_base_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_base_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_base_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_base_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_base_X)
+            _base_X = _X_wip.copy()
+        elif _format in ['pd', 'pl']:
+            _base_X = _X_wip.to_numpy()
+        elif hasattr(_X_wip, 'toarray'):
+            _base_X = _X_wip.toarray()
         else:
             raise Exception
         # END build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **

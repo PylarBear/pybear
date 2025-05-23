@@ -5,22 +5,22 @@
 #
 
 
-from pybear.preprocessing._InterceptManager._validation._instructions import (
-    _val_instructions
-)
 
 from pybear.preprocessing._InterceptManager._type_aliases import (
     KeepType,
-    InstructionType
+    InstructionType,
+    ConstantColumnsType
 )
 
-
+from pybear.preprocessing._InterceptManager._validation._instructions import (
+    _val_instructions
+)
 
 
 
 def _make_instructions(
     _keep: KeepType,
-    constant_columns_: dict[int, any],
+    constant_columns_: ConstantColumnsType,
     _n_features_in: int
 ) -> InstructionType:
 
@@ -57,8 +57,8 @@ def _make_instructions(
         handling the constant columns. See 'The keep Parameter' section
         for a lengthy explanation of the 'keep' parameter.
     constant_columns_:
-        dict[int, any] - constant column indices and their values found
-        in all partial fits.
+        ConstantColumnsType - constant column indices and their values
+        found in all partial fits.
     _n_features_in:
         int - number of features in the fitted data before transform.
 
@@ -66,13 +66,9 @@ def _make_instructions(
     Return
     ------
     -
-        _instructions:
-            TypedDict[
-                keep: Required[Union[None, list, npt.NDArray[int]]],
-                delete: Required[Union[None, list, npt.NDArray[int]]],
-                add: Required[Union[None, dict[str, any]]]
-            ] - instructions for keeping, deleting, or adding constant
-            columns to be applied during :method: transform.
+        _instructions: InstructionType - instructions for keeping,
+        deleting, or adding constant columns to be applied during
+        transform.
 
 
     """
@@ -161,9 +157,6 @@ def _make_instructions(
     _val_instructions(_instructions, _n_features_in)
 
     return _instructions
-
-
-
 
 
 

@@ -72,23 +72,20 @@ class TestBuildPoly:
          'dia_array', 'bsr_matrix', 'bsr_array')
     )
     def test_X_rejects_coo_dia_bsr(
-        self, _format, _good_active_combos, _csc_X
+        self, _X_factory, _shape, _format, _good_active_combos
     ):
 
-        if _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_csc_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_csc_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_csc_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_csc_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_csc_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_csc_X)
-        else:
-            raise Exception
+        _X_wip = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format=_format,
+            _dtype='flt',
+            _columns=None,
+            _constants=None,
+            _noise=0,
+            _zeros=None,
+            _shape=_shape
+        )
 
         with pytest.raises(AssertionError):
             _build_poly(

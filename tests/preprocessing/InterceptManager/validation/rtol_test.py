@@ -5,12 +5,12 @@
 #
 
 
-from pybear.preprocessing._InterceptManager._validation._rtol import _val_rtol
 
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._InterceptManager._validation._rtol import _val_rtol
 
 
 
@@ -20,8 +20,7 @@ class TestRtol:
         (None, 'trash', [0,1], (0,1), {0,1}, {'a':1}, min, lambda x: x)
     )
     def test_rejects_junk(self, junk_rtol):
-        # this is handled by np.allclose, let it raise whatever
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             _val_rtol(junk_rtol)
 
 
@@ -33,7 +32,7 @@ class TestRtol:
 
     @pytest.mark.parametrize('good_rtol', (0, 1e-6, 1, np.pi))
     def test_accepts_good(self, good_rtol):
-        _val_rtol(good_rtol)
+        assert _val_rtol(good_rtol) is None
 
 
 

@@ -117,7 +117,7 @@ User installation
 ~~~~~~~~~~~~~~~~~
 
 pybear has not been released to PyPI yet. (But with every passing day we get 
-closer and closer!) First publish to PyPI is anticipated to be May 2025. If
+closer and closer!) First publish to PyPI is anticipated to be June 2025. If
 you really want to try it out, the only way to install pybear is from TestPyPI
 using ``pip``::
 

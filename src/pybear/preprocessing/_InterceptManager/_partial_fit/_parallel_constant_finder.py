@@ -6,10 +6,13 @@
 
 
 
-from typing_extensions import Union
+from typing_extensions import (
+    Any,
+    Union
+)
 import numpy.typing as npt
 
-from numbers import Real
+import numbers
 import uuid
 
 import numpy as np
@@ -17,12 +20,13 @@ import numpy as np
 from ....utilities import nan_mask
 
 
+
 def _parallel_constant_finder(
-    _column: npt.NDArray[any],
+    _chunk: npt.NDArray[Any],
     _equal_nan: bool,
-    _rtol: Real,
-    _atol: Real
-) -> Union[uuid.UUID, any]:
+    _rtol: numbers.Real,
+    _atol: numbers.Real
+) -> list[Union[uuid.UUID, Any]]:
 
     """
     Determine if a column holds a single value, subject to _equal_nan,
@@ -43,12 +47,17 @@ def _parallel_constant_finder(
     non-nan-like values; if the column contains all nan-likes then
     return the nan value.
 
+    Originally this module took in one column from X and returned a
+    single value. Joblib choked on this one-column-at-a-time approach,
+    serializing individual columns just to do this operation was a waste.
+    So this module was converted to handle a chunk of columns of X, scan
+    it, and return a list of results. Joblib likes this.
+
 
     Parameters
     ----------
-    _column:
-        NDArray[Union[int, float, str, bool]] - A single column drawn
-        from X as a numpy array.
+    _chunk:
+        NDArray[Any] - Columns drawn from X as a numpy array.
     _equal_nan:
         bool - If equal_nan is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
@@ -71,17 +80,15 @@ def _parallel_constant_finder(
     Return
     ------
     -
-        out:
-            Union[uuid.uuid4, any] - if the column is not constant,
-            returns a uuid4 identifier; if it is constant, returns the
-            constant value.
-
+        _constants: list[Union[uuid.uuid4, Any]] - a list of the results
+        for each column in _chunk. if a column is not constant, returns
+        a uuid4 identifier; if it is constant, returns the constant value.
 
     """
 
 
     # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-    assert isinstance(_column, np.ndarray)
+    assert isinstance(_chunk, np.ndarray)
     assert isinstance(_equal_nan, bool)
     try:
         float(_rtol)
@@ -92,93 +99,95 @@ def _parallel_constant_finder(
         raise ValueError(
             f"'rtol' and 'atol' must be real, non-negative numbers"
         )
-
     # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
-    _nan_mask = nan_mask(_column)
-    # if the column is all nans, just short circuit out
-    if all(_nan_mask):
-        return _column[0] if _equal_nan else uuid.uuid4()
+    if len(_chunk.shape) == 1:
+        _chunk = _chunk.reshape((-1, 1))
+
+    _constants = []
+    for _c_idx in range(_chunk.shape[1]):
+
+        _column = _chunk[:, _c_idx]
+
+        _nan_mask = nan_mask(_column)
+        # if the column is all nans, just short circuit out
+        if all(_nan_mask):
+            _constants.append(_column[0] if _equal_nan else uuid.uuid4())
+            continue
 
 
-    # determine if is num or str
-    _is_num = False
-    _is_str = False
-    try:
-        _column.astype(np.float64)
-        _is_num = True
-    except:
-        _is_str = True
+        # determine if is num or str
+        _is_num = False
+        _is_str = False
+        try:
+            _column[np.logical_not(_nan_mask)].astype(np.float64)
+            _is_num = True
+        except Exception as e:
+            _is_str = True
 
-    # 4 cases for both flt and str:
-    # has nan and _equal_nan
-    # has nan and not _equal_nan
-    # no nan and _equal_nan
-    # no nan and not _equal_nan
+        _has_nans = any(_nan_mask)
 
-    if _is_num and any(_nan_mask):
-        if not _equal_nan:
-            out = uuid.uuid4()
-        elif _equal_nan:
-            _not_nan_mask = np.logical_not(nan_mask(_column))
-            _mean_value = np.mean(_column[_not_nan_mask].astype(np.float64))
+        # 4 cases for both flt and str:
+        # has nan and _equal_nan
+        # has nan and not _equal_nan
+        # no nan and _equal_nan
+        # no nan and not _equal_nan
+
+        if _is_num and _has_nans:
+            if not _equal_nan:
+                out = uuid.uuid4()
+            elif _equal_nan:
+                _not_nan_mask = np.logical_not(nan_mask(_column))
+                _mean_value = np.mean(_column[_not_nan_mask].astype(np.float64))
+                _allclose = np.allclose(
+                    _mean_value,
+                    _column[_not_nan_mask].astype(np.float64), # float64 is important
+                    rtol=_rtol,
+                    atol=_atol,
+                    equal_nan=True
+                )
+
+                out = _mean_value if _allclose else uuid.uuid4()
+                del _not_nan_mask, _mean_value, _allclose
+
+        elif _is_num and not _has_nans:
+            # no nans, _equal_nan doesnt matter
+            _mean_value = np.mean(_column.astype(np.float64)) # float64 is important
             _allclose = np.allclose(
+                _column.astype(np.float64),    # float64 is important
                 _mean_value,
-                _column[_not_nan_mask].astype(np.float64), # float64 is important
                 rtol=_rtol,
-                atol=_atol,
-                equal_nan=True
+                atol=_atol
             )
-
             out = _mean_value if _allclose else uuid.uuid4()
-            del _not_nan_mask, _mean_value, _allclose
+            del _mean_value, _allclose
 
-    elif _is_num and not any(_nan_mask):
-        # no nans, _equal_nan doesnt matter
-        _mean_value = np.mean(_column.astype(np.float64)) # float64 is important
-        _allclose = np.allclose(
-            _column.astype(np.float64),    # float64 is important
-            _mean_value,
-            rtol=_rtol,
-            atol=_atol
-        )
-        out = _mean_value if _allclose else uuid.uuid4()
-        del _mean_value, _allclose
+        elif _is_str and _has_nans:
+            if not _equal_nan:
+                out = uuid.uuid4()
+            elif _equal_nan:
+                # get uniques of non-nans
+                _unq = np.unique(_column[np.logical_not(_nan_mask)])
+                out = _unq[0] if len(_unq) == 1 else uuid.uuid4()
+                del _unq
 
-    elif _is_str and any(_nan_mask):
-        if not _equal_nan:
-            out = uuid.uuid4()
-        elif _equal_nan:
-            # get uniques of non-nans
-            _unq = np.unique(_column[np.logical_not(_nan_mask)])
+        elif _is_str and not _has_nans:
+            # no nans, _equal_nan doesnt matter
+            _unq = np.unique(_column)
             out = _unq[0] if len(_unq) == 1 else uuid.uuid4()
             del _unq
 
-    elif _is_str and not any(_nan_mask):
-        # no nans, _equal_nan doesnt matter
-        _unq = np.unique(_column)
-        out = _unq[0] if len(_unq) == 1 else uuid.uuid4()
-        del _unq
+        else:
+            raise Exception(f"algorithm failure")
 
-    else:
-        raise Exception(f"algorithm failure")
+        _constants.append(out)
 
 
-    del _is_num, _is_str, _nan_mask
-
-    return out
+        del _column, _is_num, _is_str, _has_nans, _nan_mask
 
 
-
-
-
-
-
-
-
-
-
+    return _constants
 
 
 

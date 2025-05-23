@@ -20,6 +20,8 @@ from pybear.preprocessing import ColumnDeduplicateTransformer
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
+from pybear.utilities._nan_masking import nan_mask
+
 
 
 @pytest.mark.parametrize('_dtype', ('flt', 'str'), scope='module')
@@ -45,7 +47,7 @@ class TestInverseTransform:
     )
     def test_rejects_all_ss_that_are_not_csc(
         self, _X_factory, _format, _keep, _do_not_drop, _equal_nan, _dtype,
-        _has_nan, _shape, _columns
+        _has_nan, _shape
     ):
 
         # everything except ndarray, pd dataframe, & scipy csc matrix/array
@@ -55,40 +57,13 @@ class TestInverseTransform:
             pytest.skip(reason=f"scipy sparse cannot take strings")
 
         # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        _base_X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=[[0, 9], [2, 4, 7]],
             _has_nan=_has_nan,
-            _format='np',
+            _format=_format,
             _dtype=_dtype,
             _shape=_shape
         )
-
-        if _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_base_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_base_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_base_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_base_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_base_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_base_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_base_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_base_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_base_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_base_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_base_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_base_X)
-        else:
-            raise Exception
         # END build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -115,7 +90,7 @@ class TestInverseTransform:
 
 
     @pytest.mark.parametrize('_format',
-        ('ndarray', 'df', 'csc_matrix', 'csc_array')
+        ('np', 'pd', 'csc_matrix', 'csc_array')
     )
     def test_accuracy(
         self, _X_factory, _format, _keep, _do_not_drop, _equal_nan, _dtype,
@@ -136,27 +111,25 @@ class TestInverseTransform:
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        _base_X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=[[0, 9], [2, 4, 7]],
             _has_nan=_has_nan,
-            _format='np',
+            _format=_format,
             _dtype=_dtype,
             _shape=_shape
         )
 
-        if _format == 'ndarray':
-            _X_wip = _base_X
-        elif _format == 'df':
-            _X_wip = pd.DataFrame(
-                data=_base_X,
-                columns=_columns
-            )
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_base_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_base_X)
+        if _format == 'np':
+            _base_X = _X_wip.copy()
+        elif _format == 'pd':
+            _base_X = _X_wip.to_numpy()
+        elif hasattr(_X_wip, 'toarray'):
+            _base_X = _X_wip.toarray()
         else:
             raise Exception
+
+        _base_X[nan_mask(_base_X)] = np.nan
+
         # END build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         # _CDT is only being used here to get the legit TRFM_X. only test

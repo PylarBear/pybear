@@ -6,22 +6,26 @@
 
 
 
-
 from typing_extensions import Union
 import numpy.typing as npt
-
+from .._type_aliases import (
+    InternalDataContainer,
+    RemovedColumnsType,
+    FeatureNamesInType
+)
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
+import polars as pl
 
 
 
 def _inverse_transform(
-    X: Union[npt.NDArray, pd.DataFrame, ss.csc_matrix, ss.csc_array],
-    _removed_columns: dict[int, any],
-    _feature_names_in: Union[npt.NDArray[str], None]
-) -> Union[npt.NDArray, pd.DataFrame, ss.csc_matrix, ss.csc_array]:
+    X: InternalDataContainer,
+    _removed_columns: RemovedColumnsType,
+    _feature_names_in: FeatureNamesInType
+) -> InternalDataContainer:
 
     """
     Revert transformed data back to its original state. IM cannot account
@@ -31,13 +35,13 @@ def _inverse_transform(
     Parameters
     ----------
     X :
-        {array-like, scipy sparse csc} of shape (n_samples,
-        n_transformed_features) - A transformed data set. Any appended
-        intercept column (via a :param: 'keep' dictionary) needs to be
-        removed before coming into this module. Data must be received as
-        numpy ndarray, pandas dataframe, or scipy csc only.
+        array-like of shape (n_samples, n_transformed_features) - A
+        transformed data set. Any appended intercept column (via
+        a :param: 'keep' dictionary) needs to be removed before coming
+        into this module. Data must be received as numpy ndarray, pandas
+        dataframe, or scipy csc only.
     _removed_columns:
-        dict[int, any] - the keys are the indices of constant columns
+        RemovedColumnsType - the keys are the indices of constant columns
         removed from the original data, indexed by their column location
         in the original data; the values are the constant value that was
         in that column.
@@ -49,15 +53,15 @@ def _inverse_transform(
     Returns
     -------
     -
-        X_tr : {array-like, scipy sparse csc} of shape (n_samples,
-            n_features) - Transformed data reverted back to its original
-            state.
+        X_tr: array-like of shape (n_samples, n_features) - Transformed
+        data reverted back to its original state.
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(X,
-        (np.ndarray, pd.core.frame.DataFrame, ss.csc_matrix, ss.csc_array)
+        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_matrix,
+         ss.csc_array)
     )
     assert isinstance(_removed_columns, dict)
     assert all(map(isinstance, _removed_columns, (int for _ in _removed_columns)))
@@ -74,7 +78,7 @@ def _inverse_transform(
     # if data is a scipy sparse convert to csc
     _og_X_format = type(X)
 
-    if isinstance(X, pd.core.frame.DataFrame):
+    if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
         # remove any header that may be on this df, dont want to replicate
         # wrong headers in 'new' columns which would be exposed if
         # feature_names_in_ is not available (meaning that fit() never
@@ -112,14 +116,15 @@ def _inverse_transform(
 
         if _feature_names_in is not None:
             X.columns = _feature_names_in
+    elif _og_X_format is pl.DataFrame:
+        X = pl.DataFrame(data=X)
+
+        if _feature_names_in is not None:
+            X.columns = _feature_names_in
     else:
         X = _og_X_format(X)
 
     return X
-
-
-
-
 
 
 

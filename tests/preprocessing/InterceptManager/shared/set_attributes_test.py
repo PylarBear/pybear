@@ -19,10 +19,10 @@ class TestSetAttributes:
 
 
     # def _set_attributes(
-    #     constant_columns_: dict[int, any],
+    #     constant_columns_: ConstantColumnsType,
     #     _instructions: InstructionType,
     #     _n_features_in: int
-    # ) -> tuple[dict[int, any], dict[int, any], npt.NDArray[np.bool_]]
+    # ) -> tuple[KeptColumnsType, RemovedColumnsType, ColumnMaskType]:
 
 
     @staticmethod
@@ -108,9 +108,6 @@ class TestSetAttributes:
             out_column_mask,
             exp_col_mask
         )
-
-
-
 
 
 

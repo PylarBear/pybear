@@ -44,7 +44,3 @@ def _val_equal_nan(
 
 
 
-
-
-
-

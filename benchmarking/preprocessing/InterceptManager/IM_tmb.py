@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing.InterceptManager.InterceptManager import \
+from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager as IM
 
 from pybear.utilities._benchmarking import time_memory_benchmark as tmb

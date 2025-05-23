@@ -51,7 +51,7 @@ class TestDuplsAndConstantsInX:
         return (20, 6)
 
 
-    @pytest.mark.parametrize('X_format', ('np',  'pd', 'coo'))
+    @pytest.mark.parametrize('X_format', ('np',  'pd', 'coo_array'))
     @pytest.mark.parametrize('dupls', ('none', 'dupls1', 'dupls2'))
     @pytest.mark.parametrize('constants', ('none', 'constants1', 'constants2'))
     def test_dupls_and_constants(
@@ -81,9 +81,9 @@ class TestDuplsAndConstantsInX:
 
         # set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if constants == 'constants1':
-            constants = [1]
+            constants = {1: 1}
         elif constants == 'constants2':
-            constants = [1, 3]
+            constants = {1:0, 3:np.pi}
         elif constants == 'none':
             constants = None
         else:

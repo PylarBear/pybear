@@ -9,7 +9,6 @@
 import pytest
 
 import numpy as np
-import scipy.sparse as ss
 
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _find_duplicates import _find_duplicates
@@ -27,31 +26,15 @@ class TestNpFindDuplicates:
     )
     def test_blocks_ss_coo_dia_bsr(self, _X_factory, _format, _shape, _dupl1):
 
-        _X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=_dupl1,
-            _format='np',
+            _format=_format,
             _dtype='flt',
             _has_nan=False,
             _columns=None,
             _zeros=0.25,
             _shape=_shape
         )
-
-
-        if _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        else:
-            raise Exception
 
         with pytest.raises(AssertionError):
             _find_duplicates(
@@ -69,7 +52,7 @@ class TestNpFindDuplicates:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_format',
     (
-     'ndarray', 'csr_matrix', 'csc_matrix', 'lil_matrix',
+     'np', 'csr_matrix', 'csc_matrix', 'lil_matrix',
      'dok_matrix', 'csr_array', 'csc_array', 'lil_array', 'dok_array'
     )
     )
@@ -77,7 +60,6 @@ class TestNpFindDuplicates:
         self, _X_factory, _dtype, _equal_nan, _format, _shape, _has_nan,
         _dupl_set, _dupl1, _dupl2, _dupl3, _dupl4
     ):
-
 
         if _dupl_set == 1:
             _dupl = _dupl1
@@ -90,37 +72,15 @@ class TestNpFindDuplicates:
         else:
             raise Exception
 
-        _X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=_dupl,
-            _format='np',
+            _format=_format,
             _dtype=_dtype,
             _has_nan=_has_nan,
             _columns=None,
             _zeros=0.25,
             _shape=_shape
         )
-
-
-        if _format == 'ndarray':
-            _X_wip = _X
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        else:
-            raise Exception
 
         # leave n_jobs set a 1 because of confliction
         out = _find_duplicates(
@@ -154,28 +114,18 @@ class TestNpFindDuplicates:
     )
     def test_accuracy_ss_all_zeros(self, _X_factory, _format, _shape):
 
-        _X = np.zeros(_shape).astype(np.uint8)
+        _X_wip = _X_factory(
+            _dupl=[list(range(_shape[1]))],
+            _format=_format,
+            _dtype='flt',
+            _has_nan=False,
+            _constants={0: 0},
+            _columns=None,
+            _zeros=None,
+            _shape=_shape
+        )
 
-        if _format == 'ndarray':
-            _X_wip = _X
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        else:
-            raise Exception
+        assert np.sum(_X_wip.toarray()) == 0
 
         # leave set a 1 because of confliction
         out = _find_duplicates(

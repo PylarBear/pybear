@@ -6,11 +6,14 @@
 
 
 
-from .._type_aliases import DataContainer, KeepType
 from typing import Sequence
 from typing_extensions import Union
-import warnings
+from .._type_aliases import (
+    DataContainer,
+    KeepType
+)
 
+import warnings
 
 
 
@@ -20,16 +23,14 @@ def _val_keep_and_columns(
     _X: DataContainer
 ) -> None:
 
-
     """
-
     Validate columns:
         must be None or Sequence[str] with len==X.shape[1]
 
     Validate keep:
         must be any of:
             Literal['first', 'last', 'random', 'none'],
-            dict[str, any],
+            dict[str, Any],
             int (column index),
             str (feature name),
             callable(X) that returns an integer (column index)
@@ -54,18 +55,15 @@ def _val_keep_and_columns(
     Parameters
     ----------
     _keep:
-        Literal['first', 'last', 'random', 'none'], dict[str, any], int,
-            str, Callable[[_X], int] -
-        The strategy for handling the constant columns. See 'The keep
-        Parameter' section for a lengthy explanation of the 'keep'
-        parameter.
+        KeepType - The strategy for handling the constant columns. See
+        'The keep Parameter' section for a lengthy explanation of the
+        'keep' parameter.
     _columns:
         Union[NDArray[str], None] - An NDArray[str] of shape (n_features,)
-        if X was passed as a pandas dataframe with a header, otherwise
-        None.
+        if X was passed in a container that has a header, otherwise None.
     _X:
-        {array-like, scipy sparse} of shape (n_samples, n_features). The
-        data to be searched for constant columns.
+        array-like of shape (n_samples, n_features). The data to be
+        searched for constant columns.
 
 
     Return
@@ -73,11 +71,7 @@ def _val_keep_and_columns(
     -
         None
 
-
     """
-
-
-
 
 
     # validate types, shapes, of _columns ** * ** * ** * ** * ** * ** * **
@@ -256,14 +250,6 @@ def _val_keep_and_columns(
     # if something is passed for :param: keep that dodges all the if
     # blocks, then raise.
     raise ValueError(_err_msg)
-
-
-
-
-
-
-
-
 
 
 

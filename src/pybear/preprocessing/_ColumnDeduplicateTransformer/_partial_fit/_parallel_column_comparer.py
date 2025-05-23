@@ -69,6 +69,10 @@ def _parallel_column_comparer(
 
     """
 
+    # pizza
+    # assert isinstance(_column1, np.ndarray)
+    # assert isinstance(_column2, np.ndarray)
+
 
     try:
         # float64 RAISES ValueError ON STR DTYPES, IN THAT CASE MUST BE STR
@@ -88,7 +92,6 @@ def _parallel_column_comparer(
 
     MASK1 = nan_mask(_column1)
     MASK2 = nan_mask(_column2)
-
     NOT_NAN_MASK = np.logical_not((MASK1 + MASK2).astype(bool))
     del MASK1, MASK2
 

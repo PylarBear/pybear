@@ -975,7 +975,7 @@ class SlimPolyFeatures(
                 equal_nan=self.equal_nan,
                 rtol=self.rtol,
                 atol=self.atol,
-                n_jobs=self.n_jobs
+                n_jobs=1   # pizza self.n_jobs
             )
 
         if self.scan_X and not hasattr(self, '_CDT'):
@@ -987,7 +987,7 @@ class SlimPolyFeatures(
                 equal_nan=self.equal_nan,
                 rtol=self.rtol,
                 atol=self.atol,
-                n_jobs=self.n_jobs
+                n_jobs=1   # pizza self.n_jobs
             )
 
         # Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -998,9 +998,13 @@ class SlimPolyFeatures(
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
+                import time
+                print(f'pizza start IM'); t0 = time.perf_counter()
                 self._IM.partial_fit(X)
+                print(f'pizza end IM time = {time.perf_counter() - t0}')
+                print(f'pizza start CDT'); t0 = time.perf_counter()
                 self._CDT.partial_fit(X)
-
+                print(f'pizza end CDT time = {time.perf_counter() - t0}')
             try:
                 self._check_X_constants_and_dupls()
             except:
@@ -1035,7 +1039,7 @@ class SlimPolyFeatures(
 
         # iterate over the combos and find what is constant or duplicate
         for _combo in self._combos:
-
+            print(f'pizza running combo {_combo}...')
             # _combo must always be at least degree 2, degree 1 is just the
             # original data and should not be processed here
             assert len(_combo) >= 2
@@ -1048,7 +1052,8 @@ class SlimPolyFeatures(
             del __
 
             # poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
+            import time
+            print(f'pizza start parallel_constant_finder'); t0 = time.perf_counter()
             # if _poly_constants (the place that holds what poly columns are
             # constants across all partial fits) exists and it is empty, then
             # there cannot possibly be any columns of constants going forward,
@@ -1066,7 +1071,7 @@ class SlimPolyFeatures(
 
             if not isinstance(_poly_is_constant, uuid.UUID):
                 _poly_constants_current_partial_fit[_combo] = _poly_is_constant
-
+            print(f'pizza end parallel_constant_finder time = {time.perf_counter() - t0}')
             # END poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
             # constant columns NEED TO GO INTO _POLY_CSC to know if
@@ -1075,7 +1080,7 @@ class SlimPolyFeatures(
             # partial fits, but they still might be duplicates.
 
             # poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
+            print(f'pizza start get_dupls'); t0 = time.perf_counter()
             # this function scans the combo column across the columns in X and
             # poly looking for dupls. it returns a vector of bools whose len is
             # X.shape[1] + POLY.shape[1]. if True, then the combo column is
@@ -1085,12 +1090,13 @@ class SlimPolyFeatures(
                 _COLUMN,
                 X,
                 _POLY_CSC,
+                _min_degree=self.min_degree,   # pizza
                 _equal_nan=self.equal_nan,
                 _rtol=self.rtol,
                 _atol=self.atol,
                 _n_jobs=self.n_jobs
             )
-
+            print(f'pizza end get_dupls time = {time.perf_counter() - t0}')
             # need to convert 'out' to
             # [(i1,), (i2,),..] SINGLE 1D GROUP OF DUPLICATES
             _indices = [(i,) for i in range(X.shape[1])] + IDXS_IN_POLY_CSC

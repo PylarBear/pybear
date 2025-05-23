@@ -6,17 +6,18 @@
 
 
 
-from pybear.preprocessing._InterceptManager._validation. _n_jobs import (
-    _val_n_jobs
-)
-
 import pytest
+
+from pybear.preprocessing._InterceptManager._validation. _n_jobs import \
+    _val_n_jobs
+
 
 
 class TestValNJobs:
 
+
     @pytest.mark.parametrize('_n_jobs',
-        (True, min, [1], (1,), {1,2}, {'a':1}, lambda x: x, 'junk', 3.14)
+        ( 2.718, 3.141, True, min, [1], (1,), {1,2}, {'a':1}, lambda x: x, 'junk')
     )
     def test_typeerror_junk_n_jobs(self, _n_jobs):
         with pytest.raises(TypeError):
@@ -32,10 +33,7 @@ class TestValNJobs:
     @pytest.mark.parametrize('_n_jobs', (None, -1, 1, 4)
     )
     def test_accepts_good_n_jobs(self, _n_jobs):
-        _val_n_jobs(_n_jobs)
-
-
-
+        assert _val_n_jobs(_n_jobs) is None
 
 
 

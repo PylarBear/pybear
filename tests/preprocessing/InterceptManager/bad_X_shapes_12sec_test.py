@@ -8,8 +8,8 @@
 
 import pytest
 
-from pybear.preprocessing._ColumnDeduplicateTransformer.ColumnDeduplicateTransformer \
-    import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing._InterceptManager.InterceptManager \
+    import InterceptManager as IM
 
 
 
@@ -51,14 +51,11 @@ class TestExceptsOnBadXShapes:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
-    # save yourself 90 seconds of life. CDT *NEVER* raises for different
-    # number of rows in X in partial_fit, fit, and transform. run these
-    # tests with only one row length. CDT only raises for different
-    # number of columns after seeing a first article in partial_fit/fit.
-    X_FORMAT = ['np', 'pd', 'csc_array'] # , 'pd', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
+    # this is intentional, save some time, they all have shape attr and are
+    # handled by pybear.base.validate_data
+    X_FORMAT = ['np', 'pl'] # , 'pd', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
     SAME_DIFF_COLUMNS = ['good', 'less_col', 'more_col']
-    SAME_DIFF_ROWS = ['good']   #, 'less_row', 'more_row']
+    SAME_DIFF_ROWS = ['good', 'less_row', 'more_row']
 
     @pytest.mark.parametrize('fst_fit_x_format', X_FORMAT)
     @pytest.mark.parametrize('scd_fit_x_format', X_FORMAT)
@@ -73,7 +70,7 @@ class TestExceptsOnBadXShapes:
     ):
 
 
-        TestCls = CDT(**_kwargs)
+        TestCls = IM(**_kwargs)
 
         # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         fst_fit_X = _X_factory(
