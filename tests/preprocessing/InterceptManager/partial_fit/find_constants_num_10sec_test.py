@@ -11,7 +11,6 @@ import pytest
 from typing_extensions import Any
 
 import numpy as np
-import scipy.sparse as ss
 
 from pybear.preprocessing._InterceptManager._partial_fit._find_constants \
     import _find_constants
@@ -64,34 +63,21 @@ class TestFindConstants_Num:
 
 
     @pytest.mark.parametrize('_format', 
-        ('coo_matrix', 'coo_array', 'dia_matrix', 
-        'dia_array', 'bsr_matrix', 'bsr_array')
+        ('coo_array', 'dia_array', 'bsr_array',
+         'dok_array', 'lil_array', 'csr_array')
     )
-    def test_blocks_coo_dia_bsr(
+    def test_blocks_not_csc(
         self, _X_factory, _format, _fc_args, _columns, _shape
     ):
 
-        _X = _X_factory(
-            _format='np', _dtype='flt', _columns=_columns,
+        _X_wip = _X_factory(
+            _format=_format, _dtype='flt', _columns=_columns,
             _has_nan=False, _constants=None, _shape=_shape
         )
 
-        if _format == 'coo_matrix':
-            _X_wip = ss.coo_matrix(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss.coo_array(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss.dia_matrix(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss.dia_array(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss.bsr_matrix(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss.bsr_array(_X)
-        else:
-            raise Exception
 
-        with pytest.raises(AssertionError):
+        # this is raised by scipy let it raise whatever
+        with pytest.raises(Exception):
             _find_constants(
                 _X_wip,
                 _old_constant_columns=None,
@@ -100,7 +86,7 @@ class TestFindConstants_Num:
             )
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'lil'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_array'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_constants_set', ('init', 'no', 'more', 'less'))
     @pytest.mark.parametrize('_has_nan', (True, False))
@@ -201,7 +187,7 @@ class TestFindConstants_Num:
             raise Exception
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'lil'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_array'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -262,7 +248,7 @@ class TestFindConstants_Num:
                     )
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'lil'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_array'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -323,7 +309,7 @@ class TestFindConstants_Num:
                     )
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'lil'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_array'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -401,7 +387,7 @@ class TestFindConstants_Num:
                     )
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_array'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
     def test_ss_all_zeros(self, _format, _dtype, _shape, _fc_args):
 

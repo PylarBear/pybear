@@ -8,8 +8,6 @@
 
 import pytest
 
-from uuid import uuid4
-
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
@@ -24,9 +22,9 @@ from pybear.utilities import check_pipeline
 class TestPipeline:
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     def test_accuracy_in_pipe_vs_out_of_pipe(
-        self, _X_factory, _shape, _kwargs, _format
+        self, _X_factory, _shape, _kwargs, _columns, _format
     ):
 
         # this also incidentally tests functionality in a pipe
@@ -41,7 +39,7 @@ class TestPipeline:
             _dupl=None,
             _format=_format,
             _has_nan=False,
-            _columns=[str(uuid4())[:5] for _ in range(_shape[1])],
+            _columns=_columns,
             _dtype='obj',
             _shape=_shape
         )

@@ -68,6 +68,8 @@ class TestExceptsOnBadXShapes:
         _X_np_less_col
     ):
 
+        # pizza u changed this to X_factory in IM
+
         TestCls = SlimPoly(**_kwargs)
 
         # object selection ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

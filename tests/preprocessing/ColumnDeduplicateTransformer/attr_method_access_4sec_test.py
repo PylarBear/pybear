@@ -26,7 +26,9 @@ bypass = False
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
+    @pytest.mark.parametrize('x_format',
+        ('np', 'pd', 'csc_array', 'csr_array', 'coo_array')
+    )
     def test_attr_access(
         self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
     ):

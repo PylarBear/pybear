@@ -14,6 +14,7 @@ import uuid
 
 import numpy as np
 import pandas as pd
+import polars as pl
 
 from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager as IM
@@ -30,7 +31,9 @@ from pybear.utilities import nan_mask
 
 class TestAccuracy:
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('X_format',
+        ('np', 'pd', 'pl', 'csr_array', 'csc_array', 'coo_array')
+    )
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('equal_nan', (True, False))
@@ -51,14 +54,12 @@ class TestAccuracy:
                     isinstance(keep, (int, dict, str)) or callable(keep)
         assert isinstance(has_nan, bool)
         assert isinstance(equal_nan, bool)
-        assert X_format in (
-            'np', 'pd', 'csr', 'csc', 'coo', 'lil', 'dok', 'bsr', 'dia'
-        )
+        # dont need to validate X_format, X_factory will do it
         assert X_dtype in ('flt', 'int', 'str', 'obj', 'hybrid')
         # END validate the test parameters
 
         # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd']:
+        if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take str")
 
         if X_format == 'np' and X_dtype == 'int' and has_nan:
@@ -127,30 +128,42 @@ class TestAccuracy:
         _og_format = type(X)
 
         # retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if isinstance(X, pd.core.frame.DataFrame):
+        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
             # need to adjust the pd dtypes if keep is dict
             if isinstance(keep, dict):
                 # in _transform(), when keep is a dict, it looks at whether
                 # the dict value is numerical; if so, the dtype of the appended
-                # column for pd is float64, if not num dtype is object.
+                # column for a df is float64, if not num then dtype is object.
                 # this constructs the appended column, puts it on the df,
                 # then gets all the dtypes.
 
                 _key = list(keep.keys())[0]
                 _value = keep[_key]
-                _vector = pd.DataFrame({uuid.uuid4(): np.full(X.shape[0], _value)})
-                # -----------------
-                try:
-                    float(_value)
-                    _dtype = np.float64
-                except:
-                    _dtype = object
-                # -----------------
-                del _key, _value
-                _og_dtype = pd.concat((X, _vector.astype(_dtype)), axis=1).dtypes
-                del _vector
+                if isinstance(X, pd.core.frame.DataFrame):
+                    _vector = pd.DataFrame({uuid.uuid4(): np.full(X.shape[0], _value)})
+                    # -----------------
+                    try:
+                        float(_value)
+                        _dtype = np.float64
+                    except:
+                        _dtype = object
+                    # -----------------
+                    _og_dtype = pd.concat((X, _vector.astype(_dtype)), axis=1).dtypes
+                elif isinstance(X, pl.DataFrame):
+                    _vector = pl.DataFrame({str(uuid.uuid4()): np.full(X.shape[0], _value)})
+                    # -----------------
+                    try:
+                        float(_value)
+                        _dtype = pl.Float64
+                    except:
+                        _dtype = pl.Object
+                    # -----------------
+                    _og_dtype = X.with_columns(_vector.cast(_dtype)).dtypes
+                del _key, _value, _vector
             else:
                 _og_dtype = X.dtypes
+            # need np.array for pl dtypes
+            _og_dtype = np.array(_og_dtype)
         else:
             # if np or ss
             # dont need to worry about keep is dict (appending a column),
@@ -172,7 +185,7 @@ class TestAccuracy:
 
         # if data is not pd and user put in keep as feature_str, will raise
         raise_for_no_header_str_keep = False
-        if X_format != 'pd' and isinstance(keep, str) and \
+        if X_format not in ['pd', 'pl'] and isinstance(keep, str) and \
                 keep not in ('first', 'last', 'random', 'none'):
             raise_for_no_header_str_keep += 1
 
@@ -219,7 +232,7 @@ class TestAccuracy:
         assert isinstance(TRFM_X, _og_format)
 
         # returned dtypes are same as given dtypes ** * ** * ** * ** * **
-        if isinstance(TRFM_X, pd.core.frame.DataFrame):
+        if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
             MASK = TestCls.column_mask_
             if isinstance(keep, dict):
                 # remember that above we stacked a fudged intercept column
@@ -260,7 +273,7 @@ class TestAccuracy:
         assert len(TestCls.column_mask_) == TestCls.n_features_in_
 
         # attr 'feature_names_in_' is correct
-        if X_format == 'pd':
+        if X_format in ['pd', 'pl']:
             assert np.array_equal(TestCls.feature_names_in_, _columns)
             assert TestCls.feature_names_in_.dtype == object
         else:
@@ -323,7 +336,7 @@ class TestAccuracy:
         ref_column_mask = [True for _ in range(X.shape[1])]
         ref_kept_columns = {}
         ref_removed_columns = {}
-        if X_format == 'pd':
+        if X_format in ['pd', 'pl']:
             ref_feature_names_out = list(deepcopy(_columns))
         else:
             ref_feature_names_out = [f'x{i}' for i in range(_shape[1])]
@@ -550,6 +563,9 @@ class TestAccuracy:
             elif isinstance(X, pd.core.frame.DataFrame):
                 _out_col = TRFM_X.iloc[:, _new_idx].to_numpy()
                 _og_col = X.iloc[:, _idx].to_numpy()
+            elif isinstance(X, pl.DataFrame):
+                _out_col = TRFM_X[:, _new_idx].to_numpy()
+                _og_col = X[:, _idx].to_numpy()
             else:
                 _out_col = TRFM_X.tocsc()[:, [_new_idx]].toarray()
                 _og_col = X.tocsc()[:, [_idx]].toarray()
@@ -571,13 +587,13 @@ class TestAccuracy:
                 )
             else:
                 out = _parallel_constant_finder(
-                    _column=_og_col,
+                    _chunk=_og_col,
                     _equal_nan=equal_nan,
                     _rtol=1e-5,
                     _atol=1e-8
                 )
 
-                # a uuid would be return if the column is not constant
+                # a uuid would be returned if the column is not constant
                 assert not isinstance(out, uuid.UUID)
 
         # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

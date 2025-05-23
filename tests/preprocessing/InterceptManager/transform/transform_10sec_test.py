@@ -12,10 +12,10 @@ from copy import deepcopy
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as ss
+import polars as pl
 
 from pybear.preprocessing._InterceptManager._partial_fit. \
-    _column_getter import _column_getter
+    _columns_getter import _columns_getter
 
 from pybear.preprocessing._InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
@@ -84,7 +84,7 @@ class TestTransform:
      )
     @pytest.mark.parametrize('_format',
         (
-            'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix',
+            'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix',
             'dia_matrix', 'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array',
             'csc_array', 'coo_array', 'dia_array', 'lil_array', 'dok_array',
             'bsr_array'
@@ -116,7 +116,7 @@ class TestTransform:
         # 2) _transform correctly deleted the masked columns for np, pd, and ss
         # 3) Columns that are not mapped must be constant.
 
-        if _dtype == 'str' and _format not in ['ndarray', 'df']:
+        if _dtype == 'str' and _format not in ['np', 'pd']:
             pytest.skip(reason=f"scipy sparse cant take strings")
 
         # must do this. even though _instructions is function scope when it is
@@ -131,6 +131,8 @@ class TestTransform:
             raise Exception
 
 
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
         # if has_nan, _X_factory puts nans in every column.
         # therefore when not equal_nan there can be no constant columns.
         if _has_nan and not _equal_nan:
@@ -138,64 +140,25 @@ class TestTransform:
             _wip_instr['delete'] = None
             _constant_columns = {}
 
-
-        _X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=None,
             _has_nan=_has_nan,
-            _format='np',
+            _format=_format,
             _dtype=_dtype,
+            _columns=_columns if _format in ['pd', 'pl'] else None,
             _constants=_const_col_flt if _dtype=='flt' else _const_col_str,
             _noise=1e-9,
             _zeros=None,
             _shape=_shape
         )
 
-
-        # data format conversion v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if _format == 'ndarray':
-            _X_wip = _X
-        elif _format == 'df':
-            _X_wip = pd.DataFrame(
-                data=_X,
-                columns=_columns
-            )
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        else:
-            raise Exception
-        # END data format conversion v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
         # retain the original dtype(s)
         _og_format = type(_X_wip)
-        if isinstance(_X_wip, pd.core.frame.DataFrame):
-            _og_dtype = _X_wip.dtypes
+        if isinstance(_X_wip, (pd.core.frame.DataFrame, pl.DataFrame)):
+            _og_dtype = np.array(_X_wip.dtypes)
         else:
             _og_dtype = _X_wip.dtype
 
@@ -214,7 +177,7 @@ class TestTransform:
 
         # apply the instructions to X via _transform
         # everything except ndarray, pd dataframe, and csc are blocked!
-        if _format in ['ndarray', 'df', 'csc_matrix', 'csc_array']:
+        if _format in ['np', 'pd', 'pl', 'csc_matrix', 'csc_array']:
             out = _transform(_X_wip, _wip_instr)
         else:
             with pytest.raises(TypeError):
@@ -232,7 +195,7 @@ class TestTransform:
                sum(_ref_column_mask) + isinstance(_wip_instr['add'], dict)
 
         # output dtypes are same as given -----------------------------------
-        if isinstance(out, pd.core.frame.DataFrame):
+        if _format in ['pd', 'pl']:
 
             # check the dtypes for the og columns in X first
             assert np.array_equal(
@@ -261,13 +224,19 @@ class TestTransform:
 
                 # dtype
                 if is_num:
-                    assert out[_key].dtype == np.float64
+                    if _format == 'pd':
+                        assert out[_key].dtype == np.float64
+                    elif _format == 'pl':
+                        assert out[_key].dtype == pl.Float64
                 else:
-                    assert out[_key].dtype == object
+                    if _format == 'pd':
+                        assert out[_key].dtype == object
+                    elif _format == 'pl':
+                        assert out[_key].dtype == pl.Object
 
                 del _key, _value, is_num
 
-        elif _format == 'ndarray' and '<U' in str(_og_dtype):
+        elif _format == 'np' and '<U' in str(_og_dtype):
             # str dtypes are changing in _transform() at
             # _X = np.hstack((
             #     _X,
@@ -297,7 +266,7 @@ class TestTransform:
                 _value = _wip_instr['add'][_key]
                 # the stacked column and the value in it takes the dtype
                 # of the original X
-                assert _column_getter(out, -1).ravel()[0] == _value
+                assert _columns_getter(out, out.shape[1]-1).ravel()[0] == _value
         # END output dtypes are same as given -------------------------------
 
 
@@ -323,7 +292,12 @@ class TestTransform:
                     _out_col = out.iloc[:, _out_idx].to_numpy()
                     # verify header matches
                     assert _X_wip.columns[_og_idx] == out.columns[_out_idx]
-
+            elif isinstance(_X_wip, pl.DataFrame):
+                _og_col = _X_wip[:, _og_idx].to_numpy()
+                if _og_idx in _kept_idxs:
+                    _out_col = out[:, _out_idx].to_numpy()
+                    # verify header matches
+                    assert _X_wip.columns[_og_idx] == out.columns[_out_idx]
             elif hasattr(_X_wip, 'toarray'):
                 _og_col = _X_wip.tocsc()[:, [_og_idx]].toarray()
                 if _og_idx in _kept_idxs:

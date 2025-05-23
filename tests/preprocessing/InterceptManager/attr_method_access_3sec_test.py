@@ -12,6 +12,7 @@ import sys
 
 import numpy as np
 import pandas as pd
+import polars as pl
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
@@ -26,7 +27,9 @@ bypass = False
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'csc', 'csr', 'coo'))
+    @pytest.mark.parametrize('x_format',
+        ('np', 'pd', 'pl', 'csc_array', 'csr_array', 'coo_array')
+    )
     def test_attr_access(
         self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
     ):
@@ -52,6 +55,8 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
         if x_format == 'pd':
             NEW_Y = pd.DataFrame(data=y_np, columns=['y'])
+        elif x_format == 'pl':
+            NEW_Y = pl.DataFrame(data=y_np, schema=['y'])
         else:
             NEW_Y = y_np
 
@@ -79,7 +84,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             try:
                 out = getattr(TestCls, attr)
                 if attr == 'feature_names_in_':
-                    if x_format == 'pd':
+                    if x_format in ['pd', 'pl']:
                         assert np.array_equiv(out, _columns), \
                             f"{attr} after fit() != originally passed columns"
                     else:
@@ -93,7 +98,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                     pass
 
             except Exception as e:
-                if attr == 'feature_names_in_' and x_format != 'pd':
+                if attr == 'feature_names_in_' and x_format not in ['pd', 'pl']:
                     assert isinstance(e, AttributeError)
                 else:
                     raise AssertionError(
@@ -113,7 +118,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             try:
                 out = getattr(TestCls, attr)
                 if attr == 'feature_names_in_':
-                    if x_format == 'pd':
+                    if x_format in ['pd', 'pl']:
                         assert np.array_equiv(out, _columns), \
                             f"{attr} after fit() != originally passed columns"
                     else:
@@ -186,7 +191,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # fit an instance  (done above)
         # assert the instance is fitted
         assert is_fitted(TestCls) is True
-        # call :method: reset
+        # call :meth: reset
         TestCls._reset()
         # assert the instance is not fitted
         assert is_fitted(TestCls) is False

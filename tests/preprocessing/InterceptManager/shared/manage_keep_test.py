@@ -24,16 +24,16 @@ class TestManageKeep:
     # def _manage_keep(
     #     _keep: KeepType,
     #     _X: DataContainer,
-    #     constant_columns_: dict[int, any],
+    #     _constant_columns: ConstantColumnsType,
     #     _n_features_in: int,
-    #     _feature_names_in: Union[npt.NDArray[str], None],
+    #     _feature_names_in: FeatureNamesIn,
     #     _rand_idx: int
     # ) -> Union[Literal['none'], dict[str, any], int]:
 
 
-    # callable keep converts X to int, validated against constant_columns_
-    # keep feature str converted to int, validated against constant_columns_
-    # int keep validated against constant_columns_
+    # callable keep converts X to int, validated against _constant_columns
+    # keep feature str converted to int, validated against _constant_columns
+    # int keep validated against _constant_columns
     # keep in ('first', 'last', 'random') warns if no constants, otherwise
     #   converted to int
     # keep == 'none', passes through
@@ -41,7 +41,7 @@ class TestManageKeep:
 
 
     # dict v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_keep',
         ({'Intercept': 1}, {'innards': 'not validated'})
     )
@@ -60,13 +60,13 @@ class TestManageKeep:
             _shape=_shape
         )
 
-        _columns = _X.columns.to_numpy() if _format == 'pd' else None
+        _columns = np.array(_X.columns) if _format in ['pd', 'pl'] else None
         _rand_idx = None if not len(_const_cols) else random.choice(list(_const_cols))
 
         out = _manage_keep(
             _keep=_keep,
             _X=_X,
-            constant_columns_=_const_cols,
+            _constant_columns=_const_cols,
             _n_features_in=_shape[1],
             _feature_names_in=_columns,
             _rand_idx=_rand_idx
@@ -78,7 +78,7 @@ class TestManageKeep:
 
 
     # callable v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_keep', (lambda x: 0, lambda x: 100))
     @pytest.mark.parametrize('_const_cols', ({}, {0:1, 1:np.nan, 2:0}))
     def test_callable(
@@ -97,14 +97,14 @@ class TestManageKeep:
             _shape=_shape
         )
 
-        _columns = _X.columns.to_numpy() if _format == 'pd' else None
+        _columns = np.array(_X.columns) if _format in ['pd', 'pl'] else None
         _rand_idx = None if not len(_const_cols) else random.choice(list(_const_cols))
 
         if _keep(_X) in _const_cols:
             out = _manage_keep(
                 _keep=_keep,
                 _X=_X,
-                constant_columns_=_const_cols,
+                _constant_columns=_const_cols,
                 _n_features_in=_shape[1],
                 _feature_names_in=_columns,
                 _rand_idx=_rand_idx
@@ -121,7 +121,7 @@ class TestManageKeep:
                 _manage_keep(
                     _keep=_keep,
                     _X=_X,
-                    constant_columns_=_const_cols,
+                    _constant_columns=_const_cols,
                     _n_features_in=_shape[1],
                     _feature_names_in=_columns,
                     _rand_idx=_rand_idx
@@ -170,9 +170,9 @@ class TestManageKeep:
             out = _manage_keep(
                 _keep=_keep,
                 _X=X_pd,
-                constant_columns_=_const_cols,
+                _constant_columns=_const_cols,
                 _n_features_in=_shape[1],
-                _feature_names_in=X_pd.columns.to_numpy(),
+                _feature_names_in=np.array(X_pd.columns),
                 _rand_idx=_rand_idx
             )
 
@@ -187,16 +187,16 @@ class TestManageKeep:
                 _manage_keep(
                     _keep=_keep,
                     _X=X_pd,
-                    constant_columns_=_const_cols,
+                    _constant_columns=_const_cols,
                     _n_features_in=_shape[1],
-                    _feature_names_in=X_pd.columns.to_numpy(),
+                    _feature_names_in=np.array(X_pd.columns),
                     _rand_idx=_rand_idx
                 )
     # END feature name str v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
     # literal str v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none'))
     @pytest.mark.parametrize('_const_cols',
         ({}, {0: 1, 1: np.nan, 2: 0}, {7:1, 8:0, 9:np.e}, {4:-1, 3:2})
@@ -210,8 +210,8 @@ class TestManageKeep:
         # feature names are literals ('first', 'last', 'random', 'none')
         # any other string would except in _keep_and_columns
         # only need to test the exact cases of the literals
-        # unless 'keep' is 'none' or constant_columns_ is empty, the
-        # returned value must be in constant_columns_. if constant_columns_
+        # unless 'keep' is 'none' or _constant_columns is empty, the
+        # returned value must be in _constant_columns. if _constant_columns
         # is empty, returns 'none'
 
         _X = _X_factory(
@@ -222,13 +222,13 @@ class TestManageKeep:
             _shape=_shape
         )
 
-        _columns = _X.columns.to_numpy() if _format == 'pd' else None
+        _columns = np.array(_X.columns) if _format in ['pd', 'pl'] else None
         _rand_idx = None if not len(_const_cols) else random.choice(list(_const_cols))
 
         out = _manage_keep(
             _keep=_keep,
             _X=_X,
-            constant_columns_=_const_cols,
+            _constant_columns=_const_cols,
             _n_features_in=_shape[1],
             _feature_names_in=_columns,
             _rand_idx=_rand_idx
@@ -270,7 +270,7 @@ class TestManageKeep:
 
     # int v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_keep', (0, 10, 2000, 1_000_000_000))
     @pytest.mark.parametrize('_const_cols', ({}, {0:1, 1:np.nan, 9:0}))
     def test_integer(
@@ -289,14 +289,14 @@ class TestManageKeep:
             _shape=_shape
         )
 
-        _columns = _X.columns.to_numpy() if _format == 'pd' else None
+        _columns = np.array(_X.columns) if _format in ['pd', 'pl'] else None
         _rand_idx = None if not len(_const_cols) else random.choice(list(_const_cols))
 
         if _keep in _const_cols:
             out = _manage_keep(
                 _keep=_keep,
                 _X=_X,
-                constant_columns_=_const_cols,
+                _constant_columns=_const_cols,
                 _n_features_in=_shape[1],
                 _feature_names_in=_columns,
                 _rand_idx=_rand_idx
@@ -313,7 +313,7 @@ class TestManageKeep:
                 _manage_keep(
                     _keep=_keep,
                     _X=_X,
-                    constant_columns_=_const_cols,
+                    _constant_columns=_const_cols,
                     _n_features_in=_shape[1],
                     _feature_names_in=_columns,
                     _rand_idx=_rand_idx

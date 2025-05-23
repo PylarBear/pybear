@@ -6,17 +6,23 @@
 
 
 
-from .._type_aliases import InstructionType
-import numpy.typing as npt
+from .._type_aliases import (
+    InstructionType,
+    ConstantColumnsType,
+    KeptColumnsType,
+    RemovedColumnsType,
+    ColumnMaskType
+)
+
 import numpy as np
 
 
 
 def _set_attributes(
-    constant_columns_: dict[int, any],
+    constant_columns_: ConstantColumnsType,
     _instructions: InstructionType,
     _n_features_in: int
-) -> tuple[dict[int, any], dict[int, any], npt.NDArray[np.bool_]]:
+) -> tuple[KeptColumnsType, RemovedColumnsType, ColumnMaskType]:
 
     """
     Use the constant_columns_ and _instructions attributes to build the
@@ -26,16 +32,11 @@ def _set_attributes(
     Parameters
     ----------
     constant_columns_:
-        dict[int, any] - constant column indices and their values found
-        in all partial fits.
+        ConstantColumnsType - constant column indices and their values
+        found in all partial fits.
     _instructions:
-        TypedDict[
-            keep: Required[Union[None, list, npt.NDArray[int]]],
-            delete: Required[Union[None, list, npt.NDArray[int]]],
-            add: Required[Union[None, dict[str, any]]]
-        ] - instructions for
-        keeping, deleting, or adding constant columns to be applied
-        during :method: transform.
+        InstructionType - instructions for keeping, deleting, or adding
+        constant columns to be applied during :meth: transform.
     _n_features_in:
         int - number of features in the fitted data before transform.
 
@@ -44,9 +45,9 @@ def _set_attributes(
     ------
     -
         tuple[
-            kept_columns_: dict[int, any],
-            removed_columns_: dict[int, any],
-            column_mask_: NDArray[np.bool_]
+            kept_columns_: KeptColumnsType,
+            removed_columns_: RemovedColumnsType,
+            column_mask_: ColumnMaskType
         ]
 
     """
@@ -54,14 +55,12 @@ def _set_attributes(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(constant_columns_, dict)
-    assert all(
-        map(isinstance, constant_columns_,  (int for _ in constant_columns_))
-    )
+    assert all(map(isinstance, constant_columns_, (int for _ in constant_columns_)))
     assert np.all(np.fromiter(constant_columns_, dtype=int) >= 0)
     assert np.all(np.fromiter(constant_columns_, dtype=int) <= _n_features_in - 1)
     assert isinstance(_instructions, dict)
     assert len(_instructions) == 3
-    assert all([_ in ('keep', 'delete', 'add') for _ in _instructions])
+    assert all(_ in ('keep', 'delete', 'add') for _ in _instructions)
     assert isinstance(_instructions['keep'], (type(None), list))
     assert isinstance(_instructions['delete'], (type(None), list))
     _keep_idxs = set(_instructions['keep'] or [])
@@ -74,8 +73,8 @@ def _set_attributes(
     assert _n_features_in >= 0
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    kept_columns_: dict[int, any] = {}
-    removed_columns_: dict[int, any] = {}
+    kept_columns_: KeptColumnsType = {}
+    removed_columns_: RemovedColumnsType = {}
     # set column_mask_ dtype to object to carry py bool, not np.bool_.
     # unfortunately, numpy will not allow py bools in an object array for
     # slicing! so live with the yucky np.True_ and np.False_ repr.

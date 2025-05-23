@@ -10,7 +10,6 @@ import pytest
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as ss
 
 from pybear.preprocessing._ColumnDeduplicateTransformer._transform._transform \
     import _transform
@@ -41,7 +40,7 @@ class TestTransform:
 
     @pytest.mark.parametrize('_format',
         (
-            'ndarray', 'df', 'csr_matrix', 'csc_matrix', 'coo_matrix',
+            'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix',
             'dia_matrix', 'lil_matrix', 'dok_matrix', 'csr_array',
             'csc_array', 'coo_array', 'dia_array', 'lil_array', 'dok_array'
         )
@@ -54,53 +53,18 @@ class TestTransform:
         # rejects everything except np.ndarray, pd.DataFrame,
         # and scipy csc_matrix/csc_array. should except.
 
-        if _dtype == 'str' and _format not in ['ndarray', 'df']:
+        if _dtype == 'str' and _format not in ['np', 'pd']:
             pytest.skip(reason=f"scipy sparse cant take strings")
 
-        # data format conversion v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-        _X = _X_factory(
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        _X_wip = _X_factory(
             _dupl=_dupl_equal_nan_is_True,
-            _format='np',
+            _format=_format,
             _dtype=_dtype,
             _has_nan=_has_nan,
             _shape=_shape
         )
-
-        if _format == 'ndarray':
-            _X_wip = _X
-        elif _format == 'df':
-            _X_wip = pd.DataFrame(
-                data=_X,
-                columns=_master_columns.copy()[:_shape[1]]
-            )
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        else:
-            raise Exception
-        # END data format conversion v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END BUILD_X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # assign the correct column mask - - - - - - - - - - - -
         # when not equal_nan, all columns must be unequal (full mask, all
@@ -139,7 +103,7 @@ class TestTransform:
         _og_cols = _X_wip.shape[1]
 
         # apply the correct column mask to the original X
-        if _format in ('ndarray', 'df', 'csc_matrix', 'csc_array'):
+        if _format in ('np', 'pd', 'csc_matrix', 'csc_array'):
             out = _transform(_X_wip, _column_mask)
         else:
             with pytest.raises(AssertionError):

@@ -10,7 +10,6 @@ import pytest
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as ss
 
 from pybear.preprocessing._InterceptManager._inverse_transform. \
     _inverse_transform import _inverse_transform
@@ -32,9 +31,9 @@ class TestInverseTransform:
 
     @pytest.mark.parametrize('_format',
         (
-            'csr_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
-            'dok_matrix', 'bsr_matrix', 'csr_array', 'coo_array', 'dia_array',
-            'lil_array', 'dok_array', 'bsr_array'
+            'csr_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix', 'dok_matrix',
+            'bsr_matrix', 'csr_array', 'coo_array', 'dia_array', 'lil_array',
+            'dok_array', 'bsr_array'
         )
     )
     def test_rejects_all_ss_that_are_not_csc(
@@ -42,41 +41,14 @@ class TestInverseTransform:
     ):
 
         # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        _base_X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=None,
             _has_nan=False,
-            _format='np',
+            _format=_format,
             _dtype='flt',
             _constants={0:1, _shape[1]-1: 1},
             _shape=_shape
         )
-
-        if _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_base_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_base_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_base_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_base_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_base_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_base_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_base_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_base_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_base_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_base_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_base_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_base_X)
-        else:
-            raise Exception
         # END build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # _IM is only being used here to get the legit TRFM_X. only test
@@ -109,15 +81,13 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_constants', ('constants1', 'constants2'))
-    @pytest.mark.parametrize('_format',
-        (
-            'np', 'pd_with_header', 'pd_without_header', 'csc_matrix',
-            'csc_array'
-        )
+    @pytest.mark.parametrize('_format, _has_header',
+        (('np', False), ('pd', True), ('pd', False), ('csc_matrix', False),
+         ('csc_array', False))
     )
     def test_accuracy(
         self, _X_factory, _dtype, _keep, _has_nan, _equal_nan, _constants,
-        _format, _columns, _shape
+        _format, _has_header, _columns, _shape
     ):
 
         # Methodology: transform data, then transform back using
@@ -151,40 +121,22 @@ class TestInverseTransform:
         else:
             raise Exception
 
-        _base_X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=None,
             _has_nan=_has_nan,
-            _format='np',
+            _format=_format,
             _dtype=_dtype,
+            _columns=_columns if _has_header else None,
             _constants=_constants,
             _shape=_shape
         )
-
-        if _keep == 'good_string':
-            if _format == 'pd_with_header':
-                _keep = _columns[0]
-            elif _format == 'pd_without_header':
-                _keep = pd.RangeIndex(start=0, stop=_shape[1], step=1)[0]
-
-        if _format == 'np':
-            _X_wip = _base_X
-        elif _format == 'pd_with_header':
-            _X_wip = pd.DataFrame(
-                data=_base_X,
-                columns=_columns
-            )
-        elif _format == 'pd_without_header':
-            _X_wip = pd.DataFrame(
-                data=_base_X,
-                columns=None
-            )
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_base_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_base_X)
-        else:
-            raise Exception
         # END build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+        if _keep == 'good_string' and _format == 'pd':
+            if _has_header:
+                _keep = _columns[0]
+            elif not _has_header:
+                _keep = pd.RangeIndex(start=0, stop=_shape[1], step=1)[0]
 
         # _IM is only being used here to get the legit TRFM_X. only test
         # the core _inverse_transform module, not _IM.inverse_transform.
@@ -197,23 +149,23 @@ class TestInverseTransform:
         )
 
         # fit v v v v v v v v v v v v v v v v v v v v
-        except_for_non_const_keep = 0
+        except_for_keep_when_no_const = 0
         if callable(_keep):
-            except_for_non_const_keep += 1
+            except_for_keep_when_no_const += 1
         elif isinstance(_keep, int):
-            except_for_non_const_keep += 1
+            except_for_keep_when_no_const += 1
         elif isinstance(_keep, str) and \
                 _keep not in ('first', 'last', 'random', 'none'):
-            except_for_non_const_keep += 1
+            except_for_keep_when_no_const += 1
 
-        if _has_nan and not _equal_nan and except_for_non_const_keep:
+        if _has_nan and not _equal_nan and except_for_keep_when_no_const:
             with pytest.raises(ValueError):
                 _IM.fit(_X_wip)
             pytest.skip(f"cant do anymore tests without fit")
         else:
             _IM.fit(_X_wip)
 
-        del except_for_non_const_keep
+        del except_for_keep_when_no_const
         # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # transform v v v v v v v v v v v v v v v v v v
@@ -240,7 +192,7 @@ class TestInverseTransform:
         out = _inverse_transform(
             X=_trfm_x,
             _removed_columns=_IM.removed_columns_,
-            _feature_names_in=_columns if _format == 'pd_with_header' else None
+            _feature_names_in=_columns if _format == 'pd' and _has_header else None
         )
         # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
@@ -249,12 +201,13 @@ class TestInverseTransform:
 
         assert out.shape == _X_wip.shape
 
-        if _format == 'pd_with_header':
-            assert np.array_equal(out.columns, _columns)
-        elif _format == 'pd_without_header':
-            assert out.columns.equals(
-                pd.RangeIndex(start=0, stop=_shape[1], step=1)
-            )
+        if _format == 'pd':
+            if _has_header:
+                assert np.array_equal(out.columns, _columns)
+            elif not _has_header:
+                assert out.columns.equals(
+                    pd.RangeIndex(start=0, stop=_shape[1], step=1)
+                )
 
 
         # iterate over the input X and output X simultaneously, check

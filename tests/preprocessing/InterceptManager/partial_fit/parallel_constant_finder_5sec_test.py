@@ -65,7 +65,7 @@ class TestParallelConstantFinder:
             raise Exception
 
 
-        out = _parallel_constant_finder(_X, equal_nan, rtol, atol)
+        out = _parallel_constant_finder(_X, equal_nan, rtol, atol)[0]
 
 
 
@@ -153,7 +153,7 @@ class TestParallelConstantFinder:
             raise Exception
 
 
-        out = _parallel_constant_finder(_X, equal_nan, 1e-5, 1e-8)
+        out = _parallel_constant_finder(_X, equal_nan, 1e-5, 1e-8)[0]
 
         if dtype == 'flt':
             if equal_nan:
@@ -177,20 +177,6 @@ class TestParallelConstantFinder:
                 assert out == 'nan'
             elif not equal_nan:
                 assert isinstance(out, uuid.UUID)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

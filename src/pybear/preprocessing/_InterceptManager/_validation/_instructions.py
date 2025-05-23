@@ -8,7 +8,9 @@
 
 
 from .._type_aliases import InstructionType
+
 import warnings
+
 import numpy as np
 
 
@@ -29,9 +31,8 @@ def _val_instructions(
     Parameters
     ----------
     _instructions:
-        dict[Literal['keep', 'delete', 'add'], Union[list[int], None]] -
-        instructions for keeping, deleting, or adding constant columns,
-        to be applied during :method: transform
+        InstructionType - instructions for keeping, deleting, or adding
+        constant columns, to be applied during :meth: transform
     _n_features_in:
         int - number of features in the fitted data before transform.
 
@@ -84,18 +85,14 @@ def _val_instructions(
         if _instructions['add'] is None:
             raise ValueError(
                 f"All columns in the data are constant. The current :param: "
-                f"keep configuration will delete all columns."
+                f"'keep' configuration will delete all columns."
             )
         else:
             warnings.warn(
                 f"All columns in the data are constant. The current :param: "
-                f"keep configuration will delete all the original columns and "
-                f"leave only the appended intercept."
+                f"'keep' configuration will delete all the original columns "
+                f"and leave only the appended intercept."
             )
-
-
-
-
 
 
 

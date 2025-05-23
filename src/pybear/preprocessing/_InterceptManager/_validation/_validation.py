@@ -6,21 +6,23 @@
 
 
 
+from typing_extensions import Union
+
+from .._type_aliases import (
+    DataContainer,
+    KeepType
+)
+
+import numbers
+
+import numpy.typing as npt
+
 from ._X import _val_X
 from ._keep_and_columns import _val_keep_and_columns
 from ._equal_nan import _val_equal_nan
 from ._rtol import _val_rtol
 from ._atol import _val_atol
 from ._n_jobs import _val_n_jobs
-
-from .._type_aliases import (
-    DataContainer,
-    KeepType
-)
-from typing_extensions import Union
-import numpy.typing as npt
-from numbers import Real, Integral
-
 
 
 
@@ -29,9 +31,9 @@ def _validation(
     _columns: Union[npt.NDArray[str], None],
     _keep: KeepType,
     _equal_nan: bool,
-    _rtol: Real,
-    _atol: Real,
-    _n_jobs: Union[Integral, None]
+    _rtol: numbers.Real,
+    _atol: numbers.Real,
+    _n_jobs: Union[numbers.Integral, None]
 ) -> None:
 
     """
@@ -42,17 +44,15 @@ def _validation(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse} of shape (n_samples, n_features) -
-        The data to be searched for constant columns.
+        array-like of shape (n_samples, n_features) - The data to be
+        searched for constant columns.
     _columns:
         Union[NDArray[str], None] - An NDArray[str] of shape (n_features,)
-        if X was passed as a pandas dataframe with a header, otherwise
-        None.
+        if X was passed in a container that has a header, otherwise None.
     _keep:
-        Union[Literal['first', 'last', 'random', 'none'], dict[str, any],
-        str, int, Callable[[_X], int] - The strategy for handling the
-        constant columns. See 'The Keep Parameter' discussion section
-        for a lengthy explanation of the 'keep' parameter.
+        KeepType - The strategy for handling the constant columns. See
+        'The Keep Parameter' discussion section for a lengthy explanation
+        of the 'keep' parameter.
     _equal_nan:
         bool - If equal_nan is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
@@ -79,7 +79,6 @@ def _validation(
     ------
     -
         None
-
 
     """
 

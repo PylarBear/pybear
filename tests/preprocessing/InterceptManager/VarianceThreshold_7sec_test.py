@@ -79,9 +79,7 @@ def _nan_factory(_X_factory, _shape, _constant_col):
         X = _X_factory(
             _dupl=None,
             _has_nan=False,
-            # Literal['np', 'pd', 'csc', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr'] = 'np',
             _format=_format if _format in ['np','pd'] else 'np',
-            # Literal['flt', 'int', 'str', 'obj', 'hybrid'] = 'flt',
             _dtype='int',
             _columns=columns,
             _constants=dict((zip(_constant_col, [1 for i in _constant_col]))),

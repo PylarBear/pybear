@@ -33,7 +33,7 @@ class TestNFeaturesInFeatureNamesIn:
 
     # TEST ATTRS THAT ARE INDEPENDENT OF THE DEGREES OF EXPANSION
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr_array'))
     def test_attr_accuracy(
         self, _X_factory, _columns, _kwargs, _shape, X_format
     ):

@@ -5,12 +5,14 @@
 #
 
 
+
 from typing_extensions import Union
-from numbers import Integral
+
+import numbers
 
 
 
-def _val_n_jobs(_n_jobs: Union[Integral, None]) -> None:
+def _val_n_jobs(_n_jobs: Union[numbers.Integral, None]) -> None:
 
     """
     Validate n_jobs is None, -1, or integer >= 1.
@@ -28,7 +30,6 @@ def _val_n_jobs(_n_jobs: Union[Integral, None]) -> None:
     -
         None
 
-
     """
 
 
@@ -43,9 +44,9 @@ def _val_n_jobs(_n_jobs: Union[Integral, None]) -> None:
             raise Exception
         if int(_n_jobs) != _n_jobs:
             raise Exception
-        _n_jobs = int(_n_jobs)
-    except:
+    except Exception as e:
         raise TypeError(err_msg)
+
 
     if _n_jobs == -1 or _n_jobs >= 1:
         pass

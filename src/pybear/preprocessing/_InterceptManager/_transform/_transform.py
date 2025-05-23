@@ -6,21 +6,24 @@
 
 
 
-from .._type_aliases import InstructionType
 from typing_extensions import Union
 import numpy.typing as npt
+from .._type_aliases import (
+    InstructionType,
+    InternalDataContainer
+)
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-
+import polars as pl
 
 
 
 def _transform(
-    _X: Union[npt.NDArray, pd.DataFrame, ss.csc_array, ss.csc_matrix],
+    _X: InternalDataContainer,
     _instructions: InstructionType
-) -> Union[npt.NDArray, pd.DataFrame, ss.csc_array, ss.csc_matrix]:
+) -> InternalDataContainer:
 
 
     """
@@ -32,24 +35,20 @@ def _transform(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse csc} of shape (n_samples, n_features) -
-        The data to be transformed. Must be numpy ndarray, pandas
+        array-like of shape (n_samples, n_features) - The data to be
+        transformed. Must be numpy ndarray, pandas dataframe, polars
         dataframe, or scipy sparse csc matrix/array.
 
     _instructions:
-        TypedDict[
-            keep: Required[Union[None, list, npt.NDArray[int]]],
-            delete: Required[Union[None, list, npt.NDArray[int]]],
-            add: Required[Union[None, dict[str, any]]]
-        ] - instructions for keeping, deleting, or adding constant
-        columns.
+        InstructionType - instructions for keeping, deleting, or adding
+        constant columns.
 
 
     Return
     ------
     -
-        X: {array-like, scipy sparse csc} of shape (n_samples,
-            n_transformed_features) - The transformed data.
+        X: array-like of shape (n_samples, n_transformed_features) - The
+        transformed data.
 
 
     """
@@ -117,6 +116,27 @@ def _transform(
 
             del _key, _value, _is_num, _dtype
 
+    elif isinstance(_X, pl.DataFrame):
+        # remove the columns
+        _X = _X[:, KEEP_MASK]
+        # if :param: keep is dict, add the new intercept
+        if _instructions['add']:
+            _key = list(_instructions['add'].keys())[0]
+            _value = _instructions['add'][_key]
+            try:
+                float(_value)
+                _is_num = True
+            except:
+                _is_num = False
+
+            _dtype = pl.Float64 if _is_num else pl.Object
+
+            _X = _X.with_columns(
+                pl.DataFrame({_key: np.full((_X.shape[0],), _value)}).cast(_dtype)
+            )
+
+            del _key, _value, _is_num, _dtype
+
     elif isinstance(_X, (ss.csc_matrix, ss.csc_array)):
         # remove the columns
         _X = _X[:, KEEP_MASK]
@@ -135,12 +155,6 @@ def _transform(
 
 
     return _X
-
-
-
-
-
-
 
 
 

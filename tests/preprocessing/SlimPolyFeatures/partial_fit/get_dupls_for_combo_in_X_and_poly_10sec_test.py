@@ -5,20 +5,21 @@
 #
 
 
-from pybear.preprocessing._SlimPolyFeatures._partial_fit.\
-    _get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
+
+import pytest
+
+import itertools
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import dask.array as da
 import dask.dataframe as ddf
-import itertools
 
 from sklearn.preprocessing import OneHotEncoder
 
-import pytest
-
+from pybear.preprocessing._SlimPolyFeatures._partial_fit.\
+    _get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
 
 
 
@@ -87,6 +88,7 @@ class TestDuplsForComboValidation(Fixtures):
     #     _COLUMN: npt.NDArray[any],
     #     _X: InternalDataContainer,
     #     _POLY_CSC: Union[ss.csc_array, ss.csc_matrix],
+    #     _min_degree: pizza,
     #     _equal_nan: bool,
     #     _rtol: numbers.Real,
     #     _atol: numbers.Real,
@@ -107,6 +109,7 @@ class TestDuplsForComboValidation(Fixtures):
                 junk_COLUMN,
                 _X=X_np,
                 _POLY_CSC=_good_POLY_CSC,
+                _min_degree=1,  # pizza
                 **_gdfc_args
             )
 
@@ -118,6 +121,7 @@ class TestDuplsForComboValidation(Fixtures):
             _get_dupls_for_combo_in_X_and_poly(
                 bad_COLUMN,
                 X_np,
+                1,  # pizza _min_degree
                 _good_POLY_CSC,
                 **_gdfc_args
             )
@@ -138,6 +142,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 junk_X,
                 _good_POLY_CSC,
+                1, # pizza _min_degree
                 **_gdfc_args
             )
 
@@ -162,6 +167,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 bad_X,
                 _good_POLY_CSC,
+                1,   # pizza _min_degree
                 **_gdfc_args
             )
 
@@ -171,29 +177,28 @@ class TestDuplsForComboValidation(Fixtures):
          'dia_array', 'bsr_matrix', 'bsr_array')
     )
     def test_X_rejects_coo_dia_bsr(
-        self, _format, _good_COLUMN, X_np, _good_POLY_CSC, _gdfc_args
+        self, _X_factory, _shape, _format, _good_COLUMN, _good_POLY_CSC,
+        _gdfc_args
     ):
 
-        if _format == 'coo_matrix':
-            _bad_X = ss._coo.coo_matrix(X_np)
-        elif _format == 'dia_matrix':
-            _bad_X = ss._dia.dia_matrix(X_np)
-        elif _format == 'bsr_matrix':
-            _bad_X = ss._bsr.bsr_matrix(X_np)
-        elif _format == 'coo_array':
-            _bad_X = ss._coo.coo_array(X_np)
-        elif _format == 'dia_array':
-            _bad_X = ss._dia.dia_array(X_np)
-        elif _format == 'bsr_array':
-            _bad_X = ss._bsr.bsr_array(X_np)
-        else:
-            raise Exception
+        _bad_X = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format=_format,
+            _dtype='flt',
+            _columns=None,
+            _constants=None,
+            _noise=0,
+            _zeros=None,
+            _shape=_shape
+        )
 
         with pytest.raises(AssertionError):
             _get_dupls_for_combo_in_X_and_poly(
                 _good_COLUMN,
                 _bad_X,
                 _good_POLY_CSC,
+                1,   # pizza _min_degree
                 **_gdfc_args
             )
 
@@ -214,6 +219,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 junk_POLY_CSC,
+                1,   # pizza _min_degree
                 **_gdfc_args
             )
 
@@ -245,6 +251,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 bad_POLY_CSC,
+                1,   # pizza _min_degree
                 **_gdfc_args
             )
 
@@ -264,6 +271,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 _good_POLY_CSC,
+                1,  # pizza _min_degree
                 junk_equal_nan,
                 _gdfc_args['_rtol'],
                 _gdfc_args['_atol'],
@@ -286,6 +294,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 _good_POLY_CSC,
+                1, # pizza _min_degree
                 _gdfc_args['_equal_nan'],
                 junk_rtol,
                 _gdfc_args['_atol'],
@@ -305,6 +314,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 _good_POLY_CSC,
+                1,   # pizza _min_degree
                 _gdfc_args['_equal_nan'],
                 _gdfc_args['_rtol'],
                 junk_atol,
@@ -322,6 +332,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 _good_POLY_CSC,
+                1,  # pizza _min_degree
                 _gdfc_args['_equal_nan'],
                 bad_rtol,
                 _gdfc_args['_atol'],
@@ -341,6 +352,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 _good_POLY_CSC,
+                1,  # pizza _min_degree
                 _gdfc_args['_equal_nan'],
                 _gdfc_args['_rtol'],
                 bad_atol,
@@ -363,6 +375,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 _good_POLY_CSC,
+                1,  # pizza _min_degree
                 _gdfc_args['_equal_nan'],
                 _gdfc_args['_rtol'],
                 _gdfc_args['_atol'],
@@ -379,6 +392,7 @@ class TestDuplsForComboValidation(Fixtures):
                 _good_COLUMN,
                 X_np,
                 _good_POLY_CSC,
+                1,  # pizza _min_degree
                 _gdfc_args['_equal_nan'],
                 _gdfc_args['_rtol'],
                 _gdfc_args['_atol'],
@@ -420,6 +434,7 @@ class TestDuplsForComboValidation(Fixtures):
             _good_COLUMN,
             _good_X,
             _good_POLY_CSC,
+            1,  # pizza _min_degree
             _equal_nan,
             _gdfc_args['_rtol'],
             _gdfc_args['_atol'],
@@ -443,6 +458,7 @@ class TestGetDuplsForComboAccuracy(Fixtures):
             _good_COLUMN,
             X_np,
             _good_POLY_CSC,
+            1,   # pizza _min_degree
             **_gdfc_args
         )
 
@@ -469,6 +485,7 @@ class TestGetDuplsForComboAccuracy(Fixtures):
             _good_COLUMN,
             X_np,
             _good_POLY_CSC,  # this doesnt actually match against modified X_np
+            1,  # pizza _min_degree
             **_gdfc_args
         )
 
@@ -557,6 +574,7 @@ class TestGetDuplsForComboAccuracy(Fixtures):
             _POLY_COLUMN,
             _X_np,
             _POLY,
+            1,  # pizza _min_degree
             **_gdfc_args
         )
 

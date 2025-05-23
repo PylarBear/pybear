@@ -6,21 +6,34 @@
 
 
 
-from typing import Optional, Sequence
-from typing_extensions import Self, Union
+from typing import (
+    Optional,
+    Sequence
+)
+from typing_extensions import (
+    Any,
+    Self,
+    Union
+)
 from ._type_aliases import (
     KeepType,
-    DataContainer
+    DataContainer,
+    ConstantColumnsType,
+    KeptColumnsType,
+    RemovedColumnsType,
+    ColumnMaskType,
+    FeatureNamesInType
 )
 
-from numbers import Real, Integral
+import numbers
 
 import numpy as np
 import pandas as pd
+import polars as pl
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
-from ._partial_fit._column_getter import _column_getter
+from ._partial_fit._columns_getter import _columns_getter
 from ._partial_fit._find_constants import _find_constants
 from ._shared._make_instructions import _make_instructions
 from ._shared._set_attributes import _set_attributes
@@ -72,13 +85,18 @@ class InterceptManager(
     powerful tool that can help fix this condition.
 
     IM...
+
     1) handles numerical and non-numerical data
+
     2) accepts nan-like values, and has flexibility in dealing with them
+
     3) has a partial fit method for batch-wise fitting and transforming
+
     4) uses joblib for parallelized discovery of constant columns
+
     5) has parameters that give flexibility to how 'constant' is defined
-    6) can remove all, selectively keep one, or append a column of
-        constants to a dataset
+
+    6) can remove all, keep one, or append a column of constants to data
 
     The methodology that IM uses to identify a constant column is
     different for numerical and non-numerical data.
@@ -225,8 +243,8 @@ class InterceptManager(
         same index for each call to :meth: `transform`. If the callable
         returns a different index for any of the batches of data passed
         in a sequence of transforms then the results will be nonsensical.
-    dictionary[str, any]: dictionary of {feature name:str, constant
-        value:any}. A column of constants is appended to the right
+    dictionary[str, Any]: dictionary of {feature name:str, constant
+        value:Any}. A column of constants is appended to the right
         end of the data, with the constant being the value in the
         dictionary. The :param: `keep` dictionary requires a single
         key:value pair.
@@ -291,7 +309,7 @@ class InterceptManager(
     ----------
     keep:
         Optional[Union[Literal['first', 'last', 'random', 'none'],
-        dict[str, any], int, str, callable[[X], int], default='last' -
+        dict[str, Any], int, str, callable[[X], int], default='last' -
         The strategy for handling the constant columns. See 'The keep
         Parameter' section for a lengthy explanation of the 'keep'
         parameter.
@@ -368,7 +386,7 @@ class InterceptManager(
         as a pandas dataframe that has a header.
 
     constant_columns_:
-        dict[int, any] - A dictionary whose keys are the indices of the
+        dict[int, Any] - A dictionary whose keys are the indices of the
         constant columns found during fit, indexed by their column
         location in the original data. The dictionary values are the
         constant values in those columns. For example, if a dataset has
@@ -379,7 +397,7 @@ class InterceptManager(
         empty dictionary.
 
     kept_columns_:
-        dict[int, any] - A subset of the :attr: `constant_columns_`
+        dict[int, Any] - A subset of the :attr: `constant_columns_`
         dictionary, constructed with the same format. This holds the
         subset of constant columns that are retained in the data. If a
         constant column is kept, then this contains one key:value pair
@@ -390,7 +408,7 @@ class InterceptManager(
         data. That column is NOT included in kept_columns_.
 
     removed_columns_:
-        dict[int, any] - A subset of the :attr: `constant_columns_`
+        dict[int, Any] - A subset of the :attr: `constant_columns_`
         dictionary, constructed with the same format. This holds the
         subset of constant columns that are removed from the data. If
         there are no constant columns or no constant columns are removed,
@@ -407,11 +425,63 @@ class InterceptManager(
         new column of constants is a feature added after :term: transform.
 
 
+    Notes
+    -----
+    DataContainer:
+        Union[
+            npt.NDArray,
+            pd.DataFrame,
+            pl.DataFrame,
+            ss._csr.csr_matrix,
+            ss._csc.csc_matrix,
+            ss._coo.coo_matrix,
+            ss._dia.dia_matrix,
+            ss._lil.lil_matrix,
+            ss._dok.dok_matrix,
+            ss._bsr.bsr_matrix,
+            ss._csr.csr_array,
+            ss._csc.csc_array,
+            ss._coo.coo_array,
+            ss._dia.dia_array,
+            ss._lil.lil_array,
+            ss._dok.dok_array,
+            ss._bsr.bsr_array
+        ]
+
+    KeepType:
+        Union[
+            Literal['first', 'last', 'random', 'none'],
+            dict[str, Any],
+            numbers.Integral,
+            str,
+            Callable[[DataContainer], int]
+        ]
+
+    ConstantColumnsType:
+        dict[int, Any]
+
+    KeptColumnsType:
+        dict[int, Any]
+
+    RemovedColumnsType:
+        dict[int, Any]
+
+    ColumnMaskType:
+        npt.NDArray[bool]
+
+    NFeaturesInType:
+        int
+
+    FeatureNamesInType:
+        npt.NDArray[str]
+
+
     See Also
     --------
     numpy.ndarray
     pandas.core.frame.DataFrame
     scipy.sparse
+    polars.DataFrame
     numpy.allclose
     numpy.isclose
     numpy.unique
@@ -459,9 +529,9 @@ class InterceptManager(
         *,
         keep: Optional[KeepType]='last',
         equal_nan: Optional[bool]=True,
-        rtol: Optional[Real]=1e-5,
-        atol: Optional[Real]=1e-8,
-        n_jobs: Optional[Union[Integral, None]]=-1
+        rtol: Optional[numbers.Real]=1e-5,
+        atol: Optional[numbers.Real]=1e-8,
+        n_jobs: Optional[Union[numbers.Integral, None]]=-1
     ):
 
         self.keep = keep
@@ -471,20 +541,49 @@ class InterceptManager(
         self.n_jobs = n_jobs
 
 
+    # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    @property
+    def constant_columns_(self) -> ConstantColumnsType:
+        """Retrieve the constant_columns_ attribute. Read the main docs
+        for more information."""
+        return self._constant_columns
+
+
+    @property
+    def kept_columns_(self) -> KeptColumnsType:
+        """Retrieve the kept_columns_ attribute. Read the main docs
+        for more information."""
+        return self._kept_columns
+
+
+    @property
+    def removed_columns_(self) -> RemovedColumnsType:
+        """Retrieve the removed_columns_ attribute. Read the main docs
+        for more information."""
+        return self._removed_columns
+
+
+    @property
+    def column_mask_(self) -> ColumnMaskType:
+        """Retrieve the column_mask_ attribute. Read the main docs
+        for more information."""
+        return self._column_mask
+    # END properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+
     def _reset(self) -> Self:
 
         """
         Reset internal data-dependent state of InterceptManager.
         __init__ parameters are not changed.
-
         """
 
-        if hasattr(self, 'constant_columns_'):
+        if hasattr(self, '_constant_columns'):
 
-            delattr(self, 'constant_columns_')
-            delattr(self, 'kept_columns_')
-            delattr(self, 'removed_columns_')
-            delattr(self, 'column_mask_')
+            delattr(self, '_constant_columns')
+            delattr(self, '_kept_columns')
+            delattr(self, '_removed_columns')
+            delattr(self, '_column_mask')
             delattr(self, 'n_features_in_')
             if hasattr(self, 'feature_names_in_'):
                 delattr(self, 'feature_names_in_')
@@ -495,7 +594,7 @@ class InterceptManager(
     def get_feature_names_out(
         self,
         input_features:Optional[Union[Sequence[str], None]]=None
-    ):
+    ) -> FeatureNamesInType:
 
         """
         Return the feature names for the output of :meth: `transform`.
@@ -532,7 +631,7 @@ class InterceptManager(
         Return
         ------
         -
-            feature_names_out : NDArray[object] - The feature names of
+            feature_names_out: FeatureNamesInType - The feature names of
             the transformed data.
 
         """
@@ -553,22 +652,19 @@ class InterceptManager(
             self.n_features_in_
         )
 
-        feature_names_out = feature_names_out[self.column_mask_]
+        feature_names_out = feature_names_out[self._column_mask]
 
         if isinstance(self.keep, dict):
             feature_names_out = np.hstack((
-                  feature_names_out,
-                  list(self.keep.keys())[0]
+                feature_names_out,
+                list(self.keep.keys())[0]
             )).astype(object)
 
         return feature_names_out
 
 
     def get_metadata_routing(self):
-        """
-        Get metadata routing is not implemented in InterceptManager.
-
-        """
+        """Get metadata routing is not implemented in InterceptManager."""
         __ = type(self).__name__
         raise NotImplementedError(
             f"get_metadata_routing is not implemented in {__}"
@@ -581,7 +677,7 @@ class InterceptManager(
     def partial_fit(
         self,
         X: DataContainer,
-        y: Optional[any]=None
+        y: Optional[Union[Any, None]]=None
     ) -> Self:
 
         """
@@ -593,11 +689,11 @@ class InterceptManager(
         Parameters
         ----------
         X:
-            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
-            (n_samples, n_features) - Data to find constant columns in.
+            array-like of shape (n_samples, n_features) - Data to find
+            constant columns in.
         y:
-            Optional[any], default = None - ignored. The target for the
-            data.
+            Optional[Union[Any, None]], default = None - ignored. The
+            target for the data.
 
 
         Return
@@ -639,13 +735,13 @@ class InterceptManager(
         # do not make an assignment! let the function handle it.
         self._check_n_features(
             X,
-            reset=not hasattr(self, "constant_columns_")
+            reset=not hasattr(self, "_constant_columns")
         )
 
         # do not make an assignment! let the function handle it.
         self._check_feature_names(
             X,
-            reset=not hasattr(self, "constant_columns_")
+            reset=not hasattr(self, "_constant_columns")
         )
 
         # this must be after _check_feature_names()
@@ -671,18 +767,18 @@ class InterceptManager(
             X = X.tocsc()
 
 
-        # if IM has already been fitted and constant_columns_ is empty
+        # if IM has already been fitted and _constant_columns is empty
         # (meaning there are no constant columns) dont even bother to
         # scan more data, cant possibly have constant columns
-        if getattr(self, 'constant_columns_', None) == {}:
-            self.constant_columns_ = {}
+        if getattr(self, '_constant_columns', None) == {}:
+            self._constant_columns = {}
         else:
             # dictionary of column indices and respective constant values
-            self.constant_columns_: dict[int, any] = \
+            self._constant_columns: dict[int, Any] = \
                 _find_constants(
                     X,
-                    self.constant_columns_ if \
-                        hasattr(self, 'constant_columns_') else None,
+                    self._constant_columns if \
+                        hasattr(self, '_constant_columns') else None,
                     self.equal_nan,
                     self.rtol,
                     self.atol,
@@ -692,12 +788,12 @@ class InterceptManager(
 
         # Create an instance attribute that specifies the random column index
         # to keep when 'keep' is 'random'. This value must be static on calls
-        # to :method: transform (meaning sequential calls to transform get the
+        # to :meth: transform (meaning sequential calls to transform get the
         # same random index every time.) This  value is generated and retained
         # even if :param: 'keep' != 'random', in case :param: 'keep' should be
         # set to 'random' at any point via set_params().
-        if len(self.constant_columns_):
-            self._rand_idx = int(np.random.choice(list(self.constant_columns_)))
+        if len(self._constant_columns):
+            self._rand_idx = int(np.random.choice(list(self._constant_columns)))
         else:
             self._rand_idx = None
 
@@ -714,7 +810,7 @@ class InterceptManager(
         _keep = _manage_keep(
             self.keep,
             X,
-            self.constant_columns_,
+            self._constant_columns,
             self.n_features_in_,
             getattr(self, 'feature_names_in_', None),
             self._rand_idx
@@ -722,13 +818,13 @@ class InterceptManager(
 
         self._instructions = _make_instructions(
             _keep,
-            self.constant_columns_,
+            self._constant_columns,
             self.n_features_in_
         )
 
-        self.kept_columns_, self.removed_columns_, self.column_mask_ = \
+        self._kept_columns, self._removed_columns, self._column_mask = \
             _set_attributes(
-                self.constant_columns_,
+                self._constant_columns,
                 self._instructions,
                 self.n_features_in_
             )
@@ -739,7 +835,7 @@ class InterceptManager(
     def fit(
         self,
         X: DataContainer,
-        y: Optional[any]=None
+        y: Optional[Union[Any, None]]=None
     ) -> Self:
 
         """
@@ -751,11 +847,11 @@ class InterceptManager(
         Parameters
         ----------
         X:
-            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
-            (n_samples, n_features) - Data to find constant columns in.
+            array-like of shape (n_samples, n_features) - Data to find
+            constant columns in.
         y:
-            Optional[any], default = None - ignored. The target for the
-            data.
+            Optional[Union[Any, None]], default = None - ignored. The
+            target for the data.
 
 
         Return
@@ -807,8 +903,8 @@ class InterceptManager(
         Parameters
         ----------
         X :
-            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
-            (n_samples, n_transform_features) - A transformed data set.
+            array-like of shape (n_samples, n_transform_features) - A
+            transformed data set.
         copy:
             Optional[Union[bool, None]], default=None - Whether to make
             a deepcopy of X before the inverse transform.
@@ -817,9 +913,9 @@ class InterceptManager(
         Return
         ------
         -
-            X_tr : {array-like, scipy sparse matrix} of shape (n_samples,
-                n_features) - Transformed data reverted to its original
-                untransformed state.
+            X_tr: array-like of shape (n_samples, n_features) -
+            Transformed data reverted to its original untransformed
+            state.
 
 
         """
@@ -900,7 +996,7 @@ class InterceptManager(
                 # accept anything that is string or not a sequence
                 pass
 
-            _unqs = np.unique(_column_getter(X_inv, -1))
+            _unqs = np.unique(_columns_getter(X_inv, X_inv.shape[1]-1))
 
             _key = list(self.keep.keys())[0]
             if len(_unqs) == 1:
@@ -913,7 +1009,9 @@ class InterceptManager(
                 if isinstance(X_inv, np.ndarray):
                     X_inv = np.delete(X_inv, -1, axis=1)
                 elif isinstance(X_inv, pd.core.frame.DataFrame):
-                    X_inv = X_inv.drop(columns=[_key], inplace=False)
+                    X_inv = X_inv.drop(columns=[_key])
+                elif isinstance(X_inv, pl.DataFrame):
+                    X_inv = X_inv.drop(_key)
                 elif hasattr(X_inv, 'toarray'):
                     X_inv = X_inv[:, list(range(X_inv.shape[1]-1))]
                 else:
@@ -934,17 +1032,17 @@ class InterceptManager(
         # END _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # the number of columns in X_inv must be equal to the number of features
-        # remaining in column_mask_
-        if X_inv.shape[1] != np.sum(self.column_mask_):
+        # remaining in _column_mask
+        if X_inv.shape[1] != np.sum(self._column_mask):
             raise ValueError(
                 f"the number of columns in X_inv must be equal to the number of "
                 f"columns kept from the fitted data after removing constants. "
-                f"\nexpected {np.sum(self.column_mask_)}, got {X_inv.shape[1]}."
+                f"\nexpected {np.sum(self._column_mask)}, got {X_inv.shape[1]}."
             )
 
         X_inv = _inverse_transform(
             X_inv,
-            self.removed_columns_,
+            self._removed_columns,
             getattr(self, 'feature_names_in_', None)
         )
 
@@ -964,7 +1062,7 @@ class InterceptManager(
     def score(
         self,
         X: DataContainer,
-        y: Optional[any]=None
+        y: Optional[Any]=None
     ) -> None:
 
         """
@@ -993,8 +1091,8 @@ class InterceptManager(
         Parameters
         ----------
         X:
-            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of
-            shape (n_samples, n_features) - The data to be transformed.
+            array-like of shape (n_samples, n_features) - The data to be
+            transformed.
         copy:
             Optional[Union[bool, None]], default=None - Whether to make
             a deepcopy of X before the transform.
@@ -1003,8 +1101,8 @@ class InterceptManager(
         Return
         ------
         -
-            X_tr: {array-like, scipy sparse matrix} of shape (n_samples,
-                n_transformed_features) - The transformed data.
+            X_tr: array-like of shape (n_samples, n_transformed_features)
+            - The transformed data.
 
 
         """
@@ -1060,7 +1158,7 @@ class InterceptManager(
         _keep = _manage_keep(
             self.keep,
             X,
-            self.constant_columns_,
+            self._constant_columns,
             self.n_features_in_,
             self.feature_names_in_ if \
                 hasattr(self, 'feature_names_in_') else None,
@@ -1069,13 +1167,13 @@ class InterceptManager(
 
         self._instructions = _make_instructions(
             _keep,
-            self.constant_columns_,
+            self._constant_columns,
             self.n_features_in_
         )
 
-        self.kept_columns_, self.removed_columns_, self.column_mask_ = \
+        self._kept_columns, self._removed_columns, self._column_mask = \
             _set_attributes(
-                self.constant_columns_,
+                self._constant_columns,
                 self._instructions,
                 self.n_features_in_
             )
@@ -1101,16 +1199,6 @@ class InterceptManager(
 
 
         return X_tr
-
-
-
-
-
-
-
-
-
-
 
 
 

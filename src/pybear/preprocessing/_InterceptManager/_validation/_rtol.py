@@ -5,12 +5,14 @@
 #
 
 
+
+import numbers
+
 import numpy as np
-from numbers import Real
 
 
 
-def _val_rtol(_rtol: Real) -> None:
+def _val_rtol(_rtol: numbers.Real) -> None:
 
     """
     Verify rtol is a non-boolean, non-negative, real number that is
@@ -39,8 +41,8 @@ def _val_rtol(_rtol: Real) -> None:
                f"that is accepted by numpy allclose")
 
 
-    if not isinstance(_rtol, Real):
-        raise ValueError(err_msg)
+    if not isinstance(_rtol, numbers.Real):
+        raise TypeError(err_msg)
 
     if isinstance(_rtol, bool):
         raise ValueError(err_msg)

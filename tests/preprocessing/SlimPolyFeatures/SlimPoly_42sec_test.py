@@ -14,8 +14,6 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
 
 from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
@@ -1013,12 +1011,33 @@ class TestPartialFit:
             SlimPoly(**_kwargs).partial_fit(_junk_X)
 
 
+    @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
+    def test_rejects_invalid_container(self, X_np, _columns, _kwargs, _format):
+
+        _SPF = SlimPoly(**_kwargs)
+
+        if _format == 'py_list':
+            _X_wip = list(map(list, X_np.copy()))
+        elif _format == 'py_tuple':
+            _X_wip = tuple(map(tuple, X_np.copy()))
+        else:
+            raise Exception
+
+        if _format == 'py_list':
+            with pytest.raises(ValueError):
+                _SPF.partial_fit(_X_wip)
+        elif _format == 'py_tuple':
+            with pytest.raises(ValueError):
+                _SPF.partial_fit(_X_wip)
+        else:
+            raise Exception
+
+
     @pytest.mark.parametrize('_format',
          (
              'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
              'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
-             'dask_array', 'dask_dataframe'
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
          )
     )
     def test_X_container(self, X_np, _columns, _kwargs, _format):
@@ -1057,23 +1076,12 @@ class TestPartialFit:
             _X_wip = ss._dok.dok_array(_X)
         elif _format == 'bsr_array':
             _X_wip = ss._bsr.bsr_array(_X)
-        elif _format == 'dask_array':
-            _X_wip = da.from_array(_X)
-        elif _format == 'dask_dataframe':
-            _ = da.from_array(_X)
-            _X_wip = ddf.from_dask_array(_, columns=_columns)
         else:
             raise Exception
 
         _X_wip_before_partial_fit = _X_wip.copy()
 
-        if _format in ('dask_array', 'dask_dataframe'):
-            with pytest.raises(Exception):
-                # handled by SPF
-                SlimPoly(**_kwargs).partial_fit(_X_wip)
-            pytest.skip(reason=f'cant do anymore tests after except')
-        else:
-            SlimPoly(**_kwargs).partial_fit(_X_wip)
+        SlimPoly(**_kwargs).partial_fit(_X_wip)
 
         # verify _X_wip does not mutate in partial_fit()
         assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
@@ -1143,12 +1151,34 @@ class TestTransform:
             _SPF.transform(_junk_X)
 
 
+    @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
+    def test_rejects_invalid_container(self, X_np, _columns, _kwargs, _format):
+
+        _SPF = SlimPoly(**_kwargs)
+        _SPF.fit(X_np)  # fit on numpy, not the converted data
+
+        if _format == 'py_list':
+            _X_wip = list(map(list, X_np.copy()))
+        elif _format == 'py_tuple':
+            _X_wip = tuple(map(tuple, X_np.copy()))
+        else:
+            raise Exception
+
+        if _format == 'py_list':
+            with pytest.raises(ValueError):
+                _SPF.transform(_X_wip)
+        elif _format == 'py_tuple':
+            with pytest.raises(ValueError):
+                _SPF.transform(_X_wip)
+        else:
+            raise Exception
+
+
     @pytest.mark.parametrize('_format',
          (
              'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
              'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
-             'dask_array', 'dask_dataframe'
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
          )
     )
     def test_X_container(self, X_np, _columns, _kwargs, _format):
@@ -1190,28 +1220,15 @@ class TestTransform:
             _X_wip = ss._dok.dok_array(_X)
         elif _format == 'bsr_array':
             _X_wip = ss._bsr.bsr_array(_X)
-        elif _format == 'dask_array':
-            _X_wip = da.from_array(_X)
-        elif _format == 'dask_dataframe':
-            _X_wip = ddf.from_array(_X, columns=_columns)
         else:
             raise Exception
 
         _X_wip_before_transform = _X_wip.copy()
 
         _SPF = SlimPoly(**_kwargs)
-
         _SPF.fit(_X)  # fit on numpy, not the converted data
 
-
-        if _format in ('dask_array', 'dask_dataframe'):
-            with pytest.raises(Exception):
-                # handled by SPF
-                _SPF.transform(_X_wip)
-            pytest.skip(reason=f'cant do anymore tests after except')
-        else:
-            out = _SPF.transform(_X_wip)
-
+        out = _SPF.transform(_X_wip)
         assert isinstance(out, type(_X_wip))
 
         # if output is numpy, order is C

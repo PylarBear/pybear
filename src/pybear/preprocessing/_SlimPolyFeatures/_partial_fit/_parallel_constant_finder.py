@@ -6,7 +6,10 @@
 
 
 
-from typing_extensions import Union
+from typing_extensions import (
+    Any,
+    Union
+)
 import numpy.typing as npt
 
 import numbers
@@ -19,11 +22,11 @@ from ....utilities import nan_mask
 
 
 def _parallel_constant_finder(
-    _column: npt.NDArray[Union[int, float]],
+    _column: npt.NDArray[numbers.Number],
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real
-) -> Union[uuid.UUID, any]:
+) -> Union[uuid.UUID, Any]:
 
     """
     Determine if a column holds a single value, subject to _equal_nan,
@@ -45,9 +48,9 @@ def _parallel_constant_finder(
     Parameters
     ----------
     _column:
-        NDArray[Union[int, float]] - A single column, drawn from X or
-        produced by a product of multiple columns from X, as a
-        numpy array.
+        NDArray[numbers.Number] - A single column, drawn from X or
+        produced by a product of multiple columns from X, as a numpy
+        array.
     _equal_nan:
         bool - If equal_nan is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
@@ -70,10 +73,9 @@ def _parallel_constant_finder(
     Return
     ------
     -
-        out:
-            Union[uuid.uuid4, any] - if the column is not constant,
-            returns a uuid4 identifier; if it is constant, returns the
-            constant value.
+        out: Union[uuid.uuid4, Any] - if the column is not constant,
+        returns a uuid4 identifier; if it is constant, returns the
+        constant value.
 
 
     """
@@ -101,22 +103,15 @@ def _parallel_constant_finder(
         return _column[0] if _equal_nan else uuid.uuid4()
 
 
-    # determine if is num or str
-    _is_num = False
-    _is_str = False
-    try:
-        _column.astype(np.float64)
-        _is_num = True
-    except:
-        _is_str = True
+    _has_nans = any(_nan_mask)
 
-    # 4 cases for both flt and str:
+    # 4 cases:
     # has nan and _equal_nan
     # has nan and not _equal_nan
     # no nan and _equal_nan
     # no nan and not _equal_nan
 
-    if _is_num and any(_nan_mask):
+    if _has_nans:
         if not _equal_nan:
             out = uuid.uuid4()
         elif _equal_nan:
@@ -133,7 +128,7 @@ def _parallel_constant_finder(
             out = _mean_value if _allclose else uuid.uuid4()
             del _not_nan_mask, _mean_value, _allclose
 
-    elif _is_num and not any(_nan_mask):
+    elif not _has_nans:
         # no nans, _equal_nan doesnt matter
         _mean_value = np.mean(_column.astype(np.float64)) # float64 is important
         _allclose = np.allclose(
@@ -145,38 +140,13 @@ def _parallel_constant_finder(
         out = _mean_value if _allclose else uuid.uuid4()
         del _mean_value, _allclose
 
-    elif _is_str and any(_nan_mask):
-        if not _equal_nan:
-            out = uuid.uuid4()
-        elif _equal_nan:
-            # get uniques of non-nans
-            _unq = np.unique(_column[np.logical_not(_nan_mask)])
-            out = _unq[0] if len(_unq) == 1 else uuid.uuid4()
-            del _unq
-
-    elif _is_str and not any(_nan_mask):
-        # no nans, _equal_nan doesnt matter
-        _unq = np.unique(_column)
-        out = _unq[0] if len(_unq) == 1 else uuid.uuid4()
-        del _unq
-
     else:
         raise Exception(f"algorithm failure")
 
 
-    del _is_num, _is_str, _nan_mask
+    del _has_nans, _nan_mask
 
     return out
-
-
-
-
-
-
-
-
-
-
 
 
 
