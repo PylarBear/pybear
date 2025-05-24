@@ -25,7 +25,7 @@ def _make_instructions(
 ) -> InstructionType:
 
     """
-    'keep' must have been conditioned into dict[str, any], int, or
+    'keep' must have been conditioned into dict[str, Any], int, or
     Literal['none'] before this module in _manage_keep.
 
     Based on the 'keep' instructions provided, and the constant columns
@@ -53,7 +53,7 @@ def _make_instructions(
     Parameters
     ----------
     _keep:
-        Union[int, Literal['none'], dict[str, any]] - The strategy for
+        Union[int, Literal['none'], dict[str, Any]] - The strategy for
         handling the constant columns. See 'The keep Parameter' section
         for a lengthy explanation of the 'keep' parameter.
     constant_columns_:
@@ -70,12 +70,11 @@ def _make_instructions(
         deleting, or adding constant columns to be applied during
         transform.
 
-
     """
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    err_msg = f"'_keep' must be Literal['none'], dict[str, any], or int"
+    err_msg = f"'_keep' must be Literal['none'], dict[str, Any], or int"
     try:
         iter(_keep)
         if not isinstance(_keep, (str, dict)):
@@ -90,13 +89,11 @@ def _make_instructions(
         try:
             float(_keep)
             if isinstance(_keep, bool):
-                raise UnicodeError
+                raise Exception
             if int(_keep) != _keep:
-                raise UnicodeError
+                raise Exception
             _keep = int(_keep)
-        except UnicodeError:
-            raise AssertionError(err_msg)
-        except:
+        except Exception as e:
             raise AssertionError(err_msg)
 
     assert isinstance(_n_features_in, int)
@@ -143,7 +140,6 @@ def _make_instructions(
 
     # this must be separate from the above if block
     # this operation takes place whether or not there are constant columns
-    # or not
     if isinstance(_keep, dict):
         # if keep == a dict, keep none, delete all, add value in last position
         if len(_sorted_constant_column_idxs):

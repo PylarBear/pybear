@@ -25,15 +25,11 @@ class TestJoblib:
     # need to have >= _n_cols number of columns to engage joblib
     # just do minor checks for accuracy
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
+
+    def test_it_works(self, _X_factory):
+
         # as of 25_05_21 _n_cols is 200 so use something bigger
-        return (623, 538)
-
-
-
-    def test_it_works(self, _X_factory, _shape):
+        _shape = (623, 538)
 
         _rand_idxs = sorted(np.random.randint(0, _shape[1], 10).tolist())
         _rand_constants = np.random.randint(0, 10, 10).tolist()

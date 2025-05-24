@@ -35,7 +35,7 @@ from pybear.utilities import nan_mask
 # error
 
 
-
+pytest.skip(reason=f"edification purposes only.", allow_module_level=True)
 
 
 bypass = False

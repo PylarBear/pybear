@@ -18,22 +18,18 @@ from pybear.utilities._nan_masking import nan_mask
 
 
 
-# this mark needs to stay here because _X_base fixture needs it
-@pytest.mark.parametrize('_has_nan', (True, False), scope='module')
 class TestColumnsGetter:
 
 
     @pytest.mark.parametrize('_col_idxs',
         (0, 20, (0,), (20,), (0,1), (0,20), (100,200))
     )
-    def test_rejects_idx_out_of_col_range(
-        self, _X_factory, _has_nan, _col_idxs, _shape
-    ):
+    def test_rejects_idx_out_of_col_range(self, _X_factory, _col_idxs, _shape):
 
         _out_of_range = False
         try:
-            tuple(_col_idxs)
             # is a tuple
+            tuple(_col_idxs)
             for _idx in _col_idxs:
                 if _idx not in range(_shape[1]):
                     _out_of_range = True
@@ -45,7 +41,7 @@ class TestColumnsGetter:
         _X = _X_factory(
             _format='np',
             _dtype='flt',
-            _has_nan=_has_nan,
+            _has_nan=False,
             _shape=_shape
         )
 
@@ -67,6 +63,7 @@ class TestColumnsGetter:
     @pytest.mark.parametrize('_col_idxs',
         (0, 1, 2, (0,), (1,), (2,), (0,1), (0,2), (1,2), (0,1,2))
     )
+    @pytest.mark.parametrize('_has_nan', (True, False), scope='module')
     def test_accuracy(
         self, _X_factory, _has_nan, _format, _col_idxs, _columns, _shape
     ):
@@ -82,6 +79,8 @@ class TestColumnsGetter:
             _shape=_shape
         )
 
+        # use _X_ref to referee whether _columns_getter pulled the
+        # correct columns from _X_wip
         if _format == 'np':
             _X_ref = _X_wip.copy()
         elif _format in ['pd', 'pl']:
@@ -128,8 +127,7 @@ class TestColumnsGetter:
 
         assert _columns.shape[1] == len(_col_idxs)
 
-        # use _X_ref to referee whether _columns_getter pulled the
-        # correct columns from _X_wip
+
         # 25_05_22 pd numeric with junky nan-likes are coming out of
         # _columns_getter as dtype object. since _columns_getter produces
         # an intermediary container that is used to find constants and

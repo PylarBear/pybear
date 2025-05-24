@@ -70,8 +70,8 @@ KeepType: TypeAlias = Union[
 
 class InstructionType(TypedDict):
 
-    keep: Required[Union[None, list, npt.NDArray[int]]]
-    delete: Required[Union[None, list, npt.NDArray[int]]]
+    keep: Required[Union[None, list[int]]]
+    delete: Required[Union[None, list[int]]]
     add: Required[Union[None, dict[str, Any]]]
 
 

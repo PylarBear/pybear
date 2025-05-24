@@ -6,8 +6,6 @@
 
 
 
-from typing_extensions import Union
-import numpy.typing as npt
 from .._type_aliases import (
     InstructionType,
     InternalDataContainer
@@ -24,7 +22,6 @@ def _transform(
     _X: InternalDataContainer,
     _instructions: InstructionType
 ) -> InternalDataContainer:
-
 
     """
     Manage the constant columns in X. Apply the removal criteria given
@@ -53,14 +50,23 @@ def _transform(
 
     """
 
+
+    assert isinstance(
+        _X,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array, ss.csc_matrix)
+    )
+    assert isinstance(_instructions, dict)
+    assert len(_instructions) == 3
+
     # class InstructionType(TypedDict):
     #
-    #     keep: Required[Union[None, list, npt.NDArray[int]]]
-    #     delete: Required[Union[None, list, npt.NDArray[int]]]
-    #     add: Required[Union[None, dict[str, any]]]
+    #     keep: Required[Union[None, list[int]]]
+    #     delete: Required[Union[None, list[int]]]
+    #     add: Required[Union[None, dict[str, Any]]]
 
     # 'keep' isnt needed to modify X, it is only in the dictionary for
     # ease of making self.kept_columns_ later.
+
 
     # build the mask that will take out deleted columns
     KEEP_MASK = np.ones(_X.shape[1]).astype(bool)
@@ -70,88 +76,54 @@ def _transform(
         # statement under an if that only allows when not None
         KEEP_MASK[_instructions['delete']] = False
 
-
-    if isinstance(_X, np.ndarray):
-
-        # remove the columns
+    # remove the columns
+    if isinstance(_X, pd.core.frame.DataFrame):
+        _X = _X.iloc[:, KEEP_MASK]
+    else:
         _X = _X[:, KEEP_MASK]
-        # if :param: keep is dict, add the new intercept
 
-        if _instructions['add']:
-            _key = list(_instructions['add'].keys())[0]
-            _value = _instructions['add'][_key]
+
+    # if :param: keep is dict, add the new intercept
+    if _instructions['add']:
+
+        _key = list(_instructions['add'].keys())[0]
+        _value = _instructions['add'][_key]
+        _new_column = np.full((_X.shape[0], 1), _value)
+        try:
+            float(_value)
+            _dtype = {'pd': np.float64, 'pl': pl.Float64}
+        except:
+            _dtype = {'pd': object, 'pl': pl.Object}
+
+        if isinstance(_X, np.ndarray):
+
             # this just rams the fill value into _X, and conforms to
             # whatever dtype _X is (with some caveats)
-
             # str dtypes are changing here. also on windows int dtypes
             # are changing to int64.
-            _X = np.hstack((
-                _X,
-                np.full((_X.shape[0], 1), _value)
-            ))
+            _X = np.hstack((_X, _new_column))
             # there does not seem to be an obvious connection between what
             # the dtype of _value is and the resultant dtype (for example,
             # _X with dtype '<U10' when appending float(1.0), the output dtype
-            # is '<U21' (???, maybe floating point error on the float?) )
+            # is '<U21' (???, maybe the floating points on the float?) )
 
-            del _key, _value
+        elif isinstance(_X, pd.core.frame.DataFrame):
+            _X[_key] = _new_column.astype(_dtype['pd'])
 
-
-    elif isinstance(_X, pd.core.frame.DataFrame):
-        # remove the columns
-        _X = _X.iloc[:, KEEP_MASK]
-        # if :param: keep is dict, add the new intercept
-        if _instructions['add']:
-            _key = list(_instructions['add'].keys())[0]
-            _value = _instructions['add'][_key]
-            try:
-                float(_value)
-                _is_num = True
-            except:
-                _is_num = False
-
-            _dtype = np.float64 if _is_num else object
-
-            _X[_key] = np.full((_X.shape[0],), _value).astype(_dtype)
-
-            del _key, _value, _is_num, _dtype
-
-    elif isinstance(_X, pl.DataFrame):
-        # remove the columns
-        _X = _X[:, KEEP_MASK]
-        # if :param: keep is dict, add the new intercept
-        if _instructions['add']:
-            _key = list(_instructions['add'].keys())[0]
-            _value = _instructions['add'][_key]
-            try:
-                float(_value)
-                _is_num = True
-            except:
-                _is_num = False
-
-            _dtype = pl.Float64 if _is_num else pl.Object
-
+        elif isinstance(_X, pl.DataFrame):
+            if _dtype['pl'] == pl.Float64:
+                # need to do this so that polars can cast the dtype. it
+                # wont cast it on the numpy array
+                _new_column = list(map(float, _new_column.ravel()))
             _X = _X.with_columns(
-                pl.DataFrame({_key: np.full((_X.shape[0],), _value)}).cast(_dtype)
+                pl.DataFrame({_key: _new_column}).cast(_dtype['pl'])
             )
 
-            del _key, _value, _is_num, _dtype
+        elif isinstance(_X, (ss.csc_matrix, ss.csc_array)):
+            _X = ss.hstack((_X, type(_X)(_new_column)))
 
-    elif isinstance(_X, (ss.csc_matrix, ss.csc_array)):
-        # remove the columns
-        _X = _X[:, KEEP_MASK]
-        # if :param: keep is dict, add the new intercept
-        if _instructions['add']:
-            _key = list(_instructions['add'].keys())[0]
-            _value = _instructions['add'][_key]
-            _X = ss.hstack((
-                _X,
-                type(_X)(np.full((_X.shape[0], 1), _value))
-            ))
-            del _key
 
-    else:
-        raise TypeError(f"Unknown dtype {type(_X)} in _transform().")
+        del _key, _value, _new_column, _dtype
 
 
     return _X

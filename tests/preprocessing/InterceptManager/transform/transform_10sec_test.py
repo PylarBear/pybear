@@ -15,9 +15,6 @@ import pandas as pd
 import polars as pl
 
 from pybear.preprocessing._InterceptManager._partial_fit. \
-    _columns_getter import _columns_getter
-
-from pybear.preprocessing._InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
 from pybear.preprocessing._InterceptManager._shared._set_attributes \
@@ -30,26 +27,24 @@ from pybear.utilities import nan_mask
 
 
 
-@pytest.mark.parametrize('_dtype', ('flt', 'str'), scope='module')
-@pytest.mark.parametrize('_has_nan',  (True, False), scope='module')
 class TestTransform:
 
     # these tests prove that _transform:
-    # - blocks anything that is not numpy ndarray, pandas dataframe, or
-    #       ss csc matrix/array
+    # - blocks anything that is not numpy ndarray, pandas/polars dataframe,
+    #       or ss csc matrix/array
     # - correctly removes columns based on _instructions
     # - format and dtype(s) of the transformed are same as passed
     # - For appended intercept:
     #   - if numpy and ss, constant value is correct and is forced to
     #       dtype of X
-    #   - if pd, appended header is correct, and appended constant is
-    #       correct dtype (float if num, otherwise object)
+    #   - if pd and pl, appended header is correct, and appended constant
+    #       is correct dtype (float if num, otherwise object)
 
 
     # def _transform(
-    #     _X: Union[npt.NDArray, pd.DataFrame, ss.csc_array, ss.csc_matrix],
+    #     _X: InternalDataContainer,
     #     _instructions: InstructionType
-    # ) -> Union[npt.NDArray, pd.DataFrame, ss.csc_array, ss.csc_matrix]:
+    # ) -> InternalDataContainer:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -72,7 +67,29 @@ class TestTransform:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    @pytest.mark.parametrize('_equal_nan', (True, False), scope='function')
+    @pytest.mark.parametrize('_format',
+        (
+            'coo_matrix', 'coo_array', 'dia_matrix', 'dia_array',
+            'lil_matrix', 'lil_array', 'dok_matrix', 'dok_array',
+            'bsr_matrix', 'bsr_array', 'csr_array', 'csr_matrix'
+        )
+    )
+    def test_rejects_bad_container(self, _X_factory, _shape, _columns, _format):
+
+        _X_wip = _X_factory(
+            _dupl=None, _has_nan=False, _format=_format, _dtype='flt',
+            _columns=None, _constants=None, _noise=0, _zeros=None, _shape=_shape
+        )
+
+        _wip_instr = {'keep': [0, 1, 4], 'delete': [3, 8], 'add': None}
+
+        with pytest.raises(AssertionError):
+            _transform(_X_wip, _wip_instr)
+
+
+    @pytest.mark.parametrize('_dtype', ('flt', 'str'), scope='module')
+    @pytest.mark.parametrize('_has_nan', (True, False), scope='module')
+    @pytest.mark.parametrize('_equal_nan', (True, False), scope='module')
     @pytest.mark.parametrize('_instructions',
          (
              {'keep': [1, 3, 8], 'delete': [0, 4], 'add': None},
@@ -80,15 +97,10 @@ class TestTransform:
              {'keep': [0, 1, 3, 4, 8], 'delete': None, 'add': {'Intercept': 1}},
              {'keep': [0, 1, 3, 4, 8], 'delete': None, 'add': None},
              {'keep': [1], 'delete': [0, 3, 4, 8], 'add': None}
-         ), scope='function'
+         ), scope='module'
      )
     @pytest.mark.parametrize('_format',
-        (
-            'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix',
-            'dia_matrix', 'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array',
-            'csc_array', 'coo_array', 'dia_array', 'lil_array', 'dok_array',
-            'bsr_array'
-        ), scope='function'
+        ('np', 'pd', 'pl', 'csc_array', 'csc_matrix'), scope='function'
     )
     def test_output(
         self, _X_factory, _dtype, _format, _shape, _columns, _equal_nan,
@@ -105,40 +117,22 @@ class TestTransform:
         # pass X and _instructions to _transform.
         # the transformed X should have kept the columns as in the expected
         # column mask.
-        # for np, pd, and ss, iterate over input X and output X simultaneously,
-        # using the expected column mask to map columns in output X to their
+        # iterate over input X and output X simultaneously, using the
+        # expected column mask to map columns in output X to their
         # original locations in input X.
         # Columns that are mapped to each other must be array_equal.
         # if they are, that means:
         # 1) that _transform() used _instructions['delete'] from
         # _make_instructions() to mask the same columns as _set_attributes()
         # did here.
-        # 2) _transform correctly deleted the masked columns for np, pd, and ss
+        # 2) _transform correctly deleted the masked columns for diff containers
         # 3) Columns that are not mapped must be constant.
 
-        if _dtype == 'str' and _format not in ['np', 'pd']:
+        if _dtype == 'str' and _format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take strings")
-
-        # must do this. even though _instructions is function scope when it is
-        # modified by 'if _has_nan and not _equal_nan' below it isnt resetting.
-        _wip_instr = deepcopy(_instructions)
-
-        if _dtype == 'str':
-            _constant_columns = _const_col_str
-        elif _dtype == 'flt':
-            _constant_columns = _const_col_flt
-        else:
-            raise Exception
 
 
         # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-        # if has_nan, _X_factory puts nans in every column.
-        # therefore when not equal_nan there can be no constant columns.
-        if _has_nan and not _equal_nan:
-            _wip_instr['keep'] = None
-            _wip_instr['delete'] = None
-            _constant_columns = {}
 
         _X_wip = _X_factory(
             _dupl=None,
@@ -147,13 +141,10 @@ class TestTransform:
             _dtype=_dtype,
             _columns=_columns if _format in ['pd', 'pl'] else None,
             _constants=_const_col_flt if _dtype=='flt' else _const_col_str,
-            _noise=1e-9,
+            _noise=0,
             _zeros=None,
             _shape=_shape
         )
-
-        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
 
         # retain the original dtype(s)
         _og_format = type(_X_wip)
@@ -161,6 +152,22 @@ class TestTransform:
             _og_dtype = np.array(_X_wip.dtypes)
         else:
             _og_dtype = _X_wip.dtype
+
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        # must do this. even though _instructions is function scope when it is
+        # modified by 'if _has_nan and not _equal_nan' below it isnt resetting.
+        _wip_instr = deepcopy(_instructions)
+
+        # if has_nan, _X_factory puts nans in every column.
+        # therefore when not equal_nan there can be no constant columns.
+        if _has_nan and not _equal_nan:
+            _wip_instr['keep'] = None
+            _wip_instr['delete'] = None
+            _constant_columns = {}
+        else:
+            _constant_columns = \
+                {'str': _const_col_str, 'flt': _const_col_flt}[_dtype]
 
 
         # get a referee column mask from _set_attributes
@@ -176,16 +183,10 @@ class TestTransform:
             assert np.all(_ref_column_mask)
 
         # apply the instructions to X via _transform
-        # everything except ndarray, pd dataframe, and csc are blocked!
-        if _format in ['np', 'pd', 'pl', 'csc_matrix', 'csc_array']:
-            out = _transform(_X_wip, _wip_instr)
-        else:
-            with pytest.raises(TypeError):
-                _transform(_X_wip, _wip_instr)
-            pytest.skip(reason=f"cant do more tests after exception")
+        out = _transform(_X_wip, _wip_instr)
 
 
-        # ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         # output format is same as given
         assert isinstance(out, _og_format)
@@ -194,80 +195,58 @@ class TestTransform:
         assert out.shape[1] == \
                sum(_ref_column_mask) + isinstance(_wip_instr['add'], dict)
 
-        # output dtypes are same as given -----------------------------------
+        # output dtypes are same as given ------------------------------
         if _format in ['pd', 'pl']:
-
             # check the dtypes for the og columns in X first
             assert np.array_equal(
-                out.dtypes[:_shape[1]],
-                _og_dtype[_ref_column_mask]
+                out.dtypes[:_shape[1]], _og_dtype[_ref_column_mask]
             )
-
             # check header for og columns
             assert np.array_equal(
-                out.columns[:_shape[1]],
-                _columns[_ref_column_mask]
+                out.columns[:_shape[1]], _columns[_ref_column_mask]
             )
+        elif _format == 'np' and '<U' in str(_og_dtype):
+            # str dtypes are changing in _transform() at
+            # _X = np.hstack((_X, _new_column))
+            # there does not seem to be an obvious connection between what
+            # the dtype of _value is and the resultant dtype (for example,
+            # _X with dtype '<U10' when appending float(1.0), the output dtype
+            # is '<U21' (???, maybe the floating points on the float?) )
+            assert '<U' in str(out.dtype)
+        else:
+            # could be np or ss
+            # the stacked column and the value in it takes the dtype
+            # of the original X
+            assert out.dtype == _og_dtype
+        # END output dtypes are same as given --------------------------
 
-            # check the dtype & header for the appended column separately
-            if _wip_instr['add'] is not None: # should only be dict
-                _key = list(_wip_instr['add'].keys())[0]
-                _value = _wip_instr['add'][_key]
+        # appended intercept -------------------------------------------
+        # check the dtype & header for the appended column separately
+        if _wip_instr['add'] is not None:  # should only be dict
+
+            _key = list(_wip_instr['add'].keys())[0]
+            _value = _wip_instr['add'][_key]
+
+            if _format in ['pd', 'pl']:
                 try:
                     float(_value)
-                    is_num = True
+                    _dtype_dict = {'pd': np.float64, 'pl': pl.Float64}
                 except:
-                    is_num = False
+                    _dtype_dict = {'pd': object, 'pl': pl.Object}
 
                 # header
                 assert _key in out
 
                 # dtype
-                if is_num:
-                    if _format == 'pd':
-                        assert out[_key].dtype == np.float64
-                    elif _format == 'pl':
-                        assert out[_key].dtype == pl.Float64
-                else:
-                    if _format == 'pd':
-                        assert out[_key].dtype == object
-                    elif _format == 'pl':
-                        assert out[_key].dtype == pl.Object
-
-                del _key, _value, is_num
-
-        elif _format == 'np' and '<U' in str(_og_dtype):
-            # str dtypes are changing in _transform() at
-            # _X = np.hstack((
-            #     _X,
-            #     np.full((_X.shape[0], 1), _value)
-            # ))
-            # there does not seem to be an obvious connection between what
-            # the dtype of _value is and the resultant dtype (for example,
-            # _X with dtype '<U10' when appending float(1.0), the output dtype
-            # is '<U21' (???, maybe floating point error on the float?) )
-            assert '<U' in str(out.dtype)
-
-            # check the values in the appended column (if appended)
-            if _wip_instr['add'] is not None: # should only be dict
-                _key = list(_wip_instr['add'].keys())[0]
-                _value = _wip_instr['add'][_key]
-                # the stacked column and the value in it takes the dtype
-                # of the original X
+                assert out[_key].dtype == _dtype_dict[_format]
+                del _dtype_dict
+            elif _format == 'np' and '<U' in str(_og_dtype):
                 assert out[0, -1] == str(_value)
-
-        else:
-            # could be np or ss
-            assert out.dtype == _og_dtype
-
-            # check the values in the appended column (if appended)
-            if _wip_instr['add'] is not None: # should only be dict
-                _key = list(_wip_instr['add'].keys())[0]
-                _value = _wip_instr['add'][_key]
-                # the stacked column and the value in it takes the dtype
-                # of the original X
-                assert _columns_getter(out, out.shape[1]-1).ravel()[0] == _value
-        # END output dtypes are same as given -------------------------------
+            elif _format == 'np':
+                assert out[0, -1] == _value
+            else:
+                assert out[[0], [out.shape[1]-1]] == _value
+        # END appended intercept ---------------------------------------
 
 
         # iterate over input X and output X simultaneously, use _kept_idxs to
@@ -315,14 +294,9 @@ class TestTransform:
                 )
             else:
                 # columns not in column mask must therefore be constant
-                assert _parallel_constant_finder(
-                    _og_col,
-                    _equal_nan,
-                    1e-5,
-                    1e-8
-                )
+                assert _parallel_constant_finder(_og_col, _equal_nan, 1e-5, 1e-8)
 
-        # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
 class TestHStackDtypesOnNP:
@@ -349,13 +323,10 @@ class TestHStackDtypesOnNP:
             _shape=(100, 10)
         )
 
-        _instr = {
-            'keep': None,
-            'delete': None,
-            'add': {'Intercept': _value}
-        }
-
-        out = _transform(X, _instr)
+        out = _transform(
+            X,
+            {'keep': None, 'delete': None, 'add': {'Intercept': _value}}
+        )
 
         if isinstance(_value, str) and _dtype == 'flt':
             assert '<U' in str(out.dtype)

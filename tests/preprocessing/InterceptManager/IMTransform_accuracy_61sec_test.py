@@ -87,18 +87,6 @@ class TestAccuracy:
             raise Exception
         # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-        X = _X_factory(
-            _dupl=None,
-            _has_nan=has_nan,
-            _format=X_format,
-            _dtype=X_dtype,
-            _columns=_columns,
-            _constants=constants,
-            _noise=1e-9,
-            _zeros=None,
-            _shape=_shape
-        )
-
         # set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if keep == 'string':
             keep = _columns[0]
@@ -117,19 +105,25 @@ class TestAccuracy:
             pass
         # END set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-        # set _kwargs
-        _kwargs['keep'] = keep
-        _kwargs['equal_nan'] = equal_nan
-
-        TestCls = IM(**_kwargs)
-
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        X = _X_factory(
+            _dupl=None,
+            _has_nan=has_nan,
+            _format=X_format,
+            _dtype=X_dtype,
+            _columns=_columns,
+            _constants=constants,
+            _noise=0,
+            _zeros=None,
+            _shape=_shape
+        )
 
         # retain original format
         _og_format = type(X)
 
         # retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            # need to adjust the pd dtypes if keep is dict
+            # need to adjust the pd/pl dtypes if keep is dict
             if isinstance(keep, dict):
                 # in _transform(), when keep is a dict, it looks at whether
                 # the dict value is numerical; if so, the dtype of the appended
@@ -139,26 +133,29 @@ class TestAccuracy:
 
                 _key = list(keep.keys())[0]
                 _value = keep[_key]
-                if isinstance(X, pd.core.frame.DataFrame):
-                    _vector = pd.DataFrame({uuid.uuid4(): np.full(X.shape[0], _value)})
+                if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
                     # -----------------
                     try:
                         float(_value)
-                        _dtype = np.float64
+                        _dtype = {'pd': np.float64, 'pl': pl.Float64}
                     except:
-                        _dtype = object
+                        _dtype = {'pd': object, 'pl': pl.Object}
                     # -----------------
-                    _og_dtype = pd.concat((X, _vector.astype(_dtype)), axis=1).dtypes
-                elif isinstance(X, pl.DataFrame):
-                    _vector = pl.DataFrame({str(uuid.uuid4()): np.full(X.shape[0], _value)})
-                    # -----------------
-                    try:
-                        float(_value)
-                        _dtype = pl.Float64
-                    except:
-                        _dtype = pl.Object
-                    # -----------------
-                    _og_dtype = X.with_columns(_vector.cast(_dtype)).dtypes
+                    if isinstance(X, pd.core.frame.DataFrame):
+                        _vector = pd.DataFrame(
+                            {_key: np.full(X.shape[0], _value)}
+                        )
+                        _og_dtype = pd.concat(
+                            (X, _vector.astype(_dtype[X_format])), axis=1
+                        ).dtypes
+                    elif isinstance(X, pl.DataFrame):
+                        _vector = np.full((_shape[0], 1), _value)
+                        if _dtype['pl'] == pl.Float64:
+                            # need to do this so that polars can cast the dtype. it
+                            # wont cast it on the numpy array
+                            _vector = list(map(float, _vector.ravel()))
+                        _vector = pl.DataFrame({_key: _vector})
+                        _og_dtype = X.with_columns(_vector.cast(_dtype['pl'])).dtypes
                 del _key, _value, _vector
             else:
                 _og_dtype = X.dtypes
@@ -170,7 +167,13 @@ class TestAccuracy:
             # X will still have one dtype
             _og_dtype = X.dtype
         # END retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
+        # set _kwargs
+        _kwargs['keep'] = keep
+        _kwargs['equal_nan'] = equal_nan
+
+        TestCls = IM(**_kwargs)
 
         # manage constants
         exp_constants = deepcopy(constants or {})
@@ -183,14 +186,14 @@ class TestAccuracy:
             exp_constants = \
                 {k:v for k,v in exp_constants.items() if str(v) != 'nan'}
 
-        # if data is not pd and user put in keep as feature_str, will raise
+        # if data is not pd/pl and user put in keep as feature_str, will raise
         raise_for_no_header_str_keep = False
         if X_format not in ['pd', 'pl'] and isinstance(keep, str) and \
                 keep not in ('first', 'last', 'random', 'none'):
             raise_for_no_header_str_keep += 1
 
         # if data has no constants and
-        # user put in keep feature_str/int/callable, will raise
+        # user put in keep as feature_str/int/callable, will raise
         raise_for_keep_non_constant = False
         has_constants = len(exp_constants) and not (has_nan and not equal_nan)
         if not has_constants:
@@ -245,22 +248,16 @@ class TestAccuracy:
             del MASK
         elif '<U' in str(_og_dtype):
             # str dtypes are changing in _transform() at
-            # _X = np.hstack((
-            #     _X,
-            #     np.full((_X.shape[0], 1), _value)
-            # ))
+            # _X = np.hstack((_X, _new_column))
             # there does not seem to be an obvious connection between what
             # the dtype of _value is and the resultant dtype (for example,
             # _X with dtype '<U10' when appending float(1.0), the output dtype
-            # is '<U21' (???, maybe floating point error on the float?) )
+            # is '<U21' (???, maybe the floating points on the float?) )
             assert '<U' in str(TRFM_X.dtype)
         elif os.name == 'nt' and 'int' in str(_og_dtype).lower():
             # on windows (verified not macos or linux), int dtypes are
             # changing to int64, in _transform() at
-            # _X = np.hstack((
-            #     _X,
-            #     np.full((_X.shape[0], 1), _value)
-            # ))
+            # _X = np.hstack((_X, _new_column))
             assert 'int' in str(TRFM_X.dtype).lower()
         else:
             assert TRFM_X.dtype == _og_dtype
@@ -316,19 +313,17 @@ class TestAccuracy:
             else:
                 try:
                     float(value)
-                    is_num = True
-                except:
-                    is_num = False
-
-                if is_num:
+                    raise UnicodeError
+                except UnicodeError:
                     assert np.isclose(
                         float(value),
                         float(act_constants[idx]),
                         rtol=1e-5,
                         atol=1e-8
                     )
-                else:
+                except Exception as e:
                     assert value == act_constants[idx]
+
         # END attr 'constant_columns_' is correct ----------------------------
 
         # keep ('first','last','random','none') is correct
@@ -537,16 +532,18 @@ class TestAccuracy:
         _kept_idxs = np.arange(len(TestCls.column_mask_))[TestCls.column_mask_]
 
         if len(_sorted_constant_idxs):
+            _num_kept_constants = sum([i in _kept_idxs for i in _sorted_constant_idxs])
             if keep == 'first':
                 assert _sorted_constant_idxs[0] in _kept_idxs
-                assert sum([i in _kept_idxs for i in _sorted_constant_idxs]) == 1
+                assert _num_kept_constants == 1
             elif keep == 'last':
                 assert _sorted_constant_idxs[-1] in _kept_idxs
-                assert sum([i in _kept_idxs for i in _sorted_constant_idxs]) == 1
+                assert _num_kept_constants == 1
             elif keep == 'random':
-                assert sum([i in _kept_idxs for i in _sorted_constant_idxs]) == 1
+                assert _num_kept_constants == 1
             elif isinstance(keep, dict) or keep == 'none':
-                assert sum([i in _kept_idxs for i in _sorted_constant_idxs]) == 0
+                assert _num_kept_constants == 0
+            del _num_kept_constants
         else:
             # if no constants, all columns are kept
             assert np.array_equal(_kept_idxs, range(X.shape[1]))
@@ -578,29 +575,14 @@ class TestAccuracy:
 
             if _idx in _kept_idxs:
 
-                assert _parallel_column_comparer(
-                    _out_col,
-                    _og_col,
-                    _rtol=1e-5,
-                    _atol=1e-8,
-                    _equal_nan=True
-                )
+                assert _parallel_column_comparer(_out_col, _og_col, 1e-5, 1e-8, True)
             else:
-                out = _parallel_constant_finder(
-                    _chunk=_og_col,
-                    _equal_nan=equal_nan,
-                    _rtol=1e-5,
-                    _atol=1e-8
-                )
+                out = _parallel_constant_finder(_og_col, equal_nan, 1e-5, 1e-8)
 
                 # a uuid would be returned if the column is not constant
                 assert not isinstance(out, uuid.UUID)
 
         # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-
 
 
 

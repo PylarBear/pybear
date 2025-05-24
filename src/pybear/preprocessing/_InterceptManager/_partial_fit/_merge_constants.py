@@ -7,16 +7,20 @@
 
 
 from typing_extensions import Union
-from numbers import Real
+from .._type_aliases import ConstantColumnsType
+
+import numbers
+
 import numpy as np
 
 
+
 def _merge_constants(
-    _old_constants: Union[dict[int, any], None],
-    _new_constants: dict[int, any],
-    _rtol: Real,
-    _atol: Real
-) -> dict[int, any]:
+    _old_constants: Union[ConstantColumnsType, None],
+    _new_constants: ConstantColumnsType,
+    _rtol: numbers.Real,
+    _atol: numbers.Real
+) -> ConstantColumnsType:
 
     """
     Merge the constants found in the current partial fit with those
@@ -27,12 +31,12 @@ def _merge_constants(
     Parameters
     ----------
     _old_constants:
-        Union[dict[int, any], None] - the column indices of constant
+        Union[ConstantColumnsType, None] - the column indices of constant
         columns found in previous partial fits and the values in the
         columns.
     _new_constants:
-        dict[int, any] - the column indices of constant columns found in
-        the current partial fit and the values in the columns.
+        ConstantColumnsType - the column indices of constant columns
+        found in the current partial fit and the values in the columns.
     _rtol:
         numbers.Real - The relative difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
@@ -46,8 +50,9 @@ def _merge_constants(
     Return
     ------
     -
-        _final_constants: dict[int, any] - the compiled column indices
-            and values of constant columns found over all partial fits.
+        _final_constants: ConstantColumnsType - the compiled column
+        indices and values of constant columns found over all partial
+        fits.
 
     """
 
@@ -108,7 +113,6 @@ def _merge_constants(
                     _final_constants[int(_col_idx)] = _value
 
 
-
         # verify that outgoing constants were in old and new constants:
         for _col_idx, _value in _final_constants.items():
             assert _col_idx in _old_constants
@@ -120,23 +124,16 @@ def _merge_constants(
             else:
                 try:
                     float(_value)
-                    is_num = True
-                except:
-                    is_num = False
-
-                if is_num:
+                    raise UnicodeError
+                except UnicodeError:
                     assert np.isclose(_value, _old_constants[_col_idx])
                     assert np.isclose(_value, _new_constants[_col_idx])
-                elif not is_num:
+                except Exception as e:
                     assert _value == _old_constants[_col_idx]
                     assert _value == _new_constants[_col_idx]
 
 
         return _final_constants
-
-
-
-
 
 
 
