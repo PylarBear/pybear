@@ -7,7 +7,10 @@
 
 
 from typing import Literal
-from typing_extensions import Union
+from typing_extensions import (
+    Any,
+    Union
+)
 from .._type_aliases import (
     KeepType,
     DataContainer,
@@ -30,7 +33,7 @@ def _manage_keep(
     _n_features_in: int,
     _feature_names_in: FeatureNamesInType,
     _rand_idx: int
-) -> Union[Literal['none'], dict[str, any], int]:
+) -> Union[Literal['none'], dict[str, Any], int]:
 
     """
     Before going into _make_instructions, process some of the mapping of
@@ -38,7 +41,7 @@ def _manage_keep(
 
     Helps to simplify _make_instructions and makes for easier testing.
 
-    If dict[int, any], just pass through without validation.
+    If dict[int, Any], just pass through without validation.
     If callable, convert to int and verify is a constant column.
     If a feature name, convert to int and verify is a constant column.
     If a keep literal ('first', 'last', 'random'):
@@ -57,7 +60,7 @@ def _manage_keep(
 
     'keep' could be
         Literal['first', 'last', 'random', 'none'],
-        dict[str, any],
+        dict[str, Any],
         callable(X),
         int,
         a feature name
@@ -90,12 +93,12 @@ def _manage_keep(
     'keep':
     --'first', 'last', 'random'         converted to int, validated--
     --'none'                            passes thru--
-    --dict[str, any]                    passes thru--
+    --dict[str, Any]                    passes thru--
     --callable(X)                       converted to int, validated--
     --int                               validated--
     --a feature name                    converted to int, validated--
 
-    keep can only leave here as dict[int, any], int, or Literal['none']
+    keep can only leave here as dict[int, Any], int, or Literal['none']
 
 
     Parameters
@@ -125,7 +128,7 @@ def _manage_keep(
     Return
     ------
     -
-        __keep: Union[dict[int, any], int, Literal['none']] - _keep
+        __keep: Union[dict[int, Any], int, Literal['none']] - _keep
         converted to integer for callable, 'first', 'last', 'random', or
         feature name. __keep can only return as an integer, dict, or
         Literal['none']
@@ -216,7 +219,7 @@ def _manage_keep(
         raise AssertionError(f"algorithm failure. invalid 'keep': {_keep}")
 
 
-    # __keep could be dict[str, any], int, or 'none'
+    # __keep could be dict[str, Any], int, or 'none'
     return __keep
 
 

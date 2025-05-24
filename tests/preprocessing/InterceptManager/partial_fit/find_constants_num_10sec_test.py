@@ -22,12 +22,12 @@ class TestFindConstants_Num:
 
     # def _find_constants(
     #     _X: InternalDataContainer,
-    #     _old_constant_columns: dict[int, any],
+    #     _old_constant_columns: Union[ConstantColumnsType, None],
     #     _equal_nan: bool,
-    #     _rtol: Real,
-    #     _atol: Real,
-    #     _n_jobs: Union[Integral, None]
-    # ) -> dict[int, Any]:
+    #     _rtol: numbers.Real,
+    #     _atol: numbers.Real,
+    #     _n_jobs: Union[numbers.Integral, None]
+    # ) -> ConstantColumnsType:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -75,7 +75,6 @@ class TestFindConstants_Num:
             _has_nan=False, _constants=None, _shape=_shape
         )
 
-
         # this is raised by scipy let it raise whatever
         with pytest.raises(Exception):
             _find_constants(
@@ -99,22 +98,14 @@ class TestFindConstants_Num:
 
         # verifies accuracy of _find_constants on a single pass
 
-        # as of 24_12_16 _columns_getter only allows ss that are
-        # indexable, dont test with coo, dia, bsr
-
         # using these just to run more tests, the fact that they are
-        # 'more' or less compared to each other is not important, theyre
+        # 'more' or 'less' compared to each other is not important, theyre
         # the fixtures available
-        if _constants_set == 'init':
-            _constants = _init_constants
-        elif _constants_set == 'no':
-            _constants = {}
-        elif _constants_set == 'more':
-            _constants = _more_constants
-        elif _constants_set == 'less':
-            _constants = _less_constants
-        else:
-            raise Exception
+        _constants = {
+            'init': _init_constants, 'no': {},
+            'more': _more_constants, 'less': _less_constants
+        }[_constants_set]
+
 
         # build X
         _X_wip = _X_factory(
@@ -135,53 +126,18 @@ class TestFindConstants_Num:
         if (not _equal_nan and _has_nan) or _constants_set == 'no':
             # with no constants, or not _equal_nan, there can be no constants
             assert out == {}
-        elif _constants_set == 'init':
+        elif _constants_set in ('init', 'more', 'less'):
             # num out constant columns == num given constant columns
-            assert len(out) == len(_init_constants)
+            assert len(out) == len(_constants)
             # out constant column idxs == given constant column idxs
-            assert np.array_equal(
-                sorted(list(out)),
-                sorted(list(_init_constants))
-            )
+            assert np.array_equal(sorted(list(out)), sorted(list(_constants)))
             # out constant column values == given constant column values
             for _idx, _value in out.items():
                 if str(_value) == 'nan':
-                    assert str(_init_constants[_idx]) == 'nan'
+                    assert str(_constants[_idx]) == 'nan'
                 else:
                     assert np.isclose(
-                        _value, _init_constants[_idx], rtol=1e-6, atol=1e-6
-                    )
-        elif _constants_set == 'more':
-            # num out constant columns == num given constant columns
-            assert len(out) == len(_more_constants)
-            # out constant column idxs == given constant column idxs
-            assert np.array_equal(
-                sorted(list(out)),
-                sorted(list(_more_constants))
-            )
-            # out constant column values == given constant column values
-            for _idx, _value in out.items():
-                if str(_value) == 'nan':
-                    assert str(_more_constants[_idx]) == 'nan'
-                else:
-                    assert np.isclose(
-                        _value, _more_constants[_idx], rtol=1e-6, atol=1e-6
-                    )
-        elif _constants_set == 'less':
-            # num out constant columns == num given constant columns
-            assert len(out) == len(_less_constants)
-            # out constant column idxs == given constant column idxs
-            assert np.array_equal(
-                sorted(list(out)),
-                sorted(list(_less_constants))
-            )
-            # out constant column values == given constant column values
-            for _idx, _value in out.items():
-                if str(_value) == 'nan':
-                    assert str(_less_constants[_idx]) == 'nan'
-                else:
-                    assert np.isclose(
-                        _value, _less_constants[_idx], rtol=1e-6, atol=1e-6
+                        _value, _constants[_idx], rtol=1e-6, atol=1e-6
                     )
         else:
             raise Exception
@@ -199,8 +155,7 @@ class TestFindConstants_Num:
         # verifies accuracy of _find_constants when second partial fit
         # has less constants than the first
 
-        # as of 24_12_16 _columns_getter only allows ss that are
-        # indexable, dont test with coo, dia, bsr
+        # _columns_getter only allows csc
 
         # build first X
         _first_X_wip = _X_factory(
@@ -236,8 +191,7 @@ class TestFindConstants_Num:
             assert _scd_fit_constants == {}
         else:
             assert np.array_equal(
-                sorted(list(_scd_fit_constants)),
-                sorted(list(_less_constants))
+                sorted(list(_scd_fit_constants)), sorted(list(_less_constants))
             )
             for _col_idx, _value in _scd_fit_constants.items():
                 if str(_value) == 'nan':
@@ -260,8 +214,7 @@ class TestFindConstants_Num:
         # verifies accuracy of _find_constants when second partial fit
         # has more constants than the first
 
-        # as of 24_12_16 _columns_getter only allows ss that are
-        # indexable, dont test with coo, dia, bsr
+        # _columns_getter only allows csc
 
         # build first X
         _first_X_wip = _X_factory(
@@ -297,8 +250,7 @@ class TestFindConstants_Num:
             assert _scd_fit_constants == {}
         else:
             assert np.array_equal(
-                sorted(list(_scd_fit_constants)),
-                sorted(list(_init_constants))
+                sorted(list(_scd_fit_constants)), sorted(list(_init_constants))
             )
             for _col_idx, _value in _scd_fit_constants.items():
                 if str(_value) == 'nan':
@@ -321,8 +273,7 @@ class TestFindConstants_Num:
         # verifies accuracy of _find_constants when partial fits after the
         # first have both more and less constants
 
-        # as of 24_12_16 _columns_getter only allows ss that are
-        # indexable, dont test with coo, dia, bsr
+        # _columns_getter only allows csc
 
         # build first X
         _first_X_wip = _X_factory(
@@ -375,8 +326,7 @@ class TestFindConstants_Num:
             assert _third_fit_constants == {}
         else:
             assert np.array_equal(
-                sorted(list(_third_fit_constants)),
-                sorted(list(_less_constants))
+                sorted(list(_third_fit_constants)), sorted(list(_less_constants))
             )
             for _col_idx, _value in _third_fit_constants.items():
                 if str(_value) == 'nan':
@@ -403,9 +353,7 @@ class TestFindConstants_Num:
         )
 
         assert np.array_equal(list(out.keys()), list(range(_shape[1])))
-
-
-
+        assert np.array_equal(list(out.values()), [0 for i in range(_shape[1])])
 
 
 

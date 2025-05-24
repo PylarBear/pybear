@@ -25,18 +25,6 @@ class TestSetAttributes:
     # ) -> tuple[KeptColumnsType, RemovedColumnsType, ColumnMaskType]:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _n_features_in():
-        return 8
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _constant_columns():
-        return {1: 0, 3: 1, 5:np.nan, 7: np.pi}
-
-
     @pytest.mark.parametrize('keep, delete',
         (
             (None, [1, 3, 5, 7]),
@@ -48,11 +36,14 @@ class TestSetAttributes:
         )
     )
     @pytest.mark.parametrize('add', (None, {'Intercept': 1}))
-    def test_accuracy(self, _n_features_in, keep, delete, add, _constant_columns):
+    def test_accuracy(self, keep, delete, add):
 
         # this test goes beyond what should normally would be seen by
         # _set_attributes. keep should at most have only one value in it.
 
+        _n_features_in = 8
+
+        _constant_columns = {1: 0, 3: 1, 5: np.nan, 7: np.pi}
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # build '_instructions' from the given keep, delete, & add

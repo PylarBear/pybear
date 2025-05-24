@@ -40,10 +40,10 @@ def _columns_getter(
     Parameters
     ----------
     _X:
-        array-like of shape (n_samples, n_features) - The data to extract
-        columns from. _X must be indexable, which excludes scipy coo,
-        dia, and bsr. This module expects _X to be in a valid state when
-        passed, and will not condition it.
+        InternalDataContainer - The data to extract columns from. _X
+        must be indexable, which excludes scipy coo, dia, and bsr. This
+        module expects _X to be in a valid state when passed, and will
+        not condition it.
     _col_idxs:
         Union[int, tuple[int, ...]] - the column index / indices to
         extract from _X.
@@ -52,8 +52,8 @@ def _columns_getter(
     Return
     ------
     -
-        _columns: NDArray[Any] - The columns from _X corresponding to
-        the given indices.
+        _columns: NDArray[Any] - The column(s) from _X corresponding to
+        the given index/indices.
 
     """
 

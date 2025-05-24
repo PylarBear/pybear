@@ -11,7 +11,6 @@ import pytest
 from typing_extensions import Any
 
 import numpy as np
-import scipy.sparse as ss
 
 from pybear.preprocessing._InterceptManager._partial_fit._find_constants \
     import _find_constants
@@ -23,12 +22,12 @@ class TestFindConstants_Str:
 
     # def _find_constants(
     #     _X: InternalDataContainer,
-    #     _old_constant_columns: dict[int, any],
+    #     _old_constant_columns: Union[ConstantColumnsType, None],
     #     _equal_nan: bool,
-    #     _rtol: Real,
-    #     _atol: Real,
-    #     _n_jobs: Union[Integral, None]
-    # ) -> dict[int, Any]:
+    #     _rtol: numbers.Real,
+    #     _atol: numbers.Real,
+    #     _n_jobs: Union[numbers.Integral, None]
+    # ) -> ConstantColumnsType:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -63,45 +62,30 @@ class TestFindConstants_Str:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    @pytest.mark.parametrize('_format',
-        ('coo_matrix', 'coo_array', 'dia_matrix',
-        'dia_array', 'bsr_matrix', 'bsr_array')
-    )
-    def test_blocks_coo_dia_bsr(
+    # dont need to worry about allow/block ss, ss can never hold str
+
+
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
+    def test_allows_np_pd_pl(
         self, _X_factory, _format, _fc_args, _columns, _shape
     ):
 
-        _X = _X_factory(
-            _format='np', _dtype='flt', _columns=_columns,
+        _X_wip = _X_factory(
+            _format=_format, _dtype='str', _columns=_columns,
             _has_nan=False, _constants=None, _shape=_shape
         )
 
-        if _format == 'coo_matrix':
-            _X_wip = ss.coo_matrix(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss.coo_array(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss.dia_matrix(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss.dia_array(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss.bsr_matrix(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss.bsr_array(_X)
-        else:
-            raise Exception
+        out = _find_constants(
+            _X_wip,
+            _old_constant_columns=None,
+            _equal_nan=True,
+            **_fc_args
+        )
 
-        # this is raised by scipy let it raise whatever
-        with pytest.raises(Exception):
-            _find_constants(
-                _X_wip,
-                _old_constant_columns=None,
-                _equal_nan=True,
-                **_fc_args
-            )
+        assert isinstance(out, dict)
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_dtype', ('str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_constants_set', ('init', 'no', 'more', 'less'))
     @pytest.mark.parametrize('_has_nan', (True, False))
@@ -114,22 +98,14 @@ class TestFindConstants_Str:
 
         # verifies accuracy of _find_constants on a single pass
 
-
-
-
         # using these just to run more tests, the fact that they are
-        # 'more' or less compared to each other is not important, theyre
+        # 'more' or 'less' compared to each other is not important, theyre
         # the fixtures available
-        if _constants_set == 'init':
-            _constants = _init_constants
-        elif _constants_set == 'no':
-            _constants = {}
-        elif _constants_set == 'more':
-            _constants = _more_constants
-        elif _constants_set == 'less':
-            _constants = _less_constants
-        else:
-            raise Exception
+        _constants = {
+            'init': _init_constants, 'no': {},
+            'more': _more_constants, 'less': _less_constants
+        }[_constants_set]
+
 
         # build X
         _X_wip = _X_factory(
@@ -150,54 +126,22 @@ class TestFindConstants_Str:
         if (not _equal_nan and _has_nan) or _constants_set == 'no':
             # with no constants, or not _equal_nan, there can be no constants
             assert out == {}
-        elif _constants_set == 'init':
+        elif _constants_set in ('init', 'more', 'less'):
             # num out constant columns == num given constant columns
-            assert len(out) == len(_init_constants)
+            assert len(out) == len(_constants)
             # out constant column idxs == given constant column idxs
-            assert np.array_equal(
-                sorted(list(out)),
-                sorted(list(_init_constants))
-            )
+            assert np.array_equal(sorted(list(out)), sorted(list(_constants)))
             # out constant column values == given constant column values
             for _idx, _value in out.items():
                 if str(_value) == 'nan':
-                    assert str(_init_constants[_idx]) == 'nan'
+                    assert str(_constants[_idx]) == 'nan'
                 else:
-                    assert _value == _init_constants[_idx]
-
-        elif _constants_set == 'more':
-            # num out constant columns == num given constant columns
-            assert len(out) == len(_more_constants)
-            # out constant column idxs == given constant column idxs
-            assert np.array_equal(
-                sorted(list(out)),
-                sorted(list(_more_constants))
-            )
-            # out constant column values == given constant column values
-            for _idx, _value in out.items():
-                if str(_value) == 'nan':
-                    assert str(_more_constants[_idx]) == 'nan'
-                else:
-                    assert _value == _more_constants[_idx]
-        elif _constants_set == 'less':
-            # num out constant columns == num given constant columns
-            assert len(out) == len(_less_constants)
-            # out constant column idxs == given constant column idxs
-            assert np.array_equal(
-                sorted(list(out)),
-                sorted(list(_less_constants))
-            )
-            # out constant column values == given constant column values
-            for _idx, _value in out.items():
-                if str(_value) == 'nan':
-                    assert str(_less_constants[_idx]) == 'nan'
-                else:
-                    assert _value == _less_constants[_idx]
+                    assert _value == _constants[_idx]
         else:
             raise Exception
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_dtype', ('str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -208,7 +152,6 @@ class TestFindConstants_Str:
 
         # verifies accuracy of _find_constants when second partial fit
         # has less constants than the first
-
 
 
 
@@ -246,8 +189,7 @@ class TestFindConstants_Str:
             assert _scd_fit_constants == {}
         else:
             assert np.array_equal(
-                sorted(list(_scd_fit_constants)),
-                sorted(list(_less_constants))
+                sorted(list(_scd_fit_constants)), sorted(list(_less_constants))
             )
             for _col_idx, _value in _scd_fit_constants.items():
                 if str(_value) == 'nan':
@@ -256,7 +198,7 @@ class TestFindConstants_Str:
                     assert _value == _less_constants[_col_idx]
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_dtype', ('str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -267,7 +209,6 @@ class TestFindConstants_Str:
 
         # verifies accuracy of _find_constants when second partial fit
         # has more constants than the first
-
 
 
 
@@ -305,8 +246,7 @@ class TestFindConstants_Str:
             assert _scd_fit_constants == {}
         else:
             assert np.array_equal(
-                sorted(list(_scd_fit_constants)),
-                sorted(list(_init_constants))
+                sorted(list(_scd_fit_constants)), sorted(list(_init_constants))
             )
             for _col_idx, _value in _scd_fit_constants.items():
                 if str(_value) == 'nan':
@@ -315,7 +255,7 @@ class TestFindConstants_Str:
                     assert _value == _init_constants[_col_idx]
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_dtype', ('str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -326,7 +266,6 @@ class TestFindConstants_Str:
 
         # verifies accuracy of _find_constants when partial fits after the
         # first have both more and less constants
-
 
 
 
@@ -381,8 +320,7 @@ class TestFindConstants_Str:
             assert _third_fit_constants == {}
         else:
             assert np.array_equal(
-                sorted(list(_third_fit_constants)),
-                sorted(list(_less_constants))
+                sorted(list(_third_fit_constants)), sorted(list(_less_constants))
             )
             for _col_idx, _value in _third_fit_constants.items():
                 if str(_value) == 'nan':
@@ -391,7 +329,7 @@ class TestFindConstants_Str:
                     assert _value == _less_constants[_col_idx]
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_dtype', ('str', 'obj', 'hybrid'))
     def test_ss_all_zeros(self, _format, _dtype, _shape, _fc_args):
 
@@ -407,9 +345,7 @@ class TestFindConstants_Str:
         )
 
         assert np.array_equal(list(out.keys()), list(range(_shape[1])))
-
-
-
+        assert np.array_equal(list(out.values()), [0 for i in range(_shape[1])])
 
 
 

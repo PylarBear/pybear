@@ -6,10 +6,7 @@
 
 
 
-from typing_extensions import (
-    Any,
-    Union
-)
+from typing_extensions import Union
 from .._type_aliases import (
     InternalDataContainer,
     ConstantColumnsType
@@ -56,9 +53,9 @@ def _find_constants(
     _X:
         array-like of shape (n_samples, n_features) - The data to
         be searched for constant columns. _X will be passed to
-        _columns_getter and must observe the restrictions imposed
-        there. _X should be in the correct state when passed to this
-        module.
+        _columns_getter and must observe the container restrictions
+        imposed there. _X should be in the correct state when passed to
+        this module.
     _old_constant_columns:
         Union[ConstantColumnsType, None] - constant column indices and
         their values found in previous partial fits.
@@ -88,11 +85,11 @@ def _find_constants(
     ------
     -
         _new_constants: ConstantColumnsType - dictionary of the indices
-        of the columns of constants and the values in them for the
-        current partial fit.
-    
-    
+        of the columns of constants and the values in them across all
+        partial fits.
+
     """
+
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     assert isinstance(_X,
@@ -123,7 +120,7 @@ def _find_constants(
 
     args = (_equal_nan, _rtol, _atol)
 
-    if _X.shape[1] < _n_cols:
+    if _X.shape[1] < 2 * _n_cols:
         # if X columns < chunk columns just run it under a for loop
         out = []
         for _c_idx in range(_X.shape[1]):

@@ -8,8 +8,6 @@
 
 import pytest
 
-import sys
-
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -27,9 +25,8 @@ bypass = False
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @pytest.mark.parametrize('x_format',
-        ('np', 'pd', 'pl', 'csc_array', 'csr_array', 'coo_array')
-    )
+    # keep the different containers to test for feature_names_in_
+    @pytest.mark.parametrize('x_format',('np', 'pd', 'pl', 'csc_array'))
     def test_attr_access(
         self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
     ):
@@ -65,9 +62,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
         # BEFORE FIT ***************************************************
 
-        # ALL OF THESE SHOULD GIVE AttributeError
-        # IM external attrs are attributes of self, not @property
-        # they dont exist before fit, so should raise AttributeError
+        # dont exist before fit, so should raise AttributeError
         for attr in _attrs:
             with pytest.raises(AttributeError):
                 getattr(TestCls, attr)
@@ -102,8 +97,8 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                     assert isinstance(e, AttributeError)
                 else:
                     raise AssertionError(
-                        f"unexpected exception {sys.exc_info()[0]} accessing "
-                        f"{attr} after fit, x_format == {x_format}"
+                        f"unexpected exception accessing {attr} after "
+                        f"fit, x_format == {x_format} ---  {e}"
                     )
 
         # END AFTER FIT ************************************************
@@ -136,8 +131,8 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                     assert isinstance(e, AttributeError)
                 else:
                     raise AssertionError(
-                        f"unexpected exception {sys.exc_info()[0]} accessing "
-                        f"{attr} after fit, x_format == {x_format}"
+                        f"unexpected exception accessing {attr} after "
+                        f"fit, x_format == {x_format} ---  {e}"
                     )
 
         # END AFTER TRANSFORM ******************************************

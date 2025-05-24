@@ -11,10 +11,9 @@ import pytest
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 
 from pybear.preprocessing import InterceptManager as IM
-
 from pybear.utilities import check_pipeline
 
 
@@ -22,9 +21,8 @@ from pybear.utilities import check_pipeline
 class TestPipeline:
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     def test_accuracy_in_pipe_vs_out_of_pipe(
-        self, _X_factory, _shape, _kwargs, _columns, _format
+        self, _X_factory, _shape, _kwargs, y_np
     ):
 
         # this also incidentally tests functionality in a pipe
@@ -34,17 +32,14 @@ class TestPipeline:
         # fit the data on the pipeline, get coef_
         # fit the data on the steps severally, compare coef_
 
-
         _X = _X_factory(
             _dupl=None,
-            _format=_format,
+            _format='np',
             _has_nan=False,
-            _columns=_columns,
+            _columns=None,
             _dtype='obj',
             _shape=_shape
         )
-
-        _y = np.random.uniform(0,1, _shape[0])
 
         # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # n_jobs confliction doesnt seem to matter
@@ -52,13 +47,13 @@ class TestPipeline:
             steps = [
                 ('onehot', OneHotEncoder(sparse_output=True)),
                 ('IM', IM(**_kwargs)),
-                ('MLR', LinearRegression(fit_intercept = True, n_jobs = -1))
+                ('MLR', LogisticRegression())
             ]
         )
 
         check_pipeline(pipe)
 
-        pipe.fit(_X, _y)
+        pipe.fit(_X, y_np)
 
         _coef_pipe = pipe.steps[2][1].coef_
 
@@ -69,11 +64,7 @@ class TestPipeline:
         # n_jobs confliction doesnt seem to matter
         encoded_X = OneHotEncoder(sparse_output=True).fit_transform(_X)
         deconstanted_X = IM(**_kwargs).fit_transform(encoded_X)
-        mlr = LinearRegression(fit_intercept = True, n_jobs = -1)
-
-        mlr.fit(deconstanted_X, _y)
-
-        _coef_separate = mlr.coef_
+        _coef_separate = LogisticRegression().fit(deconstanted_X, y_np).coef_
 
         # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

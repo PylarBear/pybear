@@ -6,17 +6,16 @@
 
 
 
-from pybear.preprocessing._InterceptManager._partial_fit. \
-    _parallel_constant_finder import _parallel_constant_finder
-
-from pybear.utilities import nan_mask_numerical
+import pytest
 
 import uuid
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._InterceptManager._partial_fit. \
+    _parallel_constant_finder import _parallel_constant_finder
 
+from pybear.utilities import nan_mask_numerical
 
 
 
@@ -32,7 +31,7 @@ class TestParallelConstantFinder:
         # Methodology
         # need to test two different data types, numbers and strings
         # with nans and without
-        # _parallel_constant_finder will only ever see numpy arrays
+        # _parallel_constant_finder will only ever see numpy arrays.
         # put a level of noise in the data that in one case is less
         # that rtol/atol, so that the column is considered constant; in
         # the other case the column is not constant because the noise
@@ -42,97 +41,61 @@ class TestParallelConstantFinder:
         _size = 100
 
         if dtype=='flt':
+            # column is/is not constant based on level of noise
             _X = np.random.normal(loc=1, scale=_noise, size=(_size,))
-
-            if has_nan:
-                _rand_idxs = \
-                    np.random.choice(range(_size), _size//10, replace=False)
-                _X[_rand_idxs] = np.nan
+            _X = _X.astype(np.float64)
         elif dtype=='str':
             # if noise > tol, make a non-constant column
-            if _noise > atol:
+            if _noise > atol:   # column is not constant
                 _X = np.random.choice(list('abcde'), _size, replace=True)
-            else:
+            else:   # column is constant
                 _X = np.full((_size,), 'a')
-
             _X = _X.astype(object)
-
-            if has_nan:
-                _rand_idxs = \
-                    np.random.choice(range(_size), _size // 10, replace=False)
-                _X[_rand_idxs] = 'nan'
         else:
             raise Exception
 
+        if has_nan:
+            _rand_idxs = np.random.choice(range(_size), _size//10, replace=False)
+            _X[_rand_idxs] = np.nan if dtype == 'flt' else 'nan'
 
+        # since we are testing one column and pcf output is in a list,
+        # get the value for the one column
         out = _parallel_constant_finder(_X, equal_nan, rtol, atol)[0]
 
-
+        # this will catch if the unique is being returned as a list
+        # inside the outer list (which it should not be). should be
+        # returning a single value to each slot in pcf output.
+        try:
+            iter(out)
+            if dtype == 'str' and isinstance(out, str):
+                raise Exception
+            raise UnicodeError
+        except UnicodeError:
+            raise ValueError(f'pcf is returning iterables inside the output list')
+        except Exception as e:
+            pass
 
         if dtype == 'flt':
-            if has_nan:
-                if equal_nan:
-                    if _noise <= atol:
-                        _not_nan_mask = np.logical_not(nan_mask_numerical(_X))
-                        assert out == np.mean(_X[_not_nan_mask])
-                    elif _noise > atol:
-                        assert isinstance(out, uuid.UUID)
-                elif not equal_nan:
-                    assert isinstance(out, uuid.UUID)
-            elif not has_nan:
-                # equal_nan doesnt matter
+            if not has_nan or (has_nan and equal_nan):
                 if _noise <= atol:
-                    assert out == np.mean(_X)
+                    _not_nan_mask = np.logical_not(nan_mask_numerical(_X))
+                    assert out == np.mean(_X[_not_nan_mask])
+                    del _not_nan_mask
                 elif _noise > atol:
                     assert isinstance(out, uuid.UUID)
+            else:   # has nan and not equal_nan
+                assert isinstance(out, uuid.UUID)
 
         elif dtype == 'str':
-            if has_nan:
-                # _noise and rtol dont matter for str column, but we built the
-                # str test vector to be constant or not based on _noise and rtol
-                if equal_nan:
-                    if _noise <= atol:   # should be constant
-                        try:
-                            # this will catch if the unique is being returned
-                            # as a list (which it should not be). should be
-                            # returning a single value.
-                            iter(out)
-                            if isinstance(out, str):
-                                raise Exception
-                            raise UnicodeError
-                        except UnicodeError:
-                            raise Exception
-                        except:
-                            pass
-                        assert out == 'a'
-                    elif _noise > atol:
-                        assert isinstance(out, uuid.UUID)
-                else:
-                    assert isinstance(out, uuid.UUID)
-            elif not has_nan:
-                # equal_nan doesnt matter
-                # _noise and rtol dont matter for str column, but we built the
-                # str test vector to be constant or not based on _noise and rtol
-                if _noise <= atol:    # should be constant
-                    try:
-                        # this will catch if the unique is being returned
-                        # as a list (which it should not be). should be
-                        # returning a single value.
-                        iter(out)
-                        if isinstance(out, str):
-                            raise Exception
-                        raise UnicodeError
-                    except UnicodeError:
-                        raise Exception
-                    except:
-                        pass
+            if not has_nan or (has_nan and equal_nan):
+            # _noise and rtol dont matter for str column, but we built the
+            # str test vector to be constant or not based on _noise and rtol
+                if _noise <= atol:   # should be constant
                     assert out == 'a'
                 elif _noise > atol:
                     assert isinstance(out, uuid.UUID)
-
-        else:
-            raise Exception
-
+            else:   # has nan and not equal_nan
+                assert isinstance(out, uuid.UUID)
 
 
     @pytest.mark.parametrize('dtype', ('flt', 'str'))
@@ -152,33 +115,28 @@ class TestParallelConstantFinder:
         else:
             raise Exception
 
-
+        # since we are testing one column and pcf output is in a list,
+        # get the value for the one column
         out = _parallel_constant_finder(_X, equal_nan, 1e-5, 1e-8)[0]
 
-        if dtype == 'flt':
-            if equal_nan:
-                assert str(out) == 'nan'
-            elif not equal_nan:
-                assert isinstance(out, uuid.UUID)
-        elif dtype == 'str':
-            if equal_nan:
-                try:
-                    # this will catch if the unique is being returned
-                    # as a list (which it should not be). should be
-                    # returning a single value.
-                    iter(out)
-                    if isinstance(out, str):
-                        raise Exception
-                    raise UnicodeError
-                except UnicodeError:
-                    raise Exception
-                except:
-                    pass
-                assert out == 'nan'
-            elif not equal_nan:
-                assert isinstance(out, uuid.UUID)
+        # this will catch if the unique is being returned as a list
+        # inside the outer list (which it should not be). should be
+        # returning a single value to each slot in pcf output.
+        try:
+            iter(out)
+            if dtype == 'str' and isinstance(out, str):
+                raise Exception
+            raise UnicodeError
+        except UnicodeError:
+            raise ValueError(f'pcf is returning iterables inside the output list')
+        except Exception as e:
+            pass
 
-
+        # works for both 'str' and 'flt' because we are using str(out)
+        if equal_nan:
+            assert str(out) == 'nan'
+        elif not equal_nan:
+            assert isinstance(out, uuid.UUID)
 
 
 

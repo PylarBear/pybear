@@ -7,6 +7,7 @@
 
 
 from typing import (
+    Literal,
     Optional,
     Sequence
 )
@@ -19,6 +20,7 @@ from ._type_aliases import (
     KeepType,
     DataContainer,
     ConstantColumnsType,
+    InstructionType,
     KeptColumnsType,
     RemovedColumnsType,
     ColumnMaskType,
@@ -33,6 +35,7 @@ import polars as pl
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
+from ._validation._keep_and_columns import _val_keep_and_columns
 from ._partial_fit._columns_getter import _columns_getter
 from ._partial_fit._find_constants import _find_constants
 from ._shared._make_instructions import _make_instructions
@@ -112,9 +115,9 @@ class InterceptManager(
     parameters that give latitude to the definition of 'equal'. They
     provide a tolerance window whereby numerical data that are not
     exactly equal are considered equal if their difference falls within
-    the tolerance. IM affords some flexibility in defining 'equal' for
-    the purpose of identifying constants by providing direct access to
-    the numpy.allclose rtol and atol parameters via its own, identically
+    the tolerance. IM affords some flexibility in defining 'equal'
+    when identifying constants by providing direct access to the
+    numpy.allclose rtol and atol parameters via its own, identically
     named, :param: `rtol` and :param: `atol` parameters. IM requires
     that :param: `rtol` and :param: `atol` be non-boolean, non-negative
     real numbers, in addition to any other restrictions enforced by
@@ -139,12 +142,14 @@ class InterceptManager(
     of all the options that can be passed to :param: `keep`, what they
     do, and how to use them.
 
-    The :meth: `partial_fit`, :meth: `fit`, :meth: `fit_transform`,
-    and :meth: `inverse_transform` methods of IM accept data as numpy
-    arrays, pandas dataframes, and scipy sparse matrices/arrays. IM has
-    a :meth: `set_output` method, whereby the user can set the type of
-    output container for :meth: `transform`. :meth: `set_output` can
-    return transformed outputs as numpy arrays, pandas dataframes, or
+    The :meth: `partial_fit`, :meth: `fit`, and :meth: `inverse_transform`
+    methods of IM accept data as numpy arrays, pandas dataframes, polars
+    dataframes, and scipy sparse matrices/arrays. :meth: `transform`
+    and :meth: `fit_transform` also accept these containers, but the
+    type of output container for these methods can be controlled by
+    the :meth: `set_output` method. The user can set the type of output
+    container regardless of the type of input container. Output containers
+    available via `set_output` are numpy arrays, pandas dataframes, and
     polars dataframes. When :meth: `set_output` is None, the output
     container is the same as the input, that is, numpy array, pandas
     dataframe, or scipy sparse matrix/array.
@@ -214,22 +219,23 @@ class InterceptManager(
         keep, while removing all other columns of constants. IM will
         raise an exception if this passed index is not a column of
         constants.
-    string: A string indicating feature name to keep if a pandas
-        dataframe is passed, while deleting all other constant columns.
+    string:
+        A string indicating feature name to keep if a container with
+        a header is passed, while deleting all other constant columns.
         Case sensitive. IM will except if 1) a string is passed that is
         not an allowed string literal ('first', 'last', 'random', 'none')
-        but a pandas dataframe is not passed to :meth: `fit`, 2) a pandas
-        dataframe is passed to :meth: `fit` but the given feature name
+        but a valid container is not passed to :meth: `fit`, 2) a valid
+        container is passed to :meth: `fit` but the given feature name
         is not valid, 3) the feature name is valid but the column is not
         constant.
-    callable(X): a callable that returns a valid column index when the
-        data is passed to it, indicating the index of the column of
-        constants to keep while deleting all other columns of constants.
-        This enables the analyst to use characteristics of the data
-        being transformed to determine which column of constants to
-        keep. IM passes the data as-is directly to the callable without
-        any preprocessing. The callable needs to operate on the data
-        object directly.
+    callable(X):
+        a callable that returns a valid column index when the data is
+        passed to it, indicating the index of the column of constants to
+        keep while deleting all other columns of constants. This enables
+        the analyst to use characteristics of the data being transformed
+        to determine which column of constants to keep. IM passes the
+        data as-is directly to the callable without any preprocessing.
+        The callable needs to operate on the data object directly.
         IM will except if 1) the callable does not return an integer,
         2) the integer returned is out of the range of columns in the
         passed data, 3) the integer that is returned does not correspond
@@ -243,57 +249,66 @@ class InterceptManager(
         same index for each call to :meth: `transform`. If the callable
         returns a different index for any of the batches of data passed
         in a sequence of transforms then the results will be nonsensical.
-    dictionary[str, Any]: dictionary of {feature name:str, constant
-        value:Any}. A column of constants is appended to the right
-        end of the data, with the constant being the value in the
-        dictionary. The :param: `keep` dictionary requires a single
-        key:value pair.
-        The key must be a string indicating feature name. This applies
-        to any format of data that is transformed. If the data is a
-        pandas dataframe, then this string will become the feature name
+    dictionary[str, Any]:
+        dictionary of {feature name:str, constant value:Any}. A column
+        of constants is appended to the right end of the data, with the
+        constant being the value in the dictionary. The :param: `keep`
+        dictionary requires a single key:value pair. The key must be a
+        string indicating feature name. This applies to any format of
+        data that is transformed. If the data is a pandas dataframe or
+        polars dataframe, then this string will become the feature name
         of the new constant feature. If the fitted data is a numpy array
-        or scipy sparse, then this column name is ignored.
-        The dictionary value is the constant value for the new feature.
-        This value has only two restrictions: it cannot be a non-string
-        sequence (e.g. list, tuple, etc.) and it cannot be a callable.
-        Essentially, the constant value is restricted to being integer,
-        float, string, or boolean.
-        When appending a constant value to a pandas df, if the constant
-        is numeric it is appended as float64; if it is not numeric it is
-        appended as object. Otherwise, if the constant is being appended
-        to a numpy array or scipy sparse it will be forced to the dtype
-        of the transformed data (with some caveats.)
-        When transforming a pandas dataframe and the new feature name is
-        already a feature in the data, there are two possible outcomes.
-        1) If the original feature is not constant, the new constant
-        values will overwrite in the old column (generally an undesirable
-        outcome.) 2) If the original feature is constant, the original
-        column will be removed and a new column with the same name will
-        be appended with the new constant values. IM will warn about
-        this condition but not terminate the program. It is up to the
-        user to manage the feature names in this situation.
+        or scipy sparse, then this column name is ignored. The dictionary
+        value is the constant value for the new feature. This value has
+        only two restrictions: it cannot be a non-string sequence (e.g.
+        list, tuple, etc.) and it cannot be a callable. Essentially, the
+        constant value is restricted to being integer, float, string, or
+        boolean.
+
+        When appending a constant value to a pandas dataframe, if the
+        constant is numeric it is appended as np.float64; if it is not
+        numeric it is appended as py object. When appending a constant
+        value to a polars dataframe, if the constant is numeric it is
+        appended as pl.Float64; if it is not numeric it is appended as
+        pl.Object. Otherwise, if the constant is being appended to a
+        numpy array or scipy sparse it will be forced to the dtype of
+        the transformed data (with some caveats.)
+
+        When transforming a pandas dataframe or polars dataframe and
+        the new feature name is already a feature in the data, there
+        are two possible outcomes. 1) If the original feature is not
+        constant, the new constant values will overwrite in the old
+        column (generally an undesirable outcome.) 2) If the original
+        feature is constant, the original column will be removed and a
+        new column with the same name will be appended with the new
+        constant values. IM will warn about this condition but not
+        terminate the program. It is up to the user to manage the
+        feature names in this situation.
+
         The :attr: `column_mask_` attribute is not adjusted for the new
         feature appended by the :param: `keep` dictionary (see the
-        discussion on :attr: `column_mask_`.) But the :param: `keep`
-        dictionary does make adjustment to :meth: `get_feature_names_out`.
-        Because :meth: `get_feature_names_out` reflects the state of
-        transformed data, and the :param: `keep` dictionary modifies
-        the data at :term: transform time, :meth: `get_feature_names_out`
-        reflects this modification also.
+        discussion on `column_mask_`.) But the `keep` dictionary does
+        make adjustment to :meth: `get_feature_names_out`. Because
+        `get_feature_names_out` reflects the state of transformed data,
+        and the :param: `keep` dictionary modifies the data at transform
+        time, `get_feature_names_out` reflects this modification.
+        `column_mask_` is intended to be applied to pre-transform data,
+        therefore that dimensionality is preserved.
 
     To access the :param: `keep` literals ('first', 'last', 'random',
     'none'), these MUST be passed as lower-case. If a pandas dataframe
-    is passed and there is a conflict between a literal that has been
-    passed and a feature name, IM will raise because it is not clear to
-    IM whether you want to indicate the literal or the feature name. To
-    afford a little more flexibility with feature names, IM does not
-    normalize case for this parameter. This means that if :param: `keep`
-    is passed as 'first',  feature names such as 'First', 'FIRST',
-    'FiRsT', etc. will not raise, only 'first' will.
+    or a polars dataframe is fitted and there is a conflict between a
+    literal that has been passed to `keep` and a feature name, IM will
+    raise because it is not clear to IM whether you want to indicate the
+    literal or the feature name. To afford a little more flexibility
+    with feature names, IM does not normalize case for this parameter.
+    This means that if :param: `keep` is passed as 'first',  feature
+    names such as 'First', 'FIRST', 'FiRsT', etc. will not raise, only
+    'first' will.
 
     The only value that removes all constant columns is 'none'. All other
     valid arguments for :param: `keep` leave one column of constants
-    behind. All other constant columns are removed from the dataset.
+    behind and all other constant columns are removed from the dataset.
     If IM does not find any constant columns, 'first', 'last', 'random',
     and 'none' will not raise an exception. It is like telling IM: "I
     don't know if there are any constant columns, but if you find some,
@@ -343,14 +358,14 @@ class InterceptManager(
     Notes
     -----
     Concerning the handling of nan-like representations. While IM
-    accepts data in the form of numpy arrays, pandas dataframes, and
-    scipy sparse matrices/arrays, during the search for constants
-    each column is separately converted to a 1D numpy array (see below
-    for more detail about how scipy sparse is handled.) After the
-    conversion to numpy 1D array and prior to calculating the mean and
-    applying numpy.allclose, IM identifies any nan-like representations
-    in the numpy array and standardizes all of them to numpy.nan. The
-    user needs to be wary that whatever is used to indicate 'not-a-number'
+    accepts data in the form of numpy arrays, pandas dataframes, polars
+    dataframes, and scipy sparse matrices/arrays, internally copies are
+    extracted from the source data as numpy arrays (see below for more
+    detail about how scipy sparse is handled.) After the conversion
+    to  numpy array and prior to calculating the mean and applying
+    numpy.allclose, IM identifies any nan-like representations in the
+    numpy array and standardizes all of them to numpy.nan. The user
+    needs to be wary that whatever is used to indicate 'not-a-number'
     in the original data must first survive the conversion to numpy
     array, then be recognizable by IM as nan-like, so that IM can
     standardize it to numpy.nan. nan-like representations that are
@@ -361,18 +376,17 @@ class InterceptManager(
     Concerning the handling of infinity. IM has no special handling for
     the various infinity-types, e.g, numpy.inf, -numpy.inf, float('inf'),
     float('-inf'), etc. This is a design decision to not force infinity
-    values to numpy.nan to avoid mutating or making copies of passed
-    data. SPF falls back to the native handling of these values for
-    python and numpy. Specifically, numpy.inf==numpy.inf and
+    values to numpy.nan. IM falls back to the native handling of these
+    values for python and numpy. Specifically, numpy.inf==numpy.inf and
     float('inf')==float('inf').
 
     Concerning the handling of scipy sparse arrays. When searching for
-    constant columns, the columns are converted to dense 1D numpy arrays
-    one at a time. Each column is sliced from the data in sparse form
-    and is converted to numpy ndarray via the 'toarray' method. This a
-    compromise that causes some memory expansion but allows for efficient
-    handling of constant column calculations that would otherwise
-    involve implicit non-dense values.
+    constant columns, chunks of columns are converted to dense numpy
+    arrays one chunk at a time. Each chunk is sliced from the data in
+    sparse form and is converted to numpy ndarray via the 'toarray'
+    method. This a compromise that causes some memory expansion but
+    allows for efficient handling of constant column calculations that
+    would otherwise involve implicit non-dense values.
 
 
     Attributes
@@ -383,7 +397,7 @@ class InterceptManager(
     feature_names_in_:
         NDArray[str] - The feature names seen during fitting. Only
         accessible if X is passed to :meth: `partial_fit` or :meth: `fit`
-        as a pandas dataframe that has a header.
+        as a pandas dataframe or polars dataframe that has a header.
 
     constant_columns_:
         dict[int, Any] - A dictionary whose keys are the indices of the
@@ -415,7 +429,7 @@ class InterceptManager(
         then this is an empty dictionary.
 
     column_mask_:
-        NDArray[bool] - shape (n_features_,) - Indicates which columns
+        NDArray[bool] - shape (n_features,) - Indicates which columns
         of the fitted data are kept (True) and which are removed (False)
         during :term: transform. When :param: `keep` is a dictionary,
         all original constant columns are removed and a new column of
@@ -689,10 +703,10 @@ class InterceptManager(
         Parameters
         ----------
         X:
-            array-like of shape (n_samples, n_features) - Data to find
-            constant columns in.
+            array-like of shape (n_samples, n_features) - Required. Data
+            to find constant columns in.
         y:
-            Optional[Union[Any, None]], default = None - ignored. The
+            Optional[Union[Any, None]], default=None - ignored. The
             target for the data.
 
 
@@ -700,7 +714,6 @@ class InterceptManager(
         ------
         -
             self: the fitted InterceptManager instance.
-
 
         """
 
@@ -722,7 +735,6 @@ class InterceptManager(
             ensure_min_samples=1,
             sample_check=None
         )
-
 
 
         # reset – Whether to reset the n_features_in_ attribute. If False,
@@ -774,7 +786,7 @@ class InterceptManager(
             self._constant_columns = {}
         else:
             # dictionary of column indices and respective constant values
-            self._constant_columns: dict[int, Any] = \
+            self._constant_columns: ConstantColumnsType = \
                 _find_constants(
                     X,
                     self._constant_columns if \
@@ -789,7 +801,7 @@ class InterceptManager(
         # Create an instance attribute that specifies the random column index
         # to keep when 'keep' is 'random'. This value must be static on calls
         # to :meth: transform (meaning sequential calls to transform get the
-        # same random index every time.) This  value is generated and retained
+        # same random index every time.) This value is generated and retained
         # even if :param: 'keep' != 'random', in case :param: 'keep' should be
         # set to 'random' at any point via set_params().
         if len(self._constant_columns):
@@ -807,7 +819,7 @@ class InterceptManager(
             del _og_dtype
 
 
-        _keep = _manage_keep(
+        _keep: Union[Literal['none'], dict[str, Any], int] = _manage_keep(
             self.keep,
             X,
             self._constant_columns,
@@ -816,18 +828,23 @@ class InterceptManager(
             self._rand_idx
         )
 
-        self._instructions = _make_instructions(
+        self._instructions: InstructionType = _make_instructions(
             _keep,
             self._constant_columns,
             self.n_features_in_
         )
 
-        self._kept_columns, self._removed_columns, self._column_mask = \
-            _set_attributes(
-                self._constant_columns,
-                self._instructions,
-                self.n_features_in_
-            )
+        out = _set_attributes(
+            self._constant_columns,
+            self._instructions,
+            self.n_features_in_
+        )
+
+        self._kept_columns: KeptColumnsType = out[0]
+        self._removed_columns: RemovedColumnsType = out[1]
+        self._column_mask: ColumnMaskType = out[2]
+        del out
+
 
         return self
 
@@ -847,10 +864,10 @@ class InterceptManager(
         Parameters
         ----------
         X:
-            array-like of shape (n_samples, n_features) - Data to find
-            constant columns in.
+            array-like of shape (n_samples, n_features) - Required. Data
+            to find constant columns in.
         y:
-            Optional[Union[Any, None]], default = None - ignored. The
+            Optional[Union[Any, None]], default=None - ignored. The
             target for the data.
 
 
@@ -859,11 +876,10 @@ class InterceptManager(
         -
             self: the fitted InterceptManager instance.
 
-
-
         """
 
         self._reset()
+
         return self.partial_fit(X, y=y)
 
 
@@ -902,8 +918,8 @@ class InterceptManager(
 
         Parameters
         ----------
-        X :
-            array-like of shape (n_samples, n_transform_features) - A
+        X:
+            array-like of shape (n_samples, n_transformed_features) - A
             transformed data set.
         copy:
             Optional[Union[bool, None]], default=None - Whether to make
@@ -917,8 +933,8 @@ class InterceptManager(
             Transformed data reverted to its original untransformed
             state.
 
-
         """
+
 
         check_is_fitted(self)
 
@@ -962,73 +978,39 @@ class InterceptManager(
         # the passed data matches against 'keep', and remove the column
         if isinstance(self.keep, dict):
 
-            _name = list(self.keep.keys())[0]
-
-            err_msg = (
-                f"when passed as a dictionary, :param: 'keep' must have "
-                f"one key:value pair. The key must be a string and the "
-                f"value must not be callable or list-like sequence."
-            )
-            # must be one entry and key must be str
-            if len(self.keep) != 1 or not isinstance(_name, str):
-                raise ValueError(err_msg)
-
-            try:
-                # if is callable, except
-                if callable(self.keep[_name]):
-                    raise BrokenPipeError
-                iter(self.keep[_name])
-                if isinstance(self.keep[_name], str):
-                    raise Exception
-                # if is any sequence beside string, except
-                raise UnicodeError
-            except BrokenPipeError:
-                raise ValueError(
-                    f"The 'keep' dictionary value is a callable, which IM "
-                    f"does not allow. " + err_msg
-                )
-            except UnicodeError:
-                raise ValueError(
-                    f"The 'keep' dictionary value is a non-string sequence, "
-                    f"which IM does not allow. " + err_msg
-                )
-            except:
-                # accept anything that is string or not a sequence
-                pass
+            _val_keep_and_columns(self.keep, None, 'spoof_X')
 
             _unqs = np.unique(_columns_getter(X_inv, X_inv.shape[1]-1))
 
             _key = list(self.keep.keys())[0]
+            _base_err = (
+                f":param: 'keep' is a dictionary but the last column of "
+                f"the data to be inverse transformed does not match."
+                f"\nkeep={self.keep}, but last column "
+            )
             if len(_unqs) == 1:
                 try:
                     _are_equal = (float(self.keep[_key]) == float(_unqs[0]))
                 except:
                     _are_equal = (self.keep[_key] == _unqs[0])
 
-            if len(_unqs) == 1 and _are_equal:
-                if isinstance(X_inv, np.ndarray):
-                    X_inv = np.delete(X_inv, -1, axis=1)
-                elif isinstance(X_inv, pd.core.frame.DataFrame):
-                    X_inv = X_inv.drop(columns=[_key])
-                elif isinstance(X_inv, pl.DataFrame):
-                    X_inv = X_inv.drop(_key)
-                elif hasattr(X_inv, 'toarray'):
-                    X_inv = X_inv[:, list(range(X_inv.shape[1]-1))]
+                if _are_equal:
+                    if isinstance(X_inv, np.ndarray):
+                        X_inv = np.delete(X_inv, -1, axis=1)
+                    elif isinstance(X_inv, pd.core.frame.DataFrame):
+                        X_inv = X_inv.drop(columns=[_key])
+                    elif isinstance(X_inv, pl.DataFrame):
+                        X_inv = X_inv.drop(_key)
+                    elif hasattr(X_inv, 'toarray'):
+                        X_inv = X_inv[:, list(range(X_inv.shape[1]-1))]
+                    else:
+                        raise Exception
                 else:
-                    raise Exception
+                    raise ValueError(_base_err + f"value = {_unqs[0]}..")
             else:
-                if len(_unqs) == 1:
-                    _addon = f" last column value = {_unqs[0]}."
-                else:
-                    _addon = f" last column is not constant."
+                raise ValueError(_base_err + f"is not constant.")
 
-                raise ValueError(
-                    f":param: 'keep' is a dictionary but the last column "
-                    f"of the data to be inverse transformed does not match."
-                    f"keep={self.keep}, but {_addon}."
-                )
-
-            del _unqs, _key, _are_equal
+            del _unqs, _key, _base_err
         # END _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # the number of columns in X_inv must be equal to the number of features
@@ -1036,7 +1018,7 @@ class InterceptManager(
         if X_inv.shape[1] != np.sum(self._column_mask):
             raise ValueError(
                 f"the number of columns in X_inv must be equal to the number of "
-                f"columns kept from the fitted data after removing constants. "
+                f"columns kept in the fitted data after removing constants. "
                 f"\nexpected {np.sum(self._column_mask)}, got {X_inv.shape[1]}."
             )
 
@@ -1091,8 +1073,8 @@ class InterceptManager(
         Parameters
         ----------
         X:
-            array-like of shape (n_samples, n_features) - The data to be
-            transformed.
+            array-like of shape (n_samples, n_features) - Required. The
+            data to be transformed.
         copy:
             Optional[Union[bool, None]], default=None - Whether to make
             a deepcopy of X before the transform.
@@ -1104,8 +1086,8 @@ class InterceptManager(
             X_tr: array-like of shape (n_samples, n_transformed_features)
             - The transformed data.
 
-
         """
+
 
         check_is_fitted(self)
 
@@ -1140,10 +1122,10 @@ class InterceptManager(
             self.n_jobs
         )
 
-        # do not make an assignment! let the function handle it.
+        # do not make an assignment!
         self._check_n_features(X_tr, reset=False)
 
-        # do not make an assignment! let the function handle it.
+        # do not make an assignment!
         self._check_feature_names(X_tr, reset=False)
 
         # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -1165,18 +1147,22 @@ class InterceptManager(
             self._rand_idx
         )
 
-        self._instructions = _make_instructions(
+        self._instructions: InstructionType = _make_instructions(
             _keep,
             self._constant_columns,
             self.n_features_in_
         )
 
-        self._kept_columns, self._removed_columns, self._column_mask = \
-            _set_attributes(
-                self._constant_columns,
-                self._instructions,
-                self.n_features_in_
-            )
+        out = _set_attributes(
+            self._constant_columns,
+            self._instructions,
+            self.n_features_in_
+        )
+
+        self._kept_columns: KeptColumnsType = out[0]
+        self._removed_columns: RemovedColumnsType = out[1]
+        self._column_mask: ColumnMaskType = out[2]
+        del out
 
         # ss sparse that cant be sliced
         # if X is coo, dia, bsr, it cannot be sliced. must convert to another
@@ -1189,7 +1175,7 @@ class InterceptManager(
         X_tr = _transform(X_tr, self._instructions)
 
         # all scipy sparse were converted to csc right before the _transform
-        # method. change it back to original state.
+        # function. change it back to original state.
         if hasattr(X_tr, 'toarray'):
             X_tr = _og_format(X_tr)
             del _og_format

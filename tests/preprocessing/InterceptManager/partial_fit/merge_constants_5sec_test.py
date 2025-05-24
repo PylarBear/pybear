@@ -34,8 +34,9 @@ class TestMergeConstantsValidation:
 
     def test_old_constants_rejects_bad(self):
         with pytest.raises(AssertionError):
+            # keys must be col idxs
             _merge_constants(
-                {'a':0, 'b': 1, 'c':np.nan},
+                {'a':0, 'b':1, 'c':np.nan},
                 {0:1, 1:1},
                 _rtol=1e-5,
                 _atol=1e-8
@@ -56,7 +57,6 @@ class TestMergeConstantsValidation:
 
 
     # new_constants ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
     @pytest.mark.parametrize('_new_constants',
         (-np.e, -1, 0, 1, np.e, True, False, 'trash', [0,1], (0,1), lambda x: x)
     )
@@ -74,6 +74,7 @@ class TestMergeConstantsValidation:
         (None, {'a':0, 'b': 1, 'c':np.nan})
     )
     def test_new_constants_rejects_bad(self, _new_constants):
+        # keys must be col idxs
         with pytest.raises(AssertionError):
             _merge_constants(
                 {0:0, 1:1, 10:np.e},
@@ -99,76 +100,63 @@ class TestMergeConstantsValidation:
 
 
     # rtol atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    @pytest.mark.parametrize('_rtol',
+    @pytest.mark.parametrize('_junk',
         (None, 'trash', [0,1], (0,1), {0,1}, {'a':1}, lambda x: x)
     )
-    def test_rtol_rejects_junk(self, _rtol):
+    def test_rtol_atol_rejects_junk(self, _junk):
 
         with pytest.raises(AssertionError):
             _merge_constants(
                 {0:0, 1:1, 10:np.e},
                 {},
-                _rtol=_rtol,
+                _rtol=_junk,
                 _atol=1e-8
             )
 
-
-    @pytest.mark.parametrize('_atol',
-        (None, 'trash', [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
-    )
-    def test_atol_rejects_junk(self, _atol):
         with pytest.raises(AssertionError):
             _merge_constants(
                 {0: 0, 1: 1, 10: np.e},
                 {},
                 _rtol=1e-5,
-                _atol=_atol
+                _atol=_junk
             )
 
 
-    @pytest.mark.parametrize('_rtol', (-np.e, -1, True, False))
-    def test_rtol_rejects_bad(self, _rtol):
+    @pytest.mark.parametrize('_bad', (-np.e, -1, True, False))
+    def test_rtol_atol_rejects_bad(self, _bad):
+
         with pytest.raises(AssertionError):
             _merge_constants(
                 {0: 0, 1: 1, 10: np.e},
                 {},
-                _rtol=_rtol,
+                _rtol=_bad,
                 _atol=1e-8
             )
 
-
-    @pytest.mark.parametrize('_atol',
-        (None, 'trash', [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
-    )
-    def test_atol_rejects_bad(self, _atol):
         with pytest.raises(AssertionError):
             _merge_constants(
                 {0: 0, 1: 1, 10: np.e},
                 {},
                 _rtol=1e-5,
-                _atol=_atol
+                _atol=_bad
             )
 
 
-    @pytest.mark.parametrize('_rtol', (0, 1e-5, 1, np.e))
-    def test_rtol_accepts_good(self, _rtol):
+    @pytest.mark.parametrize('_good', (0, 1e-5, 1, np.e))
+    def test_rtol_atol_accepts_good(self, _good):
 
         _merge_constants(
             {0: 0, 1: 1, 10: np.e},
             {},
-            _rtol=_rtol,
+            _rtol=_good,
             _atol=1e-8
         )
-
-
-    @pytest.mark.parametrize('_atol', (0, 1e-5, 1, np.e))
-    def test_atol_accepts_good(self, _atol):
 
         _merge_constants(
             {0: 0, 1: 1, 10: np.e},
             {},
             _rtol=1e-5,
-            _atol=_atol
+            _atol=_good
         )
 
     # END rtol atol  ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -210,7 +198,6 @@ class TestMergeConstantsAccuracy:
 
         # always just returns {}
         assert out == {}
-
 
 
     def test_accuracy(self):
@@ -275,7 +262,6 @@ class TestMergeConstantsAccuracy:
 
                 # need to do this the hard way because of np.nan
 
-
                 exp_out_keys = set(_old_constants).intersection(_new_constants)
 
                 exp_out_dict = {}
@@ -284,9 +270,6 @@ class TestMergeConstantsAccuracy:
                         exp_out_dict[int(_key)] = _new_constants[_key]
 
                 assert out == exp_out_dict
-
-
-
 
 
 

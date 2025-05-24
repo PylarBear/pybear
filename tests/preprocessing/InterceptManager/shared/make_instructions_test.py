@@ -22,38 +22,18 @@ class TestMakeInstructions:
     # ) -> InstructionType:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _constant_columns_1(_shape):
-        _ = {0: 1, 8: 1}  # must have index 8 in it
-        assert max(_) < _shape[1]
-        return _
+    def test_accuracy(self, _shape):
 
+        _constant_columns_1 = {0: 1, 8: 1}  # must have index 8 in it
+        assert max(_constant_columns_1) < _shape[1]
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _constant_columns_2(_shape):
-        _ = {1: 1, 0: 0, 8: 1}   # must have index 8 in it
-        assert max(_) < _shape[1]
-        return _
+        _constant_columns_2 = {1: 1, 0: 0, 8: 1}  # must have index 8 in it
+        assert max(_constant_columns_2) < _shape[1]
 
+        _keep_dict = {'Intercept': 1}
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _keep_dict():
-        return {'Intercept': 1}
+        _keep_int = _shape[1] - 2  # not arbitrary, must equal 8
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _keep_int(_shape):
-        return _shape[1] - 2    # not arbitrary, must equal 8
-
-
-    def test_accuracy(
-        self, _constant_columns_1, _constant_columns_2,
-        _keep_dict, _keep_int, _shape
-    ):
 
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         # keep is int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -144,9 +124,9 @@ class TestMakeInstructions:
                 _n_features_in=5
             )
 
-        assert out['keep'] == None
-        assert out['delete'] == list(range(5))
-        assert out['add'] == {'Intercept': 1}
+            assert out['keep'] == None
+            assert out['delete'] == list(range(5))
+            assert out['add'] == {'Intercept': 1}
 
 
 
