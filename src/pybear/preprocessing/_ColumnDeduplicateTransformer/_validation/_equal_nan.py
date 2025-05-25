@@ -12,7 +12,7 @@ def _val_equal_nan(
 ) -> None:
 
     """
-    Validate equal_nan; must be bool
+    Validate equal_nan; must be bool.
 
 
     Parameters
@@ -44,10 +44,6 @@ def _val_equal_nan(
 
     if not isinstance(_equal_nan, bool):
         raise TypeError(f"'equal_nan' must be bool")
-
-
-
-
 
 
 

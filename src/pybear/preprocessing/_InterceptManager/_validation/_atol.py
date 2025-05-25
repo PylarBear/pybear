@@ -58,4 +58,3 @@ def _val_atol(_atol: numbers.Real) -> None:
 
 
 
-

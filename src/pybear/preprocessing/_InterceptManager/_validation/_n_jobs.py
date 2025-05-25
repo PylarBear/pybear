@@ -47,7 +47,6 @@ def _val_n_jobs(_n_jobs: Union[numbers.Integral, None]) -> None:
     except Exception as e:
         raise TypeError(err_msg)
 
-
     if _n_jobs == -1 or _n_jobs >= 1:
         pass
     else:

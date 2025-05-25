@@ -355,40 +355,6 @@ class InterceptManager(
         setting.
 
 
-    Notes
-    -----
-    Concerning the handling of nan-like representations. While IM
-    accepts data in the form of numpy arrays, pandas dataframes, polars
-    dataframes, and scipy sparse matrices/arrays, internally copies are
-    extracted from the source data as numpy arrays (see below for more
-    detail about how scipy sparse is handled.) After the conversion
-    to  numpy array and prior to calculating the mean and applying
-    numpy.allclose, IM identifies any nan-like representations in the
-    numpy array and standardizes all of them to numpy.nan. The user
-    needs to be wary that whatever is used to indicate 'not-a-number'
-    in the original data must first survive the conversion to numpy
-    array, then be recognizable by IM as nan-like, so that IM can
-    standardize it to numpy.nan. nan-like representations that are
-    recognized by IM include, at least, numpy.nan, pandas.NA, None (of
-    type None, not string 'None'), and string representations of 'nan'
-    (not case sensitive).
-
-    Concerning the handling of infinity. IM has no special handling for
-    the various infinity-types, e.g, numpy.inf, -numpy.inf, float('inf'),
-    float('-inf'), etc. This is a design decision to not force infinity
-    values to numpy.nan. IM falls back to the native handling of these
-    values for python and numpy. Specifically, numpy.inf==numpy.inf and
-    float('inf')==float('inf').
-
-    Concerning the handling of scipy sparse arrays. When searching for
-    constant columns, chunks of columns are converted to dense numpy
-    arrays one chunk at a time. Each chunk is sliced from the data in
-    sparse form and is converted to numpy ndarray via the 'toarray'
-    method. This a compromise that causes some memory expansion but
-    allows for efficient handling of constant column calculations that
-    would otherwise involve implicit non-dense values.
-
-
     Attributes
     ----------
     n_features_in_:
@@ -441,6 +407,39 @@ class InterceptManager(
 
     Notes
     -----
+    Concerning the handling of nan-like representations. While IM
+    accepts data in the form of numpy arrays, pandas dataframes, polars
+    dataframes, and scipy sparse matrices/arrays, internally copies are
+    extracted from the source data as numpy arrays (see below for more
+    detail about how scipy sparse is handled.) After the conversion
+    to  numpy array and prior to calculating the mean and applying
+    numpy.allclose, IM identifies any nan-like representations in the
+    numpy array and standardizes all of them to numpy.nan. The user
+    needs to be wary that whatever is used to indicate 'not-a-number'
+    in the original data must first survive the conversion to numpy
+    array, then be recognizable by IM as nan-like, so that IM can
+    standardize it to numpy.nan. nan-like representations that are
+    recognized by IM include, at least, numpy.nan, pandas.NA, None (of
+    type None, not string 'None'), and string representations of 'nan'
+    (not case sensitive).
+
+    Concerning the handling of infinity. IM has no special handling for
+    the various infinity-types, e.g, numpy.inf, -numpy.inf, float('inf'),
+    float('-inf'), etc. This is a design decision to not force infinity
+    values to numpy.nan. IM falls back to the native handling of these
+    values for python and numpy. Specifically, numpy.inf==numpy.inf and
+    float('inf')==float('inf').
+
+    Concerning the handling of scipy sparse arrays. When searching for
+    constant columns, chunks of columns are converted to dense numpy
+    arrays one chunk at a time. Each chunk is sliced from the data in
+    sparse form and is converted to numpy ndarray via the 'toarray'
+    method. This a compromise that causes some memory expansion but
+    allows for efficient handling of constant column calculations that
+    would otherwise involve implicit non-dense values.
+
+    Type Aliases
+
     DataContainer:
         Union[
             npt.NDArray,
@@ -533,7 +532,6 @@ class InterceptManager(
     {2: np.float64(1.0)}
     >>> print(trf.column_mask_)
     [ True  True False  True  True]
-
 
     """
 

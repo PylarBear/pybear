@@ -215,18 +215,16 @@ class TestGetFeatureNamesOut:
         _sorted_constants = sorted(list(_wip_constants.keys()))
 
         if len(_sorted_constants):
-            if _keep == 'none':
-                for c_idx in _sorted_constants:
-                    MASK[c_idx] = False
-            elif _keep == 'first':
-                for c_idx in _sorted_constants[1:]:
-                    MASK[c_idx] = False
+            if _keep == 'first':
+                MASK[_sorted_constants[1:]] = False
             elif _keep == 'last':
-                for c_idx in _sorted_constants[:-1]:
-                    MASK[c_idx] = False
+                MASK[_sorted_constants[:-1]] = False
+            elif _keep == 'none':
+                MASK[_sorted_constants] = False
             elif isinstance(_keep, dict):
-                for c_idx in _sorted_constants:
-                    MASK[c_idx] = False
+                MASK[_sorted_constants] = False
+            else:
+                raise Exception
         # elif not len(_sorted_constants):
         #     with no constants no columns are dropped, MASK is unchanged
 
@@ -237,8 +235,7 @@ class TestGetFeatureNamesOut:
 
         if isinstance(_keep, dict):
             _EXP_HEADER = np.hstack((
-                _EXP_HEADER,
-                list(_keep.keys())[0]
+                _EXP_HEADER, list(_keep.keys())[0]
             )).astype(object)
         # END determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * s
 

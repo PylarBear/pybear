@@ -25,9 +25,8 @@ bypass = False
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @pytest.mark.parametrize('x_format',
-        ('np', 'pd', 'pl', 'csc_array', 'csr_array', 'coo_array')
-    )
+    # keep the different containers to test for feature_names_in_
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'csr_array'))
     def test_attr_access(
         self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
     ):
@@ -60,9 +59,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
         # BEFORE FIT ***************************************************
 
-        # ALL OF THESE SHOULD GIVE AttributeError
-        # IM external attrs are attributes of self, not @property
-        # they dont exist before fit, so should raise AttributeError
+        # dont exist before fit, so should raise AttributeError
         for attr in _attrs:
             with pytest.raises(AttributeError):
                 getattr(TestCls, attr)
@@ -186,7 +183,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # fit an instance  (done above)
         # assert the instance is fitted
         assert is_fitted(TestCls) is True
-        # call :method: reset
+        # call :meth: reset
         TestCls._reset()
         # assert the instance is not fitted
         assert is_fitted(TestCls) is False
@@ -352,7 +349,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
             TransformedTestCls.inverse_transform(TRFM_X).astype(str)
         ), (f"inverse_transform(TRFM_X) after transform() != "
              f"inverse_transform(TRFM_X) before transform()")
-
 
         # partial_fit()
         assert isinstance(TransformedTestCls.partial_fit(X_np), CDT)

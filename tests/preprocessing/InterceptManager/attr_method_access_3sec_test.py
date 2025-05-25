@@ -40,7 +40,6 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             'column_mask_'
         ]
 
-
         NEW_X = _X_factory(
             _format=x_format,
             _columns=_columns,
@@ -56,7 +55,6 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             NEW_Y = pl.DataFrame(data=y_np, schema=['y'])
         else:
             NEW_Y = y_np
-
 
         TestCls = IM(**_kwargs)
 
@@ -98,7 +96,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                 else:
                     raise AssertionError(
                         f"unexpected exception accessing {attr} after "
-                        f"fit, x_format == {x_format} ---  {e}"
+                        f"fit, x_format == {x_format} --- {e}"
                     )
 
         # END AFTER FIT ************************************************
@@ -127,12 +125,12 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                     pass
 
             except Exception as e:
-                if attr == 'feature_names_in_' and x_format != 'pd':
+                if attr == 'feature_names_in_' and x_format not in ['pd', 'pl']:
                     assert isinstance(e, AttributeError)
                 else:
                     raise AssertionError(
                         f"unexpected exception accessing {attr} after "
-                        f"fit, x_format == {x_format} ---  {e}"
+                        f"fit, x_format == {x_format} --- {e}"
                     )
 
         # END AFTER TRANSFORM ******************************************

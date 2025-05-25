@@ -6,7 +6,14 @@
 
 
 
-from typing_extensions import Union, TypeAlias
+from typing import (
+    Literal,
+    Sequence
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 import pandas as pd
 import scipy.sparse as ss
@@ -55,6 +62,23 @@ InternalDataContainer: TypeAlias = Union[
     pd.DataFrame,
     InternalSparseContainer
 ]
+
+KeepType: TypeAlias = Literal['first', 'last', 'random']
+
+DoNotDropType: TypeAlias = Union[Sequence[int], Sequence[str], None]
+
+ConflictType: TypeAlias = Literal['raise', 'ignore']
+
+FeatureNamesInType: TypeAlias = npt.NDArray[str]
+
+DuplicatesType: TypeAlias = list[list[int]]
+
+RemovedColumnsType: TypeAlias = dict[int, int]
+
+ColumnMaskType: TypeAlias = npt.NDArray[bool]
+
+
+
 
 
 

@@ -32,9 +32,7 @@ def _val_rtol(_rtol: numbers.Real) -> None:
     -
         None
 
-
     """
-
 
 
     err_msg = (f"'rtol' must be a non-boolean, non-negative, real number "
@@ -55,8 +53,6 @@ def _val_rtol(_rtol: numbers.Real) -> None:
     np.allclose(X1, X1, rtol=_rtol, atol=1e-6)
 
     del X1
-
-
 
 
 
