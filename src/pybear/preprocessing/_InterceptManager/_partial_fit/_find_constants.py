@@ -126,7 +126,8 @@ def _find_constants(
         for _c_idx in range(_X.shape[1]):
             out += _parallel_constant_finder(_columns_getter(_X, _c_idx), *args)
     else:
-        _new_cols = _n_cols * (_X.shape[1]//_n_cols + 1)
+        # pizza
+        # _new_cols = _n_cols * (_X.shape[1]//_n_cols + 1)
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             out = joblib.Parallel(return_as='list')(
                 joblib.delayed(_parallel_constant_finder)(
@@ -135,7 +136,7 @@ def _find_constants(
                         tuple(range(i, min(i + _n_cols, _X.shape[1])))
                     ),
                     *args
-                ) for i in range(0, _new_cols, _n_cols)
+                ) for i in range(0, _X.shape[1], _n_cols)
             )
 
         out = list(itertools.chain(*out))

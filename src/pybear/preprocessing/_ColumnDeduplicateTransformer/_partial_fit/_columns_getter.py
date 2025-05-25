@@ -29,7 +29,7 @@ def _columns_getter(
 ) -> npt.NDArray[Any]:
 
     """
-    This supports _find_constants. Handles the mechanics of extracting
+    This supports _find_duplicates. Handles the mechanics of extracting
     one or more columns from the various allowed data container types.
     Data passed as scipy sparse formats must be indexable. Therefore,
     coo matrix/array, dia matrix/array, and bsr matrix/array are
@@ -57,7 +57,7 @@ def _columns_getter(
 
     """
 
-    # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
         (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
@@ -70,7 +70,7 @@ def _columns_getter(
     for _idx in _col_idxs:
         assert isinstance(_idx, int)
         assert _idx in range(_X.shape[1]), f"col idx out of range"
-    # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     _col_idxs = sorted(list(_col_idxs))
 
@@ -80,18 +80,20 @@ def _columns_getter(
         _columns = _X.iloc[:, _col_idxs].to_numpy()
     elif isinstance(_X, pl.DataFrame):
         _columns = _X[:, _col_idxs].to_numpy()
-    elif hasattr(_X, 'toarray'):    # scipy sparse, must be csc
-        # there are a lot of ifs, ands, and buts if trying to determine
-        # if a column is constant just from the dense indices and values.
-        # the most elegant way is just to convert to dense, at the expense
-        # of some memory swell.
+    elif hasattr(_X, 'toarray'):    # scipy sparse
+        # No longer stacking .indices & .data. need to convert to dense
+        # because now pulling chunks instead of single columns. different
+        # columns may have different sparsity, which would cause the
+        # stacked indices/data to have different len, which cant be
+        # stacked nicely in an array.
 
         # code that converts a ss column to np array
         _columns = _X[:, _col_idxs].toarray()
 
-        # old code that stacks ss column indices and values
-        # c1 = _X[:, [_col_idx]]
-        # column = np.hstack((c1.indices, c1.data))
+        # old code that converts a ss column to np array
+        # _columns = _X.copy().tocsc()[:, [_col_idxs]].toarray().ravel()
+        # del _X_wip
+        # _columns = np.hstack((c1.indices, c1.data)).reshape((-1, 1))
         # del c1
     else:
         try:
@@ -106,7 +108,7 @@ def _columns_getter(
     # this assignment must stay here. there was a nan recognition problem
     # that wasnt happening in offline tests of entire data objects
     # holding the gamut of nan-likes but was happening with similar data
-    # objects passing thru the IM machinery. Dont know the reason why,
+    # objects passing thru the CDT machinery. Dont know the reason why,
     # maybe because the columns get parted out, or because they get sent
     # thru the joblib machinery? using nan_mask here and reassigning all
     # nans identified here as np.nan resolved the issue.
@@ -116,7 +118,7 @@ def _columns_getter(
     except:
         pass
 
-    # 25_05_22 pd numeric with junky nan-likes are coming out of here as
+    # 25_05_24 pd numeric with junky nan-likes are coming out of here as
     # dtype object. since _columns_getter produces an intermediary container
     # that is used to find constants and doesnt impact the container
     # coming out of transform, ok to let that condition persist.

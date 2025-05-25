@@ -555,14 +555,14 @@ class TestAccuracy:
                 _new_idx += 1
 
             if isinstance(X, np.ndarray):
-                _out_col = TRFM_X[:, _new_idx]
-                _og_col = X[:, _idx]
+                _out_col = TRFM_X[:, [_new_idx]]
+                _og_col = X[:, [_idx]]
             elif isinstance(X, pd.core.frame.DataFrame):
-                _out_col = TRFM_X.iloc[:, _new_idx].to_numpy()
-                _og_col = X.iloc[:, _idx].to_numpy()
+                _out_col = TRFM_X.iloc[:, [_new_idx]].to_numpy()
+                _og_col = X.iloc[:, [_idx]].to_numpy()
             elif isinstance(X, pl.DataFrame):
-                _out_col = TRFM_X[:, _new_idx].to_numpy()
-                _og_col = X[:, _idx].to_numpy()
+                _out_col = TRFM_X[:, [_new_idx]].to_numpy()
+                _og_col = X[:, [_idx]].to_numpy()
             else:
                 _out_col = TRFM_X.tocsc()[:, [_new_idx]].toarray()
                 _og_col = X.tocsc()[:, [_idx]].toarray()

@@ -10,15 +10,18 @@ from typing_extensions import Union
 
 from numbers import Real
 
+import itertools
+
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
-
-from ._column_getter import _column_getter
-from ._parallel_column_comparer import _parallel_column_comparer
-from ._parallel_ss_comparer import _parallel_ss_comparer
-
 import joblib
+
+from ._columns_getter import _columns_getter
+from ._parallel_column_comparer import _parallel_column_comparer
+
+
 
 
 
@@ -88,7 +91,7 @@ def _find_duplicates(
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert (isinstance(_X, (np.ndarray, pd.core.frame.DataFrame))
+    assert (isinstance(_X, (np.ndarray, (pd.core.frame.DataFrame, pl.DataFrame)))
             or hasattr(_X, 'toarray'))
 
     assert not isinstance(_X,
@@ -102,56 +105,65 @@ def _find_duplicates(
     assert isinstance(_n_jobs, (int, type(None)))
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
+    # pizza it may not be necessary to pre-fill this thing... be we are appending below
     duplicates_: dict[int, list[int]] = {int(i): [] for i in range(_X.shape[1])}
 
     _all_duplicates = []  # not used later, just a helper to track duplicates
 
     args = (_rtol, _atol, _equal_nan)
 
-    # the comparison of columns needs to be handled differently for pd/np
-    # vs scipy sparse. set the function to use based on the format of X
-    if hasattr(_X, 'toarray'):   # is scipy sparse
-        _comparer_function = _parallel_ss_comparer
-    else:
-        _comparer_function = _parallel_column_comparer
+
+    _n_cols = 200
 
 
-    # .shape works for np, pd, and scipy.sparse
     for col_idx1 in range(_X.shape[1] - 1):
 
         if col_idx1 in _all_duplicates:
             continue
 
-        _column1 = _column_getter(_X, col_idx1)
+        _column1 = _columns_getter(_X, col_idx1)
 
         # make a list of col_idx2's
         RANGE = range(col_idx1 + 1, _X.shape[1])
         IDXS = [i for i in RANGE if i not in _all_duplicates]
 
-        with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-            hits = joblib.Parallel(return_as='list')(
-                joblib.delayed(_comparer_function)(
-                    _column1, _column_getter(_X, col_idx2), *args
-                ) for col_idx2 in IDXS
-            )
+        if len(IDXS) < 2 * _n_cols:
+            hits = []
+            for col_idx2 in IDXS:
+                hits.append(_parallel_column_comparer(
+                    _column1, _columns_getter(_X, int(col_idx2)), *args
+                )[0])
+        else:
+            with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+                hits = joblib.Parallel(return_as='list')(
+                    joblib.delayed(_parallel_column_comparer)(
+                        _column1,
+                        _columns_getter(
+                            _X,
+                            tuple(map(int, np.array(IDXS)[range(i, min(i + _n_cols, len(IDXS)))]))
+                        ),
+                        *args
+                    ) for i in range(0, len(IDXS), _n_cols)
+                )
+
+            hits = list(itertools.chain(*hits))
 
         if any(hits):
             _all_duplicates.append(col_idx1)
 
-        for idx, hit in zip(IDXS, hits):
-            if hit:
-                duplicates_[col_idx1].append(idx)
-                _all_duplicates.append(idx)
+            for idx, hit in zip(IDXS, hits):
+                if hit:
+                    duplicates_[col_idx1].append(idx)
+                    _all_duplicates.append(idx)
 
         """
         # code that worked pre-joblib * * * * * * * * *
-        # .shape works for np, pd, and scipy.sparse
         for col_idx2 in range(col_idx1 + 1, _X.shape[1]):
 
             if col_idx2 in _all_duplicates:
                 continue
 
-            _column2 = _column_getter(_X, col_idx2)
+            _column2 = _columns_getter(_X, col_idx2)
 
             if _parallel_column_comparer( _column1, _column2, *args):
                 duplicates_[col_idx1].append(col_idx2)

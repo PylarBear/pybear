@@ -52,8 +52,9 @@ class TestNpFindDuplicates:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_format',
     (
-     'np', 'csr_matrix', 'csc_matrix', 'lil_matrix',
-     'dok_matrix', 'csr_array', 'csc_array', 'lil_array', 'dok_array'
+     'np', 'csc_matrix', 'csc_array',
+     # 'csr_matrix', 'lil_matrix',
+     # 'dok_matrix', 'csr_array', 'lil_array', 'dok_array'    # pizza
     )
     )
     def test_accuracy(
@@ -105,11 +106,12 @@ class TestNpFindDuplicates:
             raise Exception
 
 
-
+    # pizza
     @pytest.mark.parametrize('_format',
         (
-         'csr_matrix', 'csc_matrix', 'lil_matrix', 'dok_matrix',
-         'csr_array', 'csc_array', 'lil_array', 'dok_array'
+         'csc_matrix', 'csc_array',
+         #'csr_matrix', 'lil_matrix', 'dok_matrix',
+         #'csr_array', 'lil_array', 'dok_array'
         )
     )
     def test_accuracy_ss_all_zeros(self, _X_factory, _format, _shape):

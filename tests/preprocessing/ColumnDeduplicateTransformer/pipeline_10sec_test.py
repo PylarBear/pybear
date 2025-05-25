@@ -27,7 +27,7 @@ from sklearn.linear_model import LinearRegression
 class TestPipeline:
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
     def test_accuracy_in_pipe_vs_out_of_pipe(
         self, _X_factory, _shape, _kwargs, _format
     ):

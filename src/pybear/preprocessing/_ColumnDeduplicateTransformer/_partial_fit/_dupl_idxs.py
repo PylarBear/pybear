@@ -14,6 +14,7 @@ from collections import defaultdict
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from ._find_duplicates import _find_duplicates
@@ -47,7 +48,7 @@ def _dupl_idxs(
     _X:
         {array-like, scipy sparse} of shape (n_samples,n_features) -
         the data to be deduplicated. The data is eventually passed to
-        _column_getter via _find_duplicates, therefore _X must be
+        _columns_getter via _find_duplicates, therefore _X must be
         indexable. Scipy sparse coo, dia, and bsr matrix/array are
         prohibited. There is no conditioning of the data here, the data
         must be passed to this module in suitable state.
@@ -96,7 +97,7 @@ def _dupl_idxs(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    assert (isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or
+    assert (isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) or
         hasattr(_X, 'toarray'))
 
     assert not isinstance(_X,

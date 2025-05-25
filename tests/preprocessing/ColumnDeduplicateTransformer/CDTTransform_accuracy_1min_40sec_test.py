@@ -10,6 +10,7 @@ from copy import deepcopy
 import itertools
 import numpy as np
 import pandas as pd
+import polars as pl
 
 import pytest
 
@@ -26,7 +27,7 @@ class TestAccuracy:
 
     # save yourself 50 seconds of life. test only one scipy sparse.
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr_array')) # , 'csc', 'coo'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array')) # , 'csc', 'coo'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('dupls', (None, [[0,2,9]], [[0,6],[1,8]]))
@@ -45,7 +46,7 @@ class TestAccuracy:
         assert isinstance(equal_nan, bool)
         # END validate the test parameters
 
-        if X_dtype in ['str', 'obj', 'hybrid'] and X_format not in ['np', 'pd']:
+        if X_dtype in ['str', 'obj', 'hybrid'] and X_format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take str")
 
         if X_format == 'np' and X_dtype == 'int' and has_nan:
@@ -90,8 +91,9 @@ class TestAccuracy:
 
         # retain original format
         _og_format = type(X)
-        if isinstance(X, pd.core.frame.DataFrame):
-            _og_dtype = X.dtypes
+        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
+            # need to cast pl to ndarray
+            _og_dtype = np.array(X.dtypes)
         else:
             _og_dtype = X.dtype
 
@@ -127,7 +129,7 @@ class TestAccuracy:
             assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
         # returned dtypes are same as given dtypes
-        if isinstance(TRFM_X, pd.core.frame.DataFrame):
+        if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
             assert np.array_equal(TRFM_X.dtypes, _og_dtype[TestCls.column_mask_])
         else:
             assert TRFM_X.dtype == _og_dtype
@@ -143,7 +145,7 @@ class TestAccuracy:
 
         # number of columns in output is adjusted correctly for num duplicates
         assert sum(TestCls.column_mask_) == \
-               _shape[1] - sum([len(_)-1 for _ in exp_dupls])
+               _shape[1] - sum([len(i)-1 for i in exp_dupls])
 
         # number of columns in output == number of columns in column_mask_
         assert TRFM_X.shape[1] == sum(TestCls.column_mask_)
@@ -250,14 +252,18 @@ class TestAccuracy:
         # for retained columns, assert they are equal to themselves in
         # the original data
         _kept_idxs = np.arange(len(TestCls.column_mask_))[TestCls.column_mask_]
+        _kept_idxs = list(map(int, _kept_idxs))
         for _new_idx, _kept_idx in enumerate(_kept_idxs, 0):
 
             if isinstance(X, np.ndarray):
-                _out_col = TRFM_X[:, _new_idx]
-                _og_col = X[:, _kept_idx]
+                _out_col = TRFM_X[:, [_new_idx]]
+                _og_col = X[:, [_kept_idx]]
             elif isinstance(X, pd.core.frame.DataFrame):
-                _out_col = TRFM_X.iloc[:, _new_idx].to_numpy()
-                _og_col = X.iloc[:, _kept_idx].to_numpy()
+                _out_col = TRFM_X.iloc[:, [_new_idx]].to_numpy()
+                _og_col = X.iloc[:, [_kept_idx]].to_numpy()
+            elif isinstance(X, pl.DataFrame):
+                _out_col = TRFM_X[:, [_new_idx]].to_numpy()
+                _og_col = X[:, [_kept_idx]].to_numpy()
             else:
                 _out_col = TRFM_X.tocsc()[:, [_new_idx]].toarray()
                 _og_col = X.tocsc()[:, [_kept_idx]].toarray()
@@ -269,7 +275,7 @@ class TestAccuracy:
                 _rtol=1e-5,
                 _atol=1e-8,
                 _equal_nan=True
-            )
+            )[0]
 
         # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

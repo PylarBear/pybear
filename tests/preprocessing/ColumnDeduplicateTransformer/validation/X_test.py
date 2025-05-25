@@ -20,7 +20,7 @@ def test_X_cannot_be_none():
 
 
 @pytest.mark.parametrize('X_format',
-     ('np', 'pd', 'csr_array', 'csc_array', 'dok_array', 'bsr_matrix', 'bsr_array')
+     ('np', 'pd', 'pl', 'csr_array', 'csc_array', 'dok_array', 'bsr_matrix', 'bsr_array')
 )
 def test_accepts_np_pd_ss(_X_factory, _shape, X_format):
 

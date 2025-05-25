@@ -13,7 +13,7 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._validation. \
 
 
 
-@pytest.mark.parametrize('_format', ('np', 'pd'), scope='module')
+@pytest.mark.parametrize('_format', ('np', 'pd', 'pl'), scope='module')
 @pytest.mark.parametrize('_columns_is_passed', (True, False), scope='module')
 class TestDoNotDropJunk:
 
@@ -26,7 +26,7 @@ class TestDoNotDropJunk:
         junk_dnd
     ):
 
-        if _format == 'pd' and not _columns_is_passed:
+        if _format in ['pd', 'pl'] and not _columns_is_passed:
             pytest.skip(reason=f"algorithmic impossibility")
 
         _X = _X_factory(_format=_format, _shape=_shape)
@@ -53,7 +53,7 @@ class TestDoNotDropJunk:
 
         _X = _X_factory(_format=_format, _shape=_shape)
 
-        if _format == 'pd' and not _columns_is_passed:
+        if _format in ['pd', 'pl'] and not _columns_is_passed:
             pytest.skip(reason=f"algorithmic impossibility")
 
         with pytest.raises(TypeError):
@@ -139,7 +139,7 @@ class TestDoNotDropDF:
 
     def test_df_str_handling(self, _X_factory, _columns, _shape):
 
-        X_pd = _X_factory(_format='pd', _shape=_shape)
+        X_pd = _X_factory(_format='pd', _shape=_shape)   # pizza pl?
 
         # accepts good str always
         _val_do_not_drop(
@@ -159,7 +159,7 @@ class TestDoNotDropDF:
 
     def test_df_int_and_none_handling(self, _X_factory, _columns, _shape):
 
-        X_pd = _X_factory(_format='pd', _shape=_shape)
+        X_pd = _X_factory(_format='pd', _shape=_shape)   # pizza pl?
 
         # accepts good int always
         _val_do_not_drop(

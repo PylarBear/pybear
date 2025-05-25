@@ -7,10 +7,11 @@
 
 
 from typing_extensions import Union
+import numpy.typing as npt
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 
@@ -52,7 +53,7 @@ def _transform(
 
     assert isinstance(
         _X,
-        (np.ndarray, pd.core.frame.DataFrame, ss.csc_matrix, ss.csc_array)
+        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_matrix, ss.csc_array)
     )
     assert isinstance(_column_mask, np.ndarray)
     assert _column_mask.dtype == bool
@@ -63,14 +64,12 @@ def _transform(
         return _X[:, _column_mask]
     elif isinstance(_X, pd.core.frame.DataFrame):
         return _X.loc[:, _column_mask]
+    elif isinstance(_X, pl.DataFrame):
+        return _X[:, _column_mask]
     elif isinstance(_X, (ss.csc_matrix, ss.csc_array)):
         return _X[:, _column_mask]
     else:
         raise Exception
-
-
-
-
 
 
 
