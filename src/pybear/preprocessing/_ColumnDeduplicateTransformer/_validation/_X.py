@@ -9,8 +9,10 @@
 from .._type_aliases import DataContainer
 
 import warnings
+
 import numpy as np
 import pandas as pd
+import polars as pl
 
 
 
@@ -43,7 +45,7 @@ def _val_X(
     """
 
 
-    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
+    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) and not \
         hasattr(_X, 'toarray'):
         raise TypeError(
             f"invalid container for X: {type(_X)}. X must be numpy array, "

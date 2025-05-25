@@ -56,7 +56,7 @@ class TestExceptsOnBadXShapes:
     # number of rows in X in partial_fit, fit, and transform. run these
     # tests with only one row length. CDT only raises for different
     # number of columns after seeing a first article in partial_fit/fit.
-    X_FORMAT = ['np', 'pd', 'csc_array'] # , 'pd', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
+    X_FORMAT = ['np', 'pd', 'pl', 'csc_array'] # , 'pd', 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
     SAME_DIFF_COLUMNS = ['good', 'less_col', 'more_col']
     SAME_DIFF_ROWS = ['good']   #, 'less_row', 'more_row']
 

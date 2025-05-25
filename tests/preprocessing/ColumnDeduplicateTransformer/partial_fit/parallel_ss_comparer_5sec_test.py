@@ -15,18 +15,18 @@ import numpy as np
 
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit import (
     _parallel_ss_comparer as pssc,
-    _column_getter as cg
+    _columns_getter as cg
 )
 
-
+pytest.skip(reason=f'module is just about obsolete', allow_module_level=True)
 
 class TestSSColumnComparer:
 
 
     # np cant be int if using nans
-    # _column_getter cant take coo, dia, bsr
+    # _columns_getter cant take coo, dia, bsr
     @pytest.mark.parametrize('_format',
-        ('csc_array', 'csr_array', 'lil_array', 'dok_array')
+        ('csc_array', 'csc_matrix') # pizza 'csr_array', 'lil_array', 'dok_array')
     )
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -51,8 +51,8 @@ class TestSSColumnComparer:
             _shape=_shape
         )
 
-        _X1 = cg._column_getter(_X_flt, 0)
-        _X2 = cg._column_getter(_X_flt, 1)
+        _X1 = cg._columns_getter(_X_flt, 0)
+        _X2 = cg._columns_getter(_X_flt, 1)
 
         assert isinstance(_X1, np.ndarray)
         assert isinstance(_X2, np.ndarray)

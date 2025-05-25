@@ -18,11 +18,11 @@ from ....utilities._nan_masking import nan_mask
 @joblib.wrap_non_picklable_objects
 def _parallel_column_comparer(
     _column1: npt.NDArray[any],
-    _column2: npt.NDArray[any],
+    _chunk: npt.NDArray[any],
     _rtol: Real,
     _atol: Real,
     _equal_nan: bool
-) -> bool:
+) -> list[bool]:
 
     """
     Compare two columns for equality, subject to rtol, atol, and
@@ -70,8 +70,8 @@ def _parallel_column_comparer(
     """
 
     # pizza
-    # assert isinstance(_column1, np.ndarray)
-    # assert isinstance(_column2, np.ndarray)
+    assert isinstance(_column1, np.ndarray)
+    assert isinstance(_chunk, np.ndarray)
 
 
     try:
@@ -82,74 +82,71 @@ def _parallel_column_comparer(
         _column1_is_num = False
 
 
-    try:
-        # float64 RAISES ValueError ON STR DTYPES, IN THAT CASE MUST BE STR
-        _column2.astype(np.float64)
-        _column2_is_num = True
-    except:
-        _column2_is_num = False
+    _column1 = _column1.ravel()
 
 
-    MASK1 = nan_mask(_column1)
-    MASK2 = nan_mask(_column2)
-    NOT_NAN_MASK = np.logical_not((MASK1 + MASK2).astype(bool))
-    del MASK1, MASK2
+    _hits = []
+    for _c_idx in range(_chunk.shape[1]):
 
-    if _column1_is_num and _column2_is_num:
+        _column2 = _chunk[:, _c_idx].ravel()
 
-        if _equal_nan:
-            return np.allclose(
-                _column1[NOT_NAN_MASK].astype(np.float64),
-                _column2[NOT_NAN_MASK].astype(np.float64),
-                rtol=_rtol,
-                atol=_atol
-            )
+        try:
+            # float64 RAISES ValueError ON STR DTYPES, IN THAT CASE MUST BE STR
+            _column2.astype(np.float64)
+            _column2_is_num = True
+        except:
+            _column2_is_num = False
 
-        elif not _equal_nan:
-            return np.allclose(
-                _column1.astype(np.float64),
-                _column2.astype(np.float64),
-                rtol=_rtol,
-                atol=_atol
-            )
 
-    elif not _column1_is_num and not _column2_is_num:
+        MASK1 = nan_mask(_column1)
+        MASK2 = nan_mask(_column2)
+        NOT_NAN_MASK = np.logical_not((MASK1 + MASK2).astype(bool))
+        del MASK1, MASK2
 
-        if _equal_nan:
-            return np.array_equal(
-                _column1[NOT_NAN_MASK].astype(object),
-                _column2[NOT_NAN_MASK].astype(object)
-            )
+        if _column1_is_num and _column2_is_num:
 
-        elif not _equal_nan:
-            if not all(NOT_NAN_MASK):
-                return False
-            else:
-                return np.array_equal(
-                    _column1.astype(object),
-                    _column2.astype(object)
+            if _equal_nan:
+                out = np.allclose(
+                    _column1[NOT_NAN_MASK].astype(np.float64),
+                    _column2[NOT_NAN_MASK].astype(np.float64),
+                    rtol=_rtol,
+                    atol=_atol
                 )
 
-    else:
-        # if one column is num and another column is not num, cannot be
-        # equal
-        return False
+            elif not _equal_nan:
+                out = np.allclose(
+                    _column1.astype(np.float64),
+                    _column2.astype(np.float64),
+                    rtol=_rtol,
+                    atol=_atol
+                )
+
+        elif not _column1_is_num and not _column2_is_num:
+
+            if _equal_nan:
+                out = np.array_equal(
+                    _column1[NOT_NAN_MASK].astype(object),
+                    _column2[NOT_NAN_MASK].astype(object)
+                )
+
+            elif not _equal_nan:
+                if not all(NOT_NAN_MASK):
+                    out = False
+                else:
+                    out = np.array_equal(
+                        _column1.astype(object),
+                        _column2.astype(object)
+                    )
+
+        else:
+            # if one column is num and another column is not num, cannot be
+            # equal
+            out = False
+
+        _hits.append(out)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return _hits
 
 
 

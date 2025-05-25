@@ -10,6 +10,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from pybear.preprocessing._ColumnDeduplicateTransformer._inverse_transform. \
@@ -53,7 +54,7 @@ class TestInverseTransform:
         # everything except ndarray, pd dataframe, & scipy csc matrix/array
         # are blocked. should raise.
 
-        if _dtype == 'str' and _format not in ('ndarray', 'df'):
+        if _dtype == 'str':
             pytest.skip(reason=f"scipy sparse cannot take strings")
 
         # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -90,7 +91,7 @@ class TestInverseTransform:
 
 
     @pytest.mark.parametrize('_format',
-        ('np', 'pd', 'csc_matrix', 'csc_array')
+        ('np', 'pd', 'pl', 'csc_matrix', 'csc_array')
     )
     def test_accuracy(
         self, _X_factory, _format, _keep, _do_not_drop, _equal_nan, _dtype,
@@ -106,7 +107,7 @@ class TestInverseTransform:
         # are blocked.
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        if _dtype == 'str' and _format not in ('ndarray', 'df'):
+        if _dtype == 'str' and _format not in ('np', 'pd'):
             pytest.skip(reason=f"scipy sparse cannot take strings")
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -121,7 +122,7 @@ class TestInverseTransform:
 
         if _format == 'np':
             _base_X = _X_wip.copy()
-        elif _format == 'pd':
+        elif _format in ['pd', 'pl']:
             _base_X = _X_wip.to_numpy()
         elif hasattr(_X_wip, 'toarray'):
             _base_X = _X_wip.toarray()
@@ -172,22 +173,33 @@ class TestInverseTransform:
         # _parallel_column_comparer cant do entire arrays at one time,
         # need to compare column by column
 
-        for _idx in range(_X_wip.shape[1]):
+        for _og_idx in range(_shape[1]):
 
-            _og_col = _base_X[:, _idx]
+            _og_col = _base_X[:, [_og_idx]]
 
             if isinstance(_X_wip, np.ndarray):
-                _out_col = out[:, _idx]
+                _out_col = out[:, [_og_idx]]
             elif isinstance(_X_wip, pd.core.frame.DataFrame):
-                _out_col = out.iloc[:, _idx]
-            elif isinstance(_X_wip, (ss.csc_matrix, ss.csc_array)):
-                _out_col = out[:, [_idx]].toarray().ravel()
+                _out_col = out.iloc[:, [_og_idx]].to_numpy()
+            elif isinstance(_X_wip, pl.DataFrame):
+                # Polars uses zero-copy conversion when possible, meaning the
+                # underlying memory is still controlled by Polars and marked
+                # as read-only. NumPy and Pandas may inherit this read-only
+                # flag, preventing modifications.
+                # THE ORDER IS IMPORTANT HERE. CONVERT TO PANDAS FIRST, THEN COPY.
+                _out_col = out.to_pandas().to_numpy()[:, [_og_idx]]
+            elif hasattr(_X_wip, 'toarray'):
+                _out_col = out[:, [_og_idx]].toarray()
             else:
                 raise Exception
 
+            # pizza
+            _out_col[nan_mask(_out_col)] = np.nan
+            _og_col[nan_mask(_og_col)] = np.nan
+
             assert _parallel_column_comparer(
                 _out_col, _og_col, 1e-5, 1e-8, _equal_nan=True
-            )
+            )[0]
 
 
 

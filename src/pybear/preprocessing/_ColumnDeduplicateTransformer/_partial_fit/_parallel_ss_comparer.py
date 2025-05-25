@@ -15,6 +15,8 @@ from numbers import Real
 from ....utilities._nan_masking import nan_mask
 
 
+# pizza this pis probably going away. the test is skipped.
+
 
 @joblib.wrap_non_picklable_objects
 def _parallel_ss_comparer(
@@ -29,7 +31,7 @@ def _parallel_ss_comparer(
     Compare two columns for equality, subject to :param: rtol, :param:
     atol, and :param: equal_nan. The column must have originated from
     a scipy sparse matrix/array. In this case, the 'column' that is
-    passed here is constructed as follows. In the _column_getter module,
+    passed here is constructed as follows. In the _columns_getter module,
     the 'indices' and 'data' attributes are extracted from the pertinent
     column in the scipy sparse object, then those vectors are hstacked
     with indices first and data second. Those objects are then passed

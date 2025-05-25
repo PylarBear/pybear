@@ -40,7 +40,7 @@ class TestPdFindDuplicates:
 
         _X = _X_factory(
             _dupl=_dupl,
-            _format='pd',
+            _format='pd',  # pizza pl?
             _dtype=_dtype,
             _has_nan=_has_nan,
             _columns=_master_columns.copy()[:_shape[1]],

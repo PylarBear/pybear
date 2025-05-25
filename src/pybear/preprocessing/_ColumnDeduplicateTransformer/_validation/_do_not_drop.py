@@ -103,7 +103,7 @@ def _val_do_not_drop(
                     raise ValueError(_base_err_msg + _err_msg(_col))
         del _base_err_msg, _err_msg
 
-    else:  # not isinstance(_X, pd.core.frame.DataFrame) and _columns is None:
+    else:  # not isinstance(_X, (pd.core.frame.DataFrame, pl.DataFrame)) and _columns is None:
         if _dnd_str:
             raise TypeError(
                 f"when a header is not passed with the data, 'do_not_drop' "

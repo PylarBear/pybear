@@ -66,27 +66,27 @@ class TestNpColumnComparer:
         )
 
         if _dtype1 == 'flt':
-            _X1 = _X_flt[:,0].ravel()
+            _X1 = _X_flt[:,[0]]
         elif _dtype1 == 'str':
-            _X1 = _X_str[:,0].ravel()
+            _X1 = _X_str[:,[0]]
         elif _dtype1 == 'obj':
-            _X1 = _X_obj[:,0].ravel()
+            _X1 = _X_obj[:,[0]]
         else:
             raise Exception
 
         if _dtype2 == 'flt':
-            _X2 = _X_flt[:,1].ravel()
+            _X2 = _X_flt[:,[1]]
         elif _dtype2 == 'str':
-            _X2 = _X_str[:,1].ravel()
+            _X2 = _X_str[:,[1]]
         elif _dtype2 == 'obj':
-            _X2 = _X_obj[:,1].ravel()
+            _X2 = _X_obj[:,[1]]
         else:
             raise Exception
 
 
         _are_equal = _parallel_column_comparer(
             _X1, _X2, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
-        )
+        )[0]
 
         if _dtype1 == _dtype2:
             if _equal_nan or not _has_nan:

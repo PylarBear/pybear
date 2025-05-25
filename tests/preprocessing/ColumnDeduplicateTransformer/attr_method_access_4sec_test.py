@@ -8,10 +8,9 @@
 
 import pytest
 
-import sys
-
 import numpy as np
 import pandas as pd
+import polars as pl
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
@@ -27,7 +26,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
     @pytest.mark.parametrize('x_format',
-        ('np', 'pd', 'csc_array', 'csr_array', 'coo_array')
+        ('np', 'pd', 'pl', 'csc_array', 'csr_array', 'coo_array')
     )
     def test_attr_access(
         self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
@@ -52,6 +51,8 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
         if x_format == 'pd':
             NEW_Y = pd.DataFrame(data=y_np, columns=['y'])
+        elif x_format == 'pl':
+            NEW_Y = pl.DataFrame(data=y_np, schema=['y'])
         else:
             NEW_Y = y_np
 
@@ -78,7 +79,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             try:
                 out = getattr(TestCls, attr)
                 if attr == 'feature_names_in_':
-                    if x_format == 'pd':
+                    if x_format in ['pd', 'pl']:
                         assert np.array_equiv(out, _columns), \
                             f"{attr} after fit() != originally passed columns"
                     else:
@@ -92,12 +93,12 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                     pass
 
             except Exception as e:
-                if attr == 'feature_names_in_' and x_format != 'pd':
+                if attr == 'feature_names_in_' and x_format not in ['pd', 'pl']:
                     assert isinstance(e, AttributeError)
                 else:
                     raise AssertionError(
-                        f"unexpected exception {sys.exc_info()[0]} accessing "
-                        f"{attr} after fit, x_format == {x_format}"
+                        f"unexpected exception accessing {attr} after "
+                        f"fit, x_format == {x_format} --- {e}"
                     )
 
         # END AFTER FIT ************************************************
@@ -112,7 +113,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             try:
                 out = getattr(TestCls, attr)
                 if attr == 'feature_names_in_':
-                    if x_format == 'pd':
+                    if x_format in ['pd', 'pl']:
                         assert np.array_equiv(out, _columns), \
                             f"{attr} after fit() != originally passed columns"
                     else:
@@ -126,12 +127,12 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                     pass
 
             except Exception as e:
-                if attr == 'feature_names_in_' and x_format != 'pd':
+                if attr == 'feature_names_in_' and x_format not in ['pd', 'pl']:
                     assert isinstance(e, AttributeError)
                 else:
                     raise AssertionError(
-                        f"unexpected exception {sys.exc_info()[0]} accessing "
-                        f"{attr} after fit, x_format == {x_format}"
+                        f"unexpected exception accessing {attr} after "
+                        f"fit, x_format == {x_format} --- {e}"
                     )
 
         # END AFTER TRANSFORM ******************************************

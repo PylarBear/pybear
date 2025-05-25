@@ -36,7 +36,7 @@ class TestPdColumnComparer:
 
         _X_flt = _X_factory(
             _dupl=[[0,1]],
-            _format='pd',
+            _format='pd',   # pizza pl?
             _dtype='flt',
             _has_nan=_has_nan,
             _columns=['a','b'],
@@ -46,7 +46,7 @@ class TestPdColumnComparer:
 
         _X_int = _X_factory(
             _dupl=[[0,1]],
-            _format='pd',
+            _format='pd',   # pizza pl?
             _dtype='int',
             _has_nan=_has_nan,
             _columns=['c','d'],
@@ -56,7 +56,7 @@ class TestPdColumnComparer:
 
         _X_str = _X_factory(
             _dupl=[[0,1]],
-            _format='pd',
+            _format='pd',   # pizza pl?
             _dtype='str',
             _has_nan=_has_nan,
             _columns=['e','f'],
@@ -66,7 +66,7 @@ class TestPdColumnComparer:
 
         _X_obj = _X_factory(
             _dupl=[[0,1]],
-            _format='pd',
+            _format='pd',    # pizza pl?
             _dtype='obj',
             _has_nan=_has_nan,
             _columns=['g','h'],
@@ -75,31 +75,31 @@ class TestPdColumnComparer:
         )
 
         if _dtype1 == 'flt':
-            _X1 = _X_flt.iloc[:, 0]
+            _X1 = _X_flt.iloc[:, [0]]
         elif _dtype1 == 'int':
-            _X1 = _X_int.iloc[:, 0]
+            _X1 = _X_int.iloc[:, [0]]
         elif _dtype1 == 'str':
-            _X1 = _X_str.iloc[:, 0]
+            _X1 = _X_str.iloc[:, [0]]
         elif _dtype1 == 'obj':
-            _X1 = _X_obj.iloc[:, 0]
+            _X1 = _X_obj.iloc[:, [0]]
         else:
             raise Exception
 
         if _dtype2 == 'flt':
-            _X2 = _X_flt.iloc[:, 1]
+            _X2 = _X_flt.iloc[:, [1]]
         elif _dtype2 == 'int':
-            _X2 = _X_int.iloc[:, 1]
+            _X2 = _X_int.iloc[:, [1]]
         elif _dtype2 == 'str':
-            _X2 = _X_str.iloc[:, 1]
+            _X2 = _X_str.iloc[:, [1]]
         elif _dtype2 == 'obj':
-            _X2 = _X_obj.iloc[:, 1]
+            _X2 = _X_obj.iloc[:, [1]]
         else:
             raise Exception
 
 
         _are_equal = _parallel_column_comparer(
-            _X1, _X2, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
-        )
+            _X1.to_numpy(), _X2.to_numpy(), _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
+        )[0]
 
         if _dtype1 == _dtype2:
             if _equal_nan or not _has_nan:

@@ -11,6 +11,7 @@ import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 
@@ -57,7 +58,7 @@ def _inverse_transform(
 
     assert isinstance(
         X,
-        (np.ndarray, pd.core.frame.DataFrame, ss.csc_matrix, ss.csc_array)
+        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_matrix, ss.csc_array)
     )
 
     assert isinstance(_removed_columns, dict)
@@ -75,7 +76,7 @@ def _inverse_transform(
     _og_X_format = type(X)
 
     # if data is a pd df, convert to numpy
-    if isinstance(X, pd.core.frame.DataFrame):
+    if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
         # remove any header that may be on this df, dont want to replicate
         # wrong headers in 'new' columns which would be exposed if
         # feature_names_in_ is not available (meaning that fit() never

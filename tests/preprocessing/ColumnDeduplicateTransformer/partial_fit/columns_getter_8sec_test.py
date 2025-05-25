@@ -11,8 +11,8 @@ import pytest
 import numpy as np
 import scipy.sparse as ss
 
-from pybear.preprocessing._InterceptManager._partial_fit._columns_getter \
-    import _columns_getter
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _columns_getter import _columns_getter
 
 from pybear.utilities._nan_masking import nan_mask
 
@@ -100,7 +100,7 @@ class TestColumnsGetter:
 
 
         # need to get rid of junky nans put in pd by X_factory,
-        # array_equal cant handle them. verified 25_05_24.
+        # array_equal cant handle them. verified 25_05_24
         _X_ref[nan_mask(_X_ref)] = np.nan
 
         # ensure _col_idxs, when tuple, is sorted, _columns_getter does this,
@@ -138,7 +138,7 @@ class TestColumnsGetter:
         assert _columns.shape[1] == len(_col_idxs)
 
 
-        # 25_05_22 pd numeric with junky nan-likes are coming out of
+        # 25_05_24 pd numeric with junky nan-likes are coming out of
         # _columns_getter as dtype object. since _columns_getter produces
         # an intermediary container that is used to find constants and
         # doesnt impact the container coming out of transform, ok to let

@@ -10,6 +10,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+import polars as pl
 
 from pybear.preprocessing._ColumnDeduplicateTransformer._transform._transform \
     import _transform
@@ -40,7 +41,7 @@ class TestTransform:
 
     @pytest.mark.parametrize('_format',
         (
-            'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix',
+            'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix',
             'dia_matrix', 'lil_matrix', 'dok_matrix', 'csr_array',
             'csc_array', 'coo_array', 'dia_array', 'lil_array', 'dok_array'
         )
@@ -53,7 +54,7 @@ class TestTransform:
         # rejects everything except np.ndarray, pd.DataFrame,
         # and scipy csc_matrix/csc_array. should except.
 
-        if _dtype == 'str' and _format not in ['np', 'pd']:
+        if _dtype == 'str' and _format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take strings")
 
         # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -94,8 +95,9 @@ class TestTransform:
 
         # retain the original dtype(s)
         _og_format = type(_X_wip)
-        if isinstance(_X_wip, pd.core.frame.DataFrame):
-            _og_dtype = _X_wip.dtypes
+        if isinstance(_X_wip, (pd.core.frame.DataFrame, pl.DataFrame)):
+            # need to cast pl to ndarray
+            _og_dtype = np.array(_X_wip.dtypes)
         else:
             _og_dtype = _X_wip.dtype
 
@@ -103,7 +105,7 @@ class TestTransform:
         _og_cols = _X_wip.shape[1]
 
         # apply the correct column mask to the original X
-        if _format in ('np', 'pd', 'csc_matrix', 'csc_array'):
+        if _format in ('np', 'pd', 'pl', 'csc_matrix', 'csc_array'):
             out = _transform(_X_wip, _column_mask)
         else:
             with pytest.raises(AssertionError):
@@ -116,7 +118,7 @@ class TestTransform:
         assert isinstance(out, _og_format)
 
         # output dtypes are same as given
-        if isinstance(out, pd.core.frame.DataFrame):
+        if isinstance(out, (pd.core.frame.DataFrame, pl.DataFrame)):
             assert np.array_equal(out.dtypes, _og_dtype[_column_mask])
         else:
             assert out.dtype == _og_dtype
@@ -124,7 +126,7 @@ class TestTransform:
         # out matches _column_mask
         assert out.shape[1] == sum(_column_mask)
 
-        _kept_idxs = np.arange(_shape[1])[_column_mask]
+        _kept_idxs = list(map(int, np.arange(_shape[1])[_column_mask]))
 
         for _new_idx, _kept_idx in enumerate(_kept_idxs, 0):
 
@@ -132,11 +134,14 @@ class TestTransform:
             # _parallel_column_comparer instead of np.array_equal
 
             if isinstance(_X_wip, np.ndarray):
-                _out_col = out[:, _new_idx]
-                _og_col = _X_wip[:, _kept_idx]
+                _out_col = out[:, [_new_idx]]
+                _og_col = _X_wip[:, [_kept_idx]]
             elif isinstance(_X_wip, pd.core.frame.DataFrame):
-                _out_col = out.iloc[:, _new_idx]
-                _og_col = _X_wip.iloc[:, _kept_idx]
+                _out_col = out.iloc[:, [_new_idx]].to_numpy()
+                _og_col = _X_wip.iloc[:, [_kept_idx]].to_numpy()
+            elif isinstance(_X_wip, pl.DataFrame):
+                _out_col = out[:, [_new_idx]].to_numpy()
+                _og_col = _X_wip[:, [_kept_idx]].to_numpy()
             else:
                 _out_col = out.tocsc()[:, [_new_idx]].toarray()
                 _og_col = _X_wip.tocsc()[:, [_kept_idx]].toarray()
@@ -145,11 +150,11 @@ class TestTransform:
             if not _has_nan or (_has_nan and _equal_nan):
                 assert _parallel_column_comparer(
                     _out_col, _og_col, 1e-5, 1e-8, _equal_nan
-                )
+                )[0]
             else:
                 assert not _parallel_column_comparer(
                     _out_col, _og_col, 1e-5, 1e-8, _equal_nan
-                )
+                )[0]
 
         # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 

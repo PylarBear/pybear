@@ -54,9 +54,10 @@ class TestDuplIdxs:
 
     @pytest.mark.parametrize('_format',
         (
-         'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-         'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-         'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
+         'np', 'pd', 'pl', 'csc_matrix', 'csc_array',
+         #'csr_array', 'csr_matrix', 'coo_matrix', 'dia_matrix',
+         #'lil_matrix', 'dok_matrix', 'bsr_matrix', 'coo_array',
+         #'dia_array', 'lil_array', 'dok_array', 'bsr_array'
         )
     )
     def test_rejects_ss_coo_dia_bsr(
