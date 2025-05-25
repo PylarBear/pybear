@@ -5,23 +5,24 @@
 #
 
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation._atol \
-    import _val_atol
+
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation._atol \
+    import _val_atol
 
 
 
 class TestAtol:
 
+
     @pytest.mark.parametrize('junk_atol',
         (None, 'trash', [0,1], (0,1), {0,1}, {'a':1}, min, lambda x: x)
     )
     def test_rejects_junk(self, junk_atol):
-        # this is handled by np.allclose, let it raise whatever
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             _val_atol(junk_atol)
 
 
@@ -33,7 +34,7 @@ class TestAtol:
 
     @pytest.mark.parametrize('good_atol', (0, 1e-6, 0.1, 1, np.pi))
     def test_accepts_good(self, good_atol):
-        _val_atol(good_atol)
+        assert _val_atol(good_atol) is None
 
 
 

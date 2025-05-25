@@ -9,6 +9,7 @@
 import pytest
 
 import numpy as np
+import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
 
@@ -24,7 +25,7 @@ class TestDaskIncrementalParallelPostFit:
 
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])
     @pytest.mark.parametrize('y_format', ['da_vector', None])
-    @pytest.mark.parametrize('row_chunk', (10, 20))
+    @pytest.mark.parametrize('row_chunk', (2, 5)) # less than conftest _shape[0]
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
     def test_fit_and_transform_accuracy(
         self, wrappings, _X_factory, y_np, _columns, x_format, y_format,
@@ -45,6 +46,8 @@ class TestDaskIncrementalParallelPostFit:
             _test_cls = ParallelPostFit(Incremental(CDT(**_kwargs)))
         elif wrappings == 'none':
             _test_cls = CDT(**_kwargs)
+        else:
+            raise Exception
 
         _X_chunks = (row_chunk, _shape[1])
         _X = da.from_array(_X_np).rechunk(_X_chunks)
@@ -55,21 +58,14 @@ class TestDaskIncrementalParallelPostFit:
         else:
             raise Exception
 
-        # confirm there is an X
-        _X.shape
-
-
         if y_format is None:
             _y = None
-            y_np = None
+            _y_np = None
         elif y_format == 'da_vector':
             _y = da.from_array(y_np).rechunk((row_chunk,))
+            _y_np = y_np.copy()
         else:
             raise Exception
-
-        # confirm there is a y
-        if _y is not None:
-            _y.shape
 
         _was_fitted = False
         # incr covers fit() so should accept all objects for fits
@@ -99,37 +95,27 @@ class TestDaskIncrementalParallelPostFit:
         # always transforms with just X
         TRFM_X = _test_cls.transform(_X)
 
-
         if x_format == 'da_array':
             assert isinstance(TRFM_X, da.core.Array)
         elif x_format == 'ddf':
             assert isinstance(TRFM_X, ddf.DataFrame)
-        else:
-            raise Exception
 
         # ^^^ transform ^^^
 
         # CONVERT TO NP ARRAY FOR COMPARISON AGAINST REF fit_trfm()
-        try:
-            TRFM_X = TRFM_X.compute()
-        except:
-            pass
+        TRFM_X = TRFM_X.compute()
 
-        try:
+        if isinstance(TRFM_X, pd.core.frame.DataFrame):
             TRFM_X = TRFM_X.to_numpy()
-        except:
-            pass
-
-        # END CONVERT TO NP ARRAY FOR COMPARISON AGAINST REF fit_trfm()
-
-        RefTestCls = CDT(**_kwargs)
-
-        REF_X = RefTestCls.fit_transform(_X_np, y_np)
 
         assert isinstance(TRFM_X, np.ndarray)
-        assert isinstance(REF_X, np.ndarray)
-        assert np.array_equal(TRFM_X, REF_X), \
-            f"wrapped output != unwrapped output"
+        # END CONVERT TO NP ARRAY FOR COMPARISON AGAINST REF fit_trfm()
+
+
+        assert np.array_equal(
+            TRFM_X,
+            CDT(**_kwargs).fit_transform(_X_np, _y_np)
+        ), f"wrapped output != unwrapped output"
 
 
 # END TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()

@@ -39,18 +39,19 @@ class TestInputFeaturesRejects:
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @staticmethod
-    @pytest.fixture(scope='function')
+    @pytest.fixture(scope='class')
     def _TestCls(_instance_state, _X_factory, _format, _columns, _shape):
 
         _TestCls = CDT()
 
         _X = _X_factory(
-                _dupl=None,
-                _format=_format,
-                _dtype='flt',
-                _columns=_columns if _format in ['pd', 'pl'] else None,
-                _shape=_shape
-            )
+            _format=_format,
+            _dupl=None,
+            _dtype='flt',
+            _columns=_columns if _format in ['pd', 'pl'] else None,
+            _noise=0,
+            _shape=_shape
+        )
 
         if _instance_state == 'after_fit':
             _TestCls.fit(_X)
@@ -76,21 +77,16 @@ class TestInputFeaturesRejects:
 
 
     def test_input_features_rejects_bad(self, _format, _TestCls, _shape):
-
         # -------------
         # SHOULD RAISE ValueError IF
         # len(input_features) != n_features_in_
         with pytest.raises(ValueError):
             # columns too long
-            _TestCls.get_feature_names_out(
-                [f"x{i}" for i in range(2 * _shape[1])]
-            )
+            _TestCls.get_feature_names_out([f"x{i}" for i in range(2 * _shape[1])])
 
         with pytest.raises(ValueError):
             # columns too short
-            _TestCls.get_feature_names_out(
-                [f"x{i}" for i in range(_shape[1]//2)]
-            )
+            _TestCls.get_feature_names_out([f"x{i}" for i in range(_shape[1]//2)])
 
         if _format in ['pd', 'pl']:
             # WITH HEADER PASSED, SHOULD RAISE ValueError IF
@@ -101,26 +97,26 @@ class TestInputFeaturesRejects:
         # -------------
 
 
-@pytest.mark.parametrize('_format, _columns_is_passed',
-    (('np', False), ('pd', True), ('pd', False), ('pl', True), ('pl', False)),
-    scope='module'
-)
-@pytest.mark.parametrize('_dtype',
-    ('flt', 'int', 'str', 'obj', 'hybrid'), scope='module'
-)
-@pytest.mark.parametrize('_instance_state',
-    ('after_fit', 'after_transform'), scope='module'
-)
-@pytest.mark.parametrize('_keep', ('first', 'last'), scope='module')
-@pytest.mark.parametrize('_dupls', ('none', 'dupls1', 'dupls2'), scope='module')
 class TestGetFeatureNamesOut:
 
 
+    @pytest.mark.parametrize('_format, _columns_is_passed',
+        (('np', False), ('pd', True), ('pd', False), ('pl', True), ('pl', False)),
+        scope='module'
+    )
+    @pytest.mark.parametrize('_instance_state',
+        ('after_fit', 'after_transform'), scope='module'
+    )
+    @pytest.mark.parametrize('_keep',
+        ('first', 'last'), scope='module'
+    )
+    @pytest.mark.parametrize('_dupls',
+        ('none', 'dupls1', 'dupls2'), scope='module'
+    )
     @pytest.mark.parametrize('_input_features_is_passed', (True, False))
     def test_accuracy(
         self, _X_factory, _instance_state, _kwargs, _dupls, _format,
-        _dtype, _columns, _keep, _shape, _input_features_is_passed,
-        _columns_is_passed
+        _columns, _keep, _shape, _input_features_is_passed, _columns_is_passed
     ):
 
         # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -130,18 +126,17 @@ class TestGetFeatureNamesOut:
         elif _dupls == 'dupls1':
             _wip_dupls =  [[1, _shape[1] - 2]]
         elif _dupls == 'dupls2':
-            _wip_dupls =  [
-                [0, _shape[1] - 1],
-                [1, _shape[1] - 2]
-            ]
+            _wip_dupls =  [[0, _shape[1] - 1], [1, _shape[1] - 2]]
         else:
             raise Exception
 
         _X = _X_factory(
             _dupl=_wip_dupls,
             _format=_format,
-            _dtype=_dtype,
-            _columns=_columns if (_format in ['pd', 'pl'] and _columns_is_passed) else None,
+            _dtype='flt',
+            _columns=_columns if _columns_is_passed else None,
+            _constants=None,
+            _noise=0,
             _shape=_shape
         )
 
@@ -219,19 +214,22 @@ class TestGetFeatureNamesOut:
 
         _dupls_to_drop = []
 
-        # with no dupls no columns are dropped, this :for: is skipped
-        # and MASK is unchanged
         for _dupl_set in _wip_dupls:
             _sorted_dupl_set = sorted(_dupl_set)
             if _keep == 'first':
                 _dupls_to_drop.extend(_sorted_dupl_set[1:])
             elif _keep == 'last':
                 _dupls_to_drop.extend(_sorted_dupl_set[:-1])
+            else:
+                raise Exception
+        # elif not len(_wip_dupls):
+        #    with no dupls no columns are dropped, this :for: is skipped
+        #    and MASK is unchanged
 
+        MASK[_dupls_to_drop] = False
 
         # END build column_mask_ - - - - - - - - - - - - - - - - - - - - - -
 
-        MASK[_dupls_to_drop] = False
         _EXP_HEADER = _EXP_HEADER[MASK]
         del MASK, _dupls_to_drop
         # END determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * s

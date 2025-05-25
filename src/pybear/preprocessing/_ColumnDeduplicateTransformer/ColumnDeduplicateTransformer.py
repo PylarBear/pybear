@@ -6,11 +6,25 @@
 
 
 
-from numbers import Real
-from typing import Sequence, Literal, Optional
+from typing import (
+    Sequence,
+    Literal,
+    Optional
+)
+from typing_extensions import (
+    Any,
+    Self,
+    Union
+)
 import numpy.typing as npt
-from typing_extensions import Union, Self
-from ._type_aliases import DataContainer
+from ._type_aliases import (
+    DataContainer,
+    DuplicatesType,
+    RemovedColumnsType,
+    ColumnMaskType
+)
+
+from numbers import Real
 
 import numpy as np
 
@@ -255,8 +269,8 @@ class ColumnDeduplicateTransformer(
         recommends using the default setting.
 
 
-    Attributes:
-    -----------
+    Attributes
+    ----------
     n_features_in_:
         int - number of features in the fitted data before deduplication.
 
@@ -312,6 +326,9 @@ class ColumnDeduplicateTransformer(
     The single vector holding the indices and dense values is used to
     make equality comparisons.
 
+    Type Aliases
+    pizza dont forget!
+
 
     See Also
     --------
@@ -355,7 +372,6 @@ class ColumnDeduplicateTransformer(
     >>> print(trf.column_mask_)
     [ True  True False  True False]
 
-
     """
 
 
@@ -381,6 +397,29 @@ class ColumnDeduplicateTransformer(
         self.n_jobs = n_jobs
 
 
+    # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    @property
+    def duplicates_(self) -> DuplicatesType:
+        """Retrieve the duplicates_ attribute. Read the main docs
+        for more information."""
+        return self._duplicates
+
+
+    @property
+    def removed_columns_(self) -> RemovedColumnsType:
+        """Retrieve the removed_columns_ attribute. Read the main docs
+        for more information."""
+        return self._removed_columns
+
+
+    @property
+    def column_mask_(self) -> ColumnMaskType:
+        """Retrieve the column_mask_ attribute. Read the main docs
+        for more information."""
+        return self._column_mask
+    # END properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+
     def _reset(self) -> Self:
         """
         Reset internal data-dependent state of the transformer.
@@ -388,13 +427,12 @@ class ColumnDeduplicateTransformer(
 
         """
 
-        if hasattr(self, "duplicates_"):
+        if hasattr(self, '_duplicates'):
 
-            delattr(self, 'duplicates_')
-            delattr(self, 'removed_columns_')
-            delattr(self, 'column_mask_')
+            delattr(self, '_duplicates')
+            delattr(self, '_removed_columns')
+            delattr(self, '_column_mask')
             delattr(self, 'n_features_in_')
-
             if hasattr(self, 'feature_names_in_'):
                 delattr(self, 'feature_names_in_')
 
@@ -455,7 +493,7 @@ class ColumnDeduplicateTransformer(
             self.n_features_in_
         )
 
-        return feature_names_out[self.column_mask_]
+        return feature_names_out[self._column_mask]
 
 
     def get_metadata_routing(self):
@@ -472,7 +510,7 @@ class ColumnDeduplicateTransformer(
     def partial_fit(
         self,
         X: DataContainer,
-        y: Optional[any]=None
+        y: Optional[Any]=None
     ) -> Self:
 
         """
@@ -488,7 +526,7 @@ class ColumnDeduplicateTransformer(
             (n_samples, n_features) - Data to remove duplicate columns
             from.
         y:
-            Optional[any], default = None - ignored. The target for the
+            Optional[Any], default = None - ignored. The target for the
             data.
 
 
@@ -564,7 +602,7 @@ class ColumnDeduplicateTransformer(
             X = X.tocsc()
 
         # find the duplicate columns
-        self.duplicates_: list[list[int]] = \
+        self._duplicates: list[list[int]] = \
             _dupl_idxs(
                 X,
                 getattr(self, 'duplicates_', None),
@@ -585,15 +623,15 @@ class ColumnDeduplicateTransformer(
         # that doesnt change when _transform() is called. must set a
         # random idx for every set of dupls.
         self._rand_idxs: tuple[int, ...] = _lock_in_random_idxs(
-            _duplicates=self.duplicates_,
+            _duplicates=self._duplicates,
             _do_not_drop=self.do_not_drop,
             _columns=self.feature_names_in_ if \
                 hasattr(self, 'feature_names_in_') else None
         )
 
-        self.removed_columns_: dict[int, int] = \
+        self._removed_columns: dict[int, int] = \
             _identify_idxs_to_delete(
-                self.duplicates_,
+                self._duplicates,
                 self.keep,
                 self.do_not_drop,
                 self.feature_names_in_ if \
@@ -602,9 +640,9 @@ class ColumnDeduplicateTransformer(
                 self._rand_idxs
             )
 
-        self.column_mask_: npt.NDArray[bool] = \
+        self._column_mask: npt.NDArray[bool] = \
             np.ones(self.n_features_in_).astype(bool)
-        self.column_mask_[list(self.removed_columns_)] = False
+        self._column_mask[list(self._removed_columns)] = False
 
         return self
 
@@ -612,7 +650,7 @@ class ColumnDeduplicateTransformer(
     def fit(
         self,
         X: DataContainer,
-        y: Optional[any]=None
+        y: Optional[Any]=None
     ) -> Self:
 
         """
@@ -628,7 +666,7 @@ class ColumnDeduplicateTransformer(
             (n_samples, n_features) - Data to remove duplicate columns
             from.
         y:
-            Optional[any], default = None - ignored. The target for the
+            Optional[Any], default = None - ignored. The target for the
             data.
 
 
@@ -718,12 +756,12 @@ class ColumnDeduplicateTransformer(
         _val_X(X_inv)
 
         # the number of columns in X must be equal to the number of features
-        # remaining in column_mask_
-        if X_inv.shape[1] != np.sum(self.column_mask_):
+        # remaining in _column_mask
+        if X_inv.shape[1] != np.sum(self._column_mask):
             raise ValueError(
                 f"the number of columns in X must be equal to the number of "
                 f"columns kept from the fitted data after removing duplicates "
-                f"{np.sum(self.column_mask_)}"
+                f"({np.sum(self._column_mask)})"
             )
 
         # dont need to do any other validation here, none of the parameters
@@ -741,7 +779,7 @@ class ColumnDeduplicateTransformer(
 
         X_inv = _inverse_transform(
             X_inv,
-            self.removed_columns_,
+            self._removed_columns,
             getattr(self, 'feature_names_in_', None)
         )
 
@@ -760,7 +798,7 @@ class ColumnDeduplicateTransformer(
     def score(
         self,
         X: DataContainer,
-        y: Optional[any]=None
+        y: Optional[Any]=None
     ) -> None:
 
         """
@@ -854,9 +892,9 @@ class ColumnDeduplicateTransformer(
 
         # redo these here in case set_params() was changed after (partial_)fit
         # determine the columns to remove based on given parameters.
-        self.removed_columns_ = \
+        self._removed_columns = \
             _identify_idxs_to_delete(
-                self.duplicates_,
+                self._duplicates,
                 self.keep,
                 self.do_not_drop,
                 getattr(self, 'feature_names_in_', None),
@@ -864,8 +902,8 @@ class ColumnDeduplicateTransformer(
                 self._rand_idxs
             )
 
-        self.column_mask_ = np.ones(self.n_features_in_).astype(bool)
-        self.column_mask_[list(self.removed_columns_)] = False
+        self._column_mask = np.ones(self.n_features_in_).astype(bool)
+        self._column_mask[list(self._removed_columns)] = False
         # end redo
 
         # ss sparse that cant be sliced
@@ -876,7 +914,7 @@ class ColumnDeduplicateTransformer(
             _og_format = type(X_tr)
             X_tr = X_tr.tocsc()
 
-        X_tr = _transform(X_tr, self.column_mask_)
+        X_tr = _transform(X_tr, self._column_mask)
 
         # all scipy sparse were converted to csc right before the _transform
         # method. change it back to original state.

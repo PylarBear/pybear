@@ -23,7 +23,7 @@ class TestPipeline:
 
     def test_accuracy_in_pipe_vs_out_of_pipe(
         self, _X_factory, _shape, _kwargs, y_np
-    ):
+):
 
         # this also incidentally tests functionality in a pipe
 

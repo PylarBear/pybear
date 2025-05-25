@@ -32,7 +32,7 @@ class TestAtol:
             _val_atol(bad_atol)
 
 
-    @pytest.mark.parametrize('good_atol', (0, 1e-6, 1, np.pi))
+    @pytest.mark.parametrize('good_atol', (0, 1e-6, 0.1, 1, np.pi))
     def test_accepts_good(self, good_atol):
         assert _val_atol(good_atol) is None
 

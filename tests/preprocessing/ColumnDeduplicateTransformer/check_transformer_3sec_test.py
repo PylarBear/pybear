@@ -6,7 +6,9 @@
 
 
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+import pytest
+
+import re
 
 from sklearn.utils.estimator_checks import (
     check_transformers_unfitted,
@@ -16,10 +18,7 @@ from sklearn.utils.estimator_checks import (
     check_transformer_get_feature_names_out_pandas
 )
 
-import re
-
-import pytest
-
+from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
 
 

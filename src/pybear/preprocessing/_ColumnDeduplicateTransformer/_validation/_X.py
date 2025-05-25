@@ -32,8 +32,8 @@ def _val_X(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features) - the data to be deduplicated.
+        array-like of shape (n_samples, n_features) - the data to be
+        deduplicated.
 
 
     Return
@@ -41,12 +41,11 @@ def _val_X(
     -
         None
 
-
     """
 
 
-    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) and not \
-        hasattr(_X, 'toarray'):
+    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) \
+            and not hasattr(_X, 'toarray'):
         raise TypeError(
             f"invalid container for X: {type(_X)}. X must be numpy array, "
             f"pandas dataframe, or any scipy sparce matrix / array."
