@@ -51,7 +51,7 @@ class TestDuplsAndConstantsInX:
         return (20, 6)
 
 
-    @pytest.mark.parametrize('X_format', ('np',  'pd', 'coo_array'))
+    @pytest.mark.parametrize('X_format', ('np',  'pd', 'pl', 'coo_array'))
     @pytest.mark.parametrize('dupls', ('none', 'dupls1', 'dupls2'))
     @pytest.mark.parametrize('constants', ('none', 'constants1', 'constants2'))
     def test_dupls_and_constants(
@@ -177,7 +177,7 @@ class TestDuplsAndConstantsInX:
         # v v v these all should function normally no matter what state SPF is in
 
         # feature_names_in_
-        if X_format == 'pd':
+        if X_format in ['pd', 'pl']:
             _fni = TestCls.feature_names_in_
             assert isinstance(_fni, np.ndarray)
             assert _fni.dtype == object

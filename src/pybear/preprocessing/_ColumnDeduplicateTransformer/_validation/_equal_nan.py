@@ -18,8 +18,7 @@ def _val_equal_nan(
     Parameters
     ----------
     _equal_nan:
-        bool, default = False - When comparing pairs of columns row by
-        row:
+        bool - When comparing pairs of columns row by row:
         If equal_nan is True, exclude from comparison any rows where one
         or both of the values is/are nan. If one value is nan, this
         essentially assumes that the nan value would otherwise be the

@@ -1442,7 +1442,7 @@ class TestInverseTransform:
             # underlying memory is still controlled by Polars and marked
             # as read-only. NumPy and Pandas may inherit this read-only
             # flag, preventing modifications.
-            # THE ORDER IS IMPORTANT HERE. CONVERT TO PANDAS FIRST, THEN COPY.
+            # THE ORDER IS IMPORTANT HERE. CONVERT TO PANDAS FIRST.
             NP_TRFM_X = TRFM_X.to_pandas().to_numpy()
             NP_INV_TRFM_X = INV_TRFM_X.to_pandas().to_numpy()
         elif hasattr(TRFM_X, 'toarray'):

@@ -10,6 +10,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 import dask.array as da
 import dask.dataframe as ddf
@@ -66,7 +67,7 @@ class TestValX:
             _val_X(bad_X, _interaction_only=_intx_only)
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csc_matrix', 'csc_array'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csc_matrix', 'csc_array'))
     @pytest.mark.parametrize('_intx_only', (True, False))
     def test_accepts_good_X(self, X_np, X_format, _intx_only):
 
@@ -74,6 +75,8 @@ class TestValX:
             _X = X_np
         elif X_format == 'pd':
             _X = pd.DataFrame(X_np)
+        elif X_format == 'pl':
+            _X = pl.from_numpy(X_np)
         elif X_format == 'csc_matrix':
             _X = ss.csc_matrix(X_np)
         elif X_format == 'csc_array':

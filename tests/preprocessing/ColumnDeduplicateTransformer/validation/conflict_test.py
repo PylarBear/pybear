@@ -5,11 +5,11 @@
 #
 
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation.\
-    _conflict import _val_conflict
 
 import pytest
 
+from pybear.preprocessing._ColumnDeduplicateTransformer._validation.\
+    _conflict import _val_conflict
 
 
 
@@ -30,7 +30,6 @@ class TestConflict:
     def test_valueerror_bad_conflict(self, bad_conflict):
         with pytest.raises(ValueError):
             _val_conflict(bad_conflict)
-
 
 
     @pytest.mark.parametrize('_conflict', ('raise', 'ignore'))

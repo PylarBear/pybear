@@ -98,9 +98,6 @@ def _identify_idxs_to_delete(
     """
 
 
-
-
-
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # _duplicates must be list of list of ints
@@ -266,10 +263,6 @@ def _identify_idxs_to_delete(
 
 
     return removed_columns_
-
-
-
-
 
 
 

@@ -6,42 +6,41 @@
 
 
 
-from .._type_aliases import DataContainer
 from typing_extensions import Union
-from typing import Sequence
+from .._type_aliases import (
+    DoNotDropType,
+    FeatureNamesInType
+)
 
 
 
 def _val_do_not_drop(
-    _do_not_drop: Union[Sequence[str], Sequence[int], None],
-    _X: DataContainer,
-    _columns: Union[Sequence[str], None]
+    _do_not_drop: DoNotDropType,
+    _n_features_in: int,
+    _columns: Union[FeatureNamesInType, None]
 ) -> None:
 
     """
-    Validate :param: do_not_drop. May be None, a sequence of integers
-    indicating column indices, or, if fitting is done on pandas
-    dataframes with headers, a sequence of strings that match feature
-    names in the data header.
+    Validate :param: `do_not_drop`. May be None, a sequence of integers
+    indicating column indices, or, if fitting is done on a container
+    with a header, a sequence of strings that match any combination of
+    the feature names in the data header.
 
 
     Parameters
     ----------
     _do_not_drop:
-        Union[Sequence[int], Sequence[str], None], default=None - A list
-        of columns not to be dropped. If fitting is done on a pandas
-        dataframe that has a header, a list of feature names may be
-        provided. Otherwise, a list of column indices must be provided.
-        If a conflict arises, such as two columns specified in :param:
-        do_not_drop are duplicates of each other, the behavior is managed
-        by :param: conflict.
-    _X:
-        {array-like, scipy sparse matrix} of shape (n_samples,
-        n_features) - The data to be deduplicated.
-
+        DoNotDropType - A list of columns not to be dropped. If fitting
+        is done on a container that has a header, a list of feature
+        names may be provided. Otherwise, a list of column indices must
+        be provided. If a conflict arises, such as two columns specified
+        in `do_not_drop` are duplicates of each other, the behavior is
+        managed by :param: `conflict`.
+    _n_features_in:
+        int - The number of features in the data seen at first fit.
     _columns:
-        Union[Sequence[str], None] of shape (n_features,) - if fitting
-        is done on a pandas dataframe that has a header, this is a
+        Union[FeatureNamesInType, None] of shape (n_features,) - if
+        fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
 
 
@@ -63,10 +62,10 @@ def _val_do_not_drop(
         except:
             pass
         if isinstance(_do_not_drop, (str, dict)):
-            raise
+            raise Exception
     except UnicodeError:
         pass
-    except:
+    except Exception as e:
         raise TypeError(
             f"if passed, 'do_not_drop' must be a list-like of"
             f" strings or integers, and cannot be empty"
@@ -103,7 +102,7 @@ def _val_do_not_drop(
                     raise ValueError(_base_err_msg + _err_msg(_col))
         del _base_err_msg, _err_msg
 
-    else:  # not isinstance(_X, (pd.core.frame.DataFrame, pl.DataFrame)) and _columns is None:
+    else:
         if _dnd_str:
             raise TypeError(
                 f"when a header is not passed with the data, 'do_not_drop' "
@@ -115,7 +114,7 @@ def _val_do_not_drop(
         _err_msg = lambda _: f"'do_not_drop' index {_} out of range"
         if min(_do_not_drop) < 0:
             raise ValueError(_err_msg(min(_do_not_drop)))
-        if max(_do_not_drop) >= _X.shape[1]:
+        if max(_do_not_drop) >= _n_features_in:
             raise ValueError(_err_msg(max(_do_not_drop)))
         del _err_msg
 

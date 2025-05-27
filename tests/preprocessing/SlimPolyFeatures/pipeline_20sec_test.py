@@ -12,6 +12,7 @@ from uuid import uuid4
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from sklearn.pipeline import Pipeline
@@ -31,7 +32,7 @@ from pybear.utilities import check_pipeline
 class TestPipeline:
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'bsr'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csr', 'csc', 'bsr'))
     def test_accuracy_in_pipe_vs_out_of_pipe(
         self, _X_factory, _shape, _kwargs, _format
     ):
@@ -64,8 +65,8 @@ class TestPipeline:
         def _convert_format_before_SPF(_X_):
 
             nonlocal _format
-
-            # _format: Literal['np', 'pd', 'csr', 'csc', 'bsr']
+            # pizza what is _format for?
+            # _format: Literal['np', 'pd', 'pl', 'csr', 'csc', 'bsr']
 
             # a function for FunctionTransformer, to convert X format
             # inside a pipeline, if needed.
@@ -76,6 +77,8 @@ class TestPipeline:
                 _X = _X_
             elif _format == 'pd':
                 _X = pd.DataFrame(data=_X_)
+            elif _format == 'pl':
+                _X = pl.from_numpy(data=_X_)
             elif _format == 'csr':
                 _X = ss.csr_array(_X_)
             elif _format == 'csc':

@@ -33,7 +33,7 @@ class TestNFeaturesInFeatureNamesIn:
 
     # TEST ATTRS THAT ARE INDEPENDENT OF THE DEGREES OF EXPANSION
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr_array'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
     def test_attr_accuracy(
         self, _X_factory, _columns, _kwargs, _shape, X_format
     ):
@@ -56,7 +56,7 @@ class TestNFeaturesInFeatureNamesIn:
         assert TestCls.fit(_X) is TestCls
 
         # feature_names_in_ - - - - - - - - - - - - - - -
-        if X_format == 'pd':
+        if X_format in ['pd', 'pl']:
             _fni = TestCls.feature_names_in_
             assert isinstance(_fni, np.ndarray)
             assert _fni.dtype == object

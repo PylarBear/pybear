@@ -5,15 +5,15 @@
 #
 
 
+
+import pytest
+
 from pybear.preprocessing._ColumnDeduplicateTransformer._validation. \
     _equal_nan import _val_equal_nan
 
 
-import pytest
 
-
-
-class TestIgnoreNan:
+class TestEqualNan:
 
 
     @pytest.mark.parametrize('junk_ign_nan',
@@ -26,7 +26,8 @@ class TestIgnoreNan:
 
     @pytest.mark.parametrize('good_ign_nan', (True, False))
     def test_accepts_bool(self, good_ign_nan):
-        _val_equal_nan(good_ign_nan)
+        assert _val_equal_nan(good_ign_nan) is None
+
 
 
 

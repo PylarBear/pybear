@@ -6,7 +6,6 @@
 
 
 
-
 from .._type_aliases import InstructionType
 
 import warnings
@@ -41,7 +40,6 @@ def _val_instructions(
     ------
     -
         None
-
 
     """
 

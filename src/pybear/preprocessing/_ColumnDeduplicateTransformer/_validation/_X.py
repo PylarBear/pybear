@@ -22,11 +22,11 @@ def _val_X(
 
     """
     Validate the container type of the data. Cannot be None. Otherwise,
-    X can be a numpy ndarray, a pandas dataframe, or any other scipy
-    sparse matrix / array.
+    X can be a numpy ndarray, a pandas dataframe, polars dataframe, or
+    any scipy sparse matrix / array.
 
-    All other validation of the data is handled by the validate_data
-    function at fit, transform, and inverse_transform.
+    All other validation of the data is handled in the individual IM
+    methods by pybear.base.validate_data.
 
 
     Parameters
@@ -47,10 +47,9 @@ def _val_X(
     if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) \
             and not hasattr(_X, 'toarray'):
         raise TypeError(
-            f"invalid container for X: {type(_X)}. X must be numpy array, "
-            f"pandas dataframe, or any scipy sparce matrix / array."
+            f"invalid container for X: {type(_X)}. \nX must be numpy array, "
+            f"pandas dataframe, polars dataframe, or scipy sparce matrix / array."
         )
-
 
     if isinstance(_X, np.rec.recarray):
         raise TypeError(
@@ -63,9 +62,6 @@ def _val_X(
             f"CDT does not block numpy masked arrays but they are not tested. "
             f"\nuse them at your own risk."
         )
-
-
-
 
 
 

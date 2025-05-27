@@ -5,13 +5,13 @@
 #
 
 
-from typing import Literal
 
+from .._type_aliases import ConflictType
 
 
 
 def _val_conflict(
-    _conflict: Literal['raise', 'ignore']
+    _conflict: ConflictType
 ) -> None:
 
     """
@@ -21,36 +21,32 @@ def _val_conflict(
     Parameters
     ----------
     _conflict:
-        Literal['raise', 'ignore'] - Ignored when :param: do_not_drop is
-        not passed. Instructs CDT how to deal with a conflict between
-        the instructions in :param: keep and :param: do_not_drop. A
-        conflict arises when the instruction in :param: keep ('first',
-        'last', 'random') is applied and column in :param: do_not_drop
-        is found to be a member of the columns to be deleted. When :param:
-        conflict is 'raise', an exception is raised in the case of such
-        a conflict. When :param: conflict is 'ignore', there are 2
-        possible scenarios:
+        ConflictType - Ignored when :param: `do_not_drop` is not passed.
+        Instructs CDT how to deal with a conflict between the instructions
+        in :param: `keep` and `do_not_drop`. A conflict arises when the
+        instruction in `keep` ('first', 'last', 'random') is applied and
+        column in `do_not_drop` is found to be a member of the columns
+        to be deleted. When :param: `conflict` is 'raise', an exception
+        is raised in the case of such a conflict. When `conflict` is
+        'ignore', there are 2 possible scenarios:
 
-        1) when only one column in :param: do_not_drop is among the
-        columns to be removed, the :param: keep instruction is overruled
-        and the do_not_drop column is kept
+        1) when only one column in `do_not_drop` is among the columns to
+        be removed, the `keep` instruction is overruled and the
+        `do_not_drop` column is kept
 
-        2) when multiple columns in :param: do_not_drop are among the
-        duplicates, the :param: keep instruction ('first', 'last',
-        'random') is applied to the set of do-not-delete columns
-        that are amongst the duplicates --- this may not give the same
-        result as applying the :param: keep instruction to the entire
-        set of duplicate columns. This also causes at least one member
-        of the columns not to be dropped to be removed.
+        2) when multiple columns in `do_not_drop` are among the
+        duplicates, the `keep` instruction ('first', 'last', 'random')
+        is applied to the set of do-not-delete columns that are amongst
+        the duplicates --- this may not give the same result as applying
+        the `keep` instruction to the entire set of duplicate columns.
+        This also causes at least one member of the columns not to be
+        dropped to be removed.
 
 
     Return
     ------
     -
         None
-
-
-
 
     """
 

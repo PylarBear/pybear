@@ -6,7 +6,6 @@
 
 
 
-
 def _val_equal_nan(
     _equal_nan: bool
 ) -> None:

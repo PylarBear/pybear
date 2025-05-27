@@ -482,7 +482,7 @@ class TestExceptWarnOnDifferentHeader:
         _col_dict = {'DF1': _columns, 'DF2': np.flip(_columns), 'NO_HDR_DF': None}
 
         TestCls = SlimPoly(**_kwargs)
-
+        # pizza polars?
         _factory_kwargs = {
             '_dupl':None, '_format':'pd', '_dtype':'flt', '_has_nan':False,
             '_constants': None, '_shape':_shape
@@ -1035,7 +1035,7 @@ class TestPartialFit:
 
     @pytest.mark.parametrize('_format',
          (
-             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
              'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
              'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
          )
@@ -1048,6 +1048,8 @@ class TestPartialFit:
             _X_wip = _X
         elif _format == 'pd':
             _X_wip = pd.DataFrame(data=_X, columns=_columns)
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(data=_X, schema=list(_columns))
         elif _format == 'csr_matrix':
             _X_wip = ss._csr.csr_matrix(_X)
         elif _format == 'csc_matrix':
@@ -1079,7 +1081,10 @@ class TestPartialFit:
         else:
             raise Exception
 
-        _X_wip_before_partial_fit = _X_wip.copy()
+        try:
+            _X_wip_before_partial_fit = _X_wip.copy()
+        except:
+            _X_wip_before_partial_fit = _X_wip.clone()
 
         SlimPoly(**_kwargs).partial_fit(_X_wip)
 
@@ -1094,7 +1099,7 @@ class TestPartialFit:
                 _X_wip.toarray(),
                 _X_wip_before_partial_fit.toarray()
             )
-        elif isinstance(_X_wip_before_partial_fit, pd.core.frame.DataFrame):
+        elif isinstance(_X_wip_before_partial_fit, (pd.core.frame.DataFrame, pl.DataFrame)):
             assert _X_wip.equals(_X_wip_before_partial_fit)
         else:
             assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
@@ -1176,7 +1181,7 @@ class TestTransform:
 
     @pytest.mark.parametrize('_format',
          (
-             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
              'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
              'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
          )
@@ -1188,10 +1193,9 @@ class TestTransform:
         if _format == 'np':
             _X_wip = _X
         elif _format == 'pd':
-            _X_wip = pd.DataFrame(
-                data=_X,
-                columns=_columns
-            )
+            _X_wip = pd.DataFrame(data=_X, columns=_columns)
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(data=_X, schema=list(_columns))
         elif _format == 'csr_matrix':
             _X_wip = ss._csr.csr_matrix(_X)
         elif _format == 'csc_matrix':
@@ -1223,7 +1227,10 @@ class TestTransform:
         else:
             raise Exception
 
-        _X_wip_before_transform = _X_wip.copy()
+        try:
+            _X_wip_before_transform = _X_wip.copy()
+        except:
+            _X_wip_before_transform = _X_wip.clone()
 
         _SPF = SlimPoly(**_kwargs)
         _SPF.fit(_X)  # fit on numpy, not the converted data
@@ -1244,7 +1251,7 @@ class TestTransform:
                 _X_wip.toarray(),
                 _X_wip_before_transform.toarray()
             )
-        elif isinstance(_X_wip_before_transform, pd.core.frame.DataFrame):
+        elif isinstance(_X_wip_before_transform, (pd.core.frame.DataFrame, pl.DataFrame)):
             assert _X_wip.equals(_X_wip_before_transform)
         else:
             assert np.array_equal(_X_wip_before_transform, _X_wip)
@@ -1284,21 +1291,27 @@ class TestTransform:
         _SPF.fit(X_np)
 
         __ = np.array(_columns)
-        for obj_type in ['np', 'pd']:
+        for obj_type in ['np', 'pd', 'pl']:
             for diff_cols in ['more', 'less', 'same']:
                 if diff_cols == 'same':
                     _X = X_np.copy()
                     if obj_type == 'pd':
                         _X = pd.DataFrame(data=_X, columns=__)
+                    elif obj_type == 'pl':
+                        _X = pl.from_numpy(data=_X, schema=list(__))
                 elif diff_cols == 'less':
                     _X = X_np[:, :-1].copy()
                     if obj_type == 'pd':
                         _X = pd.DataFrame(data=_X, columns=__[:-1])
+                    elif obj_type == 'pl':
+                        _X = pl.from_numpy(data=_X, schema=list(__[:-1]))
                 elif diff_cols == 'more':
                     _X = np.hstack((X_np.copy(), X_np.copy()))
+                    _COLUMNS = np.hstack((__, np.char.upper(__)))
                     if obj_type == 'pd':
-                        _COLUMNS = np.hstack((__, np.char.upper(__)))
                         _X = pd.DataFrame(data=_X, columns=_COLUMNS)
+                    elif obj_type == 'pl':
+                        _X = pl.from_numpy(data=_X, schema=list(_COLUMNS))
                 else:
                     raise Exception
 
@@ -1310,8 +1323,8 @@ class TestTransform:
 
         del _SPF, obj_type, diff_cols, _X
 
-
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr'))
+    # pizza this needs a lot of work for polars. assess the need for this test.
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr'))   # , 'pl'
     @pytest.mark.parametrize('_dtype',
          ('int8', 'int16', 'int32', 'int64', 'float64', '<U10', 'object')
     )
@@ -1351,6 +1364,7 @@ class TestTransform:
 
         _base_X = X_np.astype(_dtype_dict[_dtype])
 
+        # pizza can _X_factory be used here?
         # build X - - - - - - - - - - - - - - - - - - - - - -
         if _format in ('np', 'csr'):
             _X = _base_X
@@ -1387,6 +1401,25 @@ class TestTransform:
                 else:
                     assert _pd_dtype == _dtype_dict[_dtype]
 
+        elif _format == 'pl':
+            _X = pl.from_numpy(data=_base_X, schema=list(_columns))
+            # pizza figure this mess out
+            # if _has_nan:
+            #     for _column in _X.columns:
+            #         _rand_idxs = np.random.choice(
+            #             range(_shape[0]), _shape[0] // 5, replace=False
+            #         )
+            #         _X[_rand_idxs, _column] = None
+            #
+            #     # verify nans were made correctly
+            #     assert np.sum(nan_mask(_X)) > 0
+            #
+            # for _pl_dtype in _X.dtypes:
+            #     if _dtype == '<U10':
+            #         assert _pl_dtype == pl.Object
+            #     else:
+            #         assert _pd_dtype == _dtype_dict[_dtype]
+
         else:
             raise Exception
         # END build X - - - - - - - - - - - - - - - - - - - -
@@ -1413,6 +1446,9 @@ class TestTransform:
         if _format == 'pd':
             for _c_idx, _out_dtype in enumerate(out.dtypes):
                 assert _out_dtype == np.float64
+        elif _format == 'pl':
+            for _c_idx, _out_dtype in enumerate(out.dtypes):
+                assert _out_dtype == pl.Float64
         else:
             assert out.dtype == np.float64
 

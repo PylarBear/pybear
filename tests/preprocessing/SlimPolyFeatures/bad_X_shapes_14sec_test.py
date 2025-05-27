@@ -9,6 +9,7 @@
 import pytest
 
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures \
@@ -54,7 +55,7 @@ class TestExceptsOnBadXShapes:
 
 
     # this is intentional, save some time, do only one ss
-    X_FORMAT = ['np', 'pd', 'csc'] #, 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
+    X_FORMAT = ['np', 'pd', 'pl', 'csc'] #, 'csr', 'coo', 'dia', 'lil', 'dok', 'bsr']
     SAME_DIFF_COLUMNS = ['good', 'less_col', 'more_col']
 
     @pytest.mark.parametrize('fst_fit_x_format', X_FORMAT)
@@ -88,6 +89,8 @@ class TestExceptsOnBadXShapes:
                 pass
             elif _format == 'pd':
                 _X_wip = pd.DataFrame(data=_X_wip, columns=_columns_dict[_cols])
+            elif _format == 'pl':
+                _X_wip = pl.from_numpy(data=_X_wip, schema=list(_columns_dict[_cols]))
             elif _format == 'csc':
                 _X_wip = ss.csc_array(_X_wip)
             elif _format == 'csr':

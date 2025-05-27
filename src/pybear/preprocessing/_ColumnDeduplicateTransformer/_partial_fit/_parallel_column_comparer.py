@@ -5,11 +5,14 @@
 #
 
 
+
+from typing_extensions import Any
 import numpy.typing as npt
+
+import numbers
 
 import numpy as np
 import joblib
-from numbers import Real
 
 from ....utilities._nan_masking import nan_mask
 
@@ -17,36 +20,33 @@ from ....utilities._nan_masking import nan_mask
 
 @joblib.wrap_non_picklable_objects
 def _parallel_column_comparer(
-    _column1: npt.NDArray[any],
-    _chunk: npt.NDArray[any],
-    _rtol: Real,
-    _atol: Real,
+    _column1: npt.NDArray[Any],
+    _chunk: npt.NDArray[Any],
+    _rtol: numbers.Real,
+    _atol: numbers.Real,
     _equal_nan: bool
 ) -> list[bool]:
 
     """
-    Compare two columns for equality, subject to rtol, atol, and
-    equal_nan. The columns here must have originated from a numpy array
-    or pandas dataframe, not a scipy sparse matrix/array. For the scipy
-    column comparer, see _parallel_ss_comparer.
+    Compare the columns in chunk against column1 for equality, subject
+    to rtol, atol, and equal_nan. column1 and chunk must be ndarray.
 
 
     Parameters
     ----------
     _column1:
-        npt.NDArray[any] - the first column of a pair to compare for
-        equality.
-    _column2:
-        npt.NDArray[any] - the second column of a pair to compare for
-        equality.
+        npt.NDArray[Any] - a single column from X to compare against a
+        chunk of columns from X for equality.
+    _chunk:
+        npt.NDArray[Any] - a chunk of columns from X.
     _rtol:
         numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
+        Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     _atol:
         numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
+        Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     _equal_nan:
         bool - When comparing pairs of columns row by row:
         If equal_nan is True, exclude from comparison any rows where one
@@ -55,7 +55,7 @@ def _parallel_column_comparer(
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
         handling of nan, where numpy.nan != numpy.nan) and will not in
-        and of itself cause a pair of columns to be marked as unequal.
+        and of itself cause a pair of columns to be considered unequal.
         If equal_nan is False and either one or both of the values in
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
@@ -65,7 +65,9 @@ def _parallel_column_comparer(
     Return
     ------
     -
-        bool: True, the columns are equal, False, the columns are unequal.
+        list[bool]: The result for each column in chunk. True, the
+        column is equal to column1; False, the column is not equal to
+        column1.
 
     """
 

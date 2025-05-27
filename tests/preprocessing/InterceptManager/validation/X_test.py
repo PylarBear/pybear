@@ -30,16 +30,21 @@ def test_rejects_py_builtin(_X_factory, X_format, _shape):
 
 
 @pytest.mark.parametrize('X_format',
-    ('np', 'pd', 'pl', 'csr_array', 'csc_array', 'bsr_array')
+    ('np', 'pd', 'pl', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
+    'coo_array', 'coo_matrix', 'dia_array', 'dia_matrix', 'lil_array',
+    'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix')
 )
-def test_accepts_np_pd_ss(_X_factory, X_format, _shape):
+def test_accepts_np_pd_ss(_X_factory, _shape, X_format):
 
-    _X = _X_factory(_dupl=None, _format=X_format, _shape=_shape)
+    # accepts all scipy sparse
+
+    _X = _X_factory(
+        _format=X_format,
+        _dtype='flt',
+        _shape=_shape
+    )
 
     _val_X(_X)
-
-
-
 
 
 

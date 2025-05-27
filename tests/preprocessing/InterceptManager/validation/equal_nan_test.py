@@ -8,9 +8,8 @@
 
 import pytest
 
-from pybear.preprocessing._InterceptManager._validation._equal_nan import (
+from pybear.preprocessing._InterceptManager._validation._equal_nan import \
     _val_equal_nan
-)
 
 
 
@@ -28,8 +27,6 @@ class TestEqualNan:
     @pytest.mark.parametrize('good_ign_nan', (True, False))
     def test_accepts_bool(self, good_ign_nan):
         assert _val_equal_nan(good_ign_nan) is None
-
-
 
 
 
