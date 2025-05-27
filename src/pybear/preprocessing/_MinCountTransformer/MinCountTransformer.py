@@ -473,6 +473,9 @@ class MinCountTransformer(
     use of multiple recursions, unless the data/target hybrid object can
     be passed as a single chunk to :meth: `fit_transform`.
 
+    Type Aliases
+    pizza dont forget!
+
 
     Examples
     --------

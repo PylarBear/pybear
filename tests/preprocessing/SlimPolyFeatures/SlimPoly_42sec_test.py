@@ -12,13 +12,16 @@ import uuid
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as ss
 import polars as pl
+import scipy.sparse as ss
 
 from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
     SlimPolyFeatures as SlimPoly
 
 from pybear.utilities import nan_mask_numerical, nan_mask
+
+
+
 
 bypass = False
 
@@ -121,12 +124,9 @@ class TestInitValidation:
     @pytest.mark.parametrize('good_keep', ('first', 'last', 'random'))
     def test_good_keep(self, X_pd, _columns, _kwargs, good_keep):
 
-        if good_keep == 'string':
-            good_keep = _columns[0]
-
         _kwargs['keep'] = good_keep
-
         SlimPoly(**_kwargs).fit_transform(X_pd)
+
     # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -326,35 +326,25 @@ class TestInitValidation:
 
     # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
 # END test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-# ALWAYS ACCEPTS y==anything TO fit() AND partial_fit() #################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestFitPartialFitAcceptYEqualsAnything:
+class TestX:
 
-    test_y = (
-        -1, 0, 1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
-        lambda x: x, min
-    )
-
-    @pytest.mark.parametrize('_test_y', test_y)
-    def test_fit(self, _kwargs, X_np, _test_y):
-        SlimPoly(**_kwargs).fit(X_np, _test_y)
-
-    @ pytest.mark.parametrize('_test_y', test_y)
-    def test_partial_fit(self, _kwargs, X_np, _test_y):
-        SlimPoly(**_kwargs).partial_fit(X_np, _test_y)
+    # - only accepts ndarray, pd.DataFrame, and all ss
+    # - cannot be None
+    # - must be 2D
+    # - must have at least 1 or 2 columns, depending on interaction_only
+    # - must have at least 1 sample
+    # - allows nan
+    # - output is C contiguous
+    # - num columns must equal num columns seen during fit
+    # - validates all instance attrs --- not tested here, see _validation
+    # - does not mutate X
 
 
-# END ALWAYS ACCEPTS y==anything TO fit() AND partial_fit() #################
-
-
-# TEST EXCEPTS ANYTIME X==None PASSED TO fit(), partial_fit(), AND transform()
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestExceptsAnytimeXisNone:
-
+    # CONTAINERS #######################################################
     def test_excepts_anytime_x_is_none(self, X_np, _kwargs):
 
         # this is handled by _val_X
@@ -375,28 +365,208 @@ class TestExceptsAnytimeXisNone:
             SlimPoly(**_kwargs).fit_transform(None)
 
 
-# END TEST EXCEPTS ANYTIME X==None PASSED TO fit(), partial_fit(), transform()
+    @pytest.mark.parametrize('_junk_X',
+        (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(self, _junk_X, _kwargs, X_np):
+        # this is being caught by validate_data at the top of partial_fit
+
+        # PARTIAL_FIT
+        with pytest.raises(ValueError):
+            SlimPoly(**_kwargs).partial_fit(_junk_X)
+
+        # TRANSFORN
+        _SPF = SlimPoly(**_kwargs)
+        _SPF.fit(X_np)
+        # this is being caught by _val_X in _validation at the top of transform
+        with pytest.raises(ValueError):
+            _SPF.transform(_junk_X)
 
 
-# X AS SINGLE COLUMN ##########################################################
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestXAsSingleColumn:
+    @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
+    def test_rejects_invalid_container(self, X_np, _columns, _kwargs, _format):
+        _SPF = SlimPoly(**_kwargs)
 
-    # DEPENDS ON interaction_only. IF True, MUST BE 2+ COLUMNS; IF False, CAN
-    # BE 1 COLUMN.
+        if _format == 'py_list':
+            _X_wip = list(map(list, X_np.copy()))
+        elif _format == 'py_tuple':
+            _X_wip = tuple(map(tuple, X_np.copy()))
+        else:
+            raise Exception
 
-    # y is ignored
+        # FROM PARTIAL_FIT
+        if _format == 'py_list':
+            with pytest.raises(ValueError):
+                _SPF.partial_fit(_X_wip)
+        elif _format == 'py_tuple':
+            with pytest.raises(ValueError):
+                _SPF.partial_fit(_X_wip)
+        else:
+            raise Exception
+        # END PARTIAL_FIT
+
+        # TRANSFORM
+        if _format == 'py_list':
+            with pytest.raises(ValueError):
+                _SPF.transform(_X_wip)
+        elif _format == 'py_tuple':
+            with pytest.raises(ValueError):
+                _SPF.transform(_X_wip)
+        else:
+            raise Exception
+        # END TRANSFORM
+
+    @pytest.mark.parametrize('_format',
+         (
+             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
+         )
+     )
+    def test_X_container(self, X_np, _columns, _kwargs, _format):
+        _X = X_np.copy()
+
+        if _format == 'np':
+            _X_wip = _X
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(data=_X, columns=_columns)
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(data=_X, schema=list(_columns))
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_X)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_X)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
+        else:
+            raise Exception
+
+        try:
+            _X_wip_before_partial_fit = _X_wip.copy()
+        except:
+            _X_wip_before_partial_fit = _X_wip.clone()
+
+        # PARTIAL_FIT
+        SlimPoly(**_kwargs).partial_fit(_X_wip)
+
+        # verify _X_wip does not mutate in partial_fit()
+        assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
+        assert _X_wip.shape == _X_wip_before_partial_fit.shape
+        if isinstance(_X_wip, np.ndarray):
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
+
+        if hasattr(_X_wip_before_partial_fit, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_partial_fit.toarray()
+            )
+        elif isinstance(_X_wip_before_partial_fit, (pd.core.frame.DataFrame, pl.DataFrame)):
+            assert _X_wip.equals(_X_wip_before_partial_fit)
+        else:
+            assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
+        # END PARTIAL_FIT
+
+        # TRANSFORM
+        _SPF = SlimPoly(**_kwargs)
+        _SPF.fit(_X)  # fit on numpy, not the converted data
+
+        try:
+            _X_wip_before_transform = _X_wip.copy()
+        except:
+            _X_wip_before_transform = _X_wip.clone()
+
+        out = _SPF.transform(_X_wip)
+        assert isinstance(out, type(_X_wip))
+
+        # if output is numpy, order is C
+        if isinstance(out, np.ndarray):
+            assert out.flags['C_CONTIGUOUS'] is True
+
+        # verify _X_wip does not mutate in transform()
+        assert isinstance(_X_wip, type(_X_wip_before_transform))
+        assert _X_wip.shape == _X_wip_before_transform.shape
+
+        if hasattr(_X_wip_before_transform, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_transform.toarray()
+            )
+        elif isinstance(_X_wip_before_transform, (pd.core.frame.DataFrame, pl.DataFrame)):
+            assert _X_wip.equals(_X_wip_before_transform)
+        else:
+            assert np.array_equal(_X_wip_before_transform, _X_wip)
+        # END TRANSFORM
+    # END CONTAINERS ###################################################
 
 
+    # SHAPE ############################################################
+    def test_rejects_no_samples(self, X_np, _kwargs, _columns):
+        _X = X_np.copy()
+
+        # PARTIAL_FIT
+        # dont know what is actually catching this! maybe _validate_data?
+        with pytest.raises(ValueError):
+            SlimPoly(**_kwargs).partial_fit(
+                np.empty((0, _X.shape[1]), dtype=np.float64)
+            )
+        # END PARTIAL_FIT
+
+        # TRANSFORM
+        _SPF = SlimPoly(**_kwargs)
+        _SPF.fit(X_np)
+
+        # this is caught by if _X.shape[0] == 0 in _val_X
+        with pytest.raises(ValueError):
+            _SPF.transform(
+                np.empty((0, X_np.shape[1]), dtype=np.float64)
+            )
+        # END TRANSFORM
+
+    def test_rejects_1D(self, X_np, _kwargs):
+
+        with pytest.raises(ValueError):
+            SlimPoly(**_kwargs).partial_fit(X_np[:, 0])
+
+        _SPF = SlimPoly(**_kwargs)
+        _SPF.fit(X_np)
+
+        with pytest.raises(ValueError):
+            _SPF.transform(X_np[:, 0])
 
 
     @pytest.mark.parametrize('_fst_fit_x_format', ('numpy', 'pandas'))
     @pytest.mark.parametrize('_fst_fit_x_hdr', (True, None))
     @pytest.mark.parametrize('_intx_only', (True, False))
     def test_X_as_single_column(
-        self, _kwargs, _columns, X_np, _fst_fit_x_format, _fst_fit_x_hdr,
-        _intx_only
+            self, _kwargs, _columns, X_np, _fst_fit_x_format, _fst_fit_x_hdr,
+            _intx_only
     ):
+        # DEPENDS ON interaction_only. IF True, MUST BE 2+ COLUMNS; IF False, CAN
+        # BE 1 COLUMN.
+
+        # y is ignored
 
         _kwargs['interaction_only'] = _intx_only
 
@@ -417,29 +587,33 @@ class TestXAsSingleColumn:
         else:
             raise Exception
 
-
+        # PARTIAL_FIT
         if _intx_only:
             with pytest.raises(ValueError):
                 SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
         elif not _intx_only:
             out = SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
             assert isinstance(out, type(_fst_fit_X))
+        # END PARTIAL_FIT
 
-# END X AS SINGLE COLUMN ######################################################
+        # TRANSFORM
+        # test_X_num_columns(self)
+        # this is dictated by partial_fit. partial_fit requires at least 1 or
+        # 2 columns, and transform must have same number of features as fit
+        if _intx_only:
+            with pytest.raises(ValueError):
+                SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+        elif not _intx_only:
+            out = SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+            assert isinstance(out, type(_fst_fit_X))
+        # END TRANSFORM
 
-
-# VERIFY ALWAYS ACCEPTS 2+ COLUMNS ############################################
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAccepts2ColumnsAlways:
-
-    # y is ignored
 
     @pytest.mark.parametrize('_fst_fit_x_format', ('numpy', 'pandas'))
     @pytest.mark.parametrize('_fst_fit_x_hdr', (True, None))
     def test_X_as_two_columns(
-        self, _kwargs, _columns, X_np, _fst_fit_x_format, _fst_fit_x_hdr
+            self, _kwargs, _columns, X_np, _fst_fit_x_format, _fst_fit_x_hdr
     ):
-
         TWO_COLUMN_X = X_np[:, :2].copy().reshape((-1, 2))
 
         if _fst_fit_x_format == 'numpy':
@@ -460,23 +634,60 @@ class TestAccepts2ColumnsAlways:
         out = SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
         assert isinstance(out, type(_fst_fit_X))
 
-# END VERIFY ALWAYS ACCEPTS 2+ COLUMNS ########################################
+        out = SlimPoly(**_kwargs).fit_transform(_fst_fit_X)
+        assert isinstance(out, type(_fst_fit_X))
 
 
-# TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
+    def test_rejects_bad_num_features(self, X_np, _kwargs, _columns):
+        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
+        # FITTED COLUMNS
 
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestExceptWarnOnDifferentHeader:
+        _SPF = SlimPoly(**_kwargs)
+        _SPF.fit(X_np)
 
-    NAMES = ['DF1', 'DF2', 'NO_HDR_DF']
+        __ = np.array(_columns)
+        for obj_type in ['np', 'pd', 'pl']:
+            for diff_cols in ['more', 'less', 'same']:
+                if diff_cols == 'same':
+                    _X = X_np.copy()
+                    if obj_type == 'pd':
+                        _X = pd.DataFrame(data=_X, columns=__)
+                    elif obj_type == 'pl':
+                        _X = pl.from_numpy(data=_X, schema=list(__))
+                elif diff_cols == 'less':
+                    _X = X_np[:, :-1].copy()
+                    if obj_type == 'pd':
+                        _X = pd.DataFrame(data=_X, columns=__[:-1])
+                    elif obj_type == 'pl':
+                        _X = pl.from_numpy(data=_X, schema=list(__[:-1]))
+                elif diff_cols == 'more':
+                    _X = np.hstack((X_np.copy(), X_np.copy()))
+                    _COLUMNS = np.hstack((__, np.char.upper(__)))
+                    if obj_type == 'pd':
+                        _X = pd.DataFrame(data=_X, columns=_COLUMNS)
+                    elif obj_type == 'pl':
+                        _X = pl.from_numpy(data=_X, schema=list(_COLUMNS))
+                else:
+                    raise Exception
 
-    @pytest.mark.parametrize('fst_fit_name', NAMES)
-    @pytest.mark.parametrize('scd_fit_name', NAMES)
-    @pytest.mark.parametrize('trfm_name', NAMES)
+                if diff_cols == 'same':
+                    _SPF.transform(_X)
+                else:
+                    with pytest.raises(ValueError):
+                        _SPF.transform(_X)
+
+        del _SPF, obj_type, diff_cols, _X
+
+
+    @pytest.mark.parametrize('fst_fit_name', ['DF1', 'DF2', 'NO_HDR_DF'])
+    @pytest.mark.parametrize('scd_fit_name', ['DF1', 'DF2', 'NO_HDR_DF'])
+    @pytest.mark.parametrize('trfm_name', ['DF1', 'DF2', 'NO_HDR_DF'])
     def test_except_or_warn_on_different_headers(
         self, _X_factory, _kwargs, _columns, fst_fit_name, scd_fit_name,
         trfm_name, _shape
     ):
+
+        # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
 
         # np.flip(_columns) is bad columns
         _col_dict = {'DF1': _columns, 'DF2': np.flip(_columns), 'NO_HDR_DF': None}
@@ -527,100 +738,34 @@ class TestExceptWarnOnDifferentHeader:
             TestCls.partial_fit(scd_fit_X)
             TestCls.transform(trfm_X)
 
-    del NAMES
+    # END SHAPE ########################################################
 
-# END TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
-
-
-# TEST OUTPUT TYPES ####################################################
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestOutputTypes:
+class TestPartialFit:
 
-    _base_objects = ['np_array', 'pandas', 'scipy_sparse_csc']
+    #     def partial_fit(
+    #         self,
+    #         X: DataContainer,
+    #         y: any=None
+    #     ) -> Self:
 
-    @pytest.mark.parametrize('x_input_type', _base_objects)
-    @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
-    def test_output_types(
-        self, X_np, _columns, _kwargs, x_input_type, output_type
+
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'bsr_array'))
+    def test_X_is_not_mutated(
+        self, _X_factory, _columns, _shape, _kwargs, _format
     ):
-
-        if x_input_type == 'np_array':
-            _X = X_np
-        elif x_input_type == 'pandas':
-            _X = pd.DataFrame(data=X_np, columns=_columns)
-        elif x_input_type == 'scipy_sparse_csc':
-            _X = ss.csc_array(X_np)
-        else:
-            raise Exception
-
-        TestCls = SlimPoly(**_kwargs)
-        TestCls.set_output(transform=output_type)
-
-        TRFM_X = TestCls.fit_transform(_X)
-
-        # if output_type is None, should return same type as given
-        if output_type is None:
-            assert type(TRFM_X) == type(_X), \
-                (f"output_type is None, X output type ({type(TRFM_X)}) != "
-                 f"X input type ({type(_X)})")
-        # if output_type is 'default', should return np array no matter what given
-        elif output_type == 'default':
-            assert isinstance(TRFM_X, np.ndarray), \
-                f"output_type is default, TRFM_X is {type(TRFM_X)}"
-        # if output_type is 'pandas', should return pd df no matter what given
-        elif output_type == 'pandas':
-            # pandas.core.frame.DataFrame
-            assert isinstance(TRFM_X, pd.core.frame.DataFrame), \
-                f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
-        elif output_type == 'polars':
-            # polars.dataframe.frame.DataFrame
-            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
-                f"output_type is polars dataframe, TRFM_X is {type(TRFM_X)}"
-        else:
-            raise Exception
+        pass
 
 
-    @pytest.mark.parametrize('x_input_type', _base_objects)
-    @pytest.mark.parametrize('_sparse_output', (True, False))
-    def test_sparse_output(
-            self, X_np, _columns, _kwargs, x_input_type, _sparse_output
-    ):
+    @pytest.mark.parametrize('_test_y',
+        (-1, 0, 1, np.pi, True, False, None, 'trash', [1, 2], {1, 2}, {'a': 1},
+        lambda x: x, min)
+    )
+    def test_fit_partial_fit_accept_Y_equals_anything(self, _kwargs, X_np, _test_y):
+        SlimPoly(**_kwargs).fit(X_np, _test_y)
+        SlimPoly(**_kwargs).partial_fit(X_np, _test_y)
 
-        _kwargs['sparse_output'] = _sparse_output
-
-        if x_input_type == 'np_array':
-            _X = X_np
-        elif x_input_type == 'pandas':
-            _X = pd.DataFrame(data=X_np, columns=_columns)
-        elif x_input_type == 'scipy_sparse_csc':
-            _X = ss.csc_array(X_np)
-        else:
-            raise Exception
-
-        TestCls = SlimPoly(**_kwargs)
-
-        out = TestCls.fit_transform(_X)
-
-        # when 'sparse_output' is False, return in the original container
-        # when True, always return as ss csr, no matter what input container
-        if _sparse_output:
-            assert isinstance(out, (ss.csr_matrix, ss.csr_array))
-        elif not _sparse_output:
-            assert isinstance(out, type(_X))
-
-# TEST OUTPUT TYPES ####################################################
-
-
-
-# TEST CONDITIONAL ACCESS TO partial_fit() AND fit() ###################
-# 1) partial_fit() should allow unlimited number of subsequent partial_fits()
-# 2) one call to fit() should allow subsequent attempts to partial_fit()
-# 3) one call to fit() should allow later attempts to fit() (2nd fit will reset)
-# 4) calls to partial_fit() should allow later attempt to fit() (fit will reset)
-# 5) fit_transform() should allow calls ad libido
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestConditionalAccessToPartialFitAndFit:
 
     def test_conditional_access_to_partial_fit_and_fit(
         self, X_np, _kwargs
@@ -628,27 +773,27 @@ class TestConditionalAccessToPartialFitAndFit:
 
         TestCls = SlimPoly(**_kwargs)
 
-        # 1)
+        # 1) partial_fit() should allow unlimited number of subsequent partial_fits()
         for _ in range(5):
             TestCls.partial_fit(X_np)
 
         del TestCls
 
-        # 2)
+        # 2) one call to fit() should allow subsequent attempts to partial_fit()
         TestCls = SlimPoly(**_kwargs)
         TestCls.fit(X_np)
         TestCls.partial_fit(X_np)
 
         del TestCls
 
-        # 3)
+        # 3) one call to fit() should allow later attempts to fit() (2nd fit will reset)
         TestCls = SlimPoly(**_kwargs)
         TestCls.fit(X_np)
         TestCls.fit(X_np)
 
         del TestCls
 
-        # 4) a call to fit() after a previous partial_fit() should be allowed
+        # 4) calls to partial_fit() should allow later attempt to fit() (fit will reset)
         TestCls = SlimPoly(**_kwargs)
         TestCls.partial_fit(X_np)
         TestCls.fit(X_np)
@@ -658,13 +803,6 @@ class TestConditionalAccessToPartialFitAndFit:
             TestCls.fit_transform(X_np)
 
         del TestCls
-
-# END TEST CONDITIONAL ACCESS TO partial_fit() AND fit() ###############
-
-
-# TEST MANY PARTIAL FITS == ONE BIG FIT ********************************
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestManyPartialFitsEqualOneBigFit:
 
 
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
@@ -824,11 +962,109 @@ class TestManyPartialFitsEqualOneBigFit:
         # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
         # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
 
-# END TEST MANY PARTIAL FITS == ONE BIG FIT ****************************
-
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAColumnOfAllOnesInX:
+class TestTransform:
+
+    #     def transform(
+    #         self,
+    #         X: DataContainer,
+    #         *,
+    #         copy: bool = None
+    #     ) -> DataContainer:
+
+
+    @pytest.mark.parametrize('_copy',
+        (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
+    )
+    def test_copy_validation(self, X_np, _shape, _kwargs, _copy):
+        pass
+
+
+    @pytest.mark.parametrize('x_input_type', ['np_array', 'pandas', 'scipy_sparse_csc'])
+    @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
+    def test_output_types(
+        self, X_np, _columns, _kwargs, x_input_type, output_type
+    ):
+
+        if x_input_type == 'np_array':
+            _X = X_np
+        elif x_input_type == 'pandas':
+            _X = pd.DataFrame(data=X_np, columns=_columns)
+        elif x_input_type == 'scipy_sparse_csc':
+            _X = ss.csc_array(X_np)
+        else:
+            raise Exception
+
+        TestCls = SlimPoly(**_kwargs)
+        TestCls.set_output(transform=output_type)
+
+        TRFM_X = TestCls.fit_transform(_X)
+
+        # if output_type is None, should return same type as given
+        if output_type is None:
+            assert type(TRFM_X) == type(_X), \
+                (f"output_type is None, X output type ({type(TRFM_X)}) != "
+                 f"X input type ({type(_X)})")
+        # if output_type is 'default', should return np array no matter what given
+        elif output_type == 'default':
+            assert isinstance(TRFM_X, np.ndarray), \
+                f"output_type is default, TRFM_X is {type(TRFM_X)}"
+        # if output_type is 'pandas', should return pd df no matter what given
+        elif output_type == 'pandas':
+            # pandas.core.frame.DataFrame
+            assert isinstance(TRFM_X, pd.core.frame.DataFrame), \
+                f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
+        elif output_type == 'polars':
+            # polars.dataframe.frame.DataFrame
+            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
+                f"output_type is polars dataframe, TRFM_X is {type(TRFM_X)}"
+        else:
+            raise Exception
+
+
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'coo_matrix'))
+    def test_X_is_not_mutated(
+        self, _X_factory, _columns, _shape, _kwargs, _format
+    ):
+
+        _X_wip = _X_factory(
+            _has_nan=False, _format=_format, _dtype='flt',
+            _columns=_columns, _constants=None, _noise=0, _zeros=None,
+            _shape=_shape
+        )
+
+        if _format == 'np':
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
+
+        try:
+            _X_wip_before = _X_wip.copy()
+        except:
+            _X_wip_before = _X_wip.clone()
+
+
+        _SPF = SlimPoly(**_kwargs).fit(_X_wip)
+
+        # verify _X_wip does not mutate in transform()
+        TRFM_X = _SPF.transform(_X_wip)
+
+
+        # ASSERTIONS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        assert isinstance(_X_wip, type(_X_wip_before))
+        assert _X_wip.shape == _X_wip_before.shape
+
+        if isinstance(_X_wip_before, np.ndarray):
+            assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
+        elif hasattr(_X_wip_before, 'columns'):    # DATAFRAMES
+            assert _X_wip.equals(_X_wip_before)
+        elif hasattr(_X_wip_before, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
+            )
+        else:
+            raise Exception
+
 
     def test_all_ones_in_X(self, _kwargs, X_np):
 
@@ -859,9 +1095,6 @@ class TestAColumnOfAllOnesInX:
         assert out is None
 
 
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAColumnOfAllZerosInX:
-
     def test_all_zeros_in_X(self, _kwargs, X_np):
 
         # this should always end in a degenerate state that causes no-ops
@@ -891,10 +1124,7 @@ class TestAColumnOfAllZerosInX:
         assert out is None
 
 
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-@pytest.mark.parametrize('_equal_nan', (True, False))
-class TestAColumnOfAllNansInX:
-
+    @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_one_all_nans(self, _kwargs, X_np, _shape, _equal_nan):
 
         # do this with interaction_only = False
@@ -942,6 +1172,7 @@ class TestAColumnOfAllNansInX:
             assert all(nan_mask_numerical(out[:, 4]))
 
 
+    @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_intx_creates_all_nans(self, _kwargs, _equal_nan):
 
         # rig X to have 2 columns that multiply to all nans
@@ -983,345 +1214,6 @@ class TestAColumnOfAllNansInX:
             assert all(nan_mask_numerical(out[:, 2]))
 
 
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestPartialFit:
-
-    #     def partial_fit(
-    #         self,
-    #         X: DataContainer,
-    #         y: any=None
-    #     ) -> Self:
-
-    # - only accepts ndarray, pd.DataFrame, and all ss
-    # - cannot be None
-    # - must be 2D
-    # - must have at least 1 or 2 columns, depending on interaction_only
-    # - allows nan
-    # - validates all instance attrs --- not tested here, see _validation
-    # - does not mutate X
-
-
-    @pytest.mark.parametrize('_junk_X',
-        (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_X(self, _junk_X, _kwargs):
-
-        # this is being caught by validate_data at the top of partial_fit
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).partial_fit(_junk_X)
-
-
-    @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
-    def test_rejects_invalid_container(self, X_np, _columns, _kwargs, _format):
-
-        _SPF = SlimPoly(**_kwargs)
-
-        if _format == 'py_list':
-            _X_wip = list(map(list, X_np.copy()))
-        elif _format == 'py_tuple':
-            _X_wip = tuple(map(tuple, X_np.copy()))
-        else:
-            raise Exception
-
-        if _format == 'py_list':
-            with pytest.raises(ValueError):
-                _SPF.partial_fit(_X_wip)
-        elif _format == 'py_tuple':
-            with pytest.raises(ValueError):
-                _SPF.partial_fit(_X_wip)
-        else:
-            raise Exception
-
-
-    @pytest.mark.parametrize('_format',
-         (
-             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
-         )
-    )
-    def test_X_container(self, X_np, _columns, _kwargs, _format):
-
-        _X = X_np.copy()
-
-        if _format == 'np':
-            _X_wip = _X
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(data=_X, columns=_columns)
-        elif _format == 'pl':
-            _X_wip = pl.from_numpy(data=_X, schema=list(_columns))
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        else:
-            raise Exception
-
-        try:
-            _X_wip_before_partial_fit = _X_wip.copy()
-        except:
-            _X_wip_before_partial_fit = _X_wip.clone()
-
-        SlimPoly(**_kwargs).partial_fit(_X_wip)
-
-        # verify _X_wip does not mutate in partial_fit()
-        assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
-        assert _X_wip.shape == _X_wip_before_partial_fit.shape
-        if isinstance(_X_wip, np.ndarray):
-            assert _X_wip.flags['C_CONTIGUOUS'] is True
-
-        if hasattr(_X_wip_before_partial_fit, 'toarray'):
-            assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before_partial_fit.toarray()
-            )
-        elif isinstance(_X_wip_before_partial_fit, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert _X_wip.equals(_X_wip_before_partial_fit)
-        else:
-            assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
-
-
-    def test_rejects_no_samples(self, X_np, _kwargs, _columns):
-
-        _X = X_np.copy()
-
-        # dont know what is actually catching this! maybe _validate_data?
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).partial_fit(
-                np.empty((0, _X.shape[1]), dtype=np.float64)
-            )
-
-
-    def test_rejects_1D(self, X_np, _kwargs):
-
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).partial_fit(X_np[:, 0])
-
-
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestTransform:
-
-    #     def transform(
-    #         self,
-    #         X: DataContainer,
-    #         *,
-    #         copy: bool = None
-    #     ) -> DataContainer:
-
-    # - only accepts ndarray, pd.DataFrame, and all ss
-    # - cannot be None
-    # - must be 2D
-    # - must have at least 1 or 2 columns, depending on interaction_only
-    # - must have at least 1 sample
-    # - num columns must equal num columns seen during fit
-    # - allows nan
-    # - output is C contiguous
-    # - validates all instance attrs -- this isnt tested here, see _validation
-
-
-    @pytest.mark.parametrize('_junk_X',
-        (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_X(self, X_np, _junk_X, _kwargs):
-
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(X_np)
-
-        # this is being caught by _val_X in _validation at the top of transform
-        with pytest.raises(ValueError):
-            _SPF.transform(_junk_X)
-
-
-    @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
-    def test_rejects_invalid_container(self, X_np, _columns, _kwargs, _format):
-
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(X_np)  # fit on numpy, not the converted data
-
-        if _format == 'py_list':
-            _X_wip = list(map(list, X_np.copy()))
-        elif _format == 'py_tuple':
-            _X_wip = tuple(map(tuple, X_np.copy()))
-        else:
-            raise Exception
-
-        if _format == 'py_list':
-            with pytest.raises(ValueError):
-                _SPF.transform(_X_wip)
-        elif _format == 'py_tuple':
-            with pytest.raises(ValueError):
-                _SPF.transform(_X_wip)
-        else:
-            raise Exception
-
-
-    @pytest.mark.parametrize('_format',
-         (
-             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
-         )
-    )
-    def test_X_container(self, X_np, _columns, _kwargs, _format):
-
-        _X = X_np.copy()
-
-        if _format == 'np':
-            _X_wip = _X
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(data=_X, columns=_columns)
-        elif _format == 'pl':
-            _X_wip = pl.from_numpy(data=_X, schema=list(_columns))
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        else:
-            raise Exception
-
-        try:
-            _X_wip_before_transform = _X_wip.copy()
-        except:
-            _X_wip_before_transform = _X_wip.clone()
-
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(_X)  # fit on numpy, not the converted data
-
-        out = _SPF.transform(_X_wip)
-        assert isinstance(out, type(_X_wip))
-
-        # if output is numpy, order is C
-        if isinstance(out, np.ndarray):
-            assert out.flags['C_CONTIGUOUS'] is True
-
-        # verify _X_wip does not mutate in transform()
-        assert isinstance(_X_wip, type(_X_wip_before_transform))
-        assert _X_wip.shape == _X_wip_before_transform.shape
-
-        if hasattr(_X_wip_before_transform, 'toarray'):
-            assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before_transform.toarray()
-            )
-        elif isinstance(_X_wip_before_transform, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert _X_wip.equals(_X_wip_before_transform)
-        else:
-            assert np.array_equal(_X_wip_before_transform, _X_wip)
-
-
-    # test_X_num_columns(self)
-    # this is dictated by partial_fit. partial_fit requires at least 1 or
-    # 2 columns, and transform must have same number of features as fit
-
-
-    def test_rejects_no_samples(self, X_np, _kwargs):
-
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(X_np)
-
-        # this is caught by if _X.shape[0] == 0 in _val_X
-        with pytest.raises(ValueError):
-            _SPF.transform(
-                np.empty((0, X_np.shape[1]), dtype=np.float64)
-            )
-
-
-    def test_rejects_1D(self, X_np, _kwargs):
-
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(X_np)
-
-        with pytest.raises(ValueError):
-            _SPF.transform(X_np[:, 0])
-
-
-    def test_rejects_bad_num_features(self, X_np, _kwargs, _columns):
-        # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
-        # FITTED COLUMNS
-
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(X_np)
-
-        __ = np.array(_columns)
-        for obj_type in ['np', 'pd', 'pl']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    _X = X_np.copy()
-                    if obj_type == 'pd':
-                        _X = pd.DataFrame(data=_X, columns=__)
-                    elif obj_type == 'pl':
-                        _X = pl.from_numpy(data=_X, schema=list(__))
-                elif diff_cols == 'less':
-                    _X = X_np[:, :-1].copy()
-                    if obj_type == 'pd':
-                        _X = pd.DataFrame(data=_X, columns=__[:-1])
-                    elif obj_type == 'pl':
-                        _X = pl.from_numpy(data=_X, schema=list(__[:-1]))
-                elif diff_cols == 'more':
-                    _X = np.hstack((X_np.copy(), X_np.copy()))
-                    _COLUMNS = np.hstack((__, np.char.upper(__)))
-                    if obj_type == 'pd':
-                        _X = pd.DataFrame(data=_X, columns=_COLUMNS)
-                    elif obj_type == 'pl':
-                        _X = pl.from_numpy(data=_X, schema=list(_COLUMNS))
-                else:
-                    raise Exception
-
-                if diff_cols == 'same':
-                    _SPF.transform(_X)
-                else:
-                    with pytest.raises(ValueError):
-                        _SPF.transform(_X)
-
-        del _SPF, obj_type, diff_cols, _X
 
     # pizza this needs a lot of work for polars. assess the need for this test.
     @pytest.mark.parametrize('_format', ('np', 'pd', 'csr'))   # , 'pl'
@@ -1452,6 +1344,108 @@ class TestTransform:
         else:
             assert out.dtype == np.float64
 
+
+    @pytest.mark.parametrize('x_input_type', ['np_array', 'pandas', 'scipy_sparse_csc'])
+    @pytest.mark.parametrize('_sparse_output', (True, False))
+    def test_sparse_output(
+            self, X_np, _columns, _kwargs, x_input_type, _sparse_output
+    ):
+
+        _kwargs['sparse_output'] = _sparse_output
+
+        if x_input_type == 'np_array':
+            _X = X_np
+        elif x_input_type == 'pandas':
+            _X = pd.DataFrame(data=X_np, columns=_columns)
+        elif x_input_type == 'scipy_sparse_csc':
+            _X = ss.csc_array(X_np)
+        else:
+            raise Exception
+
+        TestCls = SlimPoly(**_kwargs)
+
+        out = TestCls.fit_transform(_X)
+
+        # when 'sparse_output' is False, return in the original container
+        # when True, always return as ss csr, no matter what input container
+        if _sparse_output:
+            assert isinstance(out, (ss.csr_matrix, ss.csr_array))
+        elif not _sparse_output:
+            assert isinstance(out, type(_X))
+
+
+class TestFitTransform:
+
+
+    @pytest.mark.parametrize('x_input_type', ['np_array', 'pandas', 'scipy_sparse_csc'])
+    @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
+    def test_output_types(
+        self, X_np, _columns, _kwargs, x_input_type, output_type
+    ):
+
+        if x_input_type == 'np_array':
+            _X = X_np
+        elif x_input_type == 'pandas':
+            _X = pd.DataFrame(data=X_np, columns=_columns)
+        elif x_input_type == 'scipy_sparse_csc':
+            _X = ss.csc_array(X_np)
+        else:
+            raise Exception
+
+        TestCls = SlimPoly(**_kwargs)
+        TestCls.set_output(transform=output_type)
+
+        TRFM_X = TestCls.fit_transform(_X)
+
+        # if output_type is None, should return same type as given
+        if output_type is None:
+            assert type(TRFM_X) == type(_X), \
+                (f"output_type is None, X output type ({type(TRFM_X)}) != "
+                 f"X input type ({type(_X)})")
+        # if output_type is 'default', should return np array no matter what given
+        elif output_type == 'default':
+            assert isinstance(TRFM_X, np.ndarray), \
+                f"output_type is default, TRFM_X is {type(TRFM_X)}"
+        # if output_type is 'pandas', should return pd df no matter what given
+        elif output_type == 'pandas':
+            # pandas.core.frame.DataFrame
+            assert isinstance(TRFM_X, pd.core.frame.DataFrame), \
+                f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
+        elif output_type == 'polars':
+            # polars.dataframe.frame.DataFrame
+            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
+                f"output_type is polars dataframe, TRFM_X is {type(TRFM_X)}"
+        else:
+            raise Exception
+
+
+    @pytest.mark.parametrize('x_input_type', ['np_array', 'pandas', 'scipy_sparse_csc'])
+    @pytest.mark.parametrize('_sparse_output', (True, False))
+    def test_sparse_output(
+            self, X_np, _columns, _kwargs, x_input_type, _sparse_output
+    ):
+
+        _kwargs['sparse_output'] = _sparse_output
+
+        if x_input_type == 'np_array':
+            _X = X_np
+        elif x_input_type == 'pandas':
+            _X = pd.DataFrame(data=X_np, columns=_columns)
+        elif x_input_type == 'scipy_sparse_csc':
+            _X = ss.csc_array(X_np)
+        else:
+            raise Exception
+
+        TestCls = SlimPoly(**_kwargs)
+
+        out = TestCls.fit_transform(_X)
+
+        # when 'sparse_output' is False, return in the original container
+        # when True, always return as ss csr, no matter what input container
+        if _sparse_output:
+            assert isinstance(out, (ss.csr_matrix, ss.csr_array))
+        elif not _sparse_output:
+            assert isinstance(out, type(_X))
 
 
 

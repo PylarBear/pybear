@@ -6,13 +6,14 @@
 
 
 
+import pytest
+
 from copy import deepcopy
 import itertools
+
 import numpy as np
 import pandas as pd
 import polars as pl
-
-import pytest
 
 from pybear.preprocessing._ColumnDeduplicateTransformer. \
     ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
@@ -25,9 +26,7 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
 class TestAccuracy:
 
 
-    # save yourself 50 seconds of life. test only one scipy sparse.
-
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array')) # , 'csc', 'coo'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('dupls', (None, [[0,2,9]], [[0,6],[1,8]]))
@@ -35,7 +34,8 @@ class TestAccuracy:
     @pytest.mark.parametrize('do_not_drop', (None, [0,5], 'pd'))
     @pytest.mark.parametrize('conflict', ('raise', 'ignore'))
     @pytest.mark.parametrize('equal_nan', (True, False))
-    def test_accuracy(self, _X_factory, _kwargs, X_format, X_dtype, has_nan,
+    def test_accuracy(
+        self, _X_factory, _kwargs, X_format, X_dtype, has_nan,
         dupls, keep, do_not_drop, conflict, _columns, equal_nan, _shape
     ):
 
@@ -46,6 +46,7 @@ class TestAccuracy:
         assert isinstance(equal_nan, bool)
         # END validate the test parameters
 
+        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if X_dtype in ['str', 'obj', 'hybrid'] and X_format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take str")
 
@@ -57,16 +58,32 @@ class TestAccuracy:
                 pytest.skip(
                     reason=f"impossible condition, str dnd and format is not pd"
                 )
+        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         X = _X_factory(
             _dupl=dupls,
+            _has_nan=has_nan,
             _format=X_format,
             _dtype=X_dtype,
-            _has_nan=has_nan,
-            _shape=_shape,
-            _columns=_columns
+            _columns=_columns,
+            _constants=None,
+            _noise=0,
+            _zeros=None,
+            _shape=_shape
+
         )
+
+        # retain original format
+        _og_format = type(X)
+
+        # retain original dtypes
+        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
+            # need to cast pl to ndarray
+            _og_dtype = np.array(X.dtypes)
+        else:
+            _og_dtype = X.dtype
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # set do_not_drop as list of strings (vs None or list of ints)
         if do_not_drop == 'pd':
@@ -89,13 +106,6 @@ class TestAccuracy:
 
         TestCls = CDT(**_kwargs)
 
-        # retain original format
-        _og_format = type(X)
-        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            # need to cast pl to ndarray
-            _og_dtype = np.array(X.dtypes)
-        else:
-            _og_dtype = X.dtype
 
         if _conflict_condition and conflict=='raise':
             with pytest.raises(ValueError):

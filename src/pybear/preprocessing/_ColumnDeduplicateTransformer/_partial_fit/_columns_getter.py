@@ -57,6 +57,7 @@ def _columns_getter(
 
     """
 
+
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
         (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,

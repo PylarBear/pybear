@@ -30,18 +30,16 @@ from ._type_aliases import (
 import numbers
 
 import numpy as np
-import pandas as pd
-import polars as pl
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
 from ._validation._keep_and_columns import _val_keep_and_columns
-from ._partial_fit._columns_getter import _columns_getter
 from ._partial_fit._find_constants import _find_constants
 from ._shared._make_instructions import _make_instructions
 from ._shared._set_attributes import _set_attributes
 from ._shared._manage_keep import _manage_keep
 from ._inverse_transform._inverse_transform import _inverse_transform
+from ._inverse_transform._remove_intercept import _remove_intercept
 from ._transform._transform import _transform
 
 from ...base import (
@@ -893,7 +891,6 @@ class InterceptManager(
     def inverse_transform(
         self,
         X:DataContainer,
-        *,
         copy:Optional[Union[bool, None]] = None
     ) -> DataContainer:
 
@@ -927,7 +924,7 @@ class InterceptManager(
         Return
         ------
         -
-            X_tr: array-like of shape (n_samples, n_features) -
+            X_inv: array-like of shape (n_samples, n_features) -
             Transformed data reverted to its original untransformed
             state.
 
@@ -959,6 +956,8 @@ class InterceptManager(
 
         _val_X(X_inv)
 
+        _val_keep_and_columns(self.keep, None, 'spoof_X')
+
         # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # ss sparse that cant be sliced
@@ -969,46 +968,12 @@ class InterceptManager(
             _og_format = type(X_inv)
             X_inv = X_inv.tocsc()
 
-
         # if _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # a column of constants was stacked to the right side of the data.
         # check that 'keep' is valid (may have changed via set_params()),
         # the passed data matches against 'keep', and remove the column
         if isinstance(self.keep, dict):
-
-            _val_keep_and_columns(self.keep, None, 'spoof_X')
-
-            _unqs = np.unique(_columns_getter(X_inv, X_inv.shape[1]-1))
-
-            _key = list(self.keep.keys())[0]
-            _base_err = (
-                f":param: 'keep' is a dictionary but the last column of "
-                f"the data to be inverse transformed does not match."
-                f"\nkeep={self.keep}, but last column "
-            )
-            if len(_unqs) == 1:
-                try:
-                    _are_equal = (float(self.keep[_key]) == float(_unqs[0]))
-                except:
-                    _are_equal = (self.keep[_key] == _unqs[0])
-
-                if _are_equal:
-                    if isinstance(X_inv, np.ndarray):
-                        X_inv = np.delete(X_inv, -1, axis=1)
-                    elif isinstance(X_inv, pd.core.frame.DataFrame):
-                        X_inv = X_inv.drop(columns=[_key])
-                    elif isinstance(X_inv, pl.DataFrame):
-                        X_inv = X_inv.drop(_key)
-                    elif hasattr(X_inv, 'toarray'):
-                        X_inv = X_inv[:, list(range(X_inv.shape[1]-1))]
-                    else:
-                        raise Exception
-                else:
-                    raise ValueError(_base_err + f"value = {_unqs[0]}..")
-            else:
-                raise ValueError(_base_err + f"is not constant.")
-
-            del _unqs, _key, _base_err
+            X_inv = _remove_intercept(X_inv, self.keep)
         # END _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # the number of columns in X_inv must be equal to the number of features

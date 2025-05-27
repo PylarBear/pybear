@@ -35,31 +35,6 @@ def _kwargs():
     }
 
 
-@pytest.fixture(scope='module')
-def _dupl1():
-    return [
-        [0, 7],
-        [1, 5, 8]
-    ]
-
-
-@pytest.fixture(scope='module')
-def _dupl2():
-    return []
-
-
-@pytest.fixture(scope='module')
-def _dupl3():
-    return [
-        [0, 7, 9],
-        [1, 5, 6, 8]
-    ]
-
-
-@pytest.fixture(scope='module')
-def _dupl4():
-    return [[0, 4, 7]]
-
 
 
 

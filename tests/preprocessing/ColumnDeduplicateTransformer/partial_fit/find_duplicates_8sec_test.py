@@ -15,7 +15,31 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
 
 
 
-class TestNpFindDuplicates:
+class TestFindDuplicates:
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _dupl1():
+        return [[0, 7], [1, 5, 8]]
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _dupl2():
+        return []
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _dupl3():
+        return [[0, 7, 9], [1, 5, 6, 8]]
+
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _dupl4():
+        return [[0, 4, 7]]
 
 
     @pytest.mark.parametrize('_format',
@@ -46,21 +70,20 @@ class TestNpFindDuplicates:
             )
 
 
-    @pytest.mark.parametrize('_dtype', ('flt', 'int'))
+    @pytest.mark.parametrize('_dtype', ('flt', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_dupl_set', (1, 2, 3, 4))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
-    @pytest.mark.parametrize('_format',
-    (
-     'np', 'csc_matrix', 'csc_array',
-     # 'csr_matrix', 'lil_matrix',
-     # 'dok_matrix', 'csr_array', 'lil_array', 'dok_array'    # pizza
-    )
-    )
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_matrix', 'csc_array'))
     def test_accuracy(
-        self, _X_factory, _dtype, _equal_nan, _format, _shape, _has_nan,
-        _dupl_set, _dupl1, _dupl2, _dupl3, _dupl4
+        self, _X_factory, _columns, _shape, _dtype, _has_nan, _equal_nan,
+        _format, _dupl_set, _dupl1, _dupl2, _dupl3, _dupl4
     ):
+
+        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
+        if _dtype not in ('np', 'pd', 'pl') and _dtype not in ('int', 'flt'):
+            pytest.skip(reason=f'scipy sparse cannot take str')
+        # END skip impossible conditions -- -- -- -- -- -- -- -- -- --
 
         if _dupl_set == 1:
             _dupl = _dupl1
@@ -83,7 +106,7 @@ class TestNpFindDuplicates:
             _shape=_shape
         )
 
-        # leave n_jobs set a 1 because of confliction
+        # leave n_jobs set at 1 because of confliction
         out = _find_duplicates(
             _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan, _n_jobs=1
         )
@@ -106,14 +129,7 @@ class TestNpFindDuplicates:
             raise Exception
 
 
-    # pizza
-    @pytest.mark.parametrize('_format',
-        (
-         'csc_matrix', 'csc_array',
-         #'csr_matrix', 'lil_matrix', 'dok_matrix',
-         #'csr_array', 'lil_array', 'dok_array'
-        )
-    )
+    @pytest.mark.parametrize('_format', ('csc_matrix', 'csc_array'))
     def test_accuracy_ss_all_zeros(self, _X_factory, _format, _shape):
 
         _X_wip = _X_factory(

@@ -6,8 +6,12 @@
 
 
 
-from typing import Sequence
 from typing_extensions import Union
+from .._type_aliases import (
+    DoNotDropType,
+    DuplicatesType,
+    FeatureNamesInType
+)
 
 import itertools
 
@@ -15,53 +19,52 @@ import numpy as np
 
 
 
-
 def _lock_in_random_idxs(
-    _duplicates: list[list[int]],
-    _do_not_drop: Union[Sequence[int], Sequence[str], None],
-    _columns: Union[Sequence[str], None]
+    _duplicates: DuplicatesType,
+    _do_not_drop: DoNotDropType,
+    _columns: Union[FeatureNamesInType, None]
 ) -> tuple[int]:
 
     """
 
     The :meth: `transform` method needs to mask the same indices for
     all batch-wise transforms, otherwise the outputted batches will
-    have different columns. When :param: `keep` is set to
-    'random', :method: `transform` needs a static set of random column
-    indices to use repeatedly, rather than a set of dynamic indices
-    that are regenerated with each call to :meth: `transform`.
+    have different columns. When :param: `keep` is set to 'random',
+    `transform` needs a static set of random column indices to use
+    repeatedly, rather than a set of dynamic indices that are regenerated
+    with each call to `transform`.
 
     Goal: Create a static set of random indices that is regenerated with
-    each call to :method: partial_fit, but is unchanged when :method:
-    transform is called.
+    each call to :meth: `partial_fit`, but is unchanged when `transform`
+    is called.
 
     This module builds a static ordered tuple of randomly selected
     indices, one index from each set of duplicates, subject to any
-    constraints imposed by :param: do_not_drop, if passed. For example,
-    a simple case would be if :param: duplicates is [[1, 5, 9], [0, 8]],
-    and :param: do_not_drop is not passed, then a possible _rand_idxs
-    might look like (1, 8). THE ORDER OF THE INDICES IN _rand_idxs IS
-    CRITICALLY IMPORTANT AND MUST ALWAYS MATCH THE ORDER IN :param:
-    duplicates.
+    constraints imposed by :param: `do_not_drop`, if passed. For
+    example, a simple case would be if :attr: `duplicates_` is
+    [[1, 5, 9], [0, 8]], and `do_not_drop` is not passed, then a
+    possible _rand_idxs might look like (1, 8). THE ORDER OF THE
+    INDICES IN _rand_idxs IS CRITICALLY IMPORTANT AND MUST ALWAYS
+    MATCH THE ORDER IN `duplicates`.
 
-    This module assumes that 'keep' == 'random', even though that may
-    not be the case. This makes the static list ready and waiting for
-    use by :method: transform should at any time 'keep' be changed to
-    'random' via :method: set_params after fitting.
+    This module assumes that :param: `keep` == 'random', even though
+    that may not be the case. This makes the static list ready and
+    waiting for use by `transform` should at any time 'keep' be changed
+    to 'random' via :meth: `set_params` after fitting.
 
 
     Parameters
     ----------
-    _duplicates: list[list[int]] - the groups of identical columns,
+    _duplicates: DuplicatesType - the groups of identical columns,
         indicated by their zero-based column index positions.
     _do_not_drop:
-        Union[Sequence[int], Sequence[str], None], default=None - A list
-        of columns not to be dropped. If fitting is done on a pandas
-        dataframe that has a header, a list of feature names may be
-        provided. Otherwise, a list of column indices must be provided.
+        DoNotDropType, default=None - A list of columns not to be
+        dropped. If fitting is done on a container that has a header,
+        a list of feature names may be provided. Otherwise, a list of
+        column indices must be provided.
     _columns:
-        Union[Sequence[str], None] of shape (n_features,) - if fitting
-        is done on a pandas dataframe that has a header, this is a
+        Union[FeatureNamesInType, None] of shape (n_features,) - if
+        fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
 
 
@@ -70,11 +73,10 @@ def _lock_in_random_idxs(
     -
         _rand_idxs: tuple[int] - An ordered tuple whose values are a
         sequence of column indices, one index selected from each set of
-        duplicates in :param: duplicates.
+        duplicates in :attr: `duplicates_`.
 
 
     """
-
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -161,8 +163,8 @@ def _lock_in_random_idxs(
     # this cant be a set, it messes up the order against duplicates_
     _rand_idxs = tuple(_rand_idxs)
 
-    # output validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    # output validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     err_msg = (
         f"'_rand_idxs' must be a tuple of integers, 0 <= idx < X.shape[1], "
         f"and a single idx from each set of duplicates must be represented "
@@ -181,17 +183,12 @@ def _lock_in_random_idxs(
     # if there are duplicates, every entry in _rand_idxs must match one idx
     # in each set of duplicates
     for _idx, _dupl_set in enumerate(_duplicates):
-            assert _rand_idxs[_idx] in _dupl_set, \
-                err_msg + f'rand idx = {_rand_idxs[_idx]}, dupl set = {_dupl_set}'
+        assert _rand_idxs[_idx] in _dupl_set, \
+            err_msg + f'rand idx = {_rand_idxs[_idx]}, dupl set = {_dupl_set}'
+    # END output validation ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     return _rand_idxs
-
-
-
-
-
-
 
 
 

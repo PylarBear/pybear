@@ -52,7 +52,7 @@ class TestJoblib:
             _format='np',
             _dtype='flt',
             _columns=None,
-            _constants=None, # pizza _constants,
+            _constants=None,
             _noise=0,
             _zeros=None,
             _shape=_shape

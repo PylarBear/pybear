@@ -23,7 +23,6 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
 
 
 
-
 class Fixtures:
 
 

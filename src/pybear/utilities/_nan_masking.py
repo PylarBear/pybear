@@ -452,7 +452,8 @@ def nan_mask(
     """
 
 
-    if isinstance(obj, (str, dict)):
+    if isinstance(obj, (str, dict)) \
+            and not isinstance(obj,(ss.dok_matrix, ss.dok_array)):
         raise TypeError(f"only list-like or array-like objects are allowed.")
 
     try:
@@ -472,7 +473,6 @@ def nan_mask(
             raise TimeoutError
         else:
             raise NotImplementedError
-
     except UnicodeError:
         raise TypeError(f"'obj' cannot be scipy sparse dok or lil")
     except NotImplementedError:

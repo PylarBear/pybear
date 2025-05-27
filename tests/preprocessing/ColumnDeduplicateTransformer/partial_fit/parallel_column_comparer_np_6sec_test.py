@@ -5,9 +5,6 @@
 #
 
 
-# IMPORTANT!
-# this is not sparse so this uses _parallel_column_comparer!
-
 
 import pytest
 
