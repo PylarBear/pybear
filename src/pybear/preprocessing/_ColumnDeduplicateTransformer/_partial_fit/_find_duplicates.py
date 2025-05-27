@@ -5,10 +5,11 @@
 #
 
 
-from .._type_aliases import InternalDataContainer
-from typing_extensions import Union
 
-from numbers import Real
+from typing_extensions import Union
+from .._type_aliases import InternalDataContainer
+
+import numbers
 
 import itertools
 
@@ -23,12 +24,10 @@ from ._parallel_column_comparer import _parallel_column_comparer
 
 
 
-
-
 def _find_duplicates(
     _X: InternalDataContainer,
-    _rtol: Real,
-    _atol: Real,
+    _rtol: numbers.Real,
+    _atol: numbers.Real,
     _equal_nan: bool,
     _n_jobs: Union[int, None]
 ) -> list[list[int]]:
@@ -52,11 +51,11 @@ def _find_duplicates(
         is no conditioning of the data here, it must be passed to this
         module in suitable state.
     _rtol:
-        numbers.Real - the relative difference tolerance for equality.
+        numbers.numbers.Real - the relative difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
         numpy.allclose.
     _atol:
-        numbers.Real - the absolute difference tolerance for equality.
+        numbers.numbers.Real - the absolute difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
         numpy.allclose.
     _equal_nan:
@@ -85,10 +84,11 @@ def _find_duplicates(
     ------
     -
         GROUPS: list[list[int]] - lists indicating the column indices of
-            identical columns.
+        identical columns.
 
 
     """
+
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert (isinstance(_X, (np.ndarray, (pd.core.frame.DataFrame, pl.DataFrame)))
@@ -99,8 +99,8 @@ def _find_duplicates(
          ss.dia_array, ss.bsr_matrix, ss.bsr_array)
     )
 
-    assert isinstance(_rtol, Real) and _rtol >= 0
-    assert isinstance(_atol, Real) and _atol >= 0
+    assert isinstance(_rtol, numbers.Real) and _rtol >= 0
+    assert isinstance(_atol, numbers.Real) and _atol >= 0
     assert isinstance(_equal_nan, bool)
     assert isinstance(_n_jobs, (int, type(None)))
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -113,7 +113,7 @@ def _find_duplicates(
     args = (_rtol, _atol, _equal_nan)
 
 
-    _n_cols = 200
+    _n_cols = 50
 
 
     for col_idx1 in range(_X.shape[1] - 1):
@@ -127,6 +127,7 @@ def _find_duplicates(
         RANGE = range(col_idx1 + 1, _X.shape[1])
         IDXS = [i for i in RANGE if i not in _all_duplicates]
 
+        # pizza maybe want to change hits to something informative like X_dupls?
         if len(IDXS) < 2 * _n_cols:
             hits = []
             for col_idx2 in IDXS:
@@ -143,8 +144,8 @@ def _find_duplicates(
                             tuple(map(int, np.array(IDXS)[range(i, min(i + _n_cols, len(IDXS)))]))
                         ),
                         *args
-                    ) for i in range(0, len(IDXS), _n_cols)
-                )
+                        ) for i in range(0, len(IDXS), _n_cols)
+                    )
 
             hits = list(itertools.chain(*hits))
 

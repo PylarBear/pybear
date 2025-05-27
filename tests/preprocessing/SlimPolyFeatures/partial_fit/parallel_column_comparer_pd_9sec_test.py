@@ -6,21 +6,23 @@
 
 
 
+import pytest
+
+import numpy as np
 
 from pybear.preprocessing._SlimPolyFeatures._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
-
-import pytest
-
+from pybear.utilities._nan_masking import nan_mask
 
 
 
 class TestPdColumnComparer:
 
 
-    @pytest.mark.parametrize('_dtype1', ('flt', 'int', 'str', 'obj'))
-    @pytest.mark.parametrize('_dtype2', ('flt', 'int', 'str', 'obj'))
+    # no longer takes str/obj. non-num X is blocked by validate_data anyway.
+    @pytest.mark.parametrize('_dtype1', ('flt', 'int'))  #, 'str', 'obj'))
+    @pytest.mark.parametrize('_dtype2', ('flt', 'int'))  #, 'str', 'obj'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_accuracy(
@@ -35,7 +37,7 @@ class TestPdColumnComparer:
 
         _shape = (1000, 2)
 
-
+        # pizza polars?
         _X_flt = _X_factory(
             _dupl=[[0,1]],
             _format='pd',
@@ -45,7 +47,7 @@ class TestPdColumnComparer:
             _zeros=0.33,
             _shape=_shape
         )
-
+        # pizza polars?
         _X_int = _X_factory(
             _dupl=[[0,1]],
             _format='pd',
@@ -55,7 +57,7 @@ class TestPdColumnComparer:
             _zeros=0.33,
             _shape=_shape
         )
-
+        # pizza polars?
         _X_str = _X_factory(
             _dupl=[[0,1]],
             _format='pd',
@@ -65,7 +67,7 @@ class TestPdColumnComparer:
             _zeros=0.33,
             _shape=_shape
         )
-
+        # pizza polars?
         _X_obj = _X_factory(
             _dupl=[[0,1]],
             _format='pd',
@@ -77,31 +79,34 @@ class TestPdColumnComparer:
         )
 
         if _dtype1 == 'flt':
-            _X1 = _X_flt.iloc[:, 0]
+            _X1 = _X_flt.iloc[:, [0]]
         elif _dtype1 == 'int':
-            _X1 = _X_int.iloc[:, 0]
+            _X1 = _X_int.iloc[:, [0]]
         elif _dtype1 == 'str':
-            _X1 = _X_str.iloc[:, 0]
+            _X1 = _X_str.iloc[:, [0]]
         elif _dtype1 == 'obj':
-            _X1 = _X_obj.iloc[:, 0]
+            _X1 = _X_obj.iloc[:, [0]]
         else:
             raise Exception
 
         if _dtype2 == 'flt':
-            _X2 = _X_flt.iloc[:, 1]
+            _X2 = _X_flt.iloc[:, [1]]
         elif _dtype2 == 'int':
-            _X2 = _X_int.iloc[:, 1]
+            _X2 = _X_int.iloc[:, [1]]
         elif _dtype2 == 'str':
-            _X2 = _X_str.iloc[:, 1]
+            _X2 = _X_str.iloc[:, [1]]
         elif _dtype2 == 'obj':
-            _X2 = _X_obj.iloc[:, 1]
+            _X2 = _X_obj.iloc[:, [1]]
         else:
             raise Exception
 
+        _X1[nan_mask(_X1)] = np.nan
+        _X2[nan_mask(_X2)] = np.nan
+
 
         _are_equal = _parallel_column_comparer(
-            _X1, _X2, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
-        )
+            _X1.to_numpy(), _X2.to_numpy(), _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
+        )[0]
 
         if _dtype1 == _dtype2:
             if _equal_nan or not _has_nan:
@@ -110,27 +115,6 @@ class TestPdColumnComparer:
                 assert not _are_equal
         else:
             assert not _are_equal
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

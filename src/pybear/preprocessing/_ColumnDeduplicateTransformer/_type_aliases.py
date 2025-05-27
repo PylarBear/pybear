@@ -15,12 +15,17 @@ from typing_extensions import (
     Union
 )
 import numpy.typing as npt
+
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 
 
-SparseContainer: TypeAlias = Union[
+DataContainer: TypeAlias = Union[
+    npt.NDArray,
+    pd.DataFrame,
+    pl.DataFrame,
     ss._csr.csr_matrix,
     ss._csc.csc_matrix,
     ss._coo.coo_matrix,
@@ -37,30 +42,12 @@ SparseContainer: TypeAlias = Union[
     ss._bsr.bsr_array
 ]
 
-DataContainer: TypeAlias = Union[
-    npt.NDArray,
-    pd.DataFrame,
-    SparseContainer
-]
-
-# the internal containers differ from the above external data containers
-# by coo, dia, & bsr, because those cannot be sliced
-
-InternalSparseContainer: TypeAlias = Union[
-    ss._csr.csr_matrix,
-    ss._csc.csc_matrix,
-    ss._lil.lil_matrix,
-    ss._dok.dok_matrix,
-    ss._csr.csr_array,
-    ss._csc.csc_array,
-    ss._lil.lil_array,
-    ss._dok.dok_array
-]
-
 InternalDataContainer: TypeAlias = Union[
     npt.NDArray,
     pd.DataFrame,
-    InternalSparseContainer
+    pl.DataFrame,
+    ss.csc_array,
+    ss.csc_matrix
 ]
 
 KeepType: TypeAlias = Literal['first', 'last', 'random']
@@ -69,15 +56,13 @@ DoNotDropType: TypeAlias = Union[Sequence[int], Sequence[str], None]
 
 ConflictType: TypeAlias = Literal['raise', 'ignore']
 
-FeatureNamesInType: TypeAlias = npt.NDArray[str]
-
 DuplicatesType: TypeAlias = list[list[int]]
 
 RemovedColumnsType: TypeAlias = dict[int, int]
 
 ColumnMaskType: TypeAlias = npt.NDArray[bool]
 
-
+FeatureNamesInType: TypeAlias = npt.NDArray[str]
 
 
 

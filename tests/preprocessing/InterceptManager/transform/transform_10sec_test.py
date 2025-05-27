@@ -74,17 +74,18 @@ class TestTransform:
             'bsr_matrix', 'bsr_array', 'csr_array', 'csr_matrix'
         )
     )
-    def test_rejects_bad_container(self, _X_factory, _shape, _columns, _format):
+    def test_rejects_bad_container(self, _X_factory, _shape, _format):
 
         _X_wip = _X_factory(
             _dupl=None, _has_nan=False, _format=_format, _dtype='flt',
             _columns=None, _constants=None, _noise=0, _zeros=None, _shape=_shape
         )
 
-        _wip_instr = {'keep': [0, 1, 4], 'delete': [3, 8], 'add': None}
-
         with pytest.raises(AssertionError):
-            _transform(_X_wip, _wip_instr)
+            _transform(
+                _X_wip,
+                {'keep': [0, 1, 4], 'delete': [3, 8], 'add': None}
+            )
 
 
     @pytest.mark.parametrize('_dtype', ('flt', 'str'), scope='module')
@@ -103,13 +104,13 @@ class TestTransform:
         ('np', 'pd', 'pl', 'csc_array', 'csc_matrix'), scope='function'
     )
     def test_output(
-        self, _X_factory, _dtype, _format, _shape, _columns, _equal_nan,
-        _has_nan, _instructions, _const_col_str, _const_col_flt
+        self, _X_factory, _dtype, _has_nan, _equal_nan, _instructions,
+        _format, _shape, _columns, _const_col_str, _const_col_flt
     ):
 
         # Methodology:
-        # even tho it is a fixture, _instructions is conditional based on the
-        # test and sometimes is modified below.
+        # even tho it is a fixture, _instructions is conditional based on
+        # the test and sometimes is modified below.
         #
         # pass (the possibly modified) :fixture: _instructions to
         # _set_attributes() to build the expected column mask that would be
@@ -149,6 +150,7 @@ class TestTransform:
         # retain the original dtype(s)
         _og_format = type(_X_wip)
         if isinstance(_X_wip, (pd.core.frame.DataFrame, pl.DataFrame)):
+            # need to cast pl to ndarray
             _og_dtype = np.array(_X_wip.dtypes)
         else:
             _og_dtype = _X_wip.dtype

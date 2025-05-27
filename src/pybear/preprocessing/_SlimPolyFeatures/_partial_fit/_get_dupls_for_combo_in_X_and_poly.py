@@ -10,17 +10,17 @@ from typing_extensions import Union
 import numpy.typing as npt
 from .._type_aliases import InternalDataContainer
 
+import itertools
 import numbers
 
 import joblib
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from .._partial_fit._parallel_column_comparer import _parallel_column_comparer
-from .._partial_fit._chunk_comparer import _chunk_comparer
 from .._partial_fit._columns_getter import _columns_getter
-
 
 
 
@@ -28,7 +28,7 @@ def _get_dupls_for_combo_in_X_and_poly(
     _COLUMN: npt.NDArray[any],
     _X: InternalDataContainer,
     _POLY_CSC: Union[ss.csc_array, ss.csc_matrix],
-    _min_degree,  # pizza
+    _min_degree: numbers.Integral,  # pizza added to deal with X dupls influencing output when min_degree > 1
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real,
@@ -83,7 +83,6 @@ def _get_dupls_for_combo_in_X_and_poly(
         POLY.  Boolean True indicates the column in X or POLY is
         identical to _COLUMN.
 
-
     """
 
 
@@ -95,7 +94,7 @@ def _get_dupls_for_combo_in_X_and_poly(
     assert len(_COLUMN.shape) == 1   # a 1D vector
 
     # _X passes through SPF.partial_fit() into this as given
-    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or \
+    assert isinstance(_X, (np.ndarray, (pd.core.frame.DataFrame, pl.DataFrame))) or \
            hasattr(_X, 'toarray')
     assert not isinstance(_X,
         (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
@@ -126,68 +125,60 @@ def _get_dupls_for_combo_in_X_and_poly(
 
     args = (_COLUMN, _rtol, _atol, _equal_nan)
 
-    # def _parallel_column_comparer(
-    #     _column1: npt.NDArray[any],
-    #     _column2: npt.NDArray[any],
-    #     _rtol: numbers.Real,
-    #     _atol: numbers.Real,
-    #     _equal_nan: bool
-    # ) -> bool:
+
+    _n_cols = 200
 
 
     # look for duplicates in X
     # can use _parallel_column_comparer since _columns_getter turns ss to dense
     # there can be more than one hit for duplicates in X
-    # if _min_degree == 1:   # pizza
-        # pizza
-        # with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-        #     _X_dupls = joblib.Parallel(return_as='list')(
-        #         joblib.delayed(_parallel_column_comparer)(
-        #         _columns_getter(_X, c_idx).ravel(), *args
-        #         ) for c_idx in range(_X.shape[1])
-        #     )
     _X_dupls = []
-    for c_idx in range(_X.shape[1]):
-        _X_dupls.append(
-            _parallel_column_comparer(_columns_getter(_X, c_idx).ravel(), *args)
-        )
+    # if _min_degree == 1:   # pizza
+    if _X.shape[1] < 2 * _n_cols:
+        for c_idx in range(_X.shape[1]):
+            _X_dupls.append(
+                _parallel_column_comparer(_columns_getter(_X, c_idx),  *args)[0]
+            )
+    else:
+        with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+            _X_dupls = joblib.Parallel(return_as='list')(
+                joblib.delayed(_parallel_column_comparer)(
+                _columns_getter(
+                    _X,
+                    tuple(range(i, min(i + _n_cols, _X.shape[1])))
+                ),
+                *args
+                ) for i in range(0, _X.shape[1], _n_cols)
+            )
+
+        _X_dupls = list(itertools.chain(*_X_dupls))
     # else:
     #     _X_dupls = [False] * _X.shape[1]
+
+
+
 
     # look for duplicates in POLY
     # can use _parallel_column_comparer since _columns_getter turns ss to dense
     # there *cannot* be more than one hit for duplicates in POLY
-
-    # pizza
-    # build a dictionary of the col idxs in the chunks to send across Parallel
-    _n_cols = 200
-    import math
-    _n_chunks = math.ceil(_POLY_CSC.shape[1] / _n_cols)
-    _chunk_dict = dict()
-    for i in range(_n_chunks):
-        if i == _n_chunks - 1:
-            _chunk_dict[i] = tuple(range(i * _n_cols, _POLY_CSC.shape[1]))
-        else:
-            _chunk_dict[i] = tuple(range(i * _n_cols, (i + 1) * _n_cols))
-
-
-    if len(_chunk_dict) == 1:
-        # POLY_RANGE = range(_POLY_CSC.shape[1])  # pizza
-        # pizza
-        _poly_dupls = []
+    _poly_dupls = []
+    if _POLY_CSC.shape[1] < 2 * _n_cols:
         for c_idx in range(_POLY_CSC.shape[1]):
             _poly_dupls.append(
-                _parallel_column_comparer(_columns_getter(_POLY_CSC, c_idx).ravel(), *args)
+                _parallel_column_comparer(_columns_getter(_POLY_CSC, c_idx), *args)[0]
             )
     else:
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             _poly_dupls = joblib.Parallel(return_as='list')(
-                joblib.delayed(_chunk_comparer)(
-                    _columns_getter(_POLY_CSC, _col_idxs), *args      # ravel()
-                ) for _col_idxs in _chunk_dict.values()
+                joblib.delayed(_parallel_column_comparer)(
+                    _columns_getter(
+                        _POLY_CSC,
+                        tuple(range(i, min(i + _n_cols, _POLY_CSC.shape[1])))
+                    ),
+                    *args
+                ) for i in range(0, _POLY_CSC.shape[1], _n_cols)
             )
 
-        import itertools
         _poly_dupls = list(itertools.chain(*_poly_dupls))
 
     # del POLY_RANGE

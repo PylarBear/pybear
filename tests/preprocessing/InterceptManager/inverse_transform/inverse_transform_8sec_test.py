@@ -8,6 +8,8 @@
 
 import pytest
 
+
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -18,13 +20,15 @@ from pybear.preprocessing._InterceptManager._inverse_transform. \
 from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager
 
-from pybear.utilities import nan_mask
+from pybear.utilities._nan_masking import nan_mask
+
+
 
 
 
 class TestInverseTransform:
 
-
+    # verify that inverse_transform takes transformed back to original.
     # build an X with duplicates, use IM to manage the constant columns
     # under different parameters (IM transform() is independently tested)
     # use inverse_transform to reconstruct back to the original X.
@@ -40,6 +44,9 @@ class TestInverseTransform:
     def test_rejects_all_ss_that_are_not_csc(
         self, _X_factory, _shape, _kwargs, _format
     ):
+
+        # everything except ndarray, pd dataframe, & scipy csc matrix/array
+        # are blocked. should raise.
 
         # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         _X_wip = _X_factory(
@@ -60,7 +67,7 @@ class TestInverseTransform:
 
         with pytest.raises(AssertionError):
             _inverse_transform(
-                X=TRFM_X,
+                _X=TRFM_X,
                 _removed_columns=_IM.removed_columns_,
                 _feature_names_in=None
             )
@@ -70,7 +77,7 @@ class TestInverseTransform:
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none'))
     @pytest.mark.parametrize('_constants', ('constants1', 'constants2'))
     @pytest.mark.parametrize('_format, _has_header',
-        (('np', False), ('pd', True), ('pd', False), ('pd', True), ('pd', False),
+        (('np', False), ('pd', True), ('pd', False), ('pl', True), ('pl', False),
          ('csc_matrix', False), ('csc_array', False))
     )
     def test_accuracy(
@@ -123,23 +130,29 @@ class TestInverseTransform:
             rtol=1e-5,
             atol=1e-8,
             equal_nan=True,
-            n_jobs=1   # leave this at 1 because of confliction
+            n_jobs=1   # joblib is not engaged with so few columns
         )
 
-        _trfm_x = _IM.fit_transform(_X_wip)
+        TRFM_X = _IM.fit_transform(_X_wip)
 
+
+        _num_removed = len(_constants) - 1 + (_keep == 'none')
+        assert TRFM_X.shape[1] == _X_wip.shape[1] - _num_removed
+        assert len(_IM.removed_columns_) == _num_removed
+        del _num_removed
 
         # inverse transform v v v v v v v v v v v v v v v
 
         # _IM is only being used here to get the legit TRFM_X. only test
         # the core _inverse_transform module, not _IM.inverse_transform.
         out = _inverse_transform(
-            X=_trfm_x,
+            _X=TRFM_X,
             _removed_columns=_IM.removed_columns_,
             _feature_names_in= \
                 _columns if _format in ['pd', 'pl'] and _has_header else None
         )
         # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
+
 
         # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         assert type(out) is type(_X_wip)
@@ -152,12 +165,11 @@ class TestInverseTransform:
         elif not _has_header:
             exp_hdr = pd.RangeIndex(start=0, stop=_shape[1], step=1)
             if _format == 'pd':
-                assert out.columns.equals(exp_hdr)
+                assert np.array_equal(out.columns, exp_hdr)
             elif _format == 'pl':
                 exp_hdr = [f'column_{i}' for i in range(_shape[1])]
-                assert out.columns.equals(exp_hdr)
+                assert np.array_equal(out.columns, exp_hdr)
             del exp_hdr
-
 
         # iterate over the input X and output X simultaneously, check
         # equality column by column. remember that inverse_transform
@@ -166,47 +178,53 @@ class TestInverseTransform:
 
         for _og_idx in range(_shape[1]):
 
-            if isinstance(_X_wip, (np.ndarray, pl.DataFrame)):
+            # OK to extract in 1D, using np.array_equal
+            if isinstance(_X_wip, np.ndarray):
                 _og_col = _X_wip[:, _og_idx]
                 _out_col = out[:, _og_idx]
             elif isinstance(_X_wip, pd.core.frame.DataFrame):
                 _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
                 _out_col = out.iloc[:, _og_idx].to_numpy()
+            elif isinstance(_X_wip, pl.DataFrame):
+                # Polars uses zero-copy conversion when possible, meaning the
+                # underlying memory is still controlled by Polars and marked
+                # as read-only. NumPy and Pandas may inherit this read-only
+                # flag, preventing modifications.
+                # THE ORDER IS IMPORTANT HERE. CONVERT TO PANDAS FIRST THEN SLICE.
+                _og_col = _X_wip.to_pandas().to_numpy()[:, _og_idx]
+                _out_col = out.to_pandas().to_numpy()[:, _og_idx]
             elif hasattr(_X_wip, 'toarray'):
                 _og_col = _X_wip[:, [_og_idx]].toarray()
                 _out_col = out[:, [_og_idx]].toarray()
             else:
                 raise Exception
 
-            _is_num = False
-            MASK = nan_mask(_og_col)
-            try:
-                _og_col[np.logical_not(MASK)].astype(np.float64)
-                _is_num = True
-                _nan_value = np.nan
-            except:
-                _nan_value = 'nan'
-
             # allclose is not calling equal on two identical vectors,
             # one w nans and the other without, even with equal_nan.
             # also verified this behavior externally.
             # _og_col may or may not have the nans, but _out_col cannot.
             # put nans into _out_col to get around this.
-            if np.any(MASK):
-                _og_col[MASK] = _nan_value
-                _out_col[MASK] = _nan_value
-            del _nan_value
+            MASK = nan_mask(_og_col)
+            _is_num = False
+            try:
+                _og_col[np.logical_not(MASK)].astype(np.float64)
+                _is_num = True
+            except Exception as e:
+                pass
+                # is str
 
             if _is_num:
+                _og_col[MASK] = np.nan
+                _out_col[MASK] = np.nan
                 assert np.allclose(
                     _out_col.astype(np.float64),
                     _og_col.astype(np.float64),
                     equal_nan=True
                 )
-            else:
+            elif not _is_num:
+                _og_col[MASK] = 'nan'
+                _out_col[MASK] = 'nan'
                 assert np.array_equal(_out_col, _og_col)
-
-
 
 
 

@@ -21,7 +21,7 @@ from ....utilities import nan_mask
 
 
 
-def _parallel_constant_finder(
+def _is_constant(
     _column: npt.NDArray[numbers.Number],
     _equal_nan: bool,
     _rtol: numbers.Real,
@@ -76,7 +76,6 @@ def _parallel_constant_finder(
         out: Union[uuid.uuid4, Any] - if the column is not constant,
         returns a uuid4 identifier; if it is constant, returns the
         constant value.
-
 
     """
 

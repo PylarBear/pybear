@@ -13,8 +13,8 @@ from .._type_aliases import (
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as ss
 import polars as pl
+import scipy.sparse as ss
 
 
 
@@ -35,7 +35,6 @@ def _transform(
         array-like of shape (n_samples, n_features) - The data to be
         transformed. Must be numpy ndarray, pandas dataframe, polars
         dataframe, or scipy sparse csc matrix/array.
-
     _instructions:
         InstructionType - instructions for keeping, deleting, or adding
         constant columns.
@@ -44,19 +43,23 @@ def _transform(
     Return
     ------
     -
-        X: array-like of shape (n_samples, n_transformed_features) - The
-        transformed data.
-
+        _X: array-like of shape (n_samples, n_transformed_features) -
+        The transformed data.
 
     """
 
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
     assert isinstance(
         _X,
-        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array, ss.csc_matrix)
+        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+         ss.csc_matrix)
     )
     assert isinstance(_instructions, dict)
     assert len(_instructions) == 3
+
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # class InstructionType(TypedDict):
     #

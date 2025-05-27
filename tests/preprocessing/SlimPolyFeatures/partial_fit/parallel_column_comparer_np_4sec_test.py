@@ -6,7 +6,6 @@
 
 
 
-
 from pybear.preprocessing._SlimPolyFeatures._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
@@ -20,8 +19,9 @@ class TestNpColumnComparer:
 
 
     # np cant be int if using nans
-    @pytest.mark.parametrize('_dtype1', ('flt', 'str', 'obj'))
-    @pytest.mark.parametrize('_dtype2', ('flt', 'str', 'obj'))
+    # pizza this cant take str/obj anymore. non-num X is blocked by validate_data anyway.
+    @pytest.mark.parametrize('_dtype1', ('flt', )) # 'str', 'obj'))
+    @pytest.mark.parametrize('_dtype2', ('flt', )) # 'str', 'obj'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_accuracy(
@@ -66,27 +66,27 @@ class TestNpColumnComparer:
         )
 
         if _dtype1 == 'flt':
-            _X1 = _X_flt[:,0].ravel()
+            _X1 = _X_flt[:, [0]]
         elif _dtype1 == 'str':
-            _X1 = _X_str[:,0].ravel()
+            _X1 = _X_str[:, [0]]
         elif _dtype1 == 'obj':
-            _X1 = _X_obj[:,0].ravel()
+            _X1 = _X_obj[:, [0]]
         else:
             raise Exception
 
         if _dtype2 == 'flt':
-            _X2 = _X_flt[:,1].ravel()
+            _X2 = _X_flt[:, [1]]
         elif _dtype2 == 'str':
-            _X2 = _X_str[:,1].ravel()
+            _X2 = _X_str[:, [1]]
         elif _dtype2 == 'obj':
-            _X2 = _X_obj[:,1].ravel()
+            _X2 = _X_obj[:, [1]]
         else:
             raise Exception
 
 
         _are_equal = _parallel_column_comparer(
             _X1, _X2, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
-        )
+        )[0]
 
         if _dtype1 == _dtype2:
             if _equal_nan or not _has_nan:

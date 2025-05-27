@@ -116,7 +116,7 @@ def _find_constants(
     # the idxs of the list match the idxs of the data
 
     # number of columns to send in a job to joblib
-    _n_cols = 200
+    _n_cols = 1000
 
     args = (_equal_nan, _rtol, _atol)
 

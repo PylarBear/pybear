@@ -17,6 +17,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from ._validation._validation import _validation
@@ -28,7 +29,7 @@ from ._get_feature_names_out._gfno_poly import _gfno_poly
 from ._partial_fit._combination_builder import _combination_builder
 from ._partial_fit._columns_getter import _columns_getter
 from ._partial_fit._deconstant_poly_dupls import _deconstant_poly_dupls
-from ._partial_fit._parallel_constant_finder import _parallel_constant_finder
+from ._partial_fit._is_constant import _is_constant
 from ._partial_fit._get_dupls_for_combo_in_X_and_poly import \
     _get_dupls_for_combo_in_X_and_poly
 from ._partial_fit._merge_constants import _merge_constants
@@ -1062,7 +1063,7 @@ class SlimPolyFeatures(
                 _poly_is_constant = uuid.uuid4()
             else:
                 _poly_is_constant: Union[uuid.UUID, any] = \
-                    _parallel_constant_finder(
+                    _is_constant(
                         _column=_COLUMN,
                         _equal_nan = self.equal_nan,
                         _rtol = self.rtol,
@@ -1548,7 +1549,12 @@ class SlimPolyFeatures(
             # is ss and _X.dtype is object or str. we know from _validation
             # that X is numeric, if original X dtype is str or object set the
             # dtype of the merging X to float64
-            X_tr = ss.hstack((type(X_tr)(_X.astype(np.float64)), X_tr))
+            # pizza 25_05_26_17_13_00 this is a slipshod fix to get tests going
+            # reassess this situation
+            try:
+                X_tr = ss.hstack((type(X_tr)(_X.astype(np.float64)), X_tr))
+            except:
+                X_tr = ss.hstack((type(X_tr)(_X.cast(pl.Float64)), X_tr))
 
         assert isinstance(X_tr, ss.csc_array)
 
@@ -1576,6 +1582,11 @@ class SlimPolyFeatures(
                 return pd.DataFrame(
                     data=X_tr,
                     columns=self.get_feature_names_out()
+                )
+            elif _og_format is pl.DataFrame:
+                return pl.from_numpy(
+                    data=X_tr,
+                    schema=list(self.get_feature_names_out())
                 )
             else:
                 raise Exception

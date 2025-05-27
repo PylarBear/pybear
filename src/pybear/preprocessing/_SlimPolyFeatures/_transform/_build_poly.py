@@ -12,6 +12,7 @@ import joblib
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from .._partial_fit._columns_getter import _columns_getter
@@ -57,7 +58,7 @@ def _build_poly(
 
 
     # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) or \
+    assert isinstance(_X, (np.ndarray, (pd.core.frame.DataFrame, pl.DataFrame))) or \
            hasattr(_X, 'toarray'), f"{type(_X)=}"
 
     assert not isinstance(_X,

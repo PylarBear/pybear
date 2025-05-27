@@ -7,15 +7,13 @@
 
 
 from typing_extensions import Union
-
+import numpy.typing as npt
 from .._type_aliases import (
     DataContainer,
     KeepType
 )
 
 import numbers
-
-import numpy.typing as npt
 
 from ._X import _val_X
 from ._keep_and_columns import _val_keep_and_columns

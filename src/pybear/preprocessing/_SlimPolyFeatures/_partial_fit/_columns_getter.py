@@ -82,9 +82,22 @@ def _columns_getter(
         # step as dtype object
         _columns = _X.iloc[:, _col_idxs].to_numpy()
     elif isinstance(_X, pl.DataFrame):
-        _columns = _X[:, _col_idxs].to_numpy()
+        # pizza 25_05_26
+        # when pulling the same column 2+ times, polars cannot made df
+        # polars.exceptions.DuplicateError: could not create a new DataFrame:
+        # column with name 'd61193cc' has more than one occurrence
+        # need a workaround that doesnt copy the full X.
+        # pull the unique columns, convert to np, then create the og stack
+        _unq_idxs = np.unique(_col_idxs)
+        # need to map idxs in X to future idxs in the uniques slice
+        _lookup_dict = {}
+        for _new_idx, _old_idx in enumerate(_unq_idxs):
+            _lookup_dict[_old_idx] = _new_idx
+        _columns = _X[:, _unq_idxs].to_numpy()
+        _new_idxs = [int(_lookup_dict[_old_idx]) for _old_idx in _col_idxs]
+        _columns = _columns[:, _new_idxs]
     elif hasattr(_X, 'toarray'):
-        # both _parallel_constant_finder() and _build_poly() need vectors
+        # both _is_constant() and _build_poly() need vectors
         # extracted from ss to be full, not the stacked version
         # (ss.indices & ss.data hstacked). With all the various
         # applications that use _columns_getter, and all the various

@@ -11,6 +11,7 @@ from .._type_aliases import DataContainer
 import warnings
 import numpy as np
 import pandas as pd
+import polars as pl
 
 
 
@@ -22,12 +23,14 @@ def _val_X(
     """
     Validate X.
     The container format:
-        Must be numpy ndarray, pandas dataframe, or any scipy sparse.
+        Must be numpy ndarray, pandas dataframe, or any scipy sparse.  # pizza polars
     The dimensions of the container:
         Must have at least 1 sample.
         When interaction_only is True, must have at least 2 columns.
         When interaction_only is False, must have at least 1 column.
-    All values within must be numeric.
+    All values within must be numeric. This is not enforced here. This
+    is enforced by pybear.base.validate_data in partial_fit and
+    transform.
 
 
     Parameters
@@ -59,7 +62,7 @@ def _val_X(
     assert isinstance(_interaction_only, bool)
 
 
-    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame)) and not \
+    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) and not \
         hasattr(_X, 'toarray'):
         raise TypeError(
             f"invalid container for X: {type(_X)}. X must be numpy array, "

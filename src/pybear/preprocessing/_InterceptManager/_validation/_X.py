@@ -9,6 +9,7 @@
 from .._type_aliases import DataContainer
 
 import warnings
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -20,7 +21,9 @@ def _val_X(
 ) -> None:
 
     """
-    Validate the data. Cannot be None.
+    Validate the container type of the data. Cannot be None. Otherwise,
+    X can be a numpy ndarray, a pandas dataframe, polars dataframe, or
+    any scipy sparse matrix / array.
 
     All other validation of the data is handled in the individual IM
     methods by pybear.base.validate_data.
@@ -40,10 +43,8 @@ def _val_X(
     """
 
 
-    if not isinstance(
-        _X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)
-    ) and not hasattr(_X, 'toarray'):
+    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) \
+            and not hasattr(_X, 'toarray'):
         raise TypeError(
             f"invalid container for X: {type(_X)}. \nX must be numpy array, "
             f"pandas dataframe, polars dataframe, or scipy sparce matrix / array."

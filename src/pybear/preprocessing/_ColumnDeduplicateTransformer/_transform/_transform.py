@@ -6,8 +6,10 @@
 
 
 
-from typing_extensions import Union
-import numpy.typing as npt
+from .._type_aliases import (
+    ColumnMaskType,
+    InternalDataContainer
+)
 
 import numpy as np
 import pandas as pd
@@ -16,13 +18,10 @@ import scipy.sparse as ss
 
 
 
-
-
-
 def _transform(
-    _X: Union[npt.NDArray, pd.core.frame.DataFrame, ss.csc_matrix, ss.csc_array],
-    _column_mask: npt.NDArray[bool]
-) -> Union[npt.NDArray, pd.core.frame.DataFrame, ss.csc_matrix, ss.csc_array]:
+    _X: InternalDataContainer,
+    _column_mask: ColumnMaskType
+) -> InternalDataContainer:
 
     """
     Remove the duplicate columns from X as indicated in the _column_mask
@@ -32,11 +31,11 @@ def _transform(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse csc} of shape (n_samples,
-        n_features) - The data to be deduplicated. The container can only
-        be numpy ndarray, pandas dataframe, or scipy sparse csc.
+        array-like of shape (n_samples, n_features) - The data to be
+        deduplicated. Must be numpy ndarray, pandas dataframe, polars
+        dataframe, or scipy sparse csc matrix/array.
     _column_mask:
-        NDArray[bool] - A boolean vector of shape (n_features,) that
+        ColumnMaskType - A boolean vector of shape (n_features,) that
         indicates which columns to keep (True) and which columns to
         delete (False).
 
@@ -44,32 +43,29 @@ def _transform(
     Return
     ------
     -
-        _X: {array-like, scipy sparse csc} of shape (n_samples,
-            n_features - n_features_removed) - The deduplicated data.
+        _X: array-like of shape (n_samples, n_transformed_features) -
+        The deduplicated data.
 
     """
+
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(
         _X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_matrix, ss.csc_array)
+        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+         ss.csc_matrix)
     )
     assert isinstance(_column_mask, np.ndarray)
     assert _column_mask.dtype == bool
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    if isinstance(_X, np.ndarray):
-        return _X[:, _column_mask]
-    elif isinstance(_X, pd.core.frame.DataFrame):
+
+    if isinstance(_X, pd.core.frame.DataFrame):
         return _X.loc[:, _column_mask]
-    elif isinstance(_X, pl.DataFrame):
-        return _X[:, _column_mask]
-    elif isinstance(_X, (ss.csc_matrix, ss.csc_array)):
-        return _X[:, _column_mask]
     else:
-        raise Exception
+        return _X[:, _column_mask]
 
 
 

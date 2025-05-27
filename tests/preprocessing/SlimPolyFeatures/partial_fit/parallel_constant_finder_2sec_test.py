@@ -6,8 +6,8 @@
 
 
 
-from pybear.preprocessing._SlimPolyFeatures._partial_fit. \
-    _parallel_constant_finder import _parallel_constant_finder
+from pybear.preprocessing._SlimPolyFeatures._partial_fit._is_constant import \
+    _is_constant
 
 from pybear.utilities import nan_mask_numerical
 
@@ -29,7 +29,7 @@ class TestParallelConstantFinder:
     def test_accuracy(self, has_nan, equal_nan, rtol, atol):
 
         # Methodology
-        # _parallel_constant_finder will only ever see numpy arrays.
+        # _is_constant will only ever see numpy arrays.
         # put a level of noise in the data that in one case is less
         # that rtol/atol, so that the column is considered constant; in
         # the other case the column is not constant because the noise
@@ -46,7 +46,7 @@ class TestParallelConstantFinder:
             _X[_rand_idxs] = np.nan
 
 
-        out = _parallel_constant_finder(_X, equal_nan, rtol, atol)
+        out = _is_constant(_X, equal_nan, rtol, atol)
 
         if has_nan:
             if equal_nan:
@@ -76,7 +76,7 @@ class TestParallelConstantFinder:
 
         _X = np.full((_size,), np.nan)
 
-        out = _parallel_constant_finder(_X, equal_nan, 1e-5, 1e-8)
+        out = _is_constant(_X, equal_nan, 1e-5, 1e-8)
 
         if equal_nan:
             assert str(out) == 'nan'
