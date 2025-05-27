@@ -204,16 +204,14 @@ class TestInverseTransform:
             else:
                 raise Exception
 
-
+            # verified this must stay 25_05_27
             _out_col[nan_mask(_out_col)] = np.nan
             _og_col[nan_mask(_og_col)] = np.nan
 
             assert _parallel_column_comparer(
                 _out_col,
                 _og_col,
-                1e-5,
-                1e-8,
-                _equal_nan=True
+                1e-5, 1e-8, _equal_nan=True
             )[0]
 
 

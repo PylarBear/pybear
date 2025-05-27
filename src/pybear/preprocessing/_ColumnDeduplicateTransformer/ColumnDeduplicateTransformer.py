@@ -30,7 +30,8 @@ import numpy as np
 
 from ._validation._validation import _validation
 from ._validation._X import _val_X
-from ._partial_fit._dupl_idxs import _dupl_idxs
+from ._partial_fit._find_duplicates import _find_duplicates
+from ._partial_fit._merge_dupls import _merge_dupls
 from ._partial_fit._lock_in_random_idxs import _lock_in_random_idxs
 from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._inverse_transform._inverse_transform import _inverse_transform
@@ -327,7 +328,54 @@ class ColumnDeduplicateTransformer(
     make equality comparisons.
 
     Type Aliases
-    pizza dont forget!
+
+    DataContainer:
+        Union[
+            npt.NDArray,
+            pd.DataFrame,
+            pl.DataFrame,
+            ss._csr.csr_matrix,
+            ss._csc.csc_matrix,
+            ss._coo.coo_matrix,
+            ss._dia.dia_matrix,
+            ss._lil.lil_matrix,
+            ss._dok.dok_matrix,
+            ss._bsr.bsr_matrix,
+            ss._csr.csr_array,
+            ss._csc.csc_array,
+            ss._coo.coo_array,
+            ss._dia.dia_array,
+            ss._lil.lil_array,
+            ss._dok.dok_array,
+            ss._bsr.bsr_array
+        ]
+
+    KeepType:
+        Union[
+            Literal['first', 'last', 'random', 'none'],
+            dict[str, Any],
+            numbers.Integral,
+            str,
+            Callable[[DataContainer], int]
+        ]
+
+    ConstantColumnsType:
+        dict[int, Any]
+
+    KeptColumnsType:
+        dict[int, Any]
+
+    RemovedColumnsType:
+        dict[int, Any]
+
+    ColumnMaskType:
+        npt.NDArray[bool]
+
+    NFeaturesInType:
+        int
+
+    FeatureNamesInType:
+        npt.NDArray[object]
 
 
     See Also
@@ -601,16 +649,24 @@ class ColumnDeduplicateTransformer(
             _og_dtype = type(X)
             X = X.tocsc()
 
-        # find the duplicate columns
-        self._duplicates: list[list[int]] = \
-            _dupl_idxs(
+        _current_duplicates: DuplicatesType = \
+            _find_duplicates(
                 X,
-                getattr(self, 'duplicates_', None),
                 self.rtol,
                 self.atol,
                 self.equal_nan,
                 self.n_jobs
-        )
+            )
+
+        # merge the current duplicate columns with duplicates found on
+        # previous partial fits
+        self._duplicates: DuplicatesType = \
+            _merge_dupls(
+                getattr(self, '_duplicates', None),
+                _current_duplicates
+            )
+
+        del _current_duplicates
 
         # all scipy sparse were converted to csc before _dupl_idxs.
         # change it back to original state. do not mutate X!
@@ -689,9 +745,8 @@ class ColumnDeduplicateTransformer(
     def inverse_transform(
         self,
         X:DataContainer,
-        *,
         copy:Optional[Union[bool, None]] = None
-        ) -> DataContainer:
+    ) -> DataContainer:
 
         """
         Revert deduplicated data back to its original state. This
@@ -848,6 +903,7 @@ class ColumnDeduplicateTransformer(
             deduplicated data.
 
         """
+
 
         check_is_fitted(self)
 

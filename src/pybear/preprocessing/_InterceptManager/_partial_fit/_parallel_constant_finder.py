@@ -79,10 +79,10 @@ def _parallel_constant_finder(
 
     Return
     ------
-    -
-        _constants: list[Union[uuid.uuid4, Any]] - a list of the results
-        for each column in _chunk. if a column is not constant, returns
-        a uuid4 identifier; if it is constant, returns the constant value.
+    _constants:
+        list[Union[uuid.uuid4, Any]] - a list of the results for each
+        column in _chunk. if a column is not constant, returns a uuid4
+        identifier; if it is constant, returns the constant value.
 
     """
 

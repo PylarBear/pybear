@@ -96,7 +96,7 @@ def _inverse_transform(
             _X = np.insert(
                 _X,
                 _rmv_idx,
-                _blank.ravel(),    # pizza ravel is important
+                _blank.ravel(),  # ravel is important
                 axis=1
             )
     elif isinstance(_X, (ss.csc_matrix, ss.csc_array)):

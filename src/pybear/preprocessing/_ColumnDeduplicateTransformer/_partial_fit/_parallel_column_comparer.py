@@ -64,16 +64,27 @@ def _parallel_column_comparer(
 
     Return
     ------
-    -
-        list[bool]: The result for each column in chunk. True, the
+    _dupls:
+        list[bool] - The result for each column in chunk. True, the
         column is equal to column1; False, the column is not equal to
         column1.
 
     """
 
-    # pizza
+
+    # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     assert isinstance(_column1, np.ndarray)
     assert isinstance(_chunk, np.ndarray)
+    try:
+        float(_rtol)
+        assert _rtol >= 0
+        float(_atol)
+        assert _atol >= 0
+    except:
+        raise ValueError(
+            f"'rtol' and 'atol' must be real, non-negative numbers"
+        )
+    # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     try:
@@ -87,7 +98,7 @@ def _parallel_column_comparer(
     _column1 = _column1.ravel()
 
 
-    _hits = []
+    _dupls = []
     for _c_idx in range(_chunk.shape[1]):
 
         _column2 = _chunk[:, _c_idx].ravel()
@@ -145,10 +156,13 @@ def _parallel_column_comparer(
             # equal
             out = False
 
-        _hits.append(out)
+        _dupls.append(out)
 
 
-    return _hits
+        del _column2, _column2_is_num, NOT_NAN_MASK
+
+
+    return _dupls
 
 
 

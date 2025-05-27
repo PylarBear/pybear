@@ -6,8 +6,15 @@
 
 
 
-from typing import Sequence, Literal
 from typing_extensions import Union
+from .._type_aliases import (
+    DuplicatesType,
+    KeepType,
+    FeatureNamesInType,
+    DoNotDropType,
+    ConflictType,
+    RemovedColumnsType
+)
 
 from copy import deepcopy
 import itertools
@@ -16,50 +23,49 @@ import numpy as np
 
 
 
-
 def _identify_idxs_to_delete(
-    _duplicates: list[list[int]],
-    _keep: Literal['first', 'last', 'random'],
-    _do_not_drop: Union[Sequence[int], Sequence[str], None],
-    _columns: Union[Sequence[str], None],
-    _conflict: Literal['raise', 'ignore'],
+    _duplicates: DuplicatesType,
+    _keep: KeepType,
+    _do_not_drop: DoNotDropType,
+    _columns: Union[FeatureNamesInType, None],
+    _conflict: ConflictType,
     _rand_idxs: tuple[int, ...]
-) -> dict[int, int]:
+) -> RemovedColumnsType:
 
     """
-    Apply the rules given by :param: keep, :param: conflict, and :param:
-    do_not_drop to the sets of duplicates in :param: duplicates. Produce
-    the removed_columns_ dictionary, which has all the deleted column
-    indices as keys and the respective kept columns as values.
+    Apply the rules given by :param: `keep`, :param: `conflict`,
+    and :param: `do_not_drop` to the sets of duplicates
+    in :param: `duplicates`. Produce the :attr: `removed_columns_`
+    dictionary, which has all the deleted column indices as keys and
+    the respective kept column as values.
 
 
     Parameters
     ----------
     _duplicates:
-        list[list[int]] - the groups of identical columns, indicated by
+        DuplicatesType - the groups of identical columns, indicated by
         their zero-based column index positions.
     _keep:
-        Literal['first', 'last', 'random'] - The strategy for keeping a
-        single representative from a set of identical columns. 'first'
-        retains the column left-most in the data; 'last' keeps the column
-        right-most in the data; 'random' keeps a single randomly-selected
-        column of the set of duplicates.
+        KeepType - The strategy for keeping a single representative from
+        a set of identical columns. 'first' retains the column left-most
+        in the data; 'last' keeps the column right-most in the data;
+        'random' keeps a single randomly-selected column of the set of
+        duplicates.
     _do_not_drop:
-        Union[Sequence[int], Sequence[str], None] - A list of columns
-        not to be dropped. If fitting is done on a pandas dataframe that
-        has a header, a list of feature names may be provided. Otherwise,
-        a list of column indices must be provided. If a conflict
-        arises, such as two columns specified in :param: `do_not_drop`
-        are duplicates of each other, the behavior is managed
-        by :param: `conflict`.
+        DoNotDropType - A list of columns not to be dropped. If fitting
+        is done on a pandas dataframe that has a header, a list of
+        feature names may be provided. Otherwise, a list of column
+        indices must be provided. If a conflict arises, such as two
+        columns specified in :param: `do_not_drop` are duplicates of
+        each other, the behavior is managed by :param: `conflict`.
     _columns:
-        Union[Sequence[str], None] of shape (n_features,) - if fitting
-        is done on a pandas dataframe that has a header, this is a
-        ndarray of strings, otherwise is None.
+        Union[FeatureNamesInType, None] of shape (n_features,) - if
+        fitting is done on a pandas dataframe that has a header, this
+        is a ndarray of strings, otherwise is None.
     _conflict:
-        Literal['raise', 'ignore'] - Ignored when :param: `do_not_drop`
-        is not passed. Instructs CDT how to deal with a conflict between
-        the instructions in :param: keep and :param: `do_not_drop`. A
+        ConflictType - Ignored when :param: `do_not_drop` is not passed.
+        Instructs CDT how to deal with a conflict between the
+        instructions in :param: `keep` and :param: `do_not_drop`. A
         conflict arises when the instruction in :param: `keep` ('first',
         'last', 'random') is applied and column in :param: `do_not_drop`
         is found to be a member of the columns to be deleted.
@@ -89,8 +95,8 @@ def _identify_idxs_to_delete(
     Return
     ------
     -
-        removed_columns_: dict[int, int] - the keys are the indices of
-        duplicate columns removed from the original data, indexed by
+        removed_columns_: RemovedColumnsType - the keys are the indices
+        of duplicate columns removed from the original data, indexed by
         their column location in the original data; the values are the
         column index in the original data of the respective duplicate
         that was kept.

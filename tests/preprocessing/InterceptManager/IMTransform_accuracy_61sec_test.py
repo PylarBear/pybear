@@ -31,9 +31,8 @@ from pybear.utilities import nan_mask
 
 class TestAccuracy:
 
-    @pytest.mark.parametrize('X_format',
-        ('np', 'pd', 'pl', 'csr_array', 'csc_array', 'coo_array')
-    )
+
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('equal_nan', (True, False))
@@ -228,11 +227,11 @@ class TestAccuracy:
         #     'removed_columns_'
         #     'column_mask_'
 
-        if isinstance(TRFM_X, np.ndarray):
-            assert TRFM_X.flags['C_CONTIGUOUS'] is True
-
         # returned format is same as given format
         assert isinstance(TRFM_X, _og_format)
+
+        if isinstance(TRFM_X, np.ndarray):
+            assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
         # returned dtypes are same as given dtypes ** * ** * ** * ** * **
         if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):

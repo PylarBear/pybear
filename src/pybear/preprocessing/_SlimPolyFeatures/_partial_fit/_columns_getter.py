@@ -83,7 +83,7 @@ def _columns_getter(
         _columns = _X.iloc[:, _col_idxs].to_numpy()
     elif isinstance(_X, pl.DataFrame):
         # pizza 25_05_26
-        # when pulling the same column 2+ times, polars cannot made df
+        # when pulling the same column 2+ times, polars cannot make df
         # polars.exceptions.DuplicateError: could not create a new DataFrame:
         # column with name 'd61193cc' has more than one occurrence
         # need a workaround that doesnt copy the full X.
@@ -96,6 +96,7 @@ def _columns_getter(
         _columns = _X[:, _unq_idxs].to_numpy()
         _new_idxs = [int(_lookup_dict[_old_idx]) for _old_idx in _col_idxs]
         _columns = _columns[:, _new_idxs]
+        del _lookup_dict
     elif hasattr(_X, 'toarray'):
         # both _is_constant() and _build_poly() need vectors
         # extracted from ss to be full, not the stacked version

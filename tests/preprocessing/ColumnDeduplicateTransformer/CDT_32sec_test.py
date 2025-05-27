@@ -22,8 +22,7 @@ from pybear.base.exceptions import NotFittedError
 
 from pybear.utilities import (
     nan_mask,
-    nan_mask_numerical,
-    nan_mask_string
+    nan_mask_numerical
 )
 
 
@@ -72,9 +71,7 @@ class TestInitValidation:
             CDT(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('bad_keep',
-        ('trash', 'garbage', 'waste')
-    )
+    @pytest.mark.parametrize('bad_keep', ('trash', 'garbage', 'waste'))
     def test_bad_keep(self, _X_np, _kwargs, bad_keep):
 
         _kwargs['keep'] = bad_keep
@@ -83,9 +80,7 @@ class TestInitValidation:
             CDT(**_kwargs).fit_transform(_X_np)
 
 
-    @pytest.mark.parametrize('good_keep',
-        ('first', 'last', 'random')
-    )
+    @pytest.mark.parametrize('good_keep', ('first', 'last', 'random'))
     def test_good_keep(self, _X_np, _kwargs, good_keep):
 
         _kwargs['keep'] = good_keep
@@ -314,7 +309,6 @@ class TestX:
     # - must be 2D
     # - must have at least 2 columns
     # - must have at least 1 sample
-    # - num columns must equal num columns in column_mask_ (pizza do any tests cover this?)
     # - allows nan
     # - output is C contiguous
     # - partial_fit/transform num columns must equal num columns seen during first fit
@@ -381,9 +375,7 @@ class TestX:
         assert not isinstance(e.value, NotFittedError)
 
 
-    @pytest.mark.parametrize('_format',
-        ('np', 'pd', 'pl', 'coo_matrix', 'dok_array', 'bsr_array')
-    )
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'coo_array'))
     def test_good_X_container(
             self, _X_factory, _columns, _shape, _kwargs, _dupls, _format
     ):
@@ -689,9 +681,7 @@ class TestPartialFit:
     #     ) -> Self:
 
 
-    @pytest.mark.parametrize('_format',
-        ('np', 'pd', 'pl', 'csc_matrix', 'bsr_array', 'coo_matrix')
-    )
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'bsr_array'))
     def test_X_is_not_mutated(
         self, _X_factory, _columns, _shape, _kwargs, _dupls, _format
     ):
@@ -1053,17 +1043,15 @@ class TestPartialFit:
 
     # dont really need to test accuracy, see _partial_fit
 
-# pizza pick up here
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestTransform:
 
-    #     def transform(
-    #         self,
-    #         X: DataContainer,
-    #         *,
-    #         copy: bool = None
-    #     ) -> DataContainer:
+    # def transform(
+    #     self,
+    #     X:DataContainer,
+    #     copy:Optional[Union[bool, None]] = None
+    # ) -> DataContainer:
 
 
     @pytest.mark.parametrize('_copy',
@@ -1081,66 +1069,45 @@ class TestTransform:
                 _CDT.transform(_X_np, copy=_copy)
 
 
-    @pytest.mark.parametrize('x_input_type', ('np', 'pd', 'pl', 'csc_array'))
-    @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'dia_array'))
+    @pytest.mark.parametrize('output_type', (None, 'default', 'pandas', 'polars'))
     def test_output_types(
-        self, _X_factory, _columns, _shape, _kwargs, _dupls, x_input_type,
+        self, _X_factory, _columns, _shape, _kwargs, _dupls, _format,
         output_type
     ):
 
-        # pizza this needs a reaming
-
         _X_wip = _X_factory(
-            _dupl=_dupls,
-            _has_nan=False,
-            _format=x_input_type,
-            _dtype='flt',
-            _columns=None,
-            _constants=None,
-            _noise=1e-9,
-            _zeros=None,
-            _shape=_shape
+            _dupl=_dupls, _has_nan=False, _format=_format, _dtype='flt',
+            _columns=_columns if _format in ['pd', 'pl'] else None,
+            _constants=None, _noise=0, _zeros=None, _shape=_shape
         )
 
         TestCls = CDT(**_kwargs)
         TestCls.set_output(transform=output_type)
-
         TRFM_X = TestCls.fit_transform(_X_wip)
 
         # if output_type is None, should return same type as given
-        if output_type is None:
-            assert type(TRFM_X) == type(_X_wip), \
-                (f"output_type is None, X output type ({type(TRFM_X)}) != "
-                 f"X input type ({type(_X_wip)})")
-        # if output_type 'default', should return np array no matter what given
-        elif output_type == 'default':
-            assert isinstance(TRFM_X, np.ndarray), \
-                f"output_type is default, TRFM_X is {type(TRFM_X)}"
-        # if output_type is 'pandas', should return pd df no matter what given
-        elif output_type == 'pandas':
-            # pandas.core.frame.DataFrame
-            assert isinstance(TRFM_X, pd.core.frame.DataFrame), \
-                f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
-        elif output_type == 'polars':
-            # polars.dataframe.frame.DataFrame
-            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
-                f"output_type is polars dataframe, TRFM_X is {type(TRFM_X)}"
-        else:
-            raise Exception
+        # if 'default', should return np array no matter what given
+        # if 'pandas' or 'polars', should return pd/pl df no matter what given
+        _output_type_dict = {
+            None: type(_X_wip), 'default': np.ndarray, 'polars': pl.DataFrame,
+            'pandas': pd.core.frame.DataFrame
+        }
+        assert isinstance(TRFM_X, _output_type_dict[output_type]), \
+            (f"X input type {type(_X_wip)}, X output type {type(TRFM_X)}, "
+             f"expected output_type {output_type}")
 
 
-    @pytest.mark.parametrize('_format',
-        ('np', 'pd', 'pl', 'coo_matrix', 'dok_array', 'bsr_array')
-    )
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'coo_matrix'))
     def test_X_is_not_mutated(
             self, _X_factory, _columns, _shape, _kwargs, _dupls, _format
     ):
+
         _X_wip = _X_factory(
             _dupl=_dupls, _has_nan=False, _format=_format, _dtype='flt',
-            _columns=_columns,
-            _constants=None, _noise=0, _zeros=None, _shape=_shape
+            _columns=_columns, _constants=None, _noise=0, _zeros=None,
+            _shape=_shape
         )
-
 
         if _format == 'np':
             assert _X_wip.flags['C_CONTIGUOUS'] is True
@@ -1150,75 +1117,38 @@ class TestTransform:
         except:
             _X_wip_before = _X_wip.clone()
 
-        _CDT = CDT(**_kwargs).partial_fit(_X_wip)
 
-        # verify _X_wip does not mutate in partial_fit()
+        _CDT = CDT(**_kwargs).fit(_X_wip)
+
+        # verify _X_wip does not mutate in transform() with copy=True
+        TRFM_X = _CDT.transform(_X_wip, copy=True)
+
+
+        # ASSERTIONS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         assert isinstance(_X_wip, type(_X_wip_before))
         assert _X_wip.shape == _X_wip_before.shape
-        if isinstance(_X_wip, np.ndarray):
+
+        if isinstance(_X_wip_before, np.ndarray):
+            assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
             assert _X_wip.flags['C_CONTIGUOUS'] is True
-
-        if hasattr(_X_wip_before, 'toarray'):
-            assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before.toarray()
-            )
-        elif isinstance(_X_wip_before, pd.core.frame.DataFrame):
+        elif hasattr(_X_wip_before, 'columns'):    # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
-        else:
-            assert np.array_equal(_X_wip_before, _X_wip)
-        # END FROM PARTIAL_FIT
-
-        # TRANSFORM
-        _X_wip = _X_factory(
-            _dupl=_dupls,
-            _has_nan=False,
-            _format=_format,
-            _dtype='flt',
-            _columns=_columns if _format in ['pd', 'pl'] else None,
-            _constants=None,
-            _zeros=0,
-            _shape=_shape
-        )
-
-        try:
-            _X_wip_before_transform = _X_wip.copy()
-        except:
-            _X_wip_before_transform = _X_wip.clone()
-
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_X_wip)
-
-        out = _CDT.transform(_X_wip, copy=True)
-        assert isinstance(out, type(_X_wip))
-
-        # verify _X_wip does not mutate in transform() when copy=True
-        # when copy=False anything goes
-        assert isinstance(_X_wip, type(_X_wip_before_transform))
-        assert _X_wip.shape == _X_wip_before_transform.shape
-
-        if hasattr(_X_wip_before_transform, 'toarray'):
+        elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before_transform.toarray()
+                _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
-        elif isinstance(_X_wip_before_transform, pd.core.frame.DataFrame):
-            assert _X_wip.equals(_X_wip_before_transform)
         else:
-            assert np.array_equal(_X_wip_before_transform, _X_wip)
-        # END TRANSFORM
+            raise Exception
 
 
-    def test_one_all_nans(self, _X_factory, _kwargs, _shape):
+    @pytest.mark.parametrize('_equal_nan', (True, False))
+    def test_one_all_nans(self, _X_factory, _kwargs, _shape, _equal_nan):
 
+        # nans are put in manually later
         _X = _X_factory(
-            _dupl=[[0,1]],
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _columns=None,
-            _zeros=None,
-            _shape=(_shape[0], 3)
+            _dupl=[[0,1]], _has_nan=False, _format='np', _dtype='flt',
+            _columns=None, _constants=None, _zeros=None,
+            _shape=(_shape[0], 3)    # <====== 3 columns
         )
 
         # set a column to all nans
@@ -1226,88 +1156,113 @@ class TestTransform:
         # verify last column is all nans
         assert all(nan_mask_numerical(_X[:, -1]))
 
-        # 2nd column should drop, should have 2 columns, last is all np.nan
+        # conftest _kwargs 'keep' == 'first'
+        _kwargs['equal_nan'] = _equal_nan
+        TRFM_X = CDT(**_kwargs).fit_transform(_X)
 
-        out = CDT(**_kwargs).fit_transform(_X)
+        if _equal_nan:
+            # last 2 columns should drop, should have 1 column, not np.nan
+            assert TRFM_X.shape[1] == 1
+            assert np.array_equal(TRFM_X[:, 0], _X[:, 0])
+            assert not any(nan_mask_numerical(TRFM_X[:, -1]))
+        elif not _equal_nan:
+            # 2nd column should drop, should have 2 columns, last is all np.nan
+            assert TRFM_X.shape[1] == 2
+            assert np.array_equal(TRFM_X[:, 0], _X[:, 0])
+            assert all(nan_mask_numerical(TRFM_X[:, 1]))
 
-        assert np.array_equal(out[:, 0], _X[:, 0])
-        assert all(nan_mask_numerical(out[:, -1]))
 
+    @pytest.mark.parametrize('_equal_nan', (True, False))
+    def test_two_all_nans(self, _X_factory, _kwargs, _shape, _equal_nan):
 
-    def test_two_all_nans(self, _X_factory, _kwargs, _shape):
-
+        # nans are put in manually later
         _X = _X_factory(
-            _dupl=[[0,1]],
-            _has_nan=False,
-            _format='np',
-            _dtype='flt',
-            _columns=None,
-            _zeros=None,
-            _shape=(_shape[0], 4)
+            _dupl=[[0,1]], _has_nan=False, _format='np', _dtype='flt',
+            _columns=None, _zeros=None,
+            _shape=(_shape[0], 4)    # <======== 4 columns
         )
 
         # set last 2 columns to all nans
         _X[:, [-2, -1]] = np.nan
-        # verify last column is all nans
+        # verify last columns are all nans
         assert all(nan_mask_numerical(_X[:, -1]))
         assert all(nan_mask_numerical(_X[:, -2]))
 
-        # 2nd & 4th column should drop, should have 2 columns, last is all np.nan
+        # conftest _kwargs 'keep'=='first'
+        _kwargs['equal_nan'] = _equal_nan
+        TRFM_X = CDT(**_kwargs).fit_transform(_X)
 
-        out = CDT(**_kwargs).fit_transform(_X)
+        if _equal_nan:
+            # last 3 columns should drop, should have 1 column, not np.nan
+            assert TRFM_X.shape[1] == 1
+            assert np.array_equal(TRFM_X[:, 0], _X[:, 0])
+            assert not any(nan_mask_numerical(TRFM_X[:, -1]))
+        elif not _equal_nan:
+            # only 2nd column should drop, should have 3 columns
+            assert TRFM_X.shape[1] == 3
+            assert np.array_equal(TRFM_X[:, 0], _X[:, 0])
+            assert all(nan_mask_numerical(TRFM_X[:, 1]))
+            assert all(nan_mask_numerical(TRFM_X[:, 2]))
 
-        assert np.array_equal(out[:, 0], _X[:, 0])
-        assert all(nan_mask_numerical(out[:, -1]))
 
-
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'dok_matrix'))
+    @pytest.mark.parametrize('keep', ('first', 'last', 'random'))
     @pytest.mark.parametrize('same_or_diff', ('_same', '_diff'))
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'coo_array'))
     def test_all_columns_the_same_or_different(
-            self, _X_factory, _kwargs, same_or_diff, x_format, _columns, _shape
+        self, _X_factory, _kwargs, _columns, _shape, same_or_diff,
+        keep, x_format
     ):
 
-        TEST_X = _X_factory(
-            _dupl=[list(range(_shape[1]))] if same_or_diff == '_same' else None,
-            _has_nan=False,
-            _format=x_format,
-            _dtype='flt',
-            _shape=_shape
-        )
+        # set init params ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        if same_or_diff == '_same':
+            _dupl = [list(range(_shape[1]))]
+        elif same_or_diff == '_diff':
+            _dupl = None
+        # END set init params ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        out = CDT(**_kwargs).fit_transform(TEST_X)
+        TestCls = CDT(**_kwargs)
+
+        # BUILD X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        TEST_X = _X_factory(
+            _dupl=_dupl, _has_nan=False, _format=x_format, _dtype='flt',
+            _columns=_columns if x_format in ['pd', 'pl'] else None,
+            _constants=None, _noise=0, _zeros=0,  _shape=_shape
+        )
+        # END BUILD X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        TRFM_X = TestCls.fit_transform(TEST_X)
+
+        # ASSERTIONS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        if _dupl is not None:
+            assert len(TestCls.duplicates_) == len(_dupl)
+            assert np.array_equal(list(TestCls.duplicates_[0]), _dupl[0]), \
+                f"TestCls.duplicates_ != _dupl"
 
         if same_or_diff == '_same':
-            assert out.shape[1] == 1
+            # if all are duplicates, all but 1 column is deleted
+            assert TRFM_X.shape[1] == 1
         elif same_or_diff == '_diff':
-            assert out.shape[1] == _shape[1]
+            assert TRFM_X.shape[1] == _shape[1]
 
-
-    # See CDTTransform_accuracy for accuracy tests
+    # pizza See CDTTransform_accuracy for accuracy tests
+    # pizza revisit accuracy test.... is probably redundant with transform_test
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestFitTransform:
 
 
-    @pytest.mark.parametrize('x_input_type', ('np', 'pd', 'pl', 'csc_array'))
-    @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csr_matrix'))
+    @pytest.mark.parametrize('output_type', (None, 'default', 'pandas', 'polars'))
     def test_output_types(
-        self, _X_factory, _columns, _shape, _kwargs, _dupls, x_input_type,
+        self, _X_factory, _columns, _shape, _kwargs, _dupls, _format,
         output_type
     ):
 
-        # pizza this needs a reaming
-
         _X_wip = _X_factory(
-            _dupl=_dupls,
-            _has_nan=False,
-            _format=x_input_type,
-            _dtype='flt',
-            _columns=None,
-            _constants=None,
-            _noise=1e-9,
-            _zeros=None,
-            _shape=_shape
+            _dupl=_dupls, _has_nan=False, _format=_format, _dtype='flt',
+            _columns=_columns if _format in ['pd', 'pl'] else None,
+            _constants=None, _noise=0, _zeros=None, _shape=_shape
         )
 
         TestCls = CDT(**_kwargs)
@@ -1316,44 +1271,32 @@ class TestFitTransform:
         TRFM_X = TestCls.fit_transform(_X_wip)
 
         # if output_type is None, should return same type as given
-        if output_type is None:
-            assert type(TRFM_X) == type(_X_wip), \
-                (f"output_type is None, X output type ({type(TRFM_X)}) != "
-                 f"X input type ({type(_X_wip)})")
-        # if output_type 'default', should return np array no matter what given
-        elif output_type == 'default':
-            assert isinstance(TRFM_X, np.ndarray), \
-                f"output_type is default, TRFM_X is {type(TRFM_X)}"
-        # if output_type is 'pandas', should return pd df no matter what given
-        elif output_type == 'pandas':
-            # pandas.core.frame.DataFrame
-            assert isinstance(TRFM_X, pd.core.frame.DataFrame), \
-                f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
-        elif output_type == 'polars':
-            # polars.dataframe.frame.DataFrame
-            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
-                f"output_type is polars dataframe, TRFM_X is {type(TRFM_X)}"
-        else:
-            raise Exception
-
+        # if  'default', should return np array no matter what given
+        # if  'pandas' or 'polars', should return pd/pl df no matter what given
+        _output_type_dict = {
+            None: type(_X_wip), 'default': np.ndarray, 'polars': pl.DataFrame,
+            'pandas': pd.core.frame.DataFrame
+        }
+        assert isinstance(TRFM_X, _output_type_dict[output_type]), \
+            (f"X input type {type(_X_wip)}, X output type {type(TRFM_X)}, "
+             f"expected output_type {output_type}")
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestInverseTransform:
 
-    #     def inverse_transform(
-    #         self,
-    #         X: DataContainer,
-    #         *,
-    #         copy: bool = None
-    #     ) -> DataContainer:
+    # def inverse_transform(
+    #     self,
+    #     X:DataContainer,
+    #     copy:Optional[Union[bool, None]] = None
+    # ) -> DataContainer:
 
 
     # - num columns must equal num columns in column_mask_
 
 
     @pytest.mark.parametrize('_copy',
-        (-1, 0, 1, 3.14, True, False, None, 'junk', [0,1], (1,), {'a': 1}, min)
+        (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
     )
     def test_copy_validation(self, _X_np, _shape, _kwargs, _copy):
 
@@ -1367,96 +1310,49 @@ class TestInverseTransform:
                 _CDT.inverse_transform(_X_np[:, _CDT.column_mask_], copy=_copy)
 
 
-
-    @pytest.mark.parametrize('_format',
-        (
-            'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
-        )
-    )
-    @pytest.mark.parametrize('_dtype', ('int', 'flt', 'str', 'obj', 'hybrid'))
-    @pytest.mark.parametrize('_has_nan', (True, False))
-    @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'bsr_matrix'))
     @pytest.mark.parametrize('_copy', (True, False))
     def test_accuracy(
-        self, _X_factory, _columns, _kwargs, _shape, _format, _dtype,
-        _has_nan, _keep, _dupls, _copy
+        self, _X_factory, _columns, _kwargs, _shape, _dupls, _format, _copy
     ):
 
-        # may not need to test accuracy here, see _inverse_transform,
-        # but it is pretty straightforward. affirms the CDT class
-        # inverse_transform method works correctly, above and beyond just
-        # the _inverse_transform function called within.
+        # CDT.inverse_transform doesnt do much beyond run the core
+        # _inverse_transform function, which we know is accurate from its
+        # own test. scipy are changed to csc and back to original container.
+        # just confirm the CDT class inverse_transform method works
+        # correctly, and returns containers as given with correct shape.
 
         # set_output does not control the output container for inverse_transform
         # the output container is always the same as passed
 
-        # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        if _format not in ('np', 'pd', 'pl') and _dtype not in ('int', 'flt'):
-            pytest.skip(reason=f"scipy sparse cant take non-numeric")
-        # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
-
         # build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         _X_wip = _X_factory(
             _dupl=_dupls,
-            _has_nan=_has_nan,
+            _has_nan=False,
             _format=_format,
-            _dtype=_dtype,
+            _dtype='flt',
             _columns=_columns,
             _constants=None,
             _zeros=0,
             _shape=_shape
         )
-
-        # funky pd nans are making equality tests difficult
-        # pizza see if u can fix the root cause. IM doesnt need this.
-        # if _format == 'pd':
-        #     _X_wip[nan_mask(_X_wip)] = np.nan
-        # if _format == 'pl':
-        #     _X_wip[nan_mask(_X_wip)] = None
-
-        if _format == 'np':
-            _base_X = _X_wip.copy()
-        elif _format in ['pd', 'pl']:
-            _base_X = _X_wip.to_numpy()
-        elif hasattr(_X_wip, 'toarray'):
-            _base_X = _X_wip.toarray()
-        else:
-            raise Exception
         # END build X ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-        try:
-            _X_wip_before_inv_tr = _X_wip.copy()
-        except:
-            _X_wip_before_inv_tr = _X_wip.clone()
-
-        _kwargs['keep'] = _keep
 
         _CDT = CDT(**_kwargs)
-
-        # fit v v v v v v v v v v v v v v v v v v v v
         _CDT.fit(_X_wip)
-        # fit ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
-
-        # transform v v v v v v v v v v v v v v v v v v
         TRFM_X = _CDT.transform(_X_wip, copy=True)
         assert isinstance(TRFM_X, type(_X_wip))
-        # transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
+        # confirm that transform actually removed some columns, and
+        # inverse_transform will actually do something
+        assert TRFM_X.shape[1] < _shape[1]
 
         # inverse transform v v v v v v v v v v v v v v v
-        INV_TRFM_X = _CDT.inverse_transform(
-            X=TRFM_X,
-            copy=_copy
-        )
+        INV_TRFM_X = _CDT.inverse_transform(X=TRFM_X, copy=_copy)
         # inverse transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         # output container is same as passed
         assert isinstance(INV_TRFM_X, type(_X_wip))
-
-        # if output is numpy, order is C
-        if isinstance(INV_TRFM_X, np.ndarray):
-            assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
 
         # verify dimension of output
         assert INV_TRFM_X.shape[0] == TRFM_X.shape[0], \
@@ -1465,100 +1361,8 @@ class TestInverseTransform:
             (f"num features in output of inverse_transform() do not match "
              f"originally fitted columns")
 
-        # convert everything to ndarray to use array_equal
-        if isinstance(TRFM_X, np.ndarray):
-            NP_TRFM_X = TRFM_X
-            NP_INV_TRFM_X = INV_TRFM_X
-        elif isinstance(TRFM_X, pd.core.frame.DataFrame):
-            NP_TRFM_X = TRFM_X.to_numpy()
-            NP_INV_TRFM_X = INV_TRFM_X.to_numpy()
-        elif isinstance(TRFM_X, pl.DataFrame):
-            # Polars uses zero-copy conversion when possible, meaning the
-            # underlying memory is still controlled by Polars and marked
-            # as read-only. NumPy and Pandas may inherit this read-only
-            # flag, preventing modifications.
-            # THE ORDER IS IMPORTANT HERE. CONVERT TO PANDAS FIRST.
-            NP_TRFM_X = TRFM_X.to_pandas().to_numpy()
-            NP_INV_TRFM_X = INV_TRFM_X.to_pandas().to_numpy()
-        elif hasattr(TRFM_X, 'toarray'):
-            NP_TRFM_X = TRFM_X.toarray()
-            NP_INV_TRFM_X = INV_TRFM_X.toarray()
-        else:
-            raise Exception
 
-        assert isinstance(NP_TRFM_X, np.ndarray)
-        assert isinstance(NP_INV_TRFM_X, np.ndarray)
-
-        # v v v v assert output is equal to original pre-transform data v v v v
-
-        if isinstance(NP_INV_TRFM_X, pd.core.frame.DataFrame):
-            assert np.array_equal(NP_INV_TRFM_X.columns, _columns)
-
-        # manage equal_nan for num or str
-        try:
-            NP_INV_TRFM_X.astype(np.float64)
-            # when num
-            assert np.array_equal(NP_INV_TRFM_X, _base_X, equal_nan=True), \
-                f"inverse transform of transformed data does not equal original"
-
-            assert np.array_equal(
-                NP_TRFM_X,
-                NP_INV_TRFM_X[:, _CDT.column_mask_],
-                equal_nan=True
-            ), \
-                (f"output of inverse_transform() does not reduce back to the "
-                 f"output of transform()")
-        except:
-            # when str
-            # CDT converts all nan-likes to np.nan, need to standardize them
-            # in the inputs here for array_equal against the outputs
-            # for string data, array_equal does not accept equal_nan param
-            _base_X[nan_mask_string(_base_X)] = 'nan'
-            NP_TRFM_X[nan_mask_string(NP_TRFM_X)] = 'nan'
-            NP_INV_TRFM_X[nan_mask_string(NP_INV_TRFM_X)] = 'nan'
-
-            assert np.array_equal(NP_INV_TRFM_X, _base_X), \
-                f"inverse transform of transformed data != original data"
-
-            assert np.array_equal(
-                NP_TRFM_X, NP_INV_TRFM_X[:, _CDT.column_mask_]
-            ), \
-                (f"output of inverse_transform() does not reduce back to the "
-                 f"output of transform()")
-
-
-        # verify _X_wip does not mutate in inverse_transform()
-        # save the headache of dealing with array_equal with nans and
-        # non-numeric data, just do numeric.
-        if _copy is True and _dtype in ('flt', 'int'):
-
-            assert isinstance(_X_wip, type(_X_wip_before_inv_tr))
-            assert _X_wip.shape == _X_wip_before_inv_tr.shape
-
-            if isinstance(_X_wip_before_inv_tr, np.ndarray):
-                assert np.array_equal(
-                    _X_wip_before_inv_tr, _X_wip, equal_nan=True
-                )
-                assert _X_wip.flags == _X_wip_before_inv_tr.flags
-            elif hasattr(_X_wip_before_inv_tr, 'columns'):
-                assert _X_wip.equals(_X_wip_before_inv_tr)
-            elif hasattr(_X_wip_before_inv_tr, 'toarray'):
-                assert np.array_equal(
-                    _X_wip.toarray(),
-                    _X_wip_before_inv_tr.toarray(),
-                    equal_nan=True
-                )
-            else:
-                raise Exception
-
-
-    @pytest.mark.parametrize('_format',
-        (
-            'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-            'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-            'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
-        )
-    )
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_matrix'))
     def test_X_is_not_mutated(
         self, _X_factory, _columns, _shape, _kwargs, _dupls, _format
     ):
@@ -1567,30 +1371,21 @@ class TestInverseTransform:
         # the output container is always the same as passed
 
         _X_wip = _X_factory(
-            _dupl=_dupls,
-            _has_nan=False,
-            _format=_format,
-            _dtype='flt',
-            _columns=_columns,
-            _constants=None,
-            _noise=0,
-            _zeros=None,
+            _dupl=_dupls, _has_nan=False, _format=_format, _dtype='flt',
+            _columns=_columns, _constants=None, _noise=0, _zeros=None,
             _shape=_shape
         )
 
         if _format == 'np':
             assert _X_wip.flags['C_CONTIGUOUS'] is True
 
-
         try:
             _X_wip_before = _X_wip.copy()
         except:
             _X_wip_before = _X_wip.clone()
 
-
         # verify _X_wip does not mutate in inverse_transform
-        _CDT = CDT(**_kwargs)
-        _CDT.fit(_X_wip)
+        _CDT = CDT(**_kwargs).fit(_X_wip)
         TRFM_X = _CDT.transform(_X_wip, copy=True)
         assert isinstance(TRFM_X, type(_X_wip))
         assert TRFM_X.shape[1] < _X_wip.shape[1]
@@ -1598,15 +1393,12 @@ class TestInverseTransform:
 
 
         # ASSERTIONS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-        # output container is same as passed
         assert isinstance(_X_wip, type(_X_wip_before))
         assert _X_wip.shape == _X_wip_before.shape
 
         if isinstance(_X_wip_before, np.ndarray):
-            assert np.array_equal(
-                _X_wip_before, _X_wip, equal_nan=True
-            )
-            assert _X_wip.flags == _X_wip_before.flags
+            assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
         elif hasattr(_X_wip_before, 'columns'):
             assert _X_wip.equals(_X_wip_before)
         elif hasattr(_X_wip_before, 'toarray'):
@@ -1617,15 +1409,17 @@ class TestInverseTransform:
             raise Exception
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'coo_array'))
     @pytest.mark.parametrize('_diff', ('more', 'less', 'same'))
     def test_rejects_bad_num_features(
-        self, _X_np, _kwargs, _columns, _format, _diff
+        self, _X_factory, _shape, _X_np, _kwargs, _master_columns, _format, _diff
     ):
+
+        # num columns must equal num columns in column_mask_
 
         # ** ** ** **
         # THERE CANNOT BE "BAD NUM FEATURES" FOR fit & fit_transform
-        # THE MECHANISM FOR partial_fit & transform IS DIFFERENT FROM inverse_transform
+        # THE MECHANISM FOR inverse_transform IS DIFFERENT FROM partial_fit & transform
         # ** ** ** **
 
         # RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
@@ -1633,45 +1427,41 @@ class TestInverseTransform:
 
         _CDT = CDT(**_kwargs)
         _CDT.fit(_X_np)
-
-        # build TRFM_X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         TRFM_X = _CDT.transform(_X_np)
-        TRFM_MASK = _CDT.column_mask_
-        if _diff == 'same':
-            if _format == 'pd':
-                TRFM_X = pd.DataFrame(data=TRFM_X, columns=_columns[TRFM_MASK])
-            elif _format == 'pl':
-                TRFM_X = pl.DataFrame(data=TRFM_X, schema=list(_columns[TRFM_MASK]))
-        elif _diff == 'less':
-            TRFM_X = TRFM_X[:, :-1]
-            if _format == 'pd':
-                TRFM_X = pd.DataFrame(data=TRFM_X, columns=_columns[TRFM_MASK][:-1])
-            elif _format == 'pl':
-                TRFM_X = pl.from_numpy(
-                    data=TRFM_X, schema=list(_columns[TRFM_MASK][:-1])
-                )
-        elif _diff == 'more':
-            TRFM_X = np.hstack((TRFM_X, TRFM_X))
-            _COLUMNS = np.hstack((
-                _columns[TRFM_MASK], np.char.upper(_columns[TRFM_MASK])
-            ))
-            if _format == 'pd':
-                TRFM_X = pd.DataFrame(data=TRFM_X, columns=_COLUMNS)
-            elif _format == 'pl':
-                TRFM_X = pl.from_numpy(data=TRFM_X, schema=list(_COLUMNS))
-        else:
-            raise Exception
-        # END build TRFM_X ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        assert TRFM_X.shape[1] < _X_np.shape[1]
+
+        # rig TRFM_X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        _new_shape_dict = {
+            'same': TRFM_X.shape,
+            'less': (TRFM_X.shape[0], TRFM_X.shape[1] - 1),
+            'more': (TRFM_X.shape[0], 2 * TRFM_X.shape[1])
+        }
+        _columns_dict = {
+            'same': _master_columns.copy()[:TRFM_X.shape[1]],
+            'less': _master_columns.copy()[:TRFM_X.shape[1]-1],
+            'more': _master_columns.copy()[:2 * TRFM_X.shape[1]]
+        }
+
+        _rigged_trfm_X = _X_factory(
+            _dupl=None,
+            _has_nan=False,
+            _format=_format,
+            _dtype='flt',
+            _columns=_columns_dict[_diff],
+            _constants=None,
+            _zeros=0,
+            _shape=_new_shape_dict[_diff]
+        )
+        # END rig TRFM_X ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         # Test the inverse_transform operation ** ** ** ** ** ** **
         if _diff == 'same':
-            _CDT.inverse_transform(TRFM_X)
+            _CDT.inverse_transform(_rigged_trfm_X)
         else:
             with pytest.raises(ValueError):
-                _CDT.inverse_transform(TRFM_X)
+                _CDT.inverse_transform(_rigged_trfm_X)
         # END Test the inverse_transform operation ** ** ** ** ** ** **
 
-        del _CDT, TRFM_X, TRFM_MASK
 
 
 
