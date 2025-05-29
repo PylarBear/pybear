@@ -23,11 +23,10 @@ class TestValidation:
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_rtol', (1e-6, 1e-1))
     @pytest.mark.parametrize('_atol', (1e-6, 1))
-    @pytest.mark.parametrize('_n_jobs', (None, -1, 1))
     @pytest.mark.parametrize('columns_is_passed', (True, False))
     def test_accepts_good(
         self, _X_factory, _columns, _shape, _format, _keep, _rtol, _atol,
-        _equal_nan, _n_jobs, columns_is_passed
+        _equal_nan, columns_is_passed
     ):
 
         # test the following degenerate conditions are blocked
@@ -73,8 +72,7 @@ class TestValidation:
                             _keep,
                             _equal_nan,
                             _rtol,
-                            _atol,
-                            _n_jobs
+                            _atol
                         )
                     pytest.skip(
                         reason=f"cannot have str _keep when columns are not passed"
@@ -89,8 +87,7 @@ class TestValidation:
                             _keep,
                             _equal_nan,
                             _rtol,
-                            _atol,
-                            _n_jobs
+                            _atol
                         )
                     pytest.skip(
                         reason=f"cannot have feature str _keep when columns are "
@@ -104,8 +101,7 @@ class TestValidation:
             _keep,
             _equal_nan,
             _rtol,
-            _atol,
-            _n_jobs
+            _atol
         )
 
 

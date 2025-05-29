@@ -15,9 +15,6 @@ from .._type_aliases import (
     TotalCountsByColumnType
 )
 
-import numbers
-
-import joblib
 import numpy as np
 
 from ._parallelized_row_masks import _parallelized_row_masks
@@ -32,8 +29,7 @@ def _make_row_and_column_masks(
         int,
         Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], DataType]
     ],
-    _reject_unseen_values: bool,
-    _n_jobs: Union[numbers.Integral, None]
+    _reject_unseen_values: bool
 ) -> tuple[npt.NDArray[bool], npt.NDArray[bool]]:
 
     """
@@ -78,10 +74,6 @@ def _make_row_and_column_masks(
         there are unknown uniques in the column. If True, compare uniques
         in the column against uniques in _COLUMN_UNQ_CT_DICT and raise
         exception if there is a value not previously seen.
-    _n_jobs:
-        Union[int, None] - Number of CPU cores/threads used when doing
-        parallel search of features during fit. -1 means using all
-        processors.
 
 
     Return
@@ -115,22 +107,6 @@ def _make_row_and_column_masks(
             break
     # otherwise build the mask from individual row masks.
     else:
-        # pizza axe this if joblib w chunks works
-        # _delete_rows_mask = np.zeros(_X.shape[0], dtype=np.uint8)
-        # for col_idx, _instr in _delete_instr.items():
-        #     if 'INACTIVE' in _instr or len(_instr) == 0:
-        #         continue
-        #     else:
-        #         _delete_rows_mask += _parallelized_row_masks(
-        #             _columns_getter(_X, col_idx).ravel(),
-        #             _total_counts_by_column[col_idx],
-        #             _delete_instr[col_idx],
-        #             _reject_unseen_values,
-        #             col_idx
-        #         )
-
-
-        # pizza probably should make a joblib test module like for partial_fit
         _ACTIVE_COL_IDXS = []
         for col_idx, _instr in _delete_instr.items():
             if 'INACTIVE' in _instr or len(_instr) == 0:
@@ -138,38 +114,35 @@ def _make_row_and_column_masks(
             else:
                 _ACTIVE_COL_IDXS.append(col_idx)
 
-        # pizza set this to whatever is set in partial_fit
-        _n_cols = 1000
+        # as of 25_05_29 no longer using joblib. even with sending chunks of
+        # X instead of single columns across joblib it still wasnt a
+        # benefit. The cost of serializing the data is not worth it for the
+        # light task of building & summing binary vectors.
 
-        if len(_ACTIVE_COL_IDXS) == 0:
-            _delete_rows_mask = np.zeros(_X.shape[0], dtype=np.uint8)
-        elif len(_ACTIVE_COL_IDXS) < 2 * _n_cols:
-            _delete_rows_mask = _parallelized_row_masks(
-                _columns_getter(_X, tuple(_ACTIVE_COL_IDXS)),
-                {k:v for k,v in _total_counts_by_column.items() if k in _ACTIVE_COL_IDXS},
-                {k:v for k,v in _delete_instr.items() if k in _ACTIVE_COL_IDXS},
+        # the original attempt at this was passing all col indices in _X to
+        # columns_getter and passing the whole thing as np to _prm. It
+        # turned out that this was creating a brief but huge spike in RAM
+        # because a full copy of the entire _X was being made. so trade off
+        # by pulling smaller chunks of _X and passing to _prm... this gives
+        # the benefit of less calls to _columns_getter & _prm than would be
+        # if pulling one column at a time, still with some memory spike but
+        # much smaller, and get some economy of scale with the speed of
+        # scanning a ndarray chunk.
+        # number of columns to pull and scan in one pass of the :for: loop
+        _n_cols = 10
+        _delete_rows_mask = np.zeros(_X.shape[0], dtype=np.uint8)
+        for i in range(0, len(_ACTIVE_COL_IDXS), _n_cols):
+
+            _idxs = np.array(_ACTIVE_COL_IDXS)[
+                list(range(i, min(i + _n_cols, len(_ACTIVE_COL_IDXS))))
+            ]
+
+            _delete_rows_mask += _parallelized_row_masks(
+                _columns_getter(_X, tuple(_idxs.tolist())),
+                {k:v for k,v in _total_counts_by_column.items() if k in _idxs},
+                {k:v for k,v in _delete_instr.items() if k in _idxs},
                 _reject_unseen_values
             )
-        else:
-            # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-            with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-                ROW_MASKS = joblib.Parallel(return_as='list')(
-                    joblib.delayed(_parallelized_row_masks)(
-                        _columns_getter(
-                            _X,
-                            tuple(range(i, min(i + _n_cols, len(_ACTIVE_COL_IDXS))))
-                        ),
-                        {k:v for k,v in _total_counts_by_column.items() if k in np.array(_ACTIVE_COL_IDXS)[list(range(i, min(i + _n_cols, len(_ACTIVE_COL_IDXS))))]},
-                        {k:v for k,v in _delete_instr.items() if k in np.array(_ACTIVE_COL_IDXS)[list(range(i, min(i + _n_cols, len(_ACTIVE_COL_IDXS))))]},
-                        _reject_unseen_values
-                    ) for i in range(0, len(_ACTIVE_COL_IDXS), _n_cols))
-
-                # vstack will work as long as there is at least 1 thing
-                # in ROW_MASKS
-                _delete_rows_mask = \
-                    np.sum(np.vstack(ROW_MASKS, dtype=np.uint8)).astype(np.uint8)
-
-                del ROW_MASKS
 
         del _ACTIVE_COL_IDXS
 

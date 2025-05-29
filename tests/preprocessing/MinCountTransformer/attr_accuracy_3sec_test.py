@@ -66,8 +66,7 @@ class TestAccuracy:
             'ignore_float_columns': True,
             'ignore_non_binary_integer_columns': False,
             'delete_axis_0': False,
-            'max_recursions': _recursions,
-            'n_jobs': 1
+            'max_recursions': _recursions
         }
 
         _pool_size = (_shape[0] // (_count_threshold + 1))

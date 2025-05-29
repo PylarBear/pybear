@@ -129,8 +129,7 @@ class TestInverseTransform:
             keep=_keep,
             rtol=1e-5,
             atol=1e-8,
-            equal_nan=True,
-            n_jobs=1   # joblib is not engaged with so few columns
+            equal_nan=True
         )
 
         TRFM_X = _IM.fit_transform(_X_wip)

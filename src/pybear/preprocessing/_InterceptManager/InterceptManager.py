@@ -95,11 +95,9 @@ class InterceptManager(
 
     3) has a partial fit method for batch-wise fitting and transforming
 
-    4) uses joblib for parallelized discovery of constant columns
+    4) has parameters that give flexibility to how 'constant' is defined
 
-    5) has parameters that give flexibility to how 'constant' is defined
-
-    6) can remove all, keep one, or append a column of constants to data
+    5) can remove all, keep one, or append a column of constants to data
 
     The methodology that IM uses to identify a constant column is
     different for numerical and non-numerical data.
@@ -345,14 +343,6 @@ class InterceptManager(
         Optional[numbers.Real], default = 1e-8 - The absolute difference
         tolerance for equality. Must be a non-boolean, non-negative,
         real number. See numpy.allclose.
-    n_jobs:
-        Optional[Union[numbers.Integral, None]], default=-1 - The number
-        of joblib Parallel jobs to use when scanning the data for columns
-        of constants. The default is to use processes, but can be
-        overridden externally using a joblib parallel_config context
-        manager. The default number of jobs is -1 (all processors). To
-        get maximum speed benefit, pybear recommends using the default
-        setting.
 
 
     Attributes
@@ -542,15 +532,13 @@ class InterceptManager(
         keep: Optional[KeepType]='last',
         equal_nan: Optional[bool]=True,
         rtol: Optional[numbers.Real]=1e-5,
-        atol: Optional[numbers.Real]=1e-8,
-        n_jobs: Optional[Union[numbers.Integral, None]]=-1
+        atol: Optional[numbers.Real]=1e-8
     ):
 
         self.keep = keep
         self.equal_nan = equal_nan
         self.rtol = rtol
         self.atol = atol
-        self.n_jobs = n_jobs
 
 
     # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -761,8 +749,7 @@ class InterceptManager(
             self.keep,
             self.equal_nan,
             self.rtol,
-            self.atol,
-            self.n_jobs
+            self.atol
         )
 
         # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -789,8 +776,7 @@ class InterceptManager(
                     X,
                     self.equal_nan,
                     self.rtol,
-                    self.atol,
-                    self.n_jobs
+                    self.atol
                 )
 
             self._constant_columns: ConstantColumnsType = \
@@ -1090,8 +1076,7 @@ class InterceptManager(
             self.keep,
             self.equal_nan,
             self.rtol,
-            self.atol,
-            self.n_jobs
+            self.atol
         )
 
         # do not make an assignment!

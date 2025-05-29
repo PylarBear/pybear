@@ -41,8 +41,7 @@ class TestPrintInstructionDoesntMutateFutureResults:
             'count_threshold': _count_threshold,
             'ignore_non_binary_integer_columns': False,
             'ignore_columns': [0, 1],
-            'handle_as_bool': [2, 3],
-            'n_jobs': 1
+            'handle_as_bool': [2, 3]
         }
 
 

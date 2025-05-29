@@ -25,8 +25,7 @@ class TestScipySparseSpecial:
     def _fc_args():
         return {
             '_rtol': 1e-5,
-            '_atol': 1e-8,
-            '_n_jobs': 1
+            '_atol': 1e-8
         }
 
 
@@ -88,8 +87,7 @@ class TestFindConstants:
     #     _X: InternalXContainer,
     #     _equal_nan: bool,
     #     _rtol: numbers.Real,
-    #     _atol: numbers.Real,
-    #     _n_jobs: Union[numbers.Integral, None]
+    #     _atol: numbers.Real
     # ) -> ConstantColumnsType:
 
 
@@ -164,8 +162,7 @@ class TestFindConstants:
             _X_wip,
             _equal_nan=_equal_nan,
             _rtol=1e-6,
-            _atol=1e-6,
-            _n_jobs=1  # leave this at 1 because of contention pizza???
+            _atol=1e-6
         )
 
 

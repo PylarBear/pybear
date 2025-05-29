@@ -9,14 +9,12 @@
 from typing_extensions import Any
 import numpy.typing as npt
 
-import joblib
 import numpy as np
 
 from ....utilities._nan_masking import nan_mask
 
 
 
-@joblib.wrap_non_picklable_objects
 def _parallel_dtypes_unqs_cts(
     _chunk_of_X: npt.NDArray,
 ) -> list[tuple[str, dict[Any, int]]]:

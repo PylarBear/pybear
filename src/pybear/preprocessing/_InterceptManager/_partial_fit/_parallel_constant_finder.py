@@ -51,7 +51,10 @@ def _parallel_constant_finder(
     single value. Joblib choked on this one-column-at-a-time approach,
     serializing individual columns just to do this operation was a waste.
     So this module was converted to handle a chunk of columns of X, scan
-    it, and return a list of results. Joblib likes this.
+    it, and return a list of results. Handling chunks instead of columns
+    still was not enough to make the cost of serializing the data
+    worthwhile compared to the low cost of assessing if a column is
+    constant. Joblib has been removed completely.
 
 
     Parameters

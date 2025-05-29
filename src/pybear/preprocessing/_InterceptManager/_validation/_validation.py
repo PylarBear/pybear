@@ -19,7 +19,6 @@ from ...__shared._validation._X import _val_X
 from ...__shared._validation._equal_nan import _val_equal_nan
 from ...__shared._validation._atol import _val_atol
 from ...__shared._validation._rtol import _val_rtol
-from ...__shared._validation._n_jobs import _val_n_jobs
 
 
 
@@ -29,8 +28,7 @@ def _validation(
     _keep: KeepType,
     _equal_nan: bool,
     _rtol: numbers.Real,
-    _atol: numbers.Real,
-    _n_jobs: Union[numbers.Integral, None]
+    _atol: numbers.Real
 ) -> None:
 
     """
@@ -67,9 +65,6 @@ def _validation(
         numbers.Real - The absolute difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
         numpy.allclose.
-    _n_jobs:
-        Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when scanning the data for columns of constants.
 
 
     Return
@@ -89,11 +84,6 @@ def _validation(
     _val_rtol(_rtol)
 
     _val_atol(_atol)
-
-    _val_n_jobs(_n_jobs)
-
-
-
 
 
 

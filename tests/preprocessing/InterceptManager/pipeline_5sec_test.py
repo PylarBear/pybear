@@ -42,7 +42,6 @@ class TestPipeline:
         )
 
         # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        # n_jobs confliction doesnt seem to matter
         pipe = Pipeline(
             steps = [
                 ('onehot', OneHotEncoder(sparse_output=True)),
@@ -61,7 +60,7 @@ class TestPipeline:
 
 
         # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        # n_jobs confliction doesnt seem to matter
+
         encoded_X = OneHotEncoder(sparse_output=True).fit_transform(_X)
         deconstanted_X = IM(**_kwargs).fit_transform(encoded_X)
         _coef_separate = LogisticRegression().fit(deconstanted_X, y_np).coef_

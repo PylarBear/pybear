@@ -65,8 +65,7 @@ class TestGetDtypesUnqsCts:
                 _X_wip,
                 _rtol=1e-5,
                 _atol=1e-8,
-                _equal_nan=True,
-                _n_jobs=1   # leave set a 1 because of confliction
+                _equal_nan=True
             )
 
 
@@ -106,9 +105,9 @@ class TestGetDtypesUnqsCts:
             _shape=_shape
         )
 
-        # leave n_jobs set at 1 because of confliction
+
         out = _get_dtypes_unqs_cts(
-            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan, _n_jobs=1
+            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
         )
 
         if (not _equal_nan and _has_nan) or _dupl_set in [2]:
@@ -147,7 +146,7 @@ class TestGetDtypesUnqsCts:
 
         # leave set a 1 because of confliction
         out = _get_dtypes_unqs_cts(
-            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=True, _n_jobs=1
+            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=True
         )
 
         assert np.array_equal(out[0], list(range(_shape[1])))
