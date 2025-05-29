@@ -79,11 +79,13 @@ def _parallelized_row_masks(
     assert isinstance(_X_CHUNK, np.ndarray)
     assert len(_X_CHUNK.shape) == 2
     assert isinstance(_UNQ_CT_DICT, dict)
+    assert all(map(isinstance, _UNQ_CT_DICT.keys(), (int for _ in _instr)))
     assert all(map(isinstance, _UNQ_CT_DICT.values(), (dict for _ in _UNQ_CT_DICT)))
     assert isinstance(_instr, dict)
     assert all(map(isinstance, _instr.keys(), (int for _ in _instr)))
     assert all(map(isinstance, _instr.values(), (list for _ in _instr)))
 
+    assert _X_CHUNK.shape[1] == len(_UNQ_CT_DICT) == len(_instr)
     assert np.array_equal(list(_UNQ_CT_DICT.keys()), list(_instr.keys()))
 
     assert isinstance(_reject_unseen_values, bool)

@@ -13,6 +13,7 @@ from pybear.utilities import check_pipeline
 import uuid
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from sklearn.pipeline import Pipeline
@@ -32,11 +33,11 @@ import pytest
 class TestPipeline:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 4)
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (100, 4)
 
 
     @staticmethod
@@ -104,7 +105,7 @@ class TestPipeline:
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr', 'csc', 'bsr'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csr', 'csc', 'bsr'))
     def test_accuracy_in_pipe_vs_out_of_pipe(
         self, _X_np, _shape, _columns, _kwargs, _format
     ):
@@ -128,6 +129,8 @@ class TestPipeline:
             _X = _X_np.copy()
         elif _format == 'pd':
             _X = pd.DataFrame(data=_X_np, columns=_columns)
+        elif _format == 'pl':
+            _X = pl.from_numpy(data=_X_np, schema=list(_columns))
         elif _format == 'csr':
             _X = ss.csr_array(_X_np)
         elif _format == 'csc':

@@ -6,44 +6,28 @@
 
 
 
-from typing import Sequence, Literal, Callable
-from typing_extensions import Union, TypeAlias
+from typing import (
+    Callable,
+    Literal,
+    Sequence
+)
+from typing_extensions import (
+    Any,
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
+
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 
 
-
-
-
-SparseContainer: TypeAlias = Union[
-    ss._csr.csr_matrix,
-    ss._csc.csc_matrix,
-    ss._coo.coo_matrix,
-    ss._dia.dia_matrix,
-    ss._lil.lil_matrix,
-    ss._dok.dok_matrix,
-    ss._bsr.bsr_matrix,
-    ss._csr.csr_array,
-    ss._csc.csc_array,
-    ss._coo.coo_array,
-    ss._dia.dia_array,
-    ss._lil.lil_array,
-    ss._dok.dok_array,
-    ss._bsr.bsr_array
-]
-
-DataContainer: TypeAlias = Union[
+InternalXContainer: TypeAlias = Union[
     npt.NDArray,
     pd.DataFrame,
-    SparseContainer
-]
-
-# the internal containers differ from the above external data containers
-# by coo, dia, & bsr, because those cannot be sliced
-
-InternalSparseContainer: TypeAlias = Union[
+    pl.DataFrame,
     ss._csr.csr_matrix,
     ss._csc.csc_matrix,
     ss._lil.lil_matrix,
@@ -52,13 +36,6 @@ InternalSparseContainer: TypeAlias = Union[
     ss._csc.csc_array,
     ss._lil.lil_array,
     ss._dok.dok_array
-]
-
-# pizza polars
-InternalDataContainer: TypeAlias = Union[
-    npt.NDArray,
-    pd.DataFrame,
-    InternalSparseContainer
 ]
 
 
@@ -76,7 +53,7 @@ KeptPolyDuplicatesType: TypeAlias = dict[tuple[int, ...], list[tuple[int, ...]]]
 
 DroppedPolyDuplicatesType: TypeAlias = dict[tuple[int, ...], tuple[int, ...]]
 
-PolyConstantsType: TypeAlias = dict[tuple[int, ...], any]
+PolyConstantsType: TypeAlias = dict[tuple[int, ...], Any]
 
 
 

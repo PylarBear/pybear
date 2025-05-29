@@ -6,11 +6,10 @@
 
 
 
-from pybear.feature_extraction.text.__shared._validation._any_string import \
-    _val_any_string
-
 import pytest
 
+from pybear.feature_extraction.text.__shared._validation._any_string import \
+    _val_any_string
 
 
 

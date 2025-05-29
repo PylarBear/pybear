@@ -20,11 +20,11 @@ from pybear.preprocessing._MinCountTransformer._partial_fit._columns_getter \
 class TestColumnsGetter:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 3)
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (100, 3)
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 

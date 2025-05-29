@@ -746,7 +746,7 @@ class TestPartialFit:
 
     #     def partial_fit(
     #         self,
-    #         X: DataContainer,
+    #         X: XContainer,
     #         y: any=None
     #     ) -> Self:
 
@@ -968,10 +968,10 @@ class TestTransform:
 
     #     def transform(
     #         self,
-    #         X: DataContainer,
+    #         X: XContainer,
     #         *,
     #         copy: bool = None
-    #     ) -> DataContainer:
+    #     ) -> XContainer:
 
 
     @pytest.mark.parametrize('_copy',

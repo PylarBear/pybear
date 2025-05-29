@@ -11,7 +11,7 @@ from typing_extensions import (
     Union
 )
 import numpy.typing as npt
-from .._type_aliases import InternalDataContainer
+from .._type_aliases import InternalXContainer
 
 
 import numpy as np
@@ -24,7 +24,7 @@ from ....utilities._nan_masking import nan_mask
 
 
 def _columns_getter(
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _col_idxs: Union[int, tuple[int, ...]]
 ) -> npt.NDArray[Any]:
 
@@ -40,7 +40,7 @@ def _columns_getter(
     Parameters
     ----------
     _X:
-        InternalDataContainer - The data to extract columns from. _X
+        InternalXContainer - The data to extract columns from. _X
         must be indexable, which excludes scipy coo, dia, and bsr. This
         module expects _X to be in a valid state when passed, and will
         not condition it.

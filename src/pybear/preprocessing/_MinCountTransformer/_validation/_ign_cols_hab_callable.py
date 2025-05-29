@@ -14,8 +14,9 @@ import numpy as np
 
 from ....utilities._nan_masking import nan_mask_numerical
 
-from .._validation._n_features_in import _val_n_features_in
 from .._validation._feature_names_in import _val_feature_names_in
+
+from ...__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -79,7 +80,7 @@ def _val_ign_cols_hab_callable(
     """
 
 
-    _val_n_features_in(_n_features_in)
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     _val_feature_names_in(
         _feature_names_in,
@@ -204,29 +205,6 @@ def _val_ign_cols_hab_callable(
         del _err_msg
     else:
         raise Exception
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

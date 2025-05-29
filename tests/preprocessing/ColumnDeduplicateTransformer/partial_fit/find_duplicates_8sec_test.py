@@ -70,6 +70,7 @@ class TestFindDuplicates:
             )
 
 
+    # pizza what about int?
     @pytest.mark.parametrize('_dtype', ('flt', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_dupl_set', (1, 2, 3, 4))
     @pytest.mark.parametrize('_has_nan', (True, False))

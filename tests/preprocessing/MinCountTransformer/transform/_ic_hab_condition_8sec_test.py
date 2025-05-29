@@ -33,11 +33,11 @@ class TestIcHabCondition:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 8)
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (100, 8)
 
 
     @staticmethod

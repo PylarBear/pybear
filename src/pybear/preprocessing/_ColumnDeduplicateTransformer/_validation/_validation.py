@@ -8,28 +8,29 @@
 
 from typing_extensions import Union
 from .._type_aliases import (
-    DataContainer,
     DoNotDropType,
     ConflictType,
     KeepType,
     FeatureNamesInType
 )
+from ...__shared._type_aliases import XContainer
 
 import numbers
 
-from ._X import _val_X
 from ._conflict import _val_conflict
 from ._do_not_drop import _val_do_not_drop
 from ._keep import _val_keep
-from ._rtol import _val_rtol
-from ._atol import _val_atol
-from ._equal_nan import _val_equal_nan
-from ._n_jobs import _val_n_jobs
+
+from ...__shared._validation._X import _val_X
+from ...__shared._validation._equal_nan import _val_equal_nan
+from ...__shared._validation._atol import _val_atol
+from ...__shared._validation._rtol import _val_rtol
+from ...__shared._validation._n_jobs import _val_n_jobs
 
 
 
 def _validation(
-    _X: DataContainer,
+    _X: XContainer,
     _columns: Union[FeatureNamesInType, None],
     _conflict: ConflictType,
     _do_not_drop: DoNotDropType,

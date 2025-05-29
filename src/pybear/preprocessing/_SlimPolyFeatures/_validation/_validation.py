@@ -6,29 +6,30 @@
 
 
 
-from ._atol import _val_atol
-from ._degree__min_degree import _val_degree__min_degree
-from ._equal_nan import _val_equal_nan
-from ._feature_name_combiner import _val_feature_name_combiner
-from ._interaction_only import _val_interaction_only
-from ._keep import _val_keep
-from ._n_jobs import _val_n_jobs
-from ._rtol import _val_rtol
-from ._scan_X import _val_scan_X
-from ._sparse_output import _val_sparse_output
-from ._X import _val_X
-
-from .._type_aliases import DataContainer, FeatureNameCombinerType
 from typing import Literal
 from typing_extensions import Union
+from .._type_aliases import FeatureNameCombinerType
+from ...__shared._type_aliases import XContainer
 
 import numbers
+import warnings
 
+from ._degree__min_degree import _val_degree__min_degree
+from ._feature_name_combiner import _val_feature_name_combiner
+from ._keep import _val_keep
+from ._X_supplemental import _val_X_supplemental
+
+from ...__shared._validation._X import _val_X
+from ...__shared._validation._equal_nan import _val_equal_nan
+from ...__shared._validation._atol import _val_atol
+from ...__shared._validation._rtol import _val_rtol
+from ...__shared._validation._n_jobs import _val_n_jobs
+from ...__shared._validation._any_bool import _val_any_bool
 
 
 
 def _validation(
-    _X: DataContainer,
+    _X: XContainer,
     _degree: numbers.Integral,
     _min_degree: numbers.Integral,
     _scan_X: bool,
@@ -88,15 +89,23 @@ def _validation(
 
     _val_keep(_keep)
 
-    _val_scan_X(_scan_X)
+    _val_any_bool(_scan_X, 'scan_X', _can_be_None=False)
+
+    if _scan_X is False:
+        warnings.warn(
+            f"'scan_X' is set to False. Do this with caution, only when "
+            f"you are certain that X does not have constant or duplicate "
+            f"columns. Otherwise the results from :method: transform will "
+            f"be nonsensical."
+        )
 
     _val_degree__min_degree(_degree, _min_degree)
 
     _val_feature_name_combiner(_feature_name_combiner)
 
-    _val_interaction_only(_interaction_only)
+    _val_any_bool(_interaction_only, 'interaction_only', _can_be_None=False)
 
-    _val_sparse_output(_sparse_output)
+    _val_any_bool(_sparse_output, 'sparse_output', _can_be_None=False)
 
     _val_equal_nan(_equal_nan)
 
@@ -106,16 +115,9 @@ def _validation(
 
     _val_n_jobs(_n_jobs)
 
-    _val_X(_X, _interaction_only)
+    _val_X(_X)
 
-
-
-
-
-
-
-
-
+    _val_X_supplemental(_X, _interaction_only)
 
 
 

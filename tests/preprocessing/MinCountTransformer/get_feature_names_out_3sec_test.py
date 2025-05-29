@@ -20,6 +20,7 @@ import uuid
 
 import numpy as np
 import pandas as pd
+import polars as pl
 
 import pytest
 
@@ -31,11 +32,11 @@ from pybear.base._get_feature_names_out import get_feature_names_out
 
 class Fixtures:
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (10, 5)
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (10, 5)
 
 
     @staticmethod
@@ -58,10 +59,10 @@ class Fixtures:
     @staticmethod
     @pytest.fixture(scope='module')
     def _X(_shape, _dropped_col_idx):
-        # a set of data that will have one column removed
+
 
         def foo(
-            _format: Literal['np', 'pd'],
+            _format: Literal['np', 'pd', 'pl'],
             _columns_are_passed: bool
         ):
 
@@ -79,10 +80,9 @@ class Fixtures:
             if _format == 'np':
                 _X_wip = _base_X
             elif _format == 'pd':
-                _X_wip = pd.DataFrame(
-                    data=_base_X,
-                    columns=_columns
-                )
+                _X_wip = pd.DataFrame(data=_base_X, columns=_columns)
+            elif _format == 'pl':
+                _X_wip = pl.from_numpy(data=_base_X, schema=list(_columns))
             else:
                 raise Exception
 
@@ -100,13 +100,20 @@ class Fixtures:
 class TestAlwaysExceptsBeforeFit(Fixtures):
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
-    @pytest.mark.parametrize('_columns_are_passed', (True, False))
+    @pytest.mark.parametrize('_format, _columns_are_passed',
+        (('np', False), ('pd', True), ('pd', False), ('pl', True), ('pl', False))
+    )
     def test_always_except_before_fit(self,
-        _X, _format, _columns_are_passed
+        _X_factory, _shape, _columns, _format, _columns_are_passed, _dropped_col_idx
     ):
 
-        _X_wip = _X(_format, _columns_are_passed)
+        # a set of data that will have one column removed
+        _X_wip = _X_factory(
+            _format=_format,
+            _constants={_dropped_col_idx: 1},
+            _columns=_columns if _columns_are_passed else None,
+            _shape=_shape
+        )
 
         _MCT = MCT()
 
@@ -125,19 +132,29 @@ class TestAlwaysExceptsBeforeFit(Fixtures):
 class TestMinimalGFNOAccuracy(Fixtures):
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd'))
-    @pytest.mark.parametrize('_columns_are_passed', (True, False))
+    @pytest.mark.parametrize('_format, _columns_are_passed',
+        (('np', False), ('pd', True), ('pd', False), ('pl', True), ('pl', False))
+    )
     def test_accuracy(
-        self, _X, _shape, _kwargs, _format, _columns_are_passed,
+        self, _X_factory, _shape, _columns, _kwargs, _format, _columns_are_passed,
         _dropped_col_idx
     ):
 
-        _X_wip = _X(_format, _columns_are_passed)
+        # a set of data that will have one column removed
+        _X_wip = _X_factory(
+            _format=_format,
+            _constants={_dropped_col_idx: 1},
+            _columns=_columns if _columns_are_passed else None,
+            _shape=_shape
+        )
 
-        if _format == 'pd' and _columns_are_passed:
-            _columns = np.array(_X_wip.columns)
-        else:
-            _columns = None
+        # pl always has a str hdr, even if not passed one at construction
+        if not _columns_are_passed:
+            if _format == 'pl':
+                _columns = [f'column_{i}' for i in range(_shape[1])]
+            else:
+                _columns = [f'x{i}' for i in range(_shape[1])]
+
 
         # make the ref vector from base._get_feature_names_out()
         # and the rigged input data (we know what index will be dropped)
@@ -145,7 +162,7 @@ class TestMinimalGFNOAccuracy(Fixtures):
             # using list(columns) just to see if it takes non-ndarray
             # whereas 'feature_names_in_' must be ndarray
             _input_features= list(_columns) if _columns is not None else _columns,
-            feature_names_in_=_columns,
+            feature_names_in_=np.array(_columns),   # need np.array for polars
             n_features_in_=_shape[1]
         )
         _ref_mask = np.ones(_shape[1]).astype(bool)
@@ -162,12 +179,6 @@ class TestMinimalGFNOAccuracy(Fixtures):
 
         assert np.array_equal(out, _ref_out[_ref_mask]), \
             f"{_columns=}, \n{out=}"
-
-
-
-
-
-
 
 
 

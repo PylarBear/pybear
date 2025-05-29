@@ -8,7 +8,7 @@
 
 from .._type_aliases import (
     ColumnMaskType,
-    InternalDataContainer
+    InternalXContainer
 )
 
 import numpy as np
@@ -19,9 +19,9 @@ import scipy.sparse as ss
 
 
 def _transform(
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _column_mask: ColumnMaskType
-) -> InternalDataContainer:
+) -> InternalXContainer:
 
     """
     Remove the duplicate columns from X as indicated in the _column_mask

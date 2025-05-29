@@ -8,18 +8,74 @@
 
 import pytest
 
-from typing_extensions import Union, Sequence, Callable
+from typing_extensions import (
+    Callable,
+    Sequence,
+    Union
+)
 import numpy.typing as npt
 
 import numpy as np
-import joblib
-from joblib import Parallel, delayed
+import pandas as pd
+from joblib import (
+    delayed,
+    Parallel,
+    wrap_non_picklable_objects
+)
 
 from pybear.utilities._nan_masking import (
     nan_mask_numerical,
     nan_mask_string,
     nan_mask
 )
+
+
+
+# pizza finalize this shape
+@pytest.fixture(scope='module')
+def _shape():
+    return (200, 10)
+
+
+@pytest.fixture(scope='module')
+def X_np(_X_factory, _shape):
+
+    return _X_factory(
+        _dupl=None,
+        _has_nan=False,
+        _dtype='int',
+        _shape=_shape
+    )
+
+
+@pytest.fixture(scope='module')
+def X_pd(X_np, _columns):
+    return pd.DataFrame(data=X_np, columns=_columns)
+
+
+@pytest.fixture(scope='module')
+def y_np(_shape):
+    return np.random.randint(0, 2, (_shape[0],))
+
+# pizza
+# @pytest.fixture(scope='function')
+# def _kwargs():
+#
+#     return {
+#         'degree': 2,
+#         'min_degree': 1,
+#         'interaction_only': True,
+#         'scan_X': False,
+#         'keep': 'first',
+#         'sparse_output': False,
+#         'feature_name_combiner': "as_indices",
+#         'equal_nan': True,
+#         'rtol': 1e-5,
+#         'atol': 1e-8,
+#         'n_jobs': 1  # leave this at 1 because of confliction
+#     }
+
+
 
 
 
@@ -68,7 +124,7 @@ def mmct():
                 ignore_columns = []
 
             # GET UNIQUES:
-            @joblib.wrap_non_picklable_objects
+            @wrap_non_picklable_objects
             def get_unq(X_COLUMN: np.ndarray) -> np.ndarray:
                 # CANT HAVE X_COLUMN AS DTYPE object!
                 og_dtype = X_COLUMN.dtype

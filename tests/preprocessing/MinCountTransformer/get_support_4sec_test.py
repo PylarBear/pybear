@@ -16,7 +16,7 @@ import pytest
 
 class TestGetSupport:
 
-
+    # pizza this needs to stay, at least as of 25_05_29
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():

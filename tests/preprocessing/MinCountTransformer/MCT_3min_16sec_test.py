@@ -2536,7 +2536,7 @@ class TestPartialFit:
 
     @pytest.mark.parametrize('_format',
          (
-             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
              'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
              'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
              'dask_array', 'dask_dataframe'
@@ -2549,10 +2549,9 @@ class TestPartialFit:
         if _format == 'np':
             _X_wip = _X
         elif _format == 'pd':
-            _X_wip = pd.DataFrame(
-                data=_X,
-                columns=COLUMNS[:3 * _mct_cols]
-            )
+            _X_wip = pd.DataFrame(data=_X, columns=COLUMNS[:3 * _mct_cols])
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(data=_X, schema=list(COLUMNS[:3 * _mct_cols]))
         elif _format == 'csr_matrix':
             _X_wip = ss._csr.csr_matrix(_X)
         elif _format == 'csc_matrix':
@@ -2588,7 +2587,10 @@ class TestPartialFit:
         else:
             raise Exception
 
-        _X_wip_before_partial_fit = _X_wip.copy()
+        try:
+            _X_wip_before_partial_fit = _X_wip.copy()
+        except:
+            _X_wip_before_partial_fit = _X_wip.clone()
 
         if _format in ('dask_array', 'dask_dataframe'):
             with pytest.raises(TypeError):
@@ -2608,7 +2610,7 @@ class TestPartialFit:
                 _X_wip.toarray(),
                 _X_wip_before_partial_fit.toarray()
             )
-        elif isinstance(_X_wip_before_partial_fit, pd.core.frame.DataFrame):
+        elif isinstance(_X_wip_before_partial_fit, (pd.core.frame.DataFrame, pl.DataFrame)):
             assert _X_wip.equals(_X_wip_before_partial_fit)
         else:
             assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
@@ -2943,7 +2945,7 @@ class TestTransform:
 
     @pytest.mark.parametrize('_format',
          (
-             'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
              'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
              'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
              'dask_array', 'dask_dataframe'
@@ -2956,10 +2958,9 @@ class TestTransform:
         if _format == 'np':
             _X_wip = _X
         elif _format == 'pd':
-            _X_wip = pd.DataFrame(
-                data=_X,
-                columns=COLUMNS[:3 * _mct_cols]
-            )
+            _X_wip = pd.DataFrame(data=_X, columns=COLUMNS[:3 * _mct_cols])
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(data=_X, schema=list(COLUMNS[:3 * _mct_cols]))
         elif _format == 'csr_matrix':
             _X_wip = ss._csr.csr_matrix(_X)
         elif _format == 'csc_matrix':
@@ -2995,7 +2996,10 @@ class TestTransform:
         else:
             raise Exception
 
-        _X_wip_before_transform = _X_wip.copy()
+        try:
+            _X_wip_before_transform = _X_wip.copy()
+        except:
+            _X_wip_before_transform = _X_wip.clone()
 
         _MCT = MCT(**_kwargs)
 
@@ -3024,7 +3028,7 @@ class TestTransform:
                 _X_wip.toarray(),
                 _X_wip_before_transform.toarray()
             )
-        elif isinstance(_X_wip_before_transform, pd.core.frame.DataFrame):
+        elif isinstance(_X_wip_before_transform, (pd.core.frame.DataFrame, pl.DataFrame)):
             assert _X_wip.equals(_X_wip_before_transform)
         else:
             assert np.array_equal(_X_wip_before_transform, _X_wip)

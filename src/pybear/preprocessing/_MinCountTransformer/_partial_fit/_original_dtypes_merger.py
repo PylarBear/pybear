@@ -6,13 +6,14 @@
 
 
 
-from .._type_aliases import OriginalDtypesType
 from typing_extensions import Union
+from .._type_aliases import OriginalDtypesType
 
 import numpy as np
 
-from .._validation._n_features_in import _val_n_features_in
 from .._validation._original_dtypes import _val_original_dtypes
+
+from ...__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -68,7 +69,7 @@ def _original_dtypes_merger(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    _val_n_features_in(_n_features_in)
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     if _previous_col_dtypes is not None:
         _val_original_dtypes(
@@ -111,14 +112,6 @@ def _original_dtypes_merger(
 
 
     return np.array(_new_dtypes)
-
-
-
-
-
-
-
-
 
 
 

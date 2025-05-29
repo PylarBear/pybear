@@ -8,10 +8,8 @@
 
 from typing import Sequence
 from typing_extensions import Union
-from .._type_aliases import (
-    DataContainer,
-    KeepType
-)
+from .._type_aliases import KeepType
+from ...__shared._type_aliases import XContainer
 
 import warnings
 
@@ -20,7 +18,7 @@ import warnings
 def _val_keep_and_columns(
     _keep: KeepType,
     _columns: Union[Sequence[str], None],
-    _X: DataContainer
+    _X: XContainer
 ) -> None:
 
     """

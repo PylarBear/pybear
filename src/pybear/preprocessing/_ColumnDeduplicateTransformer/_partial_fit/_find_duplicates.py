@@ -8,7 +8,7 @@
 
 from typing_extensions import Union
 from .._type_aliases import (
-    InternalDataContainer,
+    InternalXContainer,
     DuplicatesType
 )
 
@@ -27,7 +27,7 @@ from ._parallel_column_comparer import _parallel_column_comparer
 
 
 def _find_duplicates(
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,

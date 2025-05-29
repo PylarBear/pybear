@@ -7,7 +7,7 @@
 
 
 from .._type_aliases import (
-    InternalDataContainer,
+    InternalXContainer,
     KeepType
 )
 
@@ -23,9 +23,9 @@ from ....utilities._nan_masking import nan_mask
 
 
 def _remove_intercept(
-    _X_inv: InternalDataContainer,
+    _X_inv: InternalXContainer,
     _keep: KeepType
-) -> InternalDataContainer:
+) -> InternalXContainer:
 
     """
     If 'keep' was a dictionary during fitting/transform then a column
@@ -39,7 +39,7 @@ def _remove_intercept(
     Parameters
     ----------
     _X_inv:
-        DataContainer - Technically at the point where this module is
+        XContainer - Technically at the point where this module is
         called in IM.inverse_transform X is still X_tr. X_tr is
         midstream in the process of becoming X_inv. So although called
         X_inv here, it is technically still X_tr, which is data that has
@@ -53,7 +53,7 @@ def _remove_intercept(
     Returns
     -------
     -
-        _X_inv: DataContainer - The transformed data reverted back to
+        _X_inv: XContainer - The transformed data reverted back to
         the pre-transform state, with the full set of original constant
         columns, if any.
 

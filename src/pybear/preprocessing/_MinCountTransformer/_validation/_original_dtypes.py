@@ -10,7 +10,7 @@ from .._type_aliases import OriginalDtypesType
 
 import numpy as np
 
-from .._validation._n_features_in import _val_n_features_in
+from ...__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -45,7 +45,7 @@ def _val_original_dtypes(
     """
 
 
-    _val_n_features_in(_n_features_in)
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     _allowed = ['bin_int', 'int', 'float', 'obj']
 
@@ -75,14 +75,6 @@ def _val_original_dtypes(
         raise ValueError(_err_msg + _addon)
     except:
         raise TypeError(_err_msg)
-
-
-
-
-
-
-
-
 
 
 

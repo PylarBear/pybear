@@ -8,7 +8,7 @@
 
 from typing_extensions import Union
 from .._type_aliases import (
-    InternalDataContainer,
+    InternalXContainer,
     RemovedColumnsType,
     FeatureNamesInType
 )
@@ -21,10 +21,10 @@ import scipy.sparse as ss
 
 
 def _inverse_transform(
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _removed_columns: RemovedColumnsType,
     _feature_names_in: Union[FeatureNamesInType, None]
-) -> InternalDataContainer:
+) -> InternalXContainer:
 
     """
     Revert deduplicated data back to its original state. CDT cannot

@@ -8,7 +8,7 @@
 
 from .._type_aliases import (
     InstructionType,
-    InternalDataContainer
+    InternalXContainer
 )
 
 import numpy as np
@@ -19,9 +19,9 @@ import scipy.sparse as ss
 
 
 def _transform(
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _instructions: InstructionType
-) -> InternalDataContainer:
+) -> InternalXContainer:
 
     """
     Manage the constant columns in X. Apply the removal criteria given

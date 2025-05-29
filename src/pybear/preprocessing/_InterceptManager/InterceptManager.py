@@ -18,7 +18,6 @@ from typing_extensions import (
 )
 from ._type_aliases import (
     KeepType,
-    DataContainer,
     ConstantColumnsType,
     InstructionType,
     KeptColumnsType,
@@ -26,13 +25,13 @@ from ._type_aliases import (
     ColumnMaskType,
     FeatureNamesInType
 )
+from ..__shared._type_aliases import XContainer
 
 import numbers
 
 import numpy as np
 
 from ._validation._validation import _validation
-from ._validation._X import _val_X
 from ._validation._keep_and_columns import _val_keep_and_columns
 from ._partial_fit._find_constants import _find_constants
 from ._partial_fit._merge_constants import _merge_constants
@@ -42,6 +41,8 @@ from ._shared._manage_keep import _manage_keep
 from ._inverse_transform._inverse_transform import _inverse_transform
 from ._inverse_transform._remove_intercept import _remove_intercept
 from ._transform._transform import _transform
+
+from ..__shared._validation._X import _val_X
 
 from ...base import (
     FeatureMixin,
@@ -439,7 +440,7 @@ class InterceptManager(
 
     Type Aliases
 
-    DataContainer:
+    XContainer:
         Union[
             npt.NDArray,
             pd.DataFrame,
@@ -466,7 +467,7 @@ class InterceptManager(
             dict[str, Any],
             numbers.Integral,
             str,
-            Callable[[DataContainer], int]
+            Callable[[XContainer], int]
         ]
 
     ConstantColumnsType:
@@ -687,7 +688,7 @@ class InterceptManager(
 
     def partial_fit(
         self,
-        X: DataContainer,
+        X: XContainer,
         y: Optional[Union[Any, None]]=None
     ) -> Self:
 
@@ -855,7 +856,7 @@ class InterceptManager(
 
     def fit(
         self,
-        X: DataContainer,
+        X: XContainer,
         y: Optional[Union[Any, None]]=None
     ) -> Self:
 
@@ -898,9 +899,9 @@ class InterceptManager(
 
     def inverse_transform(
         self,
-        X:DataContainer,
+        X:XContainer,
         copy:Optional[Union[bool, None]] = None
-    ) -> DataContainer:
+    ) -> XContainer:
 
         """
         Revert transformed data back to its original state. This
@@ -1014,7 +1015,7 @@ class InterceptManager(
 
     def score(
         self,
-        X: DataContainer,
+        X: XContainer,
         y: Optional[Any]=None
     ) -> None:
 
@@ -1031,9 +1032,9 @@ class InterceptManager(
     @SetOutputMixin._set_output_for_transform
     def transform(
         self,
-        X:DataContainer,
+        X:XContainer,
         copy:Optional[Union[bool, None]] = None
-    ) -> DataContainer:
+    ) -> XContainer:
 
         """
         Manage the constant columns in X. Apply the removal criteria

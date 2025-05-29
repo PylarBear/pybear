@@ -85,7 +85,7 @@ class TestFindConstants:
 
 
     # def _find_constants(
-    #     _X: InternalDataContainer,
+    #     _X: InternalXContainer,
     #     _equal_nan: bool,
     #     _rtol: numbers.Real,
     #     _atol: numbers.Real,

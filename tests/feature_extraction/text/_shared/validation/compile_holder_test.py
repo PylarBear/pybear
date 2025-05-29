@@ -6,12 +6,12 @@
 
 
 
-from pybear.feature_extraction.text.__shared._validation._compile_holder \
-    import _val_compile_holder
+import pytest
 
 import re
 
-import pytest
+from pybear.feature_extraction.text.__shared._validation._compile_holder \
+    import _val_compile_holder
 
 
 
