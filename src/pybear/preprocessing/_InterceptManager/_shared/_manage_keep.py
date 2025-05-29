@@ -13,10 +13,10 @@ from typing_extensions import (
 )
 from .._type_aliases import (
     KeepType,
-    DataContainer,
     ConstantColumnsType,
     FeatureNamesInType
 )
+from ...__shared._type_aliases import XContainer
 
 import warnings
 
@@ -28,7 +28,7 @@ import polars as pl
 
 def _manage_keep(
     _keep: KeepType,
-    _X: DataContainer,
+    _X: XContainer,
     _constant_columns: ConstantColumnsType,
     _n_features_in: int,
     _feature_names_in: FeatureNamesInType,

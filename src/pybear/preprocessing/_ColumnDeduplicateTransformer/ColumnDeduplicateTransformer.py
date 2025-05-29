@@ -18,24 +18,25 @@ from typing_extensions import (
 )
 import numpy.typing as npt
 from ._type_aliases import (
-    DataContainer,
     DuplicatesType,
     RemovedColumnsType,
     ColumnMaskType
 )
+from ..__shared._type_aliases import XContainer
 
 from numbers import Real
 
 import numpy as np
 
 from ._validation._validation import _validation
-from ._validation._X import _val_X
 from ._partial_fit._find_duplicates import _find_duplicates
 from ._partial_fit._merge_dupls import _merge_dupls
 from ._partial_fit._lock_in_random_idxs import _lock_in_random_idxs
 from ._partial_fit._identify_idxs_to_delete import _identify_idxs_to_delete
 from ._inverse_transform._inverse_transform import _inverse_transform
 from ._transform._transform import _transform
+
+from ..__shared._validation._X import _val_X
 
 from ...base import (
     FeatureMixin,
@@ -329,7 +330,7 @@ class ColumnDeduplicateTransformer(
 
     Type Aliases
 
-    DataContainer:
+    XContainer:
         Union[
             npt.NDArray,
             pd.DataFrame,
@@ -356,7 +357,7 @@ class ColumnDeduplicateTransformer(
             dict[str, Any],
             numbers.Integral,
             str,
-            Callable[[DataContainer], int]
+            Callable[[XContainer], int]
         ]
 
     ConstantColumnsType:
@@ -557,7 +558,7 @@ class ColumnDeduplicateTransformer(
 
     def partial_fit(
         self,
-        X: DataContainer,
+        X: XContainer,
         y: Optional[Any]=None
     ) -> Self:
 
@@ -705,7 +706,7 @@ class ColumnDeduplicateTransformer(
 
     def fit(
         self,
-        X: DataContainer,
+        X: XContainer,
         y: Optional[Any]=None
     ) -> Self:
 
@@ -744,9 +745,9 @@ class ColumnDeduplicateTransformer(
 
     def inverse_transform(
         self,
-        X:DataContainer,
+        X:XContainer,
         copy:Optional[Union[bool, None]] = None
-    ) -> DataContainer:
+    ) -> XContainer:
 
         """
         Revert deduplicated data back to its original state. This
@@ -852,7 +853,7 @@ class ColumnDeduplicateTransformer(
 
     def score(
         self,
-        X: DataContainer,
+        X: XContainer,
         y: Optional[Any]=None
     ) -> None:
 
@@ -875,9 +876,9 @@ class ColumnDeduplicateTransformer(
     @SetOutputMixin._set_output_for_transform
     def transform(
         self,
-        X:DataContainer,
+        X:XContainer,
         copy:Optional[Union[bool, None]] = None
-    ) -> DataContainer:
+    ) -> XContainer:
 
         """
         Remove the duplicate columns from X. Apply the criteria given

@@ -6,17 +6,24 @@
 
 
 
-from typing import Literal, Sequence, Optional
+from typing import (
+    Literal,
+    Optional,
+    Sequence
+)
 from typing_extensions import Union
-from .._type_aliases import IgnoreColumnsType, HandleAsBoolType
+from .._type_aliases import (
+    IgnoreColumnsType,
+    HandleAsBoolType
+)
 
 import numbers
+
 import numpy as np
 
-from ....utilities._nan_masking import nan_mask_numerical
-
-from .._validation._n_features_in import _val_n_features_in
 from .._validation._feature_names_in import _val_feature_names_in
+from ...__shared._validation._any_integer import _val_any_integer
+from ....utilities._nan_masking import nan_mask_numerical
 
 
 
@@ -117,7 +124,7 @@ def _val_ignore_columns_handle_as_bool(
     del _allowed_allowed, _err_msg, _addon
     # END allowed -- -- -- -- -- -- -- --
 
-    _val_n_features_in(_n_features_in)
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     _val_feature_names_in(_feature_names_in, _n_features_in)
     # END other validation ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -260,32 +267,6 @@ def _val_ignore_columns_handle_as_bool(
     del is_int, is_str, is_empty
 
     # END validate list-like against characteristics of X ** ** ** ** ** **
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

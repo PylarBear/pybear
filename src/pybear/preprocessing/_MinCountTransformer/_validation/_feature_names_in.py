@@ -9,7 +9,7 @@
 from typing import Optional, Sequence
 from typing_extensions import Union
 
-from ._n_features_in import _val_n_features_in
+from ...__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -44,8 +44,8 @@ def _val_feature_names_in(
 
     """
 
-    if _n_features_in is not None:
-        _val_n_features_in(_n_features_in)
+
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1, _can_be_None=True)
 
 
     err_msg = (
@@ -80,10 +80,6 @@ def _val_feature_names_in(
                 f"len(_feature_names_in) ({len(_feature_names_in)}) must "
                 f"equal _n_features_in ({_n_features_in})"
             )
-
-
-
-
 
 
 

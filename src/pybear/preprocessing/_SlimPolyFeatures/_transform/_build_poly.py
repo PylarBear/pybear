@@ -6,7 +6,7 @@
 
 
 
-from .._type_aliases import InternalDataContainer
+from .._type_aliases import InternalXContainer
 
 import joblib
 
@@ -21,7 +21,7 @@ from .._partial_fit._columns_getter import _columns_getter
 
 
 def _build_poly(
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _active_combos: tuple[tuple[int, ...], ...]
 ) -> ss.csc_array:
 

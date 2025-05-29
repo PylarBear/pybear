@@ -6,7 +6,11 @@
 #
 
 
-from typing import Iterable, Literal, Optional
+from typing import (
+    Iterable,
+    Literal,
+    Optional
+)
 from typing_extensions import Union
 import numpy.typing as npt
 

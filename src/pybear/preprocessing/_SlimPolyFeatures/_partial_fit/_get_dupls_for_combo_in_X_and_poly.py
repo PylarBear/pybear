@@ -8,7 +8,7 @@
 
 from typing_extensions import Union
 import numpy.typing as npt
-from .._type_aliases import InternalDataContainer
+from .._type_aliases import InternalXContainer
 
 import itertools
 import numbers
@@ -26,7 +26,7 @@ from .._partial_fit._columns_getter import _columns_getter
 
 def _get_dupls_for_combo_in_X_and_poly(
     _COLUMN: npt.NDArray[any],
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _POLY_CSC: Union[ss.csc_array, ss.csc_matrix],
     _min_degree: numbers.Integral,  # pizza added to deal with X dupls influencing output when min_degree > 1
     _equal_nan: bool,

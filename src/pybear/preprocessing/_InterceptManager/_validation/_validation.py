@@ -8,24 +8,23 @@
 
 from typing_extensions import Union
 import numpy.typing as npt
-from .._type_aliases import (
-    DataContainer,
-    KeepType
-)
+from .._type_aliases import KeepType
+from ...__shared._type_aliases import XContainer
 
 import numbers
 
-from ._X import _val_X
 from ._keep_and_columns import _val_keep_and_columns
-from ._equal_nan import _val_equal_nan
-from ._rtol import _val_rtol
-from ._atol import _val_atol
-from ._n_jobs import _val_n_jobs
+
+from ...__shared._validation._X import _val_X
+from ...__shared._validation._equal_nan import _val_equal_nan
+from ...__shared._validation._atol import _val_atol
+from ...__shared._validation._rtol import _val_rtol
+from ...__shared._validation._n_jobs import _val_n_jobs
 
 
 
 def _validation(
-    _X: DataContainer,
+    _X: XContainer,
     _columns: Union[npt.NDArray[str], None],
     _keep: KeepType,
     _equal_nan: bool,

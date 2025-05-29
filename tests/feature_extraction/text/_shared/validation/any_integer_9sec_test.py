@@ -6,14 +6,14 @@
 
 
 
-from pybear.feature_extraction.text.__shared._validation._any_integer import \
-    _val_any_integer
-
 import pytest
 
 import numbers
 
 import numpy as np
+
+from pybear.feature_extraction.text.__shared._validation._any_integer import \
+    _val_any_integer
 
 
 

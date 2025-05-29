@@ -28,10 +28,10 @@ class TestDaskIncrementalParallelPostFit:
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # FIXTURES
 
-    @staticmethod
-    @pytest.fixture
-    def _shape():
-        return (200, 20)
+    # @staticmethod
+    # @pytest.fixture
+    # def _shape():
+    #     return (200, 20)
 
     @staticmethod
     @pytest.fixture(scope='function')

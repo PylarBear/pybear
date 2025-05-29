@@ -15,7 +15,6 @@ from .._type_aliases import (
     TotalCountsByColumnType
 )
 
-import itertools
 import numbers
 
 import joblib
@@ -165,7 +164,7 @@ def _make_row_and_column_masks(
                         _reject_unseen_values
                     ) for i in range(0, len(_ACTIVE_COL_IDXS), _n_cols))
 
-                # vstack will work as long as their is at least 1 thing
+                # vstack will work as long as there is at least 1 thing
                 # in ROW_MASKS
                 _delete_rows_mask = \
                     np.sum(np.vstack(ROW_MASKS, dtype=np.uint8)).astype(np.uint8)

@@ -26,10 +26,11 @@ class TestParallelizedDtypeUnqsCts:
 
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 10)
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (100, 10)
 
 
     @staticmethod

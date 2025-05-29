@@ -29,11 +29,11 @@ class TestValY:
 
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (10, 10)
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (10, 10)
 
 
     @staticmethod

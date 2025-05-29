@@ -6,14 +6,17 @@
 
 
 
-from typing import Literal, Sequence
+from typing import (
+    Literal,
+    Sequence
+)
 from typing_extensions import Union
 from .._type_aliases import CountThresholdType
 
 import numbers
 import numpy as np
 
-from ._n_features_in import _val_n_features_in
+from ...__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -58,7 +61,7 @@ def _val_count_threshold(
 
     # other validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    _val_n_features_in(_n_features_in)
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     _err_msg = (
         f"'_allowed' must be 1D list-like that contains string 'int' "

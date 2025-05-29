@@ -6,7 +6,10 @@
 
 
 
-from typing import Sequence, Optional
+from typing import (
+    Optional,
+    Sequence
+)
 from typing_extensions import (
     Self,
     Union
@@ -18,14 +21,15 @@ from ._type_aliases import (
     TotalCountsByColumnType,
     IgnoreColumnsType,
     HandleAsBoolType,
-    XContainer,
     YContainer
 )
+from ..__shared._type_aliases import XContainer
 
 import warnings
 import numbers
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from ._make_instructions._make_instructions import _make_instructions
@@ -1483,6 +1487,9 @@ class MinCountTransformer(
             elif isinstance(X_tr, pd.core.frame.DataFrame):
                 X_tr = X_tr.loc[ROW_KEEP_MASK, :]
                 X_tr = X_tr.loc[:, COLUMN_KEEP_MASK]
+            elif isinstance(X_tr, pl.DataFrame):
+                X_tr = X_tr.filter(ROW_KEEP_MASK)
+                X_tr = X_tr[:, COLUMN_KEEP_MASK]
             elif isinstance(X_tr, (ss.csc_matrix, ss.csc_array)):
                 # ensure bool mask for ss
                 X_tr = X_tr[ROW_KEEP_MASK.astype(bool), :]

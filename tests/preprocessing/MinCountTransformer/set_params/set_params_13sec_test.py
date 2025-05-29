@@ -21,27 +21,9 @@ class TestSetParams:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _rows():
-        return 200
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def X(_rows):
-        return np.random.randint(0, 10, (_rows, 10))
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def y(_rows):
-        return np.random.randint(0, 2, (_rows, 2), dtype=np.uint8)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs(_rows):
+    def _kwargs(_shape):
         return {
-            'count_threshold': _rows // 20,
+            'count_threshold': _shape[0] // 20,
             'ignore_float_columns': True,
             'ignore_non_binary_integer_columns': True,
             'ignore_columns': None,
@@ -56,10 +38,10 @@ class TestSetParams:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _alt_kwargs(_rows):
+    def _alt_kwargs(_shape):
 
         return {
-            'count_threshold': _rows // 10,
+            'count_threshold': _shape[0] // 10,
             'ignore_float_columns': False,
             'ignore_non_binary_integer_columns': False,
             'ignore_columns': [0, 1],
@@ -74,7 +56,7 @@ class TestSetParams:
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    def test_blocks_some_params_after_fit(self, X, y, _kwargs):
+    def test_blocks_some_params_after_fit(self, X_np, y_np, _kwargs):
 
         # INITIALIZE
         TestCls = MCT(**_kwargs)
@@ -84,7 +66,7 @@ class TestSetParams:
 
         # everything is open after fit except 'max_recursions', and ic/hab
         # cannot be set to callable.
-        TestCls.fit(X, y)
+        TestCls.fit(X_np, y_np)
 
         TestCls.set_params(count_threshold=66)
         assert getattr(TestCls, 'count_threshold') == 66
@@ -120,7 +102,7 @@ class TestSetParams:
         assert getattr(TestCls, 'n_jobs') == 3
 
 
-    def test_fitted_max_rcr_over_one_blocks(self, X, y, _kwargs, _alt_kwargs):
+    def test_fitted_max_rcr_over_one_blocks(self, X_np, y_np, _kwargs, _alt_kwargs):
 
         # everything blocked after fit with max_recursions >=2
         # can only do fit_transform when 2+ recursions
@@ -133,7 +115,7 @@ class TestSetParams:
         _new_kwargs['max_recursions'] = 2
         TestCls.set_params(**_new_kwargs)
 
-        TestCls.fit_transform(X, y)
+        TestCls.fit_transform(X_np, y_np)
 
         # should always except whenever set_params on anything
         for param, value in _kwargs.items():
@@ -147,7 +129,7 @@ class TestSetParams:
             assert getattr(TestCls, param) == value
 
 
-    def test_max_recursions_blocked(self, X, y, _kwargs):
+    def test_max_recursions_blocked(self, X_np, y_np, _kwargs):
 
         # max_recursions always blocked
 
@@ -161,13 +143,13 @@ class TestSetParams:
         TestCls.set_params(max_recursions=1)
         assert TestCls.max_recursions == 1
 
-        TestCls.fit(X, y)
+        TestCls.fit(X_np, y_np)
 
         with pytest.warns():
             TestCls.set_params(max_recursions=2)
         assert TestCls.max_recursions == 1
 
-        TestCls.transform(X, y)
+        TestCls.transform(X_np, y_np)
 
         with pytest.warns():
             TestCls.set_params(max_recursions=2)
@@ -175,7 +157,7 @@ class TestSetParams:
 
 
     def test_equality_set_params_before_and_after_fit(
-        self, X, y, _kwargs, _alt_kwargs, mmct
+        self, X_np, y_np, _kwargs, _alt_kwargs, mmct
     ):
 
         # test the equality of the data output under:
@@ -186,10 +168,10 @@ class TestSetParams:
         FirstTestClass = MCT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FirstTestClass.fit(X.copy(), y.copy())
+        FirstTestClass.fit(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FIRST_TRFM_X, FIRST_TRFM_Y = FirstTestClass.transform(X.copy(), y.copy())
+        FIRST_TRFM_X, FIRST_TRFM_Y = FirstTestClass.transform(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
         del FirstTestClass
@@ -199,11 +181,11 @@ class TestSetParams:
         SecondTestClass = MCT(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SecondTestClass.fit(X.copy(), y.copy())
+        SecondTestClass.fit(X_np, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
         SECOND_TRFM_X, SECOND_TRFM_Y = \
-            SecondTestClass.transform(X.copy(), y.copy())
+            SecondTestClass.transform(X_np, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
         # should not be equal to first transform
@@ -214,7 +196,7 @@ class TestSetParams:
         SecondTestClass.set_params(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        THIRD_TRFM_X, THIRD_TRFM_Y = SecondTestClass.transform(X.copy(), y.copy())
+        THIRD_TRFM_X, THIRD_TRFM_Y = SecondTestClass.transform(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
         del SecondTestClass
@@ -226,7 +208,7 @@ class TestSetParams:
 
         # VERIFY transform AGAINST REFEREE OUTPUT WITH SAME INPUTS
         MOCK_X = mmct().trfm(
-            X.copy(),
+            X_np,
             None,
             _kwargs['ignore_columns'],
             _kwargs['ignore_nan'],
@@ -243,7 +225,7 @@ class TestSetParams:
 
 
     def test_set_params_between_fit_transforms(
-        self, X, y, _kwargs, _alt_kwargs, _rows, mmct
+        self, X_np, y_np, _kwargs, _alt_kwargs, mmct
     ):
 
         # only with max_recursions == 1
@@ -253,7 +235,7 @@ class TestSetParams:
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
         FIRST_TRFM_X, FIRST_TRFM_Y = \
-            FirstTestClass.fit_transform(X.copy(), y.copy())
+            FirstTestClass.fit_transform(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
 
@@ -265,7 +247,7 @@ class TestSetParams:
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
         SECOND_TRFM_X, SECOND_TRFM_Y = \
-            SecondTestClass.fit_transform(X.copy(), y.copy())
+            SecondTestClass.fit_transform(X_np, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -278,7 +260,7 @@ class TestSetParams:
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
         THIRD_TRFM_X, THIRD_TRFM_Y = \
-            SecondTestClass.fit_transform(X.copy(), y.copy())
+            SecondTestClass.fit_transform(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -287,7 +269,7 @@ class TestSetParams:
 
 
     def test_set_params_output_repeatability(
-        self, X, y, _kwargs, _alt_kwargs
+        self, X_np, y_np, _kwargs, _alt_kwargs
     ):
 
         # changing and changing back on the same class gives same result
@@ -299,17 +281,17 @@ class TestSetParams:
         TestClass = MCT(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        TestClass.fit(X.copy(), y.copy())
+        TestClass.fit(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        FIRST_TRFM_X, FIRST_TRFM_Y = TestClass.transform(X.copy(), y.copy())
+        FIRST_TRFM_X, FIRST_TRFM_Y = TestClass.transform(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
         # use set_params to change all params.  DO NOT FIT!
         TestClass.set_params(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(TestClass, param) == value
-        SECOND_TRFM_X, SECOND_TRFM_Y = TestClass.transform(X.copy(), y.copy())
+        SECOND_TRFM_X, SECOND_TRFM_Y = TestClass.transform(X_np, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(TestClass, param) == value
 
@@ -322,44 +304,12 @@ class TestSetParams:
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
         # transform again, and compare with the first output
-        THIRD_TRFM_X, THIRD_TRFM_Y = TestClass.transform(X.copy(), y.copy())
+        THIRD_TRFM_X, THIRD_TRFM_Y = TestClass.transform(X_np, y_np)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
 
         assert np.array_equal(FIRST_TRFM_X, THIRD_TRFM_X)
         assert np.array_equal(FIRST_TRFM_Y, THIRD_TRFM_Y)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

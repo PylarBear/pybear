@@ -16,11 +16,11 @@ import pytest
 
 class TestGetRowSupport:
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 4)
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (100, 4)
 
 
     @staticmethod

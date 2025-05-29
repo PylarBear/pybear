@@ -23,7 +23,7 @@ class TestManageKeep:
 
     # def _manage_keep(
     #     _keep: KeepType,
-    #     _X: DataContainer,
+    #     _X: XContainer,
     #     _constant_columns: ConstantColumnsType,
     #     _n_features_in: int,
     #     _feature_names_in: FeatureNamesInType,

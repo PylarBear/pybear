@@ -5,10 +5,14 @@
 # License: BSD 3 clause
 
 
-from functools import wraps
-import numpy as np
-import psutil, time, os
 
+from functools import wraps
+import numbers
+import os
+import psutil
+import time
+
+import numpy as np
 
 
 
@@ -54,12 +58,11 @@ def timer(orig_func):
 
 
 
-
 def time_memory_benchmark(
     *args,
     number_of_trials:int=7,
     rest_time:int=1,
-    verbose:[int, float, bool]=1
+    verbose:numbers.Real=1
 ) -> np.ndarray:
 
     """Measure the average time (seconds) and the average change in system
@@ -291,15 +294,6 @@ def time_memory_benchmark(
     # axis_0 = time, mem
     # axis_1 = number_of_functions
     # axis_2 = number_of_trials
-
-
-
-
-
-
-
-
-
 
 
 

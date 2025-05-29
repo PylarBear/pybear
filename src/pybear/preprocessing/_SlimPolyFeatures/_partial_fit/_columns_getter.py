@@ -9,7 +9,7 @@
 from typing_extensions import Union
 import numpy.typing as npt
 from pybear.preprocessing._SlimPolyFeatures._type_aliases import \
-    InternalDataContainer
+    InternalXContainer
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ from pybear.utilities._nan_masking import nan_mask
 
 
 def _columns_getter(
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _col_idxs: Union[int, tuple[int, ...]]
 ) -> npt.NDArray[np.float64]:
 

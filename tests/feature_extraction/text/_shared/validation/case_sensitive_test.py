@@ -6,11 +6,12 @@
 
 
 
+import pytest
+
+import numpy as np
+
 from pybear.feature_extraction.text.__shared._validation._case_sensitive \
     import _val_case_sensitive
-
-import pytest
-import numpy as np
 
 
 

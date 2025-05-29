@@ -17,17 +17,14 @@ from typing_extensions import Union
 import numpy.typing as npt
 
 from ..._validation._count_threshold import _val_count_threshold
-from ..._validation._ignore_float_columns import _val_ignore_float_columns
-from ..._validation._ignore_non_binary_integer_columns import \
-    _val_ignore_non_binary_integer_columns
 from ..._validation._ignore_columns_handle_as_bool import \
     _val_ignore_columns_handle_as_bool
-from ..._validation._ignore_nan import _val_ignore_nan
-from ..._validation._delete_axis_0 import _val_delete_axis_0
 from ..._validation._original_dtypes import _val_original_dtypes
 from ._total_counts_by_column import _val_total_counts_by_column
-from ..._validation._n_features_in import _val_n_features_in
 from ..._validation._feature_names_in import _val_feature_names_in
+
+from ....__shared._validation._any_bool import _val_any_bool
+from ....__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -86,7 +83,7 @@ def _make_instructions_validation(
     """
 
 
-    _val_n_features_in(_n_features_in)
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     _val_feature_names_in(
         _feature_names_in,
@@ -99,9 +96,12 @@ def _make_instructions_validation(
         _n_features_in
     )
 
-    _val_ignore_float_columns(_ignore_float_columns)
+    _val_any_bool(_ignore_float_columns, 'ignore_float_columns', _can_be_None=False)
 
-    _val_ignore_non_binary_integer_columns(_ignore_non_binary_integer_columns)
+    _val_any_bool(
+        _ignore_non_binary_integer_columns, 'ignore_non_binary_integer_columns',
+        _can_be_None=False
+    )
 
     _val_ignore_columns_handle_as_bool(
         _ignore_columns,
@@ -111,7 +111,7 @@ def _make_instructions_validation(
         _feature_names_in=_feature_names_in
     )
 
-    _val_ignore_nan(_ignore_nan)
+    _val_any_bool(_ignore_nan, 'ignore_nan', _can_be_None=False)
 
     _val_original_dtypes(
         _original_dtypes,
@@ -126,18 +126,9 @@ def _make_instructions_validation(
         _feature_names_in=_feature_names_in
     )
 
-    _val_delete_axis_0(_delete_axis_0)
+    _val_any_bool(_delete_axis_0, 'delete_axis_0', _can_be_None=False)
 
     _val_total_counts_by_column(_total_counts_by_column)
-
-
-
-
-
-
-
-
-
 
 
 

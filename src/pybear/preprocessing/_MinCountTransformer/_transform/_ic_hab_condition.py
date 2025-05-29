@@ -6,20 +6,21 @@
 
 
 
-from typing_extensions import Union
 from typing import Sequence
+from typing_extensions import Union
 from .._type_aliases import (
-    XContainer,
     IgnoreColumnsType,
     HandleAsBoolType,
     InternalIgnoreColumnsType,
     InternalHandleAsBoolType,
     OriginalDtypesType
 )
+from ...__shared._type_aliases import XContainer
 
 import numbers
 import warnings
 from copy import deepcopy
+
 import numpy as np
 
 from ....utilities._feature_name_mapper import feature_name_mapper
@@ -29,8 +30,9 @@ from .._validation._ignore_columns_handle_as_bool import \
     _val_ignore_columns_handle_as_bool
 from .._validation._original_dtypes import _val_original_dtypes
 from .._validation._count_threshold import _val_count_threshold
-from .._validation._n_features_in import _val_n_features_in
 from .._validation._feature_names_in import _val_feature_names_in
+
+from ...__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -129,7 +131,7 @@ def _ic_hab_condition(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    _val_n_features_in(_n_features_in)
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     _val_feature_names_in(
         _feature_names_in,

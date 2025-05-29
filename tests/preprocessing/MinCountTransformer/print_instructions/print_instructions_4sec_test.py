@@ -20,7 +20,7 @@ from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
 
 class TestPrintInstructionDoesntMutateFutureResults:
 
-
+    # pizza this needs to stay, at least as of 25_05_29
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():

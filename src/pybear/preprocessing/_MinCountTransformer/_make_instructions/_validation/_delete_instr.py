@@ -8,7 +8,7 @@
 
 from ..._type_aliases import InstructionsType
 
-from ..._validation._n_features_in import _val_n_features_in
+from ....__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -57,7 +57,7 @@ def _val_delete_instr(
     )
 
 
-    _val_n_features_in(_n_features_in)
+    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     if not isinstance(_delete_instr, dict):
         raise TypeError(_err_msg + f"got outer container {type(_delete_instr)}. ")

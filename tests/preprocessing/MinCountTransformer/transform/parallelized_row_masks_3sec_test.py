@@ -30,11 +30,11 @@ class TestParallelizedRowMasks:
 
 
     # Fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (200, 10)
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (200, 10)
 
 
     @staticmethod

@@ -547,7 +547,7 @@ class TestPartialFit:
 
     #     def partial_fit(
     #         self,
-    #         X: DataContainer,
+    #         X: XContainer,
     #         y: any=None
     #     ) -> Self:
 
@@ -916,9 +916,9 @@ class TestTransform:
 
     # def transform(
     #     self,
-    #     X:DataContainer,
+    #     X:XContainer,
     #     copy:Optional[Union[bool, None]] = None
-    # ) -> DataContainer:
+    # ) -> XContainer:
 
 
     @pytest.mark.parametrize('_copy',
@@ -1236,9 +1236,9 @@ class TestInverseTransform:
 
     # def inverse_transform(
     #     self,
-    #     X:DataContainer,
+    #     X:XContainer,
     #     copy:Optional[Union[bool, None]] = None
-    # ) -> DataContainer:
+    # ) -> XContainer:
 
 
     # - num columns must equal num columns in column_mask_

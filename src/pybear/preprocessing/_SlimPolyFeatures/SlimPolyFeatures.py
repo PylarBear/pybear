@@ -6,10 +6,18 @@
 
 
 
-from typing import Sequence, Literal, Optional, Callable
-from typing_extensions import Union, Self
-from ._type_aliases import DataContainer
+from typing import (
+    Callable,
+    Literal,
+    Optional,
+    Sequence
+)
+from typing_extensions import (
+    Self,
+    Union
+)
 import numpy.typing as npt
+from ..__shared._type_aliases import XContainer
 
 import numbers
 import uuid
@@ -877,7 +885,7 @@ class SlimPolyFeatures(
 
     def partial_fit(
         self,
-        X: DataContainer,
+        X: XContainer,
         y: Optional[any]=None
     ) -> Self:
 
@@ -1240,7 +1248,7 @@ class SlimPolyFeatures(
 
     def fit(
         self,
-        X: DataContainer,
+        X: XContainer,
         y: Optional[any]=None
     ) -> Self:
 
@@ -1279,7 +1287,7 @@ class SlimPolyFeatures(
 
     def score(
         self,
-        X: DataContainer,
+        X: XContainer,
         y:Optional[any]=None
     ) -> None:
 
@@ -1384,7 +1392,7 @@ class SlimPolyFeatures(
 
 
     @SetOutputMixin._set_output_for_transform
-    def transform(self, X: DataContainer) -> DataContainer:
+    def transform(self, X: XContainer) -> XContainer:
 
         """
         Apply the expansion footprint that was learned during fitting to

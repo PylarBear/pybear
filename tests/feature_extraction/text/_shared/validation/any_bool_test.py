@@ -6,11 +6,10 @@
 
 
 
-from pybear.feature_extraction.text.__shared._validation._any_bool import \
-    _val_any_bool
-
 import pytest
 
+from pybear.feature_extraction.text.__shared._validation._any_bool import \
+    _val_any_bool
 
 
 
