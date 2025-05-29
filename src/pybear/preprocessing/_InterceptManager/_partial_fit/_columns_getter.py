@@ -106,11 +106,10 @@ def _columns_getter(
     # this assignment must stay here. there was a nan recognition problem
     # that wasnt happening in offline tests of entire data objects
     # holding the gamut of nan-likes but was happening with similar data
-    # objects passing thru the IM machinery. Dont know the reason why,
-    # maybe because the columns get parted out, or because they get sent
-    # thru the joblib machinery? using nan_mask here and reassigning all
-    # nans identified here as np.nan resolved the issue.
-    # np.nan assignment excepts on dtype int array, so ask for forgiveness
+    # objects passing thru the IM machinery. Dont know the reason why.
+    # using nan_mask here and reassigning all nans identified here as
+    # np.nan resolved the issue. np.nan assignment excepts on dtype int
+    # array, so ask for forgiveness
     try:
         _columns[nan_mask(_columns)] = np.nan
     except:

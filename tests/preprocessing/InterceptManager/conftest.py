@@ -28,8 +28,7 @@ def _kwargs():
         'keep': 'first',
         'equal_nan': False,   # must be False
         'rtol': 1e-5,
-        'atol': 1e-8,
-        'n_jobs': 1
+        'atol': 1e-8
     }
 
 

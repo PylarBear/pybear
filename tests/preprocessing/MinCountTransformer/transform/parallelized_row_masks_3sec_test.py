@@ -20,7 +20,6 @@ from pybear.preprocessing._MinCountTransformer._transform. \
 class TestParallelizedRowMasks:
 
 
-    # @joblib.wrap_non_picklable_objects
     # def _parallelized_row_masks(
     #     _X_CHUNK: npt.NDArray[Any],
     #     _UNQ_CT_DICT: TotalCountsByColumnType,  (a sub-chunk of the full)

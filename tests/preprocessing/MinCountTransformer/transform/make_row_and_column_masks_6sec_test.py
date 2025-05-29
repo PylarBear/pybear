@@ -140,10 +140,9 @@ class TestMakeRowAndColumnMasks:
 
 
     @pytest.mark.parametrize('reject_unseen', (True, False))
-    @pytest.mark.parametrize('_n_jobs', (1, -1))
     def test_accuracy_column_masks(self, float_column_no_nan, str_column_no_nan,
         str_column_nan, float_column_nan, good_tcbc, good_instr, _thresh,
-        reject_unseen, _n_jobs):
+        reject_unseen):
 
         AVAIL = (
             float_column_no_nan, str_column_no_nan, str_column_nan,
@@ -211,8 +210,7 @@ class TestMakeRowAndColumnMasks:
                         X,
                         TCBC,
                         _good_instr,
-                        reject_unseen,
-                        _n_jobs
+                        reject_unseen
                     )
             elif all(_DELETE_ROW_MASK):
 
@@ -221,8 +219,7 @@ class TestMakeRowAndColumnMasks:
                         X,
                         TCBC,
                         _good_instr,
-                        reject_unseen,
-                        _n_jobs
+                        reject_unseen
                     )
 
             else:
@@ -230,8 +227,7 @@ class TestMakeRowAndColumnMasks:
                     X,
                     TCBC,
                     _good_instr,
-                    reject_unseen,
-                    _n_jobs
+                    reject_unseen
                 )
 
                 assert np.array_equiv(COLUMN_KEEP_MASK, exp.astype(bool))
@@ -266,8 +262,7 @@ class TestMakeRowAndColumnMasks:
             RIGGED_FLOAT_COL,
             TCBC,
             _good_instr,
-            _reject_unseen_values=True,
-            _n_jobs=-1
+            _reject_unseen_values=True
         )
 
         # nan IS BELOW THRESH SO SHOULD BE FOUND AND MARKED
@@ -298,8 +293,7 @@ class TestMakeRowAndColumnMasks:
             X,
             TCBC,
             _good_instr,
-            _reject_unseen_values=True,
-            _n_jobs=1
+            _reject_unseen_values=True
         )
 
         assert np.array_equiv(

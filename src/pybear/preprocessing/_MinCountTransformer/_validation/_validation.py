@@ -22,7 +22,6 @@ from ._count_threshold import _val_count_threshold
 from ._ignore_columns_handle_as_bool import _val_ignore_columns_handle_as_bool
 
 from ...__shared._validation._X import _val_X
-from ...__shared._validation._n_jobs import _val_n_jobs
 from ...__shared._validation._any_bool import _val_any_bool
 from ...__shared._validation._any_integer import _val_any_integer
 
@@ -39,7 +38,6 @@ def _validation(
     _delete_axis_0: bool,
     _reject_unseen_values: bool,
     _max_recursions: numbers.Integral,
-    _n_jobs: Union[numbers.Integral, None],
     _n_features_in: int,
     _feature_names_in: Union[Sequence[str], None]
 ) -> None:
@@ -72,8 +70,6 @@ def _validation(
         bool
     _max_recursions:
         numbers.Integral
-    _n_jobs:
-        Union[numbers.Integral, None]
     _n_features_in:
         Union[int, None]
     _feature_names_in:
@@ -146,9 +142,6 @@ def _validation(
     )
 
     _val_any_integer(_max_recursions, 'max_recursions', _min=1)
-
-    _val_n_jobs(_n_jobs)
-
 
 
 

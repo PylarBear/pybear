@@ -17,11 +17,6 @@ import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
-from joblib import (
-    delayed,
-    Parallel,
-    wrap_non_picklable_objects
-)
 
 from pybear.utilities._nan_masking import (
     nan_mask_numerical,
@@ -71,8 +66,7 @@ def y_np(_shape):
 #         'feature_name_combiner': "as_indices",
 #         'equal_nan': True,
 #         'rtol': 1e-5,
-#         'atol': 1e-8,
-#         'n_jobs': 1  # leave this at 1 because of confliction
+#         'atol': 1e-8
 #     }
 
 
@@ -124,7 +118,6 @@ def mmct():
                 ignore_columns = []
 
             # GET UNIQUES:
-            @wrap_non_picklable_objects
             def get_unq(X_COLUMN: np.ndarray) -> np.ndarray:
                 # CANT HAVE X_COLUMN AS DTYPE object!
                 og_dtype = X_COLUMN.dtype
@@ -187,10 +180,9 @@ def mmct():
                             f'except for reason other than ValueError --- {e1}')
 
 
-            UNIQUES_COUNTS_TUPLES = \
-                Parallel(return_as='list', n_jobs=-1, prefer='processes')(
-                    delayed(get_unq)(MOCK_X[:, c_idx]) for c_idx in ACTIVE_C_IDXS
-            )
+            UNIQUES_COUNTS_TUPLES = []
+            for c_idx in ACTIVE_C_IDXS:
+                UNIQUES_COUNTS_TUPLES.append(get_unq(MOCK_X[:, c_idx]))
 
             # put None in place of skipped columns in UNQ_CT_TUPLES,
             # should get back to the the same size as MOCK_X columns

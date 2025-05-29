@@ -18,12 +18,6 @@ from pybear.preprocessing._MinCountTransformer._partial_fit. \
 class TestParallelizedDtypeUnqsCts:
 
 
-    # @joblib.wrap_non_picklable_objects
-    # def _parallel_dtypes_unqs_cts(
-    #     _chunk_of_X: npt.NDArray,
-    # ) -> list[tuple[str, dict[Any, int]]]:
-
-
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     # pizza

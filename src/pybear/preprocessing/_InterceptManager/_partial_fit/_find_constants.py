@@ -6,7 +6,6 @@
 
 
 
-from typing_extensions import Union
 from .._type_aliases import (
     InternalXContainer,
     ConstantColumnsType
@@ -20,7 +19,6 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
-import joblib
 
 from ._columns_getter import _columns_getter
 from ._parallel_constant_finder import _parallel_constant_finder
@@ -31,8 +29,7 @@ def _find_constants(
     _X: InternalXContainer,
     _equal_nan: bool,
     _rtol: numbers.Real,
-    _atol: numbers.Real,
-    _n_jobs: Union[numbers.Integral, None]
+    _atol: numbers.Real
 ) -> ConstantColumnsType:
 
     # pizza need to update this...
@@ -76,9 +73,6 @@ def _find_constants(
         numbers.Real - The absolute difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
         numpy.allclose.
-    _n_jobs:
-        Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when scanning the data for columns of constants.
     
     
     Return
@@ -103,39 +97,40 @@ def _find_constants(
         float(_atol)
     except:
         raise AssertionError
-    assert isinstance(_n_jobs, (int, type(None)))
-    if _n_jobs:
-        assert _n_jobs >= -1
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
+    # as of 25_05_29 no longer using joblib. even with sending chunks of
+    # X instead of single columns across joblib it still wasnt a
+    # benefit. The cost of serializing the data is not worth it for the
+    # light task of checking if the column is constant.
+
+    # the original attempt at this was passing all col indices in _X to
+    # columns_getter and passing the whole thing as np to _pcf. It turned
+    # out that this was creating a brief but huge spike in RAM because
+    # a full copy of the entire _X was being made. so trade off by
+    # pulling smaller chunks of _X and passing to _pcf... this gives
+    # the benefit of less calls to _columns_getter & _pcf than would be
+    # if pulling one column at a time, still with some memory spike but
+    # much smaller, and get some economy of scale with the speed of
+    # scanning a ndarray chunk.
+    # number of columns to pull and scan in one pass of the :for: loop
+    _n_cols = 10
+    args = (_equal_nan, _rtol, _atol)
+    out = []
+    for i in range(0, _X.shape[1], _n_cols):
+        out.append(_parallel_constant_finder(
+            _columns_getter(
+                _X,
+                tuple(range(i, min(i + _n_cols, _X.shape[1])))
+            ),
+            *args
+        ))
+
+    out = list(itertools.chain(*out))
+
     # out is list[Union[uuid.uuid4, Any]]
     # the idxs of the list match the idxs of the data
-
-    # number of columns to send in a job to joblib
-    _n_cols = 1000
-
-    args = (_equal_nan, _rtol, _atol)
-
-    if _X.shape[1] < 2 * _n_cols:
-        out = _parallel_constant_finder(
-            _columns_getter(_X, tuple(range(_X.shape[1]))), *args
-        )
-    else:
-        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-        with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-            out = joblib.Parallel(return_as='list')(
-                joblib.delayed(_parallel_constant_finder)(
-                    _columns_getter(
-                        _X,
-                        tuple(range(i, min(i + _n_cols, _X.shape[1])))
-                    ),
-                    *args
-                ) for i in range(0, _X.shape[1], _n_cols)
-            )
-
-        out = list(itertools.chain(*out))
-
 
     # convert 'out' to dict[idx, value] for only the columns of constants
     _new_constants = {}

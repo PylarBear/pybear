@@ -38,8 +38,7 @@ class TestGetRowSupport:
             'ignore_float_columns': True,
             'ignore_non_binary_integer_columns': False,
             'delete_axis_0': True,  # <=== must be True, working with bin_ints
-            'max_recursions': 1,
-            'n_jobs': 1
+            'max_recursions': 1
         }
 
 

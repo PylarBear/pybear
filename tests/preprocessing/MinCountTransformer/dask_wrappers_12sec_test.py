@@ -45,8 +45,7 @@ class TestDaskIncrementalParallelPostFit:
             'delete_axis_0': False,
             'handle_as_bool': None,
             'reject_unseen_values': True,
-            'max_recursions': 1,
-            'n_jobs': 1    # leave at 1, confliction
+            'max_recursions': 1
         }
 
     @staticmethod

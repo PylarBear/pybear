@@ -31,8 +31,7 @@ class TestSetParams:
             'handle_as_bool': None,
             'delete_axis_0': True,
             'reject_unseen_values': False,
-            'max_recursions': 1,
-            'n_jobs': 1   # use 1 because of confliction
+            'max_recursions': 1
         }
 
 
@@ -50,7 +49,6 @@ class TestSetParams:
             'delete_axis_0': False,
             'reject_unseen_values': True,
             'max_recursions': 1,  # make life easier, dont do 2+ here
-            'n_jobs': 2
         }
 
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -98,8 +96,6 @@ class TestSetParams:
         with pytest.warns():  # max_recursions -> no-op with warn
             TestCls.set_params(max_recursions=3)
         assert TestCls.max_recursions == 1  # did not change
-        TestCls.set_params(n_jobs=3)
-        assert getattr(TestCls, 'n_jobs') == 3
 
 
     def test_fitted_max_rcr_over_one_blocks(self, X_np, y_np, _kwargs, _alt_kwargs):

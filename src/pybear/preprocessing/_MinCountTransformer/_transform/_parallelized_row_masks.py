@@ -14,13 +14,11 @@ from .._type_aliases import (
 )
 
 import numpy as np
-import joblib
 
 from ....utilities._nan_masking import nan_mask
 
 
 
-@joblib.wrap_non_picklable_objects
 def _parallelized_row_masks(
     _X_CHUNK: npt.NDArray[Any],
     _UNQ_CT_DICT: TotalCountsByColumnType,

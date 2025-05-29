@@ -151,37 +151,6 @@ class TestInitValidation:
 
     # END equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
-    # n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    @pytest.mark.parametrize('junk_n_jobs',
-        (True, False, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
-    )
-    def test_junk_n_jobs(self, _X_np, _kwargs, junk_n_jobs):
-
-        _kwargs['n_jobs'] = junk_n_jobs
-
-        with pytest.raises(TypeError):
-            IM(**_kwargs).fit_transform(_X_np)
-
-
-    @pytest.mark.parametrize('bad_n_jobs', [-2, 0])
-    def test_bad_n_jobs(self, _X_np, _kwargs, bad_n_jobs):
-
-        _kwargs['n_jobs'] = bad_n_jobs
-
-        with pytest.raises(ValueError):
-            IM(**_kwargs).fit_transform(_X_np)
-
-
-    @pytest.mark.parametrize('good_n_jobs', [-1, 1, 10, None])
-    def test_good_n_jobs(self, _X_np, _kwargs, good_n_jobs):
-
-        _kwargs['n_jobs'] = good_n_jobs
-
-        IM(**_kwargs).fit_transform(_X_np)
-
-    # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 # END test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -1086,7 +1055,7 @@ class TestTransform:
         # set dtype
         _wip_X = _wip_X.astype('<U20' if _dtype == 'str' else object)
 
-        _IM = IM(keep='last', equal_nan=True, rtol=1e-5, atol=1e-8, n_jobs=1)
+        _IM = IM(keep='last', equal_nan=True, rtol=1e-5, atol=1e-8)
 
         out = _IM.fit_transform(_wip_X)
 

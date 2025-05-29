@@ -45,8 +45,7 @@ class Fixtures:
         return {
             'count_threshold': _shape[0] // 5,
             'ignore_float_columns': True,
-            'ignore_non_binary_integer_columns': False,
-            'n_jobs': 1
+            'ignore_non_binary_integer_columns': False
         }
 
 

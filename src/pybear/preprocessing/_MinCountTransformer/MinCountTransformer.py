@@ -356,13 +356,6 @@ class MinCountTransformer(
         Optional[int], default=1 - The number of times MCT repeats its
         algorithm on passed data. Only available for `fit_transform`.
 
-    n_jobs:
-        Optional[Union[int, None]], default=None - Number of CPU cores
-        or threads used when parallelizing over features while gathering
-        uniques and counts during fit. The default is to use cores, but
-        an external joblib.parallel_backend context can override this to
-        use threads. -1 means using maximum threads/processors.
-
 
     Attributes
     ----------
@@ -533,8 +526,7 @@ class MinCountTransformer(
         handle_as_bool:Optional[HandleAsBoolType]=None,
         delete_axis_0:Optional[bool]=False,
         reject_unseen_values:Optional[bool]=False,
-        max_recursions:Optional[int]=1,
-        n_jobs:Optional[Union[int, None]]=None
+        max_recursions:Optional[int]=1
     ):
 
 
@@ -547,7 +539,6 @@ class MinCountTransformer(
         self.delete_axis_0 = delete_axis_0
         self.reject_unseen_values = reject_unseen_values
         self.max_recursions = max_recursions
-        self.n_jobs = n_jobs
 
 
     @property
@@ -664,7 +655,6 @@ class MinCountTransformer(
             self.delete_axis_0,
             self.reject_unseen_values,
             self.max_recursions,
-            self.n_jobs,
             getattr(self, 'n_features_in_'),
             getattr(self, 'feature_names_in_', None)
         )
@@ -688,7 +678,7 @@ class MinCountTransformer(
         # partial fits have appropriate data.
 
         DTYPE_UNQS_CTS_TUPLES: list[tuple[str, dict[DataType, int]]] = \
-            _get_dtypes_unqs_cts(X, self.n_jobs)
+            _get_dtypes_unqs_cts(X)
 
         # if scipy sparse, change back to the original format. do this
         # before going into the ic/hab callables below, possible that the
@@ -1038,9 +1028,9 @@ class MinCountTransformer(
         # params can be changed after fit & before calling this by
         # set_params(). need to validate params. _make_instructions()
         # handles the validation of almost all the params in __init__
-        # except max_recursions, reject_unseen_params, and n_jobs.
+        # except max_recursions and reject_unseen_params.
         # max_recursions cannot be changed in set_params once fitted.
-        # None of these 3 are used here.
+        # Neither of these are used here.
 
         # after fit, ic & hab are blocked from being set to callable
         # (but is OK if they were already a callable when fit.) that
@@ -1343,7 +1333,6 @@ class MinCountTransformer(
             self.delete_axis_0,
             self.reject_unseen_values,
             self.max_recursions,
-            self.n_jobs,
             getattr(self, 'n_features_in_'),
             getattr(self, 'feature_names_in_', None)
         )
@@ -1464,8 +1453,7 @@ class MinCountTransformer(
                 X_tr,
                 self._total_counts_by_column,
                 _delete_instr,
-                self.reject_unseen_values,
-                self.n_jobs
+                self.reject_unseen_values
             )
 
         # END BUILD ROW_KEEP & COLUMN_KEEP MASKS ** ** ** ** ** ** ** **
@@ -1555,8 +1543,7 @@ class MinCountTransformer(
                     ignore_nan=self.ignore_nan,
                     handle_as_bool=NEW_HDL_AS_BOOL_COL,
                     delete_axis_0=self.delete_axis_0,
-                    max_recursions=self.max_recursions-1,
-                    n_jobs=self.n_jobs
+                    max_recursions=self.max_recursions-1
                 )
 
                 del NEW_IGN_COL, NEW_HDL_AS_BOOL_COL, NEW_COUNT_THRESHOLD

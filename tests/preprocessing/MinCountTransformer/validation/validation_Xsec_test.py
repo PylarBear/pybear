@@ -34,7 +34,6 @@ class TestMCTValidation:
             _handle_as_bool=None,
             _reject_unseen_values=True,
             _max_recursions=2,
-            _n_jobs=1,
             _n_features_in=3,
             _feature_names_in=None,
         )

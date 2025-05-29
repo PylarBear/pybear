@@ -52,8 +52,7 @@ class TestPipeline:
             'handle_as_bool': None,
             'delete_axis_0': False,
             'reject_unseen_values': False,
-            'max_recursions': 1,
-            'n_jobs': None
+            'max_recursions': 1
         }
 
 
@@ -152,7 +151,7 @@ class TestPipeline:
         pipe = Pipeline(
             steps = [
                 ('mct', MCT(**_kwargs)),
-                ('cdt', CDT(keep='first', equal_nan=True, n_jobs=1)),
+                ('cdt', CDT(keep='first', equal_nan=True)),
                 ('ft',
                     FunctionTransformer(
                         lambda X: X.toarray() if hasattr(X, 'toarray') else X,
@@ -176,7 +175,7 @@ class TestPipeline:
 
         _chopped_X = MCT(**_kwargs).fit_transform(_X)
         assert isinstance(_chopped_X, type(_X))
-        _CDT = CDT(keep='first', equal_nan=True, n_jobs=1)
+        _CDT = CDT(keep='first', equal_nan=True)
         _CDT.set_output('default')
         _dedupl_X = _CDT.fit_transform(_chopped_X)
         TRFM_X_NOT_PIPE = \

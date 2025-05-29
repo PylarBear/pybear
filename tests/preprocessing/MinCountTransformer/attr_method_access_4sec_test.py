@@ -36,8 +36,7 @@ def _kwargs():
         'handle_as_bool': None,
         'delete_axis_0': False,
         'reject_unseen_values': True,
-        'max_recursions': 1,
-        'n_jobs': 1   # leave this at 1 because of confliction
+        'max_recursions': 1
     }
 
 

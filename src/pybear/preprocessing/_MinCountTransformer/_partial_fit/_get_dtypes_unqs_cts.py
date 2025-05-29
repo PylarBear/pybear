@@ -6,20 +6,17 @@
 
 
 
-from typing_extensions import Union
 from .._type_aliases import (
     InternalXContainer,
     DataType
 )
 
 import itertools
-import numbers
 
 import numpy as np
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
-import joblib
 
 from .._partial_fit._columns_getter import _columns_getter
 from .._partial_fit._parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
@@ -27,8 +24,7 @@ from .._partial_fit._parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
 
 
 def _get_dtypes_unqs_cts(
-    _X: InternalXContainer,
-    _n_jobs: Union[numbers.Integral, None]
+    _X: InternalXContainer
 ) -> tuple[str, dict[DataType, int]]:
 
     """
@@ -40,9 +36,6 @@ def _get_dtypes_unqs_cts(
     ----------
     _X:
         InternalXContainer - The pizza.
-    _n_jobs:
-        Union[numbers.Integral, None] - the number of parallel jobs
-        to use when scanning X. -1 means using all pizzas.
 
 
     Returns
@@ -61,38 +54,42 @@ def _get_dtypes_unqs_cts(
         (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
-
-    assert isinstance(_n_jobs, (int, type(None)))
-    if _n_jobs:
-        assert _n_jobs >= -1
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # out is list[tuple[str, dict[DataType, int]]]
-    # the idxs of the list match the idxs of the data
+    # as of 25_05_29 no longer using joblib. even with sending chunks of
+    # X instead of single columns across joblib it still wasnt a
+    # benefit. The cost of serializing the data is not worth it for the
+    # light task of getting uniques from a column.
 
-    # number of columns to send in a job to joblib
-    _n_cols = 1000
-
-
-
-    if _X.shape[1] < 2 * _n_cols:
-        DTYPE_UNQS_CTS_TUPLES = _parallel_dtypes_unqs_cts(
-            _columns_getter(_X, tuple(range(_X.shape[1])))
+    # the original attempt at this was passing all col indices in _X to
+    # columns_getter and passing the whole thing as np to _pduc. It
+    # turned out that this was creating a brief but huge spike in RAM
+    # because a full copy of the entire _X was being made. so trade off
+    # by pulling smaller chunks of _X and passing to _pduc... this gives
+    # the benefit of less calls to _columns_getter & _pduc than would be
+    # if pulling one column at a time, still with some memory spike but
+    # much smaller, and get some economy of scale with the speed of
+    # scanning a ndarray chunk.
+    # number of columns to pull and scan in one pass of the :for: loop
+    _n_cols = 10
+    DTYPE_UNQS_CTS_TUPLES = []
+    for i in range(0, _X.shape[1], _n_cols):
+        _idxs = tuple(range(i, min(i + _n_cols, _X.shape[1])))
+        DTYPE_UNQS_CTS_TUPLES.append(
+            _parallel_dtypes_unqs_cts(_columns_getter(_X, _idxs))
         )
-    else:
-        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-        with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-            DTYPE_UNQS_CTS_TUPLES = joblib.Parallel(return_as='list')(
-                    joblib.delayed(_parallel_dtypes_unqs_cts)(
-                        _columns_getter(
-                            _X,
-                            tuple(range(i, min(i + _n_cols, _X.shape[1])))
-                        )
-                    ) for i in range(0, _X.shape[1], _n_cols)
-                )
 
-        DTYPE_UNQS_CTS_TUPLES = list(itertools.chain(*DTYPE_UNQS_CTS_TUPLES))
+    DTYPE_UNQS_CTS_TUPLES = list(itertools.chain(*DTYPE_UNQS_CTS_TUPLES))
+
+    assert all(map(
+        isinstance,
+        DTYPE_UNQS_CTS_TUPLES,
+        (tuple for i in DTYPE_UNQS_CTS_TUPLES)
+    ))
+
+    # DTYPE_UNQS_CTS_TUPLES is list[tuple[str, dict[DataType, int]]]
+    # the idxs of the list match the idxs of the data
 
 
     return DTYPE_UNQS_CTS_TUPLES

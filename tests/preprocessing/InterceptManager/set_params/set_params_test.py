@@ -26,8 +26,7 @@ class TestSetParams:
             'keep': 'last',
             'equal_nan': True,
             'rtol': 1e-5,
-            'atol': 1e-8,
-            'n_jobs': -1
+            'atol': 1e-8
         }
 
 
@@ -38,8 +37,7 @@ class TestSetParams:
             'keep': 'first',
             'equal_nan': False,
             'rtol': 1e-6,
-            'atol': 1e-9,
-            'n_jobs': 2
+            'atol': 1e-9
         }
 
     # END Fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

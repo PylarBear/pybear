@@ -76,8 +76,7 @@ def _kwargs(_mct_rows):
         'delete_axis_0': True,
         'handle_as_bool': None,
         'reject_unseen_values': False,
-        'max_recursions': 1,
-        'n_jobs': 1   # leave this set a 1 because of confliction
+        'max_recursions': 1
     }
 
 # END SET X, y DIMENSIONS AND DEFAULT THRESHOLD FOR TESTING MCT
@@ -393,7 +392,7 @@ class TestBoolKwargsRejectNonBoolAcceptBool:
         TestCls.fit_transform(X, y)
 
 
-# TEST count_threshold, max_recursions, set_output, n_jobs #############
+# TEST count_threshold, max_recursions, set_output #####################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestCountThresholdMaxRecursionsSetOutputNjobs:
 
@@ -406,8 +405,7 @@ class TestCountThresholdMaxRecursionsSetOutputNjobs:
         (
              'count_threshold',
              'max_recursions',
-             'set_output',
-             'n_jobs'
+             'set_output'
         )
     )
     @pytest.mark.parametrize('junk_value', JUNK)
@@ -417,8 +415,6 @@ class TestCountThresholdMaxRecursionsSetOutputNjobs:
 
         if attr == 'count_threshold' \
                 and junk_value in ([1,2], (1,2), {1,2}, np.pi):
-            pass
-        elif attr in ['n_jobs'] and junk_value is None:
             pass
         elif attr == 'set_output' and junk_value in ['junk', None]:
             pass
@@ -436,8 +432,7 @@ class TestCountThresholdMaxRecursionsSetOutputNjobs:
         BAD_VALUE_DICT = {
             'count_threshold': [-2, 1, 100_000_000, 'bad_list_1', 'bad_list_2'],
             'max_recursions': [-1, 0],
-            'set_output': ['dask_array', 'wrong_junk'],
-            'n_jobs': [-2, 0]
+            'set_output': ['dask_array', 'wrong_junk']
         }
 
         TestCls = MCT(**_kwargs)
@@ -465,8 +460,7 @@ class TestCountThresholdMaxRecursionsSetOutputNjobs:
         GOOD_VALUE_DICT = {
             'count_threshold': [3, 5, 'good_list_1'],
             'max_recursions': [1, 10],
-            'set_output': [None, 'default', 'pandas', 'polars'],
-            'n_jobs': [-1, 1, 10, None]
+            'set_output': [None, 'default', 'pandas', 'polars']
         }
 
         TestCls = MCT(**_kwargs)
@@ -485,7 +479,7 @@ class TestCountThresholdMaxRecursionsSetOutputNjobs:
                     TestCls.set_params(**{attr: good_attr})
                     TestCls.fit_transform(X, y)
 
-# END TEST count_threshold, max_recursions, set_output, n_jobs #########
+# END TEST count_threshold, max_recursions, set_output #################
 
 
 # TEST FOR GOOD / BAD ignore_columns / handle_as_bool ##################
