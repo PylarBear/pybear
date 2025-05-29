@@ -39,7 +39,7 @@ def _one_unique(
     _nan_key:
         Union[float, str, Literal[False]] - the nan value found in the
         data. as of 25_01 all nan-likes are converted to numpy.nan by
-        _column_getter.
+        _columns_getter.
     _nan_ct:
         Union[int, Literal[False]] - the number of nans found in this
         column.

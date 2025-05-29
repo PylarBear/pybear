@@ -56,7 +56,8 @@ def _merge_constants(
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_old_constants, (dict, type(None)))
     if _old_constants and len(_old_constants):
         assert all(map(isinstance, _old_constants, (int for _ in _old_constants)))
@@ -72,18 +73,18 @@ def _merge_constants(
         raise AssertionError
     assert _rtol >= 0
     assert _atol >= 0
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # if _old_constants is None, can only be the first pass, so just
     # return _new_constants
     if _old_constants is None:
-        return _new_constants
+        _final_constants = _new_constants
     # if _old_constants is not None, then cannot be the first pass, and
     # if _old_constants is empty, then there were no constants previously
     # and there cannot be new constants
     elif _old_constants == {}:
-        return _old_constants
+        _final_constants = _old_constants
     else:  # _old_constants is dict that is not empty
 
         # Constant columns can only stay the same or decrease on later
@@ -113,27 +114,29 @@ def _merge_constants(
                     _final_constants[int(_col_idx)] = _value
 
 
-        # verify that outgoing constants were in old and new constants:
-        for _col_idx, _value in _final_constants.items():
-            assert _col_idx in _old_constants
-            assert _col_idx in _new_constants
-            # need to handle nan
-            if str(_value) == 'nan':
-                assert str(_value) == str(_old_constants[_col_idx])
-                assert str(_value) == str(_new_constants[_col_idx])
-            else:
-                try:
-                    float(_value)
-                    raise UnicodeError
-                except UnicodeError:
-                    assert np.isclose(_value, _old_constants[_col_idx])
-                    assert np.isclose(_value, _new_constants[_col_idx])
-                except Exception as e:
-                    assert _value == _old_constants[_col_idx]
-                    assert _value == _new_constants[_col_idx]
+            # output validation ** * ** * ** * ** * ** * ** * ** * ** *
+            # verify that outgoing constants were in old and new constants
+            for _col_idx, _value in _final_constants.items():
+                assert _col_idx in _old_constants
+                assert _col_idx in _new_constants
+                # need to handle nan
+                if str(_value) == 'nan':
+                    assert str(_value) == str(_old_constants[_col_idx])
+                    assert str(_value) == str(_new_constants[_col_idx])
+                else:
+                    try:
+                        float(_value)
+                        raise UnicodeError
+                    except UnicodeError:
+                        assert np.isclose(_value, _old_constants[_col_idx])
+                        assert np.isclose(_value, _new_constants[_col_idx])
+                    except Exception as e:
+                        assert _value == _old_constants[_col_idx]
+                        assert _value == _new_constants[_col_idx]
+            # END output validation ** * ** * ** * ** * ** * ** * ** *
 
 
-        return _final_constants
+    return _final_constants
 
 
 

@@ -48,7 +48,7 @@ def _two_uniques_not_hab(
         int - the minimum threshold frequency for this column
     _nan_key:
         Union[float, str, Literal[False]] - the nan value found in the
-        column in its original dtype. as of 25_01, _column_getter is
+        column in its original dtype. as of 25_01, _columns_getter is
         converting all nan-like values to numpy.nan.
     _nan_ct:
         Union[int, Literal[False]] - the number of nan-like values found

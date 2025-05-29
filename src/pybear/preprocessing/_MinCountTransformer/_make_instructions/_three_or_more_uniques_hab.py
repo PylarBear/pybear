@@ -60,7 +60,7 @@ def _three_or_more_uniques_hab(
         int - the minimum frequency threshold for this column
     _nan_key:
         Union[float, str, Literal[False]] - the nan value in its original
-        dtype. as of 25_01, _column_getter is converting all nan-likes
+        dtype. as of 25_01, _columns_getter is converting all nan-likes
         to numpy.nan.
     _nan_ct:
         Union[int,  Literal[False]] - the frequency of nan in the column

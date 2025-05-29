@@ -35,6 +35,7 @@ from ._validation._validation import _validation
 from ._validation._X import _val_X
 from ._validation._keep_and_columns import _val_keep_and_columns
 from ._partial_fit._find_constants import _find_constants
+from ._partial_fit._merge_constants import _merge_constants
 from ._shared._make_instructions import _make_instructions
 from ._shared._set_attributes import _set_attributes
 from ._shared._manage_keep import _manage_keep
@@ -782,17 +783,24 @@ class InterceptManager(
             self._constant_columns = {}
         else:
             # dictionary of column indices and respective constant values
-            self._constant_columns: ConstantColumnsType = \
+            _current_constant_columns: ConstantColumnsType = \
                 _find_constants(
                     X,
-                    self._constant_columns if \
-                        hasattr(self, '_constant_columns') else None,
                     self.equal_nan,
                     self.rtol,
                     self.atol,
                     self.n_jobs
                 )
 
+            self._constant_columns: ConstantColumnsType = \
+                _merge_constants(
+                    getattr(self, '_constant_columns', None),
+                    _current_constant_columns,
+                    self.rtol,
+                    self.atol
+                )
+
+            del _current_constant_columns
 
         # Create an instance attribute that specifies the random column index
         # to keep when 'keep' is 'random'. This value must be static on calls

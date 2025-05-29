@@ -8,14 +8,25 @@
 
 import pytest
 
+import uuid
+
 import numpy as np
 
-from pybear.preprocessing._SlimPolyFeatures._partial_fit._columns_getter \
+from pybear.preprocessing._MinCountTransformer._partial_fit._columns_getter \
     import _columns_getter
 
 
 
 class TestColumnsGetter:
+
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    @staticmethod
+    @pytest.fixture(scope='module')
+    def _shape():
+        return (100, 3)
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('_format',
@@ -77,10 +88,13 @@ class TestColumnsGetter:
         (0, 1, 2, (0,), (1,), (2,), (0,1), (0,2), (1,2), (0,1,2))
     )
     def test_accuracy(
-        self, _X_factory, _col_idxs, _format, _columns, _shape
+        self, _X_factory, _col_idxs, _format, _shape
     ):
 
         # _columns_getter only allows ss csc.
+
+        # pizza straighten this out when the fixtures are done
+        _columns = [str(uuid.uuid4())[:5] for _ in range(_shape[1])]
 
         _X_wip = _X_factory(
             _format=_format,
@@ -128,10 +142,11 @@ class TestColumnsGetter:
             raise Exception
 
 
-
-
-
-
+        # 25_05_28 pd numeric with junky nan-likes are coming out of
+        # _columns_getter as dtype object. since _columns_getter produces
+        # an intermediary container that is used to find constants and
+        # doesnt impact the container coming out of transform, ok to let
+        # that condition persist and just fudge the dtype for this test.
         assert np.array_equal(
             _columns.astype(np.float64),
             _X_ref[:, _col_idxs].astype(np.float64),

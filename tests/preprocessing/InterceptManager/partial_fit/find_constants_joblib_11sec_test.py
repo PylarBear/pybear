@@ -28,8 +28,8 @@ class TestJoblib:
 
     def test_it_works(self, _X_factory):
 
-        # as of 25_05_21 _n_cols is 200 so use something bigger
-        _shape = (623, 538)
+        # as of 25_05_28 _n_cols is 1000 so use something 2X+ bigger
+        _shape = (623, 2538)
 
         _rand_idxs = sorted(np.random.randint(0, _shape[1], 10).tolist())
         _rand_constants = np.random.randint(0, 10, 10).tolist()
@@ -50,7 +50,6 @@ class TestJoblib:
 
         out = _find_constants(
             _X,
-             _old_constant_columns={},
              _equal_nan=True,
              _rtol=1e-5,
              _atol=1e-8,

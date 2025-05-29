@@ -123,12 +123,12 @@ def _find_duplicates(
         IDXS = [i for i in RANGE if i not in _all_duplicates]
 
 
-        if len(IDXS) < 2 * _n_cols:
+        if len(IDXS) == 0:
             _dupls = []
-            for col_idx2 in IDXS:
-                _dupls.append(_parallel_column_comparer(
-                    _column1, _columns_getter(_X, int(col_idx2)), *args
-                )[0])
+        elif len(IDXS) < 2 * _n_cols:
+            _dupls = _parallel_column_comparer(
+                _column1, _columns_getter(_X, tuple(IDXS)), *args
+            )
         else:
             with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
                 _dupls = joblib.Parallel(return_as='list')(

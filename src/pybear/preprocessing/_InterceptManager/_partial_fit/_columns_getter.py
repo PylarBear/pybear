@@ -13,7 +13,6 @@ from typing_extensions import (
 import numpy.typing as npt
 from .._type_aliases import InternalDataContainer
 
-
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -57,6 +56,7 @@ def _columns_getter(
 
     """
 
+
     # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     assert isinstance(_X,
         (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
@@ -87,7 +87,7 @@ def _columns_getter(
         # of some memory swell.
 
         # code that converts a ss column to np array
-        _columns = _X[:, _col_idxs].toarray()
+        _columns = _X[:, _col_idxs].tocsc().toarray()
 
         # old code that stacks ss column indices and values
         # c1 = _X[:, [_col_idx]]

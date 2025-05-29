@@ -69,7 +69,7 @@ class TestExceptsOnBadXShapes:
         _X_np_less_col
     ):
 
-        # pizza u changed this to X_factory in IM
+        # pizza u deleted this file in IM
 
         TestCls = SlimPoly(**_kwargs)
 

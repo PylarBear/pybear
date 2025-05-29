@@ -24,18 +24,21 @@ import joblib
 
 from ._columns_getter import _columns_getter
 from ._parallel_constant_finder import _parallel_constant_finder
-from ._merge_constants import _merge_constants
 
 
 
 def _find_constants(
     _X: InternalDataContainer,
-    _old_constant_columns: Union[ConstantColumnsType, None],
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _n_jobs: Union[numbers.Integral, None]
 ) -> ConstantColumnsType:
+
+    # pizza need to update this...
+    # _merge_constants was taken out and put into IM.partial_fit
+    # _old_constant_columns was taken out of signature
+    # current X contants now returned instead of merged previous/current
 
     """
     Scan across the columns of _X looking for columns of constants.
@@ -56,9 +59,6 @@ def _find_constants(
         _columns_getter and must observe the container restrictions
         imposed there. _X should be in the correct state when passed to
         this module.
-    _old_constant_columns:
-        Union[ConstantColumnsType, None] - constant column indices and
-        their values found in previous partial fits.
     _equal_nan:
         bool - If equal_nan is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
@@ -91,15 +91,12 @@ def _find_constants(
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
         (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
 
-    assert isinstance(_old_constant_columns, (dict, type(None)))
-    if _old_constant_columns and len(_old_constant_columns):
-        assert max(_old_constant_columns) < _X.shape[1]
     assert isinstance(_equal_nan, bool)
     try:
         float(_rtol)
@@ -109,7 +106,7 @@ def _find_constants(
     assert isinstance(_n_jobs, (int, type(None)))
     if _n_jobs:
         assert _n_jobs >= -1
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # out is list[Union[uuid.uuid4, Any]]
@@ -121,11 +118,11 @@ def _find_constants(
     args = (_equal_nan, _rtol, _atol)
 
     if _X.shape[1] < 2 * _n_cols:
-        # if X columns < chunk columns just run it under a for loop
-        out = []
-        for _c_idx in range(_X.shape[1]):
-            out += _parallel_constant_finder(_columns_getter(_X, _c_idx), *args)
+        out = _parallel_constant_finder(
+            _columns_getter(_X, tuple(range(_X.shape[1]))), *args
+        )
     else:
+        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             out = joblib.Parallel(return_as='list')(
                 joblib.delayed(_parallel_constant_finder)(
@@ -153,7 +150,7 @@ def _find_constants(
 
     # merge newly found constant columns with those found during
     # previous partial fits
-    return _merge_constants(_old_constant_columns, _new_constants, _rtol, _atol)
+    return _new_constants
 
 
 

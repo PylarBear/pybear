@@ -54,13 +54,11 @@ def _columns_getter(
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) or \
-        hasattr(_X, 'toarray')
 
-    assert not isinstance(_X,
-        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
-         ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    assert isinstance(_X,
+        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+         ss.csc_matrix)
     )
 
     assert isinstance(_col_idxs, (int, tuple))
@@ -106,9 +104,15 @@ def _columns_getter(
         # just to standardize all to receive dense np, at the cost of
         # slightly higher memory swell than may otherwise be necessary.
         # Extract the columns from scipy sparse as dense ndarray.
-        _columns = _X[:, _col_idxs].toarray()
+        _columns = _X[:, _col_idxs].tocsc().toarray()
     else:
-        raise TypeError(f"invalid data type '{type(_X)}'")
+        try:
+            _columns = np.array(_X[:, _col_idxs])
+        except:
+            raise TypeError(
+                f"invalid data container '{type(_X)}' that could not be "
+                f"sliced by numpy-style indexing and converted to ndarray."
+            )
 
 
     # this assignment must stay here. there was a nan recognition problem
@@ -134,7 +138,6 @@ def _columns_getter(
     _columns = np.ascontiguousarray(_columns).astype(np.float64)
 
     return _columns
-
 
 
 
