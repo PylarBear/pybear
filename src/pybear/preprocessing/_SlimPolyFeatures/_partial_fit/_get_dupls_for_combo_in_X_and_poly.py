@@ -135,10 +135,9 @@ def _get_dupls_for_combo_in_X_and_poly(
     _X_dupls = []
     # if _min_degree == 1:   # pizza
     if _X.shape[1] < 2 * _n_cols:
-        for c_idx in range(_X.shape[1]):
-            _X_dupls.append(
-                _parallel_column_comparer(_columns_getter(_X, c_idx),  *args)[0]
-            )
+        _X_dupls = _parallel_column_comparer(
+            _columns_getter(_X, tuple(range(_X.shape[1]))),  *args
+        )
     else:
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             _X_dupls = joblib.Parallel(return_as='list')(
@@ -152,6 +151,7 @@ def _get_dupls_for_combo_in_X_and_poly(
             )
 
         _X_dupls = list(itertools.chain(*_X_dupls))
+    # pizza dont forget to resolve the uniques in original data issue min_degree > 1
     # else:
     #     _X_dupls = [False] * _X.shape[1]
 
@@ -161,12 +161,12 @@ def _get_dupls_for_combo_in_X_and_poly(
     # look for duplicates in POLY
     # can use _parallel_column_comparer since _columns_getter turns ss to dense
     # there *cannot* be more than one hit for duplicates in POLY
-    _poly_dupls = []
-    if _POLY_CSC.shape[1] < 2 * _n_cols:
-        for c_idx in range(_POLY_CSC.shape[1]):
-            _poly_dupls.append(
-                _parallel_column_comparer(_columns_getter(_POLY_CSC, c_idx), *args)[0]
-            )
+    if _POLY_CSC.shape[1] == 0:
+        _poly_dupls = []
+    elif _POLY_CSC.shape[1] < 2 * _n_cols:
+        _poly_dupls = _parallel_column_comparer(
+            _columns_getter(_POLY_CSC, tuple(range(_POLY_CSC.shape[1]))), *args
+        )
     else:
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             _poly_dupls = joblib.Parallel(return_as='list')(
@@ -195,13 +195,6 @@ def _get_dupls_for_combo_in_X_and_poly(
 
 
     return _all_dupls
-
-
-
-
-
-
-
 
 
 

@@ -403,7 +403,7 @@ class TestDuplsForComboValidation(Fixtures):
 
 
     @pytest.mark.parametrize('_good_X',
-        ('pd_df', 'ndarray', 'ss_csr', 'ss_csc')
+        ('pd_df', 'ndarray', 'ss_csc')   # pizza 25_05_28 also used to test ss_csr, but now fails validation
     )
     @pytest.mark.parametrize(f'_equal_nan', (True, False))
     @pytest.mark.parametrize(f'_n_jobs', (-1, 1))

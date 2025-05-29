@@ -10,11 +10,6 @@ import pytest
 
 import numpy as np
 
-from typing_extensions import Union
-from typing import Literal
-import numpy.typing as npt
-
-import warnings
 from pybear.utilities._nan_masking import nan_mask
 
 from pybear.preprocessing._MinCountTransformer._transform. \
@@ -22,326 +17,213 @@ from pybear.preprocessing._MinCountTransformer._transform. \
 
 
 
-#  def _parallelized_row_masks(
-#     _X_COLUMN: npt.NDArray[DataType],
-#     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
-#     _instr: list[Union[str, DataType]],
-#     _reject_unseen_values: bool,
-#     _col_idx: int
-# ) -> npt.NDArray[np.uint8]:
-
-
 class TestParallelizedRowMasks:
+
+
+    # @joblib.wrap_non_picklable_objects
+    # def _parallelized_row_masks(
+    #     _X_CHUNK: npt.NDArray[Any],
+    #     _UNQ_CT_DICT: TotalCountsByColumnType,  (a sub-chunk of the full)
+    #     _instr: InstructionsType,   (a sub-chunk of the full)
+    #     _reject_unseen_values: bool
+    # ) -> npt.NDArray[np.uint8]:
+
 
     # Fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _rows():
-        return 200
+    def _shape():
+        return (200, 10)
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _pool_size(_rows):
-        return _rows // 20    # dont make this ratio > 26 because of alphas
+    def _pool_size(_shape):
+        return _shape[0] // 20    # dont make this ratio > 26 because of alphas
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _thresh(_rows, _pool_size):
-        return _rows // _pool_size
+    def _thresh(_shape, _pool_size):
+        return _shape[0] // _pool_size
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _X_factory(_rows, _thresh):
-
-        def _idx_getter(_rows, _zeros):
-            return np.random.choice(
-                range(_rows), int(_rows * _zeros), replace=False
-            )
-
-        def foo(
-            _has_nan: Union[int, bool] = False,
-            _dtype: Literal['flt', 'int', 'str', 'obj', 'hybrid'] = 'flt',
-            _zeros: Union[float, None] = 0,
-            _shape: tuple[int, int] = (20, 5)
-        ) -> npt.NDArray[any]:
-
-            # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-            assert isinstance(_has_nan, (bool, int, float))
-            if not isinstance(_has_nan, bool):
-                assert int(_has_nan) == _has_nan, \
-                    f"'_has_nan' must be bool or int >= 0"
-            assert _has_nan >= 0, f"'_has_nan' must be bool or int >= 0"
-            assert _dtype in ['flt', 'int', 'str', 'obj', 'hybrid']
-
-            if _zeros is None:
-                _zeros = 0
-            assert not isinstance(_zeros, bool)
-            assert isinstance(_zeros, (float, int))
-            assert 0 <= _zeros <= 1, f"zeros must be 0 <= x <= 1"
-
-            assert isinstance(_shape, tuple)
-            assert all(map(isinstance, _shape, (int for _ in _shape)))
-            if _shape[0] < 1:
-                raise AssertionError(f"'shape' must have at least one example")
-            if _shape[1] < 1:
-                raise AssertionError(f"'shape' must have at least 1 column")
-
-            assert _has_nan <= _shape[0], f"'_has_nan' must be <= n_rows"
-            # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-            str_char = 'abcdefghijklmnopqurstuvwxyz'
-            target_num_uniques = int(_rows//_thresh)
-            letter_pool = str_char[:target_num_uniques]
-
-            if _dtype == 'flt':
-                X = np.random.uniform(0, 1, _shape)
-                if _zeros:
-                    for _col_idx in range(_shape[1]):
-                        X[_idx_getter(_shape[0], _zeros), _col_idx] = 0
-            elif _dtype == 'int':
-                X = np.random.randint(0, target_num_uniques, _shape)
-                if _zeros:
-                    for _col_idx in range(_shape[1]):
-                        X[_idx_getter(_shape[0], _zeros), _col_idx] = 0
-            elif _dtype == 'str':
-                X = np.random.choice(list(letter_pool), _shape, replace=True)
-                X = X.astype('<U10')
-            elif _dtype == 'obj':
-                X = np.random.choice(list(letter_pool), _shape, replace=True)
-                X = X.astype(object)
-            elif _dtype == 'hybrid':
-                _col_shape = (_shape[0], 1)
-                X = np.random.uniform(0, 1, _col_shape).astype(object)
-                if _zeros:
-                    X[_idx_getter(_shape[0], _zeros), 0] = 0
-                for _cidx in range(1, _shape[1]):
-                    if _cidx % 3 == 0:
-                        _ = np.random.uniform(0, 1, _col_shape)
-                        if _zeros:
-                            _[_idx_getter(_shape[0], _zeros), 0] = 0
-                    elif _cidx % 3 == 1:
-                        _ = np.random.randint(
-                            0, target_num_uniques, _col_shape
-                        )
-                        if _zeros:
-                            _[_idx_getter(_shape[0], _zeros), 0] = 0
-                    elif _cidx % 3 == 2:
-                        _ = np.random.choice(list(letter_pool), _col_shape)
-                    else:
-                        raise Exception
-                    X = np.hstack((X, _))
-                del _col_shape, _, _cidx
-            else:
-                raise Exception
-
-            if _has_nan:
-
-                if _dtype == 'int':
-                    warnings.warn(
-                        f"attempting to put nans into an integer dtype, "
-                        f"converted to float"
-                    )
-                    X = X.astype(np.float64)
-
-                # determine how many nans to sprinkle based on _shape and _has_nan
-                if _has_nan is True:
-                    _sprinkles = max(3, _shape[0] // 10)
-                else:
-                    _sprinkles = _has_nan
-
-                for _c_idx in range(_shape[1]):
-                    _r_idxs = np.random.choice(
-                        range(_shape[0]), _sprinkles, replace=False
-                    )
-                    for _r_idx in _r_idxs:
-                        if _dtype in ('str', 'obj'):
-                            # it is important to do the str()
-                            X[_r_idx, _c_idx] = str(np.nan)
-                        else:
-                            X[_r_idx, _c_idx] = np.nan
-
-                del _sprinkles
-
-            return X
-
-        return foo
-
-
-    @staticmethod
-    @pytest.fixture
     def good_unq_ct_dict():
 
-        def foo(any_column):
-            _cleaned_column = any_column.copy()
-            try:  # excepts on np int dtype
-                _cleaned_column[nan_mask(_cleaned_column)] = str(np.nan)
-            except:
-                pass
-            __ = dict((zip(*np.unique(_cleaned_column, return_counts=True))))
-            # can only have one nan in it
-            _nan_ct = 0
-            _new_dict = {}
-            for _unq, _ct in __.items():
-                if str(_unq) == 'nan':
-                    _nan_ct += _ct
-                else:
-                    _new_dict[_unq] = int(_ct)
+        def foo(any_chunk):
 
-            if _nan_ct > 0:
-                _new_dict[np.nan] = int(_nan_ct)
+            _unq_ct_dict = {}
+            for _c_idx in range(any_chunk.shape[1]):
 
-            return _new_dict
+                _column = any_chunk[:, _c_idx]
+
+                try:  # excepts on np int dtype
+                    _column[nan_mask(_column)] = str(np.nan)
+                except:
+                    pass
+                __ = dict((zip(*np.unique(_column, return_counts=True))))
+                # can only have one nan in it
+                _nan_ct = 0
+                _new_dict = {}
+                for _unq, _ct in __.items():
+                    if str(_unq) == 'nan':
+                        _nan_ct += int(_ct)
+                    else:
+                        _new_dict[_unq] = int(_ct)
+
+                if _nan_ct > 0:
+                    _new_dict[np.nan] = int(_nan_ct)
+
+                _unq_ct_dict[_c_idx] = _new_dict
+
+            return _unq_ct_dict
 
         return foo
 
 
     @staticmethod
-    @pytest.fixture
+    @pytest.fixture(scope='module')
     def good_instr():
 
         def foo(any_unq_ct_dict, _thresh):
-            GOOD_INSTR = []
-            for unq, ct in any_unq_ct_dict.items():
-                if ct < _thresh:
-                    GOOD_INSTR.append(unq)
 
-            if len(GOOD_INSTR) >= len(any_unq_ct_dict) - 1:
-                GOOD_INSTR.append('DELETE COLUMN')
+            _INSTR = {}
+            for _c_idx, v in any_unq_ct_dict.items():
 
-            return GOOD_INSTR
+                COL_INSTR = []
+                for unq, ct in any_unq_ct_dict[_c_idx].items():
+                    if ct < _thresh:
+                        COL_INSTR.append(unq)
+
+                if len(COL_INSTR) >= len(any_unq_ct_dict[_c_idx]) - 1:
+                    COL_INSTR.append('DELETE COLUMN')
+
+                _INSTR[_c_idx] = COL_INSTR
+
+            return _INSTR
 
         return foo
 
-    # END Fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-
-    @pytest.mark.parametrize('_dtype', ('str', 'flt', 'int', 'str', 'obj'))
+    # dont do hybrid dtype, np.unique in good_unq_ct_dict cant handle it
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     def test_accuracy_making_delete_masks(
-        self, _X_factory, good_instr, good_unq_ct_dict, _thresh, _dtype,
-        _has_nan, _rows
+        self, _X_factory, good_instr, good_unq_ct_dict, _thresh, _shape,
+        _dtype, _has_nan
     ):
 
         if _dtype == 'int' and _has_nan is True:
             pytest.skip(reason=f"impossible condition, nans in int np")
+        if _dtype == 'hybrid' and _has_nan is True:
+            pytest.skip(reason=f"good_unq_ct_dict cant handle it")
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        _X = _X_factory(
+        _X_wip = _X_factory(
             _has_nan=_has_nan,
             _dtype=_dtype,
             _zeros=None,
-            _shape=(_rows, 1)
-        ).ravel()
-
-        UNQ_CT_DICT = good_unq_ct_dict(_X)
-        assert len(good_instr(UNQ_CT_DICT, _thresh)) > 0, \
-            f"if this excepts, it wants to keep all unqs"
-
-        out = _parallelized_row_masks(
-            _X,
-            UNQ_CT_DICT,
-            good_instr(UNQ_CT_DICT, _thresh),
-            _reject_unseen_values=False,
-            _col_idx=0
+            _shape=_shape
         )
 
-        exp = _X.copy().ravel()
-        UNQ_CT_DICT = dict((
-            zip(map(str, UNQ_CT_DICT.keys()), UNQ_CT_DICT.values())
-        ))
-        for idx, value in enumerate(exp):
-            if UNQ_CT_DICT[str(value)] < _thresh:
-                exp[idx] = 1  # overwriting takes dtype of column_type...
-            else:
-                exp[idx] = 0 # overwriting takes dtype of column_type...
+        UNQ_CT_DICT = good_unq_ct_dict(_X_wip)
+        GOOD_INSTR = good_instr(UNQ_CT_DICT, _thresh)
+        for _c_idx in UNQ_CT_DICT:
+            assert len(GOOD_INSTR[_c_idx]) > 0, \
+                f"if this excepts, it wants to keep all unqs"
 
-        # ... so convert to uint8
-        exp = exp.astype(np.uint8)
+        # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        out = _parallelized_row_masks(
+            _X_wip,
+            UNQ_CT_DICT,
+            GOOD_INSTR,
+            _reject_unseen_values=False
+        )
+        # END get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        assert np.array_equiv(out, exp)
+        chunk_exp = np.zeros((_shape[0], ))
+        for _c_idx in range(_X_wip.shape[1]):
+            _c_exp = _X_wip[:, _c_idx]
+            # convert UNQ_CT_DICT keys to str for easy comparisons
+            UNQ_CT_DICT[_c_idx] = dict((
+                zip(map(str, UNQ_CT_DICT[_c_idx].keys()), UNQ_CT_DICT[_c_idx].values())
+            ))
+            for idx, value in enumerate(_c_exp):
+                if UNQ_CT_DICT[_c_idx][str(value)] < _thresh:
+                    _c_exp[idx] = 1  # overwriting takes dtype of _c_exp...
+                else:
+                    _c_exp[idx] = 0  # overwriting takes dtype of _c_exp...
+
+            # ... so convert to uint8
+            _c_exp = _c_exp.astype(np.uint8)
+
+            chunk_exp += _c_exp
+
+        # chunk_exp is a delete mask
+
+        assert np.array_equiv(out, chunk_exp)
 
 
-    @pytest.mark.parametrize('_dtype', ('str', 'flt', 'int', 'str', 'obj'))
+    # dont do hybrid dtype, np.unique in good_unq_ct_dict cant handle it
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     def test_accuracy_reject_unseen(
         self, _X_factory, good_instr, good_unq_ct_dict, _thresh, _dtype,
-        _has_nan, _rows
+        _has_nan, _shape
     ):
 
         if _dtype == 'int' and _has_nan is True:
             pytest.skip(reason=f"impossible condition, nans in int np")
+        if _dtype == 'hybrid' and _has_nan is True:
+            pytest.skip(reason=f"good_unq_ct_dict cant handle it")
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        _X = _X_factory(
+        _X_wip = _X_factory(
             _has_nan=_has_nan,
             _dtype=_dtype,
             _zeros=None,
-            _shape=(_rows, 1)
-        ).ravel()
+            _shape=_shape
+        )
 
-        UNQ_CT_DICT = good_unq_ct_dict(_X)
-        assert len(good_instr(UNQ_CT_DICT, _thresh)) > 0, \
-            f"if this excepts, it wants to keep all unqs"
+        # ensure all nans are np.nan. will except on int dtype
+        try:
+            _X_wip[nan_mask(_X_wip)] = np.nan
+        except:
+            pass
+
+        UNQ_CT_DICT = good_unq_ct_dict(_X_wip)
+        GOOD_INSTR = good_instr(UNQ_CT_DICT, _thresh)
+        for _c_idx in GOOD_INSTR:
+            assert len(GOOD_INSTR[_c_idx]) > 0, \
+                f"if this excepts, it wants to keep all unqs"
 
         # put unseen values into data
-        if isinstance(_X[0], str):
-            _X[np.random.choice(_rows, int(0.9 * _rows))] = 'z'
+        _rand_c_idx = int(np.random.randint(0, _shape[1]))
+        if isinstance(_X_wip[:, _rand_c_idx][0], str):
+            _X_wip[np.random.randint(0, _shape[0]), _rand_c_idx] = 'z'
         else:
-            _X[np.random.choice(_rows, int(0.9 * _rows))] = 13
+            _X_wip[np.random.randint(0, _shape[0]), _rand_c_idx] = 13
+        del _rand_c_idx
 
         # False does not except
         out = _parallelized_row_masks(
-            _X,
+            _X_wip,
             UNQ_CT_DICT,
             good_instr(UNQ_CT_DICT, _thresh),
             _reject_unseen_values=False,
-            _col_idx=0
         )
 
         # True raises ValueError
         with pytest.raises(ValueError):
             out = _parallelized_row_masks(
-                _X,
+                _X_wip,
                 UNQ_CT_DICT,
                 good_instr(UNQ_CT_DICT, _thresh),
-                _reject_unseen_values=True,
-                _col_idx=0
+                _reject_unseen_values=True
             )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -7,8 +7,12 @@
 
 
 from typing import Sequence, Optional
-from typing_extensions import Union, Self
+from typing_extensions import (
+    Self,
+    Union
+)
 from ._type_aliases import (
+    DataType,
     CountThresholdType,
     OriginalDtypesType,
     TotalCountsByColumnType,
@@ -23,13 +27,11 @@ import numbers
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-import joblib
 
 from ._make_instructions._make_instructions import _make_instructions
-from ._partial_fit._column_getter import _column_getter
 from ._partial_fit._original_dtypes_merger import _original_dtypes_merger
-from ._partial_fit._parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
 from ._partial_fit._tcbc_merger import _tcbc_merger
+from ._partial_fit._get_dtypes_unqs_cts import _get_dtypes_unqs_cts
 from ._print_instructions._repr_instructions import _repr_instructions
 from ._transform._ic_hab_condition import _ic_hab_condition
 from ._transform._make_row_and_column_masks import _make_row_and_column_masks
@@ -681,16 +683,8 @@ class MinCountTransformer(
         # dtypes on columns that are ignored is needed to validate new
         # partial fits have appropriate data.
 
-        # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-        with joblib.parallel_config(prefer='processes', n_jobs=self.n_jobs):
-            DTYPE_UNQS_CTS_TUPLES = \
-                joblib.Parallel(return_as='list')(
-                    joblib.delayed(_parallel_dtypes_unqs_cts)(
-                        _column_getter(X,_idx),
-                        X.shape[0],
-                        _idx
-                    ) for _idx in range(self.n_features_in_)
-                )
+        DTYPE_UNQS_CTS_TUPLES: list[tuple[str, dict[DataType, int]]] = \
+            _get_dtypes_unqs_cts(X, self.n_jobs)
 
         # if scipy sparse, change back to the original format. do this
         # before going into the ic/hab callables below, possible that the
@@ -698,7 +692,6 @@ class MinCountTransformer(
         if hasattr(X, 'toarray'):
             X = _og_dtype(X)
             del _og_dtype
-
 
 
         _col_dtypes = np.empty(self.n_features_in_, dtype='<U8')

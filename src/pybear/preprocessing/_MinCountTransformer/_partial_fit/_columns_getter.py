@@ -11,8 +11,7 @@ from typing_extensions import (
     Union
 )
 import numpy.typing as npt
-from .._type_aliases import InternalDataContainer
-
+from .._type_aliases import InternalXContainer
 
 import numpy as np
 import pandas as pd
@@ -24,26 +23,28 @@ from ....utilities._nan_masking import nan_mask
 
 
 def _columns_getter(
-    _X: InternalDataContainer,
+    _X: InternalXContainer,
     _col_idxs: Union[int, tuple[int, ...]]
 ) -> npt.NDArray[Any]:
 
     """
-    This supports _find_duplicates. Handles the mechanics of extracting
-    one or more columns from the various allowed data container types.
-    Data passed as scipy sparse formats must be indexable. Therefore,
-    coo matrix/array, dia matrix/array, and bsr matrix/array are
-    prohibited. Return extracted column(s) as a numpy array. In the
-    case of scipy sparse, the columns are converted to dense.
+    This supports _get_dtypes_unqs_cts and _make_row_and_column_masks.
+    Handles the mechanics of extracting one or more columns from the
+    various allowed data container types. Data passed as scipy sparse
+    formats must be indexable. Therefore, coo matrix/array,
+    dia matrix/array, and bsr matrix/array are prohibited. Return
+    extracted column(s) as  a numpy array. In the case of scipy sparse,
+    the columns are converted to dense.
 
 
     Parameters
     ----------
     _X:
-        InternalDataContainer - The data to extract columns from. _X
-        must be indexable, which excludes scipy coo, dia, and bsr. This
-        module expects _X to be in a valid state when passed, and will
-        not condition it.
+        InternalXContainer - The data to undergo minimum frequency
+        thresholding. The data container must be indexable. Therefore,
+        scipy sparse coo, dia, and bsr matrix/arrays are not permitted
+        in this module. There is no conditioning of the data here and
+        this module expects to receive it in suitable form.
     _col_idxs:
         Union[int, tuple[int, ...]] - the column index / indices to
         extract from _X.
@@ -56,7 +57,6 @@ def _columns_getter(
         the given index/indices.
 
     """
-
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
@@ -82,20 +82,8 @@ def _columns_getter(
     elif isinstance(_X, pl.DataFrame):
         _columns = _X[:, _col_idxs].to_numpy()
     elif hasattr(_X, 'toarray'):    # scipy sparse
-        # No longer stacking .indices & .data. need to convert to dense
-        # because now pulling chunks instead of single columns. different
-        # columns may have different sparsity, which would cause the
-        # stacked indices/data to have different len, which cant be
-        # stacked nicely in an array.
-
-        # code that converts a ss column to np array
         _columns = _X[:, _col_idxs].tocsc().toarray()
-
-        # old code that converts a ss column to np array
-        # _columns = _X.copy().tocsc()[:, [_col_idxs]].toarray().ravel()
-        # del _X_wip
-        # _columns = np.hstack((c1.indices, c1.data)).reshape((-1, 1))
-        # del c1
+        # .tocsc() is important, dok, at least, doesnt have a .data attr
     else:
         try:
             _columns = np.array(_X[:, _col_idxs])
@@ -105,24 +93,12 @@ def _columns_getter(
                 f"sliced by numpy-style indexing and converted to ndarray."
             )
 
-
-    # this assignment must stay here. there was a nan recognition problem
-    # that wasnt happening in offline tests of entire data objects
-    # holding the gamut of nan-likes but was happening with similar data
-    # objects passing thru the CDT machinery. Dont know the reason why,
-    # maybe because the columns get parted out, or because they get sent
-    # thru the joblib machinery? using nan_mask here and reassigning all
-    # nans identified here as np.nan resolved the issue.
+    # this assignment must stay here.
     # np.nan assignment excepts on dtype int array, so ask for forgiveness
     try:
         _columns[nan_mask(_columns)] = np.nan
     except:
         pass
-
-    # 25_05_24 pd numeric with junky nan-likes are coming out of here as
-    # dtype object. since _columns_getter produces an intermediary container
-    # that is used to find constants and doesnt impact the container
-    # coming out of transform, ok to let that condition persist.
 
     return _columns
 

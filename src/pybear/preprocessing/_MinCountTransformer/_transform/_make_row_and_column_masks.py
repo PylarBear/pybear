@@ -7,33 +7,35 @@
 
 
 from typing import Literal
-
-import joblib
 from typing_extensions import Union
+import numpy.typing as npt
 from .._type_aliases import (
     DataType,
     InternalXContainer,
     TotalCountsByColumnType
 )
-import numpy.typing as npt
 
+import itertools
+import numbers
+
+import joblib
 import numpy as np
 
 from ._parallelized_row_masks import _parallelized_row_masks
-from .._transform._column_getter_to_dense import _column_getter_to_dense
+from .._partial_fit._columns_getter import _columns_getter
 
 
 
 def _make_row_and_column_masks(
-    X: InternalXContainer,
+    _X: InternalXContainer,
     _total_counts_by_column: TotalCountsByColumnType,
     _delete_instr: dict[
         int,
         Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], DataType]
     ],
     _reject_unseen_values: bool,
-    _n_jobs: Union[int, None]
-) -> Union[npt.NDArray[bool], npt.NDArray[bool]]:
+    _n_jobs: Union[numbers.Integral, None]
+) -> tuple[npt.NDArray[bool], npt.NDArray[bool]]:
 
     """
     Make a mask that indicates which columns to keep and another mask
@@ -46,7 +48,7 @@ def _make_row_and_column_masks(
 
     Parameters
     ----------
-    X:
+    _X:
         Union[np.ndarray, pd.DataFrame, scipy.sparse] - the data to be
         transformed.
     _total_counts_by_column:
@@ -95,7 +97,7 @@ def _make_row_and_column_masks(
 
     # MAKE COLUMN DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    _delete_columns_mask = np.zeros(X.shape[1], dtype=np.uint32)
+    _delete_columns_mask = np.zeros(_X.shape[1], dtype=np.uint32)
 
     for col_idx, _instr in _delete_instr.items():
         if 'DELETE COLUMN' in _instr:
@@ -106,41 +108,71 @@ def _make_row_and_column_masks(
 
     # MAKE ROW DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # old joblib that worked
-    # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-    # with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-    #     ROW_MASKS = joblib.Parallel(return_as='list')(
-    #         joblib.delayed(_parallelized_row_masks)(
-    #             _column_getter_to_dense(X, _idx),
-    #             _total_counts_by_column[_idx],
-    #             _delete_instr[_idx],
-    #             _reject_unseen_values,
-    #             _idx
-    #         ) for _idx in _ACTIVE_COL_IDXS)
-    #
-    # del joblib_kwargs
-
-    # 25_01_30 linux time trial for loop is about 10% faster than joblib.
     # if there is a 'DELETE ALL' just make a mask of all ones and forget
     # about the loop.
     for _instr in _delete_instr.values():
         if 'DELETE ALL' in _instr:
-            _delete_rows_mask = np.ones(X.shape[0], dtype=np.uint8)
+            _delete_rows_mask = np.ones(_X.shape[0], dtype=np.uint8)
             break
     # otherwise build the mask from individual row masks.
     else:
-        _delete_rows_mask = np.zeros(X.shape[0], dtype=np.uint8)
+        # pizza axe this if joblib w chunks works
+        # _delete_rows_mask = np.zeros(_X.shape[0], dtype=np.uint8)
+        # for col_idx, _instr in _delete_instr.items():
+        #     if 'INACTIVE' in _instr or len(_instr) == 0:
+        #         continue
+        #     else:
+        #         _delete_rows_mask += _parallelized_row_masks(
+        #             _columns_getter(_X, col_idx).ravel(),
+        #             _total_counts_by_column[col_idx],
+        #             _delete_instr[col_idx],
+        #             _reject_unseen_values,
+        #             col_idx
+        #         )
+
+
+        # pizza probably should make a joblib test module like for partial_fit
+        _ACTIVE_COL_IDXS = []
         for col_idx, _instr in _delete_instr.items():
             if 'INACTIVE' in _instr or len(_instr) == 0:
                 continue
             else:
-                _delete_rows_mask += _parallelized_row_masks(
-                    _column_getter_to_dense(X, col_idx),
-                    _total_counts_by_column[col_idx],
-                    _delete_instr[col_idx],
-                    _reject_unseen_values,
-                    col_idx
-                )
+                _ACTIVE_COL_IDXS.append(col_idx)
+
+        # pizza set this to whatever is set in partial_fit
+        _n_cols = 1000
+
+        if len(_ACTIVE_COL_IDXS) == 0:
+            _delete_rows_mask = np.zeros(_X.shape[0], dtype=np.uint8)
+        elif len(_ACTIVE_COL_IDXS) < 2 * _n_cols:
+            _delete_rows_mask = _parallelized_row_masks(
+                _columns_getter(_X, tuple(_ACTIVE_COL_IDXS)),
+                {k:v for k,v in _total_counts_by_column.items() if k in _ACTIVE_COL_IDXS},
+                {k:v for k,v in _delete_instr.items() if k in _ACTIVE_COL_IDXS},
+                _reject_unseen_values
+            )
+        else:
+            # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
+            with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+                ROW_MASKS = joblib.Parallel(return_as='list')(
+                    joblib.delayed(_parallelized_row_masks)(
+                        _columns_getter(
+                            _X,
+                            tuple(range(i, min(i + _n_cols, len(_ACTIVE_COL_IDXS))))
+                        ),
+                        {k:v for k,v in _total_counts_by_column.items() if k in np.array(_ACTIVE_COL_IDXS)[list(range(i, min(i + _n_cols, len(_ACTIVE_COL_IDXS))))]},
+                        {k:v for k,v in _delete_instr.items() if k in np.array(_ACTIVE_COL_IDXS)[list(range(i, min(i + _n_cols, len(_ACTIVE_COL_IDXS))))]},
+                        _reject_unseen_values
+                    ) for i in range(0, len(_ACTIVE_COL_IDXS), _n_cols))
+
+                # vstack will work as long as their is at least 1 thing
+                # in ROW_MASKS
+                _delete_rows_mask = \
+                    np.sum(np.vstack(ROW_MASKS, dtype=np.uint8)).astype(np.uint8)
+
+                del ROW_MASKS
+
+        del _ACTIVE_COL_IDXS
 
     # END MAKE ROW DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -151,7 +183,7 @@ def _make_row_and_column_masks(
     del _delete_columns_mask
 
     delete_all_msg = \
-        lambda x: f"this threshold and recursion depth will delete all {x}"
+        lambda j: f"this threshold and recursion depth will delete all {j}"
 
     if not any(ROW_KEEP_MASK):
         raise ValueError(delete_all_msg('rows'))
@@ -164,19 +196,6 @@ def _make_row_and_column_masks(
     # ^^^ END BUILD ROW_KEEP & COLUMN_KEEP MASKS ** ** ** ** ** ** ** **
 
     return ROW_KEEP_MASK, COLUMN_KEEP_MASK
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
