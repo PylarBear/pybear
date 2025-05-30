@@ -12,6 +12,8 @@ from .._type_aliases import (
     DuplicatesType
 )
 
+from collections import defaultdict
+import math
 import numbers
 import itertools
 
@@ -22,7 +24,7 @@ import scipy.sparse as ss
 import joblib
 
 from ._columns_getter import _columns_getter
-from ._parallel_column_comparer import _parallel_column_comparer
+from ._parallel_chunk_comparer import _parallel_chunk_comparer
 
 
 
@@ -100,75 +102,121 @@ def _find_duplicates(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # pizza is it necessary to pre-fill this thing... be we are appending below
-    duplicates_: dict[int, list[int]] = {int(i): [] for i in range(_X.shape[1])}
-
-    _all_duplicates = []  # not used later, just a helper to track duplicates
-
     args = (_rtol, _atol, _equal_nan)
 
     # set the batch size for joblib
-    _n_cols = 50
+    _n_cols = 20
+
+    if _X.shape[1] < 2 * _n_cols:
+
+        _all_duplicates = []  # not used later, just a helper to track duplicates
+
+        _dupls = []
+        for col_idx1 in range(_X.shape[1] - 1):
+
+            if col_idx1 in _all_duplicates:
+                continue
+
+            _column1 = _columns_getter(_X, col_idx1)
+
+            # make a list of col_idx2's
+            RANGE = range(col_idx1 + 1, _X.shape[1])
+            IDXS = [i for i in RANGE if i not in _all_duplicates]
+
+            for col_idx2 in IDXS:
+
+                _match = _parallel_chunk_comparer(
+                    _columns_getter(_X, col_idx1),
+                    (col_idx1, ),
+                    _columns_getter(_X, col_idx2),
+                    (col_idx2, ),
+                    *args
+                )
+
+                if any(_match):
+                    print(f'pizza print {_match=}')
+                    _dupls += _match
+                    if col_idx1 not in _all_duplicates:
+                        _all_duplicates.append(col_idx1)
+                    if col_idx2 not in _all_duplicates:
+                        _all_duplicates.append(col_idx2)
+
+        del _all_duplicates, RANGE, IDXS
+
+    else:
+        with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+            _dupls = joblib.Parallel(return_as='list')(
+                joblib.delayed(_parallel_chunk_comparer)(
+                    _columns_getter(_X, tuple(range(i * _n_cols, min(_n_cols * (i+1), _X.shape[1])))),
+                    tuple(range(i * _n_cols, min(_n_cols * (i + 1), _X.shape[1]))),
+                    _columns_getter(_X, tuple(range(j * _n_cols, min(_n_cols * (j+1), _X.shape[1])))),
+                    tuple(range(j * _n_cols, min(_n_cols * (j + 1), _X.shape[1]))),
+                    *args
+                    ) for i, j in itertools.combinations_with_replacement(range(math.ceil(_X.shape[1]/_n_cols)), 2)
+                )
+
+        _dupls = list(itertools.chain(*_dupls))
+        assert all(map(isinstance, _dupls, (tuple for i in _dupls)))
+
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # use this "union-find" stuff that CHATGPT came up with to convert
+    # pairs of duplicates like [(0,1), (1,2), (0,2), (4,5)] to [[0,1,2], [4,5]]
+
+    # Find connected components using union-find
+    # Union-Find data structure
+    parent = {}
+
+    def find(x):
+        if parent[x] != x:
+            parent[x] = find(parent[x])  # Path compression
+        return parent[x]
+
+    def union(x, y):
+        root_x = find(x)
+        root_y = find(y)
+        if root_x != root_y:
+            parent[root_y] = root_x
+
+    # Initialize Union-Find
+    for x, y in _dupls:
+        if x not in parent:
+            parent[x] = x
+        if y not in parent:
+            parent[y] = y
+        union(x, y)
+
+    # Group elements by their root
+    components = defaultdict(list)
+    for node in parent:
+        root = find(node)
+        components[root].append(node)
 
 
-    for col_idx1 in range(_X.shape[1] - 1):
+    del find, union, parent, _dupls
 
-        if col_idx1 in _all_duplicates:
-            continue
+    duplicates_ = list(components.values())
 
-        _column1 = _columns_getter(_X, col_idx1)
+    # Sort each component and the final result for consistency
+    duplicates_ = [sorted(component) for component in duplicates_]
+    duplicates_ = sorted(duplicates_, key=lambda x: x[0])
+    # END UNION-FIND ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # make a list of col_idx2's
-        RANGE = range(col_idx1 + 1, _X.shape[1])
-        IDXS = [i for i in RANGE if i not in _all_duplicates]
-
-
-        if len(IDXS) == 0:
-            _dupls = []
-        elif len(IDXS) < 2 * _n_cols:
-            _dupls = _parallel_column_comparer(
-                _column1, _columns_getter(_X, tuple(IDXS)), *args
-            )
-        else:
-            with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
-                _dupls = joblib.Parallel(return_as='list')(
-                    joblib.delayed(_parallel_column_comparer)(
-                        _column1,
-                        _columns_getter(
-                            _X,
-                            tuple(map(int, np.array(IDXS)[range(i, min(i + _n_cols, len(IDXS)))]))
-                        ),
-                        *args
-                        ) for i in range(0, len(IDXS), _n_cols)
-                    )
-
-            _dupls = list(itertools.chain(*_dupls))
-
-        if any(_dupls):
-            _all_duplicates.append(col_idx1)
-
-            for idx, hit in zip(IDXS, _dupls):
-                if hit:
-                    duplicates_[col_idx1].append(idx)
-                    _all_duplicates.append(idx)
-
-    del _all_duplicates, RANGE, IDXS, col_idx1, _column1, _dupls
-
+    # pizza!
     # ONLY RETAIN INFO FOR COLUMNS THAT ARE DUPLICATE
-    duplicates_ = {int(k): v for k, v in duplicates_.items() if len(v) > 0}
+    # duplicates_ = {int(k): v for k, v in duplicates_.items() if len(v) > 0}
 
     # UNITE DUPLICATES INTO GROUPS
-    GROUPS: DuplicatesType = []
-    for idx1, v1 in duplicates_.items():
-        __ = sorted([int(idx1)] + v1)
-        GROUPS.append(__)
+    # GROUPS: DuplicatesType = []
+    # for idx1, v1 in duplicates_.items():
+    #     __ = sorted([int(idx1)] + v1)
+    #     GROUPS.append(__)
 
     # ALL SETS OF DUPLICATES MUST HAVE AT LEAST 2 ENTRIES
-    for _set in GROUPS:
+    for _set in duplicates_:
         assert len(_set) >= 2
+    print(f'pizza print {duplicates_=}')
 
-
-    return GROUPS
+    return duplicates_
 
 
 

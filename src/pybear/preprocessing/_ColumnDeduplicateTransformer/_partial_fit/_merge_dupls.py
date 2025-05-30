@@ -139,7 +139,7 @@ def _merge_dupls(
         components[root].append(node)
 
 
-    del find, union
+    del find, union, parent
 
     duplicates_ = list(components.values())
 
