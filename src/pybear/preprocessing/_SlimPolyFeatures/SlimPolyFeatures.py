@@ -983,8 +983,7 @@ class SlimPolyFeatures(
                 keep=self.keep,
                 equal_nan=self.equal_nan,
                 rtol=self.rtol,
-                atol=self.atol,
-                n_jobs=1   # pizza self.n_jobs
+                atol=self.atol
             )
 
         if self.scan_X and not hasattr(self, '_CDT'):

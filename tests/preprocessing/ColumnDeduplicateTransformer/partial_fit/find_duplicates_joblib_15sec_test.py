@@ -28,8 +28,8 @@ class TestJoblib:
 
     def test_it_works(self, _X_factory):
 
-        # as of 25_05_24 _n_cols is 200 so use something bigger
-        _shape = (623, 538)
+        # as of 29_05_24 _n_cols is 50 so use something bigger
+        _shape = (623, 238)
 
         while True:
             _rand_idxs1 = sorted(np.random.randint(0, _shape[1], 5).tolist())
