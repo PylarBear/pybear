@@ -309,7 +309,7 @@ def nan_mask_string(
             if all(map(isinstance, obj, (str for i in obj))):
                 raise Exception
             # this will except if obj is not 2D, because cant be all strings
-            map(iter, obj)
+            list(map(iter, obj))
             # prove not ragged
             if len(set(map(len, obj))) != 1:
                 raise UnicodeError

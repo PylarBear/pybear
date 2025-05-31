@@ -15,8 +15,8 @@ import polars as pl
 from pybear.preprocessing._ColumnDeduplicateTransformer._transform._transform \
     import _transform
 
-# from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-#     _parallel_column_comparer import _parallel_column_comparer
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _parallel_column_comparer import _parallel_column_comparer
 
 
 
@@ -153,33 +153,33 @@ class TestTransform:
 
             # nans in string columns are being a real pain
             # _parallel_column_comparer instead of np.array_equal
-            # _parallel_column_comparer needs 2D
             if isinstance(_X_wip, np.ndarray):
-                _out_col = out[:, [_out_idx]]
-                _og_col = _X_wip[:, [_og_idx]]
+                _out_col = out[:, _out_idx]
+                _og_col = _X_wip[:, _og_idx]
             elif isinstance(_X_wip, pd.core.frame.DataFrame):
-                _out_col = out.iloc[:, [_out_idx]].to_numpy()
-                _og_col = _X_wip.iloc[:, [_og_idx]].to_numpy()
+                _out_col = out.iloc[:, _out_idx].to_numpy()
+                _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
                 # verify header matches
                 assert _X_wip.columns[_og_idx] == out.columns[_out_idx]
             elif isinstance(_X_wip, pl.DataFrame):
-                _out_col = out[:, [_out_idx]].to_numpy()
-                _og_col = _X_wip[:, [_og_idx]].to_numpy()
+                _out_col = out[:, _out_idx].to_numpy()
+                _og_col = _X_wip[:, _og_idx].to_numpy()
                 # verify header matches
                 assert _X_wip.columns[_og_idx] == out.columns[_out_idx]
+            elif hasattr(_X_wip, 'toarray'):
+                _out_col = out[:, [_out_idx]].toarray().ravel()
+                _og_col = _X_wip[:, [_og_idx]].toarray().ravel()
             else:
-                _out_col = out[:, [_out_idx]].toarray()
-                _og_col = _X_wip[:, [_og_idx]].toarray()
+                raise Exception
 
-            # pizza u need to fix this!
-            # if not _has_nan or (_has_nan and _equal_nan):
-            #     assert _parallel_column_comparer(
-            #         _out_col, _og_col, 1e-5, 1e-8, _equal_nan
-            #     )[0]
-            # else:
-            #     assert not _parallel_column_comparer(
-            #         _out_col, _og_col, 1e-5, 1e-8, _equal_nan
-            #     )[0]
+            if not _has_nan or (_has_nan and _equal_nan):
+                assert _parallel_column_comparer(
+                    _out_col, _og_col, 1e-5, 1e-8, _equal_nan
+                )
+            else:
+                assert not _parallel_column_comparer(
+                    _out_col, _og_col, 1e-5, 1e-8, _equal_nan
+                )
 
         # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 

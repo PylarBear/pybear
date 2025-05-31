@@ -12,6 +12,8 @@ from .._type_aliases import DuplicatesType
 from collections import defaultdict
 import itertools
 
+from ....utilities._union_find import union_find
+
 
 
 def _merge_dupls(
@@ -105,43 +107,7 @@ def _merge_dupls(
 
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # use this "union-find" stuff that CHATGPT came up with to convert
-    # pairs of duplicates like [(0,1), (1,2), (0,2), (4,5)] to [[0,1,2], [4,5]]
-
-    # Find connected components using union-find
-    # Union-Find data structure
-    parent = {}
-
-    def find(x):
-        if parent[x] != x:
-            parent[x] = find(parent[x])  # Path compression
-        return parent[x]
-
-    def union(x, y):
-        root_x = find(x)
-        root_y = find(y)
-        if root_x != root_y:
-            parent[root_y] = root_x
-
-    # Initialize Union-Find
-    for x, y in _intersection:
-        if x not in parent:
-            parent[x] = x
-        if y not in parent:
-            parent[y] = y
-        union(x, y)
-
-    # Group elements by their root
-    components = defaultdict(list)
-    for node in parent:
-        root = find(node)
-        components[root].append(node)
-
-
-    del find, union, parent
-
-    duplicates_ = list(components.values())
+    duplicates_ = union_find(_intersection)
 
     # Sort each component and the final result for consistency
     duplicates_ = [sorted(component) for component in duplicates_]
