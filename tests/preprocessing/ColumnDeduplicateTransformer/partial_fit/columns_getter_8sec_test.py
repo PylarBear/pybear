@@ -99,7 +99,7 @@ class TestColumnsGetter:
         except:
             pass
 
-        # pass _col_idxs as given (int or tuple) to _columns getter
+        # pass _col_idxs as given (int or tuple) to _columns_getter
         _columns = _columns_getter(_X_wip, _col_idxs)
 
 

@@ -2,7 +2,7 @@
 #         Bill Sousa
 #
 # License: BSD 3 clause
-#
+#S
 
 
 
@@ -21,8 +21,8 @@ from pybear.preprocessing import ColumnDeduplicateTransformer
 
 from pybear.utilities._nan_masking import nan_mask
 
-# from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-#     _parallel_column_comparer import _parallel_column_comparer
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _parallel_column_comparer import _parallel_column_comparer
 
 
 
@@ -183,24 +183,23 @@ class TestInverseTransform:
 
         for _og_idx in range(_shape[1]):
 
-            # columns must be extracted in 2D for _column_comparer
             if isinstance(_X_wip, np.ndarray):
-                _og_col = _X_wip[:, [_og_idx]]
-                _out_col = out[:, [_og_idx]]
+                _og_col = _X_wip[:, _og_idx]
+                _out_col = out[:, _og_idx]
             elif isinstance(_X_wip, pd.core.frame.DataFrame):
-                _og_col = _X_wip.iloc[:, [_og_idx]].to_numpy()
-                _out_col = out.iloc[:, [_og_idx]].to_numpy()
+                _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
+                _out_col = out.iloc[:, _og_idx].to_numpy()
             elif isinstance(_X_wip, pl.DataFrame):
                 # Polars uses zero-copy conversion when possible, meaning the
                 # underlying memory is still controlled by Polars and marked
                 # as read-only. NumPy and Pandas may inherit this read-only
                 # flag, preventing modifications.
                 # THE ORDER IS IMPORTANT HERE. CONVERT TO PANDAS FIRST, THEN SLICE.
-                _og_col = _X_wip.to_pandas().to_numpy()[:, [_og_idx]]
-                _out_col = out.to_pandas().to_numpy()[:, [_og_idx]]
+                _og_col = _X_wip.to_pandas().to_numpy()[:, _og_idx]
+                _out_col = out.to_pandas().to_numpy()[:, _og_idx]
             elif hasattr(_X_wip, 'toarray'):
-                _og_col = out[:, [_og_idx]].toarray()
-                _out_col = out[:, [_og_idx]].toarray()
+                _og_col = out[:, [_og_idx]].toarray().ravel()
+                _out_col = out[:, [_og_idx]].toarray().ravel()
             else:
                 raise Exception
 
@@ -208,12 +207,11 @@ class TestInverseTransform:
             _out_col[nan_mask(_out_col)] = np.nan
             _og_col[nan_mask(_og_col)] = np.nan
 
-            # pizza u need to fix this!
-            # assert _parallel_column_comparer(
-            #     _out_col,
-            #     _og_col,
-            #     1e-5, 1e-8, _equal_nan=True
-            # )[0]
+            assert _parallel_column_comparer(
+                _out_col,
+                _og_col,
+                1e-5, 1e-8, _equal_nan=True
+            )
 
 
 

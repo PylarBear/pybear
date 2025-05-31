@@ -8,92 +8,92 @@
 
 import pytest
 
+import itertools
+
+import numpy as np
+
 from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_chunk_comparer import _parallel_chunk_comparer
 
-pytest.skip(reason=f'pizza needs to redo this', allow_module_level=True)
 
 
-class TestColumnComparer:
+class TestChunkComparer:
 
 
     # np cant be int if using nans
-    @pytest.mark.parametrize('_dtype1', ('flt', 'str', 'obj'))
-    @pytest.mark.parametrize('_dtype2', ('flt', 'str', 'obj'))
+    @pytest.mark.parametrize('_dtype', ('flt', 'str', 'obj'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_accuracy(
-        self, _X_factory, _dtype1, _dtype2, _has_nan, _equal_nan
+        self, _X_factory, _shape, _dtype, _has_nan, _equal_nan
     ):
 
-        # a sneaky trick here. _X_factory peppers nans after propagating
-        # duplicates. which means nans are likely to be different on every
-        # column. so if create a 2 column array and both columns are the
-        # same, then both will be identical except for the nans.
+        # we know that _parallel_column_comparer works from its own tests.
+        # rig 2 chunks to have some identical columns, then see if
+        # _chunk_comparer finds them
 
-        _shape = (1000, 2)
+        # need to rig some constants and indices for _X_factory
+        # get some random indices that will be equal
+        _rand_idxs = np.random.choice(
+            list(range(_shape[1])), (3, ), replace=False
+        ).tolist()
+        # set what the value in those columns will be
+        _value = {'flt': np.e, 'str': 'e', 'obj': 'e'}[_dtype]
+        _constants = {i: _value for i in _rand_idxs}
 
-        _X_flt = _X_factory(
-            _dupl=[[0,1]],
+        _X1 = _X_factory(
+            _dupl=[_rand_idxs],
             _format='np',
-            _dtype='flt',
+            _dtype=_dtype,
             _has_nan=_has_nan,
             _columns=None,
-            _zeros=0.33,
+            _constants=_constants,
             _shape=_shape
         )
 
-        _X_str = _X_factory(
-            _dupl=[[0,1]],
+        _X2 = _X_factory(
+            _dupl=[_rand_idxs],
             _format='np',
-            _dtype='str',
+            _dtype=_dtype,
             _has_nan=_has_nan,
             _columns=None,
-            _zeros=0.33,
+            _constants=_constants,
             _shape=_shape
         )
 
-        _X_obj = _X_factory(
-            _dupl=[[0,1]],
-            _format='np',
-            _dtype='obj',
-            _has_nan=_has_nan,
-            _columns=None,
-            _zeros=0.33,
-            _shape=_shape
+        # output should be every permutation of the indices of the equal columns
+        # like [(0, 1), (0, 2), (1, 2)] if 0, 1, & 2 are equal
+
+        out = _parallel_chunk_comparer(
+            _chunk1=_X1,
+            _chunk1_X_indices=tuple(range(_shape[1])),
+            _chunk2=_X2,
+            _chunk2_X_indices=tuple(range(_shape[1])),
+            _rtol=1e-5,
+            _atol=1e-8,
+            _equal_nan=_equal_nan
         )
 
-        if _dtype1 == 'flt':
-            _X1 = _X_flt[:,[0]]
-        elif _dtype1 == 'str':
-            _X1 = _X_str[:,[0]]
-        elif _dtype1 == 'obj':
-            _X1 = _X_obj[:,[0]]
+        assert isinstance(out, list)
+
+        # the out of _chunk_comparer is not sorted. that doesnt happen
+        # until after union-find... wherever that is happening
+        out = sorted(list(map(tuple, map(sorted, out))))
+
+
+        if not _has_nan or (_has_nan and _equal_nan):
+
+            assert all(map(isinstance, out, (tuple for i in out)))
+
+            _exp = list(itertools.combinations(_rand_idxs, 2))
+            _exp = sorted(list(map(tuple, map(sorted, _exp))))
+
+            assert len(out) == len(_exp)
+            for _combo in list(_exp):
+                assert _combo in out
         else:
-            raise Exception
-
-        if _dtype2 == 'flt':
-            _X2 = _X_flt[:,[1]]
-        elif _dtype2 == 'str':
-            _X2 = _X_str[:,[1]]
-        elif _dtype2 == 'obj':
-            _X2 = _X_obj[:,[1]]
-        else:
-            raise Exception
-
-
-        _are_equal = _parallel_chunk_comparer(
-            _X1, _X2, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
-        )[0]
-
-        if _dtype1 == _dtype2:
-            if _equal_nan or not _has_nan:
-                assert _are_equal
-            elif not _equal_nan:
-                assert not _are_equal
-        else:
-            assert not _are_equal
-
+            # if has nans
+            assert len(out) == 0
 
 
 

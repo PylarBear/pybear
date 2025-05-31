@@ -26,6 +26,8 @@ import joblib
 from ._columns_getter import _columns_getter
 from ._parallel_chunk_comparer import _parallel_chunk_comparer
 
+from ....utilities._union_find import union_find
+
 
 
 def _find_duplicates(
@@ -134,7 +136,6 @@ def _find_duplicates(
                 )
 
                 if any(_match):
-                    print(f'pizza print {_match=}')
                     _dupls += _match
                     if col_idx1 not in _all_duplicates:
                         _all_duplicates.append(col_idx1)
@@ -159,62 +160,18 @@ def _find_duplicates(
         assert all(map(isinstance, _dupls, (tuple for i in _dupls)))
 
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # use this "union-find" stuff that CHATGPT came up with to convert
-    # pairs of duplicates like [(0,1), (1,2), (0,2), (4,5)] to [[0,1,2], [4,5]]
 
-    # Find connected components using union-find
-    # Union-Find data structure
-    parent = {}
-
-    def find(x):
-        if parent[x] != x:
-            parent[x] = find(parent[x])  # Path compression
-        return parent[x]
-
-    def union(x, y):
-        root_x = find(x)
-        root_y = find(y)
-        if root_x != root_y:
-            parent[root_y] = root_x
-
-    # Initialize Union-Find
-    for x, y in _dupls:
-        if x not in parent:
-            parent[x] = x
-        if y not in parent:
-            parent[y] = y
-        union(x, y)
-
-    # Group elements by their root
-    components = defaultdict(list)
-    for node in parent:
-        root = find(node)
-        components[root].append(node)
-
-
-    del find, union, parent, _dupls
-
-    duplicates_ = list(components.values())
+    duplicates_ = union_find(_dupls)
 
     # Sort each component and the final result for consistency
     duplicates_ = [sorted(component) for component in duplicates_]
     duplicates_ = sorted(duplicates_, key=lambda x: x[0])
-    # END UNION-FIND ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # pizza!
-    # ONLY RETAIN INFO FOR COLUMNS THAT ARE DUPLICATE
-    # duplicates_ = {int(k): v for k, v in duplicates_.items() if len(v) > 0}
-
-    # UNITE DUPLICATES INTO GROUPS
-    # GROUPS: DuplicatesType = []
-    # for idx1, v1 in duplicates_.items():
-    #     __ = sorted([int(idx1)] + v1)
-    #     GROUPS.append(__)
 
     # ALL SETS OF DUPLICATES MUST HAVE AT LEAST 2 ENTRIES
     for _set in duplicates_:
         assert len(_set) >= 2
-    print(f'pizza print {duplicates_=}')
+
 
     return duplicates_
 
