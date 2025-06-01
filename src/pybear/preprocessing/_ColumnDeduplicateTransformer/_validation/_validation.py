@@ -26,6 +26,7 @@ from ...__shared._validation._equal_nan import _val_equal_nan
 from ...__shared._validation._atol import _val_atol
 from ...__shared._validation._rtol import _val_rtol
 from ...__shared._validation._n_jobs import _val_n_jobs
+from ...__shared._validation._any_integer import _val_any_integer
 
 
 
@@ -38,7 +39,8 @@ def _validation(
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,
-    _n_jobs: Union[numbers.Integral, None]
+    _n_jobs: Union[numbers.Integral, None],
+    _job_size: numbers.Integral
 ) -> None:
 
     """
@@ -72,6 +74,9 @@ def _validation(
     _n_jobs:
         Union[numbers.Integral, None] - The number of joblib Parallel
         jobs to use when scanning the data for columns of constants.
+    _job_size:
+        numbers.Integral - The number of columns to send to a joblib job.
+        Must be an integer greater than or equal to 2.
 
 
     Return
@@ -98,8 +103,10 @@ def _validation(
 
     _val_n_jobs(_n_jobs)
 
-
-
+    # _val_any_integer allows lists
+    if not isinstance(_job_size, numbers.Integral):
+        raise TypeError(f"'job_size' must be an integer >= 2. Got {_job_size}.")
+    _val_any_integer(_job_size, 'job_size', _min=2)
 
 
 

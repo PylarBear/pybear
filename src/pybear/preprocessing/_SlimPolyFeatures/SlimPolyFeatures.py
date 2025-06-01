@@ -248,7 +248,7 @@ class SlimPolyFeatures(
         minimum value accepted by SPF is 1; SPF cannot be used to
         generate a zero-degree column (a column of all ones).
     interaction_only:
-        bool, default = False - If True, only interaction features are
+        bool, default=False - If True, only interaction features are
         produced, that is, polynomial features that are products of
         'degree' distinct input features. Terms with power of 2 or higher
         for any feature are excluded. If False, produce the full
@@ -272,7 +272,7 @@ class SlimPolyFeatures(
         will continue to operate under the assumptions of the stated
         design requirement, and the output will be nonsensical.
     keep:
-        Literal['first', 'last', 'random'], default = 'first' -
+        Literal['first', 'last', 'random'], default='first' -
         The strategy for keeping a single representative from a set of
         identical columns in the polynomial expansion. This is over-ruled
         if a polynomial feature is a duplicate of one of the original
@@ -288,7 +288,7 @@ class SlimPolyFeatures(
         expansion (highest degree); 'random' keeps a single randomly
         selected feature of the set of duplicates.
     sparse_output:
-        bool, default = True - If set to True, the polynomial expansion
+        bool, default=True - If set to True, the polynomial expansion
         is returned from :meth: `transform` as a scipy sparse csr array.
         If set to False, the polynomial expansion is returned in the
         same format as passed to :meth: `transform`.
@@ -333,7 +333,7 @@ class SlimPolyFeatures(
             1) is not a duplicate of any originally seen feature name
             2) is not a duplicate of any other polynomial feature name
     equal_nan:
-        bool, default = False -
+        bool, default=False -
 
         When comparing two columns for equality:
 
@@ -353,21 +353,32 @@ class SlimPolyFeatures(
         any nan-values could never take the value of the mean of the
         non-nan values in the column, making the column not constant.
     rtol:
-        numbers.Real, default = 1e-5 - The relative difference tolerance
+        numbers.Real, default=1e-5 - The relative difference tolerance
         for equality. Must be a non-boolean, non-negative, real number.
         See numpy.allclose.
     atol:
-        numbers.Real, default = 1e-8 - The absolute difference tolerance
+        numbers.Real, default=1e-8 - The absolute difference tolerance
         for equality. Must be a non-boolean, non-negative, real number.
         See numpy.allclose.
     n_jobs:
-        Union[numbers.Integral, None], default = -1 - The number of
-        joblib Parallel jobs to use when looking for duplicate columns
-        or looking for columns of constants. The default is to use
-        processes, but can be overridden externally using a joblib
-        parallel_config context manager. The default number of jobs is
-        -1 (all processors). To get maximum speed benefit, pybear
-        recommends using the default setting.
+        Union[numbers.Integral, None], default=-1 - The number of
+        joblib Parallel jobs to use when looking for duplicate columns.
+        The default is to use processes, but can be overridden externally
+        using a joblib parallel_config context manager. The default
+        number of jobs is -1 (all processors). To get maximum speed
+        benefit, pybear recommends using the default setting.
+    job_size:
+        Optional[numbers.Integral], default=20 - The number of columns
+        to send to a joblib job. Must be an integer greater than or
+        equal to 2. This allows the user to optimize CPU utilization for
+        their particular circumstance. Long, thin datasets should use
+        fewer columns, and wide, flat datasets should use more columns.
+        Bear in mind that the columns sent to joblib jobs are deep copies
+        of the original data, and larger job sizes increase RAM usage.
+        Also note that joblib is only engaged when the number of columns
+        in the data is at least 2*job_size. For example, if job_size is
+        10, data with 20 or more columns will be processed with joblib,
+        data with 19 or fewer columns will be processed linearly.
 
 
     Attributes
@@ -510,21 +521,22 @@ class SlimPolyFeatures(
 
     def __init__(
         self,
-        degree: Optional[numbers.Integral] = 2,
+        degree: Optional[numbers.Integral]=2,
         *,
-        min_degree: Optional[numbers.Integral] = 1,
-        interaction_only: Optional[bool] = False,
-        scan_X: Optional[bool] = True,
-        keep: Optional[Literal['first', 'last', 'random']] = 'first',
-        sparse_output: Optional[bool] = True,
+        min_degree: Optional[numbers.Integral]=1,
+        interaction_only: Optional[bool]=False,
+        scan_X: Optional[bool]=True,
+        keep: Optional[Literal['first', 'last', 'random']]='first',
+        sparse_output: Optional[bool]=True,
         feature_name_combiner: Optional[Union[
             Callable[[Sequence[str], tuple[int, ...]], str],
             Literal['as_feature_names', 'as_indices']
-        ]] = 'as_indices',
-        equal_nan: Optional[bool] = True,
-        rtol: Optional[numbers.Real] = 1e-5,
-        atol: Optional[numbers.Real] = 1e-8,
-        n_jobs: Optional[Union[numbers.Integral, None]] = -1
+        ]]='as_indices',
+        equal_nan: Optional[bool]=True,
+        rtol: Optional[numbers.Real]=1e-5,
+        atol: Optional[numbers.Real]=1e-8,
+        n_jobs: Optional[Union[numbers.Integral, None]]=-1,
+        job_size: Optional[numbers.Integral]=20
     ):
 
         self.degree = degree
@@ -538,9 +550,9 @@ class SlimPolyFeatures(
         self.rtol = rtol
         self.atol = atol
         self.n_jobs = n_jobs
+        self.job_size = job_size
 
     # END init ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
 
 
     def __pybear_is_fitted__(self) -> bool:
@@ -947,7 +959,8 @@ class SlimPolyFeatures(
             self.rtol,
             self.atol,
             self.equal_nan,
-            self.n_jobs
+            self.n_jobs,
+            self.job_size
         )
 
         # do not make an assignment! let the function handle it.
@@ -1004,6 +1017,7 @@ class SlimPolyFeatures(
                     rtol=self.rtol,
                     atol=self.atol,
                     n_jobs=self.n_jobs
+                    # leave job_size at CDT default
                 )
 
             with warnings.catch_warnings():
@@ -1055,9 +1069,9 @@ class SlimPolyFeatures(
                 _poly_is_constant: Union[uuid.UUID, any] = \
                     _is_constant(
                         _column=_columns_getter(X, _combo).ravel(),
-                        _equal_nan = self.equal_nan,
-                        _rtol = self.rtol,
-                        _atol = self.atol
+                        _equal_nan=self.equal_nan,
+                        _rtol=self.rtol,
+                        _atol=self.atol
                     )
 
                 if not isinstance(_poly_is_constant, uuid.UUID):
@@ -1081,7 +1095,8 @@ class SlimPolyFeatures(
             _equal_nan=self.equal_nan,
             _rtol=self.rtol,
             _atol=self.atol,
-            _n_jobs=self.n_jobs
+            _n_jobs=self.n_jobs,
+            _job_size=self.job_size
         )
 
         _poly_dupls_current_partial_fit = list(map(list, union_find(_dupl_pairs)))
@@ -1295,7 +1310,8 @@ class SlimPolyFeatures(
         if is_fitted(self):
 
             allowed_params = (
-                'keep', 'sparse_output', 'feature_name_combiner', 'n_jobs'
+                'keep', 'sparse_output', 'feature_name_combiner', 'n_jobs',
+                'job_size'
             )
 
             _valid_params = {}
@@ -1318,13 +1334,13 @@ class SlimPolyFeatures(
             if any(_invalid_params):
                 warnings.warn(
                     "Once this transformer is fitted, only :params: 'keep', "
-                    "'sparse_output', 'feature_name_combiner', and 'n_jobs' "
-                    "can be changed via :method: set_params. \nAll other "
+                    "'sparse_output', 'feature_name_combiner', 'n_jobs' and "
+                    "'job_size' can be changed via :meth: set_params. \nAll other "
                     "parameters are blocked. \nThe currently passed parameters "
                     f"{', '.join(list(_invalid_params))} have been blocked, "
                     "but any valid parameters that were passed have been set."
                     "\nTo use different parameters without creating a new "
-                    "instance of this transformer class, call :method: reset "
+                    "instance of this transformer class, call :meth: reset "
                     "on this instance, otherwise create a new instance of SPF."
                 )
 
@@ -1407,7 +1423,8 @@ class SlimPolyFeatures(
             self.rtol,
             self.atol,
             self.equal_nan,
-            self.n_jobs
+            self.n_jobs,
+            self.job_size
         )
 
         self._check_n_features(X, reset=False)

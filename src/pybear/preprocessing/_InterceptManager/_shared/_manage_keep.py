@@ -117,12 +117,12 @@ def _manage_keep(
         int - number of features in the fitted data before transform.
     _feature_names_in:
         Union[npt.NDArray[str], None] - The names of the features as seen
-        during fitting. Only accessible if X is passed to :meth: fit
-        or :meth: partial_fit in a container that has a header.
+        during fitting. Only accessible if X is passed to :meth: `fit`
+        or :meth: `partial_fit` in a container that has a header.
     _rand_idx:
         int - Instance attribute that specifies the random column index
-        to keep when :param: 'keep' is 'random'. This value must be
-        static on calls to :meth: transform.
+        to keep when :param: `keep` is 'random'. This value must be
+        static on calls to :meth: `transform`.
 
 
     Return

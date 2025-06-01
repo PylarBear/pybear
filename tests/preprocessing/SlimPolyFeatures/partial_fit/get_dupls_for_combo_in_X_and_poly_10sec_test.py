@@ -44,7 +44,8 @@ class Fixtures:
             '_equal_nan': True,
             '_rtol': 1e-5,
             '_atol': 1e-8,
-            '_n_jobs': 1  # leave this at 1 because of contention
+            '_n_jobs': 1,  # leave this at 1 because of contention
+            '_job_size': 20
         }
 
         return _args
@@ -122,7 +123,10 @@ class TestDuplsForComboValidation(Fixtures):
     @pytest.mark.parametrize('_rtol', (None, -np.e, -1, True, False))
     @pytest.mark.parametrize('_atol', (None, -np.e, -1, True, False))
     @pytest.mark.parametrize('_n_jobs', (True, False, 'trash', -2, 0, -1, 1))
-    def test_rejects_junk(self, X_np, _combos, _equal_nan, _rtol, _atol, _n_jobs):
+    @pytest.mark.parametrize('_job_size', (True, False, 'trash', -2, 0, -1, 1))
+    def test_rejects_junk(
+        self, X_np, _combos, _equal_nan, _rtol, _atol, _n_jobs, _job_size
+    ):
 
         _will_raise = 0
         if not isinstance(_equal_nan, bool):
@@ -137,7 +141,7 @@ class TestDuplsForComboValidation(Fixtures):
 
         kwargs = {
             '_equal_nan': _equal_nan, '_rtol': _rtol,
-            '_atol': _atol, '_n_jobs': _n_jobs
+            '_atol': _atol, '_n_jobs': _n_jobs, '_job_size': _job_size
         }
 
         if not _will_raise:

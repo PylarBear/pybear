@@ -1191,10 +1191,10 @@ class MinCountTransformer(
 
             if self.max_recursions > 1:
                 raise ValueError(
-                    f":method: 'set_params' blocks all parameters from being "
+                    f":meth: 'set_params' blocks all parameters from being "
                     f"set when MCT is fitted with :param: 'max_recursions' "
-                    f">= 2. \nto set new parameter values, call :method: "
-                    f"'reset' then call :method: 'set_params'."
+                    f">= 2. \nto set new parameter values, call :meth: "
+                    f"'reset' then call :meth: 'set_params'."
                 )
 
             _valid_params = {}
@@ -1219,7 +1219,7 @@ class MinCountTransformer(
             if 'max_recursions' in _invalid_params:
                 warnings.warn(
                     "Once MCT is fitted, :param: 'max_recursions' cannot be "
-                    "changed. To change this setting, call :method: 'reset' or "
+                    "changed. To change this setting, call :meth: 'reset' or "
                     "create a new instance of MCT. 'max_recursions' has not "
                     "been changed but any other valid parameters passed have "
                     "been set."
@@ -1236,7 +1236,7 @@ class MinCountTransformer(
                     "skipped, but any other valid parameters that were "
                     "passed have been set. \nTo set "
                     "ignore_columns/handle_as_bool to callables without "
-                    "creating a new instance of MCT, call :method: 'reset' "
+                    "creating a new instance of MCT, call :meth: 'reset' "
                     "on this instance then set the callable parameter "
                     "values (all results from previous fits will be lost). "
                     "Otherwise, create a new instance of MCT."

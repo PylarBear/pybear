@@ -58,9 +58,9 @@ def _val_ign_cols_hab_callable(
         the callable used for ignore_columns or handle_as_bool
     _first_fxn_output:
         Union[Sequence[str], Sequence[numbers.Integral], None] - the
-        output of the callable on the first call to :methods: partial_fit
-        or transform. used to validate that all subsequent outputs of
-        the callable equal the first.
+        output of the callable on the first call to :meth: `partial_fit`
+        or :meth: `transform`. used to validate that all subsequent
+        outputs of the callable equal the first.
     _name:
         Literal['ignore_columns', 'handle_as_bool'] - the name of the
         parameter for which a callable was passed

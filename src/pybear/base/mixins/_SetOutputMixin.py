@@ -23,10 +23,10 @@ class SetOutputMixin:
 
     """
     This mixin provides the 'set_output' method to pybear transformers.
-    Use 'set_output' to set the container of the output for :methods:
-    'transform' and 'fit_transform' (when the FitTransformMixin is used.)
-    Use the _set_output_for_transform method to decorate :method:
-    transform in the child class. This rendition of 'set_output' does
+    Use 'set_output' to set the container of the output for :meth:
+    `transform` and :meth: `fit_transform` (when the FitTransformMixin
+    is used.) Use the _set_output_for_transform method to decorate :meth:
+    `transform` in the child class. This rendition of 'set_output' does
     not require that the 'get_feature_names_out' method exist. If there
     is no 'get_feature_names_out' method, range(X.shape[1]) is passed to
     pandas/polars for column names.
@@ -39,8 +39,8 @@ class SetOutputMixin:
     ):
 
         """
-        Set the output container when :methods: 'transform' and
-        'fit_transform' are called.
+        Set the output container when :meth: `transform`
+        and :meth:  `fit_transform` are called.
 
 
         Parameters
@@ -92,7 +92,7 @@ class SetOutputMixin:
     def _set_output_for_transform(foo):
 
         """
-        This method decorates :method: 'transform' in pybear transformers.
+        This method decorates :meth: `transform` in pybear transformers.
         When SetOutputMixin is passed to a child transformer, decorate the
         'transform' method with @SetOutputMixin._set_output_for_transform.
 

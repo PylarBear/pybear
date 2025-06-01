@@ -20,7 +20,7 @@ def _lock_in_random_combos(
 ) -> tuple[tuple[int, ...], ...]:
 
     """
-    When SPF :param: 'keep' is set to 'random', SPF :method: transform
+    When SPF :param: 'keep' is set to 'random', SPF :meth: `transform`
     needs to keep the same poly terms for all batch-wise transforms,
     otherwise the outputted batches will have different columns.
     SPF :meth: `transform` needs a static set of random combo tuples to
@@ -28,15 +28,16 @@ def _lock_in_random_combos(
     regenerated with each call to SPF :meth: `transform`.
 
     _identify_combos_to_keep handles setting the combos to keep from
-    sets of duplicates on every call to SPF :methods: partial_fit and
-    transform. Random tuples cant be chosen in _identify_combos_to_keep
-    because it is called in SPF :method: transform as well as
-    partial_fit. There must be a stand-alone module in partial_fit that
-    locks in random tuples for all SPF :method: transform calls.
+    sets of duplicates on every call to SPF :meth: `partial_fit`
+    and :meth: `transform`. Random tuples can't be chosen in
+    _identify_combos_to_keep because it is called in SPF :meth:
+    `transform` as well as :meth: `partial_fit`. There must be a
+    stand-alone module in partial_fit that locks in random tuples for
+    all SPF :meth: `transform` calls.
 
     Goal: Create a static set of random combo tuples that is regenerated
-    with each call to :method: partial_fit, but is unchanged when
-    SPF :method: `transform` is called.
+    with each call to :meth: `partial_fit`, but is unchanged when
+    SPF :meth: `transform` is called.
 
     This module builds a static ordered tuple of randomly selected
     combo tuples, one tuple from each set of duplicates. For example,
@@ -54,8 +55,8 @@ def _lock_in_random_combos(
 
     This module assumes that 'keep' == 'random', even though that may
     not be the case. This makes the static list ready and waiting for
-    use by :method: transform should at any time SPF :param: 'keep' be
-    changed to 'random' via :method: set_params after fitting.
+    use by :meth: `transform` should at any time SPF :param: `keep` be
+    changed to 'random' via :meth: `set_params` after fitting.
 
 
     Parameters

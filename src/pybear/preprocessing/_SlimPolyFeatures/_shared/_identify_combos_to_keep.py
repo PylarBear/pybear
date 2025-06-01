@@ -20,14 +20,14 @@ def _identify_combos_to_keep(
     """
     Determine which X idx / poly combo to keep from a set of duplicates.
 
-    When SPF :param: keep is set to 'random', we cant just choose random
-    combos here, this module is called in SPF :method: transform as well
-    as partial_fit. SPF :method: transform needs a static set of random
-    combos because all calls to SPF :method: transform must output the
-    same polynomial features. There must be a separate module in
-    SPF :method: partial_fit that locks in random combos for all
-    SPF :method: transform calls. Then that locked-in group of random
-    combos must be passed to this module.
+    When SPF :param: 'keep' is set to 'random', we cant just choose
+    random combos here, this module is called in SPF :meth: `transform`
+    as well as :meth: 'partial_fit'. SPF :meth: `transform` needs a
+    static set of random combos because all calls to SPF :meth:
+    `transform` must output the same polynomial features. There must
+    be a separate module in SPF :meth: `partial_fit` that locks in
+    random combos for all SPF :meth: `transform` calls. Then that
+    locked-in group of random combos must be passed to this module.
 
     Apply two rules to determine which X idx / poly combo to keep from a
     group of duplicates:
@@ -141,7 +141,7 @@ def _identify_combos_to_keep(
         # assumption will be correct at transform time when there are no
         # duplicates in X. If there are duplicates in X and if all the
         # no-op blocks in place in the main SPF module work correctly
-        # SPF :method: transform will be prevented from carrying out any
+        # SPF :meth: transform will be prevented from carrying out any
         # nonsensical instructions made here.
 
 

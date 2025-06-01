@@ -40,8 +40,8 @@ def _build_overall_statistics(
     Parameters
     ----------
     STRINGS:
-        Sequence[str] - a list-like of strings passed to :methods:
-        partial_fit or fit.
+        Sequence[str] - a list-like of strings passed to :meth: `fit`
+        or :meth: `partial_fit`.
     case_sensitive:
         Optional[bool], default = False - whether to normalize all
         characters to the same case or preserve the original case.

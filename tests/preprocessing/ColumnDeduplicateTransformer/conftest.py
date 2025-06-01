@@ -31,10 +31,9 @@ def _kwargs():
         'rtol': 1e-5,
         'atol': 1e-8,
         'equal_nan': False,
-        'n_jobs': 1     # leave set at 1 because of confliction
+        'n_jobs': 1,     # leave set at 1 because of confliction
+        'job_size': 20
     }
-
-
 
 
 

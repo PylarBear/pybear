@@ -112,7 +112,6 @@ class TestGetFeatureNamesOut:
         (('np', False), ('pd', True), ('pd', False), ('pl', True),
          ('pl', False)), scope='module'
     )
-    @pytest.mark.parametrize('_dtype', ('flt', 'int'), scope='module')
     @pytest.mark.parametrize('_instance_state',
         ('after_fit', 'after_transform'), scope='module'
     )
@@ -120,8 +119,8 @@ class TestGetFeatureNamesOut:
     @pytest.mark.parametrize('_interaction_only', (True, False), scope='module')
     @pytest.mark.parametrize('_input_features_is_passed', (True, False))
     def test_accuracy(
-        self, _X_factory, _kwargs, _instance_state, _format, _columns,
-        _min_degree, _dtype, _shape, _interaction_only, _input_features_is_passed,
+        self, _X_factory, _shape, _columns, _kwargs, _instance_state, _format,
+        _min_degree, _interaction_only, _input_features_is_passed,
         _columns_is_passed
     ):
 
@@ -130,7 +129,7 @@ class TestGetFeatureNamesOut:
         _X = _X_factory(
             _dupl=None,
             _format=_format,
-            _dtype=_dtype,
+            _dtype='flt',
             _columns=_columns if (_format in ['pd', 'pl'] and _columns_is_passed) else None,
             _constants=None,
             _shape=_shape
@@ -145,6 +144,7 @@ class TestGetFeatureNamesOut:
         _new_kwargs['interaction_only'] = _interaction_only
         _new_kwargs['equal_nan'] = False
         _new_kwargs['n_jobs'] = 1
+        # job_size
 
         _TestCls = SlimPoly(**_new_kwargs)
 

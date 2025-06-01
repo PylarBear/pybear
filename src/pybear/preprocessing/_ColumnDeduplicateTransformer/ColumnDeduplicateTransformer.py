@@ -24,7 +24,7 @@ from ._type_aliases import (
 )
 from ..__shared._type_aliases import XContainer
 
-from numbers import Real
+import numbers
 
 import numpy as np
 
@@ -159,7 +159,7 @@ class ColumnDeduplicateTransformer(
     and :meth: `inverse_transform` methods of CDT accept data as numpy
     arrays, pandas dataframes, and scipy sparse matrices/arrays. CDT has
     a :meth: `set_output` method, whereby the user can set the type of
-    output container for :meth: `transform`. :method: `set_output` can
+    output container for :meth: `transform`. :meth: `set_output` can
     return transformed outputs as numpy arrays, pandas dataframes, or
     polars dataframes. When :meth: `set_output` is None, the output
     container is the same as the input, that is, numpy array, pandas
@@ -255,20 +255,32 @@ class ColumnDeduplicateTransformer(
         pair not equal. This is in line with the normal numpy handling
         of nan values.
     rtol:
-        Real, default=1e-5 - The relative difference tolerance for
-        equality. Must be a non-boolean, non-negative, real number.
+        numbers.Real, default=1e-5 - The relative difference tolerance
+        for equality. Must be a non-boolean, non-negative, real number.
         See numpy.allclose.
     atol:
-        Real, default=1e-8 - The absolute difference tolerance for
-        equality. Must be a non-boolean, non-negative, real number.
+        numbers.Real, default=1e-8 - The absolute difference tolerance
+        for equality. Must be a non-boolean, non-negative, real number.
         See numpy.allclose.
     n_jobs:
-        Union[int, None], default=-1 - The number of joblib Parallel
-        jobs to use when comparing columns. The default is to use
-        processes, but can be overridden externally using a joblib
+        Union[numbers.Integral, None], default=-1 - The number of joblib
+        Parallel jobs to use when comparing columns. The default is to
+        use processes, but can be overridden externally using a joblib
         parallel_config context manager. The default number of jobs is
         -1 (all processors). To get maximum speed benefit, pybear
         recommends using the default setting.
+    job_size:
+        Optional[numbers.Integral], default=20 - The number of columns
+        to send to a joblib job. Must be an integer greater than or
+        equal to 2. This allows the user to optimize CPU utilization for
+        their particular circumstance. Long, thin datasets should use
+        fewer columns, and wide, flat datasets should use more columns.
+        Bear in mind that the columns sent to joblib jobs are deep copies
+        of the original data, and larger job sizes increase RAM usage.
+        Also note that joblib is only engaged when the number of columns
+        in the data is at least 2*job_size. For example, if job_size is
+        10, data with 20 or more columns will be processed with joblib,
+        data with 19 or fewer columns will be processed linearly.
 
 
     Attributes
@@ -431,9 +443,10 @@ class ColumnDeduplicateTransformer(
         do_not_drop: Optional[Union[Sequence[str], Sequence[int], None]]=None,
         conflict: Optional[Literal['raise', 'ignore']]='raise',
         equal_nan: Optional[bool]=False,
-        rtol: Optional[Real]=1e-5,
-        atol: Optional[Real]=1e-8,
-        n_jobs: Optional[Union[int, None]]=None
+        rtol: Optional[numbers.Real]=1e-5,
+        atol: Optional[numbers.Real]=1e-8,
+        n_jobs: Optional[Union[numbers.Integral, None]]=None,
+        job_size: Optional[numbers.Integral]=20
     ) -> None:
 
 
@@ -444,6 +457,9 @@ class ColumnDeduplicateTransformer(
         self.rtol = rtol
         self.atol = atol
         self.n_jobs = n_jobs
+        self.job_size = job_size
+
+    # END init ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -637,10 +653,10 @@ class ColumnDeduplicateTransformer(
             self.rtol,
             self.atol,
             self.equal_nan,
-            self.n_jobs
+            self.n_jobs,
+            self.job_size
         )
-
-        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # ss sparse that cant be sliced
         # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it cannot
@@ -652,11 +668,12 @@ class ColumnDeduplicateTransformer(
 
         _current_duplicates: DuplicatesType = \
             _find_duplicates(
-                X,
-                self.rtol,
-                self.atol,
-                self.equal_nan,
-                self.n_jobs
+                _X=X,
+                _rtol=self.rtol,
+                _atol=self.atol,
+                _equal_nan=self.equal_nan,
+                _n_jobs=self.n_jobs,
+                _job_size=self.job_size
             )
 
         # merge the current duplicate columns with duplicates found on
@@ -938,7 +955,8 @@ class ColumnDeduplicateTransformer(
             self.rtol,
             self.atol,
             self.equal_nan,
-            self.n_jobs
+            self.n_jobs,
+            self.job_size
         )
 
         self._check_n_features(X_tr, reset=False)

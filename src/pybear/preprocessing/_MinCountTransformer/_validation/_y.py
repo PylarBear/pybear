@@ -21,10 +21,10 @@ def _val_y(
     """
     Validate the target for the data is a valid data container. Numpy
     ndarrays, pandas dataframes, and pandas series are allowed. This
-    validation is performed for :methods: partial_fit and fit even though
-    y is ignored. This validation is also performed for :method:
-    transform and is necessary because y may be passed to transform and
-    be reduced along the sample axis.
+    validation is performed for :meth: `partial_fit` and :meth: `fit`
+    even though y is ignored. This validation is also performed
+    for :meth: `transform` and is necessary because y may be passed to
+    transform and be reduced along the sample axis.
 
 
     Parameters

@@ -24,9 +24,10 @@ class TestValidation:
     @pytest.mark.parametrize('_atol', (1e-6, 1))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_n_jobs', (None, -1, 1))
+    @pytest.mark.parametrize('_job_size', (3, 15))
     def test_accepts_good(
         self, _X_factory, _columns, _conflict, _keep, _rtol, _atol,
-        _equal_nan, _n_jobs, _shape
+        _equal_nan, _n_jobs, _job_size, _shape
     ):
 
         _validation(
@@ -40,7 +41,8 @@ class TestValidation:
             _rtol=_rtol,
             _atol=_atol,
             _equal_nan=_equal_nan,
-            _n_jobs=_n_jobs
+            _n_jobs=_n_jobs,
+            _job_size=_job_size
         )
 
 

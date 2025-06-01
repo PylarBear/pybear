@@ -28,7 +28,8 @@ class TestSetParams:
             'rtol': 1e-5,
             'atol': 1e-8,
             'equal_nan': False,
-            'n_jobs': 1  # leave set at 1 because of confliction
+            'n_jobs': 1,  # leave set at 1 because of confliction
+            'job_size': 20
         }
 
 
@@ -42,7 +43,8 @@ class TestSetParams:
             'rtol': 1e-6,
             'atol': 1e-9,
             'equal_nan': True,
-            'n_jobs': -1  # confliction isnt a problem, 1 or -1 is fine
+            'n_jobs': -1,  # confliction isnt a problem, 1 or -1 is fine
+            'job_size': 30
         }
 
     # END Fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
