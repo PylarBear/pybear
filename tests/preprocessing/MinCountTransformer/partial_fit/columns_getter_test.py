@@ -88,13 +88,10 @@ class TestColumnsGetter:
         (0, 1, 2, (0,), (1,), (2,), (0,1), (0,2), (1,2), (0,1,2))
     )
     def test_accuracy(
-        self, _X_factory, _col_idxs, _format, _shape
+        self, _X_factory, _shape, _columns, _col_idxs, _format
     ):
 
         # _columns_getter only allows ss csc.
-
-        # pizza straighten this out when the fixtures are done
-        _columns = [str(uuid.uuid4())[:5] for _ in range(_shape[1])]
 
         _X_wip = _X_factory(
             _format=_format,

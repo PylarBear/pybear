@@ -8,11 +8,10 @@
 
 from typing_extensions import Union
 
-from collections import defaultdict
 import itertools
 import warnings
 
-
+from ....utilities._union_find import union_find
 
 
 
@@ -23,11 +22,9 @@ def _merge_partialfit_dupls(
 
     """
     The lead-up to this module:
-    Within a partial fit, for each combo get the duplicates with
-    _get_dupls_for_combo_in_X_and_poly. After each combo run,
-    progressively build the current partial fit's lists of duplicates
-    by passing the current combo dupls to _merge_combo_dupls. Once all
-    the combos are done, the output of _merge_combo_dupls is the final
+    Within a partial fit, for all combos get the duplicates with
+    _get_dupls_for_combo_in_X_and_poly. Convert the output format with
+    pybear.utilities.union_find. The output of union_find is the final
     list of duplicates for the current partial fit. Merge the current
     partial fit's dupls with dupls from previous partial fits with
     this module.
@@ -134,50 +131,16 @@ def _merge_partialfit_dupls(
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        # use this "union-find" stuff that CHATGPT came up with to convert
-        # pairs of duplicates like
-        # [(0,1), (1,2), (0,2), (4,5)] to [[0,1,2], [4,5]]
+        _duplicates = list(map(list, union_find(_intersection)))
 
-        # Find connected components using union-find
-        # Union-Find data structure
-        parent = {}
-
-        def find(x):
-            if parent[x] != x:
-                parent[x] = find(parent[x])  # Path compression
-            return parent[x]
-
-        def union(x, y):
-            root_x = find(x)
-            root_y = find(y)
-            if root_x != root_y:
-                parent[root_y] = root_x
-
-        # Initialize Union-Find
-        for x, y in _intersection:
-            if x not in parent:
-                parent[x] = x
-            if y not in parent:
-                parent[y] = y
-            union(x, y)
-
-        # Group elements by their root
-        components = defaultdict(list)
-        for node in parent:
-            root = find(node)
-            components[root].append(node)
-
-        _duplicates = list(components.values())
-
-
-    # Sort each component and the final result for consistency.
-    # within dupl sets, sort asc len, then within the same lens sort asc
-    # idxs
-    for _idx, _dupl_set in enumerate(_duplicates):
-        _duplicates[_idx] = sorted(_dupl_set, key=lambda x: (len(x), x))
-    # across all dupl sets, only look at the first value in a dupl set,
-    # sort on len asc, then indices asc
-    _duplicates = sorted(_duplicates, key=lambda x: (len(x[0]), x[0]))
+        # Sort each component and the final result for consistency.
+        # within connected sets, sort asc len, then within the same lens sort asc
+        # idxs
+        for _idx, _conn_set in enumerate(_duplicates):
+            _duplicates[_idx] = sorted(_conn_set, key=lambda x: (len(x), x))
+        # across all dupl sets, only look at the first value in a dupl set,
+        # sort on len asc, then indices asc
+        _duplicates = sorted(_duplicates, key=lambda x: (len(x[0]), x[0]))
 
     # if any dupl set contains more than 1 tuple of len==1 (i.e., more
     # than one column from X) warn for duplicate columns in X.
@@ -194,13 +157,6 @@ def _merge_partialfit_dupls(
 
 
     return _duplicates
-
-
-
-
-
-
-
 
 
 

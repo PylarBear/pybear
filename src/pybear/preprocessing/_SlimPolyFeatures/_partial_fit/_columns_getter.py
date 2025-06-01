@@ -11,24 +11,26 @@ import numpy.typing as npt
 from pybear.preprocessing._SlimPolyFeatures._type_aliases import \
     InternalXContainer
 
+import numbers
+
 import numpy as np
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
-from pybear.utilities._nan_masking import nan_mask
+from ....utilities._nan_masking import nan_mask
 
 
 
 def _columns_getter(
     _X: InternalXContainer,
-    _col_idxs: Union[int, tuple[int, ...]]
+    _col_idxs: Union[tuple[int, ...], tuple[tuple[int, ...], ...]]
 ) -> npt.NDArray[np.float64]:
 
     """
-    Handles the mechanics of extracting one or more columns from the
-    various allowed data container types. Data passed as scipy sparse
-    formats must be indexable. Therefore, coo matrix/array, dia
+    Handles the mechanics of extracting and multiplying polynomial
+    columns from the various allowed data container types. Data passed
+    as scipy sparse formats must be indexable. Therefore, coo matrix/array, dia
     matrix/array, and bsr matrix/array are prohibited. Return extracted
     column(s) as a numpy array in row-major order. In the case of scipy
     sparse, the columns are converted to dense.
@@ -37,107 +39,136 @@ def _columns_getter(
     Parameters
     ----------
     _X:
-        array-like - The data to extract columns from. _X must be
-        indexable, which excludes scipy coo, dia, and bsr. This module
+        InternalXContainer - The data to extract columns from. _X must
+        be indexable, which excludes scipy coo, dia, and bsr. This module
         expects _X to be in a valid state when passed, and will not
         condition it.
     _col_idxs:
-        Union[int, tuple[int, ...]] - the column index / indices to
-        extract from _X.
+        Union[tuple[int, ...], tuple[tuple[int, ...], ...] - the column
+        index / indices to extract from _X.
 
 
     Return
     ------
     -
-        _columns: NDArray[np.float64] - The columns from _X corresponding
-        to the given indices in row-major order.
+        _columns: NDArray[np.float64] - The columns and/or polynomial
+        columns from _X corresponding to the given indices in row-major
+        order.
 
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation & conditioning ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
         (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
 
-    assert isinstance(_col_idxs, (int, tuple))
-    if isinstance(_col_idxs, int):
-        _col_idxs = (_col_idxs,)   # <==== int _col_idx converted to tuple
+    # _col_idxs can be a tuple of poly idx ints, or a tuple
+    # holding tuples of poly idx ints
+    assert isinstance(_col_idxs, tuple)
     assert len(_col_idxs), f"'_col_idxs' cannot be empty"
-    for _idx in _col_idxs:
-        assert isinstance(_idx, int)
-        assert _idx in range(_X.shape[1]), f"col idx out of range"
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    _col_idxs = sorted(list(_col_idxs))
-
-    if isinstance(_X, np.ndarray):
-        _columns = _X[:, _col_idxs]
-    elif isinstance(_X, pd.core.frame.DataFrame):
-        # additional steps are taken at the bottom of this module if the
-        # dataframe has funky nan-likes, causing _columns to leave this
-        # step as dtype object
-        _columns = _X.iloc[:, _col_idxs].to_numpy()
-    elif isinstance(_X, pl.DataFrame):
-        # pizza 25_05_26
-        # when pulling the same column 2+ times, polars cannot make df
-        # polars.exceptions.DuplicateError: could not create a new DataFrame:
-        # column with name 'd61193cc' has more than one occurrence
-        # need a workaround that doesnt copy the full X.
-        # pull the unique columns, convert to np, then create the og stack
-        _unq_idxs = np.unique(_col_idxs)
-        # need to map idxs in X to future idxs in the uniques slice
-        _lookup_dict = {}
-        for _new_idx, _old_idx in enumerate(_unq_idxs):
-            _lookup_dict[_old_idx] = _new_idx
-        _columns = _X[:, _unq_idxs].to_numpy()
-        _new_idxs = [int(_lookup_dict[_old_idx]) for _old_idx in _col_idxs]
-        _columns = _columns[:, _new_idxs]
-        del _lookup_dict
-    elif hasattr(_X, 'toarray'):
-        # both _is_constant() and _build_poly() need vectors
-        # extracted from ss to be full, not the stacked version
-        # (ss.indices & ss.data hstacked). With all the various
-        # applications that use _columns_getter, and all the various
-        # forms that could be needed at those endpoints, it is simplest
-        # just to standardize all to receive dense np, at the cost of
-        # slightly higher memory swell than may otherwise be necessary.
-        # Extract the columns from scipy sparse as dense ndarray.
-        _columns = _X[:, _col_idxs].tocsc().toarray()
+    if all(map(
+        isinstance, _col_idxs, (numbers.Integral for i in _col_idxs)
+    )):
+        assert all(map(lambda x: x in range(_X.shape[1]), _col_idxs)), \
+            f"col idx out of range"
+        _col_idxs = (_col_idxs, )
+    elif all(map(
+        isinstance, _col_idxs, (tuple for i in _col_idxs)
+    )):
+        for _tuple in _col_idxs:
+            assert all(map(isinstance, _tuple, (int for i in _tuple)))
+            assert all(map(lambda x: x in range(_X.shape[1]), _tuple)), \
+                f"col idx out of range"
     else:
+        raise TypeError(
+            f"'_col_idxs' must be tuple of ints or tuple of tuples of ints"
+        )
+    # END validation & conditioning ** * ** * ** * ** * ** * ** * ** *
+
+    # create a holder object to catch all the resulting vectors from
+    # extraction and multiplication of all the polynomial idxs
+    _poly = np.empty((_X.shape[0], 0), dtype=np.float64)
+
+    for _poly_idxs in _col_idxs:
+
+        _poly_idxs = list(_poly_idxs)
+
+        if isinstance(_X, np.ndarray):
+            _columns = _X[:, _poly_idxs]
+        elif isinstance(_X, pd.core.frame.DataFrame):
+            # additional steps are taken at the bottom of this module if the
+            # dataframe has funky nan-likes, causing _poly to leave this
+            # step as dtype object
+            _columns = _X.iloc[:, _poly_idxs].to_numpy()
+        elif isinstance(_X, pl.DataFrame):
+            # when pulling the same column 2+ times, polars cannot make df
+            # polars.exceptions.DuplicateError: could not create a new DataFrame:
+            # column with name 'd61193cc' has more than one occurrence.
+            # need a workaround that doesnt copy the full X.
+            # pull the unique columns, convert to np, then create the og stack
+            _unq_idxs = np.unique(_poly_idxs)
+            # need to map idxs in X to future idxs in the uniques slice
+            _lookup_dict = {}
+            for _new_idx, _old_idx in enumerate(_unq_idxs):
+                _lookup_dict[_old_idx] = _new_idx
+            _columns = _X[:, _unq_idxs].to_numpy()
+            _new_idxs = [int(_lookup_dict[_old_idx]) for _old_idx in _poly_idxs]
+            _columns = _columns[:, _new_idxs]
+            del _lookup_dict
+        elif hasattr(_X, 'toarray'):
+            # both _is_constant() and _build_poly() need vectors
+            # extracted from ss to be full, not the stacked version
+            # (ss.indices & ss.data hstacked). With all the various
+            # applications that use _columns_getter, and all the various
+            # forms that could be needed at those endpoints, it is simplest
+            # just to standardize all to receive dense np, at the cost of
+            # slightly higher memory swell than may otherwise be necessary.
+            # Extract the columns from scipy sparse as dense ndarray.
+            _columns = _X[:, _poly_idxs].toarray()
+        else:
+            try:
+                _columns = np.array(_X[:, _poly_idxs])
+            except:
+                raise TypeError(
+                    f"invalid data container '{type(_X)}' that could not be "
+                    f"sliced by numpy-style indexing and converted to ndarray."
+                )
+
+        # pizza rewrite this
+        # need to replace junky pdNA, np.prod cant take them.
+        # this assignment must stay here. there was a nan recognition problem
+        # that wasnt happening in offline tests of entire data objects
+        # holding the gamut of nan-likes but was happening with similar data
+        # objects passing thru the SlimPoly machinery. Dont know the reason
+        # why. using nan_mask here and reassigning all nans identified here
+        # as np.nan resolved the issue. np.nan assignment excepts on dtype
+        # int array, so ask for forgiveness
+
         try:
-            _columns = np.array(_X[:, _col_idxs])
+            _columns[nan_mask(_columns)] = np.nan
         except:
-            raise TypeError(
-                f"invalid data container '{type(_X)}' that could not be "
-                f"sliced by numpy-style indexing and converted to ndarray."
-            )
+            pass
+
+        # now that the columns are extracted, multiply thru and stack to _poly
+        _poly = np.hstack((_poly, _columns.prod(axis=1).reshape((-1, 1))))
 
 
-    # this assignment must stay here. there was a nan recognition problem
-    # that wasnt happening in offline tests of entire data objects
-    # holding the gamut of nan-likes but was happening with similar data
-    # objects passing thru the SlimPoly machinery. Dont know the reason
-    # why, maybe because the columns get parted out, or because they get
-    # sent thru the joblib machinery? using nan_mask here and reassigning
-    # all nans identified here as np.nan resolved the issue.
-    # np.nan assignment excepts on dtype int array, so ask for forgiveness
-    try:
-        _columns[nan_mask(_columns)] = np.nan
-    except:
-        pass
+    assert _poly.shape == (_X.shape[0], len(_col_idxs)), \
+        f"{_poly.shape=}, ({_X.shape[0]=}, {len(_col_idxs)=})"
+
 
     # if pandas had funky nan-likes (or if X was np, ss, or pd, and
-    # dtype was passed as object), then the dtype of _columns is
+    # dtype was passed as object), then the dtype of _poly is
     # guaranteed to be object and ss cant take it. need to convert the
     # dtype to a numeric one. ultimately, for several reasons, the
     # executive decision was made to always build POLY as float64. if
     # there are nans in this, then it must be np.float64 anyway.
 
-    _columns = np.ascontiguousarray(_columns).astype(np.float64)
+    _poly = np.ascontiguousarray(_poly).astype(np.float64)
 
-    return _columns
+    return _poly
 
 
 

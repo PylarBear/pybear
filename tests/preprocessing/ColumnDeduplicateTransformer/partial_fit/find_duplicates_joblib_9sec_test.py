@@ -29,7 +29,7 @@ class TestJoblib:
     def test_it_works(self, _X_factory):
 
         # as of 29_05_24 _n_cols is 20 so use something bigger
-        _shape = (623, 238)
+        _shape = (623, 53)
 
         while True:
             _rand_idxs1 = sorted(np.random.randint(0, _shape[1], 5).tolist())
@@ -64,7 +64,7 @@ class TestJoblib:
              _rtol=1e-5,
              _atol=1e-8,
             _equal_nan=True,
-             _n_jobs=-1
+             _n_jobs=2
         )
 
         # returns a list of lists

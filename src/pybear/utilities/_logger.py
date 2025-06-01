@@ -31,7 +31,6 @@ def logger(orig_func: callable) -> callable:
     wrapper -
         wrapper: callable - wrapped original function
 
-
     """
 
 
@@ -41,6 +40,7 @@ def logger(orig_func: callable) -> callable:
         filename=f'{orig_func.__name__}.log',
         level=logging.INFO
     )
+
 
     @wraps(orig_func)
     def wrapper(*args, **kwargs):
@@ -53,11 +53,6 @@ def logger(orig_func: callable) -> callable:
 
 
     return wrapper
-
-
-
-
-
 
 
 

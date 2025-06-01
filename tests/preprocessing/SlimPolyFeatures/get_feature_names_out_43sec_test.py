@@ -109,7 +109,8 @@ class TestGetFeatureNamesOut:
 
 
     @pytest.mark.parametrize('_format, _columns_is_passed',
-        (('np', False), ('pd', True), ('pd', False), ('pl', True), ('pl', False)), scope='module'
+        (('np', False), ('pd', True), ('pd', False), ('pl', True),
+         ('pl', False)), scope='module'
     )
     @pytest.mark.parametrize('_dtype', ('flt', 'int'), scope='module')
     @pytest.mark.parametrize('_instance_state',

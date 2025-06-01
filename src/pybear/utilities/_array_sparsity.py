@@ -5,7 +5,9 @@
 # License: BSD 3 clause
 
 
+
 import numpy as np
+
 
 
 def array_sparsity(a) -> float:
@@ -18,7 +20,7 @@ def array_sparsity(a) -> float:
     -----------
     a:
         array-like - object for which to calculate sparsity. Must be
-            able to convert to a numpy.ndarray and must not be empty.
+        able to convert to a numpy.ndarray and must not be empty.
 
 
     Return
@@ -62,14 +64,6 @@ def array_sparsity(a) -> float:
 
 
     return float((a == 0).astype(np.int32).sum() / a.size * 100)
-
-
-
-
-
-
-
-
 
 
 

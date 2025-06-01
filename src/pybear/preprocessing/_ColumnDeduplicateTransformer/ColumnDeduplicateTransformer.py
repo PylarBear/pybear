@@ -239,16 +239,8 @@ class ColumnDeduplicateTransformer(
         result as applying the :param: `keep` instruction to the entire
         set of duplicate columns. This also causes at least one member
         of the columns not to be dropped to be removed.
-    rtol:
-        Real, default = 1e-5 - The relative difference tolerance for
-        equality. Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    atol:
-        Real, default = 1e-8 - The absolute difference tolerance for
-        equality. Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
     equal_nan:
-        bool, default = False - When comparing pairs of columns row by
+        bool, default=False - When comparing pairs of columns row by
         row:
         If :param: `equal_nan` is True, exclude from comparison any rows
         where one or both of the values is/are nan. If one value is nan,
@@ -262,8 +254,16 @@ class ColumnDeduplicateTransformer(
         consider the pair to be not equivalent, thus making the column
         pair not equal. This is in line with the normal numpy handling
         of nan values.
+    rtol:
+        Real, default=1e-5 - The relative difference tolerance for
+        equality. Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
+    atol:
+        Real, default=1e-8 - The absolute difference tolerance for
+        equality. Must be a non-boolean, non-negative, real number.
+        See numpy.allclose.
     n_jobs:
-        Union[int, None], default = -1 - The number of joblib Parallel
+        Union[int, None], default=-1 - The number of joblib Parallel
         jobs to use when comparing columns. The default is to use
         processes, but can be overridden externally using a joblib
         parallel_config context manager. The default number of jobs is
@@ -427,22 +427,22 @@ class ColumnDeduplicateTransformer(
     def __init__(
         self,
         *,
-        keep: Optional[Literal['first', 'last', 'random']] = 'first',
-        do_not_drop: Optional[Union[Sequence[str], Sequence[int], None]] = None,
-        conflict: Optional[Literal['raise', 'ignore']] = 'raise',
-        rtol: Optional[Real] = 1e-5,
-        atol: Optional[Real] = 1e-8,
-        equal_nan: Optional[bool] = False,
-        n_jobs: Optional[Union[int, None]] = None
+        keep: Optional[Literal['first', 'last', 'random']]='first',
+        do_not_drop: Optional[Union[Sequence[str], Sequence[int], None]]=None,
+        conflict: Optional[Literal['raise', 'ignore']]='raise',
+        equal_nan: Optional[bool]=False,
+        rtol: Optional[Real]=1e-5,
+        atol: Optional[Real]=1e-8,
+        n_jobs: Optional[Union[int, None]]=None
     ) -> None:
 
 
         self.keep = keep
         self.do_not_drop = do_not_drop
         self.conflict = conflict
+        self.equal_nan = equal_nan
         self.rtol = rtol
         self.atol = atol
-        self.equal_nan = equal_nan
         self.n_jobs = n_jobs
 
 
@@ -575,7 +575,7 @@ class ColumnDeduplicateTransformer(
             (n_samples, n_features) - Data to remove duplicate columns
             from.
         y:
-            Optional[Any], default = None - ignored. The target for the
+            Optional[Any], default=None - ignored. The target for the
             data.
 
 
@@ -723,7 +723,7 @@ class ColumnDeduplicateTransformer(
             (n_samples, n_features) - Data to remove duplicate columns
             from.
         y:
-            Optional[Any], default = None - ignored. The target for the
+            Optional[Any], default=None - ignored. The target for the
             data.
 
 
@@ -746,7 +746,7 @@ class ColumnDeduplicateTransformer(
     def inverse_transform(
         self,
         X:XContainer,
-        copy:Optional[Union[bool, None]] = None
+        copy:Optional[Union[bool, None]]=None
     ) -> XContainer:
 
         """
@@ -877,7 +877,7 @@ class ColumnDeduplicateTransformer(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[Union[bool, None]] = None
+        copy:Optional[Union[bool, None]]=None
     ) -> XContainer:
 
         """

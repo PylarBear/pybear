@@ -1181,18 +1181,1295 @@ class TestDeleteAxis0Works:
 
 # END TEST delete_axis_0 WORKS #########################################
 
+class TestCountThresholdFormat:
+
+    def test_ct_thresh_accuracy(self, _kwargs, NO_NAN_X, y):
+
+        # prove that threshold passed as int and same thresholds passed
+        # as list give identical output
+
+        _new_kwargs = deepcopy(_kwargs)
+
+        _MCT = MCT(**_new_kwargs)
+
+        # as int -- -- -- -- -- -- -- -- -- -- -- --
+        _MCT = MCT(**_new_kwargs)
+        INT_TRFM_X, INT_TRFM_Y = _MCT.fit_transform (NO_NAN_X, y)
+        # END as int -- -- -- -- -- -- -- -- -- -- --
+
+        # as list -- -- -- -- -- -- -- -- -- -- -- --
+        _new_kwargs['count_threshold'] = \
+            [_new_kwargs['count_threshold'] for _ in range(NO_NAN_X.shape[1])]
+        _MCT = MCT(**_new_kwargs)
+        LIST_TRFM_X, LIST_TRFM_Y = _MCT.fit_transform(NO_NAN_X, y)
+        # END as list -- -- -- -- -- -- -- -- -- -- --
+
+        assert np.array_equal(INT_TRFM_X, LIST_TRFM_X)
+        assert np.array_equal(INT_TRFM_Y, LIST_TRFM_Y)
+
 # END TEST PARAM ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** *
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
+# TEST BIN INT COLUMN WITH ALL ABOVE THRESHOLD NOT DELETED #############
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestBinIntAboveThreshNotDeleted:
+
+    def test_bin_int_above_thresh_not_deleted(self, _kwargs):
+
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['count_threshold'] = 2
+
+        TestCls = MCT(**_new_kwargs)
+
+        NEW_X = np.array(
+            [['a',0], ['b',0], ['a',1], ['b',1], ['c',0]], dtype=object
+        )
+        NEW_Y = np.array([0, 1, 0, 1, 1], dtype=np.uint8)
+
+        TestCls.fit(NEW_X, NEW_Y)
+
+        TRFM_X, TRFM_Y = TestCls.transform(NEW_X, NEW_Y)
+
+        assert TRFM_X.shape[1]==2, \
+            f"bin int column with all values above threshold was deleted"
+
+        assert TRFM_X.shape[0]==4, \
+            f"TRFM_X should have 4 rows but has {TRFM_X.shape[0]}"
+# END TEST BIN INT COLUMN WITH ALL ABOVE THRESHOLD NOT DELETED #########
+
+
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# TEST ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# TEST MISCELLANEOUS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+# TEST CORRECT DTYPES ARE RETRIEVED W/ OR W/O np.nan MIXED IN ##########
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestAssignedDtypesWithAndWithoutNansMixedIn:
+
+    def test_no_nan(self, _kwargs, DTYPE_KEY, NO_NAN_X, y):
+        # PASS NON-np.nan DATA AND COMPARE TO DTYPE_KEY
+        TestCls = MCT(**_kwargs)
+        TestCls.fit(NO_NAN_X, y)
+        assert np.array_equiv(TestCls.original_dtypes_, DTYPE_KEY)
+
+        del TestCls
+
+    def test_with_nan(self, _kwargs, DTYPE_KEY, X, y):
+        TestCls = MCT(**_kwargs)
+        TestCls.fit(X, y)
+        assert np.array_equiv(TestCls.original_dtypes_, DTYPE_KEY)
+
+        del TestCls
+
+# END TEST CORRECT DTYPES ARE RETRIEVED W/ OR W/O np.nan MIXED IN ######
+
+# TEST CONDITIONAL ACCESS TO RECURSION #################################
+# 1) access to partial_fit, fit or transform when max_recursions > 1 is blocked
+# 2) access fit & transform when max_recursions > 1 can only be through fit_transform
+# 3) access to partial_fit, fit or transform when max_recursions == 1 is not blocked
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestConditionalAccessToRecursion:
+
+    def test_conditional_access_to_recursion(self, X, y, _kwargs):
+
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['max_recursions'] = 3
+
+        TEST_X = X.copy()
+        TEST_Y = y.copy()
+
+        TestCls = MCT(**_new_kwargs)
+
+        # 1)
+        with pytest.raises(ValueError):
+            MCT(**_new_kwargs).partial_fit(TEST_X, TEST_Y)
+
+        with pytest.raises(ValueError):
+            MCT(**_new_kwargs).fit(TEST_X, TEST_Y)
+
+        with pytest.raises(ValueError):
+            MCT(**_new_kwargs).transform(TEST_X, TEST_Y)
+
+        # 2)
+        for _ in range(5):
+            TestCls.fit_transform(TEST_X, TEST_Y)
+
+        # 3)
+        _new_kwargs['max_recursions'] = 1
+        TestCls = MCT(**_new_kwargs)
+        for _name, cls_method in zip(
+                ['fit', 'partial_fit', 'transform'],
+                [TestCls.fit, TestCls.partial_fit, TestCls.transform]
+        ):
+            cls_method(TEST_X, TEST_Y)
+
+        del TEST_X, TEST_Y, TestCls, _name, cls_method, _
+
+# END TEST CONDITIONAL ACCESS TO RECURSION #############################
+
+# TEST ALL COLUMNS WILL BE DELETED #####################################
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestAllColumnsWillBeDeleted:
+
+    def test_all_columns_will_be_deleted(
+            self, _kwargs, _mct_rows, x_cols, x_rows
+    ):
+        # CREATE VERY SPARSE DATA
+        TEST_X = np.zeros((_mct_rows, x_cols), dtype=np.uint8)
+        TEST_Y = np.random.randint(0, 2, _mct_rows)
+
+        for col_idx in range(x_cols):
+            MASK = np.random.choice(range(x_rows), 2, replace=False), col_idx
+            TEST_X[MASK] = 1
+        del MASK
+
+        TestCls = MCT(**_kwargs)
+        TestCls.fit(TEST_X, TEST_Y)
+
+        with pytest.raises(ValueError):
+            TestCls.transform(TEST_X, TEST_Y)
+
+        del TEST_X, TEST_Y, col_idx, TestCls
+
+# TEST ALL COLUMNS WILL BE DELETED #####################################
+
+# TEST ALL ROWS WILL BE DELETED ########################################
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestAllRowsWillBeDeleted:
+
+    def test_all_rows_will_be_deleted(self, _kwargs, _mct_rows, x_cols):
+        # ALL FLOATS
+        TEST_X = np.random.uniform(0, 1, (_mct_rows, x_cols))
+        TEST_Y = np.random.randint(0, 2, _mct_rows)
+
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['ignore_float_columns'] = False
+        TestCls = MCT(**_new_kwargs)
+        TestCls.fit(TEST_X, TEST_Y)
+
+        with pytest.raises(ValueError):
+            TestCls.transform(TEST_X, TEST_Y)
+
+        del TEST_X, TEST_Y, TestCls
+
+# TEST ALL ROWS WILL BE DELETED ########################################
+
+# TEST reset() CORRECTLY RESETS ** * ** * ** * ** * ** * ** * ** * ** *
+class TestResetActuallyResets:
+
+    def test_reset_works(self, NO_NAN_X, y, _kwargs):
+        # ensure that internal state from previous (partial_)fits is
+        # correctly reset, especially that previous unq/cts dont stick
+        # around after a reset.
+
+        # output of fit/fit/transform must be the same as fit/transform
+        # if stuff from the first fit hangs around because the reset didnt
+        # do what its supposed to do, then second fit/transform will not
+        # equal the single fit transform.
+
+        _MCT = MCT(**_kwargs)
+        _MCT.fit(NO_NAN_X, y)
+        FIRST_TRFM_X, FIRST_TRFM_Y = _MCT.transform(NO_NAN_X, y)
+        first_og_dtypes = _MCT.original_dtypes_
+        first_total_cts_by_column = _MCT.total_counts_by_column_
+        first_instructions = _MCT.instructions_
+
+        _MCT.reset()
+        _MCT.fit(NO_NAN_X, y)
+        second_og_dtypes = _MCT.original_dtypes_
+        second_total_cts_by_column = _MCT.total_counts_by_column_
+        second_instructions = _MCT.instructions_
+        SECOND_TRFM_X, SECOND_TRFM_Y = _MCT.transform(NO_NAN_X, y)
+
+        assert np.array_equal(SECOND_TRFM_X, FIRST_TRFM_X), \
+            f"{FIRST_TRFM_X.shape=} \n{SECOND_TRFM_X.shape=}"
+        assert np.array_equal(SECOND_TRFM_Y, FIRST_TRFM_Y), \
+            f"{FIRST_TRFM_Y.shape=} \n{SECOND_TRFM_Y.shape=}"
+        assert np.array_equal(second_og_dtypes, first_og_dtypes)
+        assert second_total_cts_by_column == first_total_cts_by_column
+        for key in first_instructions:
+            assert key in second_instructions
+            assert np.array_equal(
+                second_instructions[key],
+                first_instructions[key]
+            )
+
+# END TEST reset() CORRECTLY RESETS ** * ** * ** * ** * ** * ** * ** *
+
+# END TEST MISCELLANEOUS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# fixtures for shape tests ** * ** * ** * ** * ** * ** * ** * ** * **
+
+@pytest.fixture(scope='module')
+def X_builder(x_rows: int, x_cols: int):
+
+    def foo(
+        X: np.ndarray,
+        new_format: Literal['numpy', 'pandas'],
+        COLUMNS: list[str],
+        diff_cols: str,
+        diff_rows: str
+    ):
+
+        if diff_cols == 'good':
+            NEW_X = X.copy()
+            NEW_X_HDR = COLUMNS.copy()
+            assert NEW_X.shape[0] == x_rows
+            assert NEW_X.shape[1] == x_cols
+        elif diff_cols == 'less_col':
+            NEW_X = X.copy()[:, :x_cols // 2]
+            NEW_X_HDR = COLUMNS.copy()[:x_cols // 2]
+            assert NEW_X.shape[0] == x_rows
+            assert NEW_X.shape[1] == x_cols // 2
+        elif diff_cols == 'more_col':
+            NEW_X = np.hstack((X.copy(), X.copy()))
+            __ = np.array([str(uuid.uuid4())[:4] for _ in range(x_cols)])
+            NEW_X_HDR = np.hstack((COLUMNS.copy(), __))
+            assert NEW_X.shape[0] == x_rows
+            assert NEW_X.shape[1] == 2 * x_cols
+        else:
+            raise Exception
+
+        if diff_rows == 'good':
+            # KEEP X & HDR FROM COLUMN SECTION
+            pass
+        elif diff_rows == 'less_row':
+            if len(NEW_X.shape) == 1:
+                NEW_X = NEW_X[:x_rows // 2]
+            elif len(NEW_X.shape) == 2:
+                NEW_X = NEW_X[:x_rows // 2, :]
+            else:
+                raise Exception
+            # KEEP HDR FROM COLUMN SECTION
+            assert NEW_X.shape[0] == x_rows // 2
+        elif diff_rows == 'more_row':
+            if len(NEW_X.shape) == 1:
+                NEW_X = np.hstack((NEW_X, NEW_X))
+            elif len(NEW_X.shape) == 2:
+                NEW_X = np.vstack((NEW_X, NEW_X))
+            else:
+                raise Exception
+            # KEEP HDR FROM COLUMN SECTION
+            assert NEW_X.shape[0] == 2 * x_rows
+        else:
+            raise Exception
+
+        if 'pandas' in new_format:
+            NEW_X = pd.DataFrame(
+                data=NEW_X,
+                columns=NEW_X_HDR,
+                dtype=object
+            )
+
+        return NEW_X
+
+    return foo
+
+# end X_builder ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
+# ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+@pytest.fixture(scope='module')
+def y_builder(y_rows: int, y_cols: int):
+
+    def foo(
+            y: np.ndarray,
+            new_format: str,
+            diff_rows: str
+    ) -> np.ndarray:
+
+        if new_format is None:
+            NEW_Y = None
+        else:
+            NEW_Y = y.copy()
+
+            if diff_rows == 'good':
+                pass
+            elif diff_rows == 'less_row':
+                if len(NEW_Y.shape) == 1:
+                    NEW_Y = NEW_Y[:y_rows // 2]
+                elif len(NEW_Y.shape) == 2:
+                    NEW_Y = NEW_Y[:y_rows // 2, :]
+                else:
+                    raise Exception(f"y_builder() NEW_Y.shape logic failed")
+                assert NEW_Y.shape[0] == y_rows // 2
+            elif diff_rows == 'more_row':
+                if len(NEW_Y.shape) == 1:
+                    NEW_Y = np.hstack((NEW_Y, NEW_Y))
+                elif len(NEW_Y.shape) == 2:
+                    NEW_Y = np.vstack((NEW_Y, NEW_Y))
+                else:
+                    raise Exception(f"y_builder() NEW_Y.shape logic failed")
+                assert NEW_Y.shape[0] == 2 * y_rows
+
+            if 'pandas' in new_format:
+                NEW_Y = pd.DataFrame(data=NEW_Y, columns=None, dtype=object)
+            if new_format == 'pandas_series':
+                NEW_Y = NEW_Y.squeeze()
+
+        return NEW_Y
+
+    return foo
+
+# END y_builder ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+# ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+# END fixtures for shape tests ** * ** * ** * ** * ** * ** * ** * ** *
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-class TestAccuracy:
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestPartialFit:
 
+    #     def partial_fit(
+    #         self,
+    #         X: XContainer,
+    #         y: Optional[YContainer]=None
+    #     ) -> Self:
+
+    # - only accepts ndarray, pd.DataFrame, and all ss
+    # - cannot be None
+    # - must be 2D
+    # - must have at least 1 column
+    # - must have at least 3 samples
+    # - allows nan
+    # - validates all instance attrs --- not tested here, see _validation
+    # - does not mutate X
+
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # TEST X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    @pytest.mark.parametrize('_junk_X',
+        (-1, 0, 1, 3.14, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(self, _junk_X, _kwargs):
+
+        # this is being caught by validate_data at the top of partial_fit
+        with pytest.raises(ValueError):
+            MCT(**_kwargs).partial_fit(_junk_X)
+
+
+    # TEST EXCEPTS ANYTIME X==None IS PASSED TO partial_fit()
+    def test_excepts_anytime_x_is_none(self, X, _kwargs):
+
+        TestCls = MCT(**_kwargs)
+
+        with pytest.raises(ValueError):
+            TestCls.partial_fit(None)
+
+        del TestCls
+
+    # END TEST EXCEPTS ANYTIME X==None IS PASSED TO partial_fit()
+
+
+    def test_rejects_no_samples(self, _kwargs, x_cols):
+
+        X = np.empty((0, x_cols), dtype=np.float64)
+
+        # this is caught by validate_data()
+        with pytest.raises(ValueError):
+            MCT(**_kwargs).partial_fit(X)
+
+    # VERIFY ACCEPTS X AS SINGLE COLUMN ##################################
+    def test_X_as_single_2D_column(self, X, y, _kwargs, COLUMNS):
+
+        TestCls = MCT(**_kwargs)
+
+        _y = y[:, 0].copy()
+
+        NEW_X = X[:, 0].copy().reshape((-1, 1))
+
+        # numpy
+        TestCls.fit(NEW_X.copy(), _y)
+
+        # pandas w header
+        TestCls.fit(
+            pd.DataFrame(data=NEW_X.copy(), columns=COLUMNS[:1]),
+            _y
+        )
+
+        # pandas w/o header
+        TestCls.fit(
+            pd.DataFrame(data=NEW_X.copy()),
+            _y
+        )
+    # END VERIFY ACCEPTS X AS SINGLE COLUMN ###################################
+
+    # VERIFY REJECTS X AS 1D COLUMN / SERIES ##################################
+    def test_rejects_X_as_1D_column(self, X, y, _kwargs, COLUMNS):
+        TestCls = MCT(**_kwargs)
+
+        _y = y[:, 0].copy()
+
+        NEW_X = X[:, 0].copy().ravel()
+
+        # numpy
+        with pytest.raises(ValueError):
+            TestCls.fit_transform(NEW_X.copy(), _y)
+
+        # pandas series
+        with pytest.raises(ValueError):
+            TestCls.fit_transform(pd.Series(data=NEW_X.copy()), _y)
+    # END VERIFY REJECTS X AS 1D COLUMN / SERIES ##############################
+
+    # TEST FOR EXCEPTS ON BAD X SHAPES ########################################
+    CONTAINERS = ['numpy', 'pandas']
+    NEW_COLUMNS = ['good', 'less_col', 'more_col']
+    NEW_ROWS = ['good', 'less_row', 'more_row']
+
+    @pytest.mark.parametrize('fst_fit_x_format', CONTAINERS)
+    @pytest.mark.parametrize('scd_fit_x_format', CONTAINERS)
+    @pytest.mark.parametrize('scd_fit_x_cols', NEW_COLUMNS)
+    @pytest.mark.parametrize('scd_fit_x_rows', NEW_ROWS)
+    def test_excepts_on_bad_x_shapes(
+        self, X, y, COLUMNS, _kwargs, X_builder, fst_fit_x_format,
+        scd_fit_x_format, scd_fit_x_cols, scd_fit_x_rows, x_rows, x_cols
+    ):
+
+        TestCls = MCT(**_kwargs)
+
+        # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        fst_fit_X = X_builder(
+            X.copy(),
+            new_format=fst_fit_x_format,
+            COLUMNS=COLUMNS,
+            diff_cols='good',
+            diff_rows='good'
+        )
+        # end first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+        # second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        scd_fit_X = X_builder(
+            X.copy(),
+            COLUMNS=COLUMNS,
+            new_format=scd_fit_x_format,
+            diff_cols=scd_fit_x_cols,
+            diff_rows=scd_fit_x_rows
+        )
+        # end second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
+
+        fst_fit_y = y.copy()[:, 0].ravel()
+        scd_fit_y = fst_fit_y.copy()
+
+        value_error = 0
+
+        # ValueError WHEN NUM X COLUMNS DO NOT MATCH
+        if scd_fit_X.shape[1] != fst_fit_X.shape[1]:
+            value_error += 1
+
+        if value_error:
+            with pytest.raises(ValueError):
+                TestCls.partial_fit(fst_fit_X, fst_fit_y)
+                TestCls.partial_fit(scd_fit_X, scd_fit_y)
+        elif not value_error:
+            TestCls.partial_fit(fst_fit_X, fst_fit_y)
+            TestCls.partial_fit(scd_fit_X, scd_fit_y)
+
+    del CONTAINERS, NEW_COLUMNS, NEW_ROWS
+    # END TEST FOR EXCEPTS ON BAD X SHAPES ####################################
+
+    # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
+    NAMES = ['GOOD_DF', 'BAD_DF', 'NO_HDR_DF']
+
+    @pytest.mark.parametrize('fst_fit_name', NAMES)
+    @pytest.mark.parametrize('scd_fit_name', NAMES)
+    def test_value_error_different_header(
+        self, X, _kwargs, COLUMNS, fst_fit_name, scd_fit_name
+    ):
+
+        GOOD_DF = pd.DataFrame(data=X, columns=np.char.lower(COLUMNS))
+        BAD_DF = pd.DataFrame(data=X, columns=np.char.upper(COLUMNS))
+        NO_HDR_DF = pd.DataFrame(data=X, columns=None)
+
+        if fst_fit_name == 'GOOD_DF':
+            fst_fit_X = GOOD_DF.copy()
+        elif fst_fit_name == 'BAD_DF':
+            fst_fit_X = BAD_DF.copy()
+        elif fst_fit_name == 'NO_HDR_DF':
+            fst_fit_X = NO_HDR_DF.copy()
+
+        if scd_fit_name == 'GOOD_DF':
+            scd_fit_X = GOOD_DF.copy()
+        elif scd_fit_name == 'BAD_DF':
+            scd_fit_X = BAD_DF.copy()
+        elif scd_fit_name == 'NO_HDR_DF':
+            scd_fit_X = NO_HDR_DF.copy()
+
+        scd_value_error = 0
+        scd_warn = 0
+
+        if scd_fit_name != fst_fit_name:
+            scd_value_error += 1
+            if 'NO_HDR_DF' in [fst_fit_name, scd_fit_name]:
+                scd_value_error -= 1
+                scd_warn += 1
+
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        TestCls = MCT(**_kwargs)
+        TestCls.partial_fit(fst_fit_X)
+        if scd_value_error:
+            with pytest.raises(ValueError):
+                TestCls.partial_fit(scd_fit_X)
+        elif scd_warn:
+            with pytest.warns():
+                TestCls.partial_fit(scd_fit_X)
+        else:
+            TestCls.partial_fit(scd_fit_X)
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+    del NAMES
+    # END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
+
+
+    @pytest.mark.parametrize('_format',
+         (
+             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+             'dask_array', 'dask_dataframe'
+         )
+    )
+    def test_X_container(self, NO_NAN_X, COLUMNS, _kwargs, _format, _mct_cols):
+
+        _X = NO_NAN_X[:, :3 * _mct_cols].copy().astype(np.float64)
+
+        if _format == 'np':
+            _X_wip = _X
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(data=_X, columns=COLUMNS[:3 * _mct_cols])
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(data=_X, schema=list(COLUMNS[:3 * _mct_cols]))
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_X)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_X)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
+        elif _format == 'dask_array':
+            _X_wip = da.from_array(_X)
+        elif _format == 'dask_dataframe':
+            _X_wip = ddf.from_array(_X, columns=COLUMNS[:3 * _mct_cols])
+        else:
+            raise Exception
+
+        try:
+            _X_wip_before_partial_fit = _X_wip.copy()
+        except:
+            _X_wip_before_partial_fit = _X_wip.clone()
+
+        if _format in ('dask_array', 'dask_dataframe'):
+            with pytest.raises(TypeError):
+                MCT(**_kwargs).partial_fit(_X_wip)
+            pytest.skip(reason=f'cant do anymore tests after except')
+        else:
+            MCT(**_kwargs).partial_fit(_X_wip)
+
+        # verify _X_wip does not mutate in partial_fit()
+        assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
+        assert _X_wip.shape == _X_wip_before_partial_fit.shape
+        if isinstance(_X_wip, np.ndarray):
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
+
+        if hasattr(_X_wip_before_partial_fit, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_partial_fit.toarray()
+            )
+        elif isinstance(_X_wip_before_partial_fit, (pd.core.frame.DataFrame, pl.DataFrame)):
+            assert _X_wip.equals(_X_wip_before_partial_fit)
+        else:
+            assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
+
+    # END TEST X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # dont need to test y in partial_fit, ignored.
+
+
+    # TEST CONDITIONAL ACCESS TO partial_fit() AND fit() ###################
+    # 1) partial_fit() should allow unlimited number of subsequent partial_fits()
+    # 2) one call to fit() should allow subsequent attempts to partial_fit()
+    # 3) one call to fit() should allow later attempts to fit() (2nd fit will reset)
+    # 4) calls to partial_fit() should allow later attempt to fit() (fit will reset)
+    # 5) fit_transform() should allow calls ad libido
+    def test_conditional_access_to_partial_fit_and_fit(self, X, y, _kwargs):
+
+        TestCls = MCT(**_kwargs)
+        TEST_X = X.copy()
+        TEST_Y = y.copy()
+
+        # 1)
+        for _ in range(5):
+            TestCls.partial_fit(TEST_X, TEST_Y)
+
+        del TestCls
+
+        # 2)
+        TestCls = MCT(**_kwargs)
+        TestCls.fit(TEST_X, TEST_Y)
+        TestCls.partial_fit(TEST_X, TEST_Y)
+
+        del TestCls
+
+        # 3)
+        TestCls = MCT(**_kwargs)
+        TestCls.fit(TEST_X, TEST_Y)
+        TestCls.fit(TEST_X, TEST_Y)
+
+        del TestCls
+
+        # 4) a call to fit() after a previous partial_fit() should be allowed
+        TestCls = MCT(**_kwargs)
+        TestCls.partial_fit(TEST_X, TEST_Y)
+        TestCls.fit(TEST_X, TEST_Y)
+
+        # 5) fit transform should allow calls ad libido
+        for _ in range(5):
+            TestCls.fit_transform(TEST_X, TEST_Y)
+
+        del TEST_X, TEST_Y, TestCls
+    # END TEST CONDITIONAL ACCESS TO partial_fit() AND fit() ###############
+
+    # TEST MANY PARTIAL FITS == ONE BIG FIT ********************************
+    def test_many_partial_fits_equal_one_big_fit(self, X, y, _kwargs, x_rows):
+
+        # TEST THAT ONE-SHOT partial_fit() / transform() ==
+        # ONE-SHOT fit() / transform() ** ** ** ** ** ** ** ** ** ** **
+        OneShotPartialFitTestCls = MCT(**_kwargs)
+        OneShotPartialFitTestCls.partial_fit(X, y)
+        ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_PARTIAL_FIT_TRFM_Y = \
+            OneShotPartialFitTestCls.transform(X, y)
+
+        OneShotFullFitTestCls = MCT(**_kwargs)
+        OneShotFullFitTestCls.partial_fit(X, y)
+        ONE_SHOT_FULL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_Y = \
+            OneShotFullFitTestCls.transform(X, y)
+
+        assert np.array_equiv(
+            ONE_SHOT_PARTIAL_FIT_TRFM_X.astype(str),
+            ONE_SHOT_FULL_FIT_TRFM_X.astype(str)
+        ), f"one shot partial fit trfm X != one shot full fit trfm X"
+
+        assert np.array_equiv(
+            ONE_SHOT_PARTIAL_FIT_TRFM_Y,
+            ONE_SHOT_FULL_FIT_TRFM_Y
+        ), f"one shot partial fit trfm Y != one shot full fit trfm Y"
+        # END TEST THAT ONE-SHOT partial_fit() / transform() ==
+        # ONE-SHOT fit() / transform() ** ** ** ** ** ** ** ** ** ** **
+
+        # TEST PARTIAL FIT COUNTS ARE DOUBLED WHEN FULL DATA IS partial_fit() 2X
+        SingleFitTestClass = MCT(**_kwargs)
+        SingleFitTestClass.fit(X, y)
+        CT1 = SingleFitTestClass._total_counts_by_column
+
+        DoublePartialFitTestClass = MCT(**_kwargs)
+        DoublePartialFitTestClass.partial_fit(X, y)
+        DoublePartialFitTestClass.partial_fit(X, y)
+        CT2 = DoublePartialFitTestClass._total_counts_by_column
+
+        # convert keys to strs to deal with nans
+        CT1 = {i: {str(k): v for k, v in _.items()} for i, _ in CT1.items()}
+        CT2 = {i: {str(k): v for k, v in _.items()} for i, _ in CT2.items()}
+        for _c_idx in CT1:
+            for _unq in CT1[_c_idx]:
+                assert CT2[_c_idx][_unq] == 2 * CT1[_c_idx][_unq]
+        del CT1, CT2
+        # END TEST PARTIAL FIT COUNTS ARE DOUBLED WHEN FULL DATA IS partial_fit() 2X
+
+        # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X/y
+        _chunks = 5
+        X_CHUNK_HOLDER = []
+        Y_CHUNK_HOLDER = []
+        for row_chunk in range(_chunks):
+            MASK1 = row_chunk * x_rows // _chunks
+            MASK2 = (row_chunk + 1) * x_rows // _chunks
+            X_CHUNK_HOLDER.append(X[MASK1:MASK2, :])
+            Y_CHUNK_HOLDER.append(y[MASK1:MASK2, :])
+        del MASK1, MASK2
+
+        assert np.array_equiv(
+            np.vstack(X_CHUNK_HOLDER).astype(str), X.astype(str)
+        ), \
+            f"agglomerated X chunks != original X"
+        assert np.array_equiv(np.vstack(Y_CHUNK_HOLDER), y), \
+            f"agglomerated Y chunks != original Y"
+
+        PartialFitPartialTrfmTestCls = MCT(**_kwargs)
+        PartialFitOneShotTrfmTestCls = MCT(**_kwargs)
+        OneShotFitTransformTestCls = MCT(**_kwargs)
+
+        # PIECEMEAL PARTIAL FIT
+        for X_CHUNK, Y_CHUNK in zip(X_CHUNK_HOLDER, Y_CHUNK_HOLDER):
+            PartialFitPartialTrfmTestCls.partial_fit(X_CHUNK, Y_CHUNK)
+            PartialFitOneShotTrfmTestCls.partial_fit(X_CHUNK, Y_CHUNK)
+
+        # PIECEMEAL TRANSFORM ******************************************
+        # THIS MUST BE IN ITS OWN LOOP, ALL FITS MUST BE DONE BEFORE
+        # DOING ANY TRFMS
+        PARTIAL_TRFM_X_HOLDER = []
+        PARTIAL_TRFM_Y_HOLDER = []
+        for X_CHUNK, Y_CHUNK in zip(X_CHUNK_HOLDER, Y_CHUNK_HOLDER):
+            PARTIAL_TRFM_X, PARTIAL_TRFM_Y = \
+                PartialFitPartialTrfmTestCls.transform(X_CHUNK, Y_CHUNK)
+            PARTIAL_TRFM_X_HOLDER.append(PARTIAL_TRFM_X)
+            PARTIAL_TRFM_Y_HOLDER.append(PARTIAL_TRFM_Y)
+
+        del PartialFitPartialTrfmTestCls, PARTIAL_TRFM_X, PARTIAL_TRFM_Y
+
+        # AGGLOMERATE PARTIAL TRFMS FROM PARTIAL FIT
+        FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM = \
+            np.vstack(PARTIAL_TRFM_X_HOLDER)
+        FULL_TRFM_Y_FROM_PARTIAL_FIT_PARTIAL_TRFM = \
+            np.vstack(PARTIAL_TRFM_Y_HOLDER)
+        # END PIECEMEAL TRANSFORM **************************************
+
+        # DO ONE-SHOT TRANSFORM OF X,y ON THE PARTIALLY FIT INSTANCE
+        _, __ = PartialFitOneShotTrfmTestCls.transform(X, y)
+        FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM = _
+        FULL_TRFM_Y_FROM_PARTIAL_FIT_ONESHOT_TRFM = __
+        del _, __
+
+        # ONE-SHOT FIT TRANSFORM
+        FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM, FULL_TRFM_Y_ONE_SHOT_FIT_TRANSFORM = \
+            OneShotFitTransformTestCls.fit_transform(X, y)
+
+        # ASSERT ALL AGGLOMERATED X AND Y TRFMS ARE EQUAL
+        assert np.array_equiv(
+            FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
+            FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str)
+        ), \
+            f"compiled trfm X from partial fit / partial trfm != one-shot fit/trfm X"
+
+        assert np.array_equiv(
+            FULL_TRFM_Y_ONE_SHOT_FIT_TRANSFORM,
+            FULL_TRFM_Y_FROM_PARTIAL_FIT_PARTIAL_TRFM
+        ), \
+            f"compiled trfm y from partial fit / partial trfm != one-shot fit/trfm y"
+
+        assert np.array_equiv(
+            FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
+            FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
+        ), f"trfm X from partial fits / one-shot trfm != one-shot fit/trfm X"
+
+        assert np.array_equiv(
+            FULL_TRFM_Y_ONE_SHOT_FIT_TRANSFORM,
+            FULL_TRFM_Y_FROM_PARTIAL_FIT_ONESHOT_TRFM
+        ), f"trfm y from partial fits / one-shot trfm != one-shot fit/trfm y"
+
+    # END TEST MANY PARTIAL FITS == ONE BIG FIT ****************************
+
+
+    # TEST LATER PARTIAL FITS ACCEPT NEW UNIQUES ***************************
+    def test_later_partial_fits_accept_new_uniques(
+        self, NO_NAN_X, y, _kwargs, _mct_cols
+    ):
+
+        X1 = NO_NAN_X[:, _mct_cols:(2 * _mct_cols)].copy()  # non-bin-int columns
+        X1 = X1.astype(np.float64).astype(np.int32)
+        y1 = y.copy()
+        # 10X THE VALUES IN THE COPY OF DATA TO INTRODUCE NEW UNIQUE VALUES
+        X2 = (10 * X1.astype(np.float64)).astype(np.int32)
+        y2 = y.copy()
+
+        STACKED_X = np.vstack((X1, X2)).astype(np.float64).astype(np.int32)
+        STACKED_Y = np.vstack((y1, y2)).astype(np.uint8)
+
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['count_threshold'] *= 3
+        _new_kwargs['ignore_non_binary_integer_columns'] = False
+
+        # 2 PARTIAL FITS - - -  - - - - - - - - - - - - - - - - - - - - -
+        PartialFitTestCls = MCT(**_new_kwargs)
+
+        PartialFitTestCls.partial_fit(X1, y1)
+        PartialFitTestCls.partial_fit(X2, y2)
+        PARTIAL_FIT_X, PARTIAL_FIT_Y = \
+            PartialFitTestCls.transform(STACKED_X, STACKED_Y)
+
+        assert not PARTIAL_FIT_X.shape[0] == 0, \
+            f'transform for 2 partial fits deleted all rows'
+
+        # VERIFY SOME ROWS WERE ACTUALLY DELETED
+        assert not np.array_equiv(PARTIAL_FIT_X, STACKED_X), \
+            (f'later partial fits accept new uniques --- '
+             f'transform did not delete any rows')
+        # END 2 PARTIAL FITS - - -  - - - - - - - - - - - - - - - - - - -
+
+        # 1 BIG FIT - - -  - - - - - - - - - - - - - - - - - - - - - - -
+        SingleFitTestCls = MCT(**_new_kwargs)
+        SingleFitTestCls.fit(STACKED_X, STACKED_Y)
+        SINGLE_FIT_X, SINGLE_FIT_Y = \
+            SingleFitTestCls.transform(STACKED_X, STACKED_Y)
+
+        assert not SINGLE_FIT_X.shape[0] == 0, \
+            f'transform for one big fit deleted all rows'
+        # END 1 BIG FIT - - -  - - - - - - - - - - - - - - - - - - - - -
+
+        # compare 2 partial fits to 1 big fit, should be equal
+        assert np.array_equiv(PARTIAL_FIT_X, SINGLE_FIT_X), \
+            (f"new uniques in partial fits -- partial fitted X does not "
+             f"equal single fitted X")
+        assert np.array_equiv(PARTIAL_FIT_Y, SINGLE_FIT_Y), \
+            (f"new uniques in partial fits -- partial fitted y does not "
+             f"equal single fitted y")
+    # END TEST LATER PARTIAL FITS ACCEPT NEW UNIQUES ***********************
+
+
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
+class TestTransform:
+
+    #     def transform(
+    #         self,
+    #         X: XContainer,
+    #         y: Optional[YContainer]=None,
+    #         copy: Optional[Union[bool, None]]=None
+    #     ) -> Union[tuple[XContainer, YContainer], XContainer]:
+
+    # - only accepts ndarray, pd.DataFrame, and all ss
+    # - cannot be None
+    # - must be 2D
+    # - num columns must equal num columns seen during fit
+    # - must have at least 3 samples
+    # - allows nan
+    # - output is C contiguous
+    # - validates all instance attrs -- this isnt tested here, see _validation
+    # - does not mutate X
+
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # TEST X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    @pytest.mark.parametrize('_junk_X',
+        (-1, 0, 1, 3.14, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_X(self, X, _junk_X, _kwargs):
+
+        _MCT = MCT(**_kwargs)
+        _MCT.fit(X)
+
+        # this is being caught by validate_data at the top of transform
+        with pytest.raises(ValueError):
+            _MCT.transform(_junk_X)
+
+
+    # TEST EXCEPTS ANYTIME X==None IS PASSED TO transform()
+    def test_excepts_anytime_x_is_none(self, X, _kwargs):
+
+        TestCls = MCT(**_kwargs)
+
+        TestCls.fit(X)
+        with pytest.raises(ValueError):
+            TestCls.transform(None)
+
+        del TestCls
+    # END TEST EXCEPTS ON X==None IS PASSED TO transform()
+
+    def test_rejects_no_samples(self, X, _kwargs, x_cols):
+
+        _MCT = MCT(**_kwargs).fit(X)
+
+        # this is caught by validate_data()
+        with pytest.raises(ValueError):
+            _MCT.transform(np.empty((0, x_cols), dtype=np.float64))
+
+
+    # VERIFY ACCEPTS X AS SINGLE COLUMN ##################################
+    def test_X_as_single_2D_column(self, X, y, _kwargs, COLUMNS):
+
+        TestCls = MCT(**_kwargs)
+
+        _y = y[:, 0].copy()
+
+        NEW_X = X[:, 0].copy().reshape((-1, 1))
+
+        TestCls.fit(NEW_X, _y)
+
+        # numpy
+        TestCls.transform(NEW_X.copy(), _y)
+
+        # pandas w header
+        TestCls.transform(
+            pd.DataFrame(data=NEW_X.copy(), columns=COLUMNS[:1]),
+            _y
+        )
+
+        # pandas w/o header
+        TestCls.transform(
+            pd.DataFrame(data=NEW_X.copy()),
+            _y
+        )
+    # END VERIFY ACCEPTS X AS SINGLE COLUMN ###################################
+
+    # VERIFY REJECTS X AS 1D COLUMN / SERIES ##################################
+    def test_rejects_X_as_1D_column(self, X, y, _kwargs, COLUMNS):
+        TestCls = MCT(**_kwargs)
+
+        _y = y[:, 0].copy()
+
+        NEW_X = X[:, 0].copy().ravel()
+
+        # numpy
+        with pytest.raises(ValueError):
+            TestCls.fit_transform(NEW_X.copy(), _y)
+
+        # pandas series
+        with pytest.raises(ValueError):
+            TestCls.fit_transform(pd.Series(data=NEW_X.copy()), _y)
+    # END VERIFY REJECTS X AS 1D COLUMN / SERIES ##############################
+
+    # TEST FOR EXCEPTS ON BAD X SHAPES ########################################
+    CONTAINERS = ['numpy', 'pandas']
+    NEW_COLUMNS = ['good', 'less_col', 'more_col']
+    NEW_ROWS = ['good', 'less_row', 'more_row']
+
+    @pytest.mark.parametrize('fst_fit_x_format', CONTAINERS)
+    @pytest.mark.parametrize('trfm_x_format', CONTAINERS)
+    @pytest.mark.parametrize('trfm_x_cols', NEW_COLUMNS)
+    @pytest.mark.parametrize('trfm_x_rows', NEW_ROWS)
+    def test_excepts_on_bad_x_shapes(
+        self, X, y, COLUMNS, _kwargs, X_builder, fst_fit_x_format,
+        trfm_x_format, trfm_x_cols, trfm_x_rows, x_rows, x_cols
+    ):
+
+        TestCls = MCT(**_kwargs)
+
+        # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        fst_fit_X = X_builder(
+            X.copy(),
+            new_format=fst_fit_x_format,
+            COLUMNS=COLUMNS,
+            diff_cols='good',
+            diff_rows='good'
+        )
+        # end first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+        # transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        trfm_X = X_builder(
+            X.copy(),
+            COLUMNS=COLUMNS,
+            new_format=trfm_x_format,
+            diff_cols=trfm_x_cols,
+            diff_rows=trfm_x_rows
+        )
+        # end transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+        fst_fit_y = y.copy()[:, 0].ravel()
+        trfm_y = fst_fit_y.copy()
+
+        value_error = 0
+
+        # ValueError WHEN ROWS OF y != X ROWS ONLY UNDER transform
+        if trfm_X is not None and trfm_y.shape[0] != trfm_X.shape[0]:
+            value_error += 1
+
+        # ValueError WHEN NUM X COLUMNS DO NOT MATCH
+        if trfm_X.shape[1] != fst_fit_X.shape[1]:
+            value_error += 1
+
+        if value_error:
+            with pytest.raises(ValueError):
+                TestCls.partial_fit(fst_fit_X, fst_fit_y)
+                TestCls.transform(trfm_X, trfm_y)
+        elif not value_error:
+            TestCls.partial_fit(fst_fit_X, fst_fit_y)
+            TestCls.transform(trfm_X, trfm_y)
+
+    del CONTAINERS, NEW_COLUMNS, NEW_ROWS
+    # END TEST FOR EXCEPTS ON BAD X SHAPES ####################################
+
+    # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
+    NAMES = ['GOOD_DF', 'BAD_DF', 'NO_HDR_DF']
+
+    @pytest.mark.parametrize('fst_fit_name', NAMES)
+    @pytest.mark.parametrize('trfm_name', NAMES)
+    def test_value_error_different_header(
+        self, X, _kwargs, COLUMNS, fst_fit_name, trfm_name
+    ):
+
+        GOOD_DF = pd.DataFrame(data=X, columns=np.char.lower(COLUMNS))
+        BAD_DF = pd.DataFrame(data=X, columns=np.char.upper(COLUMNS))
+        NO_HDR_DF = pd.DataFrame(data=X, columns=None)
+
+        if fst_fit_name == 'GOOD_DF':
+            fst_fit_X = GOOD_DF.copy()
+        elif fst_fit_name == 'BAD_DF':
+            fst_fit_X = BAD_DF.copy()
+        elif fst_fit_name == 'NO_HDR_DF':
+            fst_fit_X = NO_HDR_DF.copy()
+
+        if trfm_name == 'GOOD_DF':
+            trfm_X = GOOD_DF.copy()
+        elif trfm_name == 'BAD_DF':
+            trfm_X = BAD_DF.copy()
+        elif trfm_name == 'NO_HDR_DF':
+            trfm_X = NO_HDR_DF.copy()
+
+        trfm_value_error = 0
+        trfm_warn = 0
+
+        if trfm_name != fst_fit_name:
+            trfm_value_error += 1
+            if 'NO_HDR_DF' in [fst_fit_name, trfm_name]:
+                trfm_value_error -= 1
+                trfm_warn += 1
+
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        TestCls = MCT(**_kwargs)
+        TestCls.partial_fit(fst_fit_X)
+
+        if trfm_value_error:
+            with pytest.raises(ValueError):
+                TestCls.transform(trfm_X)
+        elif trfm_warn:
+            with pytest.warns():
+                TestCls.transform(trfm_X)
+        else:
+            TestCls.transform(trfm_X)
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+        # SHOULD NEVER EXCEPT FOR HEADER ISSUE
+        TestCls = MCT(**_kwargs)
+        TestCls.fit_transform(fst_fit_X)
+
+    del NAMES
+    # END TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
+
+
+    @pytest.mark.parametrize('_format',
+         (
+             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
+             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
+             'dask_array', 'dask_dataframe'
+         )
+    )
+    def test_X_container(self, NO_NAN_X, COLUMNS, _kwargs, _format, _mct_cols):
+
+        _X = NO_NAN_X[:, :3 * _mct_cols].copy().astype(np.float64)
+
+        if _format == 'np':
+            _X_wip = _X
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(data=_X, columns=COLUMNS[:3 * _mct_cols])
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(data=_X, schema=list(COLUMNS[:3 * _mct_cols]))
+        elif _format == 'csr_matrix':
+            _X_wip = ss._csr.csr_matrix(_X)
+        elif _format == 'csc_matrix':
+            _X_wip = ss._csc.csc_matrix(_X)
+        elif _format == 'coo_matrix':
+            _X_wip = ss._coo.coo_matrix(_X)
+        elif _format == 'dia_matrix':
+            _X_wip = ss._dia.dia_matrix(_X)
+        elif _format == 'lil_matrix':
+            _X_wip = ss._lil.lil_matrix(_X)
+        elif _format == 'dok_matrix':
+            _X_wip = ss._dok.dok_matrix(_X)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss._bsr.bsr_matrix(_X)
+        elif _format == 'csr_array':
+            _X_wip = ss._csr.csr_array(_X)
+        elif _format == 'csc_array':
+            _X_wip = ss._csc.csc_array(_X)
+        elif _format == 'coo_array':
+            _X_wip = ss._coo.coo_array(_X)
+        elif _format == 'dia_array':
+            _X_wip = ss._dia.dia_array(_X)
+        elif _format == 'lil_array':
+            _X_wip = ss._lil.lil_array(_X)
+        elif _format == 'dok_array':
+            _X_wip = ss._dok.dok_array(_X)
+        elif _format == 'bsr_array':
+            _X_wip = ss._bsr.bsr_array(_X)
+        elif _format == 'dask_array':
+            _X_wip = da.from_array(_X)
+        elif _format == 'dask_dataframe':
+            _X_wip = ddf.from_array(_X, columns=COLUMNS[:3 * _mct_cols])
+        else:
+            raise Exception
+
+        try:
+            _X_wip_before_transform = _X_wip.copy()
+        except:
+            _X_wip_before_transform = _X_wip.clone()
+
+        _MCT = MCT(**_kwargs)
+
+        _MCT.fit(_X)  # fit on numpy, not the converted data
+
+
+        if _format in ('dask_array', 'dask_dataframe'):
+            with pytest.raises(TypeError):
+                _MCT.transform(_X_wip)
+            pytest.skip(reason=f'cant do anymore tests after except')
+        else:
+            out = _MCT.transform(_X_wip)
+
+        assert isinstance(out, type(_X_wip))
+
+        # if output is numpy, order is C
+        if isinstance(out, np.ndarray):
+            assert out.flags['C_CONTIGUOUS'] is True
+
+        # verify _X_wip does not mutate in transform()
+        assert isinstance(_X_wip, type(_X_wip_before_transform))
+        assert _X_wip.shape == _X_wip_before_transform.shape
+
+        if hasattr(_X_wip_before_transform, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(),
+                _X_wip_before_transform.toarray()
+            )
+        elif isinstance(_X_wip_before_transform, (pd.core.frame.DataFrame, pl.DataFrame)):
+            assert _X_wip.equals(_X_wip_before_transform)
+        else:
+            assert np.array_equal(_X_wip_before_transform, _X_wip)
+
+
+    # TEST TRANSFORM CONDITIONALLY ACCEPT NEW UNIQUES *************************
+    def test_transform_conditionally_accepts_new_uniques(
+            self, NO_NAN_X, y, _kwargs, _mct_cols, x_rows
+    ):
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['count_threshold'] *= 2
+
+        # USE STR COLUMNS
+        X1 = NO_NAN_X[:, (3 * _mct_cols):(4 * _mct_cols)].copy()
+        y1 = y.copy()
+
+        # fit() & transform() ON X1 TO PROVE X1 PASSES transform()
+        TestCls = MCT(**_new_kwargs)
+        TestCls.fit(X1, y1)
+        OUT_X, OUT_Y = TestCls.transform(X1, y1)
+        assert OUT_X.shape[0] > 0
+        del TestCls, OUT_X, OUT_Y
+
+        # PEPPER ONE OF THE STR COLUMNS WITH A UNIQUE THAT WAS NOT SEEN DURING fit()
+        X2 = X1.copy()
+        new_unqs = list('1234567890')
+        MASK = np.random.choice(range(x_rows), len(new_unqs), replace=False)
+        # put str(number) into str column of alphas
+        X2[MASK, 0] = new_unqs
+        del new_unqs, MASK
+        TestCls = MCT(**_new_kwargs)
+        TestCls.fit(X1, y1)
+
+        # DEMONSTRATE NEW VALUES ARE ACCEPTED WHEN reject_unseen_values = False
+        TestCls.set_params(reject_unseen_values=False)
+        assert TestCls.reject_unseen_values is False
+        TestCls.transform(X2, y1)
+
+        # DEMONSTRATE NEW VALUES ARE REJECTED WHEN reject_unseen_values = True
+        TestCls.set_params(reject_unseen_values=True)
+        assert TestCls.reject_unseen_values is True
+        with pytest.raises(ValueError):
+            TestCls.transform(X2, y1)
+
+        del X1, y1, X2, TestCls
+    # END TEST TRANSFORM CONDITIONALLY ACCEPT NEW UNIQUES ******************
+
+    # END TEST X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # TEST y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+    # ALWAYS ACCEPTS y==None IS PASSED TO transform() ######################
+    def test_accepts_y_equals_none(self, _kwargs, X):
+        TestCls = MCT(**_kwargs)
+
+        TestCls.partial_fit(X, None)
+        TestCls.fit(X, None)
+        TestCls.transform(X, None)
+        TestCls.fit_transform(X, None)
+
+    # END ALWAYS ACCEPTS y==None IS PASSED TO transform() ###################
+
+    # TEST FOR EXCEPTS ON BAD y ROWS FOR DF, SERIES, ARRAY #################
+    CONTAINERS = ['numpy', 'pandas_dataframe', 'pandas_series']
+    ROWS = ['good', 'less_row', 'more_row']
+
+    @pytest.mark.parametrize('fst_fit_y_dtype', CONTAINERS)
+    @pytest.mark.parametrize('trfm_y_dtype', CONTAINERS)
+    @pytest.mark.parametrize('trfm_y_rows', ROWS)
+    def test_except_on_bad_y_rows(
+        self, X, y, _kwargs, y_builder, fst_fit_y_dtype, trfm_y_dtype,
+        trfm_y_rows, x_rows
+    ):
+        # only in transform. y is ignored in all of the 'fit's
+
+        TestCls = MCT(**_kwargs)
+
+        # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
+        fst_fit_Y = y_builder(
+            y.copy(),
+            new_format=fst_fit_y_dtype,
+            diff_rows='good'
+        )
+        # end first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+        # transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
+        trfm_Y = y_builder(
+            y.copy(),
+            new_format=trfm_y_dtype,
+            diff_rows=trfm_y_rows
+        )
+        # end transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+        value_error = 0
+        # True only if trfm_y rows != X rows
+        value_error += (trfm_Y.shape[0] != x_rows) if trfm_Y is not None else 0
+
+        TestCls.partial_fit(X, fst_fit_Y)
+
+        if value_error:
+            with pytest.raises(ValueError):
+                TestCls.transform(X, trfm_Y)
+        elif not value_error:
+            TestCls.transform(X, trfm_Y)
+
+    del CONTAINERS, ROWS
+
+    # END TEST y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # TEST ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     @pytest.mark.parametrize('count_threshold', [2, 3])
     @pytest.mark.parametrize('ignore_float_columns', [True, False])
@@ -1776,227 +3053,86 @@ class TestAccuracy:
         del TRFM_X_2, TRFM_Y_2
         del _ignore_columns, _handle_as_bool
 
-
-class TestCountThresholdFormat:
-
-    def test_ct_thresh_accuracy(self, _kwargs, NO_NAN_X, y):
-
-        # prove that threshold passed as int and same thresholds passed
-        # as list give identical output
-
-        _new_kwargs = deepcopy(_kwargs)
-
-        _MCT = MCT(**_new_kwargs)
-
-        # as int -- -- -- -- -- -- -- -- -- -- -- --
-        _MCT = MCT(**_new_kwargs)
-        INT_TRFM_X, INT_TRFM_Y = _MCT.fit_transform (NO_NAN_X, y)
-        # END as int -- -- -- -- -- -- -- -- -- -- --
-
-        # as list -- -- -- -- -- -- -- -- -- -- -- --
-        _new_kwargs['count_threshold'] = \
-            [_new_kwargs['count_threshold'] for _ in range(NO_NAN_X.shape[1])]
-        _MCT = MCT(**_new_kwargs)
-        LIST_TRFM_X, LIST_TRFM_Y = _MCT.fit_transform(NO_NAN_X, y)
-        # END as list -- -- -- -- -- -- -- -- -- -- --
-
-        assert np.array_equal(INT_TRFM_X, LIST_TRFM_X)
-        assert np.array_equal(INT_TRFM_Y, LIST_TRFM_Y)
+    # END TEST ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-# TEST MANY PARTIAL FITS == ONE BIG FIT ********************************
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestManyPartialFitsEqualOneBigFit:
+    # TEST OUTPUT TYPES ####################################################
+    X_INPUT_TYPE = ['numpy_array', 'pandas_dataframe', 'scipy_csr']
+    Y_INPUT_TYPE = ['numpy_array', 'pandas_dataframe', 'pandas_series']
 
-    def test_many_partial_fits_equal_one_big_fit(
-            self, X, y, _kwargs, x_rows
+    @pytest.mark.parametrize('x_input_type', X_INPUT_TYPE)
+    @pytest.mark.parametrize('y_input_type', Y_INPUT_TYPE)
+    @pytest.mark.parametrize('output_type', [None, 'default', 'pandas', 'polars'])
+    def test_output_types(
+            self, X, y, _kwargs, x_input_type, y_input_type, output_type
     ):
 
-        # TEST THAT ONE-SHOT partial_fit() / transform() ==
-        # ONE-SHOT fit() / transform() ** ** ** ** ** ** ** ** ** ** **
-        OneShotPartialFitTestCls = MCT(**_kwargs)
-        OneShotPartialFitTestCls.partial_fit(X, y)
-        ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_PARTIAL_FIT_TRFM_Y = \
-            OneShotPartialFitTestCls.transform(X, y)
+        NEW_X = X[:, :1].copy()
+        NEW_COLUMNS = X[:1].copy()
+        NEW_Y = y[:, 0].copy()
 
-        OneShotFullFitTestCls = MCT(**_kwargs)
-        OneShotFullFitTestCls.partial_fit(X, y)
-        ONE_SHOT_FULL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_Y = \
-            OneShotFullFitTestCls.transform(X, y)
+        if x_input_type == 'numpy_array':
+            TEST_X = NEW_X.copy()
+        elif x_input_type == 'pandas_dataframe':
+            TEST_X = pd.DataFrame(data=NEW_X, columns=NEW_COLUMNS)
+        elif x_input_type == 'scipy_csr':
+            TEST_X = ss.csr_array(NEW_X.astype(np.float64))
+        else:
+            raise Exception
 
-        assert np.array_equiv(
-            ONE_SHOT_PARTIAL_FIT_TRFM_X.astype(str),
-            ONE_SHOT_FULL_FIT_TRFM_X.astype(str)
-        ), f"one shot partial fit trfm X != one shot full fit trfm X"
+        if y_input_type == 'numpy_array':
+            TEST_Y = NEW_Y.copy()
+        elif 'pandas' in y_input_type:
+            TEST_Y = pd.DataFrame(data=NEW_Y, columns=['y'])
+            if y_input_type == 'pandas_series':
+                TEST_Y = TEST_Y.squeeze()
+        else:
+            raise Exception
 
-        assert np.array_equiv(
-            ONE_SHOT_PARTIAL_FIT_TRFM_Y,
-            ONE_SHOT_FULL_FIT_TRFM_Y
-        ), f"one shot partial fit trfm Y != one shot full fit trfm Y"
-        # END TEST THAT ONE-SHOT partial_fit() / transform() ==
-        # ONE-SHOT fit() / transform() ** ** ** ** ** ** ** ** ** ** **
-
-        # TEST PARTIAL FIT COUNTS ARE DOUBLED WHEN FULL DATA IS partial_fit() 2X
-        SingleFitTestClass = MCT(**_kwargs)
-        SingleFitTestClass.fit(X, y)
-        CT1 = SingleFitTestClass._total_counts_by_column
-
-        DoublePartialFitTestClass = MCT(**_kwargs)
-        DoublePartialFitTestClass.partial_fit(X, y)
-        DoublePartialFitTestClass.partial_fit(X, y)
-        CT2 = DoublePartialFitTestClass._total_counts_by_column
-
-        # convert keys to strs to deal with nans
-        CT1 = {i: {str(k): v for k, v in _.items()} for i, _ in CT1.items()}
-        CT2 = {i: {str(k): v for k, v in _.items()} for i, _ in CT2.items()}
-        for _c_idx in CT1:
-            for _unq in CT1[_c_idx]:
-                assert CT2[_c_idx][_unq] == 2 * CT1[_c_idx][_unq]
-        del CT1, CT2
-        # END TEST PARTIAL FIT COUNTS ARE DOUBLED WHEN FULL DATA IS partial_fit() 2X
-
-        # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X/y
-        _chunks = 5
-        X_CHUNK_HOLDER = []
-        Y_CHUNK_HOLDER = []
-        for row_chunk in range(_chunks):
-            MASK1 = row_chunk * x_rows // _chunks
-            MASK2 = (row_chunk + 1) * x_rows // _chunks
-            X_CHUNK_HOLDER.append(X[MASK1:MASK2, :])
-            Y_CHUNK_HOLDER.append(y[MASK1:MASK2, :])
-        del MASK1, MASK2
-
-        assert np.array_equiv(
-            np.vstack(X_CHUNK_HOLDER).astype(str), X.astype(str)
-        ), \
-            f"agglomerated X chunks != original X"
-        assert np.array_equiv(np.vstack(Y_CHUNK_HOLDER), y), \
-            f"agglomerated Y chunks != original Y"
-
-        PartialFitPartialTrfmTestCls = MCT(**_kwargs)
-        PartialFitOneShotTrfmTestCls = MCT(**_kwargs)
-        OneShotFitTransformTestCls = MCT(**_kwargs)
-
-        # PIECEMEAL PARTIAL FIT
-        for X_CHUNK, Y_CHUNK in zip(X_CHUNK_HOLDER, Y_CHUNK_HOLDER):
-            PartialFitPartialTrfmTestCls.partial_fit(X_CHUNK, Y_CHUNK)
-            PartialFitOneShotTrfmTestCls.partial_fit(X_CHUNK, Y_CHUNK)
-
-        # PIECEMEAL TRANSFORM ******************************************
-        # THIS MUST BE IN ITS OWN LOOP, ALL FITS MUST BE DONE BEFORE
-        # DOING ANY TRFMS
-        PARTIAL_TRFM_X_HOLDER = []
-        PARTIAL_TRFM_Y_HOLDER = []
-        for X_CHUNK, Y_CHUNK in zip(X_CHUNK_HOLDER, Y_CHUNK_HOLDER):
-            PARTIAL_TRFM_X, PARTIAL_TRFM_Y = \
-                PartialFitPartialTrfmTestCls.transform(X_CHUNK, Y_CHUNK)
-            PARTIAL_TRFM_X_HOLDER.append(PARTIAL_TRFM_X)
-            PARTIAL_TRFM_Y_HOLDER.append(PARTIAL_TRFM_Y)
-
-        del PartialFitPartialTrfmTestCls, PARTIAL_TRFM_X, PARTIAL_TRFM_Y
-
-        # AGGLOMERATE PARTIAL TRFMS FROM PARTIAL FIT
-        FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM = \
-            np.vstack(PARTIAL_TRFM_X_HOLDER)
-        FULL_TRFM_Y_FROM_PARTIAL_FIT_PARTIAL_TRFM = \
-            np.vstack(PARTIAL_TRFM_Y_HOLDER)
-        # END PIECEMEAL TRANSFORM **************************************
-
-        # DO ONE-SHOT TRANSFORM OF X,y ON THE PARTIALLY FIT INSTANCE
-        _, __ = PartialFitOneShotTrfmTestCls.transform(X, y)
-        FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM = _
-        FULL_TRFM_Y_FROM_PARTIAL_FIT_ONESHOT_TRFM = __
-        del _, __
-
-        # ONE-SHOT FIT TRANSFORM
-        FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM, FULL_TRFM_Y_ONE_SHOT_FIT_TRANSFORM = \
-            OneShotFitTransformTestCls.fit_transform(X, y)
-
-        # ASSERT ALL AGGLOMERATED X AND Y TRFMS ARE EQUAL
-        assert np.array_equiv(
-            FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
-            FULL_TRFM_X_FROM_PARTIAL_FIT_PARTIAL_TRFM.astype(str)
-        ), \
-            f"compiled trfm X from partial fit / partial trfm != one-shot fit/trfm X"
-
-        assert np.array_equiv(
-            FULL_TRFM_Y_ONE_SHOT_FIT_TRANSFORM,
-            FULL_TRFM_Y_FROM_PARTIAL_FIT_PARTIAL_TRFM
-        ), \
-            f"compiled trfm y from partial fit / partial trfm != one-shot fit/trfm y"
-
-        assert np.array_equiv(
-            FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM.astype(str),
-            FULL_TRFM_X_FROM_PARTIAL_FIT_ONESHOT_TRFM.astype(str)
-        ), f"trfm X from partial fits / one-shot trfm != one-shot fit/trfm X"
-
-        assert np.array_equiv(
-            FULL_TRFM_Y_ONE_SHOT_FIT_TRANSFORM,
-            FULL_TRFM_Y_FROM_PARTIAL_FIT_ONESHOT_TRFM
-        ), f"trfm y from partial fits / one-shot trfm != one-shot fit/trfm y"
-# END TEST MANY PARTIAL FITS == ONE BIG FIT ****************************
-
-
-# TEST BIN INT COLUMN WITH ALL ABOVE THRESHOLD NOT DELETED #############
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestBinIntAboveThreshNotDeleted:
-
-    def test_bin_int_above_thresh_not_deleted(self, _kwargs):
-
-        _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['count_threshold'] = 2
-
-        TestCls = MCT(**_new_kwargs)
-
-        NEW_X = np.array(
-            [['a',0], ['b',0], ['a',1], ['b',1], ['c',0]], dtype=object
-        )
-        NEW_Y = np.array([0, 1, 0, 1, 1], dtype=np.uint8)
-
-        TestCls.fit(NEW_X, NEW_Y)
-
-        TRFM_X, TRFM_Y = TestCls.transform(NEW_X, NEW_Y)
-
-        assert TRFM_X.shape[1]==2, \
-            f"bin int column with all values above threshold was deleted"
-
-        assert TRFM_X.shape[0]==4, \
-            f"TRFM_X should have 4 rows but has {TRFM_X.shape[0]}"
-# END TEST BIN INT COLUMN WITH ALL ABOVE THRESHOLD NOT DELETED #########
-
-# END TEST ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# TEST MISCELLANEOUS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-# TEST CORRECT DTYPES ARE RETRIEVED W/ OR W/O np.nan MIXED IN ##########
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAssignedDtypesWithAndWithoutNansMixedIn:
-
-    def test_no_nan(self, _kwargs, DTYPE_KEY, NO_NAN_X, y):
-        # PASS NON-np.nan DATA AND COMPARE TO DTYPE_KEY
         TestCls = MCT(**_kwargs)
-        TestCls.fit(NO_NAN_X, y)
-        assert np.array_equiv(TestCls.original_dtypes_, DTYPE_KEY)
+        TestCls.set_output(transform=output_type)
+        TestCls.fit(TEST_X, TEST_Y)
+        TRFM_X, TRFM_Y = TestCls.transform(TEST_X, TEST_Y)
 
-        del TestCls
+        # y output container is never changed
+        if output_type is None:
+            assert type(TRFM_X) == type(TEST_X), \
+                (f"output_type is None, X output type ({type(TRFM_X)}) != "
+                 f"X input type ({type(TEST_X)})")
+            assert type(TRFM_Y) == type(TEST_Y), \
+                (f"output_type is None, Y output type ({type(TRFM_Y)}) != "
+                 f"Y input type ({type(TEST_Y)})")
+        elif output_type == 'default':
+            assert isinstance(TRFM_X, np.ndarray), \
+                f"output_type is default, TRFM_X is {type(TRFM_X)}"
+            assert type(TRFM_Y) == type(TEST_Y), \
+                (f"output_type is default, Y output type ({type(TRFM_Y)}) != "
+                 f"Y input type ({type(TEST_Y)})")
+        elif output_type == 'pandas':
+            assert isinstance(TRFM_X, pd.core.frame.DataFrame), \
+                f"output_type is pandas dataframe, TRFM_X is {type(TRFM_X)}"
+            assert type(TRFM_Y) == type(TEST_Y), \
+                (f"output_type is pandas, Y output type ({type(TRFM_Y)}) != "
+                 f"Y input type ({type(TEST_Y)})")
+        elif output_type == 'polars':
+            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame), \
+                f"output_type is polars, TRFM_X is {type(TRFM_X)}"
+            assert type(TRFM_Y) == type(TEST_Y), \
+                (f"output_type is polars, Y output type ({type(TRFM_Y)}) != "
+                 f"Y input type ({type(TEST_Y)})")
+        else:
+            raise Exception
 
-    def test_with_nan(self, _kwargs, DTYPE_KEY, X, y):
-        TestCls = MCT(**_kwargs)
-        TestCls.fit(X, y)
-        assert np.array_equiv(TestCls.original_dtypes_, DTYPE_KEY)
+    # END TEST OUTPUT TYPES ################################################
 
-        del TestCls
 
-# END TEST CORRECT DTYPES ARE RETRIEVED W/ OR W/O np.nan MIXED IN ######
-
-# TEST OUTPUT TYPES ####################################################
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestOutputTypes:
+class TestFitTransform:
 
+
+    # TEST OUTPUT TYPES ####################################################
     X_INPUT_TYPE = ['numpy_array', 'pandas_dataframe', 'scipy_csr']
     Y_INPUT_TYPE = ['numpy_array', 'pandas_dataframe', 'pandas_series']
 
@@ -2063,1087 +3199,7 @@ class TestOutputTypes:
         else:
             raise Exception
 
-# END TEST OUTPUT TYPES ################################################
-
-# TEST CONDITIONAL ACCESS TO RECURSION #################################
-# 1) access to partial_fit, fit or transform when max_recursions > 1 is blocked
-# 2) access fit & transform when max_recursions > 1 can only be through fit_transform
-# 3) access to partial_fit, fit or transform when max_recursions == 1 is not blocked
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestConditionalAccessToRecursion:
-
-    def test_conditional_access_to_recursion(self, X, y, _kwargs):
-
-        _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['max_recursions'] = 3
-
-        TEST_X = X.copy()
-        TEST_Y = y.copy()
-
-        TestCls = MCT(**_new_kwargs)
-
-        # 1)
-        with pytest.raises(ValueError):
-            MCT(**_new_kwargs).partial_fit(TEST_X, TEST_Y)
-
-        with pytest.raises(ValueError):
-            MCT(**_new_kwargs).fit(TEST_X, TEST_Y)
-
-        with pytest.raises(ValueError):
-            MCT(**_new_kwargs).transform(TEST_X, TEST_Y)
-
-        # 2)
-        for _ in range(5):
-            TestCls.fit_transform(TEST_X, TEST_Y)
-
-        # 3)
-        _new_kwargs['max_recursions'] = 1
-        TestCls = MCT(**_new_kwargs)
-        for _name, cls_method in zip(
-                ['fit', 'partial_fit', 'transform'],
-                [TestCls.fit, TestCls.partial_fit, TestCls.transform]
-        ):
-            cls_method(TEST_X, TEST_Y)
-
-        del TEST_X, TEST_Y, TestCls, _name, cls_method, _
-
-# END TEST CONDITIONAL ACCESS TO RECURSION #############################
-
-# TEST ALL COLUMNS WILL BE DELETED #####################################
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAllColumnsWillBeDeleted:
-
-    def test_all_columns_will_be_deleted(
-            self, _kwargs, _mct_rows, x_cols, x_rows
-    ):
-        # CREATE VERY SPARSE DATA
-        TEST_X = np.zeros((_mct_rows, x_cols), dtype=np.uint8)
-        TEST_Y = np.random.randint(0, 2, _mct_rows)
-
-        for col_idx in range(x_cols):
-            MASK = np.random.choice(range(x_rows), 2, replace=False), col_idx
-            TEST_X[MASK] = 1
-        del MASK
-
-        TestCls = MCT(**_kwargs)
-        TestCls.fit(TEST_X, TEST_Y)
-
-        with pytest.raises(ValueError):
-            TestCls.transform(TEST_X, TEST_Y)
-
-        del TEST_X, TEST_Y, col_idx, TestCls
-
-# TEST ALL COLUMNS WILL BE DELETED #####################################
-
-# TEST ALL ROWS WILL BE DELETED ########################################
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestAllRowsWillBeDeleted:
-
-    def test_all_rows_will_be_deleted(self, _kwargs, _mct_rows, x_cols):
-        # ALL FLOATS
-        TEST_X = np.random.uniform(0, 1, (_mct_rows, x_cols))
-        TEST_Y = np.random.randint(0, 2, _mct_rows)
-
-        _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['ignore_float_columns'] = False
-        TestCls = MCT(**_new_kwargs)
-        TestCls.fit(TEST_X, TEST_Y)
-
-        with pytest.raises(ValueError):
-            TestCls.transform(TEST_X, TEST_Y)
-
-        del TEST_X, TEST_Y, TestCls
-
-# TEST ALL ROWS WILL BE DELETED ########################################
-
-# TEST reset() CORRECTLY RESETS ** * ** * ** * ** * ** * ** * ** * ** *
-class TestResetActuallyResets:
-
-    def test_reset_works(self, NO_NAN_X, y, _kwargs):
-        # ensure that internal state from previous (partial_)fits is
-        # correctly reset, especially that previous unq/cts dont stick
-        # around after a reset.
-
-        # output of fit/fit/transform must be the same as fit/transform
-        # if stuff from the first fit hangs around because the reset didnt
-        # do what its supposed to do, then second fit/transform will not
-        # equal the single fit transform.
-
-        _MCT = MCT(**_kwargs)
-        _MCT.fit(NO_NAN_X, y)
-        FIRST_TRFM_X, FIRST_TRFM_Y = _MCT.transform(NO_NAN_X, y)
-        first_og_dtypes = _MCT.original_dtypes_
-        first_total_cts_by_column = _MCT.total_counts_by_column_
-        first_instructions = _MCT.instructions_
-
-        _MCT.reset()
-        _MCT.fit(NO_NAN_X, y)
-        second_og_dtypes = _MCT.original_dtypes_
-        second_total_cts_by_column = _MCT.total_counts_by_column_
-        second_instructions = _MCT.instructions_
-        SECOND_TRFM_X, SECOND_TRFM_Y = _MCT.transform(NO_NAN_X, y)
-
-        assert np.array_equal(SECOND_TRFM_X, FIRST_TRFM_X), \
-            f"{FIRST_TRFM_X.shape=} \n{SECOND_TRFM_X.shape=}"
-        assert np.array_equal(SECOND_TRFM_Y, FIRST_TRFM_Y), \
-            f"{FIRST_TRFM_Y.shape=} \n{SECOND_TRFM_Y.shape=}"
-        assert np.array_equal(second_og_dtypes, first_og_dtypes)
-        assert second_total_cts_by_column == first_total_cts_by_column
-        for key in first_instructions:
-            assert key in second_instructions
-            assert np.array_equal(
-                second_instructions[key],
-                first_instructions[key]
-            )
-
-# END TEST reset() CORRECTLY RESETS ** * ** * ** * ** * ** * ** * ** *
-
-# END TEST MISCELLANEOUS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# fixtures for shape tests ** * ** * ** * ** * ** * ** * ** * ** * **
-
-@pytest.fixture(scope='module')
-def X_builder(x_rows: int, x_cols: int):
-
-    def foo(
-            X: np.ndarray,
-            new_format: Literal['numpy', 'pandas'],
-            COLUMNS: list[str],
-            diff_cols: str,
-            diff_rows: str
-    ):
-
-        if diff_cols == 'good':
-            NEW_X = X.copy()
-            NEW_X_HDR = COLUMNS.copy()
-            assert NEW_X.shape[0] == x_rows
-            assert NEW_X.shape[1] == x_cols
-        elif diff_cols == 'less_col':
-            NEW_X = X.copy()[:, :x_cols // 2]
-            NEW_X_HDR = COLUMNS.copy()[:x_cols // 2]
-            assert NEW_X.shape[0] == x_rows
-            assert NEW_X.shape[1] == x_cols // 2
-        elif diff_cols == 'more_col':
-            NEW_X = np.hstack((X.copy(), X.copy()))
-            __ = np.array([str(uuid.uuid4())[:4] for _ in range(x_cols)])
-            NEW_X_HDR = np.hstack((COLUMNS.copy(), __))
-            assert NEW_X.shape[0] == x_rows
-            assert NEW_X.shape[1] == 2 * x_cols
-        else:
-            raise Exception
-
-        if diff_rows == 'good':
-            # KEEP X & HDR FROM COLUMN SECTION
-            pass
-        elif diff_rows == 'less_row':
-            if len(NEW_X.shape) == 1:
-                NEW_X = NEW_X[:x_rows // 2]
-            elif len(NEW_X.shape) == 2:
-                NEW_X = NEW_X[:x_rows // 2, :]
-            else:
-                raise Exception
-            # KEEP HDR FROM COLUMN SECTION
-            assert NEW_X.shape[0] == x_rows // 2
-        elif diff_rows == 'more_row':
-            if len(NEW_X.shape) == 1:
-                NEW_X = np.hstack((NEW_X, NEW_X))
-            elif len(NEW_X.shape) == 2:
-                NEW_X = np.vstack((NEW_X, NEW_X))
-            else:
-                raise Exception
-            # KEEP HDR FROM COLUMN SECTION
-            assert NEW_X.shape[0] == 2 * x_rows
-        else:
-            raise Exception
-
-        if 'pandas' in new_format:
-            NEW_X = pd.DataFrame(
-                data=NEW_X,
-                columns=NEW_X_HDR,
-                dtype=object
-            )
-
-        return NEW_X
-
-    return foo
-
-# end X_builder ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
-# ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-@pytest.fixture(scope='module')
-def y_builder(y_rows: int, y_cols: int):
-
-    def foo(
-            y: np.ndarray,
-            new_format: str,
-            diff_rows: str
-    ) -> np.ndarray:
-
-        if new_format is None:
-            NEW_Y = None
-        else:
-            NEW_Y = y.copy()
-
-            if diff_rows == 'good':
-                pass
-            elif diff_rows == 'less_row':
-                if len(NEW_Y.shape) == 1:
-                    NEW_Y = NEW_Y[:y_rows // 2]
-                elif len(NEW_Y.shape) == 2:
-                    NEW_Y = NEW_Y[:y_rows // 2, :]
-                else:
-                    raise Exception(f"y_builder() NEW_Y.shape logic failed")
-                assert NEW_Y.shape[0] == y_rows // 2
-            elif diff_rows == 'more_row':
-                if len(NEW_Y.shape) == 1:
-                    NEW_Y = np.hstack((NEW_Y, NEW_Y))
-                elif len(NEW_Y.shape) == 2:
-                    NEW_Y = np.vstack((NEW_Y, NEW_Y))
-                else:
-                    raise Exception(f"y_builder() NEW_Y.shape logic failed")
-                assert NEW_Y.shape[0] == 2 * y_rows
-
-            if 'pandas' in new_format:
-                NEW_Y = pd.DataFrame(data=NEW_Y, columns=None, dtype=object)
-            if new_format == 'pandas_series':
-                NEW_Y = NEW_Y.squeeze()
-
-        return NEW_Y
-
-    return foo
-
-# END y_builder ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-# ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-# END fixtures for shape tests ** * ** * ** * ** * ** * ** * ** * ** *
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestPartialFit:
-
-    #     def partial_fit(
-    #         self,
-    #         X: XContainer,
-    #         y: Optional[YContainer]=None
-    #     ) -> Self:
-
-    # - only accepts ndarray, pd.DataFrame, and all ss
-    # - cannot be None
-    # - must be 2D
-    # - must have at least 1 column
-    # - must have at least 3 samples
-    # - allows nan
-    # - validates all instance attrs --- not tested here, see _validation
-    # - does not mutate X
-
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # TEST X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    @pytest.mark.parametrize('_junk_X',
-        (-1, 0, 1, 3.14, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_X(self, _junk_X, _kwargs):
-
-        # this is being caught by validate_data at the top of partial_fit
-        with pytest.raises(ValueError):
-            MCT(**_kwargs).partial_fit(_junk_X)
-
-
-    # TEST EXCEPTS ANYTIME X==None IS PASSED TO partial_fit()
-    def test_excepts_anytime_x_is_none(self, X, _kwargs):
-
-        TestCls = MCT(**_kwargs)
-
-        with pytest.raises(ValueError):
-            TestCls.partial_fit(None)
-
-        del TestCls
-
-    # END TEST EXCEPTS ANYTIME X==None IS PASSED TO partial_fit()
-
-
-    def test_rejects_no_samples(self, _kwargs, x_cols):
-
-        X = np.empty((0, x_cols), dtype=np.float64)
-
-        # this is caught by validate_data()
-        with pytest.raises(ValueError):
-            MCT(**_kwargs).partial_fit(X)
-
-    # VERIFY ACCEPTS X AS SINGLE COLUMN ##################################
-    def test_X_as_single_2D_column(self, X, y, _kwargs, COLUMNS):
-
-        TestCls = MCT(**_kwargs)
-
-        _y = y[:, 0].copy()
-
-        NEW_X = X[:, 0].copy().reshape((-1, 1))
-
-        # numpy
-        TestCls.fit(NEW_X.copy(), _y)
-
-        # pandas w header
-        TestCls.fit(
-            pd.DataFrame(data=NEW_X.copy(), columns=COLUMNS[:1]),
-            _y
-        )
-
-        # pandas w/o header
-        TestCls.fit(
-            pd.DataFrame(data=NEW_X.copy()),
-            _y
-        )
-    # END VERIFY ACCEPTS X AS SINGLE COLUMN ###################################
-
-    # VERIFY REJECTS X AS 1D COLUMN / SERIES ##################################
-    def test_rejects_X_as_1D_column(self, X, y, _kwargs, COLUMNS):
-        TestCls = MCT(**_kwargs)
-
-        _y = y[:, 0].copy()
-
-        NEW_X = X[:, 0].copy().ravel()
-
-        # numpy
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(NEW_X.copy(), _y)
-
-        # pandas series
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(pd.Series(data=NEW_X.copy()), _y)
-    # END VERIFY REJECTS X AS 1D COLUMN / SERIES ##############################
-
-    # TEST FOR EXCEPTS ON BAD X SHAPES ########################################
-    CONTAINERS = ['numpy', 'pandas']
-    NEW_COLUMNS = ['good', 'less_col', 'more_col']
-    NEW_ROWS = ['good', 'less_row', 'more_row']
-
-    @pytest.mark.parametrize('fst_fit_x_format', CONTAINERS)
-    @pytest.mark.parametrize('scd_fit_x_format', CONTAINERS)
-    @pytest.mark.parametrize('scd_fit_x_cols', NEW_COLUMNS)
-    @pytest.mark.parametrize('scd_fit_x_rows', NEW_ROWS)
-    def test_excepts_on_bad_x_shapes(
-        self, X, y, COLUMNS, _kwargs, X_builder, fst_fit_x_format,
-        scd_fit_x_format, scd_fit_x_cols, scd_fit_x_rows, x_rows, x_cols
-    ):
-
-        TestCls = MCT(**_kwargs)
-
-        # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        fst_fit_X = X_builder(
-            X.copy(),
-            new_format=fst_fit_x_format,
-            COLUMNS=COLUMNS,
-            diff_cols='good',
-            diff_rows='good'
-        )
-        # end first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-        # second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        scd_fit_X = X_builder(
-            X.copy(),
-            COLUMNS=COLUMNS,
-            new_format=scd_fit_x_format,
-            diff_cols=scd_fit_x_cols,
-            diff_rows=scd_fit_x_rows
-        )
-        # end second fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
-
-        fst_fit_y = y.copy()[:, 0].ravel()
-        scd_fit_y = fst_fit_y.copy()
-
-        value_error = 0
-
-        # ValueError WHEN NUM X COLUMNS DO NOT MATCH
-        if scd_fit_X.shape[1] != fst_fit_X.shape[1]:
-            value_error += 1
-
-        if value_error:
-            with pytest.raises(ValueError):
-                TestCls.partial_fit(fst_fit_X, fst_fit_y)
-                TestCls.partial_fit(scd_fit_X, scd_fit_y)
-        elif not value_error:
-            TestCls.partial_fit(fst_fit_X, fst_fit_y)
-            TestCls.partial_fit(scd_fit_X, scd_fit_y)
-
-    del CONTAINERS, NEW_COLUMNS, NEW_ROWS
-    # END TEST FOR EXCEPTS ON BAD X SHAPES ####################################
-
-    # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
-    NAMES = ['GOOD_DF', 'BAD_DF', 'NO_HDR_DF']
-
-    @pytest.mark.parametrize('fst_fit_name', NAMES)
-    @pytest.mark.parametrize('scd_fit_name', NAMES)
-    def test_value_error_different_header(
-        self, X, _kwargs, COLUMNS, fst_fit_name, scd_fit_name
-    ):
-
-        GOOD_DF = pd.DataFrame(data=X, columns=np.char.lower(COLUMNS))
-        BAD_DF = pd.DataFrame(data=X, columns=np.char.upper(COLUMNS))
-        NO_HDR_DF = pd.DataFrame(data=X, columns=None)
-
-        if fst_fit_name == 'GOOD_DF':
-            fst_fit_X = GOOD_DF.copy()
-        elif fst_fit_name == 'BAD_DF':
-            fst_fit_X = BAD_DF.copy()
-        elif fst_fit_name == 'NO_HDR_DF':
-            fst_fit_X = NO_HDR_DF.copy()
-
-        if scd_fit_name == 'GOOD_DF':
-            scd_fit_X = GOOD_DF.copy()
-        elif scd_fit_name == 'BAD_DF':
-            scd_fit_X = BAD_DF.copy()
-        elif scd_fit_name == 'NO_HDR_DF':
-            scd_fit_X = NO_HDR_DF.copy()
-
-        scd_value_error = 0
-        scd_warn = 0
-
-        if scd_fit_name != fst_fit_name:
-            scd_value_error += 1
-            if 'NO_HDR_DF' in [fst_fit_name, scd_fit_name]:
-                scd_value_error -= 1
-                scd_warn += 1
-
-        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        TestCls = MCT(**_kwargs)
-        TestCls.partial_fit(fst_fit_X)
-        if scd_value_error:
-            with pytest.raises(ValueError):
-                TestCls.partial_fit(scd_fit_X)
-        elif scd_warn:
-            with pytest.warns():
-                TestCls.partial_fit(scd_fit_X)
-        else:
-            TestCls.partial_fit(scd_fit_X)
-        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    del NAMES
-    # END TEST ValueError WHEN SEES A DF HEADER  DIFFERENT FROM FIRST-SEEN HEADER
-
-
-    @pytest.mark.parametrize('_format',
-         (
-             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
-             'dask_array', 'dask_dataframe'
-         )
-    )
-    def test_X_container(self, NO_NAN_X, COLUMNS, _kwargs, _format, _mct_cols):
-
-        _X = NO_NAN_X[:, :3 * _mct_cols].copy().astype(np.float64)
-
-        if _format == 'np':
-            _X_wip = _X
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(data=_X, columns=COLUMNS[:3 * _mct_cols])
-        elif _format == 'pl':
-            _X_wip = pl.from_numpy(data=_X, schema=list(COLUMNS[:3 * _mct_cols]))
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        elif _format == 'dask_array':
-            _X_wip = da.from_array(_X)
-        elif _format == 'dask_dataframe':
-            _X_wip = ddf.from_array(_X, columns=COLUMNS[:3 * _mct_cols])
-        else:
-            raise Exception
-
-        try:
-            _X_wip_before_partial_fit = _X_wip.copy()
-        except:
-            _X_wip_before_partial_fit = _X_wip.clone()
-
-        if _format in ('dask_array', 'dask_dataframe'):
-            with pytest.raises(TypeError):
-                MCT(**_kwargs).partial_fit(_X_wip)
-            pytest.skip(reason=f'cant do anymore tests after except')
-        else:
-            MCT(**_kwargs).partial_fit(_X_wip)
-
-        # verify _X_wip does not mutate in partial_fit()
-        assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
-        assert _X_wip.shape == _X_wip_before_partial_fit.shape
-        if isinstance(_X_wip, np.ndarray):
-            assert _X_wip.flags['C_CONTIGUOUS'] is True
-
-        if hasattr(_X_wip_before_partial_fit, 'toarray'):
-            assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before_partial_fit.toarray()
-            )
-        elif isinstance(_X_wip_before_partial_fit, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert _X_wip.equals(_X_wip_before_partial_fit)
-        else:
-            assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
-
-    # END TEST X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    # dont need to test y in partial_fit, ignored.
-
-
-    # TEST CONDITIONAL ACCESS TO partial_fit() AND fit() ###################
-    # 1) partial_fit() should allow unlimited number of subsequent partial_fits()
-    # 2) one call to fit() should allow subsequent attempts to partial_fit()
-    # 3) one call to fit() should allow later attempts to fit() (2nd fit will reset)
-    # 4) calls to partial_fit() should allow later attempt to fit() (fit will reset)
-    # 5) fit_transform() should allow calls ad libido
-    def test_conditional_access_to_partial_fit_and_fit(self, X, y, _kwargs):
-
-        TestCls = MCT(**_kwargs)
-        TEST_X = X.copy()
-        TEST_Y = y.copy()
-
-        # 1)
-        for _ in range(5):
-            TestCls.partial_fit(TEST_X, TEST_Y)
-
-        del TestCls
-
-        # 2)
-        TestCls = MCT(**_kwargs)
-        TestCls.fit(TEST_X, TEST_Y)
-        TestCls.partial_fit(TEST_X, TEST_Y)
-
-        del TestCls
-
-        # 3)
-        TestCls = MCT(**_kwargs)
-        TestCls.fit(TEST_X, TEST_Y)
-        TestCls.fit(TEST_X, TEST_Y)
-
-        del TestCls
-
-        # 4) a call to fit() after a previous partial_fit() should be allowed
-        TestCls = MCT(**_kwargs)
-        TestCls.partial_fit(TEST_X, TEST_Y)
-        TestCls.fit(TEST_X, TEST_Y)
-
-        # 5) fit transform should allow calls ad libido
-        for _ in range(5):
-            TestCls.fit_transform(TEST_X, TEST_Y)
-
-        del TEST_X, TEST_Y, TestCls
-    # END TEST CONDITIONAL ACCESS TO partial_fit() AND fit() ###############
-
-
-    # TEST LATER PARTIAL FITS ACCEPT NEW UNIQUES ***************************
-    def test_later_partial_fits_accept_new_uniques(
-        self, NO_NAN_X, y, _kwargs, _mct_cols
-    ):
-
-        X1 = NO_NAN_X[:, _mct_cols:(2 * _mct_cols)].copy()  # non-bin-int columns
-        X1 = X1.astype(np.float64).astype(np.int32)
-        y1 = y.copy()
-        # 10X THE VALUES IN THE COPY OF DATA TO INTRODUCE NEW UNIQUE VALUES
-        X2 = (10 * X1.astype(np.float64)).astype(np.int32)
-        y2 = y.copy()
-
-        STACKED_X = np.vstack((X1, X2)).astype(np.float64).astype(np.int32)
-        STACKED_Y = np.vstack((y1, y2)).astype(np.uint8)
-
-        _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['count_threshold'] *= 3
-        _new_kwargs['ignore_non_binary_integer_columns'] = False
-
-        # 2 PARTIAL FITS - - -  - - - - - - - - - - - - - - - - - - - - -
-        PartialFitTestCls = MCT(**_new_kwargs)
-
-        PartialFitTestCls.partial_fit(X1, y1)
-        PartialFitTestCls.partial_fit(X2, y2)
-        PARTIAL_FIT_X, PARTIAL_FIT_Y = \
-            PartialFitTestCls.transform(STACKED_X, STACKED_Y)
-
-        assert not PARTIAL_FIT_X.shape[0] == 0, \
-            f'transform for 2 partial fits deleted all rows'
-
-        # VERIFY SOME ROWS WERE ACTUALLY DELETED
-        assert not np.array_equiv(PARTIAL_FIT_X, STACKED_X), \
-            (f'later partial fits accept new uniques --- '
-             f'transform did not delete any rows')
-        # END 2 PARTIAL FITS - - -  - - - - - - - - - - - - - - - - - - -
-
-        # 1 BIG FIT - - -  - - - - - - - - - - - - - - - - - - - - - - -
-        SingleFitTestCls = MCT(**_new_kwargs)
-        SingleFitTestCls.fit(STACKED_X, STACKED_Y)
-        SINGLE_FIT_X, SINGLE_FIT_Y = \
-            SingleFitTestCls.transform(STACKED_X, STACKED_Y)
-
-        assert not SINGLE_FIT_X.shape[0] == 0, \
-            f'transform for one big fit deleted all rows'
-        # END 1 BIG FIT - - -  - - - - - - - - - - - - - - - - - - - - -
-
-        # compare 2 partial fits to 1 big fit, should be equal
-        assert np.array_equiv(PARTIAL_FIT_X, SINGLE_FIT_X), \
-            (f"new uniques in partial fits -- partial fitted X does not "
-             f"equal single fitted X")
-        assert np.array_equiv(PARTIAL_FIT_Y, SINGLE_FIT_Y), \
-            (f"new uniques in partial fits -- partial fitted y does not "
-             f"equal single fitted y")
-    # END TEST LATER PARTIAL FITS ACCEPT NEW UNIQUES ***********************
-
-
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestTransform:
-
-    #     def transform(
-    #         self,
-    #         X: XContainer,
-    #         y: Optional[YContainer]=None,
-    #         copy: Optional[Union[bool, None]]=None
-    #     ) -> Union[tuple[XContainer, YContainer], XContainer]:
-
-    # - only accepts ndarray, pd.DataFrame, and all ss
-    # - cannot be None
-    # - must be 2D
-    # - num columns must equal num columns seen during fit
-    # - must have at least 3 samples
-    # - allows nan
-    # - output is C contiguous
-    # - validates all instance attrs -- this isnt tested here, see _validation
-    # - does not mutate X
-
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # TEST X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    @pytest.mark.parametrize('_junk_X',
-        (-1, 0, 1, 3.14, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_X(self, X, _junk_X, _kwargs):
-
-        _MCT = MCT(**_kwargs)
-        _MCT.fit(X)
-
-        # this is being caught by validate_data at the top of transform
-        with pytest.raises(ValueError):
-            _MCT.transform(_junk_X)
-
-
-    # TEST EXCEPTS ANYTIME X==None IS PASSED TO transform()
-    def test_excepts_anytime_x_is_none(self, X, _kwargs):
-
-        TestCls = MCT(**_kwargs)
-
-        TestCls.fit(X)
-        with pytest.raises(ValueError):
-            TestCls.transform(None)
-
-        del TestCls
-    # END TEST EXCEPTS ON X==None IS PASSED TO transform()
-
-    def test_rejects_no_samples(self, X, _kwargs, x_cols):
-
-        _MCT = MCT(**_kwargs).fit(X)
-
-        # this is caught by validate_data()
-        with pytest.raises(ValueError):
-            _MCT.transform(np.empty((0, x_cols), dtype=np.float64))
-
-
-    # VERIFY ACCEPTS X AS SINGLE COLUMN ##################################
-    def test_X_as_single_2D_column(self, X, y, _kwargs, COLUMNS):
-
-        TestCls = MCT(**_kwargs)
-
-        _y = y[:, 0].copy()
-
-        NEW_X = X[:, 0].copy().reshape((-1, 1))
-
-        TestCls.fit(NEW_X, _y)
-
-        # numpy
-        TestCls.transform(NEW_X.copy(), _y)
-
-        # pandas w header
-        TestCls.transform(
-            pd.DataFrame(data=NEW_X.copy(), columns=COLUMNS[:1]),
-            _y
-        )
-
-        # pandas w/o header
-        TestCls.transform(
-            pd.DataFrame(data=NEW_X.copy()),
-            _y
-        )
-    # END VERIFY ACCEPTS X AS SINGLE COLUMN ###################################
-
-    # VERIFY REJECTS X AS 1D COLUMN / SERIES ##################################
-    def test_rejects_X_as_1D_column(self, X, y, _kwargs, COLUMNS):
-        TestCls = MCT(**_kwargs)
-
-        _y = y[:, 0].copy()
-
-        NEW_X = X[:, 0].copy().ravel()
-
-        # numpy
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(NEW_X.copy(), _y)
-
-        # pandas series
-        with pytest.raises(ValueError):
-            TestCls.fit_transform(pd.Series(data=NEW_X.copy()), _y)
-    # END VERIFY REJECTS X AS 1D COLUMN / SERIES ##############################
-
-    # TEST FOR EXCEPTS ON BAD X SHAPES ########################################
-    CONTAINERS = ['numpy', 'pandas']
-    NEW_COLUMNS = ['good', 'less_col', 'more_col']
-    NEW_ROWS = ['good', 'less_row', 'more_row']
-
-    @pytest.mark.parametrize('fst_fit_x_format', CONTAINERS)
-    @pytest.mark.parametrize('trfm_x_format', CONTAINERS)
-    @pytest.mark.parametrize('trfm_x_cols', NEW_COLUMNS)
-    @pytest.mark.parametrize('trfm_x_rows', NEW_ROWS)
-    def test_excepts_on_bad_x_shapes(
-        self, X, y, COLUMNS, _kwargs, X_builder, fst_fit_x_format,
-        trfm_x_format, trfm_x_cols, trfm_x_rows, x_rows, x_cols
-    ):
-
-        TestCls = MCT(**_kwargs)
-
-        # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        fst_fit_X = X_builder(
-            X.copy(),
-            new_format=fst_fit_x_format,
-            COLUMNS=COLUMNS,
-            diff_cols='good',
-            diff_rows='good'
-        )
-        # end first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-        # transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        trfm_X = X_builder(
-            X.copy(),
-            COLUMNS=COLUMNS,
-            new_format=trfm_x_format,
-            diff_cols=trfm_x_cols,
-            diff_rows=trfm_x_rows
-        )
-        # end transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-        fst_fit_y = y.copy()[:, 0].ravel()
-        trfm_y = fst_fit_y.copy()
-
-        value_error = 0
-
-        # ValueError WHEN ROWS OF y != X ROWS ONLY UNDER transform
-        if trfm_X is not None and trfm_y.shape[0] != trfm_X.shape[0]:
-            value_error += 1
-
-        # ValueError WHEN NUM X COLUMNS DO NOT MATCH
-        if trfm_X.shape[1] != fst_fit_X.shape[1]:
-            value_error += 1
-
-        if value_error:
-            with pytest.raises(ValueError):
-                TestCls.partial_fit(fst_fit_X, fst_fit_y)
-                TestCls.transform(trfm_X, trfm_y)
-        elif not value_error:
-            TestCls.partial_fit(fst_fit_X, fst_fit_y)
-            TestCls.transform(trfm_X, trfm_y)
-
-    del CONTAINERS, NEW_COLUMNS, NEW_ROWS
-    # END TEST FOR EXCEPTS ON BAD X SHAPES ####################################
-
-    # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
-    NAMES = ['GOOD_DF', 'BAD_DF', 'NO_HDR_DF']
-
-    @pytest.mark.parametrize('fst_fit_name', NAMES)
-    @pytest.mark.parametrize('trfm_name', NAMES)
-    def test_value_error_different_header(
-        self, X, _kwargs, COLUMNS, fst_fit_name, trfm_name
-    ):
-
-        GOOD_DF = pd.DataFrame(data=X, columns=np.char.lower(COLUMNS))
-        BAD_DF = pd.DataFrame(data=X, columns=np.char.upper(COLUMNS))
-        NO_HDR_DF = pd.DataFrame(data=X, columns=None)
-
-        if fst_fit_name == 'GOOD_DF':
-            fst_fit_X = GOOD_DF.copy()
-        elif fst_fit_name == 'BAD_DF':
-            fst_fit_X = BAD_DF.copy()
-        elif fst_fit_name == 'NO_HDR_DF':
-            fst_fit_X = NO_HDR_DF.copy()
-
-        if trfm_name == 'GOOD_DF':
-            trfm_X = GOOD_DF.copy()
-        elif trfm_name == 'BAD_DF':
-            trfm_X = BAD_DF.copy()
-        elif trfm_name == 'NO_HDR_DF':
-            trfm_X = NO_HDR_DF.copy()
-
-        trfm_value_error = 0
-        trfm_warn = 0
-
-        if trfm_name != fst_fit_name:
-            trfm_value_error += 1
-            if 'NO_HDR_DF' in [fst_fit_name, trfm_name]:
-                trfm_value_error -= 1
-                trfm_warn += 1
-
-        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        TestCls = MCT(**_kwargs)
-        TestCls.partial_fit(fst_fit_X)
-
-        if trfm_value_error:
-            with pytest.raises(ValueError):
-                TestCls.transform(trfm_X)
-        elif trfm_warn:
-            with pytest.warns():
-                TestCls.transform(trfm_X)
-        else:
-            TestCls.transform(trfm_X)
-        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-        # SHOULD NEVER EXCEPT FOR HEADER ISSUE
-        TestCls = MCT(**_kwargs)
-        TestCls.fit_transform(fst_fit_X)
-
-    del NAMES
-    # END TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
-
-
-    @pytest.mark.parametrize('_format',
-         (
-             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array',
-             'dask_array', 'dask_dataframe'
-         )
-    )
-    def test_X_container(self, NO_NAN_X, COLUMNS, _kwargs, _format, _mct_cols):
-
-        _X = NO_NAN_X[:, :3 * _mct_cols].copy().astype(np.float64)
-
-        if _format == 'np':
-            _X_wip = _X
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(data=_X, columns=COLUMNS[:3 * _mct_cols])
-        elif _format == 'pl':
-            _X_wip = pl.from_numpy(data=_X, schema=list(COLUMNS[:3 * _mct_cols]))
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        elif _format == 'dask_array':
-            _X_wip = da.from_array(_X)
-        elif _format == 'dask_dataframe':
-            _X_wip = ddf.from_array(_X, columns=COLUMNS[:3 * _mct_cols])
-        else:
-            raise Exception
-
-        try:
-            _X_wip_before_transform = _X_wip.copy()
-        except:
-            _X_wip_before_transform = _X_wip.clone()
-
-        _MCT = MCT(**_kwargs)
-
-        _MCT.fit(_X)  # fit on numpy, not the converted data
-
-
-        if _format in ('dask_array', 'dask_dataframe'):
-            with pytest.raises(TypeError):
-                _MCT.transform(_X_wip)
-            pytest.skip(reason=f'cant do anymore tests after except')
-        else:
-            out = _MCT.transform(_X_wip)
-
-        assert isinstance(out, type(_X_wip))
-
-        # if output is numpy, order is C
-        if isinstance(out, np.ndarray):
-            assert out.flags['C_CONTIGUOUS'] is True
-
-        # verify _X_wip does not mutate in transform()
-        assert isinstance(_X_wip, type(_X_wip_before_transform))
-        assert _X_wip.shape == _X_wip_before_transform.shape
-
-        if hasattr(_X_wip_before_transform, 'toarray'):
-            assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before_transform.toarray()
-            )
-        elif isinstance(_X_wip_before_transform, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert _X_wip.equals(_X_wip_before_transform)
-        else:
-            assert np.array_equal(_X_wip_before_transform, _X_wip)
-
-
-    # TEST TRANSFORM CONDITIONALLY ACCEPT NEW UNIQUES *************************
-    def test_transform_conditionally_accepts_new_uniques(
-            self, NO_NAN_X, y, _kwargs, _mct_cols, x_rows
-    ):
-        _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['count_threshold'] *= 2
-
-        # USE STR COLUMNS
-        X1 = NO_NAN_X[:, (3 * _mct_cols):(4 * _mct_cols)].copy()
-        y1 = y.copy()
-
-        # fit() & transform() ON X1 TO PROVE X1 PASSES transform()
-        TestCls = MCT(**_new_kwargs)
-        TestCls.fit(X1, y1)
-        OUT_X, OUT_Y = TestCls.transform(X1, y1)
-        assert OUT_X.shape[0] > 0
-        del TestCls, OUT_X, OUT_Y
-
-        # PEPPER ONE OF THE STR COLUMNS WITH A UNIQUE THAT WAS NOT SEEN DURING fit()
-        X2 = X1.copy()
-        new_unqs = list('1234567890')
-        MASK = np.random.choice(range(x_rows), len(new_unqs), replace=False)
-        # put str(number) into str column of alphas
-        X2[MASK, 0] = new_unqs
-        del new_unqs, MASK
-        TestCls = MCT(**_new_kwargs)
-        TestCls.fit(X1, y1)
-
-        # DEMONSTRATE NEW VALUES ARE ACCEPTED WHEN reject_unseen_values = False
-        TestCls.set_params(reject_unseen_values=False)
-        assert TestCls.reject_unseen_values is False
-        TestCls.transform(X2, y1)
-
-        # DEMONSTRATE NEW VALUES ARE REJECTED WHEN reject_unseen_values = True
-        TestCls.set_params(reject_unseen_values=True)
-        assert TestCls.reject_unseen_values is True
-        with pytest.raises(ValueError):
-            TestCls.transform(X2, y1)
-
-        del X1, y1, X2, TestCls
-    # END TEST TRANSFORM CONDITIONALLY ACCEPT NEW UNIQUES ******************
-
-    # END TEST X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # TEST y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    # ALWAYS ACCEPTS y==None IS PASSED TO transform() ######################
-    def test_accepts_y_equals_none(self, _kwargs, X):
-        TestCls = MCT(**_kwargs)
-
-        TestCls.partial_fit(X, None)
-        TestCls.fit(X, None)
-        TestCls.transform(X, None)
-        TestCls.fit_transform(X, None)
-
-    # END ALWAYS ACCEPTS y==None IS PASSED TO transform() ###################
-
-    # TEST FOR EXCEPTS ON BAD y ROWS FOR DF, SERIES, ARRAY #################
-    CONTAINERS = ['numpy', 'pandas_dataframe', 'pandas_series']
-    ROWS = ['good', 'less_row', 'more_row']
-
-    @pytest.mark.parametrize('fst_fit_y_dtype', CONTAINERS)
-    @pytest.mark.parametrize('trfm_y_dtype', CONTAINERS)
-    @pytest.mark.parametrize('trfm_y_rows', ROWS)
-    def test_except_on_bad_y_rows(
-        self, X, y, _kwargs, y_builder, fst_fit_y_dtype, trfm_y_dtype,
-        trfm_y_rows, x_rows
-    ):
-        # only in transform. y is ignored in all of the 'fit's
-
-        TestCls = MCT(**_kwargs)
-
-        # first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
-        fst_fit_Y = y_builder(
-            y.copy(),
-            new_format=fst_fit_y_dtype,
-            diff_rows='good'
-        )
-        # end first fit ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-        # transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
-        trfm_Y = y_builder(
-            y.copy(),
-            new_format=trfm_y_dtype,
-            diff_rows=trfm_y_rows
-        )
-        # end transform ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-        value_error = 0
-        # True only if trfm_y rows != X rows
-        value_error += (trfm_Y.shape[0] != x_rows) if trfm_Y is not None else 0
-
-        TestCls.partial_fit(X, fst_fit_Y)
-
-        if value_error:
-            with pytest.raises(ValueError):
-                TestCls.transform(X, trfm_Y)
-        elif not value_error:
-            TestCls.transform(X, trfm_Y)
-
-    del CONTAINERS, ROWS
-
-# END TEST y ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
-
-
-
-
+    # END TEST OUTPUT TYPES ################################################
 
 
 

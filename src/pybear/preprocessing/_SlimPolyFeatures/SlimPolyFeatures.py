@@ -13,10 +13,15 @@ from typing import (
     Sequence
 )
 from typing_extensions import (
+    Any,
     Self,
     Union
 )
 import numpy.typing as npt
+from ._type_aliases import (
+    PolyDuplicatesType,
+    PolyConstantsType
+)
 from ..__shared._type_aliases import XContainer
 
 import numbers
@@ -42,7 +47,6 @@ from ._partial_fit._get_dupls_for_combo_in_X_and_poly import \
     _get_dupls_for_combo_in_X_and_poly
 from ._partial_fit._merge_constants import _merge_constants
 from ._partial_fit._merge_partialfit_dupls import _merge_partialfit_dupls
-from ._partial_fit._merge_combo_dupls import _merge_combo_dupls
 from ._partial_fit._lock_in_random_combos import _lock_in_random_combos
 from ._shared._identify_combos_to_keep import _identify_combos_to_keep
 from ._shared._get_active_combos import _get_active_combos
@@ -66,7 +70,8 @@ from ...base import (
 )
 
 from ...base import is_fitted, check_is_fitted, get_feature_names_out
-from ...utilities import nan_mask
+from ...utilities._nan_masking import nan_mask
+from ...utilities._union_find import union_find
 
 
 
@@ -746,7 +751,7 @@ class SlimPolyFeatures(
 
         """
         Resets the data-dependent state of SPF. __init__ parameters are
-        not changed. Allowing reset is part of the external API because
+        not changed. Allowing reset as part of the external API because
         setting most params after a partial fit is blocked, and this
         allows for re-initializing the instance without forcing the user
         to create a new instance.
@@ -956,16 +961,16 @@ class SlimPolyFeatures(
             X,
             reset=not hasattr(self, "_poly_duplicates")
         )
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-        # _validation should have caught non-numeric X. X must only be numeric
-        # throughout all of SPF.
+        # _validation should have caught non-numeric X.
+        # X must only be numeric throughout all of SPF.
 
         # ss sparse that cant be sliced
-        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it cannot
-        # be sliced. must convert to another ss. so just convert all of them
-        # to csc for faster column slicing. need to change it back later.
+        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it
+        # cannot be sliced. must convert to another ss. so just convert
+        # all of them to csc for faster column slicing. need to change
+        # it back later.
         if hasattr(X, 'toarray'):
             _og_dtype = type(X)
             X = X.tocsc()
@@ -973,36 +978,33 @@ class SlimPolyFeatures(
         # these both must be None on the first pass!
         # on subsequent passes, the holders may not be empty.
         if not hasattr(self, '_poly_duplicates'):
-            self._poly_duplicates: Union[list[list[tuple[int, ...]]], None] = None
+            self._poly_duplicates: Union[PolyDuplicatesType, None] = None
         if not hasattr(self, '_poly_constants'):
-            self._poly_constants: Union[dict[tuple[int, ...], any], None] = None
+            self._poly_constants: Union[PolyConstantsType, None] = None
 
-        if self.scan_X and not hasattr(self, '_IM'):
-
-            self._IM = IM(
-                keep=self.keep,
-                equal_nan=self.equal_nan,
-                rtol=self.rtol,
-                atol=self.atol
-            )
-
-        if self.scan_X and not hasattr(self, '_CDT'):
-
-            self._CDT = CDT(
-                keep=self.keep,
-                do_not_drop=None,
-                conflict='ignore',
-                equal_nan=self.equal_nan,
-                rtol=self.rtol,
-                atol=self.atol,
-                n_jobs=1   # pizza self.n_jobs
-            )
-
-        # Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        # This is just to know if we reject X for having constant or
+        # Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v
+        # This is to know if we reject X for having constant or
         # duplicate columns.
-
         if self.scan_X:
+
+            if not hasattr(self, '_IM'):
+                self._IM = IM(
+                    keep=self.keep,
+                    equal_nan=self.equal_nan,
+                    rtol=self.rtol,
+                    atol=self.atol
+                )
+
+            if not hasattr(self, '_CDT'):
+                self._CDT = CDT(
+                    keep=self.keep,
+                    do_not_drop=None,
+                    conflict='ignore',
+                    equal_nan=self.equal_nan,
+                    rtol=self.rtol,
+                    atol=self.atol,
+                    n_jobs=self.n_jobs
+                )
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -1014,22 +1016,18 @@ class SlimPolyFeatures(
                 warnings.warn(
                     f"There are duplicate and/or constant columns in X."
                 )
+        # END Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v
 
-        # END Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
+        # build a ss csc that holds the unique polynomial columns that
+        # are discovered. need to carry this to compare the next
+        # calculated polynomial term against the known unique polynomial
+        # columns already calculated for the expansion.
 
-        # build a ss csc that holds the unique polynomial columns that are
-        # discovered. need to carry this to compare the next calculated
-        # polynomial term against the known unique polynomial columns already
-        # calculated for the expansion.
-        _POLY_CSC = ss.csc_array(np.empty((X.shape[0], 0))).astype(np.float64)
-
-        IDXS_IN_POLY_CSC: list[tuple[int, ...]] = []
         _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = []
-        _poly_constants_current_partial_fit: dict[tuple[int, ...], any] = {}
+        _poly_constants_current_partial_fit: dict[tuple[int, ...], Any] = {}
 
-        
-        # GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # get the permutations to run, based on the size of x,
         # min degree, max degree, and interaction_only.
         self._combos: list[tuple[int, ...]] = _combination_builder(
@@ -1038,100 +1036,55 @@ class SlimPolyFeatures(
             _max_degree=self.degree,
             _intx_only=self.interaction_only
         )
-        # END GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v
 
-        # iterate over the combos and find what is constant or duplicate
-        for _combo in self._combos:
-            # _combo must always be at least degree 2, degree 1 is just the
-            # original data and should not be processed here
-            assert len(_combo) >= 2
+        # _combo must always be at least degree 2, degree 1 is
+        # just the original data and should not be processed here
+        assert min(map(len, self._combos)) >= 2
+        # END GENERATE COMBINATIONS # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-            _COLUMN: npt.NDArray[np.float64] = \
-                _columns_getter(X, _combo).prod(1).ravel()
-
-            __ = _COLUMN.shape
-            assert len(__) == 1 or (len(__)==2 and __[1]==1)
-            del __
-
-            # poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-            # if _poly_constants (the place that holds what poly columns are
-            # constants across all partial fits) exists and it is empty, then
-            # there cannot possibly be any columns of constants going forward,
-            # so dont even expend the energy to check.
-            if self._poly_constants and not len(self._poly_constants):
-                _poly_is_constant = uuid.uuid4()
-            else:
+        # poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # iterate over the combos and find what is constant
+        if self._poly_constants and len(self._poly_constants) == 0:
+            pass
+            # if _poly_constants (the place that holds what poly columns
+            # are constants across all partial fits) exists and it is
+            # empty, then there cannot possibly be any columns of constants
+            # going forward, so dont even expend the energy to check.
+        else:
+            for _combo in self._combos:
                 _poly_is_constant: Union[uuid.UUID, any] = \
                     _is_constant(
-                        _column=_COLUMN,
+                        _column=_columns_getter(X, _combo).ravel(),
                         _equal_nan = self.equal_nan,
                         _rtol = self.rtol,
                         _atol = self.atol
                     )
 
-            if not isinstance(_poly_is_constant, uuid.UUID):
-                _poly_constants_current_partial_fit[_combo] = _poly_is_constant
+                if not isinstance(_poly_is_constant, uuid.UUID):
+                    _poly_constants_current_partial_fit[_combo] = _poly_is_constant
+        # END poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-            # END poly constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # constant columns - NEED TO KNOW IF they are also a member of
+        # duplicates because even though they are constants now, they
+        # might not be after more partial fits, but they still might be
+        # duplicates.
 
-            # constant columns NEED TO GO INTO _POLY_CSC to know if
-            # they are also a member of duplicates because even though
-            # they are constants now, they might not be after more
-            # partial fits, but they still might be duplicates.
+        # poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # iterate over the combos and find what is duplicate.
+        # this function scans the combos columns across the columns in X
+        # and themselves looking for dupls. it returns a vector of tuples
+        # with column indices of X that produce columns that are duplicates.
+        _dupl_pairs: list[bool] = _get_dupls_for_combo_in_X_and_poly(
+            X,
+            self._combos,
+            _min_degree=self.min_degree,
+            _equal_nan=self.equal_nan,
+            _rtol=self.rtol,
+            _atol=self.atol,
+            _n_jobs=self.n_jobs
+        )
 
-            # poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-            # this function scans the combo column across the columns in X and
-            # poly looking for dupls. it returns a vector of bools whose len is
-            # X.shape[1] + POLY.shape[1]. if True, then the combo column is
-            # a duplicate of the X or POLY column that corresponds to that slot
-            # in the vector.
-            _out: list[bool] = _get_dupls_for_combo_in_X_and_poly(
-                _COLUMN,
-                X,
-                _POLY_CSC,
-                _min_degree=self.min_degree,   # pizza
-                _equal_nan=self.equal_nan,
-                _rtol=self.rtol,
-                _atol=self.atol,
-                _n_jobs=self.n_jobs
-            )
-
-            # need to convert 'out' to
-            # [(i1,), (i2,),..] SINGLE 1D GROUP OF DUPLICATES
-            _indices = [(i,) for i in range(X.shape[1])] + IDXS_IN_POLY_CSC
-            _dupls_for_this_combo = []
-            for _combo_tuple, _is_dupl in zip(_indices, _out):
-                if _is_dupl:
-                    _dupls_for_this_combo.append(_combo_tuple)
-            if len(_dupls_for_this_combo):
-                _dupls_for_this_combo.append(_combo)
-
-            assert len(_dupls_for_this_combo) != 1
-
-            # merge the current _dupls_for_this_combo with
-            # _poly_dupls_current_partial_fit. if any tuple(s) in
-            # _dupls_for_this_combo is/are in any dupl_set in
-            # _poly_dupls_current_partial_fit, then append the current
-            # combo to that dupl_set.
-            # otherwise add the entire _dupls_for_this_combo to
-            # _poly_dupls_current_partial_fit.
-            _poly_dupls_current_partial_fit: list[list[tuple[int, ...]]] = \
-                _merge_combo_dupls(
-                    _dupls_for_this_combo,
-                    _poly_dupls_current_partial_fit
-                )
-            # END poly duplicates v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
-            # if _dupls_for_this_combo is empty, then combo column is unique,
-            # put it in _POLY_CSC, even if it is constant
-            if not len(_dupls_for_this_combo):
-                _POLY_CSC = ss.hstack((
-                    _POLY_CSC,
-                    ss.csc_array(_COLUMN.reshape((-1,1)))
-                ))
-                IDXS_IN_POLY_CSC.append(_combo)
-
-            del _poly_is_constant, _dupls_for_this_combo
+        _poly_dupls_current_partial_fit = list(map(list, union_find(_dupl_pairs)))
 
         # all scipy sparse were converted to csc near the top of this
         # method. change it back to original state. do not mutate X!
@@ -1148,8 +1101,6 @@ class SlimPolyFeatures(
         # _poly_duplicates
         # _poly_constants_current_partial_fit
         # _poly_dupls_current_partial_fit
-        # _POLY_CSC
-        # IDXS_IN_POLY_CSC: list[tuple[int, ...]]
 
         # poly_constants -----------------------
         # merge _poly_constants_current_partial_fit into

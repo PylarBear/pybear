@@ -15,11 +15,14 @@ import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+from pybear.preprocessing import SlimPolyFeatures as SlimPoly
 
-from pybear.utilities import nan_mask_numerical, nan_mask
+from pybear.base.exceptions import NotFittedError
 
+from pybear.utilities import (
+    nan_mask,
+    nan_mask_numerical
+)
 
 
 
@@ -43,9 +46,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('bad_degree',
-        (-1, 1, np.pi, True, False)
-    )
+    @pytest.mark.parametrize('bad_degree', (-1, 1, np.pi, True, False))
     def test_bad_degree(self, X_np, _kwargs, bad_degree):
 
         # degree lower bound of 2 is hard coded, so 1 is bad
@@ -57,11 +58,11 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('good_degree', (2,3))
-    def test_good_degree(self, X_pd, _columns, _kwargs, good_degree):
+    def test_good_degree(self, X_np, _columns, _kwargs, good_degree):
 
         _kwargs['degree'] = good_degree
 
-        SlimPoly(**_kwargs).fit_transform(X_pd)
+        SlimPoly(**_kwargs).fit_transform(X_np)
     # END degree ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -77,9 +78,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('bad_min_degree',
-        (-1, 0, np.pi, True, False)
-    )
+    @pytest.mark.parametrize('bad_min_degree', (-1, 0, np.pi, True, False))
     def test_bad_min_degree(self, X_np, _kwargs, bad_min_degree):
 
         # min_degree lower bound of 1 is hard coded, so 0 is bad
@@ -91,18 +90,18 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('good_min_degree', (2,3,4))
-    def test_good_min_degree(self, X_pd, _kwargs, good_min_degree):
+    def test_good_min_degree(self, X_np, _kwargs, good_min_degree):
 
         _kwargs['min_degree'] = good_min_degree
         _kwargs['degree'] = good_min_degree + 1
 
-        SlimPoly(**_kwargs).fit_transform(X_pd)
+        SlimPoly(**_kwargs).fit_transform(X_np)
     # END min_degree ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_keep',
-        (-1, np.pi, True, False, None, [1,2], {1,2}, {1: 'a'}, lambda x: 'junk')
+        (-1,0,1, np.pi, True, False, None, [1,2], {1,2}, {'a':1}, lambda x: x)
     )
     def test_junk_keep(self, X_np, _kwargs, junk_keep):
 
@@ -122,11 +121,10 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('good_keep', ('first', 'last', 'random'))
-    def test_good_keep(self, X_pd, _columns, _kwargs, good_keep):
+    def test_good_keep(self, X_np, _columns, _kwargs, good_keep):
 
         _kwargs['keep'] = good_keep
-        SlimPoly(**_kwargs).fit_transform(X_pd)
-
+        SlimPoly(**_kwargs).fit_transform(X_np)
     # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -144,12 +142,12 @@ class TestInitValidation:
 
     @pytest.mark.parametrize('good_interaction_only', (True, False))
     def test_good_interaction_only(
-        self, X_pd, _columns, _kwargs, good_interaction_only
+        self, X_np, _columns, _kwargs, good_interaction_only
     ):
 
         _kwargs['interaction_only'] = good_interaction_only
 
-        SlimPoly(**_kwargs).fit_transform(X_pd)
+        SlimPoly(**_kwargs).fit_transform(X_np)
     # END interaction_only ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
@@ -166,12 +164,13 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('good_scan_X', (True, False))
-    def test_good_scan_X(self, X_pd, _columns, _kwargs, good_scan_X):
+    def test_good_scan_X(self, X_np, _columns, _kwargs, good_scan_X):
 
         _kwargs['scan_X'] = good_scan_X
 
-        SlimPoly(**_kwargs).fit_transform(X_pd)
+        SlimPoly(**_kwargs).fit_transform(X_np)
     # END scan_X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
 
     # sparse_output ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     @pytest.mark.parametrize('junk_sparse_output',
@@ -187,12 +186,12 @@ class TestInitValidation:
 
     @pytest.mark.parametrize('good_sparse_output', (True, False))
     def test_good_sparse_output(
-        self, X_pd, _columns, _kwargs, good_sparse_output
+        self, X_np, _columns, _kwargs, good_sparse_output
     ):
 
         _kwargs['sparse_output'] = good_sparse_output
 
-        SlimPoly(**_kwargs).fit_transform(X_pd)
+        SlimPoly(**_kwargs).fit_transform(X_np)
     # END sparse_output ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -213,9 +212,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('bad_feature_name_combiner',
-        ('that', 'was', 'trash')
-    )
+    @pytest.mark.parametrize('bad_feature_name_combiner', ('junk', 'trash'))
     def test_bad_feature_name_combiner(
         self, X_np, _kwargs, bad_feature_name_combiner
     ):
@@ -230,45 +227,44 @@ class TestInitValidation:
         ('as_indices', 'as_feature_names', lambda x, y: str(uuid.uuid4())[:5])
     )
     def test_good_feature_name_combiner(
-        self, X_pd, _columns, _kwargs, good_feature_name_combiner
+        self, X_np, _columns, _kwargs, good_feature_name_combiner
     ):
 
         _kwargs['feature_name_combiner'] = good_feature_name_combiner
 
-        SlimPoly(**_kwargs).fit_transform(X_pd)
+        SlimPoly(**_kwargs).fit_transform(X_np)
     # END feature_name_combiner ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     # equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    @pytest.mark.parametrize('junk_equal_nan',
+    @pytest.mark.parametrize('_junk',
         (-1, 0, 1, np.pi, None, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x)
     )
-    def test_non_bool_equal_nan(self, X_np, _kwargs, junk_equal_nan):
+    def test_non_bool_equal_nan(self, X_np, _kwargs, _junk):
 
-        _kwargs['equal_nan'] = junk_equal_nan
+        _kwargs['equal_nan'] = _junk
 
         with pytest.raises(TypeError):
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('good_equal_nan', [True, False])
-    def test_equal_nan_accepts_bool(self, X_np, _kwargs, good_equal_nan):
+    @pytest.mark.parametrize('_equal_nan', (True, False))
+    def test_equal_nan_accepts_bool(self, X_np, _kwargs, _equal_nan):
 
-        _kwargs['equal_nan'] = good_equal_nan
+        _kwargs['equal_nan'] = _equal_nan
 
         SlimPoly(**_kwargs).fit_transform(X_np)
-
     # END equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+
     # rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
+    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
     @pytest.mark.parametrize('_junk',
         (None, 'trash', [1,2], {1,2}, {'a':1}, lambda x: x, min)
     )
-    def test_junk_rtol_atol(self, X_np, _kwargs, _trial, _junk):
+    def test_junk_rtol_atol(self, X_np, _kwargs, _param, _junk):
 
-        _kwargs[_trial] = _junk
+        _kwargs[_param] = _junk
 
         # non-num are handled by np.allclose, let it raise
         # whatever it will raise
@@ -276,29 +272,29 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
+    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
     @pytest.mark.parametrize('_bad', [-np.pi, -2, -1, True, False])
-    def test_bad_rtol_atol(self, X_np, _kwargs, _trial, _bad):
+    def test_bad_rtol_atol(self, X_np, _kwargs, _param, _bad):
 
-        _kwargs[_trial] = _bad
+        _kwargs[_param] = _bad
 
         with pytest.raises(ValueError):
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('_trial', ('rtol', 'atol'))
+    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
     @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1))
-    def test_good_rtol_atol(self, X_np, _kwargs, _trial, _good):
+    def test_good_rtol_atol(self, X_np, _kwargs, _param, _good):
 
-        _kwargs[_trial] = _good
+        _kwargs[_param] = _good
 
         SlimPoly(**_kwargs).fit_transform(X_np)
-
     # END rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
 
     # n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_n_jobs',
-        (-2.7, 2.7, True, False, 'trash', [1, 2], {'a': 1}, lambda x: x, min)
+        (-2.7, 2.7, True, False, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x)
     )
     def test_junk_n_jobs(self, X_np, _kwargs, junk_n_jobs):
 
@@ -317,7 +313,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('good_n_jobs', [-1, 1, 10, None])
+    @pytest.mark.parametrize('good_n_jobs', [-1, 1, 2, None])
     def test_good_n_jobs(self, X_np, _kwargs, good_n_jobs):
 
         _kwargs['n_jobs'] = good_n_jobs
@@ -332,230 +328,131 @@ class TestInitValidation:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestX:
 
-    # - only accepts ndarray, pd.DataFrame, and all ss
+    # - accepts ndarray, pd.DataFrame, pl.DataFrame, and all ss
     # - cannot be None
     # - must be 2D
     # - must have at least 1 or 2 columns, depending on interaction_only
     # - must have at least 1 sample
     # - allows nan
     # - output is C contiguous
-    # - num columns must equal num columns seen during fit
-    # - validates all instance attrs --- not tested here, see _validation
-    # - does not mutate X
+    # - partial_fit/transform num columns must equal num columns seen during first fit
 
 
     # CONTAINERS #######################################################
-    def test_excepts_anytime_x_is_none(self, X_np, _kwargs):
-
-        # this is handled by _val_X
-
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).fit(None)
-
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).partial_fit(None)
-
-        with pytest.raises(ValueError):
-            TestCls = SlimPoly(**_kwargs)
-            TestCls.fit(X_np)
-            TestCls.transform(None)
-            del TestCls
-
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).fit_transform(None)
-
-
     @pytest.mark.parametrize('_junk_X',
         (-1, 0, 1, 3.14, None, 'junk', [0, 1], (1,), {'a': 1}, lambda x: x)
     )
-    def test_rejects_junk_X(self, _junk_X, _kwargs, X_np):
-        # this is being caught by validate_data at the top of partial_fit
+    def test_rejects_junk_X(self, _kwargs, X_np, _junk_X):
 
-        # PARTIAL_FIT
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).partial_fit(_junk_X)
+        TestCls = SlimPoly(**_kwargs)
 
-        # TRANSFORN
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(X_np)
-        # this is being caught by _val_X in _validation at the top of transform
+        # these are caught by base.validate_data.
         with pytest.raises(ValueError):
-            _SPF.transform(_junk_X)
+            TestCls.partial_fit(_junk_X)
+
+        with pytest.raises(ValueError):
+            TestCls.fit(_junk_X)
+
+        with pytest.raises(ValueError):
+            TestCls.fit_transform(_junk_X)
+
+        TestCls.fit(X_np)
+
+        with pytest.raises(ValueError) as e:
+            TestCls.transform(_junk_X)
+        assert not isinstance(e.value, NotFittedError)
 
 
     @pytest.mark.parametrize('_format', ('py_list', 'py_tuple'))
     def test_rejects_invalid_container(self, X_np, _columns, _kwargs, _format):
+
+        assert _format in ('py_list', 'py_tuple')
+
+        TestCls = SlimPoly(**_kwargs)
+
+        if _format == 'py_list':
+            _X_wip = list(map(list, X_np))
+        elif _format == 'py_tuple':
+            _X_wip = tuple(map(tuple, X_np))
+
+        with pytest.raises(ValueError):
+            TestCls.partial_fit(_X_wip)
+
+        with pytest.raises(ValueError):
+            TestCls.fit(_X_wip)
+
+        with pytest.raises(ValueError):
+            TestCls.fit_transform(_X_wip)
+
+        TestCls.fit(X_np) # fit on numpy, not the converted data
+
+        with pytest.raises(ValueError) as e:
+            TestCls.transform(_X_wip)
+        assert not isinstance(e.value, NotFittedError)
+
+
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'dok_matrix'))
+    def test_good_X_container(
+        self, _X_factory, _columns, _shape, _kwargs, _format
+    ):
+
+        _X_wip = _X_factory(
+            _dupl=None, _has_nan=False, _format=_format, _dtype='flt',
+            _columns=_columns, _constants=None, _noise=0, _zeros=None,
+            _shape=_shape
+        )
+
+
         _SPF = SlimPoly(**_kwargs)
 
-        if _format == 'py_list':
-            _X_wip = list(map(list, X_np.copy()))
-        elif _format == 'py_tuple':
-            _X_wip = tuple(map(tuple, X_np.copy()))
-        else:
-            raise Exception
+        _SPF.partial_fit(_X_wip)
 
-        # FROM PARTIAL_FIT
-        if _format == 'py_list':
-            with pytest.raises(ValueError):
-                _SPF.partial_fit(_X_wip)
-        elif _format == 'py_tuple':
-            with pytest.raises(ValueError):
-                _SPF.partial_fit(_X_wip)
-        else:
-            raise Exception
-        # END PARTIAL_FIT
+        _SPF.fit(_X_wip)
 
-        # TRANSFORM
-        if _format == 'py_list':
-            with pytest.raises(ValueError):
-                _SPF.transform(_X_wip)
-        elif _format == 'py_tuple':
-            with pytest.raises(ValueError):
-                _SPF.transform(_X_wip)
-        else:
-            raise Exception
-        # END TRANSFORM
+        _SPF.fit_transform(_X_wip)
 
-    @pytest.mark.parametrize('_format',
-         (
-             'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-             'lil_matrix', 'dok_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
-             'coo_array', 'dia_array', 'lil_array', 'dok_array', 'bsr_array'
-         )
-     )
-    def test_X_container(self, X_np, _columns, _kwargs, _format):
-        _X = X_np.copy()
+        _SPF.transform(_X_wip)
 
-        if _format == 'np':
-            _X_wip = _X
-        elif _format == 'pd':
-            _X_wip = pd.DataFrame(data=_X, columns=_columns)
-        elif _format == 'pl':
-            _X_wip = pl.from_numpy(data=_X, schema=list(_columns))
-        elif _format == 'csr_matrix':
-            _X_wip = ss._csr.csr_matrix(_X)
-        elif _format == 'csc_matrix':
-            _X_wip = ss._csc.csc_matrix(_X)
-        elif _format == 'coo_matrix':
-            _X_wip = ss._coo.coo_matrix(_X)
-        elif _format == 'dia_matrix':
-            _X_wip = ss._dia.dia_matrix(_X)
-        elif _format == 'lil_matrix':
-            _X_wip = ss._lil.lil_matrix(_X)
-        elif _format == 'dok_matrix':
-            _X_wip = ss._dok.dok_matrix(_X)
-        elif _format == 'bsr_matrix':
-            _X_wip = ss._bsr.bsr_matrix(_X)
-        elif _format == 'csr_array':
-            _X_wip = ss._csr.csr_array(_X)
-        elif _format == 'csc_array':
-            _X_wip = ss._csc.csc_array(_X)
-        elif _format == 'coo_array':
-            _X_wip = ss._coo.coo_array(_X)
-        elif _format == 'dia_array':
-            _X_wip = ss._dia.dia_array(_X)
-        elif _format == 'lil_array':
-            _X_wip = ss._lil.lil_array(_X)
-        elif _format == 'dok_array':
-            _X_wip = ss._dok.dok_array(_X)
-        elif _format == 'bsr_array':
-            _X_wip = ss._bsr.bsr_array(_X)
-        else:
-            raise Exception
-
-        try:
-            _X_wip_before_partial_fit = _X_wip.copy()
-        except:
-            _X_wip_before_partial_fit = _X_wip.clone()
-
-        # PARTIAL_FIT
-        SlimPoly(**_kwargs).partial_fit(_X_wip)
-
-        # verify _X_wip does not mutate in partial_fit()
-        assert isinstance(_X_wip, type(_X_wip_before_partial_fit))
-        assert _X_wip.shape == _X_wip_before_partial_fit.shape
-        if isinstance(_X_wip, np.ndarray):
-            assert _X_wip.flags['C_CONTIGUOUS'] is True
-
-        if hasattr(_X_wip_before_partial_fit, 'toarray'):
-            assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before_partial_fit.toarray()
-            )
-        elif isinstance(_X_wip_before_partial_fit, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert _X_wip.equals(_X_wip_before_partial_fit)
-        else:
-            assert np.array_equal(_X_wip_before_partial_fit, _X_wip)
-        # END PARTIAL_FIT
-
-        # TRANSFORM
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(_X)  # fit on numpy, not the converted data
-
-        try:
-            _X_wip_before_transform = _X_wip.copy()
-        except:
-            _X_wip_before_transform = _X_wip.clone()
-
-        out = _SPF.transform(_X_wip)
-        assert isinstance(out, type(_X_wip))
-
-        # if output is numpy, order is C
-        if isinstance(out, np.ndarray):
-            assert out.flags['C_CONTIGUOUS'] is True
-
-        # verify _X_wip does not mutate in transform()
-        assert isinstance(_X_wip, type(_X_wip_before_transform))
-        assert _X_wip.shape == _X_wip_before_transform.shape
-
-        if hasattr(_X_wip_before_transform, 'toarray'):
-            assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before_transform.toarray()
-            )
-        elif isinstance(_X_wip_before_transform, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert _X_wip.equals(_X_wip_before_transform)
-        else:
-            assert np.array_equal(_X_wip_before_transform, _X_wip)
-        # END TRANSFORM
     # END CONTAINERS ###################################################
 
 
     # SHAPE ############################################################
-    def test_rejects_no_samples(self, X_np, _kwargs, _columns):
-        _X = X_np.copy()
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'))
+    def test_rejects_1D(self, X_np, _kwargs, _format):
 
-        # PARTIAL_FIT
-        # dont know what is actually catching this! maybe _validate_data?
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).partial_fit(
-                np.empty((0, _X.shape[1]), dtype=np.float64)
-            )
-        # END PARTIAL_FIT
-
-        # TRANSFORM
-        _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(X_np)
-
-        # this is caught by if _X.shape[0] == 0 in _val_X
-        with pytest.raises(ValueError):
-            _SPF.transform(
-                np.empty((0, X_np.shape[1]), dtype=np.float64)
-            )
-        # END TRANSFORM
-
-    def test_rejects_1D(self, X_np, _kwargs):
-
-        with pytest.raises(ValueError):
-            SlimPoly(**_kwargs).partial_fit(X_np[:, 0])
+        # validation order is
+        # 1) check_fitted (for transform & inv_transform)
+        # 2) base.validate_data, which catches dim & min columns
+        # 3) _check_n_features in transform
+        # so for the fits, transform & inv_transform, 1D will always catch first
 
         _SPF = SlimPoly(**_kwargs)
-        _SPF.fit(X_np)
+
+        if _format == 'np':
+            _X_wip = X_np[:, 0]
+        elif _format == 'pd':
+            _X_wip = pd.Series(X_np[:, 0])
+        elif _format == 'pl':
+            _X_wip = pl.Series(X_np[:, 0])
+        else:
+            raise Exception
 
         with pytest.raises(ValueError):
-            _SPF.transform(X_np[:, 0])
+            _SPF.partial_fit(_X_wip)
 
+        with pytest.raises(ValueError):
+            _SPF.fit(_X_wip)
 
+        with pytest.raises(ValueError):
+            _SPF.transform(_X_wip)
+
+        _SPF.fit(X_np)
+
+        with pytest.raises(ValueError) as e:
+            _SPF.transform(_X_wip)
+        assert not isinstance(e.value, NotFittedError)
+
+    # pizza congruize this with IM & CDT
     @pytest.mark.parametrize('_fst_fit_x_format', ('numpy', 'pandas'))
     @pytest.mark.parametrize('_fst_fit_x_hdr', (True, None))
     @pytest.mark.parametrize('_intx_only', (True, False))
@@ -608,7 +505,7 @@ class TestX:
             assert isinstance(out, type(_fst_fit_X))
         # END TRANSFORM
 
-
+    # pizza congruize this with IM & CDT
     @pytest.mark.parametrize('_fst_fit_x_format', ('numpy', 'pandas'))
     @pytest.mark.parametrize('_fst_fit_x_hdr', (True, None))
     def test_X_as_two_columns(
@@ -638,84 +535,133 @@ class TestX:
         assert isinstance(out, type(_fst_fit_X))
 
 
-    def test_rejects_bad_num_features(self, X_np, _kwargs, _columns):
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'bsr_matrix'))
+    def test_rejects_no_samples(self, _shape, _kwargs, X_np, _format):
+
+        _SPF = SlimPoly(**_kwargs)
+
+        _X_base = np.empty((0, _shape[1]), dtype=np.float64)
+
+        if _format == 'np':
+            _X_wip = _X_base
+        elif _format == 'pd':
+            _X_wip = pd.DataFrame(_X_base)
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(_X_base)
+        elif _format == 'bsr_matrix':
+            _X_wip = ss.coo_array(_X_base)
+        else:
+            raise Exception
+
+
+        with pytest.raises(ValueError):
+            _SPF.partial_fit(_X_wip)
+
+        with pytest.raises(ValueError):
+            _SPF.fit(_X_wip)
+
+        with pytest.raises(ValueError):
+            _SPF.fit_transform(_X_wip)
+
+        _SPF.fit(X_np)
+
+        with pytest.raises(ValueError) as e:
+            _SPF.transform(_X_wip)
+        assert not isinstance(e.value, NotFittedError)
+
+
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'lil_matrix'))
+    @pytest.mark.parametrize('_diff', ('more', 'less', 'same'))
+    def test_rejects_bad_num_features(
+        self, _X_factory, _shape, _kwargs, _columns, X_np,
+        _format, _diff
+    ):
+        # ** ** ** **
+        # THERE CANNOT BE "BAD NUM FEATURES" FOR fit & fit_transform
+        # partial_fit & transform is handled by _check_n_features
+        # ** ** ** **
+
         # SHOULD RAISE ValueError WHEN COLUMNS DO NOT EQUAL NUMBER OF
-        # FITTED COLUMNS
+        # COLUMNS SEEN ON FIRST FIT
+
+        _new_shape_dict = {
+            'same': _shape,
+            'less': (_shape[0], _shape[1] - 1),
+            'more': (_shape[0], 2 * _shape[1])
+        }
+        _columns_dict = {
+            'same': _columns,
+            'less': _columns[:-1],
+            'more': np.hstack((_columns, np.char.upper(_columns)))
+        }
+
+        _X_wip = _X_factory(
+            _dupl=None, _has_nan=False, _format=_format, _dtype='flt',
+            _columns=_columns_dict[_diff],
+            _constants=None, _zeros=0,
+            _shape=_new_shape_dict[_diff]
+        )
 
         _SPF = SlimPoly(**_kwargs)
         _SPF.fit(X_np)
 
-        __ = np.array(_columns)
-        for obj_type in ['np', 'pd', 'pl']:
-            for diff_cols in ['more', 'less', 'same']:
-                if diff_cols == 'same':
-                    _X = X_np.copy()
-                    if obj_type == 'pd':
-                        _X = pd.DataFrame(data=_X, columns=__)
-                    elif obj_type == 'pl':
-                        _X = pl.from_numpy(data=_X, schema=list(__))
-                elif diff_cols == 'less':
-                    _X = X_np[:, :-1].copy()
-                    if obj_type == 'pd':
-                        _X = pd.DataFrame(data=_X, columns=__[:-1])
-                    elif obj_type == 'pl':
-                        _X = pl.from_numpy(data=_X, schema=list(__[:-1]))
-                elif diff_cols == 'more':
-                    _X = np.hstack((X_np.copy(), X_np.copy()))
-                    _COLUMNS = np.hstack((__, np.char.upper(__)))
-                    if obj_type == 'pd':
-                        _X = pd.DataFrame(data=_X, columns=_COLUMNS)
-                    elif obj_type == 'pl':
-                        _X = pl.from_numpy(data=_X, schema=list(_COLUMNS))
-                else:
-                    raise Exception
+        if _diff == 'same':
+            _SPF.partial_fit(_X_wip)
+            _SPF.transform(_X_wip)
+        else:
+            with pytest.raises(ValueError) as e:
+                _SPF.partial_fit(_X_wip)
+            assert not isinstance(e.value, NotFittedError)
+            with pytest.raises(ValueError) as e:
+                _SPF.transform(_X_wip)
+            assert not isinstance(e.value, NotFittedError)
 
-                if diff_cols == 'same':
-                    _SPF.transform(_X)
-                else:
-                    with pytest.raises(ValueError):
-                        _SPF.transform(_X)
-
-        del _SPF, obj_type, diff_cols, _X
+    # END SHAPE ########################################################
 
 
-    @pytest.mark.parametrize('fst_fit_name', ['DF1', 'DF2', 'NO_HDR_DF'])
-    @pytest.mark.parametrize('scd_fit_name', ['DF1', 'DF2', 'NO_HDR_DF'])
-    @pytest.mark.parametrize('trfm_name', ['DF1', 'DF2', 'NO_HDR_DF'])
+    @pytest.mark.parametrize('_format', ('pd', 'pl'))
+    @pytest.mark.parametrize('fst_fit_columns', ('DF1', 'DF2', 'NO_HDR_DF'))
+    @pytest.mark.parametrize('scd_fit_columns', ('DF1', 'DF2', 'NO_HDR_DF'))
+    @pytest.mark.parametrize('trfm_columns', ('DF1', 'DF2', 'NO_HDR_DF'))
     def test_except_or_warn_on_different_headers(
-        self, _X_factory, _kwargs, _columns, fst_fit_name, scd_fit_name,
-        trfm_name, _shape
+        self, _X_factory, _kwargs, _columns, _shape, _format,
+        fst_fit_columns, scd_fit_columns, trfm_columns
     ):
 
         # TEST ValueError WHEN SEES A DF HEADER DIFFERENT FROM FIRST-SEEN HEADER
 
+        _factory_kwargs = {
+            '_dupl':None, '_format':_format, '_dtype':'flt',
+            '_has_nan':False, '_constants': None, '_shape':_shape
+        }
+
         # np.flip(_columns) is bad columns
         _col_dict = {'DF1': _columns, 'DF2': np.flip(_columns), 'NO_HDR_DF': None}
 
+        fst_fit_X = _X_factory(_columns=_col_dict[fst_fit_columns], **_factory_kwargs)
+        scd_fit_X = _X_factory(_columns=_col_dict[scd_fit_columns], **_factory_kwargs)
+        trfm_X = _X_factory(_columns=_col_dict[trfm_columns], **_factory_kwargs)
+
         TestCls = SlimPoly(**_kwargs)
-        # pizza polars?
-        _factory_kwargs = {
-            '_dupl':None, '_format':'pd', '_dtype':'flt', '_has_nan':False,
-            '_constants': None, '_shape':_shape
-        }
 
-        fst_fit_X = _X_factory(_columns=_col_dict[fst_fit_name], **_factory_kwargs)
-        scd_fit_X = _X_factory(_columns=_col_dict[scd_fit_name], **_factory_kwargs)
-        trfm_X = _X_factory(_columns=_col_dict[trfm_name], **_factory_kwargs)
-
-        _objs = [fst_fit_name, scd_fit_name, trfm_name]
+        _objs = [fst_fit_columns, scd_fit_columns, trfm_columns]
         # EXCEPT IF 2 DIFFERENT HEADERS ARE SEEN
         pybear_exception = 0
         pybear_exception += bool('DF1' in _objs and 'DF2' in _objs)
-        # IF FIRST FIT WAS WITH NO HEADER, THEN ANYTHING GETS THRU ON
+        # POLARS ALWAYS HAS A HEADER
+        if _format == 'pl':
+            pybear_exception += (len(np.unique(_objs)) > 1)
+        # IF FIRST FIT WAS WITH PD NO HEADER, THEN ANYTHING GETS THRU ON
         # SUBSEQUENT partial_fits AND transform
-        pybear_exception -= bool(fst_fit_name == 'NO_HDR_DF')
+        if _format == 'pd':
+            pybear_exception -= bool(fst_fit_columns == 'NO_HDR_DF')
         pybear_exception = max(0, pybear_exception)
 
-        # WARN IF HAS-HEADER AND NOT-HEADER BOTH PASSED DURING fits/transform
+        # WARN IF HAS-HEADER AND PD NOT-HEADER BOTH PASSED DURING fits/transform
+        # POLARS SHOULDNT GET IN HERE, WILL ALWAYS EXCEPT, ALWAYS HAS A HEADER
         pybear_warn = 0
         if not pybear_exception:
-            pybear_warn += ('NO_HDR_DF' in _objs and 'NO_HDR_DF' in _objs)
+            pybear_warn += ('NO_HDR_DF' in _objs)
             # IF NONE OF THEM HAD A HEADER, THEN NO WARNING
             pybear_warn -= ('DF1' not in _objs and 'DF2' not in _objs)
             pybear_warn = max(0, pybear_warn)
@@ -723,13 +669,15 @@ class TestX:
         del _objs
 
         if pybear_exception:
-            with pytest.raises(Exception):
-                TestCls.partial_fit(fst_fit_X)
+            # this raises in _check_feature_names
+            TestCls.partial_fit(fst_fit_X)
+            with pytest.raises(ValueError) as e:
                 TestCls.partial_fit(scd_fit_X)
                 TestCls.transform(trfm_X)
+            assert not isinstance(e.value, NotFittedError)
         elif pybear_warn:
+            TestCls.partial_fit(fst_fit_X)
             with pytest.warns():
-                TestCls.partial_fit(fst_fit_X)
                 TestCls.partial_fit(scd_fit_X)
                 TestCls.transform(trfm_X)
         else:
@@ -737,8 +685,6 @@ class TestX:
             TestCls.partial_fit(fst_fit_X)
             TestCls.partial_fit(scd_fit_X)
             TestCls.transform(trfm_X)
-
-    # END SHAPE ########################################################
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
@@ -755,21 +701,51 @@ class TestPartialFit:
     def test_X_is_not_mutated(
         self, _X_factory, _columns, _shape, _kwargs, _format
     ):
-        pass
+
+        _X_wip = _X_factory(
+            _dupl=None, _has_nan=False, _format=_format, _dtype='flt',
+            _columns=_columns, _constants=None, _noise=0, _zeros=None,
+            _shape=_shape
+        )
+
+        if _format == 'np':
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
+
+        try:
+            _X_wip_before = _X_wip.copy()
+        except:
+            _X_wip_before = _X_wip.clone()
 
 
-    @pytest.mark.parametrize('_test_y',
-        (-1, 0, 1, np.pi, True, False, None, 'trash', [1, 2], {1, 2}, {'a': 1},
+        # verify _X_wip does not mutate in partial_fit()
+        SlimPoly(**_kwargs).partial_fit(_X_wip)
+
+
+        # ASSERTIONS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        assert isinstance(_X_wip, type(_X_wip_before))
+        assert _X_wip.shape == _X_wip_before.shape
+
+        if isinstance(_X_wip, np.ndarray):
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
+            assert np.array_equal(_X_wip_before, _X_wip)
+        elif hasattr(_X_wip, 'columns'):  # DATAFRAMES
+            assert _X_wip.equals(_X_wip_before)
+        elif hasattr(_X_wip_before, 'toarray'):
+            assert np.array_equal(_X_wip.toarray(), _X_wip_before.toarray())
+        else:
+            raise Exception
+
+
+    @pytest.mark.parametrize('_y',
+        (-1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
         lambda x: x, min)
     )
-    def test_fit_partial_fit_accept_Y_equals_anything(self, _kwargs, X_np, _test_y):
-        SlimPoly(**_kwargs).fit(X_np, _test_y)
-        SlimPoly(**_kwargs).partial_fit(X_np, _test_y)
+    def test_fit_partial_fit_accept_Y_equals_anything(self, _kwargs, X_np, _y):
+        SlimPoly(**_kwargs).partial_fit(X_np, _y)
+        SlimPoly(**_kwargs).fit(X_np, _y)
 
 
-    def test_conditional_access_to_partial_fit_and_fit(
-        self, X_np, _kwargs
-    ):
+    def test_conditional_access_to_partial_fit_and_fit(self, X_np, _kwargs):
 
         TestCls = SlimPoly(**_kwargs)
 
@@ -777,42 +753,43 @@ class TestPartialFit:
         for _ in range(5):
             TestCls.partial_fit(X_np)
 
-        del TestCls
+        TestCls.reset()
 
         # 2) one call to fit() should allow subsequent attempts to partial_fit()
-        TestCls = SlimPoly(**_kwargs)
         TestCls.fit(X_np)
         TestCls.partial_fit(X_np)
 
-        del TestCls
+        TestCls.reset()
 
         # 3) one call to fit() should allow later attempts to fit() (2nd fit will reset)
-        TestCls = SlimPoly(**_kwargs)
         TestCls.fit(X_np)
         TestCls.fit(X_np)
 
-        del TestCls
+        TestCls.reset()
 
-        # 4) calls to partial_fit() should allow later attempt to fit() (fit will reset)
-        TestCls = SlimPoly(**_kwargs)
+        # 4) a call to fit() after a previous partial_fit() should be allowed
         TestCls.partial_fit(X_np)
         TestCls.fit(X_np)
 
-        # 5) fit transform should allow calls ad libido
+        TestCls.reset()
+
+        # 5) fit transform() should allow calls ad libido
         for _ in range(5):
             TestCls.fit_transform(X_np)
 
-        del TestCls
-
 
     @pytest.mark.parametrize('_keep', ('first', 'last', 'random'))
-    def test_many_partial_fits_equal_one_big_fit(self, _kwargs, _keep):
+    def test_many_partial_fits_equal_one_big_fit(
+        self, _kwargs, _shape, _keep
+    ):
 
         # **** **** **** **** **** **** **** **** **** **** **** **** ****
         # THIS TEST IS CRITICAL FOR VERIFYING THAT transform PULLS THE
         # SAME COLUMN INDICES FOR ALL CALLS TO transform() WHEN
         # keep=='random'
         # **** **** **** **** **** **** **** **** **** **** **** **** ****
+
+        # X_np has no nans
 
         _kwargs['keep'] = _keep
 
@@ -1023,13 +1000,13 @@ class TestTransform:
             raise Exception
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'coo_matrix'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_matrix'))
     def test_X_is_not_mutated(
         self, _X_factory, _columns, _shape, _kwargs, _format
     ):
 
         _X_wip = _X_factory(
-            _has_nan=False, _format=_format, _dtype='flt',
+            _dupl=None, _has_nan=False, _format=_format, _dtype='flt',
             _columns=_columns, _constants=None, _noise=0, _zeros=None,
             _shape=_shape
         )
@@ -1064,6 +1041,54 @@ class TestTransform:
             )
         else:
             raise Exception
+
+    # pizza pick up IM & CDT 3-way here
+    @pytest.mark.parametrize('_equal_nan', (True, False))
+    def test_one_all_nans(self, _kwargs, X_np, _shape, _equal_nan):
+
+        # do this with interaction_only = False
+        _kwargs['interaction_only'] = False
+
+        # scan_X must be True! or SlimPoly wont find the constants in X
+        _kwargs['scan_X'] = True
+
+        _kwargs['equal_nan'] = _equal_nan
+
+        # create 2 columns, one of them is all nans
+
+        # if equal_nan, then SlimPoly should see the nans as a column of
+        # constants in X, and transform() should always be a no-op
+
+        # if not equal_nan, then it wont be a column of constants in X,
+        # the poly component should have 3 columns.
+        #   1) column 1 squared
+        #   2) column 2 squared, which should be nans
+        #   3) the interaction term, and that should be all nans
+        # should return the original 2 columns and the 3 poly columns
+
+        _X = X_np[:, :2].copy()
+
+        # set a column to all nans
+        _X[:, -1] = np.nan
+        # verify last column is all nans
+        assert all(nan_mask_numerical(_X[:, -1]))
+
+        TestCls = SlimPoly(**_kwargs).fit(_X)
+
+        if _equal_nan:
+            with pytest.warns():
+                out = TestCls.transform(_X)
+            assert out is None
+        elif not _equal_nan:
+            out = TestCls.transform(_X)
+
+            assert out.shape == (_shape[0], 5)
+
+            assert np.array_equal(out[:, 0], _X[:, 0])
+            assert all(nan_mask_numerical(out[:, 1]))
+            assert np.array_equal(out[:, 2], np.power(_X[:, 0], 2), equal_nan=True)
+            assert all(nan_mask_numerical(out[:, 3]))
+            assert all(nan_mask_numerical(out[:, 4]))
 
 
     def test_all_ones_in_X(self, _kwargs, X_np):
@@ -1125,54 +1150,6 @@ class TestTransform:
 
 
     @pytest.mark.parametrize('_equal_nan', (True, False))
-    def test_one_all_nans(self, _kwargs, X_np, _shape, _equal_nan):
-
-        # do this with interaction_only = False
-        _kwargs['interaction_only'] = False
-
-        # scan_X must be True! or SlimPoly wont find the constants in X
-        _kwargs['scan_X'] = True
-
-        _kwargs['equal_nan'] = _equal_nan
-
-        # create 2 columns, one of them is all nans
-
-        # if equal_nan, then SlimPoly should see the nans as a column of
-        # constants in X, and transform() should always be a no-op
-
-        # if not equal_nan, then it wont be a column of constants in X,
-        # the poly component should have 3 columns.
-        #   1) column 1 squared
-        #   2) column 2 squared, which should be nans
-        #   3) the interaction term, and that should be all nans
-        # should return the original 2 columns and the 3 poly columns
-
-        _X = X_np[:, :2].copy()
-
-        # set a column to all nans
-        _X[:, -1] = np.nan
-        # verify last column is all nans
-        assert all(nan_mask_numerical(_X[:, -1]))
-
-        TestCls = SlimPoly(**_kwargs).fit(_X)
-
-        if _equal_nan:
-            with pytest.warns():
-                out = TestCls.transform(_X)
-            assert out is None
-        elif not _equal_nan:
-            out = TestCls.transform(_X)
-
-            assert out.shape == (_shape[0], 5)
-
-            assert np.array_equal(out[:, 0], _X[:, 0])
-            assert all(nan_mask_numerical(out[:, 1]))
-            assert np.array_equal(out[:, 2], np.power(_X[:, 0], 2), equal_nan=True)
-            assert all(nan_mask_numerical(out[:, 3]))
-            assert all(nan_mask_numerical(out[:, 4]))
-
-
-    @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_intx_creates_all_nans(self, _kwargs, _equal_nan):
 
         # rig X to have 2 columns that multiply to all nans
@@ -1212,7 +1189,6 @@ class TestTransform:
             assert np.array_equal(out[:, 0], _X[:, 0], equal_nan=True)
             assert np.array_equal(out[:, 1], _X[:, 1], equal_nan=True)
             assert all(nan_mask_numerical(out[:, 2]))
-
 
 
     # pizza this needs a lot of work for polars. assess the need for this test.
