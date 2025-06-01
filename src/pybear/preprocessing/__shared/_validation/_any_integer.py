@@ -83,7 +83,7 @@ def _val_any_integer(
         raise TypeError(f"'_max' must be a number. got {_max}.")
     if _min > _max:
         raise ValueError(
-            f"'_min' cannot be greather than '_max'. got {_min} and {_max}."
+            f"'_min' cannot be greater than '_max'. got {_min} and {_max}."
         )
     err_msg = (f"'_disallowed must be a python Sequence of integers. "
                f"\ngot {_disallowed}.")

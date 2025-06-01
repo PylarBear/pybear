@@ -304,7 +304,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('bad_n_jobs', [-3, -2, 0])
+    @pytest.mark.parametrize('bad_n_jobs', (-3, -2, 0))
     def test_bad_n_jobs(self, X_np, _kwargs, bad_n_jobs):
 
         _kwargs['n_jobs'] = bad_n_jobs
@@ -313,7 +313,7 @@ class TestInitValidation:
             SlimPoly(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('good_n_jobs', [-1, 1, 2, None])
+    @pytest.mark.parametrize('good_n_jobs', (-1, 1, 2, None))
     def test_good_n_jobs(self, X_np, _kwargs, good_n_jobs):
 
         _kwargs['n_jobs'] = good_n_jobs
@@ -321,6 +321,37 @@ class TestInitValidation:
         SlimPoly(**_kwargs).fit_transform(X_np)
 
     # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    # job_size ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    @pytest.mark.parametrize('junk_job_size',
+        (-2.7, 2.7, True, False, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x)
+    )
+    def test_junk_job_size(self, X_np, _kwargs, junk_job_size):
+
+        _kwargs['job_size'] = junk_job_size
+
+        with pytest.raises(TypeError):
+            SlimPoly(**_kwargs).fit_transform(X_np)
+
+
+    @pytest.mark.parametrize('bad_job_size', (-1, 0))
+    def test_bad_job_size(self, X_np, _kwargs, bad_job_size):
+
+        _kwargs['job_size'] = bad_job_size
+
+        with pytest.raises(ValueError):
+            SlimPoly(**_kwargs).fit_transform(X_np)
+
+
+    @pytest.mark.parametrize('good_job_size', (2, 20))
+    def test_good_job_size(self, X_np, _kwargs, good_job_size):
+
+        _kwargs['job_size'] = good_job_size
+
+        SlimPoly(**_kwargs).fit_transform(X_np)
+
+    # END job_size ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 # END test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

@@ -66,7 +66,8 @@ class TestFindDuplicates:
                 _rtol=1e-5,
                 _atol=1e-8,
                 _equal_nan=True,
-                _n_jobs=1   # leave set a 1 because of confliction
+                _n_jobs=1,   # leave set a 1 because of confliction
+                _job_size=20
             )
 
 
@@ -109,7 +110,8 @@ class TestFindDuplicates:
 
         # leave n_jobs set at 1 because of confliction
         out = _find_duplicates(
-            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan, _n_jobs=1
+            _X_wip, _rtol=1e-5, _atol=1e-8,
+            _equal_nan=_equal_nan, _n_jobs=1, _job_size=20
         )
 
         if (not _equal_nan and _has_nan) or _dupl_set in [2]:
@@ -148,7 +150,8 @@ class TestFindDuplicates:
 
         # leave set a 1 because of confliction
         out = _find_duplicates(
-            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=True, _n_jobs=1
+            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=True,
+            _n_jobs=1, _job_size=20
         )
 
         assert np.array_equal(out[0], list(range(_shape[1])))

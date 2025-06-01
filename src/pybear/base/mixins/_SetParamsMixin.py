@@ -71,7 +71,7 @@ class SetParamsMixin:
         # that isnt instantiated.
         if not hasattr(self, 'set_params'):
             raise TypeError(
-                f":meth: set_params is being called on the class, not an "
+                f":meth: 'set_params' is being called on the class, not an "
                 f"instance. Instantiate the class, then call set_params."
             )
         # END catch invalid estimator/transformer or class (not instance)

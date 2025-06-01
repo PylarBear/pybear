@@ -20,7 +20,6 @@ from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
 class TestSetParams:
 
 
-
     @staticmethod
     @pytest.fixture(scope='function')
     def _kwargs(_kwargs):
@@ -42,7 +41,8 @@ class TestSetParams:
             'keep': 'first',
             'sparse_output': False,
             'feature_name_combiner': lambda _columns, _x: 'abc',
-            'n_jobs': 1
+            'n_jobs': 1,
+            'job_size': 20
         }
 
 
@@ -60,7 +60,8 @@ class TestSetParams:
             'rtol': 1e-4,  # <==== diff
             'atol': 1e-7,  # <==== diff
             'equal_nan': True,  # <==== diff
-            'n_jobs': 2  # <==== diff
+            'n_jobs': 2,  # <==== diff
+            'job_size': 30  # <==== diff
         }
 
 
@@ -71,7 +72,8 @@ class TestSetParams:
             'keep': 'last',  # <==== diff
             'sparse_output': False,
             'feature_name_combiner': lambda _columns, _x: 'xyz', # <==== diff
-            'n_jobs': 2  # <==== diff
+            'n_jobs': 2,  # <==== diff
+            'job_size': 30  # <==== diff
         }
 
     # END Fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -85,15 +87,16 @@ class TestSetParams:
         # CAN SET ANYTHING BEFORE FIT
         TestCls.set_params(**_kwargs)
 
-        # 'keep', 'sparse_output', 'feature_name_combiner',
-        # and 'n_jobs' not blocked after fit()
+        # 'keep', 'sparse_output', 'feature_name_combiner', 'n_jobs' and
+        # 'job_size' not blocked after fit()
         TestCls.fit(X_np, y_np)
 
         allowed_kwargs = {
             'keep': 'last',
             'sparse_output': True,
             'feature_name_combiner': lambda _columns, _x: 'whatever',
-            'n_jobs': 2
+            'n_jobs': 2,
+            'job_size': 20
         }
 
         TestCls.set_params(**allowed_kwargs)
@@ -104,7 +107,7 @@ class TestSetParams:
         # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
         #  ANYTHING OTHER THAN 'keep', 'sparse_output', 'feature_name_combiner',
-        #         # and 'n_jobs' are blocked after fit() and warns.
+        #  'n_jobs' & 'job_size' are blocked after fit() and warns.
         disallowed_kwargs = {
             'degree': 3,
             'min_degree': 2,
@@ -150,7 +153,6 @@ class TestSetParams:
         # were not changed
         assert TestCls.degree == 2
         assert TestCls.min_degree == 1
-
 
 
     def test_equality_set_params_before_and_after_fit(
@@ -204,6 +206,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-7
         assert SecondTestClass.equal_nan is True
         assert SecondTestClass.n_jobs == 1  # <==== allowed
+        assert SecondTestClass.job_size == 20  # <==== allowed
         THIRD_TRFM_X = SecondTestClass.transform(X_np)
         assert SecondTestClass.degree == 3
         assert SecondTestClass.min_degree == 2
@@ -216,6 +219,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-7
         assert SecondTestClass.equal_nan is True
         assert SecondTestClass.n_jobs == 1  # <==== allowed
+        assert SecondTestClass.job_size == 20  # <==== allowed
         del SecondTestClass
 
         # THE PARAMS THAT ARE NOT ALLOWED TO CHANGE AFTER FIT CONTROL THIS
@@ -253,6 +257,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-8
         assert SecondTestClass.equal_nan is False
         assert SecondTestClass.n_jobs == 2   # <==== allowed
+        assert SecondTestClass.job_size == 30  # <==== allowed
         SECOND_TRFM_X = SecondTestClass.fit_transform(X_np, y_np)
         assert SecondTestClass.degree == 2
         assert SecondTestClass.min_degree == 1
@@ -265,6 +270,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-8
         assert SecondTestClass.equal_nan is False
         assert SecondTestClass.n_jobs == 2   # <==== allowed
+        assert SecondTestClass.job_size == 30  # <==== allowed
 
         # THE PARAMS THAT ARE NOT ALLOWED TO CHANGE AFTER FIT CONTROL THIS
         # SINCE THEY CANT BE CHANGED, SECOND MUST EQUAL FIRST
@@ -285,6 +291,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-8
         assert SecondTestClass.equal_nan is False
         assert SecondTestClass.n_jobs == 1   # <==== allowed
+        assert SecondTestClass.job_size == 20  # <==== allowed
         THIRD_TRFM_X = SecondTestClass.fit_transform(X_np, y_np)
         assert SecondTestClass.degree == 2
         assert SecondTestClass.min_degree == 1
@@ -297,6 +304,7 @@ class TestSetParams:
         assert SecondTestClass.atol == 1e-8
         assert SecondTestClass.equal_nan is False
         assert SecondTestClass.n_jobs == 1   # <==== allowed
+        assert SecondTestClass.job_size == 20  # <==== allowed
 
         # THE PARAMS THAT ARE NOT ALLOWED TO CHANGE AFTER FIT CONTROL THIS
         # SINCE THEY CANT BE CHANGED, THIRD MUST EQUAL SECOND
@@ -338,6 +346,7 @@ class TestSetParams:
         assert TestClass.atol == 1e-8
         assert TestClass.equal_nan is False
         assert TestClass.n_jobs == 2  # <==== allowed
+        assert TestClass.job_size == 30  # <==== allowed
         SECOND_TRFM_X = TestClass.transform(X_np)
         assert TestClass.degree == 2
         assert TestClass.min_degree == 1
@@ -350,6 +359,7 @@ class TestSetParams:
         assert TestClass.atol == 1e-8
         assert TestClass.equal_nan is False
         assert TestClass.n_jobs == 2  # <==== allowed
+        assert TestClass.job_size == 30  # <==== allowed
 
         # THE PARAMS THAT ARE NOT ALLOWED TO CHANGE AFTER FIT CONTROL THIS
         # SINCE THEY CANT BE CHANGED, SECOND MUST EQUAL FIRST
@@ -368,6 +378,7 @@ class TestSetParams:
         assert TestClass.atol == 1e-8
         assert TestClass.equal_nan is False
         assert TestClass.n_jobs == 1  # <==== allowed
+        assert TestClass.job_size == 20  # <==== allowed
         # transform again, and compare with the first output
         THIRD_TRFM_X = TestClass.transform(X_np)
         assert TestClass.degree == 2

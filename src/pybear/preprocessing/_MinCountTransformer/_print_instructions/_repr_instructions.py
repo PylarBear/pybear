@@ -37,14 +37,14 @@ def _repr_instructions(
     Display instructions generated for the current fitted state, subject
     to the current settings of the parameters. The printout will indicate
     what values and columns will be deleted, and if all columns or all
-    rows will be deleted. Use :method: set_params after finishing fits
+    rows will be deleted. Use :meth: `set_params` after finishing fits
     to change MCTs parameters and see the impact on the transformation.
 
     If the instance has multiple recursions (i.e., :param: max_recursions
-    is > 1), parameters cannot be changed via :method: set_params, but
+    is > 1), parameters cannot be changed via :meth: `set_params`, but
     the net effect of the actual transformation that was performed is
     displayed (remember that multiple recursions can only be accessed
-    through :method: fit_transform). The results are displayed as a
+    through :meth: `fit_transform`). The results are displayed as a
     single set of instructions, as if to perform the cumulative effect
     of the recursions in a single step.
 

@@ -28,10 +28,11 @@ class TestValidation:
     @pytest.mark.parametrize('_scan_X', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
     @pytest.mark.parametrize('_n_jobs', (-1, 1))
+    @pytest.mark.parametrize('_job_size', (3, 8))
     def test_accepts_good(
         self, _X_factory, _degree, _min_degree, _keep, _interaction_only,
         _sparse_output, _feature_name_combiner, _rtol, _atol, _scan_X,
-        _equal_nan, _n_jobs, _shape
+        _equal_nan, _n_jobs, _job_size, _shape
     ):
 
         _X = _X_factory(_format='np', _shape=_shape)
@@ -48,7 +49,8 @@ class TestValidation:
             _rtol,
             _atol,
             _equal_nan,
-            _n_jobs
+            _n_jobs,
+            _job_size
         )
 
 

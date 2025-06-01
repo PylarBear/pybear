@@ -12,10 +12,9 @@ from .._type_aliases import (
     DuplicatesType
 )
 
-from collections import defaultdict
 import math
-import numbers
 import itertools
+import numbers
 
 import numpy as np
 import pandas as pd
@@ -35,7 +34,8 @@ def _find_duplicates(
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,
-    _n_jobs: Union[numbers.Integral, None]
+    _n_jobs: Union[numbers.Integral, None],
+    _job_size: numbers.Integral
 ) -> DuplicatesType:
 
     """
@@ -77,12 +77,15 @@ def _find_duplicates(
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
-    n_jobs:
+    _n_jobs:
         Union[numbers.Integral, None] - The number of joblib Parallel
         jobs to use when comparing columns. The default is to use
         processes, but can be overridden externally using a joblib
         parallel_config context manager. The default number of jobs is
         -1 (all processors).
+    _job_size:
+        numbers.Integral - The number of columns to send to a joblib job.
+        Must be an integer greater than or equal to 2.
 
 
     Return
@@ -100,16 +103,17 @@ def _find_duplicates(
     assert isinstance(_rtol, numbers.Real) and _rtol >= 0
     assert isinstance(_atol, numbers.Real) and _atol >= 0
     assert isinstance(_equal_nan, bool)
-    assert isinstance(_n_jobs, (int, type(None)))
+    assert isinstance(_n_jobs, (numbers.Integral, type(None)))
+    assert isinstance(_job_size, numbers.Integral)
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     args = (_rtol, _atol, _equal_nan)
 
     # set the batch size for joblib
-    _n_cols = 20
+    _job_size = 20
 
-    if _X.shape[1] < 2 * _n_cols:
+    if _X.shape[1] < 2 * _job_size:
 
         _all_duplicates = []  # not used later, just a helper to track duplicates
 
@@ -148,12 +152,12 @@ def _find_duplicates(
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             _dupls = joblib.Parallel(return_as='list')(
                 joblib.delayed(_parallel_chunk_comparer)(
-                    _columns_getter(_X, tuple(range(i * _n_cols, min(_n_cols * (i+1), _X.shape[1])))),
-                    tuple(range(i * _n_cols, min(_n_cols * (i + 1), _X.shape[1]))),
-                    _columns_getter(_X, tuple(range(j * _n_cols, min(_n_cols * (j+1), _X.shape[1])))),
-                    tuple(range(j * _n_cols, min(_n_cols * (j + 1), _X.shape[1]))),
+                    _columns_getter(_X, tuple(range(i * _job_size, min(_job_size * (i+1), _X.shape[1])))),
+                    tuple(range(i * _job_size, min(_job_size * (i + 1), _X.shape[1]))),
+                    _columns_getter(_X, tuple(range(j * _job_size, min(_job_size * (j+1), _X.shape[1])))),
+                    tuple(range(j * _job_size, min(_job_size * (j + 1), _X.shape[1]))),
                     *args
-                    ) for i, j in itertools.combinations_with_replacement(range(math.ceil(_X.shape[1]/_n_cols)), 2)
+                    ) for i, j in itertools.combinations_with_replacement(range(math.ceil(_X.shape[1]/_job_size)), 2)
                 )
 
         _dupls = list(itertools.chain(*_dupls))
@@ -174,7 +178,6 @@ def _find_duplicates(
 
 
     return duplicates_
-
 
 
 

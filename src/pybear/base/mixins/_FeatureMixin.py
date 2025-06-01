@@ -186,7 +186,7 @@ class FeatureMixin:
         This mixin provides the get_feature_names_out() method of the
         pybear API to pybear transformers. The get_feature_names_out()
         method returns the features names that correspond to the output
-        of :method: transform. This particular mixin can only be used
+        of :meth: `transform`. This particular mixin can only be used
         for transformers that do not alter the feature axis, that is,
         the feature name output is one-to-one with the feature name
         input. If the transformer does alter the feature axis of the

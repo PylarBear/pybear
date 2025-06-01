@@ -31,7 +31,7 @@ def _val_instructions(
     ----------
     _instructions:
         InstructionType - instructions for keeping, deleting, or adding
-        constant columns, to be applied during :meth: transform
+        constant columns, to be applied during :meth: `transform`.
     _n_features_in:
         int - number of features in the fitted data before transform.
 

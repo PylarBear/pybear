@@ -24,8 +24,8 @@ class TestJoblib:
 
     def test_it_works(self, _X_factory):
 
-        # as of 25_05_31 _n_cols is 20 so use something 2X+ bigger
-        _shape = (123, 45)
+        # _job_size is set to 10 below
+        _shape = (123, 23)
 
 
         _X = _X_factory(
@@ -48,7 +48,8 @@ class TestJoblib:
             _equal_nan=True,
             _rtol=1e-5,
             _atol=1e-8,
-            _n_jobs=2
+            _n_jobs=2,
+            _job_size=10
         )
 
         # returns a list of tuples

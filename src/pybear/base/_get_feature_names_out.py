@@ -39,8 +39,8 @@ def get_feature_names_out(
         Union[Iterable[str], None] - Input features.
     feature_names_in_:
         Union[npt.NDArray[object], None] - The names of the features as
-        seen during fitting. Only available if X is passed to :methods:
-        partial_fit or fit as a pandas dataframe that has a header.
+        seen during fitting. Only available if X is passed to :meth:
+        `partial_fit` or :meth: `fit` in a container that has a header.
     n_features_in_:
         numbers.Integral - The number of features in X.
 
