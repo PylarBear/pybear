@@ -157,7 +157,10 @@ class TestRiggedCasePolyHasConstantsAndDupls:
                     assert out.shape[1] == 0
                 elif not intx_only:
                     assert isinstance(out, np.ndarray)
-                    assert out.shape[1] == 0
+                    assert out.shape[1] == 3
+                    assert np.array_equal(out[:, 0], _X_np[:, 0])
+                    assert np.array_equal(out[:, 1], _X_np[:, 1])
+                    assert np.array_equal(out[:, 2], _X_np[:, 2])
 
 
 class TestRiggedCaseAllIntxAreDupl:

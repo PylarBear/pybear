@@ -167,8 +167,6 @@ class TestRiggedCasePolyHasConstantsAndDupls:
         self, _kwargs, _shape, min_degree, intx_only
     ):
 
-        # remember that min_degree == 1 shouldnt affect these
-
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['degree'] = 2
         _new_kwargs['min_degree'] = min_degree
@@ -193,59 +191,99 @@ class TestRiggedCasePolyHasConstantsAndDupls:
         out = TestCls.poly_combinations_
         assert isinstance(out, tuple)
         assert all(map(isinstance, out, (tuple for _ in out)))
-        assert len(out) == 0
+        if min_degree == 1:
+            # the squares of the og columns, which are in [0,1], would be equal
+            # to the og column, so not included in output if og X is included.
+            assert len(out) == 0
+        elif min_degree == 2:
+            if intx_only:
+                assert len(out) == 0
+            elif not intx_only:
+                # but if the og data is not included, then the squared columns have
+                # nothing to be a duplicate of anymore, so they stay.
+                assert len(out) == _X.shape[1]
+                assert out == ((0, 0), (1, 1), (2, 2))
+        else:
+            raise Exception
         # END poly_combinations_ - - - - - - - - - - - - - - - - - - - - - - -
 
         # poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.poly_duplicates_
         assert isinstance(out, list)
         assert all(map(isinstance, out, (list for _ in out)))
-        if intx_only:
+        if min_degree == 1:
             # because all the intx columns are constants
+            # and the squares are duplicates of columns in X
+            if intx_only:
+                assert len(out) == 0
+            elif not intx_only:
+                assert len(out) == _X.shape[1]
+                assert out[0] == [(0,), (0, 0)]
+                assert out[1] == [(1,), (1, 1)]
+                assert out[2] == [(2,), (2, 2)]
+        elif min_degree == 2:
+            # all the duplicates are of columns in X, which isnt attached,
+            # so they arent duplicates
             assert len(out) == 0
-        elif not intx_only:
-            # all the duplicates are of columns in X
-            assert len(out) == 3
-            assert out[0] == [(0,), (0, 0)]
-            assert out[1] == [(1,), (1, 1)]
-            assert out[2] == [(2,), (2, 2)]
+        else:
+            raise Exception
         # END poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - -
 
         # kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.kept_poly_duplicates_
         assert isinstance(out, dict)
         assert all(map(isinstance, out, (tuple for _ in out)))
-        if intx_only:
-            # because there are no duplicates, only constants
-            assert len(out) == 0
-        elif not intx_only:
-            # all the duplicates are of columns in X
-            assert len(out) == 3
-            _keys = list(out.keys())
-            assert _keys[0] == (0, )
-            assert out[_keys[0]] == [(0, 0)]
-            assert _keys[1] == (1, )
-            assert out[_keys[1]] == [(1, 1)]
-            assert _keys[2] == (2, )
-            assert out[_keys[2]] == [(2, 2)]
+        if min_degree == 1:
+            if intx_only:
+                # because there are no duplicates, only constants
+                assert len(out) == 0
+            elif not intx_only:
+                # all the duplicates are of columns in X
+                assert len(out) == 3
+                _keys = list(out.keys())
+                assert _keys[0] == (0, )
+                assert out[_keys[0]] == [(0, 0)]
+                assert _keys[1] == (1, )
+                assert out[_keys[1]] == [(1, 1)]
+                assert _keys[2] == (2, )
+                assert out[_keys[2]] == [(2, 2)]
+        elif min_degree == 2:
+            if intx_only:
+                # because there are no duplicates, only constants
+                assert len(out) == 0
+            elif not intx_only:
+                # all poly duplicates would be dupl of columns in X
+                assert len(out) == 0
+        else:
+            raise Exception
         # END kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - -
 
         # dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.dropped_poly_duplicates_
         assert isinstance(out, dict)
         assert all(map(isinstance, out, (tuple for _ in out)))
-        if intx_only:
-            # because there are no duplicates, only constants
-            assert len(out) == 0
-        elif not intx_only:
-            assert len(out) == 3
-            _keys = list(out.keys())
-            assert _keys[0] == (0, 0)
-            assert out[_keys[0]] == (0,)
-            assert _keys[1] == (1, 1)
-            assert out[_keys[1]] == (1,)
-            assert _keys[2] == (2, 2)
-            assert out[_keys[2]] == (2,)
+        if min_degree == 1:
+            if intx_only:
+                # because there are no duplicates, only constants
+                assert len(out) == 0
+            elif not intx_only:
+                assert len(out) == 3
+                _keys = list(out.keys())
+                assert _keys[0] == (0, 0)
+                assert out[_keys[0]] == (0,)
+                assert _keys[1] == (1, 1)
+                assert out[_keys[1]] == (1,)
+                assert _keys[2] == (2, 2)
+                assert out[_keys[2]] == (2,)
+        elif min_degree == 2:
+            if intx_only:
+                # because there are no duplicates, only constants
+                assert len(out) == 0
+            elif not intx_only:
+                # all poly duplicates would be dupl of columns in X
+                assert len(out) == 0
+        else:
+            raise Exception
         # END dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - - -
 
         # poly_constants_ - - - - - - - - - - - - - - - - - - - - - - -

@@ -72,7 +72,7 @@ def _val_keep_and_columns(
     """
 
 
-    # validate types, shapes, of _columns ** * ** * ** * ** * ** * ** * **
+    # validate types, shapes, of _columns ** * ** * ** * ** * ** * ** *
 
     if _columns is None:
         pass
@@ -83,7 +83,7 @@ def _val_keep_and_columns(
                 raise Exception
             assert len(_columns) == _X.shape[1]
             assert all(map(isinstance, _columns, (str for _ in _columns)))
-        except:
+        except Exception as e:
             raise ValueError(
                 f"If passed, '_columns' must be a vector of strings whose "
                 f"length is equal to the number of features in the data."
@@ -98,11 +98,12 @@ def _val_keep_and_columns(
         f"\nLiteral['first', 'last', 'random', 'none'], "
         f"\ndict[str, any], "
         f"\nint (column index), "
-        f"\nstr (column header, if X was passed as pandas dataframe with a header), "
-        f"\ncallable on X, returning an integer indicating a valid column index"
+        f"\nstr (column header, if X was passed in a container with a header), "
+        f"\ncallable on X, returning an integer indicating a valid column index."
+        f"\ngot {type(_keep)}"
     )
 
-    # validate keep as dict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validate keep as dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
     if isinstance(_keep, dict):
         _name = list(_keep.keys())[0]
         # must be one entry and key must be str
@@ -141,15 +142,15 @@ def _val_keep_and_columns(
             raise UnicodeError
         except BrokenPipeError:
             raise ValueError(
-                f"The 'keep' dictionary value is a callable, which IM does not "
-                f"allow. " + _base_msg
+                f"The 'keep' dictionary value is a callable, which IM "
+                f"does not allow. " + _base_msg
             )
         except UnicodeError:
             raise ValueError(
-                f"The 'keep' dictionary value is a non-string sequence, which "
-                f"IM does not allow. " + _base_msg
+                f"The 'keep' dictionary value is a non-string sequence, "
+                f"which IM does not allow. " + _base_msg
             )
-        except:
+        except Exception as e:
             # accept anything that is string or not a sequence
             pass
 
@@ -157,9 +158,9 @@ def _val_keep_and_columns(
 
         return # <====================================================
 
-    # END validate keep as dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validate keep as dict ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # validate keep as callable ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validate keep as callable ** * ** * ** * ** * ** * ** * ** * ** *
     # returns an integer in range of num X features
     if callable(_keep):
         # this checks if callable(X) is int and in range of X.shape[1]
@@ -168,19 +169,19 @@ def _val_keep_and_columns(
             float(_test_keep)
             if _test_keep != int(_test_keep):
                 raise Exception
-            if isinstance(_keep, bool):
+            if isinstance(_test_keep, bool):
                 raise Exception
             _test_keep = int(_test_keep)
             if _test_keep not in range(_X.shape[1]):
                 raise Exception
             del _test_keep
-            return  # <====================================================
-        except:
-            ValueError(_err_msg)
+            return  # <=================================================
+        except Exception as e:
+            raise ValueError(_err_msg)
 
-    # END validate keep as callable ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validate keep as callable ** * ** * ** * ** * ** * ** * ** *
 
-    # validate keep as str ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # validate keep as str ** * ** * ** * ** * ** * ** * ** * ** * ** *
     if isinstance(_keep, str):
         # could be one of the literals or a column header
         if _keep in ('first', 'last', 'random', 'none'):
@@ -188,11 +189,12 @@ def _val_keep_and_columns(
             if _columns is not None and _keep in _columns:
                 # if a feature name is one of the literals
                 raise ValueError(
-                    f"\nThere is a conflict with one of the feature names and "
-                    f"the literals for :param: keep. \nColumn '{_keep}' conflicts "
-                    f"with a keep literal. \nAllowed keep literals (case "
-                    f"sensitive): 'first', 'last', 'random', 'none'. \nPlease "
-                    f"change the column name or use a different keep literal.\n"
+                    f"\nThere is a conflict with one of the feature names "
+                    f"and the literals for :param: keep. \nColumn '{_keep}' "
+                    f"conflicts with a keep literal. \nAllowed keep literals "
+                    f"(case sensitive): 'first', 'last', 'random', 'none'. "
+                    f"\nPlease change the column name or use a different "
+                    f"keep literal.\n"
                 )
         else:
             # is str, but is not one of the literals, then must be a column name
@@ -200,8 +202,8 @@ def _val_keep_and_columns(
 
             if _keep.lower() in ('first', 'last', 'random', 'none'):
                 _addon = (f"\nIf you are trying use :param: keep literals "
-                    f"('first', 'last', 'random', 'none'), \nonly enter these as "
-                    f"lower-case."
+                    f"('first', 'last', 'random', 'none'), \nonly enter "
+                    f"these as lower-case."
                 )
             else:
                 _addon = ""
@@ -233,13 +235,14 @@ def _val_keep_and_columns(
             raise UnicodeError
         if isinstance(_keep, bool):
             raise UnicodeError
-        _keep = int(_keep)
         if _keep not in range(_X.shape[1]):
-            raise UnicodeError
+            raise MemoryError
         return # <====================================================
     except UnicodeError:
+        raise TypeError(_err_msg)
+    except MemoryError:
         raise ValueError(_err_msg)
-    except:
+    except Exception as e:
         pass
     # END validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -247,7 +250,7 @@ def _val_keep_and_columns(
     # the returns in the if blocks should prevent getting here.
     # if something is passed for :param: keep that dodges all the if
     # blocks, then raise.
-    raise ValueError(_err_msg)
+    raise TypeError(_err_msg)
 
 
 

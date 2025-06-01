@@ -22,8 +22,8 @@ from pybear.preprocessing._InterceptManager.InterceptManager import \
 from pybear.preprocessing._InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
-# from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-#     _parallel_column_comparer import _parallel_column_comparer
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.utilities import nan_mask
 
@@ -573,9 +573,7 @@ class TestAccuracy:
                 pass
 
             if _idx in _kept_idxs:
-                pass
-                # pizza fix this
-                # assert _parallel_column_comparer(_out_col, _og_col, 1e-5, 1e-8, True)
+                assert _parallel_column_comparer(_out_col, _og_col, 1e-5, 1e-8, True)
             else:
                 out = _parallel_constant_finder(_og_col, equal_nan, 1e-5, 1e-8)
 

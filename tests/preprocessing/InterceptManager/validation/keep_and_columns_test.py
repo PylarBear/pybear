@@ -69,7 +69,7 @@ class TestValKeepAndColumns:
     )
     def test_keep_rejects_junk(self, junk_keep, _columns, _X):
         # not int, str, dict[str, any], callable
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _val_keep_and_columns(junk_keep, _columns, _X)
 
 
