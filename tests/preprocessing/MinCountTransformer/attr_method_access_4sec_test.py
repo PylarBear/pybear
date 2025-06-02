@@ -272,7 +272,7 @@ class TestMethodAccessBeforeAndAfterFitAndTransform:
         # assert the instance is fitted
         assert is_fitted(OneRcrTestCls) is True
         assert is_fitted(TwoRcrTestCls) is False
-        # call :method: reset
+        # call :meth: reset
         OneRcrTestCls.reset()
         TwoRcrTestCls.reset()
         # assert the instance is not fitted

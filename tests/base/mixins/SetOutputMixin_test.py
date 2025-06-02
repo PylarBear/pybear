@@ -300,7 +300,7 @@ class TestSetOutputMixin:
     # transform works without having called set_output -- -- -- -- -- -- -- --
 
     # _set_output_for_transform() will look for a '_output_transform' attr
-    # in the child. but if :method: set_output hasnt been called it wont
+    # in the child. but if :meth: set_output hasnt been called it wont
     # exist.  using getattr in _set_output_for_transform to get around this.
 
     def test_transform_works_without_output_transform_attr(
