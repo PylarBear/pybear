@@ -161,7 +161,6 @@ class TestX:
     # - must have at least 1 column
     # - must have at least 1 sample
     # - allows nan
-    # - output is C contiguous
     # - partial_fit/transform num columns must equal num columns seen during first fit
 
 
@@ -297,7 +296,7 @@ class TestX:
     @pytest.mark.parametrize('_num_cols', (0, 1, 2))
     @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'coo_array'))
     def test_X_2D_number_of_columns(
-        self, X_np, _shape, _kwargs, _columns, _format, _num_cols
+        self, X_np, _kwargs, _columns, _format, _num_cols
     ):
 
         # validation order is
@@ -315,7 +314,7 @@ class TestX:
         elif _format == 'pl':
             _X_wip = pl.from_numpy(_base_X, schema=list(_columns[:_num_cols]))
         elif _format == 'coo_array':
-            _X_wip = ss.csc_array(_base_X)
+            _X_wip = ss.coo_array(_base_X)
         else:
             raise Exception
 
@@ -517,49 +516,8 @@ class TestPartialFit:
     #     def partial_fit(
     #         self,
     #         X: XContainer,
-    #         y: any=None
+    #         y: Optional[Union[Any, None]]=None
     #     ) -> Self:
-
-
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'lil_array'))
-    def test_X_is_not_mutated(
-        self, _X_factory, _columns, _shape, _kwargs, _constants, _format
-    ):
-
-        _X_wip = _X_factory(
-            _dupl=None, _has_nan=False, _format=_format, _dtype='flt',
-            _columns=_columns, _constants=_constants, _noise=0, _zeros=None,
-            _shape=_shape
-        )
-
-        if _format == 'np':
-            assert _X_wip.flags['C_CONTIGUOUS'] is True
-
-        try:
-            _X_wip_before = _X_wip.copy()
-        except:
-            _X_wip_before = _X_wip.clone()
-
-
-        # verify _X_wip does not mutate in partial_fit()
-        _IM = IM(**_kwargs).partial_fit(_X_wip)
-
-
-        # ASSERTIONS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-        assert isinstance(_X_wip, type(_X_wip_before))
-        assert _X_wip.shape == _X_wip_before.shape
-        # need equal_nan because _constants has nans
-        if isinstance(_X_wip, np.ndarray):
-            assert _X_wip.flags['C_CONTIGUOUS'] is True
-            assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
-        elif hasattr(_X_wip, 'columns'):  # DATAFRAMES
-            assert _X_wip.equals(_X_wip_before)
-        elif hasattr(_X_wip_before, 'toarray'):
-            assert np.array_equal(
-                _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
-            )
-        else:
-            raise Exception
 
 
     @pytest.mark.parametrize('_y',
@@ -604,6 +562,47 @@ class TestPartialFit:
             TestCls.fit_transform(X_np)
 
 
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'lil_array'))
+    def test_X_is_not_mutated(
+        self, _X_factory, _columns, _shape, _kwargs, _constants, _format
+    ):
+
+        _X_wip = _X_factory(
+            _dupl=None, _has_nan=False, _format=_format, _dtype='flt',
+            _columns=_columns, _constants=_constants, _noise=0, _zeros=None,
+            _shape=_shape
+        )
+
+        if _format == 'np':
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
+
+        try:
+            _X_wip_before = _X_wip.copy()
+        except:
+            _X_wip_before = _X_wip.clone()
+
+
+        # verify _X_wip does not mutate in partial_fit()
+        _IM = IM(**_kwargs).partial_fit(_X_wip)
+
+
+        # ASSERTIONS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        assert isinstance(_X_wip, type(_X_wip_before))
+        assert _X_wip.shape == _X_wip_before.shape
+        # need equal_nan because _constants has nans
+        if isinstance(_X_wip, np.ndarray):
+            assert _X_wip.flags['C_CONTIGUOUS'] is True
+            assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+        elif hasattr(_X_wip, 'columns'):  # DATAFRAMES
+            assert _X_wip.equals(_X_wip_before)
+        elif hasattr(_X_wip_before, 'toarray'):
+            assert np.array_equal(
+                _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
+            )
+        else:
+            raise Exception
+
+
     @pytest.mark.parametrize('_keep',
         ('first', 'last', 'random', 'none', 0, lambda x: 0, {'Intercept':1})
     )
@@ -627,6 +626,7 @@ class TestPartialFit:
 
         OneShotFullFitTestCls = IM(**_kwargs).fit(X_np)
 
+        # constant_columns are equal -- -- -- --
         _ = OneShotPartialFitTestCls.constant_columns_
         __ = OneShotFullFitTestCls.constant_columns_
         assert np.array_equal(list(_.keys()), list(__.keys()))
@@ -636,7 +636,8 @@ class TestPartialFit:
             list(map(str, _.values())), list(map(str, __.values()))
         )
         del _, __
-
+        # END constant_columns are equal -- -- -- --
+        
         ONE_SHOT_PARTIAL_FIT_TRFM_X = \
             OneShotPartialFitTestCls.transform(X_np, copy=True)
 
@@ -658,7 +659,7 @@ class TestPartialFit:
                 ONE_SHOT_FULL_FIT_TRFM_X.astype(str)
             ), f"one shot partial fit trfm X != one shot full fit trfm X"
 
-
+        del OneShotPartialFitTestCls, OneShotFullFitTestCls
         del ONE_SHOT_PARTIAL_FIT_TRFM_X, ONE_SHOT_FULL_FIT_TRFM_X
 
         # END TEST THAT ONE-SHOT partial_fit/transform==ONE-SHOT fit/transform
@@ -890,6 +891,7 @@ class TestTransform:
     #     copy:Optional[Union[bool, None]] = None
     # ) -> XContainer:
 
+    # - output is C contiguous
 
     @pytest.mark.parametrize('_copy',
         (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
@@ -1210,7 +1212,7 @@ class TestInverseTransform:
     #     copy:Optional[Union[bool, None]] = None
     # ) -> XContainer:
 
-
+    # - output is C contiguous
     # - num columns must equal num columns in column_mask_
 
 

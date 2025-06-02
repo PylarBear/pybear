@@ -20,6 +20,7 @@ import numpy.typing as npt
 from ..__shared._type_aliases import XContainer
 
 import numbers
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
@@ -75,7 +76,7 @@ InternalIgnoreColumnsType: TypeAlias = npt.NDArray[np.int32]
 
 InternalHandleAsBoolType: TypeAlias = npt.NDArray[np.int32]
 
-
+FeatureNamesInType: TypeAlias = npt.NDArray[object]
 
 
 

@@ -13,7 +13,7 @@
 #     instructions_
 
 # original_dtypes_, total_counts_by_column_, instructions_ should have
-# the setter blocked, and get not accessible before fit. this is tested
+# the setter blocked, and be not accessible before fit. this is tested
 # in attr_method_access_test with 1 & 2 rcr.
 
 # n_features_in_ 1 & 2 rcr accuracy against columns and each other

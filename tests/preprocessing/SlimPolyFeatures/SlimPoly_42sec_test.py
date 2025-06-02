@@ -1073,7 +1073,7 @@ class TestTransform:
         else:
             raise Exception
 
-    # pizza pick up IM & CDT 3-way here
+
     @pytest.mark.parametrize('_equal_nan', (True, False))
     def test_one_all_nans(self, _kwargs, X_np, _shape, _equal_nan):
 
