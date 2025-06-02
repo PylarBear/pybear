@@ -45,7 +45,7 @@ FeatureNameCombinerType: TypeAlias = \
         Literal['as_feature_names', 'as_indices']
     ]
 
-ExpansionCombinationsType: tuple[tuple[int, ...], ...]
+CombinationsType: TypeAlias = tuple[tuple[int, ...], ...]
 
 PolyDuplicatesType: TypeAlias = list[list[tuple[int, ...]]]
 
@@ -55,7 +55,7 @@ DroppedPolyDuplicatesType: TypeAlias = dict[tuple[int, ...], tuple[int, ...]]
 
 PolyConstantsType: TypeAlias = dict[tuple[int, ...], Any]
 
-
+FeatureNamesInType: TypeAlias = npt.NDArray[object]
 
 
 

@@ -7,7 +7,11 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Any,
+    Self,
+    Union
+)
 from ._type_aliases import XContainer
 
 import numpy as np
@@ -56,8 +60,8 @@ class NanStandardizer(
 
     NanStandardizer (NS) is a full-fledged scikit-style transformer with
     partial_fit, fit, transform, fit_transform, get_params, set_params,
-    and score methods. The partial_fit, fit, and score methods are no-ops
-    that are available so that NS can be incorporated into larger
+    and score methods. The partial_fit, fit, and score methods are
+    no-ops that are available so that NS can be incorporated into larger
     workflows like scikit pipelines and dask_ml wrappers. NS is
     technically always in a fitted state because it does not to need to
     learn anything from data to do transformations, it knows everything
@@ -69,7 +73,7 @@ class NanStandardizer(
     Parameters
     ----------
     new_value:
-        Optional[any], default=np.nan - the new value to put in place of
+        Optional[Any], default=np.nan - the new value to put in place of
         the nan-like values. There is no validation for this value, the
         user is free to enter whatever they like. If there is a casting
         problem, i.e., the receiving object, the data, will not receive
@@ -123,14 +127,13 @@ class NanStandardizer(
     0  a     b  <NA>
     1  c  <NA>     d
 
-
     """
 
 
     def __init__(
         self,
         *,
-        new_value: Optional[any] = np.nan
+        new_value: Optional[Any] = np.nan
     ):
 
         """Instantiate the NanStandardizer instance."""
@@ -143,24 +146,27 @@ class NanStandardizer(
 
 
     def get_metadata_routing(self):
+        """Get metadata routing is not implemented."""
+
+        __ = type(self).__name__
         raise NotImplementedError(
-            f"'get_metadata_routing is not implemented in NanStandardizer"
+            f"get_metadata_routing is not implemented in {__}"
         )
 
-    # def get_params()
-    # handled by GetParamsMixin
 
-    # def set_params()
-    # handled by SetParamsMixin
+    # def get_params() - handled by GetParamsMixin
 
-    # def fit_transform()
-    # handled by FitTransformMixin
+
+    # def set_params() - handled by SetParamsMixin
+
+
+    # def fit_transform() - handled by FitTransformMixin
 
 
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Union[Any, None]] = None
     ) -> Self:
 
         """
@@ -170,13 +176,12 @@ class NanStandardizer(
         Parameters
         ----------
         X:
-            Union[NDArray, pandas.Series, pandas.DataFrame, polars.Series,
-            polars.DataFrame, scipy.sparse], of shape (n_samples,
-            n_features) or (n_samples,) - the object for which to replace
-            nan-like representations. Ignored.
+            array-like of shape (n_samples, n_features) or (n_samples,) -
+            the object for which to replace nan-like representations.
+            Ignored.
         y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
+            Optional[Union[Any, None]], default=None - the target for
+            the data. Ignored.
 
 
         Returns
@@ -186,7 +191,6 @@ class NanStandardizer(
 
         """
 
-        check_is_fitted(self)
 
         return self
 
@@ -194,7 +198,7 @@ class NanStandardizer(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Union[Any, None]] = None
     ) -> Self:
 
         """
@@ -204,13 +208,12 @@ class NanStandardizer(
         Parameters
         ----------
         X:
-            Union[NDArray, pandas.Series, pandas.DataFrame, polars.Series,
-            polars.DataFrame, scipy.sparse], of shape (n_samples,
-            n_features) or (n_samples,) - the object for which to replace
-            nan-like representations. Ignored.
+            array-like of shape (n_samples, n_features) or (n_samples,) -
+            the object for which to replace nan-like representations.
+            Ignored.
         y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
+            Optional[Union[Any, None]], default=None - the target for
+            the data. Ignored.
 
 
         Returns
@@ -220,15 +223,14 @@ class NanStandardizer(
 
         """
 
-        check_is_fitted(self)
 
-        return self
+        return self.partial_fit(X, y)
 
 
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:Optional[bool]=False
     ) -> XContainer:
 
         """
@@ -238,10 +240,8 @@ class NanStandardizer(
         Parameters
         ----------
         X:
-            Union[NDArray, pandas.Series, pandas.DataFrame, polars.Series,
-            polars.DataFrame, scipy.sparse], of shape (n_samples,
-            n_features) or (n_samples,) - the object for which to replace
-            nan-like representations.
+            array-like of shape (n_samples, n_features) or (n_samples,) -
+            the object for which to replace nan-like representations.
         copy:
             Optional[bool], default=False - whether to replace the values
             directly in the original X or in a deepcopy of X.
@@ -250,10 +250,9 @@ class NanStandardizer(
         Return
         ------
         _X:
-            Union[NDArray, pandas.Series, pandas.DataFrame, polars.Series,
-            polars.DataFrame, scipy.sparse] of shape (n_samples,
-            n_features), (n_samples,) - The data with new values in the
-            locations previously occupied by nan-like values.
+            array-like of shape (n_samples, n_features), (n_samples,) -
+            The data with new values in the locations previously occupied
+            by nan-like values.
 
         """
 
@@ -276,7 +275,7 @@ class NanStandardizer(
     def score(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Union[Any, None]] = None
     ) -> None:
 
         """
@@ -286,13 +285,12 @@ class NanStandardizer(
         Parameters
         ----------
         X:
-            Union[NDArray, pandas.Series, pandas.DataFrame, polars.Series,
-            polars.DataFrame, scipy.sparse], of shape (n_samples,
-            n_features) or (n_samples,) - the object for which to replace
-            nan-like representations. Ignored.
+            array-like of shape (n_samples, n_features) or (n_samples,) -
+            the object for which to replace nan-like representations.
+            Ignored.
         y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
+            Optional[Union[Any, None]], default=None - the target for
+            the data. Ignored.
 
 
         Returns

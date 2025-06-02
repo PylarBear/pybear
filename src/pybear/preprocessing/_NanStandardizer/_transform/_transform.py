@@ -30,10 +30,8 @@ def _transform(
     Parameters
     ----------
     _X:
-        Union[Sequence, Sequence[Sequence], NDArray, pandas.Series,
-        pandas.DataFrame, polars.Series, polars.DataFrame, scipy.sparse],
-        of shape (n_samples, n_features) or (n_samples,) - the object
-        for which to replace nan-like representations.
+        array-like of shape (n_samples, n_features) or (n_samples,) -
+        the object for which to replace nan-like representations.
     _new_value:
         any - the new value to put in place of the nan-like values.
         There is no validation for this value, the user is free to enter
@@ -45,11 +43,9 @@ def _transform(
     Returns
     -------
     _X:
-        Union[Sequence, Sequence[Sequence], NDArray, pandas.Series,
-        pandas.DataFrame, polars.Series, polars.DataFrame, scipy.sparse]
-        of shape (n_samples, n_features), (n_non_zero_values,), or
-        (n_samples,) - The original data with new values in the locations
-        previously occupied by nan-like values.
+        array-like of shape (n_samples, n_features) or (n_samples,) -
+        The original data with new values in the locations previously
+        occupied by nan-like values.
 
     """
 

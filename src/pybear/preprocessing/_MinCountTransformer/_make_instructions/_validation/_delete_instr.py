@@ -19,10 +19,10 @@ def _val_delete_instr(
 
     """
     Validate that _delete_instr is a dictionary with an entry for each
-    feature in the data. the keys must be the integer column indices of
+    feature in the data. The keys must be the integer column indices of
     the features and the values must be lists that hold the values to be
     removed from that column. the lists may also contain any of
-    'DELETE ALL', 'DELETE COLUMN' or 'INACTIVE'. the individual lists
+    'DELETE ALL', 'DELETE COLUMN' or 'INACTIVE'. The individual lists
     may be empty.
 
 

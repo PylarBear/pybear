@@ -20,7 +20,8 @@ import numpy.typing as npt
 from ._type_aliases import (
     DuplicatesType,
     RemovedColumnsType,
-    ColumnMaskType
+    ColumnMaskType,
+    FeatureNamesInType
 )
 from ..__shared._type_aliases import XContainer
 
@@ -449,6 +450,7 @@ class ColumnDeduplicateTransformer(
         job_size: Optional[numbers.Integral]=20
     ) -> None:
 
+        """Initialize the ColumnDeduplicateTransformer instance."""
 
         self.keep = keep
         self.do_not_drop = do_not_drop
@@ -459,14 +461,15 @@ class ColumnDeduplicateTransformer(
         self.n_jobs = n_jobs
         self.job_size = job_size
 
-    # END init ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
 
     # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     @property
     def duplicates_(self) -> DuplicatesType:
         """Retrieve the duplicates_ attribute. Read the main docs
         for more information."""
+
+        check_is_fitted(self)
+
         return self._duplicates
 
 
@@ -474,6 +477,9 @@ class ColumnDeduplicateTransformer(
     def removed_columns_(self) -> RemovedColumnsType:
         """Retrieve the removed_columns_ attribute. Read the main docs
         for more information."""
+
+        check_is_fitted(self)
+
         return self._removed_columns
 
 
@@ -481,25 +487,33 @@ class ColumnDeduplicateTransformer(
     def column_mask_(self) -> ColumnMaskType:
         """Retrieve the column_mask_ attribute. Read the main docs
         for more information."""
+
+        check_is_fitted(self)
+
         return self._column_mask
     # END properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
     def _reset(self) -> Self:
         """
-        Reset internal data-dependent state of the transformer.
+        Reset the internal data-dependent state of ColumnDeduplicateTransformer.
         __init__ parameters are not changed.
-
         """
 
         if hasattr(self, '_duplicates'):
-
             delattr(self, '_duplicates')
+
+        if hasattr(self, '_removed_columns'):
             delattr(self, '_removed_columns')
+
+        if hasattr(self, '_column_mask'):
             delattr(self, '_column_mask')
+
+        if hasattr(self, 'n_features_in_'):
             delattr(self, 'n_features_in_')
-            if hasattr(self, 'feature_names_in_'):
-                delattr(self, 'feature_names_in_')
+
+        if hasattr(self, 'feature_names_in_'):
+            delattr(self, 'feature_names_in_')
 
         return self
 
@@ -507,16 +521,16 @@ class ColumnDeduplicateTransformer(
     def get_feature_names_out(
         self,
         input_features:Optional[Union[Sequence[str], None]]=None
-    ):
+    ) -> FeatureNamesInType:
 
         """
-        Get the feature names for the deduplicated data.
+        Get the feature names for the output of :meth: `transform`.
 
 
         Parameters
         ----------
-        input_features :
-            Optional[Union[Sequence[str], None], default=None -
+        input_features:
+            Optional[Union[Sequence[str], None]], default=None -
             Externally provided feature names for the fitted data, not
             the transformed data.
 
@@ -531,8 +545,8 @@ class ColumnDeduplicateTransformer(
 
             If input_features is not None:
 
-            - if feature_names_in_ is not defined, then input_features is
-                used as the input features.
+            - if feature_names_in_ is not defined, then input_features
+                is used as the input features.
 
             - if feature_names_in_ is defined, then input_features must
                 exactly match the features in feature_names_in_.
@@ -541,8 +555,8 @@ class ColumnDeduplicateTransformer(
         Return
         ------
         -
-            feature_names_out : NDArray[object] - The feature names of
-            the deduplicated data after transformation.
+            feature_names_out: FeatureNamesInType - The feature names of
+            the transformed data.
 
         """
 
@@ -579,20 +593,18 @@ class ColumnDeduplicateTransformer(
     ) -> Self:
 
         """
-        Perform incremental fitting on one or more data sets. Determine
-        the duplicate columns in the data, subject to criteria defined
-        in :param: `rtol`, :param: `atol`, and :param: `equal_nan`.
+        Perform incremental fitting on one or more batches of data.
+        Determine the duplicate columns in the data.
 
 
         Parameters
         ----------
         X:
-            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
-            (n_samples, n_features) - Data to remove duplicate columns
-            from.
+            array-like of shape (n_samples, n_features) - Required. Data
+            to remove duplicate columns from.
         y:
-            Optional[Any], default=None - ignored. The target for the
-            data.
+            Optional[Union[Any, None]], default=None - Ignored. The
+            target for the data.
 
 
         Return
@@ -600,8 +612,8 @@ class ColumnDeduplicateTransformer(
         -
             self - the fitted ColumnDeduplicateTransformer instance.
 
-
         """
+
 
         X = validate_data(
             X,
@@ -724,31 +736,28 @@ class ColumnDeduplicateTransformer(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any]=None
+        y: Optional[Union[Any, None]]=None
     ) -> Self:
 
         """
-        Perform a single fitting on one batch of data. Determine the
-        duplicate columns in the data, subject to criteria defined
-        in :param: `rtol`, :param: `atol`, and :param: `equal_nan`.
+        Perform a single fitting on a dataset. Determine the duplicate
+        columns in the data.
 
 
         Parameters
         ----------
         X:
-            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
-            (n_samples, n_features) - Data to remove duplicate columns
-            from.
+            array-like of shape (n_samples, n_features) - Required. The
+            data to remove duplicate columns from.
         y:
-            Optional[Any], default=None - ignored. The target for the
-            data.
+            Optional[Union[Any, None]], default=None - Ignored. The
+            target for the data.
 
 
         Return
         ------
         -
             self - the fitted ColumnDeduplicateTransformer instance.
-
 
         """
 
@@ -786,9 +795,8 @@ class ColumnDeduplicateTransformer(
         Parameters
         ----------
         X:
-            Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
-            (n_samples, n_features - n_features_removed) - A deduplicated
-            data set.
+            array-like of shape (n_samples, n_transformed_features) - A
+            transformed data set.
         copy:
             Optional[Union[bool, None]], default=None - Whether to make
             a deepcopy of X before the inverse transform.
@@ -797,9 +805,9 @@ class ColumnDeduplicateTransformer(
         Returns
         -------
         -
-            X_inv: {array-like, scipy sparse matrix} of shape (n_samples,
-                n_features) - Deduplicated data reverted to its original
-                state.
+            X_inv: array-like of shape (n_samples, n_features) -
+            Transformed data reverted to its original untransformed
+            state.
 
         """
 
@@ -871,7 +879,7 @@ class ColumnDeduplicateTransformer(
     def score(
         self,
         X: XContainer,
-        y: Optional[Any]=None
+        y: Optional[Union[Any, None]]=None
     ) -> None:
 
         """

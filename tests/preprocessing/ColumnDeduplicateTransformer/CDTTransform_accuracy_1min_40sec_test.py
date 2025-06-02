@@ -26,6 +26,7 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
 class TestAccuracy:
 
 
+    # pizza what about hybrid
     @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
@@ -47,7 +48,7 @@ class TestAccuracy:
         # END validate the test parameters
 
         # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if X_dtype in ['str', 'obj', 'hybrid'] and X_format not in ['np', 'pd', 'pl']:
+        if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take str")
 
         if X_format == 'np' and X_dtype == 'int' and has_nan:
@@ -71,7 +72,6 @@ class TestAccuracy:
             _noise=0,
             _zeros=None,
             _shape=_shape
-
         )
 
         # retain original format
@@ -128,8 +128,6 @@ class TestAccuracy:
         #     'removed_columns_'
         #     'column_mask_'
         # and 'get_feature_names_out'
-
-        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # returned format is same as given format
         assert isinstance(TRFM_X, _og_format)

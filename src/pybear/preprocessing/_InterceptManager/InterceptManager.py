@@ -58,7 +58,6 @@ from ...base import (
 
 
 
-
 class InterceptManager(
     FeatureMixin,
     FitTransformMixin,
@@ -533,7 +532,9 @@ class InterceptManager(
         equal_nan: Optional[bool]=True,
         rtol: Optional[numbers.Real]=1e-5,
         atol: Optional[numbers.Real]=1e-8
-    ):
+    ) -> None:
+
+        """Initialize the InterceptManager instance."""
 
         self.keep = keep
         self.equal_nan = equal_nan
@@ -546,6 +547,9 @@ class InterceptManager(
     def constant_columns_(self) -> ConstantColumnsType:
         """Retrieve the constant_columns_ attribute. Read the main docs
         for more information."""
+
+        check_is_fitted(self)
+
         return self._constant_columns
 
 
@@ -553,6 +557,9 @@ class InterceptManager(
     def kept_columns_(self) -> KeptColumnsType:
         """Retrieve the kept_columns_ attribute. Read the main docs
         for more information."""
+
+        check_is_fitted(self)
+
         return self._kept_columns
 
 
@@ -560,6 +567,9 @@ class InterceptManager(
     def removed_columns_(self) -> RemovedColumnsType:
         """Retrieve the removed_columns_ attribute. Read the main docs
         for more information."""
+
+        check_is_fitted(self)
+
         return self._removed_columns
 
 
@@ -567,6 +577,9 @@ class InterceptManager(
     def column_mask_(self) -> ColumnMaskType:
         """Retrieve the column_mask_ attribute. Read the main docs
         for more information."""
+
+        check_is_fitted(self)
+
         return self._column_mask
     # END properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -574,19 +587,27 @@ class InterceptManager(
     def _reset(self) -> Self:
 
         """
-        Reset internal data-dependent state of InterceptManager.
+        Reset the internal data-dependent state of InterceptManager.
         __init__ parameters are not changed.
         """
 
         if hasattr(self, '_constant_columns'):
-
             delattr(self, '_constant_columns')
+
+        if hasattr(self, '_kept_columns'):
             delattr(self, '_kept_columns')
+
+        if hasattr(self, '_removed_columns'):
             delattr(self, '_removed_columns')
+
+        if hasattr(self, '_column_mask'):
             delattr(self, '_column_mask')
+
+        if hasattr(self, 'n_features_in_'):
             delattr(self, 'n_features_in_')
-            if hasattr(self, 'feature_names_in_'):
-                delattr(self, 'feature_names_in_')
+
+        if hasattr(self, 'feature_names_in_'):
+            delattr(self, 'feature_names_in_')
 
         return self
 
@@ -597,35 +618,34 @@ class InterceptManager(
     ) -> FeatureNamesInType:
 
         """
-        Return the feature names for the output of :meth: `transform`.
+        Get the feature names for the output of :meth: `transform`.
         When :param: `keep` is a dictionary, the appended column of
         constants is included in the outputted feature name vector.
 
 
         Parameters
         ----------
-        input_features :
+        input_features:
             Optional[Union[Sequence[str], None]], default=None -
             Externally provided feature names for the fitted data, not
             the transformed data.
 
             If input_features is None:
 
-            - if :attr: `feature_names_in_` is defined, then that is
+            - if feature_names_in_ is defined, then feature_names_in_ is
                 used as the input features.
 
-            - if :attr: `feature_names_in_` is not defined, then the
-                following input feature names are generated:
+            - if feature_names_in_ is not defined, then the following
+                input feature names are generated:
                 ["x0", "x1", ..., "x(n_features_in_ - 1)"].
 
             If input_features is not None:
 
-            - if :attr: `feature_names_in_` is not defined, then
-                input_features is used as the input features.
+            - if feature_names_in_ is not defined, then input_features
+                is used as the input features.
 
-            - if :attr: `feature_names_in_` is defined, then
-                input_features must exactly match the features in
-                feature_names_in_.
+            - if feature_names_in_ is defined, then input_features must
+                exactly match the features in feature_names_in_.
 
 
         Return
@@ -664,7 +684,8 @@ class InterceptManager(
 
 
     def get_metadata_routing(self):
-        """Get metadata routing is not implemented in InterceptManager."""
+        """Get metadata routing is not implemented."""
+
         __ = type(self).__name__
         raise NotImplementedError(
             f"get_metadata_routing is not implemented in {__}"
@@ -682,8 +703,7 @@ class InterceptManager(
 
         """
         Perform incremental fitting on one or more batches of data.
-        Determine the constant columns in the data, subject to criteria
-        defined in :param: `rtol`, :param: `atol`, and :param: `equal_nan`.
+        Determine the constant columns in the data.
 
 
         Parameters
@@ -692,14 +712,14 @@ class InterceptManager(
             array-like of shape (n_samples, n_features) - Required. Data
             to find constant columns in.
         y:
-            Optional[Union[Any, None]], default=None - ignored. The
+            Optional[Union[Any, None]], default=None - Ignored. The
             target for the data.
 
 
         Return
         ------
         -
-            self: the fitted InterceptManager instance.
+            self - the fitted InterceptManager instance.
 
         """
 
@@ -847,25 +867,24 @@ class InterceptManager(
     ) -> Self:
 
         """
-        Perform a single fitting on a data set. Determine the constant
-        columns in the given data, subject to the criteria defined
-        in :param: `rtol`, :param: `atol`, and :param: `equal_nan`.
+        Perform a single fitting on a dataset. Determine the constant
+        columns in the data.
 
 
         Parameters
         ----------
         X:
-            array-like of shape (n_samples, n_features) - Required. Data
-            to find constant columns in.
+            array-like of shape (n_samples, n_features) - Required. The
+            data to find constant columns in.
         y:
-            Optional[Union[Any, None]], default=None - ignored. The
+            Optional[Union[Any, None]], default=None - Ignored. The
             target for the data.
 
 
         Return
         ------
         -
-            self: the fitted InterceptManager instance.
+            self - the fitted InterceptManager instance.
 
         """
 
@@ -916,15 +935,14 @@ class InterceptManager(
             a deepcopy of X before the inverse transform.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             X_inv: array-like of shape (n_samples, n_features) -
             Transformed data reverted to its original untransformed
             state.
 
         """
-
 
         check_is_fitted(self)
 
@@ -1002,7 +1020,7 @@ class InterceptManager(
     def score(
         self,
         X: XContainer,
-        y: Optional[Any]=None
+        y: Optional[Union[Any, None]]=None
     ) -> None:
 
         """

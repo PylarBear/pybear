@@ -230,6 +230,7 @@ class TestAccuracy:
         # returned format is same as given format
         assert isinstance(TRFM_X, _og_format)
 
+        # if numpy output, is C order
         if isinstance(TRFM_X, np.ndarray):
             assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
