@@ -7,9 +7,9 @@
 
 
 from typing import (
-    Sequence,
     Literal,
-    Optional
+    Optional,
+    Sequence
 )
 from typing_extensions import (
     Any,

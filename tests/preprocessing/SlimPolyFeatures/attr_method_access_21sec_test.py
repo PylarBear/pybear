@@ -194,7 +194,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # fit an instance  (done above)
         # assert the instance is fitted
         assert is_fitted(TestCls) is True
-        # call :method: reset
+        # call :meth: reset
         TestCls.reset()
         # assert the instance is not fitted
         assert is_fitted(TestCls) is False

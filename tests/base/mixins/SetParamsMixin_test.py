@@ -97,7 +97,7 @@ class TestSetParams__NotInstantiated:
     def err_msg():
 
         return (
-            f":meth: set_params is being called on the class, not an "
+            f":meth: 'set_params' is being called on the class, not an "
             f"instance. Instantiate the class, then call set_params."
         )
 
