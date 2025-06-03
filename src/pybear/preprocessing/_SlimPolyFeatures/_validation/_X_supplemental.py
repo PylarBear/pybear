@@ -51,13 +51,19 @@ def _val_X_supplemental(
 
     if _interaction_only:
         if _X.shape[1] < 2:
-            _err_msg = (f"\nWhen only generating interaction terms (:param: "
-                f"interaction_only is True), 'X' must have at least 2 features.")
+            _err_msg = (
+                f"\nWhen only generating interaction terms (:param: "
+                f"interaction_only is True), 'X' must have at least 2 "
+                f"features."
+            )
             raise ValueError(_err_msg)
     elif not _interaction_only:
         if _X.shape[1] < 1:
-            _err_msg = (f"\nWhen generating all polynomial terms (:param: "
-                f"interaction_only is False), 'X' must have at least 1 feature.")
+            _err_msg = (
+                f"\nWhen generating all polynomial terms (:param: "
+                f"interaction_only is False), 'X' must have at least 1 "
+                f"feature."
+            )
             raise ValueError(_err_msg)
 
 

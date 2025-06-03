@@ -49,7 +49,7 @@ def _transform(
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(
         _X,
@@ -59,7 +59,7 @@ def _transform(
     assert isinstance(_column_mask, np.ndarray)
     assert _column_mask.dtype == bool
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     if isinstance(_X, pd.core.frame.DataFrame):

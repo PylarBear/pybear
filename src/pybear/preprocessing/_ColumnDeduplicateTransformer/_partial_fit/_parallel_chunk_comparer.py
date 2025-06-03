@@ -27,7 +27,7 @@ def _parallel_chunk_comparer(
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool
-) -> list[bool]:
+) -> list[tuple[int, int]]:
 
     """
     Compare the columns in chunk1 against the columns in chunk2 for
@@ -59,6 +59,7 @@ def _parallel_chunk_comparer(
         See numpy.allclose.
     _equal_nan:
         bool - When comparing pairs of columns row by row:
+
         If equal_nan is True, exclude from comparison any rows where one
         or both of the values is/are nan. If one value is nan, this
         essentially assumes that the nan value would otherwise be the
@@ -86,11 +87,11 @@ def _parallel_chunk_comparer(
     assert isinstance(_chunk2, np.ndarray)
 
     assert isinstance(_chunk1_X_indices, tuple)
-    assert all(map(isinstance, _chunk1_X_indices, (int for i in _chunk1_X_indices)))
+    assert all(map(isinstance, _chunk1_X_indices, [int] * _chunk1.shape[1]))
     assert len(_chunk1_X_indices) == _chunk1.shape[1]
 
     assert isinstance(_chunk2_X_indices, tuple)
-    assert all(map(isinstance, _chunk2_X_indices, (int for i in _chunk2_X_indices)))
+    assert all(map(isinstance, _chunk2_X_indices, [int] * _chunk2.shape[1]))
     assert len(_chunk2_X_indices) == _chunk2.shape[1]
 
     try:

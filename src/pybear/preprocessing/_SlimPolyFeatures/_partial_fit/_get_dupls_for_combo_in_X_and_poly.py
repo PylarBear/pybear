@@ -22,7 +22,7 @@ import scipy.sparse as ss
 from .._partial_fit._parallel_chunk_comparer import _parallel_chunk_comparer
 from .._partial_fit._columns_getter import _columns_getter
 
-
+# pizza finish this
 
 def _get_dupls_for_combo_in_X_and_poly(
     _X: InternalXContainer,
@@ -118,7 +118,6 @@ def _get_dupls_for_combo_in_X_and_poly(
 
     args = {'_rtol': _rtol, '_atol': _atol, '_equal_nan': _equal_nan}
 
-    _job_size = 20
 
     # convert combos to np for slicing out poly combos
     _poly_combos = np.array(list(map(tuple, _poly_combos)), dtype=object)

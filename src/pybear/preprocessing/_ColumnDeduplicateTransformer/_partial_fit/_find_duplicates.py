@@ -52,9 +52,10 @@ def _find_duplicates(
     ----------
     _X:
         array-like of shape (n_samples, n_features) - The data to be
-        deduplicated. _X must indexable, therefore scipy sparse coo,
-        dia, and bsr are prohibited. There is no conditioning of the
-        data here, it must be passed to this module in suitable state.
+        deduplicated. The container must be numpy ndarray, pandas
+        dataframe, polars dataframe, or scipy csc only. There is no
+        conditioning of the data here, it must be passed to this module
+        in suitable state.
     _rtol:
         numbers.Real - the relative difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
@@ -79,10 +80,7 @@ def _find_duplicates(
         in line with the normal numpy handling of nan values.
     _n_jobs:
         Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when comparing columns. The default is to use
-        processes, but can be overridden externally using a joblib
-        parallel_config context manager. The default number of jobs is
-        -1 (all processors).
+        jobs to use when comparing columns.
     _job_size:
         numbers.Integral - The number of columns to send to a joblib job.
         Must be an integer greater than or equal to 2.
@@ -91,8 +89,8 @@ def _find_duplicates(
     Return
     ------
     -
-        GROUPS: DuplicatesType - lists indicating the column indices of
-        identical columns.
+        duplicates_: DuplicatesType - lists indicating the column indices
+        of identical columns.
 
     """
 
@@ -110,24 +108,22 @@ def _find_duplicates(
 
     args = (_rtol, _atol, _equal_nan)
 
-    # set the batch size for joblib
-    _job_size = 20
 
     if _X.shape[1] < 2 * _job_size:
 
         _all_duplicates = []  # not used later, just a helper to track duplicates
 
-        _dupls = []
+        _dupls:list[tuple[int, int]] = []
         for col_idx1 in range(_X.shape[1] - 1):
 
             if col_idx1 in _all_duplicates:
                 continue
 
-            _column1 = _columns_getter(_X, col_idx1)
-
             # make a list of col_idx2's
             RANGE = range(col_idx1 + 1, _X.shape[1])
             IDXS = [i for i in RANGE if i not in _all_duplicates]
+
+            _match: list[tuple[int, int]]
 
             for col_idx2 in IDXS:
 
@@ -141,29 +137,45 @@ def _find_duplicates(
 
                 if any(_match):
                     _dupls += _match
-                    if col_idx1 not in _all_duplicates:
-                        _all_duplicates.append(col_idx1)
-                    if col_idx2 not in _all_duplicates:
-                        _all_duplicates.append(col_idx2)
+                    _all_duplicates.append(col_idx1)
+                    _all_duplicates.append(col_idx2)
 
-        del _all_duplicates, RANGE, IDXS
+        del _all_duplicates, RANGE, IDXS, _match
 
     else:
+
+        # get the indices for the joblib jobs ahead of time -- -- -- --
+        # this just makes the joblib code less messy
+        _job_size = int(_job_size)
+        _n_batches = math.ceil(_X.shape[1] / _job_size)
+        _X1_batches: list[tuple[int, ...]] = []
+        _X2_batches: list[tuple[int, ...]] = []
+        for i, j in itertools.combinations_with_replacement(range(_n_batches), 2):
+            _X1_batches.append(
+                tuple(range(i * _job_size, min(_job_size * (i + 1), _X.shape[1])))
+            )
+            _X2_batches.append(
+                tuple(range(j * _job_size, min(_job_size * (j + 1), _X.shape[1])))
+            )
+        # END get indices for jobs -- -- -- -- -- -- -- -- -- -- -- --
+
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             _dupls = joblib.Parallel(return_as='list')(
                 joblib.delayed(_parallel_chunk_comparer)(
-                    _columns_getter(_X, tuple(range(i * _job_size, min(_job_size * (i+1), _X.shape[1])))),
-                    tuple(range(i * _job_size, min(_job_size * (i + 1), _X.shape[1]))),
-                    _columns_getter(_X, tuple(range(j * _job_size, min(_job_size * (j+1), _X.shape[1])))),
-                    tuple(range(j * _job_size, min(_job_size * (j + 1), _X.shape[1]))),
+                    _columns_getter(_X, _X1_idxs),
+                    _X1_idxs,
+                    _columns_getter(_X, _X2_idxs),
+                    _X2_idxs,
                     *args
-                    ) for i, j in itertools.combinations_with_replacement(range(math.ceil(_X.shape[1]/_job_size)), 2)
-                )
+                ) for _X1_idxs, _X2_idxs in zip(_X1_batches, _X2_batches)
+            )
 
         _dupls = list(itertools.chain(*_dupls))
         assert all(map(isinstance, _dupls, (tuple for i in _dupls)))
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        del _n_batches, _X1_batches, _X2_batches
+
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     duplicates_ = union_find(_dupls)
 

@@ -6,14 +6,20 @@
 
 
 
+from .._type_aliases import (
+    CombinationsType,
+    KeptPolyDuplicatesType,
+    PolyDuplicatesType
+)
+
 from copy import deepcopy
 
 
 
 def _build_kept_poly_duplicates(
-    poly_duplicates_: list[list[tuple[int, ...]]],
-    _kept_combos: tuple[tuple[int, ...], ...]
-) -> dict[tuple[int, ...], list[tuple[int, ...]]]:
+    poly_duplicates_: PolyDuplicatesType,
+    _kept_combos: CombinationsType
+) -> KeptPolyDuplicatesType:
 
     """
     Build kept_poly_duplicates_.
@@ -29,26 +35,26 @@ def _build_kept_poly_duplicates(
     Parameters
     ---------
     poly_duplicates_:
-        list[list[tuple[int, ...]]] - The groups of duplicates found
-        in the polynomial expansions across all partial fits. If any
-        combos were equal to a column in X, then the X idx tuple
-        ... (c_idx, ) ... must be included, must be first, and there can
-        only be one.
+        PolyDuplicatesType - The groups of duplicates found in the
+        polynomial expansions across all partial fits. If :param:
+        `min_degree` is 1 and any combos were equal to a column in X,
+        then the X idx tuple ... (c_idx, ) ... must be included, must
+        be first, and there can only be one.
     _kept_combos:
-        tuple[tuple[int, ...], ...] - the combo to keep for each set of
-        duplicates in poly_duplicates_. Length must equal the length of
+        CombinationsType - the combo to keep for each set of duplicates
+        in poly_duplicates_. Length must equal the length of
         poly_duplicates_.
 
 
     Return
     ------
     -
-        kept_poly_duplicates_: dict[tuple[int, ...], list[tuple[int, ...]]]
-
+        kept_poly_duplicates_: KeptPolyDuplicatesType
 
     """
 
-    # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     assert isinstance(poly_duplicates_, list)
     for _list in poly_duplicates_:
         assert isinstance(_list, list)
@@ -70,17 +76,17 @@ def _build_kept_poly_duplicates(
     # _kept_combos might have len == 0, might not be any poly duplicates
     if len(_kept_combos):
         del _tuple
-    # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # END validation - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
     # need to know from :param: _kept_combos which one from each dupl set
     # is kept, all other poly_duplicates_ are dropped
 
-    kept_poly_duplicates_: dict[tuple[int, ...], list[tuple[int, ...]]] = {}
+    kept_poly_duplicates_: KeptPolyDuplicatesType = {}
     for _dupl_set_idx, _dupl_set in enumerate(poly_duplicates_):
 
-        # dont need to sort poly_duplicates_ or _dupl_sets here, taken care of
-        # on the way out of _merge_partialfit_dupls
+        # dont need to sort poly_duplicates_ or _dupl_sets here, that
+        # was done on the way out of _merge_partialfit_dupls
 
         _kept_combo = _kept_combos[_dupl_set_idx]
         _dropped_combos = deepcopy(_dupl_set)
@@ -88,8 +94,8 @@ def _build_kept_poly_duplicates(
             _dropped_combos.remove(_kept_combo)
         except:
             raise AssertionError(
-                f"algorithm failure. the combo in _kept_combos is not in "
-                f"_dupl_set."
+                f"algorithm failure. the combo in _kept_combos is not "
+                f"in _dupl_set."
             )
 
         assert len(_dropped_combos) >= 1
@@ -101,13 +107,6 @@ def _build_kept_poly_duplicates(
 
 
     return kept_poly_duplicates_
-
-
-
-
-
-
-
 
 
 

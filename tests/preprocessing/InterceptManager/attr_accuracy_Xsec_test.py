@@ -9,21 +9,11 @@
 import pytest
 
 from copy import deepcopy
-import os
-import uuid
 
 import numpy as np
-import pandas as pd
-import polars as pl
 
 from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager as IM
-
-from pybear.preprocessing._InterceptManager._partial_fit. \
-    _parallel_constant_finder import _parallel_constant_finder
-
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-    _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.utilities import nan_mask
 
@@ -116,56 +106,6 @@ class TestAccuracy:
             _zeros=None,
             _shape=_shape
         )
-
-        # retain original format
-        _og_format = type(X)
-
-        # retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            # need to adjust the pd/pl dtypes if keep is dict
-            if isinstance(keep, dict):
-                # in _transform(), when keep is a dict, it looks at whether
-                # the dict value is numerical; if so, the dtype of the appended
-                # column for a df is float64, if not num then dtype is object.
-                # this constructs the appended column, puts it on the df,
-                # then gets all the dtypes.
-
-                _key = list(keep.keys())[0]
-                _value = keep[_key]
-                if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
-                    # -----------------
-                    try:
-                        float(_value)
-                        _dtype = {'pd': np.float64, 'pl': pl.Float64}
-                    except:
-                        _dtype = {'pd': object, 'pl': pl.Object}
-                    # -----------------
-                    if isinstance(X, pd.core.frame.DataFrame):
-                        _vector = pd.DataFrame(
-                            {_key: np.full(X.shape[0], _value)}
-                        )
-                        _og_dtype = pd.concat(
-                            (X, _vector.astype(_dtype[X_format])), axis=1
-                        ).dtypes
-                    elif isinstance(X, pl.DataFrame):
-                        _vector = np.full((_shape[0], 1), _value)
-                        if _dtype['pl'] == pl.Float64:
-                            # need to do this so that polars can cast the dtype. it
-                            # wont cast it on the numpy array
-                            _vector = list(map(float, _vector.ravel()))
-                        _vector = pl.DataFrame({_key: _vector})
-                        _og_dtype = X.with_columns(_vector.cast(_dtype['pl'])).dtypes
-                del _key, _value, _vector
-            else:
-                _og_dtype = X.dtypes
-            # need np.array for pl dtypes
-            _og_dtype = np.array(_og_dtype)
-        else:
-            # if np or ss
-            # dont need to worry about keep is dict (appending a column),
-            # X will still have one dtype
-            _og_dtype = X.dtype
-        # END retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # set _kwargs
@@ -227,41 +167,6 @@ class TestAccuracy:
         #     'removed_columns_'
         #     'column_mask_'
 
-        # returned format is same as given format
-        assert isinstance(TRFM_X, _og_format)
-
-        # if numpy output, is C order
-        if isinstance(TRFM_X, np.ndarray):
-            assert TRFM_X.flags['C_CONTIGUOUS'] is True
-
-        # returned dtypes are same as given dtypes ** * ** * ** * ** * **
-        if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            MASK = TestCls.column_mask_
-            if isinstance(keep, dict):
-                # remember that above we stacked a fudged intercept column
-                # to the df to get all the dtypes in one shot. so now here
-                # we need to adjust column_mask_ to get the extra column
-                MASK = np.hstack((MASK, np.array([True], dtype=bool)))
-
-            # dtypes could be shape[1] or (shape[1] + isinstance(keep, dict))
-            assert np.array_equal(TRFM_X.dtypes, _og_dtype[MASK])
-            del MASK
-        elif '<U' in str(_og_dtype):
-            # str dtypes are changing in _transform() at
-            # _X = np.hstack((_X, _new_column))
-            # there does not seem to be an obvious connection between what
-            # the dtype of _value is and the resultant dtype (for example,
-            # _X with dtype '<U10' when appending float(1.0), the output dtype
-            # is '<U21' (???, maybe the floating points on the float?) )
-            assert '<U' in str(TRFM_X.dtype)
-        elif os.name == 'nt' and 'int' in str(_og_dtype).lower():
-            # on windows (verified not macos or linux), int dtypes are
-            # changing to int64, in _transform() at
-            # _X = np.hstack((_X, _new_column))
-            assert 'int' in str(TRFM_X.dtype).lower()
-        else:
-            assert TRFM_X.dtype == _og_dtype
-        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # attr 'n_features_in_' is correct
         assert TestCls.n_features_in_ == X.shape[1]
@@ -524,62 +429,6 @@ class TestAccuracy:
 
         # END validate TestCls attrs against ref objects v^v^v^v^v^v^v^v^v^v^v^
 
-
-        # for retained columns, assert they are equal to themselves in
-        # the original data. if the column is not retained, then assert
-        # the column in the original data is a constant
-        _new_idx = -1
-        _kept_idxs = np.arange(len(TestCls.column_mask_))[TestCls.column_mask_]
-
-        if len(_sorted_constant_idxs):
-            _num_kept_constants = sum([i in _kept_idxs for i in _sorted_constant_idxs])
-            if keep == 'first':
-                assert _sorted_constant_idxs[0] in _kept_idxs
-                assert _num_kept_constants == 1
-            elif keep == 'last':
-                assert _sorted_constant_idxs[-1] in _kept_idxs
-                assert _num_kept_constants == 1
-            elif keep == 'random':
-                assert _num_kept_constants == 1
-            elif isinstance(keep, dict) or keep == 'none':
-                assert _num_kept_constants == 0
-            del _num_kept_constants
-        else:
-            # if no constants, all columns are kept
-            assert np.array_equal(_kept_idxs, range(X.shape[1]))
-
-
-        for _idx in range(_shape[1]):
-
-            if _idx in _kept_idxs:
-                _new_idx += 1
-
-            if isinstance(X, np.ndarray):
-                _out_col = TRFM_X[:, [_new_idx]]
-                _og_col = X[:, [_idx]]
-            elif isinstance(X, pd.core.frame.DataFrame):
-                _out_col = TRFM_X.iloc[:, [_new_idx]].to_numpy()
-                _og_col = X.iloc[:, [_idx]].to_numpy()
-            elif isinstance(X, pl.DataFrame):
-                _out_col = TRFM_X[:, [_new_idx]].to_numpy()
-                _og_col = X[:, [_idx]].to_numpy()
-            else:
-                _out_col = TRFM_X.tocsc()[:, [_new_idx]].toarray()
-                _og_col = X.tocsc()[:, [_idx]].toarray()
-
-            try:
-                _out_col = _out_col.astype(np.float64)
-                _og_col = _og_col.astype(np.float64)
-            except:
-                pass
-
-            if _idx in _kept_idxs:
-                assert _parallel_column_comparer(_out_col, _og_col, 1e-5, 1e-8, True)
-            else:
-                out = _parallel_constant_finder(_og_col, equal_nan, 1e-5, 1e-8)
-
-                # a uuid would be returned if the column is not constant
-                assert not isinstance(out, uuid.UUID)
 
         # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

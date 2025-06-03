@@ -6,7 +6,10 @@
 
 
 
-
+from .._type_aliases import (
+    CombinationsType,
+    PolyDuplicatesType
+)
 
 import itertools
 
@@ -16,64 +19,61 @@ import numpy as np
 
 
 def _lock_in_random_combos(
-    poly_duplicates_: list[list[tuple[int, ...]]]
-) -> tuple[tuple[int, ...], ...]:
+    poly_duplicates_: PolyDuplicatesType
+) -> CombinationsType:
 
     """
-    When SPF :param: 'keep' is set to 'random', SPF :meth: `transform`
+    When SPF :param: `keep` is set to 'random', SPF :meth: `transform`
     needs to keep the same poly terms for all batch-wise transforms,
     otherwise the outputted batches will have different columns.
-    SPF :meth: `transform` needs a static set of random combo tuples to
-    use repeatedly, rather than a set of dynamic tuples that are
-    regenerated with each call to SPF :meth: `transform`.
+    `transform` needs a static set of random combo tuples to use
+    repeatedly, rather than a set of dynamic tuples that are regenerated
+    with each call to `transform`.
 
-    _identify_combos_to_keep handles setting the combos to keep from
-    sets of duplicates on every call to SPF :meth: `partial_fit`
-    and :meth: `transform`. Random tuples can't be chosen in
-    _identify_combos_to_keep because it is called in SPF :meth:
-    `transform` as well as :meth: `partial_fit`. There must be a
-    stand-alone module in partial_fit that locks in random tuples for
-    all SPF :meth: `transform` calls.
+    _identify_combos_to_keep (_ictk) handles setting the combos to keep
+    from sets of duplicates on every call to SPF :meth: `partial_fit`
+    and `transform`. Random tuples can't be chosen in _ictk because it
+    is called in `transform` as well as `partial_fit`. There must be a
+    stand-alone module in `partial_fit` that locks in random tuples for
+    all `transform` calls.
 
     Goal: Create a static set of random combo tuples that is regenerated
-    with each call to :meth: `partial_fit`, but is unchanged when
-    SPF :meth: `transform` is called.
+    with each call to `partial_fit`, but is unchanged when `transform`
+    is called.
 
     This module builds a static ordered tuple of randomly selected
     combo tuples, one tuple from each set of duplicates. For example,
-    a simple case would be if poly_duplicates_ is
+    a simple case would be if `poly_duplicates_` is
     [[(1, 2), (3, 5)], [(0, 8), (6, 7)]], then a possible _rand_combos
     might look like ((1, 2), (6, 7)). THE ORDER OF THE TUPLES IN
     _rand_combos IS CRITICALLY IMPORTANT AND MUST ALWAYS MATCH THE ORDER
-    OF GROUPS IN poly_duplicates_.
+    OF GROUPS IN `poly_duplicates_`.
 
     We can just randomly pick tuples from dupl groups where a column from
     X is included, e.g., [[(1,), (1,2), (1,3)]], because when we choose
-    the actual columns to keep _identify_combos_to_keep() will ignore
-    _rand_combos for that dupl group and the column from X will always
-    be kept.
+    the actual columns to keep, _ictk will ignore _rand_combos for that
+    dupl group and the column from X will always be kept.
 
-    This module assumes that 'keep' == 'random', even though that may
+    This module assumes that `keep` == 'random', even though that may
     not be the case. This makes the static list ready and waiting for
-    use by :meth: `transform` should at any time SPF :param: `keep` be
-    changed to 'random' via :meth: `set_params` after fitting.
+    use by `transform` should at any time SPF :param: `keep` be changed
+    to 'random' via :meth: `set_params` after fitting.
 
 
     Parameters
     ----------
     poly_duplicates_:
-        list[list[tuple[int, ...]] - the groups of column index tuples
-        that create identical columns.
+        PolyDuplicatesType - the groups of column index tuples that
+        create identical columns.
 
 
     Return
     ------
     -
-        _rand_combos: tuple[tuple[int, ...], ...] - An ordered tuple
-        whose values are tuples of column indices from X, each tuple
-        being selected from a group of duplicates in poly_duplicates_.
-        One   tuple is selected from each group of duplicates.
-
+        _rand_combos: CombinationsType - An ordered tuple whose values
+        are tuples of column indices from X, each tuple being selected
+        from a group of duplicates in poly_duplicates_. One tuple is
+        selected from each group of duplicates.
 
     """
 
@@ -100,7 +100,7 @@ def _lock_in_random_combos(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    _rand_combos = []
+    _rand_combos: CombinationsType = []
 
     for _dupl_set in poly_duplicates_:
 
@@ -141,11 +141,6 @@ def _lock_in_random_combos(
 
 
     return _rand_combos
-
-
-
-
-
 
 
 

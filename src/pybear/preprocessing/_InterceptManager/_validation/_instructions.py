@@ -57,7 +57,8 @@ def _val_instructions(
     # col idx cannot be in more than one instruction
     # if all the lists are combined into a set, then len(set) must
     # equal sum of lens of individual lists
-    # raise if all columns in the data are deleted and not adding new intercept
+    # raise if all columns in the data are deleted and not adding new
+    # intercept
 
     _used_idxs = []
     for k, v in _instructions.items():
@@ -82,14 +83,14 @@ def _val_instructions(
     if np.array_equal(_instructions['delete'], range(_n_features_in)):
         if _instructions['add'] is None:
             raise ValueError(
-                f"All columns in the data are constant. The current :param: "
-                f"'keep' configuration will delete all columns."
+                f"All columns in the data are constant. The current "
+                f":param: 'keep' configuration will delete all columns."
             )
         else:
             warnings.warn(
-                f"All columns in the data are constant. The current :param: "
-                f"'keep' configuration will delete all the original columns "
-                f"and leave only the appended intercept."
+                f"All columns in the data are constant. The current "
+                f":param: 'keep' configuration will delete all the "
+                f"original columns and leave only the appended intercept."
             )
 
 

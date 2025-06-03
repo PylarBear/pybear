@@ -16,7 +16,11 @@ import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing._ColumnDeduplicateTransformer. \
+    ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
+
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.base.exceptions import NotFittedError
 
@@ -24,7 +28,6 @@ from pybear.utilities import (
     nan_mask,
     nan_mask_numerical
 )
-
 
 
 bypass = False
@@ -780,12 +783,16 @@ class TestPartialFit:
         assert _X_wip.shape == _X_wip_before.shape
 
         if isinstance(_X_wip, np.ndarray):
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
             assert np.array_equal(_X_wip_before, _X_wip)
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip, 'columns'):  # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(_X_wip.toarray(), _X_wip_before.toarray())
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 
@@ -1147,7 +1154,6 @@ class TestTransform:
         except:
             _X_wip_before = _X_wip.clone()
 
-
         _CDT = CDT(**_kwargs).fit(_X_wip)
 
         # verify _X_wip does not mutate in transform() with copy=True
@@ -1160,15 +1166,163 @@ class TestTransform:
 
         if isinstance(_X_wip_before, np.ndarray):
             assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip_before, 'columns'):    # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
                 _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
+
+
+    # pizza what about hybrid
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
+    @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('has_nan', (True, False))
+    @pytest.mark.parametrize('dupls', (None, [[0,2,9]], [[0,6],[1,8]]))
+    @pytest.mark.parametrize('keep', ('first', 'last', 'random'))
+    @pytest.mark.parametrize('do_not_drop', (None, [0,5], 'pd'))
+    @pytest.mark.parametrize('conflict', ('raise', 'ignore'))
+    @pytest.mark.parametrize('equal_nan', (True, False))
+    def test_accuracy(
+        self, _X_factory, _kwargs, X_format, X_dtype, has_nan,
+        dupls, keep, do_not_drop, conflict, _columns, equal_nan, _shape
+    ):
+
+        # validate the test parameters
+        assert keep in ['first', 'last', 'random']
+        assert isinstance(do_not_drop, (list, type(None), str))
+        assert conflict in ['raise', 'ignore']
+        assert isinstance(equal_nan, bool)
+        # END validate the test parameters
+
+        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd', 'pl']:
+            pytest.skip(reason=f"scipy sparse cant take str")
+
+        if X_format == 'np' and X_dtype == 'int' and has_nan:
+            pytest.skip(reason=f"numpy int dtype cant take 'nan'")
+
+        if do_not_drop == 'pd':
+            if X_format != 'pd':
+                pytest.skip(
+                    reason=f"impossible condition, str dnd and format is not pd"
+                )
+        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        X = _X_factory(
+            _dupl=dupls,
+            _has_nan=has_nan,
+            _format=X_format,
+            _dtype=X_dtype,
+            _columns=_columns,
+            _constants=None,
+            _noise=0,
+            _zeros=None,
+            _shape=_shape
+        )
+
+        # retain original format
+        _og_format = type(X)
+
+        # retain original dtypes
+        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
+            # need to cast pl to ndarray
+            _og_dtype = np.array(X.dtypes)
+        else:
+            _og_dtype = X.dtype
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        # set do_not_drop as list of strings (vs None or list of ints)
+        if do_not_drop == 'pd':
+            do_not_drop = list(map(str, [_columns[0], _columns[3], _columns[7]]))
+
+        # do the conflict conditions exist?
+        _conflict_condition = (dupls is not None) and (do_not_drop is not None) \
+            and (keep == 'last') and not (has_nan and not equal_nan)
+        # only because all non-None dupls and non-None do_not_drop
+        # have zeros in them
+
+        # set _kwargs
+        _kwargs['keep'] = keep
+        _kwargs['do_not_drop'] = do_not_drop
+        _kwargs['conflict'] = conflict
+        _kwargs['rtol'] = 1e-5
+        _kwargs['atol'] = 1e-8
+        _kwargs['equal_nan'] = equal_nan
+
+
+        TestCls = CDT(**_kwargs)
+
+
+        if _conflict_condition and conflict=='raise':
+            with pytest.raises(ValueError):
+                TestCls.fit_transform(X)
+            pytest.skip(reason=f"dont do remaining tests")
+        else:
+            TRFM_X = TestCls.fit_transform(X)
+
+        exp_dupls = deepcopy(dupls or [])
+        if has_nan and not equal_nan:
+            exp_dupls = []
+
+
+        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # returned format is same as given format
+        assert isinstance(TRFM_X, _og_format)
+
+        # if numpy output, is C order
+        if isinstance(TRFM_X, np.ndarray):
+            assert TRFM_X.flags['C_CONTIGUOUS'] is True
+
+        # returned dtypes are same as given dtypes
+        if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
+            assert np.array_equal(TRFM_X.dtypes, _og_dtype[TestCls.column_mask_])
+        else:
+            assert TRFM_X.dtype == _og_dtype
+
+        # assure all columns that werent duplicates are in the output
+        __all_dupls = list(itertools.chain(*deepcopy(exp_dupls)))
+        for col_idx in range(_shape[1]):
+            if col_idx not in __all_dupls:
+                assert TestCls.column_mask_[col_idx] is np.True_
+
+        # for retained columns, assert they are equal to themselves in
+        # the original data
+        _kept_idxs = np.arange(len(TestCls.column_mask_))[TestCls.column_mask_]
+        _kept_idxs = list(map(int, _kept_idxs))
+        for _new_idx, _kept_idx in enumerate(_kept_idxs, 0):
+
+            if isinstance(X, np.ndarray):
+                _out_col = TRFM_X[:, [_new_idx]]
+                _og_col = X[:, [_kept_idx]]
+            elif isinstance(X, pd.core.frame.DataFrame):
+                _out_col = TRFM_X.iloc[:, [_new_idx]].to_numpy()
+                _og_col = X.iloc[:, [_kept_idx]].to_numpy()
+            elif isinstance(X, pl.DataFrame):
+                _out_col = TRFM_X[:, [_new_idx]].to_numpy()
+                _og_col = X[:, [_kept_idx]].to_numpy()
+            else:
+                _out_col = TRFM_X.tocsc()[:, [_new_idx]].toarray()
+                _og_col = X.tocsc()[:, [_kept_idx]].toarray()
+
+            assert _parallel_column_comparer(
+                _out_col,
+                _og_col,
+                _rtol=1e-5,
+                _atol=1e-8,
+                _equal_nan=True
+            )
+
+        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -1274,7 +1428,7 @@ class TestTransform:
         elif same_or_diff == '_diff':
             assert TRFM_X.shape[1] == _shape[1]
 
-    # pizza See CDTTransform_accuracy for accuracy tests
+
     # pizza revisit accuracy test.... is probably redundant with transform_test
 
 
@@ -1428,13 +1582,17 @@ class TestInverseTransform:
 
         if isinstance(_X_wip_before, np.ndarray):
             assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            # if numpy output, is C order
             assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip_before, 'columns'):
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
                 _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 

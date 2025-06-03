@@ -6,10 +6,12 @@
 
 
 
+from typing_extensions import Any
+
 
 
 def _check_X_constants_dupls(
-    _X_constants: dict[int, any],
+    _X_constants: dict[int, Any],
     _X_dupls: list[list[int]]
 ) -> None:
 
@@ -21,12 +23,12 @@ def _check_X_constants_dupls(
     Parameters
     ----------
     _X_constants:
-        dict[int, any] - The constants found in X by InterceptManager.
+        dict[int, Any] - The constants found in X by InterceptManager.
         The keys of the dictionary are the indices of the columns in X
         and the values are the constant values in that respective
         column. If it is empty, there are no constant columns.
     _X_dupls:
-        list[list[int]]] - The sets of duplicates found in X by
+        list[list[int]] - The sets of duplicates found in X by
         ColumnDeduplicateTransformer. Each list of integers is a group
         of column indices in X that are duplicate. If _X_dupls is empty,
         there are no duplicate columns.
@@ -37,12 +39,10 @@ def _check_X_constants_dupls(
     -
         None
 
-
-
     """
 
 
-
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X_constants, dict)
     if len(_X_constants):
         assert all(map(isinstance, _X_constants, (int for _ in _X_constants)))
@@ -52,6 +52,7 @@ def _check_X_constants_dupls(
         for _list in _X_dupls:
             assert isinstance(_list, list)
             assert all(map(isinstance, _list, (int for _ in _list)))
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     constants_err = (
@@ -78,19 +79,6 @@ def _check_X_constants_dupls(
     else:
         # no constants, no duplicates in X, all good
         pass
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

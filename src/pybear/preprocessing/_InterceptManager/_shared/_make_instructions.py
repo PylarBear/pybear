@@ -73,7 +73,7 @@ def _make_instructions(
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     err_msg = f"'_keep' must be Literal['none'], dict[str, Any], or int"
     try:
         iter(_keep)
@@ -105,7 +105,7 @@ def _make_instructions(
         ))
         assert min(constant_columns_) >= 0
         assert max(constant_columns_) <= _n_features_in - 1
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _sorted_constant_column_idxs = sorted(list(constant_columns_))
@@ -122,7 +122,8 @@ def _make_instructions(
     # all of these operations in this if block are conditional on there
     # being at least one constant column
     if len(_sorted_constant_column_idxs) == 0:
-        # if there are no constant columns, skip everything except keep dict
+        # if there are no constant columns, skip everything except keep
+        # dict
         pass
     elif isinstance(_keep, int):
         _instructions['keep'] = [_keep]
@@ -141,7 +142,8 @@ def _make_instructions(
     # this must be separate from the above if block
     # this operation takes place whether or not there are constant columns
     if isinstance(_keep, dict):
-        # if keep == a dict, keep none, delete all, add value in last position
+        # if keep == a dict, keep none, delete all, add value in last
+        # position
         if len(_sorted_constant_column_idxs):
             _instructions['delete'] = _sorted_constant_column_idxs
         # else:

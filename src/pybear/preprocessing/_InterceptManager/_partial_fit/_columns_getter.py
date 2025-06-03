@@ -30,17 +30,18 @@ def _columns_getter(
     """
     This supports _find_constants. Handles the mechanics of extracting
     one or more columns from the various allowed data container types.
-    Data passed as scipy sparse formats must be indexable. Therefore,
-    coo matrix/array, dia matrix/array, and bsr matrix/array are
-    prohibited. Return extracted column(s) as a numpy array. In the
-    case of scipy sparse, the columns are converted to dense.
+    The container must be numpy ndarray, pandas dataframe, polars
+    dataframe, or scipy csc only. Return extracted column(s) as a numpy
+    array. In the case of scipy sparse, the columns are converted to
+    dense.
 
 
     Parameters
     ----------
     _X:
-        InternalXContainer - The data to extract columns from. _X
-        must be indexable, which excludes scipy coo, dia, and bsr. This
+        array-like of shape (n_samples, n_features) - The data to
+        extract columns from. The container must be numpy ndarray,
+        pandas dataframe, polars dataframe, or scipy csc only. This
         module expects _X to be in a valid state when passed, and will
         not condition it.
     _col_idxs:
@@ -57,7 +58,7 @@ def _columns_getter(
     """
 
 
-    # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
     assert isinstance(_X,
         (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
@@ -70,7 +71,7 @@ def _columns_getter(
     for _idx in _col_idxs:
         assert isinstance(_idx, int)
         assert _idx in range(_X.shape[1]), f"col idx out of range"
-    # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+    # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     _col_idxs = sorted(list(_col_idxs))
 
@@ -115,10 +116,11 @@ def _columns_getter(
     except:
         pass
 
-    # 25_05_22 pd numeric with junky nan-likes are coming out of here as
-    # dtype object. since _columns_getter produces an intermediary container
-    # that is used to find constants and doesnt impact the container
-    # coming out of transform, ok to let that condition persist.
+    # 25_05_22 pd numeric with junky nan-likes are coming out of here
+    # as dtype object. since _columns_getter produces an intermediary
+    # container that is used to find constants and doesnt impact the
+    # container coming out of transform, ok to let that condition
+    # persist.
 
     return _columns
 

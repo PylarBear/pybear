@@ -49,7 +49,7 @@ def _transform(
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(
         _X,
@@ -59,7 +59,8 @@ def _transform(
     assert isinstance(_instructions, dict)
     assert len(_instructions) == 3
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
 
     # class InstructionType(TypedDict):
     #
@@ -105,10 +106,11 @@ def _transform(
             # str dtypes are changing here. also on windows int dtypes
             # are changing to int64.
             _X = np.hstack((_X, _new_column))
-            # there does not seem to be an obvious connection between what
-            # the dtype of _value is and the resultant dtype (for example,
-            # _X with dtype '<U10' when appending float(1.0), the output dtype
-            # is '<U21' (???, maybe the floating points on the float?) )
+            # there does not seem to be an obvious connection between
+            # what the dtype of _value is and the resultant dtype (for
+            # example, _X with dtype '<U10' when appending float(1.0),
+            # the output dtype is '<U21' (???, maybe the floating points
+            # on the float?) )
 
         elif isinstance(_X, pd.core.frame.DataFrame):
             _X[_key] = _new_column.astype(_dtype['pd'])

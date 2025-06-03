@@ -108,8 +108,9 @@ def _manage_keep(
         'The keep Parameter' section for a lengthy explanation of the
         'keep' parameter.
     _X:
-        array-like of shape (n_samples, n_features) - the data that was
-        searched for constant columns.
+        array-like of shape (n_samples, n_features) - the data that
+        was searched for constant columns. The data need not be
+        InternalXContainer.
     _constant_columns:
         ConstantColumnsType - constant column indices and their values
         found in all partial fits.
@@ -136,11 +137,11 @@ def _manage_keep(
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # dont need to validate 'keep' this is the first thing 'keep' sees after
-    # _validate in both partial_fit and transform (the only places where
-    # this is called)
+    # dont need to validate 'keep' this is the first thing 'keep' sees
+    # after _validate in both partial_fit and transform (the only places
+    # where this is called)
 
     assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) \
         or hasattr(_X, 'toarray')
@@ -162,8 +163,7 @@ def _manage_keep(
     if _rand_idx is not None:
         assert _rand_idx in range(_n_features_in)
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     if isinstance(_keep, dict):
@@ -172,9 +172,9 @@ def _manage_keep(
         __keep = _keep(_X)
         if __keep not in _constant_columns:
             raise ValueError(
-                f"'keep' callable has returned an integer column index ({_keep}) "
-                f"that is not a column of constants. \nconstant columns: "
-                f"{_constant_columns}"
+                f"'keep' callable has returned an integer column index "
+                f"({_keep}) that is not a column of constants. \nconstant "
+                f"columns: {_constant_columns}"
             )
     elif isinstance(_keep, str) and _feature_names_in is not None and \
             _keep in _feature_names_in:

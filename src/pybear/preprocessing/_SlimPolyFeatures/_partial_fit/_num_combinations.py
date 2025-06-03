@@ -32,9 +32,9 @@ def _val_num_combinations(
         total number of polynomial features that are candidates for the
         polynomial portion of the expansion.)
     _min_degree:
-        int  - The minimum polynomial degree of
-        the generated features. Polynomial terms with degree below
-        'min_degree' are not included in the final output array.
+        int  - The minimum polynomial degree of the generated features.
+        Polynomial terms with degree below 'min_degree' are not included
+        in the final output array.
     _max_degree:
         int - The maximum polynomial degree of the generated features.
     _intx_only:
@@ -49,8 +49,8 @@ def _val_num_combinations(
     -
         None
 
-
     """
+
 
     for _ in (n_features_in_, _n_poly_combos, _min_degree, _max_degree):
         assert isinstance(_, int)

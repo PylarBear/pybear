@@ -7,6 +7,7 @@
 
 
 from typing_extensions import Union
+from .._type_aliases import PolyDuplicatesType
 
 import itertools
 import warnings
@@ -16,9 +17,9 @@ from ....utilities._union_find import union_find
 
 
 def _merge_partialfit_dupls(
-    _old_duplicates: Union[list[list[tuple[int, ...]]], None],
-    _new_duplicates: list[list[tuple[int, ...]]],
-) -> list[list[tuple[int, ...]]]:
+    _old_duplicates: Union[PolyDuplicatesType, None],
+    _new_duplicates: PolyDuplicatesType,
+) -> PolyDuplicatesType:
 
     """
     The lead-up to this module:
@@ -48,25 +49,25 @@ def _merge_partialfit_dupls(
     Parameters
     ----------
     _old_duplicates:
-        Union[list[list[tuple[int, ...]]], None] - the duplicate combos
-        carried over from the previous partial fits. Is None if on the
-        first partial fit.
+        Union[PolyDuplicatesType, None] - the duplicate combos carried
+        over from the previous partial fits. Is None if on the first
+        partial fit.
     _new_duplicates:
-        list[list[tuple[int, ...]]] - the duplicate combos found during
-        the current partial fit.
+        PolyDuplicatesType - the duplicate combos found during the
+        current partial fit.
 
 
     Return
     ------
     -
-        duplicates_: list[list[tuple[int, ...]]] - the groups of
-            identical combos across all partial fits.
+        duplicates_: PolyDuplicatesType - the groups of identical combos
+        across all partial fits.
 
 
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(_old_duplicates, (list, type(None)))
     if _old_duplicates is not None:
@@ -87,7 +88,7 @@ def _merge_partialfit_dupls(
             assert isinstance(_tuple, tuple)
             assert all(map(isinstance, _tuple, (int for _ in _tuple)))
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # if _old_duplicates is None, this is the first pass
@@ -105,6 +106,7 @@ def _merge_partialfit_dupls(
         # compare the newest duplicates against the previously found
         # duplicates. Only a group of 2+ columns that appear together in
         # a set of dupls in both duplicates can carry forward. make sense?
+        # this uses single column indices, not combos
         # _old_duplicates = [[0,1,2], [4,5]]
         # _new_duplicates = [[0,3], [1,2], [4,5]]
         # only [1,2] and [4,5] carry forward.
@@ -134,8 +136,8 @@ def _merge_partialfit_dupls(
         _duplicates = list(map(list, union_find(_intersection)))
 
         # Sort each component and the final result for consistency.
-        # within connected sets, sort asc len, then within the same lens sort asc
-        # idxs
+        # within connected sets, sort asc len, then within the same lens
+        # sort asc idxs
         for _idx, _conn_set in enumerate(_duplicates):
             _duplicates[_idx] = sorted(_conn_set, key=lambda x: (len(x), x))
         # across all dupl sets, only look at the first value in a dupl set,

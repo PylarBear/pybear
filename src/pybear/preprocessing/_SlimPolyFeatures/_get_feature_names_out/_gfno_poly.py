@@ -7,25 +7,28 @@
 
 
 
-from .._type_aliases import FeatureNameCombinerType
+from .._type_aliases import (
+    FeatureNameCombinerType,
+    FeatureNamesInType,
+    CombinationsType
+)
 
-import numpy.typing as npt
 import numpy as np
 
 
 
 def _gfno_poly(
-    _X_feature_names_in: npt.NDArray[object],
-    _active_combos: tuple[tuple[int, ...], ...],
+    _X_feature_names_in: FeatureNamesInType,
+    _active_combos: CombinationsType,
     _feature_name_combiner: FeatureNameCombinerType
-) -> npt.NDArray[object]:
+) -> FeatureNamesInType:
 
     """
-    Get feature names for the polynomial expansion component of the final
-    output. Construct the polynomial feature names based on :param:
-    feature_name_combiner. If :param: min_degree == 1, the feature names
-    of X are prepended to the polynomial feature names (the output of
-    this module) outside of this module.
+    Get feature names for the polynomial expansion component of the
+    final output. Construct the polynomial feature names based on
+    :param: feature_name_combiner. If :param: `min_degree` is 1, the
+    feature names of X are prepended to the polynomial feature names
+    (the output of this module) outside of this module.
 
     _poly_feature_names (the output of this) must match the order of
     _active_combos.
@@ -48,10 +51,10 @@ def _gfno_poly(
     Parameters
     ----------
     _X_feature_names_in:
-        npt.NDArray[object] - the feature names of the original data.
+        FeatureNamesInType - the feature names of the original data.
     _active_combos:
-        tuple[tuple[int, ...], ...] - The tuples of column index
-        combinations that will be in the outputted polynomial expansion.
+        CombinationsType - The tuples of column index combinations that
+        will be in the outputted polynomial expansion.
     _feature_name_combiner:
         Union[
             Callable[[Sequence[str], tuple[int, ...]], str],
@@ -65,7 +68,7 @@ def _gfno_poly(
     Return
     ------
     -
-        _poly_feature_names: npt.NDArray[object] - The feature names for
+        _poly_feature_names: FeatureNamesInType - The feature names for
         the polynomial expansion.
 
 
@@ -84,8 +87,8 @@ def _gfno_poly(
 
     assert isinstance(_active_combos, tuple)
     for _tuple in _active_combos:
-        # this is important! for a single tuple, it must come in here (leave
-        # _get_active_combos) as ((value1, value2),) like ((0,1),) !!!!!
+        # this is important! for a single tuple, it must come in here
+        # (leave _get_active_combos) as ((value1, value2),) like ((0,1),)
         assert isinstance(_tuple, tuple)
         assert all(map(isinstance, _tuple, (int for _ in _tuple)))
         assert min(_tuple) >= 0
@@ -106,8 +109,8 @@ def _gfno_poly(
         _poly_feature_names = []
         for _combo in _active_combos:
 
-            # scan over the combo, get the powers by counting the number of
-            # occurrences of X column indices
+            # scan over the combo, get the powers by counting the number
+            # of occurrences of X column indices
             _idx_ct_dict = {_X_idx: 0 for _X_idx in _combo}  # only unique idxs
             for _X_idx in _combo:
                 _idx_ct_dict[_X_idx] += 1
@@ -141,7 +144,8 @@ def _gfno_poly(
             if not isinstance(_poly_feature_name, str):
                 raise TypeError(
                     f"When 'feature_name_combiner' is a callable, it should "
-                    f"return a string. \nGot {type(_poly_feature_name)} instead."
+                    f"return a string. \nGot {type(_poly_feature_name)} "
+                    f"instead."
                 )
 
             if _poly_feature_name in _X_feature_names_in:

@@ -7,51 +7,53 @@
 
 
 from typing import Literal
-
+from .._type_aliases import (
+    CombinationsType,
+    PolyDuplicatesType
+)
 
 
 
 def _identify_combos_to_keep(
-    poly_duplicates_: list[list[tuple[int, ...]]],
+    poly_duplicates_: PolyDuplicatesType,
     _keep: Literal['first', 'last', 'random'],
-    _rand_combos: tuple[tuple[int, ...], ...]
-) -> tuple[tuple[int, ...], ...]:
+    _rand_combos: CombinationsType
+) -> CombinationsType:
 
     """
     Determine which X idx / poly combo to keep from a set of duplicates.
 
-    When SPF :param: 'keep' is set to 'random', we cant just choose
+    When SPF :param: `keep` is set to 'random', we cant just choose
     random combos here, this module is called in SPF :meth: `transform`
-    as well as :meth: 'partial_fit'. SPF :meth: `transform` needs a
-    static set of random combos because all calls to SPF :meth:
-    `transform` must output the same polynomial features. There must
-    be a separate module in SPF :meth: `partial_fit` that locks in
-    random combos for all SPF :meth: `transform` calls. Then that
+    as well as :meth: 'partial_fit'. `transform` needs a static set of
+    random combos because all calls to`transform` must output the same
+    polynomial features. There must be a separate module in `partial_fit`
+    that locks in random combos for all `transform` calls. Then that
     locked-in group of random combos must be passed to this module.
 
     Apply two rules to determine which X idx / poly combo to keep from a
     group of duplicates:
 
         1) if there is a column from X in the dupl group (there should
-        only be one, if any!) then override :param: keep and keep the
+        only be one, if any!) then override :param: `keep` and keep the
         column in X (X cannot be mutated by SlimPoly!)
 
         2) if the only duplicates are in the polynomial expansion, then
-        apply :param: keep to the group of duplicate combos in
-        poly_duplicates_ to find the combo to keep. If :param: keep is
-        'random', then the random tuples are selected prior to this
-        module in _lock_in_random_combos() and are passed here
-        via :param: `_rand_combos`.
+        apply :param: `keep` to the group of duplicate combos in
+        `poly_duplicates_` to find the combo to keep. If :param: `keep`
+        is 'random', then the random tuples are selected prior to this
+        module in _lock_in_random_combos() and are passed here via
+        :param: `_rand_combos`.
 
 
     Parameters
     ----------
     poly_duplicates_:
-        list[list[tuple[int, ...]]] - a list of the groups of identical
-        columns, containing lists of column combinations drawn from the
-        originally fit data. Columns from the original data itself can
-        be in a group of duplicates, along with the duplicates from the
-        polynomial expansion.
+        PolyDuplicatesType - a list of the groups of identical columns,
+        containing lists of column combinations drawn from the originally
+        fit data. Columns from the original data itself can be in a group
+        of duplicates, along with the duplicates from the polynomial
+        expansion.
 
         It is important that poly_duplicates_ is sorted correctly before
         it gets here. Sorted correctly means each group of duplicates is
@@ -65,31 +67,28 @@ def _identify_combos_to_keep(
         polynomial expansion. See the long explanation in the main SPF
         module.
     _rand_combos:
-        tuple[tuple[int, ...], ...] - An ordered tuple whose values are
-        tuples representing each group of duplicates in poly_duplicates_.
-        One combination is randomly selected from each group of
-        duplicates.
+        CombinationsType - An ordered tuple whose values are tuples
+        representing each group of duplicates in poly_duplicates_. One
+        combination is randomly selected from each group of duplicates.
 
 
     Return
     ------
     -
-        _idxs_to_keep: tuple[tuple[int, ...], ...] - An ordered tuple
-        whose values are tuples of column indices from X, each tuple
-        being selected from a group of duplicates in poly_duplicates_.
-        This output differs from :param: _rand_combos in that
-        _rand_combos just picks any random combo from each set of
-        duplicates in poly_duplicates_ without regard to anything else
-        simply to make the random tuples available to this module. But
-        this module observes rules imposed as above, and may or may not
-        use all or even any of the random tuples made available by
-        _rand_combos.
-
-
+        _idxs_to_keep: CombinationsType - An ordered tuple whose values
+        are tuples of column indices from X, each tuple being selected
+        from a group of duplicates in `poly_duplicates_`. This output
+        differs from :param: `_rand_combos` in that `_rand_combos`
+        just  picks any random combo from each set of duplicates in
+        `poly_duplicates_` without regard to anything else simply to
+        make the random tuples available to this module. But this module
+        observes rules imposed as above, and may or may not use all or
+        even any of the random tuples made available by `_rand_combos`.
 
     """
 
-    # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     assert isinstance(poly_duplicates_, list)
     for _list in poly_duplicates_:
         assert isinstance(_list, list)
@@ -112,37 +111,38 @@ def _identify_combos_to_keep(
     # _rand_combos might have len == 0, might not be any poly duplicates
     if len(_rand_combos):
         del _tuple
-    # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # END validation - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
     _idxs_to_keep: list[tuple[int, ...]] = []
 
     for _dupl_set_idx, _dupl_set in enumerate(poly_duplicates_):
 
-        # we cant validate number of single columns from X in a dupl set at
-        # this point!
-        # partial fits could have situations early in fitting where columns in
-        # X look like they are duplicates but end up not being after fitting is
-        # complete. because of this, we cannot validate the number of X columns
-        # in a dupl set (which at most should be one under normal situations)
-        # or it will terminate or constantly warn, in addition to other
-        # warnings for the same condition.
-        # this means we could have multiple single X columns in a dupl group.
-        # but we need to build SPF internal state with the (possibly bad) state
-        # of the current data, to allow SPF to continue to receive partial fits
-        # and get to a point where (maybe) there are no duplicates or constants.
-        # but we also need to control access to the attributes so that
-        # misleading or bad results arent accessible. this is handled by the
-        # @properties for the attributes, which check that there are no constant
-        # and duplicate columns in X before returning the attributes. this
-        # protection is not there when :param: scan_X is False.
-        # So for the first if statement, we assume, without validation, that
-        # in the dupl group there is only one column from X, if any. And this
-        # assumption will be correct at transform time when there are no
-        # duplicates in X. If there are duplicates in X and if all the
-        # no-op blocks in place in the main SPF module work correctly
-        # SPF :meth: transform will be prevented from carrying out any
-        # nonsensical instructions made here.
+        # we cant validate number of single columns from X in a dupl set
+        # at this point!
+        # partial fits could have situations early in fitting where
+        # columns in X look like they are duplicates but end up not
+        # being after fitting is complete. because of this, we cannot
+        # validate the number of X columns in a dupl set (which at most
+        # should be one under normal situations) or it will terminate
+        # or constantly warn, in addition to other warnings for the same
+        # condition. this means we could have multiple single X columns
+        # in a dupl group. but we need to build SPF internal state with
+        # the (possibly bad) state of the current data, to allow SPF to
+        # continue to receive partial fits and get to a point where
+        # (maybe) there are no duplicates or constants. but we also need
+        # to control access to the attributes so that misleading or bad
+        # results arent accessible. this is handled by the @properties
+        # for the attributes, which check that there are no constant
+        # and duplicate columns in X before returning the attributes.
+        # this protection is not there when :param: 'scan_X' is False.
+        # So for the first if statement, we assume, without validation,
+        # that in the dupl group there is only one column from X, if any.
+        # And this assumption will be correct at transform time when
+        # there are no duplicates in X. If there are duplicates in X and
+        # if all the no-op blocks in place in the main SPF module work
+        # correctly SPF :meth: 'transform' will be prevented from
+        # carrying out any nonsensical instructions made here.
 
 
         if len(_dupl_set[0]) == 1:

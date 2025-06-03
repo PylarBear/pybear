@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybear"
-version = "0.1.17"
+version = "0.1.18"
 description = "Python modules for miscellaneous data analytics applications"
 license = "BSD-3-clause"
 authors = ["Bill Sousa <WKSJR99@msn.com>"]

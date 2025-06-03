@@ -23,7 +23,7 @@ def _lock_in_random_idxs(
     _duplicates: DuplicatesType,
     _do_not_drop: DoNotDropType,
     _columns: Union[FeatureNamesInType, None]
-) -> tuple[int]:
+) -> tuple[int, ...]:
 
     """
 
@@ -41,11 +41,11 @@ def _lock_in_random_idxs(
     This module builds a static ordered tuple of randomly selected
     indices, one index from each set of duplicates, subject to any
     constraints imposed by :param: `do_not_drop`, if passed. For
-    example, a simple case would be if :attr: `duplicates_` is
-    [[1, 5, 9], [0, 8]], and `do_not_drop` is not passed, then a
-    possible _rand_idxs might look like (1, 8). THE ORDER OF THE
+    example, a simple case would be if :param: `_duplicates` is
+    [[0, 8], [1, 5, 9]], and `do_not_drop` is not passed, then a
+    possible _rand_idxs might look like (8, 1). THE ORDER OF THE
     INDICES IN _rand_idxs IS CRITICALLY IMPORTANT AND MUST ALWAYS
-    MATCH THE ORDER IN `duplicates`.
+    MATCH THE ORDER IN `_duplicates`.
 
     This module assumes that :param: `keep` == 'random', even though
     that may not be the case. This makes the static list ready and
@@ -58,10 +58,10 @@ def _lock_in_random_idxs(
     _duplicates: DuplicatesType - the groups of identical columns,
         indicated by their zero-based column index positions.
     _do_not_drop:
-        DoNotDropType, default=None - A list of columns not to be
-        dropped. If fitting is done on a container that has a header,
-        a list of feature names may be provided. Otherwise, a list of
-        column indices must be provided.
+        DoNotDropType - A list of columns not to be dropped. If fitting
+        is done on a container that has a header, a list of feature
+        names may be provided. Otherwise, a list of column indices must
+        be provided.
     _columns:
         Union[FeatureNamesInType, None] of shape (n_features,) - if
         fitting is done on a container that has a header, this is a
@@ -73,8 +73,7 @@ def _lock_in_random_idxs(
     -
         _rand_idxs: tuple[int] - An ordered tuple whose values are a
         sequence of column indices, one index selected from each set of
-        duplicates in :attr: `duplicates_`.
-
+        duplicates in :param: `_duplicates`.
 
     """
 
@@ -87,13 +86,11 @@ def _lock_in_random_idxs(
         assert isinstance(_set, list)
         assert len(_set) >= 2
         assert all(map(isinstance, _set, (int for _ in _set)))
-
     # all idxs in duplicates must be unique
     __ = list(itertools.chain(*_duplicates))
     assert len(np.unique(__)) == len(__)
     del __
-
-
+    # -- -- -- --
     err_msg = "if not None, '_columns' must be a sequence of strings"
     if _columns is not None:
         try:
@@ -104,8 +101,7 @@ def _lock_in_random_idxs(
             raise AssertionError(err_msg)
 
         assert all(map(isinstance, _columns, (str for _ in _columns))), err_msg
-
-
+    # -- -- -- --
     err_msg = \
         "if not None, 'do_not_drop' must be a sequence of integers or strings"
     if _do_not_drop is not None:

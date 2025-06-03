@@ -73,7 +73,7 @@ def _validation(
         bool
     _n_jobs:
         Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when scanning the data for columns of constants.
+        jobs to use when scanning the data for duplicates.
     _job_size:
         numbers.Integral - The number of columns to send to a joblib job.
         Must be an integer greater than or equal to 2.

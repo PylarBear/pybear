@@ -32,10 +32,10 @@ def _parallel_column_comparer(
     Parameters
     ----------
     _column1:
-        npt.NDArray[numbers.Number] - a column from X to compare against
-        another column from X for equality.
+        npt.NDArray[numbers.Number] - a polynomial column from X to
+        compare against another polynomial column from X for equality.
     _column2:
-        npt.NDArray[numbers.Number] - the other column from X.
+        npt.NDArray[numbers.Number] - the other polynomial column from X.
     _rtol:
         numbers.Real - The relative difference tolerance for equality.
         Must be a non-boolean, non-negative, real number.

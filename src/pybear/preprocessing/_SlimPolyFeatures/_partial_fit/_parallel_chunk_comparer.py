@@ -7,6 +7,7 @@
 
 
 import numpy.typing as npt
+from .._type_aliases import CombinationsType
 
 import numbers
 
@@ -20,13 +21,13 @@ from ._parallel_column_comparer import _parallel_column_comparer
 @joblib.wrap_non_picklable_objects
 def _parallel_chunk_comparer(
     _chunk1: npt.NDArray[numbers.Number],
-    _chunk1_X_indices: tuple[tuple[int, ...], ...],
+    _chunk1_X_indices: CombinationsType,
     _chunk2: npt.NDArray[numbers.Number],
-    _chunk2_X_indices: tuple[tuple[int, ...], ...],
+    _chunk2_X_indices: CombinationsType,
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool
-) -> list[bool]:
+) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
 
     """
     Compare the columns in chunk1 against the columns in chunk2 for
@@ -37,17 +38,18 @@ def _parallel_chunk_comparer(
     Parameters
     ----------
     _chunk1:
-        npt.NDArray[numbers.Number] - a chunk of columns from X to be
-        compared column-by-column against another chunk of columns from
-        X for equality.
+        npt.NDArray[numbers.Number] - a chunk of polynomial columns made
+        from X to be compared column-by-column against another chunk of
+        polynomial columns made from X for equality.
     _chunk1_X_indices:
-        tuple[tuple[int, ...], ...] - the column indices in X that made
-        each respective column in chunk1.
+        CombinationsType - the column indices in X that made each
+        respective column in chunk1.
     _chunk2:
-        npt.NDArray[numbers.Number] - the other chunk of columns from X.
+        npt.NDArray[numbers.Number] - the other chunk of polynomial
+        columns made from X.
     _chunk2_X_indices:
-        tuple[tuple[int, ...], ...] - the column indices in X that made
-        each respective column in chunk2.
+        CombinationsType - the column indices in X that made each
+        respective column in chunk2.
     _rtol:
         numbers.Real - The relative difference tolerance for equality.
         Must be a non-boolean, non-negative, real number.
@@ -74,8 +76,9 @@ def _parallel_chunk_comparer(
     Return
     ------
     _pairs:
-        list[tuple[int, int]] - The X column indices for the pairs of
-        columns that are equal between chunk1 and chunk2.
+        list[tuple[tuple[int, ...], tuple[int, ...]]] - The polynomial
+        column indices for the pairs of columns that are equal between
+        chunk1 and chunk2.
 
     """
 
@@ -85,11 +88,15 @@ def _parallel_chunk_comparer(
     assert isinstance(_chunk2, np.ndarray)
 
     assert isinstance(_chunk1_X_indices, tuple)
-    assert all(map(isinstance, _chunk1_X_indices, (tuple for i in _chunk1_X_indices)))
+    assert all(map(
+        isinstance, _chunk1_X_indices, (tuple for i in _chunk1_X_indices)
+    ))
     assert len(_chunk1_X_indices) == _chunk1.shape[1]
 
     assert isinstance(_chunk2_X_indices, tuple)
-    assert all(map(isinstance, _chunk2_X_indices, (tuple for i in _chunk2_X_indices)))
+    assert all(map(
+        isinstance, _chunk2_X_indices, (tuple for i in _chunk2_X_indices)
+    ))
     assert len(_chunk2_X_indices) == _chunk2.shape[1]
 
     try:

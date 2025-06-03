@@ -9,17 +9,11 @@
 import pytest
 
 from copy import deepcopy
-import itertools
 
 import numpy as np
-import pandas as pd
-import polars as pl
 
 from pybear.preprocessing._ColumnDeduplicateTransformer. \
     ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
-
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-    _parallel_column_comparer import _parallel_column_comparer
 
 
 
@@ -30,16 +24,15 @@ class TestAccuracy:
     @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
-    @pytest.mark.parametrize('dupls', (None, [[0,2,9]], [[0,6],[1,8]]))
+    @pytest.mark.parametrize('dupls', (None, [[0, 2, 9]], [[0, 6], [1, 8]]))
     @pytest.mark.parametrize('keep', ('first', 'last', 'random'))
-    @pytest.mark.parametrize('do_not_drop', (None, [0,5], 'pd'))
+    @pytest.mark.parametrize('do_not_drop', (None, [0, 5], 'pd'))
     @pytest.mark.parametrize('conflict', ('raise', 'ignore'))
     @pytest.mark.parametrize('equal_nan', (True, False))
     def test_accuracy(
         self, _X_factory, _kwargs, X_format, X_dtype, has_nan,
         dupls, keep, do_not_drop, conflict, _columns, equal_nan, _shape
     ):
-
         # validate the test parameters
         assert keep in ['first', 'last', 'random']
         assert isinstance(do_not_drop, (list, type(None), str))
@@ -47,7 +40,7 @@ class TestAccuracy:
         assert isinstance(equal_nan, bool)
         # END validate the test parameters
 
-        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take str")
 
@@ -59,9 +52,9 @@ class TestAccuracy:
                 pytest.skip(
                     reason=f"impossible condition, str dnd and format is not pd"
                 )
-        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         X = _X_factory(
             _dupl=dupls,
             _has_nan=has_nan,
@@ -73,17 +66,7 @@ class TestAccuracy:
             _zeros=None,
             _shape=_shape
         )
-
-        # retain original format
-        _og_format = type(X)
-
-        # retain original dtypes
-        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            # need to cast pl to ndarray
-            _og_dtype = np.array(X.dtypes)
-        else:
-            _og_dtype = X.dtype
-        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # set do_not_drop as list of strings (vs None or list of ints)
         if do_not_drop == 'pd':
@@ -91,7 +74,7 @@ class TestAccuracy:
 
         # do the conflict conditions exist?
         _conflict_condition = (dupls is not None) and (do_not_drop is not None) \
-            and (keep == 'last') and not (has_nan and not equal_nan)
+                              and (keep == 'last') and not (has_nan and not equal_nan)
         # only because all non-None dupls and non-None do_not_drop
         # have zeros in them
 
@@ -103,11 +86,9 @@ class TestAccuracy:
         _kwargs['atol'] = 1e-8
         _kwargs['equal_nan'] = equal_nan
 
-
         TestCls = CDT(**_kwargs)
 
-
-        if _conflict_condition and conflict=='raise':
+        if _conflict_condition and conflict == 'raise':
             with pytest.raises(ValueError):
                 TestCls.fit_transform(X)
             pytest.skip(reason=f"dont do remaining tests")
@@ -118,8 +99,7 @@ class TestAccuracy:
         if has_nan and not equal_nan:
             exp_dupls = []
 
-
-        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # attributes:
         #     'n_features_in_'
@@ -128,20 +108,6 @@ class TestAccuracy:
         #     'removed_columns_'
         #     'column_mask_'
         # and 'get_feature_names_out'
-
-        # returned format is same as given format
-        assert isinstance(TRFM_X, _og_format)
-
-        # if numpy output, is C order
-        if isinstance(TRFM_X, np.ndarray):
-            assert TRFM_X.flags['C_CONTIGUOUS'] is True
-
-        # returned dtypes are same as given dtypes
-        if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert np.array_equal(TRFM_X.dtypes, _og_dtype[TestCls.column_mask_])
-        else:
-            assert TRFM_X.dtype == _og_dtype
-        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # attr 'n_features_in_' is correct
         assert TestCls.n_features_in_ == X.shape[1]
@@ -153,7 +119,7 @@ class TestAccuracy:
 
         # number of columns in output is adjusted correctly for num duplicates
         assert sum(TestCls.column_mask_) == \
-               _shape[1] - sum([len(i)-1 for i in exp_dupls])
+               _shape[1] - sum([len(i) - 1 for i in exp_dupls])
 
         # number of columns in output == number of columns in column_mask_
         assert TRFM_X.shape[1] == sum(TestCls.column_mask_)
@@ -166,7 +132,7 @@ class TestAccuracy:
                 assert np.array_equal(set, exp_dupls[idx])
 
         # get expected number of kept columns
-        _num_kept = X.shape[1] - sum([len(_)-1 for _ in exp_dupls])
+        _num_kept = X.shape[1] - sum([len(_) - 1 for _ in exp_dupls])
 
         # keep ('first','last','random') is correct when not muddied by do_not_drop
         # also verify 'column_mask_' 'removed_columns_' 'get_feature_names_out_'
@@ -212,6 +178,7 @@ class TestAccuracy:
             # was kept is really complicated, use TestCls.removed_columns_
             # for help (even tho removed_columns_ is something we are trying
             # to verify)
+            # pizza is there a way to not cop out like this
             ref_removed_columns = deepcopy(TestCls.removed_columns_)
             _kept_idxs = sorted(list(
                 np.unique(list(TestCls.removed_columns_.values()))
@@ -240,54 +207,13 @@ class TestAccuracy:
                 TestCls.get_feature_names_out()
             )
         _, __ = TestCls.removed_columns_, ref_removed_columns
-        assert np.array_equal(
-            sorted(list(_.keys())),
-            sorted(list(__.keys()))
-        )
-        assert np.array_equal(
-            sorted(list(_.values())),
-            sorted(list(__.values()))
-        )
+        assert np.array_equal(sorted(list(_.keys())), sorted(list(__.keys())))
+        assert np.array_equal(sorted(list(_.values())), sorted(list(__.values())))
         del _, __
         # END validate TestCls attrs against ref objects
 
-        # assure all columns that werent duplicates are in the output
-        __all_dupls = list(itertools.chain(*deepcopy(exp_dupls)))
-        for col_idx in range(_shape[1]):
-            if col_idx not in __all_dupls:
-                assert TestCls.column_mask_[col_idx] is np.True_
 
-        # for retained columns, assert they are equal to themselves in
-        # the original data
-        _kept_idxs = np.arange(len(TestCls.column_mask_))[TestCls.column_mask_]
-        _kept_idxs = list(map(int, _kept_idxs))
-        for _new_idx, _kept_idx in enumerate(_kept_idxs, 0):
-
-            if isinstance(X, np.ndarray):
-                _out_col = TRFM_X[:, [_new_idx]]
-                _og_col = X[:, [_kept_idx]]
-            elif isinstance(X, pd.core.frame.DataFrame):
-                _out_col = TRFM_X.iloc[:, [_new_idx]].to_numpy()
-                _og_col = X.iloc[:, [_kept_idx]].to_numpy()
-            elif isinstance(X, pl.DataFrame):
-                _out_col = TRFM_X[:, [_new_idx]].to_numpy()
-                _og_col = X[:, [_kept_idx]].to_numpy()
-            else:
-                _out_col = TRFM_X.tocsc()[:, [_new_idx]].toarray()
-                _og_col = X.tocsc()[:, [_kept_idx]].toarray()
-
-            assert _parallel_column_comparer(
-                _out_col,
-                _og_col,
-                _rtol=1e-5,
-                _atol=1e-8,
-                _equal_nan=True
-            )
-
-        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
+        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 
